@@ -1,0 +1,13 @@
+[Plugin]
+Module=sms
+Name=SMS
+Description=Send and receive SMS messages
+Icon=sms-symbolic
+Builtin=true
+Embedded=valent_sms_plugin_register_types
+Website=https://github.com/andyholmes/valent
+Help=https://github.com/andyholmes/valent
+Hidden=false
+X-IncomingCapabilities=kdeconnect.sms.messages
+X-OutgoingCapabilities=kdeconnect.sms.request;kdeconnect.sms.request_conversation;kdeconnect.sms.request_conversations
+

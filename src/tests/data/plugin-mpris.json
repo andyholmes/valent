@@ -1,0 +1,147 @@
+{
+  "identity": {
+    "id": 0,
+    "type": "kdeconnect.identity",
+    "body": {
+      "deviceId": "test-device",
+      "deviceName": "Test Device",
+      "protocolVersion": 7,
+      "deviceType": "phone",
+      "incomingCapabilities": [
+        "kdeconnect.mpris",
+        "kdeconnect.mpris.request"
+      ],
+      "outgoingCapabilities": [
+        "kdeconnect.mpris",
+        "kdeconnect.mpris.request"
+      ]
+    }
+  },
+  "request-playerlist": {
+    "id": 0,
+    "type": "kdeconnect.mpris.request",
+    "body": {
+      "requestPlayerList": true
+    }
+  },
+  "request-nowplaying": {
+  "id": 0,
+  "type": "kdeconnect.mpris.request",
+    "body": {
+      "player": "Test Player",
+      "requestNowPlaying": true,
+      "requestVolume": true
+    }
+  },
+  "request-play": {
+    "id": 0,
+    "type": "kdeconnect.mpris.request",
+    "body": {
+      "player": "Test Player",
+      "action": "Play"
+    }
+  },
+  "request-next": {
+    "id": 0,
+    "type": "kdeconnect.mpris.request",
+    "body": {
+      "player": "Test Player",
+      "action": "Next"
+    }
+  },
+  "request-previous": {
+    "id": 0,
+    "type": "kdeconnect.mpris.request",
+    "body": {
+      "player": "Test Player",
+      "action": "Previous"
+    }
+  },
+  "request-pause": {
+    "id": 0,
+    "type": "kdeconnect.mpris.request",
+    "body": {
+      "player": "Test Player",
+      "action": "Pause"
+    }
+  },
+  "request-seek": {
+    "id": 0,
+    "type": "kdeconnect.mpris.request",
+    "body": {
+      "player": "Test Player",
+      "Seek": 1000
+    }
+  },
+  "request-stop": {
+    "id": 0,
+    "type": "kdeconnect.mpris.request",
+    "body": {
+      "player": "Test Player",
+      "action": "Stop"
+    }
+  },
+  "request-volume": {
+    "id": 0,
+    "type": "kdeconnect.mpris.request",
+    "body": {
+      "player": "Test Player",
+      "setVolume": 50
+    }
+  },
+  "player-list": {
+    "id": 0,
+    "type": "kdeconnect.mpris",
+    "body": {
+      "playerList": [
+        "Test Player"
+      ]
+    }
+  },
+  "player-list-empty": {
+    "id": 0,
+    "type": "kdeconnect.mpris",
+    "body": {
+      "playerList": [
+      ]
+    }
+  },
+  "player-quiescent": {
+    "id": 0,
+    "type": "kdeconnect.mpris",
+    "body": {
+      "player": "Test Player",
+      "canPause": false,
+      "canPlay": false,
+      "canGoNext": false,
+      "canGoPrevious": false,
+      "canSeek": false,
+      "isPlaying": false,
+      "pos": 0,
+      "nowPlaying": "Unknown",
+      "volume": 100
+    }
+  },
+  "player-playing": {
+    "id": 0,
+    "type": "kdeconnect.mpris",
+    "body": {
+      "player": "Test Player",
+      "canPause": true,
+      "canPlay": true,
+      "canGoNext": true,
+      "canGoPrevious": false,
+      "canSeek": true,
+      "isPlaying": true,
+      "pos": 0,
+      "albumArtUrl": "/path/to/image.png",
+      "nowPlaying": "Unknown",
+      "artist": "Test Artist",
+      "title": "Test Title",
+      "album": "Test Album",
+      "length": 180000,
+      "volume": 100
+    }
+  }
+}
+

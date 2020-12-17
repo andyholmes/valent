@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="valent">
+  <schema id="ca.andyholmes.valent.mpris">
+    <key name="read-players" type="b">
+      <default>true</default>
+    </key>
+    <key name="write-players" type="b">
+      <default>true</default>
+    </key>
+  </schema>
+</schemalist>

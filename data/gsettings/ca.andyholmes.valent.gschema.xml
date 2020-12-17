@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="valent">
+  <schema id="ca.andyholmes.Valent" path="/ca/andyholmes/valent/">
+    <key name="id" type="s">
+      <default>""</default>
+      <summary>ID</summary>
+      <description>The unique ID for the local device.</description>
+    </key>
+    <key name="name" type="s">
+      <default>""</default>
+      <summary>Name</summary>
+      <description>The display name for the local device.</description>
+    </key>
+  </schema>
+</schemalist>
+

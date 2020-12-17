@@ -1,0 +1,11 @@
+[Plugin]
+Module=lan
+Name=LAN
+Description=Connect devices over LAN
+Icon=preferences-system-network-symbolic
+Builtin=true
+Embedded=valent_lan_channel_service_register_types
+Website=https://github.com/andyholmes/valent
+Help=https://github.com/andyholmes/valent
+Hidden=false
+X-ChannelProtocol=tcp

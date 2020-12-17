@@ -1,0 +1,13 @@
+[Plugin]
+Module=contacts
+Name=Contacts
+Description=Sync contacts
+Icon=x-office-address-book-symbolic
+Builtin=true
+Embedded=valent_contacts_plugin_register_types
+Website=https://github.com/andyholmes/valent
+Help=https://github.com/andyholmes/valent
+Hidden=false
+X-IncomingCapabilities=kdeconnect.contacts.request_all_uids_timestamps;kdeconnect.contacts.request_vcards_by_uid;kdeconnect.contacts.response_uids_timestamps;kdeconnect.contacts.response_vcards
+X-OutgoingCapabilities=kdeconnect.contacts.request_all_uids_timestamps;kdeconnect.contacts.request_vcards_by_uid;kdeconnect.contacts.response_uids_timestamps;kdeconnect.contacts.response_vcards
+

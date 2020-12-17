@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="valent">
+  <schema id="ca.andyholmes.valent.clipboard">
+    <key name="auto-pull" type="b">
+      <default>false</default>
+    </key>
+    <key name="auto-push" type="b">
+      <default>false</default>
+    </key>
+    <key name="access-clipboard" type="b">
+      <default>false</default>
+    </key>
+  </schema>
+</schemalist>

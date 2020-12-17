@@ -1,0 +1,13 @@
+[Plugin]
+Module=systemvolume
+Name=System Volume
+Description=Control the system volume
+Icon=audio-volume-high-symbolic
+Builtin=true
+Embedded=valent_systemvolume_plugin_register_types
+Website=https://github.com/andyholmes/valent
+Help=https://github.com/andyholmes/valent
+Hidden=false
+X-IncomingCapabilities=kdeconnect.systemvolume.request
+X-OutgoingCapabilities=kdeconnect.systemvolume
+

@@ -1,0 +1,13 @@
+[Plugin]
+Module=mpris
+Name=MPRIS
+Description=Share control of MPRISv2 players
+Icon=applications-multimedia-symbolic
+Builtin=true
+Embedded=valent_mpris_plugin_register_types
+Website=https://github.com/andyholmes/valent
+Help=https://github.com/andyholmes/valent
+Hidden=false
+X-IncomingCapabilities=kdeconnect.mpris;kdeconnect.mpris.request
+X-OutgoingCapabilities=kdeconnect.mpris;kdeconnect.mpris.request
+

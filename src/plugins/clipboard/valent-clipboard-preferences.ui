@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="valent">
+  <template class="ValentClipboardPreferences" parent="AdwPreferencesPage">
+    <property name="title" translatable="yes">Clipboard</property>
+    <child>
+      <object class="AdwPreferencesGroup" id="autosync_group">
+        <property name="title" translatable="yes">Clipboard Sync</property>
+        <property name="description" translatable="yes">Control how clipboard content is synced between devices.</property>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Remote Clipboard Changes</property>
+            <property name="subtitle" translatable="yes">Copy to the local clipboard</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="sync_pull">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Local Clipboard Changes</property>
+            <property name="subtitle" translatable="yes">Copy to the remote clipboard</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="sync_push">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

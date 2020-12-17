@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="valent">
+  <template class="ValentBatteryPreferences" parent="AdwPreferencesPage">
+    <property name="title" translatable="yes">Battery</property>
+    <child>
+      <object class="AdwPreferencesGroup" id="local_group">
+        <property name="title" translatable="yes">Local Battery</property>
+        <property name="description" translatable="yes">How the local battery state is handled.</property>
+        <child>
+          <object class="AdwActionRow" id="share_state_row">
+            <property name="title" translatable="yes">Share State</property>
+            <property name="subtitle" translatable="yes">Send updates of the battery status</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="share_state">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesGroup" id="remote_group">
+        <property name="title" translatable="yes">Remote Battery</property>
+        <property name="description" translatable="yes">How the remote battery state is handled.</property>
+        <child>
+          <object class="AdwExpanderRow" id="full_notification">
+            <property name="title" translatable="yes">Full Battery Notification</property>
+            <property name="subtitle" translatable="yes">Show a notification when the battery is full</property>
+            <property name="show_enable_switch">True</property>
+            <child>
+              <object class="AdwActionRow">
+                <property name="title" translatable="yes">Level</property>
+                <property name="subtitle" translatable="yes">The level to consider the battery full</property>
+                <child type="suffix">
+                  <object class="GtkSpinButton">
+                    <property name="valign">center</property>
+                    <property name="adjustment">
+                      <object class="GtkAdjustment" id="full_notification_level">
+                        <property name="lower">1</property>
+                        <property name="upper">100</property>
+                        <property name="step-increment">1</property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwExpanderRow" id="low_notification">
+            <property name="title" translatable="yes">Low Battery Notification</property>
+            <property name="subtitle" translatable="yes">Show a notification when the battery is low</property>
+            <property name="show_enable_switch">True</property>
+            <child>
+              <object class="AdwActionRow">
+                <property name="title" translatable="yes">Level</property>
+                <property name="subtitle" translatable="yes">The level to consider the battery low</property>
+                <child type="suffix">
+                  <object class="GtkSpinButton">
+                    <property name="valign">center</property>
+                    <property name="adjustment">
+                      <object class="GtkAdjustment" id="low_notification_level">
+                        <property name="lower">1</property>
+                        <property name="upper">100</property>
+                        <property name="step-increment">1</property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

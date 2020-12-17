@@ -1,0 +1,37 @@
+# miscellaneous suppressions file
+
+# glib.supp misses these for some reason
+{
+   g_set_user_dirs
+   Memcheck:Leak
+   match-leak-kinds: definite,reachable
+   fun:malloc
+   ...
+   fun:UnknownInlinedFun
+   fun:g_set_user_dirs
+}
+
+{
+   gobject-init-calloc
+   Memcheck:Leak
+   fun:calloc
+   ...
+   fun:gobject_init
+}
+
+{
+   gobject-init-malloc
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:gobject_init
+}
+
+{
+   gobject-init-realloc
+   Memcheck:Leak
+   fun:realloc
+   ...
+   fun:gobject_init
+}
+

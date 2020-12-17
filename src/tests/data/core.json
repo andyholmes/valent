@@ -1,0 +1,49 @@
+{
+  "identity": {
+    "id": 0,
+    "type": "kdeconnect.identity",
+    "body": {
+      "deviceId": "test-device",
+      "deviceName": "Test Device",
+      "protocolVersion": 7,
+      "deviceType": "phone",
+      "incomingCapabilities": [
+        "kdeconnect.test.echo",
+        "kdeconnect.test.transfer"
+      ],
+      "outgoingCapabilities": [
+        "kdeconnect.test.echo",
+        "kdeconnect.test.transfer"
+      ],
+      "tcpPort": 1716
+    }
+  },
+  "pair": {
+    "id": 0,
+    "type": "kdeconnect.pair",
+    "body": {
+      "pair": true
+    }
+  },
+  "unpair": {
+    "id": 0,
+    "type": "kdeconnect.pair",
+    "body": {
+      "pair": false
+    }
+  },
+  "test-echo": {
+    "id": 0,
+    "type": "kdeconnect.test.echo",
+    "body": {
+      "foo": "bar"
+    }
+  },
+  "test-transfer": {
+    "id": 0,
+    "type": "kdeconnect.test.transfer",
+    "body": {
+      "filename": "image.png"
+    }
+  }
+}

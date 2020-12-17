@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="valent">
+  <schema id="ca.andyholmes.valent.contacts">
+    <key name="remote-sync" type="b">
+      <default>true</default>
+    </key>
+    <key name="remote-import" type="b">
+      <default>false</default>
+    </key>
+    <key name="local-sync" type="b">
+      <default>false</default>
+    </key>
+    <key name="local-uid" type="s">
+      <default>""</default>
+    </key>
+  </schema>
+</schemalist>

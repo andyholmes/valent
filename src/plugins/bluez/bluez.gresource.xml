@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/plugins/bluez">
+    <file>bluez.plugin</file>
+    <file>ca.andyholmes.Valent.sdp.xml</file>
+    <file>ca.andyholmes.valent.bluez.gschema.xml</file>
+  </gresource>
+</gresources>
+

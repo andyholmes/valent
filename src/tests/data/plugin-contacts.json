@@ -1,0 +1,65 @@
+{
+  "identity": {
+    "id": 0,
+    "type": "kdeconnect.identity",
+    "body": {
+      "deviceId": "test-device",
+      "deviceName": "Test Device",
+      "protocolVersion": 7,
+      "deviceType": "phone",
+      "incomingCapabilities": [
+        "kdeconnect.contacts.request_all_uids_timestamps",
+        "kdeconnect.contacts.request_vcards_by_uid",
+        "kdeconnect.contacts.response_uids_timestamps",
+        "kdeconnect.contacts.response_vcards"
+      ],
+      "outgoingCapabilities": [
+        "kdeconnect.contacts.request_all_uids_timestamps",
+        "kdeconnect.contacts.request_vcards_by_uid",
+        "kdeconnect.contacts.response_uids_timestamps",
+        "kdeconnect.contacts.response_vcards"
+      ]
+    }
+  },
+
+  "request-all-uids-timestamps": {
+    "id": 1609895420963,
+    "type": "kdeconnect.contacts.request_all_uids_timestamps",
+    "body": {}
+  },
+  "request-vcards-by-uid": {
+    "id": 1609895420963,
+    "type": "kdeconnect.contacts.request_vcards_by_uid",
+    "body": {
+      "uids": [
+        "test-contact1",
+        "test-contact2"
+      ]
+    }
+  },
+
+  "response-uids-timestamps": {
+    "id": 1609895420963,
+    "type": "kdeconnect.contacts.response_uids_timestamps",
+    "body": {
+      "test-contact1": 1608700784336,
+      "test-contact2": 1608700782848,
+      "uids": [
+        "test-contact1",
+        "test-contact2"
+      ]
+    }
+  },
+  "response-vcards": {
+    "id": 1609895432176,
+    "type": "kdeconnect.contacts.response_vcards",
+    "body": {
+      "test-contact1": "BEGIN:VCARD\nVERSION:2.1\nFN:Contact One\nTEL;CELL:123-456-7890\nX-KDECONNECT-ID-DEV-test-device:test-contact1\nX-KDECONNECT-TIMESTAMP:1608700784336\nEND:VCARD",
+      "test-contact2": "BEGIN:VCARD\nVERSION:2.1\nFN:Contact Two\nTEL;CELL:123-456-7890\nX-KDECONNECT-ID-DEV-test-device:test-contact2\nX-KDECONNECT-TIMESTAMP:1608700782848\nEND:VCARD",
+      "uids": [
+        "test-contact1",
+        "test-contact2"
+      ]
+    }
+  }
+}

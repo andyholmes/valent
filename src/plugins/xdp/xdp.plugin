@@ -1,0 +1,12 @@
+[Plugin]
+Module=xdp
+Name=Portal
+Description=xdp
+Icon=package-x-generic-symbolic
+Builtin=true
+Embedded=valent_xdp_plugin_register_types
+Website=https://github.com/andyholmes/valent
+Help=https://github.com/andyholmes/valent
+Hidden=false
+X-InputControllerPriority=100
+

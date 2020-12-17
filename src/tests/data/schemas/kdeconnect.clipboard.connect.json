@@ -1,0 +1,33 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer",
+            "default": 0
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.clipboard.connect"]
+        },
+        "body": {
+            "type": "object",
+            "required": ["content", "timestamp"],
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "default": "test content"
+                },
+                "timestamp": {
+                    "type": "integer",
+                    "default": 0
+                }
+            }
+        }
+    }
+}

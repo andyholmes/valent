@@ -1,0 +1,12 @@
+[Plugin]
+Module=gtk
+Name=Gtk
+Description=Integration with Gtk4
+Icon=gtk
+Builtin=true
+Embedded=valent_gtk_plugin_register_types
+Website=https://github.com/andyholmes/valent
+Help=https://github.com/andyholmes/valent
+Hidden=false
+X-ClipboardSourcePriority=100
+

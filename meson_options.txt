@@ -1,0 +1,214 @@
+# Documentation & Introspection
+option('documentation',
+         type: 'boolean',
+        value: false,
+  description: 'Build API documentation',
+)
+
+option('introspection',
+         type: 'boolean',
+        value: true,
+  description: 'Build introspection data',
+)
+
+option('firewalld',
+         type: 'boolean',
+        value: false,
+  description: 'Install firewalld configuration file',
+)
+
+
+# Debugging & Tests
+option('profile',
+         type: 'combo',
+        value: 'default',
+      choices: ['default', 'devel', 'nightly'],
+  description: 'Build profile (default, devel)',
+)
+
+option('profiling',
+         type: 'boolean',
+        value: false,
+  description: 'Enable profiling of the codebase',
+)
+
+option('tests',
+         type: 'boolean',
+        value: false,
+  description: 'Build unit tests',
+)
+
+option('dbus_tests',
+         type: 'boolean',
+        value: true,
+  description: 'Allow DBus in unit tests',
+)
+
+option('fuzz_tests',
+         type: 'boolean',
+        value: true,
+  description: 'Build fuzz tests',
+)
+
+option('network_tests',
+         type: 'boolean',
+        value: false,
+  description: 'Allow networking in unit tests',
+)
+
+
+# Network Plugins
+option('plugin_bluez',
+         type: 'boolean',
+        value: false,
+  description: 'Enable Bluetooth Networking (Bluez)'
+)
+
+option('plugin_lan',
+         type: 'boolean',
+        value: true,
+  description: 'Enable LAN Networking'
+)
+
+
+# Device Plugins
+option('plugin_battery',
+         type: 'boolean',
+        value: true,
+  description: 'Enable Battery plugin'
+)
+
+option('plugin_clipboard',
+         type: 'boolean',
+        value: true,
+  description: 'Enable Clipboard plugin'
+)
+
+option('plugin_contacts',
+         type: 'boolean',
+        value: true,
+  description: 'Enable Contacts plugin'
+)
+
+option('plugin_findmyphone',
+         type: 'boolean',
+        value: true,
+  description: 'Enable FindMyPhone plugin'
+)
+
+option('plugin_lock',
+         type: 'boolean',
+        value: true,
+  description: 'Enable Lock plugin'
+)
+
+option('plugin_mousepad',
+         type: 'boolean',
+        value: true,
+  description: 'Enable Mousepad plugin'
+)
+
+option('plugin_mpris',
+         type: 'boolean',
+        value: true,
+  description: 'Enable MPRIS plugin'
+)
+
+option('plugin_notification',
+         type: 'boolean',
+        value: true,
+  description: 'Enable Notifications plugin'
+)
+
+option('plugin_photo',
+         type: 'boolean',
+        value: true,
+  description: 'Enable Photo plugin'
+)
+
+option('plugin_ping',
+         type: 'boolean',
+        value: true,
+  description: 'Enable Ping plugin'
+)
+
+option('plugin_presenter',
+         type: 'boolean',
+        value: true,
+  description: 'Enable Presenter plugin'
+)
+
+option('plugin_runcommand',
+         type: 'boolean',
+        value: true,
+  description: 'Enable RunCommand plugin'
+)
+
+option('plugin_sftp',
+         type: 'boolean',
+        value: true,
+  description: 'Enable SFTP plugin'
+)
+
+option('plugin_share',
+         type: 'boolean',
+        value: true,
+  description: 'Enable Share plugin'
+)
+
+option('plugin_sms',
+         type: 'boolean',
+        value: true,
+  description: 'Enable SMS plugin'
+)
+
+option('plugin_systemvolume',
+         type: 'boolean',
+        value: true,
+  description: 'Enable SystemVolume plugin'
+)
+
+option('plugin_telephony',
+         type: 'boolean',
+        value: true,
+  description: 'Enable Telephony plugin'
+)
+
+
+# System Integration
+option('plugin_eds',
+         type: 'boolean',
+        value: true,
+  description: 'Enable Evolution Data Server support'
+)
+
+option('plugin_fdo',
+         type: 'boolean',
+        value: true,
+  description: 'Enable Freedesktop.org support'
+)
+
+option('plugin_gtk',
+         type: 'boolean',
+        value: true,
+  description: 'Enable Extra Gtk4 support'
+)
+
+option('plugin_pulseaudio',
+         type: 'boolean',
+        value: true,
+  description: 'Enable PulseAudio support'
+)
+
+option('plugin_upower',
+         type: 'boolean',
+        value: true,
+  description: 'Enable UPower support'
+)
+
+option('plugin_xdp',
+         type: 'boolean',
+        value: true,
+  description: 'Enable libportal support'
+)
+

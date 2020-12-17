@@ -1,0 +1,36 @@
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <template class="ValentPanel" parent="GtkWidget">
+    <property name="hexpand">1</property>
+    <property name="layout-manager">
+      <object class="GtkBoxLayout">
+        <property name="orientation">vertical</property>
+      </object>
+    </property>
+    <child>
+      <object class="GtkScrolledWindow" id="scroll">
+        <property name="hscrollbar-policy">never</property>
+        <property name="propagate-natural-height">1</property>
+        <property name="child">
+          <object class="GtkViewport">
+            <property name="scroll-to-focus">1</property>
+            <property name="child">
+              <object class="AdwClamp">
+                <property name="hexpand">1</property>
+                <property name="vexpand">1</property>
+                <child>
+                  <object class="GtkBox" id="body">
+                    <property name="orientation">vertical</property>
+                    <property name="hexpand">1</property>
+                    <property name="vexpand">1</property>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </property>
+      </object>
+    </child>
+  </template>
+</interface>
+

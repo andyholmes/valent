@@ -1,0 +1,30 @@
+{
+  "identity": {
+    "id": 0,
+    "type": "kdeconnect.identity",
+    "body": {
+      "deviceId": "test-device",
+      "deviceName": "Test Device",
+      "protocolVersion": 7,
+      "deviceType": "phone",
+      "incomingCapabilities": [
+        "kdeconnect.ping"
+      ],
+      "outgoingCapabilities": [
+        "kdeconnect.ping"
+      ]
+    }
+  },
+  "ping": {
+    "id": 0,
+    "type": "kdeconnect.ping",
+    "body": {}
+  },
+  "ping-message": {
+    "id": 0,
+    "type": "kdeconnect.ping",
+    "body": {
+      "message": "Test"
+    }
+  }
+}

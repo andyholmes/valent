@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/plugins/gtk">
+    <file>gtk.plugin</file>
+  </gresource>
+  <gresource prefix="/ca/andyholmes/Valent/icons">
+    <file alias="scalable/apps/gtk.svg">data/gtk.svg</file>
+  </gresource>
+</gresources>
+

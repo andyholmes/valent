@@ -1,0 +1,860 @@
+# English translations for valent package.
+# Copyright (C) 2021 THE valent'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the valent package.
+# Automatically generated, 2021.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: valent\n"
+"Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
+"POT-Creation-Date: 2021-03-15 02:16-0700\n"
+"PO-Revision-Date: 2021-02-28 19:55-0800\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: data/appdata/ca.andyholmes.Valent.appdata.xml.in.in:7
+#: data/ca.andyholmes.Valent.desktop.in.in:3
+#: src/libvalent/ui/valent-window.ui:13
+msgid "Valent"
+msgstr "Valent"
+
+#: data/appdata/ca.andyholmes.Valent.appdata.xml.in.in:8
+msgid "A KDE Connect implementation for Gtk-based desktops"
+msgstr "A KDE Connect implementation for Gtk-based desktops"
+
+#: data/appdata/ca.andyholmes.Valent.appdata.xml.in.in:9
+msgid "Andy Holmes"
+msgstr "Andy Holmes"
+
+#: data/appdata/ca.andyholmes.Valent.appdata.xml.in.in:12
+msgid ""
+"Valent is a KDE Connect client for Gtk based desktops. It is written in C "
+"using Gtk, GLib, and other GNOME APIs."
+msgstr ""
+"Valent is a KDE Connect client for Gtk based desktops. It is written in C "
+"using Gtk, GLib, and other GNOME APIs."
+
+#: data/appdata/ca.andyholmes.Valent.appdata.xml.in.in:16
+msgid ""
+"Although primarily meant for the GNOME desktop, any Gtk desktop should be "
+"supported and plans to support adaptable UI patterns for use on Librem5 and "
+"other small screen FOSS devices is planned."
+msgstr ""
+"Although primarily meant for the GNOME desktop, any Gtk desktop should be "
+"supported and plans to support adaptable UI patterns for use on Librem5 and "
+"other small screen FOSS devices is planned."
+
+#: data/appdata/ca.andyholmes.Valent.appdata.xml.in.in:21
+msgid "Features:"
+msgstr "Features:"
+
+#: data/appdata/ca.andyholmes.Valent.appdata.xml.in.in:23
+msgid "Sync clipboard between devices"
+msgstr "Sync clipboard between devices"
+
+#: data/appdata/ca.andyholmes.Valent.appdata.xml.in.in:24
+msgid "Sync notifications between devices"
+msgstr "Sync notifications between devices"
+
+#: data/appdata/ca.andyholmes.Valent.appdata.xml.in.in:30
+msgid "Quickly access your projects"
+msgstr "Quickly access your projects"
+
+#: data/gsettings/ca.andyholmes.valent.device.gschema.xml:6
+msgid "Paired"
+msgstr "Paired"
+
+#: data/gsettings/ca.andyholmes.valent.device.gschema.xml:7
+msgid "Whether the device is paired"
+msgstr "Whether the device is paired"
+
+#: data/gsettings/ca.andyholmes.valent.device.gschema.xml:11
+msgid "Download folder"
+msgstr ""
+
+#: data/gsettings/ca.andyholmes.valent.device.gschema.xml:12
+#: src/libvalent/ui/valent-device-panel.ui:86
+msgid "Where received files are stored"
+msgstr ""
+
+#: data/gsettings/ca.andyholmes.valent.gschema.xml:6
+msgid "ID"
+msgstr "ID"
+
+#: data/gsettings/ca.andyholmes.valent.gschema.xml:7
+msgid "The unique ID for the local device."
+msgstr "The unique ID for the local device."
+
+#: data/gsettings/ca.andyholmes.valent.gschema.xml:11
+#: src/plugins/runcommand/valent-runcommand-editor.ui:40
+msgid "Name"
+msgstr "Name"
+
+#: data/gsettings/ca.andyholmes.valent.gschema.xml:12
+msgid "The display name for the local device."
+msgstr "The display name for the local device."
+
+#: data/gsettings/ca.andyholmes.valent.plugin.gschema.xml:6
+msgid "Plugin State"
+msgstr "Plugin State"
+
+#: data/gsettings/ca.andyholmes.valent.plugin.gschema.xml:7
+msgid "Whether the plugin is enabled or not."
+msgstr "Whether the plugin is enabled or not."
+
+#: data/ca.andyholmes.Valent.desktop.in.in:17
+msgid "Preferences"
+msgstr "Preferences"
+
+#: src/libvalent/contacts/valent-contact-utils.c:47
+msgid "Address Book"
+msgstr "Address Book"
+
+#: src/libvalent/core/valent-device.c:300
+#, c-format
+msgid "Pair request from %s"
+msgstr "Pair request from %s"
+
+#: src/libvalent/core/valent-device.c:312
+msgid "Reject"
+msgstr "Reject"
+
+#: src/libvalent/core/valent-device.c:319
+msgid "Accept"
+msgstr "Accept"
+
+#: src/libvalent/core/valent-device.c:1070
+#, c-format
+msgid "%s is disconnected"
+msgstr "%s is disconnected"
+
+#: src/libvalent/core/valent-device.c:1079
+#, c-format
+msgid "%s is unpaired"
+msgstr "%s is unpaired"
+
+#: src/libvalent/ui/valent-connect-dialog.ui:4
+#: src/libvalent/ui/valent-window.ui:288
+msgid "Connect to…"
+msgstr "Connect to…"
+
+#: src/libvalent/ui/valent-connect-dialog.ui:7
+#: src/plugins/notification/valent-notification-reply-dialog.ui:9
+#: src/plugins/runcommand/valent-runcommand-editor.c:63
+#: src/plugins/runcommand/valent-runcommand-editor.ui:8
+#: src/plugins/share/valent-share-plugin.c:164
+#: src/plugins/share/valent-share-plugin.c:333
+#: src/plugins/share/valent-share-plugin.c:390
+msgid "Cancel"
+msgstr "Cancel"
+
+#: src/libvalent/ui/valent-connect-dialog.ui:12
+msgid "Connect"
+msgstr "Connect"
+
+#: src/libvalent/ui/valent-menu-list.c:420
+msgid "No Items"
+msgstr "No Items"
+
+#: src/libvalent/ui/valent-menu-list.c:561 src/libvalent/ui/valent-window.ui:32
+msgid "Previous"
+msgstr "Previous"
+
+#: src/libvalent/ui/valent-device-panel.ui:42
+msgid "Pair the device"
+msgstr "Pair the device"
+
+#: src/libvalent/ui/valent-device-panel.ui:73
+#: src/libvalent/ui/valent-device-panel.ui:77
+#: src/libvalent/ui/valent-device-panel.ui:119
+msgid "Plugins"
+msgstr "Plugins"
+
+#: src/libvalent/ui/valent-device-panel.ui:82
+msgid "General"
+msgstr ""
+
+#: src/libvalent/ui/valent-device-panel.ui:85
+msgid "Download directory"
+msgstr ""
+
+#: src/libvalent/ui/valent-device-panel.ui:120
+msgid "Enable and disable plugins"
+msgstr "Enable and disable plugins"
+
+#: src/libvalent/ui/valent-device-panel.ui:136
+msgid "Information"
+msgstr "Information"
+
+#: src/libvalent/ui/valent-device-panel.ui:139
+msgid "Unpair"
+msgstr "Unpair"
+
+#: src/libvalent/ui/valent-plugin-group.c:245
+msgid "No Plugins"
+msgstr "No Plugins"
+
+#: src/libvalent/ui/valent-window.c:175
+msgid "Unpaired"
+msgstr "Unpaired"
+
+#: src/libvalent/ui/valent-window.c:180
+msgid "Disconnected"
+msgstr "Disconnected"
+
+#: src/libvalent/ui/valent-window.c:185
+msgid "Connected"
+msgstr "Connected"
+
+#: src/libvalent/ui/valent-window.c:483
+msgid "A KDE Connect implementation for Gtk-based systems"
+msgstr "A KDE Connect implementation for Gtk-based systems"
+
+#: src/libvalent/ui/valent-window.c:486
+msgid "translator-credits"
+msgstr "translator-credits"
+
+#: src/libvalent/ui/valent-window.ui:41
+msgid "Refresh"
+msgstr "Refresh"
+
+#: src/libvalent/ui/valent-window.ui:81 src/libvalent/ui/valent-window.ui:88
+msgid "Devices"
+msgstr "Devices"
+
+#: src/libvalent/ui/valent-window.ui:113
+msgid "Searching for devices…"
+msgstr "Searching for devices…"
+
+#: src/libvalent/ui/valent-window.ui:130 src/libvalent/ui/valent-window.ui:133
+#: src/libvalent/ui/valent-window.ui:294
+msgid "Settings"
+msgstr "Settings"
+
+#: src/libvalent/ui/valent-window.ui:143
+msgid "Device Name"
+msgstr "Device Name"
+
+#: src/libvalent/ui/valent-window.ui:173
+msgid "Networking"
+msgstr "Networking"
+
+#: src/libvalent/ui/valent-window.ui:180
+msgid "Clipboard Sources"
+msgstr "Clipboard Sources"
+
+#: src/libvalent/ui/valent-window.ui:187
+msgid "Contact Providers"
+msgstr "Contact Providers"
+
+#: src/libvalent/ui/valent-window.ui:194
+msgid "Input Controllers"
+msgstr "Input Controllers"
+
+#: src/libvalent/ui/valent-window.ui:201
+msgid "Media Player Providers"
+msgstr "Media Player Providers"
+
+#: src/libvalent/ui/valent-window.ui:208
+msgid "Volume Mixers"
+msgstr "Volume Mixers"
+
+#: src/libvalent/ui/valent-window.ui:215
+msgid "Notification Sources"
+msgstr "Notification Sources"
+
+#: src/libvalent/ui/valent-window.ui:222
+msgid "Power Device Providers"
+msgstr "Power Device Providers"
+
+#: src/libvalent/ui/valent-window.ui:235
+msgid "Rename Device"
+msgstr "Rename Device"
+
+#: src/libvalent/ui/valent-window.ui:244
+msgid "_Cancel"
+msgstr "_Cancel"
+
+#: src/libvalent/ui/valent-window.ui:250
+msgid "_Rename"
+msgstr "_Rename"
+
+#: src/libvalent/ui/valent-window.ui:299
+#: src/plugins/sms/valent-sms-window.ui:346
+msgid "About Valent"
+msgstr "About Valent"
+
+#. TRANSLATORS: When the battery level is 100%
+#: src/plugins/battery/valent-battery-gadget.c:76
+msgid "Fully Charged"
+msgstr "Fully Charged"
+
+#. TRANSLATORS: When no time estimate for the battery is available
+#. EXAMPLE: 42% (Estimating…)
+#: src/plugins/battery/valent-battery-gadget.c:82
+#, c-format
+msgid "%d%% (Estimating…)"
+msgstr "%d%% (Estimating…)"
+
+#. TRANSLATORS: Estimated time until battery is charged
+#. EXAMPLE: 42% (1:15 Until Full)
+#: src/plugins/battery/valent-battery-gadget.c:96
+#, c-format
+msgid "%d%% (%d∶%02d Until Full)"
+msgstr "%d%% (%d∶%02d Until Full)"
+
+#. TRANSLATORS: Estimated time until battery is empty
+#. EXAMPLE: 42% (12:15 Remaining)
+#: src/plugins/battery/valent-battery-gadget.c:103
+#, c-format
+msgid "%d%% (%d∶%02d Remaining)"
+msgstr "%d%% (%d∶%02d Remaining)"
+
+#. TRANSLATORS: eg. Google Pixel: Battery Full
+#: src/plugins/battery/valent-battery-plugin.c:217
+#, c-format
+msgid "%s: Battery Full"
+msgstr "%s: Battery Full"
+
+#: src/plugins/battery/valent-battery-plugin.c:219
+msgid "Battery Fully Charged"
+msgstr "Battery Fully Charged"
+
+#. TRANSLATORS: eg. Google Pixel: Battery Low
+#: src/plugins/battery/valent-battery-plugin.c:228
+#, c-format
+msgid "%s: Battery Low"
+msgstr "%s: Battery Low"
+
+#. TRANSLATORS: eg. 15% remaining
+#: src/plugins/battery/valent-battery-plugin.c:231
+#, c-format
+msgid "%d%% remaining"
+msgstr "%d%% remaining"
+
+#: src/plugins/battery/valent-battery-plugin.c:244
+#: src/plugins/findmyphone/valent-findmyphone-plugin.c:69
+msgid "Ring"
+msgstr "Ring"
+
+#: src/plugins/clipboard/valent-clipboard-preferences.ui:4
+msgid "Clipboard"
+msgstr "Clipboard"
+
+#: src/plugins/clipboard/valent-clipboard-preferences.ui:7
+msgid "Clipboard Sync"
+msgstr "Clipboard Sync"
+
+#: src/plugins/clipboard/valent-clipboard-preferences.ui:8
+msgid "Control how clipboard content is synced between devices."
+msgstr "Control how clipboard content is synced between devices."
+
+#: src/plugins/clipboard/valent-clipboard-preferences.ui:11
+msgid "Remote Clipboard Changes"
+msgstr "Remote Clipboard Changes"
+
+#: src/plugins/clipboard/valent-clipboard-preferences.ui:12
+msgid "Copy to the local clipboard"
+msgstr "Copy to the local clipboard"
+
+#: src/plugins/clipboard/valent-clipboard-preferences.ui:22
+msgid "Local Clipboard Changes"
+msgstr "Local Clipboard Changes"
+
+#: src/plugins/clipboard/valent-clipboard-preferences.ui:23
+msgid "Copy to the remote clipboard"
+msgstr "Copy to the remote clipboard"
+
+#: src/plugins/contacts/valent-contacts-preferences.ui:4
+#: src/plugins/sms/valent-contact-row.c:295
+msgid "Contacts"
+msgstr "Contacts"
+
+#: src/plugins/contacts/valent-contacts-preferences.ui:7
+msgid "Remote Contacts"
+msgstr "Remote Contacts"
+
+#: src/plugins/contacts/valent-contacts-preferences.ui:8
+msgid "Control how remote contacts are used."
+msgstr "Control how remote contacts are used."
+
+#: src/plugins/contacts/valent-contacts-preferences.ui:11
+#: src/plugins/contacts/valent-contacts-preferences.ui:40
+msgid "Sync Contacts"
+msgstr "Sync Contacts"
+
+#: src/plugins/contacts/valent-contacts-preferences.ui:12
+msgid "Download contacts from remote device."
+msgstr "Download contacts from remote device."
+
+#: src/plugins/contacts/valent-contacts-preferences.ui:22
+msgid "Import Contacts"
+msgstr "Import Contacts"
+
+#: src/plugins/contacts/valent-contacts-preferences.ui:23
+msgid "Allow other applications to use the remote contacts."
+msgstr "Allow other applications to use the remote contacts."
+
+#: src/plugins/contacts/valent-contacts-preferences.ui:36
+msgid "Local Contacts"
+msgstr "Local Contacts"
+
+#: src/plugins/contacts/valent-contacts-preferences.ui:37
+msgid "Control how local contacts are used."
+msgstr "Control how local contacts are used."
+
+#: src/plugins/contacts/valent-contacts-preferences.ui:41
+msgid "Upload contacts to remote device."
+msgstr "Upload contacts to remote device."
+
+#: src/plugins/findmyphone/valent-findmyphone-ringer.c:214
+#, fuzzy
+msgid "Device Located"
+msgstr "Device Name"
+
+#: src/plugins/lan/valent-lan-channel.c:195
+#, c-format
+msgid ""
+"Remote fingerprint:\n"
+"%s\n"
+"\n"
+"Local fingerprint:\n"
+"%s"
+msgstr ""
+"Remote fingerprint:\n"
+"%s\n"
+"\n"
+"Local fingerprint:\n"
+"%s"
+
+#: src/plugins/mousepad/valent-input-dialog.ui:6
+#: src/plugins/mousepad/valent-input-dialog.ui:10
+#: src/plugins/mousepad/valent-mousepad-plugin.c:507
+msgid "Remote Input"
+msgstr "Remote Input"
+
+#: src/plugins/mousepad/valent-input-dialog.ui:103
+msgid "Move a finger to move the pointer."
+msgstr "Move a finger to move the pointer."
+
+#: src/plugins/mpris/valent-mpris-plugin.c:388
+msgid "Unknown"
+msgstr "Unknown"
+
+#: src/plugins/notification/valent-notification-preferences.ui:4
+msgid "Notifications"
+msgstr "Notifications"
+
+#: src/plugins/notification/valent-notification-preferences.ui:7
+msgid "Notification Sync"
+msgstr "Notification Sync"
+
+#: src/plugins/notification/valent-notification-preferences.ui:10
+msgid "Forward Notifications"
+msgstr "Forward Notifications"
+
+#: src/plugins/notification/valent-notification-preferences.ui:21
+msgid "Send When Active"
+msgstr "Send When Active"
+
+#: src/plugins/notification/valent-notification-preferences.ui:35
+msgid "Applications"
+msgstr "Applications"
+
+#: src/plugins/notification/valent-notification-preferences.ui:64
+msgid "No Applications"
+msgstr "No Applications"
+
+#: src/plugins/notification/valent-notification-reply-dialog.ui:6
+msgid "Reply"
+msgstr "Reply"
+
+#: src/plugins/notification/valent-notification-reply-dialog.ui:14
+msgid "Send"
+msgstr "Send"
+
+#: src/plugins/notification/valent-notification-reply-dialog.ui:30
+msgid "Device is disconnected"
+msgstr "Device is disconnected"
+
+#: src/plugins/notification/valent-notification-reply-dialog.ui:49
+msgid "No Title"
+msgstr "No Title"
+
+#: src/plugins/notification/valent-notification-reply-dialog.ui:67
+msgid "No Body"
+msgstr "No Body"
+
+#: src/plugins/photo/valent-photo-plugin.c:66
+#: src/plugins/share/valent-share-plugin.c:103
+#, c-format
+msgid "Failed to receive “%s” from %s"
+msgstr "Failed to receive “%s” from %s"
+
+#: src/plugins/photo/valent-photo-plugin.c:70
+#: src/plugins/share/valent-share-plugin.c:101
+#: src/plugins/share/valent-share-plugin.c:238
+msgid "Transfer Failed"
+msgstr "Transfer Failed"
+
+#: src/plugins/photo/valent-photo-plugin.c:156
+msgid "Take Photo"
+msgstr "Take Photo"
+
+#: src/plugins/ping/valent-ping-plugin.c:48
+msgid "Ping!"
+msgstr "Ping!"
+
+#: src/plugins/ping/valent-ping-plugin.c:103
+msgid "Ping"
+msgstr "Ping"
+
+#: src/plugins/runcommand/valent-runcommand-editor.c:61
+msgid "Select Command"
+msgstr "Select Command"
+
+#: src/plugins/runcommand/valent-runcommand-editor.c:62
+msgid "Select"
+msgstr "Select"
+
+#: src/plugins/runcommand/valent-runcommand-editor.ui:4
+msgid "Edit"
+msgstr "Edit"
+
+#: src/plugins/runcommand/valent-runcommand-editor.ui:13
+msgid "Save"
+msgstr "Save"
+
+#: src/plugins/runcommand/valent-runcommand-editor.ui:66
+msgid "Command Line"
+msgstr "Command Line"
+
+#: src/plugins/runcommand/valent-runcommand-plugin.c:283
+msgid "Run Command"
+msgstr "Run Command"
+
+#: src/plugins/runcommand/valent-runcommand-preferences.ui:4
+#: src/plugins/runcommand/valent-runcommand-preferences.ui:7
+msgid "Commands"
+msgstr "Commands"
+
+#: src/plugins/runcommand/valent-runcommand-preferences.ui:8
+msgid "Predefined commands that can be executed."
+msgstr ""
+
+#: src/plugins/runcommand/valent-runcommand-preferences.ui:30
+msgid "Add"
+msgstr "Add"
+
+#: src/plugins/runcommand/valent-runcommand-preferences.ui:36
+#, fuzzy
+msgid "Add Command…"
+msgstr "Run Command"
+
+#: src/plugins/sftp/valent-sftp-plugin.c:556
+#: src/plugins/sms/valent-contact-row.c:73
+msgid "Home"
+msgstr "Home"
+
+#: src/plugins/sftp/valent-sftp-plugin.c:562
+msgid "Permission denied"
+msgstr "Permission denied"
+
+#: src/plugins/sftp/valent-sftp-plugin.c:612
+msgid "Browse Files"
+msgstr "Browse Files"
+
+#: src/plugins/sftp/valent-sftp-preferences.ui:4
+msgid "SFTP"
+msgstr "SFTP"
+
+#: src/plugins/sftp/valent-sftp-preferences.ui:7
+msgid "Remote Filesystem"
+msgstr "Remote Filesystem"
+
+#: src/plugins/sftp/valent-sftp-preferences.ui:8
+msgid "How the remote filesystem is handled."
+msgstr "How the remote filesystem is handled."
+
+#: src/plugins/sftp/valent-sftp-preferences.ui:11
+msgid "Automatically Mount"
+msgstr "Automatically Mount"
+
+#: src/plugins/sftp/valent-sftp-preferences.ui:12
+msgid "Attempt to mount the filesystem when the device connects."
+msgstr "Attempt to mount the filesystem when the device connects."
+
+#: src/plugins/sftp/valent-sftp-preferences.ui:24
+msgid "Local Filesystem"
+msgstr "Local Filesystem"
+
+#: src/plugins/sftp/valent-sftp-preferences.ui:25
+msgid "How the local filesystem is handled."
+msgstr "How the local filesystem is handled."
+
+#: src/plugins/sftp/valent-sftp-preferences.ui:28
+#, fuzzy
+msgid "Local Access"
+msgstr "Local Filesystem"
+
+#: src/plugins/sftp/valent-sftp-preferences.ui:29
+msgid "Expose the local SSH service."
+msgstr "Expose the local SSH service."
+
+#: src/plugins/sftp/valent-sftp-preferences.ui:33
+msgid "Port"
+msgstr ""
+
+#: src/plugins/share/valent-share-plugin.c:79
+msgid "Transfer Complete"
+msgstr "Transfer Complete"
+
+#: src/plugins/share/valent-share-plugin.c:81
+#, c-format
+msgid "Received “%s” from %s"
+msgstr "Received “%s” from %s"
+
+#: src/plugins/share/valent-share-plugin.c:87
+msgid "Open Folder"
+msgstr "Open Folder"
+
+#: src/plugins/share/valent-share-plugin.c:93
+msgid "Open File"
+msgstr "Open File"
+
+#: src/plugins/share/valent-share-plugin.c:154
+msgid "Transferring File"
+msgstr "Transferring File"
+
+#: src/plugins/share/valent-share-plugin.c:155
+#, c-format
+msgid "Receiving “%s” from %s"
+msgstr "Receiving “%s” from %s"
+
+#: src/plugins/share/valent-share-plugin.c:215
+msgid "Transfer Successful"
+msgstr "Transfer Successful"
+
+#: src/plugins/share/valent-share-plugin.c:224
+#, c-format
+msgid "Sent “%s” to %s"
+msgstr "Sent “%s” to %s"
+
+#: src/plugins/share/valent-share-plugin.c:247
+#, c-format
+msgid "Sending “%s” to %s: %s"
+msgstr "Sending “%s” to %s: %s"
+
+#: src/plugins/share/valent-share-plugin.c:324
+#: src/plugins/share/valent-share-plugin.c:325
+msgid "Transferring Files"
+msgstr "Transferring Files"
+
+#: src/plugins/share/valent-share-plugin.c:386
+msgid "Share Files"
+msgstr "Share Files"
+
+#: src/plugins/share/valent-share-plugin.c:389
+msgid "Share"
+msgstr "Share"
+
+#: src/plugins/share/valent-share-plugin.c:556
+msgid "Send Files"
+msgstr "Send Files"
+
+#: src/plugins/sms/valent-contact-row.c:61
+msgid "Fax"
+msgstr "Fax"
+
+#: src/plugins/sms/valent-contact-row.c:65
+msgid "Work"
+msgstr "Work"
+
+#: src/plugins/sms/valent-contact-row.c:69
+msgid "Mobile"
+msgstr "Mobile"
+
+#: src/plugins/sms/valent-contact-row.c:75
+#: src/plugins/sms/valent-contact-row.c:245
+msgid "Other"
+msgstr "Other"
+
+#: src/plugins/sms/valent-date-label.c:224
+#: src/plugins/sms/valent-date-label.c:281
+msgid "Just now"
+msgstr "Just now"
+
+#: src/plugins/sms/valent-date-label.c:232
+#: src/plugins/sms/valent-date-label.c:289
+#, c-format
+msgid "%d minute"
+msgid_plural "%d minutes"
+msgstr[0] "%d minute"
+msgstr[1] "%d minutes"
+
+#: src/plugins/sms/valent-date-label.c:249
+#, c-format
+msgid "Yesterday · %s"
+msgstr "Yesterday · %s"
+
+#: src/plugins/sms/valent-sms-conversation.c:820
+#: src/plugins/sms/valent-sms-window.c:614
+msgid "New Conversation"
+msgstr "New Conversation"
+
+#: src/plugins/sms/valent-sms-conversation.c:838
+#, c-format
+msgid "One other contact"
+msgid_plural "%s others"
+msgstr[0] "One other contact"
+msgstr[1] "%s others"
+
+#: src/plugins/sms/valent-sms-conversation.ui:62
+msgid "Send Message"
+msgstr "Send Message"
+
+#: src/plugins/sms/valent-sms-conversation.ui:63
+msgid "Type a message"
+msgstr "Type a message"
+
+#: src/plugins/sms/valent-sms-plugin.c:341
+msgid "Messaging"
+msgstr "Messaging"
+
+#: src/plugins/sms/valent-sms-window.c:172
+msgid "Conversations"
+msgstr "Conversations"
+
+#: src/plugins/sms/valent-sms-window.c:307
+#, c-format
+msgid "Send to %s"
+msgstr "Send to %s"
+
+#: src/plugins/sms/valent-sms-window.c:641
+msgid "Search Messages"
+msgstr "Search Messages"
+
+#: src/plugins/sms/valent-sms-window.ui:7
+msgid "Messages"
+msgstr "Messages"
+
+#: src/plugins/sms/valent-sms-window.ui:68
+msgid "No Conversations"
+msgstr "No Conversations"
+
+#: src/plugins/sms/valent-sms-window.ui:136
+msgid "Back"
+msgstr ""
+
+#: src/plugins/sms/valent-sms-window.ui:167
+msgid "No conversation selected"
+msgstr "No conversation selected"
+
+#: src/plugins/sms/valent-sms-window.ui:177
+msgid "Select or start a conversation"
+msgstr "Select or start a conversation"
+
+#: src/plugins/sms/valent-sms-window.ui:202
+msgid "Search messages…"
+msgstr "Search messages…"
+
+#: src/plugins/sms/valent-sms-window.ui:229
+msgid "No results found"
+msgstr "No results found"
+
+#: src/plugins/sms/valent-sms-window.ui:265
+msgid "Type a phone number or name"
+msgstr "Type a phone number or name"
+
+#: src/plugins/sms/valent-sms-window.ui:292
+msgid "No contacts"
+msgstr "No contacts"
+
+#: src/plugins/sms/valent-sms-window.ui:326
+msgid "Search Messages…"
+msgstr "Search Messages…"
+
+#: src/plugins/sms/valent-sms-window.ui:330
+msgid "Change Address Book…"
+msgstr "Change Address Book…"
+
+#: src/plugins/sms/valent-sms-window.ui:336
+msgid "Keyboard Shortcuts"
+msgstr "Keyboard Shortcuts"
+
+#: src/plugins/sms/valent-sms-window.ui:341
+msgid "Help"
+msgstr "Help"
+
+#: src/plugins/telephony/valent-telephony-plugin.c:284
+msgid "Unknown Contact"
+msgstr "Unknown Contact"
+
+#: src/plugins/telephony/valent-telephony-plugin.c:318
+msgid "Incoming call"
+msgstr "Incoming call"
+
+#: src/plugins/telephony/valent-telephony-plugin.c:321
+#: src/plugins/telephony/valent-telephony-preferences.ui:70
+msgid "Mute"
+msgstr "Mute"
+
+#: src/plugins/telephony/valent-telephony-plugin.c:328
+msgid "Ongoing call"
+msgstr "Ongoing call"
+
+#: src/plugins/telephony/valent-telephony-preferences.ui:4
+msgid "Telephony"
+msgstr "Telephony"
+
+#: src/plugins/telephony/valent-telephony-preferences.ui:7
+msgid "Incoming Calls"
+msgstr "Incoming Calls"
+
+#: src/plugins/telephony/valent-telephony-preferences.ui:8
+#: src/plugins/telephony/valent-telephony-preferences.ui:33
+msgid "How to react when the phone rings."
+msgstr "How to react when the phone rings."
+
+#: src/plugins/telephony/valent-telephony-preferences.ui:11
+#: src/plugins/telephony/valent-telephony-preferences.ui:36
+msgid "Volume"
+msgstr "Volume"
+
+#: src/plugins/telephony/valent-telephony-preferences.ui:20
+#: src/plugins/telephony/valent-telephony-preferences.ui:55
+msgid "Pause Media"
+msgstr "Pause Media"
+
+#: src/plugins/telephony/valent-telephony-preferences.ui:32
+msgid "Ongoing Calls"
+msgstr "Ongoing Calls"
+
+#: src/plugins/telephony/valent-telephony-preferences.ui:45
+msgid "Mute Microphone"
+msgstr "Mute Microphone"
+
+#: src/plugins/telephony/valent-telephony-preferences.ui:68
+msgid "Nothing"
+msgstr "Nothing"
+
+#: src/plugins/telephony/valent-telephony-preferences.ui:69
+msgid "Lower"
+msgstr "Lower"
+
+#~ msgid "Found"
+#~ msgstr "Found"
+
+#~ msgid "Reset…"
+#~ msgstr "Reset…"
+
+#~ msgid "Expose Local"
+#~ msgstr "Expose Local"
+
+#~ msgid "Custom"
+#~ msgstr "Custom"

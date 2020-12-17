@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>@application_id@.desktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+
+  <name>Valent</name>
+  <summary>A KDE Connect implementation for Gtk-based desktops</summary>
+  <developer_name>Andy Holmes</developer_name>
+
+  <description>
+    <p>
+      Valent is a KDE Connect client for Gtk based desktops. It is written in C
+      using Gtk, GLib, and other GNOME APIs.
+    </p>
+    <p>
+      Although primarily meant for the GNOME desktop, any Gtk desktop should be
+      supported and plans to support adaptable UI patterns for use on Librem5
+      and other small screen FOSS devices is planned.
+    </p>
+    <p>Features:</p>
+    <ul>
+      <li>Sync clipboard between devices</li>
+      <li>Sync notifications between devices</li>
+    </ul>
+  </description>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>Quickly access your projects</caption>
+      <image width="660" height="546">https://raw.githubusercontent.com/wiki/andyholmes/gnome-shell-extension-gsconnect/images/gsconnect/settings-menu.png</image>
+    </screenshot>
+  </screenshots>
+  <launchable type="desktop-id">@application_id@.desktop</launchable>
+  <url type="homepage">https://wiki.gnome.org/Apps/Valent</url>
+  <url type="bugtracker">https://gitlab.gnome.org/GNOME/valent/issues</url>
+  <url type="donation">http://www.gnome.org/friends/</url>
+  <url type="help">https://builder.readthedocs.io</url>
+  <project_group>GNOME</project_group>
+
+  <update_contact>andrew.g.r.holmes@gmail.com</update_contact>
+  <translation type="gettext">valent</translation>
+
+  <releases>
+    <release version="1.0" date="2019-03-12">
+      <description>
+        <p>
+          Valent 1.0 Release Notes.
+        </p>
+        <ul>
+          <li>First stable release -- fingers crossed!</li>
+        </ul>
+      </description>
+    </release>
+  </releases>
+
+  <content_rating type="oars-1.1" />
+</component>

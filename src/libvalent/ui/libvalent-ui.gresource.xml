@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/ca/andyholmes/Valent">
+    <!-- Device Icons -->
+    <file preprocess="xml-stripblanks" alias="icons/scalable/devices/computer-symbolic.svg">data/icons/hicolor/scalable/devices/computer-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="icons/scalable/devices/smartphone-symbolic.svg">data/icons/hicolor/scalable/devices/smartphone-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="icons/scalable/devices/laptop-symbolic.svg">data/icons/hicolor/scalable/devices/laptop-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="icons/scalable/devices/tablet-symbolic.svg">data/icons/hicolor/scalable/devices/tablet-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="icons/scalable/devices/tv-symbolic.svg">data/icons/hicolor/scalable/devices/tv-symbolic.svg</file>
+
+    <!-- Phonelink Icons -->
+    <file preprocess="xml-stripblanks" alias="icons/scalable/devices/phonelink-symbolic.svg">data/icons/hicolor/scalable/devices/phonelink-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="icons/scalable/devices/phonelink-delete-symbolic.svg">data/icons/hicolor/scalable/devices/phonelink-delete-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="icons/scalable/devices/phonelink-lock-symbolic.svg">data/icons/hicolor/scalable/devices/phonelink-lock-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="icons/scalable/devices/phonelink-off-symbolic.svg">data/icons/hicolor/scalable/devices/phonelink-off-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="icons/scalable/devices/phonelink-ring-symbolic.svg">data/icons/hicolor/scalable/devices/phonelink-ring-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="icons/scalable/devices/phonelink-setup-symbolic.svg">data/icons/hicolor/scalable/devices/phonelink-setup-symbolic.svg</file>
+  </gresource>
+  <gresource prefix="/ca/andyholmes/Valent/ui">
+    <file preprocess="xml-stripblanks">valent-connect-dialog.ui</file>
+    <file preprocess="xml-stripblanks">valent-device-panel.ui</file>
+    <file preprocess="xml-stripblanks">valent-panel.ui</file>
+    <file preprocess="xml-stripblanks">valent-window.ui</file>
+  </gresource>
+</gresources>
+

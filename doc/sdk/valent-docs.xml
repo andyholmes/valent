@@ -1,0 +1,129 @@
+<?xml version="1.0"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+               "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+  <!ENTITY % local.common.attrib "xmlns:xi  CDATA  #FIXED 'http://www.w3.org/2003/XInclude'">
+  <!ENTITY % gtkdocentities SYSTEM "xml/gtkdocentities.ent">
+  %gtkdocentities;
+]>
+<book id="index">
+  <bookinfo>
+    <title>Valent Reference Manual</title>
+    <releaseinfo>
+      This document is for Valent, version &package_version;.
+      The latest version of this documentation can be found on-line at
+      <ulink role="online-location" url="http://[SERVER]/&package_name;/index.html">http://[SERVER]/&package_name;/</ulink>.
+    </releaseinfo>
+  </bookinfo>
+
+  <part id="libvalent-core">
+    <title>Core</title>
+    <chapter>
+      <title>Networking</title>
+      <xi:include href="xml/valent-channel.xml"/>
+      <xi:include href="xml/valent-channel-service.xml"/>
+    </chapter>
+
+    <chapter>
+      <title>Devices</title>
+      <xi:include href="xml/valent-manager.xml"/>
+      <xi:include href="xml/valent-device.xml"/>
+      <xi:include href="xml/valent-device-plugin.xml"/>
+      <xi:include href="xml/valent-transfer.xml"/>
+    </chapter>
+
+    <chapter>
+      <title>Miscellaneous</title>
+      <xi:include href="xml/valent-component.xml"/>
+      <xi:include href="xml/valent-data.xml"/>
+      <xi:include href="xml/valent-certificate.xml"/>
+      <xi:include href="xml/valent-object-utils.xml"/>
+      <xi:include href="xml/valent-packet.xml"/>
+      <xi:include href="xml/valent-utils.xml"/>
+    </chapter>
+  </part>
+
+  <part id="libvalent-components">
+    <title>Components</title>
+    <chapter>
+      <title>Clipboard</title>
+      <xi:include href="xml/valent-clipboard.xml"/>
+      <xi:include href="xml/valent-clipboard-source.xml"/>
+    </chapter>
+
+    <chapter>
+      <title>Contacts</title>
+      <xi:include href="xml/valent-contacts.xml"/>
+      <xi:include href="xml/valent-contact-store.xml"/>
+      <xi:include href="xml/valent-contact-store-provider.xml"/>
+      <xi:include href="xml/valent-contact-utils.xml"/>
+    </chapter>
+
+    <chapter>
+      <title>Input</title>
+      <xi:include href="xml/valent-input.xml"/>
+      <xi:include href="xml/valent-input-controller.xml"/>
+    </chapter>
+
+    <chapter>
+      <title>Media</title>
+      <xi:include href="xml/valent-media.xml"/>
+      <xi:include href="xml/valent-media-player.xml"/>
+      <xi:include href="xml/valent-media-player-provider.xml"/>
+    </chapter>
+
+    <chapter>
+      <title>Mixer</title>
+      <xi:include href="xml/valent-mixer.xml"/>
+      <xi:include href="xml/valent-mixer-control.xml"/>
+      <xi:include href="xml/valent-mixer-stream.xml"/>
+    </chapter>
+
+    <chapter>
+      <title>Notifications</title>
+      <xi:include href="xml/valent-notifications.xml"/>
+      <xi:include href="xml/valent-notification.xml"/>
+      <xi:include href="xml/valent-notification-source.xml"/>
+    </chapter>
+
+    <chapter>
+      <title>Power</title>
+      <xi:include href="xml/valent-power.xml"/>
+      <xi:include href="xml/valent-power-device.xml"/>
+      <xi:include href="xml/valent-power-device-provider.xml"/>
+    </chapter>
+
+    <chapter>
+      <title>Session</title>
+      <xi:include href="xml/valent-session.xml"/>
+      <xi:include href="xml/valent-session-adapter.xml"/>
+    </chapter>
+  </part>
+
+  <part id="libvalent-ui">
+    <title>GUI</title>
+    <chapter>
+      <title>Widgets</title>
+      <xi:include href="xml/valent-panel.xml"/>
+    </chapter>
+
+    <chapter>
+      <title>Interfaces</title>
+      <xi:include href="xml/valent-device-activity.xml"/>
+      <xi:include href="xml/valent-device-gadget.xml"/>
+      <xi:include href="xml/valent-plugin-preferences.xml"/>
+    </chapter>
+  </part>
+
+  <index id="api-index-full">
+    <title>Index of all symbols</title>
+    <xi:include href="xml/api-index-full.xml"><xi:fallback /></xi:include>
+  </index>
+
+  <index id="deprecated-api-index" role="deprecated">
+    <title>Index of deprecated API</title>
+    <xi:include href="xml/api-index-deprecated.xml"><xi:fallback /></xi:include>
+  </index>
+
+  <xi:include href="xml/annotation-glossary.xml"><xi:fallback /></xi:include>
+</book>

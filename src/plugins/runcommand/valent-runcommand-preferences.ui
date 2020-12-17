@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="valent">
+  <template class="ValentRuncommandPreferences" parent="AdwPreferencesPage">
+    <property name="title" translatable="yes">Commands</property>
+    <child>
+      <object class="AdwPreferencesGroup" id="command_group">
+        <property name="title" translatable="yes">Commands</property>
+        <property name="description" translatable="yes">Predefined commands that can be executed.</property>
+        <child>
+          <object class="GtkFrame">
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <child>
+                  <object class="GtkListBox" id="command_list">
+                    <property name="show-separators">1</property>
+                    <property name="selection-mode">none</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBox">
+                    <property name="activate-on-single-click">1</property>
+                    <property name="show-separators">1</property>
+                    <property name="selection-mode">none</property>
+                    <signal name="row-activated" handler="on_add_command" object="ValentRuncommandPreferences" swapped="no"/>
+                    <child>
+                      <object class="GtkListBoxRow" id="command_add">
+                        <property name="activatable">1</property>
+                        <property name="selectable">0</property>
+                        <property name="tooltip-text" translatable="yes">Add</property>
+                        <accessibility>
+                          <relation name="labelled-by">command_add_label</relation>
+                        </accessibility>
+                        <child>
+                          <object class="GtkLabel" id="command_add_label">
+                            <property name="label" translatable="yes">Add Command…</property>
+                            <property name="halign">center</property>
+                            <property name="hexpand">1</property>
+                            <property name="margin-top">12</property>
+                            <property name="margin-bottom">12</property>
+                            <property name="valign">center</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

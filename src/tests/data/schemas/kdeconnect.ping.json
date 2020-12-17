@@ -1,0 +1,28 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer",
+            "default": 0
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.ping"]
+        },
+        "body": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "default": "test message"
+                }
+            }
+        }
+    }
+}

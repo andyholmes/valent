@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="valent">
+  <schema id="ca.andyholmes.valent.telephony">
+    <key name="ringing-volume" type="i">
+      <default>15</default>
+      <range min='-1' max='100'/>
+    </key>
+    <key name="ringing-microphone" type="i">
+      <default>-1</default>
+      <range min='-1' max='100'/>
+    </key>
+    <key name="ringing-pause" type="b">
+      <default>false</default>
+    </key>
+    <key name="talking-volume" type="i">
+      <default>0</default>
+      <range min='-1' max='100'/>
+    </key>
+    <key name="talking-microphone" type="i">
+      <default>0</default>
+      <range min='-1' max='100'/>
+    </key>
+    <key name="talking-pause" type="b">
+      <default>true</default>
+    </key>
+  </schema>
+</schemalist>

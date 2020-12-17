@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="valent">
+  <schema id="ca.andyholmes.valent.sms">
+    <key name="legacy-sms" type="b">
+      <default>false</default>
+    </key>
+  </schema>
+</schemalist>

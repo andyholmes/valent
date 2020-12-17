@@ -1,0 +1,11 @@
+[Plugin]
+Module=eds
+Name=Evolution Data Server
+Description=Integration with Evolution Data Server
+Icon=network-server-symbolic
+Builtin=true
+Embedded=valent_eds_plugin_register_types
+Website=https://github.com/andyholmes/valent
+Help=https://github.com/andyholmes/valent
+Hidden=false
+

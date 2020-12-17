@@ -1,0 +1,36 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer",
+            "default": 0
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.notification.reply"]
+        },
+        "body": {
+            "type": "object",
+            "required": [
+                "currentCharge",
+                "isCharging"
+            ],
+            "properties": {
+                "requestReplyId": {
+                    "type": "string",
+                    "default": "replyId"
+                },
+                "message": {
+                    "type": "string",
+                    "default": "Test reply message"
+                }
+            }
+        }
+    }
+}

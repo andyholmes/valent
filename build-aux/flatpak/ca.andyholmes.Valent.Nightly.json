@@ -1,0 +1,210 @@
+{
+    "app-id" : "ca.andyholmes.Valent.Devel",
+    "runtime" : "org.gnome.Platform",
+    "runtime-version" : "master",
+    "sdk" : "org.gnome.Sdk",
+    "command" : "valent",
+    "tags" : [
+        "nightly"
+    ],
+    "finish-args" : [
+        "--device=dri",
+        "--filesystem=xdg-download",
+        "--filesystem=xdg-run/gvfs",
+        "--filesystem=xdg-run/gvfsd",
+        "--own-name=org.mpris.MediaPlayer2.*",
+        "--share=ipc",
+        "--share=network",
+        "--socket=fallback-x11",
+        "--socket=pulseaudio",
+        "--socket=ssh-auth",
+        "--socket=wayland",
+        "--system-talk-name=org.bluez",
+        "--system-talk-name=org.freedesktop.hostname1",
+        "--system-talk-name=org.freedesktop.login1",
+        "--system-talk-name=org.freedesktop.UPower",
+        "--talk-name=org.a11y.Bus",
+        "--talk-name=org.freedesktop.DBus",
+        "--talk-name=org.freedesktop.Flatpak",
+        "--talk-name=org.gnome.evolution.dataserver.AddressBook10",
+        "--talk-name=org.gnome.evolution.dataserver.Sources5",
+        "--talk-name=org.gnome.evolution.dataserver.Subprocess.Backend.*",
+        "--talk-name=org.gnome.OnlineAccounts",
+        "--talk-name=org.gnome.Shell",
+        "--talk-name=org.gtk.vfs.*",
+        "--talk-name=org.mpris.MediaPlayer2.*"
+    ],
+    "add-extensions" : {
+        "ca.andyholmes.Valent.Plugin" : {
+            "version" : "master",
+            "directory" : "extensions",
+            "add-ld-path" : "lib",
+            "merge-dirs" : "lib/valent/plugins",
+            "subdirectories" : true,
+            "no-autodownload" : true,
+            "autodelete" : true
+        }
+    },
+    "build-options" : {
+        "cflags" : "-O2 -g",
+        "cxxflags" : "-O2 -g",
+        "env" : {
+            "V" : "1"
+        }
+    },
+    "cleanup" : [
+        "/include",
+        "/lib/pkgconfig",
+        "/man",
+        "/share/man",
+        "/share/pkgconfig",
+        "*.la",
+        "*.a"
+    ],
+    "modules" : [
+        {
+            "name" : "intltool",
+            "buildsystem" : "autotools",
+            "sources" : [
+                {
+                    "type" : "archive",
+                    "url" : "https://launchpad.net/intltool/trunk/0.51.0/+download/intltool-0.51.0.tar.gz",
+                    "sha256" : "67c74d94196b153b774ab9f89b2fa6c6ba79352407037c8c14d5aeb334e959cd"
+                }
+            ]
+        },
+        {
+            "name" : "libical",
+            "cleanup" : [
+                "/lib/cmake"
+            ],
+            "buildsystem" : "cmake-ninja",
+            "config-opts" : [
+                "-DCMAKE_INSTALL_LIBDIR:PATH=/app/lib",
+                "-DBUILD_SHARED_LIBS:BOOL=ON",
+                "-DGOBJECT_INTROSPECTION:BOOL=ON",
+                "-DICAL_BUILD_DOCS:BOOL=OFF",
+                "-DICAL_GLIB_VAPI:BOOL=OFF",
+                "-DICAL_GLIB:BOOL=ON"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://github.com/libical/libical.git",
+                    "branch" : "3.0"
+                }
+            ]
+        },
+        {
+            "name" : "evolution-data-server",
+            "cleanup" : [
+                "/etc",
+                "/lib/cmake",
+                "/lib/evolution-data-server/*-backends",
+                "/libexec",
+                "/share/applications",
+                "/share/dbus-1/services",
+                "/share/GConf",
+                "/systemd"
+            ],
+            "config-opts" : [
+                "-DCMAKE_BUILD_TYPE=Release",
+                "-DENABLE_DOT_LOCKING=OFF",
+                "-DENABLE_CANBERRA=OFF",
+                "-DENABLE_GTK=OFF",
+                "-DENABLE_GOA=OFF",
+                "-DENABLE_GOOGLE=OFF",
+                "-DENABLE_VALA_BINDINGS=OFF",
+                "-DENABLE_WEATHER=OFF",
+                "-DWITH_OPENLDAP=OFF",
+                "-DWITH_LIBDB=OFF",
+                "-DENABLE_INTROSPECTION=ON",
+                "-DENABLE_INSTALLED_TESTS=OFF",
+                "-DENABLE_GTK_DOC=OFF",
+                "-DENABLE_EXAMPLES=OFF",
+                "-DWITH_SYSTEMDUSERUNITDIR=OFF",
+                "-DWITH_DBUS_SERVICE_DIR=OFF"
+            ],
+            "buildsystem" : "cmake-ninja",
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.gnome.org/GNOME/evolution-data-server.git",
+                    "branch" : "gnome-40"
+                }
+            ]
+        },
+        {
+            "name" : "libpeas",
+            "buildsystem" : "meson",
+            "builddir" : true,
+            "cleanup" : [
+                "/bin/*",
+                "/lib/peas-demo",
+                "/lib/libpeas-gtk*",
+                "/share/icons"
+            ],
+            "config-opts" : [
+                "-Dpython3=true",
+                "-Dintrospection=true",
+                "-Ddemos=false",
+                "-Dglade_catalog=false",
+                "-Dwidgetry=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.gnome.org/GNOME/libpeas.git"
+                }
+            ]
+        },
+        {
+            "name" : "libportal",
+            "buildsystem" : "meson",
+            "config-opts" : [
+                "-Dgtk_doc=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://github.com/flatpak/libportal.git"
+                }
+            ]
+        },
+        {
+            "name" : "libadwaita",
+            "buildsystem" : "meson",
+            "config-opts" : [
+                "-Dexamples=false",
+                "-Dtests=false",
+                "-Dvapi=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.gnome.org/GNOME/libadwaita.git",
+                    "branch" : "main"
+                }
+            ]
+        },
+        {
+            "name" : "valent",
+            "buildsystem" : "meson",
+            "config-opts" : [
+                "--buildtype=debugoptimized",
+                "--libdir=/app/lib",
+                "-Dprofile=nightly"
+            ],
+            "post-install" : [
+                "install -d /app/extensions"
+            ],
+            "builddir" : true,
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "ssh://git@github.com/andyholmes/valent.git"
+                }
+            ]
+        }
+    ]
+}

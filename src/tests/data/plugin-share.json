@@ -1,0 +1,39 @@
+{
+  "identity": {
+    "id": 0,
+    "type": "kdeconnect.identity",
+    "body": {
+      "deviceId": "test-device",
+      "deviceName": "Test Device",
+      "protocolVersion": 7,
+      "deviceType": "phone",
+      "incomingCapabilities": [
+        "kdeconnect.share.request"
+      ],
+      "outgoingCapabilities": [
+        "kdeconnect.share.request"
+      ]
+    }
+  },
+  "share-file": {
+    "id": 0,
+    "type": "kdeconnect.share.request",
+    "body": {
+      "filename": "image.png"
+    }
+  },
+  "share-text": {
+    "id": 0,
+    "type": "kdeconnect.share.request",
+    "body": {
+      "text": "Test"
+    }
+  },
+  "share-url": {
+    "id": 0,
+    "type": "kdeconnect.share.request",
+    "body": {
+      "url": "https://www.andyholmes.ca"
+    }
+  }
+}

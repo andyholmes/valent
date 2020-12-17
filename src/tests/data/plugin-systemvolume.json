@@ -1,0 +1,42 @@
+{
+  "identity": {
+    "id": 0,
+    "type": "kdeconnect.identity",
+    "body": {
+      "deviceId": "test-device",
+      "deviceName": "Test Device",
+      "protocolVersion": 7,
+      "deviceType": "phone",
+      "incomingCapabilities": [
+        "kdeconnect.systemvolume"
+      ],
+      "outgoingCapabilities": [
+        "kdeconnect.systemvolume"
+      ]
+    }
+  },
+  "request-sinks": {
+    "id": 0,
+    "type": "kdeconnect.systemvolume.request",
+    "body": {
+      "requestSinks": true
+    }
+  },
+  "request-mute": {
+    "id": 0,
+    "type": "kdeconnect.systemvolume.request",
+    "body": {
+      "name": "test_sink1",
+      "muted": true
+    }
+  },
+  "request-volume": {
+    "id": 0,
+    "type": "kdeconnect.systemvolume.request",
+    "body": {
+      "name": "test_sink1",
+      "volume": 50
+    }
+  }
+}
+

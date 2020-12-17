@@ -1,0 +1,13 @@
+[Plugin]
+Module=mousepad
+Name=Mousepad
+Description=Control the mouse and keyboard
+Icon=input-mouse-symbolic
+Builtin=true
+Embedded=valent_mousepad_plugin_register_types
+Website=https://github.com/andyholmes/valent
+Help=https://github.com/andyholmes/valent
+Hidden=false
+X-IncomingCapabilities=kdeconnect.mousepad.echo;kdeconnect.mousepad.request;kdeconnect.mousepad.keyboardstate
+X-OutgoingCapabilities=kdeconnect.mousepad.echo;kdeconnect.mousepad.request;kdeconnect.mousepad.keyboardstate
+

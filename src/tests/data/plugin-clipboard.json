@@ -1,0 +1,35 @@
+{
+  "identity": {
+    "id": 0,
+    "type": "kdeconnect.identity",
+    "body": {
+      "deviceId": "test-device",
+      "deviceName": "Test Device",
+      "protocolVersion": 7,
+      "deviceType": "phone",
+      "incomingCapabilities": [
+        "kdeconnect.clipboard",
+        "kdeconnect.clipboard.connect"
+      ],
+      "outgoingCapabilities": [
+        "kdeconnect.clipboard",
+        "kdeconnect.clipboard.connect"
+      ]
+    }
+  },
+  "clipboard-content": {
+    "id": 0,
+    "type": "kdeconnect.clipboard",
+    "body": {
+      "content": "clipboard-content"
+    }
+  },
+  "clipboard-connect": {
+    "id": 0,
+    "type": "kdeconnect.clipboard.connect",
+    "body": {
+      "content": "clipboard-connect",
+      "timestamp": "1555051432512"
+    }
+  }
+}

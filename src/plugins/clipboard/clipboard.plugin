@@ -1,0 +1,13 @@
+[Plugin]
+Module=clipboard
+Name=Clipboard
+Description=Sync clipboard content
+Icon=edit-paste-symbolic
+Builtin=true
+Embedded=valent_clipboard_plugin_register_types
+Website=https://github.com/andyholmes/valent
+Help=https://github.com/andyholmes/valent
+Hidden=false
+X-IncomingCapabilities=kdeconnect.clipboard;kdeconnect.clipboard.connect
+X-OutgoingCapabilities=kdeconnect.clipboard;kdeconnect.clipboard.connect
+

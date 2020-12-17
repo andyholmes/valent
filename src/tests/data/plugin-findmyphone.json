@@ -1,0 +1,23 @@
+{
+  "identity": {
+    "id": 0,
+    "type": "kdeconnect.identity",
+    "body": {
+      "deviceId": "test-device",
+      "deviceName": "Test Device",
+      "protocolVersion": 7,
+      "deviceType": "phone",
+      "incomingCapabilities": [
+        "kdeconnect.findmyphone.request"
+      ],
+      "outgoingCapabilities": [
+        "kdeconnect.findmyphone.request"
+      ]
+    }
+  },
+  "ring-request": {
+    "id": 0,
+    "type": "kdeconnect.findmyphone.request",
+    "body": {}
+  }
+}

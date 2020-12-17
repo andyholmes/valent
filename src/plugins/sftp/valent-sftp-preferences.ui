@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="valent">
+  <template class="ValentSftpPreferences" parent="AdwPreferencesPage">
+    <property name="title" translatable="yes">SFTP</property>
+    <child>
+      <object class="AdwPreferencesGroup" id="remote_group">
+        <property name="title" translatable="yes">Remote Filesystem</property>
+        <property name="description" translatable="yes">How the remote filesystem is handled.</property>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Automatically Mount</property>
+            <property name="subtitle" translatable="yes">Attempt to mount the filesystem when the device connects.</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="auto_mount">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesGroup" id="local_group">
+        <property name="title" translatable="yes">Local Filesystem</property>
+        <property name="description" translatable="yes">How the local filesystem is handled.</property>
+        <child>
+          <object class="AdwExpanderRow" id="local_allow">
+            <property name="title" translatable="yes">Local Access</property>
+            <property name="subtitle" translatable="yes">Expose the local SSH service.</property>
+            <property name="show_enable_switch">True</property>
+            <child>
+              <object class="AdwActionRow">
+                <property name="title" translatable="yes">Port</property>
+                <child type="suffix">
+                  <object class="GtkSpinButton">
+                    <property name="numeric">1</property>
+                    <property name="valign">center</property>
+                    <property name="adjustment">
+                      <object class="GtkAdjustment" id="local_port">
+                        <property name="lower">0</property>
+                        <property name="upper">65535</property>
+                        <property name="step-increment">1</property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

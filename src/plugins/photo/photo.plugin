@@ -1,0 +1,13 @@
+[Plugin]
+Module=photo
+Name=Photo
+Description=Take a photo with the remote device
+Icon=camera-photo-symbolic
+Builtin=true
+Embedded=valent_photo_plugin_register_types
+Website=https://github.com/andyholmes/valent
+Help=https://github.com/andyholmes/valent
+Hidden=false
+X-IncomingCapabilities=kdeconnect.photo;kdeconnect.photo.request
+X-OutgoingCapabilities=kdeconnect.photo;kdeconnect.photo.request
+

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="valent">
+  <template class="ValentTelephonyPreferences" parent="AdwPreferencesPage">
+    <property name="title" translatable="yes">Telephony</property>
+    <child>
+      <object class="AdwPreferencesGroup" id="ringing_group">
+        <property name="title" translatable="yes">Incoming Calls</property>
+        <property name="description" translatable="yes">How to react when the phone rings.</property>
+        <child>
+          <object class="AdwComboRow" id="ringing_volume">
+            <property name="title" translatable="yes">Volume</property>
+            <property name="model">volume-model</property>
+            <property name="expression">
+              <lookup name="string" type="GtkStringObject"/>
+            </property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Pause Media</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="ringing_pause">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesGroup" id="talking_group">
+        <property name="title" translatable="yes">Ongoing Calls</property>
+        <property name="description" translatable="yes">How to react when the phone rings.</property>
+        <child>
+          <object class="AdwComboRow" id="talking_volume">
+            <property name="title" translatable="yes">Volume</property>
+            <property name="model">volume-model</property>
+            <property name="expression">
+              <lookup name="string" type="GtkStringObject"/>
+            </property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Mute Microphone</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="talking_microphone">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Pause Media</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="talking_pause">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+  <object class="GtkStringList" id="volume-model">
+    <items>
+      <item translatable="yes">Nothing</item>
+      <item translatable="yes">Lower</item>
+      <item translatable="yes">Mute</item>
+    </items>
+  </object>
+</interface>

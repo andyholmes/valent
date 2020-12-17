@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="valent">
+  <schema id="ca.andyholmes.valent.xdp" path="/ca/andyholmes/valent/xdp/">
+    <key name="xdp-session-timeout" type="u">
+      <default>15</default>
+      <description>Session timeout in seconds, 0 for no timeout.</description>
+    </key>
+  </schema>
+</schemalist>

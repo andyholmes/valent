@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="valent">
+  <schema id="ca.andyholmes.valent.bluez" path="/ca/andyholmes/valent/bluez/">
+    <key name="buffer-size" type="q">
+      <default>4096</default>
+      <description>Size of the input buffer in bytes</description>
+    </key>
+  </schema>
+</schemalist>

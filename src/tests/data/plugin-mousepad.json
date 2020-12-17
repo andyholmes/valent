@@ -1,0 +1,127 @@
+{
+  "identity": {
+    "id": 0,
+    "type": "kdeconnect.identity",
+    "body": {
+      "deviceId": "test-device",
+      "deviceName": "Test Device",
+      "protocolVersion": 7,
+      "deviceType": "phone",
+      "incomingCapabilities": [
+        "kdeconnect.mousepad.echo",
+        "kdeconnect.mousepad.request",
+        "kdeconnect.mousepad.keyboardstate"
+      ],
+      "outgoingCapabilities": [
+        "kdeconnect.mousepad.echo",
+        "kdeconnect.mousepad.request",
+        "kdeconnect.mousepad.keyboardstate"
+      ]
+    }
+  },
+  "echo": {
+    "id": 0,
+    "type": "kdeconnect.mousepad.echo",
+    "body": {
+      "key": "a"
+    }
+  },
+  "keyboardstate-true": {
+    "id": 0,
+    "type": "kdeconnect.mousepad.keyboardstate",
+    "body": {
+      "state": true
+    }
+  },
+  "keyboardstate-false": {
+    "id": 0,
+    "type": "kdeconnect.mousepad.keyboardstate",
+    "body": {
+      "state": false
+    }
+  },
+  "pointer-motion": {
+    "id": 0,
+    "type": "kdeconnect.mousepad.request",
+    "body": {
+      "dx": 1.0,
+      "dy": 1.0
+    }
+  },
+  "pointer-axis": {
+    "id": 0,
+    "type": "kdeconnect.mousepad.request",
+    "body": {
+      "dx": 0.0,
+      "dy": 1.0,
+      "scroll": true
+    }
+  },
+  "pointer-singleclick": {
+    "id": 0,
+    "type": "kdeconnect.mousepad.request",
+    "body": {
+      "singleclick": true
+    }
+  },
+  "pointer-doubleclick": {
+    "id": 0,
+    "type": "kdeconnect.mousepad.request",
+    "body": {
+      "doubleclick": true
+    }
+  },
+  "pointer-middleclick": {
+    "id": 0,
+    "type": "kdeconnect.mousepad.request",
+    "body": {
+      "middleclick": true
+    }
+  },
+  "pointer-rightclick": {
+    "id": 0,
+    "type": "kdeconnect.mousepad.request",
+    "body": {
+      "rightclick": true
+    }
+  },
+  "pointer-singlehold": {
+    "id": 0,
+    "type": "kdeconnect.mousepad.request",
+    "body": {
+      "singlehold": true
+    }
+  },
+  "pointer-singlerelease": {
+    "id": 0,
+    "type": "kdeconnect.mousepad.request",
+    "body": {
+      "singlerelease": true
+    }
+  },
+  "keyboard-keysym": {
+    "id": 0,
+    "type": "kdeconnect.mousepad.request",
+    "body": {
+      "key": "a"
+    }
+  },
+  "keyboard-keysym-mask": {
+    "id": 0,
+    "type": "kdeconnect.mousepad.request",
+    "body": {
+      "key": "a",
+      "alt": true,
+      "ctrl": true,
+      "shift": true,
+      "super": true
+    }
+  },
+  "keyboard-keysym-special": {
+    "id": 0,
+    "type": "kdeconnect.mousepad.request",
+    "body": {
+      "specialKey": 4
+    }
+  }
+}

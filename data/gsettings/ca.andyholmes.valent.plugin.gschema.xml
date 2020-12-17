@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="valent">
+  <schema id="ca.andyholmes.Valent.Plugin">
+    <key name="enabled" type="b">
+      <default>true</default>
+      <summary>Plugin State</summary>
+      <description>Whether the plugin is enabled or not.</description>
+    </key>
+  </schema>
+</schemalist>

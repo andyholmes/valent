@@ -1,0 +1,41 @@
+{
+  "identity": {
+    "id": 0,
+    "type": "kdeconnect.identity",
+    "body": {
+      "deviceId": "test-device",
+      "deviceName": "Test Device",
+      "protocolVersion": 7,
+      "deviceType": "phone",
+      "incomingCapabilities": [
+        "kdeconnect.runcommand",
+        "kdeconnect.runcommand.request"
+      ],
+      "outgoingCapabilities": [
+        "kdeconnect.runcommand",
+        "kdeconnect.runcommand.request"
+      ]
+    }
+  },
+  "command-list": {
+    "id": 0,
+    "type": "kdeconnect.runcommand",
+    "body": {
+      "commandList": "{\"command1\":{\"name\":\"Command One\",\"command\":\"ls\"},\"command2\":{\"name\":\"Command Two\",\"command\":\"ls\"}}"
+    }
+  },
+  "command-list-request": {
+    "id": 0,
+    "type": "kdeconnect.runcommand.request",
+    "body": {
+      "requestCommandList": true
+    }
+  },
+  "command-execute": {
+    "id": 0,
+    "type": "kdeconnect.runcommand.request",
+    "body": {
+      "key": "command1"
+    }
+  }
+}

@@ -1,0 +1,13 @@
+[Plugin]
+Module=ping
+Name=Ping
+Description=Send and receive pings
+Icon=dialog-information-symbolic
+Builtin=true
+Embedded=valent_ping_plugin_register_types
+Website=https://github.com/andyholmes/valent
+Help=https://github.com/andyholmes/valent
+Hidden=false
+X-IncomingCapabilities=kdeconnect.ping
+X-OutgoingCapabilities=kdeconnect.ping
+

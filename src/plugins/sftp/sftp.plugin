@@ -1,0 +1,14 @@
+[Plugin]
+Module=sftp
+Name=SFTP
+Description=Send and receive sftps
+Icon=folder-remote-symbolic
+Builtin=true
+Embedded=valent_sftp_plugin_register_types
+Website=https://github.com/andyholmes/valent
+Help=https://github.com/andyholmes/valent
+Hidden=false
+X-IncomingCapabilities=kdeconnect.sftp;kdeconnect.sftp.request
+X-OutgoingCapabilities=kdeconnect.sftp;kdeconnect.sftp.request
+X-ChannelProtocol=tcp
+

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="valent">
+  <template class="ValentContactsPreferences" parent="AdwPreferencesPage">
+    <property name="title" translatable="yes">Contacts</property>
+    <child>
+      <object class="AdwPreferencesGroup" id="import_group">
+        <property name="title" translatable="yes">Remote Contacts</property>
+        <property name="description" translatable="yes">Control how remote contacts are used.</property>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Sync Contacts</property>
+            <property name="subtitle" translatable="yes">Download contacts from remote device.</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="remote_sync">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Import Contacts</property>
+            <property name="subtitle" translatable="yes">Allow other applications to use the remote contacts.</property>
+            <property name="sensitive" bind-source="remote_sync" bind-property="active" bind-flags="sync-create"/>
+            <child type="suffix">
+              <object class="GtkSwitch" id="remote_import">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Local Contacts</property>
+        <property name="description" translatable="yes">Control how local contacts are used.</property>
+        <child>
+          <object class="AdwExpanderRow" id="export_row">
+            <property name="title" translatable="yes">Sync Contacts</property>
+            <property name="subtitle" translatable="yes">Upload contacts to remote device.</property>
+            <property name="show_enable_switch">True</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>
+

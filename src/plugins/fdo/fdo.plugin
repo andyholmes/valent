@@ -1,0 +1,11 @@
+[Plugin]
+Module=fdo
+Name=freedesktop.org
+Description=Freedesktop.org Based Modules
+Icon=fdo
+Builtin=true
+Embedded=valent_fdo_plugin_register_types
+Website=https://github.com/andyholmes/valent
+Help=https://github.com/andyholmes/valent
+Hidden=false
+

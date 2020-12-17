@@ -1,0 +1,66 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "$id": "https://andyholmes.ca/kdeconnect-schema/packet",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer",
+            "default": 0
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.mpris.request"]
+        },
+        "body": {
+            "type": "object",
+            "properties": {
+                "player": {
+                    "type": "string",
+                    "default": "Test Player"
+                },
+                "requestNowPlaying": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "requestPlayerList": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "requestVolume": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "Seek": {
+                    "type": "integer",
+                    "default": 1000
+                },
+                "SetPosition": {
+                    "type": "integer",
+                    "default": 1000,
+                    "minimum": 0
+                },
+                "setVolume": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
+                },
+                "action": {
+                    "type": "string",
+                    "enum": [
+                        "Pause",
+                        "Play",
+                        "PlayPause",
+                        "Stop",
+                        "Next",
+                        "Previous"
+                    ]
+                }
+            }
+        }
+    }
+}

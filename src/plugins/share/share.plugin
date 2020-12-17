@@ -1,0 +1,13 @@
+[Plugin]
+Module=share
+Name=Share
+Description=Share files, links and text
+Icon=emblem-shared-symbolic
+Builtin=true
+Embedded=valent_share_plugin_register_types
+Website=https://github.com/andyholmes/valent
+Help=https://github.com/andyholmes/valent
+Hidden=false
+X-IncomingCapabilities=kdeconnect.share.request
+X-OutgoingCapabilities=kdeconnect.share.request
+

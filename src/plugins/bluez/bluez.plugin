@@ -1,0 +1,11 @@
+[Plugin]
+Module=bluez
+Name=Bluez
+Description=Connect devices over Bluetooth
+Icon=bluetooth-symbolic
+Builtin=true
+Embedded=valent_bluez_plugin_register_types
+Website=https://github.com/andyholmes/valent
+Help=https://github.com/andyholmes/valent
+Hidden=false
+X-ChannelProtocol=bluetooth

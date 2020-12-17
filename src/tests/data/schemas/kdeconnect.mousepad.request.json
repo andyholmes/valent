@@ -1,0 +1,75 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer",
+            "default": 0
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.mousepad.request"]
+        },
+        "body": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string",
+                    "default": "a",
+                    "minLength": 1,
+                    "maxLength": 1
+                },
+                "specialKey": {
+                    "type": "integer",
+                    "default": 1,
+                    "minimum": 0,
+                    "maximum": 32
+                },
+                "alt": {
+                    "type": "boolean"
+                },
+                "ctrl": {
+                    "type": "boolean"
+                },
+                "shift": {
+                    "type": "boolean"
+                },
+                "super": {
+                    "type": "boolean"
+                },
+                "singleclick": {
+                    "type": "boolean"
+                },
+                "doubleclick": {
+                    "type": "boolean"
+                },
+                "middleclick": {
+                    "type": "boolean"
+                },
+                "rightclick": {
+                    "type": "boolean"
+                },
+                "singlehold": {
+                    "type": "boolean"
+                },
+                "singlerelease": {
+                    "type": "boolean"
+                },
+                "dx": {
+                    "type": "number"
+                },
+                "dy": {
+                    "type": "number"
+                },
+                "scroll": {
+                    "type": "number"
+                }
+            }
+        }
+    }
+}

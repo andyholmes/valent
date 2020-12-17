@@ -1,0 +1,207 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
+
+#define G_LOG_DOMAIN "valent-runcommand-editor"
+
+#include "config.h"
+
+#include <glib/gi18n.h>
+#include <gtk/gtk.h>
+#include <libvalent-core.h>
+
+#include "valent-runcommand-editor.h"
+
+
+struct _ValentRuncommandEditor
+{
+  GtkDialog  parent_instance;
+
+  /* Template widgets */
+  GtkButton *cancel_button;
+  GtkButton *save_button;
+  GtkEntry  *command_entry;
+  GtkEntry  *name_entry;
+};
+
+G_DEFINE_TYPE (ValentRuncommandEditor, valent_runcommand_editor, GTK_TYPE_DIALOG)
+
+
+/*
+ * GtkDialog
+ */
+static void
+on_browse_response (GtkDialog              *dialog,
+                    gint                    response_id,
+                    ValentRuncommandEditor *editor)
+{
+  if (response_id == GTK_RESPONSE_ACCEPT)
+    {
+      GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
+      g_autoptr (GFile) file = NULL;
+
+      file = gtk_file_chooser_get_file (chooser);
+      valent_runcommand_editor_set_command (editor, g_file_peek_path (file));
+    }
+}
+
+static void
+on_browse_command (GtkEntry               *entry,
+                   GtkEntryIconPosition    icon_pos,
+                   ValentRuncommandEditor *editor)
+{
+  GtkFileChooserNative *native;
+  GtkFileFilter *filter;
+
+  g_assert (VALENT_IS_RUNCOMMAND_EDITOR (editor));
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_add_mime_type (filter, "application/*");
+
+  native = g_object_new (GTK_TYPE_FILE_CHOOSER_NATIVE,
+                         "title",         _("Select Command"),
+                         "accept-label",  _("Select"),
+                         "cancel-label",  _("Cancel"),
+                         "filter",        filter,
+                         "modal",         TRUE,
+                         "transient-for", editor,
+                         NULL);
+
+  g_signal_connect (native,
+                    "response",
+                    G_CALLBACK (on_browse_response),
+                    editor);
+
+  gtk_native_dialog_show (GTK_NATIVE_DIALOG (native));
+}
+
+static void
+on_entry_changed (GtkEntry *entry,
+                  gpointer  user_data)
+{
+  ValentRuncommandEditor *editor = user_data;
+  const char *command;
+  const char *name;
+
+  command = valent_runcommand_editor_get_command (editor);
+  name = valent_runcommand_editor_get_name (editor);
+
+  if (g_utf8_strlen (name, -1) > 0 && g_utf8_strlen (command, -1) > 0)
+    gtk_widget_set_sensitive (GTK_WIDGET (editor->save_button), TRUE);
+  else
+    gtk_widget_set_sensitive (GTK_WIDGET (editor->save_button), FALSE);
+}
+
+/*
+ * GObject
+ */
+static void
+valent_runcommand_editor_constructed (GObject *object)
+{
+  ValentRuncommandEditor *self = VALENT_RUNCOMMAND_EDITOR (object);
+
+  if (!valent_in_flatpak ())
+    {
+      gtk_entry_set_icon_from_icon_name (self->command_entry,
+                                         GTK_ENTRY_ICON_SECONDARY,
+                                         "folder-symbolic");
+    }
+
+  G_OBJECT_CLASS (valent_runcommand_editor_parent_class)->constructed (object);
+}
+
+static void
+valent_runcommand_editor_class_init (ValentRuncommandEditorClass *klass)
+{
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+
+  object_class->constructed = valent_runcommand_editor_constructed;
+
+  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/runcommand/valent-runcommand-editor.ui");
+  gtk_widget_class_bind_template_child (widget_class, ValentRuncommandEditor, cancel_button);
+  gtk_widget_class_bind_template_child (widget_class, ValentRuncommandEditor, save_button);
+  gtk_widget_class_bind_template_child (widget_class, ValentRuncommandEditor, command_entry);
+  gtk_widget_class_bind_template_child (widget_class, ValentRuncommandEditor, name_entry);
+
+  gtk_widget_class_bind_template_callback (widget_class, on_browse_command);
+  gtk_widget_class_bind_template_callback (widget_class, on_entry_changed);
+}
+
+static void
+valent_runcommand_editor_init (ValentRuncommandEditor *self)
+{
+  gtk_widget_init_template (GTK_WIDGET (self));
+}
+
+GtkDialog *
+valent_runcommand_editor_new (void)
+{
+  return g_object_new (VALENT_TYPE_RUNCOMMAND_EDITOR,
+                       "use-header-bar", TRUE,
+                       NULL);
+}
+
+/**
+ * valent_runcommand_editor_get_command:
+ * @editor: a #ValentRuncommandEditor
+ *
+ * Get the command-line entry text for @editor
+ *
+ * Returns: (transfer none): the command-line
+ */
+const char *
+valent_runcommand_editor_get_command (ValentRuncommandEditor *editor)
+{
+  g_return_val_if_fail (VALENT_IS_RUNCOMMAND_EDITOR (editor), NULL);
+
+  return gtk_editable_get_text (GTK_EDITABLE (editor->command_entry));
+}
+
+/**
+ * valent_runcommand_editor_set_command:
+ * @editor: a #ValentRuncommandEditor
+ * @command: a command-line
+ *
+ * Set the command-line entry text for @editor to @command.
+ */
+void
+valent_runcommand_editor_set_command (ValentRuncommandEditor *editor,
+                                      const char             *command)
+{
+  g_return_if_fail (VALENT_IS_RUNCOMMAND_EDITOR (editor));
+
+  gtk_editable_set_text (GTK_EDITABLE (editor->command_entry), command);
+}
+
+/**
+ * valent_runcommand_editor_get_name:
+ * @editor: a #ValentRuncommandEditor
+ *
+ * Get the command name entry text for @editor
+ *
+ * Returns: (transfer none): the command name
+ */
+const char *
+valent_runcommand_editor_get_name (ValentRuncommandEditor *editor)
+{
+  g_return_val_if_fail (VALENT_IS_RUNCOMMAND_EDITOR (editor), NULL);
+
+  return gtk_editable_get_text (GTK_EDITABLE (editor->name_entry));
+}
+
+/**
+ * valent_runcommand_editor_set_name:
+ * @editor: a #ValentRuncommandEditor
+ * @name: a command name
+ *
+ * Set the command name entry text for @editor to @command.
+ */
+void
+valent_runcommand_editor_set_name (ValentRuncommandEditor *editor,
+                                   const char             *name)
+{
+  g_return_if_fail (VALENT_IS_RUNCOMMAND_EDITOR (editor));
+
+  gtk_editable_set_text (GTK_EDITABLE (editor->name_entry), name);
+}
+

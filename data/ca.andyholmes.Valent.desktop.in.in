@@ -1,0 +1,18 @@
+[Desktop Entry]
+Name=Valent
+Exec=valent %U
+Icon=@application_id@
+Terminal=false
+Type=Application
+Categories=GTK;Network;
+StartupNotify=true
+MimeType=x-scheme-handler/sms;x-scheme-handler/tel;
+DBusActivatable=true
+X-GNOME-UsesNotifications=true
+
+Actions=preferences;
+
+[Desktop Action preferences]
+Name=Preferences
+Exec=gapplication action @application_id@ preferences
+

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/plugins/xdp">
+    <file>xdp.plugin</file>
+  </gresource>
+  <gresource prefix="/ca/andyholmes/Valent/icons">
+    <file alias="scalable/mimetypes/package-x-generic-symbolic.svg">data/package-x-generic-symbolic.svg</file>
+  </gresource>
+</gresources>
+

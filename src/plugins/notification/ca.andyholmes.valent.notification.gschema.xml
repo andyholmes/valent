@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="valent">
+  <schema id="ca.andyholmes.valent.notification">
+    <key name="forward-notifications" type="b">
+      <default>true</default>
+    </key>
+    <key name="forward-when-active" type="b">
+      <default>false</default>
+    </key>
+    <key name="forward-deny" type="as">
+      <default>[]</default>
+    </key>
+  </schema>
+</schemalist>

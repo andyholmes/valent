@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/plugins/runcommand">
+    <file>runcommand.plugin</file>
+    <file>valent-runcommand-preferences.ui</file>
+    <file>valent-runcommand-editor.ui</file>
+  </gresource>
+</gresources>
+

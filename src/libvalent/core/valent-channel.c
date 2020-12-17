@@ -1,0 +1,1081 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
+
+#define G_LOG_DOMAIN "valent-channel"
+
+#include "config.h"
+
+#include <sys/time.h>
+#include <json-glib/json-glib.h>
+
+#include "valent-channel.h"
+#include "valent-data.h"
+#include "valent-debug.h"
+#include "valent-macros.h"
+#include "valent-packet.h"
+
+#define BUFFER_SIZE 4096
+
+
+/**
+ * SECTION:valent-channel
+ * @short_description: Base class for connections
+ * @title: ValentChannel
+ * @stability: Unstable
+ * @include: libvalent-core.h
+ *
+ * The #ValentChannel object is a base class for implementations of device
+ * connections in Valent. Typically these are created by a #ValentChannelService
+ * implementation that wraps a #GIOStream connection before emitting
+ * #ValentChannelService::channel.
+ *
+ * Implementations will usually implement at least valent_channel_download() and
+ * valent_channel_upload() for data transfer between devices. They may also
+ * implement valent_channel_store_data() for storing channel specific data when
+ * a devices is paired (eg. a TLS certificate).
+ */
+
+typedef struct
+{
+  GIOStream     *base_stream;
+  JsonNode      *identity;
+  JsonNode      *peer_identity;
+  char          *uri;
+
+  /* Input Buffer */
+  JsonParser    *parser;
+  guint8        *buffer;
+  gsize          buffer_size;
+  gsize          pos;
+  gsize          end;
+
+  /* Output Buffer */
+  JsonGenerator *generator;
+  GMutex         write_lock;
+  GQueue         write_queue;
+} ValentChannelPrivate;
+
+G_DEFINE_TYPE_WITH_PRIVATE (ValentChannel, valent_channel, G_TYPE_OBJECT)
+
+/**
+ * ValentChannelClass:
+ * @download: the virtual function pointer for valent_channel_download()
+ * @upload: the virtual function pointer for valent_channel_upload()
+ * @get_description: the virtual function pointer for valent_channel_get_description()
+ * @store_data: the virtual function pointer for valent_channel_store_data()
+ *
+ * The virtual function table for #ValentChannel.
+ */
+
+enum {
+  PROP_0,
+  PROP_BASE_STREAM,
+  PROP_IDENTITY,
+  PROP_PEER_IDENTITY,
+  PROP_URI,
+  N_PROPERTIES
+};
+
+static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+
+
+/*
+ * Packet Buffer
+ */
+static inline gsize
+channel_buffer_find_lf (ValentChannelPrivate *priv,
+                        gsize                *cursor_out)
+{
+  for (gsize cursor = *cursor_out; cursor < priv->end; cursor++)
+    {
+      if G_UNLIKELY (priv->buffer[cursor] == '\n')
+        return cursor;
+    }
+
+  return 0;
+}
+
+static JsonNode *
+valent_channel_read_packet_internal (ValentChannel  *channel,
+                                     GCancellable   *cancellable,
+                                     GError        **error)
+{
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+  GInputStream *input_stream;
+  gsize lf_pos;
+  gsize cursor;
+  const char *packet_str;
+  gssize packet_len;
+  g_autoptr (JsonNode) packet = NULL;
+
+  if G_UNLIKELY (priv->base_stream == NULL)
+    {
+      g_set_error (error,
+                   G_IO_ERROR,
+                   G_IO_ERROR_NOT_CONNECTED,
+                   "Channel is closed");
+      return NULL;
+    }
+
+  input_stream = g_io_stream_get_input_stream (priv->base_stream);
+
+  cursor = priv->pos;
+
+  while ((lf_pos = channel_buffer_find_lf (priv, &cursor)) == 0)
+    {
+      gssize n_read;
+
+      /* Compact or extend the buffer */
+      if G_UNLIKELY (priv->buffer_size - priv->end == 0)
+        {
+          if G_LIKELY (priv->pos)
+            {
+              gsize n_used;
+
+              n_used = priv->end - priv->pos;
+
+              memmove (priv->buffer, priv->buffer + priv->pos, n_used);
+              cursor = cursor - priv->pos;
+              priv->end = priv->end - priv->pos;
+              priv->pos = 0;
+            }
+          else
+            {
+              priv->buffer_size = priv->buffer_size * 2;
+              priv->buffer = g_realloc (priv->buffer, priv->buffer_size);
+            }
+        }
+
+      /* Fill the buffer */
+      n_read = g_input_stream_read (input_stream,
+                                    priv->buffer + priv->end,
+                                    priv->buffer_size - priv->end,
+                                    cancellable,
+                                    error);
+
+      /* Success; loop to check for an LF */
+      if (n_read > 0)
+        priv->end = priv->end + n_read;
+
+      /* End of stream; report connection closed */
+      else if (n_read == 0)
+        {
+          g_set_error (error,
+                       G_IO_ERROR,
+                       G_IO_ERROR_CONNECTION_CLOSED,
+                       "Channel is closed");
+          return NULL;
+        }
+
+      /* There was a genuine error */
+      else
+        return NULL;
+    }
+
+  /* Size the line and compact buffer */
+  packet_str = (const char *)priv->buffer + priv->pos;
+  packet_len = lf_pos - priv->pos;
+  priv->pos = lf_pos + 1;
+
+  /* Try to parse the line as JSON */
+  if (!json_parser_load_from_data (priv->parser, packet_str, packet_len, error))
+    return NULL;
+
+  packet = json_parser_steal_root (priv->parser);
+
+  /* Simple packet validation */
+  if (!valent_packet_validate (packet, error))
+    return NULL;
+
+  return g_steal_pointer (&packet);
+}
+
+static gboolean write_packet_next (gpointer      data);
+static void     write_packet_task (GTask        *task,
+                                   gpointer      source_object,
+                                   gpointer      task_data,
+                                   GCancellable *cancellable);
+
+static gboolean
+valent_channel_write_packet_internal (ValentChannel  *channel,
+                                      JsonNode       *packet,
+                                      GCancellable   *cancellable,
+                                      GError        **error)
+{
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+  JsonObject *root;
+  gint64 now = 0;
+  struct timeval tv;
+  g_autofree char *packet_str = NULL;
+  gsize packet_len;
+  GOutputStream *output_stream;
+
+  if G_UNLIKELY (priv->base_stream == NULL)
+    {
+      g_set_error (error,
+                   G_IO_ERROR,
+                   G_IO_ERROR_NOT_CONNECTED,
+                   "Channel is closed");
+      return FALSE;
+    }
+
+  /* Simple validation */
+  if (!valent_packet_validate (packet, error))
+    return FALSE;
+
+  /* Timestamp the packet (UNIX Epoch ms) */
+  root = json_node_get_object (packet);
+  gettimeofday (&tv, NULL);
+  now = (tv.tv_sec * 1000L) + tv.tv_usec / 1000L;
+  json_object_set_int_member (root, "id", now);
+
+  /* Serialize the packet to a NULL-terminated string */
+  json_generator_set_root (priv->generator, packet);
+  packet_str = json_generator_to_data (priv->generator, &packet_len);
+
+  /* Replace the trailing NULL with an LF */
+  packet_str[packet_len] = 10;
+  packet_len += 1;
+
+  output_stream = g_io_stream_get_output_stream (priv->base_stream);
+  return g_output_stream_write_all (output_stream,
+                                    packet_str,
+                                    packet_len,
+                                    NULL,
+                                    cancellable,
+                                    error);
+}
+
+/* LCOV_EXCL_START */
+static GIOStream *
+valent_channel_real_download (ValentChannel  *channel,
+                              JsonNode       *packet,
+                              GCancellable   *cancellable,
+                              GError        **error)
+{
+  g_set_error (error,
+               G_IO_ERROR,
+               G_IO_ERROR_NOT_SUPPORTED,
+               "%s does not implement download()",
+               G_OBJECT_TYPE_NAME (channel));
+  return NULL;
+}
+
+static GIOStream *
+valent_channel_real_upload (ValentChannel  *channel,
+                            JsonNode       *packet,
+                            GCancellable   *cancellable,
+                            GError        **error)
+{
+  g_set_error (error,
+               G_IO_ERROR,
+               G_IO_ERROR_NOT_SUPPORTED,
+               "%s does not implement upload()",
+               G_OBJECT_TYPE_NAME (channel));
+  return NULL;
+}
+
+static void
+valent_channel_real_store_data (ValentChannel *channel,
+                                ValentData    *data)
+{
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+  g_autoptr (GFile) file = NULL;
+  g_autofree char *json = NULL;
+
+  g_assert (VALENT_IS_CHANNEL (channel));
+  g_assert (VALENT_IS_DATA (data));
+
+  /* Save the peer identity */
+  json = json_to_string (priv->peer_identity, TRUE);
+  file = valent_data_get_config_file (data, "identity.json");
+  g_file_set_contents_full (g_file_peek_path (file),
+                            json,
+                            -1,
+                            G_FILE_SET_CONTENTS_CONSISTENT,
+                            0600,
+                            NULL);
+}
+
+static const char *
+valent_channel_real_get_description (ValentChannel *channel)
+{
+  return valent_channel_get_uri (channel);
+}
+/* LCOV_EXCL_STOP */
+
+/*
+ * GObject
+ */
+static void
+valent_channel_dispose (GObject *object)
+{
+  ValentChannel *self = VALENT_CHANNEL (object);
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (self);
+
+  g_queue_foreach (&priv->write_queue, (GFunc)g_object_unref, NULL);
+  g_queue_clear (&priv->write_queue);
+
+  G_OBJECT_CLASS (valent_channel_parent_class)->dispose (object);
+}
+
+static void
+valent_channel_finalize (GObject *object)
+{
+  ValentChannel *self = VALENT_CHANNEL (object);
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (self);
+
+  g_clear_object (&priv->base_stream);
+
+  /* Channel metadata */
+  g_clear_pointer (&priv->identity, json_node_unref);
+  g_clear_pointer (&priv->peer_identity, json_node_unref);
+  g_clear_pointer (&priv->uri, g_free);
+
+  /* Packet Buffer */
+  g_clear_pointer (&priv->buffer, g_free);
+  g_clear_object (&priv->parser);
+  g_clear_object (&priv->generator);
+  g_mutex_clear (&priv->write_lock);
+
+  G_OBJECT_CLASS (valent_channel_parent_class)->finalize (object);
+}
+
+static void
+valent_channel_get_property (GObject    *object,
+                             guint       prop_id,
+                             GValue     *value,
+                             GParamSpec *pspec)
+{
+  ValentChannel *self = VALENT_CHANNEL (object);
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (self);
+
+  switch (prop_id)
+    {
+    case PROP_BASE_STREAM:
+      g_value_set_object (value, priv->base_stream);
+      break;
+
+    case PROP_IDENTITY:
+      g_value_set_boxed (value, priv->identity);
+      break;
+
+    case PROP_PEER_IDENTITY:
+      g_value_set_boxed (value, priv->peer_identity);
+      break;
+
+    case PROP_URI:
+      g_value_set_string (value, priv->uri);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
+static void
+valent_channel_set_property (GObject      *object,
+                             guint         prop_id,
+                             const GValue *value,
+                             GParamSpec   *pspec)
+{
+  ValentChannel *self = VALENT_CHANNEL (object);
+
+  switch (prop_id)
+    {
+    case PROP_BASE_STREAM:
+      valent_channel_set_base_stream (self, g_value_get_object (value));
+      break;
+
+    case PROP_IDENTITY:
+      valent_channel_set_identity (self, g_value_get_boxed (value));
+      break;
+
+    case PROP_PEER_IDENTITY:
+      valent_channel_set_peer_identity (self, g_value_get_boxed (value));
+      break;
+
+    case PROP_URI:
+      valent_channel_set_uri (self, g_value_get_string (value));
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
+static void
+valent_channel_class_init (ValentChannelClass *klass)
+{
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->dispose = valent_channel_dispose;
+  object_class->finalize = valent_channel_finalize;
+  object_class->get_property = valent_channel_get_property;
+  object_class->set_property = valent_channel_set_property;
+
+  klass->download = valent_channel_real_download;
+  klass->upload = valent_channel_real_upload;
+  klass->get_description = valent_channel_real_get_description;
+  klass->store_data = valent_channel_real_store_data;
+
+  /**
+   * ValentChannel:base-stream:
+   *
+   * The base #GIOStream for the channel.
+   */
+  properties [PROP_BASE_STREAM] =
+    g_param_spec_object ("base-stream",
+                         "Base Stream",
+                         "Base Stream",
+                         G_TYPE_IO_STREAM,
+                         (G_PARAM_READWRITE |
+                          G_PARAM_EXPLICIT_NOTIFY |
+                          G_PARAM_STATIC_STRINGS));
+
+  /**
+   * ValentChannel:identity:
+   *
+   * The identity packet sent by the #ValentChannelService during connection
+   * negotiation.
+   */
+  properties [PROP_IDENTITY] =
+    g_param_spec_boxed ("identity",
+                        "Identity",
+                        "Identity",
+                        JSON_TYPE_NODE,
+                        (G_PARAM_READWRITE |
+                         G_PARAM_EXPLICIT_NOTIFY |
+                         G_PARAM_STATIC_STRINGS));
+
+  /**
+   * ValentChannel:peer-identity:
+   *
+   * The identity packet sent by the peer during connection negotiation.
+   */
+  properties [PROP_PEER_IDENTITY] =
+    g_param_spec_boxed ("peer-identity",
+                        "Peer Identity",
+                        "Peer Identity",
+                        JSON_TYPE_NODE,
+                        (G_PARAM_READWRITE |
+                         G_PARAM_EXPLICIT_NOTIFY |
+                         G_PARAM_STATIC_STRINGS));
+
+  /**
+   * ValentChannel:uri:
+   *
+   * The reconnect URI of the channel.
+   */
+  properties [PROP_URI] =
+    g_param_spec_string ("uri",
+                         "URI",
+                         "The reconnect URI of the channel",
+                         NULL,
+                         (G_PARAM_READWRITE |
+                          G_PARAM_EXPLICIT_NOTIFY |
+                          G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+}
+
+static void
+valent_channel_init (ValentChannel *self)
+{
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (self);
+
+  priv->base_stream = NULL;
+
+  /* Input Buffer */
+  priv->parser = json_parser_new_immutable ();
+  priv->pos = 0;
+  priv->end = 0;
+  priv->buffer_size = BUFFER_SIZE;
+  priv->buffer = g_malloc0 (priv->buffer_size);
+
+  /* Output Buffer */
+  priv->generator = json_generator_new ();
+  g_mutex_init (&priv->write_lock);
+  g_queue_init (&priv->write_queue);
+}
+
+static void
+read_packet_task (GTask        *task,
+                  gpointer      source_object,
+                  gpointer      task_data,
+                  GCancellable *cancellable)
+{
+  ValentChannel *channel = source_object;
+  GError *error = NULL;
+  JsonNode *packet;
+
+  if (g_task_return_error_if_cancelled (task))
+    return;
+
+  packet = valent_channel_read_packet_internal (channel, cancellable, &error);
+
+  if (packet == NULL)
+    return g_task_return_error (task, error);
+
+  g_task_return_pointer (task, packet, (GDestroyNotify)json_node_unref);
+}
+
+/**
+ * valent_channel_read_packet:
+ * @channel: a #ValentChannel
+ * @cancellable: (nullable): a #GCancellable
+ * @callback: (scope async): a #GAsyncReadyCallback
+ * @user_data: (closure): user supplied data
+ *
+ * Asynchronously read the next #JsonNode packet from @channel. Call
+ * valent_channel_read_packet_finish() to get the result.
+ */
+void
+valent_channel_read_packet (ValentChannel       *channel,
+                            GCancellable        *cancellable,
+                            GAsyncReadyCallback  callback,
+                            gpointer             user_data)
+{
+  g_autoptr (GTask) task = NULL;
+
+  VALENT_ENTRY;
+
+  g_return_if_fail (VALENT_IS_CHANNEL (channel));
+  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  task = g_task_new (channel, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_channel_read_packet);
+  g_task_run_in_thread (task, read_packet_task);
+
+  VALENT_EXIT;
+}
+
+/**
+ * valent_channel_read_packet_finish:
+ * @channel: a #ValentChannel
+ * @result: a #GAsyncResult
+ * @error: (nullable): a #GError
+ *
+ * Finishes an operation started by valent_channel_read_packet().
+ *
+ * Returns: (transfer full): a #JsonNode or %NULL with @error set
+ */
+JsonNode *
+valent_channel_read_packet_finish (ValentChannel  *channel,
+                                   GAsyncResult   *result,
+                                   GError        **error)
+{
+  JsonNode *ret;
+
+  VALENT_ENTRY;
+
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), FALSE);
+  g_return_val_if_fail (g_task_is_valid (result, channel), FALSE);
+  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+  ret = g_task_propagate_pointer (G_TASK (result), error);
+
+  VALENT_RETURN (ret);
+}
+
+static gboolean
+write_packet_next (gpointer data)
+{
+  ValentChannel *channel = VALENT_CHANNEL (data);
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+  g_autoptr (GTask) task = NULL;
+
+  g_assert (VALENT_IS_CHANNEL (channel));
+
+  if (priv->write_queue.length == 0)
+    return FALSE;
+
+  if (!g_mutex_trylock (&priv->write_lock))
+    return FALSE;
+
+  task = g_queue_pop_head (&priv->write_queue);
+  g_task_run_in_thread (task, write_packet_task);
+
+  return FALSE;
+}
+
+static void
+write_packet_task (GTask        *task,
+                   gpointer      source_object,
+                   gpointer      task_data,
+                   GCancellable *cancellable)
+{
+  ValentChannel *channel = source_object;
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+  JsonNode *packet = task_data;
+  GError *error = NULL;
+
+  if (g_task_return_error_if_cancelled (task))
+    return g_mutex_unlock (&priv->write_lock);
+
+  if (valent_channel_write_packet_internal (channel, packet, cancellable, &error))
+    g_task_return_boolean (task, TRUE);
+  else
+    g_task_return_error (task, error);
+
+  g_mutex_unlock (&priv->write_lock);
+  write_packet_next (channel);
+}
+
+/**
+ * valent_channel_write_packet:
+ * @channel: a #ValentChannel
+ * @packet: a #JsonNode
+ * @cancellable: (nullable): a #GCancellable
+ * @callback: (scope async): a #GAsyncReadyCallback
+ * @user_data: (closure): user supplied data
+ *
+ * Asynchronously write the #JsonNode @packet to @channel. Call
+ * valent_channel_write_packet_finish() to get the result.
+ */
+void
+valent_channel_write_packet (ValentChannel       *channel,
+                             JsonNode            *packet,
+                             GCancellable        *cancellable,
+                             GAsyncReadyCallback  callback,
+                             gpointer             user_data)
+{
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+  g_autoptr (GTask) task = NULL;
+
+  VALENT_ENTRY;
+
+  g_return_if_fail (VALENT_IS_CHANNEL (channel));
+  g_return_if_fail (VALENT_IS_PACKET (packet));
+  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  task = g_task_new (channel, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_channel_write_packet);
+  g_task_set_task_data (task, json_node_ref (packet), (GDestroyNotify)json_node_unref);
+
+  g_queue_push_tail (&priv->write_queue, g_steal_pointer (&task));
+  write_packet_next (channel);
+
+  VALENT_EXIT;
+}
+
+/**
+ * valent_channel_write_packet_finish:
+ * @channel: a #ValentChannel
+ * @result: a #GAsyncResult
+ * @error: (nullable): a #GError
+ *
+ * Finishes an async operation started by valent_channel_write_packet().
+ *
+ * Returns: %TRUE or %FALSE with @error set
+ */
+gboolean
+valent_channel_write_packet_finish (ValentChannel  *channel,
+                                    GAsyncResult   *result,
+                                    GError        **error)
+{
+  gboolean ret;
+
+  VALENT_ENTRY;
+
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), FALSE);
+  g_return_val_if_fail (g_task_is_valid (result, channel), FALSE);
+  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+  ret = g_task_propagate_boolean (G_TASK (result), error);
+
+  VALENT_RETURN (ret);
+}
+
+/**
+ * valent_channel_close:
+ * @channel: a #ValentChannel
+ * @cancellable: (nullable): a #GCancellable
+ * @error: (nullable): a #GError
+ *
+ * Synchronously close @channel.
+ *
+ * Returns: %TRUE or %FALSE with @error set
+ */
+gboolean
+valent_channel_close (ValentChannel  *channel,
+                      GCancellable   *cancellable,
+                      GError        **error)
+{
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+
+  g_assert (VALENT_IS_CHANNEL (channel));
+  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+  g_assert (error == NULL || *error == NULL);
+
+  if (priv->base_stream == NULL)
+    return TRUE;
+
+  return g_io_stream_close (priv->base_stream, cancellable, error);
+}
+
+static void
+close_async_cb (GIOStream    *stream,
+                GAsyncResult *result,
+                gpointer      user_data)
+{
+  g_autoptr (GTask) task = user_data;
+  GError *error = NULL;
+
+  g_assert (g_task_is_valid (result, stream));
+
+  if (!g_io_stream_close_finish (stream, result, &error))
+    return g_task_return_error (task, error);
+
+  g_task_return_boolean (task, TRUE);
+}
+
+/**
+ * valent_channel_close_async:
+ * @channel: a #ValentChannel
+ * @cancellable: (nullable): a #GCancellable
+ * @callback: (scope async): a #GAsyncReadyCallback
+ * @user_data: (closure): user supplied data
+ *
+ * This is the asynchronous version of valent_channel_close().
+ */
+void
+valent_channel_close_async (ValentChannel       *channel,
+                            GCancellable        *cancellable,
+                            GAsyncReadyCallback  callback,
+                            gpointer             user_data)
+{
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+  g_autoptr (GTask) task = NULL;
+
+  g_return_if_fail (VALENT_IS_CHANNEL (channel));
+  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  task = g_task_new (channel, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_channel_close_async);
+
+  if (priv->base_stream == NULL)
+    return g_task_return_boolean (task, TRUE);
+
+  g_io_stream_close_async (priv->base_stream,
+                           G_PRIORITY_DEFAULT,
+                           cancellable,
+                           (GAsyncReadyCallback)close_async_cb,
+                           g_steal_pointer (&task));
+  g_clear_object (&priv->base_stream);
+}
+
+/**
+ * valent_channel_close_finish:
+ * @channel: a #ValentChannel
+ * @result: a #GAsyncResult
+ * @error: (nullable): a #GError
+ *
+ * Finishes an async operation started by valent_channel_close_async().
+ *
+ * Returns: %TRUE or %FALSE with @error set
+ */
+gboolean
+valent_channel_close_finish (ValentChannel  *channel,
+                             GAsyncResult   *result,
+                             GError        **error)
+{
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), FALSE);
+  g_return_val_if_fail (g_task_is_valid (result, channel), FALSE);
+  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+  return g_task_propagate_boolean (G_TASK (result), error);
+}
+
+/**
+ * valent_channel_store_data: (virtual store_data)
+ * @channel: a #ValentChannel
+ * @data: a #ValentData
+ *
+ * This is called when a device is paired, allowing implementations to store
+ * data required to authenticate during later connections.
+ *
+ * The default implementation stores the remote identity packet, so
+ * implementations should chain-up to retain that behaviour.
+ */
+void
+valent_channel_store_data (ValentChannel *channel,
+                           ValentData    *data)
+{
+  g_return_if_fail (VALENT_IS_CHANNEL (channel));
+  g_return_if_fail (VALENT_IS_DATA (data));
+
+  VALENT_CHANNEL_GET_CLASS (channel)->store_data (channel, data);
+}
+
+/**
+ * valent_channel_download: (virtual download)
+ * @channel: a #ValentChannel
+ * @packet: a #JsonNode packet
+ * @cancellable: (nullable): a #GCancellable
+ * @error: (nullable): a #GError
+ *
+ * Accept a connection from the remote device. The remote device is expected to
+ * populate @packet with the information necessary for implementations to
+ * negotiate an appropriate connection.
+ *
+ * Typically the #GInputStream of the result will be used to read the contents
+ * of a payload, while the #GInputStream is left unused.
+ *
+ * Returns: (transfer full) (nullable): a #GIOStream
+ */
+GIOStream *
+valent_channel_download (ValentChannel  *channel,
+                         JsonNode       *packet,
+                         GCancellable   *cancellable,
+                         GError        **error)
+{
+  GIOStream *ret;
+
+  VALENT_ENTRY;
+
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), FALSE);
+  g_return_val_if_fail (VALENT_IS_PACKET (packet), FALSE);
+  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
+  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+  ret = VALENT_CHANNEL_GET_CLASS (channel)->download (channel,
+                                                      packet,
+                                                      cancellable,
+                                                      error);
+
+  VALENT_RETURN (ret);
+}
+
+/**
+ * valent_channel_upload: (virtual upload)
+ * @channel: a #ValentChannel
+ * @packet: a #JsonNode packet to send with payload info
+ * @cancellable: (nullable): a #GCancellable
+ * @error: (nullable): a #GError
+ *
+ * Open a connection to the remote device. Implementations are expected to
+ * populate @packet with the information necessary for the remote device to
+ * negotiate an appropriate connection.
+ *
+ * Typically the #GOutputStream of the result will be used to write the contents
+ * of a payload, while the #GInputStream is left unused.
+ *
+ * Returns: (transfer full) (nullable): a #GIOStream
+ */
+GIOStream *
+valent_channel_upload (ValentChannel  *channel,
+                       JsonNode       *packet,
+                       GCancellable   *cancellable,
+                       GError        **error)
+{
+  GIOStream *ret;
+
+  VALENT_ENTRY;
+
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), FALSE);
+  g_return_val_if_fail (VALENT_IS_PACKET (packet), FALSE);
+  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
+  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+  ret = VALENT_CHANNEL_GET_CLASS (channel)->upload (channel,
+                                                    packet,
+                                                    cancellable,
+                                                    error);
+
+  VALENT_RETURN (ret);
+}
+
+/**
+ * valent_channel_get_base_stream:
+ * @channel: a #ValentChannel
+ *
+ * Gets the #GIOStream for the channel, or NULL if unset.
+ *
+ * Returns: (nullable) (transfer none): the base #GIOStream.
+ */
+GIOStream *
+valent_channel_get_base_stream (ValentChannel *channel)
+{
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
+
+  return priv->base_stream;
+}
+
+/**
+ * valent_channel_set_base_stream:
+ * @channel: a #ValentChannel
+ * @stream: a #GIOStream for the channel
+ *
+ * Sets the #ValentChannel:base-stream property. @channel will hold a reference
+ * to @stream.
+ */
+void
+valent_channel_set_base_stream (ValentChannel *channel,
+                                GIOStream     *stream)
+{
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+
+  g_return_if_fail (VALENT_IS_CHANNEL (channel));
+  g_return_if_fail (G_IS_IO_STREAM (stream));
+
+  if (g_set_object (&priv->base_stream, stream))
+    g_object_notify_by_pspec (G_OBJECT (channel), properties [PROP_BASE_STREAM]);
+}
+
+/**
+ * valent_channel_get_description: (virtual get_description)
+ * @channel: a #ValentChannel
+ *
+ * Get a description for the device connection. For example, TCP connections
+ * might return a TLS certificate fingerprint while Bluetooth connections may
+ * return the MAC Address or DBus path.
+ *
+ * Implementations should return a string for the user to confirm the connection
+ * is being made by a particular device. This prevents a client from spoofing
+ * the user (eg. copying a device's display name).
+ *
+ * Returns: (transfer none): an unique string for the host
+ */
+const char *
+valent_channel_get_description (ValentChannel *channel)
+{
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
+
+  return VALENT_CHANNEL_GET_CLASS (channel)->get_description (channel);
+}
+
+/**
+ * valent_channel_get_identity:
+ * @channel: A #ValentChannel
+ *
+ * Gets the identity packet for this channel is associated with.
+ *
+ * Returns: (transfer none): The identity #JsonNode for this channel
+ */
+JsonNode *
+valent_channel_get_identity (ValentChannel *channel)
+{
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
+
+  return priv->identity;
+}
+
+/**
+ * valent_channel_set_identity:
+ * @channel: a #ValentChannel
+ * @packet: a #JsonNode
+ *
+ * Sets the identity for this channel. @channel will hold a reference to
+ * @packet.
+ */
+void
+valent_channel_set_identity (ValentChannel *channel,
+                             JsonNode      *packet)
+{
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+
+  g_return_if_fail (VALENT_IS_CHANNEL (channel));
+  g_return_if_fail (VALENT_IS_PACKET (packet));
+
+  if (priv->identity == packet)
+    return;
+
+  g_clear_pointer (&priv->identity, json_node_unref);
+  priv->identity = json_node_ref (packet);
+
+  g_object_notify_by_pspec (G_OBJECT (channel), properties [PROP_IDENTITY]);
+}
+
+/**
+ * valent_channel_get_peer_identity:
+ * @channel: A #ValentChannel
+ *
+ * Gets the identity packet for this channel is associated with.
+ *
+ * Returns: (transfer none): The identity #JsonNode for this channel
+ */
+JsonNode *
+valent_channel_get_peer_identity (ValentChannel *channel)
+{
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
+
+  return priv->peer_identity;
+}
+
+/**
+ * valent_channel_set_peer_identity:
+ * @channel: a #ValentChannel
+ * @packet: a #JsonNode
+ *
+ * Sets the identity for this channel. @packet will be duplicated.
+ */
+void
+valent_channel_set_peer_identity (ValentChannel *channel,
+                                  JsonNode      *packet)
+{
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+
+  g_return_if_fail (VALENT_IS_CHANNEL (channel));
+  g_return_if_fail (VALENT_IS_PACKET (packet));
+
+  if (priv->peer_identity == packet)
+    return;
+
+  g_clear_pointer (&priv->peer_identity, json_node_unref);
+  priv->peer_identity = json_node_ref (packet);
+
+  g_object_notify_by_pspec (G_OBJECT (channel), properties [PROP_PEER_IDENTITY]);
+}
+
+/**
+ * valent_channel_get_uri:
+ * @channel: a #ValentChannel
+ *
+ * Return a string representation of @channel that can be used to reconnect to
+ * the device, by passing to valent_channel_service_identify().
+ *
+ * This may be %NULL if the @channel does not support reconnection.
+ *
+ * Returns: (transfer none) (nullable): a reconnection string
+ */
+const char *
+valent_channel_get_uri (ValentChannel *channel)
+{
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
+
+  return priv->uri;
+}
+
+/**
+ * valent_channel_set_uri:
+ * @channel: a #ValentChannel
+ * @uri: (nullable): a reconnect URI
+ *
+ * Set the string representation of @channel that can be used to reconnect to
+ * the device, by passing to valent_channel_service_identify().
+ */
+void
+valent_channel_set_uri (ValentChannel *channel,
+                        const char    *uri)
+{
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+
+  g_return_if_fail (VALENT_IS_CHANNEL (channel));
+
+  if (g_strcmp0 (priv->uri, uri) == 0)
+    return;
+
+  g_clear_pointer (&priv->uri, g_free);
+  priv->uri = g_strdup (uri);
+  g_object_notify_by_pspec (G_OBJECT (channel), properties [PROP_URI]);
+}
+

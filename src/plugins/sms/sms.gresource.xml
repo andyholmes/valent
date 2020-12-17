@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/plugins/sms">
+    <file>sms.plugin</file>
+    <file>sms.css</file>
+    <file>valent-sms-conversation.ui</file>
+    <file>valent-sms-window.ui</file>
+  </gresource>
+  <gresource prefix="/ca/andyholmes/Valent/icons">
+    <file preprocess="xml-stripblanks" alias="scalable/actions/sms-send.svg">data/sms-send.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/apps/sms-symbolic.svg">data/sms-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/group-avatar-symbolic.svg">data/group-avatar-symbolic.svg</file>
+  </gresource>
+</gresources>
+

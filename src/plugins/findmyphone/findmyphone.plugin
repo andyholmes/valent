@@ -1,0 +1,13 @@
+[Plugin]
+Module=findmyphone
+Name=Find My Phone
+Description=Find a device by making it ring
+Icon=find-location-symbolic
+Builtin=true
+Embedded=valent_findmyphone_plugin_register_types
+Website=https://github.com/andyholmes/valent
+Help=https://github.com/andyholmes/valent
+Hidden=false
+X-IncomingCapabilities=kdeconnect.findmyphone.request
+X-OutgoingCapabilities=kdeconnect.findmyphone.request
+

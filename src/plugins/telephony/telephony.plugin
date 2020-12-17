@@ -1,0 +1,13 @@
+[Plugin]
+Module=telephony
+Name=Telephony
+Description=Be notified of incoming and ongoing calls
+Icon=call-start-symbolic
+Builtin=true
+Embedded=valent_telephony_plugin_register_types
+Website=https://github.com/andyholmes/valent
+Help=https://github.com/andyholmes/valent
+Hidden=false
+X-IncomingCapabilities=kdeconnect.telephony
+X-OutgoingCapabilities=kdeconnect.telephony.request_mute
+

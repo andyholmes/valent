@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/plugins/findmyphone">
+    <file>findmyphone.plugin</file>
+    <file alias="ring.oga">data/ring.oga</file>
+  </gresource>
+</gresources>
+

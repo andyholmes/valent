@@ -1,0 +1,96 @@
+{
+  "identity": {
+    "id": 0,
+    "type": "kdeconnect.identity",
+    "body": {
+      "deviceId": "test-device",
+      "deviceName": "Test Device",
+      "protocolVersion": 7,
+      "deviceType": "phone",
+      "incomingCapabilities": [
+        "kdeconnect.notification",
+        "kdeconnect.notification.action",
+        "kdeconnect.notification.reply",
+        "kdeconnect.notification.request"
+      ],
+      "outgoingCapabilities": [
+        "kdeconnect.notification",
+        "kdeconnect.notification.request"
+      ]
+    }
+  },
+  "notification-simple": {
+    "id": 1611279982633,
+    "type": "kdeconnect.notification",
+    "body": {
+      "id": "notification-simple",
+      "onlyOnce": false,
+      "isClearable": true,
+      "appName": "Test Application",
+      "time": "1611279982600",
+      "ticker": "Test Title: Test Body",
+      "title": "Test Title",
+      "text": "Test Body"
+    }
+  },
+  "notification-icon": {
+    "id": 1611279982633,
+    "type": "kdeconnect.notification",
+    "body": {
+      "id": "notification-icon",
+      "isClearable": true,
+      "onlyOnce": false,
+      "time": "1611279982600",
+      "appName": "Test Notification",
+      "ticker": "Test Title: Test Body",
+      "title": "Test Title",
+      "text": "Test Body",
+      "payloadHash": "785f2906761c43d4031c853ff63c0c0f"
+    },
+    "payloadSize": 10496,
+    "payloadTransferInfo": {
+      "port": 1740
+    }
+  },
+  "notification-actions": {
+    "id": 1611279982633,
+    "type": "kdeconnect.notification",
+    "body": {
+      "id": "notification-actions",
+      "actions": [
+        "Button One",
+        "Button Two",
+        "Button Three"
+      ],
+      "isClearable": true,
+      "onlyOnce": false,
+      "time": "1611279982600",
+      "appName": "Test Notification",
+      "ticker": "Test Title: Test Body",
+      "title": "Test Title",
+      "text": "Test Body"
+    }
+  },
+  "notification-repliable": {
+    "id": 1611279982633,
+    "type": "kdeconnect.notification",
+    "body": {
+      "id": "notification-repliable",
+      "requestReplyId": "notification-repliable",
+      "isClearable": true,
+      "onlyOnce": false,
+      "time": "1611279982600",
+      "appName": "Test Notification",
+      "ticker": "Test Title: Test Body",
+      "title": "Test Title",
+      "text": "Test Body"
+    }
+  },
+  "notification-request": {
+    "id": 0,
+    "type": "kdeconnect.notification.request",
+    "body": {
+      "request": true
+    }
+  }
+}

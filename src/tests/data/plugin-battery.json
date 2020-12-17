@@ -1,0 +1,60 @@
+{
+  "identity": {
+    "id": 0,
+    "type": "kdeconnect.identity",
+    "body": {
+      "deviceId": "test-device",
+      "deviceName": "Test Device",
+      "protocolVersion": 7,
+      "deviceType": "phone",
+      "incomingCapabilities": [
+        "kdeconnect.battery.request"
+      ],
+      "outgoingCapabilities": [
+        "kdeconnect.battery"
+      ]
+    }
+  },
+  "caution-battery": {
+    "id": 0,
+    "type": "kdeconnect.battery",
+    "body": {
+      "currentCharge": 5,
+      "isCharging": true,
+      "thresholdEvent": 1
+    }
+  },
+  "low-battery": {
+    "id": 0,
+    "type": "kdeconnect.battery",
+    "body": {
+      "currentCharge": 25,
+      "isCharging": true,
+      "thresholdEvent": 0
+    }
+  },
+  "good-battery": {
+    "id": 0,
+    "type": "kdeconnect.battery",
+    "body": {
+      "currentCharge": 50,
+      "isCharging": false,
+      "thresholdEvent": 0
+    }
+  },
+  "full-battery": {
+    "id": 0,
+    "type": "kdeconnect.battery",
+    "body": {
+      "currentCharge": 100,
+      "isCharging": false,
+      "thresholdEvent": 0
+    }
+  },
+  "request-state": {
+    "id": 0,
+    "type": "kdeconnect.battery.request",
+    "body": {
+    }
+  }
+}

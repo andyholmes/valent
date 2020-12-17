@@ -1,0 +1,92 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "$id": "https://andyholmes.ca/kdeconnect-schema/packet",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer",
+            "default": 0
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.mpris"]
+        },
+        "body": {
+            "type": "object",
+            "properties": {
+                "playerList": {
+                    "type": "array",
+                    "default": ["Test Player"],
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "player": {
+                    "type": "string",
+                    "default": "Test Player"
+                },
+                "canPause": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "canPlay": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "canGoNext": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "canGoPrevious": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "canGoSeek": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "isPlaying": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "pos": {
+                    "type": "integer",
+                    "default": 0
+                },
+                "albumArtUrl": {
+                    "type": "string",
+                    "default": "file:///var/home/andrew/Projects/valent/src/tests/data/image.png"
+                },
+                "nowPlaying": {
+                    "type": "string",
+                    "default": "Test Artist - Test Title"
+                },
+                "artist": {
+                    "type": "string",
+                    "default": "Test Artist"
+                },
+                "title": {
+                    "type": "string",
+                    "default": "Test Title"
+                },
+                "album": {
+                    "type": "string",
+                    "default": "Test Album"
+                },
+                "length": {
+                    "type": "integer",
+                    "default": 180000
+                },
+                "volume": {
+                    "type": "integer",
+                    "default": 100
+                }
+            }
+        }
+    }
+}

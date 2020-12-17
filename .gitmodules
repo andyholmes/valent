@@ -1,0 +1,6 @@
+[submodule "subprojects/gvc"]
+	path = subprojects/gvc
+	url = https://gitlab.gnome.org/GNOME/libgnome-volume-control.git
+[submodule "subprojects/libadwaita"]
+	path = subprojects/libadwaita
+	url = https://gitlab.gnome.org/GNOME/libadwaita.git

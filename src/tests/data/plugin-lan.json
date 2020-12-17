@@ -1,0 +1,32 @@
+{
+  "identity": {
+    "id": 0,
+    "type": "kdeconnect.identity",
+    "body": {
+      "deviceId": "endpoint",
+      "deviceName": "Endpoint",
+      "protocolVersion": 7,
+      "deviceType": "phone",
+      "incomingCapabilities": [
+        "kdeconnect.test.echo",
+        "kdeconnect.test.transfer"
+      ],
+      "outgoingCapabilities": [
+        "kdeconnect.test.echo",
+        "kdeconnect.test.transfer"
+      ],
+      "tcpPort": 3716
+    }
+  },
+  "transfer": {
+    "id": 0,
+    "type": "kdeconnect.test.transfer",
+    "body": {
+      "filename": "image.png"
+    },
+    "payloadSize": 882,
+    "payloadTransferInfo": {
+      "port": 1739
+    }
+  }
+}
