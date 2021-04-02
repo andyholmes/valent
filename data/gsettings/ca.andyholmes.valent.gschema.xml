@@ -7,7 +7,7 @@
       <description>The unique ID for the local device.</description>
     </key>
     <key name="name" type="s">
-      <default>""</default>
+      <default>"Valent"</default>
       <summary>Name</summary>
       <description>The display name for the local device.</description>
     </key>

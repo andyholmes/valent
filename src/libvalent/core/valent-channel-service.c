@@ -278,16 +278,7 @@ valent_channel_service_real_build_identity (ValentChannelService *service)
   g_assert (VALENT_IS_CHANNEL_SERVICE (service));
 
   engine = valent_get_engine ();
-
-  /* Default device name */
   name = g_settings_get_string (priv->settings, "name");
-
-  if (strlen (name) == 0)
-    {
-      g_clear_pointer (&name, g_free);
-      name = g_strdup ("Valent");
-      g_settings_set_string (priv->settings, "name", name);
-    }
 
   /* Filter plugins */
   plugins = peas_engine_get_plugin_list (engine);
