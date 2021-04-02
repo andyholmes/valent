@@ -665,8 +665,13 @@ valent_window_init (ValentWindow *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
 
-  if (g_strcmp0 (PACKAGE_BUILDTYPE, "release") != 0)
-    gtk_style_context_add_class (gtk_widget_get_style_context (GTK_WIDGET (self)), "devel");
+  if (g_strcmp0 (PROFILE_NAME, "devel") == 0)
+    {
+      GtkStyleContext *style;
+
+      style = gtk_widget_get_style_context (GTK_WIDGET (self));
+      gtk_style_context_add_class (style, "devel");
+    }
 
   /* Navigation History */
   self->history = g_queue_new ();

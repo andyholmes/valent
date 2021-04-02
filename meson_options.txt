@@ -22,7 +22,7 @@ option('firewalld',
 option('profile',
          type: 'combo',
         value: 'default',
-      choices: ['default', 'devel', 'nightly'],
+      choices: ['default', 'devel'],
   description: 'Build profile (default, devel)',
 )
 

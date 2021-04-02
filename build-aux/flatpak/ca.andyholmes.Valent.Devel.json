@@ -1,5 +1,5 @@
 {
-    "app-id" : "ca.andyholmes.Valent",
+    "app-id" : "ca.andyholmes.Valent.Devel",
     "runtime" : "org.gnome.Platform",
     "runtime-version" : "master",
     "sdk" : "org.gnome.Sdk",
@@ -218,9 +218,9 @@
             "name" : "valent",
             "buildsystem" : "meson",
             "config-opts" : [
-                "--buildtype=debug",
                 "--libdir=/app/lib",
                 "-Dplugin_bluez=true",
+                "-Dprofile=devel",
                 "-Dprofiling=true",
                 "-Dtests=true"
             ],

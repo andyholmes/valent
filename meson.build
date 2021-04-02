@@ -31,14 +31,13 @@ valent_api_name = 'valent-@0@'.format(valent_api_version)
 profile = get_option('profile')
 
 if profile == 'devel'
-  application_id = 'ca.andyholmes.Valent'
-  application_path = '/ca/andyholmes/Valent'
-elif profile == 'nightly'
   application_id = 'ca.andyholmes.Valent.Devel'
   application_path = '/ca/andyholmes/Valent'
+  profile_suffix = ' (Devel)'
 else
   application_id = 'ca.andyholmes.Valent'
   application_path = '/ca/andyholmes/Valent'
+  profile_suffix = ''
 endif
 
 
@@ -64,6 +63,7 @@ pkglibexecdir = join_paths(libexecdir, meson.project_name())
 pkgpluginsdir = join_paths(pkglibdir, 'plugins')
 
 po_dir = join_paths(meson.source_root(), 'po')
+
 
 #
 # config.h
@@ -92,8 +92,8 @@ config_h_defines = [
   ['PACKAGE_INCLUDEDIR', pkgincludedir],
   ['PACKAGE_PLUGINSDIR', pkgpluginsdir],
 
-  ['PACKAGE_BUILDNAME', get_option('profile')],
-  ['PACKAGE_BUILDTYPE', get_option('buildtype')],
+  ['PROFILE_NAME', profile],
+  ['PROFILE_SUFFIX', profile_suffix],
 
   # i18n
   ['GETTEXT_PACKAGE', meson.project_name()],

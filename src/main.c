@@ -14,13 +14,15 @@ main (int   argc,
 {
   int ret;
   g_autoptr (ValentApplication) service = NULL;
+  g_autofree char *application_name = NULL;
 
   /* Set up gettext translations */
   bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
   bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
   textdomain (GETTEXT_PACKAGE);
 
-  g_set_application_name ("Valent");
+  application_name = g_strconcat ("Valent", PROFILE_SUFFIX, NULL);
+  g_set_application_name (application_name);
 
   /* Start the service */
   valent_debug_init ();
