@@ -682,10 +682,6 @@ valent_manager_set_property (GObject      *object,
       self->data = g_value_dup_object (value);
       break;
 
-    case PROP_ID:
-      self->id = g_value_dup_string (value);
-      break;
-
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -727,8 +723,7 @@ valent_manager_class_init (ValentManagerClass *klass)
                          "Id",
                          "A unique Id",
                          NULL,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
+                         (G_PARAM_READABLE |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
