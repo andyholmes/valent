@@ -571,7 +571,7 @@ valent_transfer_cache_file (ValentTransfer *transfer,
 
   item = g_new0 (TransferItem, 1);
   item->packet = json_node_ref (packet);
-  item->file = valent_data_get_cache_file (data, hash);
+  item->file = valent_data_new_cache_file (data, hash);
   g_ptr_array_add (priv->items, item);
 
   return g_object_ref (item->file);
