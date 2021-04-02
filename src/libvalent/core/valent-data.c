@@ -466,7 +466,7 @@ valent_data_get_file (const char *dirname,
 }
 
 /**
- * valent_data_get_cache_file:
+ * valent_data_new_cache_file:
  * @data: a #ValentData
  * @filename: (type filename): a filename
  *
@@ -475,7 +475,7 @@ valent_data_get_file (const char *dirname,
  * Returns: (transfer full) (nullable): a new #GFile
  */
 GFile *
-valent_data_get_cache_file (ValentData *data,
+valent_data_new_cache_file (ValentData *data,
                             const char *filename)
 {
   ValentDataPrivate *priv = valent_data_get_instance_private (data);
@@ -506,7 +506,7 @@ valent_data_get_cache_path (ValentData *data)
 }
 
 /**
- * valent_data_get_config_file:
+ * valent_data_new_config_file:
  * @data: a #ValentData
  * @filename: (type filename): a filename
  *
@@ -515,7 +515,7 @@ valent_data_get_cache_path (ValentData *data)
  * Returns: (transfer full) (nullable): a new #GFile
  */
 GFile *
-valent_data_get_config_file (ValentData *data,
+valent_data_new_config_file (ValentData *data,
                              const char *filename)
 {
   ValentDataPrivate *priv = valent_data_get_instance_private (data);
@@ -564,7 +564,7 @@ valent_data_get_context (ValentData *data)
 }
 
 /**
- * valent_data_get_data_file:
+ * valent_data_new_data_file:
  * @data: a #ValentData
  * @filename: (type filename): a filename
  *
@@ -573,7 +573,7 @@ valent_data_get_context (ValentData *data)
  * Returns: (transfer full) (nullable): a new #GFile
  */
 GFile *
-valent_data_get_data_file (ValentData *data,
+valent_data_new_data_file (ValentData *data,
                            const char *filename)
 {
   ValentDataPrivate *priv = valent_data_get_instance_private (data);
@@ -644,17 +644,21 @@ valent_data_clear_cache (ValentData *data)
 }
 
 /**
- * valent_data_clear_config:
+ * valent_data_clear_data:
  * @data: a #ValentData
  *
- * Delete all config data for @data.
+ * Delete all files in the cache, config and data directories for @data. This is
+ * a no-op for the root #ValentData object, since it would wipe all data for all
+ * contexts.
  */
 void
-valent_data_clear_config (ValentData *data)
+valent_data_clear_data (ValentData *data)
 {
   ValentDataPrivate *priv = valent_data_get_instance_private (data);
   g_autoptr (GError) error = NULL;
-  g_autoptr (GFile) directory = NULL;
+  g_autoptr (GFile) cache_dir = NULL;
+  g_autoptr (GFile) config_dir = NULL;
+  g_autoptr (GFile) data_dir = NULL;
 
   g_return_if_fail (VALENT_IS_DATA (data));
 
@@ -662,15 +666,28 @@ valent_data_clear_config (ValentData *data)
   if (priv->context == NULL)
     return;
 
-  /* Remove configuration files */
-  directory = g_file_new_for_path (priv->config_path);
+  cache_dir = g_file_new_for_path (priv->cache_path);
 
-  if (!remove_directory (directory, NULL, &error))
+  if (!remove_directory (cache_dir, NULL, &error))
     {
-      g_debug ("Error deleting config directory: %s", error->message);
+      g_debug ("%s: %s", G_STRFUNC, error->message);
       g_clear_error (&error);
     }
 
-  /* TODO: remove/clear sqldb */
+  config_dir = g_file_new_for_path (priv->config_path);
+
+  if (!remove_directory (config_dir, NULL, &error))
+    {
+      g_debug ("%s: %s", G_STRFUNC, error->message);
+      g_clear_error (&error);
+    }
+
+  data_dir = g_file_new_for_path (priv->data_path);
+
+  if (!remove_directory (data_dir, NULL, &error))
+    {
+      g_debug ("%s: %s", G_STRFUNC, error->message);
+      g_clear_error (&error);
+    }
 }
 

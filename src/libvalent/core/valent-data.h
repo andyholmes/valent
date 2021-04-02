@@ -22,28 +22,30 @@ struct _ValentDataClass
   GObjectClass   parent_class;
 };
 
-ValentData    * valent_data_new                 (const char      *context,
-                                                 ValentData      *parent);
-char          * valent_data_get_directory       (GUserDirectory   directory);
-GFile         * valent_data_get_file            (const char      *dirname,
-                                                 const char      *basename,
-                                                 gboolean         unique);
+ValentData    * valent_data_new          (const char      *context,
+                                          ValentData      *parent);
 
 /* Properties */
-GFile         * valent_data_get_cache_file      (ValentData      *data,
-                                                 const char      *filename);
-GFile         * valent_data_get_config_file     (ValentData      *data,
-                                                 const char      *filename);
-GFile         * valent_data_get_data_file       (ValentData      *data,
-                                                 const char      *filename);
-const char    * valent_data_get_cache_path      (ValentData      *data);
-const char    * valent_data_get_config_path     (ValentData      *data);
-const char    * valent_data_get_data_path       (ValentData      *data);
-const char    * valent_data_get_context         (ValentData      *data);
-ValentData    * valent_data_get_parent          (ValentData      *data);
+const char * valent_data_get_cache_path  (ValentData      *data);
+const char * valent_data_get_config_path (ValentData      *data);
+const char * valent_data_get_data_path   (ValentData      *data);
+const char * valent_data_get_context     (ValentData      *data);
+ValentData * valent_data_get_parent      (ValentData      *data);
 
 /* Public Methods */
-void            valent_data_clear_cache         (ValentData      *data);
-void            valent_data_clear_config        (ValentData      *data);
+void         valent_data_clear_cache     (ValentData      *data);
+void         valent_data_clear_data      (ValentData      *data);
+GFile      * valent_data_new_cache_file  (ValentData      *data,
+                                          const char      *filename);
+GFile      * valent_data_new_config_file (ValentData      *data,
+                                          const char      *filename);
+GFile      * valent_data_new_data_file   (ValentData      *data,
+                                             const char      *filename);
+
+/* Static Utilities */
+char       * valent_data_get_directory   (GUserDirectory   directory);
+GFile      * valent_data_get_file        (const char      *dirname,
+                                          const char      *basename,
+                                          gboolean         unique);
 
 G_END_DECLS

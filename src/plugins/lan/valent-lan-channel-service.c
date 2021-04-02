@@ -419,8 +419,8 @@ valent_lan_channel_service_ensure_certificate (ValentLanChannelService  *self,
 
   /* Check if the certificate has already been generated */
   g_object_get (self, "data", &data, NULL);
-  cert_file = valent_data_get_config_file (data, "certificate.pem");
-  key_file = valent_data_get_config_file (data, "private.pem");
+  cert_file = valent_data_new_config_file (data, "certificate.pem");
+  key_file = valent_data_new_config_file (data, "private.pem");
 
   cert_path = g_file_peek_path (cert_file);
   key_path = g_file_peek_path (key_file);

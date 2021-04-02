@@ -1442,14 +1442,9 @@ valent_device_set_paired (ValentDevice *device,
 
   /* FIXME: If we're connected store/clear connection data */
   if (paired && device->channel != NULL)
-    {
-      valent_channel_store_data (device->channel, device->data);
-    }
+    valent_channel_store_data (device->channel, device->data);
   else if (!paired)
-    {
-      valent_data_clear_cache (device->data);
-      valent_data_clear_config (device->data);
-    }
+    valent_data_clear_data (device->data);
 
   /* Ensure plugins are updated before emitting */
   device->paired = paired;

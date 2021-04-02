@@ -288,7 +288,7 @@ valent_channel_real_store_data (ValentChannel *channel,
 
   /* Save the peer identity */
   json = json_to_string (priv->peer_identity, TRUE);
-  file = valent_data_get_config_file (data, "identity.json");
+  file = valent_data_new_config_file (data, "identity.json");
   g_file_set_contents_full (g_file_peek_path (file),
                             json,
                             -1,

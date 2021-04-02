@@ -41,53 +41,48 @@ test_data_basic (DataFixture   *fixture,
 }
 
 static void
-test_data_get_gfile (DataFixture   *fixture,
-                     gconstpointer  user_data)
-{
-  g_autoptr (GFile) cache_dir = NULL;
-  g_autoptr (GFile) config_dir = NULL;
-  g_autoptr (GFile) cache_file = NULL;
-  g_autoptr (GFile) config_file = NULL;
-
-  /* Cache file */
-  cache_file = valent_data_get_cache_file (fixture->data, "filename.ext");
-  g_assert_true (G_IS_FILE (cache_file));
-
-  /* Config file */
-  config_file = valent_data_get_config_file (fixture->data, "filename.ext");
-  g_assert_true (G_IS_FILE (config_file));
-
-  /* Cache file, dir should be created by get_cache_file() */
-  cache_dir = g_file_get_parent (cache_file);
-  g_assert_true (G_IS_FILE (cache_dir));
-  g_assert_true (g_file_query_exists (cache_dir, NULL));
-
-  /* Config file, dir should be created by get_config_file() */
-  config_dir = g_file_get_parent (config_file);
-  g_assert_true (G_IS_FILE (config_dir));
-  g_assert_true (g_file_query_exists (config_dir, NULL));
-}
-
-static void
-test_data_clear (DataFixture   *fixture,
-                 gconstpointer  user_data)
+test_data_directories (DataFixture   *fixture,
+                       gconstpointer  user_data)
 {
   const char *cache_path;
   const char *config_path;
+  const char *data_path;
+  g_autoptr (GFile) cache_file = NULL;
+  g_autoptr (GFile) config_file = NULL;
+  g_autoptr (GFile) data_file = NULL;
 
-  /* Creates cache path on-demand */
+  /* Creates cache path on-demand and clears contents */
   cache_path = valent_data_get_cache_path (fixture->data);
   g_assert_true (g_file_test (cache_path, G_FILE_TEST_IS_DIR));
 
   valent_data_clear_cache (fixture->data);
   g_assert_false (g_file_test (cache_path, G_FILE_TEST_IS_DIR));
 
-  /* Sets cache file contents */
+  /* Creates config, data path on-demand and clears contents */
   config_path = valent_data_get_config_path (fixture->data);
   g_assert_true (g_file_test (config_path, G_FILE_TEST_IS_DIR));
 
-  valent_data_clear_config (fixture->data);
+  data_path = valent_data_get_data_path (fixture->data);
+  g_assert_true (g_file_test (data_path, G_FILE_TEST_IS_DIR));
+
+  valent_data_clear_data (fixture->data);
   g_assert_false (g_file_test (config_path, G_FILE_TEST_IS_DIR));
+  g_assert_false (g_file_test (data_path, G_FILE_TEST_IS_DIR));
+
+  /* Cache, Config, Data file */
+  cache_file = valent_data_new_cache_file (fixture->data, "filename.ext");
+  g_assert_true (G_IS_FILE (cache_file));
+
+  config_file = valent_data_new_config_file (fixture->data, "filename.ext");
+  g_assert_true (G_IS_FILE (config_file));
+
+  data_file = valent_data_new_data_file (fixture->data, "filename.ext");
+  g_assert_true (G_IS_FILE (data_file));
+
+  /* Parent directories should be created by valent_data_new_*_file() */
+  g_assert_true (g_file_test (cache_path, G_FILE_TEST_IS_DIR));
+  g_assert_true (g_file_test (config_path, G_FILE_TEST_IS_DIR));
+  g_assert_true (g_file_test (data_path, G_FILE_TEST_IS_DIR));
 }
 
 gint
@@ -102,16 +97,10 @@ main (gint   argc,
               test_data_basic,
               data_fixture_tear_down);
 
-  g_test_add ("/core/data/get-gfile",
+  g_test_add ("/core/data/directories",
               DataFixture, NULL,
               data_fixture_set_up,
-              test_data_get_gfile,
-              data_fixture_tear_down);
-
-  g_test_add ("/core/data/clear",
-              DataFixture, NULL,
-              data_fixture_set_up,
-              test_data_clear,
+              test_data_directories,
               data_fixture_tear_down);
 
   return g_test_run ();
