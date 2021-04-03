@@ -10,6 +10,9 @@
 #include <libvalent-core.h>
 
 #include "valent-runcommand-plugin.h"
+#include "valent-runcommand-utils.h"
+
+#define SPAWN_FMT "/bin/sh -c %s"
 
 
 struct _ValentRuncommandPlugin
@@ -119,14 +122,22 @@ launcher_execute (ValentRuncommandPlugin  *self,
   g_autoptr (GSubprocess) subprocess = NULL;
   g_autofree char *command_line = NULL;
   g_auto (GStrv) argv = NULL;
+  gboolean isolate;
 
   launcher_init (self);
 
-  /* TODO: flatpak-only configuration for host/sandbox execution */
-  if (valent_in_flatpak ())
-    command_line = g_strdup_printf ("flatpak-spawn --host %s", command);
+  /* TODO: A user to could define a command including `flatpak-spawn --host`,
+   *       but it's not clear if that is a security risk since isolating
+   *       subprocesses is opt-in.
+   */
+  isolate = g_settings_get_boolean (self->settings, "isolate-subprocesses");
+
+  if (valent_runcommand_can_spawn_sandbox () && isolate)
+    command_line = g_strdup_printf ("flatpak-spawn "SPAWN_FMT, command);
+  else if (valent_in_flatpak ())
+    command_line = g_strdup_printf ("flatpak-spawn --host "SPAWN_FMT, command);
   else
-    command_line = g_strdup_printf ("/bin/sh -c %s", command);
+    command_line = g_strdup_printf (SPAWN_FMT, command);
 
   if (!g_shell_parse_argv (command_line, NULL, &argv, error))
     return FALSE;

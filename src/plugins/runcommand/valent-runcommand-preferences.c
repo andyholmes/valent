@@ -11,6 +11,7 @@
 
 #include "valent-runcommand-editor.h"
 #include "valent-runcommand-preferences.h"
+#include "valent-runcommand-utils.h"
 
 
 struct _ValentRuncommandPreferences
@@ -27,6 +28,9 @@ struct _ValentRuncommandPreferences
   GtkListBox          *command_list;
   char                *command_uuid;
   GtkWidget           *command_add;
+
+  AdwPreferencesGroup *restrictions_group;
+  GtkSwitch           *isolate_subprocesses;
 
   gint                 commands_changed_id;
 };
@@ -354,6 +358,66 @@ sort_commands  (GtkListBoxRow *row1,
 }
 
 /*
+ * Options
+ */
+static void
+on_isolate_subprocesses_response (GtkDialog                   *dialog,
+                                  int                          response_id,
+                                  ValentRuncommandPreferences *self)
+{
+  if (response_id == GTK_RESPONSE_ACCEPT)
+    {
+      gtk_switch_set_state (self->isolate_subprocesses, FALSE);
+      gtk_switch_set_active (self->isolate_subprocesses, FALSE);
+    }
+  else
+    {
+      gtk_switch_set_state (self->isolate_subprocesses, TRUE);
+      gtk_switch_set_active (self->isolate_subprocesses, TRUE);
+    }
+
+  gtk_window_destroy (GTK_WINDOW (dialog));
+}
+
+static gboolean
+on_isolate_subprocesses_changed (GtkSwitch                   *sw,
+                                 gboolean                     state,
+                                 ValentRuncommandPreferences *self)
+{
+  GtkRoot *root;
+  GtkDialog *dialog;
+  GtkWidget *button;
+
+  if (state == TRUE)
+    return FALSE;
+
+  root = gtk_widget_get_root (GTK_WIDGET (self));
+  dialog = g_object_new (GTK_TYPE_MESSAGE_DIALOG,
+                         "text",           _("Run Unrestricted?"),
+                         "secondary-text", _("Commands will be run on the host "
+                                             "system without restriction."),
+                         "message-type",   GTK_MESSAGE_WARNING,
+                         "modal",          TRUE,
+                         "transient-for",  root,
+                         NULL);
+
+  gtk_dialog_add_button (dialog, _("Cancel"), GTK_RESPONSE_CANCEL);
+  button = gtk_button_new_with_label (_("I Understand"));
+  gtk_style_context_add_class (gtk_widget_get_style_context (button),
+                               "destructive-action");
+  gtk_dialog_add_action_widget (dialog, button, GTK_RESPONSE_ACCEPT);
+
+  g_signal_connect (dialog,
+                    "response",
+                    G_CALLBACK (on_isolate_subprocesses_response),
+                    self);
+
+  gtk_window_present_with_time (GTK_WINDOW (dialog), GDK_CURRENT_TIME);
+
+  return TRUE;
+}
+
+/*
  * ValentPluginPreferences
  */
 static void
@@ -382,6 +446,27 @@ valent_runcommand_preferences_constructed (GObject *object)
   /* Populate list */
   gtk_list_box_set_sort_func (self->command_list, sort_commands, self, NULL);
   populate_commands (self);
+
+  /* Options */
+  if (!valent_runcommand_can_spawn_host ())
+    {
+      gtk_widget_set_sensitive (GTK_WIDGET (self->isolate_subprocesses), FALSE);
+      gtk_switch_set_active (self->isolate_subprocesses, TRUE);
+    }
+  else if (!valent_runcommand_can_spawn_sandbox ())
+    {
+      gtk_widget_set_sensitive (GTK_WIDGET (self->isolate_subprocesses), FALSE);
+      gtk_switch_set_active (self->isolate_subprocesses, FALSE);
+    }
+  else
+    {
+      gtk_widget_set_sensitive (GTK_WIDGET (self->isolate_subprocesses), TRUE);
+      g_settings_bind (self->settings,
+                       "isolate-subprocesses",
+                       self->isolate_subprocesses,
+                       "active",
+                       G_SETTINGS_BIND_DEFAULT);
+    }
 
   G_OBJECT_CLASS (valent_runcommand_preferences_parent_class)->constructed (object);
 }
@@ -454,8 +539,11 @@ valent_runcommand_preferences_class_init (ValentRuncommandPreferencesClass *klas
   gtk_widget_class_bind_template_child (widget_class, ValentRuncommandPreferences, command_group);
   gtk_widget_class_bind_template_child (widget_class, ValentRuncommandPreferences, command_list);
   gtk_widget_class_bind_template_child (widget_class, ValentRuncommandPreferences, command_add);
+  gtk_widget_class_bind_template_child (widget_class, ValentRuncommandPreferences, restrictions_group);
+  gtk_widget_class_bind_template_child (widget_class, ValentRuncommandPreferences, isolate_subprocesses);
 
   gtk_widget_class_bind_template_callback (widget_class, on_add_command);
+  gtk_widget_class_bind_template_callback (widget_class, on_isolate_subprocesses_changed);
 
   g_object_class_override_property (object_class,
                                     PROP_PLUGIN_CONTEXT,

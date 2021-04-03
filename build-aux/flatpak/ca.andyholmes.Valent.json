@@ -21,7 +21,6 @@
         "--system-talk-name=org.freedesktop.UPower",
         "--talk-name=org.a11y.Bus",
         "--talk-name=org.freedesktop.DBus",
-        "--talk-name=org.freedesktop.Flatpak",
         "--talk-name=org.gnome.evolution.dataserver.AddressBook10",
         "--talk-name=org.gnome.evolution.dataserver.Sources5",
         "--talk-name=org.gnome.evolution.dataserver.Subprocess.Backend.*",
