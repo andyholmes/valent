@@ -231,7 +231,7 @@
             "sources" : [
                 {
                     "type" : "git",
-                    "url" : "ssh://git@github.com/andyholmes/valent.git"
+                    "url" : "https://github.com/andyholmes/valent.git"
                 }
             ]
         }
