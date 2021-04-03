@@ -570,7 +570,7 @@ test_mpris_plugin_handle_player (ValentTestPluginFixture *fixture,
   json_node_unref (packet);
 
   valent_media_player_set_position (VALENT_MEDIA_PLAYER (player),
-                                    "/ca/andyholmes/Valent", 1000);
+                                    "/dbus/path/ignored", 1000);
   packet = valent_test_plugin_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
   v_assert_packet_cmpint (packet, "SetPosition", ==, 1);

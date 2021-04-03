@@ -32,7 +32,7 @@ profile = get_option('profile')
 
 if profile == 'devel'
   application_id = 'ca.andyholmes.Valent.Devel'
-  application_path = '/ca/andyholmes/Valent'
+  application_path = '/ca/andyholmes/Valent/Devel'
   profile_suffix = ' (Devel)'
 else
   application_id = 'ca.andyholmes.Valent'

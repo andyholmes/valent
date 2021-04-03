@@ -428,7 +428,7 @@ valent_bluez_profile_unregister (ValentBluezProfile *profile)
                               "/org/bluez",
                               "org.bluez.ProfileManager1",
                               "UnregisterProfile",
-                              g_variant_new ("(o)", "/ca/andyholmes/Valent/Bluez"),
+                              g_variant_new ("(o)", VALENT_BLUEZ_PROFILE_PATH),
                               NULL,
                               G_DBUS_CALL_FLAGS_NO_AUTO_START,
                               -1, NULL, NULL, NULL);

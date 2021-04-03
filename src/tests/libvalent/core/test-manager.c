@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include <gio/gio.h>
 #include <libvalent-core.h>
 #include <libvalent-test.h>
@@ -138,7 +140,7 @@ test_manager_dbus (ManagerFixture *fixture,
   g_dbus_object_manager_client_new (connection,
                                     G_DBUS_OBJECT_MANAGER_CLIENT_FLAGS_NONE,
                                     unique_name,
-                                    "/ca/andyholmes/Valent",
+                                    APPLICATION_PATH,
                                     NULL, NULL, NULL,
                                     NULL,
                                     (GAsyncReadyCallback)manager_finish,
