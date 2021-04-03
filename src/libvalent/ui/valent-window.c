@@ -569,8 +569,7 @@ valent_window_constructed (GObject *object)
   ValentWindow *self = VALENT_WINDOW (object);
   g_autoptr (GPtrArray) devices = NULL;
 
-  if (self->manager == NULL)
-    self->manager = valent_manager_get_default ();
+  g_assert (self->manager != NULL);
 
   /* Devices */
   devices = valent_manager_get_devices (self->manager);

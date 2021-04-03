@@ -17,7 +17,15 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (ValentManager, valent_manager, VALENT, MANAGER, GObject)
 
-ValentManager * valent_manager_get_default (void);
+void            valent_manager_new         (ValentData           *data,
+                                            GCancellable         *cancellable,
+                                            GAsyncReadyCallback   callback,
+                                            gpointer              user_data);
+ValentManager * valent_manager_new_finish  (GAsyncResult         *result,
+                                            GError              **error);
+ValentManager * valent_manager_new_sync    (ValentData           *data,
+                                            GCancellable         *cancellable,
+                                            GError              **error);
 
 ValentDevice  * valent_manager_get_device  (ValentManager        *manager,
                                             const char           *id);
@@ -25,13 +33,6 @@ GPtrArray     * valent_manager_get_devices (ValentManager        *manager);
 const char    * valent_manager_get_id      (ValentManager        *manager);
 void            valent_manager_identify    (ValentManager        *manager,
                                             const char           *uri);
-void            valent_manager_load_async  (ValentManager        *manager,
-                                            GCancellable         *cancellable,
-                                            GAsyncReadyCallback   callback,
-                                            gpointer              user_data);
-gboolean        valent_manager_load_finish (ValentManager        *manager,
-                                            GAsyncResult         *result,
-                                            GError              **error);
 void            valent_manager_start       (ValentManager        *manager);
 void            valent_manager_stop        (ValentManager        *manager);
 

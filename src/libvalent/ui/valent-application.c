@@ -221,7 +221,11 @@ valent_application_dbus_register (GApplication     *application,
   if (!klass->dbus_register (application, connection, object_path, error))
     return FALSE;
 
-  self->manager = valent_manager_get_default ();
+  self->manager = valent_manager_new_sync (NULL, NULL, error);
+
+  if (self->manager == NULL)
+    return FALSE;
+
   valent_manager_export (self->manager, connection);
 
   return TRUE;

@@ -5,31 +5,11 @@
 
 typedef struct
 {
-  GMainLoop           *loop;
+  GMainLoop     *loop;
   ValentManager *manager;
+  gpointer       data;
 } ManagerFixture;
 
-static void
-on_device_added (ValentManager  *manager,
-                 ValentDevice   *device,
-                 ManagerFixture *fixture)
-{
-  g_signal_handlers_disconnect_by_func (manager, on_device_added, fixture);
-  g_main_loop_quit (fixture->loop);
-}
-
-static void
-load_cb (ValentManager  *manager,
-         GAsyncResult   *result,
-         ManagerFixture *fixture)
-{
-  GError *error = NULL;
-
-  valent_manager_load_finish (manager, result, &error);
-  g_assert_no_error (error);
-
-  g_main_loop_quit (fixture->loop);
-}
 
 static void
 manager_fixture_set_up (ManagerFixture *fixture,
@@ -42,11 +22,8 @@ manager_fixture_set_up (ManagerFixture *fixture,
   g_autofree char *identity_json = NULL;
   g_autofree char *identity_path = NULL;
 
-  fixture->loop = g_main_loop_new (NULL, FALSE);
-  fixture->manager = valent_manager_get_default ();
-
   /* Copy the mock device configuration */
-  g_object_get (fixture->manager, "data", &data, NULL);
+  data = valent_data_new (NULL, NULL);
   path = g_build_filename (valent_data_get_config_path (data),
                            "test-device",
                            NULL);
@@ -57,6 +34,10 @@ manager_fixture_set_up (ManagerFixture *fixture,
   identity_json = json_to_string (identity, TRUE);
   identity_path = g_build_filename (path, "identity.json", NULL);
   g_file_set_contents (identity_path, identity_json, -1, NULL);
+
+  /* Init the manager */
+  fixture->loop = g_main_loop_new (NULL, FALSE);
+  fixture->manager = valent_manager_new_sync (data, NULL, NULL);
 }
 
 static void
@@ -76,13 +57,6 @@ test_manager_load (ManagerFixture *fixture,
   g_autoptr (GPtrArray) devices = NULL;
   ValentDevice *device;
 
-  /* Load cached devices */
-  valent_manager_load_async (fixture->manager,
-                             NULL,
-                             (GAsyncReadyCallback)load_cb,
-                             fixture);
-  g_main_loop_run (fixture->loop);
-
   /* Loads devices from cache */
   devices = valent_manager_get_devices (fixture->manager);
   g_assert_cmpint (devices->len, ==, 1);
@@ -92,49 +66,12 @@ test_manager_load (ManagerFixture *fixture,
 }
 
 static void
-test_manager_start (ManagerFixture *fixture,
-                    gconstpointer   user_data)
-{
-  g_autoptr (GPtrArray) devices = NULL;
-  ValentDevice *device;
-
-  /* Wait until the device is loaded */
-  g_signal_connect (fixture->manager,
-                    "device-added",
-                    G_CALLBACK (on_device_added),
-                    fixture);
-
-  valent_manager_start (fixture->manager);
-  g_main_loop_run (fixture->loop);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
-  devices = valent_manager_get_devices (fixture->manager);
-  g_assert_cmpint (devices->len, ==, 1);
-
-  device = valent_manager_get_device (fixture->manager, "test-device");
-  g_assert_true (VALENT_IS_DEVICE (device));
-
-  valent_manager_stop (fixture->manager);
-}
-
-static void
 test_manager_management (ManagerFixture *fixture,
                          gconstpointer   user_data)
 {
   ValentChannelService *service;
   ValentDevice *device;
   GPtrArray *devices;
-
-  /* Wait until the device is loaded */
-  g_signal_connect (fixture->manager,
-                    "device-added",
-                    G_CALLBACK (on_device_added),
-                    fixture);
-
-  valent_manager_start (fixture->manager);
-  g_main_loop_run (fixture->loop);
 
   /* Loads devices from config directory */
   devices = valent_manager_get_devices (fixture->manager);
@@ -150,6 +87,8 @@ test_manager_management (ManagerFixture *fixture,
   g_clear_pointer (&devices, g_ptr_array_unref);
 
   /* Creates devices for channels */
+  valent_manager_start (fixture->manager);
+
   while ((service = valent_test_channel_service_get_instance ()) == NULL)
     g_main_context_iteration (NULL, FALSE);
 
@@ -159,12 +98,20 @@ test_manager_management (ManagerFixture *fixture,
   g_assert_cmpint (devices->len, ==, 1);
   g_clear_pointer (&devices, g_ptr_array_unref);
 
-  /* Removes devices when stopped */
   valent_manager_stop (fixture->manager);
+}
 
-  devices = valent_manager_get_devices (fixture->manager);
-  g_assert_cmpint (devices->len, ==, 0);
-  g_clear_pointer (&devices, g_ptr_array_unref);
+static void
+manager_finish (GObject        *object,
+                GAsyncResult   *result,
+                ManagerFixture *fixture)
+{
+  GError *error = NULL;
+
+  fixture->data = g_dbus_object_manager_client_new_finish (result, &error);
+  g_assert_no_error (error);
+
+  g_main_loop_quit (fixture->loop);
 }
 
 static void
@@ -172,21 +119,50 @@ test_manager_dbus (ManagerFixture *fixture,
                    gconstpointer   user_data)
 {
   g_autoptr (GDBusConnection) connection = NULL;
+  g_autoptr (GDBusObjectManager) manager = NULL;
+  g_autolist (GDBusObject) objects = NULL;
+  GDBusInterface *interface;
+  const char *unique_name;
+  g_autoptr (GPtrArray) devices = NULL;
 
+  devices = valent_manager_get_devices (fixture->manager);
+  g_assert_cmpint (devices->len, ==, 1);
+  g_clear_pointer (&devices, g_ptr_array_unref);
+  return;
+
+  /* Exports current devices */
   connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
-  g_signal_connect (fixture->manager,
-                    "device-added",
-                    G_CALLBACK (on_device_added),
-                    fixture);
-
-  /* Exports devices as they're added */
   valent_manager_export (fixture->manager, connection);
-  valent_manager_load_async (fixture->manager, NULL, NULL, NULL);
+
+  unique_name = g_dbus_connection_get_unique_name (connection);
+  g_dbus_object_manager_client_new (connection,
+                                    G_DBUS_OBJECT_MANAGER_CLIENT_FLAGS_NONE,
+                                    unique_name,
+                                    "/ca/andyholmes/Valent",
+                                    NULL, NULL, NULL,
+                                    NULL,
+                                    (GAsyncReadyCallback)manager_finish,
+                                    fixture);
   g_main_loop_run (fixture->loop);
-  valent_manager_unexport (fixture->manager);
+  manager = g_steal_pointer (&fixture->data);
 
-  /* Export devices already managed */
-  valent_manager_export (fixture->manager, connection);
+  /* Exports devices, actions & menu */
+  objects = g_dbus_object_manager_get_objects (manager);
+  g_assert_cmpuint (g_list_length (objects), ==, 1);
+
+  interface = g_dbus_object_get_interface (objects->data,
+                                           "ca.andyholmes.Valent.Device");
+  g_assert_nonnull (interface);
+  g_object_unref (interface);
+
+  interface = g_dbus_object_get_interface (objects->data, "org.gtk.Actions");
+  g_assert_nonnull (interface);
+  g_object_unref (interface);
+
+  interface = g_dbus_object_get_interface (objects->data, "org.gtk.Menu");
+  g_assert_nonnull (interface);
+  g_object_unref (interface);
+
   valent_manager_unexport (fixture->manager);
 }
 
@@ -197,16 +173,9 @@ test_manager_dispose (ManagerFixture *fixture,
   PeasEngine *engine;
   ValentChannelService *service = NULL;
 
-  /* Wait until the device is loaded */
-  g_signal_connect (fixture->manager,
-                    "device-added",
-                    G_CALLBACK (on_device_added),
-                    fixture);
-
-  valent_manager_start (fixture->manager);
-  g_main_loop_run (fixture->loop);
-
   /* Wait for the channel service */
+  valent_manager_start (fixture->manager);
+
   while ((service = valent_test_channel_service_get_instance ()) == NULL)
     g_main_context_iteration (NULL, FALSE);
 
@@ -230,12 +199,6 @@ main (int   argc,
               ManagerFixture, NULL,
               manager_fixture_set_up,
               test_manager_load,
-              manager_fixture_tear_down);
-
-  g_test_add ("/core/manager/start",
-              ManagerFixture, NULL,
-              manager_fixture_set_up,
-              test_manager_start,
               manager_fixture_tear_down);
 
   g_test_add ("/core/manager/management",

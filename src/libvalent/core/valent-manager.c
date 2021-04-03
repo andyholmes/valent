@@ -7,6 +7,7 @@
 
 #include <gio/gio.h>
 
+#include "valent-certificate.h"
 #include "valent-channel.h"
 #include "valent-channel-service.h"
 #include "valent-data.h"
@@ -38,7 +39,8 @@ struct _ValentManager
 
   GCancellable             *cancellable;
   ValentData               *data;
-  char                     *id;
+  GTlsCertificate          *certificate;
+  const char               *id;
   GSettings                *settings;
 
   PeasEngine               *engine;
@@ -58,7 +60,12 @@ static ValentDevice * valent_manager_ensure_device (ValentManager *manager,
                                                     const char    *id,
                                                     JsonNode      *identity);
 
-G_DEFINE_TYPE (ValentManager, valent_manager, G_TYPE_OBJECT)
+static void initable_iface_init       (GInitableIface      *iface);
+static void async_initable_iface_init (GAsyncInitableIface *iface);
+
+G_DEFINE_TYPE_WITH_CODE (ValentManager, valent_manager, G_TYPE_OBJECT,
+                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, initable_iface_init)
+                         G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, async_initable_iface_init))
 
 enum {
   PROP_0,
@@ -77,8 +84,50 @@ enum {
 
 static guint signals[N_SIGNALS] = { 0, };
 
-static ValentManager *default_manager = NULL;
 
+/*
+ * Certificate
+ */
+static gboolean
+valent_manager_ensure_certificate (ValentManager  *self,
+                                   GCancellable   *cancellable,
+                                   GError        **error)
+{
+  g_autoptr (GFile) cert_file = NULL;
+  g_autoptr (GFile) key_file = NULL;
+  const char *cert_path;
+  const char *key_path;
+
+  /* Check if the certificate has already been generated */
+  cert_file = valent_data_new_config_file (self->data, "certificate.pem");
+  key_file = valent_data_new_config_file (self->data, "private.pem");
+
+  cert_path = g_file_peek_path (cert_file);
+  key_path = g_file_peek_path (key_file);
+
+  /* Generate new certificate with gnutls */
+  if (!g_file_query_exists (cert_file, cancellable) ||
+      !g_file_query_exists (key_file, cancellable))
+    {
+      g_autofree char *common_name = NULL;
+
+      common_name = g_uuid_string_random ();
+
+      if (!valent_certificate_generate (key_path, cert_path, common_name, error))
+        return FALSE;
+    }
+
+  self->certificate = g_tls_certificate_new_from_files (cert_path,
+                                                        key_path,
+                                                        error);
+
+  if (self->certificate == NULL)
+    return FALSE;
+
+  self->id = valent_certificate_get_id (self->certificate, NULL);
+
+  return G_IS_TLS_CERTIFICATE (self->certificate);
+}
 
 /*
  * DBus
@@ -441,40 +490,85 @@ ensure_device_main (gpointer user_data)
   return G_SOURCE_REMOVE;
 }
 
-static void
-load_devices_cb (ValentManager *manager,
-                 GAsyncResult  *result,
-                 gpointer       user_data)
+static gboolean
+valent_manager_load_devices (ValentManager  *self,
+                             GCancellable   *cancellable,
+                             GError        **error)
 {
-  g_autoptr (GError) error = NULL;
-  const GList *plugins = NULL;
+  g_autoptr (GFile) config_dir = NULL;
+  g_autoptr (GFileEnumerator) iter = NULL;
+  g_autoptr (JsonParser) parser = NULL;
 
-  g_assert (VALENT_IS_MANAGER (manager));
-  g_assert (g_task_is_valid (result, manager));
+  /* Look in the config directory for subdirectories. We only fail on
+   * G_IO_ERROR_CANCELLED; all other errors mean there are just no devices. */
+  config_dir = g_file_new_for_path (valent_data_get_config_path (self->data));
+  iter = g_file_enumerate_children (config_dir,
+                                    G_FILE_ATTRIBUTE_STANDARD_NAME,
+                                    G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS,
+                                    cancellable,
+                                    error);
 
-  /* Unless the operation was cancelled, an error here is not fatal */
-  if (!g_task_propagate_boolean (G_TASK (result), &error))
+  if (iter == NULL)
     {
-      if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        return;
+      if (g_error_matches (*error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return FALSE;
 
-      g_warning ("Loading devices: %s", error->message);
+      g_clear_error (error);
+      return TRUE;
     }
 
-  /* Setup services */
-  plugins = peas_engine_get_plugin_list (manager->engine);
+  /* Iterate the subdirectories looking for identity.json files */
+  parser = json_parser_new ();
 
-  for (const GList *iter = plugins; iter; iter = iter->next)
-    on_load_service (manager->engine, iter->data, manager);
+  while (TRUE)
+    {
+      GFile *dir;
+      g_autoptr (GFile) identity = NULL;
 
-  g_signal_connect_after (manager->engine,
-                          "load-plugin",
-                          G_CALLBACK (on_load_service),
-                          manager);
-  g_signal_connect (manager->engine,
-                    "unload-plugin",
-                    G_CALLBACK (on_unload_service),
-                    manager);
+      if (!g_file_enumerator_iterate (iter, NULL, &dir, cancellable, error))
+        {
+          if (g_error_matches (*error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+            return FALSE;
+
+          g_clear_error (error);
+          return TRUE;
+        }
+
+      if (dir == NULL)
+        break;
+
+      /* Check if identity.json exists */
+      identity = g_file_get_child (dir, "identity.json");
+
+      if (g_file_query_exists (identity, cancellable))
+        {
+          g_autoptr (GError) warning = NULL;
+          const char *path;
+          CachedDevice *cached_device;
+
+          /* Try parsing the identity */
+          path = g_file_peek_path (identity);
+
+          if (!json_parser_load_from_file (parser, path, &warning))
+            {
+              g_warning ("Loading device '%s': %s", path, warning->message);
+              continue;
+            }
+
+          /* Do the rest in the main context */
+          cached_device = g_new0 (CachedDevice, 1);
+          cached_device->manager = g_object_ref (self);
+          cached_device->identity = json_parser_steal_root (parser);
+
+          g_main_context_invoke_full (NULL,
+                                      G_PRIORITY_DEFAULT,
+                                      ensure_device_main,
+                                      cached_device,
+                                      cached_device_free);
+        }
+    }
+
+  return TRUE;
 }
 
 /*
@@ -598,6 +692,40 @@ valent_manager_ensure_device (ValentManager *manager,
 }
 
 /*
+ * GInitable
+ */
+static gboolean
+valent_manager_initable_init (GInitable     *initable,
+                              GCancellable  *cancellable,
+                              GError       **error)
+{
+  ValentManager *self = VALENT_MANAGER (initable);
+
+  if (self->data == NULL)
+    self->data = valent_data_new (NULL, NULL);
+
+  if (!valent_manager_ensure_certificate (self, cancellable, error))
+    return FALSE;
+
+  if (!valent_manager_load_devices (self, cancellable, error))
+    return FALSE;
+
+  return TRUE;
+}
+
+
+static void
+initable_iface_init (GInitableIface *iface)
+{
+  iface->init = valent_manager_initable_init;
+}
+
+static void
+async_initable_iface_init (GAsyncInitableIface *iface)
+{
+}
+
+/*
  * GObject
  */
 static void
@@ -605,20 +733,6 @@ valent_manager_constructed (GObject *object)
 {
   ValentManager *self = VALENT_MANAGER (object);
 
-  /* Ensure we have a unique local ID */
-  if (self->id == NULL)
-    {
-      self->id = g_settings_get_string (self->settings, "id");
-
-      if (strlen (self->id) == 0)
-        {
-          g_clear_pointer (&self->id, g_free);
-          self->id = g_uuid_string_random ();
-          g_settings_set_string (self->settings, "id", self->id);
-        }
-    }
-
-  /* If we weren't provided a data manager, set one up now */
   if (self->data == NULL)
     self->data = valent_data_new (NULL, NULL);
 
@@ -626,19 +740,36 @@ valent_manager_constructed (GObject *object)
 }
 
 static void
-valent_manager_finalize (GObject *object)
+valent_manager_dispose (GObject *object)
 {
   ValentManager *self = VALENT_MANAGER (object);
+  GHashTableIter iter;
+  gpointer value;
 
   valent_manager_stop (self);
   valent_manager_unexport (self);
+
+  g_hash_table_iter_init (&iter, self->devices);
+
+  while (g_hash_table_iter_next (&iter, NULL, &value))
+    {
+      g_signal_emit (G_OBJECT (self), signals [DEVICE_REMOVED], 0, value);
+      valent_manager_unexport_device (self, VALENT_DEVICE (value));
+      g_hash_table_iter_remove (&iter);
+    }
+}
+
+static void
+valent_manager_finalize (GObject *object)
+{
+  ValentManager *self = VALENT_MANAGER (object);
 
   g_clear_pointer (&self->exported, g_hash_table_unref);
   g_clear_pointer (&self->services_settings, g_hash_table_unref);
   g_clear_pointer (&self->services, g_hash_table_unref);
   g_clear_pointer (&self->devices, g_hash_table_unref);
 
-  g_clear_pointer (&self->id, g_free);
+  g_clear_object (&self->certificate);
   g_clear_object (&self->data);
   g_clear_object (&self->settings);
 
@@ -693,6 +824,7 @@ valent_manager_class_init (ValentManagerClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
   object_class->constructed = valent_manager_constructed;
+  object_class->dispose = valent_manager_dispose;
   object_class->finalize = valent_manager_finalize;
   object_class->get_property = valent_manager_get_property;
   object_class->set_property = valent_manager_set_property;
@@ -795,159 +927,97 @@ valent_manager_init (ValentManager *self)
 }
 
 /**
- * valent_manager_get_default:
- *
- * Get the default #ValentManager.
- *
- * Returns: (transfer none): the default manager
- */
-ValentManager *
-valent_manager_get_default (void)
-{
-  if (default_manager == NULL)
-    {
-      default_manager = g_object_new (VALENT_TYPE_MANAGER, NULL);
-
-      g_object_add_weak_pointer (G_OBJECT (default_manager),
-                                 (gpointer) &default_manager);
-    }
-
-  return default_manager;
-}
-
-static void
-load_task (GTask        *task,
-           gpointer      source_object,
-           gpointer      task_data,
-           GCancellable *cancellable)
-{
-  ValentManager *manager = source_object;
-  g_autoptr (GError) error = NULL;
-  g_autoptr (GFile) config_dir = NULL;
-  g_autoptr (GFileEnumerator) iter = NULL;
-  g_autoptr (JsonParser) parser = NULL;
-
-  g_assert (VALENT_IS_MANAGER (manager));
-  g_assert (VALENT_IS_DATA (manager->data));
-
-  if (g_task_return_error_if_cancelled (task))
-    return;
-
-  /* Look in the config directory for subdirectories. We only fail on
-   * G_IO_ERROR_CANCELLED; all other errors mean there are just no devices. */
-  config_dir = g_file_new_for_path (valent_data_get_config_path (manager->data));
-  iter = g_file_enumerate_children (config_dir,
-                                    G_FILE_ATTRIBUTE_STANDARD_NAME,
-                                    G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS,
-                                    cancellable,
-                                    &error);
-
-  if (iter == NULL)
-    {
-      if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        return g_task_return_error (task, g_steal_pointer (&error));
-
-      return g_task_return_boolean (task, TRUE);
-    }
-
-  /* Iterate the subdirectories looking for identity.json files */
-  parser = json_parser_new ();
-
-  while (TRUE)
-    {
-      GFile *dir;
-      g_autoptr (GError) error = NULL;
-      g_autoptr (GFile) identity = NULL;
-
-      if (!g_file_enumerator_iterate (iter, NULL, &dir, cancellable, &error))
-        {
-          if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-            return g_task_return_error (task, g_steal_pointer (&error));
-
-          return g_task_return_boolean (task, TRUE);
-        }
-
-      if (!dir)
-        break;
-
-      /* Check if identity.json exists */
-      identity = g_file_get_child (dir, "identity.json");
-
-      if (g_file_query_exists (identity, cancellable))
-        {
-          const char *path;
-          CachedDevice *cached_device;
-
-          /* Try parsing the identity */
-          path = g_file_peek_path (identity);
-
-          if (!json_parser_load_from_file (parser, path, &error))
-            {
-              g_warning ("Loading device '%s': %s", path, error->message);
-              continue;
-            }
-
-          /* Do the rest in the main context */
-          cached_device = g_new0 (CachedDevice, 1);
-          cached_device->manager = g_object_ref (manager);
-          cached_device->identity = json_parser_steal_root (parser);
-
-          g_main_context_invoke_full (NULL,
-                                      G_PRIORITY_DEFAULT,
-                                      ensure_device_main,
-                                      cached_device,
-                                      cached_device_free);
-        }
-    }
-
-  g_task_return_boolean (task, TRUE);
-}
-
-/**
- * valent_manager_load_async:
- * @manager: a #ValentManager
+ * valent_manager_new_sync:
+ * @data: (nullable): a #ValentData
  * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
- * @user_data: (closure): user supplied data
- *
- * Load devices from the configuration directory.
- */
-void
-valent_manager_load_async (ValentManager       *manager,
-                           GCancellable        *cancellable,
-                           GAsyncReadyCallback  callback,
-                           gpointer             user_data)
-{
-  g_autoptr (GTask) task = NULL;
-
-  g_return_if_fail (VALENT_IS_MANAGER (manager));
-  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-
-  task = g_task_new (manager, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_manager_load_async);
-  g_task_run_in_thread (task, load_task);
-}
-
-/**
- * valent_manager_load_finish:
- * @manager: a #ValentManager
- * @result: a #GAsyncReadyResult
  * @error: (nullable): a #GError
  *
- * Finishes an operation started by valent_manager_load_async().
+ * Create a new #ValentManager.
  *
- * Returns: %TRUE or %FALSE with @error set
+ * Returns: (transfer full) (nullable): a #ValentManager
  */
-gboolean
-valent_manager_load_finish (ValentManager  *manager,
-                            GAsyncResult   *result,
-                            GError        **error)
+ValentManager *
+valent_manager_new_sync (ValentData    *data,
+                         GCancellable  *cancellable,
+                         GError       **error)
 {
-  g_return_val_if_fail (VALENT_IS_MANAGER (manager), FALSE);
-  g_return_val_if_fail (g_task_is_valid (result, manager), FALSE);
-  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+  GInitable *manager;
 
-  return g_task_propagate_boolean (G_TASK (result), error);
+  g_return_val_if_fail (data == NULL || VALENT_IS_DATA (data), NULL);
+  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+  manager = g_initable_new (VALENT_TYPE_MANAGER,
+                            cancellable,
+                            error,
+                            "data", data,
+                            NULL);
+
+  if (manager == NULL)
+    return NULL;
+
+  return VALENT_MANAGER (manager);
+}
+
+/**
+ * valent_manager_new:
+ * @data: (nullable): a #ValentData
+ * @cancellable: (nullable): a #GCancellable
+ * @callback: (scope async): a #GAsyncReadyCallback
+ * @user_data: user supplied data
+ *
+ * Create a new #ValentManager.
+ *
+ * This is a failable asynchronous constructor - when the proxy is ready,
+ * @callback will be invoked and you can use valent_manager_new_finish() to get
+ * the result.
+ */
+void
+valent_manager_new (ValentData          *data,
+                    GCancellable        *cancellable,
+                    GAsyncReadyCallback  callback,
+                    gpointer             user_data)
+{
+  g_return_if_fail (data == NULL || VALENT_IS_DATA (data));
+  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  g_async_initable_new_async (VALENT_TYPE_MANAGER,
+                              G_PRIORITY_DEFAULT,
+                              cancellable,
+                              callback,
+                              user_data,
+                              "data", data,
+                              NULL);
+}
+
+/**
+ * valent_manager_new_finish:
+ * @result: a #GAsyncResult
+ * @error: (nullable): a #GError
+ *
+ * Finish an operation started by valent_manager_new().
+ *
+ * Returns: (transfer full) (nullable): a #ValentManager
+ */
+ValentManager *
+valent_manager_new_finish (GAsyncResult  *result,
+                           GError       **error)
+{
+  g_autoptr (GObject) source_object = NULL;
+  GObject *manager;
+
+  g_return_val_if_fail (G_IS_ASYNC_RESULT (result), NULL);
+  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+  source_object = g_async_result_get_source_object (result);
+  manager = g_async_initable_new_finish (G_ASYNC_INITABLE (source_object),
+                                         result,
+                                         error);
+
+  if (manager == NULL)
+    return NULL;
+
+  return VALENT_MANAGER (manager);
 }
 
 /**
@@ -1066,18 +1136,29 @@ valent_manager_identify (ValentManager *manager,
 void
 valent_manager_start (ValentManager *manager)
 {
+  const GList *plugins = NULL;
+
   g_return_if_fail (VALENT_IS_MANAGER (manager));
 
   /* We're already started */
   if (manager->cancellable != NULL)
     return;
 
-  /* Load Cached Devices */
+  /* Setup services */
   manager->cancellable = g_cancellable_new ();
-  valent_manager_load_async (manager,
-                             manager->cancellable,
-                             (GAsyncReadyCallback)load_devices_cb,
-                             NULL);
+  plugins = peas_engine_get_plugin_list (manager->engine);
+
+  for (const GList *iter = plugins; iter; iter = iter->next)
+    on_load_service (manager->engine, iter->data, manager);
+
+  g_signal_connect_after (manager->engine,
+                          "load-plugin",
+                          G_CALLBACK (on_load_service),
+                          manager);
+  g_signal_connect (manager->engine,
+                    "unload-plugin",
+                    G_CALLBACK (on_unload_service),
+                    manager);
 }
 
 /**
@@ -1109,16 +1190,6 @@ valent_manager_stop (ValentManager *manager)
   while (g_hash_table_iter_next (&iter, NULL, &value))
     {
       valent_channel_service_stop (VALENT_CHANNEL_SERVICE (value));
-      g_hash_table_iter_remove (&iter);
-    }
-
-  /* Remove devices */
-  g_hash_table_iter_init (&iter, manager->devices);
-
-  while (g_hash_table_iter_next (&iter, NULL, &value))
-    {
-      g_signal_emit (G_OBJECT (manager), signals [DEVICE_REMOVED], 0, value);
-      valent_manager_unexport_device (manager, VALENT_DEVICE (value));
       g_hash_table_iter_remove (&iter);
     }
 }
