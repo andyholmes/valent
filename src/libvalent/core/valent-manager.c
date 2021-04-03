@@ -247,7 +247,7 @@ valent_manager_unexport_device (ValentManager *manager,
   g_assert (VALENT_IS_DEVICE (device));
 
   if (!g_hash_table_steal_extended (manager->exported, device, NULL, &data))
-    return;
+    VALENT_EXIT;
 
   exported = (ExportedDevice *)data;
   connection = g_dbus_object_manager_server_get_connection (manager->dbus);
