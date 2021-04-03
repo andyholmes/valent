@@ -97,8 +97,7 @@ enum {
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
-enum
-{
+enum {
   PLUGIN_ADDED,
   PLUGIN_REMOVED,
   N_SIGNALS
