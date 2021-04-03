@@ -445,10 +445,10 @@ valent_runcommand_preferences_class_init (ValentRuncommandPreferencesClass *klas
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
-  object_class->get_property = valent_runcommand_preferences_get_property;
-  object_class->set_property = valent_runcommand_preferences_set_property;
   object_class->constructed = valent_runcommand_preferences_constructed;
   object_class->finalize = valent_runcommand_preferences_finalize;
+  object_class->get_property = valent_runcommand_preferences_get_property;
+  object_class->set_property = valent_runcommand_preferences_set_property;
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/runcommand/valent-runcommand-preferences.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentRuncommandPreferences, command_group);
