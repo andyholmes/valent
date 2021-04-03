@@ -1,6 +1,6 @@
 on:
   push:
-    branches: [ fixme ]
+    branches: [ master ]
   pull_request:
 name: Flatpak
 jobs:
