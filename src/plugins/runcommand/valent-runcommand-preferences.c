@@ -268,10 +268,10 @@ add_command_row (ValentRuncommandPreferences *self,
 
   /* Row */
   row = g_object_new (ADW_TYPE_ACTION_ROW,
-                      "name",             uuid,
-                      "title",            name,
-                      "subtitle",         command,
-                      "activatable",      FALSE,
+                      "name",        uuid,
+                      "title",       name,
+                      "subtitle",    command,
+                      "activatable", FALSE,
                       NULL);
 
   /* Buttons */
@@ -283,7 +283,8 @@ add_command_row (ValentRuncommandPreferences *self,
   adw_action_row_add_suffix (ADW_ACTION_ROW (row), buttons);
 
   edit = g_object_new (GTK_TYPE_BUTTON,
-                       "icon-name", "document-edit-symbolic",
+                       "icon-name",    "document-edit-symbolic",
+                       "tooltip-text", _("Edit"),
                        NULL);
   gtk_box_insert_child_after (GTK_BOX (buttons), edit, NULL);
   g_signal_connect (G_OBJECT (edit),
@@ -292,7 +293,8 @@ add_command_row (ValentRuncommandPreferences *self,
                     self);
 
   delete = g_object_new (GTK_TYPE_BUTTON,
-                         "icon-name", "edit-delete-symbolic",
+                         "icon-name",    "edit-delete-symbolic",
+                         "tooltip-text", _("Remove"),
                          NULL);
   gtk_box_insert_child_after (GTK_BOX (buttons), delete, edit);
   g_signal_connect (G_OBJECT (delete),
