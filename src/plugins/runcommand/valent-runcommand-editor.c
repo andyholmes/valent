@@ -142,6 +142,22 @@ valent_runcommand_editor_new (void)
 }
 
 /**
+ * valent_runcommand_editor_clear:
+ * @editor: a #ValentRuncommandEditor
+ *
+ * Clear the name, command and UUID of @editor.
+ */
+void
+valent_runcommand_editor_clear (ValentRuncommandEditor *editor)
+{
+  g_return_if_fail (VALENT_IS_RUNCOMMAND_EDITOR (editor));
+
+  gtk_widget_set_name (GTK_WIDGET (editor), NULL);
+  gtk_editable_set_text (GTK_EDITABLE (editor->name_entry), "");
+  gtk_editable_set_text (GTK_EDITABLE (editor->command_entry), "");
+}
+
+/**
  * valent_runcommand_editor_get_command:
  * @editor: a #ValentRuncommandEditor
  *
@@ -203,5 +219,37 @@ valent_runcommand_editor_set_name (ValentRuncommandEditor *editor,
   g_return_if_fail (VALENT_IS_RUNCOMMAND_EDITOR (editor));
 
   gtk_editable_set_text (GTK_EDITABLE (editor->name_entry), name);
+}
+
+/**
+ * valent_runcommand_editor_get_uuid:
+ * @editor: a #ValentRuncommandEditor
+ *
+ * Get the UUID of the command for @editor
+ *
+ * Returns: (transfer none): the command UUID
+ */
+const char *
+valent_runcommand_editor_get_uuid (ValentRuncommandEditor *editor)
+{
+  g_return_val_if_fail (VALENT_IS_RUNCOMMAND_EDITOR (editor), NULL);
+
+  return gtk_widget_get_name (GTK_WIDGET (editor));
+}
+
+/**
+ * valent_runcommand_editor_set_uuid:
+ * @editor: a #ValentRuncommandEditor
+ * @uuid: a command UUID
+ *
+ * Set the UUID of the command for @editor to @uuid.
+ */
+void
+valent_runcommand_editor_set_uuid (ValentRuncommandEditor *editor,
+                                   const char             *uuid)
+{
+  g_return_if_fail (VALENT_IS_RUNCOMMAND_EDITOR (editor));
+
+  gtk_widget_set_name (GTK_WIDGET (editor), uuid);
 }
 

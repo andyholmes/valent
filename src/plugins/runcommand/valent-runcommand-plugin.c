@@ -265,7 +265,8 @@ valent_runcommand_plugin_execute_remote_command (ValentRuncommandPlugin *self,
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
 
-  g_return_if_fail (VALENT_IS_RUNCOMMAND_PLUGIN (self));
+  g_assert (VALENT_IS_RUNCOMMAND_PLUGIN (self));
+  g_assert (key != NULL);
 
   builder = valent_packet_start("kdeconnect.runcommand.request");
   json_builder_set_member_name (builder, "key");
