@@ -91,6 +91,7 @@ ValentFindmyphoneRinger *
 valent_findmyphone_ringer_new (void)
 {
   ValentFindmyphoneRinger *ringer;
+  GstElement *audio_sink = NULL;
   g_autoptr (GError) error = NULL;
 
   ringer = g_rc_box_new0 (ValentFindmyphoneRinger);
@@ -102,9 +103,14 @@ valent_findmyphone_ringer_new (void)
     }
 
   /* Playbin */
-  ringer->playbin = gst_element_factory_make ("playbin", NULL);
+  ringer->playbin = gst_element_factory_make ("playbin", "findmyphone-ringer");
+
+  if (g_getenv ("VALENT_TEST"))
+    audio_sink = gst_element_factory_make ("fakesink", "sink");
+
   g_object_set (ringer->playbin,
-                "uri", "resource:///plugins/findmyphone/ring.oga",
+                "audio-sink", audio_sink,
+                "uri",        "resource:///plugins/findmyphone/ring.oga",
                 NULL);
 
   return ringer;
