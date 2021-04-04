@@ -11,6 +11,7 @@ plugin_runcommand_sources = files([
   'valent-runcommand-plugin.c',
   'valent-runcommand-preferences.c',
   'valent-runcommand-editor.c',
+  'valent-runcommand-utils.c',
 ])
 
 plugin_runcommand_include_directories = [include_directories('.')]

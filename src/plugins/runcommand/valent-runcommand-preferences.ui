@@ -5,7 +5,7 @@
     <child>
       <object class="AdwPreferencesGroup" id="command_group">
         <property name="title" translatable="yes">Commands</property>
-        <property name="description" translatable="yes">Predefined commands that can be executed.</property>
+        <property name="description" translatable="yes">Define commands that can be executed by the remote device.</property>
         <child>
           <object class="GtkFrame">
             <child>
@@ -44,6 +44,26 @@
                     </child>
                   </object>
                 </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesGroup" id="restrictions_group">
+        <property name="title" translatable="yes">Restrictions</property>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title">Isolate Subprocesses</property>
+            <property name="subtitle">Execute commands in a sandbox</property>
+            <child type="suffix">
+              <object class="GtkSwitch" id="isolate_subprocesses">
+                <property name="valign">center</property>
+                <signal name="state-set"
+                        handler="on_isolate_subprocesses_changed"
+                        object="ValentRuncommandPreferences"
+                        swapped="no"/>
               </object>
             </child>
           </object>

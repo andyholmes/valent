@@ -4,5 +4,10 @@
     <key name="commands" type="a{sv}">
       <default>{}</default>
     </key>
+    <key name="isolate-subprocesses" type="b">
+      <default>true</default>
+      <summary>Isolate Subprocesses</summary>
+      <description>Execute commands in a sandbox</description>
+    </key>
   </schema>
 </schemalist>
