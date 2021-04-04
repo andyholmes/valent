@@ -31,6 +31,7 @@ take a photo, which is then transferred to the requesting device.
   The packet must contain this field and will be accompanied by payload transfer
   information for the file transfer.
 
+
 ### `kdeconnect.photo.request`
 
 ```js

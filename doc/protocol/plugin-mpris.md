@@ -1,7 +1,6 @@
 # MPRIS Plugin
 
-The **MRIS** plugin allows requesting a device to announce it's location,
-usually by playing a sound like a traditional cordless phone.
+The **MRIS** plugin allows sharing control of media players.
 
 ## Sources
 
@@ -23,6 +22,5 @@ usually by playing a sound like a traditional cordless phone.
 
 #### Fields
 
-The `kdeconnect.mpris` packet has no fields. By convention,
-sending a second request causes the device to stop announcing its location.
+TODO
 

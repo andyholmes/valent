@@ -1,5 +1,10 @@
 # Protocol Documentation
 
+> **WARNING**
+>
+> This documentation is not to be trusted. The upstream KDE Connect project is
+> the reference implementation and the only trustworthy source for the protocol.
+
 This is some rough documentation of the KDE Connect protocol.
 
 1. Connections
