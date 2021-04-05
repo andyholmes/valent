@@ -97,7 +97,7 @@ add_application (ValentNotificationPreferences *self,
   g_autoptr (GVariant) iconv = NULL;
   g_autoptr (GIcon) icon = NULL;
 
-  if (!g_variant_lookup (app, "name", "s", &title))
+  if (!g_variant_lookup (app, "name", "&s", &title))
     return;
 
   row = g_object_new (ADW_TYPE_ACTION_ROW,
