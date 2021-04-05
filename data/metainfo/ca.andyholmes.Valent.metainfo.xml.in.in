@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Andy Holmes <andrew.g.r.holmes@gmail.com> -->
+<component type="desktop-application">
+  <id>@application_id@.desktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+
+  <name>Valent</name>
+  <summary>A KDE Connect implementation for the GNOME platform</summary>
+
+  <description>
+    <p>
+      Valent is an implementation of the KDE Connect protocol, written using
+      GNOME platform libraries.
+    </p>
+    <p>
+      You can use Valent to connect to other devices running KDE Connect or any
+      other conforming implementation of it.
+    </p>
+  </description>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>Pair and connect your devices</caption>
+      <image width="652" height="532">https://raw.githubusercontent.com/andyholmes/valent/master/data/metainfo/01-devices.png</image>
+    </screenshot>
+  </screenshots>
+
+  <provides>
+    <binary>valent</binary>
+    <dbus type="session">@application_id@</dbus>
+  </provides>
+
+  <!-- Additional Information -->
+  <url type="homepage">https://github.com/andyholmes/valent</url>
+  <url type="bugtracker">https://github.com/andyholmes/valent/issues</url>
+  <url type="donation">http://www.gnome.org/friends/</url>
+  <url type="help">https://github.com/andyholmes/valent</url>
+  <content_rating type="oars-1.1" />
+
+  <developer_name>Andy Holmes</developer_name>
+  <update_contact>andrew.g.r.holmes@gmail.com</update_contact>
+  <translation type="gettext">@gettext_package@</translation>
+  <launchable type="desktop-id">@application_id@.desktop</launchable>
+
+  <kudos>
+    <kudo>HiDpiIcon</kudo>
+    <kudo>ModernToolkit</kudo>
+    <kudo>Notifications</kudo>
+  </kudos>
+
+  <!-- Device Type -->
+  <recommends>
+    <control>pointing</control>
+    <control>keyboard</control>
+    <control>touch</control>
+  </recommends>
+
+  <requires>
+    <display_length compare="lt">xlarge</display_length>
+    <display_length compare="gt">xsmall</display_length>
+  </requires>
+
+  <custom>
+    <value key="Purism::form_factor">workstation</value>
+    <value key="Purism::form_factor">mobile</value>
+  </custom>
+</component>

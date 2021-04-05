@@ -1,7 +1,7 @@
 
-subdir('appdata')
 subdir('firewalld')
 subdir('gsettings')
+subdir('metainfo')
 
 
 #
