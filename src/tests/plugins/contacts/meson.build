@@ -6,18 +6,26 @@ plugin_contacts_test_deps = [
   plugin_contacts_deps,
 ]
 
-test_program = executable('test-contacts-plugin',
-                          'test-contacts-plugin.c',
-        c_args: test_c_args,
-  dependencies: plugin_contacts_test_deps,
-     link_args: test_link_args,
-    link_whole: [libvalent_test, plugin_contacts],
-)
+plugin_contacts_tests = [
+  'test-contacts-plugin',
+  'test-contacts-preferences',
+]
 
-test('test-contacts-plugin',
-     test_program,
-          env: test_env,
-  is_parallel: false,
-        suite: 'plugins',
-)
+foreach test : plugin_contacts_tests
+  source = ['@0@.c'.format(test)]
+
+  test_program = executable(test, source,
+          c_args: test_c_args,
+    dependencies: plugin_contacts_test_deps,
+       link_args: test_link_args,
+      link_whole: [libvalent_test, plugin_contacts],
+  )
+
+  test(test,
+       test_program,
+            env: test_env,
+    is_parallel: false,
+          suite: 'plugins',
+  )
+endforeach
 

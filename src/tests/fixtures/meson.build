@@ -63,6 +63,7 @@ libvalent_test_deps = [
   libvalent_mixer_dep,
   libvalent_notifications_dep,
   libvalent_power_dep,
+  libvalent_ui_dep,
 ]
 
 

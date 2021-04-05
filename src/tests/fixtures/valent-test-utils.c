@@ -1,9 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
+#include <locale.h>
 #include <stdio.h>
+#include <gtk/gtk.h>
+#include <adwaita.h>
 #include <json-glib/json-glib.h>
 #include <libvalent-core.h>
+#include <libvalent-ui.h>
 
 #include "valent-test-channel.h"
 #include "valent-test-utils.h"
@@ -467,5 +471,37 @@ valent_test_upload (ValentChannel  *channel,
   g_main_loop_run (op->loop);
 
   return op->success;
+}
+
+/**
+ * valent_test_ui_init:
+ * @argcp: Address of the `argc` parameter of the
+ *        main() function. Changed if any arguments were handled.
+ * @argvp: (inout) (array length=argcp): Address of the
+ *        `argv` parameter of main().
+ *        Any parameters understood by g_test_init() or gtk_init() are
+ *        stripped before return.
+ * @...: currently unused
+ *
+ * This function is used to initialize a GUI test program.
+ *
+ * It calls g_test_init(), gtk_init() and adw_init() to initialize the testing
+ * framework and graphical toolkit for Valent. It’ll also set the program’s
+ * locale to “C”.
+ *
+ * Like gtk_init() and g_test_init(), any known arguments will be processed and
+ * stripped from @argc and @argv.
+ */
+void
+valent_test_ui_init(int    *argcp,
+                    char ***argvp,
+                    ...)
+{
+  g_test_init (argcp, argvp, NULL);
+  gtk_disable_setlocale ();
+  setlocale (LC_ALL, "en_US.UTF-8");
+
+  gtk_init ();
+  adw_init ();
 }
 
