@@ -1,3 +1,5 @@
+[![CI](https://github.com/andyholmes/valent/actions/workflows/ci.yml/badge.svg)](https://github.com/andyholmes/valent/actions/workflows/ci.yml)
+
 # Valent
 
 Valent is an implementation of the [KDE Connect][kdeconnect] protocol for
