@@ -2,9 +2,11 @@
 
 # Valent
 
-Valent is an implementation of the [KDE Connect][kdeconnect] protocol for
-Gtk-based environments, allowing you to connect to any other device running
-KDE Connect or a conforming implementation of it.
+Valent is an implementation of the [KDE Connect][kdeconnect] protocol, written
+using GNOME platform libraries.
+
+You can use Valent to connect to other devices running KDE Connect or any other
+conforming implementation of it.
 
 ## Status
 
