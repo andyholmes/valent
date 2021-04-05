@@ -10,6 +10,9 @@ MimeType=x-scheme-handler/sms;x-scheme-handler/tel;
 DBusActivatable=true
 X-GNOME-UsesNotifications=true
 
+# Translators: Do NOT translate or transliterate this text (these are enum types)!
+X-Purism-FormFactor=Workstation;Mobile;
+
 Actions=preferences;
 
 [Desktop Action preferences]
