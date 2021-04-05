@@ -13,6 +13,10 @@
 
 G_BEGIN_DECLS
 
+void             valent_test_ui_init      (int    *argcp,
+                                           char ***argvp,
+                                           ...);
+
 gboolean         valent_test_mute_domain  (const char     *log_domain,
                                            GLogLevelFlags  log_level,
                                            const char     *message,
@@ -58,8 +62,8 @@ gboolean         valent_test_upload       (ValentChannel  *channel,
  * v_assert_object_finalize:
  * @object: (type GObject.Object): a #GObject
  *
- * Iterate the main context until the reference count of @object reaches zero, before asserting
- * its finalization.
+ * Iterate the main context until the reference count of @object reaches zero,
+ * before asserting its finalization.
  */
 static inline void
 (v_assert_finalize_object) (GObject *object)
@@ -215,3 +219,4 @@ static inline void
   } G_STMT_END
 
 G_END_DECLS
+

@@ -23,6 +23,7 @@ jobs:
                 -Dtests=true \
                 _build
           meson compile -C _build
+          xvfb-run -a -s "-screen 0 1024x768x24" \
           dbus-run-session -- \
           meson test -C _build \
                      --print-errorlogs \
@@ -52,6 +53,7 @@ jobs:
                 -Dtests=true \
                 _build
           meson compile -C _build
+          xvfb-run -a -s "-screen 0 1024x768x24" \
           dbus-run-session -- \
           meson test -C _build \
                      --print-errorlogs \

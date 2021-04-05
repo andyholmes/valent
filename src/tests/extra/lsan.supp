@@ -13,3 +13,6 @@ leak:gst_gio_src_query
 # GStreamer?
 leak:g_quark_init
 
+# libpeas-loader-python3
+leak:libpython3.9
+

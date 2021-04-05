@@ -6,18 +6,26 @@ plugin_clipboard_test_deps = [
   plugin_clipboard_deps,
 ]
 
-test_program = executable('test-clipboard-plugin',
-                          'test-clipboard-plugin.c',
-        c_args: test_c_args,
-  dependencies: plugin_clipboard_test_deps,
-     link_args: test_link_args,
-    link_whole: [libvalent_test, plugin_clipboard],
-)
+plugin_clipboard_tests = [
+  'test-clipboard-plugin',
+  'test-clipboard-preferences',
+]
 
-test('test-clipboard-plugin',
-     test_program,
-          env: test_env,
-  is_parallel: false,
-        suite: 'plugins',
-)
+foreach test : plugin_clipboard_tests
+  source = ['@0@.c'.format(test)]
+
+  test_program = executable(test, source,
+          c_args: test_c_args,
+    dependencies: plugin_clipboard_test_deps,
+       link_args: test_link_args,
+      link_whole: [libvalent_test, plugin_clipboard],
+  )
+
+  test(test,
+       test_program,
+            env: test_env,
+    is_parallel: false,
+          suite: 'plugins',
+  )
+endforeach
 
