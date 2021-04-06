@@ -6,6 +6,7 @@
     "command" : "valent",
     "finish-args" : [
         "--device=dri",
+        "--filesystem=xdg-data/valent/plugins",
         "--filesystem=xdg-download",
         "--filesystem=xdg-run/gvfs",
         "--filesystem=xdg-run/gvfsd",

@@ -136,6 +136,7 @@ valent_timestamp_ms (void)
 void
 valent_load_plugins (PeasEngine *engine)
 {
+  g_autofree char *user_dir = NULL;
   g_autoptr (GError) error = NULL;
   const GList *plugins = NULL;
   static gboolean loaded = FALSE;
@@ -163,26 +164,24 @@ valent_load_plugins (PeasEngine *engine)
   peas_engine_add_search_path (engine, PACKAGE_PLUGINSDIR, NULL);
 
   /* User Plugins */
+  user_dir = g_build_filename (g_get_user_data_dir (),
+                               PACKAGE_NAME, "plugins", NULL);
+  peas_engine_prepend_search_path (engine, user_dir, NULL);
+
   if (valent_in_flatpak ())
     {
-      g_autofree char *user_dir = NULL;
+      g_autofree char *extensions_dir = NULL;
       g_autofree char *flatpak_dir = NULL;
 
-      user_dir = g_build_filename (g_get_home_dir (), ".local", "share",
-                                   PACKAGE_NAME, "plugins", NULL);
-      peas_engine_prepend_search_path (engine, user_dir, user_dir);
+      /* Flatpak Extensions */
+      extensions_dir = g_build_filename ("/app", "extensions", "lib",
+                                         PACKAGE_NAME, "plugins", NULL);
+      peas_engine_prepend_search_path (engine, extensions_dir, extensions_dir);
 
-      flatpak_dir = g_build_filename ("/app", "extensions", "lib",
+      /* User Plugins (xdg-data/valent/plugins) */
+      flatpak_dir = g_build_filename (g_get_home_dir (), ".local", "share",
                                       PACKAGE_NAME, "plugins", NULL);
       peas_engine_prepend_search_path (engine, flatpak_dir, flatpak_dir);
-    }
-  else
-    {
-      g_autofree char *user_dir = NULL;
-
-      user_dir = g_build_filename (g_get_user_data_dir (),
-                                   PACKAGE_NAME, "plugins", NULL);
-      peas_engine_prepend_search_path (engine, user_dir, NULL);
     }
 
   /* Load plugins */
