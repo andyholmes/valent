@@ -1,21 +1,28 @@
+name: Flatpak
+
 on:
   push:
     branches: [ master ]
   pull_request:
-name: Flatpak
+    branches: [ master ]
+
 jobs:
   flatpak-builder:
-    name: "Flatpak Builder"
+    name: Flatpak Builder
     runs-on: ubuntu-latest
     container:
       image: bilelmoussaoui/flatpak-github-actions:gnome-40
       options: --privileged
+
     steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: true
-    - uses: bilelmoussaoui/flatpak-github-actions@v2
-      with:
-        bundle: "ca.andyholmes.Valent.flatpak"
-        manifest-path: "build-aux/flatpak/ca.andyholmes.Valent.json"
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Export
+        uses: bilelmoussaoui/flatpak-github-actions@v2
+        with:
+          bundle: "ca.andyholmes.Valent.flatpak"
+          manifest-path: "build-aux/flatpak/ca.andyholmes.Valent.json"
         

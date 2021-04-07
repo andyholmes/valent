@@ -8,13 +8,17 @@ on:
 
 jobs:
   test:
+    name: Unit Tests
     runs-on: ubuntu-latest
     container:
       image: andyholmes/fedora-ci:latest
+
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
         with:
           submodules: true
+
       - name: Build
         run: |
           meson --prefix=/usr \
@@ -28,6 +32,7 @@ jobs:
           meson test -C _build \
                      --print-errorlogs \
                      --repeat=5
+
       - name: Report
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
@@ -36,13 +41,16 @@ jobs:
           path: _build/meson-logs
 
   test_sanitizer:
+    name: Unit Tests (asan/lsan, ubsan)
     runs-on: ubuntu-latest
     container:
       image: andyholmes/fedora-ci:latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
         with:
           submodules: true
+
       - name: Build
         run: |
           meson --prefix=/usr \
@@ -58,6 +66,7 @@ jobs:
           meson test -C _build \
                      --print-errorlogs \
                      --timeout-multiplier 2
+
       - name: Report
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
