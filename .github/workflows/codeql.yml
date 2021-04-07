@@ -5,6 +5,9 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+    paths:
+      - '**/*.c'
+      - '**/*.h'
   schedule:
     - cron: '45 3 * * 6'
 
