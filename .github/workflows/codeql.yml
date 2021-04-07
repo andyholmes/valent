@@ -27,11 +27,11 @@ jobs:
         languages: [ 'cpp' ]
 
     - name: Build
-        run: |
-          meson --prefix=/usr \
-                --buildtype=release \
-                _build
-          meson compile -C _build
+      run: |
+        meson --prefix=/usr \
+              --buildtype=release \
+              _build
+        meson compile -C _build
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
