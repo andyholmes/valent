@@ -66,6 +66,13 @@ po_dir = join_paths(meson.source_root(), 'po')
 
 
 #
+# Compiler
+#
+cc = meson.get_compiler('c')
+host_system = host_machine.system()
+
+
+#
 # config.h
 #
 config_h = configuration_data()
@@ -104,8 +111,20 @@ foreach define : config_h_defines
   config_h.set_quoted(define[0], define[1])
 endforeach
 
+config_h_functions = [
+  'localtime_r',
+]
+
+foreach function : config_h_functions
+  if cc.has_function(function)
+    define = 'HAVE_' + function.underscorify().to_upper()
+    config_h.set(define, 1)
+  endif
+endforeach
+
+
 configure_file(
-  output: 'config.h',
+         output: 'config.h',
   configuration: config_h,
 )
 
@@ -118,9 +137,6 @@ add_project_arguments([
 #
 # Dependencies
 #
-cc = meson.get_compiler('c')
-host_system = host_machine.system()
-
 gio_version = '>= 2.66.0'
 gtk_version = '>= 4.0'
 gnutls_version = '>= 3.1.3'

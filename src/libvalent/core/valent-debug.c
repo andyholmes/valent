@@ -148,7 +148,13 @@ valent_log_handler (const char     *domain,
   /* Prepare log message */
   now = g_get_real_time ();
   t = now / G_USEC_PER_SEC;
+
+  #ifdef HAVE_LOCALTIME_R
+  localtime_r (&t, &tt);
+  #else
   tt = *localtime (&t);
+  #endif
+
   strftime (ftime, sizeof (ftime), "%H:%M:%S", &tt);
   buffer = g_strdup_printf ("%s.%04d %22s: %s: %s\n",
                             ftime,
