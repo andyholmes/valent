@@ -17,6 +17,5 @@ RUN dnf install -y --enablerepo=fedora-debuginfo,updates-debuginfo \
         libportal-devel               libportal-debuginfo \
         pulseaudio-libs-devel         pulseaudio-libs-debuginfo \
         sqlite-devel                  sqlite-debuginfo && \
-    dnf clean all &&
-    rm -rf /var/cache/yum
+    dnf clean all && rm -rf /var/cache/dnf
 
