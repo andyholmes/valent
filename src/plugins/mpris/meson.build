@@ -17,10 +17,18 @@ plugin_mpris_sources = files([
 plugin_mpris_include_directories = [include_directories('.')]
 
 # Resources
+plugin_mpris_info = i18n.merge_file('mpris.plugin',
+   input: 'mpris.plugin.desktop.in',
+  output: 'mpris.plugin',
+  po_dir: po_dir,
+    type: 'desktop',
+)
+
 plugin_mpris_resources = gnome.compile_resources(
   'mpris-resources',
   'mpris.gresource.xml',
-  c_name: 'mpris',
+        c_name: 'mpris',
+  dependencies: [plugin_mpris_info],
 )
 plugin_mpris_sources += plugin_mpris_resources
 

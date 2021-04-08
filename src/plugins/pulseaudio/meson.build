@@ -33,10 +33,18 @@ plugin_pulseaudio_sources = files([
 plugin_pulseaudio_include_directories = [include_directories('.')]
 
 # Resources
+plugin_pulseaudio_info = i18n.merge_file('pulseaudio.plugin',
+   input: 'pulseaudio.plugin.desktop.in',
+  output: 'pulseaudio.plugin',
+  po_dir: po_dir,
+    type: 'desktop',
+)
+
 plugin_pulseaudio_resources = gnome.compile_resources(
   'pulseaudio-resources',
   'pulseaudio.gresource.xml',
-  c_name: 'pulseaudio',
+        c_name: 'pulseaudio',
+  dependencies: [plugin_pulseaudio_info],
 )
 plugin_pulseaudio_sources += plugin_pulseaudio_resources
 

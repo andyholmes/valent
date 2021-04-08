@@ -15,10 +15,18 @@ plugin_sftp_sources = files([
 plugin_sftp_include_directories = [include_directories('.')]
 
 # Resources
+plugin_sftp_info = i18n.merge_file('sftp.plugin',
+   input: 'sftp.plugin.desktop.in',
+  output: 'sftp.plugin',
+  po_dir: po_dir,
+    type: 'desktop',
+)
+
 plugin_sftp_resources = gnome.compile_resources(
   'sftp-resources',
   'sftp.gresource.xml',
-  c_name: 'sftp',
+        c_name: 'sftp',
+  dependencies: [plugin_sftp_info],
 )
 plugin_sftp_sources += plugin_sftp_resources
 

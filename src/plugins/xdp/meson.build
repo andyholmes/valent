@@ -24,10 +24,18 @@ plugin_xdp_sources = files([
 plugin_xdp_include_directories = [include_directories('.')]
 
 # Resources
+plugin_xdp_info = i18n.merge_file('xdp.plugin',
+   input: 'xdp.plugin.desktop.in',
+  output: 'xdp.plugin',
+  po_dir: po_dir,
+    type: 'desktop',
+)
+
 plugin_xdp_resources = gnome.compile_resources(
   'xdp-resources',
   'xdp.gresource.xml',
-  c_name: 'xdp',
+        c_name: 'xdp',
+  dependencies: [plugin_xdp_info],
 )
 plugin_xdp_sources += plugin_xdp_resources
 

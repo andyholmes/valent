@@ -16,10 +16,18 @@ plugin_mousepad_sources = files([
 plugin_mousepad_include_directories = [include_directories('.')]
 
 # Resources
+plugin_mousepad_info = i18n.merge_file('mousepad.plugin',
+   input: 'mousepad.plugin.desktop.in',
+  output: 'mousepad.plugin',
+  po_dir: po_dir,
+    type: 'desktop',
+)
+
 plugin_mousepad_resources = gnome.compile_resources(
   'mousepad-resources',
   'mousepad.gresource.xml',
-  c_name: 'mousepad',
+        c_name: 'mousepad',
+  dependencies: [plugin_mousepad_info],
 )
 plugin_mousepad_sources += plugin_mousepad_resources
 

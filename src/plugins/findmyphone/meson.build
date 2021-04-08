@@ -25,12 +25,19 @@ plugin_findmyphone_sources = files([
 plugin_findmyphone_include_directories = [include_directories('.')]
 
 # Resources
+plugin_findmyphone_info = i18n.merge_file('findmyphone.plugin',
+   input: 'findmyphone.plugin.desktop.in',
+  output: 'findmyphone.plugin',
+  po_dir: po_dir,
+    type: 'desktop',
+)
+
 plugin_findmyphone_resources = gnome.compile_resources(
   'findmyphone-resources',
   'findmyphone.gresource.xml',
-  c_name: 'findmyphone',
+        c_name: 'findmyphone',
+  dependencies: [plugin_findmyphone_info],
 )
-
 plugin_findmyphone_sources += plugin_findmyphone_resources
 
 # Static Build

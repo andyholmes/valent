@@ -19,10 +19,18 @@ plugin_battery_sources = files([
 plugin_battery_include_directories = [include_directories('.')]
 
 # Resources
+plugin_battery_info = i18n.merge_file('battery.plugin',
+   input: 'battery.plugin.desktop.in',
+  output: 'battery.plugin',
+  po_dir: po_dir,
+    type: 'desktop',
+)
+
 plugin_battery_resources = gnome.compile_resources(
   'battery-resources',
   'battery.gresource.xml',
-  c_name: 'battery',
+        c_name: 'battery',
+  dependencies: [plugin_battery_info],
 )
 plugin_battery_sources += plugin_battery_resources
 

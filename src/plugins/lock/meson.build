@@ -14,10 +14,18 @@ plugin_lock_sources = files([
 plugin_lock_include_directories = [include_directories('.')]
 
 # Resources
+plugin_lock_info = i18n.merge_file('lock.plugin',
+   input: 'lock.plugin.desktop.in',
+  output: 'lock.plugin',
+  po_dir: po_dir,
+    type: 'desktop',
+)
+
 plugin_lock_resources = gnome.compile_resources(
   'lock-resources',
   'lock.gresource.xml',
-  c_name: 'lock',
+        c_name: 'lock',
+  dependencies: [plugin_lock_info],
 )
 plugin_lock_sources += plugin_lock_resources
 

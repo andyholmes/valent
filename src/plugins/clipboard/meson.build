@@ -16,10 +16,18 @@ plugin_clipboard_sources = files([
 plugin_clipboard_include_directories = [include_directories('.')]
 
 # Resources
+plugin_clipboard_info = i18n.merge_file('clipboard.plugin',
+   input: 'clipboard.plugin.desktop.in',
+  output: 'clipboard.plugin',
+  po_dir: po_dir,
+    type: 'desktop',
+)
+
 plugin_clipboard_resources = gnome.compile_resources(
   'clipboard-resources',
   'clipboard.gresource.xml',
-  c_name: 'clipboard',
+        c_name: 'clipboard',
+  dependencies: [plugin_clipboard_info],
 )
 plugin_clipboard_sources += plugin_clipboard_resources
 

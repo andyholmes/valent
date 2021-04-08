@@ -18,10 +18,18 @@ plugin_notification_sources = files([
 plugin_notification_include_directories = [include_directories('.')]
 
 # Resources
+plugin_notification_info = i18n.merge_file('notification.plugin',
+   input: 'notification.plugin.desktop.in',
+  output: 'notification.plugin',
+  po_dir: po_dir,
+    type: 'desktop',
+)
+
 plugin_notification_resources = gnome.compile_resources(
   'notification-resources',
   'notification.gresource.xml',
-  c_name: 'notification',
+        c_name: 'notification',
+  dependencies: [plugin_notification_info],
 )
 plugin_notification_sources += plugin_notification_resources
 

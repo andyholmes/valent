@@ -14,10 +14,18 @@ plugin_share_sources = files([
 plugin_share_include_directories = [include_directories('.')]
 
 # Resources
+plugin_share_info = i18n.merge_file('share.plugin',
+   input: 'share.plugin.desktop.in',
+  output: 'share.plugin',
+  po_dir: po_dir,
+    type: 'desktop',
+)
+
 plugin_share_resources = gnome.compile_resources(
   'share-resources',
   'share.gresource.xml',
-  c_name: 'share',
+        c_name: 'share',
+  dependencies: [plugin_share_info],
 )
 plugin_share_sources += plugin_share_resources
 

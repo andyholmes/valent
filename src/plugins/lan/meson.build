@@ -15,10 +15,18 @@ plugin_lan_sources = files([
 plugin_lan_include_directories = [include_directories('.')]
 
 # Resources
+plugin_lan_info = i18n.merge_file('lan.plugin',
+   input: 'lan.plugin.desktop.in',
+  output: 'lan.plugin',
+  po_dir: po_dir,
+    type: 'desktop',
+)
+
 plugin_lan_resources = gnome.compile_resources(
   'lan-resources',
   'lan.gresource.xml',
-  c_name: 'lan',
+        c_name: 'lan',
+  dependencies: [plugin_lan_info],
 )
 plugin_lan_sources += plugin_lan_resources
 
