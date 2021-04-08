@@ -15,6 +15,9 @@
 #define DEFAULT_EXPIRATION (60L*60L*24L*10L*365L)
 #define DEFAULT_KEY_SIZE   4096
 
+#define SHA256_HEX_LEN 64
+#define SHA256_STR_LEN 96
+
 
 /**
  * SECTION:valent-certificate
@@ -26,8 +29,8 @@
  * A small collection of helpers for working with TLS certificates.
  */
 
+G_DEFINE_QUARK (VALENT_CERTIFICATE_FP, valent_certificate_fp);
 G_DEFINE_QUARK (VALENT_CERTIFICATE_ID, valent_certificate_id);
-G_DEFINE_QUARK (VALENT_CERTIFICATE_SHA1, valent_certificate_sha1);
 
 
 /**
@@ -247,46 +250,50 @@ valent_certificate_get_id (GTlsCertificate  *certificate,
  * valent_certificate_get_fingerprint:
  * @certificate: a #GTlsCertificate
  *
- * Get a SHA1 fingerprint hash of @certificate.
+ * Get a SHA256 fingerprint hash of @certificate.
  *
- * Returns: (transfer none): a SHA1 hash
+ * Returns: (transfer none): a SHA256 hash
  */
 const char *
 valent_certificate_get_fingerprint (GTlsCertificate *certificate)
 {
-  g_autoptr (GByteArray) der = NULL;
-  g_autofree char *check = NULL;
+  g_autoptr (GByteArray) certificate_der = NULL;
+  g_autoptr (GChecksum) checksum = NULL;
+  const char *check;
   const char *fingerprint;
-  char buf[60] = { 0, };
-  unsigned int c = 0;
-  unsigned int f = 0;
+  char buf[SHA256_STR_LEN] = { 0, };
+  unsigned int i = 0;
+  unsigned int o = 0;
 
   g_return_val_if_fail (G_IS_TLS_CERTIFICATE (certificate), NULL);
 
   fingerprint = g_object_get_qdata (G_OBJECT (certificate),
-                                    valent_certificate_sha1_quark());
+                                    valent_certificate_fp_quark());
 
   if G_LIKELY (fingerprint != NULL)
     return fingerprint;
 
-  g_object_get (certificate, "certificate", &der, NULL);
-  check = g_compute_checksum_for_data (G_CHECKSUM_SHA1, der->data, der->len);
+  g_object_get (certificate, "certificate", &certificate_der, NULL);
+  checksum = g_checksum_new (G_CHECKSUM_SHA256);
+  g_checksum_update (checksum, certificate_der->data, certificate_der->len);
 
-  while (c < 40)
+  check = g_checksum_get_string (checksum);
+
+  while (i < SHA256_HEX_LEN)
     {
-      buf[f++] = check[c++];
-      buf[f++] = check[c++];
-      buf[f++] = ':';
+      buf[o++] = check[i++];
+      buf[o++] = check[i++];
+      buf[o++] = ':';
     }
-  buf[59] = '\0';
+  buf[SHA256_STR_LEN - 1] = '\0';
 
   /* Intern the hash as private data */
   g_object_set_qdata_full (G_OBJECT (certificate),
-                           valent_certificate_id_quark(),
-                           g_strndup (buf, 60),
+                           valent_certificate_fp_quark(),
+                           g_strdup (buf),
                            g_free);
 
   return g_object_get_qdata (G_OBJECT (certificate),
-                             valent_certificate_id_quark());
+                             valent_certificate_fp_quark());
 }
 
