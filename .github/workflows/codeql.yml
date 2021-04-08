@@ -16,7 +16,7 @@ jobs:
     name: Analyze
     runs-on: ubuntu-latest
     container:
-      image: andyholmes/fedora-ci:latest
+      image: andyholmes/valent:latest
 
     steps:
     - name: Checkout
