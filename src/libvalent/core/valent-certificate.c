@@ -7,6 +7,7 @@
 
 #include <gio/gio.h>
 #include <gnutls/gnutls.h>
+#include <gnutls/abstract.h>
 #include <gnutls/x509.h>
 #include <sys/time.h>
 
@@ -31,6 +32,7 @@
 
 G_DEFINE_QUARK (VALENT_CERTIFICATE_FP, valent_certificate_fp);
 G_DEFINE_QUARK (VALENT_CERTIFICATE_ID, valent_certificate_id);
+G_DEFINE_QUARK (VALENT_CERTIFICATE_PK, valent_certificate_pk);
 
 
 /**
@@ -295,5 +297,85 @@ valent_certificate_get_fingerprint (GTlsCertificate *certificate)
 
   return g_object_get_qdata (G_OBJECT (certificate),
                              valent_certificate_fp_quark());
+}
+
+/**
+ * valent_certificate_get_public_key:
+ * @certificate: a #GTlsCertificate
+ *
+ * Get the public key of @certificate.
+ *
+ * Returns: (transfer none): a DER-encoded publickey
+ */
+GByteArray *
+valent_certificate_get_public_key (GTlsCertificate *certificate)
+{
+  g_autoptr (GByteArray) certificate_der = NULL;
+  g_autoptr (GByteArray) pubkey = NULL;
+  size_t size;
+  gnutls_x509_crt_t crt = NULL;
+  gnutls_datum_t crt_der;
+  gnutls_pubkey_t crt_pk = NULL;
+  int rc;
+
+  g_return_val_if_fail (G_IS_TLS_CERTIFICATE (certificate), NULL);
+
+  pubkey = g_object_get_qdata (G_OBJECT (certificate),
+                               valent_certificate_pk_quark());
+
+  if (pubkey != NULL)
+    return g_steal_pointer (&pubkey);
+
+  g_object_get (certificate, "certificate", &certificate_der, NULL);
+  crt_der.data = certificate_der->data;
+  crt_der.size = certificate_der->len;
+
+  /* Load the certificate */
+  if ((rc = gnutls_x509_crt_init (&crt)) != GNUTLS_E_SUCCESS ||
+      (rc = gnutls_x509_crt_import (crt, &crt_der, GNUTLS_X509_FMT_DER)) != GNUTLS_E_SUCCESS)
+    {
+      g_warning ("%s: %s", G_STRFUNC, gnutls_strerror (rc));
+      goto out;
+    }
+
+  /* Load the public key */
+  if ((rc = gnutls_pubkey_init (&crt_pk)) != GNUTLS_E_SUCCESS ||
+      (rc = gnutls_pubkey_import_x509 (crt_pk, crt, 0)) != GNUTLS_E_SUCCESS)
+    {
+      g_warning ("%s: %s", G_STRFUNC, gnutls_strerror (rc));
+      goto out;
+    }
+
+  /* Read the public key */
+  rc = gnutls_pubkey_export (crt_pk, GNUTLS_X509_FMT_DER, NULL, &size);
+
+  if (rc == GNUTLS_E_SUCCESS || rc == GNUTLS_E_SHORT_MEMORY_BUFFER)
+    {
+      pubkey = g_byte_array_sized_new (size);
+      pubkey->len = size;
+      rc = gnutls_pubkey_export (crt_pk,
+                                 GNUTLS_X509_FMT_DER,
+                                 pubkey->data, &size);
+
+      /* Intern the PEM as private data */
+      if (rc == GNUTLS_E_SUCCESS)
+        {
+          g_object_set_qdata_full (G_OBJECT (certificate),
+                                   valent_certificate_pk_quark(),
+                                   g_steal_pointer (&pubkey),
+                                   (GDestroyNotify)g_byte_array_unref);
+        }
+      else
+        g_warning ("%s: %s", G_STRFUNC, gnutls_strerror (rc));
+    }
+  else
+    g_warning ("%s: %s", G_STRFUNC, gnutls_strerror (rc));
+
+  out:
+    gnutls_x509_crt_deinit (crt);
+    gnutls_pubkey_deinit (crt_pk);
+
+  return g_object_get_qdata (G_OBJECT (certificate),
+                             valent_certificate_pk_quark());
 }
 

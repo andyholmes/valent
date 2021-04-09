@@ -17,7 +17,8 @@ gboolean     valent_certificate_generate        (const char       *key_path,
                                                  GError          **error);
 const char * valent_certificate_get_id          (GTlsCertificate  *certificate,
                                                  GError          **error);
-const char * valent_certificate_get_fingerprint (GTlsCertificate *certificate);
+const char * valent_certificate_get_fingerprint (GTlsCertificate  *certificate);
+GByteArray * valent_certificate_get_public_key  (GTlsCertificate  *certificate);
 
 G_END_DECLS
 

@@ -298,7 +298,7 @@ valent_device_notify_pair (ValentDevice *device)
     return;
 
   title = g_strdup_printf (_("Pair request from %s"), device->name);
-  body = valent_channel_get_description (device->channel);
+  body = valent_channel_get_verification_key (device->channel);
   icon = g_themed_icon_new ("channel-insecure-symbolic");
 
   if (body == NULL)

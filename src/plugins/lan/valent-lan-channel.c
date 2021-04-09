@@ -46,6 +46,47 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 /*
  * ValentChannel
  */
+static const char *
+valent_lan_channel_get_verification_key (ValentChannel *channel)
+{
+  ValentLanChannel *self = VALENT_LAN_CHANNEL (channel);
+  g_autoptr (GChecksum) checksum = NULL;
+  GTlsCertificate *cert;
+  GTlsCertificate *peer_cert;
+  GByteArray *pubkey;
+  GByteArray *peer_pubkey;
+  size_t cmplen;
+
+  if (self->description != NULL)
+    return self->description;
+
+  if ((cert = valent_lan_channel_get_certificate (self)) == NULL ||
+      (peer_cert = valent_lan_channel_get_peer_certificate (self)) == NULL)
+    g_return_val_if_reached (NULL);
+
+  if ((pubkey = valent_certificate_get_public_key (cert)) == NULL ||
+      (peer_pubkey = valent_certificate_get_public_key (peer_cert)) == NULL)
+    g_return_val_if_reached (NULL);
+
+  checksum = g_checksum_new (G_CHECKSUM_SHA256);
+  cmplen = pubkey->len < peer_pubkey->len ? pubkey->len : peer_pubkey->len;
+
+  if (memcmp (pubkey->data, peer_pubkey->data, cmplen) > 0)
+    {
+      g_checksum_update (checksum, pubkey->data, pubkey->len);
+      g_checksum_update (checksum, peer_pubkey->data, peer_pubkey->len);
+    }
+  else
+    {
+      g_checksum_update (checksum, peer_pubkey->data, peer_pubkey->len);
+      g_checksum_update (checksum, pubkey->data, pubkey->len);
+    }
+
+  self->description = g_strdup (g_checksum_get_string (checksum));
+
+  return self->description;
+}
+
 static GIOStream *
 valent_lan_channel_download (ValentChannel  *channel,
                              JsonNode       *packet,
@@ -176,33 +217,6 @@ valent_lan_channel_upload (ValentChannel  *channel,
   return g_steal_pointer (&tls_stream);
 }
 
-static const char *
-valent_lan_channel_get_description (ValentChannel *channel)
-{
-  ValentLanChannel *self = VALENT_LAN_CHANNEL (channel);
-  GTlsCertificate *cert;
-  GTlsCertificate *peer_cert;
-  const char *fingerprint = NULL;
-  const char *peer_fingerprint = NULL;
-
-  if (self->description != NULL)
-    return self->description;
-
-  if ((cert = valent_lan_channel_get_certificate (self)) != NULL)
-    fingerprint = valent_certificate_get_fingerprint (cert);
-
-  if ((peer_cert = valent_lan_channel_get_peer_certificate (self)) != NULL)
-    peer_fingerprint = valent_certificate_get_fingerprint (peer_cert);
-
-  self->description = g_strdup_printf (_("Remote fingerprint:\n%s"
-                                         "\n\n"
-                                         "Local fingerprint:\n%s"),
-                                       fingerprint,
-                                       peer_fingerprint);
-
-  return self->description;
-}
-
 static void
 valent_lan_channel_store_data (ValentChannel *channel,
                                ValentData    *data)
@@ -320,10 +334,10 @@ valent_lan_channel_class_init (ValentLanChannelClass *klass)
   object_class->get_property = valent_lan_channel_get_property;
   object_class->set_property = valent_lan_channel_set_property;
 
+  channel_class->get_verification_key = valent_lan_channel_get_verification_key;
   channel_class->download = valent_lan_channel_download;
   channel_class->upload = valent_lan_channel_upload;
   channel_class->store_data = valent_lan_channel_store_data;
-  channel_class->get_description = valent_lan_channel_get_description;
 
   /**
    * ValentLanChannel:certificate:

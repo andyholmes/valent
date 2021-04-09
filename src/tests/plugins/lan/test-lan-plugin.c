@@ -401,7 +401,7 @@ test_lan_service_channel (LanBackendFixture *fixture,
   JsonNode *packet;
   g_autoptr (GSocketAddress) address = NULL;
   g_autofree char *identity_str = NULL;
-  const char *description;
+  const char *verification_key;
   char *host, *uri;
   GTlsCertificate *certificate, *peer_certificate, *cert_cmp;
   guint16 port;
@@ -438,8 +438,8 @@ test_lan_service_channel (LanBackendFixture *fixture,
   g_main_loop_run (fixture->loop);
 
   /* Properties */
-  description = valent_channel_get_description (fixture->channel);
-  g_assert_nonnull (description);
+  verification_key = valent_channel_get_verification_key (fixture->channel);
+  g_assert_nonnull (verification_key);
 
   g_object_get (fixture->channel,
                 "certificate",      &certificate,
