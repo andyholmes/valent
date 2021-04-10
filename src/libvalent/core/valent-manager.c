@@ -117,6 +117,7 @@ valent_manager_ensure_certificate (ValentManager  *self,
         return FALSE;
     }
 
+  /* Load the service certificate */
   self->certificate = g_tls_certificate_new_from_files (cert_path,
                                                         key_path,
                                                         error);
@@ -124,7 +125,17 @@ valent_manager_ensure_certificate (ValentManager  *self,
   if (self->certificate == NULL)
     return FALSE;
 
-  self->id = valent_certificate_get_id (self->certificate, NULL);
+  /* Extract our deviceId from the certificate */
+  self->id = valent_certificate_get_common_name (self->certificate);
+
+  if (self->id == NULL)
+    {
+      g_set_error_literal (error,
+                           G_TLS_ERROR,
+                           G_TLS_ERROR_BAD_CERTIFICATE,
+                           "Certificate has no common name");
+      return FALSE;
+    }
 
   return G_IS_TLS_CERTIFICATE (self->certificate);
 }

@@ -30,8 +30,8 @@
  * A small collection of helpers for working with TLS certificates.
  */
 
+G_DEFINE_QUARK (VALENT_CERTIFICATE_ID, valent_certificate_cn);
 G_DEFINE_QUARK (VALENT_CERTIFICATE_FP, valent_certificate_fp);
-G_DEFINE_QUARK (VALENT_CERTIFICATE_ID, valent_certificate_id);
 G_DEFINE_QUARK (VALENT_CERTIFICATE_PK, valent_certificate_pk);
 
 
@@ -180,46 +180,41 @@ valent_certificate_generate (const char  *key_path,
 }
 
 /**
- * valent_certificate_get_id:
+ * valent_certificate_get_common_name:
  * @certificate: a #GTlsCertificate
- * @error: (nullable): a #GError
  *
- * Get the common name from @certificate, which by convention is the single
- * source of truth for a device's ID.
+ * Get the common name from @certificate, which by convention in KDE Connect is
+ * the single source of truth for a device's ID.
  *
  * Returns: (transfer none) (nullable): the certificate ID
  */
 const char *
-valent_certificate_get_id (GTlsCertificate  *certificate,
-                           GError          **error)
+valent_certificate_get_common_name (GTlsCertificate  *certificate)
 {
-  const char *device_id;
-  int rc;
-  g_autoptr (GByteArray) ba = NULL;
+  g_autoptr (GByteArray) certificate_der = NULL;
   gnutls_x509_crt_t crt;
   gnutls_datum_t crt_der;
   char buf[64] = { 0, };
   size_t buf_size = 64;
+  const char *device_id;
+  int rc;
 
   g_return_val_if_fail (G_IS_TLS_CERTIFICATE (certificate), NULL);
 
   /* Check */
   device_id = g_object_get_qdata (G_OBJECT (certificate),
-                                  valent_certificate_id_quark());
+                                  valent_certificate_cn_quark());
 
   if G_LIKELY (device_id != NULL)
     return device_id;
 
   /* Extract the common name */
-  g_object_get (certificate,
-                "certificate", &ba,
-                NULL);
-  crt_der.data = ba->data;
-  crt_der.size = ba->len;
+  g_object_get (certificate, "certificate", &certificate_der, NULL);
+  crt_der.data = certificate_der->data;
+  crt_der.size = certificate_der->len;
 
-  gnutls_x509_crt_init (&crt);
-
-  if ((rc = gnutls_x509_crt_import (crt, &crt_der, 0)) != GNUTLS_E_SUCCESS ||
+  if ((rc = gnutls_x509_crt_init (&crt)) != GNUTLS_E_SUCCESS ||
+      (rc = gnutls_x509_crt_import (crt, &crt_der, 0)) != GNUTLS_E_SUCCESS ||
       (rc = gnutls_x509_crt_get_dn_by_oid (crt,
                                            GNUTLS_OID_X520_COMMON_NAME,
                                            0,
@@ -227,12 +222,9 @@ valent_certificate_get_id (GTlsCertificate  *certificate,
                                            &buf,
                                            &buf_size)) != GNUTLS_E_SUCCESS)
     {
-      g_set_error (error,
-                   G_IO_ERROR,
-                   G_IO_ERROR_FAILED,
-                   "Reading common name: %s",
-                   gnutls_strerror (rc));
+      g_warning ("%s: %s", G_STRFUNC, gnutls_strerror (rc));
       gnutls_x509_crt_deinit (crt);
+
       return NULL;
     }
 
@@ -240,12 +232,12 @@ valent_certificate_get_id (GTlsCertificate  *certificate,
 
   /* Intern the id as private data */
   g_object_set_qdata_full (G_OBJECT (certificate),
-                           valent_certificate_id_quark(),
+                           valent_certificate_cn_quark(),
                            g_strndup (buf, buf_size),
                            g_free);
 
   return g_object_get_qdata (G_OBJECT (certificate),
-                             valent_certificate_id_quark());
+                             valent_certificate_cn_quark());
 }
 
 /**
