@@ -36,6 +36,17 @@ enum {
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 
+/*
+ * ValentChannel
+ */
+static const char *
+valent_test_channel_get_verification_key (ValentChannel *channel)
+{
+  g_assert (VALENT_IS_TEST_CHANNEL (channel));
+
+  return "Test Channel";
+}
+
 static GIOStream *
 valent_test_channel_download (ValentChannel  *channel,
                               JsonNode       *packet,
@@ -133,14 +144,6 @@ valent_test_channel_upload (ValentChannel  *channel,
   return g_steal_pointer ((GIOStream **)&connection);
 }
 
-static const char *
-valent_test_channel_get_description (ValentChannel *channel)
-{
-  g_assert (VALENT_IS_TEST_CHANNEL (channel));
-
-  return "Test Channel";
-}
-
 /*
  * GObject
  */
@@ -210,9 +213,9 @@ valent_test_channel_class_init (ValentTestChannelClass *klass)
   object_class->get_property = valent_test_channel_get_property;
   object_class->set_property = valent_test_channel_set_property;
 
+  channel_class->get_verification_key = valent_test_channel_get_verification_key;
   channel_class->download = valent_test_channel_download;
   channel_class->upload = valent_test_channel_upload;
-  channel_class->get_description = valent_test_channel_get_description;
 
   /**
    * ValentTestChannel:host:

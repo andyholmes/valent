@@ -59,9 +59,9 @@ G_DEFINE_TYPE_WITH_PRIVATE (ValentChannel, valent_channel, G_TYPE_OBJECT)
 
 /**
  * ValentChannelClass:
+ * @get_verification_key: the virtual function pointer for valent_channel_get_verification_key()
  * @download: the virtual function pointer for valent_channel_download()
  * @upload: the virtual function pointer for valent_channel_upload()
- * @get_description: the virtual function pointer for valent_channel_get_description()
  * @store_data: the virtual function pointer for valent_channel_store_data()
  *
  * The virtual function table for #ValentChannel.
@@ -247,6 +247,12 @@ valent_channel_write_packet_internal (ValentChannel  *channel,
 }
 
 /* LCOV_EXCL_START */
+static const char *
+valent_channel_real_get_verification_key (ValentChannel *channel)
+{
+  return NULL;
+}
+
 static GIOStream *
 valent_channel_real_download (ValentChannel  *channel,
                               JsonNode       *packet,
@@ -295,12 +301,6 @@ valent_channel_real_store_data (ValentChannel *channel,
                             G_FILE_SET_CONTENTS_CONSISTENT,
                             0600,
                             NULL);
-}
-
-static const char *
-valent_channel_real_get_description (ValentChannel *channel)
-{
-  return valent_channel_get_uri (channel);
 }
 /* LCOV_EXCL_STOP */
 
@@ -414,9 +414,9 @@ valent_channel_class_init (ValentChannelClass *klass)
   object_class->get_property = valent_channel_get_property;
   object_class->set_property = valent_channel_set_property;
 
+  klass->get_verification_key = valent_channel_real_get_verification_key;
   klass->download = valent_channel_real_download;
   klass->upload = valent_channel_real_upload;
-  klass->get_description = valent_channel_real_get_description;
   klass->store_data = valent_channel_real_store_data;
 
   /**
@@ -926,25 +926,22 @@ valent_channel_set_base_stream (ValentChannel *channel,
 }
 
 /**
- * valent_channel_get_description: (virtual get_description)
+ * valent_channel_get_verification_key: (virtual get_verification_key)
  * @channel: a #ValentChannel
  *
- * Get a description for the device connection. For example, TCP connections
- * might return a TLS certificate fingerprint while Bluetooth connections may
- * return the MAC Address or DBus path.
+ * Get a verification key for the connection.
  *
  * Implementations should return a string for the user to confirm the connection
- * is being made by a particular device. This prevents a client from spoofing
- * the user (eg. copying a device's display name).
+ * is being made by a particular device, similar to a Bluetooth PIN.
  *
- * Returns: (transfer none): an unique string for the host
+ * Returns: (transfer none): a verification key
  */
 const char *
-valent_channel_get_description (ValentChannel *channel)
+valent_channel_get_verification_key (ValentChannel *channel)
 {
   g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
 
-  return VALENT_CHANNEL_GET_CLASS (channel)->get_description (channel);
+  return VALENT_CHANNEL_GET_CLASS (channel)->get_verification_key (channel);
 }
 
 /**
