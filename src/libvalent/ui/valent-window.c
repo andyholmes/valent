@@ -197,8 +197,11 @@ on_device_added (ValentManager *manager,
                  ValentWindow  *self)
 {
   DeviceInfo *info;
-  const char *device_id;
-  g_autofree char *page = NULL;
+  const char *id;
+  const char *name;
+  const char *icon_name;
+  g_autofree char *path = NULL;
+  GtkStackPage *page;
   GtkWidget *box;
   GtkWidget *arrow;
 
@@ -206,24 +209,29 @@ on_device_added (ValentManager *manager,
   g_assert (VALENT_IS_DEVICE (device));
   g_assert (VALENT_IS_WINDOW (self));
 
-  device_id = valent_device_get_id (device);
   info = g_new0 (DeviceInfo, 1);
   g_hash_table_insert (self->devices, device, info);
 
-  /* Panel & HeaderBar */
+  id = valent_device_get_id (device);
+  name = valent_device_get_name (device);
+  icon_name = valent_device_get_icon_name (device);
+
+  /* Panel */
   info->panel = valent_device_panel_new (device);
-  gtk_stack_add_titled (self->content_stack, info->panel,
-                        device_id, valent_device_get_name (device));
+  page = gtk_stack_add_titled (self->content_stack, info->panel, id, name);
+  g_object_bind_property (device, "name",
+                          page,   "title",
+                          G_BINDING_SYNC_CREATE);
 
   /* Row */
-  page = g_strdup_printf ("/%s", device_id);
+  path = g_strdup_printf ("/%s", id);
   info->row = g_object_new (ADW_TYPE_ACTION_ROW,
-                            "action-name",      "win.page",
-                            "action-target",    g_variant_new_string (page),
-                            "icon-name",        valent_device_get_icon_name (device),
-                            "title",            valent_device_get_name (device),
-                            "activatable",      TRUE,
-                            "selectable",       FALSE,
+                            "action-name",   "win.page",
+                            "action-target", g_variant_new_string (path),
+                            "icon-name",     icon_name,
+                            "title",         name,
+                            "activatable",   TRUE,
+                            "selectable",    FALSE,
                             NULL);
   g_object_set_data (G_OBJECT (info->row), "device", device);
 
@@ -241,6 +249,10 @@ on_device_added (ValentManager *manager,
   g_object_bind_property (device,    "name",
                           info->row, "title",
                           G_BINDING_SYNC_CREATE);
+  g_object_bind_property (device,    "icon-name",
+                          info->row, "icon-name",
+                          G_BINDING_SYNC_CREATE);
+
   g_signal_connect (device,
                     "notify::connected",
                     G_CALLBACK (on_device_changed),
@@ -454,7 +466,6 @@ valent_window_set_location (ValentWindow *self,
       page = gtk_stack_get_page (self->content_stack, child);
       gtk_label_set_label (GTK_LABEL (self->headerbar_subtitle),
                            gtk_stack_page_get_title (page));
-
 
       gtk_widget_set_visible (self->headerbar_subtitle, TRUE);
       gtk_widget_set_visible (self->prev_button, TRUE);

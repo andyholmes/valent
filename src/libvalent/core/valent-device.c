@@ -441,7 +441,7 @@ valent_device_handle_identity (ValentDevice *device,
     {
       g_clear_pointer (&device->name, g_free);
       device->name = g_strdup (device_name);
-      g_object_notify_by_pspec (G_OBJECT (device), properties[PROP_NAME]);
+      g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_NAME]);
     }
 
   /* "type" shouldn't ever change, but we check anyways */
@@ -453,7 +453,8 @@ valent_device_handle_identity (ValentDevice *device,
     {
       g_clear_pointer (&device->type, g_free);
       device->type = g_strdup (device_type);
-      g_object_notify_by_pspec (G_OBJECT (device), properties[PROP_TYPE]);
+      g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_ICON_NAME]);
+      g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_TYPE]);
     }
 
   /* Generally, these should be static, but could change if the connection type
