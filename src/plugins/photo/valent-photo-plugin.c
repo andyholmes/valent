@@ -136,7 +136,7 @@ photo_action (GSimpleAction *action,
               GVariant      *parameter,
               gpointer       user_data)
 {
-  ValentPhotoPlugin *self = user_data;
+  ValentPhotoPlugin *self = VALENT_PHOTO_PLUGIN (user_data);
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
 

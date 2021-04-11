@@ -719,7 +719,7 @@ close_async_cb (GIOStream    *stream,
                 GAsyncResult *result,
                 gpointer      user_data)
 {
-  g_autoptr (GTask) task = user_data;
+  g_autoptr (GTask) task = G_TASK (user_data);
   GError *error = NULL;
 
   g_assert (g_task_is_valid (result, stream));

@@ -355,7 +355,7 @@ runcommand_action (GSimpleAction *action,
                    GVariant      *parameter,
                    gpointer       user_data)
 {
-  ValentRuncommandPlugin *self = user_data;
+  ValentRuncommandPlugin *self = VALENT_RUNCOMMAND_PLUGIN (user_data);
   const char *key;
 
   g_return_if_fail (VALENT_IS_RUNCOMMAND_PLUGIN (self));

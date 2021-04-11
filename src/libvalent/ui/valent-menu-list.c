@@ -216,13 +216,12 @@ valent_menu_list_remove (ValentMenuList *self,
 }
 
 static void
-on_items_changed (GMenuModel *model,
-                  gint        position,
-                  gint        removed,
-                  gint        added,
-                  gpointer    user_data)
+on_items_changed (GMenuModel     *model,
+                  gint            position,
+                  gint            removed,
+                  gint            added,
+                  ValentMenuList *self)
 {
-  ValentMenuList *self = user_data;
   gint i, index;
 
   g_assert (G_IS_MENU_MODEL (model));

@@ -386,19 +386,19 @@ valent_contacts_plugin_request_vcards_by_uid (ValentContactsPlugin *self,
  * GActions
  */
 static void
-contacts_action (GSimpleAction *action,
-                 GVariant      *parameter,
-                 gpointer       user_data)
+contacts_fetch_action (GSimpleAction *action,
+                       GVariant      *parameter,
+                       gpointer       user_data)
 {
-  ValentContactsPlugin *self = user_data;
+  ValentContactsPlugin *self = VALENT_CONTACTS_PLUGIN (user_data);
 
-  g_return_if_fail (VALENT_IS_CONTACTS_PLUGIN (self));
+  g_assert (VALENT_IS_CONTACTS_PLUGIN (self));
 
   valent_contacts_plugin_request_all_uids_timestamps (self);
 }
 
 static const GActionEntry actions[] = {
-    {"contacts-fetch", contacts_action, NULL, NULL, NULL}
+    {"contacts-fetch", contacts_fetch_action, NULL, NULL, NULL}
 };
 
 /*

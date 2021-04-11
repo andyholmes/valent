@@ -136,7 +136,7 @@ message_list_header_func (GtkListBoxRow *row,
                           GtkListBoxRow *before,
                           gpointer       user_data)
 {
-  ValentSmsConversation *self = user_data;
+  ValentSmsConversation *self = VALENT_SMS_CONVERSATION (user_data);
   ValentSmsConversationRow *mrow = VALENT_SMS_CONVERSATION_ROW (row);
   ValentSmsConversationRow *brow = VALENT_SMS_CONVERSATION_ROW (before);
   gint64 row_date, before_date;

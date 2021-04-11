@@ -875,7 +875,7 @@ notification_action_action (GSimpleAction *action,
                             GVariant      *parameter,
                             gpointer       user_data)
 {
-  ValentNotificationPlugin *self = user_data;
+  ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (user_data);
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
   char *id;
@@ -906,7 +906,7 @@ notification_cancel_action (GSimpleAction *action,
                             GVariant      *parameter,
                             gpointer       user_data)
 {
-  ValentNotificationPlugin *self = user_data;
+  ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (user_data);
   const char *id;
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
@@ -936,7 +936,7 @@ notification_close_action (GSimpleAction *action,
                            GVariant      *parameter,
                            gpointer       user_data)
 {
-  ValentNotificationPlugin *self = user_data;
+  ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (user_data);
   const char *id;
 
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
@@ -956,7 +956,7 @@ notification_reply_action (GSimpleAction *action,
                            GVariant      *parameter,
                            gpointer       user_data)
 {
-  ValentNotificationPlugin *self = user_data;
+  ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (user_data);
   const char *reply_id;
   const char *message;
   g_autoptr (GVariant) notification = NULL;
@@ -996,7 +996,7 @@ notification_send_action (GSimpleAction *action,
                           GVariant      *parameter,
                           gpointer       user_data)
 {
-  ValentNotificationPlugin *self = user_data;
+  ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (user_data);
   GVariantDict dict;
   g_autofree char *id = NULL;
   const char *app = NULL;

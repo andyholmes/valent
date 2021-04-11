@@ -477,8 +477,8 @@ static GtkWidget *
 conversation_list_create (gpointer item,
                           gpointer user_data)
 {
-  ValentSmsWindow *window = user_data;
-  ValentSmsMessage *message = item;
+  ValentSmsWindow *window = VALENT_SMS_WINDOW (user_data);
+  ValentSmsMessage *message = VALENT_SMS_MESSAGE (item);
   GtkWidget *row;
   GVariant *metadata;
   g_autoptr (GVariant) addresses = NULL;

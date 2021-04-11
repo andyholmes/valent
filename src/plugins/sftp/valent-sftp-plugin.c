@@ -593,7 +593,7 @@ mount_action (GSimpleAction *action,
               GVariant      *parameter,
               gpointer       user_data)
 {
-  ValentSftpPlugin *self = user_data;
+  ValentSftpPlugin *self = VALENT_SFTP_PLUGIN (user_data);
 
   g_assert (VALENT_IS_SFTP_PLUGIN (self));
 

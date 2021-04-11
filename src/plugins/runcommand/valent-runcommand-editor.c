@@ -75,10 +75,9 @@ on_browse_command (GtkEntry               *entry,
 }
 
 static void
-on_entry_changed (GtkEntry *entry,
-                  gpointer  user_data)
+on_entry_changed (GtkEntry               *entry,
+                  ValentRuncommandEditor *editor)
 {
-  ValentRuncommandEditor *editor = user_data;
   const char *command;
   const char *name;
 

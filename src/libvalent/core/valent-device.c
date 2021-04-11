@@ -477,7 +477,7 @@ pair_action (GSimpleAction *action,
              GVariant      *parameter,
              gpointer       user_data)
 {
-  ValentDevice *device = user_data;
+  ValentDevice *device = VALENT_DEVICE (user_data);
 
   /* We're accepting an incoming pair request */
   if (device->incoming_pair > 0)
@@ -503,7 +503,7 @@ unpair_action (GSimpleAction *action,
                GVariant      *parameter,
                gpointer       user_data)
 {
-  ValentDevice *device = user_data;
+  ValentDevice *device = VALENT_DEVICE (user_data);
 
   /* Only send the unpair packet if we're connected */
   if (device->connected)

@@ -44,9 +44,8 @@ typedef struct
 static void
 handshake_cb (ValentMuxConnection *muxer,
               GAsyncResult        *result,
-              gpointer             user_data)
+              HandshakeData       *task)
 {
-  HandshakeData *task = user_data;
   ValentBluezChannelService *self = VALENT_BLUEZ_CHANNEL_SERVICE (task->service);
   g_autoptr (ValentChannel) channel = NULL;
   g_autoptr (GError) error = NULL;

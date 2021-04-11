@@ -240,9 +240,9 @@ clipboard_pull_action (GSimpleAction *action,
                        GVariant      *parameter,
                        gpointer       user_data)
 {
-  ValentClipboardPlugin *self = user_data;
+  ValentClipboardPlugin *self = VALENT_CLIPBOARD_PLUGIN (user_data);
 
-  g_return_if_fail (VALENT_IS_CLIPBOARD_PLUGIN (self));
+  g_assert (VALENT_IS_CLIPBOARD_PLUGIN (self));
 
   /* Set the local clipboard text from the remote buffer */
   valent_clipboard_set_text (self->clipboard, self->remote_text);
@@ -253,9 +253,9 @@ clipboard_push_action (GSimpleAction *action,
                        GVariant      *parameter,
                        gpointer       user_data)
 {
-  ValentClipboardPlugin *self = user_data;
+  ValentClipboardPlugin *self = VALENT_CLIPBOARD_PLUGIN (user_data);
 
-  g_return_if_fail (VALENT_IS_CLIPBOARD_PLUGIN (self));
+  g_assert (VALENT_IS_CLIPBOARD_PLUGIN (self));
 
   /* Send the local buffer to the remote device */
   valent_clipboard_plugin_clipboard (self, self->local_text);

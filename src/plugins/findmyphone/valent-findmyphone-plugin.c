@@ -53,7 +53,7 @@ ring_action (GSimpleAction *action,
              GVariant      *parameter,
              gpointer       user_data)
 {
-  ValentFindmyphonePlugin *self = user_data;
+  ValentFindmyphonePlugin *self = VALENT_FINDMYPHONE_PLUGIN (user_data);
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
 

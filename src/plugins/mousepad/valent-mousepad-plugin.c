@@ -447,7 +447,7 @@ dialog_action (GSimpleAction *action,
                GVariant      *parameter,
                gpointer       user_data)
 {
-  ValentMousepadPlugin *self = user_data;
+  ValentMousepadPlugin *self = VALENT_MOUSEPAD_PLUGIN (user_data);
 
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
 
@@ -468,7 +468,7 @@ event_action (GSimpleAction *action,
               GVariant      *parameter,
               gpointer       user_data)
 {
-  ValentMousepadPlugin *self = user_data;
+  ValentMousepadPlugin *self = VALENT_MOUSEPAD_PLUGIN (user_data);
   GVariantDict dict;
   double dx, dy;
   unsigned int keysym;

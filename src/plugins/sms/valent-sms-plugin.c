@@ -285,7 +285,7 @@ messaging_action (GSimpleAction *action,
                   GVariant      *parameter,
                   gpointer       user_data)
 {
-  ValentSmsPlugin *self = user_data;
+  ValentSmsPlugin *self = VALENT_SMS_PLUGIN (user_data);
 
   g_assert (VALENT_IS_SMS_PLUGIN (self));
 
@@ -319,7 +319,7 @@ sms_fetch_action (GSimpleAction *action,
                   GVariant      *parameter,
                   gpointer       user_data)
 {
-  ValentSmsPlugin *self = user_data;
+  ValentSmsPlugin *self = VALENT_SMS_PLUGIN (user_data);
 
   g_assert (VALENT_IS_SMS_PLUGIN (self));
 

@@ -43,11 +43,10 @@ enum {
 
 
 static void
-on_export_row (GtkListBox    *box,
-               GtkListBoxRow *row,
-               gpointer       user_data)
+on_export_row (GtkListBox                *box,
+               GtkListBoxRow             *row,
+               ValentContactsPreferences *self)
 {
-  ValentContactsPreferences *self = user_data;
   g_autofree char *local_uid = NULL;
   const char *uid;
 
@@ -66,10 +65,9 @@ on_export_row (GtkListBox    *box,
 }
 
 static gboolean
-export_list_filter_func (GtkListBoxRow *row,
-                         gpointer       user_data)
+export_list_filter_func (GtkListBoxRow             *row,
+                         ValentContactsPreferences *self)
 {
-  ValentContactsPreferences *self = user_data;
   g_autofree char *local_uid = NULL;
   const char *uid;
   GtkWidget *select;

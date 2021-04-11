@@ -353,7 +353,7 @@ mute_action (GSimpleAction *action,
              GVariant      *parameter,
              gpointer       user_data)
 {
-  ValentTelephonyPlugin *self = user_data;
+  ValentTelephonyPlugin *self = VALENT_TELEPHONY_PLUGIN (user_data);
 
   g_assert (VALENT_IS_TELEPHONY_PLUGIN (self));
 

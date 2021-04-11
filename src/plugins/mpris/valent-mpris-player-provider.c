@@ -113,7 +113,7 @@ list_names_cb (GDBusConnection *connection,
                gpointer         user_data)
 {
   ValentMPRISPlayerProvider *self;
-  g_autoptr (GTask) task = user_data;
+  g_autoptr (GTask) task = G_TASK (user_data);
   g_autoptr (GError) error = NULL;
   g_autoptr (GVariant) reply = NULL;
   g_autoptr (GVariant) names = NULL;
