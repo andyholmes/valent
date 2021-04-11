@@ -5,6 +5,8 @@
       <object class="GtkStack" id="stack">
         <property name="transition-type">slide-left-right</property>
         <property name="hexpand">1</property>
+
+        <!-- Main Page -->
         <child>
           <object class="GtkStackPage">
             <property name="name">menu</property>
@@ -28,40 +30,129 @@
                     </style>
                   </object>
                 </child>
+
+                <!-- Pairing Group -->
                 <child>
-                  <object class="GtkFrame">
-                    <property name="valign">start</property>
+                  <object class="GtkBox" id="pair_group">
+                    <property name="orientation">vertical</property>
+                    <property name="spacing">32</property>
+                    <property name="vexpand">1</property>
                     <child>
                       <object class="GtkBox">
                         <property name="orientation">vertical</property>
+                        <property name="valign">center</property>
+                        <property name="vexpand">1</property>
                         <child>
-                          <object class="GtkListBox" id="pair_box">
-                            <property name="selection-mode">none</property>
-                            <child>
-                              <object class="AdwActionRow">
-                                <property name="title" translatable="yes">Pair the device</property>
-                                <child type="suffix">
-                                  <object class="GtkButton">
-                                    <property name="label">Pair</property>
-                                    <property name="action-name">device.pair</property>
-                                    <property name="valign">center</property>
-                                  </object>
-                                </child>
-                                <property name="activatable">0</property>
-                                <property name="selectable">0</property>
-                              </object>
-                            </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="ValentMenuStack" id="menu_box">
-                            <property name="name">menu</property>
+                          <object class="GtkImage">
+                            <property name="icon-name">phonelink-symbolic</property>
+                            <property name="pixel-size">128</property>
                             <property name="visible"
-                                      bind-source="pair_box"
+                                      bind-source="pair_spinner"
                                       bind-property="visible"
                                       bind-flags="sync-create|invert-boolean"/>
+                            <style>
+                              <class name="dim-label"/>
+                            </style>
                           </object>
                         </child>
+                        <child>
+                          <object class="GtkSpinner" id="pair_spinner">
+                            <property name="spinning">1</property>
+                            <property name="height-request">64</property>
+                            <property name="width-request">64</property>
+                            <property name="margin-top">32</property>
+                            <property name="margin-bottom">32</property>
+                            <property name="visible">0</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="orientation">vertical</property>
+                        <property name="spacing">12</property>
+                        <property name="valign">center</property>
+                        <property name="vexpand">1</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Verification Key</property>
+                            <attributes>
+                              <attribute name="weight" value="bold"/>
+                            </attributes>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="verification_key">
+                            <property name="label" translatable="yes">Unavailable</property>
+                            <property name="selectable">1</property>
+                            <property name="wrap">1</property>
+                            <property name="wrap-mode">word-char</property>
+                            <attributes>
+                              <attribute name="family" value="monospace"/>
+                            </attributes>
+                            <style>
+                              <class name="osd"/>
+                              <class name="toolbar"/>
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="homogeneous">1</property>
+                        <property name="spacing">12</property>
+                        <child>
+                          <object class="GtkButton" id="pair_request">
+                            <property name="label" translatable="yes">Request Pairing</property>
+                            <property name="action-name">device.pair</property>
+                            <style>
+                              <class name="suggested-action"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton">
+                            <property name="label" translatable="yes">Reject</property>
+                            <property name="action-name">device.unpair</property>
+                            <property name="visible"
+                                      bind-source="pair_request"
+                                      bind-property="visible"
+                                      bind-flags="sync-create|invert-boolean"/>
+                            <style>
+                              <class name="destructive-action"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton">
+                            <property name="label" translatable="yes">Accept</property>
+                            <property name="action-name">device.pair</property>
+                            <property name="visible"
+                                      bind-source="pair_request"
+                                      bind-property="visible"
+                                      bind-flags="sync-create|invert-boolean"/>
+                            <style>
+                              <class name="suggested-action"/>
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+                <!-- Actions Group -->
+                <child>
+                  <object class="GtkFrame">
+                    <property name="valign">start</property>
+                    <property name="visible"
+                              bind-source="pair_group"
+                              bind-property="visible"
+                              bind-flags="sync-create|invert-boolean"/>
+                    <child>
+                      <object class="ValentMenuStack" id="menu_box">
+                        <property name="name">menu</property>
                       </object>
                     </child>
                   </object>
@@ -70,6 +161,8 @@
             </property>
           </object>
         </child>
+
+        <!-- Device Preferences -->
         <child>
           <object class="GtkStackPage">
             <property name="name">plugins</property>

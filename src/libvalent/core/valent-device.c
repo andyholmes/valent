@@ -300,16 +300,15 @@ valent_device_notify_pair (ValentDevice *device)
   if G_UNLIKELY (!device->connected)
     return;
 
-  title = g_strdup_printf (_("Pair request from %s"), device->name);
-  body = valent_channel_get_verification_key (device->channel);
-  icon = g_themed_icon_new ("channel-insecure-symbolic");
-
-  if (body == NULL)
-    body = "";
-
+  title = g_strdup_printf (_("Pairing request from %s"), device->name);
   notification = g_notification_new (title);
-  g_notification_set_body (notification, body);
+
+  if ((body = valent_channel_get_verification_key (device->channel)) != NULL)
+    g_notification_set_body (notification, body);
+
+  icon = g_themed_icon_new (APPLICATION_ID);
   g_notification_set_icon (notification, icon);
+
   g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_URGENT);
 
   g_notification_add_button_with_target (notification, _("Reject"), "app.device",
