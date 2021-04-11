@@ -5,7 +5,6 @@
 
 #include "config.h"
 
-#include <glib/gi18n.h>
 #include <gio/gnetworking.h>
 #include <libvalent-core.h>
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2021-04-07 22:18-0700\n"
+"POT-Creation-Date: 2021-04-10 19:27-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -160,11 +160,11 @@ msgstr ""
 msgid "Unpair"
 msgstr ""
 
-#: src/libvalent/ui/valent-menu-list.c:398
+#: src/libvalent/ui/valent-menu-list.c:397
 msgid "No Actions"
 msgstr ""
 
-#: src/libvalent/ui/valent-menu-list.c:541 src/libvalent/ui/valent-window.ui:33
+#: src/libvalent/ui/valent-menu-list.c:540 src/libvalent/ui/valent-window.ui:33
 msgid "Previous"
 msgstr ""
 
@@ -503,16 +503,6 @@ msgstr ""
 
 #: src/plugins/lan/lan.plugin.desktop.in:5
 msgid "Connect devices over LAN"
-msgstr ""
-
-#: src/plugins/lan/valent-lan-channel.c:197
-#, c-format
-msgid ""
-"Remote fingerprint:\n"
-"%s\n"
-"\n"
-"Local fingerprint:\n"
-"%s"
 msgstr ""
 
 #: src/plugins/lock/lock.plugin.desktop.in:4

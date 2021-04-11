@@ -30,7 +30,6 @@ src/plugins/findmyphone/valent-findmyphone-plugin.c
 src/plugins/findmyphone/valent-findmyphone-ringer.c
 src/plugins/gtk/gtk.plugin.desktop.in
 src/plugins/lan/lan.plugin.desktop.in
-src/plugins/lan/valent-lan-channel.c
 src/plugins/lock/lock.plugin.desktop.in
 src/plugins/mousepad/mousepad.plugin.desktop.in
 src/plugins/mousepad/valent-input-dialog.c
