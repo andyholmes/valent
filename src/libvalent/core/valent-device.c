@@ -19,6 +19,13 @@
 #include "valent-transfer.h"
 #include "valent-utils.h"
 
+#define VALENT_DEVICE_DESKTOP    "desktop"
+#define VALENT_DEVICE_LAPTOP     "laptop"
+#define VALENT_DEVICE_SMARTPHONE "phone"
+#define VALENT_DEVICE_TABLET     "tablet"
+#define VALENT_DEVICE_TELEVISION "tv"
+#define PAIR_REQUEST_TIMEOUT     30
+
 
 /**
  * SECTION:valent-device
@@ -34,15 +41,6 @@
  * #GMenu. #ValentDevicePlugin implementations can add #GActions and #GMenuItems to
  * expose plugin activities.
  */
-
-#define VALENT_DEVICE_DESKTOP    "desktop"
-#define VALENT_DEVICE_LAPTOP     "laptop"
-#define VALENT_DEVICE_SMARTPHONE "phone"
-#define VALENT_DEVICE_TABLET     "tablet"
-#define VALENT_DEVICE_TELEVISION "tv"
-
-#define PAIR_REQUEST_TIMEOUT     30
-
 
 struct _ValentDevice
 {
