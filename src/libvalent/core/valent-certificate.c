@@ -53,13 +53,14 @@ valent_certificate_generate (const char  *key_path,
                              const char  *common_name,
                              GError     **error)
 {
-  int rc, ret;
   g_autofree char *dn = NULL;
-  gnutls_x509_privkey_t privkey;
-  gnutls_x509_crt_t crt;
+  gnutls_x509_privkey_t privkey = NULL;
+  gnutls_x509_crt_t crt = NULL;
+  gnutls_datum_t out;
   time_t timestamp;
   guint serial;
-  gnutls_datum_t out;
+  int rc;
+  gboolean ret = FALSE;
 
   /*
    * Private Key
@@ -78,9 +79,7 @@ valent_certificate_generate (const char  *key_path,
                    G_IO_ERROR_FAILED,
                    "Generating private key: %s",
                    gnutls_strerror (rc));
-      gnutls_x509_privkey_deinit (privkey);
-
-      return FALSE;
+      goto out;
     }
 
   /* Output the private key PEM to file */
@@ -93,10 +92,7 @@ valent_certificate_generate (const char  *key_path,
   gnutls_free (out.data);
 
   if (!ret)
-    {
-      gnutls_x509_privkey_deinit (privkey);
-      return FALSE;
-    }
+    goto out;
 
   /*
    * TLS Certificate
@@ -110,16 +106,22 @@ valent_certificate_generate (const char  *key_path,
                    G_IO_ERROR_FAILED,
                    "Generating certificate: %s",
                    gnutls_strerror (rc));
-      gnutls_x509_crt_deinit (crt);
-      gnutls_x509_privkey_deinit (privkey);
-
-      return FALSE;
+      goto out;
     }
 
   /* Expiry (10 years) */
   timestamp = time (NULL);
-  gnutls_x509_crt_set_activation_time (crt, timestamp);
-  gnutls_x509_crt_set_expiration_time (crt, timestamp + DEFAULT_EXPIRATION);
+
+  if ((rc = gnutls_x509_crt_set_activation_time (crt, timestamp)) != GNUTLS_E_SUCCESS ||
+      (rc = gnutls_x509_crt_set_expiration_time (crt, timestamp + DEFAULT_EXPIRATION)) != GNUTLS_E_SUCCESS)
+    {
+      g_set_error (error,
+                   G_IO_ERROR,
+                   G_IO_ERROR_FAILED,
+                   "Generating certificate: %s",
+                   gnutls_strerror (rc));
+      goto out;
+    }
 
   /* Serial Number */
   serial = GUINT32_TO_BE (10);
@@ -135,10 +137,7 @@ valent_certificate_generate (const char  *key_path,
                    G_IO_ERROR_FAILED,
                    "Generating certificate: %s",
                    gnutls_strerror (rc));
-      gnutls_x509_crt_deinit (crt);
-      gnutls_x509_privkey_deinit (privkey);
-
-      return FALSE;
+      goto out;
     }
 
   /* Sign and export the certificate */
@@ -150,10 +149,7 @@ valent_certificate_generate (const char  *key_path,
                    G_IO_ERROR_FAILED,
                    "Signing certificate: %s",
                    gnutls_strerror (rc));
-      gnutls_x509_crt_deinit (crt);
-      gnutls_x509_privkey_deinit (privkey);
-
-      return FALSE;
+      goto out;
     }
 
   /* Output the certificate PEM to file */
@@ -165,18 +161,11 @@ valent_certificate_generate (const char  *key_path,
                                   error);
   gnutls_free (out.data);
 
-  if (!ret)
-    {
-      gnutls_x509_crt_deinit (crt);
-      gnutls_x509_privkey_deinit (privkey);
+  out:
+    gnutls_x509_crt_deinit (crt);
+    gnutls_x509_privkey_deinit (privkey);
 
-      return FALSE;
-    }
-
-  gnutls_x509_crt_deinit (crt);
-  gnutls_x509_privkey_deinit (privkey);
-
-  return TRUE;
+  return ret;
 }
 
 /**
