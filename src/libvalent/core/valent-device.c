@@ -7,6 +7,8 @@
 
 #include <glib/gi18n.h>
 
+#include "valent-core-enums.h"
+
 #include "valent-channel.h"
 #include "valent-data.h"
 #include "valent-debug.h"
@@ -89,6 +91,7 @@ enum {
   PROP_ID,
   PROP_NAME,
   PROP_PAIRED,
+  PROP_STATE,
   PROP_TYPE,
   N_PROPERTIES
 };
@@ -228,6 +231,8 @@ valent_device_reset_pair (gpointer object)
       g_source_remove (device->outgoing_pair);
       device->outgoing_pair = 0;
     }
+
+  valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
 
   return G_SOURCE_REMOVE;
 }
@@ -379,6 +384,8 @@ valent_device_handle_pair (ValentDevice *device,
       VALENT_TRACE_MSG ("Pairing rejected by %s", device->name);
       valent_device_set_paired (device, FALSE);
     }
+
+  valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
 }
 
 /*
@@ -495,6 +502,8 @@ pair_action (GSimpleAction *action,
                                                      device);
       VALENT_TRACE_MSG ("Pair request sent to %s", device->name);
     }
+
+  valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
 }
 
 static void
@@ -509,6 +518,8 @@ unpair_action (GSimpleAction *action,
     valent_device_send_pair (device, FALSE);
 
   valent_device_set_paired (device, FALSE);
+
+  valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
 }
 
 /* GActions */
@@ -709,6 +720,10 @@ valent_device_get_property (GObject    *object,
       g_value_set_boolean (value, self->paired);
       break;
 
+    case PROP_STATE:
+      g_value_set_flags (value, valent_device_get_state (self));
+      break;
+
     case PROP_TYPE:
       g_value_set_string (value, self->type);
       break;
@@ -871,6 +886,21 @@ valent_device_class_init (ValentDeviceClass *klass)
                           (G_PARAM_READABLE |
                            G_PARAM_EXPLICIT_NOTIFY |
                            G_PARAM_STATIC_STRINGS));
+
+  /**
+   * ValentDevice:state:
+   *
+   * The state of the device.
+   */
+  properties [PROP_STATE] =
+    g_param_spec_flags ("state",
+                        "State",
+                        "State of device",
+                        VALENT_TYPE_DEVICE_STATE,
+                        VALENT_DEVICE_STATE_NONE,
+                        (G_PARAM_READABLE |
+                         G_PARAM_EXPLICIT_NOTIFY |
+                         G_PARAM_STATIC_STRINGS));
 
   /**
    * ValentDevice:type:
@@ -1303,6 +1333,7 @@ valent_device_set_connected (ValentDevice *device,
   valent_device_update_plugins (device);
 
   valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_CONNECTED]);
+  valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
 }
 
 /**
@@ -1451,6 +1482,7 @@ valent_device_set_paired (ValentDevice *device,
   /* Notify */
   g_settings_set_boolean (device->settings, "paired", paired);
   valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_PAIRED]);
+  valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
 }
 
 /**
@@ -1478,6 +1510,36 @@ valent_device_get_plugins (ValentDevice *device)
     g_ptr_array_add (plugins, info);
 
   return plugins;
+}
+
+/**
+ * valent_device_get_state:
+ * @device: a #ValentDevice
+ *
+ * Get the state of the device.
+ *
+ * Returns: %TRUE if the device is paired.
+ */
+ValentDeviceState
+valent_device_get_state (ValentDevice *device)
+{
+  ValentDeviceState state = VALENT_DEVICE_STATE_NONE;
+
+  g_return_val_if_fail (VALENT_IS_DEVICE (device), state);
+
+  if (device->connected)
+    state |= VALENT_DEVICE_STATE_CONNECTED;
+
+  if (device->paired)
+    state |= VALENT_DEVICE_STATE_PAIRED;
+
+  if (device->incoming_pair > 0)
+    state |= VALENT_DEVICE_STATE_PAIR_INCOMING;
+
+  if (device->outgoing_pair > 0)
+    state |= VALENT_DEVICE_STATE_PAIR_OUTGOING;
+
+  return state;
 }
 
 /**
