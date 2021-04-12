@@ -40,7 +40,7 @@ struct _ValentDevicePanel
   GtkListBox          *plugin_list;
   GHashTable          *plugins;
 
-  AdwPreferencesGroup *info_group;
+  AdwPreferencesGroup *unpair_group;
 };
 
 G_DEFINE_TYPE (ValentDevicePanel, valent_device_panel, GTK_TYPE_WIDGET)
@@ -168,7 +168,7 @@ on_plugin_removed (ValentDevice      *device,
 }
 
 /*
- * Pairing Box
+ * Pairing
  */
 static void
 on_state_changed (ValentDevice      *device,
@@ -434,7 +434,7 @@ valent_device_panel_class_init (ValentDevicePanelClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, download_folder_label);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, plugin_group);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, plugin_list);
-  gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, info_group);
+  gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, unpair_group);
 
   gtk_widget_class_bind_template_callback (widget_class, on_download_folder_clicked);
 

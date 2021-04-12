@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2021-04-11 15:06-0700\n"
+"POT-Creation-Date: 2021-04-12 12:55-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -167,7 +167,7 @@ msgid "Information"
 msgstr ""
 
 #: src/libvalent/ui/valent-device-panel.ui:234
-msgid "Unpair"
+msgid "Mark this device as untrusted"
 msgstr ""
 
 #: src/libvalent/ui/valent-menu-list.c:397
