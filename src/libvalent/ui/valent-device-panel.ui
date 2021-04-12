@@ -229,15 +229,15 @@
                 <child>
                   <object class="AdwPreferencesGroup" id="unpair_group">
                     <property name="title" translatable="yes">Information</property>
+                    <property name="visible"
+                              bind-source="pair_group"
+                              bind-property="visible"
+                              bind-flags="sync-create|invert-boolean"/>
                     <child>
                       <object class="AdwActionRow">
                         <property name="title" translatable="yes">Mark this device as untrusted</property>
                         <property name="activatable">0</property>
                         <property name="selectable">0</property>
-                        <property name="visible"
-                                  bind-source="pair_group"
-                                  bind-property="visible"
-                                  bind-flags="sync-create|invert-boolean"/>
                         <child type="suffix">
                           <object class="GtkButton">
                             <property name="label">Unpair</property>
