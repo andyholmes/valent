@@ -3,12 +3,13 @@
 
 #pragma once
 
+#include <adwaita.h>
 #include <gtk/gtk.h>
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_WINDOW (valent_window_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentWindow, valent_window, VALENT, WINDOW, GtkApplicationWindow)
+G_DECLARE_FINAL_TYPE (ValentWindow, valent_window, VALENT, WINDOW, AdwApplicationWindow)
 
 G_END_DECLS

@@ -25,7 +25,7 @@
 
 struct _ValentWindow
 {
-  GtkApplicationWindow  parent_instance;
+  AdwApplicationWindow  parent_instance;
   ValentManager        *manager;
   GSettings            *settings;
 
@@ -51,7 +51,7 @@ struct _ValentWindow
   GtkButton            *rename_button;
 };
 
-G_DEFINE_TYPE (ValentWindow, valent_window, GTK_TYPE_APPLICATION_WINDOW)
+G_DEFINE_TYPE (ValentWindow, valent_window, ADW_TYPE_APPLICATION_WINDOW)
 
 enum {
   PROP_0,
