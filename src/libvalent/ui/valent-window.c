@@ -276,6 +276,16 @@ on_device_removed (ValentManager *manager,
   if ((info = g_hash_table_lookup (self->devices, device)) == NULL)
     return;
 
+  if (gtk_stack_get_visible_child (self->content_stack) == info->panel)
+    {
+      g_queue_clear_full (self->history, g_free);
+      g_queue_push_tail (self->history, g_strdup ("/main"));
+
+      gtk_widget_set_visible (self->prev_button, FALSE);
+      gtk_widget_set_visible (self->headerbar_subtitle, FALSE);
+      gtk_stack_set_visible_child_name (self->content_stack, "main");
+    }
+
   g_signal_handlers_disconnect_by_data (device, self);
   gtk_list_box_remove (self->device_list, info->row);
   gtk_stack_remove (self->content_stack, info->panel);
