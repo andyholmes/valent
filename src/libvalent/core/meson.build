@@ -28,6 +28,7 @@ libvalent_core_private_headers = [
 ]
 
 libvalent_core_enum_headers = [
+  'valent-device.h',
   'valent-transfer.h',
 ]
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2021-04-10 19:27-0700\n"
+"POT-Creation-Date: 2021-04-12 12:55-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -31,7 +31,7 @@ msgid "Download folder"
 msgstr ""
 
 #: data/gsettings/ca.andyholmes.valent.device.gschema.xml:12
-#: src/libvalent/ui/valent-device-panel.ui:89
+#: src/libvalent/ui/valent-device-panel.ui:182
 msgid "Where received files are stored"
 msgstr ""
 
@@ -91,25 +91,27 @@ msgstr ""
 msgid "Address Book"
 msgstr ""
 
-#: src/libvalent/core/valent-device.c:300
+#: src/libvalent/core/valent-device.c:303
 #, c-format
-msgid "Pair request from %s"
+msgid "Pairing request from %s"
 msgstr ""
 
-#: src/libvalent/core/valent-device.c:312
+#: src/libvalent/core/valent-device.c:314
+#: src/libvalent/ui/valent-device-panel.ui:116
 msgid "Reject"
 msgstr ""
 
-#: src/libvalent/core/valent-device.c:319
+#: src/libvalent/core/valent-device.c:321
+#: src/libvalent/ui/valent-device-panel.ui:129
 msgid "Accept"
 msgstr ""
 
-#: src/libvalent/core/valent-device.c:1065
+#: src/libvalent/core/valent-device.c:1093
 #, c-format
 msgid "%s is disconnected"
 msgstr ""
 
-#: src/libvalent/core/valent-device.c:1074
+#: src/libvalent/core/valent-device.c:1102
 #, c-format
 msgid "%s is unpaired"
 msgstr ""
@@ -134,30 +136,38 @@ msgstr ""
 msgid "Connect"
 msgstr ""
 
-#: src/libvalent/ui/valent-device-panel.ui:42
-msgid "Pair the device"
+#: src/libvalent/ui/valent-device-panel.ui:78
+msgid "Verification Key"
 msgstr ""
 
-#: src/libvalent/ui/valent-device-panel.ui:76
-#: src/libvalent/ui/valent-device-panel.ui:80
-#: src/libvalent/ui/valent-device-panel.ui:122
+#: src/libvalent/ui/valent-device-panel.ui:86
+msgid "Unavailable"
+msgstr ""
+
+#: src/libvalent/ui/valent-device-panel.ui:107
+msgid "Request Pairing"
+msgstr ""
+
+#: src/libvalent/ui/valent-device-panel.ui:169
+#: src/libvalent/ui/valent-device-panel.ui:173
+#: src/libvalent/ui/valent-device-panel.ui:215
 msgid "Plugins"
 msgstr ""
 
-#: src/libvalent/ui/valent-device-panel.ui:85
+#: src/libvalent/ui/valent-device-panel.ui:178
 msgid "General"
 msgstr ""
 
-#: src/libvalent/ui/valent-device-panel.ui:88
+#: src/libvalent/ui/valent-device-panel.ui:181
 msgid "Download directory"
 msgstr ""
 
-#: src/libvalent/ui/valent-device-panel.ui:138
+#: src/libvalent/ui/valent-device-panel.ui:231
 msgid "Information"
 msgstr ""
 
-#: src/libvalent/ui/valent-device-panel.ui:141
-msgid "Unpair"
+#: src/libvalent/ui/valent-device-panel.ui:234
+msgid "Mark this device as untrusted"
 msgstr ""
 
 #: src/libvalent/ui/valent-menu-list.c:397
@@ -184,11 +194,11 @@ msgstr ""
 msgid "Connected"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:485
+#: src/libvalent/ui/valent-window.c:496
 msgid "A KDE Connect implementation for Gtk-based systems"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:488
+#: src/libvalent/ui/valent-window.c:499
 msgid "translator-credits"
 msgstr ""
 

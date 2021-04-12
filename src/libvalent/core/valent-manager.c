@@ -215,6 +215,9 @@ valent_manager_export_device (ValentManager *manager,
   g_object_bind_property (device, "id",
                           iface,  "id",
                           G_BINDING_SYNC_CREATE);
+  g_object_bind_property (device, "state",
+                          iface,  "state",
+                          G_BINDING_SYNC_CREATE);
   g_object_bind_property (device, "name",
                           iface,  "name",
                           G_BINDING_SYNC_CREATE);

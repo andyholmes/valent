@@ -26,7 +26,10 @@ struct _ValentDevicePanel
   GtkWidget           *gadgets;
   GtkWidget           *stack;
 
-  GtkWidget           *pair_box;
+  GtkWidget           *pair_group;
+  GtkWidget           *pair_request;
+  GtkWidget           *pair_spinner;
+  GtkWidget           *verification_key;
   ValentMenuStack     *menu_box;
 
   /* Settings */
@@ -37,7 +40,7 @@ struct _ValentDevicePanel
   GtkListBox          *plugin_list;
   GHashTable          *plugins;
 
-  AdwPreferencesGroup *info_group;
+  AdwPreferencesGroup *unpair_group;
 };
 
 G_DEFINE_TYPE (ValentDevicePanel, valent_device_panel, GTK_TYPE_WIDGET)
@@ -165,7 +168,49 @@ on_plugin_removed (ValentDevice      *device,
 }
 
 /*
- * Template Callbacks
+ * Pairing
+ */
+static void
+on_state_changed (ValentDevice      *device,
+                  GParamSpec        *pspec,
+                  ValentDevicePanel *self)
+{
+  ValentDeviceState state = 0;
+  ValentChannel *channel;
+  const char *verification_key;
+  gboolean paired, pair_incoming, pair_outgoing;
+
+  g_assert (VALENT_IS_DEVICE (device));
+  g_assert (VALENT_IS_DEVICE_PANEL (self));
+
+  state = valent_device_get_state (self->device);
+  paired = (state & VALENT_DEVICE_STATE_PAIRED);
+  pair_incoming = (state & VALENT_DEVICE_STATE_PAIR_INCOMING);
+  pair_outgoing = (state & VALENT_DEVICE_STATE_PAIR_OUTGOING);
+
+  /* Ensure the proper controls are displayed */
+  gtk_widget_set_visible (self->pair_group, !paired);
+
+  if (paired)
+    return;
+
+  /* Get the channel verification key */
+  channel = valent_device_get_channel (self->device);
+  verification_key = valent_channel_get_verification_key (channel);
+
+  if (verification_key != NULL)
+    gtk_label_set_text (GTK_LABEL (self->verification_key), verification_key);
+  else
+    gtk_label_set_text (GTK_LABEL (self->verification_key), _("Unavailable"));
+
+  /* Adjust the actions */
+  gtk_widget_set_visible (self->pair_spinner, pair_outgoing);
+  gtk_widget_set_visible (self->pair_request, !pair_incoming);
+  gtk_widget_set_sensitive (self->pair_request, !pair_outgoing);
+}
+
+/*
+ * Download Folder
  */
 static gboolean
 on_download_folder_changed (GValue   *value,
@@ -265,9 +310,11 @@ valent_device_panel_constructed (GObject *object)
   valent_menu_stack_bind_model (self->menu_box, menu);
 
   /* Pair Section */
-  g_object_bind_property (self->device,   "paired",
-                          self->pair_box, "visible",
-                          (G_BINDING_SYNC_CREATE | G_BINDING_INVERT_BOOLEAN));
+  g_signal_connect (self->device,
+                    "notify::state",
+                    G_CALLBACK (on_state_changed),
+                    self);
+  on_state_changed (self->device, NULL, self);
 
   /* GSettings*/
   path = g_strdup_printf ("/ca/andyholmes/valent/device/%s/",
@@ -304,8 +351,7 @@ valent_device_panel_dispose (GObject *object)
 {
   ValentDevicePanel *self = VALENT_DEVICE_PANEL (object);
 
-  g_signal_handlers_disconnect_by_func (self->device, on_plugin_added, self);
-  g_signal_handlers_disconnect_by_func (self->device, on_plugin_removed, self);
+  g_signal_handlers_disconnect_by_data (self->device, self);
   g_clear_pointer (&self->stack, gtk_widget_unparent);
   g_clear_object (&self->settings);
 
@@ -379,13 +425,16 @@ valent_device_panel_class_init (ValentDevicePanelClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, actionbar);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, gadgets);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, stack);
-  gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, pair_box);
+  gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, pair_group);
+  gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, pair_request);
+  gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, pair_spinner);
+  gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, verification_key);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, menu_box);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, general_group);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, download_folder_label);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, plugin_group);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, plugin_list);
-  gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, info_group);
+  gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, unpair_group);
 
   gtk_widget_class_bind_template_callback (widget_class, on_download_folder_clicked);
 
