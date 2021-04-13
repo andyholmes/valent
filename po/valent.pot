@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2021-04-12 12:55-0700\n"
+"POT-Creation-Date: 2021-04-13 13:30-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -31,7 +31,7 @@ msgid "Download folder"
 msgstr ""
 
 #: data/gsettings/ca.andyholmes.valent.device.gschema.xml:12
-#: src/libvalent/ui/valent-device-panel.ui:182
+#: src/libvalent/ui/valent-device-panel.ui:218
 msgid "Where received files are stored"
 msgstr ""
 
@@ -54,7 +54,7 @@ msgstr ""
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:8
 #: data/ca.andyholmes.Valent.desktop.in.in:3
-#: src/libvalent/ui/valent-window.ui:14
+#: src/libvalent/ui/valent-window.ui:13
 msgid "Valent"
 msgstr ""
 
@@ -117,7 +117,7 @@ msgid "%s is unpaired"
 msgstr ""
 
 #: src/libvalent/ui/valent-connect-dialog.ui:4
-#: src/libvalent/ui/valent-window.ui:296
+#: src/libvalent/ui/valent-window.ui:280
 msgid "Connect to…"
 msgstr ""
 
@@ -148,25 +148,30 @@ msgstr ""
 msgid "Request Pairing"
 msgstr ""
 
-#: src/libvalent/ui/valent-device-panel.ui:169
-#: src/libvalent/ui/valent-device-panel.ui:173
-#: src/libvalent/ui/valent-device-panel.ui:215
+#: src/libvalent/ui/valent-device-panel.ui:183
+#: src/libvalent/ui/valent-window.c:181
+msgid "Disconnected"
+msgstr ""
+
+#: src/libvalent/ui/valent-device-panel.ui:205
+#: src/libvalent/ui/valent-device-panel.ui:209
+#: src/libvalent/ui/valent-device-panel.ui:251
 msgid "Plugins"
 msgstr ""
 
-#: src/libvalent/ui/valent-device-panel.ui:178
+#: src/libvalent/ui/valent-device-panel.ui:214
 msgid "General"
 msgstr ""
 
-#: src/libvalent/ui/valent-device-panel.ui:181
+#: src/libvalent/ui/valent-device-panel.ui:217
 msgid "Download directory"
 msgstr ""
 
-#: src/libvalent/ui/valent-device-panel.ui:231
+#: src/libvalent/ui/valent-device-panel.ui:267
 msgid "Information"
 msgstr ""
 
-#: src/libvalent/ui/valent-device-panel.ui:234
+#: src/libvalent/ui/valent-device-panel.ui:274
 msgid "Mark this device as untrusted"
 msgstr ""
 
@@ -174,7 +179,7 @@ msgstr ""
 msgid "No Actions"
 msgstr ""
 
-#: src/libvalent/ui/valent-menu-list.c:540 src/libvalent/ui/valent-window.ui:33
+#: src/libvalent/ui/valent-menu-list.c:540 src/libvalent/ui/valent-window.ui:19
 msgid "Previous"
 msgstr ""
 
@@ -182,96 +187,92 @@ msgstr ""
 msgid "No Plugins"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:177
+#: src/libvalent/ui/valent-window.c:176
 msgid "Unpaired"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:182
-msgid "Disconnected"
-msgstr ""
-
-#: src/libvalent/ui/valent-window.c:187
+#: src/libvalent/ui/valent-window.c:186
 msgid "Connected"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:496
+#: src/libvalent/ui/valent-window.c:503
 msgid "A KDE Connect implementation for Gtk-based systems"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:499
+#: src/libvalent/ui/valent-window.c:506
 msgid "translator-credits"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:42
+#: src/libvalent/ui/valent-window.ui:28
 msgid "Refresh"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:82 src/libvalent/ui/valent-window.ui:89
+#: src/libvalent/ui/valent-window.ui:64 src/libvalent/ui/valent-window.ui:71
 msgid "Devices"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:114
+#: src/libvalent/ui/valent-window.ui:96
 msgid "Searching for devices…"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:131 src/libvalent/ui/valent-window.ui:134
-#: src/libvalent/ui/valent-window.ui:302
+#: src/libvalent/ui/valent-window.ui:113 src/libvalent/ui/valent-window.ui:116
+#: src/libvalent/ui/valent-window.ui:286
 msgid "Settings"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:144
+#: src/libvalent/ui/valent-window.ui:126
 msgid "Device Name"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:174
+#: src/libvalent/ui/valent-window.ui:156
 msgid "Networking"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:181
+#: src/libvalent/ui/valent-window.ui:163
 msgid "Clipboard Sources"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:188
+#: src/libvalent/ui/valent-window.ui:170
 msgid "Contact Providers"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:195
+#: src/libvalent/ui/valent-window.ui:177
 msgid "Input Controllers"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:202
+#: src/libvalent/ui/valent-window.ui:184
 msgid "Media Player Providers"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:209
+#: src/libvalent/ui/valent-window.ui:191
 msgid "Volume Mixers"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:216
+#: src/libvalent/ui/valent-window.ui:198
 msgid "Notification Sources"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:223
+#: src/libvalent/ui/valent-window.ui:205
 msgid "Power Device Providers"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:230
+#: src/libvalent/ui/valent-window.ui:212
 msgid "Session Providers"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:243
+#: src/libvalent/ui/valent-window.ui:227
 msgid "Rename Device"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:252
+#: src/libvalent/ui/valent-window.ui:236
 msgid "_Cancel"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:258
+#: src/libvalent/ui/valent-window.ui:242
 msgid "_Rename"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:307
+#: src/libvalent/ui/valent-window.ui:291
 #: src/plugins/sms/valent-sms-window.ui:346
 msgid "About Valent"
 msgstr ""

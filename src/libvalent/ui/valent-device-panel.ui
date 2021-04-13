@@ -144,15 +144,51 @@
 
                 <!-- Actions Group -->
                 <child>
-                  <object class="GtkFrame">
-                    <property name="valign">start</property>
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
                     <property name="visible"
                               bind-source="pair_group"
                               bind-property="visible"
                               bind-flags="sync-create|invert-boolean"/>
                     <child>
-                      <object class="ValentMenuStack" id="menu_box">
-                        <property name="name">menu</property>
+                      <object class="GtkFrame" id="connected_group">
+                        <property name="valign">start</property>
+                        <child>
+                          <object class="ValentMenuStack" id="menu_actions">
+                            <property name="name">menu</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="orientation">vertical</property>
+                        <property name="halign">center</property>
+                        <property name="hexpand">1</property>
+                        <property name="valign">center</property>
+                        <property name="vexpand">1</property>
+                        <property name="spacing">24</property>
+                        <property name="visible"
+                                  bind-source="connected_group"
+                                  bind-property="visible"
+                                  bind-flags="sync-create|invert-boolean"/>
+                        <child>
+                          <object class="GtkImage">
+                            <property name="icon-name">phonelink-off-symbolic</property>
+                            <property name="pixel-size">128</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Disconnected</property>
+                            <attributes>
+                              <attribute name="scale" value="1.2"/>
+                            </attributes>
+                          </object>
+                        </child>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
                       </object>
                     </child>
                   </object>
