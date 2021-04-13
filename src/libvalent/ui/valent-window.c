@@ -34,8 +34,7 @@ struct _ValentWindow
 
   /* Template widgets */
   GtkHeaderBar         *headerbar_main;
-  GtkWidget            *headerbar_title;
-  GtkWidget            *headerbar_subtitle;
+  AdwWindowTitle       *headerbar_title;
   GtkWidget            *refresh_button;
   GtkWidget            *prev_button;
 
@@ -282,7 +281,7 @@ on_device_removed (ValentManager *manager,
       g_queue_push_tail (self->history, g_strdup ("/main"));
 
       gtk_widget_set_visible (self->prev_button, FALSE);
-      gtk_widget_set_visible (self->headerbar_subtitle, FALSE);
+      adw_window_title_set_subtitle (self->headerbar_title, NULL);
       gtk_stack_set_visible_child_name (self->content_stack, "main");
     }
 
@@ -467,17 +466,15 @@ valent_window_set_location (ValentWindow *self,
   if (g_strcmp0 (context, "main") == 0)
     {
       gtk_widget_set_visible (self->prev_button, FALSE);
-      gtk_widget_set_visible (self->headerbar_subtitle, FALSE);
+      adw_window_title_set_subtitle (self->headerbar_title, NULL);
     }
   else
     {
       GtkStackPage *page;
 
       page = gtk_stack_get_page (self->content_stack, child);
-      gtk_label_set_label (GTK_LABEL (self->headerbar_subtitle),
-                           gtk_stack_page_get_title (page));
-
-      gtk_widget_set_visible (self->headerbar_subtitle, TRUE);
+      adw_window_title_set_subtitle (self->headerbar_title,
+                                     gtk_stack_page_get_title (page));
       gtk_widget_set_visible (self->prev_button, TRUE);
     }
 
@@ -729,7 +726,6 @@ valent_window_class_init (ValentWindowClass *klass)
   gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-window.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentWindow, headerbar_main);
   gtk_widget_class_bind_template_child (widget_class, ValentWindow, headerbar_title);
-  gtk_widget_class_bind_template_child (widget_class, ValentWindow, headerbar_subtitle);
   gtk_widget_class_bind_template_child (widget_class, ValentWindow, prev_button);
   gtk_widget_class_bind_template_child (widget_class, ValentWindow, refresh_button);
   gtk_widget_class_bind_template_child (widget_class, ValentWindow, content_stack);

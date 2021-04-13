@@ -9,25 +9,8 @@
         <child>
           <object class="GtkHeaderBar" id="headerbar_main">
             <property name="title-widget">
-              <object class="GtkBox">
-                <property name="orientation">vertical</property>
-                <property name="valign">center</property>
-                <child>
-                  <object class="GtkLabel" id="headerbar_title">
-                    <property name="label" translatable="yes">Valent</property>
-                    <style>
-                      <class name="title"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="headerbar_subtitle">
-                    <property name="visible">0</property>
-                    <style>
-                      <class name="subtitle"/>
-                    </style>
-                  </object>
-                </child>
+              <object class="AdwWindowTitle" id="headerbar_title">
+                <property name="title" translatable="yes">Valent</property>
               </object>
             </property>
             <child type="start">
