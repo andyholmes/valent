@@ -34,10 +34,35 @@ jobs:
                      --print-errorlogs \
                      --repeat=5
 
+      - name: Report
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-logs
+          path: _build/meson-logs
+
       - name: Coverage
         if: ${{ success() }}
         run: |
-          ninja -C _build coverage
+          lcov --directory _build \
+               --capture \
+               --initial \
+               --output-file _build/meson-logs/coverage.p1
+          lcov --directory _build \
+               --capture \
+               --no-checksum \
+               --output-file _build/meson-logs/coverage.p2
+          lcov --add-tracefile _build/meson-logs/coverage.p1 \
+               --add-tracefile _build/meson-logs/coverage.p2 \
+               --output-file _build/meson-logs/coverage.info
+
+          lcov --extract _build/meson-logs/coverage.info \
+               "${{ github.workspace }}/src/*" \
+               --output-file _build/meson-logs/coverage.info
+          lcov --remove _build/meson-logs/coverage.info \
+               "*/src/tests/*" \
+               "*/subprojects/*" \
+               --output-file _build/meson-logs/coverage.info
 
       - name: Coveralls
         if: ${{ success() }}
@@ -45,13 +70,6 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: ${{ github.workspace }}/_build/meson-logs/coverage.info
-
-      - name: Report
-        if: ${{ failure() }}
-        uses: actions/upload-artifact@v2
-        with:
-          name: test-logs
-          path: _build/meson-logs
 
   test_sanitizer:
     name: Unit Tests (asan/lsan, ubsan)
