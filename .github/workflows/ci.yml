@@ -34,12 +34,12 @@ jobs:
                      --print-errorlogs \
                      --repeat=5
 
-      - name: Coveralls
+      - name: Coverage
         if: ${{ success() }}
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: _build/meson-logs/coverage.info
+          path-to-lcov: ${{ github.workspace }}/_build/meson-logs/coverage.info
 
       - name: Report
         if: ${{ failure() }}
