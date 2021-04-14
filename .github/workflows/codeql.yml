@@ -3,6 +3,9 @@ name: "CodeQL"
 on:
   push:
     branches: [ master ]
+    paths:
+      - '**/*.c'
+      - '**/*.h'
   pull_request:
     branches: [ master ]
     paths:
@@ -38,3 +41,4 @@ jobs:
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
+
