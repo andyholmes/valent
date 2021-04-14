@@ -71,7 +71,7 @@ jobs:
                --output-file _build/meson-logs/coverage.info
 
       - name: Codecov
-      - uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v1
         with:
           files: ${{ github.workspace }}/_build/meson-logs/coverage.info
 
