@@ -36,6 +36,11 @@ jobs:
 
       - name: Coverage
         if: ${{ success() }}
+        run: |
+          ninja -C _build coverage
+
+      - name: Coveralls
+        if: ${{ success() }}
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
