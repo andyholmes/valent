@@ -53,17 +53,21 @@ jobs:
           lcov --directory _build \
                --capture \
                --no-checksum \
+               --rc lcov_branch_coverage=1 \
                --output-file _build/meson-logs/coverage.p2
           lcov --add-tracefile _build/meson-logs/coverage.p1 \
                --add-tracefile _build/meson-logs/coverage.p2 \
+               --rc lcov_branch_coverage=1 \
                --output-file _build/meson-logs/coverage.info
 
           lcov --extract _build/meson-logs/coverage.info \
                "$WORKSPACE/src/*" \
+               --rc lcov_branch_coverage=1 \
                --output-file _build/meson-logs/coverage.info
           lcov --remove _build/meson-logs/coverage.info \
                "*/src/tests/*" \
                "*/subprojects/*" \
+               --rc lcov_branch_coverage=1 \
                --output-file _build/meson-logs/coverage.info
 
       - name: Coveralls
