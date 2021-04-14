@@ -23,6 +23,7 @@ jobs:
         run: |
           meson --prefix=/usr \
                 --buildtype=debug \
+                -Db_coverage=true \
                 -Dplugin_bluez=true \
                 -Dtests=true \
                 _build
@@ -32,6 +33,13 @@ jobs:
           meson test -C _build \
                      --print-errorlogs \
                      --repeat=5
+
+      - name: Coveralls
+        if: ${{ success() }}
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: _build/meson-logs/coverage.info
 
       - name: Report
         if: ${{ failure() }}
