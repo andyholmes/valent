@@ -1,4 +1,5 @@
 [![CI](https://github.com/andyholmes/valent/actions/workflows/ci.yml/badge.svg)](https://github.com/andyholmes/valent/actions/workflows/ci.yml)
+[![Coverage](https://coveralls.io/repos/github/andyholmes/valent/badge.svg?branch=master)](https://coveralls.io/github/andyholmes/valent?branch=master)
 
 # Valent
 
