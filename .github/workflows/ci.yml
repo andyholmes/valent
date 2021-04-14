@@ -43,6 +43,8 @@ jobs:
 
       - name: Coverage
         if: ${{ success() }}
+        env:
+          WORKSPACE: ${{ github.workspace }}
         run: |
           lcov --directory _build \
                --capture \
@@ -57,7 +59,7 @@ jobs:
                --output-file _build/meson-logs/coverage.info
 
           lcov --extract _build/meson-logs/coverage.info \
-               "${{ github.workspace }}/src/*" \
+               "$WORKSPACE/src/*" \
                --output-file _build/meson-logs/coverage.info
           lcov --remove _build/meson-logs/coverage.info \
                "*/src/tests/*" \
