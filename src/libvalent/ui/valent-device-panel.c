@@ -179,7 +179,7 @@ on_state_changed (ValentDevice      *device,
 {
   ValentDeviceState state = 0;
   ValentChannel *channel;
-  const char *verification_key;
+  const char *verification_key = NULL;
   gboolean connected, paired, pair_incoming, pair_outgoing;
 
   g_assert (VALENT_IS_DEVICE (device));
@@ -200,7 +200,9 @@ on_state_changed (ValentDevice      *device,
 
   /* Get the channel verification key */
   channel = valent_device_get_channel (self->device);
-  verification_key = valent_channel_get_verification_key (channel);
+
+  if (channel != NULL)
+    verification_key = valent_channel_get_verification_key (channel);
 
   if (verification_key != NULL)
     gtk_label_set_text (GTK_LABEL (self->verification_key), verification_key);
@@ -487,21 +489,5 @@ valent_device_panel_new (ValentDevice *device)
   return g_object_new (VALENT_TYPE_DEVICE_PANEL,
                        "device", device,
                        NULL);
-}
-
-/**
- * valent_device_panel_get_device:
- * @panel: a #ValentDevicePanel
- *
- * Get the #ValentDevice for this panel.
- *
- * Returns: (transfer none): a #ValentDevice
- */
-ValentDevice *
-valent_device_panel_get_device (ValentDevicePanel *panel)
-{
-  g_return_val_if_fail (VALENT_IS_DEVICE_PANEL (panel), NULL);
-
-  return panel->device;
 }
 

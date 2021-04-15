@@ -33,7 +33,6 @@ enum {
   PROP_PLUGIN_CONTEXT,
   PROP_PLUGIN_INFO,
   PROP_PLUGIN_TYPE,
-  PROP_SETTINGS,
   N_PROPERTIES
 };
 
@@ -134,10 +133,6 @@ valent_plugin_row_get_property (GObject    *object,
       g_value_set_gtype (value, self->plugin_type);
       break;
 
-    case PROP_SETTINGS:
-      g_value_set_object (value, self->settings);
-      break;
-
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -226,20 +221,6 @@ valent_plugin_row_class_init (ValentPluginRowClass *klass)
                          G_PARAM_EXPLICIT_NOTIFY |
                          G_PARAM_STATIC_STRINGS));
 
-  /**
-   * ValentPluginRow:settings
-   *
-   * The #GSettings that controls the enabled state of the plugin.
-   */
-  properties [PROP_SETTINGS] =
-    g_param_spec_object ("settings",
-                         "Settings",
-                         "The plugin settings",
-                         G_TYPE_SETTINGS,
-                         (G_PARAM_READABLE |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
-
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 }
 
@@ -296,21 +277,5 @@ valent_plugin_row_new (PeasPluginInfo *info,
                        "plugin-context", context,
                        "plugin-info",    info,
                        NULL);
-}
-
-/**
- * valent_plugin_row_get_settings:
- * @row: a #ValentPluginRow
- *
- * Get the #GSettings for @row.
- *
- * Returns: (transfer none): a #GSettings
- */
-GSettings *
-valent_plugin_row_get_settings (ValentPluginRow *row)
-{
-  g_return_val_if_fail (VALENT_IS_PLUGIN_ROW (row), NULL);
-
-  return row->settings;
 }
 

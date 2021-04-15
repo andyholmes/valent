@@ -55,7 +55,6 @@ on_load_plugin (PeasEngine        *engine,
   g_assert (info != NULL);
   g_assert (VALENT_IS_PLUGIN_GROUP (self));
 
-  /* We're only interested in one GType */
   if (!peas_engine_provides_extension (engine, info, self->plugin_type))
     return;
 
@@ -80,7 +79,6 @@ on_unload_plugin (PeasEngine        *engine,
   g_assert (info != NULL);
   g_assert (VALENT_IS_PLUGIN_GROUP (self));
 
-  /* We're only interested in one GType */
   if (!peas_engine_provides_extension (engine, info, self->plugin_type))
     return;
 
@@ -251,34 +249,21 @@ valent_plugin_group_init (ValentPluginGroup *self)
 }
 
 /**
- * valent_plugin_group_get_plugin_context:
- * @group: a #ValentPluginGroup
+ * valent_plugin_group_new:
+ * @context: (nullable): a context for the plugin
+ * @type: a #GType
  *
- * Get the context of the plugin type displayed by @group.
+ * Create a new #ValentPluginGroup.
  *
- * Returns: (nullable) (transfer none): the plugin context
+ * Returns: a #GtkWidget
  */
-const char *
-valent_plugin_group_get_plugin_context (ValentPluginGroup *group)
+GtkWidget *
+valent_plugin_group_new (const char *context,
+                         GType       type)
 {
-  g_return_val_if_fail (VALENT_IS_PLUGIN_GROUP (group), NULL);
-
-  return group->plugin_context;
-}
-
-/**
- * valent_plugin_group_get_plugin_type:
- * @group: a #ValentPluginGroup
- *
- * Get the plugin type for @group.
- *
- * Returns: a #GType
- */
-GType
-valent_plugin_group_get_plugin_type (ValentPluginGroup *group)
-{
-  g_return_val_if_fail (VALENT_IS_PLUGIN_GROUP (group), G_TYPE_OBJECT);
-
-  return group->plugin_type;
+  return g_object_new (VALENT_TYPE_PLUGIN_GROUP,
+                       "plugin-context", context,
+                       "plugin-type",    type,
+                       NULL);
 }
 

@@ -12,7 +12,6 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (ValentDevicePanel, valent_device_panel, VALENT, DEVICE_PANEL, GtkWidget)
 
-GtkWidget    * valent_device_panel_new        (ValentDevice      *device);
-ValentDevice * valent_device_panel_get_device (ValentDevicePanel *panel);
+GtkWidget * valent_device_panel_new (ValentDevice *device);
 
 G_END_DECLS
