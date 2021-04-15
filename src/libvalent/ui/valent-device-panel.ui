@@ -1,9 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface domain="valent">
-  <template class="ValentDevicePanel" parent="GtkWidget">
+  <template class="ValentDevicePanel" parent="GtkBox">
+    <property name="orientation">vertical</property>
+    <child>
+      <object class="GtkHeaderBar">
+        <property name="title-widget">
+          <object class="AdwWindowTitle" id="title"/>
+        </property>
+        <child type="start">
+          <object class="GtkButton">
+            <property name="receives-default">1</property>
+            <property name="tooltip-text" translatable="yes">Previous</property>
+            <property name="valign">center</property>
+            <property name="action-name">win.previous</property>
+            <property name="icon-name">go-previous-symbolic</property>
+          </object>
+        </child>
+      </object>
+    </child>
     <child>
       <object class="GtkStack" id="stack">
-        <property name="transition-type">slide-left-right</property>
+        <property name="transition-type">crossfade</property>
         <property name="hexpand">1</property>
 
         <!-- Main Page -->
@@ -12,24 +29,6 @@
             <property name="name">menu</property>
             <property name="child">
               <object class="ValentPanel">
-                <child type="header">
-                  <object class="GtkCenterBox" id="actionbar">
-                    <child type="start">
-                      <object class="GtkBox" id="gadgets">
-                      </object>
-                    </child>
-                    <child type="end">
-                      <object class="GtkButton">
-                        <property name="icon-name">applications-system-symbolic</property>
-                        <property name="action-name">win.page</property>
-                        <property name="action-target">'plugins'</property>
-                      </object>
-                    </child>
-                    <style>
-                      <class name="toolbar"/>
-                    </style>
-                  </object>
-                </child>
 
                 <!-- Pairing Group -->
                 <child>
@@ -151,11 +150,54 @@
                               bind-property="visible"
                               bind-flags="sync-create|invert-boolean"/>
                     <child>
-                      <object class="GtkFrame" id="connected_group">
-                        <property name="valign">start</property>
+                      <object class="GtkBox" id="connected_group">
+                        <property name="orientation">vertical</property>
+                        <property name="spacing">18</property>
                         <child>
-                          <object class="ValentMenuStack" id="menu_actions">
-                            <property name="name">menu</property>
+                          <object class="GtkFrame">
+                            <property name="valign">start</property>
+                            <child>
+                              <object class="GtkCenterBox">
+                                <property name="margin-top">6</property>
+                                <property name="margin-bottom">6</property>
+                                <property name="margin-start">6</property>
+                                <property name="margin-end">6</property>
+                                <child type="start">
+                                  <object class="GtkBox" id="gadgets">
+                                    <property name="spacing">6</property>
+                                  </object>
+                                </child>
+                                <child type="end">
+                                  <object class="GtkBox">
+                                    <property name="spacing">6</property>
+                                    <child>
+                                      <object class="GtkSeparator"/>
+                                    </child>
+                                    <child>
+                                      <object class="GtkButton">
+                                        <property name="icon-name">applications-system-symbolic</property>
+                                        <property name="action-name">win.page</property>
+                                        <property name="action-target">'plugins'</property>
+                                        <property name="has-frame">0</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                            <style>
+                              <class name="content-view"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkFrame">
+                            <property name="valign">start</property>
+                            <child>
+                              <object class="ValentMenuStack" id="menu_actions">
+                                <property name="name">menu</property>
+                              </object>
+                            </child>
                           </object>
                         </child>
                       </object>

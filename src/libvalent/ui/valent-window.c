@@ -33,13 +33,7 @@ struct _ValentWindow
   GQueue               *history;
 
   /* Template widgets */
-  GtkHeaderBar         *headerbar_main;
-  AdwWindowTitle       *headerbar_title;
-  GtkWidget            *refresh_button;
-  GtkWidget            *prev_button;
-
-  GtkStack             *content_stack;
-  GtkWidget            *content_main;
+  GtkStack             *stack;
   GtkListBox           *device_list;
   GtkSpinner           *device_list_spinner;
   unsigned int          device_list_spinner_id;
@@ -217,7 +211,7 @@ on_device_added (ValentManager *manager,
 
   /* Panel */
   info->panel = valent_device_panel_new (device);
-  page = gtk_stack_add_titled (self->content_stack, info->panel, id, name);
+  page = gtk_stack_add_titled (self->stack, info->panel, id, name);
   g_object_bind_property (device, "name",
                           page,   "title",
                           G_BINDING_SYNC_CREATE);
@@ -275,19 +269,16 @@ on_device_removed (ValentManager *manager,
   if ((info = g_hash_table_lookup (self->devices, device)) == NULL)
     return;
 
-  if (gtk_stack_get_visible_child (self->content_stack) == info->panel)
+  if (gtk_stack_get_visible_child (self->stack) == info->panel)
     {
       g_queue_clear_full (self->history, g_free);
       g_queue_push_tail (self->history, g_strdup ("/main"));
-
-      gtk_widget_set_visible (self->prev_button, FALSE);
-      adw_window_title_set_subtitle (self->headerbar_title, NULL);
-      gtk_stack_set_visible_child_name (self->content_stack, "main");
+      gtk_stack_set_visible_child_name (self->stack, "main");
     }
 
   g_signal_handlers_disconnect_by_data (device, self);
   gtk_list_box_remove (self->device_list, info->row);
-  gtk_stack_remove (self->content_stack, info->panel);
+  gtk_stack_remove (self->stack, info->panel);
 
   g_hash_table_remove (self->devices, device);
 }
@@ -408,7 +399,7 @@ valent_window_set_location (ValentWindow *self,
       context = segments[1];
       name = segments[2];
 
-      if ((child = gtk_stack_get_child_by_name (self->content_stack, context)))
+      if ((child = gtk_stack_get_child_by_name (self->stack, context)))
         {
           if (name != NULL && (stack = find_stack_by_page_name (child, name)))
             name = segments[2];
@@ -425,7 +416,7 @@ valent_window_set_location (ValentWindow *self,
       /* If @path is a top-level page name, it is the context and we need to
        * find the child stack's page name (if there is one).
        */
-      if ((child = gtk_stack_get_child_by_name (self->content_stack, path)))
+      if ((child = gtk_stack_get_child_by_name (self->stack, path)))
         {
           context = path;
 
@@ -434,9 +425,9 @@ valent_window_set_location (ValentWindow *self,
         }
 
       /* Otherwise it should be a child of the currently visible context */
-      else if ((child = gtk_stack_get_visible_child (self->content_stack)))
+      else if ((child = gtk_stack_get_visible_child (self->stack)))
         {
-          context = gtk_stack_get_visible_child_name (self->content_stack);
+          context = gtk_stack_get_visible_child_name (self->stack);
 
           if ((stack = find_stack_by_page_name (child, path)))
             name = path;
@@ -451,7 +442,7 @@ valent_window_set_location (ValentWindow *self,
 
 
   /* Set the stacks */
-  gtk_stack_set_visible_child_name (self->content_stack, context);
+  gtk_stack_set_visible_child_name (self->stack, context);
 
   if (name != NULL && stack != NULL)
     gtk_stack_set_visible_child_name (stack, name);
@@ -459,24 +450,6 @@ valent_window_set_location (ValentWindow *self,
   /* Save new location to history */
   if (g_strcmp0 (full_path, g_queue_peek_tail (self->history)) != 0)
     g_queue_push_tail (self->history, g_steal_pointer (&full_path));
-
-  /* Show/hide previous button */
-  child = gtk_stack_get_visible_child (self->content_stack);
-
-  if (g_strcmp0 (context, "main") == 0)
-    {
-      gtk_widget_set_visible (self->prev_button, FALSE);
-      adw_window_title_set_subtitle (self->headerbar_title, NULL);
-    }
-  else
-    {
-      GtkStackPage *page;
-
-      page = gtk_stack_get_page (self->content_stack, child);
-      adw_window_title_set_subtitle (self->headerbar_title,
-                                     gtk_stack_page_get_title (page));
-      gtk_widget_set_visible (self->prev_button, TRUE);
-    }
 
   g_debug ("[%s] %s => %s", G_STRFUNC, full_path, path);
 }
@@ -724,12 +697,7 @@ valent_window_class_init (ValentWindowClass *klass)
   object_class->set_property = valent_window_set_property;
 
   gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-window.ui");
-  gtk_widget_class_bind_template_child (widget_class, ValentWindow, headerbar_main);
-  gtk_widget_class_bind_template_child (widget_class, ValentWindow, headerbar_title);
-  gtk_widget_class_bind_template_child (widget_class, ValentWindow, prev_button);
-  gtk_widget_class_bind_template_child (widget_class, ValentWindow, refresh_button);
-  gtk_widget_class_bind_template_child (widget_class, ValentWindow, content_stack);
-  gtk_widget_class_bind_template_child (widget_class, ValentWindow, content_main);
+  gtk_widget_class_bind_template_child (widget_class, ValentWindow, stack);
   gtk_widget_class_bind_template_child (widget_class, ValentWindow, device_list);
   gtk_widget_class_bind_template_child (widget_class, ValentWindow, device_list_spinner);
 
