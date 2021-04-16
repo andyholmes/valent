@@ -2,7 +2,7 @@
 <schemalist gettext-domain="valent">
   <schema id="ca.andyholmes.valent.sftp">
     <key name="auto-mount" type="b">
-      <default>true</default>
+      <default>false</default>
     </key>
     <key name="local-allow" type="b">
       <default>false</default>
