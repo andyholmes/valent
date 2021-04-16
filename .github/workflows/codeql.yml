@@ -3,9 +3,6 @@ name: "CodeQL"
 on:
   push:
     branches: [ master ]
-    paths:
-      - '**/*.c'
-      - '**/*.h'
   pull_request:
     branches: [ master ]
     paths:
