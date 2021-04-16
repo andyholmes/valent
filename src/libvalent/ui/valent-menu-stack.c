@@ -22,13 +22,15 @@ struct _ValentMenuStack
 G_DEFINE_TYPE (ValentMenuStack, valent_menu_stack, GTK_TYPE_WIDGET)
 
 
+/*
+ * GObject
+ */
 static void
 valent_menu_stack_dispose (GObject *object)
 {
   ValentMenuStack *self = VALENT_MENU_STACK (object);
 
-  if (GTK_IS_WIDGET (self->stack))
-    g_clear_pointer (&self->stack, gtk_widget_unparent);
+  g_clear_pointer (&self->stack, gtk_widget_unparent);
 
   G_OBJECT_CLASS (valent_menu_stack_parent_class)->dispose (object);
 }

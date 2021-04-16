@@ -380,12 +380,12 @@ valent_device_panel_get_property (GObject    *object,
                                   GValue     *value,
                                   GParamSpec *pspec)
 {
-  ValentDevicePanel *panel = VALENT_DEVICE_PANEL (object);
+  ValentDevicePanel *self = VALENT_DEVICE_PANEL (object);
 
   switch (prop_id)
     {
     case PROP_DEVICE:
-      g_value_set_object (value, panel->device);
+      g_value_set_object (value, self->device);
       break;
 
     default:
@@ -399,12 +399,12 @@ valent_device_panel_set_property (GObject      *object,
                                   const GValue *value,
                                   GParamSpec   *pspec)
 {
-  ValentDevicePanel *panel = VALENT_DEVICE_PANEL (object);
+  ValentDevicePanel *self = VALENT_DEVICE_PANEL (object);
 
   switch (prop_id)
     {
     case PROP_DEVICE:
-      panel->device = g_value_get_object (value);
+      self->device = g_value_get_object (value);
       break;
 
     default:

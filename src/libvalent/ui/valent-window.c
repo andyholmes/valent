@@ -113,9 +113,9 @@ on_rename_dialog_response (GtkDialog       *dialog,
  */
 typedef struct
 {
-  GtkWidget     *row;
-  GtkWidget     *panel;
-  GtkWidget     *status;
+  GtkWidget *row;
+  GtkWidget *panel;
+  GtkWidget *status;
 } DeviceInfo;
 
 static int
