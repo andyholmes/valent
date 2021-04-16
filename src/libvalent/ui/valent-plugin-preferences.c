@@ -52,40 +52,6 @@ valent_plugin_preferences_default_init (ValentPluginPreferencesInterface *iface)
 }
 
 /**
- * valent_plugin_preferences_create_settings:
- * @context: a context string
- * @module: a module name
- *
- * Create a new #GSettings object for this settings, or %NULL if the schema can
- * not be found.
- *
- * Returns: (nullable) (transfer full): a #GSettings
- */
-GSettings *
-valent_plugin_preferences_create_settings (const char *context,
-                                           const char *module)
-{
-  GSettingsSchemaSource *source;
-  GSettingsSchema *schema;
-  g_autofree char *path = NULL;
-  g_autofree char *schema_id = NULL;
-
-  g_return_val_if_fail (context != NULL, NULL);
-  g_return_val_if_fail (module != NULL, NULL);
-
-  path = g_strdup_printf ("/ca/andyholmes/valent/device/%s/%s/", context, module);
-  schema_id = g_strdup_printf ("ca.andyholmes.valent.%s", module);
-
-  source = g_settings_schema_source_get_default ();
-  schema = g_settings_schema_source_lookup (source, schema_id, TRUE);
-
-  if (schema)
-    return g_settings_new_full (schema, NULL, path);
-
-  return NULL;
-}
-
-/**
  * valent_plugin_preferences_row_sort:
  * @row1: a #GtkListBoxRow
  * @row2: a #GtkListBoxRow

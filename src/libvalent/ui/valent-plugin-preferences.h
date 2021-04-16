@@ -22,11 +22,9 @@ struct _ValentPluginPreferencesInterface
 };
 
 /* Utility Functions */
-GSettings * valent_plugin_preferences_create_settings (const char *context,
-                                                       const char *module);
-int         valent_plugin_preferences_row_sort        (GtkListBoxRow *row1,
-                                                       GtkListBoxRow *row2,
-                                                       gpointer       user_data);
+int   valent_plugin_preferences_row_sort (GtkListBoxRow *row1,
+                                          GtkListBoxRow *row2,
+                                          gpointer       user_data);
 
 G_END_DECLS
 
