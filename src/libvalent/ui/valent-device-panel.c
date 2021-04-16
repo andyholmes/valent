@@ -17,21 +17,22 @@
 
 struct _ValentDevicePanel
 {
-  GtkWidget            parent_instance;
+  GtkBox               parent_instance;
 
   ValentDevice        *device;
   GSettings           *settings;
 
-  GtkWidget           *actionbar;
-  GtkWidget           *gadgets;
+  AdwWindowTitle      *title;
   GtkWidget           *stack;
 
+  /* Main */
   GtkWidget           *pair_group;
   GtkWidget           *pair_request;
   GtkWidget           *pair_spinner;
   GtkWidget           *verification_key;
 
   GtkWidget           *connected_group;
+  GtkWidget           *gadgets;
   ValentMenuStack     *menu_actions;
 
   /* Settings */
@@ -45,7 +46,7 @@ struct _ValentDevicePanel
   AdwPreferencesGroup *unpair_group;
 };
 
-G_DEFINE_TYPE (ValentDevicePanel, valent_device_panel, GTK_TYPE_WIDGET)
+G_DEFINE_TYPE (ValentDevicePanel, valent_device_panel, GTK_TYPE_BOX)
 
 enum {
   PROP_0,
@@ -308,6 +309,12 @@ valent_device_panel_constructed (GObject *object)
   GActionGroup *actions;
   GMenuModel *menu;
 
+  g_object_bind_property (self->device,
+                          "name",
+                          self->title,
+                          "title",
+                          G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE);
+
   /* Actions & Menu */
   actions = valent_device_get_actions (self->device);
   gtk_widget_insert_action_group (GTK_WIDGET (self), "device", actions);
@@ -358,7 +365,6 @@ valent_device_panel_dispose (GObject *object)
   ValentDevicePanel *self = VALENT_DEVICE_PANEL (object);
 
   g_signal_handlers_disconnect_by_data (self->device, self);
-  g_clear_pointer (&self->stack, gtk_widget_unparent);
   g_clear_object (&self->settings);
 
   G_OBJECT_CLASS (valent_device_panel_parent_class)->dispose (object);
@@ -424,11 +430,9 @@ valent_device_panel_class_init (ValentDevicePanelClass *klass)
   object_class->get_property = valent_device_panel_get_property;
   object_class->set_property = valent_device_panel_set_property;
 
-  gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_BIN_LAYOUT);
-
   /* Template */
   gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-device-panel.ui");
-  gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, actionbar);
+  gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, title);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, gadgets);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, stack);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, pair_group);
