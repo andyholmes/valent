@@ -204,7 +204,6 @@ valent_battery_plugin_show_notification (ValentBatteryPlugin *self,
   g_autofree char *ntitle = NULL;
   g_autofree char *nbody = NULL;
   g_autoptr (GIcon) nicon = NULL;
-  GActionGroup *actions;
 
   g_assert (VALENT_IS_BATTERY_PLUGIN (self));
 
@@ -236,12 +235,6 @@ valent_battery_plugin_show_notification (ValentBatteryPlugin *self,
   notif = g_notification_new (ntitle);
   g_notification_set_body (notif, nbody);
   g_notification_set_icon (notif, nicon);
-
-  /* If the action is available, add a button to ring the device */
-  actions = valent_device_get_actions (self->device);
-
-  if (g_action_group_get_action_enabled (actions, "ring"))
-    valent_notification_add_device_button (notif, self->device, _("Ring"), "ring", NULL);
 
   valent_device_show_notification (self->device, "battery-level", notif);
 }
