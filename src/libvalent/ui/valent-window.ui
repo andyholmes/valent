@@ -278,12 +278,6 @@
   <menu id="primary_menu">
     <section>
       <item>
-        <attribute name="label" translatable="yes">Connect to…</attribute>
-        <attribute name="action">win.connect</attribute>
-      </item>
-    </section>
-    <section>
-      <item>
         <attribute name="label" translatable="yes">Settings</attribute>
         <attribute name="action">win.page</attribute>
         <attribute name="target">settings</attribute>

@@ -17,7 +17,6 @@
     <file preprocess="xml-stripblanks" alias="icons/scalable/devices/phonelink-setup-symbolic.svg">data/icons/hicolor/scalable/devices/phonelink-setup-symbolic.svg</file>
   </gresource>
   <gresource prefix="/ca/andyholmes/Valent/ui">
-    <file preprocess="xml-stripblanks">valent-connect-dialog.ui</file>
     <file preprocess="xml-stripblanks">valent-device-panel.ui</file>
     <file preprocess="xml-stripblanks">valent-panel.ui</file>
     <file preprocess="xml-stripblanks">valent-window.ui</file>

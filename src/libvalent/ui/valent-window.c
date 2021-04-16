@@ -16,7 +16,6 @@
 #include <libvalent-power.h>
 #include <libvalent-session.h>
 
-#include "valent-connect-dialog.h"
 #include "valent-device-panel.h"
 #include "valent-panel.h"
 #include "valent-plugin-group.h"
@@ -284,50 +283,6 @@ on_device_removed (ValentManager *manager,
 }
 
 /*
- * GActions
- */
-static void
-on_connect_cb (GtkDialog    *dialog,
-               gint          response,
-               ValentWindow *self)
-{
-  g_assert (GTK_IS_DIALOG (dialog));
-  g_assert (VALENT_IS_WINDOW (self));
-
-  // TODO: tie into backends
-  if (response == GTK_RESPONSE_OK)
-    {
-      g_debug ("ValentConnectDialog: connect to...");
-    }
-
-  gtk_window_destroy (GTK_WINDOW (dialog));
-}
-
-static void
-connect_action (GSimpleAction *action,
-                GVariant      *parameter,
-                gpointer       user_data)
-{
-  ValentWindow *self = VALENT_WINDOW (user_data);
-  ValentConnectDialog *dialog;
-
-  g_assert (VALENT_IS_WINDOW (self));
-
-  dialog = g_object_new (VALENT_TYPE_CONNECT_DIALOG,
-                         "modal",          TRUE,
-                         "transient-for",  self,
-                         "use-header-bar", TRUE,
-                         NULL);
-
-  g_signal_connect (dialog,
-                    "response",
-                    G_CALLBACK (on_connect_cb),
-                    self);
-
-  gtk_window_present_with_time (GTK_WINDOW (dialog), GDK_CURRENT_TIME);
-}
-
-/*
  * History
  */
 static GtkStack *
@@ -545,7 +500,6 @@ refresh_action (GSimpleAction *action,
 
 static const GActionEntry actions[] = {
   {"about",    about_action,    NULL, NULL, NULL},
-  {"connect",  connect_action,  NULL, NULL, NULL},
   {"page",     page_action,     "s",  NULL, NULL},
   {"previous", previous_action, NULL, NULL, NULL},
   {"refresh",  refresh_action,  NULL, NULL, NULL}

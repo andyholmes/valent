@@ -16,7 +16,6 @@ libvalent_ui_public_headers = [
 ]
 
 libvalent_ui_private_headers = [
-  'valent-connect-dialog.h',
   'valent-device-panel.h',
   'valent-menu-list.h',
   'valent-menu-stack.h',
@@ -33,7 +32,6 @@ install_headers(libvalent_ui_public_headers,
 # Sources
 libvalent_ui_public_sources = [
   'valent-application.c',
-  'valent-connect-dialog.c',
   'valent-device-activity.c',
   'valent-device-gadget.c',
   'valent-device-panel.c',
