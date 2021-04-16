@@ -9,6 +9,7 @@ plugin_battery_test_deps = [
 plugin_battery_tests = [
   'test-battery-plugin',
   'test-battery-preferences',
+  'test-battery-gadget',
 ]
 
 foreach test : plugin_battery_tests
