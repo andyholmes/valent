@@ -74,7 +74,7 @@ test_input_component_dispose (InputComponentFixture *fixture,
 
   /* Unload the provider */
   engine = valent_get_engine ();
-  peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "test"));
+  peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "mock"));
 
   providers = valent_component_get_providers (VALENT_COMPONENT (fixture->input));
   g_assert_cmpuint (providers->len, ==, 0);

@@ -4,10 +4,10 @@
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
 
-#include "valent-test-plugin.h"
+#include "valent-mock-device-plugin.h"
 
 
-struct _ValentTestPlugin
+struct _ValentMockDevicePlugin
 {
   PeasExtensionBase  parent_instance;
 
@@ -16,7 +16,7 @@ struct _ValentTestPlugin
 
 static void valent_device_plugin_iface_init (ValentDevicePluginInterface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (ValentTestPlugin, valent_test_plugin, PEAS_TYPE_EXTENSION_BASE,
+G_DEFINE_TYPE_WITH_CODE (ValentMockDevicePlugin, valent_mock_device_plugin, PEAS_TYPE_EXTENSION_BASE,
                          G_IMPLEMENT_INTERFACE (VALENT_TYPE_DEVICE_PLUGIN, valent_device_plugin_iface_init))
 
 enum {
@@ -29,10 +29,10 @@ enum {
  * Packet Handlers
  */
 static void
-handle_test_echo (ValentDevicePlugin *plugin,
+handle_mock_echo (ValentDevicePlugin *plugin,
                   JsonNode           *packet)
 {
-  ValentTestPlugin *self = VALENT_TEST_PLUGIN (plugin);
+  ValentMockDevicePlugin *self = VALENT_MOCK_DEVICE_PLUGIN (plugin);
   g_autoptr (JsonNode) response = NULL;
   g_autofree char *packet_json = NULL;
 
@@ -50,13 +50,13 @@ packet_action (GSimpleAction *action,
                GVariant      *parameter,
                gpointer       user_data)
 {
-  ValentTestPlugin *self = VALENT_TEST_PLUGIN (user_data);
+  ValentMockDevicePlugin *self = VALENT_MOCK_DEVICE_PLUGIN (user_data);
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
 
-  g_assert (VALENT_IS_TEST_PLUGIN (self));
+  g_assert (VALENT_IS_MOCK_DEVICE_PLUGIN (self));
 
-  builder = valent_packet_start("kdeconnect.test.echo");
+  builder = valent_packet_start("kdeconnect.mock.echo");
   packet = valent_packet_finish (builder);
 
   valent_device_queue_packet (self->device, packet);
@@ -74,7 +74,7 @@ static const ValentMenuEntry items[] = {
  * ValentDevicePlugin Implementation
  */
 static void
-valent_test_plugin_enable (ValentDevicePlugin *plugin)
+valent_mock_device_plugin_enable (ValentDevicePlugin *plugin)
 {
   valent_device_plugin_register_actions (plugin,
                                          actions,
@@ -86,7 +86,7 @@ valent_test_plugin_enable (ValentDevicePlugin *plugin)
 }
 
 static void
-valent_test_plugin_disable (ValentDevicePlugin *plugin)
+valent_mock_device_plugin_disable (ValentDevicePlugin *plugin)
 {
   /* Unregister GMenu items */
   valent_device_plugin_remove_menu_entries (plugin,
@@ -100,9 +100,9 @@ valent_test_plugin_disable (ValentDevicePlugin *plugin)
 }
 
 static void
-valent_test_plugin_update_state (ValentDevicePlugin *plugin)
+valent_mock_device_plugin_update_state (ValentDevicePlugin *plugin)
 {
-  ValentTestPlugin *self = VALENT_TEST_PLUGIN (plugin);
+  ValentMockDevicePlugin *self = VALENT_MOCK_DEVICE_PLUGIN (plugin);
   gboolean connected;
   gboolean paired;
   gboolean available;
@@ -118,16 +118,16 @@ valent_test_plugin_update_state (ValentDevicePlugin *plugin)
 }
 
 static void
-valent_test_plugin_handle_packet (ValentDevicePlugin *plugin,
+valent_mock_device_plugin_handle_packet (ValentDevicePlugin *plugin,
                                   const char         *type,
                                   JsonNode           *packet)
 {
-  g_assert (VALENT_IS_TEST_PLUGIN (plugin));
+  g_assert (VALENT_IS_MOCK_DEVICE_PLUGIN (plugin));
   g_assert (type != NULL);
   g_assert (VALENT_IS_PACKET (packet));
 
-  if (g_strcmp0 (type, "kdeconnect.test.echo") == 0)
-    handle_test_echo (plugin, packet);
+  if (g_strcmp0 (type, "kdeconnect.mock.echo") == 0)
+    handle_mock_echo (plugin, packet);
   else
     g_assert_not_reached ();
 }
@@ -135,22 +135,22 @@ valent_test_plugin_handle_packet (ValentDevicePlugin *plugin,
 static void
 valent_device_plugin_iface_init (ValentDevicePluginInterface *iface)
 {
-  iface->enable = valent_test_plugin_enable;
-  iface->disable = valent_test_plugin_disable;
-  iface->handle_packet = valent_test_plugin_handle_packet;
-  iface->update_state = valent_test_plugin_update_state;
+  iface->enable = valent_mock_device_plugin_enable;
+  iface->disable = valent_mock_device_plugin_disable;
+  iface->handle_packet = valent_mock_device_plugin_handle_packet;
+  iface->update_state = valent_mock_device_plugin_update_state;
 }
 
 /**
  * GObject Implementation
  */
 static void
-valent_test_plugin_get_property (GObject    *object,
+valent_mock_device_plugin_get_property (GObject    *object,
                                  guint       prop_id,
                                  GValue     *value,
                                  GParamSpec *pspec)
 {
-  ValentTestPlugin *self = VALENT_TEST_PLUGIN (object);
+  ValentMockDevicePlugin *self = VALENT_MOCK_DEVICE_PLUGIN (object);
 
   switch (prop_id)
     {
@@ -164,12 +164,12 @@ valent_test_plugin_get_property (GObject    *object,
 }
 
 static void
-valent_test_plugin_set_property (GObject      *object,
+valent_mock_device_plugin_set_property (GObject      *object,
                                  guint         prop_id,
                                  const GValue *value,
                                  GParamSpec   *pspec)
 {
-  ValentTestPlugin *self = VALENT_TEST_PLUGIN (object);
+  ValentMockDevicePlugin *self = VALENT_MOCK_DEVICE_PLUGIN (object);
 
   switch (prop_id)
     {
@@ -183,18 +183,18 @@ valent_test_plugin_set_property (GObject      *object,
 }
 
 static void
-valent_test_plugin_class_init (ValentTestPluginClass *klass)
+valent_mock_device_plugin_class_init (ValentMockDevicePluginClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  object_class->get_property = valent_test_plugin_get_property;
-  object_class->set_property = valent_test_plugin_set_property;
+  object_class->get_property = valent_mock_device_plugin_get_property;
+  object_class->set_property = valent_mock_device_plugin_set_property;
 
   g_object_class_override_property (object_class, PROP_DEVICE, "device");
 }
 
 static void
-valent_test_plugin_init (ValentTestPlugin *self)
+valent_mock_device_plugin_init (ValentMockDevicePlugin *self)
 {
 }
 

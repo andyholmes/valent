@@ -7,10 +7,10 @@
 #include <libvalent-core.h>
 #include <libvalent-mixer.h>
 
-#include "valent-test-mixer-control.h"
+#include "valent-mock-mixer-control.h"
 
 
-struct _ValentTestMixerControl
+struct _ValentMockMixerControl
 {
   ValentMixerControl  parent_instance;
 
@@ -18,7 +18,7 @@ struct _ValentTestMixerControl
   ValentMixerStream  *default_output;
 };
 
-G_DEFINE_TYPE (ValentTestMixerControl, valent_test_mixer_control, VALENT_TYPE_MIXER_CONTROL)
+G_DEFINE_TYPE (ValentMockMixerControl, valent_mock_mixer_control, VALENT_TYPE_MIXER_CONTROL)
 
 
 static void
@@ -26,7 +26,7 @@ on_stream_changed (ValentMixerStream  *stream,
                    GParamSpec         *pspec,
                    ValentMixerControl *control)
 {
-  g_assert (VALENT_IS_TEST_MIXER_CONTROL (control));
+  g_assert (VALENT_IS_MOCK_MIXER_CONTROL (control));
 
   valent_mixer_control_emit_stream_changed (control, stream);
 }
@@ -35,26 +35,26 @@ on_stream_changed (ValentMixerStream  *stream,
  * ValentMixerControl
  */
 static ValentMixerStream *
-valent_test_mixer_control_get_default_input (ValentMixerControl *control)
+valent_mock_mixer_control_get_default_input (ValentMixerControl *control)
 {
-  ValentTestMixerControl *self = VALENT_TEST_MIXER_CONTROL (control);
+  ValentMockMixerControl *self = VALENT_MOCK_MIXER_CONTROL (control);
 
   return self->default_input;
 }
 
 static ValentMixerStream *
-valent_test_mixer_control_get_default_output (ValentMixerControl *control)
+valent_mock_mixer_control_get_default_output (ValentMixerControl *control)
 {
-  ValentTestMixerControl *self = VALENT_TEST_MIXER_CONTROL (control);
+  ValentMockMixerControl *self = VALENT_MOCK_MIXER_CONTROL (control);
 
   return self->default_output;
 }
 
 static void
-valent_test_mixer_control_stream_added (ValentMixerControl *control,
+valent_mock_mixer_control_stream_added (ValentMixerControl *control,
                                         ValentMixerStream  *stream)
 {
-  ValentTestMixerControl *self = VALENT_TEST_MIXER_CONTROL (control);
+  ValentMockMixerControl *self = VALENT_MOCK_MIXER_CONTROL (control);
 
   if (self->default_input == NULL &&
       (valent_mixer_stream_get_flags (stream) & VALENT_MIXER_STREAM_SOURCE) != 0)
@@ -69,15 +69,15 @@ valent_test_mixer_control_stream_added (ValentMixerControl *control,
                     G_CALLBACK (on_stream_changed),
                     control);
 
-  VALENT_MIXER_CONTROL_CLASS (valent_test_mixer_control_parent_class)->stream_added (control,
+  VALENT_MIXER_CONTROL_CLASS (valent_mock_mixer_control_parent_class)->stream_added (control,
                                                                                      stream);
 }
 
 static void
-valent_test_mixer_control_stream_removed (ValentMixerControl *control,
+valent_mock_mixer_control_stream_removed (ValentMixerControl *control,
                                           ValentMixerStream  *stream)
 {
-  ValentTestMixerControl *self = VALENT_TEST_MIXER_CONTROL (control);
+  ValentMockMixerControl *self = VALENT_MOCK_MIXER_CONTROL (control);
 
   if (self->default_input == stream)
     g_clear_object (&self->default_input);
@@ -87,7 +87,7 @@ valent_test_mixer_control_stream_removed (ValentMixerControl *control,
 
   g_signal_handlers_disconnect_by_func (stream, on_stream_changed, control);
 
-  VALENT_MIXER_CONTROL_CLASS (valent_test_mixer_control_parent_class)->stream_removed (control,
+  VALENT_MIXER_CONTROL_CLASS (valent_mock_mixer_control_parent_class)->stream_removed (control,
                                                                                        stream);
 }
 
@@ -96,32 +96,32 @@ valent_test_mixer_control_stream_removed (ValentMixerControl *control,
  * GObject
  */
 static void
-valent_test_mixer_control_dispose (GObject *object)
+valent_mock_mixer_control_dispose (GObject *object)
 {
-  ValentTestMixerControl *self = VALENT_TEST_MIXER_CONTROL (object);
+  ValentMockMixerControl *self = VALENT_MOCK_MIXER_CONTROL (object);
 
   g_clear_object (&self->default_input);
   g_clear_object (&self->default_output);
 
-  G_OBJECT_CLASS (valent_test_mixer_control_parent_class)->dispose (object);
+  G_OBJECT_CLASS (valent_mock_mixer_control_parent_class)->dispose (object);
 }
 
 static void
-valent_test_mixer_control_class_init (ValentTestMixerControlClass *klass)
+valent_mock_mixer_control_class_init (ValentMockMixerControlClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentMixerControlClass *control_class = VALENT_MIXER_CONTROL_CLASS (klass);
 
-  object_class->dispose = valent_test_mixer_control_dispose;
+  object_class->dispose = valent_mock_mixer_control_dispose;
 
-  control_class->get_default_input = valent_test_mixer_control_get_default_input;
-  control_class->get_default_output = valent_test_mixer_control_get_default_output;
-  control_class->stream_added = valent_test_mixer_control_stream_added;
-  control_class->stream_removed = valent_test_mixer_control_stream_removed;
+  control_class->get_default_input = valent_mock_mixer_control_get_default_input;
+  control_class->get_default_output = valent_mock_mixer_control_get_default_output;
+  control_class->stream_added = valent_mock_mixer_control_stream_added;
+  control_class->stream_removed = valent_mock_mixer_control_stream_removed;
 }
 
 static void
-valent_test_mixer_control_init (ValentTestMixerControl *self)
+valent_mock_mixer_control_init (ValentMockMixerControl *self)
 {
 }
 

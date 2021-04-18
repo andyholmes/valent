@@ -19,7 +19,7 @@ notification_plugin_fixture_set_up (ValentTestPluginFixture *fixture,
   valent_test_plugin_fixture_init_settings (fixture, "notification");
 
   // TODO: test with session active/inactive
-  source = valent_test_notification_source_get_instance ();
+  source = valent_mock_notification_source_get_instance ();
 }
 
 static void

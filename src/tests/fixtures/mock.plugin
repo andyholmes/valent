@@ -1,0 +1,12 @@
+[Plugin]
+Module=mock
+Name=Mock
+Description=Mock Plugin
+Icon=application-x-addon-symbolic
+Builtin=true
+Embedded=valent_mock_plugin_register_types
+Website=https://github.com/andyholmes/valent
+Help=https://github.com/andyholmes/valent
+Hidden=false
+X-IncomingCapabilities=kdeconnect.mock.echo;kdeconnect.mock.transfer
+X-OutgoingCapabilities=kdeconnect.mock.echo;kdeconnect.mock.transfer

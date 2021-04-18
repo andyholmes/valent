@@ -8,12 +8,12 @@
       "protocolVersion": 7,
       "deviceType": "phone",
       "incomingCapabilities": [
-        "kdeconnect.test.echo",
-        "kdeconnect.test.transfer"
+        "kdeconnect.mock.echo",
+        "kdeconnect.mock.transfer"
       ],
       "outgoingCapabilities": [
-        "kdeconnect.test.echo",
-        "kdeconnect.test.transfer"
+        "kdeconnect.mock.echo",
+        "kdeconnect.mock.transfer"
       ],
       "tcpPort": 1716
     }
@@ -34,14 +34,14 @@
   },
   "test-echo": {
     "id": 0,
-    "type": "kdeconnect.test.echo",
+    "type": "kdeconnect.mock.echo",
     "body": {
       "foo": "bar"
     }
   },
   "test-transfer": {
     "id": 0,
-    "type": "kdeconnect.test.transfer",
+    "type": "kdeconnect.mock.transfer",
     "body": {
       "filename": "image.png"
     }

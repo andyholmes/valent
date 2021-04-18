@@ -11,11 +11,11 @@
 
 G_BEGIN_DECLS
 
-#define VALENT_TYPE_TEST_NOTIFICATION_SOURCE (valent_test_notification_source_get_type())
+#define VALENT_TYPE_MOCK_NOTIFICATION_SOURCE (valent_mock_notification_source_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentTestNotificationSource, valent_test_notification_source, VALENT, TEST_NOTIFICATION_SOURCE, ValentNotificationSource)
+G_DECLARE_FINAL_TYPE (ValentMockNotificationSource, valent_mock_notification_source, VALENT, MOCK_NOTIFICATION_SOURCE, ValentNotificationSource)
 
-ValentNotificationSource * valent_test_notification_source_get_instance (void);
+ValentNotificationSource * valent_mock_notification_source_get_instance (void);
 
 G_END_DECLS
 

@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-#define G_LOG_DOMAIN "valent-test-channel"
+#define G_LOG_DOMAIN "valent-mock-channel"
 
 #include "config.h"
 
 #include <gio/gio.h>
 #include <libvalent-core.h>
 
-#include "valent-test-channel.h"
+#include "valent-mock-channel.h"
 
 #define VALENT_TEST_TCP_PORT 2716
 #define VALENT_TEST_UDP_PORT 2716
@@ -16,7 +16,7 @@
 #define VALENT_TEST_AUX_MAX  2764
 
 
-struct _ValentTestChannel
+struct _ValentMockChannel
 {
   ValentChannel  parent_instance;
 
@@ -24,7 +24,7 @@ struct _ValentTestChannel
   guint16        port;
 };
 
-G_DEFINE_TYPE (ValentTestChannel, valent_test_channel, VALENT_TYPE_CHANNEL)
+G_DEFINE_TYPE (ValentMockChannel, valent_mock_channel, VALENT_TYPE_CHANNEL)
 
 enum {
   PROP_0,
@@ -40,20 +40,20 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
  * ValentChannel
  */
 static const char *
-valent_test_channel_get_verification_key (ValentChannel *channel)
+valent_mock_channel_get_verification_key (ValentChannel *channel)
 {
-  g_assert (VALENT_IS_TEST_CHANNEL (channel));
+  g_assert (VALENT_IS_MOCK_CHANNEL (channel));
 
-  return "Test Channel";
+  return "Mock Channel";
 }
 
 static GIOStream *
-valent_test_channel_download (ValentChannel  *channel,
+valent_mock_channel_download (ValentChannel  *channel,
                               JsonNode       *packet,
                               GCancellable   *cancellable,
                               GError        **error)
 {
-  ValentTestChannel *self = VALENT_TEST_CHANNEL (channel);
+  ValentMockChannel *self = VALENT_MOCK_CHANNEL (channel);
   JsonObject *info;
   guint16 port;
   gssize size;
@@ -95,7 +95,7 @@ valent_test_channel_download (ValentChannel  *channel,
 }
 
 static GIOStream *
-valent_test_channel_upload (ValentChannel  *channel,
+valent_mock_channel_upload (ValentChannel  *channel,
                             JsonNode       *packet,
                             GCancellable   *cancellable,
                             GError        **error)
@@ -148,22 +148,22 @@ valent_test_channel_upload (ValentChannel  *channel,
  * GObject
  */
 static void
-valent_test_channel_finalize (GObject *object)
+valent_mock_channel_finalize (GObject *object)
 {
-  ValentTestChannel *self = VALENT_TEST_CHANNEL (object);
+  ValentMockChannel *self = VALENT_MOCK_CHANNEL (object);
 
   g_clear_pointer (&self->host, g_free);
 
-  G_OBJECT_CLASS (valent_test_channel_parent_class)->finalize (object);
+  G_OBJECT_CLASS (valent_mock_channel_parent_class)->finalize (object);
 }
 
 static void
-valent_test_channel_get_property (GObject    *object,
+valent_mock_channel_get_property (GObject    *object,
                                  guint       prop_id,
                                  GValue     *value,
                                  GParamSpec *pspec)
 {
-  ValentTestChannel *self = VALENT_TEST_CHANNEL (object);
+  ValentMockChannel *self = VALENT_MOCK_CHANNEL (object);
 
   switch (prop_id)
     {
@@ -181,12 +181,12 @@ valent_test_channel_get_property (GObject    *object,
 }
 
 static void
-valent_test_channel_set_property (GObject      *object,
+valent_mock_channel_set_property (GObject      *object,
                                  guint         prop_id,
                                  const GValue *value,
                                  GParamSpec   *pspec)
 {
-  ValentTestChannel *self = VALENT_TEST_CHANNEL (object);
+  ValentMockChannel *self = VALENT_MOCK_CHANNEL (object);
 
   switch (prop_id)
     {
@@ -204,21 +204,21 @@ valent_test_channel_set_property (GObject      *object,
 }
 
 static void
-valent_test_channel_class_init (ValentTestChannelClass *klass)
+valent_mock_channel_class_init (ValentMockChannelClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentChannelClass *channel_class = VALENT_CHANNEL_CLASS (klass);
 
-  object_class->finalize = valent_test_channel_finalize;
-  object_class->get_property = valent_test_channel_get_property;
-  object_class->set_property = valent_test_channel_set_property;
+  object_class->finalize = valent_mock_channel_finalize;
+  object_class->get_property = valent_mock_channel_get_property;
+  object_class->set_property = valent_mock_channel_set_property;
 
-  channel_class->get_verification_key = valent_test_channel_get_verification_key;
-  channel_class->download = valent_test_channel_download;
-  channel_class->upload = valent_test_channel_upload;
+  channel_class->get_verification_key = valent_mock_channel_get_verification_key;
+  channel_class->download = valent_mock_channel_download;
+  channel_class->upload = valent_mock_channel_upload;
 
   /**
-   * ValentTestChannel:host:
+   * ValentMockChannel:host:
    *
    * The remote TCP/IP address for the channel.
    */
@@ -233,7 +233,7 @@ valent_test_channel_class_init (ValentTestChannelClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentTestChannel:port:
+   * ValentMockChannel:port:
    *
    * The remote TCP/IP port for the channel.
    */
@@ -252,7 +252,7 @@ valent_test_channel_class_init (ValentTestChannelClass *klass)
 }
 
 static void
-valent_test_channel_init (ValentTestChannel *self)
+valent_mock_channel_init (ValentMockChannel *self)
 {
   self->host = NULL;
   self->port = VALENT_TEST_TCP_PORT;

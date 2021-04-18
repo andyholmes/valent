@@ -9,7 +9,7 @@
 #include <libvalent-core.h>
 #include <libvalent-ui.h>
 
-#include "valent-test-channel.h"
+#include "valent-mock-channel.h"
 #include "valent-test-utils.h"
 
 
@@ -34,7 +34,7 @@ accept_cb (GSocketListener *listener,
   g_autoptr (GSocketConnection) base_stream = NULL;
 
   base_stream = g_socket_listener_accept_finish (listener, result, NULL, NULL);
-  data->channel = g_object_new (VALENT_TYPE_TEST_CHANNEL,
+  data->channel = g_object_new (VALENT_TYPE_MOCK_CHANNEL,
                                 "base-stream",   base_stream,
                                 "host",          "127.0.0.1",
                                 "identity",      data->channel_identity,
@@ -52,7 +52,7 @@ connect_cb (GSocketClient *client,
   g_autoptr (GSocketConnection) base_stream = NULL;
 
   base_stream = g_socket_client_connect_finish (client, result, NULL);
-  data->endpoint = g_object_new (VALENT_TYPE_TEST_CHANNEL,
+  data->endpoint = g_object_new (VALENT_TYPE_MOCK_CHANNEL,
                                  "base-stream",   base_stream,
                                  "host",          "127.0.0.1",
                                  "identity",      data->endpoint_identity,

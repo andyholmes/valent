@@ -10,7 +10,7 @@ test_packet_builder (void)
   const char *type;
   JsonObject *body;
 
-  builder = valent_packet_start ("kdeconnect.test");
+  builder = valent_packet_start ("kdeconnect.mock");
   packet = valent_packet_finish (builder);
   g_assert_true (valent_packet_is_valid (packet));
 
@@ -18,7 +18,7 @@ test_packet_builder (void)
   g_assert_cmpint (id, ==, 0);
 
   type = valent_packet_get_type (packet);
-  g_assert_cmpstr (type, ==, "kdeconnect.test");
+  g_assert_cmpstr (type, ==, "kdeconnect.mock");
 
   body = valent_packet_get_body (packet);
   g_assert_nonnull (body);
@@ -31,7 +31,7 @@ test_packet_serializing (void)
   JsonNode *packet;
   char *packet_str;
 
-  builder = valent_packet_start ("kdeconnect.test");
+  builder = valent_packet_start ("kdeconnect.mock");
   packet = valent_packet_finish (builder);
 
   packet_str = valent_packet_serialize (packet);
@@ -55,7 +55,7 @@ test_packet_streaming (void)
   g_autoptr (GOutputStream) out = NULL;
   g_autoptr (GBytes) bytes = NULL;
 
-  builder = valent_packet_start ("kdeconnect.test");
+  builder = valent_packet_start ("kdeconnect.mock");
   packet = valent_packet_finish (builder);
 
   out = g_memory_output_stream_new_resizable ();
@@ -82,7 +82,7 @@ test_packet_payloads (void)
   JsonObject *root;
 
   /* Build a mock packet with payload */
-  builder = valent_packet_start ("kdeconnect.test.transfer");
+  builder = valent_packet_start ("kdeconnect.mock.transfer");
   packet = valent_packet_finish (builder);
 
   builder = json_builder_new ();

@@ -33,8 +33,8 @@ power_component_fixture_set_up (PowerComponentFixture *fixture,
 {
   fixture->power = valent_power_get_default ();
 
-  fixture->device = g_object_new (VALENT_TYPE_TEST_POWER_DEVICE, NULL);
-  valent_test_power_device_set_kind (VALENT_TEST_POWER_DEVICE (fixture->device),
+  fixture->device = g_object_new (VALENT_TYPE_MOCK_POWER_DEVICE, NULL);
+  valent_mock_power_device_set_kind (VALENT_MOCK_POWER_DEVICE (fixture->device),
                                      VALENT_POWER_DEVICE_BATTERY);
 }
 
@@ -167,7 +167,8 @@ test_power_component_self (PowerComponentFixture *fixture,
   fixture->data = NULL;
 
   /* Change Device */
-  valent_test_power_device_set_level (VALENT_TEST_POWER_DEVICE (fixture->device), 42);
+  valent_mock_power_device_set_level (VALENT_MOCK_POWER_DEVICE (fixture->device),
+                                      42);
 
   /* Compare Device & Aggregator */
   g_object_get (fixture->device,
@@ -218,7 +219,7 @@ test_power_component_dispose (PowerComponentFixture *fixture,
 
   /* Unload the provider */
   engine = valent_get_engine ();
-  peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "test"));
+  peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "mock"));
 
   providers = valent_component_get_providers (VALENT_COMPONENT (fixture->power));
   g_assert_cmpuint (providers->len, ==, 0);
