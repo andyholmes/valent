@@ -7,13 +7,13 @@
 # error "Only <libvalent-test.h> can be included directly."
 #endif
 
-#include <libvalent-core.h>
+#include <libpeas/peas.h>
 
 G_BEGIN_DECLS
 
-#define VALENT_TYPE_TEST_CHANNEL (valent_test_channel_get_type())
+#define VALENT_TYPE_MOCK_DEVICE_PLUGIN (valent_mock_device_plugin_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentTestChannel, valent_test_channel, VALENT, TEST_CHANNEL, ValentChannel)
+G_DECLARE_FINAL_TYPE (ValentMockDevicePlugin, valent_mock_device_plugin, VALENT, MOCK_DEVICE_PLUGIN, PeasExtensionBase)
 
 G_END_DECLS
 

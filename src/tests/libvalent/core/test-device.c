@@ -358,7 +358,7 @@ handle_available_cb (ValentChannel *channel,
   g_assert_no_error (error);
 
   type = valent_packet_get_type (packet);
-  g_assert_cmpstr (type, ==, "kdeconnect.test.echo");
+  g_assert_cmpstr (type, ==, "kdeconnect.mock.echo");
 
   g_main_loop_quit (fixture->loop);
 }

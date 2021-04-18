@@ -22,7 +22,7 @@ media_component_fixture_set_up (MediaComponentFixture *fixture,
   while (g_main_context_iteration (NULL, FALSE))
     continue;
 
-  fixture->player = g_object_new (VALENT_TYPE_TEST_MEDIA_PLAYER, NULL);
+  fixture->player = g_object_new (VALENT_TYPE_MOCK_MEDIA_PLAYER, NULL);
 }
 
 static void
@@ -306,7 +306,7 @@ test_media_component_dispose (MediaComponentFixture *fixture,
 
   /* Unload the provider */
   engine = valent_get_engine ();
-  peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "test"));
+  peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "mock"));
 
   providers = valent_component_get_providers (VALENT_COMPONENT (fixture->media));
   g_assert_cmpuint (providers->len, ==, 0);

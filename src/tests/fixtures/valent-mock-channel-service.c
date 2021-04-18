@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-#define G_LOG_DOMAIN "valent-test-channel-service"
+#define G_LOG_DOMAIN "valent-mock-channel-service"
 
 #include "config.h"
 
@@ -9,7 +9,7 @@
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
 
-#include "valent-test-channel-service.h"
+#include "valent-mock-channel-service.h"
 #include "valent-test-utils.h"
 
 
@@ -18,7 +18,7 @@
 #define TRANSFER_PORT_MAX 1764
 
 
-struct _ValentTestChannelService
+struct _ValentMockChannelService
 {
   ValentChannelService  parent_instance;
 
@@ -31,7 +31,7 @@ struct _ValentTestChannelService
   ValentChannel        *endpoint;
 };
 
-G_DEFINE_TYPE (ValentTestChannelService, valent_test_channel_service, VALENT_TYPE_CHANNEL_SERVICE)
+G_DEFINE_TYPE (ValentMockChannelService, valent_mock_channel_service, VALENT_TYPE_CHANNEL_SERVICE)
 
 enum {
   PROP_0,
@@ -50,16 +50,16 @@ static const char identity_json[] =
 "  \"type\": \"kdeconnect.identity\","
 "  \"body\": {                       "
 "    \"deviceId\": \"test-device\",  "
-"    \"deviceName\": \"Test Device\","
+"    \"deviceName\": \"Mock Device\","
 "    \"protocolVersion\": 7,         "
 "    \"deviceType\": \"phone\",      "
 "    \"incomingCapabilities\": [     "
-"      \"kdeconnect.test.echo\",     "
-"      \"kdeconnect.test.transfer\"  "
+"      \"kdeconnect.mock.echo\",     "
+"      \"kdeconnect.mock.transfer\"  "
 "    ],                              "
 "    \"outgoingCapabilities\": [     "
-"      \"kdeconnect.test.echo\",     "
-"      \"kdeconnect.test.transfer\"  "
+"      \"kdeconnect.mock.echo\",     "
+"      \"kdeconnect.mock.transfer\"  "
 "    ],                              "
 "    \"tcpPort\": 1716               "
 "  }                                 "
@@ -70,14 +70,14 @@ static const char identity_json[] =
  * ValentChannelService
  */
 static void
-valent_test_channel_service_identify (ValentChannelService *service,
+valent_mock_channel_service_identify (ValentChannelService *service,
                                       const char           *target)
 {
-  ValentTestChannelService *self = VALENT_TEST_CHANNEL_SERVICE (service);
+  ValentMockChannelService *self = VALENT_MOCK_CHANNEL_SERVICE (service);
   g_autofree ValentChannel **channels = NULL;
   JsonNode *identity, *peer_identity;
 
-  g_assert (VALENT_IS_TEST_CHANNEL_SERVICE (self));
+  g_assert (VALENT_IS_MOCK_CHANNEL_SERVICE (self));
 
   identity = valent_channel_service_get_identity (service);
   peer_identity = json_from_string (identity_json, NULL);
@@ -96,28 +96,28 @@ valent_test_channel_service_identify (ValentChannelService *service,
 }
 
 static void
-valent_test_channel_service_start (ValentChannelService *service,
+valent_mock_channel_service_start (ValentChannelService *service,
                                    GCancellable         *cancellable,
                                    GAsyncReadyCallback   callback,
                                    gpointer              user_data)
 {
-  ValentTestChannelService *self = VALENT_TEST_CHANNEL_SERVICE (service);
+  ValentMockChannelService *self = VALENT_MOCK_CHANNEL_SERVICE (service);
   g_autoptr (GTask) task = NULL;
 
-  g_assert (VALENT_IS_TEST_CHANNEL_SERVICE (service));
+  g_assert (VALENT_IS_MOCK_CHANNEL_SERVICE (service));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   task = g_task_new (service, self->cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_test_channel_service_start);
+  g_task_set_source_tag (task, valent_mock_channel_service_start);
   g_task_return_boolean (task, TRUE);
 }
 
 static void
-valent_test_channel_service_stop (ValentChannelService *service)
+valent_mock_channel_service_stop (ValentChannelService *service)
 {
-  ValentTestChannelService *self = VALENT_TEST_CHANNEL_SERVICE (service);
+  ValentMockChannelService *self = VALENT_MOCK_CHANNEL_SERVICE (service);
 
-  g_assert (VALENT_IS_TEST_CHANNEL_SERVICE (self));
+  g_assert (VALENT_IS_MOCK_CHANNEL_SERVICE (self));
 
   g_clear_object (&self->channel);
   g_clear_object (&self->endpoint);
@@ -129,35 +129,35 @@ valent_test_channel_service_stop (ValentChannelService *service)
  * GObject
  */
 static void
-valent_test_channel_service_constructed (GObject *object)
+valent_mock_channel_service_constructed (GObject *object)
 {
-  ValentTestChannelService *self = (ValentTestChannelService *)object;
+  ValentMockChannelService *self = (ValentMockChannelService *)object;
 
   if (self->broadcast_address == NULL)
     self->broadcast_address = g_strdup ("127.0.0.255");
 
-  G_OBJECT_CLASS (valent_test_channel_service_parent_class)->constructed (object);
+  G_OBJECT_CLASS (valent_mock_channel_service_parent_class)->constructed (object);
 }
 
 static void
-valent_test_channel_service_finalize (GObject *object)
+valent_mock_channel_service_finalize (GObject *object)
 {
-  ValentTestChannelService *self = (ValentTestChannelService *)object;
+  ValentMockChannelService *self = (ValentMockChannelService *)object;
 
   g_clear_pointer (&self->broadcast_address, g_free);
   g_clear_object (&self->channel);
   g_clear_object (&self->endpoint);
 
-  G_OBJECT_CLASS (valent_test_channel_service_parent_class)->finalize (object);
+  G_OBJECT_CLASS (valent_mock_channel_service_parent_class)->finalize (object);
 }
 
 static void
-valent_test_channel_service_get_property (GObject    *object,
+valent_mock_channel_service_get_property (GObject    *object,
                                           guint       prop_id,
                                           GValue     *value,
                                           GParamSpec *pspec)
 {
-  ValentTestChannelService *self = (ValentTestChannelService *)object;
+  ValentMockChannelService *self = (ValentMockChannelService *)object;
 
   switch (prop_id)
     {
@@ -175,12 +175,12 @@ valent_test_channel_service_get_property (GObject    *object,
 }
 
 static void
-valent_test_channel_service_set_property (GObject      *object,
+valent_mock_channel_service_set_property (GObject      *object,
                                           guint         prop_id,
                                           const GValue *value,
                                           GParamSpec   *pspec)
 {
-  ValentTestChannelService *self = (ValentTestChannelService *)object;
+  ValentMockChannelService *self = (ValentMockChannelService *)object;
 
   switch (prop_id)
     {
@@ -198,22 +198,22 @@ valent_test_channel_service_set_property (GObject      *object,
 }
 
 static void
-valent_test_channel_service_class_init (ValentTestChannelServiceClass *klass)
+valent_mock_channel_service_class_init (ValentMockChannelServiceClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentChannelServiceClass *service_class = VALENT_CHANNEL_SERVICE_CLASS (klass);
 
-  object_class->constructed = valent_test_channel_service_constructed;
-  object_class->finalize = valent_test_channel_service_finalize;
-  object_class->get_property = valent_test_channel_service_get_property;
-  object_class->set_property = valent_test_channel_service_set_property;
+  object_class->constructed = valent_mock_channel_service_constructed;
+  object_class->finalize = valent_mock_channel_service_finalize;
+  object_class->get_property = valent_mock_channel_service_get_property;
+  object_class->set_property = valent_mock_channel_service_set_property;
 
-  service_class->identify = valent_test_channel_service_identify;
-  service_class->start = valent_test_channel_service_start;
-  service_class->stop = valent_test_channel_service_stop;
+  service_class->identify = valent_mock_channel_service_identify;
+  service_class->start = valent_mock_channel_service_start;
+  service_class->stop = valent_mock_channel_service_stop;
 
   /**
-   * ValentTestChannelService:broadcast-address:
+   * ValentMockChannelService:broadcast-address:
    *
    * The UDP broadcast address for the backend.
    *
@@ -230,7 +230,7 @@ valent_test_channel_service_class_init (ValentTestChannelServiceClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentTestChannelService:port:
+   * ValentMockChannelService:port:
    *
    * The TCP/IP port for the backend. The current KDE Connect protocol (v7)
    * defines port 1716 as the default. We use 1717 in the loopback service.
@@ -250,7 +250,7 @@ valent_test_channel_service_class_init (ValentTestChannelServiceClass *klass)
 }
 
 static void
-valent_test_channel_service_init (ValentTestChannelService *self)
+valent_mock_channel_service_init (ValentMockChannelService *self)
 {
   self->cancellable = NULL;
   self->broadcast_address = NULL;
@@ -265,46 +265,46 @@ valent_test_channel_service_init (ValentTestChannelService *self)
 }
 
 /**
- * valent_test_channel_service_get_instance:
+ * valent_mock_channel_service_get_instance:
  *
- * Get the #ValentTestChannelService instance.
+ * Get the #ValentMockChannelService instance.
  *
  * Returns: (transfer none) (nullable): a #ValentChannelService
  */
 ValentChannelService *
-valent_test_channel_service_get_instance (void)
+valent_mock_channel_service_get_instance (void)
 {
   return test_instance;
 }
 
 /**
- * valent_test_channel_service_get_channel:
+ * valent_mock_channel_service_get_channel:
  *
  * Get the local #ValentChannel.
  *
  * Returns: (transfer none) (nullable): a #ValentChannel
  */
 ValentChannel *
-valent_test_channel_service_get_channel (void)
+valent_mock_channel_service_get_channel (void)
 {
   if (test_instance != NULL)
-    return VALENT_TEST_CHANNEL_SERVICE (test_instance)->channel;
+    return VALENT_MOCK_CHANNEL_SERVICE (test_instance)->channel;
 
   return NULL;
 }
 
 /**
- * valent_test_channel_service_get_endpoint:
+ * valent_mock_channel_service_get_endpoint:
  *
  * Get the endpoint #ValentChannel.
  *
  * Returns: (transfer none) (nullable): a #ValentChannel
  */
 ValentChannel *
-valent_test_channel_service_get_endpoint (void)
+valent_mock_channel_service_get_endpoint (void)
 {
   if (test_instance != NULL)
-    return VALENT_TEST_CHANNEL_SERVICE (test_instance)->endpoint;
+    return VALENT_MOCK_CHANNEL_SERVICE (test_instance)->endpoint;
 
   return NULL;
 }

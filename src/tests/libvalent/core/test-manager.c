@@ -91,7 +91,7 @@ test_manager_management (ManagerFixture *fixture,
   /* Creates devices for channels */
   valent_manager_start (fixture->manager);
 
-  while ((service = valent_test_channel_service_get_instance ()) == NULL)
+  while ((service = valent_mock_channel_service_get_instance ()) == NULL)
     g_main_context_iteration (NULL, FALSE);
 
   valent_manager_identify (fixture->manager, NULL);
@@ -178,16 +178,16 @@ test_manager_dispose (ManagerFixture *fixture,
   /* Wait for the channel service */
   valent_manager_start (fixture->manager);
 
-  while ((service = valent_test_channel_service_get_instance ()) == NULL)
+  while ((service = valent_mock_channel_service_get_instance ()) == NULL)
     g_main_context_iteration (NULL, FALSE);
 
   engine = valent_get_engine ();
-  peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "test"));
+  peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "mock"));
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
 
-  service = valent_test_channel_service_get_instance ();
+  service = valent_mock_channel_service_get_instance ();
   g_assert_null (service);
 }
 

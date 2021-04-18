@@ -130,8 +130,8 @@ test_battery_plugin_handle_request (ValentTestPluginFixture *fixture,
   g_autoptr (ValentPowerDevice) device = NULL;
   JsonNode *packet;
 
-  device = g_object_new (VALENT_TYPE_TEST_POWER_DEVICE, NULL);
-  valent_test_power_device_set_kind (VALENT_TEST_POWER_DEVICE (device),
+  device = g_object_new (VALENT_TYPE_MOCK_POWER_DEVICE, NULL);
+  valent_mock_power_device_set_kind (VALENT_MOCK_POWER_DEVICE (device),
                                      VALENT_POWER_DEVICE_BATTERY);
 
   providers = valent_component_get_providers (VALENT_COMPONENT (valent_power_get_default ()));
@@ -154,7 +154,7 @@ test_battery_plugin_handle_request (ValentTestPluginFixture *fixture,
   json_node_unref (packet);
 
   /* Expect updates */
-  valent_test_power_device_set_level (VALENT_TEST_POWER_DEVICE (device), 42);
+  valent_mock_power_device_set_level (VALENT_MOCK_POWER_DEVICE (device), 42);
 
   packet = valent_test_plugin_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.battery");
@@ -163,7 +163,7 @@ test_battery_plugin_handle_request (ValentTestPluginFixture *fixture,
   v_assert_packet_cmpint (packet, "thresholdEvent", ==, 0);
   json_node_unref (packet);
 
-  valent_test_power_device_set_state (VALENT_TEST_POWER_DEVICE (device),
+  valent_mock_power_device_set_state (VALENT_MOCK_POWER_DEVICE (device),
                                       VALENT_POWER_STATE_CHARGING);
 
   packet = valent_test_plugin_fixture_expect_packet (fixture);
@@ -173,7 +173,7 @@ test_battery_plugin_handle_request (ValentTestPluginFixture *fixture,
   v_assert_packet_cmpint (packet, "thresholdEvent", ==, 0);
   json_node_unref (packet);
 
-  valent_test_power_device_set_warning (VALENT_TEST_POWER_DEVICE (device),
+  valent_mock_power_device_set_warning (VALENT_MOCK_POWER_DEVICE (device),
                                         VALENT_POWER_WARNING_LOW);
 
   packet = valent_test_plugin_fixture_expect_packet (fixture);

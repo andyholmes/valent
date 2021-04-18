@@ -7,14 +7,13 @@
 # error "Only <libvalent-test.h> can be included directly."
 #endif
 
-#include <libpeas/peas.h>
-#include <libvalent-input.h>
+#include <libvalent-mixer.h>
 
 G_BEGIN_DECLS
 
-#define VALENT_TYPE_TEST_INPUT_CONTROLLER (valent_test_input_controller_get_type())
+#define VALENT_TYPE_MOCK_MIXER_CONTROL (valent_mock_mixer_control_get_type ())
 
-G_DECLARE_FINAL_TYPE (ValentTestInputController, valent_test_input_controller, VALENT, TEST_INPUT_CONTROLLER, PeasExtensionBase)
+G_DECLARE_FINAL_TYPE (ValentMockMixerControl, valent_mock_mixer_control, VALENT, MOCK_MIXER_CONTROL, ValentMixerControl)
 
 G_END_DECLS
 

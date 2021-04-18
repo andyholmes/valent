@@ -7,13 +7,13 @@
 # error "Only <libvalent-test.h> can be included directly."
 #endif
 
-#include <libvalent-mixer.h>
+#include <libvalent-power.h>
 
 G_BEGIN_DECLS
 
-#define VALENT_TYPE_TEST_MIXER_CONTROL (valent_test_mixer_control_get_type ())
+#define VALENT_TYPE_MOCK_POWER_DEVICE_PROVIDER (valent_mock_power_device_provider_get_type ())
 
-G_DECLARE_FINAL_TYPE (ValentTestMixerControl, valent_test_mixer_control, VALENT, TEST_MIXER_CONTROL, ValentMixerControl)
+G_DECLARE_FINAL_TYPE (ValentMockPowerDeviceProvider, valent_mock_power_device_provider, VALENT, MOCK_POWER_DEVICE_PROVIDER, ValentPowerDeviceProvider)
 
 G_END_DECLS
 

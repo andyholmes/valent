@@ -5,20 +5,19 @@
 
 #define VALENT_TEST_INSIDE
 
-#include "valent-device-private.h"
-
-#include "valent-test-channel.h"
-#include "valent-test-channel-service.h"
-#include "valent-test-clipboard.h"
-#include "valent-test-contact-store-provider.h"
-#include "valent-test-input-controller.h"
-#include "valent-test-media-player.h"
-#include "valent-test-media-player-provider.h"
-#include "valent-test-mixer-control.h"
-#include "valent-test-notification-source.h"
+#include "valent-mock-channel.h"
+#include "valent-mock-channel-service.h"
+#include "valent-mock-clipboard-source.h"
+#include "valent-mock-contact-store-provider.h"
+#include "valent-mock-device-plugin.h"
+#include "valent-mock-input-controller.h"
+#include "valent-mock-media-player.h"
+#include "valent-mock-media-player-provider.h"
+#include "valent-mock-mixer-control.h"
+#include "valent-mock-notification-source.h"
 #include "valent-test-plugin-fixture.h"
-#include "valent-test-power-device.h"
-#include "valent-test-power-device-provider.h"
+#include "valent-mock-power-device.h"
+#include "valent-mock-power-device-provider.h"
 #include "valent-test-utils.h"
 
 #undef VALENT_TEST_INSIDE

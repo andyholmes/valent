@@ -54,7 +54,7 @@ test_notifications_component_provider (NotificationsComponentFixture *fixture,
   PeasPluginInfo *info;
 
   /* Wait for valent_notification_source_load_async() to resolve */
-  source = valent_test_notification_source_get_instance ();
+  source = valent_mock_notification_source_get_instance ();
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
@@ -98,7 +98,7 @@ test_notifications_component_notification (NotificationsComponentFixture *fixtur
   gint64 time, ntime;
 
   /* Wait for valent_notification_source_load_async() to resolve */
-  source = valent_test_notification_source_get_instance ();
+  source = valent_mock_notification_source_get_instance ();
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
@@ -177,7 +177,7 @@ test_notifications_component_self (NotificationsComponentFixture *fixture,
   ValentNotificationSource *source;
 
   /* Wait for valent_notification_source_load_async() to resolve */
-  source = valent_test_notification_source_get_instance ();
+  source = valent_mock_notification_source_get_instance ();
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
@@ -209,7 +209,7 @@ test_notifications_component_dispose (NotificationsComponentFixture *fixture,
   PeasEngine *engine;
 
   /* Add a notification to the provider */
-  source = valent_test_notification_source_get_instance ();
+  source = valent_mock_notification_source_get_instance ();
 
   /* Wait for valent_notification_source_load_async() to resolve */
   valent_notification_source_emit_notification_added (source, fixture->notification);
@@ -219,9 +219,9 @@ test_notifications_component_dispose (NotificationsComponentFixture *fixture,
 
   /* Unload the provider */
   engine = valent_get_engine ();
-  peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "test"));
+  peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "mock"));
 
-  source = valent_test_notification_source_get_instance ();
+  source = valent_mock_notification_source_get_instance ();
   g_assert_null (source);
 }
 
