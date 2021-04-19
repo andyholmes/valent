@@ -18,6 +18,8 @@ jobs:
           submodules: true
 
       - name: Build
+        env:
+          XML_CATALOG_FILES: /etc/xml/catalog
         run: |
           meson --prefix=/usr \
                 --buildtype=release \
