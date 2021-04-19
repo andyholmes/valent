@@ -70,17 +70,12 @@ jobs:
                --rc lcov_branch_coverage=1 \
                --output-file _build/meson-logs/coverage.info
 
-      - name: Coverage
+      - name: Coveralls
         if: ${{ success() }}
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: ${{ github.workspace }}/_build/meson-logs/coverage.info
-
-      - name: Codecov
-        uses: codecov/codecov-action@v1
-        with:
-          files: ${{ github.workspace }}/_build/meson-logs/coverage.info
 
   test_sanitizer:
     name: Unit Tests (asan/lsan, ubsan)
