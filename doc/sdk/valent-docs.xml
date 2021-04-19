@@ -10,9 +10,9 @@
   <bookinfo>
     <title>Valent Reference Manual</title>
     <releaseinfo>
-      This document is for Valent, version &package_version;.
-      The latest version of this documentation can be found on-line at
-      <ulink role="online-location" url="http://[SERVER]/&package_name;/index.html">http://[SERVER]/&package_name;/</ulink>.
+      This document is the API reference for &package_name; &package_version;.
+      The latest version of this API reference is also available
+      <ulink role="online-location" url="https://andyholmes.ca/&package_name;/index.html">online</ulink>.
     </releaseinfo>
   </bookinfo>
 
