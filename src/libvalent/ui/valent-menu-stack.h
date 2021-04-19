@@ -11,8 +11,9 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (ValentMenuStack, valent_menu_stack, VALENT, MENU_STACK, GtkWidget)
 
-void              valent_menu_stack_bind_model (ValentMenuStack *self,
-                                                GMenuModel      *model);
-ValentMenuStack * valent_menu_stack_new        (void);
+GtkWidget  * valent_menu_stack_new            (GMenuModel      *menu_model);
+GMenuModel * valent_menu_stack_get_menu_model (ValentMenuStack *stack);
+void         valent_menu_stack_set_menu_model (ValentMenuStack *stack,
+                                               GMenuModel      *menu_model);
 
 G_END_DECLS

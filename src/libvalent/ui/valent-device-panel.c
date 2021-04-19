@@ -320,7 +320,7 @@ valent_device_panel_constructed (GObject *object)
   gtk_widget_insert_action_group (GTK_WIDGET (self), "device", actions);
 
   menu = valent_device_get_menu (self->device);
-  valent_menu_stack_bind_model (self->menu_actions, menu);
+  valent_menu_stack_set_menu_model (self->menu_actions, menu);
 
   /* Pair Section */
   g_signal_connect (self->device,
