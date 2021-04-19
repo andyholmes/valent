@@ -1,0 +1,33 @@
+name: Documentation
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  documentation:
+    name: Documentation
+    runs-on: ubuntu-latest
+    container:
+      image: andyholmes/valent:latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Build
+        run: |
+          meson --prefix=/usr \
+                --buildtype=release \
+                -Ddocumentation=true \
+                _build
+          ninja -C _build valent-doc
+
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@4.1.1
+        with:
+          branch: gh-pages
+          folder: _build/doc/sdk/html
+
