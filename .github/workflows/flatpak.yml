@@ -19,7 +19,7 @@ jobs:
           submodules: true
 
       - name: Export
-      - uses: bilelmoussaoui/flatpak-github-actions/flatpak-builder@v3
+        uses: bilelmoussaoui/flatpak-github-actions/flatpak-builder@v3
         with:
           bundle: "ca.andyholmes.Valent.flatpak"
           manifest-path: "build-aux/flatpak/ca.andyholmes.Valent.json"
