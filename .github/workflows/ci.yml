@@ -70,12 +70,28 @@ jobs:
                --rc lcov_branch_coverage=1 \
                --output-file _build/meson-logs/coverage.info
 
-      - name: Coveralls
+          genhtml --prefix $WORKSPACE \
+                  --output-directory _build/meson-logs/coverage-html \
+                  --title 'Code Coverage' \
+                  --legend \
+                  --show-details \
+                  --branch-coverage \
+                  _build/meson-logs/coverage.info
+
+      - name: Coverage (Report)
         if: ${{ success() }}
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: ${{ github.workspace }}/_build/meson-logs/coverage.info
+
+      - name: Coverage (Deploy)
+        if: ${{ github.ref == 'refs/heads/master' }}
+        uses: JamesIves/github-pages-deploy-action@4.1.1
+        with:
+          branch: gh-pages
+          folder: _build/meson-logs/coverage-html
+          target-folder: coverage
 
   test_sanitizer:
     name: Unit Tests (asan/lsan, ubsan)
