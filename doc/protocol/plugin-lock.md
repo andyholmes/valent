@@ -14,7 +14,7 @@ The **Lock** plugin allows requesting a device lock or unlock.
 // The current locked state
 {
     "id": 0,
-    "type": "kdeconnect.lock.request",
+    "type": "kdeconnect.lock",
     "body": {
         "isLocked": true
     }

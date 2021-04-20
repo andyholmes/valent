@@ -52,6 +52,17 @@ ${COMMAND} --format c \
            data/schemas/kdeconnect.findmyphone.request.json > \
            plugins/findmyphone/kdeconnect.findmyphone.request-fuzz.h
 
+# Lcok Plugin
+${COMMAND} --format c \
+           --c-variable-name lock_fuzz \
+           data/schemas/kdeconnect.lock.json > \
+           plugins/lock/kdeconnect.lock-fuzz.h
+
+${COMMAND} --format c \
+           --c-variable-name lock_request_fuzz \
+           data/schemas/kdeconnect.lock.request.json > \
+           plugins/lock/kdeconnect.lock.request-fuzz.h
+
 # Mousepad Plugin
 ${COMMAND} --format c \
            --c-variable-name mousepad_echo_fuzz \

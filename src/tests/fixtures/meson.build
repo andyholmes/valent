@@ -24,6 +24,7 @@ libvalent_test_public_headers = [
   'valent-mock-notification-source.h',
   'valent-mock-power-device.h',
   'valent-mock-power-device-provider.h',
+  'valent-mock-session-adapter.h',
   'valent-test-plugin-fixture.h',
   'valent-test-utils.h',
 ]
@@ -48,6 +49,7 @@ libvalent_test_public_sources = [
   'valent-mock-notification-source.c',
   'valent-mock-power-device.c',
   'valent-mock-power-device-provider.c',
+  'valent-mock-session-adapter.c',
   'valent-test-plugin-fixture.c',
   'valent-test-utils.c',
 ]
@@ -63,6 +65,7 @@ libvalent_test_deps = [
   libvalent_mixer_dep,
   libvalent_notifications_dep,
   libvalent_power_dep,
+  libvalent_session_dep,
   libvalent_ui_dep,
 ]
 

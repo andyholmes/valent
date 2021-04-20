@@ -16,6 +16,7 @@ plugin_tests = [
  'clipboard',
  'contacts',
  'findmyphone',
+ 'lock',
  'mousepad',
  'mpris',
  'notification',
