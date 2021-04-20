@@ -90,6 +90,7 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@4.1.1
         with:
           branch: gh-pages
+          commit-message: Coverage Report
           folder: _build/meson-logs/coverage-html
           target-folder: coverage
 
