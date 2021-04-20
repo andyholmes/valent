@@ -1,0 +1,55 @@
+{
+  "identity": {
+    "id": 0,
+    "type": "kdeconnect.identity",
+    "body": {
+      "deviceId": "test-device",
+      "deviceName": "Test Device",
+      "protocolVersion": 7,
+      "deviceType": "phone",
+      "incomingCapabilities": [
+        "kdeconnect.lock",
+        "kdeconnect.lock.request"
+      ],
+      "outgoingCapabilities": [
+        "kdeconnect.lock",
+        "kdeconnect.lock.request"
+      ]
+    }
+  },
+  "is-locked": {
+    "id": 0,
+    "type": "kdeconnect.lock",
+    "body": {
+      "isLocked": true
+    }
+  },
+  "is-unlocked": {
+    "id": 0,
+    "type": "kdeconnect.lock",
+    "body": {
+      "isLocked": false
+    }
+  },
+  "request-locked": {
+    "id": 0,
+    "type": "kdeconnect.lock.request",
+    "body": {
+      "requestLocked": true
+    }
+  },
+  "set-locked": {
+    "id": 0,
+    "type": "kdeconnect.lock.request",
+    "body": {
+      "setLocked": true
+    }
+  },
+  "set-unlocked": {
+    "id": 0,
+    "type": "kdeconnect.lock.request",
+    "body": {
+      "setLocked": false
+    }
+  }
+}
