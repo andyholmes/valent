@@ -64,7 +64,7 @@ valent_mock_notification_source_init (ValentMockNotificationSource *self)
 /**
  * valent_mock_notification_source_get_instance:
  *
- * Get the #ValentMockNoitificationSource instance.
+ * Get the #ValentMockNotificationSource instance.
  *
  * Returns: (transfer none) (nullable): a #ValentNotificationSource
  */
