@@ -18,9 +18,8 @@ jobs:
           submodules: true
 
       - name: Build
-        env:
-          XML_CATALOG_FILES: /etc/xml/catalog
         run: |
+          dnf reinstall docbook-dtds -y
           meson --prefix=/usr \
                 --buildtype=release \
                 -Ddocumentation=true \
@@ -32,4 +31,5 @@ jobs:
         with:
           branch: gh-pages
           folder: _build/doc/sdk/html
+          target-folder: documentation
 
