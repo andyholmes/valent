@@ -1,5 +1,6 @@
 [![CI](https://github.com/andyholmes/valent/actions/workflows/ci.yml/badge.svg)](https://github.com/andyholmes/valent/actions/workflows/ci.yml)
-[![Coverage](https://coveralls.io/repos/github/andyholmes/valent/badge.svg?branch=master)](https://coveralls.io/github/andyholmes/valent?branch=master)
+[![Coverage](https://coveralls.io/repos/github/andyholmes/valent/badge.svg?branch=master)](https://andyholmes.ca/valent/coverage/index.html)
+[![API](https://img.shields.io/badge/API-unstable-yellow)](https://andyholmes.ca/valent/documentation/index.html)
 
 # Valent
 
