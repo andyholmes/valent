@@ -7,5 +7,6 @@ subdir('media')
 subdir('mixer')
 subdir('notifications')
 subdir('power')
+subdir('session')
 subdir('ui')
 
