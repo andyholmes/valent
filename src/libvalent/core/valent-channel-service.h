@@ -42,7 +42,6 @@ void             valent_channel_service_emit_channel    (ValentChannelService   
                                                          ValentChannel          *channel);
 const char     * valent_channel_service_get_id          (ValentChannelService   *service);
 JsonNode       * valent_channel_service_get_identity    (ValentChannelService   *service);
-PeasPluginInfo * valent_channel_service_get_plugin_info (ValentChannelService   *service);
 
 void             valent_channel_service_build_identity  (ValentChannelService   *service);
 void             valent_channel_service_identify        (ValentChannelService   *service,

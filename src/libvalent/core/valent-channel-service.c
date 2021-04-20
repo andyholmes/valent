@@ -634,24 +634,6 @@ valent_channel_service_get_identity (ValentChannelService *service)
 }
 
 /**
- * valent_channel_service_get_plugin_info:
- * @service: a #ValentChannelService
- *
- * Get the #PeasPluginInfo for @service.
- *
- * Returns: (transfer none): a #PeasPluginInfo
- */
-PeasPluginInfo *
-valent_channel_service_get_plugin_info (ValentChannelService *service)
-{
-  ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (service);
-
-  g_return_val_if_fail (VALENT_IS_CHANNEL_SERVICE (service), NULL);
-
-  return priv->plugin_info;
-}
-
-/**
  * valent_channel_service_build_identity: (virtual build_identity)
  * @service: a #ValentChannelService
  *
