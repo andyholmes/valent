@@ -17,6 +17,7 @@
 #include "valent-mock-notification-source.h"
 #include "valent-mock-power-device.h"
 #include "valent-mock-power-device-provider.h"
+#include "valent-mock-session-adapter.h"
 #include "valent-test-plugin-fixture.h"
 #include "valent-test-utils.h"
 
