@@ -22,6 +22,9 @@ if appstream_util.found()
     validate_args += '--nonet'
   endif
 
-  test('Validate AppStream file', appstream_util, args: validate_args)
+  test('Validate AppStream file', appstream_util,
+       args: validate_args,
+    depends: [metainfo_file],
+  )
 endif
 
