@@ -2,8 +2,8 @@ FROM fedora:34
 
 RUN dnf install -y --enablerepo=fedora-debuginfo,updates-debuginfo \
         clang gcc gettext git libasan libubsan meson \
-        appstream desktop-file-utils dbus-daemon gtk-doc lcov rsync \
-        xorg-x11-server-Xvfb \
+        appstream desktop-file-utils dbus-daemon gtk-doc lcov python-dbusmock \
+        rsync xorg-x11-server-Xvfb \
         alsa-lib-devel                alsa-lib-debuginfo \
         evolution-data-server-devel   evolution-data-server-debuginfo \
         glib2-devel                   glib2-debuginfo \
