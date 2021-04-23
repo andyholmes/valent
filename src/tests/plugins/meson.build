@@ -10,6 +10,16 @@ foreach plugin : backend_tests
 endforeach
 
 
+# Integration (Components)
+component_tests = [
+  'upower',
+]
+
+foreach plugin : component_tests
+  subdir(plugin)
+endforeach
+
+
 # Plugins (Device Plugins)
 plugin_tests = [
  'battery',
