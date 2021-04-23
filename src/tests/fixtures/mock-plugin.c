@@ -8,6 +8,7 @@
 #include <libvalent-notifications.h>
 #include <libvalent-power.h>
 #include <libvalent-session.h>
+#include <libvalent-ui.h>
 
 #include "valent-mock-channel-service.h"
 #include "valent-mock-clipboard-source.h"
@@ -16,6 +17,7 @@
 #include "valent-mock-mixer-control.h"
 #include "valent-mock-media-player-provider.h"
 #include "valent-mock-notification-source.h"
+#include "valent-mock-device-gadget.h"
 #include "valent-mock-device-plugin.h"
 #include "valent-mock-power-device-provider.h"
 #include "valent-mock-session-adapter.h"
@@ -55,5 +57,8 @@ valent_mock_plugin_register_types (PeasObjectModule *module)
   peas_object_module_register_extension_type (module,
                                               VALENT_TYPE_DEVICE_PLUGIN,
                                               VALENT_TYPE_MOCK_DEVICE_PLUGIN);
+  peas_object_module_register_extension_type (module,
+                                              VALENT_TYPE_DEVICE_GADGET,
+                                              VALENT_TYPE_MOCK_DEVICE_GADGET);
 }
 

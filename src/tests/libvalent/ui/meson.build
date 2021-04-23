@@ -21,7 +21,7 @@ foreach test : ui_tests
           c_args: test_c_args,
     dependencies: ui_test_deps,
        link_args: test_link_args,
-      link_whole: [libvalent_test, libvalent_ui, plugin_battery],
+      link_whole: [libvalent_test, libvalent_ui],
   )
 
   test(test,

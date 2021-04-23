@@ -13,7 +13,7 @@ test_device_panel_basic (void)
   PeasEngine *engine;
   GtkWidget *widget = NULL;
 
-  fixture = valent_test_plugin_fixture_new (TEST_DATA_DIR"/plugin-battery.json");
+  fixture = valent_test_plugin_fixture_new (TEST_DATA_DIR"/plugin-mock.json");
 
   widget = valent_device_panel_new (fixture->device);
   panel = g_object_ref_sink (VALENT_DEVICE_PANEL (widget));
@@ -29,15 +29,15 @@ test_device_panel_basic (void)
   /* Unload the plugin */
   engine = valent_get_engine ();
   peas_engine_unload_plugin (engine,
-                             peas_engine_get_plugin_info (engine, "battery"));
+                             peas_engine_get_plugin_info (engine, "mock"));
 
   g_clear_object (&panel);
   g_clear_pointer (&fixture, valent_test_plugin_fixture_free);
 }
 
 int
-main (int argc,
-     char *argv[])
+main (int   argc,
+      char *argv[])
 {
   valent_test_ui_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 

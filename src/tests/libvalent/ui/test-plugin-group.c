@@ -31,15 +31,15 @@ test_plugin_group_basic (void)
 
   /* Unload the plugin */
   engine = valent_get_engine ();
-  info = peas_engine_get_plugin_info (engine, "battery");
+  info = peas_engine_get_plugin_info (engine, "mock");
   peas_engine_unload_plugin (engine, info);
 
   g_object_unref (group);
 }
 
 int
-main (int argc,
-     char *argv[])
+main (int   argc,
+      char *argv[])
 {
   valent_test_ui_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 

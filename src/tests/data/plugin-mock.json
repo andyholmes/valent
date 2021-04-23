@@ -1,0 +1,34 @@
+{
+  "identity": {
+    "id": 0,
+    "type": "kdeconnect.identity",
+    "body": {
+      "deviceId": "test-device",
+      "deviceName": "Test Device",
+      "protocolVersion": 7,
+      "deviceType": "phone",
+      "incomingCapabilities": [
+        "kdeconnect.mock",
+        "kdeconnect.mock.transfer"
+      ],
+      "outgoingCapabilities": [
+        "kdeconnect.mock",
+        "kdeconnect.mock.transfer"
+      ]
+    }
+  },
+  "echo": {
+    "id": 0,
+    "type": "kdeconnect.mock.echo",
+    "body": {
+      "foo": "bar"
+    }
+  },
+  "transfer": {
+    "id": 0,
+    "type": "kdeconnect.mock.transfer",
+    "body": {
+      "filename": "image.png"
+    }
+  }
+}

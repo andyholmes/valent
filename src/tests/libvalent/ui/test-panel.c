@@ -52,8 +52,8 @@ test_panel_basic (void)
 }
 
 int
-main (int argc,
-     char *argv[])
+main (int   argc,
+      char *argv[])
 {
   valent_test_ui_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 

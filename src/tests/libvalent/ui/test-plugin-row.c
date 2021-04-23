@@ -16,7 +16,7 @@ test_plugin_row_basic (void)
   GType plugin_type;
 
   engine = valent_get_engine ();
-  info = peas_engine_get_plugin_info (engine, "battery");
+  info = peas_engine_get_plugin_info (engine, "mock");
 
   row = valent_plugin_row_new (info, "context");
   g_object_ref_sink (row);
@@ -40,8 +40,8 @@ test_plugin_row_basic (void)
 }
 
 int
-main (int argc,
-     char *argv[])
+main (int   argc,
+      char *argv[])
 {
   valent_test_ui_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 
