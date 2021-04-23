@@ -85,7 +85,7 @@ on_upower_signal (GDBusProxy                 *proxy,
 
   g_assert (VALENT_IS_UPOWER_DEVICE_PROVIDER (self));
 
-  g_variant_get (parameters, "(&o)", object_path);
+  g_variant_get (parameters, "(&o)", &object_path);
 
   if (g_strcmp0 (signal_name, "DeviceAdded") == 0)
     {
