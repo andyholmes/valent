@@ -1,11 +1,11 @@
 
-# Backends (Channel Providers)
-backend_tests = [
+# Networking (Channel Services)
+network_tests = [
   #'bluetooth',
   'lan',
 ]
 
-foreach plugin : backend_tests
+foreach plugin : network_tests
   subdir(plugin)
 endforeach
 
