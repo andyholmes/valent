@@ -34,7 +34,6 @@ plugins = [
   'fdo',
   'gtk',
   'pulseaudio',
-  'upower',
   'xdp',
 ]
 

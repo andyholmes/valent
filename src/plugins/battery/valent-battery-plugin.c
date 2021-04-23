@@ -10,8 +10,8 @@
 #include <gio/gio.h>
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
-#include <libvalent-power.h>
 
+#include "valent-battery.h"
 #include "valent-battery-plugin.h"
 
 
@@ -23,8 +23,8 @@ struct _ValentBatteryPlugin
   GSettings         *settings;
 
   /* Local Battery */
-  ValentPower       *power;
-  unsigned long      power_changed_id;
+  ValentBattery     *battery;
+  unsigned long      battery_changed_id;
 
   /* Remote Battery */
   gboolean           charging;
@@ -133,32 +133,32 @@ valent_battery_plugin_update_gaction (ValentBatteryPlugin *self)
 }
 
 static void
-on_power_changed (ValentPower         *power,
-                  ValentBatteryPlugin *self)
+on_battery_changed (ValentBattery       *battery,
+                    ValentBatteryPlugin *self)
 {
-  g_assert (VALENT_IS_POWER (power));
+  g_assert (VALENT_IS_BATTERY (battery));
   g_assert (VALENT_IS_BATTERY_PLUGIN (self));
 
   valent_battery_plugin_send_state (self);
 }
 
 static void
-connect_power (ValentBatteryPlugin *self,
-               gboolean             connect)
+connect_battery (ValentBatteryPlugin *self,
+                 gboolean             connect)
 {
-  if (self->power == NULL)
-    self->power = valent_power_get_default ();
+  if (self->battery == NULL)
+    self->battery = valent_battery_get_default ();
 
-  if (connect && self->power_changed_id == 0)
+  if (connect && self->battery_changed_id == 0)
     {
-      self->power_changed_id = g_signal_connect (self->power,
-                                                 "changed",
-                                                 G_CALLBACK (on_power_changed),
-                                                 self);
+      self->battery_changed_id = g_signal_connect (self->battery,
+                                                   "changed",
+                                                   G_CALLBACK (on_battery_changed),
+                                                   self);
     }
   else if (!connect)
     {
-      g_clear_signal_handler (&self->power_changed_id, self->power);
+      g_clear_signal_handler (&self->battery_changed_id, self->battery);
     }
 }
 
@@ -357,11 +357,11 @@ valent_battery_plugin_send_state (ValentBatteryPlugin *self)
 
   builder = valent_packet_start("kdeconnect.battery");
   json_builder_set_member_name (builder, "currentCharge");
-  json_builder_add_int_value (builder, valent_power_get_battery_level (self->power));
+  json_builder_add_int_value (builder, valent_battery_get_level (self->battery));
   json_builder_set_member_name (builder, "isCharging");
-  json_builder_add_boolean_value (builder, valent_power_get_battery_charging (self->power));
+  json_builder_add_boolean_value (builder, valent_battery_get_charging (self->battery));
   json_builder_set_member_name (builder, "thresholdEvent");
-  json_builder_add_int_value (builder, valent_power_get_battery_warning (self->power));
+  json_builder_add_int_value (builder, valent_battery_get_threshold (self->battery));
   packet = valent_packet_finish (builder);
 
   valent_device_queue_packet (self->device, packet);
@@ -409,7 +409,7 @@ valent_battery_plugin_disable (ValentDevicePlugin *plugin)
   g_clear_object (&self->settings);
 
   /* Drop power */
-  connect_power (self, FALSE);
+  connect_battery (self, FALSE);
 }
 
 static void
@@ -433,13 +433,13 @@ valent_battery_plugin_update_state (ValentDevicePlugin *plugin)
 
   if (available)
     {
-      connect_power (self, TRUE);
+      connect_battery (self, TRUE);
       valent_battery_plugin_send_state (self);
       valent_battery_plugin_request_state (self);
     }
   else
     {
-      connect_power (self, FALSE);
+      connect_battery (self, FALSE);
     }
 }
 
@@ -519,8 +519,6 @@ valent_battery_plugin_set_property (GObject      *object,
 static void
 valent_battery_plugin_init (ValentBatteryPlugin *self)
 {
-  self->power = valent_power_get_default ();
-
   self->charging = FALSE;
   self->level = -1;
   self->time = 0;

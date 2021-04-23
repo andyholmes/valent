@@ -4,6 +4,34 @@
 
 #include "kdeconnect.battery-fuzz.h"
 
+#define DEVICE_PATH "/org/freedesktop/UPower/devices/DisplayDevice"
+
+
+static void
+upower_set_battery (GDBusConnection         *connection,
+                    const char              *name,
+                    GVariant                *value)
+{
+  GVariantDict dict;
+  GVariant *args;
+
+  g_variant_dict_init (&dict, NULL);
+  g_variant_dict_insert_value (&dict, name, value);
+  args = g_variant_new ("(o@a{sv})", DEVICE_PATH, g_variant_dict_end (&dict));
+
+  g_dbus_connection_call (connection,
+                          "org.freedesktop.UPower",
+                          "/org/freedesktop/UPower",
+                          "org.freedesktop.DBus.Mock",
+                          "SetDeviceProperties",
+                          args,
+                          NULL,
+                          G_DBUS_CALL_FLAGS_NONE,
+                          -1,
+                          NULL,
+                          NULL,
+                          NULL);
+}
 
 static void
 test_battery_plugin_actions (ValentTestPluginFixture *fixture,
@@ -120,23 +148,14 @@ test_battery_plugin_handle_update (ValentTestPluginFixture *fixture,
   g_variant_unref (state);
 }
 
-// TODO
 static void
 test_battery_plugin_handle_request (ValentTestPluginFixture *fixture,
                                     gconstpointer            user_data)
 {
-  g_autoptr (GPtrArray) providers = NULL;
-  ValentPowerDeviceProvider *provider;
-  g_autoptr (ValentPowerDevice) device = NULL;
+  g_autoptr (GDBusConnection) connection = NULL;
   JsonNode *packet;
 
-  device = g_object_new (VALENT_TYPE_MOCK_POWER_DEVICE, NULL);
-  valent_mock_power_device_set_kind (VALENT_MOCK_POWER_DEVICE (device),
-                                     VALENT_POWER_DEVICE_BATTERY);
-
-  providers = valent_component_get_providers (VALENT_COMPONENT (valent_power_get_default ()));
-  provider = g_ptr_array_index (providers, 0);
-  valent_power_device_provider_emit_device_added (provider, device);
+  connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL);
 
   /* Expect connect packets */
   valent_test_plugin_fixture_connect (fixture, TRUE);
@@ -154,7 +173,7 @@ test_battery_plugin_handle_request (ValentTestPluginFixture *fixture,
   json_node_unref (packet);
 
   /* Expect updates */
-  valent_mock_power_device_set_level (VALENT_MOCK_POWER_DEVICE (device), 42);
+  upower_set_battery (connection, "Percentage", g_variant_new_double (42.0));
 
   packet = valent_test_plugin_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.battery");
@@ -163,8 +182,7 @@ test_battery_plugin_handle_request (ValentTestPluginFixture *fixture,
   v_assert_packet_cmpint (packet, "thresholdEvent", ==, 0);
   json_node_unref (packet);
 
-  valent_mock_power_device_set_state (VALENT_MOCK_POWER_DEVICE (device),
-                                      VALENT_POWER_STATE_CHARGING);
+  upower_set_battery (connection, "State", g_variant_new_uint32 (1));
 
   packet = valent_test_plugin_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.battery");
@@ -173,8 +191,7 @@ test_battery_plugin_handle_request (ValentTestPluginFixture *fixture,
   v_assert_packet_cmpint (packet, "thresholdEvent", ==, 0);
   json_node_unref (packet);
 
-  valent_mock_power_device_set_warning (VALENT_MOCK_POWER_DEVICE (device),
-                                        VALENT_POWER_WARNING_LOW);
+  upower_set_battery (connection, "WarningLevel", g_variant_new_uint32 (3));
 
   packet = valent_test_plugin_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.battery");

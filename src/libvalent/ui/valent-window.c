@@ -13,7 +13,6 @@
 #include <libvalent-media.h>
 #include <libvalent-mixer.h>
 #include <libvalent-notifications.h>
-#include <libvalent-power.h>
 #include <libvalent-session.h>
 
 #include "valent-device-panel.h"

@@ -6,7 +6,6 @@
 #include <libvalent-media.h>
 #include <libvalent-mixer.h>
 #include <libvalent-notifications.h>
-#include <libvalent-power.h>
 #include <libvalent-session.h>
 #include <libvalent-ui.h>
 
@@ -19,7 +18,6 @@
 #include "valent-mock-notification-source.h"
 #include "valent-mock-device-gadget.h"
 #include "valent-mock-device-plugin.h"
-#include "valent-mock-power-device-provider.h"
 #include "valent-mock-session-adapter.h"
 
 
@@ -47,9 +45,6 @@ valent_mock_plugin_register_types (PeasObjectModule *module)
   peas_object_module_register_extension_type (module,
                                               VALENT_TYPE_NOTIFICATION_SOURCE,
                                               VALENT_TYPE_MOCK_NOTIFICATION_SOURCE);
-  peas_object_module_register_extension_type (module,
-                                              VALENT_TYPE_POWER_DEVICE_PROVIDER,
-                                              VALENT_TYPE_MOCK_POWER_DEVICE_PROVIDER);
   peas_object_module_register_extension_type (module,
                                               VALENT_TYPE_SESSION_ADAPTER,
                                               VALENT_TYPE_MOCK_SESSION_ADAPTER);

@@ -204,13 +204,6 @@
                   </object>
                 </child>
                 <child>
-                  <object class="ValentPluginGroup" id="power_section">
-                    <property name="title" translatable="yes">Power Device Providers</property>
-                    <property name="plugin-context">power</property>
-                    <property name="plugin-type">ValentPowerDeviceProvider</property>
-                  </object>
-                </child>
-                <child>
                   <object class="ValentPluginGroup" id="session_section">
                     <property name="title" translatable="yes">Session Providers</property>
                     <property name="plugin-context">session</property>
