@@ -324,6 +324,7 @@ valent_upower_device_finalize (GObject *object)
   ValentUPowerDevice *self = VALENT_UPOWER_DEVICE (object);
 
   g_signal_handlers_disconnect_by_func (self->proxy, on_properties_changed, self);
+  g_clear_pointer (&self->object_path, g_free);
   g_clear_object (&self->proxy);
 
   G_OBJECT_CLASS (valent_upower_device_parent_class)->finalize (object);
