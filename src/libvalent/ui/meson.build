@@ -78,7 +78,6 @@ libvalent_ui_deps = [
   libvalent_media_dep,
   libvalent_mixer_dep,
   libvalent_notifications_dep,
-  libvalent_power_dep,
   libvalent_session_dep,
 
   gtk_dep,

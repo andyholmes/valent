@@ -87,13 +87,6 @@
     </chapter>
 
     <chapter>
-      <title>Power</title>
-      <xi:include href="xml/valent-power.xml"/>
-      <xi:include href="xml/valent-power-device.xml"/>
-      <xi:include href="xml/valent-power-device-provider.xml"/>
-    </chapter>
-
-    <chapter>
       <title>Session</title>
       <xi:include href="xml/valent-session.xml"/>
       <xi:include href="xml/valent-session-adapter.xml"/>

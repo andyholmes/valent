@@ -2,7 +2,6 @@
 # Dependencies
 plugin_battery_deps = [
   libvalent_core_dep,
-  libvalent_power_dep,
   libvalent_ui_dep,
 
   gtk_dep,
@@ -11,6 +10,7 @@ plugin_battery_deps = [
 # Sources
 plugin_battery_sources = files([
   'battery-plugin.c',
+  'valent-battery.c',
   'valent-battery-gadget.c',
   'valent-battery-plugin.c',
   'valent-battery-preferences.c',
