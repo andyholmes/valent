@@ -44,8 +44,6 @@ gnome.gtkdoc(
               join_paths(meson.build_root(),  'src', 'libvalent', 'mixer'),
               join_paths(meson.source_root(), 'src', 'libvalent', 'notifications'),
               join_paths(meson.build_root(),  'src', 'libvalent', 'notifications'),
-              join_paths(meson.source_root(), 'src', 'libvalent', 'power'),
-              join_paths(meson.build_root(),  'src', 'libvalent', 'power'),
               join_paths(meson.source_root(), 'src', 'libvalent', 'session'),
               join_paths(meson.build_root(),  'src', 'libvalent', 'session'),
               join_paths(meson.source_root(), 'src', 'libvalent', 'ui'),
