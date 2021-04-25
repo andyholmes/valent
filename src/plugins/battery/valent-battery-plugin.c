@@ -243,10 +243,9 @@ valent_battery_plugin_show_notification (ValentBatteryPlugin *self,
  * Packet Handlers
  */
 static void
-valent_battery_plugin_handle_battery (ValentDevicePlugin *plugin,
-                                      JsonNode           *packet)
+valent_battery_plugin_handle_battery (ValentBatteryPlugin *self,
+                                      JsonNode            *packet)
 {
-  ValentBatteryPlugin *self = VALENT_BATTERY_PLUGIN (plugin);
   JsonObject *body;
   gboolean changed = FALSE;
   gboolean charging;
@@ -456,7 +455,7 @@ valent_battery_plugin_handle_packet (ValentDevicePlugin *plugin,
 
   /* The remote battery state changed */
   if (g_strcmp0 (type, "kdeconnect.battery") == 0)
-    valent_battery_plugin_handle_battery (plugin, packet);
+    valent_battery_plugin_handle_battery (self, packet);
 
   /* A request for the local battery state */
   else if (g_strcmp0 (type, "kdeconnect.battery.request") == 0)

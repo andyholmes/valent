@@ -982,7 +982,7 @@ valent_manager_new_sync (ValentData    *data,
  *
  * Create a new #ValentManager.
  *
- * This is a failable asynchronous constructor - when the proxy is ready,
+ * This is a failable asynchronous constructor - when the manager is ready,
  * @callback will be invoked and you can use valent_manager_new_finish() to get
  * the result.
  */
