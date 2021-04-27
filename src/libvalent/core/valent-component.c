@@ -73,7 +73,7 @@ typedef struct
 
 static gint64
 get_extension_priority (PeasPluginInfo *info,
-                       const char     *key)
+                        const char     *key)
 {
   const char *priority_str = NULL;
   gint64 priority = 0;
@@ -438,7 +438,8 @@ valent_component_init (ValentComponent *self)
  * @component: a #ValentComponent
  * @key: The priority key in the plugin info
  *
- * Get the extension with the highest priority for @component.
+ * Get the extension with the highest priority for @component. The default
+ * value for extensions is `0`; the lower the value the higher the priority.
  *
  * Returns: (transfer none) (nullable): a #PeasExtension
  */
@@ -450,7 +451,7 @@ valent_component_get_priority_provider (ValentComponent *component,
   GHashTableIter iter;
   gpointer info, value;
   PeasExtension *extension = NULL;
-  gint64 priority = 1000;
+  gint64 priority = 0;
 
   g_return_val_if_fail (VALENT_IS_COMPONENT (component), NULL);
 
@@ -462,7 +463,7 @@ valent_component_get_priority_provider (ValentComponent *component,
 
       curr_priority = get_extension_priority (info, key);
 
-      if (curr_priority < priority)
+      if (extension == NULL || curr_priority < priority)
         {
           priority = curr_priority;
           extension = value;
