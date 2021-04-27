@@ -292,6 +292,7 @@ test_media_component_dispose (MediaComponentFixture *fixture,
   GPtrArray *extensions;
   ValentMediaPlayerProvider *provider;
   PeasEngine *engine;
+  g_autoptr (GSettings) settings = NULL;
 
   /* Add a device to the provider */
   extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->media));
@@ -303,6 +304,27 @@ test_media_component_dispose (MediaComponentFixture *fixture,
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
+
+  /* Disable/Enable the provider */
+  settings = valent_component_new_settings ("media", "mock");
+
+  g_settings_set_boolean (settings, "enabled", FALSE);
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->media));
+  g_assert_cmpuint (extensions->len, ==, 0);
+  g_ptr_array_unref (extensions);
+
+  g_settings_set_boolean (settings, "enabled", TRUE);
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->media));
+  g_assert_cmpuint (extensions->len, ==, 1);
+  g_ptr_array_unref (extensions);
 
   /* Unload the provider */
   engine = valent_get_engine ();

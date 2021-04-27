@@ -311,6 +311,7 @@ test_mixer_component_dispose (MixerComponentFixture *fixture,
   GPtrArray *extensions;
   ValentMixerControl *provider;
   PeasEngine *engine;
+  g_autoptr (GSettings) settings = NULL;
 
   /* Add a stream to the provider */
   extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->mixer));
@@ -322,6 +323,27 @@ test_mixer_component_dispose (MixerComponentFixture *fixture,
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
+
+  /* Disable/Enable the provider */
+  settings = valent_component_new_settings ("mixer", "mock");
+
+  g_settings_set_boolean (settings, "enabled", FALSE);
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->mixer));
+  g_assert_cmpuint (extensions->len, ==, 0);
+  g_ptr_array_unref (extensions);
+
+  g_settings_set_boolean (settings, "enabled", TRUE);
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->mixer));
+  g_assert_cmpuint (extensions->len, ==, 1);
+  g_ptr_array_unref (extensions);
 
   /* Unload the provider */
   engine = valent_get_engine ();

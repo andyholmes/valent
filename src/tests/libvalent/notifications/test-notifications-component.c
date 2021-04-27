@@ -207,6 +207,7 @@ test_notifications_component_dispose (NotificationsComponentFixture *fixture,
 {
   ValentNotificationSource *source;
   PeasEngine *engine;
+  g_autoptr (GSettings) settings = NULL;
 
   /* Add a notification to the provider */
   source = valent_mock_notification_source_get_instance ();
@@ -216,6 +217,25 @@ test_notifications_component_dispose (NotificationsComponentFixture *fixture,
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
+
+  /* Disable/Enable the provider */
+  settings = valent_component_new_settings ("notifications", "mock");
+
+  g_settings_set_boolean (settings, "enabled", FALSE);
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
+  source = valent_mock_notification_source_get_instance ();
+  g_assert_null (source);
+
+  g_settings_set_boolean (settings, "enabled", TRUE);
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
+  source = valent_mock_notification_source_get_instance ();
+  g_assert_nonnull (source);
 
   /* Unload the provider */
   engine = valent_get_engine ();

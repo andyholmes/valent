@@ -170,7 +170,7 @@ on_load_plugin (PeasEngine      *engine,
   /* We create and destroy the #PeasExtension based on the enabled state to
    * ensure they aren't using any resources. */
   module = peas_plugin_info_get_module_name (info);
-  path = g_strdup_printf ("/ca/andyholmes/valent/%s/%s/",
+  path = g_strdup_printf ("/ca/andyholmes/valent/%s/plugin/%s/",
                           priv->plugin_context,
                           module);
   settings = g_settings_new_with_path ("ca.andyholmes.Valent.Plugin", path);
@@ -497,5 +497,41 @@ valent_component_get_extensions (ValentComponent *component)
     g_ptr_array_add (extensions, g_object_ref (value));
 
   return extensions;
+}
+
+/**
+ * valent_component_new_settings:
+ * @context: a #ValentDevice ID
+ * @module_name: a #PeasPluginInfo module name
+ *
+ * A convenience function for components to create a #GSettings object for a
+ * context and module name.
+ *
+ * It is expected that @context is a valid string for a #GSettings path.
+ *
+ * Returns: (transfer full): the new #GSettings object
+ */
+GSettings *
+valent_component_new_settings (const char *context,
+                               const char *module_name)
+{
+  GSettingsSchemaSource *source;
+  g_autoptr (GSettingsSchema) schema = NULL;
+  g_autofree char *path = NULL;
+  g_autofree char *schema_id = NULL;
+
+  g_return_val_if_fail (context != NULL, NULL);
+  g_return_val_if_fail (module_name != NULL, NULL);
+
+  source = g_settings_schema_source_get_default ();
+  schema_id = g_strdup_printf ("ca.andyholmes.Valent.Plugin");
+  schema = g_settings_schema_source_lookup (source, schema_id, TRUE);
+
+  g_return_val_if_fail (schema != NULL, NULL);
+
+  path = g_strdup_printf ("/ca/andyholmes/valent/%s/plugin/%s/",
+                          context, module_name);
+
+  return g_settings_new_full (schema, NULL, path);
 }
 
