@@ -61,14 +61,14 @@ static void
 test_clipboard_component_provider (ClipboardComponentFixture *fixture,
                                gconstpointer          user_data)
 {
-  g_autoptr (GPtrArray) providers = NULL;
+  g_autoptr (GPtrArray) extensions = NULL;
   ValentClipboardSource *provider;
   g_autofree char *text = NULL;
   PeasPluginInfo *info;
 
   /* Wait for valent_clipboard_device_provider_load_async() to resolve */
-  providers = valent_component_get_providers (VALENT_COMPONENT (fixture->clipboard));
-  provider = g_ptr_array_index (providers, 0);
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->clipboard));
+  provider = g_ptr_array_index (extensions, 0);
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
@@ -127,13 +127,13 @@ static void
 test_clipboard_component_dispose (ClipboardComponentFixture *fixture,
                                   gconstpointer              user_data)
 {
-  GPtrArray *providers;
+  GPtrArray *extensions;
   PeasEngine *engine;
 
   /* Add a store to the provider */
-  providers = valent_component_get_providers (VALENT_COMPONENT (fixture->clipboard));
-  g_assert_cmpuint (providers->len, ==, 1);
-  g_ptr_array_unref (providers);
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->clipboard));
+  g_assert_cmpuint (extensions->len, ==, 1);
+  g_ptr_array_unref (extensions);
 
   /* Wait for provider to resolve */
   while (g_main_context_iteration (NULL, FALSE))
@@ -143,9 +143,9 @@ test_clipboard_component_dispose (ClipboardComponentFixture *fixture,
   engine = valent_get_engine ();
   peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "mock"));
 
-  providers = valent_component_get_providers (VALENT_COMPONENT (fixture->clipboard));
-  g_assert_cmpuint (providers->len, ==, 0);
-  g_ptr_array_unref (providers);
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->clipboard));
+  g_assert_cmpuint (extensions->len, ==, 0);
+  g_ptr_array_unref (extensions);
 }
 
 int

@@ -20,10 +20,11 @@
  * @stability: Unstable
  * @include: libvalent-mixer.h
  *
- * #ValentMixer is an aggregator of mixer controls, with a simple API generally intended to be used
- * by #ValentDevicePlugin implementations.
+ * #ValentMixer is an aggregator of mixer controls, with a simple API generally
+ * intended to be used by #ValentDevicePlugin implementations.
  *
- * Plugins can provide adapters for various backends by subclassing #ValentMixerControl interface.
+ * Plugins can provide adapters for various backends by subclassing
+ * #ValentMixerControl interface.
  */
 
 struct _ValentMixer
@@ -131,8 +132,8 @@ on_stream_removed (ValentMixerControl *control,
  * ValentComponent
  */
 static void
-valent_mixer_provider_added (ValentComponent *component,
-                             PeasExtension   *extension)
+valent_mixer_extension_added (ValentComponent *component,
+                              PeasExtension   *extension)
 {
   ValentMixer *self = VALENT_MIXER (component);
   ValentMixerControl *control = VALENT_MIXER_CONTROL (extension);
@@ -177,8 +178,8 @@ valent_mixer_provider_added (ValentComponent *component,
 }
 
 static void
-valent_mixer_provider_removed (ValentComponent *component,
-                               PeasExtension   *extension)
+valent_mixer_extension_removed (ValentComponent *component,
+                                PeasExtension   *extension)
 {
   ValentMixer *self = VALENT_MIXER (component);
   ValentMixerControl *control = VALENT_MIXER_CONTROL (extension);
@@ -230,8 +231,8 @@ valent_mixer_class_init (ValentMixerClass *klass)
 
   object_class->finalize = valent_mixer_finalize;
 
-  component_class->provider_added = valent_mixer_provider_added;
-  component_class->provider_removed = valent_mixer_provider_removed;
+  component_class->extension_added = valent_mixer_extension_added;
+  component_class->extension_removed = valent_mixer_extension_removed;
 
   /**
    * ValentMixer::stream-added:

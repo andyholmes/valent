@@ -35,13 +35,13 @@ static void
 test_session_component_provider (SessionComponentFixture *fixture,
                                  gconstpointer            user_data)
 {
-  g_autoptr (GPtrArray) providers = NULL;
+  g_autoptr (GPtrArray) extensions = NULL;
   ValentSessionAdapter *provider;
   gboolean active, locked;
 
   /* Wait for valent_session_adapter_load_async() to resolve */
-  providers = valent_component_get_providers (VALENT_COMPONENT (fixture->session));
-  provider = g_ptr_array_index (providers, 0);
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->session));
+  provider = g_ptr_array_index (extensions, 0);
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
@@ -74,15 +74,15 @@ static void
 test_session_component_self (SessionComponentFixture *fixture,
                            gconstpointer          user_data)
 {
-  g_autoptr (GPtrArray) providers = NULL;
+  g_autoptr (GPtrArray) extensions = NULL;
   ValentSessionAdapter *provider;
   gboolean session_active, session_locked;
   gboolean adapter_active, adapter_locked;
   PeasPluginInfo *info;
 
   /* Wait for valent_session_adapter_load_async() to resolve */
-  providers = valent_component_get_providers (VALENT_COMPONENT (fixture->session));
-  provider = g_ptr_array_index (providers, 0);
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->session));
+  provider = g_ptr_array_index (extensions, 0);
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
@@ -120,14 +120,14 @@ static void
 test_session_component_dispose (SessionComponentFixture *fixture,
                               gconstpointer          user_data)
 {
-  GPtrArray *providers;
+  GPtrArray *extensions;
   ValentSessionAdapter *provider;
   PeasEngine *engine;
 
   /* Add a device to the provider */
-  providers = valent_component_get_providers (VALENT_COMPONENT (fixture->session));
-  provider = g_ptr_array_index (providers, 0);
-  g_ptr_array_unref (providers);
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->session));
+  provider = g_ptr_array_index (extensions, 0);
+  g_ptr_array_unref (extensions);
 
   /* Wait for provider to resolve */
   valent_session_adapter_emit_changed (provider);
@@ -139,9 +139,9 @@ test_session_component_dispose (SessionComponentFixture *fixture,
   engine = valent_get_engine ();
   peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "mock"));
 
-  providers = valent_component_get_providers (VALENT_COMPONENT (fixture->session));
-  g_assert_cmpuint (providers->len, ==, 0);
-  g_ptr_array_unref (providers);
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->session));
+  g_assert_cmpuint (extensions->len, ==, 0);
+  g_ptr_array_unref (extensions);
 }
 
 int

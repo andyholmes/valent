@@ -84,8 +84,8 @@ on_clipboard_source_changed (ValentClipboardSource *clipboard,
  * ValentComponent
  */
 static void
-valent_clipboard_provider_added (ValentComponent *component,
-                                 PeasExtension   *extension)
+valent_clipboard_extension_added (ValentComponent *component,
+                                  PeasExtension   *extension)
 {
   ValentClipboard *self = VALENT_CLIPBOARD (component);
   ValentClipboardSource *clipboard = VALENT_CLIPBOARD_SOURCE (extension);
@@ -110,8 +110,8 @@ valent_clipboard_provider_added (ValentComponent *component,
 }
 
 static void
-valent_clipboard_provider_removed (ValentComponent *component,
-                                   PeasExtension   *extension)
+valent_clipboard_extension_removed (ValentComponent *component,
+                                    PeasExtension   *extension)
 {
   ValentClipboard *self = VALENT_CLIPBOARD (component);
   ValentClipboardSource *clipboard = VALENT_CLIPBOARD_SOURCE (extension);
@@ -164,8 +164,8 @@ valent_clipboard_class_init (ValentClipboardClass *klass)
   object_class->dispose = valent_clipboard_dispose;
   object_class->finalize = valent_clipboard_finalize;
 
-  component_class->provider_added = valent_clipboard_provider_added;
-  component_class->provider_removed = valent_clipboard_provider_removed;
+  component_class->extension_added = valent_clipboard_extension_added;
+  component_class->extension_removed = valent_clipboard_extension_removed;
 
   /**
    * ValentClipboard::changed:

@@ -31,7 +31,7 @@ systemvolume_plugin_fixture_set_up (ValentTestPluginFixture *fixture,
   valent_test_plugin_fixture_init (fixture, user_data);
 
   mixer = valent_mixer_get_default ();
-  controls = valent_component_get_providers (VALENT_COMPONENT (mixer));
+  controls = valent_component_get_extensions (VALENT_COMPONENT (mixer));
 
   info = g_new0 (MixerInfo, 1);
   info->control = g_ptr_array_index (controls, 0);

@@ -16,7 +16,7 @@ static void
 media_component_fixture_set_up (MediaComponentFixture *fixture,
                                 gconstpointer          user_data)
 {
-  /* Wait for providers to load */
+  /* Wait for extensions to load */
   fixture->media = valent_media_get_default ();
 
   while (g_main_context_iteration (NULL, FALSE))
@@ -83,12 +83,12 @@ test_media_component_provider (MediaComponentFixture *fixture,
                                gconstpointer          user_data)
 {
   g_autoptr (GPtrArray) players = NULL;
-  g_autoptr (GPtrArray) providers = NULL;
+  g_autoptr (GPtrArray) extensions = NULL;
   ValentMediaPlayerProvider *provider;
 
-  providers = valent_component_get_providers (VALENT_COMPONENT (fixture->media));
-  g_assert_cmpint (providers->len, ==, 1);
-  provider = g_ptr_array_index (providers, 0);
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->media));
+  g_assert_cmpint (extensions->len, ==, 1);
+  provider = g_ptr_array_index (extensions, 0);
 
   g_signal_connect (provider,
                     "player-added",
@@ -116,7 +116,7 @@ static void
 test_media_component_player (MediaComponentFixture *fixture,
                              gconstpointer          user_data)
 {
-  g_autoptr (GPtrArray) providers = NULL;
+  g_autoptr (GPtrArray) extensions = NULL;
   ValentMediaPlayerProvider *provider;
 
   /* org.mpris.MediaPlayer2.Player */
@@ -127,9 +127,9 @@ test_media_component_player (MediaComponentFixture *fixture,
   g_autoptr (GVariant) metadata = NULL;
   gint64 position;
 
-  providers = valent_component_get_providers (VALENT_COMPONENT (fixture->media));
-  g_assert_cmpint (providers->len, ==, 1);
-  provider = g_ptr_array_index (providers, 0);
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->media));
+  g_assert_cmpint (extensions->len, ==, 1);
+  provider = g_ptr_array_index (extensions, 0);
 
   /* Add Player */
   g_signal_connect (provider,
@@ -240,13 +240,13 @@ test_media_component_self (MediaComponentFixture *fixture,
                            gconstpointer          user_data)
 {
   g_autoptr (GPtrArray) players = NULL;
-  g_autoptr (GPtrArray) providers = NULL;
+  g_autoptr (GPtrArray) extensions = NULL;
   ValentMediaPlayerProvider *provider;
   ValentMediaPlayer *player;
 
-  providers = valent_component_get_providers (VALENT_COMPONENT (fixture->media));
-  g_assert_cmpint (providers->len, ==, 1);
-  provider = g_ptr_array_index (providers, 0);
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->media));
+  g_assert_cmpint (extensions->len, ==, 1);
+  provider = g_ptr_array_index (extensions, 0);
 
   /* Add Player */
   g_signal_connect (fixture->media,
@@ -289,14 +289,14 @@ static void
 test_media_component_dispose (MediaComponentFixture *fixture,
                               gconstpointer          user_data)
 {
-  GPtrArray *providers;
+  GPtrArray *extensions;
   ValentMediaPlayerProvider *provider;
   PeasEngine *engine;
 
   /* Add a device to the provider */
-  providers = valent_component_get_providers (VALENT_COMPONENT (fixture->media));
-  provider = g_ptr_array_index (providers, 0);
-  g_ptr_array_unref (providers);
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->media));
+  provider = g_ptr_array_index (extensions, 0);
+  g_ptr_array_unref (extensions);
 
   /* Wait for provider to resolve */
   valent_media_player_provider_emit_player_added (provider, fixture->player);
@@ -308,9 +308,9 @@ test_media_component_dispose (MediaComponentFixture *fixture,
   engine = valent_get_engine ();
   peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "mock"));
 
-  providers = valent_component_get_providers (VALENT_COMPONENT (fixture->media));
-  g_assert_cmpuint (providers->len, ==, 0);
-  g_ptr_array_unref (providers);
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->media));
+  g_assert_cmpuint (extensions->len, ==, 0);
+  g_ptr_array_unref (extensions);
 }
 
 int

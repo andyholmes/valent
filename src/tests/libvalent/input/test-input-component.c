@@ -60,13 +60,13 @@ static void
 test_input_component_dispose (InputComponentFixture *fixture,
                               gconstpointer          user_data)
 {
-  GPtrArray *providers;
+  GPtrArray *extensions;
   PeasEngine *engine;
 
   /* Add a store to the provider */
-  providers = valent_component_get_providers (VALENT_COMPONENT (fixture->input));
-  g_assert_cmpuint (providers->len, ==, 1);
-  g_ptr_array_unref (providers);
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->input));
+  g_assert_cmpuint (extensions->len, ==, 1);
+  g_ptr_array_unref (extensions);
 
   /* Wait for provider to resolve */
   while (g_main_context_iteration (NULL, FALSE))
@@ -76,9 +76,9 @@ test_input_component_dispose (InputComponentFixture *fixture,
   engine = valent_get_engine ();
   peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "mock"));
 
-  providers = valent_component_get_providers (VALENT_COMPONENT (fixture->input));
-  g_assert_cmpuint (providers->len, ==, 0);
-  g_ptr_array_unref (providers);
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->input));
+  g_assert_cmpuint (extensions->len, ==, 0);
+  g_ptr_array_unref (extensions);
 }
 
 int

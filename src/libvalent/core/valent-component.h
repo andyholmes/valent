@@ -23,15 +23,15 @@ struct _ValentComponentClass
   GObjectClass   parent_class;
 
   /* signals */
-  void           (*provider_added)   (ValentComponent *component,
-                                      PeasExtension   *extension);
-  void           (*provider_removed) (ValentComponent *component,
-                                      PeasExtension   *extension);
+  void           (*extension_added)   (ValentComponent *component,
+                                       PeasExtension   *extension);
+  void           (*extension_removed) (ValentComponent *component,
+                                       PeasExtension   *extension);
 };
 
 PeasExtension * valent_component_get_priority_provider (ValentComponent *component,
                                                         const char      *key);
-GPtrArray     * valent_component_get_providers         (ValentComponent *component);
+GPtrArray     * valent_component_get_extensions        (ValentComponent *component);
 
 G_END_DECLS
 

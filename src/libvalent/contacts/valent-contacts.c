@@ -21,20 +21,22 @@
  * @stability: Unstable
  * @include: libvalent-contacts.h
  *
- * #ValentContacts is an abstraction of desktop contact sources, with a simple API
- * generally intended to be used by #ValentDevicePlugin implementations.
+ * #ValentContacts is an abstraction of desktop contact sources, with a simple
+ * API generally intended to be used by #ValentDevicePlugin implementations.
  *
  * ## Providers and Models ##
  *
- * #ValentContacts loads and tracks implementations of #ValentContactStoreProvider known
- * to the default #ValentEngine. Each #ValentContactStoreProvider may provide stores
- * implementing #ValentContactStore and create new stores backed by that provider.
+ * #ValentContacts loads and tracks implementations of
+ * #ValentContactStoreProvider known to the default #ValentEngine. Each
+ * #ValentContactStoreProvider may provide stores implementing
+ * #ValentContactStore and create new stores backed by that provider.
  *
  * For example, the Evolution Data Server (`eds`) plugin implements
- * #ValentContactStoreProvider in #ValentEBookProvider and provides a #ValentEBookStore for
- * each address book known to Evolution. If no other provider is available,
- * #ValentContacts will fallback to providing #ValentContactStore objects, a simple
- * #EBookCache implementation of #ValentContactStore.
+ * #ValentContactStoreProvider in #ValentEBookProvider and provides a
+ * #ValentEBookStore for each address book known to Evolution. If no other
+ * provider is available, #ValentContacts will fallback to providing
+ * #ValentContactStore objects, a simple #EBookCache implementation of
+ * #ValentContactStore.
  */
 
 struct _ValentContacts
@@ -120,8 +122,8 @@ valent_contact_store_provider_load_cb (ValentContactStoreProvider *provider,
  * ValentComponent
  */
 static void
-valent_contacts_provider_added (ValentComponent *component,
-                                PeasExtension   *extension)
+valent_contacts_extension_added (ValentComponent *component,
+                                 PeasExtension   *extension)
 {
   ValentContacts *self = VALENT_CONTACTS (component);
   ValentContactStoreProvider *provider = VALENT_CONTACT_STORE_PROVIDER (extension);
@@ -151,8 +153,8 @@ valent_contacts_provider_added (ValentComponent *component,
 }
 
 static void
-valent_contacts_provider_removed (ValentComponent *component,
-                                  PeasExtension   *extension)
+valent_contacts_extension_removed (ValentComponent *component,
+                                   PeasExtension   *extension)
 {
   ValentContacts *self = VALENT_CONTACTS (component);
   ValentContactStoreProvider *provider = VALENT_CONTACT_STORE_PROVIDER (extension);
@@ -212,8 +214,8 @@ valent_contacts_class_init (ValentContactsClass *klass)
   object_class->dispose = valent_contacts_dispose;
   object_class->finalize = valent_contacts_finalize;
 
-  component_class->provider_added = valent_contacts_provider_added;
-  component_class->provider_removed = valent_contacts_provider_removed;
+  component_class->extension_added = valent_contacts_extension_added;
+  component_class->extension_removed = valent_contacts_extension_removed;
 
   /**
    * ValentContacts::store-added:

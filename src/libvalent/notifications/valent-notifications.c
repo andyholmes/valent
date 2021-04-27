@@ -21,11 +21,12 @@
  * @stability: Unstable
  * @include: libvalent-notifications.h
  *
- * #ValentNotifications is an aggregator for notification services, with a simple API generally
- * intended to be used by #ValentDevicePlugin implementations.
+ * #ValentNotifications is an aggregator for notification services, with a
+ * simple API generally intended to be used by #ValentDevicePlugin
+ * implementations.
  *
- * Plugins can provide adapters for services by subclassing the #ValentNotificationSource base
- * class.
+ * Plugins can provide adapters for services by subclassing the
+ * #ValentNotificationSource base class.
  */
 
 struct _ValentNotifications
@@ -229,8 +230,8 @@ valent_notification_source_load_cb (ValentNotificationSource *source,
  * ValentComponent
  */
 static void
-valent_notifications_provider_added (ValentComponent *component,
-                                     PeasExtension   *extension)
+valent_notifications_extension_added (ValentComponent *component,
+                                      PeasExtension   *extension)
 {
   ValentNotifications *self = VALENT_NOTIFICATIONS (component);
   ValentNotificationSource *source = VALENT_NOTIFICATION_SOURCE (extension);
@@ -255,8 +256,8 @@ valent_notifications_provider_added (ValentComponent *component,
 }
 
 static void
-valent_notifications_provider_removed (ValentComponent *component,
-                                       PeasExtension   *extension)
+valent_notifications_extension_removed (ValentComponent *component,
+                                        PeasExtension   *extension)
 {
   ValentNotifications *self = VALENT_NOTIFICATIONS (component);
   ValentNotificationSource *source = VALENT_NOTIFICATION_SOURCE (extension);
@@ -290,8 +291,8 @@ valent_notifications_class_init (ValentNotificationsClass *klass)
 
   object_class->finalize = valent_notifications_finalize;
 
-  component_class->provider_added = valent_notifications_provider_added;
-  component_class->provider_removed = valent_notifications_provider_removed;
+  component_class->extension_added = valent_notifications_extension_added;
+  component_class->extension_removed = valent_notifications_extension_removed;
 
   /**
    * ValentNotifications::notification-added:

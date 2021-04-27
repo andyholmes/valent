@@ -69,15 +69,15 @@ static void
 test_mixer_component_provider (MixerComponentFixture *fixture,
                                gconstpointer          user_data)
 {
-  g_autoptr (GPtrArray) providers = NULL;
+  g_autoptr (GPtrArray) extensions = NULL;
   ValentMixerControl *provider;
   g_autoptr (GPtrArray) inputs = NULL;
   g_autoptr (GPtrArray) outputs = NULL;
   ValentMixerStream *stream;
 
   /* Wait for valent_mixer_control_load_async() to resolve */
-  providers = valent_component_get_providers (VALENT_COMPONENT (fixture->mixer));
-  provider = g_ptr_array_index (providers, 0);
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->mixer));
+  provider = g_ptr_array_index (extensions, 0);
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
@@ -141,7 +141,7 @@ static void
 test_mixer_component_stream (MixerComponentFixture *fixture,
                              gconstpointer          user_data)
 {
-  g_autoptr (GPtrArray) providers = NULL;
+  g_autoptr (GPtrArray) extensions = NULL;
   ValentMixerControl *provider;
   ValentMixerStreamFlags flags;
   int level;
@@ -149,8 +149,8 @@ test_mixer_component_stream (MixerComponentFixture *fixture,
   char *name, *description;
 
   /* Wait for valent_mixer_control_load_async() to resolve */
-  providers = valent_component_get_providers (VALENT_COMPONENT (fixture->mixer));
-  provider = g_ptr_array_index (providers, 0);
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->mixer));
+  provider = g_ptr_array_index (extensions, 0);
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
@@ -227,15 +227,15 @@ static void
 test_mixer_component_self (MixerComponentFixture *fixture,
                            gconstpointer          user_data)
 {
-  g_autoptr (GPtrArray) providers = NULL;
+  g_autoptr (GPtrArray) extensions = NULL;
   ValentMixerControl *provider;
   g_autoptr (GPtrArray) inputs = NULL;
   g_autoptr (GPtrArray) outputs = NULL;
   ValentMixerStream *stream;
 
   /* Wait for valent_mixer_control_load_async() to resolve */
-  providers = valent_component_get_providers (VALENT_COMPONENT (fixture->mixer));
-  provider = g_ptr_array_index (providers, 0);
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->mixer));
+  provider = g_ptr_array_index (extensions, 0);
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
@@ -308,14 +308,14 @@ static void
 test_mixer_component_dispose (MixerComponentFixture *fixture,
                               gconstpointer          user_data)
 {
-  GPtrArray *providers;
+  GPtrArray *extensions;
   ValentMixerControl *provider;
   PeasEngine *engine;
 
   /* Add a stream to the provider */
-  providers = valent_component_get_providers (VALENT_COMPONENT (fixture->mixer));
-  provider = g_ptr_array_index (providers, 0);
-  g_ptr_array_unref (providers);
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->mixer));
+  provider = g_ptr_array_index (extensions, 0);
+  g_ptr_array_unref (extensions);
 
   /* Wait for provider to resolve */
   valent_mixer_control_emit_stream_added (provider, fixture->output);
@@ -327,9 +327,9 @@ test_mixer_component_dispose (MixerComponentFixture *fixture,
   engine = valent_get_engine ();
   peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "mock"));
 
-  providers = valent_component_get_providers (VALENT_COMPONENT (fixture->mixer));
-  g_assert_cmpuint (providers->len, ==, 0);
-  g_ptr_array_unref (providers);
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->mixer));
+  g_assert_cmpuint (extensions->len, ==, 0);
+  g_ptr_array_unref (extensions);
 }
 
 int

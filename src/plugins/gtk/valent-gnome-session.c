@@ -13,7 +13,8 @@
 
 
 #define GNOME_SCREENSAVER_NAME "org.gnome.ScreenSaver"
-#define GNOME_SCREENSAVER_PATH "/org/gnome/ScreenSaver"
+#define GNOME_SCREENSAVER_OBJECT_PATH "/org/gnome/ScreenSaver"
+#define GNOME_SCREENSAVER_INTERFACE "org.gnome.ScreenSaver"
 
 
 struct _ValentGnomeSession
@@ -57,25 +58,22 @@ get_active_cb (GDBusProxy         *proxy,
 }
 
 static void
-on_signal (GDBusProxy       *proxy,
-           const char       *sender_name,
-           const char       *signal_name,
-           GVariant         *parameters,
+on_signal (GDBusProxy         *proxy,
+           const char         *sender_name,
+           const char         *signal_name,
+           GVariant           *parameters,
            ValentGnomeSession *self)
 {
-  if (g_str_equal (signal_name, "ActiveChanged"))
-    {
-      gboolean locked;
-      g_variant_get (parameters, "(b)", &locked);
+  gboolean locked;
 
-      self->locked = locked;
-      g_object_notify (G_OBJECT (self), "locked");
-      valent_session_adapter_emit_changed (VALENT_SESSION_ADAPTER (self));
-    }
-  else
-    {
-      VALENT_TRACE_MSG ("SIGNAL: %s", signal_name);
-    }
+  if (!g_str_equal (signal_name, "ActiveChanged"))
+    return;
+
+  g_variant_get (parameters, "(b)", &locked);
+  self->locked = locked;
+
+  g_object_notify (G_OBJECT (self), "locked");
+  valent_session_adapter_emit_changed (VALENT_SESSION_ADAPTER (self));
 }
 
 /*
@@ -172,11 +170,13 @@ valent_gnome_session_constructed (GObject *object)
   ValentGnomeSession *self = VALENT_GNOME_SESSION (object);
 
   g_dbus_proxy_new_for_bus (G_BUS_TYPE_SESSION,
+                            G_DBUS_PROXY_FLAGS_DO_NOT_AUTO_START |
+                            G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES |
                             G_DBUS_PROXY_FLAGS_NONE,
                             NULL,
                             GNOME_SCREENSAVER_NAME,
-                            GNOME_SCREENSAVER_PATH,
-                            GNOME_SCREENSAVER_NAME,
+                            GNOME_SCREENSAVER_OBJECT_PATH,
+                            GNOME_SCREENSAVER_INTERFACE,
                             self->cancellable,
                             (GAsyncReadyCallback)new_proxy_cb,
                             self);

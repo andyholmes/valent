@@ -64,8 +64,8 @@ on_session_adapter_changed (ValentSessionAdapter *adapter,
  * ValentComponent
  */
 static void
-valent_session_provider_added (ValentComponent *component,
-                               PeasExtension   *extension)
+valent_session_extension_added (ValentComponent *component,
+                                PeasExtension   *extension)
 {
   ValentSession *self = VALENT_SESSION (component);
   ValentSessionAdapter *adapter = VALENT_SESSION_ADAPTER (extension);
@@ -92,8 +92,8 @@ valent_session_provider_added (ValentComponent *component,
 }
 
 static void
-valent_session_provider_removed (ValentComponent *component,
-                                 PeasExtension   *extension)
+valent_session_extension_removed (ValentComponent *component,
+                                  PeasExtension   *extension)
 {
   ValentSession *self = VALENT_SESSION (component);
   ValentSessionAdapter *adapter = VALENT_SESSION_ADAPTER (extension);
@@ -150,8 +150,8 @@ valent_session_class_init (ValentSessionClass *klass)
   object_class->dispose = valent_session_dispose;
   object_class->finalize = valent_session_finalize;
 
-  component_class->provider_added = valent_session_provider_added;
-  component_class->provider_removed = valent_session_provider_removed;
+  component_class->extension_added = valent_session_extension_added;
+  component_class->extension_removed = valent_session_extension_removed;
 
   /**
    * ValentSession::changed:

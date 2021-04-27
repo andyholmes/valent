@@ -20,11 +20,12 @@
  * @stability: Unstable
  * @include: libvalent-media.h
  *
- * #ValentMedia is an aggregator of desktop media players, with a simple API generally intended to
- * be used by #ValentDevicePlugin implementations.
+ * #ValentMedia is an aggregator of desktop media players, with a simple API
+ * generally intended to be used by #ValentDevicePlugin implementations.
  *
- * Plugins can provide adapters for media players by subclassing the #ValentMediaPlayerProvider base
- * class to register #ValentMediaPlayer instances by emitting #ValentMediaPlayerProvider::player-added.
+ * Plugins can provide adapters for media players by subclassing the
+ * #ValentMediaPlayerProvider base class to register #ValentMediaPlayer
+ * instances by emitting #ValentMediaPlayerProvider::player-added.
  */
 
 struct _ValentMedia
@@ -156,8 +157,8 @@ valent_media_player_provider_load_cb (ValentMediaPlayerProvider *provider,
  * ValentComponent
  */
 static void
-valent_media_provider_added (ValentComponent *component,
-                             PeasExtension   *extension)
+valent_media_extension_added (ValentComponent *component,
+                              PeasExtension   *extension)
 {
   ValentMedia *self = VALENT_MEDIA (component);
   ValentMediaPlayerProvider *provider = VALENT_MEDIA_PLAYER_PROVIDER (extension);
@@ -189,8 +190,8 @@ valent_media_provider_added (ValentComponent *component,
 }
 
 static void
-valent_media_provider_removed (ValentComponent *component,
-                               PeasExtension   *extension)
+valent_media_extension_removed (ValentComponent *component,
+                                PeasExtension   *extension)
 {
   ValentMedia *self = VALENT_MEDIA (component);
   ValentMediaPlayerProvider *provider = VALENT_MEDIA_PLAYER_PROVIDER (extension);
@@ -247,8 +248,8 @@ valent_media_class_init (ValentMediaClass *klass)
   object_class->dispose = valent_media_dispose;
   object_class->finalize = valent_media_finalize;
 
-  component_class->provider_added = valent_media_provider_added;
-  component_class->provider_removed = valent_media_provider_removed;
+  component_class->extension_added = valent_media_extension_added;
+  component_class->extension_removed = valent_media_extension_removed;
 
 
   /**

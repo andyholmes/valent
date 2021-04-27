@@ -161,13 +161,13 @@ static void
 test_contacts_component_provider (ContactsComponentFixture *fixture,
                                gconstpointer          user_data)
 {
-  g_autoptr (GPtrArray) providers = NULL;
+  g_autoptr (GPtrArray) extensions = NULL;
   ValentContactStoreProvider *provider;
   PeasPluginInfo *info;
 
   /* Wait for valent_contact_store_provider_load_async() to resolve */
-  providers = valent_component_get_providers (VALENT_COMPONENT (fixture->contacts));
-  provider = g_ptr_array_index (providers, 0);
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->contacts));
+  provider = g_ptr_array_index (extensions, 0);
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
@@ -203,7 +203,7 @@ static void
 test_contacts_component_store (ContactsComponentFixture *fixture,
                                gconstpointer             user_data)
 {
-  g_autoptr (GPtrArray) providers = NULL;
+  g_autoptr (GPtrArray) extensions = NULL;
   ValentContactStoreProvider *provider;
 
   g_autofree char *name = NULL;
@@ -216,8 +216,8 @@ test_contacts_component_store (ContactsComponentFixture *fixture,
   GSList *contacts = NULL;
 
   /* Wait for valent_contact_store_provider_load_async() to resolve */
-  providers = valent_component_get_providers (VALENT_COMPONENT (fixture->contacts));
-  provider = g_ptr_array_index (providers, 0);
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->contacts));
+  provider = g_ptr_array_index (extensions, 0);
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
@@ -352,12 +352,12 @@ static void
 test_contacts_component_self (ContactsComponentFixture *fixture,
                               gconstpointer             user_data)
 {
-  g_autoptr (GPtrArray) providers = NULL;
+  g_autoptr (GPtrArray) extensions = NULL;
   ValentContactStoreProvider *provider;
 
   /* Wait for valent_contact_store_provider_load_async() to resolve */
-  providers = valent_component_get_providers (VALENT_COMPONENT (fixture->contacts));
-  provider = g_ptr_array_index (providers, 0);
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->contacts));
+  provider = g_ptr_array_index (extensions, 0);
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
@@ -389,14 +389,14 @@ static void
 test_contacts_component_dispose (ContactsComponentFixture *fixture,
                                  gconstpointer             user_data)
 {
-  GPtrArray *providers;
+  GPtrArray *extensions;
   ValentContactStoreProvider *provider;
   PeasEngine *engine;
 
   /* Add a store to the provider */
-  providers = valent_component_get_providers (VALENT_COMPONENT (fixture->contacts));
-  provider = g_ptr_array_index (providers, 0);
-  g_ptr_array_unref (providers);
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->contacts));
+  provider = g_ptr_array_index (extensions, 0);
+  g_ptr_array_unref (extensions);
 
   /* Wait for provider to resolve */
   valent_contact_store_provider_emit_store_added (provider, fixture->store);
@@ -408,9 +408,9 @@ test_contacts_component_dispose (ContactsComponentFixture *fixture,
   engine = valent_get_engine ();
   peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "mock"));
 
-  providers = valent_component_get_providers (VALENT_COMPONENT (fixture->contacts));
-  g_assert_cmpuint (providers->len, ==, 0);
-  g_ptr_array_unref (providers);
+  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->contacts));
+  g_assert_cmpuint (extensions->len, ==, 0);
+  g_ptr_array_unref (extensions);
 }
 
 static void

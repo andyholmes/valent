@@ -20,12 +20,12 @@
  * @stability: Unstable
  * @include: libvalent-input.h
  *
- * #ValentInput is an abstraction of input controllers, with a simple API generally intended to be
- * used by #ValentDevicePlugin implementations.
+ * #ValentInput is an abstraction of input controllers, with a simple API
+ * generally intended to be used by #ValentDevicePlugin implementations.
  *
- * Plugins can provide adapters for input controllers by subclassing the #ValentInputController base
- * class. The priority of clipboard sources is determined by the `.plugin` file key
- * `X-InputControllerPriority`.
+ * Plugins can provide adapters for input controllers by subclassing the
+ * #ValentInputController base class. The priority of input controllers is
+ * determined by the `.plugin` file key `X-InputControllerPriority`.
  */
 
 struct _ValentInput
@@ -45,8 +45,8 @@ static ValentInput *default_input = NULL;
  * ValentComponent
  */
 static void
-valent_input_provider_added (ValentComponent *component,
-                             PeasExtension   *extension)
+valent_input_extension_added (ValentComponent *component,
+                              PeasExtension   *extension)
 {
   ValentInput *self = VALENT_INPUT (component);
   PeasExtension *provider;
@@ -62,8 +62,8 @@ valent_input_provider_added (ValentComponent *component,
 }
 
 static void
-valent_input_provider_removed (ValentComponent *component,
-                               PeasExtension   *extension)
+valent_input_extension_removed (ValentComponent *component,
+                                PeasExtension   *extension)
 {
   ValentInput *self = VALENT_INPUT (component);
   PeasExtension *provider;
@@ -83,8 +83,8 @@ valent_input_class_init (ValentInputClass *klass)
 {
   ValentComponentClass *component_class = VALENT_COMPONENT_CLASS (klass);
 
-  component_class->provider_added = valent_input_provider_added;
-  component_class->provider_removed = valent_input_provider_removed;
+  component_class->extension_added = valent_input_extension_added;
+  component_class->extension_removed = valent_input_extension_removed;
 }
 
 static void
