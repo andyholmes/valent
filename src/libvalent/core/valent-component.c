@@ -112,7 +112,7 @@ valent_component_enable_extension (ValentComponent *component,
 
 static void
 valent_component_disable_extension (ValentComponent *component,
-                                   PeasPluginInfo  *info)
+                                    PeasPluginInfo  *info)
 {
   ValentComponentPrivate *priv = valent_component_get_instance_private (component);
   gpointer extension;

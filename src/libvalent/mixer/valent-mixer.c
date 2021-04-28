@@ -171,7 +171,8 @@ valent_mixer_extension_added (ValentComponent *component,
                            G_CALLBACK (on_stream_removed),
                            self, 0);
 
-  provider = valent_component_get_priority_provider (component, "MixerControlPriority");
+  provider = valent_component_get_priority_provider (component,
+                                                     "MixerControlPriority");
 
   if ((PeasExtension *)self->default_control != provider)
     g_set_object (&self->default_control, VALENT_MIXER_CONTROL (provider));
@@ -204,7 +205,8 @@ valent_mixer_extension_removed (ValentComponent *component,
   g_signal_handlers_disconnect_by_data (control, self);
 
   /* Reset default mixer */
-  provider = valent_component_get_priority_provider (component, "MixerControlPriority");
+  provider = valent_component_get_priority_provider (component,
+                                                     "MixerControlPriority");
   g_set_object (&self->default_control, VALENT_MIXER_CONTROL (provider));
 }
 

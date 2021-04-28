@@ -72,7 +72,7 @@ test_session_component_provider (SessionComponentFixture *fixture,
 
 static void
 test_session_component_self (SessionComponentFixture *fixture,
-                           gconstpointer          user_data)
+                             gconstpointer            user_data)
 {
   g_autoptr (GPtrArray) extensions = NULL;
   ValentSessionAdapter *provider;
@@ -118,7 +118,7 @@ test_session_component_self (SessionComponentFixture *fixture,
 
 static void
 test_session_component_dispose (SessionComponentFixture *fixture,
-                              gconstpointer          user_data)
+                                gconstpointer            user_data)
 {
   GPtrArray *extensions;
   ValentSessionAdapter *provider;
