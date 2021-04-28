@@ -26,16 +26,6 @@ gint64            valent_timestamp_ms         (void);
 
 
 /* Miscellaneous Helpers */
-int               valent_menu_find_item    (GMenu          *menu,
-                                            const char     *attribute,
-                                            const GVariant *value);
-int               valent_menu_remove_item  (GMenu          *menu,
-                                            const char     *attribute,
-                                            const GVariant *value);
-void              valent_menu_replace_item (GMenu          *menu,
-                                            GMenuItem      *item,
-                                            const char     *attribute);
-
 void       valent_notification_set_device_action (GNotification *notification,
                                                   ValentDevice  *device,
                                                   const char    *action,

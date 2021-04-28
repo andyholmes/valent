@@ -283,7 +283,6 @@ valent_runcommand_plugin_handle_command_list (ValentRuncommandPlugin *self,
   JsonObjectIter iter;
   const char *key;
   JsonNode *command_node;
-  GMenuModel *menu;
   g_autoptr (GMenuItem) cmd_item = NULL;
   g_autoptr (GIcon) cmd_icon = NULL;
   g_autoptr (GMenu) cmd_menu = NULL;
@@ -317,8 +316,9 @@ valent_runcommand_plugin_handle_command_list (ValentRuncommandPlugin *self,
       g_menu_append_item (cmd_menu, item);
     }
 
-  menu = valent_device_get_menu (self->device);
-  valent_menu_replace_item (G_MENU (menu), cmd_item, "icon");
+  valent_device_plugin_replace_menu_item (VALENT_DEVICE_PLUGIN (self),
+                                          cmd_item,
+                                          "icon");
 }
 
 static void

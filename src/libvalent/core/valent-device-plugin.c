@@ -209,7 +209,7 @@ valent_device_plugin_get_outgoing (PeasPluginInfo *info)
 void
 valent_device_plugin_register_actions (ValentDevicePlugin *plugin,
                                        const GActionEntry *entries,
-                                       gint                n_entries)
+                                       int                 n_entries)
 {
   g_autoptr (ValentDevice) device = NULL;
   GActionMap *actions;
@@ -235,7 +235,7 @@ valent_device_plugin_register_actions (ValentDevicePlugin *plugin,
 void
 valent_device_plugin_unregister_actions (ValentDevicePlugin *plugin,
                                          const GActionEntry *entries,
-                                         gint                n_entries)
+                                         int                 n_entries)
 {
   g_autoptr (ValentDevice) device = NULL;
   GActionMap *actions;
@@ -263,7 +263,7 @@ valent_device_plugin_unregister_actions (ValentDevicePlugin *plugin,
 void
 valent_device_plugin_toggle_actions (ValentDevicePlugin *plugin,
                                      const GActionEntry *entries,
-                                     gint                n_entries,
+                                     int                 n_entries,
                                      gboolean            state)
 {
   g_autoptr (ValentDevice) device = NULL;
@@ -300,7 +300,7 @@ valent_device_plugin_toggle_actions (ValentDevicePlugin *plugin,
 void
 valent_device_plugin_add_menu_entries (ValentDevicePlugin    *plugin,
                                        const ValentMenuEntry *entries,
-                                       gint                   n_entries)
+                                       int                    n_entries)
 {
   g_autoptr (ValentDevice) device = NULL;
   GMenu *menu;
@@ -329,7 +329,7 @@ _g_menu_find_action (GMenu      *menu,
                      const char *action)
 {
   GMenuModel *model = G_MENU_MODEL (menu);
-  gint i, n_items;
+  int i, n_items;
 
   g_return_val_if_fail (G_IS_MENU (menu), -1);
   g_return_val_if_fail (action != NULL, -1);
@@ -361,7 +361,7 @@ _g_menu_find_action (GMenu      *menu,
 void
 valent_device_plugin_remove_menu_entries (ValentDevicePlugin    *plugin,
                                           const ValentMenuEntry *entries,
-                                          gint                   n_entries)
+                                          int                    n_entries)
 {
   g_autoptr (ValentDevice) device = NULL;
   GMenu *menu;
@@ -379,6 +379,123 @@ valent_device_plugin_remove_menu_entries (ValentDevicePlugin    *plugin,
       if (index > -1)
         g_menu_remove (menu, index);
     }
+}
+
+/**
+ * valent_device_plugin_find_menu_item:
+ * @plugin: a #ValentDevicePlugin
+ * @attribute: an attribute name to match
+ * @value: an attribute value to match
+ *
+ * Search the top-level of a #GMenuModel for the index of an item with the
+ * attribute @name holding @value.
+ *
+ * Returns: position of the item or -1 if not found
+ */
+int
+valent_device_plugin_find_menu_item (ValentDevicePlugin *plugin,
+                                     const char         *attribute,
+                                     const GVariant     *value)
+{
+  g_autoptr (ValentDevice) device = NULL;
+  GMenuModel *model;
+  int i, n_items;
+
+  g_return_val_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin), -1);
+  g_return_val_if_fail (attribute != NULL, -1);
+  g_return_val_if_fail (value != NULL, -1);
+
+  g_object_get (plugin, "device", &device, NULL);
+  model = valent_device_get_menu (device);
+
+  n_items = g_menu_model_get_n_items (model);
+
+  for (i = 0; i < n_items; i++)
+    {
+      g_autoptr (GVariant) ivar = NULL;
+
+      ivar = g_menu_model_get_item_attribute_value (model, i, attribute, NULL);
+
+      if (ivar == NULL)
+        continue;
+
+      if (g_variant_equal (value, ivar))
+        return i;
+    }
+
+  return -1;
+}
+
+/**
+ * valent_device_plugin_remove_menu_item:
+ * @plugin: a #ValentDevicePlugin
+ * @attribute: an attribute name to match
+ * @value: an attribute value to match
+ *
+ * Removes an item in @menu with a the specified attribute and value. If @menu
+ * contains a top-level item with @attribute holding @value it is removed.
+ *
+ * Returns: the index of the removed item or -1 if not found.
+ */
+int
+valent_device_plugin_remove_menu_item (ValentDevicePlugin *plugin,
+                                       const char         *attribute,
+                                       const GVariant     *value)
+{
+  g_autoptr (ValentDevice) device = NULL;
+  GMenu *menu;
+  int position;
+
+  g_return_val_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin), -1);
+  g_return_val_if_fail (attribute != NULL, -1);
+  g_return_val_if_fail (value != NULL, -1);
+
+  g_object_get (plugin, "device", &device, NULL);
+  menu = G_MENU (valent_device_get_menu (device));
+  position = valent_device_plugin_find_menu_item (plugin, attribute, value);
+
+  if (position > -1)
+    g_menu_remove (menu, position);
+
+  return position;
+}
+
+/**
+ * valent_device_plugin_replace_menu_item:
+ * @plugin: a #ValentDevicePlugin
+ * @item: a #GMenuItem
+ * @attribute: an attribute name to match
+ *
+ * Replaces an item in @menu with @item.
+ *
+ * If @menu contains a top-level item with the same action name as @item, it is
+ * removed and @item is inserted at the same position. Otherwise @item is
+ * appended to @menu.
+ */
+void
+valent_device_plugin_replace_menu_item (ValentDevicePlugin *plugin,
+                                        GMenuItem          *item,
+                                        const char         *attribute)
+{
+  g_autoptr (ValentDevice) device = NULL;
+  g_autoptr (GVariant) value = NULL;
+  GMenu *menu;
+  int position = -1;
+
+  g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
+  g_return_if_fail (G_IS_MENU_ITEM (item));
+
+  g_object_get (plugin, "device", &device, NULL);
+  menu = G_MENU (valent_device_get_menu (device));
+  value = g_menu_item_get_attribute_value (item, attribute, NULL);
+
+  if (value != NULL)
+    position = valent_device_plugin_remove_menu_item (plugin, attribute, value);
+
+  if (position > -1)
+    g_menu_insert_item (menu, position, item);
+  else
+    g_menu_append_item (menu, item);
 }
 
 /**
