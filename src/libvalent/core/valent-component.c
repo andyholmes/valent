@@ -516,23 +516,14 @@ GSettings *
 valent_component_new_settings (const char *context,
                                const char *module_name)
 {
-  GSettingsSchemaSource *source;
-  g_autoptr (GSettingsSchema) schema = NULL;
   g_autofree char *path = NULL;
-  g_autofree char *schema_id = NULL;
 
   g_return_val_if_fail (context != NULL, NULL);
   g_return_val_if_fail (module_name != NULL, NULL);
 
-  source = g_settings_schema_source_get_default ();
-  schema_id = g_strdup_printf ("ca.andyholmes.Valent.Plugin");
-  schema = g_settings_schema_source_lookup (source, schema_id, TRUE);
-
-  g_return_val_if_fail (schema != NULL, NULL);
-
   path = g_strdup_printf ("/ca/andyholmes/valent/%s/plugin/%s/",
                           context, module_name);
 
-  return g_settings_new_full (schema, NULL, path);
+  return g_settings_new_with_path ("ca.andyholmes.Valent.Plugin", path);
 }
 
