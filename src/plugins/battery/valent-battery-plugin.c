@@ -329,7 +329,7 @@ valent_battery_plugin_request_state (ValentBatteryPlugin *self)
 
   g_return_if_fail (VALENT_IS_BATTERY_PLUGIN (self));
 
-  builder = valent_packet_start("kdeconnect.battery.request");
+  builder = valent_packet_start ("kdeconnect.battery.request");
   json_builder_set_member_name (builder, "request");
   json_builder_add_boolean_value (builder, TRUE);
   packet = valent_packet_finish (builder);
@@ -354,7 +354,7 @@ valent_battery_plugin_send_state (ValentBatteryPlugin *self)
   if (!g_settings_get_boolean (self->settings, "share-state"))
     return;
 
-  builder = valent_packet_start("kdeconnect.battery");
+  builder = valent_packet_start ("kdeconnect.battery");
   json_builder_set_member_name (builder, "currentCharge");
   json_builder_add_int_value (builder, valent_battery_get_level (self->battery));
   json_builder_set_member_name (builder, "isCharging");

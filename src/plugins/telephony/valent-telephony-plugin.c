@@ -339,7 +339,7 @@ valent_telephony_plugin_mute_call (ValentTelephonyPlugin *self)
 
   g_assert (VALENT_IS_TELEPHONY_PLUGIN (self));
 
-  builder = valent_packet_start("kdeconnect.telephony.request_mute");
+  builder = valent_packet_start ("kdeconnect.telephony.request_mute");
   packet = valent_packet_finish (builder);
 
   valent_device_queue_packet (self->device, packet);

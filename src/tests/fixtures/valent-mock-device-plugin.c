@@ -56,7 +56,7 @@ packet_action (GSimpleAction *action,
 
   g_assert (VALENT_IS_MOCK_DEVICE_PLUGIN (self));
 
-  builder = valent_packet_start("kdeconnect.mock.echo");
+  builder = valent_packet_start ("kdeconnect.mock.echo");
   packet = valent_packet_finish (builder);
 
   valent_device_queue_packet (self->device, packet);

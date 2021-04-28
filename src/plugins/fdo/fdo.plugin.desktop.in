@@ -8,4 +8,6 @@ Embedded=valent_fdo_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
+X-NotificationSourcePriority=100
+X-SessionAdapterPriority=100
 

@@ -275,7 +275,7 @@ valent_device_send_pair (ValentDevice *device,
   if (!device->connected)
     return;
 
-  builder = valent_packet_start("kdeconnect.pair");
+  builder = valent_packet_start ("kdeconnect.pair");
   json_builder_set_member_name (builder, "pair");
   json_builder_add_boolean_value (builder, pair);
   packet = valent_packet_finish (builder);

@@ -152,7 +152,7 @@ valent_clipboard_plugin_clipboard_connect (ValentClipboardPlugin *self,
     return;
 
   /* Build the packet */
-  builder = valent_packet_start("kdeconnect.clipboard.connect");
+  builder = valent_packet_start ("kdeconnect.clipboard.connect");
   json_builder_set_member_name (builder, "content");
   json_builder_add_string_value (builder, content);
   json_builder_set_member_name (builder, "timestamp");

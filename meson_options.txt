@@ -200,12 +200,6 @@ option('plugin_pulseaudio',
   description: 'Enable PulseAudio support'
 )
 
-option('plugin_upower',
-         type: 'boolean',
-        value: true,
-  description: 'Enable UPower support'
-)
-
 option('plugin_xdp',
          type: 'boolean',
         value: true,

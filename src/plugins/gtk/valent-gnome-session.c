@@ -165,26 +165,6 @@ new_proxy_cb (GObject            *object,
  * GObject
  */
 static void
-valent_gnome_session_constructed (GObject *object)
-{
-  ValentGnomeSession *self = VALENT_GNOME_SESSION (object);
-
-  g_dbus_proxy_new_for_bus (G_BUS_TYPE_SESSION,
-                            G_DBUS_PROXY_FLAGS_DO_NOT_AUTO_START |
-                            G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES |
-                            G_DBUS_PROXY_FLAGS_NONE,
-                            NULL,
-                            GNOME_SCREENSAVER_NAME,
-                            GNOME_SCREENSAVER_OBJECT_PATH,
-                            GNOME_SCREENSAVER_INTERFACE,
-                            self->cancellable,
-                            (GAsyncReadyCallback)new_proxy_cb,
-                            self);
-
-  G_OBJECT_CLASS (valent_gnome_session_parent_class)->constructed (object);
-}
-
-static void
 valent_gnome_session_dispose (GObject *object)
 {
   ValentGnomeSession *self = VALENT_GNOME_SESSION (object);
@@ -217,7 +197,6 @@ valent_gnome_session_class_init (ValentGnomeSessionClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentSessionAdapterClass *session_class = VALENT_SESSION_ADAPTER_CLASS (klass);
 
-  object_class->constructed = valent_gnome_session_constructed;
   object_class->dispose = valent_gnome_session_dispose;
   object_class->finalize = valent_gnome_session_finalize;
 
@@ -230,5 +209,15 @@ static void
 valent_gnome_session_init (ValentGnomeSession *self)
 {
   self->cancellable = g_cancellable_new ();
+
+  g_dbus_proxy_new_for_bus (G_BUS_TYPE_SESSION,
+                            G_DBUS_PROXY_FLAGS_NONE,
+                            NULL,
+                            GNOME_SCREENSAVER_NAME,
+                            GNOME_SCREENSAVER_OBJECT_PATH,
+                            GNOME_SCREENSAVER_INTERFACE,
+                            self->cancellable,
+                            (GAsyncReadyCallback)new_proxy_cb,
+                            self);
 }
 

@@ -389,8 +389,8 @@ valent_manager_disable_service (ValentManager  *manager,
 
 typedef struct
 {
-  ValentManager *manager;
-  PeasPluginInfo      *info;
+  ValentManager  *manager;
+  PeasPluginInfo *info;
 } ServiceInfo;
 
 static void
@@ -430,7 +430,7 @@ on_load_service (PeasEngine     *engine,
 
   /* We create and destroy the PeasExtension based on the enabled state */
   module = peas_plugin_info_get_module_name (info);
-  path = g_strdup_printf ("/ca/andyholmes/valent/network/%s/", module);
+  path = g_strdup_printf ("/ca/andyholmes/valent/network/plugin/%s/", module);
   settings = g_settings_new_with_path ("ca.andyholmes.Valent.Plugin", path);
   g_hash_table_insert (manager->services_settings, info, settings);
 

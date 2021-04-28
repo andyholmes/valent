@@ -142,7 +142,7 @@ photo_action (GSimpleAction *action,
 
   g_return_if_fail (VALENT_IS_PHOTO_PLUGIN (self));
 
-  builder = valent_packet_start("kdeconnect.photo.request");
+  builder = valent_packet_start ("kdeconnect.photo.request");
   packet = valent_packet_finish (builder);
 
   valent_device_queue_packet (self->device, packet);

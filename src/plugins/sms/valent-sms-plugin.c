@@ -207,7 +207,7 @@ valent_sms_plugin_request_conversation (ValentSmsPlugin *self,
   g_return_if_fail (VALENT_IS_SMS_PLUGIN (self));
   g_return_if_fail (thread_id > 0);
 
-  builder = valent_packet_start("kdeconnect.sms.request_conversation");
+  builder = valent_packet_start ("kdeconnect.sms.request_conversation");
   json_builder_set_member_name (builder, "threadID");
   json_builder_add_int_value (builder, thread_id);
   packet = valent_packet_finish (builder);
@@ -223,7 +223,7 @@ valent_sms_plugin_request_conversations (ValentSmsPlugin *self)
 
   g_return_if_fail (VALENT_IS_SMS_PLUGIN (self));
 
-  builder = valent_packet_start("kdeconnect.sms.request_conversations");
+  builder = valent_packet_start ("kdeconnect.sms.request_conversations");
   packet = valent_packet_finish (builder);
 
   valent_device_queue_packet (self->device, packet);
@@ -239,7 +239,7 @@ valent_sms_plugin_request (ValentSmsPlugin *self,
 
   g_return_if_fail (VALENT_IS_SMS_PLUGIN (self));
 
-  builder = valent_packet_start("kdeconnect.sms.request");
+  builder = valent_packet_start ("kdeconnect.sms.request");
   json_builder_set_member_name (builder, "sendSms");
   json_builder_add_boolean_value (builder, TRUE);
   json_builder_set_member_name (builder, "phoneNumber");

@@ -268,7 +268,7 @@ valent_runcommand_plugin_execute_remote_command (ValentRuncommandPlugin *self,
   g_assert (VALENT_IS_RUNCOMMAND_PLUGIN (self));
   g_assert (key != NULL);
 
-  builder = valent_packet_start("kdeconnect.runcommand.request");
+  builder = valent_packet_start ("kdeconnect.runcommand.request");
   json_builder_set_member_name (builder, "key");
   json_builder_add_string_value (builder, key);
   packet = valent_packet_finish (builder);
