@@ -201,29 +201,7 @@ valent_manager_export_device (ValentManager *manager,
 
   /* Device Interface */
   object = g_dbus_object_skeleton_new (exported->path);
-  iface = (GDBusInterfaceSkeleton *)valent_remote_device_skeleton_new ();
-
-  g_object_bind_property (device, "connected",
-                          iface,  "connected",
-                          G_BINDING_SYNC_CREATE);
-  g_object_bind_property (device, "paired",
-                          iface,  "paired",
-                          G_BINDING_SYNC_CREATE);
-  g_object_bind_property (device, "icon-name",
-                          iface,  "icon-name",
-                          G_BINDING_SYNC_CREATE);
-  g_object_bind_property (device, "id",
-                          iface,  "id",
-                          G_BINDING_SYNC_CREATE);
-  g_object_bind_property (device, "state",
-                          iface,  "state",
-                          G_BINDING_SYNC_CREATE);
-  g_object_bind_property (device, "name",
-                          iface,  "name",
-                          G_BINDING_SYNC_CREATE);
-  g_object_bind_property (device, "type",
-                          iface,  "type",
-                          G_BINDING_SYNC_CREATE);
+  iface = valent_device_impl_new (device);
 
   g_dbus_object_skeleton_add_interface (object, iface);
 
