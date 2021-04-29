@@ -251,6 +251,5 @@ summary('Evolution Data Server', get_option('plugin_eds'),          section: 'In
 summary('freedesktop.org',       get_option('plugin_fdo'),          section: 'Integration')
 summary('Gtk',                   get_option('plugin_gtk'),          section: 'Integration')
 summary('PulseAudio',            get_option('plugin_pulseaudio'),   section: 'Integration')
-summary('UPower',                get_option('plugin_upower'),       section: 'Integration')
 summary('XDP',                   get_option('plugin_xdp'),          section: 'Integration')
 
