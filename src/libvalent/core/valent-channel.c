@@ -525,9 +525,10 @@ valent_channel_get_base_stream (ValentChannel *channel)
  * valent_channel_get_identity:
  * @channel: A #ValentChannel
  *
- * Gets the identity packet for this channel is associated with.
+ * Gets the identity packet sent by the #ValentChannelService during connection
+ * negotiation.
  *
- * Returns: (transfer none): The identity #JsonNode for this channel
+ * Returns: (transfer none): The identity
  */
 JsonNode *
 valent_channel_get_identity (ValentChannel *channel)
@@ -543,9 +544,9 @@ valent_channel_get_identity (ValentChannel *channel)
  * valent_channel_get_peer_identity:
  * @channel: A #ValentChannel
  *
- * Gets the identity packet for this channel is associated with.
+ * Gets the identity packet sent by the peer during connection negotiation.
  *
- * Returns: (transfer none): The identity #JsonNode for this channel
+ * Returns: (transfer none): The peer identity
  */
 JsonNode *
 valent_channel_get_peer_identity (ValentChannel *channel)
