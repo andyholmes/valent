@@ -41,8 +41,6 @@ GIOStream  * valent_channel_get_base_stream      (ValentChannel        *channel)
 JsonNode   * valent_channel_get_identity         (ValentChannel        *channel);
 JsonNode   * valent_channel_get_peer_identity    (ValentChannel        *channel);
 const char * valent_channel_get_uri              (ValentChannel        *channel);
-void         valent_channel_set_uri              (ValentChannel        *channel,
-                                                  const char           *uri);
 const char * valent_channel_get_verification_key (ValentChannel        *channel);
 
 /* Packet Exchange */
