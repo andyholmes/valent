@@ -477,7 +477,6 @@ valent_channel_class_init (ValentChannelClass *klass)
                          "The reconnect URI of the channel",
                          NULL,
                          (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
@@ -577,6 +576,30 @@ valent_channel_get_uri (ValentChannel *channel)
   g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
 
   return priv->uri;
+}
+
+/**
+ * valent_channel_set_uri:
+ * @channel: a #ValentChannel
+ * @uri: (nullable): a reconnect URI
+ *
+ * Set the string representation of @channel that can be used to reconnect to
+ * the device, by passing to valent_channel_service_identify().
+ */
+void
+valent_channel_set_uri (ValentChannel *channel,
+                        const char    *uri)
+{
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+
+  g_return_if_fail (VALENT_IS_CHANNEL (channel));
+
+  if (g_strcmp0 (priv->uri, uri) == 0)
+    return;
+
+  g_clear_pointer (&priv->uri, g_free);
+  priv->uri = g_strdup (uri);
+  g_object_notify_by_pspec (G_OBJECT (channel), properties [PROP_URI]);
 }
 
 /**
