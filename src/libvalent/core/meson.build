@@ -24,6 +24,7 @@ libvalent_core_public_headers = [
 ]
 
 libvalent_core_private_headers = [
+  'valent-device-impl.h',
   'valent-device-private.h',
 ]
 
@@ -46,6 +47,7 @@ libvalent_core_public_sources = [
   'valent-data.c',
   'valent-debug.c',
   'valent-device.c',
+  'valent-device-impl.c',
   'valent-device-plugin.c',
   'valent-manager.c',
   'valent-object-utils.c',
@@ -82,16 +84,6 @@ libvalent_core_enums = gnome.mkenums_simple('valent-core-enums',
 )
 libvalent_core_generated_sources += [libvalent_core_enums[0]]
 libvalent_core_generated_headers += [libvalent_core_enums[1]]
-
-
-# DBus Implementation
-device_iface = gnome.gdbus_codegen('valent-device-impl',
-           sources: 'data/ca.andyholmes.Valent.Device.xml',
-  interface_prefix: 'ca.andyholmes.Valent.',
-         namespace: 'ValentRemote',
-)
-
-libvalent_core_generated_sources += [device_iface]
 
 
 # Dependencies

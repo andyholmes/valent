@@ -4,6 +4,8 @@
 #include <libvalent-core.h>
 #include <libvalent-test.h>
 
+#define DEVICE_INTERFACE "ca.andyholmes.Valent.Device"
+
 
 typedef struct
 {
@@ -117,20 +119,37 @@ manager_finish (GObject        *object,
 }
 
 static void
+on_action_added (GActionGroup   *group,
+                 char           *name,
+                 ManagerFixture *fixture)
+{
+  g_main_loop_quit (fixture->loop);
+}
+
+static void
+on_properties_changed (GDBusProxy     *proxy,
+                       GVariant       *changed_properties,
+                       GStrv           invalidated_properties,
+                       ManagerFixture *fixture)
+{
+  fixture->data = proxy;
+  g_main_loop_quit (fixture->loop);
+}
+
+static void
 test_manager_dbus (ManagerFixture *fixture,
                    gconstpointer   user_data)
 {
+  ValentDevice *device;
   g_autoptr (GDBusConnection) connection = NULL;
   g_autoptr (GDBusObjectManager) manager = NULL;
   g_autolist (GDBusObject) objects = NULL;
-  GDBusInterface *interface;
+  g_autoptr (GDBusInterface) interface = NULL;
+  g_autoptr (GDBusActionGroup) actions = NULL;
+  g_auto (GStrv) action_names = NULL;
+  g_autoptr (GDBusMenuModel) menu = NULL;
   const char *unique_name;
-  g_autoptr (GPtrArray) devices = NULL;
-
-  devices = valent_manager_get_devices (fixture->manager);
-  g_assert_cmpint (devices->len, ==, 1);
-  g_clear_pointer (&devices, g_ptr_array_unref);
-  return;
+  const char *object_path;
 
   /* Exports current devices */
   connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
@@ -148,23 +167,47 @@ test_manager_dbus (ManagerFixture *fixture,
   g_main_loop_run (fixture->loop);
   manager = g_steal_pointer (&fixture->data);
 
-  /* Exports devices, actions & menu */
+  /* Exports devices */
   objects = g_dbus_object_manager_get_objects (manager);
   g_assert_cmpuint (g_list_length (objects), ==, 1);
 
-  interface = g_dbus_object_get_interface (objects->data,
-                                           "ca.andyholmes.Valent.Device");
+  object_path = g_dbus_object_get_object_path (objects->data);
+  interface = g_dbus_object_get_interface (objects->data, DEVICE_INTERFACE);
   g_assert_nonnull (interface);
-  g_object_unref (interface);
 
-  interface = g_dbus_object_get_interface (objects->data, "org.gtk.Actions");
-  g_assert_nonnull (interface);
-  g_object_unref (interface);
+  g_signal_connect (interface,
+                    "g-properties-changed",
+                    G_CALLBACK (on_properties_changed),
+                    fixture);
 
-  interface = g_dbus_object_get_interface (objects->data, "org.gtk.Menu");
-  g_assert_nonnull (interface);
-  g_object_unref (interface);
+  device = valent_manager_get_device (fixture->manager, "test-device");
+  g_object_notify (G_OBJECT (device), "type");
+  g_main_loop_run (fixture->loop);
 
+  g_assert_true (fixture->data == interface);
+  fixture->data = NULL;
+
+  g_clear_pointer (&objects, valent_object_list_free);
+
+  /* Exports Actions */
+  actions = g_dbus_action_group_get (connection, unique_name, object_path);
+
+  g_signal_connect (actions,
+                    "action-added",
+                    G_CALLBACK (on_action_added),
+                    fixture);
+  action_names = g_action_group_list_actions (G_ACTION_GROUP (actions));
+  g_clear_pointer (&action_names, g_strfreev);
+  g_main_loop_run (fixture->loop);
+
+  action_names = g_action_group_list_actions (G_ACTION_GROUP (actions));
+  g_assert_cmpuint (g_strv_length (action_names), >, 0);
+  g_clear_pointer (&action_names, g_strfreev);
+
+  /* Exports Menus */
+  menu = g_dbus_menu_model_get (connection, unique_name, object_path);
+
+  /* Unexports */
   valent_manager_unexport (fixture->manager);
 }
 
