@@ -217,6 +217,7 @@ test_manager_dispose (ManagerFixture *fixture,
 {
   PeasEngine *engine;
   ValentChannelService *service = NULL;
+  g_autoptr (GSettings) settings = NULL;
 
   /* Wait for the channel service */
   valent_manager_start (fixture->manager);
@@ -224,6 +225,20 @@ test_manager_dispose (ManagerFixture *fixture,
   while ((service = valent_mock_channel_service_get_instance ()) == NULL)
     g_main_context_iteration (NULL, FALSE);
 
+  /* Disable & Enabled channel service */
+  settings = valent_component_new_settings ("network", "mock");
+
+  g_settings_set_boolean (settings, "enabled", FALSE);
+
+  while ((service = valent_mock_channel_service_get_instance ()) != NULL)
+    g_main_context_iteration (NULL, FALSE);
+
+  g_settings_set_boolean (settings, "enabled", TRUE);
+
+  while ((service = valent_mock_channel_service_get_instance ()) == NULL)
+    g_main_context_iteration (NULL, FALSE);
+
+  /* Unload plugin */
   engine = valent_get_engine ();
   peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "mock"));
 
