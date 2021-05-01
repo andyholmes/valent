@@ -38,17 +38,12 @@ struct _ValentChannelClass
 
 /* Properties */
 GIOStream  * valent_channel_get_base_stream      (ValentChannel        *channel);
-void         valent_channel_set_base_stream      (ValentChannel        *channel,
-                                                  GIOStream            *stream);
 JsonNode   * valent_channel_get_identity         (ValentChannel        *channel);
-void         valent_channel_set_identity         (ValentChannel        *channel,
-                                                  JsonNode             *packet);
 JsonNode   * valent_channel_get_peer_identity    (ValentChannel        *channel);
-void         valent_channel_set_peer_identity    (ValentChannel        *channel,
-                                                  JsonNode             *packet);
 const char * valent_channel_get_uri              (ValentChannel        *channel);
 void         valent_channel_set_uri              (ValentChannel        *channel,
                                                   const char           *uri);
+const char * valent_channel_get_verification_key (ValentChannel        *channel);
 
 /* Packet Exchange */
 void         valent_channel_read_packet          (ValentChannel        *channel,
@@ -78,7 +73,6 @@ gboolean     valent_channel_close_finish         (ValentChannel        *channel,
                                                   GError              **error);
 
 /* Virtual Functions */
-const char * valent_channel_get_verification_key (ValentChannel        *channel);
 GIOStream  * valent_channel_download             (ValentChannel        *channel,
                                                   JsonNode             *packet,
                                                   GCancellable         *cancellable,

@@ -380,19 +380,20 @@ valent_channel_set_property (GObject      *object,
                              GParamSpec   *pspec)
 {
   ValentChannel *self = VALENT_CHANNEL (object);
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (self);
 
   switch (prop_id)
     {
     case PROP_BASE_STREAM:
-      valent_channel_set_base_stream (self, g_value_get_object (value));
+      priv->base_stream = g_value_dup_object (value);
       break;
 
     case PROP_IDENTITY:
-      valent_channel_set_identity (self, g_value_get_boxed (value));
+      priv->identity = g_value_dup_boxed (value);
       break;
 
     case PROP_PEER_IDENTITY:
-      valent_channel_set_peer_identity (self, g_value_get_boxed (value));
+      priv->peer_identity = g_value_dup_boxed (value);
       break;
 
     case PROP_URI:
@@ -430,6 +431,7 @@ valent_channel_class_init (ValentChannelClass *klass)
                          "Base Stream",
                          G_TYPE_IO_STREAM,
                          (G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
@@ -445,6 +447,7 @@ valent_channel_class_init (ValentChannelClass *klass)
                         "Identity",
                         JSON_TYPE_NODE,
                         (G_PARAM_READWRITE |
+                         G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_EXPLICIT_NOTIFY |
                          G_PARAM_STATIC_STRINGS));
 
@@ -459,6 +462,7 @@ valent_channel_class_init (ValentChannelClass *klass)
                         "Peer Identity",
                         JSON_TYPE_NODE,
                         (G_PARAM_READWRITE |
+                         G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_EXPLICIT_NOTIFY |
                          G_PARAM_STATIC_STRINGS));
 
@@ -497,6 +501,124 @@ valent_channel_init (ValentChannel *self)
   priv->generator = json_generator_new ();
   g_mutex_init (&priv->write_lock);
   g_queue_init (&priv->write_queue);
+}
+
+/**
+ * valent_channel_get_base_stream:
+ * @channel: a #ValentChannel
+ *
+ * Gets the #GIOStream for the channel, or NULL if unset.
+ *
+ * Returns: (nullable) (transfer none): the base #GIOStream.
+ */
+GIOStream *
+valent_channel_get_base_stream (ValentChannel *channel)
+{
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
+
+  return priv->base_stream;
+}
+
+/**
+ * valent_channel_get_identity:
+ * @channel: A #ValentChannel
+ *
+ * Gets the identity packet for this channel is associated with.
+ *
+ * Returns: (transfer none): The identity #JsonNode for this channel
+ */
+JsonNode *
+valent_channel_get_identity (ValentChannel *channel)
+{
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
+
+  return priv->identity;
+}
+
+/**
+ * valent_channel_get_peer_identity:
+ * @channel: A #ValentChannel
+ *
+ * Gets the identity packet for this channel is associated with.
+ *
+ * Returns: (transfer none): The identity #JsonNode for this channel
+ */
+JsonNode *
+valent_channel_get_peer_identity (ValentChannel *channel)
+{
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
+
+  return priv->peer_identity;
+}
+
+/**
+ * valent_channel_get_uri:
+ * @channel: a #ValentChannel
+ *
+ * Return a string representation of @channel that can be used to reconnect to
+ * the device, by passing to valent_channel_service_identify().
+ *
+ * This may be %NULL if the @channel does not support reconnection.
+ *
+ * Returns: (transfer none) (nullable): a reconnection string
+ */
+const char *
+valent_channel_get_uri (ValentChannel *channel)
+{
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
+
+  return priv->uri;
+}
+
+/**
+ * valent_channel_set_uri:
+ * @channel: a #ValentChannel
+ * @uri: (nullable): a reconnect URI
+ *
+ * Set the string representation of @channel that can be used to reconnect to
+ * the device, by passing to valent_channel_service_identify().
+ */
+void
+valent_channel_set_uri (ValentChannel *channel,
+                        const char    *uri)
+{
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+
+  g_return_if_fail (VALENT_IS_CHANNEL (channel));
+
+  if (g_strcmp0 (priv->uri, uri) == 0)
+    return;
+
+  g_clear_pointer (&priv->uri, g_free);
+  priv->uri = g_strdup (uri);
+  g_object_notify_by_pspec (G_OBJECT (channel), properties [PROP_URI]);
+}
+
+/**
+ * valent_channel_get_verification_key: (virtual get_verification_key)
+ * @channel: a #ValentChannel
+ *
+ * Get a verification key for the connection.
+ *
+ * Implementations should return a string for the user to confirm the connection
+ * is being made by a particular device, similar to a Bluetooth PIN.
+ *
+ * Returns: (transfer none): a verification key
+ */
+const char *
+valent_channel_get_verification_key (ValentChannel *channel)
+{
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
+
+  return VALENT_CHANNEL_GET_CLASS (channel)->get_verification_key (channel);
 }
 
 static void
@@ -884,195 +1006,5 @@ valent_channel_upload (ValentChannel  *channel,
                                                     error);
 
   VALENT_RETURN (ret);
-}
-
-/**
- * valent_channel_get_base_stream:
- * @channel: a #ValentChannel
- *
- * Gets the #GIOStream for the channel, or NULL if unset.
- *
- * Returns: (nullable) (transfer none): the base #GIOStream.
- */
-GIOStream *
-valent_channel_get_base_stream (ValentChannel *channel)
-{
-  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
-
-  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
-
-  return priv->base_stream;
-}
-
-/**
- * valent_channel_set_base_stream:
- * @channel: a #ValentChannel
- * @stream: a #GIOStream for the channel
- *
- * Sets the #ValentChannel:base-stream property. @channel will hold a reference
- * to @stream.
- */
-void
-valent_channel_set_base_stream (ValentChannel *channel,
-                                GIOStream     *stream)
-{
-  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
-
-  g_return_if_fail (VALENT_IS_CHANNEL (channel));
-  g_return_if_fail (G_IS_IO_STREAM (stream));
-
-  if (g_set_object (&priv->base_stream, stream))
-    g_object_notify_by_pspec (G_OBJECT (channel), properties [PROP_BASE_STREAM]);
-}
-
-/**
- * valent_channel_get_verification_key: (virtual get_verification_key)
- * @channel: a #ValentChannel
- *
- * Get a verification key for the connection.
- *
- * Implementations should return a string for the user to confirm the connection
- * is being made by a particular device, similar to a Bluetooth PIN.
- *
- * Returns: (transfer none): a verification key
- */
-const char *
-valent_channel_get_verification_key (ValentChannel *channel)
-{
-  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
-
-  return VALENT_CHANNEL_GET_CLASS (channel)->get_verification_key (channel);
-}
-
-/**
- * valent_channel_get_identity:
- * @channel: A #ValentChannel
- *
- * Gets the identity packet for this channel is associated with.
- *
- * Returns: (transfer none): The identity #JsonNode for this channel
- */
-JsonNode *
-valent_channel_get_identity (ValentChannel *channel)
-{
-  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
-
-  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
-
-  return priv->identity;
-}
-
-/**
- * valent_channel_set_identity:
- * @channel: a #ValentChannel
- * @packet: a #JsonNode
- *
- * Sets the identity for this channel. @channel will hold a reference to
- * @packet.
- */
-void
-valent_channel_set_identity (ValentChannel *channel,
-                             JsonNode      *packet)
-{
-  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
-
-  g_return_if_fail (VALENT_IS_CHANNEL (channel));
-  g_return_if_fail (VALENT_IS_PACKET (packet));
-
-  if (priv->identity == packet)
-    return;
-
-  g_clear_pointer (&priv->identity, json_node_unref);
-  priv->identity = json_node_ref (packet);
-
-  g_object_notify_by_pspec (G_OBJECT (channel), properties [PROP_IDENTITY]);
-}
-
-/**
- * valent_channel_get_peer_identity:
- * @channel: A #ValentChannel
- *
- * Gets the identity packet for this channel is associated with.
- *
- * Returns: (transfer none): The identity #JsonNode for this channel
- */
-JsonNode *
-valent_channel_get_peer_identity (ValentChannel *channel)
-{
-  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
-
-  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
-
-  return priv->peer_identity;
-}
-
-/**
- * valent_channel_set_peer_identity:
- * @channel: a #ValentChannel
- * @packet: a #JsonNode
- *
- * Sets the identity for this channel. @packet will be duplicated.
- */
-void
-valent_channel_set_peer_identity (ValentChannel *channel,
-                                  JsonNode      *packet)
-{
-  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
-
-  g_return_if_fail (VALENT_IS_CHANNEL (channel));
-  g_return_if_fail (VALENT_IS_PACKET (packet));
-
-  if (priv->peer_identity == packet)
-    return;
-
-  g_clear_pointer (&priv->peer_identity, json_node_unref);
-  priv->peer_identity = json_node_ref (packet);
-
-  g_object_notify_by_pspec (G_OBJECT (channel), properties [PROP_PEER_IDENTITY]);
-}
-
-/**
- * valent_channel_get_uri:
- * @channel: a #ValentChannel
- *
- * Return a string representation of @channel that can be used to reconnect to
- * the device, by passing to valent_channel_service_identify().
- *
- * This may be %NULL if the @channel does not support reconnection.
- *
- * Returns: (transfer none) (nullable): a reconnection string
- */
-const char *
-valent_channel_get_uri (ValentChannel *channel)
-{
-  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
-
-  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
-
-  return priv->uri;
-}
-
-/**
- * valent_channel_set_uri:
- * @channel: a #ValentChannel
- * @uri: (nullable): a reconnect URI
- *
- * Set the string representation of @channel that can be used to reconnect to
- * the device, by passing to valent_channel_service_identify().
- */
-void
-valent_channel_set_uri (ValentChannel *channel,
-                        const char    *uri)
-{
-  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
-
-  g_return_if_fail (VALENT_IS_CHANNEL (channel));
-
-  if (g_strcmp0 (priv->uri, uri) == 0)
-    return;
-
-  g_clear_pointer (&priv->uri, g_free);
-  priv->uri = g_strdup (uri);
-  g_object_notify_by_pspec (G_OBJECT (channel), properties [PROP_URI]);
 }
 
