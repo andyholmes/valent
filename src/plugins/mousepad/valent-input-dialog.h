@@ -5,6 +5,7 @@
 
 #include "valent-mousepad-plugin.h"
 
+#include <adwaita.h>
 #include <gtk/gtk.h>
 #include <json-glib/json-glib.h>
 
@@ -12,7 +13,7 @@ G_BEGIN_DECLS
 
 #define VALENT_TYPE_INPUT_DIALOG (valent_input_dialog_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentInputDialog, valent_input_dialog, VALENT, INPUT_DIALOG, GtkDialog)
+G_DECLARE_FINAL_TYPE (ValentInputDialog, valent_input_dialog, VALENT, INPUT_DIALOG, AdwWindow)
 
 ValentInputDialog * valent_input_dialog_new          (ValentMousepadPlugin *plugin);
 

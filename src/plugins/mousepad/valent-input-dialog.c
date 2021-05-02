@@ -16,7 +16,7 @@
 
 struct _ValentInputDialog
 {
-  GtkDialog             parent_instance;
+  AdwWindow             parent_instance;
 
   ValentMousepadPlugin *plugin;
   ValentDevice         *device;
@@ -33,7 +33,7 @@ struct _ValentInputDialog
   GtkWidget            *super_label;
 };
 
-G_DEFINE_TYPE (ValentInputDialog, valent_input_dialog, GTK_TYPE_DIALOG)
+G_DEFINE_TYPE (ValentInputDialog, valent_input_dialog, ADW_TYPE_WINDOW)
 
 
 enum {
@@ -348,10 +348,6 @@ valent_input_dialog_constructed (GObject *object)
                 "device", &self->device,
                 NULL);
 
-  g_object_bind_property (self->plugin, "remote-state",
-                          self->editor, "sensitive",
-                          G_BINDING_SYNC_CREATE);
-
   G_OBJECT_CLASS (valent_input_dialog_parent_class)->constructed (object);
 }
 
@@ -487,7 +483,6 @@ valent_input_dialog_new (ValentMousepadPlugin *plugin)
     window = gtk_application_get_active_window (GTK_APPLICATION (application));
 
   return g_object_new (VALENT_TYPE_INPUT_DIALOG,
-                       "use-header-bar", TRUE,
                        "plugin",         plugin,
                        "transient-for",  window,
                        NULL);
