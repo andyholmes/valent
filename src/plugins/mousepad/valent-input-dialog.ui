@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.22.1 -->
 <interface>
   <template class="ValentInputDialog" parent="AdwWindow">
+    <property name="width-request">360</property>
+    <property name="height-request">480</property>
     <child>
       <object class="GtkBox">
         <property name="orientation">vertical</property>
         <child>
-          <object class="AdwHeaderBar">
-            <property name="show-end-title-buttons">1</property>
+          <object class="GtkHeaderBar">
+            <property name="show-title-buttons">1</property>
             <property name="title-widget">
               <object class="AdwWindowTitle">
                 <property name="title" translatable="yes">Remote Input</property>
@@ -23,16 +24,20 @@
         </child>
         <child>
           <object class="GtkBox">
-            <property name="margin-top">18</property>
-            <property name="margin-bottom">18</property>
-            <property name="margin-start">18</property>
-            <property name="margin-end">18</property>
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">12</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
             <property name="orientation">vertical</property>
             <property name="homogeneous">1</property>
             <property name="spacing">2</property>
             <child>
               <object class="GtkRevealer" id="revealer">
-                <property name="reveal-child" bind-source="editor_button" bind-property="active" bind-flags="sync-create"/>
+                <property name="reveal-child"
+                          bind-source="editor_button"
+                          bind-property="active"
+                          bind-flags="sync-create"/>
+                <property name="visible">0</property>
                 <child>
                   <object class="GtkGrid">
                     <property name="column-spacing">6</property>
@@ -102,18 +107,87 @@
               </object>
             </child>
             <child>
-              <object class="GtkBox" id="touchpad">
+              <object class="GtkFrame" id="touchpad">
                 <property name="hexpand">1</property>
                 <property name="vexpand">1</property>
                 <child>
-                  <object class="GtkLabel">
-                    <property name="label" translatable="yes">Move a finger to move the pointer.</property>
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
                     <property name="halign">center</property>
                     <property name="hexpand">1</property>
                     <property name="valign">center</property>
                     <property name="vexpand">1</property>
+                    <property name="spacing">6</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Drag one finger to move</property>
+                        <property name="xalign">0.0</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Drag two fingers to scroll</property>
+                        <property name="xalign">0.0</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Tap one finger to click</property>
+                        <property name="margin-top">18</property>
+                        <property name="xalign">0.0</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Tap two fingers to right click</property>
+                        <property name="xalign">0.0</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Tap three fingers to middle click</property>
+                        <property name="xalign">0.0</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Hold one finger to grab</property>
+                        <property name="margin-top">18</property>
+                        <property name="xalign">0.0</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Tap one finger to ungrab</property>
+                        <property name="xalign">0.0</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
                   </object>
                 </child>
+                <style>
+                  <class name="content-view"/>
+                </style>
               </object>
             </child>
           </object>

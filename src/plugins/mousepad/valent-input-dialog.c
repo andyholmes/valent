@@ -7,11 +7,14 @@
 
 #include <glib/gi18n.h>
 #include <libvalent-core.h>
-#include <libvalent-ui.h>
 #include <libvalent-input.h>
+#include <libvalent-ui.h>
+#include <math.h>
 
 #include "valent-input-dialog.h"
 #include "valent-mousepad-plugin.h"
+
+#define CAPTURE_THRESHOLD_MS 50
 
 
 struct _ValentInputDialog
@@ -20,10 +23,24 @@ struct _ValentInputDialog
 
   ValentMousepadPlugin *plugin;
   ValentDevice         *device;
-  GtkEventController   *controller;
+
+  /* Keyboard */
+  GtkEventController   *keyboard;
+
+  /* Pointer */
+  GtkGesture           *touch1;
+  GtkGesture           *touch2;
+  GtkGesture           *touch3;
+
+  unsigned int          claimed : 1;
+  guint32               last_t;
+  double                last_v;
+  double                last_x;
+  double                last_y;
+  unsigned int          longpress_id;
+  int                   scale;
 
   /* Template widgets */
-  GtkStack             *stack;
   GtkWidget            *touchpad;
   GtkWidget            *editor;
 
@@ -33,8 +50,20 @@ struct _ValentInputDialog
   GtkWidget            *super_label;
 };
 
-G_DEFINE_TYPE (ValentInputDialog, valent_input_dialog, ADW_TYPE_WINDOW)
+static void valent_input_dialog_pointer_axis    (ValentInputDialog *self,
+                                                 double             dx,
+                                                 double             dy);
+static void valent_input_dialog_pointer_button  (ValentInputDialog *self,
+                                                 unsigned int       button,
+                                                 unsigned int       n_press);
+static void valent_input_dialog_pointer_motion  (ValentInputDialog *self,
+                                                 double             dx,
+                                                 double             dy);
+static void valent_input_dialog_pointer_press   (ValentInputDialog *self);
+static void valent_input_dialog_pointer_release (ValentInputDialog *self);
+static void valent_input_dialog_reset           (ValentInputDialog *self);
 
+G_DEFINE_TYPE (ValentInputDialog, valent_input_dialog, ADW_TYPE_WINDOW)
 
 enum {
   PROP_0,
@@ -44,14 +73,24 @@ enum {
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
-enum {
-  TEXT_CHANGED,
-  N_SIGNALS
-};
 
-static guint signals[N_SIGNALS] = { 0, };
+static void
+get_last_update_time (GtkGesture       *gesture,
+                      GdkEventSequence *sequence,
+                      guint32          *time)
+{
+  GdkEvent *event = NULL;
 
+  if (sequence != NULL)
+    event = gtk_gesture_get_last_event (gesture, sequence);
 
+  if (event != NULL)
+    *time = gdk_event_get_time (event);
+}
+
+/*
+ * Keyboard Input
+ */
 static inline gboolean
 is_mod_key (gint key)
 {
@@ -337,6 +376,334 @@ move_cursor (ValentInputDialog *dialog,
 }
 
 /*
+ * Pointer Input
+ */
+static inline gboolean
+calculate_delta (ValentInputDialog *self,
+                 double             dx,
+                 double             dy,
+                 guint32            dt,
+                 double            *cx,
+                 double            *cy)
+{
+  double dr, v, m;
+
+  dr = sqrt (pow (dx, 2) + pow (dy, 2));
+  v = dr / dt;
+
+  if (self->last_v != 0.0)
+    self->last_v = (v + self->last_v) / 2;
+  else
+    self->last_v = v;
+
+  // TODO: acceleration setting
+  m = pow (self->last_v, 1.0);
+  m = fmin (4.0, fmax (m, 0.25));
+
+  *cx = round (dx * m);
+  *cy = round (dy * m);
+
+  return dt >= CAPTURE_THRESHOLD_MS;
+}
+
+static gboolean
+on_scroll (GtkEventControllerScroll *controller,
+           double                    dx,
+           double                    dy,
+           ValentInputDialog        *self)
+{
+  valent_input_dialog_pointer_axis (self, dx, dy);
+
+  return TRUE;
+}
+
+static gboolean
+longpress_timeout (gpointer data)
+{
+  ValentInputDialog *self = VALENT_INPUT_DIALOG (data);
+
+  self->claimed = TRUE;
+  self->longpress_id = 0;
+  gtk_gesture_set_state (self->touch1, GTK_EVENT_SEQUENCE_CLAIMED);
+
+  valent_input_dialog_pointer_press (self);
+
+  return G_SOURCE_REMOVE;
+}
+
+static void
+on_single_begin (GtkGestureDrag    *gesture,
+                 double             start_x,
+                 double             start_y,
+                 ValentInputDialog *self)
+{
+  GdkEventSequence *sequence;
+  unsigned int button = 0;
+  guint32 time = 0;
+  int delay;
+
+  /* No drags or longpresses with these buttons */
+  button = gtk_gesture_single_get_current_button (GTK_GESTURE_SINGLE (gesture));
+
+  if (button == GDK_BUTTON_MIDDLE || button == GDK_BUTTON_SECONDARY)
+    return;
+
+  sequence = gtk_gesture_single_get_current_sequence (GTK_GESTURE_SINGLE (gesture));
+  get_last_update_time (GTK_GESTURE (gesture), sequence, &time);
+
+  self->last_t = time;
+  self->last_x = start_x;
+  self->last_y = start_y;
+
+  /* Start the longpress timeout */
+  g_object_get (gtk_widget_get_settings (GTK_WIDGET (self)),
+                "gtk-long-press-time", &delay,
+                NULL);
+
+  self->longpress_id = g_timeout_add (delay, longpress_timeout, self);
+  g_source_set_name_by_id (self->longpress_id, "[valent] longpress_timeout");
+}
+
+static void
+on_single_update (GtkGesture        *gesture,
+                  GdkEventSequence  *sequence,
+                  ValentInputDialog *self)
+{
+  guint32 time = 0;
+  double x, y;
+  double dx, dy, dt;
+  double cx, cy;
+
+  get_last_update_time (gesture, sequence, &time);
+  gtk_gesture_get_point (gesture, sequence, &x, &y);
+
+  dt = time - self->last_t;
+  dx = (x - self->last_x) * self->scale;
+  dy = (y - self->last_y) * self->scale;
+
+  if (!calculate_delta (self, dx, dy, dt, &cx, &cy))
+    return;
+
+  if (dx >= 1.0 || dx <= -1.0 || dy >= 1.0 || dy <= -1.0)
+    {
+      self->claimed = TRUE;
+      g_clear_handle_id (&self->longpress_id, g_source_remove);
+      gtk_gesture_set_state (gesture, GTK_EVENT_SEQUENCE_CLAIMED);
+    }
+  else
+    return;
+
+  self->last_t = time;
+  self->last_x = x;
+  self->last_y = y;
+
+  valent_input_dialog_pointer_motion (self, cx, cy);
+}
+
+static void
+on_single_end (GtkGestureDrag    *gesture,
+               double             offset_x,
+               double             offset_y,
+               ValentInputDialog *self)
+{
+  if (!self->claimed)
+    {
+      unsigned int button = 0;
+
+      button = gtk_gesture_single_get_current_button (GTK_GESTURE_SINGLE (gesture));
+      valent_input_dialog_pointer_button (self, button, 1);
+    }
+
+  valent_input_dialog_reset (self);
+}
+
+static void
+on_double_begin (GtkGestureDrag    *gesture,
+                 double             start_x,
+                 double             start_y,
+                 ValentInputDialog *self)
+{
+  self->last_x = start_x;
+  self->last_y = start_y;
+}
+
+static void
+on_double_update (GtkGesture        *gesture,
+                  GdkEventSequence  *sequence,
+                  ValentInputDialog *self)
+{
+  double x, y;
+  double dx, dy;
+
+  gtk_gesture_get_point (gesture, sequence, &x, &y);
+  dx = x - self->last_x;
+  dy = y - self->last_y;
+
+  /* NOTE: We only support the Y-axis */
+  if (dy >= 1.0 || dy <= -1.0)
+    {
+      self->claimed = TRUE;
+      gtk_gesture_set_state (gesture, GTK_EVENT_SEQUENCE_CLAIMED);
+    }
+  else
+    return;
+
+  self->last_x = x;
+  self->last_y = y;
+
+  valent_input_dialog_pointer_axis (self, 0.0, round (dy));
+}
+
+static void
+on_double_end (GtkGestureDrag    *gesture,
+               double             offset_x,
+               double             offset_y,
+               ValentInputDialog *self)
+{
+  if (!self->claimed)
+    valent_input_dialog_pointer_button (self, GDK_BUTTON_SECONDARY, 1);
+
+  valent_input_dialog_reset (self);
+}
+
+static void
+on_triple_end (GtkGestureDrag    *gesture,
+               double             offset_x,
+               double             offset_y,
+               ValentInputDialog *self)
+{
+  if (!self->claimed)
+    valent_input_dialog_pointer_button (self, GDK_BUTTON_MIDDLE, 1);
+
+  valent_input_dialog_reset (self);
+}
+
+static void
+valent_input_dialog_pointer_axis (ValentInputDialog *self,
+                                  double             dx,
+                                  double             dy)
+{
+  JsonBuilder *builder;
+  g_autoptr (JsonNode) packet = NULL;
+
+  builder = valent_packet_start ("kdeconnect.mousepad.request");
+  json_builder_set_member_name (builder, "dx");
+  json_builder_add_double_value (builder, dx);
+  json_builder_set_member_name (builder, "dy");
+  json_builder_add_double_value (builder, dy);
+  json_builder_set_member_name (builder, "scroll");
+  json_builder_add_boolean_value (builder, TRUE);
+  packet = valent_packet_finish (builder);
+
+  valent_device_queue_packet (self->device, packet);
+}
+
+static void
+valent_input_dialog_pointer_button (ValentInputDialog *self,
+                                    unsigned int       button,
+                                    unsigned int       n_press)
+{
+  JsonBuilder *builder;
+  g_autoptr (JsonNode) packet = NULL;
+
+  if (n_press == 1)
+    {
+      builder = valent_packet_start ("kdeconnect.mousepad.request");
+
+      switch (button)
+        {
+        case GDK_BUTTON_PRIMARY:
+          json_builder_set_member_name (builder, "singleclick");
+          json_builder_add_boolean_value (builder, TRUE);
+          break;
+
+        case GDK_BUTTON_MIDDLE:
+          json_builder_set_member_name (builder, "middleclick");
+          json_builder_add_boolean_value (builder, TRUE);
+          break;
+
+        case GDK_BUTTON_SECONDARY:
+          json_builder_set_member_name (builder, "rightclick");
+          json_builder_add_boolean_value (builder, TRUE);
+          break;
+
+        default:
+          g_object_unref (builder);
+          g_return_if_reached ();
+        }
+
+      packet = valent_packet_finish (builder);
+    }
+  else if (button == GDK_BUTTON_PRIMARY && n_press == 2)
+    {
+      builder = valent_packet_start ("kdeconnect.mousepad.request");
+      json_builder_set_member_name (builder, "doubleclick");
+      json_builder_add_boolean_value (builder, TRUE);
+      packet = valent_packet_finish (builder);
+    }
+
+  if (packet != NULL)
+    valent_device_queue_packet (self->device, packet);
+}
+
+static void
+valent_input_dialog_pointer_motion (ValentInputDialog *self,
+                                    double             dx,
+                                    double             dy)
+{
+  JsonBuilder *builder;
+  g_autoptr (JsonNode) packet = NULL;
+
+  builder = valent_packet_start ("kdeconnect.mousepad.request");
+  json_builder_set_member_name (builder, "dx");
+  json_builder_add_double_value (builder, dx);
+  json_builder_set_member_name (builder, "dy");
+  json_builder_add_double_value (builder, dy);
+  packet = valent_packet_finish (builder);
+
+  valent_device_queue_packet (self->device, packet);
+}
+
+static void
+valent_input_dialog_pointer_press (ValentInputDialog *self)
+{
+  JsonBuilder *builder;
+  g_autoptr (JsonNode) packet = NULL;
+
+  builder = valent_packet_start ("kdeconnect.mousepad.request");
+  json_builder_set_member_name (builder, "singlehold");
+  json_builder_add_boolean_value (builder, TRUE);
+  packet = valent_packet_finish (builder);
+
+  valent_device_queue_packet (self->device, packet);
+}
+
+static void
+valent_input_dialog_pointer_release (ValentInputDialog *self)
+{
+  JsonBuilder *builder;
+  g_autoptr (JsonNode) packet = NULL;
+
+  builder = valent_packet_start ("kdeconnect.mousepad.request");
+  json_builder_set_member_name (builder, "singlerelease");
+  json_builder_add_boolean_value (builder, TRUE);
+  packet = valent_packet_finish (builder);
+
+  valent_device_queue_packet (self->device, packet);
+}
+
+static void
+valent_input_dialog_reset (ValentInputDialog *self)
+{
+  self->claimed = FALSE;
+  self->last_t = 0;
+  self->last_v = 0.0;
+  self->last_x = 0.0;
+  self->last_y = 0.0;
+  g_clear_handle_id (&self->longpress_id, g_source_remove);
+}
+
+/*
  * GObject
  */
 static void
@@ -349,6 +716,16 @@ valent_input_dialog_constructed (GObject *object)
                 NULL);
 
   G_OBJECT_CLASS (valent_input_dialog_parent_class)->constructed (object);
+}
+
+static void
+valent_input_dialog_dispose (GObject *object)
+{
+  ValentInputDialog *self = VALENT_INPUT_DIALOG (object);
+
+  valent_input_dialog_reset (self);
+
+  G_OBJECT_CLASS (valent_input_dialog_parent_class)->dispose (object);
 }
 
 static void
@@ -407,6 +784,7 @@ valent_input_dialog_class_init (ValentInputDialogClass *klass)
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
   object_class->constructed = valent_input_dialog_constructed;
+  object_class->dispose = valent_input_dialog_dispose;
   object_class->finalize = valent_input_dialog_finalize;
   object_class->get_property = valent_input_dialog_get_property;
   object_class->set_property = valent_input_dialog_set_property;
@@ -431,36 +809,95 @@ valent_input_dialog_class_init (ValentInputDialogClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
-
-  signals [TEXT_CHANGED] =
-    g_signal_new ("text-changed",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_LAST,
-                  0,
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__STRING,
-                  G_TYPE_NONE, 1, G_TYPE_STRING);
-  g_signal_set_va_marshaller (signals [TEXT_CHANGED],
-                              G_TYPE_FROM_CLASS (klass),
-                              g_cclosure_marshal_VOID__STRINGv);
 }
 
 static void
 valent_input_dialog_init (ValentInputDialog *self)
 {
+  GtkEventController *scroll;
+
   gtk_widget_init_template (GTK_WIDGET (self));
+  self->scale = gtk_widget_get_scale_factor (GTK_WIDGET (self));
 
-  self->controller = gtk_event_controller_key_new ();
-  gtk_widget_add_controller (self->editor, self->controller);
-
-  g_signal_connect (self->controller,
+  /* Keyboard */
+  self->keyboard = g_object_new (GTK_TYPE_EVENT_CONTROLLER_KEY,
+                                 "name", "keyboard",
+                                 NULL);
+  g_signal_connect (self->keyboard,
                     "key-pressed",
                     G_CALLBACK (on_key_pressed),
                     self);
-  g_signal_connect (self->controller,
+  g_signal_connect (self->keyboard,
                     "key-released",
                     G_CALLBACK (on_key_released),
                     self);
+  gtk_widget_add_controller (self->editor, self->keyboard);
+
+  /* Pointer */
+  scroll = g_object_new (GTK_TYPE_EVENT_CONTROLLER_SCROLL,
+                         "name",  "pointer-scroll",
+                         "flags", GTK_EVENT_CONTROLLER_SCROLL_VERTICAL,
+                         NULL);
+  g_signal_connect (scroll,
+                    "scroll",
+                    G_CALLBACK (on_scroll),
+                    self);
+  gtk_widget_add_controller (self->touchpad, GTK_EVENT_CONTROLLER (scroll));
+
+  self->touch1 = g_object_new (GTK_TYPE_GESTURE_DRAG,
+                               "name",     "touch-single",
+                               "n-points", 1,
+                               "button",   0,
+                               NULL);
+  g_signal_connect (self->touch1,
+                    "drag-begin",
+                    G_CALLBACK (on_single_begin),
+                    self);
+  g_signal_connect (self->touch1,
+                    "update",
+                    G_CALLBACK (on_single_update),
+                    self);
+  g_signal_connect (self->touch1,
+                    "drag-end",
+                    G_CALLBACK (on_single_end),
+                    self);
+  gtk_widget_add_controller (self->touchpad,
+                             GTK_EVENT_CONTROLLER (self->touch1));
+
+  self->touch2 = g_object_new (GTK_TYPE_GESTURE_DRAG,
+                               "name",       "touch-double",
+                               "n-points",   2,
+                               "touch-only", TRUE,
+                               NULL);
+  g_signal_connect (self->touch2,
+                    "drag-begin",
+                    G_CALLBACK (on_double_begin),
+                    self);
+  g_signal_connect (self->touch2,
+                    "update",
+                    G_CALLBACK (on_double_update),
+                    self);
+  g_signal_connect (self->touch2,
+                    "drag-end",
+                    G_CALLBACK (on_double_end),
+                    self);
+  gtk_widget_add_controller (self->touchpad,
+                             GTK_EVENT_CONTROLLER (self->touch2));
+
+  self->touch3 = g_object_new (GTK_TYPE_GESTURE_DRAG,
+                               "name",       "touch-triple",
+                               "n-points",   3,
+                               "touch-only", TRUE,
+                               NULL);
+  g_signal_connect (self->touch3,
+                    "drag-end",
+                    G_CALLBACK (on_triple_end),
+                    self);
+  gtk_widget_add_controller (self->touchpad,
+                             GTK_EVENT_CONTROLLER (self->touch3));
+
+  gtk_gesture_group (self->touch1, self->touch2);
+  gtk_gesture_group (self->touch1, self->touch3);
 }
 
 /**
