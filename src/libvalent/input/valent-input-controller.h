@@ -7,7 +7,6 @@
 # error "Only <libvalent-input.h> can be included directly."
 #endif
 
-#include <gdk/gdk.h>
 #include <libvalent-core.h>
 
 #include "valent-input-keydef.h"
