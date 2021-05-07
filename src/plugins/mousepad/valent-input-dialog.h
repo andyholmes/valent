@@ -3,11 +3,9 @@
 
 #pragma once
 
-#include "valent-mousepad-plugin.h"
-
 #include <adwaita.h>
 #include <gtk/gtk.h>
-#include <json-glib/json-glib.h>
+#include <libvalent-core.h>
 
 G_BEGIN_DECLS
 
@@ -15,13 +13,13 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (ValentInputDialog, valent_input_dialog, VALENT, INPUT_DIALOG, AdwWindow)
 
-ValentInputDialog * valent_input_dialog_new          (ValentMousepadPlugin *plugin);
+ValentInputDialog * valent_input_dialog_new          (ValentDevice      *device);
 
-void                valent_input_dialog_echo_key     (ValentInputDialog  *dialog,
-                                                      const char         *key,
-                                                      GdkModifierType     mask);
-void                valent_input_dialog_echo_special (ValentInputDialog  *dialog,
-                                                      unsigned int        keyval,
-                                                      GdkModifierType     mask);
+void                valent_input_dialog_echo_key     (ValentInputDialog *dialog,
+                                                      const char        *key,
+                                                      GdkModifierType    mask);
+void                valent_input_dialog_echo_special (ValentInputDialog *dialog,
+                                                      unsigned int       keyval,
+                                                      GdkModifierType    mask);
 
 G_END_DECLS

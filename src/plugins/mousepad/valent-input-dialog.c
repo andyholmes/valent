@@ -12,42 +12,40 @@
 #include <math.h>
 
 #include "valent-input-dialog.h"
-#include "valent-mousepad-plugin.h"
 
 #define CAPTURE_THRESHOLD_MS 50
 
 
 struct _ValentInputDialog
 {
-  AdwWindow             parent_instance;
+  AdwWindow           parent_instance;
 
-  ValentMousepadPlugin *plugin;
-  ValentDevice         *device;
+  ValentDevice       *device;
 
   /* Keyboard */
-  GtkEventController   *keyboard;
+  GtkEventController *keyboard;
 
   /* Pointer */
-  GtkGesture           *touch1;
-  GtkGesture           *touch2;
-  GtkGesture           *touch3;
+  GtkGesture         *touch1;
+  GtkGesture         *touch2;
+  GtkGesture         *touch3;
 
-  unsigned int          claimed : 1;
-  guint32               last_t;
-  double                last_v;
-  double                last_x;
-  double                last_y;
-  unsigned int          longpress_id;
-  int                   scale;
+  unsigned int        claimed : 1;
+  guint32             last_t;
+  double              last_v;
+  double              last_x;
+  double              last_y;
+  unsigned int        longpress_id;
+  int                 scale;
 
   /* Template widgets */
-  GtkWidget            *touchpad;
-  GtkWidget            *editor;
+  GtkWidget          *touchpad;
+  GtkWidget          *editor;
 
-  GtkWidget            *alt_label;
-  GtkWidget            *ctrl_label;
-  GtkWidget            *shift_label;
-  GtkWidget            *super_label;
+  GtkWidget          *alt_label;
+  GtkWidget          *ctrl_label;
+  GtkWidget          *shift_label;
+  GtkWidget          *super_label;
 };
 
 static void valent_input_dialog_pointer_axis    (ValentInputDialog *self,
@@ -67,7 +65,7 @@ G_DEFINE_TYPE (ValentInputDialog, valent_input_dialog, ADW_TYPE_WINDOW)
 
 enum {
   PROP_0,
-  PROP_PLUGIN,
+  PROP_DEVICE,
   N_PROPERTIES
 };
 
@@ -707,18 +705,6 @@ valent_input_dialog_reset (ValentInputDialog *self)
  * GObject
  */
 static void
-valent_input_dialog_constructed (GObject *object)
-{
-  ValentInputDialog *self = VALENT_INPUT_DIALOG (object);
-
-  g_object_get (self->plugin,
-                "device", &self->device,
-                NULL);
-
-  G_OBJECT_CLASS (valent_input_dialog_parent_class)->constructed (object);
-}
-
-static void
 valent_input_dialog_dispose (GObject *object)
 {
   ValentInputDialog *self = VALENT_INPUT_DIALOG (object);
@@ -733,7 +719,6 @@ valent_input_dialog_finalize (GObject *object)
 {
   ValentInputDialog *self = VALENT_INPUT_DIALOG (object);
 
-  g_clear_object (&self->plugin);
   g_clear_object (&self->device);
 
   G_OBJECT_CLASS (valent_input_dialog_parent_class)->finalize (object);
@@ -749,8 +734,8 @@ valent_input_dialog_get_property (GObject    *object,
 
   switch (prop_id)
     {
-    case PROP_PLUGIN:
-      g_value_set_object (value, self->plugin);
+    case PROP_DEVICE:
+      g_value_set_object (value, self->device);
       break;
 
     default:
@@ -768,8 +753,8 @@ valent_input_dialog_set_property (GObject      *object,
 
   switch (prop_id)
     {
-    case PROP_PLUGIN:
-      self->plugin = g_value_dup_object (value);
+    case PROP_DEVICE:
+      self->device = g_value_dup_object (value);
       break;
 
     default:
@@ -783,7 +768,6 @@ valent_input_dialog_class_init (ValentInputDialogClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
-  object_class->constructed = valent_input_dialog_constructed;
   object_class->dispose = valent_input_dialog_dispose;
   object_class->finalize = valent_input_dialog_finalize;
   object_class->get_property = valent_input_dialog_get_property;
@@ -798,11 +782,11 @@ valent_input_dialog_class_init (ValentInputDialogClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentInputDialog, shift_label);
   gtk_widget_class_bind_template_child (widget_class, ValentInputDialog, super_label);
 
-  properties [PROP_PLUGIN] =
-    g_param_spec_object ("plugin",
-                         "Plugin",
-                         "The plugin",
-                         VALENT_TYPE_MOUSEPAD_PLUGIN,
+  properties [PROP_DEVICE] =
+    g_param_spec_object ("device",
+                         "Device",
+                         "The target device",
+                         VALENT_TYPE_DEVICE,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -902,14 +886,14 @@ valent_input_dialog_init (ValentInputDialog *self)
 
 /**
  * valent_input_dialog_new:
- * @plugin: a #ValentMousepadPlugin
+ * @device: a #ValentDevice
  *
- * Create a new input dialog.
+ * Create a new input dialog for sending input events to @device.
  *
  * Returns: (transfer full): a new #ValentInputDialog
  */
 ValentInputDialog *
-valent_input_dialog_new (ValentMousepadPlugin *plugin)
+valent_input_dialog_new (ValentDevice *device)
 {
   GApplication *application;
   GtkWindow *window = NULL;
@@ -920,8 +904,8 @@ valent_input_dialog_new (ValentMousepadPlugin *plugin)
     window = gtk_application_get_active_window (GTK_APPLICATION (application));
 
   return g_object_new (VALENT_TYPE_INPUT_DIALOG,
-                       "plugin",         plugin,
-                       "transient-for",  window,
+                       "device",        device,
+                       "transient-for", window,
                        NULL);
 }
 

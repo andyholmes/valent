@@ -454,7 +454,7 @@ dialog_action (GSimpleAction *action,
   /* Create dialog if necessary */
   if (self->input_dialog == NULL)
     {
-      self->input_dialog = valent_input_dialog_new (self);
+      self->input_dialog = valent_input_dialog_new (self->device);
       g_object_add_weak_pointer (G_OBJECT (self->input_dialog),
                                  (gpointer) &self->input_dialog);
     }
