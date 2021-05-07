@@ -282,16 +282,9 @@ on_key_pressed (GtkEventControllerKey *controller,
 
       request = valent_packet_finish (builder);
       valent_device_queue_packet (self->device, request);
-
-      // Pass these key combinations rather than using the echo reply
-      //return super.vfunc_key_press_event(event);
-      if (super)
-        return FALSE;
-      else
-        return TRUE;
   }
 
-  return FALSE;
+  return TRUE;
 }
 
 static void
