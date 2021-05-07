@@ -41,11 +41,6 @@ struct _ValentInputDialog
   /* Template widgets */
   GtkWidget          *touchpad;
   GtkWidget          *editor;
-
-  GtkWidget          *alt_label;
-  GtkWidget          *ctrl_label;
-  GtkWidget          *shift_label;
-  GtkWidget          *super_label;
 };
 
 static void valent_input_dialog_pointer_axis    (ValentInputDialog *self,
@@ -192,7 +187,6 @@ on_key_pressed (GtkEventControllerKey *controller,
   GdkEvent *event;
   GdkModifierType real_mask = 0;
   guint keyval_lower = 0, special_key;
-  gboolean alt, ctrl, shift, super;
   JsonBuilder *builder;
   g_autoptr (JsonNode) request = NULL;
 
@@ -206,17 +200,6 @@ on_key_pressed (GtkEventControllerKey *controller,
 
   keyval_lower = gdk_keyval_to_lower (keyval);
   real_mask = state & gtk_accelerator_get_default_mod_mask ();
-
-  alt = !!(real_mask & GDK_ALT_MASK);
-  ctrl = !!(real_mask & GDK_CONTROL_MASK);
-  shift = !!(real_mask & GDK_SHIFT_MASK);
-  super = !!(real_mask & GDK_SUPER_MASK);
-
-  /* Totally unnecessary modifier indicators */
-  gtk_widget_set_sensitive (self->alt_label, is_alt (keyval_lower) || alt);
-  gtk_widget_set_sensitive (self->ctrl_label, is_ctrl (keyval_lower) || ctrl);
-  gtk_widget_set_sensitive (self->shift_label, is_shift (keyval_lower) || shift);
-  gtk_widget_set_sensitive (self->super_label, is_super (keyval_lower) || super);
 
   // Normalize Tab
   if (keyval_lower == GDK_KEY_ISO_Left_Tab)
@@ -244,28 +227,28 @@ on_key_pressed (GtkEventControllerKey *controller,
 
       builder = valent_packet_start ("kdeconnect.mousepad.request");
 
-      if (alt)
+      if (state & GDK_ALT_MASK)
         {
           json_builder_set_member_name (builder, "alt");
-          json_builder_add_boolean_value (builder, alt);
+          json_builder_add_boolean_value (builder, TRUE);
         }
 
-      if (ctrl)
+      if (state & GDK_CONTROL_MASK)
         {
           json_builder_set_member_name (builder, "ctrl");
-          json_builder_add_boolean_value (builder, ctrl);
+          json_builder_add_boolean_value (builder, TRUE);
         }
 
-      if (shift)
+      if (state & GDK_SHIFT_MASK)
         {
           json_builder_set_member_name (builder, "shift");
-          json_builder_add_boolean_value (builder, shift);
+          json_builder_add_boolean_value (builder, TRUE);
         }
 
-      if (super)
+      if (state & GDK_SUPER_MASK)
         {
           json_builder_set_member_name (builder, "super");
-          json_builder_add_boolean_value (builder, super);
+          json_builder_add_boolean_value (builder, TRUE);
         }
 
       json_builder_set_member_name (builder, "sendAck");
@@ -307,37 +290,6 @@ on_key_pressed (GtkEventControllerKey *controller,
       else
         return TRUE;
   }
-
-  return FALSE;
-}
-
-static gboolean
-on_key_released (GtkEventControllerKey *controller,
-                 guint                  keyval,
-                 guint                  keycode,
-                 GdkModifierType        state,
-                 ValentInputDialog     *self)
-{
-  GdkModifierType real_mask = 0;
-  guint keyval_lower = 0;
-  gboolean alt, ctrl, shift, super;
-
-  g_assert (VALENT_IS_INPUT_DIALOG (self));
-
-  // TODO check keyboard state
-  keyval_lower = gdk_keyval_to_lower (keyval);
-  real_mask = state & gtk_accelerator_get_default_mod_mask();
-
-  alt = !!(real_mask & GDK_ALT_MASK);
-  ctrl = !!(real_mask & GDK_CONTROL_MASK);
-  shift = !!(real_mask & GDK_SHIFT_MASK);
-  super = !!(real_mask & GDK_SUPER_MASK);
-
-  /* Totally unnecessary modifier indicators */
-  gtk_widget_set_sensitive (self->alt_label, !is_alt (keyval_lower) && alt);
-  gtk_widget_set_sensitive (self->ctrl_label, !is_ctrl (keyval_lower) && ctrl);
-  gtk_widget_set_sensitive (self->shift_label, !is_shift (keyval_lower) && shift);
-  gtk_widget_set_sensitive (self->super_label, !is_super (keyval_lower) && super);
 
   return FALSE;
 }
@@ -754,10 +706,6 @@ valent_input_dialog_class_init (ValentInputDialogClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentInputDialog, editor);
   gtk_widget_class_bind_template_child (widget_class, ValentInputDialog, touchpad);
 
-  gtk_widget_class_bind_template_child (widget_class, ValentInputDialog, alt_label);
-  gtk_widget_class_bind_template_child (widget_class, ValentInputDialog, ctrl_label);
-  gtk_widget_class_bind_template_child (widget_class, ValentInputDialog, shift_label);
-  gtk_widget_class_bind_template_child (widget_class, ValentInputDialog, super_label);
 
   properties [PROP_DEVICE] =
     g_param_spec_object ("device",
@@ -787,10 +735,6 @@ valent_input_dialog_init (ValentInputDialog *self)
   g_signal_connect (self->keyboard,
                     "key-pressed",
                     G_CALLBACK (on_key_pressed),
-                    self);
-  g_signal_connect (self->keyboard,
-                    "key-released",
-                    G_CALLBACK (on_key_released),
                     self);
   gtk_widget_add_controller (self->editor, self->keyboard);
 
