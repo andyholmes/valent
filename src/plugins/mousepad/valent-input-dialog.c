@@ -185,104 +185,86 @@ on_key_pressed (GtkEventControllerKey *controller,
                 ValentInputDialog     *self)
 {
   GdkEvent *event;
-  GdkModifierType real_mask = 0;
-  guint keyval_lower = 0, special_key;
+  unsigned int special_key;
   JsonBuilder *builder;
-  g_autoptr (JsonNode) request = NULL;
+  g_autoptr (JsonNode) packet = NULL;
 
   g_assert (VALENT_IS_INPUT_DIALOG (self));
 
   // Skip modifier keyvals
   event = gtk_event_controller_get_current_event (GTK_EVENT_CONTROLLER (controller));
 
-  if (gdk_key_event_is_modifier (event))
+  if (keyval == 0 || gdk_key_event_is_modifier (event))
     return TRUE;
 
-  keyval_lower = gdk_keyval_to_lower (keyval);
-  real_mask = state & gtk_accelerator_get_default_mod_mask ();
+  g_message ("keyval: %s, mask: %d", gdk_keyval_name (keyval), state);
 
   // Normalize Tab
-  if (keyval_lower == GDK_KEY_ISO_Left_Tab)
-    keyval_lower = GDK_KEY_Tab;
+  if (keyval == GDK_KEY_ISO_Left_Tab)
+    keyval = GDK_KEY_Tab;
 
-  // Put shift back if it changed the case of the key, not otherwise.
-  if (keyval_lower != keyval)
-    real_mask |= GDK_SHIFT_MASK;
+  builder = valent_packet_start ("kdeconnect.mousepad.request");
 
-  // HACK: we don't want to use SysRq as a keybinding (but we do want
-  // Alt+Print), so we avoid translation from Alt+Print to SysRq
-  if (keyval_lower == GDK_KEY_Sys_Req && (real_mask & GDK_ALT_MASK) != 0)
-    keyval_lower = GDK_KEY_Print;
+  /* Control characters have special codes in KDE Connect */
+  special_key = get_special_key (keyval);
 
-  // CapsLock isn't supported as a keybinding modifier, so keep it from
-  // confusing us
-  real_mask &= ~GDK_LOCK_MASK;
-
-  if (keyval_lower != 0)
+  if (special_key > 0)
     {
-      g_debug ("keyval: %d, mask: %d", keyval, real_mask);
+      json_builder_set_member_name (builder, "specialKey");
+      json_builder_add_int_value (builder, special_key);
+    }
+  else
+    {
+      g_autoptr (GError) error = NULL;
+      g_autofree char *key = NULL;
+      guint32 codepoint;
 
-      /* Check the mask and whether it's a regular or special key */
-      special_key = get_special_key (keyval);
+      keyval = gdk_keyval_to_lower (keyval);
+      codepoint = gdk_keyval_to_unicode (keyval);
+      key = g_ucs4_to_utf8 (&codepoint, -1, NULL, NULL, &error);
 
-      builder = valent_packet_start ("kdeconnect.mousepad.request");
-
-      if (state & GDK_ALT_MASK)
+      if (key == NULL)
         {
-          json_builder_set_member_name (builder, "alt");
-          json_builder_add_boolean_value (builder, TRUE);
+          g_warning ("Converting keyval to string: %s", error->message);
+          g_object_unref (builder);
+          return TRUE;
         }
 
-      if (state & GDK_CONTROL_MASK)
-        {
-          json_builder_set_member_name (builder, "ctrl");
-          json_builder_add_boolean_value (builder, TRUE);
-        }
+      json_builder_set_member_name (builder, "key");
+      json_builder_add_string_value (builder, key);
+    }
 
-      if (state & GDK_SHIFT_MASK)
-        {
-          json_builder_set_member_name (builder, "shift");
-          json_builder_add_boolean_value (builder, TRUE);
-        }
-
-      if (state & GDK_SUPER_MASK)
-        {
-          json_builder_set_member_name (builder, "super");
-          json_builder_add_boolean_value (builder, TRUE);
-        }
-
-      json_builder_set_member_name (builder, "sendAck");
+  /* Check our supported modifiers */
+  if (state & GDK_ALT_MASK)
+    {
+      json_builder_set_member_name (builder, "alt");
       json_builder_add_boolean_value (builder, TRUE);
+    }
 
-      /* A non-printable key */
-      if (special_key > 0)
-        {
-          json_builder_set_member_name (builder, "specialKey");
-          json_builder_add_int_value (builder, special_key);
-        }
-      /* Printable unicode */
-      else
-        {
-          g_autoptr (GError) error = NULL;
-          guint32 codepoint;
-          g_autofree char *key = NULL;
+  if (state & GDK_CONTROL_MASK)
+    {
+      json_builder_set_member_name (builder, "ctrl");
+      json_builder_add_boolean_value (builder, TRUE);
+    }
 
-          codepoint = gdk_keyval_to_unicode (keyval);
-          key = g_ucs4_to_utf8 (&codepoint, -1, NULL, NULL, &error);
+  if (state & GDK_SHIFT_MASK)
+    {
+      json_builder_set_member_name (builder, "shift");
+      json_builder_add_boolean_value (builder, TRUE);
+    }
 
-          if (key == NULL)
-            {
-              g_warning ("Failed to convert keyval to string: %s", error->message);
-              return FALSE;
-            }
+  if (state & GDK_SUPER_MASK)
+    {
+      json_builder_set_member_name (builder, "super");
+      json_builder_add_boolean_value (builder, TRUE);
+    }
 
-          json_builder_set_member_name (builder, "key");
-          json_builder_add_string_value (builder, key);
-        }
+  /* Request acknowledgment of the event */
+  json_builder_set_member_name (builder, "sendAck");
+  json_builder_add_boolean_value (builder, TRUE);
 
-      request = valent_packet_finish (builder);
-      valent_device_queue_packet (self->device, request);
-  }
+  packet = valent_packet_finish (builder);
+  valent_device_queue_packet (self->device, packet);
 
   return TRUE;
 }
