@@ -89,31 +89,6 @@ get_last_update_time (GtkGesture       *gesture,
 /*
  * Keyboard Input
  */
-static inline gboolean
-is_mod_key (gint key)
-{
-  switch (key)
-    {
-    case GDK_KEY_Alt_L:
-    case GDK_KEY_Alt_R:
-    case GDK_KEY_Caps_Lock:
-    case GDK_KEY_Control_L:
-    case GDK_KEY_Control_R:
-    case GDK_KEY_Meta_L:
-    case GDK_KEY_Meta_R:
-    case GDK_KEY_Num_Lock:
-    case GDK_KEY_Shift_L:
-    case GDK_KEY_Shift_R:
-    case GDK_KEY_Super_L:
-    case GDK_KEY_Super_R:
-      return TRUE;
-
-    default:
-      return FALSE;
-    }
-}
-
-// FIXME map
 static inline guint
 get_special_key (guint key)
 {
@@ -214,6 +189,7 @@ on_key_pressed (GtkEventControllerKey *controller,
                 GdkModifierType        state,
                 ValentInputDialog     *self)
 {
+  GdkEvent *event;
   GdkModifierType real_mask = 0;
   guint keyval_lower = 0, special_key;
   gboolean alt, ctrl, shift, super;
@@ -222,6 +198,11 @@ on_key_pressed (GtkEventControllerKey *controller,
 
   g_assert (VALENT_IS_INPUT_DIALOG (self));
 
+  // Skip modifier keyvals
+  event = gtk_event_controller_get_current_event (GTK_EVENT_CONTROLLER (controller));
+
+  if (gdk_key_event_is_modifier (event))
+    return TRUE;
 
   keyval_lower = gdk_keyval_to_lower (keyval);
   real_mask = state & gtk_accelerator_get_default_mod_mask ();
@@ -236,10 +217,6 @@ on_key_pressed (GtkEventControllerKey *controller,
   gtk_widget_set_sensitive (self->ctrl_label, is_ctrl (keyval_lower) || ctrl);
   gtk_widget_set_sensitive (self->shift_label, is_shift (keyval_lower) || shift);
   gtk_widget_set_sensitive (self->super_label, is_super (keyval_lower) || super);
-
-  // Wait for a real key before sending
-  if (is_mod_key (keyval_lower))
-    return FALSE;
 
   // Normalize Tab
   if (keyval_lower == GDK_KEY_ISO_Left_Tab)
