@@ -14,12 +14,6 @@
                 <property name="title" translatable="yes">Remote Input</property>
               </object>
             </property>
-            <child type="end">
-              <object class="GtkToggleButton" id="editor_button">
-                <property name="receives-default">1</property>
-                <property name="icon-name">text-editor-symbolic</property>
-              </object>
-            </child>
           </object>
         </child>
         <child>
@@ -29,24 +23,14 @@
             <property name="margin-start">12</property>
             <property name="margin-end">12</property>
             <property name="orientation">vertical</property>
-            <property name="homogeneous">1</property>
-            <property name="spacing">2</property>
+            <property name="spacing">12</property>
             <child>
-              <object class="GtkRevealer" id="revealer">
-                <property name="reveal-child"
-                          bind-source="editor_button"
-                          bind-property="active"
-                          bind-flags="sync-create"/>
-                <property name="visible">0</property>
+              <object class="GtkScrolledWindow">
+                <property name="has-frame">1</property>
                 <child>
-                  <object class="GtkScrolledWindow">
-                    <property name="has-frame">1</property>
-                    <child>
-                      <object class="GtkTextView" id="editor">
-                        <property name="hexpand">1</property>
-                        <property name="vexpand">1</property>
-                      </object>
-                    </child>
+                  <object class="GtkTextView" id="editor">
+                    <property name="hexpand">1</property>
+                    <property name="vexpand">1</property>
                   </object>
                 </child>
               </object>
