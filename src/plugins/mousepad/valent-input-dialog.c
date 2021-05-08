@@ -12,6 +12,7 @@
 #include <math.h>
 
 #include "valent-input-dialog.h"
+#include "valent-mousepad-keydef.h"
 
 #define CAPTURE_THRESHOLD_MS 50
 
@@ -84,75 +85,6 @@ get_last_update_time (GtkGesture       *gesture,
 /*
  * Keyboard Input
  */
-static inline guint
-get_special_key (guint key)
-{
-  switch (key)
-    {
-    case GDK_KEY_BackSpace:
-      return 1;
-    case GDK_KEY_Tab:
-      return 2;
-    case GDK_KEY_Linefeed:
-      return 3;
-    case GDK_KEY_Left:
-      return 4;
-    case GDK_KEY_Up:
-      return 5;
-    case GDK_KEY_Right:
-      return 6;
-    case GDK_KEY_Down:
-      return 7;
-    case GDK_KEY_Page_Up:
-      return 8;
-    case GDK_KEY_Page_Down:
-      return 9;
-    case GDK_KEY_Home:
-      return 10;
-    case GDK_KEY_End:
-      return 11;
-    case GDK_KEY_Return:
-    case GDK_KEY_KP_Enter:
-      return 12;
-    case GDK_KEY_Delete:
-      return 13;
-    case GDK_KEY_Escape:
-      return 14;
-    case GDK_KEY_Sys_Req:
-      return 15;
-    case GDK_KEY_Scroll_Lock:
-      return 16;
-
-    case GDK_KEY_F1:
-      return 21;
-    case GDK_KEY_F2:
-      return 22;
-    case GDK_KEY_F3:
-      return 23;
-    case GDK_KEY_F4:
-      return 24;
-    case GDK_KEY_F5:
-      return 25;
-    case GDK_KEY_F6:
-      return 26;
-    case GDK_KEY_F7:
-      return 27;
-    case GDK_KEY_F8:
-      return 28;
-    case GDK_KEY_F9:
-      return 29;
-    case GDK_KEY_F10:
-      return 30;
-    case GDK_KEY_F11:
-      return 31;
-    case GDK_KEY_F12:
-      return 32;
-
-    default:
-      return 0;
-    }
-}
-
 static inline gboolean
 is_alt (guint keyval)
 {
@@ -197,18 +129,10 @@ on_key_pressed (GtkEventControllerKey *controller,
   if (keyval == 0 || gdk_key_event_is_modifier (event))
     return TRUE;
 
-  g_message ("keyval: %s, mask: %d", gdk_keyval_name (keyval), state);
-
-  // Normalize Tab
-  if (keyval == GDK_KEY_ISO_Left_Tab)
-    keyval = GDK_KEY_Tab;
-
   builder = valent_packet_start ("kdeconnect.mousepad.request");
 
-  /* Control characters have special codes in KDE Connect */
-  special_key = get_special_key (keyval);
-
-  if (special_key > 0)
+  /* Check for control character or printable key */
+  if ((special_key = valent_mousepad_keyval_to_keycode (keyval)) > 0)
     {
       json_builder_set_member_name (builder, "specialKey");
       json_builder_add_int_value (builder, special_key);
@@ -681,7 +605,6 @@ valent_input_dialog_class_init (ValentInputDialogClass *klass)
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/mousepad/valent-input-dialog.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentInputDialog, editor);
   gtk_widget_class_bind_template_child (widget_class, ValentInputDialog, touchpad);
-
 
   properties [PROP_DEVICE] =
     g_param_spec_object ("device",
