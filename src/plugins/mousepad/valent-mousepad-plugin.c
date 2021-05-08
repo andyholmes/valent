@@ -343,9 +343,22 @@ valent_mousepad_plugin_mousepad_request_keyboard (ValentMousepadPlugin *self,
     }
   else
     {
-      char key[6] = { 0, };
+      g_autoptr (GError) error = NULL;
+      g_autofree char *key = NULL;
+      gunichar wc;
 
-      g_unichar_to_utf8 (gdk_keyval_to_unicode (keysym), key);
+      wc = gdk_keyval_to_unicode (keysym);
+      key = g_ucs4_to_utf8 (&wc, 1, NULL, NULL, &error);
+
+      if (key == NULL)
+        {
+          g_warning ("Converting %s to string: %s",
+                     gdk_keyval_name (keysym),
+                     error->message);
+          g_object_unref (builder);
+          return;
+        }
+
       json_builder_set_member_name (builder, "key");
       json_builder_add_string_value (builder, key);
     }

@@ -217,15 +217,16 @@ on_key_pressed (GtkEventControllerKey *controller,
     {
       g_autoptr (GError) error = NULL;
       g_autofree char *key = NULL;
-      guint32 codepoint;
+      gunichar wc;
 
-      keyval = gdk_keyval_to_lower (keyval);
-      codepoint = gdk_keyval_to_unicode (keyval);
-      key = g_ucs4_to_utf8 (&codepoint, -1, NULL, NULL, &error);
+      wc = gdk_keyval_to_unicode (keyval);
+      key = g_ucs4_to_utf8 (&wc, 1, NULL, NULL, &error);
 
       if (key == NULL)
         {
-          g_warning ("Converting keyval to string: %s", error->message);
+          g_warning ("Converting %s to string: %s",
+                     gdk_keyval_name (keyval),
+                     error->message);
           g_object_unref (builder);
           return TRUE;
         }
