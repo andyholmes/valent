@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-#define G_LOG_DOMAIN "valent-input-dialog"
+#define G_LOG_DOMAIN "valent-mousepad-dialog"
 
 #include "config.h"
 
@@ -11,13 +11,13 @@
 #include <libvalent-ui.h>
 #include <math.h>
 
-#include "valent-input-dialog.h"
+#include "valent-mousepad-dialog.h"
 #include "valent-mousepad-keydef.h"
 
 #define CAPTURE_THRESHOLD_MS 50
 
 
-struct _ValentInputDialog
+struct _ValentMousepadDialog
 {
   AdwWindow           parent_instance;
 
@@ -44,20 +44,20 @@ struct _ValentInputDialog
   GtkWidget          *editor;
 };
 
-static void valent_input_dialog_pointer_axis    (ValentInputDialog *self,
-                                                 double             dx,
-                                                 double             dy);
-static void valent_input_dialog_pointer_button  (ValentInputDialog *self,
-                                                 unsigned int       button,
-                                                 unsigned int       n_press);
-static void valent_input_dialog_pointer_motion  (ValentInputDialog *self,
-                                                 double             dx,
-                                                 double             dy);
-static void valent_input_dialog_pointer_press   (ValentInputDialog *self);
-static void valent_input_dialog_pointer_release (ValentInputDialog *self);
-static void valent_input_dialog_reset           (ValentInputDialog *self);
+static void valent_mousepad_dialog_pointer_axis    (ValentMousepadDialog *self,
+                                                    double                dx,
+                                                    double                dy);
+static void valent_mousepad_dialog_pointer_button  (ValentMousepadDialog *self,
+                                                    unsigned int          button,
+                                                    unsigned int          n_press);
+static void valent_mousepad_dialog_pointer_motion  (ValentMousepadDialog *self,
+                                                    double                dx,
+                                                    double                dy);
+static void valent_mousepad_dialog_pointer_press   (ValentMousepadDialog *self);
+static void valent_mousepad_dialog_pointer_release (ValentMousepadDialog *self);
+static void valent_mousepad_dialog_reset           (ValentMousepadDialog *self);
 
-G_DEFINE_TYPE (ValentInputDialog, valent_input_dialog, ADW_TYPE_WINDOW)
+G_DEFINE_TYPE (ValentMousepadDialog, valent_mousepad_dialog, ADW_TYPE_WINDOW)
 
 enum {
   PROP_0,
@@ -85,45 +85,21 @@ get_last_update_time (GtkGesture       *gesture,
 /*
  * Keyboard Input
  */
-static inline gboolean
-is_alt (guint keyval)
-{
-  return (keyval == GDK_KEY_Alt_L || keyval == GDK_KEY_Alt_R);
-}
-
-static inline gboolean
-is_ctrl (guint keyval)
-{
-  return (keyval == GDK_KEY_Control_L || keyval == GDK_KEY_Control_R);
-}
-
-static inline gboolean
-is_shift (guint keyval)
-{
-  return (keyval == GDK_KEY_Shift_L || keyval == GDK_KEY_Shift_R);
-}
-
-static inline gboolean
-is_super (guint keyval)
-{
-  return (keyval == GDK_KEY_Super_L || keyval == GDK_KEY_Super_R);
-}
-
 static gboolean
 on_key_pressed (GtkEventControllerKey *controller,
                 guint                  keyval,
                 guint                  keycode,
                 GdkModifierType        state,
-                ValentInputDialog     *self)
+                ValentMousepadDialog  *self)
 {
   GdkEvent *event;
   unsigned int special_key;
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
 
-  g_assert (VALENT_IS_INPUT_DIALOG (self));
+  g_assert (VALENT_IS_MOUSEPAD_DIALOG (self));
 
-  // Skip modifier keyvals
+  /* Skip modifier keyvals */
   event = gtk_event_controller_get_current_event (GTK_EVENT_CONTROLLER (controller));
 
   if (keyval == 0 || gdk_key_event_is_modifier (event))
@@ -195,9 +171,9 @@ on_key_pressed (GtkEventControllerKey *controller,
 }
 
 static void
-move_cursor (ValentInputDialog *dialog,
-             GtkMovementStep    step,
-             gint               count)
+move_cursor (ValentMousepadDialog *dialog,
+             GtkMovementStep       step,
+             gint                  count)
 {
   g_signal_emit_by_name (dialog->editor, "move-cursor", step, count, FALSE);
 }
@@ -206,12 +182,12 @@ move_cursor (ValentInputDialog *dialog,
  * Pointer Input
  */
 static inline gboolean
-calculate_delta (ValentInputDialog *self,
-                 double             dx,
-                 double             dy,
-                 guint32            dt,
-                 double            *cx,
-                 double            *cy)
+calculate_delta (ValentMousepadDialog *self,
+                 double                dx,
+                 double                dy,
+                 guint32               dt,
+                 double               *cx,
+                 double               *cy)
 {
   double dr, v, m;
 
@@ -237,9 +213,9 @@ static gboolean
 on_scroll (GtkEventControllerScroll *controller,
            double                    dx,
            double                    dy,
-           ValentInputDialog        *self)
+           ValentMousepadDialog     *self)
 {
-  valent_input_dialog_pointer_axis (self, dx, dy);
+  valent_mousepad_dialog_pointer_axis (self, dx, dy);
 
   return TRUE;
 }
@@ -247,22 +223,22 @@ on_scroll (GtkEventControllerScroll *controller,
 static gboolean
 longpress_timeout (gpointer data)
 {
-  ValentInputDialog *self = VALENT_INPUT_DIALOG (data);
+  ValentMousepadDialog *self = VALENT_MOUSEPAD_DIALOG (data);
 
   self->claimed = TRUE;
   self->longpress_id = 0;
   gtk_gesture_set_state (self->touch1, GTK_EVENT_SEQUENCE_CLAIMED);
 
-  valent_input_dialog_pointer_press (self);
+  valent_mousepad_dialog_pointer_press (self);
 
   return G_SOURCE_REMOVE;
 }
 
 static void
-on_single_begin (GtkGestureDrag    *gesture,
-                 double             start_x,
-                 double             start_y,
-                 ValentInputDialog *self)
+on_single_begin (GtkGestureDrag       *gesture,
+                 double                start_x,
+                 double                start_y,
+                 ValentMousepadDialog *self)
 {
   GdkEventSequence *sequence;
   unsigned int button = 0;
@@ -292,9 +268,9 @@ on_single_begin (GtkGestureDrag    *gesture,
 }
 
 static void
-on_single_update (GtkGesture        *gesture,
-                  GdkEventSequence  *sequence,
-                  ValentInputDialog *self)
+on_single_update (GtkGesture           *gesture,
+                  GdkEventSequence     *sequence,
+                  ValentMousepadDialog *self)
 {
   guint32 time = 0;
   double x, y;
@@ -324,40 +300,40 @@ on_single_update (GtkGesture        *gesture,
   self->last_x = x;
   self->last_y = y;
 
-  valent_input_dialog_pointer_motion (self, cx, cy);
+  valent_mousepad_dialog_pointer_motion (self, cx, cy);
 }
 
 static void
-on_single_end (GtkGestureDrag    *gesture,
-               double             offset_x,
-               double             offset_y,
-               ValentInputDialog *self)
+on_single_end (GtkGestureDrag       *gesture,
+               double                offset_x,
+               double                offset_y,
+               ValentMousepadDialog *self)
 {
   if (!self->claimed)
     {
       unsigned int button = 0;
 
       button = gtk_gesture_single_get_current_button (GTK_GESTURE_SINGLE (gesture));
-      valent_input_dialog_pointer_button (self, button, 1);
+      valent_mousepad_dialog_pointer_button (self, button, 1);
     }
 
-  valent_input_dialog_reset (self);
+  valent_mousepad_dialog_reset (self);
 }
 
 static void
-on_double_begin (GtkGestureDrag    *gesture,
-                 double             start_x,
-                 double             start_y,
-                 ValentInputDialog *self)
+on_double_begin (GtkGestureDrag       *gesture,
+                 double                start_x,
+                 double                start_y,
+                 ValentMousepadDialog *self)
 {
   self->last_x = start_x;
   self->last_y = start_y;
 }
 
 static void
-on_double_update (GtkGesture        *gesture,
-                  GdkEventSequence  *sequence,
-                  ValentInputDialog *self)
+on_double_update (GtkGesture           *gesture,
+                  GdkEventSequence     *sequence,
+                  ValentMousepadDialog *self)
 {
   double x, y;
   double dx, dy;
@@ -378,37 +354,37 @@ on_double_update (GtkGesture        *gesture,
   self->last_x = x;
   self->last_y = y;
 
-  valent_input_dialog_pointer_axis (self, 0.0, round (dy));
+  valent_mousepad_dialog_pointer_axis (self, 0.0, round (dy));
 }
 
 static void
-on_double_end (GtkGestureDrag    *gesture,
-               double             offset_x,
-               double             offset_y,
-               ValentInputDialog *self)
+on_double_end (GtkGestureDrag       *gesture,
+               double                offset_x,
+               double                offset_y,
+               ValentMousepadDialog *self)
 {
   if (!self->claimed)
-    valent_input_dialog_pointer_button (self, GDK_BUTTON_SECONDARY, 1);
+    valent_mousepad_dialog_pointer_button (self, GDK_BUTTON_SECONDARY, 1);
 
-  valent_input_dialog_reset (self);
+  valent_mousepad_dialog_reset (self);
 }
 
 static void
-on_triple_end (GtkGestureDrag    *gesture,
-               double             offset_x,
-               double             offset_y,
-               ValentInputDialog *self)
+on_triple_end (GtkGestureDrag       *gesture,
+               double                offset_x,
+               double                offset_y,
+               ValentMousepadDialog *self)
 {
   if (!self->claimed)
-    valent_input_dialog_pointer_button (self, GDK_BUTTON_MIDDLE, 1);
+    valent_mousepad_dialog_pointer_button (self, GDK_BUTTON_MIDDLE, 1);
 
-  valent_input_dialog_reset (self);
+  valent_mousepad_dialog_reset (self);
 }
 
 static void
-valent_input_dialog_pointer_axis (ValentInputDialog *self,
-                                  double             dx,
-                                  double             dy)
+valent_mousepad_dialog_pointer_axis (ValentMousepadDialog *self,
+                                     double                dx,
+                                     double                dy)
 {
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
@@ -426,9 +402,9 @@ valent_input_dialog_pointer_axis (ValentInputDialog *self,
 }
 
 static void
-valent_input_dialog_pointer_button (ValentInputDialog *self,
-                                    unsigned int       button,
-                                    unsigned int       n_press)
+valent_mousepad_dialog_pointer_button (ValentMousepadDialog *self,
+                                       unsigned int          button,
+                                       unsigned int          n_press)
 {
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
@@ -474,9 +450,9 @@ valent_input_dialog_pointer_button (ValentInputDialog *self,
 }
 
 static void
-valent_input_dialog_pointer_motion (ValentInputDialog *self,
-                                    double             dx,
-                                    double             dy)
+valent_mousepad_dialog_pointer_motion (ValentMousepadDialog *self,
+                                       double                dx,
+                                       double                dy)
 {
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
@@ -492,7 +468,7 @@ valent_input_dialog_pointer_motion (ValentInputDialog *self,
 }
 
 static void
-valent_input_dialog_pointer_press (ValentInputDialog *self)
+valent_mousepad_dialog_pointer_press (ValentMousepadDialog *self)
 {
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
@@ -506,7 +482,7 @@ valent_input_dialog_pointer_press (ValentInputDialog *self)
 }
 
 static void
-valent_input_dialog_pointer_release (ValentInputDialog *self)
+valent_mousepad_dialog_pointer_release (ValentMousepadDialog *self)
 {
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
@@ -520,7 +496,7 @@ valent_input_dialog_pointer_release (ValentInputDialog *self)
 }
 
 static void
-valent_input_dialog_reset (ValentInputDialog *self)
+valent_mousepad_dialog_reset (ValentMousepadDialog *self)
 {
   self->claimed = FALSE;
   self->last_t = 0;
@@ -534,32 +510,32 @@ valent_input_dialog_reset (ValentInputDialog *self)
  * GObject
  */
 static void
-valent_input_dialog_dispose (GObject *object)
+valent_mousepad_dialog_dispose (GObject *object)
 {
-  ValentInputDialog *self = VALENT_INPUT_DIALOG (object);
+  ValentMousepadDialog *self = VALENT_MOUSEPAD_DIALOG (object);
 
-  valent_input_dialog_reset (self);
+  valent_mousepad_dialog_reset (self);
 
-  G_OBJECT_CLASS (valent_input_dialog_parent_class)->dispose (object);
+  G_OBJECT_CLASS (valent_mousepad_dialog_parent_class)->dispose (object);
 }
 
 static void
-valent_input_dialog_finalize (GObject *object)
+valent_mousepad_dialog_finalize (GObject *object)
 {
-  ValentInputDialog *self = VALENT_INPUT_DIALOG (object);
+  ValentMousepadDialog *self = VALENT_MOUSEPAD_DIALOG (object);
 
   g_clear_object (&self->device);
 
-  G_OBJECT_CLASS (valent_input_dialog_parent_class)->finalize (object);
+  G_OBJECT_CLASS (valent_mousepad_dialog_parent_class)->finalize (object);
 }
 
 static void
-valent_input_dialog_get_property (GObject    *object,
-                                  guint       prop_id,
-                                  GValue     *value,
-                                  GParamSpec *pspec)
+valent_mousepad_dialog_get_property (GObject    *object,
+                                     guint       prop_id,
+                                     GValue     *value,
+                                     GParamSpec *pspec)
 {
-  ValentInputDialog *self = VALENT_INPUT_DIALOG (object);
+  ValentMousepadDialog *self = VALENT_MOUSEPAD_DIALOG (object);
 
   switch (prop_id)
     {
@@ -573,12 +549,12 @@ valent_input_dialog_get_property (GObject    *object,
 }
 
 static void
-valent_input_dialog_set_property (GObject      *object,
-                                  guint         prop_id,
-                                  const GValue *value,
-                                  GParamSpec   *pspec)
+valent_mousepad_dialog_set_property (GObject      *object,
+                                     guint         prop_id,
+                                     const GValue *value,
+                                     GParamSpec   *pspec)
 {
-  ValentInputDialog *self = VALENT_INPUT_DIALOG (object);
+  ValentMousepadDialog *self = VALENT_MOUSEPAD_DIALOG (object);
 
   switch (prop_id)
     {
@@ -592,19 +568,19 @@ valent_input_dialog_set_property (GObject      *object,
 }
 
 static void
-valent_input_dialog_class_init (ValentInputDialogClass *klass)
+valent_mousepad_dialog_class_init (ValentMousepadDialogClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
-  object_class->dispose = valent_input_dialog_dispose;
-  object_class->finalize = valent_input_dialog_finalize;
-  object_class->get_property = valent_input_dialog_get_property;
-  object_class->set_property = valent_input_dialog_set_property;
+  object_class->dispose = valent_mousepad_dialog_dispose;
+  object_class->finalize = valent_mousepad_dialog_finalize;
+  object_class->get_property = valent_mousepad_dialog_get_property;
+  object_class->set_property = valent_mousepad_dialog_set_property;
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/mousepad/valent-input-dialog.ui");
-  gtk_widget_class_bind_template_child (widget_class, ValentInputDialog, editor);
-  gtk_widget_class_bind_template_child (widget_class, ValentInputDialog, touchpad);
+  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/mousepad/valent-mousepad-dialog.ui");
+  gtk_widget_class_bind_template_child (widget_class, ValentMousepadDialog, editor);
+  gtk_widget_class_bind_template_child (widget_class, ValentMousepadDialog, touchpad);
 
   properties [PROP_DEVICE] =
     g_param_spec_object ("device",
@@ -620,7 +596,7 @@ valent_input_dialog_class_init (ValentInputDialogClass *klass)
 }
 
 static void
-valent_input_dialog_init (ValentInputDialog *self)
+valent_mousepad_dialog_init (ValentMousepadDialog *self)
 {
   GtkEventController *scroll;
 
@@ -705,15 +681,15 @@ valent_input_dialog_init (ValentInputDialog *self)
 }
 
 /**
- * valent_input_dialog_new:
+ * valent_mousepad_dialog_new:
  * @device: a #ValentDevice
  *
  * Create a new input dialog for sending input events to @device.
  *
- * Returns: (transfer full): a new #ValentInputDialog
+ * Returns: (transfer full): a new #ValentMousepadDialog
  */
-ValentInputDialog *
-valent_input_dialog_new (ValentDevice *device)
+ValentMousepadDialog *
+valent_mousepad_dialog_new (ValentDevice *device)
 {
   GApplication *application;
   GtkWindow *window = NULL;
@@ -723,29 +699,29 @@ valent_input_dialog_new (ValentDevice *device)
   if (application != NULL)
     window = gtk_application_get_active_window (GTK_APPLICATION (application));
 
-  return g_object_new (VALENT_TYPE_INPUT_DIALOG,
+  return g_object_new (VALENT_TYPE_MOUSEPAD_DIALOG,
                        "device",        device,
                        "transient-for", window,
                        NULL);
 }
 
 /**
- * valent_input_dialog_echo_key:
- * @dialog: a #ValentInputDialog
+ * valent_mousepad_dialog_echo_key:
+ * @dialog: a #ValentMousepadDialog
  * @packet: a #JsonNode
  *
  * Handle the remote device's acknowledgement of a key we sent.
  */
 void
-valent_input_dialog_echo_key (ValentInputDialog *dialog,
-                              const char        *key,
-                              GdkModifierType    mask)
+valent_mousepad_dialog_echo_key (ValentMousepadDialog *dialog,
+                                 const char           *key,
+                                 GdkModifierType       mask)
 {
   GtkTextBuffer *buffer;
   g_autofree char *old_text = NULL;
   g_autofree char *new_text = NULL;
 
-  g_return_if_fail (VALENT_IS_INPUT_DIALOG (dialog));
+  g_return_if_fail (VALENT_IS_MOUSEPAD_DIALOG (dialog));
 
   buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (dialog->editor));
 
@@ -761,26 +737,25 @@ valent_input_dialog_echo_key (ValentInputDialog *dialog,
       new_text = g_strjoin ("", old_text, key, NULL);
       g_object_set (buffer, "text", new_text, NULL);
     }
-
 }
 
 /**
- * valent_input_dialog_echo_special:
- * @dialog: a #ValentInputDialog
+ * valent_mousepad_dialog_echo_special:
+ * @dialog: a #ValentMousepadDialog
  * @packet: a #JsonNode
  *
  * Handle the remote device's acknowledgement of a special key we sent.
  */
 void
-valent_input_dialog_echo_special (ValentInputDialog *dialog,
-                                  guint              keyval,
-                                  GdkModifierType    mask)
+valent_mousepad_dialog_echo_special (ValentMousepadDialog *dialog,
+                                     guint                 keyval,
+                                     GdkModifierType       mask)
 {
   GtkTextBuffer *buffer;
   g_autofree char *old_text = NULL;
   g_autofree char *new_text = NULL;
 
-  g_return_if_fail (VALENT_IS_INPUT_DIALOG (dialog));
+  g_return_if_fail (VALENT_IS_MOUSEPAD_DIALOG (dialog));
 
   buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (dialog->editor));
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <template class="ValentInputDialog" parent="AdwWindow">
+  <template class="ValentMousepadDialog" parent="AdwWindow">
     <property name="width-request">360</property>
     <property name="height-request">480</property>
     <child>

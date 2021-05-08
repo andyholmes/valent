@@ -10,23 +10,23 @@
 #include <libvalent-core.h>
 #include <libvalent-input.h>
 
-#include "valent-input-dialog.h"
+#include "valent-mousepad-dialog.h"
 #include "valent-mousepad-keydef.h"
 #include "valent-mousepad-plugin.h"
 
 
 struct _ValentMousepadPlugin
 {
-  PeasExtensionBase  parent_instance;
+  PeasExtensionBase     parent_instance;
 
-  ValentDevice      *device;
-  ValentInput       *input;
+  ValentDevice         *device;
+  ValentInput          *input;
 
-  ValentInputDialog *input_dialog;
+  ValentMousepadDialog *dialog;
 
-  unsigned int       local_state : 1;
-  unsigned int       remote_state : 1;
-  gint64             remote_state_id;
+  unsigned int          local_state : 1;
+  unsigned int          remote_state : 1;
+  gint64                remote_state_id;
 };
 
 static void valent_mousepad_plugin_send_echo (ValentMousepadPlugin       *self,
@@ -172,7 +172,7 @@ handle_mousepad_echo (ValentMousepadPlugin *self,
   g_assert (VALENT_IS_PACKET (packet));
 
   /* There's no input dialog open, so we weren't expecting any echo */
-  if G_UNLIKELY (self->input_dialog == NULL)
+  if G_UNLIKELY (self->dialog == NULL)
     {
       g_debug ("Unexpected echo");
       return;
@@ -191,9 +191,7 @@ handle_mousepad_echo (ValentMousepadPlugin *self,
       keycode = json_object_get_int_member_with_default (body, "specialKey", 0);
 
       if ((keyval = valent_mousepad_keycode_to_keyval (keycode)) != 0)
-        valent_input_dialog_echo_special (self->input_dialog, keyval, mask);
-      else
-        g_warning ("specialKey is out of range: %li", keycode);
+        valent_mousepad_dialog_echo_special (self->dialog, keyval, mask);
     }
 
   /* A printable character */
@@ -204,7 +202,7 @@ handle_mousepad_echo (ValentMousepadPlugin *self,
       key = json_object_get_string_member_with_default (body, "key", NULL);
 
       if (key != NULL)
-        valent_input_dialog_echo_key (self->input_dialog, key, mask);
+        valent_mousepad_dialog_echo_key (self->dialog, key, mask);
     }
 }
 
@@ -411,14 +409,14 @@ dialog_action (GSimpleAction *action,
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
 
   /* Create dialog if necessary */
-  if (self->input_dialog == NULL)
+  if (self->dialog == NULL)
     {
-      self->input_dialog = valent_input_dialog_new (self->device);
-      g_object_add_weak_pointer (G_OBJECT (self->input_dialog),
-                                 (gpointer) &self->input_dialog);
+      self->dialog = valent_mousepad_dialog_new (self->device);
+      g_object_add_weak_pointer (G_OBJECT (self->dialog),
+                                 (gpointer) &self->dialog);
     }
 
-  gtk_window_present_with_time (GTK_WINDOW (self->input_dialog),
+  gtk_window_present_with_time (GTK_WINDOW (self->dialog),
                                 GDK_CURRENT_TIME);
 }
 
@@ -505,8 +503,8 @@ valent_mousepad_plugin_disable (ValentDevicePlugin *plugin)
                                            actions,
                                            G_N_ELEMENTS (actions));
 
-  if (self->input_dialog != NULL)
-    gtk_window_destroy (GTK_WINDOW (self->input_dialog));
+  if (self->dialog != NULL)
+    gtk_window_destroy (GTK_WINDOW (self->dialog));
 }
 
 static void
