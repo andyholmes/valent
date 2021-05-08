@@ -635,7 +635,7 @@ valent_input_dialog_init (ValentInputDialog *self)
                     "key-pressed",
                     G_CALLBACK (on_key_pressed),
                     self);
-  gtk_widget_add_controller (self->editor, self->keyboard);
+  gtk_widget_add_controller (GTK_WIDGET (self), self->keyboard);
 
   /* Pointer */
   scroll = g_object_new (GTK_TYPE_EVENT_CONTROLLER_SCROLL,

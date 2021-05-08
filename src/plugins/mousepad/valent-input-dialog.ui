@@ -25,12 +25,24 @@
             <property name="orientation">vertical</property>
             <property name="spacing">12</property>
             <child>
-              <object class="GtkScrolledWindow">
-                <property name="has-frame">1</property>
+              <object class="GtkFrame">
                 <child>
-                  <object class="GtkTextView" id="editor">
-                    <property name="hexpand">1</property>
-                    <property name="vexpand">1</property>
+                  <object class="GtkScrolledWindow">
+                    <property name="hscrollbar-policy">never</property>
+                    <child>
+                      <object class="GtkTextView" id="editor">
+                        <property name="hexpand">1</property>
+                        <property name="vexpand">1</property>
+                        <property name="cursor-visible">0</property>
+                        <property name="editable">0</property>
+                        <property name="bottom-margin">12</property>
+                        <property name="left-margin">12</property>
+                        <property name="right-margin">12</property>
+                        <property name="top-margin">12</property>
+                        <property name="sensitive">0</property>
+                        <property name="wrap-mode">word-char</property>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>
