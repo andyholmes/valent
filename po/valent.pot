@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2021-04-13 13:30-0700\n"
+"POT-Creation-Date: 2021-05-08 04:18-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -31,7 +31,7 @@ msgid "Download folder"
 msgstr ""
 
 #: data/gsettings/ca.andyholmes.valent.device.gschema.xml:12
-#: src/libvalent/ui/valent-device-panel.ui:218
+#: src/libvalent/ui/valent-device-panel.ui:260
 msgid "Where received files are stored"
 msgstr ""
 
@@ -54,7 +54,7 @@ msgstr ""
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:8
 #: data/ca.andyholmes.Valent.desktop.in.in:3
-#: src/libvalent/ui/valent-window.ui:13
+#: src/libvalent/ui/valent-window.ui:19
 msgid "Valent"
 msgstr ""
 
@@ -97,12 +97,12 @@ msgid "Pairing request from %s"
 msgstr ""
 
 #: src/libvalent/core/valent-device.c:314
-#: src/libvalent/ui/valent-device-panel.ui:116
+#: src/libvalent/ui/valent-device-panel.ui:115
 msgid "Reject"
 msgstr ""
 
 #: src/libvalent/core/valent-device.c:321
-#: src/libvalent/ui/valent-device-panel.ui:129
+#: src/libvalent/ui/valent-device-panel.ui:128
 msgid "Accept"
 msgstr ""
 
@@ -116,62 +116,48 @@ msgstr ""
 msgid "%s is unpaired"
 msgstr ""
 
-#: src/libvalent/ui/valent-connect-dialog.ui:4
-#: src/libvalent/ui/valent-window.ui:280
-msgid "Connect to…"
+#: src/libvalent/ui/valent-device-panel.ui:13
+#: src/libvalent/ui/valent-menu-list.c:540
+#: src/libvalent/ui/valent-window.ui:114
+msgid "Previous"
 msgstr ""
 
-#: src/libvalent/ui/valent-connect-dialog.ui:7
-#: src/plugins/notification/valent-notification-reply-dialog.ui:9
-#: src/plugins/runcommand/valent-runcommand-editor.c:63
-#: src/plugins/runcommand/valent-runcommand-editor.ui:8
-#: src/plugins/runcommand/valent-runcommand-preferences.c:392
-#: src/plugins/share/valent-share-plugin.c:164
-#: src/plugins/share/valent-share-plugin.c:333
-#: src/plugins/share/valent-share-plugin.c:390
-msgid "Cancel"
-msgstr ""
-
-#: src/libvalent/ui/valent-connect-dialog.ui:12
-msgid "Connect"
-msgstr ""
-
-#: src/libvalent/ui/valent-device-panel.ui:78
+#: src/libvalent/ui/valent-device-panel.ui:77
 msgid "Verification Key"
 msgstr ""
 
-#: src/libvalent/ui/valent-device-panel.ui:86
+#: src/libvalent/ui/valent-device-panel.ui:85
 msgid "Unavailable"
 msgstr ""
 
-#: src/libvalent/ui/valent-device-panel.ui:107
+#: src/libvalent/ui/valent-device-panel.ui:106
 msgid "Request Pairing"
 msgstr ""
 
-#: src/libvalent/ui/valent-device-panel.ui:183
-#: src/libvalent/ui/valent-window.c:181
+#: src/libvalent/ui/valent-device-panel.ui:225
+#: src/libvalent/ui/valent-window.c:173
 msgid "Disconnected"
 msgstr ""
 
-#: src/libvalent/ui/valent-device-panel.ui:205
-#: src/libvalent/ui/valent-device-panel.ui:209
+#: src/libvalent/ui/valent-device-panel.ui:247
 #: src/libvalent/ui/valent-device-panel.ui:251
+#: src/libvalent/ui/valent-device-panel.ui:293
 msgid "Plugins"
 msgstr ""
 
-#: src/libvalent/ui/valent-device-panel.ui:214
+#: src/libvalent/ui/valent-device-panel.ui:256
 msgid "General"
 msgstr ""
 
-#: src/libvalent/ui/valent-device-panel.ui:217
+#: src/libvalent/ui/valent-device-panel.ui:259
 msgid "Download directory"
 msgstr ""
 
-#: src/libvalent/ui/valent-device-panel.ui:267
+#: src/libvalent/ui/valent-device-panel.ui:309
 msgid "Information"
 msgstr ""
 
-#: src/libvalent/ui/valent-device-panel.ui:274
+#: src/libvalent/ui/valent-device-panel.ui:316
 msgid "Mark this device as untrusted"
 msgstr ""
 
@@ -179,100 +165,92 @@ msgstr ""
 msgid "No Actions"
 msgstr ""
 
-#: src/libvalent/ui/valent-menu-list.c:540 src/libvalent/ui/valent-window.ui:19
-msgid "Previous"
-msgstr ""
-
-#: src/libvalent/ui/valent-plugin-group.c:245
+#: src/libvalent/ui/valent-plugin-group.c:243
 msgid "No Plugins"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:176
+#: src/libvalent/ui/valent-window.c:168
 msgid "Unpaired"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:186
+#: src/libvalent/ui/valent-window.c:178
 msgid "Connected"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:503
+#: src/libvalent/ui/valent-window.c:430
 msgid "A KDE Connect implementation for Gtk-based systems"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:506
+#: src/libvalent/ui/valent-window.c:433
 msgid "translator-credits"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:28
-msgid "Refresh"
-msgstr ""
-
-#: src/libvalent/ui/valent-window.ui:64 src/libvalent/ui/valent-window.ui:71
+#: src/libvalent/ui/valent-window.ui:14 src/libvalent/ui/valent-window.ui:56
 msgid "Devices"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:96
+#: src/libvalent/ui/valent-window.ui:24
+msgid "Refresh"
+msgstr ""
+
+#: src/libvalent/ui/valent-window.ui:81
 msgid "Searching for devices…"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:113 src/libvalent/ui/valent-window.ui:116
-#: src/libvalent/ui/valent-window.ui:286
+#: src/libvalent/ui/valent-window.ui:98 src/libvalent/ui/valent-window.ui:101
+#: src/libvalent/ui/valent-window.ui:108 src/libvalent/ui/valent-window.ui:274
 msgid "Settings"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:126
+#: src/libvalent/ui/valent-window.ui:129
 msgid "Device Name"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:156
+#: src/libvalent/ui/valent-window.ui:159
 msgid "Networking"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:163
+#: src/libvalent/ui/valent-window.ui:166
 msgid "Clipboard Sources"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:170
+#: src/libvalent/ui/valent-window.ui:173
 msgid "Contact Providers"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:177
+#: src/libvalent/ui/valent-window.ui:180
 msgid "Input Controllers"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:184
+#: src/libvalent/ui/valent-window.ui:187
 msgid "Media Player Providers"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:191
+#: src/libvalent/ui/valent-window.ui:194
 msgid "Volume Mixers"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:198
+#: src/libvalent/ui/valent-window.ui:201
 msgid "Notification Sources"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:205
-msgid "Power Device Providers"
-msgstr ""
-
-#: src/libvalent/ui/valent-window.ui:212
+#: src/libvalent/ui/valent-window.ui:208
 msgid "Session Providers"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:227
+#: src/libvalent/ui/valent-window.ui:221
 msgid "Rename Device"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:236
+#: src/libvalent/ui/valent-window.ui:230
 msgid "_Cancel"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:242
+#: src/libvalent/ui/valent-window.ui:236
 msgid "_Rename"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:291
+#: src/libvalent/ui/valent-window.ui:279
 #: src/plugins/sms/valent-sms-window.ui:346
 msgid "About Valent"
 msgstr ""
@@ -313,30 +291,25 @@ msgid "%d%% (%d∶%02d Remaining)"
 msgstr ""
 
 #. TRANSLATORS: eg. Google Pixel: Battery Full
-#: src/plugins/battery/valent-battery-plugin.c:217
+#: src/plugins/battery/valent-battery-plugin.c:216
 #, c-format
 msgid "%s: Battery Full"
 msgstr ""
 
-#: src/plugins/battery/valent-battery-plugin.c:219
+#: src/plugins/battery/valent-battery-plugin.c:218
 msgid "Battery Fully Charged"
 msgstr ""
 
 #. TRANSLATORS: eg. Google Pixel: Battery Low
-#: src/plugins/battery/valent-battery-plugin.c:228
+#: src/plugins/battery/valent-battery-plugin.c:227
 #, c-format
 msgid "%s: Battery Low"
 msgstr ""
 
 #. TRANSLATORS: eg. 15% remaining
-#: src/plugins/battery/valent-battery-plugin.c:231
+#: src/plugins/battery/valent-battery-plugin.c:230
 #, c-format
 msgid "%d%% remaining"
-msgstr ""
-
-#: src/plugins/battery/valent-battery-plugin.c:244
-#: src/plugins/findmyphone/valent-findmyphone-plugin.c:73
-msgid "Ring"
 msgstr ""
 
 #: src/plugins/battery/valent-battery-preferences.ui:7
@@ -496,6 +469,10 @@ msgstr ""
 msgid "Find a device by making it ring"
 msgstr ""
 
+#: src/plugins/findmyphone/valent-findmyphone-plugin.c:73
+msgid "Ring"
+msgstr ""
+
 #: src/plugins/findmyphone/valent-findmyphone-ringer.c:219
 msgid "Found"
 msgstr ""
@@ -532,14 +509,37 @@ msgstr ""
 msgid "Control the mouse and keyboard"
 msgstr ""
 
-#: src/plugins/mousepad/valent-input-dialog.ui:6
-#: src/plugins/mousepad/valent-input-dialog.ui:10
-#: src/plugins/mousepad/valent-mousepad-plugin.c:508
+#: src/plugins/mousepad/valent-mousepad-dialog.ui:14
+#: src/plugins/mousepad/valent-mousepad-plugin.c:465
 msgid "Remote Input"
 msgstr ""
 
-#: src/plugins/mousepad/valent-input-dialog.ui:103
-msgid "Move a finger to move the pointer."
+#: src/plugins/mousepad/valent-mousepad-dialog.ui:64
+msgid "Drag one finger to move"
+msgstr ""
+
+#: src/plugins/mousepad/valent-mousepad-dialog.ui:73
+msgid "Drag two fingers to scroll"
+msgstr ""
+
+#: src/plugins/mousepad/valent-mousepad-dialog.ui:82
+msgid "Tap one finger to click"
+msgstr ""
+
+#: src/plugins/mousepad/valent-mousepad-dialog.ui:92
+msgid "Tap two fingers to right click"
+msgstr ""
+
+#: src/plugins/mousepad/valent-mousepad-dialog.ui:101
+msgid "Tap three fingers to middle click"
+msgstr ""
+
+#: src/plugins/mousepad/valent-mousepad-dialog.ui:110
+msgid "Hold one finger to grab"
+msgstr ""
+
+#: src/plugins/mousepad/valent-mousepad-dialog.ui:120
+msgid "Tap one finger to ungrab"
 msgstr ""
 
 #: src/plugins/mpris/mpris.plugin.desktop.in:4
@@ -585,6 +585,16 @@ msgstr ""
 
 #: src/plugins/notification/valent-notification-reply-dialog.ui:6
 msgid "Reply"
+msgstr ""
+
+#: src/plugins/notification/valent-notification-reply-dialog.ui:9
+#: src/plugins/runcommand/valent-runcommand-editor.c:63
+#: src/plugins/runcommand/valent-runcommand-editor.ui:8
+#: src/plugins/runcommand/valent-runcommand-preferences.c:392
+#: src/plugins/share/valent-share-plugin.c:164
+#: src/plugins/share/valent-share-plugin.c:333
+#: src/plugins/share/valent-share-plugin.c:390
+msgid "Cancel"
 msgstr ""
 
 #: src/plugins/notification/valent-notification-reply-dialog.ui:14
@@ -679,7 +689,7 @@ msgstr ""
 msgid "Command Line"
 msgstr ""
 
-#: src/plugins/runcommand/valent-runcommand-plugin.c:295
+#: src/plugins/runcommand/valent-runcommand-plugin.c:294
 msgid "Run Command"
 msgstr ""
 
@@ -1030,14 +1040,6 @@ msgstr ""
 
 #: src/plugins/telephony/valent-telephony-preferences.ui:69
 msgid "Lower"
-msgstr ""
-
-#: src/plugins/upower/upower.plugin.desktop.in:4
-msgid "UPower"
-msgstr ""
-
-#: src/plugins/upower/upower.plugin.desktop.in:5
-msgid "Integration with UPower"
 msgstr ""
 
 #: src/plugins/xdp/xdp.plugin.desktop.in:4

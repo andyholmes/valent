@@ -2,7 +2,7 @@
 <gresources>
   <gresource prefix="/plugins/mousepad">
     <file>mousepad.plugin</file>
-    <file>valent-input-dialog.ui</file>
+    <file>valent-mousepad-dialog.ui</file>
   </gresource>
 </gresources>
 

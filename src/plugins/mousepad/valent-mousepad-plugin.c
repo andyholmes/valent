@@ -10,23 +10,27 @@
 #include <libvalent-core.h>
 #include <libvalent-input.h>
 
-#include "valent-input-dialog.h"
+#include "valent-mousepad-dialog.h"
+#include "valent-mousepad-keydef.h"
 #include "valent-mousepad-plugin.h"
 
 
 struct _ValentMousepadPlugin
 {
-  PeasExtensionBase  parent_instance;
+  PeasExtensionBase     parent_instance;
 
-  ValentDevice      *device;
-  ValentInput       *input;
+  ValentDevice         *device;
+  ValentInput          *input;
 
-  ValentInputDialog *input_dialog;
+  ValentMousepadDialog *dialog;
 
-  unsigned int       local_state : 1;
-  unsigned int       remote_state : 1;
-  gint64             remote_state_id;
+  unsigned int          local_state : 1;
+  unsigned int          remote_state : 1;
+  gint64                remote_state_id;
 };
+
+static void valent_mousepad_plugin_send_echo (ValentMousepadPlugin       *self,
+                                              JsonNode                   *packet);
 
 static void valent_device_plugin_iface_init (ValentDevicePluginInterface *iface);
 
@@ -38,8 +42,6 @@ enum {
   PROP_DEVICE,
   N_PROPERTIES
 };
-
-static unsigned int special_keys[65536] = { 0, };
 
 
 /**
@@ -68,84 +70,6 @@ event_to_mask (JsonObject *body)
     mask |= GDK_SUPER_MASK;
 
   return mask;
-}
-
-static void
-init_special_keys (void)
-{
-  special_keys[GDK_KEY_BackSpace] =    1;
-  special_keys[GDK_KEY_Tab] =          2;
-  special_keys[GDK_KEY_Linefeed] =     3;
-  special_keys[GDK_KEY_Left] =         4;
-  special_keys[GDK_KEY_Up] =           5;
-  special_keys[GDK_KEY_Right] =        6;
-  special_keys[GDK_KEY_Down] =         7;
-  special_keys[GDK_KEY_Page_Up] =      8;
-  special_keys[GDK_KEY_Page_Down] =    9;
-  special_keys[GDK_KEY_Home] =        10;
-  special_keys[GDK_KEY_End] =         11;
-  special_keys[GDK_KEY_Return] =      12;
-  special_keys[GDK_KEY_Delete] =      13;
-  special_keys[GDK_KEY_Escape] =      14;
-  special_keys[GDK_KEY_Sys_Req] =     15;
-  special_keys[GDK_KEY_Scroll_Lock] = 16;
-  special_keys[GDK_KEY_F1] =          21;
-  special_keys[GDK_KEY_F2] =          22;
-  special_keys[GDK_KEY_F3] =          23;
-  special_keys[GDK_KEY_F4] =          24;
-  special_keys[GDK_KEY_F5] =          25;
-  special_keys[GDK_KEY_F6] =          26;
-  special_keys[GDK_KEY_F7] =          27;
-  special_keys[GDK_KEY_F8] =          28;
-  special_keys[GDK_KEY_F9] =          29;
-  special_keys[GDK_KEY_F10] =         30;
-  special_keys[GDK_KEY_F11] =         31;
-  special_keys[GDK_KEY_F12] =         32;
-}
-
-static unsigned int
-specialkey_to_keysym (gint64 specialkey)
-{
-  static const unsigned int keymap[] = {
-    0,                   // 0 (Invalid)
-    GDK_KEY_BackSpace,   // 1
-    GDK_KEY_Tab,         // 2
-    GDK_KEY_Linefeed,    // 3
-    GDK_KEY_Left,        // 4
-    GDK_KEY_Up,          // 5
-    GDK_KEY_Right,       // 6
-    GDK_KEY_Down,        // 7
-    GDK_KEY_Page_Up,     // 8
-    GDK_KEY_Page_Down,   // 9
-    GDK_KEY_Home,        // 10
-    GDK_KEY_End,         // 11
-    GDK_KEY_Return,      // 12
-    GDK_KEY_Delete,      // 13
-    GDK_KEY_Escape,      // 14
-    GDK_KEY_Sys_Req,     // 15
-    GDK_KEY_Scroll_Lock, // 16
-    0,                   // 17
-    0,                   // 18
-    0,                   // 19
-    0,                   // 20
-    GDK_KEY_F1,          // 21
-    GDK_KEY_F2,          // 22
-    GDK_KEY_F3,          // 23
-    GDK_KEY_F4,          // 24
-    GDK_KEY_F5,          // 25
-    GDK_KEY_F6,          // 26
-    GDK_KEY_F7,          // 27
-    GDK_KEY_F8,          // 28
-    GDK_KEY_F9,          // 29
-    GDK_KEY_F10,         // 30
-    GDK_KEY_F11,         // 31
-    GDK_KEY_F12,         // 32
-  };
-
-  if (specialkey < 0 || specialkey > 32)
-    return 0;
-
-  return keymap[specialkey];
 }
 
 /*
@@ -203,9 +127,12 @@ handle_mousepad_request (ValentMousepadPlugin *self,
 
           keycode = json_object_get_int_member_with_default (body, "specialKey", 0);
 
-          if ((keyval = specialkey_to_keysym (keycode)) != 0)
+          if ((keyval = valent_mousepad_keycode_to_keyval (keycode)) != 0)
             valent_input_keyboard_action (self->input, keyval, mask);
         }
+
+      if (json_object_get_boolean_member_with_default (body, "sendAck", FALSE))
+        valent_mousepad_plugin_send_echo (self, packet);
     }
 
   else if (valent_packet_check_boolean (body, "singleclick"))
@@ -245,7 +172,7 @@ handle_mousepad_echo (ValentMousepadPlugin *self,
   g_assert (VALENT_IS_PACKET (packet));
 
   /* There's no input dialog open, so we weren't expecting any echo */
-  if G_UNLIKELY (self->input_dialog == NULL)
+  if G_UNLIKELY (self->dialog == NULL)
     {
       g_debug ("Unexpected echo");
       return;
@@ -263,10 +190,8 @@ handle_mousepad_echo (ValentMousepadPlugin *self,
       /* Ensure key is in range or we'll choke */
       keycode = json_object_get_int_member_with_default (body, "specialKey", 0);
 
-      if ((keyval = specialkey_to_keysym (keycode)) != 0)
-        valent_input_dialog_echo_special (self->input_dialog, keyval, mask);
-      else
-        g_warning ("specialKey is out of range: %li", keycode);
+      if ((keyval = valent_mousepad_keycode_to_keyval (keycode)) != 0)
+        valent_mousepad_dialog_echo_special (self->dialog, keyval, mask);
     }
 
   /* A printable character */
@@ -277,7 +202,7 @@ handle_mousepad_echo (ValentMousepadPlugin *self,
       key = json_object_get_string_member_with_default (body, "key", NULL);
 
       if (key != NULL)
-        valent_input_dialog_echo_key (self->input_dialog, key, mask);
+        valent_mousepad_dialog_echo_key (self->dialog, key, mask);
     }
 }
 
@@ -326,26 +251,40 @@ handle_mousepad_keyboardstate (ValentMousepadPlugin *self,
  */
 static void
 valent_mousepad_plugin_mousepad_request_keyboard (ValentMousepadPlugin *self,
-                                                  unsigned int          keysym,
+                                                  unsigned int          keyval,
                                                   GdkModifierType       mask)
 {
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
+  unsigned int special_key = 0;
 
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
 
   builder = valent_packet_start ("kdeconnect.mousepad.request");
 
-  if (keysym <= G_MAXUINT16 && special_keys[keysym] != 0)
+  if ((special_key = valent_mousepad_keyval_to_keycode (keyval)) != 0)
     {
       json_builder_set_member_name (builder, "specialKey");
-      json_builder_add_int_value (builder, special_keys[keysym]);
+      json_builder_add_int_value (builder, special_key);
     }
   else
     {
-      char key[6] = { 0, };
+      g_autoptr (GError) error = NULL;
+      g_autofree char *key = NULL;
+      gunichar wc;
 
-      g_unichar_to_utf8 (gdk_keyval_to_unicode (keysym), key);
+      wc = gdk_keyval_to_unicode (keyval);
+      key = g_ucs4_to_utf8 (&wc, 1, NULL, NULL, &error);
+
+      if (key == NULL)
+        {
+          g_warning ("Converting %s to string: %s",
+                     gdk_keyval_name (keyval),
+                     error->message);
+          g_object_unref (builder);
+          return;
+        }
+
       json_builder_set_member_name (builder, "key");
       json_builder_add_string_value (builder, key);
     }
@@ -409,15 +348,33 @@ valent_mousepad_plugin_mousepad_request_pointer (ValentMousepadPlugin *self,
 }
 
 static void
-valent_mousepad_plugin_mousepad_echo (ValentMousepadPlugin *self,
-                                      JsonNode             *packet)
+valent_mousepad_plugin_send_echo (ValentMousepadPlugin *self,
+                                  JsonNode             *packet)
 {
   JsonBuilder *builder;
   g_autoptr (JsonNode) response = NULL;
+  JsonObjectIter iter;
+  const char *name;
+  JsonNode *node;
 
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
 
   builder = valent_packet_start ("kdeconnect.mousepad.echo");
+
+  json_object_iter_init (&iter, valent_packet_get_body (packet));
+
+  while (json_object_iter_next (&iter, &name, &node))
+    {
+      if (g_strcmp0 (name, "sendAck") == 0)
+        continue;
+
+      json_builder_set_member_name (builder, name);
+      json_builder_add_value (builder, json_node_ref (node));
+    }
+
+  json_builder_set_member_name (builder, "isAck");
+  json_builder_add_boolean_value (builder, TRUE);
+
   response = valent_packet_finish (builder);
 
   valent_device_queue_packet (self->device, response);
@@ -452,14 +409,14 @@ dialog_action (GSimpleAction *action,
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
 
   /* Create dialog if necessary */
-  if (self->input_dialog == NULL)
+  if (self->dialog == NULL)
     {
-      self->input_dialog = valent_input_dialog_new (self);
-      g_object_add_weak_pointer (G_OBJECT (self->input_dialog),
-                                 (gpointer) &self->input_dialog);
+      self->dialog = valent_mousepad_dialog_new (self->device);
+      g_object_add_weak_pointer (G_OBJECT (self->dialog),
+                                 (gpointer) &self->dialog);
     }
 
-  gtk_window_present_with_time (GTK_WINDOW (self->input_dialog),
+  gtk_window_present_with_time (GTK_WINDOW (self->dialog),
                                 GDK_CURRENT_TIME);
 }
 
@@ -546,8 +503,8 @@ valent_mousepad_plugin_disable (ValentDevicePlugin *plugin)
                                            actions,
                                            G_N_ELEMENTS (actions));
 
-  if (self->input_dialog != NULL)
-    gtk_window_destroy (GTK_WINDOW (self->input_dialog));
+  if (self->dialog != NULL)
+    gtk_window_destroy (GTK_WINDOW (self->dialog));
 }
 
 static void
@@ -660,7 +617,6 @@ valent_mousepad_plugin_class_init (ValentMousepadPluginClass *klass)
   object_class->set_property = valent_mousepad_plugin_set_property;
 
   g_object_class_override_property (object_class, PROP_DEVICE, "device");
-  init_special_keys ();
 }
 
 static void
