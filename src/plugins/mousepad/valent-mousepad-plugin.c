@@ -29,6 +29,9 @@ struct _ValentMousepadPlugin
   gint64             remote_state_id;
 };
 
+static void valent_mousepad_plugin_send_echo (ValentMousepadPlugin       *self,
+                                              JsonNode                   *packet);
+
 static void valent_device_plugin_iface_init (ValentDevicePluginInterface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (ValentMousepadPlugin, valent_mousepad_plugin, PEAS_TYPE_EXTENSION_BASE,
@@ -127,6 +130,9 @@ handle_mousepad_request (ValentMousepadPlugin *self,
           if ((keyval = valent_mousepad_keycode_to_keyval (keycode)) != 0)
             valent_input_keyboard_action (self->input, keyval, mask);
         }
+
+      if (json_object_get_boolean_member_with_default (body, "sendAck", FALSE))
+        valent_mousepad_plugin_send_echo (self, packet);
     }
 
   else if (valent_packet_check_boolean (body, "singleclick"))
@@ -344,15 +350,33 @@ valent_mousepad_plugin_mousepad_request_pointer (ValentMousepadPlugin *self,
 }
 
 static void
-valent_mousepad_plugin_mousepad_echo (ValentMousepadPlugin *self,
-                                      JsonNode             *packet)
+valent_mousepad_plugin_send_echo (ValentMousepadPlugin *self,
+                                  JsonNode             *packet)
 {
   JsonBuilder *builder;
   g_autoptr (JsonNode) response = NULL;
+  JsonObjectIter iter;
+  const char *name;
+  JsonNode *node;
 
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
 
   builder = valent_packet_start ("kdeconnect.mousepad.echo");
+
+  json_object_iter_init (&iter, valent_packet_get_body (packet));
+
+  while (json_object_iter_next (&iter, &name, &node))
+    {
+      if (g_strcmp0 (name, "sendAck") == 0)
+        continue;
+
+      json_builder_set_member_name (builder, name);
+      json_builder_add_value (builder, json_node_ref (node));
+    }
+
+  json_builder_set_member_name (builder, "isAck");
+  json_builder_add_boolean_value (builder, TRUE);
+
   response = valent_packet_finish (builder);
 
   valent_device_queue_packet (self->device, response);
