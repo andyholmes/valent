@@ -5,7 +5,6 @@ data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in
 data/ca.andyholmes.Valent.desktop.in.in
 src/libvalent/contacts/valent-contact-utils.c
 src/libvalent/core/valent-device.c
-src/libvalent/ui/valent-connect-dialog.ui
 src/libvalent/ui/valent-device-panel.ui
 src/libvalent/ui/valent-menu-list.c
 src/libvalent/ui/valent-plugin-group.c
@@ -72,6 +71,5 @@ src/plugins/telephony/telephony.plugin.desktop.in
 src/plugins/telephony/valent-telephony-plugin.c
 src/plugins/telephony/valent-telephony-preferences.c
 src/plugins/telephony/valent-telephony-preferences.ui
-src/plugins/upower/upower.plugin.desktop.in
 src/plugins/xdp/xdp.plugin.desktop.in
 
