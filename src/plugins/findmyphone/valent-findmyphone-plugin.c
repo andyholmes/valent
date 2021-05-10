@@ -54,14 +54,11 @@ ring_action (GSimpleAction *action,
              gpointer       user_data)
 {
   ValentFindmyphonePlugin *self = VALENT_FINDMYPHONE_PLUGIN (user_data);
-  JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
 
   g_assert (VALENT_IS_FINDMYPHONE_PLUGIN (self));
 
-  builder = valent_packet_start ("kdeconnect.findmyphone.request");
-  packet = valent_packet_finish (builder);
-
+  packet = valent_packet_new ("kdeconnect.findmyphone.request");
   valent_device_queue_packet (self->device, packet);
 }
 

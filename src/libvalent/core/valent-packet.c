@@ -218,6 +218,36 @@ valent_packet_deserialize (const char  *json,
 }
 
 /**
+ * valent_packet_new:
+ * @type: A KDE Connect packet type
+ *
+ * A convenience function for creating a new KDE Connect packet with the type
+ * field set to @type.
+ *
+ * Returns: (transfer full): A #JsonNode object
+ */
+JsonNode *
+valent_packet_new (const char *type)
+{
+  g_autoptr (JsonBuilder) builder = NULL;
+
+  g_return_val_if_fail (type != NULL, NULL);
+
+  builder = json_builder_new ();
+
+  json_builder_begin_object (builder);
+  json_builder_set_member_name (builder, "id");
+  json_builder_add_int_value (builder, 0);
+  json_builder_set_member_name (builder, "type");
+  json_builder_add_string_value (builder, type);
+  json_builder_set_member_name (builder, "body");
+  json_builder_end_object (json_builder_begin_object (builder));
+  json_builder_end_object (builder);
+
+  return json_builder_get_root (builder);
+}
+
+/**
  * valent_packet_start:
  * @type: A KDE Connect packet type
  *

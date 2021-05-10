@@ -40,6 +40,7 @@ typedef enum {
 GQuark        valent_packet_error_quark      (void);
 
 /* Builder Helpers */
+JsonNode    * valent_packet_new              (const char     *type);
 JsonBuilder * valent_packet_start            (const char     *type);
 JsonNode    * valent_packet_finish           (JsonBuilder    *builder);
 
