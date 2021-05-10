@@ -78,38 +78,6 @@ valent_in_flatpak (void)
   return in_flatpak;
 }
 
-static char *
-get_base_path (const char *name)
-{
-  g_autoptr (GKeyFile) keyfile = g_key_file_new ();
-
-  if (g_key_file_load_from_file (keyfile, "/.flatpak-info", 0, NULL))
-    return g_key_file_get_string (keyfile, "Instance", name, NULL);
-
-  return NULL;
-}
-
-/**
- * valent_get_host_path:
- * @path: a relocatable path
- *
- * Gets the path to a resource that may be relocatable at runtime. When used for
- * targetting files in a flatpak sandbox, the prefix is empty (eg. `/usr/bin` is
- * just `/bin`).
- *
- * Returns: (transfer full): a new string containing the path
- */
-char *
-valent_get_host_path (const char *path)
-{
-  static char *base_path;
-
-  if G_UNLIKELY (base_path == NULL)
-    base_path = get_base_path ("app-path");
-
-  return g_build_filename (base_path, path, NULL);
-}
-
 /**
  * valent_timestamp_ms:
  *
