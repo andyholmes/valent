@@ -609,13 +609,9 @@ valent_lan_channel_service_build_identity (ValentChannelService *service)
 
   if (identity != NULL)
     {
-      JsonObject *root;
       JsonObject *body;
 
-      root = json_node_get_object (identity);
-      g_assert (json_object_has_member (root, "body"));
-
-      body = json_object_get_object_member (root, "body");
+      body = valent_packet_get_body (identity);
       json_object_set_int_member (body, "tcpPort", self->port);
     }
 }

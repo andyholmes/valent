@@ -434,7 +434,7 @@ valent_device_handle_identity (ValentDevice *device,
   g_assert (VALENT_IS_DEVICE (device));
   g_assert (VALENT_IS_PACKET (packet));
 
-  body = json_object_get_object_member (json_node_get_object (packet), "body");
+  body = valent_packet_get_body (packet);
 
   /* Check if the name changed */
   device_name = json_object_get_string_member_with_default (body,
@@ -1565,7 +1565,7 @@ valent_device_handle_packet (ValentDevice *device,
 
   VALENT_DEBUG_PACKET (packet, device->name);
 
-  type = json_object_get_string_member (json_node_get_object (packet), "type");
+  type = valent_packet_get_type (packet);
 
   /* Keep this order */
   if G_UNLIKELY (g_strcmp0 (type, "kdeconnect.identity") == 0)

@@ -320,16 +320,16 @@ download_icon_task (GTask        *task,
   g_autoptr (GFile) file = NULL;
   JsonNode *packet = task_data;
   const char *payload_hash;
-  JsonObject *body;
+  JsonObject *root;
   GError *error = NULL;
 
   if (g_task_return_error_if_cancelled (task))
     return;
 
   /* Check for a payload hash */
-  body = json_node_get_object (packet);
+  root = json_node_get_object (packet);
 
-  if ((payload_hash = valent_packet_check_string (body, "payloadHash")) != NULL)
+  if ((payload_hash = valent_packet_check_string (root, "payloadHash")) != NULL)
     {
       file = get_icon_gfile (self, payload_hash);
     }

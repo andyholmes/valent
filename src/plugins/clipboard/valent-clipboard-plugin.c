@@ -51,7 +51,7 @@ valent_clipboard_plugin_handle_clipboard (ValentClipboardPlugin *self,
   g_assert (VALENT_IS_CLIPBOARD_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
 
-  body = json_object_get_object_member (json_node_get_object (packet), "body");
+  body = valent_packet_get_body (packet);
 
   if G_UNLIKELY ((node = json_object_get_member (body, "content")) == NULL ||
                  json_node_get_value_type (node) != G_TYPE_STRING)

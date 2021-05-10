@@ -210,7 +210,6 @@ static void
 handle_mousepad_keyboardstate (ValentMousepadPlugin *self,
                                JsonNode             *packet)
 {
-  JsonObject *root;
   JsonObject *body;
   gint64 id;
   gboolean state;
@@ -218,10 +217,9 @@ handle_mousepad_keyboardstate (ValentMousepadPlugin *self,
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
 
-  root = json_node_get_object (packet);
-  id = json_object_get_int_member (root, "id");
-
   /* TODO: ensure we don't get packets out of order */
+  id = valent_packet_get_id (packet);
+
   if (id < self->remote_state_id)
     {
       g_debug ("%s: received keyboard state out of order", G_STRFUNC);
@@ -231,7 +229,7 @@ handle_mousepad_keyboardstate (ValentMousepadPlugin *self,
   self->remote_state_id = id;
 
   /* Update the remote keyboard state */
-  body = json_object_get_object_member (root, "body");
+  body = valent_packet_get_body (packet);
   state = valent_packet_check_boolean (body, "state");
 
   if (self->remote_state != state)
