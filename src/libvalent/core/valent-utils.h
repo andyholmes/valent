@@ -14,15 +14,15 @@
 
 G_BEGIN_DECLS
 
-void              valent_debug_init           (void);
-void              valent_debug_clear          (void);
+void         valent_debug_init      (void);
+void         valent_debug_clear     (void);
 
-PeasEngine      * valent_get_engine           (void);
-char            * valent_get_host_path        (const char *path);
-GThread         * valent_get_main_thread      (void);
-gboolean          valent_in_flatpak           (void);
-void              valent_load_plugins         (PeasEngine *engine);
-gint64            valent_timestamp_ms         (void);
+PeasEngine * valent_get_engine      (void);
+char       * valent_get_host_path   (const char *path);
+GThread    * valent_get_main_thread (void);
+gboolean     valent_in_flatpak      (void);
+void         valent_load_plugins    (PeasEngine *engine);
+gint64       valent_timestamp_ms    (void);
 
 
 /* Miscellaneous Helpers */
