@@ -230,7 +230,7 @@ valent_channel_write_packet_internal (ValentChannel  *channel,
   packet_str = json_generator_to_data (priv->generator, &packet_len);
 
   /* Replace the trailing NULL with an LF */
-  packet_str[packet_len] = 10;
+  packet_str[packet_len] = '\n';
   packet_len += 1;
 
   output_stream = g_io_stream_get_output_stream (priv->base_stream);
