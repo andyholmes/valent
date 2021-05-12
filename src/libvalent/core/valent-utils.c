@@ -5,6 +5,7 @@
 
 #include "config.h"
 
+#include <math.h>
 #include <sys/time.h>
 
 #include "../gconstructor.h"
@@ -88,11 +89,19 @@ valent_in_flatpak (void)
 gint64
 valent_timestamp_ms (void)
 {
+#ifdef HAVE_CLOCK_GETTIME
+  struct timespec ts;
+
+  clock_gettime (CLOCK_REALTIME, &ts);
+
+  return (ts.tv_sec * 1000L) + ts.tv_nsec / 1000000L;
+#else
   struct timeval tv;
 
   gettimeofday (&tv, NULL);
 
   return (tv.tv_sec * 1000L) + tv.tv_usec / 1000L;
+#endif
 }
 
 /**

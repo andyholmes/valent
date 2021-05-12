@@ -9,6 +9,7 @@
 #include <json-glib/json-glib.h>
 
 #include "valent-packet.h"
+#include "valent-utils.h"
 
 
 /**
@@ -115,8 +116,7 @@ valent_packet_to_stream (GOutputStream  *stream,
                          GError        **error)
 {
   g_autoptr (JsonGenerator) generator = NULL;
-  gint64 now = 0;
-  struct timeval tv;
+  JsonObject *root;
   g_autofree char *packet_str = NULL;
   gsize packet_len;
 
@@ -128,9 +128,8 @@ valent_packet_to_stream (GOutputStream  *stream,
     return FALSE;
 
   /* Timestamp the packet (UNIX Epoch ms) */
-  gettimeofday (&tv, NULL);
-  now = (tv.tv_sec * 1000L) + tv.tv_usec / 1000L;
-  json_object_set_int_member (json_node_get_object (packet), "id", now);
+  root = json_node_get_object (packet);
+  json_object_set_int_member (root, "id", valent_timestamp_ms ());
 
   /* Serialize the packet to a string */
   generator = json_generator_new ();
@@ -162,16 +161,14 @@ char *
 valent_packet_serialize (JsonNode *packet)
 {
   g_autoptr (JsonGenerator) generator = NULL;
-  gint64 now = 0;
-  struct timeval tv;
+  JsonObject *root;
   g_autofree char *packet_str = NULL;
 
   g_return_val_if_fail (VALENT_IS_PACKET (packet), NULL);
 
   /* Timestamp the packet (UNIX Epoch ms) */
-  gettimeofday (&tv, NULL);
-  now = (tv.tv_sec * 1000L) + tv.tv_usec / 1000L;
-  json_object_set_int_member (json_node_get_object (packet), "id", now);
+  root = json_node_get_object (packet);
+  json_object_set_int_member (root, "id", valent_timestamp_ms ());
 
   /* Stringify the packet and return a newline-terminated string */
   generator = json_generator_new ();

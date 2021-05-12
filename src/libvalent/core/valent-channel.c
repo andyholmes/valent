@@ -204,8 +204,6 @@ valent_channel_write_packet_internal (ValentChannel  *channel,
 {
   ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
   JsonObject *root;
-  gint64 now = 0;
-  struct timeval tv;
   g_autofree char *packet_str = NULL;
   gsize packet_len;
   GOutputStream *output_stream;
@@ -225,9 +223,7 @@ valent_channel_write_packet_internal (ValentChannel  *channel,
 
   /* Timestamp the packet (UNIX Epoch ms) */
   root = json_node_get_object (packet);
-  gettimeofday (&tv, NULL);
-  now = (tv.tv_sec * 1000L) + tv.tv_usec / 1000L;
-  json_object_set_int_member (root, "id", now);
+  json_object_set_int_member (root, "id", valent_timestamp_ms ());
 
   /* Serialize the packet to a NULL-terminated string */
   json_generator_set_root (priv->generator, packet);

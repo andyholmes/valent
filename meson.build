@@ -112,6 +112,7 @@ foreach define : config_h_defines
 endforeach
 
 config_h_functions = [
+  'clock_gettime',
   'localtime_r',
 ]
 
