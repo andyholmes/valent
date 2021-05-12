@@ -13,9 +13,6 @@
 #include "valent-macros.h"
 #include "valent-utils.h"
 
-#define DEFAULT_EXPIRATION (60L*60L*24L*10L*365L)
-#define DEFAULT_KEY_SIZE   4096
-
 
 /**
  * SECTION:valent-utils
