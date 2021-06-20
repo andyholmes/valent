@@ -962,7 +962,7 @@ valent_notification_deserialize (GVariant *variant)
       GVariant *button;
 
       n_buttons = g_variant_iter_init (&iter, buttons);
-      g_assert (n_buttons <= 3);
+      g_warn_if_fail (n_buttons <= 3);
 
       while (g_variant_iter_next (&iter, "@a{sv}", &button))
         {

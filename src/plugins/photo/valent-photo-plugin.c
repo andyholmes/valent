@@ -162,10 +162,6 @@ static const ValentMenuEntry items[] = {
 static void
 valent_photo_plugin_enable (ValentDevicePlugin *plugin)
 {
-  ValentPhotoPlugin *self = VALENT_PHOTO_PLUGIN (plugin);
-
-  g_assert (VALENT_IS_PHOTO_PLUGIN (self));
-
   /* Register GActions */
   valent_device_plugin_register_actions (plugin,
                                          actions,

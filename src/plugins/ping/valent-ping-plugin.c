@@ -109,10 +109,6 @@ static const ValentMenuEntry items[] = {
 static void
 valent_ping_plugin_enable (ValentDevicePlugin *plugin)
 {
-  ValentPingPlugin *self = VALENT_PING_PLUGIN (plugin);
-
-  g_assert (VALENT_IS_PING_PLUGIN (self));
-
   /* Register GActions */
   valent_device_plugin_register_actions (plugin,
                                          actions,

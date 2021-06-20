@@ -261,17 +261,6 @@ execute_task (GTask        *task,
  * GObject
  */
 static void
-valent_transfer_constructed (GObject *object)
-{
-  ValentTransfer *self = VALENT_TRANSFER (object);
-  ValentTransferPrivate *priv = valent_transfer_get_instance_private (self);
-
-  g_assert (VALENT_IS_DEVICE (priv->device));
-
-  G_OBJECT_CLASS (valent_transfer_parent_class)->constructed (object);
-}
-
-static void
 valent_transfer_dispose (GObject *object)
 {
   ValentTransfer *self = VALENT_TRANSFER (object);
@@ -353,7 +342,6 @@ valent_transfer_class_init (ValentTransferClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  object_class->constructed = valent_transfer_constructed;
   object_class->dispose = valent_transfer_dispose;
   object_class->finalize = valent_transfer_finalize;
   object_class->get_property = valent_transfer_get_property;

@@ -469,10 +469,6 @@ static const ValentMenuEntry items[] = {
 static void
 valent_mousepad_plugin_enable (ValentDevicePlugin *plugin)
 {
-  ValentMousepadPlugin *self = VALENT_MOUSEPAD_PLUGIN (plugin);
-
-  g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
-
   /* Register GActions */
   valent_device_plugin_register_actions (plugin,
                                          actions,

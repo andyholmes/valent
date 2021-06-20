@@ -396,9 +396,6 @@ static void
 valent_contact_store_constructed (GObject *object)
 {
   ValentContactStore *store = VALENT_CONTACT_STORE (object);
-  ValentContactStorePrivate *priv = valent_contact_store_get_instance_private (store);
-
-  g_assert (priv->source != NULL);
 
   VALENT_CONTACT_STORE_GET_CLASS (store)->prepare_backend (store);
 

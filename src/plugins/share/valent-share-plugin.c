@@ -473,10 +473,7 @@ share_open_action (GSimpleAction *action,
                    GVariant      *parameter,
                    gpointer       user_data)
 {
-  ValentSharePlugin *self = VALENT_SHARE_PLUGIN (user_data);
   const char *uri;
-
-  g_assert (VALENT_IS_SHARE_PLUGIN (self));
 
   uri = g_variant_get_string (parameter, NULL);
   g_app_info_launch_default_for_uri_async (uri, NULL, NULL, NULL, NULL);

@@ -78,7 +78,6 @@ valent_ebook_provider_register (ValentContactStoreProvider  *provider,
                                 GCancellable                *cancellable,
                                 GError                     **error)
 {
-  ValentEBookProvider *self = VALENT_EBOOK_PROVIDER (provider);
   g_autoptr (ESource) scratch = NULL;
   g_autoptr (ESource) source = NULL;
   const char *uid;
@@ -91,7 +90,8 @@ valent_ebook_provider_register (ValentContactStoreProvider  *provider,
   name = valent_contact_store_get_name (store);
 
   /* Create and register a new source */
-  scratch = valent_contacts_create_ebook_source (uid, name, NULL);
+  if ((scratch = valent_contacts_create_ebook_source (uid, name, error)) == NULL)
+      return FALSE;
 
   if ((source = valent_eds_register_source (scratch, cancellable, error)) == NULL)
     return FALSE;
