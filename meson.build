@@ -162,7 +162,7 @@ libedata_book_dep = dependency('libedata-book-1.2', version: eds_version)
 libedataserver_dep = dependency('libedataserver-1.2', version: eds_version)
 
 # libvalent-ui
-libadwaita_dep = dependency('libadwaita-1', version: '>= 1.1.0', required: false)
+libadwaita_dep = dependency('libadwaita-1', version: '>= 1.0.0-alpha.1', required: false)
 
 
 #
