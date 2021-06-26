@@ -16,7 +16,6 @@ Source0:        %{url}/archive/%{name}-%{version}.tar.xz
 
 BuildRequires:  gcc
 BuildRequires:  gettext
-BuildRequires:  gtk-doc
 BuildRequires:  meson
 BuildRequires:  pkgconfig(gio-2.0) >= %{glib2_version}
 BuildRequires:  pkgconfig(gio-unix-2.0) >= %{glib2_version}
@@ -83,7 +82,7 @@ developing plugins for %{name}.
 %license COPYING
 %{_bindir}/valent
 %exclude %{_datadir}/gir-1.0/
-%exclude %{_datadir}/gtk-doc/
+%exclude %{_datadir}/doc/
 %{_datadir}/applications/ca.andyholmes.Valent.desktop
 %{_datadir}/dbus-1/services/ca.andyholmes.Valent.service
 %{_datadir}/glib-2.0/schemas/ca.andyholmes.valent*.gschema.xml
@@ -97,7 +96,7 @@ developing plugins for %{name}.
 
 %files devel
 %{_datadir}/gir-1.0/
-%{_datadir}/gtk-doc/
+%{_datadir}/doc/
 %{_libdir}/pkgconfig/
 %{_includedir}/valent*/
 

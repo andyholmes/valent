@@ -19,7 +19,6 @@ jobs:
 
       - name: Build
         run: |
-          dnf reinstall docbook-dtds -y
           meson --prefix=/usr \
                 --buildtype=release \
                 -Ddocumentation=true \
