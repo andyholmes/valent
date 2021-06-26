@@ -6,7 +6,7 @@ FROM fedora:34
 RUN dnf install -y --enablerepo=fedora-debuginfo,updates-debuginfo \
         clang gcc gettext git libasan libubsan meson \
         python3-jinja2 python3-markdown python3-toml python3-tyopgrify \
-        appstream desktop-file-utils dbus-daemon lcov python-dbusmock rsync
+        appstream desktop-file-utils dbus-daemon lcov python-dbusmock rsync \
         xorg-x11-server-Xvfb \
         alsa-lib-devel                alsa-lib-debuginfo \
         evolution-data-server-devel   evolution-data-server-debuginfo \
