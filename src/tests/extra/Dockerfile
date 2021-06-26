@@ -1,9 +1,13 @@
 FROM fedora:34
 
+# The packages below fall roughly into three categories: the first line of
+# packages is build tooling, the second gi-docgen dependencies, third and fourth
+# test tools and the pairs with debuginfo are dependencies of Valent
 RUN dnf install -y --enablerepo=fedora-debuginfo,updates-debuginfo \
         clang gcc gettext git libasan libubsan meson \
-        appstream desktop-file-utils dbus-daemon gtk-doc lcov python-dbusmock \
-        rsync xorg-x11-server-Xvfb \
+        python3-jinja2 python3-markdown python3-toml python3-tyopgrify \
+        appstream desktop-file-utils dbus-daemon lcov python-dbusmock rsync
+        xorg-x11-server-Xvfb \
         alsa-lib-devel                alsa-lib-debuginfo \
         evolution-data-server-devel   evolution-data-server-debuginfo \
         glib2-devel                   glib2-debuginfo \

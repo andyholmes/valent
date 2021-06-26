@@ -60,6 +60,7 @@ pkgdatadir = join_paths(datadir, meson.project_name())
 pkgincludedir = join_paths(includedir, meson.project_name())
 pkglibdir = join_paths(libdir, meson.project_name())
 pkglibexecdir = join_paths(libexecdir, meson.project_name())
+pkgdocdir = join_paths(pkgdatadir, 'doc')
 pkgpluginsdir = join_paths(pkglibdir, 'plugins')
 
 po_dir = join_paths(meson.source_root(), 'po')

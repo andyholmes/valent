@@ -9,8 +9,6 @@
 
 #include <gio/gio.h>
 
-#include "libvalent-core-types.h"
-
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_DATA (valent_data_get_type())
@@ -40,7 +38,7 @@ GFile      * valent_data_new_cache_file  (ValentData      *data,
 GFile      * valent_data_new_config_file (ValentData      *data,
                                           const char      *filename);
 GFile      * valent_data_new_data_file   (ValentData      *data,
-                                             const char      *filename);
+                                          const char      *filename);
 
 /* Static Utilities */
 char       * valent_data_get_directory   (GUserDirectory   directory);
