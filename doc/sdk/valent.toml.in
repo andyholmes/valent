@@ -1,0 +1,73 @@
+[library]
+version = "@version@"
+browse_url = "https://github.com/andyholmes/valent/"
+repository_url = "https://github.com/andyholmes/valent.git"
+website_url = "https://github.com/andyholmes/valent/"
+authors = "Andy Holmes"
+logo_url = "valent-logo.svg"
+license = "GPL-3.0-or-later"
+description = "KDE Connect client"
+dependencies = [
+  "GObject-2.0",
+  "Gio-2.0",
+  "Gdk-4.0",
+  "Gtk-4.0",
+  "Json-1.0",
+  "Peas-1.0",
+  "EBookContacts-1.2",
+]
+devhelp = true
+search_index = true
+
+
+  [dependencies."GObject-2.0"]
+  name = "GObject"
+  description = "The base type system library"
+  docs_url = "https://developer.gnome.org/gobject/stable"
+
+  [dependencies."Gio-2.0"]
+  name = "GIO"
+  description = "A modern and easy-to-use VFS API"
+  docs_url = "https://developer.gnome.org/gio/stable"
+
+  [dependencies."Peas-1.0"]
+  name = "Peas"
+  description = "A GObject-based plugins engine"
+  docs_url = "https://developer.gnome.org/libpeas/stable"
+
+  [dependencies."Json-1.0"]
+  name = "JSON"
+  description = "A library for reading and parsing JSON"
+  docs_url = "https://developer.gnome.org/json-glib/stable"
+
+  [dependencies."Gdk-4.0"]
+  name = "GDK"
+  description = "The GTK windowing system abstraction"
+  docs_url = "https://docs.gtk.org/gdk4/"
+
+  [dependencies."Gtk-4.0"]
+  name = "GTK"
+  description = "The GTK toolkit"
+  docs_url = "https://docs.gtk.org/gtk4/"
+
+  [dependencies."EBookContacts-4.0"]
+  name = "EBookContacts"
+  description = "The contact library for Evolution Data Server"
+  docs_url = "https://developer.gnome.org/eds/stable/"
+
+[theme]
+name = "basic"
+show_index_summary = true
+show_class_hierarchy = true
+
+[source-location]
+base_url = "https://github.com/andyholmes/valent/blob/master/"
+
+[extra]
+# The same order will be used when generating the index
+content_files = [
+]
+content_images = [
+]
+urlmap_file = "urlmap.js"
+

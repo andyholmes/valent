@@ -7,8 +7,6 @@
 # error "Only <libvalent-core.h> can be included directly."
 #endif
 
-#include "libvalent-core-types.h"
-
 #include <gio/gio.h>
 #include <libpeas/peas.h>
 

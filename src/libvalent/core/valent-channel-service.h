@@ -11,7 +11,6 @@
 #include <json-glib/json-glib.h>
 #include <libpeas/peas.h>
 
-#include "libvalent-core-types.h"
 
 G_BEGIN_DECLS
 
