@@ -23,7 +23,7 @@ jobs:
                 --buildtype=release \
                 -Ddocumentation=true \
                 _build
-          ninja -C _build valent-doc
+          ninja -C _build
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@4.1.1
