@@ -13,7 +13,7 @@
 
 
 /**
- * SECTION:valent-component
+ * SECTION:valentcomponent
  * @short_description: Base class for components
  * @title: ValentComponent
  * @stability: Unstable

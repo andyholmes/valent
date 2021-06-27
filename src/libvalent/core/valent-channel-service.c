@@ -18,7 +18,7 @@
 
 
 /**
- * SECTION:valent-channel-service
+ * SECTION:valentchannelservice
  * @short_description: Base class for channel services
  * @title: ValentChannelService
  * @stability: Unstable

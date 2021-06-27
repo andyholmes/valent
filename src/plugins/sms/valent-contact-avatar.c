@@ -14,16 +14,6 @@
 #include "valent-eds.h"
 
 
-/**
- * SECTION:valent-contact-avatar
- * @short_description: A contact avatar widget
- * @title: ValentContactAvatar
- * @stability: Unstable
- *
- * #ValentContactAvatar is simple, circular avatar widget for displaying contact
- * photos.
- */
-
 struct _ValentContactAvatar
 {
   GtkWidget     parent_instance;

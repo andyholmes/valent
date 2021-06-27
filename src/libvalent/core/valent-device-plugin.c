@@ -16,7 +16,7 @@
 
 
 /**
- * SECTION:valent-device-plugin
+ * SECTION:valentdeviceplugin
  * @short_description: Interface for device plugins
  * @title: ValentDevicePlugin
  * @stability: Unstable

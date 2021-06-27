@@ -14,7 +14,7 @@
 
 
 /**
- * SECTION:valent-session
+ * SECTION:valentsession
  * @short_description: Session Abstraction
  * @title: ValentSession
  * @stability: Unstable

@@ -13,7 +13,7 @@
 
 
 /**
- * SECTION:valent-session-adapter
+ * SECTION:valentsessionadapter
  * @short_description: Interface for session adapters
  * @title: ValentSessionAdapter
  * @stability: Unstable

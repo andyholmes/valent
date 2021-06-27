@@ -12,7 +12,7 @@
 
 
 /**
- * SECTION:valent-sql-stmt
+ * SECTION:valentsqlstmt
  * @short_description: A boxed type for database queries
  * @name: ValentSqlStmt
  * @stability: Unstable

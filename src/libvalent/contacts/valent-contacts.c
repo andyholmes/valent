@@ -15,7 +15,7 @@
 
 
 /**
- * SECTION:valent-contacts
+ * SECTION:valentcontacts
  * @short_description: Contacts Abstraction
  * @title: ValentContacts
  * @stability: Unstable

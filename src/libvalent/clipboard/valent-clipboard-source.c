@@ -13,7 +13,7 @@
 
 
 /**
- * SECTION:valent-clipboard-source
+ * SECTION:valentclipboard-source
  * @short_description: Interface for clipboard sources
  * @title: ValentClipboardSource
  * @stability: Unstable

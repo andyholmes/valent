@@ -13,7 +13,7 @@
 
 
 /**
- * SECTION:valent-contact-store
+ * SECTION:valentcontactstore
  * @short_description: A helper for ESource address books
  * @title: ValentContactStore
  * @stability: Unstable

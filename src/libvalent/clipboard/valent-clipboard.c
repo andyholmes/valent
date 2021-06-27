@@ -14,7 +14,7 @@
 
 
 /**
- * SECTION:valent-clipboard
+ * SECTION:valentclipboard
  * @short_description: Clipboard Abstraction
  * @title: ValentClipboard
  * @stability: Unstable

@@ -14,7 +14,7 @@
 
 
 /**
- * SECTION:valent-contact-store-provider
+ * SECTION:valentcontactstoreprovider
  * @short_description: Interface for contact providers
  * @title: ValentContactStoreProvider
  * @stability: Unstable

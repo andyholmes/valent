@@ -6,15 +6,17 @@
 #include "config.h"
 
 #include <glib-object.h>
+#include <libvalent-core.h>
 
 #include "valent-device-gadget.h"
 
 
 /**
- * SECTION:valent-device-gadget
+ * SECTION:valentdevicegadget
  * @short_description: Interface for device plugin widgets
  * @title: ValentDeviceGadget
  * @stability: Unstable
+ * @include: libvalent-ui.h
  *
  * The #ValentDeviceGadget interface is typically implemented by device
  * plugins that need a small widget to display controls.

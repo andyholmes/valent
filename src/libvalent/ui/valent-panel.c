@@ -12,7 +12,7 @@
 
 
 /**
- * SECTION:valent-panel
+ * SECTION:valentpanel
  * @short_description: A preferences panel base
  * @title: ValentPanel
  * @stability: Unstable

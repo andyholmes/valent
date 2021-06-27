@@ -13,7 +13,7 @@
 
 
 /**
- * SECTION:valent-input-controller
+ * SECTION:valentinputcontroller
  * @short_description: Interface for virtual input controllers
  * @title: ValentInputController
  * @stability: Unstable

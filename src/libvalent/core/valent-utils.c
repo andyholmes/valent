@@ -15,7 +15,7 @@
 
 
 /**
- * SECTION:valent-utils
+ * SECTION:valentutils
  * @short_description: A collection of miscellaneous helpers
  * @title: Utilities
  * @stability: Unstable

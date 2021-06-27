@@ -9,7 +9,7 @@
 G_BEGIN_DECLS
 
 /**
- * SECTION:valent-debug
+ * SECTION:valentdebug
  * @title: Debug logging and tracing
  * @short_description: tracing and debug facilities
  *

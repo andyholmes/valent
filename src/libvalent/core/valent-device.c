@@ -30,7 +30,7 @@
 
 
 /**
- * SECTION:valent-device
+ * SECTION:valentdevice
  * @short_description: An object representing a remote device
  * @title: ValentDevice
  * @stability: Unstable

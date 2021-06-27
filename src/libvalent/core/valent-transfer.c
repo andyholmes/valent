@@ -15,7 +15,7 @@
 
 
 /**
- * SECTION:valent-transfer
+ * SECTION:valenttransfer
  * @short_description: An object representing a remote transfer
  * @title: ValentTransfer
  * @stability: Unstable

@@ -9,7 +9,7 @@
 
 
 /**
- * SECTION:valent-test-plugin-fixture
+ * SECTION:valenttestpluginfixture
  * @short_description: A fixture for testing plugins
  * @title: ValentTestPluginFixture
  * @stability: Unstable

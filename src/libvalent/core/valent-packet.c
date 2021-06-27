@@ -13,7 +13,7 @@
 
 
 /**
- * SECTION:valent-packet
+ * SECTION:valentpacket
  * @short_description: A collection of packet helpers
  * @title: Packet Utilities
  * @stability: Unstable

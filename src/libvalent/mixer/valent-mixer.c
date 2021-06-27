@@ -14,7 +14,7 @@
 
 
 /**
- * SECTION:valent-mixer
+ * SECTION:valentmixer
  * @short_description: Mixer Abstraction
  * @title: ValentMixer
  * @stability: Unstable

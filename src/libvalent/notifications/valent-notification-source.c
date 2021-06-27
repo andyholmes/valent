@@ -12,7 +12,7 @@
 
 
 /**
- * SECTION:valent-notification-source
+ * SECTION:valentnotificationsource
  * @short_description: Interface for notification sources
  * @title: ValentNotificationSource
  * @stability: Unstable

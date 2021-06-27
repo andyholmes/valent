@@ -15,7 +15,7 @@
 
 
 /**
- * SECTION:valent-data
+ * SECTION:valentdata
  * @short_description: An object for handling contextual data
  * @title: ValentData
  * @stability: Unstable

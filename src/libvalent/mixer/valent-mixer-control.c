@@ -12,7 +12,7 @@
 
 
 /**
- * SECTION:valent-mixer-control
+ * SECTION:valentmixercontrol
  * @short_description: Base class for mixer controls
  * @title: ValentMixerControl
  * @stability: Unstable

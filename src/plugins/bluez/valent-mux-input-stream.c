@@ -9,16 +9,6 @@
 #include "valent-mux-input-stream.h"
 
 
-
-/**
- * SECTION:valent-mux-input-stream
- * @short_description: Multiplex Input Stream
- * @title: ValentMuxInputStream
- * @stability: Unstable
- *
- * #ValentMuxInputStream implements #GInputStream for multiplex streams.
- */
-
 struct _ValentMuxInputStream
 {
   GInputStream         parent_instance;

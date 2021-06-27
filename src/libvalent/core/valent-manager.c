@@ -22,7 +22,7 @@
 
 
 /**
- * SECTION:valent-manager
+ * SECTION:valentmanager
  * @short_description: Controls an instance of Valent
  * @title: ValentManager
  * @stability: Unstable

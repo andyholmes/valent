@@ -18,7 +18,7 @@
 
 
 /**
- * SECTION:valent-channel
+ * SECTION:valentchannel
  * @short_description: Base class for connections
  * @title: ValentChannel
  * @stability: Unstable

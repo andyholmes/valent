@@ -14,7 +14,7 @@
 
 
 /**
- * SECTION:valent-media
+ * SECTION:valentmedia
  * @short_description: Media Abstraction
  * @title: ValentMedia
  * @stability: Unstable

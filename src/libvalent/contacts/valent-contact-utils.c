@@ -13,7 +13,7 @@
 
 
 /**
- * SECTION:valent-contact-utils
+ * SECTION:valentcontactutils
  * @short_description: Utilities for working with contacts
  * @title: Contact Utilities
  * @stability: Unstable

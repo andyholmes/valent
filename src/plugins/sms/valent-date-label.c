@@ -12,21 +12,6 @@
 #include "valent-date-label.h"
 
 
-/**
- * SECTION:valent-date-label
- * @short_description: Base widget for rows in Valent
- * @title: ValentDateLabel
- * @stability: Unstable
- *
- * #ValentDateLabel is a convenience widget for a label that displays a timestamp
- * in relative terms. Examples might be "Just Now", "5 minutes", "Mon", etc.
- *
- * Every instance of #ValentDateLabel is updated using a global source that runs
- * once a minute, to ensure the relative labels are always accurate.
- *
- * There are several high-level modes to choose from.
- */
-
 struct _ValentDateLabel
 {
   GtkWidget  parent_instance;

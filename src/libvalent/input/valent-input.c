@@ -14,7 +14,7 @@
 
 
 /**
- * SECTION:valent-input
+ * SECTION:valentinput
  * @short_description: Input Abstraction
  * @title: ValentInput
  * @stability: Unstable

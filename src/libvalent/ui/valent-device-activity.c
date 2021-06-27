@@ -11,7 +11,7 @@
 
 
 /**
- * SECTION:valent-device-activity
+ * SECTION:valentdeviceactivity
  * @short_description: Interface for device activity widgets
  * @title: ValentDeviceActivity
  * @stability: Unstable

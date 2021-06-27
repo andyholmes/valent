@@ -21,7 +21,7 @@
 
 
 /**
- * SECTION:valent-certificate
+ * SECTION:valentcertificate
  * @short_description: Utilities for working with TLS Certificates
  * @title: Certificate Utilities
  * @stability: Unstable

@@ -13,7 +13,7 @@
 
 
 /**
- * SECTION:valent-plugin-preferences
+ * SECTION:valentpluginpreferences
  * @short_description: Interface for extension preferences
  * @title: ValentPluginPreferences
  * @stability: Unstable

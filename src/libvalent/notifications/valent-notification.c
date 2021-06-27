@@ -10,7 +10,7 @@
 #include "valent-notification.h"
 
 /**
- * SECTION:valent-notification
+ * SECTION:valentnotification
  * @short_description: An abstraction of notifications
  * @title: ValentNotification
  * @stability: Unstable

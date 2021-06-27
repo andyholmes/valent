@@ -13,7 +13,7 @@
 
 
 /**
- * SECTION:valent-media-player-provider
+ * SECTION:valentmediaplayerprovider
  * @short_description: Base class for media player providers
  * @title: ValentMediaPlayerProvider
  * @stability: Unstable

@@ -15,7 +15,7 @@
 
 
 /**
- * SECTION:valent-notifications
+ * SECTION:valentnotifications
  * @short_description: Notification Listener
  * @title: ValentNotifications
  * @stability: Unstable

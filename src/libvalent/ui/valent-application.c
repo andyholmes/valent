@@ -12,7 +12,7 @@
 
 
 /**
- * SECTION:valent-application
+ * SECTION:valentapplication
  * @short_description: Valent Application
  * @title: ValentApplication
  * @stability: Unstable

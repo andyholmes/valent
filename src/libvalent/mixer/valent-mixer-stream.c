@@ -10,7 +10,7 @@
 
 
 /**
- * SECTION:valent-mixer-stream
+ * SECTION:valentmixerstream
  * @short_description: Base class for mixer streams
  * @title: ValentMixerStream
  * @stability: Unstable
