@@ -4,13 +4,11 @@ browse_url = "https://github.com/andyholmes/valent/"
 repository_url = "https://github.com/andyholmes/valent.git"
 website_url = "https://github.com/andyholmes/valent/"
 authors = "Andy Holmes"
-logo_url = "valent-logo.svg"
+logo_url = "logo.svg"
 license = "GPL-3.0-or-later"
 description = "KDE Connect client"
 dependencies = [
   "GObject-2.0",
-  "Gio-2.0",
-  "Gdk-4.0",
   "Gtk-4.0",
   "Json-1.0",
   "Peas-1.0",
@@ -25,14 +23,14 @@ search_index = true
   description = "The base type system library"
   docs_url = "https://developer.gnome.org/gobject/stable"
 
-  [dependencies."Gio-2.0"]
-  name = "GIO"
-  description = "A modern and easy-to-use VFS API"
-  docs_url = "https://developer.gnome.org/gio/stable"
+  [dependencies."Gtk-4.0"]
+  name = "GTK"
+  description = "The GTK toolkit"
+  docs_url = "https://docs.gtk.org/gtk4/"
 
   [dependencies."Peas-1.0"]
   name = "Peas"
-  description = "A GObject-based plugins engine"
+  description = "A GObject-based plugin engine"
   docs_url = "https://developer.gnome.org/libpeas/stable"
 
   [dependencies."Json-1.0"]
@@ -40,17 +38,7 @@ search_index = true
   description = "A library for reading and parsing JSON"
   docs_url = "https://developer.gnome.org/json-glib/stable"
 
-  [dependencies."Gdk-4.0"]
-  name = "GDK"
-  description = "The GTK windowing system abstraction"
-  docs_url = "https://docs.gtk.org/gdk4/"
-
-  [dependencies."Gtk-4.0"]
-  name = "GTK"
-  description = "The GTK toolkit"
-  docs_url = "https://docs.gtk.org/gtk4/"
-
-  [dependencies."EBookContacts-4.0"]
+  [dependencies."EBookContacts-1.2"]
   name = "EBookContacts"
   description = "The contact library for Evolution Data Server"
   docs_url = "https://developer.gnome.org/eds/stable/"
@@ -68,6 +56,7 @@ base_url = "https://github.com/andyholmes/valent/blob/master/"
 content_files = [
 ]
 content_images = [
+  "images/logo.svg",
 ]
 urlmap_file = "urlmap.js"
 
