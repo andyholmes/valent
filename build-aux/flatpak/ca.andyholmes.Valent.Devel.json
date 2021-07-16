@@ -77,6 +77,21 @@
             ]
         },
         {
+            "name" : "icu",
+            "config-opts" : [
+                "--disable-samples"
+            ],
+            "subdir" : "source",
+            "no-autogen" : true,
+            "sources" : [
+                {
+                    "type" : "archive",
+                    "url" : "https://github.com/unicode-org/icu/releases/download/release-69-1/icu4c-69_1-src.tgz",
+                    "sha256" : "4cba7b7acd1d3c42c44bb0c14be6637098c7faf2b330ce876bc5f3b915d09745"
+                }
+            ]
+        },
+        {
             "name" : "libical",
             "cleanup" : [
                 "/lib/cmake"
