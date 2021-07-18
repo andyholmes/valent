@@ -57,8 +57,7 @@
   </recommends>
 
   <requires>
-    <display_length compare="lt">xlarge</display_length>
-    <display_length compare="gt">xsmall</display_length>
+    <display_length compare="ge">small</display_length>
   </requires>
 
   <custom>
