@@ -643,12 +643,7 @@ receive_art_cb (ValentTransfer *transfer,
 
   if ((player = valent_packet_check_string (body, "player")) != NULL &&
       (remote = g_hash_table_lookup (self->remotes, player)) != NULL)
-    {
-      ValentMprisRemote *remote;
-
-      if ((remote = g_hash_table_lookup (self->remotes, player)) == NULL)
-        valent_mpris_remote_update_art (remote, file);
-    }
+    valent_mpris_remote_update_art (remote, file);
 }
 
 static void
