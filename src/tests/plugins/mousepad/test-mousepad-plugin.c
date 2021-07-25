@@ -145,7 +145,6 @@ test_mousepad_plugin_send_keyboard_request (ValentTestPluginFixture *fixture,
 
   /* Check event action */
   device = valent_test_plugin_fixture_get_device (fixture);
-  device = valent_test_plugin_fixture_get_device (fixture);
   actions = valent_device_get_actions (device);
   g_assert_true (g_action_group_get_action_enabled (actions, "mousepad-event"));
 
