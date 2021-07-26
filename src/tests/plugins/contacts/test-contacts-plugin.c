@@ -3,11 +3,6 @@
 #include <libvalent-contacts.h>
 #include <libvalent-test.h>
 
-#include "kdeconnect.contacts.request_all_uids_timestamps-fuzz.h"
-#include "kdeconnect.contacts.request_vcards_by_uid-fuzz.h"
-#include "kdeconnect.contacts.response_uids_timestamps-fuzz.h"
-#include "kdeconnect.contacts.response_vcards-fuzz.h"
-
 
 static guint n_contacts = 0;
 
@@ -128,66 +123,23 @@ test_contacts_plugin_provide_contacts (ValentTestPluginFixture *fixture,
   json_node_unref (packet);
 }
 
+static const char *schemas[] = {
+  TEST_DATA_DIR"/schemas/kdeconnect.contacts.request_all_uids_timestamps.json",
+  TEST_DATA_DIR"/schemas/kdeconnect.contacts.request_vcards_by_uid.json",
+  TEST_DATA_DIR"/schemas/kdeconnect.contacts.response_uids_timestamps.json",
+  TEST_DATA_DIR"/schemas/kdeconnect.contacts.response_vcards.json",
+};
+
 static void
 test_contacts_plugin_fuzz (ValentTestPluginFixture *fixture,
                            gconstpointer            user_data)
 
 {
-  g_autoptr (JsonParser) parser = NULL;
-  JsonNode *packet = NULL;
-
   valent_test_plugin_fixture_connect (fixture, TRUE);
   g_test_log_set_fatal_handler (valent_test_mute_fuzzing, NULL);
 
-  parser = json_parser_new ();
-
-  for (unsigned int i = 0; i < G_N_ELEMENTS (contacts_request_all_uids_timestamps_fuzz); i++)
-    {
-      json_parser_load_from_data (parser,
-                                  contacts_request_all_uids_timestamps_fuzz[i].json,
-                                  contacts_request_all_uids_timestamps_fuzz[i].size,
-                                  NULL);
-      packet = json_parser_get_root (parser);
-
-      if (VALENT_IS_PACKET (packet))
-        valent_test_plugin_fixture_handle_packet (fixture, packet);
-    }
-
-  for (unsigned int i = 0; i < G_N_ELEMENTS (contacts_request_vcards_by_uid_fuzz); i++)
-    {
-      json_parser_load_from_data (parser,
-                                  contacts_request_vcards_by_uid_fuzz[i].json,
-                                  contacts_request_vcards_by_uid_fuzz[i].size,
-                                  NULL);
-      packet = json_parser_get_root (parser);
-
-      if (VALENT_IS_PACKET (packet))
-        valent_test_plugin_fixture_handle_packet (fixture, packet);
-    }
-
-  for (unsigned int i = 0; i < G_N_ELEMENTS (contacts_response_uids_timestamps_fuzz); i++)
-    {
-      json_parser_load_from_data (parser,
-                                  contacts_response_uids_timestamps_fuzz[i].json,
-                                  contacts_response_uids_timestamps_fuzz[i].size,
-                                  NULL);
-      packet = json_parser_get_root (parser);
-
-      if (VALENT_IS_PACKET (packet))
-        valent_test_plugin_fixture_handle_packet (fixture, packet);
-    }
-
-  for (unsigned int i = 0; i < G_N_ELEMENTS (contacts_response_vcards_fuzz); i++)
-    {
-      json_parser_load_from_data (parser,
-                                  contacts_response_vcards_fuzz[i].json,
-                                  contacts_response_vcards_fuzz[i].size,
-                                  NULL);
-      packet = json_parser_get_root (parser);
-
-      if (VALENT_IS_PACKET (packet))
-        valent_test_plugin_fixture_handle_packet (fixture, packet);
-    }
+  for (unsigned int s = 0; s < G_N_ELEMENTS (schemas); s++)
+    valent_test_plugin_fixture_schema_fuzz (fixture, schemas[s]);
 }
 
 int

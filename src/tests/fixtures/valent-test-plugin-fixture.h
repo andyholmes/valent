@@ -58,6 +58,8 @@ gboolean       valent_test_plugin_fixture_upload        (ValentTestPluginFixture
                                                          JsonNode                 *packet,
                                                          GFile                    *file,
                                                          GError                  **error);
+gboolean       valent_test_plugin_fixture_schema_fuzz   (ValentTestPluginFixture  *fixture,
+                                                         const char               *path);
 
 
 ValentTestPluginFixture * valent_test_plugin_fixture_new             (const char     *path);

@@ -2,8 +2,6 @@
 #include <libvalent-core.h>
 #include <libvalent-test.h>
 
-#include "kdeconnect.battery-fuzz.h"
-
 #define DEVICE_PATH "/org/freedesktop/UPower/devices/DisplayDevice"
 
 
@@ -212,30 +210,20 @@ test_battery_plugin_handle_request (ValentTestPluginFixture *fixture,
   json_node_unref (packet);
 }
 
+static const char *schemas[] = {
+  TEST_DATA_DIR"/schemas/kdeconnect.battery.json",
+};
+
 static void
 test_battery_plugin_fuzz (ValentTestPluginFixture *fixture,
                           gconstpointer            user_data)
 
 {
-  g_autoptr (JsonParser) parser = NULL;
-  JsonNode *packet = NULL;
-
   valent_test_plugin_fixture_connect (fixture, TRUE);
   g_test_log_set_fatal_handler (valent_test_mute_fuzzing, NULL);
 
-  parser = json_parser_new ();
-
-  for (unsigned int i = 0; i < G_N_ELEMENTS (battery_fuzz); i++)
-    {
-      json_parser_load_from_data (parser,
-                                  battery_fuzz[i].json,
-                                  battery_fuzz[i].size,
-                                  NULL);
-      packet = json_parser_get_root (parser);
-
-      if (VALENT_IS_PACKET (packet))
-        valent_test_plugin_fixture_handle_packet (fixture, packet);
-    }
+  for (unsigned int s = 0; s < G_N_ELEMENTS (schemas); s++)
+    valent_test_plugin_fixture_schema_fuzz (fixture, schemas[s]);
 }
 
 int

@@ -11,3 +11,4 @@ subprojects/gi-docgen
 subprojects/libadwaita
 subprojects/libsass*
 subprojects/sassc*
+subprojects/walbottle

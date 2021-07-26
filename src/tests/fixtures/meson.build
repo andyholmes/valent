@@ -1,11 +1,3 @@
-# Generated Resource Files
-libvalent_test_resources = gnome.compile_resources(
-  'valent-test-resources',
-  'libvalent-test.gresource.xml',
-  c_name: 'valent_test',
-)
-libvalent_test_generated_sources = [libvalent_test_resources]
-libvalent_test_generated_headers = [libvalent_test_resources[1]]
 
 
 # Headers
@@ -53,7 +45,27 @@ libvalent_test_public_sources = [
 ]
 
 
+# Generated Resource Files
+libvalent_test_resources = gnome.compile_resources(
+  'valent-test-resources',
+  'libvalent-test.gresource.xml',
+  c_name: 'valent_test',
+)
+libvalent_test_generated_sources = [libvalent_test_resources]
+libvalent_test_generated_headers = [libvalent_test_resources[1]]
+
+
 # Dependencies
+if not libwalbottle_dep.found()
+  libwalbottle = subproject('walbottle',
+    default_options: [
+      'gtk_doc=false',
+      'installed_tests=false',
+    ],
+  )
+  libwalbottle_dep = libwalbottle.get_variable('libwalbottle_dep')
+endif
+
 libvalent_test_deps = [
   libvalent_core_dep,
   libvalent_clipboard_dep,
@@ -64,6 +76,8 @@ libvalent_test_deps = [
   libvalent_notifications_dep,
   libvalent_session_dep,
   libvalent_ui_dep,
+
+  libwalbottle_dep,
 ]
 
 

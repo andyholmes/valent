@@ -2,6 +2,7 @@
 // SPDX-FileCopyfixturehtText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 #include <libvalent-core.h>
+#include <libwalbottle/wbl-schema.h>
 
 #include "valent-device-private.h"
 #include "valent-test-plugin-fixture.h"
@@ -370,5 +371,48 @@ valent_test_plugin_fixture_upload (ValentTestPluginFixture  *fixture,
   g_assert (error == NULL || *error == NULL);
 
   return valent_test_upload (fixture->endpoint, packet, file, error);
+}
+
+/**
+ * valent_test_plugin_fixture_schema_fuzz:
+ * @fixture: a #ValentTestPluginFixture
+ * @path: (type filename): path to a JSON Schema
+ *
+ * Generate test vectors for the JSON Schema at @path and pass them to the
+ * #ValentDevice for @fixture.
+ */
+gboolean
+valent_test_plugin_fixture_schema_fuzz (ValentTestPluginFixture *fixture,
+                                        const char              *path)
+{
+  g_autoptr (JsonParser) parser = NULL;
+  WblSchema *schema;
+  GPtrArray *instances;
+
+  schema = wbl_schema_new ();
+  wbl_schema_load_from_file (schema, path, NULL);
+  instances = wbl_schema_generate_instances (schema,
+                                             WBL_GENERATE_INSTANCE_NONE);
+
+  parser = json_parser_new ();
+
+  for (unsigned int i = 0; i < instances->len; i++)
+    {
+      WblGeneratedInstance *instance = g_ptr_array_index (instances, i);
+      const char *json = wbl_generated_instance_get_json (instance);
+      JsonNode *packet;
+
+      json_parser_load_from_data (parser, json, -1, NULL);
+      packet = json_parser_get_root (parser);
+
+      // Only test valid KDE Connect packets
+      if (VALENT_IS_PACKET (packet))
+        valent_test_plugin_fixture_handle_packet (fixture, packet);
+    }
+
+  g_ptr_array_unref (instances);
+  g_object_unref (schema);
+
+  return TRUE;
 }
 

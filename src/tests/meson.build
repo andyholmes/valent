@@ -1,10 +1,4 @@
 
-#
-# Test Fixtures
-#
-subdir('fixtures')
-
-
 # Test Environment
 libpeas_libdir = libpeas_dep.get_pkgconfig_variable('libdir')
 
@@ -83,7 +77,7 @@ if fuzz_tests and get_option('b_sanitize') == 'none'
 endif
 
 
-# Source Tests
+subdir('fixtures')
 subdir('libvalent')
 subdir('plugins')
 

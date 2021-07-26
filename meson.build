@@ -165,6 +165,9 @@ libedataserver_dep = dependency('libedataserver-1.2', version: eds_version)
 # libvalent-ui
 libadwaita_dep = dependency('libadwaita-1', version: '>= 1.0.0-alpha.1', required: false)
 
+# libvalent-test
+libwalbottle_dep = dependency('walbottle-0', required: false)
+
 
 #
 # Build Type
