@@ -32,7 +32,8 @@ jobs:
           dbus-run-session -- \
           meson test -C _build \
                      --print-errorlogs \
-                     --repeat=5
+                     --repeat=5 \
+                     --suite=valent
 
       - name: Report
         if: ${{ failure() }}
@@ -119,6 +120,7 @@ jobs:
           dbus-run-session -- \
           meson test -C _build \
                      --print-errorlogs \
+                     --suite=valent \
                      --timeout-multiplier 2
 
       - name: Report
