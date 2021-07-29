@@ -9,11 +9,20 @@
         </property>
         <child type="start">
           <object class="GtkButton">
+            <property name="action-name">win.previous</property>
+            <property name="icon-name">go-previous-symbolic</property>
             <property name="receives-default">1</property>
             <property name="tooltip-text" translatable="yes">Previous</property>
             <property name="valign">center</property>
-            <property name="action-name">win.previous</property>
-            <property name="icon-name">go-previous-symbolic</property>
+          </object>
+        </child>
+        <child type="end">
+          <object class="GtkButton" id="preferences_button">
+            <property name="action-name">win.page</property>
+            <property name="action-target">'plugins'</property>
+            <property name="icon-name">applications-system-symbolic</property>
+            <property name="tooltip-text" translatable="yes">Preferences</property>
+            <property name="valign">center</property>
           </object>
         </child>
       </object>
@@ -157,32 +166,13 @@
                           <object class="GtkFrame">
                             <property name="valign">start</property>
                             <child>
-                              <object class="GtkCenterBox">
+                              <object class="GtkBox" id="gadgets">
+                                <property name="halign">start</property>
                                 <property name="margin-top">6</property>
                                 <property name="margin-bottom">6</property>
                                 <property name="margin-start">6</property>
                                 <property name="margin-end">6</property>
-                                <child type="start">
-                                  <object class="GtkBox" id="gadgets">
-                                    <property name="spacing">6</property>
-                                  </object>
-                                </child>
-                                <child type="end">
-                                  <object class="GtkBox">
-                                    <property name="spacing">6</property>
-                                    <child>
-                                      <object class="GtkSeparator"/>
-                                    </child>
-                                    <child>
-                                      <object class="GtkButton">
-                                        <property name="icon-name">applications-system-symbolic</property>
-                                        <property name="action-name">win.page</property>
-                                        <property name="action-target">'plugins'</property>
-                                        <property name="has-frame">0</property>
-                                      </object>
-                                    </child>
-                                  </object>
-                                </child>
+                                <property name="spacing">6</property>
                               </object>
                             </child>
                             <style>
