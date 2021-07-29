@@ -77,6 +77,9 @@ developing plugins for %{name}.
 #desktop-file-validate %{buildroot}%{_datadir}/applications/ca.andyholmes.Valent.desktop
 #appstream-util validate-relax --nonet %{buildroot}%{_datadir}/metainfo/ca.andyholmes.Valent.appdata.xml
 
+%post
+%firewalld_reload
+
 %files -f valent.lang
 %doc NEWS README.md
 %license COPYING
