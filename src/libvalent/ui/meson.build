@@ -13,6 +13,7 @@ libvalent_ui_public_headers = [
   'valent-device-gadget.h',
   'valent-panel.h',
   'valent-plugin-preferences.h',
+  'valent-ui-utils.h',
 ]
 
 libvalent_ui_private_headers = [
@@ -41,6 +42,7 @@ libvalent_ui_public_sources = [
   'valent-plugin-group.c',
   'valent-plugin-row.c',
   'valent-plugin-preferences.c',
+  'valent-ui-utils.c',
   'valent-window.c',
 ]
 

@@ -6,12 +6,11 @@
 #include "config.h"
 
 #include <glib/gi18n.h>
-#include <gdk-pixbuf/gdk-pixbuf.h>
-#include <gtk/gtk.h>
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
 #include <libvalent-media.h>
 #include <libvalent-mixer.h>
+#include <libvalent-ui.h>
 
 #include "valent-telephony-plugin.h"
 
@@ -233,21 +232,11 @@ get_event_icon (JsonObject *pbody)
 
   if (json_object_has_member (pbody, "phoneThumbnail"))
     {
-      g_autoptr (GdkPixbufLoader) loader = NULL;
-      GdkPixbuf *pixbuf = NULL;
+      GdkPixbuf *pixbuf;
       const char *text;
-      g_autofree guchar *data = NULL;
-      gsize dlen;
 
       text = json_object_get_string_member (pbody, "phoneThumbnail");
-      data = g_base64_decode (text, &dlen);
-
-      /* Load the icon, but ignore errors as they're often partially corrupt */
-      loader = gdk_pixbuf_loader_new();
-
-      if (gdk_pixbuf_loader_write (loader, data, dlen, NULL) &&
-          gdk_pixbuf_loader_close (loader, NULL))
-        pixbuf = gdk_pixbuf_loader_get_pixbuf (loader);
+      pixbuf = valent_ui_pixbuf_from_base64 (text, NULL);
 
       if (pixbuf != NULL)
         return G_ICON (g_object_ref (pixbuf));
