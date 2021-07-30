@@ -9,7 +9,7 @@ jobs:
     name: Documentation
     runs-on: ubuntu-latest
     container:
-      image: andyholmes/valent:latest
+      image: quay.io/andyholmes/valent:latest
 
     steps:
       - name: Checkout
