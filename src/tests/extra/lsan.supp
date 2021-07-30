@@ -4,17 +4,18 @@
 # https://gitlab.freedesktop.org/fontconfig/fontconfig/-/issues/77
 leak:libfontconfig.so
 
-# False positive caused by G_TEST_OPTION_ISOLATE_DIRS
-leak:test_do_isolate_dirs
-
 # https://gitlab.freedesktop.org/gstreamer/gst-plugins-base/merge_requests/1078
 leak:gst_gio_src_query
+
+# False positive caused by G_TEST_OPTION_ISOLATE_DIRS
+leak:test_do_isolate_dirs
 
 # GLib
 leak:g_quark_init
 
 # GTK
 leak:libEGL_mesa.so
+leak:gtk_init
 
 # libpeas-loader-python3
 leak:libpython3.9
