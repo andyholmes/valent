@@ -196,7 +196,6 @@ ensure_session (ValentXdpInput *self)
                                              XDP_DEVICE_POINTER),
                                             XDP_OUTPUT_MONITOR,
                                             XDP_REMOTE_DESKTOP_FLAG_NONE,
-                                            XDP_CURSOR_MODE_HIDDEN,
                                             self->cancellable,
                                             (GAsyncReadyCallback)on_session_created,
                                             self);
