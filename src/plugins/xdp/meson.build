@@ -1,6 +1,6 @@
 
 # Require libportal
-libportal_dep = dependency('libportal', version: '>= 0.3', required: false)
+libportal_dep = dependency('libportal', version: '>= 0.4', required: false)
 
 if not libportal_dep.found()
   error('libportal required for XDP plugin')
