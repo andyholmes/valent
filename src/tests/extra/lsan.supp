@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: MIT OR LGPL-2.0-or-later
 # SPDX-FileCopyrightText: 2021 Andy Holmes
 
-# https://bugs.freedesktop.org/show_bug.cgi?id=105466
-leak:libfontconfig.so.1
+# https://gitlab.freedesktop.org/fontconfig/fontconfig/-/issues/77
+leak:libfontconfig.so
 
 # False positive caused by G_TEST_OPTION_ISOLATE_DIRS
 leak:test_do_isolate_dirs
@@ -10,8 +10,11 @@ leak:test_do_isolate_dirs
 # https://gitlab.freedesktop.org/gstreamer/gst-plugins-base/merge_requests/1078
 leak:gst_gio_src_query
 
-# GStreamer?
+# GLib
 leak:g_quark_init
+
+# GTK
+leak:libEGL_mesa.so
 
 # libpeas-loader-python3
 leak:libpython3.9
