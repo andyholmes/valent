@@ -6,6 +6,7 @@
 #include "config.h"
 
 #include <glib/gi18n.h>
+#include <gio/gio.h>
 
 #include "valent-core-enums.h"
 
@@ -40,8 +41,8 @@
  * tablet or desktop.
  *
  * #ValentDevice implements #GActionGroup and #GActionMap, while providing a
- * #GMenu. #ValentDevicePlugin implementations can add #GActions and #GMenuItems to
- * expose plugin activities.
+ * #GMenu. #ValentDevicePlugin implementations can add #GActions and #GMenuItems
+ * to expose plugin activities.
  */
 
 struct _ValentDevice
@@ -119,7 +120,7 @@ typedef struct
 } DevicePlugin;
 
 static void
-plugin_data_free (gpointer data)
+device_plugin_free (gpointer data)
 {
   DevicePlugin *plugin = data;
 
@@ -134,7 +135,7 @@ plugin_data_free (gpointer data)
       g_clear_object (&plugin->extension);
     }
 
-  g_free (plugin);
+  g_clear_pointer (&plugin, g_free);
 }
 
 static void
@@ -142,7 +143,7 @@ valent_device_enable_plugin (ValentDevice *device,
                              DevicePlugin *plugin)
 {
   g_auto (GStrv) incoming = NULL;
-  gint i, len;
+  unsigned int n_capabilities = 0;
 
   g_assert (VALENT_IS_DEVICE (device));
   g_assert (plugin != NULL);
@@ -158,13 +159,15 @@ valent_device_enable_plugin (ValentDevice *device,
     return;
 
   /* Register packet handlers */
-  incoming = valent_device_plugin_get_incoming (plugin->info);
-  len = incoming ? g_strv_length (incoming) : 0;
+  if ((incoming = valent_device_plugin_get_incoming (plugin->info)) != NULL)
+    n_capabilities = g_strv_length (incoming);
 
-  for (i = 0; i < len; i++)
-    g_hash_table_insert (device->handlers,
-                         g_steal_pointer (&incoming[i]),
-                         plugin->extension);
+  for (unsigned int i = 0; i < n_capabilities; i++)
+    {
+      g_hash_table_insert (device->handlers,
+                           g_strdup (incoming[i]),
+                           plugin->extension);
+    }
 
   /* Invoke the plugin vfunc */
   valent_device_plugin_enable (VALENT_DEVICE_PLUGIN (plugin->extension));
@@ -245,7 +248,6 @@ send_pair_cb (ValentChannel *channel,
   g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_CHANNEL (channel));
-  g_assert (g_task_is_valid (result, channel));
   g_assert (VALENT_IS_DEVICE (device));
 
   if (!valent_channel_write_packet_finish (channel, result, &error))
@@ -774,7 +776,7 @@ valent_device_init (ValentDevice *self)
 
   /* Plugins */
   self->engine = valent_get_engine ();
-  self->plugins = g_hash_table_new_full (NULL, NULL, NULL, plugin_data_free);
+  self->plugins = g_hash_table_new_full (NULL, NULL, NULL, device_plugin_free);
   self->handlers = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
 
   /* GAction/GMenu */
@@ -993,7 +995,6 @@ queue_packet_cb (ValentChannel *channel,
   g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_CHANNEL (channel));
-  g_assert (g_task_is_valid (result, channel));
   g_assert (VALENT_IS_DEVICE (device));
 
   if (!valent_channel_write_packet_finish (channel, result, &error))
@@ -1047,7 +1048,7 @@ send_packet_cb (ValentChannel *channel,
   ValentDevice *device = g_task_get_source_object (task);
   GError *error = NULL;
 
-  g_assert (g_task_is_valid (result, channel));
+  g_assert (VALENT_IS_DEVICE (device));
 
   if (!valent_channel_write_packet_finish (channel, result, &error))
     {
@@ -1229,7 +1230,6 @@ read_packet_cb (ValentChannel *channel,
   g_autoptr (JsonNode) packet = NULL;
 
   g_assert (VALENT_IS_CHANNEL (channel));
-  g_assert (g_task_is_valid (result, channel));
   g_assert (VALENT_IS_DEVICE (device));
 
   packet = valent_channel_read_packet_finish (channel, result, &error);
@@ -1277,7 +1277,7 @@ valent_device_set_channel (ValentDevice  *device,
 
   /* If there's a new channel bind to the cancellable and handle the peer
    * identity, before calling valent_device_set_connected(). */
-  if (device->channel != NULL)
+  if (VALENT_IS_CHANNEL (device->channel))
     {
       JsonNode *peer_identity;
 
