@@ -8,6 +8,7 @@ src/libvalent/core/valent-device.c
 src/libvalent/ui/valent-device-panel.ui
 src/libvalent/ui/valent-menu-list.c
 src/libvalent/ui/valent-plugin-group.c
+src/libvalent/ui/valent-ui-utils.c
 src/libvalent/ui/valent-window.c
 src/libvalent/ui/valent-window.ui
 src/main.c
