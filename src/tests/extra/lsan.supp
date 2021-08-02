@@ -10,6 +10,9 @@ leak:gst_gio_src_query
 # False positive caused by G_TEST_OPTION_ISOLATE_DIRS
 leak:test_do_isolate_dirs
 
+# librsvg
+leak:librsvg-2.so
+
 # GLib
 leak:g_quark_init
 
