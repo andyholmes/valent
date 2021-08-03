@@ -18,6 +18,6 @@ test('test-media-component',
      test_program,
           env: test_env,
   is_parallel: false,
-        suite: 'components',
+        suite: ['components', 'media'],
 )
 

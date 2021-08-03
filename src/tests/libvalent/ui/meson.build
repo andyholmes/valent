@@ -2,7 +2,6 @@
 # Dependencies
 ui_test_deps = [
   libvalent_dep,
-  libvalent_ui_dep,
   libvalent_test_dep,
 ]
 

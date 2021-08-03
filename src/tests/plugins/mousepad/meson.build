@@ -25,7 +25,7 @@ foreach test : plugin_mousepad_tests
   test(test, test_program,
             env: test_mousepad_env,
     is_parallel: false,
-          suite: 'plugins',
+          suite: ['plugins', 'mousepad'],
   )
 endforeach
 

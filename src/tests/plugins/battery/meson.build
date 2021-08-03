@@ -30,7 +30,7 @@ foreach test : plugin_battery_tests
   test(test, find_program('mock-upower.py'),
             env: test_battery_env,
     is_parallel: false,
-          suite: 'plugins',
+          suite: ['plugins', 'battery'],
         timeout: 60,
   )
 endforeach

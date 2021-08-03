@@ -25,7 +25,7 @@ foreach test : plugin_clipboard_tests
        test_program,
             env: test_env,
     is_parallel: false,
-          suite: 'plugins',
+          suite: ['plugins', 'clipboard'],
   )
 endforeach
 

@@ -25,7 +25,7 @@ foreach test : plugin_telephony_tests
        test_program,
             env: test_env,
     is_parallel: false,
-          suite: 'plugins',
+          suite: ['plugins', 'telephony'],
   )
 endforeach
 
