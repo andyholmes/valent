@@ -23,6 +23,8 @@ test_env = [
   'ASAN_OPTIONS=detect_leaks=1,intercept_tls_get_addr=0',
   'LSAN_OPTIONS=fast_unwind_on_malloc=0,suppressions=@0@'.format(
         join_paths(meson.current_source_dir(), 'extra', 'lsan.supp')),
+  'TSAN_OPTIONS=suppressions=@0@'.format(
+        join_paths(meson.current_source_dir(), 'extra', 'tsan.supp')),
   'UBSAN_OPTIONS=print_stacktrace=1:print_summary=1:halt_on_error=1',
 ]
 

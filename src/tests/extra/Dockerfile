@@ -3,7 +3,8 @@ FROM fedora:34
 # The packages below fall roughly into three categories: build tooling,
 # test tooling, gi-docgen dependencies and app dependencies (with debug symbols)
 RUN dnf install -y --enablerepo=fedora-debuginfo,updates-debuginfo \
-        clang gcc gettext git libasan libubsan meson \
+        glibc-langpack-en glibc-locale-source \
+        clang gcc gettext git libasan libtsan libubsan meson \
         appstream desktop-file-utils dbus-daemon lcov python-dbusmock rsync \
         xorg-x11-server-Xvfb \
         python3-pygments python3-jinja2 python3-markdown python3-toml \
@@ -22,4 +23,8 @@ RUN dnf install -y --enablerepo=fedora-debuginfo,updates-debuginfo \
         pulseaudio-libs-devel         pulseaudio-libs-debuginfo \
         sqlite-devel                  sqlite-debuginfo && \
     dnf clean all && rm -rf /var/cache/dnf
+
+# Set the locale
+ENV LANG=en_US.UTF-8
+RUN localedef -c -i en_US -f UTF-8 en_US.UTF-8
 
