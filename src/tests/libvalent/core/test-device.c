@@ -235,6 +235,7 @@ test_device_pairing (DeviceFixture *fixture,
   valent_device_set_channel (fixture->device, fixture->channel);
   g_assert_true (valent_device_get_connected (fixture->device));
 
+
   /* Send Pair (Request), Receive Unpair (Reject) */
   g_action_group_activate_action (actions, "pair", NULL);
   g_assert_false (valent_device_get_paired (fixture->device));
@@ -277,6 +278,8 @@ test_device_pairing (DeviceFixture *fixture,
   g_action_group_activate_action (actions, "unpair", NULL);
   g_assert_false (valent_device_get_paired (fixture->device));
 
+
+  /* Detach channel */
   valent_device_set_channel (fixture->device, NULL);
   g_assert_false (valent_device_get_connected (fixture->device));
 }

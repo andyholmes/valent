@@ -6,8 +6,10 @@ static void
 test_panel_basic (void)
 {
   g_autoptr (ValentPanel) panel = NULL;
-  const char *title;
-  const char *icon_name;
+  const char *title = "Test Title";
+  const char *icon_name = "dialog-information-symbolic";
+  g_autofree char *title_out = NULL;
+  g_autofree char *icon_name_out = NULL;
   GtkWidget *widget = NULL;
 
   panel = g_object_ref_sink (VALENT_PANEL (valent_panel_new ()));
@@ -15,15 +17,23 @@ test_panel_basic (void)
 
   /* Properties */
   g_object_set (panel,
-               "title", "Test Title",
-               "icon-name", "dialog-information-symbolic",
-               NULL);
+                "title",     title,
+                "icon-name", icon_name,
+                NULL);
 
   title = valent_panel_get_title (panel);
-  g_assert_cmpstr (title, ==, "Test Title");
-
   icon_name = valent_panel_get_icon_name (panel);
+
+  g_assert_cmpstr (title, ==, "Test Title");
   g_assert_cmpstr (icon_name, ==, "dialog-information-symbolic");
+
+  g_object_get (panel,
+                "title",     &title_out,
+                "icon-name", &icon_name_out,
+                NULL);
+
+  g_assert_cmpstr (title_out, ==, "Test Title");
+  g_assert_cmpstr (icon_name_out, ==, "dialog-information-symbolic");
 
   /* Header */
   widget = gtk_button_new ();
