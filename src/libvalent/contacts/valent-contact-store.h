@@ -22,38 +22,26 @@ struct _ValentContactStoreClass
   GObjectClass   parent_class;
 
   /* virtual functions */
-  gboolean       (*add)               (ValentContactStore   *store,
-                                       EContact             *contact,
-                                       GCancellable         *cancellable,
-                                       GError              **error);
-  void           (*add_async)         (ValentContactStore   *store,
-                                       EContact             *contact,
+  void           (*add_contacts)      (ValentContactStore   *store,
+                                       GSList               *contacts,
                                        GCancellable         *cancellable,
                                        GAsyncReadyCallback   callback,
                                        gpointer              user_data);
-  gboolean       (*remove)            (ValentContactStore   *store,
-                                       const char           *uid,
-                                       GCancellable         *cancellable,
-                                       GError              **error);
-  void           (*remove_async)      (ValentContactStore   *store,
+  void           (*remove_contact)    (ValentContactStore   *store,
                                        const char           *uid,
                                        GCancellable         *cancellable,
                                        GAsyncReadyCallback   callback,
                                        gpointer              user_data);
-  GSList       * (*query)             (ValentContactStore   *store,
-                                       const char           *query,
-                                       GCancellable         *cancellable,
-                                       GError              **error);
-  void           (*query_async)       (ValentContactStore   *store,
+  void           (*query)             (ValentContactStore   *store,
                                        const char           *query,
                                        GCancellable         *cancellable,
                                        GAsyncReadyCallback   callback,
                                        gpointer              user_data);
-  EContact     * (*get_contact)       (ValentContactStore   *store,
-                                       const char           *uid,
+  GSList       * (*query_sync)        (ValentContactStore   *store,
+                                       const char           *query,
                                        GCancellable         *cancellable,
                                        GError              **error);
-  void           (*get_contact_async) (ValentContactStore   *store,
+  void           (*get_contact)       (ValentContactStore   *store,
                                        const char           *uid,
                                        GCancellable         *cancellable,
                                        GAsyncReadyCallback   callback,
@@ -82,23 +70,20 @@ void         valent_contact_store_set_name             (ValentContactStore   *st
 ESource    * valent_contact_store_get_source           (ValentContactStore   *store);
 const char * valent_contact_store_get_uid              (ValentContactStore   *store);
 
-gboolean     valent_contact_store_add                  (ValentContactStore   *store,
+void         valent_contact_store_add_contact          (ValentContactStore   *store,
                                                         EContact             *contact,
                                                         GCancellable         *cancellable,
-                                                        GError              **error);
-void         valent_contact_store_add_async            (ValentContactStore   *store,
-                                                        EContact             *contact,
+                                                        GAsyncReadyCallback   callback,
+                                                        gpointer              user_data);
+void         valent_contact_store_add_contacts         (ValentContactStore   *store,
+                                                        GSList               *contacts,
                                                         GCancellable         *cancellable,
                                                         GAsyncReadyCallback   callback,
                                                         gpointer              user_data);
 gboolean     valent_contact_store_add_finish           (ValentContactStore   *store,
                                                         GAsyncResult         *result,
                                                         GError              **error);
-gboolean     valent_contact_store_remove               (ValentContactStore   *store,
-                                                        const char           *uid,
-                                                        GCancellable         *cancellable,
-                                                        GError              **error);
-void         valent_contact_store_remove_async         (ValentContactStore   *store,
+void         valent_contact_store_remove_contact       (ValentContactStore   *store,
                                                         const char           *uid,
                                                         GCancellable         *cancellable,
                                                         GAsyncReadyCallback   callback,
@@ -106,11 +91,7 @@ void         valent_contact_store_remove_async         (ValentContactStore   *st
 gboolean     valent_contact_store_remove_finish        (ValentContactStore   *store,
                                                         GAsyncResult         *result,
                                                         GError              **error);
-EContact *   valent_contact_store_get_contact          (ValentContactStore   *store,
-                                                        const char           *uid,
-                                                        GCancellable         *cancellable,
-                                                        GError              **error);
-void         valent_contact_store_get_contact_async    (ValentContactStore   *store,
+void         valent_contact_store_get_contact          (ValentContactStore   *store,
                                                         const char           *uid,
                                                         GCancellable         *cancellable,
                                                         GAsyncReadyCallback   callback,
@@ -118,22 +99,22 @@ void         valent_contact_store_get_contact_async    (ValentContactStore   *st
 EContact   * valent_contact_store_get_contact_finish   (ValentContactStore   *store,
                                                         GAsyncResult         *result,
                                                         GError              **error);
-void         valent_contact_store_get_contacts_async   (ValentContactStore   *store,
+void         valent_contact_store_get_contacts         (ValentContactStore   *store,
                                                         char                **uids,
                                                         GCancellable         *cancellable,
                                                         GAsyncReadyCallback   callback,
                                                         gpointer              user_data);
-GSList     * valent_contact_store_query                (ValentContactStore   *store,
-                                                        const char           *query,
-                                                        GCancellable         *cancellable,
-                                                        GError              **error);
-void         valent_contact_store_query_async          (ValentContactStore   *store,
+void         valent_contact_store_query                (ValentContactStore   *store,
                                                         const char           *query,
                                                         GCancellable         *cancellable,
                                                         GAsyncReadyCallback   callback,
                                                         gpointer              user_data);
 GSList     * valent_contact_store_query_finish         (ValentContactStore   *store,
                                                         GAsyncResult         *result,
+                                                        GError              **error);
+GSList     * valent_contact_store_query_sync           (ValentContactStore   *store,
+                                                        const char           *query,
+                                                        GCancellable         *cancellable,
                                                         GError              **error);
 
 EContact   * valent_contact_store_dup_for_phone        (ValentContactStore   *store,

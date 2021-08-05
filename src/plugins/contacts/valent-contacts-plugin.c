@@ -108,25 +108,19 @@ handle_response_uids_timestamps (ValentContactsPlugin *self,
 static void
 add_cb (ValentContactStore *store,
         GAsyncResult       *result,
-        EContact           *contact)
+        gpointer            user_data)
 {
   g_autoptr (GError) error = NULL;
 
   if (!valent_contact_store_add_finish (store, result, &error))
-    {
-      const char *full_name;
-
-      full_name = e_contact_get_const (contact, E_CONTACT_FULL_NAME);
-      g_debug ("Failed to add %s: %s", full_name, error->message);
-    }
-
-  g_object_unref (contact);
+    g_warning ("%s: %s", G_STRFUNC, error->message);
 }
 
 static void
 handle_response_vcards (ValentContactsPlugin *self,
                         JsonNode             *packet)
 {
+  g_autoslist (EContact) contacts = NULL;
   JsonObject *body;
   JsonObjectIter iter;
   const char *uid;
@@ -150,11 +144,17 @@ handle_response_vcards (ValentContactsPlugin *self,
 
       vcard = json_node_get_string (node);
       contact = e_contact_new_from_vcard_with_uid (vcard, uid);
-      valent_contact_store_add_async (self->remote_store,
-                                      contact,
-                                      NULL,
-                                      (GAsyncReadyCallback)add_cb,
-                                      contact);
+
+      contacts = g_slist_append (contacts, contact);
+    }
+
+  if (contacts != NULL)
+    {
+      valent_contact_store_add_contacts (self->remote_store,
+                                         contacts,
+                                         NULL,
+                                         (GAsyncReadyCallback)add_cb,
+                                         NULL);
     }
 }
 
@@ -209,11 +209,11 @@ handle_request_all_uids_timestamps (ValentContactsPlugin *self,
   query = e_book_query_vcard_field_exists (EVC_UID);
   sexp = e_book_query_to_string (query);
 
-  valent_contact_store_query_async (self->local_store,
-                                    sexp,
-                                    NULL,
-                                    (GAsyncReadyCallback)query_cb,
-                                    self);
+  valent_contact_store_query (self->local_store,
+                              sexp,
+                              NULL,
+                              (GAsyncReadyCallback)query_cb,
+                              self);
 }
 
 static void
@@ -334,11 +334,11 @@ handle_request_vcards_by_uid (ValentContactsPlugin *self,
   query = e_book_query_or (n_queries, queries, TRUE);
   sexp = e_book_query_to_string (query);
 
-  valent_contact_store_query_async (self->local_store,
-                                    sexp,
-                                    NULL,
-                                    (GAsyncReadyCallback)vcards_by_uid_cb,
-                                    self);
+  valent_contact_store_query (self->local_store,
+                              sexp,
+                              NULL,
+                              (GAsyncReadyCallback)vcards_by_uid_cb,
+                              self);
 }
 
 /**

@@ -18,9 +18,9 @@ typedef struct
 {
   const char *original;
   const char *normalized;
-} PhoneNumbers;
+} PhoneNumber;
 
-static const PhoneNumbers numbers[] = {
+static const PhoneNumber numbers[] = {
   {"754-3010",         "7543010"},     // Local
   {"(541) 754-3010",   "5417543010"},  // Domestic
   {"+1-541-754-3010",  "15417543010"}, // International
@@ -249,22 +249,22 @@ test_contacts_component_store (ContactsComponentFixture *fixture,
                     G_CALLBACK (on_contact_added),
                     fixture);
 
-  valent_contact_store_add_async (fixture->store,
-                                  fixture->contact,
-                                  NULL,
-                                  (GAsyncReadyCallback)add_contact_cb,
-                                  fixture);
+  valent_contact_store_add_contact (fixture->store,
+                                    fixture->contact,
+                                    NULL,
+                                    (GAsyncReadyCallback)add_contact_cb,
+                                    fixture);
   g_main_loop_run (fixture->loop);
 
   g_assert_true (fixture->data == fixture->store);
   fixture->data = NULL;
 
   /* Get single contact */
-  valent_contact_store_get_contact_async (fixture->store,
-                                          "test-contact",
-                                          NULL,
-                                          (GAsyncReadyCallback)get_contact_cb,
-                                          fixture);
+  valent_contact_store_get_contact (fixture->store,
+                                    "test-contact",
+                                    NULL,
+                                    (GAsyncReadyCallback)get_contact_cb,
+                                    fixture);
   g_main_loop_run (fixture->loop);
 
   contact = g_steal_pointer (&fixture->data);
@@ -274,11 +274,11 @@ test_contacts_component_store (ContactsComponentFixture *fixture,
 
   /* Get multiple contacts */
   char *uids[] = {"test-contact", NULL};
-  valent_contact_store_get_contacts_async (fixture->store,
-                                           uids,
-                                           NULL,
-                                           (GAsyncReadyCallback)query_contact_cb,
-                                           fixture);
+  valent_contact_store_get_contacts (fixture->store,
+                                     uids,
+                                     NULL,
+                                     (GAsyncReadyCallback)query_contact_cb,
+                                     fixture);
   g_main_loop_run (fixture->loop);
 
   contacts = g_steal_pointer (&fixture->data);
@@ -290,11 +290,11 @@ test_contacts_component_store (ContactsComponentFixture *fixture,
   query = e_book_query_field_test (E_CONTACT_UID, E_BOOK_QUERY_IS, "test-contact");
   sexp = e_book_query_to_string (query);
 
-  valent_contact_store_query_async (fixture->store,
-                                    sexp,
-                                    NULL,
-                                    (GAsyncReadyCallback)query_contact_cb,
-                                    fixture);
+  valent_contact_store_query (fixture->store,
+                              sexp,
+                              NULL,
+                              (GAsyncReadyCallback)query_contact_cb,
+                              fixture);
   g_main_loop_run (fixture->loop);
 
   contacts = g_steal_pointer (&fixture->data);
@@ -327,11 +327,11 @@ test_contacts_component_store (ContactsComponentFixture *fixture,
                     G_CALLBACK (on_contact_removed),
                     fixture);
 
-  valent_contact_store_remove_async (fixture->store,
-                                     e_contact_get_const (fixture->contact, E_CONTACT_UID),
-                                     NULL,
-                                     (GAsyncReadyCallback)remove_contact_cb,
-                                     fixture);
+  valent_contact_store_remove_contact (fixture->store,
+                                       e_contact_get_const (fixture->contact, E_CONTACT_UID),
+                                       NULL,
+                                       (GAsyncReadyCallback)remove_contact_cb,
+                                       fixture);
   g_main_loop_run (fixture->loop);
 
   g_assert_true (fixture->data == fixture->store);

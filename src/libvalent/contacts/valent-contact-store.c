@@ -19,8 +19,13 @@
  * @stability: Unstable
  * @include: libvalent-contacts.h
  *
- * The #ValentContactStore class is a simple implementation of #ValentContactStore
- * that is effectively a wrapper around #ESource and #EBookCache.
+ * The #ValentContactStore class is a base class for objects providing #EContact
+ * instances.
+ *
+ * If instantiated directly it is effectively a wrapper around #EBookCache,
+ * providing a file-based fallback when Evolution Data Server is not available.
+ *
+ * If subclasses for another provider, all virtual function must be overridden.
  */
 
 typedef struct
@@ -33,14 +38,10 @@ G_DEFINE_TYPE_WITH_PRIVATE (ValentContactStore, valent_contact_store, G_TYPE_OBJ
 
 /**
  * ValentContactStoreClass:
- * @add: the virtual function pointer for valent_contact_store_add()
- * @add_async: the virtual function pointer for valent_contact_store_add_async()
+ * @add_contacts: the virtual function pointer for valent_contact_store_add_contacts()
  * @get_contact: the virtual function pointer for valent_contact_store_get_contact()
- * @get_contact_async: the virtual function pointer for valent_contact_store_get_contact_async()
- * @remove: the virtual function pointer for valent_contact_store_remove()
- * @remove_async: the virtual function pointer for valent_contact_store_remove_async()
+ * @remove_contact: the virtual function pointer for valent_contact_store_remove_contact()
  * @query: the virtual function pointer for valent_contact_store_query()
- * @query_async: the virtual function pointer for valent_contact_store_query_async()
  * @prepare_backend: the virtual function pointer for valent_contact_store_prepare_backend()
  * @contact_added: the class closure for #ValentContactStore::contact-added
  * @contact_removed: the class closure for #ValentContactStore::contact-removed
@@ -69,7 +70,7 @@ static guint signals[N_SIGNALS] = { 0, };
 
 
 /*
- * ECache Helpers
+ * Signal Emission Helpers
  */
 typedef struct
 {
@@ -104,99 +105,64 @@ emit_change_main (gpointer data)
 }
 
 /* LCOV_EXCL_START */
-static gboolean
-valent_contact_store_real_add (ValentContactStore  *store,
-                               EContact            *contact,
-                               GCancellable        *cancellable,
-                               GError             **error)
-{
-  ValentContactStorePrivate *priv = valent_contact_store_get_instance_private (store);
-  gboolean ret;
-
-  g_assert (VALENT_IS_CONTACT_STORE (store));
-  g_assert (E_IS_CONTACT (contact));
-  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-  g_assert (error == NULL || *error == NULL);
-
-  ret = e_book_cache_put_contact (priv->cache,
-                                  contact,
-                                  NULL,
-                                  0,
-                                  E_CACHE_IS_OFFLINE,
-                                  cancellable,
-                                  error);
-  if (ret)
-    {
-      const char *uid = e_contact_get_const (contact, E_CONTACT_UID);
-      valent_contact_store_emit_contact_added (store, uid, contact);
-    }
-
-  return ret;
-}
-
 static void
 add_task (GTask        *task,
           gpointer      source_object,
           gpointer      task_data,
           GCancellable *cancellable)
 {
-  ValentContactStore *store = source_object;
-  EContact *contact = task_data;
+  ValentContactStore *store = VALENT_CONTACT_STORE (source_object);
+  ValentContactStorePrivate *priv = valent_contact_store_get_instance_private (store);
+  GSList *contacts = task_data;
   GError *error = NULL;
 
   if (g_task_return_error_if_cancelled (task))
     return;
 
-  if (!valent_contact_store_add (store, contact, cancellable, &error))
+  e_book_cache_put_contacts (priv->cache,
+                             contacts,
+                             NULL,
+                             NULL,
+                             E_CACHE_IS_OFFLINE,
+                             cancellable,
+                             &error);
+
+  if (error != NULL)
     return g_task_return_error (task, error);
+
+  for (const GSList *iter = contacts; iter; iter = iter->next)
+    {
+      EContact *contact = E_CONTACT (iter->data);
+      const char *uid;
+
+      uid = e_contact_get_const (contact, E_CONTACT_UID);
+      valent_contact_store_emit_contact_added (store, uid, contact);
+    }
 
   g_task_return_boolean (task, TRUE);
 }
 
 static void
-valent_contact_store_real_add_async (ValentContactStore  *store,
-                                     EContact            *contact,
-                                     GCancellable        *cancellable,
-                                     GAsyncReadyCallback  callback,
-                                     gpointer             user_data)
+valent_contact_store_real_add_contacts (ValentContactStore  *store,
+                                        GSList              *contacts,
+                                        GCancellable        *cancellable,
+                                        GAsyncReadyCallback  callback,
+                                        gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
+  GSList *additions = NULL;
 
   g_assert (VALENT_IS_CONTACT_STORE (store));
-  g_assert (E_IS_CONTACT (contact));
+  g_assert (contacts != NULL);
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  for (const GSList *iter = contacts; iter; iter = iter->next)
+    additions = g_slist_append (additions, g_object_ref (iter->data));
 
   task = g_task_new (store, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_contact_store_real_add_async);
-  g_task_set_task_data (task, g_object_ref (contact), g_object_unref);
+  g_task_set_source_tag (task, valent_contact_store_real_add_contacts);
+  g_task_set_task_data (task, additions, valent_object_slist_free);
   g_task_run_in_thread (task, add_task);
-}
-
-static gboolean
-valent_contact_store_real_remove (ValentContactStore  *store,
-                                  const char          *uid,
-                                  GCancellable        *cancellable,
-                                  GError             **error)
-{
-  ValentContactStorePrivate *priv = valent_contact_store_get_instance_private (store);
-  gboolean ret;
-
-  g_assert (VALENT_IS_CONTACT_STORE (store));
-  g_assert (uid != NULL);
-  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-  g_assert (error == NULL || *error == NULL);
-
-  ret = e_book_cache_remove_contact (priv->cache,
-                                     uid,
-                                     0,
-                                     E_CACHE_IS_OFFLINE,
-                                     cancellable,
-                                     error);
-
-  if (ret)
-    valent_contact_store_emit_contact_removed (store, uid, NULL);
-
-  return ret;
 }
 
 static void
@@ -205,25 +171,34 @@ remove_task (GTask        *task,
              gpointer      task_data,
              GCancellable *cancellable)
 {
-  ValentContactStore *store = source_object;
+  ValentContactStore *store = VALENT_CONTACT_STORE (source_object);
+  ValentContactStorePrivate *priv = valent_contact_store_get_instance_private (store);
   const char *uid = task_data;
   GError *error = NULL;
 
   if (g_task_return_error_if_cancelled (task))
     return;
 
-  if (!valent_contact_store_remove (store, uid, cancellable, &error))
+  e_book_cache_remove_contact (priv->cache,
+                               uid,
+                               0,
+                               E_CACHE_IS_OFFLINE,
+                               cancellable,
+                               &error);
+  if (error != NULL)
     return g_task_return_error (task, error);
+
+  valent_contact_store_emit_contact_removed (store, uid, NULL);
 
   g_task_return_boolean (task, TRUE);
 }
 
 static void
-valent_contact_store_real_remove_async (ValentContactStore  *store,
-                                        const char          *uid,
-                                        GCancellable        *cancellable,
-                                        GAsyncReadyCallback  callback,
-                                        gpointer             user_data)
+valent_contact_store_real_remove_contact (ValentContactStore  *store,
+                                          const char          *uid,
+                                          GCancellable        *cancellable,
+                                          GAsyncReadyCallback  callback,
+                                          gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
 
@@ -232,29 +207,9 @@ valent_contact_store_real_remove_async (ValentContactStore  *store,
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   task = g_task_new (store, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_contact_store_real_remove_async);
+  g_task_set_source_tag (task, valent_contact_store_real_remove_contact);
   g_task_set_task_data (task, g_strdup (uid), g_free);
   g_task_run_in_thread (task, remove_task);
-}
-
-static EContact *
-valent_contact_store_real_get_contact (ValentContactStore  *store,
-                                       const char          *uid,
-                                       GCancellable        *cancellable,
-                                       GError             **error)
-{
-  ValentContactStorePrivate *priv = valent_contact_store_get_instance_private (store);
-  EContact *contact = NULL;
-
-  g_assert (VALENT_IS_CONTACT_STORE (store));
-  g_assert (uid != NULL);
-  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-  g_assert (error == NULL || *error == NULL);
-
-  if (!e_book_cache_get_contact (priv->cache, uid, FALSE, &contact, cancellable, error))
-    return NULL;
-
-  return contact;
 }
 
 static void
@@ -263,7 +218,8 @@ get_contact_task (GTask        *task,
                   gpointer      task_data,
                   GCancellable *cancellable)
 {
-  ValentContactStore *store = source_object;
+  ValentContactStore *store = VALENT_CONTACT_STORE (source_object);
+  ValentContactStorePrivate *priv = valent_contact_store_get_instance_private (store);
   const char *uid = task_data;
   EContact *contact = NULL;
   GError *error = NULL;
@@ -271,18 +227,25 @@ get_contact_task (GTask        *task,
   if (g_task_return_error_if_cancelled (task))
     return;
 
-  if ((contact = valent_contact_store_get_contact (store, uid, cancellable, &error)) == NULL)
+  e_book_cache_get_contact (priv->cache,
+                            uid,
+                            FALSE,
+                            &contact,
+                            cancellable,
+                            &error);
+
+  if (error != NULL)
     return g_task_return_error (task, error);
 
   g_task_return_pointer (task, contact, g_object_unref);
 }
 
 static void
-valent_contact_store_real_get_contact_async (ValentContactStore  *store,
-                                             const char          *uid,
-                                             GCancellable        *cancellable,
-                                             GAsyncReadyCallback  callback,
-                                             gpointer             user_data)
+valent_contact_store_real_get_contact (ValentContactStore  *store,
+                                       const char          *uid,
+                                       GCancellable        *cancellable,
+                                       GAsyncReadyCallback  callback,
+                                       gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
 
@@ -291,28 +254,36 @@ valent_contact_store_real_get_contact_async (ValentContactStore  *store,
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   task = g_task_new (store, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_contact_store_real_get_contact_async);
+  g_task_set_source_tag (task, valent_contact_store_real_get_contact);
   g_task_set_task_data (task, g_strdup (uid), g_free);
   g_task_run_in_thread (task, get_contact_task);
 }
 
-static GSList *
-valent_contact_store_real_query (ValentContactStore  *store,
-                                 const char          *query,
-                                 GCancellable        *cancellable,
-                                 GError             **error)
+static void
+query_task (GTask        *task,
+            gpointer      source_object,
+            gpointer      task_data,
+            GCancellable *cancellable)
 {
+  ValentContactStore *store = VALENT_CONTACT_STORE (source_object);
   ValentContactStorePrivate *priv = valent_contact_store_get_instance_private (store);
+  const char *query = task_data;
   GSList *results = NULL;
   GSList *contacts = NULL;
+  GError *error = NULL;
 
-  g_assert (VALENT_IS_CONTACT_STORE (store));
-  g_assert (query != NULL);
-  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-  g_assert (error == NULL || *error == NULL);
+  if (g_task_return_error_if_cancelled (task))
+    return;
 
-  if (!e_book_cache_search (priv->cache, query, FALSE, &results, cancellable, error))
-    return NULL;
+  e_book_cache_search (priv->cache,
+                       query,
+                       FALSE,
+                       &results,
+                       cancellable,
+                       &error);
+
+  if (error != NULL)
+    return g_task_return_error (task, error);
 
   for (const GSList *iter = results; iter; iter = iter->next)
     {
@@ -324,37 +295,15 @@ valent_contact_store_real_query (ValentContactStore  *store,
     }
   g_slist_free_full (results, e_book_cache_search_data_free);
 
-  return g_slist_reverse (contacts);
+  g_task_return_pointer (task, contacts, valent_object_slist_free);
 }
 
 static void
-query_task (GTask        *task,
-            gpointer      source_object,
-            gpointer      task_data,
-            GCancellable *cancellable)
-{
-  ValentContactStore *store = source_object;
-  const char *query = task_data;
-  GSList *results = NULL;
-  GError *error = NULL;
-
-  if (g_task_return_error_if_cancelled (task))
-    return;
-
-  results = valent_contact_store_query (store, query, cancellable, &error);
-
-  if (error != NULL)
-    return g_task_return_error (task, error);
-
-  g_task_return_pointer (task, results, valent_object_slist_free);
-}
-
-static void
-valent_contact_store_real_query_async (ValentContactStore  *store,
-                                       const char          *query,
-                                       GCancellable        *cancellable,
-                                       GAsyncReadyCallback  callback,
-                                       gpointer             user_data)
+valent_contact_store_real_query (ValentContactStore  *store,
+                                 const char          *query,
+                                 GCancellable        *cancellable,
+                                 GAsyncReadyCallback  callback,
+                                 gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
 
@@ -363,29 +312,70 @@ valent_contact_store_real_query_async (ValentContactStore  *store,
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   task = g_task_new (store, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_contact_store_real_query_async);
+  g_task_set_source_tag (task, valent_contact_store_real_query);
   g_task_set_task_data (task, g_strdup (query), g_free);
   g_task_run_in_thread (task, query_task);
+}
+
+static GSList *
+valent_contact_store_real_query_sync (ValentContactStore  *store,
+                                      const char          *query,
+                                      GCancellable        *cancellable,
+                                      GError             **error)
+{
+  g_autoptr (GTask) task = NULL;
+
+  g_assert (VALENT_IS_CONTACT_STORE (store));
+  g_assert (query != NULL);
+  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+  g_assert (error == NULL || *error == NULL);
+
+  task = g_task_new (store, cancellable, NULL, NULL);
+  g_task_set_source_tag (task, valent_contact_store_real_query_sync);
+  g_task_set_task_data (task, g_strdup (query), g_free);
+  g_task_run_in_thread_sync (task, query_task);
+
+  return g_task_propagate_pointer (task, error);
+}
+
+static void
+prepare_backend_task (GTask        *task,
+                      gpointer      source_object,
+                      gpointer      task_data,
+                      GCancellable *cancellable)
+{
+  ValentContactStore *store = VALENT_CONTACT_STORE (source_object);
+  ValentContactStorePrivate *priv = valent_contact_store_get_instance_private (store);
+  g_autoptr (ValentData) data = NULL;
+  g_autofree char *path = NULL;
+  GError *error = NULL;
+
+  if (g_task_return_error_if_cancelled (task))
+    return;
+
+  /* This will usually be the path for the contacts plugin, since the device ID
+   * is used as the ESource UID. */
+  data = valent_data_new (e_source_get_uid (priv->source), NULL);
+  path = g_build_filename (valent_data_get_cache_path (data),
+                           "contacts",
+                           "contacts.db",
+                           NULL);
+  priv->cache = e_book_cache_new (path, priv->source, NULL, &error);
+
+  if (error != NULL)
+    return g_task_return_error (task, error);
+
+  g_task_return_boolean (task, TRUE);
 }
 
 static void
 valent_contact_store_real_prepare_backend (ValentContactStore *store)
 {
-  ValentContactStorePrivate *priv = valent_contact_store_get_instance_private (store);
-  g_autoptr (ValentData) data = NULL;
-  g_autoptr (GError) error = NULL;
-  g_autofree char *path = NULL;
+  g_autoptr (GTask) task = NULL;
 
-  g_assert (priv->source != NULL);
-
-  data = valent_data_new (e_source_get_uid (priv->source), NULL);
-  path = g_build_filename (valent_data_get_cache_path (data),
-                           "contacts.db",
-                           NULL);
-  priv->cache = e_book_cache_new (path, priv->source, NULL, &error);
-
-  if (priv->cache == NULL)
-    g_error ("[%s] %s", G_STRLOC, error->message);
+  task = g_task_new (store, NULL, NULL, NULL);
+  g_task_set_source_tag (task, valent_contact_store_real_prepare_backend);
+  g_task_run_in_thread_sync (task, prepare_backend_task);
 }
 /* LCOV_EXCL_STOP */
 
@@ -476,14 +466,11 @@ valent_contact_store_class_init (ValentContactStoreClass *klass)
   object_class->get_property = valent_contact_store_get_property;
   object_class->set_property = valent_contact_store_set_property;
 
-  klass->add = valent_contact_store_real_add;
-  klass->add_async = valent_contact_store_real_add_async;
-  klass->remove = valent_contact_store_real_remove;
-  klass->remove_async = valent_contact_store_real_remove_async;
+  klass->add_contacts = valent_contact_store_real_add_contacts;
+  klass->remove_contact = valent_contact_store_real_remove_contact;
   klass->query = valent_contact_store_real_query;
-  klass->query_async = valent_contact_store_real_query_async;
+  klass->query_sync = valent_contact_store_real_query_sync;
   klass->get_contact = valent_contact_store_real_get_contact;
-  klass->get_contact_async = valent_contact_store_real_get_contact_async;
   klass->prepare_backend = valent_contact_store_real_prepare_backend;
 
   /**
@@ -583,7 +570,7 @@ valent_contact_store_init (ValentContactStore *store)
  * @uid: the UID of @contact
  * @contact: the #EContact
  *
- * Emits the #ValentContacttModel::contact-added signal on @list.
+ * Emits the #ValentContactStore::contact-added signal on @list.
  *
  * This function should only be called by classes implementing
  * #ValentContactStore. It has to be called after the internal representation
@@ -620,7 +607,7 @@ valent_contact_store_emit_contact_added (ValentContactStore *store,
  * @uid: the UID of @contact
  * @contact: the #EContact
  *
- * Emits the #ValentContacttModel::contact-removed signal on @list.
+ * Emits the #ValentContactStore::contact-removed signal on @list.
  *
  * This function should only be called by classes implementing
  * #ValentContactStore. It has to be called after the internal representation
@@ -727,66 +714,69 @@ valent_contact_store_get_uid (ValentContactStore *store)
 }
 
 /**
- * valent_contact_store_add: (virtual add)
- * @store: a #ValentContactStore
- * @contact: an #EContact
- * @cancellable: (nullable): #GCancellable
- * @error: (nullable): a #GError
- *
- * Add @contact to @store. This is optional and should only be implemented by
- * writable address books.
- *
- * Returns: %TRUE, or %FALSE with @error set
- */
-gboolean
-valent_contact_store_add (ValentContactStore  *store,
-                          EContact            *contact,
-                          GCancellable        *cancellable,
-                          GError             **error)
-{
-  gboolean ret;
-
-  VALENT_ENTRY;
-
-  g_return_val_if_fail (VALENT_IS_CONTACT_STORE (store), FALSE);
-  g_return_val_if_fail (E_IS_CONTACT (contact), FALSE);
-  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
-  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
-
-  ret = VALENT_CONTACT_STORE_GET_CLASS (store)->add (store, contact, cancellable, error);
-
-  VALENT_RETURN (ret);
-}
-
-/**
- * valent_contact_store_add_async: (virtual add_async)
+ * valent_contact_store_add_contact:
  * @store: a #ValentContactStore
  * @contact: a #EContact
  * @cancellable: (nullable): #GCancellable
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
- *
- * Asynchronous version of valent_contact_store_add(). Call
- * valent_contact_store_add_finish() to get the result.
+ * This is a convenience wrapper for valent_contact_store_add_contacts(), which
+ * is the preferred way to add or modify multiple contacts when possible.
  */
 void
-valent_contact_store_add_async (ValentContactStore  *store,
-                                EContact            *contact,
-                                GCancellable        *cancellable,
-                                GAsyncReadyCallback  callback,
-                                gpointer             user_data)
+valent_contact_store_add_contact (ValentContactStore  *store,
+                                  EContact            *contact,
+                                  GCancellable        *cancellable,
+                                  GAsyncReadyCallback  callback,
+                                  gpointer             user_data)
 {
+  g_autoptr (GSList) contacts = NULL;
+
   VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_CONTACT_STORE (store));
   g_return_if_fail (E_IS_CONTACT (contact));
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  VALENT_CONTACT_STORE_GET_CLASS (store)->add_async (store,
-                                                     contact,
-                                                     cancellable,
-                                                     callback,
-                                                     user_data);
+  contacts = g_slist_append (contacts, contact);
+  valent_contact_store_add_contacts (store,
+                                     contacts,
+                                     cancellable,
+                                     callback,
+                                     user_data);
+
+  VALENT_EXIT;
+}
+
+/**
+ * valent_contact_store_add_contacts: (virtual add_contacts)
+ * @store: a #ValentContactStore
+ * @contacts: (element-type EContact): a #GSList
+ * @cancellable: (nullable): #GCancellable
+ * @callback: (scope async): a #GAsyncReadyCallback
+ * @user_data: (closure): user supplied data
+ *
+ * Add @contacts to @store. Call valent_contact_store_add_finish() to get the
+ * result.
+ */
+void
+valent_contact_store_add_contacts (ValentContactStore  *store,
+                                   GSList              *contacts,
+                                   GCancellable        *cancellable,
+                                   GAsyncReadyCallback  callback,
+                                   gpointer             user_data)
+{
+  VALENT_ENTRY;
+
+  g_return_if_fail (VALENT_IS_CONTACT_STORE (store));
+  g_return_if_fail (contacts != NULL);
+  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  VALENT_CONTACT_STORE_GET_CLASS (store)->add_contacts (store,
+                                                        contacts,
+                                                        cancellable,
+                                                        callback,
+                                                        user_data);
 
   VALENT_EXIT;
 }
@@ -797,7 +787,8 @@ valent_contact_store_add_async (ValentContactStore  *store,
  * @result: a #GAsyncResult
  * @error: (nullable): a #GError
  *
- * Finish an operation started by valent_contact_store_add_async().
+ * Finish an operation started by valent_contact_store_add_contact() or
+ * valent_contact_store_add_contacts().
  *
  * Returns: %TRUE, or %FALSE with @error set
  */
@@ -820,53 +811,22 @@ valent_contact_store_add_finish (ValentContactStore  *store,
 }
 
 /**
- * valent_contact_store_remove: (virtual remove)
+ * valent_contact_store_remove_contact: (virtual remove_contact)
  * @store: a #ValentContactStore
- * @uid: contact id
- * @cancellable: (nullable): #GCancellable
- * @error: (nullable): a #GError
- *
- * Remove the @contact from the address book.
- *
- * Returns: %TRUE, or %FALSE with @error set
- */
-gboolean
-valent_contact_store_remove (ValentContactStore  *store,
-                             const char          *uid,
-                             GCancellable        *cancellable,
-                             GError             **error)
-{
-  gboolean ret;
-
-  VALENT_ENTRY;
-
-  g_return_val_if_fail (VALENT_IS_CONTACT_STORE (store), FALSE);
-  g_return_val_if_fail (uid != NULL, FALSE);
-  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
-  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
-
-  ret = VALENT_CONTACT_STORE_GET_CLASS (store)->remove (store, uid, cancellable, error);
-
-  VALENT_RETURN (ret);
-}
-
-/**
- * valent_contact_store_remove_async: (virtual remove_async)
- * @store: a #ValentContactStore
- * @uid: a contact id
+ * @uid: a contact UID
  * @cancellable: (nullable): #GCancellable
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
  *
- * Asynchronous version of valent_contact_store_remove(). Call
- * valent_contact_store_remove_finish() to get the result.
+ * Remove contact @uid from @store. Call valent_contact_store_remove_finish() to
+ * get the result.
  */
 void
-valent_contact_store_remove_async (ValentContactStore  *store,
-                                   const char          *uid,
-                                   GCancellable        *cancellable,
-                                   GAsyncReadyCallback  callback,
-                                   gpointer             user_data)
+valent_contact_store_remove_contact (ValentContactStore  *store,
+                                     const char          *uid,
+                                     GCancellable        *cancellable,
+                                     GAsyncReadyCallback  callback,
+                                     gpointer             user_data)
 {
   VALENT_ENTRY;
 
@@ -874,11 +834,11 @@ valent_contact_store_remove_async (ValentContactStore  *store,
   g_return_if_fail (uid != NULL);
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  VALENT_CONTACT_STORE_GET_CLASS (store)->remove_async (store,
-                                                        uid,
-                                                        cancellable,
-                                                        callback,
-                                                        user_data);
+  VALENT_CONTACT_STORE_GET_CLASS (store)->remove_contact (store,
+                                                          uid,
+                                                          cancellable,
+                                                          callback,
+                                                          user_data);
 
   VALENT_EXIT;
 }
@@ -889,7 +849,7 @@ valent_contact_store_remove_async (ValentContactStore  *store,
  * @result: a #GAsyncResult
  * @error: (nullable): a #GError
  *
- * Finish an operation started by valent_contact_store_remove_async().
+ * Finish an operation started by valent_contact_store_remove_contact().
  *
  * Returns: %TRUE, or %FALSE with @error set
  */
@@ -916,37 +876,6 @@ valent_contact_store_remove_finish (ValentContactStore  *store,
  * @store: a #ValentContactStore
  * @query: a search expression
  * @cancellable: (nullable): #GCancellable
- * @error: (nullable): a #GError
- *
- * Search @store for contacts matching @query.
- *
- * Returns: (transfer full) (element-type EContact): a #GSList
- */
-GSList *
-valent_contact_store_query (ValentContactStore  *store,
-                            const char          *query,
-                            GCancellable        *cancellable,
-                            GError             **error)
-{
-  GSList *ret;
-
-  VALENT_ENTRY;
-
-  g_return_val_if_fail (VALENT_IS_CONTACT_STORE (store), NULL);
-  g_return_val_if_fail (query != NULL, NULL);
-  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
-  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
-
-  ret = VALENT_CONTACT_STORE_GET_CLASS (store)->query (store, query, cancellable, error);
-
-  VALENT_RETURN (ret);
-}
-
-/**
- * valent_contact_store_query_async: (virtual query_async)
- * @store: a #ValentContactStore
- * @query: a search expression
- * @cancellable: (nullable): #GCancellable
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
  *
@@ -954,11 +883,11 @@ valent_contact_store_query (ValentContactStore  *store,
  * valent_contact_store_query_finish() to get the result.
  */
 void
-valent_contact_store_query_async (ValentContactStore  *store,
-                                  const char          *query,
-                                  GCancellable        *cancellable,
-                                  GAsyncReadyCallback  callback,
-                                  gpointer             user_data)
+valent_contact_store_query (ValentContactStore  *store,
+                            const char          *query,
+                            GCancellable        *cancellable,
+                            GAsyncReadyCallback  callback,
+                            gpointer             user_data)
 {
   VALENT_ENTRY;
 
@@ -966,11 +895,11 @@ valent_contact_store_query_async (ValentContactStore  *store,
   g_return_if_fail (query != NULL);
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  VALENT_CONTACT_STORE_GET_CLASS (store)->query_async (store,
-                                                       query,
-                                                       cancellable,
-                                                       callback,
-                                                       user_data);
+  VALENT_CONTACT_STORE_GET_CLASS (store)->query (store,
+                                                 query,
+                                                 cancellable,
+                                                 callback,
+                                                 user_data);
 
   VALENT_EXIT;
 }
@@ -981,7 +910,7 @@ valent_contact_store_query_async (ValentContactStore  *store,
  * @result: a #GAsyncResult
  * @error: (nullable): a #GError
  *
- * Finish an operation started by valent_contact_store_query_async().
+ * Finish an operation started by valent_contact_store_query().
  *
  * Returns: (transfer full) (element-type EContact): a #GSList
  */
@@ -1004,38 +933,41 @@ valent_contact_store_query_finish (ValentContactStore  *store,
 }
 
 /**
- * valent_contact_store_get_contact: (virtual get_contact)
+ * valent_contact_store_query_sync: (virtual query_sync)
  * @store: a #ValentContactStore
- * @uid: a unique identifier
+ * @query: a search expression
  * @cancellable: (nullable): #GCancellable
  * @error: (nullable): a #GError
  *
- * Get the #EContact in @store by @uid, or %NULL if it doesn't exist.
+ * Search @store for contacts matching @query.
  *
- * Returns: (transfer full) (nullable): a #EContact
+ * Returns: (transfer full) (element-type EContact): a #GSList
  */
-EContact *
-valent_contact_store_get_contact (ValentContactStore  *store,
-                                  const char          *uid,
-                                  GCancellable        *cancellable,
-                                  GError             **error)
+GSList *
+valent_contact_store_query_sync (ValentContactStore  *store,
+                                 const char          *query,
+                                 GCancellable        *cancellable,
+                                 GError             **error)
 {
-  EContact *ret;
+  GSList *ret;
 
   VALENT_ENTRY;
 
   g_return_val_if_fail (VALENT_IS_CONTACT_STORE (store), NULL);
-  g_return_val_if_fail (uid != NULL, NULL);
+  g_return_val_if_fail (query != NULL, NULL);
   g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
   g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
-  ret = VALENT_CONTACT_STORE_GET_CLASS (store)->get_contact (store, uid, cancellable, error);
+  ret = VALENT_CONTACT_STORE_GET_CLASS (store)->query_sync (store,
+                                                            query,
+                                                            cancellable,
+                                                            error);
 
   VALENT_RETURN (ret);
 }
 
 /**
- * valent_contact_store_get_contact_async: (virtual get_contact_async)
+ * valent_contact_store_get_contact: (virtual get_contact)
  * @store: a #ValentContactStore
  * @uid: a contact UID
  * @cancellable: (nullable): #GCancellable
@@ -1046,11 +978,11 @@ valent_contact_store_get_contact (ValentContactStore  *store,
  * valent_contact_store_get_contact_finish() to get the result.
  */
 void
-valent_contact_store_get_contact_async (ValentContactStore  *store,
-                                        const char          *uid,
-                                        GCancellable        *cancellable,
-                                        GAsyncReadyCallback  callback,
-                                        gpointer             user_data)
+valent_contact_store_get_contact (ValentContactStore  *store,
+                                  const char          *uid,
+                                  GCancellable        *cancellable,
+                                  GAsyncReadyCallback  callback,
+                                  gpointer             user_data)
 {
   VALENT_ENTRY;
 
@@ -1058,11 +990,11 @@ valent_contact_store_get_contact_async (ValentContactStore  *store,
   g_return_if_fail (uid != NULL);
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  VALENT_CONTACT_STORE_GET_CLASS (store)->get_contact_async (store,
-                                                             uid,
-                                                             cancellable,
-                                                             callback,
-                                                             user_data);
+  VALENT_CONTACT_STORE_GET_CLASS (store)->get_contact (store,
+                                                       uid,
+                                                       cancellable,
+                                                       callback,
+                                                       user_data);
 
   VALENT_EXIT;
 }
@@ -1073,7 +1005,7 @@ valent_contact_store_get_contact_async (ValentContactStore  *store,
  * @result: a #GAsyncResult
  * @error: (nullable): a #GError
  *
- * Finish an operation started by valent_contact_store_get_contact_async().
+ * Finish an operation started by valent_contact_store_get_contact().
  *
  * Returns: (transfer full) (nullable): a #EContact
  */
@@ -1096,22 +1028,22 @@ valent_contact_store_get_contact_finish (ValentContactStore  *store,
 }
 
 /**
- * valent_contact_store_get_contacts_async:
+ * valent_contact_store_get_contacts:
  * @store: a #ValentContactStore
  * @uids: a list of UIDs
  * @cancellable: (nullable): #GCancellable
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
  *
- * A convenience wrapper around valent_contact_store_query_async() for searching contacts by UID.
- * Call valent_contact_store_query_finish() to get the result.
+ * A convenience wrapper around valent_contact_store_query() for searching
+ * contacts by UID. Call valent_contact_store_query_finish() to get the result.
  */
 void
-valent_contact_store_get_contacts_async (ValentContactStore   *store,
-                                         char                **uids,
-                                         GCancellable         *cancellable,
-                                         GAsyncReadyCallback   callback,
-                                         gpointer              user_data)
+valent_contact_store_get_contacts (ValentContactStore   *store,
+                                   char                **uids,
+                                   GCancellable         *cancellable,
+                                   GAsyncReadyCallback   callback,
+                                   gpointer              user_data)
 {
   g_autofree char *sexp = NULL;
   g_autofree EBookQuery **queries = NULL;
@@ -1130,7 +1062,7 @@ valent_contact_store_get_contacts_async (ValentContactStore   *store,
   query = e_book_query_or (n, queries, TRUE);
   sexp = e_book_query_to_string (query);
 
-  valent_contact_store_query_async (store, sexp, cancellable, callback, user_data);
+  valent_contact_store_query (store, sexp, cancellable, callback, user_data);
 }
 
 /**
@@ -1166,7 +1098,7 @@ valent_contact_store_dup_for_phone (ValentContactStore *store,
                                        number);
       sexp = e_book_query_to_string (query);
 
-      contacts = valent_contact_store_query (store, sexp, NULL, NULL);
+      contacts = valent_contact_store_query_sync (store, sexp, NULL, NULL);
 
       if (contacts != NULL)
         contact = g_object_ref (contacts->data);
@@ -1178,7 +1110,7 @@ valent_contact_store_dup_for_phone (ValentContactStore *store,
       query = e_book_query_field_exists (E_CONTACT_TEL);
       sexp = e_book_query_to_string (query);
 
-      contacts = valent_contact_store_query (store, sexp, NULL, NULL);
+      contacts = valent_contact_store_query_sync (store, sexp, NULL, NULL);
 
       normalized = valent_phone_number_normalize (number);
 
@@ -1296,11 +1228,11 @@ valent_contact_store_dup_for_phone_async (ValentContactStore  *store,
       sexp = e_book_query_to_string (query);
     }
 
-  valent_contact_store_query_async (store,
-                                    sexp,
-                                    cancellable,
-                                    (GAsyncReadyCallback)dup_for_phone_cb,
-                                    g_steal_pointer (&task));
+  valent_contact_store_query (store,
+                              sexp,
+                              cancellable,
+                              (GAsyncReadyCallback)dup_for_phone_cb,
+                              g_steal_pointer (&task));
 }
 
 /**

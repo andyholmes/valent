@@ -79,7 +79,7 @@ test_contacts_plugin_request_contacts (ValentTestPluginFixture *fixture,
   sexp = e_book_query_to_string (query);
   e_book_query_unref (query);
 
-  contacts = valent_contact_store_query (store, sexp, NULL, NULL);
+  contacts = valent_contact_store_query_sync (store, sexp, NULL, NULL);
   g_assert_cmpuint (g_slist_length (contacts), ==, 2);
 
   while (g_main_context_iteration (NULL, FALSE))

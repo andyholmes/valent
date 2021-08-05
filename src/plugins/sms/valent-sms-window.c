@@ -223,11 +223,11 @@ on_message_search_changed (GtkSearchEntry  *entry,
   query = e_book_query_or (G_N_ELEMENTS (queries), queries, TRUE);
   sexp = e_book_query_to_string (query);
 
-  valent_contact_store_query_async (window->contact_store,
-                                    sexp,
-                                    NULL,
-                                    (GAsyncReadyCallback)query_contacts_cb,
-                                    window);
+  valent_contact_store_query (window->contact_store,
+                              sexp,
+                              NULL,
+                              (GAsyncReadyCallback)query_contacts_cb,
+                              window);
 }
 
 static void
@@ -410,17 +410,20 @@ contact_search_list_sort (GtkListBoxRow   *row1,
 }
 
 static void
-query_cb (ValentContactStore *store,
-          GAsyncResult       *result,
-          ValentSmsWindow    *self)
+refresh_contacts_cb (ValentContactStore *store,
+                     GAsyncResult       *result,
+                     ValentSmsWindow    *self)
 {
-  g_autoptr (GError) error = NULL;
   g_autoslist (GObject) contacts = NULL;
+  g_autoptr (GError) error = NULL;
 
   contacts = valent_contact_store_query_finish (store, result, &error);
 
   if (error != NULL)
-    g_warning ("loading contacts: %s", error->message);
+    {
+      g_warning ("loading contacts: %s", error->message);
+      return;
+    }
 
   for (const GSList *iter = contacts; iter; iter = iter->next)
     valent_list_add_contact (self->contact_search_list, iter->data);
@@ -444,11 +447,11 @@ valent_sms_window_refresh_contacts (ValentSmsWindow *self)
   query = e_book_query_vcard_field_exists (EVC_TEL);
   sexp = e_book_query_to_string (query);
 
-  valent_contact_store_query_async (self->contact_store,
-                                    sexp,
-                                    NULL,
-                                    (GAsyncReadyCallback)query_cb,
-                                    self);
+  valent_contact_store_query (self->contact_store,
+                              sexp,
+                              NULL,
+                              (GAsyncReadyCallback)refresh_contacts_cb,
+                              self);
 }
 
 /*
