@@ -7,8 +7,9 @@ leak:libfontconfig.so
 # https://gitlab.freedesktop.org/gstreamer/gst-plugins-base/merge_requests/1078
 leak:gst_gio_src_query
 
-# False positive caused by G_TEST_OPTION_ISOLATE_DIRS
+# False positives caused by G_TEST_OPTION_ISOLATE_DIRS
 leak:test_do_isolate_dirs
+leak:adw_init
 
 # librsvg
 leak:librsvg-2.so

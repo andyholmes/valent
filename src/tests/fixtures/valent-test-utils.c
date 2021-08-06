@@ -483,11 +483,13 @@ valent_test_upload (ValentChannel  *channel,
  *        stripped before return.
  * @...: currently unused
  *
- * This function is used to initialize a GUI test program.
+ * This function is used to initialize a GUI test program for Valent.
  *
- * It calls g_test_init(), gtk_init() and adw_init() to initialize the testing
- * framework and graphical toolkit for Valent. It’ll also set the program’s
- * locale to “C”.
+ * In order, it will:
+ * - Call g_test_init() passing @argcp, @argvp and %G_TEST_OPTION_ISOLATE_DIRS
+ * - Set the locale to “en_US.UTF-8”
+ * - Call gtk_init()
+ * - Call adw_init()
  *
  * Like g_test_init(), any known arguments will be processed and stripped from
  * @argcp and @argvp.
@@ -498,6 +500,7 @@ valent_test_ui_init (int    *argcp,
                      ...)
 {
   g_test_init (argcp, argvp, G_TEST_OPTION_ISOLATE_DIRS, NULL);
+
   gtk_disable_setlocale ();
   setlocale (LC_ALL, "en_US.UTF-8");
 
