@@ -489,15 +489,15 @@ valent_test_upload (ValentChannel  *channel,
  * framework and graphical toolkit for Valent. It’ll also set the program’s
  * locale to “C”.
  *
- * Like gtk_init() and g_test_init(), any known arguments will be processed and
- * stripped from @argc and @argv.
+ * Like g_test_init(), any known arguments will be processed and stripped from
+ * @argcp and @argvp.
  */
 void
-valent_test_ui_init(int    *argcp,
-                    char ***argvp,
-                    ...)
+valent_test_ui_init (int    *argcp,
+                     char ***argvp,
+                     ...)
 {
-  g_test_init (argcp, argvp, NULL);
+  g_test_init (argcp, argvp, G_TEST_OPTION_ISOLATE_DIRS, NULL);
   gtk_disable_setlocale ();
   setlocale (LC_ALL, "en_US.UTF-8");
 

@@ -41,7 +41,7 @@ int
 main (int   argc,
       char *argv[])
 {
-  valent_test_ui_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
+  valent_test_ui_init (&argc, &argv, NULL);
 
   g_test_add_func ("/libvalent/ui/plugin-group",
                    test_plugin_group_basic);
