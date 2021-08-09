@@ -38,22 +38,21 @@ test_link_args = [
 ]
 
 
-# Copy Plugin GSchemas
+# Copy GSettingsSchemas for testing
+gsettings_test_init = find_program('gsettings-test-init.sh')
+
+run_command(gsettings_test_init,
+    env: test_env,
+  check: true,
+)
+
+compile_schemas = find_program('glib-compile-schemas')
 test_schema_dir = join_paths(meson.build_root(), 'schemas')
-plugins_gschemas = run_command(find_program('plugin_schemas.sh'))
 
+test('Validate GSchema files', compile_schemas,
+  args: ['--strict', '--dry-run', test_schema_dir],
+)
 
-# Validate GSchemas
-compile_schemas = find_program('glib-compile-schemas', required: false)
-
-if compile_schemas.found()
-  test('Validate GSchema files', compile_schemas,
-    args: ['--strict', '--dry-run', test_schema_dir]
-  )
-endif
-
-
-# Compile GSchemas for unit tests
 gschemas_compiled = custom_target('gschemas.compiled',
             output: 'gschemas.compiled',
            command: ['glib-compile-schemas', test_schema_dir],
