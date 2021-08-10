@@ -34,7 +34,11 @@ valent_runcommand_can_spawn_host (void)
 
       g_spawn_command_line_sync ("flatpak-spawn --host echo",
                                  NULL, NULL, &status, NULL);
+#if !GLIB_CHECK_VERSION(2, 69, 0)
       host = g_spawn_check_exit_status (status, NULL);
+#else
+      host = g_spawn_check_wait_status (status, NULL);
+#endif
     }
 
   return host;
