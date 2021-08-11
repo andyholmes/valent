@@ -61,9 +61,16 @@ libvalent_ui_generated_headers += [libvalent_ui_resources[1]]
 
 # Dependencies
 if not libadwaita_dep.found()
+  if get_option('introspection')
+    libadwaita_introspection = 'enabled'
+  else
+    libadwaita_introspection = 'disabled'
+  endif
+
   libadwaita = subproject('libadwaita',
     default_options: [
       'examples=false',
+      'introspection=@0@'.format(libadwaita_introspection),
       'package_subdir=valent',
       'tests=false',
       'vapi=false',
