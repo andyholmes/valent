@@ -1,11 +1,12 @@
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// SPDX-FileCopyrightText: This file is a part of GLib
+
 /*
   If G_HAS_CONSTRUCTORS is true then the compiler support *both* constructors and
-  destructors, in a sane way, including e.g. on library unload. If not you're on
+  destructors, in a usable way, including e.g. on library unload. If not you're on
   your own.
-
   Some compilers need #pragma to handle this, which does not work with macros,
   so the way you need to use this is (for constructors):
-
   #ifdef G_DEFINE_CONSTRUCTOR_NEEDS_PRAGMA
   #pragma G_DEFINE_CONSTRUCTOR_PRAGMA_ARGS(my_constructor)
   #endif
@@ -13,7 +14,6 @@
   static void my_constructor(void) {
    ...
   }
-
 */
 
 #ifndef __GTK_DOC_IGNORE__
@@ -42,13 +42,13 @@
  */
 
 /* We need to account for differences between the mangling of symbols
- * for Win32 (x86) and x64 programs, as symbols on Win32 are prefixed
- * with an underscore but symbols on x64 are not.
+ * for x86 and x64/ARM/ARM64 programs, as symbols on x86 are prefixed
+ * with an underscore but symbols on x64/ARM/ARM64 are not.
  */
-#ifdef _WIN64
-#define G_MSVC_SYMBOL_PREFIX ""
-#else
+#ifdef _M_IX86
 #define G_MSVC_SYMBOL_PREFIX "_"
+#else
+#define G_MSVC_SYMBOL_PREFIX ""
 #endif
 
 #define G_DEFINE_CONSTRUCTOR(_func) G_MSVC_CTOR (_func, G_MSVC_SYMBOL_PREFIX)
@@ -120,4 +120,3 @@
 #endif
 
 #endif /* __GTK_DOC_IGNORE__ */
-
