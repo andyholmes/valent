@@ -1,4 +1,7 @@
-# miscellaneous suppressions file
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: 2021 Andy Holmes
+#
+# Miscellaneous valgrind suppressions
 
 # glib.supp misses these for some reason
 {

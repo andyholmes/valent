@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileCopyrightText: No rights reserved
+
 FROM fedora:34
 
 # The packages below fall roughly into three categories: build tooling,

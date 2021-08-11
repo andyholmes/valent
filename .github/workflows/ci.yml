@@ -130,3 +130,17 @@ jobs:
           name: sanitizer-logs
           path: _build/meson-logs
 
+  reuse:
+    name: REUSE Compliance Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: false
+
+      - name: Lint
+        uses: fsfe/reuse-action@v1
+        with:
+          args: lint
+
