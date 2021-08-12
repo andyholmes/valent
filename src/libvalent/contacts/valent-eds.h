@@ -38,3 +38,11 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC (EBookQuery, e_book_query_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (EContact, g_object_unref)
 #endif
 
+#ifndef glib_autoptr_clear_EContactPhoto
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (EContactPhoto, e_contact_photo_free)
+#endif
+
+#ifndef glib_autoptr_clear_EVCardAttribute
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (EVCardAttribute, e_vcard_attribute_free)
+#endif
+
