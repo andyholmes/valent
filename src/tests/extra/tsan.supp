@@ -1,3 +1,144 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 # SPDX-FileCopyrightText: 2021 Andy Holmes
 
+#
+# Known Bugs
+#
+# The errors below are either known bugs being tracked or undiagnosed.
+#
+mutex:valent_*_get_type_once
+
+# src/libvalent/core/valent-channel.c
+race:valent_channel_download
+race:channel_buffer_find_lf
+race:valent_channel_finalize
+race:valent_channel_get_base_stream
+race:valent_channel_get_property
+race:valent_channel_read_packet_internal
+race:valent_channel_write_packet_internal
+
+# src/libvalent/core/valent-channel-service.c
+race:valent_channel_service_emit_channel_main
+race:valent_channel_service_finalize
+race:valent_channel_service_get_identity
+race:valent_channel_service_get_property
+
+# src/libvalent/core/valent-data.c
+race:valent_data_finalize
+
+# src/libvalent/core/valent-device.c
+race:valent_device_get_channel
+race:valent_device_get_data
+
+# src/libvalent/core/valent-transfer.c
+race:execute_task
+race:transfer_item_free
+race:transfer_item_prepare
+race:valent_transfer_dispose
+race:valent_transfer_finalize
+
+# src/libvalent/contacts/valent-contact-store.c
+race:emit_change_main
+race:prepare_backend_task
+race:valent_contact_store_finalize
+
+# src/plugins/valent-lan-channel.c
+race:valent_lan_channel_finalize
+race:valent_lan_channel_get_certificate
+race:valent_lan_channel_get_property
+# TODO: ValentLanChanneService::port is construct-only
+race:valent_lan_channel_get_port
+race:valent_lan_channel_service_tcp_setup
+
+# src/plugins/valent-lan-channel-service.c
+race:on_connection
+race:valent_lan_channel_service_ensure_certificate
+race:valent_lan_channel_service_finalize
+race:valent_lan_channel_service_stop
+race:valent_lan_channel_service_udp_setup
+
+# src/plugins/notification/valent-notification-plugin.c
+race:get_icon_gfile
+
+# src/tests/fixtures/valent-mock-channel.c
+race:valent_mock_channel_download
+race:valent_mock_channel_finalize
+
+# src/tests/fixtures/valent-test-utils.c
+race:accept_upload_cb
+race:download_task
+race:transfer_op_free
+race:upload_task
+
+
+#
+# Uninstrumented libraries (core, components, ui, plugins)
+#
+# See: https://www.gnutls.org/manual/gnutls.html#Thread-safety
+#
+called_from_lib:libglib-2
+called_from_lib:libgobject-2
+called_from_lib:libgio-2
+called_from_lib:libjson-glib-1
+called_from_lib:libpeas-1
+called_from_lib:libgnutls
+
+called_from_lib:libebackend-1.2
+called_from_lib:libebook-1.2
+called_from_lib:libebook-contacts-1.2
+called_from_lib:libedata-book
+called_from_lib:libedataserver-1.2
+
+called_from_lib:libgdk-4
+called_from_lib:libgsk-4
+called_from_lib:libgtk-4
+called_from_lib:libgdk_pixbuf-2
+called_from_lib:libadwaita-1
+
+# used by findmyphone plugin (possibly real races)
+# See: https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/217
+#      https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/218
+called_from_lib:libgstreamer-1
+called_from_lib:libgstplayback
+
+
+# Indirect dependencies
+called_from_lib:libfontconfig
+called_from_lib:libgvfscommon
+called_from_lib:libgvfsdbus
+called_from_lib:libicui18n
+called_from_lib:libicuuc
+called_from_lib:libmedia-gstreamer.so
+called_from_lib:libogg.so
+called_from_lib:libpango-1
+called_from_lib:libpangocairo-1
+called_from_lib:libpangoft2
+called_from_lib:libphonenumber
+called_from_lib:libprotobuf
+called_from_lib:libsqlite3
+called_from_lib:libvorbis.so
+
+called_from_lib:libX11.so
+called_from_lib:libX11-xcb
+called_from_lib:libXext
+called_from_lib:libXau
+called_from_lib:libxcb.so
+called_from_lib:libXcomposite
+called_from_lib:libXcursor
+called_from_lib:libXdamage
+called_from_lib:libXdmcp
+called_from_lib:libXext
+called_from_lib:libXfixes
+called_from_lib:libXi.so
+called_from_lib:libXrandr
+called_from_lib:libXrender
+called_from_lib:libXss
+
+# Deadlocks
+deadlock:libGLX.so
+
+# Mutexes
+mutex:libGL.so
+mutex:libGLdispatch
+mutex:libGLX
+

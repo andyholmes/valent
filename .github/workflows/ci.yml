@@ -130,6 +130,42 @@ jobs:
           name: sanitizer-logs
           path: _build/meson-logs
 
+  test_tsan:
+    name: Unit Tests (tsan)
+    runs-on: ubuntu-latest
+    container:
+      image: quay.io/andyholmes/valent:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Build
+        run: |
+          meson --prefix=/usr \
+                --buildtype=debug \
+                -Db_sanitize=thread \
+                -Dintrospection=false \
+                -Dplugin_bluez=true \
+                -Dtests=true \
+                -Dfuzz_tests=false \
+                _build
+          meson compile -C _build
+          xvfb-run -a -s "-screen 0 1024x768x24" \
+          dbus-run-session -- \
+          meson test -C _build \
+                     --print-errorlogs \
+                     --suite=valent \
+                     --timeout-multiplier 2
+
+      - name: Report
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: thread-sanitizer-logs
+          path: _build/meson-logs
+
   reuse:
     name: REUSE Compliance Check
     runs-on: ubuntu-latest

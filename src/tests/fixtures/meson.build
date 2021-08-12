@@ -57,10 +57,17 @@ libvalent_test_generated_headers = [libvalent_test_resources[1]]
 
 # Dependencies
 if not libwalbottle_dep.found()
+  if get_option('introspection')
+    libwalbottle_introspection = 'enabled'
+  else
+    libwalbottle_introspection = 'disabled'
+  endif
+
   libwalbottle = subproject('walbottle',
     default_options: [
       'gtk_doc=false',
       'installed_tests=false',
+      'introspection=@0@'.format(libwalbottle_introspection),
     ],
   )
   libwalbottle_dep = libwalbottle.get_variable('libwalbottle_dep')

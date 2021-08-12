@@ -13,6 +13,7 @@ test_env = [
   'G_TEST_SRCDIR=@0@'.format(meson.current_source_dir()),
   'G_TEST_BUILDDIR=@0@'.format(meson.current_build_dir()),
   'G_DEBUG=gc-friendly',
+  'G_SLICE=always-malloc',
   'GSETTINGS_BACKEND=memory',
   'GSETTINGS_SCHEMA_DIR=@0@/schemas'.format(meson.build_root()),
   'PYTHONDONTWRITEBYTECODE=yes',
@@ -23,7 +24,7 @@ test_env = [
   'ASAN_OPTIONS=detect_leaks=1,intercept_tls_get_addr=0',
   'LSAN_OPTIONS=fast_unwind_on_malloc=0,suppressions=@0@'.format(
         join_paths(meson.current_source_dir(), 'extra', 'lsan.supp')),
-  'TSAN_OPTIONS=suppressions=@0@'.format(
+  'TSAN_OPTIONS=force_seq_cst_atomics=1,history_size=5,suppressions=@0@'.format(
         join_paths(meson.current_source_dir(), 'extra', 'tsan.supp')),
   'UBSAN_OPTIONS=print_stacktrace=1:print_summary=1:halt_on_error=1',
 ]
