@@ -92,7 +92,7 @@ emit_change_main (gpointer data)
   g_assert (emission->contact == NULL || E_IS_CONTACT (emission->contact));
 
   g_signal_emit (G_OBJECT (emission->store),
-                 emission->signal_id, 0,
+                 signals [emission->signal_id], 0,
                  emission->uid,
                  emission->contact);
 
@@ -596,7 +596,7 @@ valent_contact_store_emit_contact_added (ValentContactStore *store,
   emission->store = g_object_ref (store);
   emission->uid = g_strdup (uid);
   emission->contact = g_object_ref (contact);
-  emission->signal_id = signals [CONTACT_ADDED];
+  emission->signal_id = CONTACT_ADDED;
 
   g_timeout_add (0, emit_change_main, g_steal_pointer (&emission));
 }
@@ -634,7 +634,7 @@ valent_contact_store_emit_contact_removed (ValentContactStore *store,
   emission->uid = g_strdup (uid);
   if (contact)
     emission->contact = g_object_ref (contact);
-  emission->signal_id = signals [CONTACT_REMOVED];
+  emission->signal_id = CONTACT_REMOVED;
 
   g_timeout_add (0, emit_change_main, g_steal_pointer (&emission));
 }
