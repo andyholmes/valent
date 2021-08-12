@@ -23,17 +23,15 @@ struct _ValentLanChannelService
   ValentChannelService  parent_instance;
 
   GCancellable         *cancellable;
-  GSettings            *settings;
+  GTlsCertificate      *certificate;
 
   GNetworkMonitor      *monitor;
   gboolean              network_available;
 
+  /* Service */
+  guint16               port;
   char                 *broadcast_address;
-  GTlsCertificate      *certificate;
-  guint                 port;
   GSocketService       *listener;
-
-  /* UDP */
   GSocket              *udp_socket4;
   GSocket              *udp_socket6;
 };
@@ -490,8 +488,8 @@ valent_lan_channel_service_tcp_setup (ValentLanChannelService  *self,
  * @cancellable: (nullable): a #GCancellable
  * @error: (nullable): a #GError
  *
- * An analog to valent_lan_channel_service_tcp_setup() that prepares UDP sockets for IPv4
- * and IPv6, including streams for reading.
+ * An analog to valent_lan_channel_service_tcp_setup() that prepares UDP sockets
+ * for IPv4 and IPv6, including streams for reading.
  *
  * Returns: %TRUE or %FALSE with @error set
  */
