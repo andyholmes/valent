@@ -103,6 +103,7 @@ called_from_lib:libgstplayback
 
 
 # Indirect dependencies
+called_from_lib:libcairo.so
 called_from_lib:libfontconfig
 called_from_lib:libgvfscommon
 called_from_lib:libgvfsdbus
@@ -134,11 +135,10 @@ called_from_lib:libXrandr
 called_from_lib:libXrender
 called_from_lib:libXss
 
-# Deadlocks
+# Miscellaneous
 deadlock:libGLX.so
-
-# Mutexes
-mutex:libGL.so
-mutex:libGLdispatch
-mutex:libGLX
+deadlock:libGLX_mesa.so
+mutex:libGLX.so
+mutex:libGLX_mesa.so
+race:radeonsi_dri
 
