@@ -136,6 +136,8 @@ called_from_lib:libXrender
 called_from_lib:libXss
 
 # Miscellaneous
+deadlock:libEGL.so
+deadlock:libEGL_mesa.so
 deadlock:libGLX.so
 deadlock:libGLX_mesa.so
 mutex:libGLX.so
