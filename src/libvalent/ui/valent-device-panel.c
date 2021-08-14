@@ -204,11 +204,10 @@ on_state_changed (ValentDevice      *device,
 
   if (channel != NULL)
     verification_key = valent_channel_get_verification_key (channel);
-
-  if (verification_key != NULL)
-    gtk_label_set_text (GTK_LABEL (self->verification_key), verification_key);
   else
-    gtk_label_set_text (GTK_LABEL (self->verification_key), _("Unavailable"));
+    verification_key = _("Unavailable");
+
+  gtk_label_set_text (GTK_LABEL (self->verification_key), verification_key);
 
   /* Adjust the actions */
   gtk_widget_set_visible (self->pair_spinner, pair_outgoing);
