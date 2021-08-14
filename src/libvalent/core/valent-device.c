@@ -273,7 +273,6 @@ valent_device_send_pair (ValentDevice *device,
 
   g_assert (VALENT_IS_DEVICE (device));
 
-  /* Only send the pair packet if we're connected */
   if (!device->connected)
     return;
 
@@ -514,7 +513,6 @@ unpair_action (GSimpleAction *action,
 {
   ValentDevice *device = VALENT_DEVICE (user_data);
 
-  /* Only send the unpair packet if we're connected */
   if (device->connected)
     valent_device_send_pair (device, FALSE);
 
@@ -1069,8 +1067,8 @@ send_packet_cb (ValentChannel *channel,
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
  *
- * Send @packet over the current packet channel. Call valent_device_send_packet_finish() to get the
- * result.
+ * Send @packet over the current packet channel. Call
+ * valent_device_send_packet_finish() to get the result.
  */
 void
 valent_device_send_packet (ValentDevice        *device,
@@ -1275,8 +1273,8 @@ valent_device_set_channel (ValentDevice  *device,
   if (!g_set_object (&device->channel, channel))
     return;
 
-  /* If there's a new channel bind to the cancellable and handle the peer
-   * identity, before calling valent_device_set_connected(). */
+  /* If there's a new channel handle the peer identity and queue the first read
+   * before calling valent_device_set_connected(). */
   if (VALENT_IS_CHANNEL (device->channel))
     {
       JsonNode *peer_identity;
@@ -1339,7 +1337,7 @@ valent_device_set_connected (ValentDevice *device,
  * valent_device_get_data:
  * @device: a #ValentDevice
  *
- * Gets the #ValentData for this device.
+ * Gets the #ValentData for @device.
  *
  * Returns: (transfer none): a #ValentData
  */
@@ -1708,8 +1706,8 @@ valent_device_supports_plugin (ValentDevice   *device,
     return TRUE;
 
   /* Device hasn't supplied an identity packet yet */
-  device_incoming = (const char**)device->incoming_capabilities;
-  device_outgoing = (const char**)device->outgoing_capabilities;
+  device_incoming = (const char **)device->incoming_capabilities;
+  device_outgoing = (const char **)device->outgoing_capabilities;
 
   if (device_incoming == NULL || device_outgoing == NULL)
     return FALSE;

@@ -197,6 +197,9 @@ transfer_item_execute (TransferItem   *item,
                                         cancellable,
                                         error);
 
+      if (stream == NULL)
+        return FALSE;
+
       source = g_io_stream_get_input_stream (stream);
       target = item->target;
     }
@@ -207,6 +210,9 @@ transfer_item_execute (TransferItem   *item,
                                       item->packet,
                                       cancellable,
                                       error);
+
+      if (stream == NULL)
+        return FALSE;
 
       source = item->source;
       target = g_io_stream_get_output_stream (stream);
@@ -228,8 +234,8 @@ execute_task (GTask        *task,
               gpointer      user_data,
               GCancellable *cancellable)
 {
-  ValentTransfer *transfer = source_object;
-  ValentTransferPrivate *priv = valent_transfer_get_instance_private (transfer);
+  ValentTransfer *self = source_object;
+  ValentTransferPrivate *priv = valent_transfer_get_instance_private (self);
   GError *error = NULL;
 
   for (unsigned int i = 0; i < priv->items->len; i++)
@@ -544,9 +550,9 @@ valent_transfer_cache_file (ValentTransfer *transfer,
                             const char     *name)
 {
   ValentTransferPrivate *priv = valent_transfer_get_instance_private (transfer);
-  TransferItem *item;
   ValentData *data;
   g_autofree char *hash = NULL;
+  TransferItem *item;
 
   g_return_val_if_fail (VALENT_IS_TRANSFER (transfer), NULL);
   g_return_val_if_fail (VALENT_IS_PACKET (packet), NULL);

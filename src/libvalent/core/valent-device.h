@@ -41,8 +41,6 @@ typedef enum
 G_DECLARE_FINAL_TYPE (ValentDevice, valent_device, VALENT, DEVICE, GObject)
 
 ValentDevice      * valent_device_new               (const char           *id);
-
-/* Properties */
 GActionGroup      * valent_device_get_actions       (ValentDevice         *device);
 ValentChannel     * valent_device_get_channel       (ValentDevice         *device);
 gboolean            valent_device_get_connected     (ValentDevice         *device);
@@ -54,8 +52,6 @@ const char        * valent_device_get_name          (ValentDevice         *devic
 gboolean            valent_device_get_paired        (ValentDevice         *device);
 GPtrArray         * valent_device_get_plugins       (ValentDevice         *device);
 ValentDeviceState   valent_device_get_state         (ValentDevice         *device);
-
-/* Packets */
 void                valent_device_queue_packet      (ValentDevice         *device,
                                                      JsonNode             *packet);
 void                valent_device_send_packet       (ValentDevice         *device,
@@ -66,8 +62,6 @@ void                valent_device_send_packet       (ValentDevice         *devic
 gboolean           valent_device_send_packet_finish (ValentDevice         *device,
                                                      GAsyncResult         *result,
                                                      GError              **error);
-
-/* Notifications */
 void               valent_device_hide_notification  (ValentDevice         *device,
                                                      const char           *id);
 void               valent_device_show_notification  (ValentDevice         *device,
