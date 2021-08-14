@@ -452,6 +452,8 @@ event_action (GSimpleAction *action,
     }
   else
     g_warning ("Unknown event type");
+
+  g_variant_dict_clear (&dict);
 }
 
 static const GActionEntry actions[] = {
