@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
+
 #include <gio/gio.h>
 #include <gtk/gtk.h>
 #include <libvalent-core.h>
