@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// SPDX-FileCopyfixturehtText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
+// SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 #include <libvalent-core.h>
 #include <libwalbottle/wbl-schema.h>

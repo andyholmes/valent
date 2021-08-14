@@ -15,8 +15,3 @@ Files: *.oga *.png *.svg build-aux/* data/firewalld/* valent.doap
 Copyright: No rights reserved
 License: CC0-1.0
 
-
-Files: src/tests/*.c src/tests/*.h src/tests/*.py
-Copyright: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
-License: GPL-3.0-or-later
-
