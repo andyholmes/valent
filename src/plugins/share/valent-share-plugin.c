@@ -442,14 +442,14 @@ share_files_action (GSimpleAction *action,
   ValentSharePlugin *self = VALENT_SHARE_PLUGIN (user_data);
   g_autoptr (GListStore) files = NULL;
   const char **uris;
-  gsize n_files, i;
+  gsize n_files;
 
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
 
   files = g_list_store_new (G_TYPE_FILE);
   uris = g_variant_get_strv (parameter, &n_files);
 
-  for (i = 0; i < n_files; i++)
+  for (unsigned int i = 0; i < n_files; i++)
     {
       g_autoptr (GFile) file = NULL;
 
@@ -652,6 +652,8 @@ static void
 valent_share_plugin_disable (ValentDevicePlugin *plugin)
 {
   ValentSharePlugin *self = VALENT_SHARE_PLUGIN (plugin);
+  GHashTableIter iter;
+  gpointer transfer;
 
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
 
@@ -666,9 +668,6 @@ valent_share_plugin_disable (ValentDevicePlugin *plugin)
                                            G_N_ELEMENTS (actions));
 
   /* Cancel active transfers */
-  GHashTableIter iter;
-  gpointer transfer;
-
   g_hash_table_iter_init (&iter, self->transfers);
 
   while (g_hash_table_iter_next (&iter, NULL, &transfer))
@@ -676,6 +675,8 @@ valent_share_plugin_disable (ValentDevicePlugin *plugin)
       valent_transfer_cancel (VALENT_TRANSFER (transfer));
       g_hash_table_iter_remove (&iter);
     }
+
+  g_clear_pointer (&self->transfers, g_hash_table_unref);
 }
 
 static void
@@ -747,7 +748,7 @@ valent_device_plugin_iface_init (ValentDevicePluginInterface *iface)
   iface->update_state = valent_share_plugin_update_state;
 }
 
-/**
+/*
  * GObject
  */
 static void
