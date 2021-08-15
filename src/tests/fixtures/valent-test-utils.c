@@ -470,6 +470,9 @@ valent_test_upload (ValentChannel  *channel,
   g_task_run_in_thread (task, upload_task);
   g_main_loop_run (op->loop);
 
+  if (op->error != NULL)
+    g_propagate_error (error, op->error);
+
   return op->success;
 }
 
