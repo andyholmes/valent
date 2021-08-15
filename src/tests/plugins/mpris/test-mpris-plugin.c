@@ -334,6 +334,7 @@ test_mpris_plugin_handle_request (ValentTestPluginFixture *fixture,
 
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
   v_assert_packet_cmpint (packet, "pos", ==, 1000);
+  json_node_unref (packet);
 
   /* Request Stop */
   packet = valent_test_plugin_fixture_lookup_packet (fixture, "request-stop");
@@ -448,7 +449,7 @@ static void
 test_mpris_plugin_handle_player (ValentTestPluginFixture *fixture,
                                  gconstpointer            user_data)
 {
-  GDBusConnection *connection;
+  g_autoptr (GDBusConnection) connection = NULL;
   unsigned int watch_id;
   JsonNode *packet;
 
