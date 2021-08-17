@@ -12,15 +12,34 @@ jobs:
       image: bilelmoussaoui/flatpak-github-actions:gnome-40
       options: --privileged
 
+    strategy:
+      matrix:
+        arch: [ x86_64, aarch64 ]
+      fail-fast: false
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
         with:
           submodules: true
 
-      - name: Export
-        uses: bilelmoussaoui/flatpak-github-actions/flatpak-builder@v3
+      - name: Prepare Docker
+        if: ${{ matrix.arch == 'aarch64' }}
+        run: |
+          dnf -y install docker
+
+      - name: Prepare QEMU
+        if: ${{ matrix.arch == 'aarch64' }}
+        id: qemu
+        uses: docker/setup-qemu-action@v1
         with:
-          bundle: "ca.andyholmes.Valent.flatpak"
-          manifest-path: "build-aux/flatpak/ca.andyholmes.Valent.json"
-        
+          platforms: arm64
+
+      - name: Build
+        uses: bilelmoussaoui/flatpak-github-actions/flatpak-builder@69e09d1378a7d2e492c07f7f45a71293383fc9c3
+        with:
+          bundle: ca.andyholmes.Valent.${{ matrix.arch }}.flatpak
+          manifest-path: build-aux/flatpak/ca.andyholmes.Valent.json
+          cache-key: flatpak-builder-${{ github.sha }}
+          arch: ${{ matrix.arch }}
+
