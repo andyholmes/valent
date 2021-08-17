@@ -169,7 +169,8 @@ add_application (ValentNotifications *self,
   g_variant_dict_init (&dict, self->applications);
 
   if (g_variant_lookup (application, "name", "&s", &name))
-    g_variant_dict_insert_value (&dict, name, application);
+    g_variant_dict_insert_value (&dict, name, g_variant_ref_sink (application));
+  g_variant_unref (application);
 
   g_clear_pointer (&self->applications, g_variant_unref);
   self->applications = g_variant_ref_sink (g_variant_dict_end (&dict));
