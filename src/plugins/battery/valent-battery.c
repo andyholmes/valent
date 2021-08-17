@@ -88,9 +88,15 @@ valent_battery_init_properties (ValentBattery *self)
   GDBusProxy *proxy = self->proxy;
   GVariant *value;
 
-  if ((value = g_dbus_proxy_get_cached_property (proxy, "Type")) == NULL &&
-      g_variant_get_uint32 (value) != 2)
-    return;
+  if ((value = g_dbus_proxy_get_cached_property (proxy, "Type")) != NULL)
+    {
+      guint32 type = g_variant_get_uint32 (value);
+
+      g_variant_unref (value);
+
+      if (type != 2)
+        return;
+    }
 
   if ((value = g_dbus_proxy_get_cached_property (proxy, "Percentage")) != NULL)
     {
