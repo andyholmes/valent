@@ -83,7 +83,7 @@ on_properties_changed (GDBusProxy    *proxy,
 }
 
 static void
-init_properties (ValentBattery *self)
+valent_battery_init_properties (ValentBattery *self)
 {
   GDBusProxy *proxy = self->proxy;
   GVariant *value;
@@ -127,10 +127,10 @@ new_for_bus_cb (GObject       *object,
 
   self->proxy = g_dbus_proxy_new_for_bus_finish (result, &error);
 
-  if (error != NULL)
+  if (G_IS_DBUS_PROXY (self->proxy))
+    valent_battery_init_properties (self);
+  else if (error != NULL)
     g_warning ("%s: %s", G_OBJECT_TYPE_NAME (self), error->message);
-  else
-    init_properties (self);
 }
 
 /*
@@ -298,49 +298,49 @@ valent_battery_get_default (void)
 
 /**
  * valent_battery_get_charging:
- * @device: a #ValentBattery
+ * @battery: a #ValentBattery
  *
- * Get whether the device is charging.
+ * Get whether the battery is charging.
  *
- * Returns: %TRUE if the device is charging
+ * Returns: %TRUE if the battery is charging
  */
 gboolean
-valent_battery_get_charging (ValentBattery *device)
+valent_battery_get_charging (ValentBattery *battery)
 {
-  g_return_val_if_fail (VALENT_IS_BATTERY (device), -1);
+  g_return_val_if_fail (VALENT_IS_BATTERY (battery), -1);
 
-  return device->charging;
+  return battery->charging;
 }
 
 /**
  * valent_battery_get_level:
- * @device: a #ValentBattery
+ * @battery: a #ValentBattery
  *
- * Get the charge level of @device.
+ * Get the charge level of @battery.
  *
  * Returns: a charge level
  */
 int
-valent_battery_get_level (ValentBattery *device)
+valent_battery_get_level (ValentBattery *battery)
 {
-  g_return_val_if_fail (VALENT_IS_BATTERY (device), -1);
+  g_return_val_if_fail (VALENT_IS_BATTERY (battery), -1);
 
-  return device->level;
+  return battery->level;
 }
 
 /**
  * valent_battery_get_threshold:
- * @device: a #ValentBattery
+ * @battery: a #ValentBattery
  *
- * Get whether the battery is below the level considered low for @device.
+ * Get whether the battery is below the level considered low for @battery.
  *
  * Returns: `1` if below the threshold, or `0` otherwise
  */
 unsigned int
-valent_battery_get_threshold (ValentBattery *device)
+valent_battery_get_threshold (ValentBattery *battery)
 {
-  g_return_val_if_fail (VALENT_IS_BATTERY (device), 0);
+  g_return_val_if_fail (VALENT_IS_BATTERY (battery), 0);
 
-  return device->threshold;
+  return battery->threshold;
 }
 
