@@ -36,10 +36,9 @@ jobs:
           platforms: arm64
 
       - name: Build
-        uses: bilelmoussaoui/flatpak-github-actions/flatpak-builder@69e09d1378a7d2e492c07f7f45a71293383fc9c3
+        uses: bilelmoussaoui/flatpak-github-actions/flatpak-builder@v4
         with:
-          bundle: ca.andyholmes.Valent.${{ matrix.arch }}.flatpak
+          bundle: ca.andyholmes.Valent.flatpak
           manifest-path: build-aux/flatpak/ca.andyholmes.Valent.json
-          cache-key: flatpak-builder-${{ github.sha }}
           arch: ${{ matrix.arch }}
 
