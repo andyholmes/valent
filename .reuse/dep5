@@ -1,8 +1,7 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 
 Files: *meson.build *meson_options.txt *.css *.json *ui *.wrap *.gresource.xml
-    *.gschema.xml *.metainfo.xml* *.plugin *.plugin.desktop.in *.md
-    *ca.andyholmes.Valent*
+    *.gschema.xml *.plugin *.md *ca.andyholmes.Valent*
 Copyright: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 License: GPL-3.0-or-later
 
@@ -10,7 +9,7 @@ Files: doc/* po/*
 Copyright: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 License: LGPL-2.1-or-later
 
-Files: *.oga *.png *.svg build-aux/* data/firewalld/* valent.doap
+Files: *.metainfo.xml *.oga *.png *.svg build-aux valent.doap
     .github .gitignore .gitmodules
 Copyright: No rights reserved
 License: CC0-1.0
