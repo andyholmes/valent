@@ -143,7 +143,6 @@ valent_media_player_provider_load_cb (ValentMediaPlayerProvider *provider,
 
   g_assert (VALENT_IS_MEDIA_PLAYER_PROVIDER (provider));
   g_assert (g_task_is_valid (result, provider));
-  g_assert (VALENT_IS_MEDIA (self));
 
   if (!valent_media_player_provider_load_finish (provider, result, &error) &&
       !valent_error_ignore (error))

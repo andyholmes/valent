@@ -47,7 +47,7 @@ static void valent_mpris_plugin_request_update      (ValentMprisPlugin *self,
                                                      const char        *name);
 static void valent_mpris_plugin_send_album_art      (ValentMprisPlugin *self,
                                                      ValentMediaPlayer *player,
-                                                     const char        *uri);
+                                                     const char        *requested_uri);
 static void valent_mpris_plugin_send_player_info    (ValentMprisPlugin *self,
                                                      ValentMediaPlayer *player,
                                                      gboolean           now_playing,
@@ -76,38 +76,39 @@ send_album_art_cb (ValentTransfer    *transfer,
 static void
 valent_mpris_plugin_send_album_art (ValentMprisPlugin *self,
                                     ValentMediaPlayer *player,
-                                    const char        *url)
+                                    const char        *requested_uri)
 {
   g_autoptr (GVariant) metadata = NULL;
-  const char *art_url;
-  g_autoptr (GFile) art_file = NULL;
-  g_autoptr (GFile) req_file = NULL;
+  const char *real_uri;
+  g_autoptr (GFile) real_file = NULL;
+  g_autoptr (GFile) requested_file = NULL;
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
   g_autoptr (ValentTransfer) transfer = NULL;
 
   g_assert (VALENT_IS_MPRIS_PLUGIN (self));
 
-  /* Reject concurrent requests */
-  if (g_hash_table_contains (self->artwork_transfers, url))
+  /* Ignore concurrent requests */
+  if (g_hash_table_contains (self->artwork_transfers, requested_uri))
     return;
 
   /* Check player and URL are safe */
   if ((metadata = valent_media_player_get_metadata (player)) == NULL ||
-      !g_variant_lookup (metadata, "mpris:artUrl", "&s", &art_url))
+      !g_variant_lookup (metadata, "mpris:artUrl", "&s", &real_uri))
     {
-      g_warning ("Album art request \"%s\" for track without album art", url);
+      g_warning ("Album art request \"%s\" for track without album art",
+                 requested_uri);
       return;
     }
 
   /* Compare normalized URLs */
-  req_file = g_file_new_for_uri (url);
-  art_file = g_file_new_for_uri (art_url);
+  requested_file = g_file_new_for_uri (requested_uri);
+  real_file = g_file_new_for_uri (real_uri);
 
-  if (!g_file_equal (req_file, art_file))
+  if (!g_file_equal (requested_file, real_file))
     {
       g_warning ("Album art request \"%s\" doesn't match current track \"%s\"",
-                 url, art_url);
+                 requested_uri, real_uri);
       return;
     }
 
@@ -116,15 +117,15 @@ valent_mpris_plugin_send_album_art (ValentMprisPlugin *self,
   json_builder_set_member_name (builder, "player");
   json_builder_add_string_value (builder, valent_media_player_get_name (player));
   json_builder_set_member_name (builder, "albumArtUrl");
-  json_builder_add_string_value (builder, art_url);
+  json_builder_add_string_value (builder, requested_uri);
   json_builder_set_member_name (builder, "transferringAlbumArt");
   json_builder_add_boolean_value (builder, TRUE);
   packet = valent_packet_finish (builder);
 
   /* Start the transfer */
   transfer = valent_transfer_new (self->device);
-  valent_transfer_set_id (transfer, url);
-  valent_transfer_add_file (transfer, packet, art_file);
+  valent_transfer_set_id (transfer, requested_uri);
+  valent_transfer_add_file (transfer, packet, real_file);
 
   g_hash_table_add (self->artwork_transfers,
                     (char *)valent_transfer_get_id (transfer));
@@ -488,22 +489,6 @@ watch_media (ValentMprisPlugin *self,
  * Remote Players
  */
 static void
-remote_export_cb (ValentMprisRemote *remote,
-                  GAsyncResult      *result,
-                  ValentMprisPlugin *self)
-{
-  g_autoptr (GError) error = NULL;
-  const char *name;
-
-  name = valent_media_player_get_name (VALENT_MEDIA_PLAYER (remote));
-
-  if (valent_mpris_remote_export_finish (remote, result, &error))
-    valent_mpris_plugin_request_update (self, name);
-  else
-    g_warning ("Exporting %s: %s", name, error->message);
-}
-
-static void
 on_remote_method (ValentMprisRemote *remote,
                   const char        *method_name,
                   GVariant          *args,
@@ -520,12 +505,12 @@ on_remote_method (ValentMprisRemote *remote,
   json_builder_set_member_name (builder, "player");
   json_builder_add_string_value (builder, valent_media_player_get_name (player));
 
-  if (g_strcmp0 (method_name, "PlayPause") == 0 ||
-      g_strcmp0 (method_name, "Play") == 0 ||
+  if (g_strcmp0 (method_name, "Next") == 0 ||
       g_strcmp0 (method_name, "Pause") == 0 ||
-      g_strcmp0 (method_name, "Stop") == 0 ||
-      g_strcmp0 (method_name, "Next") == 0 ||
-      g_strcmp0 (method_name, "Previous") == 0)
+      g_strcmp0 (method_name, "Play") == 0 ||
+      g_strcmp0 (method_name, "PlayPause") == 0 ||
+      g_strcmp0 (method_name, "Previous") == 0 ||
+      g_strcmp0 (method_name, "Stop") == 0)
     {
       json_builder_set_member_name (builder, "action");
       json_builder_add_string_value (builder, method_name);
@@ -749,6 +734,7 @@ valent_mpris_plugin_handle_player_list (ValentMprisPlugin *self,
   gpointer key;
   g_autofree const char **names = NULL;
 
+  /* Collect the remote player names */
   n_players = json_array_get_length (player_list);
   names = g_new (const char *, n_players + 1);
 
@@ -769,16 +755,17 @@ valent_mpris_plugin_handle_player_list (ValentMprisPlugin *self,
   for (unsigned int i = 0; names[i]; i++)
     {
       ValentMprisRemote *remote;
+      const char *player = names[i];
 
-      if (g_hash_table_contains (self->remotes, names[i]))
+      if (g_hash_table_contains (self->remotes, player))
         continue;
 
       remote = valent_mpris_remote_new ();
-      valent_mpris_remote_set_name (remote, names[i]);
-      g_hash_table_insert (self->remotes, g_strdup (names[i]), remote);
+      valent_mpris_remote_set_name (remote, player);
+      g_hash_table_insert (self->remotes, g_strdup (player), remote);
 
       g_signal_connect (remote,
-                        "player-method",
+                        "method-call",
                         G_CALLBACK (on_remote_method),
                         self);
       g_signal_connect (remote,
@@ -786,10 +773,8 @@ valent_mpris_plugin_handle_player_list (ValentMprisPlugin *self,
                         G_CALLBACK (on_remote_set_property),
                         self);
 
-      valent_mpris_remote_export (remote,
-                                  NULL,
-                                  (GAsyncReadyCallback)remote_export_cb,
-                                  self);
+      valent_mpris_remote_export (remote);
+      valent_mpris_plugin_request_update (self, player);
     }
 }
 

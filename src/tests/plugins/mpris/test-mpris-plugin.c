@@ -182,18 +182,18 @@ test_mpris_plugin_handle_request (ValentTestPluginFixture *fixture,
                     G_CALLBACK (on_player_removed),
                     fixture);
 
-  /* Export test player */
+  /* Export a mock player that we can use to poke the plugin during testing */
   remote = valent_mpris_remote_new ();
   valent_mpris_remote_set_name (remote, "Test Player");
-  valent_mpris_remote_set_bus_name (remote, "org.mpris.MediaPlayer2.Test");
-  valent_mpris_remote_export (remote,
-                              NULL,
-                              (GAsyncReadyCallback)export_cb,
-                              fixture);
+  valent_mpris_remote_export_full (remote,
+                                   "org.mpris.MediaPlayer2.Test",
+                                   NULL,
+                                   (GAsyncReadyCallback)export_cb,
+                                   fixture);
   valent_test_plugin_fixture_run (fixture);
 
   g_signal_connect (remote,
-                    "player-method",
+                    "method-call",
                     G_CALLBACK (on_remote_method),
                     fixture);
   g_signal_connect (remote,
@@ -201,16 +201,16 @@ test_mpris_plugin_handle_request (ValentTestPluginFixture *fixture,
                     G_CALLBACK (on_remote_set_property),
                     fixture);
 
-  /* ... */
+  /* Connect and read handshake packets */
   valent_test_plugin_fixture_connect (fixture, TRUE);
 
-  /* Player List Request */
+  /* Expect a request for our players */
   packet = valent_test_plugin_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
   v_assert_packet_true (packet, "requestPlayerList");
   json_node_unref (packet);
 
-  /* Player List */
+  /* Expect a list of their players, which should include the mock player */
   packet = valent_test_plugin_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris");
   player_list = json_object_get_array_member (valent_packet_get_body (packet),

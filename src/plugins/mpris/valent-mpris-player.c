@@ -8,24 +8,27 @@
 #include <gio/gio.h>
 #include <libvalent-media.h>
 
+#include "valent-mpris-common.h"
 #include "valent-mpris-player.h"
 
 
 struct _ValentMPRISPlayer
 {
-  ValentMediaPlayer  parent_instance;
+  ValentMediaPlayer   parent_instance;
 
-  char              *bus_name;
-  GDBusProxy        *application;
-  GDBusProxy        *player;
-  unsigned int       no_position : 1;
+  char               *bus_name;
+  GDBusProxy         *application;
+  GDBusProxy         *player;
+  unsigned int        no_position : 1;
 
-  ValentMediaActions flags;
-  ValentMediaState   state;
+  ValentMediaActions  flags;
+  ValentMediaState    state;
 };
 
+static void valent_mpris_player_update_flags (ValentMPRISPlayer *self);
+static void valent_mpris_player_update_state (ValentMPRISPlayer *self);
 
-static void async_initable_iface_init (GAsyncInitableIface *iface);
+static void async_initable_iface_init        (GAsyncInitableIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (ValentMPRISPlayer, valent_mpris_player, VALENT_TYPE_MEDIA_PLAYER,
                          G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, async_initable_iface_init))
@@ -80,6 +83,8 @@ on_application_properties_changed (GDBusProxy        *application,
   if (g_variant_dict_contains (&dict, "Identity"))
     g_object_notify (G_OBJECT (player), "name");
 
+  g_variant_dict_clear (&dict);
+
   valent_media_player_emit_changed (player);
 }
 
@@ -121,7 +126,7 @@ on_player_signal (GDBusProxy        *proxy,
     {
       gint64 offset;
 
-      g_variant_get_child (parameters, 0, "x", &offset);
+      g_variant_get (parameters, "(x)", &offset);
       valent_media_player_emit_seeked (player, offset);
     }
 }
@@ -156,6 +161,9 @@ valent_mpris_player_init_player_cb (GObject      *object,
                     G_CALLBACK (on_player_signal),
                     self);
 
+  valent_mpris_player_update_flags (self);
+  valent_mpris_player_update_state (self);
+
   g_task_return_boolean (task, TRUE);
 }
 
@@ -185,7 +193,7 @@ valent_mpris_player_init_application_cb (GObject      *object,
 
   g_dbus_proxy_new_for_bus (G_BUS_TYPE_SESSION,
                             G_DBUS_PROXY_FLAGS_GET_INVALIDATED_PROPERTIES,
-                            NULL,
+                            valent_mpris_get_player_iface (),
                             self->bus_name,
                             "/org/mpris/MediaPlayer2",
                             "org.mpris.MediaPlayer2.Player",
@@ -212,7 +220,7 @@ valent_mpris_player_init_async (GAsyncInitable      *initable,
 
   g_dbus_proxy_new_for_bus (G_BUS_TYPE_SESSION,
                             G_DBUS_PROXY_FLAGS_GET_INVALIDATED_PROPERTIES,
-                            NULL,
+                            valent_mpris_get_application_iface (),
                             self->bus_name,
                             "/org/mpris/MediaPlayer2",
                             "org.mpris.MediaPlayer2",
@@ -276,23 +284,18 @@ valent_mpris_player_set_shuffle (ValentMediaPlayer *player,
                      NULL);
 }
 
-/*
- * ValentMediaPlayer
- */
-static ValentMediaActions
-valent_mpris_player_get_flags (ValentMediaPlayer *player)
+static void
+valent_mpris_player_update_flags (ValentMPRISPlayer *self)
 {
-  ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
   g_autoptr (GVariant) value = NULL;
 
-  // Controllable
+  // TODO: Controllable
   value = g_dbus_proxy_get_cached_property (self->player, "CanControl");
 
   if (value && !g_variant_get_boolean (value))
-    {
-      self->flags = VALENT_MEDIA_ACTION_NONE;
-      return self->flags;
-    }
+    self->flags = VALENT_MEDIA_ACTION_NONE;
+
+  g_clear_pointer (&value, g_variant_unref);
 
   // Next
   value = g_dbus_proxy_get_cached_property (self->player, "CanGoNext");
@@ -343,15 +346,11 @@ valent_mpris_player_get_flags (ValentMediaPlayer *player)
     self->flags &= ~VALENT_MEDIA_ACTION_SEEK;
 
   g_clear_pointer (&value, g_variant_unref);
-
-
-  return self->flags;
 }
 
-static ValentMediaState
-valent_mpris_player_get_state (ValentMediaPlayer *player)
+static void
+valent_mpris_player_update_state (ValentMPRISPlayer *self)
 {
-  ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
   const char *loop_status = "None";
   const char *play_status = "Stopped";
   g_autoptr (GVariant) value = NULL;
@@ -369,8 +368,8 @@ valent_mpris_player_get_state (ValentMediaPlayer *player)
     }
   else if (g_strcmp0 (loop_status, "Track") == 0)
     {
-      self->state |= VALENT_MEDIA_STATE_REPEAT;
       self->state &= ~VALENT_MEDIA_STATE_REPEAT_ALL;
+      self->state |= VALENT_MEDIA_STATE_REPEAT;
     }
   else if (g_strcmp0 (loop_status, "Playlist") == 0)
     {
@@ -388,18 +387,18 @@ valent_mpris_player_get_state (ValentMediaPlayer *player)
 
   if (g_strcmp0 (play_status, "Paused") == 0)
     {
-      self->state |= (VALENT_MEDIA_STATE_PLAYING |
-                      VALENT_MEDIA_STATE_STOPPED);
+      self->state &= ~VALENT_MEDIA_STATE_PLAYING;
+      self->state |= VALENT_MEDIA_STATE_PAUSED;
     }
   else if (g_strcmp0 (play_status, "Playing") == 0)
     {
+      self->state &= ~VALENT_MEDIA_STATE_PAUSED;
       self->state |= VALENT_MEDIA_STATE_PLAYING;
-      self->state &= ~VALENT_MEDIA_STATE_STOPPED;
     }
   else if (g_strcmp0 (play_status, "Stopped") == 0)
     {
+      self->state &= ~VALENT_MEDIA_STATE_PAUSED;
       self->state &= ~VALENT_MEDIA_STATE_PLAYING;
-      self->state |= VALENT_MEDIA_STATE_STOPPED;
     }
 
   g_clear_pointer (&value, g_variant_unref);
@@ -413,6 +412,23 @@ valent_mpris_player_get_state (ValentMediaPlayer *player)
     self->state &= ~VALENT_MEDIA_STATE_SHUFFLE;
 
   g_clear_pointer (&value, g_variant_unref);
+}
+
+/*
+ * ValentMediaPlayer
+ */
+static ValentMediaActions
+valent_mpris_player_get_flags (ValentMediaPlayer *player)
+{
+  ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
+
+  return self->flags;
+}
+
+static ValentMediaState
+valent_mpris_player_get_state (ValentMediaPlayer *player)
+{
+  ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
 
   return self->state;
 }
@@ -541,7 +557,7 @@ valent_mpris_player_open_uri (ValentMediaPlayer *player,
 
   g_dbus_proxy_call (self->player,
                      "OpenUri",
-                     g_variant_new_string (uri),
+                     g_variant_new ("(s)", uri),
                      G_DBUS_CALL_FLAGS_NONE,
                      -1,
                      NULL,
@@ -670,6 +686,23 @@ valent_mpris_player_finalize (GObject *object)
 }
 
 static void
+valent_mpris_player_notify (GObject    *object,
+                            GParamSpec *pspec)
+{
+  ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (object);
+  const char *name = g_param_spec_get_name (pspec);
+
+  if (g_str_equal (name, "flags"))
+    valent_mpris_player_update_flags (self);
+
+  else if (g_str_equal (name, "state"))
+    valent_mpris_player_update_state (self);
+
+  if (G_OBJECT_CLASS (valent_mpris_player_parent_class)->notify)
+    G_OBJECT_CLASS (valent_mpris_player_parent_class)->notify (object, pspec);
+}
+
+static void
 valent_mpris_player_get_property (GObject    *object,
                                   guint       prop_id,
                                   GValue     *value,
@@ -719,6 +752,7 @@ valent_mpris_player_class_init (ValentMPRISPlayerClass *klass)
   ValentMediaPlayerClass *player_class = VALENT_MEDIA_PLAYER_CLASS (klass);
 
   object_class->finalize = valent_mpris_player_finalize;
+  object_class->notify = valent_mpris_player_notify;
   object_class->get_property = valent_mpris_player_get_property;
   object_class->set_property = valent_mpris_player_set_property;
 

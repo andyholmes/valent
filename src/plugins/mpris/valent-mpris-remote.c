@@ -8,6 +8,7 @@
 #include <gio/gio.h>
 #include <libvalent-media.h>
 
+#include "valent-mpris-common.h"
 #include "valent-mpris-remote.h"
 
 
@@ -16,18 +17,16 @@ struct _ValentMprisRemote
   ValentMediaPlayer     parent_instance;
 
   GDBusConnection      *connection;
-  unsigned int          application_id;
-  GDBusInterfaceVTable  application_vtable;
-  unsigned int          player_id;
-  GDBusInterfaceVTable  player_vtable;
-  unsigned int          name_id;
-
-  unsigned int          idle_id;
-  GHashTable           *player_properties;
-  GHashTable           *cache;
   char                 *bus_name;
+  unsigned int          bus_name_id;
+
+  unsigned int          flush_id;
+  GHashTable           *cache;
+  GHashTable           *player_buffer;
 
   /* org.mpris.MediaPlayer2 */
+  unsigned int          application_id;
+  GDBusInterfaceVTable  application_vtable;
   char                 *identity;
   unsigned int          fullscreen : 1;
   unsigned int          can_fullscreen : 1;
@@ -36,22 +35,28 @@ struct _ValentMprisRemote
   unsigned int          has_tracklist : 1;
 
   /* org.mpris.MediaPlayer2.Player */
+  unsigned int          player_id;
+  GDBusInterfaceVTable  player_vtable;
   ValentMediaActions    flags;
   ValentMediaState      state;
   char                 *loop_status;
   GVariant             *metadata;
-  char                 *playback_status;
   gint64                position;
   double                volume;
 };
 
-static void valent_mpris_remote_flush (ValentMprisRemote *self);
+static void     valent_mpris_remote_flush     (ValentMprisRemote  *self);
+static gboolean valent_mpris_remote_register  (ValentMprisRemote  *self,
+                                               GError            **error);
+static void     valent_mpris_remote_set_value (ValentMprisRemote  *self,
+                                               const char         *name,
+                                               GVariant           *value);
 
 G_DEFINE_TYPE (ValentMprisRemote, valent_mpris_remote, VALENT_TYPE_MEDIA_PLAYER)
 
 
 enum {
-  PLAYER_METHOD,
+  METHOD_CALL,
   SET_PROPERTY,
   N_SIGNALS
 };
@@ -60,102 +65,141 @@ static guint signals [N_SIGNALS] = { 0, };
 
 
 /*
- * DBus Interfaces
+ * Auto-Export
  */
-static const char dbus_xml[] =
-  "<node>"
-  "  <interface name='org.mpris.MediaPlayer2'>"
-  "    <method name='Raise'/>"
-  "    <method name='Quit'/>"
-  "    <property name='CanQuit' type='b' access='read'/>"
-  "    <property name='Fullscreen' type='b' access='readwrite'/>"
-  "    <property name='CanSetFullscreen' type='b' access='read'/>"
-  "    <property name='CanRaise' type='b' access='read'/>"
-  "    <property name='HasTrackList' type='b' access='read'/>"
-  "    <property name='Identity' type='s' access='read'/>"
-  "    <property name='DesktopEntry' type='s' access='read'/>"
-  "    <property name='SupportedUriSchemes' type='as' access='read'/>"
-  "    <property name='SupportedMimeTypes' type='as' access='read'/>"
-  "  </interface>"
-  "  <interface name='org.mpris.MediaPlayer2.Player'>"
-  "    <method name='Next'/>"
-  "    <method name='Previous'/>"
-  "    <method name='Pause'/>"
-  "    <method name='PlayPause'/>"
-  "    <method name='Stop'/>"
-  "    <method name='Play'/>"
-  "    <method name='Seek'>"
-  "      <arg direction='in' type='x' name='Offset'/>"
-  "    </method>"
-  "    <method name='SetPosition'>"
-  "      <arg direction='in' type='o' name='TrackId'/>"
-  "      <arg direction='in' type='x' name='Position'/>"
-  "    </method>"
-  "    <method name='OpenUri'>"
-  "      <arg direction='in' type='s' name='Uri'/>"
-  "    </method>"
-  "    <property name='PlaybackStatus' type='s' access='read'/>"
-  "    <property name='LoopStatus' type='s' access='readwrite'/>"
-  "    <property name='Rate' type='d' access='readwrite'/>"
-  "    <property name='Shuffle' type='b' access='readwrite'/>"
-  "    <property name='Metadata' type='a{sv}' access='read'/>"
-  "    <property name='Volume' type='d' access='readwrite'/>"
-  "    <property name='Position' type='x' access='read'/>"
-  "    <property name='MinimumRate' type='d' access='read'/>"
-  "    <property name='MaximumRate' type='d' access='read'/>"
-  "    <property name='CanGoNext' type='b' access='read'/>"
-  "    <property name='CanGoPrevious' type='b' access='read'/>"
-  "    <property name='CanPlay' type='b' access='read'/>"
-  "    <property name='CanPause' type='b' access='read'/>"
-  "    <property name='CanSeek' type='b' access='read'/>"
-  "    <property name='CanControl' type='b' access='read'/>"
-  "    <signal name='Seeked'>"
-  "      <arg name='Position' type='x'/>"
-  "    </signal>"
-  "  </interface>"
-  "</node>";
-
-static GDBusNodeInfo *node_info = NULL;
+static ValentMprisRemote *mpris_active = NULL;
+static GDBusConnection *mpris_connection = NULL;
+static GHashTable *mpris_exports = NULL;
 
 
 static inline void
-init_node_info (void)
+valent_mpris_remote_auto_export_init (void)
 {
-  if G_LIKELY (node_info != NULL)
+  static gsize guard = 0;
+
+  if (g_once_init_enter (&guard))
+    {
+      mpris_connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
+      mpris_exports = g_hash_table_new (NULL, NULL);
+
+      g_once_init_leave (&guard, 1);
+    }
+}
+
+static inline void
+valent_media_remote_auto_export_check (ValentMprisRemote *remote)
+{
+  unsigned int n_exports = g_hash_table_size (mpris_exports);
+
+  /* Nothing to do */
+  if (n_exports == 0)
     return;
 
-  node_info = g_dbus_node_info_new_for_xml (dbus_xml, NULL);
-  g_dbus_interface_info_cache_build (node_info->interfaces[0]);
-  g_dbus_interface_info_cache_build (node_info->interfaces[1]);
+  /* Ensure we have a remote */
+  if (remote == NULL)
+    {
+      GHashTableIter iter;
+
+      g_hash_table_iter_init (&iter, mpris_exports);
+      g_hash_table_iter_next (&iter, (void **)&remote, NULL);
+    }
+
+  /* If the exported remote stopped, maybe export a different one */
+  if (!valent_media_player_is_playing (VALENT_MEDIA_PLAYER (remote)))
+    {
+      GHashTableIter iter;
+      gpointer player;
+
+      /* It wasn't the exported remote that stopped */
+      if (mpris_active && mpris_active != remote)
+        return;
+
+      /* Look for a replacement */
+      g_hash_table_iter_init (&iter, mpris_exports);
+
+      while (g_hash_table_iter_next (&iter, &player, NULL))
+        {
+          if (valent_media_player_is_playing (player))
+            {
+              remote = player;
+              break;
+            }
+        }
+    }
+
+  /* Nothing to do */
+  if (mpris_active == remote)
+    return;
+
+  /* Temporarily untrack the remote to really unexport */
+  if (mpris_active)
+    {
+      ValentMprisRemote *unexport = mpris_active;
+
+      g_hash_table_remove (mpris_exports, unexport);
+
+      valent_mpris_remote_flush (mpris_active);
+      g_clear_pointer (&mpris_active, valent_mpris_remote_unexport);
+
+      g_hash_table_add (mpris_exports, unexport);
+    }
+
+  /* Looping on failure is risky, so just wait for the next state change */
+  if (remote)
+    {
+      g_autoptr (GError) error = NULL;
+
+      if (valent_mpris_remote_register (remote, &error))
+        mpris_active = remote;
+      else
+        g_warning ("%s: %s", G_STRFUNC, error->message);
+    }
 }
 
-static gboolean
-idle_cb (gpointer data)
+static inline gboolean
+valent_mpris_remote_auto_export (ValentMprisRemote *remote)
 {
-  ValentMprisRemote *self = VALENT_MPRIS_REMOTE (data);
+  if (g_strcmp0 (remote->bus_name, VALENT_MPRIS_DBUS_NAME) != 0)
+    return FALSE;
 
-  if (G_IS_DBUS_CONNECTION (self->connection))
-    valent_mpris_remote_flush (self);
+  if (!g_hash_table_add (mpris_exports, remote))
+    return FALSE;
 
-  return G_SOURCE_REMOVE;
+  /* Set the connection and watch for changes */
+  g_set_object (&remote->connection, mpris_connection);
+  g_signal_connect (remote,
+                    "notify::state",
+                    G_CALLBACK (valent_media_remote_auto_export_check),
+                    mpris_connection);
+  valent_media_remote_auto_export_check (remote);
+
+  return TRUE;
 }
 
-static void
-emit_property_changed (ValentMprisRemote *self,
-                       const char        *property_name,
-                       GVariant          *property_value)
+static inline gboolean
+valent_mpris_remote_auto_unexport (ValentMprisRemote *remote)
 {
-  g_hash_table_replace (self->cache,
-                        g_strdup (property_name),
-                        g_variant_ref_sink (property_value));
+  if (g_strcmp0 (remote->bus_name, VALENT_MPRIS_DBUS_NAME) != 0)
+    return FALSE;
 
-  g_hash_table_replace (self->player_properties,
-                        g_strdup (property_name),
-                        g_variant_ref_sink (property_value));
+  if (!g_hash_table_remove (mpris_exports, remote))
+    return FALSE;
 
-  if (self->idle_id == 0)
-    self->idle_id = g_idle_add (idle_cb, self);
+  /* Unexport, stop watching for changes and drop the connection */
+  if (mpris_active == remote)
+    {
+      valent_mpris_remote_flush (mpris_active);
+      g_clear_pointer (&mpris_active, valent_mpris_remote_unexport);
+
+      valent_media_remote_auto_export_check (NULL);
+    }
+
+  g_signal_handlers_disconnect_by_data (remote, mpris_connection);
+  g_clear_object (&remote->connection);
+
+  return TRUE;
 }
+
 
 /*
  * org.mpris.MediaPlayer2 VTable
@@ -170,11 +214,12 @@ application_method_call (GDBusConnection       *connection,
                          GDBusMethodInvocation *invocation,
                          gpointer               user_data)
 {
-  g_dbus_method_invocation_return_error (invocation,
-                                         G_DBUS_ERROR,
-                                         G_DBUS_ERROR_NOT_SUPPORTED,
-                                         "%s is not supported",
-                                         method_name);
+  ValentMprisRemote *self = VALENT_MPRIS_REMOTE (user_data);
+
+  g_signal_emit (G_OBJECT (self),
+                 signals [METHOD_CALL], 0,
+                 method_name, parameters);
+  g_dbus_method_invocation_return_value (invocation, NULL);
 }
 
 static GVariant *
@@ -195,7 +240,9 @@ application_get_property (GDBusConnection  *connection,
   if (g_strcmp0 (property_name, "Identity") == 0)
     {
       value = g_variant_new_string (self->identity);
-      g_hash_table_replace (self->cache, g_strdup (property_name), g_variant_ref_sink (value));
+      g_hash_table_replace (self->cache,
+                            g_strdup (property_name),
+                            g_variant_ref_sink (value));
 
       return g_variant_ref_sink (value);
     }
@@ -203,7 +250,9 @@ application_get_property (GDBusConnection  *connection,
   if (g_strcmp0 (property_name, "CanQuit") == 0)
     {
       value = g_variant_new_boolean (self->can_quit);
-      g_hash_table_replace (self->cache, g_strdup (property_name), g_variant_ref_sink (value));
+      g_hash_table_replace (self->cache,
+                            g_strdup (property_name),
+                            g_variant_ref_sink (value));
 
       return g_variant_ref_sink (value);
     }
@@ -211,7 +260,9 @@ application_get_property (GDBusConnection  *connection,
   if (g_strcmp0 (property_name, "Fullscreen") == 0)
     {
       value = g_variant_new_boolean (self->fullscreen);
-      g_hash_table_replace (self->cache, g_strdup (property_name), g_variant_ref_sink (value));
+      g_hash_table_replace (self->cache,
+                            g_strdup (property_name),
+                            g_variant_ref_sink (value));
 
       return g_variant_ref_sink (value);
     }
@@ -219,7 +270,9 @@ application_get_property (GDBusConnection  *connection,
   if (g_strcmp0 (property_name, "CanSetFullscreen") == 0)
     {
       value = g_variant_new_boolean (self->can_fullscreen);
-      g_hash_table_replace (self->cache, g_strdup (property_name), g_variant_ref_sink (value));
+      g_hash_table_replace (self->cache,
+                            g_strdup (property_name),
+                            g_variant_ref_sink (value));
 
       return g_variant_ref_sink (value);
     }
@@ -227,7 +280,9 @@ application_get_property (GDBusConnection  *connection,
   if (g_strcmp0 (property_name, "CanRaise") == 0)
     {
       value = g_variant_new_boolean (self->can_raise);
-      g_hash_table_replace (self->cache, g_strdup (property_name), g_variant_ref_sink (value));
+      g_hash_table_replace (self->cache,
+                            g_strdup (property_name),
+                            g_variant_ref_sink (value));
 
       return g_variant_ref_sink (value);
     }
@@ -235,7 +290,9 @@ application_get_property (GDBusConnection  *connection,
   if (g_strcmp0 (property_name, "HasTrackList") == 0)
     {
       value = g_variant_new_boolean (self->has_tracklist);
-      g_hash_table_replace (self->cache, g_strdup (property_name), g_variant_ref_sink (value));
+      g_hash_table_replace (self->cache,
+                            g_strdup (property_name),
+                            g_variant_ref_sink (value));
 
       return g_variant_ref_sink (value);
     }
@@ -243,7 +300,9 @@ application_get_property (GDBusConnection  *connection,
   if (g_strcmp0 (property_name, "DesktopEntry") == 0)
     {
       value = g_variant_new_string (APPLICATION_ID".desktop");
-      g_hash_table_replace (self->cache, g_strdup (property_name), g_variant_ref_sink (value));
+      g_hash_table_replace (self->cache,
+                            g_strdup (property_name),
+                            g_variant_ref_sink (value));
 
       return g_variant_ref_sink (value);
     }
@@ -251,7 +310,9 @@ application_get_property (GDBusConnection  *connection,
   if (g_strcmp0 (property_name, "SupportedUriSchemes") == 0)
     {
       value = g_variant_new_strv (NULL, 0);
-      g_hash_table_replace (self->cache, g_strdup (property_name), g_variant_ref_sink (value));
+      g_hash_table_replace (self->cache,
+                            g_strdup (property_name),
+                            g_variant_ref_sink (value));
 
       return g_variant_ref_sink (value);
     }
@@ -259,7 +320,9 @@ application_get_property (GDBusConnection  *connection,
   if (g_strcmp0 (property_name, "SupportedMimeTypes") == 0)
     {
       value = g_variant_new_strv (NULL, 0);
-      g_hash_table_replace (self->cache, g_strdup (property_name), g_variant_ref_sink (value));
+      g_hash_table_replace (self->cache,
+                            g_strdup (property_name),
+                            g_variant_ref_sink (value));
 
       return g_variant_ref_sink (value);
     }
@@ -286,24 +349,12 @@ application_set_property (GDBusConnection  *connection,
 
   if (g_strcmp0 (property_name, "Fullscreen") == 0)
     {
-      gboolean fullscreen = g_variant_get_boolean (value);
-
-      if (self->fullscreen != fullscreen)
-        {
-          self->fullscreen = fullscreen;
-          g_object_notify (G_OBJECT (self), "fullscreen");
-        }
-    }
-  else
-    {
-      g_set_error (error,
-                   G_DBUS_ERROR,
-                   G_DBUS_ERROR_UNKNOWN_PROPERTY,
-                   "Unknown property \"%s\"", property_name);
-      return FALSE;
+      if (self->fullscreen == g_variant_get_boolean (value))
+        return TRUE;
     }
 
-  emit_property_changed (self, property_name, value);
+  g_signal_emit (G_OBJECT (self), signals [SET_PROPERTY], 0, property_name, value);
+
   return TRUE;
 }
 
@@ -323,9 +374,9 @@ player_method_call (GDBusConnection       *connection,
   ValentMprisRemote *self = VALENT_MPRIS_REMOTE (user_data);
 
   g_signal_emit (G_OBJECT (self),
-                 signals [PLAYER_METHOD], 0,
+                 signals [METHOD_CALL], 0,
                  method_name, parameters);
-  g_dbus_method_invocation_return_value (invocation, g_variant_new ("()"));
+  g_dbus_method_invocation_return_value (invocation, NULL);
 }
 
 static GVariant *
@@ -348,7 +399,9 @@ player_get_property (GDBusConnection  *connection,
   if (g_strcmp0 (property_name, "CanControl") == 0)
     {
       value = g_variant_new_boolean (TRUE);
-      g_hash_table_replace (self->cache, g_strdup (property_name), g_variant_ref_sink (value));
+      g_hash_table_replace (self->cache,
+                            g_strdup (property_name),
+                            g_variant_ref_sink (value));
 
       return g_variant_ref_sink (value);
     }
@@ -356,7 +409,9 @@ player_get_property (GDBusConnection  *connection,
   if (g_strcmp0 (property_name, "CanGoNext") == 0)
     {
       value = g_variant_new_boolean ((self->flags & VALENT_MEDIA_ACTION_NEXT) != 0);
-      g_hash_table_replace (self->cache, g_strdup (property_name), g_variant_ref_sink (value));
+      g_hash_table_replace (self->cache,
+                            g_strdup (property_name),
+                            g_variant_ref_sink (value));
 
       return g_variant_ref_sink (value);
     }
@@ -364,7 +419,9 @@ player_get_property (GDBusConnection  *connection,
   if (g_strcmp0 (property_name, "CanGoPrevious") == 0)
     {
       value = g_variant_new_boolean ((self->flags & VALENT_MEDIA_ACTION_PREVIOUS) != 0);
-      g_hash_table_replace (self->cache, g_strdup (property_name), g_variant_ref_sink (value));
+      g_hash_table_replace (self->cache,
+                            g_strdup (property_name),
+                            g_variant_ref_sink (value));
 
       return g_variant_ref_sink (value);
     }
@@ -372,7 +429,9 @@ player_get_property (GDBusConnection  *connection,
   if (g_strcmp0 (property_name, "CanPlay") == 0)
     {
       value = g_variant_new_boolean ((self->flags & VALENT_MEDIA_ACTION_PLAY) != 0);
-      g_hash_table_replace (self->cache, g_strdup (property_name), g_variant_ref_sink (value));
+      g_hash_table_replace (self->cache,
+                            g_strdup (property_name),
+                            g_variant_ref_sink (value));
 
       return g_variant_ref_sink (value);
     }
@@ -380,7 +439,9 @@ player_get_property (GDBusConnection  *connection,
   if (g_strcmp0 (property_name, "CanPause") == 0)
     {
       value = g_variant_new_boolean ((self->flags & VALENT_MEDIA_ACTION_PAUSE) != 0);
-      g_hash_table_replace (self->cache, g_strdup (property_name), g_variant_ref_sink (value));
+      g_hash_table_replace (self->cache,
+                            g_strdup (property_name),
+                            g_variant_ref_sink (value));
 
       return g_variant_ref_sink (value);
     }
@@ -388,7 +449,9 @@ player_get_property (GDBusConnection  *connection,
   if (g_strcmp0 (property_name, "CanSeek") == 0)
     {
       value = g_variant_new_boolean ((self->flags & VALENT_MEDIA_ACTION_SEEK) != 0);
-      g_hash_table_replace (self->cache, g_strdup (property_name), g_variant_ref_sink (value));
+      g_hash_table_replace (self->cache,
+                            g_strdup (property_name),
+                            g_variant_ref_sink (value));
 
       return g_variant_ref_sink (value);
     }
@@ -402,12 +465,14 @@ player_get_property (GDBusConnection  *connection,
     }
 
   if (g_strcmp0 (property_name, "Position") == 0)
-    return g_variant_new_double (self->position);
+    return g_variant_new_int64 (self->position);
 
   if (g_strcmp0 (property_name, "Volume") == 0)
     {
       value = g_variant_new_double (self->volume);
-      g_hash_table_replace (self->cache, g_strdup (property_name), g_variant_ref_sink (value));
+      g_hash_table_replace (self->cache,
+                            g_strdup (property_name),
+                            g_variant_ref_sink (value));
 
       return g_variant_ref_sink (value);
     }
@@ -416,16 +481,32 @@ player_get_property (GDBusConnection  *connection,
   /* Uncommon properties */
   if (g_strcmp0 (property_name, "LoopStatus") == 0)
     {
-      value = g_variant_new_string (self->loop_status);
-      g_hash_table_replace (self->cache, g_strdup (property_name), g_variant_ref_sink (value));
+      if (self->state & VALENT_MEDIA_STATE_REPEAT_ALL)
+        value = g_variant_new_string ("Playlist");
+      else if (self->state & VALENT_MEDIA_STATE_REPEAT)
+        value = g_variant_new_string ("Track");
+      else
+        value = g_variant_new_string ("None");
+
+      g_hash_table_replace (self->cache,
+                            g_strdup (property_name),
+                            g_variant_ref_sink (value));
 
       return g_variant_ref_sink (value);
     }
 
   if (g_strcmp0 (property_name, "PlaybackStatus") == 0)
     {
-      value = g_variant_new_string (self->playback_status);
-      g_hash_table_replace (self->cache, g_strdup (property_name), g_variant_ref_sink (value));
+      if ((self->state & VALENT_MEDIA_STATE_PAUSED) != 0)
+        value = g_variant_new_string ("Paused");
+      if ((self->state & VALENT_MEDIA_STATE_PLAYING) != 0)
+        value = g_variant_new_string ("Playing");
+      else
+        value = g_variant_new_string ("Stopped");
+
+      g_hash_table_replace (self->cache,
+                            g_strdup (property_name),
+                            g_variant_ref_sink (value));
 
       return g_variant_ref_sink (value);
     }
@@ -433,7 +514,9 @@ player_get_property (GDBusConnection  *connection,
   if (g_strcmp0 (property_name, "Shuffle") == 0)
     {
       value = g_variant_new_boolean ((self->state & VALENT_MEDIA_STATE_SHUFFLE) != 0);
-      g_hash_table_replace (self->cache, g_strdup (property_name), g_variant_ref_sink (value));
+      g_hash_table_replace (self->cache,
+                            g_strdup (property_name),
+                            g_variant_ref_sink (value));
 
       return g_variant_ref_sink (value);
     }
@@ -462,16 +545,21 @@ player_set_property (GDBusConnection  *connection,
     {
       const char *loop_status = g_variant_get_string (value, NULL);
 
-      if ((self->state & VALENT_MEDIA_STATE_REPEAT) != 0 &&
-          g_strcmp0 (loop_status, "Track") == 0)
-        return TRUE;
-
-      if ((self->state & VALENT_MEDIA_STATE_REPEAT_ALL) != 0 &&
-          g_strcmp0 (loop_status, "Playlist") == 0)
-        return TRUE;
-
-      if (g_strcmp0 (loop_status, "None") == 0)
-        return TRUE;
+      if ((self->state & VALENT_MEDIA_STATE_REPEAT) != 0)
+        {
+          if (g_strcmp0 (loop_status, "Track") == 0)
+            return TRUE;
+        }
+      else if ((self->state & VALENT_MEDIA_STATE_REPEAT_ALL) != 0)
+        {
+          if (g_strcmp0 (loop_status, "Playlist") == 0)
+            return TRUE;
+        }
+      else
+        {
+          if (g_strcmp0 (loop_status, "None") == 0)
+            return TRUE;
+        }
     }
 
   else if (g_strcmp0 (property_name, "Rate") == 0)
@@ -494,29 +582,10 @@ player_set_property (GDBusConnection  *connection,
       if (self->volume == volume)
         return TRUE;
     }
-  else
-    {
-      g_set_error (error,
-                   G_DBUS_ERROR,
-                   G_DBUS_ERROR_UNKNOWN_PROPERTY,
-                   "Unknown property \"%s\"", property_name);
-      return FALSE;
-    }
 
   g_signal_emit (G_OBJECT (self), signals [SET_PROPERTY], 0, property_name, value);
 
   return TRUE;
-}
-
-/*
- * ValentMediaPayer
- */
-static const char *
-valent_mpris_remote_get_name (ValentMediaPlayer *player)
-{
-  ValentMprisRemote *self = VALENT_MPRIS_REMOTE (player);
-
-  return self->identity;
 }
 
 /**
@@ -528,6 +597,7 @@ valent_mpris_remote_get_name (ValentMediaPlayer *player)
 static void
 valent_mpris_remote_flush (ValentMprisRemote *self)
 {
+  g_autoptr (GError) error = NULL;
   GVariant *properties;
   GVariantBuilder changed_props;
   GVariantBuilder invalidated_props;
@@ -535,34 +605,67 @@ valent_mpris_remote_flush (ValentMprisRemote *self)
   GVariant *value;
   char *prop_name;
 
-  g_variant_builder_init (&changed_props, G_VARIANT_TYPE_VARDICT);
-  g_variant_builder_init (&invalidated_props, G_VARIANT_TYPE_STRING_ARRAY);
-
-  g_hash_table_iter_init (&iter, self->player_properties);
-
-  while (g_hash_table_iter_next (&iter, (void**) &prop_name, (void**) &value))
+  if (self->bus_name_id > 0)
     {
-      if (value)
-        g_variant_builder_add (&changed_props, "{sv}", prop_name, value);
-      else
-        g_variant_builder_add (&invalidated_props, "s", prop_name);
+      g_variant_builder_init (&changed_props, G_VARIANT_TYPE_VARDICT);
+      g_variant_builder_init (&invalidated_props, G_VARIANT_TYPE_STRING_ARRAY);
+
+      g_hash_table_iter_init (&iter, self->player_buffer);
+
+      while (g_hash_table_iter_next (&iter, (void**)&prop_name, (void**)&value))
+        {
+          if (value)
+            g_variant_builder_add (&changed_props, "{sv}", prop_name, value);
+          else
+            g_variant_builder_add (&invalidated_props, "s", prop_name);
+        }
+
+      properties = g_variant_new ("(s@a{sv}@as)",
+                                  "org.mpris.MediaPlayer2.Player",
+                                  g_variant_builder_end (&changed_props),
+                                  g_variant_builder_end (&invalidated_props));
+
+      g_dbus_connection_emit_signal (self->connection,
+                                     NULL,
+                                     "/org/mpris/MediaPlayer2",
+                                     "org.freedesktop.DBus.Properties",
+                                     "PropertiesChanged",
+                                     properties,
+                                     &error);
+
+      if (error != NULL)
+        g_warning ("%s: %s", G_STRFUNC, error->message);
     }
 
-  properties = g_variant_new ("(s@a{sv}@as)",
-                              "org.mpris.MediaPlayer2.Player", // FIXME
-                              g_variant_builder_end (&changed_props),
-                              g_variant_builder_end (&invalidated_props));
+  g_hash_table_remove_all (self->player_buffer);
+  g_clear_handle_id (&self->flush_id, g_source_remove);
+}
 
-  g_dbus_connection_emit_signal (self->connection,
-                                 NULL, /* bus name */
-                                 "/org/mpris/MediaPlayer2",
-                                 "org.freedesktop.DBus.Properties",
-                                 "PropertiesChanged",
-                                 properties,
-                                 NULL /* error */);
+static gboolean
+valent_mpris_remote_flush_idle (gpointer data)
+{
+  ValentMprisRemote *self = VALENT_MPRIS_REMOTE (data);
 
-  g_hash_table_remove_all (self->player_properties);
-  g_clear_handle_id (&self->idle_id, g_source_remove);
+  valent_mpris_remote_flush (self);
+
+  return G_SOURCE_REMOVE;
+}
+
+static void
+valent_mpris_remote_set_value (ValentMprisRemote *self,
+                               const char        *name,
+                               GVariant          *value)
+{
+  g_hash_table_replace (self->cache,
+                        g_strdup (name),
+                        g_variant_ref_sink (value));
+
+  g_hash_table_replace (self->player_buffer,
+                        g_strdup (name),
+                        g_variant_ref_sink (value));
+
+  if (self->flush_id == 0)
+    self->flush_id = g_idle_add (valent_mpris_remote_flush_idle, self);
 }
 
 static gboolean
@@ -579,13 +682,16 @@ valent_mpris_remote_register (ValentMprisRemote  *self,
       self->application_id =
         g_dbus_connection_register_object (self->connection,
                                            "/org/mpris/MediaPlayer2",
-                                           node_info->interfaces[0],
+                                           valent_mpris_get_application_iface (),
                                            &self->application_vtable,
                                            self, NULL,
                                            error);
 
       if (self->application_id == 0)
-        return FALSE;
+        {
+          valent_mpris_remote_unexport (self);
+          return FALSE;
+        }
     }
 
   /* Register org.mpris.MediaPlayer2.Player interface */
@@ -594,19 +700,22 @@ valent_mpris_remote_register (ValentMprisRemote  *self,
       self->player_id =
         g_dbus_connection_register_object (self->connection,
                                            "/org/mpris/MediaPlayer2",
-                                           node_info->interfaces[1],
+                                           valent_mpris_get_player_iface (),
                                            &self->player_vtable,
                                            self, NULL,
                                            error);
 
       if (self->player_id == 0)
-        return FALSE;
+        {
+          valent_mpris_remote_unexport (self);
+          return FALSE;
+        }
     }
 
   /* Own a well-known name on the connection */
-  if (self->name_id == 0)
+  if (self->bus_name_id == 0)
     {
-      self->name_id =
+      self->bus_name_id =
         g_bus_own_name_on_connection (self->connection,
                                       self->bus_name,
                                       G_BUS_NAME_OWNER_FLAGS_NONE,
@@ -619,16 +728,121 @@ valent_mpris_remote_register (ValentMprisRemote  *self,
   return TRUE;
 }
 
+
 /*
  * ValentMediaPlayer
  */
+static ValentMediaActions
+valent_mpris_remote_get_flags (ValentMediaPlayer *player)
+{
+  ValentMprisRemote *self = VALENT_MPRIS_REMOTE (player);
+
+  return self->flags;
+}
+
 static GVariant *
 valent_mpris_remote_get_metadata (ValentMediaPlayer *player)
 {
   ValentMprisRemote *self = VALENT_MPRIS_REMOTE (player);
 
-  return self->metadata;
+  if (self->metadata)
+    return g_variant_ref (self->metadata);
+
+  return NULL;
 }
+
+static const char *
+valent_mpris_remote_get_name (ValentMediaPlayer *player)
+{
+  ValentMprisRemote *self = VALENT_MPRIS_REMOTE (player);
+
+  return self->identity;
+}
+
+static gint64
+valent_mpris_remote_get_position (ValentMediaPlayer *player)
+{
+  ValentMprisRemote *self = VALENT_MPRIS_REMOTE (player);
+
+  return self->position;
+}
+
+static ValentMediaState
+valent_mpris_remote_get_state (ValentMediaPlayer *player)
+{
+  ValentMprisRemote *self = VALENT_MPRIS_REMOTE (player);
+
+  return self->state;
+}
+
+static double
+valent_mpris_remote_get_volume (ValentMediaPlayer *player)
+{
+  ValentMprisRemote *self = VALENT_MPRIS_REMOTE (player);
+
+  return self->volume;
+}
+
+static void
+valent_mpris_remote_set_volume (ValentMediaPlayer *player,
+                                double             volume)
+{
+  g_autoptr (GVariant) value = NULL;
+
+  value = g_variant_ref_sink (g_variant_new ("(d)", volume));
+  g_signal_emit (G_OBJECT (player), signals [SET_PROPERTY], 0, "Volume", value);
+}
+
+static void
+valent_mpris_remote_next (ValentMediaPlayer *player)
+{
+  g_signal_emit (G_OBJECT (player), signals [METHOD_CALL], 0, "Next", NULL);
+}
+
+static void
+valent_mpris_remote_open_uri (ValentMediaPlayer *player,
+                              const char        *uri)
+{
+  g_autoptr (GVariant) value = NULL;
+
+  value = g_variant_ref_sink (g_variant_new ("(s)", uri));
+  g_signal_emit (G_OBJECT (player), signals [METHOD_CALL], 0, "OpenUri", value);
+}
+
+static void
+valent_mpris_remote_pause (ValentMediaPlayer *player)
+{
+  g_signal_emit (G_OBJECT (player), signals [METHOD_CALL], 0, "Pause", NULL);
+}
+
+static void
+valent_mpris_remote_play (ValentMediaPlayer *player)
+{
+  g_signal_emit (G_OBJECT (player), signals [METHOD_CALL], 0, "Play", NULL);
+}
+
+static void
+valent_mpris_remote_previous (ValentMediaPlayer *player)
+{
+  g_signal_emit (G_OBJECT (player), signals [METHOD_CALL], 0, "Previous", NULL);
+}
+
+static void
+valent_mpris_remote_seek (ValentMediaPlayer *player,
+                          gint64             offset)
+{
+  g_autoptr (GVariant) value = NULL;
+
+  value = g_variant_ref_sink (g_variant_new ("(x)", offset));
+  g_signal_emit (G_OBJECT (player), signals [METHOD_CALL], 0, "Seek", value);
+}
+
+static void
+valent_mpris_remote_stop (ValentMediaPlayer *player)
+{
+  g_signal_emit (G_OBJECT (player), signals [METHOD_CALL], 0, "Stop", NULL);
+}
+
 
 /*
  * GObject
@@ -638,20 +852,7 @@ valent_mpris_remote_dispose (GObject *object)
 {
   ValentMprisRemote *self = VALENT_MPRIS_REMOTE (object);
 
-  g_clear_handle_id (&self->idle_id, g_source_remove);
-  g_clear_handle_id (&self->name_id, g_bus_unown_name);
-
-  if (self->application_id > 0)
-    {
-      g_dbus_connection_unregister_object (self->connection, self->application_id);
-      self->application_id = 0;
-    }
-
-  if (self->player_id > 0)
-    {
-      g_dbus_connection_unregister_object (self->connection, self->player_id);
-      self->player_id = 0;
-    }
+  valent_mpris_remote_unexport (self);
 
   G_OBJECT_CLASS (valent_mpris_remote_parent_class)->dispose (object);
 }
@@ -666,11 +867,10 @@ valent_mpris_remote_finalize (GObject *object)
 
   g_clear_pointer (&self->identity, g_free);
   g_clear_pointer (&self->loop_status, g_free);
-  g_clear_pointer (&self->playback_status, g_free);
   g_clear_pointer (&self->metadata, g_variant_unref);
 
   g_clear_pointer (&self->cache, g_hash_table_unref);
-  g_clear_pointer (&self->player_properties, g_hash_table_unref);
+  g_clear_pointer (&self->player_buffer, g_hash_table_unref);
 
   G_OBJECT_CLASS (valent_mpris_remote_parent_class)->finalize (object);
 }
@@ -684,20 +884,33 @@ valent_mpris_remote_class_init (ValentMprisRemoteClass *klass)
   object_class->dispose = valent_mpris_remote_dispose;
   object_class->finalize = valent_mpris_remote_finalize;
 
-  player_class->get_name = valent_mpris_remote_get_name;
+  player_class->get_flags = valent_mpris_remote_get_flags;
   player_class->get_metadata = valent_mpris_remote_get_metadata;
+  player_class->get_name = valent_mpris_remote_get_name;
+  player_class->get_position = valent_mpris_remote_get_position;
+  player_class->get_state = valent_mpris_remote_get_state;
+  player_class->get_volume = valent_mpris_remote_get_volume;
+  player_class->set_volume = valent_mpris_remote_set_volume;
+
+  player_class->next = valent_mpris_remote_next;
+  player_class->open_uri = valent_mpris_remote_open_uri;
+  player_class->pause = valent_mpris_remote_pause;
+  player_class->play = valent_mpris_remote_play;
+  player_class->previous = valent_mpris_remote_previous;
+  player_class->seek = valent_mpris_remote_seek;
+  player_class->stop = valent_mpris_remote_stop;
 
   /**
-   * ValentMprisRemote::player-method:
+   * ValentMprisRemote::method-call:
    * @player: a #ValentMprisRemote
    * @method_name: the method name
    * @method_args: the method arguments
    *
-   * #ValentMprisRemote::player-method is emitted when a method is called by a
+   * #ValentMprisRemote::method-call is emitted when a method is called by a
    * consumer of the exported interface.
    */
-  signals [PLAYER_METHOD] =
-    g_signal_new ("player-method",
+  signals [METHOD_CALL] =
+    g_signal_new ("method-call",
                   G_TYPE_FROM_CLASS (klass),
                   G_SIGNAL_RUN_FIRST,
                   0,
@@ -721,7 +934,7 @@ valent_mpris_remote_class_init (ValentMprisRemoteClass *klass)
                   NULL, NULL, NULL,
                   G_TYPE_NONE, 2, G_TYPE_STRING, G_TYPE_VARIANT);
 
-  init_node_info ();
+  valent_mpris_remote_auto_export_init ();
 }
 
 static void
@@ -729,11 +942,12 @@ valent_mpris_remote_init (ValentMprisRemote *self)
 {
   GVariant *rate;
   
-  valent_mpris_remote_set_name (self, "Media Player");
+  self->identity = g_strdup ("Media Player");
+  self->bus_name = g_strdup (VALENT_MPRIS_DBUS_NAME);
 
   self->loop_status = g_strdup ("None");
-  self->playback_status = g_strdup ("Stopped");
   self->volume = 1.0;
+  self->state = VALENT_MEDIA_STATE_STOPPED;
 
   self->application_vtable.method_call = application_method_call;
   self->application_vtable.get_property = application_get_property;
@@ -743,16 +957,26 @@ valent_mpris_remote_init (ValentMprisRemote *self)
   self->player_vtable.get_property = player_get_property;
   self->player_vtable.set_property = player_set_property;
 
-  self->cache = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                       g_free, (GDestroyNotify)g_variant_unref);
-  self->player_properties = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                                   g_free, (GDestroyNotify)g_variant_unref);
+  self->cache = g_hash_table_new_full (g_str_hash,
+                                       g_str_equal,
+                                       g_free,
+                                       (GDestroyNotify)g_variant_unref);
+  self->player_buffer = g_hash_table_new_full (g_str_hash,
+                                               g_str_equal,
+                                               g_free,
+                                               (GDestroyNotify)g_variant_unref);
 
   /* Static values */
   rate = g_variant_new_double (1.0);
-  g_hash_table_insert (self->cache, g_strdup ("Rate"), g_variant_ref_sink (rate));
-  g_hash_table_insert (self->cache, g_strdup ("MaximumRate"), g_variant_ref_sink (rate));
-  g_hash_table_insert (self->cache, g_strdup ("MinimumRate"), g_variant_ref_sink (rate));
+  g_hash_table_insert (self->cache,
+                       g_strdup ("Rate"),
+                       g_variant_ref_sink (rate));
+  g_hash_table_insert (self->cache,
+                       g_strdup ("MaximumRate"),
+                       g_variant_ref_sink (rate));
+  g_hash_table_insert (self->cache,
+                       g_strdup ("MinimumRate"),
+                       g_variant_ref_sink (rate));
 }
 
 /**
@@ -765,36 +989,61 @@ valent_mpris_remote_init (ValentMprisRemote *self)
 ValentMprisRemote *
 valent_mpris_remote_new (void)
 {
-  init_node_info ();
-
-  return g_object_new (VALENT_TYPE_MPRIS_REMOTE,
-                       NULL);
-}
-
-static void
-new_connection_cb (GObject      *object,
-                   GAsyncResult *result,
-                   gpointer      user_data)
-{
-  g_autoptr (GTask) task = G_TASK (user_data);
-  g_autoptr (GError) error = NULL;
-  ValentMprisRemote *self;
-
-  self = g_task_get_source_object (task);
-  self->connection = g_dbus_connection_new_for_address_finish (result, &error);
-
-  if (self->connection == NULL)
-    return g_task_return_error (task, g_steal_pointer (&error));
-
-  if (!valent_mpris_remote_register (self, &error))
-    return g_task_return_error (task, g_steal_pointer (&error));
-
-  g_task_return_boolean (task, TRUE);
+  return g_object_new (VALENT_TYPE_MPRIS_REMOTE, NULL);
 }
 
 /**
  * valent_media_player_export:
  * @remote: a #ValentMprisRemote
+ *
+ * Add @remote to the pool of auto-exported remotes.
+ *
+ * Whenever a remote is exported on the bus name %VALENT_MPRIS_DBUS_NAME it is
+ * placed in a pool. The remote most recently in a play state gets exported.
+ */
+void
+valent_mpris_remote_export (ValentMprisRemote *remote)
+{
+  g_autoptr (GError) error = NULL;
+
+  g_return_if_fail (VALENT_IS_MPRIS_REMOTE (remote));
+
+  /* Auto export */
+  if (valent_mpris_remote_auto_export (remote))
+    return;
+
+  /* We already have a connection */
+  if (remote->connection != NULL)
+    {
+      if (!valent_mpris_remote_register (remote, &error))
+        g_warning ("%s: %s", G_STRFUNC, error->message);
+    }
+}
+
+static void
+export_full_cb (GObject      *object,
+                GAsyncResult *result,
+                gpointer      user_data)
+{
+  g_autoptr (GTask) task = G_TASK (user_data);
+  ValentMprisRemote *self = g_task_get_source_object (task);
+  GError *error = NULL;
+
+  self->connection = g_dbus_connection_new_for_address_finish (result, &error);
+
+  if (self->connection == NULL)
+    return g_task_return_error (task, error);
+
+  if (!valent_mpris_remote_register (self, &error))
+    return g_task_return_error (task, error);
+
+  g_task_return_boolean (task, TRUE);
+}
+
+/**
+ * valent_media_player_export_full:
+ * @remote: a #ValentMprisRemote
+ * @bus_name: the well-known name to own
  * @cancellable: (nullable): a #GCancellable
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
@@ -802,32 +1051,26 @@ new_connection_cb (GObject      *object,
  * Export the test media player on the session bus.
  */
 void
-valent_mpris_remote_export (ValentMprisRemote   *remote,
-                            GCancellable        *cancellable,
-                            GAsyncReadyCallback  callback,
-                            gpointer             user_data)
+valent_mpris_remote_export_full (ValentMprisRemote   *remote,
+                                 const char          *bus_name,
+                                 GCancellable        *cancellable,
+                                 GAsyncReadyCallback  callback,
+                                 gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
-  g_autoptr (GError) error = NULL;
+  GError *error = NULL;
   g_autofree char *address = NULL;
 
   g_return_if_fail (VALENT_IS_MPRIS_REMOTE (remote));
+  g_return_if_fail (g_dbus_is_name (bus_name));
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   task = g_task_new (remote, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_mpris_remote_export);
+  g_task_set_source_tag (task, valent_mpris_remote_export_full);
 
-  if (remote->name_id > 0)
-    return g_task_return_boolean (task, TRUE);
-
-  /* We already have a connection */
-  if (remote->connection != NULL)
-    {
-      if (!valent_mpris_remote_register (remote, &error))
-        return g_task_return_error (task, g_steal_pointer (&error));
-
-      return g_task_return_boolean (task, TRUE);
-    }
+  /* Set the new bus name */
+  g_clear_pointer (&remote->bus_name, g_free);
+  remote->bus_name = g_strdup (bus_name);
 
   /* Set up a dedicated connection */
   address = g_dbus_address_get_for_bus_sync (G_BUS_TYPE_SESSION,
@@ -835,14 +1078,14 @@ valent_mpris_remote_export (ValentMprisRemote   *remote,
                                              &error);
 
   if (address == NULL)
-    return g_task_return_error (task, g_steal_pointer (&error));
+    return g_task_return_error (task, error);
 
   g_dbus_connection_new_for_address (address,
                                      G_DBUS_CONNECTION_FLAGS_AUTHENTICATION_CLIENT |
                                      G_DBUS_CONNECTION_FLAGS_MESSAGE_BUS_CONNECTION,
                                      NULL,
                                      cancellable,
-                                     (GAsyncReadyCallback)new_connection_cb,
+                                     (GAsyncReadyCallback)export_full_cb,
                                      g_steal_pointer (&task));
 }
 
@@ -879,7 +1122,26 @@ valent_mpris_remote_unexport (ValentMprisRemote *remote)
 {
   g_return_if_fail (VALENT_IS_MPRIS_REMOTE (remote));
 
-  g_clear_handle_id (&remote->name_id, g_bus_unown_name);
+  /* Auto unexport */
+  if (valent_mpris_remote_auto_unexport (remote))
+    return;
+
+  /* Unexport in reverse order */
+  g_clear_handle_id (&remote->bus_name_id, g_bus_unown_name);
+
+  if (remote->player_id > 0)
+    {
+      g_dbus_connection_unregister_object (remote->connection,
+                                           remote->player_id);
+      remote->player_id = 0;
+    }
+
+  if (remote->application_id > 0)
+    {
+      g_dbus_connection_unregister_object (remote->connection,
+                                           remote->application_id);
+      remote->application_id = 0;
+    }
 }
 
 /**
@@ -893,35 +1155,14 @@ void
 valent_mpris_remote_set_name (ValentMprisRemote *remote,
                               const char        *identity)
 {
-  g_autofree char *guid = NULL;
-
   g_return_if_fail (VALENT_IS_MPRIS_REMOTE (remote));
   g_return_if_fail (identity != NULL);
 
+  if (g_strcmp0 (remote->identity, identity) == 0)
+    return;
+
   g_clear_pointer (&remote->identity, g_free);
   remote->identity = g_strdup (identity);
-
-  g_clear_pointer (&remote->bus_name, g_free);
-  guid = g_dbus_generate_guid();
-  remote->bus_name = g_strdup_printf ("org.mpris.MediaPlayer2.Valent_%s", guid);
-}
-
-/**
- * valent_media_player_set_bus_name:
- * @remote: a #ValentMprisRemote
- * @name: a well-known name
- *
- * Set the well-known name of the player when exported on DBus to @name.
- */
-void
-valent_mpris_remote_set_bus_name (ValentMprisRemote *remote,
-                                  const char        *name)
-{
-  g_return_if_fail (VALENT_IS_MPRIS_REMOTE (remote));
-  g_return_if_fail (g_dbus_is_name (name));
-
-  g_clear_pointer (&remote->bus_name, g_free);
-  remote->bus_name = g_strdup (name);
 }
 
 /**
@@ -947,7 +1188,7 @@ valent_mpris_remote_emit_seeked (ValentMprisRemote *self,
                                        &error);
 
   if (!ret)
-    g_warning ("Emitting \"Seeked\": %s", error->message);
+    g_warning ("%s: %s", G_STRFUNC, error->message);
 }
 
 /**
@@ -972,35 +1213,10 @@ valent_mpris_remote_update_player (ValentMprisRemote  *remote,
                                    gint64              position,
                                    double              volume)
 {
-  ValentMediaActions mask;
+  g_assert (VALENT_IS_MPRIS_REMOTE (remote));
 
-  g_return_if_fail (VALENT_IS_MPRIS_REMOTE (remote));
+  valent_mpris_remote_update_flags (remote, flags);
 
-  mask = remote->flags ^ flags;
-  remote->flags = flags;
-
-  if (mask & VALENT_MEDIA_ACTION_NEXT)
-    emit_property_changed (remote, "CanGoNext",
-                           g_variant_new_boolean (flags & VALENT_MEDIA_ACTION_NEXT));
-
-  if (mask & VALENT_MEDIA_ACTION_PREVIOUS)
-    emit_property_changed (remote, "CanGoPrevious",
-                           g_variant_new_boolean (flags & VALENT_MEDIA_ACTION_PREVIOUS));
-
-  if (mask & VALENT_MEDIA_ACTION_PAUSE)
-    emit_property_changed (remote, "CanPause",
-                           g_variant_new_boolean (flags & VALENT_MEDIA_ACTION_PAUSE));
-
-  if (mask & VALENT_MEDIA_ACTION_PLAY)
-    emit_property_changed (remote, "CanPlay",
-                           g_variant_new_boolean (flags & VALENT_MEDIA_ACTION_PLAY));
-
-  if (mask & VALENT_MEDIA_ACTION_SEEK)
-    emit_property_changed (remote, "CanSeek",
-                           g_variant_new_boolean (flags & VALENT_MEDIA_ACTION_SEEK));
-
-
-  /* --- */
   if (metadata != NULL)
     valent_mpris_remote_update_metadata (remote, metadata);
 
@@ -1039,6 +1255,65 @@ valent_mpris_remote_update_art (ValentMprisRemote *remote,
 }
 
 /**
+ * valent_mpris_remote_update_flags:
+ * @remote: a #ValentMprisRemote
+ * @flags: a #ValentMediaActions
+ *
+ * Set the #ValentMediaPlayer:flags property.
+ */
+void
+valent_mpris_remote_update_flags (ValentMprisRemote  *remote,
+                                  ValentMediaActions  flags)
+{
+  ValentMediaActions mask = remote->flags ^ flags;
+  GVariant *value;
+  gboolean enabled;
+
+  g_assert (VALENT_IS_MPRIS_REMOTE (remote));
+
+  if (mask == 0)
+    return;
+
+  if ((mask & VALENT_MEDIA_ACTION_NEXT) != 0)
+    {
+      enabled = (flags & VALENT_MEDIA_ACTION_NEXT) != 0;
+      value = g_variant_new_boolean (enabled);
+      valent_mpris_remote_set_value (remote, "CanGoNext", value);
+    }
+
+  if ((mask & VALENT_MEDIA_ACTION_PAUSE) != 0)
+    {
+      enabled = (flags & VALENT_MEDIA_ACTION_PAUSE) != 0;
+      value = g_variant_new_boolean (enabled);
+      valent_mpris_remote_set_value (remote, "CanPause", value);
+    }
+
+  if ((mask & VALENT_MEDIA_ACTION_PLAY) != 0)
+    {
+      enabled = (flags & VALENT_MEDIA_ACTION_PLAY) != 0;
+      value = g_variant_new_boolean (enabled);
+      valent_mpris_remote_set_value (remote, "CanPlay", value);
+    }
+
+  if ((mask & VALENT_MEDIA_ACTION_PREVIOUS) != 0)
+    {
+      enabled = (flags & VALENT_MEDIA_ACTION_PREVIOUS) != 0;
+      value = g_variant_new_boolean (enabled);
+      valent_mpris_remote_set_value (remote, "CanGoPrevious", value);
+    }
+
+  if ((mask & VALENT_MEDIA_ACTION_SEEK) != 0)
+    {
+      enabled = (flags & VALENT_MEDIA_ACTION_SEEK) != 0;
+      value = g_variant_new_boolean (enabled);
+      valent_mpris_remote_set_value (remote, "CanSeek", value);
+    }
+
+  remote->flags = flags;
+  g_object_notify (G_OBJECT (remote), "flags");
+}
+
+/**
  * valent_mpris_remote_update_metadata:
  * @remote: a #ValentMprisRemote
  * @value: the metadata
@@ -1056,7 +1331,8 @@ valent_mpris_remote_update_metadata (ValentMprisRemote *remote,
 
   g_clear_pointer (&remote->metadata, g_variant_unref);
   remote->metadata = g_variant_ref_sink (value);
-  emit_property_changed (remote, "Metadata", value);
+  g_object_notify (G_OBJECT (remote), "metadata");
+  valent_mpris_remote_set_value (remote, "Metadata", value);
 }
 
 /**
@@ -1073,16 +1349,42 @@ valent_mpris_remote_update_playback_status (ValentMprisRemote *remote,
   g_assert (VALENT_IS_MPRIS_REMOTE (remote));
   g_assert (status != NULL);
 
-  if (g_strcmp0 (remote->playback_status, status) == 0)
-    return;
+  if (g_str_equal (status, "Paused"))
+    {
+      if ((remote->state & VALENT_MEDIA_STATE_PAUSED) != 0)
+        return;
 
-  g_clear_pointer (&remote->playback_status, g_free);
-  remote->playback_status = g_strdup (status);
-  emit_property_changed (remote, "PlaybackStatus", g_variant_new_string (status));
+      remote->state &= ~VALENT_MEDIA_STATE_PLAYING;
+      remote->state |= VALENT_MEDIA_STATE_PAUSED;
+    }
+
+  else if (g_str_equal (status, "Playing"))
+    {
+      if ((remote->state & VALENT_MEDIA_STATE_PLAYING) != 0)
+        return;
+
+      remote->state &= ~VALENT_MEDIA_STATE_PAUSED;
+      remote->state |= VALENT_MEDIA_STATE_PLAYING;
+    }
+
+  else if (g_str_equal (status, "Stopped"))
+    {
+      if ((remote->state & VALENT_MEDIA_STATE_PAUSED) == 0 &&
+          (remote->state & VALENT_MEDIA_STATE_PLAYING) == 0)
+        return;
+
+      remote->state &= ~VALENT_MEDIA_STATE_PAUSED;
+      remote->state &= ~VALENT_MEDIA_STATE_PLAYING;
+    }
+
+  g_object_notify (G_OBJECT (remote), "state");
+  valent_mpris_remote_set_value (remote,
+                                 "PlaybackStatus",
+                                 g_variant_new_string (status));
 }
 
 /**
- * valent_mpris_remote_update_rate:
+ * valent_mpris_remote_update_position:
  * @remote: a #ValentMprisRemote
  * @rate: the playback rate
  *
@@ -1114,6 +1416,7 @@ valent_mpris_remote_update_volume (ValentMprisRemote *remote,
     return;
 
   remote->volume = volume;
-  emit_property_changed (remote, "Volume", g_variant_new_double (volume));
+  g_object_notify (G_OBJECT (remote), "volume");
+  valent_mpris_remote_set_value (remote, "Volume", g_variant_new_double (volume));
 }
 

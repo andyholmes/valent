@@ -360,11 +360,11 @@ valent_media_player_provider_load_finish (ValentMediaPlayerProvider  *provider,
  * valent_media_player_provider_get_players:
  * @provider: an #ValentMediaPlayerProvider
  *
- * Gets a new #GPtrArray containing a list of #ValentMediaPlayer instances that were registered by
- * the #ValentMediaPlayerProvider
+ * Gets a new #GPtrArray containing a list of #ValentMediaPlayer instances that
+ * were registered by @provider.
  *
- * Returns: (transfer container) (element-type Valent.MediaPlayer) (not nullable):
- *   a #GPtrArray of #ValentMediaPlayer.
+ * Returns: (transfer container) (element-type Valent.MediaPlayer): a list of
+ *   players.
  */
 GPtrArray *
 valent_media_player_provider_get_players (ValentMediaPlayerProvider *provider)

@@ -8,6 +8,7 @@
 #include <libvalent-core.h>
 #include <libvalent-media.h>
 
+#include "valent-mpris-common.h"
 #include "valent-mpris-player.h"
 #include "valent-mpris-player-provider.h"
 
@@ -65,8 +66,8 @@ valent_mpris_player_new_cb (GObject      *object,
                             gpointer      user_data)
 {
   ValentMPRISPlayerProvider *self = VALENT_MPRIS_PLAYER_PROVIDER (user_data);
-  g_autoptr (GError) error = NULL;
   g_autoptr (ValentMPRISPlayer) player = NULL;
+  g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_MPRIS_PLAYER_PROVIDER (self));
 
@@ -93,7 +94,8 @@ on_name_owner_changed (GDBusConnection *connection     G_GNUC_UNUSED,
 
   g_variant_get (parameters, "(&s&s&s)", &name, &old_owner, &new_owner);
 
-  if G_UNLIKELY (g_str_has_prefix (name, "org.mpris.MediaPlayer2.Valent"))
+  /* This is the DBus name we export on */
+  if G_UNLIKELY (g_str_equal (name, VALENT_MPRIS_DBUS_NAME))
     return;
 
   known = g_hash_table_contains (self->players, name);
@@ -114,31 +116,40 @@ list_names_cb (GDBusConnection *connection,
 {
   ValentMPRISPlayerProvider *self;
   g_autoptr (GTask) task = G_TASK (user_data);
-  g_autoptr (GError) error = NULL;
   g_autoptr (GVariant) reply = NULL;
-  g_autoptr (GVariant) names = NULL;
-  GVariantIter iter;
-  const char *name;
-
-  if ((reply = g_dbus_connection_call_finish (connection, result, &error)) == NULL)
-    {
-      g_warning ("[%s] %s", G_STRFUNC, error->message);
-      return g_task_return_boolean (task, TRUE);
-    }
 
   self = g_task_get_source_object (task);
-  g_assert (VALENT_IS_MPRIS_PLAYER_PROVIDER (self));
 
-  /* Start watching each media player */
-  names = g_variant_get_child_value (reply, 0);
-  g_variant_iter_init (&iter, names);
+  /* If we succeed, add any currently exported players */
+  reply = g_dbus_connection_call_finish (connection, result, NULL);
 
-  while (g_variant_iter_next (&iter, "&s", &name))
+  if (reply != NULL)
     {
-      if G_UNLIKELY (g_str_has_prefix (name, "org.mpris.MediaPlayer2") &&
-                     g_strrstr (name, "Valent") == NULL)
-        valent_mpris_player_new (name, NULL, valent_mpris_player_new_cb, self);
+      g_autoptr (GVariant) names = NULL;
+      GVariantIter iter;
+      const char *name;
+
+      names = g_variant_get_child_value (reply, 0);
+      g_variant_iter_init (&iter, names);
+
+      while (g_variant_iter_next (&iter, "&s", &name))
+        {
+          /* This is the DBus name we export on */
+          if G_UNLIKELY (g_str_equal (name, VALENT_MPRIS_DBUS_NAME))
+            continue;
+
+          if G_LIKELY (!g_str_has_prefix (name, "org.mpris.MediaPlayer2"))
+            continue;
+
+          valent_mpris_player_new (name,
+                                   g_task_get_cancellable (task),
+                                   valent_mpris_player_new_cb,
+                                   self);
+        }
     }
+
+  if (g_task_return_error_if_cancelled (task))
+    return;
 
   /* Watch for new and removed MPRIS Players */
   self->name_owner_changed_id =
@@ -163,21 +174,19 @@ valent_mpris_player_provider_load_async (ValentMediaPlayerProvider *provider,
 {
   ValentMPRISPlayerProvider *self = VALENT_MPRIS_PLAYER_PROVIDER (provider);
   g_autoptr (GTask) task = NULL;
+  GError *error = NULL;
 
   g_assert (VALENT_IS_MPRIS_PLAYER_PROVIDER (self));
 
   task = g_task_new (provider, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_mpris_player_provider_load_async);
 
+  self->connection = g_bus_get_sync (G_BUS_TYPE_SESSION,
+                                     cancellable,
+                                     &error);
+
   if (self->connection == NULL)
-    {
-      g_task_report_new_error (provider, callback, user_data,
-                               valent_mpris_player_provider_load_async,
-                               G_DBUS_ERROR,
-                               G_DBUS_ERROR_DISCONNECTED,
-                               "No DBus connection");
-      return;
-    }
+    return g_task_return_error (task, error);
 
   g_dbus_connection_call (self->connection,
                           "org.freedesktop.DBus",
@@ -197,27 +206,16 @@ valent_mpris_player_provider_load_async (ValentMediaPlayerProvider *provider,
  * GObject
  */
 static void
-valent_mpris_player_provider_constructed (GObject *object)
-{
-  ValentMPRISPlayerProvider *self = VALENT_MPRIS_PLAYER_PROVIDER (object);
-  g_autoptr (GError) error = NULL;
-
-  self->connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
-
-  if (self->connection == NULL)
-    g_warning ("ValentMPRISPlayerProvider: %s", error->message);
-
-  G_OBJECT_CLASS (valent_mpris_player_provider_parent_class)->constructed (object);
-}
-
-static void
 valent_mpris_player_provider_finalize (GObject *object)
 {
   ValentMPRISPlayerProvider *self = VALENT_MPRIS_PLAYER_PROVIDER (object);
 
-  if (self->name_owner_changed_id)
-    g_dbus_connection_signal_unsubscribe (self->connection,
-                                          self->name_owner_changed_id);
+  if (self->name_owner_changed_id > 0)
+    {
+      g_dbus_connection_signal_unsubscribe (self->connection,
+                                            self->name_owner_changed_id);
+      self->name_owner_changed_id = 0;
+    }
 
   g_clear_object (&self->connection);
   g_clear_pointer (&self->players, g_hash_table_unref);
@@ -231,7 +229,6 @@ valent_mpris_player_provider_class_init (ValentMPRISPlayerProviderClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentMediaPlayerProviderClass *provider_class = VALENT_MEDIA_PLAYER_PROVIDER_CLASS (klass);
 
-  object_class->constructed = valent_mpris_player_provider_constructed;
   object_class->finalize = valent_mpris_player_provider_finalize;
 
   provider_class->load_async = valent_mpris_player_provider_load_async;

@@ -42,7 +42,10 @@ valent_mock_media_player_get_metadata (ValentMediaPlayer *player)
 {
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
 
-  return self->metadata;
+  if (self->metadata)
+    return g_variant_ref (self->metadata);
+
+  return NULL;
 }
 
 static gint64
@@ -119,7 +122,8 @@ valent_mock_media_player_pause (ValentMediaPlayer *player)
 {
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
 
-  self->state |= VALENT_MEDIA_STATE_STOPPED;
+  self->state &= ~VALENT_MEDIA_STATE_PLAYING;
+  self->state |= VALENT_MEDIA_STATE_PAUSED;
   g_signal_emit (G_OBJECT (self), signals [PLAYER_METHOD], 0, "Pause", NULL);
 }
 
@@ -128,8 +132,8 @@ valent_mock_media_player_play (ValentMediaPlayer *player)
 {
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
 
+  self->state &= ~VALENT_MEDIA_STATE_PAUSED;
   self->state |= VALENT_MEDIA_STATE_PLAYING;
-  self->state &= ~VALENT_MEDIA_STATE_STOPPED;
   g_signal_emit (G_OBJECT (self), signals [PLAYER_METHOD], 0, "Play", NULL);
 }
 
@@ -138,18 +142,15 @@ valent_mock_media_player_play_pause (ValentMediaPlayer *player)
 {
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
 
-  if ((self->state & VALENT_MEDIA_STATE_PAUSED) == VALENT_MEDIA_STATE_PAUSED)
+  if ((self->state & VALENT_MEDIA_STATE_PAUSED) != 0)
     {
-      self->state &= ~VALENT_MEDIA_STATE_STOPPED;
+      self->state &= ~VALENT_MEDIA_STATE_PAUSED;
+      self->state |= VALENT_MEDIA_STATE_PLAYING;
     }
   else if ((self->state & VALENT_MEDIA_STATE_PLAYING) != 0)
     {
-      self->state |= VALENT_MEDIA_STATE_STOPPED;
-    }
-  else
-    {
-      self->state |= VALENT_MEDIA_STATE_PLAYING;
-      self->state &= ~VALENT_MEDIA_STATE_STOPPED;
+      self->state &= ~VALENT_MEDIA_STATE_PLAYING;
+      self->state |= VALENT_MEDIA_STATE_PAUSED;
     }
 
   g_signal_emit (G_OBJECT (self), signals [PLAYER_METHOD], 0, "PlayPause", NULL);
@@ -240,8 +241,6 @@ static void
 valent_mock_media_player_init (ValentMockMediaPlayer *self)
 {
   GVariantDict dict;
-
-  self->state = VALENT_MEDIA_STATE_UNKNOWN;
 
   g_variant_dict_init (&dict, NULL);
   self->metadata = g_variant_dict_end (&dict);

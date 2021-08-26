@@ -12,7 +12,9 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (ValentMprisRemote, valent_mpris_remote, VALENT, MPRIS_REMOTE, ValentMediaPlayer)
 
 ValentMprisRemote * valent_mpris_remote_new                    (void);
-void                valent_mpris_remote_export                 (ValentMprisRemote    *remote,
+void                valent_mpris_remote_export                 (ValentMprisRemote    *remote);
+void                valent_mpris_remote_export_full            (ValentMprisRemote    *remote,
+                                                                const char           *bus_name,
                                                                 GCancellable         *cancellable,
                                                                 GAsyncReadyCallback   callback,
                                                                 gpointer              user_data);
@@ -20,9 +22,6 @@ gboolean            valent_mpris_remote_export_finish          (ValentMprisRemot
                                                                 GAsyncResult         *result,
                                                                 GError              **error);
 void                valent_mpris_remote_unexport               (ValentMprisRemote    *remote);
-
-void                valent_mpris_remote_set_bus_name           (ValentMprisRemote    *remote,
-                                                                const char           *name);
 void                valent_mpris_remote_set_name               (ValentMprisRemote    *remote,
                                                                 const char           *identity);
 void                valent_mpris_remote_emit_seeked            (ValentMprisRemote    *remote,
@@ -36,6 +35,8 @@ void                valent_mpris_remote_update_player          (ValentMprisRemot
 
 void                valent_mpris_remote_update_art             (ValentMprisRemote    *remote,
                                                                 GFile                *file);
+void                valent_mpris_remote_update_flags           (ValentMprisRemote    *remote,
+                                                                ValentMediaActions    flags);
 void                valent_mpris_remote_update_metadata        (ValentMprisRemote    *remote,
                                                                 GVariant             *metadata);
 void                valent_mpris_remote_update_playback_status (ValentMprisRemote    *remote,

@@ -14,7 +14,7 @@
         "--filesystem=xdg-download",
         "--filesystem=xdg-run/gvfs",
         "--filesystem=xdg-run/gvfsd",
-        "--own-name=org.mpris.MediaPlayer2.*",
+        "--own-name=org.mpris.MediaPlayer2.Valent",
         "--share=ipc",
         "--share=network",
         "--socket=fallback-x11",
