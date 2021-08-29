@@ -823,9 +823,9 @@ valent_channel_close (ValentChannel  *channel,
 {
   ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
 
-  g_assert (VALENT_IS_CHANNEL (channel));
-  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-  g_assert (error == NULL || *error == NULL);
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), FALSE);
+  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
+  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
   if (priv->base_stream == NULL)
     return TRUE;
