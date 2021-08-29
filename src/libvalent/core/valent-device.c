@@ -346,7 +346,7 @@ valent_device_handle_pair (ValentDevice *device,
 
   body = valent_packet_get_body (packet);
 
-  if G_UNLIKELY ((node = json_object_get_member (body, member)) == NULL ||
+  if G_UNLIKELY ((node = json_object_get_member (body, "pair")) == NULL ||
                  json_node_get_value_type (node) != G_TYPE_BOOLEAN)
     {
       g_warning ("%s: malformed pair packet", device->name);
