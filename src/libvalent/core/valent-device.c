@@ -1026,22 +1026,23 @@ valent_device_queue_packet (ValentDevice *device,
 
   if G_UNLIKELY (!device->connected)
     {
-      g_debug ("%s(): %s is disconnected, discarding packet",
-               G_STRFUNC,
-               device->name);
+      g_warning ("%s(): %s is disconnected, discarding \"%s\"",
+                 G_STRFUNC,
+                 device->name,
+                 valent_packet_get_type (packet));
       return;
     }
 
   if G_UNLIKELY (!device->paired)
     {
-      g_debug ("%s(): %s is unpaired, discarding packet",
-               G_STRFUNC,
-               device->name);
+      g_critical ("%s(): %s is unpaired, discarding \"%s\"",
+                  G_STRFUNC,
+                  device->name,
+                  valent_packet_get_type (packet));
       return;
     }
 
   VALENT_DEBUG_PACKET (packet, device->name);
-
   valent_channel_write_packet (device->channel,
                                packet,
                                NULL,
@@ -1114,6 +1115,8 @@ valent_device_send_packet (ValentDevice        *device,
 
   task = g_task_new (device, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_device_send_packet);
+
+  VALENT_DEBUG_PACKET (packet, device->name);
   valent_channel_write_packet (device->channel,
                                packet,
                                cancellable,
