@@ -338,6 +338,7 @@ valent_device_handle_pair (ValentDevice *device,
                            JsonNode     *packet)
 {
   JsonObject *body;
+  JsonNode *node;
   gboolean pair;
 
   g_assert (VALENT_IS_DEVICE (device));
@@ -345,13 +346,14 @@ valent_device_handle_pair (ValentDevice *device,
 
   body = valent_packet_get_body (packet);
 
-  if G_UNLIKELY (!json_object_has_member (body, "pair"))
+  if G_UNLIKELY ((node = json_object_get_member (body, member)) == NULL ||
+                 json_node_get_value_type (node) != G_TYPE_BOOLEAN)
     {
       g_warning ("%s: malformed pair packet", device->name);
       return;
     }
 
-  pair = json_object_get_boolean_member (body, "pair");
+  pair = json_node_get_boolean (node);
 
   /* Device is requesting pairing or accepting our request */
   if (pair)
@@ -1022,9 +1024,19 @@ valent_device_queue_packet (ValentDevice *device,
   g_return_if_fail (VALENT_IS_DEVICE (device));
   g_return_if_fail (VALENT_IS_PACKET (packet));
 
-  if G_UNLIKELY (!device->connected || !device->paired)
+  if G_UNLIKELY (!device->connected)
     {
-      g_warning ("[%s] %s: discarding packet", G_STRFUNC, device->name);
+      g_debug ("%s(): %s is disconnected, discarding packet",
+               G_STRFUNC,
+               device->name);
+      return;
+    }
+
+  if G_UNLIKELY (!device->paired)
+    {
+      g_debug ("%s(): %s is unpaired, discarding packet",
+               G_STRFUNC,
+               device->name);
       return;
     }
 
