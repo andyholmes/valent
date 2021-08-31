@@ -109,7 +109,7 @@ device_fixture_tear_down (DeviceFixture *fixture,
 {
   g_clear_object (&fixture->endpoint);
   v_assert_finalize_object (fixture->device);
-  g_assert_finalize_object (fixture->channel);
+  v_assert_finalize_object (fixture->channel);
 
   g_clear_pointer (&fixture->packets, json_node_unref);
   g_clear_pointer (&fixture->loop, g_main_loop_unref);

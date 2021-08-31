@@ -1285,12 +1285,20 @@ valent_device_set_channel (ValentDevice  *device,
   g_return_if_fail (VALENT_IS_DEVICE (device));
   g_return_if_fail (channel == NULL || VALENT_IS_CHANNEL (channel));
 
-  if (!g_set_object (&device->channel, channel))
+  if (device->channel == channel)
     return;
+
+  /* If there's an active channel, close it asynchronously and drop our
+   * reference so the task holds the final reference. */
+  if (device->channel)
+    {
+      valent_channel_close_async (device->channel, NULL, NULL, NULL);
+      g_clear_object (&device->channel);
+    }
 
   /* If there's a new channel handle the peer identity and queue the first read
    * before calling valent_device_set_connected(). */
-  if (VALENT_IS_CHANNEL (device->channel))
+  if (g_set_object (&device->channel, channel))
     {
       JsonNode *peer_identity;
 
