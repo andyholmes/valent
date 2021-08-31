@@ -17,6 +17,7 @@
 #include "valent-manager.h"
 #include "valent-object-utils.h"
 #include "valent-packet.h"
+#include "valent-task-queue.h"
 #include "valent-transfer.h"
 #include "valent-utils.h"
 

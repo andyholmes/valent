@@ -72,6 +72,17 @@ race:upload_task
 
 
 #
+# False Positives
+#
+# The items below are confirmed to be false positives or benign
+#
+
+# transferring item ownership to queue
+# src/libvalent/core/valent-task-queue-loop.c:
+race:valent_task_queue_loop
+
+
+#
 # Uninstrumented libraries (core, components, ui, plugins)
 #
 # See: https://www.gnutls.org/manual/gnutls.html#Thread-safety
