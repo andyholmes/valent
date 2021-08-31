@@ -36,7 +36,7 @@ struct _ValentChannelClass
                                           ValentData     *data);
 };
 
-/* Properties */
+
 GIOStream  * valent_channel_get_base_stream      (ValentChannel        *channel);
 JsonNode   * valent_channel_get_identity         (ValentChannel        *channel);
 JsonNode   * valent_channel_get_peer_identity    (ValentChannel        *channel);
@@ -44,8 +44,16 @@ const char * valent_channel_get_uri              (ValentChannel        *channel)
 void         valent_channel_set_uri              (ValentChannel        *channel,
                                                   const char           *uri);
 const char * valent_channel_get_verification_key (ValentChannel        *channel);
-
-/* Packet Exchange */
+GIOStream  * valent_channel_download             (ValentChannel        *channel,
+                                                  JsonNode             *packet,
+                                                  GCancellable         *cancellable,
+                                                  GError              **error);
+GIOStream  * valent_channel_upload               (ValentChannel        *channel,
+                                                  JsonNode             *packet,
+                                                  GCancellable         *cancellable,
+                                                  GError              **error);
+void         valent_channel_store_data           (ValentChannel        *channel,
+                                                  ValentData           *data);
 void         valent_channel_read_packet          (ValentChannel        *channel,
                                                   GCancellable         *cancellable,
                                                   GAsyncReadyCallback   callback,
@@ -71,18 +79,6 @@ void         valent_channel_close_async          (ValentChannel        *channel,
 gboolean     valent_channel_close_finish         (ValentChannel        *channel,
                                                   GAsyncResult         *result,
                                                   GError              **error);
-
-/* Virtual Functions */
-GIOStream  * valent_channel_download             (ValentChannel        *channel,
-                                                  JsonNode             *packet,
-                                                  GCancellable         *cancellable,
-                                                  GError              **error);
-GIOStream  * valent_channel_upload               (ValentChannel        *channel,
-                                                  JsonNode             *packet,
-                                                  GCancellable         *cancellable,
-                                                  GError              **error);
-void         valent_channel_store_data           (ValentChannel        *channel,
-                                                  ValentData           *data);
 
 G_END_DECLS
 
