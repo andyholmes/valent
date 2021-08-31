@@ -153,26 +153,34 @@ typedef struct
 static char *
 get_device_dbus_path (ValentDevice *device)
 {
-  guint len = 0;
-  char dbus_id[256] = { 0, };
+  unsigned int len = 0;
+  const char *base_path;
   const char *id;
+  char object_path[256] = { 0, };
 
   g_assert (VALENT_IS_DEVICE (device));
 
+  base_path = APPLICATION_PATH"/Device/";
+
+  while (*base_path && len < 255)
+    {
+      object_path[len++] = *base_path;
+      base_path++;
+    }
+
   id = valent_device_get_id (device);
 
-  while (*id)
+  while (*id && len < 255)
     {
       if G_LIKELY (g_ascii_isalnum (*id))
-        dbus_id[len++] = *id;
+        object_path[len++] = *id;
       else
-        dbus_id[len++] = '_';
+        object_path[len++] = '_';
 
       id++;
     }
-  dbus_id[len] = '\0';
 
-  return g_strdup_printf (APPLICATION_PATH"/Device/%s", dbus_id);
+  return g_strdup (object_path);
 }
 
 static void
