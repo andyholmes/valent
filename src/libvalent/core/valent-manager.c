@@ -57,8 +57,7 @@ static void           valent_manager_add_device    (ValentManager *manager,
 static void           valent_manager_remove_device (ValentManager *manager,
                                                     ValentDevice  *device);
 static ValentDevice * valent_manager_ensure_device (ValentManager *manager,
-                                                    const char    *id,
-                                                    JsonNode      *identity);
+                                                    const char    *id);
 
 static void initable_iface_init       (GInitableIface      *iface);
 static void async_initable_iface_init (GAsyncInitableIface *iface);
@@ -145,9 +144,10 @@ valent_manager_ensure_certificate (ValentManager  *self,
  */
 typedef struct
 {
-  char  *path;
-  guint  actions_id;
-  guint  menu_id;
+  GDBusConnection *connection;
+  char            *object_path;
+  unsigned int     actions_id;
+  unsigned int     menu_id;
 } ExportedDevice;
 
 static char *
@@ -190,7 +190,7 @@ valent_manager_export_device (ValentManager *manager,
   g_autoptr (GDBusConnection) connection = NULL;
   g_autoptr (GDBusObjectSkeleton) object = NULL;
   g_autoptr (GDBusInterfaceSkeleton) iface = NULL;
-  ExportedDevice *exported;
+  ExportedDevice *info;
   GActionGroup *actions;
   GMenuModel *menu;
 
@@ -202,33 +202,30 @@ valent_manager_export_device (ValentManager *manager,
   if (g_hash_table_contains (manager->exported, device))
     VALENT_EXIT;
 
-  connection = g_dbus_object_manager_server_get_connection (manager->dbus);
+  info = g_new0 (ExportedDevice, 1);
+  info->connection = g_dbus_object_manager_server_get_connection (manager->dbus);
+  info->object_path = get_device_dbus_path (device);
 
-  exported = g_new0 (ExportedDevice, 1);
-  exported->path = get_device_dbus_path (device);
-
-  /* Device Interface */
-  object = g_dbus_object_skeleton_new (exported->path);
+  /* Export the ValentDevice, GActionGroup and GMenuModel interfaces on the same
+   * connection and path */
+  object = g_dbus_object_skeleton_new (info->object_path);
   iface = valent_device_impl_new (device);
-
   g_dbus_object_skeleton_add_interface (object, iface);
 
-  /* GActionGroup */
   actions = valent_device_get_actions (device);
-  exported->actions_id = g_dbus_connection_export_action_group (connection,
-                                                                exported->path,
-                                                                actions,
-                                                                NULL);
+  info->actions_id = g_dbus_connection_export_action_group (info->connection,
+                                                            info->object_path,
+                                                            actions,
+                                                            NULL);
 
-  /* GMenuModel */
   menu = valent_device_get_menu (device);
-  exported->menu_id = g_dbus_connection_export_menu_model (connection,
-                                                           exported->path,
-                                                           menu,
-                                                           NULL);
+  info->menu_id = g_dbus_connection_export_menu_model (info->connection,
+                                                       info->object_path,
+                                                       menu,
+                                                       NULL);
 
   g_dbus_object_manager_server_export (manager->dbus, object);
-  g_hash_table_insert (manager->exported, device, exported);
+  g_hash_table_insert (manager->exported, device, info);
 
   VALENT_EXIT;
 }
@@ -237,9 +234,8 @@ static void
 valent_manager_unexport_device (ValentManager *manager,
                                 ValentDevice  *device)
 {
-  g_autoptr (GDBusConnection) connection = NULL;
   gpointer data;
-  ExportedDevice *exported = NULL;
+  ExportedDevice *info = NULL;
 
   VALENT_ENTRY;
 
@@ -249,15 +245,15 @@ valent_manager_unexport_device (ValentManager *manager,
   if (!g_hash_table_steal_extended (manager->exported, device, NULL, &data))
     VALENT_EXIT;
 
-  exported = (ExportedDevice *)data;
-  connection = g_dbus_object_manager_server_get_connection (manager->dbus);
+  info = (ExportedDevice *)data;
 
-  g_dbus_object_manager_server_unexport (manager->dbus, exported->path);
-  g_dbus_connection_unexport_action_group (connection, exported->actions_id);
-  g_dbus_connection_unexport_menu_model (connection, exported->menu_id);
+  g_dbus_object_manager_server_unexport (manager->dbus, info->object_path);
+  g_dbus_connection_unexport_action_group (info->connection, info->actions_id);
+  g_dbus_connection_unexport_menu_model (info->connection, info->menu_id);
 
-  g_clear_pointer (&exported->path, g_free);
-  g_free (exported);
+  g_clear_pointer (&info->object_path, g_free);
+  g_clear_object (&info->connection);
+  g_free (info);
 
   VALENT_EXIT;
 }
@@ -272,7 +268,7 @@ on_channel (ValentChannelService *service,
 {
   JsonNode *identity;
   const char *device_id;
-  g_autoptr (ValentDevice) device = NULL;
+  ValentDevice *device;
 
   VALENT_ENTRY;
 
@@ -284,19 +280,23 @@ on_channel (ValentChannelService *service,
 
   if G_UNLIKELY (identity == NULL)
     {
-      g_warning ("%s: missing peer identity", G_OBJECT_TYPE_NAME (channel));
+      g_warning ("%s(): [%s] missing peer identity",
+                 G_STRFUNC,
+                 G_OBJECT_TYPE_NAME (channel));
       return;
     }
 
   device_id = valent_identity_get_device_id (identity);
 
-  if G_UNLIKELY (device_id == NULL)
+  if G_UNLIKELY (device_id == NULL || *device_id == '\0')
     {
-      g_warning ("%s: missing deviceId", G_OBJECT_TYPE_NAME (channel));
+      g_warning ("%s: [%s] missing deviceId",
+                 G_STRFUNC,
+                 G_OBJECT_TYPE_NAME (channel));
       return;
     }
 
-  device = valent_manager_ensure_device (manager, device_id, NULL);
+  device = valent_manager_ensure_device (manager, device_id);
   valent_device_set_channel (device, channel);
 
   VALENT_EXIT;
@@ -312,7 +312,6 @@ valent_channel_service_start_cb (ValentChannelService *service,
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_CHANNEL_SERVICE (service));
-  g_assert (G_IS_ASYNC_RESULT (result));
 
   if (!valent_channel_service_start_finish (service, result, &error) &&
       !valent_error_ignore (error))
@@ -477,15 +476,14 @@ static gboolean
 ensure_device_main (gpointer user_data)
 {
   CachedDevice *data = user_data;
-  g_autoptr (ValentDevice) device = NULL;
   const char *device_id;
+  ValentDevice *device;
 
   g_assert (VALENT_IS_MAIN_THREAD ());
 
   device_id = valent_identity_get_device_id (data->identity);
-  device = valent_manager_ensure_device (data->manager,
-                                         device_id,
-                                         data->identity);
+  device = valent_manager_ensure_device (data->manager, device_id);
+  valent_device_handle_packet (device, data->identity);
 
   return G_SOURCE_REMOVE;
 }
@@ -495,14 +493,15 @@ valent_manager_load_devices (ValentManager  *self,
                              GCancellable   *cancellable,
                              GError        **error)
 {
-  g_autoptr (GFile) config_dir = NULL;
+  g_autoptr (GFile) config = NULL;
   g_autoptr (GFileEnumerator) iter = NULL;
   g_autoptr (JsonParser) parser = NULL;
+  GFile *child = NULL;
 
   /* Look in the config directory for subdirectories. We only fail on
    * G_IO_ERROR_CANCELLED; all other errors mean there are just no devices. */
-  config_dir = g_file_new_for_path (valent_data_get_config_path (self->data));
-  iter = g_file_enumerate_children (config_dir,
+  config = g_file_new_for_path (valent_data_get_config_path (self->data));
+  iter = g_file_enumerate_children (config,
                                     G_FILE_ATTRIBUTE_STANDARD_NAME,
                                     G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS,
                                     cancellable,
@@ -510,7 +509,7 @@ valent_manager_load_devices (ValentManager  *self,
 
   if (iter == NULL)
     {
-      if (g_error_matches (*error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+      if (g_cancellable_is_cancelled (cancellable))
         return FALSE;
 
       g_clear_error (error);
@@ -520,45 +519,43 @@ valent_manager_load_devices (ValentManager  *self,
   /* Iterate the subdirectories looking for identity.json files */
   parser = json_parser_new ();
 
-  while (TRUE)
+  while (g_file_enumerator_iterate (iter, NULL, &child, cancellable, error))
     {
-      GFile *dir;
-      g_autoptr (GFile) identity = NULL;
+      g_autoptr (GFile) identity_json = NULL;
 
-      if (!g_file_enumerator_iterate (iter, NULL, &dir, cancellable, error))
-        {
-          if (g_error_matches (*error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-            return FALSE;
-
-          g_clear_error (error);
-          return TRUE;
-        }
-
-      if (dir == NULL)
+      if (child == NULL)
         break;
 
       /* Check if identity.json exists */
-      identity = g_file_get_child (dir, "identity.json");
+      identity_json = g_file_get_child (child, "identity.json");
 
-      if (g_file_query_exists (identity, cancellable))
+      if (g_file_query_exists (identity_json, cancellable))
         {
+          g_autoptr (JsonNode) packet = NULL;
           g_autoptr (GError) warning = NULL;
           const char *path;
           CachedDevice *cached_device;
 
-          /* Try parsing the identity */
-          path = g_file_peek_path (identity);
+          path = g_file_peek_path (identity_json);
 
           if (!json_parser_load_from_file (parser, path, &warning))
             {
-              g_warning ("Loading device '%s': %s", path, warning->message);
+              g_warning ("%s(): %s: %s", G_STRFUNC, path, warning->message);
               continue;
             }
 
-          /* Do the rest in the main context */
+          packet = json_parser_steal_root (parser);
+
+          if (!valent_packet_validate (packet, &warning))
+            {
+              g_warning ("%s(): %s: %s", G_STRFUNC, path, warning->message);
+              continue;
+            }
+
+          /* The ValentDevice has to be constructed in the main thread */
           cached_device = g_new0 (CachedDevice, 1);
           cached_device->manager = g_object_ref (self);
-          cached_device->identity = json_parser_steal_root (parser);
+          cached_device->identity = g_steal_pointer (&packet);
 
           g_main_context_invoke_full (NULL,
                                       G_PRIORITY_DEFAULT,
@@ -566,7 +563,14 @@ valent_manager_load_devices (ValentManager  *self,
                                       cached_device,
                                       cached_device_free);
         }
+      else if (g_cancellable_is_cancelled (cancellable))
+        return FALSE;
     }
+
+  if (g_cancellable_is_cancelled (cancellable))
+    return FALSE;
+
+  g_clear_error (error);
 
   return TRUE;
 }
@@ -579,7 +583,10 @@ on_device_state (ValentDevice  *device,
                  GParamSpec    *pspec,
                  ValentManager *manager)
 {
-  if (valent_device_get_connected (device) || valent_device_get_paired (device))
+  ValentDeviceState state = valent_device_get_state (device);
+
+  if ((state & VALENT_DEVICE_STATE_CONNECTED) != 0 ||
+      (state & VALENT_DEVICE_STATE_PAIRED) != 0)
     return;
 
   valent_manager_remove_device (manager, device);
@@ -596,26 +603,20 @@ valent_manager_add_device (ValentManager *manager,
   g_assert (VALENT_IS_MANAGER (manager));
   g_assert (VALENT_IS_DEVICE (device));
 
-  /* Add the device */
   device_id = valent_device_get_id (device);
 
   if (g_hash_table_contains (manager->devices, device_id))
     VALENT_EXIT;
 
-  /* Watch for disconnects and unpairs */
   g_signal_connect_object (device,
-                           "notify::connected",
-                           G_CALLBACK (on_device_state),
-                           manager,
-                           0);
-  g_signal_connect_object (device,
-                           "notify::paired",
+                           "notify::state",
                            G_CALLBACK (on_device_state),
                            manager,
                            0);
 
-  /* Notify locally, then DBus clients */
-  g_hash_table_insert (manager->devices, g_strdup (device_id), g_object_ref (device));
+  g_hash_table_insert (manager->devices,
+                       g_strdup (device_id),
+                       g_object_ref (device));
   g_signal_emit (G_OBJECT (manager), signals [DEVICE_ADDED], 0, device);
 
   if (manager->dbus != NULL)
@@ -628,8 +629,6 @@ static void
 valent_manager_remove_device (ValentManager *manager,
                               ValentDevice  *device)
 {
-  const char *device_id;
-
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_MANAGER (manager));
@@ -637,13 +636,12 @@ valent_manager_remove_device (ValentManager *manager,
 
   g_object_ref (device);
 
-  /* Remove the device */
-  device_id = valent_device_get_id (device);
-  g_hash_table_remove (manager->devices, device_id);
-
-  /* Notify locally, then DBus clients */
-  g_signal_emit (G_OBJECT (manager), signals [DEVICE_REMOVED], 0, device);
-  valent_manager_unexport_device (manager, device);
+  if (g_hash_table_remove (manager->devices, valent_device_get_id (device)))
+    {
+      valent_manager_unexport_device (manager, device);
+      g_signal_handlers_disconnect_by_data (device, manager);
+      g_signal_emit (G_OBJECT (manager), signals [DEVICE_REMOVED], 0, device);
+    }
 
   g_object_unref (device);
 
@@ -652,40 +650,27 @@ valent_manager_remove_device (ValentManager *manager,
 
 static ValentDevice *
 valent_manager_ensure_device (ValentManager *manager,
-                              const char    *id,
-                              JsonNode      *identity)
+                              const char    *id)
 {
-  ValentDevice *device;
+  ValentDevice *device = NULL;
 
   g_assert (VALENT_IS_MANAGER (manager));
   g_assert (id != NULL);
-  g_assert (identity == NULL || VALENT_IS_PACKET (identity));
 
   device = g_hash_table_lookup (manager->devices, id);
 
-  if (device != NULL)
-    {
-      g_object_ref (device);
-
-      if (identity != NULL)
-        valent_device_handle_packet (device, identity);
-    }
-  else
+  if (device == NULL)
     {
       g_autoptr (ValentData) data = NULL;
 
-      /* Create a data object with the same base path as the manager */
       data = valent_data_new (id, manager->data);
       device = g_object_new (VALENT_TYPE_DEVICE,
                              "id",   id,
                              "data", data,
                              NULL);
 
-      if (identity != NULL)
-        valent_device_handle_packet (device, identity);
-
-      /* Manage the new device */
       valent_manager_add_device (manager, device);
+      g_object_unref (device);
     }
 
   return device;
@@ -744,17 +729,17 @@ valent_manager_dispose (GObject *object)
 {
   ValentManager *self = VALENT_MANAGER (object);
   GHashTableIter iter;
-  gpointer value;
+  ValentDevice *device;
 
   valent_manager_stop (self);
   valent_manager_unexport (self);
 
   g_hash_table_iter_init (&iter, self->devices);
 
-  while (g_hash_table_iter_next (&iter, NULL, &value))
+  while (g_hash_table_iter_next (&iter, NULL, (void **)&device))
     {
-      g_signal_emit (G_OBJECT (self), signals [DEVICE_REMOVED], 0, value);
-      valent_manager_unexport_device (self, VALENT_DEVICE (value));
+      g_signal_handlers_disconnect_by_data (device, self);
+      g_signal_emit (G_OBJECT (self), signals [DEVICE_REMOVED], 0, device);
       g_hash_table_iter_remove (&iter);
     }
 }
@@ -920,9 +905,18 @@ valent_manager_init (ValentManager *self)
   self->id = NULL;
   self->settings = g_settings_new ("ca.andyholmes.Valent");
 
-  self->devices = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
-  self->services = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, g_object_unref);
-  self->services_settings = g_hash_table_new_full (NULL, NULL, NULL, g_object_unref);
+  self->devices = g_hash_table_new_full (g_str_hash,
+                                         g_str_equal,
+                                         g_free,
+                                         g_object_unref);
+  self->services = g_hash_table_new_full (g_str_hash,
+                                          g_str_equal,
+                                          NULL,
+                                          g_object_unref);
+  self->services_settings = g_hash_table_new_full (NULL,
+                                                   NULL,
+                                                   NULL,
+                                                   g_object_unref);
   self->exported = g_hash_table_new (NULL, NULL);
 }
 
@@ -933,6 +927,9 @@ valent_manager_init (ValentManager *self)
  * @error: (nullable): a #GError
  *
  * Create a new #ValentManager.
+ *
+ * If given, @data will be used as the root #ValentData for this instance of
+ * Valent.
  *
  * Returns: (transfer full) (nullable): a #ValentManager
  */
@@ -1052,16 +1049,16 @@ valent_manager_get_devices (ValentManager *manager)
 {
   GPtrArray *devices;
   GHashTableIter iter;
-  gpointer device;
+  ValentDevice *device;
 
   g_return_val_if_fail (VALENT_IS_MANAGER (manager), NULL);
 
-  devices = g_ptr_array_new ();
+  devices = g_ptr_array_new_with_free_func (g_object_unref);
 
   g_hash_table_iter_init (&iter, manager->devices);
 
-  while (g_hash_table_iter_next (&iter, NULL, &device))
-    g_ptr_array_add (devices, device);
+  while (g_hash_table_iter_next (&iter, NULL, (void **)&device))
+    g_ptr_array_add (devices, g_object_ref (device));
 
   return devices;
 }
@@ -1090,10 +1087,10 @@ valent_manager_get_id (ValentManager *manager)
  * Request a connection from the device at @uri if given, otherwise ask each
  * loaded #ValentChannelService to identity itself on its respective network.
  *
- * The @uri argument is string in the form `backend://address`, where "backend"
- * is the module name and "address" is some address, DBus path or serialized
- * data the backend can use to contact the device. A complete URI for the Lan
- * backend might look like `lan://192.168.0.10:1716`.
+ * The @uri argument is string in the form `plugin://address`, such as
+ * `lan://192.168.0.10:1716`. The `plugin` segment should be a module name and
+ * `address` should be a format the #ValentChannelService understands. Typically
+ * these URIs are acquired from the #ValentChannel:uri property.
  */
 void
 valent_manager_identify (ValentManager *manager,
@@ -1165,8 +1162,8 @@ valent_manager_start (ValentManager *manager)
  * valent_manager_stop:
  * @manager: a #ValentManager
  *
- * Unload all the #ValentChannelService implementations loaded from the #ValentEngine,
- * thereby preventing any new connections from being opened.
+ * Unload all the #ValentChannelService implementations loaded from the
+ * #ValentEngine, thereby preventing any new connections from being opened.
  */
 void
 valent_manager_stop (ValentManager *manager)
@@ -1206,7 +1203,7 @@ valent_manager_export (ValentManager   *manager,
                        GDBusConnection *connection)
 {
   GHashTableIter iter;
-  gpointer value;
+  ValentDevice *device;
 
   g_return_if_fail (VALENT_IS_MANAGER (manager));
   g_return_if_fail (G_IS_DBUS_CONNECTION (connection));
@@ -1217,11 +1214,10 @@ valent_manager_export (ValentManager   *manager,
   manager->dbus = g_dbus_object_manager_server_new (APPLICATION_PATH);
   g_dbus_object_manager_server_set_connection (manager->dbus, connection);
 
-  /* Export each known device */
   g_hash_table_iter_init (&iter, manager->devices);
 
-  while (g_hash_table_iter_next (&iter, NULL, &value))
-    valent_manager_export_device (manager, VALENT_DEVICE (value));
+  while (g_hash_table_iter_next (&iter, NULL, (void **)&device))
+    valent_manager_export_device (manager, device);
 }
 
 /**
@@ -1234,20 +1230,18 @@ void
 valent_manager_unexport (ValentManager *manager)
 {
   GHashTableIter iter;
-  gpointer value;
+  ValentDevice *device;
 
   g_return_if_fail (VALENT_IS_MANAGER (manager));
 
   if (manager->dbus == NULL)
     return;
 
-  /* Unexport each known device */
   g_hash_table_iter_init (&iter, manager->devices);
 
-  while (g_hash_table_iter_next (&iter, NULL, &value))
-    valent_manager_unexport_device (manager, VALENT_DEVICE (value));
+  while (g_hash_table_iter_next (&iter, NULL, (void **)&device))
+    valent_manager_unexport_device (manager, device);
 
-  /* Release the DBus connection */
   g_dbus_object_manager_server_set_connection (manager->dbus, NULL);
   g_clear_object (&manager->dbus);
 }
