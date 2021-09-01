@@ -128,10 +128,6 @@ valent_data_constructed (GObject *object)
 {
   ValentData *self = VALENT_DATA (object);
   ValentDataPrivate *priv = valent_data_get_instance_private (self);
-  g_autofree char *context = NULL;
-
-  /* Preserve %NULL value while ensuring a valid arg */
-  context = g_strdup (priv->context ? priv->context : "");
 
   /* A parent #ValentData object */
   if (priv->parent != NULL)
