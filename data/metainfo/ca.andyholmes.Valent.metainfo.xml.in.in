@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Andy Holmes <andrew.g.r.holmes@gmail.com> -->
+
+<!-- SPDX-License-Identifier: CC0-1.0 -->
+<!-- SPDX-FileCopyrightText: No rights reserved -->
+
 <component type="desktop-application">
   <id>@application_id@.desktop</id>
   <metadata_license>CC0-1.0</metadata_license>

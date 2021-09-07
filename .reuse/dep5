@@ -9,8 +9,7 @@ Files: doc/* po/*
 Copyright: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 License: LGPL-2.1-or-later
 
-Files: *.metainfo.xml *.oga *.png *.svg build-aux valent.doap
-    .github .gitignore .gitmodules
+Files: *.oga *.png *.svg build-aux .github .gitignore .gitmodules
 Copyright: No rights reserved
 License: CC0-1.0
 
