@@ -1,0 +1,37 @@
+name: Registry
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Registry
+    runs-on: ubuntu-latest
+    env:
+      context: valent
+      image_name: valent
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build
+        id: build-image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: andyholmes/valent
+          tags: latest ${{ github.sha }}
+          dockerfiles: |
+            ./src/tests/extra/Dockerfile
+
+      - name: Push
+        id: push-image
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-image.outputs.image }}
+          tags: ${{ steps.build-image.outputs.tags }}
+          registry: quay.io
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
