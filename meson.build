@@ -87,7 +87,7 @@ config_h_defines = [
   # AC_INIT
   ['PACKAGE', meson.project_name()],
   ['PACKAGE_API', valent_api_version],
-  ['PACKAGE_BUGREPORT', 'https://github.com/andyholmes/' + meson.project_name() + '/issues/new'],
+  ['PACKAGE_BUGREPORT', 'https://github.com/andyholmes/' + meson.project_name() + '/issues'],
   ['PACKAGE_NAME', meson.project_name()],
   ['PACKAGE_STRING', '@0@ @1@'.format(meson.project_name(), valent_version)],
   ['PACKAGE_URL', 'https://github.com/andyholmes/' + meson.project_name()],
