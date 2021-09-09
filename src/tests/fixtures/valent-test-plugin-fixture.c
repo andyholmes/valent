@@ -148,8 +148,17 @@ valent_test_plugin_fixture_clear (ValentTestPluginFixture *fixture,
   g_clear_object (&fixture->device);
   g_clear_object (&fixture->settings);
 
-  g_clear_object (&fixture->channel);
-  g_clear_object (&fixture->endpoint);
+  if (fixture->endpoint)
+    {
+      valent_channel_close (fixture->endpoint, NULL, NULL);
+      g_clear_object (&fixture->endpoint);
+    }
+
+  if (fixture->channel)
+    {
+      valent_channel_close_async (fixture->channel, NULL, NULL, NULL);
+      v_assert_finalize_object (fixture->channel);
+    }
 
   if (fixture->data && fixture->data_free)
     g_clear_pointer (&fixture->data, fixture->data_free);

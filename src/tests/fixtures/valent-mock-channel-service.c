@@ -84,12 +84,7 @@ valent_mock_channel_service_identify (ValentChannelService *service,
   channels = valent_test_channels (identity, peer_identity);
 
   self->channel = g_steal_pointer (&channels[0]);
-  g_object_add_weak_pointer (G_OBJECT (self->channel),
-                             (gpointer)&self->channel);
-
   self->endpoint = g_steal_pointer (&channels[1]);
-  g_object_add_weak_pointer (G_OBJECT (self->endpoint),
-                             (gpointer)&self->endpoint);
 
   valent_channel_service_emit_channel (service, self->channel);
   json_node_unref (peer_identity);
@@ -119,8 +114,19 @@ valent_mock_channel_service_stop (ValentChannelService *service)
 
   g_assert (VALENT_IS_MOCK_CHANNEL_SERVICE (self));
 
-  g_clear_object (&self->channel);
-  g_clear_object (&self->endpoint);
+  if (self->endpoint)
+    {
+      valent_channel_close (self->endpoint, NULL, NULL);
+      g_clear_object (&self->endpoint);
+    }
+
+  if (self->channel)
+    {
+      valent_channel_close_async (self->channel, NULL, NULL, NULL);
+      v_assert_finalize_object (self->channel);
+      self->channel = NULL;
+    }
+
   g_cancellable_cancel (self->cancellable);
 }
 
@@ -144,9 +150,8 @@ valent_mock_channel_service_finalize (GObject *object)
 {
   ValentMockChannelService *self = (ValentMockChannelService *)object;
 
+  valent_mock_channel_service_stop (VALENT_CHANNEL_SERVICE (object));
   g_clear_pointer (&self->broadcast_address, g_free);
-  g_clear_object (&self->channel);
-  g_clear_object (&self->endpoint);
 
   G_OBJECT_CLASS (valent_mock_channel_service_parent_class)->finalize (object);
 }
