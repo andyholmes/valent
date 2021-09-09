@@ -4,7 +4,7 @@
 <!-- SPDX-FileCopyrightText: No rights reserved -->
 
 <component type="desktop-application">
-  <id>@APPLICATION_ID@.desktop</id>
+  <id>@application_id@.desktop</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
 
@@ -37,20 +37,20 @@
 
   <provides>
     <binary>valent</binary>
-    <dbus type="session">@APPLICATION_ID@</dbus>
+    <dbus type="session">@application_id@</dbus>
   </provides>
 
   <!-- Additional Information -->
-  <url type="homepage">@PACKAGE_URL@</url>
-  <url type="bugtracker">@PACKAGE_BUGREPORT@</url>
+  <url type="homepage">https://github.com/andyholmes/valent</url>
+  <url type="bugtracker">https://github.com/andyholmes/valent/issues</url>
   <url type="donation">http://www.gnome.org/friends/</url>
-  <url type="help">@PACKAGE_URL@</url>
+  <url type="help">https://github.com/andyholmes/valent</url>
   <content_rating type="oars-1.1" />
 
   <developer_name>Andy Holmes</developer_name>
   <update_contact>andrew.g.r.holmes@gmail.com</update_contact>
-  <translation type="gettext">@GETTEXT_PACKAGE@</translation>
-  <launchable type="desktop-id">@APPLICATION_ID@.desktop</launchable>
+  <translation type="gettext">@gettext_package@</translation>
+  <launchable type="desktop-id">@application_id@.desktop</launchable>
 
   <kudos>
     <kudo>HiDpiIcon</kudo>
