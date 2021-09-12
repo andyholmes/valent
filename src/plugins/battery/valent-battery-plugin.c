@@ -308,11 +308,14 @@ valent_battery_plugin_handle_battery (ValentBatteryPlugin *self,
 }
 
 static void
-valent_battery_plugin_handle_battery_request (ValentBatteryPlugin *self)
+valent_battery_plugin_handle_battery_request (ValentBatteryPlugin *self,
+                                              JsonNode            *packet)
 {
   g_assert (VALENT_IS_BATTERY_PLUGIN (self));
+  g_assert (VALENT_IS_PACKET (packet));
 
-  valent_battery_plugin_send_state (self);
+  if (valent_packet_check_boolean (valent_packet_get_body (packet), "request"))
+    valent_battery_plugin_send_state (self);
 }
 
 /**
@@ -327,7 +330,7 @@ valent_battery_plugin_request_state (ValentBatteryPlugin *self)
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
 
-  g_return_if_fail (VALENT_IS_BATTERY_PLUGIN (self));
+  g_assert (VALENT_IS_BATTERY_PLUGIN (self));
 
   builder = valent_packet_start ("kdeconnect.battery.request");
   json_builder_set_member_name (builder, "request");
@@ -459,7 +462,7 @@ valent_battery_plugin_handle_packet (ValentDevicePlugin *plugin,
 
   /* A request for the local battery state */
   else if (g_strcmp0 (type, "kdeconnect.battery.request") == 0)
-    valent_battery_plugin_handle_battery_request (self);
+    valent_battery_plugin_handle_battery_request (self, packet);
 
   else
     g_assert_not_reached ();
