@@ -1,0 +1,43 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.ping",
+    "description": "This packet is a ping request.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.ping",
+            "body": {
+                "message": "A message"
+            }
+        },
+        {
+            "id": 0,
+            "type": "kdeconnect.ping",
+            "body": {}
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.ping"]
+        },
+        "body": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "description": "An optional message."
+                }
+            }
+        }
+    }
+}

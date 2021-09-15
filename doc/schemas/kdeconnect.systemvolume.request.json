@@ -1,0 +1,65 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.systemvolume.request",
+    "description": "This packet is a audio stream request. It is used to request both the list of streams and changes to those streams.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.systemvolume.request",
+            "body": {
+                "requestSinks": true
+            }
+        },
+        {
+            "id": 0,
+            "type": "kdeconnect.systemvolume.request",
+            "body": {
+                "name": "alsa_output.pci-0000_00_1b.0.analog-stereo",
+                "volume": 49,
+                "muted": false,
+                "enabled": true
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.systemvolume.request"]
+        },
+        "body": {
+            "type": "object",
+            "properties": {
+                "requestSinks": {
+                    "type": "boolean",
+                    "description": "Indicates this is a request for the stream list."
+                },
+                "name": {
+                    "type": "string",
+                    "description": "The name of a stream. If the packet contains this field, it is a request to adjust a stream."
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "description": "The requested enabled state."
+                },
+                "muted": {
+                    "type": "boolean",
+                    "description": "The requested mute state."
+                },
+                "volume": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "The requested volume. The maxmimum value is provided by the `maxVolume` field of the stream."
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,48 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.sms.request_attachment",
+    "description": "This packet is a request for a message attachment.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.sms.request_attachment",
+            "body": {
+                "part_id": 190,
+                "unique_identifier": "PART_1624666113891_image000000.jpg"
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.sms.request_attachment"]
+        },
+        "body": {
+            "type": "object",
+            "required": [
+                "part_id",
+                "unique_identifier"
+            ],
+            "properties": {
+                "part_id": {
+                    "description": "The ID of the attachment.",
+                    "type": "number"
+                },
+                "unique_identifier": {
+                    "description": "Unique name of the file.",
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
+

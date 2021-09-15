@@ -1,0 +1,102 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.sms.request",
+    "description": "This packet is a request to send an SMS/MMS message.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.sms.request",
+            "body": {
+                "addresses" : [
+                    {
+                       "address" : "+1-234-567-8901"
+                    }
+                ],
+                "attachments": [
+                    {
+                        "fileName": "image.jpeg",
+                        "base64EncodeFile": "iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAIAAAB7GkOtAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAB3RJTUUH5AkCAgMHUNVLwAAAAxFJREFUeNrtwYEAAAAAw6D5U1/hAFUBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAbwK0AAH/2ARQAAAAAElFTkSuQmCC",
+                        "mimeType": "image/jpeg"
+                    }
+                ],
+                "messageBody" : "Outgoing message",
+                "subID": 1,
+                "version": 2
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.sms.request"]
+        },
+        "body": {
+            "type": "object",
+            "required": [
+                "addresses",
+                "messageBody"
+            ],
+            "properties": {
+                "addresses": {
+                    "description": "A list of target contacts.",
+                    "type": "array",
+                    "items": {
+                        "title": "Address",
+                        "description": "An object representing a phone number or other contact method.",
+                        "type": "object",
+                        "properties": {
+                            "address": {
+                                "description": "A free-form address string. Usually a phone number or e-mail address.",
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "attachments": {
+                    "type": "array",
+                    "items": {
+                        "title": "Outgoing Attachment",
+                        "type": "object",
+                        "properties": {
+                            "fileName": {
+                                "type": "string",
+                                "description": "A file name."
+                            },
+                            "base64EncodedFile": {
+                                "type": "string",
+                                "description": "Base64 encoded data."
+                            },
+                            "mimeType": {
+                                "type": "string",
+                                "description": "A mime-type string."
+                            }
+                        }
+                    }
+                },
+                "messageBody": {
+                    "type": "string"
+                },
+                "subID": {
+                    "type": "number",
+                    "default": -1,
+                    "description": "The SIM card or account to send with."
+                },
+                "version": {
+                    "type": "number",
+                    "enum": [2],
+                    "description": "The version of SMS protocol in use."
+                }
+            }
+        }
+    }
+}
+

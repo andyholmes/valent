@@ -1,9 +1,5 @@
 libvalent_build = join_paths(meson.build_root(), 'src', 'libvalent')
 
-# TODO: Protocol Docs
-content_files = [
-]
-
 # Get gi-docgen
 gidocgen_dep = dependency('gi-docgen',
    version: '>= 2021.1',
@@ -23,9 +19,26 @@ valent_toml = configure_file(
   configuration: toml_conf
 )
 
+# Protocol Docs
+protocol_py = find_program('protocol.py')
+protocol_doc = custom_target('protocol-doc',
+  input: join_paths(meson.source_root(), 'doc', 'schemas', 'index.json'),
+  output: 'protocol.md',
+  command: [
+    protocol_py,
+    '@INPUT@',
+    '@OUTPUT@',
+  ],
+  build_by_default: true,
+)
+
+content_files = [
+  # 'protocol.md',
+]
+
 custom_target('valent-doc',
   input: [valent_toml, libvalent_gir[0]],
-  output: 'html',
+  output: meson.project_name(),
   command: [
     gidocgen,
     'generate',
@@ -35,6 +48,7 @@ custom_target('valent-doc',
     '--config=@INPUT0@',
     '--output-dir=@OUTPUT@',
     '--no-namespace-dir',
+    '--content-dir=@0@'.format(meson.current_build_dir()),
     '--content-dir=@0@'.format(meson.current_source_dir()),
     '@INPUT1@',
   ],
@@ -42,6 +56,6 @@ custom_target('valent-doc',
   depend_files: [content_files],
   build_by_default: true,
   install: true,
-  install_dir: pkgdocdir,
+  install_dir: docdir,
 )
 

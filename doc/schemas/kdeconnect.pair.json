@@ -1,0 +1,48 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.pair",
+    "description": "The KDE Connect pair packet is used to negotiate pairing between devices. Devices must be paired before sending any other packets and should reject any incoming packets from unpaired devices.\n\nA device sends a packet with `pair` set to `true` to request pairing. A response is expected with `pair` set to `true` to accept or `false` to `reject`. By convention the request times out after 30 seconds.\n\nA device sends a packet with `pair` set to `false` to unpair or reject a pairing request. No response is expected.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.pair",
+            "body": {
+                "pair": true
+            }
+        },
+        {
+            "id": 0,
+            "type": "kdeconnect.pair",
+            "body": {
+                "pair": false
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.pair"]
+        },
+        "body": {
+            "type": "object",
+            "required": [
+                "pair"
+            ],
+            "properties": {
+                "pair": {
+                    "type": "boolean",
+                    "description": "If `true` a pairing request is being accepted or a new one started. If `false` a pairing request is being rejected or a paired device is unpairing."
+                }
+            }
+        }
+    }
+}

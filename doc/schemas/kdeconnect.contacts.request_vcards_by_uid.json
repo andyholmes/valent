@@ -1,0 +1,47 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.contacts.request_vcards_by_uid",
+    "description": "This packet is a request for a list of contact UIDs with vCard data.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.contacts.request_vcards_by_uid",
+            "body": {
+                "uids": [
+                    "test-contact1",
+                    "test-contact2"
+                ]
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.contacts.request_vcards_by_uid"]
+        },
+        "body": {
+            "type": "object",
+            "required": [
+                "uids"
+            ],
+            "properties": {
+                "uids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "A list of contact UIDs."
+                }
+            }
+        }
+    }
+}

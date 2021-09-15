@@ -1,0 +1,49 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.runcommand.request",
+    "description": "This packet is a runcommand status update.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.runcommand.request",
+            "body": {
+                "key": "bea9fb3e-0c80-4d05-afdc-6a8f4156bc03"
+            }
+        },
+        {
+            "id": 0,
+            "type": "kdeconnect.runcommand.request",
+            "body": {
+                "requestCommandList": true
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.runcommand"]
+        },
+        "body": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string",
+                    "description": "If the packet body contains this field it is a request to execute the command with the ID `key`."
+                },
+                "requestCommandList": {
+                    "type": "boolean",
+                    "description": "If the packet body contains this field it is a request for the command list."
+                }
+            }
+        }
+    }
+}

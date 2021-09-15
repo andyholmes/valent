@@ -1,0 +1,31 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.telephony.request_mute",
+    "description": "This packet is sent to request the ringer be muted.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.telephony.request_mute",
+            "body": {}
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.telephony.request_mute"]
+        },
+        "body": {
+            "type": "object",
+            "properties": {}
+        }
+    }
+}

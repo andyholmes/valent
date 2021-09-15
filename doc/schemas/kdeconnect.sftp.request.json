@@ -1,0 +1,41 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.sftp.request",
+    "description": "This packet is a request to start SFTP.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.sftp.request",
+            "body": {
+                "startBrowsing": true
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.sftp.request"]
+        },
+        "body": {
+            "type": "object",
+            "required": [
+                "startBrowsing"
+            ],
+            "properties": {
+                "startBrowsing": {
+                    "type": "boolean",
+                    "description": "A request for the remote device to prepare for SFTP and respond with a `kdeconnect.sftp.request` packet."
+                }
+            }
+        }
+    }
+}

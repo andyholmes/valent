@@ -1,0 +1,64 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.share.request",
+    "description": "This packet is an upload request.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.share.request",
+            "body": {
+                "filename": "image.png"
+            },
+            "payloadSize": 882,
+            "payloadInfo": {
+                "port": 1739
+            }
+        },
+        {
+            "id": 0,
+            "type": "kdeconnect.share.request",
+            "body": {
+                "text": "Some text"
+            }
+        },
+        {
+            "id": 0,
+            "type": "kdeconnect.share.request",
+            "body": {
+                "url": "https://kdeconnect.kde.org"
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.share.request"]
+        },
+        "body": {
+            "type": "object",
+            "properties": {
+                "filename": {
+                    "type": "string",
+                    "description": "Name of the file being transferred. If the packet contains this field, it will be accompanied by payload transfer information."
+                },
+                "text": {
+                    "type": "string",
+                    "description": "Text content being shared. The receiving device decides how to present to text to the user."
+                },
+                "url": {
+                    "type": "string",
+                    "description": "URL being shared. The receiving device will typically open the URL with the default handler for the URI scheme."
+                }
+            }
+        }
+    }
+}

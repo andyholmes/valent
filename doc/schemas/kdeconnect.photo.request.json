@@ -1,0 +1,31 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.photo.request",
+    "description": "This packet is a request for a photo transfer.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.photo.request",
+            "body": {}
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.photo.request"]
+        },
+        "body": {
+            "type": "object",
+            "properties": {}
+        }
+    }
+}

@@ -1,0 +1,53 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.contacts.response_vcards",
+    "description": "This packet is a list of contact UIDs with vCard data.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.contacts.response_vcards",
+            "body": {
+                "uids": [
+                    "test-contact1",
+                    "test-contact2"
+                ],
+                "test-contact1": "BEGIN:VCARD\nVERSION:2.1\nFN:Contact One\nTEL;CELL:123-456-7890\nX-KDECONNECT-ID-DEV-test-device:test-contact1\nX-KDECONNECT-TIMESTAMP:1608700784336\nEND:VCARD",
+                "test-contact2": "BEGIN:VCARD\nVERSION:2.1\nFN:Contact Two\nTEL;CELL:123-456-7891\nX-KDECONNECT-ID-DEV-test-device:test-contact2\nX-KDECONNECT-TIMESTAMP:1608700782848\nEND:VCARD"
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.contacts.response_vcards"]
+        },
+        "body": {
+            "type": "object",
+            "required": [
+                "uids"
+            ],
+            "properties": {
+                "uids": {
+                    "description": "A list of contact UIDs. Each UID has a corresponding uid-vcard pair in the body object.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "additionalProperties": {
+                "description": "Contact vCard data.",
+                "type": "string"
+            }
+        }
+    }
+}

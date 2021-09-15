@@ -1,0 +1,31 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.contacts.request_all_uids_timestamps",
+    "description": "This packet is a request for a list of contact UIDs with modification timestamps.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.contacts.request_all_uids_timestamps",
+            "body": {}
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.contacts.request_all_uids_timestamps"]
+        },
+        "body": {
+            "type": "object",
+            "properties": {}
+        }
+    }
+}

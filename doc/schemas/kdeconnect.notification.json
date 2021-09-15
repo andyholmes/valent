@@ -1,0 +1,115 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.notification",
+    "description": "This packet is a notification.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.notification",
+            "body": {
+                "id": "notification-id",
+                "title": "Information",
+                "text": "Something happened",
+                "ticker": "Information: Something happened",
+                "appName": "Terminal",
+                "isClearable": true,
+                "onlyOnce": false,
+                "requestReplyId": "17499937-334b-4704-9c2c-24a0bcd4155a",
+                "time": "1631436143331",
+                "actions": [
+                    "Ignore",
+                    "Open"
+                ],
+                "payloadHash": "d97f60d052bf11d1e88821e04fff0007"
+            }
+        },
+        {
+            "id": 0,
+            "type": "kdeconnect.notification",
+            "body": {
+                "id": "notification-id",
+                "isCancel": true
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.notification"]
+        },
+        "body": {
+            "type": "object",
+            "required": [
+                "id",
+                "appName",
+                "ticker",
+                "title",
+                "text"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "The notification ID."
+                },
+                "isCancel": {
+                    "type": "boolean",
+                    "description": "If `true` the notification with the indicated ID has been closed."
+                },
+                "isClearable": {
+                    "type": "boolean",
+                    "description": "If `true` the notification with the indicated ID can be closed."
+                },
+                "onlyOnce": {
+                    "type": "boolean",
+                    "description": "If `true` the notification should only be shown once."
+                },
+                "time": {
+                    "type": "string",
+                    "description": "A UNIX epoch timestamp (ms) in string form."
+                },
+                "appName": {
+                    "type": "string",
+                    "description": "The notifying application name."
+                },
+                "ticker": {
+                    "type": "string",
+                    "description": "The notification title and text in a single string."
+                },
+                "title": {
+                    "type": "string",
+                    "description": "The notification title."
+                },
+                "text": {
+                    "type": "string",
+                    "description": "The notification body."
+                },
+                "payloadHash": {
+                    "type": "string",
+                    "minLength": 32,
+                    "maxLength": 32,
+                    "description": "An MD5 hash of the notification icon. If the packet contains this field, it will be accompanied by payload transfer information."
+                },
+                "actions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "A list of action names for the notification. Respond with `kdeconnect.notification.action` to activate."
+                },
+                "requestReplyId": {
+                    "type": "string",
+                    "description": "The UUID for repliable notifications (eg. chat). Respond with `kdeconnect.notification.reply` to reply."
+                }
+            }
+        }
+    }
+}

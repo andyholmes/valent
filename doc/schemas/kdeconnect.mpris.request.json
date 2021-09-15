@@ -1,0 +1,94 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.mpris.request",
+    "description": "This packet is a request for player information or control.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.mpris.request",
+            "body": {
+                "requestPlayerList": true
+            }
+        },
+        {
+            "id": 0,
+            "type": "kdeconnect.mpris.request",
+            "body": {
+                "player": "Test Player",
+                "requestNowPlaying": true,
+                "requestVolume": true
+            }
+        },
+        {
+            "id": 0,
+            "type": "kdeconnect.mpris.request",
+            "body": {
+                "player": "Test Player",
+                "action": "Play"
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.mpris.request"]
+        },
+        "body": {
+            "type": "object",
+            "properties": {
+                "player": {
+                    "type": "string",
+                    "description": "The player name"
+                },
+                "requestNowPlaying": {
+                    "type": "boolean",
+                    "description": "Whether the current status is requested."
+                },
+                "requestPlayerList": {
+                    "type": "boolean",
+                    "description": "Whether the player list is requested."
+                },
+                "requestVolume": {
+                    "type": "boolean",
+                    "description": "Whether the current volume is requested."
+                },
+                "Seek": {
+                    "type": "number",
+                    "description": "A request to seek relative to the current position (ms)."
+                },
+                "SetPosition": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "A request to set the track position (ms)."
+                },
+                "setVolume": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "A request to set the player volume."
+                },
+                "action": {
+                    "type": "string",
+                    "enum": [
+                        "Pause",
+                        "Play",
+                        "PlayPause",
+                        "Stop",
+                        "Next",
+                        "Previous"
+                    ],
+                    "description": "A request to activate a player action."
+                }
+            }
+        }
+    }
+}

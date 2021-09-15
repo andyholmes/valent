@@ -1,0 +1,81 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.telephony",
+    "description": "This packet is a telephony event, such as the phone ringing.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.telephony",
+            "body": {
+                "event": "talking",
+                "contactName": "John Smith",
+                "messageBody": "A text message",
+                "phoneNumber": "555-555-5555",
+                "phoneThumbnail": "<base64 encoded JPEG>"
+            }
+        },
+        {
+            "id": 0,
+            "type": "kdeconnect.telephony",
+            "body": {
+                "event": "talking",
+                "contactName": "John Smith",
+                "phoneNumber": "555-555-5555",
+                "isCancel": true
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.telephony"]
+        },
+        "body": {
+            "type": "object",
+            "required": [
+                "event",
+                "phoneNumber"
+            ],
+            "properties": {
+                "event": {
+                    "type": "string",
+                    "enum": [
+                        "missedCall",
+                        "ringing",
+                        "talking",
+                        "sms"
+                    ]
+                },
+                "contactName": {
+                    "type": "string",
+                    "description": "The contact name associated with the event."
+                },
+                "messageBody": {
+                    "type": "string",
+                    "description": "The message text associated with the event."
+                },
+                "phoneNumber": {
+                    "type": "string",
+                    "description": "The phone number associated with the event."
+                },
+                "phoneThumbnail": {
+                    "type": "string",
+                    "description": "base64 encoded JPEG."
+                },
+                "isCancel": {
+                    "type": "boolean",
+                    "description": "If `event` has stopped."
+                }
+            }
+        }
+    }
+}

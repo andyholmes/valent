@@ -1,0 +1,127 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.mpris",
+    "description": "This packet is an MPRIS player update.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.mpris",
+            "body": {
+                "player": "Test Player",
+                "canPause": true,
+                "canPlay": true,
+                "canGoNext": true,
+                "canGoPrevious": false,
+                "canSeek": true,
+                "isPlaying": true,
+                "pos": 0,
+                "albumArtUrl": "file:///path/to/image.png",
+                "nowPlaying": "Unknown",
+                "artist": "Test Artist",
+                "title": "Test Title",
+                "album": "Test Album",
+                "length": 180000,
+                "volume": 100
+            }
+        },
+        {
+            "id": 0,
+            "type": "kdeconnect.mpris",
+            "body": {
+                "playerList": [
+                    "Test Player"
+                ]
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.mpris"]
+        },
+        "body": {
+            "type": "object",
+            "properties": {
+                "playerList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "A list of player names."
+                },
+                "player": {
+                    "type": "string",
+                    "description": "A player name. This field is used to target a player."
+                },
+                "canPause": {
+                    "type": "boolean",
+                    "description": "Can pause."
+                },
+                "canPlay": {
+                    "type": "boolean",
+                    "description": "Can play."
+                },
+                "canGoNext": {
+                    "type": "boolean",
+                    "description": "Can go next."
+                },
+                "canGoPrevious": {
+                    "type": "boolean",
+                    "description": "Can go previous."
+                },
+                "canSeek": {
+                    "type": "boolean",
+                    "description": "Can seek."
+                },
+                "isPlaying": {
+                    "type": "boolean",
+                    "description": "Whether playback is active."
+                },
+                "pos": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "Current track position."
+                },
+                "albumArtUrl": {
+                    "type": "string",
+                    "description": "Current track album art URL."
+                },
+                "nowPlaying": {
+                    "type": "string",
+                    "description": "An inclusive string of the format 'Artist - Title'."
+                },
+                "artist": {
+                    "type": "string",
+                    "description": "Current track artist."
+                },
+                "title": {
+                    "type": "string",
+                    "description": "Current track title."
+                },
+                "album": {
+                    "type": "string",
+                    "description": "Current track album."
+                },
+                "length": {
+                    "type": "number",
+                    "description": "Current track length (ms)."
+                },
+                "volume": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "Current player volume (%)."
+                }
+            }
+        }
+    }
+}

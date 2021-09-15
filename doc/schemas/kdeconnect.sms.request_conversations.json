@@ -1,0 +1,32 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.sms.request_conversations",
+    "description": "This packet is a request for the latest message in each thread.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.sms.request_conversations",
+            "body": {}
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.sms.request_conversations"]
+        },
+        "body": {
+            "type": "object",
+            "properties": {}
+        }
+    }
+}
+

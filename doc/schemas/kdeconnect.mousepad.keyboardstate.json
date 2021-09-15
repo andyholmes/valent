@@ -1,0 +1,41 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.mousepad.keyboardstate",
+    "description": "This packet is a keyboard status update.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.mousepad.keyboardstate",
+            "body": {
+                "state": true
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.mousepad.keyboardstate"]
+        },
+        "body": {
+            "type": "object",
+            "required": [
+                "state"
+            ],
+            "properties": {
+                "state": {
+                    "type": "boolean",
+                    "description": "Indicates the keyboard is ready to receive keypress events."
+                }
+            }
+        }
+    }
+}
