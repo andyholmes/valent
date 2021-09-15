@@ -1,0 +1,50 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.lock.request",
+    "description": "This packet is a request for a lock status update or change.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.lock.request",
+            "body": {
+                "requestLocked": true
+            }
+        },
+        {
+            "id": 0,
+            "type": "kdeconnect.lock.request",
+            "body": {
+                "setLocked": false
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.lock.request"]
+        },
+        "body": {
+            "type": "object",
+            "default": {
+                "requestLocked": {
+                    "type": "boolean",
+                    "enum": [true],
+                    "description": "Indicates this is a request for the current locked status. Always true, if present."
+                },
+                "setLocked": {
+                    "type": "boolean",
+                    "description": "A request to change the locked status. If `true` the device will be locked or if `false` unlocked."
+                }
+            }
+        }
+    }
+}

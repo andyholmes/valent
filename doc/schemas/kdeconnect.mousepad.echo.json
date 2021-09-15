@@ -1,0 +1,105 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.mousepad.echo",
+    "description": "This packet is an echo for a `kdeconnect.mousepad.request` packet.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.mousepad.echo",
+            "body": {
+                "key": "a",
+                "isAck": true
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.mousepad.echo"]
+        },
+        "body": {
+            "type": "object",
+            "required": [
+                "isAck"
+            ],
+            "properties": {
+                "key": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "A request to press-release a single readable character, which may be a unicode character and thus more than one byte."
+                },
+                "specialKey": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 32,
+                    "description": "A request to press-release a single non-printable character, usually a control character or function key such as Backspace or F10."
+                },
+                "alt": {
+                    "type": "boolean",
+                    "description": "Indicates whether the Alt modifier should be applied to the associated `key` or `specialKey`."
+                },
+                "ctrl": {
+                    "type": "boolean",
+                    "description": "Indicates whether the Control modifier should be applied to the associated `key` or `specialKey`."
+                },
+                "shift": {
+                    "type": "boolean",
+                    "description": "Indicates whether the Shift modifier should be applied to the associated `key` or `specialKey`."
+                },
+                "super": {
+                    "type": "boolean",
+                    "description": "Indicates whether the Super modifier should be applied to the associated `key` or `specialKey`."
+                },
+                "singleclick": {
+                    "type": "boolean",
+                    "description": "A single press-release of the primary pointer button."
+                },
+                "doubleclick": {
+                    "type": "boolean",
+                    "description": "A double press-release of the primary pointer button."
+                },
+                "middleclick": {
+                    "type": "boolean",
+                    "description": "A single press-release of the middle pointer button."
+                },
+                "rightclick": {
+                    "type": "boolean",
+                    "description": "A single press-release of the secondary pointer button."
+                },
+                "singlehold": {
+                    "type": "boolean",
+                    "description": "A single press of the primary pointer button."
+                },
+                "singlerelease": {
+                    "type": "boolean",
+                    "description": "A single release of the primary pointer button."
+                },
+                "dx": {
+                    "type": "number",
+                    "description": "A double precision integer indicating a relative position delta for the pointer on the X-axis."
+                },
+                "dy": {
+                    "type": "number",
+                    "description": "A double precision integer indicating a relative position delta for the pointer on the Y-axis."
+                },
+                "scroll": {
+                    "type": "boolean",
+                    "description": "Whether the associated `dx` or `dy` movement is a scroll event."
+                },
+                "isAck": {
+                    "type": "boolean",
+                    "description": "Indicates the packet is a confirmation of a request. Always `true` and always present."
+                }
+            }
+        }
+    }
+}

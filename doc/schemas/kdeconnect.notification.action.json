@@ -1,0 +1,47 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.notification.action",
+    "description": "This packet is an activation of a notification action.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.notification.action",
+            "body": {
+                "key": "notification-id",
+                "action": "Open"
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.notification.action"]
+        },
+        "body": {
+            "type": "object",
+            "required": [
+                "key",
+                "action"
+            ],
+            "properties": {
+                "key": {
+                    "type": "string",
+                    "description": "The notification ID."
+                },
+                "action": {
+                    "type": "string",
+                    "description": "The notification action name."
+                }
+            }
+        }
+    }
+}

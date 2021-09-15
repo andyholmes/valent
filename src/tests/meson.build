@@ -32,6 +32,7 @@ test_env = [
 test_c_args = [
   '-DVALENT_TEST=1',
   '-DTEST_DATA_DIR="@0@/data/"'.format(meson.current_source_dir()),
+  '-DJSON_SCHEMA_DIR="@0@"'.format(join_paths(meson.source_root(), 'doc', 'schemas')),
   '-I' + join_paths(meson.source_root(), 'src'),
 ]
 

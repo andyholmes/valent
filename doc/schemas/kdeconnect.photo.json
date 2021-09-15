@@ -1,0 +1,45 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.photo",
+    "description": "This packet is a photo transfer.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.photo",
+            "body": {
+                "filename": "photo.jpg"
+            },
+            "payloadSize": 882,
+            "payloadTransferInfo": {
+                "port": 1739
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.photo"]
+        },
+        "body": {
+            "type": "object",
+            "required": [
+                "filename"
+            ],
+            "properties": {
+                "filename": {
+                    "type": "string",
+                    "description": "Name of the file being transferred."
+                }
+            }
+        }
+    }
+}

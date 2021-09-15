@@ -1,0 +1,41 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.runcommand",
+    "description": "This packet is a list of available commands.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.runcommand",
+            "body": {
+                "commandList": "{\"command-id1\": {\"name\": \"Command\",\"command\": \"/path/to/command1\"}}"
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.runcommand"]
+        },
+        "body": {
+            "type": "object",
+            "required": [
+                "commandList"
+            ],
+            "properties": {
+                "commandList": {
+                    "type": "string",
+                    "description": "A serialized dictionary of commands that the device offers. The key is sent in a `kdeconnect.runcommand.request` packet to execute its corresponding command. Each value has a `name` field and a `command` field."
+                }
+            }
+        }
+    }
+}

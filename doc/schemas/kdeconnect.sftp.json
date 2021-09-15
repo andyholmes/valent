@@ -1,0 +1,93 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.sftp",
+    "description": "This packet contains SFTP login information.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.sftp",
+            "body": {
+                "ip": "192.168.1.71",
+                "port": 1743,
+                "user": "kdeconnect",
+                "password": "UzcNCrI7T668JyxUFjOxQncBPNcO",
+                "path": "/storage/emulated/0",
+                "multiPaths": [
+                    "/storage/0000-0000",
+                    "/storage/0000-0000/DCIM/Camera",
+                    "/storage/emulated/0",
+                    "/storage/emulated/0/DCIM/Camera"
+                ],
+                "pathNames": [
+                    "SD Card",
+                    "Camera Pictures (SD Card)",
+                    "All files",
+                    "Camera pictures"
+                ]
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.sftp"]
+        },
+        "body": {
+            "type": "object",
+            "required": [
+                "ip",
+                "port",
+                "user",
+                "password",
+                "path",
+                "multiPaths",
+                "pathNames"
+            ],
+            "properties": {
+                "ip": {
+                    "type": "string",
+                    "description": "The host address."
+                },
+                "port": {
+                    "type": "number",
+                    "description": "The host port."
+                },
+                "user": {
+                    "type": "string",
+                    "description": "The user. Currently always `kdeconnect`."
+                },
+                "password": {
+                    "type": "string",
+                    "description": "The one-time password. Deprecated; use private key authentication via the TLS certificate."
+                },
+                "path": {
+                    "type": "string",
+                    "description": "The base path of the remote server. This should generally only be used as a fallback if the `multiPaths` field is missing."
+                },
+                "multiPaths": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "An ordered list of paths for the remote server. Usually contains at least a 'root' directory and a path the the camera folder, but may contain additional paths to external storage devices."
+                },
+                "pathNames": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "An ordered list of names associated with the paths in `multiPaths`, in the same order."
+                }
+            }
+        }
+    }
+}

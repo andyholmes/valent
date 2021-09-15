@@ -267,9 +267,9 @@ test_mousepad_plugin_send_pointer_request (ValentTestPluginFixture *fixture,
 }
 
 static const char *schemas[] = {
-  TEST_DATA_DIR"/schemas/kdeconnect.mousepad.echo.json",
-  TEST_DATA_DIR"/schemas/kdeconnect.mousepad.keyboardstate.json",
-  TEST_DATA_DIR"/schemas/kdeconnect.mousepad.request.json",
+  JSON_SCHEMA_DIR"/kdeconnect.mousepad.echo.json",
+  JSON_SCHEMA_DIR"/kdeconnect.mousepad.keyboardstate.json",
+  JSON_SCHEMA_DIR"/kdeconnect.mousepad.request.json",
 };
 
 static void

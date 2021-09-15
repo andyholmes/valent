@@ -1,0 +1,55 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.battery",
+    "description": "This packet is a battery status update.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.battery",
+            "body": {
+                "currentCharge": 15,
+                "isCharging": false,
+                "thresholdEvent": 1
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.battery"]
+        },
+        "body": {
+            "type": "object",
+            "required": [
+                "currentCharge",
+                "isCharging"
+            ],
+            "properties": {
+                "currentCharge": {
+                    "type": "number",
+                    "minimum": -1,
+                    "maximum": 100,
+                    "description": "The current battery percentage, typically between `0` and `100`. If the value is `-1`, the device should be treated as though it has no battery."
+                },
+                "isCharging": {
+                    "type": "boolean",
+                    "description": "A boolean value indicating whether the battery is currently charging."
+                },
+                "thresholdEvent": {
+                    "type": "number",
+                    "enum": [0, 1],
+                    "description": "Either `1` if the battery is below the threshold level, `0` otherwise. The threshold is chosen arbitrarily by the reporting device."
+                }
+            }
+        }
+    }
+}

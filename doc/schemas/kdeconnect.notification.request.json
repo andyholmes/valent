@@ -1,0 +1,49 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.notification.request",
+    "description": "This packet is a request for notifications.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.notification.request",
+            "body": {
+                "cancel": "notification-id"
+            }
+        },
+        {
+            "id": 0,
+            "type": "kdeconnect.notification.request",
+            "body": {
+                "request": true
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.notification.request"]
+        },
+        "body": {
+            "type": "object",
+            "properties": {
+                "cancel": {
+                    "type": "string",
+                    "description": "If present, holds the ID of a notification that should be closed."
+                },
+                "request": {
+                    "type": "boolean",
+                    "description": "Indicates this is a request for the notifications."
+                }
+            }
+        }
+    }
+}

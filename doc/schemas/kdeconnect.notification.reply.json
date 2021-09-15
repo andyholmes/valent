@@ -1,0 +1,47 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.notification.reply",
+    "description": "This packet is a reply for a repliable notification.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.notification.reply",
+            "body": {
+                "requestReplyId": "reply-id",
+                "message": "Reply text"
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.notification.reply"]
+        },
+        "body": {
+            "type": "object",
+            "required": [
+                "message",
+                "requestReplyId"
+            ],
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "description": "The message to reply with."
+                },
+                "requestReplyId": {
+                    "type": "string",
+                    "description": "The reply ID of the notification."
+                }
+            }
+        }
+    }
+}

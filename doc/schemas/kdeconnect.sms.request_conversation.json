@@ -1,0 +1,52 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.sms.request_conversation",
+    "description": "This packet is a request for messages from a thread.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.sms.request_conversation",
+            "body": {
+                "threadID": 42
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.sms.request_conversation"]
+        },
+        "body": {
+            "type": "object",
+            "required": [
+                "threadID"
+            ],
+            "properties": {
+                "threadID": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "rangeStartTimestamp": {
+                    "type": "number",
+                    "minimum": 0,
+                    "documentation": "The start date."
+                },
+                "numberToRequest": {
+                    "type": "number",
+                    "minimum": 0,
+                    "documentation": "The maximum number of messages to return."
+                }
+            }
+        }
+    }
+}
+

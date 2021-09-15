@@ -30,6 +30,6 @@ jobs:
         with:
           branch: gh-pages
           commit-message: API Reference
-          folder: _build/doc/sdk/html
+          folder: _build/doc/sdk/valent
           target-folder: documentation
 

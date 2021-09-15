@@ -3,15 +3,13 @@
 
 FROM fedora:34
 
-# The packages below fall roughly into three categories: build tooling,
-# test tooling, gi-docgen dependencies and app dependencies (with debug symbols)
+# The packages below are roughly grouped into build tooling and build
+# dependencies (with debug symbols)
 RUN dnf install -y --enablerepo=fedora-debuginfo,updates-debuginfo \
         glibc-langpack-en glibc-locale-source \
-        clang gcc gettext git libasan libtsan libubsan meson \
+        clang gcc gettext gi-docgen git libasan libtsan libubsan meson \
         appstream desktop-file-utils dbus-daemon lcov python-dbusmock rsync \
         xorg-x11-server-Xvfb \
-        python3-pygments python3-jinja2 python3-markdown python3-toml \
-        python3-typogrify \
         alsa-lib-devel                alsa-lib-debuginfo \
         evolution-data-server-devel   evolution-data-server-debuginfo \
         glib2-devel                   glib2-debuginfo \

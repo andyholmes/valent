@@ -1,0 +1,41 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.lock",
+    "description": "This packet is a lock status update.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.lock",
+            "body": {
+                "isLocked": true
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.lock"]
+        },
+        "body": {
+            "type": "object",
+            "required": [
+                "isLocked"
+            ],
+            "properties": {
+                "isLocked": {
+                    "type": "boolean",
+                    "description": "Indicates the current locked status of the device. If `true` the device is locked and `false` if unlocked."
+                }
+            }
+        }
+    }
+}

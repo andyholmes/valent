@@ -127,10 +127,10 @@ test_contacts_plugin_provide_contacts (ValentTestPluginFixture *fixture,
 }
 
 static const char *schemas[] = {
-  TEST_DATA_DIR"/schemas/kdeconnect.contacts.request_all_uids_timestamps.json",
-  TEST_DATA_DIR"/schemas/kdeconnect.contacts.request_vcards_by_uid.json",
-  TEST_DATA_DIR"/schemas/kdeconnect.contacts.response_uids_timestamps.json",
-  TEST_DATA_DIR"/schemas/kdeconnect.contacts.response_vcards.json",
+  JSON_SCHEMA_DIR"/kdeconnect.contacts.request_all_uids_timestamps.json",
+  JSON_SCHEMA_DIR"/kdeconnect.contacts.request_vcards_by_uid.json",
+  JSON_SCHEMA_DIR"/kdeconnect.contacts.response_uids_timestamps.json",
+  JSON_SCHEMA_DIR"/kdeconnect.contacts.response_vcards.json",
 };
 
 static void

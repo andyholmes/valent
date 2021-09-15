@@ -1,0 +1,91 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.identity",
+    "description": "The KDE Connect identity packet is used to identify devices and their capabilities.\n\nEach networking module may define additional fields necessary for clients to connect. For example, in the LAN protocol the identity packet is broadcast over UDP with a `tcpPort` field.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.identity",
+            "body": {
+                "deviceId": "abcdef0123456789",
+                "deviceName": "FOSS Phone",
+                "deviceType": "phone",
+                "incomingCapabilities": [
+                    "kdeconnect.mock.echo",
+                    "kdeconnect.mock.transfer"
+                ],
+                "outgoingCapabilities": [
+                    "kdeconnect.mock.echo",
+                    "kdeconnect.mock.transfer"
+                ],
+                "protocolVersion": 7
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.identity"]
+        },
+        "body": {
+            "type": "object",
+            "required": [
+                "deviceId",
+                "deviceName",
+                "deviceType",
+                "incomingCapabilities",
+                "outgoingCapabilities",
+                "protocolVersion"
+            ],
+            "properties": {
+                "deviceId": {
+                    "description": "A unique ID for the device.",
+                    "type": "string"
+                },
+                "deviceName": {
+                    "description": "A human-readable label for the device.",
+                    "type": "string"
+                },
+                "deviceType": {
+                    "description": "A device type string. Since the `incomingCapabilities` and `outgoingCapabilities` fields describe the functionality of a device, the `deviceType` field is typically only used to select an icon.",
+                    "type": "string",
+                    "enum": [
+                        "desktop",
+                        "laptop",
+                        "phone",
+                        "tablet",
+                        "tv"
+                    ]
+                },
+                "incomingCapabilities": {
+                    "description": "A list of packet types the device can consume. Note that this is only an indication a device can consume a packet type, not that it will.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "outgoingCapabilities": {
+                    "description": "A list of packet types the device can provide. Note that this is only an indication a device can provide a packet type, not that it will.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "protocolVersion": {
+                    "description": "The protocol version. The only value currently valid is `7`",
+                    "type": "number",
+                    "enum": [7]
+                }
+            }
+        }
+    }
+}

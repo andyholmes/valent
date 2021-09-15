@@ -1,0 +1,41 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.clipboard",
+    "description": "This packet is sent when the clipboard content changes. In other words, it is typically sent when the selection owner changes.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.clipboard",
+            "body": {
+                "content": "some text"
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.clipboard"]
+        },
+        "body": {
+            "type": "object",
+            "required": [
+                "content"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "description": "Text content of the clipboard."
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,48 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.*",
+    "description": "The structure of a KDE Connect packet is similar to a JSON-RPC request, although the protocols are quite different. The `id` field holds a timestamp, the `type` field holds a type string and the `body` field holds a dictionary of parameters. While the `id` field is not used in KDE Connect, the `type` and `body` fields are analagous to the `method` and `params` members of a JSON-RPC request.\n\nPackets are sent by devices with no guarantee that they will be received, or that if received there will be a response. For this reason, plugins consistently handle any incoming packet regardless of whether it was expected or not. In other words, packet handling in KDE Connect is typically idempotent.\n\nPayloads are declared by the presence of the `payloadSize` and `payloadTransferInfo` fields, which indicate that the packet sender is waiting to transfer `payloadSize` bytes over the connection described by `payloadTransferInfo`. For example, the `payloadTransferInfo` dictionary might have a `port` entry holding a TCP port the device is listening on for incoming connections.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.share.request",
+            "body": {
+                "filename": "image.png"
+            },
+            "payloadSize": 882,
+            "payloadTransferInfo": {
+                "port": 1739
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number",
+            "description": "A UNIX epoch timestamp (ms). In some cases KDE Connect clients erroneously set this field as a string."
+        },
+        "type": {
+            "type": "string",
+            "pattern": "^kdeconnect(\\.[a-z_]+)+$",
+            "description": "A string in the form of `kdeconnect.<plugin>` or `kdeconnect.<plugin>.<action>` such as `kdeconnect.mpris` and `kdeconnect.mpris.request`."
+        },
+        "body": {
+            "type": "object",
+            "description": "A dictionary of parameters appropriate for the packet `type`."
+        },
+        "payloadSize": {
+            "type": "number",
+            "minimum": -1,
+            "description": "The size of the payload to expect. There is a currently unused convention of using `-1` to declare a stream of indefinite size."
+        },
+        "payloadTransferInfo": {
+            "type": "object",
+            "description": "A dictionary of properties necessary for clients to negotiate a transfer channel."
+        }
+    }
+}

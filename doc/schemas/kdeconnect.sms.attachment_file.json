@@ -1,0 +1,46 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.sms.attachment_file",
+    "description": "This packet is a message attachment transfer.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.sms.attachment_file",
+            "body": {
+                "filename": "image.png"
+            },
+            "payloadSize": 882,
+            "payloadTransferInfo": {
+                "port": 1739
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.sms.attachment_file"]
+        },
+        "body": {
+            "type": "object",
+            "required": [
+                "filename"
+            ],
+            "properties": {
+                "filename": {
+                    "type": "string",
+                    "description": "The name of the file being transferred."
+                }
+            }
+        }
+    }
+}
+

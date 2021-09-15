@@ -49,8 +49,8 @@ test_photo_plugin_send_request (ValentTestPluginFixture *fixture,
 }
 
 static const char *schemas[] = {
-  TEST_DATA_DIR"/schemas/kdeconnect.photo.json",
-  TEST_DATA_DIR"/schemas/kdeconnect.photo.request.json",
+  JSON_SCHEMA_DIR"/kdeconnect.photo.json",
+  JSON_SCHEMA_DIR"/kdeconnect.photo.request.json",
 };
 
 static void

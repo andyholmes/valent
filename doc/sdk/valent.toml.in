@@ -54,6 +54,7 @@ base_url = "https://github.com/andyholmes/valent/blob/master/"
 [extra]
 # The same order will be used when generating the index
 content_files = [
+  "protocol.md",
 ]
 content_images = [
   "images/logo.svg",

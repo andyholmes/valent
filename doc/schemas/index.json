@@ -1,0 +1,241 @@
+{
+    "title": "Protocol Reference",
+    "description": "This reference is generated from JSON Schemas used in the testing and development of Valent.\n\nThis document should not be interpreted as a formal specification of the KDE Connect protocol.",
+    "sections": [
+        {
+            "title": "Core Protocol",
+            "description": "The core of the KDE Connect protocol is built on the exchange of JSON packets, similar to JSON-RPC.",
+            "packets": [
+                "kdeconnect",
+                "kdeconnect.identity",
+                "kdeconnect.pair"
+            ],
+            "references": [
+                "https://invent.kde.org/network/kdeconnect-kde",
+                "https://invent.kde.org/network/kdeconnect-android"
+            ]
+        },
+        {
+            "title": "Battery Plugin",
+            "description": "The Battery plugin allows a device to expose the status of its battery.",
+            "packets": [
+                "kdeconnect.battery",
+                "kdeconnect.battery.request"
+            ],
+            "references": [
+                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/battery",
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/BatteryPlugin"
+            ]
+        },
+        {
+            "title": "Clipboard Plugin",
+            "description": "The Clipboard plugin allows syncing clipboard text content between devices.",
+            "packets": [
+                "kdeconnect.clipboard",
+                "kdeconnect.clipboard.connect"
+            ],
+            "references": [
+                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/clipboard",
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/ClipboardPlugin"
+            ]
+        },
+        {
+            "title": "Contacts Plugin",
+            "description": "The Contacts plugin allows devices to share contacts in vCard format.",
+            "packets": [
+                "kdeconnect.contacts.request_all_uids_timestamps",
+                "kdeconnect.contacts.request_vcards_by_uid",
+                "kdeconnect.contacts.response_uids_timestamps",
+                "kdeconnect.contacts.response_vcards"
+            ],
+            "references": [
+                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/contacts",
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/ContactsPlugin"
+            ]
+        },
+        {
+            "title": "FindMyPhone Plugin",
+            "description": "The FindMyPhone plugin allows requesting a device to announce it's location, usually by playing a sound like a traditional cordless phone.",
+            "packets": [
+                "kdeconnect.findmyphone.request"
+            ],
+            "references": [
+                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/findmyphone",
+                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/findthisdevice",
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/FindMyPhonePlugin",
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/FindRemoteDevicePlugin"
+            ]
+        },
+        {
+            "title": "Lock",
+            "description": "The Lock plugin allows requesting a device to lock or unlock.",
+            "packets": [
+                "kdeconnect.lock",
+                "kdeconnect.lock.request"
+            ],
+            "references": [
+                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/lockdevice"
+            ]
+        },
+        {
+            "title": "MousePad Plugin",
+            "description": "The MousePad plugin allows remote control of the pointer and keyboard.",
+            "packets": [
+                "kdeconnect.mousepad.echo",
+                "kdeconnect.mousepad.keyboardstate",
+                "kdeconnect.mousepad.request"
+            ],
+            "references": [
+                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/mousepad",
+                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/remotecontrol",
+                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/remotekeyboard",
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/MousePadPlugin",
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/MouseReceiverPlugin",
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/RemoteKeyboardPlugin"
+            ]
+        },
+        {
+            "title": "MPRIS Plugin",
+            "description": "The MRIS plugin allows sharing control of media players.",
+            "packets": [
+                "kdeconnect.mpris",
+                "kdeconnect.mpris.request"
+            ],
+            "references": [
+                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/mpriscontrol",
+                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/mprisremote",
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/MprisPlugin",
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/MprisReceiverPlugin"
+            ]
+        },
+        {
+            "title": "Notification Plugin",
+            "description": "The Notification plugin syncs notifications between devices.",
+            "packets": [
+                "kdeconnect.notification",
+                "kdeconnect.notification.action",
+                "kdeconnect.notification.reply",
+                "kdeconnect.notification.request"
+            ],
+            "references": [
+                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/notifications",
+                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/sendnotifications",
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/NotificationsPlugin",
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/ReceiveNotificationsPlugin"
+            ]
+        },
+        {
+            "title": "Photo Plugin",
+            "description": "The Photo plugin allows requesting a device to take a photo and then transferred the result.",
+            "packets": [
+                "kdeconnect.photo",
+                "kdeconnect.photo.request"
+            ],
+            "references": [
+                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/photo",
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/PhotoPlugin"
+            ]
+        },
+        {
+            "title": "Ping Plugin",
+            "description": "The Ping plugin allows sending and receiving simple 'pings', with an optional message. Usually these are displayed as notifications.",
+            "packets": [
+                "kdeconnect.ping"
+            ],
+            "references": [
+                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/ping",
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/PingPlugin"
+            ]
+        },
+        {
+            "title": "Presenter Plugin",
+            "description": "The Presenter plugin allows sending and receiving simple 'pings', with an optional message. Usually these are displayed as notifications.",
+            "packets": [
+                "kdeconnect.presenter"
+            ],
+            "references": [
+                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/presenter",
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/PresenterPlugin"
+            ]
+        },
+        {
+            "title": "RunCommand Plugin",
+            "description": "The RunCommand plugin allows defining and executing remote commands.",
+            "packets": [
+                "kdeconnect.runcommand",
+                "kdeconnect.runcommand.request"
+            ],
+            "references": [
+                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/remotecommands",
+                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/runcommand",
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/RunCommandPlugin"
+            ]
+        },
+        {
+            "title": "SFTP Plugin",
+            "description": "The SFTP plugin enables secure filesharing with SFTP.",
+            "packets": [
+                "kdeconnect.sftp",
+                "kdeconnect.sftp.request"
+            ],
+            "references": [
+                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/sftp",
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/SftpPlugin"
+            ]
+        },
+        {
+            "title": "Share Plugin",
+            "description": "The Share plugin allows sharing files, text content and URLs.",
+            "packets": [
+                "kdeconnect.share.request"
+            ],
+            "references": [
+                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/share",
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/SharePlugin"
+            ]
+        },
+        {
+            "title": "SMS Plugin",
+            "description": "The SMS plugin allows sending and receiving SMS/MMS messages.",
+            "packets": [
+                "kdeconnect.sms.attachment_file",
+                "kdeconnect.sms.messages",
+                "kdeconnect.sms.request",
+                "kdeconnect.sms.request_attachment",
+                "kdeconnect.sms.request_conversation",
+                "kdeconnect.sms.request_conversations"
+            ],
+            "references": [
+                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/sms",
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/SMSPlugin",
+                "https://invent.kde.org/network/kdeconnect-android/blob/master/src/org/kde/kdeconnect/Helpers/SMSHelper.java"
+            ]
+        },
+        {
+            "title": "SystemVolume Plugin",
+            "description": "The SystemVolume plugin allows sharing volume controls between devices.",
+            "packets": [
+                "kdeconnect.systemvolume",
+                "kdeconnect.systemvolume.request"
+            ],
+            "references": [
+                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/remotesystemvolume",
+                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/systemvolume",
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/SystemVolumePlugin"
+            ]
+        },
+        {
+            "title": "Telephony Plugin",
+            "description": "The Telephony plugin allows notification of events such as incoming or missed calls.",
+            "packets": [
+                "kdeconnect.telephony",
+                "kdeconnect.telephony.request_mute"
+            ],
+            "references": [
+                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/telephony",
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/TelephonyPlugin"
+            ]
+        }
+    ]
+}
+

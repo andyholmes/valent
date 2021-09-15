@@ -1,0 +1,113 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.systemvolume",
+    "description": "This packet is a lock status update.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.systemvolume",
+            "body": {
+                "sinkList": [
+                    {
+                        "name": "alsa_output.pci-0000_00_1b.0.analog-stereo",
+                        "description": "Built-in Audio Analog Stereo",
+                        "muted": false,
+                        "volume": 32768,
+                        "maxVolume": 65536,
+                        "enabled": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 0,
+            "type": "kdeconnect.systemvolume",
+            "body": {
+                "name": "alsa_output.pci-0000_00_1b.0.analog-stereo",
+                "volume": 49,
+                "muted": false,
+                "enabled": true
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.systemvolume"]
+        },
+        "body": {
+            "type": "object",
+            "required": [
+                "isLocked"
+            ],
+            "properties": {
+                "sinkList": {
+                    "description": "The list of audio streams.",
+                    "type": "array",
+                    "items": {
+                        "title": "Stream",
+                        "description": "An audio stream object",
+                        "type": "object",
+                        "required": [
+                            "name",
+                            "description",
+                            "volume",
+                            "muted"
+                        ],
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The stream name."
+                            },
+                            "description": {
+                                "type": "string",
+                                "description": "The stream display name."
+                            },
+                            "enabled": {
+                                "type": "boolean",
+                                "description": "Whether the stream is enabled."
+                            },
+                            "muted": {
+                                "type": "boolean",
+                                "description": "Whether the stream is muted."
+                            },
+                            "maxVolume": {
+                                "type": "number",
+                                "description": "The stream max volume level."
+                            },
+                            "volume": {
+                                "type": "number",
+                                "description": "The stream volume level."
+                            }
+                        }
+                    }
+                },
+                "name": {
+                    "type": "string",
+                    "description": "The stream name."
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Whether the stream is enabled."
+                },
+                "muted": {
+                    "type": "boolean",
+                    "description": "Whether the stream is muted."
+                },
+                "volume": {
+                    "type": "number",
+                    "description": "The stream volume level."
+                }
+            }
+        }
+    }
+}

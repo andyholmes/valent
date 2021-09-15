@@ -104,7 +104,7 @@ test_share_plugin_send_request (ValentTestPluginFixture *fixture,
 }
 
 static const char *schemas[] = {
-  TEST_DATA_DIR"/schemas/kdeconnect.share.request.json",
+  JSON_SCHEMA_DIR"/kdeconnect.share.request.json",
 };
 
 static void

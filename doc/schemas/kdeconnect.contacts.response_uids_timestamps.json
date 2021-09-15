@@ -1,0 +1,53 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.contacts.response_uids_timestamps",
+    "description": "This packet is a list of contact UIDs with modification timestamps.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.contacts.response_all_uids_timestamps",
+            "body": {
+                "uids": [
+                    "test-contact1",
+                    "test-contact2"
+                ],
+                "test-contact1": 1608700784336,
+                "test-contact2": 1608700782848
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.contacts.response_uids_timestamps"]
+        },
+        "body": {
+            "type": "object",
+            "required": [
+                "uids"
+            ],
+            "properties": {
+                "uids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "A list of contact UIDs. Each UID has a corresponding uid-timestamp pair in the body object."
+                }
+            },
+            "additionalProperties": {
+                "type": "number",
+                "description": "Contact modification timestamp (ms)."
+            }
+        }
+    }
+}

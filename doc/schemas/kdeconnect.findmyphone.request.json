@@ -1,0 +1,31 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.findmyphone.request",
+    "description": "This packet is a request for a device to accounce its location. By convention, sending a second packet cancels the request.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.findmyphone.request",
+            "body": {}
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.findmyphone.request"]
+        },
+        "body": {
+            "type": "object",
+            "default": {}
+        }
+    }
+}
