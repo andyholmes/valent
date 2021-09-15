@@ -131,24 +131,6 @@ get_icon_theme (void)
   return gtk_icon_theme_get_for_display (display);
 }
 
-static GFile *
-get_icon_gfile (ValentNotificationPlugin *self,
-                const char               *filehash)
-{
-  ValentData *data;
-  g_autofree char *cache_dir = NULL;
-
-  data = valent_device_get_data (self->device);
-  cache_dir = g_build_filename (valent_data_get_cache_path (data),
-                                "notification",
-                                NULL);
-
-  if (!g_file_test (cache_dir, G_FILE_TEST_IS_DIR))
-    g_mkdir_with_parents (cache_dir, 0755);
-
-  return g_file_new_build_filename (cache_dir, filehash, NULL);
-}
-
 static int
 get_largest_icon (GtkIconTheme *theme,
                   const char   *name)
@@ -310,6 +292,45 @@ icon_to_png_bytes (GIcon         *icon,
 /*
  * Icon Transfers
  */
+static GFile *
+valent_notification_plugin_get_icon_file (ValentNotificationPlugin *self,
+                                          JsonNode                 *packet)
+{
+  JsonObject *body;
+  const char *payload_hash;
+  g_autoptr (GFile) file = NULL;
+
+  g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
+  g_assert (VALENT_IS_PACKET (packet));
+
+  body = valent_packet_get_body (packet);
+
+  /* Check for a payload hash */
+  if ((payload_hash = valent_packet_check_string (body, "payloadHash")) != NULL)
+    {
+      ValentData *data;
+      g_autofree char *path = NULL;
+
+      /* Build a filename in the notification cache of the device context */
+      data = valent_device_get_data (self->device);
+      path = g_build_filename (valent_data_get_cache_path (data),
+                               "notification",
+                               payload_hash,
+                               NULL);
+
+      file = g_file_new_for_path (path);
+    }
+  else
+    {
+      GFileIOStream *stream = NULL;
+
+      file = g_file_new_tmp ("valent-notification-icon.XXXXXX", &stream, NULL);
+      g_object_unref (stream);
+    }
+
+  return g_steal_pointer (&file);
+}
+
 static void
 download_icon_task (GTask        *task,
                     gpointer      source_object,
@@ -319,34 +340,32 @@ download_icon_task (GTask        *task,
   ValentNotificationPlugin *self = source_object;
   g_autoptr (GFile) file = NULL;
   JsonNode *packet = task_data;
-  const char *payload_hash;
-  JsonObject *root;
   GError *error = NULL;
 
   if (g_task_return_error_if_cancelled (task))
     return;
 
-  /* Check for a payload hash */
-  root = json_node_get_object (packet);
-
-  if ((payload_hash = valent_packet_check_string (root, "payloadHash")) != NULL)
-    {
-      file = get_icon_gfile (self, payload_hash);
-    }
-  else
-    {
-      g_autofree char *uuid = NULL;
-
-      uuid = g_uuid_string_random ();
-      file = get_icon_gfile (self, uuid);
-    }
+  file = valent_notification_plugin_get_icon_file (self, packet);
 
   /* Check if we've already downloaded this icon */
   if (!g_file_query_exists (file, cancellable))
     {
       g_autoptr (GIOStream) source = NULL;
       g_autoptr (GFileOutputStream) target = NULL;
+      g_autoptr (GFile) cache_dir = NULL;
       ValentChannel *channel;
+
+      /* Ensure the cache directory exists */
+      cache_dir = g_file_get_parent (file);
+
+      if (g_mkdir_with_parents (g_file_peek_path (cache_dir), 0700) != 0)
+        {
+          return g_task_return_new_error (task,
+                                          G_IO_ERROR,
+                                          G_IO_ERROR_FAILED,
+                                          "Error: %s",
+                                          g_strerror (errno));
+        }
 
       /* Get the device channel */
       if ((channel = valent_device_get_channel (self->device)) == NULL)
