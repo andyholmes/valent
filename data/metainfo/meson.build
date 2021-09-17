@@ -2,11 +2,14 @@
 #
 # AppStream
 #
+metainfo_conf = configuration_data()
+metainfo_conf.set('application_id', application_id)
+metainfo_conf.set('gettext_package', meson.project_name())
 metainfo_file = i18n.merge_file('metainfo',
   input: configure_file(
     input: files('ca.andyholmes.Valent.metainfo.xml.in.in'),
     output: 'ca.andyholmes.Valent.metainfo.xml.in',
-    configuration: config_h,
+    configuration: metainfo_conf,
   ),
   output: '@0@.metainfo.xml'.format(application_id),
   install: true,
