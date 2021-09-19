@@ -2,11 +2,11 @@ name: Update CI Image
 
 on:
   push:
-    branches: [ master ]
-    paths: ['src/tests/extra/Dockerfile' ]
+    branches: [master]
+    paths: [src/tests/extra/Dockerfile]
   schedule:
     # Once a month to keep dependencies up to date
-    - cron: '0 0 1 * *'
+    - cron: 0 0 1 * *
   workflow_dispatch:
 
 jobs:
@@ -39,4 +39,3 @@ jobs:
           registry: quay.io
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
-

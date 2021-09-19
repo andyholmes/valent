@@ -13,25 +13,26 @@ plugin_battery_tests = [
   'test-battery-gadget',
 ]
 
+plugin_battery_test_wrapper = find_program('mock_upower.py')
+
 foreach test : plugin_battery_tests
-  test_battery_env = test_env + [
-    'BUILDDIR=@0@'.format(meson.current_build_dir()),
-    'TEST_PROGRAM=@0@'.format(test),
+  plugin_battery_test_env = test_env + [
+    'G_TEST_EXE=@0@'.format(join_paths(meson.current_build_dir(), test)),
   ]
 
   test_program = executable(test, '@0@.c'.format(test),
-               c_args: test_c_args,
-         dependencies: plugin_battery_test_deps,
-            link_args: test_link_args,
-           link_whole: [libvalent_test, plugin_battery],
-  include_directories: plugin_battery_include_directories,
+                 c_args: test_c_args,
+           dependencies: plugin_battery_test_deps,
+              link_args: test_link_args,
+             link_whole: [libvalent_test, plugin_battery],
+    include_directories: plugin_battery_include_directories,
   )
 
-  test(test, find_program('mock-upower.py'),
-            env: test_battery_env,
+  test(test,
+       plugin_battery_test_wrapper,
+            env: plugin_battery_test_env,
     is_parallel: false,
           suite: ['plugins', 'battery'],
-        timeout: 60,
   )
 endforeach
 

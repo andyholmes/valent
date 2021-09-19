@@ -1,15 +1,15 @@
-name: "CodeQL"
+name: CodeQL
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
     paths:
       - '**/*.c'
       - '**/*.h'
   schedule:
-    - cron: '45 3 * * 6'
+    - cron: 45 3 * * 6
 
 jobs:
   analyze:
@@ -19,23 +19,22 @@ jobs:
       image: quay.io/andyholmes/valent:latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        submodules: true
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
 
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v1
-      with:
-        languages: 'cpp'
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v1
+        with:
+          languages: cpp
 
-    - name: Build
-      run: |
-        meson --prefix=/usr \
-              --buildtype=release \
-              _build
-        meson compile -C _build
+      - name: Build
+        run: |
+          meson --prefix=/usr \
+                --buildtype=release \
+                _build
+          meson compile -C _build
 
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v1
-
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v1

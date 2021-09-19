@@ -89,7 +89,7 @@ on_player_method (ValentMediaPlayer     *player,
                   GVariant              *args,
                   MprisComponentFixture *fixture)
 {
-  fixture->state = TRUE;
+  fixture->data = g_strdup (method_name);
   g_main_loop_quit (fixture->loop);
 }
 
@@ -166,10 +166,6 @@ test_mpris_component_player (MprisComponentFixture *fixture,
 
   /* Add player */
   remote = valent_test_mpris_get_remote ();
-  g_signal_connect (remote,
-                    "method-call",
-                    G_CALLBACK (on_player_method),
-                    fixture);
   g_main_loop_run (fixture->loop);
 
   g_assert_true (fixture->data == media);
@@ -201,65 +197,53 @@ test_mpris_component_player (MprisComponentFixture *fixture,
                 NULL);
 
   /* Test Player Methods */
+  g_signal_connect (remote,
+                    "method-call",
+                    G_CALLBACK (on_player_method),
+                    fixture);
+
   valent_media_player_play (fixture->player);
   g_main_loop_run (fixture->loop);
-  g_assert_true (fixture->state);
-  fixture->state = FALSE;
+  g_assert_cmpstr (fixture->data, ==, "Play");
+  g_clear_pointer (&fixture->data, g_free);
 
   valent_media_player_play_pause (fixture->player);
   g_main_loop_run (fixture->loop);
-  g_assert_true (fixture->state);
-  fixture->state = FALSE;
+  g_assert_cmpstr (fixture->data, ==, "PlayPause");
+  g_clear_pointer (&fixture->data, g_free);
 
   valent_media_player_pause (fixture->player);
   g_main_loop_run (fixture->loop);
-  g_assert_true (fixture->state);
-  fixture->state = FALSE;
+  g_assert_cmpstr (fixture->data, ==, "Pause");
+  g_clear_pointer (&fixture->data, g_free);
 
   valent_media_player_stop (fixture->player);
   g_main_loop_run (fixture->loop);
-  g_assert_true (fixture->state);
-  fixture->state = FALSE;
+  g_assert_cmpstr (fixture->data, ==, "Stop");
+  g_clear_pointer (&fixture->data, g_free);
 
   valent_media_player_next (fixture->player);
   g_main_loop_run (fixture->loop);
-  g_assert_true (fixture->state);
-  fixture->state = FALSE;
+  g_assert_cmpstr (fixture->data, ==, "Next");
+  g_clear_pointer (&fixture->data, g_free);
 
   valent_media_player_previous (fixture->player);
   g_main_loop_run (fixture->loop);
-  g_assert_true (fixture->state);
-  fixture->state = FALSE;
+  g_assert_cmpstr (fixture->data, ==, "Previous");
+  g_clear_pointer (&fixture->data, g_free);
 
   valent_media_player_open_uri (fixture->player, "https://andyholmes.ca");
   g_main_loop_run (fixture->loop);
-  g_assert_true (fixture->state);
-  fixture->state = FALSE;
+  g_assert_cmpstr (fixture->data, ==, "OpenUri");
+  g_clear_pointer (&fixture->data, g_free);
 
   valent_media_player_seek (fixture->player, 1000);
   g_main_loop_run (fixture->loop);
-  g_assert_true (fixture->state);
-  fixture->state = FALSE;
+  g_assert_cmpstr (fixture->data, ==, "Seek");
+  g_clear_pointer (&fixture->data, g_free);
 
   valent_media_player_set_position (fixture->player, "/dbus/path", 5);
   //g_assert_cmpint (valent_media_player_get_position (fixture->player), ==, 5);
-
-  /* Test signal propagation */
-  /* g_signal_connect (media, */
-  /*                   "player-changed", */
-  /*                   G_CALLBACK (on_player_changed), */
-  /*                   fixture); */
-  /* valent_media_player_emit_changed (fixture->player); */
-  /* g_assert_true (fixture->state); */
-  /* fixture->state = FALSE; */
-
-  /* g_signal_connect (media, */
-  /*                   "player-seeked", */
-  /*                   G_CALLBACK (on_player_seeked), */
-  /*                   fixture); */
-  /* valent_media_player_emit_seeked (fixture->player, 1000); */
-  /* g_assert_true (fixture->state); */
-  /* fixture->state = FALSE; */
 
   /* Remove Player */
   valent_mpris_remote_unexport (remote);

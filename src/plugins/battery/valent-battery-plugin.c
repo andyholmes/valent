@@ -139,7 +139,8 @@ on_battery_changed (ValentBattery       *battery,
   g_assert (VALENT_IS_BATTERY (battery));
   g_assert (VALENT_IS_BATTERY_PLUGIN (self));
 
-  valent_battery_plugin_send_state (self);
+  if (valent_battery_get_level (battery) > 0)
+    valent_battery_plugin_send_state (self);
 }
 
 static void

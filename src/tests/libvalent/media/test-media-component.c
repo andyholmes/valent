@@ -78,7 +78,7 @@ on_player_method (ValentMediaPlayer     *player,
                   GVariant              *args,
                   MediaComponentFixture *fixture)
 {
-  fixture->state = TRUE;
+  fixture->data = g_strdup (method_name);
 }
 
 static void
@@ -174,36 +174,36 @@ test_media_component_player (MediaComponentFixture *fixture,
                     fixture);
 
   valent_media_player_play (fixture->player);
-  g_assert_true (fixture->state);
-  fixture->state = FALSE;
+  g_assert_cmpstr (fixture->data, ==, "Play");
+  g_clear_pointer (&fixture->data, g_free);
 
   valent_media_player_play_pause (fixture->player);
-  g_assert_true (fixture->state);
-  fixture->state = FALSE;
+  g_assert_cmpstr (fixture->data, ==, "PlayPause");
+  g_clear_pointer (&fixture->data, g_free);
 
   valent_media_player_pause (fixture->player);
-  g_assert_true (fixture->state);
-  fixture->state = FALSE;
+  g_assert_cmpstr (fixture->data, ==, "Pause");
+  g_clear_pointer (&fixture->data, g_free);
 
   valent_media_player_stop (fixture->player);
-  g_assert_true (fixture->state);
-  fixture->state = FALSE;
+  g_assert_cmpstr (fixture->data, ==, "Stop");
+  g_clear_pointer (&fixture->data, g_free);
 
   valent_media_player_next (fixture->player);
-  g_assert_true (fixture->state);
-  fixture->state = FALSE;
+  g_assert_cmpstr (fixture->data, ==, "Next");
+  g_clear_pointer (&fixture->data, g_free);
 
   valent_media_player_previous (fixture->player);
-  g_assert_true (fixture->state);
-  fixture->state = FALSE;
+  g_assert_cmpstr (fixture->data, ==, "Previous");
+  g_clear_pointer (&fixture->data, g_free);
 
   valent_media_player_open_uri (fixture->player, "https://andyholmes.ca");
-  g_assert_true (fixture->state);
-  fixture->state = FALSE;
+  g_assert_cmpstr (fixture->data, ==, "OpenUri");
+  g_clear_pointer (&fixture->data, g_free);
 
   valent_media_player_seek (fixture->player, 1000);
-  g_assert_true (fixture->state);
-  fixture->state = FALSE;
+  g_assert_cmpstr (fixture->data, ==, "Seek");
+  g_clear_pointer (&fixture->data, g_free);
 
   valent_media_player_set_position (fixture->player, "track-id", 5);
   g_assert_cmpint (valent_media_player_get_position (fixture->player), ==, 5);

@@ -215,6 +215,7 @@ test_battery_plugin_handle_request (ValentTestPluginFixture *fixture,
 
 static const char *schemas[] = {
   JSON_SCHEMA_DIR"/kdeconnect.battery.json",
+  JSON_SCHEMA_DIR"/kdeconnect.battery.request.json",
 };
 
 static void

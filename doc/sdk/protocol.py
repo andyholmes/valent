@@ -1,29 +1,19 @@
 #!/usr/bin/env python3
-
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
+
+
+"""This script generates documentation for the KDE Connect protocol in Markdown
+format from JSON Schemas, which is then passed to ``g-docgen``.
+"""
+
 
 import collections.abc
 import json
 import os
 import re
 import sys
-
-
-# Arguments
-INPUT_FILE = sys.argv[1]
-INPUT_DIR = os.path.dirname(INPUT_FILE)
-OUTPUT_FILE = sys.stdout
-
-
-def load_json(filename):
-    path = os.path.join(INPUT_DIR, filename)
-
-    try:
-        with open(path, 'rt') as fobj:
-            return json.load(fobj)
-    except json.decoder.JSONDecodeError as e:
-        raise RuntimeError('{0}: {1}'.format(path, e))
+from typing import TextIO
 
 
 #
@@ -35,7 +25,7 @@ MD_LIST = '*'
 MD_SEPARATOR = '---'
 
 MD_JSON_SCHEMA_REQUIRED = '[🔒](#symbols)'
-MD_JSON_SCHEMA_CONTENTS = f'''
+MD_JSON_SCHEMA_CONTENTS = '''
 * [Appendix](#appendix)
     * [Symbols](#symbols)
     * [Data Types](#data-types)
@@ -84,22 +74,36 @@ A mapping collection of string keys to values.
 '''
 
 
-def md_slug(text):
+def md_slug(text: str) -> str:
+    """Return a slug for ``text``."""
+
     value = re.sub(r'[^\w\s-]', '', text).strip().lower()
     return re.sub(r'[\s\-]+', '-', value)
 
-def md_slug_link(text):
+def md_slug_link(text: str) -> str:
+    """Return a slug wrapped in a link for ``text``."""
+
     slug = md_slug(text)
     return f'[{text}](#{slug})'
 
-def md_enum(schema):
-    return '|'.join([f'`{repr(e)}`' for e in schema.get('enum', [])])
+def md_enum(schema: dict) -> str:
+    """Return a JSON Schema ``enum`` formatted for markdown."""
 
-def md_pattern(schema):
-    return '`/{0}/`'.format(schema.get('pattern', '.*'))
+    enum = schema.get('enum', [])
 
-def md_type(schema):
-    JSON_SCHEMA_TYPE = {
+    return '|'.join([f'`{repr(e)}`' for e in enum])
+
+def md_pattern(schema: dict) -> str:
+    """Return a JSON Schema ``pattern`` formatted for markdown."""
+
+    pattern = schema.get('pattern', '.*')
+
+    return f'`/{pattern}/`'
+
+def md_type(schema: dict) -> str:
+    """Return a JSON Schema ``type`` formatted for markdown."""
+
+    type_names = {
         'boolean': 'Boolean',
         'number': 'Number',
         'string': 'String',
@@ -107,14 +111,14 @@ def md_type(schema):
         'object': 'Object',
     }
 
-    type_text = JSON_SCHEMA_TYPE.get(schema['type'], schema['type'])
-    type_slug = md_slug(type_text)
-    type_link = f'[**`{type_text}`**](#{type_slug})'
+    type_name = type_names.get(schema['type'], schema['type'])
+    type_slug = md_slug(type_name)
+    type_link = f'[**`{type_name}`**](#{type_slug})'
 
     if 'items' in schema:
         if 'title' in schema['items']:
-            item_text = schema['items']['title']
-            item_link = f'**`{item_text}`**'
+            item_name = schema['items']['title']
+            item_link = f'**`{item_name}`**'
             type_link = f'{type_link} of {item_link}'
         elif 'type' in schema['items']:
             item_link = md_type(schema['items'])
@@ -126,7 +130,9 @@ def md_type(schema):
 #
 # Output
 #
-def write_subschema(fobj, schema, indent = ''):
+
+# pylint: disable-next=redefined-outer-name
+def write_subschema(fobj: TextIO, schema: dict, indent: str = '') -> None:
     """Document a schema as a type."""
 
     title = schema.get('title')
@@ -141,7 +147,8 @@ def write_subschema(fobj, schema, indent = ''):
         write_schema(fobj, schema, name, subschema, indent)
 
 
-def write_schema(fobj, parent, name, schema, indent = ''):
+# pylint: disable-next=redefined-outer-name
+def write_schema(fobj: TextIO, parent: dict, name: str, schema: dict, indent: str = '') -> None:
     """Document a schema as a type field with its name, type and description.
 
     Child schemas will be treated as opaque values (eg. Array of Object) unless
@@ -152,8 +159,8 @@ def write_schema(fobj, parent, name, schema, indent = ''):
     description = schema.get('description')
     type_link = md_type(schema)
 
-    required = name in parent.get('required', [])
-    required = f' {MD_JSON_SCHEMA_REQUIRED}' if required else ''
+    is_required = name in parent.get('required', [])
+    required = f' {MD_JSON_SCHEMA_REQUIRED}' if is_required else ''
 
     fobj.write(f'{indent}* `{title}`: {type_link}{required}\n\n')
     indent += MD_INDENT
@@ -168,7 +175,7 @@ def write_schema(fobj, parent, name, schema, indent = ''):
 
     # Search for subschemas with "title" or "description" and recurse into those
     if 'items' in schema:
-        items = schema.get('items')
+        items = schema.get('items', [])
 
         if isinstance(items, collections.abc.Mapping):
             items = [items]
@@ -182,20 +189,21 @@ def write_schema(fobj, parent, name, schema, indent = ''):
             write_subschema(fobj, subschema, indent)
 
 
-def write_packet(fobj, packet, header_depth = 1):
+# pylint: disable-next=redefined-outer-name
+def write_packet(fobj: TextIO, packet: dict, depth: int = 1) -> None:
     """Document a packet, with examples and a bullet-point for each field."""
 
     # Header
-    header = '#' * header_depth
-    title = packet.get('title')
-    description = packet.get('description')
+    header = MD_HEADER * depth
+    title = packet.get('title', 'Untitled')
+    description = packet.get('description', 'No description')
 
     fobj.write(f'{header} `{title}`\n\n')
     fobj.write(f'{description}\n\n')
 
     # Examples
     if 'examples' in packet:
-        for example in packet.get('examples'):
+        for example in packet.get('examples', {}):
             text = json.dumps(example, indent=4)
             fobj.write(f'```js\n{text}\n```\n\n')
 
@@ -210,67 +218,90 @@ def write_packet(fobj, packet, header_depth = 1):
             properties = schema.get('properties', {})
 
             if len(properties) > 0:
-                for name, subschema in properties.items():
-                    write_schema(fobj, schema, name, subschema)
+                for subname, subschema in properties.items():
+                    write_schema(fobj, schema, subname, subschema)
             else:
-                fobj.write(f'This packet has no body fields.\n\n')
+                fobj.write('This packet has no body fields.\n\n')
 
 
-def write_section(fobj, section, header_depth = 1):
+# pylint: disable-next=redefined-outer-name
+def write_section(fobj: TextIO, section: dict, depth: int = 1) -> None:
+    """Document a section with references."""
+
     # Header
-    header = '#' * header_depth
-    title = section.get('title')
-    description = section.get('description')
+    header = MD_HEADER * depth
+    title = section.get('title', 'Untitled')
+    description = section.get('description', 'No description')
 
     fobj.write(f'{header} {title}\n\n')
     fobj.write(f'{description}\n\n')
 
     # References
     if 'references' in section:
-        header = '#' * (header_depth + 1)
+        header = '#' * (depth + 1)
         fobj.write(f'{header} References\n\n')
 
-        for uri in section.get('references'):
+        for uri in section.get('references', []):
             fobj.write(f'* <{uri}>\n')
 
         fobj.write('\n')
 
     # Packets
     if 'packets' in section:
-        header = '#' * (header_depth + 1)
+        header = '#' * (depth + 1)
         fobj.write(f'{header} Packets\n\n')
 
-        for packet in section.get('packets'):
-            write_packet(fobj, packet, header_depth + 2)
+        for packet in section.get('packets', {}):
+            write_packet(fobj, packet, depth + 2)
 
 
-def write_toc(fobj, section, list_depth = 0):
-    indent = MD_INDENT * list_depth
-    link = md_slug_link(section.get('title', 'Untitled'))
+# pylint: disable-next=redefined-outer-name
+def write_toc(fobj: TextIO, section: dict, packet: bool = False, depth: int = 0) -> None:
+    """Write a table of contents for ``section``."""
+
+    indent = MD_INDENT * depth
+    title = section.get('title', 'Untitled')
+    link = md_slug_link(f'`{title}`' if packet else title)
     fobj.write(f'{indent}* {link}\n')
 
     for subsection in section.get('sections', []):
-        write_toc(fobj, subsection, list_depth + 1)
+        write_toc(fobj, subsection, False, depth + 1)
 
-    for packet in section.get('packets', []):
-        indent = MD_INDENT * (list_depth + 1)
-        link = md_slug_link('`{0}`'.format(packet.get('title', 'Untitled')))
-        fobj.write(f'{indent}* {link}\n')
+    for subsection in section.get('packets', []):
+        write_toc(fobj, subsection, True, depth + 1)
 
 
-def write_index(fobj):
-    index = load_json('index.json')
+def load_json(path: str) -> dict:
+    """A simple helper for loading a JSON file from disk."""
 
-    # Load packet schemas
+    try:
+        with open(path, 'rt', encoding='utf-8') as json_file:
+            return json.load(json_file)
+    except json.decoder.JSONDecodeError as error:
+        raise RuntimeError(f'{path}: {error}') from error
+
+
+# pylint: disable-next=redefined-outer-name
+def write_index(fobj: TextIO, path: str) -> None:
+    """Read the files described by ``index.json`` in the input directory and
+    output a formatted Markdown document."""
+
+    # Load the index file and any JSON Schemas it references
+    index = load_json(path)
+    index_dir = os.path.dirname(path)
+
     for section in index.get('sections', []):
         if 'packets' in section:
-            packets = section['packets']
+            packets = [os.path.join(index_dir, p) for p in section['packets']]
             section['packets'] = [load_json(f'{p}.json') for p in packets]
 
     # Header
-    fobj.write('Title: {0}\n\n'.format(index['title']))
-    fobj.write('# {0}\n\n'.format(index['title']))
-    fobj.write('{0}\n\n'.format(index['description']))
+    title = index.get('title', 'Untitled')
+    description = index.get('description', 'No description')
+
+    fobj.write(f'Title: {title}\n\n')
+    fobj.write(f'# {title}\n\n')
+    fobj.write(f'{description}\n\n')
 
     # Table of Contents
     fobj.write('## Table of Contents\n\n')
@@ -289,13 +320,17 @@ def write_index(fobj):
     fobj.write('\n\n')
 
 
-# Usage: protocol.py INPUT [OUTPUT]
 if __name__ == '__main__':
-    if len(sys.argv) > 2:
-        OUTPUT_FILE = sys.argv[2]
+    if len(sys.argv) < 2:
+        sys.stderr.write(f'{sys.argv[0]}: missing path to "index.json"\n')
+        sys.exit(1)
 
-        with open(OUTPUT_FILE, 'wt') as fobj:
-            write_index(fobj)
+    # If given the second argument is not given output is written to STDOUT
+    INDEX_PATH = sys.argv[1]
+    OUTPUT_PATH = sys.argv[2] if len(sys.argv) > 2 else ''
+
+    if OUTPUT_PATH:
+        with open(OUTPUT_PATH, 'wt', encoding='utf-8') as fobj:
+            write_index(fobj, INDEX_PATH)
     else:
-        write_index(sys.stdout)
-            
+        write_index(sys.stdout, INDEX_PATH)

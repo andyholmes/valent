@@ -55,6 +55,7 @@
     "id": 0,
     "type": "kdeconnect.battery.request",
     "body": {
+        "request": true
     }
   }
 }

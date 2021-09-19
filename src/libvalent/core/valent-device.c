@@ -654,11 +654,12 @@ valent_device_dispose (GObject *object)
   ValentDevice *self = VALENT_DEVICE (object);
 
   valent_device_reset_pair (self);
+  valent_device_set_channel (self, NULL);
 
   /* Plugins */
   g_signal_handlers_disconnect_by_data (self->engine, self);
-  g_clear_pointer (&self->plugins, g_hash_table_unref);
   g_clear_pointer (&self->handlers, g_hash_table_unref);
+  g_clear_pointer (&self->plugins, g_hash_table_unref);
 
   G_OBJECT_CLASS (valent_device_parent_class)->dispose (object);
 }
