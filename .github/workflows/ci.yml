@@ -25,11 +25,17 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install mypy pylint reuse yamllint
+          sudo apt install uncrustify
 
       - name: Licensing (reuse)
         if: ${{ always() }}
         run: |
           reuse lint
+
+      - name: C (uncrustify)
+        if: ${{ always() }}
+        run: |
+          python src/tests/extra/uncrustify.py --dry-run
 
       - name: Python (pylint, mypy)
         if: ${{ always() }}
