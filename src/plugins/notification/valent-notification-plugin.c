@@ -20,6 +20,7 @@ struct _ValentNotificationPlugin
 
   ValentDevice        *device;
   GSettings           *settings;
+  GCancellable        *cancellable;
 
   ValentNotifications *notifications;
   gulong               notifications_id;
@@ -437,8 +438,8 @@ download_icon_task (GTask        *task,
 static void
 valent_notification_plugin_download_icon (ValentNotificationPlugin *self,
                                           JsonNode                 *packet,
-                                          GAsyncReadyCallback       callback,
                                           GCancellable             *cancellable,
+                                          GAsyncReadyCallback       callback,
                                           gpointer                  user_data)
 {
   g_autoptr (GTask) task = NULL;
@@ -617,21 +618,22 @@ download_cb (ValentNotificationPlugin *self,
              GAsyncResult             *result,
              gpointer                  user_data)
 {
-  g_autoptr (GError) error = NULL;
   g_autoptr (JsonNode) packet = user_data;
   g_autoptr (GIcon) icon = NULL;
+  g_autoptr (GError) error = NULL;
 
-  g_return_if_fail (g_task_is_valid (result, self));
+  g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
+  g_assert (g_task_is_valid (result, self));
 
   /* Finish the icon task */
   icon = valent_notification_plugin_download_icon_finish (self, result, &error);
 
   if (icon == NULL)
     {
-      if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        return;
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("Downloading icon: %s", error->message);
 
-      g_warning ("Downloading icon: %s", error->message);
+      return;
     }
 
   valent_notification_plugin_show_notification (self, packet, icon);
@@ -670,8 +672,8 @@ valent_notification_plugin_handle_notification (ValentNotificationPlugin *self,
     {
       valent_notification_plugin_download_icon (self,
                                                 packet,
+                                                self->cancellable,
                                                 (GAsyncReadyCallback)download_cb,
-                                                NULL,
                                                 json_node_ref (packet));
     }
 
@@ -1069,6 +1071,7 @@ valent_notification_plugin_enable (ValentDevicePlugin *plugin)
   /* Setup GSettings */
   device_id = valent_device_get_id (self->device);
   self->settings = valent_device_plugin_new_settings (device_id, "notification");
+  self->cancellable = g_cancellable_new ();
 
   /* Register GActions */
   valent_device_plugin_register_actions (plugin,
@@ -1101,6 +1104,10 @@ valent_notification_plugin_disable (ValentDevicePlugin *plugin)
   valent_device_plugin_unregister_actions (plugin,
                                            actions,
                                            G_N_ELEMENTS (actions));
+
+  /* Cancel pending tasks */
+  g_cancellable_cancel (self->cancellable);
+  g_clear_object (&self->cancellable);
 
   /* Dispose GSettings */
   g_clear_object (&self->settings);
