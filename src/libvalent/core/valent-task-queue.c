@@ -26,7 +26,6 @@
 
 struct _ValentTaskQueue
 {
-  GThread      *thread;
   GAsyncQueue  *tasks;
   unsigned int  closed : 1;
 };
@@ -90,32 +89,16 @@ valent_task_closure_cancel (gpointer data)
   g_clear_pointer (&closure, valent_task_closure_free);
 }
 
-static inline void
-valent_task_closure_reject (gpointer data)
-{
-  ValentTaskClosure *closure = data;
-
-  if (G_IS_TASK (closure->task) && !g_task_get_completed (closure->task))
-    {
-      g_task_return_new_error (closure->task,
-                               G_IO_ERROR,
-                               G_IO_ERROR_CLOSED,
-                               "Closed");
-    }
-
-  g_clear_pointer (&closure, valent_task_closure_free);
-}
-
 /*
  * GThreadFunc
  */
 static gpointer
 valent_task_queue_loop (gpointer data)
 {
-  ValentTaskQueue *self = VALENT_TASK_QUEUE (data);
+  g_autoptr (GAsyncQueue) tasks = data;
   ValentTaskClosure *closure = NULL;
 
-  while ((closure = g_async_queue_pop (self->tasks)))
+  while ((closure = g_async_queue_pop (tasks)))
     {
       unsigned int mode = closure->task_mode;
 
@@ -137,14 +120,12 @@ valent_task_queue_loop (gpointer data)
     }
 
   /* Cancel any queued tasks */
-  g_async_queue_lock (self->tasks);
+  g_async_queue_lock (tasks);
 
-  self->closed = TRUE;
-
-  while ((closure = g_async_queue_try_pop_unlocked (self->tasks)) != NULL)
+  while ((closure = g_async_queue_try_pop_unlocked (tasks)) != NULL)
     g_clear_pointer (&closure, valent_task_closure_cancel);
 
-  g_async_queue_unlock (self->tasks);
+  g_async_queue_unlock (tasks);
 
   return NULL;
 }
@@ -181,8 +162,6 @@ valent_task_queue_free (gpointer data)
     }
 
   g_async_queue_unlock (self->tasks);
-
-  g_thread_join (self->thread);
   g_clear_pointer (&self->tasks, g_async_queue_unref);
 }
 
@@ -197,14 +176,15 @@ ValentTaskQueue *
 valent_task_queue_new (void)
 {
   ValentTaskQueue *queue;
+  g_autoptr (GThread) thread = NULL;
   g_autoptr (GError) error = NULL;
 
   queue = g_atomic_rc_box_new0 (ValentTaskQueue);
-  queue->tasks = g_async_queue_new_full (valent_task_closure_free);
-  queue->thread = g_thread_try_new ("valent-task-queue",
-                                    valent_task_queue_loop,
-                                    queue,
-                                    &error);
+  queue->tasks = g_async_queue_new_full (valent_task_closure_cancel);
+  thread = g_thread_try_new ("valent-task-queue",
+                             valent_task_queue_loop,
+                             g_async_queue_ref (queue->tasks),
+                             &error);
 
   if G_UNLIKELY (error != NULL)
     {
@@ -235,8 +215,10 @@ valent_task_queue_ref (ValentTaskQueue *queue)
  * valent_task_queue_unref:
  * @queue: a #ValentTaskQueue
  *
- * Decreases the reference count of @queue. When its reference count drops to 0,
- * @queue will block waiting for any unprocessed tasks to complete.
+ * Decreases the reference count of @queue.
+ *
+ * When the reference count drops to 0, @queue will signal its dedicated thread
+ * to exit and free any resources.
  */
 void
 valent_task_queue_unref (ValentTaskQueue *queue)
@@ -286,7 +268,7 @@ valent_task_queue_run_full (ValentTaskQueue *self,
 
   g_async_queue_unlock (self->tasks);
 
-  g_clear_pointer (&closure, valent_task_closure_reject);
+  g_clear_pointer (&closure, valent_task_closure_cancel);
 }
 
 /**
