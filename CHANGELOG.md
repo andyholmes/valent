@@ -3,5 +3,5 @@
 ## [Unreleased]
 
 
-[unreleased]: https://github.com/andyholmes/valent/commits/master
+[unreleased]: https://github.com/andyholmes/valent/commits/main
 

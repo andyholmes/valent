@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
-    branches: [master]
+    branches: [main]
 
 jobs:
   lint:
@@ -128,7 +128,7 @@ jobs:
           path-to-lcov: ${{ github.workspace }}/_build/meson-logs/coverage.info
 
       - name: Coverage (Deploy)
-        if: ${{ github.ref == 'refs/heads/master' }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: JamesIves/github-pages-deploy-action@4.1.1
         with:
           branch: gh-pages
@@ -217,7 +217,7 @@ jobs:
           path: _build/meson-logs
 
   documentation:
-    if: ${{ github.ref == 'refs/heads/master' }}
+    if: ${{ github.ref == 'refs/heads/main' }}
     name: Documentation
     needs: [test, test_sanitizer, test_tsan]
     runs-on: ubuntu-latest
@@ -247,7 +247,7 @@ jobs:
           target-folder: documentation
 
   flatpak:
-    if: ${{ github.ref == 'refs/heads/master' }}
+    if: ${{ github.ref == 'refs/heads/main' }}
     name: Flatpak
     needs: [test, test_sanitizer, test_tsan]
     runs-on: ubuntu-latest

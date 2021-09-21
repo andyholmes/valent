@@ -31,7 +31,7 @@
   <screenshots>
     <screenshot type="default">
       <caption>Pair and connect your devices</caption>
-      <image width="652" height="532">https://raw.githubusercontent.com/andyholmes/valent/master/data/metainfo/01-devices.png</image>
+      <image width="652" height="532">https://raw.githubusercontent.com/andyholmes/valent/main/data/metainfo/01-devices.png</image>
     </screenshot>
   </screenshots>
 

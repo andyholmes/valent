@@ -2,7 +2,7 @@ name: Update CI Image
 
 on:
   push:
-    branches: [master]
+    branches: [main]
     paths: [src/tests/extra/Dockerfile]
   schedule:
     # Once a month to keep dependencies up to date
