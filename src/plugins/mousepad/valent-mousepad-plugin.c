@@ -26,7 +26,6 @@ struct _ValentMousepadPlugin
 
   unsigned int          local_state : 1;
   unsigned int          remote_state : 1;
-  gint64                remote_state_id;
 };
 
 static void valent_mousepad_plugin_send_echo (ValentMousepadPlugin       *self,
@@ -216,17 +215,6 @@ handle_mousepad_keyboardstate (ValentMousepadPlugin *self,
 
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
-
-  /* TODO: ensure we don't get packets out of order */
-  id = valent_packet_get_id (packet);
-
-  if (id < self->remote_state_id)
-    {
-      g_debug ("%s: received keyboard state out of order", G_STRFUNC);
-      return;
-    }
-
-  self->remote_state_id = id;
 
   /* Update the remote keyboard state */
   body = valent_packet_get_body (packet);
