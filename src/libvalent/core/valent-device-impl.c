@@ -12,8 +12,6 @@
 struct _ValentDeviceImpl
 {
   GDBusInterfaceSkeleton  parent_instance;
-  GDBusInterfaceInfo     *info;
-  GDBusInterfaceVTable   *vtable;
 
   ValentDevice           *device;
   GHashTable             *cache;
@@ -115,36 +113,66 @@ static const GDBusInterfaceInfo iface_info = {
 /*
  * Helper Functions
  */
-static gboolean
-flush_idle (gpointer data)
+typedef struct
 {
-  GDBusInterfaceSkeleton *skeleton = G_DBUS_INTERFACE_SKELETON (data);
+  const char              *name;
+  GType                    type;
+  const GDBusPropertyInfo *info;
+} PropertyMapping;
 
-  g_dbus_interface_skeleton_flush (skeleton);
+static PropertyMapping property_map[] = {
+    { "state",     G_TYPE_UINT,    &iface_property_state },
+    { "connected", G_TYPE_BOOLEAN, &iface_property_connected },
+    { "paired",    G_TYPE_BOOLEAN, &iface_property_paired },
+    { "name",      G_TYPE_STRING,  &iface_property_name },
+    { "icon-name", G_TYPE_STRING,  &iface_property_icon_name },
+    { "type",      G_TYPE_STRING,  &iface_property_type },
+    { "id",        G_TYPE_STRING,  &iface_property_id },
+};
 
-  return G_SOURCE_REMOVE;
-}
-
-static GVariant *
-gvalue_to_gvariant (GValue *value)
+static inline GVariant *
+valent_device_impl_get_variant (ValentDeviceImpl *impl,
+                                const char       *name,
+                                GType             type)
 {
-  GVariant *variant;
+  GValue value = G_VALUE_INIT;
+  GVariant *variant = NULL;
 
-  switch (G_VALUE_TYPE (value))
+  g_assert (VALENT_IS_DEVICE_IMPL (impl));
+  g_assert (name != NULL);
+
+  g_value_init (&value, type);
+  g_object_get_property (G_OBJECT (impl->device), name, &value);
+
+  switch (type)
     {
+    case G_TYPE_UINT:
+      variant = g_variant_new_uint32 (g_value_get_uint (&value));
+      break;
+
     case G_TYPE_BOOLEAN:
-      variant = g_variant_new_boolean (g_value_get_boolean (value));
+      variant = g_variant_new_boolean (g_value_get_boolean (&value));
       break;
 
     case G_TYPE_STRING:
-      variant = g_variant_new_string (g_value_get_string (value));
+      variant = g_variant_new_string (g_value_get_string (&value));
       break;
 
     default:
-      variant = g_variant_new_uint32 (g_value_get_flags (value));
+      g_assert_not_reached ();
     }
 
+  g_value_unset (&value);
+
   return g_variant_ref_sink (variant);
+}
+
+static gboolean
+flush_idle (gpointer data)
+{
+  g_dbus_interface_skeleton_flush (G_DBUS_INTERFACE_SKELETON (data));
+
+  return G_SOURCE_REMOVE;
 }
 
 static void
@@ -152,97 +180,39 @@ on_property_changed (GObject          *object,
                      GParamSpec       *pspec,
                      ValentDeviceImpl *self)
 {
-  g_autoptr (GVariant) variant = NULL;
-  GValue value = G_VALUE_INIT;
-  const char *gname;
-  const char *vname;
+  g_autoptr (GVariant) value = NULL;
+  PropertyMapping *mapping = NULL;
+  const char *name;
 
   /* Retrieve the property */
-  gname = g_param_spec_get_name (pspec);
+  name = g_param_spec_get_name (pspec);
 
-  if (g_str_equal (gname, "connected"))
-    vname = "Connected";
-  else if (g_str_equal (gname, "icon-name"))
-    vname = "IconName";
-  else if (g_str_equal (gname, "id"))
-    vname = "Id";
-  else if (g_str_equal (gname, "name"))
-    vname = "Name";
-  else if (g_str_equal (gname, "paired"))
-    vname = "Paired";
-  else if (g_str_equal (gname, "state"))
-    vname = "State";
-  else if (g_str_equal (gname, "type"))
-    vname = "Type";
-  else
+  for (unsigned int i = 0; i < G_N_ELEMENTS (property_map); i++)
+    {
+      mapping = &property_map[i];
+
+      if (g_str_equal (name, mapping->name))
+        break;
+
+      mapping = NULL;
+    }
+
+  if (mapping == NULL)
     return;
 
-  g_value_init (&value, pspec->value_type);
-  g_object_get_property (object, gname, &value);
-  variant = gvalue_to_gvariant (&value);
-  g_value_unset (&value);
-
   /* Update the cache */
+  value = valent_device_impl_get_variant (self, mapping->name, mapping->type);
+
   g_hash_table_replace (self->cache,
-                        g_strdup (vname),
-                        g_variant_ref (variant));
+                        g_strdup (mapping->info->name),
+                        g_variant_ref_sink (value));
 
-  /* Queue an emission of PropertiesChanged */
   g_hash_table_replace (self->pending,
-                        g_strdup (vname),
-                        g_variant_ref (variant));
+                        g_strdup (mapping->info->name),
+                        g_variant_ref_sink (value));
 
-  if (!self->flush_id)
+  if (self->flush_id == 0)
     self->flush_id = g_idle_add (flush_idle, self);
-}
-
-static void
-valent_device_impl_load_properties (ValentDeviceImpl *self)
-{
-  GValue value = G_VALUE_INIT;
-  GVariant *variant;
-
-  g_value_init (&value, G_TYPE_BOOLEAN);
-  g_object_get_property (G_OBJECT (self->device), "connected", &value);
-  variant = gvalue_to_gvariant (&value);
-  g_hash_table_insert (self->cache, g_strdup ("Connected"), variant);
-  g_value_unset (&value);
-
-  g_value_init (&value, G_TYPE_STRING);
-  g_object_get_property (G_OBJECT (self->device), "icon-name", &value);
-  variant = gvalue_to_gvariant (&value);
-  g_hash_table_insert (self->cache, g_strdup ("IconName"), variant);
-  g_value_unset (&value);
-
-  g_value_init (&value, G_TYPE_STRING);
-  g_object_get_property (G_OBJECT (self->device), "id", &value);
-  variant = gvalue_to_gvariant (&value);
-  g_hash_table_insert (self->cache, g_strdup ("Id"), variant);
-  g_value_unset (&value);
-
-  g_value_init (&value, G_TYPE_STRING);
-  g_object_get_property (G_OBJECT (self->device), "name", &value);
-  variant = gvalue_to_gvariant (&value);
-  g_hash_table_insert (self->cache, g_strdup ("Name"), variant);
-  g_value_unset (&value);
-
-  g_value_init (&value, G_TYPE_BOOLEAN);
-  g_object_get_property (G_OBJECT (self->device), "paired", &value);
-  variant = gvalue_to_gvariant (&value);
-  g_hash_table_insert (self->cache, g_strdup ("Paired"), variant);
-  g_value_unset (&value);
-
-  g_value_init (&value, G_TYPE_FLAGS);
-  g_object_get_property (G_OBJECT (self->device), "state", &value);
-  variant = gvalue_to_gvariant (&value);
-  g_hash_table_insert (self->cache, g_strdup ("State"), variant);
-  g_value_unset (&value);
-
-  g_value_init (&value, G_TYPE_STRING);
-  g_object_get_property (G_OBJECT (self->device), "type", &value);
-  variant = gvalue_to_gvariant (&value);
-  g_hash_table_insert (self->cache, g_strdup ("Type"), variant);
-  g_value_unset (&value);
 }
 
 
@@ -259,20 +229,12 @@ valent_device_impl_method_call (GDBusConnection       *connection,
                                 GDBusMethodInvocation *invocation,
                                 void                  *user_data)
 {
-  ValentDeviceImpl *self = VALENT_DEVICE_IMPL (user_data);
-
-  if (!g_dbus_interface_info_lookup_method (self->info, method_name))
-    {
-      g_dbus_method_invocation_return_error (invocation,
-                                             G_DBUS_ERROR,
-                                             G_DBUS_ERROR_UNKNOWN_METHOD,
-                                             "Unknown method %s on %s",
-                                             method_name,
-                                             interface_name);
-      return;
-    }
-
-  g_object_unref (invocation);
+  g_dbus_method_invocation_return_error (invocation,
+                                         G_DBUS_ERROR,
+                                         G_DBUS_ERROR_UNKNOWN_METHOD,
+                                         "Unknown method %s on %s",
+                                         method_name,
+                                         interface_name);
 }
 
 static GVariant *
@@ -353,10 +315,12 @@ valent_device_impl_flush (GDBusInterfaceSkeleton *skeleton)
         g_variant_builder_add (&changed_properties, "{sv}", key, value);
       else
         g_variant_builder_add (&invalidated_properties, "s", key);
+
+      g_hash_table_iter_remove (&iter);
     }
 
   properties = g_variant_new ("(s@a{sv}@as)",
-                              self->info->name,
+                              iface_info.name,
                               g_variant_builder_end (&changed_properties),
                               g_variant_builder_end (&invalidated_properties));
   g_variant_ref_sink (properties);
@@ -367,17 +331,20 @@ valent_device_impl_flush (GDBusInterfaceSkeleton *skeleton)
 
   for (const GList *iter = connections; iter; iter = iter->next)
     {
+      g_autoptr (GError) error = NULL;
+
       g_dbus_connection_emit_signal (G_DBUS_CONNECTION (iter->data),
                                      NULL,
                                      object_path,
                                      "org.freedesktop.DBus.Properties",
                                      "PropertiesChanged",
                                      properties,
-                                     NULL);
+                                     &error);
+
+      if (error != NULL)
+        g_debug ("%s: %s", G_STRFUNC, error->message);
     }
 
-  /* Clear the pending state */
-  g_hash_table_remove_all (self->pending);
   g_clear_handle_id (&self->flush_id, g_source_remove);
 }
 
@@ -401,17 +368,13 @@ valent_device_impl_get_properties (GDBusInterfaceSkeleton *skeleton)
 static GDBusInterfaceInfo *
 valent_device_impl_get_info (GDBusInterfaceSkeleton *skeleton)
 {
-  ValentDeviceImpl* self = VALENT_DEVICE_IMPL (skeleton);
-
-  return self->info;
+  return (GDBusInterfaceInfo *)&iface_info;
 }
 
 static GDBusInterfaceVTable *
 valent_device_impl_get_vtable (GDBusInterfaceSkeleton *skeleton)
 {
-  ValentDeviceImpl* self = VALENT_DEVICE_IMPL (skeleton);
-
-  return self->vtable;
+  return (GDBusInterfaceVTable *)&iface_vtable;
 }
 
 
@@ -423,7 +386,15 @@ valent_device_impl_constructed (GObject *object)
 {
   ValentDeviceImpl *self = VALENT_DEVICE_IMPL (object);
 
-  valent_device_impl_load_properties (self);
+  /* Preload properies and watch for changes */
+  for (unsigned int i = 0; i < G_N_ELEMENTS (property_map); i++)
+    {
+      PropertyMapping mapping = property_map[i];
+      GVariant *value = NULL;
+
+      value = valent_device_impl_get_variant (self, mapping.name, mapping.type);
+      g_hash_table_insert (self->cache, g_strdup (mapping.info->name), value);
+    }
 
   g_signal_connect (self->device,
                     "notify",
@@ -526,8 +497,6 @@ valent_device_impl_class_init (ValentDeviceImplClass *klass)
 static void
 valent_device_impl_init (ValentDeviceImpl *self)
 {
-  self->info = (GDBusInterfaceInfo *)&iface_info;
-  self->vtable = (GDBusInterfaceVTable *)&iface_vtable;
   self->cache = g_hash_table_new_full (g_str_hash,
                                        g_str_equal,
                                        g_free,
