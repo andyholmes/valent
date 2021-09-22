@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Valent
-Comment=A KDE Connect implementation for the GNOME platform
+Comment=Connect, control and sync devices
 Exec=valent %U
 Icon=@application_id@
 Terminal=false

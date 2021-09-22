@@ -6,7 +6,7 @@ website_url = "https://github.com/andyholmes/valent/"
 authors = "Andy Holmes"
 logo_url = "logo.svg"
 license = "GPL-3.0-or-later"
-description = "KDE Connect client"
+description = "Connect, control and sync devices"
 dependencies = [
   "GObject-2.0",
   "Gtk-4.0",

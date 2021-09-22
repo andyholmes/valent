@@ -11,8 +11,8 @@
 
   <name xml:lang="en">Valent</name>
   <shortname>valent</shortname>
-  <description xml:lang="en">Valent is an implementation of the KDE Connect protocol, written using GNOME platform libraries.</description>
-  <shortdesc xml:lang="en">Gtk implementation of KDE Connect</shortdesc>
+  <description xml:lang="en">Securely connect your devices to open files and links where you need them, get notifications when you need them, stay in control of your media and more.</description>
+  <shortdesc xml:lang="en">Connect, control and sync devices</shortdesc>
 
   <category rdf:resource="http://api.gnome.org/doap-extensions#apps" />
 

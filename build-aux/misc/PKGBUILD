@@ -3,7 +3,7 @@
 pkgname=valent
 pkgver=0.1.0
 pkgrel=1
-pkgdesc="A KDE Connect implementation written in GNOME platform libraries"
+pkgdesc="Connect, control and sync devices"
 url="https://github.com/andyholmes/valent"
 arch=(aarch64 x86_64)
 license=(GPL3)

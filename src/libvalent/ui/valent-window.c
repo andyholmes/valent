@@ -427,7 +427,7 @@ about_action (GSimpleAction *action,
 
   gtk_show_about_dialog (window,
                          "logo-icon-name",     APPLICATION_ID,
-                         "comments",           _("A KDE Connect implementation for Gtk-based systems"),
+                         "comments",           _("Connect, control and sync devices"),
                          "version",            PACKAGE_VERSION,
                          "authors",            authors,
                          "translator-credits", _("translator-credits"),
