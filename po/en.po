@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2021-05-08 04:18-0700\n"
-"PO-Revision-Date: 2021-05-08 04:18-0700\n"
+"POT-Creation-Date: 2021-09-21 22:33-0700\n"
+"PO-Revision-Date: 2021-09-21 22:33-0700\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: en\n"
@@ -30,7 +30,7 @@ msgid "Download folder"
 msgstr "Download folder"
 
 #: data/gsettings/ca.andyholmes.valent.device.gschema.xml:12
-#: src/libvalent/ui/valent-device-panel.ui:260
+#: src/libvalent/ui/valent-device-panel.ui:250
 msgid "Where received files are stored"
 msgstr "Where received files are stored"
 
@@ -51,42 +51,77 @@ msgstr "Plugin State"
 msgid "Whether the plugin is enabled or not."
 msgstr "Whether the plugin is enabled or not."
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:8
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
 #: data/ca.andyholmes.Valent.desktop.in.in:3
 #: src/libvalent/ui/valent-window.ui:19
 msgid "Valent"
 msgstr "Valent"
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:9
-#: data/ca.andyholmes.Valent.desktop.in.in:4
-msgid "A KDE Connect implementation for the GNOME platform"
-msgstr "A KDE Connect implementation for the GNOME platform"
-
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:12
-msgid ""
-"Valent is an implementation of the KDE Connect protocol, written using GNOME "
-"platform libraries."
-msgstr ""
-"Valent is an implementation of the KDE Connect protocol, written using GNOME "
-"platform libraries."
+#: data/ca.andyholmes.Valent.desktop.in.in:4
+#: src/libvalent/ui/valent-window.c:430
+msgid "Connect, control and sync devices"
+msgstr "Connect, control and sync devices"
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:16
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:15
 msgid ""
-"You can use Valent to connect to other devices running KDE Connect or any "
-"other conforming implementation of it."
+"Securely connect your devices to open files and links where you need them, "
+"get notifications when you need them, stay in control of your media and more."
 msgstr ""
-"You can use Valent to connect to other devices running KDE Connect or any "
-"other conforming implementation of it."
+"Securely connect your devices to open files and links where you need them, "
+"get notifications when you need them, stay in control of your media and more."
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:19
+msgid "Features:"
+msgstr "Features:"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:23
+msgid "Sync contacts, notifications and clipboard content"
+msgstr "Sync contacts, notifications and clipboard content"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:24
+msgid "Control media players and volume"
+msgstr "Control media players and volume"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:25
+#: src/plugins/share/share.plugin.desktop.in:5
+msgid "Share files, links and text"
+msgstr "Share files, links and text"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:26
+msgid "Virtual touchpad and keyboard"
+msgstr "Virtual touchpad and keyboard"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:27
+msgid "Call and text notification"
+msgstr "Call and text notification"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:28
+msgid "Execute custom commands"
+msgstr "Execute custom commands"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:29
+msgid "More…"
+msgstr "More…"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:31
+msgid ""
+"Valent is an implementation of the KDE Connect protocol, built on GNOME "
+"platform libraries."
+msgstr ""
+"Valent is an implementation of the KDE Connect protocol, built on GNOME "
+"platform libraries."
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:39
 msgid "Pair and connect your devices"
 msgstr "Pair and connect your devices"
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:41
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:56
 msgid "Andy Holmes"
 msgstr "Andy Holmes"
 
 #: data/ca.andyholmes.Valent.desktop.in.in:21
+#: src/libvalent/ui/valent-device-panel.ui:24
 msgid "Preferences"
 msgstr "Preferences"
 
@@ -94,73 +129,73 @@ msgstr "Preferences"
 msgid "Address Book"
 msgstr "Address Book"
 
-#: src/libvalent/core/valent-device.c:303
+#: src/libvalent/core/valent-device.c:304
 #, c-format
 msgid "Pairing request from %s"
 msgstr "Pairing request from %s"
 
-#: src/libvalent/core/valent-device.c:314
-#: src/libvalent/ui/valent-device-panel.ui:115
+#: src/libvalent/core/valent-device.c:315
+#: src/libvalent/ui/valent-device-panel.ui:124
 msgid "Reject"
 msgstr "Reject"
 
-#: src/libvalent/core/valent-device.c:321
-#: src/libvalent/ui/valent-device-panel.ui:128
+#: src/libvalent/core/valent-device.c:322
+#: src/libvalent/ui/valent-device-panel.ui:137
 msgid "Accept"
 msgstr "Accept"
 
-#: src/libvalent/core/valent-device.c:1093
+#: src/libvalent/core/valent-device.c:1106
 #, c-format
 msgid "%s is disconnected"
 msgstr "%s is disconnected"
 
-#: src/libvalent/core/valent-device.c:1102
+#: src/libvalent/core/valent-device.c:1115
 #, c-format
 msgid "%s is unpaired"
 msgstr "%s is unpaired"
 
-#: src/libvalent/ui/valent-device-panel.ui:13
+#: src/libvalent/ui/valent-device-panel.ui:15
 #: src/libvalent/ui/valent-menu-list.c:540
 #: src/libvalent/ui/valent-window.ui:114
 msgid "Previous"
 msgstr "Previous"
 
-#: src/libvalent/ui/valent-device-panel.ui:77
+#: src/libvalent/ui/valent-device-panel.ui:86
 msgid "Verification Key"
 msgstr "Verification Key"
 
-#: src/libvalent/ui/valent-device-panel.ui:85
+#: src/libvalent/ui/valent-device-panel.ui:94
 msgid "Unavailable"
 msgstr "Unavailable"
 
-#: src/libvalent/ui/valent-device-panel.ui:106
+#: src/libvalent/ui/valent-device-panel.ui:115
 msgid "Request Pairing"
 msgstr "Request Pairing"
 
-#: src/libvalent/ui/valent-device-panel.ui:225
+#: src/libvalent/ui/valent-device-panel.ui:215
 #: src/libvalent/ui/valent-window.c:173
 msgid "Disconnected"
 msgstr "Disconnected"
 
-#: src/libvalent/ui/valent-device-panel.ui:247
-#: src/libvalent/ui/valent-device-panel.ui:251
-#: src/libvalent/ui/valent-device-panel.ui:293
+#: src/libvalent/ui/valent-device-panel.ui:237
+#: src/libvalent/ui/valent-device-panel.ui:241
+#: src/libvalent/ui/valent-device-panel.ui:283
 msgid "Plugins"
 msgstr "Plugins"
 
-#: src/libvalent/ui/valent-device-panel.ui:256
+#: src/libvalent/ui/valent-device-panel.ui:246
 msgid "General"
 msgstr "General"
 
-#: src/libvalent/ui/valent-device-panel.ui:259
+#: src/libvalent/ui/valent-device-panel.ui:249
 msgid "Download directory"
 msgstr "Download directory"
 
-#: src/libvalent/ui/valent-device-panel.ui:309
+#: src/libvalent/ui/valent-device-panel.ui:299
 msgid "Information"
 msgstr "Information"
 
-#: src/libvalent/ui/valent-device-panel.ui:316
+#: src/libvalent/ui/valent-device-panel.ui:306
 msgid "Mark this device as untrusted"
 msgstr "Mark this device as untrusted"
 
@@ -172,6 +207,34 @@ msgstr "No Actions"
 msgid "No Plugins"
 msgstr "No Plugins"
 
+#: src/libvalent/ui/valent-ui-utils.c:84 src/libvalent/ui/valent-ui-utils.c:149
+#: src/plugins/sms/valent-date-label.c:209
+#: src/plugins/sms/valent-date-label.c:266
+msgid "Just now"
+msgstr "Just now"
+
+#: src/libvalent/ui/valent-ui-utils.c:92
+#: src/plugins/sms/valent-date-label.c:217
+#: src/plugins/sms/valent-date-label.c:274
+#, c-format
+msgid "%d minute"
+msgid_plural "%d minutes"
+msgstr[0] "%d minute"
+msgstr[1] "%d minutes"
+
+#: src/libvalent/ui/valent-ui-utils.c:109
+#: src/plugins/sms/valent-date-label.c:234
+#, c-format
+msgid "Yesterday · %s"
+msgstr "Yesterday · %s"
+
+#: src/libvalent/ui/valent-ui-utils.c:157
+#, c-format
+msgid "%d min"
+msgid_plural "%d mins"
+msgstr[0] "%d min"
+msgstr[1] "%d mins"
+
 #: src/libvalent/ui/valent-window.c:168
 msgid "Unpaired"
 msgstr "Unpaired"
@@ -179,10 +242,6 @@ msgstr "Unpaired"
 #: src/libvalent/ui/valent-window.c:178
 msgid "Connected"
 msgstr "Connected"
-
-#: src/libvalent/ui/valent-window.c:430
-msgid "A KDE Connect implementation for Gtk-based systems"
-msgstr "A KDE Connect implementation for Gtk-based systems"
 
 #: src/libvalent/ui/valent-window.c:433
 msgid "translator-credits"
@@ -294,23 +353,23 @@ msgid "%d%% (%d∶%02d Remaining)"
 msgstr "%d%% (%d∶%02d Remaining)"
 
 #. TRANSLATORS: eg. Google Pixel: Battery Full
-#: src/plugins/battery/valent-battery-plugin.c:216
+#: src/plugins/battery/valent-battery-plugin.c:217
 #, c-format
 msgid "%s: Battery Full"
 msgstr "%s: Battery Full"
 
-#: src/plugins/battery/valent-battery-plugin.c:218
+#: src/plugins/battery/valent-battery-plugin.c:219
 msgid "Battery Fully Charged"
 msgstr "Battery Fully Charged"
 
 #. TRANSLATORS: eg. Google Pixel: Battery Low
-#: src/plugins/battery/valent-battery-plugin.c:227
+#: src/plugins/battery/valent-battery-plugin.c:228
 #, c-format
 msgid "%s: Battery Low"
 msgstr "%s: Battery Low"
 
 #. TRANSLATORS: eg. 15% remaining
-#: src/plugins/battery/valent-battery-plugin.c:230
+#: src/plugins/battery/valent-battery-plugin.c:231
 #, c-format
 msgid "%d%% remaining"
 msgstr "%d%% remaining"
@@ -472,7 +531,7 @@ msgstr "Find My Phone"
 msgid "Find a device by making it ring"
 msgstr "Find a device by making it ring"
 
-#: src/plugins/findmyphone/valent-findmyphone-plugin.c:73
+#: src/plugins/findmyphone/valent-findmyphone-plugin.c:70
 msgid "Ring"
 msgstr "Ring"
 
@@ -513,7 +572,7 @@ msgid "Control the mouse and keyboard"
 msgstr "Control the mouse and keyboard"
 
 #: src/plugins/mousepad/valent-mousepad-dialog.ui:14
-#: src/plugins/mousepad/valent-mousepad-plugin.c:465
+#: src/plugins/mousepad/valent-mousepad-plugin.c:453
 msgid "Remote Input"
 msgstr "Remote Input"
 
@@ -553,7 +612,7 @@ msgstr "MPRIS"
 msgid "Share control of MPRISv2 players"
 msgstr "Share control of MPRISv2 players"
 
-#: src/plugins/mpris/valent-mpris-plugin.c:388
+#: src/plugins/mpris/valent-mpris-plugin.c:389
 msgid "Unknown"
 msgstr "Unknown"
 
@@ -787,10 +846,6 @@ msgstr "Port"
 msgid "Share"
 msgstr "Share"
 
-#: src/plugins/share/share.plugin.desktop.in:5
-msgid "Share files, links and text"
-msgstr "Share files, links and text"
-
 #: src/plugins/share/valent-share-plugin.c:79
 msgid "Transfer Complete"
 msgstr "Transfer Complete"
@@ -840,7 +895,7 @@ msgstr "Transferring Files"
 msgid "Share Files"
 msgstr "Share Files"
 
-#: src/plugins/share/valent-share-plugin.c:556
+#: src/plugins/share/valent-share-plugin.c:553
 msgid "Send Files"
 msgstr "Send Files"
 
@@ -869,26 +924,8 @@ msgstr "Mobile"
 msgid "Other"
 msgstr "Other"
 
-#: src/plugins/sms/valent-date-label.c:224
-#: src/plugins/sms/valent-date-label.c:281
-msgid "Just now"
-msgstr "Just now"
-
-#: src/plugins/sms/valent-date-label.c:232
-#: src/plugins/sms/valent-date-label.c:289
-#, c-format
-msgid "%d minute"
-msgid_plural "%d minutes"
-msgstr[0] "%d minute"
-msgstr[1] "%d minutes"
-
-#: src/plugins/sms/valent-date-label.c:249
-#, c-format
-msgid "Yesterday · %s"
-msgstr "Yesterday · %s"
-
 #: src/plugins/sms/valent-sms-conversation.c:820
-#: src/plugins/sms/valent-sms-window.c:614
+#: src/plugins/sms/valent-sms-window.c:617
 msgid "New Conversation"
 msgstr "New Conversation"
 
@@ -920,7 +957,7 @@ msgstr "Conversations"
 msgid "Send to %s"
 msgstr "Send to %s"
 
-#: src/plugins/sms/valent-sms-window.c:641
+#: src/plugins/sms/valent-sms-window.c:644
 msgid "Search Messages"
 msgstr "Search Messages"
 
@@ -993,20 +1030,20 @@ msgstr "Telephony"
 msgid "Be notified of incoming and ongoing calls"
 msgstr "Be notified of incoming and ongoing calls"
 
-#: src/plugins/telephony/valent-telephony-plugin.c:284
+#: src/plugins/telephony/valent-telephony-plugin.c:273
 msgid "Unknown Contact"
 msgstr "Unknown Contact"
 
-#: src/plugins/telephony/valent-telephony-plugin.c:318
+#: src/plugins/telephony/valent-telephony-plugin.c:307
 msgid "Incoming call"
 msgstr "Incoming call"
 
-#: src/plugins/telephony/valent-telephony-plugin.c:321
+#: src/plugins/telephony/valent-telephony-plugin.c:310
 #: src/plugins/telephony/valent-telephony-preferences.ui:70
 msgid "Mute"
 msgstr "Mute"
 
-#: src/plugins/telephony/valent-telephony-plugin.c:328
+#: src/plugins/telephony/valent-telephony-plugin.c:317
 msgid "Ongoing call"
 msgstr "Ongoing call"
 

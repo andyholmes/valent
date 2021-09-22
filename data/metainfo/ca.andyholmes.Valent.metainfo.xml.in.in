@@ -13,8 +13,8 @@
 
   <description>
     <p>
-      Valent is an implementation of the KDE Connect protocol, allowing you to
-      securely connect your devices to sync, share and control.
+      Securely connect your devices to open files and links where you need them,
+      get notifications when you need them, stay in control of your media and more.
     </p>
     <p>
       Features:
@@ -24,8 +24,14 @@
       <li>Control media players and volume</li>
       <li>Share files, links and text</li>
       <li>Virtual touchpad and keyboard</li>
+      <li>Call and text notification</li>
       <li>Execute custom commands</li>
+      <li>More…</li>
     </ul>
+    <p>
+      Valent is an implementation of the KDE Connect protocol, built on GNOME
+      platform libraries.
+    </p>
   </description>
 
   <screenshots>

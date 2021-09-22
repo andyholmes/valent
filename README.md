@@ -4,11 +4,23 @@
 
 # Valent
 
-Valent is an implementation of the [KDE Connect][kdeconnect] protocol, written
-using GNOME platform libraries.
+**Connect, Control and Sync Devices**
 
-You can use Valent to connect to other devices running KDE Connect or any other
-conforming implementation of it.
+Securely connect your devices to open files and links where you need them, get
+notifications when you need them, stay in control of your media and more.
+
+Features:
+
+* Sync contacts, notifications and clipboard content
+* Control media players and volume
+* Share files, links and text
+* Virtual touchpad and keyboard
+* Call and text notification
+* Execute custom commands
+* More…
+
+Valent is an implementation of the [KDE Connect][kdeconnect] protocol, built on
+[GNOME][gnome] platform libraries.
 
 ## Status
 
@@ -22,5 +34,6 @@ If you choose to distribute or run this program, you take responsibility for
 providing support.
 
 
+[gnome]: https://www.gnome.org
 [kdeconnect]: https://community.kde.org/KDEConnect
 

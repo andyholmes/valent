@@ -8,7 +8,7 @@
 Name:           valent
 Version:        0.1.0
 Release:        1%{?dist}
-Summary:        A KDE Connect client for Gtk-based desktops
+Summary:        Connect, control and sync devices
 
 License:        GPLv3+
 URL:            https://github.com/andyholmes/valent
@@ -51,7 +51,8 @@ Requires:       evolution-data-server%{?_isa} >= %{libeds_version}
 Requires:       gnutls%{?_isa}
 
 %description
-A modular KDE Connect client written in GObject.
+Securely connect your devices to open files and links where you need them, get
+notifications when you need them, stay in control of your media and more.
 
 %package        devel
 Summary:        Development files for %{name}
