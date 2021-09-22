@@ -618,6 +618,8 @@ valent_mpris_remote_flush (ValentMprisRemote *self)
             g_variant_builder_add (&changed_props, "{sv}", prop_name, value);
           else
             g_variant_builder_add (&invalidated_props, "s", prop_name);
+
+          g_hash_table_iter_remove (&iter);
         }
 
       properties = g_variant_new ("(s@a{sv}@as)",
@@ -637,7 +639,6 @@ valent_mpris_remote_flush (ValentMprisRemote *self)
         g_warning ("%s: %s", G_STRFUNC, error->message);
     }
 
-  g_hash_table_remove_all (self->player_buffer);
   g_clear_handle_id (&self->flush_id, g_source_remove);
 }
 
@@ -1058,8 +1059,8 @@ valent_mpris_remote_export_full (ValentMprisRemote   *remote,
                                  gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
-  GError *error = NULL;
   g_autofree char *address = NULL;
+  GError *error = NULL;
 
   g_return_if_fail (VALENT_IS_MPRIS_REMOTE (remote));
   g_return_if_fail (g_dbus_is_name (bus_name));
@@ -1127,6 +1128,7 @@ valent_mpris_remote_unexport (ValentMprisRemote *remote)
     return;
 
   /* Unexport in reverse order */
+  g_clear_handle_id (&remote->flush_id, g_source_remove);
   g_clear_handle_id (&remote->bus_name_id, g_bus_unown_name);
 
   if (remote->player_id > 0)

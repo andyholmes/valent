@@ -125,6 +125,7 @@ test_task_queue_check (TaskQueueFixture *fixture,
     }
 
   fixture->n_tasks += 1;
+  g_clear_pointer (&fixture->queue, valent_task_queue_unref);
   g_main_loop_run (fixture->loop);
 }
 
@@ -188,16 +189,17 @@ static void
 test_task_queue_dispose (TaskQueueFixture *fixture,
                          gconstpointer     user_data)
 {
+  GTask *task;
+
+  /* Standard tasks (return success, expect success) */
   for (unsigned int i = 0; i < fixture->n_tasks; i++)
     {
-      g_autoptr (GTask) task = NULL;
-
       task = g_task_new (NULL, NULL, task_success_cb, fixture);
       valent_task_queue_run (fixture->queue, task, task_success_func);
+      g_clear_object (&task);
     }
 
-  /* Queue the unref to happen before any tasks complete*/
-  g_idle_add_full (G_PRIORITY_HIGH, task_queue_unref_idle, fixture, NULL);
+  g_clear_pointer (&fixture->queue, valent_task_queue_unref);
   g_main_loop_run (fixture->loop);
 }
 
