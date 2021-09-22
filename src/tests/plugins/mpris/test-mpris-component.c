@@ -67,23 +67,6 @@ on_player_removed (GObject               *object,
 }
 
 static void
-on_player_changed (ValentMedia           *media,
-                   ValentMediaPlayer     *player,
-                   MprisComponentFixture *fixture)
-{
-  fixture->state = TRUE;
-}
-
-static void
-on_player_seeked (ValentMedia           *media,
-                  ValentMediaPlayer     *player,
-                  gint64                 offset,
-                  MprisComponentFixture *fixture)
-{
-  fixture->state = (offset == 1000);
-}
-
-static void
 on_player_method (ValentMediaPlayer     *player,
                   const char            *method_name,
                   GVariant              *args,
@@ -97,7 +80,7 @@ static void
 test_mpris_component_provider (MprisComponentFixture *fixture,
                                gconstpointer          user_data)
 {
-  g_autoptr (ValentMedia) media = NULL;
+  ValentMedia *media;
   g_autoptr (GPtrArray) players = NULL;
   g_autoptr (GPtrArray) extensions = NULL;
   ValentMediaPlayerProvider *provider;
@@ -144,7 +127,7 @@ static void
 test_mpris_component_player (MprisComponentFixture *fixture,
                              gconstpointer          user_data)
 {
-  g_autoptr (ValentMedia) media = NULL;
+  ValentMedia *media;
   g_autoptr (ValentMprisRemote) remote = NULL;
   ValentMediaActions flags;
   ValentMediaState state;
@@ -261,7 +244,7 @@ static void
 test_mpris_component_dispose (MprisComponentFixture *fixture,
                               gconstpointer          user_data)
 {
-  g_autoptr (ValentMedia) media = NULL;
+  ValentMedia *media;
   g_autoptr (ValentMprisRemote) remote = NULL;
   GPtrArray *extensions;
   ValentMediaPlayerProvider *provider;
