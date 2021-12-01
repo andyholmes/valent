@@ -19,6 +19,7 @@ RUN dnf install -y --enablerepo=fedora-debuginfo,updates-debuginfo \
         gstreamer1-plugins-good       gstreamer1-plugins-good-debuginfo \
         gtk4-devel                    gtk4-debuginfo \
         json-glib-devel               json-glib-debuginfo \
+        libadwaita-devel              libadwaita-debuginfo \
         libpeas-devel                 libpeas-debuginfo \
         libportal-devel               libportal-debuginfo \
         pulseaudio-libs-devel         pulseaudio-libs-debuginfo \

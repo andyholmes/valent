@@ -136,12 +136,24 @@ jobs:
           folder: _build/meson-logs/coverage-html
           target-folder: coverage
 
-  test_sanitizer:
-    name: Unit Tests (asan/lsan, ubsan)
+  sanitizer:
+    name: Sanitizer
     needs: [lint]
     runs-on: ubuntu-latest
     container:
       image: quay.io/andyholmes/valent:latest
+
+    strategy:
+      matrix:
+        sanitizer:
+          - address,undefined
+          - thread
+        include:
+          - santizer: address,undefined
+            logname: asan-ubsan-logs
+          - santizer: thread
+            logname: tsan-logs
+      fail-fast: false
 
     steps:
       - name: Checkout
@@ -150,10 +162,12 @@ jobs:
           submodules: true
 
       - name: Build
+        env:
+          SANITIZER: ${{ matrix.sanitizer }}
         run: |
           meson --prefix=/usr \
                 --buildtype=debug \
-                -Db_sanitize=address,undefined \
+                -Db_sanitize=${SANITIZER} \
                 -Dintrospection=false \
                 -Dplugin_bluez=true \
                 -Dtests=true \
@@ -173,53 +187,13 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
-          name: sanitizer-logs
-          path: _build/meson-logs
-
-  test_tsan:
-    name: Unit Tests (tsan)
-    needs: [lint]
-    runs-on: ubuntu-latest
-    container:
-      image: quay.io/andyholmes/valent:latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          submodules: true
-
-      - name: Build
-        run: |
-          meson --prefix=/usr \
-                --buildtype=debug \
-                -Db_sanitize=thread \
-                -Dintrospection=false \
-                -Dplugin_bluez=true \
-                -Dtests=true \
-                _build
-          meson compile -C _build
-
-      - name: Test
-        run: |
-          dbus-run-session -- \
-          xvfb-run -a -s '-screen 0 1024x768x24' \
-          meson test -C _build \
-                     --print-errorlogs \
-                     --suite=valent \
-                     --timeout-multiplier 2
-
-      - name: Report
-        if: ${{ failure() }}
-        uses: actions/upload-artifact@v2
-        with:
-          name: thread-sanitizer-logs
+          name: ${{ matrix.logname }}
           path: _build/meson-logs
 
   documentation:
     if: ${{ github.ref == 'refs/heads/main' }}
     name: Documentation
-    needs: [test, test_sanitizer, test_tsan]
+    needs: [test, sanitizer]
     runs-on: ubuntu-latest
     container:
       image: quay.io/andyholmes/valent:latest
@@ -249,10 +223,10 @@ jobs:
   flatpak:
     if: ${{ github.ref == 'refs/heads/main' }}
     name: Flatpak
-    needs: [test, test_sanitizer, test_tsan]
+    needs: [test, sanitizer]
     runs-on: ubuntu-latest
     container:
-      image: bilelmoussaoui/flatpak-github-actions:gnome-40
+      image: bilelmoussaoui/flatpak-github-actions:gnome-41
       options: --privileged
 
     strategy:
