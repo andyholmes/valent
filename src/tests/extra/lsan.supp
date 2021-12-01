@@ -13,6 +13,7 @@ leak:g_daemon_vfs_init
 # False positives caused by G_TEST_OPTION_ISOLATE_DIRS
 leak:test_do_isolate_dirs
 leak:adw_init
+leak:adw_style_init
 
 # librsvg
 leak:librsvg-2.so
