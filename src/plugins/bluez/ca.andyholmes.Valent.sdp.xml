@@ -1,4 +1,8 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- SPDX-License-Identifier: CC0-1.0 -->
+<!-- SPDX-FileCopyrightText: No rights reserved -->
+
 <record>
   <!-- ServiceClassIDList -->
   <attribute id="0x0001">

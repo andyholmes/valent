@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
+
 # The subdirs update these before libvalent is compiled
 libvalent_c_args = ['-Wno-missing-declarations']
 libvalent_gir_extra_args = ['--pkg-export=valent-1.0']

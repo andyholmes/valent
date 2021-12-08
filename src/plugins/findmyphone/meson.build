@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 # Require GStreamer for ringing
 gstreamer_dep = dependency('gstreamer-1.0', version: '>= 1.16', required: false)

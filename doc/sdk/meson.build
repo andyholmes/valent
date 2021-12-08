@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
+
 libvalent_build = join_paths(meson.build_root(), 'src', 'libvalent')
 
 # Get gi-docgen

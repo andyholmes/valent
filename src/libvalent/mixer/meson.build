@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
+
 libvalent_mixer_header_dir = join_paths(libvalent_header_dir, 'mixer')
 libvalent_mixer_header_subdir = join_paths(libvalent_header_subdir, 'mixer')
 libvalent_include_directories += include_directories('.')

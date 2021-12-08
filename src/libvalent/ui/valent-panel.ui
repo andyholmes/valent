@@ -1,5 +1,9 @@
-<interface>
-  <requires lib="gtk" version="4.0"/>
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> -->
+
+<interface domain="valent">
   <template class="ValentPanel" parent="GtkWidget">
     <property name="hexpand">1</property>
     <property name="layout-manager">
