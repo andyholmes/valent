@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<interface>
+
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> -->
+
+<interface domain="valent">
   <template class="ValentNotificationReplyDialog" parent="GtkDialog">
     <property name="default-width">320</property>
     <property name="default-height">300</property>

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 # Require libaperture for taking photos
 gstreamer_video_dep = dependency('gstreamer-video-1.0', version: '>= 1.16', required: false)

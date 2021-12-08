@@ -1,10 +1,5 @@
-.buildconfig
 *~
 _build
-
-# Flatpak
-.flatpak-builder
-_flatpak
 
 # meson wraps
 subprojects/gi-docgen
