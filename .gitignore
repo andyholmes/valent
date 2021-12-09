@@ -2,7 +2,6 @@
 _build
 
 # meson wraps
-subprojects/gi-docgen
 subprojects/libadwaita
 subprojects/libsass*
 subprojects/sassc*
