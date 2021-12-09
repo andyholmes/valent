@@ -92,7 +92,7 @@ on_player_added (ValentMediaPlayerProvider *provider,
 
   g_assert (VALENT_IS_MEDIA (self));
 
-  VALENT_TRACE_MSG ("%s: %s", G_OBJECT_TYPE_NAME (player), valent_media_player_get_name (player));
+  VALENT_DEBUG ("%s: %s", G_OBJECT_TYPE_NAME (player), valent_media_player_get_name (player));
 
   g_signal_connect_object (player,
                            "changed",
@@ -119,7 +119,7 @@ on_player_removed (ValentMediaPlayerProvider *provider,
 
   g_assert (VALENT_IS_MEDIA (self));
 
-  VALENT_TRACE_MSG ("%s: %s", G_OBJECT_TYPE_NAME (player), valent_media_player_get_name (player));
+  VALENT_DEBUG ("%s: %s", G_OBJECT_TYPE_NAME (player), valent_media_player_get_name (player));
 
   g_signal_handlers_disconnect_by_func (player, on_player_changed, self);
   g_signal_handlers_disconnect_by_func (player, on_player_seeked, self);

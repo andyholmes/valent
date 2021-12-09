@@ -469,7 +469,7 @@ valent_mpris_player_get_position (ValentMediaPlayer *player)
       if (g_error_matches (error, G_DBUS_ERROR, G_DBUS_ERROR_NOT_SUPPORTED))
         self->no_position = TRUE;
 
-      VALENT_TRACE_MSG ("%s", error->message);
+      VALENT_DEBUG ("%s", error->message);
 
       return 0;
     }

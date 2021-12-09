@@ -11,6 +11,7 @@
 #include "valent-channel.h"
 #include "valent-channel-service.h"
 #include "valent-data.h"
+#include "valent-debug.h"
 #include "valent-macros.h"
 #include "valent-object-utils.h"
 #include "valent-packet.h"
@@ -137,7 +138,7 @@ init_chassis_type (void)
       else
         chassis = g_steal_pointer (&str);
 
-      goto out;
+      VALENT_GOTO (out);
     }
 
   /* Fallback to DMI. See the SMBIOS Specification 3.0 section 7.4.1:

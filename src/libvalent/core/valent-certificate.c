@@ -12,6 +12,7 @@
 #include <sys/time.h>
 
 #include "valent-certificate.h"
+#include "valent-debug.h"
 
 #define DEFAULT_EXPIRATION (60L*60L*24L*10L*365L)
 #define DEFAULT_KEY_SIZE   4096
@@ -79,7 +80,7 @@ valent_certificate_generate (const char  *key_path,
                    G_IO_ERROR_FAILED,
                    "Generating private key: %s",
                    gnutls_strerror (rc));
-      goto out;
+      VALENT_GOTO (out);
     }
 
   /* Output the private key PEM to file */
@@ -92,7 +93,7 @@ valent_certificate_generate (const char  *key_path,
   gnutls_free (out.data);
 
   if (!ret)
-    goto out;
+    VALENT_GOTO (out);
 
   /*
    * TLS Certificate
@@ -106,7 +107,7 @@ valent_certificate_generate (const char  *key_path,
                    G_IO_ERROR_FAILED,
                    "Generating certificate: %s",
                    gnutls_strerror (rc));
-      goto out;
+      VALENT_GOTO (out);
     }
 
   /* Expiry (10 years) */
@@ -120,7 +121,7 @@ valent_certificate_generate (const char  *key_path,
                    G_IO_ERROR_FAILED,
                    "Generating certificate: %s",
                    gnutls_strerror (rc));
-      goto out;
+      VALENT_GOTO (out);
     }
 
   /* Serial Number */
@@ -137,7 +138,7 @@ valent_certificate_generate (const char  *key_path,
                    G_IO_ERROR_FAILED,
                    "Generating certificate: %s",
                    gnutls_strerror (rc));
-      goto out;
+      VALENT_GOTO (out);
     }
 
   /* Sign and export the certificate */
@@ -149,7 +150,7 @@ valent_certificate_generate (const char  *key_path,
                    G_IO_ERROR_FAILED,
                    "Signing certificate: %s",
                    gnutls_strerror (rc));
-      goto out;
+      VALENT_GOTO (out);
     }
 
   /* Output the certificate PEM to file */
@@ -316,7 +317,7 @@ valent_certificate_get_public_key (GTlsCertificate *certificate)
       (rc = gnutls_x509_crt_import (crt, &crt_der, GNUTLS_X509_FMT_DER)) != GNUTLS_E_SUCCESS)
     {
       g_warning ("%s: %s", G_STRFUNC, gnutls_strerror (rc));
-      goto out;
+      VALENT_GOTO (out);
     }
 
   /* Load the public key */
@@ -324,7 +325,7 @@ valent_certificate_get_public_key (GTlsCertificate *certificate)
       (rc = gnutls_pubkey_import_x509 (crt_pk, crt, 0)) != GNUTLS_E_SUCCESS)
     {
       g_warning ("%s: %s", G_STRFUNC, gnutls_strerror (rc));
-      goto out;
+      VALENT_GOTO (out);
     }
 
   /* Read the public key */
