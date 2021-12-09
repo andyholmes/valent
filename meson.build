@@ -197,7 +197,10 @@ endif
 
 if get_option('optimization') in ['2', '3', 's']
   add_global_arguments(['-DG_DISABLE_CAST_CHECKS'], language: 'c')
-  release_args += ['-DG_DISABLE_ASSERT']
+
+  if not get_option('tests')
+    release_args += ['-DG_DISABLE_ASSERT']
+  endif
 endif
 
 if get_option('profiling')
