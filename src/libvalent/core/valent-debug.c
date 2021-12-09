@@ -36,6 +36,25 @@ G_LOCK_DEFINE_STATIC (sysprof_mutex);
 static SysprofCaptureWriter *sysprof = NULL;
 
 
+static void
+valent_trace_log (const char     *domain,
+                  GLogLevelFlags  level,
+                  const char     *message)
+{
+  G_LOCK (sysprof_mutex);
+  if G_LIKELY (sysprof)
+    {
+      sysprof_capture_writer_add_log (sysprof,
+                                      SYSPROF_CAPTURE_CURRENT_TIME,
+                                      sched_getcpu (),
+                                      getpid (),
+                                      level,
+                                      domain,
+                                      message);
+    }
+  G_UNLOCK (sysprof_mutex);
+}
+
 /**
  * valent_trace_mark:
  * @strfunc: a string
@@ -67,32 +86,13 @@ valent_trace_mark (const char *strfunc,
     }
   G_UNLOCK (sysprof_mutex);
 }
-
-static void
-valent_trace_log (const char     *domain,
-                  GLogLevelFlags  level,
-                  const char     *message)
-{
-  G_LOCK (sysprof_mutex);
-  if G_LIKELY (sysprof)
-    {
-      sysprof_capture_writer_add_log (sysprof,
-                                      SYSPROF_CAPTURE_CURRENT_TIME,
-                                      sched_getcpu (),
-                                      getpid (),
-                                      level,
-                                      domain,
-                                      message);
-    }
-  G_UNLOCK (sysprof_mutex);
-}
 #endif
 
 
 /*
  * Debug
  */
-#ifdef VALENT_ENABLE_DEBUG
+#if defined(VALENT_ENABLE_DEBUG) || defined(VALENT_ENABLE_PROFILING)
 G_LOCK_DEFINE_STATIC (log_mutex);
 
 GIOChannel *log_channel = NULL;
@@ -110,12 +110,12 @@ valent_log_level_str (GLogLevelFlags log_level)
 {
   switch (((gulong)log_level & G_LOG_LEVEL_MASK))
     {
-    case G_LOG_LEVEL_ERROR:    return "   \033[1;31mERROR\033[0m";
-    case G_LOG_LEVEL_CRITICAL: return "\033[1;35mCRITICAL\033[0m";
-    case G_LOG_LEVEL_WARNING:  return " \033[1;33mWARNING\033[0m";
-    case G_LOG_LEVEL_MESSAGE:  return " \033[1;34mMESSAGE\033[0m";
-    case G_LOG_LEVEL_INFO:     return "    \033[1;32mINFO\033[0m";
-    case G_LOG_LEVEL_DEBUG:    return "   \033[1;32mDEBUG\033[0m";
+    case G_LOG_LEVEL_ERROR:      return "   \033[1;31mERROR\033[0m";
+    case G_LOG_LEVEL_CRITICAL:   return "\033[1;35mCRITICAL\033[0m";
+    case G_LOG_LEVEL_WARNING:    return " \033[1;33mWARNING\033[0m";
+    case G_LOG_LEVEL_MESSAGE:    return " \033[1;34mMESSAGE\033[0m";
+    case G_LOG_LEVEL_INFO:       return "    \033[1;32mINFO\033[0m";
+    case G_LOG_LEVEL_DEBUG:      return "   \033[1;32mDEBUG\033[0m";
     case VALENT_LOG_LEVEL_TRACE: return "   \033[1;36mTRACE\033[0m";
 
     default:
@@ -135,7 +135,7 @@ valent_log_handler (const char     *domain,
   char ftime[32];
   char *buffer;
 
-  #if VALENT_ENABLE_PROFILING && VALENT_ENABLE_DEBUG
+  #ifdef VALENT_ENABLE_PROFILING
   /* Relay to sysprof */
   if (level == VALENT_LOG_LEVEL_TRACE)
     valent_trace_log (domain, level, message);
@@ -176,12 +176,12 @@ valent_log_handler (const char     *domain,
 /**
  * valent_debug_init:
  *
- * Initialize debug tracing and/or profiling.
+ * Initialize debug logging and/or profiling.
  */
 void
 valent_debug_init (void)
 {
-  #ifdef VALENT_ENABLE_DEBUG
+  #if defined(VALENT_ENABLE_DEBUG) || defined(VALENT_ENABLE_PROFILING)
   G_LOCK (log_mutex);
   if (log_channel == NULL)
     {
@@ -214,12 +214,12 @@ valent_debug_init (void)
 void
 valent_debug_clear (void)
 {
-  #ifdef VALENT_ENABLE_DEBUG
+  #if defined(VALENT_ENABLE_DEBUG) || defined(VALENT_ENABLE_PROFILING)
   G_LOCK (log_mutex);
   if (log_channel)
     {
       g_clear_pointer (&log_channel, g_io_channel_unref);
-      g_log_set_default_handler (valent_log_handler, NULL); // TODO
+      g_log_set_default_handler (valent_log_handler, NULL);
     }
   G_UNLOCK (log_mutex);
   #endif

@@ -49,7 +49,7 @@ on_properties_changed (GDBusProxy       *proxy,
       if (g_str_equal (key, "Active"))
         changed = TRUE;
       else
-        VALENT_TRACE_MSG ("KEY: %s", key);
+        VALENT_DEBUG ("KEY: %s", key);
 
       g_variant_unref (value);
     }

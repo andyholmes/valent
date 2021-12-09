@@ -167,8 +167,7 @@ on_interfaces_added (ValentBluezChannelService *self,
         }
 
       else if (g_strcmp0 (interface, "org.bluez.ProfileManager1") == 0)
-        // TODO: register profile?
-        g_debug ("TODO: PROFILE MANAGER READY");
+        VALENT_TODO ("ProfileManager1 interface ready; register profile here?");
 
       g_variant_unref (properties);
     }

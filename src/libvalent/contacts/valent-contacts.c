@@ -76,7 +76,7 @@ on_store_added (ValentContactStoreProvider *provider,
 
   g_assert (VALENT_IS_CONTACTS (self));
 
-  VALENT_TRACE_MSG ("%s: %s", G_OBJECT_TYPE_NAME (store), valent_contact_store_get_name (store));
+  VALENT_DEBUG ("%s: %s", G_OBJECT_TYPE_NAME (store), valent_contact_store_get_name (store));
 
   g_ptr_array_add (self->stores, g_object_ref (store));
   g_signal_emit (G_OBJECT (self), signals [STORE_ADDED], 0, store);
@@ -93,7 +93,7 @@ on_store_removed (ValentContactStoreProvider *provider,
 
   g_assert (VALENT_IS_CONTACTS (self));
 
-  VALENT_TRACE_MSG ("%s: %s", G_OBJECT_TYPE_NAME (store), valent_contact_store_get_name (store));
+  VALENT_DEBUG ("%s: %s", G_OBJECT_TYPE_NAME (store), valent_contact_store_get_name (store));
 
   g_ptr_array_remove (self->stores, store);
   g_signal_emit (G_OBJECT (self), signals [STORE_REMOVED], 0, store);

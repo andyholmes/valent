@@ -403,7 +403,6 @@ on_player_changed (ValentMediaPlayer       *player,
                    GParamSpec              *pspec,
                    ValentTestPluginFixture *fixture)
 {
-  VALENT_PROBE;
   valent_test_plugin_fixture_quit (fixture);
 }
 

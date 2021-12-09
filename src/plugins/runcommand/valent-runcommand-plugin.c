@@ -63,7 +63,7 @@ launcher_init (ValentRuncommandPlugin *self)
   if G_UNLIKELY (self->launcher != NULL)
     return;
 
-#ifdef VALENT_DEBUG
+#ifdef VALENT_ENABLE_DEBUG
   flags = G_SUBPROCESS_FLAGS_NONE;
 #else
   flags = (G_SUBPROCESS_FLAGS_STDERR_SILENCE |

@@ -13,11 +13,13 @@ G_BEGIN_DECLS
  * @title: Debug logging and tracing
  * @short_description: tracing and debug facilities
  *
- * The profiling macros such as %VALENT_ENTRY, %VALENT_EXIT, and %VALENT_RETURN
- * provide helpers for tracing at runtime. The debug macros such as %VALENT_PROBE
- * and %VALENT_TRACE_MSG provide helpers for debugging and logging.
+ * The profiling macros %VALENT_ENTRY, %VALENT_EXIT, %VALENT_RETURN,
+ * %VALENT_GOTO and %VALENT_PROBE provide helpers for tracing at runtime.
  *
- * These tracing macros will compile out when configured for a release build.
+ * The debugging macros %VALENT_DEBUG, %VALENT_DEBUG_PKT and %VALENT_TODO
+ * provide helpers for development (in contrast to standard debug macros).
+ *
+ * These macros will compile out when configured for a release build.
  */
 
 /**
@@ -43,8 +45,8 @@ G_BEGIN_DECLS
 
 extern
 void valent_trace_mark (const char *strfunc,
-                      gint64      begin_time_usec,
-                      gint64      end_time_usec);
+                        gint64      begin_time_usec,
+                        gint64      end_time_usec);
 
 /**
  * VALENT_ENTRY: (skip)
@@ -55,7 +57,7 @@ void valent_trace_mark (const char *strfunc,
 # define VALENT_ENTRY                                                       \
    gint64 __trace_begin_time = g_get_monotonic_time ();                     \
    g_log(G_LOG_DOMAIN, VALENT_LOG_LEVEL_TRACE, "ENTRY: %s():%d",            \
-           G_STRFUNC, __LINE__)
+         G_STRFUNC, __LINE__)
 
 /**
  * VALENT_EXIT: (skip)
@@ -87,10 +89,35 @@ void valent_trace_mark (const char *strfunc,
             G_STRFUNC, __LINE__);                                           \
       return _r;                                                            \
    } G_STMT_END
+
+/**
+ * VALENT_GOTO: (skip)
+ * @_l: the label to jump to
+ *
+ * Appends to the jump to label to the tracing log and then jumps
+ * to the label @_l.
+ */
+# define VALENT_GOTO(_l)                                                    \
+   G_STMT_START {                                                           \
+      g_log(G_LOG_DOMAIN, VALENT_LOG_LEVEL_TRACE, " GOTO: %s():%d ("#_l")", \
+            G_STRFUNC, __LINE__);                                           \
+      goto _l;                                                              \
+   } G_STMT_END
+
+/**
+ * VALENT_PROBE: (skip)
+ *
+ * Appends to the tracing log that a line of code was reached.
+ */
+# define VALENT_PROBE                                                       \
+   g_log(G_LOG_DOMAIN, VALENT_LOG_LEVEL_TRACE, "PROBE: %s():%d",            \
+         G_STRFUNC, __LINE__)
 #else
 # define VALENT_ENTRY               G_STMT_START {            } G_STMT_END
 # define VALENT_EXIT                G_STMT_START { return;    } G_STMT_END
 # define VALENT_RETURN(_r)          G_STMT_START { return _r; } G_STMT_END
+# define VALENT_GOTO(_l)            G_STMT_START { goto _l;   } G_STMT_END
+# define VALENT_PROBE               G_STMT_START {            } G_STMT_END
 #endif
 
 
@@ -108,83 +135,53 @@ void valent_trace_mark (const char *strfunc,
 #ifdef VALENT_ENABLE_DEBUG
 
 /**
- * VALENT_DEBUG_PACKET: (skip)
- *
- * Pretty-print a #JsonNode for debugging purposes.
- */
-# define VALENT_DEBUG_PACKET(pkt, ctx)                                      \
-   G_STMT_START {                                                           \
-     char *__json = json_to_string (pkt, TRUE);                             \
-     g_log(G_LOG_DOMAIN, VALENT_LOG_LEVEL_TRACE, "PACKET: %s():%d %s: %s",  \
-           G_STRFUNC, __LINE__, ctx, __json);                               \
-     g_free(__json);                                                        \
-   } G_STMT_END
-
-/**
- * VALENT_TRACE_MSG: (skip)
+ * VALENT_DEBUG: (skip)
  *
  * Similar to %VALENT_PROBE but allows specifying a log message.
  */
-# define VALENT_TRACE_MSG(fmt, ...)                                         \
-   g_log(G_LOG_DOMAIN, VALENT_LOG_LEVEL_TRACE, "  MSG: %s():%d: " fmt,      \
+# define VALENT_DEBUG(fmt, ...)                                             \
+   g_log(G_LOG_DOMAIN, G_LOG_LEVEL_DEBUG, "  MSG: %s():%d: " fmt,           \
          G_STRFUNC, __LINE__, ##__VA_ARGS__)
 
 /**
- * VALENT_PROBE: (skip)
+ * VALENT_DEBUG_PKT: (skip)
+ * @_pkt: a #JsonNode
+ * @_ctx: context for the packet
  *
- * Appends to the tracing log that a line of code was reached.
+ * Appends a #JsonNode in string form to the log.
  */
-# define VALENT_PROBE                                                       \
-   g_log(G_LOG_DOMAIN, VALENT_LOG_LEVEL_TRACE, "PROBE: %s():%d",            \
-         G_STRFUNC, __LINE__)
-
-/**
- * VALENT_TODO: (skip)
- * @_msg: the message to append to the trace log
- *
- * Appends to the tracing log that unsupported code has been reached.
- */
-# define VALENT_TODO(_msg)                                                  \
-   g_log(G_LOG_DOMAIN, VALENT_LOG_LEVEL_TRACE, " TODO: %s():%d: %s",        \
-         G_STRFUNC, __LINE__, _msg)
-
-/**
- * VALENT_GOTO: (skip)
- * @_l: the label to jump to
- *
- * Appends to the jump to label to the tracing log and then jumps
- * to the label @_l.
- */
-# define VALENT_GOTO(_l)                                                    \
+# define VALENT_DEBUG_PKT(_pkt, _ctx)                                       \
    G_STMT_START {                                                           \
-      g_log(G_LOG_DOMAIN, VALENT_LOG_LEVEL_TRACE, " GOTO: %s():%d ("#_l")", \
-            G_STRFUNC, __LINE__);                                           \
-      goto _l;                                                              \
+     char *__debug_pkt = json_to_string (_pkt, TRUE);                       \
+     g_log(G_LOG_DOMAIN, G_LOG_LEVEL_DEBUG, "  PKT: %s():%d %s: %s",        \
+           G_STRFUNC, __LINE__, _ctx, __debug_pkt);                         \
+     g_free(__debug_pkt);                                                   \
    } G_STMT_END
 
 /**
- * VALENT_BACKTRACE: (skip)
+ * VALENT_FIXME: (skip)
+ * @_msg: the message to append to the log.
  *
- * Print a backtrace to the tracing log.
+ * Appends to the log that unstable code has been reached.
  */
-# define VALENT_BACKTRACE                                                   \
-  G_STMT_START {                                                            \
-    gpointer btbuf[64];                                                     \
-    int btbuflen = backtrace (btbuf, G_N_ELEMENTS (btbuf));                 \
-    char **symnames = backtrace_symbols (btbuf, btbuflen);                  \
-    for (guint _i = 0; _i < btbuflen; _i++) {                               \
-      g_log(G_LOG_DOMAIN, VALENT_LOG_LEVEL_TRACE, "TRACE: [%-2d]: %s",      \
-            _i, symnames[_i]);                                              \
-    }                                                                       \
-    free (symnames);                                                        \
-  } G_STMT_END
+# define VALENT_FIXME(_msg)                                                 \
+   g_log(G_LOG_DOMAIN, G_LOG_LEVEL_INFO, "FIXME: %s():%d: %s",              \
+         G_STRFUNC, __LINE__, _msg)
+
+/**
+ * VALENT_TODO: (skip)
+ * @_msg: the message to append to the log.
+ *
+ * Appends to the log that unsupported code has been reached.
+ */
+# define VALENT_TODO(_msg)                                                  \
+   g_log(G_LOG_DOMAIN, G_LOG_LEVEL_INFO, " TODO: %s():%d: %s",              \
+         G_STRFUNC, __LINE__, _msg)
 #else
-# define VALENT_DEBUG_PACKET(packet, context) G_STMT_START {  } G_STMT_END
-# define VALENT_TODO(_msg)          G_STMT_START {            } G_STMT_END
-# define VALENT_PROBE               G_STMT_START {            } G_STMT_END
-# define VALENT_TRACE_MSG(fmt, ...) G_STMT_START {            } G_STMT_END
-# define VALENT_GOTO(_l)            G_STMT_START { goto _l;   } G_STMT_END
-# define VALENT_BACKTRACE           G_STMT_START {            } G_STMT_END
+# define VALENT_DEBUG(fmt, ...)        G_STMT_START {          } G_STMT_END
+# define VALENT_DEBUG_PKT(_pkt, _ctx)  G_STMT_START {          } G_STMT_END
+# define VALENT_FIXME(_msg)            G_STMT_START {          } G_STMT_END
+# define VALENT_TODO(_msg)             G_STMT_START {          } G_STMT_END
 #endif
 
 G_END_DECLS

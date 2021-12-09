@@ -279,7 +279,7 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
     is_talking = TRUE;
   else
     {
-      g_warning ("Unknown telephony event: %s", event);
+      VALENT_TODO (event);
       return;
     }
 
