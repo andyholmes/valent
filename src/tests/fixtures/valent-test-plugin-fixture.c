@@ -24,18 +24,17 @@ G_DEFINE_BOXED_TYPE (ValentTestPluginFixture, valent_test_plugin_fixture,
                                               valent_test_plugin_fixture_copy,
                                               valent_test_plugin_fixture_free)
 
-static JsonNode *expected_packet = NULL;
-
 static void
-expect_packet_cb (ValentChannel           *channel,
-                  GAsyncResult            *result,
-                  ValentTestPluginFixture *fixture)
+expect_packet_cb (ValentChannel  *channel,
+                  GAsyncResult   *result,
+                  JsonNode      **packet)
 {
   g_autoptr (GError) error = NULL;
 
-  expected_packet = valent_channel_read_packet_finish (channel, result, &error);
-  g_assert_no_error (error);
-  g_main_loop_quit (fixture->loop);
+  *packet = valent_channel_read_packet_finish (channel, result, &error);
+
+  if (error != NULL)
+    g_critical ("%s: %s", G_STRFUNC, error->message);
 }
 
 /*
@@ -304,20 +303,25 @@ valent_test_plugin_fixture_lookup_packet (ValentTestPluginFixture *fixture,
  * valent_test_plugin_fixture_expect_packet:
  * @fixture: a #ValentTestPluginFixture
  *
- * Synchronously read the next packet that has been sent by the #ValentDevice.
+ * Iterate the main context until a packet is received from the mock
+ * #ValentDevice.
  *
  * Returns: (transfer full): a #JsonNode
  */
 JsonNode *
 valent_test_plugin_fixture_expect_packet (ValentTestPluginFixture *fixture)
 {
+  JsonNode *packet = NULL;
+
   valent_channel_read_packet (fixture->endpoint,
                               NULL,
                               (GAsyncReadyCallback)expect_packet_cb,
-                              fixture);
-  g_main_loop_run (fixture->loop);
+                              &packet);
 
-  return g_steal_pointer (&expected_packet);
+  while (packet == NULL)
+    g_main_context_iteration (NULL, FALSE);
+
+  return g_steal_pointer (&packet);
 }
 
 /**

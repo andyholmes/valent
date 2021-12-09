@@ -79,21 +79,24 @@ class _GLibTestCaseMeta(type):
                                    encoding='utf-8',
                                    env=env,
                                    timeout=15)
-
-            # Filter empty lines, diagnostics and plan
+        except subprocess.TimeoutExpired as error:
+            sys.stderr.write(error.stdout.decode('utf-8'))
+            raise RuntimeError(f'Querying tests: {error}') from error
+        except subprocess.CalledProcessError as error:
+            sys.stderr.write(error.stdout)
+            raise RuntimeError(f'Querying tests: {error}') from error
+        else:
             n_tests = 0
 
             for line in tests.stdout.split('\n'):
+                # Filter empty lines, diagnostics and plan
                 if not line or line.startswith(('#', '1..',)):
                     continue
 
-                # Example: `test_001_/app/window`
                 n_tests += 1
                 setattr(test_case,
                         f'test_{n_tests:03d}_{line}',
                         _GLibTestCaseAttr(line))
-        except subprocess.SubprocessError as error:
-            raise RuntimeError(f'Querying tests: {error}') from error
 
 
 class GLibTestCase(metaclass = _GLibTestCaseMeta):
@@ -114,16 +117,22 @@ class GLibTestCase(metaclass = _GLibTestCaseMeta):
         :attr:`~glibtest.GLibTestCase.executable`.
         """
 
+        message = None
+
         try:
             test = subprocess.run([self.executable, '-p', path],
                                   capture_output=True,
                                   check=True,
                                   encoding='utf-8')
-        except subprocess.SubprocessError as error:
-            # pylint: disable-next=no-member
-            self.fail(error.stdout) # type: ignore
+        except subprocess.CalledProcessError as error:
+            message = error.stdout
+            message = f'Error ({error.returncode})\n{message}'
         else:
             sys.stderr.write(test.stdout)
+
+        if message:
+            # pylint: disable-next=no-member
+            self.fail(message) # type: ignore
 
 
 def main() -> None:

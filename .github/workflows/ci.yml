@@ -171,6 +171,7 @@ jobs:
                 -Dintrospection=false \
                 -Dplugin_bluez=true \
                 -Dtests=true \
+                -Dfuzz_tests=false \
                 _build
           meson compile -C _build
 

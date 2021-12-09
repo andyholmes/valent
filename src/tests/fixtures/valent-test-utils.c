@@ -66,11 +66,8 @@ connect_cb (GSocketClient *client,
  */
 typedef struct
 {
-  GMainLoop *loop;
   JsonNode  *packet;
   GFile     *file;
-  gboolean   success;
-  GError    *error;
 } TransferOperation;
 
 static void
@@ -79,22 +76,8 @@ transfer_op_free (gpointer data)
   TransferOperation *op = data;
 
   g_clear_object (&op->file);
-  g_clear_pointer (&op->loop, g_main_loop_unref);
   g_clear_pointer (&op->packet, json_node_unref);
   g_free (op);
-}
-
-static void
-transfer_cb (GObject      *object,
-             GAsyncResult *result,
-             gpointer      user_data)
-{
-  TransferOperation *op;
-
-  op = g_task_get_task_data (G_TASK (result));
-  op->success = g_task_propagate_boolean (G_TASK (result), &op->error);
-
-  g_main_loop_quit (op->loop);
 }
 
 static void
@@ -423,18 +406,16 @@ valent_test_download (ValentChannel  *channel,
   g_assert (error == NULL || *error == NULL);
 
   op = g_new0 (TransferOperation, 1);
-  op->loop = g_main_loop_new (NULL, FALSE);
   op->packet = json_node_ref (packet);
 
-  task = g_task_new (channel, NULL, transfer_cb, NULL);
+  task = g_task_new (channel, NULL, NULL, NULL);
   g_task_set_task_data (task, op, transfer_op_free);
   g_task_run_in_thread (task, download_task);
-  g_main_loop_run (op->loop);
 
-  if (op->error != NULL)
-    g_propagate_error (error, op->error);
+  while (!g_task_get_completed (task))
+    g_main_context_iteration (NULL, FALSE);
 
-  return op->success;
+  return g_task_propagate_boolean (task, error);
 }
 
 /**
@@ -461,19 +442,17 @@ valent_test_upload (ValentChannel  *channel,
   g_assert (error == NULL || *error == NULL);
 
   op = g_new0 (TransferOperation, 1);
-  op->loop = g_main_loop_new (NULL, FALSE);
   op->packet = json_node_ref (packet);
   op->file = g_object_ref (file);
 
-  task = g_task_new (channel, NULL, transfer_cb, NULL);
+  task = g_task_new (channel, NULL, NULL, NULL);
   g_task_set_task_data (task, op, transfer_op_free);
   g_task_run_in_thread (task, upload_task);
-  g_main_loop_run (op->loop);
 
-  if (op->error != NULL)
-    g_propagate_error (error, op->error);
+  while (!g_task_get_completed (task))
+    g_main_context_iteration (NULL, FALSE);
 
-  return op->success;
+  return g_task_propagate_boolean (task, error);
 }
 
 /**

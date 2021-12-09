@@ -76,16 +76,7 @@ if not libwalbottle_dep.found()
 endif
 
 libvalent_test_deps = [
-  libvalent_core_dep,
-  libvalent_clipboard_dep,
-  libvalent_contacts_dep,
-  libvalent_input_dep,
-  libvalent_media_dep,
-  libvalent_mixer_dep,
-  libvalent_notifications_dep,
-  libvalent_session_dep,
-  libvalent_ui_dep,
-
+  libvalent_dep,
   libwalbottle_dep,
 ]
 
