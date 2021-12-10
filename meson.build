@@ -149,6 +149,7 @@ json_glib_version = '>= 1.6.0'
 libpeas_version = '>= 1.22.0'
 eds_version = '>= 3.34'
 sqlite_version = '>= 3.24.0'
+libadwaita_version = '>= 1.0.0.alpha.4'
 
 libm_dep = cc.find_library('m', required: true)
 gio_dep = dependency('gio-2.0', version: gio_version)
@@ -166,7 +167,7 @@ libedata_book_dep = dependency('libedata-book-1.2', version: eds_version)
 libedataserver_dep = dependency('libedataserver-1.2', version: eds_version)
 
 # libvalent-ui
-libadwaita_dep = dependency('libadwaita-1', version: '>= 1.0.0-alpha.1', required: false)
+libadwaita_dep = dependency('libadwaita-1', version: libadwaita_version, required: false)
 
 # libvalent-test
 libwalbottle_dep = dependency('walbottle-0', required: false)
