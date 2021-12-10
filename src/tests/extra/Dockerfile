@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: CC0-1.0
 # SPDX-FileCopyrightText: No rights reserved
 
-FROM fedora:34
+FROM fedora:35
 
 # The packages below are roughly grouped into build tooling and build
 # dependencies (with debug symbols)
