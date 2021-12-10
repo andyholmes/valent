@@ -153,7 +153,7 @@ on_store_added (ValentContacts            *contacts,
                           row,   "title",
                           G_BINDING_SYNC_CREATE);
 
-  adw_expander_row_add (self->export_row, row);
+  adw_expander_row_add_row (self->export_row, row);
   g_hash_table_insert (self->local_stores, store, row);
 }
 
