@@ -85,8 +85,6 @@ race:valent_task_queue_loop
 #
 # Uninstrumented libraries (core, components, ui, plugins)
 #
-# See: https://www.gnutls.org/manual/gnutls.html#Thread-safety
-#
 called_from_lib:libglib-2
 called_from_lib:libgobject-2
 called_from_lib:libgio-2
@@ -111,6 +109,12 @@ called_from_lib:libadwaita-1
 #      https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/218
 called_from_lib:libgstreamer-1
 called_from_lib:libgstplayback
+
+# Called via GTlsConnection, likely caused by glib-networking
+# See: https://gitlab.gnome.org/GNOME/glib-networking/-/issues/89
+# See: https://www.gnutls.org/manual/gnutls.html#Thread-safety
+called_from_lib:p11-kit-trust
+called_from_lib:libtasn1
 
 
 # Indirect dependencies
