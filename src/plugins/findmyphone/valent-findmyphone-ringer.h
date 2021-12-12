@@ -10,19 +10,18 @@ G_BEGIN_DECLS
 typedef struct _ValentFindmyphoneRinger ValentFindmyphoneRinger;
 
 
-ValentFindmyphoneRinger * valent_findmyphone_ringer_new       (void);
-void                      valent_findmyphone_ringer_set_owner (ValentFindmyphoneRinger *ringer,
-                                                               gpointer                 data);
-gpointer                  valent_findmyphone_ringer_get_owner (ValentFindmyphoneRinger *ringer);
-void                      valent_findmyphone_ringer_start     (ValentFindmyphoneRinger *ringer);
-void                      valent_findmyphone_ringer_stop      (ValentFindmyphoneRinger *ringer);
-void                      valent_findmyphone_ringer_show      (ValentFindmyphoneRinger *ringer);
-void                      valent_findmyphone_ringer_hide      (ValentFindmyphoneRinger *ringer);
+ValentFindmyphoneRinger * valent_findmyphone_ringer_new      (void);
+void                      valent_findmyphone_ringer_start    (ValentFindmyphoneRinger *ringer);
+void                      valent_findmyphone_ringer_stop     (ValentFindmyphoneRinger *ringer);
+void                      valent_findmyphone_ringer_show     (ValentFindmyphoneRinger *ringer);
+void                      valent_findmyphone_ringer_hide     (ValentFindmyphoneRinger *ringer);
 
-ValentFindmyphoneRinger * valent_findmyphone_ringer_acquire   (void);
-void                      valent_findmyphone_ringer_release   (gpointer                 ringer);
-void                      valent_findmyphone_ringer_toggle    (ValentFindmyphoneRinger *ringer,
-                                                               gpointer                 owner);
+ValentFindmyphoneRinger * valent_findmyphone_ringer_acquire  (void);
+void                      valent_findmyphone_ringer_release  (gpointer                 ringer);
+void                      valent_findmyphone_ringer_toggle   (ValentFindmyphoneRinger *ringer,
+                                                              gpointer                 owner);
+gboolean                  valent_findmyphone_ringer_is_owner (ValentFindmyphoneRinger *ringer,
+                                                              gpointer                 owner);
 
 G_END_DECLS
 
