@@ -137,7 +137,7 @@ valent_findmyphone_plugin_update_state (ValentDevicePlugin *plugin)
                                        available);
 
   /* Stop any ringing */
-  if (!available && valent_findmyphone_ringer_get_owner (self->ringer) == self)
+  if (!available && valent_findmyphone_ringer_is_owner (self->ringer, self))
     valent_findmyphone_ringer_hide (self->ringer);
 }
 

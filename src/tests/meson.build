@@ -10,7 +10,6 @@ typelib_dirs = [
 ]
 
 test_env = [
-  'VALENT_TEST=1',
   'GI_TYPELIB_PATH=@0@:$(GI_TYPELIB_PATH)'.format(':'.join(typelib_dirs)),
   'G_TEST_SRCDIR=@0@'.format(meson.current_source_dir()),
   'G_TEST_BUILDDIR=@0@'.format(meson.current_build_dir()),
@@ -32,7 +31,6 @@ test_env = [
 ]
 
 test_c_args = [
-  '-DVALENT_TEST=1',
   '-DTEST_DATA_DIR="@0@/data/"'.format(meson.current_source_dir()),
   '-DJSON_SCHEMA_DIR="@0@"'.format(join_paths(meson.source_root(), 'doc', 'schemas')),
   '-I' + join_paths(meson.source_root(), 'src'),

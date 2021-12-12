@@ -74,8 +74,12 @@ valent_findmyphone_ringer_free (gpointer data)
   ValentFindmyphoneRinger *ringer = data;
 
   g_clear_pointer (&ringer->dialog, gtk_window_destroy);
-  gst_element_set_state (ringer->playbin, GST_STATE_NULL);
-  gst_clear_object (&ringer->playbin);
+
+  if (ringer->playbin != NULL)
+    {
+      gst_element_set_state (ringer->playbin, GST_STATE_NULL);
+      gst_clear_object (&ringer->playbin);
+    }
 
   default_ringer = NULL;
 }
@@ -91,7 +95,6 @@ ValentFindmyphoneRinger *
 valent_findmyphone_ringer_new (void)
 {
   ValentFindmyphoneRinger *ringer;
-  GstElement *audio_sink = NULL;
   g_autoptr (GError) error = NULL;
 
   ringer = g_rc_box_new0 (ValentFindmyphoneRinger);
@@ -105,48 +108,14 @@ valent_findmyphone_ringer_new (void)
   /* Playbin */
   ringer->playbin = gst_element_factory_make ("playbin", "findmyphone-ringer");
 
-  if (g_getenv ("VALENT_TEST"))
-    audio_sink = gst_element_factory_make ("fakesink", "sink");
-
-  g_object_set (ringer->playbin,
-                "audio-sink", audio_sink,
-                "uri",        "resource:///plugins/findmyphone/ring.oga",
-                NULL);
+  if (ringer->playbin != NULL)
+    {
+      g_object_set (ringer->playbin,
+                    "uri", "resource:///plugins/findmyphone/ring.oga",
+                    NULL);
+    }
 
   return ringer;
-}
-
-/**
- * valent_findmyphone_ringer_get_owner:
- * @ringer: a #ValentFindmyphoneRinger
- *
- * Set the owner of the ringing state of @ringer to @owner.
- *
- * Returns: (transfer none) (nullable) (type GObject.Object): a #GObject
- */
-gpointer
-valent_findmyphone_ringer_get_owner (ValentFindmyphoneRinger *ringer)
-{
-  g_return_val_if_fail (ringer != NULL, NULL);
-
-  return ringer->owner;
-}
-
-/**
- * valent_findmyphone_ringer_set_owner:
- * @ringer: a #ValentFindmyphoneRinger
- * @owner: (type GObject.Object): a #GObject
- *
- * Set the owner of the ringing state of @ringer to @owner.
- */
-void
-valent_findmyphone_ringer_set_owner (ValentFindmyphoneRinger *ringer,
-                                     gpointer                 owner)
-{
-  g_return_if_fail (ringer != NULL);
-  g_return_if_fail (owner == NULL || G_IS_OBJECT (owner));
-
-  ringer->owner = owner;
 }
 
 /**
@@ -182,6 +151,9 @@ void
 valent_findmyphone_ringer_stop (ValentFindmyphoneRinger *ringer)
 {
   g_return_if_fail (ringer != NULL);
+
+  if (ringer->playbin == NULL || ringer->source_id == 0)
+    return;
 
   gst_element_set_state (ringer->playbin, GST_STATE_NULL);
   g_clear_handle_id (&ringer->source_id, g_source_remove);
@@ -320,12 +292,31 @@ valent_findmyphone_ringer_toggle (ValentFindmyphoneRinger *ringer,
   if (ringer->dialog != NULL || ringer->source_id > 0)
     {
       valent_findmyphone_ringer_hide (ringer);
-      valent_findmyphone_ringer_set_owner (ringer, NULL);
+      ringer->owner = NULL;
     }
   else
     {
       valent_findmyphone_ringer_show (ringer);
-      valent_findmyphone_ringer_set_owner (ringer, owner);
+      ringer->owner = owner;
     }
+}
+
+/**
+ * valent_findmyphone_ringer_is_owner:
+ * @ringer: a #ValentFindmyphoneRinger
+ * @owner: (type GObject.Object): a #GObject
+ *
+ * Check if @owner is responsible for the current state of @ringer.
+ *
+ * Returns: %TRUE if @owner controls the ringer
+ */
+gboolean
+valent_findmyphone_ringer_is_owner (ValentFindmyphoneRinger *ringer,
+                                    gpointer                 owner)
+{
+  g_return_val_if_fail (ringer != NULL, FALSE);
+  g_return_val_if_fail (G_IS_OBJECT (owner), FALSE);
+
+  return ringer->owner == owner;
 }
 
