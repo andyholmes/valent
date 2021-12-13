@@ -9,7 +9,7 @@ typelib_dirs = [
   join_paths(libpeas_libdir, 'girepository-1.0'),
 ]
 
-test_env = [
+tests_env = [
   'GI_TYPELIB_PATH=@0@:$(GI_TYPELIB_PATH)'.format(':'.join(typelib_dirs)),
   'G_TEST_SRCDIR=@0@'.format(meson.current_source_dir()),
   'G_TEST_BUILDDIR=@0@'.format(meson.current_build_dir()),
@@ -44,7 +44,7 @@ test_link_args = [
 gsettings_test_init = find_program('gsettings-test-init.sh')
 
 run_command(gsettings_test_init,
-    env: test_env,
+    env: tests_env,
   check: true,
 )
 
@@ -64,19 +64,14 @@ gschemas_compiled = custom_target('gschemas.compiled',
 
 
 # Run DBus tests
-dbus_tests = get_option('dbus_tests')
-dbus_run_session = find_program('dbus-run-session', required: dbus_tests)
-
-if dbus_tests and dbus_run_session.found()
-  test_c_args += ['-DVALENT_TEST_DBUS=@0@'.format(dbus_tests.to_int())]
+if get_option('dbus_tests')
+  test_c_args += ['-DVALENT_TEST_DBUS=1']
 endif
 
 
-# Run fuzzing tests
-fuzz_tests = get_option('fuzz_tests')
-
-if fuzz_tests and get_option('b_sanitize') == 'none'
-  test_c_args += ['-DVALENT_TEST_FUZZ=@0@'.format(fuzz_tests.to_int())]
+# Run fuzzing tests (exclusive to sanitizers)
+if get_option('fuzz_tests') and get_option('b_sanitize') == 'none'
+  test_c_args += ['-DVALENT_TEST_FUZZ=1']
 endif
 
 

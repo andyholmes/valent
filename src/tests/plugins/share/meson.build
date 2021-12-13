@@ -16,9 +16,8 @@ test_program = executable('test-share-plugin',
     link_whole: [libvalent_test, plugin_share],
 )
 
-test('test-share-plugin',
-     test_program,
-          env: test_env,
+test('test-share-plugin', test_program,
+          env: tests_env,
   is_parallel: false,
         suite: ['plugins', 'share'],
 )

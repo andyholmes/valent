@@ -16,9 +16,8 @@ test_program = executable('test-notifications-component',
     link_whole: [libvalent_test],
 )
 
-test('test-notifications-component',
-     test_program,
-          env: test_env,
+test('test-notifications-component', test_program,
+          env: tests_env,
   is_parallel: false,
         suite: ['components', 'notification'],
 )

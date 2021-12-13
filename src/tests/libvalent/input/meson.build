@@ -16,9 +16,8 @@ test_program = executable('test-input-component',
     link_whole: [libvalent_test],
 )
 
-test('test-input-component',
-     test_program,
-          env: test_env,
+test('test-input-component', test_program,
+          env: tests_env,
   is_parallel: false,
         suite: ['components', 'input'],
 )

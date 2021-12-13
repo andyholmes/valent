@@ -16,9 +16,8 @@ test_program = executable('test-systemvolume-plugin',
     link_whole: [libvalent_test, plugin_systemvolume],
 )
 
-test('test-systemvolume-plugin',
-     test_program,
-          env: test_env,
+test('test-systemvolume-plugin', test_program,
+          env: tests_env,
   is_parallel: false,
         suite: ['plugins', 'systemvolume'],
 )

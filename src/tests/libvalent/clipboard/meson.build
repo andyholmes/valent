@@ -16,9 +16,8 @@ test_program = executable('test-clipboard-component',
     link_whole: [libvalent_test],
 )
 
-test('test-clipboard-component',
-     test_program,
-          env: test_env,
+test('test-clipboard-component', test_program,
+          env: tests_env,
   is_parallel: false,
         suite: ['components', 'clipboard'],
 )

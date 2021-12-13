@@ -619,7 +619,6 @@ valent_lan_channel_service_identify (ValentChannelService *service,
                                      const char           *target)
 {
   ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (service);
-  g_autoptr (GError) error = NULL;
   g_autoptr (GNetworkAddress) naddr = NULL;
   g_autoptr (GSocketAddress) address = NULL;
   JsonNode *identity;
@@ -636,6 +635,8 @@ valent_lan_channel_service_identify (ValentChannelService *service,
 
   if (target != NULL)
     {
+      g_autoptr (GError) error = NULL;
+
       naddr = G_NETWORK_ADDRESS (g_network_address_parse (target,
                                                           DEFAULT_PORT,
                                                           &error));

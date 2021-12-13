@@ -23,9 +23,8 @@ foreach test : plugin_telephony_tests
       link_whole: [libvalent_test, plugin_telephony],
   )
 
-  test(test,
-       test_program,
-            env: test_env,
+  test(test, test_program,
+            env: tests_env,
     is_parallel: false,
           suite: ['plugins', 'telephony'],
   )

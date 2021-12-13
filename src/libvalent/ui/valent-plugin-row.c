@@ -85,15 +85,15 @@ valent_plugin_row_constructed (GObject *object)
                                       self->plugin_info,
                                       VALENT_TYPE_PLUGIN_PREFERENCES))
     {
-      g_autofree char *path = NULL;
+      g_autofree char *page = NULL;
 
       if (self->plugin_context == NULL)
-        path = g_strdup_printf ("win.page::/%s", module);
+        page = g_strdup_printf ("win.page::/%s", module);
       else
-        path = g_strdup_printf ("win.page::/%s/%s", self->plugin_context, module);
+        page = g_strdup_printf ("win.page::/%s/%s", self->plugin_context, module);
 
       gtk_actionable_set_detailed_action_name (GTK_ACTIONABLE (self->button),
-                                               path);
+                                               page);
       gtk_widget_set_sensitive (GTK_WIDGET (self->button), TRUE);
     }
 
