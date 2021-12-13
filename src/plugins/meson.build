@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 # Plugins are statically linked
-plugins_c_args = ['-Wno-missing-declarations']
+plugins_c_args = []
 plugins_link_args = []
 plugins_static = []
 

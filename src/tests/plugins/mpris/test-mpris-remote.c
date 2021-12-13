@@ -381,6 +381,7 @@ test_mpris_remote_player (MprisRemoteFixture *fixture,
   valent_mpris_remote_unexport (remote);
   //g_main_loop_run (fixture->loop);
 
+  g_dbus_connection_signal_unsubscribe (connection, watch_id);
   g_signal_handlers_disconnect_by_data (remote, fixture);
 }
 

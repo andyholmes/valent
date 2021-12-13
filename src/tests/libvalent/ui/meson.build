@@ -25,9 +25,8 @@ foreach test : ui_tests
       link_whole: [libvalent_test, libvalent_ui],
   )
 
-  test(test,
-       test_program,
-            env: test_env,
+  test(test, test_program,
+            env: tests_env,
     is_parallel: false,
           suite: 'ui',
   )

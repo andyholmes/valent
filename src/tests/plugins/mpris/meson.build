@@ -15,7 +15,7 @@ plugin_mpris_tests = [
 ]
 
 foreach test : plugin_mpris_tests
-  test_mpris_env = test_env
+  test_mpris_env = tests_env
 
   test_program = executable(test, '@0@.c'.format(test),
                c_args: test_c_args,

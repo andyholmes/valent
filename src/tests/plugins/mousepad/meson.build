@@ -14,7 +14,7 @@ plugin_mousepad_tests = [
 ]
 
 foreach test : plugin_mousepad_tests
-  test_mousepad_env = test_env
+  test_mousepad_env = tests_env
 
   test_program = executable(test, '@0@.c'.format(test),
                c_args: test_c_args,

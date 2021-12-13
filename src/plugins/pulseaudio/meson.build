@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 # libgnome-volume-control (PulseAudio)
-enable_alsa = host_system.contains('linux')
+enable_alsa = host_machine.system().contains('linux')
 
 libgvc = subproject('gvc',
   default_options: [

@@ -301,22 +301,22 @@ valent_device_impl_flush (GDBusInterfaceSkeleton *skeleton)
   const char *object_path;
   GVariantBuilder changed_properties;
   GVariantBuilder invalidated_properties;
-  GHashTableIter iter;
+  GHashTableIter pending_properties;
   gpointer key, value;
 
   /* Collect the pending property changes */
   g_variant_builder_init (&changed_properties, G_VARIANT_TYPE_VARDICT);
   g_variant_builder_init (&invalidated_properties, G_VARIANT_TYPE_STRING_ARRAY);
-  g_hash_table_iter_init (&iter, self->pending);
+  g_hash_table_iter_init (&pending_properties, self->pending);
 
-  while (g_hash_table_iter_next (&iter, &key, &value))
+  while (g_hash_table_iter_next (&pending_properties, &key, &value))
     {
       if (value)
         g_variant_builder_add (&changed_properties, "{sv}", key, value);
       else
         g_variant_builder_add (&invalidated_properties, "s", key);
 
-      g_hash_table_iter_remove (&iter);
+      g_hash_table_iter_remove (&pending_properties);
     }
 
   properties = g_variant_new ("(s@a{sv}@as)",
@@ -386,7 +386,7 @@ valent_device_impl_constructed (GObject *object)
 {
   ValentDeviceImpl *self = VALENT_DEVICE_IMPL (object);
 
-  /* Preload properies and watch for changes */
+  /* Preload properties and watch for changes */
   for (unsigned int i = 0; i < G_N_ELEMENTS (property_map); i++)
     {
       PropertyMapping mapping = property_map[i];

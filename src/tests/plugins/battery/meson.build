@@ -18,7 +18,7 @@ plugin_battery_tests = [
 plugin_battery_test_wrapper = find_program('mock_upower.py')
 
 foreach test : plugin_battery_tests
-  plugin_battery_test_env = test_env + [
+  plugin_battery_tests_env = tests_env + [
     'G_TEST_EXE=@0@'.format(join_paths(meson.current_build_dir(), test)),
   ]
 
@@ -30,9 +30,8 @@ foreach test : plugin_battery_tests
     include_directories: plugin_battery_include_directories,
   )
 
-  test(test,
-       plugin_battery_test_wrapper,
-            env: plugin_battery_test_env,
+  test(test, plugin_battery_test_wrapper,
+            env: plugin_battery_tests_env,
     is_parallel: false,
           suite: ['plugins', 'battery'],
   )

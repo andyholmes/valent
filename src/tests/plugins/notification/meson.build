@@ -23,9 +23,8 @@ foreach test : plugin_notification_tests
       link_whole: [libvalent_test, plugin_notification],
   )
 
-  test(test,
-       test_program,
-            env: test_env,
+  test(test, test_program,
+            env: tests_env,
     is_parallel: false,
           suite: ['plugins', 'notification'],
   )

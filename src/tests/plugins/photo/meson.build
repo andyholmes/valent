@@ -16,9 +16,8 @@ test_program = executable('test-photo-plugin',
     link_whole: [libvalent_test, plugin_photo],
 )
 
-test('test-photo-plugin',
-     test_program,
-          env: test_env,
+test('test-photo-plugin', test_program,
+          env: tests_env,
   is_parallel: false,
         suite: ['plugins', 'photo'],
 )

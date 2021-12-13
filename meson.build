@@ -7,7 +7,8 @@ project('valent', 'c',
     meson_version: '>= 0.53.0',
   default_options: [
     'buildtype=debugoptimized',
-    'warning_level=2'
+    'warning_level=2',
+    'werror=true',
   ],
 )
 
@@ -73,7 +74,6 @@ po_dir = join_paths(meson.source_root(), 'po')
 # Compiler
 #
 cc = meson.get_compiler('c')
-host_system = host_machine.system()
 
 
 #
@@ -172,38 +172,6 @@ libadwaita_dep = dependency('libadwaita-1', version: libadwaita_version, require
 # libvalent-test
 libwalbottle_dep = dependency('walbottle-0', required: false)
 
-
-#
-# Build Type
-#
-release_args = []
-project_c_args = [
-  '-Wno-error=missing-field-initializers', '-Wno-missing-field-initializers',
-  '-Wno-error=unused-parameter', '-Wno-unused-parameter',
-]
-
-if get_option('debug')
-  test_cflags = [
-    # '-Wno-error=missing-declarations', '-Wno-missing-declarations',
-    # '-Wno-error=missing-field-initializers', '-Wno-missing-field-initializers',
-    # '-Wno-error=unused-parameter', '-Wno-unused-parameter',
-  ]
-
-  foreach cflag: test_cflags
-    if cc.has_argument(cflag)
-      project_c_args += [cflag]
-    endif
-  endforeach
-endif
-
-if get_option('optimization') in ['2', '3', 's']
-  add_global_arguments(['-DG_DISABLE_CAST_CHECKS'], language: 'c')
-
-  if not get_option('tests')
-    release_args += ['-DG_DISABLE_ASSERT']
-  endif
-endif
-
 if get_option('profiling')
   libsysprof_capture = dependency('sysprof-capture-4',
      version: '>= 3.38',
@@ -212,7 +180,54 @@ if get_option('profiling')
   )
 endif
 
-add_project_arguments(project_c_args, language: 'c')
+
+#
+# Build Type
+#
+release_args = []
+project_c_args = [
+  '-Wformat=2',
+  '-Wincompatible-pointer-types',
+  '-Wint-conversion',
+  '-Wint-to-pointer-cast',
+  '-Wmissing-include-dirs',
+  '-Woverflow',
+  '-Wpointer-arith',
+  '-Wpointer-to-int-cast',
+  '-Wredundant-decls',
+  '-Wshadow',
+  '-Wstrict-prototypes',
+  '-Wundef',
+
+  '-Wno-discarded-array-qualifiers',
+  '-Wno-missing-field-initializers',
+  '-Wno-unused-parameter',
+
+  '-Wno-error=cast-function-type',
+  # TODO: These should be fixed instead of downgraded to warnings
+  '-Wno-error=format-nonliteral',
+  '-Wno-error=shadow',
+  '-Wno-error=strict-aliasing',
+  '-Wno-error=unused-function',
+  '-Wno-error=unused-but-set-variable',
+  '-Wno-error=unused-variable',
+]
+
+if get_option('buildtype') != 'plain'
+  project_c_args += ['-fstack-protector-strong']
+endif
+
+if get_option('optimization') in ['2', '3', 's']
+  project_c_args += ['-DG_DISABLE_CAST_CHECKS']
+
+  if not get_option('tests')
+    release_args += ['-DG_DISABLE_ASSERT']
+  endif
+endif
+
+add_project_arguments(cc.get_supported_arguments(project_c_args),
+  language: 'c',
+)
 
 
 #

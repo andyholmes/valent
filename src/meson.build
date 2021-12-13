@@ -11,7 +11,7 @@ endif
 
 
 # Executable
-valent_c_args = ['-Wno-missing-declarations']
+valent_c_args = []
 valent_link_args = []
 
 valent = executable('valent', 'main.c',

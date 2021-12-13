@@ -31,6 +31,10 @@ task_queue_fixture_tear_down (TaskQueueFixture *fixture,
   g_clear_pointer (&fixture->loop, g_main_loop_unref);
 }
 
+
+/*
+ * GTask callbacks and functions
+ */
 static void
 task_success_cb (GObject      *object,
                  GAsyncResult *result,
@@ -82,16 +86,6 @@ task_failure_func (GTask        *task,
                            G_IO_ERROR,
                            G_IO_ERROR_FAILED,
                            "Intentional failure");
-}
-
-static gboolean
-task_queue_unref_idle (gpointer data)
-{
-  TaskQueueFixture *fixture = data;
-
-  g_clear_pointer (&fixture->queue, valent_task_queue_unref);
-
-  return G_SOURCE_REMOVE;
 }
 
 

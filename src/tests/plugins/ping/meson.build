@@ -16,9 +16,8 @@ test_program = executable('test-ping-plugin',
     link_whole: [libvalent_test, plugin_ping],
 )
 
-test('test-ping-plugin',
-     test_program,
-          env: test_env,
+test('test-ping-plugin', test_program,
+          env: tests_env,
   is_parallel: false,
         suite: ['plugins', 'ping'],
 )

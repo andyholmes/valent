@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 # The subdirs update these before libvalent is compiled
-libvalent_c_args = ['-Wno-missing-declarations']
+libvalent_c_args = []
 libvalent_gir_extra_args = ['--pkg-export=valent-1.0']
 
 libvalent_header_subdir = join_paths(valent_api_name, 'libvalent')

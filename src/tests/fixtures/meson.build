@@ -70,6 +70,7 @@ if not libwalbottle_dep.found()
       'gtk_doc=false',
       'installed_tests=false',
       'introspection=@0@'.format(libwalbottle_introspection),
+      'werror=false',
     ],
   )
   libwalbottle_dep = libwalbottle.get_variable('libwalbottle_dep')

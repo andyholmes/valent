@@ -11,7 +11,7 @@
 #include "valent-mpris-remote.h"
 
 
-static ValentMPRISPlayer *player = NULL;
+static ValentMPRISPlayer *proxy = NULL;
 
 
 static void
@@ -414,10 +414,10 @@ valent_mpris_player_new_cb (GObject      *object,
   ValentTestPluginFixture *fixture = user_data;
   g_autoptr (GError) error = NULL;
 
-  player = valent_mpris_player_new_finish (result, &error);
+  proxy = valent_mpris_player_new_finish (result, &error);
   g_assert_no_error (error);
 
-  g_signal_connect (player,
+  g_signal_connect (proxy,
                     "notify::metadata",
                     G_CALLBACK (on_player_changed),
                     fixture);
@@ -441,7 +441,7 @@ on_name_owner_changed (GDBusConnection *connection,
     valent_mpris_player_new (name, NULL, valent_mpris_player_new_cb, fixture);
 
   else if (strlen (old_owner) > 0)
-    g_clear_object (&player);
+    g_clear_object (&proxy);
 }
 
 static void
@@ -451,12 +451,6 @@ test_mpris_plugin_handle_player (ValentTestPluginFixture *fixture,
   g_autoptr (GDBusConnection) connection = NULL;
   unsigned int watch_id;
   JsonNode *packet;
-
-  GVariant *metadata;
-  const char **artist;
-  const char *title;
-  const char *album;
-  gint64 length;
 
   /* Watch for exported player */
   connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
@@ -495,7 +489,7 @@ test_mpris_plugin_handle_player (ValentTestPluginFixture *fixture,
   json_node_unref (packet);
 
   /* Wait for player to be exported */
-  while (player == NULL)
+  while (proxy == NULL)
     g_main_context_iteration (NULL, FALSE);
 
   /* Send quiescent state */
@@ -513,49 +507,36 @@ test_mpris_plugin_handle_player (ValentTestPluginFixture *fixture,
   v_assert_packet_cmpstr (packet, "albumArtUrl", ==, "/path/to/image.png");
   json_node_unref (packet);
 
-  /* metadata = valent_media_player_get_metadata (VALENT_MEDIA_PLAYER (player)); */
-
-  /* g_assert_true (g_variant_lookup (metadata, "xesam:artist", "^a&s", &artist)); */
-  /* g_assert_true (g_variant_lookup (metadata, "xesam:title", "&s", &title)); */
-  /* g_assert_true (g_variant_lookup (metadata, "xesam:album", "&s", &album)); */
-  /* g_assert_true (g_variant_lookup (metadata, "mpris:length", "x", &length)); */
-
-  /* g_assert_cmpstr (artist[0], ==, "Test Artist"); */
-  /* g_assert_cmpstr (title, ==, "Test Title"); */
-  /* g_assert_cmpstr (album, ==, "Test Album"); */
-  /* g_assert_cmpint (length, ==, 180000); */
-  /* g_free (artist); */
-
   /* Actions */
-  valent_media_player_play (VALENT_MEDIA_PLAYER (player));
+  valent_media_player_play (VALENT_MEDIA_PLAYER (proxy));
   packet = valent_test_plugin_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
   v_assert_packet_cmpstr (packet, "action", ==, "Play");
   json_node_unref (packet);
 
-  valent_media_player_pause (VALENT_MEDIA_PLAYER (player));
+  valent_media_player_pause (VALENT_MEDIA_PLAYER (proxy));
   packet = valent_test_plugin_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
   v_assert_packet_cmpstr (packet, "action", ==, "Pause");
   json_node_unref (packet);
 
-  valent_media_player_stop (VALENT_MEDIA_PLAYER (player));
+  valent_media_player_stop (VALENT_MEDIA_PLAYER (proxy));
   packet = valent_test_plugin_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
   v_assert_packet_cmpstr (packet, "action", ==, "Stop");
   json_node_unref (packet);
 
-  valent_media_player_next (VALENT_MEDIA_PLAYER (player));
+  valent_media_player_next (VALENT_MEDIA_PLAYER (proxy));
   packet = valent_test_plugin_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
   v_assert_packet_cmpstr (packet, "action", ==, "Next");
   json_node_unref (packet);
 
-  valent_media_player_previous (VALENT_MEDIA_PLAYER (player));
+  valent_media_player_previous (VALENT_MEDIA_PLAYER (proxy));
   packet = valent_test_plugin_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
@@ -563,13 +544,13 @@ test_mpris_plugin_handle_player (ValentTestPluginFixture *fixture,
   json_node_unref (packet);
 
   /* Seek & SetPosition */
-  valent_media_player_seek (VALENT_MEDIA_PLAYER (player), 1000);
+  valent_media_player_seek (VALENT_MEDIA_PLAYER (proxy), 1000);
   packet = valent_test_plugin_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
   v_assert_packet_cmpint (packet, "Seek", ==, 1);
   json_node_unref (packet);
 
-  valent_media_player_set_position (VALENT_MEDIA_PLAYER (player),
+  valent_media_player_set_position (VALENT_MEDIA_PLAYER (proxy),
                                     "/dbus/path/ignored", 1000);
   packet = valent_test_plugin_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
@@ -578,7 +559,7 @@ test_mpris_plugin_handle_player (ValentTestPluginFixture *fixture,
 
 
   /* Properties */
-  valent_media_player_set_volume (VALENT_MEDIA_PLAYER (player), 0.50);
+  valent_media_player_set_volume (VALENT_MEDIA_PLAYER (proxy), 0.50);
   packet = valent_test_plugin_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
@@ -590,7 +571,7 @@ test_mpris_plugin_handle_player (ValentTestPluginFixture *fixture,
   valent_test_plugin_fixture_handle_packet (fixture, packet);
 
   /* Wait for player to be unexported */
-  while (player != NULL)
+  while (proxy != NULL)
     g_main_context_iteration (NULL, FALSE);
 
   g_dbus_connection_signal_unsubscribe (connection, watch_id);

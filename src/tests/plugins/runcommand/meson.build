@@ -23,9 +23,8 @@ foreach test : plugin_runcommand_tests
       link_whole: [libvalent_test, plugin_runcommand],
   )
 
-  test(test,
-       test_program,
-            env: test_env,
+  test(test, test_program,
+            env: tests_env,
     is_parallel: false,
           suite: ['plugins', 'runcommand'],
   )

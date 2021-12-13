@@ -16,13 +16,12 @@ test_program = executable('test-findmyphone-plugin',
     link_whole: [libvalent_test, plugin_findmyphone],
 )
 
-plugin_findmyphone_test_env = test_env + [
+plugin_findmyphone_tests_env = tests_env + [
   'GST_PLUGIN_SYSTEM_PATH_1_0=""',
 ]
 
-test('test-findmyphone-plugin',
-     test_program,
-          env: plugin_findmyphone_test_env,
+test('test-findmyphone-plugin', test_program,
+          env: plugin_findmyphone_tests_env,
   is_parallel: false,
         suite: ['plugins', 'findmyphone'],
 )
