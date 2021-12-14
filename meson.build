@@ -217,6 +217,10 @@ if get_option('buildtype') != 'plain'
   project_c_args += ['-fstack-protector-strong']
 endif
 
+if get_option('debug')
+  project_c_args += ['-fno-omit-frame-pointer']
+endif
+
 if get_option('optimization') in ['2', '3', 's']
   project_c_args += ['-DG_DISABLE_CAST_CHECKS']
 
