@@ -158,5 +158,6 @@ deadlock:libGLX_mesa.so
 mutex:libEGL_mesa.so
 mutex:libGLX.so
 mutex:libGLX_mesa.so
+race:libEGL_mesa.so
 race:radeonsi_dri
 
