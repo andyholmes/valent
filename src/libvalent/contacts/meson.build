@@ -67,6 +67,7 @@ libvalent_contacts = static_library('valent-contacts-' + valent_api_version,
                                     libvalent_contacts_generated_headers,
   dependencies: libvalent_contacts_deps,
         c_args: libvalent_c_args + release_args + ['-DVALENT_CONTACTS_COMPILATION'],
+           pic: true,
 )
 
 libvalent_contacts_dep = declare_dependency(

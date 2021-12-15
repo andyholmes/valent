@@ -169,9 +169,6 @@ libedataserver_dep = dependency('libedataserver-1.2', version: eds_version)
 # libvalent-ui
 libadwaita_dep = dependency('libadwaita-1', version: libadwaita_version, required: false)
 
-# libvalent-test
-libwalbottle_dep = dependency('walbottle-0', required: false)
-
 if get_option('profiling')
   libsysprof_capture = dependency('sysprof-capture-4',
      version: '>= 3.38',
@@ -211,6 +208,10 @@ project_c_args = [
   '-Wno-error=unused-but-set-variable',
   '-Wno-error=unused-variable',
 ]
+project_link_args = [
+  '-Wl,-z,relro',
+  '-Wl,-z,now',
+]
 
 if get_option('buildtype') != 'plain'
   project_c_args += ['-fstack-protector-strong']
@@ -222,6 +223,7 @@ endif
 
 if get_option('optimization') in ['2', '3', 's']
   project_c_args += ['-DG_DISABLE_CAST_CHECKS']
+  project_link_args += ['-Wl,-Bsymbolic']
 
   if not get_option('tests')
     release_args += ['-DG_DISABLE_ASSERT']
@@ -232,11 +234,14 @@ add_project_arguments(cc.get_supported_arguments(project_c_args),
   language: 'c',
 )
 
+add_project_link_arguments(cc.get_supported_link_arguments(project_link_args),
+  language: 'c',
+)
+
 
 #
 # Build
 #
-subdir('build-aux')
 subdir('data')
 subdir('src')
 subdir('po')
@@ -245,41 +250,51 @@ if get_option('documentation')
   subdir('doc/sdk')
 endif
 
+meson.add_install_script('build-aux/meson/postinstall.py')
+
 
 #
 # Build Summary
 #
-summary('Debugging',             get_option('debug'),               section: 'Build')
-summary('Optimization',          get_option('optimization'),        section: 'Build')
-summary('Documentation',         get_option('documentation'),       section: 'Build')
-summary('Introspection',         get_option('introspection'),       section: 'Build')
-summary('Tests',                 get_option('tests'),               section: 'Build')
-summary('Profiling',             get_option('profiling'),           section: 'Build')
+summary({
+  'Documentation':         get_option('documentation'),
+  'Introspection':         get_option('introspection'),
+  'Tests':                 get_option('tests'),
+  'Optimization':          get_option('optimization'),
+  'Profiling':             get_option('profiling'),
+  'Debugging':             get_option('debug'),
+}, section: 'Build')
 
-summary('Bluetooth',             get_option('plugin_bluez'),        section: 'Networking')
-summary('LAN',                   get_option('plugin_lan'),          section: 'Networking')
+summary({
+  'Bluetooth':             get_option('plugin_bluez'),
+  'LAN':                   get_option('plugin_lan'),
+}, section: 'Networking')
 
-summary('Battery',               get_option('plugin_battery'),      section: 'Device Plugins')
-summary('Clipboard',             get_option('plugin_clipboard'),    section: 'Device Plugins')
-summary('Contacts',              get_option('plugin_contacts'),     section: 'Device Plugins')
-summary('Find My Phone',         get_option('plugin_findmyphone'),  section: 'Device Plugins')
-summary('Lock',                  get_option('plugin_lock'),         section: 'Device Plugins')
-summary('Mousepad',              get_option('plugin_mousepad'),     section: 'Device Plugins')
-summary('MPRIS',                 get_option('plugin_mpris'),        section: 'Device Plugins')
-summary('Notification',          get_option('plugin_notification'), section: 'Device Plugins')
-summary('Photo',                 get_option('plugin_photo'),        section: 'Device Plugins')
-summary('Ping',                  get_option('plugin_ping'),         section: 'Device Plugins')
-summary('Presenter',             get_option('plugin_presenter'),    section: 'Device Plugins')
-summary('Run Command',           get_option('plugin_runcommand'),   section: 'Device Plugins')
-summary('SFTP',                  get_option('plugin_sftp'),         section: 'Device Plugins')
-summary('Share',                 get_option('plugin_share'),        section: 'Device Plugins')
-summary('SMS',                   get_option('plugin_sms'),          section: 'Device Plugins')
-summary('System Volume',         get_option('plugin_systemvolume'), section: 'Device Plugins')
-summary('Telephony',             get_option('plugin_telephony'),    section: 'Device Plugins')
+summary({
+  'Battery':               get_option('plugin_battery'),
+  'Clipboard':             get_option('plugin_clipboard'),
+  'Contacts':              get_option('plugin_contacts'),
+  'Find My Phone':         get_option('plugin_findmyphone'),
+  'Lock':                  get_option('plugin_lock'),
+  'Mousepad':              get_option('plugin_mousepad'),
+  'MPRIS':                 get_option('plugin_mpris'),
+  'Notification':          get_option('plugin_notification'),
+  'Photo':                 get_option('plugin_photo'),
+  'Ping':                  get_option('plugin_ping'),
+  'Presenter':             get_option('plugin_presenter'),
+  'Run Command':           get_option('plugin_runcommand'),
+  'SFTP':                  get_option('plugin_sftp'),
+  'Share':                 get_option('plugin_share'),
+  'SMS':                   get_option('plugin_sms'),
+  'System Volume':         get_option('plugin_systemvolume'),
+  'Telephony':             get_option('plugin_telephony'),
+}, section: 'Device Plugins')
 
-summary('Evolution Data Server', get_option('plugin_eds'),          section: 'Integration')
-summary('freedesktop.org',       get_option('plugin_fdo'),          section: 'Integration')
-summary('Gtk',                   get_option('plugin_gtk'),          section: 'Integration')
-summary('PulseAudio',            get_option('plugin_pulseaudio'),   section: 'Integration')
-summary('XDP',                   get_option('plugin_xdp'),          section: 'Integration')
+summary({
+  'Evolution Data Server': get_option('plugin_eds'),
+  'freedesktop.org':       get_option('plugin_fdo'),
+  'GTK':                   get_option('plugin_gtk'),
+  'PulseAudio':            get_option('plugin_pulseaudio'),
+  'XDP':                   get_option('plugin_xdp'),
+}, section: 'Integration')
 

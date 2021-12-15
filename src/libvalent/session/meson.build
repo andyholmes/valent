@@ -46,6 +46,7 @@ libvalent_session = static_library('valent-session-' + valent_api_version,
                                    libvalent_session_generated_headers,
   dependencies: libvalent_session_deps,
         c_args: libvalent_c_args + release_args + ['-DVALENT_SESSION_COMPILATION'],
+           pic: true,
 )
 
 libvalent_session_dep = declare_dependency(

@@ -114,6 +114,7 @@ libvalent_core = static_library('valent-core-' + valent_api_version,
                                 libvalent_core_generated_headers,
          dependencies: libvalent_core_deps,
                c_args: libvalent_c_args + release_args + ['-DVALENT_CORE_COMPILATION'],
+                  pic: true,
   include_directories: [config_h_inc, include_directories('.')],
 )
 

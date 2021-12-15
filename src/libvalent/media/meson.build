@@ -61,6 +61,7 @@ libvalent_media = static_library('valent-media-' + valent_api_version,
                                  libvalent_media_generated_headers,
   dependencies: libvalent_media_deps,
         c_args: libvalent_c_args + release_args + ['-DVALENT_MEDIA_COMPILATION'],
+           pic: true,
 )
 
 libvalent_media_dep = declare_dependency(
