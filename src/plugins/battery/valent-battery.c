@@ -23,7 +23,6 @@ struct _ValentBattery
   unsigned int  threshold;
 };
 
-
 G_DEFINE_TYPE (ValentBattery, valent_battery, G_TYPE_OBJECT)
 
 enum {
@@ -83,37 +82,43 @@ on_properties_changed (GDBusProxy    *proxy,
 }
 
 static void
-valent_battery_init_properties (ValentBattery *self)
+new_for_bus_cb (GObject       *object,
+                GAsyncResult  *result,
+                ValentBattery *self)
 {
-  GDBusProxy *proxy = self->proxy;
-  GVariant *value;
+  g_autoptr (GError) error = NULL;
+  g_autoptr (GVariant) type = NULL;
+  g_autoptr (GVariant) value = NULL;
 
-  if ((value = g_dbus_proxy_get_cached_property (proxy, "Type")) != NULL)
+  if ((self->proxy = g_dbus_proxy_new_for_bus_finish (result, &error)) == NULL)
     {
-      guint32 type = g_variant_get_uint32 (value);
-
-      g_variant_unref (value);
-
-      if (type != 2)
-        return;
+      g_warning ("%s: %s", G_OBJECT_TYPE_NAME (self), error->message);
+      return;
     }
 
-  if ((value = g_dbus_proxy_get_cached_property (proxy, "Percentage")) != NULL)
+  if ((type = g_dbus_proxy_get_cached_property (self->proxy, "Type")) == NULL ||
+      g_variant_get_uint32 (type) != 2)
+    {
+      g_debug ("%s: not a battery", G_OBJECT_TYPE_NAME (self));
+      return;
+    }
+
+  if ((value = g_dbus_proxy_get_cached_property (self->proxy, "Percentage")) != NULL)
     {
       self->level = floor (g_variant_get_double (value));
-      g_variant_unref (value);
+      g_clear_pointer (&value, g_variant_unref);
     }
 
-  if ((value = g_dbus_proxy_get_cached_property (proxy, "State")) != NULL)
+  if ((value = g_dbus_proxy_get_cached_property (self->proxy, "State")) != NULL)
     {
       self->charging = g_variant_get_uint32 (value) == 1;
-      g_variant_unref (value);
+      g_clear_pointer (&value, g_variant_unref);
     }
 
-  if ((value = g_dbus_proxy_get_cached_property (proxy, "WarningLevel")) != NULL)
+  if ((value = g_dbus_proxy_get_cached_property (self->proxy, "WarningLevel")) != NULL)
     {
       self->threshold = g_variant_get_uint32 (value) >= 3;
-      g_variant_unref (value);
+      g_clear_pointer (&value, g_variant_unref);
     }
 
   g_signal_connect (self->proxy,
@@ -122,21 +127,6 @@ valent_battery_init_properties (ValentBattery *self)
                     self);
 
   g_signal_emit (G_OBJECT (self), signals [CHANGED], 0);
-}
-
-static void
-new_for_bus_cb (GObject       *object,
-                GAsyncResult  *result,
-                ValentBattery *self)
-{
-  g_autoptr (GError) error = NULL;
-
-  self->proxy = g_dbus_proxy_new_for_bus_finish (result, &error);
-
-  if (G_IS_DBUS_PROXY (self->proxy))
-    valent_battery_init_properties (self);
-  else if (error != NULL)
-    g_warning ("%s: %s", G_OBJECT_TYPE_NAME (self), error->message);
 }
 
 /*
