@@ -45,6 +45,7 @@ libvalent_notifications = static_library('valent-notifications-' + valent_api_ve
                                          libvalent_notifications_generated_headers,
   dependencies: libvalent_notifications_deps,
         c_args: libvalent_c_args + release_args + ['-DVALENT_NOTIFICATIONS_COMPILATION'],
+           pic: true,
 )
 
 libvalent_notifications_dep = declare_dependency(

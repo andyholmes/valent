@@ -46,6 +46,7 @@ libvalent_clipboard = static_library('valent-clipboard-' + valent_api_version,
                                      libvalent_clipboard_generated_headers,
   dependencies: libvalent_clipboard_deps,
         c_args: libvalent_c_args + release_args + ['-DVALENT_CLIPBOARD_COMPILATION'],
+           pic: true,
 )
 
 libvalent_clipboard_dep = declare_dependency(

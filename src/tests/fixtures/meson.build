@@ -58,6 +58,8 @@ libvalent_test_generated_headers = [libvalent_test_resources[1]]
 
 
 # Dependencies
+libwalbottle_dep = dependency('walbottle-0', required: false)
+
 if not libwalbottle_dep.found()
   if get_option('introspection')
     libwalbottle_introspection = 'enabled'

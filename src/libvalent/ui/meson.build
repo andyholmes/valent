@@ -104,6 +104,7 @@ libvalent_ui = static_library('valent-ui-' + valent_api_version,
                               libvalent_ui_generated_headers,
   dependencies: libvalent_ui_deps,
         c_args: libvalent_c_args + release_args + ['-DVALENT_UI_COMPILATION'],
+           pic: true,
 )
 
 libvalent_ui_dep = declare_dependency(
