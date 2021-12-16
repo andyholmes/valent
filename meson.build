@@ -205,7 +205,6 @@ project_c_args = [
 
   '-Wno-error=cast-function-type',
   # TODO: These should be fixed instead of downgraded to warnings
-  '-Wno-error=format-nonliteral',
   '-Wno-error=shadow',
   '-Wno-error=strict-aliasing',
   '-Wno-error=unused-function',

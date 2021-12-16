@@ -803,7 +803,7 @@ valent_sms_conversation_get_title (ValentSmsConversation *conversation)
 {
   gpointer *addresses;
   g_autoptr (GList) contacts = NULL;
-  guint n_contacts;
+  unsigned int n_contacts = 0;
 
   g_return_val_if_fail (VALENT_IS_SMS_CONVERSATION (conversation), NULL);
 
@@ -831,12 +831,13 @@ valent_sms_conversation_get_title (ValentSmsConversation *conversation)
             }
           else
             {
-              const char *subtitle;
-              guint remainder;
+              unsigned int remainder;
 
               remainder = n_contacts - 1;
-              subtitle = ngettext ("One other contact", "%s others", remainder);
-              conversation->subtitle = g_strdup_printf (subtitle, remainder);
+              conversation->subtitle = g_strdup_printf (ngettext ("%u other contact",
+                                                                  "%u others",
+                                                                  remainder),
+                                                        remainder);
             }
         }
     }
