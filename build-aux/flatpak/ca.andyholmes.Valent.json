@@ -25,7 +25,6 @@
         "--talk-name=org.gnome.evolution.dataserver.Sources5",
         "--talk-name=org.gnome.evolution.dataserver.Subprocess.Backend.*",
         "--talk-name=org.gnome.OnlineAccounts",
-        "--talk-name=org.gnome.Shell",
         "--talk-name=org.gtk.vfs.*",
         "--talk-name=org.mpris.MediaPlayer2.*"
     ],
