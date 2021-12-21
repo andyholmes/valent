@@ -532,7 +532,7 @@ valent_sms_window_ensure_conversation (ValentSmsWindow *window,
   GtkWidget *conversation;
   g_autofree char *page_name = NULL;
 
-  page_name = g_strdup_printf ("%li", thread_id);
+  page_name = g_strdup_printf ("%" G_GINT64_FORMAT, thread_id);
   conversation = gtk_stack_get_child_by_name (window->content, page_name);
 
   if (conversation == NULL)
@@ -594,7 +594,7 @@ on_message_removed (ValentSmsWindow  *window,
     return;
 
   /* The GListModel handles the sidebar, so we only destroy the conversation */
-  thread_str = g_strdup_printf ("%li", thread_id);
+  thread_str = g_strdup_printf ("%" G_GINT64_FORMAT, thread_id);
   conversation = gtk_stack_get_child_by_name (window->content, thread_str);
 
   if (conversation != NULL)

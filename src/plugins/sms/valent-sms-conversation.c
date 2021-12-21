@@ -284,7 +284,7 @@ valent_sms_conversation_populate_reverse (ValentSmsConversation *self)
       if (box != VALENT_SMS_MESSAGE_BOX_INBOX &&
           box != VALENT_SMS_MESSAGE_BOX_SENT)
         {
-          g_warning ("Unknown message type '%li'; discarding", (gint64)box);
+          g_warning ("Unknown message type '%" G_GINT64_FORMAT "'; discarding", (gint64)box);
           g_queue_pop_tail (self->messages);
           continue;
         }
@@ -916,7 +916,7 @@ valent_sms_conversation_scroll_to_date (ValentSmsConversation *conversation,
       if (type != VALENT_SMS_MESSAGE_BOX_INBOX &&
           type != VALENT_SMS_MESSAGE_BOX_SENT)
         {
-          g_warning ("Unknown message type '%li'; discarding", type);
+          g_warning ("Unknown message type '%" G_GINT64_FORMAT "'; discarding", type);
           g_queue_pop_tail (conversation->messages);
           continue;
         }
