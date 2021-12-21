@@ -88,16 +88,6 @@ G_BEGIN_DECLS
  *
  * Insert or update a message.
  */
-#define ADD_MESSAGE_FMT                                                \
-"INSERT INTO message(box,date,id,metadata,read,sender,text,thread_id)" \
-"  VALUES (%u, %li, %li, \"%s\", %u, \"%s\", \"%s\", %li)"             \
-"  ON CONFLICT(thread_id,id) DO UPDATE SET"                            \
-"    box=excluded.box,"                                                \
-"    date=excluded.date,"                                              \
-"    metadata=excluded.metadata,"                                      \
-"    read=excluded.read,"                                              \
-"    sender=excluded.sender;"
-
 #define ADD_MESSAGE_SQL                                                \
 "INSERT INTO message(box,date,id,metadata,read,sender,text,thread_id)" \
 "  VALUES (?, ?, ?, ?, ?, ?, ?, ?)"                                    \
@@ -110,7 +100,7 @@ G_BEGIN_DECLS
 
 #define ADD_PARTICIPANT_SQL                                            \
 "INSERT INTO participant"                                              \
-"  (thread_id, address) VALUES (%li, \"%s\");"                         \
+"  (thread_id, address) VALUES (?, ?);"                                \
 
 /**
  * REMOVE_MESSAGE_SQL:
