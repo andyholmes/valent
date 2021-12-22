@@ -150,6 +150,7 @@ static const GActionEntry actions[] = {
   { "refresh",     refresh_action, NULL,     NULL, NULL }
 };
 
+
 /*
  * GApplication
  */
@@ -166,6 +167,15 @@ valent_application_activate (GApplication *application)
    * - It happens at startup, which isn't desirable if acting as a service
    */
   prefs_action (NULL, NULL, self);
+}
+
+static void
+valent_application_open (GApplication  *application,
+                         GFile        **files,
+                         int            n_files,
+                         const char    *hint)
+{
+  VALENT_TODO ("handle files and URIs");
 }
 
 static void
@@ -260,6 +270,7 @@ valent_application_class_init (ValentApplicationClass *klass)
   application_class->activate = valent_application_activate;
   application_class->startup = valent_application_startup;
   application_class->shutdown = valent_application_shutdown;
+  application_class->open = valent_application_open;
   application_class->dbus_register = valent_application_dbus_register;
   application_class->dbus_unregister = valent_application_dbus_unregister;
 }
@@ -275,7 +286,7 @@ _valent_application_new (void)
   return g_object_new (VALENT_TYPE_APPLICATION,
                        "application-id",     APPLICATION_ID,
                        "resource-base-path", "/ca/andyholmes/Valent",
-                       "flags",              G_APPLICATION_FLAGS_NONE,
+                       "flags",              G_APPLICATION_HANDLES_OPEN,
                        NULL);
 }
 
