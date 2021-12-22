@@ -11,8 +11,8 @@ Release:        1%{?dist}
 Summary:        Connect, control and sync devices
 
 License:        GPLv3+
-URL:            https://github.com/andyholmes/valent
-Source0:        %{url}/archive/%{name}-%{version}.tar.xz
+URL:            https://github.com/andyholmes/%{name}
+Source0:        %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
 
 BuildRequires:  gcc
 BuildRequires:  gettext
@@ -66,7 +66,7 @@ developing plugins for %{name}.
 %autosetup -p1
 
 %build
-%meson --buildtype=release -Ddocumentation=true -Dfirewalld=true -Dtests=true
+%meson --buildtype=release -Ddocumentation=true -Dfirewalld=true
 %meson_build
 
 %install
@@ -81,9 +81,9 @@ developing plugins for %{name}.
 %post
 %firewalld_reload
 
-%files -f valent.lang
-%doc NEWS README.md
-%license COPYING
+%files -f %{name}.lang
+%doc CHANGELOG.md README.md
+%license LICENSE
 %{_bindir}/valent
 %exclude %{_datadir}/gir-1.0/
 %exclude %{_datadir}/doc/
@@ -92,7 +92,7 @@ developing plugins for %{name}.
 %{_datadir}/glib-2.0/schemas/ca.andyholmes.valent*.gschema.xml
 %{_datadir}/icons/hicolor/scalable/apps/ca.andyholmes.Valent.svg
 %{_datadir}/icons/hicolor/symbolic/apps/ca.andyholmes.Valent-symbolic.svg
-%{_datadir}/metainfo/ca.andyholmes.Valent.appdata.xml
+%{_datadir}/metainfo/ca.andyholmes.Valent.metainfo.xml
 %exclude %{_libdir}/pkgconfig/
 %{_libdir}/firewalld/
 %{_libdir}/girepository-1.0/
@@ -105,7 +105,7 @@ developing plugins for %{name}.
 %{_includedir}/valent*/
 
 %changelog
-* Sun Feb 14 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> - 1.0.0-1
+* Tue Dec 21 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> - 0.1.0-1
 
 - Initial packaging (#1185301)
 
