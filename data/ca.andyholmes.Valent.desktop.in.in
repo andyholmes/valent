@@ -14,9 +14,3 @@ X-GNOME-UsesNotifications=true
 # Translators: Do NOT translate or transliterate this text (these are enum types)!
 X-Purism-FormFactor=Workstation;Mobile;
 
-Actions=preferences;
-
-[Desktop Action preferences]
-Name=Preferences
-Exec=gapplication action @application_id@ preferences
-
