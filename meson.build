@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 project('valent', 'c',
-          license: 'GPL3+',
+          license: 'GPL-3.0-or-later',
           version: '0.1.0',
     meson_version: '>= 0.53.0',
   default_options: [

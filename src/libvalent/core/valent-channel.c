@@ -893,9 +893,8 @@ valent_channel_store_data (ValentChannel *channel,
  * @cancellable: (nullable): a #GCancellable
  * @error: (nullable): a #GError
  *
- * Accept a connection from the remote device. The remote device is expected to
- * populate @packet with the information necessary for implementations to
- * negotiate an appropriate connection.
+ * Open a connection offered by the remote device. The remote device is expected
+ * to populate @packet with information to negotiate the connection (eg. port).
  *
  * Typically the #GInputStream of the result will be used to read the contents
  * of a payload, while the #GInputStream is left unused.
@@ -932,9 +931,8 @@ valent_channel_download (ValentChannel  *channel,
  * @cancellable: (nullable): a #GCancellable
  * @error: (nullable): a #GError
  *
- * Open a connection to the remote device. Implementations are expected to
- * populate @packet with the information necessary for the remote device to
- * negotiate an appropriate connection.
+ * Offer a connection to the remote device. Implementations are expected to
+ * populate @packet with information to negotiate the connection (eg. port).
  *
  * Typically the #GOutputStream of the result will be used to write the contents
  * of a payload, while the #GInputStream is left unused.

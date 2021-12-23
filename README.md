@@ -35,5 +35,5 @@ providing support.
 
 
 [gnome]: https://www.gnome.org
-[kdeconnect]: https://community.kde.org/KDEConnect
+[kdeconnect]: https://kdeconnect.kde.org
 

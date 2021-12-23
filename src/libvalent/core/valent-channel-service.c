@@ -741,6 +741,9 @@ valent_channel_service_start_finish (ValentChannelService  *service,
  *
  * Stop processing incoming identity packets and prevent the broadcast of the
  * local identity which results in the same behaviour from other devices.
+ *
+ * Implementations of this method must chain-up and be idempotent; it is called
+ * automatically when the last reference to @service is dropped.
  */
 void
 valent_channel_service_stop (ValentChannelService *service)
