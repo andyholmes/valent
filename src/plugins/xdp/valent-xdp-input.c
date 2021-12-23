@@ -6,11 +6,11 @@
 #include "config.h"
 
 #include <glib-object.h>
-#include <libportal/portal.h>
 #include <gdk/gdk.h>
 #ifdef GDK_WINDOWING_X11
 #  include <gdk/x11/gdkx.h>
 #endif
+#include <libportal/portal.h>
 #include <libvalent-core.h>
 #include <libvalent-input.h>
 
