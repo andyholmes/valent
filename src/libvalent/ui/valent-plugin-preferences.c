@@ -20,7 +20,7 @@
  *
  * The #ValentPluginPreferences interface should be implemented by extensions
  * that want to provide a GUI for configuration. How the interface is used and
- * presented is dependant on the extension type, as the interface may be used to
+ * presented is dependent on the extension type, as the interface may be used to
  * configure a device plugin, a channel provider or session component.
  */
 
