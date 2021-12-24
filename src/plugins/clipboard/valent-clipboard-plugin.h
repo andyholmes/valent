@@ -11,7 +11,5 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (ValentClipboardPlugin, valent_clipboard_plugin, VALENT, CLIPBOARD_PLUGIN, PeasExtensionBase)
 
-G_MODULE_EXPORT void valent_clipboard_plugin_register_types (PeasObjectModule *module);
-
 G_END_DECLS
 
