@@ -15,7 +15,7 @@
 #include "valent-mock-channel-service.h"
 #include "valent-mock-clipboard-source.h"
 #include "valent-mock-contact-store-provider.h"
-#include "valent-mock-input-controller.h"
+#include "valent-mock-input-adapter.h"
 #include "valent-mock-mixer-control.h"
 #include "valent-mock-media-player-provider.h"
 #include "valent-mock-notification-source.h"
@@ -37,8 +37,8 @@ valent_mock_plugin_register_types (PeasObjectModule *module)
                                               VALENT_TYPE_CONTACT_STORE_PROVIDER,
                                               VALENT_TYPE_MOCK_CONTACT_STORE_PROVIDER);
   peas_object_module_register_extension_type (module,
-                                              VALENT_TYPE_INPUT_CONTROLLER,
-                                              VALENT_TYPE_MOCK_INPUT_CONTROLLER);
+                                              VALENT_TYPE_INPUT_ADAPTER,
+                                              VALENT_TYPE_MOCK_INPUT_ADAPTER);
   peas_object_module_register_extension_type (module,
                                               VALENT_TYPE_MIXER_CONTROL,
                                               VALENT_TYPE_MOCK_MIXER_CONTROL);

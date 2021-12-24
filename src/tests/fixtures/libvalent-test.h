@@ -11,7 +11,7 @@
 #include "valent-mock-contact-store-provider.h"
 #include "valent-mock-device-gadget.h"
 #include "valent-mock-device-plugin.h"
-#include "valent-mock-input-controller.h"
+#include "valent-mock-input-adapter.h"
 #include "valent-mock-media-player.h"
 #include "valent-mock-media-player-provider.h"
 #include "valent-mock-mixer-control.h"

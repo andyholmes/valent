@@ -22,24 +22,20 @@
 
 struct _ValentXdpInput
 {
-  PeasExtensionBase  parent_instance;
+  ValentInputAdapter  parent_instance;
 
-  GCancellable      *cancellable;
-  GSettings         *settings;
+  GCancellable       *cancellable;
+  GSettings          *settings;
 
-  XdpSession        *session;
-  unsigned long      session_id;
-  gint64             session_expiry;
-  guint              session_expiry_id;
-  gboolean           session_starting;
-  gboolean           started;
+  XdpSession         *session;
+  unsigned long       session_id;
+  gint64              session_expiry;
+  guint               session_expiry_id;
+  gboolean            session_starting;
+  gboolean            started;
 };
 
-/* Interfaces */
-static void valent_input_controller_iface_init (ValentInputControllerInterface *iface);
-
-G_DEFINE_TYPE_WITH_CODE (ValentXdpInput, valent_xdp_input, PEAS_TYPE_EXTENSION_BASE,
-                         G_IMPLEMENT_INTERFACE (VALENT_TYPE_INPUT_CONTROLLER, valent_input_controller_iface_init))
+G_DEFINE_TYPE (ValentXdpInput, valent_xdp_input, VALENT_TYPE_INPUT_ADAPTER)
 
 
 /*
@@ -203,17 +199,18 @@ ensure_session (ValentXdpInput *self)
   return FALSE;
 }
 
+
 /*
- * ValentInputController
+ * ValentInputAdapter
  */
 static void
-valent_xdp_input_keyboard_keysym (ValentInputController *controller,
-                                       guint                  keysym,
-                                       gboolean               state)
+valent_xdp_input_keyboard_keysym (ValentInputAdapter *adapter,
+                                  unsigned int        keysym,
+                                  gboolean            state)
 {
-  ValentXdpInput *self = VALENT_XDP_INPUT (controller);
+  ValentXdpInput *self = VALENT_XDP_INPUT (adapter);
 
-  g_assert (VALENT_IS_INPUT_CONTROLLER (controller));
+  g_assert (VALENT_IS_INPUT_ADAPTER (adapter));
   g_assert (VALENT_IS_XDP_INPUT (self));
 
   if G_UNLIKELY (!ensure_session (self))
@@ -250,13 +247,13 @@ translate_pointer_button (ValentPointerButton button)
 }
 
 static void
-valent_xdp_input_pointer_axis (ValentInputController *controller,
-                                    double                 dx,
-                                    double                 dy)
+valent_xdp_input_pointer_axis (ValentInputAdapter *adapter,
+                               double              dx,
+                               double              dy)
 {
-  ValentXdpInput *self = VALENT_XDP_INPUT (controller);
+  ValentXdpInput *self = VALENT_XDP_INPUT (adapter);
 
-  g_assert (VALENT_IS_INPUT_CONTROLLER (controller));
+  g_assert (VALENT_IS_INPUT_ADAPTER (adapter));
   g_assert (VALENT_IS_XDP_INPUT (self));
   g_assert (dx != 0.0 || dy != 0.0);
 
@@ -289,13 +286,13 @@ valent_xdp_input_pointer_axis (ValentInputController *controller,
 }
 
 static void
-valent_xdp_input_pointer_button (ValentInputController *controller,
-                                      ValentPointerButton    button,
-                                      gboolean               pressed)
+valent_xdp_input_pointer_button (ValentInputAdapter  *adapter,
+                                 ValentPointerButton  button,
+                                 gboolean             pressed)
 {
-  ValentXdpInput *self = VALENT_XDP_INPUT (controller);
+  ValentXdpInput *self = VALENT_XDP_INPUT (adapter);
 
-  g_assert (VALENT_IS_INPUT_CONTROLLER (controller));
+  g_assert (VALENT_IS_INPUT_ADAPTER (adapter));
   g_assert (VALENT_IS_XDP_INPUT (self));
   g_assert (button > 0 && button < 8);
 
@@ -308,15 +305,14 @@ valent_xdp_input_pointer_button (ValentInputController *controller,
 }
 
 static void
-valent_xdp_input_pointer_motion (ValentInputController *controller,
-                                      double                 dx,
-                                      double                 dy)
+valent_xdp_input_pointer_motion (ValentInputAdapter *adapter,
+                                 double              dx,
+                                 double              dy)
 {
-  ValentXdpInput *self = VALENT_XDP_INPUT (controller);
+  ValentXdpInput *self = VALENT_XDP_INPUT (adapter);
 
-  g_assert (VALENT_IS_INPUT_CONTROLLER (controller));
+  g_assert (VALENT_IS_INPUT_ADAPTER (adapter));
   g_assert (VALENT_IS_XDP_INPUT (self));
-  g_return_if_fail (dx != 0 || dy != 0);
 
   if G_UNLIKELY (!ensure_session (self))
     return;
@@ -325,13 +321,13 @@ valent_xdp_input_pointer_motion (ValentInputController *controller,
 }
 
 static void
-valent_xdp_input_pointer_position (ValentInputController *controller,
-                                        double                 x,
-                                        double                 y)
+valent_xdp_input_pointer_position (ValentInputAdapter *adapter,
+                                   double              x,
+                                   double              y)
 {
-  ValentXdpInput *self = VALENT_XDP_INPUT (controller);
+  ValentXdpInput *self = VALENT_XDP_INPUT (adapter);
 
-  g_assert (VALENT_IS_INPUT_CONTROLLER (controller));
+  g_assert (VALENT_IS_INPUT_ADAPTER (adapter));
   g_assert (VALENT_IS_XDP_INPUT (self));
 
   if G_UNLIKELY (!ensure_session (self))
@@ -341,15 +337,6 @@ valent_xdp_input_pointer_position (ValentInputController *controller,
   xdp_session_pointer_position (self->session, 0, x, y);
 }
 
-static void
-valent_input_controller_iface_init (ValentInputControllerInterface *iface)
-{
-  iface->keyboard_keysym = valent_xdp_input_keyboard_keysym;
-  iface->pointer_axis = valent_xdp_input_pointer_axis;
-  iface->pointer_button = valent_xdp_input_pointer_button;
-  iface->pointer_motion = valent_xdp_input_pointer_motion;
-  iface->pointer_position = valent_xdp_input_pointer_position;
-}
 
 /*
  * GObject
@@ -390,9 +377,16 @@ static void
 valent_xdp_input_class_init (ValentXdpInputClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentInputAdapterClass *adapter_class = VALENT_INPUT_ADAPTER_CLASS (klass);
 
   object_class->dispose = valent_xdp_input_dispose;
   object_class->finalize = valent_xdp_input_finalize;
+
+  adapter_class->keyboard_keysym = valent_xdp_input_keyboard_keysym;
+  adapter_class->pointer_axis = valent_xdp_input_pointer_axis;
+  adapter_class->pointer_button = valent_xdp_input_pointer_button;
+  adapter_class->pointer_motion = valent_xdp_input_pointer_motion;
+  adapter_class->pointer_position = valent_xdp_input_pointer_position;
 }
 
 static void

@@ -7,14 +7,13 @@
 # error "Only <libvalent-test.h> can be included directly."
 #endif
 
-#include <libpeas/peas.h>
 #include <libvalent-input.h>
 
 G_BEGIN_DECLS
 
-#define VALENT_TYPE_MOCK_INPUT_CONTROLLER (valent_mock_input_controller_get_type())
+#define VALENT_TYPE_MOCK_INPUT_ADAPTER (valent_mock_input_adapter_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentMockInputController, valent_mock_input_controller, VALENT, MOCK_INPUT_CONTROLLER, PeasExtensionBase)
+G_DECLARE_FINAL_TYPE (ValentMockInputAdapter, valent_mock_input_adapter, VALENT, MOCK_INPUT_ADAPTER, ValentInputAdapter)
 
 G_END_DECLS
 
