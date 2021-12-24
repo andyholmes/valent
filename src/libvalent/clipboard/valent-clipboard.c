@@ -10,7 +10,7 @@
 #include <libvalent-core.h>
 
 #include "valent-clipboard.h"
-#include "valent-clipboard-source.h"
+#include "valent-clipboard-adapter.h"
 
 
 /**
@@ -20,20 +20,22 @@
  * @stability: Unstable
  * @include: libvalent-clipboard.h
  *
- * #ValentClipboard is an aggregator of desktop clipboard sources, with a simple
- * API generally intended to be used by #ValentDevicePlugin implementations.
+ * #ValentClipboard is an abstraction of the available #ValentClipboardAdapter
+ * implementations, generally intended to be used by #ValentDevicePlugin
+ * implementations.
  *
- * Plugins can provide adapters for clipboard selections by subclassing the
- * #ValentClipboardSource base class. The priority of clipboard sources is
- * determined by the `.plugin` file key `X-ClipboardSourcePriority`.
+ * Plugins can provide implementations by subclassing the
+ * #ValentClipboardAdapter base class. The priority of implementations is
+ * determined by the `.plugin` file key `X-ClipboardAdapterPriority`, with the
+ * lowest value taking precedence.
  */
 
 struct _ValentClipboard
 {
-  ValentComponent        parent_instance;
+  ValentComponent         parent_instance;
 
-  GCancellable          *cancellable;
-  ValentClipboardSource *default_clipboard;
+  GCancellable           *cancellable;
+  ValentClipboardAdapter *default_adapter;
 };
 
 G_DEFINE_TYPE (ValentClipboard, valent_clipboard, VALENT_TYPE_COMPONENT)
@@ -49,18 +51,18 @@ static ValentClipboard *default_clipboard = NULL;
 
 
 static void
-get_text_cb (ValentClipboardSource *source,
-             GAsyncResult          *result,
-             gpointer               user_data)
+get_text_cb (ValentClipboardAdapter *adapter,
+             GAsyncResult           *result,
+             gpointer                user_data)
 {
   g_autoptr (GTask) task = G_TASK (user_data);
   g_autoptr (GError) error = NULL;
   g_autofree char *text = NULL;
 
-  g_assert (VALENT_IS_CLIPBOARD_SOURCE (source));
-  g_assert (g_task_is_valid (result, source));
+  g_assert (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
+  g_assert (g_task_is_valid (result, adapter));
 
-  text = valent_clipboard_source_get_text_finish (source, result, &error);
+  text = valent_clipboard_adapter_get_text_finish (adapter, result, &error);
 
   if (text == NULL)
     return g_task_return_error (task, g_steal_pointer (&error));
@@ -69,12 +71,12 @@ get_text_cb (ValentClipboardSource *source,
 }
 
 static void
-on_clipboard_source_changed (ValentClipboardSource *clipboard,
-                             ValentClipboard       *self)
+on_clipboard_adapter_changed (ValentClipboardAdapter *clipboard,
+                              ValentClipboard        *self)
 {
   VALENT_ENTRY;
 
-  if (clipboard == self->default_clipboard)
+  if (clipboard == self->default_adapter)
     g_signal_emit (G_OBJECT (self), signals [CHANGED], 0);
 
   VALENT_EXIT;
@@ -88,7 +90,7 @@ valent_clipboard_extension_added (ValentComponent *component,
                                   PeasExtension   *extension)
 {
   ValentClipboard *self = VALENT_CLIPBOARD (component);
-  ValentClipboardSource *clipboard = VALENT_CLIPBOARD_SOURCE (extension);
+  ValentClipboardAdapter *clipboard = VALENT_CLIPBOARD_ADAPTER (extension);
   PeasExtension *provider;
 
   VALENT_ENTRY;
@@ -97,14 +99,14 @@ valent_clipboard_extension_added (ValentComponent *component,
 
   g_signal_connect_object (clipboard,
                            "changed",
-                           G_CALLBACK (on_clipboard_source_changed),
+                           G_CALLBACK (on_clipboard_adapter_changed),
                            component, 0);
 
   provider = valent_component_get_priority_provider (component,
-                                                     "ClipboardSourcePriority");
+                                                     "ClipboardAdapterPriority");
 
-  if ((PeasExtension *)self->default_clipboard != provider)
-    g_set_object (&self->default_clipboard, VALENT_CLIPBOARD_SOURCE (provider));
+  if ((PeasExtension *)self->default_adapter != provider)
+    g_set_object (&self->default_adapter, VALENT_CLIPBOARD_ADAPTER (provider));
 
   VALENT_EXIT;
 }
@@ -114,7 +116,7 @@ valent_clipboard_extension_removed (ValentComponent *component,
                                     PeasExtension   *extension)
 {
   ValentClipboard *self = VALENT_CLIPBOARD (component);
-  ValentClipboardSource *clipboard = VALENT_CLIPBOARD_SOURCE (extension);
+  ValentClipboardAdapter *clipboard = VALENT_CLIPBOARD_ADAPTER (extension);
   PeasExtension *provider;
 
   VALENT_ENTRY;
@@ -124,8 +126,8 @@ valent_clipboard_extension_removed (ValentComponent *component,
   g_signal_handlers_disconnect_by_data (clipboard, self);
 
   provider = valent_component_get_priority_provider (component,
-                                                     "ClipboardSourcePriority");
-  g_set_object (&self->default_clipboard, VALENT_CLIPBOARD_SOURCE (provider));
+                                                     "ClipboardAdapterPriority");
+  g_set_object (&self->default_adapter, VALENT_CLIPBOARD_ADAPTER (provider));
 
   VALENT_EXIT;
 }
@@ -150,7 +152,7 @@ valent_clipboard_finalize (GObject *object)
   ValentClipboard *self = VALENT_CLIPBOARD (object);
 
   g_clear_object (&self->cancellable);
-  g_clear_object (&self->default_clipboard);
+  g_clear_object (&self->default_adapter);
 
   G_OBJECT_CLASS (valent_clipboard_parent_class)->finalize (object);
 }
@@ -172,7 +174,7 @@ valent_clipboard_class_init (ValentClipboardClass *klass)
    * @clipboard: a #ValentClipboard
    *
    * #ValentClipboard::changed is emitted when the content of the default
-   * #ValentClipboardSource changes.
+   * #ValentClipboardAdapter changes.
    */
   signals [CHANGED] =
     g_signal_new ("changed",
@@ -211,21 +213,21 @@ valent_clipboard_get_text_async (ValentClipboard     *clipboard,
 
   g_return_if_fail (VALENT_IS_CLIPBOARD (clipboard));
 
-  if G_UNLIKELY (clipboard->default_clipboard == NULL)
+  if G_UNLIKELY (clipboard->default_adapter == NULL)
     {
       g_task_report_new_error (clipboard, callback, user_data,
                                valent_clipboard_get_text_async,
                                G_IO_ERROR,
                                G_IO_ERROR_NOT_SUPPORTED,
-                               "No clipboard source");
+                               "No clipboard adapter");
       return;
     }
 
   task = g_task_new (clipboard, cancellable, callback, user_data);
-  valent_clipboard_source_get_text_async (clipboard->default_clipboard,
-                                          cancellable,
-                                          (GAsyncReadyCallback)get_text_cb,
-                                          g_steal_pointer (&task));
+  valent_clipboard_adapter_get_text_async (clipboard->default_adapter,
+                                           cancellable,
+                                           (GAsyncReadyCallback)get_text_cb,
+                                           g_steal_pointer (&task));
 
   VALENT_EXIT;
 }
@@ -272,15 +274,41 @@ valent_clipboard_set_text (ValentClipboard *clipboard,
 
   g_return_if_fail (VALENT_IS_CLIPBOARD (clipboard));
 
-  if G_UNLIKELY (clipboard->default_clipboard == NULL)
+  if G_UNLIKELY (clipboard->default_adapter == NULL)
     {
-      g_warning ("No clipboard source");
+      g_warning ("No clipboard adapter");
       VALENT_EXIT;
     }
 
-  valent_clipboard_source_set_text (clipboard->default_clipboard, text);
+  valent_clipboard_adapter_set_text (clipboard->default_adapter, text);
 
   VALENT_EXIT;
+}
+
+/**
+ * valent_clipboard_get_timestamp:
+ * @clipboard: a #ValentClipboard
+ *
+ * Get the timestamp of the current clipboard content, in milliseconds since the
+ * UNIX epoch.
+ *
+ * Returns: a UNIX epoch timestamp (ms)
+ */
+gint64
+valent_clipboard_get_timestamp (ValentClipboard *clipboard)
+{
+  gint64 ret = 0;
+
+  VALENT_ENTRY;
+
+  g_return_val_if_fail (VALENT_IS_CLIPBOARD (clipboard), 0);
+
+  if G_UNLIKELY (clipboard->default_adapter == NULL)
+    VALENT_RETURN (ret);
+
+  ret = valent_clipboard_adapter_get_timestamp (clipboard->default_adapter);
+
+  VALENT_RETURN (ret);
 }
 
 /**
@@ -297,7 +325,7 @@ valent_clipboard_get_default (void)
     {
       default_clipboard = g_object_new (VALENT_TYPE_CLIPBOARD,
                                         "plugin-context", "clipboard",
-                                        "plugin-type",    VALENT_TYPE_CLIPBOARD_SOURCE,
+                                        "plugin-type",    VALENT_TYPE_CLIPBOARD_ADAPTER,
                                         NULL);
 
       g_object_add_weak_pointer (G_OBJECT (default_clipboard),

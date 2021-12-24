@@ -12,7 +12,7 @@ libvalent_clipboard_generated_sources = []
 libvalent_clipboard_public_headers = [
   'libvalent-clipboard.h',
   'valent-clipboard.h',
-  'valent-clipboard-source.h',
+  'valent-clipboard-adapter.h',
 ]
 
 libvalent_clipboard_private_headers = [
@@ -29,7 +29,7 @@ install_headers(libvalent_clipboard_public_headers,
 # Sources
 libvalent_clipboard_public_sources = [
   'valent-clipboard.c',
-  'valent-clipboard-source.c',
+  'valent-clipboard-adapter.c',
 ]
 
 

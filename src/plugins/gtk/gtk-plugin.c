@@ -18,9 +18,9 @@ valent_gtk_plugin_register_types (PeasObjectModule *module)
   /* Ensure this is GUI instance before registering */
   if (gtk_init_check () && GDK_IS_DISPLAY (gdk_display_get_default ()))
     {
-      /* ValentClipboardSource */
+      /* ValentClipboardAdapter */
       peas_object_module_register_extension_type (module,
-                                                  VALENT_TYPE_CLIPBOARD_SOURCE,
+                                                  VALENT_TYPE_CLIPBOARD_ADAPTER,
                                                   VALENT_TYPE_GDK_CLIPBOARD);
 
       /* ValentNotificationSource */

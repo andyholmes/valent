@@ -10,7 +10,7 @@ G_BEGIN_DECLS
 
 #define VALENT_TYPE_GDK_CLIPBOARD (valent_gdk_clipboard_get_type ())
 
-G_DECLARE_FINAL_TYPE (ValentGdkClipboard, valent_gdk_clipboard, VALENT, GDK_CLIPBOARD, ValentClipboardSource)
+G_DECLARE_FINAL_TYPE (ValentGdkClipboard, valent_gdk_clipboard, VALENT, GDK_CLIPBOARD, ValentClipboardAdapter)
 
 G_END_DECLS
 

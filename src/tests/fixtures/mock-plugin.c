@@ -13,7 +13,7 @@
 #include <libvalent-ui.h>
 
 #include "valent-mock-channel-service.h"
-#include "valent-mock-clipboard-source.h"
+#include "valent-mock-clipboard-adapter.h"
 #include "valent-mock-contact-store-provider.h"
 #include "valent-mock-input-adapter.h"
 #include "valent-mock-mixer-control.h"
@@ -31,8 +31,8 @@ valent_mock_plugin_register_types (PeasObjectModule *module)
                                               VALENT_TYPE_CHANNEL_SERVICE,
                                               VALENT_TYPE_MOCK_CHANNEL_SERVICE);
   peas_object_module_register_extension_type (module,
-                                              VALENT_TYPE_CLIPBOARD_SOURCE,
-                                              VALENT_TYPE_MOCK_CLIPBOARD_SOURCE);
+                                              VALENT_TYPE_CLIPBOARD_ADAPTER,
+                                              VALENT_TYPE_MOCK_CLIPBOARD_ADAPTER);
   peas_object_module_register_extension_type (module,
                                               VALENT_TYPE_CONTACT_STORE_PROVIDER,
                                               VALENT_TYPE_MOCK_CONTACT_STORE_PROVIDER);

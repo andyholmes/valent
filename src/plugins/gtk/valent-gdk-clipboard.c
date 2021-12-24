@@ -15,19 +15,19 @@
 
 struct _ValentGdkClipboard
 {
-  ValentClipboardSource  parent_instance;
+  ValentClipboardAdapter  parent_instance;
 
-  GCancellable          *cancellable;
+  GCancellable           *cancellable;
 
-  GdkClipboard          *clipboard;
-  unsigned long          changed_id;
+  GdkClipboard           *clipboard;
+  unsigned long           changed_id;
 };
 
-G_DEFINE_TYPE (ValentGdkClipboard, valent_gdk_clipboard, VALENT_TYPE_CLIPBOARD_SOURCE)
+G_DEFINE_TYPE (ValentGdkClipboard, valent_gdk_clipboard, VALENT_TYPE_CLIPBOARD_ADAPTER)
 
 
 /*
- * ValentClipboardSource
+ * ValentClipboardAdapter
  */
 static void
 get_text_cb (GdkClipboard *clipboard,
@@ -50,12 +50,12 @@ get_text_cb (GdkClipboard *clipboard,
 }
 
 static void
-valent_gdk_clipboard_get_text_async (ValentClipboardSource *source,
-                                     GCancellable          *cancellable,
-                                     GAsyncReadyCallback    callback,
-                                     gpointer               user_data)
+valent_gdk_clipboard_get_text_async (ValentClipboardAdapter *adapter,
+                                     GCancellable           *cancellable,
+                                     GAsyncReadyCallback     callback,
+                                     gpointer                user_data)
 {
-  ValentGdkClipboard *self = VALENT_GDK_CLIPBOARD (source);
+  ValentGdkClipboard *self = VALENT_GDK_CLIPBOARD (adapter);
   g_autoptr (GTask) task = NULL;
 
   g_assert (VALENT_IS_GDK_CLIPBOARD (self));
@@ -68,7 +68,7 @@ valent_gdk_clipboard_get_text_async (ValentClipboardSource *source,
                              self->cancellable,
                              G_CONNECT_SWAPPED);
 
-  task = g_task_new (source, self->cancellable, callback, user_data);
+  task = g_task_new (adapter, self->cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_gdk_clipboard_get_text_async);
 
   gdk_clipboard_read_text_async (self->clipboard,
@@ -78,16 +78,28 @@ valent_gdk_clipboard_get_text_async (ValentClipboardSource *source,
 }
 
 static void
-valent_gdk_clipboard_set_text (ValentClipboardSource *source,
-                               const char            *text)
+valent_gdk_clipboard_set_text (ValentClipboardAdapter *adapter,
+                               const char             *text)
 {
-  ValentGdkClipboard *self = VALENT_GDK_CLIPBOARD (source);
+  ValentGdkClipboard *self = VALENT_GDK_CLIPBOARD (adapter);
 
   g_assert (VALENT_IS_GDK_CLIPBOARD (self));
   g_assert (GDK_IS_CLIPBOARD (self->clipboard));
 
   gdk_clipboard_set (self->clipboard, G_TYPE_STRING, text);
 }
+
+static gint64
+valent_gdk_clipboard_get_timestamp (ValentClipboardAdapter *adapter)
+{
+  ValentGdkClipboard *self = VALENT_GDK_CLIPBOARD (adapter);
+
+  g_assert (VALENT_IS_GDK_CLIPBOARD (self));
+  g_assert (GDK_IS_CLIPBOARD (self->clipboard));
+
+  return 0;
+}
+
 
 /*
  * GdkClipboard Callbacks
@@ -96,12 +108,12 @@ static void
 on_changed (GdkClipboard *clipboard,
             gpointer      user_data)
 {
-  ValentClipboardSource *source = VALENT_CLIPBOARD_SOURCE (user_data);
+  ValentClipboardAdapter *adapter = VALENT_CLIPBOARD_ADAPTER (user_data);
 
-  g_assert (VALENT_IS_CLIPBOARD_SOURCE (source));
+  g_assert (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
   g_assert (VALENT_IS_GDK_CLIPBOARD (user_data));
 
-  valent_clipboard_source_emit_changed (source);
+  valent_clipboard_adapter_emit_changed (adapter);
 }
 
 /*
@@ -155,7 +167,7 @@ static void
 valent_gdk_clipboard_class_init (ValentGdkClipboardClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
-  ValentClipboardSourceClass *clipboard_class = VALENT_CLIPBOARD_SOURCE_CLASS (klass);
+  ValentClipboardAdapterClass *clipboard_class = VALENT_CLIPBOARD_ADAPTER_CLASS (klass);
 
   object_class->constructed = valent_gdk_clipboard_constructed;
   object_class->dispose = valent_gdk_clipboard_dispose;
