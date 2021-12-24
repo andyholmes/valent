@@ -23,7 +23,9 @@ struct _ValentClipboardPlugin
   gulong             changed_id;
 
   char              *local_text;
+  gint64             local_timestamp;
   char              *remote_text;
+  gint64             remote_timestamp;
 };
 
 static void valent_device_plugin_iface_init (ValentDevicePluginInterface *iface);
@@ -65,6 +67,7 @@ valent_clipboard_plugin_handle_clipboard (ValentClipboardPlugin *self,
   /* Cache remote content */
   g_clear_pointer (&self->remote_text, g_free);
   self->remote_text = g_strdup (content);
+  self->remote_timestamp = valent_timestamp_ms ();
 
   /* Set clipboard */
   if (g_settings_get_boolean (self->settings, "auto-pull"))
@@ -85,28 +88,32 @@ valent_clipboard_plugin_handle_clipboard_connect (ValentClipboardPlugin *self,
 
   body = valent_packet_get_body (packet);
 
+  if G_UNLIKELY ((node = json_object_get_member (body, "timestamp")) == NULL ||
+                 json_node_get_value_type (node) != G_TYPE_INT64)
+    {
+      g_debug ("%s: missing \"timestamp\" field", G_STRFUNC);
+      return;
+    }
+
+  timestamp = json_node_get_int (node);
+
   if G_UNLIKELY ((node = json_object_get_member (body, "content")) == NULL ||
                  json_node_get_value_type (node) != G_TYPE_STRING)
     {
-      g_debug ("%s: Missing \"content\" field", G_STRFUNC);
+      g_debug ("%s: missing \"content\" field", G_STRFUNC);
       return;
     }
 
   content = json_node_get_string (node);
 
-  if G_UNLIKELY ((node = json_object_get_member (body, "timestamp")) == NULL ||
-                 json_node_get_value_type (node) != G_TYPE_STRING)
-    {
-      g_debug ("%s: Missing \"timestamp\" field", G_STRFUNC);
-      return;
-    }
-
-  VALENT_TODO ("Handle 'timestamp' field");
-  timestamp = json_node_get_int (node);
-
   /* Cache remote content */
   g_clear_pointer (&self->remote_text, g_free);
   self->remote_text = g_strdup (content);
+  self->remote_timestamp = timestamp;
+
+  /* If the remote content is outdated at connect-time, we won't auto-pull. */
+  if (self->remote_timestamp <= self->local_timestamp)
+    return;
 
   /* Set clipboard */
   if (g_settings_get_boolean (self->settings, "auto-pull"))
@@ -140,7 +147,8 @@ valent_clipboard_plugin_clipboard (ValentClipboardPlugin *self,
 
 static void
 valent_clipboard_plugin_clipboard_connect (ValentClipboardPlugin *self,
-                                           const char            *content)
+                                           const char            *content,
+                                           gint64                 timestamp)
 {
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
@@ -156,7 +164,7 @@ valent_clipboard_plugin_clipboard_connect (ValentClipboardPlugin *self,
   json_builder_set_member_name (builder, "content");
   json_builder_add_string_value (builder, content);
   json_builder_set_member_name (builder, "timestamp");
-  json_builder_add_int_value (builder, valent_timestamp_ms ());
+  json_builder_add_int_value (builder, timestamp);
   packet = valent_packet_finish (builder);
 
   valent_device_queue_packet (self->device, packet);
@@ -175,9 +183,11 @@ get_text_cb (ValentClipboard       *clipboard,
 
   text = valent_clipboard_get_text_finish (clipboard, result, &error);
 
-  if (text == NULL)
+  if (error != NULL)
     {
-      g_warning ("Reading Clipboard: %s", error->message);
+      if (!valent_error_ignore (error))
+        g_warning ("%s: %s", G_STRFUNC, error->message);
+
       return;
     }
 
@@ -186,6 +196,7 @@ get_text_cb (ValentClipboard       *clipboard,
       /* Store the local content */
       g_clear_pointer (&self->local_text, g_free);
       self->local_text = g_steal_pointer (&text);
+      self->local_timestamp = valent_clipboard_get_timestamp (clipboard);
 
       /* Inform the device */
       if (g_settings_get_boolean (self->settings, "auto-push"))
@@ -201,13 +212,16 @@ get_text_connect_cb (ValentClipboard       *clipboard,
   g_autoptr (GError) error = NULL;
   g_autofree char *text = NULL;
 
+  g_assert (VALENT_IS_CLIPBOARD (clipboard));
   g_assert (VALENT_IS_CLIPBOARD_PLUGIN (self));
 
   text = valent_clipboard_get_text_finish (clipboard, result, &error);
 
-  if (text == NULL)
+  if (error != NULL)
     {
-      g_warning ("Reading Clipboard: %s", error->message);
+      if (!valent_error_ignore (error))
+        g_warning ("%s: %s", G_STRFUNC, error->message);
+
       return;
     }
 
@@ -216,10 +230,13 @@ get_text_connect_cb (ValentClipboard       *clipboard,
     {
       g_clear_pointer (&self->local_text, g_free);
       self->local_text = g_steal_pointer (&text);
+      self->local_timestamp = valent_clipboard_get_timestamp (clipboard);
     }
 
   /* Inform the device */
-  valent_clipboard_plugin_clipboard_connect (self, self->local_text);
+  valent_clipboard_plugin_clipboard_connect (self,
+                                             self->local_text,
+                                             self->local_timestamp);
 }
 
 static void

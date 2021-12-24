@@ -57,7 +57,7 @@ test_clipboard_plugin_handle_content (ValentTestPluginFixture *fixture,
 
   g_settings_set_boolean (fixture->settings, "auto-pull", TRUE);
 
-  /* Regular content */
+  /* Copies content */
   packet = valent_test_plugin_fixture_lookup_packet (fixture, "clipboard-content");
   valent_test_plugin_fixture_handle_packet (fixture, packet);
 
@@ -70,8 +70,23 @@ test_clipboard_plugin_handle_content (ValentTestPluginFixture *fixture,
   g_assert_cmpstr (fixture->data, ==, "clipboard-content");
   g_clear_pointer (&fixture->data, g_free);
 
-  /* Connect content */
+  /* Copies connect-time content */
   packet = valent_test_plugin_fixture_lookup_packet (fixture, "clipboard-connect");
+  valent_test_plugin_fixture_handle_packet (fixture, packet);
+
+  valent_clipboard_get_text_async (valent_clipboard_get_default (),
+                                   NULL,
+                                   (GAsyncReadyCallback)get_text_cb,
+                                   fixture);
+  valent_test_plugin_fixture_run (fixture);
+
+  g_assert_cmpstr (fixture->data, ==, "clipboard-connect");
+  g_clear_pointer (&fixture->data, g_free);
+
+  /* Ignores connect-time content that is outdated */
+  packet = valent_test_plugin_fixture_lookup_packet (fixture, "clipboard-connect");
+  json_object_set_int_member (valent_packet_get_body (packet), "timestamp", 0);
+  json_object_set_string_member (valent_packet_get_body (packet), "content", "old");
   valent_test_plugin_fixture_handle_packet (fixture, packet);
 
   valent_clipboard_get_text_async (valent_clipboard_get_default (),

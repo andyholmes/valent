@@ -29,7 +29,7 @@
     "type": "kdeconnect.clipboard.connect",
     "body": {
       "content": "clipboard-connect",
-      "timestamp": "1555051432512"
+      "timestamp": 1555051432512
     }
   }
 }
