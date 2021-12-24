@@ -7,10 +7,8 @@
 #include <libpeas/peas.h>
 #include <libvalent-clipboard.h>
 #include <libvalent-notifications.h>
-#include <libvalent-session.h>
 
 #include "valent-gdk-clipboard.h"
-#include "valent-gnome-session.h"
 #include "valent-gtk-notifications.h"
 
 
@@ -29,10 +27,5 @@ valent_gtk_plugin_register_types (PeasObjectModule *module)
       peas_object_module_register_extension_type (module,
                                                   VALENT_TYPE_NOTIFICATION_SOURCE,
                                                   VALENT_TYPE_GTK_NOTIFICATIONS);
-
-      /* ValentSessionAdapter */
-      peas_object_module_register_extension_type (module,
-                                                  VALENT_TYPE_SESSION_ADAPTER,
-                                                  VALENT_TYPE_GNOME_SESSION);
     }
 }
