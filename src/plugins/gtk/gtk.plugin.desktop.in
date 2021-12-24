@@ -3,8 +3,8 @@
 
 [Plugin]
 Module=gtk
-Name=Gtk
-Description=Integration with Gtk4
+Name=GTK
+Description=Integration with GTK4
 Icon=gtk
 Builtin=true
 Embedded=valent_gtk_plugin_register_types
