@@ -17,6 +17,7 @@ struct _ValentMockClipboardAdapter
   ValentClipboardAdapter  parent_instance;
 
   char                   *text;
+  gint64                  timestamp;
 };
 
 G_DEFINE_TYPE (ValentMockClipboardAdapter, valent_mock_clipboard_adapter, VALENT_TYPE_CLIPBOARD_ADAPTER)
@@ -53,8 +54,20 @@ valent_mock_clipboard_adapter_set_text (ValentClipboardAdapter *adapter,
 
   g_clear_pointer (&self->text, g_free);
   self->text = g_strdup (text);
+  self->timestamp = valent_timestamp_ms ();
   valent_clipboard_adapter_emit_changed (adapter);
 }
+
+static gint64
+valent_mock_clipboard_adapter_get_timestamp (ValentClipboardAdapter *adapter)
+{
+  ValentMockClipboardAdapter *self = VALENT_MOCK_CLIPBOARD_ADAPTER (adapter);
+
+  g_assert (VALENT_IS_MOCK_CLIPBOARD_ADAPTER (self));
+
+  return self->timestamp;
+}
+
 
 /*
  * GObject
@@ -79,6 +92,7 @@ valent_mock_clipboard_adapter_class_init (ValentMockClipboardAdapterClass *klass
 
   clipboard_class->get_text_async = valent_mock_clipboard_adapter_get_text_async;
   clipboard_class->set_text = valent_mock_clipboard_adapter_set_text;
+  clipboard_class->get_timestamp = valent_mock_clipboard_adapter_get_timestamp;
 }
 
 static void

@@ -21,6 +21,7 @@ struct _ValentGdkClipboard
 
   GdkClipboard           *clipboard;
   unsigned long           changed_id;
+  gint64                  timestamp;
 };
 
 G_DEFINE_TYPE (ValentGdkClipboard, valent_gdk_clipboard, VALENT_TYPE_CLIPBOARD_ADAPTER)
@@ -105,14 +106,16 @@ valent_gdk_clipboard_get_timestamp (ValentClipboardAdapter *adapter)
  * GdkClipboard Callbacks
  */
 static void
-on_changed (GdkClipboard *clipboard,
-            gpointer      user_data)
+on_changed (GdkClipboard       *clipboard,
+            ValentGdkClipboard *self)
 {
-  ValentClipboardAdapter *adapter = VALENT_CLIPBOARD_ADAPTER (user_data);
+  ValentClipboardAdapter *adapter = VALENT_CLIPBOARD_ADAPTER (self);
 
+  g_assert (VALENT_IS_GDK_CLIPBOARD (self));
   g_assert (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
-  g_assert (VALENT_IS_GDK_CLIPBOARD (user_data));
 
+  // TODO: get the actual TIMESTAMP value
+  self->timestamp = valent_timestamp_ms ();
   valent_clipboard_adapter_emit_changed (adapter);
 }
 

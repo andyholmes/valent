@@ -24,6 +24,7 @@ char            * valent_clipboard_get_text_finish (ValentClipboard      *clipbo
                                                     GError              **error);
 void              valent_clipboard_set_text        (ValentClipboard      *clipboard,
                                                     const char           *text);
+gint64            valent_clipboard_get_timestamp   (ValentClipboard      *clipboard);
 
 ValentClipboard * valent_clipboard_get_default     (void);
 
