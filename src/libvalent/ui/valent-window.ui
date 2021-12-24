@@ -181,9 +181,9 @@
                 </child>
                 <child>
                   <object class="ValentPluginGroup" id="input_section">
-                    <property name="title" translatable="yes">Input Controllers</property>
+                    <property name="title" translatable="yes">Input Adapters</property>
                     <property name="plugin-context">input</property>
-                    <property name="plugin-type">ValentInputController</property>
+                    <property name="plugin-type">ValentInputAdapter</property>
                   </object>
                 </child>
                 <child>

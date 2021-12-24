@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <gdk/gdk.h>
-
 /**
  * ValentPointerButton:
  * @VALENT_POINTER_UNKNOWN: Unknown button

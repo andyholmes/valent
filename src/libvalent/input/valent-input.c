@@ -10,7 +10,7 @@
 #include <libvalent-core.h>
 
 #include "valent-input.h"
-#include "valent-input-controller.h"
+#include "valent-input-adapter.h"
 
 
 /**
@@ -20,19 +20,20 @@
  * @stability: Unstable
  * @include: libvalent-input.h
  *
- * #ValentInput is an abstraction of input controllers, with a simple API
- * generally intended to be used by #ValentDevicePlugin implementations.
+ * #ValentInput is an abstraction of the available #ValentInputAdapter
+ * implementations, generally intended to be used by #ValentDevicePlugin
+ * implementations.
  *
- * Plugins can provide adapters for input controllers by subclassing the
- * #ValentInputController base class. The priority of input controllers is
- * determined by the `.plugin` file key `X-InputControllerPriority`.
+ * Plugins can provide implementations by subclassing the #ValentInputAdapter
+ * base class. The priority of implementations is determined by the `.plugin`
+ * file key `X-InputAdapterPriority`, with the lowest value taking precedence.
  */
 
 struct _ValentInput
 {
-  ValentComponent        parent_instance;
+  ValentComponent     parent_instance;
 
-  ValentInputController *default_controller;
+  ValentInputAdapter *default_adapter;
 };
 
 G_DEFINE_TYPE (ValentInput, valent_input, VALENT_TYPE_COMPONENT)
@@ -55,8 +56,9 @@ valent_input_extension_added (ValentComponent *component,
 
   g_assert (VALENT_IS_INPUT (self));
 
-  provider = valent_component_get_priority_provider (component, "InputControllerPriority");
-  g_set_object (&self->default_controller, VALENT_INPUT_CONTROLLER (provider));
+  provider = valent_component_get_priority_provider (component,
+                                                     "InputAdapterPriority");
+  g_set_object (&self->default_adapter, VALENT_INPUT_ADAPTER (provider));
 
   VALENT_EXIT;
 }
@@ -72,8 +74,9 @@ valent_input_extension_removed (ValentComponent *component,
 
   g_assert (VALENT_IS_INPUT (self));
 
-  provider = valent_component_get_priority_provider (component, "InputControllerPriority");
-  g_set_object (&self->default_controller, VALENT_INPUT_CONTROLLER (provider));
+  provider = valent_component_get_priority_provider (component,
+                                                     "InputAdapterPriority");
+  g_set_object (&self->default_adapter, VALENT_INPUT_ADAPTER (provider));
 
   VALENT_EXIT;
 }
@@ -106,10 +109,11 @@ valent_input_get_default (void)
     {
       default_input = g_object_new (VALENT_TYPE_INPUT,
                                     "plugin-context", "input",
-                                    "plugin-type",    VALENT_TYPE_INPUT_CONTROLLER,
+                                    "plugin-type",    VALENT_TYPE_INPUT_ADAPTER,
                                     NULL);
 
-      g_object_add_weak_pointer (G_OBJECT (default_input), (gpointer) &default_input);
+      g_object_add_weak_pointer (G_OBJECT (default_input),
+                                 (gpointer)&default_input);
     }
 
   return default_input;
@@ -147,7 +151,7 @@ valent_input_keyboard_action (ValentInput     *input,
  * @keysym: a keysym
  * @state: if pressed
  *
- * Simulate a keysym event for @keysym using the default #ValentInputController.
+ * Simulate a keysym event for @keysym using the default #ValentInputAdapter.
  */
 void
 valent_input_keyboard_keysym (ValentInput *input,
@@ -156,8 +160,8 @@ valent_input_keyboard_keysym (ValentInput *input,
 {
   g_return_if_fail (VALENT_IS_INPUT (input));
 
-  if G_LIKELY (input->default_controller != NULL)
-    valent_input_controller_keyboard_keysym (input->default_controller, keysym, state);
+  if G_LIKELY (input->default_adapter != NULL)
+    valent_input_adapter_keyboard_keysym (input->default_adapter, keysym, state);
   else
     g_debug ("[%s] No source available", G_STRFUNC);
 }
@@ -168,7 +172,8 @@ valent_input_keyboard_keysym (ValentInput *input,
  * @mask: a #GdkModifierType
  * @lock: whether to lock modifiers
  *
- * A convenience function that wraps valent_input_keyboard_keysym() to toggle the keysyms for @mask.
+ * A convenience function that wraps valent_input_keyboard_keysym() to toggle
+ * the keysyms for @mask.
  */
 void
 valent_input_keyboard_mask (ValentInput     *input,
@@ -198,8 +203,8 @@ valent_input_pointer_axis (ValentInput *input,
 {
   g_return_if_fail (VALENT_IS_INPUT (input));
 
-  if G_LIKELY (input->default_controller != NULL)
-    valent_input_controller_pointer_axis (input->default_controller, dx, dy);
+  if G_LIKELY (input->default_adapter != NULL)
+    valent_input_adapter_pointer_axis (input->default_adapter, dx, dy);
   else
     g_debug ("[%s] No source available", G_STRFUNC);
 }
@@ -219,8 +224,8 @@ valent_input_pointer_button (ValentInput         *input,
 {
   g_return_if_fail (VALENT_IS_INPUT (input));
 
-  if G_LIKELY (input->default_controller != NULL)
-    valent_input_controller_pointer_button (input->default_controller, button, state);
+  if G_LIKELY (input->default_adapter != NULL)
+    valent_input_adapter_pointer_button (input->default_adapter, button, state);
   else
     g_debug ("[%s] No source available", G_STRFUNC);
 }
@@ -238,13 +243,17 @@ valent_input_pointer_click (ValentInput         *input,
 {
   g_return_if_fail (VALENT_IS_INPUT (input));
 
-  if G_LIKELY (input->default_controller != NULL)
+  if G_LIKELY (input->default_adapter != NULL)
     {
-      valent_input_controller_pointer_button (input->default_controller, button, TRUE);
-      valent_input_controller_pointer_button (input->default_controller, button, FALSE);
+      valent_input_adapter_pointer_button (input->default_adapter,
+                                           button,
+                                           TRUE);
+      valent_input_adapter_pointer_button (input->default_adapter,
+                                           button,
+                                           FALSE);
     }
   else
-    g_debug ("[%s] No input controller available", G_STRFUNC);
+    g_debug ("[%s] No input adapter available", G_STRFUNC);
 }
 
 /**
@@ -253,7 +262,8 @@ valent_input_pointer_click (ValentInput         *input,
  * @dx: relate movement on x-axis
  * @dy: relate movement on y-axis
  *
- * Simulate pointer movement (@dx, @dy). Implementations handle any necessary scaling.
+ * Simulate pointer movement (@dx, @dy). Implementations handle any necessary
+ * scaling.
  */
 void
 valent_input_pointer_motion (ValentInput *input,
@@ -262,10 +272,10 @@ valent_input_pointer_motion (ValentInput *input,
 {
   g_return_if_fail (VALENT_IS_INPUT (input));
 
-  if G_LIKELY (input->default_controller != NULL)
-    valent_input_controller_pointer_motion (input->default_controller, dx, dy);
+  if G_LIKELY (input->default_adapter != NULL)
+    valent_input_adapter_pointer_motion (input->default_adapter, dx, dy);
   else
-    g_debug ("[%s] No input controller available", G_STRFUNC);
+    g_debug ("[%s] No input adapter available", G_STRFUNC);
 }
 
 /**
@@ -274,7 +284,8 @@ valent_input_pointer_motion (ValentInput *input,
  * @x: position on x-axis
  * @y: position on y-axis
  *
- * Simulate absolute pointer movement (@x, @y). Implementations handle any necessary scaling.
+ * Simulate absolute pointer movement (@x, @y). Implementations handle any
+ * necessary scaling.
  */
 void
 valent_input_pointer_position (ValentInput *input,
@@ -283,9 +294,9 @@ valent_input_pointer_position (ValentInput *input,
 {
   g_return_if_fail (VALENT_IS_INPUT (input));
 
-  if G_LIKELY (input->default_controller != NULL)
-    valent_input_controller_pointer_position (input->default_controller, x, y);
+  if G_LIKELY (input->default_adapter != NULL)
+    valent_input_adapter_pointer_position (input->default_adapter, x, y);
   else
-    g_debug ("[%s] No input controller available", G_STRFUNC);
+    g_debug ("[%s] No input adapter available", G_STRFUNC);
 }
 

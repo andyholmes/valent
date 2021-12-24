@@ -11,5 +11,5 @@ Embedded=valent_xdp_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
-X-InputControllerPriority=100
+X-InputAdapterPriority=100
 

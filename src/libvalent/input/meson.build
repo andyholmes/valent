@@ -12,7 +12,7 @@ libvalent_input_generated_sources = []
 libvalent_input_public_headers = [
   'libvalent-input.h',
   'valent-input.h',
-  'valent-input-controller.h',
+  'valent-input-adapter.h',
   'valent-input-keydef.h',
 ]
 
@@ -31,7 +31,7 @@ install_headers(libvalent_input_public_headers,
 # Sources
 libvalent_input_public_sources = [
   'valent-input.c',
-  'valent-input-controller.c',
+  'valent-input-adapter.c',
 ]
 
 

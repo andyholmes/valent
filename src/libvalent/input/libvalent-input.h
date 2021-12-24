@@ -6,7 +6,7 @@
 #define VALENT_INPUT_INSIDE
 
 #include "valent-input.h"
-#include "valent-input-controller.h"
+#include "valent-input-adapter.h"
 
 #undef VALENT_INPUT_INSIDE
 

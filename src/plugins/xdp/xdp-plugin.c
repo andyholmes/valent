@@ -18,7 +18,7 @@ valent_xdp_plugin_register_types (PeasObjectModule *module)
     return;
 
   peas_object_module_register_extension_type (module,
-                                              VALENT_TYPE_INPUT_CONTROLLER,
+                                              VALENT_TYPE_INPUT_ADAPTER,
                                               VALENT_TYPE_XDP_INPUT);
 }
 
