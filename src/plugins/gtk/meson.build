@@ -6,7 +6,6 @@ plugin_gtk_deps = [
   libvalent_core_dep,
   libvalent_clipboard_dep,
   libvalent_notifications_dep,
-  libvalent_session_dep,
 
   gtk_dep,
 ]
@@ -16,7 +15,6 @@ plugin_gtk_sources = files([
   'gtk-plugin.c',
   'valent-gdk-clipboard.c',
   'valent-gtk-notifications.c',
-  'valent-gnome-session.c',
 ])
 
 plugin_gtk_include_directories = [include_directories('.')]
