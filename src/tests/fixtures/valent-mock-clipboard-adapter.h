@@ -12,9 +12,9 @@
 
 G_BEGIN_DECLS
 
-#define VALENT_TYPE_MOCK_CLIPBOARD_SOURCE (valent_mock_clipboard_source_get_type ())
+#define VALENT_TYPE_MOCK_CLIPBOARD_ADAPTER (valent_mock_clipboard_adapter_get_type ())
 
-G_DECLARE_FINAL_TYPE (ValentMockClipboardSource, valent_mock_clipboard_source, VALENT, MOCK_CLIPBOARD_SOURCE, ValentClipboardSource)
+G_DECLARE_FINAL_TYPE (ValentMockClipboardAdapter, valent_mock_clipboard_adapter, VALENT, MOCK_CLIPBOARD_ADAPTER, ValentClipboardAdapter)
 
 G_END_DECLS
 

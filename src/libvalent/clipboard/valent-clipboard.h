@@ -7,8 +7,6 @@
 # error "Only <libvalent-clipboard.h> can be included directly."
 #endif
 
-#include "valent-clipboard-source.h"
-
 #include <libvalent-core.h>
 
 G_BEGIN_DECLS

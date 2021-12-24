@@ -7,7 +7,7 @@
 
 #include "valent-mock-channel.h"
 #include "valent-mock-channel-service.h"
-#include "valent-mock-clipboard-source.h"
+#include "valent-mock-clipboard-adapter.h"
 #include "valent-mock-contact-store-provider.h"
 #include "valent-mock-device-gadget.h"
 #include "valent-mock-device-plugin.h"

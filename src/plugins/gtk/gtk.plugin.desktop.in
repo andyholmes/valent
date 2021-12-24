@@ -11,6 +11,6 @@ Embedded=valent_gtk_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
-X-ClipboardSourcePriority=100
+X-ClipboardAdapterPriority=100
 X-NotificationSourcePriority=100
 

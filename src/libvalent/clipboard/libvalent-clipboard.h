@@ -6,7 +6,7 @@
 #define VALENT_CLIPBOARD_INSIDE
 
 #include "valent-clipboard.h"
-#include "valent-clipboard-source.h"
+#include "valent-clipboard-adapter.h"
 
 #undef VALENT_CLIPBOARD_INSIDE
 

@@ -30,20 +30,20 @@ clipboard_component_fixture_tear_down (ClipboardComponentFixture *fixture,
 }
 
 static void
-on_changed (ValentClipboardSource     *source,
+on_changed (ValentClipboardAdapter    *adapter,
             ClipboardComponentFixture *fixture)
 {
-  fixture->data = source;
+  fixture->data = adapter;
 }
 
 static void
-source_get_text_cb (ValentClipboardSource     *source,
-                    GAsyncResult              *result,
-                    ClipboardComponentFixture *fixture)
+adapter_get_text_cb (ValentClipboardAdapter    *adapter,
+                     GAsyncResult              *result,
+                     ClipboardComponentFixture *fixture)
 {
   GError *error = NULL;
 
-  fixture->data = valent_clipboard_source_get_text_finish (source, result, &error);
+  fixture->data = valent_clipboard_adapter_get_text_finish (adapter, result, &error);
   g_assert_no_error (error);
   g_main_loop_quit (fixture->loop);
 }
@@ -62,10 +62,10 @@ get_text_cb (ValentClipboard           *clipboard,
 
 static void
 test_clipboard_component_provider (ClipboardComponentFixture *fixture,
-                               gconstpointer          user_data)
+                                   gconstpointer              user_data)
 {
   g_autoptr (GPtrArray) extensions = NULL;
-  ValentClipboardSource *provider;
+  ValentClipboardAdapter *provider;
   g_autofree char *text = NULL;
   PeasPluginInfo *info;
 
@@ -89,7 +89,7 @@ test_clipboard_component_provider (ClipboardComponentFixture *fixture,
                     G_CALLBACK (on_changed),
                     fixture);
 
-  valent_clipboard_source_emit_changed (provider);
+  valent_clipboard_adapter_emit_changed (provider);
   g_assert_true (fixture->data == provider);
   fixture->data = NULL;
 
@@ -97,10 +97,10 @@ test_clipboard_component_provider (ClipboardComponentFixture *fixture,
   text = g_uuid_string_random ();
   valent_clipboard_set_text (fixture->clipboard, text);
 
-  valent_clipboard_source_get_text_async (provider,
-                                          NULL,
-                                          (GAsyncReadyCallback)source_get_text_cb,
-                                          fixture);
+  valent_clipboard_adapter_get_text_async (provider,
+                                           NULL,
+                                           (GAsyncReadyCallback)adapter_get_text_cb,
+                                           fixture);
   g_main_loop_run (fixture->loop);
 
   g_assert_cmpstr (fixture->data, ==, text);
