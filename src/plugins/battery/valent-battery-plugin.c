@@ -73,9 +73,9 @@ valent_battery_plugin_update_estimate (ValentBatteryPlugin *self)
   g_autoptr (GDateTime) now = NULL;
   g_autoptr (GVariant) cache = NULL;
   GVariant *new_state;
-  gint new_rate, new_time, new_level;
-  gint rate, time, level;
-  gint level_delta, time_delta;
+  int new_rate, new_time, new_level;
+  int rate, time, level;
+  int level_delta, time_delta;
 
   now = g_date_time_new_now_local ();
   new_time = floor (g_date_time_to_unix (now) / 1000);

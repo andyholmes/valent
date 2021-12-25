@@ -351,7 +351,7 @@ upload_files (ValentSharePlugin *self,
  */
 static void
 share_response (GtkNativeDialog *dialog,
-                gint             response_id,
+                int              response_id,
                 gpointer         user_data)
 {
   ValentSharePlugin *self = VALENT_SHARE_PLUGIN (user_data);

@@ -373,7 +373,7 @@ valent_mixer_control_emit_stream_added (ValentMixerControl *control,
                                         ValentMixerStream  *stream)
 {
   ValentMixerStreamFlags flags;
-  guint detail = 0;
+  unsigned int detail = 0;
 
   g_return_if_fail (VALENT_IS_MIXER_CONTROL (control));
   g_return_if_fail (VALENT_IS_MIXER_STREAM (stream));
@@ -402,7 +402,7 @@ valent_mixer_control_emit_stream_changed (ValentMixerControl *control,
                                           ValentMixerStream  *stream)
 {
   ValentMixerStreamFlags flags;
-  guint detail = 0;
+  unsigned int detail = 0;
 
   g_return_if_fail (VALENT_IS_MIXER_CONTROL (control));
   g_return_if_fail (VALENT_IS_MIXER_STREAM (stream));
@@ -431,7 +431,7 @@ valent_mixer_control_emit_stream_removed (ValentMixerControl *control,
                                           ValentMixerStream  *stream)
 {
   ValentMixerStreamFlags flags;
-  guint detail = 0;
+  unsigned int detail = 0;
 
   g_return_if_fail (VALENT_IS_MIXER_CONTROL (control));
   g_return_if_fail (VALENT_IS_MIXER_STREAM (stream));

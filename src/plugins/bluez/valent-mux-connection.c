@@ -30,7 +30,7 @@ struct _ValentMuxConnection
   guint16        buffer_size;
   GCancellable  *cancellable;
 
-  guint          protocol_version;
+  unsigned int   protocol_version;
 
   GHashTable    *states;
   GRWLock        states_lock;

@@ -148,7 +148,7 @@ test_mousepad_plugin_send_keyboard_request (ValentTestPluginFixture *fixture,
   g_assert_true (g_action_group_get_action_enabled (actions, "mousepad-event"));
 
   /* Send unicode keysym */
-  guint keysym, mask;
+  unsigned int keysym, mask;
   gunichar *w;
 
   /* Send keysym with modifiers */

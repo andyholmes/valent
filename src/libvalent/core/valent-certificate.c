@@ -59,7 +59,7 @@ valent_certificate_generate (const char  *key_path,
   gnutls_x509_crt_t crt = NULL;
   gnutls_datum_t out;
   time_t timestamp;
-  guint serial;
+  unsigned int serial;
   int rc;
   gboolean ret = FALSE;
 

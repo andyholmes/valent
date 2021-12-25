@@ -188,8 +188,8 @@ get_largest_icon_file (GIcon *icon)
 
 static void
 on_size_prepared (GdkPixbufLoader *loader,
-                  gint             width,
-                  gint             height,
+                  int              width,
+                  int              height,
                   gpointer         user_data)
 {
   GdkPixbufFormat *format = gdk_pixbuf_loader_get_format (loader);

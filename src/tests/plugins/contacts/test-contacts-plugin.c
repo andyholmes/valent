@@ -7,7 +7,7 @@
 #include <libvalent-test.h>
 
 
-static guint n_contacts = 0;
+static unsigned int n_contacts = 0;
 
 static void
 on_contact_added (ValentContactStore      *store,

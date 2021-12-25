@@ -87,8 +87,8 @@ get_last_update_time (GtkGesture       *gesture,
  */
 static gboolean
 on_key_pressed (GtkEventControllerKey *controller,
-                guint                  keyval,
-                guint                  keycode,
+                unsigned int           keyval,
+                unsigned int           keycode,
                 GdkModifierType        state,
                 ValentMousepadDialog  *self)
 {
@@ -173,7 +173,7 @@ on_key_pressed (GtkEventControllerKey *controller,
 static void
 move_cursor (ValentMousepadDialog *dialog,
              GtkMovementStep       step,
-             gint                  count)
+             int                   count)
 {
   g_signal_emit_by_name (dialog->editor, "move-cursor", step, count, FALSE);
 }
@@ -748,7 +748,7 @@ valent_mousepad_dialog_echo_key (ValentMousepadDialog *dialog,
  */
 void
 valent_mousepad_dialog_echo_special (ValentMousepadDialog *dialog,
-                                     guint                 keyval,
+                                     unsigned int          keyval,
                                      GdkModifierType       mask)
 {
   GtkTextBuffer *buffer;

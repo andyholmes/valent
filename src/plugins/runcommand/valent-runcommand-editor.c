@@ -31,7 +31,7 @@ G_DEFINE_TYPE (ValentRuncommandEditor, valent_runcommand_editor, GTK_TYPE_DIALOG
  */
 static void
 on_browse_response (GtkDialog              *dialog,
-                    gint                    response_id,
+                    int                     response_id,
                     ValentRuncommandEditor *editor)
 {
   if (response_id == GTK_RESPONSE_ACCEPT)

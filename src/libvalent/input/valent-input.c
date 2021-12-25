@@ -154,9 +154,9 @@ valent_input_keyboard_action (ValentInput     *input,
  * Simulate a keysym event for @keysym using the default #ValentInputAdapter.
  */
 void
-valent_input_keyboard_keysym (ValentInput *input,
-                              guint        keysym,
-                              gboolean     state)
+valent_input_keyboard_keysym (ValentInput  *input,
+                              unsigned int  keysym,
+                              gboolean      state)
 {
   g_return_if_fail (VALENT_IS_INPUT (input));
 

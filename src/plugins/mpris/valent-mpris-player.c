@@ -101,7 +101,7 @@ on_player_properties_changed (GDBusProxy        *proxy,
   g_object_freeze_notify (G_OBJECT (player));
   g_variant_dict_init (&dict, changed_properties);
 
-  for (guint i = 0; i < G_N_ELEMENTS (player_properties); i++)
+  for (unsigned int i = 0; i < G_N_ELEMENTS (player_properties); i++)
     {
       if (g_variant_dict_contains (&dict, player_properties[i].dbus))
         g_object_notify (G_OBJECT (player), player_properties[i].name);
@@ -204,7 +204,7 @@ valent_mpris_player_init_application_cb (GObject      *object,
 
 static void
 valent_mpris_player_init_async (GAsyncInitable      *initable,
-                                gint                 io_priority,
+                                int                  io_priority,
                                 GCancellable        *cancellable,
                                 GAsyncReadyCallback  callback,
                                 gpointer             user_data)

@@ -28,7 +28,7 @@ ValentChannel       * valent_mux_connection_handshake_finish   (ValentMuxConnect
 gboolean            valent_mux_connection_close                (ValentMuxConnection  *connection,
                                                                 GCancellable         *cancellable,
                                                                 GError              **error);
-guint               valent_mux_connection_get_protocol_version (ValentMuxConnection  *connection);
+unsigned int        valent_mux_connection_get_protocol_version (ValentMuxConnection  *connection);
 
 gssize              valent_mux_connection_read                 (ValentMuxConnection  *connection,
                                                                 const char           *uuid,

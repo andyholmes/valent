@@ -15,8 +15,8 @@ test_utils_packet_builder (void)
   packet = valent_packet_finish (builder);
 }
 
-gint
-main (gint   argc,
+int
+main (int   argc,
       char *argv[])
 {
   g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);

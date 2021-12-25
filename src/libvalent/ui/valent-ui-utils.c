@@ -97,7 +97,7 @@ valent_ui_timestamp (gint64 timestamp)
   if (diff < G_TIME_SPAN_DAY)
     {
       g_autofree char *time_str = NULL;
-      gint today, day;
+      int today, day;
 
       today = g_date_time_get_day_of_month(now);
       day = g_date_time_get_day_of_month(dt);

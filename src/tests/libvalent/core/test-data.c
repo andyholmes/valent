@@ -87,8 +87,8 @@ test_data_directories (DataFixture   *fixture,
   g_assert_true (g_file_test (data_path, G_FILE_TEST_IS_DIR));
 }
 
-gint
-main (gint   argc,
+int
+main (int   argc,
       char *argv[])
 {
   g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
