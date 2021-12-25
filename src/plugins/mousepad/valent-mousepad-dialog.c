@@ -354,7 +354,7 @@ on_double_update (GtkGesture           *gesture,
   self->last_x = x;
   self->last_y = y;
 
-  valent_mousepad_dialog_pointer_axis (self, 0.0, round (dy));
+  valent_mousepad_dialog_pointer_axis (self, round (dx), round (dy));
 }
 
 static void
@@ -388,6 +388,9 @@ valent_mousepad_dialog_pointer_axis (ValentMousepadDialog *self,
 {
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
+
+  /* NOTE: We only support the Y-axis */
+  dx = 0.0;
 
   builder = valent_packet_start ("kdeconnect.mousepad.request");
   json_builder_set_member_name (builder, "dx");

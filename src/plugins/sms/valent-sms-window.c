@@ -281,12 +281,9 @@ on_contact_selected (GtkListBox      *box,
                      GtkListBoxRow   *row,
                      ValentSmsWindow *self)
 {
-  EContact *contact;
   const char *number;
 
-  contact = valent_contact_row_get_contact (VALENT_CONTACT_ROW (row));
   number = valent_contact_row_get_number (VALENT_CONTACT_ROW (row));
-
   g_debug ("NUMBER SELECTED: %s", number);
 }
 

@@ -54,11 +54,12 @@ valent_mock_channel_download (ValentChannel  *channel,
                               GError        **error)
 {
   ValentMockChannel *self = VALENT_MOCK_CHANNEL (channel);
+  g_autoptr (GSocketClient) client = NULL;
+  g_autoptr (GSocketConnection) connection = NULL;
+  g_autoptr (GIOStream) stream = NULL;
   JsonObject *info;
   guint16 port;
   gssize size;
-  g_autoptr (GSocketClient) client = NULL;
-  g_autoptr (GSocketConnection) connection = NULL;
 
   g_assert (VALENT_IS_CHANNEL (channel));
   g_assert (VALENT_IS_PACKET (packet));
@@ -88,10 +89,13 @@ valent_mock_channel_download (ValentChannel  *channel,
                                                 cancellable,
                                                 error);
 
-  if (connection == NULL)
-    return NULL;
+  if (connection != NULL)
+    {
+      stream = G_IO_STREAM (connection);
+      connection = NULL;
+    }
 
-  return g_steal_pointer ((GIOStream **)&connection);
+  return g_steal_pointer (&stream);
 }
 
 static GIOStream *
@@ -103,6 +107,7 @@ valent_mock_channel_upload (ValentChannel  *channel,
   JsonObject *info;
   g_autoptr (GSocketListener) listener = NULL;
   g_autoptr (GSocketConnection) connection = NULL;
+  g_autoptr (GIOStream) stream = NULL;
   guint16 port;
 
   g_assert (VALENT_IS_CHANNEL (channel));
@@ -138,10 +143,13 @@ valent_mock_channel_upload (ValentChannel  *channel,
   /* Wait for connection (accept) */
   connection = g_socket_listener_accept (listener, NULL, cancellable, error);
 
-  if (connection == NULL)
-    return NULL;
+  if (connection != NULL)
+    {
+      stream = G_IO_STREAM (connection);
+      connection = NULL;
+    }
 
-  return g_steal_pointer ((GIOStream **)&connection);
+  return g_steal_pointer (&stream);
 }
 
 /*

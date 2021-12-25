@@ -210,7 +210,6 @@ handle_mousepad_keyboardstate (ValentMousepadPlugin *self,
                                JsonNode             *packet)
 {
   JsonObject *body;
-  gint64 id;
   gboolean state;
 
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
