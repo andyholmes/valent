@@ -46,7 +46,7 @@ create_socket (DeviceFixture *fixture,
   g_autoptr (GSocketClient) client = NULL;
   g_autoptr (GSocketAddress) addr = NULL;
   g_autoptr (GSocketConnection) conn = NULL;
-  guint port = 2716;
+  guint16 port = 2716;
 
   listener = g_socket_listener_new ();
 

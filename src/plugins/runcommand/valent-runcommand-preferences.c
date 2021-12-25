@@ -62,7 +62,7 @@ enum {
  */
 static void
 edit_command_response (GtkDialog                   *dialog,
-                       gint                         response_id,
+                       int                          response_id,
                        ValentRuncommandPreferences *self)
 {
   ValentRuncommandEditor *editor = VALENT_RUNCOMMAND_EDITOR (dialog);
@@ -331,7 +331,7 @@ populate_commands (ValentRuncommandPreferences *self)
     }
 }
 
-static gint
+static int
 sort_commands  (GtkListBoxRow *row1,
                 GtkListBoxRow *row2,
                 gpointer       user_data)

@@ -49,7 +49,7 @@ on_action_state_changed (GActionGroup        *group,
 {
   gboolean charging;
   const char *icon_name;
-  gint level;
+  int level;
 
   g_autofree char *label = NULL;
   gboolean connected;
@@ -75,7 +75,7 @@ on_action_state_changed (GActionGroup        *group,
     }
   else
     {
-      guint total_minutes;
+      unsigned int total_minutes;
 
       total_minutes = round (time / 60);
       minutes = floor (total_minutes % 60);

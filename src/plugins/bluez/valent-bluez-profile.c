@@ -69,7 +69,7 @@ static const char interface_xml[] =
 static void
 valent_bluez_profile_new_connection (ValentBluezProfile *profile,
                                      const char         *device,
-                                     gint                fd,
+                                     int                 fd,
                                      GVariant           *fd_properties)
 {
   g_autoptr (GError) error = NULL;
@@ -175,7 +175,7 @@ valent_bluez_profile_method_call (GDBusConnection       *connection     G_GNUC_U
       gint32 fd_idx;
       GDBusMessage *message;
       GUnixFDList *fd_list;
-      gint fd;
+      int fd;
       g_autoptr (GVariant) fd_props = NULL;
 
       if (!g_variant_is_of_type (parameters, G_VARIANT_TYPE ("(oha{sv})")))

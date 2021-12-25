@@ -155,7 +155,7 @@ peek_host (GSocket       *socket,
   g_autofree GInputVector iv;
   iv.buffer = NULL;
   iv.size = 0;
-  gint flags = G_SOCKET_MSG_PEEK;
+  int flags = G_SOCKET_MSG_PEEK;
   gssize len;
 
   g_assert (G_IS_SOCKET (socket));

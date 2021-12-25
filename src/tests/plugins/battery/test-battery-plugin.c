@@ -88,7 +88,7 @@ test_battery_plugin_handle_update (ValentTestPluginFixture *fixture,
   JsonNode *packet;
   GActionGroup *actions;
   GVariant *state;
-  gint level, charging, time;
+  int level, charging, time;
   const char *icon_name;
 
   /* Get the stateful actions */

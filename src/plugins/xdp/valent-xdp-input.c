@@ -67,7 +67,7 @@ on_session_expired (gpointer user_data)
 {
   ValentXdpInput *self = VALENT_XDP_INPUT (user_data);
   g_autoptr (GDateTime) now = NULL;
-  gint remainder;
+  int remainder;
 
   /* If the session has been used recently, schedule a new expiry */
   now = g_date_time_new_now_local ();
@@ -221,7 +221,7 @@ valent_xdp_input_keyboard_keysym (ValentInputAdapter *adapter,
   xdp_session_keyboard_key (self->session, TRUE, keysym, state);
 }
 
-static gint
+static int
 translate_pointer_button (ValentPointerButton button)
 {
   switch (button)

@@ -35,7 +35,7 @@ G_DEFINE_TYPE (ValentPaMixer, valent_pa_mixer, VALENT_TYPE_MIXER_CONTROL)
  */
 static void
 on_default_sink_changed (GvcMixerControl *control,
-                         guint            id,
+                         unsigned int     id,
                          ValentPaMixer   *self)
 {
   g_assert (VALENT_IS_PA_MIXER (self));
@@ -45,7 +45,7 @@ on_default_sink_changed (GvcMixerControl *control,
 
 static void
 on_default_source_changed (GvcMixerControl *control,
-                           guint            id,
+                           unsigned int     id,
                            ValentPaMixer   *self)
 {
   g_assert (VALENT_IS_PA_MIXER (self));

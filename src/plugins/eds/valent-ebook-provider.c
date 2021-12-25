@@ -133,7 +133,7 @@ load_task (GTask        *task,
 
   /* g_autoptr (GPtrArray) stores = valent_contacts_get_stores (valent_contacts_get_default ()); */
 
-  /* for (guint i = 0; i < stores->len; i++) */
+  /* for (unsigned int i = 0; i < stores->len; i++) */
   /*   { */
   /*     ValentContactStore *store = g_ptr_array_index (stores, i); */
   /*     g_autoptr (ESource) source = NULL; */

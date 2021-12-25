@@ -179,7 +179,7 @@ valent_device_disable_plugin (ValentDevice *device,
                               DevicePlugin *plugin)
 {
   g_auto (GStrv) incoming = NULL;
-  gint i, len;
+  unsigned int len;
 
   g_assert (VALENT_IS_DEVICE (device));
   g_assert (plugin != NULL);
@@ -188,7 +188,7 @@ valent_device_disable_plugin (ValentDevice *device,
   incoming = valent_device_plugin_get_incoming (plugin->info);
   len = incoming ? g_strv_length (incoming) : 0;
 
-  for (i = 0; i < len; i++)
+  for (unsigned int i = 0; i < len; i++)
     g_hash_table_remove (device->handlers, incoming[i]);
 
   /* Invoke the plugin vfunc */

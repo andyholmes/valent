@@ -53,7 +53,7 @@ get_mute_volume_boolean (GValue   *value,
                          GVariant *variant,
                          gpointer  user_data)
 {
-  gint volume;
+  int volume;
 
   volume = g_variant_get_int32 (variant);
 
@@ -86,7 +86,7 @@ get_volume (GValue   *value,
             GVariant *variant,
             gpointer  user_data)
 {
-  gint volume;
+  int volume;
   guint selected;
 
   volume = g_variant_get_int32 (variant);

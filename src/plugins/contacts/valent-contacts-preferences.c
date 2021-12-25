@@ -206,7 +206,7 @@ valent_contacts_preferences_constructed (GObject *object)
   contacts = valent_contacts_get_default ();
   stores = valent_contacts_get_stores (contacts);
 
-  for (guint i = 0; i < stores->len; i++)
+  for (unsigned int i = 0; i < stores->len; i++)
     on_store_added (contacts, g_ptr_array_index (stores, i), self);
 
   g_signal_connect (contacts,

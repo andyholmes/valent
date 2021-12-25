@@ -36,7 +36,7 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 static void
 valent_menu_list_add_row (ValentMenuList *self,
-                          gint            index)
+                          int             index)
 {
   GtkWidget *row;
   GtkGrid *grid;
@@ -119,7 +119,7 @@ valent_menu_list_add_row (ValentMenuList *self,
 
 static void
 valent_menu_list_add_section (ValentMenuList *self,
-                              gint            index,
+                              int             index,
                               GMenuModel     *model)
 {
   GtkListBoxRow *row;
@@ -141,7 +141,7 @@ valent_menu_list_add_section (ValentMenuList *self,
 
 static void
 valent_menu_list_add_submenu (ValentMenuList *self,
-                              gint            index,
+                              int             index,
                               GMenuModel     *model)
 {
   GtkWidget *stack;
@@ -180,7 +180,7 @@ valent_menu_list_add_submenu (ValentMenuList *self,
 
 static void
 valent_menu_list_add (ValentMenuList *self,
-                      gint            index)
+                      int             index)
 {
   g_autoptr (GMenuLinkIter) iter = NULL;
   const char *link_name;
@@ -205,7 +205,7 @@ valent_menu_list_add (ValentMenuList *self,
 
 static void
 valent_menu_list_remove (ValentMenuList *self,
-                         gint            index)
+                         int             index)
 {
   GtkListBoxRow *row;
 
@@ -217,13 +217,11 @@ valent_menu_list_remove (ValentMenuList *self,
 
 static void
 on_items_changed (GMenuModel     *model,
-                  gint            position,
-                  gint            removed,
-                  gint            added,
+                  int             position,
+                  int             removed,
+                  int             added,
                   ValentMenuList *self)
 {
-  gint i, index;
-
   g_assert (G_IS_MENU_MODEL (model));
   g_assert (VALENT_IS_MENU_LIST (self));
 
@@ -235,8 +233,10 @@ on_items_changed (GMenuModel     *model,
     }
 
   // Add items
-  for (i = 0; i < added; i++)
+  for (int i = 0; i < added; i++)
     {
+      int index;
+
       index = i + position;
       valent_menu_list_add (self, index);
     }
@@ -446,7 +446,7 @@ void
 valent_menu_list_set_model (ValentMenuList *list,
                             GMenuModel     *model)
 {
-  guint n_items;
+  unsigned int n_items;
 
   g_return_if_fail (VALENT_IS_MENU_LIST (list));
   g_return_if_fail (model == NULL || G_IS_MENU_MODEL (model));
