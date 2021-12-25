@@ -98,7 +98,7 @@ valent_gdk_clipboard_get_timestamp (ValentClipboardAdapter *adapter)
   g_assert (VALENT_IS_GDK_CLIPBOARD (self));
   g_assert (GDK_IS_CLIPBOARD (self->clipboard));
 
-  return 0;
+  return self->timestamp;
 }
 
 
@@ -178,6 +178,7 @@ valent_gdk_clipboard_class_init (ValentGdkClipboardClass *klass)
 
   clipboard_class->get_text_async = valent_gdk_clipboard_get_text_async;
   clipboard_class->set_text = valent_gdk_clipboard_set_text;
+  clipboard_class->get_timestamp = valent_gdk_clipboard_get_timestamp;
 }
 
 static void
