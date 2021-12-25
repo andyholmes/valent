@@ -187,7 +187,6 @@ static void
 valent_manager_export_device (ValentManager *manager,
                               ValentDevice  *device)
 {
-  g_autoptr (GDBusConnection) connection = NULL;
   g_autoptr (GDBusObjectSkeleton) object = NULL;
   g_autoptr (GDBusInterfaceSkeleton) iface = NULL;
   ExportedDevice *info;
