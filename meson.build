@@ -203,10 +203,7 @@ project_c_args = [
   '-Wno-error=cast-function-type',
   # TODO: These should be fixed instead of downgraded to warnings
   '-Wno-error=shadow',
-  '-Wno-error=strict-aliasing',
   '-Wno-error=unused-function',
-  '-Wno-error=unused-but-set-variable',
-  '-Wno-error=unused-variable',
 ]
 project_link_args = [
   '-Wl,-z,relro',

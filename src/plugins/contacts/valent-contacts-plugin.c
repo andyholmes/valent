@@ -180,14 +180,15 @@ query_cb (ValentContactStore   *store,
   for (const GSList *iter = contacts; iter; iter = iter->next)
     {
       const char *uid;
-      const char *rev;
+      gint64 timestamp = 0;
 
       uid = e_contact_get_const (iter->data, E_CONTACT_UID);
       json_builder_set_member_name (builder, uid);
 
-      // FIXME: X-KDECONNECT-TIMESTAMP <=> E_CONTACT_REV
-      rev = e_contact_get_const (iter->data, E_CONTACT_REV);
-      json_builder_add_int_value (builder, 0);
+      // TODO: We probably need to convert between the custom field
+      // `X-KDECONNECT-TIMESTAMP` and `E_CONTACT_REV` to set a proper timestamp
+      timestamp = 0;
+      json_builder_add_int_value (builder, timestamp);
     }
 
   response = valent_packet_finish (builder);
