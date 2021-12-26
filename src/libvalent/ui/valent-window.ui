@@ -167,7 +167,7 @@
                 </child>
                 <child>
                   <object class="ValentPluginGroup" id="clipboard_section">
-                    <property name="title" translatable="yes">Clipboard Sources</property>
+                    <property name="title" translatable="yes">Clipboard Adapters</property>
                     <property name="plugin-context">clipboard</property>
                     <property name="plugin-type">ValentClipboardAdapter</property>
                   </object>

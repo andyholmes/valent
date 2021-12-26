@@ -6,7 +6,6 @@ data/gsettings/ca.andyholmes.valent.gschema.xml
 data/gsettings/ca.andyholmes.valent.plugin.gschema.xml
 data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in
 data/ca.andyholmes.Valent.desktop.in.in
-src/libvalent/contacts/valent-contact-utils.c
 src/libvalent/core/valent-device.c
 src/libvalent/ui/valent-device-panel.ui
 src/libvalent/ui/valent-menu-list.c
