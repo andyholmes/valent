@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2021-12-06 21:48-0800\n"
+"POT-Creation-Date: 2021-12-26 14:54-0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -117,15 +117,6 @@ msgstr ""
 msgid "Andy Holmes"
 msgstr ""
 
-#: data/ca.andyholmes.Valent.desktop.in.in:21
-#: src/libvalent/ui/valent-device-panel.ui:28
-msgid "Preferences"
-msgstr ""
-
-#: src/libvalent/contacts/valent-contact-utils.c:47
-msgid "Address Book"
-msgstr ""
-
 #: src/libvalent/core/valent-device.c:304
 #, c-format
 msgid "Pairing request from %s"
@@ -141,20 +132,14 @@ msgstr ""
 msgid "Accept"
 msgstr ""
 
-#: src/libvalent/core/valent-device.c:1106
-#, c-format
-msgid "%s is disconnected"
-msgstr ""
-
-#: src/libvalent/core/valent-device.c:1115
-#, c-format
-msgid "%s is unpaired"
-msgstr ""
-
 #: src/libvalent/ui/valent-device-panel.ui:19
 #: src/libvalent/ui/valent-menu-list.c:540
 #: src/libvalent/ui/valent-window.ui:118
 msgid "Previous"
+msgstr ""
+
+#: src/libvalent/ui/valent-device-panel.ui:28
+msgid "Preferences"
 msgstr ""
 
 #: src/libvalent/ui/valent-device-panel.ui:90
@@ -270,7 +255,7 @@ msgid "Networking"
 msgstr ""
 
 #: src/libvalent/ui/valent-window.ui:170
-msgid "Clipboard Sources"
+msgid "Clipboard Adapters"
 msgstr ""
 
 #: src/libvalent/ui/valent-window.ui:177
@@ -278,7 +263,7 @@ msgid "Contact Providers"
 msgstr ""
 
 #: src/libvalent/ui/valent-window.ui:184
-msgid "Input Controllers"
+msgid "Input Adapters"
 msgstr ""
 
 #: src/libvalent/ui/valent-window.ui:191
@@ -532,16 +517,16 @@ msgstr ""
 msgid "Ring"
 msgstr ""
 
-#: src/plugins/findmyphone/valent-findmyphone-ringer.c:219
+#: src/plugins/findmyphone/valent-findmyphone-ringer.c:191
 msgid "Found"
 msgstr ""
 
 #: src/plugins/gtk/gtk.plugin.desktop.in:7
-msgid "Gtk"
+msgid "GTK"
 msgstr ""
 
 #: src/plugins/gtk/gtk.plugin.desktop.in:8
-msgid "Integration with Gtk4"
+msgid "Integration with GTK4"
 msgstr ""
 
 #: src/plugins/lan/lan.plugin.desktop.in:7
@@ -569,7 +554,7 @@ msgid "Control the mouse and keyboard"
 msgstr ""
 
 #: src/plugins/mousepad/valent-mousepad-dialog.ui:18
-#: src/plugins/mousepad/valent-mousepad-plugin.c:453
+#: src/plugins/mousepad/valent-mousepad-plugin.c:452
 msgid "Remote Input"
 msgstr ""
 
@@ -922,14 +907,14 @@ msgid "Other"
 msgstr ""
 
 #: src/plugins/sms/valent-sms-conversation.c:820
-#: src/plugins/sms/valent-sms-window.c:617
+#: src/plugins/sms/valent-sms-window.c:614
 msgid "New Conversation"
 msgstr ""
 
-#: src/plugins/sms/valent-sms-conversation.c:838
+#: src/plugins/sms/valent-sms-conversation.c:837
 #, c-format
-msgid "One other contact"
-msgid_plural "%s others"
+msgid "%u other contact"
+msgid_plural "%u others"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -949,12 +934,12 @@ msgstr ""
 msgid "Conversations"
 msgstr ""
 
-#: src/plugins/sms/valent-sms-window.c:307
+#: src/plugins/sms/valent-sms-window.c:304
 #, c-format
 msgid "Send to %s"
 msgstr ""
 
-#: src/plugins/sms/valent-sms-window.c:644
+#: src/plugins/sms/valent-sms-window.c:641
 msgid "Search Messages"
 msgstr ""
 
@@ -1080,9 +1065,9 @@ msgid "Lower"
 msgstr ""
 
 #: src/plugins/xdp/xdp.plugin.desktop.in:7
-msgid "Portal"
+msgid "Portals"
 msgstr ""
 
 #: src/plugins/xdp/xdp.plugin.desktop.in:8
-msgid "xdp"
+msgid "Integration with XDG desktop portals"
 msgstr ""

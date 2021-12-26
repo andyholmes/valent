@@ -6,7 +6,6 @@
 #include "config.h"
 
 #include <glib.h>
-#include <glib/gi18n.h>
 
 #include "valent-contact-utils.h"
 #include "valent-eds.h"
@@ -26,7 +25,7 @@
 /**
  * valent_contacts_create_ebook_source:
  * @uid: a unique identifier
- * @name: (nullable): a display name
+ * @name: a display name
  * @error: (nullable): a #GError
  *
  * Create a new #ESource for @uid and @name.
@@ -41,10 +40,8 @@ valent_contacts_create_ebook_source (const char  *uid,
   g_autoptr (ESource) scratch = NULL;
   ESourceBackend *backend = NULL;
 
-  g_return_val_if_fail (uid != NULL, NULL);
-
-  if (!name)
-    name = _("Address Book");
+  g_return_val_if_fail (uid != NULL && *uid != '\0', NULL);
+  g_return_val_if_fail (name != NULL && *name != '\0', NULL);
 
   /* Create a scratch source for a local addressbook source */
   if ((scratch = e_source_new_with_uid (uid, NULL, error)) == NULL)

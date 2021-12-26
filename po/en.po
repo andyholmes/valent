@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2021-12-06 21:48-0800\n"
-"PO-Revision-Date: 2021-09-21 22:33-0700\n"
+"POT-Creation-Date: 2021-12-26 14:54-0800\n"
+"PO-Revision-Date: 2021-12-26 14:54-0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: en\n"
@@ -120,15 +120,6 @@ msgstr "Pair and connect your devices"
 msgid "Andy Holmes"
 msgstr "Andy Holmes"
 
-#: data/ca.andyholmes.Valent.desktop.in.in:21
-#: src/libvalent/ui/valent-device-panel.ui:28
-msgid "Preferences"
-msgstr "Preferences"
-
-#: src/libvalent/contacts/valent-contact-utils.c:47
-msgid "Address Book"
-msgstr "Address Book"
-
 #: src/libvalent/core/valent-device.c:304
 #, c-format
 msgid "Pairing request from %s"
@@ -144,21 +135,15 @@ msgstr "Reject"
 msgid "Accept"
 msgstr "Accept"
 
-#: src/libvalent/core/valent-device.c:1106
-#, c-format
-msgid "%s is disconnected"
-msgstr "%s is disconnected"
-
-#: src/libvalent/core/valent-device.c:1115
-#, c-format
-msgid "%s is unpaired"
-msgstr "%s is unpaired"
-
 #: src/libvalent/ui/valent-device-panel.ui:19
 #: src/libvalent/ui/valent-menu-list.c:540
 #: src/libvalent/ui/valent-window.ui:118
 msgid "Previous"
 msgstr "Previous"
+
+#: src/libvalent/ui/valent-device-panel.ui:28
+msgid "Preferences"
+msgstr "Preferences"
 
 #: src/libvalent/ui/valent-device-panel.ui:90
 msgid "Verification Key"
@@ -273,16 +258,16 @@ msgid "Networking"
 msgstr "Networking"
 
 #: src/libvalent/ui/valent-window.ui:170
-msgid "Clipboard Sources"
-msgstr "Clipboard Sources"
+msgid "Clipboard Adapters"
+msgstr "Clipboard Adapters"
 
 #: src/libvalent/ui/valent-window.ui:177
 msgid "Contact Providers"
 msgstr "Contact Providers"
 
 #: src/libvalent/ui/valent-window.ui:184
-msgid "Input Controllers"
-msgstr "Input Controllers"
+msgid "Input Adapters"
+msgstr "Input Adapters"
 
 #: src/libvalent/ui/valent-window.ui:191
 msgid "Media Player Providers"
@@ -535,17 +520,17 @@ msgstr "Find a device by making it ring"
 msgid "Ring"
 msgstr "Ring"
 
-#: src/plugins/findmyphone/valent-findmyphone-ringer.c:219
+#: src/plugins/findmyphone/valent-findmyphone-ringer.c:191
 msgid "Found"
 msgstr "Found"
 
 #: src/plugins/gtk/gtk.plugin.desktop.in:7
-msgid "Gtk"
-msgstr "Gtk"
+msgid "GTK"
+msgstr "GTK"
 
 #: src/plugins/gtk/gtk.plugin.desktop.in:8
-msgid "Integration with Gtk4"
-msgstr "Integration with Gtk4"
+msgid "Integration with GTK4"
+msgstr "Integration with GTK4"
 
 #: src/plugins/lan/lan.plugin.desktop.in:7
 msgid "LAN"
@@ -572,7 +557,7 @@ msgid "Control the mouse and keyboard"
 msgstr "Control the mouse and keyboard"
 
 #: src/plugins/mousepad/valent-mousepad-dialog.ui:18
-#: src/plugins/mousepad/valent-mousepad-plugin.c:453
+#: src/plugins/mousepad/valent-mousepad-plugin.c:452
 msgid "Remote Input"
 msgstr "Remote Input"
 
@@ -925,16 +910,16 @@ msgid "Other"
 msgstr "Other"
 
 #: src/plugins/sms/valent-sms-conversation.c:820
-#: src/plugins/sms/valent-sms-window.c:617
+#: src/plugins/sms/valent-sms-window.c:614
 msgid "New Conversation"
 msgstr "New Conversation"
 
-#: src/plugins/sms/valent-sms-conversation.c:838
+#: src/plugins/sms/valent-sms-conversation.c:837
 #, c-format
-msgid "One other contact"
-msgid_plural "%s others"
-msgstr[0] "One other contact"
-msgstr[1] "%s others"
+msgid "%u other contact"
+msgid_plural "%u others"
+msgstr[0] "%u other contact"
+msgstr[1] "%u others"
 
 #: src/plugins/sms/valent-sms-conversation.ui:66
 msgid "Send Message"
@@ -952,12 +937,12 @@ msgstr "Messaging"
 msgid "Conversations"
 msgstr "Conversations"
 
-#: src/plugins/sms/valent-sms-window.c:307
+#: src/plugins/sms/valent-sms-window.c:304
 #, c-format
 msgid "Send to %s"
 msgstr "Send to %s"
 
-#: src/plugins/sms/valent-sms-window.c:644
+#: src/plugins/sms/valent-sms-window.c:641
 msgid "Search Messages"
 msgstr "Search Messages"
 
@@ -1083,9 +1068,9 @@ msgid "Lower"
 msgstr "Lower"
 
 #: src/plugins/xdp/xdp.plugin.desktop.in:7
-msgid "Portal"
-msgstr "Portal"
+msgid "Portals"
+msgstr "Portals"
 
 #: src/plugins/xdp/xdp.plugin.desktop.in:8
-msgid "xdp"
-msgstr "xdp"
+msgid "Integration with XDG desktop portals"
+msgstr "Integration with XDG desktop portals"

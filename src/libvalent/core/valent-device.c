@@ -1103,7 +1103,7 @@ valent_device_send_packet (ValentDevice        *device,
                                     valent_device_send_packet,
                                     G_IO_ERROR,
                                     G_IO_ERROR_NOT_CONNECTED,
-                                    _("%s is disconnected"), device->name);
+                                    "%s is disconnected", device->name);
 
   if G_UNLIKELY (!device->paired)
     return g_task_report_new_error (device,
@@ -1112,7 +1112,7 @@ valent_device_send_packet (ValentDevice        *device,
                                     valent_device_send_packet,
                                     G_IO_ERROR,
                                     G_IO_ERROR_PERMISSION_DENIED,
-                                    _("%s is unpaired"), device->name);
+                                    "%s is unpaired", device->name);
 
   task = g_task_new (device, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_device_send_packet);
