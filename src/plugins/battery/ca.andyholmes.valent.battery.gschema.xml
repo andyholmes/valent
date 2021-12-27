@@ -17,7 +17,7 @@
       <default>(864, 0, -1)</default>
     </key>
     <key name="full-notification" type="b">
-      <default>true</default>
+      <default>false</default>
       <summary>Full Battery Notification</summary>
       <description>Show a notification when the battery is full</description>
     </key>
