@@ -19,24 +19,22 @@ plugin_runcommand_sources = files([
 plugin_runcommand_include_directories = [include_directories('.')]
 
 # Resources
-plugin_runcommand_info = i18n.merge_file('runcommand.plugin',
+plugin_runcommand_info = i18n.merge_file(
    input: 'runcommand.plugin.desktop.in',
   output: 'runcommand.plugin',
   po_dir: po_dir,
     type: 'desktop',
 )
 
-plugin_runcommand_resources = gnome.compile_resources(
-  'runcommand-resources',
-  'runcommand.gresource.xml',
+plugin_runcommand_resources = gnome.compile_resources('runcommand-resources',
+                                                      'runcommand.gresource.xml',
         c_name: 'runcommand',
   dependencies: [plugin_runcommand_info],
 )
 plugin_runcommand_sources += plugin_runcommand_resources
 
 # Settings
-install_data(
-  ['ca.andyholmes.valent.runcommand.gschema.xml'],
+install_data('ca.andyholmes.valent.runcommand.gschema.xml',
   install_dir: schemadir
 )
 

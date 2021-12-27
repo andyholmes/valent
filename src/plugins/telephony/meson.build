@@ -18,24 +18,22 @@ plugin_telephony_sources = files([
 plugin_telephony_include_directories = [include_directories('.')]
 
 # Resources
-plugin_telephony_info = i18n.merge_file('telephony.plugin',
+plugin_telephony_info = i18n.merge_file(
    input: 'telephony.plugin.desktop.in',
   output: 'telephony.plugin',
   po_dir: po_dir,
     type: 'desktop',
 )
 
-plugin_telephony_resources = gnome.compile_resources(
-  'telephony-resources',
-  'telephony.gresource.xml',
+plugin_telephony_resources = gnome.compile_resources('telephony-resources',
+                                                     'telephony.gresource.xml',
         c_name: 'telephony',
   dependencies: [plugin_telephony_info],
 )
 plugin_telephony_sources += plugin_telephony_resources
 
 # Settings
-install_data(
-  ['ca.andyholmes.valent.telephony.gschema.xml'],
+install_data('ca.andyholmes.valent.telephony.gschema.xml',
   install_dir: schemadir
 )
 

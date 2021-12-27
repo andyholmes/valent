@@ -87,16 +87,16 @@ if get_option('introspection')
   ]
 
   libvalent_gir = gnome.generate_gir(libvalent,
-    sources: libvalent_gir_sources,
-    namespace: 'Valent',
-    nsversion: valent_api_version,
-    symbol_prefix: meson.project_name(),
-    identifier_prefix: 'Valent',
-    includes: libvalent_gir_includes,
-    install: true,
-    install_dir_gir: girdir,
+                sources: libvalent_gir_sources,
+              namespace: 'Valent',
+              nsversion: valent_api_version,
+          symbol_prefix: meson.project_name(),
+      identifier_prefix: 'Valent',
+               includes: libvalent_gir_includes,
+                install: true,
+        install_dir_gir: girdir,
     install_dir_typelib: typelibdir,
-    extra_args: libvalent_gir_extra_args,
+             extra_args: libvalent_gir_extra_args,
   )
 endif
 

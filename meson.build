@@ -4,7 +4,7 @@
 project('valent', 'c',
           license: 'GPL-3.0-or-later',
           version: '0.1.0',
-    meson_version: '>= 0.53.0',
+    meson_version: '>= 0.56.0',
   default_options: [
     'buildtype=debugoptimized',
     'warning_level=2',
@@ -29,6 +29,7 @@ MICRO_VERSION = version_split[2].to_int()
 valent_api_version = '@0@'.format(MAJOR_VERSION)
 valent_api_name = 'valent-@0@'.format(valent_api_version)
 
+
 #
 # Build Profile
 #
@@ -37,11 +38,9 @@ profile = get_option('profile')
 if profile == 'devel'
   application_id = 'ca.andyholmes.Valent.Devel'
   application_path = '/ca/andyholmes/Valent/Devel'
-  profile_suffix = ' (Devel)'
 else
   application_id = 'ca.andyholmes.Valent'
   application_path = '/ca/andyholmes/Valent'
-  profile_suffix = ''
 endif
 
 
@@ -67,7 +66,7 @@ pkglibdir = join_paths(libdir, meson.project_name())
 pkglibexecdir = join_paths(libexecdir, meson.project_name())
 pkgpluginsdir = join_paths(pkglibdir, 'plugins')
 
-po_dir = join_paths(meson.source_root(), 'po')
+po_dir = join_paths(meson.current_source_dir(), 'po')
 
 
 #
@@ -75,13 +74,71 @@ po_dir = join_paths(meson.source_root(), 'po')
 #
 cc = meson.get_compiler('c')
 
+release_args = []
+project_c_args = [
+  '-Wformat=2',
+  '-Wincompatible-pointer-types',
+  '-Wint-conversion',
+  '-Wint-to-pointer-cast',
+  '-Wmissing-include-dirs',
+  '-Woverflow',
+  '-Wpointer-arith',
+  '-Wpointer-to-int-cast',
+  '-Wredundant-decls',
+  '-Wshadow',
+  '-Wstrict-prototypes',
+  '-Wundef',
+
+  '-Wno-discarded-array-qualifiers',
+  '-Wno-missing-field-initializers',
+  '-Wno-unused-parameter',
+
+  '-Wno-error=cast-function-type',
+  # TODO: These should be fixed instead of downgraded to warnings
+  '-Wno-error=shadow',
+  '-Wno-error=unused-function',
+]
+project_link_args = [
+  '-Wl,-z,relro',
+  '-Wl,-z,now',
+]
+
+# Clang doesn't consider cleanup functions as using a variable
+if cc.get_id() == 'clang'
+  project_c_args += ['-Wno-error=unused-but-set-variable']
+endif
+
+if get_option('buildtype') != 'plain'
+  project_c_args += ['-fstack-protector-strong']
+endif
+
+if get_option('debug')
+  project_c_args += ['-fno-omit-frame-pointer']
+endif
+
+if get_option('optimization') in ['2', '3', 's']
+  project_c_args += ['-DG_DISABLE_CAST_CHECKS']
+  project_link_args += ['-Wl,-Bsymbolic']
+
+  if not get_option('tests')
+    release_args += ['-DG_DISABLE_ASSERT']
+  endif
+endif
+
+add_project_arguments(cc.get_supported_arguments(project_c_args),
+  language: 'c',
+)
+
+add_project_link_arguments(cc.get_supported_link_arguments(project_link_args),
+  language: 'c',
+)
+
 
 #
 # config.h
 #
 config_h = configuration_data()
 config_h_inc = include_directories('.')
-
 config_h_defines = [
   # Desktop
   ['APPLICATION_ID', application_id],
@@ -104,7 +161,6 @@ config_h_defines = [
   ['PACKAGE_PLUGINSDIR', pkgpluginsdir],
 
   ['PROFILE_NAME', profile],
-  ['PROFILE_SUFFIX', profile_suffix],
 
   # i18n
   ['GETTEXT_PACKAGE', meson.project_name()],
@@ -127,16 +183,10 @@ foreach function : config_h_functions
   endif
 endforeach
 
-
 configure_file(
          output: 'config.h',
   configuration: config_h,
 )
-
-add_project_arguments([
-  '-DHAVE_CONFIG_H',
-  '-DVALENT_COMPILATION',
-], language: 'c')
 
 
 #
@@ -176,64 +226,6 @@ if get_option('profiling')
     required: true,
   )
 endif
-
-
-#
-# Build Type
-#
-release_args = []
-project_c_args = [
-  '-Wformat=2',
-  '-Wincompatible-pointer-types',
-  '-Wint-conversion',
-  '-Wint-to-pointer-cast',
-  '-Wmissing-include-dirs',
-  '-Woverflow',
-  '-Wpointer-arith',
-  '-Wpointer-to-int-cast',
-  '-Wredundant-decls',
-  '-Wshadow',
-  '-Wstrict-prototypes',
-  '-Wundef',
-
-  '-Wno-discarded-array-qualifiers',
-  '-Wno-missing-field-initializers',
-  '-Wno-unused-parameter',
-
-  '-Wno-error=cast-function-type',
-  # TODO: These should be fixed instead of downgraded to warnings
-  '-Wno-error=shadow',
-  '-Wno-error=unused-function',
-]
-project_link_args = [
-  '-Wl,-z,relro',
-  '-Wl,-z,now',
-]
-
-if get_option('buildtype') != 'plain'
-  project_c_args += ['-fstack-protector-strong']
-endif
-
-if get_option('debug')
-  project_c_args += ['-fno-omit-frame-pointer']
-endif
-
-if get_option('optimization') in ['2', '3', 's']
-  project_c_args += ['-DG_DISABLE_CAST_CHECKS']
-  project_link_args += ['-Wl,-Bsymbolic']
-
-  if not get_option('tests')
-    release_args += ['-DG_DISABLE_ASSERT']
-  endif
-endif
-
-add_project_arguments(cc.get_supported_arguments(project_c_args),
-  language: 'c',
-)
-
-add_project_link_arguments(cc.get_supported_link_arguments(project_link_args),
-  language: 'c',
-)
 
 
 #

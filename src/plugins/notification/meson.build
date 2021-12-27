@@ -20,24 +20,22 @@ plugin_notification_sources = files([
 plugin_notification_include_directories = [include_directories('.')]
 
 # Resources
-plugin_notification_info = i18n.merge_file('notification.plugin',
+plugin_notification_info = i18n.merge_file(
    input: 'notification.plugin.desktop.in',
   output: 'notification.plugin',
   po_dir: po_dir,
     type: 'desktop',
 )
 
-plugin_notification_resources = gnome.compile_resources(
-  'notification-resources',
-  'notification.gresource.xml',
+plugin_notification_resources = gnome.compile_resources('notification-resources',
+                                                        'notification.gresource.xml',
         c_name: 'notification',
   dependencies: [plugin_notification_info],
 )
 plugin_notification_sources += plugin_notification_resources
 
 # Settings
-install_data(
-  ['ca.andyholmes.valent.notification.gschema.xml'],
+install_data('ca.andyholmes.valent.notification.gschema.xml',
   install_dir: schemadir
 )
 

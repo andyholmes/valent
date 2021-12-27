@@ -2,10 +2,10 @@
 # SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 # Test Environment
-libpeas_libdir = libpeas_dep.get_pkgconfig_variable('libdir')
+libpeas_libdir = libpeas_dep.get_variable('libdir')
 
 typelib_dirs = [
-  '@0@/src/libvalent'.format(meson.build_root()),
+  '@0@/src/libvalent'.format(meson.project_build_root()),
   join_paths(libpeas_libdir, 'girepository-1.0'),
 ]
 
@@ -16,7 +16,7 @@ tests_env = [
   'G_DEBUG=gc-friendly',
   'G_SLICE=always-malloc',
   'GSETTINGS_BACKEND=memory',
-  'GSETTINGS_SCHEMA_DIR=@0@/schemas'.format(meson.build_root()),
+  'GSETTINGS_SCHEMA_DIR=@0@/schemas'.format(meson.project_build_root()),
   'PYTHONDONTWRITEBYTECODE=yes',
   'MALLOC_CHECK_=2',
   'GDK_BACKEND=wayland,x11',
@@ -32,8 +32,9 @@ tests_env = [
 
 test_c_args = [
   '-DTEST_DATA_DIR="@0@/data/"'.format(meson.current_source_dir()),
-  '-DJSON_SCHEMA_DIR="@0@"'.format(join_paths(meson.source_root(), 'doc', 'schemas')),
-  '-I' + join_paths(meson.source_root(), 'src'),
+  '-DJSON_SCHEMA_DIR="@0@"'.format(
+        join_paths(meson.project_source_root(), 'doc', 'schemas')),
+  '-I' + join_paths(meson.project_source_root(), 'src'),
 ]
 
 test_link_args = [
@@ -49,7 +50,7 @@ run_command(gsettings_test_init,
 )
 
 compile_schemas = find_program('glib-compile-schemas')
-test_schema_dir = join_paths(meson.build_root(), 'schemas')
+test_schema_dir = join_paths(meson.project_build_root(), 'schemas')
 
 test('Validate GSchema files', compile_schemas,
   args: ['--strict', '--dry-run', test_schema_dir],

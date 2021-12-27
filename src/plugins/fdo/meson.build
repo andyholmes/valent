@@ -28,16 +28,15 @@ plugin_fdo_sources = files([
 plugin_fdo_include_directories = [include_directories('.')]
 
 # Resources
-plugin_fdo_info = i18n.merge_file('fdo.plugin',
+plugin_fdo_info = i18n.merge_file(
    input: 'fdo.plugin.desktop.in',
   output: 'fdo.plugin',
   po_dir: po_dir,
     type: 'desktop',
 )
 
-plugin_fdo_resources = gnome.compile_resources(
-  'fdo-resources',
-  'fdo.gresource.xml',
+plugin_fdo_resources = gnome.compile_resources('fdo-resources',
+                                               'fdo.gresource.xml',
         c_name: 'fdo',
   dependencies: [plugin_fdo_info],
 )

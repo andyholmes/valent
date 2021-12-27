@@ -189,13 +189,13 @@ option('plugin_eds',
 option('plugin_fdo',
          type: 'boolean',
         value: true,
-  description: 'Enable Freedesktop.org support'
+  description: 'Enable freedesktop.org support'
 )
 
 option('plugin_gtk',
          type: 'boolean',
         value: true,
-  description: 'Enable Extra Gtk4 support'
+  description: 'Enable Extra GTK support'
 )
 
 option('plugin_pulseaudio',

@@ -15,16 +15,15 @@ plugin_ping_sources = files([
 plugin_ping_include_directories = [include_directories('.')]
 
 # Resources
-plugin_ping_info = i18n.merge_file('ping.plugin',
+plugin_ping_info = i18n.merge_file(
    input: 'ping.plugin.desktop.in',
   output: 'ping.plugin',
   po_dir: po_dir,
     type: 'desktop',
 )
 
-plugin_ping_resources = gnome.compile_resources(
-  'ping-resources',
-  'ping.gresource.xml',
+plugin_ping_resources = gnome.compile_resources('ping-resources',
+                                                'ping.gresource.xml',
         c_name: 'ping',
   dependencies: [plugin_ping_info],
 )

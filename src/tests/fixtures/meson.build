@@ -48,9 +48,8 @@ libvalent_test_public_sources = [
 
 
 # Generated Resource Files
-libvalent_test_resources = gnome.compile_resources(
-  'valent-test-resources',
-  'libvalent-test.gresource.xml',
+libvalent_test_resources = gnome.compile_resources('libvalent-test-resources',
+                                                   'libvalent-test.gresource.xml',
   c_name: 'valent_test',
 )
 libvalent_test_generated_sources = [libvalent_test_resources]
