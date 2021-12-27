@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-libvalent_build = join_paths(meson.build_root(), 'src', 'libvalent')
+libvalent_build = join_paths(meson.project_build_root(), 'src', 'libvalent')
 
 # Get gi-docgen
 gidocgen_dep = dependency('gi-docgen',
@@ -25,7 +25,7 @@ valent_toml = configure_file(
 # Protocol Docs
 protocol_py = find_program('protocol.py')
 protocol_doc = custom_target('protocol-doc',
-  input: join_paths(meson.source_root(), 'doc', 'schemas', 'index.json'),
+  input: join_paths(meson.project_source_root(), 'doc', 'schemas', 'index.json'),
   output: 'protocol.md',
   command: [
     protocol_py,

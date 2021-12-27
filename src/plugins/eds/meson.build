@@ -21,16 +21,15 @@ plugin_eds_sources = files([
 plugin_eds_include_directories = include_directories('.')
 
 # Resources
-plugin_eds_info = i18n.merge_file('eds.plugin',
+plugin_eds_info = i18n.merge_file(
    input: 'eds.plugin.desktop.in',
   output: 'eds.plugin',
   po_dir: po_dir,
     type: 'desktop',
 )
 
-plugin_eds_resources = gnome.compile_resources(
-  'eds-resources',
-  'eds.gresource.xml',
+plugin_eds_resources = gnome.compile_resources('eds-resources',
+                                               'eds.gresource.xml',
         c_name: 'eds',
   dependencies: [plugin_eds_info],
 )

@@ -34,16 +34,15 @@ plugin_sms_sources = files([
 plugin_sms_include_directories = [include_directories('.')]
 
 # Resources
-plugin_sms_info = i18n.merge_file('sms.plugin',
+plugin_sms_info = i18n.merge_file(
    input: 'sms.plugin.desktop.in',
   output: 'sms.plugin',
   po_dir: po_dir,
     type: 'desktop',
 )
 
-plugin_sms_resources = gnome.compile_resources(
-  'sms-resources',
-  'sms.gresource.xml',
+plugin_sms_resources = gnome.compile_resources('sms-resources',
+                                               'sms.gresource.xml',
         c_name: 'sms',
   dependencies: [plugin_sms_info],
 )

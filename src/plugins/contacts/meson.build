@@ -18,24 +18,22 @@ plugin_contacts_sources = files([
 plugin_contacts_include_directories = [include_directories('.')]
 
 # Resources
-plugin_contacts_info = i18n.merge_file('contacts.plugin',
+plugin_contacts_info = i18n.merge_file(
    input: 'contacts.plugin.desktop.in',
   output: 'contacts.plugin',
   po_dir: po_dir,
     type: 'desktop',
 )
 
-plugin_contacts_resources = gnome.compile_resources(
-  'contacts-resources',
-  'contacts.gresource.xml',
+plugin_contacts_resources = gnome.compile_resources('contacts-resources',
+                                                    'contacts.gresource.xml',
         c_name: 'contacts',
   dependencies: [plugin_contacts_info],
 )
 plugin_contacts_sources += plugin_contacts_resources
 
 # Settings
-install_data(
-  ['ca.andyholmes.valent.contacts.gschema.xml'],
+install_data('ca.andyholmes.valent.contacts.gschema.xml',
   install_dir: schemadir
 )
 

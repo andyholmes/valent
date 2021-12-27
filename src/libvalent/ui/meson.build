@@ -53,9 +53,8 @@ libvalent_ui_sources = libvalent_ui_public_sources
 
 
 # GResources
-libvalent_ui_resources = gnome.compile_resources(
-  'valent-ui-resources',
-  'libvalent-ui.gresource.xml',
+libvalent_ui_resources = gnome.compile_resources('libvalent-ui-resources',
+                                                 'libvalent-ui.gresource.xml',
   c_name: 'valent_ui',
 )
 libvalent_ui_generated_sources += libvalent_ui_resources

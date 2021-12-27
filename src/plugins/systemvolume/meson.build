@@ -16,24 +16,22 @@ plugin_systemvolume_sources = files([
 plugin_systemvolume_include_directories = [include_directories('.')]
 
 # Resources
-plugin_systemvolume_info = i18n.merge_file('systemvolume.plugin',
+plugin_systemvolume_info = i18n.merge_file(
    input: 'systemvolume.plugin.desktop.in',
   output: 'systemvolume.plugin',
   po_dir: po_dir,
     type: 'desktop',
 )
 
-plugin_systemvolume_resources = gnome.compile_resources(
-  'systemvolume-resources',
-  'systemvolume.gresource.xml',
+plugin_systemvolume_resources = gnome.compile_resources('systemvolume-resources',
+                                                        'systemvolume.gresource.xml',
         c_name: 'systemvolume',
   dependencies: [plugin_systemvolume_info],
 )
 plugin_systemvolume_sources += plugin_systemvolume_resources
 
 # Settings
-install_data(
-  ['ca.andyholmes.valent.systemvolume.gschema.xml'],
+install_data('ca.andyholmes.valent.systemvolume.gschema.xml',
   install_dir: schemadir
 )
 

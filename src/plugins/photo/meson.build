@@ -23,16 +23,15 @@ plugin_photo_sources = files([
 plugin_photo_include_directories = [include_directories('.')]
 
 # Resources
-plugin_photo_info = i18n.merge_file('photo.plugin',
+plugin_photo_info = i18n.merge_file(
    input: 'photo.plugin.desktop.in',
   output: 'photo.plugin',
   po_dir: po_dir,
     type: 'desktop',
 )
 
-plugin_photo_resources = gnome.compile_resources(
-  'photo-resources',
-  'photo.gresource.xml',
+plugin_photo_resources = gnome.compile_resources('photo-resources',
+                                                 'photo.gresource.xml',
         c_name: 'photo',
   dependencies: [plugin_photo_info],
 )

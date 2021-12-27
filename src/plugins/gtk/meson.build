@@ -20,16 +20,15 @@ plugin_gtk_sources = files([
 plugin_gtk_include_directories = [include_directories('.')]
 
 # Resources
-plugin_gtk_info = i18n.merge_file('gtk.plugin',
+plugin_gtk_info = i18n.merge_file(
    input: 'gtk.plugin.desktop.in',
   output: 'gtk.plugin',
   po_dir: po_dir,
     type: 'desktop',
 )
 
-plugin_gtk_resources = gnome.compile_resources(
-  'gtk-resources',
-  'gtk.gresource.xml',
+plugin_gtk_resources = gnome.compile_resources('gtk-resources',
+                                               'gtk.gresource.xml',
         c_name: 'gtk',
   dependencies: [plugin_gtk_info],
 )

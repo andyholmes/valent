@@ -18,24 +18,22 @@ plugin_clipboard_sources = files([
 plugin_clipboard_include_directories = [include_directories('.')]
 
 # Resources
-plugin_clipboard_info = i18n.merge_file('clipboard.plugin',
+plugin_clipboard_info = i18n.merge_file(
    input: 'clipboard.plugin.desktop.in',
   output: 'clipboard.plugin',
   po_dir: po_dir,
     type: 'desktop',
 )
 
-plugin_clipboard_resources = gnome.compile_resources(
-  'clipboard-resources',
-  'clipboard.gresource.xml',
+plugin_clipboard_resources = gnome.compile_resources('clipboard-resources',
+                                                     'clipboard.gresource.xml',
         c_name: 'clipboard',
   dependencies: [plugin_clipboard_info],
 )
 plugin_clipboard_sources += plugin_clipboard_resources
 
 # Settings
-install_data(
-  ['ca.andyholmes.valent.clipboard.gschema.xml'],
+install_data('ca.andyholmes.valent.clipboard.gschema.xml',
   install_dir: schemadir
 )
 

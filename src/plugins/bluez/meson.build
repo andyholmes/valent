@@ -21,24 +21,22 @@ plugin_bluez_sources = files([
 plugin_bluez_include_directories = [include_directories('.')]
 
 # Resources
-plugin_bluez_info = i18n.merge_file('bluez.plugin',
+plugin_bluez_info = i18n.merge_file(
    input: 'bluez.plugin.desktop.in',
   output: 'bluez.plugin',
   po_dir: po_dir,
     type: 'desktop',
 )
 
-plugin_bluez_resources = gnome.compile_resources(
-  'bluez-resources',
-  'bluez.gresource.xml',
+plugin_bluez_resources = gnome.compile_resources('bluez-resources',
+                                                 'bluez.gresource.xml',
         c_name: 'bluez',
   dependencies: [plugin_bluez_info],
 )
 plugin_bluez_sources += plugin_bluez_resources
 
 # Settings
-install_data(
-  ['ca.andyholmes.valent.bluez.gschema.xml'],
+install_data('ca.andyholmes.valent.bluez.gschema.xml',
   install_dir: schemadir
 )
 
