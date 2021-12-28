@@ -31,15 +31,15 @@
  * A small collection of helpers for working with TLS certificates.
  */
 
-G_DEFINE_QUARK (VALENT_CERTIFICATE_ID, valent_certificate_cn);
+G_DEFINE_QUARK (VALENT_CERTIFICATE_CN, valent_certificate_cn);
 G_DEFINE_QUARK (VALENT_CERTIFICATE_FP, valent_certificate_fp);
 G_DEFINE_QUARK (VALENT_CERTIFICATE_PK, valent_certificate_pk);
 
 
 /**
  * valent_certificate_generate:
- * @key_path: file path to the private key
- * @cert_path: file path to the certificate
+ * @cert_path: (type filename): file path to the certificate
+ * @key_path: (type filename): file path to the private key
  * @common_name: common name for the certificate
  * @error: (nullable): a #GError
  *
@@ -48,9 +48,9 @@ G_DEFINE_QUARK (VALENT_CERTIFICATE_PK, valent_certificate_pk);
  *
  * Returns: %TRUE if successful
  */
-gboolean
-valent_certificate_generate (const char  *key_path,
-                             const char  *cert_path,
+static gboolean
+valent_certificate_generate (const char  *cert_path,
+                             const char  *key_path,
                              const char  *common_name,
                              GError     **error)
 {
@@ -167,6 +167,118 @@ valent_certificate_generate (const char  *key_path,
     gnutls_x509_privkey_deinit (privkey);
 
   return ret;
+}
+
+static void
+valent_certificate_new_task (GTask        *task,
+                             gpointer      source_object,
+                             gpointer      task_data,
+                             GCancellable *cancellable)
+{
+  g_autoptr (GTlsCertificate) certificate = NULL;
+  const char *path = task_data;
+  GError *error = NULL;
+
+  if ((certificate = valent_certificate_new_sync (path, &error)) == NULL)
+    return g_task_return_error (task, error);
+
+  g_task_return_pointer (task, g_steal_pointer (&certificate), g_object_unref);
+}
+
+/**
+ * valent_certificate_new:
+ * @path: (type filename): a directory path
+ * @cancellable: (nullable): #GCancellable
+ * @callback: (scope async): a #GAsyncReadyCallback
+ * @user_data: (closure): user supplied data
+ *
+ * Ensure a TLS certificate with the filename `certificate.pem` and private key
+ * with filename `private.pem` exist in a directory at @path.
+ *
+ * If either one doesn't exist, a new certificate and private key pair will be
+ * generated. The common name will be set to a string returned by
+ * g_uuid_string_random().
+ */
+void
+valent_certificate_new (const char          *path,
+                        GCancellable        *cancellable,
+                        GAsyncReadyCallback  callback,
+                        gpointer             user_data)
+{
+  g_autoptr (GTask) task = NULL;
+
+  g_return_if_fail (path != NULL && *path != '\0');
+  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  task = g_task_new (NULL, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_certificate_new);
+  g_task_set_task_data (task, g_strdup (path), g_free);
+  g_task_run_in_thread (task, valent_certificate_new_task);
+}
+
+/**
+ * valent_certificate_new_finish:
+ * @result: a #GAsyncResult provided to callback
+ * @error: (nullable): a #GError
+ *
+ * Complete an operation started with valent_certificate_new().
+ *
+ * If either generating or loading the certificate failed, %NULL will be
+ * returned with @error set.
+ *
+ * Returns: (transfer full) (nullable): a #GTlsCertificate
+ */
+GTlsCertificate *
+valent_certificate_new_finish (GAsyncResult  *result,
+                               GError       **error)
+{
+  g_return_val_if_fail (g_task_is_valid (result, NULL), NULL);
+
+  return g_task_propagate_pointer (G_TASK (result), error);
+}
+
+/**
+ * valent_certificate_new_sync:
+ * @path: (type filename): a directory path
+ * @error: (nullable): a #GError
+ *
+ * Ensure a TLS certificate with the filename `certificate.pem` and private key
+ * with filename `private.pem` exist in a directory at @path.
+ *
+ * If either one doesn't exist, a new certificate and private key pair will be
+ * generated. The common name will be set to a string returned by
+ * g_uuid_string_random().
+ *
+ * If either generating or loading the certificate fails, %NULL will be returned
+ * with @error set.
+ *
+ * Returns: (transfer full) (nullable): a #GTlsCertificate
+ */
+GTlsCertificate *
+valent_certificate_new_sync (const char  *path,
+                             GError     **error)
+{
+  g_autofree char *cert_path = NULL;
+  g_autofree char *key_path = NULL;
+
+  g_return_val_if_fail (path != NULL && *path != '\0', NULL);
+  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+  cert_path = g_build_filename (path, "certificate.pem", NULL);
+  key_path = g_build_filename (path, "private.pem", NULL);
+
+  if (!g_file_test (cert_path, G_FILE_TEST_IS_REGULAR) ||
+      !g_file_test (key_path, G_FILE_TEST_IS_REGULAR))
+    {
+      g_autofree char *cn = NULL;
+
+      cn = g_uuid_string_random ();
+
+      if (!valent_certificate_generate (cert_path, key_path, cn, error))
+        return FALSE;
+    }
+
+  return g_tls_certificate_new_from_files (cert_path, key_path, error);
 }
 
 /**

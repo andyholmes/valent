@@ -11,13 +11,17 @@
 
 G_BEGIN_DECLS
 
-gboolean     valent_certificate_generate        (const char       *key_path,
-                                                 const char       *cert_path,
-                                                 const char       *common_name,
-                                                 GError          **error);
-const char * valent_certificate_get_common_name (GTlsCertificate  *certificate);
-const char * valent_certificate_get_fingerprint (GTlsCertificate  *certificate);
-GByteArray * valent_certificate_get_public_key  (GTlsCertificate  *certificate);
+void              valent_certificate_new             (const char           *path,
+                                                      GCancellable         *cancellable,
+                                                      GAsyncReadyCallback   callback,
+                                                      gpointer              user_data);
+GTlsCertificate * valent_certificate_new_finish      (GAsyncResult         *result,
+                                                      GError              **error);
+GTlsCertificate * valent_certificate_new_sync        (const char           *path,
+                                                      GError              **error);
+const char      * valent_certificate_get_common_name (GTlsCertificate  *certificate);
+const char      * valent_certificate_get_fingerprint (GTlsCertificate  *certificate);
+GByteArray      * valent_certificate_get_public_key  (GTlsCertificate  *certificate);
 
 G_END_DECLS
 
