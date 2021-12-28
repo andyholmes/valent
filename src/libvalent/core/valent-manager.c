@@ -10,6 +10,7 @@
 #include "valent-certificate.h"
 #include "valent-channel.h"
 #include "valent-channel-service.h"
+#include "valent-component.h"
 #include "valent-data.h"
 #include "valent-debug.h"
 #include "valent-device.h"
@@ -46,7 +47,6 @@ struct _ValentManager
   PeasEngine               *engine;
   GHashTable               *devices;
   GHashTable               *services;
-  GHashTable               *services_settings;
 
   GDBusObjectManagerServer *dbus;
   GHashTable               *exported;
@@ -205,6 +205,30 @@ valent_manager_unexport_device (ValentManager *manager,
 /*
  * Channel Services
  */
+typedef struct
+{
+  ValentManager  *manager;
+  PeasPluginInfo *info;
+  PeasExtension  *extension;
+  GSettings      *settings;
+} ChannelService;
+
+static void
+channel_service_free (gpointer data)
+{
+  ChannelService *info = data;
+
+  if (info->extension)
+    {
+      g_signal_handlers_disconnect_by_data (info->extension, info->manager);
+      valent_channel_service_stop (VALENT_CHANNEL_SERVICE (info->extension));
+      g_clear_object (&info->extension);
+    }
+
+  g_clear_object (&info->settings);
+  g_clear_pointer (&info, g_free);
+}
+
 static void
 on_channel (ValentChannelService *service,
             ValentChannel        *channel,
@@ -264,136 +288,123 @@ valent_channel_service_start_cb (ValentChannelService *service,
   VALENT_EXIT;
 }
 
-static void
-valent_manager_enable_service (ValentManager  *manager,
-                               PeasPluginInfo *info)
+static inline void
+valent_manager_enable_service (ValentManager  *self,
+                               ChannelService *service)
 {
-  PeasExtension *service;
-  const char *module;
+  g_assert (VALENT_IS_MANAGER (self));
 
-  g_assert (VALENT_IS_MANAGER (manager));
+  service->extension = peas_engine_create_extension (self->engine,
+                                                     service->info,
+                                                     VALENT_TYPE_CHANNEL_SERVICE,
+                                                     "data", self->data,
+                                                     "id",   self->id,
+                                                     NULL);
 
-  service = peas_engine_create_extension (manager->engine,
-                                          info,
-                                          VALENT_TYPE_CHANNEL_SERVICE,
-                                          "data", manager->data,
-                                          "id",   manager->id,
-                                          NULL);
-
-  if (service == NULL)
+  if (service->extension == NULL)
     return;
 
-  /* Track the service */
-  module = peas_plugin_info_get_module_name (info);
-  g_hash_table_insert (manager->services, (char *)module, service);
+  g_signal_connect (service->extension,
+                    "channel",
+                    G_CALLBACK (on_channel),
+                    self);
 
-  /* Start the service */
-  g_signal_connect_object (service,
-                           "channel",
-                           G_CALLBACK (on_channel),
-                           manager, 0);
-
-  valent_channel_service_start (VALENT_CHANNEL_SERVICE (service),
-                                manager->cancellable,
+  valent_channel_service_start (VALENT_CHANNEL_SERVICE (service->extension),
+                                self->cancellable,
                                 (GAsyncReadyCallback)valent_channel_service_start_cb,
-                                manager);
+                                self);
 }
 
-static void
-valent_manager_disable_service (ValentManager  *manager,
-                                PeasPluginInfo *info)
+static inline void
+valent_manager_disable_service (ValentManager  *self,
+                                ChannelService *service)
 {
-  gpointer service;
-  const char *module;
+  g_assert (VALENT_IS_MANAGER (self));
 
-  module = peas_plugin_info_get_module_name (info);
-
-  if (g_hash_table_steal_extended (manager->services, module, NULL, &service))
+  if (service->extension != NULL)
     {
-      valent_channel_service_stop (service);
-      g_signal_handlers_disconnect_by_data (service, manager);
-      g_object_unref (service);
+      g_signal_handlers_disconnect_by_data (service->extension, self);
+      valent_channel_service_stop (VALENT_CHANNEL_SERVICE (service->extension));
+      g_clear_object (&service->extension);
     }
 }
 
-typedef struct
+static inline void
+valent_manager_identify_service (ValentManager  *self,
+                                 ChannelService *service,
+                                 const char     *target)
 {
-  ValentManager  *manager;
-  PeasPluginInfo *info;
-} ServiceInfo;
+  g_assert (VALENT_IS_MANAGER (self));
+
+  if (service->extension == NULL)
+    return;
+
+  valent_channel_service_identify (VALENT_CHANNEL_SERVICE (service->extension),
+                                   target);
+}
 
 static void
-on_enabled_changed (GSettings   *settings,
-                    const char  *key,
-                    ServiceInfo *service_info)
+on_enabled_changed (GSettings      *settings,
+                    const char     *key,
+                    ChannelService *service)
 {
-  ValentManager *manager = service_info->manager;
-  PeasPluginInfo *info = service_info->info;
+  ValentManager *self = service->manager;
 
   g_assert (G_IS_SETTINGS (settings));
-  g_assert (VALENT_IS_MANAGER (manager));
+  g_assert (VALENT_IS_MANAGER (self));
 
   if (g_settings_get_boolean (settings, key))
-    valent_manager_enable_service (manager, info);
+    valent_manager_enable_service (self, service);
   else
-    valent_manager_disable_service (manager, info);
+    valent_manager_disable_service (self, service);
 }
 
 static void
 on_load_service (PeasEngine     *engine,
                  PeasPluginInfo *info,
-                 ValentManager  *manager)
+                 ValentManager  *self)
 {
-  ServiceInfo *service_info;
+  ChannelService *service;
   const char *module;
-  g_autofree char *path = NULL;
-  GSettings *settings;
 
   g_assert (PEAS_IS_ENGINE (engine));
   g_assert (info != NULL);
-  g_assert (VALENT_IS_MANAGER (manager));
+  g_assert (VALENT_IS_MANAGER (self));
 
   /* We're only interested in one GType */
   if (!peas_engine_provides_extension (engine, info, VALENT_TYPE_CHANNEL_SERVICE))
     return;
 
-  /* We create and destroy the PeasExtension based on the enabled state */
   module = peas_plugin_info_get_module_name (info);
-  path = g_strdup_printf ("/ca/andyholmes/valent/network/plugin/%s/", module);
-  settings = g_settings_new_with_path ("ca.andyholmes.Valent.Plugin", path);
-  g_hash_table_insert (manager->services_settings, info, settings);
 
-  /* Watch for enabled/disabled */
-  service_info = g_new0 (ServiceInfo, 1);
-  service_info->manager = manager;
-  service_info->info = info;
+  service = g_new0 (ChannelService, 1);
+  service->manager = self;
+  service->info = info;
+  service->settings = valent_component_new_settings ("network", module);
+  g_signal_connect (service->settings,
+                    "changed::enabled",
+                    G_CALLBACK (on_enabled_changed),
+                    service);
+  g_hash_table_insert (self->services, info, service);
 
-  g_signal_connect_data (settings,
-                         "changed::enabled",
-                         G_CALLBACK (on_enabled_changed),
-                         service_info,
-                         (GClosureNotify)g_free,
-                         0);
-
-  if (g_settings_get_boolean (settings, "enabled"))
-    valent_manager_enable_service (manager, info);
+  if (g_settings_get_boolean (service->settings, "enabled"))
+    valent_manager_enable_service (self, service);
 }
 
 static void
 on_unload_service (PeasEngine     *engine,
                    PeasPluginInfo *info,
-                   ValentManager  *manager)
+                   ValentManager  *self)
 {
   g_assert (PEAS_IS_ENGINE (engine));
   g_assert (info != NULL);
-  g_assert (VALENT_IS_MANAGER (manager));
+  g_assert (VALENT_IS_MANAGER (self));
 
   /* We're only interested in one GType */
   if (!peas_engine_provides_extension (engine, info, VALENT_TYPE_CHANNEL_SERVICE))
     return;
 
-  if (g_hash_table_remove (manager->services_settings, info))
-    valent_manager_disable_service (manager, info);
+  g_hash_table_remove (self->services, info);
 }
 
 
@@ -750,17 +761,6 @@ async_initable_iface_init (GAsyncInitableIface *iface)
  * GObject
  */
 static void
-valent_manager_constructed (GObject *object)
-{
-  ValentManager *self = VALENT_MANAGER (object);
-
-  if (self->data == NULL)
-    self->data = valent_data_new (NULL, NULL);
-
-  G_OBJECT_CLASS (valent_manager_parent_class)->constructed (object);
-}
-
-static void
 valent_manager_dispose (GObject *object)
 {
   ValentManager *self = VALENT_MANAGER (object);
@@ -786,7 +786,6 @@ valent_manager_finalize (GObject *object)
   ValentManager *self = VALENT_MANAGER (object);
 
   g_clear_pointer (&self->exported, g_hash_table_unref);
-  g_clear_pointer (&self->services_settings, g_hash_table_unref);
   g_clear_pointer (&self->services, g_hash_table_unref);
   g_clear_pointer (&self->devices, g_hash_table_unref);
 
@@ -812,7 +811,7 @@ valent_manager_get_property (GObject    *object,
       break;
 
     case PROP_ID:
-      g_value_set_string (value, valent_manager_get_id (self));
+      g_value_set_string (value, self->id);
       break;
 
     default:
@@ -844,7 +843,6 @@ valent_manager_class_init (ValentManagerClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  object_class->constructed = valent_manager_constructed;
   object_class->dispose = valent_manager_dispose;
   object_class->finalize = valent_manager_finalize;
   object_class->get_property = valent_manager_get_property;
@@ -868,8 +866,10 @@ valent_manager_class_init (ValentManagerClass *klass)
   /**
    * ValentManager:id:
    *
-   * The unique ID this device will identify as. If not given a random ID will
-   * be generated.
+   * The unique ID this device will identify as.
+   *
+   * The ID is equivalent to the common name of the service TLS certificate,
+   * which will generated if necessary.
    */
   properties [PROP_ID] =
     g_param_spec_string ("id",
@@ -945,14 +945,10 @@ valent_manager_init (ValentManager *self)
                                          g_str_equal,
                                          g_free,
                                          g_object_unref);
-  self->services = g_hash_table_new_full (g_str_hash,
-                                          g_str_equal,
+  self->services = g_hash_table_new_full (NULL,
                                           NULL,
-                                          g_object_unref);
-  self->services_settings = g_hash_table_new_full (NULL,
-                                                   NULL,
-                                                   NULL,
-                                                   g_object_unref);
+                                          NULL,
+                                          channel_service_free);
   self->exported = g_hash_table_new (NULL, NULL);
 }
 
@@ -997,7 +993,7 @@ valent_manager_new_sync (ValentData    *data,
  * @data: (nullable): a #ValentData
  * @cancellable: (nullable): a #GCancellable
  * @callback: (scope async): a #GAsyncReadyCallback
- * @user_data: user supplied data
+ * @user_data: (closure): user supplied data
  *
  * Create a new #ValentManager.
  *
@@ -1132,30 +1128,36 @@ void
 valent_manager_identify (ValentManager *manager,
                          const char    *uri)
 {
+  GHashTableIter iter;
+  gpointer info, service;
+
   g_return_if_fail (VALENT_IS_MANAGER (manager));
 
   if (uri != NULL)
     {
-      ValentChannelService *service = NULL;
       g_auto (GStrv) address = NULL;
 
       address = g_strsplit (uri, "://", -1);
 
-      if (address[0] != NULL)
-        service = g_hash_table_lookup (manager->services, address[0]);
-
-      if (service != NULL && address[1] != NULL)
-        valent_channel_service_identify (service, address[1]);
-    }
-  else
-    {
-      GHashTableIter iter;
-      gpointer service;
+      if (address[0] == NULL || address[1] == NULL)
+        return;
 
       g_hash_table_iter_init (&iter, manager->services);
 
+      while (g_hash_table_iter_next (&iter, &info, &service))
+        {
+          const char *module = peas_plugin_info_get_module_name (info);
+
+          if (g_str_equal (address[0], module))
+            valent_manager_identify_service (manager, service, address[1]);
+        }
+    }
+  else
+    {
+      g_hash_table_iter_init (&iter, manager->services);
+
       while (g_hash_table_iter_next (&iter, NULL, &service))
-        valent_channel_service_identify (service, NULL);
+        valent_manager_identify_service (manager, service, NULL);
     }
 }
 
@@ -1204,8 +1206,7 @@ valent_manager_start (ValentManager *manager)
 void
 valent_manager_stop (ValentManager *manager)
 {
-  GHashTableIter iter;
-  gpointer value;
+  g_return_if_fail (VALENT_IS_MANAGER (manager));
 
   /* We're already stopped */
   if (manager->cancellable == NULL)
@@ -1217,14 +1218,7 @@ valent_manager_stop (ValentManager *manager)
 
   /* Stop and remove services */
   g_signal_handlers_disconnect_by_data (manager->engine, manager);
-
-  g_hash_table_iter_init (&iter, manager->services);
-
-  while (g_hash_table_iter_next (&iter, NULL, &value))
-    {
-      valent_channel_service_stop (VALENT_CHANNEL_SERVICE (value));
-      g_hash_table_iter_remove (&iter);
-    }
+  g_hash_table_remove_all (manager->services);
 }
 
 /**
