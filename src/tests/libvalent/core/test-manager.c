@@ -77,6 +77,68 @@ on_device_removed (ValentManager  *manager,
 }
 
 static void
+manager_new_cb (GObject      *object,
+                GAsyncResult *result,
+                GMainLoop    *loop)
+{
+  g_autoptr (ValentManager) manager = NULL;
+  g_autoptr (GError) error = NULL;
+
+  manager = valent_manager_new_finish (result, &error);
+  g_assert_no_error (error);
+  g_assert_true (VALENT_IS_MANAGER (manager));
+
+  g_main_loop_quit (loop);
+}
+
+static void
+test_manager_new (void)
+{
+  g_autoptr (GMainLoop) loop = NULL;
+
+  loop = g_main_loop_new (NULL, FALSE);
+  valent_manager_new (NULL,
+                      NULL,
+                      (GAsyncReadyCallback)manager_new_cb,
+                      loop);
+  g_main_loop_run (loop);
+}
+
+static void
+test_manager_basic (ManagerFixture *fixture,
+                    gconstpointer   user_data)
+{
+  g_autoptr (GTlsCertificate) certificate = NULL;
+  g_autoptr (ValentData) data = NULL;
+  g_autoptr (GError) error = NULL;
+  g_autofree char *id = NULL;
+  g_autofree char *base_path = NULL;
+  g_autofree char *cert_path = NULL;
+  g_autofree char *key_path = NULL;
+  const char *common_name = NULL;
+
+  /* Get the generated certificate */
+  base_path = g_build_filename (g_get_user_config_dir (),
+                                PACKAGE_NAME,
+                                NULL);
+  cert_path = g_build_filename (base_path, "certificate.pem", NULL);
+  key_path = g_build_filename (base_path, "private.pem", NULL);
+  certificate = g_tls_certificate_new_from_files (cert_path, key_path, &error);
+  g_assert_no_error (error);
+  common_name = valent_certificate_get_common_name (certificate);
+
+  /* Test properties */
+  g_object_get (fixture->manager,
+                "data", &data,
+                "id",   &id,
+                NULL);
+
+  g_assert_true (VALENT_IS_DATA (data));
+  g_assert_cmpstr (id, ==, common_name);
+  g_assert_cmpstr (valent_manager_get_id (fixture->manager), ==, common_name);
+}
+
+static void
 test_manager_management (ManagerFixture *fixture,
                          gconstpointer   user_data)
 {
@@ -123,6 +185,40 @@ test_manager_management (ManagerFixture *fixture,
 
   /* Retains paired devices that disconnect */
   g_object_notify (G_OBJECT (fixture->device), "state");
+  g_assert_true (VALENT_IS_DEVICE (fixture->device));
+
+  valent_manager_stop (fixture->manager);
+
+  while ((service = valent_mock_channel_service_get_instance ()) != NULL)
+    g_main_context_iteration (NULL, FALSE);
+}
+
+static void
+test_manager_identify_uri (ManagerFixture *fixture,
+                           gconstpointer   user_data)
+{
+  ValentChannelService *service;
+
+  g_signal_connect (fixture->manager,
+                    "device-added",
+                    G_CALLBACK (on_device_added),
+                    fixture);
+  g_signal_connect (fixture->manager,
+                    "device-removed",
+                    G_CALLBACK (on_device_removed),
+                    fixture);
+
+  /* Drop the auto-loaded device */
+  fixture->device = valent_manager_get_device (fixture->manager, "test-device");
+  g_object_notify (G_OBJECT (fixture->device), "state");
+
+  valent_manager_start (fixture->manager);
+
+  while ((service = valent_mock_channel_service_get_instance ()) == NULL)
+    g_main_context_iteration (NULL, FALSE);
+
+  /* Forwards URIs to the correct service */
+  valent_manager_identify (fixture->manager, "mock://127.0.0.1");
   g_assert_true (VALENT_IS_DEVICE (fixture->device));
 
   valent_manager_stop (fixture->manager);
@@ -292,10 +388,24 @@ main (int   argc,
 {
   g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 
+  g_test_add_func ("/core/manager/new", test_manager_new);
+
+  g_test_add ("/core/manager/basic",
+              ManagerFixture, NULL,
+              manager_fixture_set_up,
+              test_manager_basic,
+              manager_fixture_tear_down);
+
   g_test_add ("/core/manager/management",
               ManagerFixture, NULL,
               manager_fixture_set_up,
               test_manager_management,
+              manager_fixture_tear_down);
+
+  g_test_add ("/core/manager/identify-uri",
+              ManagerFixture, NULL,
+              manager_fixture_set_up,
+              test_manager_identify_uri,
               manager_fixture_tear_down);
 
 #if VALENT_TEST_DBUS
