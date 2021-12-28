@@ -14,6 +14,7 @@ License:        GPLv3+
 URL:            https://github.com/andyholmes/%{name}
 Source0:        %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
 
+BuildRequires:  firewalld-filesystem
 BuildRequires:  gcc
 BuildRequires:  gettext
 BuildRequires:  meson
@@ -93,8 +94,8 @@ developing plugins for %{name}.
 %{_datadir}/icons/hicolor/scalable/apps/ca.andyholmes.Valent.svg
 %{_datadir}/icons/hicolor/symbolic/apps/ca.andyholmes.Valent-symbolic.svg
 %{_datadir}/metainfo/ca.andyholmes.Valent.metainfo.xml
+%{_prefix}/lib/firewalld/services/ca.andyholmes.Valent.xml
 %exclude %{_libdir}/pkgconfig/
-%{_libdir}/firewalld/
 %{_libdir}/girepository-1.0/
 %{_libdir}/libvalent.so*
 
@@ -105,7 +106,7 @@ developing plugins for %{name}.
 %{_includedir}/valent*/
 
 %changelog
-* Tue Dec 21 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> - 0.1.0-1
+* Mon Dec 27 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> - 0.1.0-1
 
-- Initial packaging (#1185301)
+- Initial packaging
 
