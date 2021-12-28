@@ -85,61 +85,6 @@ static guint signals[N_SIGNALS] = { 0, };
 
 
 /*
- * Certificate
- */
-static gboolean
-valent_manager_ensure_certificate (ValentManager  *self,
-                                   GCancellable   *cancellable,
-                                   GError        **error)
-{
-  g_autoptr (GFile) cert_file = NULL;
-  g_autoptr (GFile) key_file = NULL;
-  const char *cert_path;
-  const char *key_path;
-
-  /* Check if the certificate has already been generated */
-  cert_file = valent_data_new_config_file (self->data, "certificate.pem");
-  key_file = valent_data_new_config_file (self->data, "private.pem");
-
-  cert_path = g_file_peek_path (cert_file);
-  key_path = g_file_peek_path (key_file);
-
-  /* Generate new certificate with gnutls */
-  if (!g_file_query_exists (cert_file, cancellable) ||
-      !g_file_query_exists (key_file, cancellable))
-    {
-      g_autofree char *common_name = NULL;
-
-      common_name = g_uuid_string_random ();
-
-      if (!valent_certificate_generate (key_path, cert_path, common_name, error))
-        return FALSE;
-    }
-
-  /* Load the service certificate */
-  self->certificate = g_tls_certificate_new_from_files (cert_path,
-                                                        key_path,
-                                                        error);
-
-  if (self->certificate == NULL)
-    return FALSE;
-
-  /* Extract our deviceId from the certificate */
-  self->id = valent_certificate_get_common_name (self->certificate);
-
-  if (self->id == NULL)
-    {
-      g_set_error_literal (error,
-                           G_TLS_ERROR,
-                           G_TLS_ERROR_BAD_CERTIFICATE,
-                           "Certificate has no common name");
-      return FALSE;
-    }
-
-  return G_IS_TLS_CERTIFICATE (self->certificate);
-}
-
-/*
  * DBus
  */
 typedef struct
@@ -489,18 +434,17 @@ ensure_device_main (gpointer user_data)
 
 static gboolean
 valent_manager_load_devices (ValentManager  *self,
+                             GFile          *file,
                              GCancellable   *cancellable,
                              GError        **error)
 {
-  g_autoptr (GFile) config = NULL;
   g_autoptr (GFileEnumerator) iter = NULL;
   g_autoptr (JsonParser) parser = NULL;
   GFile *child = NULL;
 
   /* Look in the config directory for subdirectories. We only fail on
    * G_IO_ERROR_CANCELLED; all other errors mean there are just no devices. */
-  config = g_file_new_for_path (valent_data_get_config_path (self->data));
-  iter = g_file_enumerate_children (config,
+  iter = g_file_enumerate_children (file,
                                     G_FILE_ATTRIBUTE_STANDARD_NAME,
                                     G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS,
                                     cancellable,
@@ -684,14 +628,25 @@ valent_manager_initable_init (GInitable     *initable,
                               GError       **error)
 {
   ValentManager *self = VALENT_MANAGER (initable);
+  g_autoptr (GFile) file = NULL;
+  const char *path = NULL;
 
   if (self->data == NULL)
     self->data = valent_data_new (NULL, NULL);
 
-  if (!valent_manager_ensure_certificate (self, cancellable, error))
+  path = valent_data_get_config_path (self->data);
+  file = g_file_new_for_path (path);
+
+  /* Generate certificate */
+  self->certificate = valent_certificate_new_sync (path, error);
+
+  if (self->certificate == NULL)
     return FALSE;
 
-  if (!valent_manager_load_devices (self, cancellable, error))
+  self->id = valent_certificate_get_common_name (self->certificate);
+
+  /* Load devices */
+  if (!valent_manager_load_devices (self, file, cancellable, error))
     return FALSE;
 
   return TRUE;
@@ -704,9 +659,91 @@ initable_iface_init (GInitableIface *iface)
   iface->init = valent_manager_initable_init;
 }
 
+/*
+ * GAsyncInitable
+ */
+static void
+load_devices_task (GTask        *task,
+                   gpointer      source_object,
+                   gpointer      task_data,
+                   GCancellable *cancellable)
+{
+  ValentManager *self = VALENT_MANAGER (source_object);
+  GFile *file = G_FILE (task_data);
+  GError *error = NULL;
+
+  if (!valent_manager_load_devices (self, file, cancellable, &error))
+    return g_task_return_error (task, error);
+
+  g_task_return_boolean (task, TRUE);
+}
+
+static void
+valent_certificate_new_cb (GObject      *object,
+                           GAsyncResult *result,
+                           gpointer      user_data)
+{
+  g_autoptr (GTask) task = G_TASK (user_data);
+  ValentManager *self = g_task_get_source_object (task);
+  GError *error = NULL;
+
+  self->certificate = valent_certificate_new_finish (result, &error);
+
+  if (error != NULL)
+    return g_task_return_error (task, error);
+
+  self->id = valent_certificate_get_common_name (self->certificate);
+
+  g_task_run_in_thread (task, load_devices_task);
+}
+
+static void
+valent_manager_init_async (GAsyncInitable      *initable,
+                           int                  io_priority,
+                           GCancellable        *cancellable,
+                           GAsyncReadyCallback  callback,
+                           gpointer             user_data)
+{
+  ValentManager *self = VALENT_MANAGER (initable);
+  g_autoptr (GTask) task = NULL;
+  g_autoptr (GFile) file = NULL;
+  const char *path = NULL;
+
+  g_assert (VALENT_IS_MANAGER (self));
+
+  /* Ensure we have a data manager */
+  if (self->data == NULL)
+    self->data = valent_data_new (NULL, NULL);
+
+  path = valent_data_get_config_path (self->data);
+  file = g_file_new_for_path (path);
+
+  task = g_task_new (initable, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_manager_init_async);
+  g_task_set_task_data (task, g_steal_pointer (&file), g_object_unref);
+  g_task_set_priority (task, io_priority);
+
+  valent_certificate_new (path,
+                          cancellable,
+                          valent_certificate_new_cb,
+                          g_steal_pointer (&task));
+}
+
+static gboolean
+valent_manager_init_finish (GAsyncInitable  *initable,
+                            GAsyncResult    *result,
+                            GError         **error)
+{
+  g_return_val_if_fail (g_task_is_valid (result, initable), FALSE);
+
+  return g_task_propagate_boolean (G_TASK (result), error);
+}
+
 static void
 async_initable_iface_init (GAsyncInitableIface *iface)
 {
+  iface->init_async = valent_manager_init_async;
+  iface->init_finish = valent_manager_init_finish;
 }
 
 /*

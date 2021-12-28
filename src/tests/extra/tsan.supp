@@ -48,13 +48,13 @@ race:valent_lan_channel_get_certificate
 race:valent_lan_channel_get_property
 # TODO: ValentLanChanneService::port is construct-only
 race:valent_lan_channel_get_port
-race:valent_lan_channel_service_tcp_setup
 
 # src/plugins/valent-lan-channel-service.c
 race:on_connection
-race:valent_lan_channel_service_ensure_certificate
+race:on_packet
 race:valent_lan_channel_service_finalize
 race:valent_lan_channel_service_stop
+race:valent_lan_channel_service_tcp_setup
 race:valent_lan_channel_service_udp_setup
 
 # src/plugins/notification/valent-notification-plugin.c
