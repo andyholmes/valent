@@ -59,45 +59,6 @@ test_input_component_basic (InputComponentFixture *fixture,
   valent_test_event_cmpstr ("KEYSYM 97 0");
 }
 
-static void
-test_input_component_dispose (InputComponentFixture *fixture,
-                              gconstpointer          user_data)
-{
-  GPtrArray *extensions;
-  PeasEngine *engine;
-  g_autoptr (GSettings) settings = NULL;
-
-  /* Add a store to the provider */
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->input));
-  g_assert_cmpuint (extensions->len, ==, 1);
-  g_ptr_array_unref (extensions);
-
-  /* Wait for provider to resolve */
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
-  /* Disable/Enable the provider */
-  settings = valent_component_new_settings ("input", "mock");
-
-  g_settings_set_boolean (settings, "enabled", FALSE);
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->input));
-  g_assert_cmpuint (extensions->len, ==, 0);
-  g_ptr_array_unref (extensions);
-
-  g_settings_set_boolean (settings, "enabled", TRUE);
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->input));
-  g_assert_cmpuint (extensions->len, ==, 1);
-  g_ptr_array_unref (extensions);
-
-  /* Unload the provider */
-  engine = valent_get_engine ();
-  peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "mock"));
-
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->input));
-  g_assert_cmpuint (extensions->len, ==, 0);
-  g_ptr_array_unref (extensions);
-}
-
 int
 main (int   argc,
       char *argv[])
@@ -108,12 +69,6 @@ main (int   argc,
               InputComponentFixture, NULL,
               input_component_fixture_set_up,
               test_input_component_basic,
-              input_component_fixture_tear_down);
-
-  g_test_add ("/components/input/dispose",
-              InputComponentFixture, NULL,
-              input_component_fixture_set_up,
-              test_input_component_dispose,
               input_component_fixture_tear_down);
 
   return g_test_run ();

@@ -204,50 +204,6 @@ test_notifications_component_self (NotificationsComponentFixture *fixture,
   fixture->data = NULL;
 }
 
-static void
-test_notifications_component_dispose (NotificationsComponentFixture *fixture,
-                                      gconstpointer                  user_data)
-{
-  ValentNotificationSource *source;
-  PeasEngine *engine;
-  g_autoptr (GSettings) settings = NULL;
-
-  /* Add a notification to the provider */
-  source = valent_mock_notification_source_get_instance ();
-
-  /* Wait for valent_notification_source_load_async() to resolve */
-  valent_notification_source_emit_notification_added (source, fixture->notification);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
-  /* Disable/Enable the provider */
-  settings = valent_component_new_settings ("notifications", "mock");
-
-  g_settings_set_boolean (settings, "enabled", FALSE);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
-  source = valent_mock_notification_source_get_instance ();
-  g_assert_null (source);
-
-  g_settings_set_boolean (settings, "enabled", TRUE);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
-  source = valent_mock_notification_source_get_instance ();
-  g_assert_nonnull (source);
-
-  /* Unload the provider */
-  engine = valent_get_engine ();
-  peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "mock"));
-
-  source = valent_mock_notification_source_get_instance ();
-  g_assert_null (source);
-}
-
 int
 main (int   argc,
       char *argv[])
@@ -270,12 +226,6 @@ main (int   argc,
               NotificationsComponentFixture, NULL,
               notifications_component_fixture_set_up,
               test_notifications_component_self,
-              notifications_component_fixture_tear_down);
-
-  g_test_add ("/components/notifications/dispose",
-              NotificationsComponentFixture, NULL,
-              notifications_component_fixture_set_up,
-              test_notifications_component_dispose,
               notifications_component_fixture_tear_down);
 
   return g_test_run ();

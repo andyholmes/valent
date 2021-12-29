@@ -389,48 +389,6 @@ test_contacts_component_self (ContactsComponentFixture *fixture,
 }
 
 static void
-test_contacts_component_dispose (ContactsComponentFixture *fixture,
-                                 gconstpointer             user_data)
-{
-  GPtrArray *extensions;
-  ValentContactStoreProvider *provider;
-  PeasEngine *engine;
-  g_autoptr (GSettings) settings = NULL;
-
-  /* Add a store to the provider */
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->contacts));
-  provider = g_ptr_array_index (extensions, 0);
-  g_ptr_array_unref (extensions);
-
-  /* Wait for provider to resolve */
-  valent_contact_store_provider_emit_store_added (provider, fixture->store);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
-  /* Disable/Enable the provider */
-  settings = valent_component_new_settings ("contacts", "mock");
-
-  g_settings_set_boolean (settings, "enabled", FALSE);
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->contacts));
-  g_assert_cmpuint (extensions->len, ==, 0);
-  g_ptr_array_unref (extensions);
-
-  g_settings_set_boolean (settings, "enabled", TRUE);
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->contacts));
-  g_assert_cmpuint (extensions->len, ==, 1);
-  g_ptr_array_unref (extensions);
-
-  /* Unload the provider */
-  engine = valent_get_engine ();
-  peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "mock"));
-
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->contacts));
-  g_assert_cmpuint (extensions->len, ==, 0);
-  g_ptr_array_unref (extensions);
-}
-
-static void
 test_contacts_component_utils (void)
 {
   g_autoptr (EContact) contact = NULL;
@@ -484,12 +442,6 @@ main (int   argc,
               ContactsComponentFixture, NULL,
               contacts_component_fixture_set_up,
               test_contacts_component_self,
-              contacts_component_fixture_tear_down);
-
-  g_test_add ("/components/contacts/dispose",
-              ContactsComponentFixture, NULL,
-              contacts_component_fixture_set_up,
-              test_contacts_component_dispose,
               contacts_component_fixture_tear_down);
 
   g_test_add_func ("/components/contacts/utils",
