@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2021-12-26 14:54-0800\n"
+"POT-Creation-Date: 2021-12-29 18:12-0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -673,7 +673,7 @@ msgstr ""
 
 #: src/plugins/photo/valent-photo-plugin.c:70
 #: src/plugins/share/valent-share-plugin.c:101
-#: src/plugins/share/valent-share-plugin.c:238
+#: src/plugins/share/valent-share-plugin.c:261
 msgid "Transfer Failed"
 msgstr ""
 
@@ -854,18 +854,28 @@ msgstr ""
 msgid "Receiving “%s” from %s"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:215
-msgid "Transfer Successful"
-msgstr ""
-
-#: src/plugins/share/valent-share-plugin.c:224
+#: src/plugins/share/valent-share-plugin.c:222
 #, c-format
 msgid "Sent “%s” to %s"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:247
+#: src/plugins/share/valent-share-plugin.c:228
+#, c-format
+msgid "Sent %u files to %s"
+msgstr ""
+
+#: src/plugins/share/valent-share-plugin.c:233
+msgid "Transfer Successful"
+msgstr ""
+
+#: src/plugins/share/valent-share-plugin.c:248
 #, c-format
 msgid "Sending “%s” to %s: %s"
+msgstr ""
+
+#: src/plugins/share/valent-share-plugin.c:255
+#, c-format
+msgid "Sending %u files to %s: %s"
 msgstr ""
 
 #: src/plugins/share/valent-share-plugin.c:324
