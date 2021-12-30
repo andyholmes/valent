@@ -21,6 +21,8 @@ struct _ValentMockMixerControl
 G_DEFINE_TYPE (ValentMockMixerControl, valent_mock_mixer_control, VALENT_TYPE_MIXER_CONTROL)
 
 
+static ValentMixerControl *test_instance = NULL;
+
 static void
 on_stream_changed (ValentMixerStream  *stream,
                    GParamSpec         *pspec,
@@ -123,5 +125,24 @@ valent_mock_mixer_control_class_init (ValentMockMixerControlClass *klass)
 static void
 valent_mock_mixer_control_init (ValentMockMixerControl *self)
 {
+  if (test_instance == NULL)
+    {
+      test_instance = VALENT_MIXER_CONTROL (self);
+      g_object_add_weak_pointer (G_OBJECT (test_instance),
+                                 (gpointer)&test_instance);
+    }
+}
+
+/**
+ * valent_mock_mixer_control_get_instance:
+ *
+ * Get the #ValentMockMixerControl instance.
+ *
+ * Returns: (transfer none) (nullable): a #ValentMixerControl
+ */
+ValentMixerControl *
+valent_mock_mixer_control_get_instance (void)
+{
+  return test_instance;
 }
 

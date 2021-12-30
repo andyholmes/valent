@@ -29,7 +29,6 @@ struct _ValentComponentClass
 
 PeasExtension * valent_component_get_priority_provider (ValentComponent *component,
                                                         const char      *key);
-GPtrArray     * valent_component_get_extensions        (ValentComponent *component);
 GSettings     * valent_component_new_settings          (const char      *context,
                                                         const char      *module_name);
 

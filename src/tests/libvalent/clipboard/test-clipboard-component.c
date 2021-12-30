@@ -64,16 +64,11 @@ static void
 test_clipboard_component_provider (ClipboardComponentFixture *fixture,
                                    gconstpointer              user_data)
 {
-  g_autoptr (GPtrArray) extensions = NULL;
   ValentClipboardAdapter *provider;
   g_autofree char *text = NULL;
   PeasPluginInfo *info;
 
-  /* Wait for valent_clipboard_device_provider_load_async() to resolve */
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->clipboard));
-  provider = g_ptr_array_index (extensions, 0);
-
-  while (g_main_context_iteration (NULL, FALSE))
+  while ((provider = valent_mock_clipboard_adapter_get_instance ()) == NULL)
     continue;
 
   /* Properties */

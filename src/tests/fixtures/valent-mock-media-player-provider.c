@@ -19,6 +19,8 @@ struct _ValentMockMediaPlayerProvider
 G_DEFINE_TYPE (ValentMockMediaPlayerProvider, valent_mock_media_player_provider, VALENT_TYPE_MEDIA_PLAYER_PROVIDER)
 
 
+static ValentMediaPlayerProvider *test_instance = NULL;
+
 /*
  * ValentMediaPlayerProvider
  */
@@ -51,5 +53,24 @@ valent_mock_media_player_provider_class_init (ValentMockMediaPlayerProviderClass
 static void
 valent_mock_media_player_provider_init (ValentMockMediaPlayerProvider *self)
 {
+  if (test_instance == NULL)
+    {
+      test_instance = VALENT_MEDIA_PLAYER_PROVIDER (self);
+      g_object_add_weak_pointer (G_OBJECT (test_instance),
+                                 (gpointer)&test_instance);
+    }
+}
+
+/**
+ * valent_mock_media_player_provider_get_instance:
+ *
+ * Get the #ValentMockMediaPlayerProvider instance.
+ *
+ * Returns: (transfer none) (nullable): a #ValentMediaPlayerProvider
+ */
+ValentMediaPlayerProvider *
+valent_mock_media_player_provider_get_instance (void)
+{
+  return test_instance;
 }
 

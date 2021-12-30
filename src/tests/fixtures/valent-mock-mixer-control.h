@@ -15,5 +15,7 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (ValentMockMixerControl, valent_mock_mixer_control, VALENT, MOCK_MIXER_CONTROL, ValentMixerControl)
 
+ValentMixerControl * valent_mock_mixer_control_get_instance (void);
+
 G_END_DECLS
 

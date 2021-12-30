@@ -7,7 +7,6 @@
 # error "Only <libvalent-test.h> can be included directly."
 #endif
 
-#include <libvalent-core.h>
 #include <libvalent-clipboard.h>
 
 G_BEGIN_DECLS
@@ -15,6 +14,8 @@ G_BEGIN_DECLS
 #define VALENT_TYPE_MOCK_CLIPBOARD_ADAPTER (valent_mock_clipboard_adapter_get_type ())
 
 G_DECLARE_FINAL_TYPE (ValentMockClipboardAdapter, valent_mock_clipboard_adapter, VALENT, MOCK_CLIPBOARD_ADAPTER, ValentClipboardAdapter)
+
+ValentClipboardAdapter * valent_mock_clipboard_adapter_get_instance (void);
 
 G_END_DECLS
 
