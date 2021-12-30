@@ -201,9 +201,8 @@ upload_files_cb (ValentTransfer *transfer,
   unsigned int n_files;
   const char *uuid;
 
-  g_autoptr (GNotification) notif = NULL;
+  g_autoptr (GNotification) notification = NULL;
   g_autoptr (GIcon) icon = NULL;
-  const char *title;
   g_autofree char *body = NULL;
 
   n_files = g_list_model_get_n_items (files);
@@ -212,7 +211,6 @@ upload_files_cb (ValentTransfer *transfer,
   if (valent_transfer_execute_finish (transfer, result, &error))
     {
       icon = g_themed_icon_new ("document-send-symbolic");
-      title = _("Transfer Successful");
 
       if (n_files == 1)
         {
@@ -227,15 +225,18 @@ upload_files_cb (ValentTransfer *transfer,
         }
       else
         {
-          body = g_strdup_printf ("Uploaded %u files to %s",
+          body = g_strdup_printf (_("Sent %u files to %s"),
                                   n_files,
                                   valent_device_get_name (self->device));
         }
+
+      notification = g_notification_new (_("Transfer Successful"));
+      g_notification_set_body (notification, body);
+      g_notification_set_icon (notification, icon);
     }
   else if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
     {
       icon = g_themed_icon_new ("dialog-error-symbolic");
-      title = _("Transfer Failed");
 
       if (n_files == 1)
         {
@@ -251,23 +252,22 @@ upload_files_cb (ValentTransfer *transfer,
         }
       else
         {
-          body = g_strdup_printf ("Sending %u files to %s: %s",
+          body = g_strdup_printf (_("Sending %u files to %s: %s"),
                                   n_files,
                                   valent_device_get_name (self->device),
                                   error->message);
         }
+
+      notification = g_notification_new (_("Transfer Failed"));
+      g_notification_set_body (notification, body);
+      g_notification_set_icon (notification, icon);
     }
 
-  /* Update the notification */
+  /* Update or hide the existing notification */
   valent_device_hide_notification (self->device, uuid);
 
-  if (icon != NULL)
-    {
-      notif = g_notification_new (title);
-      g_notification_set_body (notif, body);
-      g_notification_set_icon (notif, icon);
-      valent_device_show_notification (self->device, uuid, notif);
-    }
+  if (notification != NULL)
+    valent_device_show_notification (self->device, uuid, notification);
 
   g_hash_table_remove (self->transfers, uuid);
 }
