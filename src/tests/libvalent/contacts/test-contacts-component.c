@@ -154,8 +154,8 @@ static void
 contacts_component_fixture_tear_down (ContactsComponentFixture *fixture,
                                       gconstpointer             user_data)
 {
-  g_assert_finalize_object (fixture->contacts);
-  g_assert_finalize_object (fixture->store);
+  v_assert_finalize_object (fixture->contacts);
+  v_assert_finalize_object (fixture->store);
   g_assert_finalize_object (fixture->contact);
   g_clear_pointer (&fixture->loop, g_main_loop_unref);
 }
@@ -164,16 +164,24 @@ static void
 test_contacts_component_provider (ContactsComponentFixture *fixture,
                                gconstpointer          user_data)
 {
-  g_autoptr (GPtrArray) extensions = NULL;
   ValentContactStoreProvider *provider;
   PeasPluginInfo *info;
 
-  /* Wait for valent_contact_store_provider_load_async() to resolve */
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->contacts));
-  provider = g_ptr_array_index (extensions, 0);
+  while ((provider = valent_mock_contact_store_provider_get_instance ()) == NULL)
+    continue;
 
+  /* Wait a bit longer for valent_contact_store_provider_load_async() to resolve */
   while (g_main_context_iteration (NULL, FALSE))
     continue;
+
+  g_signal_connect (provider,
+                    "store-added",
+                    G_CALLBACK (on_store_added),
+                    fixture);
+  g_signal_connect (provider,
+                    "store-removed",
+                    G_CALLBACK (on_store_removed),
+                    fixture);
 
   /* Properties */
   g_object_get (provider,
@@ -183,30 +191,21 @@ test_contacts_component_provider (ContactsComponentFixture *fixture,
   g_boxed_free (PEAS_TYPE_PLUGIN_INFO, info);
 
   /* Signals */
-  g_signal_connect (provider,
-                    "store-added",
-                    G_CALLBACK (on_store_added),
-                    fixture);
-
   valent_contact_store_provider_emit_store_added (provider, fixture->store);
   g_assert_true (fixture->data == provider);
   fixture->data = NULL;
 
-  g_signal_connect (provider,
-                    "store-removed",
-                    G_CALLBACK (on_store_removed),
-                    fixture);
-
   valent_contact_store_provider_emit_store_removed (provider, fixture->store);
   g_assert_true (fixture->data == provider);
   fixture->data = NULL;
+
+  g_signal_handlers_disconnect_by_data (provider, fixture);
 }
 
 static void
 test_contacts_component_store (ContactsComponentFixture *fixture,
                                gconstpointer             user_data)
 {
-  g_autoptr (GPtrArray) extensions = NULL;
   ValentContactStoreProvider *provider;
 
   g_autofree char *name = NULL;
@@ -218,19 +217,33 @@ test_contacts_component_store (ContactsComponentFixture *fixture,
   EContact *contact = NULL;
   GSList *contacts = NULL;
 
-  /* Wait for valent_contact_store_provider_load_async() to resolve */
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->contacts));
-  provider = g_ptr_array_index (extensions, 0);
+  while ((provider = valent_mock_contact_store_provider_get_instance ()) == NULL)
+    continue;
 
+  /* Wait a bit longer for valent_contact_store_provider_load_async() to resolve */
   while (g_main_context_iteration (NULL, FALSE))
     continue;
 
-  /* Add Store */
   g_signal_connect (provider,
                     "store-added",
                     G_CALLBACK (on_store_added),
                     fixture);
+  g_signal_connect (provider,
+                    "store-removed",
+                    G_CALLBACK (on_store_removed),
+                    fixture);
 
+  g_signal_connect (fixture->store,
+                    "contact-added",
+                    G_CALLBACK (on_contact_added),
+                    fixture);
+  g_signal_connect (fixture->store,
+                    "contact-removed",
+                    G_CALLBACK (on_contact_removed),
+                    fixture);
+
+
+  /* Add Store */
   valent_contact_store_provider_emit_store_added (provider, fixture->store);
   g_assert_true (fixture->data == provider);
   fixture->data = NULL;
@@ -247,11 +260,6 @@ test_contacts_component_store (ContactsComponentFixture *fixture,
   g_assert_nonnull (source);
 
   /* Add contact */
-  g_signal_connect (fixture->store,
-                    "contact-added",
-                    G_CALLBACK (on_contact_added),
-                    fixture);
-
   valent_contact_store_add_contact (fixture->store,
                                     fixture->contact,
                                     NULL,
@@ -325,11 +333,6 @@ test_contacts_component_store (ContactsComponentFixture *fixture,
   g_clear_object (&contact);
 
   /* Remove contact */
-  g_signal_connect (fixture->store,
-                    "contact-removed",
-                    G_CALLBACK (on_contact_removed),
-                    fixture);
-
   valent_contact_store_remove_contact (fixture->store,
                                        e_contact_get_const (fixture->contact, E_CONTACT_UID),
                                        NULL,
@@ -341,36 +344,38 @@ test_contacts_component_store (ContactsComponentFixture *fixture,
   fixture->data = NULL;
 
   /* Remove Store */
-  g_signal_connect (provider,
-                    "store-removed",
-                    G_CALLBACK (on_store_removed),
-                    fixture);
 
   valent_contact_store_provider_emit_store_removed (provider, fixture->store);
   g_assert_true (fixture->data == provider);
   fixture->data = NULL;
+
+  g_signal_handlers_disconnect_by_data (fixture->store, fixture);
+  g_signal_handlers_disconnect_by_data (provider, fixture);
 }
 
 static void
 test_contacts_component_self (ContactsComponentFixture *fixture,
                               gconstpointer             user_data)
 {
-  g_autoptr (GPtrArray) extensions = NULL;
   ValentContactStoreProvider *provider;
 
-  /* Wait for valent_contact_store_provider_load_async() to resolve */
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->contacts));
-  provider = g_ptr_array_index (extensions, 0);
+  while ((provider = valent_mock_contact_store_provider_get_instance ()) == NULL)
+    continue;
 
+  /* Wait a bit longer for valent_contact_store_provider_load_async() to resolve */
   while (g_main_context_iteration (NULL, FALSE))
     continue;
 
-  /* Add Store */
   g_signal_connect (fixture->contacts,
                     "store-added",
                     G_CALLBACK (on_store_added),
                     fixture);
+  g_signal_connect (fixture->contacts,
+                    "store-removed",
+                    G_CALLBACK (on_store_removed),
+                    fixture);
 
+  /* Add Store */
   valent_contact_store_provider_emit_store_added (provider, fixture->store);
   g_assert_true (fixture->data == fixture->contacts);
   fixture->data = NULL;
@@ -378,14 +383,11 @@ test_contacts_component_self (ContactsComponentFixture *fixture,
   /* Change Store */
 
   /* Remove Store */
-  g_signal_connect (fixture->contacts,
-                    "store-removed",
-                    G_CALLBACK (on_store_removed),
-                    fixture);
-
   valent_contact_store_provider_emit_store_removed (provider, fixture->store);
   g_assert_true (fixture->data == fixture->contacts);
   fixture->data = NULL;
+
+  g_signal_handlers_disconnect_by_data (fixture->contacts, fixture);
 }
 
 static void

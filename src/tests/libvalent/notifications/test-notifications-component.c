@@ -24,7 +24,7 @@ on_notification_added (GObject                       *object,
 
 static void
 on_notification_removed (GObject                       *object,
-                         ValentNotification            *notification,
+                         const char                    *id,
                          NotificationsComponentFixture *fixture)
 {
   fixture->data = object;
@@ -56,11 +56,21 @@ test_notifications_component_provider (NotificationsComponentFixture *fixture,
   ValentNotificationSource *source;
   PeasPluginInfo *info;
 
-  /* Wait for valent_notification_source_load_async() to resolve */
-  source = valent_mock_notification_source_get_instance ();
+  while ((source = valent_mock_notification_source_get_instance ()) == NULL)
+    continue;
 
+  /* Wait a bit longer for valent_notification_source_load_async() to resolve */
   while (g_main_context_iteration (NULL, FALSE))
     continue;
+
+  g_signal_connect (source,
+                    "notification-added",
+                    G_CALLBACK (on_notification_added),
+                    fixture);
+  g_signal_connect (source,
+                    "notification-removed",
+                    G_CALLBACK (on_notification_removed),
+                    fixture);
 
   /* Properties */
   g_object_get (source,
@@ -70,23 +80,15 @@ test_notifications_component_provider (NotificationsComponentFixture *fixture,
   g_boxed_free (PEAS_TYPE_PLUGIN_INFO, info);
 
   /* Signals */
-  g_signal_connect (source,
-                    "notification-added",
-                    G_CALLBACK (on_notification_added),
-                    fixture);
-
   valent_notification_source_emit_notification_added (source, fixture->notification);
   g_assert_true (fixture->data == source);
   fixture->data = NULL;
 
-  g_signal_connect (source,
-                    "notification-removed",
-                    G_CALLBACK (on_notification_removed),
-                    fixture);
-
   valent_notification_source_emit_notification_removed (source, "test-id");
   g_assert_true (fixture->data == source);
   fixture->data = NULL;
+
+  g_signal_handlers_disconnect_by_data (source, fixture);
 }
 
 static void
@@ -100,11 +102,21 @@ test_notifications_component_notification (NotificationsComponentFixture *fixtur
   GNotificationPriority priority;
   gint64 time, ntime;
 
-  /* Wait for valent_notification_source_load_async() to resolve */
-  source = valent_mock_notification_source_get_instance ();
+  while ((source = valent_mock_notification_source_get_instance ()) == NULL)
+    continue;
 
+  /* Wait a bit longer for valent_notification_source_load_async() to resolve */
   while (g_main_context_iteration (NULL, FALSE))
     continue;
+
+  g_signal_connect (source,
+                    "notification-added",
+                    G_CALLBACK (on_notification_added),
+                    fixture);
+  g_signal_connect (source,
+                    "notification-removed",
+                    G_CALLBACK (on_notification_removed),
+                    fixture);
 
   /* Add Notification */
   icon = g_themed_icon_new ("dialog-information-symbolic");
@@ -122,10 +134,6 @@ test_notifications_component_notification (NotificationsComponentFixture *fixtur
 
   valent_notification_add_button (fixture->notification, "Button 1", "foo.bar::baz");
 
-  g_signal_connect (source,
-                    "notification-added",
-                    G_CALLBACK (on_notification_added),
-                    fixture);
 
   valent_notification_source_emit_notification_added (source, fixture->notification);
   g_assert_true (fixture->data == source);
@@ -163,14 +171,11 @@ test_notifications_component_notification (NotificationsComponentFixture *fixtur
   notification = valent_notification_deserialize (variant);
 
   /* Remove Notification */
-  g_signal_connect (source,
-                    "notification-removed",
-                    G_CALLBACK (on_notification_removed),
-                    fixture);
-
   valent_notification_source_emit_notification_removed (source, "test-id");
   g_assert_true (fixture->data == source);
   fixture->data = NULL;
+
+  g_signal_handlers_disconnect_by_data (source, fixture);
 }
 
 static void
@@ -179,9 +184,10 @@ test_notifications_component_self (NotificationsComponentFixture *fixture,
 {
   ValentNotificationSource *source;
 
-  /* Wait for valent_notification_source_load_async() to resolve */
-  source = valent_mock_notification_source_get_instance ();
+  while ((source = valent_mock_notification_source_get_instance ()) == NULL)
+    continue;
 
+  /* Wait a bit longer for valent_notification_source_load_async() to resolve */
   while (g_main_context_iteration (NULL, FALSE))
     continue;
 
@@ -189,19 +195,22 @@ test_notifications_component_self (NotificationsComponentFixture *fixture,
                     "notification-added",
                     G_CALLBACK (on_notification_added),
                     fixture);
-
-  valent_notification_source_emit_notification_added (source, fixture->notification);
-  g_assert_true (fixture->data == fixture->notifications);
-  fixture->data = NULL;
-
   g_signal_connect (fixture->notifications,
                     "notification-removed",
                     G_CALLBACK (on_notification_removed),
                     fixture);
 
+  /* Add notification */
+  valent_notification_source_emit_notification_added (source, fixture->notification);
+  g_assert_true (fixture->data == fixture->notifications);
+  fixture->data = NULL;
+
+  /* Remove notification */
   valent_notification_source_emit_notification_removed (source, "test-id");
   g_assert_true (fixture->data == fixture->notifications);
   fixture->data = NULL;
+
+  g_signal_handlers_disconnect_by_data (source, fixture->notifications);
 }
 
 int

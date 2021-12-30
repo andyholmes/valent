@@ -474,33 +474,6 @@ valent_component_get_priority_provider (ValentComponent *component,
 }
 
 /**
- * valent_component_get_extensions:
- * @component: a #ValentComponent
- *
- * Get a list of the currently loaded extensions.
- *
- * Returns: (transfer container) (element-type Peas.Extension): a #GPtrArray
- */
-GPtrArray *
-valent_component_get_extensions (ValentComponent *component)
-{
-  ValentComponentPrivate *priv = valent_component_get_instance_private (component);
-  GPtrArray *extensions;
-  GHashTableIter iter;
-  gpointer value;
-
-  g_return_val_if_fail (VALENT_IS_COMPONENT (component), NULL);
-
-  extensions = g_ptr_array_new_with_free_func (g_object_unref);
-  g_hash_table_iter_init (&iter, priv->extensions);
-
-  while (g_hash_table_iter_next (&iter, NULL, &value))
-    g_ptr_array_add (extensions, g_object_ref (value));
-
-  return extensions;
-}
-
-/**
  * valent_component_new_settings:
  * @context: a #ValentDevice ID
  * @module_name: a #PeasPluginInfo module name

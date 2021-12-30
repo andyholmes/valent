@@ -19,7 +19,6 @@ static void
 media_component_fixture_set_up (MediaComponentFixture *fixture,
                                 gconstpointer          user_data)
 {
-  /* Wait for extensions to load */
   fixture->media = valent_media_get_default ();
 
   while (g_main_context_iteration (NULL, FALSE))
@@ -86,12 +85,10 @@ test_media_component_provider (MediaComponentFixture *fixture,
                                gconstpointer          user_data)
 {
   g_autoptr (GPtrArray) players = NULL;
-  g_autoptr (GPtrArray) extensions = NULL;
   ValentMediaPlayerProvider *provider;
 
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->media));
-  g_assert_cmpint (extensions->len, ==, 1);
-  provider = g_ptr_array_index (extensions, 0);
+  while ((provider = valent_mock_media_player_provider_get_instance ()) == NULL)
+    continue;
 
   g_signal_connect (provider,
                     "player-added",
@@ -119,7 +116,6 @@ static void
 test_media_component_player (MediaComponentFixture *fixture,
                              gconstpointer          user_data)
 {
-  g_autoptr (GPtrArray) extensions = NULL;
   ValentMediaPlayerProvider *provider;
 
   /* org.mpris.MediaPlayer2.Player */
@@ -130,9 +126,8 @@ test_media_component_player (MediaComponentFixture *fixture,
   g_autoptr (GVariant) metadata = NULL;
   gint64 position;
 
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->media));
-  g_assert_cmpint (extensions->len, ==, 1);
-  provider = g_ptr_array_index (extensions, 0);
+  while ((provider = valent_mock_media_player_provider_get_instance ()) == NULL)
+    continue;
 
   /* Add Player */
   g_signal_connect (provider,
@@ -243,13 +238,11 @@ test_media_component_self (MediaComponentFixture *fixture,
                            gconstpointer          user_data)
 {
   g_autoptr (GPtrArray) players = NULL;
-  g_autoptr (GPtrArray) extensions = NULL;
   ValentMediaPlayerProvider *provider;
   ValentMediaPlayer *player;
 
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->media));
-  g_assert_cmpint (extensions->len, ==, 1);
-  provider = g_ptr_array_index (extensions, 0);
+  while ((provider = valent_mock_media_player_provider_get_instance ()) == NULL)
+    continue;
 
   /* Add Player */
   g_signal_connect (fixture->media,

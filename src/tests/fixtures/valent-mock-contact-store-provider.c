@@ -19,6 +19,8 @@ struct _ValentMockContactStoreProvider
 G_DEFINE_TYPE (ValentMockContactStoreProvider, valent_mock_contact_store_provider, VALENT_TYPE_CONTACT_STORE_PROVIDER)
 
 
+static ValentContactStoreProvider *test_instance = NULL;
+
 /*
  * ValentContactStoreProvider
  */
@@ -52,5 +54,24 @@ valent_mock_contact_store_provider_class_init (ValentMockContactStoreProviderCla
 static void
 valent_mock_contact_store_provider_init (ValentMockContactStoreProvider *self)
 {
+  if (test_instance == NULL)
+    {
+      test_instance = VALENT_CONTACT_STORE_PROVIDER (self);
+      g_object_add_weak_pointer (G_OBJECT (test_instance),
+                                 (gpointer)&test_instance);
+    }
+}
+
+/**
+ * valent_mock_contact_store_provider_get_instance:
+ *
+ * Get the #ValentMockContactStoreProvider instance.
+ *
+ * Returns: (transfer none) (nullable): a #ValentContactStoreProvider
+ */
+ValentContactStoreProvider *
+valent_mock_contact_store_provider_get_instance (void)
+{
+  return test_instance;
 }
 

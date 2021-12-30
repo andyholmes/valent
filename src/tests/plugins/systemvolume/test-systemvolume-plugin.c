@@ -29,15 +29,18 @@ systemvolume_plugin_fixture_set_up (ValentTestPluginFixture *fixture,
 {
   MixerInfo *info;
   ValentMixer *mixer;
-  g_autoptr (GPtrArray) controls = NULL;
+  ValentMixerControl *control;
 
   valent_test_plugin_fixture_init (fixture, user_data);
 
   mixer = valent_mixer_get_default ();
-  controls = valent_component_get_extensions (VALENT_COMPONENT (mixer));
+  g_assert_true (VALENT_IS_MIXER (mixer));
+
+  while ((control = valent_mock_mixer_control_get_instance ()) == NULL)
+    g_main_context_iteration (NULL, FALSE);
 
   info = g_new0 (MixerInfo, 1);
-  info->control = g_ptr_array_index (controls, 0);
+  info->control = control;
   info->sink1 = g_object_new (VALENT_TYPE_MIXER_STREAM,
                               "name",        "test_sink1",
                               "description", "Test Speakers",

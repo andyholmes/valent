@@ -72,17 +72,12 @@ static void
 test_mixer_component_provider (MixerComponentFixture *fixture,
                                gconstpointer          user_data)
 {
-  g_autoptr (GPtrArray) extensions = NULL;
   ValentMixerControl *provider;
   g_autoptr (GPtrArray) inputs = NULL;
   g_autoptr (GPtrArray) outputs = NULL;
   ValentMixerStream *stream;
 
-  /* Wait for valent_mixer_control_load_async() to resolve */
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->mixer));
-  provider = g_ptr_array_index (extensions, 0);
-
-  while (g_main_context_iteration (NULL, FALSE))
+  while ((provider = valent_mock_mixer_control_get_instance ()) == NULL)
     continue;
 
   /* Add Streams */
@@ -144,18 +139,13 @@ static void
 test_mixer_component_stream (MixerComponentFixture *fixture,
                              gconstpointer          user_data)
 {
-  g_autoptr (GPtrArray) extensions = NULL;
   ValentMixerControl *provider;
   ValentMixerStreamFlags flags;
   int level;
   gboolean muted;
   char *name, *description;
 
-  /* Wait for valent_mixer_control_load_async() to resolve */
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->mixer));
-  provider = g_ptr_array_index (extensions, 0);
-
-  while (g_main_context_iteration (NULL, FALSE))
+  while ((provider = valent_mock_mixer_control_get_instance ()) == NULL)
     continue;
 
   /* Add Streams */
@@ -230,17 +220,12 @@ static void
 test_mixer_component_self (MixerComponentFixture *fixture,
                            gconstpointer          user_data)
 {
-  g_autoptr (GPtrArray) extensions = NULL;
   ValentMixerControl *provider;
   g_autoptr (GPtrArray) inputs = NULL;
   g_autoptr (GPtrArray) outputs = NULL;
   ValentMixerStream *stream;
 
-  /* Wait for valent_mixer_control_load_async() to resolve */
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->mixer));
-  provider = g_ptr_array_index (extensions, 0);
-
-  while (g_main_context_iteration (NULL, FALSE))
+  while ((provider = valent_mock_mixer_control_get_instance ()) == NULL)
     continue;
 
   /* Add Streams */

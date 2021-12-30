@@ -38,15 +38,10 @@ static void
 test_session_component_provider (SessionComponentFixture *fixture,
                                  gconstpointer            user_data)
 {
-  g_autoptr (GPtrArray) extensions = NULL;
   ValentSessionAdapter *provider;
   gboolean active, locked;
 
-  /* Wait for valent_session_adapter_load_async() to resolve */
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->session));
-  provider = g_ptr_array_index (extensions, 0);
-
-  while (g_main_context_iteration (NULL, FALSE))
+  while ((provider = valent_mock_session_adapter_get_instance ()) == NULL)
     continue;
 
   /* Compare Device & Aggregator */
@@ -77,17 +72,12 @@ static void
 test_session_component_self (SessionComponentFixture *fixture,
                              gconstpointer            user_data)
 {
-  g_autoptr (GPtrArray) extensions = NULL;
   ValentSessionAdapter *provider;
   gboolean session_active, session_locked;
   gboolean adapter_active, adapter_locked;
   PeasPluginInfo *info;
 
-  /* Wait for valent_session_adapter_load_async() to resolve */
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->session));
-  provider = g_ptr_array_index (extensions, 0);
-
-  while (g_main_context_iteration (NULL, FALSE))
+  while ((provider = valent_mock_session_adapter_get_instance ()) == NULL)
     continue;
 
   /* Compare session & adapter */
