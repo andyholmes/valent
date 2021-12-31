@@ -9,6 +9,7 @@
 #include <libpeas/peas.h>
 
 #include "valent-component.h"
+#include "valent-debug.h"
 #include "valent-utils.h"
 
 
@@ -30,9 +31,7 @@ typedef struct
   PeasEngine *engine;
   char       *plugin_context;
   GType       plugin_type;
-
-  GHashTable *extensions;
-  GHashTable *settings;
+  GHashTable *plugins;
 } ValentComponentPrivate;
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentComponent, valent_component, G_TYPE_OBJECT);
@@ -68,7 +67,26 @@ typedef struct
 {
   ValentComponent *component;
   PeasPluginInfo  *info;
-} ComponentProviderInfo;
+  PeasExtension   *extension;
+  GSettings       *settings;
+} ComponentPlugin;
+
+static void
+component_plugin_free (gpointer data)
+{
+  ComponentPlugin *plugin = data;
+
+  if (plugin->extension != NULL)
+    {
+      g_signal_emit (G_OBJECT (plugin->component),
+                     signals [EXTENSION_REMOVED], 0,
+                     plugin->extension);
+      g_clear_object (&plugin->extension);
+    }
+
+  g_clear_object (&plugin->settings);
+  g_clear_pointer (&plugin, g_free);
+}
 
 
 static gint64
@@ -92,53 +110,52 @@ get_extension_priority (PeasPluginInfo *info,
  * Invoked when a source is enabled or disabled in settings.
  */
 static void
-valent_component_enable_extension (ValentComponent *component,
-                                   PeasPluginInfo  *info)
+valent_component_enable_extension (ValentComponent *self,
+                                   ComponentPlugin *plugin)
 {
-  ValentComponentPrivate *priv = valent_component_get_instance_private (component);
-  PeasExtension *extension;
+  ValentComponentPrivate *priv = valent_component_get_instance_private (self);
 
-  extension = peas_engine_create_extension (priv->engine,
-                                            info,
-                                            priv->plugin_type,
-                                            NULL);
+  g_assert (VALENT_IS_COMPONENT (self));
+  g_assert (plugin->extension == NULL);
 
-  if (extension != NULL)
-    {
-      g_hash_table_replace (priv->extensions, info, extension);
-      g_signal_emit (G_OBJECT (component), signals [EXTENSION_ADDED], 0, extension);
-    }
+  plugin->extension = peas_engine_create_extension (priv->engine,
+                                                    plugin->info,
+                                                    priv->plugin_type,
+                                                    NULL);
+
+  if (plugin->extension != NULL)
+    g_signal_emit (G_OBJECT (self),
+                   signals [EXTENSION_ADDED], 0,
+                   plugin->extension);
 }
 
 static void
-valent_component_disable_extension (ValentComponent *component,
-                                    PeasPluginInfo  *info)
+valent_component_disable_extension (ValentComponent *self,
+                                    ComponentPlugin *plugin)
 {
-  ValentComponentPrivate *priv = valent_component_get_instance_private (component);
-  gpointer extension;
+  g_assert (VALENT_IS_COMPONENT (self));
+  g_return_if_fail (PEAS_IS_EXTENSION (plugin->extension));
 
-  if (g_hash_table_steal_extended (priv->extensions, info, NULL, &extension))
-    {
-      g_signal_emit (G_OBJECT (component), signals [EXTENSION_REMOVED], 0, extension);
-      g_object_unref (extension);
-    }
+  g_signal_emit (G_OBJECT (self),
+                 signals [EXTENSION_REMOVED], 0,
+                 plugin->extension);
+  g_clear_object (&plugin->extension);
 }
 
 static void
-on_enabled_changed (GSettings             *settings,
-                    const char            *key,
-                    ComponentProviderInfo *extension_info)
+on_enabled_changed (GSettings       *settings,
+                    const char      *key,
+                    ComponentPlugin *plugin)
 {
-  ValentComponent *component = extension_info->component;
-  PeasPluginInfo *info = extension_info->info;
+  ValentComponent *self = VALENT_COMPONENT (plugin->component);
 
   g_assert (G_IS_SETTINGS (settings));
-  g_assert (VALENT_IS_COMPONENT (component));
+  g_assert (VALENT_IS_COMPONENT (self));
 
   if (g_settings_get_boolean (settings, key))
-    valent_component_enable_extension (component, info);
+    valent_component_enable_extension (self, plugin);
   else
-    valent_component_disable_extension (component, info);
+    valent_component_disable_extension (self, plugin);
 }
 
 /*
@@ -147,17 +164,15 @@ on_enabled_changed (GSettings             *settings,
 static void
 on_load_plugin (PeasEngine      *engine,
                 PeasPluginInfo  *info,
-                ValentComponent *component)
+                ValentComponent *self)
 {
-  ValentComponentPrivate *priv = valent_component_get_instance_private (component);
-  ComponentProviderInfo *extension_info;
+  ValentComponentPrivate *priv = valent_component_get_instance_private (self);
+  ComponentPlugin *plugin;
   const char *module;
-  g_autofree char *path = NULL;
-  GSettings *settings;
 
   g_assert (PEAS_IS_ENGINE (engine));
   g_assert (info != NULL);
-  g_assert (VALENT_IS_COMPONENT (component));
+  g_assert (VALENT_IS_COMPONENT (self));
 
   /* This would generally only happen at startup */
   if G_UNLIKELY (!peas_plugin_info_is_loaded (info))
@@ -167,48 +182,42 @@ on_load_plugin (PeasEngine      *engine,
   if (!peas_engine_provides_extension (engine, info, priv->plugin_type))
     return;
 
-  /* We create and destroy the #PeasExtension based on the enabled state to
-   * ensure they aren't using any resources. */
   module = peas_plugin_info_get_module_name (info);
-  path = g_strdup_printf ("/ca/andyholmes/valent/%s/plugin/%s/",
-                          priv->plugin_context,
-                          module);
-  settings = g_settings_new_with_path ("ca.andyholmes.Valent.Plugin", path);
-  g_hash_table_insert (priv->settings, info, settings);
+  VALENT_DEBUG ("%s: %s", g_type_name (priv->plugin_type), module);
 
-  /* Watch for enabled/disabled */
-  extension_info = g_new0 (ComponentProviderInfo, 1);
-  extension_info->component = component;
-  extension_info->info = info;
+  plugin = g_new0 (ComponentPlugin, 1);
+  plugin->component = self;
+  plugin->info = info;
+  plugin->settings = valent_component_new_settings (priv->plugin_context,
+                                                    module);
+  g_hash_table_insert (priv->plugins, info, plugin);
 
-  g_signal_connect_data (settings,
-                         "changed::enabled",
-                         G_CALLBACK (on_enabled_changed),
-                         extension_info,
-                         (GClosureNotify)g_free,
-                         0);
+  /* The PeasExtension is created and destroyed based on the enabled state */
+  g_signal_connect (plugin->settings,
+                    "changed::enabled",
+                    G_CALLBACK (on_enabled_changed),
+                    plugin);
 
-  if (g_settings_get_boolean (settings, "enabled"))
-    valent_component_enable_extension (component, info);
+  if (g_settings_get_boolean (plugin->settings, "enabled"))
+    valent_component_enable_extension (self, plugin);
 }
 
 static void
 on_unload_plugin (PeasEngine      *engine,
                   PeasPluginInfo  *info,
-                  ValentComponent *component)
+                  ValentComponent *self)
 {
-  ValentComponentPrivate *priv = valent_component_get_instance_private (component);
+  ValentComponentPrivate *priv = valent_component_get_instance_private (self);
 
   g_assert (PEAS_IS_ENGINE (engine));
   g_assert (info != NULL);
-  g_assert (VALENT_IS_COMPONENT (component));
+  g_assert (VALENT_IS_COMPONENT (self));
 
   /* We're only interested in one GType */
   if (!peas_engine_provides_extension (engine, info, priv->plugin_type))
     return;
 
-  if (g_hash_table_remove (priv->settings, info))
-    valent_component_disable_extension (component, info);
+  g_hash_table_remove (priv->plugins, info);
 }
 
 
@@ -220,7 +229,7 @@ valent_component_constructed (GObject *object)
 {
   ValentComponent *self = VALENT_COMPONENT (object);
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
-  const GList *plugins;
+  const GList *plugins = NULL;
 
   g_assert (priv->plugin_context != NULL);
   g_assert (priv->plugin_type != G_TYPE_NONE);
@@ -249,22 +258,10 @@ valent_component_dispose (GObject *object)
 {
   ValentComponent *self = VALENT_COMPONENT (object);
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
-  GHashTableIter iter;
-  gpointer info, extension;
 
   g_signal_handlers_disconnect_by_func (priv->engine, on_load_plugin, self);
   g_signal_handlers_disconnect_by_func (priv->engine, on_unload_plugin, self);
-
-  g_hash_table_iter_init (&iter, priv->extensions);
-
-  while (g_hash_table_iter_next (&iter, &info, &extension))
-    {
-      g_hash_table_remove (priv->settings, info);
-      g_hash_table_iter_steal (&iter);
-
-      g_signal_emit (G_OBJECT (self), signals [EXTENSION_REMOVED], 0, extension);
-      g_object_unref (extension);
-    }
+  g_hash_table_remove_all (priv->plugins);
 
   G_OBJECT_CLASS (valent_component_parent_class)->dispose (object);
 }
@@ -276,8 +273,7 @@ valent_component_finalize (GObject *object)
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
 
   g_clear_pointer (&priv->plugin_context, g_free);
-  g_clear_pointer (&priv->extensions, g_hash_table_unref);
-  g_clear_pointer (&priv->settings, g_hash_table_unref);
+  g_clear_pointer (&priv->plugins, g_hash_table_unref);
 
   G_OBJECT_CLASS (valent_component_parent_class)->finalize (object);
 }
@@ -382,9 +378,6 @@ valent_component_class_init (ValentComponentClass *klass)
    *
    * The "extension-added" signal is emitted when @component has enabled a
    * supported extension.
-   *
-   * Subclasses of #ValentComponent must chain-up if they override the
-   * #ValentComponentClass.extension_added vfunc.
    */
   signals [EXTENSION_ADDED] =
     g_signal_new ("extension-added",
@@ -403,11 +396,8 @@ valent_component_class_init (ValentComponentClass *klass)
    * @component: an #ValentComponent
    * @extension: an #PeasExtension
    *
-   * The "extension-removed" signal is emitted when a extension has discovered a
-   * extension is no longer available.
-   *
-   * Subclasses of #ValentComponent must chain-up if they override the
-   * #ValentComponentClass.extension_removed vfunc.
+   * The "extension-removed" signal is emitted when @component is about to
+   * disable a supported extension.
    */
   signals [EXTENSION_REMOVED] =
     g_signal_new ("extension-removed",
@@ -429,8 +419,7 @@ valent_component_init (ValentComponent *self)
 
   priv->engine = valent_get_engine ();
   priv->plugin_type = G_TYPE_NONE;
-  priv->extensions = g_hash_table_new_full (NULL, NULL, NULL, g_object_unref);
-  priv->settings = g_hash_table_new_full (NULL, NULL, NULL, g_object_unref);
+  priv->plugins = g_hash_table_new_full (NULL, NULL, NULL, component_plugin_free);
 }
 
 /**
@@ -449,24 +438,28 @@ valent_component_get_priority_provider (ValentComponent *component,
 {
   ValentComponentPrivate *priv = valent_component_get_instance_private (component);
   GHashTableIter iter;
-  gpointer info, value;
+  PeasPluginInfo *info;
+  ComponentPlugin *plugin;
   PeasExtension *extension = NULL;
   gint64 priority = 0;
 
   g_return_val_if_fail (VALENT_IS_COMPONENT (component), NULL);
 
-  g_hash_table_iter_init (&iter, priv->extensions);
+  g_hash_table_iter_init (&iter, priv->plugins);
 
-  while (g_hash_table_iter_next (&iter, &info, &value))
+  while (g_hash_table_iter_next (&iter, (void **)&info, (void **)&plugin))
     {
       gint64 curr_priority;
+
+      if (plugin->extension == NULL)
+        continue;
 
       curr_priority = get_extension_priority (info, key);
 
       if (extension == NULL || curr_priority < priority)
         {
           priority = curr_priority;
-          extension = value;
+          extension = plugin->extension;
         }
     }
 
