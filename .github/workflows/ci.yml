@@ -34,7 +34,7 @@ jobs:
       - name: Python (pylint, mypy)
         if: ${{ always() }}
         run: |
-          pylint $(git ls-files '*.py')
+          pylint --disable=similarities $(git ls-files '*.py')
           mypy $(git ls-files '*.py')
 
       - name: YAML (yamllint)
