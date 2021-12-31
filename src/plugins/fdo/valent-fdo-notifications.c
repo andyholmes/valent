@@ -212,7 +212,10 @@ valent_fdo_notifications_method_call (GDBusConnection       *connection,
   message = g_dbus_method_invocation_get_message (invocation);
   destination = g_dbus_message_get_destination (message);
 
-  if G_UNLIKELY (g_strcmp0 (self->name_owner, destination))
+  // TODO: accepting notifications from the well-known name causes duplicates on
+  //       GNOME Shell where a proxy daemon is run.
+  if (g_strcmp0 ("org.freedesktop.Notifications", destination) != 0 &&
+      g_strcmp0 (self->name_owner, destination) != 0)
     goto out;
 
   if (g_strcmp0 (method_name, "Notify") == 0)
