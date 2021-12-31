@@ -117,22 +117,21 @@ class GLibTestCase(metaclass = _GLibTestCaseMeta):
         :attr:`~glibtest.GLibTestCase.executable`.
         """
 
-        message = None
-
         try:
             test = subprocess.run([self.executable, '-p', path],
                                   capture_output=True,
                                   check=True,
                                   encoding='utf-8')
-        except subprocess.CalledProcessError as error:
-            message = error.stdout
-            message = f'Error ({error.returncode})\n{message}'
-        else:
-            sys.stderr.write(test.stdout)
 
-        if message:
+        # On failure, preserve the output and pipe
+        except subprocess.CalledProcessError as error:
             # pylint: disable-next=no-member
-            self.fail(message) # type: ignore
+            self.fail(f'\nstdout:\n{error.stdout}\nstderr:\n{error.stderr}') # type: ignore
+
+        # On success, propagate the output verbatim
+        else:
+            sys.stdout.write(test.stdout)
+            sys.stderr.write(test.stderr)
 
 
 def main() -> None:
