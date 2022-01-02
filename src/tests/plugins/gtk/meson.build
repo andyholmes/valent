@@ -10,6 +10,7 @@ plugin_gtk_test_deps = [
 
 plugin_gtk_tests = {
   'test-gtk-notifications': find_program('mock_gtk_notifications.py'),
+  'test-gdk-clipboard': '',
 }
 
 foreach test, test_runner : plugin_gtk_tests
@@ -24,6 +25,10 @@ foreach test, test_runner : plugin_gtk_tests
              link_whole: [libvalent_test, plugin_gtk],
     include_directories: plugin_gtk_include_directories,
   )
+
+  if test_runner == ''
+    test_runner = test_program
+  endif
 
   test(test, test_runner,
             env: plugin_gtk_tests_env,
