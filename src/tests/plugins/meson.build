@@ -24,6 +24,7 @@ plugin_tests = [
 
   # Integration
   'fdo',
+  'gtk',
 ]
 
 foreach plugin : plugin_tests
