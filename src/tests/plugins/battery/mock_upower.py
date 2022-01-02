@@ -21,7 +21,7 @@ G_TEST_SRCDIR = os.environ.get('G_TEST_SRCDIR', '')
 sys.path.append(os.path.join(G_TEST_SRCDIR, 'fixtures'))
 
 # pylint: disable-next=wrong-import-position
-import glibtest
+import glibtest # type: ignore
 
 
 class UPowerTestFixture(glibtest.GLibTestCase, dbusmock.DBusTestCase):
