@@ -8,6 +8,15 @@
     <property name="width-request">360</property>
     <property name="height-request">480</property>
     <child>
+      <object class="GtkEventControllerKey" id="keyboard">
+        <property name="name">keyboard</property>
+        <signal name="key-pressed"
+                handler="on_key_pressed"
+                object="ValentMousepadDialog"
+                swapped="no"/>
+      </object>
+    </child>
+    <child>
       <object class="GtkBox">
         <property name="orientation">vertical</property>
         <child>
@@ -55,6 +64,65 @@
               <object class="GtkFrame" id="touchpad">
                 <property name="hexpand">1</property>
                 <property name="vexpand">1</property>
+                <child>
+                  <object class="GtkEventControllerScroll" id="pointer_scroll">
+                    <property name="name">pointer-scroll</property>
+                    <property name="flags">vertical</property>
+                    <signal name="scroll"
+                            handler="on_scroll"
+                            object="ValentMousepadDialog"
+                            swapped="no"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkGestureDrag" id="touch_single">
+                    <property name="name">touch-single</property>
+                    <property name="n-points">1</property>
+                    <property name="button">0</property>
+                    <signal name="drag-begin"
+                            handler="on_single_begin"
+                            object="ValentMousepadDialog"
+                            swapped="no"/>
+                    <signal name="update"
+                            handler="on_single_update"
+                            object="ValentMousepadDialog"
+                            swapped="no"/>
+                    <signal name="drag-end"
+                            handler="on_single_end"
+                            object="ValentMousepadDialog"
+                            swapped="no"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkGestureDrag" id="touch_double">
+                    <property name="name">touch-double</property>
+                    <property name="n-points">2</property>
+                    <property name="touch-only">1</property>
+                    <signal name="drag-begin"
+                            handler="on_double_begin"
+                            object="ValentMousepadDialog"
+                            swapped="no"/>
+                    <signal name="update"
+                            handler="on_double_update"
+                            object="ValentMousepadDialog"
+                            swapped="no"/>
+                    <signal name="drag-end"
+                            handler="on_double_end"
+                            object="ValentMousepadDialog"
+                            swapped="no"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkGestureDrag" id="touch_triple">
+                    <property name="name">touch-triple</property>
+                    <property name="n-points">3</property>
+                    <property name="touch-only">1</property>
+                    <signal name="drag-end"
+                            handler="on_triple_end"
+                            object="ValentMousepadDialog"
+                            swapped="no"/>
+                  </object>
+                </child>
                 <child>
                   <object class="GtkBox">
                     <property name="orientation">vertical</property>
