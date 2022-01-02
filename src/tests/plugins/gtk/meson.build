@@ -9,7 +9,7 @@ plugin_gtk_test_deps = [
 ]
 
 plugin_gtk_tests = {
-  'test-gtk-notifications': find_program('mock_notifications.py'),
+  'test-gtk-notifications': find_program('mock_gtk_notifications.py'),
 }
 
 foreach test, test_runner : plugin_gtk_tests
