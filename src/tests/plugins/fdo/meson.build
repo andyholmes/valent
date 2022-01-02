@@ -9,8 +9,8 @@ plugin_fdo_test_deps = [
 ]
 
 plugin_fdo_tests = {
-  'test-fdo-notifications': find_program('mock_notifications.py'),
-  'test-fdo-session': find_program('mock_session.py'),
+  'test-fdo-notifications': find_program('mock_fdo_notifications.py'),
+  'test-fdo-session': find_program('mock_logind.py'),
 }
 
 foreach test, test_runner : plugin_fdo_tests
