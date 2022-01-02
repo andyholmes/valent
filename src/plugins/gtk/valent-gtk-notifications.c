@@ -23,8 +23,8 @@ struct _ValentGtkNotifications
   GDBusInterfaceInfo       *iface_info;
   GDBusConnection          *monitor;
   unsigned int              monitor_id;
-  unsigned int              name_owner_id;
   char                     *name_owner;
+  unsigned int              name_owner_id;
 };
 
 G_DEFINE_TYPE (ValentGtkNotifications, valent_gtk_notifications, VALENT_TYPE_NOTIFICATION_SOURCE)
@@ -316,8 +316,9 @@ valent_gtk_notifications_dispose (GObject *object)
     {
       g_dbus_connection_unregister_object (self->monitor, self->monitor_id);
       self->monitor_id = 0;
-      g_clear_object (&self->monitor);
     }
+
+  g_clear_object (&self->monitor);
 
   G_OBJECT_CLASS (valent_gtk_notifications_parent_class)->dispose (object);
 }
