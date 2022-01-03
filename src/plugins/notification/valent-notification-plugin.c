@@ -81,7 +81,7 @@ on_notification_added (ValentNotifications      *listener,
     return;
 
   if (!g_settings_get_boolean (self->settings, "forward-when-active") &&
-      !valent_session_get_active (self->session))
+      valent_session_get_active (self->session))
     return;
 
   application = valent_notification_get_application (notification);
