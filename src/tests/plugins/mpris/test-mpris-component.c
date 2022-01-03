@@ -14,12 +14,23 @@
 
 typedef struct
 {
-  GMainLoop         *loop;
+  ValentMedia       *media;
   ValentMediaPlayer *player;
+  GMainLoop         *loop;
   gpointer           data;
   unsigned int       state;
 } MprisComponentFixture;
 
+
+static gboolean
+timeout_cb (gpointer data)
+{
+  MprisComponentFixture *fixture = data;
+
+  g_main_loop_quit (fixture->loop);
+
+  return G_SOURCE_REMOVE;
+}
 
 static void
 mpris_provider_fixture_set_up (MprisComponentFixture *fixture,
@@ -31,8 +42,12 @@ mpris_provider_fixture_set_up (MprisComponentFixture *fixture,
   settings = valent_component_new_settings ("media", "mock");
   g_settings_set_boolean (settings, "enabled", FALSE);
 
-  /* Wait for extensions to load */
   fixture->loop = g_main_loop_new (NULL, FALSE);
+  fixture->media = valent_media_get_default ();
+
+  /* Wait just a tick to avoid a strange race condition */
+  g_timeout_add (1, timeout_cb, fixture);
+  g_main_loop_run (fixture->loop);
 }
 
 static void
@@ -42,9 +57,7 @@ mpris_provider_fixture_tear_down (MprisComponentFixture *fixture,
   g_clear_pointer (&fixture->loop, g_main_loop_unref);
   g_clear_object (&fixture->player);
 
-  // TODO: finalize ValentMedia to finalize ValentMPRISPlayerProvider
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  g_assert_finalize_object (fixture->media);
 }
 
 static void
@@ -79,15 +92,13 @@ static void
 test_mpris_component_provider (MprisComponentFixture *fixture,
                                gconstpointer          user_data)
 {
-  ValentMedia *media;
   g_autoptr (ValentMprisRemote) remote = NULL;
 
-  media = valent_media_get_default ();
-  g_signal_connect (media,
+  g_signal_connect (fixture->media,
                     "player-added",
                     G_CALLBACK (on_player_added),
                     fixture);
-  g_signal_connect (media,
+  g_signal_connect (fixture->media,
                     "player-removed",
                     G_CALLBACK (on_player_removed),
                     fixture);
@@ -102,14 +113,13 @@ test_mpris_component_provider (MprisComponentFixture *fixture,
   g_main_loop_run (fixture->loop);
   g_assert_null (fixture->player);
 
-  g_signal_handlers_disconnect_by_data (media, fixture);
+  g_signal_handlers_disconnect_by_data (fixture->media, fixture);
 }
 
 static void
 test_mpris_component_player (MprisComponentFixture *fixture,
                              gconstpointer          user_data)
 {
-  ValentMedia *media;
   g_autoptr (ValentMprisRemote) remote = NULL;
   ValentMediaActions flags;
   ValentMediaState state;
@@ -119,12 +129,11 @@ test_mpris_component_player (MprisComponentFixture *fixture,
   gint64 position;
 
   /* Watch for the player */
-  media = valent_media_get_default ();
-  g_signal_connect (media,
+  g_signal_connect (fixture->media,
                     "player-added",
                     G_CALLBACK (on_player_added),
                     fixture);
-  g_signal_connect (media,
+  g_signal_connect (fixture->media,
                     "player-removed",
                     G_CALLBACK (on_player_removed),
                     fixture);
@@ -213,7 +222,7 @@ test_mpris_component_player (MprisComponentFixture *fixture,
   g_assert_null (fixture->player);
 
   g_signal_handlers_disconnect_by_data (remote, fixture);
-  g_signal_handlers_disconnect_by_data (media, fixture);
+  g_signal_handlers_disconnect_by_data (fixture->media, fixture);
 }
 
 int
