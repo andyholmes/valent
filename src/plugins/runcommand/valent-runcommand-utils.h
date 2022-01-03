@@ -7,8 +7,7 @@
 
 G_BEGIN_DECLS
 
-gboolean   valent_runcommand_can_spawn_host    (void);
-gboolean   valent_runcommand_can_spawn_sandbox (void);
+gboolean   valent_runcommand_can_spawn_host (void);
 
 G_END_DECLS
 

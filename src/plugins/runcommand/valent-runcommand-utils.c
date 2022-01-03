@@ -21,50 +21,27 @@
 gboolean
 valent_runcommand_can_spawn_host (void)
 {
-  static int host = -1;
+  static gboolean host = TRUE;
+  static gsize guard = 0;
 
-  if (host != -1)
-    return host;
-
-  host = TRUE;
-
-  if (valent_in_flatpak ())
+  if (g_once_init_enter (&guard))
     {
-      int status = 0;
+      if (valent_in_flatpak ())
+        {
+          int status = 0;
 
-      g_spawn_command_line_sync ("flatpak-spawn --host echo",
-                                 NULL, NULL, &status, NULL);
-#if !GLIB_CHECK_VERSION(2, 69, 0)
-      host = g_spawn_check_exit_status (status, NULL);
+          g_spawn_command_line_sync ("flatpak-spawn --host true",
+                                     NULL, NULL, &status, NULL);
+#if GLIB_CHECK_VERSION(2, 70, 0)
+          host = g_spawn_check_wait_status (status, NULL);
 #else
-      host = g_spawn_check_wait_status (status, NULL);
+          host = g_spawn_check_exit_status (status, NULL);
 #endif
+        }
+
+      g_once_init_leave (&guard, 1);
     }
 
   return host;
-}
-
-/**
- * valent_runcommand_can_spawn_sandbox:
- *
- * Check if `flatpak-spawn` can be found in `PATH`.
- *
- * Returns: %TRUE if available, %FALSE otherwise.
- */
-gboolean
-valent_runcommand_can_spawn_sandbox (void)
-{
-  static int sandbox = -1;
-  g_autofree char *path = NULL;
-
-  if (sandbox != -1)
-    return sandbox;
-
-  if ((path = g_find_program_in_path ("flatpak-spawn")) == NULL)
-    sandbox = FALSE;
-  else
-    sandbox = TRUE;
-
-  return sandbox;
 }
 

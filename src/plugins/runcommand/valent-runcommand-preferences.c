@@ -441,7 +441,7 @@ valent_runcommand_preferences_constructed (GObject *object)
       gtk_widget_set_sensitive (GTK_WIDGET (self->isolate_subprocesses), FALSE);
       gtk_switch_set_active (self->isolate_subprocesses, TRUE);
     }
-  else if (!valent_runcommand_can_spawn_sandbox ())
+  else if (!valent_in_flatpak ())
     {
       gtk_widget_set_sensitive (GTK_WIDGET (self->isolate_subprocesses), FALSE);
       gtk_switch_set_active (self->isolate_subprocesses, FALSE);
