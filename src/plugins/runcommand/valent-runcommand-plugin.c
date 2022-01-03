@@ -132,7 +132,7 @@ launcher_execute (ValentRuncommandPlugin  *self,
    */
   isolate = g_settings_get_boolean (self->settings, "isolate-subprocesses");
 
-  if (valent_runcommand_can_spawn_sandbox () && isolate)
+  if (valent_in_flatpak () && isolate)
     command_line = g_strdup_printf ("flatpak-spawn "SPAWN_FMT, command);
   else if (valent_in_flatpak ())
     command_line = g_strdup_printf ("flatpak-spawn --host "SPAWN_FMT, command);
