@@ -10,7 +10,7 @@ plugin_gtk_test_deps = [
 
 plugin_gtk_tests = {
   'test-gtk-notifications': find_program('mock_gtk_notifications.py'),
-  'test-gdk-clipboard': '',
+  'test-gdk-clipboard': disabler(),
 }
 
 foreach test, test_runner : plugin_gtk_tests
@@ -26,7 +26,7 @@ foreach test, test_runner : plugin_gtk_tests
     include_directories: plugin_gtk_include_directories,
   )
 
-  if test_runner == ''
+  if not test_runner.found()
     test_runner = test_program
   endif
 
