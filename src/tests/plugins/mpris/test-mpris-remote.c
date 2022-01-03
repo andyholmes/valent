@@ -391,7 +391,6 @@ main (int   argc,
 {
   g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 
-#ifdef VALENT_TEST_DBUS
   g_test_add ("/plugins/mpris/remote/dbus",
               MprisRemoteFixture, NULL,
               mpris_remote_fixture_set_up,
@@ -403,7 +402,6 @@ main (int   argc,
               mpris_remote_fixture_set_up,
               test_mpris_remote_player,
               mpris_remote_fixture_tear_down);
-#endif
 
   return g_test_run ();
 }
