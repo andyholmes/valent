@@ -15,5 +15,7 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (ValentMockInputAdapter, valent_mock_input_adapter, VALENT, MOCK_INPUT_ADAPTER, ValentInputAdapter)
 
+ValentInputAdapter * valent_mock_input_adapter_get_instance (void);
+
 G_END_DECLS
 

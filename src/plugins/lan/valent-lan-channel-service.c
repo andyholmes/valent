@@ -389,61 +389,6 @@ socket_read_loop (gpointer data)
 }
 
 /**
- * valent_lan_channel_service_ensure_certificate:
- * @self: a #ValentLanChannelService
- * @error: (nullable): a #GError
- *
- * Check if a TLS certificate has exists for the backend and attempt to generate
- * one if not. Returns %FALSE on error and sets @error.
- *
- * Returns: boolean indicating success
- */
-static gboolean
-valent_lan_channel_service_ensure_certificate (ValentLanChannelService  *self,
-                                               GError                  **error)
-{
-  ValentChannelService *service = VALENT_CHANNEL_SERVICE (self);
-  g_autoptr (ValentData) data = NULL;
-  g_autoptr (GTlsCertificate) certificate= NULL;
-  g_autoptr (GFile) cert_file = NULL;
-  g_autoptr (GFile) key_file = NULL;
-  const char *cert_path;
-  const char *key_path;
-
-  g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
-
-  if (G_IS_TLS_CERTIFICATE (self->certificate))
-    return TRUE;
-
-  /* Check if the certificate has already been generated */
-  g_object_get (self, "data", &data, NULL);
-  cert_file = valent_data_new_config_file (data, "certificate.pem");
-  key_file = valent_data_new_config_file (data, "private.pem");
-
-  cert_path = g_file_peek_path (cert_file);
-  key_path = g_file_peek_path (key_file);
-
-  /* Generate new certificate with gnutls */
-  if (!g_file_query_exists (cert_file, NULL) ||
-      !g_file_query_exists (key_file, NULL))
-    {
-      const char *local_id;
-
-      local_id = valent_channel_service_get_id (service);
-
-      if (!valent_certificate_generate (key_path, cert_path, local_id, error))
-        return FALSE;
-    }
-
-  certificate = g_tls_certificate_new_from_files (cert_path, key_path, error);
-
-  if (certificate != NULL)
-    g_set_object (&self->certificate, certificate);
-
-  return G_IS_TLS_CERTIFICATE (self->certificate);
-}
-
-/**
  * valent_lan_channel_service_tcp_setup:
  * @self: a #ValentLanChannelService
  * @error: (nullable): a #GError
@@ -710,10 +655,6 @@ start_task (GTask        *task,
   if (g_task_return_error_if_cancelled (task))
     return;
 
-  /* Ensure certificate */
-  if (!valent_lan_channel_service_ensure_certificate (self, &error))
-    return g_task_return_error (task, error);
-
   /* TCP Listener */
   if (!valent_lan_channel_service_tcp_setup (self, cancellable, &error))
     return g_task_return_error (task, error);
@@ -726,12 +667,26 @@ start_task (GTask        *task,
 }
 
 static void
+valent_certificate_new_cb (GObject      *object,
+                           GAsyncResult *result,
+                           gpointer      user_data)
+{
+  g_autoptr (GTask) task = G_TASK (user_data);
+  ValentLanChannelService *self = g_task_get_source_object (task);
+  GError *error = NULL;
+
+  self->certificate = valent_certificate_new_finish (result, &error);
+  g_task_run_in_thread (task, start_task);
+}
+
+static void
 valent_lan_channel_service_start (ValentChannelService *service,
                                   GCancellable         *cancellable,
                                   GAsyncReadyCallback   callback,
                                   gpointer              user_data)
 {
   ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (service);
+  g_autoptr (ValentData) data = NULL;
   g_autoptr (GTask) task = NULL;
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (service));
@@ -754,7 +709,13 @@ valent_lan_channel_service_start (ValentChannelService *service,
                     self);
 
   task = g_task_new (service, self->cancellable, callback, user_data);
-  g_task_run_in_thread (task, start_task);
+  g_task_set_source_tag (task, valent_lan_channel_service_start);
+
+  g_object_get (service, "data", &data, NULL);
+  valent_certificate_new (valent_data_get_config_path (data),
+                          self->cancellable,
+                          valent_certificate_new_cb,
+                          g_steal_pointer (&task));
 }
 
 static void
@@ -824,7 +785,7 @@ valent_lan_channel_service_get_property (GObject    *object,
       break;
 
     case PROP_CERTIFICATE:
-      g_value_set_object (value, valent_lan_channel_service_get_certificate (self));
+      g_value_set_object (value, self->certificate);
       break;
 
     case PROP_PORT:
@@ -878,7 +839,7 @@ valent_lan_channel_service_class_init (ValentLanChannelServiceClass *klass)
   /**
    * ValentLanChannelService:broadcast-address:
    *
-   * The UDP broadcast address for the backend.
+   * The UDP broadcast address for the service.
    *
    * This available as a construct property primarily for use in unit tests.
    */
@@ -895,7 +856,7 @@ valent_lan_channel_service_class_init (ValentLanChannelServiceClass *klass)
   /**
    * ValentLanChannelService:certificate:
    *
-   * The TLS certificate the backend uses to authenticate with other devices.
+   * The TLS certificate the service uses to authenticate with other devices.
    */
   properties [PROP_CERTIFICATE] =
     g_param_spec_object ("certificate",
@@ -909,7 +870,7 @@ valent_lan_channel_service_class_init (ValentLanChannelServiceClass *klass)
   /**
    * ValentLanChannelService:port:
    *
-   * The TCP/IP port for the backend. The current KDE Connect protocol (v7)
+   * The TCP/IP port for the service. The current KDE Connect protocol (v7)
    * defines port 1716 as the default.
    *
    * This available as a construct property primarily for use in unit tests.
@@ -940,29 +901,19 @@ valent_lan_channel_service_init (ValentLanChannelService *self)
 
 /**
  * valent_lan_channel_service_get_certificate:
+ * @service: a #ValentLanChannelService
  *
- * Ensure a TLS certificate and private key exists for the service and return it
- * as a #GTlsCertificate. If either the certificate or private key are missing
- * a new certificate-key pair will be generated.
+ * Get the TLS certificate the service uses to authenticate with other devices.
  *
- * Any failure to generate or retrieve the certificate-key pair is a fatal error
- * for Valent.
+ * This may be %NULL if valent_channel_service_start() has not been called yet.
  *
- * Returns: (transfer none): the service #GTlsCertificate
+ * Returns: (transfer none) (nullable): a #GTlsCertificate
  */
 GTlsCertificate *
-valent_lan_channel_service_get_certificate (ValentLanChannelService *self)
+valent_lan_channel_service_get_certificate (ValentLanChannelService *service)
 {
-  g_return_val_if_fail (VALENT_IS_LAN_CHANNEL_SERVICE (self), NULL);
+  g_return_val_if_fail (VALENT_IS_LAN_CHANNEL_SERVICE (service), NULL);
 
-  if G_UNLIKELY (self->certificate == NULL)
-    {
-      g_autoptr (GError) error = NULL;
-
-      if (!valent_lan_channel_service_ensure_certificate (self, &error))
-        g_critical ("Failed to generate certificate: %s", error->message);
-    }
-
-  return self->certificate;
+  return service->certificate;
 }
 

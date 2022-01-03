@@ -12,10 +12,6 @@
 #include "valent-fdo-session.h"
 
 
-#define LOGIN1_DBUS_NAME ""
-#define LOGIN1_DBUS_PATH ""
-
-
 struct _ValentFdoSession
 {
   ValentSessionAdapter  parent_instance;
@@ -23,7 +19,8 @@ struct _ValentFdoSession
   GDBusProxy           *proxy;
   GCancellable         *cancellable;
 
-  unsigned int          locked : 1;
+  gboolean              active;
+  gboolean              locked;
 };
 
 G_DEFINE_TYPE (ValentFdoSession, valent_fdo_session, VALENT_TYPE_SESSION_ADAPTER)
@@ -38,24 +35,13 @@ on_properties_changed (GDBusProxy       *proxy,
                        GStrv             invalidated_properties,
                        ValentFdoSession *self)
 {
-  GVariantIter iter;
-  GVariant *value;
-  const char *key;
-  gboolean changed = FALSE;
+  g_assert (VALENT_IS_FDO_SESSION (self));
 
-  g_variant_iter_init (&iter, changed_properties);
-  while (g_variant_iter_next (&iter, "{&sv}", &key, &value))
-    {
-      if (g_str_equal (key, "Active"))
-        changed = TRUE;
-      else
-        VALENT_DEBUG ("KEY: %s", key);
+  if (!g_variant_lookup (changed_properties, "Active", "b", &self->active))
+    return;
 
-      g_variant_unref (value);
-    }
-
-  if (changed)
-    valent_session_adapter_emit_changed (VALENT_SESSION_ADAPTER (self));
+  g_object_notify (G_OBJECT (self), "active");
+  valent_session_adapter_emit_changed (VALENT_SESSION_ADAPTER (self));
 }
 
 static void
@@ -65,10 +51,11 @@ on_signal (GDBusProxy       *proxy,
            GVariant         *parameters,
            ValentFdoSession *self)
 {
+  g_assert (VALENT_IS_FDO_SESSION (self));
+
   if (g_strcmp0 (signal_name, "Lock") == 0)
     self->locked = TRUE;
-
-  if (g_strcmp0 (signal_name, "Unlock") == 0)
+  else if (g_strcmp0 (signal_name, "Unlock") == 0)
     self->locked = FALSE;
 
   g_object_notify (G_OBJECT (self), "locked");
@@ -82,17 +69,10 @@ static gboolean
 valent_fdo_session_get_active (ValentSessionAdapter *adapter)
 {
   ValentFdoSession *self = VALENT_FDO_SESSION (adapter);
-  g_autoptr (GVariant) value = NULL;
 
   g_assert (VALENT_IS_FDO_SESSION (self));
 
-  if (self->proxy != NULL)
-    value = g_dbus_proxy_get_cached_property (self->proxy, "Active");
-
-  if (value != NULL)
-    return g_variant_get_boolean (value);
-
-  return FALSE;
+  return self->active;
 }
 
 static gboolean
@@ -131,22 +111,34 @@ new_session_cb (GObject          *object,
                 GAsyncResult     *result,
                 ValentFdoSession *self)
 {
+  g_autoptr (GVariant) active = NULL;
+  g_autoptr (GVariant) locked = NULL;
   g_autoptr (GError) error = NULL;
-  g_autoptr (GVariant) value = NULL;
+
+  g_assert (VALENT_IS_FDO_SESSION (self));
 
   self->proxy = g_dbus_proxy_new_for_bus_finish (result, &error);
 
   if (self->proxy == NULL)
     {
-      g_warning ("%s: %s", G_STRFUNC, error->message);
+      if (!valent_error_ignore (error))
+        g_warning ("%s: %s", G_STRFUNC, error->message);
+
       return;
     }
 
-  value = g_dbus_proxy_get_cached_property (self->proxy, "LockedHint");
+  /* Preload properties */
+  active = g_dbus_proxy_get_cached_property (self->proxy, "Active");
 
-  if (value != NULL)
-    self->locked = g_variant_get_boolean (value);
+  if (active != NULL)
+    self->active = g_variant_get_boolean (active);
 
+  locked = g_dbus_proxy_get_cached_property (self->proxy, "LockedHint");
+
+  if (locked != NULL)
+    self->locked = g_variant_get_boolean (locked);
+
+  /* Watch for changes */
   g_signal_connect (self->proxy,
                     "g-properties-changed",
                     G_CALLBACK (on_properties_changed),
@@ -168,11 +160,15 @@ get_display_cb (GDBusConnection  *connection,
   g_autoptr (GVariant) value = NULL;
   const char *session_id, *object_path;
 
+  g_assert (VALENT_IS_FDO_SESSION (self));
+
   reply = g_dbus_connection_call_finish (connection, result, &error);
 
   if (reply == NULL)
     {
-      g_warning ("%s: %s", G_STRFUNC, error->message);
+      if (!valent_error_ignore (error))
+        g_warning ("%s: %s", G_STRFUNC, error->message);
+
       return;
     }
 
@@ -184,7 +180,7 @@ get_display_cb (GDBusConnection  *connection,
                     "org.freedesktop.login1",
                     object_path,
                     "org.freedesktop.login1.Session",
-                    NULL,
+                    self->cancellable,
                     (GAsyncReadyCallback)new_session_cb,
                     self);
 }
@@ -198,11 +194,15 @@ get_user_cb (GDBusConnection  *connection,
   g_autoptr (GVariant) reply = NULL;
   const char *object_path;
 
+  g_assert (VALENT_IS_FDO_SESSION (self));
+
   reply = g_dbus_connection_call_finish (connection, result, &error);
 
   if (reply == NULL)
     {
-      g_warning ("%s: %s", G_STRFUNC, error->message);
+      if (!valent_error_ignore (error))
+        g_warning ("%s: %s", G_STRFUNC, error->message);
+
       return;
     }
 
@@ -230,7 +230,7 @@ static void
 valent_fdo_session_constructed (GObject *object)
 {
   ValentFdoSession *self = VALENT_FDO_SESSION (object);
-  GDBusConnection *connection = NULL;
+  g_autoptr (GDBusConnection) connection = NULL;
 
   /* Check for phosh session */
   if ((connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL)) != NULL)
@@ -247,7 +247,6 @@ valent_fdo_session_constructed (GObject *object)
                               self->cancellable,
                               (GAsyncReadyCallback)get_user_cb,
                               self);
-      g_clear_object (&connection);
     }
 
   G_OBJECT_CLASS (valent_fdo_session_parent_class)->constructed (object);
@@ -299,5 +298,7 @@ static void
 valent_fdo_session_init (ValentFdoSession *self)
 {
   self->cancellable = g_cancellable_new ();
+  self->active = TRUE;
+  self->locked = FALSE;
 }
 

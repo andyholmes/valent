@@ -381,7 +381,8 @@ valent_notifications_get_default (void)
                                        "plugin-type",    VALENT_TYPE_NOTIFICATION_SOURCE,
                                        NULL);
 
-      g_object_add_weak_pointer (G_OBJECT (default_listener), (gpointer) &default_listener);
+      g_object_add_weak_pointer (G_OBJECT (default_listener),
+                                 (gpointer)&default_listener);
     }
 
   return default_listener;

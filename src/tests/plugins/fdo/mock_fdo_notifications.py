@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 
-"""This module provides a test environment for the battery plugin."""
+"""This module provides a test fixture for the ValentFdoNotifications plugin."""
 
 # pylint: disable=import-error,invalid-name,missing-function-docstring
 
@@ -12,7 +12,6 @@ import os
 import subprocess
 import sys
 
-import dbus # type: ignore
 import dbusmock # type: ignore
 
 
@@ -24,32 +23,21 @@ sys.path.append(os.path.join(G_TEST_SRCDIR, 'fixtures'))
 import glibtest # type: ignore
 
 
-class UPowerTestFixture(glibtest.GLibTestCase, dbusmock.DBusTestCase):
-    """A test environment for the battery plugin."""
+class NotificationTestFixture(glibtest.GLibTestCase, dbusmock.DBusTestCase):
+    """A test fixture for the ValentFdoNotifications plugin."""
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.start_system_bus()
-        cls.dbus_con = cls.get_dbus(system_bus=True)
+        cls.start_session_bus()
+        cls.dbus_con = cls.get_dbus(system_bus=False)
 
     def setUp(self) -> None:
-        (self.p_mock, self.obj_upower) = self.spawn_server_template(
-            'upower', {
-                'OnBattery': True,
-            },
-            stdout=subprocess.PIPE)
+        (self.p_mock, self.obj_notifications) = self.spawn_server_template(
+            'notification_daemon', {}, stdout=subprocess.PIPE)
 
         # Set output to non-blocking
         flags = fcntl.fcntl(self.p_mock.stdout, fcntl.F_GETFL)
         fcntl.fcntl(self.p_mock.stdout, fcntl.F_SETFL, flags | os.O_NONBLOCK)
-
-        # Export a battery
-        self.dbusmock = dbus.Interface(self.obj_upower, dbusmock.MOCK_IFACE)
-        self.dbusmock.SetDeviceProperties(
-            '/org/freedesktop/UPower/devices/DisplayDevice',
-            {
-                'Type': dbus.UInt32(2, variant_level=1)
-            })
 
     def tearDown(self) -> None:
         self.p_mock.stdout.close()

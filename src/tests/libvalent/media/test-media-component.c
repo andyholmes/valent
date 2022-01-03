@@ -19,7 +19,6 @@ static void
 media_component_fixture_set_up (MediaComponentFixture *fixture,
                                 gconstpointer          user_data)
 {
-  /* Wait for extensions to load */
   fixture->media = valent_media_get_default ();
 
   while (g_main_context_iteration (NULL, FALSE))
@@ -86,12 +85,10 @@ test_media_component_provider (MediaComponentFixture *fixture,
                                gconstpointer          user_data)
 {
   g_autoptr (GPtrArray) players = NULL;
-  g_autoptr (GPtrArray) extensions = NULL;
   ValentMediaPlayerProvider *provider;
 
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->media));
-  g_assert_cmpint (extensions->len, ==, 1);
-  provider = g_ptr_array_index (extensions, 0);
+  while ((provider = valent_mock_media_player_provider_get_instance ()) == NULL)
+    continue;
 
   g_signal_connect (provider,
                     "player-added",
@@ -119,7 +116,6 @@ static void
 test_media_component_player (MediaComponentFixture *fixture,
                              gconstpointer          user_data)
 {
-  g_autoptr (GPtrArray) extensions = NULL;
   ValentMediaPlayerProvider *provider;
 
   /* org.mpris.MediaPlayer2.Player */
@@ -130,9 +126,8 @@ test_media_component_player (MediaComponentFixture *fixture,
   g_autoptr (GVariant) metadata = NULL;
   gint64 position;
 
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->media));
-  g_assert_cmpint (extensions->len, ==, 1);
-  provider = g_ptr_array_index (extensions, 0);
+  while ((provider = valent_mock_media_player_provider_get_instance ()) == NULL)
+    continue;
 
   /* Add Player */
   g_signal_connect (provider,
@@ -243,13 +238,11 @@ test_media_component_self (MediaComponentFixture *fixture,
                            gconstpointer          user_data)
 {
   g_autoptr (GPtrArray) players = NULL;
-  g_autoptr (GPtrArray) extensions = NULL;
   ValentMediaPlayerProvider *provider;
   ValentMediaPlayer *player;
 
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->media));
-  g_assert_cmpint (extensions->len, ==, 1);
-  provider = g_ptr_array_index (extensions, 0);
+  while ((provider = valent_mock_media_player_provider_get_instance ()) == NULL)
+    continue;
 
   /* Add Player */
   g_signal_connect (fixture->media,
@@ -288,56 +281,6 @@ test_media_component_self (MediaComponentFixture *fixture,
   g_signal_handlers_disconnect_by_data (fixture->media, fixture);
 }
 
-static void
-test_media_component_dispose (MediaComponentFixture *fixture,
-                              gconstpointer          user_data)
-{
-  GPtrArray *extensions;
-  ValentMediaPlayerProvider *provider;
-  PeasEngine *engine;
-  g_autoptr (GSettings) settings = NULL;
-
-  /* Add a device to the provider */
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->media));
-  provider = g_ptr_array_index (extensions, 0);
-  g_ptr_array_unref (extensions);
-
-  /* Wait for provider to resolve */
-  valent_media_player_provider_emit_player_added (provider, fixture->player);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
-  /* Disable/Enable the provider */
-  settings = valent_component_new_settings ("media", "mock");
-
-  g_settings_set_boolean (settings, "enabled", FALSE);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->media));
-  g_assert_cmpuint (extensions->len, ==, 0);
-  g_ptr_array_unref (extensions);
-
-  g_settings_set_boolean (settings, "enabled", TRUE);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->media));
-  g_assert_cmpuint (extensions->len, ==, 1);
-  g_ptr_array_unref (extensions);
-
-  /* Unload the provider */
-  engine = valent_get_engine ();
-  peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "mock"));
-
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->media));
-  g_assert_cmpuint (extensions->len, ==, 0);
-  g_ptr_array_unref (extensions);
-}
-
 int
 main (int   argc,
       char *argv[])
@@ -360,12 +303,6 @@ main (int   argc,
               MediaComponentFixture, NULL,
               media_component_fixture_set_up,
               test_media_component_self,
-              media_component_fixture_tear_down);
-
-  g_test_add ("/components/media/dispose",
-              MediaComponentFixture, NULL,
-              media_component_fixture_set_up,
-              test_media_component_dispose,
               media_component_fixture_tear_down);
 
   return g_test_run ();

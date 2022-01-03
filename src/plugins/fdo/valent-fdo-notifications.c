@@ -7,7 +7,6 @@
 
 #include <sys/time.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
-#include <gio/gdesktopappinfo.h>
 #include <libvalent-notifications.h>
 
 #include "valent-fdo-notifications.h"
@@ -24,10 +23,10 @@ struct _ValentFdoNotifications
   GDBusInterfaceInfo       *iface_info;
   GDBusConnection          *monitor;
   unsigned int              monitor_id;
+  char                     *name_owner;
+  unsigned int              name_owner_id;
   GDBusConnection          *session;
   unsigned int              closed_id;
-  unsigned int              name_owner_id;
-  char                     *name_owner;
 };
 
 G_DEFINE_TYPE (ValentFdoNotifications, valent_fdo_notifications, VALENT_TYPE_NOTIFICATION_SOURCE)
@@ -36,7 +35,7 @@ G_DEFINE_TYPE (ValentFdoNotifications, valent_fdo_notifications, VALENT_TYPE_NOT
 /*
  * Map of notification-spec urgency to GNotificationPriority
  *
- * See: https://developer.gnome.org/notification-spec/#urgency-levels
+ * See: https://developer-old.gnome.org/notification-spec/#urgency-levels
  */
 static const unsigned int urgencies[] = {
   G_NOTIFICATION_PRIORITY_LOW,
@@ -71,41 +70,63 @@ static const char *interface_matches[] = {
 
 
 static GIcon *
-_g_icon_new_for_variant (GVariant *variant)
+_g_icon_new_for_variant (GVariant *image_data)
 {
   GdkPixbuf *pixbuf;
   gint32 width, height, rowstride;
   gboolean has_alpha;
   gint32 bits_per_sample, n_channels;
-  gpointer pixels;
+  g_autoptr (GVariant) data_variant = NULL;
+  guchar *data = NULL;
+  gsize data_len = 0;
+  gsize expected_len = 0;
 
-  g_variant_get (variant, "(iiibii^ay)",
+  g_variant_get (image_data, "(iiibii@ay)",
                  &width,
                  &height,
                  &rowstride,
                  &has_alpha,
                  &bits_per_sample,
                  &n_channels,
-                 &pixels);
+                 &data_variant);
 
-  pixbuf = g_object_new (GDK_TYPE_PIXBUF,
-                         "bits-per-sample", bits_per_sample,
-                         "n-channels",      n_channels,
-                         "has-alpha",       has_alpha,
-                         "rowstride",       rowstride,
-                         "width",           width,
-                         "height",          height,
-                         "pixels",          pixels,
-                         NULL);
+  data_len = g_variant_get_size (data_variant);
+  expected_len = (height - 1) * rowstride + width
+    * ((n_channels * bits_per_sample + 7) / 8);
 
-  return G_ICON (pixbuf);
+  if (expected_len != data_len)
+    {
+      g_warning ("Expected image data to be of length %" G_GSIZE_FORMAT
+                 " but got a length of %" G_GSIZE_FORMAT,
+                 expected_len,
+                 data_len);
+      return NULL;
+    }
+
+#if GLIB_CHECK_VERSION (2, 68, 0)
+  data = g_memdup2 (g_variant_get_data (data_variant), data_len);
+#else
+  data = g_memdup (g_variant_get_data (data_variant), (guint)data_len);
+#endif
+
+  pixbuf = gdk_pixbuf_new_from_data (data,
+                                     GDK_COLORSPACE_RGB,
+                                     has_alpha,
+                                     bits_per_sample,
+                                     width,
+                                     height,
+                                     rowstride,
+                                     (GdkPixbufDestroyNotify)g_free,
+                                     NULL);
+
+  return (GIcon *)pixbuf;
 }
 
 static void
 _notification_closed (ValentNotificationSource *source,
                       GVariant                 *parameters)
 {
-  unsigned int id, reason;
+  guint32 id, reason;
   g_autofree char *id_str = NULL;
 
   g_variant_get (parameters, "(uu)", &id, &reason);
@@ -126,8 +147,8 @@ _notify (ValentNotificationSource *source,
   const char *app_icon;
   const char *summary;
   const char *body;
-  GVariant *actions;
-  GVariant *hints;
+  g_autoptr (GVariant) actions = NULL;
+  g_autoptr (GVariant) hints = NULL;
   gint32 expire_timeout;
 
   g_autofree char *replaces_id_str = NULL;
@@ -155,7 +176,9 @@ _notify (ValentNotificationSource *source,
   valent_notification_set_title (notification, summary);
   valent_notification_set_body (notification, body);
 
-  /* Notification Icon */
+  /* This bizarre ordering is required by the specification.
+   * See: https://developer-old.gnome.org/notification-spec/#icons-and-images
+   */
   if (g_variant_lookup (hints, "image-data", "@(iiibiiay)", &image_data) ||
       g_variant_lookup (hints, "image_data", "@(iiibiiay)", &image_data))
     {
@@ -168,7 +191,7 @@ _notify (ValentNotificationSource *source,
       icon = g_icon_new_for_string (image_path, NULL);
       valent_notification_set_icon (notification, icon);
     }
-  else if (app_icon[0] != '\0')
+  else if (*app_icon != '\0')
     {
       icon = g_icon_new_for_string (app_icon, NULL);
       valent_notification_set_icon (notification, icon);
@@ -212,7 +235,10 @@ valent_fdo_notifications_method_call (GDBusConnection       *connection,
   message = g_dbus_method_invocation_get_message (invocation);
   destination = g_dbus_message_get_destination (message);
 
-  if G_UNLIKELY (g_strcmp0 (self->name_owner, destination))
+  // TODO: accepting notifications from the well-known name causes duplicates on
+  //       GNOME Shell where a proxy daemon is run.
+  if (g_strcmp0 ("org.freedesktop.Notifications", destination) != 0 &&
+      g_strcmp0 (self->name_owner, destination) != 0)
     goto out;
 
   if (g_strcmp0 (method_name, "Notify") == 0)
@@ -250,13 +276,13 @@ on_name_appeared (GDBusConnection *connection,
 {
   ValentFdoNotifications *self = VALENT_FDO_NOTIFICATIONS (user_data);
 
-  g_set_object (&self->session, connection);
   self->name_owner = g_strdup (name_owner);
+  g_set_object (&self->session, connection);
 
   if (self->closed_id == 0)
     {
       self->closed_id =
-        g_dbus_connection_signal_subscribe (connection,
+        g_dbus_connection_signal_subscribe (self->session,
                                             "org.freedesktop.Notifications",
                                             "org.freedesktop.Notifications",
                                             "NotificationClosed",
@@ -264,8 +290,7 @@ on_name_appeared (GDBusConnection *connection,
                                             NULL,
                                             G_DBUS_SIGNAL_FLAGS_NONE,
                                             on_notification_closed,
-                                            g_object_ref (self),
-                                            g_object_unref);
+                                            self, NULL);
     }
 }
 
@@ -276,12 +301,11 @@ on_name_vanished (GDBusConnection *connection,
 {
   ValentFdoNotifications *self = VALENT_FDO_NOTIFICATIONS (user_data);
 
-  g_set_object (&self->session, connection);
   g_clear_pointer (&self->name_owner, g_free);
 
   if (self->closed_id > 0)
     {
-      g_dbus_connection_signal_unsubscribe (connection, self->closed_id);
+      g_dbus_connection_signal_unsubscribe (self->session, self->closed_id);
       self->closed_id = 0;
     }
 }
@@ -293,8 +317,8 @@ become_monitor_cb (GDBusConnection *connection,
 {
   g_autoptr (GTask) task = G_TASK (user_data);
   ValentFdoNotifications *self = g_task_get_source_object (task);
-  GError *error = NULL;
   g_autoptr (GVariant) reply = NULL;
+  GError *error = NULL;
 
   reply = g_dbus_connection_call_finish (connection, result, &error);
 
@@ -376,8 +400,8 @@ valent_fdo_notifications_load_async (ValentNotificationSource *source,
 {
   ValentFdoNotifications *self = VALENT_FDO_NOTIFICATIONS (source);
   g_autoptr (GTask) task = NULL;
-  GError *error = NULL;
   g_autofree char *address = NULL;
+  GError *error = NULL;
 
   g_assert (VALENT_IS_FDO_NOTIFICATIONS (self));
 
@@ -420,25 +444,26 @@ valent_fdo_notifications_dispose (GObject *object)
   if (!g_cancellable_is_cancelled (self->cancellable))
     g_cancellable_cancel (self->cancellable);
 
-  if (self->name_owner_id > 0)
-    {
-      g_clear_handle_id (&self->name_owner_id, g_bus_unwatch_name);
-      g_clear_pointer (&self->name_owner, g_free);
-      g_clear_object (&self->session);
-    }
-
   if (self->closed_id > 0)
     {
       g_dbus_connection_signal_unsubscribe (self->session, self->closed_id);
       self->closed_id = 0;
     }
 
+  if (self->name_owner_id > 0)
+    {
+      g_clear_handle_id (&self->name_owner_id, g_bus_unwatch_name);
+      g_clear_pointer (&self->name_owner, g_free);
+    }
+
   if (self->monitor_id != 0)
     {
       g_dbus_connection_unregister_object (self->monitor, self->monitor_id);
       self->monitor_id = 0;
-      g_clear_object (&self->monitor);
     }
+
+  g_clear_object (&self->monitor);
+  g_clear_object (&self->session);
 
   G_OBJECT_CLASS (valent_fdo_notifications_parent_class)->dispose (object);
 }

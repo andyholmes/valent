@@ -34,7 +34,7 @@ jobs:
       - name: Python (pylint, mypy)
         if: ${{ always() }}
         run: |
-          pylint $(git ls-files '*.py')
+          pylint --disable=similarities $(git ls-files '*.py')
           mypy $(git ls-files '*.py')
 
       - name: YAML (yamllint)
@@ -51,6 +51,22 @@ jobs:
     container:
       image: quay.io/andyholmes/valent:latest
 
+    strategy:
+      matrix:
+        compiler:
+          - GCC
+          - LLVM
+        include:
+          - compiler: GCC
+            CC: gcc
+            CXX: g++
+            coverage: true
+          - compiler: LLVM
+            CC: clang
+            CXX: clang++
+            coverage: false
+      fail-fast: false
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -58,16 +74,21 @@ jobs:
           submodules: true
 
       - name: Build
+        env:
+          CC: ${{ matrix.CC }}
+          CXX: ${{ matrix.CXX }}
         run: |
-          meson --prefix=/usr \
-                --buildtype=debug \
-                -Db_coverage=true \
-                -Dplugin_bluez=true \
-                -Dtests=true \
-                _build
+          meson setup --buildtype=debugoptimized \
+                      -Db_coverage=true \
+                      -Dplugin_bluez=true \
+                      -Dtests=true \
+                      _build
           meson compile -C _build
 
       - name: Test
+        env:
+          CC: ${{ matrix.CC }}
+          CXX: ${{ matrix.CXX }}
         run: |
           dbus-run-session -- \
           xvfb-run -a -s '-screen 0 1024x768x24' \
@@ -80,11 +101,11 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
-          name: test-logs
-          path: _build/meson-logs
+          name: Unit Tests (${{ matrix.compiler }})
+          path: _build/meson-logs/testlog.txt
 
       - name: Coverage
-        if: ${{ success() }}
+        if: ${{ success() && matrix.coverage }}
         env:
           WORKSPACE: ${{ github.workspace }}
         run: |
@@ -121,6 +142,7 @@ jobs:
                   _build/meson-logs/coverage.info
 
       - name: Coverage (Report)
+        if: ${{ matrix.coverage }}
         continue-on-error: true
         uses: coverallsapp/github-action@master
         with:
@@ -128,8 +150,8 @@ jobs:
           path-to-lcov: ${{ github.workspace }}/_build/meson-logs/coverage.info
 
       - name: Coverage (Deploy)
-        if: ${{ github.ref == 'refs/heads/main' }}
-        uses: JamesIves/github-pages-deploy-action@4.1.1
+        if: ${{ github.ref == 'refs/heads/main' && matrix.coverage }}
+        uses: JamesIves/github-pages-deploy-action@releases/v4
         with:
           branch: gh-pages
           commit-message: Coverage Report
@@ -146,13 +168,13 @@ jobs:
     strategy:
       matrix:
         sanitizer:
-          - address,undefined
-          - thread
+          - ASan, UBSan
+          - TSan
         include:
-          - santizer: address,undefined
-            logname: asan-ubsan-logs
-          - santizer: thread
-            logname: tsan-logs
+          - sanitizer: ASan, UBSan
+            INSTRUMENTATION: address,undefined
+          - sanitizer: TSan
+            INSTRUMENTATION: thread
       fail-fast: false
 
     steps:
@@ -163,16 +185,15 @@ jobs:
 
       - name: Build
         env:
-          SANITIZER: ${{ matrix.sanitizer }}
+          INSTRUMENTATION: ${{ matrix.INSTRUMENTATION }}
         run: |
-          meson --prefix=/usr \
-                --buildtype=debug \
-                -Db_sanitize=${SANITIZER} \
-                -Dintrospection=false \
-                -Dplugin_bluez=true \
-                -Dtests=true \
-                -Dfuzz_tests=false \
-                _build
+          meson setup --buildtype=debugoptimized \
+                      -Db_sanitize=${INSTRUMENTATION} \
+                      -Dintrospection=false \
+                      -Dplugin_bluez=true \
+                      -Dtests=true \
+                      -Dfuzz_tests=false \
+                      _build
           meson compile -C _build
 
       - name: Test
@@ -188,8 +209,8 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.logname }}
-          path: _build/meson-logs
+          name: Sanitizer (${{ matrix.sanitizer }})
+          path: _build/meson-logs/testlog.txt
 
   documentation:
     if: ${{ github.ref == 'refs/heads/main' }}
@@ -207,17 +228,16 @@ jobs:
 
       - name: Build
         run: |
-          meson --prefix=/usr \
-                --buildtype=release \
-                -Ddocumentation=true \
-                _build
+          meson setup --buildtype=release \
+                      -Ddocumentation=true \
+                      _build
           meson compile -C _build
 
       - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@4.1.5
+        uses: JamesIves/github-pages-deploy-action@releases/v4
         with:
           branch: gh-pages
-          commit-message: API Reference @ {{ github.sha }}
+          commit-message: API Reference
           folder: _build/doc/sdk/valent
           target-folder: documentation
 

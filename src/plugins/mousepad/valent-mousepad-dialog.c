@@ -23,14 +23,7 @@ struct _ValentMousepadDialog
 
   ValentDevice       *device;
 
-  /* Keyboard */
-  GtkEventController *keyboard;
-
-  /* Pointer */
-  GtkGesture         *touch1;
-  GtkGesture         *touch2;
-  GtkGesture         *touch3;
-
+  /* Pointer State */
   unsigned int        claimed : 1;
   guint32             last_t;
   double              last_v;
@@ -40,8 +33,13 @@ struct _ValentMousepadDialog
   int                 scale;
 
   /* Template widgets */
-  GtkWidget          *touchpad;
   GtkWidget          *editor;
+  GtkEventController *keyboard;
+  GtkWidget          *touchpad;
+  GtkGesture         *pointer_scroll;
+  GtkGesture         *touch_single;
+  GtkGesture         *touch_double;
+  GtkGesture         *touch_triple;
 };
 
 static void valent_mousepad_dialog_pointer_axis    (ValentMousepadDialog *self,
@@ -227,7 +225,7 @@ longpress_timeout (gpointer data)
 
   self->claimed = TRUE;
   self->longpress_id = 0;
-  gtk_gesture_set_state (self->touch1, GTK_EVENT_SEQUENCE_CLAIMED);
+  gtk_gesture_set_state (self->touch_single, GTK_EVENT_SEQUENCE_CLAIMED);
 
   valent_mousepad_dialog_pointer_press (self);
 
@@ -583,7 +581,22 @@ valent_mousepad_dialog_class_init (ValentMousepadDialogClass *klass)
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/mousepad/valent-mousepad-dialog.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentMousepadDialog, editor);
+  gtk_widget_class_bind_template_child (widget_class, ValentMousepadDialog, keyboard);
+  gtk_widget_class_bind_template_child (widget_class, ValentMousepadDialog, pointer_scroll);
   gtk_widget_class_bind_template_child (widget_class, ValentMousepadDialog, touchpad);
+  gtk_widget_class_bind_template_child (widget_class, ValentMousepadDialog, touch_single);
+  gtk_widget_class_bind_template_child (widget_class, ValentMousepadDialog, touch_double);
+  gtk_widget_class_bind_template_child (widget_class, ValentMousepadDialog, touch_triple);
+
+  gtk_widget_class_bind_template_callback (widget_class, on_key_pressed);
+  gtk_widget_class_bind_template_callback (widget_class, on_scroll);
+  gtk_widget_class_bind_template_callback (widget_class, on_single_begin);
+  gtk_widget_class_bind_template_callback (widget_class, on_single_update);
+  gtk_widget_class_bind_template_callback (widget_class, on_single_end);
+  gtk_widget_class_bind_template_callback (widget_class, on_double_begin);
+  gtk_widget_class_bind_template_callback (widget_class, on_double_update);
+  gtk_widget_class_bind_template_callback (widget_class, on_double_end);
+  gtk_widget_class_bind_template_callback (widget_class, on_triple_end);
 
   properties [PROP_DEVICE] =
     g_param_spec_object ("device",
@@ -601,86 +614,11 @@ valent_mousepad_dialog_class_init (ValentMousepadDialogClass *klass)
 static void
 valent_mousepad_dialog_init (ValentMousepadDialog *self)
 {
-  GtkEventController *scroll;
-
   gtk_widget_init_template (GTK_WIDGET (self));
+  gtk_gesture_group (self->touch_single, self->touch_double);
+  gtk_gesture_group (self->touch_single, self->touch_triple);
+
   self->scale = gtk_widget_get_scale_factor (GTK_WIDGET (self));
-
-  /* Keyboard */
-  self->keyboard = g_object_new (GTK_TYPE_EVENT_CONTROLLER_KEY,
-                                 "name", "keyboard",
-                                 NULL);
-  g_signal_connect (self->keyboard,
-                    "key-pressed",
-                    G_CALLBACK (on_key_pressed),
-                    self);
-  gtk_widget_add_controller (GTK_WIDGET (self), self->keyboard);
-
-  /* Pointer */
-  scroll = g_object_new (GTK_TYPE_EVENT_CONTROLLER_SCROLL,
-                         "name",  "pointer-scroll",
-                         "flags", GTK_EVENT_CONTROLLER_SCROLL_VERTICAL,
-                         NULL);
-  g_signal_connect (scroll,
-                    "scroll",
-                    G_CALLBACK (on_scroll),
-                    self);
-  gtk_widget_add_controller (self->touchpad, GTK_EVENT_CONTROLLER (scroll));
-
-  self->touch1 = g_object_new (GTK_TYPE_GESTURE_DRAG,
-                               "name",     "touch-single",
-                               "n-points", 1,
-                               "button",   0,
-                               NULL);
-  g_signal_connect (self->touch1,
-                    "drag-begin",
-                    G_CALLBACK (on_single_begin),
-                    self);
-  g_signal_connect (self->touch1,
-                    "update",
-                    G_CALLBACK (on_single_update),
-                    self);
-  g_signal_connect (self->touch1,
-                    "drag-end",
-                    G_CALLBACK (on_single_end),
-                    self);
-  gtk_widget_add_controller (self->touchpad,
-                             GTK_EVENT_CONTROLLER (self->touch1));
-
-  self->touch2 = g_object_new (GTK_TYPE_GESTURE_DRAG,
-                               "name",       "touch-double",
-                               "n-points",   2,
-                               "touch-only", TRUE,
-                               NULL);
-  g_signal_connect (self->touch2,
-                    "drag-begin",
-                    G_CALLBACK (on_double_begin),
-                    self);
-  g_signal_connect (self->touch2,
-                    "update",
-                    G_CALLBACK (on_double_update),
-                    self);
-  g_signal_connect (self->touch2,
-                    "drag-end",
-                    G_CALLBACK (on_double_end),
-                    self);
-  gtk_widget_add_controller (self->touchpad,
-                             GTK_EVENT_CONTROLLER (self->touch2));
-
-  self->touch3 = g_object_new (GTK_TYPE_GESTURE_DRAG,
-                               "name",       "touch-triple",
-                               "n-points",   3,
-                               "touch-only", TRUE,
-                               NULL);
-  g_signal_connect (self->touch3,
-                    "drag-end",
-                    G_CALLBACK (on_triple_end),
-                    self);
-  gtk_widget_add_controller (self->touchpad,
-                             GTK_EVENT_CONTROLLER (self->touch3));
-
-  gtk_gesture_group (self->touch1, self->touch2);
-  gtk_gesture_group (self->touch1, self->touch3);
 }
 
 /**
@@ -694,12 +632,12 @@ valent_mousepad_dialog_init (ValentMousepadDialog *self)
 ValentMousepadDialog *
 valent_mousepad_dialog_new (ValentDevice *device)
 {
-  GApplication *application;
+  GApplication *application = NULL;
   GtkWindow *window = NULL;
 
   application = g_application_get_default ();
 
-  if (application != NULL)
+  if (GTK_IS_APPLICATION (application))
     window = gtk_application_get_active_window (GTK_APPLICATION (application));
 
   return g_object_new (VALENT_TYPE_MOUSEPAD_DIALOG,

@@ -48,13 +48,13 @@ race:valent_lan_channel_get_certificate
 race:valent_lan_channel_get_property
 # TODO: ValentLanChanneService::port is construct-only
 race:valent_lan_channel_get_port
-race:valent_lan_channel_service_tcp_setup
 
 # src/plugins/valent-lan-channel-service.c
 race:on_connection
-race:valent_lan_channel_service_ensure_certificate
+race:on_packet
 race:valent_lan_channel_service_finalize
 race:valent_lan_channel_service_stop
+race:valent_lan_channel_service_tcp_setup
 race:valent_lan_channel_service_udp_setup
 
 # src/plugins/notification/valent-notification-plugin.c
@@ -115,6 +115,9 @@ called_from_lib:libgstplayback
 # See: https://www.gnutls.org/manual/gnutls.html#Thread-safety
 called_from_lib:p11-kit-trust
 called_from_lib:libtasn1
+
+# See: https://gitlab.gnome.org/GNOME/glib-networking/-/issues/184
+mutex:g_tls_certificate_gnutls_get_type_once
 
 
 # Indirect dependencies

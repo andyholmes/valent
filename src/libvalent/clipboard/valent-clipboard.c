@@ -329,7 +329,7 @@ valent_clipboard_get_default (void)
                                         NULL);
 
       g_object_add_weak_pointer (G_OBJECT (default_clipboard),
-                                 (gpointer) &default_clipboard);
+                                 (gpointer)&default_clipboard);
     }
 
   return default_clipboard;

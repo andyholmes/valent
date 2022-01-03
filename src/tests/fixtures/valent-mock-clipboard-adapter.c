@@ -23,6 +23,8 @@ struct _ValentMockClipboardAdapter
 G_DEFINE_TYPE (ValentMockClipboardAdapter, valent_mock_clipboard_adapter, VALENT_TYPE_CLIPBOARD_ADAPTER)
 
 
+static ValentClipboardAdapter *test_instance = NULL;
+
 /*
  * ValentClipboardAdapter
  */
@@ -99,5 +101,25 @@ static void
 valent_mock_clipboard_adapter_init (ValentMockClipboardAdapter *self)
 {
   self->text = g_strdup ("connect");
+
+  if (test_instance == NULL)
+    {
+      test_instance = VALENT_CLIPBOARD_ADAPTER (self);
+      g_object_add_weak_pointer (G_OBJECT (test_instance),
+                                 (gpointer)&test_instance);
+    }
+}
+
+/**
+ * valent_mock_clipboard_adapter_get_instance:
+ *
+ * Get the #ValentMockClipboardAdapter instance.
+ *
+ * Returns: (transfer none) (nullable): a #ValentClipboardAdapter
+ */
+ValentClipboardAdapter *
+valent_mock_clipboard_adapter_get_instance (void)
+{
+  return test_instance;
 }
 

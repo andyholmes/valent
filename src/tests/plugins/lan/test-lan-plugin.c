@@ -57,32 +57,12 @@ create_socket (void)
 }
 
 static void
-connect_endpoint (LanBackendFixture *fixture)
-{
-  GError *error = NULL;
-  g_autofree char *base_path = NULL;
-  g_autofree char *cert_path = NULL;
-  g_autofree char *key_path = NULL;
-
-  /* TLS Certificate */
-  base_path = g_dir_make_tmp ("XXXXXX.valent", NULL);
-  cert_path = g_build_filename (base_path, "certificate.pem", NULL);
-  key_path = g_build_filename (base_path, "private.pem", NULL);
-
-  valent_certificate_generate (key_path, cert_path, "endpoint", &error);
-  g_assert_no_error (error);
-
-  fixture->certificate = g_tls_certificate_new_from_files (cert_path,
-                                                           key_path,
-                                                           &error);
-  g_assert_no_error (error);
-}
-
-static void
 lan_service_fixture_set_up (LanBackendFixture *fixture,
                             gconstpointer      user_data)
 {
   PeasPluginInfo *plugin_info;
+  g_autofree char *path = NULL;
+  GError *error = NULL;
 
   fixture->loop = g_main_loop_new (NULL, FALSE);
 
@@ -97,7 +77,10 @@ lan_service_fixture_set_up (LanBackendFixture *fixture,
   fixture->packets = valent_test_load_json (TEST_DATA_DIR"/plugin-lan.json");
   fixture->socket = create_socket ();
 
-  connect_endpoint (fixture);
+  /* Generate a certificate for the phony client */
+  path = g_dir_make_tmp ("XXXXXX.valent", NULL);
+  fixture->certificate = valent_certificate_new_sync (path, &error);
+  g_assert_no_error (error);
 }
 
 static void

@@ -72,17 +72,12 @@ static void
 test_mixer_component_provider (MixerComponentFixture *fixture,
                                gconstpointer          user_data)
 {
-  g_autoptr (GPtrArray) extensions = NULL;
   ValentMixerControl *provider;
   g_autoptr (GPtrArray) inputs = NULL;
   g_autoptr (GPtrArray) outputs = NULL;
   ValentMixerStream *stream;
 
-  /* Wait for valent_mixer_control_load_async() to resolve */
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->mixer));
-  provider = g_ptr_array_index (extensions, 0);
-
-  while (g_main_context_iteration (NULL, FALSE))
+  while ((provider = valent_mock_mixer_control_get_instance ()) == NULL)
     continue;
 
   /* Add Streams */
@@ -144,18 +139,13 @@ static void
 test_mixer_component_stream (MixerComponentFixture *fixture,
                              gconstpointer          user_data)
 {
-  g_autoptr (GPtrArray) extensions = NULL;
   ValentMixerControl *provider;
   ValentMixerStreamFlags flags;
   int level;
   gboolean muted;
   char *name, *description;
 
-  /* Wait for valent_mixer_control_load_async() to resolve */
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->mixer));
-  provider = g_ptr_array_index (extensions, 0);
-
-  while (g_main_context_iteration (NULL, FALSE))
+  while ((provider = valent_mock_mixer_control_get_instance ()) == NULL)
     continue;
 
   /* Add Streams */
@@ -230,17 +220,12 @@ static void
 test_mixer_component_self (MixerComponentFixture *fixture,
                            gconstpointer          user_data)
 {
-  g_autoptr (GPtrArray) extensions = NULL;
   ValentMixerControl *provider;
   g_autoptr (GPtrArray) inputs = NULL;
   g_autoptr (GPtrArray) outputs = NULL;
   ValentMixerStream *stream;
 
-  /* Wait for valent_mixer_control_load_async() to resolve */
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->mixer));
-  provider = g_ptr_array_index (extensions, 0);
-
-  while (g_main_context_iteration (NULL, FALSE))
+  while ((provider = valent_mock_mixer_control_get_instance ()) == NULL)
     continue;
 
   /* Add Streams */
@@ -307,56 +292,6 @@ test_mixer_component_self (MixerComponentFixture *fixture,
   g_signal_handlers_disconnect_by_data (fixture->mixer, fixture);
 }
 
-static void
-test_mixer_component_dispose (MixerComponentFixture *fixture,
-                              gconstpointer          user_data)
-{
-  GPtrArray *extensions;
-  ValentMixerControl *provider;
-  PeasEngine *engine;
-  g_autoptr (GSettings) settings = NULL;
-
-  /* Add a stream to the provider */
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->mixer));
-  provider = g_ptr_array_index (extensions, 0);
-  g_ptr_array_unref (extensions);
-
-  /* Wait for provider to resolve */
-  valent_mixer_control_emit_stream_added (provider, fixture->output);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
-  /* Disable/Enable the provider */
-  settings = valent_component_new_settings ("mixer", "mock");
-
-  g_settings_set_boolean (settings, "enabled", FALSE);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->mixer));
-  g_assert_cmpuint (extensions->len, ==, 0);
-  g_ptr_array_unref (extensions);
-
-  g_settings_set_boolean (settings, "enabled", TRUE);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->mixer));
-  g_assert_cmpuint (extensions->len, ==, 1);
-  g_ptr_array_unref (extensions);
-
-  /* Unload the provider */
-  engine = valent_get_engine ();
-  peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "mock"));
-
-  extensions = valent_component_get_extensions (VALENT_COMPONENT (fixture->mixer));
-  g_assert_cmpuint (extensions->len, ==, 0);
-  g_ptr_array_unref (extensions);
-}
-
 int
 main (int   argc,
       char *argv[])
@@ -379,12 +314,6 @@ main (int   argc,
               MixerComponentFixture, NULL,
               mixer_component_fixture_set_up,
               test_mixer_component_self,
-              mixer_component_fixture_tear_down);
-
-  g_test_add ("/components/mixer/dispose",
-              MixerComponentFixture, NULL,
-              mixer_component_fixture_set_up,
-              test_mixer_component_dispose,
               mixer_component_fixture_tear_down);
 
   return g_test_run ();

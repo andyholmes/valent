@@ -282,7 +282,8 @@ valent_contacts_get_default (void)
                                        "plugin-type",    VALENT_TYPE_CONTACT_STORE_PROVIDER,
                                        NULL);
 
-      g_object_add_weak_pointer (G_OBJECT (default_contacts), (gpointer) &default_contacts);
+      g_object_add_weak_pointer (G_OBJECT (default_contacts),
+                                 (gpointer)&default_contacts);
     }
 
   return default_contacts;
