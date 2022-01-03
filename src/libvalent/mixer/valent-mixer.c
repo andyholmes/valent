@@ -322,7 +322,7 @@ valent_mixer_get_default (void)
                                     NULL);
 
       g_object_add_weak_pointer (G_OBJECT (default_mixer),
-                                 (gpointer) &default_mixer);
+                                 (gpointer)&default_mixer);
     }
 
   return default_mixer;
