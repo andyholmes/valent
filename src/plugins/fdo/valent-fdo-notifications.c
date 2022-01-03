@@ -116,7 +116,7 @@ _g_icon_new_for_variant (GVariant *image_data)
                                      width,
                                      height,
                                      rowstride,
-                                     (GdkPixbufDestroyNotify)g_free,
+                                     (GdkPixbufDestroyNotify)(GCallback)g_free,
                                      NULL);
 
   return (GIcon *)pixbuf;
