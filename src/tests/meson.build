@@ -74,8 +74,8 @@ run_command(gdkpixbuf_test_init,
 )
 
 
-# Run fuzzing tests (exclusive to sanitizers)
-if get_option('fuzz_tests') and get_option('b_sanitize') == 'none'
+# Run fuzzing tests
+if get_option('fuzz_tests')
   test_c_args += ['-DVALENT_TEST_FUZZ=1']
 endif
 
