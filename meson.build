@@ -93,7 +93,6 @@ project_c_args = [
   '-Wno-missing-field-initializers',
   '-Wno-unused-parameter',
 
-  '-Wno-error=cast-function-type',
   # TODO: These should be fixed instead of downgraded to warnings
   '-Wno-error=shadow',
   '-Wno-error=unused-function',
