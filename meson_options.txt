@@ -42,12 +42,6 @@ option('tests',
   description: 'Build unit tests',
 )
 
-option('dbus_tests',
-         type: 'boolean',
-        value: true,
-  description: 'Allow DBus in unit tests',
-)
-
 option('fuzz_tests',
          type: 'boolean',
         value: true,

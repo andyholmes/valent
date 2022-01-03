@@ -74,12 +74,6 @@ run_command(gdkpixbuf_test_init,
 )
 
 
-# Run DBus tests
-if get_option('dbus_tests')
-  test_c_args += ['-DVALENT_TEST_DBUS=1']
-endif
-
-
 # Run fuzzing tests (exclusive to sanitizers)
 if get_option('fuzz_tests') and get_option('b_sanitize') == 'none'
   test_c_args += ['-DVALENT_TEST_FUZZ=1']

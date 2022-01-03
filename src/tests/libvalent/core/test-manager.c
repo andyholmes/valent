@@ -408,13 +408,11 @@ main (int   argc,
               test_manager_identify_uri,
               manager_fixture_tear_down);
 
-#if VALENT_TEST_DBUS
   g_test_add ("/core/manager/dbus",
               ManagerFixture, NULL,
               manager_fixture_set_up,
               test_manager_dbus,
               manager_fixture_tear_down);
-#endif
 
   g_test_add ("/core/manager/dispose",
               ManagerFixture, NULL,

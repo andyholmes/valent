@@ -222,7 +222,6 @@ main (int   argc,
 {
   g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 
-#ifdef VALENT_TEST_DBUS
   g_test_add ("/plugins/mpris/provider",
               MprisComponentFixture, NULL,
               mpris_provider_fixture_set_up,
@@ -234,7 +233,6 @@ main (int   argc,
               mpris_provider_fixture_set_up,
               test_mpris_component_player,
               mpris_provider_fixture_tear_down);
-#endif
 
   return g_test_run ();
 }

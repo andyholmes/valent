@@ -602,7 +602,6 @@ main (int   argc,
 
   g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 
-#ifdef VALENT_TEST_DBUS
   g_test_add ("/plugins/mpris/handle-request",
               ValentTestPluginFixture, path,
               valent_test_plugin_fixture_init,
@@ -614,15 +613,12 @@ main (int   argc,
               valent_test_plugin_fixture_init,
               test_mpris_plugin_handle_player,
               valent_test_plugin_fixture_clear);
-#endif
 
-#ifdef VALENT_TEST_FUZZ
   g_test_add ("/plugins/mpris/fuzz",
               ValentTestPluginFixture, path,
               valent_test_plugin_fixture_init,
               test_mpris_plugin_fuzz,
               valent_test_plugin_fixture_clear);
-#endif
 
   return g_test_run ();
 }
