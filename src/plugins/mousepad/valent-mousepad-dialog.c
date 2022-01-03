@@ -632,12 +632,12 @@ valent_mousepad_dialog_init (ValentMousepadDialog *self)
 ValentMousepadDialog *
 valent_mousepad_dialog_new (ValentDevice *device)
 {
-  GApplication *application;
+  GApplication *application = NULL;
   GtkWindow *window = NULL;
 
   application = g_application_get_default ();
 
-  if (application != NULL)
+  if (GTK_IS_APPLICATION (application))
     window = gtk_application_get_active_window (GTK_APPLICATION (application));
 
   return g_object_new (VALENT_TYPE_MOUSEPAD_DIALOG,
