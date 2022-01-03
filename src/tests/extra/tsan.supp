@@ -116,6 +116,9 @@ called_from_lib:libgstplayback
 called_from_lib:p11-kit-trust
 called_from_lib:libtasn1
 
+# See: https://gitlab.gnome.org/GNOME/glib-networking/-/issues/184
+mutex:g_tls_certificate_gnutls_get_type_once
+
 
 # Indirect dependencies
 called_from_lib:libcairo.so
