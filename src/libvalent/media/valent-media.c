@@ -354,7 +354,8 @@ valent_media_get_default (void)
                                     "plugin-type",    VALENT_TYPE_MEDIA_PLAYER_PROVIDER,
                                     NULL);
 
-      g_object_add_weak_pointer (G_OBJECT (default_media), (gpointer) &default_media);
+      g_object_add_weak_pointer (G_OBJECT (default_media),
+                                 (gpointer)&default_media);
     }
 
   return default_media;

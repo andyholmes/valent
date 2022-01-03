@@ -761,20 +761,6 @@ valent_device_set_property (GObject      *object,
 static void
 valent_device_init (ValentDevice *self)
 {
-  self->channel = NULL;
-
-  self->incoming_pair = 0;
-  self->outgoing_pair = 0;
-
-  /* Public Properties */
-  self->id = NULL;
-  self->name = NULL;
-  self->type = NULL;
-  self->connected = FALSE;
-  self->paired = FALSE;
-  self->incoming_capabilities = NULL;
-  self->outgoing_capabilities = NULL;
-
   /* Plugins */
   self->engine = valent_get_engine ();
   self->plugins = g_hash_table_new_full (NULL, NULL, NULL, device_plugin_free);

@@ -219,6 +219,7 @@ valent_runcommand_plugin_send_command_list (ValentRuncommandPlugin *self)
 
   g_assert (VALENT_IS_RUNCOMMAND_PLUGIN (self));
 
+  /* The `commandList` dictionary is sent as a string of serialized JSON */
   commands = g_settings_get_value (self->settings, "commands");
   command_json = json_gvariant_serialize_data (commands, NULL);
 
@@ -242,7 +243,7 @@ valent_runcommand_plugin_handle_runcommand_request (ValentRuncommandPlugin *self
   body = valent_packet_get_body (packet);
 
   /* A request for the local command list */
-  if (json_object_get_boolean_member_with_default (body, "requestCommandList", FALSE))
+  if (valent_packet_check_boolean (body, "requestCommandList"))
     valent_runcommand_plugin_send_command_list (self);
 
   /* A request to execute a local command */
@@ -250,7 +251,7 @@ valent_runcommand_plugin_handle_runcommand_request (ValentRuncommandPlugin *self
     {
       const char *key;
 
-      key = json_object_get_string_member_with_default (body, "key", NULL);
+      key = valent_packet_check_string (body, "key");
       valent_runcommand_plugin_execute_local_command (self, key);
     }
 }

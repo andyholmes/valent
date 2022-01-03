@@ -261,7 +261,7 @@ valent_session_get_default (void)
                                       NULL);
 
       g_object_add_weak_pointer (G_OBJECT (default_adapter),
-                                 (gpointer) &default_adapter);
+                                 (gpointer)&default_adapter);
     }
 
   return default_adapter;
