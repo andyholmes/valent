@@ -8,6 +8,7 @@ core_test_deps = [
 ]
 
 core_tests = [
+  'test-certificate',
   'test-data',
   'test-device',
   'test-manager',
