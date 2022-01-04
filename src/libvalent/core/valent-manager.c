@@ -293,6 +293,7 @@ valent_manager_enable_service (ValentManager  *self,
                                ChannelService *service)
 {
   g_assert (VALENT_IS_MANAGER (self));
+  g_assert (service != NULL);
 
   service->extension = peas_engine_create_extension (self->engine,
                                                      service->info,
@@ -300,9 +301,7 @@ valent_manager_enable_service (ValentManager  *self,
                                                      "data", self->data,
                                                      "id",   self->id,
                                                      NULL);
-
-  if (service->extension == NULL)
-    return;
+  g_return_if_fail (PEAS_IS_EXTENSION (service->extension));
 
   g_signal_connect (service->extension,
                     "channel",
@@ -320,6 +319,8 @@ valent_manager_disable_service (ValentManager  *self,
                                 ChannelService *service)
 {
   g_assert (VALENT_IS_MANAGER (self));
+  g_assert (service != NULL);
+  g_return_if_fail (PEAS_IS_EXTENSION (service->extension));
 
   if (service->extension != NULL)
     {

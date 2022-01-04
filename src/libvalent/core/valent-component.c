@@ -116,17 +116,17 @@ valent_component_enable_extension (ValentComponent *self,
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
 
   g_assert (VALENT_IS_COMPONENT (self));
-  g_assert (plugin->extension == NULL);
+  g_assert (plugin != NULL);
 
   plugin->extension = peas_engine_create_extension (priv->engine,
                                                     plugin->info,
                                                     priv->plugin_type,
                                                     NULL);
+  g_return_if_fail (PEAS_IS_EXTENSION (plugin->extension));
 
-  if (plugin->extension != NULL)
-    g_signal_emit (G_OBJECT (self),
-                   signals [EXTENSION_ADDED], 0,
-                   plugin->extension);
+  g_signal_emit (G_OBJECT (self),
+                 signals [EXTENSION_ADDED], 0,
+                 plugin->extension);
 }
 
 static void
@@ -134,6 +134,7 @@ valent_component_disable_extension (ValentComponent *self,
                                     ComponentPlugin *plugin)
 {
   g_assert (VALENT_IS_COMPONENT (self));
+  g_assert (plugin != NULL);
   g_return_if_fail (PEAS_IS_EXTENSION (plugin->extension));
 
   g_signal_emit (G_OBJECT (self),
