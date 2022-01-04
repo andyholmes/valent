@@ -375,7 +375,7 @@ valent_contact_store_provider_load_async (ValentContactStoreProvider *provider,
  *
  * Completes an operation started by valent_contact_store_provider_load_async().
  *
- * Returns: %TRUE, or %FALSE with @error set
+ * Returns: %TRUE if successful, or %FALSE with @error set
  */
 gboolean
 valent_contact_store_provider_load_finish (ValentContactStoreProvider  *provider,

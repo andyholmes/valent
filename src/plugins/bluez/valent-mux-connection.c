@@ -1122,7 +1122,7 @@ valent_mux_connection_accept_channel (ValentMuxConnection  *connection,
  *
  * Close the multiplex connection.
  *
- * Returns: %TRUE or %FALSE with @error set
+ * Returns: %TRUE if successful, or %FALSE with @error set
  */
 gboolean
 valent_mux_connection_close (ValentMuxConnection  *connection,

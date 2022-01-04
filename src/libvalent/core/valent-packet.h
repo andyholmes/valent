@@ -84,10 +84,10 @@ const char  * valent_identity_get_device_id  (JsonNode       *identity);
  * valent_packet_is_valid:
  * @packet: (nullable): a #JsonNode
  *
- * Returns %TRUE if @packet is a valid packet. This can be used in
- * `g_return_if_fail()` checks.
+ * Check if @packet is a well-formed KDE Connect packet. This can be used in
+ * g_return_if_fail() checks.
  *
- * Returns: %TRUE of %FALSE
+ * Returns: %TRUE if @packet is valid, or %FALSE if not
  */
 static inline gboolean
 valent_packet_is_valid (JsonNode *packet)
@@ -122,10 +122,9 @@ valent_packet_is_valid (JsonNode *packet)
  * @packet: (nullable): a #JsonNode
  * @error: (nullable): a #GError
  *
- * Returns %TRUE if @packet is a valid packet like valent_packet_is_valid(), but
- * sets @error if returning %FALSE.
+ * Check if @packet is a well-formed KDE Connect packet.
  *
- * Returns: %TRUE or %FALSE with @error set
+ * Returns: %TRUE if @packet is valid, or %FALSE with @error set
  */
 static inline gboolean
 valent_packet_validate (JsonNode  *packet,

@@ -396,7 +396,7 @@ socket_read_loop (gpointer data)
  * A wrapper around g_socket_listener_add_inet_port() that can be called
  * multiple times.
  *
- * Returns: %TRUE or %FALSE with @error set
+ * Returns: %TRUE if successful, or %FALSE with @error set
  */
 static gboolean
 valent_lan_channel_service_tcp_setup (ValentLanChannelService  *self,
@@ -436,7 +436,7 @@ valent_lan_channel_service_tcp_setup (ValentLanChannelService  *self,
  * An analog to valent_lan_channel_service_tcp_setup() that prepares UDP sockets
  * for IPv4 and IPv6, including streams for reading.
  *
- * Returns: %TRUE or %FALSE with @error set
+ * Returns: %TRUE if successful, or %FALSE with @error set
  */
 static gboolean
 valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,

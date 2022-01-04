@@ -790,7 +790,7 @@ valent_contact_store_add_contacts (ValentContactStore  *store,
  * Finish an operation started by valent_contact_store_add_contact() or
  * valent_contact_store_add_contacts().
  *
- * Returns: %TRUE, or %FALSE with @error set
+ * Returns: %TRUE if successful, or %FALSE with @error set
  */
 gboolean
 valent_contact_store_add_finish (ValentContactStore  *store,
@@ -851,7 +851,7 @@ valent_contact_store_remove_contact (ValentContactStore  *store,
  *
  * Finish an operation started by valent_contact_store_remove_contact().
  *
- * Returns: %TRUE, or %FALSE with @error set
+ * Returns: %TRUE if successful, or %FALSE with @error set
  */
 gboolean
 valent_contact_store_remove_finish (ValentContactStore  *store,

@@ -337,7 +337,7 @@ valent_media_player_provider_load_async (ValentMediaPlayerProvider *provider,
  * Completes an asynchronous request to load known players via
  * valent_media_player_provider_load_async().
  *
- * Returns: %TRUE if successful; otherwise %FALSE and @error is set.
+ * Returns: %TRUE if successful, or %FALSE with @error set
  */
 gboolean
 valent_media_player_provider_load_finish (ValentMediaPlayerProvider  *provider,

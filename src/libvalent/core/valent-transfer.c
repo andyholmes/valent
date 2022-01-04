@@ -94,7 +94,7 @@ stream_from_bytes (GBytes        *bytes,
  *
  * Execute the transfer described by @item.
  *
- * Returns: %TRUE, or %FAALSE with @error set
+ * Returns: %TRUE if successful, or %FALSE with @error set
  */
 static gboolean
 transfer_item_prepare (TransferItem  *item,
@@ -173,7 +173,7 @@ transfer_item_prepare (TransferItem  *item,
  *
  * Execute the transfer described by @item.
  *
- * Returns: %TRUE, or %FAALSE with @error set
+ * Returns: %TRUE if successful, or %FALSE with @error set
  */
 static gboolean
 transfer_item_execute (TransferItem   *item,
@@ -690,7 +690,7 @@ valent_transfer_execute (ValentTransfer      *transfer,
  *
  * Finish a transfer started with valent_transfer_execute().
  *
- * Returns: %TRUE on success or %FALSE with @error set.
+ * Returns: %TRUE if successful, or %FALSE with @error set
  */
 gboolean
 valent_transfer_execute_finish (ValentTransfer  *transfer,

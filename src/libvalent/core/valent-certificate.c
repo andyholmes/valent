@@ -46,7 +46,7 @@ G_DEFINE_QUARK (VALENT_CERTIFICATE_PK, valent_certificate_pk);
  * Generate a private key and certificate for @common_name, saving them at
  * @key_path and @cert_path respectively.
  *
- * Returns: %TRUE if successful
+ * Returns: %TRUE if successful, or %FALSE with @error set
  */
 static gboolean
 valent_certificate_generate (const char  *cert_path,
