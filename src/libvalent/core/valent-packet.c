@@ -105,9 +105,9 @@ valent_packet_from_stream (GInputStream  *stream,
  * @cancellable: (nullable): a #GCancellable
  * @error: (nullable): a #GError
  *
- * A convenience function for writing an identity packet to a connection.
+ * A convenience function for writing a packet to a connection.
  *
- * Returns: %TRUE on success or %FALSE with @error set
+ * Returns: %TRUE if successful, or %FALSE with @error set
  */
 gboolean
 valent_packet_to_stream (GOutputStream  *stream,

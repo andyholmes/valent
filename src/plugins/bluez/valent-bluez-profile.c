@@ -351,7 +351,7 @@ valent_bluez_profile_class_init (ValentBluezProfileClass *klass) {
  * Export the bluez profile for Valent on @connection and register it with the
  * profile manager (`org.bluez.ProfileManager1`).
  *
- * Returns: %TRUE on success or %FALSE with @error set
+ * Returns: %TRUE if successful, or %FALSE with @error set
  */
 gboolean
 valent_bluez_profile_register (ValentBluezProfile  *profile,

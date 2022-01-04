@@ -1098,7 +1098,7 @@ valent_mpris_remote_export_full (ValentMprisRemote   *remote,
  *
  * Finish an operation started by valent_mpris_remote_export().
  *
- * Returns: %TRUE or %FALSE with @error set
+ * Returns: %TRUE if successful, or %FALSE with @error set
  */
 gboolean
 valent_mpris_remote_export_finish (ValentMprisRemote  *remote,

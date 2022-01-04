@@ -1119,7 +1119,7 @@ valent_device_send_packet (ValentDevice        *device,
  *
  * Finish an operation started with valent_device_send_packet().
  *
- * Returns: %TRUE on success or %FALSE with @error set
+ * Returns: %TRUE if successful, or %FALSE with @error set
  */
 gboolean
 valent_device_send_packet_finish (ValentDevice  *device,

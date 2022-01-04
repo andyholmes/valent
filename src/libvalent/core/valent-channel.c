@@ -755,7 +755,7 @@ valent_channel_write_packet (ValentChannel       *channel,
  *
  * Finishes an async operation started by valent_channel_write_packet().
  *
- * Returns: %TRUE or %FALSE with @error set
+ * Returns: %TRUE if successful, or %FALSE with @error set
  */
 gboolean
 valent_channel_write_packet_finish (ValentChannel  *channel,
@@ -783,7 +783,7 @@ valent_channel_write_packet_finish (ValentChannel  *channel,
  *
  * Synchronously close @channel.
  *
- * Returns: %TRUE or %FALSE with @error set
+ * Returns: %TRUE if successful, or %FALSE with @error set
  */
 gboolean
 valent_channel_close (ValentChannel  *channel,
@@ -851,7 +851,7 @@ valent_channel_close_async (ValentChannel       *channel,
  *
  * Finishes an async operation started by valent_channel_close_async().
  *
- * Returns: %TRUE or %FALSE with @error set
+ * Returns: %TRUE if successful, or %FALSE with @error set
  */
 gboolean
 valent_channel_close_finish (ValentChannel  *channel,
