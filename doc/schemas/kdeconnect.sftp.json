@@ -53,6 +53,10 @@
                 "pathNames"
             ],
             "properties": {
+                "errorMessage": {
+                    "type": "string",
+                    "description": "An error message."
+                },
                 "ip": {
                     "type": "string",
                     "description": "The host address."
