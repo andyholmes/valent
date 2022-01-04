@@ -19,36 +19,36 @@ G_DECLARE_DERIVABLE_TYPE (ValentContactStoreProvider, valent_contact_store_provi
 
 struct _ValentContactStoreProviderClass
 {
-  GObjectClass         parent_class;
+  GObjectClass   parent_class;
 
   /* virtual functions */
-  void                 (*load_async)    (ValentContactStoreProvider  *provider,
-                                         GCancellable                *cancellable,
-                                         GAsyncReadyCallback          callback,
-                                         gpointer                     user_data);
-  gboolean             (*load_finish)   (ValentContactStoreProvider  *provider,
-                                         GAsyncResult                *result,
-                                         GError                     **error);
+  void           (*load_async)    (ValentContactStoreProvider  *provider,
+                                   GCancellable                *cancellable,
+                                   GAsyncReadyCallback          callback,
+                                   gpointer                     user_data);
+  gboolean       (*load_finish)   (ValentContactStoreProvider  *provider,
+                                   GAsyncResult                *result,
+                                   GError                     **error);
 
   /* signals */
-  void                 (*store_added)   (ValentContactStoreProvider  *provider,
-                                         ValentContactStore          *store);
-  void                 (*store_removed) (ValentContactStoreProvider  *provider,
-                                         ValentContactStore          *store);
+  void           (*store_added)   (ValentContactStoreProvider  *provider,
+                                   ValentContactStore          *store);
+  void           (*store_removed) (ValentContactStoreProvider  *provider,
+                                   ValentContactStore          *store);
 };
 
-void                 valent_contact_store_provider_emit_store_added   (ValentContactStoreProvider  *provider,
-                                                                       ValentContactStore          *store);
-void                 valent_contact_store_provider_emit_store_removed (ValentContactStoreProvider  *provider,
-                                                                       ValentContactStore          *store);
-GPtrArray          * valent_contact_store_provider_get_stores         (ValentContactStoreProvider  *provider);
-void                 valent_contact_store_provider_load_async         (ValentContactStoreProvider  *provider,
-                                                                       GCancellable                *cancellable,
-                                                                       GAsyncReadyCallback          callback,
-                                                                       gpointer                     user_data);
-gboolean             valent_contact_store_provider_load_finish        (ValentContactStoreProvider  *provider,
-                                                                       GAsyncResult                *result,
-                                                                       GError                     **error);
+void        valent_contact_store_provider_emit_store_added   (ValentContactStoreProvider  *provider,
+                                                              ValentContactStore          *store);
+void        valent_contact_store_provider_emit_store_removed (ValentContactStoreProvider  *provider,
+                                                              ValentContactStore          *store);
+GPtrArray * valent_contact_store_provider_get_stores         (ValentContactStoreProvider  *provider);
+void        valent_contact_store_provider_load_async         (ValentContactStoreProvider  *provider,
+                                                              GCancellable                *cancellable,
+                                                              GAsyncReadyCallback          callback,
+                                                              gpointer                     user_data);
+gboolean    valent_contact_store_provider_load_finish        (ValentContactStoreProvider  *provider,
+                                                              GAsyncResult                *result,
+                                                              GError                     **error);
 
 G_END_DECLS
 

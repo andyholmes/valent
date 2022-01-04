@@ -15,20 +15,21 @@
 
 /**
  * SECTION:valentcontactstoreprovider
- * @short_description: Interface for contact providers
+ * @short_description: Base class for contact store providers
  * @title: ValentContactStoreProvider
  * @stability: Unstable
  * @include: libvalent-contacts.h
  *
- * #ValentContactStoreProvider is an interface for sources that provide objects
- * that implement #ValentContactStore. The interface is very simple and only
- * requires that returned objects are implementations of #ValentContactStore.
+ * #ValentContactStoreProvider is a base class for #ValentContactStore providers.
+ *
+ * The interface is simple enough that most implementations will only need to
+ * emit #ValentContactStoreProvider::store-added and
+ * and #ValentContactStoreProvider::store-removed at the appropriate times.
  */
 
 typedef struct
 {
   PeasPluginInfo *plugin_info;
-
   GPtrArray      *stores;
 } ValentContactStoreProviderPrivate;
 
@@ -210,15 +211,16 @@ valent_contact_store_provider_class_init (ValentContactStoreProviderClass *klass
    * @store: an #ValentContact
    *
    * The "store-added" signal is emitted when a provider has discovered a
-   * store has become available.
+   * store has become available. The internal representation has already been
+   * updated by the time this signal is emitted.
    *
-   * Subclasses of #ValentContactManager must chain-up if they override the
-   * #ValentContactStoreProviderClass.store_added vfunc.
+   * Subclasses of #ValentContactStoreProvider must chain-up if they override
+   * the default #ValentContactStoreProviderClass.store_added closure.
    */
   signals [STORE_ADDED] =
     g_signal_new ("store-added",
                   G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_LAST,
+                  G_SIGNAL_RUN_FIRST,
                   G_STRUCT_OFFSET (ValentContactStoreProviderClass, store_added),
                   NULL, NULL,
                   g_cclosure_marshal_VOID__OBJECT,
@@ -233,15 +235,16 @@ valent_contact_store_provider_class_init (ValentContactStoreProviderClass *klass
    * @store: an #ValentContact
    *
    * The "store-removed" signal is emitted when a provider has discovered a
-   * store is no longer available.
+   * store is no longer available. The internal representation has already been
+   * updated by the time this signal is emitted.
    *
-   * Subclasses of #ValentContactManager must chain-up if they override the
-   * #ValentContactStoreProviderClass.store_removed vfunc.
+   * Subclasses of #ValentContactStoreProvider must chain-up if they override
+   * the default #ValentContactStoreProviderClass.store_removed closure.
    */
   signals [STORE_REMOVED] =
     g_signal_new ("store-removed",
                   G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_LAST,
+                  G_SIGNAL_RUN_FIRST,
                   G_STRUCT_OFFSET (ValentContactStoreProviderClass, store_removed),
                   NULL, NULL,
                   g_cclosure_marshal_VOID__OBJECT,
@@ -264,12 +267,11 @@ valent_contact_store_provider_init (ValentContactStoreProvider *provider)
  * @provider: a #ValentContactStoreProvider
  * @store: a #ValentContactStore
  *
- * Emits the #ValentContactStoreProvider::store-added signal on @list.
+ * Emits the #ValentContactStoreProvider::store-added signal on @provider. A
+ * reference will be held on @store until it is removed.
  *
- * This function should only be called by classes implementing
- * #ValentContactStoreProvider. It has to be called after the internal representation
- * of @store has been updated, because handlers connected to this signal
- * might query the new state of the provider.
+ * This function should only be called by implementations of
+ * #ValentContactStoreProvider.
  */
 void
 valent_contact_store_provider_emit_store_added (ValentContactStoreProvider *provider,
@@ -286,9 +288,10 @@ valent_contact_store_provider_emit_store_added (ValentContactStoreProvider *prov
  * @provider: a #ValentContactStoreProvider
  * @store: a #ValentContactStore
  *
- * Emits the #ValentContactStoreProvider::store-removed signal on @list.
+ * Emits the #ValentContactStoreProvider::store-removed signal on @provider. A
+ * reference will be held on @store until all signal handlers have resolved.
  *
- * This function should only be called by classes implementing
+ * This function should only be called by implementations of
  * #ValentContactStoreProvider.
  */
 void
@@ -298,7 +301,9 @@ valent_contact_store_provider_emit_store_removed (ValentContactStoreProvider *pr
   g_return_if_fail (VALENT_IS_CONTACT_STORE_PROVIDER (provider));
   g_return_if_fail (VALENT_IS_CONTACT_STORE (store));
 
+  g_object_ref (store);
   g_signal_emit (G_OBJECT (provider), signals [STORE_REMOVED], 0, store);
+  g_object_unref (store);
 }
 
 /**
@@ -307,8 +312,7 @@ valent_contact_store_provider_emit_store_removed (ValentContactStoreProvider *pr
  *
  * Get a list of the contact stores known to @provider.
  *
- * Returns: (transfer container) (element-type Valent.ContactStore):
- *   a #GPtrArray of #ValentContactStore
+ * Returns: (transfer full) (element-type Valent.ContactStore): a list of stores
  */
 GPtrArray *
 valent_contact_store_provider_get_stores (ValentContactStoreProvider *provider)
@@ -333,16 +337,16 @@ valent_contact_store_provider_get_stores (ValentContactStoreProvider *provider)
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
  *
- * Requests that the #ValentContactStoreProvider asynchronously load any known players.
+ * Requests that the #ValentContactStoreProvider asynchronously load any known
+ * contact stores.
  *
- * This should only be called once on an #ValentContactStoreProvider. It is an error
- * to call this function more than once for a single #ValentContactStoreProvider.
+ * This method is called by the #ValentContacts singleton and should only be
+ * called once for each #ValentContactStoreProvider. It is therefore a
+ * programmer error for an API user to call this method.
  *
  * #ValentContactStoreProvider implementations are expected to emit the
- * #ValentContactStoreProvider::store-added signal for each contact they've discovered.
- * That should be done for known players before returning from the asynchronous
- * operation so that the contact manager does not need to wait for additional
- * players to enter the "settled" state.
+ * #ValentContactStoreProvider::store-added signal for each contact store
+ * before returning from the asynchronous operation.
  */
 void
 valent_contact_store_provider_load_async (ValentContactStoreProvider *provider,
@@ -369,10 +373,9 @@ valent_contact_store_provider_load_async (ValentContactStoreProvider *provider,
  * @result: a #GAsyncResult provided to callback
  * @error: (nullable): a #GError
  *
- * Completes an asynchronous request to load known players via
- * valent_contact_store_provider_load_async().
+ * Completes an operation started by valent_contact_store_provider_load_async().
  *
- * Returns: %TRUE if successful; otherwise %FALSE and @error is set.
+ * Returns: %TRUE, or %FALSE with @error set
  */
 gboolean
 valent_contact_store_provider_load_finish (ValentContactStoreProvider  *provider,
@@ -385,8 +388,11 @@ valent_contact_store_provider_load_finish (ValentContactStoreProvider  *provider
 
   g_return_val_if_fail (VALENT_IS_CONTACT_STORE_PROVIDER (provider), FALSE);
   g_return_val_if_fail (g_task_is_valid (result, provider), FALSE);
+  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-  ret = VALENT_CONTACT_STORE_PROVIDER_GET_CLASS (provider)->load_finish (provider, result, error);
+  ret = VALENT_CONTACT_STORE_PROVIDER_GET_CLASS (provider)->load_finish (provider,
+                                                                         result,
+                                                                         error);
 
   VALENT_RETURN (ret);
 }
