@@ -154,9 +154,7 @@ valent_device_enable_plugin (ValentDevice *device,
                                                     VALENT_TYPE_DEVICE_PLUGIN,
                                                     "device", device,
                                                     NULL);
-
-  if (plugin->extension == NULL)
-    return;
+  g_return_if_fail (PEAS_IS_EXTENSION (plugin->extension));
 
   /* Register packet handlers */
   if ((incoming = valent_device_plugin_get_incoming (plugin->info)) != NULL)
@@ -183,6 +181,7 @@ valent_device_disable_plugin (ValentDevice *device,
 
   g_assert (VALENT_IS_DEVICE (device));
   g_assert (plugin != NULL);
+  g_return_if_fail (PEAS_IS_EXTENSION (plugin->extension));
 
   /* Unregister packet handlers */
   incoming = valent_device_plugin_get_incoming (plugin->info);
