@@ -526,7 +526,7 @@ valent_sftp_plugin_handle_request (ValentSftpPlugin *self,
   JsonBuilder *builder;
   g_autoptr (JsonNode) response = NULL;
 
-  g_return_if_fail (VALENT_IS_SFTP_PLUGIN (self));
+  g_assert (VALENT_IS_SFTP_PLUGIN (self));
 
   body = valent_packet_get_body (packet);
 
@@ -572,7 +572,7 @@ valent_sftp_plugin_sftp_request (ValentSftpPlugin *self)
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
 
-  g_return_if_fail (VALENT_IS_SFTP_PLUGIN (self));
+  g_assert (VALENT_IS_SFTP_PLUGIN (self));
 
   if (sftp_session_find (self))
     return;
