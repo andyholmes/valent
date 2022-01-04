@@ -11,6 +11,24 @@
 #include "valent-mock-contact-store-provider.h"
 
 
+/**
+ * SECTION:valentmockcontactstoreprovider
+ * @short_description: Mock contact store provider
+ * @title: ValentMockContactStoreProvider
+ * @stability: Unstable
+ * @include: libvalent-test.h
+ *
+ * #ValentMockContactStoreProvider is a mock contact store provider for testing
+ * purposes. It loads with a single contact store, with a single contact.
+ *
+ * The store UID and name are `mock-store' and `Mock Store`, respectively. The
+ * contact UID and name are `mock-contact` and `Mock Contact`, respectively,
+ * with a telephone number of `123-456-7890`.
+ *
+ * Simply call valent_contact_store_provider_emit_store_added() to add more
+ * stores and valent_contact_store_provider_emit_store_removed() to remove them.
+ */
+
 struct _ValentMockContactStoreProvider
 {
   ValentContactStoreProvider  parent_instance;
@@ -31,10 +49,32 @@ valent_mock_contact_store_provider_load_async (ValentContactStoreProvider *provi
                                                gpointer                    user_data)
 {
   g_autoptr (GTask) task = NULL;
+  g_autoptr (ESource) source = NULL;
+  g_autoptr (EContact) contact = NULL;
+  g_autoptr (ValentContactStore) store = NULL;
 
   g_assert (VALENT_IS_MOCK_CONTACT_STORE_PROVIDER (provider));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
+  /* Mock Store */
+  source = valent_contacts_create_ebook_source ("mock-store",
+                                                "Mock Store",
+                                                NULL);
+  store = g_object_new (VALENT_TYPE_CONTACT_STORE,
+                        "source", source,
+                        NULL);
+  valent_contact_store_provider_emit_store_added (provider, store);
+
+  /* Mock Contact */
+  contact = e_contact_new_from_vcard_with_uid ("BEGIN:VCARD\n"
+                                               "VERSION:2.1\n"
+                                               "FN:Mock Contact\n"
+                                               "TEL;CELL:123-456-7890\n"
+                                               "END:VCARD\n",
+                                               "mock-contact");
+  valent_contact_store_add_contact (store, contact, NULL, NULL, NULL);
+
+  /* Token Source */
   task = g_task_new (provider, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_mock_contact_store_provider_load_async);
   g_task_return_boolean (task, TRUE);
