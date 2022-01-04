@@ -11,7 +11,6 @@
 
 #include "valent-ebook-provider.h"
 #include "valent-ebook-store.h"
-#include "valent-eds-utils.h"
 
 
 struct _ValentEBookProvider
@@ -44,7 +43,7 @@ on_source_added (ESourceRegistry     *registry,
   store = g_object_new (VALENT_TYPE_EBOOK_STORE,
                         "source", source,
                         NULL);
-  g_hash_table_replace (self->stores, e_source_dup_uid (source), store);
+  g_hash_table_replace (self->stores, g_object_ref (source), store);
 
   valent_contact_store_provider_emit_store_added (provider, store);
 }
@@ -55,16 +54,16 @@ on_source_removed (ESourceRegistry     *registry,
                    ValentEBookProvider *self)
 {
   ValentContactStoreProvider *provider = VALENT_CONTACT_STORE_PROVIDER (self);
-  gpointer uid, store;
+  gpointer esource, store;
 
   g_assert (E_IS_SOURCE_REGISTRY (registry));
   g_assert (E_IS_SOURCE (source));
   g_assert (VALENT_IS_EBOOK_PROVIDER (self));
 
-  if (!g_hash_table_steal_extended (self->stores, e_source_get_uid (source), &uid, &store))
+  if (g_hash_table_steal_extended (self->stores, source, &esource, &store))
     {
       valent_contact_store_provider_emit_store_removed (provider, store);
-      g_free (uid);
+      g_object_unref (esource);
       g_object_unref (store);
     }
 }
@@ -72,52 +71,24 @@ on_source_removed (ESourceRegistry     *registry,
 /*
  * ValentContactStoreProvider
  */
-static gboolean
-valent_ebook_provider_register (ValentContactStoreProvider  *provider,
-                                ValentContactStore          *store,
-                                GCancellable                *cancellable,
-                                GError                     **error)
-{
-  g_autoptr (ESource) scratch = NULL;
-  g_autoptr (ESource) source = NULL;
-  const char *uid;
-  const char *name;
-
-  g_assert (VALENT_IS_CONTACT_STORE_PROVIDER (provider));
-  g_assert (VALENT_IS_CONTACT_STORE (store));
-
-  uid = valent_contact_store_get_uid (store);
-  name = valent_contact_store_get_name (store);
-
-  /* Create and register a new source */
-  if ((scratch = valent_contacts_create_ebook_source (uid, name, error)) == NULL)
-      return FALSE;
-
-  if ((source = valent_eds_register_source (scratch, cancellable, error)) == NULL)
-    return FALSE;
-
-  return TRUE;
-}
-
 static void
-load_task (GTask        *task,
-           gpointer      source_object,
-           gpointer      task_data,
-           GCancellable *cancellable)
+e_source_registry_new_cb (GObject      *object,
+                          GAsyncResult *result,
+                          gpointer      user_data)
 {
-  ValentEBookProvider *self = source_object;
-  GError *error = NULL;
+  g_autoptr (GTask) task = G_TASK (user_data);
   g_autolist (ESource) sources = NULL;
+  ValentEBookProvider *self = g_task_get_source_object (task);
+  GError *error = NULL;
 
   g_assert (VALENT_IS_EBOOK_PROVIDER (self));
 
-  self->registry = e_source_registry_new_sync (cancellable, &error);
-
-  if (self->registry == NULL)
+  if ((self->registry = e_source_registry_new_finish (result, &error)) == NULL)
     return g_task_return_error (task, error);
 
   /* Load existing address books */
-  sources = e_source_registry_list_sources (self->registry, E_SOURCE_EXTENSION_ADDRESS_BOOK);
+  sources = e_source_registry_list_sources (self->registry,
+                                            E_SOURCE_EXTENSION_ADDRESS_BOOK);
 
   for (const GList *iter = sources; iter; iter = iter->next)
     on_source_added (self->registry, E_SOURCE (iter->data), self);
@@ -130,19 +101,6 @@ load_task (GTask        *task,
                     "source-removed",
                     G_CALLBACK (on_source_removed),
                     self);
-
-  /* g_autoptr (GPtrArray) stores = valent_contacts_get_stores (valent_contacts_get_default ()); */
-
-  /* for (unsigned int i = 0; i < stores->len; i++) */
-  /*   { */
-  /*     ValentContactStore *store = g_ptr_array_index (stores, i); */
-  /*     g_autoptr (ESource) source = NULL; */
-
-  /*     if (VALENT_IS_EBOOK_STORE (store)) */
-  /*       continue; */
-
-  /*     source = valent_eds_register_source (valent_contact_store_get_source (store), NULL, NULL); */
-  /*   } */
 
   g_task_return_boolean (task, TRUE);
 }
@@ -160,7 +118,10 @@ valent_ebook_provider_load_async (ValentContactStoreProvider *provider,
 
   task = g_task_new (provider, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_ebook_provider_load_async);
-  g_task_run_in_thread (task, load_task);
+
+  e_source_registry_new (cancellable,
+                         e_source_registry_new_cb,
+                         g_steal_pointer (&task));
 }
 
 /*
@@ -207,7 +168,9 @@ valent_ebook_provider_class_init (ValentEBookProviderClass *klass)
 static void
 valent_ebook_provider_init (ValentEBookProvider *self)
 {
-  self->stores = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                        g_free,     g_object_unref);
+  self->stores = g_hash_table_new_full ((GHashFunc)e_source_hash,
+                                        (GEqualFunc)e_source_equal,
+                                        g_object_unref,
+                                        g_object_unref);
 }
 
