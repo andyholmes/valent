@@ -1,0 +1,34 @@
+{
+  "identity": {
+    "id": 0,
+    "type": "kdeconnect.identity",
+    "body": {
+      "deviceId": "test-device",
+      "deviceName": "Test Device",
+      "protocolVersion": 7,
+      "deviceType": "phone",
+      "incomingCapabilities": [
+        "kdeconnect.sftp",
+        "kdeconnect.sftp.request"
+      ],
+      "outgoingCapabilities": [
+        "kdeconnect.sftp",
+        "kdeconnect.sftp.request"
+      ]
+    }
+  },
+  "sftp-request": {
+    "id": 0,
+    "type": "kdeconnect.sftp.request",
+    "body": {
+        "startBrowsing": true
+    }
+  },
+  "sftp-error": {
+    "id": 0,
+    "type": "kdeconnect.sftp",
+    "body": {
+      "errorMessage": "Permission denied"
+    }
+  }
+}

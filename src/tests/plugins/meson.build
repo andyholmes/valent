@@ -18,6 +18,7 @@ plugin_tests = [
   'photo',
   'ping',
   'runcommand',
+  'sftp',
   'share',
   'systemvolume',
   'telephony',

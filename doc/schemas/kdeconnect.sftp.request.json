@@ -33,7 +33,7 @@
             "properties": {
                 "startBrowsing": {
                     "type": "boolean",
-                    "description": "A request for the remote device to prepare for SFTP and respond with a `kdeconnect.sftp.request` packet."
+                    "description": "A request for the remote device to prepare for SFTP and respond with a `kdeconnect.sftp` packet."
                 }
             }
         }
