@@ -64,6 +64,15 @@ test_contacts_plugin_request_contacts (ValentTestPluginFixture *fixture,
   v_assert_packet_type (packet, "kdeconnect.contacts.request_all_uids_timestamps");
   json_node_unref (packet);
 
+  /* Expect UIDs request (GAction) */
+  g_action_group_activate_action (valent_device_get_actions (device),
+                                  "contacts-fetch",
+                                  NULL);
+
+  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  v_assert_packet_type (packet, "kdeconnect.contacts.request_all_uids_timestamps");
+  json_node_unref (packet);
+
   /* UIDs response */
   packet = valent_test_plugin_fixture_lookup_packet (fixture, "response-uids-timestamps");
   valent_test_plugin_fixture_handle_packet (fixture, packet);
