@@ -347,7 +347,7 @@ valent_component_class_init (ValentComponentClass *klass)
    */
   properties [PROP_PLUGIN_CONTEXT] =
     g_param_spec_string ("plugin-context",
-                         "plugin-context",
+                         "Plugin Context",
                          "The context of the component",
                          NULL,
                          (G_PARAM_READWRITE |
