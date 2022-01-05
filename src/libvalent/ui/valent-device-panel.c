@@ -178,7 +178,7 @@ on_state_changed (ValentDevice      *device,
                   GParamSpec        *pspec,
                   ValentDevicePanel *self)
 {
-  ValentDeviceState state = 0;
+  ValentDeviceState state = VALENT_DEVICE_STATE_NONE;
   ValentChannel *channel;
   const char *verification_key = NULL;
   gboolean connected, paired, pair_incoming, pair_outgoing;
