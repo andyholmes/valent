@@ -64,22 +64,14 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 G_STATIC_ASSERT (sizeof (sqlite3_int64) == sizeof (gint64));
 
 
-/**
- * ensure_directory:
- * @path: a file path
- *
- * Ensure the directory at @path exists.
- *
- * Returns: %TRUE on success
- */
 static inline gboolean
 ensure_directory (const char *path)
 {
-  g_return_val_if_fail (path != NULL, FALSE);
+  g_assert (path != NULL && *path != '\0');
 
   if (g_mkdir_with_parents (path, 0700) == -1)
     {
-      g_debug ("Failed to create directory: %s", g_strerror (errno));
+      g_debug ("Failed to create \"%s\": %s", path, g_strerror (errno));
       return FALSE;
     }
 
