@@ -32,8 +32,8 @@ G_BEGIN_DECLS
  * @VALENT_PHONE_NUMBER_VOICE: A voice capable phone number; the default type
  * @VALENT_PHONE_NUMBER_WORK: A work or office phone number
  *
- * Flags that describe a #ValentPhoneNumber type, capabilites or other attributes
- * such as whether the number is the preferred or primary number.
+ * Flags that describe a #ValentPhoneNumber type, capabilities or other
+ * attributes such as whether the number is the preferred or primary number.
  *
  * These values are based on RFC2426 (vCard 3.0), however only `HOME`, `CELL`,
  * `WORK` and `PREF` are used in Valent.

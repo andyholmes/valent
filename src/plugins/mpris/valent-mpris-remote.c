@@ -1202,7 +1202,7 @@ valent_mpris_remote_emit_seeked (ValentMprisRemote *self,
  * @position: the playback position
  * @volume: the playback volume
  *
- * A convenience method for updating the internal state of the most commom
+ * A convenience method for updating the internal state of the most common
  * properties.
  *
  * If @metadata is a floating reference, it will be consumed.

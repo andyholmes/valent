@@ -1073,8 +1073,9 @@ valent_contact_store_get_contacts (ValentContactStore   *store,
  * Return a copy of the first #EContact in @store with @phone. If it does not
  * exist a new #EContact will be made.
  *
- * This is a convenience wrapper around valent_contact_store_query() that perfers
- * libphonenumber, but falls back to iterating the full list of contacts.
+ * This is a convenience wrapper around valent_contact_store_query() that uses
+ * libphonenumber if available, with a fallback of iterating the full list of
+ * contacts.
  *
  * Returns: (transfer full): a #EContact
  */
