@@ -1,5 +1,5 @@
 %global glib2_version 2.66.0
-%global gtk4_version 4.0.0
+%global gtk4_version 4.4.0
 %global json_glib_version 1.6.0
 %global libpeas_version 1.22.0
 %global libeds_version 3.34.0
@@ -21,7 +21,9 @@ BuildRequires:  meson
 BuildRequires:  pkgconfig(gio-2.0) >= %{glib2_version}
 BuildRequires:  pkgconfig(gio-unix-2.0) >= %{glib2_version}
 BuildRequires:  pkgconfig(glib-2.0) >= %{glib2_version}
+BuildRequires:  pkgconfig(gnutls)
 BuildRequires:  pkgconfig(gtk4) >= %{gtk4_version}
+BuildRequires:  pkgconfig(libadwaita-1)
 BuildRequires:  pkgconfig(json-glib-1.0) >= %{json_glib_version}
 BuildRequires:  pkgconfig(libpeas-1.0) >= %{libpeas_version}
 BuildRequires:  pkgconfig(libebook-1.2) >= %{libeds_version}
@@ -30,18 +32,16 @@ BuildRequires:  pkgconfig(libedata-book-1.2) >= %{libeds_version}
 BuildRequires:  pkgconfig(libedataserver-1.2) >= %{libeds_version}
 BuildRequires:  pkgconfig(sqlite3) >= %{sqlite_version}
 BuildRequires:  pkgconfig(gstreamer-1.0)
-# For `lan` networking
-BuildRequires:  pkgconfig(gnutls)
 # TODO: For `photo` plugin
 BuildRequires:  pkgconfig(gstreamer-video-1.0)
-# For `xdp` integration
-BuildRequires:  pkgconfig(libportal)
-# For `pulseaudio` integration
+# For `pulseaudio` plugin
 BuildRequires:  pkgconfig(alsa)
 BuildRequires:  pkgconfig(libpulse)
 BuildRequires:  pkgconfig(libpulse-mainloop-glib)
 BuildRequires:  %{_bindir}/desktop-file-validate
 BuildRequires:  %{_bindir}/appstream-util
+# For `xdp` plugin
+BuildRequires:  pkgconfig(libportal)
 
 Requires:       glib2%{?_isa} >= %{glib2_version}
 Requires:       gtk4%{?_isa} >= %{gtk4_version}
@@ -106,7 +106,7 @@ developing plugins for %{name}.
 %{_includedir}/valent*/
 
 %changelog
-* Mon Dec 27 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> - 0.1.0-1
+* Tue Jan 4 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> - 0.1.0-1
 
 - Initial packaging
 
