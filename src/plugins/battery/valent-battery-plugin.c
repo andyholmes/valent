@@ -53,7 +53,7 @@ enum {
  * valent_battery_plugin_update_estimate:
  * @self: a #ValentBatteryPlugin
  *
- * Recalculate the charge or dischare rate and update the estimated time
+ * Recalculate the charge or discharge rate and update the estimated time
  * remaining.
  *
  * `rate` is defined as `seconds / percent`. The updated `rate` is a weighted

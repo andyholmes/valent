@@ -26,7 +26,7 @@
  * @include: libvalent-core.h
  *
  * #ValentChannelService is base class for services that provide #ValentChannel
- * objects, analagous to to #GSocketService and #GSocketConnection. In the
+ * objects, analogous to to #GSocketService and #GSocketConnection. In the
  * context of the protocol, #ValentChannelService serves as the counterpart to
  * #ValentDevice by representing the local device.
  *

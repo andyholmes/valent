@@ -333,7 +333,7 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
    * property has no effect.
    *
    * If the playback progresses in a way that is inconstistant with the Rate
-   * property, the Seeked signal is emited.
+   * property, the Seeked signal is emitted.
    */
   properties [PROP_POSITION] =
     g_param_spec_int64 ("position",
@@ -405,7 +405,7 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
    * @position: the new position in microseconds
    *
    * #ValentMediaPlayer::seeked is emitted when the track position has changed
-   * in a way that is inconsistant with the current playing state.
+   * in a way that is inconsistent with the current playing state.
    *
    * When this signal is not received, clients should assume that:
    *

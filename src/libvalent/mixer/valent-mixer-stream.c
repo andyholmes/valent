@@ -241,7 +241,7 @@ valent_mixer_stream_class_init (ValentMixerStreamClass *klass)
   /**
    * ValentMixerStream:flags:
    *
-   * The "falgs" property holds the input or output level of the stream.
+   * The "flags" property holds the type flags for the stream.
    */
   properties [PROP_FLAGS] =
     g_param_spec_flags ("flags",

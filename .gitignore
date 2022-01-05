@@ -1,5 +1,5 @@
 *~
-_build
+_build*
 
 # meson wraps
 subprojects/libadwaita
