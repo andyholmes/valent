@@ -124,10 +124,6 @@ device_plugin_free (gpointer data)
 {
   DevicePlugin *plugin = data;
 
-  plugin->device = NULL;
-  plugin->info = NULL;
-  g_clear_object (&plugin->settings);
-
   /* We guarantee calling valent_device_plugin_disable() */
   if (plugin->extension != NULL)
     {
@@ -135,6 +131,7 @@ device_plugin_free (gpointer data)
       g_clear_object (&plugin->extension);
     }
 
+  g_clear_object (&plugin->settings);
   g_clear_pointer (&plugin, g_free);
 }
 
@@ -217,22 +214,13 @@ on_enabled_changed (GSettings    *settings,
 static gboolean
 valent_device_reset_pair (gpointer object)
 {
-  ValentDevice *device = object;
+  ValentDevice *device = VALENT_DEVICE (object);
 
   g_assert (VALENT_IS_DEVICE (device));
 
-  if (device->incoming_pair > 0)
-    {
-      valent_device_hide_notification (device, "pair-request");
-      g_source_remove (device->incoming_pair);
-      device->incoming_pair = 0;
-    }
-
-  if (device->outgoing_pair > 0)
-    {
-      g_source_remove (device->outgoing_pair);
-      device->outgoing_pair = 0;
-    }
+  valent_device_hide_notification (device, "pair-request");
+  g_clear_handle_id (&device->incoming_pair, g_source_remove);
+  g_clear_handle_id (&device->outgoing_pair, g_source_remove);
 
   valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
 
@@ -477,58 +465,6 @@ valent_device_handle_identity (ValentDevice *device,
 
 
 /*
- * Stock GActions
- */
-static void
-pair_action (GSimpleAction *action,
-             GVariant      *parameter,
-             gpointer       user_data)
-{
-  ValentDevice *device = VALENT_DEVICE (user_data);
-
-  /* We're accepting an incoming pair request */
-  if (device->incoming_pair > 0)
-    {
-      valent_device_send_pair (device, TRUE);
-      valent_device_set_paired (device, TRUE);
-    }
-
-  /* We're initiating an outgoing pair request */
-  else if (!device->paired)
-    {
-      valent_device_reset_pair (device);
-      valent_device_send_pair (device, TRUE);
-      device->outgoing_pair = g_timeout_add_seconds (PAIR_REQUEST_TIMEOUT,
-                                                     valent_device_reset_pair,
-                                                     device);
-      VALENT_DEBUG ("Pair request sent to %s", device->name);
-    }
-
-  valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
-}
-
-static void
-unpair_action (GSimpleAction *action,
-               GVariant      *parameter,
-               gpointer       user_data)
-{
-  ValentDevice *device = VALENT_DEVICE (user_data);
-
-  if (device->connected)
-    valent_device_send_pair (device, FALSE);
-
-  valent_device_set_paired (device, FALSE);
-
-  valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
-}
-
-/* GActions */
-static const GActionEntry actions[] = {
-  { "pair",   pair_action,   NULL, NULL, NULL },
-  { "unpair", unpair_action, NULL, NULL, NULL }
-};
-
-/*
  * ValentEngine callbacks
  */
 static void
@@ -596,6 +532,59 @@ on_unload_plugin (PeasEngine     *engine,
   g_hash_table_remove (device->plugins, info);
   g_signal_emit (G_OBJECT (device), signals [PLUGIN_REMOVED], 0, info);
 }
+
+
+/*
+ * GActions
+ */
+static void
+pair_action (GSimpleAction *action,
+             GVariant      *parameter,
+             gpointer       user_data)
+{
+  ValentDevice *device = VALENT_DEVICE (user_data);
+
+  /* We're accepting an incoming pair request */
+  if (device->incoming_pair > 0)
+    {
+      valent_device_send_pair (device, TRUE);
+      valent_device_set_paired (device, TRUE);
+    }
+
+  /* We're initiating an outgoing pair request */
+  else if (!device->paired)
+    {
+      valent_device_reset_pair (device);
+      valent_device_send_pair (device, TRUE);
+      device->outgoing_pair = g_timeout_add_seconds (PAIR_REQUEST_TIMEOUT,
+                                                     valent_device_reset_pair,
+                                                     device);
+      VALENT_DEBUG ("Pair request sent to %s", device->name);
+    }
+
+  valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
+}
+
+static void
+unpair_action (GSimpleAction *action,
+               GVariant      *parameter,
+               gpointer       user_data)
+{
+  ValentDevice *device = VALENT_DEVICE (user_data);
+
+  if (device->connected)
+    valent_device_send_pair (device, FALSE);
+
+  valent_device_set_paired (device, FALSE);
+
+  valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
+}
+
+static const GActionEntry actions[] = {
+  { "pair",   pair_action,   NULL, NULL, NULL },
+  { "unpair", unpair_action, NULL, NULL, NULL },
+};
+
 
 /*
  * GObject
@@ -767,11 +756,12 @@ valent_device_init (ValentDevice *self)
 
   /* GAction/GMenu */
   self->actions = g_simple_action_group_new ();
+  self->menu = g_menu_new ();
+
   g_action_map_add_action_entries (G_ACTION_MAP (self->actions),
                                    actions,
                                    G_N_ELEMENTS (actions),
                                    self);
-  self->menu = g_menu_new();
 }
 
 static void
@@ -964,10 +954,14 @@ valent_device_class_init (ValentDeviceClass *klass)
  * @id: (not nullable): The unique id for this device
  *
  * Construct a new device for @id.
+ *
+ * Returns: (transfer full) (nullable): a new #ValentDevice
  */
 ValentDevice *
 valent_device_new (const char *id)
 {
+  g_return_val_if_fail (id != NULL && *id != '\0', NULL);
+
   return g_object_new (VALENT_TYPE_DEVICE,
                        "id", id,
                        NULL);
@@ -1524,7 +1518,7 @@ valent_device_get_plugins (ValentDevice *device)
  *
  * Get the state of the device.
  *
- * Returns: %TRUE if the device is paired.
+ * Returns: #ValentDeviceStateFlags describing the state of the device
  */
 ValentDeviceState
 valent_device_get_state (ValentDevice *device)
