@@ -174,16 +174,14 @@ foreach define : config_h_defines
   config_h.set_quoted(define[0], define[1])
 endforeach
 
-config_h_functions = [
-  'clock_gettime',
-  'localtime_r',
-]
+config_h_functions = {
+  'HAVE_CLOCK_GETTIME': 'clock_gettime',
+  'HAVE_LOCALTIME_R':   'localtime_r',
+  'HAVE_SCHED_GETCPU':  'sched_getcpu',
+}
 
-foreach function : config_h_functions
-  if cc.has_function(function)
-    define = 'HAVE_' + function.underscorify().to_upper()
-    config_h.set(define, 1)
-  endif
+foreach define, function : config_h_functions
+  config_h.set(define, cc.has_function(function))
 endforeach
 
 configure_file(

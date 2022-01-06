@@ -239,7 +239,7 @@ send_pair_cb (ValentChannel *channel,
 
   if (!valent_channel_write_packet_finish (channel, result, &error))
     {
-      VALENT_DEBUG ("%s: %s", device->name, error->message);
+      VALENT_NOTE ("%s: %s", device->name, error->message);
 
       valent_device_reset_pair (device);
 
@@ -345,7 +345,7 @@ valent_device_handle_pair (ValentDevice *device,
       /* The device is accepting our request */
       if (device->outgoing_pair > 0)
         {
-          VALENT_DEBUG ("Pairing accepted by %s", device->name);
+          VALENT_NOTE ("Pairing accepted by \"%s\"", device->name);
           valent_device_set_paired (device, TRUE);
         }
 
@@ -359,7 +359,7 @@ valent_device_handle_pair (ValentDevice *device,
       /* The device is requesting pairing */
       else
         {
-          VALENT_DEBUG ("Pairing requested by %s", device->name);
+          VALENT_NOTE ("Pairing requested by \"%s\"", device->name);
           valent_device_notify_pair (device);
         }
     }
@@ -367,7 +367,7 @@ valent_device_handle_pair (ValentDevice *device,
   /* Device is requesting unpairing or rejecting our request */
   else
     {
-      VALENT_DEBUG ("Pairing rejected by %s", device->name);
+      VALENT_NOTE ("Pairing rejected by \"%s\"", device->name);
       valent_device_set_paired (device, FALSE);
     }
 
@@ -483,6 +483,10 @@ on_load_plugin (PeasEngine     *engine,
   if (g_hash_table_contains (device->plugins, info))
     return;
 
+  VALENT_NOTE ("%s: %s",
+               device->name,
+               peas_plugin_info_get_module_name (info));
+
   /* Register the plugin & data (hash tables are ref owners) */
   module = peas_plugin_info_get_module_name (info);
   path = g_strdup_printf ("/ca/andyholmes/valent/device/%s/plugin/%s/",
@@ -493,20 +497,19 @@ on_load_plugin (PeasEngine     *engine,
   plugin->info = info;
   plugin->settings = g_settings_new_with_path ("ca.andyholmes.Valent.Plugin",
                                                path);
+  g_hash_table_insert (device->plugins, info, plugin);
 
+  /* The PeasExtension is created and destroyed based on the enabled state */
   g_signal_connect (plugin->settings,
                     "changed::enabled",
                     G_CALLBACK (on_enabled_changed),
                     plugin);
 
-  g_hash_table_insert (device->plugins, info, plugin);
-  g_signal_emit (G_OBJECT (device), signals [PLUGIN_ADDED], 0, info);
-
-  VALENT_DEBUG ("%s: %s", device->name, module);
-
-  /* Init plugin as appropriate */
   if (g_settings_get_boolean (plugin->settings, "enabled"))
     valent_device_enable_plugin (device, plugin);
+
+  /* Notify now so that plugins can be configured regardless of device state */
+  g_signal_emit (G_OBJECT (device), signals [PLUGIN_ADDED], 0, info);
 }
 
 static void
@@ -523,8 +526,9 @@ on_unload_plugin (PeasEngine     *engine,
   if ((plugin = g_hash_table_lookup (device->plugins, info)) == NULL)
     return;
 
-  VALENT_DEBUG ("%s: %s", device->name,
-                    peas_plugin_info_get_module_name (info));
+  VALENT_NOTE ("%s: %s",
+               device->name,
+               peas_plugin_info_get_module_name (info));
 
   g_hash_table_remove (device->plugins, info);
   g_signal_emit (G_OBJECT (device), signals [PLUGIN_REMOVED], 0, info);
@@ -556,7 +560,7 @@ pair_action (GSimpleAction *action,
       device->outgoing_pair = g_timeout_add_seconds (PAIR_REQUEST_TIMEOUT,
                                                      valent_device_reset_pair,
                                                      device);
-      VALENT_DEBUG ("Pair request sent to %s", device->name);
+      VALENT_NOTE ("Pair request sent to \"%s\"", device->name);
     }
 
   valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
@@ -977,7 +981,7 @@ queue_packet_cb (ValentChannel *channel,
   if (!valent_channel_write_packet_finish (channel, result, &error))
     {
       if G_UNLIKELY (error && error->domain != G_IO_ERROR)
-        VALENT_DEBUG ("%s: %s", device->name, error->message);
+        VALENT_NOTE ("%s: %s", device->name, error->message);
 
       if (device->channel == channel)
         valent_device_set_channel (device, NULL);
@@ -1019,7 +1023,7 @@ valent_device_queue_packet (ValentDevice *device,
       return;
     }
 
-  VALENT_DEBUG_PKT (packet, device->name);
+  VALENT_JSON (packet, device->name);
   valent_channel_write_packet (device->channel,
                                packet,
                                NULL,
@@ -1093,7 +1097,7 @@ valent_device_send_packet (ValentDevice        *device,
   task = g_task_new (device, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_device_send_packet);
 
-  VALENT_DEBUG_PKT (packet, device->name);
+  VALENT_JSON (packet, device->name);
   valent_channel_write_packet (device->channel,
                                packet,
                                cancellable,
@@ -1239,7 +1243,7 @@ read_packet_cb (ValentChannel *channel,
   else
     {
       if G_UNLIKELY (error && error->domain != G_IO_ERROR)
-        VALENT_DEBUG ("%s: %s", device->name, error->message);
+        VALENT_NOTE ("%s: %s", device->name, error->message);
 
       if (device->channel == channel)
         valent_device_set_channel (device, NULL);
@@ -1561,7 +1565,7 @@ valent_device_handle_packet (ValentDevice *device,
   g_assert (VALENT_IS_DEVICE (device));
   g_assert (VALENT_IS_PACKET (packet));
 
-  VALENT_DEBUG_PKT (packet, device->name);
+  VALENT_JSON (packet, device->name);
 
   type = valent_packet_get_type (packet);
 

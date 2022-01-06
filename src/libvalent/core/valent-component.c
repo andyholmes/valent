@@ -183,8 +183,11 @@ on_load_plugin (PeasEngine      *engine,
   if (!peas_engine_provides_extension (engine, info, priv->plugin_type))
     return;
 
+  VALENT_NOTE ("%s: %s",
+               g_type_name (priv->plugin_type),
+               peas_plugin_info_get_module_name (info));
+
   module = peas_plugin_info_get_module_name (info);
-  VALENT_DEBUG ("%s: %s", g_type_name (priv->plugin_type), module);
 
   plugin = g_new0 (ComponentPlugin, 1);
   plugin->component = self;
@@ -217,6 +220,10 @@ on_unload_plugin (PeasEngine      *engine,
   /* We're only interested in one GType */
   if (!peas_engine_provides_extension (engine, info, priv->plugin_type))
     return;
+
+  VALENT_NOTE ("%s: %s",
+               g_type_name (priv->plugin_type),
+               peas_plugin_info_get_module_name (info));
 
   g_hash_table_remove (priv->plugins, info);
 }
