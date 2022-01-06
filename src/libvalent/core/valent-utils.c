@@ -25,7 +25,7 @@
  */
 
 static GThread *main_thread;
-static gboolean in_flatpak = -1;
+static gboolean in_flatpak;
 
 
 #if defined (G_HAS_CONSTRUCTORS)
@@ -63,16 +63,13 @@ valent_get_main_thread (void)
 /**
  * valent_in_flatpak:
  *
- * Return %TRUE or %FALSE to indicate whether Valent is running in a flatpak.
+ * Checks whether Valent is running in a Flatpak.
  *
- * Returns: %TRUE if running in a flatpak
+ * Returns: %TRUE if running in a Flatpak, or %FALSE if not
  */
 gboolean
 valent_in_flatpak (void)
 {
-  if (in_flatpak == -1)
-    in_flatpak = g_file_test ("/.flatpak-info", G_FILE_TEST_EXISTS);
-
   return in_flatpak;
 }
 
