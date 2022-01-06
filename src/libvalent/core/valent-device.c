@@ -285,9 +285,6 @@ valent_device_notify_pair (ValentDevice *device)
 
   g_assert (VALENT_IS_DEVICE (device));
 
-  if G_UNLIKELY (!device->connected)
-    return;
-
   title = g_strdup_printf (_("Pairing request from %s"), device->name);
   notification = g_notification_new (title);
 
