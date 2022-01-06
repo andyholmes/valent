@@ -220,7 +220,7 @@ collect_capabilities (const GList *infos,
   const char *data;
   GString *packets = NULL;
 
-  packets = g_string_new("");
+  packets = g_string_new ("");
 
   for (const GList *iter = infos; iter; iter = iter->next)
     {
@@ -653,7 +653,7 @@ valent_channel_service_build_identity (ValentChannelService *service)
 /**
  * valent_channel_service_identify: (virtual identify)
  * @service: a #ValentChannelService
- * @target: (type utf8) (nullable): a target string
+ * @target: (nullable): a target string
  *
  * Identify the local device either to @target if given, or possibly it's
  * respective network as a whole if %NULL.
