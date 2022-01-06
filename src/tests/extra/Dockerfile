@@ -6,10 +6,9 @@ FROM fedora:35
 # The packages below are roughly grouped into build tooling and build
 # dependencies (with debug symbols)
 RUN dnf install -y --enablerepo=fedora-debuginfo,updates-debuginfo \
-        glibc-langpack-en glibc-locale-source \
-        clang gcc gettext gi-docgen git libasan libtsan libubsan meson \
-        appstream desktop-file-utils dbus-daemon lcov python-dbusmock rsync \
-        xorg-x11-server-Xvfb \
+        glibc-langpack-en glibc-locale-source clang gcc gettext gi-docgen git \
+        graphviz libasan libtsan libubsan meson appstream desktop-file-utils \
+        dbus-daemon lcov python-dbusmock rsync xorg-x11-server-Xvfb \
         alsa-lib-devel                alsa-lib-debuginfo \
         evolution-data-server-devel   evolution-data-server-debuginfo \
         glib2-devel                   glib2-debuginfo \

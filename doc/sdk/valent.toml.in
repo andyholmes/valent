@@ -6,6 +6,7 @@ version = "@version@"
 browse_url = "https://github.com/andyholmes/valent/"
 repository_url = "https://github.com/andyholmes/valent.git"
 website_url = "https://github.com/andyholmes/valent/"
+docs_url = "https://andyholmes.ca/valent/documentation/"
 authors = "Andy Holmes"
 logo_url = "logo.svg"
 license = "GPL-3.0-or-later"
@@ -24,27 +25,27 @@ search_index = true
   [dependencies."GObject-2.0"]
   name = "GObject"
   description = "The base type system library"
-  docs_url = "https://developer.gnome.org/gobject/stable"
+  docs_url = "https://docs.gtk.org/gobject/"
 
   [dependencies."Gtk-4.0"]
   name = "GTK"
   description = "The GTK toolkit"
   docs_url = "https://docs.gtk.org/gtk4/"
 
-  [dependencies."Peas-1.0"]
-  name = "Peas"
-  description = "A GObject-based plugin engine"
-  docs_url = "https://developer.gnome.org/libpeas/stable"
-
   [dependencies."Json-1.0"]
   name = "JSON"
   description = "A library for reading and parsing JSON"
-  docs_url = "https://developer.gnome.org/json-glib/stable"
+  docs_url = "https://gnome.pages.gitlab.gnome.org/json-glib/"
+
+  [dependencies."Peas-1.0"]
+  name = "Peas"
+  description = "A GObject-based plugin engine"
+  docs_url = "https://developer-old.gnome.org/libpeas/stable/"
 
   [dependencies."EBookContacts-1.2"]
   name = "EBookContacts"
   description = "The contact library for Evolution Data Server"
-  docs_url = "https://developer.gnome.org/eds/stable/"
+  docs_url = "https://developer-old.gnome.org/eds/stable/"
 
 [theme]
 name = "basic"
