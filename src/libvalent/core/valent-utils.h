@@ -14,9 +14,6 @@
 
 G_BEGIN_DECLS
 
-void         valent_debug_init      (void);
-void         valent_debug_clear     (void);
-
 PeasEngine * valent_get_engine      (void);
 GThread    * valent_get_main_thread (void);
 gboolean     valent_in_flatpak      (void);

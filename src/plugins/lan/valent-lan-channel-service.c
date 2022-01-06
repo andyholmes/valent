@@ -280,7 +280,7 @@ on_packet (ValentLanChannelService  *self,
       return TRUE;
     }
 
-  VALENT_DEBUG_PKT (peer_identity, "Peer Identity");
+  VALENT_JSON (peer_identity, "Peer Identity");
 
 
   /* Open a TCP connection to the UDP sender and defined port. Disable any use

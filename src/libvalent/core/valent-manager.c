@@ -376,6 +376,10 @@ on_load_service (PeasEngine     *engine,
   if (!peas_engine_provides_extension (engine, info, VALENT_TYPE_CHANNEL_SERVICE))
     return;
 
+  VALENT_NOTE ("%s: %s",
+               g_type_name (VALENT_TYPE_CHANNEL_SERVICE),
+               peas_plugin_info_get_module_name (info));
+
   module = peas_plugin_info_get_module_name (info);
 
   service = g_new0 (ChannelService, 1);
@@ -404,6 +408,10 @@ on_unload_service (PeasEngine     *engine,
   /* We're only interested in one GType */
   if (!peas_engine_provides_extension (engine, info, VALENT_TYPE_CHANNEL_SERVICE))
     return;
+
+  VALENT_NOTE ("%s: %s",
+               g_type_name (VALENT_TYPE_CHANNEL_SERVICE),
+               peas_plugin_info_get_module_name (info));
 
   g_hash_table_remove (self->services, info);
 }
