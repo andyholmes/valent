@@ -142,36 +142,36 @@ add_project_link_arguments(cc.get_supported_link_arguments(project_link_args),
 #
 config_h = configuration_data()
 config_h_inc = include_directories('.')
-config_h_defines = [
+config_h_defines = {
   # Desktop
-  ['APPLICATION_ID', application_id],
-  ['APPLICATION_PATH', application_path],
+  'APPLICATION_ID':     application_id,
+  'APPLICATION_PATH':   application_path,
 
   # AC_INIT
-  ['PACKAGE', meson.project_name()],
-  ['PACKAGE_API', valent_api_version],
-  ['PACKAGE_BUGREPORT', 'https://github.com/andyholmes/' + meson.project_name() + '/issues'],
-  ['PACKAGE_NAME', meson.project_name()],
-  ['PACKAGE_STRING', '@0@ @1@'.format(meson.project_name(), valent_version)],
-  ['PACKAGE_URL', 'https://github.com/andyholmes/' + meson.project_name()],
-  ['PACKAGE_VERSION', meson.project_version()],
+  'PACKAGE':            meson.project_name(),
+  'PACKAGE_API':        valent_api_version,
+  'PACKAGE_BUGREPORT':  'https://github.com/andyholmes/' + meson.project_name() + '/issues',
+  'PACKAGE_NAME':       meson.project_name(),
+  'PACKAGE_STRING':     '@0@ @1@'.format(meson.project_name(), valent_version),
+  'PACKAGE_URL':        'https://github.com/andyholmes/' + meson.project_name(),
+  'PACKAGE_VERSION':    meson.project_version(),
 
   # Paths
-  ['PACKAGE_DATADIR', pkgdatadir],
-  ['PACKAGE_LIBDIR', pkglibdir],
-  ['PACKAGE_LIBEXECDIR', pkglibexecdir],
-  ['PACKAGE_INCLUDEDIR', pkgincludedir],
-  ['PACKAGE_PLUGINSDIR', pkgpluginsdir],
+  'PACKAGE_DATADIR':    pkgdatadir,
+  'PACKAGE_LIBDIR':     pkglibdir,
+  'PACKAGE_LIBEXECDIR': pkglibexecdir,
+  'PACKAGE_INCLUDEDIR': pkgincludedir,
+  'PACKAGE_PLUGINSDIR': pkgpluginsdir,
 
-  ['PROFILE_NAME', profile],
+  'PROFILE_NAME':       profile,
 
   # i18n
-  ['GETTEXT_PACKAGE', meson.project_name()],
-  ['LOCALEDIR', localedir],
-]
+  'GETTEXT_PACKAGE':    meson.project_name(),
+  'LOCALEDIR':          localedir,
+}
 
-foreach define : config_h_defines
-  config_h.set_quoted(define[0], define[1])
+foreach define, value : config_h_defines
+  config_h.set_quoted(define, value)
 endforeach
 
 config_h_functions = {
