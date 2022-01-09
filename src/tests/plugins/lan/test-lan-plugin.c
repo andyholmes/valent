@@ -143,7 +143,6 @@ accept_cb (GSocketListener   *listener,
                                     "identity",      identity,
                                     "peer-identity", peer_identity,
                                     "port",          SERVICE_PORT,
-                                    "uri",           "lan://127.0.0.1:2716",
                                     NULL);
 
   g_socket_listener_close (listener);
@@ -246,7 +245,6 @@ connect_to_host_cb (GSocketClient     *client,
                                     "certificate",   fixture->certificate,
                                     "host",          "127.0.0.1",
                                     "port",          SERVICE_PORT,
-                                    "uri",           "lan://127.0.0.1:2716",
                                     "identity",      identity,
                                     "peer-identity", fixture->data,
                                     NULL);
@@ -388,7 +386,7 @@ test_lan_service_channel (LanBackendFixture *fixture,
   g_autoptr (GSocketAddress) address = NULL;
   g_autofree char *identity_str = NULL;
   const char *verification_key;
-  char *host, *uri;
+  char *host;
   GTlsCertificate *certificate, *peer_certificate, *cert_cmp;
   guint16 port;
   g_autoptr (GFile) file = NULL;
@@ -432,7 +430,6 @@ test_lan_service_channel (LanBackendFixture *fixture,
                 "peer-certificate", &peer_certificate,
                 "host",             &host,
                 "port",             &port,
-                "uri",              &uri,
                 NULL);
 
   cert_cmp = valent_lan_channel_get_certificate (VALENT_LAN_CHANNEL (fixture->endpoint));
@@ -446,9 +443,7 @@ test_lan_service_channel (LanBackendFixture *fixture,
 
   g_assert_cmpstr (host, ==, "127.0.0.1");
   g_assert_cmpuint (port, ==, ENDPOINT_PORT);
-  g_assert_cmpstr (uri, ==, "lan://127.0.0.1:3716");
   g_free (host);
-  g_free (uri);
 
   /* Transfers */
   file = g_file_new_for_path (TEST_DATA_DIR"image.png");
