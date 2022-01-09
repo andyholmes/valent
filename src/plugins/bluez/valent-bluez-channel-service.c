@@ -49,7 +49,6 @@ handshake_cb (ValentMuxConnection *muxer,
   ValentBluezChannelService *self = VALENT_BLUEZ_CHANNEL_SERVICE (task->service);
   g_autoptr (ValentChannel) channel = NULL;
   g_autoptr (GError) error = NULL;
-  g_autofree char *uri = NULL;
 
   g_assert (VALENT_IS_BLUEZ_CHANNEL_SERVICE (task->service));
   g_assert (g_variant_is_object_path (task->object_path));
@@ -57,9 +56,6 @@ handshake_cb (ValentMuxConnection *muxer,
   /* On success emit ValentChannelService::channel */
   if ((channel = valent_mux_connection_handshake_finish (muxer, result, &error)))
     {
-      uri = g_strdup_printf ("bluez://%s", task->object_path);
-      valent_channel_set_uri (channel, uri);
-
       g_hash_table_replace (self->muxers,
                             g_strdup (task->object_path),
                             g_object_ref (muxer));

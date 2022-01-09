@@ -41,7 +41,6 @@ typedef struct
   GIOStream       *base_stream;
   JsonNode        *identity;
   JsonNode        *peer_identity;
-  char            *uri;
 
   /* Input Buffer */
   JsonParser      *parser;
@@ -72,7 +71,6 @@ enum {
   PROP_BASE_STREAM,
   PROP_IDENTITY,
   PROP_PEER_IDENTITY,
-  PROP_URI,
   N_PROPERTIES
 };
 
@@ -370,7 +368,6 @@ valent_channel_finalize (GObject *object)
   g_clear_object (&priv->base_stream);
   g_clear_pointer (&priv->identity, json_node_unref);
   g_clear_pointer (&priv->peer_identity, json_node_unref);
-  g_clear_pointer (&priv->uri, g_free);
 
   G_OBJECT_CLASS (valent_channel_parent_class)->finalize (object);
 }
@@ -396,10 +393,6 @@ valent_channel_get_property (GObject    *object,
 
     case PROP_PEER_IDENTITY:
       g_value_set_boxed (value, priv->peer_identity);
-      break;
-
-    case PROP_URI:
-      g_value_set_string (value, priv->uri);
       break;
 
     default:
@@ -428,10 +421,6 @@ valent_channel_set_property (GObject      *object,
 
     case PROP_PEER_IDENTITY:
       priv->peer_identity = g_value_dup_boxed (value);
-      break;
-
-    case PROP_URI:
-      priv->uri = g_value_dup_string (value);
       break;
 
     default:
@@ -499,20 +488,6 @@ valent_channel_class_init (ValentChannelClass *klass)
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_EXPLICIT_NOTIFY |
                          G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentChannel:uri:
-   *
-   * The reconnect URI of the channel.
-   */
-  properties [PROP_URI] =
-    g_param_spec_string ("uri",
-                         "URI",
-                         "The reconnect URI of the channel",
-                         NULL,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 }
@@ -585,51 +560,6 @@ valent_channel_get_peer_identity (ValentChannel *channel)
   g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
 
   return priv->peer_identity;
-}
-
-/**
- * valent_channel_get_uri:
- * @channel: a #ValentChannel
- *
- * Return a string representation of @channel that can be used to reconnect to
- * the device, by passing to valent_channel_service_identify().
- *
- * This may be %NULL if the @channel does not support reconnection.
- *
- * Returns: (transfer none) (nullable): a reconnection string
- */
-const char *
-valent_channel_get_uri (ValentChannel *channel)
-{
-  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
-
-  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
-
-  return priv->uri;
-}
-
-/**
- * valent_channel_set_uri:
- * @channel: a #ValentChannel
- * @uri: (nullable): a reconnect URI
- *
- * Set the string representation of @channel that can be used to reconnect to
- * the device, by passing to valent_channel_service_identify().
- */
-void
-valent_channel_set_uri (ValentChannel *channel,
-                        const char    *uri)
-{
-  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
-
-  g_return_if_fail (VALENT_IS_CHANNEL (channel));
-
-  if (g_strcmp0 (priv->uri, uri) == 0)
-    return;
-
-  g_clear_pointer (&priv->uri, g_free);
-  priv->uri = g_strdup (uri);
-  g_object_notify_by_pspec (G_OBJECT (channel), properties [PROP_URI]);
 }
 
 /**

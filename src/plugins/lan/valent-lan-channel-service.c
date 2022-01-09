@@ -86,7 +86,6 @@ on_connection (GThreadedSocketService *listener,
   const char *device_id;
   g_autoptr (GIOStream) tls_stream = NULL;
   g_autoptr (ValentChannel) channel = NULL;
-  g_autofree char *uri = NULL;
 
   g_assert (VALENT_IS_CHANNEL_SERVICE (service));
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
@@ -119,7 +118,6 @@ on_connection (GThreadedSocketService *listener,
 
   /* Create the new channel */
   identity = valent_channel_service_get_identity (service);
-  uri = g_strdup_printf ("lan://%s:%u", host, self->port);
   channel = g_object_new (VALENT_TYPE_LAN_CHANNEL,
                           "base-stream",   tls_stream,
                           "certificate",   self->certificate,
@@ -127,7 +125,6 @@ on_connection (GThreadedSocketService *listener,
                           "identity",      identity,
                           "peer-identity", peer_identity,
                           "port",          self->port,
-                          "uri",           uri,
                           NULL);
 
   valent_channel_service_emit_channel (service, channel);
@@ -209,7 +206,6 @@ on_packet (ValentLanChannelService  *self,
   g_autoptr (ValentChannel) channel = NULL;
   guint16 port;
   g_autofree char *host = NULL;
-  g_autofree char *uri = NULL;
   g_autofree char *line = NULL;
   JsonNode *identity;
   g_autoptr (JsonNode) peer_identity = NULL;
@@ -330,13 +326,11 @@ on_packet (ValentLanChannelService  *self,
     }
 
   /* Create new channel */
-  uri = g_strdup_printf ("lan://%s:%u", host, port);
   channel = g_object_new (VALENT_TYPE_LAN_CHANNEL,
                           "base-stream",   tls_stream,
                           "certificate",   self->certificate,
                           "host",          host,
                           "port",          port,
-                          "uri",           uri,
                           "identity",      identity,
                           "peer-identity", peer_identity,
                           NULL);
