@@ -26,195 +26,6 @@ G_DEFINE_QUARK (valent-packet-error, valent_packet_error)
 
 
 /**
- * valent_packet_from_stream:
- * @stream: a #GInputStream
- * @cancellable: (nullable): a #GCancellable
- * @error: (nullable): a #GError
- *
- * A convenience function for reading a packet from a connection.
- *
- * If the read fails or the packet does not conform to the minimum structure of
- * a KDE Connect packet, %NULL will be returned with @error set.
- *
- * Returns: (transfer full): A #JsonNode identity, or %NULL with @error set.
- */
-JsonNode *
-valent_packet_from_stream (GInputStream  *stream,
-                           GCancellable  *cancellable,
-                           GError       **error)
-{
-  g_autoptr (JsonParser) parser = NULL;
-  g_autoptr (JsonNode) packet = NULL;
-  g_autofree char *line = NULL;
-  gsize pos;
-  gsize read;
-  gsize size;
-
-  g_return_val_if_fail (G_IS_INPUT_STREAM (stream), NULL);
-  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
-  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
-
-  pos = 0;
-  size = 4096;
-  line = g_malloc0 (size);
-
-  while (TRUE)
-    {
-      if G_UNLIKELY (pos == size)
-        {
-          size = size * 2;
-          line = g_realloc (line, size + 1);
-        }
-
-      read = g_input_stream_read (stream,
-                                  line + pos,
-                                  1,
-                                  cancellable,
-                                  error);
-
-      if G_LIKELY (read > 0)
-        pos += read;
-
-      else if (read == 0)
-        break;
-
-      else
-        return NULL;
-
-      if G_UNLIKELY (line[pos - 1] == '\n')
-        break;
-    }
-
-  parser = json_parser_new_immutable ();
-
-  if (!json_parser_load_from_data (parser, line, -1, error))
-    return FALSE;
-
-  packet = json_parser_steal_root (parser);
-
-  if (!valent_packet_validate (packet, error))
-    return NULL;
-
-  return g_steal_pointer (&packet);
-}
-
-/**
- * valent_packet_to_stream:
- * @stream: a #GOutputStream
- * @packet: a #JsonNode
- * @cancellable: (nullable): a #GCancellable
- * @error: (nullable): a #GError
- *
- * A convenience function for writing a packet to a connection.
- *
- * Returns: %TRUE if successful, or %FALSE with @error set
- */
-gboolean
-valent_packet_to_stream (GOutputStream  *stream,
-                         JsonNode       *packet,
-                         GCancellable   *cancellable,
-                         GError        **error)
-{
-  g_autoptr (JsonGenerator) generator = NULL;
-  JsonObject *root;
-  g_autofree char *packet_str = NULL;
-  gsize packet_len;
-
-  g_return_val_if_fail (G_IS_OUTPUT_STREAM (stream), FALSE);
-  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
-  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
-
-  if (!valent_packet_validate (packet, error))
-    return FALSE;
-
-  /* Timestamp the packet (UNIX Epoch ms) */
-  root = json_node_get_object (packet);
-  json_object_set_int_member (root, "id", valent_timestamp_ms ());
-
-  /* Serialize the packet to a string */
-  generator = json_generator_new ();
-  json_generator_set_root (generator, packet);
-  packet_str = json_generator_to_data (generator, &packet_len);
-
-  /* Replace the trailing NULL with an LF */
-  packet_str[packet_len] = '\n';
-  packet_len += 1;
-
-  return g_output_stream_write_all (stream,
-                                    packet_str,
-                                    packet_len,
-                                    NULL,
-                                    cancellable,
-                                    error);
-}
-
-/**
- * valent_packet_serialize:
- * @packet: a complete KDE Connect packet
- *
- * Convenience function that updates the timestamp of a packet before returning
- * a serialized string with newline ending, ready to be written to a stream.
- *
- * Returns: (transfer full) (nullable): the serialized packet.
- */
-char *
-valent_packet_serialize (JsonNode *packet)
-{
-  g_autoptr (JsonGenerator) generator = NULL;
-  JsonObject *root;
-  g_autofree char *packet_str = NULL;
-
-  g_return_val_if_fail (VALENT_IS_PACKET (packet), NULL);
-
-  /* Timestamp the packet (UNIX Epoch ms) */
-  root = json_node_get_object (packet);
-  json_object_set_int_member (root, "id", valent_timestamp_ms ());
-
-  /* Stringify the packet and return a newline-terminated string */
-  generator = json_generator_new ();
-  json_generator_set_root (generator, packet);
-  packet_str = json_generator_to_data (generator, NULL);
-
-  return g_strconcat (packet_str, "\n", NULL);
-}
-
-/**
- * valent_packet_deserialize:
- * @json: a complete KDE Connect packet
- * @error: (nullable): a #GError
- *
- * Convenience function that deserializes a KDE Connect packet from a string
- * with basic validation. If @str is empty, this function will return %NULL.
- *
- * If parsing or validation fails, @error will be set and %NULL returned.
- *
- * Returns: (transfer full) (nullable): a #JsonNode
- */
-JsonNode *
-valent_packet_deserialize (const char  *json,
-                           GError     **error)
-{
-  g_autoptr (JsonParser) parser = NULL;
-  g_autoptr (JsonNode) packet = NULL;
-
-  g_return_val_if_fail (json != NULL, NULL);
-  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
-
-  parser = json_parser_new_immutable ();
-
-  if (!json_parser_load_from_data (parser, json, -1, error))
-    return NULL;
-
-  if ((packet = json_parser_steal_root (parser)) == NULL)
-    return NULL;
-
-  if (!valent_packet_validate (packet, error))
-    return NULL;
-
-  return g_steal_pointer (&packet);
-}
-
-/**
  * valent_packet_new:
  * @type: A KDE Connect packet type
  *
@@ -441,28 +252,30 @@ valent_packet_get_payload_full (JsonNode  *packet,
 
   root = json_node_get_object (packet);
 
-  /* Payload Size */
+  /* The documentation implies that this field could be missing or have a value
+   * of `-1` to indicate the length is indefinite (eg. for streaming). */
   if ((node = json_object_get_member (root, "payloadSize")) != NULL &&
       json_node_get_value_type (node) != G_TYPE_INT64)
     {
       g_set_error_literal (error,
                            VALENT_PACKET_ERROR,
                            VALENT_PACKET_ERROR_INVALID_FIELD,
-                           "Invalid \"payloadSize\" field");
+                           "expected \"payloadSize\" field to hold an integer");
       return NULL;
     }
 
   if (size != NULL)
     *size = node ? json_node_get_int (node) : -1;
 
-  /* Payload Transfer Info */
   if ((node = json_object_get_member (root, "payloadTransferInfo")) == NULL ||
       json_node_get_node_type (node) != JSON_NODE_OBJECT)
     {
       g_set_error_literal (error,
                            VALENT_PACKET_ERROR,
-                           VALENT_PACKET_ERROR_INVALID_FIELD,
-                           "Missing \"payloadTransferInfo\" field");
+                           node == NULL
+                             ? VALENT_PACKET_ERROR_MISSING_FIELD
+                             : VALENT_PACKET_ERROR_INVALID_FIELD,
+                           "expected \"payloadTransferInfo\" field holding an object");
       return NULL;
     }
 
@@ -582,6 +395,300 @@ valent_packet_set_payload_size (JsonNode *packet,
   root = json_node_get_object (packet);
 
   json_object_set_int_member (root, "payloadSize", (gint64)size);
+}
+
+/**
+ * valent_packet_validate:
+ * @packet: (nullable): a #JsonNode
+ * @error: (nullable): a #GError
+ *
+ * Check if @packet is a well-formed KDE Connect packet.
+ *
+ * Returns: %TRUE if @packet is valid, or %FALSE with @error set
+ */
+gboolean
+valent_packet_validate (JsonNode  *packet,
+                        GError   **error)
+{
+  JsonObject *root;
+  JsonNode *node;
+
+  if G_UNLIKELY (packet == NULL)
+    {
+      g_set_error_literal (error,
+                           VALENT_PACKET_ERROR,
+                           VALENT_PACKET_ERROR_INVALID_DATA,
+                           "packet is NULL");
+      return FALSE;
+    }
+
+  if G_UNLIKELY (!JSON_NODE_HOLDS_OBJECT (packet))
+    {
+      g_set_error_literal (error,
+                           VALENT_PACKET_ERROR,
+                           VALENT_PACKET_ERROR_MALFORMED,
+                           "expected the root element to be an object");
+      return FALSE;
+    }
+
+  root = json_node_get_object (packet);
+
+  /* TODO: kdeconnect-kde stringifies this in identity packets
+   *       https://invent.kde.org/network/kdeconnect-kde/-/merge_requests/380 */
+  if G_UNLIKELY ((node = json_object_get_member (root, "id")) == NULL ||
+                 (json_node_get_value_type (node) != G_TYPE_INT64 &&
+                  json_node_get_value_type (node) != G_TYPE_STRING))
+    {
+      g_set_error_literal (error,
+                           VALENT_PACKET_ERROR,
+                           node == NULL
+                             ? VALENT_PACKET_ERROR_MISSING_FIELD
+                             : VALENT_PACKET_ERROR_INVALID_FIELD,
+                           "expected \"id\" field holding an integer or string");
+      return FALSE;
+    }
+
+  if G_UNLIKELY ((node = json_object_get_member (root, "type")) == NULL ||
+                 json_node_get_value_type (node) != G_TYPE_STRING)
+    {
+      g_set_error_literal (error,
+                           VALENT_PACKET_ERROR,
+                           node == NULL
+                             ? VALENT_PACKET_ERROR_MISSING_FIELD
+                             : VALENT_PACKET_ERROR_INVALID_FIELD,
+                           "expected \"type\" field holding a string");
+      return FALSE;
+    }
+
+  if G_UNLIKELY ((node = json_object_get_member (root, "body")) == NULL ||
+                 json_node_get_node_type (node) != JSON_NODE_OBJECT)
+    {
+      g_set_error_literal (error,
+                           VALENT_PACKET_ERROR,
+                           node == NULL
+                             ? VALENT_PACKET_ERROR_MISSING_FIELD
+                             : VALENT_PACKET_ERROR_INVALID_FIELD,
+                           "expected \"body\" field holding an object");
+      return FALSE;
+    }
+
+  /* These two are optional, but have defined value types */
+  if G_UNLIKELY ((node = json_object_get_member (root, "payloadSize")) != NULL &&
+                 json_node_get_value_type (node) != G_TYPE_INT64)
+    {
+      g_set_error_literal (error,
+                           VALENT_PACKET_ERROR,
+                           VALENT_PACKET_ERROR_INVALID_FIELD,
+                           "expected \"payloadSize\" field to hold an integer");
+      return FALSE;
+    }
+
+  if G_UNLIKELY ((node = json_object_get_member (root, "payloadTransferInfo")) != NULL &&
+                 json_node_get_node_type (node) != JSON_NODE_OBJECT)
+    {
+      g_set_error_literal (error,
+                           VALENT_PACKET_ERROR,
+                           VALENT_PACKET_ERROR_INVALID_FIELD,
+                           "expected \"payloadTransferInfo\" field to hold an object");
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+/**
+ * valent_packet_from_stream:
+ * @stream: a #GInputStream
+ * @cancellable: (nullable): a #GCancellable
+ * @error: (nullable): a #GError
+ *
+ * A convenience function for reading a packet from a connection.
+ *
+ * If the read fails or the packet does not conform to the minimum structure of
+ * a KDE Connect packet, %NULL will be returned with @error set.
+ *
+ * Returns: (transfer full): A #JsonNode identity, or %NULL with @error set.
+ */
+JsonNode *
+valent_packet_from_stream (GInputStream  *stream,
+                           GCancellable  *cancellable,
+                           GError       **error)
+{
+  g_autoptr (JsonParser) parser = NULL;
+  g_autoptr (JsonNode) packet = NULL;
+  g_autofree char *line = NULL;
+  gsize count = 0;
+  gssize read = 0;
+  gsize size = 4096;
+
+  g_return_val_if_fail (G_IS_INPUT_STREAM (stream), NULL);
+  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+  line = g_malloc0 (size);
+
+  while (TRUE)
+    {
+      if G_UNLIKELY (count == size)
+        {
+          size = size * 2;
+          line = g_realloc (line, size);
+        }
+
+      read = g_input_stream_read (stream,
+                                  line + count,
+                                  1,
+                                  cancellable,
+                                  error);
+
+      if (read > 0)
+        count += read;
+      else if (read == 0)
+        break;
+      else
+        return NULL;
+
+      if G_UNLIKELY (line[count - 1] == '\n')
+        break;
+    }
+
+  parser = json_parser_new_immutable ();
+
+  if (!json_parser_load_from_data (parser, line, count, error))
+    return NULL;
+
+  packet = json_parser_steal_root (parser);
+
+  if (!valent_packet_validate (packet, error))
+    return NULL;
+
+  return g_steal_pointer (&packet);
+}
+
+/**
+ * valent_packet_to_stream:
+ * @stream: a #GOutputStream
+ * @packet: a #JsonNode
+ * @cancellable: (nullable): a #GCancellable
+ * @error: (nullable): a #GError
+ *
+ * A convenience function for writing a packet to a connection.
+ *
+ * Returns: %TRUE if successful, or %FALSE with @error set
+ */
+gboolean
+valent_packet_to_stream (GOutputStream  *stream,
+                         JsonNode       *packet,
+                         GCancellable   *cancellable,
+                         GError        **error)
+{
+  g_autoptr (JsonGenerator) generator = NULL;
+  JsonObject *root;
+  g_autofree char *packet_str = NULL;
+  gsize packet_len;
+  gsize n_written;
+
+  g_return_val_if_fail (G_IS_OUTPUT_STREAM (stream), FALSE);
+  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
+  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+  if (!valent_packet_validate (packet, error))
+    return FALSE;
+
+  /* Timestamp the packet (UNIX Epoch ms) */
+  root = json_node_get_object (packet);
+  json_object_set_int_member (root, "id", valent_timestamp_ms ());
+
+  /* Serialize the packet and replace the trailing NULL with an LF */
+  generator = json_generator_new ();
+  json_generator_set_root (generator, packet);
+  packet_str = json_generator_to_data (generator, &packet_len);
+  packet_str[packet_len++] = '\n';
+
+  if (!g_output_stream_write_all (stream,
+                                  packet_str,
+                                  packet_len,
+                                  &n_written,
+                                  cancellable,
+                                  error))
+    return FALSE;
+
+  if (n_written != packet_len)
+    {
+      g_set_error (error,
+                   G_IO_ERROR,
+                   G_IO_ERROR_CONNECTION_CLOSED,
+                   "Channel is closed");
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+/**
+ * valent_packet_serialize:
+ * @packet: a complete KDE Connect packet
+ *
+ * Convenience function that updates the timestamp of a packet before returning
+ * a serialized string with newline ending, ready to be written to a stream.
+ *
+ * Returns: (transfer full) (nullable): the serialized packet.
+ */
+char *
+valent_packet_serialize (JsonNode *packet)
+{
+  g_autoptr (JsonGenerator) generator = NULL;
+  JsonObject *root;
+  g_autofree char *packet_str = NULL;
+
+  g_return_val_if_fail (VALENT_IS_PACKET (packet), NULL);
+
+  /* Timestamp the packet (UNIX Epoch ms) */
+  root = json_node_get_object (packet);
+  json_object_set_int_member (root, "id", valent_timestamp_ms ());
+
+  /* Stringify the packet and return a newline-terminated string */
+  generator = json_generator_new ();
+  json_generator_set_root (generator, packet);
+  packet_str = json_generator_to_data (generator, NULL);
+
+  return g_strconcat (packet_str, "\n", NULL);
+}
+
+/**
+ * valent_packet_deserialize:
+ * @json: a complete KDE Connect packet
+ * @error: (nullable): a #GError
+ *
+ * Convenience function that deserializes a KDE Connect packet from a string
+ * with basic validation. If @str is empty, this function will return %NULL.
+ *
+ * If parsing or validation fails, @error will be set and %NULL returned.
+ *
+ * Returns: (transfer full) (nullable): a #JsonNode
+ */
+JsonNode *
+valent_packet_deserialize (const char  *json,
+                           GError     **error)
+{
+  g_autoptr (JsonParser) parser = NULL;
+  g_autoptr (JsonNode) packet = NULL;
+
+  g_return_val_if_fail (json != NULL, NULL);
+  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+  parser = json_parser_new_immutable ();
+
+  if (!json_parser_load_from_data (parser, json, -1, error))
+    return NULL;
+
+  if ((packet = json_parser_steal_root (parser)) == NULL)
+    return NULL;
+
+  if (!valent_packet_validate (packet, error))
+    return NULL;
+
+  return g_steal_pointer (&packet);
 }
 
 /**
