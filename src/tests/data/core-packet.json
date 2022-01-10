@@ -1,0 +1,51 @@
+{
+  "invalid-data": null,
+  "malformed": [
+  ],
+  "missing-id": {
+    "type": "kdeconnect.test",
+    "body": {
+    }
+  },
+  "invalid-id": {
+    "id": [],
+    "type": "kdeconnect.test",
+    "body": {
+    }
+  },
+  "missing-type": {
+    "id": 0,
+    "body": {
+    }
+  },
+  "invalid-type": {
+    "id": 0,
+    "type": [],
+    "body": {
+    }
+  },
+  "missing-body": {
+    "id": 0,
+    "type": "kdeconnect.test"
+  },
+  "invalid-body": {
+    "id": 0,
+    "type": "kdeconnect.test",
+    "body": [
+    ]
+  },
+  "invalid-payloadsize": {
+    "id": 0,
+    "type": "kdeconnect.test",
+    "body": {
+    },
+    "payloadSize": ""
+  },
+  "invalid-payloadtransferinfo": {
+    "id": 0,
+    "type": "kdeconnect.test",
+    "body": {
+    },
+    "payloadTransferInfo": []
+  }
+}

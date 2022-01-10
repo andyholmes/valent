@@ -12,9 +12,6 @@
 
 G_BEGIN_DECLS
 
-#define VALENT_IS_PACKET(packet) (valent_packet_is_valid (packet))
-#define VALENT_PACKET_ERROR      (valent_packet_error_quark ())
-
 
 /**
  * ValentPacketError:
@@ -30,54 +27,14 @@ G_BEGIN_DECLS
  */
 typedef enum {
   VALENT_PACKET_ERROR_UNKNOWN,
+  VALENT_PACKET_ERROR_INVALID_DATA,
   VALENT_PACKET_ERROR_MALFORMED,
   VALENT_PACKET_ERROR_INVALID_FIELD,
-  VALENT_PACKET_ERROR_UNKNOWN_MEMBER,
-  VALENT_PACKET_ERROR_INVALID_DATA,
+  VALENT_PACKET_ERROR_MISSING_FIELD,
 } ValentPacketError;
 
-
-GQuark        valent_packet_error_quark      (void);
-
-/* Builder Helpers */
-JsonNode    * valent_packet_new              (const char     *type);
-JsonBuilder * valent_packet_start            (const char     *type);
-JsonNode    * valent_packet_finish           (JsonBuilder    *builder);
-
-/* I/O Helpers */
-JsonNode    * valent_packet_from_stream      (GInputStream   *stream,
-                                              GCancellable   *cancellable,
-                                              GError        **error);
-gboolean      valent_packet_to_stream        (GOutputStream  *stream,
-                                              JsonNode       *packet,
-                                              GCancellable   *cancellable,
-                                              GError        **error);
-char        * valent_packet_serialize        (JsonNode       *packet);
-JsonNode    * valent_packet_deserialize      (const char     *json,
-                                              GError        **error);
-
-/* Convenience getters */
-gint64        valent_packet_get_id           (JsonNode       *packet);
-const char  * valent_packet_get_type         (JsonNode       *packet);
-JsonObject  * valent_packet_get_body         (JsonNode       *packet);
-
-/* Payloads */
-gboolean      valent_packet_has_payload      (JsonNode       *packet);
-JsonObject  * valent_packet_get_payload_full (JsonNode       *packet,
-                                              gssize         *size,
-                                              GError        **error);
-void          valent_packet_set_payload_full (JsonNode       *packet,
-                                              JsonObject     *info,
-                                              gssize          size);
-JsonObject  * valent_packet_get_payload_info (JsonNode       *packet);
-void          valent_packet_set_payload_info (JsonNode       *packet,
-                                              JsonObject     *info);
-gssize        valent_packet_get_payload_size (JsonNode       *packet);
-void          valent_packet_set_payload_size (JsonNode       *packet,
-                                              gssize          size);
-
-/* Identity Packets */
-const char  * valent_identity_get_device_id  (JsonNode       *identity);
+GQuark   valent_packet_error_quark (void);
+#define VALENT_PACKET_ERROR (valent_packet_error_quark ())
 
 
 /**
@@ -100,7 +57,8 @@ valent_packet_is_valid (JsonNode *packet)
 
   root = json_node_get_object (packet);
 
-  /* FIXME: kdeconnect-kde stringifies this in identity packets */
+  /* TODO: kdeconnect-kde stringifies this in identity packets
+   *       https://invent.kde.org/network/kdeconnect-kde/-/merge_requests/380 */
   if G_UNLIKELY ((node = json_object_get_member (root, "id")) == NULL ||
                  (json_node_get_value_type (node) != G_TYPE_INT64 &&
                   json_node_get_value_type (node) != G_TYPE_STRING))
@@ -114,79 +72,57 @@ valent_packet_is_valid (JsonNode *packet)
                  json_node_get_node_type (node) != JSON_NODE_OBJECT)
     return FALSE;
 
-  return TRUE;
-}
+  /* These two are optional, but have defined value types */
+  if G_UNLIKELY ((node = json_object_get_member (root, "payloadSize")) != NULL &&
+                 json_node_get_value_type (node) != G_TYPE_INT64)
+    return FALSE;
 
-/**
- * valent_packet_validate:
- * @packet: (nullable): a #JsonNode
- * @error: (nullable): a #GError
- *
- * Check if @packet is a well-formed KDE Connect packet.
- *
- * Returns: %TRUE if @packet is valid, or %FALSE with @error set
- */
-static inline gboolean
-valent_packet_validate (JsonNode  *packet,
-                        GError   **error)
-{
-  JsonObject *root;
-  JsonNode *node;
-
-  if G_UNLIKELY (packet == NULL)
-    {
-      g_set_error_literal (error,
-                           VALENT_PACKET_ERROR,
-                           VALENT_PACKET_ERROR_INVALID_DATA,
-                           "Packet is null");
-      return FALSE;
-    }
-
-  if G_UNLIKELY (!JSON_NODE_HOLDS_OBJECT (packet))
-    {
-      g_set_error_literal (error,
-                           VALENT_PACKET_ERROR,
-                           VALENT_PACKET_ERROR_MALFORMED,
-                           "Root element is not an object");
-      return FALSE;
-    }
-
-  root = json_node_get_object (packet);
-
-  /* FIXME: kdeconnect-kde stringifies this in identity packets */
-  if G_UNLIKELY ((node = json_object_get_member (root, "id")) == NULL ||
-                 (json_node_get_value_type (node) != G_TYPE_INT64 &&
-                  json_node_get_value_type (node) != G_TYPE_STRING))
-    {
-      g_set_error_literal (error,
-                           VALENT_PACKET_ERROR,
-                           VALENT_PACKET_ERROR_MALFORMED,
-                           "Expected `id` field");
-      return FALSE;
-    }
-
-  if G_UNLIKELY ((node = json_object_get_member (root, "type")) == NULL ||
-                 json_node_get_value_type (node) != G_TYPE_STRING)
-    {
-      g_set_error_literal (error,
-                           VALENT_PACKET_ERROR,
-                           VALENT_PACKET_ERROR_MALFORMED,
-                           "Expected `type` field");
-      return FALSE;
-    }
-
-  if G_UNLIKELY ((node = json_object_get_member (root, "body")) == NULL ||
+  if G_UNLIKELY ((node = json_object_get_member (root, "payloadTransferInfo")) != NULL &&
                  json_node_get_node_type (node) != JSON_NODE_OBJECT)
-    {
-      g_set_error_literal (error,
-                           VALENT_PACKET_ERROR,
-                           VALENT_PACKET_ERROR_MALFORMED,
-                           "Expected `body` object");
-      return FALSE;
-    }
+    return FALSE;
 
   return TRUE;
 }
+#define VALENT_IS_PACKET(packet) (valent_packet_is_valid (packet))
+
+
+/* Packet Helpers */
+JsonNode    * valent_packet_new              (const char     *type);
+JsonBuilder * valent_packet_start            (const char     *type);
+JsonNode    * valent_packet_finish           (JsonBuilder    *builder);
+gint64        valent_packet_get_id           (JsonNode       *packet);
+const char  * valent_packet_get_type         (JsonNode       *packet);
+JsonObject  * valent_packet_get_body         (JsonNode       *packet);
+gboolean      valent_packet_has_payload      (JsonNode       *packet);
+JsonObject  * valent_packet_get_payload_full (JsonNode       *packet,
+                                              gssize         *size,
+                                              GError        **error);
+void          valent_packet_set_payload_full (JsonNode       *packet,
+                                              JsonObject     *info,
+                                              gssize          size);
+JsonObject  * valent_packet_get_payload_info (JsonNode       *packet);
+void          valent_packet_set_payload_info (JsonNode       *packet,
+                                              JsonObject     *info);
+gssize        valent_packet_get_payload_size (JsonNode       *packet);
+void          valent_packet_set_payload_size (JsonNode       *packet,
+                                              gssize          size);
+
+/* I/O Helpers */
+gboolean      valent_packet_validate         (JsonNode       *packet,
+                                              GError        **error);
+JsonNode    * valent_packet_from_stream      (GInputStream   *stream,
+                                              GCancellable   *cancellable,
+                                              GError        **error);
+gboolean      valent_packet_to_stream        (GOutputStream  *stream,
+                                              JsonNode       *packet,
+                                              GCancellable   *cancellable,
+                                              GError        **error);
+char        * valent_packet_serialize        (JsonNode       *packet);
+JsonNode    * valent_packet_deserialize      (const char     *json,
+                                              GError        **error);
+
+/* Identity Packets */
+const char  * valent_identity_get_device_id  (JsonNode       *identity);
 
 /**
  * valent_packet_check_boolean: (skip)
