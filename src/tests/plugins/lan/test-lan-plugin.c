@@ -10,7 +10,11 @@
 #include "valent-lan-channel.h"
 #include "valent-lan-channel-service.h"
 
+#define ENDPOINT_ADDR "127.0.0.1:3716"
+#define ENDPOINT_HOST "127.0.0.1"
 #define ENDPOINT_PORT 3716
+#define SERVICE_ADDR  "127.0.0.1:2716"
+#define SERVICE_HOST  "127.0.0.1"
 #define SERVICE_PORT  2716
 
 typedef struct
@@ -139,7 +143,7 @@ accept_cb (GSocketListener   *listener,
   fixture->endpoint = g_object_new (VALENT_TYPE_LAN_CHANNEL,
                                     "base-stream",   tls_stream,
                                     "certificate",   fixture->certificate,
-                                    "host",          "127.0.0.1",
+                                    "host",          SERVICE_HOST,
                                     "identity",      identity,
                                     "peer-identity", peer_identity,
                                     "port",          SERVICE_PORT,
@@ -243,7 +247,7 @@ connect_to_host_cb (GSocketClient     *client,
   fixture->endpoint = g_object_new (VALENT_TYPE_LAN_CHANNEL,
                                     "base-stream",   tls_stream,
                                     "certificate",   fixture->certificate,
-                                    "host",          "127.0.0.1",
+                                    "host",          SERVICE_HOST,
                                     "port",          SERVICE_PORT,
                                     "identity",      identity,
                                     "peer-identity", fixture->data,
@@ -271,7 +275,7 @@ test_lan_service_incoming_broadcast (LanBackendFixture *fixture,
   accept_connection (fixture);
 
   /* Identify the mock endpoint to the service */
-  address = g_inet_socket_address_new_from_string ("127.0.0.1", SERVICE_PORT);
+  address = g_inet_socket_address_new_from_string (SERVICE_HOST, SERVICE_PORT);
   identity = json_object_get_member (json_node_get_object (fixture->packets),
                                      "identity");
   identity_json = valent_packet_serialize (identity);
@@ -297,8 +301,6 @@ static void
 test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
                                      gconstpointer      user_data)
 {
-  g_autofree char *endpoint_address = NULL;
-  g_autofree char *service_address = NULL;
   g_autoptr (GInputStream) unix_stream = NULL;
   g_autoptr (GDataInputStream) data_stream = NULL;
   g_autoptr (GSocketClient) client = NULL;
@@ -311,8 +313,7 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
   g_main_loop_run (fixture->loop);
 
   /* Identify the service to the mock endpoint */
-  endpoint_address = g_strdup_printf ("127.0.0.1:%u", ENDPOINT_PORT);
-  valent_channel_service_identify (fixture->service, endpoint_address);
+  valent_channel_service_identify (fixture->service, ENDPOINT_ADDR);
 
   unix_stream = g_unix_input_stream_new (g_socket_get_fd (fixture->socket), FALSE);
   data_stream = g_data_input_stream_new (unix_stream);
@@ -328,9 +329,8 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
                          "enable-proxy", FALSE,
                          NULL);
 
-  service_address = g_strdup_printf ("127.0.0.1:%u", SERVICE_PORT);
   g_socket_client_connect_to_host_async (client,
-                                         service_address,
+                                         SERVICE_ADDR,
                                          SERVICE_PORT,
                                          NULL,
                                          (GAsyncReadyCallback)connect_to_host_cb,
@@ -402,7 +402,7 @@ test_lan_service_channel (LanBackendFixture *fixture,
   accept_connection (fixture);
 
   /* Identify the mock endpoint to the service */
-  address = g_inet_socket_address_new_from_string ("127.0.0.1", SERVICE_PORT);
+  address = g_inet_socket_address_new_from_string (SERVICE_HOST, SERVICE_PORT);
   packet = json_object_get_member (json_node_get_object (fixture->packets),
                                    "identity");
   identity_str = valent_packet_serialize (packet);
@@ -441,7 +441,7 @@ test_lan_service_channel (LanBackendFixture *fixture,
   g_assert_true (g_tls_certificate_is_same (cert_cmp, certificate));
   g_object_unref (certificate);
 
-  g_assert_cmpstr (host, ==, "127.0.0.1");
+  g_assert_cmpstr (host, ==, ENDPOINT_HOST);
   g_assert_cmpuint (port, ==, ENDPOINT_PORT);
   g_free (host);
 
