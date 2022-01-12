@@ -8,21 +8,6 @@
 #
 mutex:valent_*_get_type_once
 
-# src/libvalent/core/valent-channel.c
-race:valent_channel_download
-race:channel_buffer_find_lf
-race:valent_channel_finalize
-race:valent_channel_get_base_stream
-race:valent_channel_get_property
-race:valent_channel_read_packet_internal
-race:valent_channel_write_packet_internal
-
-# src/libvalent/core/valent-channel-service.c
-race:valent_channel_service_emit_channel_main
-race:valent_channel_service_finalize
-race:valent_channel_service_get_identity
-race:valent_channel_service_get_property
-
 # src/libvalent/core/valent-data.c
 race:valent_data_finalize
 
@@ -42,44 +27,9 @@ race:emit_change_main
 race:prepare_backend_task
 race:valent_contact_store_finalize
 
-# src/plugins/valent-lan-channel.c
-race:valent_lan_channel_finalize
-race:valent_lan_channel_get_certificate
-race:valent_lan_channel_get_property
-# TODO: ValentLanChanneService::port is construct-only
-race:valent_lan_channel_get_port
-
-# src/plugins/lan/valent-lan-channel-service.c
-race:on_incoming_connection
-race:on_incoming_broadcast
-race:valent_lan_channel_service_finalize
-race:valent_lan_channel_service_stop
-race:valent_lan_channel_service_tcp_setup
-race:valent_lan_channel_service_udp_setup
-
-# src/plugins/notification/valent-notification-plugin.c
-race:get_icon_gfile
-
-# src/tests/fixtures/valent-mock-channel.c
-race:valent_mock_channel_download
-race:valent_mock_channel_finalize
-
 # src/tests/fixtures/valent-test-utils.c
-race:accept_upload_cb
 race:download_task
-race:transfer_op_free
 race:upload_task
-
-
-#
-# False Positives
-#
-# The items below are confirmed to be false positives or benign
-#
-
-# transferring item ownership to queue
-# src/libvalent/core/valent-task-queue-loop.c:
-race:valent_task_queue_loop
 
 
 #

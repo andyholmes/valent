@@ -82,8 +82,8 @@ on_connection_opened (ValentBluezProfile *profile,
 {
   ValentBluezChannelService *self = VALENT_BLUEZ_CHANNEL_SERVICE (user_data);
   g_autoptr (ValentMuxConnection) muxer = NULL;
+  g_autoptr (JsonNode) identity = NULL;
   HandshakeData *task;
-  JsonNode *identity;
 
   g_assert (VALENT_IS_BLUEZ_CHANNEL_SERVICE (self));
   g_assert (G_IS_SOCKET_CONNECTION (connection));
@@ -100,7 +100,7 @@ on_connection_opened (ValentBluezProfile *profile,
   task->service = g_object_ref (self);
   task->object_path = g_strdup (object_path);
 
-  identity = valent_channel_service_get_identity (VALENT_CHANNEL_SERVICE (self));
+  identity = valent_channel_service_ref_identity (VALENT_CHANNEL_SERVICE (self));
   valent_mux_connection_handshake_async (muxer,
                                          identity,
                                          NULL,

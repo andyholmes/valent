@@ -483,6 +483,10 @@ valent_test_ui_init (int    *argcp,
 {
   g_test_init (argcp, argvp, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 
+  /* NOTE: If this isn't done early, valent_channel_get_type_once() may get
+   *       called off-thread and cause ThreadSanitizer to throw a fit */
+  g_type_ensure (VALENT_TYPE_CHANNEL);
+
   gtk_disable_setlocale ();
   setlocale (LC_ALL, "en_US.UTF-8");
 

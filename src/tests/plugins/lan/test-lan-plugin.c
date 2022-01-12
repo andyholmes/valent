@@ -432,14 +432,16 @@ test_lan_service_channel (LanBackendFixture *fixture,
                 "port",             &port,
                 NULL);
 
-  cert_cmp = valent_lan_channel_get_certificate (VALENT_LAN_CHANNEL (fixture->endpoint));
-  peer_certificate = valent_lan_channel_get_peer_certificate (VALENT_LAN_CHANNEL (fixture->channel));
+  cert_cmp = valent_lan_channel_ref_certificate (VALENT_LAN_CHANNEL (fixture->endpoint));
+  peer_certificate = valent_lan_channel_ref_peer_certificate (VALENT_LAN_CHANNEL (fixture->channel));
   g_assert_true (g_tls_certificate_is_same (cert_cmp, peer_certificate));
-  //g_object_unref (peer_certificate);
+  g_clear_object (&cert_cmp);
+  g_clear_object (&peer_certificate);
 
-  cert_cmp = valent_lan_channel_get_peer_certificate (VALENT_LAN_CHANNEL (fixture->endpoint));
+  cert_cmp = valent_lan_channel_ref_peer_certificate (VALENT_LAN_CHANNEL (fixture->endpoint));
   g_assert_true (g_tls_certificate_is_same (cert_cmp, certificate));
-  g_object_unref (certificate);
+  g_clear_object (&cert_cmp);
+  g_clear_object (&certificate);
 
   g_assert_cmpstr (host, ==, ENDPOINT_HOST);
   g_assert_cmpuint (port, ==, ENDPOINT_PORT);
@@ -466,6 +468,9 @@ main (int   argc,
       char *argv[])
 {
   g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
+
+  g_type_ensure (VALENT_TYPE_LAN_CHANNEL);
+  g_type_ensure (VALENT_TYPE_LAN_CHANNEL_SERVICE);
 
   g_test_add ("/backends/lan-backend/incoming-broadcast",
               LanBackendFixture, NULL,

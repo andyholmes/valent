@@ -13,7 +13,6 @@ core_tests = [
   'test-device',
   'test-manager',
   'test-packet',
-  'test-task-queue',
   'test-utils',
 ]
 

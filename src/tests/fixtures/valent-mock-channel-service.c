@@ -49,7 +49,7 @@ static const char identity_json[] =
 "  \"id\": 0,                        "
 "  \"type\": \"kdeconnect.identity\","
 "  \"body\": {                       "
-"    \"deviceId\": \"test-device\",  "
+"    \"deviceId\": \"mock-device\",  "
 "    \"deviceName\": \"Mock Device\","
 "    \"protocolVersion\": 7,         "
 "    \"deviceType\": \"phone\",      "
@@ -75,11 +75,12 @@ valent_mock_channel_service_identify (ValentChannelService *service,
 {
   ValentMockChannelService *self = VALENT_MOCK_CHANNEL_SERVICE (service);
   g_autofree ValentChannel **channels = NULL;
-  JsonNode *identity, *peer_identity;
+  g_autoptr (JsonNode) identity = NULL;
+  JsonNode *peer_identity;
 
   g_assert (VALENT_IS_MOCK_CHANNEL_SERVICE (self));
 
-  identity = valent_channel_service_get_identity (service);
+  identity = valent_channel_service_ref_identity (service);
   peer_identity = json_from_string (identity_json, NULL);
   channels = valent_test_channels (identity, peer_identity);
 
