@@ -13,7 +13,7 @@
 #include "valent-lan-channel-service.h"
 #include "valent-lan-utils.h"
 
-#define DEFAULT_PORT      1716
+#define PROTOCOL_PORT     1716
 #define TRANSFER_PORT_MIN 1739
 #define TRANSFER_PORT_MAX 1764
 
@@ -62,7 +62,7 @@ on_network_changed (GNetworkMonitor         *monitor,
 }
 
 /*
- * Incoming Connections
+ * Incoming TCP Connections
  *
  * When an incoming connection is opened to the TCP listener, we are operating
  * as the client. The server expects us to:
@@ -72,11 +72,11 @@ on_network_changed (GNetworkMonitor         *monitor,
  * 3) Negotiate TLS encryption (as the TLS Client)
  */
 static gboolean
-on_connection (GThreadedSocketService *listener,
-               GSocketConnection      *connection,
-               GObject                *source_object)
+on_incoming_connection (ValentChannelService   *service,
+                        GSocketConnection      *connection,
+                        GCancellable           *cancellable,
+                        GThreadedSocketService *listener)
 {
-  ValentChannelService *service = VALENT_CHANNEL_SERVICE (source_object);
   ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (service);
   g_autofree char *host = NULL;
   g_autoptr (GSocketAddress) saddr = NULL;
@@ -90,10 +90,10 @@ on_connection (GThreadedSocketService *listener,
   g_assert (VALENT_IS_CHANNEL_SERVICE (service));
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
 
-  /* The incoming TCP connection is in response to an outgoing UDP packet, so the peer must now
-   * write its identity packet. */
+  /* An incoming TCP connection is in response to an outgoing UDP packet, so the
+   * the peer must now write its identity packet. */
   peer_identity = valent_packet_from_stream (g_io_stream_get_input_stream (G_IO_STREAM (connection)),
-                                             self->cancellable,
+                                             cancellable,
                                              NULL);
 
   if (peer_identity == NULL)
@@ -105,7 +105,7 @@ on_connection (GThreadedSocketService *listener,
   tls_stream = valent_lan_encrypt_new_client (connection,
                                               self->certificate,
                                               device_id,
-                                              self->cancellable,
+                                              cancellable,
                                               NULL);
 
   if (tls_stream == NULL)
@@ -149,9 +149,7 @@ peek_host (GSocket       *socket,
 {
   g_autoptr (GSocketAddress) address;
   GInetAddress *iaddr;
-  g_autofree GInputVector iv;
-  iv.buffer = NULL;
-  iv.size = 0;
+  g_autofree GInputVector iv = { NULL, 0 };
   int flags = G_SOCKET_MSG_PEEK;
   gssize len;
 
@@ -195,11 +193,11 @@ peek_host (GSocket       *socket,
  * 3) Negotiate TLS encryption (as the TLS Server)
  */
 static gboolean
-on_packet (ValentLanChannelService  *self,
-           GSocket                  *socket,
-           GDataInputStream         *input_stream,
-           GCancellable             *cancellable,
-           GError                  **error)
+on_incoming_broadcast (ValentLanChannelService  *self,
+                       GSocket                  *socket,
+                       GDataInputStream         *input_stream,
+                       GCancellable             *cancellable,
+                       GError                  **error)
 {
   ValentChannelService *service = VALENT_CHANNEL_SERVICE (self);
   g_autoptr (GError) warn = NULL;
@@ -232,7 +230,10 @@ on_packet (ValentLanChannelService  *self,
    * the UDP socket until the next line-feed character, parse it as JSON, and
    * get the port while validating the packet.
    */
-  line = g_data_input_stream_read_line (input_stream, NULL, cancellable, error);
+  line = g_data_input_stream_read_line_utf8 (input_stream,
+                                             NULL,
+                                             cancellable,
+                                             error);
 
   if G_UNLIKELY (line == NULL)
     {
@@ -256,23 +257,23 @@ on_packet (ValentLanChannelService  *self,
   body = valent_packet_get_body (peer_identity);
   device_id = json_object_get_string_member_with_default (body, "deviceId", NULL);
 
-  if G_UNLIKELY (device_id == NULL)
+  if (device_id == NULL || *device_id == '\0')
     {
-      g_warning ("[%s] Missing `deviceId` field", G_STRFUNC);
+      g_warning ("expected \"deviceId\" field holding a string");
       return TRUE;
     }
 
   local_id = valent_channel_service_get_id (service);
 
-  if G_UNLIKELY (g_strcmp0 (device_id, local_id) == 0)
+  if (g_strcmp0 (device_id, local_id) == 0)
     return TRUE;
 
   /* Get the remote port */
   port = (guint16)json_object_get_int_member_with_default (body, "tcpPort", 0);
 
-  if G_UNLIKELY (port == 0)
+  if (port == 0)
     {
-      g_debug ("Missing `tcpPort` field");
+      g_warning ("expected \"tcpPort\" field holding an integer");
       return TRUE;
     }
 
@@ -367,7 +368,7 @@ socket_read_loop (gpointer data)
 
   while (g_socket_condition_wait (socket, G_IO_IN, cancellable, &error))
     {
-      if (!on_packet (self, socket, input_stream, cancellable, &error))
+      if (!on_incoming_broadcast (self, socket, input_stream, cancellable, &error))
         break;
     }
 
@@ -398,19 +399,24 @@ valent_lan_channel_service_tcp_setup (ValentLanChannelService  *self,
                                       GError                  **error)
 {
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
-  g_assert (self->port != 0);
+  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+  g_assert (error == NULL || *error == NULL);
 
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     return FALSE;
 
-  /* Create a listener and override the ::run vfunc */
+  /* Pass the service as the callback data for the "run" signal, while the
+   * listener holds a reference to the cancellable for this "start" sequence.
+   */
   self->listener = g_threaded_socket_service_new (10);
-  G_THREADED_SOCKET_SERVICE_GET_CLASS (self->listener)->run = on_connection;
+  g_signal_connect_swapped (self->listener,
+                            "run",
+                            G_CALLBACK (on_incoming_connection),
+                            self);
 
-  /* Start listening for connections */
   if (!g_socket_listener_add_inet_port (G_SOCKET_LISTENER (self->listener),
                                         self->port,
-                                        G_OBJECT (self),
+                                        G_OBJECT (cancellable),
                                         error))
     {
       g_socket_service_stop (self->listener);
@@ -441,7 +447,6 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
   g_autoptr (GSocket) socket6 = NULL;
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
-  g_assert (self->port != 0);
 
   if (self->udp_socket6 || self->udp_socket4)
     return TRUE;
@@ -565,7 +570,6 @@ valent_lan_channel_service_identify (ValentChannelService *service,
   glong identity_len;
   const char *hostname;
   guint16 port;
-  gssize written;
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
 
@@ -577,7 +581,7 @@ valent_lan_channel_service_identify (ValentChannelService *service,
       g_autoptr (GError) error = NULL;
 
       naddr = G_NETWORK_ADDRESS (g_network_address_parse (target,
-                                                          DEFAULT_PORT,
+                                                          PROTOCOL_PORT,
                                                           &error));
 
       if (naddr == NULL)
@@ -605,6 +609,7 @@ valent_lan_channel_service_identify (ValentChannelService *service,
   /* IPv6 */
   if (self->udp_socket6 != NULL)
     {
+      gssize written;
       g_autoptr (GError) error = NULL;
 
       written = g_socket_send_to (self->udp_socket6,
@@ -622,6 +627,7 @@ valent_lan_channel_service_identify (ValentChannelService *service,
   /* IPv4 */
   if (self->udp_socket4 != NULL)
     {
+      gssize written;
       g_autoptr (GError) error = NULL;
 
       written = g_socket_send_to (self->udp_socket4,
@@ -719,10 +725,15 @@ valent_lan_channel_service_stop (ValentChannelService *service)
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
 
+  if (self->cancellable == NULL)
+    return;
+
+  g_cancellable_cancel (self->cancellable);
+  g_clear_object (&self->cancellable);
+
   /* Network Monitor */
   g_signal_handlers_disconnect_by_data (self->monitor, self);
 
-  /* TCP Listener */
   if (self->listener != NULL)
     {
       g_socket_service_stop (G_SOCKET_SERVICE (self->listener));
@@ -730,7 +741,6 @@ valent_lan_channel_service_stop (ValentChannelService *service)
       g_clear_object (&self->listener);
     }
 
-  /* UDP Sockets */
   g_clear_object (&self->udp_socket4);
   g_clear_object (&self->udp_socket6);
 }
@@ -873,8 +883,8 @@ valent_lan_channel_service_class_init (ValentLanChannelServiceClass *klass)
     g_param_spec_uint ("port",
                        "Port",
                        "TCP/IP port",
-                       0, G_MAXUINT16,
-                       DEFAULT_PORT,
+                       1024, G_MAXUINT16,
+                       PROTOCOL_PORT,
                        (G_PARAM_READWRITE |
                         G_PARAM_CONSTRUCT_ONLY |
                         G_PARAM_EXPLICIT_NOTIFY |
@@ -886,28 +896,7 @@ valent_lan_channel_service_class_init (ValentLanChannelServiceClass *klass)
 static void
 valent_lan_channel_service_init (ValentLanChannelService *self)
 {
-  self->cancellable = NULL;
-  self->certificate = NULL;
   self->monitor = g_network_monitor_get_default ();
-  self->broadcast_address = NULL;
-  self->port = DEFAULT_PORT;
-}
-
-/**
- * valent_lan_channel_service_get_certificate:
- * @service: a #ValentLanChannelService
- *
- * Get the TLS certificate the service uses to authenticate with other devices.
- *
- * This may be %NULL if valent_channel_service_start() has not been called yet.
- *
- * Returns: (transfer none) (nullable): a #GTlsCertificate
- */
-GTlsCertificate *
-valent_lan_channel_service_get_certificate (ValentLanChannelService *service)
-{
-  g_return_val_if_fail (VALENT_IS_LAN_CHANNEL_SERVICE (service), NULL);
-
-  return service->certificate;
+  self->port = PROTOCOL_PORT;
 }
 

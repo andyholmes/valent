@@ -5,10 +5,8 @@
 
 #include "config.h"
 
-#include <gio/gnetworking.h>
 #include <gio/gio.h>
-#include <json-glib/json-glib.h>
-#include <time.h>
+#include <gio/gnetworking.h>
 
 #include "valent-lan-utils.h"
 
@@ -17,42 +15,43 @@
  * configure_socket:
  * @connection: a #GSocketConnection
  *
- * Configure TCP socket options
- * See: https://github.com/KDE/kdeconnect-kde/blob/master/core/backends/lan/lanlinkprovider.cpp#L456-L480
+ * Configure TCP socket options as they are set in kdeconnect-kde.
+ *
+ * Unlike kdeconnect-kde keepalive is not enabled if the required socket options
+ * are not defined, otherwise connections may hang indefinitely.
+ *
+ * See: https://invent.kde.org/network/kdeconnect-kde/blob/master/core/backends/lan/lanlinkprovider.cpp
  */
 static void
 configure_socket (GSocketConnection *connection)
 {
+#if defined(TCP_KEEPIDLE) && defined(TCP_KEEPINTVL) && defined(TCP_KEEPCNT)
   GSocket *socket;
   GError *error = NULL;
 
   g_assert (G_IS_SOCKET_CONNECTION (connection));
 
   socket = g_socket_connection_get_socket (connection);
+  g_socket_set_keepalive (socket, TRUE);
 
-  /* We only set keepalive if all the socket options we use are available,
-   * otherwise connections hang indefinitely */
-  #if defined(TCP_KEEPIDLE) && defined(TCP_KEEPINTVL) && defined(TCP_KEEPCNT)
-    g_socket_set_keepalive (socket, TRUE);
+  if (!g_socket_set_option (socket, IPPROTO_TCP, TCP_KEEPIDLE, 10, &error))
+    {
+      g_warning ("TCP_KEEPIDLE: %s", error->message);
+      g_clear_error (&error);
+    }
 
-    if (!g_socket_set_option (socket, IPPROTO_TCP, TCP_KEEPIDLE, 10, &error))
-      {
-        g_warning ("TCP_KEEPIDLE: %s", error->message);
-        g_clear_error (&error);
-      }
+  if (!g_socket_set_option (socket, IPPROTO_TCP, TCP_KEEPINTVL, 5, &error))
+    {
+      g_warning ("TCP_KEEPINTVL: %s", error->message);
+      g_clear_error (&error);
+    }
 
-    if (!g_socket_set_option (socket, IPPROTO_TCP, TCP_KEEPINTVL, 5, &error))
-      {
-        g_warning ("TCP_KEEPINTVL: %s", error->message);
-        g_clear_error (&error);
-      }
-
-    if (!g_socket_set_option (socket, IPPROTO_TCP, TCP_KEEPCNT, 3, &error))
-      {
-        g_warning ("TCP_KEEPCNT: %s", error->message);
-        g_clear_error (&error);
-      }
-  #endif
+  if (!g_socket_set_option (socket, IPPROTO_TCP, TCP_KEEPCNT, 3, &error))
+    {
+      g_warning ("TCP_KEEPCNT: %s", error->message);
+      g_clear_error (&error);
+    }
+#endif
 }
 
 static gboolean
@@ -169,7 +168,7 @@ handshake_id (GTlsConnection  *connection,
       g_set_error (error,
                    G_TLS_ERROR,
                    G_TLS_ERROR_HANDSHAKE,
-                   "Invalid certificate for '%s'",
+                   "Invalid certificate for \"%s\"",
                    device_id);
       return FALSE;
     }
@@ -394,7 +393,8 @@ valent_lan_encrypt_new_server (GSocketConnection  *connection,
 /**
  * valent_lan_encrypt_server:
  * @connection: a #GSocketConnection
- * @device_id: the id for the device this connection claims to be from
+ * @certificate: a #GTlsCertificate
+ * @peer_certificate: a #GTlsCertificate
  * @cancellable: (nullable): a #GCancellable
  * @error: (nullable): a #GError
  *
@@ -409,7 +409,7 @@ valent_lan_encrypt_new_server (GSocketConnection  *connection,
 GIOStream *
 valent_lan_encrypt_server (GSocketConnection  *connection,
                            GTlsCertificate    *certificate,
-                           GTlsCertificate    *peer_cert,
+                           GTlsCertificate    *peer_certificate,
                            GCancellable       *cancellable,
                            GError            **error)
 {
@@ -417,7 +417,7 @@ valent_lan_encrypt_server (GSocketConnection  *connection,
 
   g_assert (G_IS_SOCKET_CONNECTION (connection));
   g_assert (G_IS_TLS_CERTIFICATE (certificate));
-  g_assert (G_IS_TLS_CERTIFICATE (peer_cert));
+  g_assert (G_IS_TLS_CERTIFICATE (peer_certificate));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
   g_assert (error == NULL || *error == NULL);
 
@@ -438,7 +438,10 @@ valent_lan_encrypt_server (GSocketConnection  *connection,
                 NULL);
 
   /* Authorize the TLS connection */
-  if (!handshake_certificate (G_TLS_CONNECTION (tls_stream), peer_cert, cancellable, error))
+  if (!handshake_certificate (G_TLS_CONNECTION (tls_stream),
+                              peer_certificate,
+                              cancellable,
+                              error))
     {
       g_io_stream_close (tls_stream, NULL, NULL);
       return NULL;
