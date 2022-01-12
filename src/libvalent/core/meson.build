@@ -22,7 +22,6 @@ libvalent_core_public_headers = [
   'valent-manager.h',
   'valent-object.h',
   'valent-packet.h',
-  'valent-task-queue.h',
   'valent-transfer.h',
   'valent-utils.h',
 ]
@@ -57,7 +56,6 @@ libvalent_core_public_sources = [
   'valent-object.c',
   'valent-object-utils.c',
   'valent-packet.c',
-  'valent-task-queue.c',
   'valent-transfer.c',
   'valent-utils.c',
 ]

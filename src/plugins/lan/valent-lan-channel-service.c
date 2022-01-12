@@ -81,7 +81,7 @@ on_incoming_connection (ValentChannelService   *service,
   g_autofree char *host = NULL;
   g_autoptr (GSocketAddress) saddr = NULL;
   GInetAddress *iaddr;
-  JsonNode *identity;
+  g_autoptr (JsonNode) identity = NULL;
   g_autoptr (JsonNode) peer_identity = NULL;
   const char *device_id;
   g_autoptr (GIOStream) tls_stream = NULL;
@@ -101,12 +101,14 @@ on_incoming_connection (ValentChannelService   *service,
 
   /* Now that we have the device ID we can authorize or reject certificates.
    * NOTE: We're the client when accepting incoming connections */
+  valent_object_lock (VALENT_OBJECT (self));
   device_id = valent_identity_get_device_id (peer_identity);
   tls_stream = valent_lan_encrypt_new_client (connection,
                                               self->certificate,
                                               device_id,
                                               cancellable,
                                               NULL);
+  valent_object_unlock (VALENT_OBJECT (self));
 
   if (tls_stream == NULL)
     return TRUE;
@@ -117,7 +119,7 @@ on_incoming_connection (ValentChannelService   *service,
   host = g_inet_address_to_string (iaddr);
 
   /* Create the new channel */
-  identity = valent_channel_service_get_identity (service);
+  identity = valent_channel_service_ref_identity (service);
   channel = g_object_new (VALENT_TYPE_LAN_CHANNEL,
                           "base-stream",   tls_stream,
                           "certificate",   self->certificate,
@@ -205,11 +207,11 @@ on_incoming_broadcast (ValentLanChannelService  *self,
   guint16 port;
   g_autofree char *host = NULL;
   g_autofree char *line = NULL;
-  JsonNode *identity;
+  g_autoptr (JsonNode) identity = NULL;
   g_autoptr (JsonNode) peer_identity = NULL;
   JsonObject *body;
   const char *device_id;
-  const char *local_id;
+  g_autofree char *local_id = NULL;
   g_autoptr (GSocketClient) client = NULL;
   g_autoptr (GSocketConnection) connection = NULL;
   GOutputStream *output_stream;
@@ -263,7 +265,7 @@ on_incoming_broadcast (ValentLanChannelService  *self,
       return TRUE;
     }
 
-  local_id = valent_channel_service_get_id (service);
+  local_id = valent_channel_service_dup_id (service);
 
   if (g_strcmp0 (device_id, local_id) == 0)
     return TRUE;
@@ -304,7 +306,7 @@ on_incoming_broadcast (ValentLanChannelService  *self,
   /* Write the local identity. Once we do this, both peers will have the ability
    * to authenticate or reject TLS certificates.
    */
-  identity = valent_channel_service_get_identity (service);
+  identity = valent_channel_service_ref_identity (service);
   output_stream = g_io_stream_get_output_stream (G_IO_STREAM (connection));
 
   if (!valent_packet_to_stream (output_stream, identity, cancellable, error))
@@ -314,11 +316,13 @@ on_incoming_broadcast (ValentLanChannelService  *self,
     }
 
   /* We're the TLS Server when responding to identity broadcasts */
+  valent_object_lock (VALENT_OBJECT (self));
   tls_stream = valent_lan_encrypt_new_server (connection,
                                               self->certificate,
                                               device_id,
                                               cancellable,
                                               &warn);
+  valent_object_unlock (VALENT_OBJECT (self));
 
   if (tls_stream == NULL)
     {
@@ -405,6 +409,8 @@ valent_lan_channel_service_tcp_setup (ValentLanChannelService  *self,
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     return FALSE;
 
+  valent_object_lock (VALENT_OBJECT (self));
+
   /* Pass the service as the callback data for the "run" signal, while the
    * listener holds a reference to the cancellable for this "start" sequence.
    */
@@ -423,6 +429,8 @@ valent_lan_channel_service_tcp_setup (ValentLanChannelService  *self,
       g_socket_listener_close (G_SOCKET_LISTENER (self->listener));
       g_clear_object (&self->listener);
     }
+
+  valent_object_unlock (VALENT_OBJECT (self));
 
   return G_IS_SOCKET_SERVICE (self->listener);
 }
@@ -448,8 +456,13 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
 
+  valent_object_lock (VALENT_OBJECT (self));
+
   if (self->udp_socket6 || self->udp_socket4)
-    return TRUE;
+    {
+      valent_object_unlock (VALENT_OBJECT (self));
+      return TRUE;
+    }
 
   /* first try to create an IPv6 socket */
   socket6 = g_socket_new (G_SOCKET_FAMILY_IPV6,
@@ -469,9 +482,14 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
       address = g_inet_socket_address_new (inet_address, self->port);
 
       if (g_socket_bind (socket6, address, TRUE, error))
-        g_socket_set_broadcast (socket6, TRUE);
+        {
+          g_socket_set_broadcast (socket6, TRUE);
+        }
       else
-        return FALSE;
+        {
+          valent_object_unlock (VALENT_OBJECT (self));
+          return FALSE;
+        }
 
       /* Watch the socket for incoming identity packets */
       data = g_new0 (SocketThreadData, 1);
@@ -484,7 +502,10 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
 
       /* If this socket also speaks IPv4 then we are done. */
       if (g_socket_speaks_ipv4 (self->udp_socket6))
-        return TRUE;
+        {
+          valent_object_unlock (VALENT_OBJECT (self));
+          return TRUE;
+        }
     }
 
   /* We need an IPv4 socket, either instead or in addition to our IPv6 */
@@ -505,9 +526,14 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
       address = g_inet_socket_address_new (inet_address, self->port);
 
       if (g_socket_bind (socket4, address, TRUE, error))
-        g_socket_set_broadcast (socket4, TRUE);
+        {
+          g_socket_set_broadcast (socket4, TRUE);
+        }
       else
-        return FALSE;
+        {
+          valent_object_unlock (VALENT_OBJECT (self));
+          return FALSE;
+        }
 
       /* Watch the socket for incoming identity packets */
       data = g_new0 (SocketThreadData, 1);
@@ -521,11 +547,15 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
   else
     {
       if (self->udp_socket6 == NULL)
-        return FALSE;
+        {
+          valent_object_unlock (VALENT_OBJECT (self));
+          return FALSE;
+        }
 
       g_clear_error (error);
     }
 
+  valent_object_unlock (VALENT_OBJECT (self));
   return TRUE;
 }
 
@@ -538,7 +568,7 @@ valent_lan_channel_service_build_identity (ValentChannelService *service)
 {
   ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (service);
   ValentChannelServiceClass *klass;
-  JsonNode *identity;
+  g_autoptr (JsonNode) identity = NULL;
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (service));
 
@@ -547,7 +577,7 @@ valent_lan_channel_service_build_identity (ValentChannelService *service)
   klass->build_identity (service);
 
   /* Set the tcpPort on the packet */
-  identity = valent_channel_service_get_identity (service);
+  identity = valent_channel_service_ref_identity (service);
 
   if (identity != NULL)
     {
@@ -565,7 +595,7 @@ valent_lan_channel_service_identify (ValentChannelService *service,
   ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (service);
   g_autoptr (GNetworkAddress) naddr = NULL;
   g_autoptr (GSocketAddress) address = NULL;
-  JsonNode *identity;
+  g_autoptr (JsonNode) identity = NULL;
   g_autofree char *identity_json = NULL;
   glong identity_len;
   const char *hostname;
@@ -602,7 +632,7 @@ valent_lan_channel_service_identify (ValentChannelService *service,
   address = g_inet_socket_address_new_from_string (hostname, port);
 
   /* Serialize the identity */
-  identity = valent_channel_service_get_identity (service);
+  identity = valent_channel_service_ref_identity (service);
   identity_json = valent_packet_serialize (identity);
   identity_len = strlen (identity_json);
 
@@ -675,7 +705,9 @@ valent_certificate_new_cb (GObject      *object,
   ValentLanChannelService *self = g_task_get_source_object (task);
   GError *error = NULL;
 
+  valent_object_lock (VALENT_OBJECT (self));
   self->certificate = valent_certificate_new_finish (result, &error);
+  valent_object_unlock (VALENT_OBJECT (self));
   g_task_run_in_thread (task, start_task);
 }
 
@@ -734,6 +766,8 @@ valent_lan_channel_service_stop (ValentChannelService *service)
   /* Network Monitor */
   g_signal_handlers_disconnect_by_data (self->monitor, self);
 
+  valent_object_lock (VALENT_OBJECT (self));
+
   if (self->listener != NULL)
     {
       g_socket_service_stop (G_SOCKET_SERVICE (self->listener));
@@ -743,6 +777,8 @@ valent_lan_channel_service_stop (ValentChannelService *service)
 
   g_clear_object (&self->udp_socket4);
   g_clear_object (&self->udp_socket6);
+
+  valent_object_unlock (VALENT_OBJECT (self));
 }
 
 

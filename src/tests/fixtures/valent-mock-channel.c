@@ -57,6 +57,7 @@ valent_mock_channel_download (ValentChannel  *channel,
   g_autoptr (GSocketClient) client = NULL;
   g_autoptr (GSocketConnection) connection = NULL;
   g_autoptr (GIOStream) stream = NULL;
+  g_autofree char *host = NULL;
   JsonObject *info;
   guint16 port;
   gssize size;
@@ -80,11 +81,12 @@ valent_mock_channel_download (ValentChannel  *channel,
     }
 
   /* Wait for connection (open) */
+  host = valent_mock_channel_dup_host (self);
   client = g_object_new (G_TYPE_SOCKET_CLIENT,
                          "enable-proxy", FALSE,
                          NULL);
   connection = g_socket_client_connect_to_host (client,
-                                                self->host,
+                                                host,
                                                 port,
                                                 cancellable,
                                                 error);
@@ -160,7 +162,9 @@ valent_mock_channel_finalize (GObject *object)
 {
   ValentMockChannel *self = VALENT_MOCK_CHANNEL (object);
 
+  valent_object_lock (VALENT_OBJECT (self));
   g_clear_pointer (&self->host, g_free);
+  valent_object_unlock (VALENT_OBJECT (self));
 
   G_OBJECT_CLASS (valent_mock_channel_parent_class)->finalize (object);
 }
@@ -176,11 +180,11 @@ valent_mock_channel_get_property (GObject    *object,
   switch (prop_id)
     {
     case PROP_HOST:
-      g_value_set_string (value, self->host);
+      g_value_take_string (value, valent_mock_channel_dup_host (self));
       break;
 
     case PROP_PORT:
-      g_value_set_uint (value, self->port);
+      g_value_set_uint (value, valent_mock_channel_get_port (self));
       break;
 
     default:
@@ -199,11 +203,15 @@ valent_mock_channel_set_property (GObject      *object,
   switch (prop_id)
     {
     case PROP_HOST:
+      valent_object_lock (VALENT_OBJECT (self));
       self->host = g_value_dup_string (value);
+      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     case PROP_PORT:
+      valent_object_lock (VALENT_OBJECT (self));
       self->port = g_value_get_uint (value);
+      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     default:
@@ -264,5 +272,49 @@ valent_mock_channel_init (ValentMockChannel *self)
 {
   self->host = NULL;
   self->port = VALENT_TEST_TCP_PORT;
+}
+
+/**
+ * valent_mock_channel_dup_host:
+ * @self: a #ValentMockChannel
+ *
+ * Get the host or IP address for @self.
+ *
+ * Returns: (transfer full) (nullable): a host or IP address
+ */
+char *
+valent_mock_channel_dup_host (ValentMockChannel *self)
+{
+  char *ret;
+
+  g_return_val_if_fail (VALENT_IS_MOCK_CHANNEL (self), NULL);
+
+  valent_object_lock (VALENT_OBJECT (self));
+  ret = g_strdup (self->host);
+  valent_object_unlock (VALENT_OBJECT (self));
+
+  return ret;
+}
+
+/**
+ * valent_mock_channel_get_port:
+ * @self: a #ValentMockChannel
+ *
+ * Get the port for @self.
+ *
+ * Returns: (transfer full) (nullable): a port number
+ */
+guint16
+valent_mock_channel_get_port (ValentMockChannel *self)
+{
+  guint16 ret;
+
+  g_return_val_if_fail (VALENT_IS_MOCK_CHANNEL (self), 0);
+
+  valent_object_lock (VALENT_OBJECT (self));
+  ret = self->port;
+  valent_object_unlock (VALENT_OBJECT (self));
+
+  return ret;
 }
 

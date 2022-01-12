@@ -298,6 +298,10 @@ main (int   argc,
 
   g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 
+  /* Normally this would be done by valent_test_ui_init(), but that setup takes
+   * far too long for this test suite. */
+  g_type_ensure (VALENT_TYPE_CHANNEL);
+
   if (!gtk_init_check ())
     g_test_message ("Skipping themed icon transfers");
 

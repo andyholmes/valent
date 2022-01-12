@@ -11,33 +11,34 @@
 #include <json-glib/json-glib.h>
 
 #include "valent-data.h"
+#include "valent-object.h"
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_CHANNEL (valent_channel_get_type())
 
-G_DECLARE_DERIVABLE_TYPE (ValentChannel, valent_channel, VALENT, CHANNEL, GObject)
+G_DECLARE_DERIVABLE_TYPE (ValentChannel, valent_channel, VALENT, CHANNEL, ValentObject)
 
 struct _ValentChannelClass
 {
-  GObjectClass   parent_class;
+  ValentObjectClass   parent_class;
 
   /* virtual functions */
-  const char   * (*get_verification_key) (ValentChannel  *channel);
-  GIOStream    * (*download)             (ValentChannel  *channel,
-                                          JsonNode       *packet,
-                                          GCancellable   *cancellable,
-                                          GError        **error);
-  GIOStream    * (*upload)               (ValentChannel  *channel,
-                                          JsonNode       *packet,
-                                          GCancellable   *cancellable,
-                                          GError        **error);
-  void           (*store_data)           (ValentChannel  *channel,
-                                          ValentData     *data);
+  const char        * (*get_verification_key) (ValentChannel  *channel);
+  GIOStream         * (*download)             (ValentChannel  *channel,
+                                               JsonNode       *packet,
+                                               GCancellable   *cancellable,
+                                               GError        **error);
+  GIOStream         * (*upload)               (ValentChannel  *channel,
+                                               JsonNode       *packet,
+                                               GCancellable   *cancellable,
+                                               GError        **error);
+  void                (*store_data)           (ValentChannel  *channel,
+                                               ValentData     *data);
 };
 
 
-GIOStream  * valent_channel_get_base_stream      (ValentChannel        *channel);
+GIOStream  * valent_channel_ref_base_stream      (ValentChannel        *channel);
 JsonNode   * valent_channel_get_identity         (ValentChannel        *channel);
 JsonNode   * valent_channel_get_peer_identity    (ValentChannel        *channel);
 const char * valent_channel_get_verification_key (ValentChannel        *channel);

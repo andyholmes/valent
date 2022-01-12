@@ -52,14 +52,13 @@ typedef struct
   PeasPluginInfo *plugin_info;
 
   GSettings      *settings;
-  GCancellable   *cancellable;
 
   ValentData     *data;
   char           *id;
   JsonNode       *identity;
 } ValentChannelServicePrivate;
 
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentChannelService, valent_channel_service, G_TYPE_OBJECT);
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentChannelService, valent_channel_service, VALENT_TYPE_OBJECT);
 
 /**
  * ValentChannelServiceClass:
@@ -89,6 +88,7 @@ enum {
 };
 
 static guint signals[N_SIGNALS] = { 0, };
+static GRecMutex channel_lock;
 
 
 /*
@@ -192,17 +192,19 @@ get_chassis_type (void)
 static void
 on_name_changed (GSettings            *settings,
                  const char           *key,
-                 ValentChannelService *service)
+                 ValentChannelService *self)
 {
-  ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (service);
+  ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (self);
   g_autofree char *name = NULL;
   JsonObject *body;
 
+  valent_object_lock (VALENT_OBJECT (self));
   name = g_settings_get_string (settings, key);
   body = valent_packet_get_body (priv->identity);
   json_object_set_string_member (body, "deviceName", name);
+  valent_object_unlock (VALENT_OBJECT (self));
 
-  valent_object_notify_by_pspec (service, properties [PROP_IDENTITY]);
+  g_object_notify_by_pspec (G_OBJECT (self), properties [PROP_IDENTITY]);
 }
 
 /**
@@ -254,11 +256,12 @@ valent_channel_service_emit_channel_main (gpointer data)
 {
   ChannelEmission *emission = data;
 
+  g_rec_mutex_lock (&channel_lock);
   valent_channel_service_emit_channel (emission->service, emission->channel);
-
   g_clear_object (&emission->service);
   g_clear_object (&emission->channel);
-  g_free (emission);
+  g_clear_pointer (&emission, g_free);
+  g_rec_mutex_unlock (&channel_lock);
 
   return G_SOURCE_REMOVE;
 }
@@ -441,7 +444,7 @@ valent_channel_service_get_property (GObject    *object,
       break;
 
     case PROP_IDENTITY:
-      g_value_set_boxed (value, priv->identity);
+      g_value_take_boxed (value, valent_channel_service_ref_identity (self));
       break;
 
     case PROP_PLUGIN_INFO:
@@ -591,47 +594,54 @@ valent_channel_service_init (ValentChannelService *self)
 {
   ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (self);
 
-  priv->data = NULL;
-  priv->id = NULL;
-  priv->identity = NULL;
   priv->settings = g_settings_new ("ca.andyholmes.Valent");
 }
 
 /**
- * valent_channel_service_get_id:
+ * valent_channel_service_dup_id:
  * @service: a #ValentChannelService
  *
  * Get the service ID.
  *
- * Returns: (transfer none): the service ID
+ * Returns: (transfer full) (not nullable): the service ID
  */
-const char *
-valent_channel_service_get_id (ValentChannelService *service)
+char *
+valent_channel_service_dup_id (ValentChannelService *service)
 {
   ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (service);
+  char *ret;
 
   g_return_val_if_fail (VALENT_IS_CHANNEL_SERVICE (service), NULL);
 
-  return priv->id;
+  valent_object_lock (VALENT_OBJECT (service));
+  ret = g_strdup (priv->id);
+  valent_object_unlock (VALENT_OBJECT (service));
+
+  return g_steal_pointer (&ret);
 }
 
 /**
- * valent_channel_service_get_identity:
+ * valent_channel_service_ref_identity:
  * @service: a #ValentChannelService
  *
  * Get the identity packet @service will use to identify itself to remote
  * devices.
  *
- * Returns: (transfer none): a #JsonNode
+ * Returns: (transfer full): a #JsonNode
  */
 JsonNode *
-valent_channel_service_get_identity (ValentChannelService *service)
+valent_channel_service_ref_identity (ValentChannelService *service)
 {
   ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (service);
+  JsonNode *ret;
 
   g_return_val_if_fail (VALENT_IS_CHANNEL_SERVICE (service), NULL);
 
-  return priv->identity;
+  valent_object_lock (VALENT_OBJECT (service));
+  ret = json_node_ref (priv->identity);
+  valent_object_unlock (VALENT_OBJECT (service));
+
+  return ret;
 }
 
 /**
@@ -640,14 +650,20 @@ valent_channel_service_get_identity (ValentChannelService *service)
  *
  * Rebuild the identity packet used to identify the service to other devices.
  * Implementations that plan to modify the default should chain-up, then call
- * valent_channel_service_get_identity() and modify that.
+ * valent_channel_service_ref_identity() and modify that.
  */
 void
 valent_channel_service_build_identity (ValentChannelService *service)
 {
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_CHANNEL_SERVICE (service));
 
+  valent_object_lock (VALENT_OBJECT (service));
   VALENT_CHANNEL_SERVICE_GET_CLASS (service)->build_identity (service);
+  valent_object_unlock (VALENT_OBJECT (service));
+
+  VALENT_EXIT;
 }
 
 /**
@@ -680,6 +696,10 @@ valent_channel_service_identify (ValentChannelService *service,
  *
  * Start @service and begin accepting connections.
  *
+ * This method is called by the #ValentManager singleton when a
+ * #ValentChannelService implementation is enabled. It is therefore a programmer
+ * error for an API user to call this method.
+ *
  * Before this operation completes valent_channel_service_stop() may be called,
  * so implementations may want to chain to @cancellable.
  */
@@ -689,30 +709,20 @@ valent_channel_service_start (ValentChannelService *service,
                               GAsyncReadyCallback   callback,
                               gpointer              user_data)
 {
-  ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (service);
+  g_autoptr (GCancellable) destroy = NULL;
+
+  VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_CHANNEL_SERVICE (service));
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  if (priv->cancellable != NULL)
-    return valent_channel_service_real_start (service,
-                                              cancellable,
-                                              callback,
-                                              user_data);
-
-  priv->cancellable = g_cancellable_new ();
-
-  if (cancellable != NULL)
-    g_signal_connect_object (cancellable,
-                             "cancelled",
-                             G_CALLBACK (g_cancellable_cancel),
-                             priv->cancellable,
-                             G_CONNECT_SWAPPED);
-
+  destroy = valent_object_ref_cancellable (VALENT_OBJECT (service));
   VALENT_CHANNEL_SERVICE_GET_CLASS (service)->start (service,
-                                                     priv->cancellable,
+                                                     destroy,
                                                      callback,
                                                      user_data);
+
+  VALENT_EXIT;
 }
 
 /**
@@ -728,11 +738,17 @@ valent_channel_service_start_finish (ValentChannelService  *service,
                                      GAsyncResult          *result,
                                      GError               **error)
 {
+  gboolean ret;
+
+  VALENT_ENTRY;
+
   g_return_val_if_fail (VALENT_IS_CHANNEL_SERVICE (service), FALSE);
   g_return_val_if_fail (g_task_is_valid (result, service), FALSE);
   g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-  return g_task_propagate_boolean (G_TASK (result), error);
+  ret = g_task_propagate_boolean (G_TASK (result), error);
+
+  VALENT_RETURN (ret);
 }
 
 /**
@@ -748,16 +764,13 @@ valent_channel_service_start_finish (ValentChannelService  *service,
 void
 valent_channel_service_stop (ValentChannelService *service)
 {
-  ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (service);
+  VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_CHANNEL_SERVICE (service));
 
-  if (priv->cancellable == NULL)
-    return;
-
-  g_cancellable_cancel (priv->cancellable);
   VALENT_CHANNEL_SERVICE_GET_CLASS (service)->stop (service);
-  g_clear_object (&priv->cancellable);
+
+  VALENT_EXIT;
 }
 
 /**
@@ -787,9 +800,11 @@ valent_channel_service_emit_channel (ValentChannelService *service,
       return;
     }
 
+  g_rec_mutex_lock (&channel_lock);
   emission = g_new0 (ChannelEmission, 1);
   emission->service = g_object_ref (service);
   emission->channel = g_object_ref (channel);
+  g_rec_mutex_unlock (&channel_lock);
 
   g_timeout_add (0, valent_channel_service_emit_channel_main, emission);
 }

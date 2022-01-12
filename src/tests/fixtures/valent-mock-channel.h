@@ -15,5 +15,8 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (ValentMockChannel, valent_mock_channel, VALENT, MOCK_CHANNEL, ValentChannel)
 
+char    * valent_mock_channel_dup_host (ValentMockChannel *self);
+guint16   valent_mock_channel_get_port (ValentMockChannel *self);
+
 G_END_DECLS
 

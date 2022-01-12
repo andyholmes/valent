@@ -9,7 +9,6 @@
 #include <libvalent-core.h>
 
 #include "valent-lan-channel.h"
-#include "valent-lan-channel-service.h"
 #include "valent-lan-utils.h"
 
 #define VALENT_LAN_TCP_PORT 1716
@@ -50,8 +49,8 @@ valent_lan_channel_get_verification_key (ValentChannel *channel)
 {
   ValentLanChannel *self = VALENT_LAN_CHANNEL (channel);
   g_autoptr (GChecksum) checksum = NULL;
-  GTlsCertificate *cert;
-  GTlsCertificate *peer_cert;
+  g_autoptr (GTlsCertificate) cert = NULL;
+  g_autoptr (GTlsCertificate) peer_cert = NULL;
   GByteArray *pubkey;
   GByteArray *peer_pubkey;
   size_t cmplen;
@@ -59,8 +58,8 @@ valent_lan_channel_get_verification_key (ValentChannel *channel)
   if (self->description != NULL)
     return self->description;
 
-  if ((cert = valent_lan_channel_get_certificate (self)) == NULL ||
-      (peer_cert = valent_lan_channel_get_peer_certificate (self)) == NULL)
+  if ((cert = valent_lan_channel_ref_certificate (self)) == NULL ||
+      (peer_cert = valent_lan_channel_ref_peer_certificate (self)) == NULL)
     g_return_val_if_reached (NULL);
 
   if ((pubkey = valent_certificate_get_public_key (cert)) == NULL ||
@@ -98,7 +97,9 @@ valent_lan_channel_download (ValentChannel  *channel,
   gssize size;
   g_autoptr (GSocketClient) client = NULL;
   g_autoptr (GSocketConnection) connection = NULL;
-  GTlsCertificate *peer_cert;
+  g_autoptr (GTlsCertificate) cert = NULL;
+  g_autoptr (GTlsCertificate) peer_cert = NULL;
+  g_autofree char *host = NULL;
   g_autoptr (GIOStream) tls_stream = NULL;
 
   g_assert (VALENT_IS_CHANNEL (channel));
@@ -120,11 +121,12 @@ valent_lan_channel_download (ValentChannel  *channel,
     }
 
   /* Wait for connection (open) */
+  host = valent_lan_channel_dup_host (self);
   client = g_object_new (G_TYPE_SOCKET_CLIENT,
                          "enable-proxy", FALSE,
                          NULL);
   connection = g_socket_client_connect_to_host (client,
-                                                self->host,
+                                                host,
                                                 port,
                                                 cancellable,
                                                 error);
@@ -133,9 +135,10 @@ valent_lan_channel_download (ValentChannel  *channel,
     return NULL;
 
   /* We're the client when downloading */
-  peer_cert = valent_lan_channel_get_peer_certificate (self);
+  cert = valent_lan_channel_ref_certificate (self);
+  peer_cert = valent_lan_channel_ref_peer_certificate (self);
   tls_stream = valent_lan_encrypt_client (connection,
-                                          self->certificate,
+                                          cert,
                                           peer_cert,
                                           cancellable,
                                           error);
@@ -160,7 +163,8 @@ valent_lan_channel_upload (ValentChannel  *channel,
   g_autoptr (GSocketListener) listener = NULL;
   g_autoptr (GSocketConnection) connection = NULL;
   guint16 port;
-  GTlsCertificate *peer_cert;
+  g_autoptr (GTlsCertificate) cert = NULL;
+  g_autoptr (GTlsCertificate) peer_cert = NULL;
   g_autoptr (GIOStream) tls_stream = NULL;
 
   g_assert (VALENT_IS_CHANNEL (channel));
@@ -200,9 +204,10 @@ valent_lan_channel_upload (ValentChannel  *channel,
     return NULL;
 
   /* We're the server when uploading */
-  peer_cert = valent_lan_channel_get_peer_certificate (self);
+  cert = valent_lan_channel_ref_certificate (self);
+  peer_cert = valent_lan_channel_ref_peer_certificate (self);
   tls_stream = valent_lan_encrypt_server (connection,
-                                          self->certificate,
+                                          cert,
                                           peer_cert,
                                           cancellable,
                                           error);
@@ -276,15 +281,15 @@ valent_lan_channel_get_property (GObject    *object,
   switch (prop_id)
     {
     case PROP_CERTIFICATE:
-      g_value_set_object (value, self->certificate);
+      g_value_take_object (value, valent_lan_channel_ref_certificate (self));
       break;
 
     case PROP_HOST:
-      g_value_set_string (value, self->host);
+      g_value_take_string (value, valent_lan_channel_dup_host (self));
       break;
 
     case PROP_PEER_CERTIFICATE:
-      g_value_set_object (value, valent_lan_channel_get_peer_certificate (self));
+      g_value_take_object (value, valent_lan_channel_ref_peer_certificate (self));
       break;
 
     case PROP_PORT:
@@ -307,15 +312,21 @@ valent_lan_channel_set_property (GObject      *object,
   switch (prop_id)
     {
     case PROP_CERTIFICATE:
+      valent_object_lock (VALENT_OBJECT (self));
       self->certificate = g_value_dup_object (value);
+      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     case PROP_HOST:
+      valent_object_lock (VALENT_OBJECT (self));
       self->host = g_value_dup_string (value);
+      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     case PROP_PORT:
+      valent_object_lock (VALENT_OBJECT (self));
       self->port = g_value_get_uint (value);
+      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     default:
@@ -411,62 +422,78 @@ valent_lan_channel_init (ValentLanChannel *self)
 }
 
 /**
- * valent_lan_channel_get_certificate:
+ * valent_lan_channel_ref_certificate:
  * @lan_channel: a #ValentLanChannel
  *
  * Gets @lan_channel's certificate that will be used to authenticate the local
  * device with remote devices.
  *
- * Returns: (nullable) (transfer none): a #GTlsCertificate
+ * Returns: (transfer full) (nullable): a #GTlsCertificate
  */
 GTlsCertificate *
-valent_lan_channel_get_certificate (ValentLanChannel *self)
+valent_lan_channel_ref_certificate (ValentLanChannel *self)
 {
+  GTlsCertificate *ret = NULL;
+
   g_return_val_if_fail (VALENT_IS_LAN_CHANNEL (self), NULL);
 
-  return self->certificate;
+  valent_object_lock (VALENT_OBJECT (self));
+  if (self->certificate != NULL)
+    ret = g_object_ref (self->certificate);
+  valent_object_unlock (VALENT_OBJECT (self));
+
+  return ret;
 }
 
 /**
- * valent_lan_channel_get_peer_certificate:
+ * valent_lan_channel_ref_peer_certificate:
  * @lan_channel: a #ValentLanChannel
  *
  * Gets the peer certificate of the underlying #GTlsConnection, after the
  * handshake has completed. If the connection has not been authenticated, then
  * %NULL will be returned.
  *
- * Returns: (nullable) (transfer none): a #GTlsCertificate
+ * Returns: (transfer full) (nullable): a #GTlsCertificate
  */
 GTlsCertificate *
-valent_lan_channel_get_peer_certificate (ValentLanChannel *self)
+valent_lan_channel_ref_peer_certificate (ValentLanChannel *self)
 {
-  ValentChannel *channel = VALENT_CHANNEL (self);
-  GIOStream *base_stream;
+  g_autoptr (GIOStream) base_stream = NULL;
+  GTlsCertificate *ret = NULL;
 
-  g_return_val_if_fail (VALENT_IS_LAN_CHANNEL (channel), NULL);
+  g_return_val_if_fail (VALENT_IS_LAN_CHANNEL (self), NULL);
 
-  base_stream = valent_channel_get_base_stream (channel);
+  base_stream = valent_channel_ref_base_stream (VALENT_CHANNEL (self));
 
-  if (base_stream == NULL)
-    return NULL;
+  if (base_stream != NULL)
+    ret = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (base_stream));
 
-  return g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (base_stream));
+  if (ret != NULL)
+      g_object_ref (ret);
+
+  return g_steal_pointer (&ret);
 }
 
 /**
- * valent_lan_channel_get_host:
+ * valent_lan_channel_dup_host:
  * @lan_channel: a #ValentLanChannel
  *
  * Gets @lan_channel's host address as a string.
  *
- * Returns: the remote host address.
+ * Returns: (transfer full) (nullable): the remote host address.
  */
-const char *
-valent_lan_channel_get_host (ValentLanChannel *self)
+char *
+valent_lan_channel_dup_host (ValentLanChannel *lan_channel)
 {
-  g_return_val_if_fail (VALENT_LAN_CHANNEL (self), NULL);
+  char *ret;
 
-  return self->host;
+  g_return_val_if_fail (VALENT_LAN_CHANNEL (lan_channel), NULL);
+
+  valent_object_lock (VALENT_OBJECT (lan_channel));
+  ret = g_strdup (lan_channel->host);
+  valent_object_unlock (VALENT_OBJECT (lan_channel));
+
+  return ret;
 }
 
 /**
@@ -478,10 +505,16 @@ valent_lan_channel_get_host (ValentLanChannel *self)
  * Returns: the host port, or %NULL if unavailable.
  */
 guint16
-valent_lan_channel_get_port (ValentLanChannel *self)
+valent_lan_channel_get_port (ValentLanChannel *lan_channel)
 {
-  g_return_val_if_fail (VALENT_IS_LAN_CHANNEL (self), 1716);
+  guint16 ret;
 
-  return self->port;
+  g_return_val_if_fail (VALENT_IS_LAN_CHANNEL (lan_channel), 1716);
+
+  valent_object_lock (VALENT_OBJECT (lan_channel));
+  ret = lan_channel->port;
+  valent_object_unlock (VALENT_OBJECT (lan_channel));
+
+  return ret;
 }
 
