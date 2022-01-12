@@ -49,9 +49,9 @@ race:valent_lan_channel_get_property
 # TODO: ValentLanChanneService::port is construct-only
 race:valent_lan_channel_get_port
 
-# src/plugins/valent-lan-channel-service.c
-race:on_connection
-race:on_packet
+# src/plugins/lan/valent-lan-channel-service.c
+race:on_incoming_connection
+race:on_incoming_broadcast
 race:valent_lan_channel_service_finalize
 race:valent_lan_channel_service_stop
 race:valent_lan_channel_service_tcp_setup
