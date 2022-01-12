@@ -17,7 +17,7 @@
 #include "valent-device-plugin.h"
 #include "valent-device-private.h"
 #include "valent-macros.h"
-#include "valent-object-utils.h"
+#include "valent-object.h"
 #include "valent-packet.h"
 #include "valent-transfer.h"
 #include "valent-utils.h"

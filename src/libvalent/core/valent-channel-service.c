@@ -13,7 +13,7 @@
 #include "valent-data.h"
 #include "valent-debug.h"
 #include "valent-macros.h"
-#include "valent-object-utils.h"
+#include "valent-object.h"
 #include "valent-packet.h"
 #include "valent-utils.h"
 

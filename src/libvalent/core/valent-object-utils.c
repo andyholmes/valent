@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-FileCopyrightText: 2014-2019 Christian Hergert <chergert@redhat.com>
 // SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 #define G_LOG_DOMAIN "valent-object-utils"
 
 #include "config.h"
 
+#include "valent-object.h"
 #include "valent-macros.h"
-#include "valent-object-utils.h"
-#include "valent-utils.h"
 
 
 typedef struct
@@ -40,6 +40,7 @@ valent_object_notify_main (gpointer data)
   return G_SOURCE_REMOVE;
 }
 
+
 /**
  * valent_object_notify:
  * @object: (type GObject.Object): a #GObject
@@ -52,7 +53,7 @@ void
 valent_object_notify (gpointer    object,
                       const char *property_name)
 {
-  g_autofree NotifyEmission *emission = NULL;
+  NotifyEmission *emission = NULL;
 
   g_return_if_fail (G_IS_OBJECT (object));
   g_return_if_fail (property_name != NULL);
@@ -67,7 +68,10 @@ valent_object_notify (gpointer    object,
   emission->object = g_object_ref (object);
   emission->property_name = g_strdup (property_name);
 
-  g_timeout_add (0, valent_object_notify_main, g_steal_pointer (&emission));
+  g_idle_add_full (G_PRIORITY_DEFAULT,
+                   valent_object_notify_main,
+                   g_steal_pointer (&emission),
+                   NULL);
 }
 
 /**
@@ -82,7 +86,7 @@ void
 valent_object_notify_by_pspec (gpointer    object,
                                GParamSpec *pspec)
 {
-  NotifyEmission *emission;
+  NotifyEmission *emission = NULL;
 
   g_return_if_fail (G_IS_OBJECT (object));
   g_return_if_fail (G_IS_PARAM_SPEC (pspec));
@@ -97,7 +101,10 @@ valent_object_notify_by_pspec (gpointer    object,
   emission->object = g_object_ref (object);
   emission->pspec = g_param_spec_ref (pspec);
 
-  g_timeout_add (0, valent_object_notify_main, g_steal_pointer (&emission));
+  g_idle_add_full (G_PRIORITY_DEFAULT,
+                   valent_object_notify_main,
+                   g_steal_pointer (&emission),
+                   NULL);
 }
 
 /**
