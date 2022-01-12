@@ -309,13 +309,23 @@ valent_test_event_push (gpointer event)
   g_queue_push_tail (events, event);
 }
 
+/**
+ * valent_test_load_json:
+ * @path: (type filename): path to JSON file
+ *
+ * A simple convenience to load the JSON at @path.
+ *
+ * Returns: (transfer full): a #JsonNode
+ */
 JsonNode *
 valent_test_load_json (const char *path)
 {
   g_autoptr (JsonParser) parser = NULL;
+  GError *error = NULL;
 
   parser = json_parser_new ();
-  json_parser_load_from_file (parser, path, NULL);
+  json_parser_load_from_file (parser, path, &error);
+  g_assert_no_error (error);
 
   return json_parser_steal_root (parser);
 }

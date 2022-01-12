@@ -24,6 +24,12 @@ test_mousepad_plugin_handle_echo (ValentTestPluginFixture *fixture,
 
   valent_test_plugin_fixture_connect (fixture, TRUE);
 
+  /* Expect remote state */
+  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  v_assert_packet_type (packet, "kdeconnect.mousepad.keyboardstate");
+  v_assert_packet_true (packet, "state");
+  json_node_unref (packet);
+
   /* Mock Echo */
   packet = valent_test_plugin_fixture_lookup_packet (fixture, "echo");
   valent_test_plugin_fixture_handle_packet (fixture, packet);
@@ -36,6 +42,12 @@ test_mousepad_plugin_handle_request (ValentTestPluginFixture *fixture,
   JsonNode *packet;
 
   valent_test_plugin_fixture_connect (fixture, TRUE);
+
+  /* Expect remote state */
+  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  v_assert_packet_type (packet, "kdeconnect.mousepad.keyboardstate");
+  v_assert_packet_true (packet, "state");
+  json_node_unref (packet);
 
   /* Pointer Motion */
   packet = valent_test_plugin_fixture_lookup_packet (fixture, "pointer-motion");
@@ -277,8 +289,16 @@ test_mousepad_plugin_fuzz (ValentTestPluginFixture *fixture,
                            gconstpointer            user_data)
 
 {
+  JsonNode *packet;
+
   valent_test_plugin_fixture_connect (fixture, TRUE);
   g_test_log_set_fatal_handler (valent_test_mute_fuzzing, NULL);
+
+  /* Expect remote state */
+  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  v_assert_packet_type (packet, "kdeconnect.mousepad.keyboardstate");
+  v_assert_packet_true (packet, "state");
+  json_node_unref (packet);
 
   for (unsigned int s = 0; s < G_N_ELEMENTS (schemas); s++)
     valent_test_plugin_fixture_schema_fuzz (fixture, schemas[s]);

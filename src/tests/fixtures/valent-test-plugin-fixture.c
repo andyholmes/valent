@@ -37,22 +37,6 @@ expect_packet_cb (ValentChannel  *channel,
     g_critical ("%s: %s", G_STRFUNC, error->message);
 }
 
-/*
- * Transfer Helpers
- */
-static void
-valent_test_plugin_fixture_init_channel (ValentTestPluginFixture *fixture)
-{
-  g_autofree ValentChannel **channels = NULL;
-  JsonNode *peer_identity;
-
-  peer_identity = valent_test_plugin_fixture_lookup_packet (fixture, "identity");
-  channels = valent_test_channels (peer_identity, peer_identity);
-
-  fixture->channel = g_steal_pointer (&channels[0]);
-  fixture->endpoint = g_steal_pointer(&channels[1]);
-}
-
 /**
  * valent_test_plugin_fixture_new:
  * @path: a path to JSON test data
@@ -98,6 +82,7 @@ void
 valent_test_plugin_fixture_init (ValentTestPluginFixture *fixture,
                                  gconstpointer            user_data)
 {
+  g_autofree ValentChannel **channels = NULL;
   g_autoptr (JsonParser) parser = NULL;
   JsonNode *identity;
 
@@ -115,7 +100,10 @@ valent_test_plugin_fixture_init (ValentTestPluginFixture *fixture,
   identity = valent_test_plugin_fixture_lookup_packet (fixture, "identity");
   valent_device_handle_packet (fixture->device, identity);
 
-  valent_test_plugin_fixture_init_channel (fixture);
+  /* Init channels */
+  channels = valent_test_channels (identity, identity);
+  fixture->channel = g_steal_pointer (&channels[0]);
+  fixture->endpoint = g_steal_pointer(&channels[1]);
 }
 
 /**
@@ -150,12 +138,12 @@ valent_test_plugin_fixture_clear (ValentTestPluginFixture *fixture,
   if (fixture->endpoint)
     {
       valent_channel_close (fixture->endpoint, NULL, NULL);
-      g_clear_object (&fixture->endpoint);
+      v_assert_finalize_object (fixture->endpoint);
     }
 
   if (fixture->channel)
     {
-      valent_channel_close_async (fixture->channel, NULL, NULL, NULL);
+      valent_channel_close (fixture->channel, NULL, NULL);
       v_assert_finalize_object (fixture->channel);
     }
 
