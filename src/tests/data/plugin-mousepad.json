@@ -23,7 +23,8 @@
     "id": 0,
     "type": "kdeconnect.mousepad.echo",
     "body": {
-      "key": "a"
+      "key": "a",
+      "isAck": true
     }
   },
   "keyboardstate-true": {
