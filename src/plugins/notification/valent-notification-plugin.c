@@ -241,16 +241,8 @@ icon_to_png_bytes (GIcon         *icon,
 
       buffer = g_bytes_icon_get_bytes (G_BYTES_ICON (icon));
 
-      if (buffer == NULL)
-        {
-          g_set_error (error,
-                       G_IO_ERROR,
-                       G_IO_ERROR_FAILED,
-                       "Failed to load bytes from icon");
-          return NULL;
-        }
-
-      bytes = g_bytes_ref (buffer);
+      if (buffer != NULL)
+        bytes = g_bytes_ref (buffer);
     }
 
   if (bytes == NULL)
@@ -306,27 +298,21 @@ valent_notification_plugin_get_icon_file (ValentNotificationPlugin *self,
 
   body = valent_packet_get_body (packet);
 
-  /* Check for a payload hash */
   if ((payload_hash = valent_packet_check_string (body, "payloadHash")) != NULL)
     {
       ValentData *data;
-      g_autofree char *path = NULL;
 
-      /* Build a filename in the notification cache of the device context */
       data = valent_device_get_data (self->device);
-      path = g_build_filename (valent_data_get_cache_path (data),
-                               "notification",
-                               payload_hash,
-                               NULL);
-
-      file = g_file_new_for_path (path);
+      file = g_file_new_build_filename (valent_data_get_cache_path (data),
+                                        "notification",
+                                        payload_hash,
+                                        NULL);
     }
   else
     {
-      GFileIOStream *stream = NULL;
+      g_autoptr (GFileIOStream) stream = NULL;
 
       file = g_file_new_tmp ("valent-notification-icon.XXXXXX", &stream, NULL);
-      g_object_unref (stream);
     }
 
   return g_steal_pointer (&file);
@@ -377,6 +363,14 @@ download_icon_task (GTask        *task,
                                           "Device is disconnected");
         }
 
+      source = valent_channel_download (channel, packet, cancellable, &error);
+
+      if (source == NULL)
+        {
+          g_file_delete (file, NULL, NULL);
+          return g_task_return_error (task, error);
+        }
+
       /* Get the output stream */
       target = g_file_replace (file,
                                NULL,
@@ -391,20 +385,12 @@ download_icon_task (GTask        *task,
           return g_task_return_error (task, error);
         }
 
-      source = valent_channel_download (channel, packet, cancellable, &error);
-
-      if (source == NULL)
-        {
-          g_file_delete (file, NULL, NULL);
-          return g_task_return_error (task, error);
-        }
-
       /* Start download */
       g_output_stream_splice (G_OUTPUT_STREAM (target),
                               g_io_stream_get_input_stream (source),
                               (G_OUTPUT_STREAM_SPLICE_CLOSE_SOURCE |
                                G_OUTPUT_STREAM_SPLICE_CLOSE_TARGET),
-                              NULL,
+                              cancellable,
                               &error);
 
       if (error != NULL)
@@ -444,7 +430,9 @@ valent_notification_plugin_download_icon (ValentNotificationPlugin *self,
 {
   g_autoptr (GTask) task = NULL;
 
-  g_return_if_fail (VALENT_IS_PACKET (packet));
+  g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
+  g_assert (VALENT_IS_PACKET (packet));
+  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   task = g_task_new (self, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_notification_plugin_download_icon);
