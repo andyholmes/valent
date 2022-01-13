@@ -386,9 +386,8 @@ dup_capabilities (JsonObject *body,
   JsonArray *array;
   unsigned int len;
 
-  node = json_object_get_member (body, member);
-
-  if G_UNLIKELY (node == NULL || !JSON_NODE_HOLDS_ARRAY (node))
+  if G_UNLIKELY ((node = json_object_get_member (body, member)) == NULL ||
+                 json_node_get_value_type (node) != JSON_TYPE_ARRAY)
     return NULL;
 
   array = json_node_get_array (node);
@@ -399,8 +398,7 @@ dup_capabilities (JsonObject *body,
     {
       JsonNode *element = json_array_get_element (array, i);
 
-      if G_UNLIKELY (!JSON_NODE_HOLDS_VALUE (element) ||
-                     json_node_get_value_type (element) != G_TYPE_STRING)
+      if G_UNLIKELY (json_node_get_value_type (element) != G_TYPE_STRING)
         return NULL;
 
       strv[i] = json_node_dup_string (element);
