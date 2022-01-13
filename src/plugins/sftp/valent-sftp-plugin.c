@@ -40,11 +40,13 @@ enum {
 static char *
 get_device_host (ValentSftpPlugin *self)
 {
-  ValentChannel *channel;
-  GParamSpec *pspec = NULL;
+  g_autoptr (ValentChannel) channel = NULL;
   g_autofree char *host = NULL;
+  GParamSpec *pspec = NULL;
 
-  channel = valent_device_get_channel (self->device);
+  /* The plugin doesn't know ValentChannel derivations, so we have to check for
+   * a "host" property to ensure it's IP-based */
+  channel = valent_device_ref_channel (self->device);
 
   if G_LIKELY (channel != NULL)
     pspec = g_object_class_find_property (G_OBJECT_GET_CLASS (channel), "host");
@@ -407,18 +409,20 @@ sftp_session_begin (ValentSftpPlugin  *self,
 {
   g_autoptr (GSubprocess) proc = NULL;
   g_autoptr (GError) error = NULL;
-  ValentData *data;
+  g_autoptr (ValentData) data = NULL;
+  ValentData *root_data;
   g_autofree char *path = NULL;
 
   g_assert (VALENT_IS_SFTP_PLUGIN (self));
 
   /* Get the manager's data object */
-  data = valent_data_get_parent (valent_device_get_data (self->device));
-  path = g_build_filename (valent_data_get_config_path (data),
-                           "private.pem",
-                           NULL);
+  data = valent_device_ref_data (self->device);
+  root_data = valent_data_get_parent (data);
 
   /* Add the private key to the ssh-agent */
+  path = g_build_filename (valent_data_get_config_path (root_data),
+                           "private.pem",
+                           NULL);
   proc = g_subprocess_new (G_SUBPROCESS_FLAGS_STDOUT_SILENCE |
                            G_SUBPROCESS_FLAGS_STDERR_MERGE,
                            &error,

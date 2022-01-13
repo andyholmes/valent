@@ -179,7 +179,7 @@ on_state_changed (ValentDevice      *device,
                   ValentDevicePanel *self)
 {
   ValentDeviceState state = VALENT_DEVICE_STATE_NONE;
-  ValentChannel *channel;
+  g_autoptr (ValentChannel) channel = NULL;
   const char *verification_key = NULL;
   gboolean connected, paired, pair_incoming, pair_outgoing;
 
@@ -200,9 +200,7 @@ on_state_changed (ValentDevice      *device,
     return;
 
   /* Get the channel verification key */
-  channel = valent_device_get_channel (self->device);
-
-  if (channel != NULL)
+  if ((channel = valent_device_ref_channel (self->device)) != NULL)
     verification_key = valent_channel_get_verification_key (channel);
   else
     verification_key = _("Unavailable");

@@ -300,9 +300,9 @@ valent_notification_plugin_get_icon_file (ValentNotificationPlugin *self,
 
   if ((payload_hash = valent_packet_check_string (body, "payloadHash")) != NULL)
     {
-      ValentData *data;
+      g_autoptr (ValentData) data = NULL;
 
-      data = valent_device_get_data (self->device);
+      data = valent_device_ref_data (self->device);
       file = g_file_new_build_filename (valent_data_get_cache_path (data),
                                         "notification",
                                         payload_hash,
@@ -340,7 +340,7 @@ download_icon_task (GTask        *task,
       g_autoptr (GIOStream) source = NULL;
       g_autoptr (GFileOutputStream) target = NULL;
       g_autoptr (GFile) cache_dir = NULL;
-      ValentChannel *channel;
+      g_autoptr (ValentChannel) channel = NULL;
 
       /* Ensure the cache directory exists */
       cache_dir = g_file_get_parent (file);
@@ -355,7 +355,7 @@ download_icon_task (GTask        *task,
         }
 
       /* Get the device channel */
-      if ((channel = valent_device_get_channel (self->device)) == NULL)
+      if ((channel = valent_device_ref_channel (self->device)) == NULL)
         {
           return g_task_return_new_error (task,
                                           G_IO_ERROR,

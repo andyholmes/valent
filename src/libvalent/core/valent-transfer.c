@@ -241,16 +241,14 @@ execute_task (GTask        *task,
   for (unsigned int i = 0; i < priv->items->len; i++)
     {
       TransferItem *item = g_ptr_array_index (priv->items, i);
-      ValentChannel *channel;
+      g_autoptr (ValentChannel) channel = NULL;
 
       if (g_task_return_error_if_cancelled (task))
         return;
 
       /* If the device has no channel, that means it's disconnected and we can't
        * tell it we're ready to download or upload via the packet channel */
-      channel = valent_device_get_channel (priv->device);
-
-      if (channel == NULL)
+      if ((channel = valent_device_ref_channel (priv->device)) == NULL)
         return g_task_return_new_error (task,
                                         G_IO_ERROR,
                                         G_IO_ERROR_CONNECTION_CLOSED,
@@ -550,7 +548,7 @@ valent_transfer_cache_file (ValentTransfer *transfer,
                             const char     *name)
 {
   ValentTransferPrivate *priv = valent_transfer_get_instance_private (transfer);
-  ValentData *data;
+  g_autoptr (ValentData) data = NULL;
   g_autofree char *hash = NULL;
   TransferItem *item;
 
@@ -560,7 +558,7 @@ valent_transfer_cache_file (ValentTransfer *transfer,
   g_return_val_if_fail (valent_packet_has_payload (packet), NULL);
 
   /* Hash the given name to ensure it's a safe filename */
-  data = valent_device_get_data (priv->device);
+  data = valent_device_ref_data (priv->device);
   hash = g_compute_checksum_for_string (G_CHECKSUM_MD5, name, -1);
 
   item = g_new0 (TransferItem, 1);

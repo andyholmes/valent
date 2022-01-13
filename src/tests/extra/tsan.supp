@@ -8,19 +8,8 @@
 #
 mutex:valent_*_get_type_once
 
-# src/libvalent/core/valent-data.c
-race:valent_data_finalize
-
-# src/libvalent/core/valent-device.c
-race:valent_device_get_channel
-race:valent_device_get_data
-
 # src/libvalent/core/valent-transfer.c
 race:execute_task
-race:transfer_item_free
-race:transfer_item_prepare
-race:valent_transfer_dispose
-race:valent_transfer_finalize
 
 # src/libvalent/contacts/valent-contact-store.c
 race:emit_change_main
