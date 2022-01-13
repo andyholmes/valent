@@ -27,7 +27,6 @@ typedef struct
 
   /* Endpoint */
   GTlsCertificate      *certificate;
-  GSocketListener      *listener;
   ValentChannel        *endpoint;
   GSocket              *socket;
 
@@ -95,6 +94,7 @@ lan_service_fixture_tear_down (LanBackendFixture *fixture,
     continue;
 
   g_clear_pointer (&fixture->loop, g_main_loop_unref);
+  g_clear_pointer (&fixture->packets, json_node_unref);
 
   v_assert_finalize_object (fixture->service);
   g_assert_finalize_object (fixture->channel);
@@ -102,42 +102,49 @@ lan_service_fixture_tear_down (LanBackendFixture *fixture,
   g_assert_finalize_object (fixture->endpoint);
   g_assert_finalize_object (fixture->certificate);
   g_assert_finalize_object (fixture->socket);
-
-  if (fixture->listener != NULL)
-    g_assert_finalize_object (fixture->listener);
-  g_clear_pointer (&fixture->packets, json_node_unref);
 }
 
+/*
+ * Endpoint Service
+ */
 static void
-accept_cb (GSocketListener   *listener,
-           GAsyncResult      *result,
-           LanBackendFixture *fixture)
+g_socket_listener_accept_cb (GSocketListener   *listener,
+                             GAsyncResult      *result,
+                             LanBackendFixture *fixture)
 {
   g_autoptr (GSocketConnection) connection = NULL;
   g_autoptr (JsonNode) peer_identity = NULL;
   JsonNode *identity;
   const char *device_id;
   g_autoptr (GIOStream) tls_stream = NULL;
+  GError *error = NULL;
 
   connection = g_socket_listener_accept_finish (listener, result, NULL, NULL);
 
-  /* The incoming TCP connection is in response to an outgoing UDP packet, so
-   * the peer must now write its identity packet */
-  peer_identity = valent_packet_from_stream (g_io_stream_get_input_stream ((GIOStream *)connection),
-                                             NULL, NULL);
-  g_assert_nonnull (peer_identity);
+  /* The incoming TCP connection is in response to the mock UDP packet we sent,
+   * so we now expect the test service to write its identity packet.
+   */
+  peer_identity = valent_packet_from_stream (g_io_stream_get_input_stream (G_IO_STREAM (connection)),
+                                             NULL,
+                                             &error);
+  g_assert_no_error (error);
+  g_assert_true (VALENT_IS_PACKET (peer_identity));
 
-  /* Now that we have the device ID we can authorize or reject certificates.
-   * NOTE: We're the client when accepting incoming connections */
+  /* The test service is unverified, so we expect it to be accepted on a
+   * trust-on-first-use basis.
+   */
   device_id = valent_identity_get_device_id (peer_identity);
   tls_stream = valent_lan_encrypt_new_client (connection,
                                               fixture->certificate,
                                               device_id,
                                               NULL,
-                                              NULL);
-  g_assert_nonnull (tls_stream);
+                                              &error);
+  g_assert_no_error (error);
+  g_assert_true (G_IS_TLS_CONNECTION (tls_stream));
 
-  /* Create the new channel */
+  /* We're pretending to be a remote service, so we create an endpoint channel
+   * so that we can pop packets of it from the test service.
+   */
   identity = json_object_get_member (json_node_get_object (fixture->packets),
                                      "identity");
   fixture->endpoint = g_object_new (VALENT_TYPE_LAN_CHANNEL,
@@ -153,7 +160,7 @@ accept_cb (GSocketListener   *listener,
 }
 
 static void
-accept_connection (LanBackendFixture *fixture)
+await_incoming_connection (LanBackendFixture *fixture)
 {
   GError *error = NULL;
   g_autoptr (GSocketListener) listener = NULL;
@@ -165,38 +172,147 @@ accept_connection (LanBackendFixture *fixture)
 
   g_socket_listener_accept_async (listener,
                                   NULL,
-                                  (GAsyncReadyCallback)accept_cb,
+                                  (GAsyncReadyCallback)g_socket_listener_accept_cb,
                                   fixture);
 }
 
 static void
-start_cb (ValentChannelService *service,
-          GAsyncResult         *result,
-          LanBackendFixture    *fixture)
+g_socket_client_connect_to_host_cb (GSocketClient     *client,
+                                    GAsyncResult      *result,
+                                    LanBackendFixture *fixture)
 {
-  g_autoptr (GError) error = NULL;
+  g_autoptr (GSocketConnection) connection = NULL;
+  JsonNode *identity;
+  g_autoptr (JsonNode) peer_identity = NULL;
+  GOutputStream *output_stream;
+  g_autoptr (GIOStream) tls_stream = NULL;
+  GError *error = NULL;
 
-  valent_channel_service_start_finish (service, result, &error);
+  identity = json_object_get_member (json_node_get_object (fixture->packets),
+                                     "identity");
+
+  connection = g_socket_client_connect_to_host_finish (client, result, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (connection);
+
+  /* We opened a TCP connection in response to the incoming UDP broadcast so the
+   * test service now expects us to write our identity packet.
+   */
+  output_stream = g_io_stream_get_output_stream (G_IO_STREAM (connection));
+  valent_packet_to_stream (output_stream, identity, NULL, &error);
   g_assert_no_error (error);
 
-  g_main_loop_quit (fixture->loop);
+  /* The test service is unverified, so we expect it to be accepted on a
+   * trust-on-first-use basis.
+   */
+  tls_stream = valent_lan_encrypt_new_server (connection,
+                                              fixture->certificate,
+                                              "test-device",
+                                              NULL,
+                                              &error);
+  g_assert_no_error (error);
+  g_assert_true (G_IS_TLS_CONNECTION (tls_stream));
+
+  /* We're pretending to be a remote service, so we create an endpoint channel
+   * so that we can pop packets of it from the test service.
+   */
+  peer_identity = g_steal_pointer (&fixture->data);
+  fixture->endpoint = g_object_new (VALENT_TYPE_LAN_CHANNEL,
+                                    "base-stream",   tls_stream,
+                                    "certificate",   fixture->certificate,
+                                    "host",          SERVICE_HOST,
+                                    "port",          SERVICE_PORT,
+                                    "identity",      identity,
+                                    "peer-identity", peer_identity,
+                                    NULL);
 }
 
 static void
-on_broadcast (GDataInputStream  *stream,
-              GAsyncResult      *result,
-              LanBackendFixture *fixture)
+on_incoming_broadcast (GDataInputStream  *stream,
+                       GAsyncResult      *result,
+                       LanBackendFixture *fixture)
 {
+  g_autoptr (GSocketClient) client = NULL;
   g_autofree char *line = NULL;
   GError *error = NULL;
 
-  line = g_data_input_stream_read_line_finish_utf8 (stream, result, NULL, &error);
+  line = g_data_input_stream_read_line_finish_utf8 (stream,
+                                                    result,
+                                                    NULL,
+                                                    &error);
   g_assert_no_error (error);
   g_assert_nonnull (line);
 
   fixture->data = valent_packet_deserialize (line, &error);
   g_assert_no_error (error);
   g_assert_nonnull (fixture->data);
+
+  /* We opened a TCP connection in response to the incoming UDP broadcast so the
+   * test service now expects us to write our identity packet.
+   */
+  client = g_object_new (G_TYPE_SOCKET_CLIENT,
+                         "enable-proxy", FALSE,
+                         NULL);
+
+  g_socket_client_connect_to_host_async (client,
+                                         SERVICE_ADDR,
+                                         SERVICE_PORT,
+                                         NULL,
+                                         (GAsyncReadyCallback)g_socket_client_connect_to_host_cb,
+                                         fixture);
+}
+
+static void
+on_incoming_transfer (ValentChannel *endpoint,
+                      GAsyncResult  *result,
+                      gpointer       user_data)
+{
+  g_autoptr (JsonNode) packet = NULL;
+  g_autoptr (GIOStream) stream = NULL;
+  g_autoptr (GOutputStream) target = NULL;
+  goffset payload_size, transferred;
+  GError *error = NULL;
+
+  /* We expect the packet to be properly populated with payload information */
+  packet = valent_channel_read_packet_finish (endpoint, result, &error);
+  g_assert_no_error (error);
+  g_assert_true (VALENT_IS_PACKET (packet));
+  g_assert_true (valent_packet_has_payload (packet));
+
+  payload_size = valent_packet_get_payload_size (packet);
+  g_assert_cmpint (payload_size, >, 0);
+
+  /* We expect to be able to create a transfer stream from the packet */
+  stream = valent_channel_download (endpoint, packet, NULL, &error);
+  g_assert_no_error (error);
+  g_assert_true (G_IS_IO_STREAM (stream));
+
+  /* We expect to be able to transfer the full payload */
+  target = g_memory_output_stream_new_resizable ();
+  transferred = g_output_stream_splice (target,
+                                        g_io_stream_get_input_stream (stream),
+                                        (G_OUTPUT_STREAM_SPLICE_CLOSE_SOURCE |
+                                         G_OUTPUT_STREAM_SPLICE_CLOSE_TARGET),
+                                        NULL,
+                                        &error);
+  g_assert_no_error (error);
+  g_assert_cmpint (transferred, ==, payload_size);
+}
+
+/*
+ * Test Service Callbacks
+ */
+static void
+start_cb (ValentChannelService *service,
+          GAsyncResult         *result,
+          LanBackendFixture    *fixture)
+{
+  gboolean ret;
+  GError *error = NULL;
+
+  ret = valent_channel_service_start_finish (service, result, &error);
+  g_assert_no_error (error);
+  g_assert_true (ret);
 
   g_main_loop_quit (fixture->loop);
 }
@@ -211,51 +327,6 @@ on_channel (ValentChannelService *service,
 }
 
 static void
-connect_to_host_cb (GSocketClient     *client,
-                    GAsyncResult      *result,
-                    LanBackendFixture *fixture)
-{
-  g_autoptr (GSocketConnection) connection = NULL;
-  GOutputStream *output_stream;
-  g_autoptr (GIOStream) tls_stream = NULL;
-  GError *error = NULL;
-  JsonNode *identity;
-
-  identity = json_object_get_member (json_node_get_object (fixture->packets),
-                                     "identity");
-
-  connection = g_socket_client_connect_to_host_finish (client, result, &error);
-  g_assert_no_error (error);
-  g_assert_nonnull (connection);
-
-  /* Write the local identity. Once we do this, both peers will have the ability
-   * to authenticate or reject TLS certificates.
-   */
-  output_stream = g_io_stream_get_output_stream (G_IO_STREAM (connection));
-  valent_packet_to_stream (output_stream, identity, NULL, &error);
-  g_assert_no_error (error);
-
-  /* We're the TLS Server when responding to identity broadcasts */
-  tls_stream = valent_lan_encrypt_new_server (connection,
-                                              fixture->certificate,
-                                              "test-device",
-                                              NULL,
-                                              &error);
-  g_assert_no_error (error);
-
-  /* Create new channel */
-  fixture->endpoint = g_object_new (VALENT_TYPE_LAN_CHANNEL,
-                                    "base-stream",   tls_stream,
-                                    "certificate",   fixture->certificate,
-                                    "host",          SERVICE_HOST,
-                                    "port",          SERVICE_PORT,
-                                    "identity",      identity,
-                                    "peer-identity", fixture->data,
-                                    NULL);
-  g_clear_pointer (&fixture->data, json_node_unref);
-}
-
-static void
 test_lan_service_incoming_broadcast (LanBackendFixture *fixture,
                                      gconstpointer      user_data)
 {
@@ -264,15 +335,14 @@ test_lan_service_incoming_broadcast (LanBackendFixture *fixture,
   JsonNode *identity;
   g_autofree char *identity_json = NULL;
 
-  /* Start the service */
   valent_channel_service_start (fixture->service,
                                 NULL,
                                 (GAsyncReadyCallback)start_cb,
                                 fixture);
   g_main_loop_run (fixture->loop);
 
-  /* Wait for the TCP connection */
-  accept_connection (fixture);
+  /* Listen for an incoming TCP connection */
+  await_incoming_connection (fixture);
 
   /* Identify the mock endpoint to the service */
   address = g_inet_socket_address_new_from_string (SERVICE_HOST, SERVICE_PORT);
@@ -294,6 +364,7 @@ test_lan_service_incoming_broadcast (LanBackendFixture *fixture,
                     fixture);
   g_main_loop_run (fixture->loop);
 
+  g_signal_handlers_disconnect_by_data (fixture->service, fixture);
   valent_channel_service_stop (fixture->service);
 }
 
@@ -303,78 +374,38 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
 {
   g_autoptr (GInputStream) unix_stream = NULL;
   g_autoptr (GDataInputStream) data_stream = NULL;
-  g_autoptr (GSocketClient) client = NULL;
 
-  /* Start the service */
   valent_channel_service_start (fixture->service,
                                 NULL,
                                 (GAsyncReadyCallback)start_cb,
                                 fixture);
   g_main_loop_run (fixture->loop);
 
-  /* Identify the service to the mock endpoint */
+  /* Send a UDP broadcast directly to the mock endpoint. When the identity
+   * packet is received, the mock endpoint will respond by opening a TCP
+   * connection to the test service.
+   */
   valent_channel_service_identify (fixture->service, ENDPOINT_ADDR);
 
-  unix_stream = g_unix_input_stream_new (g_socket_get_fd (fixture->socket), FALSE);
+  unix_stream = g_unix_input_stream_new (g_socket_get_fd (fixture->socket), TRUE);
   data_stream = g_data_input_stream_new (unix_stream);
   g_data_input_stream_read_line_async (data_stream,
                                        G_PRIORITY_DEFAULT,
                                        NULL,
-                                       (GAsyncReadyCallback)on_broadcast,
+                                       (GAsyncReadyCallback)on_incoming_broadcast,
                                        fixture);
-  g_main_loop_run (fixture->loop);
 
-  /* Open a TCP connection */
-  client = g_object_new (G_TYPE_SOCKET_CLIENT,
-                         "enable-proxy", FALSE,
-                         NULL);
-
-  g_socket_client_connect_to_host_async (client,
-                                         SERVICE_ADDR,
-                                         SERVICE_PORT,
-                                         NULL,
-                                         (GAsyncReadyCallback)connect_to_host_cb,
-                                         fixture);
-
+  /* When the test service accepts the incoming connection, it should negotiate
+   * the TLS connection and create a channel.
+   */
   g_signal_connect (fixture->service,
                     "channel",
                     G_CALLBACK (on_channel),
                     fixture);
   g_main_loop_run (fixture->loop);
 
+  g_signal_handlers_disconnect_by_data (fixture->service, fixture);
   valent_channel_service_stop (fixture->service);
-}
-
-static void
-accept_upload_cb (ValentChannel *channel,
-                  GAsyncResult  *result,
-                  gpointer       user_data)
-{
-  g_autoptr (JsonNode) packet = NULL;
-  g_autoptr (GIOStream) stream = NULL;
-  g_autoptr (GOutputStream) target = NULL;
-  gssize size, transferred;
-  GError *error = NULL;
-
-  packet = valent_channel_read_packet_finish (channel, result, &error);
-  g_assert_no_error (error);
-
-  size = valent_packet_get_payload_size (packet);
-  g_assert_cmpint (size, >, -1);
-
-  stream = valent_channel_download (channel, packet, NULL, &error);
-  g_assert_no_error (error);
-
-  target = g_memory_output_stream_new_resizable ();
-  transferred = g_output_stream_splice (target,
-                                        g_io_stream_get_input_stream (stream),
-                                        (G_OUTPUT_STREAM_SPLICE_CLOSE_SOURCE |
-                                         G_OUTPUT_STREAM_SPLICE_CLOSE_TARGET),
-                                        NULL,
-                                        &error);
-
-  g_assert_no_error (error);
-  g_assert_cmpint (size, ==, transferred);
 }
 
 static void
@@ -385,21 +416,21 @@ test_lan_service_channel (LanBackendFixture *fixture,
   JsonNode *packet;
   g_autoptr (GSocketAddress) address = NULL;
   g_autofree char *identity_str = NULL;
-  const char *verification_key;
+  const char *channel_verification;
+  const char *endpoint_verification;
   char *host;
   GTlsCertificate *certificate, *peer_certificate, *cert_cmp;
   guint16 port;
   g_autoptr (GFile) file = NULL;
 
-  /* Start the service */
   valent_channel_service_start (fixture->service,
                                 NULL,
                                 (GAsyncReadyCallback)start_cb,
                                 fixture);
   g_main_loop_run (fixture->loop);
 
-  /* Wait for the TCP connection */
-  accept_connection (fixture);
+  /* Listen for an incoming TCP connection */
+  await_incoming_connection (fixture);
 
   /* Identify the mock endpoint to the service */
   address = g_inet_socket_address_new_from_string (SERVICE_HOST, SERVICE_PORT);
@@ -422,9 +453,6 @@ test_lan_service_channel (LanBackendFixture *fixture,
   g_main_loop_run (fixture->loop);
 
   /* Properties */
-  verification_key = valent_channel_get_verification_key (fixture->channel);
-  g_assert_nonnull (verification_key);
-
   g_object_get (fixture->channel,
                 "certificate",      &certificate,
                 "peer-certificate", &peer_certificate,
@@ -447,6 +475,12 @@ test_lan_service_channel (LanBackendFixture *fixture,
   g_assert_cmpuint (port, ==, ENDPOINT_PORT);
   g_free (host);
 
+  channel_verification = valent_channel_get_verification_key (fixture->channel);
+  endpoint_verification = valent_channel_get_verification_key (fixture->endpoint);
+  g_assert_nonnull (channel_verification);
+  g_assert_nonnull (endpoint_verification);
+  g_assert_cmpstr (channel_verification, ==, endpoint_verification);
+
   /* Transfers */
   file = g_file_new_for_path (TEST_DATA_DIR"image.png");
   packet = json_object_get_member (json_node_get_object (fixture->packets),
@@ -454,12 +488,12 @@ test_lan_service_channel (LanBackendFixture *fixture,
 
   valent_channel_read_packet (fixture->endpoint,
                               NULL,
-                              (GAsyncReadyCallback)accept_upload_cb,
+                              (GAsyncReadyCallback)on_incoming_transfer,
                               NULL);
   valent_test_upload (fixture->channel, packet, file, &error);
   g_assert_no_error (error);
 
-
+  g_signal_handlers_disconnect_by_data (fixture->service, fixture);
   valent_channel_service_stop (fixture->service);
 }
 
