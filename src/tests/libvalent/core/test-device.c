@@ -130,6 +130,7 @@ test_device_new (void)
   g_autofree char *icon_name = NULL;
   g_autofree char *id = NULL;
   g_autofree char *name = NULL;
+  g_autofree char *type = NULL;
   gboolean paired;
 
   GMenuModel *menu;
@@ -142,13 +143,15 @@ test_device_new (void)
                 "id",        &id,
                 "icon-name", &icon_name,
                 "name",      &name,
+                "type",      &type,
                 "connected", &connected,
                 "paired",    &paired,
                 NULL);
 
-  /* id should be set, but everything else should be default or NULL */
+  /* id should be set, but everything else should be %FALSE or %NULL */
   g_assert_cmpstr (id, ==, "test-device");
-  g_assert_cmpstr (icon_name, ==, "computer-symbolic");
+  g_assert_null (icon_name);
+  g_assert_null (type);
   g_assert_null (name);
   g_assert_false (connected);
   g_assert_false (paired);

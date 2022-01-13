@@ -47,22 +47,22 @@
 
 struct _ValentDevice
 {
-  GObject              parent_instance;
+  ValentObject         parent_instance;
 
   ValentData          *data;
   GSettings           *settings;
 
   /* Device Properties */
-  gboolean             connected;
+  char                *icon_name;
   char                *id;
   char                *name;
-  gboolean             paired;
   char                *type;
   char               **incoming_capabilities;
   char               **outgoing_capabilities;
 
-  /* Channel */
+  /* State */
   ValentChannel       *channel;
+  gboolean             paired;
   unsigned int         incoming_pair;
   unsigned int         outgoing_pair;
 
@@ -76,12 +76,10 @@ struct _ValentDevice
   GMenu               *menu;
 };
 
-static void valent_device_set_connected  (ValentDevice *device,
-                                          gboolean      connected);
-static void valent_device_reload_plugins (ValentDevice *device);
-static void valent_device_update_plugins (ValentDevice *device);
+static void   valent_device_reload_plugins (ValentDevice *device);
+static void   valent_device_update_plugins (ValentDevice *device);
 
-G_DEFINE_TYPE (ValentDevice, valent_device, G_TYPE_OBJECT)
+G_DEFINE_TYPE (ValentDevice, valent_device, VALENT_TYPE_OBJECT)
 
 
 enum {
@@ -243,8 +241,10 @@ send_pair_cb (ValentChannel *channel,
 
       valent_device_reset_pair (device);
 
+      valent_object_lock (VALENT_OBJECT (device));
       if (device->channel == channel)
         valent_device_set_channel (device, NULL);
+      valent_object_unlock (VALENT_OBJECT (device));
     }
 
   g_object_unref (device);
@@ -260,8 +260,13 @@ valent_device_send_pair (ValentDevice *device,
 
   g_assert (VALENT_IS_DEVICE (device));
 
-  if (!device->connected)
-    return;
+  valent_object_lock (VALENT_OBJECT (device));
+
+  if (device->channel == NULL)
+    {
+      valent_object_unlock (VALENT_OBJECT (device));
+      return;
+    }
 
   builder = valent_packet_start ("kdeconnect.pair");
   json_builder_set_member_name (builder, "pair");
@@ -273,6 +278,8 @@ valent_device_send_pair (ValentDevice *device,
                                cancellable,
                                (GAsyncReadyCallback)send_pair_cb,
                                g_object_ref (device));
+
+  valent_object_unlock (VALENT_OBJECT (device));
 }
 
 static void
@@ -419,6 +426,8 @@ valent_device_handle_identity (ValentDevice *device,
   g_assert (VALENT_IS_DEVICE (device));
   g_assert (VALENT_IS_PACKET (packet));
 
+  valent_object_lock (VALENT_OBJECT (device));
+
   body = valent_packet_get_body (packet);
 
   /* Check if the name changed */
@@ -440,9 +449,25 @@ valent_device_handle_identity (ValentDevice *device,
 
   if (g_strcmp0 (device->type, device_type) != 0)
     {
+      const char *device_icon = "computer-symbolic";
+
+      if (g_strcmp0 (device_type, "desktop") == 0)
+        device_icon = "computer-symbolic";
+      else if (g_strcmp0 (device_type, "laptop") == 0)
+        device_icon = "laptop-symbolic";
+      else if (g_strcmp0 (device_type, "phone") == 0)
+        device_icon = "smartphone-symbolic";
+      else if (g_strcmp0 (device_type, "tablet") == 0)
+        device_icon = "tablet-symbolic";
+      else if (g_strcmp0 (device_type, "tv") == 0)
+        device_icon = "tv-symbolic";
+
+      g_clear_pointer (&device->icon_name, g_free);
+      device->icon_name = g_strdup (device_icon);
+      g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_ICON_NAME]);
+
       g_clear_pointer (&device->type, g_free);
       device->type = g_strdup (device_type);
-      g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_ICON_NAME]);
       g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_TYPE]);
     }
 
@@ -453,6 +478,8 @@ valent_device_handle_identity (ValentDevice *device,
 
   g_clear_pointer (&device->outgoing_capabilities, g_strfreev);
   device->outgoing_capabilities = dup_capabilities (body, "outgoingCapabilities");
+
+  valent_object_unlock (VALENT_OBJECT (device));
 
   /* Recheck plugins and load or unload if capabilities have changed */
   valent_device_reload_plugins (device);
@@ -571,9 +598,7 @@ unpair_action (GSimpleAction *action,
 {
   ValentDevice *device = VALENT_DEVICE (user_data);
 
-  if (device->connected)
-    valent_device_send_pair (device, FALSE);
-
+  valent_device_send_pair (device, FALSE);
   valent_device_set_paired (device, FALSE);
 
   valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
@@ -657,6 +682,7 @@ valent_device_finalize (GObject *object)
   ValentDevice *self = VALENT_DEVICE (object);
 
   /* Device Properties */
+  g_clear_pointer (&self->icon_name, g_free);
   g_clear_pointer (&self->id, g_free);
   g_clear_pointer (&self->name, g_free);
   g_clear_pointer (&self->type, g_free);
@@ -686,15 +712,15 @@ valent_device_get_property (GObject    *object,
   switch (prop_id)
     {
     case PROP_CONNECTED:
-      g_value_set_boolean (value, self->connected);
+      g_value_set_boolean (value, valent_device_get_connected (self));
       break;
 
     case PROP_DATA:
-      g_value_set_object (value, self->data);
+      g_value_take_object (value, valent_device_ref_data (self));
       break;
 
     case PROP_ICON_NAME:
-      g_value_set_string (value, valent_device_get_icon_name (self));
+      g_value_set_string (value, self->icon_name);
       break;
 
     case PROP_ID:
@@ -978,11 +1004,12 @@ queue_packet_cb (ValentChannel *channel,
 
   if (!valent_channel_write_packet_finish (channel, result, &error))
     {
-      if G_UNLIKELY (error && error->domain != G_IO_ERROR)
-        VALENT_NOTE ("%s: %s", device->name, error->message);
+      VALENT_NOTE ("%s: %s", device->name, error->message);
 
+      valent_object_lock (VALENT_OBJECT (device));
       if (device->channel == channel)
         valent_device_set_channel (device, NULL);
+      valent_object_unlock (VALENT_OBJECT (device));
     }
 
   g_object_unref (device);
@@ -1003,12 +1030,15 @@ valent_device_queue_packet (ValentDevice *device,
   g_return_if_fail (VALENT_IS_DEVICE (device));
   g_return_if_fail (VALENT_IS_PACKET (packet));
 
-  if G_UNLIKELY (!device->connected)
+  valent_object_lock (VALENT_OBJECT (device));
+
+  if G_UNLIKELY (device->channel == NULL)
     {
       g_warning ("%s(): %s is disconnected, discarding \"%s\"",
                  G_STRFUNC,
                  device->name,
                  valent_packet_get_type (packet));
+      valent_object_unlock (VALENT_OBJECT (device));
       return;
     }
 
@@ -1018,6 +1048,7 @@ valent_device_queue_packet (ValentDevice *device,
                   G_STRFUNC,
                   device->name,
                   valent_packet_get_type (packet));
+      valent_object_unlock (VALENT_OBJECT (device));
       return;
     }
 
@@ -1027,6 +1058,8 @@ valent_device_queue_packet (ValentDevice *device,
                                NULL,
                                (GAsyncReadyCallback)queue_packet_cb,
                                g_object_ref (device));
+
+  valent_object_unlock (VALENT_OBJECT (device));
 }
 
 static void
@@ -1042,13 +1075,19 @@ send_packet_cb (ValentChannel *channel,
 
   if (!valent_channel_write_packet_finish (channel, result, &error))
     {
+      VALENT_NOTE ("%s: %s", device->name, error->message);
+
       g_task_return_error (task, error);
 
+      valent_object_lock (VALENT_OBJECT (device));
       if (device->channel == channel)
         valent_device_set_channel (device, NULL);
+      valent_object_unlock (VALENT_OBJECT (device));
     }
   else
-    g_task_return_boolean (task, TRUE);
+    {
+      g_task_return_boolean (task, TRUE);
+    }
 }
 
 /**
@@ -1074,23 +1113,31 @@ valent_device_send_packet (ValentDevice        *device,
   g_return_if_fail (VALENT_IS_DEVICE (device));
   g_return_if_fail (VALENT_IS_PACKET (packet));
 
-  if G_UNLIKELY (!device->connected)
-    return g_task_report_new_error (device,
-                                    callback,
-                                    user_data,
-                                    valent_device_send_packet,
-                                    G_IO_ERROR,
-                                    G_IO_ERROR_NOT_CONNECTED,
-                                    "%s is disconnected", device->name);
+  valent_object_lock (VALENT_OBJECT (device));
+
+  if G_UNLIKELY (device->channel == NULL)
+    {
+      valent_object_unlock (VALENT_OBJECT (device));
+      return g_task_report_new_error (device,
+                                      callback,
+                                      user_data,
+                                      valent_device_send_packet,
+                                      G_IO_ERROR,
+                                      G_IO_ERROR_NOT_CONNECTED,
+                                      "%s is disconnected", device->name);
+    }
 
   if G_UNLIKELY (!device->paired)
-    return g_task_report_new_error (device,
-                                    callback,
-                                    user_data,
-                                    valent_device_send_packet,
-                                    G_IO_ERROR,
-                                    G_IO_ERROR_PERMISSION_DENIED,
-                                    "%s is unpaired", device->name);
+    {
+      valent_object_unlock (VALENT_OBJECT (device));
+      return g_task_report_new_error (device,
+                                      callback,
+                                      user_data,
+                                      valent_device_send_packet,
+                                      G_IO_ERROR,
+                                      G_IO_ERROR_PERMISSION_DENIED,
+                                      "%s is unpaired", device->name);
+    }
 
   task = g_task_new (device, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_device_send_packet);
@@ -1101,6 +1148,8 @@ valent_device_send_packet (ValentDevice        *device,
                                cancellable,
                                (GAsyncReadyCallback)send_packet_cb,
                                g_steal_pointer (&task));
+
+  valent_object_unlock (VALENT_OBJECT (device));
 }
 
 /**
@@ -1198,19 +1247,26 @@ valent_device_get_actions (ValentDevice *device)
 }
 
 /**
- * valent_device_get_channel:
+ * valent_device_ref_channel:
  * @device: a #ValentDevice
  *
  * Get the device #ValentChannel if connected, or %NULL if disconnected.
  *
- * Returns: (transfer none) (nullable): a #ValentChannel
+ * Returns: (transfer full) (nullable): a #ValentChannel
  */
 ValentChannel *
-valent_device_get_channel (ValentDevice *device)
+valent_device_ref_channel (ValentDevice *device)
 {
+  ValentChannel *ret = NULL;
+
   g_return_val_if_fail (VALENT_IS_DEVICE (device), NULL);
 
-  return device->channel;
+  valent_object_lock (VALENT_OBJECT (device));
+  if (device->channel != NULL)
+    ret = g_object_ref (device->channel);
+  valent_object_unlock (VALENT_OBJECT (device));
+
+  return ret;
 }
 
 static void
@@ -1240,11 +1296,12 @@ read_packet_cb (ValentChannel *channel,
   /* On failure, drop our reference if it's still the active channel */
   else
     {
-      if G_UNLIKELY (error && error->domain != G_IO_ERROR)
-        VALENT_NOTE ("%s: %s", device->name, error->message);
+      VALENT_NOTE ("%s: %s", device->name, error->message);
 
+      valent_object_lock (VALENT_OBJECT (device));
       if (device->channel == channel)
         valent_device_set_channel (device, NULL);
+      valent_object_unlock (VALENT_OBJECT (device));
     }
 
   g_object_unref (device);
@@ -1261,15 +1318,22 @@ void
 valent_device_set_channel (ValentDevice  *device,
                            ValentChannel *channel)
 {
+  gboolean connected;
+
   g_return_if_fail (VALENT_IS_DEVICE (device));
   g_return_if_fail (channel == NULL || VALENT_IS_CHANNEL (channel));
 
+  valent_object_lock (VALENT_OBJECT (device));
+
   if (device->channel == channel)
-    return;
+    {
+      valent_object_unlock (VALENT_OBJECT (device));
+      return;
+    }
 
   /* If there's an active channel, close it asynchronously and drop our
    * reference so the task holds the final reference. */
-  if (device->channel)
+  if ((connected = device->channel != NULL))
     {
       valent_channel_close_async (device->channel, NULL, NULL, NULL);
       g_clear_object (&device->channel);
@@ -1292,7 +1356,17 @@ valent_device_set_channel (ValentDevice  *device,
                                   g_object_ref (device));
     }
 
-  valent_device_set_connected (device, VALENT_IS_CHANNEL (device->channel));
+  /* If the connected state changed, update the plugins and notify */
+  if (connected != (device->channel != NULL))
+    {
+      valent_device_update_plugins (device);
+      valent_object_notify_by_pspec (G_OBJECT (device),
+                                     properties [PROP_CONNECTED]);
+      valent_object_notify_by_pspec (G_OBJECT (device),
+                                     properties [PROP_STATE]);
+    }
+
+  valent_object_unlock (VALENT_OBJECT (device));
 }
 
 /**
@@ -1306,49 +1380,38 @@ valent_device_set_channel (ValentDevice  *device,
 gboolean
 valent_device_get_connected (ValentDevice *device)
 {
+  gboolean ret;
+
   g_return_val_if_fail (VALENT_IS_DEVICE (device), FALSE);
 
-  return device->connected;
+  valent_object_lock (VALENT_OBJECT (device));
+  ret = device->channel != NULL;
+  valent_object_unlock (VALENT_OBJECT (device));
+
+  return ret;
 }
 
 /**
- * valent_device_set_connected:
- * @device: a #ValentDevice
- * @connected: whether the device is connected or not
- *
- * Set the connected state for @device.
- */
-static void
-valent_device_set_connected (ValentDevice *device,
-                             gboolean      connected)
-{
-  g_return_if_fail (VALENT_IS_DEVICE (device));
-
-  if (device->connected == connected)
-    return;
-
-  /* Ensure plugins are updated before emitting */
-  device->connected = connected;
-  valent_device_update_plugins (device);
-
-  valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_CONNECTED]);
-  valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
-}
-
-/**
- * valent_device_get_data:
+ * valent_device_ref_data:
  * @device: a #ValentDevice
  *
  * Gets the #ValentData for @device.
  *
- * Returns: (transfer none): a #ValentData
+ * Returns: (transfer full): a #ValentData
  */
 ValentData *
-valent_device_get_data (ValentDevice *device)
+valent_device_ref_data (ValentDevice *device)
 {
+  ValentData *ret = NULL;
+
   g_return_val_if_fail (VALENT_IS_DEVICE (device), NULL);
 
-  return device->data;
+  valent_object_lock (VALENT_OBJECT (device));
+  if (device->data != NULL)
+    ret = g_object_ref (device->data);
+  valent_object_unlock (VALENT_OBJECT (device));
+
+  return ret;
 }
 
 /**
@@ -1362,21 +1425,9 @@ valent_device_get_data (ValentDevice *device)
 const char *
 valent_device_get_icon_name (ValentDevice *device)
 {
-  g_return_val_if_fail (VALENT_IS_DEVICE (device), NULL);
+  g_return_val_if_fail (VALENT_IS_DEVICE (device), "computer-symbolic");
 
-  if (g_strcmp0 (device->type, "phone") == 0)
-    return "smartphone-symbolic";
-
-  if (g_strcmp0 (device->type, "tablet") == 0)
-    return "tablet-symbolic";
-
-  if (g_strcmp0 (device->type, "laptop") == 0)
-    return "laptop-symbolic";
-
-  if (g_strcmp0 (device->type, "tv") == 0)
-    return "tv-symbolic";
-
-  return "computer-symbolic";
+  return device->icon_name;
 }
 
 /**
@@ -1420,7 +1471,7 @@ valent_device_get_menu (ValentDevice *device)
  *
  * Gets the name of the device, or %NULL if unset.
  *
- * Returns: (transfer none): the name, or NULL.
+ * Returns: (transfer none) (nullable): the name, or %NULL.
  */
 const char *
 valent_device_get_name (ValentDevice *device)
@@ -1441,9 +1492,15 @@ valent_device_get_name (ValentDevice *device)
 gboolean
 valent_device_get_paired (ValentDevice *device)
 {
+  gboolean ret;
+
   g_return_val_if_fail (VALENT_IS_DEVICE (device), FALSE);
 
-  return device->paired;
+  valent_object_lock (VALENT_OBJECT (device));
+  ret = device->paired;
+  valent_object_unlock (VALENT_OBJECT (device));
+
+  return ret;
 }
 
 /**
@@ -1462,11 +1519,16 @@ valent_device_set_paired (ValentDevice *device,
 {
   g_assert (VALENT_IS_DEVICE (device));
 
+  valent_object_lock (VALENT_OBJECT (device));
+
   /* If nothing's changed, only reset pending pair timeouts */
   valent_device_reset_pair (device);
 
   if (device->paired == paired)
-    return;
+    {
+      valent_object_unlock (VALENT_OBJECT (device));
+      return;
+    }
 
   /* FIXME: If we're connected store/clear connection data */
   if (paired && device->channel != NULL)
@@ -1476,12 +1538,14 @@ valent_device_set_paired (ValentDevice *device,
 
   /* Ensure plugins are updated before emitting */
   device->paired = paired;
-  valent_device_update_plugins (device);
+  g_settings_set_boolean (device->settings, "paired", device->paired);
 
   /* Notify */
-  g_settings_set_boolean (device->settings, "paired", paired);
+  valent_device_update_plugins (device);
   valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_PAIRED]);
   valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
+
+  valent_object_unlock (VALENT_OBJECT (device));
 }
 
 /**
@@ -1526,7 +1590,9 @@ valent_device_get_state (ValentDevice *device)
 
   g_return_val_if_fail (VALENT_IS_DEVICE (device), state);
 
-  if (device->connected)
+  valent_object_lock (VALENT_OBJECT (device));
+
+  if (device->channel != NULL)
     state |= VALENT_DEVICE_STATE_CONNECTED;
 
   if (device->paired)
@@ -1537,6 +1603,8 @@ valent_device_get_state (ValentDevice *device)
 
   if (device->outgoing_pair > 0)
     state |= VALENT_DEVICE_STATE_PAIR_OUTGOING;
+
+  valent_object_unlock (VALENT_OBJECT (device));
 
   return state;
 }

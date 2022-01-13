@@ -432,13 +432,15 @@ static void
 valent_sms_plugin_enable (ValentDevicePlugin *plugin)
 {
   ValentSmsPlugin *self = VALENT_SMS_PLUGIN (plugin);
+  g_autoptr (ValentData) data = NULL;
 
   g_assert (VALENT_IS_SMS_PLUGIN (plugin));
 
   /* Load SMS Store */
+  data = valent_device_ref_data (self->device);
   self->store = g_object_new (VALENT_TYPE_SMS_STORE,
                               "context", "sms",
-                              "parent",  valent_device_get_data (self->device),
+                              "parent",  data,
                               NULL);
 
   /* Register GActions */
