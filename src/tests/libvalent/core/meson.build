@@ -12,6 +12,7 @@ core_tests = [
   'test-data',
   'test-device',
   'test-manager',
+  'test-object',
   'test-packet',
   'test-utils',
 ]

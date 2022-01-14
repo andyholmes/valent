@@ -176,6 +176,26 @@ valent_object_get_property (GObject    *object,
 }
 
 static void
+valent_object_set_property (GObject      *object,
+                            guint         prop_id,
+                            const GValue *value,
+                            GParamSpec   *pspec)
+{
+  ValentObject *self = VALENT_OBJECT (object);
+  ValentObjectPrivate *priv = valent_object_get_instance_private (self);
+
+  switch (prop_id)
+    {
+    case PROP_CANCELLABLE:
+      priv->cancellable = g_value_dup_object (value);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
+static void
 valent_object_class_init (ValentObjectClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
@@ -183,6 +203,7 @@ valent_object_class_init (ValentObjectClass *klass)
   object_class->dispose = valent_object_dispose;
   object_class->finalize = valent_object_finalize;
   object_class->get_property = valent_object_get_property;
+  object_class->set_property = valent_object_set_property;
 
   klass->destroy = valent_object_real_destroy;
 
@@ -192,16 +213,14 @@ valent_object_class_init (ValentObjectClass *klass)
    * The "cancellable" property is a #GCancellable that can be used by
    * operations that will be cancelled when the #ValentObject::destroy signal is
    * emitted on @self.
-   *
-   * This is convenient when you want operations to automatically be cancelled
-   * when part of the object tree is segmented.
    */
   properties [PROP_CANCELLABLE] =
     g_param_spec_object ("cancellable",
                          "Cancellable",
                          "A cancellable for the object",
                          G_TYPE_CANCELLABLE,
-                         (G_PARAM_READABLE |
+                         (G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
@@ -211,9 +230,10 @@ valent_object_class_init (ValentObjectClass *klass)
    * ValentObject::destroy:
    *
    * The "destroy" signal is emitted when the object should destroy itself
-   * and cleanup any state that is no longer necessary. This happens when
-   * the object has been removed from the because it was requested to be
-   * destroyed, or because a parent object is being destroyed.
+   * and cleanup any state that is no longer necessary.
+   *
+   * Note that you must still drop any references you hold to the object to
+   * avoid leaking memory.
    */
   signals [DESTROY] =
     g_signal_new ("destroy",
