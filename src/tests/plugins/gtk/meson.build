@@ -3,7 +3,6 @@
 
 # Dependencies
 plugin_gtk_test_deps = [
-  libvalent_dep,
   libvalent_test_dep,
   plugin_gtk_deps,
 ]
