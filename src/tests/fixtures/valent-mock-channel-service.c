@@ -8,9 +8,9 @@
 #include <gio/gunixinputstream.h>
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
+#include <libvalent-test.h>
 
 #include "valent-mock-channel-service.h"
-#include "valent-test-utils.h"
 
 
 #define DEFAULT_PORT      1717

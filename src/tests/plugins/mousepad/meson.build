@@ -3,7 +3,6 @@
 
 # Dependencies
 plugin_mousepad_test_deps = [
-  libvalent_dep,
   libvalent_test_dep,
   plugin_mousepad_deps,
 ]
