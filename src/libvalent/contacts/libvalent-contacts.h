@@ -6,6 +6,7 @@
 #define VALENT_CONTACTS_INSIDE
 
 #include "valent-contacts.h"
+#include "valent-contact-cache.h"
 #include "valent-contact-store.h"
 #include "valent-contact-store-provider.h"
 #include "valent-contact-utils.h"

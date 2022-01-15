@@ -11,14 +11,19 @@ mutex:valent_*_get_type_once
 # src/libvalent/core/valent-transfer.c
 race:execute_task
 
-# src/libvalent/contacts/valent-contact-store.c
-race:emit_change_main
-race:prepare_backend_task
-race:valent_contact_store_finalize
-
 # src/tests/fixtures/valent-test-utils.c
 race:download_task
 race:upload_task
+
+#
+# False Positives
+#
+# The errors below seem to be false positives.
+#
+
+# src/libvalent/contacts/valent-contact-store.c
+race:valent_contact_store_emit_contact_added_main
+race:valent_contact_store_emit_contact_removed_main
 
 
 #

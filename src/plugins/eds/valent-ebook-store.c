@@ -33,15 +33,14 @@ valent_ebook_store_add_contacts_cb (GObject      *object,
   EBookClient *client = E_BOOK_CLIENT (object);
   g_autoptr (GTask) task = G_TASK (user_data);
   ValentContactStore *store = g_task_get_source_object (task);
-  EContact *contact = g_task_get_task_data (task);
-  const char *uid;
+  GSList *additions = g_task_get_task_data (task);
   GError *error = NULL;
 
   if (!e_book_client_add_contact_finish (client, result, NULL, &error))
     return g_task_return_error (task, error);
 
-  uid = e_contact_get_const (contact, E_CONTACT_UID);
-  valent_contact_store_emit_contact_added (store, uid, contact);
+  for (const GSList *iter = additions; iter; iter = iter->next)
+    valent_contact_store_emit_contact_added (store, E_CONTACT (iter->data));
 
   g_task_return_boolean (task, TRUE);
 }
@@ -90,7 +89,7 @@ valent_ebook_store_remove_cb (GObject      *object,
   if (!e_book_client_remove_contact_by_uid_finish (client, result, &error))
     return g_task_return_error (task, error);
 
-  valent_contact_store_emit_contact_added (store, uid, NULL);
+  valent_contact_store_emit_contact_removed (store, uid);
 
   g_task_return_boolean (task, TRUE);
 }
@@ -202,38 +201,17 @@ valent_ebook_store_query (ValentContactStore  *store,
                               g_steal_pointer (&task));
 }
 
-static GSList *
-valent_ebook_store_query_sync (ValentContactStore  *store,
-                               const char          *query,
-                               GCancellable        *cancellable,
-                               GError             **error)
-{
-  ValentEBookStore *self = VALENT_EBOOK_STORE (store);
-  GSList *results = NULL;
-
-  g_assert (VALENT_IS_EBOOK_STORE (store));
-  g_assert (query != NULL);
-  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-  g_assert (error == NULL || *error == NULL);
-
-  e_book_client_get_contacts_sync (self->client,
-                                   query,
-                                   &results,
-                                   cancellable,
-                                   error);
-
-  return results;
-}
-
+/*
+ * GObject
+ */
 static void
-valent_ebook_store_prepare_backend (ValentContactStore *store)
+valent_ebook_store_constructed (GObject *object)
 {
-  ValentEBookStore *self = VALENT_EBOOK_STORE (store);
+  ValentEBookStore *self = VALENT_EBOOK_STORE (object);
+  ValentContactStore *store = VALENT_CONTACT_STORE (object);
   ESource *source;
   g_autoptr (GError) error = NULL;
   g_autoptr (EClient) client = NULL;
-
-  g_assert (VALENT_IS_EBOOK_STORE (self));
 
   /* Connect the client */
   source = valent_contact_store_get_source (store);
@@ -243,11 +221,10 @@ valent_ebook_store_prepare_backend (ValentContactStore *store)
     g_warning ("Failed to connect EClient: %s", error->message);
   else
     g_set_object (&self->client, E_BOOK_CLIENT (client));
+
+  G_OBJECT_CLASS (valent_ebook_store_parent_class)->constructed (object);
 }
 
-/*
- * GObject
- */
 static void
 valent_ebook_store_finalize (GObject *object)
 {
@@ -269,13 +246,12 @@ valent_ebook_store_class_init (ValentEBookStoreClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentContactStoreClass *store_class = VALENT_CONTACT_STORE_CLASS (klass);
 
+  object_class->constructed = valent_ebook_store_constructed;
   object_class->finalize = valent_ebook_store_finalize;
 
   store_class->add_contacts = valent_ebook_store_add_contacts;
   store_class->remove_contact = valent_ebook_store_remove_contact;
   store_class->get_contact = valent_ebook_store_get_contact;
   store_class->query = valent_ebook_store_query;
-  store_class->query_sync = valent_ebook_store_query_sync;
-  store_class->prepare_backend = valent_ebook_store_prepare_backend;
 }
 
