@@ -36,7 +36,7 @@ valent_ebook_store_add_contacts_cb (GObject      *object,
   GSList *additions = g_task_get_task_data (task);
   GError *error = NULL;
 
-  if (!e_book_client_add_contact_finish (client, result, NULL, &error))
+  if (!e_book_client_add_contacts_finish (client, result, NULL, &error))
     return g_task_return_error (task, error);
 
   for (const GSList *iter = additions; iter; iter = iter->next)
