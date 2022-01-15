@@ -23,38 +23,6 @@
 
 
 /**
- * valent_contacts_create_ebook_source:
- * @uid: a unique identifier
- * @name: a display name
- * @error: (nullable): a #GError
- *
- * Create a new #ESource for @uid and @name.
- *
- * Returns: (transfer full): a new #ESource
- */
-ESource *
-valent_contacts_create_ebook_source (const char  *uid,
-                                     const char  *name,
-                                     GError     **error)
-{
-  g_autoptr (ESource) scratch = NULL;
-  ESourceBackend *backend = NULL;
-
-  g_return_val_if_fail (uid != NULL && *uid != '\0', NULL);
-  g_return_val_if_fail (name != NULL && *name != '\0', NULL);
-
-  /* Create a scratch source for a local addressbook source */
-  if ((scratch = e_source_new_with_uid (uid, NULL, error)) == NULL)
-    return NULL;
-
-  backend = e_source_get_extension (scratch, E_SOURCE_EXTENSION_ADDRESS_BOOK);
-  e_source_backend_set_backend_name (backend, "local");
-  e_source_set_display_name (scratch, name);
-
-  return g_steal_pointer (&scratch);
-}
-
-/**
  * valent_phone_number_normalize:
  * @number: a phone number string
  *

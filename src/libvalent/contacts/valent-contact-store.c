@@ -30,11 +30,10 @@
 
 typedef struct
 {
-  EBookCache *cache;
   ESource    *source;
 } ValentContactStorePrivate;
 
-G_DEFINE_TYPE_WITH_PRIVATE (ValentContactStore, valent_contact_store, G_TYPE_OBJECT)
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentContactStore, valent_contact_store, VALENT_TYPE_OBJECT)
 
 /**
  * ValentContactStoreClass:
@@ -74,29 +73,52 @@ static guint signals[N_SIGNALS] = { 0, };
  */
 typedef struct
 {
-  ValentContactStore *store;
-  char               *uid;
-  EContact           *contact;
-  guint               signal_id;
-} ChangeEmission;
-
+  GWeakRef  store;
+  char     *uid;
+  EContact *contact;
+} SignalEmission;
 
 static gboolean
-emit_change_main (gpointer data)
+valent_contact_store_emit_contact_added_main (gpointer data)
 {
-  ChangeEmission *emission = data;
+  SignalEmission *emission = data;
+  ValentContactStore *store = NULL;
 
-  g_assert (emission != NULL);
-  g_assert (VALENT_IS_CONTACT_STORE (emission->store));
-  g_assert (emission->uid != NULL);
-  g_assert (emission->contact == NULL || E_IS_CONTACT (emission->contact));
+  g_assert (VALENT_IS_MAIN_THREAD ());
 
-  g_signal_emit (G_OBJECT (emission->store),
-                 signals [emission->signal_id], 0,
-                 emission->uid,
-                 emission->contact);
+  if ((store = g_weak_ref_get (&emission->store)) != NULL)
+    {
+      g_signal_emit (G_OBJECT (store),
+                     signals [CONTACT_ADDED], 0,
+                     emission->contact);
+      g_clear_object (&store);
+    }
 
-  g_clear_object (&emission->store);
+  g_weak_ref_clear (&emission->store);
+  g_clear_pointer (&emission->uid, g_free);
+  g_clear_object (&emission->contact);
+  g_free (emission);
+
+  return G_SOURCE_REMOVE;
+}
+
+static gboolean
+valent_contact_store_emit_contact_removed_main (gpointer data)
+{
+  SignalEmission *emission = data;
+  ValentContactStore *store = NULL;
+
+  g_assert (VALENT_IS_MAIN_THREAD ());
+
+  if ((store = g_weak_ref_get (&emission->store)) != NULL)
+    {
+      g_signal_emit (G_OBJECT (store),
+                     signals [CONTACT_REMOVED], 0,
+                     emission->uid);
+      g_clear_object (&store);
+    }
+
+  g_weak_ref_clear (&emission->store);
   g_clear_pointer (&emission->uid, g_free);
   g_clear_object (&emission->contact);
   g_free (emission);
@@ -106,91 +128,22 @@ emit_change_main (gpointer data)
 
 /* LCOV_EXCL_START */
 static void
-add_task (GTask        *task,
-          gpointer      source_object,
-          gpointer      task_data,
-          GCancellable *cancellable)
-{
-  ValentContactStore *store = VALENT_CONTACT_STORE (source_object);
-  ValentContactStorePrivate *priv = valent_contact_store_get_instance_private (store);
-  GSList *contacts = task_data;
-  GError *error = NULL;
-
-  if (g_task_return_error_if_cancelled (task))
-    return;
-
-  e_book_cache_put_contacts (priv->cache,
-                             contacts,
-                             NULL,
-                             NULL,
-                             E_CACHE_IS_OFFLINE,
-                             cancellable,
-                             &error);
-
-  if (error != NULL)
-    return g_task_return_error (task, error);
-
-  for (const GSList *iter = contacts; iter; iter = iter->next)
-    {
-      EContact *contact = E_CONTACT (iter->data);
-      const char *uid;
-
-      uid = e_contact_get_const (contact, E_CONTACT_UID);
-      valent_contact_store_emit_contact_added (store, uid, contact);
-    }
-
-  g_task_return_boolean (task, TRUE);
-}
-
-static void
 valent_contact_store_real_add_contacts (ValentContactStore  *store,
                                         GSList              *contacts,
                                         GCancellable        *cancellable,
                                         GAsyncReadyCallback  callback,
                                         gpointer             user_data)
 {
-  g_autoptr (GTask) task = NULL;
-  GSList *additions = NULL;
-
   g_assert (VALENT_IS_CONTACT_STORE (store));
   g_assert (contacts != NULL);
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  for (const GSList *iter = contacts; iter; iter = iter->next)
-    additions = g_slist_append (additions, g_object_ref (iter->data));
-
-  task = g_task_new (store, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_contact_store_real_add_contacts);
-  g_task_set_task_data (task, additions, valent_object_slist_free);
-  g_task_run_in_thread (task, add_task);
-}
-
-static void
-remove_task (GTask        *task,
-             gpointer      source_object,
-             gpointer      task_data,
-             GCancellable *cancellable)
-{
-  ValentContactStore *store = VALENT_CONTACT_STORE (source_object);
-  ValentContactStorePrivate *priv = valent_contact_store_get_instance_private (store);
-  const char *uid = task_data;
-  GError *error = NULL;
-
-  if (g_task_return_error_if_cancelled (task))
-    return;
-
-  e_book_cache_remove_contact (priv->cache,
-                               uid,
-                               0,
-                               E_CACHE_IS_OFFLINE,
-                               cancellable,
-                               &error);
-  if (error != NULL)
-    return g_task_return_error (task, error);
-
-  valent_contact_store_emit_contact_removed (store, uid, NULL);
-
-  g_task_return_boolean (task, TRUE);
+  g_task_report_new_error (store, callback, user_data,
+                           valent_contact_store_real_add_contacts,
+                           G_IO_ERROR,
+                           G_IO_ERROR_NOT_SUPPORTED,
+                           "%s does not implement add_contacts()",
+                           G_OBJECT_TYPE_NAME (store));
 }
 
 static void
@@ -200,44 +153,16 @@ valent_contact_store_real_remove_contact (ValentContactStore  *store,
                                           GAsyncReadyCallback  callback,
                                           gpointer             user_data)
 {
-  g_autoptr (GTask) task = NULL;
-
   g_assert (VALENT_IS_CONTACT_STORE (store));
   g_assert (uid != NULL);
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  task = g_task_new (store, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_contact_store_real_remove_contact);
-  g_task_set_task_data (task, g_strdup (uid), g_free);
-  g_task_run_in_thread (task, remove_task);
-}
-
-static void
-get_contact_task (GTask        *task,
-                  gpointer      source_object,
-                  gpointer      task_data,
-                  GCancellable *cancellable)
-{
-  ValentContactStore *store = VALENT_CONTACT_STORE (source_object);
-  ValentContactStorePrivate *priv = valent_contact_store_get_instance_private (store);
-  const char *uid = task_data;
-  EContact *contact = NULL;
-  GError *error = NULL;
-
-  if (g_task_return_error_if_cancelled (task))
-    return;
-
-  e_book_cache_get_contact (priv->cache,
-                            uid,
-                            FALSE,
-                            &contact,
-                            cancellable,
-                            &error);
-
-  if (error != NULL)
-    return g_task_return_error (task, error);
-
-  g_task_return_pointer (task, contact, g_object_unref);
+  g_task_report_new_error (store, callback, user_data,
+                           valent_contact_store_real_remove_contact,
+                           G_IO_ERROR,
+                           G_IO_ERROR_NOT_SUPPORTED,
+                           "%s does not implement remove_contact()",
+                           G_OBJECT_TYPE_NAME (store));
 }
 
 static void
@@ -247,55 +172,16 @@ valent_contact_store_real_get_contact (ValentContactStore  *store,
                                        GAsyncReadyCallback  callback,
                                        gpointer             user_data)
 {
-  g_autoptr (GTask) task = NULL;
-
   g_assert (VALENT_IS_CONTACT_STORE (store));
   g_assert (uid != NULL);
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  task = g_task_new (store, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_contact_store_real_get_contact);
-  g_task_set_task_data (task, g_strdup (uid), g_free);
-  g_task_run_in_thread (task, get_contact_task);
-}
-
-static void
-query_task (GTask        *task,
-            gpointer      source_object,
-            gpointer      task_data,
-            GCancellable *cancellable)
-{
-  ValentContactStore *store = VALENT_CONTACT_STORE (source_object);
-  ValentContactStorePrivate *priv = valent_contact_store_get_instance_private (store);
-  const char *query = task_data;
-  GSList *results = NULL;
-  GSList *contacts = NULL;
-  GError *error = NULL;
-
-  if (g_task_return_error_if_cancelled (task))
-    return;
-
-  e_book_cache_search (priv->cache,
-                       query,
-                       FALSE,
-                       &results,
-                       cancellable,
-                       &error);
-
-  if (error != NULL)
-    return g_task_return_error (task, error);
-
-  for (const GSList *iter = results; iter; iter = iter->next)
-    {
-      EBookCacheSearchData *result = iter->data;
-      EContact *contact;
-
-      contact = e_contact_new_from_vcard (result->vcard);
-      contacts = g_slist_prepend (contacts, contact);
-    }
-  g_slist_free_full (results, e_book_cache_search_data_free);
-
-  g_task_return_pointer (task, contacts, valent_object_slist_free);
+  g_task_report_new_error (store, callback, user_data,
+                           valent_contact_store_real_get_contact,
+                           G_IO_ERROR,
+                           G_IO_ERROR_NOT_SUPPORTED,
+                           "%s does not implement get_contact()",
+                           G_OBJECT_TYPE_NAME (store));
 }
 
 static void
@@ -305,77 +191,16 @@ valent_contact_store_real_query (ValentContactStore  *store,
                                  GAsyncReadyCallback  callback,
                                  gpointer             user_data)
 {
-  g_autoptr (GTask) task = NULL;
-
   g_assert (VALENT_IS_CONTACT_STORE (store));
   g_assert (query != NULL);
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  task = g_task_new (store, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_contact_store_real_query);
-  g_task_set_task_data (task, g_strdup (query), g_free);
-  g_task_run_in_thread (task, query_task);
-}
-
-static GSList *
-valent_contact_store_real_query_sync (ValentContactStore  *store,
-                                      const char          *query,
-                                      GCancellable        *cancellable,
-                                      GError             **error)
-{
-  g_autoptr (GTask) task = NULL;
-
-  g_assert (VALENT_IS_CONTACT_STORE (store));
-  g_assert (query != NULL);
-  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-  g_assert (error == NULL || *error == NULL);
-
-  task = g_task_new (store, cancellable, NULL, NULL);
-  g_task_set_source_tag (task, valent_contact_store_real_query_sync);
-  g_task_set_task_data (task, g_strdup (query), g_free);
-  g_task_run_in_thread_sync (task, query_task);
-
-  return g_task_propagate_pointer (task, error);
-}
-
-static void
-prepare_backend_task (GTask        *task,
-                      gpointer      source_object,
-                      gpointer      task_data,
-                      GCancellable *cancellable)
-{
-  ValentContactStore *store = VALENT_CONTACT_STORE (source_object);
-  ValentContactStorePrivate *priv = valent_contact_store_get_instance_private (store);
-  g_autoptr (ValentData) data = NULL;
-  g_autofree char *path = NULL;
-  GError *error = NULL;
-
-  if (g_task_return_error_if_cancelled (task))
-    return;
-
-  /* This will usually be the path for the contacts plugin, since the device ID
-   * is used as the ESource UID. */
-  data = valent_data_new (e_source_get_uid (priv->source), NULL);
-  path = g_build_filename (valent_data_get_cache_path (data),
-                           "contacts",
-                           "contacts.db",
-                           NULL);
-  priv->cache = e_book_cache_new (path, priv->source, NULL, &error);
-
-  if (error != NULL)
-    return g_task_return_error (task, error);
-
-  g_task_return_boolean (task, TRUE);
-}
-
-static void
-valent_contact_store_real_prepare_backend (ValentContactStore *store)
-{
-  g_autoptr (GTask) task = NULL;
-
-  task = g_task_new (store, NULL, NULL, NULL);
-  g_task_set_source_tag (task, valent_contact_store_real_prepare_backend);
-  g_task_run_in_thread_sync (task, prepare_backend_task);
+  g_task_report_new_error (store, callback, user_data,
+                           valent_contact_store_real_query,
+                           G_IO_ERROR,
+                           G_IO_ERROR_NOT_SUPPORTED,
+                           "%s does not implement query()",
+                           G_OBJECT_TYPE_NAME (store));
 }
 /* LCOV_EXCL_STOP */
 
@@ -383,22 +208,11 @@ valent_contact_store_real_prepare_backend (ValentContactStore *store)
  * GObject
  */
 static void
-valent_contact_store_constructed (GObject *object)
-{
-  ValentContactStore *store = VALENT_CONTACT_STORE (object);
-
-  VALENT_CONTACT_STORE_GET_CLASS (store)->prepare_backend (store);
-
-  G_OBJECT_CLASS (valent_contact_store_parent_class)->constructed (object);
-}
-
-static void
 valent_contact_store_finalize (GObject *object)
 {
   ValentContactStore *self = VALENT_CONTACT_STORE (object);
   ValentContactStorePrivate *priv = valent_contact_store_get_instance_private (self);
 
-  g_clear_object (&priv->cache);
   g_clear_object (&priv->source);
 
   G_OBJECT_CLASS (valent_contact_store_parent_class)->finalize (object);
@@ -461,7 +275,6 @@ valent_contact_store_class_init (ValentContactStoreClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  object_class->constructed = valent_contact_store_constructed;
   object_class->finalize = valent_contact_store_finalize;
   object_class->get_property = valent_contact_store_get_property;
   object_class->set_property = valent_contact_store_set_property;
@@ -469,9 +282,7 @@ valent_contact_store_class_init (ValentContactStoreClass *klass)
   klass->add_contacts = valent_contact_store_real_add_contacts;
   klass->remove_contact = valent_contact_store_real_remove_contact;
   klass->query = valent_contact_store_real_query;
-  klass->query_sync = valent_contact_store_real_query_sync;
   klass->get_contact = valent_contact_store_real_get_contact;
-  klass->prepare_backend = valent_contact_store_real_prepare_backend;
 
   /**
    * ValentContactStore:name:
@@ -521,7 +332,6 @@ valent_contact_store_class_init (ValentContactStoreClass *klass)
   /**
    * ValentContactStore::contact-added:
    * @store: a #ValentContactStore
-   * @uid: the UID of @contact
    * @contact: the #EContact
    *
    * ValentContactStore::contact-added is emitted when a new contact is added to
@@ -534,15 +344,13 @@ valent_contact_store_class_init (ValentContactStoreClass *klass)
                   G_STRUCT_OFFSET (ValentContactStoreClass, contact_added),
                   NULL, NULL, NULL,
                   G_TYPE_NONE,
-                  2,
-                  G_TYPE_STRING,
+                  1,
                   E_TYPE_CONTACT);
 
   /**
    * ValentContactStore::contact-removed:
    * @store: a #ValentContactStore
-   * @uid: the UID of @contact
-   * @contact: the #EContact
+   * @uid: the UID of the removed contact
    *
    * ValentContactStore::contact-added is emitted when a contact is removed from
    * @store.
@@ -554,9 +362,8 @@ valent_contact_store_class_init (ValentContactStoreClass *klass)
                   G_STRUCT_OFFSET (ValentContactStoreClass, contact_removed),
                   NULL, NULL, NULL,
                   G_TYPE_NONE,
-                  2,
-                  G_TYPE_STRING,
-                  E_TYPE_CONTACT);
+                  1,
+                  G_TYPE_STRING);
 }
 
 static void
@@ -567,10 +374,9 @@ valent_contact_store_init (ValentContactStore *store)
 /**
  * valent_contact_store_emit_contact_added:
  * @store: a #ValentContactStore
- * @uid: the UID of @contact
  * @contact: the #EContact
  *
- * Emits the #ValentContactStore::contact-added signal on @list.
+ * Emits the #ValentContactStore::contact-added signal on @store.
  *
  * This function should only be called by classes implementing
  * #ValentContactStore. It has to be called after the internal representation
@@ -579,35 +385,31 @@ valent_contact_store_init (ValentContactStore *store)
  */
 void
 valent_contact_store_emit_contact_added (ValentContactStore *store,
-                                         const char         *uid,
                                          EContact           *contact)
 {
-  ChangeEmission *emission;
+  SignalEmission *emission;
 
   g_return_if_fail (VALENT_IS_CONTACT_STORE (store));
 
   if G_LIKELY (VALENT_IS_MAIN_THREAD ())
     {
-      g_signal_emit (G_OBJECT (store), signals [CONTACT_ADDED], 0, uid, contact);
+      g_signal_emit (G_OBJECT (store), signals [CONTACT_ADDED], 0, contact);
       return;
     }
 
-  emission = g_new0 (ChangeEmission, 1);
-  emission->store = g_object_ref (store);
-  emission->uid = g_strdup (uid);
+  emission = g_new0 (SignalEmission, 1);
+  g_weak_ref_init (&emission->store, store);
   emission->contact = g_object_ref (contact);
-  emission->signal_id = CONTACT_ADDED;
 
-  g_timeout_add (0, emit_change_main, g_steal_pointer (&emission));
+  g_timeout_add (0, valent_contact_store_emit_contact_added_main, emission);
 }
 
 /**
  * valent_contact_store_emit_contact_removed:
  * @store: a #ValentContactStore
  * @uid: the UID of @contact
- * @contact: the #EContact
  *
- * Emits the #ValentContactStore::contact-removed signal on @list.
+ * Emits the #ValentContactStore::contact-removed signal on @store.
  *
  * This function should only be called by classes implementing
  * #ValentContactStore. It has to be called after the internal representation
@@ -616,27 +418,23 @@ valent_contact_store_emit_contact_added (ValentContactStore *store,
  */
 void
 valent_contact_store_emit_contact_removed (ValentContactStore *store,
-                                           const char         *uid,
-                                           EContact           *contact)
+                                           const char         *uid)
 {
-  ChangeEmission *emission;
+  SignalEmission *emission;
 
   g_return_if_fail (VALENT_IS_CONTACT_STORE (store));
 
   if G_LIKELY (VALENT_IS_MAIN_THREAD ())
     {
-      g_signal_emit (G_OBJECT (store), signals [CONTACT_REMOVED], 0, uid, contact);
+      g_signal_emit (G_OBJECT (store), signals [CONTACT_REMOVED], 0, uid);
       return;
     }
 
-  emission = g_new0 (ChangeEmission, 1);
-  emission->store = g_object_ref (store);
+  emission = g_new0 (SignalEmission, 1);
+  g_weak_ref_init (&emission->store, store);
   emission->uid = g_strdup (uid);
-  if (contact)
-    emission->contact = g_object_ref (contact);
-  emission->signal_id = CONTACT_REMOVED;
 
-  g_timeout_add (0, emit_change_main, g_steal_pointer (&emission));
+  g_timeout_add (0, valent_contact_store_emit_contact_removed_main, emission);
 }
 
 /**
@@ -933,40 +731,6 @@ valent_contact_store_query_finish (ValentContactStore  *store,
 }
 
 /**
- * valent_contact_store_query_sync: (virtual query_sync)
- * @store: a #ValentContactStore
- * @query: a search expression
- * @cancellable: (nullable): #GCancellable
- * @error: (nullable): a #GError
- *
- * Search @store for contacts matching @query.
- *
- * Returns: (transfer full) (element-type EContact): a #GSList
- */
-GSList *
-valent_contact_store_query_sync (ValentContactStore  *store,
-                                 const char          *query,
-                                 GCancellable        *cancellable,
-                                 GError             **error)
-{
-  GSList *ret;
-
-  VALENT_ENTRY;
-
-  g_return_val_if_fail (VALENT_IS_CONTACT_STORE (store), NULL);
-  g_return_val_if_fail (query != NULL, NULL);
-  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
-  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
-
-  ret = VALENT_CONTACT_STORE_GET_CLASS (store)->query_sync (store,
-                                                            query,
-                                                            cancellable,
-                                                            error);
-
-  VALENT_RETURN (ret);
-}
-
-/**
  * valent_contact_store_get_contact: (virtual get_contact)
  * @store: a #ValentContactStore
  * @uid: a contact UID
@@ -1065,6 +829,21 @@ valent_contact_store_get_contacts (ValentContactStore   *store,
   valent_contact_store_query (store, sexp, cancellable, callback, user_data);
 }
 
+static void
+valent_contact_store_dup_for_phone_async_cb (ValentContactStore  *store,
+                                             GAsyncResult        *result,
+                                             EContact           **contact)
+{
+  g_autoptr (GError) error = NULL;
+
+  *contact = valent_contact_store_dup_for_phone_finish (store,
+                                                        result,
+                                                        &error);
+
+  if (error != NULL)
+    g_warning ("%s(): %s", G_STRFUNC, error->message);
+}
+
 /**
  * valent_contact_store_dup_for_phone:
  * @store: a #ValentContactStore
@@ -1083,55 +862,19 @@ EContact *
 valent_contact_store_dup_for_phone (ValentContactStore *store,
                                     const char         *number)
 {
-  g_autoslist (GObject) contacts = NULL;
-  g_autoptr (EBookQuery) query = NULL;
-  g_autofree char *sexp = NULL;
   EContact *contact = NULL;
 
   g_return_val_if_fail (VALENT_IS_CONTACT_STORE (store), NULL);
   g_return_val_if_fail (number != NULL, NULL);
 
-  /* Prefer using libphonenumber */
-  if (e_phone_number_is_supported ())
-    {
-      query = e_book_query_field_test (E_CONTACT_TEL,
-                                       E_BOOK_QUERY_EQUALS_SHORT_PHONE_NUMBER,
-                                       number);
-      sexp = e_book_query_to_string (query);
+  valent_contact_store_dup_for_phone_async (store,
+                                            number,
+                                            NULL,
+                                            (GAsyncReadyCallback)valent_contact_store_dup_for_phone_async_cb,
+                                            &contact);
 
-      contacts = valent_contact_store_query_sync (store, sexp, NULL, NULL);
-
-      if (contacts != NULL)
-        contact = g_object_ref (contacts->data);
-    }
-  else
-    {
-      g_autofree char *normalized = NULL;
-
-      query = e_book_query_field_exists (E_CONTACT_TEL);
-      sexp = e_book_query_to_string (query);
-
-      contacts = valent_contact_store_query_sync (store, sexp, NULL, NULL);
-
-      normalized = valent_phone_number_normalize (number);
-
-      for (const GSList *iter = contacts; iter; iter = iter->next)
-        {
-          if (valent_phone_number_of_contact (iter->data, normalized))
-            {
-              contact = g_object_ref (iter->data);
-              break;
-            }
-        }
-    }
-
-  /* Return a dummy contact on failure */
-  if (contact == NULL)
-    {
-      contact = e_contact_new ();
-      e_contact_set (contact, E_CONTACT_FULL_NAME, number);
-      e_contact_set (contact, E_CONTACT_PHONE_OTHER, number);
-    }
+  while (contact == NULL)
+    g_main_context_iteration (NULL, FALSE);
 
   return contact;
 }

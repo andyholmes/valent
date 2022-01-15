@@ -11,7 +11,6 @@ static unsigned int n_contacts = 0;
 
 static void
 on_contact_added (ValentContactStore      *store,
-                  const char              *uid,
                   EContact                *contact,
                   ValentTestPluginFixture *fixture)
 {
@@ -23,6 +22,18 @@ on_contact_added (ValentContactStore      *store,
       g_signal_handlers_disconnect_by_data (store, fixture);
       valent_test_plugin_fixture_quit (fixture);
     }
+}
+
+static void
+valent_contact_store_query_cb (ValentContactStore      *store,
+                               GAsyncResult            *result,
+                               ValentTestPluginFixture *fixture)
+{
+  GError *error = NULL;
+
+  fixture->data = valent_contact_store_query_finish (store, result, &error);
+  g_assert_no_error (error);
+  valent_test_plugin_fixture_quit (fixture);
 }
 
 static void
@@ -91,7 +102,14 @@ test_contacts_plugin_request_contacts (ValentTestPluginFixture *fixture,
   sexp = e_book_query_to_string (query);
   e_book_query_unref (query);
 
-  contacts = valent_contact_store_query_sync (store, sexp, NULL, NULL);
+  valent_contact_store_query (store,
+                              sexp,
+                              NULL,
+                              (GAsyncReadyCallback)valent_contact_store_query_cb,
+                              fixture);
+  valent_test_plugin_fixture_run (fixture);
+
+  contacts = g_steal_pointer (&fixture->data);
   g_assert_cmpuint (g_slist_length (contacts), ==, 2);
 
   while (g_main_context_iteration (NULL, FALSE))

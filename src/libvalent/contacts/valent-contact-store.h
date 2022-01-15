@@ -8,6 +8,7 @@
 #endif
 
 #include <gio/gio.h>
+#include <libvalent-core.h>
 
 #include "valent-eds.h"
 
@@ -15,55 +16,46 @@ G_BEGIN_DECLS
 
 #define VALENT_TYPE_CONTACT_STORE (valent_contact_store_get_type())
 
-G_DECLARE_DERIVABLE_TYPE (ValentContactStore, valent_contact_store, VALENT, CONTACT_STORE, GObject)
+G_DECLARE_DERIVABLE_TYPE (ValentContactStore, valent_contact_store, VALENT, CONTACT_STORE, ValentObject)
 
 struct _ValentContactStoreClass
 {
-  GObjectClass   parent_class;
+  ValentObjectClass   parent_class;
 
   /* virtual functions */
-  void           (*add_contacts)      (ValentContactStore   *store,
-                                       GSList               *contacts,
-                                       GCancellable         *cancellable,
-                                       GAsyncReadyCallback   callback,
-                                       gpointer              user_data);
-  void           (*remove_contact)    (ValentContactStore   *store,
-                                       const char           *uid,
-                                       GCancellable         *cancellable,
-                                       GAsyncReadyCallback   callback,
-                                       gpointer              user_data);
-  void           (*query)             (ValentContactStore   *store,
-                                       const char           *query,
-                                       GCancellable         *cancellable,
-                                       GAsyncReadyCallback   callback,
-                                       gpointer              user_data);
-  GSList       * (*query_sync)        (ValentContactStore   *store,
-                                       const char           *query,
-                                       GCancellable         *cancellable,
-                                       GError              **error);
-  void           (*get_contact)       (ValentContactStore   *store,
-                                       const char           *uid,
-                                       GCancellable         *cancellable,
-                                       GAsyncReadyCallback   callback,
-                                       gpointer              user_data);
-  void           (*prepare_backend)   (ValentContactStore   *store);
+  void                (*add_contacts)    (ValentContactStore   *store,
+                                          GSList               *contacts,
+                                          GCancellable         *cancellable,
+                                          GAsyncReadyCallback   callback,
+                                          gpointer              user_data);
+  void                (*remove_contact)  (ValentContactStore   *store,
+                                          const char           *uid,
+                                          GCancellable         *cancellable,
+                                          GAsyncReadyCallback   callback,
+                                          gpointer              user_data);
+  void                (*query)           (ValentContactStore   *store,
+                                          const char           *query,
+                                          GCancellable         *cancellable,
+                                          GAsyncReadyCallback   callback,
+                                          gpointer              user_data);
+  void                (*get_contact)     (ValentContactStore   *store,
+                                          const char           *uid,
+                                          GCancellable         *cancellable,
+                                          GAsyncReadyCallback   callback,
+                                          gpointer              user_data);
 
   /* signals */
-  void           (*contact_added)     (ValentContactStore *store,
-                                       const char         *uid,
-                                       EContact           *contact);
-  void           (*contact_removed)   (ValentContactStore *store,
-                                       const char         *uid,
-                                       EContact           *contact);
+  void                (*contact_added)   (ValentContactStore   *store,
+                                          EContact             *contact);
+  void                (*contact_removed) (ValentContactStore   *store,
+                                          const char           *uid);
 };
 
 
 void         valent_contact_store_emit_contact_added   (ValentContactStore   *store,
-                                                        const char           *uid,
                                                         EContact             *contact);
 void         valent_contact_store_emit_contact_removed (ValentContactStore   *store,
-                                                        const char           *uid,
-                                                        EContact             *contact);
+                                                        const char           *uid);
 const char * valent_contact_store_get_name             (ValentContactStore   *store);
 void         valent_contact_store_set_name             (ValentContactStore   *store,
                                                         const char           *name);
@@ -112,11 +104,8 @@ void         valent_contact_store_query                (ValentContactStore   *st
 GSList     * valent_contact_store_query_finish         (ValentContactStore   *store,
                                                         GAsyncResult         *result,
                                                         GError              **error);
-GSList     * valent_contact_store_query_sync           (ValentContactStore   *store,
-                                                        const char           *query,
-                                                        GCancellable         *cancellable,
-                                                        GError              **error);
 
+/* Convenience Methods */
 EContact   * valent_contact_store_dup_for_phone        (ValentContactStore   *store,
                                                         const char           *number);
 void         valent_contact_store_dup_for_phone_async  (ValentContactStore   *store,

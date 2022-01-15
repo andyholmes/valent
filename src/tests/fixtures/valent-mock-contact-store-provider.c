@@ -57,10 +57,10 @@ valent_mock_contact_store_provider_load_async (ValentContactStoreProvider *provi
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   /* Mock Store */
-  source = valent_contacts_create_ebook_source ("mock-store",
-                                                "Mock Store",
-                                                NULL);
-  store = g_object_new (VALENT_TYPE_CONTACT_STORE,
+  source = e_source_new_with_uid ("mock-store", NULL, NULL);
+  e_source_set_display_name (source, "Mock Store");
+
+  store = g_object_new (VALENT_TYPE_CONTACT_CACHE,
                         "source", source,
                         NULL);
   valent_contact_store_provider_emit_store_added (provider, store);

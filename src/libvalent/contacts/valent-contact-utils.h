@@ -9,10 +9,6 @@
 
 G_BEGIN_DECLS
 
-ESource  * valent_contacts_create_ebook_source    (const char  *uid,
-                                                   const char  *name,
-                                                   GError     **error);
-
 gboolean   valent_phone_number_equal              (const char  *number1,
                                                    const char  *number2);
 char     * valent_phone_number_normalize          (const char  *number);

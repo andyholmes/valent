@@ -12,6 +12,7 @@
 #include "valent-contact-store.h"
 #include "valent-contact-store-provider.h"
 #include "valent-contact-utils.h"
+#include "valent-contact-cache.h"
 
 
 /**
@@ -181,6 +182,31 @@ valent_contacts_extension_removed (ValentComponent *component,
 }
 
 /*
+ * ValentContacts
+ */
+static ValentContactStore *
+valent_contacts_create_store (const char *uid,
+                              const char *name,
+                              const char *icon_name)
+{
+  g_autoptr (ESource) source = NULL;
+  ESourceBackend *backend;
+
+  g_assert (uid != NULL && *uid != '\0');
+  g_assert (name != NULL && *name != '\0');
+
+  /* Create a scratch source for a local addressbook source */
+  source = e_source_new_with_uid (uid, NULL, NULL);
+  backend = e_source_get_extension (source, E_SOURCE_EXTENSION_ADDRESS_BOOK);
+  e_source_backend_set_backend_name (backend, "local");
+  e_source_set_display_name (source, name);
+
+  return g_object_new (VALENT_TYPE_CONTACT_CACHE,
+                       "source", source,
+                       NULL);
+}
+
+/*
  * GObject
  */
 static void
@@ -310,10 +336,9 @@ valent_contacts_ensure_store (ValentContacts *contacts,
                               const char     *name)
 {
   ValentContactStore *store;
-  g_autoptr (ESource) source = NULL;
 
-  g_return_val_if_fail (uid != NULL, NULL);
-  g_return_val_if_fail (name != NULL, NULL);
+  g_return_val_if_fail (uid != NULL && *uid != '\0', NULL);
+  g_return_val_if_fail (name != NULL && *name != '\0', NULL);
 
   /* Use the default ValentContacts */
   if (contacts == NULL)
@@ -324,10 +349,7 @@ valent_contacts_ensure_store (ValentContacts *contacts,
     return store;
 
   /* Create a new store */
-  source = valent_contacts_create_ebook_source (uid, name, NULL);
-  store = g_object_new (VALENT_TYPE_CONTACT_STORE,
-                        "source", source,
-                        NULL);
+  store = valent_contacts_create_store (uid, name, NULL);
   g_ptr_array_add (contacts->stores, store);
   g_signal_emit (G_OBJECT (contacts), signals [STORE_ADDED], 0, store);
 

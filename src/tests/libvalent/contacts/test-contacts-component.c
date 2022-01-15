@@ -66,7 +66,6 @@ on_store_removed (GObject                  *object,
 
 static void
 on_contact_added (GObject                  *object,
-                  const char               *uid,
                   EContact                 *contact,
                   ContactsComponentFixture *fixture)
 {
@@ -77,11 +76,10 @@ on_contact_added (GObject                  *object,
 static void
 on_contact_removed (GObject                  *object,
                     const char               *uid,
-                    EContact                 *contact,
                     ContactsComponentFixture *fixture)
 {
   fixture->emitter = object;
-  fixture->emitted = contact;
+  fixture->emitted = g_strdup (uid);
 }
 
 void
@@ -164,10 +162,10 @@ contacts_component_fixture_set_up (ContactsComponentFixture *fixture,
 
   fixture->contacts = valent_contacts_get_default ();
 
-  source = valent_contacts_create_ebook_source ("test-store",
-                                                "Test Store",
-                                                NULL);
-  fixture->store = g_object_new (VALENT_TYPE_CONTACT_STORE,
+  /* Create a test store */
+  source = e_source_new_with_uid ("test-store", NULL, NULL);
+  e_source_set_display_name (source, "Test Store");
+  fixture->store = g_object_new (VALENT_TYPE_CONTACT_CACHE,
                                  "source", source,
                                  "name",   "Test Store",
                                  NULL);
@@ -373,9 +371,9 @@ test_contacts_component_store (ContactsComponentFixture *fixture,
   g_main_loop_run (fixture->loop);
 
   g_assert_true (fixture->emitter == fixture->store);
-  g_assert_true (fixture->emitted == NULL);
+  g_assert_cmpstr (fixture->emitted, ==, "test-contact");
   fixture->emitter = NULL;
-  fixture->emitted = NULL;
+  g_clear_pointer (&fixture->emitted, g_free);
 
   /* Confirming the contact was removed */
   valent_contact_store_get_contact (fixture->store,
