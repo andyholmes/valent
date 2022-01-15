@@ -17,6 +17,7 @@ struct _ValentEBookProvider
 {
   ValentContactStoreProvider  parent_instance;
 
+  GCancellable               *cancellable;
   ESourceRegistry            *registry;
   GHashTable                 *stores;
 };
@@ -29,23 +30,50 @@ G_DEFINE_TYPE (ValentEBookProvider, valent_ebook_provider, VALENT_TYPE_CONTACT_S
  * ESourceRegistry Callbacks
  */
 static void
+e_book_client_connect_cb (GObject             *object,
+                          GAsyncResult        *result,
+                          ValentEBookProvider *self)
+{
+  g_autoptr (EClient) client = NULL;
+  g_autoptr (GError) error = NULL;
+  ValentContactStore *store;
+  ESource *source;
+
+  if ((client = e_book_client_connect_finish (result, &error)) == NULL)
+    {
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("Failed loading address book: %s", error->message);
+
+      return;
+    }
+
+  source = e_client_get_source (client);
+  store = g_object_new (VALENT_TYPE_EBOOK_STORE,
+                        "client", client,
+                        "source", source,
+                        NULL);
+  g_hash_table_replace (self->stores, g_object_ref (source), store);
+  valent_contact_store_provider_emit_store_added (VALENT_CONTACT_STORE_PROVIDER (self),
+                                                  store);
+}
+
+static void
 on_source_added (ESourceRegistry     *registry,
                  ESource             *source,
                  ValentEBookProvider *self)
 {
-  ValentContactStoreProvider *provider = VALENT_CONTACT_STORE_PROVIDER (self);
-  ValentContactStore *store;
-
   g_assert (E_IS_SOURCE_REGISTRY (registry));
   g_assert (E_IS_SOURCE (source));
   g_assert (VALENT_IS_EBOOK_PROVIDER (self));
 
-  store = g_object_new (VALENT_TYPE_EBOOK_STORE,
-                        "source", source,
-                        NULL);
-  g_hash_table_replace (self->stores, g_object_ref (source), store);
+  if (!e_source_has_extension (source, E_SOURCE_EXTENSION_ADDRESS_BOOK))
+    return;
 
-  valent_contact_store_provider_emit_store_added (provider, store);
+  e_book_client_connect (source,
+                         -1,
+                         self->cancellable,
+                         (GAsyncReadyCallback)e_book_client_connect_cb,
+                         self);
 }
 
 static void
@@ -59,6 +87,9 @@ on_source_removed (ESourceRegistry     *registry,
   g_assert (E_IS_SOURCE_REGISTRY (registry));
   g_assert (E_IS_SOURCE (source));
   g_assert (VALENT_IS_EBOOK_PROVIDER (self));
+
+  if (!e_source_has_extension (source, E_SOURCE_EXTENSION_ADDRESS_BOOK))
+    return;
 
   if (g_hash_table_steal_extended (self->stores, source, &esource, &store))
     {
@@ -132,6 +163,9 @@ valent_ebook_provider_dispose (GObject *object)
 {
   ValentEBookProvider *self = VALENT_EBOOK_PROVIDER (object);
 
+  if (!g_cancellable_is_cancelled (self->cancellable))
+    g_cancellable_cancel (self->cancellable);
+
   if (self->registry != NULL)
     {
       g_signal_handlers_disconnect_by_data (self->registry, self);
@@ -149,6 +183,7 @@ valent_ebook_provider_finalize (GObject *object)
   ValentEBookProvider *self = VALENT_EBOOK_PROVIDER (object);
 
   g_clear_pointer (&self->stores, g_hash_table_unref);
+  g_clear_object (&self->cancellable);
 
   G_OBJECT_CLASS (valent_ebook_provider_parent_class)->finalize (object);
 }
@@ -168,6 +203,7 @@ valent_ebook_provider_class_init (ValentEBookProviderClass *klass)
 static void
 valent_ebook_provider_init (ValentEBookProvider *self)
 {
+  self->cancellable = g_cancellable_new ();
   self->stores = g_hash_table_new_full ((GHashFunc)e_source_hash,
                                         (GEqualFunc)e_source_equal,
                                         g_object_unref,

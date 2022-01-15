@@ -11,15 +11,26 @@
 #include "valent-ebook-store.h"
 #include "valent-eds-utils.h"
 
+#define WAIT_FOR_CONNECTED_TIMEOUT 30
+
 
 struct _ValentEBookStore
 {
   ValentContactStore  parent_instance;
 
   EBookClient        *client;
+  EBookClientView    *view;
 };
 
 G_DEFINE_TYPE (ValentEBookStore, valent_ebook_store, VALENT_TYPE_CONTACT_STORE)
+
+enum {
+  PROP_0,
+  PROP_CLIENT,
+  N_PROPERTIES
+};
+
+static GParamSpec *properties [N_PROPERTIES];
 
 
 /*
@@ -32,15 +43,10 @@ valent_ebook_store_add_contacts_cb (GObject      *object,
 {
   EBookClient *client = E_BOOK_CLIENT (object);
   g_autoptr (GTask) task = G_TASK (user_data);
-  ValentContactStore *store = g_task_get_source_object (task);
-  GSList *additions = g_task_get_task_data (task);
   GError *error = NULL;
 
   if (!e_book_client_add_contacts_finish (client, result, NULL, &error))
     return g_task_return_error (task, error);
-
-  for (const GSList *iter = additions; iter; iter = iter->next)
-    valent_contact_store_emit_contact_added (store, E_CONTACT (iter->data));
 
   g_task_return_boolean (task, TRUE);
 }
@@ -54,18 +60,13 @@ valent_ebook_store_add_contacts (ValentContactStore  *store,
 {
   ValentEBookStore *self = VALENT_EBOOK_STORE (store);
   g_autoptr (GTask) task = NULL;
-  GSList *additions = NULL;
 
   g_assert (VALENT_IS_CONTACT_STORE (store));
   g_assert (contacts != NULL);
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  for (const GSList *iter = contacts; iter; iter = iter->next)
-    additions = g_slist_append (additions, g_object_ref (iter->data));
-
   task = g_task_new (store, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_ebook_store_add_contacts);
-  g_task_set_task_data (task, additions, valent_object_slist_free);
 
   e_book_client_add_contacts (self->client,
                               contacts,
@@ -82,14 +83,10 @@ valent_ebook_store_remove_cb (GObject      *object,
 {
   EBookClient *client = E_BOOK_CLIENT (object);
   g_autoptr (GTask) task = G_TASK (user_data);
-  ValentContactStore *store = g_task_get_source_object (task);
-  const char *uid = g_task_get_task_data (task);
   GError *error = NULL;
 
   if (!e_book_client_remove_contact_by_uid_finish (client, result, &error))
     return g_task_return_error (task, error);
-
-  valent_contact_store_emit_contact_removed (store, uid);
 
   g_task_return_boolean (task, TRUE);
 }
@@ -110,7 +107,6 @@ valent_ebook_store_remove_contact (ValentContactStore  *store,
 
   task = g_task_new (store, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_ebook_store_remove_contact);
-  g_task_set_task_data (task, g_strdup (uid), g_free);
 
   e_book_client_remove_contact_by_uid (self->client,
                                        uid,
@@ -201,6 +197,85 @@ valent_ebook_store_query (ValentContactStore  *store,
                               g_steal_pointer (&task));
 }
 
+static void
+on_objects_added (EBookClientView    *view,
+                  GSList             *contacts,
+                  ValentContactStore *store)
+{
+  g_assert (E_IS_BOOK_CLIENT_VIEW (view));
+  g_assert (VALENT_IS_CONTACT_STORE (store));
+
+  for (const GSList *iter = contacts; iter; iter = iter->next)
+    valent_contact_store_emit_contact_added (store, E_CONTACT (iter->data));
+}
+
+static void
+on_objects_removed (EBookClientView    *view,
+                    GSList             *uids,
+                    ValentContactStore *store)
+{
+  g_assert (E_IS_BOOK_CLIENT_VIEW (view));
+  g_assert (VALENT_IS_CONTACT_STORE (store));
+
+  for (const GSList *iter = uids; iter; iter = iter->next)
+    valent_contact_store_emit_contact_removed (store, (const char *)iter->data);
+}
+
+static void
+e_client_wait_for_connected_cb (EClient            *client,
+                                GAsyncResult       *result,
+                                ValentContactStore *store)
+{
+  g_autoptr (GError) error = NULL;
+
+  if (!e_client_wait_for_connected_finish (client, result, &error) &&
+      !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+    g_debug ("%s: %s", valent_contact_store_get_name (store), error->message);
+}
+
+static void
+e_book_client_get_view_cb (EBookClient      *client,
+                           GAsyncResult     *result,
+                           ValentEBookStore *self)
+{
+  g_autoptr (EBookClientView) view = NULL;
+  g_autoptr (GCancellable) cancellable = NULL;
+  g_autoptr (GError) error = NULL;
+
+  /* If the operation succeeds, we can connect our signal handlers */
+  if (e_book_client_get_view_finish (client, result, &view, &error))
+    {
+      self->view = g_steal_pointer (&view);
+      g_signal_connect (self->view,
+                        "objects-added",
+                        G_CALLBACK (on_objects_added),
+                        self);
+      g_signal_connect (self->view,
+                        "objects-removed",
+                        G_CALLBACK (on_objects_removed),
+                        self);
+    }
+
+  /* If the operation was cancelled then our store is being unloaded, but
+   * otherwise we just warn that there will be no change notifications */
+  else if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+    {
+      g_warning ("%s: failed to subscribe to changes: %s",
+                 valent_contact_store_get_name (VALENT_CONTACT_STORE (self)),
+                 error->message);
+    }
+  else
+    return;
+
+  /* Now that we've done our setup, we can connect the backend */
+  cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
+  e_client_wait_for_connected (E_CLIENT (self->client),
+                               WAIT_FOR_CONNECTED_TIMEOUT,
+                               cancellable,
+                               (GAsyncReadyCallback)e_client_wait_for_connected_cb,
+                               NULL);
+}
+
 /*
  * GObject
  */
@@ -208,21 +283,33 @@ static void
 valent_ebook_store_constructed (GObject *object)
 {
   ValentEBookStore *self = VALENT_EBOOK_STORE (object);
-  ValentContactStore *store = VALENT_CONTACT_STORE (object);
-  ESource *source;
-  g_autoptr (GError) error = NULL;
-  g_autoptr (EClient) client = NULL;
+  g_autoptr (GCancellable) cancellable = NULL;
 
-  /* Connect the client */
-  source = valent_contact_store_get_source (store);
-  client = e_book_client_connect_sync (source, 30, NULL, &error);
+  g_assert (E_IS_BOOK_CLIENT (self->client));
 
-  if (client == NULL)
-    g_warning ("Failed to connect EClient: %s", error->message);
-  else
-    g_set_object (&self->client, E_BOOK_CLIENT (client));
+  /* Get an unfiltered view so that we can forward change notifications */
+  cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
+  e_book_client_get_view (self->client,
+                          "",
+                          cancellable,
+                          (GAsyncReadyCallback)e_book_client_get_view_cb,
+                          self);
 
   G_OBJECT_CLASS (valent_ebook_store_parent_class)->constructed (object);
+}
+
+static void
+valent_ebook_store_dispose (GObject *object)
+{
+  ValentEBookStore *self = VALENT_EBOOK_STORE (object);
+
+  if (self->view != NULL)
+    {
+      g_signal_handlers_disconnect_by_data (self->view, self);
+      g_clear_object (&self->view);
+    }
+
+  G_OBJECT_CLASS (valent_ebook_store_parent_class)->dispose (object);
 }
 
 static void
@@ -230,14 +317,48 @@ valent_ebook_store_finalize (GObject *object)
 {
   ValentEBookStore *self = VALENT_EBOOK_STORE (object);
 
+  g_clear_object (&self->view);
   g_clear_object (&self->client);
 
   G_OBJECT_CLASS (valent_ebook_store_parent_class)->finalize (object);
 }
 
 static void
-valent_ebook_store_init (ValentEBookStore *store)
+valent_ebook_store_get_property (GObject    *object,
+                                 guint       prop_id,
+                                 GValue     *value,
+                                 GParamSpec *pspec)
 {
+  ValentEBookStore *self = VALENT_EBOOK_STORE (object);
+
+  switch (prop_id)
+    {
+    case PROP_CLIENT:
+      g_value_set_object (value, self->client);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
+static void
+valent_ebook_store_set_property (GObject      *object,
+                                 guint         prop_id,
+                                 const GValue *value,
+                                 GParamSpec   *pspec)
+{
+  ValentEBookStore *self = VALENT_EBOOK_STORE (object);
+
+  switch (prop_id)
+    {
+    case PROP_CLIENT:
+      self->client = g_value_dup_object (value);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
 }
 
 static void
@@ -247,11 +368,36 @@ valent_ebook_store_class_init (ValentEBookStoreClass *klass)
   ValentContactStoreClass *store_class = VALENT_CONTACT_STORE_CLASS (klass);
 
   object_class->constructed = valent_ebook_store_constructed;
+  object_class->dispose = valent_ebook_store_dispose;
   object_class->finalize = valent_ebook_store_finalize;
+  object_class->get_property = valent_ebook_store_get_property;
+  object_class->set_property = valent_ebook_store_set_property;
 
   store_class->add_contacts = valent_ebook_store_add_contacts;
   store_class->remove_contact = valent_ebook_store_remove_contact;
   store_class->get_contact = valent_ebook_store_get_contact;
   store_class->query = valent_ebook_store_query;
+
+  /**
+   * ValentEBookStore:client:
+   *
+   * The #EBookClient for the store.
+   */
+  properties [PROP_CLIENT] =
+    g_param_spec_object ("client",
+                         "Client",
+                         "The client for the store",
+                         E_TYPE_BOOK_CLIENT,
+                         (G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT_ONLY |
+                          G_PARAM_EXPLICIT_NOTIFY |
+                          G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+}
+
+static void
+valent_ebook_store_init (ValentEBookStore *self)
+{
 }
 
