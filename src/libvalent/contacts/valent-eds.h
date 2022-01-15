@@ -30,6 +30,10 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (EBookBackendFactory, g_object_unref)
 #endif
 
+#ifndef glib_autoptr_clear_EBookClientView
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (EBookClientView, g_object_unref)
+#endif
+
 #ifndef glib_autoptr_clear_EBookQuery
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (EBookQuery, e_book_query_unref)
 #endif
