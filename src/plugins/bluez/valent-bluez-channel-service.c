@@ -309,10 +309,11 @@ valent_bluez_channel_service_identify (ValentChannelService *service,
                                        const char           *target)
 {
   ValentBluezChannelService *self = VALENT_BLUEZ_CHANNEL_SERVICE (service);
+  g_autofree char *name_owner = NULL;
 
   g_assert (VALENT_IS_BLUEZ_CHANNEL_SERVICE (self));
 
-  if (g_dbus_proxy_get_name_owner (self->proxy) == NULL)
+  if ((name_owner = g_dbus_proxy_get_name_owner (self->proxy)) == NULL)
     return;
 
   g_rec_mutex_lock (&self->mutex);
