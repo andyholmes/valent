@@ -230,7 +230,12 @@ e_client_wait_for_connected_cb (EClient            *client,
 
   if (!e_client_wait_for_connected_finish (client, result, &error) &&
       !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-    g_debug ("%s: %s", valent_contact_store_get_name (store), error->message);
+    {
+      g_debug ("%s (%s): failed to connect backend: %s",
+               G_OBJECT_TYPE_NAME (store),
+               valent_contact_store_get_name (store),
+               error->message);
+    }
 }
 
 static void
@@ -260,7 +265,8 @@ e_book_client_get_view_cb (EBookClient      *client,
    * otherwise we just warn that there will be no change notifications */
   else if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
     {
-      g_warning ("%s: failed to subscribe to changes: %s",
+      g_warning ("%s (%s): failed to subscribe to changes: %s",
+                 G_OBJECT_TYPE_NAME (self),
                  valent_contact_store_get_name (VALENT_CONTACT_STORE (self)),
                  error->message);
     }
@@ -273,7 +279,7 @@ e_book_client_get_view_cb (EBookClient      *client,
                                WAIT_FOR_CONNECTED_TIMEOUT,
                                cancellable,
                                (GAsyncReadyCallback)e_client_wait_for_connected_cb,
-                               NULL);
+                               self);
 }
 
 /*
