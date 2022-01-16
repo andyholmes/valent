@@ -78,11 +78,11 @@ valent_mpris_player_new_cb (GObject      *object,
 }
 
 static void
-on_name_owner_changed (GDBusConnection *connection     G_GNUC_UNUSED,
-                       const char      *sender_name    G_GNUC_UNUSED,
-                       const char      *object_path    G_GNUC_UNUSED,
-                       const char      *interface_name G_GNUC_UNUSED,
-                       const char      *signal_name    G_GNUC_UNUSED,
+on_name_owner_changed (GDBusConnection *connection,
+                       const char      *sender_name,
+                       const char      *object_path,
+                       const char      *interface_name,
+                       const char      *signal_name,
                        GVariant        *parameters,
                        gpointer         user_data)
 {
