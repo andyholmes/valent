@@ -186,9 +186,9 @@ static void
 contacts_component_fixture_tear_down (ContactsComponentFixture *fixture,
                                       gconstpointer             user_data)
 {
-  v_assert_finalize_object (fixture->contacts);
-  v_assert_finalize_object (fixture->store);
-  g_assert_finalize_object (fixture->contact);
+  v_await_finalize_object (fixture->contacts);
+  v_await_finalize_object (fixture->store);
+  v_assert_finalize_object (fixture->contact);
   g_clear_pointer (&fixture->loop, g_main_loop_unref);
 }
 

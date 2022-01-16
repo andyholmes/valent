@@ -124,7 +124,7 @@ valent_mock_channel_service_stop (ValentChannelService *service)
   if (self->channel)
     {
       valent_channel_close_async (self->channel, NULL, NULL, NULL);
-      v_assert_finalize_object (self->channel);
+      v_await_finalize_object (self->channel);
       self->channel = NULL;
     }
 

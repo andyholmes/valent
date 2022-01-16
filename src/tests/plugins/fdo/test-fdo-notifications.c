@@ -60,8 +60,8 @@ fdo_notifications_fixture_tear_down (FdoNotificationsFixture *fixture,
   g_clear_object (&fixture->connection);
   g_clear_pointer (&fixture->loop, g_main_loop_unref);
   g_clear_pointer (&fixture->notification_id, g_free);
-  g_assert_finalize_object (fixture->notification);
-  g_assert_finalize_object (fixture->notifications);
+  v_assert_finalize_object (fixture->notification);
+  v_assert_finalize_object (fixture->notifications);
 }
 
 static void

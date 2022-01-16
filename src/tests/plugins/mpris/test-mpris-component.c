@@ -57,7 +57,7 @@ mpris_provider_fixture_tear_down (MprisComponentFixture *fixture,
   g_clear_pointer (&fixture->loop, g_main_loop_unref);
   g_clear_object (&fixture->player);
 
-  g_assert_finalize_object (fixture->media);
+  v_assert_finalize_object (fixture->media);
 }
 
 static void

@@ -138,13 +138,13 @@ valent_test_plugin_fixture_clear (ValentTestPluginFixture *fixture,
   if (fixture->endpoint)
     {
       valent_channel_close (fixture->endpoint, NULL, NULL);
-      v_assert_finalize_object (fixture->endpoint);
+      v_await_finalize_object (fixture->endpoint);
     }
 
   if (fixture->channel)
     {
       valent_channel_close (fixture->channel, NULL, NULL);
-      v_assert_finalize_object (fixture->channel);
+      v_await_finalize_object (fixture->channel);
     }
 
   if (fixture->data && fixture->data_free)
