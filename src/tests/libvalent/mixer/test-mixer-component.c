@@ -63,9 +63,9 @@ static void
 mixer_component_fixture_tear_down (MixerComponentFixture *fixture,
                                    gconstpointer          user_data)
 {
-  g_assert_finalize_object (fixture->mixer);
-  g_assert_finalize_object (fixture->input);
-  g_assert_finalize_object (fixture->output);
+  v_assert_finalize_object (fixture->mixer);
+  v_assert_finalize_object (fixture->input);
+  v_assert_finalize_object (fixture->output);
 }
 
 static void

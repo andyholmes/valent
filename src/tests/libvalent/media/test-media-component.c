@@ -31,8 +31,8 @@ static void
 media_component_fixture_tear_down (MediaComponentFixture *fixture,
                                    gconstpointer          user_data)
 {
-  g_assert_finalize_object (fixture->media);
-  g_assert_finalize_object (fixture->player);
+  v_assert_finalize_object (fixture->media);
+  v_assert_finalize_object (fixture->player);
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;

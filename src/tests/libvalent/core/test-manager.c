@@ -54,7 +54,7 @@ manager_fixture_tear_down (ManagerFixture *fixture,
 {
   valent_manager_stop (fixture->manager);
 
-  v_assert_finalize_object (fixture->manager);
+  v_await_finalize_object (fixture->manager);
   g_clear_pointer (&fixture->loop, g_main_loop_unref);
 }
 

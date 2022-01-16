@@ -53,9 +53,9 @@ device_fixture_tear_down (DeviceFixture *fixture,
                           gconstpointer  user_data)
 {
   valent_channel_close (fixture->endpoint, NULL, NULL);
-  v_assert_finalize_object (fixture->endpoint);
-  v_assert_finalize_object (fixture->device);
-  v_assert_finalize_object (fixture->channel);
+  v_await_finalize_object (fixture->endpoint);
+  v_await_finalize_object (fixture->device);
+  v_await_finalize_object (fixture->channel);
 
   g_clear_pointer (&fixture->packets, json_node_unref);
   g_clear_pointer (&fixture->loop, g_main_loop_unref);
@@ -164,7 +164,7 @@ test_device_new (void)
   g_assert_cmpuint (plugins->len, ==, 1);
   g_ptr_array_unref (plugins);
 
-  g_assert_finalize_object (device);
+  v_assert_finalize_object (device);
 }
 
 /*

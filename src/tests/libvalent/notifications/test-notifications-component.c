@@ -45,8 +45,8 @@ static void
 notifications_component_fixture_tear_down (NotificationsComponentFixture *fixture,
                                            gconstpointer                  user_data)
 {
-  g_assert_finalize_object (fixture->notifications);
-  g_assert_finalize_object (fixture->notification);
+  v_assert_finalize_object (fixture->notifications);
+  v_assert_finalize_object (fixture->notification);
 }
 
 static void

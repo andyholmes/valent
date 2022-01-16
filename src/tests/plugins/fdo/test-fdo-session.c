@@ -38,7 +38,7 @@ fdo_session_fixture_tear_down (FdoSessionFixture *fixture,
 {
   g_clear_object (&fixture->connection);
   g_clear_pointer (&fixture->loop, g_main_loop_unref);
-  g_assert_finalize_object (fixture->session);
+  v_assert_finalize_object (fixture->session);
 }
 
 static void

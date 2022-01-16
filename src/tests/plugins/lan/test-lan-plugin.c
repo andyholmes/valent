@@ -90,18 +90,15 @@ static void
 lan_service_fixture_tear_down (LanBackendFixture *fixture,
                                gconstpointer      user_data)
 {
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
   g_clear_pointer (&fixture->loop, g_main_loop_unref);
   g_clear_pointer (&fixture->packets, json_node_unref);
 
-  v_assert_finalize_object (fixture->service);
-  g_assert_finalize_object (fixture->channel);
+  v_await_finalize_object (fixture->service);
+  v_await_finalize_object (fixture->channel);
+  v_await_finalize_object (fixture->endpoint);
 
-  g_assert_finalize_object (fixture->endpoint);
-  g_assert_finalize_object (fixture->certificate);
-  g_assert_finalize_object (fixture->socket);
+  v_assert_finalize_object (fixture->certificate);
+  v_assert_finalize_object (fixture->socket);
 }
 
 /*
