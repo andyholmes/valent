@@ -156,10 +156,10 @@ valent_bluez_profile_get_vtable (GDBusInterfaceSkeleton *skeleton)
 }
 
 static void
-valent_bluez_profile_method_call (GDBusConnection       *connection     G_GNUC_UNUSED,
-                                  const char            *sender         G_GNUC_UNUSED,
-                                  const char            *object_path    G_GNUC_UNUSED,
-                                  const char            *interface_name G_GNUC_UNUSED,
+valent_bluez_profile_method_call (GDBusConnection       *connection,
+                                  const char            *sender,
+                                  const char            *object_path,
+                                  const char            *interface_name,
                                   const char            *method_name,
                                   GVariant              *parameters,
                                   GDBusMethodInvocation *invocation,
