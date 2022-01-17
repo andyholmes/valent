@@ -438,7 +438,7 @@ event_action (GSimpleAction *action,
       valent_mousepad_plugin_mousepad_request_keyboard (self, keysym, mask);
     }
   else
-    g_warning ("Unknown event type");
+    g_warning ("%s(): unknown event type", G_STRFUNC);
 
   g_variant_dict_clear (&dict);
 }

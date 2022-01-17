@@ -152,7 +152,7 @@ valent_media_remote_auto_export_check (ValentMprisRemote *remote)
       if (valent_mpris_remote_register (remote, &error))
         mpris_active = remote;
       else
-        g_warning ("%s: %s", G_STRFUNC, error->message);
+        g_warning ("%s(): %s", G_STRFUNC, error->message);
     }
 }
 
@@ -636,7 +636,7 @@ valent_mpris_remote_flush (ValentMprisRemote *self)
                                      &error);
 
       if (error != NULL)
-        g_warning ("%s: %s", G_STRFUNC, error->message);
+        g_warning ("%s(): %s", G_STRFUNC, error->message);
     }
 
   g_clear_handle_id (&self->flush_id, g_source_remove);
@@ -1017,7 +1017,7 @@ valent_mpris_remote_export (ValentMprisRemote *remote)
   if (remote->connection != NULL)
     {
       if (!valent_mpris_remote_register (remote, &error))
-        g_warning ("%s: %s", G_STRFUNC, error->message);
+        g_warning ("%s(): %s", G_STRFUNC, error->message);
     }
 }
 
@@ -1190,7 +1190,7 @@ valent_mpris_remote_emit_seeked (ValentMprisRemote *self,
                                        &error);
 
   if (!ret)
-    g_warning ("%s: %s", G_STRFUNC, error->message);
+    g_warning ("%s(): %s", G_STRFUNC, error->message);
 }
 
 /**

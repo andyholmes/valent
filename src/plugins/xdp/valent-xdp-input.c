@@ -105,7 +105,7 @@ on_session_started (XdpSession   *session,
 
   if (!xdp_session_start_finish (session, res, &error))
     {
-      g_warning ("[%s] %s", G_STRFUNC, error->message);
+      g_warning ("%s(): %s", G_STRFUNC, error->message);
       g_clear_object (&self->session);
       self->session_starting = FALSE;
 
@@ -115,7 +115,7 @@ on_session_started (XdpSession   *session,
   if (!(xdp_session_get_devices (session) & XDP_DEVICE_POINTER) ||
       !(xdp_session_get_devices (session) & XDP_DEVICE_KEYBOARD))
     {
-      g_warning ("[%s] Failed to get input device", G_STRFUNC);
+      g_warning ("%s(): failed to get input device", G_STRFUNC);
       g_clear_object (&self->session);
       self->session_starting = FALSE;
 
@@ -159,7 +159,7 @@ on_session_created (XdpPortal    *portal,
 
   if (self->session == NULL)
     {
-      g_warning ("[%s] %s", G_STRFUNC, error->message);
+      g_warning ("%s(): %s", G_STRFUNC, error->message);
       self->session_starting = FALSE;
 
       return;

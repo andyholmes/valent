@@ -10,6 +10,7 @@
 #include <sqlite3.h>
 
 #include "valent-data.h"
+#include "valent-debug.h"
 #include "valent-macros.h"
 #include "valent-utils.h"
 
@@ -71,7 +72,7 @@ ensure_directory (const char *path)
 
   if (g_mkdir_with_parents (path, 0700) == -1)
     {
-      g_debug ("Failed to create \"%s\": %s", path, g_strerror (errno));
+      VALENT_NOTE ("Failed to create \"%s\": %s", path, g_strerror (errno));
       return FALSE;
     }
 
@@ -405,13 +406,14 @@ valent_data_get_directory (GUserDirectory directory)
         }
     }
 
-  /* TODO: ensure the basepath exists */
   if (g_mkdir_with_parents (dirname, 0700) == -1)
     {
-      int direrr = errno;
+      int error = errno;
 
-      g_critical ("Creating '%s': %s", dirname, g_strerror (direrr));
-      return NULL;
+      g_critical ("%s(): creating \"%s\": %s",
+                  G_STRFUNC,
+                  dirname,
+                  g_strerror (error));
     }
 
   return g_steal_pointer (&dirname);
@@ -628,7 +630,7 @@ valent_data_clear_cache (ValentData *data)
   directory = g_file_new_for_path (priv->cache_path);
 
   if (!remove_directory (directory, NULL, &error))
-    g_debug ("Error deleting cache directory: %s", error->message);
+    VALENT_NOTE ("Error deleting cache directory: %s", error->message);
 }
 
 /**
@@ -658,7 +660,7 @@ valent_data_clear_data (ValentData *data)
 
   if (!remove_directory (cache_dir, NULL, &error))
     {
-      g_debug ("%s: %s", G_STRFUNC, error->message);
+      VALENT_NOTE ("%s", error->message);
       g_clear_error (&error);
     }
 
@@ -666,7 +668,7 @@ valent_data_clear_data (ValentData *data)
 
   if (!remove_directory (config_dir, NULL, &error))
     {
-      g_debug ("%s: %s", G_STRFUNC, error->message);
+      VALENT_NOTE ("%s", error->message);
       g_clear_error (&error);
     }
 
@@ -674,7 +676,7 @@ valent_data_clear_data (ValentData *data)
 
   if (!remove_directory (data_dir, NULL, &error))
     {
-      g_debug ("%s: %s", G_STRFUNC, error->message);
+      VALENT_NOTE ("%s", error->message);
       g_clear_error (&error);
     }
 }

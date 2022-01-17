@@ -480,7 +480,7 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
   /* Ensure we have a notification id */
   if ((id = valent_packet_check_string (body, "id")) == NULL)
     {
-      g_warning ("%s: missing \"id\" field", G_STRFUNC);
+      g_warning ("%s(): missing \"id\" field", G_STRFUNC);
       return;
     }
 
@@ -503,7 +503,7 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
 
   if (title == NULL || text == NULL)
     {
-      g_warning ("Missing title/text and ticker");
+      g_warning ("%s(): missing title/text and ticker", G_STRFUNC);
       return;
     }
 

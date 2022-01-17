@@ -122,7 +122,7 @@ new_session_cb (GObject          *object,
   if (self->proxy == NULL)
     {
       if (!valent_error_ignore (error))
-        g_warning ("%s: %s", G_STRFUNC, error->message);
+        g_warning ("%s(): %s", G_STRFUNC, error->message);
 
       return;
     }
@@ -167,7 +167,7 @@ get_display_cb (GDBusConnection  *connection,
   if (reply == NULL)
     {
       if (!valent_error_ignore (error))
-        g_warning ("%s: %s", G_STRFUNC, error->message);
+        g_warning ("%s(): %s", G_STRFUNC, error->message);
 
       return;
     }
@@ -201,7 +201,7 @@ get_user_cb (GDBusConnection  *connection,
   if (reply == NULL)
     {
       if (!valent_error_ignore (error))
-        g_warning ("%s: %s", G_STRFUNC, error->message);
+        g_warning ("%s(): %s", G_STRFUNC, error->message);
 
       return;
     }

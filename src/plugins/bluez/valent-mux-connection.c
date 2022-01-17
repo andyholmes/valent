@@ -588,7 +588,7 @@ valent_mux_connection_receive_loop (gpointer data)
     }
 
   out:
-    g_warning ("[%s] Error: %s", G_STRFUNC, error->message);
+    g_warning ("%s(): %s", G_STRFUNC, error->message);
 
   return NULL;
 }

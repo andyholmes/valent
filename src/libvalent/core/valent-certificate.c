@@ -324,7 +324,7 @@ valent_certificate_get_common_name (GTlsCertificate  *certificate)
                                            &buf,
                                            &buf_size)) != GNUTLS_E_SUCCESS)
     {
-      g_warning ("%s: %s", G_STRFUNC, gnutls_strerror (rc));
+      g_warning ("%s(): %s", G_STRFUNC, gnutls_strerror (rc));
       gnutls_x509_crt_deinit (crt);
 
       return NULL;
@@ -428,7 +428,7 @@ valent_certificate_get_public_key (GTlsCertificate *certificate)
   if ((rc = gnutls_x509_crt_init (&crt)) != GNUTLS_E_SUCCESS ||
       (rc = gnutls_x509_crt_import (crt, &crt_der, GNUTLS_X509_FMT_DER)) != GNUTLS_E_SUCCESS)
     {
-      g_warning ("%s: %s", G_STRFUNC, gnutls_strerror (rc));
+      g_warning ("%s(): %s", G_STRFUNC, gnutls_strerror (rc));
       VALENT_GOTO (out);
     }
 
@@ -436,7 +436,7 @@ valent_certificate_get_public_key (GTlsCertificate *certificate)
   if ((rc = gnutls_pubkey_init (&crt_pk)) != GNUTLS_E_SUCCESS ||
       (rc = gnutls_pubkey_import_x509 (crt_pk, crt, 0)) != GNUTLS_E_SUCCESS)
     {
-      g_warning ("%s: %s", G_STRFUNC, gnutls_strerror (rc));
+      g_warning ("%s(): %s", G_STRFUNC, gnutls_strerror (rc));
       VALENT_GOTO (out);
     }
 
@@ -460,10 +460,10 @@ valent_certificate_get_public_key (GTlsCertificate *certificate)
                                    (GDestroyNotify)g_byte_array_unref);
         }
       else
-        g_warning ("%s: %s", G_STRFUNC, gnutls_strerror (rc));
+        g_warning ("%s(): %s", G_STRFUNC, gnutls_strerror (rc));
     }
   else
-    g_warning ("%s: %s", G_STRFUNC, gnutls_strerror (rc));
+    g_warning ("%s(): %s", G_STRFUNC, gnutls_strerror (rc));
 
   out:
     gnutls_x509_crt_deinit (crt);

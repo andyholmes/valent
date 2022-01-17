@@ -94,20 +94,20 @@ sftp_session_new (ValentSftpPlugin *self,
   if ((node = json_object_get_member (body, "port")) == NULL ||
       json_node_get_value_type (node) != G_TYPE_INT64)
     {
-      g_warning ("%s: missing \"port\" field", G_STRFUNC);
+      g_warning ("%s(): missing \"port\" field", G_STRFUNC);
       return NULL;
     }
 
   if ((node = json_object_get_member (body, "user")) == NULL ||
       json_node_get_value_type (node) != G_TYPE_STRING)
     {
-      g_warning ("%s: missing \"user\" field", G_STRFUNC);
+      g_warning ("%s(): missing \"user\" field", G_STRFUNC);
       return NULL;
     }
 
   if ((host = get_device_host (self)) == NULL)
     {
-      g_warning ("%s: failed to get host address", G_STRFUNC);
+      g_warning ("%s(): failed to get host address", G_STRFUNC);
       return NULL;
     }
 
@@ -360,7 +360,7 @@ mount_cb (GFile            *file,
    * G_IO_ERROR_FAILED with a localized string, so we just assume. */
   if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_FAILED))
     {
-      g_warning ("%s: Error mounting: %s", G_STRFUNC, error->message);
+      g_warning ("%s(): Error mounting: %s", G_STRFUNC, error->message);
 
       if (self->session && self->session->host)
         remove_host_key (self->session->host);
@@ -383,7 +383,7 @@ sshadd_cb (GSubprocess      *proc,
 
   if (!g_subprocess_wait_check_finish (proc, result, &error))
     {
-      g_warning ("%s: Failed to add host key: %s", G_STRFUNC, error->message);
+      g_warning ("%s(): Failed to add host key: %s", G_STRFUNC, error->message);
       g_clear_pointer (&self->session, sftp_session_free);
       return;
     }
@@ -431,7 +431,7 @@ sftp_session_begin (ValentSftpPlugin  *self,
 
   if (proc == NULL)
     {
-      g_warning ("%s: Failed to add host key: %s", G_STRFUNC, error->message);
+      g_warning ("%s(): Failed to add host key: %s", G_STRFUNC, error->message);
       g_clear_pointer (&self->session, sftp_session_free);
       return;
     }

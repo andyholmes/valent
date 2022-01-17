@@ -255,9 +255,7 @@ valent_pa_mixer_constructed (GObject *object)
                     "state-changed",
                     G_CALLBACK (on_state_changed),
                     self);
-
-  if (!gvc_mixer_control_open (self->control))
-    g_warning ("Failed to open GvcMixerControl");
+  gvc_mixer_control_open (self->control);
 
   G_OBJECT_CLASS (valent_pa_mixer_parent_class)->constructed (object);
 }
@@ -268,10 +266,8 @@ valent_pa_mixer_dispose (GObject *object)
   ValentPaMixer *self = VALENT_PA_MIXER (object);
 
   /* Close the mixer */
-  if (!gvc_mixer_control_close (self->control))
-    g_warning ("Failed to close GvcMixerControl");
-
   g_signal_handlers_disconnect_by_data (self->control, self);
+  gvc_mixer_control_close (self->control);
 
   /* Drop sources and sinks */
   g_hash_table_remove_all (self->inputs);

@@ -571,13 +571,13 @@ valent_share_plugin_handle_file (ValentSharePlugin *self,
 
   if (!valent_packet_has_payload (packet))
     {
-      g_warning ("%s: missing payload info", G_STRFUNC);
+      g_warning ("%s(): missing payload info", G_STRFUNC);
       return;
     }
 
   if ((filename = valent_packet_check_string (body, "filename")) == NULL)
     {
-      g_warning ("%s: invalid \"filename\" field", G_STRFUNC);
+      g_warning ("%s(): invalid \"filename\" field", G_STRFUNC);
       return;
     }
 
@@ -715,7 +715,7 @@ valent_share_plugin_handle_packet (ValentDevicePlugin *plugin,
         }
 
       else
-        g_warning ("Share: unsupported share request");
+        g_warning ("%s(): unsupported share request", G_STRFUNC);
     }
   else
     g_assert_not_reached ();

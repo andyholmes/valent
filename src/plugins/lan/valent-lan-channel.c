@@ -252,7 +252,10 @@ valent_lan_channel_store_data (ValentChannel *channel,
                             &error);
 
   if (error != NULL)
-    g_warning ("Storing certificate: %s", error->message);
+    g_warning ("%s(): failed to write \"%s\": %s",
+               G_STRFUNC,
+               certificate_path,
+               error->message);
 }
 
 /*

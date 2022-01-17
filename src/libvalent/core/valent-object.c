@@ -145,7 +145,7 @@ valent_object_finalize (GObject *object)
 
   if (!VALENT_IS_MAIN_THREAD ())
     {
-      g_critical ("Attempt to finalize %s off the main thread; leaking instead",
+      g_critical ("%s: attempt to finalize off the main thread; leaking instead",
                   G_OBJECT_TYPE_NAME (object));
       return;
     }

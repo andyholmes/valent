@@ -50,7 +50,7 @@ ringer_source_func (GstBus     *bus,
       g_autofree char *debug = NULL;
 
       gst_message_parse_error (message, &error, &debug);
-      g_warning ("%s: %s", G_STRFUNC, error->message);
+      g_warning ("%s(): %s", G_STRFUNC, error->message);
       g_debug ("%s: %s", G_STRFUNC, (debug) ? debug : "none");
 
       return G_SOURCE_REMOVE;
@@ -101,7 +101,7 @@ valent_findmyphone_ringer_new (void)
 
   if (!gst_init_check (NULL, NULL, &error))
     {
-      g_warning ("%s: %s", G_STRFUNC, error->message);
+      g_warning ("%s(): %s", G_STRFUNC, error->message);
       return ringer;
     }
 

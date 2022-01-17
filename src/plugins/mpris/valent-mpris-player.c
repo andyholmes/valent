@@ -471,7 +471,7 @@ valent_mpris_player_get_position (ValentMediaPlayer *player)
       else if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT))
         VALENT_TODO ("Unexpected error: G_IO_ERROR_TIMED_OUT");
       else
-        g_warning ("%s: %s", G_STRFUNC, error->message);
+        g_warning ("%s(): %s", G_STRFUNC, error->message);
 
       return 0;
     }

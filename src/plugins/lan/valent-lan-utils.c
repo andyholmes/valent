@@ -36,19 +36,19 @@ configure_socket (GSocketConnection *connection)
 
   if (!g_socket_set_option (socket, IPPROTO_TCP, TCP_KEEPIDLE, 10, &error))
     {
-      g_warning ("TCP_KEEPIDLE: %s", error->message);
+      g_warning ("%s(): TCP_KEEPIDLE: %s", G_STRFUNC, error->message);
       g_clear_error (&error);
     }
 
   if (!g_socket_set_option (socket, IPPROTO_TCP, TCP_KEEPINTVL, 5, &error))
     {
-      g_warning ("TCP_KEEPINTVL: %s", error->message);
+      g_warning ("%s(): TCP_KEEPINTVL: %s", G_STRFUNC, error->message);
       g_clear_error (&error);
     }
 
   if (!g_socket_set_option (socket, IPPROTO_TCP, TCP_KEEPCNT, 3, &error))
     {
-      g_warning ("TCP_KEEPCNT: %s", error->message);
+      g_warning ("%s(): TCP_KEEPCNT: %s", G_STRFUNC, error->message);
       g_clear_error (&error);
     }
 #endif

@@ -113,7 +113,7 @@ static void
 valent_media_player_real_set_state (ValentMediaPlayer *player,
                                     ValentMediaState   state)
 {
-  g_debug ("%s: Operation not supported (%u)", G_STRFUNC, state);
+  g_debug ("%s(): operation not supported (%u)", G_STRFUNC, state);
 }
 
 static double
@@ -126,25 +126,25 @@ static void
 valent_media_player_real_set_volume (ValentMediaPlayer *player,
                                      double             volume)
 {
-  g_debug ("%s: Operation not supported", G_STRFUNC);
+  g_debug ("%s(): operation not supported", G_STRFUNC);
 }
 
 static void
 valent_media_player_real_next (ValentMediaPlayer *player)
 {
-  g_debug ("%s: Operation not supported", G_STRFUNC);
+  g_debug ("%s(): operation not supported", G_STRFUNC);
 }
 
 static void
 valent_media_player_real_pause (ValentMediaPlayer *player)
 {
-  g_debug ("%s: Operation not supported", G_STRFUNC);
+  g_debug ("%s(): operation not supported", G_STRFUNC);
 }
 
 static void
 valent_media_player_real_play (ValentMediaPlayer *player)
 {
-  g_debug ("%s: Operation not supported", G_STRFUNC);
+  g_debug ("%s(): operation not supported", G_STRFUNC);
 }
 
 static void
@@ -165,20 +165,20 @@ valent_media_player_real_play_pause (ValentMediaPlayer *player)
 static void
 valent_media_player_real_previous (ValentMediaPlayer *player)
 {
-  g_debug ("%s: Operation not supported", G_STRFUNC);
+  g_debug ("%s(): operation not supported", G_STRFUNC);
 }
 
 static void
 valent_media_player_real_seek (ValentMediaPlayer *player,
                                gint64             offset)
 {
-  g_debug ("%s: Operation not supported", G_STRFUNC);
+  g_debug ("%s(): operation not supported", G_STRFUNC);
 }
 
 static void
 valent_media_player_real_stop (ValentMediaPlayer *player)
 {
-  g_debug ("%s: Operation not supported", G_STRFUNC);
+  g_debug ("%s(): operation not supported", G_STRFUNC);
 }
 /* LCOV_EXCL_STOP */
 
