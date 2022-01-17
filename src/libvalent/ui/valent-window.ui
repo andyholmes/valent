@@ -161,7 +161,7 @@
                 <child>
                   <object class="ValentPluginGroup" id="networking_section">
                     <property name="title" translatable="yes">Networking</property>
-                    <property name="plugin-context">channel</property>
+                    <property name="plugin-context">network</property>
                     <property name="plugin-type">ValentChannelService</property>
                   </object>
                 </child>

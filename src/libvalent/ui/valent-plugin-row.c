@@ -66,15 +66,18 @@ valent_plugin_row_constructed (GObject *object)
 
   /* Plugin Toggle */
   if (self->plugin_type == VALENT_TYPE_DEVICE_PLUGIN)
-    path = g_strdup_printf ("/ca/andyholmes/valent/device/%s/plugin/%s/",
-                            self->plugin_context,
-                            module);
+    {
+      path = g_strdup_printf ("/ca/andyholmes/valent/device/%s/plugin/%s/",
+                              self->plugin_context,
+                              module);
+      self->settings = g_settings_new_with_path ("ca.andyholmes.Valent.Plugin",
+                                                 path);
+    }
   else
-    path = g_strdup_printf ("/ca/andyholmes/valent/%s/plugin/%s/",
-                            self->plugin_context,
-                            module);
-
-  self->settings = g_settings_new_with_path ("ca.andyholmes.Valent.Plugin", path);
+    {
+      self->settings = valent_component_new_settings (self->plugin_context,
+                                                      module);
+    }
 
   g_settings_bind (self->settings, "enabled",
                    self->sw,       "active",
