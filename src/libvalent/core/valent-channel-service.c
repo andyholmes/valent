@@ -65,6 +65,7 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentChannelService, valent_channel_servic
  * @build_identity: the virtual function pointer for valent_channel_service_build_identity()
  * @identify: the virtual function pointer for valent_channel_service_identify()
  * @start: the virtual function pointer for valent_channel_service_start()
+ * @start_finish: the virtual function pointer for valent_channel_service_start_finish()
  * @stop: the virtual function pointer for valent_channel_service_stop()
  * @channel: the class closure for #ValentChannelService::channel
  *
@@ -370,6 +371,18 @@ valent_channel_service_real_start (ValentChannelService *service,
                            G_OBJECT_TYPE_NAME (service));
 }
 
+static gboolean
+valent_channel_service_real_start_finish (ValentChannelService  *service,
+                                          GAsyncResult          *result,
+                                          GError               **error)
+{
+  g_assert (VALENT_IS_CHANNEL_SERVICE (service));
+  g_assert (g_task_is_valid (result, service));
+  g_assert (error == NULL || *error == NULL);
+
+  return g_task_propagate_boolean (G_TASK (result), error);
+}
+
 static void
 valent_channel_service_real_stop (ValentChannelService *service)
 {
@@ -499,6 +512,7 @@ valent_channel_service_class_init (ValentChannelServiceClass *klass)
   service_class->build_identity = valent_channel_service_real_build_identity;
   service_class->identify = valent_channel_service_real_identify;
   service_class->start = valent_channel_service_real_start;
+  service_class->start_finish = valent_channel_service_real_start_finish;
   service_class->stop = valent_channel_service_real_stop;
 
   /**
@@ -746,7 +760,9 @@ valent_channel_service_start_finish (ValentChannelService  *service,
   g_return_val_if_fail (g_task_is_valid (result, service), FALSE);
   g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-  ret = g_task_propagate_boolean (G_TASK (result), error);
+  ret = VALENT_CHANNEL_SERVICE_GET_CLASS (service)->start_finish (service,
+                                                                  result,
+                                                                  error);
 
   VALENT_RETURN (ret);
 }

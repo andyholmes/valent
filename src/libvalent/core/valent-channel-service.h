@@ -26,18 +26,21 @@ struct _ValentChannelServiceClass
   ValentObjectClass   parent_class;
 
   /* virtual functions */
-  void                (*build_identity) (ValentChannelService *service);
-  void                (*identify)       (ValentChannelService *service,
-                                         const char           *target);
-  void                (*start)          (ValentChannelService *service,
-                                         GCancellable         *cancellable,
-                                         GAsyncReadyCallback   callback,
-                                         gpointer              user_data);
-  void                (*stop)           (ValentChannelService *service);
+  void                (*build_identity) (ValentChannelService  *service);
+  void                (*identify)       (ValentChannelService  *service,
+                                         const char            *target);
+  void                (*start)          (ValentChannelService  *service,
+                                         GCancellable          *cancellable,
+                                         GAsyncReadyCallback    callback,
+                                         gpointer               user_data);
+  gboolean            (*start_finish)   (ValentChannelService  *service,
+                                         GAsyncResult          *result,
+                                         GError               **error);
+  void                (*stop)           (ValentChannelService  *service);
 
   /* signals */
-  void                (*channel)        (ValentChannelService *service,
-                                         ValentChannel        *channel);
+  void                (*channel)        (ValentChannelService  *service,
+                                         ValentChannel         *channel);
 };
 
 void       valent_channel_service_emit_channel    (ValentChannelService  *service,
