@@ -113,7 +113,7 @@ add_cb (ValentContactStore *store,
   g_autoptr (GError) error = NULL;
 
   if (!valent_contact_store_add_finish (store, result, &error))
-    g_warning ("%s: %s", G_STRFUNC, error->message);
+    g_warning ("%s(): %s", G_STRFUNC, error->message);
 }
 
 static void

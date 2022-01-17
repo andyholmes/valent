@@ -203,8 +203,10 @@ valent_runcommand_plugin_execute_local_command (ValentRuncommandPlugin *self,
 
       if (!launcher_execute (self, command_str, &error))
         {
-          g_warning ("%s: spawning \"%s\": %s",
-                     G_STRFUNC, command_str, error->message);
+          g_warning ("%s(): spawning \"%s\": %s",
+                     G_STRFUNC,
+                     command_str,
+                     error->message);
         }
     }
 }
@@ -340,7 +342,7 @@ valent_runcommand_plugin_handle_runcommand (ValentRuncommandPlugin *self,
 
   if (command_node == NULL || !JSON_NODE_HOLDS_OBJECT (command_node))
     {
-      g_warning ("Malformed commandList field");
+      g_warning ("%s(): malformed commandList field", G_STRFUNC);
       return;
     }
 

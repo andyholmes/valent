@@ -251,7 +251,9 @@ on_incoming_broadcast (ValentLanChannelService  *self,
 
   if G_UNLIKELY (peer_identity == NULL)
     {
-      g_warning ("[%s] Parsing peer-identity: %s", G_STRFUNC, warn->message);
+      g_warning ("%s(): failed to parse peer-identity: %s",
+                 G_STRFUNC,
+                 warn->message);
       return TRUE;
     }
 
@@ -261,7 +263,8 @@ on_incoming_broadcast (ValentLanChannelService  *self,
 
   if (device_id == NULL || *device_id == '\0')
     {
-      g_warning ("expected \"deviceId\" field holding a string");
+      g_warning ("%s(): expected \"deviceId\" field holding a string",
+                 G_STRFUNC);
       return TRUE;
     }
 
@@ -275,7 +278,8 @@ on_incoming_broadcast (ValentLanChannelService  *self,
 
   if (port == 0)
     {
-      g_warning ("expected \"tcpPort\" field holding an integer");
+      g_warning ("%s(): expected \"tcpPort\" field holding an integer",
+                 G_STRFUNC);
       return TRUE;
     }
 
@@ -377,7 +381,7 @@ socket_read_loop (gpointer data)
     }
 
   if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-    g_warning ("[%s] %s", G_STRFUNC, error->message);
+    g_warning ("%s(): %s", G_STRFUNC, error->message);
 
   g_clear_object (&info->service);
   g_clear_object (&info->socket);
@@ -616,7 +620,10 @@ valent_lan_channel_service_identify (ValentChannelService *service,
 
       if (naddr == NULL)
         {
-          g_warning ("Failed to parse address %s: %s", target, error->message);
+          g_warning ("%s(): failed to parse \"%s\": %s",
+                     G_STRFUNC,
+                     target,
+                     error->message);
           return;
         }
 
@@ -651,7 +658,10 @@ valent_lan_channel_service_identify (ValentChannelService *service,
 
       /* We only check for real errors, not partial writes */
       if (written == -1)
-        g_debug ("Failed to identify to %s: %s", target, error->message);
+        g_warning ("%s(): failed to identify to \"%s\": %s",
+                   G_STRFUNC,
+                   target,
+                   error->message);
     }
 
   /* IPv4 */
@@ -669,7 +679,10 @@ valent_lan_channel_service_identify (ValentChannelService *service,
 
       /* We only check for real errors, not partial writes */
       if (written == -1)
-        g_debug ("Failed to identify to %s: %s", target, error->message);
+        g_warning ("%s(): failed to identify to \"%s\": %s",
+                   G_STRFUNC,
+                   target,
+                   error->message);
     }
 }
 

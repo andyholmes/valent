@@ -95,13 +95,13 @@ valent_photo_plugin_handle_photo (ValentPhotoPlugin *self,
 
   if (!valent_packet_has_payload (packet))
     {
-      g_warning ("%s: missing payload info", G_STRFUNC);
+      g_warning ("%s(): missing payload info", G_STRFUNC);
       return;
     }
 
   if ((filename = valent_packet_check_string (body, "filename")) == NULL)
     {
-      g_warning ("%s: invalid \"filename\" field", G_STRFUNC);
+      g_warning ("%s(): invalid \"filename\" field", G_STRFUNC);
       return;
     }
 

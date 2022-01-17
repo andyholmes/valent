@@ -248,7 +248,7 @@ on_channel (ValentChannelService *service,
 
   if G_UNLIKELY (identity == NULL)
     {
-      g_warning ("%s(): [%s] missing peer identity",
+      g_warning ("%s(): %s missing peer identity",
                  G_STRFUNC,
                  G_OBJECT_TYPE_NAME (channel));
       return;
@@ -258,7 +258,7 @@ on_channel (ValentChannelService *service,
 
   if G_UNLIKELY (device_id == NULL || *device_id == '\0')
     {
-      g_warning ("%s: [%s] missing deviceId",
+      g_warning ("%s(): %s missing deviceId",
                  G_STRFUNC,
                  G_OBJECT_TYPE_NAME (channel));
       return;
@@ -503,7 +503,10 @@ valent_manager_load_devices (ValentManager  *self,
 
           if (!json_parser_load_from_file (parser, path, &warning))
             {
-              g_warning ("%s(): %s: %s", G_STRFUNC, path, warning->message);
+              g_warning ("%s(): failed to parse \"%s\": %s",
+                         G_STRFUNC,
+                         path,
+                         warning->message);
               continue;
             }
 
@@ -511,7 +514,10 @@ valent_manager_load_devices (ValentManager  *self,
 
           if (!valent_packet_validate (packet, &warning))
             {
-              g_warning ("%s(): %s: %s", G_STRFUNC, path, warning->message);
+              g_warning ("%s(): failed to validate \"%s\": %s",
+                         G_STRFUNC,
+                         path,
+                         warning->message);
               continue;
             }
 

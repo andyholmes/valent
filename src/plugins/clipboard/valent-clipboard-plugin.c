@@ -186,7 +186,7 @@ get_text_cb (ValentClipboard       *clipboard,
   if (error != NULL)
     {
       if (!valent_error_ignore (error))
-        g_warning ("%s: %s", G_STRFUNC, error->message);
+        g_warning ("%s(): %s", G_STRFUNC, error->message);
 
       return;
     }
@@ -220,7 +220,7 @@ get_text_connect_cb (ValentClipboard       *clipboard,
   if (error != NULL)
     {
       if (!valent_error_ignore (error))
-        g_warning ("%s: %s", G_STRFUNC, error->message);
+        g_warning ("%s(): %s", G_STRFUNC, error->message);
 
       return;
     }

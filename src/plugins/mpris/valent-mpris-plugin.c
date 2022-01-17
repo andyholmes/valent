@@ -206,7 +206,7 @@ valent_mpris_plugin_handle_action (ValentMprisPlugin *self,
     valent_media_player_stop (player);
 
   else
-    g_warning ("[%s]: Unknown action: %s", G_STRFUNC, action);
+    g_warning ("%s(): Unknown action: %s", G_STRFUNC, action);
 }
 
 static void
@@ -619,7 +619,7 @@ receive_art_cb (ValentTransfer *transfer,
   if (!valent_transfer_execute_finish (transfer, result, &error))
     {
       if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_warning ("%s: %s", G_STRFUNC, error->message);
+        g_warning ("%s(): %s", G_STRFUNC, error->message);
 
       return;
     }
@@ -647,7 +647,7 @@ valent_mpris_plugin_receive_album_art (ValentMprisPlugin *self,
 
   if ((url = valent_packet_check_string (body, "albumArtUrl")) == NULL)
     {
-      g_warning ("%s: Invalid \"albumArtUrl\" field", G_STRFUNC);
+      g_warning ("%s(): Invalid \"albumArtUrl\" field", G_STRFUNC);
       return;
     }
 

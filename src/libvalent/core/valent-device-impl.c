@@ -342,7 +342,7 @@ valent_device_impl_flush (GDBusInterfaceSkeleton *skeleton)
                                      &error);
 
       if (error != NULL)
-        g_debug ("%s: %s", G_STRFUNC, error->message);
+        g_debug ("%s(): %s", G_STRFUNC, error->message);
     }
 
   g_clear_handle_id (&self->flush_id, g_source_remove);

@@ -340,7 +340,9 @@ valent_device_handle_pair (ValentDevice *device,
   if G_UNLIKELY ((node = json_object_get_member (body, "pair")) == NULL ||
                  json_node_get_value_type (node) != G_TYPE_BOOLEAN)
     {
-      g_warning ("%s: malformed pair packet", device->name);
+      g_warning ("%s(): malformed pair packet from \"%s\"",
+                 G_STRFUNC,
+                 device->name);
       return;
     }
 
@@ -1649,7 +1651,7 @@ valent_device_handle_packet (ValentDevice *device,
     valent_device_plugin_handle_packet (handler, type, packet);
 
   else
-    g_debug ("%s: Unsupported packet '%s'", device->name, type);
+    g_debug ("%s: Unsupported packet \"%s\"", device->name, type);
 }
 
 /**
@@ -1687,7 +1689,11 @@ valent_device_new_download_file (ValentDevice *device,
   else if (g_mkdir_with_parents (dirname, 0700) == -1)
     {
       int error = errno;
-      g_warning ("%s: %s", G_STRFUNC, g_strerror (error));
+
+      g_critical ("%s(): creating \"%s\": %s",
+                  G_STRFUNC,
+                  dirname,
+                  g_strerror (error));
     }
 
   return valent_data_get_file (dirname, filename, unique);

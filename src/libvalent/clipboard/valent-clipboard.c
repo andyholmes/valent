@@ -219,7 +219,7 @@ valent_clipboard_get_text_async (ValentClipboard     *clipboard,
                                valent_clipboard_get_text_async,
                                G_IO_ERROR,
                                G_IO_ERROR_NOT_SUPPORTED,
-                               "No clipboard adapter");
+                               "No clipboard adapter available");
       return;
     }
 
@@ -276,7 +276,7 @@ valent_clipboard_set_text (ValentClipboard *clipboard,
 
   if G_UNLIKELY (clipboard->default_adapter == NULL)
     {
-      g_warning ("No clipboard adapter");
+      g_warning ("%s(): no clipboard adapter available", G_STRFUNC);
       VALENT_EXIT;
     }
 

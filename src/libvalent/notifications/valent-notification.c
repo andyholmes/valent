@@ -441,7 +441,7 @@ valent_notification_set_action (ValentNotification *notification,
 
   if (!g_action_parse_detailed_name (action, &aname, &atarget, &error))
     {
-      g_warning ("[%s] %s", G_STRFUNC, error->message);
+      g_warning ("%s(): %s", G_STRFUNC, error->message);
       return;
     }
 
@@ -788,7 +788,7 @@ valent_notification_add_button (ValentNotification *notification,
 
   if (!g_action_parse_detailed_name (action, &name, &target, &error))
     {
-      g_warning ("%s: %s", G_STRFUNC, error->message);
+      g_warning ("%s(): %s", G_STRFUNC, error->message);
       return;
     }
 

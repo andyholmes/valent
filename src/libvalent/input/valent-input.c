@@ -163,7 +163,7 @@ valent_input_keyboard_keysym (ValentInput  *input,
   if G_LIKELY (input->default_adapter != NULL)
     valent_input_adapter_keyboard_keysym (input->default_adapter, keysym, state);
   else
-    g_debug ("[%s] No source available", G_STRFUNC);
+    g_debug ("%s(): no input adapter available", G_STRFUNC);
 }
 
 /**
@@ -206,7 +206,7 @@ valent_input_pointer_axis (ValentInput *input,
   if G_LIKELY (input->default_adapter != NULL)
     valent_input_adapter_pointer_axis (input->default_adapter, dx, dy);
   else
-    g_debug ("[%s] No source available", G_STRFUNC);
+    g_debug ("%s(): no input adapter available", G_STRFUNC);
 }
 
 /**
@@ -227,7 +227,7 @@ valent_input_pointer_button (ValentInput         *input,
   if G_LIKELY (input->default_adapter != NULL)
     valent_input_adapter_pointer_button (input->default_adapter, button, state);
   else
-    g_debug ("[%s] No source available", G_STRFUNC);
+    g_debug ("%s(): no input adapter available", G_STRFUNC);
 }
 
 /**
@@ -253,7 +253,7 @@ valent_input_pointer_click (ValentInput         *input,
                                            FALSE);
     }
   else
-    g_debug ("[%s] No input adapter available", G_STRFUNC);
+    g_debug ("%s(): no input adapter available", G_STRFUNC);
 }
 
 /**
@@ -275,7 +275,7 @@ valent_input_pointer_motion (ValentInput *input,
   if G_LIKELY (input->default_adapter != NULL)
     valent_input_adapter_pointer_motion (input->default_adapter, dx, dy);
   else
-    g_debug ("[%s] No input adapter available", G_STRFUNC);
+    g_debug ("%s(): no input adapter available", G_STRFUNC);
 }
 
 /**
@@ -297,6 +297,6 @@ valent_input_pointer_position (ValentInput *input,
   if G_LIKELY (input->default_adapter != NULL)
     valent_input_adapter_pointer_position (input->default_adapter, x, y);
   else
-    g_debug ("[%s] No input adapter available", G_STRFUNC);
+    g_debug ("%s(): no input adapter available", G_STRFUNC);
 }
 

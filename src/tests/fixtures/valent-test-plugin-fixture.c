@@ -34,7 +34,7 @@ expect_packet_cb (ValentChannel  *channel,
   *packet = valent_channel_read_packet_finish (channel, result, &error);
 
   if (error != NULL)
-    g_critical ("%s: %s", G_STRFUNC, error->message);
+    g_critical ("%s(): %s", G_STRFUNC, error->message);
 }
 
 /**
