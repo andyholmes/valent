@@ -362,6 +362,7 @@ valent_device_panel_dispose (GObject *object)
   ValentDevicePanel *self = VALENT_DEVICE_PANEL (object);
 
   g_signal_handlers_disconnect_by_data (self->device, self);
+  g_clear_object (&self->device);
   g_clear_object (&self->settings);
 
   G_OBJECT_CLASS (valent_device_panel_parent_class)->dispose (object);
@@ -407,7 +408,7 @@ valent_device_panel_set_property (GObject      *object,
   switch (prop_id)
     {
     case PROP_DEVICE:
-      self->device = g_value_get_object (value);
+      self->device = g_value_dup_object (value);
       break;
 
     default:
