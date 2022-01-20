@@ -322,6 +322,8 @@ valent_device_notify_pair (ValentDevice *device)
   device->incoming_pair = g_timeout_add_seconds (PAIR_REQUEST_TIMEOUT,
                                                  valent_device_reset_pair,
                                                  device);
+
+  valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
 }
 
 static void
@@ -379,8 +381,6 @@ valent_device_handle_pair (ValentDevice *device,
       VALENT_NOTE ("Pairing rejected by \"%s\"", device->name);
       valent_device_set_paired (device, FALSE);
     }
-
-  valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
 }
 
 /*
@@ -588,9 +588,9 @@ pair_action (GSimpleAction *action,
                                                      valent_device_reset_pair,
                                                      device);
       VALENT_NOTE ("Pair request sent to \"%s\"", device->name);
-    }
 
-  valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
+      valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
+    }
 }
 
 static void
@@ -602,8 +602,6 @@ unpair_action (GSimpleAction *action,
 
   valent_device_send_pair (device, FALSE);
   valent_device_set_paired (device, FALSE);
-
-  valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
 }
 
 static const GActionEntry actions[] = {
@@ -1358,17 +1356,15 @@ valent_device_set_channel (ValentDevice  *device,
                                   g_object_ref (device));
     }
 
-  /* If the connected state changed, update the plugins and notify */
-  if (connected != (device->channel != NULL))
-    {
-      valent_device_update_plugins (device);
-      valent_object_notify_by_pspec (G_OBJECT (device),
-                                     properties [PROP_CONNECTED]);
-      valent_object_notify_by_pspec (G_OBJECT (device),
-                                     properties [PROP_STATE]);
-    }
-
   valent_object_unlock (VALENT_OBJECT (device));
+
+  /* If the connected state changed, update the plugins and notify */
+  if (valent_device_get_connected (device) == connected)
+    return;
+
+  valent_device_update_plugins (device);
+  valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_CONNECTED]);
+  valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
 }
 
 /**
@@ -1538,16 +1534,15 @@ valent_device_set_paired (ValentDevice *device,
   else if (!paired)
     valent_data_clear_data (device->data);
 
-  /* Ensure plugins are updated before emitting */
   device->paired = paired;
   g_settings_set_boolean (device->settings, "paired", device->paired);
 
-  /* Notify */
+  valent_object_unlock (VALENT_OBJECT (device));
+
+  /* Update plugins and notify */
   valent_device_update_plugins (device);
   valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_PAIRED]);
   valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
-
-  valent_object_unlock (VALENT_OBJECT (device));
 }
 
 /**

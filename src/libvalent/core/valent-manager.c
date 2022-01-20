@@ -547,6 +547,14 @@ valent_manager_load_devices (ValentManager  *self,
 /*
  * Device Management
  */
+static gboolean
+valent_manager_remove_device_main (gpointer data)
+{
+  g_object_unref (VALENT_DEVICE (data));
+
+  return G_SOURCE_REMOVE;
+}
+
 static void
 on_device_state (ValentDevice  *device,
                  GParamSpec    *pspec,
@@ -610,6 +618,11 @@ valent_manager_remove_device (ValentManager *manager,
       valent_manager_unexport_device (manager, device);
       g_signal_handlers_disconnect_by_data (device, manager);
       g_signal_emit (G_OBJECT (manager), signals [DEVICE_REMOVED], 0, device);
+
+      // HACK: we are in a signal handler of a device's `notify::state`
+      //       emission, so if we drop the last reference the emitting object
+      //       and other handlers may be setup for a use-after-free error.
+      g_idle_add (valent_manager_remove_device_main, g_object_ref (device));
     }
 
   g_object_unref (device);
