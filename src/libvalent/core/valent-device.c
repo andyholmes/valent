@@ -162,9 +162,10 @@ valent_device_enable_plugin (ValentDevice *device,
                            plugin->extension);
     }
 
-  /* Invoke the plugin vfunc */
+  /* Bootstrap the newly instantiated plugin */
   valent_device_plugin_enable (VALENT_DEVICE_PLUGIN (plugin->extension));
-  valent_device_plugin_update_state (VALENT_DEVICE_PLUGIN (plugin->extension));
+  valent_device_plugin_update_state (VALENT_DEVICE_PLUGIN (plugin->extension),
+                                     valent_device_get_state (device));
 }
 
 static void
@@ -1728,19 +1729,23 @@ valent_device_reload_plugins (ValentDevice *device)
 static void
 valent_device_update_plugins (ValentDevice *device)
 {
+  ValentDeviceState state = VALENT_DEVICE_STATE_NONE;
   GHashTableIter iter;
-  gpointer value;
+  DevicePlugin *plugin;
 
   g_assert (VALENT_IS_DEVICE (device));
 
+  state = valent_device_get_state (device);
+
   g_hash_table_iter_init (&iter, device->plugins);
 
-  while (g_hash_table_iter_next (&iter, NULL, &value))
+  while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
     {
-      PeasExtension *extension = ((DevicePlugin *)value)->extension;
+      if (plugin->extension == NULL)
+        continue;
 
-      if (extension != NULL)
-        valent_device_plugin_update_state (VALENT_DEVICE_PLUGIN (extension));
+      valent_device_plugin_update_state (VALENT_DEVICE_PLUGIN (plugin->extension),
+                                         state);
     }
 }
 

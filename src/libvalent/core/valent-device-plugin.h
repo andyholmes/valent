@@ -10,6 +10,8 @@
 #include <json-glib/json-glib.h>
 #include <libpeas/peas.h>
 
+#include "valent-device.h"
+
 G_BEGIN_DECLS
 
 /*
@@ -36,7 +38,8 @@ struct _ValentDevicePluginInterface
   void             (*handle_packet) (ValentDevicePlugin *plugin,
                                      const char         *type,
                                      JsonNode           *packet);
-  void             (*update_state)  (ValentDevicePlugin *plugin);
+  void             (*update_state)  (ValentDevicePlugin *plugin,
+                                     ValentDeviceState   state);
 };
 
 /* Core Interface */
@@ -45,7 +48,8 @@ void        valent_device_plugin_enable              (ValentDevicePlugin    *plu
 void        valent_device_plugin_handle_packet       (ValentDevicePlugin    *plugin,
                                                       const char            *type,
                                                       JsonNode              *packet);
-void        valent_device_plugin_update_state        (ValentDevicePlugin    *plugin);
+void        valent_device_plugin_update_state        (ValentDevicePlugin    *plugin,
+                                                      ValentDeviceState      state);
 
 /* Utility Functions */
 GSettings * valent_device_plugin_new_settings        (const char            *device_id,

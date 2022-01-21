@@ -412,16 +412,16 @@ valent_runcommand_plugin_disable (ValentDevicePlugin *plugin)
 }
 
 static void
-valent_runcommand_plugin_update_state (ValentDevicePlugin *plugin)
+valent_runcommand_plugin_update_state (ValentDevicePlugin *plugin,
+                                       ValentDeviceState   state)
 {
   ValentRuncommandPlugin *self = VALENT_RUNCOMMAND_PLUGIN (plugin);
-  gboolean connected;
-  gboolean paired;
   gboolean available;
 
-  connected = valent_device_get_connected (self->device);
-  paired = valent_device_get_paired (self->device);
-  available = (connected && paired);
+  g_assert (VALENT_IS_RUNCOMMAND_PLUGIN (self));
+
+  available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
+              (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
   /* GActions */
   valent_device_plugin_toggle_actions (plugin,
@@ -431,7 +431,8 @@ valent_runcommand_plugin_update_state (ValentDevicePlugin *plugin)
   if (available)
     valent_runcommand_plugin_send_command_list (self);
 
-  if (!paired)
+  /* If the device is unpaired it is no longer trusted */
+  if ((state & VALENT_DEVICE_STATE_PAIRED) == 0)
     launcher_clear (self);
 }
 

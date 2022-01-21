@@ -907,16 +907,16 @@ valent_mpris_plugin_disable (ValentDevicePlugin *plugin)
 }
 
 static void
-valent_mpris_plugin_update_state (ValentDevicePlugin *plugin)
+valent_mpris_plugin_update_state (ValentDevicePlugin *plugin,
+                                  ValentDeviceState   state)
 {
   ValentMprisPlugin *self = VALENT_MPRIS_PLUGIN (plugin);
-  gboolean connected;
-  gboolean paired;
   gboolean available;
 
-  connected = valent_device_get_connected (self->device);
-  paired = valent_device_get_paired (self->device);
-  available = (connected && paired);
+  g_assert (VALENT_IS_MPRIS_PLUGIN (self));
+
+  available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
+              (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
   /* Media Players */
   watch_media (self, available);

@@ -389,16 +389,15 @@ valent_telephony_plugin_disable (ValentDevicePlugin *plugin)
 }
 
 static void
-valent_telephony_plugin_update_state (ValentDevicePlugin *plugin)
+valent_telephony_plugin_update_state (ValentDevicePlugin *plugin,
+                                      ValentDeviceState   state)
 {
-  ValentTelephonyPlugin *self = VALENT_TELEPHONY_PLUGIN (plugin);
-  gboolean connected;
-  gboolean paired;
   gboolean available;
 
-  connected = valent_device_get_connected (self->device);
-  paired = valent_device_get_paired (self->device);
-  available = (connected && paired);
+  g_assert (VALENT_IS_TELEPHONY_PLUGIN (plugin));
+
+  available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
+              (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
   /* GActions */
   valent_device_plugin_toggle_actions (plugin,

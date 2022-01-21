@@ -22,13 +22,14 @@
  * @stability: Unstable
  * @include: libvalent-core.h
  *
- * The #ValentDevicePlugin interface should be implemented by libpeas plugins
- * that operate in the scope of a single device. This generally means sending
- * and receiving packets with other devices.
+ * The #ValentDevicePlugin interface should be implemented by plugins that
+ * operate in the scope of a single device. This generally means exchanging
+ * packets with other devices.
  *
- * When the device state changes, valent_device_plugin_update_state() is invoked
- * to allow the plugin to enable or disable any entry points requiring an active
- * connection.
+ * Implementations should not send packets to disconnected or unpaired devices
+ * and attempting to do so will log a warning or critical, respectively. When
+ * the device state changes, valent_device_plugin_update_state() will be called
+ * to notify the plugin.
  *
  * # `.plugin` File
  *
@@ -37,26 +38,37 @@
  *
  * - `X-IncomingCapabilities`
  *
- *   A list of strings separated by semi-colons indicating the packets that the plugin can handle.
+ *     A list of strings separated by semi-colons indicating the packets that
+ *     the plugin can handle.
  *
  * - `X-OutgoingCapabilities`
  *
- *   A list of strings separated by semi-colons indicating the packets that the plugin may provide.
+ *     A list of strings separated by semi-colons indicating the packets that
+ *     the plugin may provide.
  *
  * # Plugin States
  *
- * Plugins essentially have three states: loaded, enabled and available.
+ * Device plugins essentially have two sets of dependent conditions for being
+ * enabled. Plugins are made available to the user if any of the following
+ * criteria are met:
  *
- * Plugins are loaded (instantiated) if any of the following criteria are met:
+ * - the device's outgoing types match any of the plugin's incoming capabilities
+ * - the device's incoming types match any of the plugin's outgoing capabilities
+ * - the plugin doesn't list any capabilities (eg. a non-packet based plugin)
  *
- * - the device's outgoing types match any of the plugin's incoming types
- * - the device's incoming types match any of the plugin's outgoing types
- * - the plugin doesn't list any packet types (eg. a non-packet based plugin).
+ * When a plugin becomes available, it may be enabled, disabled and configured
+ * independent of the device's connected state. This allows the user to restrict
+ * the device's access before pairing and configure plugins while it is offline.
  *
- * Plugins are enabled by default and can be disabled or enabled by the user.
- * Once loaded a plugin can be configured regardless of whether it is enabled or
- * the device is connected or paired. This allows the user to restrict the
- * remote device's access before pairing.
+ * The #PeasExtension is only constructed once the plugin has been enabled, and
+ * valent_device_plugin_enable() and valent_device_plugin_update_state() will be
+ * called to setup the plugin. When a plugin is disabled the #PeasExtension will
+ * be disposed immediately after valent_device_plugin_disable() is called.
+ *
+ * If the connected or paired state changes, valent_device_plugin_update_state()
+ * will be called for each enabled plugin. Note that this function is not called
+ * when a plugin is disabled, so plugins must ensure that they cleanup any state
+ * when valent_device_plugin_disable() is called.
  */
 
 G_DEFINE_INTERFACE (ValentDevicePlugin, valent_device_plugin, G_TYPE_OBJECT)
@@ -90,7 +102,8 @@ valent_device_plugin_real_handle_packet (ValentDevicePlugin *plugin,
 }
 
 static void
-valent_device_plugin_real_update_state (ValentDevicePlugin *plugin)
+valent_device_plugin_real_update_state (ValentDevicePlugin *plugin,
+                                        ValentDeviceState   state)
 {
 }
 /* LCOV_EXCL_STOP */
@@ -502,12 +515,14 @@ valent_device_plugin_replace_menu_item (ValentDevicePlugin *plugin,
  * valent_device_plugin_enable: (virtual enable)
  * @plugin: a #ValentDevicePlugin
  *
- * Enables the plugin. This will register the plugin as the handler for any
- * packets the it claims to support then call the plugin's implementation.
+ * Enables the plugin.
  *
- * This function is called after the extension is loaded and should prepare
- * anything the plugin needs to handle and provide packets once the device is
- * connected.
+ * This function is called when the plugin is enabled by the user and should
+ * prepare any persistent resources it may need. Usually this means registering
+ * actions, preparing the plugin settings and other data sources.
+ *
+ * It is guaranteed that valent_device_plugin_disable() will be called if this
+ * function has been called.
  */
 void
 valent_device_plugin_enable (ValentDevicePlugin *plugin)
@@ -521,8 +536,10 @@ valent_device_plugin_enable (ValentDevicePlugin *plugin)
  * valent_device_plugin_disable: (virtual disable)
  * @plugin: a #ValentDevicePlugin
  *
- * This function is called before the extension is unloaded and should clean up
- * any resources that were allocated in valent_device_plugin_enable() or
+ * Disables the plugin.
+ *
+ * This function is called when the plugin is disabled by the user and should
+ * clean up any resources that were prepared in valent_device_plugin_enable() or
  * valent_device_plugin_update_state().
  *
  * It is guaranteed that this function will be called if
@@ -564,23 +581,24 @@ valent_device_plugin_handle_packet (ValentDevicePlugin *plugin,
 /**
  * valent_device_plugin_update_state: (virtual update_state)
  * @plugin: a #ValentDevicePlugin
+ * @state: a #ValentDeviceState
  *
- * This function is called when the device's connected or paired state changes.
- * It should be used to prepare or release resources only needed during active
- * use. Usually this means disabling or enabling any plugin actions and sending
- * or requesting data from the device.
+ * Updates the plugin state.
  *
- * It is guaranteed that this function will only be called after
- * valent_device_plugin_enable() and never after valent_device_plugin_disable().
+ * This function is called when the device's connected or paired state changes
+ * and may be used to prepare or release resources needed for packet exchange.
+ * Usually this means configuring actions and event handler that may trigger
+ * outgoing packets and exchanging connect-time data from the device.
  *
  * This is an optional for #ValentDevicePlugin implementations as plugins aren't
- * required to be packet handlers.
+ * required to be dependent on the device state.
  */
 void
-valent_device_plugin_update_state (ValentDevicePlugin *plugin)
+valent_device_plugin_update_state (ValentDevicePlugin *plugin,
+                                   ValentDeviceState   state)
 {
   g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
 
-  VALENT_DEVICE_PLUGIN_GET_IFACE (plugin)->update_state (plugin);
+  VALENT_DEVICE_PLUGIN_GET_IFACE (plugin)->update_state (plugin, state);
 }
 
