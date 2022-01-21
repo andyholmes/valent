@@ -135,18 +135,15 @@ valent_ping_plugin_disable (ValentDevicePlugin *plugin)
 }
 
 static void
-valent_ping_plugin_update_state (ValentDevicePlugin *plugin)
+valent_ping_plugin_update_state (ValentDevicePlugin *plugin,
+                                 ValentDeviceState   state)
 {
-  ValentPingPlugin *self = VALENT_PING_PLUGIN (plugin);
-  gboolean connected;
-  gboolean paired;
   gboolean available;
 
-  g_assert (VALENT_IS_PING_PLUGIN (self));
+  g_assert (VALENT_IS_PING_PLUGIN (plugin));
 
-  connected = valent_device_get_connected (self->device);
-  paired = valent_device_get_paired (self->device);
-  available = (connected && paired);
+  available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
+              (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
   /* GActions */
   valent_device_plugin_toggle_actions (plugin,
