@@ -1089,12 +1089,12 @@ valent_manager_get_device (ValentManager *manager,
  *
  * Get a list of the the devices being managed by @manager.
  *
- * Returns: (transfer container) (element-type Valent.Device): a #GPtrArray
+ * Returns: (transfer full) (element-type Valent.Device): a #GPtrArray
  */
 GPtrArray *
 valent_manager_get_devices (ValentManager *manager)
 {
-  GPtrArray *devices;
+  g_autoptr (GPtrArray) devices = NULL;
   GHashTableIter iter;
   ValentDevice *device;
 
@@ -1107,7 +1107,7 @@ valent_manager_get_devices (ValentManager *manager)
   while (g_hash_table_iter_next (&iter, NULL, (void **)&device))
     g_ptr_array_add (devices, g_object_ref (device));
 
-  return devices;
+  return g_steal_pointer (&devices);
 }
 
 /**
