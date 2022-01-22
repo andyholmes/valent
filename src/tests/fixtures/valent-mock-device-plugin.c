@@ -29,17 +29,17 @@ enum {
  * Packet Handlers
  */
 static void
-handle_mock_echo (ValentDevicePlugin *plugin,
-                  JsonNode           *packet)
+handle_mock_echo (ValentMockDevicePlugin *self,
+                  JsonNode               *packet)
 {
-  ValentMockDevicePlugin *self = VALENT_MOCK_DEVICE_PLUGIN (plugin);
   g_autoptr (JsonNode) response = NULL;
   g_autofree char *packet_json = NULL;
 
-  g_assert (VALENT_IS_DEVICE_PLUGIN (plugin));
+  g_assert (VALENT_IS_MOCK_DEVICE_PLUGIN (self));
+  g_assert (VALENT_IS_PACKET (packet));
 
   packet_json = json_to_string (packet, TRUE);
-  g_message ("%s", packet_json);
+  g_message ("Received echo: %s", packet_json);
 
   response = json_from_string (packet_json, NULL);
   valent_device_queue_packet (self->device, response);
@@ -71,11 +71,13 @@ static const ValentMenuEntry items[] = {
 };
 
 /**
- * ValentDevicePlugin Implementation
+ * ValentDevicePlugin
  */
 static void
 valent_mock_device_plugin_enable (ValentDevicePlugin *plugin)
 {
+  g_assert (VALENT_IS_MOCK_DEVICE_PLUGIN (plugin));
+
   valent_device_plugin_register_actions (plugin,
                                          actions,
                                          G_N_ELEMENTS (actions));
@@ -88,12 +90,11 @@ valent_mock_device_plugin_enable (ValentDevicePlugin *plugin)
 static void
 valent_mock_device_plugin_disable (ValentDevicePlugin *plugin)
 {
-  /* Unregister GMenu items */
+  g_assert (VALENT_IS_MOCK_DEVICE_PLUGIN (plugin));
+
   valent_device_plugin_remove_menu_entries (plugin,
                                             items,
                                             G_N_ELEMENTS (items));
-
-  /* Unregister GActions */
   valent_device_plugin_unregister_actions (plugin,
                                            actions,
                                            G_N_ELEMENTS (actions));
@@ -119,15 +120,17 @@ valent_mock_device_plugin_update_state (ValentDevicePlugin *plugin,
 
 static void
 valent_mock_device_plugin_handle_packet (ValentDevicePlugin *plugin,
-                                  const char         *type,
-                                  JsonNode           *packet)
+                                         const char         *type,
+                                         JsonNode           *packet)
 {
+  ValentMockDevicePlugin *self = VALENT_MOCK_DEVICE_PLUGIN (plugin);
+
   g_assert (VALENT_IS_MOCK_DEVICE_PLUGIN (plugin));
   g_assert (type != NULL);
   g_assert (VALENT_IS_PACKET (packet));
 
   if (g_strcmp0 (type, "kdeconnect.mock.echo") == 0)
-    handle_mock_echo (plugin, packet);
+    handle_mock_echo (self, packet);
   else
     g_assert_not_reached ();
 }

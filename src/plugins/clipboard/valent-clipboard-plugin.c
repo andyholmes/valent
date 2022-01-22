@@ -39,89 +39,9 @@ enum {
   N_PROPERTIES
 };
 
-/*
- * Packet Handlers
- */
-static void
-valent_clipboard_plugin_handle_clipboard (ValentClipboardPlugin *self,
-                                          JsonNode              *packet)
-{
-  JsonObject *body;
-  JsonNode *node;
-  const char *content;
-
-  g_assert (VALENT_IS_CLIPBOARD_PLUGIN (self));
-  g_assert (VALENT_IS_PACKET (packet));
-
-  body = valent_packet_get_body (packet);
-
-  if G_UNLIKELY ((node = json_object_get_member (body, "content")) == NULL ||
-                 json_node_get_value_type (node) != G_TYPE_STRING)
-    {
-      g_debug ("%s: Missing \"content\" field", G_STRFUNC);
-      return;
-    }
-
-  content = json_node_get_string (node);
-
-  /* Cache remote content */
-  g_clear_pointer (&self->remote_text, g_free);
-  self->remote_text = g_strdup (content);
-  self->remote_timestamp = valent_timestamp_ms ();
-
-  /* Set clipboard */
-  if (g_settings_get_boolean (self->settings, "auto-pull"))
-    valent_clipboard_set_text (self->clipboard, content);
-}
-
-static void
-valent_clipboard_plugin_handle_clipboard_connect (ValentClipboardPlugin *self,
-                                                  JsonNode              *packet)
-{
-  JsonObject *body;
-  JsonNode *node;
-  gint64 timestamp;
-  const char *content;
-
-  g_assert (VALENT_IS_CLIPBOARD_PLUGIN (self));
-  g_assert (VALENT_IS_PACKET (packet));
-
-  body = valent_packet_get_body (packet);
-
-  if G_UNLIKELY ((node = json_object_get_member (body, "timestamp")) == NULL ||
-                 json_node_get_value_type (node) != G_TYPE_INT64)
-    {
-      g_debug ("%s: missing \"timestamp\" field", G_STRFUNC);
-      return;
-    }
-
-  timestamp = json_node_get_int (node);
-
-  if G_UNLIKELY ((node = json_object_get_member (body, "content")) == NULL ||
-                 json_node_get_value_type (node) != G_TYPE_STRING)
-    {
-      g_debug ("%s: missing \"content\" field", G_STRFUNC);
-      return;
-    }
-
-  content = json_node_get_string (node);
-
-  /* Cache remote content */
-  g_clear_pointer (&self->remote_text, g_free);
-  self->remote_text = g_strdup (content);
-  self->remote_timestamp = timestamp;
-
-  /* If the remote content is outdated at connect-time, we won't auto-pull. */
-  if (self->remote_timestamp <= self->local_timestamp)
-    return;
-
-  /* Set clipboard */
-  if (g_settings_get_boolean (self->settings, "auto-pull"))
-    valent_clipboard_set_text (self->clipboard, content);
-}
 
 /*
- * Packet Providers
+ * Local Clipboard
  */
 static void
 valent_clipboard_plugin_clipboard (ValentClipboardPlugin *self,
@@ -250,6 +170,87 @@ on_clipboard_changed (ValentClipboard       *clipboard,
 }
 
 /*
+ * Remote Clipboard
+ */
+static void
+valent_clipboard_plugin_handle_clipboard (ValentClipboardPlugin *self,
+                                          JsonNode              *packet)
+{
+  JsonObject *body;
+  JsonNode *node;
+  const char *content;
+
+  g_assert (VALENT_IS_CLIPBOARD_PLUGIN (self));
+  g_assert (VALENT_IS_PACKET (packet));
+
+  body = valent_packet_get_body (packet);
+
+  if ((node = json_object_get_member (body, "content")) == NULL ||
+      json_node_get_value_type (node) != G_TYPE_STRING)
+    {
+      g_debug ("%s(): expected \"content\" field holding a string", G_STRFUNC);
+      return;
+    }
+
+  content = json_node_get_string (node);
+
+  /* Cache remote content */
+  g_clear_pointer (&self->remote_text, g_free);
+  self->remote_text = g_strdup (content);
+  self->remote_timestamp = valent_timestamp_ms ();
+
+  /* Set clipboard */
+  if (g_settings_get_boolean (self->settings, "auto-pull"))
+    valent_clipboard_set_text (self->clipboard, content);
+}
+
+static void
+valent_clipboard_plugin_handle_clipboard_connect (ValentClipboardPlugin *self,
+                                                  JsonNode              *packet)
+{
+  JsonObject *body;
+  JsonNode *node;
+  gint64 timestamp;
+  const char *content;
+
+  g_assert (VALENT_IS_CLIPBOARD_PLUGIN (self));
+  g_assert (VALENT_IS_PACKET (packet));
+
+  body = valent_packet_get_body (packet);
+
+  if ((node = json_object_get_member (body, "timestamp")) == NULL ||
+      json_node_get_value_type (node) != G_TYPE_INT64)
+    {
+      g_debug ("%s(): expected \"timestamp\" field holding an integer", G_STRFUNC);
+      return;
+    }
+
+  timestamp = json_node_get_int (node);
+
+  if ((node = json_object_get_member (body, "content")) == NULL ||
+      json_node_get_value_type (node) != G_TYPE_STRING)
+    {
+      g_debug ("%s(): expected \"content\" field holding a string", G_STRFUNC);
+      return;
+    }
+
+  content = json_node_get_string (node);
+
+  /* Cache remote content */
+  g_clear_pointer (&self->remote_text, g_free);
+  self->remote_text = g_strdup (content);
+  self->remote_timestamp = timestamp;
+
+  /* If the remote content is outdated at connect-time, we won't auto-pull. */
+  if (self->remote_timestamp <= self->local_timestamp)
+    return;
+
+  /* Set clipboard */
+  if (g_settings_get_boolean (self->settings, "auto-pull"))
+    valent_clipboard_set_text (self->clipboard, content);
+}
+
+/*
  * GActions
  */
 static void
@@ -294,16 +295,14 @@ valent_clipboard_plugin_enable (ValentDevicePlugin *plugin)
 
   g_assert (VALENT_IS_CLIPBOARD_PLUGIN (self));
 
-  /* Setup GSettings */
   device_id = valent_device_get_id (self->device);
   self->settings = valent_device_plugin_new_settings (device_id, "clipboard");
 
-  /* Register GActions */
   valent_device_plugin_register_actions (plugin,
                                          actions,
                                          G_N_ELEMENTS (actions));
 
-  /* Get the clipboard */
+  /* Ensure the ValentClipboard component is loaded */
   if (self->clipboard == NULL)
     self->clipboard = valent_clipboard_get_default ();
 }
@@ -313,16 +312,12 @@ valent_clipboard_plugin_disable (ValentDevicePlugin *plugin)
 {
   ValentClipboardPlugin *self = VALENT_CLIPBOARD_PLUGIN (plugin);
 
-  /* Drop clipboard */
-  if (self->clipboard != NULL)
-    self->clipboard = NULL;
+  /* We're about to be disposed, so stop watching the clipboard for changes */
+  g_clear_signal_handler (&self->changed_id, self->clipboard);
 
-  /* Unregister GActions */
   valent_device_plugin_unregister_actions (plugin,
                                            actions,
                                            G_N_ELEMENTS (actions));
-
-  /* Dispose GSettings */
   g_clear_object (&self->settings);
 }
 
@@ -338,12 +333,11 @@ valent_clipboard_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  /* GActions */
   valent_device_plugin_toggle_actions (plugin,
-                                       actions, G_N_ELEMENTS (actions),
+                                       actions,
+                                       G_N_ELEMENTS (actions),
                                        available);
 
-  /* (Un)watch clipboard changes */
   if (available)
     {
       if (self->changed_id == 0)
@@ -405,7 +399,6 @@ valent_clipboard_plugin_finalize (GObject *object)
 
   g_clear_pointer (&self->local_text, g_free);
   g_clear_pointer (&self->remote_text, g_free);
-  g_clear_object (&self->settings);
 
   G_OBJECT_CLASS (valent_clipboard_plugin_parent_class)->finalize (object);
 }

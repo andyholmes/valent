@@ -15,11 +15,13 @@
 struct _ValentContactsPlugin
 {
   PeasExtensionBase   parent_instance;
+
   ValentDevice       *device;
   GSettings          *settings;
+  GCancellable       *cancellable;
 
-  ValentContactStore *remote_store;
   ValentContactStore *local_store;
+  ValentContactStore *remote_store;
 };
 
 static void valent_device_plugin_iface_init (ValentDevicePluginInterface *iface);
@@ -56,171 +58,13 @@ date_from_timestamp (gint64 timestamp)
   return e_contact_date_from_string (ymd);
 }
 
-
 /*
- * Packet Handlers
+ * Local Contacts
  */
 static void
-handle_response_uids_timestamps (ValentContactsPlugin *self,
-                                 JsonNode             *packet)
-{
-  g_autoptr (JsonNode) request = NULL;
-  JsonBuilder *builder;
-  JsonObjectIter iter;
-  const char *uid;
-  JsonNode *node;
-  unsigned int n_requested = 0;
-
-  /* Start the packet */
-  builder = valent_packet_start ("kdeconnect.contacts.request_vcards_by_uid");
-  json_builder_set_member_name (builder, "uids");
-  json_builder_begin_array (builder);
-
-  json_object_iter_init (&iter, valent_packet_get_body (packet));
-
-  while (json_object_iter_next (&iter, &uid, &node))
-    {
-      gint64 timestamp = 0;
-
-      // skip the "uids" array
-      if G_UNLIKELY (g_str_equal ("uids", uid))
-        continue;
-
-      if G_LIKELY (json_node_get_value_type (node) == G_TYPE_INT64)
-        timestamp = json_node_get_int (node);
-
-      /* Check if the contact is new or updated */
-      if (0 != timestamp)
-      //if (valent_contact_store_get_timestamp (self->store, uid) != timestamp)
-        {
-          n_requested++;
-          json_builder_add_string_value (builder, uid);
-        }
-    }
-
-  json_builder_end_array (builder);
-  request = valent_packet_finish (builder);
-
-  if (n_requested > 0)
-    valent_device_queue_packet (self->device, request);
-}
-
-static void
-add_cb (ValentContactStore *store,
-        GAsyncResult       *result,
-        gpointer            user_data)
-{
-  g_autoptr (GError) error = NULL;
-
-  if (!valent_contact_store_add_finish (store, result, &error))
-    g_warning ("%s(): %s", G_STRFUNC, error->message);
-}
-
-static void
-handle_response_vcards (ValentContactsPlugin *self,
-                        JsonNode             *packet)
-{
-  g_autoslist (EContact) contacts = NULL;
-  JsonObject *body;
-  JsonObjectIter iter;
-  const char *uid;
-  JsonNode *node;
-
-  body = valent_packet_get_body (packet);
-  json_object_iter_init (&iter, body);
-
-  while (json_object_iter_next (&iter, &uid, &node))
-    {
-      EContact *contact;
-      const char *vcard;
-
-      /* NOTE: we're completely ignoring the `uids` field, because it's faster
-       *       and safer that comparing the strv to the object members */
-      if G_UNLIKELY (g_str_equal (uid, "uids"))
-        continue;
-
-      if G_UNLIKELY (json_node_get_value_type (node) != G_TYPE_STRING)
-        continue;
-
-      vcard = json_node_get_string (node);
-      contact = e_contact_new_from_vcard_with_uid (vcard, uid);
-
-      contacts = g_slist_append (contacts, contact);
-    }
-
-  if (contacts != NULL)
-    {
-      valent_contact_store_add_contacts (self->remote_store,
-                                         contacts,
-                                         NULL,
-                                         (GAsyncReadyCallback)add_cb,
-                                         NULL);
-    }
-}
-
-static void
-query_cb (ValentContactStore   *store,
-          GAsyncResult         *result,
-          ValentContactsPlugin *self)
-{
-  JsonBuilder *builder;
-  g_autoptr (JsonNode) response = NULL;
-  g_autoslist (GObject) contacts = NULL;
-  g_autoptr (GError) error = NULL;
-
-  /* Warn on error and send an empty list */
-  contacts = valent_contact_store_query_finish (store, result, &error);
-
-  if (error != NULL)
-    g_warning ("Reading contacts: %s", error->message);
-
-  /* Build response */
-  builder = valent_packet_start ("kdeconnect.contacts.response_uids_timestamps");
-
-  for (const GSList *iter = contacts; iter; iter = iter->next)
-    {
-      const char *uid;
-      gint64 timestamp = 0;
-
-      uid = e_contact_get_const (iter->data, E_CONTACT_UID);
-      json_builder_set_member_name (builder, uid);
-
-      // TODO: We probably need to convert between the custom field
-      // `X-KDECONNECT-TIMESTAMP` and `E_CONTACT_REV` to set a proper timestamp
-      timestamp = 0;
-      json_builder_add_int_value (builder, timestamp);
-    }
-
-  response = valent_packet_finish (builder);
-  valent_device_queue_packet (self->device, response);
-}
-
-static void
-handle_request_all_uids_timestamps (ValentContactsPlugin *self,
-                                    JsonNode             *packet)
-{
-  g_autoptr (EBookQuery) query = NULL;
-  g_autofree char *sexp = NULL;
-
-  /* Bail if exporting is disabled */
-  if (self->local_store == NULL ||
-      !g_settings_get_boolean (self->settings, "local-sync"))
-    return;
-
-  query = e_book_query_vcard_field_exists (EVC_UID);
-  sexp = e_book_query_to_string (query);
-
-  valent_contact_store_query (self->local_store,
-                              sexp,
-                              NULL,
-                              (GAsyncReadyCallback)query_cb,
-                              self);
-}
-
-static void
-vcards_by_uid_cb (ValentContactStore   *store,
-                  GAsyncResult         *result,
-                  ValentContactsPlugin *self)
+valent_contact_store_query_vcards_cb (ValentContactStore   *store,
+                                      GAsyncResult         *result,
+                                      ValentContactsPlugin *self)
 {
   JsonBuilder *builder;
   g_autoptr (JsonNode) response = NULL;
@@ -228,13 +72,12 @@ vcards_by_uid_cb (ValentContactStore   *store,
   g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_CONTACT_STORE (store));
-  g_assert (VALENT_IS_CONTACTS_PLUGIN (self));
 
   contacts = valent_contact_store_query_finish (store, result, &error);
 
   if (error != NULL)
     {
-      g_warning ("Querying contacts: %s", error->message);
+      g_warning ("%s(): %s", G_STRFUNC, error->message);
       return;
     }
 
@@ -271,16 +114,9 @@ vcards_by_uid_cb (ValentContactStore   *store,
   valent_device_queue_packet (self->device, response);
 }
 
-/**
- * handle_request_vcards_by_uid:
- * @self: a #ValentContactsPlugin
- * @packet: a #JsonNode
- *
- * Handle a request for local contacts from the remote device.
- */
 static void
-handle_request_vcards_by_uid (ValentContactsPlugin *self,
-                              JsonNode             *packet)
+valent_contact_plugin_handle_request_vcards_by_uid (ValentContactsPlugin *self,
+                                                    JsonNode             *packet)
 {
   g_autofree EBookQuery **queries = NULL;
   g_autoptr (EBookQuery) query = NULL;
@@ -290,8 +126,11 @@ handle_request_vcards_by_uid (ValentContactsPlugin *self,
   JsonArray *uids;
   unsigned int n_uids, n_queries;
 
+  g_assert (VALENT_IS_CONTACTS_PLUGIN (self));
+
   /* Bail if exporting is disabled */
-  if (self->local_store == NULL || !g_settings_get_boolean (self->settings, "local-sync"))
+  if (self->local_store == NULL ||
+      !g_settings_get_boolean (self->settings, "local-sync"))
     return;
 
   /* Check packet */
@@ -300,7 +139,7 @@ handle_request_vcards_by_uid (ValentContactsPlugin *self,
   if ((node = json_object_get_member (body, "uids")) == NULL ||
       json_node_get_node_type (node) != JSON_NODE_ARRAY)
     {
-      g_debug ("%s: packet missing \"uids\" field", G_STRFUNC);
+      g_debug ("%s(): expected \"uids\" field holding an array", G_STRFUNC);
       return;
     }
 
@@ -318,9 +157,9 @@ handle_request_vcards_by_uid (ValentContactsPlugin *self,
       if G_LIKELY (json_node_get_value_type (element) == G_TYPE_STRING)
         uid = json_node_get_string (element);
 
-      if (uid == NULL || g_str_equal (uid, ""))
+      if G_UNLIKELY (uid == NULL || *uid == '\0')
         {
-          g_debug ("%s: \"uids\" field contains invalid entry", G_STRFUNC);
+          g_debug ("%s(): expected \"uids\" element to contain a string", G_STRFUNC);
           continue;
         }
 
@@ -337,14 +176,184 @@ handle_request_vcards_by_uid (ValentContactsPlugin *self,
 
   valent_contact_store_query (self->local_store,
                               sexp,
-                              NULL,
-                              (GAsyncReadyCallback)vcards_by_uid_cb,
+                              self->cancellable,
+                              (GAsyncReadyCallback)valent_contact_store_query_vcards_cb,
                               self);
 }
 
-/**
- * Packet Providers
+static void
+valent_contact_store_query_uids_cb (ValentContactStore   *store,
+                                    GAsyncResult         *result,
+                                    ValentContactsPlugin *self)
+{
+  JsonBuilder *builder;
+  g_autoptr (JsonNode) response = NULL;
+  g_autoslist (GObject) contacts = NULL;
+  g_autoptr (GError) error = NULL;
+
+  g_assert (VALENT_IS_CONTACT_STORE (store));
+
+  contacts = valent_contact_store_query_finish (store, result, &error);
+
+  /* If the operation was cancelled, we're about to dispose. For any other
+   * error log a warning and send an empty list. */
+  if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+    return;
+
+  if (error != NULL)
+    g_warning ("%s(): %s", G_STRFUNC, error->message);
+
+  /* Build response */
+  builder = valent_packet_start ("kdeconnect.contacts.response_uids_timestamps");
+
+  for (const GSList *iter = contacts; iter; iter = iter->next)
+    {
+      const char *uid;
+      gint64 timestamp = 0;
+
+      uid = e_contact_get_const (iter->data, E_CONTACT_UID);
+      json_builder_set_member_name (builder, uid);
+
+      // TODO: We probably need to convert between the custom field
+      // `X-KDECONNECT-TIMESTAMP` and `E_CONTACT_REV` to set a proper timestamp
+      timestamp = 0;
+      json_builder_add_int_value (builder, timestamp);
+    }
+
+  response = valent_packet_finish (builder);
+  valent_device_queue_packet (self->device, response);
+}
+
+static void
+valent_contact_plugin_handle_request_all_uids_timestamps (ValentContactsPlugin *self,
+                                                          JsonNode             *packet)
+{
+  g_autoptr (EBookQuery) query = NULL;
+  g_autofree char *sexp = NULL;
+
+  g_assert (VALENT_IS_CONTACTS_PLUGIN (self));
+
+  /* Bail if exporting is disabled */
+  if (self->local_store == NULL ||
+      !g_settings_get_boolean (self->settings, "local-sync"))
+    return;
+
+  query = e_book_query_vcard_field_exists (EVC_UID);
+  sexp = e_book_query_to_string (query);
+
+  valent_contact_store_query (self->local_store,
+                              sexp,
+                              self->cancellable,
+                              (GAsyncReadyCallback)valent_contact_store_query_uids_cb,
+                              self);
+}
+
+/*
+ * Remote Contacts
  */
+static void
+valent_contact_plugin_handle_response_uids_timestamps (ValentContactsPlugin *self,
+                                                       JsonNode             *packet)
+{
+  g_autoptr (JsonNode) request = NULL;
+  JsonBuilder *builder;
+  JsonObjectIter iter;
+  const char *uid;
+  JsonNode *node;
+  unsigned int n_requested = 0;
+
+  g_assert (VALENT_IS_CONTACTS_PLUGIN (self));
+
+  /* Start the packet */
+  builder = valent_packet_start ("kdeconnect.contacts.request_vcards_by_uid");
+  json_builder_set_member_name (builder, "uids");
+  json_builder_begin_array (builder);
+
+  json_object_iter_init (&iter, valent_packet_get_body (packet));
+
+  while (json_object_iter_next (&iter, &uid, &node))
+    {
+      gint64 timestamp = 0;
+
+      // skip the "uids" array
+      if G_UNLIKELY (g_str_equal ("uids", uid))
+        continue;
+
+      if G_LIKELY (json_node_get_value_type (node) == G_TYPE_INT64)
+        timestamp = json_node_get_int (node);
+
+      /* Check if the contact is new or updated */
+      if (0 != timestamp)
+      //if (valent_contact_store_get_timestamp (self->store, uid) != timestamp)
+        {
+          n_requested++;
+          json_builder_add_string_value (builder, uid);
+        }
+    }
+
+  json_builder_end_array (builder);
+  request = valent_packet_finish (builder);
+
+  if (n_requested > 0)
+    valent_device_queue_packet (self->device, request);
+}
+
+static void
+valent_contact_store_add_contacts_cb (ValentContactStore *store,
+                                      GAsyncResult       *result,
+                                      gpointer            user_data)
+{
+  g_autoptr (GError) error = NULL;
+
+  if (!valent_contact_store_add_finish (store, result, &error) &&
+      !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+    g_warning ("%s(): %s", G_STRFUNC, error->message);
+}
+
+static void
+valent_contact_plugin_handle_response_vcards (ValentContactsPlugin *self,
+                                              JsonNode             *packet)
+{
+  g_autoslist (EContact) contacts = NULL;
+  JsonObject *body;
+  JsonObjectIter iter;
+  const char *uid;
+  JsonNode *node;
+
+  g_assert (VALENT_IS_CONTACTS_PLUGIN (self));
+
+  body = valent_packet_get_body (packet);
+  json_object_iter_init (&iter, body);
+
+  while (json_object_iter_next (&iter, &uid, &node))
+    {
+      EContact *contact;
+      const char *vcard;
+
+      /* NOTE: we're completely ignoring the `uids` field, because it's faster
+       *       and safer that comparing the strv to the object members */
+      if G_UNLIKELY (g_str_equal (uid, "uids"))
+        continue;
+
+      if G_UNLIKELY (json_node_get_value_type (node) != G_TYPE_STRING)
+        continue;
+
+      vcard = json_node_get_string (node);
+      contact = e_contact_new_from_vcard_with_uid (vcard, uid);
+
+      contacts = g_slist_append (contacts, contact);
+    }
+
+  if (contacts != NULL)
+    {
+      valent_contact_store_add_contacts (self->remote_store,
+                                         contacts,
+                                         self->cancellable,
+                                         (GAsyncReadyCallback)valent_contact_store_add_contacts_cb,
+                                         NULL);
+    }
+}
+
 static void
 valent_contacts_plugin_request_all_uids_timestamps (ValentContactsPlugin *self)
 {
@@ -366,7 +375,7 @@ valent_contacts_plugin_request_vcards_by_uid (ValentContactsPlugin *self,
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
 
-  g_return_if_fail (VALENT_IS_CONTACTS_PLUGIN (self));
+  g_assert (VALENT_IS_CONTACTS_PLUGIN (self));
 
   builder = valent_packet_start ("kdeconnect.contacts.request_vcards_by_uid");
 
@@ -415,30 +424,23 @@ valent_contacts_plugin_enable (ValentDevicePlugin *plugin)
 
   g_assert (VALENT_IS_CONTACTS_PLUGIN (self));
 
-  /* Setup GSettings */
   device_id = valent_device_get_id (self->device);
   self->settings = valent_device_plugin_new_settings (device_id, "contacts");
-
-  /* Remote Addressbook */
-  if (self->remote_store == NULL)
-    {
-      store = valent_contacts_ensure_store (valent_contacts_get_default (),
-                                            valent_device_get_id (self->device),
-                                            valent_device_get_name (self->device));
-      self->remote_store = g_object_ref (store);
-    }
-
-  /* Local Addressbook */
-  if (self->local_store == NULL)
-    {
-      local_uid = g_settings_get_string (self->settings, "local-uid");
-      self->local_store = valent_contacts_get_store (valent_contacts_get_default (), local_uid);
-    }
-
-  /* Register GActions */
   valent_device_plugin_register_actions (plugin,
                                          actions,
                                          G_N_ELEMENTS (actions));
+
+  /* Prepare Addressbooks */
+  self->cancellable = g_cancellable_new ();
+
+  store = valent_contacts_ensure_store (valent_contacts_get_default (),
+                                        valent_device_get_id (self->device),
+                                        valent_device_get_name (self->device));
+  g_set_object (&self->remote_store, store);
+
+  local_uid = g_settings_get_string (self->settings, "local-uid");
+  store = valent_contacts_get_store (valent_contacts_get_default (), local_uid);
+  g_set_object (&self->local_store, store);
 }
 
 static void
@@ -446,16 +448,15 @@ valent_contacts_plugin_disable (ValentDevicePlugin *plugin)
 {
   ValentContactsPlugin *self = VALENT_CONTACTS_PLUGIN (plugin);
 
-  /* Unregister GActions */
+  /* Cancel any pending operations and drop the address books */
+  g_cancellable_cancel (self->cancellable);
+  g_clear_object (&self->cancellable);
+  g_clear_object (&self->remote_store);
+  g_clear_object (&self->local_store);
+
   valent_device_plugin_unregister_actions (plugin,
                                            actions,
                                            G_N_ELEMENTS (actions));
-
-  /* Drop Addressbooks */
-  g_clear_object (&self->remote_store);
-  //g_clear_object (&self->local_store);
-
-  /* Dispose GSettings */
   g_clear_object (&self->settings);
 }
 
@@ -471,9 +472,9 @@ valent_contacts_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  /* GActions */
   valent_device_plugin_toggle_actions (plugin,
-                                       actions, G_N_ELEMENTS (actions),
+                                       actions,
+                                       G_N_ELEMENTS (actions),
                                        available);
 
   if (available)
@@ -493,19 +494,19 @@ valent_contacts_plugin_handle_packet (ValentDevicePlugin *plugin,
 
   /* A response to a request for a listing of contacts */
   if (g_strcmp0 (type, "kdeconnect.contacts.response_uids_timestamps") == 0)
-    handle_response_uids_timestamps (self, packet);
+    valent_contact_plugin_handle_response_uids_timestamps (self, packet);
 
   /* A response to a request for contacts */
   else if (g_strcmp0 (type, "kdeconnect.contacts.response_vcards") == 0)
-    handle_response_vcards (self, packet);
+    valent_contact_plugin_handle_response_vcards (self, packet);
 
   /* A request for a listing of contacts */
   else if (g_strcmp0 (type, "kdeconnect.contacts.request_all_uids_timestamps") == 0)
-    handle_request_all_uids_timestamps (self, packet);
+    valent_contact_plugin_handle_request_all_uids_timestamps (self, packet);
 
   /* A request for contacts */
   else if (g_strcmp0 (type, "kdeconnect.contacts.request_vcards_by_uid") == 0)
-    handle_request_vcards_by_uid (self, packet);
+    valent_contact_plugin_handle_request_vcards_by_uid (self, packet);
 
   else
     g_assert_not_reached ();

@@ -20,6 +20,7 @@ struct _ValentFindmyphonePlugin
 
   ValentDevice            *device;
   ValentFindmyphoneRinger *ringer;
+  ValentSession           *session;
 };
 
 static void valent_device_plugin_iface_init (ValentDevicePluginInterface *iface);
@@ -34,14 +35,12 @@ enum {
 };
 
 
-static ValentSession *session = NULL;
-
 static void
 valent_findmyphone_plugin_handle_findmyphone_request (ValentFindmyphonePlugin *self)
 {
   g_assert (VALENT_IS_FINDMYPHONE_PLUGIN (self));
 
-  valent_session_set_locked (session, FALSE);
+  valent_session_set_locked (self->session, FALSE);
   valent_findmyphone_ringer_toggle (self->ringer, self);
 }
 
@@ -80,20 +79,17 @@ valent_findmyphone_plugin_enable (ValentDevicePlugin *plugin)
 
   g_assert (VALENT_IS_FINDMYPHONE_PLUGIN (self));
 
-  session = valent_session_get_default ();
-
-  /* Acquire the ringer singleton */
-  self->ringer = valent_findmyphone_ringer_acquire ();
-
-  /* Register GActions */
   valent_device_plugin_register_actions (plugin,
                                          actions,
                                          G_N_ELEMENTS (actions));
-
-  /* Register GMenu items */
   valent_device_plugin_add_menu_entries (plugin,
                                          items,
                                          G_N_ELEMENTS (items));
+
+  /* Acquire the ringer singleton and ensure the ValentSession component is
+   * prepared. */
+  self->ringer = valent_findmyphone_ringer_acquire ();
+  self->session = valent_session_get_default ();
 }
 
 static void
@@ -103,18 +99,16 @@ valent_findmyphone_plugin_disable (ValentDevicePlugin *plugin)
 
   g_assert (VALENT_IS_FINDMYPHONE_PLUGIN (self));
 
-  /* Unregister GMenu items */
+  /* Release the ringer singleton */
+  g_clear_pointer (&self->ringer, valent_findmyphone_ringer_release);
+  self->session = NULL;
+
   valent_device_plugin_remove_menu_entries (plugin,
                                             items,
                                             G_N_ELEMENTS (items));
-
-  /* Unregister GActions */
   valent_device_plugin_unregister_actions (plugin,
                                            actions,
                                            G_N_ELEMENTS (actions));
-
-  /* Release the ringer singleton */
-  g_clear_pointer (&self->ringer, valent_findmyphone_ringer_release);
 }
 
 static void
@@ -129,14 +123,13 @@ valent_findmyphone_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  /* GActions */
-  valent_device_plugin_toggle_actions (plugin,
-                                       actions, G_N_ELEMENTS (actions),
-                                       available);
-
   /* Stop any ringing */
   if (!available && valent_findmyphone_ringer_is_owner (self->ringer, self))
     valent_findmyphone_ringer_hide (self->ringer);
+
+  valent_device_plugin_toggle_actions (plugin,
+                                       actions, G_N_ELEMENTS (actions),
+                                       available);
 }
 
 static void

@@ -628,24 +628,26 @@ valent_sftp_plugin_enable (ValentDevicePlugin *plugin)
 
   g_assert (VALENT_IS_SFTP_PLUGIN (self));
 
-  /* Setup GSettings */
   device_id = valent_device_get_id (self->device);
   self->settings = valent_device_plugin_new_settings (device_id, "sftp");
 
-  /* Register GActions */
   valent_device_plugin_register_actions (plugin,
                                          actions,
                                          G_N_ELEMENTS (actions));
-
-  /* Register GMenu items */
   valent_device_plugin_add_menu_entries (plugin,
                                          items,
                                          G_N_ELEMENTS (items));
 
-  g_object_connect (self->monitor,
-                    "object-signal::mount-added",   on_mount_added,   self,
-                    "object-signal::mount-removed", on_mount_removed, self,
-                    NULL);
+  /* Watch the volume monitor */
+  self->monitor = g_volume_monitor_get ();
+  g_signal_connect (self->monitor,
+                    "mount-added",
+                    G_CALLBACK (on_mount_added),
+                    self);
+  g_signal_connect (self->monitor,
+                    "mount-removed",
+                    G_CALLBACK (on_mount_removed),
+                    self);
 }
 
 static void
@@ -655,23 +657,17 @@ valent_sftp_plugin_disable (ValentDevicePlugin *plugin)
 
   g_assert (VALENT_IS_SFTP_PLUGIN (self));
 
-  g_signal_handlers_disconnect_by_func (self->monitor, on_mount_added, self);
-  g_signal_handlers_disconnect_by_func (self->monitor, on_mount_removed, self);
-
-  /* Unmount, if possible */
+  /* Stop watching the volume monitor and unmount any current session */
+  g_signal_handlers_disconnect_by_data (self->monitor, self);
+  g_clear_object (&self->monitor);
   g_clear_pointer (&self->session, sftp_session_end);
 
-  /* Unregister GMenu items */
   valent_device_plugin_remove_menu_entries (plugin,
                                             items,
                                             G_N_ELEMENTS (items));
-
-  /* Unregister GActions */
   valent_device_plugin_unregister_actions (plugin,
                                            actions,
                                            G_N_ELEMENTS (actions));
-
-  /* Dispose GSettings */
   g_clear_object (&self->settings);
 }
 
@@ -687,11 +683,10 @@ valent_sftp_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  /* GActions */
   valent_device_plugin_toggle_actions (plugin,
-                                     actions,
-                                     G_N_ELEMENTS (actions),
-                                     available);
+                                       actions,
+                                       G_N_ELEMENTS (actions),
+                                       available);
 
   /* GMounts */
   if (available)
@@ -799,6 +794,5 @@ valent_sftp_plugin_class_init (ValentSftpPluginClass *klass)
 static void
 valent_sftp_plugin_init (ValentSftpPlugin *self)
 {
-  self->monitor = g_volume_monitor_get ();
 }
 

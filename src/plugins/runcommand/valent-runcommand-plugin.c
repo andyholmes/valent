@@ -382,15 +382,9 @@ valent_runcommand_plugin_enable (ValentDevicePlugin *plugin)
 
   g_assert (VALENT_IS_RUNCOMMAND_PLUGIN (self));
 
-  /* Setup GSettings */
   device_id = valent_device_get_id (self->device);
   self->settings = valent_device_plugin_new_settings (device_id, "runcommand");
-  self->commands_changed_id = g_signal_connect (self->settings,
-                                                "changed::commands",
-                                                G_CALLBACK (on_commands_changed),
-                                                self);
 
-  /* Register GActions */
   valent_device_plugin_register_actions (plugin,
                                          actions,
                                          G_N_ELEMENTS (actions));
@@ -401,13 +395,12 @@ valent_runcommand_plugin_disable (ValentDevicePlugin *plugin)
 {
   ValentRuncommandPlugin *self = VALENT_RUNCOMMAND_PLUGIN (plugin);
 
-  /* Unregister GActions */
+  /* Stop watching for command changes */
+  g_clear_signal_handler (&self->commands_changed_id, self->settings);
+
   valent_device_plugin_unregister_actions (plugin,
                                            actions,
                                            G_N_ELEMENTS (actions));
-
-  /* Dispose GSettings */
-  g_clear_signal_handler (&self->commands_changed_id, self->settings);
   g_clear_object (&self->settings);
 }
 
@@ -429,7 +422,22 @@ valent_runcommand_plugin_update_state (ValentDevicePlugin *plugin,
                                        available);
 
   if (available)
-    valent_runcommand_plugin_send_command_list (self);
+    {
+      if (self->commands_changed_id == 0)
+        {
+          self->commands_changed_id =
+            g_signal_connect (self->settings,
+                              "changed::commands",
+                              G_CALLBACK (on_commands_changed),
+                              self);
+        }
+
+      valent_runcommand_plugin_send_command_list (self);
+    }
+  else
+    {
+      g_clear_signal_handler (&self->commands_changed_id, self->settings);
+    }
 
   /* If the device is unpaired it is no longer trusted */
   if ((state & VALENT_DEVICE_STATE_PAIRED) == 0)

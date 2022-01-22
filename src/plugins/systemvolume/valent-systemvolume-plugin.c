@@ -20,10 +20,8 @@ struct _ValentSystemvolumePlugin
   GSettings         *settings;
 
   ValentMixer       *mixer;
+  unsigned int       mixer_watch : 1;
   GHashTable        *state_cache;
-  unsigned long      stream_added_id;
-  unsigned long      stream_removed_id;
-  unsigned long      stream_changed_id;
 };
 
 
@@ -169,6 +167,41 @@ on_stream_removed (ValentMixer              *mixer,
     valent_systemvolume_plugin_send_sinklist (self);
 }
 
+static void
+valent_systemvolume_plugin_watch_mixer (ValentSystemvolumePlugin *self,
+                                        gboolean                  watch)
+{
+  g_assert (VALENT_IS_SYSTEMVOLUME_PLUGIN (self));
+
+  if (self->mixer_watch == watch)
+    return;
+
+  if (self->mixer == NULL)
+    self->mixer = valent_mixer_get_default ();
+
+  if (watch)
+    {
+      g_signal_connect (self->mixer,
+                        "stream-added::output",
+                        G_CALLBACK (on_stream_added),
+                        self);
+      g_signal_connect (self->mixer,
+                        "stream-removed::output",
+                        G_CALLBACK (on_stream_removed),
+                        self);
+      g_signal_connect (self->mixer,
+                        "stream-changed::output",
+                        G_CALLBACK (on_stream_changed),
+                        self);
+      self->mixer_watch = TRUE;
+    }
+  else
+    {
+      g_signal_handlers_disconnect_by_data (self->mixer, self);
+      self->mixer_watch = FALSE;
+    }
+}
+
 /*
  * Packet Providers
  */
@@ -288,7 +321,6 @@ valent_systemvolume_plugin_enable (ValentDevicePlugin *plugin)
 
   g_assert (VALENT_IS_SYSTEMVOLUME_PLUGIN (self));
 
-  /* Setup GSettings */
   device_id = valent_device_get_id (self->device);
   self->settings = valent_device_plugin_new_settings (device_id, "systemvolume");
 
@@ -304,8 +336,11 @@ valent_systemvolume_plugin_disable (ValentDevicePlugin *plugin)
 {
   ValentSystemvolumePlugin *self = VALENT_SYSTEMVOLUME_PLUGIN (plugin);
 
-  g_clear_object (&self->settings);
+  /* Clear stream state cache */
+  valent_systemvolume_plugin_watch_mixer (self, FALSE);
   g_clear_pointer (&self->state_cache, g_hash_table_unref);
+
+  g_clear_object (&self->settings);
 }
 
 static void
@@ -320,38 +355,15 @@ valent_systemvolume_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  if (self->mixer == NULL)
-    self->mixer = valent_mixer_get_default ();
-
   /* Watch stream changes */
   if (available)
     {
-      if (self->stream_added_id == 0)
-        self->stream_added_id = g_signal_connect (self->mixer,
-                                                  "stream-added::output",
-                                                  G_CALLBACK (on_stream_added),
-                                                  self);
-
-      if (self->stream_removed_id == 0)
-        self->stream_removed_id = g_signal_connect (self->mixer,
-                                                    "stream-removed::output",
-                                                    G_CALLBACK (on_stream_removed),
-                                                    self);
-
-      if (self->stream_changed_id == 0)
-        self->stream_changed_id = g_signal_connect (self->mixer,
-                                                    "stream-changed::output",
-                                                    G_CALLBACK (on_stream_changed),
-                                                    self);
-
+      valent_systemvolume_plugin_watch_mixer (self, TRUE);
       valent_systemvolume_plugin_send_sinklist (self);
     }
-  /* Stop watching stream changes */
   else
     {
-      g_clear_signal_handler (&self->stream_added_id, self->mixer);
-      g_clear_signal_handler (&self->stream_removed_id, self->mixer);
-      g_clear_signal_handler (&self->stream_changed_id, self->mixer);
+      valent_systemvolume_plugin_watch_mixer (self, FALSE);
     }
 }
 
@@ -423,11 +435,6 @@ valent_systemvolume_plugin_set_property (GObject      *object,
 }
 
 static void
-valent_systemvolume_plugin_init (ValentSystemvolumePlugin *self)
-{
-}
-
-static void
 valent_systemvolume_plugin_class_init (ValentSystemvolumePluginClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
@@ -436,5 +443,10 @@ valent_systemvolume_plugin_class_init (ValentSystemvolumePluginClass *klass)
   object_class->set_property = valent_systemvolume_plugin_set_property;
 
   g_object_class_override_property (object_class, PROP_DEVICE, "device");
+}
+
+static void
+valent_systemvolume_plugin_init (ValentSystemvolumePlugin *self)
+{
 }
 

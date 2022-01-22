@@ -21,7 +21,6 @@ struct _ValentMprisPlugin
 
   ValentDevice      *device;
   ValentMedia       *media;
-
   gboolean           media_watch : 1;
 
   GHashTable        *remotes;
@@ -446,8 +445,8 @@ valent_mpris_plugin_send_player_list (ValentMprisPlugin *self)
 }
 
 static void
-watch_media (ValentMprisPlugin *self,
-             gboolean           connect)
+valent_mpris_plugin_watch_media (ValentMprisPlugin *self,
+                                 gboolean           connect)
 {
   if (connect == self->media_watch)
     return;
@@ -460,22 +459,18 @@ watch_media (ValentMprisPlugin *self,
                         "player-added",
                         G_CALLBACK (on_players_changed),
                         self);
-
       g_signal_connect (self->media,
                         "player-removed",
                         G_CALLBACK (on_players_changed),
                         self);
-
       g_signal_connect (self->media,
                         "player-changed",
                         G_CALLBACK (on_player_changed),
                         self);
-
       g_signal_connect (self->media,
                         "player-seeked",
                         G_CALLBACK (on_player_seeked),
                         self);
-
       self->media_watch = TRUE;
     }
   else
@@ -903,6 +898,7 @@ valent_mpris_plugin_disable (ValentDevicePlugin *plugin)
 {
   ValentMprisPlugin *self = VALENT_MPRIS_PLUGIN (plugin);
 
+  valent_mpris_plugin_watch_media (self, FALSE);
   self->media = NULL;
 }
 
@@ -918,16 +914,15 @@ valent_mpris_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  /* Media Players */
-  watch_media (self, available);
-
   if (available)
     {
+      valent_mpris_plugin_watch_media (self, TRUE);
       valent_mpris_plugin_request_player_list (self);
       valent_mpris_plugin_send_player_list (self);
     }
   else
     {
+      valent_mpris_plugin_watch_media (self, FALSE);
       g_hash_table_remove_all (self->remotes);
     }
 }
@@ -970,7 +965,6 @@ valent_mpris_plugin_finalize (GObject *object)
 {
   ValentMprisPlugin *self = VALENT_MPRIS_PLUGIN (object);
 
-  watch_media (self, FALSE);
   g_clear_pointer (&self->artwork_transfers, g_hash_table_unref);
   g_clear_pointer (&self->remotes, g_hash_table_unref);
 
