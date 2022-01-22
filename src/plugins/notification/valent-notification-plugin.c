@@ -1084,20 +1084,16 @@ valent_notification_plugin_disable (ValentDevicePlugin *plugin)
 {
   ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (plugin);
 
-  /* Stop watching for local notifications */
+  /* Stop watching for local notifications and cancel pending transfers */
   if (self->notifications)
     g_signal_handlers_disconnect_by_data (self->notifications, self);
 
-  /* Unregister GActions */
-  valent_device_plugin_unregister_actions (plugin,
-                                           actions,
-                                           G_N_ELEMENTS (actions));
-
-  /* Cancel pending tasks */
   g_cancellable_cancel (self->cancellable);
   g_clear_object (&self->cancellable);
 
-  /* Dispose GSettings */
+  valent_device_plugin_unregister_actions (plugin,
+                                           actions,
+                                           G_N_ELEMENTS (actions));
   g_clear_object (&self->settings);
 }
 
@@ -1113,7 +1109,6 @@ valent_notification_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  /* GActions */
   valent_device_plugin_toggle_actions (plugin,
                                        actions, G_N_ELEMENTS (actions),
                                        available);
@@ -1131,6 +1126,7 @@ valent_notification_plugin_handle_packet (ValentDevicePlugin *plugin,
                                           JsonNode           *packet)
 {
   ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (plugin);
+
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (plugin));
   g_assert (type != NULL);
   g_assert (VALENT_IS_PACKET (packet));

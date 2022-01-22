@@ -19,6 +19,7 @@ struct _ValentLockPlugin
 
   ValentDevice      *device;
   ValentSession     *session;
+  unsigned long      session_changed_id;
 
   unsigned int       remote_locked : 1;
   unsigned int       local_locked : 1;
@@ -39,38 +40,26 @@ enum {
 };
 
 
+/*
+ * Local Lock
+ */
 static void
-update_actions (ValentLockPlugin *self)
+valent_lock_plugin_send_state (ValentLockPlugin *self)
 {
-  GActionGroup *actions;
-  GAction *action;
-
-  actions = valent_device_get_actions (self->device);
-
-  action = g_action_map_lookup_action (G_ACTION_MAP (actions), "lock");
-  g_simple_action_set_enabled (G_SIMPLE_ACTION (action), !self->remote_locked);
-
-  action = g_action_map_lookup_action (G_ACTION_MAP (actions), "unlock");
-  g_simple_action_set_enabled (G_SIMPLE_ACTION (action), self->remote_locked);
-}
-
-
-static void
-valent_lock_plugin_handle_lock (ValentLockPlugin *self,
-                                JsonNode         *packet)
-{
-  JsonObject *body;
+  JsonBuilder *builder;
+  g_autoptr (JsonNode) packet = NULL;
+  gboolean state;
 
   g_assert (VALENT_IS_LOCK_PLUGIN (self));
-  g_assert (VALENT_IS_PACKET (packet));
 
-  /* Check for the optional message */
-  body = valent_packet_get_body (packet);
+  state = valent_session_get_locked (self->session);
 
-  if (json_object_has_member (body, "isLocked"))
-    self->remote_locked = valent_packet_check_boolean (body, "isLocked");
+  builder = valent_packet_start ("kdeconnect.lock");
+  json_builder_set_member_name (builder, "isLocked");
+  json_builder_add_boolean_value (builder, state);
+  packet = valent_packet_finish (builder);
 
-  update_actions (self);
+  valent_device_queue_packet (self->device, packet);
 }
 
 static void
@@ -93,6 +82,41 @@ valent_lock_plugin_handle_lock_request (ValentLockPlugin *self,
       state = valent_packet_check_boolean (body, "setLocked");
       valent_session_set_locked (self->session, state);
     }
+}
+
+/*
+ * Remote Lock
+ */
+static void
+update_actions (ValentLockPlugin *self)
+{
+  GActionGroup *actions;
+  GAction *action;
+
+  actions = valent_device_get_actions (self->device);
+
+  action = g_action_map_lookup_action (G_ACTION_MAP (actions), "lock");
+  g_simple_action_set_enabled (G_SIMPLE_ACTION (action), !self->remote_locked);
+
+  action = g_action_map_lookup_action (G_ACTION_MAP (actions), "unlock");
+  g_simple_action_set_enabled (G_SIMPLE_ACTION (action), self->remote_locked);
+}
+
+static void
+valent_lock_plugin_handle_lock (ValentLockPlugin *self,
+                                JsonNode         *packet)
+{
+  JsonObject *body;
+
+  g_assert (VALENT_IS_LOCK_PLUGIN (self));
+  g_assert (VALENT_IS_PACKET (packet));
+
+  body = valent_packet_get_body (packet);
+
+  if (json_object_has_member (body, "isLocked"))
+    self->remote_locked = valent_packet_check_boolean (body, "isLocked");
+
+  update_actions (self);
 }
 
 static void
@@ -123,26 +147,6 @@ valent_lock_plugin_set_state (ValentLockPlugin *self,
 
   valent_device_queue_packet (self->device, packet);
 }
-
-static void
-valent_lock_plugin_send_state (ValentLockPlugin *self)
-{
-  JsonBuilder *builder;
-  g_autoptr (JsonNode) packet = NULL;
-  gboolean state;
-
-  g_assert (VALENT_IS_LOCK_PLUGIN (self));
-
-  state = valent_session_get_locked (self->session);
-
-  builder = valent_packet_start ("kdeconnect.lock");
-  json_builder_set_member_name (builder, "isLocked");
-  json_builder_add_boolean_value (builder, state);
-  packet = valent_packet_finish (builder);
-
-  valent_device_queue_packet (self->device, packet);
-}
-
 
 /*
  * GActions
@@ -193,17 +197,10 @@ valent_lock_plugin_enable (ValentDevicePlugin *plugin)
   g_assert (VALENT_IS_LOCK_PLUGIN (self));
 
   self->session = valent_session_get_default ();
-  g_signal_connect_swapped (self->session,
-                            "changed",
-                            G_CALLBACK (valent_lock_plugin_send_state),
-                            self);
 
-  /* Register GActions */
   valent_device_plugin_register_actions (plugin,
                                          actions,
                                          G_N_ELEMENTS (actions));
-
-  /* Register GMenu items */
   valent_device_plugin_add_menu_entries (plugin,
                                          items,
                                          G_N_ELEMENTS (items));
@@ -216,14 +213,12 @@ valent_lock_plugin_disable (ValentDevicePlugin *plugin)
 
   g_assert (VALENT_IS_LOCK_PLUGIN (self));
 
-  g_signal_handlers_disconnect_by_data (self->session, self);
+  /* We're about to dispose, so stop watching the session */
+  g_clear_signal_handler (&self->session_changed_id, self->session);
 
-  /* Unregister GMenu items */
   valent_device_plugin_remove_menu_entries (plugin,
                                             items,
                                             G_N_ELEMENTS (items));
-
-  /* Unregister GActions */
   valent_device_plugin_unregister_actions (plugin,
                                            actions,
                                            G_N_ELEMENTS (actions));
@@ -241,17 +236,27 @@ valent_lock_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  /* GActions */
   if (available)
     {
+      if (self->session_changed_id == 0)
+        {
+          self->session_changed_id =
+            g_signal_connect_swapped (self->session,
+                                      "changed",
+                                      G_CALLBACK (valent_lock_plugin_send_state),
+                                      self);
+        }
+
       update_actions (self);
       valent_lock_plugin_request_state (self);
     }
   else
     {
+      g_clear_signal_handler (&self->session_changed_id, self->session);
       valent_device_plugin_toggle_actions (plugin,
-                                           actions, G_N_ELEMENTS (actions),
-                                           available);
+                                           actions,
+                                           G_N_ELEMENTS (actions),
+                                           FALSE);
     }
 }
 

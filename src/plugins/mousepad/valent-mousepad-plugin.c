@@ -458,12 +458,9 @@ static const ValentMenuEntry items[] = {
 static void
 valent_mousepad_plugin_enable (ValentDevicePlugin *plugin)
 {
-  /* Register GActions */
   valent_device_plugin_register_actions (plugin,
                                          actions,
                                          G_N_ELEMENTS (actions));
-
-  /* Register GMenu items */
   valent_device_plugin_add_menu_entries (plugin,
                                          items,
                                          G_N_ELEMENTS (items));
@@ -476,18 +473,16 @@ valent_mousepad_plugin_disable (ValentDevicePlugin *plugin)
 
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
 
-  /* Unregister GMenu items */
+  /* Destroy the input dialog if necessary */
+  if (self->dialog != NULL)
+    gtk_window_destroy (GTK_WINDOW (self->dialog));
+
   valent_device_plugin_remove_menu_entries (plugin,
                                             items,
                                             G_N_ELEMENTS (items));
-
-  /* Unregister GActions */
   valent_device_plugin_unregister_actions (plugin,
                                            actions,
                                            G_N_ELEMENTS (actions));
-
-  if (self->dialog != NULL)
-    gtk_window_destroy (GTK_WINDOW (self->dialog));
 }
 
 static void
@@ -505,7 +500,6 @@ valent_mousepad_plugin_update_state (ValentDevicePlugin *plugin,
   if (available)
     valent_mousepad_plugin_mousepad_keyboardstate (self);
 
-  /* GActions */
   valent_device_plugin_toggle_actions (plugin,
                                        actions,
                                        G_N_ELEMENTS (actions),

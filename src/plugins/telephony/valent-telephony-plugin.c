@@ -364,11 +364,8 @@ valent_telephony_plugin_enable (ValentDevicePlugin *plugin)
 
   g_assert (VALENT_IS_TELEPHONY_PLUGIN (self));
 
-  /* Setup GSettings */
   device_id = valent_device_get_id (self->device);
   self->settings = valent_device_plugin_new_settings (device_id, "telephony");
-
-  /* Register GActions */
   valent_device_plugin_register_actions (plugin,
                                          actions,
                                          G_N_ELEMENTS (actions));
@@ -379,12 +376,9 @@ valent_telephony_plugin_disable (ValentDevicePlugin *plugin)
 {
   ValentTelephonyPlugin *self = VALENT_TELEPHONY_PLUGIN (plugin);
 
-  /* Unregister GActions */
   valent_device_plugin_unregister_actions (plugin,
                                            actions,
                                            G_N_ELEMENTS (actions));
-
-  /* Dispose GSettings */
   g_clear_object (&self->settings);
 }
 
@@ -399,7 +393,6 @@ valent_telephony_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  /* GActions */
   valent_device_plugin_toggle_actions (plugin,
                                        actions, G_N_ELEMENTS (actions),
                                        available);

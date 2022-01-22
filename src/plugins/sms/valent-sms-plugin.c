@@ -461,19 +461,16 @@ valent_sms_plugin_disable (ValentDevicePlugin *plugin)
 
   g_assert (VALENT_IS_SMS_PLUGIN (plugin));
 
-  /* Unregister GMenu items */
-  valent_device_plugin_remove_menu_entries (plugin,
-                                            items,
-                                            G_N_ELEMENTS (items));
-
-  /* Unregister GActions */
-  valent_device_plugin_unregister_actions (plugin,
-                                           actions,
-                                           G_N_ELEMENTS (actions));
-
   /* Close message window and drop SMS Store */
   g_clear_pointer (&self->window, gtk_window_destroy);
   g_clear_object (&self->store);
+
+  valent_device_plugin_remove_menu_entries (plugin,
+                                            items,
+                                            G_N_ELEMENTS (items));
+  valent_device_plugin_unregister_actions (plugin,
+                                           actions,
+                                           G_N_ELEMENTS (actions));
 }
 
 static void
@@ -488,7 +485,6 @@ valent_sms_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  /* GActions */
   valent_device_plugin_toggle_actions (plugin,
                                        actions, G_N_ELEMENTS (actions),
                                        available);

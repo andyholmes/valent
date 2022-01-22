@@ -109,12 +109,9 @@ static const ValentMenuEntry items[] = {
 static void
 valent_ping_plugin_enable (ValentDevicePlugin *plugin)
 {
-  /* Register GActions */
   valent_device_plugin_register_actions (plugin,
                                          actions,
                                          G_N_ELEMENTS (actions));
-
-  /* Register GMenu items */
   valent_device_plugin_add_menu_entries (plugin,
                                          items,
                                          G_N_ELEMENTS (items));
@@ -123,12 +120,9 @@ valent_ping_plugin_enable (ValentDevicePlugin *plugin)
 static void
 valent_ping_plugin_disable (ValentDevicePlugin *plugin)
 {
-  /* Unregister GMenu items */
   valent_device_plugin_remove_menu_entries (plugin,
                                             items,
                                             G_N_ELEMENTS (items));
-
-  /* Unregister GActions */
   valent_device_plugin_unregister_actions (plugin,
                                            actions,
                                            G_N_ELEMENTS (actions));
@@ -145,9 +139,9 @@ valent_ping_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  /* GActions */
   valent_device_plugin_toggle_actions (plugin,
-                                       actions, G_N_ELEMENTS (actions),
+                                       actions,
+                                       G_N_ELEMENTS (actions),
                                        available);
 }
 

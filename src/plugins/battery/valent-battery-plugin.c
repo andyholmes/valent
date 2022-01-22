@@ -24,7 +24,7 @@ struct _ValentBatteryPlugin
 
   /* Local Battery */
   ValentBattery     *battery;
-  unsigned long      battery_changed_id;
+  unsigned int       battery_watch : 1;
 
   /* Remote Battery */
   gboolean           charging;
@@ -48,6 +48,111 @@ enum {
   N_PROPERTIES
 };
 
+
+/*
+ * Local Battery
+ */
+static void
+on_battery_changed (ValentBattery       *battery,
+                    ValentBatteryPlugin *self)
+{
+  g_assert (VALENT_IS_BATTERY (battery));
+  g_assert (VALENT_IS_BATTERY_PLUGIN (self));
+
+  if (valent_battery_get_level (battery) > 0)
+    valent_battery_plugin_send_state (self);
+}
+
+static void
+valent_battery_plugin_watch_battery (ValentBatteryPlugin *self,
+                                     gboolean             watch)
+{
+  g_assert (VALENT_IS_BATTERY_PLUGIN (self));
+
+  if (self->battery_watch == watch)
+    return;
+
+  if (self->battery == NULL)
+    self->battery = valent_battery_get_default ();
+
+  if (watch)
+    {
+      g_signal_connect (self->battery,
+                       "changed",
+                       G_CALLBACK (on_battery_changed),
+                       self);
+      self->battery_watch = TRUE;
+    }
+  else
+    {
+      g_signal_handlers_disconnect_by_data (self->battery, self);
+      self->battery_watch = FALSE;
+    }
+}
+
+static void
+valent_battery_plugin_handle_battery_request (ValentBatteryPlugin *self,
+                                              JsonNode            *packet)
+{
+  g_assert (VALENT_IS_BATTERY_PLUGIN (self));
+  g_assert (VALENT_IS_PACKET (packet));
+
+  if (valent_packet_check_boolean (valent_packet_get_body (packet), "request"))
+    valent_battery_plugin_send_state (self);
+}
+
+static void
+valent_battery_plugin_send_state (ValentBatteryPlugin *self)
+{
+  JsonBuilder *builder;
+  g_autoptr (JsonNode) packet = NULL;
+
+  g_return_if_fail (VALENT_IS_BATTERY_PLUGIN (self));
+
+  if (!g_settings_get_boolean (self->settings, "share-state"))
+    return;
+
+  builder = valent_packet_start ("kdeconnect.battery");
+  json_builder_set_member_name (builder, "currentCharge");
+  json_builder_add_int_value (builder, valent_battery_get_level (self->battery));
+  json_builder_set_member_name (builder, "isCharging");
+  json_builder_add_boolean_value (builder, valent_battery_get_charging (self->battery));
+  json_builder_set_member_name (builder, "thresholdEvent");
+  json_builder_add_int_value (builder, valent_battery_get_threshold (self->battery));
+  packet = valent_packet_finish (builder);
+
+  valent_device_queue_packet (self->device, packet);
+}
+
+
+/*
+ * Remote Battery
+ */
+static const char *
+valent_battery_plugin_get_icon_name (ValentBatteryPlugin *self)
+{
+  if (self->level == -1)
+    return "battery-missing-symbolic";
+  else if (self->level == 100)
+    return "battery-full-charged-symbolic";
+  else if (self->level < 3)
+    return self->charging ? "battery-empty-charging-symbolic" :
+                            "battery-empty-symbolic";
+  else if (self->level < 10)
+    return self->charging ? "battery-caution-charging-symbolic" :
+                            "battery-caution-symbolic";
+  else if (self->level < 30)
+    return self->charging ? "battery-low-charging-symbolic" :
+                            "battery-low-symbolic";
+  else if (self->level < 60)
+    return self->charging ? "battery-good-charging-symbolic" :
+                            "battery-good-symbolic";
+  else if (self->level >= 60)
+    return self->charging ? "battery-full-charging-symbolic" :
+                            "battery-full-symbolic";
+  else
+    return "battery-missing-symbolic";
+}
 
 /**
  * valent_battery_plugin_update_estimate:
@@ -133,71 +238,6 @@ valent_battery_plugin_update_gaction (ValentBatteryPlugin *self)
 }
 
 static void
-on_battery_changed (ValentBattery       *battery,
-                    ValentBatteryPlugin *self)
-{
-  g_assert (VALENT_IS_BATTERY (battery));
-  g_assert (VALENT_IS_BATTERY_PLUGIN (self));
-
-  if (valent_battery_get_level (battery) > 0)
-    valent_battery_plugin_send_state (self);
-}
-
-static void
-connect_battery (ValentBatteryPlugin *self,
-                 gboolean             connect)
-{
-  if (self->battery == NULL)
-    self->battery = valent_battery_get_default ();
-
-  if (connect && self->battery_changed_id == 0)
-    {
-      self->battery_changed_id = g_signal_connect (self->battery,
-                                                   "changed",
-                                                   G_CALLBACK (on_battery_changed),
-                                                   self);
-    }
-  else if (!connect)
-    {
-      g_clear_signal_handler (&self->battery_changed_id, self->battery);
-    }
-}
-
-/**
- * valent_battery_plugin_get_icon_name:
- * @self: a #ValentBatteryPlugin
- *
- * Get the symbolic icon name representing the current state of the battery.
- *
- * Returns: (transfer none): a symbolic icon name
- */
-static const char *
-valent_battery_plugin_get_icon_name (ValentBatteryPlugin *self)
-{
-  if (self->level == -1)
-    return "battery-missing-symbolic";
-  else if (self->level == 100)
-    return "battery-full-charged-symbolic";
-  else if (self->level < 3)
-    return self->charging ? "battery-empty-charging-symbolic" :
-                            "battery-empty-symbolic";
-  else if (self->level < 10)
-    return self->charging ? "battery-caution-charging-symbolic" :
-                            "battery-caution-symbolic";
-  else if (self->level < 30)
-    return self->charging ? "battery-low-charging-symbolic" :
-                            "battery-low-symbolic";
-  else if (self->level < 60)
-    return self->charging ? "battery-good-charging-symbolic" :
-                            "battery-good-symbolic";
-  else if (self->level >= 60)
-    return self->charging ? "battery-full-charging-symbolic" :
-                            "battery-full-symbolic";
-  else
-    return "battery-missing-symbolic";
-}
-
-static void
 valent_battery_plugin_show_notification (ValentBatteryPlugin *self,
                                          gboolean             full)
 {
@@ -240,9 +280,6 @@ valent_battery_plugin_show_notification (ValentBatteryPlugin *self,
   valent_device_show_notification (self->device, "battery-level", notif);
 }
 
-/**
- * Packet Handlers
- */
 static void
 valent_battery_plugin_handle_battery (ValentBatteryPlugin *self,
                                       JsonNode            *packet)
@@ -309,23 +346,6 @@ valent_battery_plugin_handle_battery (ValentBatteryPlugin *self,
 }
 
 static void
-valent_battery_plugin_handle_battery_request (ValentBatteryPlugin *self,
-                                              JsonNode            *packet)
-{
-  g_assert (VALENT_IS_BATTERY_PLUGIN (self));
-  g_assert (VALENT_IS_PACKET (packet));
-
-  if (valent_packet_check_boolean (valent_packet_get_body (packet), "request"))
-    valent_battery_plugin_send_state (self);
-}
-
-/**
- * valent_battery_plugin_request_state:
- * @self: a #ValentBatteryPlugin
- *
- * Send a request for the remote device's battery state.
- */
-static void
 valent_battery_plugin_request_state (ValentBatteryPlugin *self)
 {
   JsonBuilder *builder;
@@ -336,35 +356,6 @@ valent_battery_plugin_request_state (ValentBatteryPlugin *self)
   builder = valent_packet_start ("kdeconnect.battery.request");
   json_builder_set_member_name (builder, "request");
   json_builder_add_boolean_value (builder, TRUE);
-  packet = valent_packet_finish (builder);
-
-  valent_device_queue_packet (self->device, packet);
-}
-
-/**
- * valent_battery_plugin_send_state:
- * @self: a #ValentBatteryPlugin
- *
- * Send the local device's battery state.
- */
-static void
-valent_battery_plugin_send_state (ValentBatteryPlugin *self)
-{
-  JsonBuilder *builder;
-  g_autoptr (JsonNode) packet = NULL;
-
-  g_return_if_fail (VALENT_IS_BATTERY_PLUGIN (self));
-
-  if (!g_settings_get_boolean (self->settings, "share-state"))
-    return;
-
-  builder = valent_packet_start ("kdeconnect.battery");
-  json_builder_set_member_name (builder, "currentCharge");
-  json_builder_add_int_value (builder, valent_battery_get_level (self->battery));
-  json_builder_set_member_name (builder, "isCharging");
-  json_builder_add_boolean_value (builder, valent_battery_get_charging (self->battery));
-  json_builder_set_member_name (builder, "thresholdEvent");
-  json_builder_add_int_value (builder, valent_battery_get_threshold (self->battery));
   packet = valent_packet_finish (builder);
 
   valent_device_queue_packet (self->device, packet);
@@ -388,11 +379,9 @@ valent_battery_plugin_enable (ValentDevicePlugin *plugin)
 
   g_assert (VALENT_IS_BATTERY_PLUGIN (self));
 
-  /* Setup GSettings */
   device_id = valent_device_get_id (self->device);
   self->settings = valent_device_plugin_new_settings (device_id, "battery");
 
-  /* Register GActions */
   valent_device_plugin_register_actions (plugin,
                                          actions,
                                          G_N_ELEMENTS (actions));
@@ -405,14 +394,13 @@ valent_battery_plugin_disable (ValentDevicePlugin *plugin)
 
   g_assert (VALENT_IS_BATTERY_PLUGIN (self));
 
-  /* Unregister GActions */
-  valent_device_plugin_unregister_actions (plugin, actions, G_N_ELEMENTS (actions));
+  /* We're about to be disposed, so stop watching the battery for changes */
+  valent_battery_plugin_watch_battery (self, FALSE);
 
-  /* Dispose GSettings */
+  valent_device_plugin_unregister_actions (plugin,
+                                           actions,
+                                           G_N_ELEMENTS (actions));
   g_clear_object (&self->settings);
-
-  /* Drop power */
-  connect_battery (self, FALSE);
 }
 
 static void
@@ -427,20 +415,20 @@ valent_battery_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  /* GActions */
   valent_device_plugin_toggle_actions (plugin,
-                                       actions, G_N_ELEMENTS (actions),
+                                       actions,
+                                       G_N_ELEMENTS (actions),
                                        available);
 
   if (available)
     {
-      connect_battery (self, TRUE);
+      valent_battery_plugin_watch_battery (self, TRUE);
       valent_battery_plugin_send_state (self);
       valent_battery_plugin_request_state (self);
     }
   else
     {
-      connect_battery (self, FALSE);
+      valent_battery_plugin_watch_battery (self, FALSE);
     }
 }
 
@@ -518,15 +506,6 @@ valent_battery_plugin_set_property (GObject      *object,
 }
 
 static void
-valent_battery_plugin_init (ValentBatteryPlugin *self)
-{
-  self->charging = FALSE;
-  self->level = -1;
-  self->time = 0;
-  self->threshold = 15;
-}
-
-static void
 valent_battery_plugin_class_init (ValentBatteryPluginClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
@@ -535,5 +514,14 @@ valent_battery_plugin_class_init (ValentBatteryPluginClass *klass)
   object_class->set_property = valent_battery_plugin_set_property;
 
   g_object_class_override_property (object_class, PROP_DEVICE, "device");
+}
+
+static void
+valent_battery_plugin_init (ValentBatteryPlugin *self)
+{
+  self->charging = FALSE;
+  self->level = -1;
+  self->time = 0;
+  self->threshold = 15;
 }
 

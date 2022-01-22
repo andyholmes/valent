@@ -51,6 +51,8 @@ static const ValentMenuEntry items[] = {
 static void
 valent_packetless_plugin_enable (ValentDevicePlugin *plugin)
 {
+  g_assert (VALENT_IS_PACKETLESS_PLUGIN (plugin));
+
   valent_device_plugin_register_actions (plugin,
                                          actions,
                                          G_N_ELEMENTS (actions));
@@ -63,12 +65,11 @@ valent_packetless_plugin_enable (ValentDevicePlugin *plugin)
 static void
 valent_packetless_plugin_disable (ValentDevicePlugin *plugin)
 {
-  /* Unregister GMenu items */
+  g_assert (VALENT_IS_PACKETLESS_PLUGIN (plugin));
+
   valent_device_plugin_remove_menu_entries (plugin,
                                             items,
                                             G_N_ELEMENTS (items));
-
-  /* Unregister GActions */
   valent_device_plugin_unregister_actions (plugin,
                                            actions,
                                            G_N_ELEMENTS (actions));
@@ -78,10 +79,9 @@ static void
 valent_packetless_plugin_update_state (ValentDevicePlugin *plugin,
                                        ValentDeviceState   state)
 {
-  ValentPacketlessPlugin *self = VALENT_PACKETLESS_PLUGIN (plugin);
   gboolean available;
 
-  g_assert (VALENT_IS_PACKETLESS_PLUGIN (self));
+  g_assert (VALENT_IS_PACKETLESS_PLUGIN (plugin));
 
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
@@ -170,7 +170,6 @@ valent_packetless_plugin_register_types (PeasObjectModule *module)
 {
   valent_packetless_plugin_register_type (G_TYPE_MODULE (module));
 
-  /* Plugin Interface */
   peas_object_module_register_extension_type (module,
                                               VALENT_TYPE_DEVICE_PLUGIN,
                                               VALENT_TYPE_PACKETLESS_PLUGIN);

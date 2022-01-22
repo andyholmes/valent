@@ -633,19 +633,18 @@ valent_share_plugin_enable (ValentDevicePlugin *plugin)
 
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
 
-  /* Prepare Transfer table */
-  self->transfers = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                           g_free, g_object_unref);
-
-  /* Register GActions */
   valent_device_plugin_register_actions (plugin,
                                          actions,
                                          G_N_ELEMENTS (actions));
-
-  /* Register GMenu items */
   valent_device_plugin_add_menu_entries (plugin,
                                          items,
                                          G_N_ELEMENTS (items));
+
+  /* Prepare Transfer table */
+  self->transfers = g_hash_table_new_full (g_str_hash,
+                                           g_str_equal,
+                                           g_free,
+                                           g_object_unref);
 }
 
 static void
@@ -657,16 +656,6 @@ valent_share_plugin_disable (ValentDevicePlugin *plugin)
 
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
 
-  /* Unregister GMenu items */
-  valent_device_plugin_remove_menu_entries (plugin,
-                                            items,
-                                            G_N_ELEMENTS (items));
-
-  /* Unregister GActions */
-  valent_device_plugin_unregister_actions (plugin,
-                                           actions,
-                                           G_N_ELEMENTS (actions));
-
   /* Cancel active transfers */
   g_hash_table_iter_init (&iter, self->transfers);
 
@@ -677,6 +666,47 @@ valent_share_plugin_disable (ValentDevicePlugin *plugin)
     }
 
   g_clear_pointer (&self->transfers, g_hash_table_unref);
+
+  valent_device_plugin_remove_menu_entries (plugin,
+                                            items,
+                                            G_N_ELEMENTS (items));
+  valent_device_plugin_unregister_actions (plugin,
+                                           actions,
+                                           G_N_ELEMENTS (actions));
+}
+
+static void
+valent_share_plugin_update_state (ValentDevicePlugin *plugin,
+                                  ValentDeviceState   state)
+{
+  ValentSharePlugin *self = VALENT_SHARE_PLUGIN (plugin);
+  gboolean available;
+
+  g_assert (VALENT_IS_SHARE_PLUGIN (plugin));
+
+  available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
+              (state & VALENT_DEVICE_STATE_PAIRED) != 0;
+
+  /* If the device has been unpaired it should be considered untrusted, so
+   * cancel any ongoing transfers. */
+  if ((state & VALENT_DEVICE_STATE_PAIRED) == 0)
+    {
+      GHashTableIter iter;
+      ValentTransfer *transfer;
+
+      g_hash_table_iter_init (&iter, self->transfers);
+
+      while (g_hash_table_iter_next (&iter, NULL, (void **)&transfer))
+        {
+          valent_transfer_cancel (transfer);
+          g_hash_table_iter_remove (&iter);
+        }
+    }
+
+  valent_device_plugin_toggle_actions (plugin,
+                                       actions,
+                                       G_N_ELEMENTS (actions),
+                                       available);
 }
 
 static void
@@ -719,26 +749,6 @@ valent_share_plugin_handle_packet (ValentDevicePlugin *plugin,
     }
   else
     g_assert_not_reached ();
-}
-
-static void
-valent_share_plugin_update_state (ValentDevicePlugin *plugin,
-                                  ValentDeviceState   state)
-{
-  gboolean available;
-
-  g_assert (VALENT_IS_SHARE_PLUGIN (plugin));
-
-  available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
-              (state & VALENT_DEVICE_STATE_PAIRED) != 0;
-
-  /* GActions */
-  valent_device_plugin_toggle_actions (plugin,
-                              actions, G_N_ELEMENTS (actions),
-                              available);
-
-  if ((state & VALENT_DEVICE_STATE_PAIRED) == 0)
-    VALENT_TODO ("Device is unpaired; cancel ongoing transfers");
 }
 
 static void
