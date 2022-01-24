@@ -58,13 +58,11 @@ valent_mock_mixer_control_stream_added (ValentMixerControl *control,
 {
   ValentMockMixerControl *self = VALENT_MOCK_MIXER_CONTROL (control);
 
-  if (self->default_input == NULL &&
-      (valent_mixer_stream_get_flags (stream) & VALENT_MIXER_STREAM_SOURCE) != 0)
-    self->default_input = g_object_ref (stream);
+  if ((valent_mixer_stream_get_flags (stream) & VALENT_MIXER_STREAM_SOURCE) != 0)
+    g_set_object (&self->default_input, stream);
 
-  if (self->default_output == NULL &&
-      (valent_mixer_stream_get_flags (stream) & VALENT_MIXER_STREAM_SINK) != 0)
-    self->default_output = g_object_ref (stream);
+  if ((valent_mixer_stream_get_flags (stream) & VALENT_MIXER_STREAM_SINK) != 0)
+    g_set_object (&self->default_output, stream);
 
   g_signal_connect (stream,
                     "notify",
