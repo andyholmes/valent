@@ -1,14 +1,14 @@
 # English translations for valent package.
-# Copyright (C) 2021 THE valent'S COPYRIGHT HOLDER
+# Copyright (C) 2022 THE valent'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the valent package.
-# Automatically generated, 2021.
+# Automatically generated, 2022.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2021-12-29 18:12-0800\n"
-"PO-Revision-Date: 2021-12-29 18:12-0800\n"
+"POT-Creation-Date: 2022-01-24 15:02-0800\n"
+"PO-Revision-Date: 2022-01-24 15:02-0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: en\n"
@@ -120,17 +120,17 @@ msgstr "Pair and connect your devices"
 msgid "Andy Holmes"
 msgstr "Andy Holmes"
 
-#: src/libvalent/core/valent-device.c:304
+#: src/libvalent/core/valent-device.c:296
 #, c-format
 msgid "Pairing request from %s"
 msgstr "Pairing request from %s"
 
-#: src/libvalent/core/valent-device.c:315
+#: src/libvalent/core/valent-device.c:307
 #: src/libvalent/ui/valent-device-panel.ui:128
 msgid "Reject"
 msgstr "Reject"
 
-#: src/libvalent/core/valent-device.c:322
+#: src/libvalent/core/valent-device.c:314
 #: src/libvalent/ui/valent-device-panel.ui:141
 msgid "Accept"
 msgstr "Accept"
@@ -338,23 +338,23 @@ msgid "%d%% (%d∶%02d Remaining)"
 msgstr "%d%% (%d∶%02d Remaining)"
 
 #. TRANSLATORS: eg. Google Pixel: Battery Full
-#: src/plugins/battery/valent-battery-plugin.c:217
+#: src/plugins/battery/valent-battery-plugin.c:257
 #, c-format
 msgid "%s: Battery Full"
 msgstr "%s: Battery Full"
 
-#: src/plugins/battery/valent-battery-plugin.c:219
+#: src/plugins/battery/valent-battery-plugin.c:259
 msgid "Battery Fully Charged"
 msgstr "Battery Fully Charged"
 
 #. TRANSLATORS: eg. Google Pixel: Battery Low
-#: src/plugins/battery/valent-battery-plugin.c:228
+#: src/plugins/battery/valent-battery-plugin.c:268
 #, c-format
 msgid "%s: Battery Low"
 msgstr "%s: Battery Low"
 
 #. TRANSLATORS: eg. 15% remaining
-#: src/plugins/battery/valent-battery-plugin.c:231
+#: src/plugins/battery/valent-battery-plugin.c:271
 #, c-format
 msgid "%d%% remaining"
 msgstr "%d%% remaining"
@@ -516,7 +516,7 @@ msgstr "Find My Phone"
 msgid "Find a device by making it ring"
 msgstr "Find a device by making it ring"
 
-#: src/plugins/findmyphone/valent-findmyphone-plugin.c:70
+#: src/plugins/findmyphone/valent-findmyphone-plugin.c:69
 msgid "Ring"
 msgstr "Ring"
 
@@ -556,36 +556,36 @@ msgstr "Mousepad"
 msgid "Control the mouse and keyboard"
 msgstr "Control the mouse and keyboard"
 
-#: src/plugins/mousepad/valent-mousepad-dialog.ui:18
+#: src/plugins/mousepad/valent-mousepad-dialog.ui:27
 #: src/plugins/mousepad/valent-mousepad-plugin.c:452
 msgid "Remote Input"
 msgstr "Remote Input"
 
-#: src/plugins/mousepad/valent-mousepad-dialog.ui:68
+#: src/plugins/mousepad/valent-mousepad-dialog.ui:136
 msgid "Drag one finger to move"
 msgstr "Drag one finger to move"
 
-#: src/plugins/mousepad/valent-mousepad-dialog.ui:77
+#: src/plugins/mousepad/valent-mousepad-dialog.ui:145
 msgid "Drag two fingers to scroll"
 msgstr "Drag two fingers to scroll"
 
-#: src/plugins/mousepad/valent-mousepad-dialog.ui:86
+#: src/plugins/mousepad/valent-mousepad-dialog.ui:154
 msgid "Tap one finger to click"
 msgstr "Tap one finger to click"
 
-#: src/plugins/mousepad/valent-mousepad-dialog.ui:96
+#: src/plugins/mousepad/valent-mousepad-dialog.ui:164
 msgid "Tap two fingers to right click"
 msgstr "Tap two fingers to right click"
 
-#: src/plugins/mousepad/valent-mousepad-dialog.ui:105
+#: src/plugins/mousepad/valent-mousepad-dialog.ui:173
 msgid "Tap three fingers to middle click"
 msgstr "Tap three fingers to middle click"
 
-#: src/plugins/mousepad/valent-mousepad-dialog.ui:114
+#: src/plugins/mousepad/valent-mousepad-dialog.ui:182
 msgid "Hold one finger to grab"
 msgstr "Hold one finger to grab"
 
-#: src/plugins/mousepad/valent-mousepad-dialog.ui:124
+#: src/plugins/mousepad/valent-mousepad-dialog.ui:192
 msgid "Tap one finger to ungrab"
 msgstr "Tap one finger to ungrab"
 
@@ -597,7 +597,7 @@ msgstr "MPRIS"
 msgid "Share control of MPRISv2 players"
 msgstr "Share control of MPRISv2 players"
 
-#: src/plugins/mpris/valent-mpris-plugin.c:389
+#: src/plugins/mpris/valent-mpris-plugin.c:388
 msgid "Unknown"
 msgstr "Unknown"
 
@@ -736,7 +736,7 @@ msgstr "Save"
 msgid "Command Line"
 msgstr "Command Line"
 
-#: src/plugins/runcommand/valent-runcommand-plugin.c:294
+#: src/plugins/runcommand/valent-runcommand-plugin.c:297
 msgid "Run Command"
 msgstr "Run Command"
 
@@ -777,16 +777,16 @@ msgstr "SFTP"
 msgid "Send and receive sftps"
 msgstr "Send and receive sftps"
 
-#: src/plugins/sftp/valent-sftp-plugin.c:556
+#: src/plugins/sftp/valent-sftp-plugin.c:560
 #: src/plugins/sms/valent-contact-row.c:73
 msgid "Home"
 msgstr "Home"
 
-#: src/plugins/sftp/valent-sftp-plugin.c:562
+#: src/plugins/sftp/valent-sftp-plugin.c:566
 msgid "Permission denied"
 msgstr "Permission denied"
 
-#: src/plugins/sftp/valent-sftp-plugin.c:612
+#: src/plugins/sftp/valent-sftp-plugin.c:616
 msgid "Browse Files"
 msgstr "Browse Files"
 
@@ -1029,16 +1029,16 @@ msgstr "Be notified of incoming and ongoing calls"
 msgid "Unknown Contact"
 msgstr "Unknown Contact"
 
-#: src/plugins/telephony/valent-telephony-plugin.c:307
+#: src/plugins/telephony/valent-telephony-plugin.c:296
 msgid "Incoming call"
 msgstr "Incoming call"
 
-#: src/plugins/telephony/valent-telephony-plugin.c:310
+#: src/plugins/telephony/valent-telephony-plugin.c:299
 #: src/plugins/telephony/valent-telephony-preferences.ui:74
 msgid "Mute"
 msgstr "Mute"
 
-#: src/plugins/telephony/valent-telephony-plugin.c:317
+#: src/plugins/telephony/valent-telephony-plugin.c:307
 msgid "Ongoing call"
 msgstr "Ongoing call"
 
@@ -1047,9 +1047,8 @@ msgid "Incoming Calls"
 msgstr "Incoming Calls"
 
 #: src/plugins/telephony/valent-telephony-preferences.ui:12
-#: src/plugins/telephony/valent-telephony-preferences.ui:37
-msgid "How to react when the phone rings."
-msgstr "How to react when the phone rings."
+msgid "What to do when the phone rings."
+msgstr "What to do when the phone rings."
 
 #: src/plugins/telephony/valent-telephony-preferences.ui:15
 #: src/plugins/telephony/valent-telephony-preferences.ui:40
@@ -1064,6 +1063,10 @@ msgstr "Pause Media"
 #: src/plugins/telephony/valent-telephony-preferences.ui:36
 msgid "Ongoing Calls"
 msgstr "Ongoing Calls"
+
+#: src/plugins/telephony/valent-telephony-preferences.ui:37
+msgid "What to do when the phone is answered."
+msgstr "What to do when the phone is answered."
 
 #: src/plugins/telephony/valent-telephony-preferences.ui:49
 msgid "Mute Microphone"

@@ -24,7 +24,7 @@ struct _ValentTelephonyPlugin
 
   gpointer           prev_input;
   gpointer           prev_output;
-  gboolean           prev_media_paused;
+  gboolean           prev_paused;
 };
 
 static void valent_device_plugin_iface_init (ValentDevicePluginInterface *iface);
@@ -40,185 +40,182 @@ enum {
 
 
 /*
- * Stream Helpers
+ * StreamState Helpers
  */
 typedef struct
 {
-  GWeakRef object;
-  double   volume;
-  guint    muted : 1;
+  GWeakRef      stream;
+
+  unsigned int  current_level;
+  unsigned int  current_muted : 1;
+  unsigned int  original_level;
+  unsigned int  original_muted : 1;
 } StreamState;
 
 static StreamState *
-stream_state_new (ValentMixerStream *stream)
+stream_state_new (ValentMixerStream *stream,
+                  int                level)
 {
   StreamState *state;
 
   state = g_new0 (StreamState, 1);
-  g_weak_ref_init (&state->object, stream);
-  state->volume = valent_mixer_stream_get_level (stream);
-  state->muted = valent_mixer_stream_get_muted (stream);
+  g_weak_ref_init (&state->stream, stream);
+  state->original_level = valent_mixer_stream_get_level (stream);
+  state->original_muted = valent_mixer_stream_get_muted (stream);
+
+  if (level == 0)
+    {
+      state->current_level = valent_mixer_stream_get_level (stream);
+      state->current_muted = TRUE;
+
+      valent_mixer_stream_set_muted (stream, TRUE);
+    }
+  else if (level > 0)
+    {
+      state->current_level = level;
+      state->current_muted = valent_mixer_stream_get_muted (stream);
+
+      valent_mixer_stream_set_level (stream, level);
+    }
 
   return state;
 }
 
 static void
-stream_state_reset (gpointer data)
+stream_state_update (StreamState       *state,
+                     ValentMixerStream *stream,
+                     int                level)
+{
+  g_autoptr (ValentMixerStream) current_stream = NULL;
+
+  /* If the active stream has changed, bail instead of guessing what to do */
+  if ((current_stream = g_weak_ref_get (&state->stream)) != stream)
+    {
+      g_weak_ref_set (&state->stream, NULL);
+      return;
+    }
+
+  if (level == 0)
+    {
+      state->current_muted = TRUE;
+      valent_mixer_stream_set_muted (stream, TRUE);
+    }
+  else if (level > 0)
+    {
+      state->current_level = level;
+      valent_mixer_stream_set_level (stream, level);
+    }
+}
+
+static inline void
+stream_state_restore (gpointer data)
 {
   StreamState *state = data;
   g_autoptr (ValentMixerStream) stream = NULL;
 
-  stream = g_weak_ref_get (&state->object);
-
-  if (stream != NULL)
+  if ((stream = g_weak_ref_get (&state->stream)) != NULL)
     {
-      valent_mixer_stream_set_level (stream, state->volume);
-      valent_mixer_stream_set_muted (stream, state->muted);
+      if (valent_mixer_stream_get_level (stream) == state->current_level)
+        valent_mixer_stream_set_level (stream, state->original_level);
+
+      if (valent_mixer_stream_get_muted (stream) == state->current_muted)
+        valent_mixer_stream_set_muted (stream, state->original_muted);
     }
+
+  g_weak_ref_clear (&state->stream);
+  g_clear_pointer (&state, g_free);
 }
 
-static void
+static inline void
 stream_state_free (gpointer data)
 {
   StreamState *state = data;
 
-  g_weak_ref_clear (&state->object);
-  state->volume = 0;
-  state->muted = 0;
-  g_free (state);
+  g_weak_ref_clear (&state->stream);
+  g_clear_pointer (&state, g_free);
 }
 
-/**
- * <private>
- * reset_media_state:
- * @self: a #ValentTelephonyPlugin
- *
- * Reset the input/output volume and MPRIS play state as changed by
- * set_media_state().
- */
 static void
-reset_media_state (ValentTelephonyPlugin *self)
+valent_telephony_plugin_restore_media_state (ValentTelephonyPlugin *self)
 {
   g_assert (VALENT_IS_TELEPHONY_PLUGIN (self));
 
-  /* Output (eg. speakers) */
-  if (self->prev_output)
-    {
-      stream_state_reset (self->prev_output);
-      g_clear_pointer (&self->prev_output, stream_state_free);
-    }
+  g_clear_pointer (&self->prev_output, stream_state_restore);
+  g_clear_pointer (&self->prev_input, stream_state_restore);
 
-  /* Input (eg. microphone) */
-  if (self->prev_input)
-    {
-      stream_state_reset (self->prev_input);
-      g_clear_pointer (&self->prev_input, stream_state_free);
-    }
-
-  if (self->prev_media_paused)
+  if (self->prev_paused)
     {
       ValentMedia *media;
 
       media = valent_media_get_default ();
       valent_media_unpause (media);
-      self->prev_media_paused = FALSE;
+      self->prev_paused = FALSE;
     }
 }
 
-/**
- * <private>
- * set_media_state:
- * @self: a #ValentTelephonyPlugin
- * @event: a telephony event ('ringing' or 'talking')
- *
- * Set the input/output volume and pause MPRIS media players based on user
- * settings.
- */
 static void
-set_media_state (ValentTelephonyPlugin *self,
-                 const char            *event)
+valent_telephony_plugin_update_media_state (ValentTelephonyPlugin *self,
+                                            const char            *event)
 {
   ValentMixer *mixer;
   ValentMixerStream *stream;
-  g_autofree char *vol_key = NULL;
-  g_autofree char *mic_key = NULL;
-  gint vol_val, mic_val;
-  g_autofree char *pause_key = NULL;
-  gboolean pause;
+  int output_level;
+  int input_level;
+  gboolean pause = FALSE;
 
   g_assert (VALENT_IS_TELEPHONY_PLUGIN (self));
-  g_assert (event != NULL);
+  g_assert (event != NULL && *event != '\0');
 
+  /* Retrieve the user preference for this event */
+  if (g_strcmp0 (event, "ringing") == 0)
+    {
+      output_level = g_settings_get_int (self->settings, "ringing-volume");
+      input_level = g_settings_get_int (self->settings, "ringing-microphone");
+      pause = g_settings_get_boolean (self->settings, "ringing-pause");
+    }
+  else if (g_strcmp0 (event, "talking") == 0)
+    {
+      output_level = g_settings_get_int (self->settings, "talking-volume");
+      input_level = g_settings_get_int (self->settings, "talking-microphone");
+      pause = g_settings_get_boolean (self->settings, "talking-pause");
+    }
+  else
+    g_assert_not_reached ();
+
+  /* Speakers & Microphone */
   mixer = valent_mixer_get_default ();
 
-  /* PulseAudio Volume/Microphone */
-  vol_key = g_strconcat (event, "-volume", NULL);
-  mic_key = g_strconcat (event, "-microphone", NULL);
-  vol_val = g_settings_get_int (self->settings, vol_key);
-  mic_val = g_settings_get_int (self->settings, mic_key);
-
-  /* Output (eg. speakers) */
-  if (vol_val > 0)
+  if ((stream = valent_mixer_get_default_output (mixer)) != NULL)
     {
-      stream = valent_mixer_get_default_output (mixer);
-
-      if (stream != NULL)
-        {
-          self->prev_output = stream_state_new (stream);
-          valent_mixer_stream_set_level (stream, vol_val);
-        }
-    }
-  else if (vol_val > -1)
-    {
-      stream = valent_mixer_get_default_output (mixer);
-
-      if (stream != NULL)
-        {
-          self->prev_output = stream_state_new (stream);
-          valent_mixer_stream_set_muted (stream, TRUE);
-        }
+      if (self->prev_output == NULL)
+        self->prev_output = stream_state_new (stream, output_level);
+      else
+        stream_state_update (self->prev_output, stream, output_level);
     }
 
-  /* Input (eg. microphone) */
-  if (mic_val > 0)
+  if ((stream = valent_mixer_get_default_input (mixer)) != NULL)
     {
-      stream = valent_mixer_get_default_input (mixer);
-
-      if (stream != NULL)
-        {
-          self->prev_input = stream_state_new (stream);
-          valent_mixer_stream_set_level (stream, mic_val);
-        }
-    }
-  else if (mic_val > -1)
-    {
-      stream = valent_mixer_get_default_input (mixer);
-
-      if (stream != NULL)
-        {
-          self->prev_input = stream_state_new (stream);
-          valent_mixer_stream_set_muted (stream, TRUE);
-        }
+      if (self->prev_input == NULL)
+        self->prev_input = stream_state_new (stream, input_level);
+      else
+        stream_state_update (self->prev_input, stream, input_level);
     }
 
-  /* MPRIS Play State */
-  pause_key = g_strconcat (event, "-pause", NULL);
-  pause = g_settings_get_boolean (self->settings, pause_key);
-
+  /* Media Players */
   if (pause)
     {
       ValentMedia *media;
 
       media = valent_media_get_default ();
       valent_media_pause (media);
-      self->prev_media_paused = TRUE;
+      self->prev_paused = TRUE;
     }
 }
 
 /**
  * <private>
  * get_event_icon:
- * @pbody: a #JsonObject body from a telephony packet
+ * @body: a #JsonObject body from a telephony packet
  *
  * Return a #GIcon for a telephony notification, created from a base64 encoded
  * avatar if available.
@@ -226,19 +223,17 @@ set_media_state (ValentTelephonyPlugin *self,
  * Returns: (transfer full): a new #GIcon
  */
 static GIcon *
-get_event_icon (JsonObject *pbody)
+get_event_icon (JsonObject *body)
 {
-  g_assert (pbody != NULL);
+  const char *data;
 
-  if (json_object_has_member (pbody, "phoneThumbnail"))
+  g_assert (body != NULL);
+
+  if ((data = valent_packet_check_string (body, "phoneThumbnail")) != NULL)
     {
       GdkPixbuf *pixbuf;
-      const char *text;
 
-      text = json_object_get_string_member (pbody, "phoneThumbnail");
-      pixbuf = valent_ui_pixbuf_from_base64 (text, NULL);
-
-      if (pixbuf != NULL)
+      if ((pixbuf = valent_ui_pixbuf_from_base64 (data, NULL)) != NULL)
         return G_ICON (g_object_ref (pixbuf));
     }
 
@@ -252,9 +247,7 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
   JsonObject *body;
   const char *event;
   const char *sender;
-  gboolean is_ringing = FALSE;
-  gboolean is_talking = FALSE;
-  g_autoptr (GNotification) notif = NULL;
+  g_autoptr (GNotification) notification = NULL;
   g_autoptr (GIcon) icon = NULL;
   g_autofree char *id = NULL;
 
@@ -264,6 +257,13 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
   body = valent_packet_get_body (packet);
   event = json_object_get_string_member (body, "event");
 
+  /* Currently, only "ringing" and "talking" events are supported */
+  if (g_strcmp0 (event, "ringing") != 0 && g_strcmp0 (event, "talking") != 0)
+    {
+      VALENT_TODO (event);
+      return;
+    }
+
   /* Sender*/
   if (json_object_has_member (body, "contactName"))
     sender = json_object_get_string_member (body, "contactName");
@@ -272,52 +272,42 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
   else
     sender = _("Unknown Contact");
 
-  /* Check the event type */
-  if (g_strcmp0 (event, "ringing") == 0)
-    is_ringing = TRUE;
-  else if (g_strcmp0 (event, "talking") == 0)
-    is_talking = TRUE;
-  else
-    {
-      VALENT_TODO (event);
-      return;
-    }
-
   /* Inject the event type into the notification ID, to distinguish them */
   id = g_strdup_printf ("%s|%s", event, sender);
 
   /* This is a cancelled event */
-  if (json_object_has_member (body, "isCancel"))
+  if (valent_packet_check_boolean (body, "isCancel"))
     {
-      reset_media_state (self);
+      valent_telephony_plugin_restore_media_state (self);
       valent_device_hide_notification (self->device, id);
       return;
     }
 
   /* Adjust volume/pause media */
-  set_media_state (self, event);
+  valent_telephony_plugin_update_media_state (self, event);
 
   /* Notify user */
-  notif = g_notification_new (sender);
+  notification = g_notification_new (sender);
   icon = get_event_icon (body);
-  g_notification_set_icon (notif, icon);
+  g_notification_set_icon (notification, icon);
 
-  if (is_ringing)
+  if (g_strcmp0 (event, "ringing") == 0)
     {
-      g_notification_set_body (notif, _("Incoming call"));
-      valent_notification_add_device_button (notif,
+      g_notification_set_body (notification, _("Incoming call"));
+      valent_notification_add_device_button (notification,
                                              self->device,
                                              _("Mute"),
                                              "mute-call",
                                              NULL);
-      g_notification_set_priority (notif, G_NOTIFICATION_PRIORITY_URGENT);
+      g_notification_set_priority (notification,
+                                   G_NOTIFICATION_PRIORITY_URGENT);
     }
-  else if (is_talking)
+  else if (g_strcmp0 (event, "talking") == 0)
     {
-      g_notification_set_body (notif, _("Ongoing call"));
+      g_notification_set_body (notification, _("Ongoing call"));
     }
 
-  valent_device_show_notification (self->device, id, notif);
+  valent_device_show_notification (self->device, id, notification);
 }
 
 static void
@@ -376,6 +366,10 @@ valent_telephony_plugin_disable (ValentDevicePlugin *plugin)
 {
   ValentTelephonyPlugin *self = VALENT_TELEPHONY_PLUGIN (plugin);
 
+  /* We're about to be disposed, so clear the stored states */
+  g_clear_pointer (&self->prev_output, stream_state_free);
+  g_clear_pointer (&self->prev_input, stream_state_free);
+
   valent_device_plugin_unregister_actions (plugin,
                                            actions,
                                            G_N_ELEMENTS (actions));
@@ -386,6 +380,7 @@ static void
 valent_telephony_plugin_update_state (ValentDevicePlugin *plugin,
                                       ValentDeviceState   state)
 {
+  ValentTelephonyPlugin *self = VALENT_TELEPHONY_PLUGIN (plugin);
   gboolean available;
 
   g_assert (VALENT_IS_TELEPHONY_PLUGIN (plugin));
@@ -393,8 +388,17 @@ valent_telephony_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
+  /* Clear the stream state, but don't restore it as there may still be an
+   * event in progress. */
+  if (!available)
+    {
+      g_clear_pointer (&self->prev_output, stream_state_free);
+      g_clear_pointer (&self->prev_input, stream_state_free);
+    }
+
   valent_device_plugin_toggle_actions (plugin,
-                                       actions, G_N_ELEMENTS (actions),
+                                       actions,
+                                       G_N_ELEMENTS (actions),
                                        available);
 }
 

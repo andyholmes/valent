@@ -9,7 +9,7 @@
     <child>
       <object class="AdwPreferencesGroup" id="ringing_group">
         <property name="title" translatable="yes">Incoming Calls</property>
-        <property name="description" translatable="yes">How to react when the phone rings.</property>
+        <property name="description" translatable="yes">What to do when the phone rings.</property>
         <child>
           <object class="AdwComboRow" id="ringing_volume">
             <property name="title" translatable="yes">Volume</property>
@@ -34,7 +34,7 @@
     <child>
       <object class="AdwPreferencesGroup" id="talking_group">
         <property name="title" translatable="yes">Ongoing Calls</property>
-        <property name="description" translatable="yes">How to react when the phone rings.</property>
+        <property name="description" translatable="yes">What to do when the phone is answered.</property>
         <child>
           <object class="AdwComboRow" id="talking_volume">
             <property name="title" translatable="yes">Volume</property>
