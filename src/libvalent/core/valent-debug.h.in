@@ -145,22 +145,26 @@ void valent_trace_mark (const char *strfunc,
 
 /**
  * VALENT_NOTE: (skip)
+ * @fmt: the message format (ie. `printf()`)
+ * @...: the message parameters
  *
  * Logs a formatted message at %G_LOG_LEVEL_DEBUG.
  */
 
 /**
- * VALENT_FIXME: (skip)
- * @_msg: the message to append to the log.
+ * VALENT_TODO: (skip)
+ * @fmt: the message format (ie. `printf()`)
+ * @...: the message parameters
  *
- * Appends to the log that unstable code has been reached.
+ * Appends to the log that incomplete code has been reached.
  */
 
 /**
- * VALENT_TODO: (skip)
- * @_msg: the message to append to the log.
+ * VALENT_FIXME: (skip)
+ * @fmt: the message format (ie. `printf()`)
+ * @...: the message parameters
  *
- * Appends to the log that incomplete code has been reached.
+ * Appends to the log that unstable code has been reached.
  */
 
 /**
@@ -177,12 +181,12 @@ void valent_trace_mark (const char *strfunc,
 # define VALENT_NOTE(fmt, ...)                                              \
    g_log(G_LOG_DOMAIN, G_LOG_LEVEL_DEBUG, " NOTE: %s():%d: " fmt,           \
          G_STRFUNC, __LINE__, ##__VA_ARGS__)
-# define VALENT_FIXME(_msg)                                                 \
-   g_log(G_LOG_DOMAIN, G_LOG_LEVEL_DEBUG, "FIXME: %s():%d: %s",             \
-         G_STRFUNC, __LINE__, _msg)
-# define VALENT_TODO(_msg)                                                  \
-   g_log(G_LOG_DOMAIN, G_LOG_LEVEL_DEBUG, " TODO: %s():%d: %s",             \
-         G_STRFUNC, __LINE__, _msg)
+# define VALENT_TODO(fmt, ...)                                              \
+   g_log(G_LOG_DOMAIN, G_LOG_LEVEL_INFO, " TODO: %s():%d: " fmt,            \
+         G_STRFUNC, __LINE__, ##__VA_ARGS__)
+# define VALENT_FIXME(fmt, ...)                                             \
+   g_log(G_LOG_DOMAIN, G_LOG_LEVEL_WARNING, "FIXME: %s():%d: " fmt,         \
+         G_STRFUNC, __LINE__, ##__VA_ARGS__)
 # define VALENT_JSON(_node, _ctx)                                           \
    G_STMT_START {                                                           \
      char *__json_str = json_to_string (_node, TRUE);                       \
@@ -192,8 +196,8 @@ void valent_trace_mark (const char *strfunc,
    } G_STMT_END
 #else
 # define VALENT_NOTE(fmt, ...)         G_STMT_START {          } G_STMT_END
-# define VALENT_FIXME(_msg)            G_STMT_START {          } G_STMT_END
-# define VALENT_TODO(_msg)             G_STMT_START {          } G_STMT_END
+# define VALENT_TODO(fmt, ...)         G_STMT_START {          } G_STMT_END
+# define VALENT_FIXME(fmt, ...)        G_STMT_START {          } G_STMT_END
 # define VALENT_JSON(_node, _ctx)      G_STMT_START {          } G_STMT_END
 #endif
 
