@@ -31,6 +31,30 @@ struct _ValentApplication
 G_DEFINE_TYPE (ValentApplication, valent_application, GTK_TYPE_APPLICATION)
 
 
+static void
+valent_application_present_window (ValentApplication *self,
+                                   const char        *startup_id)
+{
+  g_assert (VALENT_IS_APPLICATION (self));
+
+  if (self->window == NULL)
+    {
+      self->window = g_object_new (VALENT_TYPE_WINDOW,
+                                   "application",    self,
+                                   "default-width",  600,
+                                   "default-height", 480,
+                                   "manager",        self->manager,
+                                   NULL);
+      g_object_add_weak_pointer (G_OBJECT (self->window),
+                                 (gpointer) &self->window);
+    }
+
+  if (startup_id != NULL)
+    gtk_window_set_startup_id (self->window, startup_id);
+
+  gtk_window_present_with_time (self->window, GDK_CURRENT_TIME);
+}
+
 /*
  * GActions
  */
@@ -103,19 +127,7 @@ prefs_action (GSimpleAction *action,
 
   g_assert (VALENT_IS_APPLICATION (self));
 
-  if (self->window == NULL)
-    {
-      self->window = g_object_new (VALENT_TYPE_WINDOW,
-                                   "application",    self,
-                                   "default-width",  600,
-                                   "default-height", 480,
-                                   "manager",        self->manager,
-                                   NULL);
-      g_object_add_weak_pointer (G_OBJECT (self->window),
-                                 (gpointer) &self->window);
-    }
-
-  gtk_window_present_with_time (self->window, GDK_CURRENT_TIME);
+  valent_application_present_window (self, NULL);
 }
 
 static void
@@ -161,12 +173,7 @@ valent_application_activate (GApplication *application)
 
   g_assert (VALENT_IS_APPLICATION (self));
 
-  /* This isn't really ideal for a few reasons:
-   *
-   * - Interacting with device notifications can trigger this
-   * - It happens at startup, which isn't desirable if acting as a service
-   */
-  prefs_action (NULL, NULL, self);
+  valent_application_present_window (self, NULL);
 }
 
 static void
