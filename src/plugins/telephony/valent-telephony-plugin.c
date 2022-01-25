@@ -260,7 +260,7 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
   /* Currently, only "ringing" and "talking" events are supported */
   if (g_strcmp0 (event, "ringing") != 0 && g_strcmp0 (event, "talking") != 0)
     {
-      VALENT_TODO (event);
+      VALENT_TODO ("\"%s\" event", event);
       return;
     }
 
