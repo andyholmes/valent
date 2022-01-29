@@ -112,6 +112,12 @@ on_notification_removed (ValentNotifications      *listener,
   g_assert (VALENT_IS_NOTIFICATIONS (listener));
   g_assert (id != NULL);
 
+  if (!valent_device_get_connected (self->device))
+    {
+      VALENT_TODO ("Cache notifications for later removal?");
+      return;
+    }
+
   valent_notification_plugin_close_notification (self, id);
 }
 
