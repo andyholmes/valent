@@ -167,15 +167,16 @@ on_commands_changed (GSettings              *settings,
                      const char             *key,
                      ValentRuncommandPlugin *self)
 {
-  gboolean connected;
+  ValentDeviceState state;
 
   g_assert (G_IS_SETTINGS (settings));
   g_assert (key != NULL);
   g_assert (VALENT_IS_RUNCOMMAND_PLUGIN (self));
 
-  connected = valent_device_get_connected (self->device);
+  state = valent_device_get_state (self->device);
 
-  if (connected && valent_device_get_paired (self->device))
+  if ((state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
+      (state & VALENT_DEVICE_STATE_PAIRED) != 0)
     valent_runcommand_plugin_send_command_list (self);
 }
 

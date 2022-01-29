@@ -116,15 +116,19 @@ device_sort_func (GtkListBoxRow *row1,
                   gpointer       user_data)
 {
   ValentDevice *device1, *device2;
+  ValentDeviceState state_a, state_b;
   gboolean connected_a, connected_b;
   gboolean paired_a, paired_b;
 
   device1 = g_object_get_data (G_OBJECT (row1), "device");
   device2 = g_object_get_data (G_OBJECT (row2), "device");
 
+  state_a = valent_device_get_state (device1);
+  state_b = valent_device_get_state (device2);
+
   // Sort connected before disconnected
-  connected_a = valent_device_get_connected (device1);
-  connected_b = valent_device_get_connected (device2);
+  connected_a = state_a & VALENT_DEVICE_STATE_CONNECTED;
+  connected_b = state_b & VALENT_DEVICE_STATE_CONNECTED;
 
   if (connected_a > connected_b)
     return -1;
@@ -132,8 +136,8 @@ device_sort_func (GtkListBoxRow *row1,
     return 1;
 
   // Sort paired before unpaired
-  paired_a = valent_device_get_paired (device1);
-  paired_b = valent_device_get_paired (device2);
+  paired_a = state_a & VALENT_DEVICE_STATE_PAIRED;
+  paired_b = state_b & VALENT_DEVICE_STATE_PAIRED;
 
   if (paired_a > paired_b)
     return -1;
@@ -150,6 +154,7 @@ on_device_changed (ValentDevice *device,
                    GParamSpec   *pspec,
                    ValentWindow *self)
 {
+  ValentDeviceState state;
   GtkStyleContext *style;
   DeviceInfo *info;
 
@@ -161,14 +166,15 @@ on_device_changed (ValentDevice *device,
   if G_UNLIKELY (info == NULL)
     return;
 
+  state = valent_device_get_state (device);
   style = gtk_widget_get_style_context (info->status);
 
-  if (!valent_device_get_paired (device))
+  if ((state & VALENT_DEVICE_STATE_PAIRED) == 0)
     {
       gtk_label_set_label (GTK_LABEL (info->status), _("Unpaired"));
       gtk_style_context_remove_class (style, "dim-label");
     }
-  else if (!valent_device_get_connected (device))
+  else if ((state & VALENT_DEVICE_STATE_CONNECTED) == 0)
     {
       gtk_label_set_label (GTK_LABEL (info->status), _("Disconnected"));
       gtk_style_context_add_class (style, "dim-label");
@@ -245,11 +251,7 @@ on_device_added (ValentManager *manager,
                           G_BINDING_SYNC_CREATE);
 
   g_signal_connect (device,
-                    "notify::connected",
-                    G_CALLBACK (on_device_changed),
-                    self);
-  g_signal_connect (device,
-                    "notify::paired",
+                    "notify::state",
                     G_CALLBACK (on_device_changed),
                     self);
   on_device_changed (device, NULL, self);
