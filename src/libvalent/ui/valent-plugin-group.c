@@ -248,22 +248,3 @@ valent_plugin_group_init (ValentPluginGroup *self)
   gtk_list_box_set_placeholder (self->plugin_list, placeholder);
 }
 
-/**
- * valent_plugin_group_new:
- * @context: (nullable): a context for the plugin
- * @type: a #GType
- *
- * Create a new #ValentPluginGroup.
- *
- * Returns: a #GtkWidget
- */
-GtkWidget *
-valent_plugin_group_new (const char *context,
-                         GType       type)
-{
-  return g_object_new (VALENT_TYPE_PLUGIN_GROUP,
-                       "plugin-context", context,
-                       "plugin-type",    type,
-                       NULL);
-}
-

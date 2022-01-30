@@ -263,22 +263,3 @@ valent_plugin_row_init (ValentPluginRow *self)
   gtk_box_append (GTK_BOX (box), self->button);
 }
 
-/**
- * valent_plugin_row_new:
- * @info: a #PeasPluginInfo
- * @context: (nullable): a context for the plugin
- * 
- * Create a new #ValentPluginRow.
- * 
- * Returns: a #GtkWidget
- */
-GtkWidget *
-valent_plugin_row_new (PeasPluginInfo *info,
-                       const char     *context)
-{
-  return g_object_new (VALENT_TYPE_PLUGIN_ROW,
-                       "plugin-context", context,
-                       "plugin-info",    info,
-                       NULL);
-}
-

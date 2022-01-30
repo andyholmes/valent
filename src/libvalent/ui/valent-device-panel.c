@@ -477,19 +477,3 @@ valent_device_panel_init (ValentDevicePanel *self)
   self->plugins = g_hash_table_new_full (NULL, NULL, NULL, g_free);
 }
 
-/**
- * valent_device_panel_new:
- * @device: a #ValentDevice
- *
- * Create a new panel (with headerbar) for @device.
- *
- * Returns: (transfer full): a new #GtkWidget
- */
-GtkWidget *
-valent_device_panel_new (ValentDevice *device)
-{
-  return g_object_new (VALENT_TYPE_DEVICE_PANEL,
-                       "device", device,
-                       NULL);
-}
-

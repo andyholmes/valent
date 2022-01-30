@@ -17,7 +17,10 @@ test_plugin_group_basic (void)
   char *plugin_context;
   GType plugin_type;
 
-  group = valent_plugin_group_new ("context", VALENT_TYPE_DEVICE_PLUGIN);
+  group = g_object_new (VALENT_TYPE_PLUGIN_GROUP,
+                        "plugin-context", "mock-context",
+                        "plugin-type",    VALENT_TYPE_DEVICE_PLUGIN,
+                        NULL);
   g_object_ref_sink (group);
   g_assert_true (VALENT_IS_PLUGIN_GROUP (group));
 
@@ -27,7 +30,7 @@ test_plugin_group_basic (void)
                 "plugin-type",    &plugin_type,
                 NULL);
 
-  g_assert_cmpstr ("context", ==, plugin_context);
+  g_assert_cmpstr ("mock-context", ==, plugin_context);
   g_assert_true (VALENT_TYPE_DEVICE_PLUGIN == plugin_type);
 
   g_free (plugin_context);

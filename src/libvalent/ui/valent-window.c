@@ -214,7 +214,9 @@ on_device_added (ValentManager *manager,
   icon_name = valent_device_get_icon_name (device);
 
   /* Panel */
-  info->panel = valent_device_panel_new (device);
+  info->panel = g_object_new (VALENT_TYPE_DEVICE_PANEL,
+                              "device", device,
+                              NULL);
   page = gtk_stack_add_titled (self->stack, info->panel, id, name);
   g_object_bind_property (device, "name",
                           page,   "title",
