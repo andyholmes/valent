@@ -13,7 +13,4 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (ValentPluginRow, valent_plugin_row, VALENT, PLUGIN_ROW, AdwActionRow)
 
-GtkWidget * valent_plugin_row_new (PeasPluginInfo *info,
-                                   const char     *context);
-
 G_END_DECLS

@@ -4,14 +4,11 @@
 #pragma once
 
 #include <gtk/gtk.h>
-#include <libvalent-core.h>
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_DEVICE_PANEL (valent_device_panel_get_type())
 
 G_DECLARE_FINAL_TYPE (ValentDevicePanel, valent_device_panel, VALENT, DEVICE_PANEL, GtkBox)
-
-GtkWidget * valent_device_panel_new (ValentDevice *device);
 
 G_END_DECLS

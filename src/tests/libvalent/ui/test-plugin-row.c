@@ -21,7 +21,10 @@ test_plugin_row_basic (void)
   engine = valent_get_engine ();
   info = peas_engine_get_plugin_info (engine, "mock");
 
-  row = valent_plugin_row_new (info, "context");
+  row = g_object_new (VALENT_TYPE_PLUGIN_ROW,
+                      "plugin-context", "mock-context",
+                      "plugin-info",    info,
+                      NULL);
   g_object_ref_sink (row);
   g_assert_true (VALENT_IS_PLUGIN_ROW (row));
 
@@ -32,7 +35,7 @@ test_plugin_row_basic (void)
                 "plugin-type",    &plugin_type,
                 NULL);
 
-  g_assert_cmpstr ("context", ==, plugin_context);
+  g_assert_cmpstr ("mock-context", ==, plugin_context);
   g_assert_true (info == plugin_info);
   g_assert_true (PEAS_TYPE_EXTENSION == plugin_type);
 

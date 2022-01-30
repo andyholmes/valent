@@ -11,16 +11,17 @@ static void
 test_device_panel_basic (void)
 {
   ValentTestPluginFixture *fixture;
-  ValentDevicePanel *panel;
+  GtkWidget *panel;
   ValentDevice *device = NULL;
   PeasEngine *engine;
-  GtkWidget *widget = NULL;
 
   fixture = valent_test_plugin_fixture_new (TEST_DATA_DIR"/plugin-mock.json");
 
-  widget = valent_device_panel_new (fixture->device);
-  panel = g_object_ref_sink (VALENT_DEVICE_PANEL (widget));
-  g_assert_nonnull (panel);
+  panel = g_object_new (VALENT_TYPE_DEVICE_PANEL,
+                        "device", fixture->device,
+                        NULL);
+  g_object_ref_sink (panel);
+  g_assert_true (VALENT_IS_DEVICE_PANEL (panel));
 
   /* Properties */
   g_object_get (panel,
