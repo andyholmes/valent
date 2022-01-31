@@ -19,6 +19,7 @@
 #include "valent-packet.h"
 #include "valent-transfer.h"
 #include "valent-utils.h"
+#include "valent-version.h"
 
 #undef VALENT_CORE_INSIDE
 

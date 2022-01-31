@@ -7,7 +7,6 @@
 # error "Only <libvalent-contacts.h> can be included directly."
 #endif
 
-#include <gio/gio.h>
 #include <libvalent-core.h>
 
 #include "valent-contact-store.h"
@@ -16,6 +15,7 @@ G_BEGIN_DECLS
 
 #define VALENT_TYPE_CONTACT_CACHE (valent_contact_cache_get_type())
 
+VALENT_AVAILABLE_IN_1_0
 G_DECLARE_FINAL_TYPE (ValentContactCache, valent_contact_cache, VALENT, CONTACT_CACHE, ValentContactStore)
 
 G_END_DECLS

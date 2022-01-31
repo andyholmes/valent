@@ -7,7 +7,7 @@
 # error "Only <libvalent-media.h> can be included directly."
 #endif
 
-#include <gio/gio.h>
+#include <libvalent-core.h>
 
 G_BEGIN_DECLS
 
@@ -71,6 +71,7 @@ typedef enum
 
 #define VALENT_TYPE_MEDIA_PLAYER (valent_media_player_get_type())
 
+VALENT_AVAILABLE_IN_1_0
 G_DECLARE_DERIVABLE_TYPE (ValentMediaPlayer, valent_media_player, VALENT, MEDIA_PLAYER, GObject)
 
 struct _ValentMediaPlayerClass
@@ -109,33 +110,53 @@ struct _ValentMediaPlayerClass
                                             gint64             position);
 };
 
+VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_emit_changed        (ValentMediaPlayer *player);
+VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_emit_seeked         (ValentMediaPlayer *player,
                                                               gint64             offset);
+VALENT_AVAILABLE_IN_1_0
 gboolean             valent_media_player_is_playing          (ValentMediaPlayer *player);
+VALENT_AVAILABLE_IN_1_0
 ValentMediaActions   valent_media_player_get_flags           (ValentMediaPlayer *player);
+VALENT_AVAILABLE_IN_1_0
 GVariant           * valent_media_player_get_metadata        (ValentMediaPlayer *player);
+VALENT_AVAILABLE_IN_1_0
 const char         * valent_media_player_get_name            (ValentMediaPlayer *player);
+VALENT_AVAILABLE_IN_1_0
 gint64               valent_media_player_get_position        (ValentMediaPlayer *player);
+VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_set_position        (ValentMediaPlayer *player,
                                                               const char        *track_id,
                                                               gint64             position);
+VALENT_AVAILABLE_IN_1_0
 ValentMediaState     valent_media_player_get_state           (ValentMediaPlayer *player);
+VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_set_state           (ValentMediaPlayer *player,
                                                               ValentMediaState   state);
+VALENT_AVAILABLE_IN_1_0
 double               valent_media_player_get_volume          (ValentMediaPlayer *player);
+VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_set_volume          (ValentMediaPlayer *player,
                                                               double             volume);
 
+VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_next                (ValentMediaPlayer *player);
+VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_open_uri            (ValentMediaPlayer *player,
                                                               const char        *uri);
+VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_pause               (ValentMediaPlayer *player);
+VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_play                (ValentMediaPlayer *player);
+VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_play_pause          (ValentMediaPlayer *player);
+VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_previous            (ValentMediaPlayer *player);
+VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_seek                (ValentMediaPlayer *player,
                                                               gint64             offset);
+VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_stop                (ValentMediaPlayer *player);
 
 G_END_DECLS

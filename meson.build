@@ -128,6 +128,10 @@ if get_option('optimization') in ['2', '3', 's']
   endif
 endif
 
+if get_option('default_library') != 'static'
+  project_c_args += ['-fvisibility=hidden']
+endif
+
 add_project_arguments(cc.get_supported_arguments(project_c_args),
   language: 'c',
 )
@@ -183,6 +187,10 @@ config_h_functions = {
 foreach define, function : config_h_functions
   config_h.set(define, cc.has_function(function))
 endforeach
+
+if cc.has_argument('-fvisibility=hidden')
+  config_h.set('_VALENT_EXTERN', '__attribute__((visibility("default"))) extern')
+endif
 
 configure_file(
          output: 'config.h',

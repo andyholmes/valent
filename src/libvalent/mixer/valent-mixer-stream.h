@@ -7,8 +7,7 @@
 # error "Only <libvalent-mixer.h> can be included directly."
 #endif
 
-#include <glib.h>
-#include <glib-object.h>
+#include <libvalent-core.h>
 
 
 G_BEGIN_DECLS
@@ -43,6 +42,7 @@ typedef enum
 
 #define VALENT_TYPE_MIXER_STREAM (valent_mixer_stream_get_type())
 
+VALENT_AVAILABLE_IN_1_0
 G_DECLARE_DERIVABLE_TYPE (ValentMixerStream, valent_mixer_stream, VALENT, MIXER_STREAM, GObject)
 
 struct _ValentMixerStreamClass
@@ -60,15 +60,22 @@ struct _ValentMixerStreamClass
                                      gboolean           state);
 };
 
-const char             * valent_mixer_stream_get_name           (ValentMixerStream *stream);
-const char             * valent_mixer_stream_get_description    (ValentMixerStream *stream);
-ValentMixerStreamFlags   valent_mixer_stream_get_flags          (ValentMixerStream *stream);
-unsigned int             valent_mixer_stream_get_level          (ValentMixerStream *stream);
-void                     valent_mixer_stream_set_level          (ValentMixerStream *stream,
-                                                                 unsigned int       level);
-gboolean                 valent_mixer_stream_get_muted          (ValentMixerStream *stream);
-void                     valent_mixer_stream_set_muted          (ValentMixerStream *stream,
-                                                                 gboolean           state);
+VALENT_AVAILABLE_IN_1_0
+const char             * valent_mixer_stream_get_name        (ValentMixerStream *stream);
+VALENT_AVAILABLE_IN_1_0
+const char             * valent_mixer_stream_get_description (ValentMixerStream *stream);
+VALENT_AVAILABLE_IN_1_0
+ValentMixerStreamFlags   valent_mixer_stream_get_flags       (ValentMixerStream *stream);
+VALENT_AVAILABLE_IN_1_0
+unsigned int             valent_mixer_stream_get_level       (ValentMixerStream *stream);
+VALENT_AVAILABLE_IN_1_0
+void                     valent_mixer_stream_set_level       (ValentMixerStream *stream,
+                                                              unsigned int       level);
+VALENT_AVAILABLE_IN_1_0
+gboolean                 valent_mixer_stream_get_muted       (ValentMixerStream *stream);
+VALENT_AVAILABLE_IN_1_0
+void                     valent_mixer_stream_set_muted       (ValentMixerStream *stream,
+                                                              gboolean           state);
 
 G_END_DECLS
 

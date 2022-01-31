@@ -60,15 +60,20 @@ typedef enum
 
 #define VALENT_TYPE_CONTACTS (valent_contacts_get_type ())
 
+VALENT_AVAILABLE_IN_1_0
 G_DECLARE_FINAL_TYPE (ValentContacts, valent_contacts, VALENT, CONTACTS, ValentComponent)
 
+VALENT_AVAILABLE_IN_1_0
 ValentContacts     * valent_contacts_get_default  (void);
 
+VALENT_AVAILABLE_IN_1_0
 ValentContactStore * valent_contacts_ensure_store (ValentContacts *contacts,
                                                    const char     *uid,
                                                    const char     *name);
+VALENT_AVAILABLE_IN_1_0
 ValentContactStore * valent_contacts_get_store    (ValentContacts *contacts,
                                                    const char     *uid);
+VALENT_AVAILABLE_IN_1_0
 GPtrArray          * valent_contacts_get_stores   (ValentContacts *contacts);
 
 G_END_DECLS

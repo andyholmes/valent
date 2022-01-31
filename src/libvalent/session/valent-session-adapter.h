@@ -7,12 +7,13 @@
 # error "Only <libvalent-session.h> can be included directly."
 #endif
 
-#include <gio/gio.h>
+#include <libvalent-core.h>
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_SESSION_ADAPTER (valent_session_adapter_get_type())
 
+VALENT_AVAILABLE_IN_1_0
 G_DECLARE_DERIVABLE_TYPE (ValentSessionAdapter, valent_session_adapter, VALENT, SESSION_ADAPTER, GObject)
 
 struct _ValentSessionAdapterClass
@@ -29,9 +30,13 @@ struct _ValentSessionAdapterClass
   void           (*changed)    (ValentSessionAdapter *adapter);
 };
 
+VALENT_AVAILABLE_IN_1_0
 void       valent_session_adapter_emit_changed (ValentSessionAdapter *adapter);
+VALENT_AVAILABLE_IN_1_0
 gboolean   valent_session_adapter_get_active   (ValentSessionAdapter *adapter);
+VALENT_AVAILABLE_IN_1_0
 gboolean   valent_session_adapter_get_locked   (ValentSessionAdapter *adapter);
+VALENT_AVAILABLE_IN_1_0
 void       valent_session_adapter_set_locked   (ValentSessionAdapter *adapter,
                                                 gboolean              state);
 

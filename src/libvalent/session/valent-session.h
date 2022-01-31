@@ -13,13 +13,18 @@ G_BEGIN_DECLS
 
 #define VALENT_TYPE_SESSION (valent_session_get_type ())
 
+VALENT_AVAILABLE_IN_1_0
 G_DECLARE_FINAL_TYPE (ValentSession, valent_session, VALENT, SESSION, ValentComponent)
 
+VALENT_AVAILABLE_IN_1_0
 gboolean        valent_session_get_active  (ValentSession *session);
+VALENT_AVAILABLE_IN_1_0
 gboolean        valent_session_get_locked  (ValentSession *session);
+VALENT_AVAILABLE_IN_1_0
 void            valent_session_set_locked  (ValentSession *session,
                                             gboolean       state);
 
+VALENT_AVAILABLE_IN_1_0
 ValentSession * valent_session_get_default (void);
 
 G_END_DECLS

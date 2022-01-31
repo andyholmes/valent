@@ -3,9 +3,7 @@
 
 #pragma once
 
-#include <gtk/gtk.h>
 #include <adwaita.h>
-#include <libpeas/peas.h>
 
 G_BEGIN_DECLS
 

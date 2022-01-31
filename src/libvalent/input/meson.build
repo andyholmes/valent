@@ -39,6 +39,7 @@ libvalent_input_public_sources = [
 libvalent_input_enums = gnome.mkenums_simple('valent-input-enums',
      body_prefix: '#include "config.h"',
    header_prefix: '#include <libvalent-core.h>',
+       decorator: '_VALENT_EXTERN',
          sources: libvalent_input_enum_headers,
   install_header: true,
      install_dir: libvalent_input_header_dir,

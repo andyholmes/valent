@@ -4,12 +4,14 @@
 #include "config.h"
 
 #include <glib/gi18n.h>
+#include <adwaita.h>
 #include <gtk/gtk.h>
 #include <pango/pango.h>
 #include <libvalent-core.h>
 
 #include "valent-device-gadget.h"
 #include "valent-device-panel.h"
+#include "valent-menu-list.h"
 #include "valent-menu-stack.h"
 #include "valent-plugin-preferences.h"
 #include "valent-plugin-row.h"
@@ -463,6 +465,11 @@ valent_device_panel_class_init (ValentDevicePanelClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+
+  /* Ensure the private types we need are ready */
+  g_type_ensure (VALENT_TYPE_MENU_LIST);
+  g_type_ensure (VALENT_TYPE_MENU_STACK);
+  g_type_ensure (VALENT_TYPE_PLUGIN_ROW);
 }
 
 static void

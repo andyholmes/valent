@@ -10,6 +10,8 @@
 #include <gio/gio.h>
 #include <json-glib/json-glib.h>
 
+#include "valent-version.h"
+
 G_BEGIN_DECLS
 
 
@@ -33,6 +35,7 @@ typedef enum {
   VALENT_PACKET_ERROR_MISSING_FIELD,
 } ValentPacketError;
 
+VALENT_AVAILABLE_IN_1_0
 GQuark   valent_packet_error_quark (void);
 #define VALENT_PACKET_ERROR (valent_packet_error_quark ())
 
@@ -87,41 +90,60 @@ valent_packet_is_valid (JsonNode *packet)
 
 
 /* Packet Helpers */
+VALENT_AVAILABLE_IN_1_0
 JsonNode    * valent_packet_new              (const char     *type);
+VALENT_AVAILABLE_IN_1_0
 JsonBuilder * valent_packet_start            (const char     *type);
+VALENT_AVAILABLE_IN_1_0
 JsonNode    * valent_packet_finish           (JsonBuilder    *builder);
+VALENT_AVAILABLE_IN_1_0
 gint64        valent_packet_get_id           (JsonNode       *packet);
+VALENT_AVAILABLE_IN_1_0
 const char  * valent_packet_get_type         (JsonNode       *packet);
+VALENT_AVAILABLE_IN_1_0
 JsonObject  * valent_packet_get_body         (JsonNode       *packet);
+VALENT_AVAILABLE_IN_1_0
 gboolean      valent_packet_has_payload      (JsonNode       *packet);
+VALENT_AVAILABLE_IN_1_0
 JsonObject  * valent_packet_get_payload_full (JsonNode       *packet,
                                               gssize         *size,
                                               GError        **error);
+VALENT_AVAILABLE_IN_1_0
 void          valent_packet_set_payload_full (JsonNode       *packet,
                                               JsonObject     *info,
                                               gssize          size);
+VALENT_AVAILABLE_IN_1_0
 JsonObject  * valent_packet_get_payload_info (JsonNode       *packet);
+VALENT_AVAILABLE_IN_1_0
 void          valent_packet_set_payload_info (JsonNode       *packet,
                                               JsonObject     *info);
+VALENT_AVAILABLE_IN_1_0
 gssize        valent_packet_get_payload_size (JsonNode       *packet);
+VALENT_AVAILABLE_IN_1_0
 void          valent_packet_set_payload_size (JsonNode       *packet,
                                               gssize          size);
 
 /* I/O Helpers */
+VALENT_AVAILABLE_IN_1_0
 gboolean      valent_packet_validate         (JsonNode       *packet,
                                               GError        **error);
+VALENT_AVAILABLE_IN_1_0
 JsonNode    * valent_packet_from_stream      (GInputStream   *stream,
                                               GCancellable   *cancellable,
                                               GError        **error);
+VALENT_AVAILABLE_IN_1_0
 gboolean      valent_packet_to_stream        (GOutputStream  *stream,
                                               JsonNode       *packet,
                                               GCancellable   *cancellable,
                                               GError        **error);
+VALENT_AVAILABLE_IN_1_0
 char        * valent_packet_serialize        (JsonNode       *packet);
+VALENT_AVAILABLE_IN_1_0
 JsonNode    * valent_packet_deserialize      (const char     *json,
                                               GError        **error);
 
 /* Identity Packets */
+VALENT_AVAILABLE_IN_1_0
 const char  * valent_identity_get_device_id  (JsonNode       *identity);
 
 /**
