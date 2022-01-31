@@ -10,9 +10,13 @@
 
 #include <glib.h>
 
+#include "valent-version.h"
+
 G_BEGIN_DECLS
 
+VALENT_AVAILABLE_IN_1_0
 void   valent_debug_init  (void);
+VALENT_AVAILABLE_IN_1_0
 void   valent_debug_clear (void);
 
 

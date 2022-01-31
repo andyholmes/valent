@@ -58,7 +58,25 @@ libvalent_core_public_sources = [
   'valent-packet.c',
   'valent-transfer.c',
   'valent-utils.c',
+  'valent-version.c',
 ]
+
+
+# Versioning
+version_data = configuration_data()
+version_data.set('MAJOR_VERSION', MAJOR_VERSION)
+version_data.set('MINOR_VERSION', MINOR_VERSION)
+version_data.set('VERSION', meson.project_version())
+
+libvalent_core_version_h = configure_file(
+          input: 'valent-version.h.in',
+         output: 'valent-version.h',
+  configuration: version_data,
+        install: true,
+    install_dir: libvalent_core_header_dir,
+)
+
+libvalent_core_generated_headers += [libvalent_core_version_h]
 
 
 # Debugging and Profiling Support
@@ -81,6 +99,7 @@ libvalent_core_generated_headers += [libvalent_debug_h]
 libvalent_core_enums = gnome.mkenums_simple('valent-core-enums',
           body_prefix: '#include "config.h"',
         header_prefix: '#include <libvalent-core.h>',
+            decorator: '_VALENT_EXTERN',
               sources: libvalent_core_enum_headers,
        install_header: true,
           install_dir: libvalent_core_header_dir,

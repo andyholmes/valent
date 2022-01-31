@@ -3,15 +3,18 @@
 
 #pragma once
 
-#include <glib.h>
+#include <libvalent-core.h>
 
 #include "valent-eds.h"
 
 G_BEGIN_DECLS
 
+VALENT_AVAILABLE_IN_1_0
 gboolean   valent_phone_number_equal              (const char  *number1,
                                                    const char  *number2);
+VALENT_AVAILABLE_IN_1_0
 char     * valent_phone_number_normalize          (const char  *number);
+VALENT_AVAILABLE_IN_1_0
 gboolean   valent_phone_number_of_contact         (EContact    *contact,
                                                    const char  *number);
 

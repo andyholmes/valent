@@ -15,6 +15,7 @@ G_BEGIN_DECLS
 
 #define VALENT_TYPE_MEDIA_PLAYER_PROVIDER (valent_media_player_provider_get_type())
 
+VALENT_AVAILABLE_IN_1_0
 G_DECLARE_DERIVABLE_TYPE (ValentMediaPlayerProvider, valent_media_player_provider, VALENT, MEDIA_PLAYER_PROVIDER, GObject)
 
 struct _ValentMediaPlayerProviderClass
@@ -37,15 +38,20 @@ struct _ValentMediaPlayerProviderClass
                                     ValentMediaPlayer          *player);
 };
 
+VALENT_AVAILABLE_IN_1_0
 void        valent_media_player_provider_emit_player_added   (ValentMediaPlayerProvider  *provider,
                                                               ValentMediaPlayer          *player);
+VALENT_AVAILABLE_IN_1_0
 void        valent_media_player_provider_emit_player_removed (ValentMediaPlayerProvider  *provider,
                                                               ValentMediaPlayer          *player);
+VALENT_AVAILABLE_IN_1_0
 GPtrArray * valent_media_player_provider_get_players         (ValentMediaPlayerProvider  *provider);
+VALENT_AVAILABLE_IN_1_0
 void        valent_media_player_provider_load_async          (ValentMediaPlayerProvider  *provider,
                                                               GCancellable               *cancellable,
                                                               GAsyncReadyCallback         callback,
                                                               gpointer                    user_data);
+VALENT_AVAILABLE_IN_1_0
 gboolean    valent_media_player_provider_load_finish         (ValentMediaPlayerProvider  *provider,
                                                               GAsyncResult               *result,
                                                               GError                    **error);

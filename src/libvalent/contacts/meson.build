@@ -45,6 +45,7 @@ libvalent_contacts_public_sources = [
 libvalent_contacts_enums = gnome.mkenums_simple('valent-contacts-enums',
      body_prefix: '#include "config.h"',
    header_prefix: '#include <libvalent-core.h>',
+       decorator: '_VALENT_EXTERN',
          sources: libvalent_contacts_enum_headers,
   install_header: true,
      install_dir: libvalent_contacts_header_dir,

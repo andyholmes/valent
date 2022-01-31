@@ -5,8 +5,8 @@
 
 #include "config.h"
 
-#include <gdk-pixbuf/gdk-pixdata.h>
 #include <glib/gi18n.h>
+#include <gdk-pixbuf/gdk-pixdata.h>
 
 #include "valent-ui-utils.h"
 

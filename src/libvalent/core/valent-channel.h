@@ -17,6 +17,7 @@ G_BEGIN_DECLS
 
 #define VALENT_TYPE_CHANNEL (valent_channel_get_type())
 
+VALENT_AVAILABLE_IN_1_0
 G_DECLARE_DERIVABLE_TYPE (ValentChannel, valent_channel, VALENT, CHANNEL, ValentObject)
 
 struct _ValentChannelClass
@@ -38,42 +39,56 @@ struct _ValentChannelClass
 };
 
 
+VALENT_AVAILABLE_IN_1_0
 GIOStream  * valent_channel_ref_base_stream      (ValentChannel        *channel);
+VALENT_AVAILABLE_IN_1_0
 JsonNode   * valent_channel_get_identity         (ValentChannel        *channel);
+VALENT_AVAILABLE_IN_1_0
 JsonNode   * valent_channel_get_peer_identity    (ValentChannel        *channel);
+VALENT_AVAILABLE_IN_1_0
 const char * valent_channel_get_verification_key (ValentChannel        *channel);
+VALENT_AVAILABLE_IN_1_0
 GIOStream  * valent_channel_download             (ValentChannel        *channel,
                                                   JsonNode             *packet,
                                                   GCancellable         *cancellable,
                                                   GError              **error);
+VALENT_AVAILABLE_IN_1_0
 GIOStream  * valent_channel_upload               (ValentChannel        *channel,
                                                   JsonNode             *packet,
                                                   GCancellable         *cancellable,
                                                   GError              **error);
+VALENT_AVAILABLE_IN_1_0
 void         valent_channel_store_data           (ValentChannel        *channel,
                                                   ValentData           *data);
+VALENT_AVAILABLE_IN_1_0
 void         valent_channel_read_packet          (ValentChannel        *channel,
                                                   GCancellable         *cancellable,
                                                   GAsyncReadyCallback   callback,
                                                   gpointer              user_data);
+VALENT_AVAILABLE_IN_1_0
 JsonNode   * valent_channel_read_packet_finish   (ValentChannel        *channel,
                                                   GAsyncResult         *result,
                                                   GError              **error);
+VALENT_AVAILABLE_IN_1_0
 void         valent_channel_write_packet         (ValentChannel        *channel,
                                                   JsonNode             *packet,
                                                   GCancellable         *cancellable,
                                                   GAsyncReadyCallback   callback,
                                                   gpointer              user_data);
+VALENT_AVAILABLE_IN_1_0
 gboolean     valent_channel_write_packet_finish  (ValentChannel        *channel,
                                                   GAsyncResult         *result,
                                                   GError              **error);
+VALENT_AVAILABLE_IN_1_0
 gboolean     valent_channel_close                (ValentChannel        *channel,
                                                   GCancellable         *cancellable,
                                                   GError              **error);
+VALENT_AVAILABLE_IN_1_0
 void         valent_channel_close_async          (ValentChannel        *channel,
                                                   GCancellable         *cancellable,
                                                   GAsyncReadyCallback   callback,
                                                   gpointer              user_data);
+VALENT_AVAILABLE_IN_1_0
 gboolean     valent_channel_close_finish         (ValentChannel        *channel,
                                                   GAsyncResult         *result,
                                                   GError              **error);

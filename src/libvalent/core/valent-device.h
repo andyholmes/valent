@@ -39,35 +39,54 @@ typedef enum
 
 #define VALENT_TYPE_DEVICE (valent_device_get_type())
 
+VALENT_AVAILABLE_IN_1_0
 G_DECLARE_FINAL_TYPE (ValentDevice, valent_device, VALENT, DEVICE, ValentObject)
 
+VALENT_AVAILABLE_IN_1_0
 ValentDevice      * valent_device_new                (const char           *id);
+VALENT_AVAILABLE_IN_1_0
 GActionGroup      * valent_device_get_actions        (ValentDevice         *device);
+VALENT_AVAILABLE_IN_1_0
 ValentChannel     * valent_device_ref_channel        (ValentDevice         *device);
+VALENT_AVAILABLE_IN_1_0
 ValentData        * valent_device_ref_data           (ValentDevice         *device);
+VALENT_AVAILABLE_IN_1_0
 gboolean            valent_device_get_connected      (ValentDevice         *device);
+VALENT_AVAILABLE_IN_1_0
 const char        * valent_device_get_icon_name      (ValentDevice         *device);
+VALENT_AVAILABLE_IN_1_0
 const char        * valent_device_get_id             (ValentDevice         *device);
+VALENT_AVAILABLE_IN_1_0
 GMenuModel        * valent_device_get_menu           (ValentDevice         *device);
+VALENT_AVAILABLE_IN_1_0
 const char        * valent_device_get_name           (ValentDevice         *device);
+VALENT_AVAILABLE_IN_1_0
 gboolean            valent_device_get_paired         (ValentDevice         *device);
+VALENT_AVAILABLE_IN_1_0
 GPtrArray         * valent_device_get_plugins        (ValentDevice         *device);
+VALENT_AVAILABLE_IN_1_0
 ValentDeviceState   valent_device_get_state          (ValentDevice         *device);
+VALENT_AVAILABLE_IN_1_0
 void                valent_device_queue_packet       (ValentDevice         *device,
                                                       JsonNode             *packet);
+VALENT_AVAILABLE_IN_1_0
 void                valent_device_send_packet        (ValentDevice         *device,
                                                       JsonNode             *packet,
                                                       GCancellable         *cancellable,
                                                       GAsyncReadyCallback   callback,
                                                       gpointer              user_data);
+VALENT_AVAILABLE_IN_1_0
 gboolean            valent_device_send_packet_finish (ValentDevice         *device,
                                                       GAsyncResult         *result,
                                                       GError              **error);
+VALENT_AVAILABLE_IN_1_0
 void                valent_device_hide_notification  (ValentDevice         *device,
                                                       const char           *id);
+VALENT_AVAILABLE_IN_1_0
 void                valent_device_show_notification  (ValentDevice         *device,
                                                       const char           *id,
                                                       GNotification        *notification);
+VALENT_AVAILABLE_IN_1_0
 GFile             * valent_device_new_download_file  (ValentDevice         *device,
                                                       const char           *filename,
                                                       gboolean              unique);

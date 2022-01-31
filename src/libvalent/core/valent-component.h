@@ -10,10 +10,13 @@
 #include <gio/gio.h>
 #include <libpeas/peas.h>
 
+#include "valent-version.h"
+
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_COMPONENT (valent_component_get_type())
 
+VALENT_AVAILABLE_IN_1_0
 G_DECLARE_DERIVABLE_TYPE (ValentComponent, valent_component, VALENT, COMPONENT, GObject)
 
 struct _ValentComponentClass
@@ -27,8 +30,10 @@ struct _ValentComponentClass
                                        PeasExtension   *extension);
 };
 
+VALENT_AVAILABLE_IN_1_0
 PeasExtension * valent_component_get_priority_provider (ValentComponent *component,
                                                         const char      *key);
+VALENT_AVAILABLE_IN_1_0
 GSettings     * valent_component_new_settings          (const char      *context,
                                                         const char      *module_name);
 

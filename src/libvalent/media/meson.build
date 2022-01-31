@@ -40,6 +40,7 @@ libvalent_media_public_sources = [
 libvalent_media_enums = gnome.mkenums_simple('valent-media-enums',
      body_prefix: '#include "config.h"',
    header_prefix: '#include <libvalent-core.h>',
+       decorator: '_VALENT_EXTERN',
          sources: libvalent_media_enum_headers,
   install_header: true,
      install_dir: libvalent_media_header_dir,

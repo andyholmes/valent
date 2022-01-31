@@ -7,12 +7,13 @@
 # error "Only <libvalent-ui.h> can be included directly."
 #endif
 
-#include <glib-object.h>
+#include <libvalent-core.h>
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_DEVICE_ACTIVITY (valent_device_activity_get_type ())
 
+VALENT_AVAILABLE_IN_1_0
 G_DECLARE_INTERFACE (ValentDeviceActivity, valent_device_activity, VALENT, DEVICE_ACTIVITY, GObject)
 
 struct _ValentDeviceActivityInterface

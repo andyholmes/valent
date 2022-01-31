@@ -1,0 +1,76 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
+
+#pragma once
+
+#if !defined(VALENT_CORE_INSIDE) && !defined(VALENT_CORE_COMPILATION)
+# error "Only <libvalent-core.h> can be included directly."
+#endif
+
+#include <glib.h>
+
+G_BEGIN_DECLS
+
+#ifndef _VALENT_EXTERN
+#define _VALENT_EXTERN extern
+#endif
+
+// TODO: replace with `valent-version-macros.h`
+#ifndef VALENT_AVAILABLE_IN_1_0
+#define VALENT_AVAILABLE_IN_1_0 _VALENT_EXTERN
+#endif
+
+/**
+ * VALENT_MAJOR_VERSION:
+ *
+ * The major version component of libvalent (e.g. 1 if %VALENT_VERSION is 1.2)
+ */
+#define VALENT_MAJOR_VERSION (@MAJOR_VERSION@)
+
+/**
+ * VALENT_MINOR_VERSION:
+ *
+ * The minor version component of libvalent (e.g. 2 if %VALENT_VERSION is 1.2)
+ */
+#define VALENT_MINOR_VERSION (@MINOR_VERSION@)
+
+/**
+ * VALENT_VERSION
+ *
+ * libvalent version.
+ */
+#define VALENT_VERSION (@VERSION@)
+
+/**
+ * VALENT_VERSION_S:
+ *
+ * libvalent version, encoded as a string, useful for printing and
+ * concatenation.
+ */
+#define VALENT_VERSION_S "@VERSION@"
+
+/**
+ * VALENT_CHECK_VERSION:
+ * @major: required major version
+ * @minor: required minor version
+ *
+ * Compile-time version check. Evaluates to %TRUE if the version of libvalent is
+ * is greater than or equal to the required one.
+ *
+ * Returns: %TRUE if the requirement is met, or %FALSE if not
+ */
+#define VALENT_CHECK_VERSION(major,minor)  \
+        (VALENT_MAJOR_VERSION > (major) || \
+         (VALENT_MAJOR_VERSION == (major) && VALENT_MINOR_VERSION > (minor)))
+
+
+VALENT_AVAILABLE_IN_1_0
+gboolean       valent_check_version     (unsigned int major,
+                                         unsigned int minor);
+VALENT_AVAILABLE_IN_1_0
+unsigned int   valent_get_major_version (void) G_GNUC_CONST;
+VALENT_AVAILABLE_IN_1_0
+unsigned int   valent_get_minor_version (void) G_GNUC_CONST;
+
+G_END_DECLS
+

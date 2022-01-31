@@ -5,11 +5,11 @@
 
 #include "config.h"
 
-#include <gtk/gtk.h>
 #include <adwaita.h>
+#include <gtk/gtk.h>
 #include <libpeas/peas.h>
-#include <pango/pango.h>
 #include <libvalent-core.h>
+#include <pango/pango.h>
 
 #include "valent-plugin-preferences.h"
 #include "valent-plugin-row.h"

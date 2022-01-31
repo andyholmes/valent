@@ -8,13 +8,16 @@
 #endif
 
 #include <gtk/gtk.h>
+#include <libvalent-core.h>
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_APPLICATION (valent_application_get_type())
 
+VALENT_AVAILABLE_IN_1_0
 G_DECLARE_FINAL_TYPE (ValentApplication, valent_application, VALENT, APPLICATION, GtkApplication)
 
+VALENT_AVAILABLE_IN_1_0
 ValentApplication * _valent_application_new (void);
 
 G_END_DECLS
