@@ -914,7 +914,7 @@ valent_notification_deserialize (GVariant *variant)
   g_autoptr (GVariant) icon = NULL;
   g_autoptr (GVariant) buttons = NULL;
   const char *id, *title, *body, *priority, *application;
-  const char *action;
+  const char *default_action;
 
   g_return_val_if_fail (g_variant_check_format_string (variant, "a{sv}", FALSE), NULL);
 
@@ -945,14 +945,16 @@ valent_notification_deserialize (GVariant *variant)
   if (g_variant_lookup (props, "priority", "&s", &priority))
     valent_notification_set_priority_nick (notification, priority);
 
-  if (g_variant_lookup (props, "default-action", "&s", &action))
+  if (g_variant_lookup (props, "default-action", "&s", &default_action))
     {
-      g_autoptr (GVariant) target = NULL;
+      g_autoptr (GVariant) default_action_target = NULL;
 
-      if ((target = g_variant_lookup_value (props, "default-action-target", NULL)))
-        valent_notification_set_action_and_target (notification, action, target);
-      else
-        valent_notification_set_action (notification, action);
+      default_action_target = g_variant_lookup_value (props,
+                                                      "default-action-target",
+                                                      NULL);
+      valent_notification_set_action_and_target (notification,
+                                                 default_action,
+                                                 default_action_target);
     }
 
   if (g_variant_lookup (props, "buttons", "@aa{sv}", &buttons))

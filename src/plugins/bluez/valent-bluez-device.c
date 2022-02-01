@@ -348,7 +348,7 @@ valent_bluez_device_class_init (ValentBluezDeviceClass *klass)
  * valent_bluez_device_new:
  * @connection: a #GDBusConnection
  * @object_path: An object path
- * @properties: a #GVariant
+ * @property_cache: a #GVariant
  * @error: (nullable): a #GError
  *
  * Create a new #ValentBluezDevice on @connection for @object_path. If @properties
@@ -359,14 +359,14 @@ valent_bluez_device_class_init (ValentBluezDeviceClass *klass)
 ValentBluezDevice *
 valent_bluez_device_new (GDBusConnection  *connection,
                          const char       *object_path,
-                         GVariant         *properties,
+                         GVariant         *property_cache,
                          GError          **error)
 {
   GDBusProxy *proxy;
 
   g_return_val_if_fail (G_IS_DBUS_CONNECTION (connection), NULL);
   g_return_val_if_fail (g_variant_is_object_path (object_path), NULL);
-  g_return_val_if_fail (properties == NULL || g_variant_is_of_type (properties, G_VARIANT_TYPE ("a{sv}")), NULL);
+  g_return_val_if_fail (property_cache == NULL || g_variant_is_of_type (property_cache, G_VARIANT_TYPE ("a{sv}")), NULL);
   g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
   proxy = g_initable_new (VALENT_TYPE_BLUEZ_DEVICE, NULL, error,
@@ -381,13 +381,13 @@ valent_bluez_device_new (GDBusConnection  *connection,
   if (proxy == NULL)
     return NULL;
 
-  if (properties != NULL)
+  if (property_cache != NULL)
     {
       GVariantIter iter;
       const char *name;
       GVariant *value;
 
-      g_variant_iter_init (&iter, properties);
+      g_variant_iter_init (&iter, property_cache);
 
       while (g_variant_iter_next (&iter, "{&sv}", &name, &value))
         {

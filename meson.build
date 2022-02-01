@@ -98,7 +98,6 @@ project_c_args = [
   '-DGDK_VERSION_MIN_REQUIRED=GDK_VERSION_4_4',
 
   # TODO: These should be fixed instead of downgraded to warnings
-  '-Wno-error=shadow',
   '-Wno-error=unused-function',
 ]
 project_link_args = [
