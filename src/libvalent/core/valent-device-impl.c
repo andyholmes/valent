@@ -297,7 +297,7 @@ valent_device_impl_flush (GDBusInterfaceSkeleton *skeleton)
 {
   ValentDeviceImpl *self = VALENT_DEVICE_IMPL (skeleton);
   g_autolist (GDBusConnection) connections = NULL;
-  g_autoptr (GVariant) properties = NULL;
+  g_autoptr (GVariant) parameters = NULL;
   const char *object_path;
   GVariantBuilder changed_properties;
   GVariantBuilder invalidated_properties;
@@ -319,11 +319,11 @@ valent_device_impl_flush (GDBusInterfaceSkeleton *skeleton)
       g_hash_table_iter_remove (&pending_properties);
     }
 
-  properties = g_variant_new ("(s@a{sv}@as)",
+  parameters = g_variant_new ("(s@a{sv}@as)",
                               iface_info.name,
                               g_variant_builder_end (&changed_properties),
                               g_variant_builder_end (&invalidated_properties));
-  g_variant_ref_sink (properties);
+  g_variant_ref_sink (parameters);
 
   /* Emit PropertiesChanged on each connection */
   connections = g_dbus_interface_skeleton_get_connections (skeleton);
@@ -338,7 +338,7 @@ valent_device_impl_flush (GDBusInterfaceSkeleton *skeleton)
                                      object_path,
                                      "org.freedesktop.DBus.Properties",
                                      "PropertiesChanged",
-                                     properties,
+                                     parameters,
                                      &error);
 
       if (error != NULL)

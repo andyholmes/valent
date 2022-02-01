@@ -471,7 +471,7 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
   g_autoptr (GIcon) icon = NULL;
   g_auto (GStrv) ticker_strv = NULL;
   const char *id;
-  const char *napp = NULL;
+  const char *app_name = NULL;
   const char *title = NULL;
   const char *text = NULL;
   const char *ticker;
@@ -492,7 +492,7 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
 
   /* This should never be absent, but we check anyways */
   if (json_object_has_member (body, "appName"))
-    napp = json_object_get_string_member (body, "appName");
+    app_name = json_object_get_string_member (body, "appName");
 
   /* Prefer `title` & `text` */
   title = valent_packet_check_string (body, "title");
@@ -585,7 +585,7 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
     }
 
   /* Ignore `appName` if it's the same as `title` */
-  else if (g_strcmp0 (napp, title) == 0)
+  else if (g_strcmp0 (app_name, title) == 0)
     {
       g_notification_set_title (notification, title);
       g_notification_set_body (notification, text);
@@ -594,11 +594,11 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
   /* Fallback to ticker-style */
   else
     {
-      g_autofree char *ticker = NULL;
+      g_autofree char *ticker_body = NULL;
 
-      ticker = g_strdup_printf ("%s: %s", title, text);
-      g_notification_set_title (notification, napp);
-      g_notification_set_body (notification, ticker);
+      ticker_body = g_strdup_printf ("%s: %s", title, text);
+      g_notification_set_title (notification, app_name);
+      g_notification_set_body (notification, ticker_body);
     }
 
   if (icon != NULL)

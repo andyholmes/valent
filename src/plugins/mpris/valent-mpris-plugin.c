@@ -218,8 +218,8 @@ valent_mpris_plugin_handle_mpris_request (ValentMprisPlugin *self,
   const char *action;
   const char *url;
   gint64 offset;
-  gboolean now_playing;
-  gboolean volume;
+  gboolean request_now_playing;
+  gboolean request_volume;
 
   g_assert (VALENT_IS_MPRIS_PLUGIN (self));
 
@@ -236,11 +236,14 @@ valent_mpris_plugin_handle_mpris_request (ValentMprisPlugin *self,
     }
 
   /* A request for a player's status */
-  now_playing = valent_packet_check_boolean (body, "requestNowPlaying");
-  volume = valent_packet_check_boolean (body, "requestVolume");
+  request_now_playing = valent_packet_check_boolean (body, "requestNowPlaying");
+  request_volume = valent_packet_check_boolean (body, "requestVolume");
 
-  if (now_playing || volume)
-    valent_mpris_plugin_send_player_info (self, player, now_playing, volume);
+  if (request_now_playing || request_volume)
+    valent_mpris_plugin_send_player_info (self,
+                                          player,
+                                          request_now_playing,
+                                          request_volume);
 
   /* A player command */
   if ((action = valent_packet_check_string (body, "action")) != NULL)
@@ -253,7 +256,6 @@ valent_mpris_plugin_handle_mpris_request (ValentMprisPlugin *self,
   /* A request to change the absolute position */
   if (json_object_has_member (body, "SetPosition"))
     {
-      gint64 offset;
       gint64 position;
 
       position = json_object_get_int_member (body, "SetPosition") * 1000;
@@ -278,8 +280,8 @@ valent_mpris_plugin_handle_mpris_request (ValentMprisPlugin *self,
 static void
 valent_mpris_plugin_send_player_info (ValentMprisPlugin *self,
                                       ValentMediaPlayer *player,
-                                      gboolean           now_playing,
-                                      gboolean           volume)
+                                      gboolean           request_now_playing,
+                                      gboolean           request_volume)
 {
   const char *name;
   JsonBuilder *builder;
@@ -296,7 +298,7 @@ valent_mpris_plugin_send_player_info (ValentMprisPlugin *self,
   json_builder_add_string_value (builder, name);
 
   /* Player State & Metadata */
-  if (now_playing)
+  if (request_now_playing)
     {
       ValentMediaActions flags;
       gboolean is_playing;
@@ -392,7 +394,7 @@ valent_mpris_plugin_send_player_info (ValentMprisPlugin *self,
     }
 
   /* Volume Level */
-  if (volume)
+  if (request_volume)
     {
       double level;
 

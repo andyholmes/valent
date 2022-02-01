@@ -13,7 +13,7 @@ G_DECLARE_FINAL_TYPE (ValentBluezDevice, valent_bluez_device, VALENT, BLUEZ_DEVI
 
 ValentBluezDevice * valent_bluez_device_new                   (GDBusConnection    *connection,
                                                                const char         *object_path,
-                                                               GVariant           *properties,
+                                                               GVariant           *property_cache,
                                                                GError            **error);
 
 const char        * valent_bluez_device_get_adapter           (ValentBluezDevice  *device);

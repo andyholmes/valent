@@ -905,7 +905,6 @@ valent_sms_conversation_scroll_to_date (ValentSmsConversation *conversation,
   /* Populate the list in reverse until we find the message */
   while (conversation->messages->tail != NULL)
     {
-      GtkWidget *row;
       ValentSmsMessage *message;
       gint64 type;
 
