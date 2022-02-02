@@ -112,7 +112,7 @@ g_socket_listener_accept_cb (GSocketListener   *listener,
   g_autoptr (GSocketConnection) connection = NULL;
   g_autoptr (JsonNode) peer_identity = NULL;
   JsonNode *identity;
-  const char *device_id;
+  const char *device_id = NULL;
   g_autoptr (GIOStream) tls_stream = NULL;
   GError *error = NULL;
 
@@ -130,7 +130,9 @@ g_socket_listener_accept_cb (GSocketListener   *listener,
   /* The test service is unverified, so we expect it to be accepted on a
    * trust-on-first-use basis.
    */
-  device_id = valent_identity_get_device_id (peer_identity);
+  valent_packet_get_string (peer_identity, "deviceId", &device_id);
+  g_assert_true (device_id != NULL && *device_id != '\0');
+
   tls_stream = valent_lan_encrypt_new_client (connection,
                                               fixture->certificate,
                                               device_id,

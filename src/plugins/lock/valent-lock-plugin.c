@@ -21,8 +21,7 @@ struct _ValentLockPlugin
   ValentSession     *session;
   unsigned long      session_changed_id;
 
-  unsigned int       remote_locked : 1;
-  unsigned int       local_locked : 1;
+  gboolean           remote_locked;
 };
 
 static void valent_device_plugin_iface_init (ValentDevicePluginInterface *iface);
@@ -66,22 +65,16 @@ static void
 valent_lock_plugin_handle_lock_request (ValentLockPlugin *self,
                                         JsonNode         *packet)
 {
-  JsonObject *body;
   gboolean state;
 
   g_assert (VALENT_IS_LOCK_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
 
-  body = valent_packet_get_body (packet);
-
-  if (valent_packet_check_boolean (body, "requestLocked"))
+  if (valent_packet_check_field (packet, "requestLocked"))
     valent_lock_plugin_send_state (self);
 
-  if (json_object_has_member (body, "setLocked"))
-    {
-      state = valent_packet_check_boolean (body, "setLocked");
-      valent_session_set_locked (self->session, state);
-    }
+  if (valent_packet_get_boolean (packet, "setLocked", &state))
+    valent_session_set_locked (self->session, state);
 }
 
 /*
@@ -106,17 +99,11 @@ static void
 valent_lock_plugin_handle_lock (ValentLockPlugin *self,
                                 JsonNode         *packet)
 {
-  JsonObject *body;
-
   g_assert (VALENT_IS_LOCK_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
 
-  body = valent_packet_get_body (packet);
-
-  if (json_object_has_member (body, "isLocked"))
-    self->remote_locked = valent_packet_check_boolean (body, "isLocked");
-
-  update_actions (self);
+  if (valent_packet_get_boolean (packet, "isLocked", &self->remote_locked))
+    update_actions (self);
 }
 
 static void

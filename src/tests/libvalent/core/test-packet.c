@@ -72,9 +72,56 @@ test_packet_builder (void)
 
   body = valent_packet_get_body (packet);
   g_assert_nonnull (body);
+}
 
-  json_object_set_string_member (body, "deviceId", "device-id");
-  g_assert_cmpstr (valent_identity_get_device_id (packet), ==, "device-id");
+static void
+test_packet_get (void)
+{
+  JsonBuilder *builder;
+  g_autoptr (JsonNode) packet = NULL;
+  gboolean boolean_value = FALSE;
+  double double_value = 0.0;
+  gint64 int_value = 0;
+  const char *string_value;
+  JsonArray *array_value;
+  JsonObject *object_value;
+
+  builder = valent_packet_start ("kdeconnect.mock");
+  json_builder_set_member_name (builder, "boolean");
+  json_builder_add_boolean_value (builder, TRUE);
+  json_builder_set_member_name (builder, "double");
+  json_builder_add_double_value (builder, 3.14);
+  json_builder_set_member_name (builder, "int");
+  json_builder_add_int_value (builder, 42);
+  json_builder_set_member_name (builder, "string");
+  json_builder_add_string_value (builder, "string");
+  json_builder_set_member_name (builder, "array");
+  json_builder_begin_array (builder);
+  json_builder_end_array (builder);
+  json_builder_set_member_name (builder, "object");
+  json_builder_begin_object (builder);
+  json_builder_end_object (builder);
+  packet = valent_packet_finish (builder);
+
+  g_assert_true (valent_packet_is_valid (packet));
+
+  g_assert_true (valent_packet_get_boolean (packet, "boolean", &boolean_value));
+  g_assert_true (boolean_value);
+
+  g_assert_true (valent_packet_get_double (packet, "double", &double_value));
+  g_assert_cmpfloat (double_value, ==, 3.14);
+
+  g_assert_true (valent_packet_get_int (packet, "int", &int_value));
+  g_assert_cmpint (int_value, ==, 42);
+
+  g_assert_true (valent_packet_get_string (packet, "string", &string_value));
+  g_assert_cmpstr (string_value, ==, "string");
+
+  g_assert_true (valent_packet_get_array (packet, "array", &array_value));
+  g_assert_nonnull (array_value);
+
+  g_assert_true (valent_packet_get_object (packet, "object", &object_value));
+  g_assert_nonnull (object_value);
 }
 
 static void
@@ -249,6 +296,9 @@ main (int   argc,
 
   g_test_add_func ("/core/packet/payloads",
                    test_packet_payloads);
+
+  g_test_add_func ("/core/packet/get",
+                   test_packet_get);
 
   g_test_add ("/core/packet/invalid",
               PacketFixture, NULL,

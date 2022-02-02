@@ -97,7 +97,7 @@ valent_battery_plugin_handle_battery_request (ValentBatteryPlugin *self,
   g_assert (VALENT_IS_BATTERY_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
 
-  if (valent_packet_check_boolean (valent_packet_get_body (packet), "request"))
+  if (valent_packet_check_field (packet, "request"))
     valent_battery_plugin_send_state (self);
 }
 
@@ -284,22 +284,17 @@ static void
 valent_battery_plugin_handle_battery (ValentBatteryPlugin *self,
                                       JsonNode            *packet)
 {
-  JsonObject *body;
   gboolean changed = FALSE;
-  gboolean charging;
-  gint64 level;
-  gint64 threshold;
+  gboolean charging = self->charging;
+  gint64 level = self->level;
+  gint64 threshold = 0;
 
   g_assert (VALENT_IS_BATTERY_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
 
-  body = valent_packet_get_body (packet);
-  charging = json_object_get_boolean_member_with_default (body, "isCharging",
-                                                          self->charging);
-  level = json_object_get_int_member_with_default (body, "currentCharge",
-                                                   self->level);
-  threshold = json_object_get_int_member_with_default (body, "thresholdEvent",
-                                                       0);
+  valent_packet_get_boolean (packet, "isCharging", &charging);
+  valent_packet_get_int (packet, "currentCharge", &level);
+  valent_packet_get_int (packet, "thresholdEvent", &threshold);
 
   /* We get a lot of battery updates, so check if something changed */
   if (self->charging != charging || self->level != level)

@@ -260,14 +260,18 @@ valent_systemvolume_plugin_handle_sink_change (ValentSystemvolumePlugin *self,
                                                JsonNode                 *packet)
 {
   StreamState *state;
-  JsonObject *body;
   const char *name;
+  gint64 volume;
+  gboolean muted;
 
   g_assert (VALENT_IS_SYSTEMVOLUME_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
 
-  body = valent_packet_get_body (packet);
-  name = json_object_get_string_member (body, "name");
+  if (!valent_packet_get_string (packet, "name", &name))
+    {
+      g_warning ("%s(): expected \"name\" field holding a string", G_STRFUNC);
+      return;
+    }
 
   /* The device shouldn't know about streams we haven't told it about */
   if ((state = g_hash_table_lookup (self->state_cache, name)) == NULL)
@@ -277,15 +281,15 @@ valent_systemvolume_plugin_handle_sink_change (ValentSystemvolumePlugin *self,
     }
 
   /* Update StreamState and Change */
-  if (json_object_has_member (body, "volume"))
+  if (valent_packet_get_int (packet, "volume", &volume) && volume >= 0)
     {
-      state->volume = json_object_get_int_member (body, "volume");
+      state->volume = volume;
       valent_mixer_stream_set_level (state->stream, state->volume);
     }
 
-  if (json_object_has_member (body, "muted"))
+  if (valent_packet_get_boolean (packet, "muted", &muted))
     {
-      state->muted = json_object_get_boolean_member (body, "muted");
+      state->muted = muted;
       valent_mixer_stream_set_muted (state->stream, state->muted);
     }
 }
@@ -294,16 +298,12 @@ static void
 valent_systemvolume_plugin_handle_request (ValentSystemvolumePlugin *self,
                                            JsonNode                 *packet)
 {
-  JsonObject *body;
-
   g_assert (VALENT_IS_SYSTEMVOLUME_PLUGIN (self));
 
-  body = valent_packet_get_body (packet);
-
-  if (json_object_has_member (body, "requestSinks"))
+  if (valent_packet_check_field (packet, "requestSinks"))
     valent_systemvolume_plugin_send_sinklist (self);
 
-  else if (json_object_has_member (body, "name"))
+  else if (valent_packet_check_field (packet, "name"))
     valent_systemvolume_plugin_handle_sink_change (self, packet);
 
   else

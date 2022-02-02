@@ -59,7 +59,7 @@ valent_mock_channel_download (ValentChannel  *channel,
   g_autoptr (GIOStream) stream = NULL;
   g_autofree char *host = NULL;
   JsonObject *info;
-  guint16 port;
+  gint64 port;
   gssize size;
 
   g_assert (VALENT_IS_CHANNEL (channel));
@@ -71,12 +71,13 @@ valent_mock_channel_download (ValentChannel  *channel,
   if ((info = valent_packet_get_payload_full (packet, &size, error)) == NULL)
     return NULL;
 
-  if ((port = valent_packet_check_int (info, "port")) == 0)
+  if ((port = json_object_get_int_member (info, "port")) == 0 ||
+      (port < 0 || port > G_MAXUINT16))
     {
       g_set_error_literal (error,
                            VALENT_PACKET_ERROR,
                            VALENT_PACKET_ERROR_INVALID_FIELD,
-                           "Invalid \"port\" field");
+                           "expected \"port\" field holding a uint16");
       return NULL;
     }
 
@@ -87,7 +88,7 @@ valent_mock_channel_download (ValentChannel  *channel,
                          NULL);
   connection = g_socket_client_connect_to_host (client,
                                                 host,
-                                                port,
+                                                (guint16)port,
                                                 cancellable,
                                                 error);
 

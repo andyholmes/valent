@@ -17,11 +17,11 @@ G_BEGIN_DECLS
 
 /**
  * ValentPacketError:
- * @VALENT_PACKET_ERROR_UNKNOWN: unknown error
- * @VALENT_PACKET_ERROR_MALFORMED: a malformed packet
- * @VALENT_PACKET_ERROR_INVALID_FIELD: an expected field is missing or holds an invalid type
- * @VALENT_PACKET_ERROR_UNKNOWN_MEMBER: the `id` field is missing
- * @VALENT_PACKET_ERROR_INVALID_DATA: invalid data
+ * @VALENT_PACKET_ERROR_UNKNOWN: an unknown error
+ * @VALENT_PACKET_ERROR_INVALID_DATA: the packet is %NULL or not JSON
+ * @VALENT_PACKET_ERROR_MALFORMED: the packet structure is malformed
+ * @VALENT_PACKET_ERROR_INVALID_FIELD: an expected field holds an invalid type
+ * @VALENT_PACKET_ERROR_MISSING_FIELD: an expected field is missing
  *
  * Error enumeration for KDE Connect packet validation.
  *
@@ -123,6 +123,35 @@ VALENT_AVAILABLE_IN_1_0
 void          valent_packet_set_payload_size (JsonNode       *packet,
                                               gssize          size);
 
+/* Field Helpers */
+VALENT_AVAILABLE_IN_1_0
+gboolean      valent_packet_check_field      (JsonNode       *packet,
+                                              const char     *field);
+VALENT_AVAILABLE_IN_1_0
+gboolean      valent_packet_get_boolean      (JsonNode       *packet,
+                                              const char     *field,
+                                              gboolean       *value);
+VALENT_AVAILABLE_IN_1_0
+gboolean      valent_packet_get_double       (JsonNode       *packet,
+                                              const char     *field,
+                                              double         *value);
+VALENT_AVAILABLE_IN_1_0
+gboolean      valent_packet_get_int          (JsonNode       *packet,
+                                              const char     *field,
+                                              gint64         *value);
+VALENT_AVAILABLE_IN_1_0
+gboolean      valent_packet_get_string       (JsonNode       *packet,
+                                              const char     *field,
+                                              const char    **value);
+VALENT_AVAILABLE_IN_1_0
+gboolean      valent_packet_get_array        (JsonNode       *packet,
+                                              const char     *field,
+                                              JsonArray     **value);
+VALENT_AVAILABLE_IN_1_0
+gboolean      valent_packet_get_object       (JsonNode       *packet,
+                                              const char     *field,
+                                              JsonObject    **value);
+
 /* I/O Helpers */
 VALENT_AVAILABLE_IN_1_0
 gboolean      valent_packet_validate         (JsonNode       *packet,
@@ -141,112 +170,5 @@ char        * valent_packet_serialize        (JsonNode       *packet);
 VALENT_AVAILABLE_IN_1_0
 JsonNode    * valent_packet_deserialize      (const char     *json,
                                               GError        **error);
-
-/* Identity Packets */
-VALENT_AVAILABLE_IN_1_0
-const char  * valent_identity_get_device_id  (JsonNode       *identity);
-
-/**
- * valent_packet_check_boolean: (skip)
- * @body: (type Json.Object): a packet body
- * @member: a member name
- *
- * A quick and silent macro for getting a boolean member from a packet body. If
- * the member is missing or holds another type %FALSE is returned.
- *
- * Returns: a boolean
- */
-static inline gboolean
-(valent_packet_check_boolean) (JsonObject *body,
-                               const char *member)
-{
-  JsonNode *node;
-
-  if G_UNLIKELY ((node = json_object_get_member (body, member)) == NULL ||
-                 json_node_get_value_type (node) != G_TYPE_BOOLEAN)
-    return FALSE;
-
-  return json_node_get_boolean (node);
-}
-#define valent_packet_check_boolean(o,m) (valent_packet_check_boolean(o,m))
-
-/**
- * valent_packet_check_double: (skip)
- * @body: (type Json.Object): a packet body
- * @member: a member name
- *
- * A quick and silent macro for getting a double member from a packet body. If
- * the member is missing or holds another type `0.0` is returned.
- *
- * Returns: a double
- */
-static inline double
-(valent_packet_check_double) (JsonObject *body,
-                              const char *member)
-{
-  JsonNode *node;
-
-  if G_UNLIKELY ((node = json_object_get_member (body, member)) == NULL ||
-                 json_node_get_value_type (node) != G_TYPE_DOUBLE)
-    return 0.0;
-
-  return json_node_get_double (node);
-}
-#define valent_packet_check_double(o,m) (valent_packet_check_double(o,m))
-
-/**
- * valent_packet_check_int: (skip)
- * @body: (type Json.Object): a packet body
- * @member: a member name
- *
- * A quick and silent macro for getting an integer member from a packet body. If
- * the member is missing or holds another type `0` is returned.
- *
- * Returns: an integer
- */
-static inline gint64
-(valent_packet_check_int) (JsonObject *body,
-                           const char *member)
-{
-  JsonNode *node;
-
-  if G_UNLIKELY ((node = json_object_get_member (body, member)) == NULL ||
-                 json_node_get_value_type (node) != G_TYPE_INT64)
-    return 0;
-
-  return json_node_get_int (node);
-}
-#define valent_packet_check_int(o,m) (valent_packet_check_int(o,m))
-
-/**
- * valent_packet_check_string: (skip)
- * @body: (type Json.Object): a packet body
- * @member: a member name
- *
- * A quick and silent macro for getting a string member from a packet body. If
- * the member is missing, holds another type or an empty string %NULL is
- * returned.
- *
- * Returns: (nullable): a string
- */
-static inline const char *
-(valent_packet_check_string) (JsonObject *body,
-                              const char *member)
-{
-  JsonNode *node;
-  const char *value;
-
-  if G_UNLIKELY ((node = json_object_get_member (body, member)) == NULL ||
-                 json_node_get_value_type (node) != G_TYPE_STRING)
-    return NULL;
-
-  value = json_node_get_string (node);
-
-  if G_UNLIKELY (strlen (value) == 0)
-    return NULL;
-
-  return value;
-}
-#define valent_packet_check_string(o,m) (valent_packet_check_string(o,m))
 
 G_END_DECLS

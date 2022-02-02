@@ -238,25 +238,18 @@ static void
 valent_runcommand_plugin_handle_runcommand_request (ValentRuncommandPlugin *self,
                                                     JsonNode               *packet)
 {
-  JsonObject *body;
+  const char *key;
 
   g_assert (VALENT_IS_RUNCOMMAND_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
 
-  body = valent_packet_get_body (packet);
-
   /* A request for the local command list */
-  if (valent_packet_check_boolean (body, "requestCommandList"))
+  if (valent_packet_check_field (packet, "requestCommandList"))
     valent_runcommand_plugin_send_command_list (self);
 
   /* A request to execute a local command */
-  if (json_object_has_member (body, "key"))
-    {
-      const char *key;
-
-      key = valent_packet_check_string (body, "key");
-      valent_runcommand_plugin_execute_local_command (self, key);
-    }
+  if (valent_packet_get_string (packet, "key", &key))
+    valent_runcommand_plugin_execute_local_command (self, key);
 }
 
 /*
