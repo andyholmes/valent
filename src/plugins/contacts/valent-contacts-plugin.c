@@ -121,8 +121,6 @@ valent_contact_plugin_handle_request_vcards_by_uid (ValentContactsPlugin *self,
   g_autofree EBookQuery **queries = NULL;
   g_autoptr (EBookQuery) query = NULL;
   g_autofree char *sexp = NULL;
-  JsonObject *body;
-  JsonNode *node;
   JsonArray *uids;
   unsigned int n_uids, n_queries;
 
@@ -133,18 +131,13 @@ valent_contact_plugin_handle_request_vcards_by_uid (ValentContactsPlugin *self,
       !g_settings_get_boolean (self->settings, "local-sync"))
     return;
 
-  /* Check packet */
-  body = valent_packet_get_body (packet);
-
-  if ((node = json_object_get_member (body, "uids")) == NULL ||
-      json_node_get_node_type (node) != JSON_NODE_ARRAY)
+  if (!valent_packet_get_array (packet, "uids", &uids))
     {
-      g_debug ("%s(): expected \"uids\" field holding an array", G_STRFUNC);
+      g_warning ("%s(): expected \"uids\" field holding an array", G_STRFUNC);
       return;
     }
 
   /* Build a list of queries */
-  uids = json_node_get_array (node);
   n_uids = json_array_get_length (uids);
   queries = g_new (EBookQuery *, n_uids);
   n_queries = 0;
@@ -159,7 +152,8 @@ valent_contact_plugin_handle_request_vcards_by_uid (ValentContactsPlugin *self,
 
       if G_UNLIKELY (uid == NULL || *uid == '\0')
         {
-          g_debug ("%s(): expected \"uids\" element to contain a string", G_STRFUNC);
+          g_warning ("%s(): expected \"uids\" element to contain a string",
+                     G_STRFUNC);
           continue;
         }
 

@@ -54,7 +54,8 @@ valent_bluez_channel_download (ValentChannel  *channel,
   if ((info = valent_packet_get_payload_full (packet, &size, error)) == NULL)
     return NULL;
 
-  if ((uuid = valent_packet_check_string (info, "uuid")) == NULL)
+  if ((uuid = json_object_get_string_member (info, "uuid")) == NULL ||
+      *uuid == '\0')
     {
       g_set_error_literal (error,
                            VALENT_PACKET_ERROR,

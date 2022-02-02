@@ -81,6 +81,8 @@ handle_mousepad_request (ValentMousepadPlugin *self,
   JsonObject *body;
   gboolean has_key;
   gboolean has_special;
+  const char *key;
+  gint64 keycode;
 
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
@@ -95,15 +97,15 @@ handle_mousepad_request (ValentMousepadPlugin *self,
       dx = json_object_get_double_member_with_default (body, "dx", 0.0);
       dy = json_object_get_double_member_with_default (body, "dy", 0.0);
 
-      if (valent_packet_check_boolean (body, "scroll"))
+      if (valent_packet_check_field (packet, "scroll"))
         valent_input_pointer_axis (self->input, dx, dy);
       else
         valent_input_pointer_motion (self->input, dx, dy);
     }
 
   /* Keyboard Event */
-  else if ((has_key = json_object_has_member (body, "key")) ||
-           (has_special = json_object_has_member (body, "specialKey")))
+  else if ((has_key = valent_packet_get_string (packet, "key", &key)) ||
+           (has_special = valent_packet_get_int (packet, "specialKey", &keycode)))
     {
       GdkModifierType mask;
       unsigned int keyval;
@@ -112,48 +114,42 @@ handle_mousepad_request (ValentMousepadPlugin *self,
 
       if (has_key)
         {
-          const char *key;
           gunichar codepoint;
 
-          key = json_object_get_string_member_with_default (body, "key", NULL);
           codepoint = g_utf8_get_char_validated (key, -1);
           keyval = gdk_unicode_to_keyval (codepoint);
           valent_input_keyboard_action (self->input, keyval, mask);
         }
       else if (has_special)
         {
-          gint64 keycode;
-
-          keycode = json_object_get_int_member_with_default (body, "specialKey", 0);
-
           if ((keyval = valent_mousepad_keycode_to_keyval (keycode)) != 0)
             valent_input_keyboard_action (self->input, keyval, mask);
         }
 
-      if (json_object_get_boolean_member_with_default (body, "sendAck", FALSE))
+      if (valent_packet_check_field (packet, "sendAck"))
         valent_mousepad_plugin_send_echo (self, packet);
     }
 
-  else if (valent_packet_check_boolean (body, "singleclick"))
+  else if (valent_packet_check_field (packet, "singleclick"))
     valent_input_pointer_click (self->input, VALENT_POINTER_PRIMARY);
 
-  else if (valent_packet_check_boolean (body, "doubleclick"))
+  else if (valent_packet_check_field (packet, "doubleclick"))
     {
       valent_input_pointer_click (self->input, VALENT_POINTER_PRIMARY);
       valent_input_pointer_click (self->input, VALENT_POINTER_PRIMARY);
     }
 
-  else if (valent_packet_check_boolean (body, "middleclick"))
+  else if (valent_packet_check_field (packet, "middleclick"))
     valent_input_pointer_click (self->input, VALENT_POINTER_MIDDLE);
 
-  else if (valent_packet_check_boolean (body, "rightclick"))
+  else if (valent_packet_check_field (packet, "rightclick"))
     valent_input_pointer_click (self->input, VALENT_POINTER_SECONDARY);
 
-  else if (valent_packet_check_boolean (body, "singlehold"))
+  else if (valent_packet_check_field (packet, "singlehold"))
     valent_input_pointer_button (self->input, VALENT_POINTER_PRIMARY, TRUE);
 
   /* Not used by kdeconnect-android, hold is released with a regular click */
-  else if (valent_packet_check_boolean (body, "singlerelease"))
+  else if (valent_packet_check_field (packet, "singlerelease"))
     valent_input_pointer_button (self->input, VALENT_POINTER_PRIMARY, FALSE);
 
   else
@@ -166,6 +162,8 @@ handle_mousepad_echo (ValentMousepadPlugin *self,
 {
   JsonObject *body;
   GdkModifierType mask = 0;
+  const char *key;
+  gint64 keycode;
 
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
@@ -181,27 +179,19 @@ handle_mousepad_echo (ValentMousepadPlugin *self,
   mask = event_to_mask (body);
 
   /* Backspace is effectively a printable character */
-  if (json_object_has_member (body, "specialKey"))
+  if (valent_packet_get_int (packet, "specialKey", &keycode))
     {
-      gint64 keycode;
       unsigned int keyval;
 
       /* Ensure key is in range or we'll choke */
-      keycode = json_object_get_int_member_with_default (body, "specialKey", 0);
-
       if ((keyval = valent_mousepad_keycode_to_keyval (keycode)) != 0)
         valent_mousepad_dialog_echo_special (self->dialog, keyval, mask);
     }
 
   /* A printable character */
-  else if (json_object_has_member (body, "key"))
+  else if (valent_packet_get_string (packet, "key", &key))
     {
-      const char *key;
-
-      key = json_object_get_string_member_with_default (body, "key", NULL);
-
-      if (key != NULL)
-        valent_mousepad_dialog_echo_key (self->dialog, key, mask);
+      valent_mousepad_dialog_echo_key (self->dialog, key, mask);
     }
 }
 
@@ -209,15 +199,17 @@ static void
 handle_mousepad_keyboardstate (ValentMousepadPlugin *self,
                                JsonNode             *packet)
 {
-  JsonObject *body;
   gboolean state;
 
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
 
   /* Update the remote keyboard state */
-  body = valent_packet_get_body (packet);
-  state = valent_packet_check_boolean (body, "state");
+  if (!valent_packet_get_boolean (packet, "state", &state))
+    {
+      g_warning ("%s(): expected \"state\" field holding a boolean", G_STRFUNC);
+      return;
+    }
 
   if (self->remote_state != state)
     {

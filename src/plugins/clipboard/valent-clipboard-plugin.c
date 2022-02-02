@@ -176,23 +176,17 @@ static void
 valent_clipboard_plugin_handle_clipboard (ValentClipboardPlugin *self,
                                           JsonNode              *packet)
 {
-  JsonObject *body;
-  JsonNode *node;
   const char *content;
 
   g_assert (VALENT_IS_CLIPBOARD_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
 
-  body = valent_packet_get_body (packet);
-
-  if ((node = json_object_get_member (body, "content")) == NULL ||
-      json_node_get_value_type (node) != G_TYPE_STRING)
+  if (!valent_packet_get_string (packet, "content", &content))
     {
-      g_debug ("%s(): expected \"content\" field holding a string", G_STRFUNC);
+      g_warning ("%s(): expected \"content\" field holding a string",
+                 G_STRFUNC);
       return;
     }
-
-  content = json_node_get_string (node);
 
   /* Cache remote content */
   g_clear_pointer (&self->remote_text, g_free);
@@ -208,33 +202,25 @@ static void
 valent_clipboard_plugin_handle_clipboard_connect (ValentClipboardPlugin *self,
                                                   JsonNode              *packet)
 {
-  JsonObject *body;
-  JsonNode *node;
   gint64 timestamp;
   const char *content;
 
   g_assert (VALENT_IS_CLIPBOARD_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
 
-  body = valent_packet_get_body (packet);
-
-  if ((node = json_object_get_member (body, "timestamp")) == NULL ||
-      json_node_get_value_type (node) != G_TYPE_INT64)
+  if (!valent_packet_get_int (packet, "timestamp", &timestamp))
     {
-      g_debug ("%s(): expected \"timestamp\" field holding an integer", G_STRFUNC);
+      g_warning ("%s(): expected \"timestamp\" field holding an integer",
+                 G_STRFUNC);
       return;
     }
 
-  timestamp = json_node_get_int (node);
-
-  if ((node = json_object_get_member (body, "content")) == NULL ||
-      json_node_get_value_type (node) != G_TYPE_STRING)
+  if (!valent_packet_get_string (packet, "content", &content))
     {
-      g_debug ("%s(): expected \"content\" field holding a string", G_STRFUNC);
+      g_warning ("%s(): expected \"content\" field holding a string",
+                 G_STRFUNC);
       return;
     }
-
-  content = json_node_get_string (node);
 
   /* Cache remote content */
   g_clear_pointer (&self->remote_text, g_free);

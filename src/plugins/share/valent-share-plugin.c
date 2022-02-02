@@ -560,14 +560,11 @@ static void
 valent_share_plugin_handle_file (ValentSharePlugin *self,
                                  JsonNode          *packet)
 {
-  JsonObject *body;
   const char *filename;
   g_autoptr (GFile) file = NULL;
 
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
-
-  body = valent_packet_get_body (packet);
 
   if (!valent_packet_has_payload (packet))
     {
@@ -575,9 +572,10 @@ valent_share_plugin_handle_file (ValentSharePlugin *self,
       return;
     }
 
-  if ((filename = valent_packet_check_string (body, "filename")) == NULL)
+  if (!valent_packet_get_string (packet, "filename", &filename))
     {
-      g_warning ("%s(): invalid \"filename\" field", G_STRFUNC);
+      g_warning ("%s(): expected \"filename\" field holding a string",
+                 G_STRFUNC);
       return;
     }
 
@@ -715,34 +713,23 @@ valent_share_plugin_handle_packet (ValentDevicePlugin *plugin,
                                    JsonNode           *packet)
 {
   ValentSharePlugin *self = VALENT_SHARE_PLUGIN (plugin);
-  JsonObject *body;
+  const char *text;
+  const char *url;
 
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
   g_assert (type != NULL);
   g_assert (VALENT_IS_PACKET (packet));
 
-  body = valent_packet_get_body (packet);
-
   if (g_strcmp0 (type, "kdeconnect.share.request") == 0)
     {
-      if (json_object_has_member (body, "filename"))
-        {
-          valent_share_plugin_handle_file (self, packet);
-        }
-      else if (json_object_has_member (body, "text"))
-        {
-          const char *text;
+      if (valent_packet_check_field (packet, "filename"))
+        valent_share_plugin_handle_file (self, packet);
 
-          text = json_object_get_string_member (body, "text");
-          valent_share_plugin_handle_text (self, text);
-        }
-      else if (json_object_has_member (body, "url"))
-        {
-          const char *url;
+      else if (valent_packet_get_string (packet, "text", &text))
+        valent_share_plugin_handle_text (self, text);
 
-          url = json_object_get_string_member (body, "url");
-          valent_share_plugin_handle_url (self, url);
-        }
+      else if (valent_packet_get_string (packet, "url", &url))
+        valent_share_plugin_handle_url (self, url);
 
       else
         g_warning ("%s(): unsupported share request", G_STRFUNC);

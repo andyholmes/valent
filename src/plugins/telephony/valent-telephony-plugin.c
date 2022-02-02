@@ -167,13 +167,13 @@ valent_telephony_plugin_update_media_state (ValentTelephonyPlugin *self,
   g_assert (event != NULL && *event != '\0');
 
   /* Retrieve the user preference for this event */
-  if (g_strcmp0 (event, "ringing") == 0)
+  if (g_str_equal (event, "ringing"))
     {
       output_level = g_settings_get_int (self->settings, "ringing-volume");
       input_level = g_settings_get_int (self->settings, "ringing-microphone");
       pause = g_settings_get_boolean (self->settings, "ringing-pause");
     }
-  else if (g_strcmp0 (event, "talking") == 0)
+  else if (g_str_equal (event, "talking"))
     {
       output_level = g_settings_get_int (self->settings, "talking-volume");
       input_level = g_settings_get_int (self->settings, "talking-microphone");
@@ -223,13 +223,13 @@ valent_telephony_plugin_update_media_state (ValentTelephonyPlugin *self,
  * Returns: (transfer full): a new #GIcon
  */
 static GIcon *
-get_event_icon (JsonObject *body)
+get_event_icon (JsonNode *packet)
 {
   const char *data;
 
-  g_assert (body != NULL);
+  g_assert (VALENT_IS_PACKET (packet));
 
-  if ((data = valent_packet_check_string (body, "phoneThumbnail")) != NULL)
+  if (valent_packet_get_string (packet, "phoneThumbnail", &data))
     {
       GdkPixbuf *pixbuf;
 
@@ -244,7 +244,6 @@ static void
 valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
                                           JsonNode              *packet)
 {
-  JsonObject *body;
   const char *event;
   const char *sender;
   g_autoptr (GNotification) notification = NULL;
@@ -254,29 +253,29 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
   g_assert (VALENT_IS_TELEPHONY_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
 
-  body = valent_packet_get_body (packet);
-  event = json_object_get_string_member (body, "event");
+  if (!valent_packet_get_string (packet, "event", &event))
+    {
+      g_warning ("%s(): expected \"event\" field holding a string", G_STRFUNC);
+      return;
+    }
 
   /* Currently, only "ringing" and "talking" events are supported */
-  if (g_strcmp0 (event, "ringing") != 0 && g_strcmp0 (event, "talking") != 0)
+  if (!g_str_equal (event, "ringing") && !g_str_equal (event, "talking"))
     {
       VALENT_TODO ("\"%s\" event", event);
       return;
     }
 
   /* Sender*/
-  if (json_object_has_member (body, "contactName"))
-    sender = json_object_get_string_member (body, "contactName");
-  else if (json_object_has_member (body, "phoneNumber"))
-    sender = json_object_get_string_member (body, "phoneNumber");
-  else
+  if (!valent_packet_get_string (packet, "contactName", &sender) &&
+      !valent_packet_get_string (packet, "phoneNumber", &sender))
     sender = _("Unknown Contact");
 
   /* Inject the event type into the notification ID, to distinguish them */
   id = g_strdup_printf ("%s|%s", event, sender);
 
   /* This is a cancelled event */
-  if (valent_packet_check_boolean (body, "isCancel"))
+  if (valent_packet_check_field (packet, "isCancel"))
     {
       valent_telephony_plugin_restore_media_state (self);
       valent_device_hide_notification (self->device, id);
@@ -288,10 +287,10 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
 
   /* Notify user */
   notification = g_notification_new (sender);
-  icon = get_event_icon (body);
+  icon = get_event_icon (packet);
   g_notification_set_icon (notification, icon);
 
-  if (g_strcmp0 (event, "ringing") == 0)
+  if (g_str_equal (event, "ringing"))
     {
       g_notification_set_body (notification, _("Incoming call"));
       valent_notification_add_device_button (notification,
@@ -302,7 +301,7 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
       g_notification_set_priority (notification,
                                    G_NOTIFICATION_PRIORITY_URGENT);
     }
-  else if (g_strcmp0 (event, "talking") == 0)
+  else if (g_str_equal (event, "talking"))
     {
       g_notification_set_body (notification, _("Ongoing call"));
     }

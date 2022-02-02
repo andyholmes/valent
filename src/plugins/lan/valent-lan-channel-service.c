@@ -102,7 +102,15 @@ on_incoming_connection (ValentChannelService   *service,
   /* Now that we have the device ID we can authorize or reject certificates.
    * NOTE: We're the client when accepting incoming connections */
   valent_object_lock (VALENT_OBJECT (self));
-  device_id = valent_identity_get_device_id (peer_identity);
+
+  if (!valent_packet_get_string (peer_identity, "deviceId", &device_id))
+    {
+      g_warning ("%s(): expected \"deviceId\" field holding a string",
+                 G_STRFUNC);
+      valent_object_unlock (VALENT_OBJECT (self));
+      return TRUE;
+    }
+
   tls_stream = valent_lan_encrypt_new_client (connection,
                                               self->certificate,
                                               device_id,
@@ -204,12 +212,11 @@ on_incoming_broadcast (ValentLanChannelService  *self,
   ValentChannelService *service = VALENT_CHANNEL_SERVICE (self);
   g_autoptr (GError) warn = NULL;
   g_autoptr (ValentChannel) channel = NULL;
-  guint16 port;
+  gint64 port;
   g_autofree char *host = NULL;
   g_autofree char *line = NULL;
   g_autoptr (JsonNode) identity = NULL;
   g_autoptr (JsonNode) peer_identity = NULL;
-  JsonObject *body;
   const char *device_id;
   g_autofree char *local_id = NULL;
   g_autoptr (GSocketClient) client = NULL;
@@ -258,10 +265,7 @@ on_incoming_broadcast (ValentLanChannelService  *self,
     }
 
   /* Ignore broadcasts without a deviceId or from ourselves */
-  body = valent_packet_get_body (peer_identity);
-  device_id = json_object_get_string_member_with_default (body, "deviceId", NULL);
-
-  if (device_id == NULL || *device_id == '\0')
+  if (!valent_packet_get_string (peer_identity, "deviceId", &device_id))
     {
       g_warning ("%s(): expected \"deviceId\" field holding a string",
                  G_STRFUNC);
@@ -274,11 +278,10 @@ on_incoming_broadcast (ValentLanChannelService  *self,
     return TRUE;
 
   /* Get the remote port */
-  port = (guint16)json_object_get_int_member_with_default (body, "tcpPort", 0);
-
-  if (port == 0)
+  if (valent_packet_get_int (peer_identity, "tcpPort", &port) &&
+      (port < 0 || port > G_MAXUINT16))
     {
-      g_warning ("%s(): expected \"tcpPort\" field holding an integer",
+      g_warning ("%s(): expected \"tcpPort\" field holding a uint16",
                  G_STRFUNC);
       return TRUE;
     }
@@ -303,7 +306,8 @@ on_incoming_broadcast (ValentLanChannelService  *self,
 
   if (connection == NULL)
     {
-      g_debug ("Error connecting (%s:%u): %s", host, port, warn->message);
+      g_debug ("%s(): connecting to (%s:%"G_GINT64_FORMAT"): %s",
+               G_STRFUNC, host, port, warn->message);
       return TRUE;
     }
 
@@ -315,7 +319,8 @@ on_incoming_broadcast (ValentLanChannelService  *self,
 
   if (!valent_packet_to_stream (output_stream, identity, cancellable, error))
     {
-      g_debug ("Error writing identity (%s:%u): %s", host, port, warn->message);
+      g_debug ("%s(): sending identity to (%s:%"G_GINT64_FORMAT"): %s",
+               G_STRFUNC, host, port, warn->message);
       return TRUE;
     }
 
@@ -330,7 +335,8 @@ on_incoming_broadcast (ValentLanChannelService  *self,
 
   if (tls_stream == NULL)
     {
-      g_debug ("Error authenticating (%s:%u): %s", host, port, warn->message);
+      g_debug ("%s(): authenticating (%s:%"G_GINT64_FORMAT"): %s",
+               G_STRFUNC, host, port, warn->message);
       return TRUE;
     }
 

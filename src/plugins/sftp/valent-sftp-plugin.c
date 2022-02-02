@@ -85,23 +85,15 @@ sftp_session_new (ValentSftpPlugin *self,
 {
   ValentSftpSession *session;
   g_autofree char *host = NULL;
-  JsonObject *body;
-  JsonNode *node;
-
-  body = valent_packet_get_body (packet);
+  gint64 port;
+  const char *password;
+  const char *username;
 
   /* Ultimately, these are the only packet fields we really need */
-  if ((node = json_object_get_member (body, "port")) == NULL ||
-      json_node_get_value_type (node) != G_TYPE_INT64)
+  if (!valent_packet_get_int (packet, "port", &port) ||
+      (port < 0 || port > G_MAXUINT16))
     {
-      g_warning ("%s(): missing \"port\" field", G_STRFUNC);
-      return NULL;
-    }
-
-  if ((node = json_object_get_member (body, "user")) == NULL ||
-      json_node_get_value_type (node) != G_TYPE_STRING)
-    {
-      g_warning ("%s(): missing \"user\" field", G_STRFUNC);
+      g_warning ("%s(): expected \"port\" field holding a uint16", G_STRFUNC);
       return NULL;
     }
 
@@ -114,9 +106,13 @@ sftp_session_new (ValentSftpPlugin *self,
   // Create a session struct
   session = g_new0 (ValentSftpSession, 1);
   session->host = g_steal_pointer (&host);
-  session->port = json_object_get_int_member_with_default (body, "port", 22);
-  session->username = g_strdup (valent_packet_check_string (body, "user"));
-  session->password = g_strdup (valent_packet_check_string (body, "password"));
+  session->port = (guint16)port;
+
+  if (valent_packet_get_string (packet, "user", &username))
+    session->username = g_strdup (username);
+
+  if (valent_packet_get_string (packet, "password", &password))
+    session->password = g_strdup (password);
 
   // Gvfs
   session->uri = g_strdup_printf ("sftp://%s:%u/",
@@ -500,16 +496,12 @@ static void
 valent_sftp_plugin_handle_sftp (ValentSftpPlugin *self,
                                 JsonNode         *packet)
 {
-  JsonObject *body;
-
   g_assert (VALENT_IS_SFTP_PLUGIN (self));
-
-  body = valent_packet_get_body (packet);
 
   /* The request for mount information failed, most likely due to the remote
    * device not being setup yet.
    */
-  if (json_object_has_member (body, "errorMessage"))
+  if (valent_packet_check_field (packet, "errorMessage"))
     handle_sftp_error (self, packet);
 
   /* Otherwise we've been sent the information necessary to open an SSH/SFTP
@@ -526,15 +518,12 @@ static void
 valent_sftp_plugin_handle_request (ValentSftpPlugin *self,
                                    JsonNode         *packet)
 {
-  JsonObject *body;
   JsonBuilder *builder;
   g_autoptr (JsonNode) response = NULL;
 
   g_assert (VALENT_IS_SFTP_PLUGIN (self));
 
-  body = valent_packet_get_body (packet);
-
-  if (!valent_packet_check_boolean (body, "startBrowsing"))
+  if (!valent_packet_check_field (packet, "startBrowsing"))
     return;
 
   builder = valent_packet_start ("kdeconnect.sftp");

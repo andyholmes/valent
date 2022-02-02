@@ -36,16 +36,14 @@ valent_ping_plugin_handle_ping (ValentPingPlugin *self,
                                 JsonNode         *packet)
 {
   g_autoptr (GNotification) notification = NULL;
-  JsonObject *body;
   const char *message;
 
   g_assert (VALENT_IS_PING_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
 
   /* Check for the optional message */
-  body = valent_packet_get_body (packet);
-  message = json_object_get_string_member_with_default (body, "message",
-                                                        _("Ping!"));
+  if (!valent_packet_get_string (packet, "message", &message))
+    message = _("Ping!");
 
   /* Show a notification */
   notification = g_notification_new (valent_device_get_name (self->device));
@@ -64,7 +62,7 @@ valent_ping_plugin_send_ping (ValentPingPlugin *self,
 
   builder = valent_packet_start ("kdeconnect.ping");
 
-  if (message != NULL)
+  if (message != NULL && *message != '\0')
     {
       json_builder_set_member_name (builder, "message");
       json_builder_add_string_value (builder, message);

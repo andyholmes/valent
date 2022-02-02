@@ -212,32 +212,31 @@ static void
 valent_mpris_plugin_handle_mpris_request (ValentMprisPlugin *self,
                                           JsonNode          *packet)
 {
-  JsonObject *body;
   ValentMediaPlayer *player = NULL;
   const char *name;
   const char *action;
   const char *url;
   gint64 offset;
+  gint64 position;
   gboolean request_now_playing;
   gboolean request_volume;
+  gint64 volume;
 
   g_assert (VALENT_IS_MPRIS_PLUGIN (self));
 
-  body = valent_packet_get_body (packet);
-
   /* Start by checking for a player */
-  if ((name = valent_packet_check_string (body, "player")) != NULL)
+  if (valent_packet_get_string (packet, "player", &name))
     player = valent_media_get_player_by_name (self->media, name);
 
-  if (player == NULL || valent_packet_check_boolean (body, "requestPlayerList"))
+  if (player == NULL || valent_packet_check_field (packet, "requestPlayerList"))
     {
       valent_mpris_plugin_send_player_list (self);
       return;
     }
 
   /* A request for a player's status */
-  request_now_playing = valent_packet_check_boolean (body, "requestNowPlaying");
-  request_volume = valent_packet_check_boolean (body, "requestVolume");
+  request_now_playing = valent_packet_check_field (packet, "requestNowPlaying");
+  request_volume = valent_packet_check_field (packet, "requestVolume");
 
   if (request_now_playing || request_volume)
     valent_mpris_plugin_send_player_info (self,
@@ -246,34 +245,26 @@ valent_mpris_plugin_handle_mpris_request (ValentMprisPlugin *self,
                                           request_volume);
 
   /* A player command */
-  if ((action = valent_packet_check_string (body, "action")) != NULL)
+  if (valent_packet_get_string (packet, "action", &action))
     valent_mpris_plugin_handle_action (self, player, action);
 
   /* A request to change the relative position */
-  if ((offset = valent_packet_check_int (body, "Seek")) != 0)
+  if (valent_packet_get_int (packet, "Seek", &offset))
     valent_media_player_seek (player, offset * 1000);
 
   /* A request to change the absolute position */
-  if (json_object_has_member (body, "SetPosition"))
+  if (valent_packet_get_int (packet, "SetPosition", &position))
     {
-      gint64 position;
-
-      position = json_object_get_int_member (body, "SetPosition") * 1000;
-      offset = position - valent_media_player_get_position (player);
+      offset = (position * 1000) - valent_media_player_get_position (player);
       valent_media_player_seek (player, offset);
     }
 
   /* A request to change the player volume */
-  if (json_object_has_member (body, "setVolume"))
-    {
-      gint64 volume;
-
-      volume = valent_packet_check_int (body, "setVolume");
-      valent_media_player_set_volume (player, volume / 100.0);
-    }
+  if (valent_packet_get_int (packet, "setVolume", &volume))
+    valent_media_player_set_volume (player, volume / 100.0);
 
   /* An album art request */
-  if ((url = valent_packet_check_string (body, "albumArtUrl")) != NULL)
+  if (valent_packet_get_string (packet, "albumArtUrl", &url))
     valent_mpris_plugin_send_album_art (self, player, url);
 }
 
@@ -609,7 +600,6 @@ receive_art_cb (ValentTransfer *transfer,
   g_autoptr (JsonNode) packet = g_steal_pointer (&op->packet);
   g_autoptr (GFile) file = g_steal_pointer (&op->file);
   g_autoptr (GError) error = NULL;
-  JsonObject *body;
   const char *player;
   ValentMprisRemote *remote;
 
@@ -621,9 +611,7 @@ receive_art_cb (ValentTransfer *transfer,
       return;
     }
 
-  body = valent_packet_get_body (packet);
-
-  if ((player = valent_packet_check_string (body, "player")) != NULL &&
+  if (valent_packet_get_string (packet, "player", &player) &&
       (remote = g_hash_table_lookup (self->remotes, player)) != NULL)
     valent_mpris_remote_update_art (remote, file);
 }
@@ -638,13 +626,11 @@ valent_mpris_plugin_receive_album_art (ValentMprisPlugin *self,
   g_autofree char *filename = NULL;
   g_autoptr (GFile) file = NULL;
   g_autoptr (ValentTransfer) transfer = NULL;
-  JsonObject *body;
 
-  body = valent_packet_get_body (packet);
-
-  if ((url = valent_packet_check_string (body, "albumArtUrl")) == NULL)
+  if (!valent_packet_get_string (packet, "albumArtUrl", &url))
     {
-      g_warning ("%s(): Invalid \"albumArtUrl\" field", G_STRFUNC);
+      g_warning ("%s(): expected \"albumArtUrl\" field holding a string",
+                 G_STRFUNC);
       return;
     }
 
@@ -777,54 +763,53 @@ valent_mpris_plugin_handle_player_list (ValentMprisPlugin *self,
 
 static void
 valent_mpris_plugin_handle_player_update (ValentMprisPlugin *self,
-                                          JsonNode          *packet,
-                                          JsonObject        *update)
+                                          JsonNode          *packet)
 {
   ValentMprisRemote *remote;
-  const char *name;
+  const char *player;
   const char *url;
   ValentMediaActions flags = VALENT_MEDIA_ACTION_NONE;
   GVariantDict metadata;
   const char *artist, *title, *album;
   gint64 length, position;
-  double volume;
+  gint64 volume;
+  double volume_level = 100.0;
   gboolean is_playing;
 
   /* Get the remote */
-  name = json_object_get_string_member (update, "player");
-
-  if G_UNLIKELY ((remote = g_hash_table_lookup (self->remotes, name)) == NULL)
+  if (!valent_packet_get_string (packet, "player", &player) ||
+      (remote = g_hash_table_lookup (self->remotes, player)) == NULL)
     {
       valent_mpris_plugin_request_player_list (self);
       return;
     }
 
-  if (valent_packet_check_boolean (update, "transferringAlbumArt"))
+  if (valent_packet_check_field (packet, "transferringAlbumArt"))
     {
       valent_mpris_plugin_receive_album_art (self, packet);
       return;
     }
 
   /* Available actions */
-  if (valent_packet_check_boolean (update, "canGoNext"))
+  if (valent_packet_check_field (packet, "canGoNext"))
     flags |= VALENT_MEDIA_ACTION_NEXT;
 
-  if (valent_packet_check_boolean (update, "canGoPrevious"))
+  if (valent_packet_check_field (packet, "canGoPrevious"))
     flags |= VALENT_MEDIA_ACTION_PREVIOUS;
 
-  if (valent_packet_check_boolean (update, "canPause"))
+  if (valent_packet_check_field (packet, "canPause"))
     flags |= VALENT_MEDIA_ACTION_PAUSE;
 
-  if (valent_packet_check_boolean (update, "canPlay"))
+  if (valent_packet_check_field (packet, "canPlay"))
     flags |= VALENT_MEDIA_ACTION_PLAY;
 
-  if (valent_packet_check_boolean (update, "canSeek"))
+  if (valent_packet_check_field (packet, "canSeek"))
     flags |= VALENT_MEDIA_ACTION_SEEK;
 
   /* Metadata */
   g_variant_dict_init (&metadata, NULL);
 
-  if ((artist = valent_packet_check_string (update, "artist")) != NULL)
+  if (valent_packet_get_string (packet, "artist", &artist))
     {
       g_auto (GStrv) artists = NULL;
       GVariant *value;
@@ -834,54 +819,49 @@ valent_mpris_plugin_handle_player_update (ValentMprisPlugin *self,
       g_variant_dict_insert_value (&metadata, "xesam:artist", value);
     }
 
-  if ((title = valent_packet_check_string (update, "title")) != NULL)
+  if (valent_packet_get_string (packet, "title", &title))
     g_variant_dict_insert (&metadata, "xesam:title", "s", title);
 
-  if ((album = valent_packet_check_string (update, "album")) != NULL)
+  if (valent_packet_get_string (packet, "album", &album))
     g_variant_dict_insert (&metadata, "xesam:album", "s", album);
 
-  if ((length = valent_packet_check_int (update, "length")) != 0)
+  if (valent_packet_get_int (packet, "length", &length))
     g_variant_dict_insert (&metadata, "mpris:length", "x", length);
 
-  if ((url = valent_packet_check_string (update, "albumArtUrl")) != NULL)
-    valent_mpris_plugin_request_album_art (self, name, url, &metadata);
+  if (valent_packet_get_string (packet, "albumArtUrl", &url))
+    valent_mpris_plugin_request_album_art (self, player, url, &metadata);
 
   /* Playback Status */
-  is_playing = valent_packet_check_boolean (update, "isPlaying");
-  position = valent_packet_check_int (update, "pos");
-  volume = json_object_get_double_member_with_default (update, "volume", 100.0) / 100;
+  is_playing = valent_packet_check_field (packet, "isPlaying");
+
+  if (!valent_packet_get_int (packet, "pos", &position))
+    position = 0;
+
+  if (valent_packet_get_int (packet, "volume", &volume))
+    volume_level = volume / 100;
 
   valent_mpris_remote_update_player (remote,
                                      flags,
                                      g_variant_dict_end (&metadata),
                                      is_playing ? "Playing" : "Paused",
                                      position,
-                                     volume);
+                                     volume_level);
 }
 
 static void
 valent_mpris_plugin_handle_mpris (ValentMprisPlugin *self,
                                   JsonNode          *packet)
 {
-  JsonObject *body;
+  JsonArray *player_list;
 
   g_assert (VALENT_IS_MPRIS_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
 
-  body = valent_packet_get_body (packet);
+  if (valent_packet_get_array (packet, "playerList", &player_list))
+    valent_mpris_plugin_handle_player_list (self, player_list);
 
-  if (json_object_has_member (body, "playerList"))
-    {
-      JsonArray *player_list;
-
-      player_list = json_object_get_array_member (body, "playerList");
-      valent_mpris_plugin_handle_player_list (self, player_list);
-    }
-
-  else if (json_object_has_member (body, "player"))
-    {
-      valent_mpris_plugin_handle_player_update (self, packet, body);
-    }
+  else if (valent_packet_get_string (packet, "player", NULL))
+    valent_mpris_plugin_handle_player_update (self, packet);
 }
 
 /*

@@ -12,16 +12,6 @@
 #include "valent-utils.h"
 
 
-/**
- * SECTION:valentpacket
- * @short_description: A collection of packet helpers
- * @title: Packet Utilities
- * @stability: Unstable
- * @include: libvalent-core.h
- *
- * Utilities and helpers for validating and working with KDE Connect packets.
- */
-
 G_DEFINE_QUARK (valent-packet-error, valent_packet_error)
 
 
@@ -32,7 +22,7 @@ G_DEFINE_QUARK (valent-packet-error, valent_packet_error)
  * A convenience function for creating a new KDE Connect packet with the type
  * field set to @type.
  *
- * Returns: (transfer full): A #JsonNode object
+ * Returns: (transfer full): a KDE Connect packet
  */
 JsonNode *
 valent_packet_new (const char *type)
@@ -95,7 +85,7 @@ valent_packet_start (const char *type)
  * Finishes a packet started with valent_packet_start() and returns the finished
  * #JsonNode packet. @builder will be consumed by this function.
  *
- * Returns: (transfer full): A #JsonNode object
+ * Returns: (transfer full): a KDE Connect packet
  */
 JsonNode *
 valent_packet_finish (JsonBuilder *builder)
@@ -117,7 +107,7 @@ valent_packet_finish (JsonBuilder *builder)
 
 /**
  * valent_packet_get_id:
- * @packet: a #JsonNode holding a KDE Connect packet
+ * @packet: a KDE Connect packet
  *
  * Convenience function for getting the timestamp of a KDE Connect packet.
  *
@@ -142,7 +132,7 @@ valent_packet_get_id (JsonNode *packet)
 
 /**
  * valent_packet_get_type:
- * @packet: a #JsonNode holding a KDE Connect packet
+ * @packet: a KDE Connect packet
  *
  * Convenience function for getting the capability type of a KDE Connect packet.
  *
@@ -167,7 +157,7 @@ valent_packet_get_type (JsonNode *packet)
 
 /**
  * valent_packet_get_body:
- * @packet: a #JsonNode holding a KDE Connect packet
+ * @packet: a KDE Connect packet
  *
  * Convenience function for getting the packet body of a KDE Connect packet.
  *
@@ -192,7 +182,7 @@ valent_packet_get_body (JsonNode *packet)
 
 /**
  * valent_packet_has_payload:
- * @packet: a #JsonNode
+ * @packet: a KDE Connect packet
  *
  * Return %TRUE if the packet holds valid transfer information. Payload
  * information is considered invalid in the following cases:
@@ -226,7 +216,7 @@ valent_packet_has_payload (JsonNode *packet)
 
 /**
  * valent_packet_get_payload_full:
- * @packet: a #JsonNode
+ * @packet: a KDE Connect packet
  * @size: (out) (nullable): the payload size
  * @error: (nullable): a #GError
  *
@@ -284,7 +274,7 @@ valent_packet_get_payload_full (JsonNode  *packet,
 
 /**
  * valent_packet_set_payload_full:
- * @packet: a #JsonNode
+ * @packet: a KDE Connect packet
  * @info: (transfer full): a #JsonObject
  * @size: the payload size in bytes
  *
@@ -308,7 +298,7 @@ valent_packet_set_payload_full (JsonNode   *packet,
 
 /**
  * valent_packet_get_payload_info:
- * @packet: a #JsonNode
+ * @packet: a KDE Connect packet
  *
  * A convenience for retrieve the 'payloadTransferInfo` field from @packet.
  *
@@ -332,7 +322,7 @@ valent_packet_get_payload_info (JsonNode *packet)
 
 /**
  * valent_packet_set_payload_info:
- * @packet: a #JsonNode
+ * @packet: a KDE Connect packet
  * @info: (transfer full): a #JsonObject
  *
  * A convenience method for setting the `payloadTransferInfo` field on @packet.
@@ -353,7 +343,7 @@ valent_packet_set_payload_info (JsonNode   *packet,
 
 /**
  * valent_packet_get_payload_size:
- * @packet: a #JsonNode
+ * @packet: a KDE Connect packet
  *
  * Get the `payloadSize` field of @packet in bytes.
  *
@@ -379,7 +369,7 @@ valent_packet_get_payload_size (JsonNode *packet)
 
 /**
  * valent_packet_set_payload_size:
- * @packet: a #JsonNode
+ * @packet: a KDE Connect packet
  * @size: the payload size in bytes
  *
  * Set the `payloadSize` field of @packet to @size.
@@ -398,8 +388,309 @@ valent_packet_set_payload_size (JsonNode *packet,
 }
 
 /**
+ * valent_packet_check_field:
+ * @packet: a KDE Connect packet
+ * @field: field name
+ *
+ * Check @packet for @field and return %TRUE if present, with two exceptions:
+ *
+ * 1. If @field is a %G_TYPE_BOOLEAN, its value is returned
+ * 2. If @field is a %G_TYPE_STRING, %FALSE is returned if the string is empty.
+ *
+ * Returns: %TRUE, or %FALSE on failure
+ */
+gboolean
+valent_packet_check_field (JsonNode   *packet,
+                           const char *field)
+{
+  JsonObject *root;
+  JsonObject *body;
+  JsonNode *node;
+
+  g_return_val_if_fail (JSON_NODE_HOLDS_OBJECT (packet), FALSE);
+  g_return_val_if_fail (field != NULL || *field == '\0', FALSE);
+
+  root = json_node_get_object (packet);
+
+  if G_UNLIKELY ((node = json_object_get_member (root, "body")) == NULL ||
+                 json_node_get_node_type (node) != JSON_NODE_OBJECT)
+    return FALSE;
+
+  body = json_node_get_object (node);
+
+  if G_UNLIKELY ((node = json_object_get_member (body, field)) == NULL)
+    return FALSE;
+
+  if (json_node_get_value_type (node) == G_TYPE_BOOLEAN)
+    return json_node_get_boolean (node);
+
+  if (json_node_get_value_type (node) == G_TYPE_STRING)
+    return json_node_get_string (node)[0] != '\0';
+
+  return TRUE;
+}
+
+/**
+ * valent_packet_get_boolean:
+ * @packet: a KDE Connect packet
+ * @field: field name
+ * @value: (out) (nullable): a boolean
+ *
+ * Lookup @field in the body of @packet and assign it to @value.
+ *
+ * If @field is not found or it is not a boolean, %FALSE will be returned and
+ * @value will not be set.
+ *
+ * Returns: %TRUE, or %FALSE on failure
+ */
+gboolean
+valent_packet_get_boolean (JsonNode   *packet,
+                           const char *field,
+                           gboolean   *value)
+{
+  JsonObject *root, *body;
+  JsonNode *node;
+
+  g_return_val_if_fail (JSON_NODE_HOLDS_OBJECT (packet), FALSE);
+  g_return_val_if_fail (field != NULL || *field == '\0', FALSE);
+
+  root = json_node_get_object (packet);
+
+  if G_UNLIKELY ((node = json_object_get_member (root, "body")) == NULL ||
+                 json_node_get_node_type (node) != JSON_NODE_OBJECT)
+    return FALSE;
+
+  body = json_node_get_object (node);
+
+  if G_UNLIKELY ((node = json_object_get_member (body, field)) == NULL ||
+                 json_node_get_value_type (node) != G_TYPE_BOOLEAN)
+    return FALSE;
+
+  if (value)
+    *value = json_node_get_double (node);
+
+  return TRUE;
+}
+
+/**
+ * valent_packet_get_double:
+ * @packet: a KDE Connect packet
+ * @field: field name
+ * @value: (out) (nullable): a double
+ *
+ * Lookup @field in the body of @packet and assign it to @value.
+ *
+ * If @field is not found or it is not a double, %FALSE will be returned and
+ * @value will not be set.
+ *
+ * Returns: %TRUE, or %FALSE on failure
+ */
+gboolean
+valent_packet_get_double (JsonNode   *packet,
+                          const char *field,
+                          double     *value)
+{
+  JsonObject *root, *body;
+  JsonNode *node;
+
+  g_return_val_if_fail (JSON_NODE_HOLDS_OBJECT (packet), FALSE);
+  g_return_val_if_fail (field != NULL || *field == '\0', FALSE);
+
+  root = json_node_get_object (packet);
+
+  if G_UNLIKELY ((node = json_object_get_member (root, "body")) == NULL ||
+                 json_node_get_node_type (node) != JSON_NODE_OBJECT)
+    return FALSE;
+
+  body = json_node_get_object (node);
+
+  if G_UNLIKELY ((node = json_object_get_member (body, field)) == NULL ||
+                 json_node_get_value_type (node) != G_TYPE_DOUBLE)
+    return FALSE;
+
+  if (value)
+    *value = json_node_get_double (node);
+
+  return TRUE;
+}
+
+/**
+ * valent_packet_get_int:
+ * @packet: a KDE Connect packet
+ * @field: field name
+ * @value: (out) (nullable): an int64
+ *
+ * Lookup @field in the body of @packet and assign it to @value.
+ *
+ * If @field is not found or it is not an integer, %FALSE will be returned and
+ * @value will not be set.
+ *
+ * Returns: %TRUE, or %FALSE on failure
+ */
+gboolean
+valent_packet_get_int (JsonNode   *packet,
+                       const char *field,
+                       gint64     *value)
+{
+  JsonObject *root, *body;
+  JsonNode *node;
+
+  g_return_val_if_fail (JSON_NODE_HOLDS_OBJECT (packet), FALSE);
+  g_return_val_if_fail (field != NULL || *field == '\0', FALSE);
+
+  root = json_node_get_object (packet);
+
+  if G_UNLIKELY ((node = json_object_get_member (root, "body")) == NULL ||
+                 json_node_get_node_type (node) != JSON_NODE_OBJECT)
+    return FALSE;
+
+  body = json_node_get_object (node);
+
+  if G_UNLIKELY ((node = json_object_get_member (body, field)) == NULL ||
+                 json_node_get_value_type (node) != G_TYPE_INT64)
+    return FALSE;
+
+  if (value)
+    *value = json_node_get_int (node);
+
+  return TRUE;
+}
+
+/**
+ * valent_packet_get_string:
+ * @packet: a KDE Connect packet
+ * @field: field name
+ * @value: (out) (nullable): a string
+ *
+ * Lookup @field in the body of @packet and assign it to @value.
+ *
+ * If @field is not found or it is not a non-empty string, %FALSE will be
+ * returned and @value will not be set.
+ *
+ * Returns: %TRUE, or %FALSE on failure
+ */
+gboolean
+valent_packet_get_string (JsonNode    *packet,
+                          const char  *field,
+                          const char **value)
+{
+  JsonObject *root, *body;
+  JsonNode *node;
+  const char *string;
+
+  g_return_val_if_fail (JSON_NODE_HOLDS_OBJECT (packet), FALSE);
+  g_return_val_if_fail (field != NULL || *field == '\0', FALSE);
+
+  root = json_node_get_object (packet);
+
+  if G_UNLIKELY ((node = json_object_get_member (root, "body")) == NULL ||
+                 json_node_get_node_type (node) != JSON_NODE_OBJECT)
+    return FALSE;
+
+  body = json_node_get_object (node);
+
+  if G_UNLIKELY ((node = json_object_get_member (body, field)) == NULL ||
+                 json_node_get_value_type (node) != G_TYPE_STRING)
+    return FALSE;
+
+  string = json_node_get_string (node);
+
+  if G_UNLIKELY (*string == '\0')
+    return FALSE;
+
+  if (value)
+    *value = string;
+
+  return TRUE;
+}
+
+/**
+ * valent_packet_get_array:
+ * @packet: a KDE Connect packet
+ * @field: field name
+ * @value: (out) (nullable): a #JsonArray
+ *
+ * Lookup @field in the body of @packet and assign it to @value.
+ *
+ * If @field is not found or it is not a #JsonArray, %FALSE will be returned and
+ * @value will not be set.
+ *
+ * Returns: %TRUE, or %FALSE on failure
+ */
+gboolean
+valent_packet_get_array (JsonNode    *packet,
+                         const char  *field,
+                         JsonArray  **value)
+{
+  JsonObject *root, *body;
+  JsonNode *node;
+
+  g_return_val_if_fail (JSON_NODE_HOLDS_OBJECT (packet), FALSE);
+  g_return_val_if_fail (field != NULL || *field == '\0', FALSE);
+
+  root = json_node_get_object (packet);
+
+  if G_UNLIKELY ((node = json_object_get_member (root, "body")) == NULL ||
+                 json_node_get_node_type (node) != JSON_NODE_OBJECT)
+    return FALSE;
+
+  body = json_node_get_object (node);
+
+  if G_UNLIKELY ((node = json_object_get_member (body, field)) == NULL ||
+                 json_node_get_node_type (node) != JSON_NODE_ARRAY)
+    return FALSE;
+
+  if (value)
+    *value = json_node_get_array (node);
+
+  return TRUE;
+}
+
+/**
+ * valent_packet_get_object:
+ * @packet: a KDE Connect packet
+ * @field: field name
+ * @value: (out) (nullable): a #JsonObject
+ *
+ * Lookup @field in the body of @packet and assign it to @value.
+ *
+ * If @field is not found or it is not a #JsonObject, %FALSE will be returned
+ * and @value will not be set.
+ *
+ * Returns: %TRUE, or %FALSE on failure
+ */
+gboolean
+valent_packet_get_object (JsonNode    *packet,
+                          const char  *field,
+                          JsonObject **value)
+{
+  JsonObject *root, *body;
+  JsonNode *node;
+
+  g_return_val_if_fail (JSON_NODE_HOLDS_OBJECT (packet), FALSE);
+  g_return_val_if_fail (field != NULL || *field == '\0', FALSE);
+
+  root = json_node_get_object (packet);
+
+  if G_UNLIKELY ((node = json_object_get_member (root, "body")) == NULL ||
+                 json_node_get_node_type (node) != JSON_NODE_OBJECT)
+    return FALSE;
+
+  body = json_node_get_object (node);
+
+  if G_UNLIKELY ((node = json_object_get_member (body, field)) == NULL ||
+                 json_node_get_node_type (node) != JSON_NODE_OBJECT)
+    return FALSE;
+
+  if (value)
+    *value = json_node_get_object (node);
+
+  return TRUE;
+}
+
+/**
  * valent_packet_validate:
- * @packet: (nullable): a #JsonNode
+ * @packet: (nullable): a KDE Connect packet
  * @error: (nullable): a #GError
  *
  * Check if @packet is a well-formed KDE Connect packet.
@@ -507,7 +798,7 @@ valent_packet_validate (JsonNode  *packet,
  * If the read fails or the packet does not conform to the minimum structure of
  * a KDE Connect packet, %NULL will be returned with @error set.
  *
- * Returns: (transfer full): A #JsonNode identity, or %NULL with @error set.
+ * Returns: (transfer full): a KDE Connect packet, or %NULL with @error set.
  */
 JsonNode *
 valent_packet_from_stream (GInputStream  *stream,
@@ -568,7 +859,7 @@ valent_packet_from_stream (GInputStream  *stream,
 /**
  * valent_packet_to_stream:
  * @stream: a #GOutputStream
- * @packet: a #JsonNode
+ * @packet: a KDE Connect packet
  * @cancellable: (nullable): a #GCancellable
  * @error: (nullable): a #GError
  *
@@ -665,7 +956,7 @@ valent_packet_serialize (JsonNode *packet)
  *
  * If parsing or validation fails, @error will be set and %NULL returned.
  *
- * Returns: (transfer full) (nullable): a #JsonNode
+ * Returns: (transfer full) (nullable): a KDE Connect packet
  */
 JsonNode *
 valent_packet_deserialize (const char  *json,
@@ -689,38 +980,5 @@ valent_packet_deserialize (const char  *json,
     return NULL;
 
   return g_steal_pointer (&packet);
-}
-
-/**
- * valent_identity_get_device_id:
- * @identity: a #JsonNode
- *
- * Convenience function for getting the `deviceId` field from a
- * `kdeconnect.identity` packet. Returns %NULL if @packet is not a valid
- * identity packet.
- *
- * Returns: (transfer none) (nullable): a device ID
- */
-const char *
-valent_identity_get_device_id (JsonNode *identity)
-{
-  JsonObject *root, *body;
-  JsonNode *node;
-
-  g_return_val_if_fail (JSON_NODE_HOLDS_OBJECT (identity), NULL);
-
-  root = json_node_get_object (identity);
-
-  if G_UNLIKELY ((node = json_object_get_member (root, "body")) == NULL ||
-                 json_node_get_node_type (node) != JSON_NODE_OBJECT)
-    g_return_val_if_reached (NULL);
-
-  body = json_node_get_object (node);
-
-  if G_UNLIKELY ((node = json_object_get_member (body, "deviceId")) == NULL ||
-                 json_node_get_value_type (node) != G_TYPE_STRING)
-    g_return_val_if_reached (NULL);
-
-  return json_node_get_string (node);
 }
 

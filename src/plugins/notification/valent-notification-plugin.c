@@ -295,16 +295,13 @@ static GFile *
 valent_notification_plugin_get_icon_file (ValentNotificationPlugin *self,
                                           JsonNode                 *packet)
 {
-  JsonObject *body;
-  const char *payload_hash;
   g_autoptr (GFile) file = NULL;
+  const char *payload_hash;
 
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
 
-  body = valent_packet_get_body (packet);
-
-  if ((payload_hash = valent_packet_check_string (body, "payloadHash")) != NULL)
+  if (valent_packet_get_string (packet, "payloadHash", &payload_hash))
     {
       g_autoptr (ValentData) data = NULL;
 
@@ -466,7 +463,6 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
                                               JsonNode                 *packet,
                                               GIcon                    *gicon)
 {
-  JsonObject *body;
   g_autoptr (GNotification) notification = NULL;
   g_autoptr (GIcon) icon = NULL;
   g_auto (GStrv) ticker_strv = NULL;
@@ -476,31 +472,30 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
   const char *text = NULL;
   const char *ticker;
   const char *reply_id;
-
-  body = valent_packet_get_body (packet);
+  JsonArray *actions;
 
   /* Finish the icon task */
   if (G_IS_ICON (gicon))
     icon = g_object_ref (gicon);
 
   /* Ensure we have a notification id */
-  if ((id = valent_packet_check_string (body, "id")) == NULL)
+  if (!valent_packet_get_string (packet, "id", &id))
     {
-      g_warning ("%s(): missing \"id\" field", G_STRFUNC);
+      g_warning ("%s(): expected \"id\" field holding a string", G_STRFUNC);
       return;
     }
 
   /* This should never be absent, but we check anyways */
-  if (json_object_has_member (body, "appName"))
-    app_name = json_object_get_string_member (body, "appName");
+  if (!valent_packet_get_string (packet, "appName", &app_name))
+    {
+      g_warning ("%s(): expected \"appName\" field holding a string", G_STRFUNC);
+      return;
+    }
 
-  /* Prefer `title` & `text` */
-  title = valent_packet_check_string (body, "title");
-  text = valent_packet_check_string (body, "text");
-
-  /* Try to compose `title` & `text` from ticker */
-  if ((title == NULL || text == NULL) &&
-      (ticker = valent_packet_check_string (body, "ticker")) != NULL)
+  /* If `title` or `text` are missing, try to compose them from `ticker` */
+  if ((!valent_packet_get_string (packet, "title", &title) ||
+       !valent_packet_get_string (packet, "text", &text)) &&
+      valent_packet_get_string (packet, "ticker", &ticker))
     {
       ticker_strv = g_strsplit (ticker, ": ", 2);
       title = ticker_strv[0];
@@ -509,7 +504,7 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
 
   if (title == NULL || text == NULL)
     {
-      g_warning ("%s(): missing title/text and ticker", G_STRFUNC);
+      g_warning ("%s(): expected either title and text, or ticker", G_STRFUNC);
       return;
     }
 
@@ -517,7 +512,7 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
   notification = g_notification_new (title);
 
   /* Repliable Notification */
-  if ((reply_id = valent_packet_check_string (body, "requestReplyId")) != NULL)
+  if (valent_packet_get_string (packet, "requestReplyId", &reply_id))
     {
       g_autoptr (GError) rerror = NULL;
       JsonNode *node;
@@ -541,12 +536,10 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
     }
 
   /* Notification Actions */
-  if (json_object_has_member (body, "actions"))
+  if (valent_packet_get_array (packet, "actions", &actions))
     {
-      JsonArray *actions;
       unsigned int n_actions;
 
-      actions = json_object_get_array_member (body, "actions");
       n_actions = json_array_get_length (actions);
 
       for (unsigned int i = 0; i < n_actions; i++)
@@ -637,26 +630,26 @@ static void
 valent_notification_plugin_handle_notification (ValentNotificationPlugin *self,
                                                 JsonNode                 *packet)
 {
-  JsonObject *body;
-
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
 
-  body = valent_packet_get_body (packet);
-
   /* A report that a remote notification has been dismissed */
-  if (json_object_get_boolean_member_with_default (body, "isCancel", FALSE))
+  if (valent_packet_check_field (packet, "isCancel"))
     {
       const char *id;
 
-      if ((id = valent_packet_check_string (body, "id")) != NULL)
-        valent_device_hide_notification (self->device, id);
+      if (!valent_packet_get_string (packet, "id", &id))
+        {
+          g_warning ("%s(): expected \"id\" field holding a string", G_STRFUNC);
+          return;
+        }
 
+      valent_device_hide_notification (self->device, id);
       return;
     }
 
   /* A notification that should only be shown once */
-  if (json_object_get_boolean_member_with_default (body, "onlyOnce", FALSE))
+  if (valent_packet_check_field (packet, "onlyOnce"))
     {
       VALENT_TODO ("Handle 'onlyOnce' field");
     }

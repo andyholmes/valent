@@ -254,9 +254,7 @@ on_channel (ValentChannelService *service,
       return;
     }
 
-  device_id = valent_identity_get_device_id (identity);
-
-  if G_UNLIKELY (device_id == NULL || *device_id == '\0')
+  if (!valent_packet_get_string (identity, "deviceId", &device_id))
     {
       g_warning ("%s(): %s missing deviceId",
                  G_STRFUNC,
@@ -445,7 +443,13 @@ ensure_device_main (gpointer user_data)
 
   g_assert (VALENT_IS_MAIN_THREAD ());
 
-  device_id = valent_identity_get_device_id (data->identity);
+  if (!valent_packet_get_string (data->identity, "deviceId", &device_id))
+    {
+      g_warning ("%s(): expected \"deviceId\" field holding a string",
+                 G_STRFUNC);
+      return G_SOURCE_REMOVE;
+    }
+
   device = valent_manager_ensure_device (data->manager, device_id);
   valent_device_handle_packet (device, data->identity);
 

@@ -85,13 +85,10 @@ valent_photo_plugin_handle_photo (ValentPhotoPlugin *self,
 {
   g_autoptr (ValentTransfer) transfer = NULL;
   DownloadOperation *op;
-  JsonObject *body;
   const char *filename;
 
   g_assert (VALENT_IS_PHOTO_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
-
-  body = valent_packet_get_body (packet);
 
   if (!valent_packet_has_payload (packet))
     {
@@ -99,9 +96,10 @@ valent_photo_plugin_handle_photo (ValentPhotoPlugin *self,
       return;
     }
 
-  if ((filename = valent_packet_check_string (body, "filename")) == NULL)
+  if (!valent_packet_get_string (packet, "filename", &filename))
     {
-      g_warning ("%s(): invalid \"filename\" field", G_STRFUNC);
+      g_warning ("%s(): expected \"filename\" field holding a string",
+                 G_STRFUNC);
       return;
     }
 
