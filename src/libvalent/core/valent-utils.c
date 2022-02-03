@@ -199,26 +199,23 @@ valent_notification_set_device_action (GNotification *notification,
                                        const char    *action,
                                        GVariant      *target)
 {
-  const char *device_id;
-  gboolean has_target;
+  GVariantBuilder builder;
 
   g_return_if_fail (G_IS_NOTIFICATION (notification));
   g_return_if_fail (VALENT_IS_DEVICE (device));
-  g_return_if_fail (action != NULL);
+  g_return_if_fail (action != NULL && *action != '\0');
 
-  device_id = valent_device_get_id (device);
-  has_target = (target != NULL);
+  g_variant_builder_init (&builder, G_VARIANT_TYPE ("av"));
 
-  if (!has_target)
-    target = g_variant_new_string ("");
+  if (target != NULL)
+    g_variant_builder_add (&builder, "v", target);
 
   g_notification_set_default_action_and_target (notification,
                                                 "app.device",
-                                                "(ssbv)",
-                                                device_id,
+                                                "(ssav)",
+                                                valent_device_get_id (device),
                                                 action,
-                                                has_target,
-                                                target);
+                                                &builder);
 }
 
 /**
@@ -240,27 +237,24 @@ valent_notification_add_device_button (GNotification *notification,
                                        const char    *action,
                                        GVariant      *target)
 {
-  const char *device_id;
-  gboolean has_target;
+  GVariantBuilder builder;
 
   g_return_if_fail (G_IS_NOTIFICATION (notification));
   g_return_if_fail (VALENT_IS_DEVICE (device));
-  g_return_if_fail (label != NULL);
-  g_return_if_fail (action != NULL);
+  g_return_if_fail (label != NULL && *label != '\0');
+  g_return_if_fail (action != NULL && *action != '\0');
 
-  device_id = valent_device_get_id (device);
-  has_target = (target != NULL);
+  g_variant_builder_init (&builder, G_VARIANT_TYPE ("av"));
 
-  if (!has_target)
-    target = g_variant_new_string ("");
+  if (target != NULL)
+    g_variant_builder_add (&builder, "v", target);
 
   g_notification_add_button_with_target (notification,
                                          label,
                                          "app.device",
-                                         "(ssbv)",
-                                         device_id,
+                                         "(ssav)",
+                                         valent_device_get_id (device),
                                          action,
-                                         has_target,
-                                         target);
+                                         &builder);
 }
 

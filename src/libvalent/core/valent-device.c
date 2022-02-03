@@ -305,18 +305,16 @@ valent_device_notify_pair (ValentDevice *device)
   g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_URGENT);
 
   g_notification_add_button_with_target (notification, _("Reject"), "app.device",
-                                         "(ssbv)",
+                                         "(ssav)",
                                          device->id,
                                          "unpair",
-                                         FALSE,
-                                         g_variant_new ("s", ""));
+                                         NULL);
 
   g_notification_add_button_with_target (notification, _("Accept"), "app.device",
-                                         "(ssbv)",
+                                         "(ssav)",
                                          device->id,
                                          "pair",
-                                         FALSE,
-                                         g_variant_new ("s", ""));
+                                         NULL);
 
   /* Show the pairing notification and set a timeout for 30s */
   valent_device_show_notification (device, "pair-request", notification);
