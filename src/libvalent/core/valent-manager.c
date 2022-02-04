@@ -57,7 +57,7 @@ static void           valent_manager_add_device    (ValentManager *manager,
 static void           valent_manager_remove_device (ValentManager *manager,
                                                     ValentDevice  *device);
 static ValentDevice * valent_manager_ensure_device (ValentManager *manager,
-                                                    const char    *id);
+                                                    JsonNode      *identity);
 
 static void initable_iface_init       (GInitableIface      *iface);
 static void async_initable_iface_init (GAsyncInitableIface *iface);
@@ -235,7 +235,6 @@ on_channel (ValentChannelService *service,
             ValentManager        *manager)
 {
   JsonNode *identity;
-  const char *device_id;
   ValentDevice *device;
 
   VALENT_ENTRY;
@@ -244,26 +243,16 @@ on_channel (ValentChannelService *service,
   g_assert (VALENT_IS_CHANNEL (channel));
   g_assert (VALENT_IS_MANAGER (manager));
 
-  identity = valent_channel_get_peer_identity (channel);
-
-  if G_UNLIKELY (identity == NULL)
+  if ((identity = valent_channel_get_peer_identity (channel)) == NULL)
     {
       g_warning ("%s(): %s missing peer identity",
                  G_STRFUNC,
                  G_OBJECT_TYPE_NAME (channel));
-      return;
+      VALENT_EXIT;
     }
 
-  if (!valent_packet_get_string (identity, "deviceId", &device_id))
-    {
-      g_warning ("%s(): %s missing deviceId",
-                 G_STRFUNC,
-                 G_OBJECT_TYPE_NAME (channel));
-      return;
-    }
-
-  device = valent_manager_ensure_device (manager, device_id);
-  valent_device_set_channel (device, channel);
+  if ((device = valent_manager_ensure_device (manager, identity)) != NULL)
+    valent_device_set_channel (device, channel);
 
   VALENT_EXIT;
 }
@@ -420,8 +409,8 @@ on_unload_service (PeasEngine     *engine,
  */
 typedef struct
 {
-  ValentManager *manager;
-  JsonNode      *identity;
+  GWeakRef  manager;
+  JsonNode *identity;
 } CachedDevice;
 
 static void
@@ -429,7 +418,7 @@ cached_device_free (gpointer data)
 {
   CachedDevice *cache = data;
 
-  g_clear_object (&cache->manager);
+  g_weak_ref_clear (&cache->manager);
   g_clear_pointer (&cache->identity, json_node_unref);
   g_free (cache);
 }
@@ -438,20 +427,12 @@ static gboolean
 ensure_device_main (gpointer user_data)
 {
   CachedDevice *data = user_data;
-  const char *device_id;
-  ValentDevice *device;
+  g_autoptr (ValentManager) manager = NULL;
 
   g_assert (VALENT_IS_MAIN_THREAD ());
 
-  if (!valent_packet_get_string (data->identity, "deviceId", &device_id))
-    {
-      g_warning ("%s(): expected \"deviceId\" field holding a string",
-                 G_STRFUNC);
-      return G_SOURCE_REMOVE;
-    }
-
-  device = valent_manager_ensure_device (data->manager, device_id);
-  valent_device_handle_packet (device, data->identity);
+  if ((manager = g_weak_ref_get (&data->manager)) != NULL)
+    valent_manager_ensure_device (manager, data->identity);
 
   return G_SOURCE_REMOVE;
 }
@@ -527,7 +508,7 @@ valent_manager_load_devices (ValentManager  *self,
 
           /* The ValentDevice has to be constructed in the main thread */
           cached_device = g_new0 (CachedDevice, 1);
-          cached_device->manager = g_object_ref (self);
+          g_weak_ref_init (&cached_device->manager, self);
           cached_device->identity = g_steal_pointer (&packet);
 
           g_main_context_invoke_full (NULL,
@@ -636,24 +617,33 @@ valent_manager_remove_device (ValentManager *manager,
 
 static ValentDevice *
 valent_manager_ensure_device (ValentManager *manager,
-                              const char    *id)
+                              JsonNode      *identity)
 {
   ValentDevice *device = NULL;
+  const char *device_id;
 
   g_assert (VALENT_IS_MANAGER (manager));
-  g_assert (id != NULL);
+  g_assert (VALENT_IS_PACKET (identity));
 
-  device = g_hash_table_lookup (manager->devices, id);
+  if (!valent_packet_get_string (identity, "deviceId", &device_id))
+    {
+      g_warning ("%s(): expected \"deviceId\" field holding a string",
+                 G_STRFUNC);
+      return NULL;
+    }
+
+  device = g_hash_table_lookup (manager->devices, device_id);
 
   if (device == NULL)
     {
       g_autoptr (ValentData) data = NULL;
 
-      data = valent_data_new (id, manager->data);
+      data = valent_data_new (device_id, manager->data);
       device = g_object_new (VALENT_TYPE_DEVICE,
-                             "id",   id,
+                             "id",   device_id,
                              "data", data,
                              NULL);
+      valent_device_handle_packet (device, identity);
 
       valent_manager_add_device (manager, device);
       g_object_unref (device);
@@ -694,7 +684,6 @@ valent_manager_initable_init (GInitable     *initable,
 
   return TRUE;
 }
-
 
 static void
 initable_iface_init (GInitableIface *iface)
