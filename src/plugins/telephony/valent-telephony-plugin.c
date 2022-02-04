@@ -212,18 +212,9 @@ valent_telephony_plugin_update_media_state (ValentTelephonyPlugin *self,
     }
 }
 
-/**
- * <private>
- * get_event_icon:
- * @body: a #JsonObject body from a telephony packet
- *
- * Return a #GIcon for a telephony notification, created from a base64 encoded
- * avatar if available.
- *
- * Returns: (transfer full): a new #GIcon
- */
 static GIcon *
-get_event_icon (JsonNode *packet)
+valent_telephony_plugin_get_event_icon (JsonNode   *packet,
+                                        const char *event)
 {
   const char *data;
 
@@ -234,10 +225,19 @@ get_event_icon (JsonNode *packet)
       GdkPixbuf *pixbuf;
 
       if ((pixbuf = valent_ui_pixbuf_from_base64 (data, NULL)) != NULL)
-        return G_ICON (g_object_ref (pixbuf));
+        return G_ICON (pixbuf);
     }
 
-  return g_themed_icon_new ("call-start-symbolic");
+  if (g_str_equal (event, "ringing"))
+    return g_themed_icon_new ("call-incoming-symbolic");
+
+  if (g_str_equal (event, "talking"))
+    return g_themed_icon_new ("call-start-symbolic");
+
+  if (g_str_equal (event, "missedCall"))
+    return g_themed_icon_new ("call-missed-symbolic");
+
+  return NULL;
 }
 
 static void
@@ -248,7 +248,7 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
   const char *sender;
   g_autoptr (GNotification) notification = NULL;
   g_autoptr (GIcon) icon = NULL;
-  g_autofree char *id = NULL;
+  g_autofree char *notification_id = NULL;
 
   g_assert (VALENT_IS_TELEPHONY_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
@@ -271,14 +271,20 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
       !valent_packet_get_string (packet, "phoneNumber", &sender))
     sender = _("Unknown Contact");
 
-  /* Inject the event type into the notification ID, to distinguish them */
-  id = g_strdup_printf ("%s|%s", event, sender);
+  /* The sender is injected into the notification ID, since it's possible an
+   * event could occur for multiple callers concurrently.
+   *
+   * Because we only support voice events, we can be certain that subsequent
+   * events from the same sender supersede previous events, and replace the
+   * older notifications.
+   */
+  notification_id = g_strdup_printf ("telephony::%s", sender);
 
   /* This is a cancelled event */
   if (valent_packet_check_field (packet, "isCancel"))
     {
       valent_telephony_plugin_restore_media_state (self);
-      valent_device_hide_notification (self->device, id);
+      valent_device_hide_notification (self->device, notification_id);
       return;
     }
 
@@ -287,7 +293,7 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
 
   /* Notify user */
   notification = g_notification_new (sender);
-  icon = get_event_icon (packet);
+  icon = valent_telephony_plugin_get_event_icon (packet, event);
   g_notification_set_icon (notification, icon);
 
   if (g_str_equal (event, "ringing"))
@@ -306,7 +312,7 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
       g_notification_set_body (notification, _("Ongoing call"));
     }
 
-  valent_device_show_notification (self->device, id, notification);
+  valent_device_show_notification (self->device, notification_id, notification);
 }
 
 static void
