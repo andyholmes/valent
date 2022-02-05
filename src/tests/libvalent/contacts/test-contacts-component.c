@@ -357,11 +357,6 @@ test_contacts_component_store (ContactsComponentFixture *fixture,
   g_assert_cmpstr (e_contact_get_const (contact, E_CONTACT_UID), ==, "test-contact");
   g_clear_object (&contact);
 
-  contact = valent_contact_store_dup_for_phone (fixture->store, "+1-123-456-7890");
-  g_assert_true (E_IS_CONTACT (contact));
-  g_assert_cmpstr (e_contact_get_const (contact, E_CONTACT_UID), ==, "test-contact");
-  g_clear_object (&contact);
-
   /* ::contact-removed is emitted when contacts are removed */
   valent_contact_store_remove_contact (fixture->store,
                                        "test-contact",

@@ -25,18 +25,18 @@
 }
 
 
-/**
+/*
  * ValentSmsConversation
  */
 .valent-sms-conversation viewport {
   border-bottom: 1px solid @borders;
 }
 
-.valent-sms-conversation viewport list {
+.valent-sms-conversation list {
   background: @content_view_bg_color;
 }
 
-.valent-sms-conversation viewport .date-label label {
+.valent-sms-conversation date-label .dim-label {
   font-size: small;
   margin-bottom: 1em;
 }
@@ -46,16 +46,15 @@
  */
 .valent-sms-incoming {
   color: @theme_fg_color;
-  background: alpha(@theme_selected_bg_color, 0.2);
-  border: 1px solid alpha(@theme_selected_bg_color, 0.2);
-  border-radius: 5px;
-  box-shadow: 2px 2px 3px -2px rgba(0, 0, 0, 0.75);
-  padding: 6px 9px 6px 9px;
+  border: 1px solid alpha(@accent_color, 0.2);
+  background: alpha(@accent_color, 0.2);
+  border-radius: 8px;
+  padding: 6px 12px;
 }
 
 .valent-sms-incoming selection {
-  color: @theme_selected_bg_color;
-  background-color: @theme_selected_fg_color;
+  color: @accent_color;
+  background-color: @accent_text;
 }
 
 .valent-sms-incoming *:link {
@@ -71,11 +70,10 @@
   color: @theme_fg_color;
   background-color: @theme_bg_color;
   border: 1px solid alpha(@theme_fg_color, 0.1);
-  border-radius: 5px;
-  box-shadow: 2px 2px 3px -2px rgba(0, 0, 0, 0.75);
+  border-radius: 8px;
   caret-color: currentColor;
   -gtk-secondary-caret-color: currentColor;
-  padding: 6px 9px 6px 9px;
+  padding: 6px 12px;
 }
 
 .valent-sms-outgoing selection {

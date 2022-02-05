@@ -7,84 +7,893 @@
 
 #include <gio/gio.h>
 #include <libvalent-core.h>
+#include <sqlite3.h>
 
+#include "valent-message.h"
+#include "valent-message-thread.h"
 #include "valent-sms-store.h"
 #include "valent-sms-store-private.h"
-
-#include "valent-sql-db.h"
-#include "valent-sql-stmt.h"
 
 
 struct _ValentSmsStore
 {
-  ValentData   parent_instance;
+  ValentData       parent_instance;
 
-  ValentSqlDb *db;
-  GListStore  *summary;
+  GAsyncQueue     *queue;
+  sqlite3         *connection;
+  char            *path;
+  sqlite3_stmt    *stmts[9];
+
+  GListStore      *summary;
 };
 
 G_DEFINE_TYPE (ValentSmsStore, valent_sms_store, VALENT_TYPE_DATA)
 
 enum {
   MESSAGE_ADDED,
+  MESSAGE_CHANGED,
   MESSAGE_REMOVED,
   N_SIGNALS
 };
 
 static guint signals[N_SIGNALS] = { 0, };
 
+enum {
+  STMT_ADD_MESSAGE,
+  STMT_REMOVE_MESSAGE,
+  STMT_REMOVE_THREAD,
+  STMT_GET_MESSAGE,
+  STMT_GET_THREAD,
+  STMT_GET_THREAD_DATE,
+  STMT_GET_THREAD_ITEMS,
+  STMT_FIND_MESSAGES,
+  STMT_GET_SUMMARY,
+  N_STATEMENTS,
+};
 
-static ValentSmsMessage *
-deserialize_message (ValentSqlStmt *stmt)
+static char *statements[N_STATEMENTS] = { NULL, };
+
+
+/*
+ * Signal Emission Helpers
+ */
+typedef struct
 {
-  g_assert (stmt != NULL);
+  ValentSmsStore *store;
+  ValentMessage  *message;
+  guint           signal_id;
+} ChangeEmission;
 
-  return g_object_new (VALENT_TYPE_SMS_MESSAGE,
-                       "box",       valent_sql_stmt_get_int (stmt, 0),
-                       "date",      valent_sql_stmt_get_int64 (stmt, 1),
-                       "id",        valent_sql_stmt_get_int64 (stmt, 2),
-                       "metadata",  valent_sql_stmt_get_variant (stmt, 3),
-                       "read",      valent_sql_stmt_get_int (stmt, 4),
-                       "sender",    valent_sql_stmt_get_string (stmt, 5),
-                       "text",      valent_sql_stmt_get_string (stmt, 6),
-                       "thread_id", valent_sql_stmt_get_int64 (stmt, 7),
+
+static gboolean
+emit_change_main (gpointer data)
+{
+  ChangeEmission *emission = data;
+
+  g_assert (emission != NULL);
+  g_assert (VALENT_IS_SMS_STORE (emission->store));
+  g_assert (emission->message == NULL || VALENT_IS_MESSAGE (emission->message));
+
+  g_signal_emit (G_OBJECT (emission->store),
+                 emission->signal_id, 0,
+                 emission->message);
+
+  g_clear_object (&emission->store);
+  g_clear_object (&emission->message);
+  g_clear_pointer (&emission, g_free);
+
+  return G_SOURCE_REMOVE;
+}
+
+
+/*
+ * sqlite Threading Helpers
+ */
+enum {
+  TASK_DEFAULT,
+  TASK_CRITICAL,
+  TASK_TERMINAL,
+};
+
+typedef struct
+{
+  GTask           *task;
+  GTaskThreadFunc  task_func;
+  unsigned int     task_mode;
+} TaskClosure;
+
+static void
+task_closure_free (gpointer data)
+{
+  g_autofree TaskClosure *closure = data;
+
+  g_clear_object (&closure->task);
+  g_clear_pointer (&closure, g_free);
+}
+
+static void
+task_closure_cancel (gpointer data)
+{
+  g_autofree TaskClosure *closure = data;
+
+  if (G_IS_TASK (closure->task) && !g_task_get_completed (closure->task))
+    {
+      g_task_return_new_error (closure->task,
+                               G_IO_ERROR,
+                               G_IO_ERROR_CANCELLED,
+                               "Operation cancelled");
+    }
+
+  g_clear_pointer (&closure, task_closure_free);
+}
+
+static gpointer
+valent_sms_store_thread (gpointer data)
+{
+  g_autoptr (GAsyncQueue) tasks = data;
+  TaskClosure *closure = NULL;
+
+  while ((closure = g_async_queue_pop (tasks)))
+    {
+      unsigned int mode = closure->task_mode;
+
+      if (G_IS_TASK (closure->task) && !g_task_get_completed (closure->task))
+        {
+          closure->task_func (closure->task,
+                              g_task_get_source_object (closure->task),
+                              g_task_get_task_data (closure->task),
+                              g_task_get_cancellable (closure->task));
+
+          if (mode == TASK_CRITICAL && g_task_had_error (closure->task))
+            mode = TASK_TERMINAL;
+        }
+
+      g_clear_pointer (&closure, task_closure_free);
+
+      if (mode == TASK_TERMINAL)
+        break;
+    }
+
+  /* Cancel any queued tasks */
+  g_async_queue_lock (tasks);
+
+  while ((closure = g_async_queue_try_pop_unlocked (tasks)) != NULL)
+    g_clear_pointer (&closure, task_closure_cancel);
+
+  g_async_queue_unlock (tasks);
+
+  return NULL;
+}
+
+/*
+ * Step functions
+ */
+static inline ValentMessage *
+valent_sms_store_get_message_step (sqlite3_stmt  *stmt,
+                                   GError       **error)
+{
+  g_autoptr (GVariant) metadata = NULL;
+  const char *metadata_str;
+  int rc;
+
+  g_assert (stmt != NULL);
+  g_assert (error == NULL || *error == NULL);
+
+  if ((rc = sqlite3_step (stmt)) == SQLITE_DONE)
+    return NULL;
+
+  if (rc != SQLITE_ROW)
+    {
+      g_set_error (error,
+                   G_IO_ERROR,
+                   G_IO_ERROR_FAILED,
+                   "%s: %s", G_STRFUNC, sqlite3_errstr (rc));
+      return NULL;
+    }
+
+  if ((metadata_str = (const char *)sqlite3_column_text (stmt, 3)) != NULL)
+    metadata = g_variant_parse (NULL, metadata_str, NULL, NULL, NULL);
+
+  return g_object_new (VALENT_TYPE_MESSAGE,
+                       "box",       sqlite3_column_int (stmt, 0),
+                       "date",      sqlite3_column_int64 (stmt, 1),
+                       "id",        sqlite3_column_int64 (stmt, 2),
+                       "metadata",  metadata,
+                       "read",      sqlite3_column_int (stmt, 4),
+                       "sender",    sqlite3_column_text (stmt, 5),
+                       "text",      sqlite3_column_text (stmt, 6),
+                       "thread_id", sqlite3_column_int64 (stmt, 7),
                        NULL);
 }
 
-static gboolean
-check_db (ValentSmsStore  *self,
-          GError         **error)
+static inline gboolean
+valent_sms_store_set_message_step (sqlite3_stmt   *stmt,
+                                   ValentMessage  *message,
+                                   GError        **error)
 {
-  const char *cache_path;
-  g_autofree char *db_path = NULL;
+  int rc;
+  ValentMessageBox box;
+  gint64 date;
+  gint64 id;
+  GVariant *metadata;
+  gboolean read;
+  const char *sender;
+  const char *text;
+  gint64 thread_id;
+  g_autofree char *metadata_str = NULL;
 
-  if (self->db != NULL)
-    return TRUE;
+  /* Extract the message data */
+  box = valent_message_get_box (message);
+  date = valent_message_get_date (message);
+  id = valent_message_get_id (message);
+  metadata = valent_message_get_metadata (message);
+  read = valent_message_get_read (message);
+  sender = valent_message_get_sender (message);
+  text = valent_message_get_text (message);
+  thread_id = valent_message_get_thread_id (message);
 
-  cache_path = valent_data_get_cache_path (VALENT_DATA (self));
-  db_path = g_build_filename (cache_path, "sms.db", NULL);
-  self->db = valent_sql_db_new (db_path);
+  if (metadata != NULL)
+    metadata_str = g_variant_print (metadata, TRUE);
 
-  valent_sql_db_lock (self->db);
+  /* Bind the message data */
+  sqlite3_bind_int (stmt, 1, box);
+  sqlite3_bind_int64 (stmt, 2, date);
+  sqlite3_bind_int64 (stmt, 3, id);
+  sqlite3_bind_text (stmt, 4, metadata_str, -1, NULL);
+  sqlite3_bind_int (stmt, 5, read);
+  sqlite3_bind_text (stmt, 6, sender, -1, NULL);
+  sqlite3_bind_text (stmt, 7, text, -1, NULL);
+  sqlite3_bind_int64 (stmt, 8, thread_id);
 
-  if (!valent_sql_db_open (self->db, error) ||
-      !valent_sql_db_exec (self->db, MESSAGE_TABLE_SQL, error) ||
-      !valent_sql_db_exec (self->db, PARTICIPANT_TABLE_SQL, error))
-    return FALSE;
+  /* Execute and auto-reset */
+  if ((rc = sqlite3_step (stmt)) != SQLITE_DONE)
+    {
+      g_set_error (error,
+                   G_IO_ERROR,
+                   G_IO_ERROR_FAILED,
+                   "%s: %s", G_STRFUNC, sqlite3_errstr (rc));
+      sqlite3_reset (stmt);
+      return FALSE;
+    }
 
-  valent_sql_db_unlock (self->db);
-
+  sqlite3_reset (stmt);
   return TRUE;
 }
+
+static gboolean
+valent_sms_store_return_error_if_closed (GTask          *task,
+                                         ValentSmsStore *self)
+{
+  g_assert (G_IS_TASK (task));
+  g_assert (VALENT_IS_SMS_STORE (self));
+
+  if G_UNLIKELY (self->connection == NULL)
+    {
+      g_task_return_new_error (task,
+                               G_IO_ERROR,
+                               G_IO_ERROR_CONNECTION_CLOSED,
+                               "Database connection closed");
+      return TRUE;
+    }
+
+  return FALSE;
+}
+
+
+/*
+ * Database Hooks
+ */
+static void
+update_hook (gpointer       user_data,
+             int            event,
+             char const    *database,
+             char const    *table,
+             sqlite3_int64  rowid)
+{
+  ValentSmsStore *self = VALENT_SMS_STORE (user_data);
+  sqlite3_stmt *stmt = self->stmts[STMT_GET_MESSAGE];
+  g_autoptr (ValentMessage) message = NULL;
+  g_autoptr (GError) error = NULL;
+
+  g_assert (VALENT_IS_SMS_STORE (self));
+  g_assert (!VALENT_IS_MAIN_THREAD ());
+
+  if G_UNLIKELY (g_strcmp0 (table, "message") != 0)
+    return;
+
+  if (event != SQLITE_DELETE)
+    {
+      sqlite3_bind_int64 (stmt, 1, rowid);
+      message = valent_sms_store_get_message_step (stmt, &error);
+      sqlite3_reset (stmt);
+    }
+
+  if G_UNLIKELY (error != NULL)
+    {
+      g_warning ("%s(): %s", G_STRFUNC, error->message);
+      return;
+    }
+
+  /* Fallback to using a message skeleton */
+  if (message == NULL)
+    {
+      message = g_object_new (VALENT_TYPE_MESSAGE,
+                              "id", rowid,
+                              NULL);
+    }
+
+  switch (event)
+    {
+    case SQLITE_INSERT:
+      valent_sms_store_emit_message_added (self, message);
+      break;
+
+    case SQLITE_UPDATE:
+      valent_sms_store_emit_message_changed (self, message);
+      break;
+
+    case SQLITE_DELETE:
+      valent_sms_store_emit_message_removed (self, message);
+      break;
+    }
+}
+
+
+/*
+ * ValentSmsStore Tasks
+ */
+static void
+valent_sms_store_open_task (GTask        *task,
+                            gpointer      source_object,
+                            gpointer      task_data,
+                            GCancellable *cancellable)
+{
+  ValentSmsStore *self = VALENT_SMS_STORE (source_object);
+  const char *path = task_data;
+  int rc;
+
+  if (g_task_return_error_if_cancelled (task))
+    return;
+
+  if (self->connection != NULL)
+    return g_task_return_boolean (task, TRUE);
+
+  /* Pass NOMUTEX since concurrency is managed by the GMutex*/
+  rc = sqlite3_open_v2 (path,
+                        &self->connection,
+                        (SQLITE_OPEN_READWRITE |
+                         SQLITE_OPEN_CREATE |
+                         SQLITE_OPEN_NOMUTEX),
+                        NULL);
+
+  if (rc != SQLITE_OK)
+    {
+      g_task_return_new_error (task,
+                               G_IO_ERROR,
+                               G_IO_ERROR_FAILED,
+                               "sqlite3_open_v2(): \"%s\": [%i] %s",
+                               path, rc, sqlite3_errstr (rc));
+      g_clear_pointer (&self->connection, sqlite3_close);
+      return;
+    }
+
+  /* Prepare the tables */
+  rc = sqlite3_exec (self->connection,
+                     MESSAGE_TABLE_SQL,
+                     NULL,
+                     NULL,
+                     NULL);
+
+  if (rc != SQLITE_OK)
+    {
+      g_task_return_new_error (task,
+                               G_IO_ERROR,
+                               G_IO_ERROR_FAILED,
+                               "sqlite3_prepare_v2(): [%i] \"message\" Table: %s",
+                               rc, sqlite3_errstr (rc));
+      g_clear_pointer (&self->connection, sqlite3_close);
+      return;
+    }
+
+  /* Prepare the statements */
+  for (unsigned int i = 0; i < N_STATEMENTS; i++)
+    {
+      sqlite3_stmt *stmt = NULL;
+      const char *sql = statements[i];
+
+      rc = sqlite3_prepare_v2 (self->connection, sql, -1, &stmt, NULL);
+
+      if (rc != SQLITE_OK)
+        {
+          g_task_return_new_error (task,
+                                   G_IO_ERROR,
+                                   G_IO_ERROR_FAILED,
+                                   "sqlite3_prepare_v2(): \"%s\": [%i] %s",
+                                   sql, rc, sqlite3_errstr (rc));
+          g_clear_pointer (&self->connection, sqlite3_close);
+          return;
+        }
+
+      self->stmts[i] = g_steal_pointer (&stmt);
+    }
+
+  /* Connect the hooks */
+  sqlite3_update_hook (self->connection, update_hook, self);
+
+  g_task_return_boolean (task, TRUE);
+}
+
+static void
+valent_sms_store_close_task (GTask        *task,
+                             gpointer      source_object,
+                             gpointer      task_data,
+                             GCancellable *cancellable)
+{
+  ValentSmsStore *self = VALENT_SMS_STORE (source_object);
+  int rc;
+
+  if (g_task_return_error_if_cancelled (task))
+    return;
+
+  if (self->connection == NULL)
+    return g_task_return_boolean (task, TRUE);
+
+  /* Cleanup cached statements */
+  for (unsigned int i = 0; i < N_STATEMENTS; i++)
+    g_clear_pointer (&self->stmts[i], sqlite3_finalize);
+
+  /* Optimize the database before closing.
+   *
+   * See:
+   *   https://www.sqlite.org/pragma.html#pragma_optimize
+   *   https://www.sqlite.org/queryplanner-ng.html#update_2017_a_better_fix
+   */
+  rc = sqlite3_exec (self->connection, "PRAGMA optimize;", NULL, NULL, NULL);
+
+  if (rc != SQLITE_OK)
+    {
+      g_debug ("sqlite3_exec(): \"%s\": [%i] %s",
+               "PRAGMA optimize;", rc, sqlite3_errstr (rc));
+    }
+
+  /* Close the connection */
+  if ((rc = sqlite3_close (self->connection)) != SQLITE_OK)
+    {
+      g_task_return_new_error (task,
+                               G_IO_ERROR,
+                               G_IO_ERROR_FAILED,
+                               "sqlite3_close(): [%i] %s",
+                               rc, sqlite3_errstr (rc));
+      return;
+    }
+
+  self->connection = NULL;
+  g_task_return_boolean (task, TRUE);
+}
+
+static void
+add_messages_task (GTask        *task,
+                   gpointer      source_object,
+                   gpointer      task_data,
+                   GCancellable *cancellable)
+{
+  ValentSmsStore *self = VALENT_SMS_STORE (source_object);
+  GPtrArray *messages = task_data;
+  sqlite3_stmt *stmt = self->stmts[STMT_ADD_MESSAGE];
+  unsigned int n_messages = messages->len;
+  GError *error = NULL;
+
+  if (g_task_return_error_if_cancelled (task))
+    return;
+
+  if (valent_sms_store_return_error_if_closed (task, self))
+    return;
+
+  for (unsigned int i = 0; i < n_messages; i++)
+    {
+      ValentMessage *message = g_ptr_array_index (messages, i);
+
+      /* Iterate the results stopping on error to mark the point of failure */
+      if (!valent_sms_store_set_message_step (stmt, message, &error))
+        {
+          n_messages = i;
+          break;
+        }
+    }
+
+  /* Truncate the input on failure, since we'll be emitting signals */
+  if (n_messages < messages->len)
+    g_ptr_array_remove_range (messages, n_messages, messages->len - n_messages);
+
+  if (error != NULL)
+    return g_task_return_error (task, error);
+
+  g_task_return_boolean (task, TRUE);
+}
+
+static void
+remove_message_task (GTask        *task,
+                     gpointer      source_object,
+                     gpointer      task_data,
+                     GCancellable *cancellable)
+{
+  ValentSmsStore *self = VALENT_SMS_STORE (source_object);
+  gint64 *message_id = task_data;
+  sqlite3_stmt *stmt = self->stmts[STMT_REMOVE_MESSAGE];
+  int rc;
+
+  if (g_task_return_error_if_cancelled (task))
+    return;
+
+  if (valent_sms_store_return_error_if_closed (task, self))
+    return;
+
+  sqlite3_bind_int64 (stmt, 1, *message_id);
+  rc = sqlite3_step (stmt);
+  sqlite3_reset (stmt);
+
+  if (rc == SQLITE_DONE || rc == SQLITE_OK)
+    return g_task_return_boolean (task, TRUE);
+
+  return g_task_return_new_error (task,
+                                  G_IO_ERROR,
+                                  G_IO_ERROR_FAILED,
+                                  "%s: %s",
+                                  G_STRFUNC, sqlite3_errstr (rc));
+}
+
+static void
+remove_thread_task (GTask        *task,
+                      gpointer      source_object,
+                      gpointer      task_data,
+                      GCancellable *cancellable)
+{
+  ValentSmsStore *self = VALENT_SMS_STORE (source_object);
+  gint64 *thread_id = task_data;
+  sqlite3_stmt *stmt = self->stmts[STMT_REMOVE_THREAD];
+  int rc;
+
+  if (g_task_return_error_if_cancelled (task))
+    return;
+
+  if (valent_sms_store_return_error_if_closed (task, self))
+    return;
+
+  sqlite3_bind_int64 (stmt, 1, *thread_id);
+  rc = sqlite3_step (stmt);
+  sqlite3_reset (stmt);
+
+  if (rc == SQLITE_DONE || rc == SQLITE_OK)
+    return g_task_return_boolean (task, TRUE);
+
+  return g_task_return_new_error (task,
+                                  G_IO_ERROR,
+                                  G_IO_ERROR_FAILED,
+                                  "%s: %s",
+                                  G_STRFUNC, sqlite3_errstr (rc));
+}
+
+static void
+find_messages_task (GTask        *task,
+                    gpointer      source_object,
+                    gpointer      task_data,
+                    GCancellable *cancellable)
+{
+  ValentSmsStore *self = VALENT_SMS_STORE (source_object);
+  const char *query = task_data;
+  sqlite3_stmt *stmt = self->stmts[STMT_FIND_MESSAGES];
+  g_autoptr (GPtrArray) messages = NULL;
+  g_autofree char *query_param = NULL;
+  ValentMessage *message;
+  GError *error = NULL;
+
+  if (g_task_return_error_if_cancelled (task))
+    return;
+
+  if (valent_sms_store_return_error_if_closed (task, self))
+    return;
+
+  // NOTE: escaped percent signs (%%) are query wildcards (%)
+  query_param = g_strdup_printf ("%%%s%%", query);
+  sqlite3_bind_text (stmt, 1, query_param, -1, NULL);
+
+  /* Collect the results */
+  messages = g_ptr_array_new_with_free_func (g_object_unref);
+
+  while ((message = valent_sms_store_get_message_step (stmt, &error)))
+    g_ptr_array_add (messages, message);
+  sqlite3_reset (stmt);
+
+  if (error != NULL)
+    return g_task_return_error (task, error);
+
+  g_task_return_pointer (task,
+                         g_steal_pointer (&messages),
+                         (GDestroyNotify)g_ptr_array_unref);
+}
+
+static void
+get_message_task (GTask        *task,
+                  gpointer      source_object,
+                  gpointer      task_data,
+                  GCancellable *cancellable)
+{
+  ValentSmsStore *self = VALENT_SMS_STORE (source_object);
+  gint64 *message_id = task_data;
+  sqlite3_stmt *stmt = self->stmts[STMT_GET_MESSAGE];
+  g_autoptr (ValentMessage) message = NULL;
+  GError *error = NULL;
+
+  if (g_task_return_error_if_cancelled (task))
+    return;
+
+  if (valent_sms_store_return_error_if_closed (task, self))
+    return;
+
+  sqlite3_bind_int64 (stmt, 1, *message_id);
+  message = valent_sms_store_get_message_step (stmt, &error);
+  sqlite3_reset (stmt);
+
+  if (error != NULL)
+    return g_task_return_error (task, error);
+
+  g_task_return_pointer (task, g_steal_pointer (&message), g_object_unref);
+}
+
+static void
+get_summary_cb (ValentSmsStore *self,
+                GAsyncResult   *result,
+                gpointer        user_data)
+{
+  g_autoptr (GPtrArray) messages = NULL;
+  g_autoptr (GError) error = NULL;
+
+  if ((messages = g_task_propagate_pointer (G_TASK (result), &error)) == NULL)
+    {
+      g_warning ("%s(): %s", G_STRFUNC, error->message);
+      return;
+    }
+
+  g_list_store_splice (self->summary, 0, 0, messages->pdata, messages->len);
+}
+
+static void
+get_summary_task (GTask        *task,
+                  gpointer      source_object,
+                  gpointer      task_data,
+                  GCancellable *cancellable)
+{
+  ValentSmsStore *self = VALENT_SMS_STORE (source_object);
+  sqlite3_stmt *stmt = self->stmts[STMT_GET_SUMMARY];
+  g_autoptr (GPtrArray) messages = NULL;
+  ValentMessage *message;
+  GError *error = NULL;
+
+  if (g_task_return_error_if_cancelled (task))
+    return;
+
+  if (valent_sms_store_return_error_if_closed (task, self))
+    return;
+
+  /* Collect the results */
+  messages = g_ptr_array_new_with_free_func (g_object_unref);
+
+  while ((message = valent_sms_store_get_message_step (stmt, &error)))
+    g_ptr_array_add (messages, message);
+  sqlite3_reset (stmt);
+
+  if (error != NULL)
+    return g_task_return_error (task, error);
+
+  g_task_return_pointer (task,
+                         g_steal_pointer (&messages),
+                         (GDestroyNotify)g_ptr_array_unref);
+}
+
+static void
+get_thread_date_task (GTask        *task,
+                      gpointer      source_object,
+                      gpointer      task_data,
+                      GCancellable *cancellable)
+{
+  ValentSmsStore *self = VALENT_SMS_STORE (source_object);
+  gint64 *thread_id = task_data;
+  sqlite3_stmt *stmt = self->stmts[STMT_GET_THREAD_DATE];
+  gint64 date = 0;
+  int rc;
+
+  if (g_task_return_error_if_cancelled (task))
+    return;
+
+  if (valent_sms_store_return_error_if_closed (task, self))
+    return;
+
+  sqlite3_bind_int64 (stmt, 1, *thread_id);
+
+  if ((rc = sqlite3_step (stmt)) == SQLITE_ROW)
+    date = sqlite3_column_int64 (stmt, 0);
+
+  sqlite3_reset (stmt);
+
+  if (rc != SQLITE_DONE && rc != SQLITE_ROW)
+    {
+      g_task_return_new_error (task,
+                               G_IO_ERROR,
+                               G_IO_ERROR_FAILED,
+                               "%s: %s",
+                               G_STRFUNC, sqlite3_errstr (rc));
+      return;
+    }
+
+  g_task_return_int (task, date);
+}
+
+static void
+get_thread_items_task (GTask        *task,
+                       gpointer      source_object,
+                       gpointer      task_data,
+                       GCancellable *cancellable)
+{
+  ValentSmsStore *self = VALENT_SMS_STORE (source_object);
+  gint64 *thread_id = task_data;
+  sqlite3_stmt *stmt = self->stmts[STMT_GET_THREAD_ITEMS];
+  g_autoptr (GPtrArray) messages = NULL;
+  int rc;
+
+  if (g_task_return_error_if_cancelled (task))
+    return;
+
+  if (valent_sms_store_return_error_if_closed (task, self))
+    return;
+
+  messages = g_ptr_array_new_with_free_func (g_object_unref);
+  sqlite3_bind_int64 (stmt, 1, *thread_id);
+
+  while ((rc = sqlite3_step (stmt)) == SQLITE_ROW)
+    {
+      ValentMessage *message;
+
+      message = g_object_new (VALENT_TYPE_MESSAGE,
+                              "date",      sqlite3_column_int64 (stmt, 0),
+                              "id",        sqlite3_column_int64 (stmt, 1),
+                              "sender",    sqlite3_column_text (stmt, 2),
+                              "thread-id", *thread_id,
+                              NULL);
+      g_ptr_array_add (messages, message);
+    }
+
+  sqlite3_reset (stmt);
+
+  if (rc != SQLITE_DONE && rc != SQLITE_ROW)
+    {
+      g_task_return_new_error (task,
+                               G_IO_ERROR,
+                               G_IO_ERROR_FAILED,
+                               "%s: %s",
+                               G_STRFUNC, sqlite3_errstr (rc));
+      return;
+    }
+
+  g_task_return_pointer (task,
+                         g_steal_pointer (&messages),
+                         (GDestroyNotify)g_ptr_array_unref);
+}
+
+
+/*
+ * Private
+ */
+static inline void
+valent_sms_store_push (ValentSmsStore  *self,
+                       GTask           *task,
+                       GTaskThreadFunc  task_func)
+{
+  TaskClosure *closure = NULL;
+
+  if G_UNLIKELY (self->queue == NULL)
+    {
+      g_task_return_new_error (task,
+                               G_IO_ERROR,
+                               G_IO_ERROR_CLOSED,
+                               "Store is closed");
+      return;
+    }
+
+  closure = g_new0 (TaskClosure, 1);
+  closure->task = g_object_ref (task);
+  closure->task_func = task_func;
+  closure->task_mode = TASK_DEFAULT;
+  g_async_queue_push (self->queue, closure);
+}
+
+static void
+valent_sms_store_open (ValentSmsStore *self)
+{
+  g_autoptr (GThread) thread = NULL;
+  g_autoptr (GError) error = NULL;
+  g_autoptr (GTask) task = NULL;
+  const char *cache_path;
+
+  cache_path = valent_data_get_cache_path (VALENT_DATA (self));
+  self->path = g_build_filename (cache_path, "sms.db", NULL);
+
+  task = g_task_new (self, NULL, NULL, NULL);
+  g_task_set_source_tag (task, valent_sms_store_open);
+  g_task_set_task_data (task, g_strdup (self->path), g_free);
+  valent_sms_store_push (self, task, valent_sms_store_open_task);
+
+  /* Spawn the worker thread, passing in a reference to the queue */
+  thread = g_thread_try_new ("valent-task-queue",
+                             valent_sms_store_thread,
+                             g_async_queue_ref (self->queue),
+                             &error);
+
+  /* On failure drop the reference passed to the thread, then clear the last
+   * reference so the open task is cancelled and new tasks are rejected */
+  if (error != NULL)
+    {
+      g_critical ("%s: Failed to spawn worker thread: %s",
+                  G_OBJECT_TYPE_NAME (self),
+                  error->message);
+      g_async_queue_unref (self->queue);
+      g_clear_pointer (&self->queue, g_async_queue_unref);
+    }
+}
+
+static void
+valent_sms_store_close (ValentSmsStore *self)
+{
+  g_autoptr (GTask) task = NULL;
+  TaskClosure *closure = NULL;
+
+  task = g_task_new (self, NULL, NULL, NULL);
+  g_task_set_source_tag (task, valent_sms_store_close);
+
+  closure = g_new0 (TaskClosure, 1);
+  closure->task = g_object_ref (task);
+  closure->task_func = valent_sms_store_close_task;
+  closure->task_mode = TASK_TERMINAL;
+  g_async_queue_push (self->queue, closure);
+}
+
 
 /*
  * GObject
  */
 static void
+valent_sms_store_constructed (GObject *object)
+{
+  ValentSmsStore *self = VALENT_SMS_STORE (object);
+
+  /* Chain-up before queueing the open task to ensure the path is prepared */
+  G_OBJECT_CLASS (valent_sms_store_parent_class)->constructed (object);
+
+  valent_sms_store_open (self);
+}
+
+static void
+valent_sms_store_dispose (GObject *object)
+{
+  ValentSmsStore *self = VALENT_SMS_STORE (object);
+
+  /* We will drop our reference to queue once we queue the closing task, then
+   * the task itself will end up holding the last reference. */
+  if (self->queue != NULL)
+    {
+      valent_sms_store_close (self);
+      g_clear_pointer (&self->queue, g_async_queue_unref);
+    }
+
+  G_OBJECT_CLASS (valent_sms_store_parent_class)->dispose (object);
+}
+
+static void
 valent_sms_store_finalize (GObject *object)
 {
   ValentSmsStore *self = VALENT_SMS_STORE (object);
 
+  g_clear_pointer (&self->queue, g_async_queue_unref);
+  g_clear_pointer (&self->path, g_free);
   g_clear_weak_pointer (&self->summary);
 
   G_OBJECT_CLASS (valent_sms_store_parent_class)->finalize (object);
@@ -95,12 +904,13 @@ valent_sms_store_class_init (ValentSmsStoreClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
+  object_class->constructed = valent_sms_store_constructed;
+  object_class->dispose = valent_sms_store_dispose;
   object_class->finalize = valent_sms_store_finalize;
 
   /**
    * ValentSmsStore::message-added:
    * @store: a #ValentSmsStore
-   * @thread_id: the thread ID @message was added to
    * @message: a #ValentMessage
    *
    * ValentSmsStore::message-added is emitted when a new message is added to
@@ -111,31 +921,69 @@ valent_sms_store_class_init (ValentSmsStoreClass *klass)
                   VALENT_TYPE_SMS_STORE,
                   G_SIGNAL_RUN_LAST,
                   0,
-                  NULL, NULL, NULL,
-                  G_TYPE_NONE, 2, G_TYPE_INT64, VALENT_TYPE_SMS_MESSAGE);
+                  NULL, NULL,
+                  g_cclosure_marshal_VOID__OBJECT,
+                  G_TYPE_NONE, 1, VALENT_TYPE_MESSAGE);
+  g_signal_set_va_marshaller (signals [MESSAGE_ADDED],
+                              G_TYPE_FROM_CLASS (klass),
+                              g_cclosure_marshal_VOID__OBJECTv);
+
+  /**
+   * ValentSmsStore::message-changed:
+   * @store: a #ValentSmsStore
+   * @message: a #ValentMessage
+   *
+   * ValentSmsStore::message-changed is emitted when a message is updated in
+   * @store.
+   */
+  signals [MESSAGE_CHANGED] =
+    g_signal_new ("message-changed",
+                  VALENT_TYPE_SMS_STORE,
+                  G_SIGNAL_RUN_LAST,
+                  0,
+                  NULL, NULL,
+                  g_cclosure_marshal_VOID__OBJECT,
+                  G_TYPE_NONE, 1, VALENT_TYPE_MESSAGE);
+  g_signal_set_va_marshaller (signals [MESSAGE_CHANGED],
+                              G_TYPE_FROM_CLASS (klass),
+                              g_cclosure_marshal_VOID__OBJECTv);
 
   /**
    * ValentSmsStore::message-removed:
    * @store: a #ValentSmsStore
-   * @thread_id: the thread ID @message was removed from
-   * @message_id: the message ID
    * @message: a #ValentMessage
    *
    * ValentSmsStore::message-removed is emitted when a message is removed from
-   * @store. If @message_id is FIXME then @thread_id is being removed.
+   * @store.
    */
   signals [MESSAGE_REMOVED] =
     g_signal_new ("message-removed",
                   VALENT_TYPE_SMS_STORE,
                   G_SIGNAL_RUN_FIRST,
                   0,
-                  NULL, NULL, NULL,
-                  G_TYPE_NONE, 2, G_TYPE_INT64, G_TYPE_INT64);
+                  NULL, NULL,
+                  g_cclosure_marshal_VOID__OBJECT,
+                  G_TYPE_NONE, 1, VALENT_TYPE_MESSAGE);
+  g_signal_set_va_marshaller (signals [MESSAGE_REMOVED],
+                              G_TYPE_FROM_CLASS (klass),
+                              g_cclosure_marshal_VOID__OBJECTv);
+
+  /* SQL Statements */
+  statements[STMT_ADD_MESSAGE] = ADD_MESSAGE_SQL;
+  statements[STMT_REMOVE_MESSAGE] = REMOVE_MESSAGE_SQL;
+  statements[STMT_REMOVE_THREAD] = REMOVE_THREAD_SQL;
+  statements[STMT_GET_MESSAGE] = GET_MESSAGE_SQL;
+  statements[STMT_GET_THREAD] = GET_THREAD_SQL;
+  statements[STMT_GET_THREAD_DATE] = GET_THREAD_DATE_SQL;
+  statements[STMT_GET_THREAD_ITEMS] = GET_THREAD_ITEMS_SQL;
+  statements[STMT_FIND_MESSAGES] = FIND_MESSAGES_SQL;
+  statements[STMT_GET_SUMMARY] = GET_SUMMARY_SQL;
 }
 
 static void
 valent_sms_store_init (ValentSmsStore *self)
 {
+  self->queue = g_async_queue_new_full (task_closure_cancel);
 }
 
 /**
@@ -155,342 +1003,295 @@ valent_sms_store_new (ValentData *parent)
                        NULL);
 }
 
-static void
-valent_sms_store_add_participant (ValentSmsStore *store,
-                                  gint64          thread_id,
-                                  const char     *address)
-{
-  g_autoptr (GError) error = NULL;
-  const char *sql;
-  g_autoptr (ValentSqlStmt) stmt = NULL;
-
-  g_return_if_fail (check_db (store, NULL));
-
-  sql = "INSERT INTO participant (thread_id, address) VALUES (?, ?);";
-  stmt = valent_sql_db_prepare (store->db, sql, &error);
-
-  if (stmt == NULL)
-    {
-      g_warning ("Adding sms participant: %s", error->message);
-      return;
-    }
-
-  valent_sql_stmt_set_int64 (stmt, 1, thread_id);
-  valent_sql_stmt_set_string (stmt, 2, address);
-
-  if (!valent_sql_db_stmt (store->db, stmt, &error))
-    g_warning ("[%s] participant: %s", G_STRFUNC, error->message);
-}
-
-/**
- * valent_sms_store_add_message_full:
- * @box: a #ValentMessageBox enum
- * @date: a UNIX epoch timestamp (ms)
- * @id: a unique message ID
- * @read: viewed status
- * @sender: the sender address
- * @text: the message content
- * @thread_id: a grouping ID
- *
- * Adds a message by it's properties. This is convenient for avoiding an
- * intermediate #ValentMessage object.
- */
-void
-valent_sms_store_add_message_full  (ValentSmsStore      *store,
-                                    ValentSmsMessageBox  box,
-                                    gint64               date,
-                                    gint64               id,
-                                    GVariant            *metadata,
-                                    gboolean             read,
-                                    const char          *sender,
-                                    const char          *text,
-                                    gint64               thread_id)
-{
-  g_autoptr (ValentSqlStmt) stmt = NULL;
-  g_autoptr (GVariant) addresses = NULL;
-  g_autoptr (GError) error = NULL;
-  g_autofree char *metadata_str = NULL;
-
-  g_return_if_fail (VALENT_IS_SMS_STORE (store));
-  g_return_if_fail (metadata == NULL || g_variant_is_of_type (metadata, G_VARIANT_TYPE_DICTIONARY));
-  g_return_if_fail (check_db (store, NULL));
-
-
-  /* Addresses Metadata
-   *
-   * The `addresses` key in the metadata holds a list of address objects
-   * representing recipients of the message (excluding us). If the message
-   * is incoming, then the first address in the array is the sender. Each object
-   * has at minimum the string member `address`.
-   *
-   * We use this information to populate the secondary database `participants`
-   * which makes things easier later in #ValentSmsConversation.
-   *
-   * [
-   *   {address: "555-555-5555"}, // Participant 1 (Sender if incoming)
-   *   {address: "123-456-7890"}, // Participant 2
-   *   ...
-   * ]
-   */
-  if (g_variant_lookup (metadata, "addresses", "@aa{sv}", &addresses))
-    {
-      guint i, n_addresses;
-
-      n_addresses = g_variant_n_children (addresses);
-
-      for (i = 0; i < n_addresses; i++)
-        {
-          g_autoptr (GVariant) participant = NULL;
-          const char *address;
-
-          participant = g_variant_get_child_value (addresses, i);
-
-          if (g_variant_lookup (participant, "address", "&s", &address))
-            {
-              //valent_sms_store_add_participant (store, thread_id, address);
-            }
-        }
-    }
-  metadata_str = g_variant_print (metadata, TRUE);
-
-  /* Add to database */
-  stmt = valent_sql_db_prepare (store->db, ADD_MESSAGE_SQL, &error);
-
-  if (stmt == NULL)
-    {
-      g_warning ("Adding sms message: %s", error->message);
-      return;
-    }
-
-  valent_sql_stmt_set_int (stmt, 1, box);
-  valent_sql_stmt_set_int64 (stmt, 2, date);
-  valent_sql_stmt_set_int64 (stmt, 3, date); // FIXME: id
-  valent_sql_stmt_set_string (stmt, 4, metadata_str);
-  valent_sql_stmt_set_int (stmt, 5, read);
-  valent_sql_stmt_set_string (stmt, 6, sender);
-  valent_sql_stmt_set_string (stmt, 7, text);
-  valent_sql_stmt_set_int64 (stmt, 8, thread_id);
-
-  if (!valent_sql_db_stmt (store->db, stmt, &error))
-    {
-      g_warning ("[%s] Adding sms message: %s", G_STRFUNC, error->message);
-      return;
-    }
-}
-
 /**
  * valent_sms_store_add_message:
  * @store: a #ValentSmsStore
  * @message: a #ValentMessage
+ * @cancellable: (nullable): a #GCancellable
+ * @callback: (scope async): a #GAsyncReadyCallback
+ * @user_data: (closure): user supplied data
  *
- * Add @node, a single message from a `kdeconnect.sms.messages` packet, to
- * @store, including an entry for each participant in the thread.
+ * Add @message to @store.
  */
 void
-valent_sms_store_add_message (ValentSmsStore   *store,
-                              ValentSmsMessage *message)
+valent_sms_store_add_message (ValentSmsStore      *store,
+                              ValentMessage       *message,
+                              GCancellable        *cancellable,
+                              GAsyncReadyCallback  callback,
+                              gpointer             user_data)
 {
+  g_autoptr (GTask) task = NULL;
+  g_autoptr (GPtrArray) messages = NULL;
+
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_SMS_STORE (store));
-  g_return_if_fail (VALENT_IS_SMS_MESSAGE (message));
-  g_return_if_fail (check_db (store, NULL));
+  g_return_if_fail (VALENT_IS_MESSAGE (message));
 
-  valent_sms_store_add_message_full (store,
-                                     valent_sms_message_get_box (message),
-                                     valent_sms_message_get_date (message),
-                                     valent_sms_message_get_id (message),
-                                     valent_sms_message_get_metadata (message),
-                                     valent_sms_message_get_read (message),
-                                     valent_sms_message_get_sender (message),
-                                     valent_sms_message_get_text (message),
-                                     valent_sms_message_get_thread_id (message));
+  messages = g_ptr_array_new_with_free_func (g_object_unref);
+  g_ptr_array_add (messages, g_object_ref (message));
 
-  g_signal_emit (G_OBJECT (store),
-                 signals [MESSAGE_ADDED],
-                 0,
-                 valent_sms_message_get_thread_id (message),
-                 message);
+  task = g_task_new (store, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_sms_store_add_message);
+  g_task_set_task_data (task,
+                        g_steal_pointer (&messages),
+                        (GDestroyNotify)g_ptr_array_unref);
+  valent_sms_store_push (store, task, add_messages_task);
+
+  VALENT_EXIT;
+}
+
+/**
+ * valent_sms_store_add_messages:
+ * @store: a #ValentSmsStore
+ * @messages: (element-type Valent.Message): a #ValentMessage
+ * @cancellable: (nullable): a #GCancellable
+ * @callback: (scope async): a #GAsyncReadyCallback
+ * @user_data: (closure): user supplied data
+ *
+ * Add @messages to @store.
+ */
+void
+valent_sms_store_add_messages (ValentSmsStore      *store,
+                               GPtrArray           *messages,
+                               GCancellable        *cancellable,
+                               GAsyncReadyCallback  callback,
+                               gpointer             user_data)
+{
+  g_autoptr (GTask) task = NULL;
+
+  VALENT_ENTRY;
+
+  g_return_if_fail (VALENT_IS_SMS_STORE (store));
+  g_return_if_fail (messages != NULL);
+
+  task = g_task_new (store, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_sms_store_add_message);
+  g_task_set_task_data (task,
+                        g_ptr_array_ref (messages),
+                        (GDestroyNotify)g_ptr_array_unref);
+  valent_sms_store_push (store, task, add_messages_task);
+
+  VALENT_EXIT;
+}
+
+/**
+ * valent_sms_store_add_messages_finish:
+ * @store: a #ValentSmsStore
+ * @result: a #GAsyncResult
+ * @error: (nullable): a #GError
+ *
+ * Finish an operation started by valent_sms_store_add_messages().
+ *
+ * Returns: %TRUE, or %FALSE with @error set
+ */
+gboolean
+valent_sms_store_add_messages_finish (ValentSmsStore  *store,
+                                      GAsyncResult    *result,
+                                      GError         **error)
+{
+  gboolean ret;
+
+  VALENT_ENTRY;
+
+  g_return_val_if_fail (VALENT_IS_SMS_STORE (store), FALSE);
+  g_return_val_if_fail (g_task_is_valid (result, store), FALSE);
+  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+  ret = g_task_propagate_boolean (G_TASK (result), error);
+
+  VALENT_RETURN (ret);
 }
 
 /**
  * valent_sms_store_remove_message:
  * @store: a #ValentSmsStore
- * @thread_id: a thread ID
  * @message_id: a message ID
+ * @cancellable: (nullable): a #GCancellable
+ * @callback: (scope async): a #GAsyncReadyCallback
+ * @user_data: (closure): user supplied data
  *
  * Remove the message with @message_id from @thread_id.
  */
 void
-valent_sms_store_remove_message (ValentSmsStore *store,
-                                 gint64          thread_id,
-                                 gint64          message_id)
+valent_sms_store_remove_message (ValentSmsStore      *store,
+                                 gint64               message_id,
+                                 GCancellable        *cancellable,
+                                 GAsyncReadyCallback  callback,
+                                 gpointer             user_data)
 {
+  g_autoptr (GTask) task = NULL;
+  gint64 *task_data;
+
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_SMS_STORE (store));
-  g_return_if_fail (thread_id > 0);
-  g_return_if_fail (message_id > 0);
-  g_return_if_fail (check_db (store, NULL));
 
-  /* TODO: Remove SQL entry */
+  task_data = g_new0 (gint64, 1);
+  *task_data = message_id;
 
-  /* Signal removal */
-  g_signal_emit (G_OBJECT (store),
-                 signals [MESSAGE_REMOVED],
-                 0,
-                 thread_id,
-                 message_id);
+  task = g_task_new (store, cancellable, callback, user_data);
+  g_task_set_task_data (task, task_data, g_free);
+  g_task_set_source_tag (task, valent_sms_store_remove_message);
+  valent_sms_store_push (store, task, remove_message_task);
+
+  VALENT_EXIT;
 }
 
 /**
- * valent_sms_store_remove_messages:
+ * valent_sms_store_remove_message_finish:
  * @store: a #ValentSmsStore
- * @thread_id: a #ValentSms id
+ * @result: a #GAsyncResult
+ * @error: (nullable): a #GError
+ *
+ * Finish an operation started by valent_sms_store_remove_message().
+ *
+ * Returns: %TRUE, or %FALSE with @error set
+ */
+gboolean
+valent_sms_store_remove_message_finish (ValentSmsStore  *store,
+                                        GAsyncResult    *result,
+                                        GError         **error)
+{
+  gboolean ret;
+
+  VALENT_ENTRY;
+
+  g_return_val_if_fail (VALENT_IS_SMS_STORE (store), FALSE);
+  g_return_val_if_fail (g_task_is_valid (result, store), FALSE);
+  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+  ret = g_task_propagate_boolean (G_TASK (result), error);
+
+  VALENT_RETURN (ret);
+}
+
+/**
+ * valent_sms_store_remove_thread:
+ * @store: a #ValentSmsStore
+ * @thread_id: a thread ID
+ * @cancellable: (nullable): a #GCancellable
+ * @callback: (scope async): a #GAsyncReadyCallback
+ * @user_data: (closure): user supplied data
  *
  * Remove @thread_id and all it's messages from @store.
  */
 void
-valent_sms_store_remove_messages (ValentSmsStore *store,
-                                  gint64          thread_id)
+valent_sms_store_remove_thread (ValentSmsStore      *store,
+                                gint64               thread_id,
+                                GCancellable        *cancellable,
+                                GAsyncReadyCallback  callback,
+                                gpointer             user_data)
 {
+  g_autoptr (GTask) task = NULL;
+  gint64 *task_data;
+
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_SMS_STORE (store));
-  g_return_if_fail (thread_id > 0);
-  g_return_if_fail (check_db (store, NULL));
+  g_return_if_fail (thread_id >= 0);
 
-  /* TODO: Remove SQL entries */
+  task_data = g_new0 (gint64, 1);
+  *task_data = thread_id;
 
-  g_signal_emit (G_OBJECT (store),
-                 signals [MESSAGE_REMOVED],
-                 0,
-                 thread_id,
-                 -1);
+  task = g_task_new (store, cancellable, callback, user_data);
+  g_task_set_task_data (task, task_data, g_free);
+  g_task_set_source_tag (task, valent_sms_store_remove_thread);
+  valent_sms_store_push (store, task, remove_thread_task);
+
+  VALENT_EXIT;
 }
 
 /**
- * valent_sms_store_find:
+ * valent_sms_store_remove_thread_finish:
  * @store: a #ValentSmsStore
- * @query: a query
+ * @result: a #GAsyncResult
  * @error: (nullable): a #GError
  *
- * ...
+ * Finish an operation started by valent_sms_store_remove_thread().
+ *
+ * Returns: %TRUE, or %FALSE with @error set
  */
-GPtrArray *
-valent_sms_store_find (ValentSmsStore  *store,
-                       const char      *query,
-                       GError         **error)
+gboolean
+valent_sms_store_remove_thread_finish (ValentSmsStore  *store,
+                                       GAsyncResult    *result,
+                                       GError         **error)
 {
-  GPtrArray *results = NULL;
-  g_autoptr (ValentSqlStmt) stmt = NULL;
-  g_autofree char *query_param = NULL;
+  gboolean ret;
 
-  g_assert (VALENT_IS_SMS_STORE (store));
+  VALENT_ENTRY;
 
-  if (!check_db (store, error))
-    return NULL;
+  g_return_val_if_fail (VALENT_IS_SMS_STORE (store), FALSE);
+  g_return_val_if_fail (g_task_is_valid (result, store), FALSE);
+  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-  /* Lock during the transaction */
-  valent_sql_db_lock (store->db);
+  ret = g_task_propagate_boolean (G_TASK (result), error);
 
-  results = g_ptr_array_new ();
-  stmt = valent_sql_db_prepare (store->db, FIND_SQL, error);
-
-  if (stmt == NULL)
-    {
-      valent_sql_db_unlock (store->db);
-      return results;
-    }
-
-  query_param = g_strdup_printf ("%%%s%%", query);
-  valent_sql_stmt_set_string (stmt, 1, query_param);
-
-  while (valent_sql_db_step (store->db, stmt, error) == VALENT_SQL_STEP_ROW)
-    {
-      ValentSmsMessage *message;
-
-      message = deserialize_message (stmt);
-
-      if (message != NULL)
-        g_ptr_array_add (results, message);
-    }
-
-  valent_sql_db_unlock (store->db);
-
-  return results;
-}
-
-static void
-message_results_free (gpointer data)
-{
-  g_ptr_array_set_free_func ((GPtrArray *)data, g_object_unref);
-}
-
-static void
-find_thread (GTask        *task,
-             gpointer      source_object,
-             gpointer      task_data,
-             GCancellable *cancellable)
-{
-  GPtrArray *results = NULL;
-  GError *error = NULL;
-  ValentSmsStore *store = source_object;
-  const char *query = task_data;
-
-  if (g_task_return_error_if_cancelled (task))
-    return;
-
-  results = valent_sms_store_find (store, query, &error);
-
-  if (error != NULL)
-    g_task_return_error (task, error);
-  else
-    g_task_return_pointer (task, results, message_results_free);
+  VALENT_RETURN (ret);
 }
 
 /**
- * valent_sms_store_find_async:
+ * valent_sms_store_find_messages:
  * @store: a #ValentSmsStore
  * @query: a string to search for
  * @cancellable: (nullable): a #GCancellable
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
  *
- * Asynchronous wrapper around valent_sms_store_find(). Call
- * valent_sms_store_find_finish() to get the result.
+ * Search through all the messages in @store and return the most recent message
+ * from each thread containing @query.
+ *
+ * Call valent_sms_store_find_messages_finish() to get the result.
  */
 void
-valent_sms_store_find_async (ValentSmsStore      *store,
-                             const char          *query,
-                             GCancellable        *cancellable,
-                             GAsyncReadyCallback  callback,
-                             gpointer             user_data)
+valent_sms_store_find_messages (ValentSmsStore      *store,
+                                const char          *query,
+                                GCancellable        *cancellable,
+                                GAsyncReadyCallback  callback,
+                                gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
+
+  VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_SMS_STORE (store));
   g_return_if_fail (query != NULL);
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   task = g_task_new (store, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_sms_store_find_async);
+  g_task_set_source_tag (task, valent_sms_store_find_messages);
   g_task_set_task_data (task, g_strdup (query), g_free);
-  g_task_run_in_thread (task, find_thread);
+  valent_sms_store_push (store, task, find_messages_task);
+
+  VALENT_EXIT;
 }
 
 /**
- * valent_sms_store_find_finish:
- * @store: a #ValentMessages
+ * valent_sms_store_find_messages_finish:
+ * @store: a #ValentSmsStore
  * @result: a #GAsyncResult
  * @error: (nullable): a #GError
  *
- * Finish an operation started by valent_sms_store_find_async().
+ * Finish an operation started by valent_sms_store_find_messages().
  *
- * Returns: (transfer full) (element-type Valent.Message): an #GPtrArray
+ * Returns: (transfer container) (element-type Valent.Message): an #GPtrArray
  */
 GPtrArray *
-valent_sms_store_find_finish (ValentSmsStore  *store,
-                              GAsyncResult    *result,
-                              GError         **error)
+valent_sms_store_find_messages_finish (ValentSmsStore  *store,
+                                       GAsyncResult    *result,
+                                       GError         **error)
 {
-  g_return_val_if_fail (g_task_is_valid (result, store), FALSE);
+  GPtrArray *ret;
 
-  return g_task_propagate_pointer (G_TASK (result), error);
+  VALENT_ENTRY;
+
+  g_return_val_if_fail (VALENT_IS_SMS_STORE (store), NULL);
+  g_return_val_if_fail (g_task_is_valid (result, store), NULL);
+  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+  ret = g_task_propagate_pointer (G_TASK (result), error);
+
+  VALENT_RETURN (ret);
 }
 
 
@@ -499,42 +1300,76 @@ summary_sort (gconstpointer a,
               gconstpointer b,
               gpointer      user_data)
 {
-  gint64 date1 = valent_sms_message_get_date ((ValentSmsMessage *)a);
-  gint64 date2 = valent_sms_message_get_date ((ValentSmsMessage *)b);
+  gint64 date1 = valent_message_get_date ((ValentMessage *)a);
+  gint64 date2 = valent_message_get_date ((ValentMessage *)b);
 
   return (date1 < date2) ? -1 : (date1 > date2);
 }
 
-
 /**
  * valent_sms_store_get_message:
  * @store: a #ValentSmsStore
- * @message_id: a message id
+ * @message_id: a message ID
+ * @cancellable: (nullable): a #GCancellable
+ * @callback: (scope async): a #GAsyncReadyCallback
+ * @user_data: (closure): user supplied data
  *
  * Get the #ValentMessage with @message_id or %NULL if not found.
  *
- * Returns: (transfer none) (nullable): a #ValentSmsMessage
+ * Returns: (transfer none) (nullable): a #ValentMessage
  */
-ValentSmsMessage *
-valent_sms_store_get_message (ValentSmsStore *store,
-                              gint64          message_id)
+void
+valent_sms_store_get_message (ValentSmsStore      *store,
+                              gint64               message_id,
+                              GCancellable        *cancellable,
+                              GAsyncReadyCallback  callback,
+                              gpointer             user_data)
 {
-  g_autoptr (ValentSqlStmt) stmt = NULL;
+  g_autoptr (GTask) task = NULL;
+  gint64 *task_data;
+
+  VALENT_ENTRY;
+
+  g_return_if_fail (VALENT_IS_SMS_STORE (store));
+  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  task_data = g_new (gint64, 1);
+  *task_data = message_id;
+
+  task = g_task_new (store, cancellable, callback, user_data);
+  g_task_set_task_data (task, task_data, g_free);
+  g_task_set_source_tag (task, valent_sms_store_get_message);
+  valent_sms_store_push (store, task, get_message_task);
+
+  VALENT_EXIT;
+}
+
+/**
+ * valent_sms_store_get_message_finish:
+ * @store: a #ValentSmsStore
+ * @result: a #GAsyncResult
+ * @error: (nullable): a #GError
+ *
+ * Finish an operation started by valent_sms_store_get_message().
+ *
+ * Returns: (transfer full) (nullable): a #ValentMessage
+ */
+ValentMessage *
+valent_sms_store_get_message_finish (ValentSmsStore  *store,
+                                     GAsyncResult    *result,
+                                     GError         **error)
+{
+  ValentMessage *ret;
+
+  VALENT_ENTRY;
 
   g_return_val_if_fail (VALENT_IS_SMS_STORE (store), NULL);
+  g_return_val_if_fail (g_task_is_valid (result, store), FALSE);
+  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-  /* Try loading the message from the database */
-  stmt = valent_sql_db_prepare (store->db, GET_MESSAGE_SQL, NULL);
+  ret = g_task_propagate_pointer (G_TASK (result), error);
 
-  if (stmt == NULL)
-    return NULL;
-
-  valent_sql_stmt_set_int64 (stmt, 1, message_id);
-
-  if (valent_sql_db_step (store->db, stmt, NULL) != VALENT_SQL_STEP_ROW)
-    return NULL;
-
-  return deserialize_message (stmt);
+  VALENT_RETURN (ret);
 }
 
 /**
@@ -548,59 +1383,30 @@ valent_sms_store_get_message (ValentSmsStore *store,
 GListModel *
 valent_sms_store_get_summary (ValentSmsStore *store)
 {
-  g_autoptr (GError) error = NULL;
-  g_autoptr (ValentSqlStmt) stmt = NULL;
+  g_autoptr (GTask) task = NULL;
+  GListModel *ret;
+
+  VALENT_ENTRY;
 
   g_return_val_if_fail (VALENT_IS_SMS_STORE (store), NULL);
-  g_return_val_if_fail (check_db (store, NULL), NULL);
 
-  if (store->summary)
-    return g_object_ref (G_LIST_MODEL (store->summary));
+  if (store->summary != NULL)
+    {
+      ret = g_object_ref (G_LIST_MODEL (store->summary));
+      VALENT_RETURN (ret);
+    }
 
-  store->summary = g_list_store_new (VALENT_TYPE_SMS_MESSAGE);
+  store->summary = g_list_store_new (VALENT_TYPE_MESSAGE);
   g_object_add_weak_pointer (G_OBJECT (store->summary),
                              (gpointer)&store->summary);
 
-  /* Query the database */
-  stmt = valent_sql_db_prepare (store->db, GET_SUMMARY_SQL, &error);
+  task = g_task_new (store, NULL, (GAsyncReadyCallback)get_summary_cb, NULL);
+  g_task_set_source_tag (task, valent_sms_store_get_summary);
+  valent_sms_store_push (store, task, get_summary_task);
 
-  if (stmt == NULL)
-    return G_LIST_MODEL (store->summary);
+  ret = G_LIST_MODEL (store->summary);
 
-  while (valent_sql_db_step (store->db, stmt, &error) == VALENT_SQL_STEP_ROW)
-    {
-      g_autoptr (ValentSmsMessage) message = NULL;
-
-      message = deserialize_message (stmt);
-
-      if (message != NULL)
-        g_list_store_append (store->summary, message);
-    }
-
-  return G_LIST_MODEL (store->summary);
-}
-
-/**
- * valent_sms_store_dup_thread:
- * @store: a #ValentSmsStore
- * @thread_id: a thread id
- *
- * Get all the messages in @thread_id as a #GQueue.
- *
- * Returns: (transfer container) (nullable): a #GQueue
- */
-GQueue *
-valent_sms_store_dup_thread (ValentSmsStore *store,
-                             gint64          thread_id)
-{
-  GQueue *thread;
-
-  g_return_val_if_fail (VALENT_IS_SMS_STORE (store), NULL);
-  g_return_val_if_fail (check_db (store, NULL), NULL);
-
-  thread = valent_sms_store_get_thread (store, thread_id);
-
-  return (thread != NULL) ? g_queue_copy (thread) : NULL;
+  VALENT_RETURN (ret);
 }
 
 /**
@@ -608,44 +1414,18 @@ valent_sms_store_dup_thread (ValentSmsStore *store,
  * @store: a #ValentSmsStore
  * @thread_id: a message id
  *
- * Get all the messages in @thread_id as a #GQueue.
+ * Get the thread with @thread_id as a #GListModel.
  *
- * Returns: (transfer none) (nullable): a #GQueue
+ * Returns: (transfer full): a #GListModel
  */
-GQueue *
+GListModel *
 valent_sms_store_get_thread (ValentSmsStore *store,
                              gint64          thread_id)
 {
-  GQueue *thread;
-  g_autoptr (GError) error = NULL;
-  g_autoptr (ValentSqlStmt) stmt = NULL;
+  g_return_val_if_fail (VALENT_IS_SMS_STORE (store), 0);
+  g_return_val_if_fail (thread_id > 0, 0);
 
-  g_return_val_if_fail (VALENT_IS_SMS_STORE (store), NULL);
-  g_return_val_if_fail (thread_id > 0, NULL);
-  g_return_val_if_fail (check_db (store, NULL), NULL);
-
-  thread = g_queue_new ();
-
-  /* Get message ids */
-  if (!check_db (store, NULL))
-    return thread;
-
-  if ((stmt = valent_sql_db_prepare (store->db, GET_THREAD_SQL, NULL)) == NULL)
-    return thread;
-
-  valent_sql_stmt_set_int64 (stmt, 1, thread_id);
-
-  while (valent_sql_db_step (store->db, stmt, &error) == VALENT_SQL_STEP_ROW)
-    {
-      ValentSmsMessage *message;
-
-      message = deserialize_message (stmt);
-
-      if (message != NULL)
-        g_queue_push_tail (thread, message);
-    }
-
-  return thread;
+  return valent_message_thread_new (store, thread_id);
 }
 
 /**
@@ -661,22 +1441,161 @@ gint64
 valent_sms_store_get_thread_date (ValentSmsStore *store,
                                   gint64          thread_id)
 {
-  g_autoptr (ValentSqlStmt) stmt = NULL;
+  g_autoptr (GTask) task = NULL;
+  g_autoptr (GError) error = NULL;
+  gint64 date = 0;
 
   g_return_val_if_fail (VALENT_IS_SMS_STORE (store), 0);
-  g_return_val_if_fail (thread_id > 0, 0);
-  g_return_val_if_fail (check_db (store, NULL), 0);
+  g_return_val_if_fail (thread_id >= 0, 0);
 
-  stmt = valent_sql_db_prepare (store->db, GET_THREAD_DATE_SQL, NULL);
+  task = g_task_new (store, NULL, NULL, NULL);
+  g_task_set_source_tag (task, valent_sms_store_get_thread_date);
+  g_task_set_task_data (task, &thread_id, NULL);
+  valent_sms_store_push (store, task, get_thread_date_task);
 
-  if (stmt == NULL)
-    return 0;
+  while (!g_task_get_completed (task))
+    g_main_context_iteration (NULL, FALSE);
 
-  valent_sql_stmt_set_int64 (stmt, 1, thread_id);
+  date = g_task_propagate_int (task, &error);
 
-  if (valent_sql_db_step (store->db, stmt, NULL) != VALENT_SQL_STEP_ROW)
-    return 0;
+  if (error != NULL)
+    g_warning ("%s(): %s", G_STRFUNC, error->message);
 
-  return valent_sql_stmt_get_int64 (stmt, 0);
+  return date;
+}
+
+/**
+ * valent_sms_store_get_thread_items:
+ * @store: a #ValentSmsStore
+ * @thread_id: a thread ID
+ *
+ * Get the #ValentMessage in @thread_id at @position, when sorted by date in
+ * ascending order.
+ */
+void
+valent_sms_store_get_thread_items (ValentSmsStore      *store,
+                                   gint64               thread_id,
+                                   GCancellable        *cancellable,
+                                   GAsyncReadyCallback  callback,
+                                   gpointer             user_data)
+{
+  g_autoptr (GTask) task = NULL;
+  gint64 *task_data;
+
+  g_return_if_fail (VALENT_IS_SMS_STORE (store));
+  g_return_if_fail (thread_id >= 0);
+
+  task_data = g_new0 (gint64, 1);
+  *task_data = thread_id;
+
+  task = g_task_new (store, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_sms_store_get_thread_items);
+  g_task_set_task_data (task, task_data, g_free);
+  valent_sms_store_push (store, task, get_thread_items_task);
+}
+
+/**
+ * valent_sms_store_emit_message_added:
+ * @store: a #ValentSmsStore
+ * @message: a #ValentMessage
+ *
+ * Emits the #ValentSmsStore::message-added signal on @store.
+ *
+ * This function should only be called by classes implementing
+ * #ValentSmsStore. It has to be called after the internal representation
+ * of @store has been updated, because handlers connected to this signal
+ * might query the new state of the provider.
+ */
+void
+valent_sms_store_emit_message_added (ValentSmsStore *store,
+                                     ValentMessage  *message)
+{
+  ChangeEmission *emission;
+
+  g_return_if_fail (VALENT_IS_SMS_STORE (store));
+  g_return_if_fail (VALENT_IS_MESSAGE (message));
+
+  if G_LIKELY (VALENT_IS_MAIN_THREAD ())
+    {
+      g_signal_emit (G_OBJECT (store), signals [MESSAGE_ADDED], 0, message);
+      return;
+    }
+
+  emission = g_new0 (ChangeEmission, 1);
+  emission->store = g_object_ref (store);
+  emission->message = g_object_ref (message);
+  emission->signal_id = signals [MESSAGE_ADDED];
+
+  g_timeout_add (0, emit_change_main, emission);
+}
+
+/**
+ * valent_sms_store_emit_message_removed:
+ * @store: a #ValentSmsStore
+ * @message: a #ValentMessage
+ *
+ * Emits the #ValentSmsStore::message-removed signal on @store.
+ *
+ * This function should only be called by classes implementing
+ * #ValentSmsStore. It has to be called after the internal representation
+ * of @store has been updated, because handlers connected to this signal
+ * might query the new state of the provider.
+ */
+void
+valent_sms_store_emit_message_removed (ValentSmsStore *store,
+                                       ValentMessage  *message)
+{
+  ChangeEmission *emission;
+
+  g_return_if_fail (VALENT_IS_SMS_STORE (store));
+  g_return_if_fail (VALENT_IS_MESSAGE (message));
+
+  if G_LIKELY (VALENT_IS_MAIN_THREAD ())
+    {
+      g_signal_emit (G_OBJECT (store), signals [MESSAGE_REMOVED], 0, message);
+      return;
+    }
+
+  emission = g_new0 (ChangeEmission, 1);
+  emission->store = g_object_ref (store);
+  emission->message = g_object_ref (message);
+  emission->signal_id = signals [MESSAGE_REMOVED];
+
+  g_timeout_add (0, emit_change_main, emission);
+}
+
+/**
+ * valent_sms_store_emit_message_changed:
+ * @store: a #ValentSmsStore
+ * @message: a #ValentMessage
+ *
+ * Emits the #ValentSmsStore::message-changed signal on @store.
+ *
+ * This function should only be called by classes implementing
+ * #ValentSmsStore. It has to be called after the internal representation
+ * of @store has been updated, because handlers connected to this signal
+ * might query the new state of the provider.
+ */
+void
+valent_sms_store_emit_message_changed (ValentSmsStore *store,
+                                       ValentMessage  *message)
+{
+  ChangeEmission *emission;
+
+  g_return_if_fail (VALENT_IS_SMS_STORE (store));
+  g_return_if_fail (VALENT_IS_MESSAGE (message));
+
+  if G_LIKELY (VALENT_IS_MAIN_THREAD ())
+    {
+      g_signal_emit (G_OBJECT (store), signals [MESSAGE_CHANGED], 0, message);
+      return;
+    }
+
+  emission = g_new0 (ChangeEmission, 1);
+  emission->store = g_object_ref (store);
+  emission->message = g_object_ref (message);
+  emission->signal_id = signals [MESSAGE_CHANGED];
+
+  g_timeout_add (0, emit_change_main, emission);
 }
 

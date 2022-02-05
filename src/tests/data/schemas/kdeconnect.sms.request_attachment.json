@@ -1,0 +1,34 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.sms.request_attachment"]
+        },
+        "body": {
+            "type": "object",
+            "properties": {
+                "part_id": {
+                    "type": "integer"
+                },
+                "unique_identifier": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "part_id",
+                "unique_identifier"
+            ]
+        }
+    }
+}
+

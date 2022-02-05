@@ -3,11 +3,13 @@
 
 #pragma once
 
+#include <adwaita.h>
 #include <gdk/gdk.h>
+#include <libvalent-contacts.h>
 
 G_BEGIN_DECLS
 
-GdkPixbuf * valent_sms_contact_photo_func (int      size,
-                                           gpointer data);
+void   valent_sms_avatar_from_contact (AdwAvatar *avatar,
+                                       EContact  *contact);
 
 G_END_DECLS

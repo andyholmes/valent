@@ -14,18 +14,15 @@ plugin_sms_deps = [
 # Sources
 plugin_sms_sources = files([
   'sms-plugin.c',
-  'valent-contact-avatar.c',
   'valent-contact-row.c',
+  'valent-message.c',
+  'valent-message-thread.c',
   'valent-sms-conversation.c',
   'valent-sms-conversation-row.c',
-  'valent-sms-message.c',
   'valent-sms-plugin.c',
   'valent-sms-store.c',
   'valent-sms-utils.c',
   'valent-sms-window.c',
-
-  'valent-sql-db.c',
-  'valent-sql-stmt.c',
 
   'valent-date-label.c',
   'valent-message-row.c',

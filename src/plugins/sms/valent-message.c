@@ -1,30 +1,30 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-#define G_LOG_DOMAIN "valent-sms-message"
+#define G_LOG_DOMAIN "valent-message"
 
 #include "config.h"
 
 #include <gio/gio.h>
 
-#include "valent-sms-message.h"
+#include "valent-message.h"
 
 
-struct _ValentSmsMessage
+struct _ValentMessage
 {
-  GObject              parent_instance;
+  GObject           parent_instance;
 
-  ValentSmsMessageBox  box;
-  gint64               date;
-  gint64               id;
-  GVariant            *metadata;
-  gboolean             read;
-  char                *sender;
-  char                *text;
-  gint64               thread_id;
+  ValentMessageBox  box;
+  gint64            date;
+  gint64            id;
+  GVariant         *metadata;
+  unsigned int      read : 1;
+  char             *sender;
+  char             *text;
+  gint64            thread_id;
 };
 
-G_DEFINE_TYPE (ValentSmsMessage, valent_sms_message, G_TYPE_OBJECT)
+G_DEFINE_TYPE (ValentMessage, valent_message, G_TYPE_OBJECT)
 
 enum {
   PROP_0,
@@ -42,25 +42,28 @@ enum {
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 
+/*
+ * GObject
+ */
 static void
-valent_sms_message_finalize (GObject *object)
+valent_message_finalize (GObject *object)
 {
-  ValentSmsMessage *self = VALENT_SMS_MESSAGE (object);
+  ValentMessage *self = VALENT_MESSAGE (object);
 
   g_clear_pointer (&self->sender, g_free);
   g_clear_pointer (&self->text, g_free);
   g_clear_pointer (&self->metadata, g_variant_unref);
 
-  G_OBJECT_CLASS (valent_sms_message_parent_class)->finalize (object);
+  G_OBJECT_CLASS (valent_message_parent_class)->finalize (object);
 }
 
 static void
-valent_sms_message_get_property (GObject    *object,
-                                 guint       prop_id,
-                                 GValue     *value,
-                                 GParamSpec *pspec)
+valent_message_get_property (GObject    *object,
+                             guint       prop_id,
+                             GValue     *value,
+                             GParamSpec *pspec)
 {
-  ValentSmsMessage *self = VALENT_SMS_MESSAGE (object);
+  ValentMessage *self = VALENT_MESSAGE (object);
 
   switch (prop_id)
     {
@@ -77,7 +80,7 @@ valent_sms_message_get_property (GObject    *object,
       break;
 
     case PROP_METADATA:
-      g_value_set_variant (value, self->metadata);
+      g_value_set_variant (value, valent_message_get_metadata (self));
       break;
 
     case PROP_READ:
@@ -93,7 +96,7 @@ valent_sms_message_get_property (GObject    *object,
       break;
 
     case PROP_THREAD_ID:
-      g_value_set_int64 (value, self->date);
+      g_value_set_int64 (value, self->thread_id);
       break;
 
     default:
@@ -102,12 +105,12 @@ valent_sms_message_get_property (GObject    *object,
 }
 
 static void
-valent_sms_message_set_property (GObject      *object,
-                                 guint         prop_id,
-                                 const GValue *value,
-                                 GParamSpec   *pspec)
+valent_message_set_property (GObject      *object,
+                             guint         prop_id,
+                             const GValue *value,
+                             GParamSpec   *pspec)
 {
-  ValentSmsMessage *self = VALENT_SMS_MESSAGE (object);
+  ValentMessage *self = VALENT_MESSAGE (object);
 
   switch (prop_id)
     {
@@ -128,7 +131,7 @@ valent_sms_message_set_property (GObject      *object,
       break;
 
     case PROP_READ:
-      self->read = g_value_get_boolean (value);
+      valent_message_set_read (self, g_value_get_boolean (value));
       break;
 
     case PROP_SENDER:
@@ -149,37 +152,32 @@ valent_sms_message_set_property (GObject      *object,
 }
 
 static void
-valent_sms_message_init (ValentSmsMessage *message)
-{
-}
-
-static void
-valent_sms_message_class_init (ValentSmsMessageClass *klass)
+valent_message_class_init (ValentMessageClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  object_class->finalize = valent_sms_message_finalize;
-  object_class->get_property = valent_sms_message_get_property;
-  object_class->set_property = valent_sms_message_set_property;
+  object_class->finalize = valent_message_finalize;
+  object_class->get_property = valent_message_get_property;
+  object_class->set_property = valent_message_set_property;
 
   /**
-   * ValentSmsMessage:box:
+   * ValentMessage:box:
    *
-   * The #ValentSmsMessageBox of the message.
+   * The #ValentMessageBox of the message.
    */
   properties [PROP_BOX] =
     g_param_spec_uint ("box",
                        "Category",
-                        "The ValentSmsMessageBox of the message",
-                        VALENT_SMS_MESSAGE_BOX_ALL, VALENT_SMS_MESSAGE_BOX_FAILED,
-                        VALENT_SMS_MESSAGE_BOX_ALL,
+                        "The ValentMessageBox of the message",
+                        VALENT_MESSAGE_BOX_ALL, VALENT_MESSAGE_BOX_FAILED,
+                        VALENT_MESSAGE_BOX_ALL,
                         (G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_EXPLICIT_NOTIFY |
                          G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentSmsMessage:date:
+   * ValentMessage:date:
    *
    * A UNIX epoch timestamp for the message.
    */
@@ -195,7 +193,7 @@ valent_sms_message_class_init (ValentSmsMessageClass *klass)
                          G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentSmsMessage:id:
+   * ValentMessage:id:
    *
    * The unique ID for this message.
    */
@@ -211,7 +209,7 @@ valent_sms_message_class_init (ValentSmsMessageClass *klass)
                          G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentSmsMessage:metadata:
+   * ValentMessage:metadata:
    *
    * Ancillary data for the message, such as media.
    */
@@ -219,7 +217,7 @@ valent_sms_message_class_init (ValentSmsMessageClass *klass)
     g_param_spec_variant ("metadata",
                           "Metadata",
                           "Ancillary data for the message",
-                          G_VARIANT_TYPE_DICTIONARY,
+                          G_VARIANT_TYPE_VARDICT,
                           NULL,
                           (G_PARAM_READWRITE |
                            G_PARAM_CONSTRUCT_ONLY |
@@ -227,7 +225,7 @@ valent_sms_message_class_init (ValentSmsMessageClass *klass)
                            G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentSmsMessage:read:
+   * ValentMessage:read:
    *
    * Whether the message has been read.
    */
@@ -241,7 +239,7 @@ valent_sms_message_class_init (ValentSmsMessageClass *klass)
                            G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentSmsMessage:sender:
+   * ValentMessage:sender:
    *
    * The sender of the message. This will usually be a phone number or other
    * address form.
@@ -252,11 +250,12 @@ valent_sms_message_class_init (ValentSmsMessageClass *klass)
                          "The sender of the message",
                          NULL,
                          (G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentSmsMessage:text:
+   * ValentMessage:text:
    *
    * The text content of the message.
    */
@@ -271,7 +270,7 @@ valent_sms_message_class_init (ValentSmsMessageClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentSmsMessage:thread-id:
+   * ValentMessage:thread-id:
    *
    * The thread this message belongs to.
    */
@@ -289,150 +288,216 @@ valent_sms_message_class_init (ValentSmsMessageClass *klass)
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 }
 
-/**
- * valent_sms_message_get_box:
- * @message: a #ValentSmsMessage
- *
- * Get the #ValentSmsMessageBox of @message.
- *
- * Returns: a #ValentSmsMessageBox
- */
-ValentSmsMessageBox
-valent_sms_message_get_box (ValentSmsMessage *message)
+static void
+valent_message_init (ValentMessage *message)
 {
-  g_return_val_if_fail (VALENT_IS_SMS_MESSAGE (message), VALENT_SMS_MESSAGE_BOX_ALL);
+}
+
+/**
+ * valent_message_get_box:
+ * @message: a #ValentMessage
+ *
+ * Get the #ValentMessageBox of @message.
+ *
+ * Returns: a #ValentMessageBox
+ */
+ValentMessageBox
+valent_message_get_box (ValentMessage *message)
+{
+  g_return_val_if_fail (VALENT_IS_MESSAGE (message), VALENT_MESSAGE_BOX_ALL);
 
   return message->box;
 }
 
 /**
- * valent_sms_message_get_date:
- * @message: a #ValentSmsMessage
+ * valent_message_get_date:
+ * @message: a #ValentMessage
  *
  * Get the timestamp for @message.
  *
  * Returns: the message timestamp
  */
 gint64
-valent_sms_message_get_date (ValentSmsMessage *message)
+valent_message_get_date (ValentMessage *message)
 {
-  g_return_val_if_fail (VALENT_IS_SMS_MESSAGE (message), 0);
+  g_return_val_if_fail (VALENT_IS_MESSAGE (message), 0);
 
   return message->date;
 }
 
 /**
- * valent_sms_message_get_id:
- * @message: a #ValentSmsMessage
+ * valent_message_get_id:
+ * @message: a #ValentMessage
  *
  * Get the unique ID for @message.
  *
  * Returns: the message ID
  */
 gint64
-valent_sms_message_get_id (ValentSmsMessage *message)
+valent_message_get_id (ValentMessage *message)
 {
-  g_return_val_if_fail (VALENT_IS_SMS_MESSAGE (message), 0);
+  g_return_val_if_fail (VALENT_IS_MESSAGE (message), 0);
 
   return message->id;
 }
 
 /**
- * valent_sms_message_get_metadata:
- * @message: a #ValentSmsMessage
+ * valent_message_get_metadata:
+ * @message: a #ValentMessage
  *
  * Get the #GVariant dictionary of metadata.
  *
  * Returns: (transfer none) (nullable): the metadata
  */
 GVariant *
-valent_sms_message_get_metadata (ValentSmsMessage *message)
+valent_message_get_metadata (ValentMessage *message)
 {
-  g_return_val_if_fail (VALENT_IS_SMS_MESSAGE (message), NULL);
+  g_return_val_if_fail (VALENT_IS_MESSAGE (message), NULL);
 
   return message->metadata;
 }
 
 /**
- * valent_sms_message_get_read:
- * @message: a #ValentSmsMessage
+ * valent_message_get_read:
+ * @message: a #ValentMessage
  *
  * Get the read status of @message.
  *
  * Returns: %TRUE if the message has been read
  */
 gboolean
-valent_sms_message_get_read (ValentSmsMessage *message)
+valent_message_get_read (ValentMessage *message)
 {
-  g_return_val_if_fail (VALENT_IS_SMS_MESSAGE (message), FALSE);
+  g_return_val_if_fail (VALENT_IS_MESSAGE (message), FALSE);
 
   return message->read;
 }
 
 /**
- * valent_sms_message_get_sender:
- * @message: a #ValentSmsMessage
+ * valent_message_set_read:
+ * @message: a #ValentMessage
+ * @read: whether the message is read
+ *
+ * Set the read status of @message to @read.
+ */
+void
+valent_message_set_read (ValentMessage *message,
+                         gboolean       read)
+{
+  g_return_if_fail (VALENT_IS_MESSAGE (message));
+
+  if (message->read == read)
+    return;
+
+  message->read = read;
+  g_object_notify_by_pspec (G_OBJECT (message), properties [PROP_READ]);
+}
+
+/**
+ * valent_message_get_sender:
+ * @message: a #ValentMessage
  *
  * Get the sender of @message.
  *
  * Returns: (transfer none) (nullable): the message sender
  */
 const char *
-valent_sms_message_get_sender (ValentSmsMessage *message)
+valent_message_get_sender (ValentMessage *message)
 {
-  g_return_val_if_fail (VALENT_IS_SMS_MESSAGE (message), NULL);
+  g_return_val_if_fail (VALENT_IS_MESSAGE (message), NULL);
 
   return message->sender;
 }
 
 /**
- * valent_sms_message_set_sender:
- * @message: a #ValentSmsMessage
- * @sender: a phone number or other address
- *
- * Set the sender of @message.
- */
-void
-valent_sms_message_set_sender (ValentSmsMessage *message,
-                               const char       *sender)
-{
-  g_return_if_fail (VALENT_IS_SMS_MESSAGE (message));
-
-  if (message->sender != NULL)
-    g_clear_pointer (&message->sender, g_free);
-
-  message->sender = g_strdup (sender);
-}
-
-/**
- * valent_sms_message_get_text:
- * @message: a #ValentSmsMessage
+ * valent_message_get_text:
+ * @message: a #ValentMessage
  *
  * Get the text content of @message.
  *
  * Returns: (transfer none) (nullable): the message text
  */
 const char *
-valent_sms_message_get_text (ValentSmsMessage *message)
+valent_message_get_text (ValentMessage *message)
 {
-  g_return_val_if_fail (VALENT_IS_SMS_MESSAGE (message), NULL);
+  g_return_val_if_fail (VALENT_IS_MESSAGE (message), NULL);
 
   return message->text;
 }
 
 /**
- * valent_sms_message_get_thread_id:
- * @message: a #ValentSmsMessage
+ * valent_message_get_thread_id:
+ * @message: a #ValentMessage
  *
  * Get the thread ID @message belongs to.
  *
  * Returns: the thread ID
  */
 gint64
-valent_sms_message_get_thread_id (ValentSmsMessage *message)
+valent_message_get_thread_id (ValentMessage *message)
 {
-  g_return_val_if_fail (VALENT_IS_SMS_MESSAGE (message), 0);
+  g_return_val_if_fail (VALENT_IS_MESSAGE (message), 0);
 
   return message->thread_id;
+}
+
+/**
+ * valent_message_update:
+ * @message: a #ValentMessage
+ * @update: (transfer full): a #ValentMessage
+ *
+ * Update @message with data from @update. The #ValentMessage:id property
+ * must match on both objects.
+ *
+ * This function consumes @update and all its memory, so it should not be used
+ * after calling this.
+ */
+void
+valent_message_update (ValentMessage *message,
+                       ValentMessage *update)
+{
+  g_return_if_fail (VALENT_IS_MESSAGE (message));
+  g_return_if_fail (VALENT_IS_MESSAGE (update));
+  g_return_if_fail (message->id == update->id);
+
+  g_object_freeze_notify (G_OBJECT (message));
+
+  if (message->box != update->box)
+    {
+      message->box = update->box;
+      g_object_notify_by_pspec (G_OBJECT (message), properties [PROP_BOX]);
+    }
+
+  if (message->date != update->date)
+    {
+      message->date = update->date;
+      g_object_notify_by_pspec (G_OBJECT (message), properties [PROP_DATE]);
+    }
+
+  g_clear_pointer (&message->metadata, g_variant_unref);
+  message->metadata = g_steal_pointer (&update->metadata);
+
+  if (message->read != update->read)
+    {
+      message->read = update->read;
+      g_object_notify_by_pspec (G_OBJECT (message), properties [PROP_READ]);
+    }
+
+  if (g_strcmp0 (message->sender, update->sender) != 0)
+    {
+      g_clear_pointer (&message->sender, g_free);
+      message->sender = g_steal_pointer (&update->sender);
+      g_object_notify_by_pspec (G_OBJECT (message), properties [PROP_SENDER]);
+    }
+
+  if (g_strcmp0 (message->text, update->text) != 0)
+    {
+      g_clear_pointer (&message->text, g_free);
+      message->text = g_steal_pointer (&update->text);
+      g_object_notify_by_pspec (G_OBJECT (message), properties [PROP_TEXT]);
+    }
+
+  g_object_thaw_notify (G_OBJECT (message));
+  g_object_unref (update);
 }
 

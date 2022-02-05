@@ -120,11 +120,6 @@ VALENT_AVAILABLE_IN_1_0
 GSList     * valent_contact_store_query_finish         (ValentContactStore   *store,
                                                         GAsyncResult         *result,
                                                         GError              **error);
-
-/* Convenience Methods */
-VALENT_AVAILABLE_IN_1_0
-EContact   * valent_contact_store_dup_for_phone        (ValentContactStore   *store,
-                                                        const char           *number);
 VALENT_AVAILABLE_IN_1_0
 void         valent_contact_store_dup_for_phone_async  (ValentContactStore   *store,
                                                         const char           *number,

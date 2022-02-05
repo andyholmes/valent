@@ -9,6 +9,15 @@
             "body": {
                 "threadID": 42
             }
+        },
+        {
+            "id": 0,
+            "type": "kdeconnect.sms.request_conversation",
+            "body": {
+                "threadID": 42,
+                "rangeStartTimestamp": 1643990699000,
+                "numberToRequest": 10
+            }
         }
     ],
     "type": "object",
@@ -33,17 +42,18 @@
             "properties": {
                 "threadID": {
                     "type": "number",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "The thread ID."
                 },
                 "rangeStartTimestamp": {
                     "type": "number",
                     "minimum": 0,
-                    "documentation": "The start date."
+                    "description": "UNIX epoch timestamp (ms) for the earliest message."
                 },
                 "numberToRequest": {
                     "type": "number",
                     "minimum": 0,
-                    "documentation": "The maximum number of messages to return."
+                    "description": "The maximum number of messages to return."
                 }
             }
         }

@@ -830,56 +830,6 @@ valent_contact_store_get_contacts (ValentContactStore   *store,
 }
 
 static void
-valent_contact_store_dup_for_phone_async_cb (ValentContactStore  *store,
-                                             GAsyncResult        *result,
-                                             EContact           **contact)
-{
-  g_autoptr (GError) error = NULL;
-
-  *contact = valent_contact_store_dup_for_phone_finish (store,
-                                                        result,
-                                                        &error);
-
-  if (error != NULL)
-    g_warning ("%s(): %s", G_STRFUNC, error->message);
-}
-
-/**
- * valent_contact_store_dup_for_phone:
- * @store: a #ValentContactStore
- * @number: a phone number string
- *
- * Return a copy of the first #EContact in @store with @phone. If it does not
- * exist a new #EContact will be made.
- *
- * This is a convenience wrapper around valent_contact_store_query() that uses
- * libphonenumber if available, with a fallback of iterating the full list of
- * contacts.
- *
- * Returns: (transfer full): a #EContact
- */
-EContact *
-valent_contact_store_dup_for_phone (ValentContactStore *store,
-                                    const char         *number)
-{
-  EContact *contact = NULL;
-
-  g_return_val_if_fail (VALENT_IS_CONTACT_STORE (store), NULL);
-  g_return_val_if_fail (number != NULL, NULL);
-
-  valent_contact_store_dup_for_phone_async (store,
-                                            number,
-                                            NULL,
-                                            (GAsyncReadyCallback)valent_contact_store_dup_for_phone_async_cb,
-                                            &contact);
-
-  while (contact == NULL)
-    g_main_context_iteration (NULL, FALSE);
-
-  return contact;
-}
-
-static void
 dup_for_phone_cb (ValentContactStore *store,
                   GAsyncResult       *result,
                   gpointer            user_data)

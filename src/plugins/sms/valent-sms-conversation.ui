@@ -5,15 +5,15 @@
 
 <interface domain="valent">
   <template class="ValentSmsConversation" parent="GtkWidget">
-    <signal name="realize" handler="on_realize" swapped="no"/>
     <child>
-      <object class="GtkScrolledWindow" id="conversation_view">
+      <object class="GtkScrolledWindow" id="message_view">
         <property name="hexpand">1</property>
         <property name="vexpand">1</property>
         <property name="hscrollbar-policy">never</property>
-        <signal name="edge-reached" handler="on_edge_reached" swapped="no"/>
+        <signal name="edge-overshot" handler="on_edge_overshot" swapped="no"/>
         <child>
           <object class="GtkViewport">
+            <property name="scroll-to-focus">1</property>
             <child>
               <object class="GtkListBox" id="message_list">
                 <property name="valign">end</property>

@@ -15,6 +15,10 @@ leak:test_do_isolate_dirs
 leak:adw_init
 leak:adw_style_init
 
+# TODO: these only seem to crop up in valent-sms-window.c
+leak:libpango-1.0.so
+leak:libpangocairo-1.0.so
+
 # librsvg
 leak:librsvg-2.so
 
