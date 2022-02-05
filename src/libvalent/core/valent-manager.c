@@ -639,11 +639,7 @@ valent_manager_ensure_device (ValentManager *manager,
       g_autoptr (ValentData) data = NULL;
 
       data = valent_data_new (device_id, manager->data);
-      device = g_object_new (VALENT_TYPE_DEVICE,
-                             "id",   device_id,
-                             "data", data,
-                             NULL);
-      valent_device_handle_packet (device, identity);
+      device = valent_device_new_full (identity, data);
 
       valent_manager_add_device (manager, device);
       g_object_unref (device);
