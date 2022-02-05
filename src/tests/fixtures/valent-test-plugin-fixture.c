@@ -94,11 +94,9 @@ valent_test_plugin_fixture_init (ValentTestPluginFixture *fixture,
   fixture->packets = json_parser_steal_root (parser);
 
   /* Init device */
-  fixture->device = valent_device_new ("test-device");
-  valent_device_set_paired (fixture->device, TRUE);
-
   identity = valent_test_plugin_fixture_lookup_packet (fixture, "identity");
-  valent_device_handle_packet (fixture->device, identity);
+  fixture->device = valent_device_new (identity);
+  valent_device_set_paired (fixture->device, TRUE);
 
   /* Init channels */
   channels = valent_test_channels (identity, identity);

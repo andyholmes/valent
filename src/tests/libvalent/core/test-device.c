@@ -33,14 +33,11 @@ device_fixture_set_up (DeviceFixture *fixture,
   JsonNode *identity;
 
   fixture->loop = g_main_loop_new (NULL, FALSE);
-
-  /* Load the fixture packets */
   fixture->packets = valent_test_load_json (TEST_DATA_DIR"/core.json");
-  identity = get_packet (fixture, "identity");
 
   /* Init device */
-  fixture->device = valent_device_new ("test-device");
-  valent_device_handle_packet (fixture->device, identity);
+  identity = get_packet (fixture, "identity");
+  fixture->device = valent_device_new (identity);
 
   /* Init Channels */
   channels = valent_test_channels (identity, identity);
@@ -136,7 +133,9 @@ test_device_new (void)
   GMenuModel *menu;
   GPtrArray *plugins;
 
-  device = valent_device_new ("test-device");
+  device = g_object_new (VALENT_TYPE_DEVICE,
+                         "id", "test-device",
+                         NULL);
   g_assert_true (VALENT_IS_DEVICE (device));
 
   g_object_get (device,

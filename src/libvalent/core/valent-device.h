@@ -43,7 +43,10 @@ VALENT_AVAILABLE_IN_1_0
 G_DECLARE_FINAL_TYPE (ValentDevice, valent_device, VALENT, DEVICE, ValentObject)
 
 VALENT_AVAILABLE_IN_1_0
-ValentDevice      * valent_device_new                (const char           *id);
+ValentDevice      * valent_device_new                (JsonNode             *identity);
+VALENT_AVAILABLE_IN_1_0
+ValentDevice      * valent_device_new_full           (JsonNode             *identity,
+                                                      ValentData           *data);
 VALENT_AVAILABLE_IN_1_0
 GActionGroup      * valent_device_get_actions        (ValentDevice         *device);
 VALENT_AVAILABLE_IN_1_0

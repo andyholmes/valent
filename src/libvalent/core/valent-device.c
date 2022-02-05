@@ -414,6 +414,7 @@ valent_device_handle_identity (ValentDevice *device,
                                JsonNode     *packet)
 {
   JsonObject *body;
+  const char *device_id;
   const char *device_name;
   const char *device_type;
 
@@ -421,6 +422,16 @@ valent_device_handle_identity (ValentDevice *device,
   g_assert (VALENT_IS_PACKET (packet));
 
   valent_object_lock (VALENT_OBJECT (device));
+
+  if (!valent_packet_get_string (packet, "deviceId", &device_id) ||
+      !g_str_equal (device->id, device_id))
+    {
+      g_critical ("%s(): expected \"deviceId\" field holding \"%s\"",
+                  G_STRFUNC,
+                  device->id);
+      valent_object_unlock (VALENT_OBJECT (device));
+      return;
+    }
 
   body = valent_packet_get_body (packet);
 
@@ -968,20 +979,65 @@ valent_device_class_init (ValentDeviceClass *klass)
 
 /**
  * valent_device_new:
- * @id: (not nullable): The unique id for this device
+ * @identity: a KDE Connect identity
  *
- * Construct a new device for @id.
+ * Construct a new device for @identity.
  *
  * Returns: (transfer full) (nullable): a new #ValentDevice
  */
 ValentDevice *
-valent_device_new (const char *id)
+valent_device_new (JsonNode *identity)
 {
-  g_return_val_if_fail (id != NULL && *id != '\0', NULL);
+  ValentDevice *ret;
+  const char *id;
 
-  return g_object_new (VALENT_TYPE_DEVICE,
-                       "id", id,
-                       NULL);
+  g_return_val_if_fail (VALENT_IS_PACKET (identity), NULL);
+
+  if (!valent_packet_get_string (identity, "deviceId", &id))
+    {
+      g_critical ("%s(): missing \"deviceId\" field", G_STRFUNC);
+      return NULL;
+    }
+
+  ret = g_object_new (VALENT_TYPE_DEVICE,
+                      "id", id,
+                      NULL);
+  valent_device_handle_identity (ret, identity);
+
+  return ret;
+}
+
+/**
+ * valent_device_new_full:
+ * @identity: a KDE Connect identity
+ * @data: (nullable): the data context
+ *
+ * Construct a new device for @identity.
+ *
+ * Returns: (transfer full) (nullable): a new #ValentDevice
+ */
+ValentDevice *
+valent_device_new_full (JsonNode   *identity,
+                        ValentData *data)
+{
+  ValentDevice *ret;
+  const char *id;
+
+  g_return_val_if_fail (VALENT_IS_PACKET (identity), NULL);
+
+  if (!valent_packet_get_string (identity, "deviceId", &id))
+    {
+      g_critical ("%s(): missing \"deviceId\" field", G_STRFUNC);
+      return NULL;
+    }
+
+  ret = g_object_new (VALENT_TYPE_DEVICE,
+                      "id",   id,
+                      "data", data,
+                      NULL);
+  valent_device_handle_identity (ret, identity);
+
+  return ret;
 }
 
 static void
@@ -1601,14 +1657,11 @@ valent_device_get_state (ValentDevice *device)
 /**
  * valent_device_handle_packet:
  * @device: a #ValentDevice
- * @packet: a #JsonNode packet
+ * @packet: a KDE Connect packet
  *
  * Take @packet and handle it as a packet from the remote device represented by
- * @device. Identity and pair packets are handled by @device, while all others
- * will be passed to plugins which claim to support the @packet type.
- *
- * Plugin handlers must hold their own reference on @packet if doing anything
- * asynchronous.
+ * @device. Pair packets are handled by @device, while all others will be passed
+ * to plugins which claim to support the @packet type.
  */
 void
 valent_device_handle_packet (ValentDevice *device,
@@ -1624,16 +1677,15 @@ valent_device_handle_packet (ValentDevice *device,
 
   type = valent_packet_get_type (packet);
 
-  /* Keep this order */
-  if G_UNLIKELY (g_strcmp0 (type, "kdeconnect.identity") == 0)
-    valent_device_handle_identity (device, packet);
-
-  else if G_UNLIKELY (g_strcmp0 (type, "kdeconnect.pair") == 0)
+  /* This is the only packet type an unpaired device can send or receive */
+  if G_UNLIKELY (g_strcmp0 (type, "kdeconnect.pair") == 0)
     valent_device_handle_pair (device, packet);
 
+  /* If unpaired, any other packet is ignored and the remote device notified */
   else if G_UNLIKELY (!device->paired)
     valent_device_send_pair (device, FALSE);
 
+  /* If paired, try to find a plugin that can handle the packet type */
   else if ((handler = g_hash_table_lookup (device->handlers, type)))
     valent_device_plugin_handle_packet (handler, type, packet);
 
