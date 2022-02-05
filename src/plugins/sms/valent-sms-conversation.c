@@ -76,7 +76,7 @@ phone_lookup_cb (ValentContactStore *store,
                  GtkWidget          *widget)
 {
   g_autoptr (ValentSmsConversationRow) row = VALENT_SMS_CONVERSATION_ROW (widget);
-  g_autoptr (EContact) contact;
+  g_autoptr (EContact) contact = NULL;
   g_autoptr (GError) error = NULL;
   GtkWidget *conversation;
 
