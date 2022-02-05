@@ -3,9 +3,18 @@
 
 #pragma once
 
-#include <glib-object.h>
+#include <gio/gio.h>
+
+#include "valent-sms-store.h"
 
 G_BEGIN_DECLS
+
+void   valent_sms_store_get_thread_items  (ValentSmsStore      *store,
+                                           gint64               thread_id,
+                                           GCancellable        *cancellable,
+                                           GAsyncReadyCallback  callback,
+                                           gpointer             user_data);
+
 
 /**
  * MESSAGE_TABLE_SQL:
@@ -21,7 +30,7 @@ G_BEGIN_DECLS
  *
  * The SQL query used to create the `message` table, which holds records of
  * abstract messages. The most commonly searched properties are fields, while
- * additional data is stored in serialized #GVariant data in metadata.
+ * additional data is stored as serialized #GVariant data in metadata.
  *
  * In general, messages are organized in groups by @thread_id and sorted by
  * @date in ascending order. Each database entry is meant to map perfectly to
@@ -44,60 +53,10 @@ G_BEGIN_DECLS
 ");"
 
 /**
- * PARTICIPANTS_TABLE_SQL:
- * @thread_id: (type gint64): a group ID
- * @address: (type utf8): recipient address
- * @metadata: (type GLib.Variant): additional serialized #GVariant data
- *
- * The SQL query used to create the `participant` table which, in contrast to
- * the `message` table, stores all the message recipients for each thread. This
- * uncomplicates collecting contacts and reply addresses for group conversations
- * and other things.
- */
-#define PARTICIPANT_TABLE_SQL                                               \
-"CREATE TABLE IF NOT EXISTS participant ("                                  \
-"  address   TEXT    NOT NULL,"                                             \
-"  metadata  INTEGER NOT NULL,"                                             \
-"  thread_id INTEGER NOT NULL,"                                             \
-"  FOREIGN KEY(thread_id) REFERENCES message(thread_id) ON DELETE CASCADE," \
-"  UNIQUE(thread_id, address)"                                              \
-");"
-
-/**
- * GET_ITEM_SQL:
- * GET_ITEMS_SQL:
- * GET_N_ITEMS_SQL:
- *
- * These are the three SQL queries used in implementing #GListModel
- */
-#define GET_ITEM_SQL                     \
-"SELECT * FROM message"                  \
-"  WHERE thread_id=? ORDER BY date ASC"  \
-"  LIMIT 1 OFFSET ?;"
-
-#define GET_N_ITEMS_SQL                  \
-"SELECT COUNT(*) FROM message"           \
-"  WHERE thread_id=?;"
-
-#define LIST_ITEMS_SQL                   \
-"SELECT id, date FROM message"           \
-"  WHERE thread_id=? ORDER BY date ASC;"
-
-/**
  * ADD_MESSAGE_SQL:
  *
  * Insert or update a message.
  */
-#define ADD_MESSAGE_FMT                                                \
-"INSERT INTO message(box,date,id,metadata,read,sender,text,thread_id)" \
-"  VALUES (%u, %li, %li, \"%s\", %u, \"%s\", \"%s\", %li)"             \
-"  ON CONFLICT(thread_id,id) DO UPDATE SET"                            \
-"    box=excluded.box,"                                                \
-"    date=excluded.date,"                                              \
-"    metadata=excluded.metadata,"                                      \
-"    read=excluded.read,"                                              \
-"    sender=excluded.sender;"
-
 #define ADD_MESSAGE_SQL                                                \
 "INSERT INTO message(box,date,id,metadata,read,sender,text,thread_id)" \
 "  VALUES (?, ?, ?, ?, ?, ?, ?, ?)"                                    \
@@ -108,32 +67,49 @@ G_BEGIN_DECLS
 "    read=excluded.read,"                                              \
 "    sender=excluded.sender;"
 
-#define ADD_PARTICIPANT_SQL                                            \
-"INSERT INTO participant"                                              \
-"  (thread_id, address) VALUES (%li, \"%s\");"                         \
-
 /**
  * REMOVE_MESSAGE_SQL:
  *
- * Remove the message referred to by `thread_id` and `id`.
+ * Remove the message for `id`.
  */
 #define REMOVE_MESSAGE_SQL                     \
 "DELETE FROM message"                          \
-"  WHERE thread_id=? AND id=?;"                \
+"  WHERE id=?;"                                \
+
+/**
+ * REMOVE_THREAD_SQL:
+ *
+ * Remove the messages for `thread_id`.
+ */
+#define REMOVE_THREAD_SQL                      \
+"DELETE FROM message"                          \
+"  WHERE thread_id=?;"                         \
+
+/**
+ * FIND_MESSAGES_SQL:
+ *
+ * Find the latest message in each thread matching the query.
+ */
+#define FIND_MESSAGES_SQL                      \
+"SELECT * FROM message"                        \
+"  WHERE (thread_id, date) IN ("               \
+"    SELECT thread_id, MAX(date) FROM message" \
+"      WHERE text LIKE ? GROUP BY thread_id"   \
+"  );"
 
 /**
  * GET_MESSAGE_SQL:
  *
- * Get the row for `thread_id` and `id`.
+ * Get the message for`id`.
  */
 #define GET_MESSAGE_SQL                        \
 "SELECT * FROM message"                        \
-"  WHERE thread_id=? AND id=?;"                \
+"  WHERE id=?;"                                \
 
 /**
  * GET_THREAD_SQL:
  *
- * Get the messages for `thread_id`, in order by ascending date.
+ * Get the messages for `thread_id`, ascending by date.
  */
 #define GET_THREAD_SQL                         \
 "SELECT * FROM message"                        \
@@ -142,7 +118,7 @@ G_BEGIN_DECLS
 /**
  * GET_THREAD_DATE_SQL:
  *
- * Get the messages for `thread_id`, in order by ascending date.
+ * Get the date of the most recent message for `thread_id`.
  */
 #define GET_THREAD_DATE_SQL                    \
 "SELECT date FROM message"                     \
@@ -150,21 +126,18 @@ G_BEGIN_DECLS
 "  LIMIT 1;"
 
 /**
- * FIND_SQL:
+ * GET_THREAD_ITEMS_SQL:
  *
- * Find the latest message in each thread matching the query.
+ * Get the `date` and `id` for each message in @thread_id
  */
-#define FIND_SQL                               \
-"SELECT * FROM message"                        \
-"  WHERE (thread_id, date) IN ("               \
-"    SELECT thread_id, MAX(date) FROM message" \
-"    WHERE text LIKE ? GROUP BY thread_id"     \
-"  );"
+#define GET_THREAD_ITEMS_SQL             \
+"SELECT date, id, sender FROM message"   \
+"  WHERE thread_id=? ORDER BY date ASC;"
 
 /**
  * GET_SUMMARY_SQL:
  *
- * Find the latest message in each thread.
+ * Get the most recent message for each thread.
  */
 #define GET_SUMMARY_SQL                        \
 "SELECT * FROM message"                        \

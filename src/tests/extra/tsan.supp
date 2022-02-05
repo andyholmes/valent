@@ -11,6 +11,11 @@ mutex:valent_*_get_type_once
 # src/libvalent/core/valent-transfer.c
 race:execute_task
 
+# src/plugins/sms/valent-sms-store.c
+# NOTE: ThreadSanitizer really doesn't like this, but ownership seems to be
+#       transferred correctly.
+race:valent_sms_store_thread
+
 # src/tests/fixtures/valent-test-utils.c
 race:download_task
 race:upload_task

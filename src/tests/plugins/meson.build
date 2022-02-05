@@ -20,6 +20,7 @@ plugin_tests = [
   'runcommand',
   'sftp',
   'share',
+  'sms',
   'systemvolume',
   'telephony',
 

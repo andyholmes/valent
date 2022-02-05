@@ -5,29 +5,30 @@
 
 #include "config.h"
 
+#include <adwaita.h>
 #include <gtk/gtk.h>
 #include <pango/pango.h>
 #include <libvalent-contacts.h>
 #include <libvalent-core.h>
 
-#include "valent-contact-avatar.h"
 #include "valent-date-label.h"
 #include "valent-message-row.h"
-#include "valent-sms-message.h"
+#include "valent-message.h"
+#include "valent-sms-utils.h"
 
 
 struct _ValentMessageRow
 {
-  GtkListBoxRow     parent_instance;
+  GtkListBoxRow  parent_instance;
 
-  ValentSmsMessage *message;
-  EContact         *contact;
+  ValentMessage *message;
+  EContact      *contact;
 
-  GtkWidget        *grid;
-  GtkWidget        *avatar;
-  GtkWidget        *name_label;
-  GtkWidget        *date_label;
-  GtkWidget        *body_label;
+  GtkWidget     *grid;
+  GtkWidget     *avatar;
+  GtkWidget     *name_label;
+  GtkWidget     *date_label;
+  GtkWidget     *body_label;
 };
 
 G_DEFINE_TYPE (ValentMessageRow, valent_message_row, GTK_TYPE_LIST_BOX_ROW)
@@ -45,17 +46,9 @@ enum {
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 
-static void
-valent_message_row_constructed (GObject *object)
-{
-  ValentMessageRow *self = VALENT_MESSAGE_ROW (object);
-
-  if (self->message != NULL)
-    valent_message_row_update (self);
-
-  G_OBJECT_CLASS (valent_message_row_parent_class)->constructed (object);
-}
-
+/*
+ * GObject
+ */
 static void
 valent_message_row_finalize (GObject *object)
 {
@@ -126,7 +119,6 @@ valent_message_row_class_init (ValentMessageRowClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  object_class->constructed = valent_message_row_constructed;
   object_class->finalize = valent_message_row_finalize;
   object_class->get_property = valent_message_row_get_property;
   object_class->set_property = valent_message_row_set_property;
@@ -170,7 +162,7 @@ valent_message_row_class_init (ValentMessageRowClass *klass)
     g_param_spec_object ("message",
                          "Message",
                          "The message this row displays.",
-                          VALENT_TYPE_SMS_MESSAGE,
+                          VALENT_TYPE_MESSAGE,
                           (G_PARAM_READWRITE |
                            G_PARAM_CONSTRUCT |
                            G_PARAM_EXPLICIT_NOTIFY |
@@ -182,13 +174,14 @@ valent_message_row_class_init (ValentMessageRowClass *klass)
    * The thread id this message belongs to.
    */
   properties [PROP_THREAD_ID] =
-    g_param_spec_string ("thread-id",
-                         "Thread ID",
-                         "The thread id this message belongs to.",
-                         NULL,
-                         (G_PARAM_READABLE |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
+    g_param_spec_int64 ("thread-id",
+                        "Thread ID",
+                        "The thread id this message belongs to.",
+                        0, G_MAXINT64,
+                        0,
+                        (G_PARAM_READABLE |
+                         G_PARAM_EXPLICIT_NOTIFY |
+                         G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 }
@@ -210,18 +203,13 @@ valent_message_row_init (ValentMessageRow *self)
                              NULL);
   gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (self), self->grid);
 
-  self->avatar = g_object_new (VALENT_TYPE_CONTACT_AVATAR,
-                               "height-request", 32,
-                               "width-request",  32,
-                               "halign",         GTK_ALIGN_START,
-                               "valign",         GTK_ALIGN_CENTER,
-                               "vexpand",        TRUE,
+  self->avatar = g_object_new (ADW_TYPE_AVATAR,
+                               "size",    32,
+                               "halign",  GTK_ALIGN_START,
+                               "valign",  GTK_ALIGN_CENTER,
+                               "vexpand", TRUE,
                                NULL);
   gtk_grid_attach (GTK_GRID (self->grid), self->avatar, 0, 0, 1, 2);
-
-  g_object_bind_property (self,         "contact",
-                          self->avatar, "contact",
-                          G_BINDING_SYNC_CREATE);
 
   self->name_label = g_object_new (GTK_TYPE_LABEL,
                                    "ellipsize",  PANGO_ELLIPSIZE_END,
@@ -256,16 +244,16 @@ valent_message_row_init (ValentMessageRow *self)
 
 /**
  * valent_message_row_new:
- * @message: a #ValentSmsMessage
- * @contact: a #EContact
+ * @message: (nullable): a #ValentMessage
+ * @contact: (nullable): a #EContact
  *
  * Create a new message row for @contact and @message.
  *
- * Returns: (transfer full): a #ValentMessageRow
+ * Returns: a #ValentMessageRow
  */
 GtkWidget *
-valent_message_row_new (ValentSmsMessage *message,
-                        EContact         *contact)
+valent_message_row_new (ValentMessage *message,
+                        EContact      *contact)
 {
   return g_object_new (VALENT_TYPE_MESSAGE_ROW,
                        "contact", contact,
@@ -303,11 +291,14 @@ valent_message_row_set_contact (ValentMessageRow *row,
   g_return_if_fail (VALENT_IS_MESSAGE_ROW (row));
   g_return_if_fail (contact == NULL || E_IS_CONTACT (contact));
 
-  if (g_set_object (&row->contact, contact))
-    {
-      valent_message_row_update (row);
-      g_object_notify_by_pspec (G_OBJECT (row), properties [PROP_CONTACT]);
-    }
+  if (!g_set_object (&row->contact, contact))
+    return;
+
+  if (row->contact != NULL)
+    valent_sms_avatar_from_contact (ADW_AVATAR (row->avatar), contact);
+
+  valent_message_row_update (row);
+  g_object_notify_by_pspec (G_OBJECT (row), properties [PROP_CONTACT]);
 }
 
 /**
@@ -326,7 +317,7 @@ valent_message_row_get_date (ValentMessageRow *row)
   if G_UNLIKELY (row->message == NULL)
     return 0;
 
-  return valent_sms_message_get_date (row->message);
+  return valent_message_get_date (row->message);
 }
 
 /**
@@ -345,7 +336,7 @@ valent_message_row_get_thread_id (ValentMessageRow *row)
   if G_UNLIKELY (row->message == NULL)
     return 0;
 
-  return valent_sms_message_get_thread_id (row->message);
+  return valent_message_get_thread_id (row->message);
 }
 
 /**
@@ -354,9 +345,9 @@ valent_message_row_get_thread_id (ValentMessageRow *row)
  *
  * Get the message.
  *
- * Returns: (transfer none): a #ValentSmsMessage
+ * Returns: (transfer none): a #ValentMessage
  */
-ValentSmsMessage *
+ValentMessage *
 valent_message_row_get_message (ValentMessageRow *row)
 {
   g_return_val_if_fail (VALENT_IS_MESSAGE_ROW (row), NULL);
@@ -367,18 +358,34 @@ valent_message_row_get_message (ValentMessageRow *row)
 /**
  * valent_message_row_set_message:
  * @row: a #ValentMessageRow
- * @message: a #ValentSmsMessage
+ * @message: a #ValentMessage
  *
  * Set or update the message.
  */
 void
 valent_message_row_set_message (ValentMessageRow *row,
-                                ValentSmsMessage *message)
+                                ValentMessage    *message)
 {
   g_return_if_fail (VALENT_IS_MESSAGE_ROW (row));
+  g_return_if_fail (message == NULL || VALENT_IS_MESSAGE (message));
 
-  if (g_set_object (&row->message, message))
+  if (row->message == message)
+    return;
+
+  if (row->message != NULL)
     {
+      g_signal_handlers_disconnect_by_data (row->message, row);
+      g_clear_object (&row->message);
+    }
+
+  if (message != NULL)
+    {
+      row->message = g_object_ref (message);
+      g_signal_connect_swapped (row->message,
+                                "notify",
+                                G_CALLBACK (valent_message_row_update),
+                                row);
+
       valent_message_row_update (row);
       g_object_notify_by_pspec (G_OBJECT (row), properties [PROP_MESSAGE]);
     }
@@ -394,7 +401,7 @@ valent_message_row_set_message (ValentMessageRow *row,
 void
 valent_message_row_update (ValentMessageRow *row)
 {
-  gboolean read = FALSE;
+  gboolean read;
   const char *body;
   const char *name;
   gint64 date;
@@ -406,16 +413,14 @@ valent_message_row_update (ValentMessageRow *row)
   if (row->message == NULL)
     return;
 
-  /* Message Read/Unread */
-  read = valent_sms_message_get_read (row->message);
-
   /* Message Sender/Name */
-  if (row->contact != NULL)
+  if (E_IS_CONTACT (row->contact))
     name = e_contact_get_const (row->contact, E_CONTACT_FULL_NAME);
   else
-    name = valent_sms_message_get_sender (row->message);
+    name = valent_message_get_sender (row->message);
 
-  if (read)
+  /* Message Read/Unread */
+  if ((read = valent_message_get_read (row->message)))
     name_label = g_strdup (name);
   else
     name_label = g_strdup_printf ("<b>%s</b>", name);
@@ -423,15 +428,13 @@ valent_message_row_update (ValentMessageRow *row)
   gtk_label_set_label (GTK_LABEL (row->name_label), name_label);
 
   /* Message Body */
-  body = valent_sms_message_get_text (row->message);
-
-  if (body != NULL)
+  if ((body = valent_message_get_text (row->message)) != NULL)
     {
       g_autofree char *text = NULL;
 
       text = g_markup_escape_text (body, -1);
 
-      if (valent_sms_message_get_box (row->message) == VALENT_SMS_MESSAGE_BOX_SENT)
+      if (valent_message_get_box (row->message) == VALENT_MESSAGE_BOX_SENT)
         body_label = g_strdup_printf ("<small>You: %s</small>", text);
       else if (read)
         body_label = g_strdup_printf ("<small>%s</small>", text);
@@ -442,7 +445,7 @@ valent_message_row_update (ValentMessageRow *row)
   gtk_label_set_label (GTK_LABEL (row->body_label), body_label);
 
   /* Message Date */
-  date = valent_sms_message_get_date (row->message);
+  date = valent_message_get_date (row->message);
   valent_date_label_set_date (VALENT_DATE_LABEL (row->date_label), date);
 }
 

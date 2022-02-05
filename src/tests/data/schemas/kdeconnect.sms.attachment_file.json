@@ -1,0 +1,30 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.sms.attachment_file"]
+        },
+        "body": {
+            "type": "object",
+            "properties": {
+                "filename": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "filename"
+            ]
+        }
+    }
+}
+

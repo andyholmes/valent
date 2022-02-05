@@ -1,0 +1,38 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer",
+            "default": 0
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.sms.request_conversation"]
+        },
+        "body": {
+            "type": "object",
+            "properties": {
+                "threadID": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "rangeStartTimestamp": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "numberToRequest": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            },
+            "required": ["threadID"]
+        }
+    }
+}
+

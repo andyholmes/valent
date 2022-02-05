@@ -11,8 +11,8 @@
 #include <libvalent-contacts.h>
 
 #include "valent-contact-row.h"
+#include "valent-message.h"
 #include "valent-sms-conversation.h"
-#include "valent-sms-message.h"
 #include "valent-sms-store.h"
 #include "valent-sms-window.h"
 #include "valent-message-row.h"
@@ -36,13 +36,13 @@ struct _ValentSmsWindow
   GtkStack             *content;
 
   GtkWidget            *message_search;
-  GtkEntry             *message_search_entry;
+  GtkWidget            *message_search_entry;
   GtkListBox           *message_search_list;
 
   GtkWidget            *contact_search;
+  GtkWidget            *contact_search_entry;
   GtkListBox           *contact_search_list;
-  GtkSearchEntry       *contact_search_entry;
-  GtkWidget            *dynamic_contact;
+  GtkWidget            *placeholder_contact;
 };
 
 G_DEFINE_TYPE (ValentSmsWindow, valent_sms_window, ADW_TYPE_APPLICATION_WINDOW)
@@ -68,27 +68,25 @@ static guint signals[N_SIGNALS] = { 0, };
  * Generic callback for querying a contact for a widget
  */
 static void
-phone_lookup_cb (ValentContactStore *model,
+phone_lookup_cb (ValentContactStore *store,
                  GAsyncResult       *result,
-                 GtkWidget          *widget)
+                 ValentMessageRow   *row)
 {
   g_autoptr (GError) error = NULL;
-  EContact *contact;
+  g_autoptr (EContact) contact = NULL;
 
-  contact = valent_contact_store_dup_for_phone_finish (model, result, &error);
+  contact = valent_contact_store_dup_for_phone_finish (store, result, &error);
 
   if (contact == NULL)
-    g_warning ("Failed to get contact: %s", error->message);
-  else
-    g_object_set (widget, "contact", contact, NULL);
+      g_warning ("%s(): %s", G_STRFUNC, error->message);
 
-  g_clear_object (&contact);
+  valent_message_row_set_contact (row, contact);
 }
 
 static void
-query_contacts_cb (ValentContactStore *model,
-                   GAsyncResult       *result,
-                   ValentSmsWindow    *window)
+search_contacts_cb (ValentContactStore *model,
+                    GAsyncResult       *result,
+                    ValentSmsWindow    *window)
 {
   g_autoptr (GError) error = NULL;
   g_autoslist (GObject) contacts = NULL;
@@ -97,37 +95,53 @@ query_contacts_cb (ValentContactStore *model,
 
   for (const GSList *iter = contacts; iter; iter = iter->next)
     valent_list_add_contact (window->contact_search_list, iter->data);
+
+  if (error != NULL)
+    g_warning ("%s(): %s", G_STRFUNC, error->message);
 }
 
 static void
-find_messages_cb (ValentSmsStore  *store,
-                  GAsyncResult    *result,
-                  ValentSmsWindow *window)
+search_messages_cb (ValentSmsStore  *store,
+                    GAsyncResult    *result,
+                    ValentSmsWindow *window)
 {
   g_autoptr (GError) error = NULL;
   g_autoptr (GPtrArray) messages = NULL;
 
-  messages = valent_sms_store_find_finish (store, result, &error);
+  messages = valent_sms_store_find_messages_finish (store, result, &error);
 
   for (unsigned int i = 0; i < messages->len; i++)
     {
-      g_autoptr (ValentSmsMessage) message = NULL;
+      ValentMessage *message;
       GtkWidget *row;
       const char *address;
 
       message = g_ptr_array_index (messages, i);
-      address = valent_sms_message_get_sender (message);
-
-      if (address == NULL)
-        {
-          g_warning ("Message has no sender");
-          continue;
-        }
 
       row = g_object_new (VALENT_TYPE_MESSAGE_ROW,
                           "message", message,
                           NULL);
       gtk_list_box_insert (window->message_search_list, row, -1);
+
+      if ((address = valent_message_get_sender (message)) == NULL)
+        {
+          GVariant *metadata;
+          g_autoptr (GVariant) addresses = NULL;
+          g_autoptr (GVariant) address_dict = NULL;
+
+          metadata = valent_message_get_metadata (message);
+
+          if (!g_variant_lookup (metadata, "addresses", "@aa{sv}", &addresses))
+            continue;
+
+          if (g_variant_n_children (addresses) == 0)
+            continue;
+
+          address_dict = g_variant_get_child_value (addresses, 0);
+
+          if (!g_variant_lookup (address_dict, "address", "&s", &address))
+            continue;
+        }
 
       valent_contact_store_dup_for_phone_async (window->contact_store,
                                                 address,
@@ -206,11 +220,11 @@ on_message_search_changed (GtkSearchEntry  *entry,
     return;
 
   /* Search messages */
-  valent_sms_store_find_async (window->message_store,
-                               query_str,
-                               NULL,
-                               (GAsyncReadyCallback)find_messages_cb,
-                               window);
+  valent_sms_store_find_messages (window->message_store,
+                                  query_str,
+                                  NULL,
+                                  (GAsyncReadyCallback)search_messages_cb,
+                                  window);
 
   /* Search contacts */
   queries[0] = e_book_query_field_test (E_CONTACT_FULL_NAME,
@@ -226,7 +240,7 @@ on_message_search_changed (GtkSearchEntry  *entry,
   valent_contact_store_query (window->contact_store,
                               sexp,
                               NULL,
-                              (GAsyncReadyCallback)query_contacts_cb,
+                              (GAsyncReadyCallback)search_contacts_cb,
                               window);
 }
 
@@ -239,17 +253,10 @@ on_message_selected (GtkListBox      *box,
 
   if (VALENT_IS_MESSAGE_ROW (row))
     {
-      ValentSmsConversation *conversation;
-      ValentSmsMessage *message;
-      gint64 thread_id;
+      ValentMessage *message;
 
       message = valent_message_row_get_message (VALENT_MESSAGE_ROW (row));
-      contact = valent_message_row_get_contact (VALENT_MESSAGE_ROW (row));
-      thread_id = valent_sms_message_get_thread_id (message);
-
-      valent_sms_window_set_active_thread (self, thread_id);
-      conversation = VALENT_SMS_CONVERSATION (gtk_stack_get_visible_child (self->content));
-      valent_sms_conversation_scroll_to_message (conversation, message);
+      valent_sms_window_set_active_message (self, message);
 
       /* Reset the search after the transition */
       g_timeout_add_seconds (1, reset_search_cb, self);
@@ -281,10 +288,10 @@ on_contact_selected (GtkListBox      *box,
                      GtkListBoxRow   *row,
                      ValentSmsWindow *self)
 {
-  const char *number;
+  const char *address;
 
-  number = valent_contact_row_get_number (VALENT_CONTACT_ROW (row));
-  g_debug ("NUMBER SELECTED: %s", number);
+  address = valent_contact_row_get_contact_address (VALENT_CONTACT_ROW (row));
+  g_debug ("NUMBER SELECTED: %s", address);
 }
 
 static void
@@ -304,7 +311,7 @@ on_contact_search_changed (GtkSearchEntry  *entry,
       name_label = g_strdup_printf (_("Send to %s"), query);
 
       /* ...ensure we have a dynamic contact for it */
-      if (self->dynamic_contact == NULL)
+      if (self->placeholder_contact == NULL)
         {
           /* Create a dummy contact */
           contact = e_contact_new ();
@@ -312,30 +319,30 @@ on_contact_search_changed (GtkSearchEntry  *entry,
           e_contact_set (contact, E_CONTACT_PHONE_OTHER, query);
 
           /* Create and add a new row */
-          self->dynamic_contact = g_object_new (VALENT_TYPE_CONTACT_ROW,
-                                                "name",    name_label,
-                                                "number",  query,
-                                                "contact", contact,
+          self->placeholder_contact = g_object_new (VALENT_TYPE_CONTACT_ROW,
+                                                "contact",         contact,
+                                                "contact-name",    name_label,
+                                                "contact-address", query,
                                                 NULL);
 
           gtk_list_box_insert (self->contact_search_list,
-                               self->dynamic_contact,
+                               self->placeholder_contact,
                                -1);
         }
 
       /* ...or if we already do, then update it */
       else
         {
-          g_object_get (self->dynamic_contact, "contact", &contact, NULL);
+          g_object_get (self->placeholder_contact, "contact", &contact, NULL);
 
           /* Update contact */
           e_contact_set (contact, E_CONTACT_FULL_NAME, query);
           e_contact_set (contact, E_CONTACT_PHONE_OTHER, query);
 
           /* Update row */
-          g_object_set (self->dynamic_contact,
-                        "name",   name_label,
-                        "number", query,
+          g_object_set (self->placeholder_contact,
+                        "contact-name",    name_label,
+                        "contact-address", query,
                         NULL);
         }
 
@@ -344,10 +351,11 @@ on_contact_search_changed (GtkSearchEntry  *entry,
     }
 
   /* ...otherwise remove the dynamic row if created */
-  else if (self->dynamic_contact != NULL)
+  else if (self->placeholder_contact != NULL)
     {
-      gtk_list_box_remove (self->contact_search_list, self->dynamic_contact);
-      self->dynamic_contact = NULL;
+      gtk_list_box_remove (self->contact_search_list,
+                           self->placeholder_contact);
+      self->placeholder_contact = NULL;
     }
 
   gtk_list_box_invalidate_filter (self->contact_search_list);
@@ -360,11 +368,12 @@ contact_search_list_filter (ValentContactRow *row,
                             ValentSmsWindow  *self)
 {
   const char *query;
-  g_autofree char *contact_name = NULL;
-  g_autofree char *query_name = NULL;
+  g_autofree char *query_folded = NULL;
+  g_autofree char *name = NULL;
+  const char *address = NULL;
 
   /* Always show dynamic contact */
-  if G_UNLIKELY (GTK_WIDGET (row) == self->dynamic_contact)
+  if G_UNLIKELY (GTK_WIDGET (row) == self->placeholder_contact)
     return TRUE;
 
   query = gtk_editable_get_text (GTK_EDITABLE (self->contact_search_entry));
@@ -372,15 +381,18 @@ contact_search_list_filter (ValentContactRow *row,
   if (g_strcmp0 (query, "") == 0)
     return TRUE;
 
-  query_name = g_utf8_casefold (query, -1);
-  contact_name = g_utf8_casefold (valent_contact_row_get_name (row), -1);
+  query_folded = g_utf8_casefold (query, -1);
 
   /* Show contact if text is substring of name */
-  if (g_strrstr (contact_name, query_name) != NULL)
+  name = g_utf8_casefold (valent_contact_row_get_contact_name (row), -1);
+
+  if (g_strrstr (name, query_folded) != NULL)
     return TRUE;
 
   /* Show contact if text is substring of number */
-  if (g_strrstr (valent_contact_row_get_number (row), query_name) != NULL)
+  address = valent_contact_row_get_contact_address (row);
+
+  if (g_strrstr (address, query_folded))
     return TRUE;
 
   return FALSE;
@@ -391,17 +403,17 @@ contact_search_list_sort (GtkListBoxRow   *row1,
                           GtkListBoxRow   *row2,
                           ValentSmsWindow *self)
 {
-  g_autofree char *name1 = NULL;
-  g_autofree char *name2 = NULL;
+  const char *name1;
+  const char *name2;
 
-  if (GTK_WIDGET (row1) == self->dynamic_contact)
+  if G_UNLIKELY (GTK_WIDGET (row1) == self->placeholder_contact)
     return -1;
 
-  if (GTK_WIDGET (row2) == self->dynamic_contact)
+  if G_UNLIKELY (GTK_WIDGET (row2) == self->placeholder_contact)
     return 1;
 
-  g_object_get (row1, "name", &name1, NULL);
-  g_object_get (row2, "name", &name2, NULL);
+  name1 = valent_contact_row_get_contact_name (VALENT_CONTACT_ROW (row1));
+  name2 = valent_contact_row_get_contact_name (VALENT_CONTACT_ROW (row2));
 
   return g_utf8_collate (name1, name2);
 }
@@ -418,7 +430,7 @@ refresh_contacts_cb (ValentContactStore *store,
 
   if (error != NULL)
     {
-      g_warning ("loading contacts: %s", error->message);
+      g_warning ("%s(): %s", G_STRFUNC, error->message);
       return;
     }
 
@@ -455,19 +467,15 @@ valent_sms_window_refresh_contacts (ValentSmsWindow *self)
  * Conversation List
  */
 static gboolean
-on_send_message (GObject          *object,
-                 GList            *participants,
-                 ValentSmsMessage *message,
-                 ValentSmsWindow  *window)
+on_send_message (GObject         *object,
+                 ValentMessage   *message,
+                 ValentSmsWindow *window)
 {
-  gboolean message_sent;
+  gboolean sent;
 
-  g_signal_emit (G_OBJECT (window),
-                 signals [SEND_MESSAGE], 0,
-                 participants, message,
-                 &message_sent);
+  g_signal_emit (G_OBJECT (window), signals [SEND_MESSAGE], 0, message, &sent);
 
-  return message_sent;
+  return sent;
 }
 
 /*
@@ -478,7 +486,7 @@ conversation_list_create (gpointer item,
                           gpointer user_data)
 {
   ValentSmsWindow *window = VALENT_SMS_WINDOW (user_data);
-  ValentSmsMessage *message = VALENT_SMS_MESSAGE (item);
+  ValentMessage *message = VALENT_MESSAGE (item);
   GtkWidget *row;
   GVariant *metadata;
   g_autoptr (GVariant) addresses = NULL;
@@ -487,9 +495,11 @@ conversation_list_create (gpointer item,
                       "message", message,
                       NULL);
 
-  metadata = valent_sms_message_get_metadata (message);
-
-  if (g_variant_lookup (metadata, "addresses", "@aa{sv}", &addresses))
+  /* TODO: probably a failure of kdeconnect-android, but occasionally a message
+   *       will have no addresses */
+  if ((metadata = valent_message_get_metadata (message)) != NULL &&
+      g_variant_lookup (metadata, "addresses", "@aa{sv}", &addresses) &&
+      g_variant_n_children (addresses) > 0)
     {
       g_autoptr (GVariant) participant = NULL;
       const char *address;
@@ -529,7 +539,7 @@ valent_sms_window_ensure_conversation (ValentSmsWindow *window,
   GtkWidget *conversation;
   g_autofree char *page_name = NULL;
 
-  page_name = g_strdup_printf ("%li", thread_id);
+  page_name = g_strdup_printf ("%"G_GINT64_FORMAT, thread_id);
   conversation = gtk_stack_get_child_by_name (window->content, page_name);
 
   if (conversation == NULL)
@@ -574,29 +584,6 @@ on_conversation_activated (GtkListBox      *box,
   adw_leaflet_navigate (self->content_box, ADW_NAVIGATION_DIRECTION_FORWARD);
 }
 
-static void
-on_message_removed (ValentSmsWindow  *window,
-                    gint64            thread_id,
-                    ValentSmsMessage *message,
-                    ValentSmsStore   *model)
-{
-  GtkWidget *conversation;
-  g_autofree char *thread_str = NULL;
-
-  g_assert (VALENT_IS_SMS_WINDOW (window));
-
-  /* If @message is %NULL, the thread is being removed, which is what we're
-   * interested in */
-  if (message != NULL)
-    return;
-
-  /* The GListModel handles the sidebar, so we only destroy the conversation */
-  thread_str = g_strdup_printf ("%li", thread_id);
-  conversation = gtk_stack_get_child_by_name (window->content, thread_str);
-
-  if (conversation != NULL)
-    gtk_stack_remove (window->content, conversation);
-}
 
 /*
  * GActions
@@ -613,7 +600,7 @@ new_action (GSimpleAction *action,
   gtk_list_box_select_row (self->conversation_list, NULL);
   gtk_label_set_label (self->content_title, _("New Conversation"));
   gtk_stack_set_visible_child_name (self->content, "contacts");
-  gtk_widget_grab_focus (GTK_WIDGET (self->contact_search_entry));
+  gtk_widget_grab_focus (self->contact_search_entry);
   adw_leaflet_navigate (self->content_box, ADW_NAVIGATION_DIRECTION_FORWARD);
 }
 
@@ -640,7 +627,7 @@ search_action (GSimpleAction *action,
 
   gtk_label_set_label (self->content_title, _("Search Messages"));
   gtk_stack_set_visible_child_name (self->content, "search");
-  gtk_widget_grab_focus (GTK_WIDGET (self->message_search_entry));
+  gtk_widget_grab_focus (self->message_search_entry);
   adw_leaflet_navigate (self->content_box, ADW_NAVIGATION_DIRECTION_FORWARD);
 }
 
@@ -664,10 +651,6 @@ valent_sms_window_constructed (GObject *object)
 
   /* Prepare conversation summaries */
   conversation_list_populate (self);
-  g_signal_connect_swapped (self->message_store,
-                            "message-removed",
-                            G_CALLBACK (on_message_removed),
-                            self);
 
   G_OBJECT_CLASS (valent_sms_window_parent_class)->constructed (object);
 }
@@ -676,10 +659,6 @@ static void
 valent_sms_window_finalize (GObject *object)
 {
   ValentSmsWindow *self = VALENT_SMS_WINDOW (object);
-
-  g_signal_handlers_disconnect_by_func (self->message_store,
-                                        on_message_removed,
-                                        self);
 
   g_clear_object (&self->contact_store);
   g_clear_object (&self->message_store);
@@ -807,26 +786,21 @@ valent_sms_window_class_init (ValentSmsWindowClass *klass)
   /**
    * ValentSmsWindow::send-message:
    * @window: a #ValentSmsWindow
-   * @destination: a #GList
-   * @message: a #ValentSmsMessage
+   * @message: a #ValentMessage
    *
    * The #ValentSmsWindow::send-message signal is emitted when a child
    * #ValentSmsConversation emits #ValentSmsConversation::send-message.
    *
-   * @destination is a #GList of target addresses and @message is a #ValentSmsMessage
-   * containing the content to be sent.
-   *
    * The signal handler should return a boolean indicating success, although
-   * this is only used as an indication that the message was sent, not received
-   * on the other end.
+   * this only indicates the request was sent to the device.
    */
   signals [SEND_MESSAGE] =
     g_signal_new ("send-message",
                   G_TYPE_FROM_CLASS (klass),
                   G_SIGNAL_RUN_LAST,
                   0,
-                  NULL, NULL, NULL,
-                  G_TYPE_BOOLEAN, 2, G_TYPE_POINTER, VALENT_TYPE_SMS_MESSAGE);
+                  g_signal_accumulator_first_wins, NULL, NULL,
+                  G_TYPE_BOOLEAN, 1, VALENT_TYPE_MESSAGE);
 }
 
 static void
@@ -887,10 +861,14 @@ void
 valent_sms_window_set_contact_store (ValentSmsWindow    *window,
                                      ValentContactStore *store)
 {
-  if (g_set_object (&window->contact_store, store))
-    g_object_notify_by_pspec (G_OBJECT (window), properties[PROP_CONTACT_STORE]);
+  g_return_if_fail (VALENT_IS_SMS_WINDOW (window));
+  g_return_if_fail (store == NULL || VALENT_IS_CONTACT_STORE (store));
+
+  if (!g_set_object (&window->contact_store, store))
+    return;
 
   valent_sms_window_refresh_contacts (window);
+  g_object_notify_by_pspec (G_OBJECT (window), properties[PROP_CONTACT_STORE]);
 }
 
 /**
@@ -902,11 +880,57 @@ valent_sms_window_set_contact_store (ValentSmsWindow    *window,
  * Returns: (transfer none) (nullable): a #ValentSmsStore
  */
 ValentSmsStore *
-valent_sms_window_get_sms_store (ValentSmsWindow *window)
+valent_sms_window_get_message_store (ValentSmsWindow *window)
 {
   g_return_val_if_fail (VALENT_IS_SMS_WINDOW (window), NULL);
 
   return window->message_store;
+}
+
+/**
+ * valent_sms_window_search_contacts:
+ * @window: a #ValentSmsWindow
+ * @query: query string
+ *
+ * Switch the contact view and search for @query.
+ */
+void
+valent_sms_window_search_contacts (ValentSmsWindow *window,
+                                   const char      *query)
+{
+  g_return_if_fail (VALENT_IS_SMS_WINDOW (window));
+  g_return_if_fail (query != NULL);
+
+  gtk_list_box_select_row (window->conversation_list, NULL);
+
+  gtk_label_set_label (window->content_title, _("New Conversation"));
+  gtk_stack_set_visible_child_name (window->content, "contacts");
+  gtk_widget_grab_focus (window->contact_search_entry);
+  adw_leaflet_navigate (window->content_box, ADW_NAVIGATION_DIRECTION_FORWARD);
+
+  gtk_editable_set_text (GTK_EDITABLE (window->contact_search_entry), query);
+}
+
+/**
+ * valent_sms_window_search_messages:
+ * @window: a #ValentSmsWindow
+ * @query: query string
+ *
+ * Switch the search view and search for @query.
+ */
+void
+valent_sms_window_search_messages (ValentSmsWindow *window,
+                                   const char      *query)
+{
+  g_return_if_fail (VALENT_IS_SMS_WINDOW (window));
+  g_return_if_fail (query != NULL);
+
+  gtk_label_set_label (window->content_title, _("Search Messages"));
+  gtk_stack_set_visible_child_name (window->content, "search");
+  gtk_widget_grab_focus (window->message_search_entry);
+  adw_leaflet_navigate (window->content_box, ADW_NAVIGATION_DIRECTION_FORWARD);
+
+  gtk_editable_set_text (GTK_EDITABLE (window->message_search_entry), query);
 }
 
 /**
@@ -917,8 +941,8 @@ valent_sms_window_get_sms_store (ValentSmsWindow *window)
  * Set the active conversation to the thread of @message scroll to @message.
  */
 void
-valent_sms_window_set_active_message (ValentSmsWindow  *window,
-                                      ValentSmsMessage *message)
+valent_sms_window_set_active_message (ValentSmsWindow *window,
+                                      ValentMessage   *message)
 {
   GtkWidget *widget;
   ValentSmsConversation *conversation;
@@ -927,7 +951,7 @@ valent_sms_window_set_active_message (ValentSmsWindow  *window,
   g_return_if_fail (VALENT_IS_SMS_WINDOW (window));
 
   /* Select the conversation */
-  thread_id = valent_sms_message_get_thread_id (message);
+  thread_id = valent_message_get_thread_id (message);
   valent_sms_window_set_active_thread (window, thread_id);
 
   /* Get the conversation */
@@ -952,7 +976,7 @@ valent_sms_window_set_active_thread (ValentSmsWindow *window,
   const char *title;
 
   g_return_if_fail (VALENT_IS_SMS_WINDOW (window));
-  g_return_if_fail (thread_id > 0);
+  g_return_if_fail (thread_id >= 0);
 
   /* Ensure a conversation widget exists */
   conversation = valent_sms_window_ensure_conversation (window, thread_id);

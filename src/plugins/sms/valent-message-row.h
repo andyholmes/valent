@@ -6,7 +6,7 @@
 #include <gtk/gtk.h>
 #include <libvalent-contacts.h>
 
-#include "valent-sms-message.h"
+#include "valent-message.h"
 
 G_BEGIN_DECLS
 
@@ -14,16 +14,16 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (ValentMessageRow, valent_message_row, VALENT, MESSAGE_ROW, GtkListBoxRow)
 
-GtkWidget        * valent_message_row_new           (ValentSmsMessage *message,
-                                                     EContact         *contact);
-gint64             valent_message_row_get_thread_id (ValentMessageRow *row);
-gint64             valent_message_row_get_date      (ValentMessageRow *row);
-ValentSmsMessage * valent_message_row_get_message   (ValentMessageRow *row);
-void               valent_message_row_set_message   (ValentMessageRow *row,
-                                                     ValentSmsMessage *message);
-EContact         * valent_message_row_get_contact   (ValentMessageRow *row);
-void               valent_message_row_set_contact   (ValentMessageRow *row,
-                                                     EContact         *contact);
-void               valent_message_row_update        (ValentMessageRow *row);
+GtkWidget     * valent_message_row_new           (ValentMessage    *message,
+                                                  EContact         *contact);
+EContact      * valent_message_row_get_contact   (ValentMessageRow *row);
+void            valent_message_row_set_contact   (ValentMessageRow *row,
+                                                  EContact         *contact);
+ValentMessage * valent_message_row_get_message   (ValentMessageRow *row);
+void            valent_message_row_set_message   (ValentMessageRow *row,
+                                                  ValentMessage    *message);
+gint64          valent_message_row_get_date      (ValentMessageRow *row);
+gint64          valent_message_row_get_thread_id (ValentMessageRow *row);
+void            valent_message_row_update        (ValentMessageRow *row);
 
 G_END_DECLS

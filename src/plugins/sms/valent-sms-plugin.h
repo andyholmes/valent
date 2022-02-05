@@ -11,13 +11,5 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (ValentSmsPlugin, valent_sms_plugin, VALENT, SMS_PLUGIN, PeasExtensionBase)
 
-void                 valent_sms_plugin_request_conversation  (ValentSmsPlugin *self,
-                                                              gint64           thread_id);
-
-void                 valent_sms_plugin_request_conversations (ValentSmsPlugin *self);
-void                 valent_sms_plugin_request               (ValentSmsPlugin *self,
-                                                              const char      *address,
-                                                              const char      *text);
-
 G_END_DECLS
 

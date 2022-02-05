@@ -1,0 +1,109 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.sms.messages"]
+        },
+        "body": {
+            "type": "object",
+            "properties": {
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "_id": {
+                                "type": "integer"
+                            },
+                            "addresses": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "address": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            },
+                            "attachments": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "part_id": {
+                                            "type": "integer"
+                                        },
+                                        "mime_type": {
+                                            "type": "string"
+                                        },
+                                        "encoded_thumbnail": {
+                                            "type": "string"
+                                        },
+                                        "unique_identifier": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "part_id",
+                                        "mime_type",
+                                        "encoded_thumbnail",
+                                        "unique_identifier"
+                                    ]
+                                }
+                            },
+                            "body": {
+                                "type": "string"
+                            },
+                            "date": {
+                                "type": "integer"
+                            },
+                            "event": {
+                                "type": "integer"
+                            },
+                            "read": {
+                                "type": "integer",
+                                "enum": [0, 1]
+                            },
+                            "sub_id": {
+                                "type": "integer",
+                                "minimum": -1
+                            },
+                            "thread_id": {
+                                "type": "integer"
+                            },
+                            "type": {
+                                "type": "integer"
+                            }
+                        },
+                        "required": [
+                            "_id",
+                            "addresses",
+                            "date",
+                            "thread_id",
+                            "type"
+                        ]
+                    }
+                },
+                "version": {
+                    "type": "integer",
+                    "enum": [2]
+                }
+            },
+            "required": [
+                "messages"
+            ]
+        }
+    }
+}
+

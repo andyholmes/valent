@@ -7,7 +7,7 @@
 #include <gtk/gtk.h>
 #include <libvalent-contacts.h>
 
-#include "valent-sms-message.h"
+#include "valent-message.h"
 #include "valent-sms-store.h"
 
 G_BEGIN_DECLS
@@ -19,14 +19,19 @@ G_DECLARE_FINAL_TYPE (ValentSmsWindow, valent_sms_window, VALENT, SMS_WINDOW, Ad
 ValentContactStore * valent_sms_window_get_contact_store  (ValentSmsWindow    *window);
 void                 valent_sms_window_set_contact_store  (ValentSmsWindow    *window,
                                                            ValentContactStore *store);
-ValentSmsStore     * valent_sms_window_get_message_model  (ValentSmsWindow    *window);
+ValentSmsStore     * valent_sms_window_get_message_store  (ValentSmsWindow    *window);
+
+void                 valent_sms_window_search_contacts    (ValentSmsWindow    *window,
+                                                           const char         *query);
+void                 valent_sms_window_search_messages    (ValentSmsWindow    *window,
+                                                           const char         *query);
 
 void                 valent_sms_window_set_active_address (ValentSmsWindow    *window,
                                                            const char         *address,
                                                            EContact           *contact);
 
 void                 valent_sms_window_set_active_message (ValentSmsWindow    *window,
-                                                           ValentSmsMessage   *message);
+                                                           ValentMessage      *message);
 void                 valent_sms_window_set_active_thread  (ValentSmsWindow    *window,
                                                            gint64              thread_id);
 

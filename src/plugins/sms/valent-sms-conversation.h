@@ -6,7 +6,7 @@
 #include <gtk/gtk.h>
 #include <libvalent-contacts.h>
 
-#include "valent-sms-message.h"
+#include "valent-message.h"
 #include "valent-sms-store.h"
 
 G_BEGIN_DECLS
@@ -27,7 +27,6 @@ const char * valent_sms_conversation_get_subtitle      (ValentSmsConversation *c
 void         valent_sms_conversation_scroll_to_date    (ValentSmsConversation *conversation,
                                                         gint64                 date);
 void         valent_sms_conversation_scroll_to_message (ValentSmsConversation *conversation,
-                                                        ValentSmsMessage      *message);
-void         valent_sms_conversation_send_message      (ValentSmsConversation *conversation);
+                                                        ValentMessage         *message);
 
 G_END_DECLS

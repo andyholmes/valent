@@ -11,7 +11,10 @@
     <property name="title" translatable="yes">Messages</property>
     <child>
       <object class="AdwLeaflet" id="content_box">
-        <property name="can-swipe-back">1</property>
+        <!-- TODO: <= libadwaita-1.0.0.alpha.4 this is `can-swipe-back`
+                   >= libadwaita-1.0.0.beta.1 this is `can-navigate-back`
+        <property name="can-navigate-back">1</property>
+        -->
         <property name="width-request">360</property>
         <child>
           <object class="GtkBox" id="sidebar_layout">
