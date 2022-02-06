@@ -59,28 +59,6 @@ valent_application_present_window (ValentApplication *self,
  * GActions
  */
 static void
-connect_action (GSimpleAction *action,
-                GVariant      *parameter,
-                gpointer       user_data)
-{
-  ValentApplication *self = VALENT_APPLICATION (user_data);
-  const char *target;
-
-  g_assert (VALENT_IS_APPLICATION (user_data));
-
-  target = g_variant_get_string (parameter, NULL);
-
-  valent_device_manager_identify (self->manager, target);
-}
-
-/*
- * A wrapper for #ValentDevice GActions. This is used to route device notification
- * actions to their device, since GNotifications need an 'app' level action.
- *
- * The signature of @parameter is `(ssav)` which are respectively a device ID,
- * an action name and an array with the optional action target.
- */
-static void
 device_action (GSimpleAction *action,
                GVariant      *parameter,
                gpointer       user_data)
@@ -94,7 +72,7 @@ device_action (GSimpleAction *action,
 
   g_assert (VALENT_IS_APPLICATION (self));
 
-  /* Extract the device action */
+  /* Device ID, action name, array holding optional action parameter */
   g_variant_get (parameter, "(&s&sav)", &device_id, &name, &targetv);
   g_variant_iter_next (targetv, "v", &target);
 
@@ -111,9 +89,9 @@ device_action (GSimpleAction *action,
 }
 
 static void
-prefs_action (GSimpleAction *action,
-              GVariant      *parameter,
-              gpointer       user_data)
+preferences_action (GSimpleAction *action,
+                    GVariant      *parameter,
+                    gpointer       user_data)
 {
   ValentApplication *self = VALENT_APPLICATION (user_data);
 
@@ -147,11 +125,10 @@ refresh_action (GSimpleAction *action,
 }
 
 static const GActionEntry actions[] = {
-  { "connect",     connect_action, "s",      NULL, NULL },
-  { "device",      device_action,  "(ssav)", NULL, NULL },
-  { "preferences", prefs_action,   NULL,     NULL, NULL },
-  { "quit",        quit_action,    NULL,     NULL, NULL },
-  { "refresh",     refresh_action, NULL,     NULL, NULL }
+  { "device",      device_action,      "(ssav)", NULL, NULL },
+  { "preferences", preferences_action, NULL,     NULL, NULL },
+  { "quit",        quit_action,        NULL,     NULL, NULL },
+  { "refresh",     refresh_action,     NULL,     NULL, NULL }
 };
 
 
