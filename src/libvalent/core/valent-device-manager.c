@@ -41,7 +41,6 @@ struct _ValentDeviceManager
   ValentData               *data;
   GTlsCertificate          *certificate;
   const char               *id;
-  GSettings                *settings;
 
   PeasEngine               *engine;
   GHashTable               *devices;
@@ -807,7 +806,6 @@ valent_device_manager_finalize (GObject *object)
 
   g_clear_object (&self->certificate);
   g_clear_object (&self->data);
-  g_clear_object (&self->settings);
 
   G_OBJECT_CLASS (valent_device_manager_parent_class)->finalize (object);
 }
@@ -953,7 +951,6 @@ valent_device_manager_init (ValentDeviceManager *self)
   self->data = NULL;
   self->engine = valent_get_engine ();
   self->id = NULL;
-  self->settings = g_settings_new ("ca.andyholmes.Valent");
 
   self->devices = g_hash_table_new_full (g_str_hash,
                                          g_str_equal,
