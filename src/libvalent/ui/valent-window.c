@@ -25,7 +25,7 @@
 struct _ValentWindow
 {
   AdwApplicationWindow  parent_instance;
-  ValentManager        *manager;
+  ValentDeviceManager  *manager;
   GSettings            *settings;
 
   GHashTable           *devices;
@@ -47,7 +47,7 @@ G_DEFINE_TYPE (ValentWindow, valent_window, ADW_TYPE_APPLICATION_WINDOW)
 
 enum {
   PROP_0,
-  PROP_MANAGER,
+  PROP_DEVICE_MANAGER,
   N_PROPERTIES
 };
 
@@ -190,9 +190,9 @@ on_device_changed (ValentDevice *device,
 }
 
 static void
-on_device_added (ValentManager *manager,
-                 ValentDevice  *device,
-                 ValentWindow  *self)
+on_device_added (ValentDeviceManager *manager,
+                 ValentDevice        *device,
+                 ValentWindow        *self)
 {
   DeviceInfo *info;
   const char *id;
@@ -203,7 +203,7 @@ on_device_added (ValentManager *manager,
   GtkWidget *box;
   GtkWidget *arrow;
 
-  g_assert (VALENT_IS_MANAGER (manager));
+  g_assert (VALENT_IS_DEVICE_MANAGER (manager));
   g_assert (VALENT_IS_DEVICE (device));
   g_assert (VALENT_IS_WINDOW (self));
 
@@ -263,9 +263,9 @@ on_device_added (ValentManager *manager,
 }
 
 static void
-on_device_removed (ValentManager *manager,
-                   ValentDevice  *device,
-                   ValentWindow  *self)
+on_device_removed (ValentDeviceManager *manager,
+                   ValentDevice        *device,
+                   ValentWindow        *self)
 {
   DeviceInfo *info;
 
@@ -497,7 +497,7 @@ refresh_action (GSimpleAction *action,
     return;
 
   gtk_spinner_set_spinning (self->device_list_spinner, TRUE);
-  valent_manager_identify (self->manager, NULL);
+  valent_device_manager_identify (self->manager, NULL);
 
   self->device_list_spinner_id = g_timeout_add_seconds (5, refresh_cb, self);
 }
@@ -521,7 +521,7 @@ valent_window_constructed (GObject *object)
   g_assert (self->manager != NULL);
 
   /* Devices */
-  devices = valent_manager_get_devices (self->manager);
+  devices = valent_device_manager_get_devices (self->manager);
 
   for (unsigned int i = 0; i < devices->len; i++)
     on_device_added (self->manager, g_ptr_array_index (devices, i), self);
@@ -580,7 +580,7 @@ valent_window_get_property (GObject    *object,
 
   switch (prop_id)
     {
-    case PROP_MANAGER:
+    case PROP_DEVICE_MANAGER:
       g_value_set_object (value, self->manager);
       break;
 
@@ -599,7 +599,7 @@ valent_window_set_property (GObject      *object,
 
   switch (prop_id)
     {
-    case PROP_MANAGER:
+    case PROP_DEVICE_MANAGER:
       self->manager = g_value_get_object (value);
       break;
 
@@ -671,13 +671,13 @@ valent_window_class_init (ValentWindowClass *klass)
   /**
    * ValentWindow:manager:
    *
-   * The #ValentManager that the window represents.
+   * The #ValentDeviceManager that the window represents.
    */
-  properties [PROP_MANAGER] =
-    g_param_spec_object ("manager",
-                         "Manager",
-                         "The manager for this window",
-                         VALENT_TYPE_MANAGER,
+  properties [PROP_DEVICE_MANAGER] =
+    g_param_spec_object ("device-manager",
+                         "Device Manager",
+                         "The device manager for this window",
+                         VALENT_TYPE_DEVICE_MANAGER,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |

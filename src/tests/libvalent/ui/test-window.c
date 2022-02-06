@@ -7,7 +7,7 @@
 #include "valent-window.h"
 
 
-static ValentManager *
+static ValentDeviceManager *
 init_manager (void)
 {
   g_autofree char *path = NULL;
@@ -30,13 +30,13 @@ init_manager (void)
   identity_path = g_build_filename (path, "identity.json", NULL);
   g_file_set_contents (identity_path, identity_json, -1, NULL);
 
-  return valent_manager_new_sync (data, NULL, NULL);
+  return valent_device_manager_new_sync (data, NULL, NULL);
 }
 
 static void
 test_window_basic (void)
 {
-  g_autoptr (ValentManager) manager = NULL;
+  g_autoptr (ValentDeviceManager) manager = NULL;
   ValentDevice *device;
   GtkWindow *window;
   gpointer data;
@@ -44,19 +44,19 @@ test_window_basic (void)
   manager = init_manager ();
 
   window = g_object_new (VALENT_TYPE_WINDOW,
-                         "manager", manager,
+                         "device-manager", manager,
                          NULL);
   g_assert_nonnull (window);
 
   /* Properties */
   g_object_get (window,
-                "manager", &data,
+                "device-manager", &data,
                 NULL);
   g_assert_true (manager == data);
   g_object_unref (data);
 
   /* Remove Device */
-  device = valent_manager_get_device (manager, "test-device");
+  device = valent_device_manager_get_device (manager, "test-device");
   g_object_notify (G_OBJECT (device), "paired");
 
   g_clear_pointer (&window, gtk_window_destroy);
