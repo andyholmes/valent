@@ -22,10 +22,10 @@
 
 struct _ValentApplication
 {
-  GtkApplication  parent_instance;
+  GtkApplication       parent_instance;
 
-  ValentManager  *manager;
-  GtkWindow      *window;
+  ValentDeviceManager *manager;
+  GtkWindow           *window;
 };
 
 G_DEFINE_TYPE (ValentApplication, valent_application, GTK_TYPE_APPLICATION)
@@ -43,7 +43,7 @@ valent_application_present_window (ValentApplication *self,
                                    "application",    self,
                                    "default-width",  600,
                                    "default-height", 480,
-                                   "manager",        self->manager,
+                                   "device-manager", self->manager,
                                    NULL);
       g_object_add_weak_pointer (G_OBJECT (self->window),
                                  (gpointer) &self->window);
@@ -70,7 +70,7 @@ connect_action (GSimpleAction *action,
 
   target = g_variant_get_string (parameter, NULL);
 
-  valent_manager_identify (self->manager, target);
+  valent_device_manager_identify (self->manager, target);
 }
 
 /*
@@ -99,7 +99,7 @@ device_action (GSimpleAction *action,
   g_variant_iter_next (targetv, "v", &target);
 
   /* Forward the activation */
-  device = valent_manager_get_device (self->manager, device_id);
+  device = valent_device_manager_get_device (self->manager, device_id);
 
   if (device != NULL)
     {
@@ -143,7 +143,7 @@ refresh_action (GSimpleAction *action,
 
   g_assert (VALENT_IS_APPLICATION (self));
 
-  valent_manager_identify (self->manager, NULL);
+  valent_device_manager_identify (self->manager, NULL);
 }
 
 static const GActionEntry actions[] = {
@@ -197,7 +197,7 @@ valent_application_startup (GApplication *application)
                                    application);
 
   /* Start the device manager */
-  valent_manager_start (self->manager);
+  valent_device_manager_start (self->manager);
 
   gtk_window_set_default_icon_name (APPLICATION_ID);
 }
@@ -210,7 +210,7 @@ valent_application_shutdown (GApplication *application)
   g_assert (VALENT_IS_APPLICATION (application));
 
   g_clear_pointer (&self->window, gtk_window_destroy);
-  valent_manager_stop (self->manager);
+  valent_device_manager_stop (self->manager);
 
   G_APPLICATION_CLASS (valent_application_parent_class)->shutdown (application);
 }
@@ -230,12 +230,12 @@ valent_application_dbus_register (GApplication     *application,
   if (!klass->dbus_register (application, connection, object_path, error))
     return FALSE;
 
-  self->manager = valent_manager_new_sync (NULL, NULL, error);
+  self->manager = valent_device_manager_new_sync (NULL, NULL, error);
 
   if (self->manager == NULL)
     return FALSE;
 
-  valent_manager_export (self->manager, connection);
+  valent_device_manager_export (self->manager, connection);
 
   return TRUE;
 }
@@ -250,7 +250,7 @@ valent_application_dbus_unregister (GApplication    *application,
 
   g_assert (VALENT_IS_APPLICATION (self));
 
-  valent_manager_unexport (self->manager);
+  valent_device_manager_unexport (self->manager);
   g_clear_object (&self->manager);
 
   /* Chain-up last */

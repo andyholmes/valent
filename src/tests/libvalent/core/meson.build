@@ -11,7 +11,7 @@ core_tests = [
   'test-certificate',
   'test-data',
   'test-device',
-  'test-manager',
+  'test-device-manager',
   'test-object',
   'test-packet',
   'test-utils',
