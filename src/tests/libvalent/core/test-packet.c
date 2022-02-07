@@ -85,6 +85,7 @@ test_packet_get (void)
   const char *string_value;
   JsonArray *array_value;
   JsonObject *object_value;
+  g_auto (GStrv) strv = NULL;
 
   builder = valent_packet_start ("kdeconnect.mock");
   json_builder_set_member_name (builder, "boolean");
@@ -97,6 +98,8 @@ test_packet_get (void)
   json_builder_add_string_value (builder, "string");
   json_builder_set_member_name (builder, "array");
   json_builder_begin_array (builder);
+  json_builder_add_string_value (builder, "kdeconnect.mock.echo");
+  json_builder_add_string_value (builder, "kdeconnect.mock.transfer");
   json_builder_end_array (builder);
   json_builder_set_member_name (builder, "object");
   json_builder_begin_object (builder);
@@ -122,6 +125,10 @@ test_packet_get (void)
 
   g_assert_true (valent_packet_get_object (packet, "object", &object_value));
   g_assert_nonnull (object_value);
+
+  strv = valent_packet_dup_strv (packet, "array");
+  g_assert_nonnull (strv);
+  g_assert_cmpuint (g_strv_length (strv), ==, 2);
 }
 
 static void
