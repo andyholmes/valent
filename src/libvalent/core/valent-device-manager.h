@@ -49,7 +49,8 @@ void                  valent_device_manager_stop        (ValentDeviceManager  *m
 /* D-Bus */
 VALENT_AVAILABLE_IN_1_0
 void                  valent_device_manager_export      (ValentDeviceManager  *manager,
-                                                         GDBusConnection      *connection);
+                                                         GDBusConnection      *connection,
+                                                         const char           *object_path);
 VALENT_AVAILABLE_IN_1_0
 void                  valent_device_manager_unexport    (ValentDeviceManager  *manager);
 
