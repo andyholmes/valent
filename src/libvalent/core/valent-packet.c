@@ -689,6 +689,61 @@ valent_packet_get_object (JsonNode    *packet,
 }
 
 /**
+ * valent_packet_dup_strv:
+ * @packet: a KDE Connect packet
+ * @field: field name
+ *
+ * Lookup @field in the body of @packet and return a newly allocated list of
+ * strings.
+ *
+ * If @field is not found, it is not a #JsonArray or any of its elements are not
+ * strings, %NULL will be returned.
+ *
+ * Returns: (transfer full) (nullable) (array zero-terminated=1): a list of strings
+ */
+GStrv
+valent_packet_dup_strv (JsonNode   *packet,
+                        const char *field)
+{
+  JsonObject *root, *body;
+  JsonNode *node;
+  JsonArray *array;
+  g_auto (GStrv) strv = NULL;
+  unsigned int n_strings;
+
+  g_return_val_if_fail (JSON_NODE_HOLDS_OBJECT (packet), NULL);
+  g_return_val_if_fail (field != NULL || *field == '\0', NULL);
+
+  root = json_node_get_object (packet);
+
+  if G_UNLIKELY ((node = json_object_get_member (root, "body")) == NULL ||
+                 json_node_get_node_type (node) != JSON_NODE_OBJECT)
+    return NULL;
+
+  body = json_node_get_object (node);
+
+  if G_UNLIKELY ((node = json_object_get_member (body, field)) == NULL ||
+                 json_node_get_node_type (node) != JSON_NODE_ARRAY)
+    return NULL;
+
+  array = json_node_get_array (node);
+  n_strings = json_array_get_length (array);
+  strv = g_new0 (char *, n_strings + 1);
+
+  for (unsigned int i = 0; i < n_strings; i++)
+    {
+      JsonNode *element = json_array_get_element (array, i);
+
+      if G_UNLIKELY (json_node_get_value_type (element) != G_TYPE_STRING)
+        return NULL;
+
+      strv[i] = json_node_dup_string (element);
+    }
+
+  return g_steal_pointer (&strv);
+}
+
+/**
  * valent_packet_validate:
  * @packet: (nullable): a KDE Connect packet
  * @error: (nullable): a #GError

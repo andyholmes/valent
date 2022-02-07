@@ -378,42 +378,10 @@ valent_device_handle_pair (ValentDevice *device,
 /*
  * Private identity methods
  */
-static GStrv
-dup_capabilities (JsonObject *body,
-                  const char *member)
-{
-  g_auto (GStrv) strv = NULL;
-  JsonNode *node;
-  JsonArray *array;
-  unsigned int len;
-
-  if G_UNLIKELY ((node = json_object_get_member (body, member)) == NULL ||
-                 json_node_get_value_type (node) != JSON_TYPE_ARRAY)
-    return NULL;
-
-  array = json_node_get_array (node);
-  len = json_array_get_length (array);
-  strv = g_new (char *, len + 1);
-
-  for (unsigned int i = 0; i < len; i++)
-    {
-      JsonNode *element = json_array_get_element (array, i);
-
-      if G_UNLIKELY (json_node_get_value_type (element) != G_TYPE_STRING)
-        return NULL;
-
-      strv[i] = json_node_dup_string (element);
-    }
-  strv[len] = NULL;
-
-  return g_steal_pointer (&strv);
-}
-
 static void
 valent_device_handle_identity (ValentDevice *device,
                                JsonNode     *packet)
 {
-  JsonObject *body;
   const char *device_id;
   const char *device_name;
   const char *device_type;
@@ -433,12 +401,9 @@ valent_device_handle_identity (ValentDevice *device,
       return;
     }
 
-  body = valent_packet_get_body (packet);
-
   /* Check if the name changed */
-  device_name = json_object_get_string_member_with_default (body,
-                                                            "deviceName",
-                                                            "Unnamed");
+  if (!valent_packet_get_string (packet, "deviceName", &device_name))
+    device_name = "Unnamed";
 
   if (g_strcmp0 (device->name, device_name) != 0)
     {
@@ -448,9 +413,8 @@ valent_device_handle_identity (ValentDevice *device,
     }
 
   /* "type" shouldn't ever change, but we check anyways */
-  device_type = json_object_get_string_member_with_default (body,
-                                                            "deviceType",
-                                                            "desktop");
+  if (!valent_packet_get_string (packet, "deviceType", &device_type))
+    device_type = "desktop";
 
   if (g_strcmp0 (device->type, device_type) != 0)
     {
@@ -479,10 +443,12 @@ valent_device_handle_identity (ValentDevice *device,
   /* Generally, these should be static, but could change if the connection type
    * changes between eg. TCP and Bluetooth */
   g_clear_pointer (&device->incoming_capabilities, g_strfreev);
-  device->incoming_capabilities = dup_capabilities (body, "incomingCapabilities");
+  device->incoming_capabilities = valent_packet_dup_strv (packet,
+                                                          "incomingCapabilities");
 
   g_clear_pointer (&device->outgoing_capabilities, g_strfreev);
-  device->outgoing_capabilities = dup_capabilities (body, "outgoingCapabilities");
+  device->outgoing_capabilities = valent_packet_dup_strv (packet,
+                                                          "outgoingCapabilities");
 
   valent_object_unlock (VALENT_OBJECT (device));
 

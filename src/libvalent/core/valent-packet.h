@@ -151,6 +151,9 @@ VALENT_AVAILABLE_IN_1_0
 gboolean      valent_packet_get_object       (JsonNode       *packet,
                                               const char     *field,
                                               JsonObject    **value);
+VALENT_AVAILABLE_IN_1_0
+GStrv         valent_packet_dup_strv         (JsonNode       *packet,
+                                              const char     *field);
 
 /* I/O Helpers */
 VALENT_AVAILABLE_IN_1_0
