@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-#include "config.h"
-
 #include <gio/gio.h>
 #include <libvalent-core.h>
 #include <libvalent-test.h>
 
+#define TEST_OBJECT_PATH "/ca/andyholmes/Valent/Test"
 #define DEVICE_INTERFACE "ca.andyholmes.Valent.Device"
 
 
@@ -112,28 +111,29 @@ test_manager_basic (ManagerFixture *fixture,
   g_autoptr (ValentData) data = NULL;
   g_autoptr (GError) error = NULL;
   g_autofree char *id = NULL;
-  g_autofree char *base_path = NULL;
   g_autofree char *cert_path = NULL;
   g_autofree char *key_path = NULL;
   const char *common_name = NULL;
-
-  /* Get the generated certificate */
-  base_path = g_build_filename (g_get_user_config_dir (),
-                                PACKAGE_NAME,
-                                NULL);
-  cert_path = g_build_filename (base_path, "certificate.pem", NULL);
-  key_path = g_build_filename (base_path, "private.pem", NULL);
-  certificate = g_tls_certificate_new_from_files (cert_path, key_path, &error);
-  g_assert_no_error (error);
-  common_name = valent_certificate_get_common_name (certificate);
 
   /* Test properties */
   g_object_get (fixture->manager,
                 "data", &data,
                 "id",   &id,
                 NULL);
-
   g_assert_true (VALENT_IS_DATA (data));
+  g_assert_nonnull (id);
+
+  /* Get the generated certificate */
+  cert_path = g_build_filename (valent_data_get_config_path (data),
+                                "certificate.pem",
+                                NULL);
+  key_path = g_build_filename (valent_data_get_config_path (data),
+                               "private.pem",
+                               NULL);
+  certificate = g_tls_certificate_new_from_files (cert_path, key_path, &error);
+  g_assert_no_error (error);
+
+  common_name = valent_certificate_get_common_name (certificate);
   g_assert_cmpstr (id, ==, common_name);
   g_assert_cmpstr (valent_device_manager_get_id (fixture->manager), ==, common_name);
 }
@@ -283,13 +283,13 @@ test_manager_dbus (ManagerFixture *fixture,
 
   /* Exports current devices */
   connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
-  valent_device_manager_export (fixture->manager, connection);
+  valent_device_manager_export (fixture->manager, connection, TEST_OBJECT_PATH);
 
   unique_name = g_dbus_connection_get_unique_name (connection);
   g_dbus_object_manager_client_new (connection,
                                     G_DBUS_OBJECT_MANAGER_CLIENT_FLAGS_NONE,
                                     unique_name,
-                                    APPLICATION_PATH,
+                                    TEST_OBJECT_PATH,
                                     NULL, NULL, NULL,
                                     NULL,
                                     (GAsyncReadyCallback)manager_finish,

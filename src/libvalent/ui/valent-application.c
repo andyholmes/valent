@@ -212,7 +212,7 @@ valent_application_dbus_register (GApplication     *application,
   if (self->manager == NULL)
     return FALSE;
 
-  valent_device_manager_export (self->manager, connection);
+  valent_device_manager_export (self->manager, connection, object_path);
 
   return TRUE;
 }

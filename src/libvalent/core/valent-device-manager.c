@@ -94,36 +94,36 @@ typedef struct
 } ExportedDevice;
 
 static char *
-get_device_dbus_path (ValentDevice *device)
+valent_device_manager_get_device_object_path (ValentDeviceManager *self,
+                                              ValentDevice        *device)
 {
-  unsigned int len = 0;
-  const char *base_path;
-  const char *id;
-  char object_path[256] = { 0, };
+  GDBusObjectManager *object_manager;
+  GString *object_path = NULL;
+  const char *base_path = NULL;
+  const char *id = NULL;
 
+  g_assert (VALENT_IS_DEVICE_MANAGER (self));
   g_assert (VALENT_IS_DEVICE (device));
 
-  base_path = APPLICATION_PATH"/Device/";
+  object_manager = G_DBUS_OBJECT_MANAGER (self->dbus);
+  base_path = g_dbus_object_manager_get_object_path (object_manager);
 
-  while (*base_path && len < 255)
-    {
-      object_path[len++] = *base_path;
-      base_path++;
-    }
+  object_path = g_string_new (base_path);
+  g_string_append (object_path, "/Device/");
 
   id = valent_device_get_id (device);
 
-  while (*id && len < 255)
+  while (*id)
     {
       if G_LIKELY (g_ascii_isalnum (*id))
-        object_path[len++] = *id;
+        g_string_append_c (object_path, *id);
       else
-        object_path[len++] = '_';
+        g_string_append_c (object_path, '_');
 
       id++;
     }
 
-  return g_strdup (object_path);
+  return g_string_free (object_path, FALSE);
 }
 
 static void
@@ -146,7 +146,8 @@ valent_device_manager_export_device (ValentDeviceManager *self,
 
   info = g_new0 (ExportedDevice, 1);
   info->connection = g_dbus_object_manager_server_get_connection (self->dbus);
-  info->object_path = get_device_dbus_path (device);
+  info->object_path = valent_device_manager_get_device_object_path (self,
+                                                                    device);
 
   /* Export the ValentDevice, GActionGroup and GMenuModel interfaces on the same
    * connection and path */
@@ -1241,23 +1242,27 @@ valent_device_manager_stop (ValentDeviceManager *manager)
  * valent_device_manager_export:
  * @manager: a #ValentDeviceManager
  * @connection: a #GDBusConnection
+ * @object_path: a D-Bus object path
  *
- * Export @manager and all managed [class@Valent.Device] objects on @connection.
+ * Export @manager and all managed [class@Valent.Device] objects on @connection
+ * at @object_path.
  */
 void
 valent_device_manager_export (ValentDeviceManager *manager,
-                              GDBusConnection     *connection)
+                              GDBusConnection     *connection,
+                              const char          *object_path)
 {
   GHashTableIter iter;
   ValentDevice *device;
 
   g_return_if_fail (VALENT_IS_DEVICE_MANAGER (manager));
   g_return_if_fail (G_IS_DBUS_CONNECTION (connection));
+  g_return_if_fail (g_variant_is_object_path (object_path));
 
   if (manager->dbus != NULL)
     return;
 
-  manager->dbus = g_dbus_object_manager_server_new (APPLICATION_PATH);
+  manager->dbus = g_dbus_object_manager_server_new (object_path);
   g_dbus_object_manager_server_set_connection (manager->dbus, connection);
 
   g_hash_table_iter_init (&iter, manager->devices);
