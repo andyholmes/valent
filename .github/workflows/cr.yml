@@ -1,18 +1,19 @@
-name: Update Container
+name: Update CI
 
 on:
   push:
     branches: [main]
     paths: [src/tests/extra/Dockerfile]
   schedule:
-    # Once a month to keep dependencies up to date
-    - cron: 0 0 1 * *
+    # Once a week to keep dependencies up to date
+    - cron: 0 0 * * 0
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
   USERNAME: ${{ github.actor }}
   PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build:
@@ -21,9 +22,6 @@ jobs:
       packages: write
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
       - name: Login
         uses: docker/login-action@v1
         with:
@@ -36,4 +34,4 @@ jobs:
         with:
           file: ./src/tests/extra/Dockerfile
           push: true
-          tags: ${{ github.actor }}/${{ github.repository }}:latest
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
