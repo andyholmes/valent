@@ -16,7 +16,7 @@ jobs:
     name: Analyze
     runs-on: ubuntu-latest
     container:
-      image: quay.io/andyholmes/valent:latest
+      image: ghcr.io/andyholmes/valent:latest
 
     steps:
       - name: Checkout
@@ -31,9 +31,8 @@ jobs:
 
       - name: Build
         run: |
-          meson --prefix=/usr \
-                --buildtype=release \
-                _build
+          meson setup --buildtype=release \
+                      _build
           meson compile -C _build
 
       - name: Perform CodeQL Analysis
