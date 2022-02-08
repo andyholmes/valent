@@ -116,7 +116,9 @@ g_socket_listener_accept_cb (GSocketListener   *listener,
   g_autoptr (GIOStream) tls_stream = NULL;
   GError *error = NULL;
 
-  connection = g_socket_listener_accept_finish (listener, result, NULL, NULL);
+  connection = g_socket_listener_accept_finish (listener, result, NULL, &error);
+  g_socket_listener_close (listener);
+  g_assert_no_error (error);
 
   /* The incoming TCP connection is in response to the mock UDP packet we sent,
    * so we now expect the test service to write its identity packet.
@@ -154,8 +156,6 @@ g_socket_listener_accept_cb (GSocketListener   *listener,
                                     "peer-identity", peer_identity,
                                     "port",          SERVICE_PORT,
                                     NULL);
-
-  g_socket_listener_close (listener);
 }
 
 static void
