@@ -7,8 +7,8 @@
   <gresource prefix="/ca/andyholmes/Valent">
     <!-- Device Icons -->
     <file preprocess="xml-stripblanks" alias="icons/scalable/devices/computer-symbolic.svg">data/icons/hicolor/scalable/devices/computer-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="icons/scalable/devices/smartphone-symbolic.svg">data/icons/hicolor/scalable/devices/smartphone-symbolic.svg</file>
     <file preprocess="xml-stripblanks" alias="icons/scalable/devices/laptop-symbolic.svg">data/icons/hicolor/scalable/devices/laptop-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="icons/scalable/devices/phone-symbolic.svg">data/icons/hicolor/scalable/devices/phone-symbolic.svg</file>
     <file preprocess="xml-stripblanks" alias="icons/scalable/devices/tablet-symbolic.svg">data/icons/hicolor/scalable/devices/tablet-symbolic.svg</file>
     <file preprocess="xml-stripblanks" alias="icons/scalable/devices/tv-symbolic.svg">data/icons/hicolor/scalable/devices/tv-symbolic.svg</file>
 

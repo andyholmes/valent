@@ -196,7 +196,7 @@ test_device_basic (DeviceFixture *fixture,
   g_assert_true (VALENT_IS_DATA (data));
   g_assert_cmpstr (id, ==, "test-device");
   g_assert_cmpstr (name, ==, "Test Device");
-  g_assert_cmpstr (icon_name, ==, "smartphone-symbolic");
+  g_assert_cmpstr (icon_name, ==, "phone-symbolic");
   g_assert_cmpstr (type, ==, "phone");
   g_assert_false (connected);
   g_assert_false (paired);
