@@ -22,12 +22,7 @@
 #include "valent-transfer.h"
 #include "valent-utils.h"
 
-#define VALENT_DEVICE_DESKTOP    "desktop"
-#define VALENT_DEVICE_LAPTOP     "laptop"
-#define VALENT_DEVICE_SMARTPHONE "phone"
-#define VALENT_DEVICE_TABLET     "tablet"
-#define VALENT_DEVICE_TELEVISION "tv"
-#define PAIR_REQUEST_TIMEOUT     30
+#define PAIR_REQUEST_TIMEOUT 30
 
 
 /**
@@ -391,6 +386,7 @@ valent_device_handle_identity (ValentDevice *device,
 
   valent_object_lock (VALENT_OBJECT (device));
 
+  /* Device ID, which MUST exist and MUST match the construct-time value */
   if (!valent_packet_get_string (packet, "deviceId", &device_id) ||
       !g_str_equal (device->id, device_id))
     {
@@ -401,7 +397,7 @@ valent_device_handle_identity (ValentDevice *device,
       return;
     }
 
-  /* Check if the name changed */
+  /* Device Name */
   if (!valent_packet_get_string (packet, "deviceName", &device_name))
     device_name = "Unnamed";
 
@@ -412,7 +408,7 @@ valent_device_handle_identity (ValentDevice *device,
       g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_NAME]);
     }
 
-  /* "type" shouldn't ever change, but we check anyways */
+  /* Device Type */
   if (!valent_packet_get_string (packet, "deviceType", &device_type))
     device_type = "desktop";
 
@@ -420,15 +416,15 @@ valent_device_handle_identity (ValentDevice *device,
     {
       const char *device_icon = "computer-symbolic";
 
-      if (g_strcmp0 (device_type, "desktop") == 0)
+      if (g_str_equal (device_type, "desktop"))
         device_icon = "computer-symbolic";
-      else if (g_strcmp0 (device_type, "laptop") == 0)
+      else if (g_str_equal (device_type, "laptop"))
         device_icon = "laptop-symbolic";
-      else if (g_strcmp0 (device_type, "phone") == 0)
-        device_icon = "smartphone-symbolic";
-      else if (g_strcmp0 (device_type, "tablet") == 0)
+      else if (g_str_equal (device_type, "phone"))
+        device_icon = "phone-symbolic";
+      else if (g_str_equal (device_type, "tablet"))
         device_icon = "tablet-symbolic";
-      else if (g_strcmp0 (device_type, "tv") == 0)
+      else if (g_str_equal (device_type, "tv"))
         device_icon = "tv-symbolic";
 
       g_clear_pointer (&device->icon_name, g_free);
