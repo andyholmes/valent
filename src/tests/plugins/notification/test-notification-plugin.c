@@ -177,6 +177,14 @@ test_notification_plugin_send_notification (ValentTestPluginFixture *fixture,
 
   valent_test_plugin_fixture_download (fixture, packet, NULL);
   json_node_unref (packet);
+
+  /* Remove Notification */
+  valent_notification_source_emit_notification_removed (source, "test-id");
+
+  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  v_assert_packet_type (packet, "kdeconnect.notification.request");
+  v_assert_packet_cmpstr (packet, "cancel", ==, "test-id");
+  json_node_unref (packet);
 }
 
 static void

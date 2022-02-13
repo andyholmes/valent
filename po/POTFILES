@@ -40,10 +40,10 @@ src/plugins/mousepad/valent-mousepad-plugin.c
 src/plugins/mpris/mpris.plugin.desktop.in
 src/plugins/mpris/valent-mpris-plugin.c
 src/plugins/notification/notification.plugin.desktop.in
+src/plugins/notification/valent-notification-dialog.c
+src/plugins/notification/valent-notification-dialog.ui
 src/plugins/notification/valent-notification-preferences.c
 src/plugins/notification/valent-notification-preferences.ui
-src/plugins/notification/valent-notification-reply-dialog.c
-src/plugins/notification/valent-notification-reply-dialog.ui
 src/plugins/photo/photo.plugin.desktop.in
 src/plugins/photo/valent-photo-plugin.c
 src/plugins/ping/ping.plugin.desktop.in

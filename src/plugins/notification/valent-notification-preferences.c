@@ -11,7 +11,6 @@
 #include <libvalent-ui.h>
 
 #include "valent-notification-preferences.h"
-#include "valent-notification-reply-dialog.h"
 
 
 struct _ValentNotificationPreferences

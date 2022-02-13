@@ -17,6 +17,8 @@ VALENT_AVAILABLE_IN_1_0
 G_DECLARE_FINAL_TYPE (ValentNotification, valent_notification, VALENT, NOTIFICATION, GObject)
 
 VALENT_AVAILABLE_IN_1_0
+ValentNotification    * valent_notification_new                    (const char            *title);
+VALENT_AVAILABLE_IN_1_0
 const char            * valent_notification_get_application        (ValentNotification    *notification);
 VALENT_AVAILABLE_IN_1_0
 void                    valent_notification_set_application        (ValentNotification    *notification,
@@ -71,12 +73,14 @@ void                    valent_notification_add_button_with_target (ValentNotifi
                                                                     const char            *label,
                                                                     const char            *action,
                                                                     GVariant              *target);
-
-VALENT_AVAILABLE_IN_1_0
-ValentNotification    * valent_notification_new                    (const char            *title);
 VALENT_AVAILABLE_IN_1_0
 GVariant              * valent_notification_serialize              (ValentNotification    *notification);
 VALENT_AVAILABLE_IN_1_0
 ValentNotification    * valent_notification_deserialize            (GVariant              *variant);
+VALENT_AVAILABLE_IN_1_0
+unsigned int            valent_notification_hash                   (gconstpointer          notification);
+VALENT_AVAILABLE_IN_1_0
+gboolean                valent_notification_equal                  (gconstpointer          notification1,
+                                                                    gconstpointer          notification2);
 
 G_END_DECLS

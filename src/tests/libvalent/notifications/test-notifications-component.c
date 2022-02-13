@@ -96,11 +96,16 @@ test_notifications_component_notification (NotificationsComponentFixture *fixtur
                                            gconstpointer                  user_data)
 {
   ValentNotificationSource *source;
+  g_autoptr (ValentNotification) notification = NULL;
+  g_autoptr (GVariant) serialized = NULL;
   g_autoptr (GIcon) icon = NULL;
-  char *id, *application, *title, *body;
-  GIcon *nicon;
+  g_autoptr (GIcon) icon_out = NULL;
+  g_autofree char *id = NULL;
+  g_autofree char *application = NULL;
+  g_autofree char *title = NULL;
+  g_autofree char *body = NULL;
   GNotificationPriority priority;
-  gint64 time, ntime;
+  gint64 time, time_out;
 
   while ((source = valent_mock_notification_source_get_instance ()) == NULL)
     continue;
@@ -145,30 +150,24 @@ test_notifications_component_notification (NotificationsComponentFixture *fixtur
                 "application", &application,
                 "title",       &title,
                 "body",        &body,
-                "icon",        &nicon,
+                "icon",        &icon_out,
                 "priority",    &priority,
-                "time",        &ntime,
+                "time",        &time_out,
                 NULL);
 
   g_assert_cmpstr (id, ==, "test-id");
   g_assert_cmpstr (application, ==, "Test Application");
   g_assert_cmpstr (title, ==, "Test Title");
   g_assert_cmpstr (body, ==, "Test Body");
-  g_assert_true (g_icon_equal (icon, nicon));
+  g_assert_true (g_icon_equal (icon, icon_out));
   g_assert_cmpuint (priority, ==, G_NOTIFICATION_PRIORITY_HIGH);
-  g_assert_cmpint (time, ==, ntime);
+  g_assert_cmpint (time, ==, time_out);
 
-  g_free (id);
-  g_free (application);
-  g_free (title);
-  g_free (body);
-  g_object_unref (nicon);
+  serialized = valent_notification_serialize (fixture->notification);
+  notification = valent_notification_deserialize (serialized);
 
-  g_autoptr (GVariant) variant = NULL;
-  g_autoptr (ValentNotification) notification = NULL;
-
-  variant = valent_notification_serialize (fixture->notification);
-  notification = valent_notification_deserialize (variant);
+  g_assert_true (valent_notification_equal (fixture->notification, notification));
+  g_assert_cmpuint (valent_notification_hash (fixture->notification), ==, valent_notification_hash (notification));
 
   /* Remove Notification */
   valent_notification_source_emit_notification_removed (source, "test-id");
