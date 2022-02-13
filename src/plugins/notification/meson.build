@@ -12,9 +12,9 @@ plugin_notification_deps = [
 # Sources
 plugin_notification_sources = files([
   'notification-plugin.c',
+  'valent-notification-dialog.c',
   'valent-notification-plugin.c',
   'valent-notification-preferences.c',
-  'valent-notification-reply-dialog.c',
 ])
 
 plugin_notification_include_directories = [include_directories('.')]

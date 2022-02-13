@@ -11,6 +11,7 @@
 #include <libvalent-notifications.h>
 #include <libvalent-session.h>
 
+#include "valent-notification-dialog.h"
 #include "valent-notification-plugin.h"
 
 
@@ -23,9 +24,8 @@ struct _ValentNotificationPlugin
   GCancellable        *cancellable;
 
   ValentNotifications *notifications;
-  gulong               notifications_id;
-
   ValentSession       *session;
+  GHashTable          *dialogs;
 };
 
 static void valent_device_plugin_iface_init (ValentDevicePluginInterface *iface);
@@ -514,25 +514,31 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
   /* Repliable Notification */
   if (valent_packet_get_string (packet, "requestReplyId", &reply_id))
     {
-      g_autoptr (GError) rerror = NULL;
-      JsonNode *node;
-      GVariant *parameters;
+      g_autoptr (ValentNotification) incoming = NULL;
+      const char *time_str = NULL;
+      gint64 time = 0;
+      GVariant *target;
 
-      node = json_object_get_member (json_node_get_object (packet), "body");
-      parameters = json_gvariant_deserialize (node, "a{sv}", &rerror);
+      if (valent_packet_get_string (packet, "time", &time_str))
+        time = g_ascii_strtoll (time_str, NULL, 10);
 
-      if (parameters != NULL)
-        {
-          GVariant *target;
+      incoming = g_object_new (VALENT_TYPE_NOTIFICATION,
+                               "id",          id,
+                               "application", app_name,
+                               "icon",        icon,
+                               "title",       title,
+                               "body",        text,
+                               "time",        time,
+                               NULL);
+      target = g_variant_new ("(ssv)",
+                              reply_id,
+                              "",
+                              valent_notification_serialize (incoming));
 
-          target = g_variant_new ("(ssv)", reply_id, "", parameters);
-          valent_notification_set_device_action (notification,
-                                                 self->device,
-                                                 "notification-reply",
-                                                 target);
-        }
-      else
-        g_debug ("%s: deserializing JSON node: %s", G_STRFUNC, rerror->message);
+      valent_notification_set_device_action (notification,
+                                             self->device,
+                                             "notification-reply",
+                                             target);
     }
 
   /* Notification Actions */
@@ -544,10 +550,15 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
 
       for (unsigned int i = 0; i < n_actions; i++)
         {
+          JsonNode *element;
           const char *action;
           GVariant *target;
 
-          action = json_array_get_string_element (actions, i);
+          if ((element = json_array_get_element (actions, i)) == NULL ||
+              json_node_get_value_type (element) != G_TYPE_STRING)
+            continue;
+
+          action = json_node_get_string (element);
           target = g_variant_new ("(ss)", id, action);
           valent_notification_add_device_button (notification,
                                                  self->device,
@@ -557,7 +568,11 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
         }
     }
 
-  /* Special case for missed calls */
+  /* Special cases.
+   *
+   * In some cases, usually on Android, a notification "type" can be inferred
+   * from the ID string or the appName is duplicated as the title.
+   */
   if (g_strrstr (id, "MissedCall") != NULL)
     {
       g_notification_set_title (notification, title);
@@ -566,8 +581,6 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
       if (icon == NULL)
         icon = g_themed_icon_new ("call-missed-symbolic");
     }
-
-  /* Special case for SMS messages */
   else if (g_strrstr (id, "sms") != NULL)
     {
       g_notification_set_title (notification, title);
@@ -576,15 +589,11 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
       if (icon == NULL)
         icon = g_themed_icon_new ("sms-symbolic");
     }
-
-  /* Ignore `appName` if it's the same as `title` */
   else if (g_strcmp0 (app_name, title) == 0)
     {
       g_notification_set_title (notification, title);
       g_notification_set_body (notification, text);
     }
-
-  /* Fallback to ticker-style */
   else
     {
       g_autofree char *ticker_body = NULL;
@@ -617,10 +626,11 @@ download_cb (ValentNotificationPlugin *self,
 
   if (icon == NULL)
     {
-      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_warning ("Downloading icon: %s", error->message);
+      // If the operation was cancelled, the plugin is being disposed
+      if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
 
-      return;
+      g_warning ("Downloading icon: %s", error->message);
     }
 
   valent_notification_plugin_show_notification (self, packet, icon);
@@ -650,9 +660,7 @@ valent_notification_plugin_handle_notification (ValentNotificationPlugin *self,
 
   /* A notification that should only be shown once */
   if (valent_packet_check_field (packet, "onlyOnce"))
-    {
-      VALENT_TODO ("Handle 'onlyOnce' field");
-    }
+    VALENT_TODO ("Handle 'onlyOnce' field");
 
   /* A notification with an icon payload */
   if (valent_packet_has_payload (packet))
@@ -870,14 +878,6 @@ valent_notification_plugin_send_notification (ValentNotificationPlugin *self,
 /*
  * GActions
  */
-
-/**
- * notificaton-action:
- * @parameter: "(ss)": a tuple of @id and @name
- *
- * Inform the remote device that action @name on the remote notification @id has
- * been activated by the user.
- */
 static void
 notification_action_action (GSimpleAction *action,
                             GVariant      *parameter,
@@ -903,12 +903,6 @@ notification_action_action (GSimpleAction *action,
   valent_device_queue_packet (self->device, packet);
 }
 
-/**
- * notificaton-cancel:
- * @parameter: "s": the remote notification id
- *
- * Inform the remote device the local notification @id has been withdrawn.
- */
 static void
 notification_cancel_action (GSimpleAction *action,
                             GVariant      *parameter,
@@ -933,12 +927,6 @@ notification_cancel_action (GSimpleAction *action,
   valent_device_queue_packet (self->device, packet);
 }
 
-/**
- * notificaton-close:
- * @parameter: "s": the remote notification id
- *
- * Request the remote device close the remote notification @id.
- */
 static void
 notification_close_action (GSimpleAction *action,
                            GVariant      *parameter,
@@ -953,12 +941,40 @@ notification_close_action (GSimpleAction *action,
   valent_notification_plugin_close_notification (self, id);
 }
 
-/**
- * notificaton-reply:
- * @parameter: "s": the remote notification id
- *
- * Request the remote device close the remote notification @id.
- */
+static void
+on_notification_reply (ValentNotificationDialog *dialog,
+                       int                       response_id,
+                       ValentNotificationPlugin *self)
+{
+  ValentNotification *notification = NULL;
+  g_autofree char *reply = NULL;
+  const char *reply_id;
+
+  g_assert (VALENT_IS_NOTIFICATION_DIALOG (dialog));
+  g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
+
+  notification = valent_notification_dialog_get_notification (dialog);
+  reply = valent_notification_dialog_get_reply (dialog);
+  reply_id = valent_notification_dialog_get_reply_id (dialog);
+
+  if (response_id == GTK_RESPONSE_OK && *reply != '\0')
+    {
+      JsonBuilder *builder;
+      g_autoptr (JsonNode) packet = NULL;
+
+      builder = valent_packet_start ("kdeconnect.notification.reply");
+      json_builder_set_member_name (builder, "requestReplyId");
+      json_builder_add_string_value (builder, reply_id);
+      json_builder_set_member_name (builder, "message");
+      json_builder_add_string_value (builder, reply);
+      packet = valent_packet_finish (builder);
+
+      valent_device_queue_packet (self->device, packet);
+    }
+
+  g_hash_table_remove (self->dialogs, notification);
+}
+
 static void
 notification_reply_action (GSimpleAction *action,
                            GVariant      *parameter,
@@ -967,15 +983,52 @@ notification_reply_action (GSimpleAction *action,
   ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (user_data);
   const char *reply_id;
   const char *message;
-  g_autoptr (GVariant) notification = NULL;
+  g_autoptr (GVariant) notificationv = NULL;
 
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
 
-  g_variant_get (parameter, "(&s&sv)", &reply_id, &message, &notification);
+  g_variant_get (parameter, "(&s&sv)", &reply_id, &message, &notificationv);
 
-  if (strlen (message) == 0)
+  /* If the reply ID is empty, we've received a broken request */
+  if (reply_id == NULL || *reply_id == '\0')
     {
-      // TODO: reply dialog
+      g_warning ("%s(): expected requestReplyId", G_STRFUNC);
+      return;
+    }
+
+  /* If the message is empty, we're being asked to show the dialog */
+  if (message == NULL || *message == '\0')
+    {
+      g_autoptr (ValentNotificationDialog) dialog = NULL;
+      g_autoptr (ValentNotification) notification = NULL;
+
+      notification = valent_notification_deserialize (notificationv);
+
+      if ((dialog = g_hash_table_lookup (self->dialogs, notification)) == NULL)
+        {
+          ValentDeviceState state;
+          gboolean available;
+
+          dialog = g_object_new (VALENT_TYPE_NOTIFICATION_DIALOG,
+                                 "notification",   notification,
+                                 "reply-id",       reply_id,
+                                 "use-header-bar", TRUE,
+                                 NULL);
+          g_signal_connect (dialog,
+                            "response",
+                            G_CALLBACK (on_notification_reply),
+                            self);
+          g_hash_table_insert (self->dialogs,
+                               g_object_ref (notification),
+                               g_object_ref (dialog));
+
+          state = valent_device_get_state (self->device);
+          available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
+                      (state & VALENT_DEVICE_STATE_PAIRED) != 0;
+          valent_notification_dialog_update_state (dialog, available);
+        }
+
+      gtk_window_present (GTK_WINDOW (dialog));
     }
   else
     {
@@ -993,12 +1046,6 @@ notification_reply_action (GSimpleAction *action,
     }
 }
 
-/**
- * notificaton-send:
- * @parameter: "s": the remote notification id
- *
- * Request the remote device close the remote notification @id.
- */
 static void
 notification_send_action (GSimpleAction *action,
                           GVariant      *parameter,
@@ -1044,7 +1091,7 @@ static const GActionEntry actions[] = {
     {"notification-send",   notification_send_action,   "a{sv}", NULL, NULL},
 };
 
-/**
+/*
  * ValentDevicePlugin
  */
 static void
@@ -1076,12 +1123,20 @@ valent_notification_plugin_enable (ValentDevicePlugin *plugin)
                     "notification-removed",
                     G_CALLBACK (on_notification_removed),
                     self);
+
+  self->dialogs = g_hash_table_new_full (valent_notification_hash,
+                                         valent_notification_equal,
+                                         g_object_unref,
+                                         (GDestroyNotify)gtk_window_destroy);
 }
 
 static void
 valent_notification_plugin_disable (ValentDevicePlugin *plugin)
 {
   ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (plugin);
+
+  /* Close any open reply dialogs */
+  g_clear_pointer (&self->dialogs, g_hash_table_unref);
 
   /* Stop watching for local notifications and cancel pending transfers */
   if (self->notifications)
@@ -1101,6 +1156,8 @@ valent_notification_plugin_update_state (ValentDevicePlugin *plugin,
                                          ValentDeviceState   state)
 {
   ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (plugin);
+  GHashTableIter iter;
+  ValentNotificationDialog *dialog;
   gboolean available;
 
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
@@ -1115,6 +1172,12 @@ valent_notification_plugin_update_state (ValentDevicePlugin *plugin,
   /* Request Notifications */
   if (available)
     valent_notification_plugin_request_notifications (self);
+
+  /* Update Reply Dialogs */
+  g_hash_table_iter_init (&iter, self->dialogs);
+
+  while (g_hash_table_iter_next (&iter, NULL, (void **)&dialog))
+    valent_notification_dialog_update_state (dialog, available);
 
   /* TODO: send active notifications */
 }
@@ -1155,7 +1218,7 @@ valent_device_plugin_iface_init (ValentDevicePluginInterface *iface)
   iface->update_state = valent_notification_plugin_update_state;
 }
 
-/**
+/*
  * GObject
  */
 static void

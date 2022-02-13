@@ -6,8 +6,8 @@
 <gresources>
   <gresource prefix="/plugins/notification">
     <file>notification.plugin</file>
+    <file>valent-notification-dialog.ui</file>
     <file>valent-notification-preferences.ui</file>
-    <file>valent-notification-reply-dialog.ui</file>
   </gresource>
 </gresources>
 

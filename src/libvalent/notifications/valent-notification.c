@@ -986,3 +986,39 @@ valent_notification_deserialize (GVariant *variant)
   return notification;
 }
 
+/**
+ * valent_notification_hash:
+ * @notification: (type Valent.Notification): a #ValentNotification
+ *
+ * Converts a notification to a hash value, using g_str_hash() on the ID.
+ *
+ * Returns: a hash value
+ */
+unsigned int
+valent_notification_hash (gconstpointer notification)
+{
+  g_return_val_if_fail (VALENT_IS_NOTIFICATION ((void *)notification), 0);
+
+  return g_str_hash (((ValentNotification *)notification)->id);
+}
+
+/**
+ * valent_notification_equal:
+ * @notification1: (type Valent.Notification): a #ValentNotification
+ * @notification2: (type Valent.Notification): a #ValentNotification
+ *
+ * Compare two notifications for equality by ID.
+ *
+ * Returns: %TRUE if equal, or $FALSE if not
+ */
+gboolean
+valent_notification_equal (gconstpointer notification1,
+                           gconstpointer notification2)
+{
+  g_return_val_if_fail (VALENT_IS_NOTIFICATION ((void *)notification1), FALSE);
+  g_return_val_if_fail (VALENT_IS_NOTIFICATION ((void *)notification2), FALSE);
+
+  return g_strcmp0 (((ValentNotification *)notification1)->id,
+                    ((ValentNotification *)notification2)->id) == 0;
+}
+
