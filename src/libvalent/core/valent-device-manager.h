@@ -39,6 +39,11 @@ GPtrArray           * valent_device_manager_get_devices (ValentDeviceManager  *m
 VALENT_AVAILABLE_IN_1_0
 const char          * valent_device_manager_get_id      (ValentDeviceManager  *manager);
 VALENT_AVAILABLE_IN_1_0
+const char          * valent_device_manager_get_name    (ValentDeviceManager  *manager);
+VALENT_AVAILABLE_IN_1_0
+void                  valent_device_manager_set_name    (ValentDeviceManager  *manager,
+                                                         const char           *name);
+VALENT_AVAILABLE_IN_1_0
 void                  valent_device_manager_identify    (ValentDeviceManager  *manager,
                                                          const char           *uri);
 VALENT_AVAILABLE_IN_1_0

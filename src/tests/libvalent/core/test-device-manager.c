@@ -111,6 +111,7 @@ test_manager_basic (ManagerFixture *fixture,
   g_autoptr (ValentData) data = NULL;
   g_autoptr (GError) error = NULL;
   g_autofree char *id = NULL;
+  g_autofree char *name = NULL;
   g_autofree char *cert_path = NULL;
   g_autofree char *key_path = NULL;
   const char *common_name = NULL;
@@ -119,9 +120,11 @@ test_manager_basic (ManagerFixture *fixture,
   g_object_get (fixture->manager,
                 "data", &data,
                 "id",   &id,
+                "name", &name,
                 NULL);
   g_assert_true (VALENT_IS_DATA (data));
   g_assert_nonnull (id);
+  g_assert_cmpstr (name, ==, "Valent");
 
   /* Get the generated certificate */
   cert_path = g_build_filename (valent_data_get_config_path (data),
@@ -136,6 +139,7 @@ test_manager_basic (ManagerFixture *fixture,
   common_name = valent_certificate_get_common_name (certificate);
   g_assert_cmpstr (id, ==, common_name);
   g_assert_cmpstr (valent_device_manager_get_id (fixture->manager), ==, common_name);
+  g_assert_cmpstr (valent_device_manager_get_name (fixture->manager), ==, "Valent");
 }
 
 static void
