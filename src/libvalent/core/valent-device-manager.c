@@ -57,12 +57,12 @@ static void           valent_device_manager_remove_device (ValentDeviceManager *
 static ValentDevice * valent_device_manager_ensure_device (ValentDeviceManager *manager,
                                                            JsonNode            *identity);
 
-static void initable_iface_init       (GInitableIface      *iface);
-static void async_initable_iface_init (GAsyncInitableIface *iface);
+static void g_initable_iface_init       (GInitableIface      *iface);
+static void g_async_initable_iface_init (GAsyncInitableIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (ValentDeviceManager, valent_device_manager, G_TYPE_OBJECT,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, initable_iface_init)
-                         G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, async_initable_iface_init))
+                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, g_initable_iface_init)
+                         G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init))
 
 enum {
   PROP_0,
@@ -588,7 +588,7 @@ valent_device_manager_add_device (ValentDeviceManager *self,
 
 static void
 valent_device_manager_remove_device (ValentDeviceManager *manager,
-                              ValentDevice  *device)
+                                     ValentDevice        *device)
 {
   VALENT_ENTRY;
 
@@ -616,7 +616,7 @@ valent_device_manager_remove_device (ValentDeviceManager *manager,
 
 static ValentDevice *
 valent_device_manager_ensure_device (ValentDeviceManager *manager,
-                              JsonNode      *identity)
+                                     JsonNode            *identity)
 {
   ValentDevice *device = NULL;
   const char *device_id;
@@ -681,7 +681,7 @@ valent_device_manager_initable_init (GInitable     *initable,
 }
 
 static void
-initable_iface_init (GInitableIface *iface)
+g_initable_iface_init (GInitableIface *iface)
 {
   iface->init = valent_device_manager_initable_init;
 }
@@ -767,7 +767,7 @@ valent_device_manager_init_finish (GAsyncInitable  *initable,
 }
 
 static void
-async_initable_iface_init (GAsyncInitableIface *iface)
+g_async_initable_iface_init (GAsyncInitableIface *iface)
 {
   iface->init_async = valent_device_manager_init_async;
   iface->init_finish = valent_device_manager_init_finish;
@@ -1076,7 +1076,7 @@ valent_device_manager_new_finish (GAsyncResult  *result,
  */
 ValentDevice *
 valent_device_manager_get_device (ValentDeviceManager *manager,
-                           const char    *id)
+                                  const char          *id)
 {
   g_return_val_if_fail (VALENT_IS_DEVICE_MANAGER (manager), NULL);
   g_return_val_if_fail (id != NULL, NULL);
