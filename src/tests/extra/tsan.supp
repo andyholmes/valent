@@ -16,10 +16,6 @@ race:execute_task
 #       transferred correctly.
 race:valent_sms_store_thread
 
-# src/tests/fixtures/valent-test-utils.c
-race:download_task
-race:upload_task
-
 #
 # False Positives
 #
