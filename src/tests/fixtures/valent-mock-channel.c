@@ -7,13 +7,11 @@
 
 #include <gio/gio.h>
 #include <libvalent-core.h>
+#include <sys/socket.h>
 
 #include "valent-mock-channel.h"
 
 #define VALENT_TEST_TCP_PORT 2716
-#define VALENT_TEST_UDP_PORT 2716
-#define VALENT_TEST_AUX_MIN  2739
-#define VALENT_TEST_AUX_MAX  2764
 
 
 struct _ValentMockChannel
@@ -53,14 +51,10 @@ valent_mock_channel_download (ValentChannel  *channel,
                               GCancellable   *cancellable,
                               GError        **error)
 {
-  ValentMockChannel *self = VALENT_MOCK_CHANNEL (channel);
-  g_autoptr (GSocketClient) client = NULL;
-  g_autoptr (GSocketConnection) connection = NULL;
-  g_autoptr (GIOStream) stream = NULL;
-  g_autofree char *host = NULL;
+  g_autoptr (GSocket) socket = NULL;
   JsonObject *info;
-  gint64 port;
-  gssize size;
+  gssize size = 0;
+  int fd = 0;
 
   g_assert (VALENT_IS_CHANNEL (channel));
   g_assert (VALENT_IS_PACKET (packet));
@@ -71,34 +65,25 @@ valent_mock_channel_download (ValentChannel  *channel,
   if ((info = valent_packet_get_payload_full (packet, &size, error)) == NULL)
     return NULL;
 
-  if ((port = json_object_get_int_member (info, "port")) == 0 ||
-      (port < 0 || port > G_MAXUINT16))
+  if ((fd = json_object_get_int_member (info, "fd")) == -1)
     {
       g_set_error_literal (error,
                            VALENT_PACKET_ERROR,
                            VALENT_PACKET_ERROR_INVALID_FIELD,
-                           "expected \"port\" field holding a uint16");
+                           "expected \"fd\" field holding a file descriptor");
       return NULL;
     }
 
-  /* Wait for connection (open) */
-  host = valent_mock_channel_dup_host (self);
-  client = g_object_new (G_TYPE_SOCKET_CLIENT,
-                         "enable-proxy", FALSE,
-                         NULL);
-  connection = g_socket_client_connect_to_host (client,
-                                                host,
-                                                (guint16)port,
-                                                cancellable,
-                                                error);
+  if ((socket = g_socket_new_from_fd (fd, error)) == NULL)
+    return NULL;
 
-  if (connection != NULL)
-    {
-      stream = G_IO_STREAM (connection);
-      connection = NULL;
-    }
+  /* Send a single byte to confirm connection */
+  if (g_socket_send (socket, "\x06", 1, cancellable, error) == -1)
+    return NULL;
 
-  return g_steal_pointer (&stream);
+  return g_object_new (G_TYPE_SOCKET_CONNECTION,
+                       "socket", socket,
+                       NULL);
 }
 
 static GIOStream *
@@ -108,51 +93,42 @@ valent_mock_channel_upload (ValentChannel  *channel,
                             GError        **error)
 {
   JsonObject *info;
-  g_autoptr (GSocketListener) listener = NULL;
-  g_autoptr (GSocketConnection) connection = NULL;
-  g_autoptr (GIOStream) stream = NULL;
-  guint16 port;
+  g_autoptr (GSocket) socket = NULL;
+  int sv[2] = { 0, };
+  char buf[1] = { 0, };
 
   g_assert (VALENT_IS_CHANNEL (channel));
   g_assert (VALENT_IS_PACKET (packet));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
   g_assert (error == NULL || *error == NULL);
 
-  /* Wait for an open port */
-  listener = g_socket_listener_new ();
-  port = VALENT_TEST_AUX_MIN;
-
-  while (port <= VALENT_TEST_AUX_MAX)
+  if (socketpair (AF_UNIX, SOCK_STREAM, 0, sv) == -1)
     {
-      if (g_socket_listener_add_inet_port (listener, port, NULL, error))
-        break;
-      else if (port < VALENT_TEST_AUX_MAX)
-        {
-          g_clear_error (error);
-          port++;
-        }
-      else
-        return NULL;
+      g_set_error_literal (error,
+                           G_IO_ERROR,
+                           G_IO_ERROR_FAILED,
+                           g_strerror (errno));
+      return NULL;
     }
 
   /* Payload Info */
   info = json_object_new();
-  json_object_set_int_member (info, "port", (gint64)port);
+  json_object_set_int_member (info, "fd", (gint64)sv[1]);
   valent_packet_set_payload_info (packet, info);
+
+  if ((socket = g_socket_new_from_fd (sv[0], error)) == NULL)
+    return NULL;
 
   /* Notify the device we're ready */
   valent_channel_write_packet (channel, packet, cancellable, NULL, NULL);
 
-  /* Wait for connection (accept) */
-  connection = g_socket_listener_accept (listener, NULL, cancellable, error);
+  /* Receive a single byte to confirm connection */
+  if (g_socket_receive (socket, buf, sizeof (buf), cancellable, error) == -1)
+    return NULL;
 
-  if (connection != NULL)
-    {
-      stream = G_IO_STREAM (connection);
-      connection = NULL;
-    }
-
-  return g_steal_pointer (&stream);
+  return g_object_new (G_TYPE_SOCKET_CONNECTION,
+                       "socket", socket,
+                       NULL);
 }
 
 /*
@@ -172,9 +148,9 @@ valent_mock_channel_finalize (GObject *object)
 
 static void
 valent_mock_channel_get_property (GObject    *object,
-                                 guint       prop_id,
-                                 GValue     *value,
-                                 GParamSpec *pspec)
+                                  guint       prop_id,
+                                  GValue     *value,
+                                  GParamSpec *pspec)
 {
   ValentMockChannel *self = VALENT_MOCK_CHANNEL (object);
 
@@ -195,9 +171,9 @@ valent_mock_channel_get_property (GObject    *object,
 
 static void
 valent_mock_channel_set_property (GObject      *object,
-                                 guint         prop_id,
-                                 const GValue *value,
-                                 GParamSpec   *pspec)
+                                  guint         prop_id,
+                                  const GValue *value,
+                                  GParamSpec   *pspec)
 {
   ValentMockChannel *self = VALENT_MOCK_CHANNEL (object);
 
@@ -237,13 +213,16 @@ valent_mock_channel_class_init (ValentMockChannelClass *klass)
   /**
    * ValentMockChannel:host:
    *
-   * The remote TCP/IP address for the channel.
+   * The remote host address for the channel.
+   *
+   * This property only exists for tests that require a channel with a `host`
+   * property. The underlying connection is actually a #GUnixConnection.
    */
   properties [PROP_HOST] =
     g_param_spec_string ("host",
                          "Host",
                          "TCP/IP address",
-                         NULL,
+                         "127.0.0.1",
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -252,7 +231,10 @@ valent_mock_channel_class_init (ValentMockChannelClass *klass)
   /**
    * ValentMockChannel:port:
    *
-   * The remote TCP/IP port for the channel.
+   * The remote host port for the channel.
+   *
+   * This property only exists for tests that require a channel with a `port`
+   * property. The underlying connection is actually a #GUnixConnection.
    */
   properties [PROP_PORT] =
     g_param_spec_uint ("port",
@@ -271,8 +253,6 @@ valent_mock_channel_class_init (ValentMockChannelClass *klass)
 static void
 valent_mock_channel_init (ValentMockChannel *self)
 {
-  self->host = NULL;
-  self->port = VALENT_TEST_TCP_PORT;
 }
 
 /**
@@ -303,7 +283,7 @@ valent_mock_channel_dup_host (ValentMockChannel *self)
  *
  * Get the port for @self.
  *
- * Returns: (transfer full) (nullable): a port number
+ * Returns: a port number
  */
 guint16
 valent_mock_channel_get_port (ValentMockChannel *self)

@@ -8,58 +8,11 @@
 #include <json-glib/json-glib.h>
 #include <libvalent-core.h>
 #include <libvalent-ui.h>
+#include <sys/socket.h>
 
 #include "valent-mock-channel.h"
 #include "valent-test-utils.h"
 
-
-/*
- * Channel Helpers
- */
-typedef struct
-{
-  ValentChannel *channel;
-  JsonNode      *channel_identity;
-  ValentChannel *endpoint;
-  JsonNode      *endpoint_identity;
-  guint16        port;
-} ChannelData;
-
-static void
-accept_cb (GSocketListener *listener,
-           GAsyncResult    *result,
-           gpointer         user_data)
-{
-  ChannelData *data = user_data;
-  g_autoptr (GSocketConnection) base_stream = NULL;
-
-  base_stream = g_socket_listener_accept_finish (listener, result, NULL, NULL);
-  data->channel = g_object_new (VALENT_TYPE_MOCK_CHANNEL,
-                                "base-stream",   base_stream,
-                                "host",          "127.0.0.1",
-                                "identity",      data->channel_identity,
-                                "peer-identity", data->endpoint_identity,
-                                "port",          data->port,
-                                NULL);
-}
-
-static void
-connect_cb (GSocketClient *client,
-            GAsyncResult  *result,
-            gpointer       user_data)
-{
-  ChannelData *data = user_data;
-  g_autoptr (GSocketConnection) base_stream = NULL;
-
-  base_stream = g_socket_client_connect_finish (client, result, NULL);
-  data->endpoint = g_object_new (VALENT_TYPE_MOCK_CHANNEL,
-                                 "base-stream",   base_stream,
-                                 "host",          "127.0.0.1",
-                                 "identity",      data->endpoint_identity,
-                                 "peer-identity", data->channel_identity,
-                                 "port",          data->port,
-                                 NULL);
-}
 
 /*
  * Transfer Helpers
@@ -345,50 +298,43 @@ ValentChannel **
 valent_test_channels (JsonNode *identity,
                       JsonNode *peer_identity)
 {
-  g_autofree ChannelData *data = NULL;
-  g_autoptr (GSocketListener) listener = NULL;
-  g_autoptr (GSocketClient) client = NULL;
-  g_autoptr (GSocketAddress) addr = NULL;
   ValentChannel **channels = NULL;
+  int sv[2] = { 0, };
+  g_autoptr (GSocket) channel_socket = NULL;
+  g_autoptr (GSocket) endpoint_socket = NULL;
+  g_autoptr (GSocketConnection) channel_connection = NULL;
+  g_autoptr (GSocketConnection) endpoint_connection = NULL;
+  GError *error = NULL;
 
   g_assert (VALENT_IS_PACKET (identity));
   g_assert (peer_identity == NULL || VALENT_IS_PACKET (peer_identity));
 
-  data = g_new0 (ChannelData, 1);
-  data->channel_identity = identity;
-  data->endpoint_identity = identity;
-  data->port = 2716;
-
-  /* Wait for incoming connection */
-  listener = g_socket_listener_new ();
-
-  while (!g_socket_listener_add_inet_port (listener, data->port, NULL, NULL))
-    data->port++;
-
-  g_socket_listener_accept_async (listener,
-                                  NULL,
-                                  (GAsyncReadyCallback)accept_cb,
-                                  data);
-
-  /* Open outgoing connection */
-  client = g_object_new (G_TYPE_SOCKET_CLIENT,
-                         "enable-proxy", FALSE,
-                         NULL);
-  addr = g_inet_socket_address_new_from_string ("127.0.0.1", data->port);
-
-  g_socket_client_connect_async (client,
-                                 G_SOCKET_CONNECTABLE (addr),
-                                 NULL,
-                                 (GAsyncReadyCallback)connect_cb,
-                                 data);
-
-  /* Wait for both channels */
-  while (data->channel == NULL || data->endpoint == NULL)
-    g_main_context_iteration (NULL, FALSE);
-
   channels = g_new0 (ValentChannel *, 2);
-  channels[0] = g_steal_pointer (&data->channel);
-  channels[1] = g_steal_pointer (&data->endpoint);
+  g_assert_no_errno (socketpair (AF_UNIX, SOCK_STREAM, 0, sv));
+
+  /* This is the "local" representation of the mock "remote" device */
+  channel_socket = g_socket_new_from_fd (sv[0], &error);
+  g_assert_no_error (error);
+  channel_connection = g_object_new (G_TYPE_SOCKET_CONNECTION,
+                                     "socket", channel_socket,
+                                     NULL);
+  channels[0] = g_object_new (VALENT_TYPE_MOCK_CHANNEL,
+                              "base-stream",   channel_connection,
+                              "identity",      identity,
+                              "peer-identity", peer_identity,
+                              NULL);
+
+  /* This is the "remote" representation of our mock "local" service */
+  endpoint_socket = g_socket_new_from_fd (sv[1], &error);
+  g_assert_no_error (error);
+  endpoint_connection = g_object_new (G_TYPE_SOCKET_CONNECTION,
+                                      "socket", endpoint_socket,
+                                      NULL);
+  channels[1] = g_object_new (VALENT_TYPE_MOCK_CHANNEL,
+                              "base-stream",   endpoint_connection,
+                              "identity",      peer_identity,
+                              "peer-identity", identity,
+                              NULL);
 
   return channels;
 }

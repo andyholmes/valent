@@ -5,17 +5,12 @@
 
 #include "config.h"
 
-#include <gio/gunixinputstream.h>
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
 #include <libvalent-test.h>
+#include <sys/socket.h>
 
 #include "valent-mock-channel-service.h"
-
-
-#define DEFAULT_PORT      1717
-#define TRANSFER_PORT_MIN 1739
-#define TRANSFER_PORT_MAX 1764
 
 
 struct _ValentMockChannelService
@@ -24,27 +19,15 @@ struct _ValentMockChannelService
 
   GCancellable         *cancellable;
 
-  char                 *broadcast_address;
-  guint                 port;
-
   ValentChannel        *channel;
   ValentChannel        *endpoint;
 };
 
 G_DEFINE_TYPE (ValentMockChannelService, valent_mock_channel_service, VALENT_TYPE_CHANNEL_SERVICE)
 
-enum {
-  PROP_0,
-  PROP_BROADCAST_ADDRESS,
-  PROP_PORT,
-  N_PROPERTIES
-};
-
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
-
 static ValentChannelService *test_instance = NULL;
 
-static const char identity_json[] =
+static const char peer_identity_json[] =
 "{                                   "
 "  \"id\": 0,                        "
 "  \"type\": \"kdeconnect.identity\","
@@ -60,8 +43,7 @@ static const char identity_json[] =
 "    \"outgoingCapabilities\": [     "
 "      \"kdeconnect.mock.echo\",     "
 "      \"kdeconnect.mock.transfer\"  "
-"    ],                              "
-"    \"tcpPort\": 1716               "
+"    ]                               "
 "  }                                 "
 "}                                   ";
 
@@ -74,21 +56,48 @@ valent_mock_channel_service_identify (ValentChannelService *service,
                                       const char           *target)
 {
   ValentMockChannelService *self = VALENT_MOCK_CHANNEL_SERVICE (service);
-  g_autofree ValentChannel **channels = NULL;
   g_autoptr (JsonNode) identity = NULL;
-  JsonNode *peer_identity;
+  g_autoptr (JsonNode) peer_identity = NULL;
+  int fds[2] = { 0, };
+  g_autoptr (GSocket) channel_socket = NULL;
+  g_autoptr (GSocket) endpoint_socket = NULL;
+  g_autoptr (GSocketConnection) channel_connection = NULL;
+  g_autoptr (GSocketConnection) endpoint_connection = NULL;
 
   g_assert (VALENT_IS_MOCK_CHANNEL_SERVICE (self));
 
   identity = valent_channel_service_ref_identity (service);
-  peer_identity = json_from_string (identity_json, NULL);
-  channels = valent_test_channels (identity, peer_identity);
+  peer_identity = json_from_string (peer_identity_json, NULL);
 
-  self->channel = g_steal_pointer (&channels[0]);
-  self->endpoint = g_steal_pointer (&channels[1]);
+  g_assert_no_errno (socketpair (AF_UNIX, SOCK_STREAM, 0, fds));
+
+  /* This is the "local" representation of the mock "remote" device */
+  channel_socket = g_socket_new_from_fd (fds[0], NULL);
+  channel_connection = g_object_new (G_TYPE_SOCKET_CONNECTION,
+                                     "socket", channel_socket,
+                                     NULL);
+  self->channel = g_object_new (VALENT_TYPE_MOCK_CHANNEL,
+                                "base-stream",   channel_connection,
+                                "identity",      identity,
+                                "peer-identity", peer_identity,
+                                NULL);
+  g_object_add_weak_pointer (G_OBJECT (self->channel),
+                             (gpointer)&self->channel);
+
+  /* This is the "remote" representation of our mock "local" service */
+  endpoint_socket = g_socket_new_from_fd (fds[1], NULL);
+  endpoint_connection = g_object_new (G_TYPE_SOCKET_CONNECTION,
+                                      "socket", endpoint_socket,
+                                      NULL);
+  self->endpoint = g_object_new (VALENT_TYPE_MOCK_CHANNEL,
+                                 "base-stream",   endpoint_connection,
+                                 "identity",      peer_identity,
+                                 "peer-identity", identity,
+                                 NULL);
+  g_object_add_weak_pointer (G_OBJECT (self->endpoint),
+                             (gpointer)&self->endpoint);
 
   valent_channel_service_emit_channel (service, self->channel);
-  json_node_unref (peer_identity);
 }
 
 static void
@@ -115,13 +124,14 @@ valent_mock_channel_service_stop (ValentChannelService *service)
 
   g_assert (VALENT_IS_MOCK_CHANNEL_SERVICE (self));
 
-  if (self->endpoint)
+  if (self->endpoint != NULL)
     {
-      valent_channel_close (self->endpoint, NULL, NULL);
-      g_clear_object (&self->endpoint);
+      valent_channel_close_async (self->endpoint, NULL, NULL, NULL);
+      v_await_finalize_object (self->endpoint);
+      self->endpoint = NULL;
     }
 
-  if (self->channel)
+  if (self->channel != NULL)
     {
       valent_channel_close_async (self->channel, NULL, NULL, NULL);
       v_await_finalize_object (self->channel);
@@ -136,132 +146,18 @@ valent_mock_channel_service_stop (ValentChannelService *service)
  * GObject
  */
 static void
-valent_mock_channel_service_constructed (GObject *object)
-{
-  ValentMockChannelService *self = (ValentMockChannelService *)object;
-
-  if (self->broadcast_address == NULL)
-    self->broadcast_address = g_strdup ("127.0.0.255");
-
-  G_OBJECT_CLASS (valent_mock_channel_service_parent_class)->constructed (object);
-}
-
-static void
-valent_mock_channel_service_finalize (GObject *object)
-{
-  ValentMockChannelService *self = (ValentMockChannelService *)object;
-
-  valent_mock_channel_service_stop (VALENT_CHANNEL_SERVICE (object));
-  g_clear_pointer (&self->broadcast_address, g_free);
-
-  G_OBJECT_CLASS (valent_mock_channel_service_parent_class)->finalize (object);
-}
-
-static void
-valent_mock_channel_service_get_property (GObject    *object,
-                                          guint       prop_id,
-                                          GValue     *value,
-                                          GParamSpec *pspec)
-{
-  ValentMockChannelService *self = (ValentMockChannelService *)object;
-
-  switch (prop_id)
-    {
-    case PROP_BROADCAST_ADDRESS:
-      g_value_set_string (value, self->broadcast_address);
-      break;
-
-    case PROP_PORT:
-      g_value_set_uint (value, self->port);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_mock_channel_service_set_property (GObject      *object,
-                                          guint         prop_id,
-                                          const GValue *value,
-                                          GParamSpec   *pspec)
-{
-  ValentMockChannelService *self = (ValentMockChannelService *)object;
-
-  switch (prop_id)
-    {
-    case PROP_BROADCAST_ADDRESS:
-      self->broadcast_address = g_value_dup_string (value);
-      break;
-
-    case PROP_PORT:
-      self->port = g_value_get_uint (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_mock_channel_service_class_init (ValentMockChannelServiceClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentChannelServiceClass *service_class = VALENT_CHANNEL_SERVICE_CLASS (klass);
-
-  object_class->constructed = valent_mock_channel_service_constructed;
-  object_class->finalize = valent_mock_channel_service_finalize;
-  object_class->get_property = valent_mock_channel_service_get_property;
-  object_class->set_property = valent_mock_channel_service_set_property;
 
   service_class->identify = valent_mock_channel_service_identify;
   service_class->start = valent_mock_channel_service_start;
   service_class->stop = valent_mock_channel_service_stop;
-
-  /**
-   * ValentMockChannelService:broadcast-address:
-   *
-   * The UDP broadcast address for the backend.
-   *
-   * This available as a construct property primarily for use in unit tests.
-   */
-  properties [PROP_BROADCAST_ADDRESS] =
-    g_param_spec_string ("broadcast-address",
-                         "Broadcast Address",
-                         "The UDP broadcast address for outgoing identity packets",
-                         NULL,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentMockChannelService:port:
-   *
-   * The TCP/IP port for the backend. The current KDE Connect protocol (v7)
-   * defines port 1716 as the default. We use 1717 in the loopback service.
-   */
-  properties [PROP_PORT] =
-    g_param_spec_uint ("port",
-                       "Port",
-                       "TCP/IP port",
-                       0, G_MAXUINT16,
-                       DEFAULT_PORT,
-                       (G_PARAM_READWRITE |
-                        G_PARAM_CONSTRUCT_ONLY |
-                        G_PARAM_EXPLICIT_NOTIFY |
-                        G_PARAM_STATIC_STRINGS));
-
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 }
 
 static void
 valent_mock_channel_service_init (ValentMockChannelService *self)
 {
-  self->cancellable = NULL;
-  self->broadcast_address = NULL;
-  self->port = DEFAULT_PORT;
-
   if (test_instance == NULL)
     {
       test_instance = VALENT_CHANNEL_SERVICE (self);
