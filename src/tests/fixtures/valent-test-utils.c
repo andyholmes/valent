@@ -19,6 +19,7 @@
  */
 typedef struct
 {
+  GRecMutex  lock;
   JsonNode  *packet;
   GFile     *file;
 } TransferOperation;
@@ -28,9 +29,12 @@ transfer_op_free (gpointer data)
 {
   TransferOperation *op = data;
 
+  g_rec_mutex_lock (&op->lock);
   g_clear_object (&op->file);
   g_clear_pointer (&op->packet, json_node_unref);
-  g_free (op);
+  g_rec_mutex_unlock (&op->lock);
+  g_rec_mutex_clear (&op->lock);
+  g_clear_pointer (&op, g_free);
 }
 
 static void
@@ -46,15 +50,23 @@ upload_task (GTask        *task,
   gssize size;
   GError *error = NULL;
 
+  g_rec_mutex_lock (&op->lock);
+
   file_info = g_file_query_info (op->file, "standard::size", 0, NULL, &error);
 
   if (file_info == NULL)
-    return g_task_return_error (task, error);
+    {
+      g_rec_mutex_unlock (&op->lock);
+      return g_task_return_error (task, error);
+    }
 
   file_source = g_file_read (op->file, cancellable, &error);
 
   if (file_source == NULL)
-    return g_task_return_error (task, error);
+    {
+      g_rec_mutex_unlock (&op->lock);
+      return g_task_return_error (task, error);
+    }
 
   size = g_file_info_get_size (file_info);
   valent_packet_set_payload_size (op->packet, size);
@@ -65,7 +77,10 @@ upload_task (GTask        *task,
                                   &error);
 
   if (stream == NULL)
-    return g_task_return_error (task, error);
+    {
+      g_rec_mutex_unlock (&op->lock);
+      return g_task_return_error (task, error);
+    }
 
   g_output_stream_splice (g_io_stream_get_output_stream (stream),
                           G_INPUT_STREAM (file_source),
@@ -73,6 +88,7 @@ upload_task (GTask        *task,
                            G_OUTPUT_STREAM_SPLICE_CLOSE_TARGET),
                           cancellable,
                           &error);
+  g_rec_mutex_unlock (&op->lock);
 
   if (error != NULL)
     return g_task_return_error (task, error);
@@ -86,13 +102,13 @@ download_task (GTask        *task,
                gpointer      task_data,
                GCancellable *cancellable)
 {
-  TransferOperation *op = task_data;
+  JsonNode *packet = task_data;
   g_autoptr (GIOStream) stream = NULL;
   g_autoptr (GOutputStream) target = NULL;
   GError *error = NULL;
 
   stream = valent_channel_download (VALENT_CHANNEL (source_object),
-                                    op->packet,
+                                    packet,
                                     cancellable,
                                     &error);
 
@@ -345,7 +361,7 @@ valent_test_channels (JsonNode *identity,
  * @packet: a #JsonNode
  * @error: (nullable): a #GError
  *
- * Simulate downloading the transfer described by @packet from the endpoint of @channel.
+ * Simulate downloading the payload described by @packet using @channel.
  *
  * Returns: %TRUE if successful
  */
@@ -355,17 +371,16 @@ valent_test_download (ValentChannel  *channel,
                       GError        **error)
 {
   g_autoptr (GTask) task = NULL;
-  TransferOperation *op;
 
   g_assert (VALENT_IS_CHANNEL (channel));
   g_assert (VALENT_IS_PACKET (packet));
   g_assert (error == NULL || *error == NULL);
 
-  op = g_new0 (TransferOperation, 1);
-  op->packet = json_node_ref (packet);
-
   task = g_task_new (channel, NULL, NULL, NULL);
-  g_task_set_task_data (task, op, transfer_op_free);
+  g_task_set_source_tag (task, valent_test_download);
+  g_task_set_task_data (task,
+                        json_node_ref (packet),
+                        (GDestroyNotify)json_node_unref);
   g_task_run_in_thread (task, download_task);
 
   while (!g_task_get_completed (task))
@@ -398,10 +413,14 @@ valent_test_upload (ValentChannel  *channel,
   g_assert (error == NULL || *error == NULL);
 
   op = g_new0 (TransferOperation, 1);
+  g_rec_mutex_init (&op->lock);
+  g_rec_mutex_lock (&op->lock);
   op->packet = json_node_ref (packet);
   op->file = g_object_ref (file);
+  g_rec_mutex_unlock (&op->lock);
 
   task = g_task_new (channel, NULL, NULL, NULL);
+  g_task_set_source_tag (task, valent_test_upload);
   g_task_set_task_data (task, op, transfer_op_free);
   g_task_run_in_thread (task, upload_task);
 
