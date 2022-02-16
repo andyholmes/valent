@@ -24,6 +24,7 @@ struct _ValentApplication
 {
   GtkApplication       parent_instance;
 
+  GSettings           *settings;
   ValentDeviceManager *manager;
   GtkWindow           *window;
 };
@@ -158,6 +159,7 @@ static void
 valent_application_startup (GApplication *application)
 {
   ValentApplication *self = VALENT_APPLICATION (application);
+  g_autofree char *name = NULL;
 
   g_assert (VALENT_IS_APPLICATION (application));
 
@@ -172,6 +174,14 @@ valent_application_startup (GApplication *application)
                                    actions,
                                    G_N_ELEMENTS (actions),
                                    application);
+
+  /* Device Name */
+  self->settings = g_settings_new ("ca.andyholmes.Valent");
+  g_settings_bind (self->settings, "name",
+                   self->manager,  "name",
+                   G_SETTINGS_BIND_DEFAULT);
+  name = g_settings_get_string (self->settings, "name");
+  valent_device_manager_set_name (self->manager, name);
 
   /* Start the device manager */
   valent_device_manager_start (self->manager);
@@ -188,6 +198,7 @@ valent_application_shutdown (GApplication *application)
 
   g_clear_pointer (&self->window, gtk_window_destroy);
   valent_device_manager_stop (self->manager);
+  g_clear_object (&self->settings);
 
   G_APPLICATION_CLASS (valent_application_parent_class)->shutdown (application);
 }

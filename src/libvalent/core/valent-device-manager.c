@@ -41,6 +41,7 @@ struct _ValentDeviceManager
   ValentData               *data;
   GTlsCertificate          *certificate;
   const char               *id;
+  char                     *name;
 
   PeasEngine               *engine;
   GHashTable               *devices;
@@ -68,6 +69,7 @@ enum {
   PROP_0,
   PROP_DATA,
   PROP_ID,
+  PROP_NAME,
   N_PROPERTIES
 };
 
@@ -286,8 +288,13 @@ valent_device_manager_enable_service (ValentDeviceManager *self,
                                                      VALENT_TYPE_CHANNEL_SERVICE,
                                                      "data", self->data,
                                                      "id",   self->id,
+                                                     "name", self->name,
                                                      NULL);
   g_return_if_fail (PEAS_IS_EXTENSION (service->extension));
+
+  g_object_bind_property (self,               "name",
+                          service->extension, "name",
+                          G_BINDING_DEFAULT);
 
   g_signal_connect (service->extension,
                     "channel",
@@ -807,6 +814,7 @@ valent_device_manager_finalize (GObject *object)
 
   g_clear_object (&self->certificate);
   g_clear_object (&self->data);
+  g_clear_pointer (&self->name, g_free);
 
   G_OBJECT_CLASS (valent_device_manager_parent_class)->finalize (object);
 }
@@ -829,6 +837,10 @@ valent_device_manager_get_property (GObject    *object,
       g_value_set_string (value, self->id);
       break;
 
+    case PROP_NAME:
+      g_value_set_string (value, self->name);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -846,6 +858,10 @@ valent_device_manager_set_property (GObject      *object,
     {
     case PROP_DATA:
       self->data = g_value_dup_object (value);
+      break;
+
+    case PROP_NAME:
+      valent_device_manager_set_name (self, g_value_get_string (value));
       break;
 
     default:
@@ -893,6 +909,21 @@ valent_device_manager_class_init (ValentDeviceManagerClass *klass)
                          "A unique Id",
                          NULL,
                          (G_PARAM_READABLE |
+                          G_PARAM_EXPLICIT_NOTIFY |
+                          G_PARAM_STATIC_STRINGS));
+
+  /**
+   * ValentDeviceManager:name:
+   *
+   * The display name of the local device.
+   */
+  properties [PROP_NAME] =
+    g_param_spec_string ("name",
+                         "Name",
+                         "The display name of the local device",
+                         "Valent",
+                         (G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
@@ -1125,6 +1156,48 @@ valent_device_manager_get_id (ValentDeviceManager *manager)
   g_return_val_if_fail (VALENT_IS_DEVICE_MANAGER (manager), NULL);
 
   return manager->id;
+}
+
+/**
+ * valent_device_manager_get_name:
+ * @manager: a #ValentDeviceManager
+ *
+ * Get the display name of the local device.
+ *
+ * Returns: (transfer none): the local display name
+ *
+ * Since: 1.0
+ */
+const char *
+valent_device_manager_get_name (ValentDeviceManager *manager)
+{
+  g_return_val_if_fail (VALENT_IS_DEVICE_MANAGER (manager), NULL);
+
+  return manager->name;
+}
+
+/**
+ * valent_device_manager_set_name:
+ * @manager: a #ValentDeviceManager
+ * @name: (not nullable): a display name
+ *
+ * Set the display name of the local device to @name.
+ *
+ * Since: 1.0
+ */
+void
+valent_device_manager_set_name (ValentDeviceManager *manager,
+                                const char          *name)
+{
+  g_return_if_fail (VALENT_IS_DEVICE_MANAGER (manager));
+  g_return_if_fail (name != NULL && *name != '\0');
+
+  if (g_strcmp0 (manager->name, name) == 0)
+    return;
+
+  g_clear_pointer (&manager->name, g_free);
+  manager->name = g_strdup (name);
+  g_object_notify_by_pspec (G_OBJECT (manager), properties [PROP_NAME]);
 }
 
 /**

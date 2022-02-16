@@ -51,11 +51,10 @@ typedef struct
 {
   PeasPluginInfo *plugin_info;
 
-  GSettings      *settings;
-
   ValentData     *data;
   char           *id;
   JsonNode       *identity;
+  char           *name;
 } ValentChannelServicePrivate;
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentChannelService, valent_channel_service, VALENT_TYPE_OBJECT);
@@ -77,6 +76,7 @@ enum {
   PROP_DATA,
   PROP_ID,
   PROP_IDENTITY,
+  PROP_NAME,
   PROP_PLUGIN_INFO,
   N_PROPERTIES
 };
@@ -190,24 +190,6 @@ get_chassis_type (void)
   return chassis;
 }
 
-static void
-on_name_changed (GSettings            *settings,
-                 const char           *key,
-                 ValentChannelService *self)
-{
-  ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (self);
-  g_autofree char *name = NULL;
-  JsonObject *body;
-
-  valent_object_lock (VALENT_OBJECT (self));
-  name = g_settings_get_string (settings, key);
-  body = valent_packet_get_body (priv->identity);
-  json_object_set_string_member (body, "deviceName", name);
-  valent_object_unlock (VALENT_OBJECT (self));
-
-  g_object_notify_by_pspec (G_OBJECT (self), properties [PROP_IDENTITY]);
-}
-
 /**
  * collect_capabilities:
  * @info: a #GList
@@ -275,7 +257,6 @@ valent_channel_service_real_build_identity (ValentChannelService *service)
   PeasEngine *engine;
   const GList *plugins = NULL;
   g_autoptr (GList) supported = NULL;
-  g_autofree char *name = NULL;
   g_autoptr (JsonBuilder) builder = NULL;
   g_auto (GStrv) incoming = NULL;
   g_auto (GStrv) outgoing = NULL;
@@ -283,7 +264,6 @@ valent_channel_service_real_build_identity (ValentChannelService *service)
   g_assert (VALENT_IS_CHANNEL_SERVICE (service));
 
   engine = valent_get_engine ();
-  name = g_settings_get_string (priv->settings, "name");
 
   /* Filter plugins */
   plugins = peas_engine_get_plugin_list (engine);
@@ -312,7 +292,7 @@ valent_channel_service_real_build_identity (ValentChannelService *service)
     json_builder_set_member_name (builder, "deviceId");
     json_builder_add_string_value (builder, priv->id);
     json_builder_set_member_name (builder, "deviceName");
-    json_builder_add_string_value (builder, name);
+    json_builder_add_string_value (builder, priv->name);
     json_builder_set_member_name (builder, "deviceType");
     json_builder_add_string_value (builder, get_chassis_type());
     json_builder_set_member_name (builder, "protocolVersion");
@@ -405,11 +385,6 @@ valent_channel_service_constructed (GObject *object)
 
   valent_channel_service_build_identity (self);
 
-  g_signal_connect (priv->settings,
-                    "changed::name",
-                    G_CALLBACK (on_name_changed),
-                    self);
-
   G_OBJECT_CLASS (valent_channel_service_parent_class)->constructed (object);
 }
 
@@ -432,7 +407,7 @@ valent_channel_service_finalize (GObject *object)
   g_clear_object (&priv->data);
   g_clear_pointer (&priv->id, g_free);
   g_clear_pointer (&priv->identity, json_node_unref);
-  g_clear_object (&priv->settings);
+  g_clear_pointer (&priv->name, g_free);
 
   G_OBJECT_CLASS (valent_channel_service_parent_class)->finalize (object);
 }
@@ -458,6 +433,10 @@ valent_channel_service_get_property (GObject    *object,
 
     case PROP_IDENTITY:
       g_value_take_boxed (value, valent_channel_service_ref_identity (self));
+      break;
+
+    case PROP_NAME:
+      g_value_set_string (value, priv->name);
       break;
 
     case PROP_PLUGIN_INFO:
@@ -486,6 +465,10 @@ valent_channel_service_set_property (GObject      *object,
 
     case PROP_DATA:
       priv->data = g_value_dup_object (value);
+      break;
+
+    case PROP_NAME:
+      valent_channel_service_set_name (self, g_value_get_string (value));
       break;
 
     case PROP_PLUGIN_INFO:
@@ -561,6 +544,21 @@ valent_channel_service_class_init (ValentChannelServiceClass *klass)
                          G_PARAM_STATIC_STRINGS));
 
   /**
+   * ValentChannelService:name:
+   *
+   * The display name of the local device.
+   */
+  properties [PROP_NAME] =
+    g_param_spec_string ("name",
+                         "Name",
+                         "The display name of the local device",
+                         "Valent",
+                         (G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT |
+                          G_PARAM_EXPLICIT_NOTIFY |
+                          G_PARAM_STATIC_STRINGS));
+
+  /**
    * ValentChannelService:plugin-info:
    *
    * The #PeasPluginInfo describing this channel service.
@@ -606,9 +604,6 @@ valent_channel_service_class_init (ValentChannelServiceClass *klass)
 static void
 valent_channel_service_init (ValentChannelService *self)
 {
-  ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (self);
-
-  priv->settings = g_settings_new ("ca.andyholmes.Valent");
 }
 
 /**
@@ -656,6 +651,62 @@ valent_channel_service_ref_identity (ValentChannelService *service)
   valent_object_unlock (VALENT_OBJECT (service));
 
   return ret;
+}
+
+/**
+ * valent_channel_service_get_name:
+ * @service: a #ValentChannelService
+ *
+ * Get the display name of the local device.
+ *
+ * Returns: (transfer none): the local display name
+ *
+ * Since: 1.0
+ */
+const char *
+valent_channel_service_get_name (ValentChannelService *service)
+{
+  ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (service);
+
+  g_return_val_if_fail (VALENT_IS_CHANNEL_SERVICE (service), NULL);
+
+  return priv->name;
+}
+
+/**
+ * valent_channel_service_set_name:
+ * @service: a #ValentChannelService
+ * @name: (not nullable): a display name
+ *
+ * Set the display name of the local device to @name.
+ *
+ * Since: 1.0
+ */
+void
+valent_channel_service_set_name (ValentChannelService *service,
+                                 const char           *name)
+{
+  ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (service);
+  JsonObject *body;
+
+  g_return_if_fail (VALENT_IS_CHANNEL_SERVICE (service));
+  g_return_if_fail (name != NULL && *name != '\0');
+
+  if (g_strcmp0 (priv->name, name) == 0)
+    return;
+
+  g_clear_pointer (&priv->name, g_free);
+  priv->name = g_strdup (name);
+  g_object_notify_by_pspec (G_OBJECT (service), properties [PROP_NAME]);
+
+  valent_object_lock (VALENT_OBJECT (service));
+  if (priv->identity)
+    {
+      body = valent_packet_get_body (priv->identity);
+      json_object_set_string_member (body, "deviceName", priv->name);
+      g_object_notify_by_pspec (G_OBJECT (service), properties [PROP_IDENTITY]);
+    }
+  valent_object_unlock (VALENT_OBJECT (service));
 }
 
 /**
