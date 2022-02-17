@@ -170,7 +170,5 @@ static void
 valent_sftp_preferences_init (ValentSftpPreferences *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
-
-  self->plugin_context = NULL;
 }
 

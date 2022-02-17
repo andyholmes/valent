@@ -58,16 +58,14 @@ valent_notification_dialog_check (ValentNotificationDialog *self)
 
   gtk_dialog_set_response_sensitive (GTK_DIALOG (self), GTK_RESPONSE_OK, state);
 }
-
-/*
- * GObject
- */
 static void
-valent_notification_dialog_constructed (GObject *object)
+valent_notification_dialog_set_notification (ValentNotificationDialog *self,
+                                             ValentNotification       *notification)
 {
-  ValentNotificationDialog *self = VALENT_NOTIFICATION_DIALOG (object);
+  g_assert (VALENT_IS_NOTIFICATION_DIALOG (self));
+  g_assert (notification == NULL || VALENT_IS_NOTIFICATION (notification));
 
-  if (self->notification != NULL)
+  if (g_set_object (&self->notification, notification))
     {
       GIcon *icon;
       const char *title;
@@ -90,10 +88,11 @@ valent_notification_dialog_constructed (GObject *object)
     }
 
   valent_notification_dialog_check (self);
-
-  G_OBJECT_CLASS (valent_notification_dialog_parent_class)->constructed (object);
 }
 
+/*
+ * GObject
+ */
 static void
 valent_notification_dialog_finalize (GObject *object)
 {
@@ -139,7 +138,7 @@ valent_notification_dialog_set_property (GObject      *object,
   switch (prop_id)
     {
     case PROP_NOTIFICATION:
-      self->notification = g_value_dup_object (value);
+      valent_notification_dialog_set_notification (self, g_value_get_object (value));
       break;
 
     case PROP_REPLY_ID:
@@ -157,7 +156,6 @@ valent_notification_dialog_class_init (ValentNotificationDialogClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
-  object_class->constructed = valent_notification_dialog_constructed;
   object_class->finalize = valent_notification_dialog_finalize;
   object_class->get_property = valent_notification_dialog_get_property;
   object_class->set_property = valent_notification_dialog_set_property;

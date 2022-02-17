@@ -420,9 +420,6 @@ valent_lan_channel_class_init (ValentLanChannelClass *klass)
 static void
 valent_lan_channel_init (ValentLanChannel *self)
 {
-  self->certificate = NULL;
-  self->host = NULL;
-  self->port = VALENT_LAN_TCP_PORT;
 }
 
 /**

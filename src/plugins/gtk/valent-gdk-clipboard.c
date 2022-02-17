@@ -185,7 +185,5 @@ static void
 valent_gdk_clipboard_init (ValentGdkClipboard *self)
 {
   self->cancellable = g_cancellable_new ();
-  self->clipboard = NULL;
-  self->changed_id = 0;
 }
 

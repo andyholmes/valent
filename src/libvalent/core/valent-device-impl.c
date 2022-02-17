@@ -386,6 +386,8 @@ valent_device_impl_constructed (GObject *object)
 {
   ValentDeviceImpl *self = VALENT_DEVICE_IMPL (object);
 
+  g_assert (VALENT_IS_DEVICE (self->device));
+
   /* Preload properties and watch for changes */
   for (unsigned int i = 0; i < G_N_ELEMENTS (property_map); i++)
     {

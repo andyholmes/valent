@@ -13,6 +13,7 @@
 #include "valent-lan-channel-service.h"
 #include "valent-lan-utils.h"
 
+#define PROTOCOL_ADDR     "255.255.255.255"
 #define PROTOCOL_PORT     1716
 #define TRANSFER_PORT_MIN 1739
 #define TRANSFER_PORT_MAX 1764
@@ -805,17 +806,6 @@ valent_lan_channel_service_stop (ValentChannelService *service)
  * GObject
  */
 static void
-valent_lan_channel_service_constructed (GObject *object)
-{
-  ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (object);
-
-  if (self->broadcast_address == NULL)
-    self->broadcast_address = g_strdup ("255.255.255.255");
-
-  G_OBJECT_CLASS (valent_lan_channel_service_parent_class)->constructed (object);
-}
-
-static void
 valent_lan_channel_service_finalize (GObject *object)
 {
   ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (object);
@@ -885,7 +875,6 @@ valent_lan_channel_service_class_init (ValentLanChannelServiceClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentChannelServiceClass *service_class = VALENT_CHANNEL_SERVICE_CLASS (klass);
 
-  object_class->constructed = valent_lan_channel_service_constructed;
   object_class->finalize = valent_lan_channel_service_finalize;
   object_class->get_property = valent_lan_channel_service_get_property;
   object_class->set_property = valent_lan_channel_service_set_property;
@@ -906,7 +895,7 @@ valent_lan_channel_service_class_init (ValentLanChannelServiceClass *klass)
     g_param_spec_string ("broadcast-address",
                          "Broadcast Address",
                          "The UDP broadcast address for outgoing identity packets",
-                         NULL,
+                         PROTOCOL_ADDR,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -952,6 +941,5 @@ static void
 valent_lan_channel_service_init (ValentLanChannelService *self)
 {
   self->monitor = g_network_monitor_get_default ();
-  self->port = PROTOCOL_PORT;
 }
 

@@ -543,10 +543,16 @@ static void
 valent_window_dispose (GObject *object)
 {
   ValentWindow *self = VALENT_WINDOW (object);
+  GHashTableIter iter;
+  ValentDevice *device;
 
   g_clear_handle_id (&self->device_list_spinner_id, g_source_remove);
-  g_signal_handlers_disconnect_by_func (self->manager, on_device_added, self);
-  g_signal_handlers_disconnect_by_func (self->manager, on_device_removed, self);
+  g_signal_handlers_disconnect_by_data (self->manager, self);
+
+  g_hash_table_iter_init (&iter, self->devices);
+
+  while (g_hash_table_iter_next (&iter, (void **)&device, NULL))
+    g_signal_handlers_disconnect_by_data (device, self);
 
   G_OBJECT_CLASS (valent_window_parent_class)->dispose (object);
 }
@@ -555,16 +561,9 @@ static void
 valent_window_finalize (GObject *object)
 {
   ValentWindow *self = VALENT_WINDOW (object);
-  GHashTableIter iter;
-  gpointer device;
-
-  g_hash_table_iter_init (&iter, self->devices);
-
-  while (g_hash_table_iter_next (&iter, &device, NULL))
-    g_signal_handlers_disconnect_by_data (device, self);
-  g_clear_pointer (&self->devices, g_hash_table_unref);
 
   g_clear_object (&self->settings);
+  g_clear_pointer (&self->devices, g_hash_table_unref);
   g_queue_free_full (self->history, g_free);
 
   G_OBJECT_CLASS (valent_window_parent_class)->finalize (object);
@@ -606,40 +605,6 @@ valent_window_set_property (GObject      *object,
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
-}
-
-static void
-valent_window_init (ValentWindow *self)
-{
-  gtk_widget_init_template (GTK_WIDGET (self));
-
-  if (g_strcmp0 (PROFILE_NAME, "devel") == 0)
-    {
-      GtkStyleContext *style;
-
-      style = gtk_widget_get_style_context (GTK_WIDGET (self));
-      gtk_style_context_add_class (style, "devel");
-    }
-
-  /* Navigation History */
-  self->history = g_queue_new ();
-  g_queue_push_tail (self->history, g_strdup ("/main"));
-
-  /* Action Group */
-  g_action_map_add_action_entries (G_ACTION_MAP (self),
-                                   actions,
-                                   G_N_ELEMENTS (actions),
-                                   self);
-
-  /* Devices Page */
-  gtk_list_box_set_sort_func (self->device_list, device_sort_func, NULL, NULL);
-  self->devices = g_hash_table_new_full (NULL, NULL, NULL, g_free);
-
-  /* Settings Page */
-  self->settings = g_settings_new ("ca.andyholmes.Valent");
-  g_settings_bind (self->settings,     "name",
-                   self->rename_label, "label",
-                   G_SETTINGS_BIND_DEFAULT);
 }
 
 static void
@@ -689,5 +654,39 @@ valent_window_class_init (ValentWindowClass *klass)
   g_type_ensure (VALENT_TYPE_DEVICE_PANEL);
   g_type_ensure (VALENT_TYPE_PLUGIN_GROUP);
   g_type_ensure (VALENT_TYPE_PLUGIN_ROW);
+}
+
+static void
+valent_window_init (ValentWindow *self)
+{
+  gtk_widget_init_template (GTK_WIDGET (self));
+
+  if (g_strcmp0 (PROFILE_NAME, "devel") == 0)
+    {
+      GtkStyleContext *style;
+
+      style = gtk_widget_get_style_context (GTK_WIDGET (self));
+      gtk_style_context_add_class (style, "devel");
+    }
+
+  /* Navigation History */
+  self->history = g_queue_new ();
+  g_queue_push_tail (self->history, g_strdup ("/main"));
+
+  /* Action Group */
+  g_action_map_add_action_entries (G_ACTION_MAP (self),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   self);
+
+  /* Devices Page */
+  gtk_list_box_set_sort_func (self->device_list, device_sort_func, NULL, NULL);
+  self->devices = g_hash_table_new_full (NULL, NULL, NULL, g_free);
+
+  /* Settings Page */
+  self->settings = g_settings_new ("ca.andyholmes.Valent");
+  g_settings_bind (self->settings,     "name",
+                   self->rename_label, "label",
+                   G_SETTINGS_BIND_DEFAULT);
 }
 

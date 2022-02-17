@@ -204,9 +204,9 @@ valent_contact_cache_get_contact (ValentContactStore  *store,
 
 static void
 valent_contact_cache_query_task (GTask        *task,
-                                gpointer      source_object,
-                                gpointer      task_data,
-                                GCancellable *cancellable)
+                                 gpointer      source_object,
+                                 gpointer      task_data,
+                                 GCancellable *cancellable)
 {
   ValentContactCache *self = VALENT_CONTACT_CACHE (source_object);
   const char *query = task_data;
@@ -271,21 +271,23 @@ valent_contact_cache_constructed (GObject *object)
   ValentContactStore *store = VALENT_CONTACT_STORE (object);
   ESource *source;
   g_autoptr (ValentData) data = NULL;
-  g_autofree char *path = NULL;
   g_autoptr (GError) error = NULL;
 
   source = valent_contact_store_get_source (store);
 
   /* This will usually be the path for the contacts plugin, since the device ID
    * is used as the ESource UID. */
-  data = valent_data_new (e_source_get_uid (source), NULL);
-  path = g_build_filename (valent_data_get_cache_path (data),
-                           "contacts",
-                           "contacts.db",
-                           NULL);
+  if (self->path == NULL)
+    {
+      data = valent_data_new (e_source_get_uid (source), NULL);
+      self->path = g_build_filename (valent_data_get_cache_path (data),
+                                     "contacts",
+                                     "contacts.db",
+                                     NULL);
+    }
 
   valent_object_lock (VALENT_OBJECT (self));
-  self->cache = e_book_cache_new (path, source, NULL, &error);
+  self->cache = e_book_cache_new (self->path, source, NULL, &error);
   valent_object_unlock (VALENT_OBJECT (self));
 
   if (error != NULL)

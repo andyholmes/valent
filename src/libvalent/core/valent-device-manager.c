@@ -980,10 +980,7 @@ valent_device_manager_class_init (ValentDeviceManagerClass *klass)
 static void
 valent_device_manager_init (ValentDeviceManager *self)
 {
-  self->data = NULL;
   self->engine = valent_get_engine ();
-  self->id = NULL;
-
   self->devices = g_hash_table_new_full (g_str_hash,
                                          g_str_equal,
                                          g_free,

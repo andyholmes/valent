@@ -776,7 +776,7 @@ valent_sms_conversation_class_init (ValentSmsConversationClass *klass)
     g_param_spec_int64 ("thread-id",
                         "Thread ID",
                         "The thread ID of the conversation",
-                        0, G_MAXINT64,
+                        G_MININT64, G_MAXINT64,
                         0,
                         (G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT |

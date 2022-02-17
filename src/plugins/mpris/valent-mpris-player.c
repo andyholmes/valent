@@ -743,11 +743,6 @@ valent_mpris_player_set_property (GObject      *object,
 }
 
 static void
-valent_mpris_player_init (ValentMPRISPlayer *media_player)
-{
-}
-
-static void
 valent_mpris_player_class_init (ValentMPRISPlayerClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
@@ -793,6 +788,11 @@ valent_mpris_player_class_init (ValentMPRISPlayerClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+}
+
+static void
+valent_mpris_player_init (ValentMPRISPlayer *media_player)
+{
 }
 
 /**
