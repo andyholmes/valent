@@ -33,21 +33,12 @@ race:valent_contact_store_emit_contact_removed_main
 called_from_lib:libglib-2
 called_from_lib:libgobject-2
 called_from_lib:libgio-2
-called_from_lib:libjson-glib-1
-called_from_lib:libpeas-1
 called_from_lib:libgnutls
 
 called_from_lib:libebackend-1.2
-called_from_lib:libebook-1.2
-called_from_lib:libebook-contacts-1.2
 called_from_lib:libedata-book
 called_from_lib:libedataserver-1.2
 
-called_from_lib:libgdk-4
-called_from_lib:libgsk-4
-called_from_lib:libgtk-4
-called_from_lib:libgdk_pixbuf-2
-called_from_lib:libadwaita-1
 
 # used by findmyphone plugin (possibly real races)
 # See: https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/217
@@ -65,47 +56,34 @@ called_from_lib:libtasn1
 mutex:g_tls_certificate_gnutls_get_type_once
 
 
+#
 # Indirect dependencies
-called_from_lib:libcairo.so
-called_from_lib:libfontconfig
-called_from_lib:libgvfscommon
-called_from_lib:libgvfsdbus
+#
+
+# libgvfscommon
+mutex:g_vfs_icon_get_type_once
+
+# libpango-1
+mutex:pango_font_map_get_type_once
+race:pango_fc_font_face_data_equal
+
+# libfontconfig
+race:_FcObjectLookupOtherTypeByName
+race:IA__FcPatternReference.part.0
+
 called_from_lib:libicui18n
 called_from_lib:libicuuc
-called_from_lib:libmedia-gstreamer.so
-called_from_lib:libogg.so
-called_from_lib:libpango-1
-called_from_lib:libpangocairo-1
-called_from_lib:libpangoft2
 called_from_lib:libphonenumber
 called_from_lib:libprotobuf
 called_from_lib:libsqlite3
-called_from_lib:libvorbis.so
-
-called_from_lib:libX11.so
-called_from_lib:libX11-xcb
-called_from_lib:libXext
-called_from_lib:libXau
 called_from_lib:libxcb.so
-called_from_lib:libXcomposite
-called_from_lib:libXcursor
-called_from_lib:libXdamage
-called_from_lib:libXdmcp
-called_from_lib:libXext
-called_from_lib:libXfixes
-called_from_lib:libXi.so
-called_from_lib:libXrandr
-called_from_lib:libXrender
-called_from_lib:libXss
 
 # Miscellaneous
 deadlock:libEGL.so
 deadlock:libEGL_mesa.so
-deadlock:libGLX.so
-deadlock:libGLX_mesa.so
+mutex:libEGL.so
 mutex:libEGL_mesa.so
-mutex:libGLX.so
-mutex:libGLX_mesa.so
+race:libEGL.so
 race:libEGL_mesa.so
 race:radeonsi_dri
 
