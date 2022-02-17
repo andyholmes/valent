@@ -240,7 +240,7 @@ valent_mock_channel_class_init (ValentMockChannelClass *klass)
     g_param_spec_uint ("port",
                        "Port",
                        "TCP/IP port",
-                       0, G_MAXUINT16,
+                       1024, G_MAXUINT16,
                        VALENT_TEST_TCP_PORT,
                        (G_PARAM_READWRITE |
                         G_PARAM_CONSTRUCT_ONLY |

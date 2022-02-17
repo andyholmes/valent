@@ -250,13 +250,6 @@ static void
 valent_notification_init (ValentNotification *notification)
 {
   notification->id = g_uuid_string_random ();
-  notification->title = NULL;
-  notification->body = NULL;
-  notification->icon = NULL;
-  notification->priority = G_NOTIFICATION_PRIORITY_NORMAL;
-
-  notification->default_action = NULL;
-  notification->default_action_target = NULL;
   notification->buttons = g_ptr_array_new_full (3, notification_button_free);
 }
 

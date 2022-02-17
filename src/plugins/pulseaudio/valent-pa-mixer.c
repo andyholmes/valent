@@ -234,16 +234,6 @@ valent_pa_mixer_get_default_output (ValentMixerControl *control)
  * GObject
  */
 static void
-valent_pa_mixer_init (ValentPaMixer *self)
-{
-  self->control = g_object_new (GVC_TYPE_MIXER_CONTROL,
-                                "name", "Valent",
-                                NULL);
-  self->inputs = g_hash_table_new_full (NULL, NULL, NULL, g_object_unref);
-  self->outputs = g_hash_table_new_full (NULL, NULL, NULL, g_object_unref);
-}
-
-static void
 valent_pa_mixer_constructed (GObject *object)
 {
   ValentPaMixer *self = VALENT_PA_MIXER (object);
@@ -300,5 +290,15 @@ valent_pa_mixer_class_init (ValentPaMixerClass *klass)
 
   control_class->get_default_input = valent_pa_mixer_get_default_input;
   control_class->get_default_output = valent_pa_mixer_get_default_output;
+}
+
+static void
+valent_pa_mixer_init (ValentPaMixer *self)
+{
+  self->control = g_object_new (GVC_TYPE_MIXER_CONTROL,
+                                "name", "Valent",
+                                NULL);
+  self->inputs = g_hash_table_new_full (NULL, NULL, NULL, g_object_unref);
+  self->outputs = g_hash_table_new_full (NULL, NULL, NULL, g_object_unref);
 }
 

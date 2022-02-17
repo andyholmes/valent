@@ -298,7 +298,5 @@ static void
 valent_fdo_session_init (ValentFdoSession *self)
 {
   self->cancellable = g_cancellable_new ();
-  self->active = FALSE;
-  self->locked = FALSE;
 }
 

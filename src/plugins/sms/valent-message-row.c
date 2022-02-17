@@ -177,7 +177,7 @@ valent_message_row_class_init (ValentMessageRowClass *klass)
     g_param_spec_int64 ("thread-id",
                         "Thread ID",
                         "The thread id this message belongs to.",
-                        0, G_MAXINT64,
+                        G_MININT64, G_MAXINT64,
                         0,
                         (G_PARAM_READABLE |
                          G_PARAM_EXPLICIT_NOTIFY |

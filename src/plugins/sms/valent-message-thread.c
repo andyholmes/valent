@@ -23,7 +23,6 @@ struct _ValentMessageThread
   gint64          id;
   GCancellable   *cancellable;
   GSequence      *items;
-  GPtrArray      *outbox;
 
   /* cache */
   unsigned int    last_position;
@@ -267,7 +266,6 @@ valent_message_thread_finalize (GObject *object)
   g_clear_object (&self->store);
   g_clear_pointer (&self->items, g_sequence_free);
   g_clear_object (&self->cancellable);
-  g_clear_pointer (&self->outbox, g_ptr_array_unref);
 
   G_OBJECT_CLASS (valent_message_thread_parent_class)->finalize (object);
 }
@@ -337,7 +335,7 @@ valent_message_thread_class_init (ValentMessageThreadClass *klass)
     g_param_spec_int64 ("id",
                         "ID",
                         "The ID of the thread",
-                        0, G_MAXINT64,
+                        G_MININT64, G_MAXINT64,
                         0,
                         (G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT |
@@ -367,10 +365,6 @@ valent_message_thread_init (ValentMessageThread *self)
 {
   self->cancellable = g_cancellable_new ();
   self->items = g_sequence_new (g_object_unref);
-  self->last_position = 0;
-  self->last_position_valid = FALSE;
-
-  self->outbox = g_ptr_array_new_with_free_func (g_object_unref);
 }
 
 /**

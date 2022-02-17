@@ -342,28 +342,36 @@ valent_contact_store_class_init (ValentContactStoreClass *klass)
                   G_TYPE_FROM_CLASS (klass),
                   G_SIGNAL_RUN_LAST,
                   G_STRUCT_OFFSET (ValentContactStoreClass, contact_added),
-                  NULL, NULL, NULL,
+                  NULL, NULL,
+                  g_cclosure_marshal_VOID__OBJECT,
                   G_TYPE_NONE,
                   1,
                   E_TYPE_CONTACT);
+  g_signal_set_va_marshaller (signals [CONTACT_ADDED],
+                              G_TYPE_FROM_CLASS (klass),
+                              g_cclosure_marshal_VOID__OBJECTv);
 
   /**
    * ValentContactStore::contact-removed:
    * @store: a #ValentContactStore
    * @uid: the UID of the removed contact
    *
-   * ValentContactStore::contact-added is emitted when a contact is removed from
-   * @store.
+   * ValentContactStore::contact-removed is emitted when a contact is removed
+   * from @store.
    */
   signals [CONTACT_REMOVED] =
     g_signal_new ("contact-removed",
                   G_TYPE_FROM_CLASS (klass),
                   G_SIGNAL_RUN_LAST,
                   G_STRUCT_OFFSET (ValentContactStoreClass, contact_removed),
-                  NULL, NULL, NULL,
+                  NULL, NULL,
+                  g_cclosure_marshal_VOID__STRING,
                   G_TYPE_NONE,
                   1,
                   G_TYPE_STRING);
+  g_signal_set_va_marshaller (signals [CONTACT_REMOVED],
+                              G_TYPE_FROM_CLASS (klass),
+                              g_cclosure_marshal_VOID__STRINGv);
 }
 
 static void

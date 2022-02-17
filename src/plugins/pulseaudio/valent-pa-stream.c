@@ -275,7 +275,5 @@ valent_pa_stream_class_init (ValentPaStreamClass *klass)
 static void
 valent_pa_stream_init (ValentPaStream *self)
 {
-  self->stream = NULL;
-  self->vol_max = G_MAXUINT32;
 }
 
