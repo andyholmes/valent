@@ -230,20 +230,25 @@ collect_capabilities (const GList *infos,
  */
 typedef struct
 {
-  ValentChannelService *service;
-  ValentChannel        *channel;
+  GWeakRef       service;
+  ValentChannel *channel;
 } ChannelEmission;
 
 static gboolean
 valent_channel_service_emit_channel_main (gpointer data)
 {
   ChannelEmission *emission = data;
+  g_autoptr (ValentChannelService) service = NULL;
 
   g_rec_mutex_lock (&channel_lock);
-  valent_channel_service_emit_channel (emission->service, emission->channel);
-  g_clear_object (&emission->service);
+
+  if ((service = g_weak_ref_get (&emission->service)) != NULL)
+    valent_channel_service_emit_channel (service, emission->channel);
+
+  g_weak_ref_clear (&emission->service);
   g_clear_object (&emission->channel);
   g_clear_pointer (&emission, g_free);
+
   g_rec_mutex_unlock (&channel_lock);
 
   return G_SOURCE_REMOVE;
@@ -869,7 +874,7 @@ valent_channel_service_emit_channel (ValentChannelService *service,
 
   g_rec_mutex_lock (&channel_lock);
   emission = g_new0 (ChannelEmission, 1);
-  emission->service = g_object_ref (service);
+  g_weak_ref_init (&emission->service, service);
   emission->channel = g_object_ref (channel);
   g_rec_mutex_unlock (&channel_lock);
 

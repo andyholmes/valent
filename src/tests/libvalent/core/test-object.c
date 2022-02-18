@@ -16,6 +16,18 @@ on_destroy (ValentObject *object,
 }
 
 static void
+on_notify (ValentObject *object,
+           GParamSpec   *pspec,
+           gboolean     *notified)
+{
+  g_assert_true (VALENT_IS_MAIN_THREAD());
+  g_assert_true (G_IS_PARAM_SPEC (pspec));
+
+  if (notified)
+    *notified = TRUE;
+}
+
+static void
 test_object_basic (void)
 {
   g_autoptr (ValentObject) object = NULL;
@@ -181,6 +193,38 @@ test_object_destroy_thread (void)
 }
 
 
+static gpointer
+notify_thread_func (ValentObject *object)
+{
+  valent_object_notify (object, "cancellable");
+
+  return NULL;
+}
+
+static void
+test_object_notify_thread (void)
+{
+  g_autoptr (ValentObject) object = NULL;
+  g_autoptr (GThread) thread = NULL;
+  gboolean notified = FALSE;
+
+  object = g_object_new (VALENT_TYPE_OBJECT, NULL);
+  g_signal_connect (object,
+                    "notify::cancellable",
+                    G_CALLBACK (on_notify),
+                    &notified);
+
+  thread = g_thread_new ("valent-object-notify",
+                         (GThreadFunc)notify_thread_func,
+                         object);
+
+  while (!notified)
+    g_main_context_iteration (NULL, FALSE);
+
+  g_assert_null (g_thread_join (thread));
+}
+
+
 int
 main (int   argc,
       char *argv[])
@@ -198,6 +242,9 @@ main (int   argc,
 
   g_test_add_func ("/core/object/destroy-thread",
                    test_object_destroy_thread);
+
+  g_test_add_func ("/core/object/notify-thread",
+                   test_object_notify_thread);
 
   g_test_run ();
 }
