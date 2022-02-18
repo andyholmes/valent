@@ -249,6 +249,7 @@ test_contacts_component_store (ContactsComponentFixture *fixture,
                                gconstpointer             user_data)
 {
   g_autofree char *name = NULL;
+  g_autofree char *path = NULL;
   g_autofree char *uid = NULL;
   g_autoptr (ESource) source = NULL;
   EBookQuery *query = NULL;
@@ -259,11 +260,13 @@ test_contacts_component_store (ContactsComponentFixture *fixture,
   /* Properties */
   g_object_get (fixture->store,
                 "name",   &name,
+                "path",   &path,
                 "uid",    &uid,
                 "source", &source,
                 NULL);
 
   g_assert_cmpstr (name, ==, "Test Store");
+  g_assert_nonnull (path);
   g_assert_cmpstr (uid, ==, "test-store");
   g_assert_true (valent_contact_store_get_source (fixture->store) == source);
   g_assert_true (E_IS_SOURCE (source));

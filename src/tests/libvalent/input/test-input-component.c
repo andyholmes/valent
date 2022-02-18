@@ -27,7 +27,51 @@ input_component_fixture_tear_down (InputComponentFixture *fixture,
 }
 
 static void
-test_input_component_basic (InputComponentFixture *fixture,
+test_input_component_adapter (InputComponentFixture *fixture,
+                              gconstpointer          user_data)
+{
+
+  ValentInputAdapter *adapter;
+  PeasPluginInfo *plugin_info;
+
+  while ((adapter = valent_mock_input_adapter_get_instance ()) == NULL)
+    continue;
+
+  /* Properties */
+  g_object_get (adapter,
+                "plugin-info", &plugin_info,
+                NULL);
+
+  g_assert_nonnull (plugin_info);
+  g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
+
+  /* Pointer Motion (relative) */
+  valent_input_adapter_pointer_motion (adapter, 1.0, 1.0);
+  valent_test_event_cmpstr ("POINTER MOTION 1.0 1.0");
+
+  /* Pointer Motion (absolute) */
+  valent_input_adapter_pointer_position (adapter, 0.0, 0.0);
+  valent_test_event_cmpstr ("POINTER POSITION 0.0 0.0");
+
+  /* Pointer Scroll */
+  valent_input_adapter_pointer_axis (adapter, 0.0, 1.0);
+  valent_test_event_cmpstr ("POINTER AXIS 0.0 1.0");
+
+  /* Pointer Button (press/release) */
+  valent_input_adapter_pointer_button (adapter, VALENT_POINTER_PRIMARY, TRUE);
+  valent_test_event_cmpstr ("POINTER BUTTON 1 1");
+  valent_input_adapter_pointer_button (adapter, VALENT_POINTER_PRIMARY, FALSE);
+  valent_test_event_cmpstr ("POINTER BUTTON 1 0");
+
+  /* Keysym (press/release) */
+  valent_input_adapter_keyboard_keysym (adapter, 'a', TRUE);
+  valent_test_event_cmpstr ("KEYSYM 97 1");
+  valent_input_adapter_keyboard_keysym (adapter, 'a', FALSE);
+  valent_test_event_cmpstr ("KEYSYM 97 0");
+}
+
+static void
+test_input_component_self (InputComponentFixture *fixture,
                             gconstpointer          user_data)
 {
   /* Pointer Motion (relative) */
@@ -65,10 +109,16 @@ main (int   argc,
 {
   g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 
-  g_test_add ("/components/input/basic",
+  g_test_add ("/components/input/adapter",
               InputComponentFixture, NULL,
               input_component_fixture_set_up,
-              test_input_component_basic,
+              test_input_component_adapter,
+              input_component_fixture_tear_down);
+
+  g_test_add ("/components/input/self",
+              InputComponentFixture, NULL,
+              input_component_fixture_set_up,
+              test_input_component_self,
               input_component_fixture_tear_down);
 
   return g_test_run ();
