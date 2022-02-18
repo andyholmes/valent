@@ -21,7 +21,6 @@ struct _ValentContactRow
   GtkListBoxRow  parent_instance;
 
   EContact      *contact;
-  unsigned int   address_type;
 
   GtkWidget     *grid;
   GtkWidget     *avatar;
@@ -227,8 +226,6 @@ valent_contact_row_init (ValentContactRow *self)
   style = gtk_widget_get_style_context (self->address_type_label);
   gtk_style_context_add_class (style, "dim-label");
   gtk_grid_attach (GTK_GRID (self->grid), self->address_type_label, 2, 1, 1, 1);
-
-  self->address_type = VALENT_PHONE_NUMBER_VOICE;
 }
 
 /**
