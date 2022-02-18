@@ -73,31 +73,31 @@ static guint signals[N_SIGNALS] = { 0, };
  */
 typedef struct
 {
-  GWeakRef  store;
-  char     *uid;
-  EContact *contact;
+  GRecMutex  mutex;
+  GWeakRef   store;
+  char      *uid;
+  EContact  *contact;
 } SignalEmission;
 
 static gboolean
 valent_contact_store_emit_contact_added_main (gpointer data)
 {
   SignalEmission *emission = data;
-  ValentContactStore *store = NULL;
+  g_autoptr (ValentContactStore) store = NULL;
 
   g_assert (VALENT_IS_MAIN_THREAD ());
 
+  g_rec_mutex_lock (&emission->mutex);
   if ((store = g_weak_ref_get (&emission->store)) != NULL)
-    {
-      g_signal_emit (G_OBJECT (store),
-                     signals [CONTACT_ADDED], 0,
-                     emission->contact);
-      g_clear_object (&store);
-    }
+    g_signal_emit (G_OBJECT (store),
+                   signals [CONTACT_ADDED], 0,
+                   emission->contact);
 
   g_weak_ref_clear (&emission->store);
-  g_clear_pointer (&emission->uid, g_free);
   g_clear_object (&emission->contact);
-  g_free (emission);
+  g_rec_mutex_unlock (&emission->mutex);
+  g_rec_mutex_clear (&emission->mutex);
+  g_clear_pointer (&emission, g_free);
 
   return G_SOURCE_REMOVE;
 }
@@ -106,22 +106,21 @@ static gboolean
 valent_contact_store_emit_contact_removed_main (gpointer data)
 {
   SignalEmission *emission = data;
-  ValentContactStore *store = NULL;
+  g_autoptr (ValentContactStore) store = NULL;
 
   g_assert (VALENT_IS_MAIN_THREAD ());
 
+  g_rec_mutex_lock (&emission->mutex);
   if ((store = g_weak_ref_get (&emission->store)) != NULL)
-    {
-      g_signal_emit (G_OBJECT (store),
-                     signals [CONTACT_REMOVED], 0,
-                     emission->uid);
-      g_clear_object (&store);
-    }
+    g_signal_emit (G_OBJECT (store),
+                   signals [CONTACT_REMOVED], 0,
+                   emission->uid);
 
   g_weak_ref_clear (&emission->store);
   g_clear_pointer (&emission->uid, g_free);
-  g_clear_object (&emission->contact);
-  g_free (emission);
+  g_rec_mutex_unlock (&emission->mutex);
+  g_rec_mutex_clear (&emission->mutex);
+  g_clear_pointer (&emission, g_free);
 
   return G_SOURCE_REMOVE;
 }
@@ -406,8 +405,11 @@ valent_contact_store_emit_contact_added (ValentContactStore *store,
     }
 
   emission = g_new0 (SignalEmission, 1);
+  g_rec_mutex_init (&emission->mutex);
+  g_rec_mutex_lock (&emission->mutex);
   g_weak_ref_init (&emission->store, store);
   emission->contact = g_object_ref (contact);
+  g_rec_mutex_unlock (&emission->mutex);
 
   g_timeout_add (0, valent_contact_store_emit_contact_added_main, emission);
 }
@@ -439,8 +441,11 @@ valent_contact_store_emit_contact_removed (ValentContactStore *store,
     }
 
   emission = g_new0 (SignalEmission, 1);
+  g_rec_mutex_init (&emission->mutex);
+  g_rec_mutex_lock (&emission->mutex);
   g_weak_ref_init (&emission->store, store);
   emission->uid = g_strdup (uid);
+  g_rec_mutex_unlock (&emission->mutex);
 
   g_timeout_add (0, valent_contact_store_emit_contact_removed_main, emission);
 }

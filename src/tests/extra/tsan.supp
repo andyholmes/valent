@@ -14,10 +14,6 @@ race:execute_task
 # src/plugins/sms/valent-sms-store.c
 race:valent_sms_store_thread
 
-# src/libvalent/contacts/valent-contact-store.c
-race:valent_contact_store_emit_contact_added_main
-race:valent_contact_store_emit_contact_removed_main
-
 
 #
 # Uninstrumented libraries (core, components, ui, plugins)

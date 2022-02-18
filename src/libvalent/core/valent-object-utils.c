@@ -12,7 +12,8 @@
 
 typedef struct
 {
-  GObject    *object;
+  GRecMutex   mutex;
+  GWeakRef    object;
   GParamSpec *pspec;
   char       *property_name;
 } NotifyEmission;
@@ -22,20 +23,25 @@ static gboolean
 valent_object_notify_main (gpointer data)
 {
   NotifyEmission *emission = data;
+  g_autoptr (GObject) object = NULL;
 
   g_assert (emission != NULL);
-  g_assert (G_IS_OBJECT (emission->object));
-  g_assert (emission->property_name != NULL || emission->pspec != NULL);
 
-  if G_LIKELY (emission->pspec)
-    g_object_notify_by_pspec (emission->object, emission->pspec);
-  else
-    g_object_notify (emission->object, emission->property_name);
+  g_rec_mutex_lock (&emission->mutex);
+  if ((object = g_weak_ref_get (&emission->object)) != NULL)
+    {
+      if (emission->pspec != NULL)
+        g_object_notify_by_pspec (object, emission->pspec);
+      else
+        g_object_notify (object, emission->property_name);
+    }
 
-  g_clear_object (&emission->object);
+  g_weak_ref_clear (&emission->object);
   g_clear_pointer (&emission->property_name, g_free);
   g_clear_pointer (&emission->pspec, g_param_spec_unref);
-  g_free (emission);
+  g_rec_mutex_unlock (&emission->mutex);
+  g_rec_mutex_clear (&emission->mutex);
+  g_clear_pointer (&emission, g_free);
 
   return G_SOURCE_REMOVE;
 }
@@ -65,8 +71,11 @@ valent_object_notify (gpointer    object,
     }
 
   emission = g_new0 (NotifyEmission, 1);
-  emission->object = g_object_ref (object);
+  g_rec_mutex_init (&emission->mutex);
+  g_rec_mutex_lock (&emission->mutex);
+  g_weak_ref_init (&emission->object, object);
   emission->property_name = g_strdup (property_name);
+  g_rec_mutex_unlock (&emission->mutex);
 
   g_idle_add_full (G_PRIORITY_DEFAULT,
                    valent_object_notify_main,
@@ -98,8 +107,11 @@ valent_object_notify_by_pspec (gpointer    object,
     }
 
   emission = g_new0 (NotifyEmission, 1);
-  emission->object = g_object_ref (object);
+  g_rec_mutex_init (&emission->mutex);
+  g_rec_mutex_lock (&emission->mutex);
+  g_weak_ref_init (&emission->object, object);
   emission->pspec = g_param_spec_ref (pspec);
+  g_rec_mutex_unlock (&emission->mutex);
 
   g_idle_add_full (G_PRIORITY_DEFAULT,
                    valent_object_notify_main,
