@@ -23,7 +23,6 @@ libvalent_contacts_private_headers = [
 ]
 
 libvalent_contacts_enum_headers = [
-  'valent-contacts.h',
 ]
 
 install_headers(libvalent_contacts_public_headers,
@@ -39,19 +38,6 @@ libvalent_contacts_public_sources = [
   'valent-contact-store-provider.c',
   'valent-contact-utils.c',
 ]
-
-
-# Enumerations
-libvalent_contacts_enums = gnome.mkenums_simple('valent-contacts-enums',
-     body_prefix: '#include "config.h"',
-   header_prefix: '#include <libvalent-core.h>',
-       decorator: '_VALENT_EXTERN',
-         sources: libvalent_contacts_enum_headers,
-  install_header: true,
-     install_dir: libvalent_contacts_header_dir,
-)
-libvalent_contacts_generated_sources += [libvalent_contacts_enums[0]]
-libvalent_contacts_generated_headers += [libvalent_contacts_enums[1]]
 
 
 # Dependencies
