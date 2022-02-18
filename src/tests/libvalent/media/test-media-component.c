@@ -86,10 +86,20 @@ test_media_component_provider (MediaComponentFixture *fixture,
 {
   g_autoptr (GPtrArray) players = NULL;
   ValentMediaPlayerProvider *provider;
+  PeasPluginInfo *plugin_info;
 
   while ((provider = valent_mock_media_player_provider_get_instance ()) == NULL)
     continue;
 
+  /* Properties */
+  g_object_get (provider,
+                "plugin-info", &plugin_info,
+                NULL);
+
+  g_assert_nonnull (plugin_info);
+  g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
+
+  /* Signals */
   g_signal_connect (provider,
                     "player-added",
                     G_CALLBACK (on_player_added),

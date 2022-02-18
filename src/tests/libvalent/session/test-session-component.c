@@ -35,36 +35,41 @@ on_changed (ValentSessionAdapter    *adapter,
 }
 
 static void
-test_session_component_provider (SessionComponentFixture *fixture,
+test_session_component_adapter (SessionComponentFixture *fixture,
                                  gconstpointer            user_data)
 {
-  ValentSessionAdapter *provider;
+  ValentSessionAdapter *adapter;
   gboolean active, locked;
+  PeasPluginInfo *plugin_info;
 
-  while ((provider = valent_mock_session_adapter_get_instance ()) == NULL)
+  while ((adapter = valent_mock_session_adapter_get_instance ()) == NULL)
     continue;
 
   /* Compare Device & Aggregator */
-  g_object_get (provider,
-                "active", &active,
-                "locked", &locked,
+  g_object_get (adapter,
+                "active",      &active,
+                "locked",      &locked,
+                "plugin-info", &plugin_info,
                 NULL);
 
   g_assert_false (active);
   g_assert_false (locked);
+  g_assert_nonnull (plugin_info);
+
+  g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
 
   /* Change adapter */
-  g_signal_connect (provider,
+  g_signal_connect (adapter,
                     "changed",
                     G_CALLBACK (on_changed),
                     fixture);
 
-  g_object_set (provider,
+  g_object_set (adapter,
                 "locked", !locked,
                 NULL);
 
-  g_assert_true (valent_session_adapter_get_locked (provider));
-  g_assert_true (fixture->data == provider);
+  g_assert_true (valent_session_adapter_get_locked (adapter));
+  g_assert_true (fixture->data == adapter);
   fixture->data = NULL;
 }
 
@@ -72,32 +77,27 @@ static void
 test_session_component_self (SessionComponentFixture *fixture,
                              gconstpointer            user_data)
 {
-  ValentSessionAdapter *provider;
+  ValentSessionAdapter *adapter;
   gboolean session_active, session_locked;
   gboolean adapter_active, adapter_locked;
-  PeasPluginInfo *info;
 
-  while ((provider = valent_mock_session_adapter_get_instance ()) == NULL)
+  while ((adapter = valent_mock_session_adapter_get_instance ()) == NULL)
     continue;
 
   /* Compare session & adapter */
   session_active = valent_session_get_active (fixture->session);
   session_locked = valent_session_get_locked (fixture->session);
 
-  g_object_get (provider,
+  g_object_get (adapter,
                 "active",      &adapter_active,
                 "locked",      &adapter_locked,
-                "plugin-info", &info,
                 NULL);
 
   g_assert_true (session_active == adapter_active);
   g_assert_true (session_locked == adapter_locked);
-  g_assert_nonnull (info);
-
-  g_boxed_free (PEAS_TYPE_PLUGIN_INFO, info);
 
   /* Change session */
-  g_signal_connect (provider,
+  g_signal_connect (adapter,
                     "changed",
                     G_CALLBACK (on_changed),
                     fixture);
@@ -105,7 +105,7 @@ test_session_component_self (SessionComponentFixture *fixture,
   valent_session_set_locked (fixture->session, !session_locked);
 
   g_assert_true (valent_session_get_locked (fixture->session));
-  g_assert_true (fixture->data == provider);
+  g_assert_true (fixture->data == adapter);
   fixture->data = NULL;
 }
 
@@ -115,10 +115,10 @@ main (int   argc,
 {
   g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 
-  g_test_add ("/components/session/provider",
+  g_test_add ("/components/session/adapter",
               SessionComponentFixture, NULL,
               session_component_fixture_set_up,
-              test_session_component_provider,
+              test_session_component_adapter,
               session_component_fixture_tear_down);
 
   g_test_add ("/components/session/self",
