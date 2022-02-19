@@ -3,7 +3,7 @@
 
 project('valent', 'c',
           license: 'GPL-3.0-or-later',
-          version: '0.1.0',
+          version: '1.0.0-alpha',
     meson_version: '>= 0.56.0',
   default_options: [
     'buildtype=debugoptimized',
@@ -21,12 +21,12 @@ pkgconfig = import('pkgconfig')
 # Versioning
 #
 valent_version = meson.project_version()
-version_split = valent_version.split('.')
+version_split = valent_version.split('-')[0].split('.')
 MAJOR_VERSION = version_split[0].to_int()
 MINOR_VERSION = version_split[1].to_int()
 MICRO_VERSION = version_split[2].to_int()
 
-valent_api_version = '@0@'.format(MAJOR_VERSION)
+valent_api_version = '@0@.@1@'.format(MAJOR_VERSION, MINOR_VERSION)
 valent_api_name = 'valent-@0@'.format(valent_api_version)
 
 
@@ -151,13 +151,12 @@ config_h_defines = {
   'APPLICATION_PATH':   application_path,
 
   # AC_INIT
-  'PACKAGE':            meson.project_name(),
-  'PACKAGE_API':        valent_api_version,
-  'PACKAGE_BUGREPORT':  'https://github.com/andyholmes/' + meson.project_name() + '/issues',
   'PACKAGE_NAME':       meson.project_name(),
-  'PACKAGE_STRING':     '@0@ @1@'.format(meson.project_name(), valent_version),
-  'PACKAGE_URL':        'https://github.com/andyholmes/' + meson.project_name(),
+  'PACKAGE_TARNAME':    '@0@-@1@'.format(meson.project_name(), meson.project_version()),
   'PACKAGE_VERSION':    meson.project_version(),
+  'PACKAGE_STRING':     '@0@ @1@'.format(meson.project_name(), meson.project_version()),
+  'PACKAGE_BUGREPORT':  'https://github.com/andyholmes/@0@/issues'.format(meson.project_name()),
+  'PACKAGE_URL':        'https://github.com/andyholmes/@0@'.format(meson.project_name()),
 
   # Paths
   'PACKAGE_DATADIR':    pkgdatadir,

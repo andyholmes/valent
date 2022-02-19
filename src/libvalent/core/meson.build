@@ -66,7 +66,9 @@ libvalent_core_public_sources = [
 version_data = configuration_data()
 version_data.set('MAJOR_VERSION', MAJOR_VERSION)
 version_data.set('MINOR_VERSION', MINOR_VERSION)
+version_data.set('MICRO_VERSION', MICRO_VERSION)
 version_data.set('VERSION', meson.project_version())
+version_data.set('API_VERSION', '@0@.@1@'.format(MAJOR_VERSION, MINOR_VERSION))
 
 libvalent_core_version_h = configure_file(
           input: 'valent-version.h.in',

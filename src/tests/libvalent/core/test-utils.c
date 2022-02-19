@@ -5,14 +5,21 @@
 
 
 static void
-test_utils_packet_builder (void)
+test_utils_version (void)
 {
-  // FIXME ???
-  g_autoptr (JsonBuilder) builder = NULL;
-  g_autoptr (JsonNode) packet = NULL;
+  unsigned int major, minor, micro;
 
-  builder = valent_packet_start ("kdeconnect.identity");
-  packet = valent_packet_finish (builder);
+  major = valent_get_major_version ();
+  minor = valent_get_minor_version ();
+  micro = valent_get_micro_version ();
+
+  g_assert_cmpuint (major, ==, VALENT_MAJOR_VERSION);
+  g_assert_cmpuint (minor, ==, VALENT_MINOR_VERSION);
+  g_assert_cmpuint (micro, ==, VALENT_MICRO_VERSION);
+
+  g_assert_true (valent_check_version (major, minor));
+  g_assert_false (valent_check_version (major + 1, minor));
+  g_assert_false (valent_check_version (major, minor + 1));
 }
 
 int
@@ -21,6 +28,8 @@ main (int   argc,
 {
   g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 
-  g_test_add_func ("/core/utils/packet-builder",
-                   test_utils_packet_builder);
+  g_test_add_func ("/core/utils/version",
+                   test_utils_version);
+
+  g_test_run ();
 }
