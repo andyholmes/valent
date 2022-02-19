@@ -12,6 +12,7 @@
 #include "valent-device.h"
 #include "valent-macros.h"
 #include "valent-utils.h"
+#include "valent-version.h"
 
 
 /**
@@ -125,7 +126,7 @@ valent_load_plugins (PeasEngine *engine)
       g_irepository_require (NULL, "Gtk",  "4.0", 0, &error) &&
       g_irepository_require (NULL, "Json", "1.0", 0, &error) &&
       g_irepository_require (NULL, "Peas", "1.0", 0, &error) &&
-      g_irepository_require (NULL, "Valent", PACKAGE_API, 0, &error))
+      g_irepository_require (NULL, "Valent", VALENT_API_VERSION, 0, &error))
     peas_engine_enable_loader (engine, "python3");
   else
     g_message ("Disabling Python3 plugins: %s", error->message);

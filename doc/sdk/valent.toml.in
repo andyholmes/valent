@@ -65,3 +65,8 @@ content_images = [
 ]
 urlmap_file = "urlmap.js"
 
+# Ignore internal version macros
+[[object]]
+pattern = "^DEPRECATED|^UNAVAILABLE.*"
+hidden = true
+

@@ -13,8 +13,10 @@
  * @major: required major version
  * @minor: required minor version
  *
- * Run-time version check. Evaluates to %TRUE if the running version of
- * Valent is greater than or equal to the required one.
+ * Run-time version check.
+ *
+ * Evaluates to %TRUE if the API version of libvalent is greater than or equal
+ * to the required one.
  *
  * Returns: %TRUE if the requirement is met, or %FALSE if not
  */
@@ -22,10 +24,10 @@ gboolean
 valent_check_version (unsigned int major,
                       unsigned int minor)
 {
-  if (major > VALENT_MAJOR_VERSION)
+  if (VALENT_MAJOR_VERSION > major)
     return TRUE;
 
-  if (major == VALENT_MAJOR_VERSION && minor >= VALENT_MINOR_VERSION)
+  if (VALENT_MAJOR_VERSION == major && VALENT_MINOR_VERSION >= minor)
     return TRUE;
 
   return FALSE;
@@ -34,8 +36,9 @@ valent_check_version (unsigned int major,
 /**
  * valent_get_major_version:
  *
- * Get the major version component of the Valent library. For example, if the
- * version `1.2` this is `1`.
+ * Get the major version component of the Valent library.
+ *
+ * For example, if the version `1.2` this is `1`.
  *
  * Returns: the major version component of libvalent
  */
@@ -48,8 +51,9 @@ valent_get_major_version (void)
 /**
  * valent_get_minor_version:
  *
- * Get the minor version component of the Valent library. For example, if the
- * version `1.2` this is `2`.
+ * Get the minor version component of the Valent library.
+ *
+ * For example, if the version `1.2` this is `2`.
  *
  * Returns: the minor version component of libvalent
  */
@@ -57,5 +61,20 @@ unsigned int
 valent_get_minor_version (void)
 {
   return VALENT_MINOR_VERSION;
+}
+
+/**
+ * valent_get_micro_version:
+ *
+ * Get the micro version component of the Valent library.
+ *
+ * For example, if the version `1.2.3` this is `3`.
+ *
+ * Returns: the micro version component of libvalent
+ */
+unsigned int
+valent_get_micro_version (void)
+{
+  return VALENT_MICRO_VERSION;
 }
 
