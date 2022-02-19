@@ -22,6 +22,7 @@
 #include "valent-transfer.h"
 #include "valent-utils.h"
 
+#define PAIR_REQUEST_ID      "pair-request"
 #define PAIR_REQUEST_TIMEOUT 30
 
 
@@ -71,8 +72,10 @@ struct _ValentDevice
   GMenu               *menu;
 };
 
-static void   valent_device_reload_plugins (ValentDevice *device);
-static void   valent_device_update_plugins (ValentDevice *device);
+static void       valent_device_reload_plugins  (ValentDevice   *device);
+static void       valent_device_update_plugins  (ValentDevice   *device);
+static gboolean   valent_device_supports_plugin (ValentDevice   *device,
+                                                 PeasPluginInfo *info);
 
 G_DEFINE_TYPE (ValentDevice, valent_device, VALENT_TYPE_OBJECT)
 
@@ -212,7 +215,7 @@ valent_device_reset_pair (gpointer object)
 
   g_assert (VALENT_IS_DEVICE (device));
 
-  valent_device_hide_notification (device, "pair-request");
+  valent_device_hide_notification (device, PAIR_REQUEST_ID);
   g_clear_handle_id (&device->incoming_pair, g_source_remove);
   g_clear_handle_id (&device->outgoing_pair, g_source_remove);
 
@@ -312,7 +315,7 @@ valent_device_notify_pair (ValentDevice *device)
                                          NULL);
 
   /* Show the pairing notification and set a timeout for 30s */
-  valent_device_show_notification (device, "pair-request", notification);
+  valent_device_show_notification (device, PAIR_REQUEST_ID, notification);
   device->incoming_pair = g_timeout_add_seconds (PAIR_REQUEST_TIMEOUT,
                                                  valent_device_reset_pair,
                                                  device);
@@ -1763,7 +1766,7 @@ valent_device_update_plugins (ValentDevice *device)
  *
  * Returns: %TRUE if supported
  */
-gboolean
+static gboolean
 valent_device_supports_plugin (ValentDevice   *device,
                                PeasPluginInfo *info)
 {
