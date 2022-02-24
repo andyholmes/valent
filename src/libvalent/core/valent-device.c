@@ -19,7 +19,6 @@
 #include "valent-macros.h"
 #include "valent-object.h"
 #include "valent-packet.h"
-#include "valent-transfer.h"
 #include "valent-utils.h"
 
 #define PAIR_REQUEST_ID      "pair-request"
