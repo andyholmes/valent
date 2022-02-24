@@ -36,7 +36,7 @@ test_device_panel_basic (void)
                              peas_engine_get_plugin_info (engine, "mock"));
 
   g_clear_object (&panel);
-  g_clear_pointer (&fixture, valent_test_plugin_fixture_free);
+  g_clear_pointer (&fixture, valent_test_plugin_fixture_unref);
 }
 
 int

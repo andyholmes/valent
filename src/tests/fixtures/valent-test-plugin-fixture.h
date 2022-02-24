@@ -25,47 +25,49 @@ typedef struct
   GDestroyNotify  data_free;
 } ValentTestPluginFixture;
 
-GType          valent_test_plugin_fixture_get_type      (void) G_GNUC_CONST;
 
-void           valent_test_plugin_fixture_init          (ValentTestPluginFixture  *fixture,
-                                                         gconstpointer             user_data);
-void           valent_test_plugin_fixture_clear         (ValentTestPluginFixture  *fixture,
-                                                         gconstpointer             user_data);
+GType                     valent_test_plugin_fixture_get_type      (void) G_GNUC_CONST;
 
-void           valent_test_plugin_fixture_init_settings (ValentTestPluginFixture  *fixture,
-                                                         const char               *name);
-void           valent_test_plugin_fixture_connect       (ValentTestPluginFixture  *fixture,
-                                                         gboolean                  connected);
-void           valent_test_plugin_fixture_run           (ValentTestPluginFixture  *fixture);
-void           valent_test_plugin_fixture_quit          (ValentTestPluginFixture  *fixture);
+ValentTestPluginFixture * valent_test_plugin_fixture_new           (const char               *path);
+ValentTestPluginFixture * valent_test_plugin_fixture_ref           (ValentTestPluginFixture  *fixture);
+void                      valent_test_plugin_fixture_unref         (ValentTestPluginFixture  *fixture);
 
-gpointer       valent_test_plugin_fixture_get_data      (ValentTestPluginFixture  *fixture);
-void           valent_test_plugin_fixture_set_data      (ValentTestPluginFixture  *fixture,
-                                                         gpointer                  data,
-                                                         GDestroyNotify            data_free);
-ValentDevice * valent_test_plugin_fixture_get_device    (ValentTestPluginFixture  *fixture);
-GSettings    * valent_test_plugin_fixture_get_settings  (ValentTestPluginFixture  *fixture);
+void                      valent_test_plugin_fixture_init          (ValentTestPluginFixture  *fixture,
+                                                                    gconstpointer             user_data);
+void                      valent_test_plugin_fixture_init_settings (ValentTestPluginFixture  *fixture,
+                                                                    const char               *name);
+void                      valent_test_plugin_fixture_clear         (ValentTestPluginFixture  *fixture,
+                                                                    gconstpointer             user_data);
 
-JsonNode     * valent_test_plugin_fixture_expect_packet (ValentTestPluginFixture  *fixture);
-void           valent_test_plugin_fixture_handle_packet (ValentTestPluginFixture  *fixture,
-                                                         JsonNode                 *packet);
-JsonNode     * valent_test_plugin_fixture_lookup_packet (ValentTestPluginFixture  *fixture,
-                                                         const char               *name);
-gboolean       valent_test_plugin_fixture_download      (ValentTestPluginFixture  *fixture,
-                                                         JsonNode                 *packet,
-                                                         GError                  **error);
-gboolean       valent_test_plugin_fixture_upload        (ValentTestPluginFixture  *fixture,
-                                                         JsonNode                 *packet,
-                                                         GFile                    *file,
-                                                         GError                  **error);
-gboolean       valent_test_plugin_fixture_schema_fuzz   (ValentTestPluginFixture  *fixture,
-                                                         const char               *path);
+void                      valent_test_plugin_fixture_connect       (ValentTestPluginFixture  *fixture,
+                                                                    gboolean                  connected);
+void                      valent_test_plugin_fixture_run           (ValentTestPluginFixture  *fixture);
+void                      valent_test_plugin_fixture_quit          (ValentTestPluginFixture  *fixture);
+void                      valent_test_plugin_fixture_wait          (ValentTestPluginFixture  *fixture,
+                                                                    unsigned int              interval);
 
+gpointer                  valent_test_plugin_fixture_get_data      (ValentTestPluginFixture  *fixture);
+void                      valent_test_plugin_fixture_set_data      (ValentTestPluginFixture  *fixture,
+                                                                    gpointer                  data,
+                                                                    GDestroyNotify            data_free);
+ValentDevice            * valent_test_plugin_fixture_get_device    (ValentTestPluginFixture  *fixture);
+GSettings               * valent_test_plugin_fixture_get_settings  (ValentTestPluginFixture  *fixture);
 
-ValentTestPluginFixture * valent_test_plugin_fixture_new             (const char     *path);
-ValentTestPluginFixture * valent_test_plugin_fixture_copy            (ValentTestPluginFixture  *fixture);
-void                      valent_test_plugin_fixture_free            (gpointer        data);
+JsonNode                * valent_test_plugin_fixture_expect_packet (ValentTestPluginFixture  *fixture);
+void                      valent_test_plugin_fixture_handle_packet (ValentTestPluginFixture  *fixture,
+                                                                    JsonNode                 *packet);
+JsonNode                * valent_test_plugin_fixture_lookup_packet (ValentTestPluginFixture  *fixture,
+                                                                    const char               *name);
+gboolean                  valent_test_plugin_fixture_download      (ValentTestPluginFixture  *fixture,
+                                                                    JsonNode                 *packet,
+                                                                    GError                  **error);
+gboolean                  valent_test_plugin_fixture_upload        (ValentTestPluginFixture  *fixture,
+                                                                    JsonNode                 *packet,
+                                                                    GFile                    *file,
+                                                                    GError                  **error);
+gboolean                  valent_test_plugin_fixture_schema_fuzz   (ValentTestPluginFixture  *fixture,
+                                                                    const char               *path);
 
-ValentChannel * valent_test_plugin_fixture_get_endpoint (ValentTestPluginFixture  *fixture);
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (ValentTestPluginFixture, valent_test_plugin_fixture_unref)
 
 G_END_DECLS

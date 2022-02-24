@@ -10,19 +10,15 @@
 
 
 /**
- * SECTION:valenttestpluginfixture
- * @short_description: A fixture for testing plugins
- * @title: ValentTestPluginFixture
- * @stability: Unstable
- * @include: libvalent-test.h
+ * ValentTestPluginFixture:
  *
  * #ValentTestPluginFixture is a fixture for testing #ValentDevicePlugin
  * implementations that require a connected #ValentDevice.
  */
-
 G_DEFINE_BOXED_TYPE (ValentTestPluginFixture, valent_test_plugin_fixture,
-                                              valent_test_plugin_fixture_copy,
-                                              valent_test_plugin_fixture_free)
+                                              valent_test_plugin_fixture_ref,
+                                              valent_test_plugin_fixture_unref)
+
 
 static void
 expect_packet_cb (ValentChannel  *channel,
@@ -37,38 +33,22 @@ expect_packet_cb (ValentChannel  *channel,
     g_critical ("%s(): %s", G_STRFUNC, error->message);
 }
 
-/**
- * valent_test_plugin_fixture_new:
- * @path: a path to JSON test data
- *
- * Create a new test fixture.
- *
- * Returns: (transfer full): a #ValentTestPluginFixture
- */
-ValentTestPluginFixture *
-valent_test_plugin_fixture_new (const char *path)
+static gboolean
+valent_test_plugin_fixture_wait_cb (gpointer data)
 {
-  ValentTestPluginFixture *fixture;
+  ValentTestPluginFixture *fixture = data;
 
-  fixture = g_new0 (ValentTestPluginFixture, 1);
-  valent_test_plugin_fixture_init (fixture, path);
+  valent_test_plugin_fixture_quit (fixture);
 
-  return fixture;
+  return G_SOURCE_REMOVE;
 }
 
-void
+static void
 valent_test_plugin_fixture_free (gpointer data)
 {
   ValentTestPluginFixture *fixture = data;
 
   valent_test_plugin_fixture_clear (fixture, NULL);
-  g_free (fixture);
-}
-
-ValentTestPluginFixture *
-valent_test_plugin_fixture_copy (ValentTestPluginFixture *fixture)
-{
-  return fixture;
 }
 
 /**
@@ -105,25 +85,12 @@ valent_test_plugin_fixture_init (ValentTestPluginFixture *fixture,
 }
 
 /**
- * valent_test_plugin_fixture_init_settings:
+ * valent_test_plugin_fixture_clear:
  * @fixture: a #ValentTestPluginFixture
- * @name: a plugin module name
+ * @user_data: a file path
  *
- * Create a #GSettings object for the #ValentDevicePlugin module @name.
+ * A fixture tear-down function.
  */
-void
-valent_test_plugin_fixture_init_settings (ValentTestPluginFixture *fixture,
-                                          const char              *name)
-{
-  const char *device_id;
-
-  g_assert (fixture != NULL);
-  g_assert (name != NULL);
-
-  device_id = valent_device_get_id (fixture->device);
-  fixture->settings = valent_device_plugin_new_settings (device_id, name);
-}
-
 void
 valent_test_plugin_fixture_clear (ValentTestPluginFixture *fixture,
                                   gconstpointer            user_data)
@@ -150,6 +117,77 @@ valent_test_plugin_fixture_clear (ValentTestPluginFixture *fixture,
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
+}
+
+/**
+ * valent_test_plugin_fixture_new:
+ * @path: a file path
+ *
+ * Create a new #ValentTestPluginFixture for the JSON test data at @path.
+ *
+ * Returns: (transfer full): a new #ValentTestPluginFixture
+ */
+ValentTestPluginFixture *
+valent_test_plugin_fixture_new (const char *path)
+{
+  ValentTestPluginFixture *fixture;
+
+  g_assert (path != NULL && *path != '\0');
+
+  fixture = g_rc_box_new0 (ValentTestPluginFixture);
+  valent_test_plugin_fixture_init (fixture, path);
+
+  return g_steal_pointer (&fixture);
+}
+
+/**
+ * valent_test_plugin_fixture_ref:
+ * @fixture: a #ValentTestPluginFixture
+ *
+ * Acquire a new reference of @fixture.
+ *
+ * Returns: (transfer full): a #ValentTestPluginFixture
+ */
+ValentTestPluginFixture *
+valent_test_plugin_fixture_ref (ValentTestPluginFixture *fixture)
+{
+  g_assert (fixture != NULL);
+
+  return g_rc_box_acquire (fixture);
+}
+
+/**
+ * valent_test_plugin_fixture_unref:
+ * @fixture: a #ValentTestPluginFixture
+ *
+ * Release a reference on @fixture.
+ */
+void
+valent_test_plugin_fixture_unref (ValentTestPluginFixture *fixture)
+{
+  g_assert (fixture != NULL);
+
+  g_rc_box_release_full (fixture, valent_test_plugin_fixture_free);
+}
+
+/**
+ * valent_test_plugin_fixture_init_settings:
+ * @fixture: a #ValentTestPluginFixture
+ * @name: a plugin module name
+ *
+ * Create a #GSettings object for the #ValentDevicePlugin module @name.
+ */
+void
+valent_test_plugin_fixture_init_settings (ValentTestPluginFixture *fixture,
+                                          const char              *name)
+{
+  const char *device_id;
+
+  g_assert (fixture != NULL);
+  g_assert (name != NULL);
+
+  device_id = valent_device_get_id (fixture->device);
+  fixture->settings = valent_device_plugin_new_settings (device_id, name);
 }
 
 /**
@@ -207,22 +245,6 @@ valent_test_plugin_fixture_get_device (ValentTestPluginFixture *fixture)
 }
 
 /**
- * valent_test_plugin_fixture_get_endpoint:
- * @fixture: a #ValentTestPluginFixture
- *
- * Get the endpoint #ValentChannel.
- *
- * Returns: (transfer none): a #ValentChannel
- */
-ValentChannel *
-valent_test_plugin_fixture_get_endpoint (ValentTestPluginFixture *fixture)
-{
-  g_assert (fixture != NULL);
-
-  return fixture->endpoint;
-}
-
-/**
  * valent_test_plugin_fixture_run:
  * @fixture: a #ValentTestPluginFixture
  *
@@ -248,6 +270,23 @@ valent_test_plugin_fixture_quit (ValentTestPluginFixture *fixture)
   g_assert (fixture != NULL);
 
   g_main_loop_quit (fixture->loop);
+}
+
+/**
+ * valent_test_plugin_fixture_wait:
+ * @fixture: a #ValentTestPluginFixture
+ * @interval: time to wait in milliseconds
+ *
+ * Iterate the #GMainLoop of @fixture for @interval milliseconds.
+ */
+void
+valent_test_plugin_fixture_wait (ValentTestPluginFixture *fixture,
+                                 unsigned int             interval)
+{
+  g_assert (fixture != NULL);
+
+  g_timeout_add (interval, valent_test_plugin_fixture_wait_cb, fixture);
+  g_main_loop_run (fixture->loop);
 }
 
 /**
