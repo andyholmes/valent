@@ -48,8 +48,6 @@ VALENT_AVAILABLE_IN_1_0
 ValentDevice      * valent_device_new_full           (JsonNode             *identity,
                                                       ValentData           *data);
 VALENT_AVAILABLE_IN_1_0
-GActionGroup      * valent_device_get_actions        (ValentDevice         *device);
-VALENT_AVAILABLE_IN_1_0
 ValentChannel     * valent_device_ref_channel        (ValentDevice         *device);
 VALENT_AVAILABLE_IN_1_0
 ValentData        * valent_device_ref_data           (ValentDevice         *device);
@@ -82,13 +80,6 @@ VALENT_AVAILABLE_IN_1_0
 gboolean            valent_device_send_packet_finish (ValentDevice         *device,
                                                       GAsyncResult         *result,
                                                       GError              **error);
-VALENT_AVAILABLE_IN_1_0
-void                valent_device_hide_notification  (ValentDevice         *device,
-                                                      const char           *id);
-VALENT_AVAILABLE_IN_1_0
-void                valent_device_show_notification  (ValentDevice         *device,
-                                                      const char           *id,
-                                                      GNotification        *notification);
 VALENT_AVAILABLE_IN_1_0
 GFile             * valent_device_new_download_file  (ValentDevice         *device,
                                                       const char           *filename,

@@ -17,9 +17,8 @@
 
 struct _ValentTelephonyPlugin
 {
-  PeasExtensionBase  parent_instance;
+  ValentDevicePlugin  parent_instance;
 
-  ValentDevice      *device;
   GSettings         *settings;
 
   gpointer           prev_input;
@@ -27,16 +26,7 @@ struct _ValentTelephonyPlugin
   gboolean           prev_paused;
 };
 
-static void valent_device_plugin_iface_init (ValentDevicePluginInterface *iface);
-
-G_DEFINE_TYPE_WITH_CODE (ValentTelephonyPlugin, valent_telephony_plugin, PEAS_TYPE_EXTENSION_BASE,
-                         G_IMPLEMENT_INTERFACE (VALENT_TYPE_DEVICE_PLUGIN, valent_device_plugin_iface_init))
-
-enum {
-  PROP_0,
-  PROP_DEVICE,
-  N_PROPERTIES
-};
+G_DEFINE_TYPE (ValentTelephonyPlugin, valent_telephony_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
 /*
@@ -244,11 +234,11 @@ static void
 valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
                                           JsonNode              *packet)
 {
+  ValentDevice *device;
   const char *event;
   const char *sender;
   g_autoptr (GNotification) notification = NULL;
   g_autoptr (GIcon) icon = NULL;
-  g_autofree char *notification_id = NULL;
 
   g_assert (VALENT_IS_TELEPHONY_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
@@ -278,13 +268,14 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
    * events from the same sender supersede previous events, and replace the
    * older notifications.
    */
-  notification_id = g_strdup_printf ("telephony::%s", sender);
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
 
   /* This is a cancelled event */
   if (valent_packet_check_field (packet, "isCancel"))
     {
       valent_telephony_plugin_restore_media_state (self);
-      valent_device_hide_notification (self->device, notification_id);
+      valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self),
+                                              sender);
       return;
     }
 
@@ -300,7 +291,7 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
     {
       g_notification_set_body (notification, _("Incoming call"));
       valent_notification_add_device_button (notification,
-                                             self->device,
+                                             device,
                                              _("Mute"),
                                              "mute-call",
                                              NULL);
@@ -312,7 +303,9 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
       g_notification_set_body (notification, _("Ongoing call"));
     }
 
-  valent_device_show_notification (self->device, notification_id, notification);
+  valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),
+                                          sender,
+                                          notification);
 }
 
 static void
@@ -326,7 +319,7 @@ valent_telephony_plugin_mute_call (ValentTelephonyPlugin *self)
   builder = valent_packet_start ("kdeconnect.telephony.request_mute");
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 /*
@@ -355,15 +348,18 @@ static void
 valent_telephony_plugin_enable (ValentDevicePlugin *plugin)
 {
   ValentTelephonyPlugin *self = VALENT_TELEPHONY_PLUGIN (plugin);
+  ValentDevice *device;
   const char *device_id;
 
   g_assert (VALENT_IS_TELEPHONY_PLUGIN (self));
 
-  device_id = valent_device_get_id (self->device);
+  device = valent_device_plugin_get_device (plugin);
+  device_id = valent_device_get_id (device);
   self->settings = valent_device_plugin_new_settings (device_id, "telephony");
-  valent_device_plugin_register_actions (plugin,
-                                         actions,
-                                         G_N_ELEMENTS (actions));
+  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   plugin);
 }
 
 static void
@@ -375,9 +371,6 @@ valent_telephony_plugin_disable (ValentDevicePlugin *plugin)
   g_clear_pointer (&self->prev_output, stream_state_free);
   g_clear_pointer (&self->prev_input, stream_state_free);
 
-  valent_device_plugin_unregister_actions (plugin,
-                                           actions,
-                                           G_N_ELEMENTS (actions));
   g_clear_object (&self->settings);
 }
 
@@ -401,10 +394,7 @@ valent_telephony_plugin_update_state (ValentDevicePlugin *plugin,
       g_clear_pointer (&self->prev_input, stream_state_free);
     }
 
-  valent_device_plugin_toggle_actions (plugin,
-                                       actions,
-                                       G_N_ELEMENTS (actions),
-                                       available);
+  valent_device_plugin_toggle_actions (plugin, available);
 }
 
 static void
@@ -424,65 +414,18 @@ valent_telephony_plugin_handle_packet (ValentDevicePlugin *plugin,
     g_assert_not_reached ();
 }
 
-static void
-valent_device_plugin_iface_init (ValentDevicePluginInterface *iface)
-{
-  iface->enable = valent_telephony_plugin_enable;
-  iface->disable = valent_telephony_plugin_disable;
-  iface->handle_packet = valent_telephony_plugin_handle_packet;
-  iface->update_state = valent_telephony_plugin_update_state;
-}
-
 /*
  * GObject
  */
 static void
-valent_telephony_plugin_get_property (GObject    *object,
-                                      guint       prop_id,
-                                      GValue     *value,
-                                      GParamSpec *pspec)
-{
-  ValentTelephonyPlugin *self = VALENT_TELEPHONY_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      g_value_set_object (value, self->device);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_telephony_plugin_set_property (GObject      *object,
-                                      guint         prop_id,
-                                      const GValue *value,
-                                      GParamSpec   *pspec)
-{
-  ValentTelephonyPlugin *self = VALENT_TELEPHONY_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      self->device = g_value_get_object (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_telephony_plugin_class_init (ValentTelephonyPluginClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
-  object_class->get_property = valent_telephony_plugin_get_property;
-  object_class->set_property = valent_telephony_plugin_set_property;
-
-  g_object_class_override_property (object_class, PROP_DEVICE, "device");
+  plugin_class->enable = valent_telephony_plugin_enable;
+  plugin_class->disable = valent_telephony_plugin_disable;
+  plugin_class->handle_packet = valent_telephony_plugin_handle_packet;
+  plugin_class->update_state = valent_telephony_plugin_update_state;
 }
 
 static void

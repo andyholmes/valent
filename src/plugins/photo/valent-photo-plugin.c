@@ -14,21 +14,10 @@
 
 struct _ValentPhotoPlugin
 {
-  PeasExtensionBase  parent_instance;
-
-  ValentDevice      *device;
+  ValentDevicePlugin  parent_instance;
 };
 
-static void valent_device_plugin_iface_init (ValentDevicePluginInterface *iface);
-
-G_DEFINE_TYPE_WITH_CODE (ValentPhotoPlugin, valent_photo_plugin, PEAS_TYPE_EXTENSION_BASE,
-                         G_IMPLEMENT_INTERFACE (VALENT_TYPE_DEVICE_PLUGIN, valent_device_plugin_iface_init))
-
-enum {
-  PROP_0,
-  PROP_DEVICE,
-  N_PROPERTIES
-};
+G_DEFINE_TYPE (ValentPhotoPlugin, valent_photo_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
 /**
@@ -58,20 +47,24 @@ transfer_cb (ValentTransfer    *transfer,
       g_autoptr (GIcon) icon = NULL;
       g_autofree char *body = NULL;
       g_autofree char *filename = NULL;
+      ValentDevice *device;
 
       g_warning ("Transfer failed: %s", error->message);
 
+      device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
       filename = g_file_get_basename (op->file);
       icon = g_themed_icon_new ("dialog-error-symbolic");
       body = g_strdup_printf (_("Failed to receive “%s” from %s"),
                               filename,
-                              valent_device_get_name (self->device));
+                              valent_device_get_name (device));
 
       notification = g_notification_new (_("Transfer Failed"));
       g_notification_set_body (notification, body);
       g_notification_set_icon (notification, icon);
 
-      valent_device_show_notification (self->device, "photo", notification);
+      valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),
+                                              "photo",
+                                              notification);
     }
 
   g_clear_object (&op->plugin);
@@ -84,6 +77,7 @@ valent_photo_plugin_handle_photo (ValentPhotoPlugin *self,
                                   JsonNode          *packet)
 {
   g_autoptr (ValentTransfer) transfer = NULL;
+  ValentDevice *device;
   DownloadOperation *op;
   const char *filename;
 
@@ -103,12 +97,14 @@ valent_photo_plugin_handle_photo (ValentPhotoPlugin *self,
       return;
     }
 
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+
   op = g_new0 (DownloadOperation, 1);
   op->plugin = g_object_ref (self);
-  op->file = valent_device_new_download_file (self->device, filename, TRUE);
+  op->file = valent_device_new_download_file (device, filename, TRUE);
 
   /* Create a new transfer */
-  transfer = valent_transfer_new (self->device);
+  transfer = valent_transfer_new (device);
   valent_transfer_add_file (transfer, packet, op->file);
   valent_transfer_execute (transfer,
                            NULL,
@@ -143,7 +139,7 @@ photo_action (GSimpleAction *action,
   builder = valent_packet_start ("kdeconnect.photo.request");
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 static const GActionEntry actions[] = {
@@ -151,7 +147,7 @@ static const GActionEntry actions[] = {
 };
 
 static const ValentMenuEntry items[] = {
-    {N_("Take Photo"), "device.photo", "camera-photo-symbolic"}
+    {N_("Take Photo"), "device.photo.photo", "camera-photo-symbolic"}
 };
 
 /*
@@ -162,9 +158,10 @@ valent_photo_plugin_enable (ValentDevicePlugin *plugin)
 {
   g_assert (VALENT_IS_PHOTO_PLUGIN (plugin));
 
-  valent_device_plugin_register_actions (plugin,
-                                         actions,
-                                         G_N_ELEMENTS (actions));
+  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   plugin);
   valent_device_plugin_add_menu_entries (plugin,
                                          items,
                                          G_N_ELEMENTS (items));
@@ -178,9 +175,6 @@ valent_photo_plugin_disable (ValentDevicePlugin *plugin)
   valent_device_plugin_remove_menu_entries (plugin,
                                             items,
                                             G_N_ELEMENTS (items));
-  valent_device_plugin_unregister_actions (plugin,
-                                           actions,
-                                           G_N_ELEMENTS (actions));
 }
 
 static void
@@ -194,10 +188,7 @@ valent_photo_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  valent_device_plugin_toggle_actions (plugin,
-                                       actions,
-                                       G_N_ELEMENTS (actions),
-                                       available);
+  valent_device_plugin_toggle_actions (plugin, available);
 }
 
 static void
@@ -221,65 +212,18 @@ valent_photo_plugin_handle_packet (ValentDevicePlugin *plugin,
     g_assert_not_reached ();
 }
 
-static void
-valent_device_plugin_iface_init (ValentDevicePluginInterface *iface)
-{
-  iface->enable = valent_photo_plugin_enable;
-  iface->disable = valent_photo_plugin_disable;
-  iface->handle_packet = valent_photo_plugin_handle_packet;
-  iface->update_state = valent_photo_plugin_update_state;
-}
-
-/**
+/*
  * GObject
  */
 static void
-valent_photo_plugin_get_property (GObject    *object,
-                                  guint       prop_id,
-                                  GValue     *value,
-                                  GParamSpec *pspec)
-{
-  ValentPhotoPlugin *self = VALENT_PHOTO_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      g_value_set_object (value, self->device);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_photo_plugin_set_property (GObject      *object,
-                                  guint         prop_id,
-                                  const GValue *value,
-                                  GParamSpec   *pspec)
-{
-  ValentPhotoPlugin *self = VALENT_PHOTO_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      self->device = g_value_get_object (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_photo_plugin_class_init (ValentPhotoPluginClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
-  object_class->get_property = valent_photo_plugin_get_property;
-  object_class->set_property = valent_photo_plugin_set_property;
-
-  g_object_class_override_property (object_class, PROP_DEVICE, "device");
+  plugin_class->enable = valent_photo_plugin_enable;
+  plugin_class->disable = valent_photo_plugin_disable;
+  plugin_class->handle_packet = valent_photo_plugin_handle_packet;
+  plugin_class->update_state = valent_photo_plugin_update_state;
 }
 
 static void

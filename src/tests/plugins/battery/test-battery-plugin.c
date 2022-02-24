@@ -38,20 +38,17 @@ static void
 test_battery_plugin_actions (ValentTestPluginFixture *fixture,
                              gconstpointer            user_data)
 {
-  ValentDevice *device;
-  GActionGroup *actions;
+  GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   g_autoptr (GVariant) state = NULL;
   int level, charging;
   unsigned int time;
   const char *icon_name;
 
   /* Get the stateful actions */
-  device = valent_test_plugin_fixture_get_device (fixture);
-  actions = valent_device_get_actions (device);
-  g_assert_true (g_action_group_has_action (actions, "battery"));
+  g_assert_true (g_action_group_has_action (actions, "battery.state"));
 
   /* Local */
-  state = g_action_group_get_action_state (actions, "battery");
+  state = g_action_group_get_action_state (actions, "battery.state");
   g_variant_get (state, "(b&siu)", &charging, &icon_name, &level, &time);
 
   g_assert_false (charging);
@@ -84,23 +81,20 @@ static void
 test_battery_plugin_handle_update (ValentTestPluginFixture *fixture,
                                    gconstpointer            user_data)
 {
-  ValentDevice *device = valent_test_plugin_fixture_get_device (fixture);
+  GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *packet;
-  GActionGroup *actions;
   GVariant *state;
   int level, charging, time;
   const char *icon_name;
 
   /* Get the stateful actions */
-  device = valent_test_plugin_fixture_get_device (fixture);
-  actions = valent_device_get_actions (device);
-  g_assert_true (g_action_group_has_action (actions, "battery"));
+  g_assert_true (g_action_group_has_action (actions, "battery.state"));
 
   /* Caution Battery */
   packet = valent_test_plugin_fixture_lookup_packet (fixture, "caution-battery");
   valent_test_plugin_fixture_handle_packet (fixture, packet);
 
-  state = g_action_group_get_action_state (actions, "battery");
+  state = g_action_group_get_action_state (actions, "battery.state");
   g_variant_get (state, "(b&siu)", &charging, &icon_name, &level, &time);
 
   g_assert_true (charging);
@@ -113,7 +107,7 @@ test_battery_plugin_handle_update (ValentTestPluginFixture *fixture,
   packet = valent_test_plugin_fixture_lookup_packet (fixture, "low-battery");
   valent_test_plugin_fixture_handle_packet (fixture, packet);
 
-  state = g_action_group_get_action_state (actions, "battery");
+  state = g_action_group_get_action_state (actions, "battery.state");
   g_variant_get (state, "(b&siu)", &charging, &icon_name, &level, &time);
 
   g_assert_true (charging);
@@ -126,7 +120,7 @@ test_battery_plugin_handle_update (ValentTestPluginFixture *fixture,
   packet = valent_test_plugin_fixture_lookup_packet (fixture, "good-battery");
   valent_test_plugin_fixture_handle_packet (fixture, packet);
 
-  state = g_action_group_get_action_state (actions, "battery");
+  state = g_action_group_get_action_state (actions, "battery.state");
   g_variant_get (state, "(b&siu)", &charging, &icon_name, &level, &time);
 
   g_assert_false (charging);
@@ -139,7 +133,7 @@ test_battery_plugin_handle_update (ValentTestPluginFixture *fixture,
   packet = valent_test_plugin_fixture_lookup_packet (fixture, "full-battery");
   valent_test_plugin_fixture_handle_packet (fixture, packet);
 
-  state = g_action_group_get_action_state (actions, "battery");
+  state = g_action_group_get_action_state (actions, "battery.state");
   g_variant_get (state, "(b&siu)", &charging, &icon_name, &level, &time);
 
   g_assert_false (charging);

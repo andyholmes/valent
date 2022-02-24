@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <libpeas/peas.h>
+#include <libvalent-core.h>
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_CONTACTS_PLUGIN (valent_contacts_plugin_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentContactsPlugin, valent_contacts_plugin, VALENT, CONTACTS_PLUGIN, PeasExtensionBase)
+G_DECLARE_FINAL_TYPE (ValentContactsPlugin, valent_contacts_plugin, VALENT, CONTACTS_PLUGIN, ValentDevicePlugin)
 
 G_END_DECLS
 

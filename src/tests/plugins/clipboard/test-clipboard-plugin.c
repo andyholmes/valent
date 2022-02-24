@@ -126,8 +126,7 @@ static void
 test_clipboard_plugin_actions (ValentTestPluginFixture *fixture,
                                gconstpointer            user_data)
 {
-  ValentDevice *device;
-  GActionGroup *actions;
+  GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *packet;
 
   /* Get the stateful actions */
@@ -135,17 +134,14 @@ test_clipboard_plugin_actions (ValentTestPluginFixture *fixture,
   g_settings_set_boolean (fixture->settings, "auto-pull", FALSE);
   valent_test_plugin_fixture_connect (fixture, TRUE);
 
-  device = valent_test_plugin_fixture_get_device (fixture);
-  actions = valent_device_get_actions (device);
-
-  g_assert_true (g_action_group_get_action_enabled (actions, "clipboard-pull"));
-  g_assert_true (g_action_group_get_action_enabled (actions, "clipboard-push"));
+  g_assert_true (g_action_group_get_action_enabled (actions, "clipboard.pull"));
+  g_assert_true (g_action_group_get_action_enabled (actions, "clipboard.push"));
 
   /* Pull */
   packet = valent_test_plugin_fixture_lookup_packet (fixture, "clipboard-content");
   valent_test_plugin_fixture_handle_packet (fixture, packet);
 
-  g_action_group_activate_action (actions, "clipboard-pull", NULL);
+  g_action_group_activate_action (actions, "clipboard.pull", NULL);
   valent_clipboard_get_text_async (valent_clipboard_get_default (),
                                    NULL,
                                    (GAsyncReadyCallback)get_text_cb,
@@ -156,7 +152,7 @@ test_clipboard_plugin_actions (ValentTestPluginFixture *fixture,
   g_clear_pointer (&fixture->data, g_free);
 
   /* Push */
-  g_action_group_activate_action (actions, "clipboard-push", NULL);
+  g_action_group_activate_action (actions, "clipboard.push", NULL);
 
   packet = valent_test_plugin_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.clipboard");

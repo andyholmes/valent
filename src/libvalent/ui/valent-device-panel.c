@@ -305,7 +305,6 @@ valent_device_panel_constructed (GObject *object)
   ValentDevicePanel *self = VALENT_DEVICE_PANEL (object);
   g_autofree char *path = NULL;
   g_autoptr (GPtrArray) plugins = NULL;
-  GActionGroup *actions;
   GMenuModel *menu;
 
   g_object_bind_property (self->device,
@@ -315,8 +314,9 @@ valent_device_panel_constructed (GObject *object)
                           G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE);
 
   /* Actions & Menu */
-  actions = valent_device_get_actions (self->device);
-  gtk_widget_insert_action_group (GTK_WIDGET (self), "device", actions);
+  gtk_widget_insert_action_group (GTK_WIDGET (self),
+                                  "device",
+                                  G_ACTION_GROUP (self->device));
 
   menu = valent_device_get_menu (self->device);
   valent_menu_stack_set_menu_model (self->menu_actions, menu);

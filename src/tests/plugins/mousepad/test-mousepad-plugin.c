@@ -137,9 +137,8 @@ static void
 test_mousepad_plugin_send_keyboard_request (ValentTestPluginFixture *fixture,
                                             gconstpointer            user_data)
 {
+  GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *packet;
-  ValentDevice *device;
-  GActionGroup *actions;
   GVariantDict dict;
 
   valent_test_plugin_fixture_connect (fixture, TRUE);
@@ -155,9 +154,7 @@ test_mousepad_plugin_send_keyboard_request (ValentTestPluginFixture *fixture,
   valent_test_plugin_fixture_handle_packet (fixture, packet);
 
   /* Check event action */
-  device = valent_test_plugin_fixture_get_device (fixture);
-  actions = valent_device_get_actions (device);
-  g_assert_true (g_action_group_get_action_enabled (actions, "mousepad-event"));
+  g_assert_true (g_action_group_get_action_enabled (actions, "mousepad.event"));
 
   /* Send unicode keysym */
   unsigned int keysym, mask;
@@ -170,7 +167,7 @@ test_mousepad_plugin_send_keyboard_request (ValentTestPluginFixture *fixture,
   g_variant_dict_init (&dict, NULL);
   g_variant_dict_insert (&dict, "keysym", "u", keysym);
   g_variant_dict_insert (&dict, "mask", "u", mask);
-  g_action_group_activate_action (actions, "mousepad-event",
+  g_action_group_activate_action (actions, "mousepad.event",
                                   g_variant_dict_end (&dict));
 
   packet = valent_test_plugin_fixture_expect_packet (fixture);
@@ -191,7 +188,7 @@ test_mousepad_plugin_send_keyboard_request (ValentTestPluginFixture *fixture,
   g_variant_dict_init (&dict, NULL);
   g_variant_dict_insert (&dict, "keysym", "u", keysym);
   g_variant_dict_insert (&dict, "mask", "u", mask);
-  g_action_group_activate_action (actions, "mousepad-event",
+  g_action_group_activate_action (actions, "mousepad.event",
                                   g_variant_dict_end (&dict));
 
   packet = valent_test_plugin_fixture_expect_packet (fixture);
@@ -211,7 +208,7 @@ test_mousepad_plugin_send_keyboard_request (ValentTestPluginFixture *fixture,
   g_variant_dict_init (&dict, NULL);
   g_variant_dict_insert (&dict, "keysym", "u", keysym);
   g_variant_dict_insert (&dict, "mask", "u", mask);
-  g_action_group_activate_action (actions, "mousepad-event",
+  g_action_group_activate_action (actions, "mousepad.event",
                                   g_variant_dict_end (&dict));
 
   packet = valent_test_plugin_fixture_expect_packet (fixture);
@@ -228,16 +225,13 @@ static void
 test_mousepad_plugin_send_pointer_request (ValentTestPluginFixture *fixture,
                                            gconstpointer            user_data)
 {
+  GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *packet;
-  ValentDevice *device;
-  GActionGroup *actions;
   GVariantDict dict;
 
   valent_test_plugin_fixture_connect (fixture, TRUE);
 
-  device = valent_test_plugin_fixture_get_device (fixture);
-  actions = valent_device_get_actions (device);
-  g_assert_true (g_action_group_get_action_enabled (actions, "mousepad-event"));
+  g_assert_true (g_action_group_get_action_enabled (actions, "mousepad.event"));
 
   /* Expect remote state */
   packet = valent_test_plugin_fixture_expect_packet (fixture);
@@ -253,7 +247,7 @@ test_mousepad_plugin_send_pointer_request (ValentTestPluginFixture *fixture,
   g_variant_dict_init (&dict, NULL);
   g_variant_dict_insert (&dict, "dx", "d", 1.0);
   g_variant_dict_insert (&dict, "dy", "d", 1.0);
-  g_action_group_activate_action (actions, "mousepad-event",
+  g_action_group_activate_action (actions, "mousepad.event",
                                   g_variant_dict_end (&dict));
 
   packet = valent_test_plugin_fixture_expect_packet (fixture);
@@ -267,7 +261,7 @@ test_mousepad_plugin_send_pointer_request (ValentTestPluginFixture *fixture,
   g_variant_dict_insert (&dict, "dx", "d", 0.0);
   g_variant_dict_insert (&dict, "dy", "d", 1.0);
   g_variant_dict_insert (&dict, "scroll", "b", TRUE);
-  g_action_group_activate_action (actions, "mousepad-event",
+  g_action_group_activate_action (actions, "mousepad.event",
                                   g_variant_dict_end (&dict));
 
   packet = valent_test_plugin_fixture_expect_packet (fixture);

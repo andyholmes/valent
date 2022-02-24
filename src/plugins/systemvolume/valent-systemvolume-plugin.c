@@ -14,9 +14,8 @@
 
 struct _ValentSystemvolumePlugin
 {
-  PeasExtensionBase  parent_instance;
+  ValentDevicePlugin  parent_instance;
 
-  ValentDevice      *device;
   GSettings         *settings;
 
   ValentMixer       *mixer;
@@ -24,24 +23,13 @@ struct _ValentSystemvolumePlugin
   GHashTable        *state_cache;
 };
 
-
 static void valent_systemvolume_plugin_handle_request     (ValentSystemvolumePlugin *self,
                                                            JsonNode                 *packet);
 static void valent_systemvolume_plugin_handle_sink_change (ValentSystemvolumePlugin *self,
                                                            JsonNode                 *packet);
 static void valent_systemvolume_plugin_send_sinklist      (ValentSystemvolumePlugin *self);
 
-
-static void valent_device_plugin_iface_init (ValentDevicePluginInterface *iface);
-
-G_DEFINE_TYPE_WITH_CODE (ValentSystemvolumePlugin, valent_systemvolume_plugin, PEAS_TYPE_EXTENSION_BASE,
-                         G_IMPLEMENT_INTERFACE (VALENT_TYPE_DEVICE_PLUGIN, valent_device_plugin_iface_init))
-
-enum {
-  PROP_0,
-  PROP_DEVICE,
-  N_PROPERTIES
-};
+G_DEFINE_TYPE (ValentSystemvolumePlugin, valent_systemvolume_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
 /*
@@ -135,7 +123,7 @@ on_stream_changed (ValentMixer              *mixer,
   json_builder_add_int_value (builder, state->volume);
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 static void
@@ -249,7 +237,7 @@ valent_systemvolume_plugin_send_sinklist (ValentSystemvolumePlugin *self)
   json_builder_end_array (builder);
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 /*
@@ -317,11 +305,13 @@ static void
 valent_systemvolume_plugin_enable (ValentDevicePlugin *plugin)
 {
   ValentSystemvolumePlugin *self = VALENT_SYSTEMVOLUME_PLUGIN (plugin);
+  ValentDevice *device;
   const char *device_id;
 
   g_assert (VALENT_IS_SYSTEMVOLUME_PLUGIN (self));
 
-  device_id = valent_device_get_id (self->device);
+  device = valent_device_plugin_get_device (plugin);
+  device_id = valent_device_get_id (device);
   self->settings = valent_device_plugin_new_settings (device_id, "systemvolume");
 
   /* Setup stream state cache */
@@ -384,65 +374,18 @@ valent_systemvolume_plugin_handle_packet (ValentDevicePlugin *plugin,
     g_assert_not_reached ();
 }
 
-static void
-valent_device_plugin_iface_init (ValentDevicePluginInterface *iface)
-{
-  iface->enable = valent_systemvolume_plugin_enable;
-  iface->disable = valent_systemvolume_plugin_disable;
-  iface->handle_packet = valent_systemvolume_plugin_handle_packet;
-  iface->update_state = valent_systemvolume_plugin_update_state;
-}
-
 /*
  * GObject
  */
 static void
-valent_systemvolume_plugin_get_property (GObject    *object,
-                                         guint       prop_id,
-                                         GValue     *value,
-                                         GParamSpec *pspec)
-{
-  ValentSystemvolumePlugin *self = VALENT_SYSTEMVOLUME_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      g_value_set_object (value, self->device);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_systemvolume_plugin_set_property (GObject      *object,
-                                         guint         prop_id,
-                                         const GValue *value,
-                                         GParamSpec   *pspec)
-{
-  ValentSystemvolumePlugin *self = VALENT_SYSTEMVOLUME_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      self->device = g_value_get_object (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_systemvolume_plugin_class_init (ValentSystemvolumePluginClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
-  object_class->get_property = valent_systemvolume_plugin_get_property;
-  object_class->set_property = valent_systemvolume_plugin_set_property;
-
-  g_object_class_override_property (object_class, PROP_DEVICE, "device");
+  plugin_class->enable = valent_systemvolume_plugin_enable;
+  plugin_class->disable = valent_systemvolume_plugin_disable;
+  plugin_class->handle_packet = valent_systemvolume_plugin_handle_packet;
+  plugin_class->update_state = valent_systemvolume_plugin_update_state;
 }
 
 static void

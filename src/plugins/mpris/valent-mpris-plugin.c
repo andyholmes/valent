@@ -17,9 +17,8 @@
 
 struct _ValentMprisPlugin
 {
-  PeasExtensionBase  parent_instance;
+  ValentDevicePlugin  parent_instance;
 
-  ValentDevice      *device;
   ValentMedia       *media;
   gboolean           media_watch : 1;
 
@@ -27,16 +26,7 @@ struct _ValentMprisPlugin
   GHashTable        *artwork_transfers;
 };
 
-static void valent_device_plugin_iface_init (ValentDevicePluginInterface *iface);
-
-G_DEFINE_TYPE_WITH_CODE (ValentMprisPlugin, valent_mpris_plugin, PEAS_TYPE_EXTENSION_BASE,
-                         G_IMPLEMENT_INTERFACE (VALENT_TYPE_DEVICE_PLUGIN, valent_device_plugin_iface_init))
-
-enum {
-  PROP_0,
-  PROP_DEVICE,
-  N_PROPERTIES
-};
+G_DEFINE_TYPE (ValentMprisPlugin, valent_mpris_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 static void valent_mpris_plugin_handle_action       (ValentMprisPlugin *self,
                                                      ValentMediaPlayer *player,
@@ -84,6 +74,7 @@ valent_mpris_plugin_send_album_art (ValentMprisPlugin *self,
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
   g_autoptr (ValentTransfer) transfer = NULL;
+  ValentDevice *device;
 
   g_assert (VALENT_IS_MPRIS_PLUGIN (self));
 
@@ -122,7 +113,8 @@ valent_mpris_plugin_send_album_art (ValentMprisPlugin *self,
   packet = valent_packet_finish (builder);
 
   /* Start the transfer */
-  transfer = valent_transfer_new (self->device);
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  transfer = valent_transfer_new (device);
   valent_transfer_set_id (transfer, requested_uri);
   valent_transfer_add_file (transfer, packet, real_file);
 
@@ -166,7 +158,7 @@ on_player_seeked (ValentMedia       *media,
   json_builder_add_int_value (builder, floor (position / 1000));
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 static void
@@ -396,7 +388,7 @@ valent_mpris_plugin_send_player_info (ValentMprisPlugin *self,
 
   /* Send Response */
   response = valent_packet_finish (builder);
-  valent_device_queue_packet (self->device, response);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), response);
 }
 
 static void
@@ -434,7 +426,7 @@ valent_mpris_plugin_send_player_list (ValentMprisPlugin *self)
   json_builder_add_boolean_value (builder, TRUE);
 
   packet = valent_packet_finish (builder);
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 static void
@@ -532,7 +524,7 @@ on_remote_method (ValentMprisRemote *remote,
     }
 
   packet = valent_packet_finish (builder);
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 static void
@@ -566,7 +558,7 @@ on_remote_set_property (ValentMprisRemote *remote,
     }
 
   packet = valent_packet_finish (builder);
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 static void
@@ -580,7 +572,7 @@ valent_mpris_plugin_request_player_list (ValentMprisPlugin *self)
   json_builder_add_boolean_value (builder, TRUE);
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 typedef struct
@@ -620,6 +612,7 @@ static void
 valent_mpris_plugin_receive_album_art (ValentMprisPlugin *self,
                                        JsonNode          *packet)
 {
+  ValentDevice *device;
   g_autoptr (ValentData) data = NULL;
   const char *url;
   AlbumArtOperation *op;
@@ -634,7 +627,8 @@ valent_mpris_plugin_receive_album_art (ValentMprisPlugin *self,
       return;
     }
 
-  data = valent_device_ref_data (self->device);
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  data = valent_device_ref_data (device);
   filename = g_compute_checksum_for_string (G_CHECKSUM_MD5, url, -1);
   file = valent_data_new_cache_file (data, filename);
 
@@ -643,7 +637,7 @@ valent_mpris_plugin_receive_album_art (ValentMprisPlugin *self,
   op->packet = json_node_ref (packet);
   op->file = g_object_ref (file);
 
-  transfer = valent_transfer_new (self->device);
+  transfer = valent_transfer_new (device);
   valent_transfer_add_file (transfer, packet, file);
   valent_transfer_execute (transfer,
                            NULL,
@@ -657,13 +651,15 @@ valent_mpris_plugin_request_album_art (ValentMprisPlugin *self,
                                        const char        *url,
                                        GVariantDict      *metadata)
 {
+  ValentDevice *device;
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
   g_autoptr (ValentData) data = NULL;
   g_autoptr (GFile) file = NULL;
   g_autofree char *filename = NULL;
 
-  data = valent_device_ref_data (self->device);
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  data = valent_device_ref_data (device);
   filename = g_compute_checksum_for_string (G_CHECKSUM_MD5, url, -1);
   file = valent_data_new_cache_file (data, filename);
 
@@ -686,7 +682,7 @@ valent_mpris_plugin_request_album_art (ValentMprisPlugin *self,
   json_builder_add_string_value (builder, url);
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 static void
@@ -705,7 +701,7 @@ valent_mpris_plugin_request_update (ValentMprisPlugin *self,
   json_builder_add_boolean_value (builder, TRUE);
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 static void
@@ -930,15 +926,6 @@ valent_mpris_plugin_handle_packet (ValentDevicePlugin *plugin,
     g_assert_not_reached ();
 }
 
-static void
-valent_device_plugin_iface_init (ValentDevicePluginInterface *iface)
-{
-  iface->enable = valent_mpris_plugin_enable;
-  iface->disable = valent_mpris_plugin_disable;
-  iface->handle_packet = valent_mpris_plugin_handle_packet;
-  iface->update_state = valent_mpris_plugin_update_state;
-}
-
 /*
  * GObject
  */
@@ -954,53 +941,17 @@ valent_mpris_plugin_finalize (GObject *object)
 }
 
 static void
-valent_mpris_plugin_get_property (GObject    *object,
-                                  guint       prop_id,
-                                  GValue     *value,
-                                  GParamSpec *pspec)
-{
-  ValentMprisPlugin *self = VALENT_MPRIS_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      g_value_set_object (value, self->device);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_mpris_plugin_set_property (GObject      *object,
-                                  guint         prop_id,
-                                  const GValue *value,
-                                  GParamSpec   *pspec)
-{
-  ValentMprisPlugin *self = VALENT_MPRIS_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      self->device = g_value_get_object (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_mpris_plugin_class_init (ValentMprisPluginClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
   object_class->finalize = valent_mpris_plugin_finalize;
-  object_class->get_property = valent_mpris_plugin_get_property;
-  object_class->set_property = valent_mpris_plugin_set_property;
 
-  g_object_class_override_property (object_class, PROP_DEVICE, "device");
+  plugin_class->enable = valent_mpris_plugin_enable;
+  plugin_class->disable = valent_mpris_plugin_disable;
+  plugin_class->handle_packet = valent_mpris_plugin_handle_packet;
+  plugin_class->update_state = valent_mpris_plugin_update_state;
 }
 
 static void

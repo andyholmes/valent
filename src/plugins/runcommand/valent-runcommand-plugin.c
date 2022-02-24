@@ -17,9 +17,8 @@
 
 struct _ValentRuncommandPlugin
 {
-  PeasExtensionBase    parent_instance;
+  ValentDevicePlugin    parent_instance;
 
-  ValentDevice        *device;
   GSettings           *settings;
 
   GSubprocessLauncher *launcher;
@@ -28,16 +27,7 @@ struct _ValentRuncommandPlugin
   unsigned long        commands_changed_id;
 };
 
-static void valent_device_plugin_iface_init (ValentDevicePluginInterface *iface);
-
-G_DEFINE_TYPE_WITH_CODE (ValentRuncommandPlugin, valent_runcommand_plugin, PEAS_TYPE_EXTENSION_BASE,
-                         G_IMPLEMENT_INTERFACE (VALENT_TYPE_DEVICE_PLUGIN, valent_device_plugin_iface_init))
-
-enum {
-  PROP_0,
-  PROP_DEVICE,
-  N_PROPERTIES
-};
+G_DEFINE_TYPE (ValentRuncommandPlugin, valent_runcommand_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 static void valent_runcommand_plugin_execute_local_command     (ValentRuncommandPlugin *self,
                                                                 const char             *key);
@@ -58,6 +48,7 @@ static void valent_runcommand_plugin_send_command_list         (ValentRuncommand
 static void
 launcher_init (ValentRuncommandPlugin *self)
 {
+  ValentDevice *device;
   GSubprocessFlags flags;
 
   if G_UNLIKELY (self->launcher != NULL)
@@ -72,13 +63,14 @@ launcher_init (ValentRuncommandPlugin *self)
 
   self->launcher = g_subprocess_launcher_new (flags);
 
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
   g_subprocess_launcher_setenv (self->launcher,
                                 "VALENT_DEVICE_ID",
-                                valent_device_get_id (self->device),
+                                valent_device_get_id (device),
                                 TRUE);
   g_subprocess_launcher_setenv (self->launcher,
                                 "VALENT_DEVICE_NAME",
-                                valent_device_get_name (self->device),
+                                valent_device_get_name (device),
                                 TRUE);
 }
 
@@ -167,13 +159,15 @@ on_commands_changed (GSettings              *settings,
                      const char             *key,
                      ValentRuncommandPlugin *self)
 {
+  ValentDevice *device;
   ValentDeviceState state;
 
   g_assert (G_IS_SETTINGS (settings));
   g_assert (key != NULL);
   g_assert (VALENT_IS_RUNCOMMAND_PLUGIN (self));
 
-  state = valent_device_get_state (self->device);
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  state = valent_device_get_state (device);
 
   if ((state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
       (state & VALENT_DEVICE_STATE_PAIRED) != 0)
@@ -231,7 +225,7 @@ valent_runcommand_plugin_send_command_list (ValentRuncommandPlugin *self)
   json_builder_add_string_value (builder, command_json);
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 static void
@@ -270,7 +264,7 @@ valent_runcommand_plugin_execute_remote_command (ValentRuncommandPlugin *self,
   json_builder_add_string_value (builder, key);
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 static void
@@ -306,7 +300,7 @@ valent_runcommand_plugin_handle_command_list (ValentRuncommandPlugin *self,
       cmd = json_node_get_object (command_node);
       name = json_object_get_string_member (cmd, "name");
       command = json_object_get_string_member (cmd, "command");
-      action = g_strdup_printf ("device.runcommand::%s", key);
+      action = g_strdup_printf ("device.runcommand.execute::%s", key);
 
       item = g_menu_item_new (name, action);
       g_menu_item_set_attribute (item, "command", "s", command);
@@ -362,7 +356,7 @@ runcommand_action (GSimpleAction *action,
 }
 
 static const GActionEntry actions[] = {
-    {"runcommand", runcommand_action, "s", NULL, NULL}
+    {"execute", runcommand_action, "s", NULL, NULL}
 };
 
 /**
@@ -372,16 +366,19 @@ static void
 valent_runcommand_plugin_enable (ValentDevicePlugin *plugin)
 {
   ValentRuncommandPlugin *self = VALENT_RUNCOMMAND_PLUGIN (plugin);
+  ValentDevice *device;
   const char *device_id;
 
   g_assert (VALENT_IS_RUNCOMMAND_PLUGIN (self));
 
-  device_id = valent_device_get_id (self->device);
+  device = valent_device_plugin_get_device (plugin);
+  device_id = valent_device_get_id (device);
   self->settings = valent_device_plugin_new_settings (device_id, "runcommand");
 
-  valent_device_plugin_register_actions (plugin,
-                                         actions,
-                                         G_N_ELEMENTS (actions));
+  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   plugin);
 }
 
 static void
@@ -392,9 +389,6 @@ valent_runcommand_plugin_disable (ValentDevicePlugin *plugin)
   /* Stop watching for command changes */
   g_clear_signal_handler (&self->commands_changed_id, self->settings);
 
-  valent_device_plugin_unregister_actions (plugin,
-                                           actions,
-                                           G_N_ELEMENTS (actions));
   g_clear_object (&self->settings);
 }
 
@@ -410,10 +404,7 @@ valent_runcommand_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  /* GActions */
-  valent_device_plugin_toggle_actions (plugin,
-                                       actions, G_N_ELEMENTS (actions),
-                                       available);
+  valent_device_plugin_toggle_actions (plugin, available);
 
   if (available)
     {
@@ -461,15 +452,6 @@ valent_runcommand_plugin_handle_packet (ValentDevicePlugin *plugin,
     g_assert_not_reached ();
 }
 
-static void
-valent_device_plugin_iface_init (ValentDevicePluginInterface *iface)
-{
-  iface->enable = valent_runcommand_plugin_enable;
-  iface->disable = valent_runcommand_plugin_disable;
-  iface->handle_packet = valent_runcommand_plugin_handle_packet;
-  iface->update_state = valent_runcommand_plugin_update_state;
-}
-
 /*
  * GObject
  */
@@ -485,53 +467,17 @@ valent_runcommand_plugin_finalize (GObject *object)
 }
 
 static void
-valent_runcommand_plugin_get_property (GObject    *object,
-                                       guint       prop_id,
-                                       GValue     *value,
-                                       GParamSpec *pspec)
-{
-  ValentRuncommandPlugin *self = VALENT_RUNCOMMAND_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      g_value_set_object (value, self->device);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_runcommand_plugin_set_property (GObject      *object,
-                                       guint         prop_id,
-                                       const GValue *value,
-                                       GParamSpec   *pspec)
-{
-  ValentRuncommandPlugin *self = VALENT_RUNCOMMAND_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      self->device = g_value_get_object (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_runcommand_plugin_class_init (ValentRuncommandPluginClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
   object_class->finalize = valent_runcommand_plugin_finalize;
-  object_class->get_property = valent_runcommand_plugin_get_property;
-  object_class->set_property = valent_runcommand_plugin_set_property;
 
-  g_object_class_override_property (object_class, PROP_DEVICE, "device");
+  plugin_class->enable = valent_runcommand_plugin_enable;
+  plugin_class->disable = valent_runcommand_plugin_disable;
+  plugin_class->handle_packet = valent_runcommand_plugin_handle_packet;
+  plugin_class->update_state = valent_runcommand_plugin_update_state;
 }
 
 static void

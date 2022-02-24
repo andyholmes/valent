@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <libpeas/peas.h>
+#include <libvalent-core.h>
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_SYSTEMVOLUME_PLUGIN (valent_systemvolume_plugin_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentSystemvolumePlugin, valent_systemvolume_plugin, VALENT, SYSTEMVOLUME_PLUGIN, PeasExtensionBase)
+G_DECLARE_FINAL_TYPE (ValentSystemvolumePlugin, valent_systemvolume_plugin, VALENT, SYSTEMVOLUME_PLUGIN, ValentDevicePlugin)
 
 G_END_DECLS
 

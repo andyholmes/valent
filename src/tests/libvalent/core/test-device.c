@@ -227,12 +227,11 @@ static void
 test_device_pairing (DeviceFixture *fixture,
                      gconstpointer  user_data)
 {
+  GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *pair, *unpair;
-  GActionGroup *actions;
 
   pair = get_packet (fixture, "pair");
   unpair = get_packet (fixture, "unpair");
-  actions = valent_device_get_actions (fixture->device);
 
   /* Attach channel */
   valent_device_set_channel (fixture->device, fixture->channel);
@@ -311,6 +310,158 @@ toggle_plugin (PeasPluginInfo *info,
 
   enabled = g_settings_get_boolean (settings, "enabled");
   g_settings_set_boolean (settings, "enabled", !enabled);
+}
+
+static void
+on_action_added (GActionGroup *action_group,
+                 const char   *action_name,
+                 gboolean     *emitted)
+{
+  g_assert_cmpstr (action_name, ==, "packetless.action");
+
+  if (emitted)
+    *emitted = TRUE;
+}
+
+static void
+on_action_enabled_changed (GActionGroup *action_group,
+                           const char   *action_name,
+                           gboolean      enabled,
+                           gboolean     *emitted)
+{
+  g_assert_true (g_str_equal (action_name, "mock.echo") ||
+                 g_str_equal (action_name, "mock.state"));
+
+  if (emitted)
+    *emitted = TRUE;
+}
+
+static void
+on_action_removed (GActionGroup *action_group,
+                   const char   *action_name,
+                   gboolean     *emitted)
+{
+  g_assert_cmpstr (action_name, ==, "packetless.action");
+
+  if (emitted)
+    *emitted = TRUE;
+}
+
+static void
+on_action_state_changed (GActionGroup *action_group,
+                         const char   *action_name,
+                         GVariant     *value,
+                         gboolean     *emitted)
+{
+  g_assert_cmpstr (action_name, ==, "mock.state");
+
+  if (emitted)
+    *emitted = TRUE;
+}
+
+static void
+test_device_actions (DeviceFixture *fixture,
+                     gconstpointer  user_data)
+{
+  GActionGroup *actions = G_ACTION_GROUP (fixture->device);
+  g_auto (GStrv) action_names = NULL;
+  gboolean has_action = FALSE;
+  gboolean enabled = FALSE;
+  const GVariantType *parameter_type = NULL;
+  const GVariantType *state_type = NULL;
+  GVariant *state_hint = NULL;
+  GVariant *state = NULL;
+  gboolean emitted = FALSE;
+  PeasPluginInfo *plugin_info;
+  g_autoptr (JsonNode) packet = NULL;
+
+  /* Attach channel */
+  valent_device_set_channel (fixture->device, fixture->channel);
+  valent_device_set_paired (fixture->device, TRUE);
+
+  action_names = g_action_group_list_actions (actions);
+  g_assert_cmpuint (g_strv_length (action_names), ==, 5);
+
+  g_signal_connect (actions,
+                    "action-added",
+                    G_CALLBACK (on_action_added),
+                    &emitted);
+  g_signal_connect (actions,
+                    "action-enabled-changed",
+                    G_CALLBACK (on_action_enabled_changed),
+                    &emitted);
+  g_signal_connect (actions,
+                    "action-removed",
+                    G_CALLBACK (on_action_removed),
+                    &emitted);
+  g_signal_connect (actions,
+                    "action-state-changed",
+                    G_CALLBACK (on_action_state_changed),
+                    &emitted);
+
+  /* Query */
+  has_action = g_action_group_query_action (actions,
+                                            "mock.state",
+                                            &enabled,
+                                            &parameter_type,
+                                            &state_type,
+                                            &state_hint,
+                                            &state);
+  g_assert_true (has_action);
+  g_assert_true (enabled);
+  g_assert_null (parameter_type);
+  g_assert_true (g_variant_type_equal (state_type, G_VARIANT_TYPE_BOOLEAN));
+  g_assert_null (state_hint);
+  g_assert_true (g_variant_get_boolean (state));
+  g_clear_pointer (&state, g_variant_unref);
+
+  /* Change State */
+  g_action_group_change_action_state (actions,
+                                      "mock.state",
+                                      g_variant_new_boolean (FALSE));
+  g_assert_true (emitted);
+  emitted = FALSE;
+
+  state = g_action_group_get_action_state (actions, "mock.state");
+  g_assert_false (g_variant_get_boolean (state));
+  g_clear_pointer (&state, g_variant_unref);
+
+  /* Enable/Disable */
+  valent_device_set_paired (fixture->device, FALSE);
+  g_assert_true (emitted);
+  emitted = FALSE;
+
+  valent_device_set_paired (fixture->device, TRUE);
+  g_assert_true (emitted);
+  emitted = FALSE;
+
+  /* Activate */
+  g_action_group_activate_action (actions, "mock.echo", NULL);
+  valent_channel_read_packet (fixture->endpoint,
+                              NULL,
+                              (GAsyncReadyCallback)endpoint_expect_packet_cb,
+                              &packet);
+
+  while (packet == NULL)
+    g_main_context_iteration (NULL, FALSE);
+
+  v_assert_packet_type (packet, "kdeconnect.mock.echo");
+
+  /* Add/Remove */
+  plugin_info = peas_engine_get_plugin_info (valent_get_engine (),
+                                             "packetless");
+
+  peas_engine_unload_plugin (valent_get_engine (), plugin_info);
+  g_assert_false (g_action_group_has_action (actions, "packetless.action"));
+  g_assert_true (emitted);
+  emitted = FALSE;
+
+  peas_engine_load_plugin (valent_get_engine (), plugin_info);
+  g_assert_true (g_action_group_has_action (actions, "packetless.action"));
+  g_assert_true (emitted);
+  emitted = FALSE;
+
+  g_signal_handlers_disconnect_by_data (actions, &emitted);
 }
 
 static void
@@ -569,6 +720,12 @@ main (int   argc,
               DeviceFixture, NULL,
               device_fixture_set_up,
               test_device_pairing,
+              device_fixture_tear_down);
+
+  g_test_add ("/core/device/actions",
+              DeviceFixture, NULL,
+              device_fixture_set_up,
+              test_device_actions,
               device_fixture_tear_down);
 
   g_test_add ("/core/device/plugins",

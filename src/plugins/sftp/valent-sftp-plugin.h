@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <libpeas/peas.h>
+#include <libvalent-core.h>
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_SFTP_PLUGIN (valent_sftp_plugin_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentSftpPlugin, valent_sftp_plugin, VALENT, SFTP_PLUGIN, PeasExtensionBase)
+G_DECLARE_FINAL_TYPE (ValentSftpPlugin, valent_sftp_plugin, VALENT, SFTP_PLUGIN, ValentDevicePlugin)
 
 G_END_DECLS
 

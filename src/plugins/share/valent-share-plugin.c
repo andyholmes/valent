@@ -16,23 +16,12 @@
 
 struct _ValentSharePlugin
 {
-  PeasExtensionBase  parent_instance;
-
-  ValentDevice      *device;
+  ValentDevicePlugin  parent_instance;
 
   GHashTable        *transfers;
 };
 
-static void valent_device_plugin_iface_init (ValentDevicePluginInterface *iface);
-
-G_DEFINE_TYPE_WITH_CODE (ValentSharePlugin, valent_share_plugin, PEAS_TYPE_EXTENSION_BASE,
-                         G_IMPLEMENT_INTERFACE (VALENT_TYPE_DEVICE_PLUGIN, valent_device_plugin_iface_init))
-
-enum {
-  PROP_0,
-  PROP_DEVICE,
-  N_PROPERTIES
-};
+G_DEFINE_TYPE (ValentSharePlugin, valent_share_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
 /*
@@ -50,6 +39,7 @@ download_file_cb (ValentTransfer *transfer,
                   GAsyncResult   *result,
                   gpointer        user_data)
 {
+  ValentDevice *device;
   g_autofree DownloadOperation *op = user_data;
   g_autoptr (ValentSharePlugin) self = g_steal_pointer (&op->plugin);
   g_autoptr (GFile) file = g_steal_pointer (&op->file);
@@ -68,6 +58,8 @@ download_file_cb (ValentTransfer *transfer,
   g_assert (G_IS_FILE (file));
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
 
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+
   /* Prepare notification */
   if (valent_transfer_execute_finish (transfer, result, &error))
     {
@@ -80,18 +72,18 @@ download_file_cb (ValentTransfer *transfer,
       icon = g_themed_icon_new ("document-save-symbolic");
       body = g_strdup_printf (_("Received “%s” from %s"),
                               filename,
-                              valent_device_get_name (self->device));
+                              valent_device_get_name (device));
 
       valent_notification_add_device_button (notif,
-                                             self->device,
+                                             device,
                                              _("Open Folder"),
-                                             "share-open",
+                                             "share.open",
                                              g_variant_new_string (diruri));
 
       valent_notification_add_device_button (notif,
-                                             self->device,
+                                             device,
                                              _("Open File"),
-                                             "share-open",
+                                             "share.open",
                                              g_variant_new_string (fileuri));
     }
   else if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
@@ -102,19 +94,21 @@ download_file_cb (ValentTransfer *transfer,
       icon = g_themed_icon_new ("dialog-error-symbolic");
       body = g_strdup_printf (_("Failed to receive “%s” from %s"),
                               filename,
-                              valent_device_get_name (self->device));
+                              valent_device_get_name (device));
     }
 
   /* Send new notification */
-  valent_device_hide_notification (self->device, valent_transfer_get_id (transfer));
+  valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self),
+                                          valent_transfer_get_id (transfer));
 
   if (notif != NULL)
     {
       g_notification_set_body (notif, body);
       g_notification_set_icon (notif, icon);
-      valent_device_show_notification (self->device,
-                                       valent_transfer_get_id (transfer),
-                                       notif);
+
+      valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),
+                                              valent_transfer_get_id (transfer),
+                                              notif);
     }
 
   g_hash_table_remove (self->transfers, valent_transfer_get_id (transfer));
@@ -125,6 +119,7 @@ download_file (ValentSharePlugin *self,
                GFile             *file,
                JsonNode          *packet)
 {
+  ValentDevice *device;
   g_autoptr (ValentTransfer) transfer = NULL;
   const char *uuid;
   g_autofree char *filename = NULL;
@@ -140,7 +135,8 @@ download_file (ValentSharePlugin *self,
   g_assert (VALENT_IS_PACKET (packet));
 
   /* Operation Data */
-  transfer = valent_transfer_new (self->device);
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  transfer = valent_transfer_new (device);
   uuid = valent_transfer_get_id (transfer);
 
   op = g_new0 (DownloadOperation, 1);
@@ -154,18 +150,20 @@ download_file (ValentSharePlugin *self,
   title = _("Transferring File");
   body = g_strdup_printf (_("Receiving “%s” from %s"),
                           filename,
-                          valent_device_get_name (self->device));
+                          valent_device_get_name (device));
 
   notif = g_notification_new (title);
   g_notification_set_body (notif, body);
   g_notification_set_icon (notif, icon);
   valent_notification_add_device_button (notif,
-                                         self->device,
+                                         device,
                                          _("Cancel"),
-                                         "share-cancel",
+                                         "share.cancel",
                                          g_variant_new_string (uuid));
 
-  valent_device_show_notification (self->device, uuid, notif);
+  valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),
+                                          uuid,
+                                          notif);
 
   /* Track and start the transfer */
   g_hash_table_insert (self->transfers,
@@ -194,6 +192,7 @@ upload_files_cb (ValentTransfer *transfer,
                  GAsyncResult   *result,
                  gpointer        user_data)
 {
+  ValentDevice *device;
   g_autofree UploadOperation *op = user_data;
   g_autoptr (ValentSharePlugin) self = g_steal_pointer (&op->plugin);
   g_autoptr (GListModel) files = g_steal_pointer (&op->files);
@@ -205,6 +204,7 @@ upload_files_cb (ValentTransfer *transfer,
   g_autoptr (GIcon) icon = NULL;
   g_autofree char *body = NULL;
 
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
   n_files = g_list_model_get_n_items (files);
   uuid = valent_transfer_get_id (transfer);
 
@@ -221,13 +221,13 @@ upload_files_cb (ValentTransfer *transfer,
           filename = g_file_get_basename (file);
           body = g_strdup_printf (_("Sent “%s” to %s"),
                                   filename,
-                                  valent_device_get_name (self->device));
+                                  valent_device_get_name (device));
         }
       else
         {
           body = g_strdup_printf (_("Sent %u files to %s"),
                                   n_files,
-                                  valent_device_get_name (self->device));
+                                  valent_device_get_name (device));
         }
 
       notification = g_notification_new (_("Transfer Successful"));
@@ -247,14 +247,14 @@ upload_files_cb (ValentTransfer *transfer,
           filename = g_file_get_basename (file);
           body = g_strdup_printf (_("Sending “%s” to %s: %s"),
                                   filename,
-                                  valent_device_get_name (self->device),
+                                  valent_device_get_name (device),
                                   error->message);
         }
       else
         {
           body = g_strdup_printf (_("Sending %u files to %s: %s"),
                                   n_files,
-                                  valent_device_get_name (self->device),
+                                  valent_device_get_name (device),
                                   error->message);
         }
 
@@ -264,10 +264,12 @@ upload_files_cb (ValentTransfer *transfer,
     }
 
   /* Update or hide the existing notification */
-  valent_device_hide_notification (self->device, uuid);
+  valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self), uuid);
 
   if (notification != NULL)
-    valent_device_show_notification (self->device, uuid, notification);
+    valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),
+                                            uuid,
+                                            notification);
 
   g_hash_table_remove (self->transfers, uuid);
 }
@@ -278,6 +280,7 @@ upload_files (ValentSharePlugin *self,
               gboolean           open)
 {
   UploadOperation *op;
+  ValentDevice *device;
   g_autoptr (ValentTransfer) transfer = NULL;
   g_autoptr (GNotification) notif = NULL;
   g_autoptr (GIcon) icon = NULL;
@@ -292,7 +295,8 @@ upload_files (ValentSharePlugin *self,
   op->files = g_object_ref (files);
 
   /* Track the transfer's cancellable */
-  transfer = valent_transfer_new (self->device);
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  transfer = valent_transfer_new (device);
   n_files = g_list_model_get_n_items (files);
 
   /* Add files */
@@ -329,12 +333,14 @@ upload_files (ValentSharePlugin *self,
   g_notification_set_body (notif, body);
   g_notification_set_icon (notif, icon);
   valent_notification_add_device_button (notif,
-                                         self->device,
+                                         device,
                                          _("Cancel"),
-                                         "share-cancel",
+                                         "share.cancel",
                                          g_variant_new_string (uuid));
 
-  valent_device_show_notification (self->device, uuid, notif);
+  valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),
+                                          uuid,
+                                          notif);
 
   /* Start the transfer */
   g_hash_table_insert (self->transfers,
@@ -507,7 +513,7 @@ share_text_action (GSimpleAction *action,
   json_builder_add_string_value (builder, text);
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 /**
@@ -537,20 +543,20 @@ share_url_action (GSimpleAction *action,
   json_builder_add_string_value (builder, url);
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 static GActionEntry actions[] = {
-    {"share",        share_action,        NULL, NULL, NULL},
-    {"share-cancel", share_cancel_action, "s",  NULL, NULL},
-    {"share-files",  share_files_action,  "as", NULL, NULL},
-    {"share-open",   share_open_action,   "s",  NULL, NULL},
-    {"share-text",   share_text_action,   "s",  NULL, NULL},
-    {"share-url",    share_url_action,    "s",  NULL, NULL}
+    {"share",  share_action,        NULL, NULL, NULL},
+    {"cancel", share_cancel_action, "s",  NULL, NULL},
+    {"files",  share_files_action,  "as", NULL, NULL},
+    {"open",   share_open_action,   "s",  NULL, NULL},
+    {"text",   share_text_action,   "s",  NULL, NULL},
+    {"url",    share_url_action,    "s",  NULL, NULL}
 };
 
 static const ValentMenuEntry items[] = {
-    {N_("Send Files"), "device.share", "document-send-symbolic"}
+    {N_("Send Files"), "device.share.share", "document-send-symbolic"}
 };
 
 /*
@@ -560,6 +566,7 @@ static void
 valent_share_plugin_handle_file (ValentSharePlugin *self,
                                  JsonNode          *packet)
 {
+  ValentDevice *device;
   const char *filename;
   g_autoptr (GFile) file = NULL;
 
@@ -579,7 +586,8 @@ valent_share_plugin_handle_file (ValentSharePlugin *self,
       return;
     }
 
-  file = valent_device_new_download_file (self->device, filename, TRUE);
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  file = valent_device_new_download_file (device, filename, TRUE);
 
   download_file (self, file, packet);
 }
@@ -631,9 +639,10 @@ valent_share_plugin_enable (ValentDevicePlugin *plugin)
 
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
 
-  valent_device_plugin_register_actions (plugin,
-                                         actions,
-                                         G_N_ELEMENTS (actions));
+  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   plugin);
   valent_device_plugin_add_menu_entries (plugin,
                                          items,
                                          G_N_ELEMENTS (items));
@@ -668,9 +677,6 @@ valent_share_plugin_disable (ValentDevicePlugin *plugin)
   valent_device_plugin_remove_menu_entries (plugin,
                                             items,
                                             G_N_ELEMENTS (items));
-  valent_device_plugin_unregister_actions (plugin,
-                                           actions,
-                                           G_N_ELEMENTS (actions));
 }
 
 static void
@@ -701,10 +707,7 @@ valent_share_plugin_update_state (ValentDevicePlugin *plugin,
         }
     }
 
-  valent_device_plugin_toggle_actions (plugin,
-                                       actions,
-                                       G_N_ELEMENTS (actions),
-                                       available);
+  valent_device_plugin_toggle_actions (plugin, available);
 }
 
 static void
@@ -738,65 +741,18 @@ valent_share_plugin_handle_packet (ValentDevicePlugin *plugin,
     g_assert_not_reached ();
 }
 
-static void
-valent_device_plugin_iface_init (ValentDevicePluginInterface *iface)
-{
-  iface->enable = valent_share_plugin_enable;
-  iface->disable = valent_share_plugin_disable;
-  iface->handle_packet = valent_share_plugin_handle_packet;
-  iface->update_state = valent_share_plugin_update_state;
-}
-
 /*
  * GObject
  */
 static void
-valent_share_plugin_get_property (GObject    *object,
-                                  guint       prop_id,
-                                  GValue     *value,
-                                  GParamSpec *pspec)
-{
-  ValentSharePlugin *self = VALENT_SHARE_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      g_value_set_object (value, self->device);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_share_plugin_set_property (GObject      *object,
-                                  guint         prop_id,
-                                  const GValue *value,
-                                  GParamSpec   *pspec)
-{
-  ValentSharePlugin *self = VALENT_SHARE_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      self->device = g_value_get_object (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_share_plugin_class_init (ValentSharePluginClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
-  object_class->get_property = valent_share_plugin_get_property;
-  object_class->set_property = valent_share_plugin_set_property;
-
-  g_object_class_override_property (object_class, PROP_DEVICE, "device");
+  plugin_class->enable = valent_share_plugin_enable;
+  plugin_class->disable = valent_share_plugin_disable;
+  plugin_class->handle_packet = valent_share_plugin_handle_packet;
+  plugin_class->update_state = valent_share_plugin_update_state;
 }
 
 static void
