@@ -16,16 +16,8 @@ race:valent_sms_store_thread
 
 
 #
-# Uninstrumented libraries (core, components, ui, plugins)
+# Uninstrumented libraries (Yes, all of these are really necessary)
 #
-called_from_lib:libglib-2
-called_from_lib:libgobject-2
-called_from_lib:libgio-2
-called_from_lib:libgnutls
-
-called_from_lib:libebackend-1.2
-called_from_lib:libedata-book
-called_from_lib:libedataserver-1.2
 
 # src/plugins/lan/valent-lan-utils.c
 # See: https://gitlab.gnome.org/GNOME/glib-networking/-/issues/89
@@ -37,35 +29,57 @@ called_from_lib:libtasn1
 # See: https://gitlab.gnome.org/GNOME/glib-networking/-/issues/184
 mutex:g_tls_certificate_gnutls_get_type_once
 
+# GTK
+called_from_lib:libadwaita-1
+called_from_lib:libcairo.so
+called_from_lib:libfontconfig
+called_from_lib:libgdk_pixbuf-2
+called_from_lib:libgtk-4
+called_from_lib:libmedia-gstreamer.so
+called_from_lib:libpango-1
+called_from_lib:libpangocairo-1
+called_from_lib:libpangoft2
 
-#
-# Indirect dependencies
-#
-
-# libgvfscommon
-mutex:g_vfs_icon_get_type_once
-
-# libpango-1
-mutex:pango_font_map_get_type_once
-race:pango_fc_font_face_data_equal
-
-# libfontconfig
-race:_FcObjectLookupOtherTypeByName
-race:IA__FcPatternReference.part.0
-
+# EDS Dependencies
+called_from_lib:libebackend-1.2
+called_from_lib:libedata-book
+called_from_lib:libedataserver-1.2
 called_from_lib:libicui18n
 called_from_lib:libicuuc
 called_from_lib:libphonenumber
 called_from_lib:libprotobuf
 called_from_lib:libsqlite3
-called_from_lib:libxcb.so
 
-# Miscellaneous
-deadlock:libEGL.so
-deadlock:libEGL_mesa.so
-mutex:libEGL.so
-mutex:libEGL_mesa.so
-race:libEGL.so
-race:libEGL_mesa.so
+# GLib
+called_from_lib:libglib-2
+called_from_lib:libgobject-2
+called_from_lib:libgio-2
+called_from_lib:libgnutls
+called_from_lib:libgvfscommon
+called_from_lib:libgvfsdbus
+
+# X.org
+called_from_lib:libX11.so
+called_from_lib:libX11-xcb
+called_from_lib:libXau
+called_from_lib:libxcb.so
+called_from_lib:libXcomposite
+called_from_lib:libXcursor
+called_from_lib:libXdamage
+called_from_lib:libXdmcp
+called_from_lib:libXext
+called_from_lib:libXfixes
+called_from_lib:libXi.so
+called_from_lib:libXrandr
+called_from_lib:libXrender
+called_from_lib:libXss
+
+# Graphics Libraries
+deadlock:libEGL
+deadlock:libGLX
+mutex:libEGL
+mutex:libGLX
+race:libEGL
+race:libGLX
 race:radeonsi_dri
 
