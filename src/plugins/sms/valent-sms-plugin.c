@@ -18,33 +18,23 @@
 
 struct _ValentSmsPlugin
 {
-  PeasExtensionBase  parent_instance;
+  ValentDevicePlugin  parent_instance;
 
-  ValentDevice      *device;
   ValentSmsStore    *store;
   GtkWindow         *window;
 };
 
-static ValentMessage * valent_sms_plugin_deserialize_message   (ValentSmsPlugin             *self,
-                                                                JsonNode                    *node);
-static void            valent_sms_plugin_request               (ValentSmsPlugin             *self,
-                                                                ValentMessage               *message);
-static void            valent_sms_plugin_request_conversation  (ValentSmsPlugin             *self,
-                                                                gint64                       thread_id,
-                                                                gint64                       start_date,
-                                                                gint64                       max_results);
-static void            valent_sms_plugin_request_conversations (ValentSmsPlugin             *self);
+static ValentMessage * valent_sms_plugin_deserialize_message   (ValentSmsPlugin *self,
+                                                                JsonNode        *node);
+static void            valent_sms_plugin_request               (ValentSmsPlugin *self,
+                                                                ValentMessage   *message);
+static void            valent_sms_plugin_request_conversation  (ValentSmsPlugin *self,
+                                                                gint64           thread_id,
+                                                                gint64           start_date,
+                                                                gint64           max_results);
+static void            valent_sms_plugin_request_conversations (ValentSmsPlugin *self);
 
-static void            valent_device_plugin_iface_init         (ValentDevicePluginInterface *iface);
-
-G_DEFINE_TYPE_WITH_CODE (ValentSmsPlugin, valent_sms_plugin, PEAS_TYPE_EXTENSION_BASE,
-                         G_IMPLEMENT_INTERFACE (VALENT_TYPE_DEVICE_PLUGIN, valent_device_plugin_iface_init))
-
-enum {
-  PROP_0,
-  PROP_DEVICE,
-  N_PROPERTIES
-};
+G_DEFINE_TYPE (ValentSmsPlugin, valent_sms_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
 /**
@@ -309,7 +299,7 @@ valent_sms_plugin_request_conversation (ValentSmsPlugin *self,
 
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 static void
@@ -323,7 +313,7 @@ valent_sms_plugin_request_conversations (ValentSmsPlugin *self)
   builder = valent_packet_start ("kdeconnect.sms.request_conversations");
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 static void
@@ -370,12 +360,24 @@ valent_sms_plugin_request (ValentSmsPlugin *self,
 
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 /*
  * GActions
  */
+static void
+fetch_action (GSimpleAction *action,
+              GVariant      *parameter,
+              gpointer       user_data)
+{
+  ValentSmsPlugin *self = VALENT_SMS_PLUGIN (user_data);
+
+  g_assert (VALENT_IS_SMS_PLUGIN (self));
+
+  valent_sms_plugin_request_conversations (self);
+}
+
 static gboolean
 on_send_message (ValentSmsWindow *window,
                  ValentMessage   *message,
@@ -395,6 +397,7 @@ messaging_action (GSimpleAction *action,
                   gpointer       user_data)
 {
   ValentSmsPlugin *self = VALENT_SMS_PLUGIN (user_data);
+  ValentDevice *device;
 
   g_assert (VALENT_IS_SMS_PLUGIN (self));
 
@@ -402,9 +405,10 @@ messaging_action (GSimpleAction *action,
     {
       ValentContactStore *store;
 
+      device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
       store = valent_contacts_ensure_store (valent_contacts_get_default (),
-                                            valent_device_get_id (self->device),
-                                            valent_device_get_name (self->device));
+                                            valent_device_get_id (device),
+                                            valent_device_get_name (device));
 
       self->window = g_object_new (VALENT_TYPE_SMS_WINDOW,
                                    "application",   g_application_get_default (),
@@ -423,31 +427,14 @@ messaging_action (GSimpleAction *action,
   gtk_window_present_with_time (GTK_WINDOW (self->window), GDK_CURRENT_TIME);
 }
 
-static void
-sms_fetch_action (GSimpleAction *action,
-                  GVariant      *parameter,
-                  gpointer       user_data)
-{
-  ValentSmsPlugin *self = VALENT_SMS_PLUGIN (user_data);
-
-  g_assert (VALENT_IS_SMS_PLUGIN (self));
-
-  valent_sms_plugin_request_conversations (self);
-}
-
 static const GActionEntry actions[] = {
-    {"messaging", messaging_action, NULL, NULL, NULL},
-    {"sms-fetch", sms_fetch_action, NULL, NULL, NULL}
+    {"fetch",     fetch_action,     NULL, NULL, NULL},
+    {"messaging", messaging_action, NULL, NULL, NULL}
 };
 
 static const ValentMenuEntry items[] = {
-    {N_("Messaging"), "device.messaging", "sms-symbolic"}
+    {N_("Messaging"), "device.sms.messaging", "sms-symbolic"}
 };
-
-/*
- * Private Methods
- */
-
 
 /*
  * ValentDevicePlugin
@@ -456,21 +443,24 @@ static void
 valent_sms_plugin_enable (ValentDevicePlugin *plugin)
 {
   ValentSmsPlugin *self = VALENT_SMS_PLUGIN (plugin);
+  ValentDevice *device;
   g_autoptr (ValentData) data = NULL;
 
   g_assert (VALENT_IS_SMS_PLUGIN (plugin));
 
   /* Load SMS Store */
-  data = valent_device_ref_data (self->device);
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  data = valent_device_ref_data (device);
   self->store = g_object_new (VALENT_TYPE_SMS_STORE,
                               "context", "sms",
                               "parent",  data,
                               NULL);
 
   /* Register GActions */
-  valent_device_plugin_register_actions (plugin,
-                                         actions,
-                                         G_N_ELEMENTS (actions));
+  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   plugin);
 
   /* Register GMenu items */
   valent_device_plugin_add_menu_entries (plugin,
@@ -492,9 +482,6 @@ valent_sms_plugin_disable (ValentDevicePlugin *plugin)
   valent_device_plugin_remove_menu_entries (plugin,
                                             items,
                                             G_N_ELEMENTS (items));
-  valent_device_plugin_unregister_actions (plugin,
-                                           actions,
-                                           G_N_ELEMENTS (actions));
 }
 
 static void
@@ -509,9 +496,7 @@ valent_sms_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  valent_device_plugin_toggle_actions (plugin,
-                                       actions, G_N_ELEMENTS (actions),
-                                       available);
+  valent_device_plugin_toggle_actions (plugin, available);
 
   /* Request summary of messages */
   if (available)
@@ -535,15 +520,6 @@ valent_sms_plugin_handle_packet (ValentDevicePlugin *plugin,
     g_assert_not_reached ();
 }
 
-static void
-valent_device_plugin_iface_init (ValentDevicePluginInterface *iface)
-{
-  iface->enable = valent_sms_plugin_enable;
-  iface->disable = valent_sms_plugin_disable;
-  iface->handle_packet = valent_sms_plugin_handle_packet;
-  iface->update_state = valent_sms_plugin_update_state;
-}
-
 /*
  * GObject
  */
@@ -560,54 +536,18 @@ valent_sms_plugin_finalize (GObject *object)
 }
 
 static void
-valent_sms_plugin_get_property (GObject    *object,
-                                guint       prop_id,
-                                GValue     *value,
-                                GParamSpec *pspec)
-{
-  ValentSmsPlugin *self = VALENT_SMS_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      g_value_set_object (value, self->device);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_sms_plugin_set_property (GObject      *object,
-                                guint         prop_id,
-                                const GValue *value,
-                                GParamSpec   *pspec)
-{
-  ValentSmsPlugin *self = VALENT_SMS_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      self->device = g_value_get_object (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_sms_plugin_class_init (ValentSmsPluginClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
   g_autoptr (GtkCssProvider) theme = NULL;
 
   object_class->finalize = valent_sms_plugin_finalize;
-  object_class->get_property = valent_sms_plugin_get_property;
-  object_class->set_property = valent_sms_plugin_set_property;
 
-  g_object_class_override_property (object_class, PROP_DEVICE, "device");
+  plugin_class->enable = valent_sms_plugin_enable;
+  plugin_class->disable = valent_sms_plugin_disable;
+  plugin_class->handle_packet = valent_sms_plugin_handle_packet;
+  plugin_class->update_state = valent_sms_plugin_update_state;
 
   theme = gtk_css_provider_new ();
   gtk_css_provider_load_from_resource (theme, "/plugins/sms/sms.css");

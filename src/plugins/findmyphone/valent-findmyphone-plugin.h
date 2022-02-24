@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <libpeas/peas.h>
+#include <libvalent-core.h>
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_FINDMYPHONE_PLUGIN (valent_findmyphone_plugin_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentFindmyphonePlugin, valent_findmyphone_plugin, VALENT, FINDMYPHONE_PLUGIN, PeasExtensionBase)
+G_DECLARE_FINAL_TYPE (ValentFindmyphonePlugin, valent_findmyphone_plugin, VALENT, FINDMYPHONE_PLUGIN, ValentDevicePlugin)
 
 G_END_DECLS
 

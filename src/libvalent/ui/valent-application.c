@@ -81,12 +81,7 @@ device_action (GSimpleAction *action,
   device = valent_device_manager_get_device (self->manager, device_id);
 
   if (device != NULL)
-    {
-      GActionGroup *actions;
-
-      actions = valent_device_get_actions (device);
-      g_action_group_activate_action (actions, name, target);
-    }
+    g_action_group_activate_action (G_ACTION_GROUP (device), name, target);
 }
 
 static void

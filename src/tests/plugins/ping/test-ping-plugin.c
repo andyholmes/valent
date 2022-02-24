@@ -10,12 +10,10 @@ static void
 test_ping_plugin_basic (ValentTestPluginFixture *fixture,
                         gconstpointer            user_data)
 {
-  ValentDevice *device;
-  GActionGroup *actions;
+  GActionGroup *actions = G_ACTION_GROUP (fixture->device);
 
-  device = valent_test_plugin_fixture_get_device (fixture);
-  actions = valent_device_get_actions (device);
-  g_assert_true (g_action_group_has_action (actions, "ping"));
+  g_assert_true (g_action_group_has_action (actions, "ping.ping"));
+  g_assert_true (g_action_group_has_action (actions, "ping.message"));
 }
 
 static void
@@ -39,26 +37,23 @@ static void
 test_ping_plugin_send_request (ValentTestPluginFixture *fixture,
                                gconstpointer            user_data)
 {
-  ValentDevice *device;
-  GActionGroup *actions;
+  GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *packet;
 
   valent_test_plugin_fixture_connect (fixture, TRUE);
 
-  device = valent_test_plugin_fixture_get_device (fixture);
-  actions = valent_device_get_actions (device);
-  g_assert_true (g_action_group_get_action_enabled (actions, "ping"));
-  g_assert_true (g_action_group_get_action_enabled (actions, "ping-message"));
+  g_assert_true (g_action_group_get_action_enabled (actions, "ping.ping"));
+  g_assert_true (g_action_group_get_action_enabled (actions, "ping.message"));
 
   /* Ping the endpoint */
-  g_action_group_activate_action (actions, "ping", NULL);
+  g_action_group_activate_action (actions, "ping.ping", NULL);
 
   packet = valent_test_plugin_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.ping");
   json_node_unref (packet);
 
   /* Ping the endpoint (message) */
-  g_action_group_activate_action (actions, "ping-message",
+  g_action_group_activate_action (actions, "ping.message",
                                   g_variant_new_string ("Test"));
 
   packet = valent_test_plugin_fixture_expect_packet (fixture);

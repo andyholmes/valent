@@ -16,23 +16,13 @@
 
 struct _ValentFindmyphonePlugin
 {
-  PeasExtensionBase        parent_instance;
+  ValentDevicePlugin        parent_instance;
 
-  ValentDevice            *device;
   ValentFindmyphoneRinger *ringer;
   ValentSession           *session;
 };
 
-static void valent_device_plugin_iface_init (ValentDevicePluginInterface *iface);
-
-G_DEFINE_TYPE_WITH_CODE (ValentFindmyphonePlugin, valent_findmyphone_plugin, PEAS_TYPE_EXTENSION_BASE,
-                         G_IMPLEMENT_INTERFACE (VALENT_TYPE_DEVICE_PLUGIN, valent_device_plugin_iface_init))
-
-enum {
-  PROP_0,
-  PROP_DEVICE,
-  N_PROPERTIES
-};
+G_DEFINE_TYPE (ValentFindmyphonePlugin, valent_findmyphone_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
 static void
@@ -58,7 +48,7 @@ ring_action (GSimpleAction *action,
   g_assert (VALENT_IS_FINDMYPHONE_PLUGIN (self));
 
   packet = valent_packet_new ("kdeconnect.findmyphone.request");
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 static const GActionEntry actions[] = {
@@ -66,7 +56,7 @@ static const GActionEntry actions[] = {
 };
 
 static const ValentMenuEntry items[] = {
-    {N_("Ring"), "device.ring", "phonelink-ring-symbolic"}
+    {N_("Ring"), "device.findmyphone.ring", "phonelink-ring-symbolic"}
 };
 
 /*
@@ -79,9 +69,10 @@ valent_findmyphone_plugin_enable (ValentDevicePlugin *plugin)
 
   g_assert (VALENT_IS_FINDMYPHONE_PLUGIN (self));
 
-  valent_device_plugin_register_actions (plugin,
-                                         actions,
-                                         G_N_ELEMENTS (actions));
+  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   plugin);
   valent_device_plugin_add_menu_entries (plugin,
                                          items,
                                          G_N_ELEMENTS (items));
@@ -106,9 +97,6 @@ valent_findmyphone_plugin_disable (ValentDevicePlugin *plugin)
   valent_device_plugin_remove_menu_entries (plugin,
                                             items,
                                             G_N_ELEMENTS (items));
-  valent_device_plugin_unregister_actions (plugin,
-                                           actions,
-                                           G_N_ELEMENTS (actions));
 }
 
 static void
@@ -127,9 +115,7 @@ valent_findmyphone_plugin_update_state (ValentDevicePlugin *plugin,
   if (!available && valent_findmyphone_ringer_is_owner (self->ringer, self))
     valent_findmyphone_ringer_hide (self->ringer);
 
-  valent_device_plugin_toggle_actions (plugin,
-                                       actions, G_N_ELEMENTS (actions),
-                                       available);
+  valent_device_plugin_toggle_actions (plugin, available);
 }
 
 static void
@@ -149,65 +135,18 @@ valent_findmyphone_plugin_handle_packet (ValentDevicePlugin *plugin,
     g_assert_not_reached ();
 }
 
-static void
-valent_device_plugin_iface_init (ValentDevicePluginInterface *iface)
-{
-  iface->enable = valent_findmyphone_plugin_enable;
-  iface->disable = valent_findmyphone_plugin_disable;
-  iface->handle_packet = valent_findmyphone_plugin_handle_packet;
-  iface->update_state = valent_findmyphone_plugin_update_state;
-}
-
 /*
  * GObject
  */
 static void
-valent_findmyphone_plugin_get_property (GObject    *object,
-                                        guint       prop_id,
-                                        GValue     *value,
-                                        GParamSpec *pspec)
-{
-  ValentFindmyphonePlugin *self = VALENT_FINDMYPHONE_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      g_value_set_object (value, self->device);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_findmyphone_plugin_set_property (GObject      *object,
-                                        guint         prop_id,
-                                        const GValue *value,
-                                        GParamSpec   *pspec)
-{
-  ValentFindmyphonePlugin *self = VALENT_FINDMYPHONE_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      self->device = g_value_get_object (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_findmyphone_plugin_class_init (ValentFindmyphonePluginClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
-  object_class->get_property = valent_findmyphone_plugin_get_property;
-  object_class->set_property = valent_findmyphone_plugin_set_property;
-
-  g_object_class_override_property (object_class, PROP_DEVICE, "device");
+  plugin_class->enable = valent_findmyphone_plugin_enable;
+  plugin_class->disable = valent_findmyphone_plugin_disable;
+  plugin_class->handle_packet = valent_findmyphone_plugin_handle_packet;
+  plugin_class->update_state = valent_findmyphone_plugin_update_state;
 }
 
 static void

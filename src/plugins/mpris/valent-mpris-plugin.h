@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <libpeas/peas.h>
+#include <libvalent-core.h>
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_MPRIS_PLUGIN (valent_mpris_plugin_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentMprisPlugin, valent_mpris_plugin, VALENT, MPRIS_PLUGIN, PeasExtensionBase)
+G_DECLARE_FINAL_TYPE (ValentMprisPlugin, valent_mpris_plugin, VALENT, MPRIS_PLUGIN, ValentDevicePlugin)
 
 G_END_DECLS
 

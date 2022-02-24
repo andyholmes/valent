@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <libpeas/peas.h>
+#include <libvalent-core.h>
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_MOUSEPAD_PLUGIN (valent_mousepad_plugin_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentMousepadPlugin, valent_mousepad_plugin, VALENT, MOUSEPAD_PLUGIN, PeasExtensionBase)
+G_DECLARE_FINAL_TYPE (ValentMousepadPlugin, valent_mousepad_plugin, VALENT, MOUSEPAD_PLUGIN, ValentDevicePlugin)
 
 G_END_DECLS
 

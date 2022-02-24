@@ -18,27 +18,21 @@ static void
 test_runcommand_plugin_basic (ValentTestPluginFixture *fixture,
                               gconstpointer            user_data)
 {
-  ValentDevice *device;
-  GActionGroup *actions;
+  GActionGroup *actions = G_ACTION_GROUP (fixture->device);
 
-  device = valent_test_plugin_fixture_get_device (fixture);
-  actions = valent_device_get_actions (device);
-  g_assert_true (g_action_group_has_action (actions, "runcommand"));
+  g_assert_true (g_action_group_has_action (actions, "runcommand.execute"));
 }
 
 static void
 test_runcommand_plugin_handle_request (ValentTestPluginFixture *fixture,
                                        gconstpointer            user_data)
 {
-  ValentDevice *device;
-  GActionGroup *actions;
+  GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *packet;
 
   valent_test_plugin_fixture_connect (fixture, TRUE);
 
-  device = valent_test_plugin_fixture_get_device (fixture);
-  actions = valent_device_get_actions (device);
-  g_assert_true (g_action_group_get_action_enabled (actions, "runcommand"));
+  g_assert_true (g_action_group_get_action_enabled (actions, "runcommand.execute"));
 
   packet = valent_test_plugin_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.runcommand");
@@ -51,7 +45,7 @@ test_runcommand_plugin_handle_request (ValentTestPluginFixture *fixture,
 
   /* Execute one of the commands */
   g_action_group_activate_action (actions,
-                                  "runcommand",
+                                  "runcommand.execute",
                                   g_variant_new_string ("command1"));
 
   packet = valent_test_plugin_fixture_expect_packet (fixture);

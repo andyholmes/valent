@@ -12,8 +12,7 @@ static void
 test_sms_plugin_basic (ValentTestPluginFixture *fixture,
                        gconstpointer            user_data)
 {
-  ValentDevice *device;
-  GActionGroup *actions;
+  GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *packet;
 
   valent_test_plugin_fixture_connect (fixture, TRUE);
@@ -23,19 +22,17 @@ test_sms_plugin_basic (ValentTestPluginFixture *fixture,
   v_assert_packet_type (packet, "kdeconnect.sms.request_conversations");
   json_node_unref (packet);
 
-  device = valent_test_plugin_fixture_get_device (fixture);
-  actions = valent_device_get_actions (device);
-  g_assert_true (g_action_group_has_action (actions, "messaging"));
-  g_assert_true (g_action_group_has_action (actions, "sms-fetch"));
+  g_assert_true (g_action_group_has_action (actions, "sms.messaging"));
+  g_assert_true (g_action_group_has_action (actions, "sms.fetch"));
 
   /* Expect request (thread digest) */
-  g_action_group_activate_action (actions, "sms-fetch", NULL);
+  g_action_group_activate_action (actions, "sms.fetch", NULL);
   packet = valent_test_plugin_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.sms.request_conversations");
   json_node_unref (packet);
 
   /* Open window */
-  g_action_group_activate_action (actions, "messaging", NULL);
+  g_action_group_activate_action (actions, "sms.messaging", NULL);
 }
 
 static void

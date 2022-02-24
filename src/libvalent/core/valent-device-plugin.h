@@ -27,80 +27,79 @@ typedef struct
 #define VALENT_TYPE_DEVICE_PLUGIN (valent_device_plugin_get_type ())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_INTERFACE (ValentDevicePlugin, valent_device_plugin, VALENT, DEVICE_PLUGIN, GObject)
+G_DECLARE_DERIVABLE_TYPE (ValentDevicePlugin, valent_device_plugin, VALENT, DEVICE_PLUGIN, ValentObject)
 
-struct _ValentDevicePluginInterface
+struct _ValentDevicePluginClass
 {
-  GTypeInterface   g_iface;
+  ValentObjectClass   parent_class;
 
   /* virtual functions */
-  void             (*disable)       (ValentDevicePlugin *plugin);
-  void             (*enable)        (ValentDevicePlugin *plugin);
-  void             (*handle_packet) (ValentDevicePlugin *plugin,
-                                     const char         *type,
-                                     JsonNode           *packet);
-  void             (*update_state)  (ValentDevicePlugin *plugin,
-                                     ValentDeviceState   state);
+  void                (*disable)       (ValentDevicePlugin *plugin);
+  void                (*enable)        (ValentDevicePlugin *plugin);
+  void                (*handle_packet) (ValentDevicePlugin *plugin,
+                                        const char         *type,
+                                        JsonNode           *packet);
+  void                (*update_state)  (ValentDevicePlugin *plugin,
+                                        ValentDeviceState   state);
 };
 
-/* Core Interface */
 VALENT_AVAILABLE_IN_1_0
-void        valent_device_plugin_disable             (ValentDevicePlugin    *plugin);
+void           valent_device_plugin_disable             (ValentDevicePlugin    *plugin);
 VALENT_AVAILABLE_IN_1_0
-void        valent_device_plugin_enable              (ValentDevicePlugin    *plugin);
+void           valent_device_plugin_enable              (ValentDevicePlugin    *plugin);
 VALENT_AVAILABLE_IN_1_0
-void        valent_device_plugin_handle_packet       (ValentDevicePlugin    *plugin,
-                                                      const char            *type,
-                                                      JsonNode              *packet);
+void           valent_device_plugin_handle_packet       (ValentDevicePlugin    *plugin,
+                                                         const char            *type,
+                                                         JsonNode              *packet);
 VALENT_AVAILABLE_IN_1_0
-void        valent_device_plugin_update_state        (ValentDevicePlugin    *plugin,
-                                                      ValentDeviceState      state);
+void           valent_device_plugin_update_state        (ValentDevicePlugin    *plugin,
+                                                         ValentDeviceState      state);
+VALENT_AVAILABLE_IN_1_0
+ValentDevice * valent_device_plugin_get_device          (ValentDevicePlugin    *plugin);
+VALENT_AVAILABLE_IN_1_0
+void           valent_device_plugin_queue_packet        (ValentDevicePlugin    *plugin,
+                                                         JsonNode              *packet);
+VALENT_AVAILABLE_IN_1_0
+void           valent_device_plugin_show_notification   (ValentDevicePlugin    *plugin,
+                                                         const char            *id,
+                                                         GNotification         *notification);
+VALENT_AVAILABLE_IN_1_0
+void           valent_device_plugin_hide_notification   (ValentDevicePlugin    *plugin,
+                                                         const char            *id);
+VALENT_AVAILABLE_IN_1_0
+void           valent_device_plugin_toggle_actions      (ValentDevicePlugin    *plugin,
+                                                         gboolean               enabled);
 
-/* Utility Functions */
+/* Utilities */
 VALENT_AVAILABLE_IN_1_0
-GSettings * valent_device_plugin_new_settings        (const char            *device_id,
-                                                      const char            *module_name);
+GStrv          valent_device_plugin_get_incoming        (PeasPluginInfo        *info);
 VALENT_AVAILABLE_IN_1_0
-void        valent_device_plugin_register_actions    (ValentDevicePlugin    *plugin,
-                                                      const GActionEntry    *entries,
-                                                      int                    n_entries);
+GStrv          valent_device_plugin_get_outgoing        (PeasPluginInfo        *info);
 VALENT_AVAILABLE_IN_1_0
-void        valent_device_plugin_unregister_actions  (ValentDevicePlugin    *plugin,
-                                                      const GActionEntry    *entries,
-                                                      int                    n_entries);
-VALENT_AVAILABLE_IN_1_0
-void        valent_device_plugin_toggle_actions      (ValentDevicePlugin    *plugin,
-                                                      const GActionEntry    *actions,
-                                                      int                    n_entries,
-                                                      gboolean               state);
+GSettings *    valent_device_plugin_new_settings        (const char            *device_id,
+                                                         const char            *module_name);
 
 /* TODO: GMenuModel XML */
 VALENT_AVAILABLE_IN_1_0
-int          valent_device_plugin_find_menu_item     (ValentDevicePlugin    *plugin,
-                                                      const char            *attribute,
-                                                      const GVariant        *value);
+int             valent_device_plugin_find_menu_item     (ValentDevicePlugin    *plugin,
+                                                         const char            *attribute,
+                                                         const GVariant        *value);
 VALENT_AVAILABLE_IN_1_0
-int          valent_device_plugin_remove_menu_item   (ValentDevicePlugin    *plugin,
-                                                      const char            *attribute,
-                                                      const GVariant        *value);
+int             valent_device_plugin_remove_menu_item   (ValentDevicePlugin    *plugin,
+                                                         const char            *attribute,
+                                                         const GVariant        *value);
 VALENT_AVAILABLE_IN_1_0
-void         valent_device_plugin_replace_menu_item  (ValentDevicePlugin    *plugin,
-                                                      GMenuItem             *item,
-                                                      const char            *attribute);
+void            valent_device_plugin_replace_menu_item  (ValentDevicePlugin    *plugin,
+                                                         GMenuItem             *item,
+                                                         const char            *attribute);
 VALENT_AVAILABLE_IN_1_0
-void        valent_device_plugin_add_menu_entries    (ValentDevicePlugin    *plugin,
-                                                      const ValentMenuEntry *entries,
-                                                      int                    n_entries);
+void           valent_device_plugin_add_menu_entries    (ValentDevicePlugin    *plugin,
+                                                         const ValentMenuEntry *entries,
+                                                         int                    n_entries);
 VALENT_AVAILABLE_IN_1_0
-void        valent_device_plugin_remove_menu_entries (ValentDevicePlugin    *plugin,
-                                                      const ValentMenuEntry *entries,
-                                                      int                    n_entries);
-
-/* Plugin Info Helpers */
-VALENT_AVAILABLE_IN_1_0
-GStrv       valent_device_plugin_get_incoming        (PeasPluginInfo        *info);
-VALENT_AVAILABLE_IN_1_0
-GStrv       valent_device_plugin_get_outgoing        (PeasPluginInfo        *info);
+void           valent_device_plugin_remove_menu_entries (ValentDevicePlugin    *plugin,
+                                                         const ValentMenuEntry *entries,
+                                                         int                    n_entries);
 
 G_END_DECLS
 

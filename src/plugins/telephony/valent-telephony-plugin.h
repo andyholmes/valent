@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <libpeas/peas.h>
+#include <libvalent-core.h>
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_TELEPHONY_PLUGIN (valent_telephony_plugin_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentTelephonyPlugin, valent_telephony_plugin, VALENT, TELEPHONY_PLUGIN, PeasExtensionBase)
+G_DECLARE_FINAL_TYPE (ValentTelephonyPlugin, valent_telephony_plugin, VALENT, TELEPHONY_PLUGIN, ValentDevicePlugin)
 
 G_END_DECLS
 

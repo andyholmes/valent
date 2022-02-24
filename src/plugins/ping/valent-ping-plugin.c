@@ -14,21 +14,10 @@
 
 struct _ValentPingPlugin
 {
-  PeasExtensionBase  parent_instance;
-
-  ValentDevice      *device;
+  ValentDevicePlugin  parent_instance;
 };
 
-static void valent_device_plugin_iface_init (ValentDevicePluginInterface *iface);
-
-G_DEFINE_TYPE_WITH_CODE (ValentPingPlugin, valent_ping_plugin, PEAS_TYPE_EXTENSION_BASE,
-                         G_IMPLEMENT_INTERFACE (VALENT_TYPE_DEVICE_PLUGIN, valent_device_plugin_iface_init))
-
-enum {
-  PROP_0,
-  PROP_DEVICE,
-  N_PROPERTIES
-};
+G_DEFINE_TYPE (ValentPingPlugin, valent_ping_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
 static void
@@ -37,6 +26,7 @@ valent_ping_plugin_handle_ping (ValentPingPlugin *self,
 {
   g_autoptr (GNotification) notification = NULL;
   const char *message;
+  ValentDevice *device;
 
   g_assert (VALENT_IS_PING_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
@@ -46,9 +36,12 @@ valent_ping_plugin_handle_ping (ValentPingPlugin *self,
     message = _("Ping!");
 
   /* Show a notification */
-  notification = g_notification_new (valent_device_get_name (self->device));
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  notification = g_notification_new (valent_device_get_name (device));
   g_notification_set_body (notification, message);
-  valent_device_show_notification (self->device, "ping", notification);
+  valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),
+                                          "ping",
+                                          notification);
 }
 
 static void
@@ -70,7 +63,7 @@ valent_ping_plugin_send_ping (ValentPingPlugin *self,
 
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 /*
@@ -93,12 +86,12 @@ ping_action (GSimpleAction *action,
 }
 
 static const GActionEntry actions[] = {
-    {"ping",         ping_action, NULL, NULL, NULL},
-    {"ping-message", ping_action, "s",  NULL, NULL}
+    {"ping",    ping_action, NULL, NULL, NULL},
+    {"message", ping_action, "s",  NULL, NULL}
 };
 
 static const ValentMenuEntry items[] = {
-    {N_("Ping"), "device.ping", "dialog-information-symbolic"}
+    {N_("Ping"), "device.ping.ping", "dialog-information-symbolic"}
 };
 
 /**
@@ -107,9 +100,10 @@ static const ValentMenuEntry items[] = {
 static void
 valent_ping_plugin_enable (ValentDevicePlugin *plugin)
 {
-  valent_device_plugin_register_actions (plugin,
-                                         actions,
-                                         G_N_ELEMENTS (actions));
+  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   plugin);
   valent_device_plugin_add_menu_entries (plugin,
                                          items,
                                          G_N_ELEMENTS (items));
@@ -121,9 +115,6 @@ valent_ping_plugin_disable (ValentDevicePlugin *plugin)
   valent_device_plugin_remove_menu_entries (plugin,
                                             items,
                                             G_N_ELEMENTS (items));
-  valent_device_plugin_unregister_actions (plugin,
-                                           actions,
-                                           G_N_ELEMENTS (actions));
 }
 
 static void
@@ -137,10 +128,7 @@ valent_ping_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  valent_device_plugin_toggle_actions (plugin,
-                                       actions,
-                                       G_N_ELEMENTS (actions),
-                                       available);
+  valent_device_plugin_toggle_actions (plugin, available);
 }
 
 static void
@@ -160,65 +148,18 @@ valent_ping_plugin_handle_packet (ValentDevicePlugin *plugin,
     g_assert_not_reached ();
 }
 
-static void
-valent_device_plugin_iface_init (ValentDevicePluginInterface *iface)
-{
-  iface->enable = valent_ping_plugin_enable;
-  iface->disable = valent_ping_plugin_disable;
-  iface->handle_packet = valent_ping_plugin_handle_packet;
-  iface->update_state = valent_ping_plugin_update_state;
-}
-
 /*
  * GObject
  */
 static void
-valent_ping_plugin_get_property (GObject    *object,
-                                 guint       prop_id,
-                                 GValue     *value,
-                                 GParamSpec *pspec)
-{
-  ValentPingPlugin *self = VALENT_PING_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      g_value_set_object (value, self->device);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_ping_plugin_set_property (GObject      *object,
-                                 guint         prop_id,
-                                 const GValue *value,
-                                 GParamSpec   *pspec)
-{
-  ValentPingPlugin *self = VALENT_PING_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      self->device = g_value_get_object (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_ping_plugin_class_init (ValentPingPluginClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
-  object_class->get_property = valent_ping_plugin_get_property;
-  object_class->set_property = valent_ping_plugin_set_property;
-
-  g_object_class_override_property (object_class, PROP_DEVICE, "device");
+  plugin_class->enable = valent_ping_plugin_enable;
+  plugin_class->disable = valent_ping_plugin_disable;
+  plugin_class->handle_packet = valent_ping_plugin_handle_packet;
+  plugin_class->update_state = valent_ping_plugin_update_state;
 }
 
 static void

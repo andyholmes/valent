@@ -135,8 +135,8 @@ valent_device_manager_export_device (ValentDeviceManager *self,
   g_autoptr (GDBusObjectSkeleton) object = NULL;
   g_autoptr (GDBusInterfaceSkeleton) iface = NULL;
   ExportedDevice *info;
-  GActionGroup *actions;
-  GMenuModel *menu;
+  GActionGroup *action_group;
+  GMenuModel *menu_model;
 
   VALENT_ENTRY;
 
@@ -157,16 +157,16 @@ valent_device_manager_export_device (ValentDeviceManager *self,
   iface = valent_device_impl_new (device);
   g_dbus_object_skeleton_add_interface (object, iface);
 
-  actions = valent_device_get_actions (device);
+  action_group = G_ACTION_GROUP (device);
   info->actions_id = g_dbus_connection_export_action_group (info->connection,
                                                             info->object_path,
-                                                            actions,
+                                                            action_group,
                                                             NULL);
 
-  menu = valent_device_get_menu (device);
+  menu_model = valent_device_get_menu (device);
   info->menu_id = g_dbus_connection_export_menu_model (info->connection,
                                                        info->object_path,
-                                                       menu,
+                                                       menu_model,
                                                        NULL);
 
   g_dbus_object_manager_server_export (self->dbus, object);

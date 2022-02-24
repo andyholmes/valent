@@ -18,12 +18,11 @@ struct _ValentBatteryGadget
 {
   GtkWidget     parent_instance;
 
+  ValentDevice *device;
+
   GtkWidget    *button;
   GtkWidget    *level_bar;
   GtkWidget    *label;
-
-  ValentDevice *device;
-  GActionGroup *actions;
 };
 
 
@@ -42,7 +41,7 @@ enum {
 
 
 static void
-on_action_state_changed (GActionGroup        *group,
+on_action_state_changed (GActionGroup        *action_group,
                          const char          *action_name,
                          GVariant            *value,
                          ValentBatteryGadget *self)
@@ -50,17 +49,16 @@ on_action_state_changed (GActionGroup        *group,
   gboolean charging;
   const char *icon_name;
   int level;
-
   g_autofree char *label = NULL;
-  gboolean connected;
+  gboolean enabled = FALSE;
   int time, minutes, hours;
 
   g_assert (VALENT_IS_BATTERY_GADGET (self));
 
   g_variant_get (value, "(b&siu)", &charging, &icon_name, &level, &time);
 
-  connected = g_action_group_get_action_enabled (group, "battery");
-  gtk_widget_set_visible (self->button, connected && (level > -1));
+  enabled = g_action_group_get_action_enabled (action_group, action_name);
+  gtk_widget_set_visible (self->button, enabled && (level > -1));
 
   if (level == 100)
     {
@@ -103,7 +101,7 @@ on_action_state_changed (GActionGroup        *group,
 }
 
 static void
-on_action_enabled_changed (GActionGroup        *group,
+on_action_enabled_changed (GActionGroup        *action_group,
                            const char          *action_name,
                            gboolean             enabled,
                            ValentBatteryGadget *self)
@@ -113,10 +111,10 @@ on_action_enabled_changed (GActionGroup        *group,
   gtk_widget_set_visible (self->button, enabled);
 
   if (enabled)
-    state = g_action_group_get_action_state (self->actions, "battery");
+    state = g_action_group_get_action_state (action_group, action_name);
 
   if (state != NULL)
-    on_action_state_changed (self->actions, "battery", state, self);
+    on_action_state_changed (action_group, action_name, state, self);
 }
 
 /*
@@ -134,23 +132,22 @@ static void
 valent_battery_gadget_constructed (GObject *object)
 {
   ValentBatteryGadget *self = VALENT_BATTERY_GADGET (object);
+  GActionGroup *action_group = G_ACTION_GROUP (self->device);
 
-  self->actions = valent_device_get_actions (self->device);
-
-  g_signal_connect (self->actions,
-                    "action-state-changed::battery",
+  g_signal_connect (action_group,
+                    "action-state-changed::battery.state",
                     G_CALLBACK (on_action_state_changed),
                     self);
 
-  g_signal_connect (self->actions,
-                    "action-enabled-changed::battery",
+  g_signal_connect (action_group,
+                    "action-enabled-changed::battery.state",
                     G_CALLBACK (on_action_enabled_changed),
                     self);
 
-  on_action_enabled_changed (self->actions,
-                             "battery",
-                             g_action_group_get_action_enabled (self->actions,
-                                                                "battery"),
+  on_action_enabled_changed (action_group,
+                             "battery.state",
+                             g_action_group_get_action_enabled (action_group,
+                                                                "battery.state"),
                              self);
 
   G_OBJECT_CLASS (valent_battery_gadget_parent_class)->constructed (object);
@@ -161,7 +158,7 @@ valent_battery_gadget_dispose (GObject *object)
 {
   ValentBatteryGadget *self = VALENT_BATTERY_GADGET (object);
 
-  g_signal_handlers_disconnect_by_data (self->actions, self);
+  g_signal_handlers_disconnect_by_data (self->device, self);
   g_clear_pointer (&self->button, gtk_widget_unparent);
 
   G_OBJECT_CLASS (valent_battery_gadget_parent_class)->dispose (object);

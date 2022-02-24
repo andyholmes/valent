@@ -16,37 +16,29 @@ typedef struct _ValentSftpSession ValentSftpSession;
 
 struct _ValentSftpPlugin
 {
-  PeasExtensionBase  parent_instance;
+  ValentDevicePlugin  parent_instance;
 
-  ValentDevice      *device;
   GSettings         *settings;
 
   GVolumeMonitor    *monitor;
   ValentSftpSession *session;
 };
 
-static void valent_device_plugin_iface_init (ValentDevicePluginInterface *iface);
-
-G_DEFINE_TYPE_WITH_CODE (ValentSftpPlugin, valent_sftp_plugin, PEAS_TYPE_EXTENSION_BASE,
-                         G_IMPLEMENT_INTERFACE (VALENT_TYPE_DEVICE_PLUGIN, valent_device_plugin_iface_init))
-
-enum {
-  PROP_0,
-  PROP_DEVICE,
-  N_PROPERTIES
-};
+G_DEFINE_TYPE (ValentSftpPlugin, valent_sftp_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
 static char *
 get_device_host (ValentSftpPlugin *self)
 {
+  ValentDevice *device;
   g_autoptr (ValentChannel) channel = NULL;
   g_autofree char *host = NULL;
   GParamSpec *pspec = NULL;
 
   /* The plugin doesn't know ValentChannel derivations, so we have to check for
    * a "host" property to ensure it's IP-based */
-  channel = valent_device_ref_channel (self->device);
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  channel = valent_device_ref_channel (device);
 
   if G_LIKELY (channel != NULL)
     pspec = g_object_class_find_property (G_OBJECT_GET_CLASS (channel), "host");
@@ -403,6 +395,7 @@ static void
 sftp_session_begin (ValentSftpPlugin  *self,
                     ValentSftpSession *session)
 {
+  ValentDevice *device;
   g_autoptr (GSubprocess) proc = NULL;
   g_autoptr (GError) error = NULL;
   g_autoptr (ValentData) data = NULL;
@@ -412,7 +405,8 @@ sftp_session_begin (ValentSftpPlugin  *self,
   g_assert (VALENT_IS_SFTP_PLUGIN (self));
 
   /* Get the manager's data object */
-  data = valent_device_ref_data (self->device);
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  data = valent_device_ref_data (device);
   root_data = valent_data_get_parent (data);
 
   /* Add the private key to the ssh-agent */
@@ -446,25 +440,23 @@ static void
 handle_sftp_error (ValentSftpPlugin *self,
                    JsonNode         *packet)
 {
+  ValentDevice *device;
   g_autoptr (GNotification) notification = NULL;
   g_autoptr (GIcon) error_icon = NULL;
   g_autofree char *error_title = NULL;
   const char *error_message;
   const char *device_name;
-  PeasPluginInfo *info;
-  const char *plugin_name;
   JsonObject *body;
 
   g_assert (VALENT_IS_SFTP_PLUGIN (self));
 
   body = valent_packet_get_body (packet);
 
-  info = peas_extension_base_get_plugin_info (PEAS_EXTENSION_BASE (self));
-  plugin_name = peas_plugin_info_get_name (info);
-  device_name = valent_device_get_name (self->device);
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  device_name = valent_device_get_name (device);
 
   error_icon = g_themed_icon_new ("dialog-error-symbolic");
-  error_title = g_strdup_printf ("%s: %s", device_name, plugin_name);
+  error_title = g_strdup_printf ("%s: SFTP", device_name);
   error_message = json_object_get_string_member (body, "errorMessage");
 
   /* Send notification */
@@ -472,7 +464,9 @@ handle_sftp_error (ValentSftpPlugin *self,
   g_notification_set_body (notification, error_message);
   g_notification_set_icon (notification, error_icon);
   g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_HIGH);
-  valent_device_show_notification (self->device, "sftp-error", notification);
+  valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),
+                                          "sftp-error",
+                                          notification);
 }
 
 static void
@@ -556,7 +550,7 @@ valent_sftp_plugin_handle_request (ValentSftpPlugin *self,
     }
 
   response = valent_packet_finish (builder);
-  valent_device_queue_packet (self->device, response);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), response);
 }
 
 static void
@@ -575,7 +569,7 @@ valent_sftp_plugin_sftp_request (ValentSftpPlugin *self)
   json_builder_add_boolean_value (builder, TRUE);
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 /*
@@ -598,11 +592,11 @@ mount_action (GSimpleAction *action,
 }
 
 static const GActionEntry actions[] = {
-    {"sftp-browse", mount_action, NULL, NULL, NULL}
+    {"browse", mount_action, NULL, NULL, NULL}
 };
 
 static const ValentMenuEntry items[] = {
-    {N_("Browse Files"), "device.sftp-browse", "folder-remote-symbolic"}
+    {N_("Browse Files"), "device.sftp.browse", "folder-remote-symbolic"}
 };
 
 
@@ -613,16 +607,19 @@ static void
 valent_sftp_plugin_enable (ValentDevicePlugin *plugin)
 {
   ValentSftpPlugin *self = VALENT_SFTP_PLUGIN (plugin);
+  ValentDevice *device;
   const char *device_id;
 
   g_assert (VALENT_IS_SFTP_PLUGIN (self));
 
-  device_id = valent_device_get_id (self->device);
+  device = valent_device_plugin_get_device (plugin);
+  device_id = valent_device_get_id (device);
   self->settings = valent_device_plugin_new_settings (device_id, "sftp");
 
-  valent_device_plugin_register_actions (plugin,
-                                         actions,
-                                         G_N_ELEMENTS (actions));
+  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   plugin);
   valent_device_plugin_add_menu_entries (plugin,
                                          items,
                                          G_N_ELEMENTS (items));
@@ -654,9 +651,6 @@ valent_sftp_plugin_disable (ValentDevicePlugin *plugin)
   valent_device_plugin_remove_menu_entries (plugin,
                                             items,
                                             G_N_ELEMENTS (items));
-  valent_device_plugin_unregister_actions (plugin,
-                                           actions,
-                                           G_N_ELEMENTS (actions));
   g_clear_object (&self->settings);
 }
 
@@ -672,10 +666,7 @@ valent_sftp_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  valent_device_plugin_toggle_actions (plugin,
-                                       actions,
-                                       G_N_ELEMENTS (actions),
-                                       available);
+  valent_device_plugin_toggle_actions (plugin, available);
 
   /* GMounts */
   if (available)
@@ -708,15 +699,6 @@ valent_sftp_plugin_handle_packet (ValentDevicePlugin *plugin,
     g_warn_if_reached ();
 }
 
-static void
-valent_device_plugin_iface_init (ValentDevicePluginInterface *iface)
-{
-  iface->enable = valent_sftp_plugin_enable;
-  iface->disable = valent_sftp_plugin_disable;
-  iface->handle_packet = valent_sftp_plugin_handle_packet;
-  iface->update_state = valent_sftp_plugin_update_state;
-}
-
 /*
  * GObject
  */
@@ -731,53 +713,17 @@ valent_sftp_plugin_dispose (GObject *object)
 }
 
 static void
-valent_sftp_plugin_get_property (GObject    *object,
-                                 guint       prop_id,
-                                 GValue     *value,
-                                 GParamSpec *pspec)
-{
-  ValentSftpPlugin *self = VALENT_SFTP_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      g_value_set_object (value, self->device);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_sftp_plugin_set_property (GObject      *object,
-                                 guint         prop_id,
-                                 const GValue *value,
-                                 GParamSpec   *pspec)
-{
-  ValentSftpPlugin *self = VALENT_SFTP_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      self->device = g_value_get_object (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_sftp_plugin_class_init (ValentSftpPluginClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
   object_class->dispose = valent_sftp_plugin_dispose;
-  object_class->get_property = valent_sftp_plugin_get_property;
-  object_class->set_property = valent_sftp_plugin_set_property;
 
-  g_object_class_override_property (object_class, PROP_DEVICE, "device");
+  plugin_class->enable = valent_sftp_plugin_enable;
+  plugin_class->disable = valent_sftp_plugin_disable;
+  plugin_class->handle_packet = valent_sftp_plugin_handle_packet;
+  plugin_class->update_state = valent_sftp_plugin_update_state;
 }
 
 static void

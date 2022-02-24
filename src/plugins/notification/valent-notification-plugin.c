@@ -17,9 +17,8 @@
 
 struct _ValentNotificationPlugin
 {
-  PeasExtensionBase    parent_instance;
+  ValentDevicePlugin    parent_instance;
 
-  ValentDevice        *device;
   GSettings           *settings;
   GCancellable        *cancellable;
 
@@ -28,16 +27,7 @@ struct _ValentNotificationPlugin
   GHashTable          *dialogs;
 };
 
-static void valent_device_plugin_iface_init (ValentDevicePluginInterface *iface);
-
-G_DEFINE_TYPE_WITH_CODE (ValentNotificationPlugin, valent_notification_plugin, PEAS_TYPE_EXTENSION_BASE,
-                         G_IMPLEMENT_INTERFACE (VALENT_TYPE_DEVICE_PLUGIN, valent_device_plugin_iface_init))
-
-enum {
-  PROP_0,
-  PROP_DEVICE,
-  N_PROPERTIES
-};
+G_DEFINE_TYPE (ValentNotificationPlugin, valent_notification_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 static void valent_notification_plugin_handle_notification         (ValentNotificationPlugin *self,
                                                                     JsonNode                 *packet);
@@ -70,6 +60,7 @@ on_notification_added (ValentNotifications      *listener,
                        ValentNotification       *notification,
                        ValentNotificationPlugin *self)
 {
+  ValentDevice *device;
   const char *application;
   g_auto (GStrv) deny = NULL;
 
@@ -90,7 +81,9 @@ on_notification_added (ValentNotifications      *listener,
   if (application && g_strv_contains ((const char * const *)deny, application))
     return;
 
-  if (!valent_device_get_connected (self->device))
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+
+  if (!valent_device_get_connected (device))
     {
       VALENT_TODO ("Cache notifications for later sending?");
       return;
@@ -109,10 +102,14 @@ on_notification_removed (ValentNotifications      *listener,
                          const char               *id,
                          ValentNotificationPlugin *self)
 {
+  ValentDevice *device;
+
   g_assert (VALENT_IS_NOTIFICATIONS (listener));
   g_assert (id != NULL);
 
-  if (!valent_device_get_connected (self->device))
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+
+  if (!valent_device_get_connected (device))
     {
       VALENT_TODO ("Cache notifications for later removal?");
       return;
@@ -303,9 +300,11 @@ valent_notification_plugin_get_icon_file (ValentNotificationPlugin *self,
 
   if (valent_packet_get_string (packet, "payloadHash", &payload_hash))
     {
+      ValentDevice *device;
       g_autoptr (ValentData) data = NULL;
 
-      data = valent_device_ref_data (self->device);
+      device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+      data = valent_device_ref_data (device);
       file = g_file_new_build_filename (valent_data_get_cache_path (data),
                                         "notification",
                                         payload_hash,
@@ -340,6 +339,7 @@ download_icon_task (GTask        *task,
   /* Check if we've already downloaded this icon */
   if (!g_file_query_exists (file, cancellable))
     {
+      ValentDevice *device;
       g_autoptr (GIOStream) source = NULL;
       g_autoptr (GFileOutputStream) target = NULL;
       g_autoptr (GFile) cache_dir = NULL;
@@ -358,7 +358,9 @@ download_icon_task (GTask        *task,
         }
 
       /* Get the device channel */
-      if ((channel = valent_device_ref_channel (self->device)) == NULL)
+      device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+
+      if ((channel = valent_device_ref_channel (device)) == NULL)
         {
           return g_task_return_new_error (task,
                                           G_IO_ERROR,
@@ -463,6 +465,7 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
                                               JsonNode                 *packet,
                                               GIcon                    *gicon)
 {
+  ValentDevice *device;
   g_autoptr (GNotification) notification = NULL;
   g_autoptr (GIcon) icon = NULL;
   g_auto (GStrv) ticker_strv = NULL;
@@ -508,6 +511,8 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
       return;
     }
 
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+
   /* Start building the GNotification */
   notification = g_notification_new (title);
 
@@ -536,8 +541,8 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
                               valent_notification_serialize (incoming));
 
       valent_notification_set_device_action (notification,
-                                             self->device,
-                                             "notification-reply",
+                                             device,
+                                             "notification.reply",
                                              target);
     }
 
@@ -561,9 +566,9 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
           action = json_node_get_string (element);
           target = g_variant_new ("(ss)", id, action);
           valent_notification_add_device_button (notification,
-                                                 self->device,
+                                                 device,
                                                  action,
-                                                 "notification-action",
+                                                 "notification.action",
                                                  target);
         }
     }
@@ -606,7 +611,9 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
   if (icon != NULL)
     g_notification_set_icon (notification, icon);
 
-  valent_device_show_notification (self->device, id, notification);
+  valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),
+                                          id,
+                                          notification);
 }
 
 static void
@@ -654,7 +661,7 @@ valent_notification_plugin_handle_notification (ValentNotificationPlugin *self,
           return;
         }
 
-      valent_device_hide_notification (self->device, id);
+      valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self), id);
       return;
     }
 
@@ -722,7 +729,7 @@ valent_notification_plugin_request_notifications (ValentNotificationPlugin *self
   json_builder_add_boolean_value (builder, TRUE);
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 static void
@@ -740,7 +747,7 @@ valent_notification_plugin_close_notification (ValentNotificationPlugin *self,
   json_builder_add_string_value (builder, id);
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 static void
@@ -748,13 +755,15 @@ valent_notification_plugin_send_notification_with_icon (ValentNotificationPlugin
                                                         JsonNode                 *packet,
                                                         GIcon                    *icon)
 {
+  ValentDevice *device;
   g_autoptr (ValentTransfer) transfer = NULL;
 
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
   g_assert (icon == NULL || G_IS_ICON (icon));
 
-  transfer = valent_transfer_new (self->device);
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  transfer = valent_transfer_new (device);
 
   /* Try to ensure icons are sent in PNG format, since kdeconnect-android can't
    * handle SVGs which are very common */
@@ -818,7 +827,7 @@ valent_notification_plugin_send_notification_with_icon (ValentNotificationPlugin
         }
     }
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 /**
@@ -870,7 +879,7 @@ valent_notification_plugin_send_notification (ValentNotificationPlugin *self,
   packet = valent_packet_finish (builder);
 
   if (icon == NULL)
-    valent_device_queue_packet (self->device, packet);
+    valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
   else
     valent_notification_plugin_send_notification_with_icon (self, packet, icon);
 }
@@ -900,7 +909,7 @@ notification_action_action (GSimpleAction *action,
   json_builder_add_string_value (builder, name);
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 static void
@@ -924,7 +933,7 @@ notification_cancel_action (GSimpleAction *action,
   json_builder_add_boolean_value (builder, TRUE);
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 static void
@@ -969,7 +978,7 @@ on_notification_reply (ValentNotificationDialog *dialog,
       json_builder_add_string_value (builder, reply);
       packet = valent_packet_finish (builder);
 
-      valent_device_queue_packet (self->device, packet);
+      valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
     }
 
   g_hash_table_remove (self->dialogs, notification);
@@ -1006,6 +1015,7 @@ notification_reply_action (GSimpleAction *action,
 
       if ((dialog = g_hash_table_lookup (self->dialogs, notification)) == NULL)
         {
+          ValentDevice *device;
           ValentDeviceState state;
           gboolean available;
 
@@ -1022,7 +1032,8 @@ notification_reply_action (GSimpleAction *action,
                                g_object_ref (notification),
                                g_object_ref (dialog));
 
-          state = valent_device_get_state (self->device);
+          device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+          state = valent_device_get_state (device);
           available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
                       (state & VALENT_DEVICE_STATE_PAIRED) != 0;
           valent_notification_dialog_update_state (dialog, available);
@@ -1042,7 +1053,7 @@ notification_reply_action (GSimpleAction *action,
       json_builder_add_string_value (builder, message);
       packet = valent_packet_finish (builder);
 
-      valent_device_queue_packet (self->device, packet);
+      valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
     }
 }
 
@@ -1084,11 +1095,11 @@ notification_send_action (GSimpleAction *action,
 }
 
 static const GActionEntry actions[] = {
-    {"notification-action", notification_action_action, "(ss)",  NULL, NULL},
-    {"notification-cancel", notification_cancel_action, "s",     NULL, NULL},
-    {"notification-close",  notification_close_action,  "s",     NULL, NULL},
-    {"notification-reply",  notification_reply_action,  "(ssv)", NULL, NULL},
-    {"notification-send",   notification_send_action,   "a{sv}", NULL, NULL},
+    {"action", notification_action_action, "(ss)",  NULL, NULL},
+    {"cancel", notification_cancel_action, "s",     NULL, NULL},
+    {"close",  notification_close_action,  "s",     NULL, NULL},
+    {"reply",  notification_reply_action,  "(ssv)", NULL, NULL},
+    {"send",   notification_send_action,   "a{sv}", NULL, NULL},
 };
 
 /*
@@ -1098,19 +1109,21 @@ static void
 valent_notification_plugin_enable (ValentDevicePlugin *plugin)
 {
   ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (plugin);
+  ValentDevice *device;
   const char *device_id;
 
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
 
   /* Setup GSettings */
-  device_id = valent_device_get_id (self->device);
+  device = valent_device_plugin_get_device (plugin);
+  device_id = valent_device_get_id (device);
   self->settings = valent_device_plugin_new_settings (device_id, "notification");
   self->cancellable = g_cancellable_new ();
 
-  /* Register GActions */
-  valent_device_plugin_register_actions (plugin,
-                                         actions,
-                                         G_N_ELEMENTS (actions));
+  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   plugin);
 
   /* Watch for new local notifications */
   self->session = valent_session_get_default ();
@@ -1145,9 +1158,6 @@ valent_notification_plugin_disable (ValentDevicePlugin *plugin)
   g_cancellable_cancel (self->cancellable);
   g_clear_object (&self->cancellable);
 
-  valent_device_plugin_unregister_actions (plugin,
-                                           actions,
-                                           G_N_ELEMENTS (actions));
   g_clear_object (&self->settings);
 }
 
@@ -1165,9 +1175,7 @@ valent_notification_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  valent_device_plugin_toggle_actions (plugin,
-                                       actions, G_N_ELEMENTS (actions),
-                                       available);
+  valent_device_plugin_toggle_actions (plugin, available);
 
   /* Request Notifications */
   if (available)
@@ -1209,65 +1217,18 @@ valent_notification_plugin_handle_packet (ValentDevicePlugin *plugin,
     g_assert_not_reached ();
 }
 
-static void
-valent_device_plugin_iface_init (ValentDevicePluginInterface *iface)
-{
-  iface->enable = valent_notification_plugin_enable;
-  iface->disable = valent_notification_plugin_disable;
-  iface->handle_packet = valent_notification_plugin_handle_packet;
-  iface->update_state = valent_notification_plugin_update_state;
-}
-
 /*
  * GObject
  */
 static void
-valent_notification_plugin_get_property (GObject    *object,
-                                         guint       prop_id,
-                                         GValue     *value,
-                                         GParamSpec *pspec)
-{
-  ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      g_value_set_object (value, self->device);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_notification_plugin_set_property (GObject      *object,
-                                         guint         prop_id,
-                                         const GValue *value,
-                                         GParamSpec   *pspec)
-{
-  ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      self->device = g_value_get_object (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_notification_plugin_class_init (ValentNotificationPluginClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
-  object_class->get_property = valent_notification_plugin_get_property;
-  object_class->set_property = valent_notification_plugin_set_property;
-
-  g_object_class_override_property (object_class, PROP_DEVICE, "device");
+  plugin_class->enable = valent_notification_plugin_enable;
+  plugin_class->disable = valent_notification_plugin_disable;
+  plugin_class->handle_packet = valent_notification_plugin_handle_packet;
+  plugin_class->update_state = valent_notification_plugin_update_state;
 }
 
 static void

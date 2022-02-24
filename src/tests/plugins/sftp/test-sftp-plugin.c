@@ -10,30 +10,24 @@ static void
 test_sftp_plugin_basic (ValentTestPluginFixture *fixture,
                          gconstpointer            user_data)
 {
-  ValentDevice *device;
-  GActionGroup *actions;
+  GActionGroup *actions = G_ACTION_GROUP (fixture->device);
 
-  device = valent_test_plugin_fixture_get_device (fixture);
-  actions = valent_device_get_actions (device);
-  g_assert_true (g_action_group_has_action (actions, "sftp-browse"));
+  g_assert_true (g_action_group_has_action (actions, "sftp.browse"));
 }
 
 static void
 test_sftp_plugin_send_request (ValentTestPluginFixture *fixture,
                                gconstpointer            user_data)
 {
-  ValentDevice *device;
-  GActionGroup *actions;
+  GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *packet;
 
   valent_test_plugin_fixture_connect (fixture, TRUE);
 
-  device = valent_test_plugin_fixture_get_device (fixture);
-  actions = valent_device_get_actions (device);
-  g_assert_true (g_action_group_get_action_enabled (actions, "sftp-browse"));
+  g_assert_true (g_action_group_get_action_enabled (actions, "sftp.browse"));
 
   /* Request to mount the endpoint */
-  g_action_group_activate_action (actions, "sftp-browse", NULL);
+  g_action_group_activate_action (actions, "sftp.browse", NULL);
 
   packet = valent_test_plugin_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.sftp.request");

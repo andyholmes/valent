@@ -15,28 +15,18 @@
 
 struct _ValentLockPlugin
 {
-  PeasExtensionBase  parent_instance;
+  ValentDevicePlugin  parent_instance;
 
-  ValentDevice      *device;
   ValentSession     *session;
   unsigned long      session_changed_id;
 
   gboolean           remote_locked;
 };
 
-static void valent_device_plugin_iface_init (ValentDevicePluginInterface *iface);
-
-G_DEFINE_TYPE_WITH_CODE (ValentLockPlugin, valent_lock_plugin, PEAS_TYPE_EXTENSION_BASE,
-                         G_IMPLEMENT_INTERFACE (VALENT_TYPE_DEVICE_PLUGIN, valent_device_plugin_iface_init))
+G_DEFINE_TYPE (ValentLockPlugin, valent_lock_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 static void valent_lock_plugin_request_state (ValentLockPlugin *self);
 static void valent_lock_plugin_send_state    (ValentLockPlugin *self);
-
-enum {
-  PROP_0,
-  PROP_DEVICE,
-  N_PROPERTIES
-};
 
 
 /*
@@ -58,7 +48,7 @@ valent_lock_plugin_send_state (ValentLockPlugin *self)
   json_builder_add_boolean_value (builder, state);
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 static void
@@ -83,15 +73,12 @@ valent_lock_plugin_handle_lock_request (ValentLockPlugin *self,
 static void
 update_actions (ValentLockPlugin *self)
 {
-  GActionGroup *actions;
   GAction *action;
 
-  actions = valent_device_get_actions (self->device);
-
-  action = g_action_map_lookup_action (G_ACTION_MAP (actions), "lock");
+  action = g_action_map_lookup_action (G_ACTION_MAP (self), "lock");
   g_simple_action_set_enabled (G_SIMPLE_ACTION (action), !self->remote_locked);
 
-  action = g_action_map_lookup_action (G_ACTION_MAP (actions), "unlock");
+  action = g_action_map_lookup_action (G_ACTION_MAP (self), "unlock");
   g_simple_action_set_enabled (G_SIMPLE_ACTION (action), self->remote_locked);
 }
 
@@ -117,7 +104,7 @@ valent_lock_plugin_request_state (ValentLockPlugin *self)
   json_builder_add_boolean_value (builder, TRUE);
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 static void
@@ -132,7 +119,7 @@ valent_lock_plugin_set_state (ValentLockPlugin *self,
   json_builder_add_boolean_value (builder, state);
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 /*
@@ -169,8 +156,8 @@ static const GActionEntry actions[] = {
 };
 
 static const ValentMenuEntry items[] = {
-    {N_("Lock"),   "device.lock",   "phonelink-lock-symbolic"},
-    {N_("Unlock"), "device.unlock", "phonelink-lock-symbolic"}
+    {N_("Lock"),   "device.lock.lock",   "phonelink-lock-symbolic"},
+    {N_("Unlock"), "device.lock.unlock", "phonelink-lock-symbolic"}
 };
 
 /*
@@ -185,9 +172,10 @@ valent_lock_plugin_enable (ValentDevicePlugin *plugin)
 
   self->session = valent_session_get_default ();
 
-  valent_device_plugin_register_actions (plugin,
-                                         actions,
-                                         G_N_ELEMENTS (actions));
+  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   plugin);
   valent_device_plugin_add_menu_entries (plugin,
                                          items,
                                          G_N_ELEMENTS (items));
@@ -206,9 +194,6 @@ valent_lock_plugin_disable (ValentDevicePlugin *plugin)
   valent_device_plugin_remove_menu_entries (plugin,
                                             items,
                                             G_N_ELEMENTS (items));
-  valent_device_plugin_unregister_actions (plugin,
-                                           actions,
-                                           G_N_ELEMENTS (actions));
 }
 
 static void
@@ -240,10 +225,7 @@ valent_lock_plugin_update_state (ValentDevicePlugin *plugin,
   else
     {
       g_clear_signal_handler (&self->session_changed_id, self->session);
-      valent_device_plugin_toggle_actions (plugin,
-                                           actions,
-                                           G_N_ELEMENTS (actions),
-                                           FALSE);
+      valent_device_plugin_toggle_actions (plugin, available);
     }
 }
 
@@ -266,65 +248,18 @@ valent_lock_plugin_handle_packet (ValentDevicePlugin *plugin,
     g_assert_not_reached ();
 }
 
-static void
-valent_device_plugin_iface_init (ValentDevicePluginInterface *iface)
-{
-  iface->enable = valent_lock_plugin_enable;
-  iface->disable = valent_lock_plugin_disable;
-  iface->handle_packet = valent_lock_plugin_handle_packet;
-  iface->update_state = valent_lock_plugin_update_state;
-}
-
 /*
  * GObject
  */
 static void
-valent_lock_plugin_get_property (GObject    *object,
-                                 guint       prop_id,
-                                 GValue     *value,
-                                 GParamSpec *pspec)
-{
-  ValentLockPlugin *self = VALENT_LOCK_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      g_value_set_object (value, self->device);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_lock_plugin_set_property (GObject      *object,
-                                 guint         prop_id,
-                                 const GValue *value,
-                                 GParamSpec   *pspec)
-{
-  ValentLockPlugin *self = VALENT_LOCK_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      self->device = g_value_get_object (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_lock_plugin_class_init (ValentLockPluginClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
-  object_class->get_property = valent_lock_plugin_get_property;
-  object_class->set_property = valent_lock_plugin_set_property;
-
-  g_object_class_override_property (object_class, PROP_DEVICE, "device");
+  plugin_class->enable = valent_lock_plugin_enable;
+  plugin_class->disable = valent_lock_plugin_disable;
+  plugin_class->handle_packet = valent_lock_plugin_handle_packet;
+  plugin_class->update_state = valent_lock_plugin_update_state;
 }
 
 static void

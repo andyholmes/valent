@@ -13,6 +13,7 @@ core_tests = [
   'test-data',
   'test-device',
   'test-device-manager',
+  'test-device-plugin',
   'test-object',
   'test-packet',
   'test-utils',

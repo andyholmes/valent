@@ -76,8 +76,8 @@ test_contacts_plugin_request_contacts (ValentTestPluginFixture *fixture,
   json_node_unref (packet);
 
   /* Expect UIDs request (GAction) */
-  g_action_group_activate_action (valent_device_get_actions (device),
-                                  "contacts-fetch",
+  g_action_group_activate_action (G_ACTION_GROUP (device),
+                                  "contacts.fetch",
                                   NULL);
 
   packet = valent_test_plugin_fixture_expect_packet (fixture);

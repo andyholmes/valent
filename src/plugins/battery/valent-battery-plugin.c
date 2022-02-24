@@ -17,9 +17,8 @@
 
 struct _ValentBatteryPlugin
 {
-  PeasExtensionBase  parent_instance;
+  ValentDevicePlugin  parent_instance;
 
-  ValentDevice      *device;
   GSettings         *settings;
 
   /* Local Battery */
@@ -37,16 +36,7 @@ static const char * valent_battery_plugin_get_icon_name (ValentBatteryPlugin    
 static void         valent_battery_plugin_request_state (ValentBatteryPlugin         *self);
 static void         valent_battery_plugin_send_state    (ValentBatteryPlugin         *self);
 
-static void         valent_device_plugin_iface_init     (ValentDevicePluginInterface *iface);
-
-G_DEFINE_TYPE_WITH_CODE (ValentBatteryPlugin, valent_battery_plugin, PEAS_TYPE_EXTENSION_BASE,
-                         G_IMPLEMENT_INTERFACE (VALENT_TYPE_DEVICE_PLUGIN, valent_device_plugin_iface_init))
-
-enum {
-  PROP_0,
-  PROP_DEVICE,
-  N_PROPERTIES
-};
+G_DEFINE_TYPE (ValentBatteryPlugin, valent_battery_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
 /*
@@ -121,7 +111,7 @@ valent_battery_plugin_send_state (ValentBatteryPlugin *self)
   json_builder_add_int_value (builder, valent_battery_get_threshold (self->battery));
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 
@@ -223,18 +213,19 @@ valent_battery_plugin_update_estimate (ValentBatteryPlugin *self)
 static void
 valent_battery_plugin_update_gaction (ValentBatteryPlugin *self)
 {
+  GAction *action;
   GVariant *state;
-  GActionGroup *group;
 
   g_assert (VALENT_IS_BATTERY_PLUGIN (self));
 
-  group = valent_device_get_actions (self->device);
   state = g_variant_new ("(bsiu)",
                          self->charging,
                          valent_battery_plugin_get_icon_name (self),
                          self->level,
                          self->time);
-  g_action_group_change_action_state (group, "battery", state);
+
+  action = g_action_map_lookup_action (G_ACTION_MAP (self), "state");
+  g_simple_action_set_state (G_SIMPLE_ACTION (action), state);
 }
 
 static void
@@ -245,8 +236,11 @@ valent_battery_plugin_show_notification (ValentBatteryPlugin *self,
   g_autofree char *ntitle = NULL;
   g_autofree char *nbody = NULL;
   g_autoptr (GIcon) nicon = NULL;
+  ValentDevice *device;
 
   g_assert (VALENT_IS_BATTERY_PLUGIN (self));
+
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
 
   if (full)
     {
@@ -255,7 +249,7 @@ valent_battery_plugin_show_notification (ValentBatteryPlugin *self,
 
       /* TRANSLATORS: eg. Google Pixel: Battery Full */
       ntitle = g_strdup_printf (_("%s: Battery Full"),
-                                valent_device_get_name (self->device));
+                                valent_device_get_name (device));
       nbody = g_strdup (_("Battery Fully Charged"));
       nicon = g_themed_icon_new ("battery-full-charged-symbolic");
     }
@@ -266,7 +260,7 @@ valent_battery_plugin_show_notification (ValentBatteryPlugin *self,
 
       /* TRANSLATORS: eg. Google Pixel: Battery Low */
       ntitle = g_strdup_printf (_("%s: Battery Low"),
-                                valent_device_get_name (self->device));
+                                valent_device_get_name (device));
       /* TRANSLATORS: eg. 15% remaining */
       nbody = g_strdup_printf (_("%d%% remaining"), self->level);
       nicon = g_themed_icon_new (valent_battery_plugin_get_icon_name (self));
@@ -277,7 +271,9 @@ valent_battery_plugin_show_notification (ValentBatteryPlugin *self,
   g_notification_set_body (notif, nbody);
   g_notification_set_icon (notif, nicon);
 
-  valent_device_show_notification (self->device, "battery-level", notif);
+  valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),
+                                          "battery-level",
+                                          notif);
 }
 
 static void
@@ -332,7 +328,8 @@ valent_battery_plugin_handle_battery (ValentBatteryPlugin *self,
       /* Battery is no longer low or is charging */
       else if (self->level > self->threshold || self->charging)
         {
-          valent_device_hide_notification (self->device, "battery-level");
+          valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self),
+                                                  "battery-level");
         }
 
       /* Notify listening parties */
@@ -353,14 +350,14 @@ valent_battery_plugin_request_state (ValentBatteryPlugin *self)
   json_builder_add_boolean_value (builder, TRUE);
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 /*
  * GActions
  */
 static const GActionEntry actions[] = {
-    {"battery", NULL, NULL, "(false, 'battery-missing-symbolic', -1, uint32 0)", NULL},
+    {"state", NULL, NULL, "(false, 'battery-missing-symbolic', -1, uint32 0)", NULL},
 };
 
 /*
@@ -370,16 +367,19 @@ static void
 valent_battery_plugin_enable (ValentDevicePlugin *plugin)
 {
   ValentBatteryPlugin *self = VALENT_BATTERY_PLUGIN (plugin);
+  ValentDevice *device;
   const char *device_id;
 
   g_assert (VALENT_IS_BATTERY_PLUGIN (self));
 
-  device_id = valent_device_get_id (self->device);
+  device = valent_device_plugin_get_device (plugin);
+  device_id = valent_device_get_id (device);
   self->settings = valent_device_plugin_new_settings (device_id, "battery");
 
-  valent_device_plugin_register_actions (plugin,
-                                         actions,
-                                         G_N_ELEMENTS (actions));
+  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   plugin);
 }
 
 static void
@@ -392,9 +392,6 @@ valent_battery_plugin_disable (ValentDevicePlugin *plugin)
   /* We're about to be disposed, so stop watching the battery for changes */
   valent_battery_plugin_watch_battery (self, FALSE);
 
-  valent_device_plugin_unregister_actions (plugin,
-                                           actions,
-                                           G_N_ELEMENTS (actions));
   g_clear_object (&self->settings);
 }
 
@@ -410,10 +407,7 @@ valent_battery_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  valent_device_plugin_toggle_actions (plugin,
-                                       actions,
-                                       G_N_ELEMENTS (actions),
-                                       available);
+  valent_device_plugin_toggle_actions (plugin, available);
 
   if (available)
     {
@@ -450,65 +444,18 @@ valent_battery_plugin_handle_packet (ValentDevicePlugin *plugin,
     g_assert_not_reached ();
 }
 
-static void
-valent_device_plugin_iface_init (ValentDevicePluginInterface *iface)
-{
-  iface->enable = valent_battery_plugin_enable;
-  iface->disable = valent_battery_plugin_disable;
-  iface->handle_packet = valent_battery_plugin_handle_packet;
-  iface->update_state = valent_battery_plugin_update_state;
-}
-
 /*
  * GObject
  */
 static void
-valent_battery_plugin_get_property (GObject    *object,
-                                    guint       prop_id,
-                                    GValue     *value,
-                                    GParamSpec *pspec)
-{
-  ValentBatteryPlugin *self = VALENT_BATTERY_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      g_value_set_object (value, self->device);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_battery_plugin_set_property (GObject      *object,
-                                    guint         prop_id,
-                                    const GValue *value,
-                                    GParamSpec   *pspec)
-{
-  ValentBatteryPlugin *self = VALENT_BATTERY_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      self->device = g_value_get_object (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_battery_plugin_class_init (ValentBatteryPluginClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
-  object_class->get_property = valent_battery_plugin_get_property;
-  object_class->set_property = valent_battery_plugin_set_property;
-
-  g_object_class_override_property (object_class, PROP_DEVICE, "device");
+  plugin_class->enable = valent_battery_plugin_enable;
+  plugin_class->disable = valent_battery_plugin_disable;
+  plugin_class->handle_packet = valent_battery_plugin_handle_packet;
+  plugin_class->update_state = valent_battery_plugin_update_state;
 }
 
 static void

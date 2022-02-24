@@ -17,9 +17,8 @@
 
 struct _ValentMousepadPlugin
 {
-  PeasExtensionBase     parent_instance;
+  ValentDevicePlugin     parent_instance;
 
-  ValentDevice         *device;
   ValentInput          *input;
 
   ValentMousepadDialog *dialog;
@@ -31,16 +30,7 @@ struct _ValentMousepadPlugin
 static void valent_mousepad_plugin_send_echo (ValentMousepadPlugin       *self,
                                               JsonNode                   *packet);
 
-static void valent_device_plugin_iface_init (ValentDevicePluginInterface *iface);
-
-G_DEFINE_TYPE_WITH_CODE (ValentMousepadPlugin, valent_mousepad_plugin, PEAS_TYPE_EXTENSION_BASE,
-                         G_IMPLEMENT_INTERFACE (VALENT_TYPE_DEVICE_PLUGIN, valent_device_plugin_iface_init))
-
-enum {
-  PROP_0,
-  PROP_DEVICE,
-  N_PROPERTIES
-};
+G_DEFINE_TYPE (ValentMousepadPlugin, valent_mousepad_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
 /**
@@ -213,12 +203,10 @@ handle_mousepad_keyboardstate (ValentMousepadPlugin *self,
 
   if (self->remote_state != state)
     {
-      GActionGroup *actions;
       GAction *action;
 
       self->remote_state = state;
-      actions = valent_device_get_actions (self->device);
-      action = g_action_map_lookup_action (G_ACTION_MAP (actions), "mousepad-event");
+      action = g_action_map_lookup_action (G_ACTION_MAP (self), "event");
       g_simple_action_set_enabled (G_SIMPLE_ACTION (action), self->remote_state);
     }
 }
@@ -292,7 +280,7 @@ valent_mousepad_plugin_mousepad_request_keyboard (ValentMousepadPlugin *self,
 
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 static void
@@ -321,7 +309,7 @@ valent_mousepad_plugin_mousepad_request_pointer (ValentMousepadPlugin *self,
 
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 static void
@@ -354,7 +342,7 @@ valent_mousepad_plugin_send_echo (ValentMousepadPlugin *self,
 
   response = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, response);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), response);
 }
 
 static void
@@ -370,7 +358,7 @@ valent_mousepad_plugin_mousepad_keyboardstate (ValentMousepadPlugin *self)
   json_builder_add_boolean_value (builder, TRUE);
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 /*
@@ -388,7 +376,10 @@ dialog_action (GSimpleAction *action,
   /* Create dialog if necessary */
   if (self->dialog == NULL)
     {
-      self->dialog = valent_mousepad_dialog_new (self->device);
+      ValentDevice *device;
+
+      device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+      self->dialog = valent_mousepad_dialog_new (device);
       g_object_add_weak_pointer (G_OBJECT (self->dialog),
                                  (gpointer) &self->dialog);
     }
@@ -436,12 +427,12 @@ event_action (GSimpleAction *action,
 }
 
 static const GActionEntry actions[] = {
-  {"mousepad-dialog", dialog_action, NULL,    NULL, NULL},
-  {"mousepad-event",  event_action,  "a{sv}", NULL, NULL}
+  {"dialog", dialog_action, NULL,    NULL, NULL},
+  {"event",  event_action,  "a{sv}", NULL, NULL}
 };
 
 static const ValentMenuEntry items[] = {
-    {N_("Remote Input"), "device.mousepad-dialog", "input-keyboard-symbolic"}
+    {N_("Remote Input"), "device.mousepad.dialog", "input-keyboard-symbolic"}
 };
 
 /*
@@ -450,9 +441,10 @@ static const ValentMenuEntry items[] = {
 static void
 valent_mousepad_plugin_enable (ValentDevicePlugin *plugin)
 {
-  valent_device_plugin_register_actions (plugin,
-                                         actions,
-                                         G_N_ELEMENTS (actions));
+  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   plugin);
   valent_device_plugin_add_menu_entries (plugin,
                                          items,
                                          G_N_ELEMENTS (items));
@@ -472,9 +464,6 @@ valent_mousepad_plugin_disable (ValentDevicePlugin *plugin)
   valent_device_plugin_remove_menu_entries (plugin,
                                             items,
                                             G_N_ELEMENTS (items));
-  valent_device_plugin_unregister_actions (plugin,
-                                           actions,
-                                           G_N_ELEMENTS (actions));
 }
 
 static void
@@ -492,10 +481,7 @@ valent_mousepad_plugin_update_state (ValentDevicePlugin *plugin,
   if (available)
     valent_mousepad_plugin_mousepad_keyboardstate (self);
 
-  valent_device_plugin_toggle_actions (plugin,
-                                       actions,
-                                       G_N_ELEMENTS (actions),
-                                       available);
+  valent_device_plugin_toggle_actions (plugin, available);
 }
 
 static void
@@ -525,65 +511,18 @@ valent_mousepad_plugin_handle_packet (ValentDevicePlugin *plugin,
     g_assert_not_reached ();
 }
 
-static void
-valent_device_plugin_iface_init (ValentDevicePluginInterface *iface)
-{
-  iface->enable = valent_mousepad_plugin_enable;
-  iface->disable = valent_mousepad_plugin_disable;
-  iface->handle_packet = valent_mousepad_plugin_handle_packet;
-  iface->update_state = valent_mousepad_plugin_update_state;
-}
-
 /*
  * GObject
  */
 static void
-valent_mousepad_plugin_get_property (GObject    *object,
-                                     guint       prop_id,
-                                     GValue     *value,
-                                     GParamSpec *pspec)
-{
-  ValentMousepadPlugin *self = VALENT_MOUSEPAD_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      g_value_set_object (value, self->device);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_mousepad_plugin_set_property (GObject      *object,
-                                     guint         prop_id,
-                                     const GValue *value,
-                                     GParamSpec   *pspec)
-{
-  ValentMousepadPlugin *self = VALENT_MOUSEPAD_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      self->device = g_value_get_object (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_mousepad_plugin_class_init (ValentMousepadPluginClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
-  object_class->get_property = valent_mousepad_plugin_get_property;
-  object_class->set_property = valent_mousepad_plugin_set_property;
-
-  g_object_class_override_property (object_class, PROP_DEVICE, "device");
+  plugin_class->enable = valent_mousepad_plugin_enable;
+  plugin_class->disable = valent_mousepad_plugin_disable;
+  plugin_class->handle_packet = valent_mousepad_plugin_handle_packet;
+  plugin_class->update_state = valent_mousepad_plugin_update_state;
 }
 
 static void

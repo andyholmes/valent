@@ -11,18 +11,14 @@ static void
 test_share_plugin_basic (ValentTestPluginFixture *fixture,
                          gconstpointer            user_data)
 {
-  ValentDevice *device;
-  GActionGroup *group;
+  GActionGroup *actions = G_ACTION_GROUP (fixture->device);
 
-  device = valent_test_plugin_fixture_get_device (fixture);
-  group = valent_device_get_actions (device);
-
-  g_assert_true (g_action_group_has_action (group, "share"));
-  g_assert_true (g_action_group_has_action (group, "share-cancel"));
-  g_assert_true (g_action_group_has_action (group, "share-files"));
-  g_assert_true (g_action_group_has_action (group, "share-open"));
-  g_assert_true (g_action_group_has_action (group, "share-text"));
-  g_assert_true (g_action_group_has_action (group, "share-url"));
+  g_assert_true (g_action_group_has_action (actions, "share.share"));
+  g_assert_true (g_action_group_has_action (actions, "share.cancel"));
+  g_assert_true (g_action_group_has_action (actions, "share.files"));
+  g_assert_true (g_action_group_has_action (actions, "share.open"));
+  g_assert_true (g_action_group_has_action (actions, "share.text"));
+  g_assert_true (g_action_group_has_action (actions, "share.url"));
 }
 
 static void
@@ -57,20 +53,20 @@ static void
 test_share_plugin_send_request (ValentTestPluginFixture *fixture,
                                 gconstpointer            user_data)
 {
-  GError *error = NULL;
-  ValentDevice *device;
-  GActionGroup *actions;
+  GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *packet;
   const char * const files[] = { "file://"TEST_DATA_DIR"image.png" };
-
-  device = valent_test_plugin_fixture_get_device (fixture);
-  actions = valent_device_get_actions (device);
+  GError *error = NULL;
 
   valent_test_plugin_fixture_connect (fixture, TRUE);
 
+  g_assert_true (g_action_group_get_action_enabled (actions, "share.files"));
+  g_assert_true (g_action_group_get_action_enabled (actions, "share.text"));
+  g_assert_true (g_action_group_get_action_enabled (actions, "share.url"));
+
   /* Share a file */
   g_action_group_activate_action (actions,
-                                  "share-files",
+                                  "share.files",
                                   g_variant_new_strv (files, 1));
 
   packet = valent_test_plugin_fixture_expect_packet (fixture);
@@ -84,7 +80,7 @@ test_share_plugin_send_request (ValentTestPluginFixture *fixture,
 
   /* Share text */
   g_action_group_activate_action (actions,
-                                  "share-text",
+                                  "share.text",
                                   g_variant_new_string ("Test"));
 
   packet = valent_test_plugin_fixture_expect_packet (fixture);
@@ -94,7 +90,7 @@ test_share_plugin_send_request (ValentTestPluginFixture *fixture,
 
   /* Share a URL */
   g_action_group_activate_action (actions,
-                                  "share-url",
+                                  "share.url",
                                   g_variant_new_string ("https://www.andyholmes.ca"));
 
   packet = valent_test_plugin_fixture_expect_packet (fixture);

@@ -14,9 +14,8 @@
 
 struct _ValentContactsPlugin
 {
-  PeasExtensionBase   parent_instance;
+  ValentDevicePlugin   parent_instance;
 
-  ValentDevice       *device;
   GSettings          *settings;
   GCancellable       *cancellable;
 
@@ -24,16 +23,7 @@ struct _ValentContactsPlugin
   ValentContactStore *remote_store;
 };
 
-static void valent_device_plugin_iface_init (ValentDevicePluginInterface *iface);
-
-G_DEFINE_TYPE_WITH_CODE (ValentContactsPlugin, valent_contacts_plugin, PEAS_TYPE_EXTENSION_BASE,
-                         G_IMPLEMENT_INTERFACE (VALENT_TYPE_DEVICE_PLUGIN, valent_device_plugin_iface_init))
-
-enum {
-  PROP_0,
-  PROP_DEVICE,
-  N_PROPERTIES
-};
+G_DEFINE_TYPE (ValentContactsPlugin, valent_contacts_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
 static char *
@@ -111,7 +101,7 @@ valent_contact_store_query_vcards_cb (ValentContactStore   *store,
 
   /* Finish and send the response */
   response = valent_packet_finish (builder);
-  valent_device_queue_packet (self->device, response);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), response);
 }
 
 static void
@@ -215,7 +205,7 @@ valent_contact_store_query_uids_cb (ValentContactStore   *store,
     }
 
   response = valent_packet_finish (builder);
-  valent_device_queue_packet (self->device, response);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), response);
 }
 
 static void
@@ -289,7 +279,7 @@ valent_contact_plugin_handle_response_uids_timestamps (ValentContactsPlugin *sel
   request = valent_packet_finish (builder);
 
   if (n_requested > 0)
-    valent_device_queue_packet (self->device, request);
+    valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), request);
 }
 
 static void
@@ -359,7 +349,7 @@ valent_contacts_plugin_request_all_uids_timestamps (ValentContactsPlugin *self)
   builder = valent_packet_start ("kdeconnect.contacts.request_all_uids_timestamps");
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 static void
@@ -383,7 +373,7 @@ valent_contacts_plugin_request_vcards_by_uid (ValentContactsPlugin *self,
 
   packet = valent_packet_finish (builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 /*
@@ -402,7 +392,7 @@ contacts_fetch_action (GSimpleAction *action,
 }
 
 static const GActionEntry actions[] = {
-    {"contacts-fetch", contacts_fetch_action, NULL, NULL, NULL}
+    {"fetch", contacts_fetch_action, NULL, NULL, NULL}
 };
 
 /*
@@ -414,22 +404,25 @@ valent_contacts_plugin_enable (ValentDevicePlugin *plugin)
   ValentContactsPlugin *self = VALENT_CONTACTS_PLUGIN (plugin);
   ValentContactStore *store = NULL;
   g_autofree char *local_uid = NULL;
+  ValentDevice *device;
   const char *device_id;
 
   g_assert (VALENT_IS_CONTACTS_PLUGIN (self));
 
-  device_id = valent_device_get_id (self->device);
+  device = valent_device_plugin_get_device (plugin);
+  device_id = valent_device_get_id (device);
   self->settings = valent_device_plugin_new_settings (device_id, "contacts");
-  valent_device_plugin_register_actions (plugin,
-                                         actions,
-                                         G_N_ELEMENTS (actions));
+  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   plugin);
 
   /* Prepare Addressbooks */
   self->cancellable = g_cancellable_new ();
 
   store = valent_contacts_ensure_store (valent_contacts_get_default (),
-                                        valent_device_get_id (self->device),
-                                        valent_device_get_name (self->device));
+                                        valent_device_get_id (device),
+                                        valent_device_get_name (device));
   g_set_object (&self->remote_store, store);
 
   local_uid = g_settings_get_string (self->settings, "local-uid");
@@ -448,9 +441,6 @@ valent_contacts_plugin_disable (ValentDevicePlugin *plugin)
   g_clear_object (&self->remote_store);
   g_clear_object (&self->local_store);
 
-  valent_device_plugin_unregister_actions (plugin,
-                                           actions,
-                                           G_N_ELEMENTS (actions));
   g_clear_object (&self->settings);
 }
 
@@ -466,10 +456,7 @@ valent_contacts_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  valent_device_plugin_toggle_actions (plugin,
-                                       actions,
-                                       G_N_ELEMENTS (actions),
-                                       available);
+  valent_device_plugin_toggle_actions (plugin, available);
 
   if (available)
     valent_contacts_plugin_request_all_uids_timestamps (self);
@@ -506,65 +493,18 @@ valent_contacts_plugin_handle_packet (ValentDevicePlugin *plugin,
     g_assert_not_reached ();
 }
 
-static void
-valent_device_plugin_iface_init (ValentDevicePluginInterface *iface)
-{
-  iface->enable = valent_contacts_plugin_enable;
-  iface->disable = valent_contacts_plugin_disable;
-  iface->handle_packet = valent_contacts_plugin_handle_packet;
-  iface->update_state = valent_contacts_plugin_update_state;
-}
-
 /*
  * GObject
  */
 static void
-valent_contacts_plugin_get_property (GObject    *object,
-                                     guint       prop_id,
-                                     GValue     *value,
-                                     GParamSpec *pspec)
-{
-  ValentContactsPlugin *self = VALENT_CONTACTS_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      g_value_set_object (value, self->device);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_contacts_plugin_set_property (GObject      *object,
-                                     guint         prop_id,
-                                     const GValue *value,
-                                     GParamSpec   *pspec)
-{
-  ValentContactsPlugin *self = VALENT_CONTACTS_PLUGIN (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      self->device = g_value_get_object (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_contacts_plugin_class_init (ValentContactsPluginClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
-  object_class->get_property = valent_contacts_plugin_get_property;
-  object_class->set_property = valent_contacts_plugin_set_property;
-
-  g_object_class_override_property (object_class, PROP_DEVICE, "device");
+  plugin_class->enable = valent_contacts_plugin_enable;
+  plugin_class->disable = valent_contacts_plugin_disable;
+  plugin_class->handle_packet = valent_contacts_plugin_handle_packet;
+  plugin_class->update_state = valent_contacts_plugin_update_state;
 }
 
 static void

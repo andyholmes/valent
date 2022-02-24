@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <libpeas/peas.h>
+#include <libvalent-core.h>
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_CLIPBOARD_PLUGIN (valent_clipboard_plugin_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentClipboardPlugin, valent_clipboard_plugin, VALENT, CLIPBOARD_PLUGIN, PeasExtensionBase)
+G_DECLARE_FINAL_TYPE (ValentClipboardPlugin, valent_clipboard_plugin, VALENT, CLIPBOARD_PLUGIN, ValentDevicePlugin)
 
 G_END_DECLS
 
