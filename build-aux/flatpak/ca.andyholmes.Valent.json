@@ -7,7 +7,6 @@
     "finish-args" : [
         "--device=dri",
         "--filesystem=xdg-download",
-        "--filesystem=xdg-run/gvfs",
         "--filesystem=xdg-run/gvfsd",
         "--own-name=org.mpris.MediaPlayer2.Valent",
         "--share=ipc",
