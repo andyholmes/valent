@@ -3,7 +3,7 @@
 
 project('valent', 'c',
           license: 'GPL-3.0-or-later',
-          version: '1.0.0-alpha',
+          version: '1.0.0.alpha',
     meson_version: '>= 0.56.0',
   default_options: [
     'buildtype=debugoptimized',
@@ -21,7 +21,7 @@ pkgconfig = import('pkgconfig')
 # Versioning
 #
 valent_version = meson.project_version()
-version_split = valent_version.split('-')[0].split('.')
+version_split = valent_version.split('.')
 MAJOR_VERSION = version_split[0].to_int()
 MINOR_VERSION = version_split[1].to_int()
 MICRO_VERSION = version_split[2].to_int()

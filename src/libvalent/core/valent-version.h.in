@@ -35,7 +35,7 @@ G_BEGIN_DECLS
 /**
  * VALENT_VERSION:
  *
- * The version of libvalent, encoded as a string (eg. `"1.0.0-alpha"`).
+ * The version of libvalent, encoded as a string (eg. `"1.0.0.alpha"`).
  */
 #define VALENT_VERSION "@VERSION@"
 

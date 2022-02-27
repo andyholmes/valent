@@ -1,3 +1,5 @@
+%global tarball_version %%(echo %{version} | tr '~' '.')
+
 %global glib2_version 2.66.0
 %global gtk4_version 4.4.0
 %global json_glib_version 1.6.0
@@ -6,7 +8,7 @@
 %global sqlite_version 3.24.0
 
 Name:           valent
-Version:        0.1.0
+Version:        1.0.0~alpha
 Release:        1%{?dist}
 Summary:        Connect, control and sync devices
 
