@@ -8,7 +8,7 @@
     <file>gtk.plugin</file>
   </gresource>
   <gresource prefix="/ca/andyholmes/Valent/icons">
-    <file alias="scalable/apps/gtk.svg">data/gtk.svg</file>
+    <file alias="scalable/apps/valent-gtk-plugin-symbolic.svg">data/valent-gtk-plugin-symbolic.svg</file>
   </gresource>
 </gresources>
 

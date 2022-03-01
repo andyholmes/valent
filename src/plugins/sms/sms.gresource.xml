@@ -13,6 +13,7 @@
   <gresource prefix="/ca/andyholmes/Valent/icons">
     <file preprocess="xml-stripblanks" alias="scalable/actions/sms-send.svg">data/sms-send.svg</file>
     <file preprocess="xml-stripblanks" alias="scalable/apps/sms-symbolic.svg">data/sms-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/apps/valent-sms-plugin-symbolic.svg">data/valent-sms-plugin-symbolic.svg</file>
     <file preprocess="xml-stripblanks" alias="scalable/status/group-avatar-symbolic.svg">data/group-avatar-symbolic.svg</file>
   </gresource>
 </gresources>

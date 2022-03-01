@@ -8,5 +8,8 @@
     <file>findmyphone.plugin</file>
     <file alias="ring.oga">data/ring.oga</file>
   </gresource>
+  <gresource prefix="/ca/andyholmes/Valent/icons">
+    <file preprocess="xml-stripblanks" alias="scalable/apps/valent-findmyphone-plugin-symbolic.svg">data/valent-findmyphone-plugin-symbolic.svg</file>
+  </gresource>
 </gresources>
 

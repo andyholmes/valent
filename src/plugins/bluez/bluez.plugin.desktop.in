@@ -5,7 +5,7 @@
 Module=bluez
 Name=Bluez
 Description=Connect devices over Bluetooth
-Icon=bluetooth-symbolic
+Icon=valent-bluez-plugin-symbolic
 Builtin=true
 Embedded=valent_bluez_plugin_register_types
 Website=https://github.com/andyholmes/valent

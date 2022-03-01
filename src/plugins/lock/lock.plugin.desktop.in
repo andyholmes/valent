@@ -5,7 +5,7 @@
 Module=lock
 Name=Lock
 Description=Lock and unlock
-Icon=phonelink-lock-symbolic
+Icon=valent-lock-plugin-symbolic
 Builtin=true
 Embedded=valent_lock_plugin_register_types
 Website=https://github.com/andyholmes/valent

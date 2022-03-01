@@ -5,7 +5,7 @@
 Module=lan
 Name=LAN
 Description=Connect devices over LAN
-Icon=preferences-system-network-symbolic
+Icon=valent-lan-plugin-symbolic
 Builtin=true
 Embedded=valent_lan_channel_service_register_types
 Website=https://github.com/andyholmes/valent

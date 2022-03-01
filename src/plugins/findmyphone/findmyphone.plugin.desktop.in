@@ -5,7 +5,7 @@
 Module=findmyphone
 Name=Find My Phone
 Description=Find a device by making it ring
-Icon=find-location-symbolic
+Icon=valent-findmyphone-plugin-symbolic
 Builtin=true
 Embedded=valent_findmyphone_plugin_register_types
 Website=https://github.com/andyholmes/valent

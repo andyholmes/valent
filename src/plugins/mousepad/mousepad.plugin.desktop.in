@@ -5,7 +5,7 @@
 Module=mousepad
 Name=Mousepad
 Description=Control the mouse and keyboard
-Icon=input-mouse-symbolic
+Icon=valent-mousepad-plugin-symbolic
 Builtin=true
 Embedded=valent_mousepad_plugin_register_types
 Website=https://github.com/andyholmes/valent

@@ -8,7 +8,7 @@
     <file>fdo.plugin</file>
   </gresource>
   <gresource prefix="/ca/andyholmes/Valent/icons">
-    <file alias="scalable/apps/fdo-symbolic.svg">data/fdo-symbolic.svg</file>
+    <file alias="scalable/apps/valent-fdo-plugin-symbolic.svg">data/valent-fdo-plugin-symbolic.svg</file>
   </gresource>
 </gresources>
 

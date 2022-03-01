@@ -5,7 +5,7 @@
 Module=systemvolume
 Name=System Volume
 Description=Control the system volume
-Icon=audio-volume-high-symbolic
+Icon=valent-systemvolume-plugin-symbolic
 Builtin=true
 Embedded=valent_systemvolume_plugin_register_types
 Website=https://github.com/andyholmes/valent

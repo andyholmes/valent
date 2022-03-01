@@ -5,7 +5,7 @@
 Module=clipboard
 Name=Clipboard
 Description=Sync clipboard content
-Icon=edit-paste-symbolic
+Icon=valent-clipboard-plugin-symbolic
 Builtin=true
 Embedded=valent_clipboard_plugin_register_types
 Website=https://github.com/andyholmes/valent

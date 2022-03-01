@@ -5,7 +5,7 @@
 Module=mpris
 Name=MPRIS
 Description=Share control of MPRISv2 players
-Icon=applications-multimedia-symbolic
+Icon=valent-mpris-plugin-symbolic
 Builtin=true
 Embedded=valent_mpris_plugin_register_types
 Website=https://github.com/andyholmes/valent
