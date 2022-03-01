@@ -5,7 +5,7 @@
 Module=xdp
 Name=Portals
 Description=Integration with XDG desktop portals
-Icon=package-x-generic-symbolic
+Icon=valent-xdp-plugin-symbolic
 Builtin=true
 Embedded=valent_xdp_plugin_register_types
 Website=https://github.com/andyholmes/valent

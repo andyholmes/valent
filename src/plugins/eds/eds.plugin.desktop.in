@@ -5,7 +5,7 @@
 Module=eds
 Name=Evolution Data Server
 Description=Integration with Evolution Data Server
-Icon=network-server-symbolic
+Icon=valent-eds-plugin-symbolic
 Builtin=true
 Embedded=valent_eds_plugin_register_types
 Website=https://github.com/andyholmes/valent

@@ -9,5 +9,8 @@
     <file>valent-runcommand-preferences.ui</file>
     <file>valent-runcommand-editor.ui</file>
   </gresource>
+  <gresource prefix="/ca/andyholmes/Valent/icons">
+    <file preprocess="xml-stripblanks" alias="scalable/apps/valent-runcommand-plugin-symbolic.svg">data/valent-runcommand-plugin-symbolic.svg</file>
+  </gresource>
 </gresources>
 

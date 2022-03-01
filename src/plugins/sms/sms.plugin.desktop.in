@@ -5,7 +5,7 @@
 Module=sms
 Name=SMS
 Description=Send and receive SMS messages
-Icon=sms-symbolic
+Icon=valent-sms-plugin-symbolic
 Builtin=true
 Embedded=valent_sms_plugin_register_types
 Website=https://github.com/andyholmes/valent

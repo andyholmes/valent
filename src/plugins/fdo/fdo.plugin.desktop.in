@@ -5,7 +5,7 @@
 Module=fdo
 Name=freedesktop.org
 Description=Freedesktop.org Based Modules
-Icon=fdo
+Icon=valent-fdo-plugin-symbolic
 Builtin=true
 Embedded=valent_fdo_plugin_register_types
 Website=https://github.com/andyholmes/valent

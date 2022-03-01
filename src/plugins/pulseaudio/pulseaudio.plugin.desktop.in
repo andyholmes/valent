@@ -5,7 +5,7 @@
 Module=pulseaudio
 Name=PulseAudio
 Description=Integration with PulseAudio
-Icon=multimedia-volume-control-symbolic
+Icon=valent-pulseaudio-plugin-symbolic
 Builtin=true
 Embedded=valent_pulseaudio_plugin_register_types
 Website=https://github.com/andyholmes/valent

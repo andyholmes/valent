@@ -8,7 +8,7 @@
     <file>xdp.plugin</file>
   </gresource>
   <gresource prefix="/ca/andyholmes/Valent/icons">
-    <file alias="scalable/mimetypes/package-x-generic-symbolic.svg">data/package-x-generic-symbolic.svg</file>
+    <file alias="scalable/apps/valent-xdp-plugin-symbolic.svg">data/valent-xdp-plugin-symbolic.svg</file>
   </gresource>
 </gresources>
 

@@ -5,7 +5,7 @@
 Module=share
 Name=Share
 Description=Share files, links and text
-Icon=emblem-shared-symbolic
+Icon=valent-share-plugin-symbolic
 Builtin=true
 Embedded=valent_share_plugin_register_types
 Website=https://github.com/andyholmes/valent

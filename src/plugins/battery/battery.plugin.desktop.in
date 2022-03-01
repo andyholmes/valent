@@ -5,7 +5,7 @@
 Module=battery
 Name=Battery
 Description=Sync battery statistics
-Icon=battery-symbolic
+Icon=valent-battery-plugin-symbolic
 Builtin=true
 Embedded=valent_battery_plugin_register_types
 Website=https://github.com/andyholmes/valent

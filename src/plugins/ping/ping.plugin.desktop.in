@@ -5,7 +5,7 @@
 Module=ping
 Name=Ping
 Description=Send and receive pings
-Icon=dialog-information-symbolic
+Icon=valent-ping-plugin-symbolic
 Builtin=true
 Embedded=valent_ping_plugin_register_types
 Website=https://github.com/andyholmes/valent

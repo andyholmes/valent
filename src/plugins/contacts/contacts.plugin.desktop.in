@@ -5,7 +5,7 @@
 Module=contacts
 Name=Contacts
 Description=Sync contacts
-Icon=x-office-address-book-symbolic
+Icon=valent-contacts-plugin-symbolic
 Builtin=true
 Embedded=valent_contacts_plugin_register_types
 Website=https://github.com/andyholmes/valent

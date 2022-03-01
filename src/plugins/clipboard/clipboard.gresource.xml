@@ -8,5 +8,8 @@
     <file>clipboard.plugin</file>
     <file>valent-clipboard-preferences.ui</file>
   </gresource>
+  <gresource prefix="/ca/andyholmes/Valent/icons">
+    <file preprocess="xml-stripblanks" alias="scalable/apps/valent-clipboard-plugin-symbolic.svg">data/valent-clipboard-plugin-symbolic.svg</file>
+  </gresource>
 </gresources>
 

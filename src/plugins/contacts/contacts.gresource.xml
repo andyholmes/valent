@@ -8,5 +8,8 @@
     <file>contacts.plugin</file>
     <file>valent-contacts-preferences.ui</file>
   </gresource>
+  <gresource prefix="/ca/andyholmes/Valent/icons">
+    <file preprocess="xml-stripblanks" alias="scalable/apps/valent-contacts-plugin-symbolic.svg">data/valent-contacts-plugin-symbolic.svg</file>
+  </gresource>
 </gresources>
 

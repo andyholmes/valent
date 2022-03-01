@@ -5,7 +5,7 @@
 Module=notification
 Name=Notifications
 Description=Sync notifications
-Icon=preferences-system-notifications-symbolic
+Icon=valent-notification-plugin-symbolic
 Builtin=true
 Embedded=valent_notification_plugin_register_types
 Website=https://github.com/andyholmes/valent

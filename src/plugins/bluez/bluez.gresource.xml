@@ -9,5 +9,8 @@
     <file>ca.andyholmes.Valent.sdp.xml</file>
     <file>ca.andyholmes.valent.bluez.gschema.xml</file>
   </gresource>
+  <gresource prefix="/ca/andyholmes/Valent/icons">
+    <file preprocess="xml-stripblanks" alias="scalable/apps/valent-bluez-plugin-symbolic.svg">data/valent-bluez-plugin-symbolic.svg</file>
+  </gresource>
 </gresources>
 

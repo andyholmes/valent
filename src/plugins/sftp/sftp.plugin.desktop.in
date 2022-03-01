@@ -4,8 +4,8 @@
 [Plugin]
 Module=sftp
 Name=SFTP
-Description=Send and receive sftps
-Icon=folder-remote-symbolic
+Description=Browse files and directories
+Icon=valent-sftp-plugin-symbolic
 Builtin=true
 Embedded=valent_sftp_plugin_register_types
 Website=https://github.com/andyholmes/valent

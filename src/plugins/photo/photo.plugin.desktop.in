@@ -5,7 +5,7 @@
 Module=photo
 Name=Photo
 Description=Take a photo with the remote device
-Icon=camera-photo-symbolic
+Icon=valent-photo-plugin-symbolic
 Builtin=true
 Embedded=valent_photo_plugin_register_types
 Website=https://github.com/andyholmes/valent

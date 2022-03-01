@@ -5,7 +5,7 @@
 Module=runcommand
 Name=Commands
 Description=Execute commands remotely
-Icon=system-run-symbolic
+Icon=valent-runcommand-plugin-symbolic
 Builtin=true
 Embedded=valent_runcommand_plugin_register_types
 Website=https://github.com/andyholmes/valent

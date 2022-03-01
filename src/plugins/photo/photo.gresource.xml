@@ -7,5 +7,9 @@
   <gresource prefix="/plugins/photo">
     <file>photo.plugin</file>
   </gresource>
+  <gresource prefix="/ca/andyholmes/Valent/icons">
+    <file preprocess="xml-stripblanks" alias="scalable/apps/valent-photo-plugin-symbolic.svg">data/valent-photo-plugin-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/devices/camera-photo-symbolic.svg">data/camera-photo-symbolic.svg</file>
+  </gresource>
 </gresources>
 
