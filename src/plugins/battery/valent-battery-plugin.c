@@ -5,36 +5,45 @@
 
 #include "config.h"
 
-#include <math.h>
 #include <glib/gi18n.h>
 #include <gio/gio.h>
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
+#include <math.h>
 
 #include "valent-battery.h"
 #include "valent-battery-plugin.h"
+
+/* Defaults are 90m charge, 1d discharge (seconds/percent) */
+#define DEFAULT_CHARGE_RATE    (90*60/100)
+#define DEFAULT_DISCHARGE_RATE (24*60*60/100)
 
 
 struct _ValentBatteryPlugin
 {
   ValentDevicePlugin  parent_instance;
 
-  GSettings         *settings;
+  GSettings          *settings;
 
   /* Local Battery */
-  ValentBattery     *battery;
-  unsigned int       battery_watch : 1;
+  ValentBattery      *battery;
+  unsigned int        battery_watch : 1;
 
   /* Remote Battery */
-  gboolean           charging;
-  int                level;
-  int                threshold;
-  unsigned int       time;
+  gboolean            charging;
+  const char         *icon_name;
+  gboolean            is_present;
+  double              percentage;
+  gint64              time_to_full;
+  gint64              time_to_empty;
+  gint64              charge_rate;
+  gint64              discharge_rate;
+  gint64              timestamp;
 };
 
-static const char * valent_battery_plugin_get_icon_name (ValentBatteryPlugin         *self);
-static void         valent_battery_plugin_request_state (ValentBatteryPlugin         *self);
-static void         valent_battery_plugin_send_state    (ValentBatteryPlugin         *self);
+static const char * valent_battery_plugin_get_icon_name (ValentBatteryPlugin *self);
+static void         valent_battery_plugin_request_state (ValentBatteryPlugin *self);
+static void         valent_battery_plugin_send_state    (ValentBatteryPlugin *self);
 
 G_DEFINE_TYPE (ValentBatteryPlugin, valent_battery_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
@@ -121,220 +130,215 @@ valent_battery_plugin_send_state (ValentBatteryPlugin *self)
 static const char *
 valent_battery_plugin_get_icon_name (ValentBatteryPlugin *self)
 {
-  if (self->level == -1)
+  if (!self->is_present)
     return "battery-missing-symbolic";
-  else if (self->level == 100)
+
+  if (self->percentage == 100)
     return "battery-full-charged-symbolic";
-  else if (self->level < 3)
-    return self->charging ? "battery-empty-charging-symbolic" :
-                            "battery-empty-symbolic";
-  else if (self->level < 10)
-    return self->charging ? "battery-caution-charging-symbolic" :
-                            "battery-caution-symbolic";
-  else if (self->level < 30)
-    return self->charging ? "battery-low-charging-symbolic" :
-                            "battery-low-symbolic";
-  else if (self->level < 60)
-    return self->charging ? "battery-good-charging-symbolic" :
-                            "battery-good-symbolic";
-  else if (self->level >= 60)
-    return self->charging ? "battery-full-charging-symbolic" :
-                            "battery-full-symbolic";
-  else
-    return "battery-missing-symbolic";
+
+  if (self->percentage < 5)
+    return self->charging
+      ? "battery-empty-charging-symbolic"
+      : "battery-empty-symbolic";
+
+  if (self->percentage < 20)
+    return self->charging
+      ? "battery-caution-charging-symbolic"
+      : "battery-caution-symbolic";
+
+  if (self->percentage < 30)
+    return self->charging
+      ? "battery-low-charging-symbolic"
+      : "battery-low-symbolic";
+
+  if (self->percentage < 60)
+    return self->charging
+      ? "battery-good-charging-symbolic"
+      : "battery-good-symbolic";
+
+  return self->charging
+    ? "battery-full-charging-symbolic"
+    : "battery-full-symbolic";
 }
 
-/**
- * valent_battery_plugin_update_estimate:
- * @self: a #ValentBatteryPlugin
- *
- * Recalculate the charge or discharge rate and update the estimated time
- * remaining.
- *
- * `rate` is defined as `seconds / percent`. The updated `rate` is a weighted
- * average of the previous and current rate, favouring the current rate, to
- * account for the possibility of missed packets or changing battery usage.
- *
- *   `final_rate = (previous_rate * 0.4) + (current_rate * 0.6)`
- *
- * The time remaining in seconds is then calcuated by (charging, discharging):
- *
- *   `final_rate * (100 - current_level)`
- *   `final_rate * current_level`
- */
 static void
-valent_battery_plugin_update_estimate (ValentBatteryPlugin *self)
+valent_battery_plugin_update_estimate (ValentBatteryPlugin *self,
+                                       gint64               current_charge,
+                                       gboolean             is_charging)
 {
-  g_autoptr (GDateTime) now = NULL;
-  g_autoptr (GVariant) cache = NULL;
-  GVariant *new_state;
-  int new_rate, new_time, new_level;
-  int rate, time, level;
-  int level_delta, time_delta;
+  gint64 rate;
+  double percentage;
+  gint64 timestamp;
 
-  now = g_date_time_new_now_local ();
-  new_time = floor (g_date_time_to_unix (now) / 1000);
-  new_level = self->level;
+  g_return_if_fail (current_charge >= 0);
 
-  /* Read the cached state */
-  if (self->charging)
-    cache = g_settings_get_value (self->settings, "charge-rate");
+  percentage = CLAMP (current_charge, 0.0, 100.0);
+  timestamp = floor (valent_timestamp_ms () / 1000);
+  rate = is_charging ? self->charge_rate : self->discharge_rate;
+
+  /* If the battery is present, we must have a timestamp and charge level to
+   * calculate the deltas and derive the (dis)charge rate. */
+  if (self->is_present)
+    {
+      double percentage_delta;
+      gint64 timestamp_delta;
+      gint64 new_rate;
+
+      percentage_delta = ABS (percentage - self->percentage);
+      timestamp_delta = timestamp - self->timestamp;
+      new_rate = timestamp_delta / percentage_delta;
+      rate = floor ((rate * 0.4) + (new_rate * 0.6));
+    }
+
+  /* Update the estimate and related values */
+  if (is_charging)
+    {
+      self->charge_rate = rate;
+      self->time_to_empty = 0;
+      self->time_to_full = floor (self->charge_rate * (100.0 - percentage));
+      self->timestamp = timestamp;
+    }
   else
-    cache = g_settings_get_value (self->settings, "discharge-rate");
-
-  g_variant_get (cache, "(uui)", &rate, &time, &level);
-  time = (finite (time) && time > 0) ? time : new_time;
-  level = (finite (level) && level > -1) ? level : new_level;
-  rate = (finite (rate) && rate > 0) ? rate : (self->charging ? 54 : 864);
-
-  /* Derive rate from time-delta/level-delta (rate = seconds/percent) */
-  level_delta = self->charging ? new_level - level : level - new_level;
-  time_delta = new_time - time;
-  new_rate = (level_delta && time_delta) ? time_delta / level_delta : rate;
-
-  /* Average if the new rate seems valid, then calculate time remaining */
-  if (new_rate && finite (new_rate))
-    new_rate = floor ((rate * 0.4) + (new_rate * 0.6));
-
-  if (self->charging)
-    self->time = floor (new_rate * (100 - new_level));
-  else
-    self->time = floor (new_rate * new_level);
-
-  /* Write the cached state */
-  new_state = g_variant_new ("(uui)", new_rate, new_time, new_level);
-
-  if (self->charging)
-    g_settings_set_value (self->settings, "charge-rate", new_state);
-  else
-    g_settings_set_value (self->settings, "discharge-rate", new_state);
+    {
+      self->discharge_rate = rate;
+      self->time_to_empty = floor (self->discharge_rate * percentage);
+      self->time_to_full = 0;
+      self->timestamp = timestamp;
+    }
 }
 
 static void
 valent_battery_plugin_update_gaction (ValentBatteryPlugin *self)
 {
-  GAction *action;
+  GVariantDict dict;
   GVariant *state;
+  GAction *action;
 
   g_assert (VALENT_IS_BATTERY_PLUGIN (self));
 
-  state = g_variant_new ("(bsiu)",
-                         self->charging,
-                         valent_battery_plugin_get_icon_name (self),
-                         self->level,
-                         self->time);
+  g_variant_dict_init (&dict, NULL);
+  g_variant_dict_insert (&dict, "charging", "b", self->charging);
+  g_variant_dict_insert (&dict, "percentage", "d", self->percentage);
+  g_variant_dict_insert (&dict, "icon-name", "s", self->icon_name);
+  g_variant_dict_insert (&dict, "is-present", "b", self->is_present);
+  g_variant_dict_insert (&dict, "time-to-empty", "x", self->time_to_empty);
+  g_variant_dict_insert (&dict, "time-to-full", "x", self->time_to_full);
+  state = g_variant_dict_end (&dict);
 
+  /* Update the state, even if we're disabling the action */
   action = g_action_map_lookup_action (G_ACTION_MAP (self), "state");
+  g_simple_action_set_enabled (G_SIMPLE_ACTION (action), self->is_present);
   g_simple_action_set_state (G_SIMPLE_ACTION (action), state);
 }
 
 static void
-valent_battery_plugin_show_notification (ValentBatteryPlugin *self,
-                                         gboolean             full)
+valent_battery_plugin_update_notification (ValentBatteryPlugin *self,
+                                           int                  threshold_event)
 {
-  g_autoptr (GNotification) notif = NULL;
-  g_autofree char *ntitle = NULL;
-  g_autofree char *nbody = NULL;
-  g_autoptr (GIcon) nicon = NULL;
+  g_autoptr (GNotification) notification = NULL;
+  g_autofree char *title = NULL;
+  g_autofree char *body = NULL;
+  g_autoptr (GIcon) icon = NULL;
   ValentDevice *device;
+  const char *device_name;
+  double full, low;
 
   g_assert (VALENT_IS_BATTERY_PLUGIN (self));
 
   device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  device_name = valent_device_get_name (device);
 
-  if (full)
+  full = g_settings_get_double (self->settings, "full-notification-level");
+  low = g_settings_get_double (self->settings, "low-notification-level");
+
+  if (self->percentage == full)
     {
       if (!g_settings_get_boolean (self->settings, "full-notification"))
         return;
 
-      /* TRANSLATORS: eg. Google Pixel: Battery Full */
-      ntitle = g_strdup_printf (_("%s: Battery Full"),
-                                valent_device_get_name (device));
-      nbody = g_strdup (_("Battery Fully Charged"));
-      nicon = g_themed_icon_new ("battery-full-charged-symbolic");
+      /* TRANSLATORS: This is <device name>: Fully Charged */
+      title = g_strdup_printf (_("%s: Fully Charged"), device_name);
+      /* TRANSLATORS: When the battery level is at maximum */
+      body = g_strdup (_("Battery Fully Charged"));
+      icon = g_themed_icon_new ("battery-full-charged-symbolic");
     }
-  else
+
+  /* Battery is no longer low or is charging */
+  else if (self->percentage > low || self->charging)
     {
+      valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self),
+                                              "battery-level");
+      return;
+    }
+
+  /* Battery is now low */
+  else if (self->percentage <= low || threshold_event == 1)
+    {
+      gint64 total_minutes;
+      int minutes;
+      int hours;
+
       if (!g_settings_get_boolean (self->settings, "low-notification"))
         return;
 
-      /* TRANSLATORS: eg. Google Pixel: Battery Low */
-      ntitle = g_strdup_printf (_("%s: Battery Low"),
-                                valent_device_get_name (device));
-      /* TRANSLATORS: eg. 15% remaining */
-      nbody = g_strdup_printf (_("%d%% remaining"), self->level);
-      nicon = g_themed_icon_new (valent_battery_plugin_get_icon_name (self));
+      total_minutes = floor (self->time_to_empty / 60);
+      minutes = total_minutes % 60;
+      hours = floor (total_minutes / 60);
+
+      /* TRANSLATORS: This is <device name>: Battery Low */
+      title = g_strdup_printf (_("%s: Battery Low"), device_name);
+      /* TRANSLATORS: This is <percentage> (<hours>:<minutes> Remaining) */
+      body = g_strdup_printf (_("%g%% (%d∶%02d Remaining)"),
+                              self->percentage, hours, minutes);
+      icon = g_themed_icon_new ("battery-caution-symbolic");
     }
 
-  /* Create the notification */
-  notif = g_notification_new (ntitle);
-  g_notification_set_body (notif, nbody);
-  g_notification_set_icon (notif, nicon);
+  notification = g_notification_new (title);
+  g_notification_set_body (notification, body);
+  g_notification_set_icon (notification, icon);
 
   valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),
                                           "battery-level",
-                                          notif);
+                                          notification);
 }
 
 static void
 valent_battery_plugin_handle_battery (ValentBatteryPlugin *self,
                                       JsonNode            *packet)
 {
-  gboolean changed = FALSE;
-  gboolean charging = self->charging;
-  gint64 level = self->level;
-  gint64 threshold = 0;
+  gboolean is_charging;
+  gint64 current_charge;
+  gint64 threshold_event;
 
   g_assert (VALENT_IS_BATTERY_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
 
-  valent_packet_get_boolean (packet, "isCharging", &charging);
-  valent_packet_get_int (packet, "currentCharge", &level);
-  valent_packet_get_int (packet, "thresholdEvent", &threshold);
+  if (!valent_packet_get_boolean (packet, "isCharging", &is_charging))
+    is_charging = self->charging;
+
+  if (!valent_packet_get_int (packet, "currentCharge", &current_charge))
+    current_charge = self->percentage;
+
+  if (!valent_packet_get_int (packet, "thresholdEvent", &threshold_event))
+    threshold_event = 0;
 
   /* We get a lot of battery updates, so check if something changed */
-  if (self->charging != charging || self->level != level)
-    {
-      changed = TRUE;
-      self->charging = charging;
-      self->level = level;
-    }
+  if (self->charging == is_charging && self->percentage == current_charge)
+    return;
 
-  /* We can always update the time estimate */
-  valent_battery_plugin_update_estimate (self);
+  /* If `current_charge` is `-1`, either there is no battery or statistics are
+   * unavailable. Otherwise update the estimate before the instance properties
+   * so that the time/percentage deltas can be calculated. */
+  if (current_charge >= 0)
+    valent_battery_plugin_update_estimate (self, current_charge, is_charging);
 
-  if (changed)
-    {
-      int full, low;
+  self->charging = is_charging;
+  self->percentage = CLAMP (current_charge, 0.0, 100.0);
+  self->is_present = current_charge >= 0;
+  self->icon_name = valent_battery_plugin_get_icon_name (self);
 
-      full = g_settings_get_int (self->settings, "full-notification-level");
-      low = g_settings_get_int (self->settings, "low-notification-level");
-
-      /* Battery is now full */
-      if (self->level == full &&
-          g_settings_get_boolean (self->settings, "full-notification"))
-        {
-          valent_battery_plugin_show_notification (self, TRUE);
-        }
-
-      /* Battery is now low */
-      else if ((self->level <= low || threshold) &&
-               g_settings_get_boolean (self->settings, "low-notification"))
-        {
-          self->threshold = self->level;
-          valent_battery_plugin_show_notification (self, FALSE);
-        }
-
-      /* Battery is no longer low or is charging */
-      else if (self->level > self->threshold || self->charging)
-        {
-          valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self),
-                                                  "battery-level");
-        }
-
-      /* Notify listening parties */
-      valent_battery_plugin_update_gaction (self);
-    }
+  valent_battery_plugin_update_gaction (self);
+  valent_battery_plugin_update_notification (self, threshold_event);
 }
 
 static void
@@ -356,8 +360,16 @@ valent_battery_plugin_request_state (ValentBatteryPlugin *self)
 /*
  * GActions
  */
+static void
+state_action (GSimpleAction *action,
+              GVariant      *parameter,
+              gpointer       user_data)
+{
+  // No-op to make the state read-only
+}
+
 static const GActionEntry actions[] = {
-    {"state", NULL, NULL, "(false, 'battery-missing-symbolic', -1, uint32 0)", NULL},
+    {"state", NULL, NULL, "@a{sv} {}", state_action},
 };
 
 /*
@@ -380,6 +392,7 @@ valent_battery_plugin_enable (ValentDevicePlugin *plugin)
                                    actions,
                                    G_N_ELEMENTS (actions),
                                    plugin);
+  valent_battery_plugin_update_gaction (self);
 }
 
 static void
@@ -407,16 +420,16 @@ valent_battery_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  valent_device_plugin_toggle_actions (plugin, available);
-
   if (available)
     {
+      valent_battery_plugin_update_gaction (self);
       valent_battery_plugin_watch_battery (self, TRUE);
       valent_battery_plugin_send_state (self);
       valent_battery_plugin_request_state (self);
     }
   else
     {
+      valent_device_plugin_toggle_actions (plugin, available);
       valent_battery_plugin_watch_battery (self, FALSE);
     }
 }
@@ -461,9 +474,8 @@ valent_battery_plugin_class_init (ValentBatteryPluginClass *klass)
 static void
 valent_battery_plugin_init (ValentBatteryPlugin *self)
 {
-  self->charging = FALSE;
-  self->level = -1;
-  self->time = 0;
-  self->threshold = 15;
+  self->icon_name = "battery-missing-symbolic";
+  self->charge_rate = DEFAULT_CHARGE_RATE;
+  self->discharge_rate = DEFAULT_DISCHARGE_RATE;
 }
 

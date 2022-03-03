@@ -40,20 +40,33 @@ test_battery_plugin_actions (ValentTestPluginFixture *fixture,
 {
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   g_autoptr (GVariant) state = NULL;
-  int level, charging;
-  unsigned int time;
+  gboolean charging;
+  double percentage;
   const char *icon_name;
+  gboolean is_present;
+  gint64 time_to_empty = 0;
+  gint64 time_to_full = 0;
 
   /* Get the stateful actions */
   g_assert_true (g_action_group_has_action (actions, "battery.state"));
 
   /* Local */
+  g_assert_false (g_action_group_get_action_enabled (actions, "battery.state"));
   state = g_action_group_get_action_state (actions, "battery.state");
-  g_variant_get (state, "(b&siu)", &charging, &icon_name, &level, &time);
+
+  g_assert_true (g_variant_lookup (state, "charging", "b", &charging));
+  g_assert_true (g_variant_lookup (state, "percentage", "d", &percentage));
+  g_assert_true (g_variant_lookup (state, "icon-name", "&s", &icon_name));
+  g_assert_true (g_variant_lookup (state, "is-present", "b", &is_present));
+  g_assert_true (g_variant_lookup (state, "time-to-empty", "x", &time_to_empty));
+  g_assert_true (g_variant_lookup (state, "time-to-full", "x", &time_to_full));
 
   g_assert_false (charging);
-  g_assert_cmpint (level, ==, -1);
-  g_assert_cmpuint (time, ==, 0);
+  g_assert_cmpfloat (percentage, ==, 0.0);
+  g_assert_cmpstr (icon_name, ==, "battery-missing-symbolic");
+  g_assert_false (is_present);
+  g_assert_cmpint (time_to_empty, ==, 0);
+  g_assert_cmpint (time_to_full, ==, 0);
 }
 
 static void
@@ -84,63 +97,173 @@ test_battery_plugin_handle_update (ValentTestPluginFixture *fixture,
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *packet;
   GVariant *state;
-  int level, charging, time;
+  gboolean charging;
+  double percentage;
   const char *icon_name;
+  gboolean is_present;
+  gint64 time_to_empty;
+  gint64 time_to_full;
 
-  /* Get the stateful actions */
-  g_assert_true (g_action_group_has_action (actions, "battery.state"));
+  /* Battery is in the default state so the action should be disabled */
+  g_assert_false (g_action_group_get_action_enabled (actions, "battery.state"));
+
+  /* Empty Battery */
+  packet = valent_test_plugin_fixture_lookup_packet (fixture, "empty-battery");
+  valent_test_plugin_fixture_handle_packet (fixture, packet);
+
+  g_assert_true (g_action_group_get_action_enabled (actions, "battery.state"));
+  state = g_action_group_get_action_state (actions, "battery.state");
+
+  g_assert_true (g_variant_lookup (state, "charging", "b", &charging));
+  g_assert_true (g_variant_lookup (state, "percentage", "d", &percentage));
+  g_assert_true (g_variant_lookup (state, "icon-name", "&s", &icon_name));
+  g_assert_true (g_variant_lookup (state, "is-present", "b", &is_present));
+  g_assert_true (g_variant_lookup (state, "time-to-empty", "x", &time_to_empty));
+  g_assert_true (g_variant_lookup (state, "time-to-full", "x", &time_to_full));
+
+  g_assert_true (charging);
+  g_assert_cmpfloat (percentage, ==, 0);
+  g_assert_cmpstr (icon_name, ==, "battery-empty-charging-symbolic");
+  g_assert_true (is_present);
+  g_assert_cmpint (time_to_empty, ==, 0);
+  g_assert_cmpint (time_to_full, >, 0);
+
+  g_clear_pointer (&state, g_variant_unref);
 
   /* Caution Battery */
   packet = valent_test_plugin_fixture_lookup_packet (fixture, "caution-battery");
   valent_test_plugin_fixture_handle_packet (fixture, packet);
 
+  g_assert_true (g_action_group_get_action_enabled (actions, "battery.state"));
   state = g_action_group_get_action_state (actions, "battery.state");
-  g_variant_get (state, "(b&siu)", &charging, &icon_name, &level, &time);
+
+  g_assert_true (g_variant_lookup (state, "charging", "b", &charging));
+  g_assert_true (g_variant_lookup (state, "percentage", "d", &percentage));
+  g_assert_true (g_variant_lookup (state, "icon-name", "&s", &icon_name));
+  g_assert_true (g_variant_lookup (state, "is-present", "b", &is_present));
+  g_assert_true (g_variant_lookup (state, "time-to-empty", "x", &time_to_empty));
+  g_assert_true (g_variant_lookup (state, "time-to-full", "x", &time_to_full));
 
   g_assert_true (charging);
-  g_assert_cmpint (level, ==, 5);
-  g_assert_cmpuint (time, !=, 0);
+  g_assert_cmpfloat (percentage, ==, 15);
+  g_assert_cmpstr (icon_name, ==, "battery-caution-charging-symbolic");
+  g_assert_true (is_present);
+  g_assert_cmpint (time_to_empty, ==, 0);
+  g_assert_cmpint (time_to_full, >, 0);
 
-  g_variant_unref (state);
+  g_clear_pointer (&state, g_variant_unref);
 
   /* Low Battery */
   packet = valent_test_plugin_fixture_lookup_packet (fixture, "low-battery");
   valent_test_plugin_fixture_handle_packet (fixture, packet);
 
+  g_assert_true (g_action_group_get_action_enabled (actions, "battery.state"));
   state = g_action_group_get_action_state (actions, "battery.state");
-  g_variant_get (state, "(b&siu)", &charging, &icon_name, &level, &time);
+
+  g_assert_true (g_variant_lookup (state, "charging", "b", &charging));
+  g_assert_true (g_variant_lookup (state, "percentage", "d", &percentage));
+  g_assert_true (g_variant_lookup (state, "icon-name", "&s", &icon_name));
+  g_assert_true (g_variant_lookup (state, "is-present", "b", &is_present));
+  g_assert_true (g_variant_lookup (state, "time-to-empty", "x", &time_to_empty));
+  g_assert_true (g_variant_lookup (state, "time-to-full", "x", &time_to_full));
 
   g_assert_true (charging);
-  g_assert_cmpint (level, ==, 25);
-  g_assert_cmpuint (time, !=, 0);
+  g_assert_cmpfloat (percentage, ==, 25);
+  g_assert_cmpstr (icon_name, ==, "battery-low-charging-symbolic");
+  g_assert_true (is_present);
+  g_assert_cmpint (time_to_empty, ==, 0);
+  g_assert_cmpint (time_to_full, >, 0);
 
-  g_variant_unref (state);
+  g_clear_pointer (&state, g_variant_unref);
 
   /* Good Battery */
   packet = valent_test_plugin_fixture_lookup_packet (fixture, "good-battery");
   valent_test_plugin_fixture_handle_packet (fixture, packet);
 
   state = g_action_group_get_action_state (actions, "battery.state");
-  g_variant_get (state, "(b&siu)", &charging, &icon_name, &level, &time);
+
+  g_assert_true (g_variant_lookup (state, "charging", "b", &charging));
+  g_assert_true (g_variant_lookup (state, "percentage", "d", &percentage));
+  g_assert_true (g_variant_lookup (state, "icon-name", "&s", &icon_name));
+  g_assert_true (g_variant_lookup (state, "is-present", "b", &is_present));
+  g_assert_true (g_variant_lookup (state, "time-to-empty", "x", &time_to_empty));
+  g_assert_true (g_variant_lookup (state, "time-to-full", "x", &time_to_full));
 
   g_assert_false (charging);
-  g_assert_cmpint (level, ==, 50);
-  g_assert_cmpuint (time, !=, 0);
+  g_assert_cmpfloat (percentage, ==, 55);
+  g_assert_cmpstr (icon_name, ==, "battery-good-symbolic");
+  g_assert_true (is_present);
+  g_assert_cmpint (time_to_empty, >, 0);
+  g_assert_cmpint (time_to_full, ==, 0);
 
-  g_variant_unref (state);
+  g_clear_pointer (&state, g_variant_unref);
 
   /* Full Battery */
   packet = valent_test_plugin_fixture_lookup_packet (fixture, "full-battery");
   valent_test_plugin_fixture_handle_packet (fixture, packet);
 
+  g_assert_true (g_action_group_get_action_enabled (actions, "battery.state"));
   state = g_action_group_get_action_state (actions, "battery.state");
-  g_variant_get (state, "(b&siu)", &charging, &icon_name, &level, &time);
+
+  g_assert_true (g_variant_lookup (state, "charging", "b", &charging));
+  g_assert_true (g_variant_lookup (state, "percentage", "d", &percentage));
+  g_assert_true (g_variant_lookup (state, "icon-name", "&s", &icon_name));
+  g_assert_true (g_variant_lookup (state, "is-present", "b", &is_present));
+  g_assert_true (g_variant_lookup (state, "time-to-empty", "x", &time_to_empty));
+  g_assert_true (g_variant_lookup (state, "time-to-full", "x", &time_to_full));
 
   g_assert_false (charging);
-  g_assert_cmpint (level, ==, 100);
-  g_assert_cmpuint (time, !=, 0);
+  g_assert_cmpfloat (percentage, ==, 65);
+  g_assert_cmpstr (icon_name, ==, "battery-full-symbolic");
+  g_assert_true (is_present);
+  g_assert_cmpint (time_to_empty, >, 0);
+  g_assert_cmpint (time_to_full, ==, 0);
 
-  g_variant_unref (state);
+  g_clear_pointer (&state, g_variant_unref);
+
+  /* Full Battery */
+  packet = valent_test_plugin_fixture_lookup_packet (fixture, "charged-battery");
+  valent_test_plugin_fixture_handle_packet (fixture, packet);
+
+  g_assert_true (g_action_group_get_action_enabled (actions, "battery.state"));
+  state = g_action_group_get_action_state (actions, "battery.state");
+
+  g_assert_true (g_variant_lookup (state, "charging", "b", &charging));
+  g_assert_true (g_variant_lookup (state, "percentage", "d", &percentage));
+  g_assert_true (g_variant_lookup (state, "icon-name", "&s", &icon_name));
+  g_assert_true (g_variant_lookup (state, "is-present", "b", &is_present));
+  g_assert_true (g_variant_lookup (state, "time-to-empty", "x", &time_to_empty));
+  g_assert_true (g_variant_lookup (state, "time-to-full", "x", &time_to_full));
+
+  g_assert_false (charging);
+  g_assert_cmpfloat (percentage, ==, 100);
+  g_assert_cmpstr (icon_name, ==, "battery-full-charged-symbolic");
+  g_assert_true (is_present);
+  g_assert_cmpint (time_to_empty, >, 0);
+  g_assert_cmpint (time_to_full, ==, 0);
+
+  g_clear_pointer (&state, g_variant_unref);
+
+  /* Missing Battery */
+  packet = valent_test_plugin_fixture_lookup_packet (fixture, "missing-battery");
+  valent_test_plugin_fixture_handle_packet (fixture, packet);
+
+  g_assert_false (g_action_group_get_action_enabled (actions, "battery.state"));
+  state = g_action_group_get_action_state (actions, "battery.state");
+
+  g_assert_true (g_variant_lookup (state, "charging", "b", &charging));
+  g_assert_true (g_variant_lookup (state, "percentage", "d", &percentage));
+  g_assert_true (g_variant_lookup (state, "icon-name", "&s", &icon_name));
+  g_assert_true (g_variant_lookup (state, "is-present", "b", &is_present));
+  g_assert_true (g_variant_lookup (state, "time-to-empty", "x", &time_to_empty));
+  g_assert_true (g_variant_lookup (state, "time-to-full", "x", &time_to_full));
+
+  g_assert_false (charging);
+  g_assert_cmpfloat (percentage, ==, 0.0);
+  g_assert_cmpstr (icon_name, ==, "battery-missing-symbolic");
+  g_assert_false (is_present);
+
+  g_clear_pointer (&state, g_variant_unref);
 }
 
 static void

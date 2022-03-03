@@ -10,6 +10,29 @@
   </gresource>
   <gresource prefix="/ca/andyholmes/Valent/icons">
     <file preprocess="xml-stripblanks" alias="scalable/apps/valent-battery-plugin-symbolic.svg">data/valent-battery-plugin-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-0-charging-symbolic.svg">data/battery-level-0-charging-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-0-symbolic.svg">data/battery-level-0-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-10-charging-symbolic.svg">data/battery-level-10-charging-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-10-symbolic.svg">data/battery-level-10-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-20-charging-symbolic.svg">data/battery-level-20-charging-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-20-symbolic.svg">data/battery-level-20-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-30-charging-symbolic.svg">data/battery-level-30-charging-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-30-symbolic.svg">data/battery-level-30-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-40-charging-symbolic.svg">data/battery-level-40-charging-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-40-symbolic.svg">data/battery-level-40-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-50-charging-symbolic.svg">data/battery-level-50-charging-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-50-symbolic.svg">data/battery-level-50-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-60-charging-symbolic.svg">data/battery-level-60-charging-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-60-symbolic.svg">data/battery-level-60-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-70-charging-symbolic.svg">data/battery-level-70-charging-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-70-symbolic.svg">data/battery-level-70-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-80-charging-symbolic.svg">data/battery-level-80-charging-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-80-symbolic.svg">data/battery-level-80-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-90-charging-symbolic.svg">data/battery-level-90-charging-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-90-symbolic.svg">data/battery-level-90-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-100-charged-symbolic.svg">data/battery-level-100-charged-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-100-symbolic.svg">data/battery-level-100-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/battery-missing-symbolic.svg">data/battery-missing-symbolic.svg</file>
   </gresource>
 </gresources>
 

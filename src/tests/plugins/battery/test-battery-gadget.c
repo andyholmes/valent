@@ -49,11 +49,16 @@ test_battery_plugin_gadget (ValentTestPluginFixture *fixture,
   json_node_unref (packet);
 
   /* Switch up the state */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "low-battery");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_plugin_fixture_lookup_packet (fixture, "missing-battery");
 
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "full-battery");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  for (unsigned int level = 0; level <= 100; level += 10)
+    {
+      JsonObject *body = valent_packet_get_body (packet);
+
+      json_object_set_int_member (body, "currentCharge", level);
+      json_object_set_boolean_member (body, "isCharging", (level % 20) != 0);
+      valent_test_plugin_fixture_handle_packet (fixture, packet);
+    }
 
   g_object_unref (gadget);
 }

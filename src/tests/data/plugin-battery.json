@@ -15,11 +15,29 @@
       ]
     }
   },
+  "missing-battery": {
+    "id": 0,
+    "type": "kdeconnect.battery",
+    "body": {
+      "currentCharge": -1,
+      "isCharging": false,
+      "thresholdEvent": 0
+    }
+  },
+  "empty-battery": {
+    "id": 0,
+    "type": "kdeconnect.battery",
+    "body": {
+      "currentCharge": 0,
+      "isCharging": true,
+      "thresholdEvent": 1
+    }
+  },
   "caution-battery": {
     "id": 0,
     "type": "kdeconnect.battery",
     "body": {
-      "currentCharge": 5,
+      "currentCharge": 15,
       "isCharging": true,
       "thresholdEvent": 1
     }
@@ -37,12 +55,21 @@
     "id": 0,
     "type": "kdeconnect.battery",
     "body": {
-      "currentCharge": 50,
+      "currentCharge": 55,
       "isCharging": false,
       "thresholdEvent": 0
     }
   },
   "full-battery": {
+    "id": 0,
+    "type": "kdeconnect.battery",
+    "body": {
+      "currentCharge": 65,
+      "isCharging": false,
+      "thresholdEvent": 0
+    }
+  },
+  "charged-battery": {
     "id": 0,
     "type": "kdeconnect.battery",
     "body": {
