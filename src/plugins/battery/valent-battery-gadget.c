@@ -40,64 +40,147 @@ enum {
 };
 
 
+static const char *
+valent_battery_gadget_get_icon_name (double   percentage,
+                                     gboolean charging)
+{
+  if (percentage == -1)
+    return "battery-missing-symbolic";
+
+  if (percentage == 100)
+    return "battery-level-100-charged-symbolic";
+
+  if (percentage >= 90)
+    return charging
+      ? "battery-level-90-charging-symbolic"
+      : "battery-level-90-symbolic";
+
+  if (percentage >= 80)
+    return charging
+      ? "battery-level-80-charging-symbolic"
+      : "battery-level-80-symbolic";
+
+  if (percentage >= 70)
+    return charging
+      ? "battery-level-70-charging-symbolic"
+      : "battery-level-70-symbolic";
+
+  if (percentage >= 60)
+    return charging
+      ? "battery-level-60-charging-symbolic"
+      : "battery-level-60-symbolic";
+
+  if (percentage >= 50)
+    return charging
+      ? "battery-level-50-charging-symbolic"
+      : "battery-level-50-symbolic";
+
+  if (percentage >= 40)
+    return charging
+      ? "battery-level-40-charging-symbolic"
+      : "battery-level-40-symbolic";
+
+  if (percentage >= 30)
+    return charging
+      ? "battery-level-30-charging-symbolic"
+      : "battery-level-30-symbolic";
+
+  if (percentage >= 20)
+    return charging
+      ? "battery-level-20-charging-symbolic"
+      : "battery-level-20-symbolic";
+
+  if (percentage >= 10)
+    return charging
+      ? "battery-level-10-charging-symbolic"
+      : "battery-level-10-symbolic";
+
+  if (percentage >= 0)
+    return charging
+      ? "battery-level-00-charging-symbolic"
+      : "battery-level-00-symbolic";
+
+  return "battery-missing-symbolic";
+}
+
 static void
 on_action_state_changed (GActionGroup        *action_group,
                          const char          *action_name,
                          GVariant            *value,
                          ValentBatteryGadget *self)
 {
-  gboolean charging;
-  const char *icon_name;
-  int level;
   g_autofree char *label = NULL;
-  gboolean enabled = FALSE;
-  int time, minutes, hours;
+  gboolean charging = FALSE;
+  gboolean is_present = FALSE;
+  double percentage = 0.0;
+  const char *icon_name;
 
   g_assert (VALENT_IS_BATTERY_GADGET (self));
 
-  g_variant_get (value, "(b&siu)", &charging, &icon_name, &level, &time);
+  g_variant_lookup (value, "is-present", "b", &is_present);
 
-  enabled = g_action_group_get_action_enabled (action_group, action_name);
-  gtk_widget_set_visible (self->button, enabled && (level > -1));
-
-  if (level == 100)
+  if (!is_present)
     {
-      // TRANSLATORS: When the battery level is 100%
-      label = g_strdup (_("Fully Charged"));
+      gtk_widget_set_visible (self->button, FALSE);
+      return;
     }
-  else if (time == 0)
+
+  if (!g_variant_lookup (value, "percentage", "d", &percentage) ||
+      !g_variant_lookup (value, "charging", "b", &charging))
     {
-      // TRANSLATORS: When no time estimate for the battery is available
-      // EXAMPLE: 42% (Estimating…)
-      label = g_strdup_printf (_("%d%% (Estimating…)"), level);
+      gtk_widget_set_visible (self->button, FALSE);
+      return;
+    }
+
+  if (percentage == 100)
+    {
+      /* TRANSLATORS: When the battery level is 100% */
+      label = g_strdup (_("Fully Charged"));
     }
   else
     {
-      unsigned int total_minutes;
-
-      total_minutes = round (time / 60);
-      minutes = floor (total_minutes % 60);
-      hours = floor (total_minutes / 60);
+      gint64 total_seconds = 0;
+      gint64 total_minutes;
+      int minutes;
+      int hours;
 
       if (charging)
+        g_variant_lookup (value, "time-to-full", "x", &total_seconds);
+      else
+        g_variant_lookup (value, "time-to-empty", "x", &total_seconds);
+
+      if (total_seconds > 0)
         {
-          /* TRANSLATORS: Estimated time until battery is charged */
-          /* EXAMPLE: 42% (1:15 Until Full) */
-          label = g_strdup_printf (_("%d%% (%d∶%02d Until Full)"),
-                                   level, hours, minutes);
+          total_minutes = floor (total_seconds / 60);
+          minutes = total_minutes % 60;
+          hours = floor (total_minutes / 60);
+        }
+
+      if (total_seconds <= 0)
+        {
+          /* TRANSLATORS: This is <percentage> (Estimating…) */
+          label = g_strdup_printf (_("%g%% (Estimating…)"), percentage);
+        }
+      else if (charging)
+        {
+          /* TRANSLATORS: This is <percentage> (<hours>:<minutes> Until Full) */
+          label = g_strdup_printf (_("%g%% (%d∶%02d Until Full)"),
+                                   percentage, hours, minutes);
         }
       else
         {
-          /* TRANSLATORS: Estimated time until battery is empty */
-          /* EXAMPLE: 42% (12:15 Remaining) */
-          label = g_strdup_printf (_("%d%% (%d∶%02d Remaining)"),
-                                   level, hours, minutes);
+          /* TRANSLATORS: This is <percentage> (<hours>:<minutes> Remaining) */
+          label = g_strdup_printf (_("%g%% (%d∶%02d Remaining)"),
+                                   percentage, hours, minutes);
         }
     }
 
+  icon_name = valent_battery_gadget_get_icon_name (percentage, charging);
   gtk_menu_button_set_icon_name (GTK_MENU_BUTTON (self->button), icon_name);
-  gtk_level_bar_set_value (GTK_LEVEL_BAR (self->level_bar), level);
+
+  gtk_level_bar_set_value (GTK_LEVEL_BAR (self->level_bar), percentage);
   gtk_label_set_text (GTK_LABEL (self->label), label);
+  gtk_widget_set_visible (self->button, TRUE);
 }
 
 static void
@@ -133,6 +216,7 @@ valent_battery_gadget_constructed (GObject *object)
 {
   ValentBatteryGadget *self = VALENT_BATTERY_GADGET (object);
   GActionGroup *action_group = G_ACTION_GROUP (self->device);
+  gboolean enabled = FALSE;
 
   g_signal_connect (action_group,
                     "action-state-changed::battery.state",
@@ -144,11 +228,8 @@ valent_battery_gadget_constructed (GObject *object)
                     G_CALLBACK (on_action_enabled_changed),
                     self);
 
-  on_action_enabled_changed (action_group,
-                             "battery.state",
-                             g_action_group_get_action_enabled (action_group,
-                                                                "battery.state"),
-                             self);
+  enabled = g_action_group_get_action_enabled (action_group, "battery.state");
+  on_action_enabled_changed (action_group, "battery.state", enabled, self);
 
   G_OBJECT_CLASS (valent_battery_gadget_parent_class)->constructed (object);
 }

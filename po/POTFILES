@@ -14,6 +14,7 @@ src/libvalent/ui/valent-ui-utils.c
 src/libvalent/ui/valent-window.c
 src/libvalent/ui/valent-window.ui
 src/main.c
+src/plugins/battery/ca.andyholmes.valent.battery.gschema.xml
 src/plugins/battery/battery.plugin.desktop.in
 src/plugins/battery/valent-battery-gadget.c
 src/plugins/battery/valent-battery-plugin.c

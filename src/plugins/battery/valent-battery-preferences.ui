@@ -34,7 +34,7 @@
             <property name="show_enable_switch">True</property>
             <child>
               <object class="AdwActionRow">
-                <property name="title" translatable="yes">Level</property>
+                <property name="title" translatable="yes">Full Battery Level</property>
                 <property name="subtitle" translatable="yes">The level to consider the battery full</property>
                 <child type="suffix">
                   <object class="GtkSpinButton">
@@ -59,7 +59,7 @@
             <property name="show_enable_switch">True</property>
             <child>
               <object class="AdwActionRow">
-                <property name="title" translatable="yes">Level</property>
+                <property name="title" translatable="yes">Low Battery Level</property>
                 <property name="subtitle" translatable="yes">The level to consider the battery low</property>
                 <child type="suffix">
                   <object class="GtkSpinButton">
