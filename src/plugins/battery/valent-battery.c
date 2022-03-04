@@ -18,22 +18,12 @@ struct _ValentBattery
   GDBusProxy   *proxy;
   GCancellable *cancellable;
 
-  unsigned int  charging : 1;
-  int           level;
-  unsigned int  threshold;
+  int           current_charge;
+  gboolean      is_charging;
+  unsigned int  threshold_event;
 };
 
 G_DEFINE_TYPE (ValentBattery, valent_battery, G_TYPE_OBJECT)
-
-enum {
-  PROP_0,
-  PROP_CHARGING,
-  PROP_LEVEL,
-  PROP_THRESHOLD,
-  N_PROPERTIES
-};
-
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 enum {
   CHANGED,
@@ -46,45 +36,205 @@ static ValentBattery *default_battery = NULL;
 
 
 /*
+ * These are a convenient representation of the values returned by UPower D-Bus
+ * service, that would otherwise be opaque integers.
+ *
+ * See: https://upower.freedesktop.org/docs/Device.html
+ */
+enum {
+  UPOWER_KIND_UNKNOWN,
+  UPOWER_KIND_LINE_POWER,
+  UPOWER_KIND_BATTERY,
+  UPOWER_KIND_UPS,
+  UPOWER_KIND_MONITOR,
+  UPOWER_KIND_MOUSE,
+  UPOWER_KIND_KEYBOARD,
+  UPOWER_KIND_PDA,
+  UPOWER_KIND_PHONE,
+};
+
+enum {
+  UPOWER_LEVEL_UNKNOWN,
+  UPOWER_LEVEL_NONE,
+  UPOWER_LEVEL_DISCHARGING,
+  UPOWER_LEVEL_LOW,
+  UPOWER_LEVEL_CRITICAL,
+  UPOWER_LEVEL_ACTION,
+  UPOWER_LEVEL_NORMAL,
+  UPOWER_LEVEL_HIGH,
+  UPOWER_LEVEL_FULL
+};
+
+enum {
+  UPOWER_STATE_UNKNOWN,
+  UPOWER_STATE_CHARGING,
+  UPOWER_STATE_DISCHARGING,
+  UPOWER_STATE_EMPTY,
+  UPOWER_STATE_FULLY_CHARGED,
+  UPOWER_STATE_PENDING_CHARGE,
+  UPOWER_STATE_PENDING_DISCHARGE
+};
+
+
+/*
+ * These are convenience functions for translating UPower states and levels into
+ * values expected by KDE Connect.
+ */
+static inline gboolean
+translate_state (guint32 state)
+{
+  switch (state)
+    {
+    case UPOWER_STATE_CHARGING:
+    case UPOWER_STATE_FULLY_CHARGED:
+    case UPOWER_STATE_PENDING_CHARGE:
+      return TRUE;
+
+    case UPOWER_STATE_DISCHARGING:
+    case UPOWER_STATE_EMPTY:
+    case UPOWER_STATE_PENDING_DISCHARGE:
+      return FALSE;
+
+    default:
+      return FALSE;
+    }
+}
+
+static inline unsigned int
+translate_warning_level (guint32 warning_level)
+{
+  switch (warning_level)
+    {
+    case UPOWER_LEVEL_NONE:
+      return 0;
+
+    case UPOWER_LEVEL_LOW:
+    case UPOWER_LEVEL_CRITICAL:
+    case UPOWER_LEVEL_ACTION:
+      return 1;
+
+    default:
+      return 0;
+    }
+}
+
+/*
  * GDBusProxy
  */
+static void
+valent_battery_load_properties (ValentBattery *self)
+{
+  g_autoptr (GVariant) value = NULL;
+
+  g_assert (VALENT_IS_BATTERY (self));
+
+  if ((value = g_dbus_proxy_get_cached_property (self->proxy, "Percentage")) != NULL)
+    {
+      double percentage = g_variant_get_double (value);
+
+      self->current_charge = floor (percentage);
+      g_clear_pointer (&value, g_variant_unref);
+    }
+
+  if ((value = g_dbus_proxy_get_cached_property (self->proxy, "State")) != NULL)
+    {
+      guint32 state = g_variant_get_uint32 (value);
+
+      self->is_charging = translate_state (state);
+      g_clear_pointer (&value, g_variant_unref);
+    }
+
+  if ((value = g_dbus_proxy_get_cached_property (self->proxy, "WarningLevel")) != NULL)
+    {
+      guint32 warning_level = g_variant_get_uint32 (value);
+
+      self->threshold_event = translate_warning_level (warning_level);
+      g_clear_pointer (&value, g_variant_unref);
+    }
+}
+
 static void
 on_properties_changed (GDBusProxy    *proxy,
                        GVariant      *changed_properties,
                        GStrv          invalidated_properties,
                        ValentBattery *self)
 {
-  double level;
+  gboolean changed = FALSE;
+  gboolean is_present;
+  double percentage;
   guint32 state;
-  guint32 warning;
+  guint32 warning_level;
 
   g_assert (VALENT_IS_BATTERY (self));
 
-  if (g_variant_lookup (changed_properties, "Percentage", "d", &level))
+  /* If the battery was inserted or removed, the properties need to be either
+   * entirely reloaded or reset, respectively. */
+  if (g_variant_lookup (changed_properties, "IsPresent", "b", &is_present))
     {
-      self->level = floor (level);
-      g_object_notify_by_pspec (G_OBJECT (self), properties [PROP_LEVEL]);
+      /* An existing battery was physically inserted */
+      if (is_present && self->current_charge < 0)
+        {
+          valent_battery_load_properties (self);
+          changed = TRUE;
+        }
+
+      /* An existing battery was physically removed */
+      else if (!is_present && self->current_charge >= 0)
+        {
+          self->current_charge = -1;
+          self->is_charging = FALSE;
+          self->threshold_event = 0;
+          changed = TRUE;
+        }
+
+      if (changed)
+        {
+          g_signal_emit (G_OBJECT (self), signals [CHANGED], 0);
+          return;
+        }
+    }
+
+  if (g_variant_lookup (changed_properties, "Percentage", "d", &percentage))
+    {
+      int current_charge = floor (percentage);
+
+      if (self->current_charge != current_charge)
+        {
+          self->current_charge = current_charge;
+          changed = TRUE;
+        }
     }
 
   if (g_variant_lookup (changed_properties, "State", "u", &state))
     {
-      self->charging = state == 1;
-      g_object_notify_by_pspec (G_OBJECT (self), properties [PROP_CHARGING]);
+      gboolean is_charging = translate_state (state);
+
+      if (self->is_charging != is_charging)
+        {
+          self->is_charging = is_charging;
+          changed = TRUE;
+        }
     }
 
-  if (g_variant_lookup (changed_properties, "WarningLevel", "u", &warning))
+  if (g_variant_lookup (changed_properties, "WarningLevel", "u", &warning_level))
     {
-      self->threshold = warning >= 3;
-      g_object_notify_by_pspec (G_OBJECT (self), properties [PROP_THRESHOLD]);
+      unsigned int threshold_event = translate_warning_level (warning_level);
+
+      if (self->threshold_event != threshold_event)
+        {
+          self->threshold_event = threshold_event;
+          changed = TRUE;
+        }
     }
 
-  g_signal_emit (G_OBJECT (self), signals [CHANGED], 0);
+  if (changed)
+    g_signal_emit (G_OBJECT (self), signals [CHANGED], 0);
 }
 
 static void
-new_for_bus_cb (GObject       *object,
-                GAsyncResult  *result,
-                ValentBattery *self)
+g_dbus_proxy_new_for_bus_cb (GObject       *object,
+                             GAsyncResult  *result,
+                             ValentBattery *self)
 {
   g_autoptr (GError) error = NULL;
   g_autoptr (GVariant) type = NULL;
@@ -97,35 +247,24 @@ new_for_bus_cb (GObject       *object,
     }
 
   if ((type = g_dbus_proxy_get_cached_property (self->proxy, "Type")) == NULL ||
-      g_variant_get_uint32 (type) != 2)
+      g_variant_get_uint32 (type) != UPOWER_KIND_BATTERY)
     {
       g_debug ("%s: not a battery", G_OBJECT_TYPE_NAME (self));
       return;
     }
 
-  if ((value = g_dbus_proxy_get_cached_property (self->proxy, "Percentage")) != NULL)
+  if ((value = g_dbus_proxy_get_cached_property (self->proxy, "IsPresent")) != NULL)
     {
-      self->level = floor (g_variant_get_double (value));
-      g_clear_pointer (&value, g_variant_unref);
-    }
+      double is_present = g_variant_get_boolean (value);
 
-  if ((value = g_dbus_proxy_get_cached_property (self->proxy, "State")) != NULL)
-    {
-      self->charging = g_variant_get_uint32 (value) == 1;
-      g_clear_pointer (&value, g_variant_unref);
-    }
-
-  if ((value = g_dbus_proxy_get_cached_property (self->proxy, "WarningLevel")) != NULL)
-    {
-      self->threshold = g_variant_get_uint32 (value) >= 3;
-      g_clear_pointer (&value, g_variant_unref);
+      if (is_present)
+        valent_battery_load_properties (self);
     }
 
   g_signal_connect (self->proxy,
                     "g-properties-changed",
                     G_CALLBACK (on_properties_changed),
                     self);
-
   g_signal_emit (G_OBJECT (self), signals [CHANGED], 0);
 }
 
@@ -154,88 +293,12 @@ valent_battery_finalize (GObject *object)
 }
 
 static void
-valent_battery_get_property (GObject    *object,
-                                  guint       prop_id,
-                                  GValue     *value,
-                                  GParamSpec *pspec)
-{
-  ValentBattery *self = VALENT_BATTERY (object);
-
-  switch (prop_id)
-    {
-    case PROP_CHARGING:
-      g_value_set_boolean (value, self->charging);
-      break;
-
-    case PROP_LEVEL:
-      g_value_set_int (value, self->level);
-      break;
-
-    case PROP_THRESHOLD:
-      g_value_set_uint (value, self->threshold);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_battery_class_init (ValentBatteryClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
   object_class->dispose = valent_battery_dispose;
   object_class->finalize = valent_battery_finalize;
-  object_class->get_property = valent_battery_get_property;
-
-
-  /**
-   * ValentBattery:charging:
-   *
-   * Whether the battery is charging.
-   */
-  properties [PROP_CHARGING] =
-    g_param_spec_boolean ("charging",
-                          "Charging",
-                          "Whether the battery is charging",
-                          FALSE,
-                          (G_PARAM_READABLE |
-                           G_PARAM_EXPLICIT_NOTIFY |
-                           G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentBattery:level:
-   *
-   * The current charge level.
-   */
-  properties [PROP_LEVEL] =
-    g_param_spec_int ("level",
-                      "Level",
-                      "Power Level",
-                      -1, 100,
-                      -1,
-                      (G_PARAM_READABLE |
-                       G_PARAM_EXPLICIT_NOTIFY |
-                       G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentBattery:threshold:
-   *
-   * Whether the battery is below the level considered low.
-   */
-  properties [PROP_THRESHOLD] =
-    g_param_spec_uint ("threshold",
-                       "Threshold",
-                       "Whether the battery is below the level considered low",
-                       0, 1,
-                       0,
-                       (G_PARAM_READABLE |
-                        G_PARAM_EXPLICIT_NOTIFY |
-                        G_PARAM_STATIC_STRINGS));
-
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
-
 
   /**
    * ValentBattery::changed:
@@ -256,9 +319,9 @@ static void
 valent_battery_init (ValentBattery *self)
 {
   self->cancellable = g_cancellable_new ();
-  self->charging = FALSE;
-  self->level = -1;
-  self->threshold = 0;
+  self->current_charge = -1;
+  self->is_charging = FALSE;
+  self->threshold_event = 0;
 
   g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
                             G_DBUS_PROXY_FLAGS_NONE,
@@ -267,7 +330,7 @@ valent_battery_init (ValentBattery *self)
                             "/org/freedesktop/UPower/devices/DisplayDevice",
                             "org.freedesktop.UPower.Device",
                             self->cancellable,
-                            (GAsyncReadyCallback)new_for_bus_cb,
+                            (GAsyncReadyCallback)g_dbus_proxy_new_for_bus_cb,
                             self);
 }
 
@@ -293,50 +356,59 @@ valent_battery_get_default (void)
 }
 
 /**
- * valent_battery_get_charging:
- * @battery: a #ValentBattery
- *
- * Get whether the battery is charging.
- *
- * Returns: %TRUE if the battery is charging
- */
-gboolean
-valent_battery_get_charging (ValentBattery *battery)
-{
-  g_return_val_if_fail (VALENT_IS_BATTERY (battery), -1);
-
-  return battery->charging;
-}
-
-/**
- * valent_battery_get_level:
+ * valent_battery_current_charge:
  * @battery: a #ValentBattery
  *
  * Get the charge level of @battery.
  *
- * Returns: a charge level
+ * The value returned by this method is a simplification of a UPower device
+ * battery percentage, useful for KDE Connect clients.
+ *
+ * Returns: a charge percentage, or `-1` if unavailable
  */
 int
-valent_battery_get_level (ValentBattery *battery)
+valent_battery_current_charge (ValentBattery *battery)
 {
   g_return_val_if_fail (VALENT_IS_BATTERY (battery), -1);
 
-  return battery->level;
+  return battery->current_charge;
 }
 
 /**
- * valent_battery_get_threshold:
+ * valent_battery_is_charging:
  * @battery: a #ValentBattery
  *
- * Get whether the battery is below the level considered low for @battery.
+ * Get whether the battery is charging.
  *
- * Returns: `1` if below the threshold, or `0` otherwise
+ * The value returned by this method is a simplification of a UPower device
+ * state to a value useful for KDE Connect clients.
+ *
+ * Returns: %TRUE if the battery is charging
+ */
+gboolean
+valent_battery_is_charging (ValentBattery *battery)
+{
+  g_return_val_if_fail (VALENT_IS_BATTERY (battery), FALSE);
+
+  return battery->is_charging;
+}
+
+/**
+ * valent_battery_is_charging:
+ * @battery: a #ValentBattery
+ *
+ * Get whether the battery is charging.
+ *
+ * The value returned by this method is a simplification of a UPower device
+ * level to a value useful for KDE Connect clients.
+ *
+ * Returns: `1` if the level is below the threshold, `0` otherwise
  */
 unsigned int
-valent_battery_get_threshold (ValentBattery *battery)
+valent_battery_threshold_event (ValentBattery *battery)
 {
-  g_return_val_if_fail (VALENT_IS_BATTERY (battery), 0);
+  g_return_val_if_fail (VALENT_IS_BATTERY (battery), FALSE);
 
-  return battery->threshold;
+  return battery->threshold_event;
 }
 
