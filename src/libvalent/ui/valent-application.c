@@ -233,8 +233,11 @@ valent_application_dbus_unregister (GApplication    *application,
 
   g_assert (VALENT_IS_APPLICATION (self));
 
-  valent_device_manager_unexport (self->manager);
-  g_clear_object (&self->manager);
+  if (self->manager != NULL)
+    {
+      valent_device_manager_unexport (self->manager);
+      g_clear_object (&self->manager);
+    }
 
   /* Chain-up last */
   klass->dbus_unregister (application, connection, object_path);
