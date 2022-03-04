@@ -48,6 +48,7 @@ class UPowerTestFixture(glibtest.GLibTestCase, dbusmock.DBusTestCase):
         self.dbusmock.SetDeviceProperties(
             '/org/freedesktop/UPower/devices/DisplayDevice',
             {
+                'IsPresent': dbus.Boolean(True, variant_level=1),
                 'Type': dbus.UInt32(2, variant_level=1)
             })
 

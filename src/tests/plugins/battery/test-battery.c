@@ -9,93 +9,165 @@
 
 #define DEVICE_PATH "/org/freedesktop/UPower/devices/DisplayDevice"
 
+enum {
+  UPOWER_LEVEL_UNKNOWN,
+  UPOWER_LEVEL_NONE,
+  UPOWER_LEVEL_DISCHARGING,
+  UPOWER_LEVEL_LOW,
+  UPOWER_LEVEL_CRITICAL,
+  UPOWER_LEVEL_ACTION,
+  UPOWER_LEVEL_NORMAL,
+  UPOWER_LEVEL_HIGH,
+  UPOWER_LEVEL_FULL
+};
+
+enum {
+  UPOWER_STATE_UNKNOWN,
+  UPOWER_STATE_CHARGING,
+  UPOWER_STATE_DISCHARGING,
+  UPOWER_STATE_EMPTY,
+  UPOWER_STATE_FULLY_CHARGED,
+  UPOWER_STATE_PENDING_CHARGE,
+  UPOWER_STATE_PENDING_DISCHARGE
+};
+
 
 static void
-on_battery_changed (unsigned int  *count)
+set_device_properties (GDBusConnection *connection,
+                       gboolean         is_present,
+                       double           percentage,
+                       guint32          state,
+                       guint32          warning_level)
 {
-  *count += 1;
-}
-
-static void
-on_battery_ready (unsigned int  *ready)
-{
-  *ready = TRUE;
-}
-
-static void
-test_battery_proxy (void)
-{
-  g_autoptr (ValentBattery) battery = NULL;
-  g_autoptr (GDBusConnection) connection = NULL;
-  gboolean ready = 0;
-  unsigned int count = 0;
   GVariantDict dict;
-  GVariant *args;
-  gboolean charging;
-  int level;
-  unsigned int threshold;
-
-  /* Setup the battery */
-  battery = valent_battery_get_default ();
-  g_signal_connect_swapped (battery,
-                            "changed",
-                            G_CALLBACK (on_battery_ready),
-                            &ready);
-
-  // NOTE: ValentBattery emits ::changed once when it initializes properties
-  while (!ready)
-    g_main_context_iteration (NULL, FALSE);
-
-  /* Initial Properties */
-  charging = valent_battery_get_charging (battery);
-  level = valent_battery_get_level (battery);
-  threshold = valent_battery_get_threshold (battery);
-
-  g_assert_false (charging);
-  g_assert_cmpint (level, ==, 0);
-  g_assert_cmpint (threshold, ==, 0);
-
-  /* Change Properties */
-  g_signal_connect_swapped (battery,
-                            "notify",
-                            G_CALLBACK (on_battery_changed),
-                            &count);
 
   g_variant_dict_init (&dict, NULL);
-  g_variant_dict_insert (&dict, "Percentage", "d", 42.0);
-  g_variant_dict_insert (&dict, "State", "u", 1);
-  g_variant_dict_insert (&dict, "WarningLevel", "u", 3);
-  args = g_variant_new ("(o@a{sv})", DEVICE_PATH, g_variant_dict_end (&dict));
+  g_variant_dict_insert (&dict, "IsPresent", "b", is_present);
+  g_variant_dict_insert (&dict, "Percentage", "d", percentage);
+  g_variant_dict_insert (&dict, "State", "u", state);
+  g_variant_dict_insert (&dict, "WarningLevel", "u", warning_level);
 
-  connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL);
   g_dbus_connection_call (connection,
                           "org.freedesktop.UPower",
                           "/org/freedesktop/UPower",
                           "org.freedesktop.DBus.Mock",
                           "SetDeviceProperties",
-                          args,
+                          g_variant_new ("(o@a{sv})",
+                                         DEVICE_PATH,
+                                         g_variant_dict_end (&dict)),
                           NULL,
                           G_DBUS_CALL_FLAGS_NONE,
                           -1,
                           NULL,
                           NULL,
                           NULL);
+}
 
-  // NOTE: we expect an emission for each property that's changed
-  while (count != 3)
-    g_main_context_iteration (NULL, FALSE);
+static void
+test_battery_proxy (void)
+{
+  g_autoptr (GMainLoop) loop = NULL;
+  g_autoptr (ValentBattery) battery = NULL;
+  g_autoptr (GDBusConnection) connection = NULL;
 
-  g_object_get (battery,
-                "charging",  &charging,
-                "level",     &level,
-                "threshold", &threshold,
-                NULL);
-  g_assert_true (charging);
-  g_assert_cmpint (level, ==, 42);
-  g_assert_cmpint (threshold, ==, 1);
+  /* Setup the battery */
+  loop = g_main_loop_new (NULL, FALSE);
+  battery = valent_battery_get_default ();
+  connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL);
 
-  g_signal_handlers_disconnect_by_data (battery, &count);
-  g_signal_handlers_disconnect_by_data (battery, &ready);
+  g_signal_connect_swapped (battery,
+                            "changed",
+                            G_CALLBACK (g_main_loop_quit),
+                            loop);
+
+  /* Initial State */
+  g_assert_cmpint (valent_battery_current_charge (battery), ==, -1);
+  g_assert_false (valent_battery_is_charging (battery));
+  g_assert_cmpuint (valent_battery_threshold_event (battery), ==, 0);
+
+  // NOTE: ValentBattery emits ::changed once when it initializes properties
+  g_main_loop_run (loop);
+
+  /* Initial Properties */
+  g_assert_cmpint (valent_battery_current_charge (battery), ==, 0);
+  g_assert_false (valent_battery_is_charging (battery));
+  g_assert_cmpuint (valent_battery_threshold_event (battery), ==, 0);
+
+  /* Percentage */
+  set_device_properties (connection, TRUE, 42.0, 0, 0);
+  g_main_loop_run (loop);
+  g_assert_cmpint (valent_battery_current_charge (battery), ==, 42);
+
+  set_device_properties (connection, TRUE, 0.0, 0, 0);
+  g_main_loop_run (loop);
+  g_assert_cmpint (valent_battery_current_charge (battery), ==, 0);
+
+
+  /* Check device states correspend to correct `isCharging` values */
+  set_device_properties (connection, TRUE, 0.0, UPOWER_STATE_CHARGING, 0);
+  g_main_loop_run (loop);
+  g_assert_true (valent_battery_is_charging (battery));
+
+  set_device_properties (connection, TRUE, 0.0, UPOWER_STATE_DISCHARGING, 0);
+  g_main_loop_run (loop);
+  g_assert_false (valent_battery_is_charging (battery));
+
+  set_device_properties (connection, TRUE, 0.0, UPOWER_STATE_PENDING_CHARGE, 0);
+  g_main_loop_run (loop);
+  g_assert_true (valent_battery_is_charging (battery));
+
+  set_device_properties (connection, TRUE, 0.0, UPOWER_STATE_PENDING_DISCHARGE, 0);
+  g_main_loop_run (loop);
+  g_assert_false (valent_battery_is_charging (battery));
+
+  set_device_properties (connection, TRUE, 0.0, UPOWER_STATE_FULLY_CHARGED, 0);
+  g_main_loop_run (loop);
+  g_assert_true (valent_battery_is_charging (battery));
+
+  set_device_properties (connection, TRUE, 0.0, UPOWER_STATE_EMPTY, 0);
+  g_main_loop_run (loop);
+  g_assert_false (valent_battery_is_charging (battery));
+
+
+  /* Check warning levels correspond to correct `thresholdEvent` values */
+  set_device_properties (connection, TRUE, 0.0, 0, UPOWER_LEVEL_LOW);
+  g_main_loop_run (loop);
+  g_assert_cmpuint (valent_battery_threshold_event (battery), ==, 1);
+
+  set_device_properties (connection, TRUE, 0.0, 0, UPOWER_LEVEL_NONE);
+  g_main_loop_run (loop);
+  g_assert_cmpuint (valent_battery_threshold_event (battery), ==, 0);
+
+  set_device_properties (connection, TRUE, 0.0, 0, UPOWER_LEVEL_CRITICAL);
+  g_main_loop_run (loop);
+  g_assert_cmpuint (valent_battery_threshold_event (battery), ==, 1);
+
+  set_device_properties (connection, TRUE, 0.0, 0, UPOWER_LEVEL_NONE);
+  g_main_loop_run (loop);
+  g_assert_cmpuint (valent_battery_threshold_event (battery), ==, 0);
+
+  set_device_properties (connection, TRUE, 0.0, 0, UPOWER_LEVEL_ACTION);
+  g_main_loop_run (loop);
+  g_assert_cmpuint (valent_battery_threshold_event (battery), ==, 1);
+
+
+  /* Check battery insertion/removal is handled */
+  set_device_properties (connection, FALSE, 0.0, 0, 0);
+  g_main_loop_run (loop);
+
+  g_assert_cmpint (valent_battery_current_charge (battery), ==, -1);
+  g_assert_false (valent_battery_is_charging (battery));
+  g_assert_cmpuint (valent_battery_threshold_event (battery), ==, 0);
+
+  set_device_properties (connection, TRUE, 0.0, 0, 0);
+  g_main_loop_run (loop);
+
+  g_assert_cmpint (valent_battery_current_charge (battery), ==, 0);
+  g_assert_false (valent_battery_is_charging (battery));
+  g_assert_cmpuint (valent_battery_threshold_event (battery), ==, 0);
+
+
+  g_signal_handlers_disconnect_by_data (battery, loop);
 }
 
 int

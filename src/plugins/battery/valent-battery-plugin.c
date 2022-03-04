@@ -58,8 +58,7 @@ on_battery_changed (ValentBattery       *battery,
   g_assert (VALENT_IS_BATTERY (battery));
   g_assert (VALENT_IS_BATTERY_PLUGIN (self));
 
-  if (valent_battery_get_level (battery) > 0)
-    valent_battery_plugin_send_state (self);
+  valent_battery_plugin_send_state (self);
 }
 
 static void
@@ -77,9 +76,9 @@ valent_battery_plugin_watch_battery (ValentBatteryPlugin *self,
   if (watch)
     {
       g_signal_connect (self->battery,
-                       "changed",
-                       G_CALLBACK (on_battery_changed),
-                       self);
+                        "changed",
+                        G_CALLBACK (on_battery_changed),
+                        self);
       self->battery_watch = TRUE;
     }
   else
@@ -105,19 +104,26 @@ valent_battery_plugin_send_state (ValentBatteryPlugin *self)
 {
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
+  int current_charge;
+  gboolean is_charging;
+  unsigned int threshold_event;
 
   g_return_if_fail (VALENT_IS_BATTERY_PLUGIN (self));
 
   if (!g_settings_get_boolean (self->settings, "share-state"))
     return;
 
+  current_charge = valent_battery_current_charge (self->battery);
+  is_charging = valent_battery_is_charging (self->battery);
+  threshold_event = valent_battery_threshold_event (self->battery);
+
   builder = valent_packet_start ("kdeconnect.battery");
   json_builder_set_member_name (builder, "currentCharge");
-  json_builder_add_int_value (builder, valent_battery_get_level (self->battery));
+  json_builder_add_int_value (builder, current_charge);
   json_builder_set_member_name (builder, "isCharging");
-  json_builder_add_boolean_value (builder, valent_battery_get_charging (self->battery));
+  json_builder_add_boolean_value (builder, is_charging);
   json_builder_set_member_name (builder, "thresholdEvent");
-  json_builder_add_int_value (builder, valent_battery_get_threshold (self->battery));
+  json_builder_add_int_value (builder, threshold_event);
   packet = valent_packet_finish (builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
