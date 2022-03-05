@@ -46,6 +46,27 @@ jobs:
           yamllint --config-file src/tests/extra/yamllint.yml \
                    $(git ls-files '*.yml')
 
+  abicheck:
+    name: ABI Compliance
+    needs: [lint]
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/andyholmes/valent:latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: Compare
+        env:
+          STABLE_REF: e027b457afd009c6b60483aa0a067abb796871b2
+          COMMIT_REF: ${{ github.event.pull_request.head.sha }}
+        run: |
+          ./src/tests/extra/abicheck.py ${STABLE_REF} ${COMMIT_REF}
+
   test:
     name: Unit Tests
     needs: [lint]
