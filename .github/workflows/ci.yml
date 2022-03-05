@@ -1,8 +1,6 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
 
@@ -101,7 +99,7 @@ jobs:
                      --repeat=5 \
                      --suite=valent
 
-      - name: Report
+      - name: Test Report
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
@@ -145,22 +143,13 @@ jobs:
                   --branch-coverage \
                   _build/meson-logs/coverage.info
 
-      - name: Coverage (Report)
+      - name: Coverage Report
         if: ${{ matrix.coverage }}
         continue-on-error: true
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: ${{ github.workspace }}/_build/meson-logs/coverage.info
-
-      - name: Coverage (Deploy)
-        if: ${{ github.ref == 'refs/heads/main' && matrix.coverage }}
-        uses: JamesIves/github-pages-deploy-action@releases/v4
-        with:
-          branch: gh-pages
-          commit-message: Coverage Report
-          folder: _build/meson-logs/coverage-html
-          target-folder: coverage
 
   sanitizer:
     name: Sanitizer
@@ -215,71 +204,3 @@ jobs:
         with:
           name: Sanitizer (${{ matrix.sanitizer }})
           path: _build/meson-logs/testlog.txt
-
-  documentation:
-    if: ${{ github.ref == 'refs/heads/main' }}
-    name: Documentation
-    needs: [test, sanitizer]
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/andyholmes/valent:latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          submodules: true
-
-      - name: Build
-        run: |
-          meson setup --buildtype=release \
-                      -Ddocumentation=true \
-                      _build
-          meson compile -C _build
-
-      - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@releases/v4
-        with:
-          branch: gh-pages
-          commit-message: API Reference
-          folder: _build/doc/sdk/valent
-          target-folder: documentation
-
-  flatpak:
-    if: ${{ github.ref == 'refs/heads/main' }}
-    name: Flatpak
-    needs: [test, sanitizer]
-    runs-on: ubuntu-latest
-    container:
-      image: bilelmoussaoui/flatpak-github-actions:gnome-41
-      options: --privileged
-
-    strategy:
-      matrix:
-        arch: [x86_64, aarch64]
-      fail-fast: false
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          submodules: true
-
-      - name: Prepare Docker
-        if: ${{ matrix.arch == 'aarch64' }}
-        run: |
-          dnf -y install docker
-
-      - name: Prepare QEMU
-        if: ${{ matrix.arch == 'aarch64' }}
-        id: qemu
-        uses: docker/setup-qemu-action@v1
-        with:
-          platforms: arm64
-
-      - name: Build
-        uses: bilelmoussaoui/flatpak-github-actions/flatpak-builder@v4
-        with:
-          arch: ${{ matrix.arch }}
-          bundle: ca.andyholmes.Valent.flatpak
-          manifest-path: build-aux/flatpak/ca.andyholmes.Valent.json
