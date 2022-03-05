@@ -1,0 +1,150 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/andyholmes/valent:latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Build
+        run: |
+          meson setup --buildtype=debugoptimized \
+                      -Db_coverage=true \
+                      -Dplugin_bluez=true \
+                      -Dtests=true \
+                      _build
+          meson compile -C _build
+
+      - name: Test
+        run: |
+          dbus-run-session -- \
+          xvfb-run -a -s '-screen 0 1024x768x24' \
+          meson test -C _build \
+                     --print-errorlogs \
+                     --suite=valent
+
+      - name: Generate
+        env:
+          WORKSPACE: ${{ github.workspace }}
+        run: |
+          lcov --directory _build \
+               --capture \
+               --initial \
+               --output-file _build/meson-logs/coverage.p1
+          lcov --directory _build \
+               --capture \
+               --no-checksum \
+               --rc lcov_branch_coverage=1 \
+               --output-file _build/meson-logs/coverage.p2
+          lcov --add-tracefile _build/meson-logs/coverage.p1 \
+               --add-tracefile _build/meson-logs/coverage.p2 \
+               --rc lcov_branch_coverage=1 \
+               --output-file _build/meson-logs/coverage.info
+
+          lcov --extract _build/meson-logs/coverage.info \
+               "${WORKSPACE}/src/*" \
+               --rc lcov_branch_coverage=1 \
+               --output-file _build/meson-logs/coverage.info
+          lcov --remove _build/meson-logs/coverage.info \
+               '*/src/tests/*' \
+               '*/subprojects/*' \
+               --rc lcov_branch_coverage=1 \
+               --output-file _build/meson-logs/coverage.info
+
+          genhtml --prefix "${WORKSPACE}" \
+                  --output-directory _build/meson-logs/coverage-html \
+                  --title 'Code Coverage' \
+                  --legend \
+                  --show-details \
+                  --branch-coverage \
+                  _build/meson-logs/coverage.info
+
+      - name: Report
+        continue-on-error: true
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: ${{ github.workspace }}/_build/meson-logs/coverage.info
+
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@releases/v4
+        with:
+          branch: gh-pages
+          commit-message: Coverage Report
+          folder: _build/meson-logs/coverage-html
+          target-folder: coverage
+
+  documentation:
+    name: Documentation
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/andyholmes/valent:latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Build
+        run: |
+          meson setup --buildtype=release \
+                      -Ddocumentation=true \
+                      _build
+          meson compile -C _build
+
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@releases/v4
+        with:
+          branch: gh-pages
+          commit-message: API Reference
+          folder: _build/doc/sdk/valent
+          target-folder: documentation
+
+  flatpak:
+    name: Flatpak
+    runs-on: ubuntu-latest
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:gnome-41
+      options: --privileged
+
+    strategy:
+      matrix:
+        arch: [x86_64, aarch64]
+      fail-fast: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Prepare Docker
+        if: ${{ matrix.arch == 'aarch64' }}
+        run: |
+          dnf -y install docker
+
+      - name: Prepare QEMU
+        if: ${{ matrix.arch == 'aarch64' }}
+        id: qemu
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: arm64
+
+      - name: Build
+        uses: bilelmoussaoui/flatpak-github-actions/flatpak-builder@v4
+        with:
+          arch: ${{ matrix.arch }}
+          bundle: ca.andyholmes.Valent.flatpak
+          manifest-path: build-aux/flatpak/ca.andyholmes.Valent.json
