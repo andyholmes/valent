@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 # Require libportal
-libportal_dep = dependency('libportal', version: '>= 0.4', required: false)
+libportal_dep = dependency('libportal', version: '0.4', required: false)
 
 if not libportal_dep.found()
   error('libportal required for XDP plugin')
