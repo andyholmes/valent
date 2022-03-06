@@ -14,7 +14,7 @@ Summary:        Connect, control and sync devices
 
 License:        GPLv3+
 URL:            https://github.com/andyholmes/%{name}
-Source0:        %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
+Source0:        %{url}/archive/v%{version}/%{name}-%{tarball_version}.tar.gz
 
 BuildRequires:  firewalld-filesystem
 BuildRequires:  gcc
@@ -66,7 +66,7 @@ The %{name}-devel package contains libraries and header files for
 developing plugins for %{name}.
 
 %prep
-%autosetup -p1
+%autosetup -p1 -n %{name}-%{tarball_version}
 
 %build
 %meson --buildtype=release -Ddocumentation=true -Dfirewalld=true
@@ -77,9 +77,8 @@ developing plugins for %{name}.
 %find_lang %{name}
 
 %check
-%meson_test
-#desktop-file-validate %{buildroot}%{_datadir}/applications/ca.andyholmes.Valent.desktop
-#appstream-util validate-relax --nonet %{buildroot}%{_datadir}/metainfo/ca.andyholmes.Valent.appdata.xml
+appstream-util validate-relax --nonet %{buildroot}%{_metainfodir}/*.xml
+desktop-file-validate %{buildroot}%{_datadir}/applications/*.desktop
 
 %post
 %firewalld_reload
@@ -108,7 +107,7 @@ developing plugins for %{name}.
 %{_includedir}/valent*/
 
 %changelog
-* Tue Jan 4 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> - 0.1.0-1
+* Sun Mar 6 2022 Andy Holmes <andrew.g.r.holmes@gmail.com> - 1.0.0~alpha
 
 - Initial packaging
 
