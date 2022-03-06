@@ -14,6 +14,8 @@
 #include "valent-notification-dialog.h"
 #include "valent-notification-plugin.h"
 
+#define DEFAULT_ICON_SIZE 512
+
 
 struct _ValentNotificationPlugin
 {
@@ -136,8 +138,8 @@ get_icon_theme (void)
 }
 
 static int
-get_largest_icon (GtkIconTheme *theme,
-                  const char   *name)
+_gtk_icon_theme_get_largest_icon (GtkIconTheme *theme,
+                                  const char   *name)
 {
   g_autofree int *sizes = NULL;
   int ret = 0;
@@ -177,10 +179,16 @@ get_largest_icon_file (GIcon *icon)
     {
       int size;
 
-      if ((size = get_largest_icon (theme, names[i])) == 0)
+      if ((size = _gtk_icon_theme_get_largest_icon (theme, names[i])) == 0)
         continue;
 
-      info = gtk_icon_theme_lookup_by_gicon (theme, icon, size, 1, GTK_TEXT_DIR_NONE, 0);
+      info = gtk_icon_theme_lookup_icon (theme,
+                                         names[i],
+                                         NULL,
+                                         size,
+                                         1,
+                                         GTK_TEXT_DIR_NONE,
+                                         0);
 
       if (info != NULL)
         return gtk_icon_paintable_get_file (info);
@@ -197,14 +205,19 @@ on_size_prepared (GdkPixbufLoader *loader,
 {
   GdkPixbufFormat *format = gdk_pixbuf_loader_get_format (loader);
 
-  if (gdk_pixbuf_format_is_scalable (format))
-    gdk_pixbuf_loader_set_size (loader, 512, 512);
+  if (!gdk_pixbuf_format_is_scalable (format))
+    return;
+
+  if (width >= DEFAULT_ICON_SIZE || height >= DEFAULT_ICON_SIZE)
+    return;
+
+  gdk_pixbuf_loader_set_size (loader, DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE);
 }
 
 static GBytes *
-icon_to_png_bytes (GIcon         *icon,
-                   GCancellable  *cancellable,
-                   GError       **error)
+_g_icon_get_png (GIcon         *icon,
+                 GCancellable  *cancellable,
+                 GError       **error)
 {
   g_autoptr (GBytes) bytes = NULL;
   g_autoptr (GdkPixbufLoader) loader = NULL;
@@ -214,6 +227,7 @@ icon_to_png_bytes (GIcon         *icon,
 
   g_assert (G_IS_ICON (icon));
 
+  /* First try to get the bytes of the GIcon, and attempt to load a pixbuf */
   if (G_IS_THEMED_ICON (icon))
     {
       g_autoptr (GFile) file = NULL;
@@ -243,23 +257,16 @@ icon_to_png_bytes (GIcon         *icon,
       GBytes *buffer;
 
       buffer = g_bytes_icon_get_bytes (G_BYTES_ICON (icon));
-
-      if (buffer != NULL)
-        bytes = g_bytes_ref (buffer);
+      bytes = g_bytes_ref (buffer);
     }
 
   if (bytes == NULL)
-    {
-      g_set_error (error,
-                   G_IO_ERROR,
-                   G_IO_ERROR_FAILED,
-                   "Failed to load bytes from icon");
-      return NULL;
-    }
+    return NULL;
 
-  /* Try to load the icon bytes */
+  /* Now attempt to load the bytes as a pixbuf */
   loader = gdk_pixbuf_loader_new ();
-  g_signal_connect (G_OBJECT (loader),
+
+  g_signal_connect (loader,
                     "size-prepared",
                     G_CALLBACK (on_size_prepared),
                     NULL);
@@ -772,7 +779,7 @@ valent_notification_plugin_send_notification_with_icon (ValentNotificationPlugin
       g_autoptr (GBytes) bytes = NULL;
       g_autoptr (GError) error = NULL;
 
-      bytes = icon_to_png_bytes (icon, NULL, &error);
+      bytes = _g_icon_get_png (icon, NULL, &error);
 
       if (bytes != NULL)
         {
@@ -780,11 +787,12 @@ valent_notification_plugin_send_notification_with_icon (ValentNotificationPlugin
           valent_transfer_execute (transfer, NULL, NULL, NULL);
           return;
         }
-      else
-        g_debug ("Converting icon to PNG: %s", error->message);
+
+      g_debug ("Converting icon to PNG: %s", error->message);
     }
 
-  // FIXME: convert to GFile -> GBytes
+  /* NOTE: If we reach this point, something went wrong and we're about to
+   *       upload an icon in a format that may not be supported. */
   if (G_IS_BYTES_ICON (icon))
     {
       GBytes *bytes;
@@ -813,7 +821,12 @@ valent_notification_plugin_send_notification_with_icon (ValentNotificationPlugin
         {
           g_autoptr (GtkIconPaintable) info = NULL;
 
-          info = gtk_icon_theme_lookup_by_gicon (theme, icon, -1, 1, GTK_TEXT_DIR_NONE, 0);
+          info = gtk_icon_theme_lookup_by_gicon (theme,
+                                                 icon,
+                                                 DEFAULT_ICON_SIZE,
+                                                 1,
+                                                 GTK_TEXT_DIR_NONE,
+                                                 0);
 
           if (info != NULL)
             {
