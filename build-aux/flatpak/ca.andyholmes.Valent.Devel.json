@@ -49,10 +49,7 @@
     },
     "build-options" : {
         "cflags" : "-O2 -g",
-        "cxxflags" : "-O2 -g",
-        "env" : {
-            "V" : "1"
-        }
+        "cxxflags" : "-O2 -g"
     },
     "cleanup" : [
         "/include",
@@ -66,7 +63,9 @@
     "modules" : [
         {
             "name" : "intltool",
-            "buildsystem" : "autotools",
+            "cleanup" : [
+                "*"
+            ],
             "sources" : [
                 {
                     "type" : "archive",

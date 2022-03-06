@@ -38,13 +38,6 @@
             "autodelete" : true
         }
     },
-    "build-options" : {
-        "cflags" : "-O2 -g",
-        "cxxflags" : "-O2 -g",
-        "env" : {
-            "V" : "1"
-        }
-    },
     "cleanup" : [
         "/include",
         "/lib/pkgconfig",
@@ -57,7 +50,9 @@
     "modules" : [
         {
             "name" : "intltool",
-            "buildsystem" : "autotools",
+            "cleanup" : [
+                "*"
+            ],
             "sources" : [
                 {
                     "type" : "archive",
@@ -82,9 +77,9 @@
             ],
             "sources" : [
                 {
-                    "type" : "git",
-                    "url" : "https://github.com/libical/libical.git",
-                    "branch" : "3.0"
+                    "type" : "archive",
+                    "url" : "https://github.com/libical/libical/releases/download/v3.0.10/libical-3.0.10.tar.gz",
+                    "sha256" : "f933b3e6cf9d56a35bb5625e8e4a9c3a50239a85aea05ed842932c1a1dc336b4"
                 }
             ]
         },
