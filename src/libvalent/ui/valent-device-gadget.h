@@ -7,6 +7,7 @@
 # error "Only <libvalent-ui.h> can be included directly."
 #endif
 
+#include <gtk/gtk.h>
 #include <libvalent-core.h>
 
 G_BEGIN_DECLS
@@ -14,7 +15,7 @@ G_BEGIN_DECLS
 #define VALENT_TYPE_DEVICE_GADGET (valent_device_gadget_get_type ())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_INTERFACE (ValentDeviceGadget, valent_device_gadget, VALENT, DEVICE_GADGET, GObject)
+G_DECLARE_INTERFACE (ValentDeviceGadget, valent_device_gadget, VALENT, DEVICE_GADGET, GtkWidget)
 
 struct _ValentDeviceGadgetInterface
 {

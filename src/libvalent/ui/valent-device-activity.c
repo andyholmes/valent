@@ -5,25 +5,22 @@
 
 #include "config.h"
 
-#include <glib-object.h>
+#include <gtk/gtk.h>
+#include <libvalent-core.h>
 
 #include "valent-device-activity.h"
 
 
 /**
- * SECTION:valentdeviceactivity
- * @short_description: Interface for device activity widgets
- * @title: ValentDeviceActivity
- * @stability: Unstable
+ * ValentDeviceActivity:
  *
- * The #ValentDeviceActivity interface is typically implemented by device
- * plugins that need a large widget to display controls.
+ * An interface for large device widgets.
  *
- * A consumer of #ValentDeviceActivity widgets should typically present these
- * as pages in a #GtkStack or the content of a #GtkDialog.
+ * #ValentDeviceActivity is an interface for plugins that want a large widget to
+ * display controls, such as a media player remote.
  */
 
-G_DEFINE_INTERFACE (ValentDeviceActivity, valent_device_activity, G_TYPE_OBJECT)
+G_DEFINE_INTERFACE (ValentDeviceActivity, valent_device_activity, GTK_TYPE_WIDGET)
 
 /**
  * ValentDeviceActivityInterface:
@@ -35,14 +32,14 @@ static void
 valent_device_activity_default_init (ValentDeviceActivityInterface *iface)
 {
   /**
-   * ValentDeviceActivity:extension:
+   * ValentDeviceActivity:device:
    *
-   * The #ValentExtension this configures.
+   * The [class@Valent.Device] this activity is for.
    */
   g_object_interface_install_property (iface,
                                        g_param_spec_object ("device",
                                                             "Device",
-                                                            "Device",
+                                                            "The device this activity is for",
                                                             G_TYPE_OBJECT,
                                                             (G_PARAM_READWRITE |
                                                              G_PARAM_CONSTRUCT_ONLY |

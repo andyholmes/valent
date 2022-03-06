@@ -5,27 +5,22 @@
 
 #include "config.h"
 
-#include <glib-object.h>
+#include <gtk/gtk.h>
 #include <libvalent-core.h>
 
 #include "valent-device-gadget.h"
 
 
 /**
- * SECTION:valentdevicegadget
- * @short_description: Interface for device plugin widgets
- * @title: ValentDeviceGadget
- * @stability: Unstable
- * @include: libvalent-ui.h
+ * ValentDeviceGadget:
  *
- * The #ValentDeviceGadget interface is typically implemented by device
- * plugins that need a small widget to display controls.
+ * An interface for small device widgets.
  *
- * A consumer of #ValentDeviceGadget widgets should typically present these
- * as items in an action bar or toolbar.
+ * #ValentDeviceGadget is an interface for plugins that want a small widget to
+ * display controls, such as a battery level icon.
  */
 
-G_DEFINE_INTERFACE (ValentDeviceGadget, valent_device_gadget, G_TYPE_OBJECT)
+G_DEFINE_INTERFACE (ValentDeviceGadget, valent_device_gadget, GTK_TYPE_WIDGET)
 
 /**
  * ValentDeviceGadgetInterface:
@@ -37,14 +32,14 @@ static void
 valent_device_gadget_default_init (ValentDeviceGadgetInterface *iface)
 {
   /**
-   * ValentDeviceGadget:extension:
+   * ValentDeviceGadget:device:
    *
-   * The #ValentExtension this configures.
+   * The [class@Valent.Device] this gadget is for.
    */
   g_object_interface_install_property (iface,
                                        g_param_spec_object ("device",
                                                             "Device",
-                                                            "Device",
+                                                            "The device this gadget is for",
                                                             G_TYPE_OBJECT,
                                                             (G_PARAM_READWRITE |
                                                              G_PARAM_CONSTRUCT_ONLY |
