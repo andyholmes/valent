@@ -12,7 +12,7 @@ test_photo_plugin_basic (ValentTestPluginFixture *fixture,
 {
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
 
-  g_assert_true (g_action_group_has_action (actions, "photo.photo"));
+  g_assert_true (g_action_group_has_action (actions, "photo.request"));
 }
 
 static void
@@ -26,10 +26,10 @@ test_photo_plugin_send_request (ValentTestPluginFixture *fixture,
 
   valent_test_plugin_fixture_connect (fixture, TRUE);
 
-  g_assert_true (g_action_group_get_action_enabled (actions, "photo.photo"));
+  g_assert_true (g_action_group_get_action_enabled (actions, "photo.request"));
 
   /* Request a photo from the endpoint */
-  g_action_group_activate_action (actions, "photo.photo", NULL);
+  g_action_group_activate_action (actions, "photo.request", NULL);
 
   packet = valent_test_plugin_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.photo.request");
