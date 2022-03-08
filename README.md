@@ -1,4 +1,4 @@
-[![CI](https://github.com/andyholmes/valent/actions/workflows/ci.yml/badge.svg)](https://github.com/andyholmes/valent/actions/workflows/ci.yml)
+[![CD](https://github.com/andyholmes/valent/actions/workflows/cd.yml/badge.svg)](https://github.com/andyholmes/valent/actions/workflows/cd.yml)
 [![Coverage](https://coveralls.io/repos/github/andyholmes/valent/badge.svg?branch=main)](https://andyholmes.ca/valent/coverage/index.html)
 [![API](https://img.shields.io/badge/API-unstable-yellow)](https://andyholmes.ca/valent/documentation/index.html)
 
@@ -26,14 +26,15 @@ Valent is an implementation of the [KDE Connect][kdeconnect] protocol, built on
 
 This is not (yet) a public project, meaning:
 
-* There are no releases or builds
-* Bug reports, features requests and code submissions are not accepted
+* There are no stable releases
+* Bug reports, features requests and contributions are not accepted
 * It is untested, unstable and unsupported
 
-If you choose to distribute or run this program, you take responsibility for
-providing support.
+There are automated builds available for testing purposes. Flatpak packages are
+built for [x86_64][flatpak-x86_64] and [aarch64][flatpak-aarch64].
 
-
+[flatpak-aarch64]: https://nightly.link/andyholmes/valent/workflows/cd/main/ca.andyholmes.Valent-aarch64.zip
+[flatpak-x86_64]: https://nightly.link/andyholmes/valent/workflows/cd/main/ca.andyholmes.Valent-x86_64.zip
 [gnome]: https://www.gnome.org
 [kdeconnect]: https://kdeconnect.kde.org
 
