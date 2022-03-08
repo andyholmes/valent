@@ -53,8 +53,8 @@ valent_mock_channel_download (ValentChannel  *channel,
 {
   g_autoptr (GSocket) socket = NULL;
   JsonObject *info;
-  gssize size = 0;
   int fd = 0;
+  goffset size;
 
   g_assert (VALENT_IS_CHANNEL (channel));
   g_assert (VALENT_IS_PACKET (packet));

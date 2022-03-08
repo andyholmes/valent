@@ -106,22 +106,22 @@ VALENT_AVAILABLE_IN_1_0
 gboolean      valent_packet_has_payload      (JsonNode       *packet);
 VALENT_AVAILABLE_IN_1_0
 JsonObject  * valent_packet_get_payload_full (JsonNode       *packet,
-                                              gssize         *size,
+                                              goffset        *size,
                                               GError        **error);
 VALENT_AVAILABLE_IN_1_0
 void          valent_packet_set_payload_full (JsonNode       *packet,
                                               JsonObject     *info,
-                                              gssize          size);
+                                              goffset         size);
 VALENT_AVAILABLE_IN_1_0
 JsonObject  * valent_packet_get_payload_info (JsonNode       *packet);
 VALENT_AVAILABLE_IN_1_0
 void          valent_packet_set_payload_info (JsonNode       *packet,
                                               JsonObject     *info);
 VALENT_AVAILABLE_IN_1_0
-gssize        valent_packet_get_payload_size (JsonNode       *packet);
+goffset       valent_packet_get_payload_size (JsonNode       *packet);
 VALENT_AVAILABLE_IN_1_0
 void          valent_packet_set_payload_size (JsonNode       *packet,
-                                              gssize          size);
+                                              goffset         size);
 
 /* Field Helpers */
 VALENT_AVAILABLE_IN_1_0

@@ -43,7 +43,7 @@ valent_bluez_channel_download (ValentChannel  *channel,
   ValentBluezChannel *self = VALENT_BLUEZ_CHANNEL (channel);
   JsonObject *info;
   const char *uuid;
-  gssize size;
+  goffset size;
 
   g_assert (VALENT_IS_BLUEZ_CHANNEL (channel));
   g_assert (VALENT_IS_PACKET (packet));

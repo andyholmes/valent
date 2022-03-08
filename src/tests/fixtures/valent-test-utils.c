@@ -47,7 +47,7 @@ upload_task (GTask        *task,
   g_autoptr (GIOStream) stream = NULL;
   g_autoptr (GFileInfo) file_info = NULL;
   g_autoptr (GFileInputStream) file_source = NULL;
-  gssize size;
+  goffset size;
   GError *error = NULL;
 
   g_rec_mutex_lock (&op->lock);
