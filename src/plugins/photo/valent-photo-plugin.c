@@ -126,28 +126,25 @@ valent_photo_plugin_handle_photo_request (ValentPhotoPlugin *self,
  * GActions
  */
 static void
-photo_action (GSimpleAction *action,
-              GVariant      *parameter,
-              gpointer       user_data)
+photo_request_action (GSimpleAction *action,
+                      GVariant      *parameter,
+                      gpointer       user_data)
 {
   ValentPhotoPlugin *self = VALENT_PHOTO_PLUGIN (user_data);
-  JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
 
   g_return_if_fail (VALENT_IS_PHOTO_PLUGIN (self));
 
-  builder = valent_packet_start ("kdeconnect.photo.request");
-  packet = valent_packet_finish (builder);
-
+  packet = valent_packet_new ("kdeconnect.photo.request");
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 static const GActionEntry actions[] = {
-    {"photo", photo_action, NULL, NULL, NULL}
+    {"request", photo_request_action, NULL, NULL, NULL}
 };
 
 static const ValentMenuEntry items[] = {
-    {N_("Take Photo"), "device.photo.photo", "camera-photo-symbolic"}
+    {N_("Take Photo"), "device.photo.request", "camera-photo-symbolic"}
 };
 
 /*
