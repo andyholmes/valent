@@ -94,7 +94,7 @@ valent_lan_channel_download (ValentChannel  *channel,
   ValentLanChannel *self = VALENT_LAN_CHANNEL (channel);
   JsonObject *info;
   gint64 port;
-  gssize size;
+  goffset size;
   g_autoptr (GSocketClient) client = NULL;
   g_autoptr (GSocketConnection) connection = NULL;
   g_autoptr (GTlsCertificate) cert = NULL;

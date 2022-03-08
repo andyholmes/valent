@@ -231,7 +231,7 @@ valent_packet_has_payload (JsonNode *packet)
  */
 JsonObject *
 valent_packet_get_payload_full (JsonNode  *packet,
-                                gssize    *size,
+                                goffset   *size,
                                 GError   **error)
 {
   JsonObject *root;
@@ -284,7 +284,7 @@ valent_packet_get_payload_full (JsonNode  *packet,
 void
 valent_packet_set_payload_full (JsonNode   *packet,
                                 JsonObject *info,
-                                gssize      size)
+                                goffset     size)
 {
   JsonObject *root;
 
@@ -349,7 +349,7 @@ valent_packet_set_payload_info (JsonNode   *packet,
  *
  * Returns: the payload size
  */
-gssize
+goffset
 valent_packet_get_payload_size (JsonNode *packet)
 {
   JsonObject *root;
@@ -376,7 +376,7 @@ valent_packet_get_payload_size (JsonNode *packet)
  */
 void
 valent_packet_set_payload_size (JsonNode *packet,
-                                gssize    size)
+                                goffset   size)
 {
   JsonObject *root;
 
