@@ -449,8 +449,10 @@ test_mpris_plugin_handle_player (ValentTestPluginFixture *fixture,
                                  gconstpointer            user_data)
 {
   g_autoptr (GDBusConnection) connection = NULL;
+  g_autoptr (GFile) file = NULL;
   unsigned int watch_id;
   JsonNode *packet;
+  GError *error = NULL;
 
   /* Watch for exported player */
   connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
@@ -506,6 +508,11 @@ test_mpris_plugin_handle_player (ValentTestPluginFixture *fixture,
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
   v_assert_packet_cmpstr (packet, "albumArtUrl", ==, "/path/to/image.png");
   json_node_unref (packet);
+
+  packet = valent_test_plugin_fixture_lookup_packet (fixture, "player-albumart");
+  file = g_file_new_for_path (TEST_DATA_DIR"/image.png");
+  valent_test_plugin_fixture_upload (fixture, packet, file, &error);
+  g_assert_no_error (error);
 
   /* Actions */
   valent_media_player_play (VALENT_MEDIA_PLAYER (proxy));
