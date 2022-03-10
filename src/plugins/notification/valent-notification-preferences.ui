@@ -39,45 +39,44 @@
         <property name="title" translatable="yes">Applications</property>
         <property name="sensitive" bind-source="forward_notifications" bind-property="active" bind-flags="sync-create"/>
         <child>
-          <object class="GtkFrame">
-            <child>
-              <object class="GtkListBox" id="application_list">
-                <property name="hexpand">1</property>
-                <property name="selection-mode">none</property>
-                <property name="show-separators">1</property>
-                <child type="placeholder">
-                  <object class="GtkBox">
-                    <property name="orientation">vertical</property>
-                    <property name="margin-top">12</property>
-                    <property name="margin-bottom">12</property>
-                    <property name="margin-start">12</property>
-                    <property name="margin-end">12</property>
-                    <property name="spacing">12</property>
-                    <child>
-                      <object class="GtkImage">
-                        <property name="halign">center</property>
-                        <property name="hexpand">1</property>
-                        <property name="icon-name">preferences-system-notifications-symbolic</property>
-                        <property name="pixel-size">64</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkLabel">
-                        <property name="halign">center</property>
-                        <property name="hexpand">1</property>
-                        <property name="label" translatable="yes">No Applications</property>
-                        <attributes>
-                          <attribute name="weight" value="bold"/>
-                        </attributes>
-                      </object>
-                    </child>
-                    <style>
-                      <class name="dim-label"/>
-                    </style>
+          <object class="GtkListBox" id="application_list">
+            <property name="hexpand">1</property>
+            <property name="selection-mode">none</property>
+            <child type="placeholder">
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="margin-top">12</property>
+                <property name="margin-bottom">12</property>
+                <property name="margin-start">12</property>
+                <property name="margin-end">12</property>
+                <property name="spacing">12</property>
+                <child>
+                  <object class="GtkImage">
+                    <property name="halign">center</property>
+                    <property name="hexpand">1</property>
+                    <property name="icon-name">preferences-system-notifications-symbolic</property>
+                    <property name="pixel-size">64</property>
                   </object>
                 </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="halign">center</property>
+                    <property name="hexpand">1</property>
+                    <property name="label" translatable="yes">No Applications</property>
+                    <attributes>
+                      <attribute name="weight" value="bold"/>
+                    </attributes>
+                  </object>
+                </child>
+                <style>
+                  <class name="dim-label"/>
+                </style>
               </object>
             </child>
+            <style>
+              <class name="boxed-list"/>
+              <class name="boxed-list-placeholder"/>
+            </style>
           </object>
         </child>
       </object>

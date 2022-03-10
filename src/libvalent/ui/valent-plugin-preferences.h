@@ -15,7 +15,7 @@ G_BEGIN_DECLS
 #define VALENT_TYPE_PLUGIN_PREFERENCES (valent_plugin_preferences_get_type ())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_INTERFACE (ValentPluginPreferences, valent_plugin_preferences, VALENT, PLUGIN_PREFERENCES, GObject)
+G_DECLARE_INTERFACE (ValentPluginPreferences, valent_plugin_preferences, VALENT, PLUGIN_PREFERENCES, GtkWidget)
 
 struct _ValentPluginPreferencesInterface
 {

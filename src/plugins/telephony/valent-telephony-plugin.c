@@ -206,16 +206,30 @@ static GIcon *
 valent_telephony_plugin_get_event_icon (JsonNode   *packet,
                                         const char *event)
 {
-  const char *data;
+  const char *phone_thumbnail = NULL;
 
   g_assert (VALENT_IS_PACKET (packet));
 
-  if (valent_packet_get_string (packet, "phoneThumbnail", &data))
+  if (valent_packet_get_string (packet, "phoneThumbnail", &phone_thumbnail))
     {
-      GdkPixbuf *pixbuf;
+      g_autoptr (GdkPixbufLoader) loader = NULL;
+      g_autoptr (GdkPixbuf) pixbuf = NULL;
+      g_autoptr (GError) error = NULL;
+      g_autofree guchar *data = NULL;
+      gsize dlen;
 
-      if ((pixbuf = valent_ui_pixbuf_from_base64 (data, NULL)) != NULL)
-        return G_ICON (pixbuf);
+      data = g_base64_decode (phone_thumbnail, &dlen);
+      loader = gdk_pixbuf_loader_new();
+
+      if (gdk_pixbuf_loader_write (loader, data, dlen, &error) &&
+          gdk_pixbuf_loader_close (loader, &error))
+        pixbuf = gdk_pixbuf_loader_get_pixbuf (loader);
+
+      if (error != NULL)
+        g_debug ("%s(): %s", G_STRFUNC, error->message);
+
+      if (pixbuf != NULL)
+        return G_ICON (g_steal_pointer (&pixbuf));
     }
 
   if (g_str_equal (event, "ringing"))

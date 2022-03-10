@@ -4,23 +4,24 @@
 <!-- SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <gresources>
-  <gresource prefix="/ca/andyholmes/Valent">
+  <gresource prefix="/ca/andyholmes/Valent/icons">
     <!-- Device Icons -->
-    <file preprocess="xml-stripblanks" alias="icons/scalable/devices/computer-symbolic.svg">data/icons/hicolor/scalable/devices/computer-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="icons/scalable/devices/laptop-symbolic.svg">data/icons/hicolor/scalable/devices/laptop-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="icons/scalable/devices/phone-symbolic.svg">data/icons/hicolor/scalable/devices/phone-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="icons/scalable/devices/tablet-symbolic.svg">data/icons/hicolor/scalable/devices/tablet-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="icons/scalable/devices/tv-symbolic.svg">data/icons/hicolor/scalable/devices/tv-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/devices/computer-symbolic.svg">data/icons/hicolor/scalable/devices/computer-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/devices/laptop-symbolic.svg">data/icons/hicolor/scalable/devices/laptop-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/devices/phone-symbolic.svg">data/icons/hicolor/scalable/devices/phone-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/devices/tablet-symbolic.svg">data/icons/hicolor/scalable/devices/tablet-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/devices/tv-symbolic.svg">data/icons/hicolor/scalable/devices/tv-symbolic.svg</file>
 
     <!-- Phonelink Icons -->
-    <file preprocess="xml-stripblanks" alias="icons/scalable/devices/phonelink-symbolic.svg">data/icons/hicolor/scalable/devices/phonelink-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="icons/scalable/devices/phonelink-delete-symbolic.svg">data/icons/hicolor/scalable/devices/phonelink-delete-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="icons/scalable/devices/phonelink-lock-symbolic.svg">data/icons/hicolor/scalable/devices/phonelink-lock-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="icons/scalable/devices/phonelink-off-symbolic.svg">data/icons/hicolor/scalable/devices/phonelink-off-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="icons/scalable/devices/phonelink-ring-symbolic.svg">data/icons/hicolor/scalable/devices/phonelink-ring-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="icons/scalable/devices/phonelink-setup-symbolic.svg">data/icons/hicolor/scalable/devices/phonelink-setup-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/devices/phonelink-symbolic.svg">data/icons/hicolor/scalable/devices/phonelink-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/devices/phonelink-delete-symbolic.svg">data/icons/hicolor/scalable/devices/phonelink-delete-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/devices/phonelink-lock-symbolic.svg">data/icons/hicolor/scalable/devices/phonelink-lock-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/devices/phonelink-off-symbolic.svg">data/icons/hicolor/scalable/devices/phonelink-off-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/devices/phonelink-ring-symbolic.svg">data/icons/hicolor/scalable/devices/phonelink-ring-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/devices/phonelink-setup-symbolic.svg">data/icons/hicolor/scalable/devices/phonelink-setup-symbolic.svg</file>
   </gresource>
   <gresource prefix="/ca/andyholmes/Valent/ui">
+    <file>style.css</file>
     <file preprocess="xml-stripblanks">valent-device-panel.ui</file>
     <file preprocess="xml-stripblanks">valent-panel.ui</file>
     <file preprocess="xml-stripblanks">valent-window.ui</file>

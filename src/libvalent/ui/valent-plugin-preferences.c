@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-#define G_LOG_DOMAIN "valent-ui"
+#define G_LOG_DOMAIN "valent-plugin-preferences"
 
 #include "config.h"
 
@@ -13,18 +13,15 @@
 
 
 /**
- * SECTION:valentpluginpreferences
- * @short_description: Interface for extension preferences
- * @title: ValentPluginPreferences
- * @stability: Unstable
+ * ValentPluginPreferences:
  *
- * The #ValentPluginPreferences interface should be implemented by extensions
- * that want to provide a GUI for configuration. How the interface is used and
- * presented is dependent on the extension type, as the interface may be used to
- * configure a device plugin, a channel provider or session component.
+ * An interface for plugin preferences.
+ *
+ * #ValentPluginPreferences is an interface for plugins that want to expose
+ * configuration options for an extension.
  */
 
-G_DEFINE_INTERFACE (ValentPluginPreferences, valent_plugin_preferences, G_TYPE_OBJECT)
+G_DEFINE_INTERFACE (ValentPluginPreferences, valent_plugin_preferences, GTK_TYPE_WIDGET)
 
 /**
  * ValentPluginPreferencesInterface:

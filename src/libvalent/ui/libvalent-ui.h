@@ -12,7 +12,6 @@
 #include "valent-device-gadget.h"
 #include "valent-panel.h"
 #include "valent-plugin-preferences.h"
-#include "valent-ui-utils.h"
 
 #undef VALENT_UI_INSIDE
 
