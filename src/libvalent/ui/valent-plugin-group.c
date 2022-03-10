@@ -218,27 +218,26 @@ valent_plugin_group_class_init (ValentPluginGroupClass *klass)
 static void
 valent_plugin_group_init (ValentPluginGroup *self)
 {
-  GtkWidget *frame;
+  static char *list_classes[] = { "boxed-list", "boxed-list-placeholder", NULL};
   GtkWidget *placeholder;
 
   self->engine = valent_get_engine ();
   self->plugin_rows = g_hash_table_new (NULL, NULL);
 
-  /* Placeholder */
-  frame = gtk_frame_new (NULL);
-  adw_preferences_group_add (ADW_PREFERENCES_GROUP (self), frame);
-
+  /* Plugin List */
   self->plugin_list = g_object_new (GTK_TYPE_LIST_BOX,
-                                    "hexpand",         TRUE,
-                                    "selection-mode",  GTK_SELECTION_NONE,
-                                    "show-separators", TRUE,
+                                    "css-classes",    list_classes,
+                                    "hexpand",        TRUE,
+                                    "selection-mode", GTK_SELECTION_NONE,
                                     NULL);
-  gtk_frame_set_child (GTK_FRAME (frame), GTK_WIDGET (self->plugin_list));
+  adw_preferences_group_add (ADW_PREFERENCES_GROUP (self),
+                             GTK_WIDGET (self->plugin_list));
 
   gtk_list_box_set_sort_func (self->plugin_list,
                               valent_plugin_preferences_row_sort,
                               NULL, NULL);
 
+  /* Placeholder */
   placeholder = g_object_new (GTK_TYPE_LABEL,
                               "label",          _("No Plugins"),
                               "height-request", 56,

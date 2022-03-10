@@ -72,24 +72,24 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkFrame">
-                    <child>
-                      <object class="GtkListBox" id="device_list">
+                  <object class="GtkListBox" id="device_list">
+                    <property name="hexpand">1</property>
+                    <property name="selection-mode">none</property>
+                    <property name="show-separators">1</property>
+                    <child type="placeholder">
+                      <object class="GtkLabel">
+                        <property name="height-request">52</property>
                         <property name="hexpand">1</property>
-                        <property name="selection-mode">none</property>
-                        <property name="show-separators">1</property>
-                        <child type="placeholder">
-                          <object class="GtkLabel">
-                            <property name="height-request">52</property>
-                            <property name="hexpand">1</property>
-                            <property name="label" translatable="yes">Searching for devices…</property>
-                            <style>
-                              <class name="dim-label"/>
-                            </style>
-                          </object>
-                        </child>
+                        <property name="label" translatable="yes">Searching for devices…</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
                       </object>
                     </child>
+                    <style>
+                      <class name="boxed-list"/>
+                      <class name="boxed-list-placeholder"/>
+                    </style>
                   </object>
                 </child>
               </object>
@@ -124,34 +124,33 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkFrame">
+                  <object class="AdwPreferencesGroup">
                     <child>
-                      <object class="GtkListBox">
-                      <signal name="row-activated" handler="on_rename_dialog_open" object="ValentWindow" swapped="no"/>
-                        <child>
-                          <object class="AdwActionRow">
-                            <property name="title" translatable="yes">Device Name</property>
-                            <property name="activatable">1</property>
-                            <property name="selectable">0</property>
-                            <child type="suffix">
-                              <object class="GtkBox">
-                                <property name="spacing">12</property>
-                                <property name="vexpand">1</property>
-                                <property name="valign">center</property>
-                                <child>
-                                  <object class="GtkLabel" id="rename_label">
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkImage">
-                                    <property name="icon-name">go-next-symbolic</property>
-                                  </object>
-                                </child>
-                                <style>
-                                  <class name="dim-label"/>
-                                </style>
+                      <object class="AdwActionRow">
+                        <property name="title" translatable="yes">Device Name</property>
+                        <property name="activatable">1</property>
+                        <property name="selectable">0</property>
+                        <signal name="activated"
+                                handler="on_rename_dialog_open"
+                                object="ValentWindow"
+                                swapped="no"/>
+                        <child type="suffix">
+                          <object class="GtkBox">
+                            <property name="spacing">12</property>
+                            <property name="vexpand">1</property>
+                            <property name="valign">center</property>
+                            <child>
+                              <object class="GtkLabel" id="rename_label">
                               </object>
                             </child>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="icon-name">go-next-symbolic</property>
+                              </object>
+                            </child>
+                            <style>
+                              <class name="dim-label"/>
+                            </style>
                           </object>
                         </child>
                       </object>

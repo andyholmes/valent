@@ -185,13 +185,8 @@
                           </object>
                         </child>
                         <child>
-                          <object class="GtkFrame">
-                            <property name="valign">start</property>
-                            <child>
-                              <object class="ValentMenuStack" id="menu_actions">
-                                <property name="name">menu</property>
-                              </object>
-                            </child>
+                          <object class="ValentMenuStack" id="menu_actions">
+                            <property name="name">menu</property>
                           </object>
                         </child>
                       </object>
@@ -286,14 +281,22 @@
                   <object class="AdwPreferencesGroup" id="plugin_group">
                     <property name="title" translatable="yes">Plugins</property>
                     <child>
-                      <object class="GtkFrame">
-                        <child>
-                          <object class="GtkListBox" id="plugin_list">
-                            <property name="hexpand">1</property>
-                            <property name="selection-mode">none</property>
-                            <property name="show-separators">1</property>
+                      <object class="GtkListBox" id="plugin_list">
+                        <property name="hexpand">1</property>
+                        <property name="selection-mode">none</property>
+                        <child type="placeholder">
+                          <object class="GtkLabel">
+                            <property name="height-request">56</property>
+                            <property name="label" translatable="yes">No Plugins</property>
+                            <style>
+                              <class name="dim-label"/>
+                            </style>
                           </object>
                         </child>
+                        <style>
+                          <class name="boxed-list"/>
+                          <class name="boxed-list-placeholder"/>
+                        </style>
                       </object>
                     </child>
                   </object>

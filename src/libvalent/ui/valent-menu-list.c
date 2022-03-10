@@ -380,22 +380,22 @@ valent_menu_list_class_init (ValentMenuListClass *klass)
 static void
 valent_menu_list_init (ValentMenuList *self)
 {
+  static char *list_classes[] = { "boxed-list", "boxed-list-placeholder", NULL};
   GtkWidget *placeholder;
 
-  /* Create the GtkListBox */
+  /* Item List */
   self->list = g_object_new (GTK_TYPE_LIST_BOX,
-                             "show-separators", TRUE,
+                             "css-classes",     list_classes,
                              "hexpand",         TRUE,
+                             "show-separators", TRUE,
                              NULL);
   gtk_widget_set_parent (GTK_WIDGET (self->list), GTK_WIDGET (self));
-  gtk_widget_insert_after (GTK_WIDGET (self->list),
-                           GTK_WIDGET (self),
-                           NULL);
+  gtk_widget_insert_after (GTK_WIDGET (self->list), GTK_WIDGET (self), NULL);
 
   /* Placeholder */
   placeholder = g_object_new (GTK_TYPE_LABEL,
-                              "label", _("No Actions"),
-                              "margin-top", 18,
+                              "label",         _("No Actions"),
+                              "margin-top",    18,
                               "margin-bottom", 18,
                               NULL);
   gtk_style_context_add_class (gtk_widget_get_style_context (placeholder),

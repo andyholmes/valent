@@ -72,9 +72,8 @@ on_rename_entry_changed (GtkEntry     *entry,
 }
 
 static void
-on_rename_dialog_open (GtkListBox    *box,
-                       GtkListBoxRow *row,
-                       ValentWindow  *self)
+on_rename_dialog_open (AdwActionRow *row,
+                       ValentWindow *self)
 {
   g_autofree char *name = NULL;
 
@@ -612,6 +611,7 @@ valent_window_class_init (ValentWindowClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+  g_autoptr (GtkCssProvider) theme = NULL;
 
   object_class->constructed = valent_window_constructed;
   object_class->dispose = valent_window_dispose;
@@ -654,6 +654,13 @@ valent_window_class_init (ValentWindowClass *klass)
   g_type_ensure (VALENT_TYPE_DEVICE_PANEL);
   g_type_ensure (VALENT_TYPE_PLUGIN_GROUP);
   g_type_ensure (VALENT_TYPE_PLUGIN_ROW);
+
+  /* Custom CSS */
+  theme = gtk_css_provider_new ();
+  gtk_css_provider_load_from_resource (theme, "/ca/andyholmes/Valent/ui/style.css");
+  gtk_style_context_add_provider_for_display (gdk_display_get_default (),
+                                              GTK_STYLE_PROVIDER (theme),
+                                              GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 }
 
 static void

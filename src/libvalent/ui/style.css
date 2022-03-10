@@ -1,0 +1,8 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+/* SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com> */
+
+/* For lists with a placeholder the last row is actually n-1 */
+.boxed-list-placeholder > row:nth-last-child(2) {
+  border-bottom: 0;
+}
+
