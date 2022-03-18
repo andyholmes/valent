@@ -101,5 +101,19 @@ void           valent_device_plugin_remove_menu_entries (ValentDevicePlugin    *
                                                          const ValentMenuEntry *entries,
                                                          int                    n_entries);
 
+/* Miscellaneous Helpers */
+VALENT_AVAILABLE_IN_1_0
+void           valent_notification_set_device_action    (GNotification         *notification,
+                                                         ValentDevice          *device,
+                                                         const char            *action,
+                                                         GVariant              *target);
+
+VALENT_AVAILABLE_IN_1_0
+void           valent_notification_add_device_button    (GNotification         *notification,
+                                                         ValentDevice          *device,
+                                                         const char            *label,
+                                                         const char            *action,
+                                                         GVariant              *target);
+
 G_END_DECLS
 
