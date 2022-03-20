@@ -2,13 +2,13 @@
 # SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 # Dependencies
-ui_test_deps = [
+libvalent_ui_test_deps = [
   libvalent_core_dep,
   libvalent_ui_dep,
   libvalent_test_dep,
 ]
 
-ui_tests = [
+libvalent_ui_tests = [
   'test-device-panel',
   'test-panel',
   'test-plugin-group',
@@ -16,14 +16,13 @@ ui_tests = [
   'test-window',
 ]
 
-foreach test : ui_tests
-  source = ['@0@.c'.format(test)]
-
-  test_program = executable(test, source,
-          c_args: test_c_args,
-    dependencies: ui_test_deps,
-       link_args: test_link_args,
-      link_whole: [libvalent_test, libvalent_ui],
+foreach test : libvalent_ui_tests
+  test_program = executable(test, '@0@.c'.format(test),
+                 c_args: test_c_args,
+           dependencies: libvalent_ui_test_deps,
+    include_directories: libvalent_include_directories,
+              link_args: test_link_args,
+             link_whole: [libvalent_test, libvalent_ui],
   )
 
   test(test, test_program,

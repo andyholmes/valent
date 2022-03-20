@@ -10,12 +10,12 @@
 static void
 test_device_panel_basic (void)
 {
-  ValentTestPluginFixture *fixture;
+  ValentTestFixture *fixture;
   GtkWidget *panel;
   ValentDevice *device = NULL;
   PeasEngine *engine;
 
-  fixture = valent_test_plugin_fixture_new (TEST_DATA_DIR"/plugin-mock.json");
+  fixture = valent_test_fixture_new (TEST_DATA_DIR"/plugin-mock.json");
 
   panel = g_object_new (VALENT_TYPE_DEVICE_PANEL,
                         "device", fixture->device,
@@ -36,7 +36,7 @@ test_device_panel_basic (void)
                              peas_engine_get_plugin_info (engine, "mock"));
 
   g_clear_object (&panel);
-  g_clear_pointer (&fixture, valent_test_plugin_fixture_unref);
+  g_clear_pointer (&fixture, valent_test_fixture_unref);
 }
 
 int

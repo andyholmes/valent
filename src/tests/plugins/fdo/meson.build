@@ -20,9 +20,9 @@ foreach test, test_runner : plugin_fdo_tests
   test_program = executable(test, '@0@.c'.format(test),
                  c_args: test_c_args,
            dependencies: plugin_fdo_test_deps,
+    include_directories: plugin_fdo_include_directories,
               link_args: test_link_args,
              link_whole: [libvalent_test, plugin_fdo],
-    include_directories: plugin_fdo_include_directories,
   )
 
   test(test, test_runner,

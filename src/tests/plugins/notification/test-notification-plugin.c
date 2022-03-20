@@ -10,11 +10,11 @@
 static ValentNotificationSource *source = NULL;
 
 static void
-notification_plugin_fixture_set_up (ValentTestPluginFixture *fixture,
-                                    gconstpointer            user_data)
+notification_plugin_fixture_set_up (ValentTestFixture *fixture,
+                                    gconstpointer      user_data)
 {
-  valent_test_plugin_fixture_init (fixture, user_data);
-  valent_test_plugin_fixture_init_settings (fixture, "notification");
+  valent_test_fixture_init (fixture, user_data);
+  valent_test_fixture_init_settings (fixture, "notification");
 
   // TODO: test with session active/inactive
   while ((source = valent_mock_notification_source_get_instance ()) == NULL)
@@ -22,7 +22,7 @@ notification_plugin_fixture_set_up (ValentTestPluginFixture *fixture,
 }
 
 static void
-test_notification_plugin_basic (ValentTestPluginFixture *fixture,
+test_notification_plugin_basic (ValentTestFixture *fixture,
                                 gconstpointer            user_data)
 {
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
@@ -35,47 +35,47 @@ test_notification_plugin_basic (ValentTestPluginFixture *fixture,
 }
 
 static void
-test_notification_plugin_handle_notification (ValentTestPluginFixture *fixture,
-                                              gconstpointer            user_data)
+test_notification_plugin_handle_notification (ValentTestFixture *fixture,
+                                              gconstpointer      user_data)
 {
   JsonNode *packet;
   g_autoptr (GError) error = NULL;
   g_autoptr (GFile) file = NULL;
 
   /* Expect notification request */
-  valent_test_plugin_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture, TRUE);
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification.request");
   v_assert_packet_true (packet, "request");
   json_node_unref (packet);
 
   /* Receive a simple notification */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "notification-simple");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "notification-simple");
+  valent_test_fixture_handle_packet (fixture, packet);
 
   /* Receive a notification with an icon */
   file = g_file_new_for_uri ("file://"TEST_DATA_DIR"image.png");
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "notification-icon");
-  valent_test_plugin_fixture_upload (fixture, packet, file, &error);
+  packet = valent_test_fixture_lookup_packet (fixture, "notification-icon");
+  valent_test_fixture_upload (fixture, packet, file, &error);
   g_assert_no_error (error);
 
   // FIXME: Without this the notification plugin will reliably segfault, which
   //        ostensibly implies ValentDevicePlugin is not thread-safe
-  valent_test_plugin_fixture_wait (fixture, 1000);
+  valent_test_fixture_wait (fixture, 1000);
 
   /* Receive a notification with actions */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "notification-actions");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "notification-actions");
+  valent_test_fixture_handle_packet (fixture, packet);
 
   /* Receive a repliable notification */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "notification-repliable");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "notification-repliable");
+  valent_test_fixture_handle_packet (fixture, packet);
 }
 
 static void
-test_notification_plugin_send_notification (ValentTestPluginFixture *fixture,
-                                            gconstpointer            user_data)
+test_notification_plugin_send_notification (ValentTestFixture *fixture,
+                                            gconstpointer      user_data)
 {
   JsonNode *packet;
   g_autoptr (ValentNotification) notification = NULL;
@@ -88,9 +88,9 @@ test_notification_plugin_send_notification (ValentTestPluginFixture *fixture,
   g_settings_set_boolean (fixture->settings, "forward-when-active", TRUE);
 
   /* Expect notification request */
-  valent_test_plugin_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture, TRUE);
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification.request");
   v_assert_packet_true (packet, "request");
   json_node_unref (packet);
@@ -99,7 +99,7 @@ test_notification_plugin_send_notification (ValentTestPluginFixture *fixture,
   notification = valent_notification_new (NULL);
   valent_notification_source_emit_notification_added (source, notification);
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification");
   v_assert_packet_field (packet, "id");
   v_assert_packet_field (packet, "appName");
@@ -115,7 +115,7 @@ test_notification_plugin_send_notification (ValentTestPluginFixture *fixture,
   valent_notification_set_body (notification, "Test Body");
   valent_notification_source_emit_notification_added (source, notification);
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification");
   v_assert_packet_cmpstr (packet, "id", ==, "test-id");
   v_assert_packet_cmpstr (packet, "appName", ==, "Test Application");
@@ -129,7 +129,7 @@ test_notification_plugin_send_notification (ValentTestPluginFixture *fixture,
                                             "dialog-information-symbolic");
   valent_notification_source_emit_notification_added (source, notification);
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification");
   v_assert_packet_cmpstr (packet, "id", ==, "test-id");
   v_assert_packet_cmpstr (packet, "appName", ==, "Test Application");
@@ -139,7 +139,7 @@ test_notification_plugin_send_notification (ValentTestPluginFixture *fixture,
 
   if (valent_packet_has_payload (packet))
     {
-      valent_test_plugin_fixture_download (fixture, packet, &error);
+      valent_test_fixture_download (fixture, packet, &error);
       g_assert_no_error (error);
     }
   json_node_unref (packet);
@@ -149,7 +149,7 @@ test_notification_plugin_send_notification (ValentTestPluginFixture *fixture,
                                             "file://"TEST_DATA_DIR"image.png");
   valent_notification_source_emit_notification_added (source, notification);
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification");
   v_assert_packet_cmpstr (packet, "id", ==, "test-id");
   v_assert_packet_cmpstr (packet, "appName", ==, "Test Application");
@@ -158,7 +158,7 @@ test_notification_plugin_send_notification (ValentTestPluginFixture *fixture,
   v_assert_packet_cmpstr (packet, "ticker", ==, "Test Title: Test Body");
   g_assert_true (valent_packet_has_payload (packet));
 
-  valent_test_plugin_fixture_download (fixture, packet, NULL);
+  valent_test_fixture_download (fixture, packet, NULL);
   json_node_unref (packet);
 
   /* Send a notification with a bytes icon */
@@ -168,7 +168,7 @@ test_notification_plugin_send_notification (ValentTestPluginFixture *fixture,
   valent_notification_set_icon (notification, icon);
   valent_notification_source_emit_notification_added (source, notification);
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification");
   v_assert_packet_cmpstr (packet, "id", ==, "test-id");
   v_assert_packet_cmpstr (packet, "appName", ==, "Test Application");
@@ -177,21 +177,21 @@ test_notification_plugin_send_notification (ValentTestPluginFixture *fixture,
   v_assert_packet_cmpstr (packet, "ticker", ==, "Test Title: Test Body");
   g_assert_true (valent_packet_has_payload (packet));
 
-  valent_test_plugin_fixture_download (fixture, packet, NULL);
+  valent_test_fixture_download (fixture, packet, NULL);
   json_node_unref (packet);
 
   /* Remove Notification */
   valent_notification_source_emit_notification_removed (source, "test-id");
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification.request");
   v_assert_packet_cmpstr (packet, "cancel", ==, "test-id");
   json_node_unref (packet);
 }
 
 static void
-test_notification_plugin_actions (ValentTestPluginFixture *fixture,
-                                  gconstpointer            user_data)
+test_notification_plugin_actions (ValentTestFixture *fixture,
+                                  gconstpointer      user_data)
 {
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *packet;
@@ -201,9 +201,9 @@ test_notification_plugin_actions (ValentTestPluginFixture *fixture,
   GError *error = NULL;
 
   /* Expect notification request */
-  valent_test_plugin_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture, TRUE);
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification.request");
   v_assert_packet_true (packet, "request");
   json_node_unref (packet);
@@ -221,7 +221,7 @@ test_notification_plugin_actions (ValentTestPluginFixture *fixture,
   g_action_group_activate_action (actions, "notification.send",
                                   g_variant_dict_end (&dict));
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification");
   v_assert_packet_cmpstr (packet, "id", ==, "test-id");
   v_assert_packet_cmpstr (packet, "appName", ==, "Test Application");
@@ -231,7 +231,7 @@ test_notification_plugin_actions (ValentTestPluginFixture *fixture,
 
   if (valent_packet_has_payload (packet))
     {
-      valent_test_plugin_fixture_download (fixture, packet, &error);
+      valent_test_fixture_download (fixture, packet, &error);
       g_assert_no_error (error);
     }
   json_node_unref (packet);
@@ -243,7 +243,7 @@ test_notification_plugin_actions (ValentTestPluginFixture *fixture,
                                                  "test-id",
                                                  "Test Action"));
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification.action");
   v_assert_packet_cmpstr (packet, "key", ==, "test-id");
   v_assert_packet_cmpstr (packet, "action", ==, "Test Action");
@@ -254,7 +254,7 @@ test_notification_plugin_actions (ValentTestPluginFixture *fixture,
                                   "notification.cancel",
                                   g_variant_new_string ("test-id"));
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification");
   v_assert_packet_cmpstr (packet, "id", ==, "test-id");
   v_assert_packet_true (packet, "isCancel");
@@ -265,7 +265,7 @@ test_notification_plugin_actions (ValentTestPluginFixture *fixture,
                                   "notification.close",
                                   g_variant_new_string ("test-id"));
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification.request");
   v_assert_packet_cmpstr (packet, "cancel", ==, "test-id");
   json_node_unref (packet);
@@ -278,7 +278,7 @@ test_notification_plugin_actions (ValentTestPluginFixture *fixture,
                                                  "Test Reply",
                                                  g_variant_new_string (""))); // FIXME
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification.reply");
   v_assert_packet_cmpstr (packet, "requestReplyId", ==, "test-id");
   v_assert_packet_cmpstr (packet, "message", ==, "Test Reply");
@@ -293,15 +293,15 @@ static const char *schemas[] = {
 };
 
 static void
-test_notification_plugin_fuzz (ValentTestPluginFixture *fixture,
-                               gconstpointer            user_data)
+test_notification_plugin_fuzz (ValentTestFixture *fixture,
+                               gconstpointer      user_data)
 
 {
-  valent_test_plugin_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture, TRUE);
   g_test_log_set_fatal_handler (valent_test_mute_fuzzing, NULL);
 
   for (unsigned int s = 0; s < G_N_ELEMENTS (schemas); s++)
-    valent_test_plugin_fixture_schema_fuzz (fixture, schemas[s]);
+    valent_test_fixture_schema_fuzz (fixture, schemas[s]);
 }
 
 int
@@ -320,35 +320,35 @@ main (int   argc,
     g_test_message ("Skipping themed icon transfers");
 
   g_test_add ("/plugins/notification/basic",
-              ValentTestPluginFixture, path,
+              ValentTestFixture, path,
               notification_plugin_fixture_set_up,
               test_notification_plugin_basic,
-              valent_test_plugin_fixture_clear);
+              valent_test_fixture_clear);
 
   g_test_add ("/plugins/notification/handle-notification",
-              ValentTestPluginFixture, path,
+              ValentTestFixture, path,
               notification_plugin_fixture_set_up,
               test_notification_plugin_handle_notification,
-              valent_test_plugin_fixture_clear);
+              valent_test_fixture_clear);
 
   g_test_add ("/plugins/notification/send-notification",
-              ValentTestPluginFixture, path,
+              ValentTestFixture, path,
               notification_plugin_fixture_set_up,
               test_notification_plugin_send_notification,
-              valent_test_plugin_fixture_clear);
+              valent_test_fixture_clear);
 
   g_test_add ("/plugins/notification/actions",
-              ValentTestPluginFixture, path,
+              ValentTestFixture, path,
               notification_plugin_fixture_set_up,
               test_notification_plugin_actions,
-              valent_test_plugin_fixture_clear);
+              valent_test_fixture_clear);
 
 #ifdef VALENT_TEST_FUZZ
   g_test_add ("/plugins/notification/fuzz",
-              ValentTestPluginFixture, path,
-              valent_test_plugin_fixture_init,
+              ValentTestFixture, path,
+              valent_test_fixture_init,
               test_notification_plugin_fuzz,
-              valent_test_plugin_fixture_clear);
+              valent_test_fixture_clear);
 #endif
 
   return g_test_run ();

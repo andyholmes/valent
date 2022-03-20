@@ -15,28 +15,28 @@ static ValentMPRISPlayer *proxy = NULL;
 
 
 static void
-on_player_added (ValentMedia             *media,
-                 ValentMediaPlayer       *player,
-                 ValentTestPluginFixture *fixture)
+on_player_added (ValentMedia       *media,
+                 ValentMediaPlayer *player,
+                 ValentTestFixture *fixture)
 {
   if (g_strcmp0 (valent_media_player_get_name (player), "Test Player") == 0)
-    valent_test_plugin_fixture_quit (fixture);
+    valent_test_fixture_quit (fixture);
 }
 
 static void
-on_player_removed (ValentMedia             *media,
-                   ValentMediaPlayer       *player,
-                   ValentTestPluginFixture *fixture)
+on_player_removed (ValentMedia       *media,
+                   ValentMediaPlayer *player,
+                   ValentTestFixture *fixture)
 {
   if (g_strcmp0 (valent_media_player_get_name (player), "Test Player") == 0)
-    valent_test_plugin_fixture_quit (fixture);
+    valent_test_fixture_quit (fixture);
 }
 
 static void
-on_remote_method (ValentMprisRemote       *remote,
-                  const char              *method,
-                  GVariant                *args,
-                  ValentTestPluginFixture *fixture)
+on_remote_method (ValentMprisRemote *remote,
+                  const char        *method,
+                  GVariant          *args,
+                  ValentTestFixture *fixture)
 {
   GVariantDict dict;
   static const char * const artist[] = { "Test Artist" };
@@ -126,19 +126,19 @@ on_remote_method (ValentMprisRemote       *remote,
 }
 
 static void
-on_remote_set_property (ValentMprisRemote       *remote,
-                        const char              *name,
-                        GVariant                *value,
-                        ValentTestPluginFixture *fixture)
+on_remote_set_property (ValentMprisRemote *remote,
+                        const char        *name,
+                        GVariant          *value,
+                        ValentTestFixture *fixture)
 {
   if (g_strcmp0 (name, "Volume") == 0)
     valent_mpris_remote_update_volume (remote, g_variant_get_double (value));
 }
 
 static void
-export_cb (ValentMprisRemote       *remote,
-           GAsyncResult            *result,
-           ValentTestPluginFixture *fixture)
+export_cb (ValentMprisRemote *remote,
+           GAsyncResult      *result,
+           ValentTestFixture *fixture)
 {
   g_autoptr (GError) error = NULL;
 
@@ -161,8 +161,8 @@ create_albumart_request (const char *art_url)
 }
 
 static void
-test_mpris_plugin_handle_request (ValentTestPluginFixture *fixture,
-                                  gconstpointer            user_data)
+test_mpris_plugin_handle_request (ValentTestFixture *fixture,
+                                  gconstpointer      user_data)
 {
   ValentMedia *media;
   g_autoptr (ValentMprisRemote) remote = NULL;
@@ -190,7 +190,7 @@ test_mpris_plugin_handle_request (ValentTestPluginFixture *fixture,
                                    NULL,
                                    (GAsyncReadyCallback)export_cb,
                                    fixture);
-  valent_test_plugin_fixture_run (fixture);
+  valent_test_fixture_run (fixture);
 
   g_signal_connect (remote,
                     "method-call",
@@ -202,16 +202,16 @@ test_mpris_plugin_handle_request (ValentTestPluginFixture *fixture,
                     fixture);
 
   /* Connect and read handshake packets */
-  valent_test_plugin_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture, TRUE);
 
   /* Expect a request for our players */
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
   v_assert_packet_true (packet, "requestPlayerList");
   json_node_unref (packet);
 
   /* Expect a list of their players, which should include the mock player */
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris");
   player_list = json_object_get_array_member (valent_packet_get_body (packet),
                                               "playerList");
@@ -220,11 +220,11 @@ test_mpris_plugin_handle_request (ValentTestPluginFixture *fixture,
   json_node_unref (packet);
 
   /* Request player state */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "request-nowplaying");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "request-nowplaying");
+  valent_test_fixture_handle_packet (fixture, packet);
 
   /* Expect quiescent state */
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris");
 
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
@@ -244,11 +244,11 @@ test_mpris_plugin_handle_request (ValentTestPluginFixture *fixture,
   json_node_unref (packet);
 
   /* Request Play */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "request-play");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "request-play");
+  valent_test_fixture_handle_packet (fixture, packet);
 
   /* Expect play state */
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris");
 
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
@@ -265,11 +265,11 @@ test_mpris_plugin_handle_request (ValentTestPluginFixture *fixture,
   json_node_unref (packet);
 
   /* Request Next */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "request-next");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "request-next");
+  valent_test_fixture_handle_packet (fixture, packet);
 
   /* Expect Track 2 */
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris");
 
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
@@ -285,11 +285,11 @@ test_mpris_plugin_handle_request (ValentTestPluginFixture *fixture,
   json_node_unref (packet);
 
   /* Request Previous */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "request-previous");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "request-previous");
+  valent_test_fixture_handle_packet (fixture, packet);
 
   /* Expect Track 1 */
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris");
 
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
@@ -305,11 +305,11 @@ test_mpris_plugin_handle_request (ValentTestPluginFixture *fixture,
   json_node_unref (packet);
 
   /* Request Pause */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "request-pause");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "request-pause");
+  valent_test_fixture_handle_packet (fixture, packet);
 
   /* Expect paused state */
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris");
 
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
@@ -325,11 +325,11 @@ test_mpris_plugin_handle_request (ValentTestPluginFixture *fixture,
   json_node_unref (packet);
 
   /* Request Seek */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "request-seek");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "request-seek");
+  valent_test_fixture_handle_packet (fixture, packet);
 
   /* Expect position of 1s */
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris");
 
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
@@ -337,11 +337,11 @@ test_mpris_plugin_handle_request (ValentTestPluginFixture *fixture,
   json_node_unref (packet);
 
   /* Request Stop */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "request-stop");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "request-stop");
+  valent_test_fixture_handle_packet (fixture, packet);
 
   /* Expect quiescent state */
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris");
 
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
@@ -359,11 +359,11 @@ test_mpris_plugin_handle_request (ValentTestPluginFixture *fixture,
   json_node_unref (packet);
 
   /* Request volume change */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "request-volume");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "request-volume");
+  valent_test_fixture_handle_packet (fixture, packet);
 
   /* Expect volume change */
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
 
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
   v_assert_packet_cmpint (packet, "volume", ==, 50);
@@ -374,22 +374,22 @@ test_mpris_plugin_handle_request (ValentTestPluginFixture *fixture,
   g_variant_dict_insert (&dict, "mpris:artUrl", "s", "file://"TEST_DATA_DIR"image.png");
   valent_mpris_remote_update_metadata (remote, g_variant_dict_end (&dict));
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
   v_assert_packet_cmpstr (packet, "albumArtUrl", ==, "file://"TEST_DATA_DIR"image.png");
   json_node_unref (packet);
 
   /* Request album art transfer */
   packet = create_albumart_request ("file://"TEST_DATA_DIR"image.png");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  valent_test_fixture_handle_packet (fixture, packet);
   json_node_unref (packet);
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris");
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
   g_assert_true (valent_packet_has_payload (packet));
 
-  valent_test_plugin_fixture_download (fixture, packet, &error);
+  valent_test_fixture_download (fixture, packet, &error);
   g_assert_no_error (error);
 
   json_node_unref (packet);
@@ -399,11 +399,11 @@ test_mpris_plugin_handle_request (ValentTestPluginFixture *fixture,
 }
 
 static void
-on_player_changed (ValentMediaPlayer       *player,
-                   GParamSpec              *pspec,
-                   ValentTestPluginFixture *fixture)
+on_player_changed (ValentMediaPlayer *player,
+                   GParamSpec        *pspec,
+                   ValentTestFixture *fixture)
 {
-  valent_test_plugin_fixture_quit (fixture);
+  valent_test_fixture_quit (fixture);
 }
 
 static void
@@ -411,7 +411,7 @@ valent_mpris_player_new_cb (GObject      *object,
                             GAsyncResult *result,
                             gpointer      user_data)
 {
-  ValentTestPluginFixture *fixture = user_data;
+  ValentTestFixture *fixture = user_data;
   g_autoptr (GError) error = NULL;
 
   proxy = valent_mpris_player_new_finish (result, &error);
@@ -432,7 +432,7 @@ on_name_owner_changed (GDBusConnection *connection,
                        GVariant        *parameters,
                        gpointer         user_data)
 {
-  ValentTestPluginFixture *fixture = user_data;
+  ValentTestFixture *fixture = user_data;
   const char *name, *old_owner, *new_owner;
 
   g_variant_get (parameters, "(&s&s&s)", &name, &old_owner, &new_owner);
@@ -445,8 +445,8 @@ on_name_owner_changed (GDBusConnection *connection,
 }
 
 static void
-test_mpris_plugin_handle_player (ValentTestPluginFixture *fixture,
-                                 gconstpointer            user_data)
+test_mpris_plugin_handle_player (ValentTestFixture *fixture,
+                                 gconstpointer      user_data)
 {
   g_autoptr (GDBusConnection) connection = NULL;
   g_autoptr (GFile) file = NULL;
@@ -467,23 +467,23 @@ test_mpris_plugin_handle_player (ValentTestPluginFixture *fixture,
                                                  fixture, NULL);
 
   /* Expect connect-time packets */
-  valent_test_plugin_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture, TRUE);
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
   v_assert_packet_true (packet, "requestPlayerList");
   json_node_unref (packet);
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris");
   v_assert_packet_field (packet, "playerList");
   json_node_unref (packet);
 
   /* Send player list */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "player-list");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "player-list");
+  valent_test_fixture_handle_packet (fixture, packet);
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
   v_assert_packet_true (packet, "requestNowPlaying");
@@ -495,56 +495,56 @@ test_mpris_plugin_handle_player (ValentTestPluginFixture *fixture,
     g_main_context_iteration (NULL, FALSE);
 
   /* Send quiescent state */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "player-quiescent");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "player-quiescent");
+  valent_test_fixture_handle_packet (fixture, packet);
 
   /* Send playing state */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "player-playing");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "player-playing");
+  valent_test_fixture_handle_packet (fixture, packet);
 
   /* Album Art Request */
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
   v_assert_packet_cmpstr (packet, "albumArtUrl", ==, "/path/to/image.png");
   json_node_unref (packet);
 
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "player-albumart");
+  packet = valent_test_fixture_lookup_packet (fixture, "player-albumart");
   file = g_file_new_for_path (TEST_DATA_DIR"/image.png");
-  valent_test_plugin_fixture_upload (fixture, packet, file, &error);
+  valent_test_fixture_upload (fixture, packet, file, &error);
   g_assert_no_error (error);
 
   /* Actions */
   valent_media_player_play (VALENT_MEDIA_PLAYER (proxy));
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
   v_assert_packet_cmpstr (packet, "action", ==, "Play");
   json_node_unref (packet);
 
   valent_media_player_pause (VALENT_MEDIA_PLAYER (proxy));
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
   v_assert_packet_cmpstr (packet, "action", ==, "Pause");
   json_node_unref (packet);
 
   valent_media_player_stop (VALENT_MEDIA_PLAYER (proxy));
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
   v_assert_packet_cmpstr (packet, "action", ==, "Stop");
   json_node_unref (packet);
 
   valent_media_player_next (VALENT_MEDIA_PLAYER (proxy));
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
   v_assert_packet_cmpstr (packet, "action", ==, "Next");
   json_node_unref (packet);
 
   valent_media_player_previous (VALENT_MEDIA_PLAYER (proxy));
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
   v_assert_packet_cmpstr (packet, "action", ==, "Previous");
@@ -552,14 +552,14 @@ test_mpris_plugin_handle_player (ValentTestPluginFixture *fixture,
 
   /* Seek & SetPosition */
   valent_media_player_seek (VALENT_MEDIA_PLAYER (proxy), 1000);
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
   v_assert_packet_cmpint (packet, "Seek", ==, 1);
   json_node_unref (packet);
 
   valent_media_player_set_position (VALENT_MEDIA_PLAYER (proxy),
                                     "/dbus/path/ignored", 1000);
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
   v_assert_packet_cmpint (packet, "SetPosition", ==, 1);
   json_node_unref (packet);
@@ -567,15 +567,15 @@ test_mpris_plugin_handle_player (ValentTestPluginFixture *fixture,
 
   /* Properties */
   valent_media_player_set_volume (VALENT_MEDIA_PLAYER (proxy), 0.50);
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
   v_assert_packet_cmpint (packet, "setVolume", ==, 50);
   json_node_unref (packet);
 
   /* Send empty player list */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "player-list-empty");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "player-list-empty");
+  valent_test_fixture_handle_packet (fixture, packet);
 
   /* Wait for player to be unexported */
   while (proxy != NULL)
@@ -590,15 +590,15 @@ static const char *schemas[] = {
 };
 
 static void
-test_mpris_plugin_fuzz (ValentTestPluginFixture *fixture,
-                        gconstpointer            user_data)
+test_mpris_plugin_fuzz (ValentTestFixture *fixture,
+                        gconstpointer      user_data)
 
 {
-  valent_test_plugin_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture, TRUE);
   g_test_log_set_fatal_handler (valent_test_mute_fuzzing, NULL);
 
   for (unsigned int s = 0; s < G_N_ELEMENTS (schemas); s++)
-    valent_test_plugin_fixture_schema_fuzz (fixture, schemas[s]);
+    valent_test_fixture_schema_fuzz (fixture, schemas[s]);
 }
 
 int
@@ -610,23 +610,23 @@ main (int   argc,
   g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 
   g_test_add ("/plugins/mpris/handle-request",
-              ValentTestPluginFixture, path,
-              valent_test_plugin_fixture_init,
+              ValentTestFixture, path,
+              valent_test_fixture_init,
               test_mpris_plugin_handle_request,
-              valent_test_plugin_fixture_clear);
+              valent_test_fixture_clear);
 
   g_test_add ("/plugins/mpris/handle-player",
-              ValentTestPluginFixture, path,
-              valent_test_plugin_fixture_init,
+              ValentTestFixture, path,
+              valent_test_fixture_init,
               test_mpris_plugin_handle_player,
-              valent_test_plugin_fixture_clear);
+              valent_test_fixture_clear);
 
 #ifdef VALENT_TEST_FUZZ
   g_test_add ("/plugins/mpris/fuzz",
-              ValentTestPluginFixture, path,
-              valent_test_plugin_fixture_init,
+              ValentTestFixture, path,
+              valent_test_fixture_init,
               test_mpris_plugin_fuzz,
-              valent_test_plugin_fixture_clear);
+              valent_test_fixture_clear);
 #endif
 
   return g_test_run ();

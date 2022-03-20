@@ -7,17 +7,23 @@ plugin_photo_test_deps = [
   plugin_photo_deps,
 ]
 
-test_program = executable('test-photo-plugin',
-                          'test-photo-plugin.c',
-        c_args: test_c_args,
-  dependencies: plugin_photo_test_deps,
-     link_args: test_link_args,
-    link_whole: [libvalent_test, plugin_photo],
-)
+plugin_photo_tests = [
+  'test-photo-plugin',
+]
 
-test('test-photo-plugin', test_program,
-          env: tests_env,
-  is_parallel: false,
-        suite: ['plugins', 'photo'],
-)
+foreach test : plugin_photo_tests
+  test_program = executable(test, '@0@.c'.format(test),
+                 c_args: test_c_args,
+           dependencies: plugin_photo_test_deps,
+    include_directories: plugin_photo_include_directories,
+              link_args: test_link_args,
+             link_whole: [libvalent_test, plugin_photo],
+  )
+
+  test(test, test_program,
+            env: tests_env,
+    is_parallel: false,
+          suite: ['plugins', 'photo'],
+  )
+endforeach
 

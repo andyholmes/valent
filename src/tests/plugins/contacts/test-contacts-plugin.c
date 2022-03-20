@@ -10,9 +10,9 @@
 static unsigned int n_contacts = 0;
 
 static void
-on_contact_added (ValentContactStore      *store,
-                  EContact                *contact,
-                  ValentTestPluginFixture *fixture)
+on_contact_added (ValentContactStore *store,
+                  EContact           *contact,
+                  ValentTestFixture  *fixture)
 {
   n_contacts++;
 
@@ -20,36 +20,36 @@ on_contact_added (ValentContactStore      *store,
     {
       n_contacts = 0;
       g_signal_handlers_disconnect_by_data (store, fixture);
-      valent_test_plugin_fixture_quit (fixture);
+      valent_test_fixture_quit (fixture);
     }
 }
 
 static void
-valent_contact_store_query_cb (ValentContactStore      *store,
-                               GAsyncResult            *result,
-                               ValentTestPluginFixture *fixture)
+valent_contact_store_query_cb (ValentContactStore *store,
+                               GAsyncResult       *result,
+                               ValentTestFixture  *fixture)
 {
   GError *error = NULL;
 
   fixture->data = valent_contact_store_query_finish (store, result, &error);
   g_assert_no_error (error);
-  valent_test_plugin_fixture_quit (fixture);
+  valent_test_fixture_quit (fixture);
 }
 
 static void
-contacts_plugin_fixture_set_up (ValentTestPluginFixture *fixture,
-                                gconstpointer            user_data)
+contacts_plugin_fixture_set_up (ValentTestFixture *fixture,
+                                gconstpointer      user_data)
 {
-  valent_test_plugin_fixture_init (fixture, user_data);
-  valent_test_plugin_fixture_init_settings (fixture, "contacts");
+  valent_test_fixture_init (fixture, user_data);
+  valent_test_fixture_init_settings (fixture, "contacts");
 
   g_settings_set_boolean (fixture->settings, "local-sync", TRUE);
   g_settings_set_string (fixture->settings, "local-uid", "test-device");
 }
 
 static void
-test_contacts_plugin_request_contacts (ValentTestPluginFixture *fixture,
-                                       gconstpointer            user_data)
+test_contacts_plugin_request_contacts (ValentTestFixture *fixture,
+                                       gconstpointer      user_data)
 {
   ValentContactStore *store;
   ValentDevice *device;
@@ -59,7 +59,7 @@ test_contacts_plugin_request_contacts (ValentTestPluginFixture *fixture,
   JsonNode *packet;
 
   /* Pop the initial request */
-  device = valent_test_plugin_fixture_get_device (fixture);
+  device = valent_test_fixture_get_device (fixture);
   store = valent_contacts_ensure_store (valent_contacts_get_default (),
                                         valent_device_get_id (device),
                                         valent_device_get_name (device));
@@ -68,10 +68,10 @@ test_contacts_plugin_request_contacts (ValentTestPluginFixture *fixture,
                     "contact-added",
                     G_CALLBACK (on_contact_added),
                     fixture);
-  valent_test_plugin_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture, TRUE);
 
   /* Expect UIDs request */
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.contacts.request_all_uids_timestamps");
   json_node_unref (packet);
 
@@ -80,23 +80,23 @@ test_contacts_plugin_request_contacts (ValentTestPluginFixture *fixture,
                                   "contacts.fetch",
                                   NULL);
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.contacts.request_all_uids_timestamps");
   json_node_unref (packet);
 
   /* UIDs response */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "response-uids-timestamps");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "response-uids-timestamps");
+  valent_test_fixture_handle_packet (fixture, packet);
 
   /* Expect vCard request */
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.contacts.request_vcards_by_uid");
   json_node_unref (packet);
 
   /* vCard response */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "response-vcards");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
-  valent_test_plugin_fixture_run (fixture);
+  packet = valent_test_fixture_lookup_packet (fixture, "response-vcards");
+  valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_fixture_run (fixture);
 
   query = e_book_query_vcard_field_exists (EVC_UID);
   sexp = e_book_query_to_string (query);
@@ -107,7 +107,7 @@ test_contacts_plugin_request_contacts (ValentTestPluginFixture *fixture,
                               NULL,
                               (GAsyncReadyCallback)valent_contact_store_query_cb,
                               fixture);
-  valent_test_plugin_fixture_run (fixture);
+  valent_test_fixture_run (fixture);
 
   contacts = g_steal_pointer (&fixture->data);
   g_assert_cmpuint (g_slist_length (contacts), ==, 2);
@@ -117,34 +117,34 @@ test_contacts_plugin_request_contacts (ValentTestPluginFixture *fixture,
 }
 
 static void
-test_contacts_plugin_provide_contacts (ValentTestPluginFixture *fixture,
-                                       gconstpointer            user_data)
+test_contacts_plugin_provide_contacts (ValentTestFixture *fixture,
+                                       gconstpointer      user_data)
 {
   JsonNode *packet;
   JsonArray *uids;
 
-  valent_test_plugin_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture, TRUE);
 
   /* Expect UIDs request */
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.contacts.request_all_uids_timestamps");
   json_node_unref (packet);
 
   /* UIDs request */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "request-all-uids-timestamps");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "request-all-uids-timestamps");
+  valent_test_fixture_handle_packet (fixture, packet);
 
   /* Expect UIDs response */
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.contacts.response_uids_timestamps");
   json_node_unref (packet);
 
   /* vCard request */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "request-vcards-by-uid");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "request-vcards-by-uid");
+  valent_test_fixture_handle_packet (fixture, packet);
 
   /* Expect vCard response */
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.contacts.response_vcards");
 
   uids = json_object_get_array_member (valent_packet_get_body (packet), "uids");
@@ -161,15 +161,15 @@ static const char *schemas[] = {
 };
 
 static void
-test_contacts_plugin_fuzz (ValentTestPluginFixture *fixture,
-                           gconstpointer            user_data)
+test_contacts_plugin_fuzz (ValentTestFixture *fixture,
+                           gconstpointer      user_data)
 
 {
-  valent_test_plugin_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture, TRUE);
   g_test_log_set_fatal_handler (valent_test_mute_fuzzing, NULL);
 
   for (unsigned int s = 0; s < G_N_ELEMENTS (schemas); s++)
-    valent_test_plugin_fixture_schema_fuzz (fixture, schemas[s]);
+    valent_test_fixture_schema_fuzz (fixture, schemas[s]);
 }
 
 int
@@ -181,23 +181,23 @@ main (int   argc,
   g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 
   g_test_add ("/plugins/contacts/request-contacts",
-              ValentTestPluginFixture, path,
+              ValentTestFixture, path,
               contacts_plugin_fixture_set_up,
               test_contacts_plugin_request_contacts,
-              valent_test_plugin_fixture_clear);
+              valent_test_fixture_clear);
 
   g_test_add ("/plugins/contacts/provide-contacts",
-              ValentTestPluginFixture, path,
+              ValentTestFixture, path,
               contacts_plugin_fixture_set_up,
               test_contacts_plugin_provide_contacts,
-              valent_test_plugin_fixture_clear);
+              valent_test_fixture_clear);
 
 #ifdef VALENT_TEST_FUZZ
   g_test_add ("/plugins/contacts/fuzz",
-              ValentTestPluginFixture, path,
-              valent_test_plugin_fixture_init,
+              ValentTestFixture, path,
+              valent_test_fixture_init,
               test_contacts_plugin_fuzz,
-              valent_test_plugin_fixture_clear);
+              valent_test_fixture_clear);
 #endif
 
   return g_test_run ();

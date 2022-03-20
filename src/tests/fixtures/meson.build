@@ -18,7 +18,7 @@ libvalent_test_public_headers = [
   'valent-mock-mixer-control.h',
   'valent-mock-notification-source.h',
   'valent-mock-session-adapter.h',
-  'valent-test-plugin-fixture.h',
+  'valent-test-fixture.h',
   'valent-test-utils.h',
 ]
 
@@ -42,7 +42,7 @@ libvalent_test_public_sources = [
   'valent-mock-mixer-control.c',
   'valent-mock-notification-source.c',
   'valent-mock-session-adapter.c',
-  'valent-test-plugin-fixture.c',
+  'valent-test-fixture.c',
   'valent-test-utils.c',
 ]
 
