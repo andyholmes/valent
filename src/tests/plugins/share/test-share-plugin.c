@@ -8,8 +8,8 @@
 
 
 static void
-test_share_plugin_basic (ValentTestPluginFixture *fixture,
-                         gconstpointer            user_data)
+test_share_plugin_basic (ValentTestFixture *fixture,
+                         gconstpointer      user_data)
 {
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
 
@@ -22,43 +22,43 @@ test_share_plugin_basic (ValentTestPluginFixture *fixture,
 }
 
 static void
-test_share_plugin_handle_request (ValentTestPluginFixture *fixture,
-                                  gconstpointer            user_data)
+test_share_plugin_handle_request (ValentTestFixture *fixture,
+                                  gconstpointer      user_data)
 {
   GError *error = NULL;
   g_autoptr (GFile) file = NULL;
   JsonNode *packet;
 
-  valent_test_plugin_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture, TRUE);
 
   /* Receive a file */
   file = g_file_new_for_uri ("file://"TEST_DATA_DIR"image.png");
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "share-file");
-  valent_test_plugin_fixture_upload (fixture, packet, file, &error);
+  packet = valent_test_fixture_lookup_packet (fixture, "share-file");
+  valent_test_fixture_upload (fixture, packet, file, &error);
   g_assert_no_error (error);
 
   /* Receive text */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "share-text");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "share-text");
+  valent_test_fixture_handle_packet (fixture, packet);
 
   /* Receive a URL */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "share-url");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "share-url");
+  valent_test_fixture_handle_packet (fixture, packet);
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
 }
 
 static void
-test_share_plugin_send_request (ValentTestPluginFixture *fixture,
-                                gconstpointer            user_data)
+test_share_plugin_send_request (ValentTestFixture *fixture,
+                                gconstpointer      user_data)
 {
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *packet;
   const char * const files[] = { "file://"TEST_DATA_DIR"image.png" };
   GError *error = NULL;
 
-  valent_test_plugin_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture, TRUE);
 
   g_assert_true (g_action_group_get_action_enabled (actions, "share.files"));
   g_assert_true (g_action_group_get_action_enabled (actions, "share.text"));
@@ -69,11 +69,11 @@ test_share_plugin_send_request (ValentTestPluginFixture *fixture,
                                   "share.files",
                                   g_variant_new_strv (files, 1));
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.share.request");
   v_assert_packet_field (packet, "filename");
 
-  valent_test_plugin_fixture_download (fixture, packet, &error);
+  valent_test_fixture_download (fixture, packet, &error);
   g_assert_no_error (error);
 
   json_node_unref (packet);
@@ -83,7 +83,7 @@ test_share_plugin_send_request (ValentTestPluginFixture *fixture,
                                   "share.text",
                                   g_variant_new_string ("Test"));
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.share.request");
   v_assert_packet_cmpstr (packet, "text", ==, "Test");
   json_node_unref (packet);
@@ -93,7 +93,7 @@ test_share_plugin_send_request (ValentTestPluginFixture *fixture,
                                   "share.url",
                                   g_variant_new_string ("https://www.andyholmes.ca"));
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.share.request");
   v_assert_packet_cmpstr (packet, "url", ==, "https://www.andyholmes.ca");
   json_node_unref (packet);
@@ -104,15 +104,15 @@ static const char *schemas[] = {
 };
 
 static void
-test_share_plugin_fuzz (ValentTestPluginFixture *fixture,
-                        gconstpointer            user_data)
+test_share_plugin_fuzz (ValentTestFixture *fixture,
+                        gconstpointer      user_data)
 
 {
-  valent_test_plugin_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture, TRUE);
   g_test_log_set_fatal_handler (valent_test_mute_fuzzing, NULL);
 
   for (unsigned int s = 0; s < G_N_ELEMENTS (schemas); s++)
-    valent_test_plugin_fixture_schema_fuzz (fixture, schemas[s]);
+    valent_test_fixture_schema_fuzz (fixture, schemas[s]);
 }
 
 int
@@ -124,29 +124,29 @@ main (int   argc,
   g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 
   g_test_add ("/plugins/share/basic",
-              ValentTestPluginFixture, path,
-              valent_test_plugin_fixture_init,
+              ValentTestFixture, path,
+              valent_test_fixture_init,
               test_share_plugin_basic,
-              valent_test_plugin_fixture_clear);
+              valent_test_fixture_clear);
 
   g_test_add ("/plugins/share/handle-request",
-              ValentTestPluginFixture, path,
-              valent_test_plugin_fixture_init,
+              ValentTestFixture, path,
+              valent_test_fixture_init,
               test_share_plugin_handle_request,
-              valent_test_plugin_fixture_clear);
+              valent_test_fixture_clear);
 
   g_test_add ("/plugins/share/send-request",
-              ValentTestPluginFixture, path,
-              valent_test_plugin_fixture_init,
+              ValentTestFixture, path,
+              valent_test_fixture_init,
               test_share_plugin_send_request,
-              valent_test_plugin_fixture_clear);
+              valent_test_fixture_clear);
 
 #ifdef VALENT_TEST_FUZZ
   g_test_add ("/plugins/share/fuzz",
-              ValentTestPluginFixture, path,
-              valent_test_plugin_fixture_init,
+              ValentTestFixture, path,
+              valent_test_fixture_init,
               test_share_plugin_fuzz,
-              valent_test_plugin_fixture_clear);
+              valent_test_fixture_clear);
 #endif
 
   return g_test_run ();

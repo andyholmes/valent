@@ -9,9 +9,9 @@
 
 
 static void
-upower_set_battery (GDBusConnection         *connection,
-                    const char              *name,
-                    GVariant                *value)
+upower_set_battery (GDBusConnection *connection,
+                    const char      *name,
+                    GVariant        *value)
 {
   GVariantDict dict;
   GVariant *args;
@@ -35,8 +35,8 @@ upower_set_battery (GDBusConnection         *connection,
 }
 
 static void
-test_battery_plugin_actions (ValentTestPluginFixture *fixture,
-                             gconstpointer            user_data)
+test_battery_plugin_actions (ValentTestFixture *fixture,
+                             gconstpointer      user_data)
 {
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   g_autoptr (GVariant) state = NULL;
@@ -70,29 +70,29 @@ test_battery_plugin_actions (ValentTestPluginFixture *fixture,
 }
 
 static void
-test_battery_plugin_connect (ValentTestPluginFixture *fixture,
-                             gconstpointer            user_data)
+test_battery_plugin_connect (ValentTestFixture *fixture,
+                             gconstpointer      user_data)
 {
   JsonNode *packet;
 
-  valent_test_plugin_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture, TRUE);
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.battery");
   v_assert_packet_cmpint (packet, "currentCharge", ==, -1);
   v_assert_packet_false (packet, "isCharging");
   v_assert_packet_cmpint (packet, "thresholdEvent", ==, 0);
   json_node_unref (packet);
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.battery.request");
   v_assert_packet_true (packet, "request");
   json_node_unref (packet);
 }
 
 static void
-test_battery_plugin_handle_update (ValentTestPluginFixture *fixture,
-                                   gconstpointer            user_data)
+test_battery_plugin_handle_update (ValentTestFixture *fixture,
+                                   gconstpointer      user_data)
 {
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *packet;
@@ -108,8 +108,8 @@ test_battery_plugin_handle_update (ValentTestPluginFixture *fixture,
   g_assert_false (g_action_group_get_action_enabled (actions, "battery.state"));
 
   /* Empty Battery */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "empty-battery");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "empty-battery");
+  valent_test_fixture_handle_packet (fixture, packet);
 
   g_assert_true (g_action_group_get_action_enabled (actions, "battery.state"));
   state = g_action_group_get_action_state (actions, "battery.state");
@@ -131,8 +131,8 @@ test_battery_plugin_handle_update (ValentTestPluginFixture *fixture,
   g_clear_pointer (&state, g_variant_unref);
 
   /* Caution Battery */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "caution-battery");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "caution-battery");
+  valent_test_fixture_handle_packet (fixture, packet);
 
   g_assert_true (g_action_group_get_action_enabled (actions, "battery.state"));
   state = g_action_group_get_action_state (actions, "battery.state");
@@ -154,8 +154,8 @@ test_battery_plugin_handle_update (ValentTestPluginFixture *fixture,
   g_clear_pointer (&state, g_variant_unref);
 
   /* Low Battery */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "low-battery");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "low-battery");
+  valent_test_fixture_handle_packet (fixture, packet);
 
   g_assert_true (g_action_group_get_action_enabled (actions, "battery.state"));
   state = g_action_group_get_action_state (actions, "battery.state");
@@ -177,8 +177,8 @@ test_battery_plugin_handle_update (ValentTestPluginFixture *fixture,
   g_clear_pointer (&state, g_variant_unref);
 
   /* Good Battery */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "good-battery");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "good-battery");
+  valent_test_fixture_handle_packet (fixture, packet);
 
   state = g_action_group_get_action_state (actions, "battery.state");
 
@@ -199,8 +199,8 @@ test_battery_plugin_handle_update (ValentTestPluginFixture *fixture,
   g_clear_pointer (&state, g_variant_unref);
 
   /* Full Battery */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "full-battery");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "full-battery");
+  valent_test_fixture_handle_packet (fixture, packet);
 
   g_assert_true (g_action_group_get_action_enabled (actions, "battery.state"));
   state = g_action_group_get_action_state (actions, "battery.state");
@@ -222,8 +222,8 @@ test_battery_plugin_handle_update (ValentTestPluginFixture *fixture,
   g_clear_pointer (&state, g_variant_unref);
 
   /* Full Battery */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "charged-battery");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "charged-battery");
+  valent_test_fixture_handle_packet (fixture, packet);
 
   g_assert_true (g_action_group_get_action_enabled (actions, "battery.state"));
   state = g_action_group_get_action_state (actions, "battery.state");
@@ -245,8 +245,8 @@ test_battery_plugin_handle_update (ValentTestPluginFixture *fixture,
   g_clear_pointer (&state, g_variant_unref);
 
   /* Missing Battery */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "missing-battery");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "missing-battery");
+  valent_test_fixture_handle_packet (fixture, packet);
 
   g_assert_false (g_action_group_get_action_enabled (actions, "battery.state"));
   state = g_action_group_get_action_state (actions, "battery.state");
@@ -267,8 +267,8 @@ test_battery_plugin_handle_update (ValentTestPluginFixture *fixture,
 }
 
 static void
-test_battery_plugin_handle_request (ValentTestPluginFixture *fixture,
-                                    gconstpointer            user_data)
+test_battery_plugin_handle_request (ValentTestFixture *fixture,
+                                    gconstpointer      user_data)
 {
   g_autoptr (GDBusConnection) connection = NULL;
   JsonNode *packet;
@@ -276,16 +276,16 @@ test_battery_plugin_handle_request (ValentTestPluginFixture *fixture,
   connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL);
 
   /* Expect connect packets */
-  valent_test_plugin_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture, TRUE);
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.battery");
   v_assert_packet_cmpint (packet, "currentCharge", ==, -1);
   v_assert_packet_false (packet, "isCharging");
   v_assert_packet_cmpint (packet, "thresholdEvent", ==, 0);
   json_node_unref (packet);
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.battery.request");
   v_assert_packet_true (packet, "request");
   json_node_unref (packet);
@@ -293,7 +293,7 @@ test_battery_plugin_handle_request (ValentTestPluginFixture *fixture,
   /* Expect updates */
   upower_set_battery (connection, "Percentage", g_variant_new_double (42.0));
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.battery");
   v_assert_packet_cmpint (packet, "currentCharge", ==, 42);
   v_assert_packet_false (packet, "isCharging");
@@ -302,7 +302,7 @@ test_battery_plugin_handle_request (ValentTestPluginFixture *fixture,
 
   upower_set_battery (connection, "State", g_variant_new_uint32 (1));
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.battery");
   v_assert_packet_cmpint (packet, "currentCharge", ==, 42);
   v_assert_packet_true (packet, "isCharging");
@@ -311,7 +311,7 @@ test_battery_plugin_handle_request (ValentTestPluginFixture *fixture,
 
   upower_set_battery (connection, "WarningLevel", g_variant_new_uint32 (3));
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.battery");
   v_assert_packet_cmpint (packet, "currentCharge", ==, 42);
   v_assert_packet_true (packet, "isCharging");
@@ -319,10 +319,10 @@ test_battery_plugin_handle_request (ValentTestPluginFixture *fixture,
   json_node_unref (packet);
 
   /* Respond to a request */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "request-state");
-  valent_test_plugin_fixture_handle_packet (fixture, packet);
+  packet = valent_test_fixture_lookup_packet (fixture, "request-state");
+  valent_test_fixture_handle_packet (fixture, packet);
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.battery");
   v_assert_packet_cmpint (packet, "currentCharge", ==, 42);
   v_assert_packet_true (packet, "isCharging");
@@ -336,15 +336,15 @@ static const char *schemas[] = {
 };
 
 static void
-test_battery_plugin_fuzz (ValentTestPluginFixture *fixture,
-                          gconstpointer            user_data)
+test_battery_plugin_fuzz (ValentTestFixture *fixture,
+                          gconstpointer      user_data)
 
 {
-  valent_test_plugin_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture, TRUE);
   g_test_log_set_fatal_handler (valent_test_mute_fuzzing, NULL);
 
   for (unsigned int s = 0; s < G_N_ELEMENTS (schemas); s++)
-    valent_test_plugin_fixture_schema_fuzz (fixture, schemas[s]);
+    valent_test_fixture_schema_fuzz (fixture, schemas[s]);
 }
 
 int
@@ -356,35 +356,35 @@ main (int   argc,
   g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 
   g_test_add ("/plugins/battery/actions",
-              ValentTestPluginFixture, path,
-              valent_test_plugin_fixture_init,
+              ValentTestFixture, path,
+              valent_test_fixture_init,
               test_battery_plugin_actions,
-              valent_test_plugin_fixture_clear);
+              valent_test_fixture_clear);
 
   g_test_add ("/plugins/battery/connect",
-              ValentTestPluginFixture, path,
-              valent_test_plugin_fixture_init,
+              ValentTestFixture, path,
+              valent_test_fixture_init,
               test_battery_plugin_connect,
-              valent_test_plugin_fixture_clear);
+              valent_test_fixture_clear);
 
   g_test_add ("/plugins/battery/handle-update",
-              ValentTestPluginFixture, path,
-              valent_test_plugin_fixture_init,
+              ValentTestFixture, path,
+              valent_test_fixture_init,
               test_battery_plugin_handle_update,
-              valent_test_plugin_fixture_clear);
+              valent_test_fixture_clear);
 
   g_test_add ("/plugins/battery/handle-request",
-              ValentTestPluginFixture, path,
-              valent_test_plugin_fixture_init,
+              ValentTestFixture, path,
+              valent_test_fixture_init,
               test_battery_plugin_handle_request,
-              valent_test_plugin_fixture_clear);
+              valent_test_fixture_clear);
 
 #ifdef VALENT_TEST_FUZZ
   g_test_add ("/plugins/battery/fuzz",
-              ValentTestPluginFixture, path,
-              valent_test_plugin_fixture_init,
+              ValentTestFixture, path,
+              valent_test_fixture_init,
               test_battery_plugin_fuzz,
-              valent_test_plugin_fixture_clear);
+              valent_test_fixture_clear);
 #endif
 
   return g_test_run ();

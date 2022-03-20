@@ -7,17 +7,23 @@ plugin_ping_test_deps = [
   plugin_ping_deps,
 ]
 
-test_program = executable('test-ping-plugin',
-                          'test-ping-plugin.c',
-        c_args: test_c_args,
-  dependencies: plugin_ping_test_deps,
-     link_args: test_link_args,
-    link_whole: [libvalent_test, plugin_ping],
-)
+plugin_ping_tests = [
+  'test-ping-plugin',
+]
 
-test('test-ping-plugin', test_program,
-          env: tests_env,
-  is_parallel: false,
-        suite: ['plugins', 'ping'],
-)
+foreach test : plugin_ping_tests
+  test_program = executable(test, '@0@.c'.format(test),
+                 c_args: test_c_args,
+           dependencies: plugin_ping_test_deps,
+    include_directories: plugin_ping_include_directories,
+              link_args: test_link_args,
+             link_whole: [libvalent_test, plugin_ping],
+  )
+
+  test(test, test_program,
+            env: tests_env,
+    is_parallel: false,
+          suite: ['plugins', 'ping'],
+  )
+endforeach
 

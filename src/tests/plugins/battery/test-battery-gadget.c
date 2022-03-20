@@ -8,8 +8,8 @@
 
 
 static void
-test_battery_plugin_gadget (ValentTestPluginFixture *fixture,
-                            gconstpointer            user_data)
+test_battery_plugin_gadget (ValentTestFixture *fixture,
+                            gconstpointer      user_data)
 {
   PeasEngine *engine;
   PeasExtension *gadget;
@@ -34,22 +34,22 @@ test_battery_plugin_gadget (ValentTestPluginFixture *fixture,
   g_object_unref (device);
 
   /* Expect connect packets */
-  valent_test_plugin_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture, TRUE);
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.battery");
   v_assert_packet_cmpint (packet, "currentCharge", ==, -1);
   v_assert_packet_false (packet, "isCharging");
   v_assert_packet_cmpint (packet, "thresholdEvent", ==, 0);
   json_node_unref (packet);
 
-  packet = valent_test_plugin_fixture_expect_packet (fixture);
+  packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.battery.request");
   v_assert_packet_true (packet, "request");
   json_node_unref (packet);
 
   /* Switch up the state */
-  packet = valent_test_plugin_fixture_lookup_packet (fixture, "missing-battery");
+  packet = valent_test_fixture_lookup_packet (fixture, "missing-battery");
 
   for (unsigned int level = 0; level <= 100; level += 10)
     {
@@ -57,7 +57,7 @@ test_battery_plugin_gadget (ValentTestPluginFixture *fixture,
 
       json_object_set_int_member (body, "currentCharge", level);
       json_object_set_boolean_member (body, "isCharging", (level % 20) != 0);
-      valent_test_plugin_fixture_handle_packet (fixture, packet);
+      valent_test_fixture_handle_packet (fixture, packet);
     }
 
   g_object_unref (gadget);
@@ -72,10 +72,10 @@ main (int   argc,
   valent_test_ui_init (&argc, &argv, NULL);
 
   g_test_add ("/plugins/battery/gadget",
-              ValentTestPluginFixture, path,
-              valent_test_plugin_fixture_init,
+              ValentTestFixture, path,
+              valent_test_fixture_init,
               test_battery_plugin_gadget,
-              valent_test_plugin_fixture_clear);
+              valent_test_fixture_clear);
 
   return g_test_run ();
 }

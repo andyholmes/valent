@@ -10,8 +10,8 @@
 
 
 static void
-test_mousepad_dialog (ValentTestPluginFixture *fixture,
-                      gconstpointer            user_data)
+test_mousepad_dialog (ValentTestFixture *fixture,
+                      gconstpointer      user_data)
 {
   ValentMousepadDialog *dialog;
   ValentDevice *device;
@@ -53,10 +53,10 @@ main (int   argc,
   valent_test_ui_init (&argc, &argv, NULL);
 
   g_test_add ("/plugins/mousepad/dialog",
-              ValentTestPluginFixture, path,
-              valent_test_plugin_fixture_init,
+              ValentTestFixture, path,
+              valent_test_fixture_init,
               test_mousepad_dialog,
-              valent_test_plugin_fixture_clear);
+              valent_test_fixture_clear);
 
   return g_test_run ();
 }

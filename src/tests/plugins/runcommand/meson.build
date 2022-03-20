@@ -13,13 +13,12 @@ plugin_runcommand_tests = [
 ]
 
 foreach test : plugin_runcommand_tests
-  source = ['@0@.c'.format(test)]
-
-  test_program = executable(test, source,
-          c_args: test_c_args,
-    dependencies: plugin_runcommand_test_deps,
-       link_args: test_link_args,
-      link_whole: [libvalent_test, plugin_runcommand],
+  test_program = executable(test, '@0@.c'.format(test),
+                 c_args: test_c_args,
+           dependencies: plugin_runcommand_test_deps,
+    include_directories: plugin_runcommand_include_directories,
+              link_args: test_link_args,
+             link_whole: [libvalent_test, plugin_runcommand],
   )
 
   test(test, test_program,

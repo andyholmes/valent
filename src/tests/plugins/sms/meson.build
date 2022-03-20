@@ -27,9 +27,9 @@ foreach test : plugin_sms_tests
   test_program = executable(test, '@0@.c'.format(test),
                  c_args: test_c_args,
            dependencies: plugin_sms_test_deps,
+    include_directories: plugin_sms_include_directories,
               link_args: test_link_args,
              link_whole: [libvalent_test, plugin_sms],
-    include_directories: plugin_sms_include_directories,
   )
 
   test(test, test_program,

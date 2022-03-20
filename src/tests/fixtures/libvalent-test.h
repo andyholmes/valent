@@ -17,7 +17,7 @@
 #include "valent-mock-mixer-control.h"
 #include "valent-mock-notification-source.h"
 #include "valent-mock-session-adapter.h"
-#include "valent-test-plugin-fixture.h"
+#include "valent-test-fixture.h"
 #include "valent-test-utils.h"
 
 #undef VALENT_TEST_INSIDE
