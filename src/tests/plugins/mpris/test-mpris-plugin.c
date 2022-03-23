@@ -453,6 +453,11 @@ test_mpris_plugin_handle_player (ValentTestFixture *fixture,
   unsigned int watch_id;
   JsonNode *packet;
   GError *error = NULL;
+  g_autoptr (GVariant) metadata = NULL;
+  const char **artist;
+  const char *title;
+  const char *album;
+  gint64 length;
 
   /* Watch for exported player */
   connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
@@ -513,6 +518,24 @@ test_mpris_plugin_handle_player (ValentTestFixture *fixture,
   file = g_file_new_for_path (TEST_DATA_DIR"/image.png");
   valent_test_fixture_upload (fixture, packet, file, &error);
   g_assert_no_error (error);
+
+  while (metadata == NULL)
+    {
+      g_main_context_iteration (NULL, TRUE);
+      metadata = valent_media_player_get_metadata (VALENT_MEDIA_PLAYER (proxy));
+    }
+
+  g_assert_true (g_variant_lookup (metadata, "xesam:artist", "^a&s", &artist));
+  g_assert_true (g_variant_lookup (metadata, "xesam:title", "&s", &title));
+  g_assert_true (g_variant_lookup (metadata, "xesam:album", "&s", &album));
+  g_assert_true (g_variant_lookup (metadata, "mpris:length", "x", &length));
+
+  g_assert_cmpstr (artist[0], ==, "Test Artist");
+  g_assert_cmpstr (title, ==, "Test Title");
+  g_assert_cmpstr (album, ==, "Test Album");
+  g_assert_cmpint (length, ==, 180000);
+  g_clear_pointer (&artist, g_free);
+  g_clear_pointer (&metadata, g_variant_unref);
 
   /* Actions */
   valent_media_player_play (VALENT_MEDIA_PLAYER (proxy));
