@@ -652,6 +652,8 @@ valent_sms_conversation_finalize (GObject *object)
   g_clear_object (&self->message_store);
   g_clear_object (&self->contact_store);
   g_clear_pointer (&self->participants, g_hash_table_unref);
+  g_clear_pointer (&self->title, g_free);
+  g_clear_pointer (&self->subtitle, g_free);
 
   G_OBJECT_CLASS (valent_sms_conversation_parent_class)->finalize (object);
 }
