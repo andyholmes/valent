@@ -122,12 +122,13 @@ static void
 test_device_new (void)
 {
   ValentDevice *device = NULL;
-
-  gboolean connected;
+  g_autoptr (GFile) file = NULL;
+  g_autofree char *basename = NULL;
   g_autofree char *icon_name = NULL;
   g_autofree char *id = NULL;
   g_autofree char *name = NULL;
   g_autofree char *type = NULL;
+  gboolean connected;
   gboolean paired;
 
   GMenuModel *menu;
@@ -163,6 +164,13 @@ test_device_new (void)
   g_assert_cmpuint (plugins->len, ==, 1);
   g_ptr_array_unref (plugins);
 
+  /* Download files should be creatable */
+  file = valent_device_new_download_file (device, "test-file", FALSE);
+  g_assert_true (G_IS_FILE (file));
+
+  basename = g_file_get_basename (file);
+  g_assert_cmpstr (basename, ==, "test-file");
+
   v_assert_finalize_object (device);
 }
 
@@ -180,6 +188,7 @@ test_device_basic (DeviceFixture *fixture,
   g_autofree char *type = NULL;
   gboolean connected;
   gboolean paired;
+  ValentDeviceState state = VALENT_DEVICE_STATE_NONE;
   GPtrArray *plugins;
 
   /* Test properties */
@@ -191,17 +200,25 @@ test_device_basic (DeviceFixture *fixture,
                 "type",             &type,
                 "connected",        &connected,
                 "paired",           &paired,
+                "state",            &state,
                 NULL);
 
   g_assert_true (VALENT_IS_DATA (data));
   g_assert_cmpstr (id, ==, "test-device");
+  g_assert_cmpstr (valent_device_get_id (fixture->device), ==, "test-device");
   g_assert_cmpstr (name, ==, "Test Device");
+  g_assert_cmpstr (valent_device_get_name (fixture->device), ==, "Test Device");
   g_assert_cmpstr (icon_name, ==, "phone-symbolic");
+  g_assert_cmpstr (valent_device_get_icon_name (fixture->device), ==, "phone-symbolic");
   g_assert_cmpstr (type, ==, "phone");
   g_assert_false (connected);
+  g_assert_false (valent_device_get_connected (fixture->device));
   g_assert_false (paired);
+  g_assert_false (valent_device_get_paired (fixture->device));
+  g_assert_cmpuint (state, ==, VALENT_DEVICE_STATE_NONE);
+  g_assert_cmpuint (valent_device_get_state (fixture->device), ==, VALENT_DEVICE_STATE_NONE);
 
-  /* "Packetless" and "Test" plugins should be loaded */
+  /* "Packetless" and "Mock" plugins should be loaded */
   plugins = valent_device_get_plugins (fixture->device);
   g_assert_cmpuint (plugins->len, ==, 2);
   g_ptr_array_unref (plugins);
@@ -211,9 +228,14 @@ static void
 test_device_connecting (DeviceFixture *fixture,
                         gconstpointer  user_data)
 {
+  g_autoptr (ValentChannel) channel = NULL;
+
   /* Connect */
   valent_device_set_channel (fixture->device, fixture->channel);
   g_assert_true (valent_device_get_connected (fixture->device));
+
+  channel = valent_device_ref_channel (fixture->device);
+  g_assert_nonnull (channel);
 
   /* Disconnect */
   valent_device_set_channel (fixture->device, NULL);
