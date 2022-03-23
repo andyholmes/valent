@@ -1,7 +1,11 @@
 # SPDX-License-Identifier: CC0-1.0
 # SPDX-FileCopyrightText: No rights reserved
 
-FROM registry.fedoraproject.org/fedora:35
+FROM registry.fedoraproject.org/fedora:36
+
+# See: https://github.com/andyholmes/copr/tree/main/glib2
+RUN dnf install -y 'dnf-command(copr)' && \
+    dnf copr -y enable andyholmes/main
 
 # The packages below are roughly grouped into build tooling and build
 # dependencies (with debug symbols)
