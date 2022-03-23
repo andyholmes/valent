@@ -151,6 +151,7 @@ on_session_created (XdpPortal    *portal,
                     gpointer      user_data)
 {
   ValentXdpInput *self = VALENT_XDP_INPUT (user_data);
+  g_autoptr (XdpParent) parent = NULL;
   g_autoptr (GError) error = NULL;
 
   self->session = xdp_portal_create_remote_desktop_session_finish (portal,
@@ -166,8 +167,9 @@ on_session_created (XdpPortal    *portal,
     }
 
   /* Hold a reference to the session and queue the start */
+  parent = valent_xdp_get_parent (NULL);
   xdp_session_start (self->session,
-                     NULL,
+                     parent,
                      self->cancellable,
                      (GAsyncReadyCallback)on_session_started,
                      self);
@@ -192,6 +194,7 @@ ensure_session (ValentXdpInput *self)
                                              XDP_DEVICE_POINTER),
                                             XDP_OUTPUT_MONITOR,
                                             XDP_REMOTE_DESKTOP_FLAG_NONE,
+                                            XDP_CURSOR_MODE_HIDDEN,
                                             self->cancellable,
                                             (GAsyncReadyCallback)on_session_created,
                                             self);
