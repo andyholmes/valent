@@ -95,7 +95,7 @@ project_c_args = [
 
   # These should be kept in sync (eg. GTK 4.4 requires GLib 2.66)
   '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_66',
-  '-DGDK_VERSION_MIN_REQUIRED=GDK_VERSION_4_4',
+  '-DGDK_VERSION_MIN_REQUIRED=GDK_VERSION_4_6',
 
   # TODO: These should be fixed instead of downgraded to warnings
   '-Wno-error=unused-function',
@@ -200,13 +200,13 @@ configure_file(
 # Dependencies
 #
 gio_version = '>= 2.66.0'
-gtk_version = '>= 4.4.0'
+gtk_version = '>= 4.6.0'
 gnutls_version = '>= 3.1.3'
 json_glib_version = '>= 1.6.0'
 libpeas_version = '>= 1.22.0'
 eds_version = '>= 3.34'
 sqlite_version = '>= 3.24.0'
-libadwaita_version = '>= 1.0.0.alpha.4'
+libadwaita_version = '>= 1.0.0'
 
 libm_dep = cc.find_library('m', required: true)
 gio_dep = dependency('gio-2.0', version: gio_version)
