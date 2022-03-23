@@ -2,10 +2,33 @@
 # SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 # Require libportal
-libportal_dep = dependency('libportal', version: '0.4', required: false)
+libportal_version = '0.5'
+libportal_dep = dependency('libportal-gtk4',
+   version: libportal_version,
+  required: false,
+)
 
-if not libportal_dep.found()
-  error('libportal required for XDP plugin')
+if libportal_dep.found()
+  plugins_c_args += [ '-DHAVE_LIBPORTAL_GTK4' ]
+else
+  libportal_dep = dependency('libportal',
+     version: libportal_version,
+    required: false,
+  )
+
+  if not libportal_dep.found()
+    libportal = subproject('libportal',
+      default_options: [
+        'backends=gtk4',
+        'docs=false',
+        'introspection=false',
+        'vapi=false',
+        'werror=false',
+      ],
+    )
+    libportal_dep = libportal.get_variable('libportal_dep')
+    plugins_c_args += [ '-DHAVE_LIBPORTAL_GTK4' ]
+  endif
 endif
 
 # Dependencies

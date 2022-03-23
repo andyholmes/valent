@@ -150,13 +150,16 @@
             "name" : "libportal",
             "buildsystem" : "meson",
             "config-opts" : [
-                "-Dgtk_doc=false"
+                "-Dbackends=gtk4",
+                "-Ddocs=false",
+                "-Dintrospection=false",
+                "-Dvapi=false"
             ],
             "sources" : [
                 {
                     "type" : "git",
                     "url" : "https://github.com/flatpak/libportal.git",
-                    "tag" : "0.4"
+                    "tag" : "0.5"
                 }
             ]
         },
