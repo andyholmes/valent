@@ -131,7 +131,7 @@
                 {
                     "type" : "git",
                     "url" : "https://gitlab.gnome.org/GNOME/evolution-data-server.git",
-                    "branch" : "gnome-41"
+                    "branch" : "gnome-42"
                 }
             ]
         },
