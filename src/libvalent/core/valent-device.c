@@ -1838,7 +1838,7 @@ valent_device_handle_packet (ValentDevice *device,
  * @filename: (type filename): a filename
  * @unique: whether to ensure a unique file
  *
- * Get a new [class@Gio.File] for in the download directory of the device.
+ * Get a new [iface@Gio.File] for in the download directory of the device.
  *
  * If @unique is %TRUE, the returned file is guaranteed not to be an existing
  * filename by appending `(#)`.

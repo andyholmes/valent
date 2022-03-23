@@ -39,11 +39,11 @@
  * independent of the device state. This allows the user to restrict the
  * device's access before pairing and configure plugins while it is offline.
  *
- * The [class@Peas.Extension] instance is only constructed once the plugin has
+ * The [alias@Peas.Extension] instance is only constructed once the plugin has
  * been enabled by the user, after which [method@Valent.DevicePlugin.enable] and
  * [method@Valent.DevicePlugin.update_state] will be called to setup the plugin.
  * When the plugin is disabled, [method@Valent.DevicePlugin.disable] will be
- * called just before the [class@Peas.Extension] is disposed.
+ * called just before the [alias@Peas.Extension] is disposed.
  *
  * If the connected or paired state of the device changes,
  * [method@Valent.DevicePlugin.update_state] will be called on the plugin. Note
@@ -602,7 +602,7 @@ valent_device_plugin_hide_notification (ValentDevicePlugin *plugin,
  * for a device ID and plugin module name.
  *
  * It is expected that @device_id is a valid string for a #GSettings path and
- * that the target [class@Gio.SettingsSchema] is of the form
+ * that the target [struct@Gio.SettingsSchema] is of the form
  * `ca.andyholmes.valent.module_name`.
  *
  * Returns: (transfer full): the new #GSettings object
