@@ -1002,7 +1002,7 @@ valent_notification_hash (gconstpointer notification)
  *
  * Compare two notifications for equality by ID.
  *
- * Returns: %TRUE if equal, or $FALSE if not
+ * Returns: %TRUE if equal, or %FALSE if not
  */
 gboolean
 valent_notification_equal (gconstpointer notification1,
