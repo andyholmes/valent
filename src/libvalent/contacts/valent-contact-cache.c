@@ -27,7 +27,7 @@
 
 struct _ValentContactCache
 {
-  ValentContactStore  parent;
+  ValentContactStore  parent_instance;
 
   EBookCache         *cache;
   char               *path;
