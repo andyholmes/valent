@@ -362,7 +362,7 @@ valent_packet_get_payload_size (JsonNode *packet)
 
   if ((node = json_object_get_member (root, "payloadSize")) != NULL &&
       json_node_get_value_type (node) != G_TYPE_INT64)
-    g_return_val_if_reached (0);
+    g_return_val_if_reached (-1);
 
   return node ? json_node_get_int (node) : -1;
 }
@@ -381,6 +381,7 @@ valent_packet_set_payload_size (JsonNode *packet,
   JsonObject *root;
 
   g_return_if_fail (VALENT_IS_PACKET (packet));
+  g_return_if_fail (size >= -1);
 
   root = json_node_get_object (packet);
 
