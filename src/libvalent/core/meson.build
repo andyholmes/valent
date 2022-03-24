@@ -105,7 +105,6 @@ libvalent_core_enums = gnome.mkenums_simple('valent-core-enums',
               sources: libvalent_core_enum_headers,
        install_header: true,
           install_dir: libvalent_core_header_dir,
-  include_directories: [config_h_inc, include_directories('.')],
 )
 libvalent_core_generated_sources += [libvalent_core_enums[0]]
 libvalent_core_generated_headers += [libvalent_core_enums[1]]
