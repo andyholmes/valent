@@ -7,6 +7,7 @@
 #include <libpeas/peas.h>
 #include <libvalent-input.h>
 
+#include "valent-xdp-background.h"
 #include "valent-xdp-input.h"
 
 
@@ -20,5 +21,13 @@ valent_xdp_plugin_register_types (PeasObjectModule *module)
   peas_object_module_register_extension_type (module,
                                               VALENT_TYPE_INPUT_ADAPTER,
                                               VALENT_TYPE_XDP_INPUT);
+
+  /* Ensure this is a Flatpak instance before registering */
+  if (!valent_in_flatpak ())
+    return;
+
+  peas_object_module_register_extension_type (module,
+                                              VALENT_TYPE_APPLICATION_PLUGIN,
+                                              VALENT_TYPE_XDP_BACKGROUND);
 }
 

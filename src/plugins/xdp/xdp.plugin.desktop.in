@@ -4,7 +4,7 @@
 [Plugin]
 Module=xdp
 Name=Portals
-Description=Integration with XDG desktop portals
+Description=Integration with desktop portals
 Icon=valent-xdp-plugin-symbolic
 Builtin=true
 Embedded=valent_xdp_plugin_register_types
