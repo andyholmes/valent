@@ -59,6 +59,19 @@ enum {
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 
+static int
+plugin_list_sort (GtkListBoxRow *row1,
+                  GtkListBoxRow *row2,
+                  gpointer       user_data)
+{
+  if G_UNLIKELY (!ADW_IS_PREFERENCES_ROW (row1) ||
+                 !ADW_IS_PREFERENCES_ROW (row2))
+    return 0;
+
+  return g_utf8_collate (adw_preferences_row_get_title ((AdwPreferencesRow *)row1),
+                         adw_preferences_row_get_title ((AdwPreferencesRow *)row2));
+}
+
 /*
  * Plugin Callbacks
  */
@@ -478,7 +491,7 @@ valent_device_panel_init (ValentDevicePanel *self)
   gtk_widget_init_template (GTK_WIDGET (self));
 
   gtk_list_box_set_sort_func (self->plugin_list,
-                              valent_plugin_preferences_row_sort,
+                              plugin_list_sort,
                               NULL,
                               NULL);
   self->plugins = g_hash_table_new_full (NULL, NULL, NULL, g_free);

@@ -19,14 +19,8 @@ G_DECLARE_INTERFACE (ValentPluginPreferences, valent_plugin_preferences, VALENT,
 
 struct _ValentPluginPreferencesInterface
 {
-  GTypeInterface  g_iface;
+  GTypeInterface   g_iface;
 };
-
-/* Utility Functions */
-VALENT_AVAILABLE_IN_1_0
-int   valent_plugin_preferences_row_sort (GtkListBoxRow *row1,
-                                          GtkListBoxRow *row2,
-                                          gpointer       user_data);
 
 G_END_DECLS
 
