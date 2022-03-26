@@ -10,7 +10,6 @@ src/libvalent/core/valent-device.c
 src/libvalent/ui/valent-device-panel.ui
 src/libvalent/ui/valent-menu-list.c
 src/libvalent/ui/valent-plugin-group.c
-src/libvalent/ui/valent-ui-utils.c
 src/libvalent/ui/valent-window.c
 src/libvalent/ui/valent-window.ui
 src/main.c
@@ -75,5 +74,7 @@ src/plugins/telephony/telephony.plugin.desktop.in
 src/plugins/telephony/valent-telephony-plugin.c
 src/plugins/telephony/valent-telephony-preferences.c
 src/plugins/telephony/valent-telephony-preferences.ui
+src/plugins/xdp/ca.andyholmes.valent.xdp.gschema.xml
+src/plugins/xdp/valent-xdp-background.c
 src/plugins/xdp/xdp.plugin.desktop.in
 
