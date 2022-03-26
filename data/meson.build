@@ -6,37 +6,49 @@ subdir('gsettings')
 subdir('metainfo')
 
 
-#
-# Desktop File
-#
+# Desktop Files
 desktop_conf = configuration_data()
 desktop_conf.set('application_id', application_id)
 desktop_file = i18n.merge_file(
         input: configure_file(
                   input: files('ca.andyholmes.Valent.desktop.in.in'),
                  output: 'ca.andyholmes.Valent.desktop.in',
-          configuration: desktop_conf
+          configuration: desktop_conf,
         ),
        output: '@0@.desktop'.format(application_id),
       install: true,
   install_dir: join_paths(datadir, 'applications'),
        po_dir: po_dir,
-         type: 'desktop'
+         type: 'desktop',
+)
+
+autostart_conf = configuration_data()
+autostart_conf.set('application_id', application_id)
+autostart_conf.set('bindir', bindir)
+autostart_file = i18n.merge_file(
+        input: configure_file(
+                  input: files('ca.andyholmes.Valent-autostart.desktop.in.in'),
+                 output: 'ca.andyholmes.Valent-autostart.desktop.in',
+          configuration: autostart_conf,
+        ),
+       output: '@0@-autostart.desktop'.format(application_id),
+      install: true,
+  install_dir: join_paths(get_option('sysconfdir'), 'xdg', 'autostart'),
+       po_dir: po_dir,
+         type: 'desktop',
 )
 
 desktop_utils = find_program('desktop-file-validate', required: false)
 
 if desktop_utils.found()
-  test('Validate desktop file', desktop_utils,
-       args: [desktop_file],
-    depends: [desktop_file],
+  test('Validate Desktop files', desktop_utils,
+       args: [desktop_file, autostart_file],
+    depends: [desktop_file, autostart_file],
   )
 endif
 
 
-#
 # Application Icon
-#
 scalable_icondir = join_paths('icons', 'hicolor', 'scalable', 'apps')
 install_data(join_paths(scalable_icondir, '@0@.svg'.format(application_id)),
   install_dir: join_paths(datadir, scalable_icondir),
@@ -50,9 +62,7 @@ install_data(join_paths(symbolic_icondir, 'ca.andyholmes.Valent-symbolic.svg'),
 )
 
 
-#
 # DBus Service
-#
 dbus_conf = configuration_data()
 dbus_conf.set('application_id', application_id)
 dbus_conf.set('bindir', bindir)
