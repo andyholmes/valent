@@ -48,29 +48,3 @@ valent_plugin_preferences_default_init (ValentPluginPreferencesInterface *iface)
                                                              G_PARAM_STATIC_STRINGS)));
 }
 
-/**
- * valent_plugin_preferences_row_sort:
- * @row1: a #GtkListBoxRow
- * @row2: a #GtkListBoxRow
- * @user_data: user defined data
- *
- * Compare two #AdwPreferencesRow instances by title to determine which should
- * be first. If either row is not an instance of #AdwPreferencesRow the rows
- * will be considered equal.
- *
- * Returns: < 0 if @row1 should be before @row2 , 0 if they are equal
- *     and > 0 otherwise
- */
-int
-valent_plugin_preferences_row_sort (GtkListBoxRow *row1,
-                                    GtkListBoxRow *row2,
-                                    gpointer       user_data)
-{
-  if G_UNLIKELY (!ADW_IS_PREFERENCES_ROW (row1) ||
-                 !ADW_IS_PREFERENCES_ROW (row2))
-    return 0;
-
-  return g_utf8_collate (adw_preferences_row_get_title ((AdwPreferencesRow *)row1),
-                         adw_preferences_row_get_title ((AdwPreferencesRow *)row2));
-}
-

@@ -42,6 +42,20 @@ static void valent_plugin_preferences_iface_init (ValentPluginPreferencesInterfa
 G_DEFINE_TYPE_WITH_CODE (ValentNotificationPreferences, valent_notification_preferences, ADW_TYPE_PREFERENCES_PAGE,
                          G_IMPLEMENT_INTERFACE (VALENT_TYPE_PLUGIN_PREFERENCES, valent_plugin_preferences_iface_init))
 
+
+static int
+application_list_sort (GtkListBoxRow *row1,
+                       GtkListBoxRow *row2,
+                       gpointer       user_data)
+{
+  if G_UNLIKELY (!ADW_IS_PREFERENCES_ROW (row1) ||
+                 !ADW_IS_PREFERENCES_ROW (row2))
+    return 0;
+
+  return g_utf8_collate (adw_preferences_row_get_title ((AdwPreferencesRow *)row1),
+                         adw_preferences_row_get_title ((AdwPreferencesRow *)row2));
+}
+
 /*
  * Template Callbacks
  */
@@ -209,7 +223,7 @@ valent_notification_preferences_constructed (GObject *object)
 
   /* Applications */
   gtk_list_box_set_sort_func (self->application_list,
-                              valent_plugin_preferences_row_sort,
+                              application_list_sort,
                               self, NULL);
   populate_applications (self);
 
