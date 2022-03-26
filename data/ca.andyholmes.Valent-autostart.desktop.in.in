@@ -1,16 +1,12 @@
 [Desktop Entry]
 Name=Valent
 Comment=Connect, control and sync devices
-Exec=valent %U
+Exec=@bindir@/valent --gapplication-service
 # Translators: Do NOT translate or transliterate this text (this is an icon file name)!
 Icon=@application_id@
 Terminal=false
 Type=Application
 Categories=GNOME;GTK;Network;
 StartupNotify=true
-MimeType=x-scheme-handler/sms;x-scheme-handler/tel;
-DBusActivatable=true
-X-GNOME-UsesNotifications=true
-# Translators: Do NOT translate or transliterate this text (these are enum types)!
-X-Purism-FormFactor=Workstation;Mobile;
+NoDisplay=true
 
