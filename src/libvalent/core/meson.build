@@ -11,6 +11,7 @@ libvalent_core_generated_sources = []
 # Headers
 libvalent_core_public_headers = [
   'libvalent-core.h',
+  'valent-application-plugin.h',
   'valent-certificate.h',
   'valent-channel.h',
   'valent-channel-service.h',
@@ -43,6 +44,7 @@ install_headers(libvalent_core_public_headers,
 
 # Sources
 libvalent_core_public_sources = [
+  'valent-application-plugin.c',
   'valent-certificate.c',
   'valent-channel.c',
   'valent-channel-service.c',

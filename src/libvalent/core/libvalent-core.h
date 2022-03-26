@@ -5,6 +5,7 @@
 
 #define VALENT_CORE_INSIDE
 
+#include "valent-application-plugin.h"
 #include "valent-certificate.h"
 #include "valent-channel.h"
 #include "valent-channel-service.h"
