@@ -11,19 +11,19 @@ test_notification_plugin_preferences (void)
   PeasEngine *engine;
   PeasPluginInfo *info;
   PeasExtension *prefs;
-  g_autofree char *plugin_context = NULL;
+  g_autofree char *device_id = NULL;
 
   engine = valent_get_engine ();
   info = peas_engine_get_plugin_info (engine, "notification");
   prefs = peas_engine_create_extension (engine,
                                         info,
-                                        VALENT_TYPE_PLUGIN_PREFERENCES,
-                                        "plugin-context", "test-device",
+                                        VALENT_TYPE_DEVICE_PREFERENCES_PAGE,
+                                        "device-id", "test-device",
                                         NULL);
   g_object_ref_sink (prefs);
 
-  g_object_get (prefs, "plugin-context", &plugin_context, NULL);
-  g_assert_cmpstr (plugin_context, ==, "test-device");
+  g_object_get (prefs, "device-id", &device_id, NULL);
+  g_assert_cmpstr (device_id, ==, "test-device");
 
   g_object_unref (prefs);
 }

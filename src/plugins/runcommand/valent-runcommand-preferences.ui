@@ -6,6 +6,7 @@
 <interface domain="valent">
   <template class="ValentRuncommandPreferences" parent="AdwPreferencesPage">
     <property name="title" translatable="yes">Commands</property>
+    <property name="icon-name">valent-runcommand-plugin-symbolic</property>
     <child>
       <object class="AdwPreferencesGroup" id="command_group">
         <property name="title" translatable="yes">Commands</property>

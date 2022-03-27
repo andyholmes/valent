@@ -12,7 +12,6 @@
 #include <libvalent-core.h>
 
 #include "valent-plugin-group.h"
-#include "valent-plugin-preferences.h"
 #include "valent-plugin-row.h"
 
 
@@ -72,9 +71,8 @@ on_load_plugin (PeasEngine        *engine,
     return;
 
   row = g_object_new (VALENT_TYPE_PLUGIN_ROW,
-                      "plugin-context", self->plugin_context,
-                      "plugin-info",    info,
-                      "plugin-type",    self->plugin_type,
+                      "device-id",   self->plugin_context,
+                      "plugin-info", info,
                       NULL);
 
   gtk_list_box_insert (self->plugin_list, row, -1);

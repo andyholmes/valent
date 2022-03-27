@@ -1,0 +1,14 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
+
+#pragma once
+
+#include <adwaita.h>
+
+G_BEGIN_DECLS
+
+#define VALENT_TYPE_DEVICE_PREFERENCES_WINDOW (valent_device_preferences_window_get_type())
+
+G_DECLARE_FINAL_TYPE (ValentDevicePreferencesWindow, valent_device_preferences_window, VALENT, DEVICE_PREFERENCES_WINDOW, AdwPreferencesWindow)
+
+G_END_DECLS
