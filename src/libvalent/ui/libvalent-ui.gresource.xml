@@ -23,6 +23,7 @@
   <gresource prefix="/ca/andyholmes/Valent/ui">
     <file>style.css</file>
     <file preprocess="xml-stripblanks">valent-device-panel.ui</file>
+    <file preprocess="xml-stripblanks">valent-device-preferences-window.ui</file>
     <file preprocess="xml-stripblanks">valent-panel.ui</file>
     <file preprocess="xml-stripblanks">valent-window.ui</file>
   </gresource>

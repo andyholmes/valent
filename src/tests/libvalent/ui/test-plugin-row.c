@@ -14,32 +14,29 @@ test_plugin_row_basic (void)
   PeasEngine *engine;
   PeasPluginInfo *info;
 
-  char *plugin_context;
+  char *device_id;
   PeasPluginInfo *plugin_info;
-  GType plugin_type;
 
   engine = valent_get_engine ();
   info = peas_engine_get_plugin_info (engine, "mock");
 
   row = g_object_new (VALENT_TYPE_PLUGIN_ROW,
-                      "plugin-context", "mock-context",
-                      "plugin-info",    info,
+                      "device-id",   "mock-context",
+                      "plugin-info", info,
                       NULL);
   g_object_ref_sink (row);
   g_assert_true (VALENT_IS_PLUGIN_ROW (row));
 
   /* Properties */
   g_object_get (row,
-                "plugin-context", &plugin_context,
-                "plugin-info",    &plugin_info,
-                "plugin-type",    &plugin_type,
+                "device-id",   &device_id,
+                "plugin-info", &plugin_info,
                 NULL);
 
-  g_assert_cmpstr ("mock-context", ==, plugin_context);
+  g_assert_cmpstr ("mock-context", ==, device_id);
   g_assert_true (info == plugin_info);
-  g_assert_true (PEAS_TYPE_EXTENSION == plugin_type);
 
-  g_free (plugin_context);
+  g_free (device_id);
   g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
 
   g_object_unref (row);

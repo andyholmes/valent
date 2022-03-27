@@ -11,10 +11,9 @@
 
 #include "valent-device-gadget.h"
 #include "valent-device-panel.h"
+#include "valent-device-preferences-window.h"
 #include "valent-menu-list.h"
 #include "valent-menu-stack.h"
-#include "valent-plugin-preferences.h"
-#include "valent-plugin-row.h"
 
 
 struct _ValentDevicePanel
@@ -22,7 +21,6 @@ struct _ValentDevicePanel
   GtkBox               parent_instance;
 
   ValentDevice        *device;
-  GSettings           *settings;
 
   AdwWindowTitle      *title;
   GtkWidget           *stack;
@@ -37,15 +35,8 @@ struct _ValentDevicePanel
   GtkWidget           *gadgets;
   ValentMenuStack     *menu_actions;
 
-  /* Settings */
-  AdwPreferencesGroup *general_group;
-  GtkLabel            *download_folder_label;
-
-  AdwPreferencesGroup *plugin_group;
-  GtkListBox          *plugin_list;
   GHashTable          *plugins;
-
-  AdwPreferencesGroup *unpair_group;
+  GtkWindow           *preferences;
 };
 
 G_DEFINE_TYPE (ValentDevicePanel, valent_device_panel, GTK_TYPE_BOX)
@@ -59,28 +50,12 @@ enum {
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 
-static int
-plugin_list_sort (GtkListBoxRow *row1,
-                  GtkListBoxRow *row2,
-                  gpointer       user_data)
-{
-  if G_UNLIKELY (!ADW_IS_PREFERENCES_ROW (row1) ||
-                 !ADW_IS_PREFERENCES_ROW (row2))
-    return 0;
-
-  return g_utf8_collate (adw_preferences_row_get_title ((AdwPreferencesRow *)row1),
-                         adw_preferences_row_get_title ((AdwPreferencesRow *)row2));
-}
-
 /*
  * Plugin Callbacks
  */
 typedef struct
 {
-  GtkWidget *row;
-  GtkWidget *preferences;
   GtkWidget *gadget;
-  GtkWidget *activity;
 } PluginWidgets;
 
 static void
@@ -89,16 +64,9 @@ plugin_widgets_free (ValentDevicePanel *self,
 {
   g_assert (VALENT_IS_DEVICE_PANEL (self));
 
-  if (widgets->row != NULL)
-    gtk_list_box_remove (self->plugin_list, widgets->row);
-
-  if (widgets->preferences != NULL)
-    gtk_stack_remove (GTK_STACK (self->stack), widgets->preferences);
-
   if (widgets->gadget != NULL)
     gtk_box_remove (GTK_BOX (self->gadgets), widgets->gadget);
 
-  g_clear_pointer (&widgets->activity, gtk_widget_unparent);
   g_free (widgets);
 }
 
@@ -108,9 +76,6 @@ on_plugin_added (ValentDevice      *device,
                  ValentDevicePanel *self)
 {
   PeasEngine *engine;
-  const char *module;
-  const char *title;
-  const char *device_id;
   PluginWidgets *widgets;
 
   g_assert (VALENT_IS_DEVICE (device));
@@ -122,38 +87,6 @@ on_plugin_added (ValentDevice      *device,
   g_hash_table_insert (self->plugins, info, widgets);
 
   engine = valent_get_engine ();
-  module = peas_plugin_info_get_module_name (info);
-  title = peas_plugin_info_get_name (info);
-  device_id = valent_device_get_id (device);
-
-  /* Plugin Row */
-  widgets->row = g_object_new (VALENT_TYPE_PLUGIN_ROW,
-                               "plugin-context", device_id,
-                               "plugin-info",    info,
-                               "plugin-type",    VALENT_TYPE_DEVICE_PLUGIN,
-                               NULL);
-  gtk_list_box_insert (self->plugin_list, widgets->row, -1);
-
-  /* Preferences */
-  if (peas_engine_provides_extension (engine,
-                                      info,
-                                      VALENT_TYPE_PLUGIN_PREFERENCES))
-    {
-      PeasExtension *prefs;
-
-      prefs = peas_engine_create_extension (engine,
-                                            info,
-                                            VALENT_TYPE_PLUGIN_PREFERENCES,
-                                            "plugin-context", device_id,
-                                            NULL);
-
-      if (prefs != NULL)
-        {
-          widgets->preferences = GTK_WIDGET (prefs);
-          gtk_stack_add_titled (GTK_STACK (self->stack), widgets->preferences,
-                                module, title);
-        }
-    }
 
   /* Gadgets (eg. HeaderBar widgets) */
   if (peas_engine_provides_extension (engine, info, VALENT_TYPE_DEVICE_GADGET))
@@ -228,85 +161,34 @@ on_state_changed (ValentDevice      *device,
   gtk_widget_set_sensitive (self->pair_request, !pair_outgoing);
 }
 
-/*
- * Download Folder
- */
-static gboolean
-on_download_folder_changed (GValue   *value,
-                            GVariant *variant,
-                            gpointer  user_data)
-{
-  const char *label;
-  g_autofree char *basename = NULL;
-  g_autofree char *result = NULL;
-
-  label = g_variant_get_string (variant, NULL);
-  basename = g_path_get_basename (label);
-  result = g_strdup_printf ("…/%s", basename);
-
-  g_value_set_string (value, result);
-
-  return TRUE;
-}
-
 static void
-on_download_folder_response (GtkNativeDialog   *dialog,
-                             int                response_id,
-                             ValentDevicePanel *self)
+preferences_action (GtkWidget  *widget,
+                    const char *action_name,
+                    GVariant   *parameter)
 {
-  g_autoptr (GFile) file = NULL;
+  ValentDevicePanel *self = VALENT_DEVICE_PANEL (widget);
 
-  g_assert (VALENT_IS_DEVICE_PANEL (self));
-
-  if (response_id == GTK_RESPONSE_ACCEPT)
+  if (self->preferences == NULL)
     {
-      const char *path;
+      GtkAllocation allocation;
+      GtkRoot *window;
 
-      file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
-      path = g_file_peek_path (file);
-      g_settings_set_string (self->settings, "download-folder", path);
+      gtk_widget_get_allocation (widget, &allocation);
+      window = gtk_widget_get_root (widget);
+
+      self->preferences = g_object_new (VALENT_TYPE_DEVICE_PREFERENCES_WINDOW,
+                                        "default-width",  allocation.width,
+                                        "default-height", allocation.height,
+                                        "device",         self->device,
+                                        "modal",          TRUE,
+                                        "transient-for",  window,
+                                        NULL);
+
+      g_object_add_weak_pointer (G_OBJECT (self->preferences),
+                                 (gpointer)&self->preferences);
     }
 
-  gtk_native_dialog_destroy (dialog);
-}
-
-static void
-on_download_folder_clicked (AdwActionRow      *row,
-                            ValentDevicePanel *self)
-{
-  GtkNativeDialog *dialog;
-  GtkRoot *root;
-  g_autofree char *path = NULL;
-
-  g_assert (VALENT_IS_DEVICE_PANEL (self));
-
-  root = gtk_widget_get_root (GTK_WIDGET (self));
-  dialog = g_object_new (GTK_TYPE_FILE_CHOOSER_NATIVE,
-                         "modal",         (root != NULL),
-                         "transient-for", root,
-                         "action",        GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
-                         "title",         _("Select download folder"),
-                         "accept-label",  _("Open"),
-                         "cancel-label",  _("Cancel"),
-                         NULL);
-
-  path = g_settings_get_string (self->settings, "download-folder");
-
-  if (strlen (path) > 0)
-    {
-      g_autoptr (GFile) file = NULL;
-
-      file = g_file_new_for_path (path);
-      gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog),
-                                           file, NULL);
-    }
-
-  g_signal_connect (dialog,
-                    "response",
-                    G_CALLBACK (on_download_folder_response),
-                    self);
-
-  gtk_native_dialog_show (dialog);
+  gtk_window_present (self->preferences);
 }
 
 /*
@@ -316,14 +198,11 @@ static void
 valent_device_panel_constructed (GObject *object)
 {
   ValentDevicePanel *self = VALENT_DEVICE_PANEL (object);
-  g_autofree char *path = NULL;
   g_autoptr (GPtrArray) plugins = NULL;
   GMenuModel *menu;
 
-  g_object_bind_property (self->device,
-                          "name",
-                          self->title,
-                          "title",
+  g_object_bind_property (self->device, "name",
+                          self->title,  "title",
                           G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE);
 
   /* Actions & Menu */
@@ -340,18 +219,6 @@ valent_device_panel_constructed (GObject *object)
                     G_CALLBACK (on_state_changed),
                     self);
   on_state_changed (self->device, NULL, self);
-
-  /* GSettings*/
-  path = g_strdup_printf ("/ca/andyholmes/valent/device/%s/",
-                          valent_device_get_id (self->device));
-  self->settings = g_settings_new_with_path ("ca.andyholmes.Valent.Device", path);
-
-  g_settings_bind_with_mapping (self->settings,              "download-folder",
-                                self->download_folder_label, "label",
-                                G_SETTINGS_BIND_GET,
-                                on_download_folder_changed,
-                                NULL,
-                                NULL, NULL);
 
   /* Plugin list */
   plugins = valent_device_get_plugins (self->device);
@@ -376,9 +243,9 @@ valent_device_panel_dispose (GObject *object)
 {
   ValentDevicePanel *self = VALENT_DEVICE_PANEL (object);
 
+  g_clear_pointer (&self->preferences, gtk_window_destroy);
   g_signal_handlers_disconnect_by_data (self->device, self);
   g_clear_object (&self->device);
-  g_clear_object (&self->settings);
 
   G_OBJECT_CLASS (valent_device_panel_parent_class)->dispose (object);
 }
@@ -454,13 +321,8 @@ valent_device_panel_class_init (ValentDevicePanelClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, verification_key);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, connected_group);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, menu_actions);
-  gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, general_group);
-  gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, download_folder_label);
-  gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, plugin_group);
-  gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, plugin_list);
-  gtk_widget_class_bind_template_child (widget_class, ValentDevicePanel, unpair_group);
 
-  gtk_widget_class_bind_template_callback (widget_class, on_download_folder_clicked);
+  gtk_widget_class_install_action (widget_class, "panel.preferences", NULL, preferences_action);
 
   /**
    * ValentDevicePanel:device:
@@ -482,7 +344,6 @@ valent_device_panel_class_init (ValentDevicePanelClass *klass)
   /* Ensure the private types we need are ready */
   g_type_ensure (VALENT_TYPE_MENU_LIST);
   g_type_ensure (VALENT_TYPE_MENU_STACK);
-  g_type_ensure (VALENT_TYPE_PLUGIN_ROW);
 }
 
 static void
@@ -490,10 +351,6 @@ valent_device_panel_init (ValentDevicePanel *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
 
-  gtk_list_box_set_sort_func (self->plugin_list,
-                              plugin_list_sort,
-                              NULL,
-                              NULL);
   self->plugins = g_hash_table_new_full (NULL, NULL, NULL, g_free);
 }
 

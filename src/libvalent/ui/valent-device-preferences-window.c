@@ -1,0 +1,545 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
+
+#define G_LOG_DOMAIN "valent-device-preferences-window"
+
+#include "config.h"
+
+#include <glib/gi18n.h>
+#include <adwaita.h>
+#include <gtk/gtk.h>
+#include <pango/pango.h>
+#include <libvalent-core.h>
+
+#include "valent-device-preferences-page.h"
+#include "valent-device-preferences-window.h"
+
+
+struct _ValentDevicePreferencesWindow
+{
+  AdwPreferencesWindow  parent_instance;
+
+  ValentDevice         *device;
+  GSettings            *settings;
+
+  /* Template widgets */
+  AdwPreferencesPage   *main_page;
+
+  AdwPreferencesGroup  *general_group;
+  GtkLabel             *download_folder_label;
+
+  AdwPreferencesGroup  *plugin_group;
+  GtkListBox           *plugin_list;
+
+  AdwPreferencesGroup  *unpair_group;
+
+  GHashTable           *pages;
+  GHashTable           *rows;
+};
+
+G_DEFINE_TYPE (ValentDevicePreferencesWindow, valent_device_preferences_window, ADW_TYPE_PREFERENCES_WINDOW)
+
+enum {
+  PROP_0,
+  PROP_DEVICE,
+  N_PROPERTIES
+};
+
+static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+
+
+static int
+plugin_list_sort (GtkListBoxRow *row1,
+                  GtkListBoxRow *row2,
+                  gpointer       user_data)
+{
+  if G_UNLIKELY (!ADW_IS_PREFERENCES_ROW (row1) ||
+                 !ADW_IS_PREFERENCES_ROW (row2))
+    return 0;
+
+  return g_utf8_collate (adw_preferences_row_get_title ((AdwPreferencesRow *)row1),
+                         adw_preferences_row_get_title ((AdwPreferencesRow *)row2));
+}
+
+/*
+ * Plugin Callbacks
+ */
+static void
+on_plugin_added (ValentDevice                  *device,
+                 PeasPluginInfo                *info,
+                 ValentDevicePreferencesWindow *self)
+{
+  g_autoptr (GSettings) settings = NULL;
+  g_autofree char *path = NULL;
+  PeasEngine *engine;
+  const char *module;
+  const char *title;
+  const char *subtitle;
+  const char *icon_name;
+  const char *device_id;
+  GtkWidget *row, *sw, *separator, *button;
+
+  g_assert (VALENT_IS_DEVICE (device));
+  g_assert (info != NULL);
+  g_assert (VALENT_IS_DEVICE_PREFERENCES_WINDOW (self));
+
+  engine = valent_get_engine ();
+  module = peas_plugin_info_get_module_name (info);
+  title = peas_plugin_info_get_name (info);
+  subtitle = peas_plugin_info_get_description (info);
+  icon_name = peas_plugin_info_get_icon_name (info);
+  device_id = valent_device_get_id (device);
+
+  /* Plugin Row */
+  row = g_object_new (ADW_TYPE_ACTION_ROW,
+                      "icon-name", icon_name,
+                      "title",     title,
+                      "subtitle",  subtitle,
+                      NULL);
+
+  sw = g_object_new (GTK_TYPE_SWITCH,
+                     "active",  TRUE,
+                     "valign",  GTK_ALIGN_CENTER,
+                     NULL);
+  adw_action_row_add_suffix (ADW_ACTION_ROW (row), sw);
+
+  separator = g_object_new (GTK_TYPE_SEPARATOR,
+                            "margin-bottom", 8,
+                            "margin-top",    8,
+                            "orientation",   GTK_ORIENTATION_VERTICAL,
+                            NULL);
+  adw_action_row_add_suffix (ADW_ACTION_ROW (row), separator);
+
+  button = g_object_new (GTK_TYPE_BUTTON,
+                               "icon-name", "emblem-system-symbolic",
+                               "sensitive", FALSE,
+                               "valign",    GTK_ALIGN_CENTER,
+                               NULL);
+  adw_action_row_add_suffix (ADW_ACTION_ROW (row), button);
+
+  gtk_list_box_insert (self->plugin_list, row, -1);
+  g_hash_table_insert (self->rows, info, g_object_ref (row));
+
+  /* Plugin Toggle */
+  path = g_strdup_printf ("/ca/andyholmes/valent/device/%s/plugin/%s/",
+                          device_id,
+                          module);
+  settings = g_settings_new_with_path ("ca.andyholmes.Valent.Plugin", path);
+
+  g_settings_bind (settings, "enabled",
+                   sw,       "active",
+                   G_SETTINGS_BIND_DEFAULT);
+  g_object_set_data_full (G_OBJECT (row),
+                          "plugin-settings",
+                          g_steal_pointer (&settings),
+                          g_object_unref);
+
+  /* Preferences Page */
+  if (peas_engine_provides_extension (engine,
+                                      info,
+                                      VALENT_TYPE_DEVICE_PREFERENCES_PAGE))
+    {
+      PeasExtension *page;
+
+      page = peas_engine_create_extension (engine,
+                                           info,
+                                           VALENT_TYPE_DEVICE_PREFERENCES_PAGE,
+                                           "device-id", device_id,
+                                           "name",      module,
+                                           "icon-name", icon_name,
+                                           "title",     title,
+                                           NULL);
+      adw_preferences_window_add (ADW_PREFERENCES_WINDOW (self),
+                                  ADW_PREFERENCES_PAGE (page));
+      g_hash_table_insert (self->pages, info, g_object_ref (page));
+
+      g_object_set (button,
+                    "action-target", g_variant_new_string (module),
+                    "action-name",   "win.page",
+                    "sensitive",     TRUE,
+                    NULL);
+    }
+}
+
+static void
+on_plugin_removed (ValentDevice                  *device,
+                   PeasPluginInfo                *info,
+                   ValentDevicePreferencesWindow *self)
+{
+  g_autoptr (AdwPreferencesPage) page = NULL;
+  g_autoptr (GtkWidget) row = NULL;
+
+  if (g_hash_table_steal_extended (self->pages, info, NULL, (void **)&page))
+    adw_preferences_window_remove (ADW_PREFERENCES_WINDOW (self), page);
+
+  if (g_hash_table_steal_extended (self->rows, info, NULL, (void **)&row))
+    gtk_list_box_remove (self->plugin_list, row);
+}
+
+/*
+ * Download Folder
+ */
+static gboolean
+on_download_folder_changed (GValue   *value,
+                            GVariant *variant,
+                            gpointer  user_data)
+{
+  const char *label;
+  g_autofree char *basename = NULL;
+  g_autofree char *result = NULL;
+
+  label = g_variant_get_string (variant, NULL);
+  basename = g_path_get_basename (label);
+  result = g_strdup_printf ("…/%s", basename);
+
+  g_value_set_string (value, result);
+
+  return TRUE;
+}
+
+static void
+on_download_folder_response (GtkNativeDialog               *dialog,
+                             int                            response_id,
+                             ValentDevicePreferencesWindow *self)
+{
+  g_autoptr (GFile) file = NULL;
+
+  g_assert (VALENT_IS_DEVICE_PREFERENCES_WINDOW (self));
+
+  if (response_id == GTK_RESPONSE_ACCEPT)
+    {
+      const char *path;
+
+      file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
+      path = g_file_peek_path (file);
+      g_settings_set_string (self->settings, "download-folder", path);
+    }
+
+  gtk_native_dialog_destroy (dialog);
+}
+
+static void
+on_download_folder_clicked (AdwActionRow                  *row,
+                            ValentDevicePreferencesWindow *self)
+{
+  GtkNativeDialog *dialog;
+  g_autofree char *path = NULL;
+
+  g_assert (VALENT_IS_DEVICE_PREFERENCES_WINDOW (self));
+
+  dialog = g_object_new (GTK_TYPE_FILE_CHOOSER_NATIVE,
+                         "action",        GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
+                         "title",         _("Select download folder"),
+                         "accept-label",  _("Open"),
+                         "cancel-label",  _("Cancel"),
+                         "modal",         TRUE,
+                         "transient-for", self,
+                         NULL);
+
+  path = g_settings_get_string (self->settings, "download-folder");
+
+  if (strlen (path) > 0)
+    {
+      g_autoptr (GFile) file = NULL;
+
+      file = g_file_new_for_path (path);
+      gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog),
+                                           file, NULL);
+    }
+
+  g_signal_connect (dialog,
+                    "response",
+                    G_CALLBACK (on_download_folder_response),
+                    self);
+
+  gtk_native_dialog_show (dialog);
+}
+
+/*
+ * HACK: The view switcher controls don't scale well with arbitrary numbers of
+ *       plugins, so attempt to hide it and replace the functionality with a
+ *       "previous" button.
+ */
+static AdwHeaderBar *
+find_header_bar (GtkWidget *widget)
+{
+  GtkWidget *child;
+
+  if (ADW_IS_HEADER_BAR (widget))
+    return ADW_HEADER_BAR (widget);
+
+  child = gtk_widget_get_first_child (widget);
+
+  while (child && !ADW_IS_HEADER_BAR (child))
+    {
+      AdwHeaderBar *headerbar;
+
+      if ((headerbar = find_header_bar (child)))
+        return headerbar;
+
+      child = gtk_widget_get_next_sibling (child);
+    }
+
+  return ADW_HEADER_BAR (child);
+}
+
+static gboolean
+hide_view_switcher_bar (GtkWidget *widget)
+{
+  GtkWidget *child = NULL;
+
+  if (ADW_IS_VIEW_SWITCHER_BAR (widget))
+    {
+      gtk_widget_set_visible (widget, FALSE);
+      return TRUE;
+    }
+
+  child = gtk_widget_get_first_child (widget);
+
+  while (child)
+    {
+      if (hide_view_switcher_bar (child))
+        return TRUE;
+
+      child = gtk_widget_get_next_sibling (child);
+    }
+
+  return FALSE;
+}
+
+static void
+on_page_changed (AdwPreferencesWindow *window,
+                 GParamSpec           *pspec,
+                 GtkWidget            *button)
+{
+  const char *page_name = NULL;
+  gboolean show_button = TRUE;
+
+  page_name = adw_preferences_window_get_visible_page_name (window);
+
+  if (g_strcmp0 (page_name, "main") == 0)
+    show_button = FALSE;
+
+  gtk_widget_set_opacity (button, show_button);
+  gtk_widget_set_sensitive (button, show_button);
+}
+
+static gboolean
+valent_device_preferences_window_modify (ValentDevicePreferencesWindow *self)
+{
+  AdwHeaderBar *headerbar;
+  GtkWidget *button;
+
+  /* Ensure we can find the headerbar first */
+  if ((headerbar = find_header_bar (GTK_WIDGET (self))) == NULL)
+    return FALSE;
+
+  /* Attempt to find and hide the AdwViewSwitcherBar */
+  if (!hide_view_switcher_bar (GTK_WIDGET (self)))
+    return FALSE;
+
+  /* Add a "previous" button to replace the view switcher */
+  button = g_object_new (GTK_TYPE_BUTTON,
+                         "action-target", g_variant_new_string ("main"),
+                         "action-name",   "win.page",
+                         "icon-name",     "go-previous-symbolic",
+                         "tooltip-text",  _("Back"),
+                         "opacity",       0.0,
+                         "sensitive",     FALSE,
+                         NULL);
+  adw_header_bar_pack_start (headerbar, button);
+
+  g_signal_connect (self,
+                    "notify::visible-page",
+                    G_CALLBACK (on_page_changed),
+                    button);
+
+  return TRUE;
+}
+
+/*
+ * GActions
+ */
+static void
+page_action (GtkWidget  *widget,
+             const char *action_name,
+             GVariant   *parameter)
+{
+  AdwPreferencesWindow *window = ADW_PREFERENCES_WINDOW (widget);
+  const char *module;
+
+  module = g_variant_get_string (parameter, NULL);
+  adw_preferences_window_set_visible_page_name (window, module);
+}
+
+/*
+ * GObject
+ */
+static void
+valent_device_preferences_window_constructed (GObject *object)
+{
+  ValentDevicePreferencesWindow *self = VALENT_DEVICE_PREFERENCES_WINDOW (object);
+  g_autoptr (GPtrArray) plugins = NULL;
+  g_autofree char *path = NULL;
+
+  /* Modify the dialog */
+  if (!valent_device_preferences_window_modify (self))
+    g_warning ("Failed to modify AdwPreferencesWindow");
+
+  /* Device */
+  g_object_bind_property (self->device, "name",
+                          self,         "title",
+                          G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE);
+  g_object_bind_property (self->device,       "paired",
+                          self->unpair_group, "visible",
+                          G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE);
+
+  gtk_widget_insert_action_group (GTK_WIDGET (self),
+                                  "device",
+                                  G_ACTION_GROUP (self->device));
+
+  /* Device Settings*/
+  path = g_strdup_printf ("/ca/andyholmes/valent/device/%s/",
+                          valent_device_get_id (self->device));
+  self->settings = g_settings_new_with_path ("ca.andyholmes.Valent.Device", path);
+
+  g_settings_bind_with_mapping (self->settings,              "download-folder",
+                                self->download_folder_label, "label",
+                                G_SETTINGS_BIND_GET,
+                                on_download_folder_changed,
+                                NULL,
+                                NULL, NULL);
+
+  /* Device Plugins */
+  plugins = valent_device_get_plugins (self->device);
+
+  for (unsigned int i = 0; i < plugins->len; i++)
+    on_plugin_added (self->device, g_ptr_array_index (plugins, i), self);
+
+  g_signal_connect (self->device,
+                    "plugin-added",
+                    G_CALLBACK (on_plugin_added),
+                    self);
+  g_signal_connect (self->device,
+                    "plugin-removed",
+                    G_CALLBACK (on_plugin_removed),
+                    self);
+
+  G_OBJECT_CLASS (valent_device_preferences_window_parent_class)->constructed (object);
+}
+
+static void
+valent_device_preferences_window_dispose (GObject *object)
+{
+  ValentDevicePreferencesWindow *self = VALENT_DEVICE_PREFERENCES_WINDOW (object);
+
+  g_signal_handlers_disconnect_by_data (self->device, self);
+  g_clear_object (&self->device);
+  g_clear_object (&self->settings);
+
+  G_OBJECT_CLASS (valent_device_preferences_window_parent_class)->dispose (object);
+}
+
+static void
+valent_device_preferences_window_finalize (GObject *object)
+{
+  ValentDevicePreferencesWindow *self = VALENT_DEVICE_PREFERENCES_WINDOW (object);
+
+  g_clear_pointer (&self->pages, g_hash_table_unref);
+  g_clear_pointer (&self->rows, g_hash_table_unref);
+
+  G_OBJECT_CLASS (valent_device_preferences_window_parent_class)->finalize (object);
+}
+
+static void
+valent_device_preferences_window_get_property (GObject    *object,
+                                        guint       prop_id,
+                                        GValue     *value,
+                                        GParamSpec *pspec)
+{
+  ValentDevicePreferencesWindow *self = VALENT_DEVICE_PREFERENCES_WINDOW (object);
+
+  switch (prop_id)
+    {
+    case PROP_DEVICE:
+      g_value_set_object (value, self->device);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
+static void
+valent_device_preferences_window_set_property (GObject      *object,
+                                        guint         prop_id,
+                                        const GValue *value,
+                                        GParamSpec   *pspec)
+{
+  ValentDevicePreferencesWindow *self = VALENT_DEVICE_PREFERENCES_WINDOW (object);
+
+  switch (prop_id)
+    {
+    case PROP_DEVICE:
+      self->device = g_value_dup_object (value);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
+static void
+valent_device_preferences_window_class_init (ValentDevicePreferencesWindowClass *klass)
+{
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+
+  object_class->constructed = valent_device_preferences_window_constructed;
+  object_class->dispose = valent_device_preferences_window_dispose;
+  object_class->finalize = valent_device_preferences_window_finalize;
+  object_class->get_property = valent_device_preferences_window_get_property;
+  object_class->set_property = valent_device_preferences_window_set_property;
+
+  /* Template */
+  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-device-preferences-window.ui");
+  gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesWindow, general_group);
+  gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesWindow, download_folder_label);
+  gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesWindow, main_page);
+  gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesWindow, plugin_group);
+  gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesWindow, plugin_list);
+  gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesWindow, unpair_group);
+
+  gtk_widget_class_bind_template_callback (widget_class, on_download_folder_clicked);
+
+  gtk_widget_class_install_action (widget_class, "win.page", "s", page_action);
+
+  /**
+   * ValentDevicePreferencesWindow:device:
+   *
+   * The device this panel controls and represents.
+   */
+  properties [PROP_DEVICE] =
+    g_param_spec_object ("device",
+                         "device",
+                         "The device for this settings widget",
+                         VALENT_TYPE_DEVICE,
+                         (G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT_ONLY |
+                          G_PARAM_EXPLICIT_NOTIFY |
+                          G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+}
+
+static void
+valent_device_preferences_window_init (ValentDevicePreferencesWindow *self)
+{
+  gtk_widget_init_template (GTK_WIDGET (self));
+
+  gtk_list_box_set_sort_func (self->plugin_list, plugin_list_sort, NULL, NULL);
+
+  self->rows = g_hash_table_new_full (NULL, NULL, NULL, g_object_unref);
+  self->pages = g_hash_table_new_full (NULL, NULL, NULL, g_object_unref);
+}
+

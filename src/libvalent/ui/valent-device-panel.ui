@@ -22,8 +22,7 @@
         </child>
         <child type="end">
           <object class="GtkButton" id="preferences_button">
-            <property name="action-name">win.page</property>
-            <property name="action-target">'plugins'</property>
+            <property name="action-name">panel.preferences</property>
             <property name="icon-name">applications-system-symbolic</property>
             <property name="tooltip-text" translatable="yes">Preferences</property>
             <property name="valign">center</property>
@@ -35,6 +34,7 @@
       <object class="GtkStack" id="stack">
         <property name="transition-type">crossfade</property>
         <property name="hexpand">1</property>
+        <property name="vexpand">1</property>
 
         <!-- Main Page -->
         <child>
@@ -220,109 +220,6 @@
                         <style>
                           <class name="dim-label"/>
                         </style>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </property>
-          </object>
-        </child>
-
-        <!-- Device Preferences -->
-        <child>
-          <object class="GtkStackPage">
-            <property name="name">plugins</property>
-            <property name="title" translatable="yes">Plugins</property>
-            <property name="icon-name">application-x-addon-symbolic</property>
-            <property name="child">
-              <object class="AdwPreferencesPage" id="content_plugins">
-                <property name="title" translatable="yes">Plugins</property>
-                <property name="icon-name">application-x-addon-symbolic</property>
-                <property name="vexpand">1</property>
-                <child>
-                  <object class="AdwPreferencesGroup" id="general_group">
-                    <property name="title" translatable="yes">General</property>
-                    <child>
-                      <object class="AdwActionRow">
-                        <property name="title" translatable="yes">Download directory</property>
-                        <property name="subtitle" translatable="yes">Where received files are stored</property>
-                        <property name="activatable">1</property>
-                        <signal name="activated"
-                                handler="on_download_folder_clicked"
-                                object="ValentDevicePanel"
-                                swapped="no"/>
-                        <child type="suffix">
-                          <object class="GtkBox">
-                            <property name="spacing">12</property>
-                            <child>
-                              <object class="GtkLabel" id="download_folder_label">
-                                <property name="ellipsize">start</property>
-                                <property name="max-width-chars">16</property>
-                                <property name="valign">center</property>
-                                <style>
-                                  <class name="dim-label"/>
-                                </style>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkImage">
-                                <property name="icon-name">folder-symbolic</property>
-                                <property name="valign">center</property>
-                              </object>
-                            </child>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwPreferencesGroup" id="plugin_group">
-                    <property name="title" translatable="yes">Plugins</property>
-                    <child>
-                      <object class="GtkListBox" id="plugin_list">
-                        <property name="hexpand">1</property>
-                        <property name="selection-mode">none</property>
-                        <child type="placeholder">
-                          <object class="GtkLabel">
-                            <property name="height-request">56</property>
-                            <property name="label" translatable="yes">No Plugins</property>
-                            <style>
-                              <class name="dim-label"/>
-                            </style>
-                          </object>
-                        </child>
-                        <style>
-                          <class name="boxed-list"/>
-                          <class name="boxed-list-placeholder"/>
-                        </style>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwPreferencesGroup" id="unpair_group">
-                    <property name="title" translatable="yes">Information</property>
-                    <property name="visible"
-                              bind-source="pair_group"
-                              bind-property="visible"
-                              bind-flags="sync-create|invert-boolean"/>
-                    <child>
-                      <object class="AdwActionRow">
-                        <property name="title" translatable="yes">Mark this device as untrusted</property>
-                        <property name="activatable">0</property>
-                        <property name="selectable">0</property>
-                        <child type="suffix">
-                          <object class="GtkButton">
-                            <property name="label">Unpair</property>
-                            <property name="action-name">device.unpair</property>
-                            <property name="valign">center</property>
-                            <style>
-                              <class name="destructive-action"/>
-                            </style>
-                          </object>
-                        </child>
                       </object>
                     </child>
                   </object>

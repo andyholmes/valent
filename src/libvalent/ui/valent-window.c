@@ -18,7 +18,6 @@
 #include "valent-device-panel.h"
 #include "valent-panel.h"
 #include "valent-plugin-group.h"
-#include "valent-plugin-row.h"
 #include "valent-window.h"
 
 
@@ -653,7 +652,6 @@ valent_window_class_init (ValentWindowClass *klass)
   /* Ensure the private types we need are ready */
   g_type_ensure (VALENT_TYPE_DEVICE_PANEL);
   g_type_ensure (VALENT_TYPE_PLUGIN_GROUP);
-  g_type_ensure (VALENT_TYPE_PLUGIN_ROW);
 
   /* Custom CSS */
   theme = gtk_css_provider_new ();

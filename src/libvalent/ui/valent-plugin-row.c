@@ -11,7 +11,7 @@
 #include <libvalent-core.h>
 #include <pango/pango.h>
 
-#include "valent-plugin-preferences.h"
+#include "valent-device-preferences.h"
 #include "valent-plugin-row.h"
 
 
@@ -19,9 +19,8 @@ struct _ValentPluginRow
 {
   AdwActionRow    parent_instance;
 
+  char           *device_id;
   PeasPluginInfo *plugin_info;
-  char           *plugin_context;
-  GType           plugin_type;
   GSettings      *settings;
 
   GtkWidget      *sw;
@@ -30,9 +29,8 @@ struct _ValentPluginRow
 
 enum {
   PROP_0,
-  PROP_PLUGIN_CONTEXT,
+  PROP_DEVICE_ID,
   PROP_PLUGIN_INFO,
-  PROP_PLUGIN_TYPE,
   N_PROPERTIES
 };
 
@@ -65,19 +63,11 @@ valent_plugin_row_constructed (GObject *object)
   adw_action_row_set_icon_name (ADW_ACTION_ROW (self), icon_name);
 
   /* Plugin Toggle */
-  if (self->plugin_type == VALENT_TYPE_DEVICE_PLUGIN)
-    {
-      path = g_strdup_printf ("/ca/andyholmes/valent/device/%s/plugin/%s/",
-                              self->plugin_context,
-                              module);
-      self->settings = g_settings_new_with_path ("ca.andyholmes.Valent.Plugin",
-                                                 path);
-    }
-  else
-    {
-      self->settings = valent_component_new_settings (self->plugin_context,
-                                                      module);
-    }
+  path = g_strdup_printf ("/ca/andyholmes/valent/device/%s/plugin/%s/",
+                          self->device_id,
+                          module);
+  self->settings = g_settings_new_with_path ("ca.andyholmes.Valent.Plugin",
+                                             path);
 
   g_settings_bind (self->settings, "enabled",
                    self->sw,       "active",
@@ -86,17 +76,14 @@ valent_plugin_row_constructed (GObject *object)
   /* Plugin Settings */
   if (peas_engine_provides_extension (valent_get_engine (),
                                       self->plugin_info,
-                                      VALENT_TYPE_PLUGIN_PREFERENCES))
+                                      VALENT_TYPE_DEVICE_PREFERENCES))
     {
-      g_autofree char *page = NULL;
+      g_autofree char *action = NULL;
 
-      if (self->plugin_context == NULL)
-        page = g_strdup_printf ("win.page::/%s", module);
-      else
-        page = g_strdup_printf ("win.page::/%s/%s", self->plugin_context, module);
+      action = g_strdup_printf ("win.plugin::%s", module);
 
       gtk_actionable_set_detailed_action_name (GTK_ACTIONABLE (self->button),
-                                               page);
+                                               action);
       gtk_widget_set_sensitive (GTK_WIDGET (self->button), TRUE);
     }
 
@@ -108,7 +95,7 @@ valent_plugin_row_finalize (GObject *object)
 {
   ValentPluginRow *self = VALENT_PLUGIN_ROW (object);
 
-  g_clear_pointer (&self->plugin_context, g_free);
+  g_clear_pointer (&self->device_id, g_free);
   g_clear_object (&self->settings);
 
   G_OBJECT_CLASS (valent_plugin_row_parent_class)->finalize (object);
@@ -124,16 +111,12 @@ valent_plugin_row_get_property (GObject    *object,
 
   switch (prop_id)
     {
-    case PROP_PLUGIN_CONTEXT:
-      g_value_set_string (value, self->plugin_context);
+    case PROP_DEVICE_ID:
+      g_value_set_string (value, self->device_id);
       break;
 
     case PROP_PLUGIN_INFO:
       g_value_set_boxed (value, self->plugin_info);
-      break;
-
-    case PROP_PLUGIN_TYPE:
-      g_value_set_gtype (value, self->plugin_type);
       break;
 
     default:
@@ -151,16 +134,12 @@ valent_plugin_row_set_property (GObject      *object,
 
   switch (prop_id)
     {
-    case PROP_PLUGIN_CONTEXT:
-      self->plugin_context = g_value_dup_string (value);
+    case PROP_DEVICE_ID:
+      self->device_id = g_value_dup_string (value);
       break;
 
     case PROP_PLUGIN_INFO:
       self->plugin_info = g_value_get_boxed (value);
-      break;
-
-    case PROP_PLUGIN_TYPE:
-      self->plugin_type = g_value_get_gtype (value);
       break;
 
     default:
@@ -179,15 +158,14 @@ valent_plugin_row_class_init (ValentPluginRowClass *klass)
   object_class->set_property = valent_plugin_row_set_property;
 
   /**
-   * ValentPluginRow:plugin-context
+   * ValentPluginRow:device-id
    *
-   * The plugin_context or scope of the plugin, usually a device ID or %NULL to
-   * indicate global scope.
+   * The ID of the device the plugin is bound to.
    */
-  properties [PROP_PLUGIN_CONTEXT] =
-    g_param_spec_string ("plugin-context",
-                         "Plugin Context",
-                         "The context or scope of the plugin",
+  properties [PROP_DEVICE_ID] =
+    g_param_spec_string ("device-id",
+                         "Device ID",
+                         "The ID of the device the plugin is bound to",
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -204,21 +182,6 @@ valent_plugin_row_class_init (ValentPluginRowClass *klass)
                         "Plugin Info",
                         "The plugin info",
                         PEAS_TYPE_PLUGIN_INFO,
-                        (G_PARAM_READWRITE |
-                         G_PARAM_CONSTRUCT_ONLY |
-                         G_PARAM_EXPLICIT_NOTIFY |
-                         G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentPluginRow:plugin-type
-   *
-   * The #PeasPluginInfo for the plugin.
-   */
-  properties [PROP_PLUGIN_TYPE] =
-    g_param_spec_gtype ("plugin-type",
-                        "Plugin Type",
-                        "The plugin GType",
-                        PEAS_TYPE_EXTENSION,
                         (G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_EXPLICIT_NOTIFY |

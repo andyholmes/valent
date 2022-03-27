@@ -6,6 +6,7 @@
 <interface domain="valent">
   <template class="ValentContactsPreferences" parent="AdwPreferencesPage">
     <property name="title" translatable="yes">Contacts</property>
+    <property name="icon-name">valent-contacts-plugin-symbolic</property>
     <child>
       <object class="AdwPreferencesGroup" id="import_group">
         <property name="title" translatable="yes">Remote Contacts</property>

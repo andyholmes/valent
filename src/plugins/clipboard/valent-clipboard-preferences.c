@@ -16,8 +16,9 @@ struct _ValentClipboardPreferences
 {
   AdwPreferencesPage  parent_instance;
 
+  char               *device_id;
+  PeasPluginInfo     *plugin_info;
   GSettings          *settings;
-  char               *plugin_context;
 
   /* Template widgets */
   GtkSwitch          *sync_pull;
@@ -25,24 +26,25 @@ struct _ValentClipboardPreferences
 };
 
 /* Interfaces */
-static void valent_plugin_preferences_iface_init (ValentPluginPreferencesInterface *iface);
+static void valent_device_preferences_page_iface_init (ValentDevicePreferencesPageInterface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (ValentClipboardPreferences, valent_clipboard_preferences, ADW_TYPE_PREFERENCES_PAGE,
-                         G_IMPLEMENT_INTERFACE (VALENT_TYPE_PLUGIN_PREFERENCES, valent_plugin_preferences_iface_init))
+                         G_IMPLEMENT_INTERFACE (VALENT_TYPE_DEVICE_PREFERENCES_PAGE, valent_device_preferences_page_iface_init))
 
 
 enum {
   PROP_0,
-  PROP_PLUGIN_CONTEXT,
+  PROP_DEVICE_ID,
+  PROP_PLUGIN_INFO,
   N_PROPERTIES
 };
 
 
 /*
- * ValentPluginPreferences
+ * ValentDevicePreferencesPage
  */
 static void
-valent_plugin_preferences_iface_init (ValentPluginPreferencesInterface *iface)
+valent_device_preferences_page_iface_init (ValentDevicePreferencesPageInterface *iface)
 {
 }
 
@@ -56,7 +58,7 @@ valent_clipboard_preferences_constructed (GObject *object)
   ValentClipboardPreferences *self = VALENT_CLIPBOARD_PREFERENCES (object);
 
   /* Setup GSettings */
-  self->settings = valent_device_plugin_new_settings (self->plugin_context,
+  self->settings = valent_device_plugin_new_settings (self->device_id,
                                                       "clipboard");
 
   g_settings_bind (self->settings,  "auto-pull",
@@ -75,7 +77,7 @@ valent_clipboard_preferences_finalize (GObject *object)
 {
   ValentClipboardPreferences *self = VALENT_CLIPBOARD_PREFERENCES (object);
 
-  g_clear_pointer (&self->plugin_context, g_free);
+  g_clear_pointer (&self->device_id, g_free);
   g_clear_object (&self->settings);
 
   G_OBJECT_CLASS (valent_clipboard_preferences_parent_class)->finalize (object);
@@ -91,8 +93,12 @@ valent_clipboard_preferences_get_property (GObject    *object,
 
   switch (prop_id)
     {
-    case PROP_PLUGIN_CONTEXT:
-      g_value_set_string (value, self->plugin_context);
+    case PROP_DEVICE_ID:
+      g_value_set_string (value, self->device_id);
+      break;
+
+    case PROP_PLUGIN_INFO:
+      g_value_set_boxed (value, self->plugin_info);
       break;
 
     default:
@@ -110,8 +116,12 @@ valent_clipboard_preferences_set_property (GObject      *object,
 
   switch (prop_id)
     {
-    case PROP_PLUGIN_CONTEXT:
-      self->plugin_context = g_value_dup_string (value);
+    case PROP_DEVICE_ID:
+      self->device_id = g_value_dup_string (value);
+      break;
+
+    case PROP_PLUGIN_INFO:
+      self->plugin_info = g_value_get_boxed (value);
       break;
 
     default:
@@ -134,9 +144,8 @@ valent_clipboard_preferences_class_init (ValentClipboardPreferencesClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentClipboardPreferences, sync_pull);
   gtk_widget_class_bind_template_child (widget_class, ValentClipboardPreferences, sync_push);
 
-  g_object_class_override_property (object_class,
-                                    PROP_PLUGIN_CONTEXT,
-                                    "plugin-context");
+  g_object_class_override_property (object_class, PROP_DEVICE_ID, "device-id");
+  g_object_class_override_property (object_class, PROP_PLUGIN_INFO, "plugin-info");
 }
 
 static void

@@ -7,17 +7,17 @@
 # error "Only <libvalent-ui.h> can be included directly."
 #endif
 
-#include <gtk/gtk.h>
+#include <adwaita.h>
 #include <libvalent-core.h>
 
 G_BEGIN_DECLS
 
-#define VALENT_TYPE_PLUGIN_PREFERENCES (valent_plugin_preferences_get_type ())
+#define VALENT_TYPE_DEVICE_PREFERENCES_PAGE (valent_device_preferences_page_get_type ())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_INTERFACE (ValentPluginPreferences, valent_plugin_preferences, VALENT, PLUGIN_PREFERENCES, GtkWidget)
+G_DECLARE_INTERFACE (ValentDevicePreferencesPage, valent_device_preferences_page, VALENT, DEVICE_PREFERENCES_PAGE, AdwPreferencesPage)
 
-struct _ValentPluginPreferencesInterface
+struct _ValentDevicePreferencesPageInterface
 {
   GTypeInterface   g_iface;
 };

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com> -->
+
+<interface domain="valent">
+  <template class="ValentDevicePreferencesWindow" parent="AdwPreferencesWindow">
+    <property name="icon-name">ca.andyholmes.Valent</property>
+    <property name="width-request">360</property>
+    <child>
+      <object class="AdwPreferencesPage" id="main_page">
+        <property name="name">main</property>
+        <property name="title" translatable="yes">Device</property>
+        <property name="icon-name">phone-symbolic</property>
+        <property name="vexpand">1</property>
+        <child>
+          <object class="AdwPreferencesGroup" id="general_group">
+            <property name="title" translatable="yes">General</property>
+            <child>
+              <object class="AdwActionRow">
+                <property name="title" translatable="yes">Download directory</property>
+                <property name="subtitle" translatable="yes">Where received files are stored</property>
+                <property name="activatable">1</property>
+                <signal name="activated"
+                        handler="on_download_folder_clicked"
+                        object="ValentDevicePreferencesWindow"
+                        swapped="no"/>
+                <child type="suffix">
+                  <object class="GtkBox">
+                    <property name="spacing">12</property>
+                    <child>
+                      <object class="GtkLabel" id="download_folder_label">
+                        <property name="ellipsize">start</property>
+                        <property name="max-width-chars">16</property>
+                        <property name="valign">center</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImage">
+                        <property name="icon-name">folder-symbolic</property>
+                        <property name="valign">center</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwPreferencesGroup" id="plugin_group">
+            <property name="title" translatable="yes">Plugins</property>
+            <child>
+              <object class="GtkListBox" id="plugin_list">
+                <property name="hexpand">1</property>
+                <property name="selection-mode">none</property>
+                <child type="placeholder">
+                  <object class="GtkLabel">
+                    <property name="height-request">56</property>
+                    <property name="label" translatable="yes">No Plugins</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                  </object>
+                </child>
+                <style>
+                  <class name="boxed-list"/>
+                  <class name="boxed-list-placeholder"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwPreferencesGroup" id="unpair_group">
+            <property name="title" translatable="yes">Information</property>
+            <child>
+              <object class="AdwActionRow">
+                <property name="title" translatable="yes">Mark this device as untrusted</property>
+                <property name="activatable">0</property>
+                <property name="selectable">0</property>
+                <child type="suffix">
+                  <object class="GtkButton">
+                    <property name="label">Unpair</property>
+                    <property name="action-name">device.unpair</property>
+                    <property name="valign">center</property>
+                    <style>
+                      <class name="destructive-action"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>
