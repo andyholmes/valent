@@ -17,7 +17,7 @@
 
 #include "valent-device-panel.h"
 #include "valent-panel.h"
-#include "valent-plugin-group.h"
+#include "valent-preferences-window.h"
 #include "valent-window.h"
 
 
@@ -36,10 +36,7 @@ struct _ValentWindow
   GtkSpinner           *device_list_spinner;
   unsigned int          device_list_spinner_id;
 
-  GtkDialog            *rename_dialog;
-  GtkEntry             *rename_entry;
-  GtkLabel             *rename_label;
-  GtkButton            *rename_button;
+  GtkWindow            *preferences;
 };
 
 G_DEFINE_TYPE (ValentWindow, valent_window, ADW_TYPE_APPLICATION_WINDOW)
@@ -52,52 +49,6 @@ enum {
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
-
-/*
- * Device Name Dialog
- */
-static void
-on_rename_entry_changed (GtkEntry     *entry,
-                         ValentWindow *self)
-{
-  const char *name = NULL;
-  const char *new_name = NULL;
-
-  name = gtk_label_get_text (self->rename_label);
-  new_name = gtk_editable_get_text (GTK_EDITABLE (entry));
-
-  gtk_widget_set_sensitive (GTK_WIDGET (self->rename_button),
-                            (g_strcmp0 (name, new_name) != 0));
-}
-
-static void
-on_rename_dialog_open (AdwActionRow *row,
-                       ValentWindow *self)
-{
-  g_autofree char *name = NULL;
-
-  name = g_settings_get_string (self->settings, "name");
-  gtk_editable_set_text (GTK_EDITABLE (self->rename_entry), name);
-
-  gtk_window_present_with_time (GTK_WINDOW (self->rename_dialog),
-                                GDK_CURRENT_TIME);
-}
-
-static void
-on_rename_dialog_response (GtkDialog       *dialog,
-                           GtkResponseType  response_id,
-                           ValentWindow    *self)
-{
-  if (response_id == GTK_RESPONSE_OK)
-    {
-      const char *name;
-
-      name = gtk_editable_get_text (GTK_EDITABLE (self->rename_entry));
-      g_settings_set_string (self->settings, "name", name);
-    }
-
-  gtk_widget_hide (GTK_WIDGET (dialog));
-}
 
 /*
  * Device Callbacks
@@ -408,7 +359,7 @@ valent_window_set_location (ValentWindow *self,
   if (g_strcmp0 (full_path, g_queue_peek_tail (self->history)) != 0)
     g_queue_push_tail (self->history, g_steal_pointer (&full_path));
 
-  g_debug ("[%s] %s => %s", G_STRFUNC, full_path, path);
+  VALENT_NOTE ("%s => %s", full_path, path);
 }
 
 /*
@@ -449,9 +400,38 @@ page_action (GSimpleAction *action,
 
   g_assert (VALENT_IS_WINDOW (self));
 
-  /* Set the page */
   path = g_variant_get_string (parameter, NULL);
   valent_window_set_location (self, path);
+}
+
+static void
+preferences_action (GSimpleAction *action,
+                    GVariant      *parameter,
+                    gpointer       user_data)
+{
+  ValentWindow *self = VALENT_WINDOW (user_data);
+  GtkWidget *widget = GTK_WIDGET (self);
+
+  g_assert (VALENT_IS_WINDOW (self));
+
+  if (self->preferences == NULL)
+    {
+      GtkAllocation allocation;
+
+      gtk_widget_get_allocation (widget, &allocation);
+
+      self->preferences = g_object_new (VALENT_TYPE_PREFERENCES_WINDOW,
+                                        "default-width",  allocation.width,
+                                        "default-height", allocation.height,
+                                        "modal",          TRUE,
+                                        "transient-for",  self,
+                                        NULL);
+
+      g_object_add_weak_pointer (G_OBJECT (self->preferences),
+                                 (gpointer)&self->preferences);
+    }
+
+  gtk_window_present (self->preferences);
 }
 
 static void
@@ -477,7 +457,7 @@ refresh_cb (gpointer data)
   ValentWindow *self = VALENT_WINDOW (data);
 
   gtk_spinner_set_spinning (self->device_list_spinner, FALSE);
-  self->device_list_spinner_id = 0;
+  g_clear_handle_id (&self->device_list_spinner_id, g_source_remove);
 
   return G_SOURCE_REMOVE;
 }
@@ -501,10 +481,11 @@ refresh_action (GSimpleAction *action,
 }
 
 static const GActionEntry actions[] = {
-  {"about",    about_action,    NULL, NULL, NULL},
-  {"page",     page_action,     "s",  NULL, NULL},
-  {"previous", previous_action, NULL, NULL, NULL},
-  {"refresh",  refresh_action,  NULL, NULL, NULL}
+  {"about",       about_action,       NULL, NULL, NULL},
+  {"page",        page_action,        "s",  NULL, NULL},
+  {"preferences", preferences_action, NULL, NULL, NULL},
+  {"previous",    previous_action,    NULL, NULL, NULL},
+  {"refresh",     refresh_action,     NULL, NULL, NULL}
 };
 
 /*
@@ -544,6 +525,7 @@ valent_window_dispose (GObject *object)
   GHashTableIter iter;
   ValentDevice *device;
 
+  g_clear_pointer (&self->preferences, gtk_window_destroy);
   g_clear_handle_id (&self->device_list_spinner_id, g_source_remove);
   g_signal_handlers_disconnect_by_data (self->manager, self);
 
@@ -623,19 +605,10 @@ valent_window_class_init (ValentWindowClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentWindow, device_list);
   gtk_widget_class_bind_template_child (widget_class, ValentWindow, device_list_spinner);
 
-  gtk_widget_class_bind_template_child (widget_class, ValentWindow, rename_entry);
-  gtk_widget_class_bind_template_child (widget_class, ValentWindow, rename_label);
-  gtk_widget_class_bind_template_child (widget_class, ValentWindow, rename_dialog);
-  gtk_widget_class_bind_template_child (widget_class, ValentWindow, rename_button);
-
-  gtk_widget_class_bind_template_callback (widget_class, on_rename_dialog_open);
-  gtk_widget_class_bind_template_callback (widget_class, on_rename_dialog_response);
-  gtk_widget_class_bind_template_callback (widget_class, on_rename_entry_changed);
-
   /**
-   * ValentWindow:manager:
+   * ValentWindow:device-manager:
    *
-   * The #ValentDeviceManager that the window represents.
+   * The [class@Valent.DeviceManager] that the window represents.
    */
   properties [PROP_DEVICE_MANAGER] =
     g_param_spec_object ("device-manager",
@@ -651,7 +624,6 @@ valent_window_class_init (ValentWindowClass *klass)
 
   /* Ensure the private types we need are ready */
   g_type_ensure (VALENT_TYPE_DEVICE_PANEL);
-  g_type_ensure (VALENT_TYPE_PLUGIN_GROUP);
 
   /* Custom CSS */
   theme = gtk_css_provider_new ();
@@ -687,11 +659,5 @@ valent_window_init (ValentWindow *self)
   /* Devices Page */
   gtk_list_box_set_sort_func (self->device_list, device_sort_func, NULL, NULL);
   self->devices = g_hash_table_new_full (NULL, NULL, NULL, g_free);
-
-  /* Settings Page */
-  self->settings = g_settings_new ("ca.andyholmes.Valent");
-  g_settings_bind (self->settings,     "name",
-                   self->rename_label, "label",
-                   G_SETTINGS_BIND_DEFAULT);
 }
 
