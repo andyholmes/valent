@@ -3,13 +3,9 @@
 
 FROM registry.fedoraproject.org/fedora:36
 
-# See: https://github.com/andyholmes/copr/tree/main/glib2
-RUN dnf install -y 'dnf-command(copr)' && \
-    dnf copr -y enable andyholmes/main
-
 # The packages below are roughly grouped into build tooling and build
 # dependencies (with debug symbols)
-RUN dnf install -y --enablerepo=fedora-debuginfo,updates-debuginfo \
+RUN dnf install -y --enablerepo=*-debuginfo \
         glibc-langpack-en glibc-locale-source clang gcc gettext gi-docgen git \
         graphviz libabigail libasan libtsan libubsan meson appstream \
         desktop-file-utils dbus-daemon lcov python-dbusmock rsync \
