@@ -12,7 +12,8 @@ src/libvalent/ui/valent-device-panel.ui
 src/libvalent/ui/valent-device-preferences-window.c
 src/libvalent/ui/valent-device-preferences-window.ui
 src/libvalent/ui/valent-menu-list.c
-src/libvalent/ui/valent-plugin-group.c
+src/libvalent/ui/valent-preferences-window.c
+src/libvalent/ui/valent-preferences-window.ui
 src/libvalent/ui/valent-window.c
 src/libvalent/ui/valent-window.ui
 src/main.c

@@ -12,8 +12,7 @@ libvalent_ui_tests = [
   'test-device-panel',
   'test-device-preferences-window',
   'test-panel',
-  'test-plugin-group',
-  'test-plugin-row',
+  'test-preferences-window',
   'test-window',
 ]
 

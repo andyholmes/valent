@@ -13,6 +13,7 @@
 
 #include "valent-device-preferences-page.h"
 #include "valent-device-preferences-window.h"
+#include "valent-preferences-window-private.h"
 
 
 struct _ValentDevicePreferencesWindow
@@ -256,108 +257,6 @@ on_download_folder_clicked (AdwActionRow                  *row,
 }
 
 /*
- * HACK: The view switcher controls don't scale well with arbitrary numbers of
- *       plugins, so attempt to hide it and replace the functionality with a
- *       "previous" button.
- */
-static AdwHeaderBar *
-find_header_bar (GtkWidget *widget)
-{
-  GtkWidget *child;
-
-  if (ADW_IS_HEADER_BAR (widget))
-    return ADW_HEADER_BAR (widget);
-
-  child = gtk_widget_get_first_child (widget);
-
-  while (child && !ADW_IS_HEADER_BAR (child))
-    {
-      AdwHeaderBar *headerbar;
-
-      if ((headerbar = find_header_bar (child)))
-        return headerbar;
-
-      child = gtk_widget_get_next_sibling (child);
-    }
-
-  return ADW_HEADER_BAR (child);
-}
-
-static gboolean
-hide_view_switcher_bar (GtkWidget *widget)
-{
-  GtkWidget *child = NULL;
-
-  if (ADW_IS_VIEW_SWITCHER_BAR (widget))
-    {
-      gtk_widget_set_visible (widget, FALSE);
-      return TRUE;
-    }
-
-  child = gtk_widget_get_first_child (widget);
-
-  while (child)
-    {
-      if (hide_view_switcher_bar (child))
-        return TRUE;
-
-      child = gtk_widget_get_next_sibling (child);
-    }
-
-  return FALSE;
-}
-
-static void
-on_page_changed (AdwPreferencesWindow *window,
-                 GParamSpec           *pspec,
-                 GtkWidget            *button)
-{
-  const char *page_name = NULL;
-  gboolean show_button = TRUE;
-
-  page_name = adw_preferences_window_get_visible_page_name (window);
-
-  if (g_strcmp0 (page_name, "main") == 0)
-    show_button = FALSE;
-
-  gtk_widget_set_opacity (button, show_button);
-  gtk_widget_set_sensitive (button, show_button);
-}
-
-static gboolean
-valent_device_preferences_window_modify (ValentDevicePreferencesWindow *self)
-{
-  AdwHeaderBar *headerbar;
-  GtkWidget *button;
-
-  /* Ensure we can find the headerbar first */
-  if ((headerbar = find_header_bar (GTK_WIDGET (self))) == NULL)
-    return FALSE;
-
-  /* Attempt to find and hide the AdwViewSwitcherBar */
-  if (!hide_view_switcher_bar (GTK_WIDGET (self)))
-    return FALSE;
-
-  /* Add a "previous" button to replace the view switcher */
-  button = g_object_new (GTK_TYPE_BUTTON,
-                         "action-target", g_variant_new_string ("main"),
-                         "action-name",   "win.page",
-                         "icon-name",     "go-previous-symbolic",
-                         "tooltip-text",  _("Back"),
-                         "opacity",       0.0,
-                         "sensitive",     FALSE,
-                         NULL);
-  adw_header_bar_pack_start (headerbar, button);
-
-  g_signal_connect (self,
-                    "notify::visible-page",
-                    G_CALLBACK (on_page_changed),
-                    button);
-
-  return TRUE;
-}
-
-/*
  * GActions
  */
 static void
@@ -383,7 +282,7 @@ valent_device_preferences_window_constructed (GObject *object)
   g_autofree char *path = NULL;
 
   /* Modify the dialog */
-  if (!valent_device_preferences_window_modify (self))
+  if (!valent_preferences_window_modify (ADW_PREFERENCES_WINDOW (self)))
     g_warning ("Failed to modify AdwPreferencesWindow");
 
   /* Device */
