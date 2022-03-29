@@ -19,10 +19,11 @@
 #include "valent-mock-mixer-control.h"
 #include "valent-mock-media-player-provider.h"
 #include "valent-mock-notification-source.h"
-#include "valent-mock-preferences.h"
+#include "valent-mock-preferences-page.h"
+#include "valent-mock-session-adapter.h"
 #include "valent-mock-device-gadget.h"
 #include "valent-mock-device-plugin.h"
-#include "valent-mock-session-adapter.h"
+#include "valent-mock-device-preferences-page.h"
 
 
 G_MODULE_EXPORT void
@@ -52,13 +53,16 @@ valent_mock_plugin_register_types (PeasObjectModule *module)
   peas_object_module_register_extension_type (module,
                                               VALENT_TYPE_SESSION_ADAPTER,
                                               VALENT_TYPE_MOCK_SESSION_ADAPTER);
+  peas_object_module_register_extension_type (module,
+                                              VALENT_TYPE_PREFERENCES_PAGE,
+                                              VALENT_TYPE_MOCK_PREFERENCES_PAGE);
 
   peas_object_module_register_extension_type (module,
                                               VALENT_TYPE_DEVICE_PLUGIN,
                                               VALENT_TYPE_MOCK_DEVICE_PLUGIN);
   peas_object_module_register_extension_type (module,
                                               VALENT_TYPE_DEVICE_PREFERENCES_PAGE,
-                                              VALENT_TYPE_MOCK_PREFERENCES);
+                                              VALENT_TYPE_MOCK_DEVICE_PREFERENCES_PAGE);
   peas_object_module_register_extension_type (module,
                                               VALENT_TYPE_DEVICE_GADGET,
                                               VALENT_TYPE_MOCK_DEVICE_GADGET);
