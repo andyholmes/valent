@@ -16,7 +16,6 @@
 #include <libvalent-session.h>
 
 #include "valent-device-panel.h"
-#include "valent-panel.h"
 #include "valent-preferences-window.h"
 #include "valent-window.h"
 
@@ -33,8 +32,7 @@ struct _ValentWindow
   /* Template widgets */
   GtkStack             *stack;
   GtkListBox           *device_list;
-  GtkSpinner           *device_list_spinner;
-  unsigned int          device_list_spinner_id;
+  unsigned int          refresh_id;
 
   GtkWindow            *preferences;
 };
@@ -456,8 +454,7 @@ refresh_cb (gpointer data)
 {
   ValentWindow *self = VALENT_WINDOW (data);
 
-  gtk_spinner_set_spinning (self->device_list_spinner, FALSE);
-  g_clear_handle_id (&self->device_list_spinner_id, g_source_remove);
+  self->refresh_id = 0;
 
   return G_SOURCE_REMOVE;
 }
@@ -471,13 +468,11 @@ refresh_action (GSimpleAction *action,
 
   g_assert (VALENT_IS_WINDOW (self));
 
-  if (self->device_list_spinner_id > 0)
+  if (self->refresh_id > 0)
     return;
 
-  gtk_spinner_set_spinning (self->device_list_spinner, TRUE);
   valent_device_manager_identify (self->manager, NULL);
-
-  self->device_list_spinner_id = g_timeout_add_seconds (5, refresh_cb, self);
+  self->refresh_id = g_timeout_add_seconds (5, refresh_cb, self);
 }
 
 static const GActionEntry actions[] = {
@@ -526,7 +521,7 @@ valent_window_dispose (GObject *object)
   ValentDevice *device;
 
   g_clear_pointer (&self->preferences, gtk_window_destroy);
-  g_clear_handle_id (&self->device_list_spinner_id, g_source_remove);
+  g_clear_handle_id (&self->refresh_id, g_source_remove);
   g_signal_handlers_disconnect_by_data (self->manager, self);
 
   g_hash_table_iter_init (&iter, self->devices);
@@ -603,7 +598,6 @@ valent_window_class_init (ValentWindowClass *klass)
   gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-window.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentWindow, stack);
   gtk_widget_class_bind_template_child (widget_class, ValentWindow, device_list);
-  gtk_widget_class_bind_template_child (widget_class, ValentWindow, device_list_spinner);
 
   /**
    * ValentWindow:device-manager:
