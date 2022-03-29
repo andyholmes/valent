@@ -11,7 +11,6 @@
 #include "valent-device-activity.h"
 #include "valent-device-gadget.h"
 #include "valent-device-preferences-page.h"
-#include "valent-panel.h"
 #include "valent-preferences-page.h"
 
 #undef VALENT_UI_INSIDE
