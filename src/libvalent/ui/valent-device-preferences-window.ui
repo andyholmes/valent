@@ -21,10 +21,7 @@
                 <property name="title" translatable="yes">Download directory</property>
                 <property name="subtitle" translatable="yes">Where received files are stored</property>
                 <property name="activatable">1</property>
-                <signal name="activated"
-                        handler="on_download_folder_clicked"
-                        object="ValentDevicePreferencesWindow"
-                        swapped="no"/>
+                <property name="action-name">win.select-download-folder</property>
                 <child type="suffix">
                   <object class="GtkBox">
                     <property name="spacing">12</property>
