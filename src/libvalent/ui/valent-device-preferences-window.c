@@ -219,10 +219,43 @@ on_download_folder_response (GtkNativeDialog               *dialog,
   gtk_native_dialog_destroy (dialog);
 }
 
+/*
+ * GActions
+ */
 static void
-on_download_folder_clicked (AdwActionRow                  *row,
-                            ValentDevicePreferencesWindow *self)
+page_action (GtkWidget  *widget,
+             const char *action_name,
+             GVariant   *parameter)
 {
+  AdwPreferencesWindow *window = ADW_PREFERENCES_WINDOW (widget);
+  const char *module;
+
+  module = g_variant_get_string (parameter, NULL);
+  adw_preferences_window_set_visible_page_name (window, module);
+}
+
+static void
+previous_action (GtkWidget  *widget,
+                 const char *action_name,
+                 GVariant   *parameter)
+{
+  AdwPreferencesWindow *window = ADW_PREFERENCES_WINDOW (widget);
+  const char *page_name;
+
+  page_name = adw_preferences_window_get_visible_page_name (window);
+
+  if (g_strcmp0 (page_name, "main") == 0)
+    gtk_window_destroy (GTK_WINDOW (window));
+  else
+    adw_preferences_window_set_visible_page_name (window, "main");
+}
+
+static void
+select_download_folder_action (GtkWidget  *widget,
+                               const char *action_name,
+                               GVariant   *parameter)
+{
+  ValentDevicePreferencesWindow *self = VALENT_DEVICE_PREFERENCES_WINDOW (widget);
   GtkNativeDialog *dialog;
   g_autofree char *path = NULL;
 
@@ -254,37 +287,6 @@ on_download_folder_clicked (AdwActionRow                  *row,
                     self);
 
   gtk_native_dialog_show (dialog);
-}
-
-/*
- * GActions
- */
-static void
-page_action (GtkWidget  *widget,
-             const char *action_name,
-             GVariant   *parameter)
-{
-  AdwPreferencesWindow *window = ADW_PREFERENCES_WINDOW (widget);
-  const char *module;
-
-  module = g_variant_get_string (parameter, NULL);
-  adw_preferences_window_set_visible_page_name (window, module);
-}
-
-static void
-previous_action (GtkWidget  *widget,
-                 const char *action_name,
-                 GVariant   *parameter)
-{
-  AdwPreferencesWindow *window = ADW_PREFERENCES_WINDOW (widget);
-  const char *page_name;
-
-  page_name = adw_preferences_window_get_visible_page_name (window);
-
-  if (g_strcmp0 (page_name, "main") == 0)
-    gtk_window_destroy (GTK_WINDOW (window));
-  else
-    adw_preferences_window_set_visible_page_name (window, "main");
 }
 
 /*
@@ -425,10 +427,9 @@ valent_device_preferences_window_class_init (ValentDevicePreferencesWindowClass 
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesWindow, plugin_list);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesWindow, unpair_group);
 
-  gtk_widget_class_bind_template_callback (widget_class, on_download_folder_clicked);
-
   gtk_widget_class_install_action (widget_class, "win.page", "s", page_action);
   gtk_widget_class_install_action (widget_class, "win.previous", NULL, previous_action);
+  gtk_widget_class_install_action (widget_class, "win.select-download-folder", NULL, select_download_folder_action);
 
   /**
    * ValentDevicePreferencesWindow:device:
