@@ -387,8 +387,9 @@ valent_window_finalize (GObject *object)
 {
   ValentWindow *self = VALENT_WINDOW (object);
 
-  g_clear_object (&self->settings);
   g_clear_pointer (&self->devices, g_hash_table_unref);
+  g_clear_object (&self->manager);
+  g_clear_object (&self->settings);
 
   G_OBJECT_CLASS (valent_window_parent_class)->finalize (object);
 }
@@ -423,7 +424,7 @@ valent_window_set_property (GObject      *object,
   switch (prop_id)
     {
     case PROP_DEVICE_MANAGER:
-      self->manager = g_value_get_object (value);
+      self->manager = g_value_dup_object (value);
       break;
 
     default:
@@ -470,9 +471,6 @@ valent_window_class_init (ValentWindowClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
-
-  /* Ensure the private types we need are ready */
-  g_type_ensure (VALENT_TYPE_DEVICE_PANEL);
 
   /* Custom CSS */
   theme = gtk_css_provider_new ();
