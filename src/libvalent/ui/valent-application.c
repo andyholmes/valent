@@ -156,7 +156,7 @@ on_unload_plugin (PeasEngine        *engine,
   g_assert (VALENT_IS_APPLICATION (self));
 
   /* We're only interested in one GType */
-  if (!peas_engine_provides_extension (engine, info, VALENT_TYPE_CHANNEL_SERVICE))
+  if (!peas_engine_provides_extension (engine, info, VALENT_TYPE_APPLICATION_PLUGIN))
     return;
 
   g_hash_table_remove (self->plugins, info);
