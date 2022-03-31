@@ -27,7 +27,6 @@ struct _ValentWindow
   GSettings            *settings;
 
   GHashTable           *devices;
-  GQueue               *history;
 
   /* Template widgets */
   GtkStack             *stack;
@@ -142,10 +141,9 @@ on_device_added (ValentDeviceManager *manager,
                  ValentWindow        *self)
 {
   DeviceInfo *info;
-  const char *id;
+  const char *device_id;
   const char *name;
   const char *icon_name;
-  g_autofree char *path = NULL;
   GtkStackPage *page;
   GtkWidget *box;
   GtkWidget *arrow;
@@ -157,7 +155,7 @@ on_device_added (ValentDeviceManager *manager,
   info = g_new0 (DeviceInfo, 1);
   g_hash_table_insert (self->devices, device, info);
 
-  id = valent_device_get_id (device);
+  device_id = valent_device_get_id (device);
   name = valent_device_get_name (device);
   icon_name = valent_device_get_icon_name (device);
 
@@ -165,16 +163,15 @@ on_device_added (ValentDeviceManager *manager,
   info->panel = g_object_new (VALENT_TYPE_DEVICE_PANEL,
                               "device", device,
                               NULL);
-  page = gtk_stack_add_titled (self->stack, info->panel, id, name);
+  page = gtk_stack_add_titled (self->stack, info->panel, device_id, name);
   g_object_bind_property (device, "name",
                           page,   "title",
                           G_BINDING_SYNC_CREATE);
 
   /* Row */
-  path = g_strdup_printf ("/%s", id);
   info->row = g_object_new (ADW_TYPE_ACTION_ROW,
-                            "action-name",   "win.page",
-                            "action-target", g_variant_new_string (path),
+                            "action-name",   "win.device",
+                            "action-target", g_variant_new_string (device_id),
                             "icon-name",     icon_name,
                             "title",         name,
                             "activatable",   TRUE,
@@ -220,11 +217,7 @@ on_device_removed (ValentDeviceManager *manager,
     return;
 
   if (gtk_stack_get_visible_child (self->stack) == info->panel)
-    {
-      g_queue_clear_full (self->history, g_free);
-      g_queue_push_tail (self->history, g_strdup ("/main"));
-      gtk_stack_set_visible_child_name (self->stack, "main");
-    }
+    gtk_stack_set_visible_child_name (self->stack, "main");
 
   g_signal_handlers_disconnect_by_data (device, self);
   gtk_list_box_remove (self->device_list, info->row);
@@ -234,148 +227,20 @@ on_device_removed (ValentDeviceManager *manager,
 }
 
 /*
- * History
- */
-static GtkStack *
-find_stack (GtkWidget *widget)
-{
-  GtkWidget *child;
-
-  if (GTK_IS_STACK (widget))
-    return GTK_STACK (widget);
-
-  child = gtk_widget_get_first_child (widget);
-
-  while (child && !GTK_IS_STACK (child))
-    {
-      GtkStack *stack;
-
-      if ((stack = find_stack (child)))
-        return stack;
-
-      child = gtk_widget_get_next_sibling (child);
-    }
-
-  return GTK_STACK (child);
-}
-
-static GtkStack *
-find_stack_by_page_name (GtkWidget  *widget,
-                         const char *name)
-{
-  GtkWidget *child;
-
-  if (GTK_IS_STACK (widget) &&
-      gtk_stack_get_child_by_name (GTK_STACK (widget), name))
-    return GTK_STACK (widget);
-
-  child = gtk_widget_get_first_child (widget);
-
-  while (child)
-    {
-      GtkStack *stack;
-
-      if ((stack = find_stack_by_page_name (child, name)))
-        return stack;
-
-      child = gtk_widget_get_next_sibling (child);
-    }
-
-  return GTK_STACK (child);
-}
-
-static void
-valent_window_set_location (ValentWindow *self,
-                            const char   *path)
-{
-  GtkStack *stack = NULL;
-  GtkWidget *child;
-  g_auto (GStrv) segments = NULL;
-  const char *context = NULL;
-  const char *name = NULL;
-  g_autofree char *full_path = NULL;
-
-  g_assert (VALENT_IS_WINDOW (self));
-  g_assert (path != NULL);
-
-  /* Paths can be absolute or relative */
-  if (path[0] == '/')
-    {
-      segments = g_strsplit (path, "/", -1);
-      context = segments[1];
-      name = segments[2];
-
-      if ((child = gtk_stack_get_child_by_name (self->stack, context)))
-        {
-          if (name != NULL && (stack = find_stack_by_page_name (child, name)))
-            name = segments[2];
-
-          else if (name == NULL && (stack = find_stack (child)))
-            name = gtk_stack_get_visible_child_name (stack);
-
-          else
-            name = NULL;
-        }
-    }
-  else
-    {
-      /* If @path is a top-level page name, it is the context and we need to
-       * find the child stack's page name (if there is one).
-       */
-      if ((child = gtk_stack_get_child_by_name (self->stack, path)))
-        {
-          context = path;
-
-          if ((stack = find_stack (child)))
-            name = gtk_stack_get_visible_child_name (stack);
-        }
-
-      /* Otherwise it should be a child of the currently visible context */
-      else if ((child = gtk_stack_get_visible_child (self->stack)))
-        {
-          context = gtk_stack_get_visible_child_name (self->stack);
-
-          if ((stack = find_stack_by_page_name (child, path)))
-            name = path;
-        }
-    }
-
-  /* Compute the full path */
-  if (name)
-    full_path = g_strdup_printf ("/%s/%s", context, name);
-  else
-    full_path = g_strdup_printf ("/%s", context);
-
-
-  /* Set the stacks */
-  gtk_stack_set_visible_child_name (self->stack, context);
-
-  if (name != NULL && stack != NULL)
-    gtk_stack_set_visible_child_name (stack, name);
-
-  /* Save new location to history */
-  if (g_strcmp0 (full_path, g_queue_peek_tail (self->history)) != 0)
-    g_queue_push_tail (self->history, g_steal_pointer (&full_path));
-
-  VALENT_NOTE ("%s => %s", full_path, path);
-}
-
-/*
  * GActions
  */
 static void
-about_action (GSimpleAction *action,
-              GVariant      *parameter,
-              gpointer       user_data)
+about_action (GtkWidget  *widget,
+              const char *action_name,
+              GVariant   *parameter)
 {
-  GtkWindow *window = GTK_WINDOW (user_data);
-
-  g_assert (GTK_IS_WINDOW (window));
-
+  GtkWindow *window = GTK_WINDOW (widget);
   const char *authors[] = {
     "Andy Holmes <andrew.g.r.holmes@gmail.com>",
     NULL
   };
+
+  g_assert (GTK_IS_WINDOW (window));
 
   gtk_show_about_dialog (window,
                          "logo-icon-name",     APPLICATION_ID,
@@ -389,26 +254,25 @@ about_action (GSimpleAction *action,
 }
 
 static void
-page_action (GSimpleAction *action,
-             GVariant      *parameter,
-             gpointer       user_data)
+device_action (GtkWidget  *widget,
+               const char *action_name,
+               GVariant   *parameter)
 {
-  ValentWindow *self = VALENT_WINDOW (user_data);
-  const char *path;
+  ValentWindow *self = VALENT_WINDOW (widget);
+  const char *device_id;
 
   g_assert (VALENT_IS_WINDOW (self));
 
-  path = g_variant_get_string (parameter, NULL);
-  valent_window_set_location (self, path);
+  device_id = g_variant_get_string (parameter, NULL);
+  gtk_stack_set_visible_child_name (self->stack, device_id);
 }
 
 static void
-preferences_action (GSimpleAction *action,
-                    GVariant      *parameter,
-                    gpointer       user_data)
+preferences_action (GtkWidget  *widget,
+                    const char *action_name,
+                    GVariant   *parameter)
 {
-  ValentWindow *self = VALENT_WINDOW (user_data);
-  GtkWidget *widget = GTK_WIDGET (self);
+  ValentWindow *self = VALENT_WINDOW (widget);
 
   g_assert (VALENT_IS_WINDOW (self));
 
@@ -417,7 +281,6 @@ preferences_action (GSimpleAction *action,
       GtkAllocation allocation;
 
       gtk_widget_get_allocation (widget, &allocation);
-
       self->preferences = g_object_new (VALENT_TYPE_PREFERENCES_WINDOW,
                                         "default-width",  allocation.width,
                                         "default-height", allocation.height,
@@ -433,20 +296,15 @@ preferences_action (GSimpleAction *action,
 }
 
 static void
-previous_action (GSimpleAction *action,
-                 GVariant      *parameter,
-                 gpointer       user_data)
+previous_action (GtkWidget  *widget,
+                 const char *action_name,
+                 GVariant   *parameter)
 {
-  ValentWindow *self = VALENT_WINDOW (user_data);
-  g_autofree char *current = NULL;
-  const char *prev;
+  ValentWindow *self = VALENT_WINDOW (widget);
 
   g_assert (VALENT_IS_WINDOW (self));
 
-  /* Free the current state and restore the previous one */
-  current = g_queue_pop_tail (self->history);
-  prev = g_queue_peek_tail (self->history);
-  valent_window_set_location (self, prev);
+  gtk_stack_set_visible_child_name (self->stack, "main");
 }
 
 static gboolean
@@ -460,11 +318,11 @@ refresh_cb (gpointer data)
 }
 
 static void
-refresh_action (GSimpleAction *action,
-                GVariant      *parameter,
-                gpointer       user_data)
+refresh_action (GtkWidget  *widget,
+                const char *action_name,
+                GVariant   *parameter)
 {
-  ValentWindow *self = VALENT_WINDOW (user_data);
+  ValentWindow *self = VALENT_WINDOW (widget);
 
   g_assert (VALENT_IS_WINDOW (self));
 
@@ -474,14 +332,6 @@ refresh_action (GSimpleAction *action,
   valent_device_manager_identify (self->manager, NULL);
   self->refresh_id = g_timeout_add_seconds (5, refresh_cb, self);
 }
-
-static const GActionEntry actions[] = {
-  {"about",       about_action,       NULL, NULL, NULL},
-  {"page",        page_action,        "s",  NULL, NULL},
-  {"preferences", preferences_action, NULL, NULL, NULL},
-  {"previous",    previous_action,    NULL, NULL, NULL},
-  {"refresh",     refresh_action,     NULL, NULL, NULL}
-};
 
 /*
  * GObject
@@ -539,7 +389,6 @@ valent_window_finalize (GObject *object)
 
   g_clear_object (&self->settings);
   g_clear_pointer (&self->devices, g_hash_table_unref);
-  g_queue_free_full (self->history, g_free);
 
   G_OBJECT_CLASS (valent_window_parent_class)->finalize (object);
 }
@@ -599,6 +448,12 @@ valent_window_class_init (ValentWindowClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentWindow, stack);
   gtk_widget_class_bind_template_child (widget_class, ValentWindow, device_list);
 
+  gtk_widget_class_install_action (widget_class, "win.about", NULL, about_action);
+  gtk_widget_class_install_action (widget_class, "win.device", "s", device_action);
+  gtk_widget_class_install_action (widget_class, "win.preferences", NULL, preferences_action);
+  gtk_widget_class_install_action (widget_class, "win.previous", NULL, previous_action);
+  gtk_widget_class_install_action (widget_class, "win.refresh", NULL, refresh_action);
+
   /**
    * ValentWindow:device-manager:
    *
@@ -639,16 +494,6 @@ valent_window_init (ValentWindow *self)
       style = gtk_widget_get_style_context (GTK_WIDGET (self));
       gtk_style_context_add_class (style, "devel");
     }
-
-  /* Navigation History */
-  self->history = g_queue_new ();
-  g_queue_push_tail (self->history, g_strdup ("/main"));
-
-  /* Action Group */
-  g_action_map_add_action_entries (G_ACTION_MAP (self),
-                                   actions,
-                                   G_N_ELEMENTS (actions),
-                                   self);
 
   /* Devices Page */
   gtk_list_box_set_sort_func (self->device_list, device_sort_func, NULL, NULL);
