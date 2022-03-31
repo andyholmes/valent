@@ -315,23 +315,6 @@ hide_view_switcher_bar (GtkWidget *widget)
   return FALSE;
 }
 
-static void
-on_page_changed (AdwPreferencesWindow *window,
-                 GParamSpec           *pspec,
-                 GtkButton            *button)
-{
-  const char *page_name = NULL;
-  gboolean show_button = TRUE;
-
-  page_name = adw_preferences_window_get_visible_page_name (window);
-
-  if (g_strcmp0 (page_name, "main") == 0)
-    show_button = FALSE;
-
-  gtk_widget_set_opacity (GTK_WIDGET (button), show_button);
-  gtk_widget_set_sensitive (GTK_WIDGET (button), show_button);
-}
-
 /**
  * valent_preferences_window_modify:
  * @window: a #AdwPreferencesWindow
@@ -350,29 +333,20 @@ valent_preferences_window_modify (AdwPreferencesWindow *window)
 
   g_assert (ADW_IS_PREFERENCES_WINDOW (window));
 
-  /* Make sure we can find the headerbar first */
+  /* Add a "previous" button to the headerbar */
   if ((headerbar = find_header_bar (GTK_WIDGET (window))) == NULL)
     return FALSE;
+
+  button = g_object_new (GTK_TYPE_BUTTON,
+                         "action-name",  "win.previous",
+                         "icon-name",    "go-previous-symbolic",
+                         "tooltip-text", _("Previous"),
+                         NULL);
+  adw_header_bar_pack_start (headerbar, button);
 
   /* Attempt to find and hide the AdwViewSwitcherBar */
   if (!hide_view_switcher_bar (GTK_WIDGET (window)))
     return FALSE;
-
-  /* Add a "previous" button to replace the view switcher */
-  button = g_object_new (GTK_TYPE_BUTTON,
-                         "action-target", g_variant_new_string ("main"),
-                         "action-name",  "win.page",
-                         "icon-name",    "go-previous-symbolic",
-                         "tooltip-text", _("Back"),
-                         "opacity",      0.0,
-                         "sensitive",    FALSE,
-                         NULL);
-  adw_header_bar_pack_start (headerbar, button);
-
-  g_signal_connect (window,
-                    "notify::visible-page",
-                    G_CALLBACK (on_page_changed),
-                    button);
 
   return TRUE;
 }
@@ -390,6 +364,22 @@ page_action (GtkWidget  *widget,
 
   module = g_variant_get_string (parameter, NULL);
   adw_preferences_window_set_visible_page_name (window, module);
+}
+
+static void
+previous_action (GtkWidget  *widget,
+                 const char *action_name,
+                 GVariant   *parameter)
+{
+  AdwPreferencesWindow *window = ADW_PREFERENCES_WINDOW (widget);
+  const char *page_name;
+
+  page_name = adw_preferences_window_get_visible_page_name (window);
+
+  if (g_strcmp0 (page_name, "main") == 0)
+    gtk_window_destroy (GTK_WINDOW (window));
+  else
+    adw_preferences_window_set_visible_page_name (window, "main");
 }
 
 /*
@@ -480,6 +470,7 @@ valent_preferences_window_class_init (ValentPreferencesWindowClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, on_rename_entry_changed);
 
   gtk_widget_class_install_action (widget_class, "win.page", "s", page_action);
+  gtk_widget_class_install_action (widget_class, "win.previous", NULL, previous_action);
 
   /* ... */
   extensions[EXTEN_APPLICATION_PLUGIN] =
