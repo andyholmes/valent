@@ -26,28 +26,6 @@ struct _ValentContactsPlugin
 G_DEFINE_TYPE (ValentContactsPlugin, valent_contacts_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
-static char *
-rev_from_timestamp (gint64 timestamp)
-{
-  g_autoptr (GDateTime) datetime = NULL;
-
-  datetime = g_date_time_new_from_unix_local (timestamp);
-
-  return g_date_time_format (datetime, "%Y%m%dT%H%M%SZ");
-}
-
-static EContactDate *
-date_from_timestamp (gint64 timestamp)
-{
-  g_autoptr (GDateTime) datetime = NULL;
-  g_autofree char *ymd = NULL;
-
-  datetime = g_date_time_new_from_unix_local (timestamp);
-  ymd = g_date_time_format (datetime, "%F");
-
-  return e_contact_date_from_string (ymd);
-}
-
 /*
  * Local Contacts
  */
@@ -314,11 +292,8 @@ valent_contact_plugin_handle_response_vcards (ValentContactsPlugin *self,
       EContact *contact;
       const char *vcard;
 
-      /* NOTE: we're completely ignoring the `uids` field, because it's faster
-       *       and safer that comparing the strv to the object members */
-      if G_UNLIKELY (g_str_equal (uid, "uids"))
-        continue;
-
+      /* NOTE: This has the side-effect of ignoring `uids` array, which is fine
+       *       because the contact members are the ultimate source of truth. */
       if G_UNLIKELY (json_node_get_value_type (node) != G_TYPE_STRING)
         continue;
 
@@ -341,38 +316,11 @@ valent_contact_plugin_handle_response_vcards (ValentContactsPlugin *self,
 static void
 valent_contacts_plugin_request_all_uids_timestamps (ValentContactsPlugin *self)
 {
-  JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
 
   g_assert (VALENT_IS_CONTACTS_PLUGIN (self));
 
-  builder = valent_packet_start ("kdeconnect.contacts.request_all_uids_timestamps");
-  packet = valent_packet_finish (builder);
-
-  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
-}
-
-static void
-valent_contacts_plugin_request_vcards_by_uid (ValentContactsPlugin *self,
-                                              const GStrv           uids)
-{
-  JsonBuilder *builder;
-  g_autoptr (JsonNode) packet = NULL;
-
-  g_assert (VALENT_IS_CONTACTS_PLUGIN (self));
-
-  builder = valent_packet_start ("kdeconnect.contacts.request_vcards_by_uid");
-
-  json_builder_set_member_name (builder, "uids");
-  json_builder_begin_array (builder);
-
-  for (unsigned int i = 0; uids[i]; i++)
-    json_builder_add_string_value (builder, uids[i]);
-
-  json_builder_end_array (builder);
-
-  packet = valent_packet_finish (builder);
-
+  packet = valent_packet_new ("kdeconnect.contacts.request_all_uids_timestamps");
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
