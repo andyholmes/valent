@@ -86,7 +86,7 @@ plugin_list_sort (GtkListBoxRow *row1,
 }
 
 /*
- * Device Name Dialog
+ * Rename Dialog Callbacks
  */
 static void
 on_rename_entry_changed (GtkEntry                *entry,
@@ -103,19 +103,6 @@ on_rename_entry_changed (GtkEntry                *entry,
 }
 
 static void
-on_rename_dialog_open (AdwActionRow            *row,
-                       ValentPreferencesWindow *self)
-{
-  g_autofree char *name = NULL;
-
-  name = g_settings_get_string (self->settings, "name");
-  gtk_editable_set_text (GTK_EDITABLE (self->rename_entry), name);
-
-  gtk_window_present_with_time (GTK_WINDOW (self->rename_dialog),
-                                GDK_CURRENT_TIME);
-}
-
-static void
 on_rename_dialog_response (GtkDialog               *dialog,
                            GtkResponseType          response_id,
                            ValentPreferencesWindow *self)
@@ -128,7 +115,7 @@ on_rename_dialog_response (GtkDialog               *dialog,
       g_settings_set_string (self->settings, "name", name);
     }
 
-  gtk_widget_hide (GTK_WIDGET (dialog));
+  gtk_window_close (GTK_WINDOW (dialog));
 }
 
 /*
@@ -382,6 +369,20 @@ previous_action (GtkWidget  *widget,
     adw_preferences_window_set_visible_page_name (window, "main");
 }
 
+static void
+rename_action (GtkWidget  *widget,
+               const char *action_name,
+               GVariant   *parameter)
+{
+  ValentPreferencesWindow *self = VALENT_PREFERENCES_WINDOW (widget);
+  g_autofree char *name = NULL;
+
+  name = g_settings_get_string (self->settings, "name");
+  gtk_editable_set_text (GTK_EDITABLE (self->rename_entry), name);
+
+  gtk_window_present (GTK_WINDOW (self->rename_dialog));
+}
+
 /*
  * GObject
  */
@@ -465,12 +466,12 @@ valent_preferences_window_class_init (ValentPreferencesWindowClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentPreferencesWindow, rename_dialog);
   gtk_widget_class_bind_template_child (widget_class, ValentPreferencesWindow, rename_button);
 
-  gtk_widget_class_bind_template_callback (widget_class, on_rename_dialog_open);
   gtk_widget_class_bind_template_callback (widget_class, on_rename_dialog_response);
   gtk_widget_class_bind_template_callback (widget_class, on_rename_entry_changed);
 
   gtk_widget_class_install_action (widget_class, "win.page", "s", page_action);
   gtk_widget_class_install_action (widget_class, "win.previous", NULL, previous_action);
+  gtk_widget_class_install_action (widget_class, "win.rename", NULL, rename_action);
 
   /* ... */
   extensions[EXTEN_APPLICATION_PLUGIN] =

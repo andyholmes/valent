@@ -20,10 +20,7 @@
                 <property name="title" translatable="yes">Device Name</property>
                 <property name="activatable">1</property>
                 <property name="selectable">0</property>
-                <signal name="activated"
-                        handler="on_rename_dialog_open"
-                        object="ValentPreferencesWindow"
-                        swapped="no"/>
+                <property name="action-name">win.rename</property>
                 <child type="suffix">
                   <object class="GtkBox">
                     <property name="spacing">12</property>
