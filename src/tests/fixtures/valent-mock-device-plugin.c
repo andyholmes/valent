@@ -71,7 +71,7 @@ static const ValentMenuEntry items[] = {
     {"Packet Action", "device.mock.transfer", "dialog-information-symbolic"}
 };
 
-/**
+/*
  * ValentDevicePlugin
  */
 static void

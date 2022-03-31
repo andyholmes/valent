@@ -6,6 +6,7 @@
 libvalent_test_public_headers = [
   'libvalent-test.h',
   'packetless-plugin.h',
+  'valent-mock-application-plugin.h',
   'valent-mock-channel.h',
   'valent-mock-channel-service.h',
   'valent-mock-clipboard-adapter.h',
@@ -32,6 +33,7 @@ libvalent_test_private_headers = [
 libvalent_test_public_sources = [
   'mock-plugin.c',
   'packetless-plugin.c',
+  'valent-mock-application-plugin.c',
   'valent-mock-channel.c',
   'valent-mock-channel-service.c',
   'valent-mock-clipboard-adapter.c',

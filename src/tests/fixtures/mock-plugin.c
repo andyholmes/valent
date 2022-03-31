@@ -12,6 +12,7 @@
 #include <libvalent-session.h>
 #include <libvalent-ui.h>
 
+#include "valent-mock-application-plugin.h"
 #include "valent-mock-channel-service.h"
 #include "valent-mock-clipboard-adapter.h"
 #include "valent-mock-contact-store-provider.h"
@@ -29,6 +30,9 @@
 G_MODULE_EXPORT void
 valent_mock_plugin_register_types (PeasObjectModule *module)
 {
+  peas_object_module_register_extension_type (module,
+                                              VALENT_TYPE_APPLICATION_PLUGIN,
+                                              VALENT_TYPE_MOCK_APPLICATION_PLUGIN);
   peas_object_module_register_extension_type (module,
                                               VALENT_TYPE_CHANNEL_SERVICE,
                                               VALENT_TYPE_MOCK_CHANNEL_SERVICE);
