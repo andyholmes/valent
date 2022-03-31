@@ -271,6 +271,22 @@ page_action (GtkWidget  *widget,
   adw_preferences_window_set_visible_page_name (window, module);
 }
 
+static void
+previous_action (GtkWidget  *widget,
+                 const char *action_name,
+                 GVariant   *parameter)
+{
+  AdwPreferencesWindow *window = ADW_PREFERENCES_WINDOW (widget);
+  const char *page_name;
+
+  page_name = adw_preferences_window_get_visible_page_name (window);
+
+  if (g_strcmp0 (page_name, "main") == 0)
+    gtk_window_destroy (GTK_WINDOW (window));
+  else
+    adw_preferences_window_set_visible_page_name (window, "main");
+}
+
 /*
  * GObject
  */
@@ -412,6 +428,7 @@ valent_device_preferences_window_class_init (ValentDevicePreferencesWindowClass 
   gtk_widget_class_bind_template_callback (widget_class, on_download_folder_clicked);
 
   gtk_widget_class_install_action (widget_class, "win.page", "s", page_action);
+  gtk_widget_class_install_action (widget_class, "win.previous", NULL, previous_action);
 
   /**
    * ValentDevicePreferencesWindow:device:
