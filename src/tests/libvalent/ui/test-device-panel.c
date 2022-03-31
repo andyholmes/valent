@@ -8,45 +8,89 @@
 
 
 static void
-test_device_panel_basic (void)
+test_device_panel_basic (ValentTestFixture *fixture,
+                         gconstpointer      user_data)
 {
-  ValentTestFixture *fixture;
+  GtkWindow *window;
   GtkWidget *panel;
   ValentDevice *device = NULL;
   PeasEngine *engine;
 
-  fixture = valent_test_fixture_new (TEST_DATA_DIR"/plugin-mock.json");
-
   panel = g_object_new (VALENT_TYPE_DEVICE_PANEL,
                         "device", fixture->device,
                         NULL);
-  g_object_ref_sink (panel);
   g_assert_true (VALENT_IS_DEVICE_PANEL (panel));
+
+  window = g_object_new (ADW_TYPE_WINDOW,
+                         "content", panel,
+                         NULL);
+  gtk_window_present (window);
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
 
   /* Properties */
   g_object_get (panel,
                 "device", &device,
                 NULL);
   g_assert_true (fixture->device == device);
-  g_object_unref (device);
+  g_clear_object (&device);
 
   /* Unload the plugin */
   engine = valent_get_engine ();
   peas_engine_unload_plugin (engine,
                              peas_engine_get_plugin_info (engine, "mock"));
 
-  g_clear_object (&panel);
-  g_clear_pointer (&fixture, valent_test_fixture_unref);
+  g_clear_pointer (&window, gtk_window_destroy);
+}
+
+static void
+test_device_panel_dialogs (ValentTestFixture *fixture,
+                           gconstpointer      user_data)
+{
+  GtkWindow *window;
+  GtkWidget *panel;
+
+  panel = g_object_new (VALENT_TYPE_DEVICE_PANEL,
+                        "device", fixture->device,
+                        NULL);
+  g_assert_true (VALENT_IS_DEVICE_PANEL (panel));
+
+  window = g_object_new (ADW_TYPE_WINDOW,
+                         "content", panel,
+                         NULL);
+  gtk_window_present (window);
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
+  gtk_widget_activate_action (panel, "panel.preferences", NULL);
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
+  g_clear_pointer (&window, gtk_window_destroy);
 }
 
 int
 main (int   argc,
       char *argv[])
 {
+  const char *path = TEST_DATA_DIR"/plugin-mock.json";
+
   valent_test_ui_init (&argc, &argv, NULL);
 
-  g_test_add_func ("/libvalent/ui/device-panel",
-                   test_device_panel_basic);
+  g_test_add ("/libvalent/ui/device-panel/basic",
+              ValentTestFixture, path,
+              valent_test_fixture_init,
+              test_device_panel_basic,
+              valent_test_fixture_clear);
+
+  g_test_add ("/libvalent/ui/device-panel/dialogs",
+              ValentTestFixture, path,
+              valent_test_fixture_init,
+              test_device_panel_dialogs,
+              valent_test_fixture_clear);
 
   return g_test_run ();
 }

@@ -7,8 +7,14 @@
 #include "valent-window.h"
 
 
-static ValentDeviceManager *
-init_manager (void)
+typedef struct
+{
+  ValentDeviceManager *manager;
+} TestWindowFixture;
+
+static void
+test_window_set_up (TestWindowFixture *fixture,
+                    gconstpointer      user_data)
 {
   g_autofree char *path = NULL;
   g_autoptr (ValentData) data = NULL;
@@ -30,34 +36,154 @@ init_manager (void)
   identity_path = g_build_filename (path, "identity.json", NULL);
   g_file_set_contents (identity_path, identity_json, -1, NULL);
 
-  return valent_device_manager_new_sync (data, NULL, NULL);
+  fixture->manager = valent_device_manager_new_sync (data, NULL, NULL);
 }
 
 static void
-test_window_basic (void)
+test_window_tear_down (TestWindowFixture *fixture,
+                       gconstpointer      user_data)
+{
+  g_clear_object (&fixture->manager);
+}
+
+static void
+test_window_basic (TestWindowFixture *fixture,
+                   gconstpointer      user_data)
 {
   g_autoptr (ValentDeviceManager) manager = NULL;
   ValentDevice *device;
   GtkWindow *window;
-  gpointer data;
-
-  manager = init_manager ();
 
   window = g_object_new (VALENT_TYPE_WINDOW,
-                         "device-manager", manager,
+                         "device-manager", fixture->manager,
                          NULL);
+  g_assert_true (VALENT_IS_WINDOW (window));
   g_assert_nonnull (window);
+
+  gtk_window_present (window);
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
 
   /* Properties */
   g_object_get (window,
-                "device-manager", &data,
+                "device-manager", &manager,
                 NULL);
-  g_assert_true (manager == data);
-  g_object_unref (data);
+  g_assert_true (fixture->manager == manager);
+  g_clear_object (&manager);
 
   /* Remove Device */
-  device = valent_device_manager_get_device (manager, "test-device");
-  g_object_notify (G_OBJECT (device), "paired");
+  device = valent_device_manager_get_device (fixture->manager, "test-device");
+  g_object_notify (G_OBJECT (device), "state");
+
+  g_clear_pointer (&window, gtk_window_destroy);
+}
+
+static void
+test_window_navigation (TestWindowFixture *fixture,
+                        gconstpointer      user_data)
+{
+  GtkWindow *window;
+  ValentDevice *device;
+
+  window = g_object_new (VALENT_TYPE_WINDOW,
+                         "device-manager", fixture->manager,
+                         NULL);
+  g_assert_true (VALENT_IS_WINDOW (window));
+  g_assert_nonnull (window);
+
+  gtk_window_present (window);
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
+  /* Main -> Device -> Main */
+  g_action_group_activate_action (G_ACTION_GROUP (window),
+                                  "page",
+                                  g_variant_new_string ("/test-device"));
+
+  g_action_group_activate_action (G_ACTION_GROUP (window),
+                                  "page",
+                                  g_variant_new_string ("/main"));
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
+  /* Main -> Device -> Previous */
+  g_action_group_activate_action (G_ACTION_GROUP (window),
+                                  "page",
+                                  g_variant_new_string ("/test-device"));
+
+  g_action_group_activate_action (G_ACTION_GROUP (window),
+                                  "previous",
+                                  NULL);
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
+  /* Main -> Device -> Remove Device */
+  g_action_group_activate_action (G_ACTION_GROUP (window),
+                                  "page",
+                                  g_variant_new_string ("/test-device"));
+
+  device = valent_device_manager_get_device (fixture->manager, "test-device");
+  g_object_notify (G_OBJECT (device), "state");
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
+  /* Refresh */
+  g_action_group_activate_action (G_ACTION_GROUP (window),
+                                  "refresh",
+                                  NULL);
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
+  g_clear_pointer (&window, gtk_window_destroy);
+}
+
+static void
+test_window_dialogs (TestWindowFixture *fixture,
+                     gconstpointer      user_data)
+{
+  GtkWindow *window;
+
+  /* Preferences */
+  window = g_object_new (VALENT_TYPE_WINDOW,
+                         "device-manager", fixture->manager,
+                         NULL);
+  g_assert_true (VALENT_IS_WINDOW (window));
+  g_assert_nonnull (window);
+
+  gtk_window_present (window);
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
+  g_action_group_activate_action (G_ACTION_GROUP (window), "preferences", NULL);
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
+  g_clear_pointer (&window, gtk_window_destroy);
+
+  /* About */
+  window = g_object_new (VALENT_TYPE_WINDOW,
+                         "device-manager", fixture->manager,
+                         NULL);
+  g_assert_true (VALENT_IS_WINDOW (window));
+  g_assert_nonnull (window);
+
+  gtk_window_present (window);
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
+  g_action_group_activate_action (G_ACTION_GROUP (window), "about", NULL);
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
 
   g_clear_pointer (&window, gtk_window_destroy);
 }
@@ -68,8 +194,23 @@ main (int argc,
 {
   valent_test_ui_init (&argc, &argv, NULL);
 
-  g_test_add_func ("/libvalent/ui/window",
-                   test_window_basic);
+  g_test_add ("/libvalent/ui/window/basic",
+              TestWindowFixture, NULL,
+              test_window_set_up,
+              test_window_basic,
+              test_window_tear_down);
+
+  g_test_add ("/libvalent/ui/window/navigation",
+              TestWindowFixture, NULL,
+              test_window_set_up,
+              test_window_navigation,
+              test_window_tear_down);
+
+  g_test_add ("/libvalent/ui/window/dialogs",
+              TestWindowFixture, NULL,
+              test_window_set_up,
+              test_window_dialogs,
+              test_window_tear_down);
 
   return g_test_run ();
 }
