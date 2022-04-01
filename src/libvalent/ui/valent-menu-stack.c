@@ -154,7 +154,7 @@ valent_menu_stack_get_menu_model (ValentMenuStack *stack)
   if (stack->main == NULL)
     return NULL;
 
-  return valent_menu_list_get_model (stack->main);
+  return valent_menu_list_get_menu_model (stack->main);
 }
 
 /**
@@ -184,7 +184,7 @@ valent_menu_stack_set_menu_model (ValentMenuStack *stack,
       gtk_stack_add_named (GTK_STACK (stack->stack),
                            GTK_WIDGET (stack->main),
                            "main");
-      valent_menu_list_set_model (stack->main, menu_model);
+      valent_menu_list_set_menu_model (stack->main, menu_model);
     }
 }
 
