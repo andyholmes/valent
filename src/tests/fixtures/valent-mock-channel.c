@@ -34,6 +34,10 @@ enum {
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 
+/* HACK: ThreadSanitizer reports a data race in socketpair() */
+static GRecMutex socketpair_lock;
+
+
 /*
  * ValentChannel
  */
@@ -102,14 +106,17 @@ valent_mock_channel_upload (ValentChannel  *channel,
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
   g_assert (error == NULL || *error == NULL);
 
+  g_rec_mutex_lock (&socketpair_lock);
   if (socketpair (AF_UNIX, SOCK_STREAM, 0, sv) == -1)
     {
       g_set_error_literal (error,
                            G_IO_ERROR,
                            G_IO_ERROR_FAILED,
                            g_strerror (errno));
+      g_rec_mutex_unlock (&socketpair_lock);
       return NULL;
     }
+  g_rec_mutex_unlock (&socketpair_lock);
 
   /* Payload Info */
   info = json_object_new();
