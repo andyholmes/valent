@@ -26,7 +26,7 @@ G_DEFINE_TYPE (ValentMenuList, valent_menu_list, GTK_TYPE_WIDGET)
 
 enum {
   PROP_0,
-  PROP_MODEL,
+  PROP_MENU_MODEL,
   PROP_SUBMENU_OF,
   N_PROPERTIES
 };
@@ -58,13 +58,17 @@ valent_menu_list_add_row (ValentMenuList *self,
   if (g_menu_model_get_item_attribute (self->model, index,
                                        "action", "s", &action_name))
     {
-      action_target = g_menu_model_get_item_attribute_value (self->model, index,
-                                                             "target", NULL);
+      action_target = g_menu_model_get_item_attribute_value (self->model,
+                                                             index,
+                                                             "target",
+                                                             NULL);
     }
 
   /* Icon */
-  vicon = g_menu_model_get_item_attribute_value (self->model, index,
-                                                 "icon",  NULL);
+  vicon = g_menu_model_get_item_attribute_value (self->model,
+                                                 index,
+                                                 "icon",
+                                                 NULL);
 
   if (vicon != NULL)
     gicon = g_icon_deserialize (vicon);
@@ -122,21 +126,13 @@ valent_menu_list_add_section (ValentMenuList *self,
                               int             index,
                               GMenuModel     *model)
 {
-  GtkListBoxRow *row;
-  GtkWidget *grid;
-  GtkWidget *arrow;
+  ValentMenuList *section;
 
   g_assert (VALENT_IS_MENU_LIST (self));
   g_assert (G_IS_MENU_MODEL (model));
 
-  g_debug ("[%s] IS SECTION", G_STRFUNC);
-
-  row = gtk_list_box_get_row_at_index (self->list, index);
-  grid = gtk_list_box_row_get_child (row);
-
-  arrow = gtk_image_new_from_icon_name ("go-next-symbolic");
-  gtk_style_context_add_class (gtk_widget_get_style_context (arrow), "dim-label");
-  gtk_grid_attach (GTK_GRID (grid), arrow, 0, 2, 1, 1);
+  section = valent_menu_list_new (model);
+  gtk_list_box_insert (self->list, GTK_WIDGET (section), index);
 }
 
 static void
@@ -155,8 +151,6 @@ valent_menu_list_add_submenu (ValentMenuList *self,
   g_assert (VALENT_IS_MENU_LIST (self));
   g_assert (G_IS_MENU_MODEL (model));
 
-  g_debug ("[%s] IS SUBMENU", G_STRFUNC);
-
   /* Amend the row */
   row = gtk_list_box_get_row_at_index (self->list, index);
   g_menu_model_get_item_attribute (self->model, index, "label", "s", &label);
@@ -171,7 +165,7 @@ valent_menu_list_add_submenu (ValentMenuList *self,
 
   /* Add the submenu */
   submenu = g_object_new (VALENT_TYPE_MENU_LIST,
-                          "model",      model,
+                          "menu-model", model,
                           "submenu-of", self,
                           NULL);
   stack = gtk_widget_get_ancestor (GTK_WIDGET (self), GTK_TYPE_STACK);
@@ -295,7 +289,7 @@ valent_menu_list_get_property (GObject    *object,
 
   switch (prop_id)
     {
-    case PROP_MODEL:
+    case PROP_MENU_MODEL:
       g_value_set_object (value, self->model);
       break;
 
@@ -318,8 +312,8 @@ valent_menu_list_set_property (GObject      *object,
 
   switch (prop_id)
     {
-    case PROP_MODEL:
-      valent_menu_list_set_model (self, g_value_get_object (value));
+    case PROP_MENU_MODEL:
+      valent_menu_list_set_menu_model (self, g_value_get_object (value));
       break;
 
     case PROP_SUBMENU_OF:
@@ -346,21 +340,21 @@ valent_menu_list_class_init (ValentMenuListClass *klass)
   gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_GRID_LAYOUT);
 
   /**
-   * ValentMenuList:model
+   * ValentMenuList:menu-model:
    *
    * The "model" property holds the #GMenuModel used to build this list.
    */
-  properties [PROP_MODEL] =
-    g_param_spec_object ("model",
+  properties [PROP_MENU_MODEL] =
+    g_param_spec_object ("menu-model",
                          "Menu Model",
-                         "The GMenuModel for this section",
+                         "The menu model used to build the list",
                          G_TYPE_MENU_MODEL,
                          (G_PARAM_READWRITE |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentMenuList:submenu-of
+   * ValentMenuList:submenu-of:
    *
    * The parent #ValentMenuList this is a submenu for.
    */
@@ -415,12 +409,12 @@ ValentMenuList *
 valent_menu_list_new (GMenuModel *model)
 {
   return g_object_new (VALENT_TYPE_MENU_LIST,
-                       "model", model,
+                       "menu-model", model,
                        NULL);
 }
 
 /**
- * valent_menu_list_get_model:
+ * valent_menu_list_get_menu_model:
  * @self: a #ValentMenuList
  *
  * Get the #GMenuModel for @self.
@@ -428,7 +422,7 @@ valent_menu_list_new (GMenuModel *model)
  * Returns: (transfer none): a #GMenuModel
  */
 GMenuModel *
-valent_menu_list_get_model (ValentMenuList *self)
+valent_menu_list_get_menu_model (ValentMenuList *self)
 {
   g_assert (VALENT_IS_MENU_LIST (self));
 
@@ -436,15 +430,15 @@ valent_menu_list_get_model (ValentMenuList *self)
 }
 
 /**
- * valent_menu_list_set_model:
+ * valent_menu_list_set_menu_model:
  * @self: a #ValentMenuList
  * @model: (nullable): a #GMenuModel
  *
  * Set the #GMenuModel for @self.
  */
 void
-valent_menu_list_set_model (ValentMenuList *list,
-                            GMenuModel     *model)
+valent_menu_list_set_menu_model (ValentMenuList *list,
+                                 GMenuModel     *model)
 {
   unsigned int n_items;
 

@@ -12,8 +12,8 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (ValentMenuList, valent_menu_list, VALENT, MENU_LIST, GtkWidget)
 
 ValentMenuList * valent_menu_list_new            (GMenuModel     *model);
-GMenuModel     * valent_menu_list_get_model      (ValentMenuList *self);
-void             valent_menu_list_set_model      (ValentMenuList *self,
+GMenuModel     * valent_menu_list_get_menu_model (ValentMenuList *self);
+void             valent_menu_list_set_menu_model (ValentMenuList *self,
                                                   GMenuModel     *model);
 ValentMenuList * valent_menu_list_get_submenu_of (ValentMenuList *self);
 void             valent_menu_list_set_submenu_of (ValentMenuList *self,
