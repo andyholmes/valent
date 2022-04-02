@@ -11,6 +11,7 @@ baseURLs = [
     [ 'Gtk', 'https://docs.gtk.org/gtk4/' ],
     [ 'GdkPixbuf', 'https://docs.gtk.org/gdk-pixbuf/' ],
     [ 'Json', 'https://gnome.pages.gitlab.gnome.org/json-glib/'],
+    [ 'Peas', 'https://gnome.pages.gitlab.gnome.org/libpeas/libpeas-1.0/'],
     [ 'Adw', 'https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/' ],
 ]
 
