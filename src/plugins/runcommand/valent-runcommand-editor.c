@@ -16,6 +16,8 @@ struct _ValentRuncommandEditor
 {
   GtkDialog  parent_instance;
 
+  char      *uuid;
+
   /* Template widgets */
   GtkButton *cancel_button;
   GtkButton *save_button;
@@ -94,18 +96,13 @@ on_entry_changed (GtkEntry               *entry,
  * GObject
  */
 static void
-valent_runcommand_editor_constructed (GObject *object)
+valent_runcommand_editor_finalize (GObject *object)
 {
   ValentRuncommandEditor *self = VALENT_RUNCOMMAND_EDITOR (object);
 
-  if (!valent_in_flatpak ())
-    {
-      gtk_entry_set_icon_from_icon_name (self->command_entry,
-                                         GTK_ENTRY_ICON_SECONDARY,
-                                         "folder-symbolic");
-    }
+  g_clear_pointer (&self->uuid, g_free);
 
-  G_OBJECT_CLASS (valent_runcommand_editor_parent_class)->constructed (object);
+  G_OBJECT_CLASS (valent_runcommand_editor_parent_class)->finalize (object);
 }
 
 static void
@@ -114,7 +111,7 @@ valent_runcommand_editor_class_init (ValentRuncommandEditorClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
-  object_class->constructed = valent_runcommand_editor_constructed;
+  object_class->finalize = valent_runcommand_editor_finalize;
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/runcommand/valent-runcommand-editor.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentRuncommandEditor, cancel_button);
@@ -130,6 +127,15 @@ static void
 valent_runcommand_editor_init (ValentRuncommandEditor *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
+
+  if (!valent_in_flatpak ())
+    {
+      gtk_entry_set_icon_from_icon_name (self->command_entry,
+                                         GTK_ENTRY_ICON_SECONDARY,
+                                         "folder-symbolic");
+    }
+
+  self->uuid = g_strdup ("");
 }
 
 GtkDialog *
@@ -151,7 +157,7 @@ valent_runcommand_editor_clear (ValentRuncommandEditor *editor)
 {
   g_return_if_fail (VALENT_IS_RUNCOMMAND_EDITOR (editor));
 
-  gtk_widget_set_name (GTK_WIDGET (editor), NULL);
+  valent_runcommand_editor_set_uuid (editor, "");
   gtk_editable_set_text (GTK_EDITABLE (editor->name_entry), "");
   gtk_editable_set_text (GTK_EDITABLE (editor->command_entry), "");
 }
@@ -162,7 +168,7 @@ valent_runcommand_editor_clear (ValentRuncommandEditor *editor)
  *
  * Get the command-line entry text for @editor
  *
- * Returns: (transfer none): the command-line
+ * Returns: (not nullable) (transfer none): the command-line
  */
 const char *
 valent_runcommand_editor_get_command (ValentRuncommandEditor *editor)
@@ -194,7 +200,7 @@ valent_runcommand_editor_set_command (ValentRuncommandEditor *editor,
  *
  * Get the command name entry text for @editor
  *
- * Returns: (transfer none): the command name
+ * Returns: (not nullable) (transfer none): the command name
  */
 const char *
 valent_runcommand_editor_get_name (ValentRuncommandEditor *editor)
@@ -226,14 +232,14 @@ valent_runcommand_editor_set_name (ValentRuncommandEditor *editor,
  *
  * Get the UUID of the command for @editor
  *
- * Returns: (transfer none): the command UUID
+ * Returns: (not nullable) (transfer none): the command UUID
  */
 const char *
 valent_runcommand_editor_get_uuid (ValentRuncommandEditor *editor)
 {
   g_return_val_if_fail (VALENT_IS_RUNCOMMAND_EDITOR (editor), NULL);
 
-  return gtk_widget_get_name (GTK_WIDGET (editor));
+  return editor->uuid;
 }
 
 /**
@@ -249,6 +255,13 @@ valent_runcommand_editor_set_uuid (ValentRuncommandEditor *editor,
 {
   g_return_if_fail (VALENT_IS_RUNCOMMAND_EDITOR (editor));
 
-  gtk_widget_set_name (GTK_WIDGET (editor), uuid);
+  if (g_strcmp0 (editor->uuid, uuid) == 0)
+    return;
+
+  if (uuid == NULL || *uuid == '\0')
+    uuid = "";
+
+  g_clear_pointer (&editor->uuid, g_free);
+  editor->uuid = g_strdup (uuid);
 }
 
