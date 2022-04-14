@@ -15,6 +15,7 @@ plugin_notification_sources = files([
   'valent-notification-dialog.c',
   'valent-notification-plugin.c',
   'valent-notification-preferences.c',
+  'valent-notification-upload.c',
 ])
 
 plugin_notification_include_directories = [include_directories('.')]

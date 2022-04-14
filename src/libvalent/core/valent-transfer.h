@@ -7,64 +7,59 @@
 # error "Only <libvalent-core.h> can be included directly."
 #endif
 
-
 #include <gio/gio.h>
 #include <json-glib/json-glib.h>
 
 #include "valent-device.h"
-#include "valent-version.h"
+#include "valent-object.h"
 
 G_BEGIN_DECLS
 
 /**
  * ValentTransferState:
- * @VALENT_TRANSFER_STATE_NONE: None
- * @VALENT_TRANSFER_STATE_ACTIVE: Transfer is in progress
- * @VALENT_TRANSFER_STATE_COMPLETE: Transfer is complete
+ * @VALENT_TRANSFER_STATE_PENDING: The transfer is pending
+ * @VALENT_TRANSFER_STATE_ACTIVE: The transfer is in progress
+ * @VALENT_TRANSFER_STATE_COMPLETE: The transfer succeeded
+ * @VALENT_TRANSFER_STATE_FAILED: The transfer failed
  *
  * Enumeration of transfer states.
  */
 typedef enum
 {
-  VALENT_TRANSFER_STATE_NONE,
+  VALENT_TRANSFER_STATE_PENDING,
   VALENT_TRANSFER_STATE_ACTIVE,
-  VALENT_TRANSFER_STATE_COMPLETE
+  VALENT_TRANSFER_STATE_COMPLETE,
+  VALENT_TRANSFER_STATE_FAILED,
 } ValentTransferState;
 
 #define VALENT_TYPE_TRANSFER (valent_transfer_get_type())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_DERIVABLE_TYPE (ValentTransfer, valent_transfer, VALENT, TRANSFER, GObject)
+G_DECLARE_DERIVABLE_TYPE (ValentTransfer, valent_transfer, VALENT, TRANSFER, ValentObject)
 
 struct _ValentTransferClass
 {
-  GObjectClass parent_class;
+  ValentObjectClass   parent_class;
+
+  /* virtual functions */
+  void                (*execute)        (ValentTransfer       *transfer,
+                                         GCancellable         *cancellable,
+                                         GAsyncReadyCallback   callback,
+                                         gpointer              user_data);
+  gboolean            (*execute_finish) (ValentTransfer       *transfer,
+                                         GAsyncResult         *result,
+                                         GError              **error);
 };
 
 VALENT_AVAILABLE_IN_1_0
-ValentTransfer      * valent_transfer_new            (ValentDevice         *device);
-
+char                * valent_transfer_dup_id         (ValentTransfer       *transfer);
 VALENT_AVAILABLE_IN_1_0
-void                  valent_transfer_add_bytes      (ValentTransfer       *transfer,
-                                                      JsonNode             *packet,
-                                                      GBytes               *bytes);
+double                valent_transfer_get_progress   (ValentTransfer       *transfer);
 VALENT_AVAILABLE_IN_1_0
-void                  valent_transfer_add_file       (ValentTransfer       *transfer,
-                                                      JsonNode             *packet,
-                                                      GFile                *file);
+void                  valent_transfer_set_progress   (ValentTransfer       *transfer,
+                                                      double                progress);
 VALENT_AVAILABLE_IN_1_0
-void                  valent_transfer_add_stream     (ValentTransfer       *transfer,
-                                                      JsonNode             *packet,
-                                                      GInputStream         *source,
-                                                      GOutputStream        *target,
-                                                      gssize                size);
-VALENT_AVAILABLE_IN_1_0
-GFile *               valent_transfer_cache_file     (ValentTransfer       *transfer,
-                                                      JsonNode             *packet,
-                                                      const char           *name);
-
-VALENT_AVAILABLE_IN_1_0
-void                  valent_transfer_cancel         (ValentTransfer       *transfer);
+ValentTransferState   valent_transfer_get_state      (ValentTransfer       *transfer);
 VALENT_AVAILABLE_IN_1_0
 void                  valent_transfer_execute        (ValentTransfer       *transfer,
                                                       GCancellable         *cancellable,
@@ -74,15 +69,11 @@ VALENT_AVAILABLE_IN_1_0
 gboolean              valent_transfer_execute_finish (ValentTransfer       *transfer,
                                                       GAsyncResult         *result,
                                                       GError              **error);
-
 VALENT_AVAILABLE_IN_1_0
-ValentDevice        * valent_transfer_get_device     (ValentTransfer       *transfer);
+void                  valent_transfer_cancel         (ValentTransfer       *transfer);
 VALENT_AVAILABLE_IN_1_0
-const char          * valent_transfer_get_id         (ValentTransfer       *transfer);
-VALENT_AVAILABLE_IN_1_0
-void                  valent_transfer_set_id         (ValentTransfer       *transfer,
-                                                      const char           *id);
-VALENT_AVAILABLE_IN_1_0
-ValentTransferState   valent_transfer_get_state      (ValentTransfer       *transfer);
+gboolean              valent_transfer_check_status   (ValentTransfer       *transfer,
+                                                      GError              **error);
 
 G_END_DECLS
+

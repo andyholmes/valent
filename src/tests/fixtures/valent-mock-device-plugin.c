@@ -13,6 +13,7 @@ struct _ValentMockDevicePlugin
 
 G_DEFINE_TYPE (ValentMockDevicePlugin, valent_mock_device_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
+
 /*
  * Packet Handlers
  */
@@ -31,6 +32,65 @@ valent_mock_device_plugin_handle_echo (ValentMockDevicePlugin *self,
 
   response = json_from_string (packet_json, NULL);
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), response);
+}
+
+static void
+transfer_cb (ValentTransfer *transfer,
+             GAsyncResult   *result,
+             gpointer        user_data)
+{
+  g_autoptr (ValentDevice) device = NULL;
+  g_autoptr (JsonNode) packet = NULL;
+  g_autoptr (GFile) file = NULL;
+  g_autoptr (GError) error = NULL;
+
+  if (!valent_transfer_execute_finish (transfer, result, &error))
+    g_critical ("Failed to transfer file");
+
+  g_object_get (transfer,
+                "device", &device,
+                "file",   &file,
+                "packet", &packet,
+                NULL);
+
+  g_assert_true (VALENT_IS_DEVICE (device));
+  g_assert_true (VALENT_IS_PACKET (packet));
+  g_assert_true (G_IS_FILE (file));
+}
+
+static void
+valent_mock_device_plugin_handle_transfer (ValentMockDevicePlugin *self,
+                                           JsonNode               *packet)
+{
+  ValentDevice *device = NULL;
+  g_autoptr (ValentTransfer) transfer = NULL;
+  g_autoptr (GFile) file = NULL;
+  const char *filename;
+
+  g_assert (VALENT_IS_MOCK_DEVICE_PLUGIN (self));
+  g_assert (VALENT_IS_PACKET (packet));
+
+  if (!valent_packet_has_payload (packet))
+    {
+      g_warning ("%s: missing payload info", G_STRFUNC);
+      return;
+    }
+
+  if (!valent_packet_get_string (packet, "filename", &filename))
+    {
+      g_warning ("%s(): expected \"filename\" field holding a string",
+                 G_STRFUNC);
+      return;
+    }
+
+  /* Create a new transfer */
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  file = valent_device_new_download_file (device, filename, TRUE);
+  transfer = valent_device_transfer_new_for_file (device, packet, file);
+  valent_transfer_execute (transfer,
+                           NULL,
+                           (GAsyncReadyCallback)transfer_cb,
+                           g_object_ref (self));
 }
 
 /*
@@ -126,6 +186,8 @@ valent_mock_device_plugin_handle_packet (ValentDevicePlugin *plugin,
 
   if (g_strcmp0 (type, "kdeconnect.mock.echo") == 0)
     valent_mock_device_plugin_handle_echo (self, packet);
+  else if (g_strcmp0 (type, "kdeconnect.mock.transfer") == 0)
+    valent_mock_device_plugin_handle_transfer (self, packet);
   else
     g_assert_not_reached ();
 }

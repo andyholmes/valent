@@ -20,22 +20,20 @@ struct _ValentPhotoPlugin
 G_DEFINE_TYPE (ValentPhotoPlugin, valent_photo_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
-/**
- * Packet Handlers
+/*
+ * Remote Camera
  */
-typedef struct
-{
-  ValentPhotoPlugin *plugin;
-  GFile             *file;
-} DownloadOperation;
-
 static void
-transfer_cb (ValentTransfer    *transfer,
-             GAsyncResult      *result,
-             DownloadOperation *op)
+valent_transfer_execute_cb (ValentTransfer     *transfer,
+                            GAsyncResult       *result,
+                            ValentDevicePlugin *plugin)
 {
-  ValentPhotoPlugin *self = op->plugin;
+  g_autoptr (GFile) file = NULL;
   g_autoptr (GError) error = NULL;
+
+  g_assert (VALENT_IS_DEVICE_TRANSFER (transfer));
+
+  g_object_get (transfer, "file", &file, NULL);
 
   if (valent_transfer_execute_finish (transfer, result, &error))
     {
@@ -49,10 +47,8 @@ transfer_cb (ValentTransfer    *transfer,
       g_autofree char *filename = NULL;
       ValentDevice *device;
 
-      g_warning ("Transfer failed: %s", error->message);
-
-      device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
-      filename = g_file_get_basename (op->file);
+      device = valent_device_plugin_get_device (plugin);
+      filename = g_file_get_basename (file);
       icon = g_themed_icon_new ("dialog-error-symbolic");
       body = g_strdup_printf (_("Failed to receive “%s” from %s"),
                               filename,
@@ -61,15 +57,8 @@ transfer_cb (ValentTransfer    *transfer,
       notification = g_notification_new (_("Transfer Failed"));
       g_notification_set_body (notification, body);
       g_notification_set_icon (notification, icon);
-
-      valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),
-                                              "photo",
-                                              notification);
+      valent_device_plugin_show_notification (plugin, "photo", notification);
     }
-
-  g_clear_object (&op->plugin);
-  g_clear_object (&op->file);
-  g_free (op);
 }
 
 static void
@@ -77,8 +66,9 @@ valent_photo_plugin_handle_photo (ValentPhotoPlugin *self,
                                   JsonNode          *packet)
 {
   g_autoptr (ValentTransfer) transfer = NULL;
+  g_autoptr (GCancellable) cancellable = NULL;
+  g_autoptr (GFile) file = NULL;
   ValentDevice *device;
-  DownloadOperation *op;
   const char *filename;
 
   g_assert (VALENT_IS_PHOTO_PLUGIN (self));
@@ -98,18 +88,15 @@ valent_photo_plugin_handle_photo (ValentPhotoPlugin *self,
     }
 
   device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
-
-  op = g_new0 (DownloadOperation, 1);
-  op->plugin = g_object_ref (self);
-  op->file = valent_device_new_download_file (device, filename, TRUE);
+  cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
+  file = valent_device_new_download_file (device, filename, TRUE);
 
   /* Create a new transfer */
-  transfer = valent_transfer_new (device);
-  valent_transfer_add_file (transfer, packet, op->file);
+  transfer = valent_device_transfer_new_for_file (device, packet, file);
   valent_transfer_execute (transfer,
-                           NULL,
-                           (GAsyncReadyCallback)transfer_cb,
-                           op);
+                           cancellable,
+                           (GAsyncReadyCallback)valent_transfer_execute_cb,
+                           self);
 }
 
 static void

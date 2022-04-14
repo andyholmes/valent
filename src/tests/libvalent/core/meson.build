@@ -14,6 +14,7 @@ libvalent_core_tests = [
   'test-device',
   'test-device-manager',
   'test-device-plugin',
+  'test-device-transfer',
   'test-object',
   'test-packet',
   'test-utils',

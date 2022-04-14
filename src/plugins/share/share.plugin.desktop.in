@@ -11,6 +11,6 @@ Embedded=valent_share_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
-X-IncomingCapabilities=kdeconnect.share.request
-X-OutgoingCapabilities=kdeconnect.share.request
+X-IncomingCapabilities=kdeconnect.share.request;kdeconnect.share.request.update
+X-OutgoingCapabilities=kdeconnect.share.request;kdeconnect.share.request.update
 

@@ -8,7 +8,9 @@ plugin_share_test_deps = [
 ]
 
 plugin_runcommand_tests = [
+  'test-share-download',
   'test-share-plugin',
+  'test-share-upload',
 ]
 
 foreach test : plugin_runcommand_tests

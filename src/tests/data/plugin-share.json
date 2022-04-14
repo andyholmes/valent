@@ -8,10 +8,12 @@
       "protocolVersion": 7,
       "deviceType": "phone",
       "incomingCapabilities": [
-        "kdeconnect.share.request"
+        "kdeconnect.share.request",
+        "kdeconnect.share.request.update"
       ],
       "outgoingCapabilities": [
-        "kdeconnect.share.request"
+        "kdeconnect.share.request",
+        "kdeconnect.share.request.update"
       ]
     }
   },
@@ -19,7 +21,59 @@
     "id": 0,
     "type": "kdeconnect.share.request",
     "body": {
+      "filename": "image.png",
+      "numberOfFiles": 1,
+      "totalPayloadSize": 882
+    }
+  },
+  "share-file-legacy": {
+    "id": 0,
+    "type": "kdeconnect.share.request",
+    "body": {
       "filename": "image.png"
+    }
+  },
+  "share-file-open": {
+    "id": 0,
+    "type": "kdeconnect.share.request",
+    "body": {
+      "filename": "image.png",
+      "open": true
+    }
+  },
+  "share-multiple-1": {
+    "id": 0,
+    "type": "kdeconnect.share.request",
+    "body": {
+      "filename": "image.png",
+      "numberOfFiles": 1,
+      "totalPayloadSize": 882
+    }
+  },
+  "share-multiple-2": {
+    "id": 0,
+    "type": "kdeconnect.share.request.update",
+    "body": {
+      "numberOfFiles": 2,
+      "totalPayloadSize": 1764
+    }
+  },
+  "share-multiple-3": {
+    "id": 0,
+    "type": "kdeconnect.share.request",
+    "body": {
+      "filename": "image.png",
+      "numberOfFiles": 3,
+      "totalPayloadSize": 2646
+    }
+  },
+  "share-multiple-4": {
+    "id": 0,
+    "type": "kdeconnect.share.request",
+    "body": {
+      "filename": "image.png",
+      "numberOfFiles": 3,
+      "totalPayloadSize": 2646
     }
   },
   "share-text": {

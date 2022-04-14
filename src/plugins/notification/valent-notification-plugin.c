@@ -13,13 +13,14 @@
 
 #include "valent-notification-dialog.h"
 #include "valent-notification-plugin.h"
+#include "valent-notification-upload.h"
 
 #define DEFAULT_ICON_SIZE 512
 
 
 struct _ValentNotificationPlugin
 {
-  ValentDevicePlugin    parent_instance;
+  ValentDevicePlugin   parent_instance;
 
   GSettings           *settings;
   GCancellable        *cancellable;
@@ -121,178 +122,6 @@ on_notification_removed (ValentNotifications      *listener,
 }
 
 /*
- * GIcon Helpers
- */
-static GtkIconTheme *
-get_icon_theme (void)
-{
-  GdkDisplay *display;
-
-  if (!gtk_is_initialized ())
-    return NULL;
-
-  if ((display = gdk_display_get_default ()) == NULL)
-    return NULL;
-
-  return gtk_icon_theme_get_for_display (display);
-}
-
-static int
-_gtk_icon_theme_get_largest_icon (GtkIconTheme *theme,
-                                  const char   *name)
-{
-  g_autofree int *sizes = NULL;
-  int ret = 0;
-
-  g_assert (GTK_IS_ICON_THEME (theme));
-  g_assert (name != NULL);
-
-  sizes = gtk_icon_theme_get_icon_sizes (theme, name);
-
-  for (unsigned int i = 0; sizes[i] != 0; i++)
-    {
-      if (sizes[i] == -1)
-        return -1;
-
-      if (sizes[i] > ret)
-        ret = sizes[i];
-    }
-
-  return ret;
-}
-
-static GFile *
-get_largest_icon_file (GIcon *icon)
-{
-  GtkIconTheme *theme;
-  const char * const *names;
-  g_autoptr (GtkIconPaintable) info = NULL;
-
-  g_assert (G_IS_THEMED_ICON (icon));
-
-  if ((theme = get_icon_theme ()) == NULL)
-    return NULL;
-
-  names = g_themed_icon_get_names (G_THEMED_ICON (icon));
-
-  for (unsigned int i = 0; names[i]; i++)
-    {
-      int size;
-
-      if ((size = _gtk_icon_theme_get_largest_icon (theme, names[i])) == 0)
-        continue;
-
-      info = gtk_icon_theme_lookup_icon (theme,
-                                         names[i],
-                                         NULL,
-                                         size,
-                                         1,
-                                         GTK_TEXT_DIR_NONE,
-                                         0);
-
-      if (info != NULL)
-        return gtk_icon_paintable_get_file (info);
-    }
-
-  return NULL;
-}
-
-static void
-on_size_prepared (GdkPixbufLoader *loader,
-                  int              width,
-                  int              height,
-                  gpointer         user_data)
-{
-  GdkPixbufFormat *format = gdk_pixbuf_loader_get_format (loader);
-
-  if (!gdk_pixbuf_format_is_scalable (format))
-    return;
-
-  if (width >= DEFAULT_ICON_SIZE || height >= DEFAULT_ICON_SIZE)
-    return;
-
-  gdk_pixbuf_loader_set_size (loader, DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE);
-}
-
-static GBytes *
-_g_icon_get_png (GIcon         *icon,
-                 GCancellable  *cancellable,
-                 GError       **error)
-{
-  g_autoptr (GBytes) bytes = NULL;
-  g_autoptr (GdkPixbufLoader) loader = NULL;
-  g_autoptr (GdkPixbuf) pixbuf = NULL;
-  char *data;
-  gsize size;
-
-  g_assert (G_IS_ICON (icon));
-
-  /* First try to get the bytes of the GIcon, and attempt to load a pixbuf */
-  if (G_IS_THEMED_ICON (icon))
-    {
-      g_autoptr (GFile) file = NULL;
-
-      file = get_largest_icon_file (icon);
-
-      if (file == NULL)
-        {
-          g_set_error (error,
-                       G_IO_ERROR,
-                       G_IO_ERROR_FAILED,
-                       "Failed to load themed icon");
-          return NULL;
-        }
-
-      bytes = g_file_load_bytes (file, cancellable, NULL, error);
-    }
-  else if (G_IS_FILE_ICON (icon))
-    {
-      GFile *file;
-
-      file = g_file_icon_get_file (G_FILE_ICON (icon));
-      bytes = g_file_load_bytes (file, cancellable, NULL, error);
-    }
-  else if (G_IS_BYTES_ICON (icon))
-    {
-      GBytes *buffer;
-
-      buffer = g_bytes_icon_get_bytes (G_BYTES_ICON (icon));
-      bytes = g_bytes_ref (buffer);
-    }
-
-  if (bytes == NULL)
-    return NULL;
-
-  /* Now attempt to load the bytes as a pixbuf */
-  loader = gdk_pixbuf_loader_new ();
-
-  g_signal_connect (loader,
-                    "size-prepared",
-                    G_CALLBACK (on_size_prepared),
-                    NULL);
-
-  if (!gdk_pixbuf_loader_write_bytes (loader, bytes, error))
-    return NULL;
-
-  if (!gdk_pixbuf_loader_close (loader, error))
-    return NULL;
-
-  if ((pixbuf = gdk_pixbuf_loader_get_pixbuf (loader)) == NULL)
-    {
-      g_set_error (error,
-                   G_IO_ERROR,
-                   G_IO_ERROR_FAILED,
-                   "Failed to create pixbuf from bytes");
-      return NULL;
-    }
-
-  if (!gdk_pixbuf_save_to_buffer (pixbuf, &data, &size, "png", error, NULL))
-    return NULL;
-
-  return g_bytes_new_take (data, size);
-}
-
-/*
  * Icon Transfers
  */
 static GFile *
@@ -333,10 +162,13 @@ download_icon_task (GTask        *task,
                     gpointer      task_data,
                     GCancellable *cancellable)
 {
-  ValentNotificationPlugin *self = source_object;
-  g_autoptr (GFile) file = NULL;
+  ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (source_object);
   JsonNode *packet = task_data;
+  g_autoptr (GFile) file = NULL;
   GError *error = NULL;
+
+  g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
+  g_assert (VALENT_IS_PACKET (packet));
 
   if (g_task_return_error_if_cancelled (task))
     return;
@@ -371,7 +203,7 @@ download_icon_task (GTask        *task,
         {
           return g_task_return_new_error (task,
                                           G_IO_ERROR,
-                                          G_IO_ERROR_CONNECTION_CLOSED,
+                                          G_IO_ERROR_NOT_CONNECTED,
                                           "Device is disconnected");
         }
 
@@ -455,11 +287,13 @@ valent_notification_plugin_download_icon (ValentNotificationPlugin *self,
 }
 
 static GIcon *
-valent_notification_plugin_download_icon_finish (ValentNotificationPlugin  *plugin,
+valent_notification_plugin_download_icon_finish (ValentNotificationPlugin  *self,
                                                  GAsyncResult              *result,
                                                  GError                   **error)
 {
-  g_return_val_if_fail (g_task_is_valid (result, plugin), NULL);
+  g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
+  g_assert (g_task_is_valid (result, self));
+  g_assert (error == NULL || *error == NULL);
 
   return g_task_propagate_pointer (G_TASK (result), error);
 }
@@ -624,9 +458,9 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
 }
 
 static void
-download_cb (ValentNotificationPlugin *self,
-             GAsyncResult             *result,
-             gpointer                  user_data)
+valent_notification_plugin_download_icon_cb (ValentNotificationPlugin *self,
+                                             GAsyncResult             *result,
+                                             gpointer                  user_data)
 {
   g_autoptr (JsonNode) packet = user_data;
   g_autoptr (GIcon) icon = NULL;
@@ -635,12 +469,11 @@ download_cb (ValentNotificationPlugin *self,
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
   g_assert (g_task_is_valid (result, self));
 
-  /* Finish the icon task */
   icon = valent_notification_plugin_download_icon_finish (self, result, &error);
 
   if (icon == NULL)
     {
-      // If the operation was cancelled, the plugin is being disposed
+      /* If the operation was cancelled, the plugin is being disposed */
       if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
         return;
 
@@ -682,7 +515,7 @@ valent_notification_plugin_handle_notification (ValentNotificationPlugin *self,
       valent_notification_plugin_download_icon (self,
                                                 packet,
                                                 self->cancellable,
-                                                (GAsyncReadyCallback)download_cb,
+                                                (GAsyncReadyCallback)valent_notification_plugin_download_icon_cb,
                                                 json_node_ref (packet));
     }
 
@@ -758,86 +591,48 @@ valent_notification_plugin_close_notification (ValentNotificationPlugin *self,
 }
 
 static void
+valent_notification_upload_execute_cb (GObject      *object,
+                                       GAsyncResult *result,
+                                       gpointer      user_data)
+{
+  ValentTransfer *transfer = VALENT_TRANSFER (object);
+  g_autoptr (GError) error = NULL;
+
+  if (!valent_transfer_execute_finish (transfer, result, &error) &&
+      !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+    {
+      g_autoptr (ValentDevice) device = NULL;
+      g_autoptr (JsonNode) packet = NULL;
+
+      g_object_get (transfer,
+                    "device", &device,
+                    "packet", &packet,
+                    NULL);
+      valent_device_queue_packet (device, packet);
+    }
+}
+
+static void
 valent_notification_plugin_send_notification_with_icon (ValentNotificationPlugin *self,
                                                         JsonNode                 *packet,
                                                         GIcon                    *icon)
 {
-  ValentDevice *device;
-  g_autoptr (ValentTransfer) transfer = NULL;
-
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
   g_assert (icon == NULL || G_IS_ICON (icon));
 
-  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
-  transfer = valent_transfer_new (device);
-
-  /* Try to ensure icons are sent in PNG format, since kdeconnect-android can't
-   * handle SVGs which are very common */
   if (G_IS_ICON (icon))
     {
-      g_autoptr (GBytes) bytes = NULL;
-      g_autoptr (GError) error = NULL;
+      ValentDevice *device;
+      g_autoptr (ValentTransfer) transfer = NULL;
 
-      bytes = _g_icon_get_png (icon, NULL, &error);
-
-      if (bytes != NULL)
-        {
-          valent_transfer_add_bytes (transfer, packet, bytes);
-          valent_transfer_execute (transfer, NULL, NULL, NULL);
-          return;
-        }
-
-      g_debug ("Converting icon to PNG: %s", error->message);
-    }
-
-  /* NOTE: If we reach this point, something went wrong and we're about to
-   *       upload an icon in a format that may not be supported. */
-  if (G_IS_BYTES_ICON (icon))
-    {
-      GBytes *bytes;
-
-      if ((bytes = g_bytes_icon_get_bytes (G_BYTES_ICON (icon))) != NULL)
-        {
-          valent_transfer_add_bytes (transfer, packet, bytes);
-          valent_transfer_execute (transfer, NULL, NULL, NULL);
-          return;
-        }
-    }
-  else if (G_IS_FILE_ICON (icon))
-    {
-      GFile *file;
-
-      file = g_file_icon_get_file (G_FILE_ICON (icon));
-      valent_transfer_add_file (transfer, packet, file);
-      valent_transfer_execute (transfer, NULL, NULL, NULL);
+      device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+      transfer = valent_notification_upload_new (device, packet, icon);
+      valent_transfer_execute (transfer,
+                               NULL,
+                               valent_notification_upload_execute_cb,
+                               NULL);
       return;
-    }
-  else if (G_IS_THEMED_ICON (icon))
-    {
-      GtkIconTheme *theme;
-
-      if ((theme = get_icon_theme ()) != NULL)
-        {
-          g_autoptr (GtkIconPaintable) info = NULL;
-
-          info = gtk_icon_theme_lookup_by_gicon (theme,
-                                                 icon,
-                                                 DEFAULT_ICON_SIZE,
-                                                 1,
-                                                 GTK_TEXT_DIR_NONE,
-                                                 0);
-
-          if (info != NULL)
-            {
-              g_autoptr (GFile) file = NULL;
-
-              file = gtk_icon_paintable_get_file (info);
-              valent_transfer_add_file (transfer, packet, file);
-              valent_transfer_execute (transfer, NULL, NULL, NULL);
-              return;
-            }
-        }
     }
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);

@@ -32,6 +32,15 @@
                     "Test Player"
                 ]
             }
+        },
+        {
+            "id": 0,
+            "type": "kdeconnect.mpris",
+            "body": {
+                "player": "Test Player",
+                "albumArtUrl": "file:///path/to/image.png",
+                "transferringAlbumArt": true
+            }
         }
     ],
     "type": "object",
@@ -120,6 +129,10 @@
                     "minimum": 0,
                     "maximum": 100,
                     "description": "Current player volume (%)."
+                },
+                "transferringAlbumArt": {
+                    "type": "boolean",
+                    "description": "Indicates this packet carries an album art payload."
                 }
             }
         }

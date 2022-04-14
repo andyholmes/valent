@@ -10,7 +10,9 @@ plugin_share_deps = [
 # Sources
 plugin_share_sources = files([
   'share-plugin.c',
+  'valent-share-download.c',
   'valent-share-plugin.c',
+  'valent-share-upload.c',
 ])
 
 plugin_share_include_directories = [include_directories('.')]
