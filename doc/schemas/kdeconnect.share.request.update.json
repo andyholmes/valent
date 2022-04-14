@@ -1,0 +1,51 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.share.request",
+    "description": "This packet is the metadata for a multi-file transfer. By convention it is sent in advance of the packets containing the payload, which will include the same fields, potentially with updated totals.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.share.request.update",
+            "body": {
+                "numberOfFiles": 1,
+                "totalPayloadSize": 4096
+            }
+        },
+        {
+            "id": 0,
+            "type": "kdeconnect.share.request.update",
+            "body": {
+                "numberOfFiles": 2,
+                "totalPayloadSize": 8192
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.share.request.update"]
+        },
+        "body": {
+            "type": "object",
+            "properties": {
+                "numberOfFiles": {
+                    "type": "number",
+                    "description": "Number of files in a multi-file transfer."
+                },
+                "totalPayloadSize": {
+                    "type": "number",
+                    "description": "Total size in bytes of a multi-file transfer."
+                }
+            }
+        }
+    }
+}

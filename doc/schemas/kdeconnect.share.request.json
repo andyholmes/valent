@@ -50,6 +50,26 @@
                     "type": "string",
                     "description": "Name of the file being transferred. If the packet contains this field, it will be accompanied by payload transfer information."
                 },
+                "creationTime": {
+                    "type": "number",
+                    "description": "Creation time of the file being transferred as a UNIX epoch timestamp (ms)."
+                },
+                "lastModified": {
+                    "type": "number",
+                    "description": "Modification time of the file being transferred as a UNIX epoch timestamp (ms)."
+                },
+                "open": {
+                    "type": "boolean",
+                    "description": "Whether a received file should be opened when the transfer completes."
+                },
+                "numberOfFiles": {
+                    "type": "number",
+                    "description": "Number of files in a composite file transfer."
+                },
+                "totalPayloadSize": {
+                    "type": "number",
+                    "description": "Total size in bytes of a composite file transfer."
+                },
                 "text": {
                     "type": "string",
                     "description": "Text content being shared. The receiving device decides how to present to text to the user."

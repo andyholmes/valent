@@ -19,11 +19,11 @@ struct _ValentMprisPlugin
 {
   ValentDevicePlugin  parent_instance;
 
-  ValentMedia       *media;
-  gboolean           media_watch : 1;
+  ValentMedia        *media;
+  gboolean            media_watch : 1;
 
-  GHashTable        *remotes;
-  GHashTable        *artwork_transfers;
+  GHashTable         *remotes;
+  GHashTable         *artwork_transfers;
 };
 
 G_DEFINE_TYPE (ValentMprisPlugin, valent_mpris_plugin, VALENT_TYPE_DEVICE_PLUGIN)
@@ -53,13 +53,16 @@ send_album_art_cb (ValentTransfer    *transfer,
                    ValentMprisPlugin *self)
 {
   g_autoptr (GError) error = NULL;
+  g_autofree char *id = NULL;
 
-  g_assert (VALENT_IS_MPRIS_PLUGIN (self));
+  g_assert (VALENT_IS_TRANSFER (transfer));
 
   if (!valent_transfer_execute_finish (transfer, result, &error))
+
     g_debug ("Failed to upload album art: %s", error->message);
 
-  g_hash_table_remove (self->artwork_transfers, valent_transfer_get_id (transfer));
+  id = valent_transfer_dup_id (transfer);
+  g_hash_table_remove (self->artwork_transfers, id);
 }
 
 static void
@@ -114,12 +117,11 @@ valent_mpris_plugin_send_album_art (ValentMprisPlugin *self,
 
   /* Start the transfer */
   device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
-  transfer = valent_transfer_new (device);
-  valent_transfer_set_id (transfer, requested_uri);
-  valent_transfer_add_file (transfer, packet, real_file);
+  transfer = valent_device_transfer_new_for_file (device, packet, real_file);
 
-  g_hash_table_add (self->artwork_transfers,
-                    (char *)valent_transfer_get_id (transfer));
+  g_hash_table_insert (self->artwork_transfers,
+                       g_strdup (requested_uri),
+                       g_object_ref (transfer));
 
   valent_transfer_execute (transfer,
                            NULL,
@@ -575,22 +577,13 @@ valent_mpris_plugin_request_player_list (ValentMprisPlugin *self)
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
-typedef struct
-{
-  ValentMprisPlugin *self;
-  JsonNode          *packet;
-  GFile             *file;
-} AlbumArtOperation;
-
 static void
-receive_art_cb (ValentTransfer *transfer,
-                GAsyncResult   *result,
-                gpointer        user_data)
+receive_art_cb (ValentTransfer    *transfer,
+                GAsyncResult      *result,
+                ValentMprisPlugin *self)
 {
-  g_autofree AlbumArtOperation *op = user_data;
-  g_autoptr (ValentMprisPlugin) self = g_steal_pointer (&op->self);
-  g_autoptr (JsonNode) packet = g_steal_pointer (&op->packet);
-  g_autoptr (GFile) file = g_steal_pointer (&op->file);
+  g_autoptr (JsonNode) packet = NULL;
+  g_autoptr (GFile) file = NULL;
   g_autoptr (GError) error = NULL;
   const char *player;
   ValentMprisRemote *remote;
@@ -602,6 +595,11 @@ receive_art_cb (ValentTransfer *transfer,
 
       return;
     }
+
+  g_object_get (transfer,
+                "file",   &file,
+                "packet", &packet,
+                NULL);
 
   if (valent_packet_get_string (packet, "player", &player) &&
       (remote = g_hash_table_lookup (self->remotes, player)) != NULL)
@@ -615,7 +613,6 @@ valent_mpris_plugin_receive_album_art (ValentMprisPlugin *self,
   ValentDevice *device;
   g_autoptr (ValentData) data = NULL;
   const char *url;
-  AlbumArtOperation *op;
   g_autofree char *filename = NULL;
   g_autoptr (GFile) file = NULL;
   g_autoptr (ValentTransfer) transfer = NULL;
@@ -632,17 +629,11 @@ valent_mpris_plugin_receive_album_art (ValentMprisPlugin *self,
   filename = g_compute_checksum_for_string (G_CHECKSUM_MD5, url, -1);
   file = valent_data_new_cache_file (data, filename);
 
-  op = g_new0 (AlbumArtOperation, 1);
-  op->self = g_object_ref (self);
-  op->packet = json_node_ref (packet);
-  op->file = g_object_ref (file);
-
-  transfer = valent_transfer_new (device);
-  valent_transfer_add_file (transfer, packet, file);
+  transfer = valent_device_transfer_new_for_file (device, packet, file);
   valent_transfer_execute (transfer,
                            NULL,
                            (GAsyncReadyCallback)receive_art_cb,
-                           op);
+                           self);
 }
 
 static void
@@ -957,8 +948,13 @@ valent_mpris_plugin_class_init (ValentMprisPluginClass *klass)
 static void
 valent_mpris_plugin_init (ValentMprisPlugin *self)
 {
-  self->artwork_transfers = g_hash_table_new (g_str_hash, g_str_equal);
-  self->remotes = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                         g_free, g_object_unref);
+  self->artwork_transfers = g_hash_table_new_full (g_str_hash,
+                                                   g_str_equal,
+                                                   g_free,
+                                                   g_object_unref);
+  self->remotes = g_hash_table_new_full (g_str_hash,
+                                         g_str_equal,
+                                         g_free,
+                                         g_object_unref);
 }
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
+// SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 #define G_LOG_DOMAIN "valent-share-plugin"
 
@@ -12,13 +12,17 @@
 #include <libvalent-core.h>
 
 #include "valent-share-plugin.h"
+#include "valent-share-download.h"
+#include "valent-share-upload.h"
 
 
 struct _ValentSharePlugin
 {
   ValentDevicePlugin  parent_instance;
 
-  GHashTable        *transfers;
+  GHashTable         *transfers;
+  ValentTransfer     *upload;
+  ValentTransfer     *download;
 };
 
 G_DEFINE_TYPE (ValentSharePlugin, valent_share_plugin, VALENT_TYPE_DEVICE_PLUGIN)
@@ -27,329 +31,553 @@ G_DEFINE_TYPE (ValentSharePlugin, valent_share_plugin, VALENT_TYPE_DEVICE_PLUGIN
 /*
  * File Downloads
  */
-typedef struct
-{
-  ValentSharePlugin *plugin;
-  GFile             *file;
-  unsigned int       open : 1;
-} DownloadOperation;
-
 static void
-download_file_cb (ValentTransfer *transfer,
-                  GAsyncResult   *result,
-                  gpointer        user_data)
+valent_share_download_file_notification (ValentSharePlugin *self,
+                                         ValentTransfer    *transfer)
 {
-  ValentDevice *device;
-  g_autofree DownloadOperation *op = user_data;
-  g_autoptr (ValentSharePlugin) self = g_steal_pointer (&op->plugin);
-  g_autoptr (GFile) file = g_steal_pointer (&op->file);
-  g_autoptr (GError) error = NULL;
-
-  g_autoptr (GNotification) notif = NULL;
+  g_autoptr (ValentDevice) device = NULL;
+  g_autoptr (GNotification) notification = NULL;
   g_autoptr (GIcon) icon = NULL;
+  const char *title = NULL;
   g_autofree char *body = NULL;
+  g_autofree char *id = NULL;
+  unsigned int n_files = 0;
+  const char *device_name;
+  ValentTransferState state = VALENT_TRANSFER_STATE_PENDING;
 
-  g_autoptr (GFile) dir = NULL;
-  g_autofree char *diruri = NULL;
-  g_autofree char *filename = NULL;
-  g_autofree char *fileuri = NULL;
+  g_return_if_fail (VALENT_IS_TRANSFER (transfer));
+  g_return_if_fail (VALENT_IS_SHARE_DOWNLOAD (transfer));
 
-  g_assert (VALENT_IS_TRANSFER (transfer));
-  g_assert (G_IS_FILE (file));
-  g_assert (VALENT_IS_SHARE_PLUGIN (self));
+  if ((n_files = g_list_model_get_n_items (G_LIST_MODEL (transfer))) == 0)
+    return;
 
-  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  g_object_get (transfer,
+                "device", &device,
+                "id",     &id,
+                "state",  &state,
+                NULL);
+  device_name = valent_device_get_name (device);
 
-  /* Prepare notification */
-  if (valent_transfer_execute_finish (transfer, result, &error))
+  switch (state)
     {
-      dir = g_file_get_parent (file);
-      diruri = g_file_get_uri (dir);
-      filename = g_file_get_basename (file);
-      fileuri = g_file_get_uri (file);
-
-      notif = g_notification_new (_("Transfer Complete"));
+    case VALENT_TRANSFER_STATE_PENDING:
+    case VALENT_TRANSFER_STATE_ACTIVE:
       icon = g_themed_icon_new ("document-save-symbolic");
-      body = g_strdup_printf (_("Received “%s” from %s"),
-                              filename,
-                              valent_device_get_name (device));
+      title = _("Transferring Files");
+      body = g_strdup_printf (ngettext ("Receiving one file from %1$s",
+                                        "Receiving %2$d files from %1$s",
+                                        n_files),
+                              device_name, n_files);
+      break;
 
-      valent_notification_add_device_button (notif,
+    case VALENT_TRANSFER_STATE_COMPLETE:
+      icon = g_themed_icon_new ("document-save-symbolic");
+      title = _("Transfer Complete");
+      body = g_strdup_printf (ngettext ("Received one file from %1$s",
+                                        "Received %2$d files from %1$s",
+                                        n_files),
+                              device_name, n_files);
+      break;
+
+    case VALENT_TRANSFER_STATE_FAILED:
+      icon = g_themed_icon_new ("dialog-warning-symbolic");
+      title = _("Transfer Failed");
+      body = g_strdup_printf (ngettext ("Receiving one file from %1$s",
+                                        "Receiving %2$d files from %1$s",
+                                        n_files),
+                              device_name, n_files);
+      break;
+    }
+
+  notification = g_notification_new (title);
+  g_notification_set_body (notification, body);
+  g_notification_set_icon (notification, icon);
+
+  if (state == VALENT_TRANSFER_STATE_ACTIVE)
+    {
+      valent_notification_add_device_button (notification,
+                                             device,
+                                             _("Cancel"),
+                                             "share.cancel",
+                                             g_variant_new_string (id));
+    }
+  else if (state == VALENT_TRANSFER_STATE_COMPLETE)
+    {
+      g_autoptr (ValentTransfer) item = NULL;
+      g_autoptr (GFile) file = NULL;
+      g_autoptr (GFile) dir = NULL;
+      g_autofree char *dirname = NULL;
+
+      item = g_list_model_get_item (G_LIST_MODEL (transfer), 0);
+      file = valent_device_transfer_ref_file (VALENT_DEVICE_TRANSFER (item));
+      dir = g_file_get_parent (file);
+      dirname = g_file_get_uri (dir);
+
+      valent_notification_add_device_button (notification,
                                              device,
                                              _("Open Folder"),
-                                             "share.open",
-                                             g_variant_new_string (diruri));
+                                             "share.view",
+                                             g_variant_new_string (dirname));
 
-      valent_notification_add_device_button (notif,
+      if (n_files == 1)
+        {
+          g_autofree char *uri = NULL;
+
+          uri = g_file_get_uri (file);
+          valent_notification_add_device_button (notification,
+                                                 device,
+                                                 _("Open File"),
+                                                 "share.view",
+                                                 g_variant_new_string (uri));
+        }
+    }
+
+  valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),
+                                          id,
+                                          notification);
+}
+
+static void
+valent_share_download_file_cb (ValentTransfer *transfer,
+                               GAsyncResult   *result,
+                               gpointer        user_data)
+{
+  g_autoptr (ValentSharePlugin) self = VALENT_SHARE_PLUGIN (user_data);
+  g_autofree char *id = NULL;
+  g_autoptr (GError) error = NULL;
+
+  g_assert (VALENT_IS_TRANSFER (transfer));
+
+  id = valent_transfer_dup_id (transfer);
+
+  if (valent_transfer_execute_finish (transfer, result, &error) ||
+      !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+    valent_share_download_file_notification (self, transfer);
+  else
+    valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self), id);
+
+  if (self->download == transfer)
+    g_clear_object (&self->download);
+
+  g_hash_table_remove (self->transfers, id);
+}
+
+/*
+ * File Download (Open)
+ */
+static void
+valent_share_download_open_notification (ValentSharePlugin *self,
+                                         ValentTransfer    *transfer)
+{
+  g_autoptr (ValentDevice) device = NULL;
+  g_autoptr (GFile) file = NULL;
+  g_autoptr (GNotification) notification = NULL;
+  g_autoptr (GIcon) icon = NULL;
+  const char *title = NULL;
+  g_autofree char *body = NULL;
+  g_autofree char *id = NULL;
+  g_autofree char *filename = NULL;
+  const char *device_name;
+  ValentTransferState state = VALENT_TRANSFER_STATE_PENDING;
+
+  g_return_if_fail (VALENT_IS_TRANSFER (transfer));
+  g_return_if_fail (VALENT_IS_DEVICE_TRANSFER (transfer));
+
+  g_object_get (transfer,
+                "device", &device,
+                "file",   &file,
+                "id",     &id,
+                "state",  &state,
+                NULL);
+  device_name = valent_device_get_name (device);
+  filename = g_file_get_basename (file);
+
+  switch (state)
+    {
+    case VALENT_TRANSFER_STATE_PENDING:
+    case VALENT_TRANSFER_STATE_ACTIVE:
+      icon = g_themed_icon_new ("document-save-symbolic");
+      title = _("Transferring File");
+      body = g_strdup_printf (_("Opening “%s” from %s"), filename, device_name);
+      break;
+
+    case VALENT_TRANSFER_STATE_COMPLETE:
+      valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self), id);
+      return;
+
+    case VALENT_TRANSFER_STATE_FAILED:
+      icon = g_themed_icon_new ("dialog-warning-symbolic");
+      title = _("Transfer Failed");
+      body = g_strdup_printf (_("Opening “%s” from %s"), filename, device_name);
+      break;
+    }
+
+  notification = g_notification_new (title);
+  g_notification_set_body (notification, body);
+  g_notification_set_icon (notification, icon);
+
+  if (state == VALENT_TRANSFER_STATE_ACTIVE)
+    {
+      valent_notification_add_device_button (notification,
                                              device,
-                                             _("Open File"),
-                                             "share.open",
-                                             g_variant_new_string (fileuri));
+                                             _("Cancel"),
+                                             "share.cancel",
+                                             g_variant_new_string (id));
+    }
+
+  valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),
+                                          id,
+                                          notification);
+}
+
+static void
+valent_share_download_open_cb (ValentTransfer *transfer,
+                               GAsyncResult   *result,
+                               gpointer        user_data)
+{
+  g_autoptr (ValentSharePlugin) self = VALENT_SHARE_PLUGIN (user_data);
+  g_autofree char *id = NULL;
+  g_autoptr (GError) error = NULL;
+
+  g_assert (VALENT_IS_TRANSFER (transfer));
+
+  id = valent_transfer_dup_id (transfer);
+
+  if (valent_transfer_execute_finish (transfer, result, &error))
+    {
+      g_autoptr (GFile) file = NULL;
+      g_autofree char *uri = NULL;
+
+      file = valent_device_transfer_ref_file (VALENT_DEVICE_TRANSFER (transfer));
+      uri = g_file_get_uri (file);
+
+      g_app_info_launch_default_for_uri_async (uri, NULL, NULL, NULL, NULL);
+      valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self), id);
     }
   else if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
     {
-      filename = g_file_get_basename (file);
-
-      notif = g_notification_new (_("Transfer Failed"));
-      icon = g_themed_icon_new ("dialog-error-symbolic");
-      body = g_strdup_printf (_("Failed to receive “%s” from %s"),
-                              filename,
-                              valent_device_get_name (device));
+      valent_share_download_open_notification (self, transfer);
     }
 
-  /* Send new notification */
-  valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self),
-                                          valent_transfer_get_id (transfer));
+  g_hash_table_remove (self->transfers, id);
+}
 
-  if (notif != NULL)
+/*
+ * File Upload (Open)
+ */
+static void
+valent_share_upload_open_notification (ValentSharePlugin *self,
+                                       ValentTransfer    *transfer)
+{
+  g_autoptr (ValentDevice) device = NULL;
+  g_autoptr (GFile) file = NULL;
+  g_autoptr (GNotification) notification = NULL;
+  g_autoptr (GIcon) icon = NULL;
+  const char *title = NULL;
+  g_autofree char *body = NULL;
+  g_autofree char *id = NULL;
+  g_autofree char *filename = NULL;
+  const char *device_name;
+  ValentTransferState state = VALENT_TRANSFER_STATE_PENDING;
+
+  g_return_if_fail (VALENT_IS_TRANSFER (transfer));
+  g_return_if_fail (VALENT_IS_DEVICE_TRANSFER (transfer));
+
+  g_object_get (transfer,
+                "device", &device,
+                "file",   &file,
+                "id",     &id,
+                "state",  &state,
+                NULL);
+  device_name = valent_device_get_name (device);
+  filename = g_file_get_basename (file);
+
+  switch (state)
     {
-      g_notification_set_body (notif, body);
-      g_notification_set_icon (notif, icon);
+    case VALENT_TRANSFER_STATE_PENDING:
+    case VALENT_TRANSFER_STATE_ACTIVE:
+      icon = g_themed_icon_new ("document-send-symbolic");
+      title = _("Transferring File");
+      body = g_strdup_printf (_("Opening “%s” on %s"), filename, device_name);
+      break;
 
-      valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),
-                                              valent_transfer_get_id (transfer),
-                                              notif);
+    case VALENT_TRANSFER_STATE_COMPLETE:
+      icon = g_themed_icon_new ("document-send-symbolic");
+      title = _("Transfer Complete");
+      body = g_strdup_printf (_("Opened “%s” on %s"), filename, device_name);
+      break;
+
+    case VALENT_TRANSFER_STATE_FAILED:
+      icon = g_themed_icon_new ("dialog-warning-symbolic");
+      title = _("Transfer Failed");
+      body = g_strdup_printf (_("Opening “%s” on %s"), filename, device_name);
+      break;
     }
 
-  g_hash_table_remove (self->transfers, valent_transfer_get_id (transfer));
+  notification = g_notification_new (title);
+  g_notification_set_body (notification, body);
+  g_notification_set_icon (notification, icon);
+
+  if (state == VALENT_TRANSFER_STATE_ACTIVE)
+    {
+      valent_notification_add_device_button (notification,
+                                             device,
+                                             _("Cancel"),
+                                             "share.cancel",
+                                             g_variant_new_string (id));
+    }
+
+  valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),
+                                          id,
+                                          notification);
 }
 
 static void
-download_file (ValentSharePlugin *self,
-               GFile             *file,
-               JsonNode          *packet)
+valent_share_upload_open_cb (ValentTransfer *transfer,
+                             GAsyncResult   *result,
+                             gpointer        user_data)
 {
-  ValentDevice *device;
-  g_autoptr (ValentTransfer) transfer = NULL;
-  const char *uuid;
-  g_autofree char *filename = NULL;
-  DownloadOperation *op;
+  g_autoptr (ValentSharePlugin) self = VALENT_SHARE_PLUGIN (user_data);
+  g_autofree char *id = NULL;
+  g_autoptr (GError) error = NULL;
 
-  g_autoptr (GNotification) notif = NULL;
-  g_autoptr (GIcon) icon = NULL;
-  const char *title;
-  g_autofree char *body = NULL;
-
+  g_assert (VALENT_IS_DEVICE_TRANSFER (transfer));
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
-  g_assert (G_IS_FILE (file));
-  g_assert (VALENT_IS_PACKET (packet));
 
-  /* Operation Data */
-  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
-  transfer = valent_transfer_new (device);
-  uuid = valent_transfer_get_id (transfer);
+  id = valent_transfer_dup_id (transfer);
 
-  op = g_new0 (DownloadOperation, 1);
-  op->plugin = g_object_ref (self);
-  op->file = g_file_dup (file);
-  op->open = FALSE;
+  if (valent_transfer_execute_finish (transfer, result, &error) ||
+      !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+    valent_share_upload_open_notification (self, transfer);
+  else
+    valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self), id);
 
-  /* Notify the user */
-  filename = g_file_get_basename (file);
-  icon = g_themed_icon_new ("document-save-symbolic");
-  title = _("Transferring File");
-  body = g_strdup_printf (_("Receiving “%s” from %s"),
-                          filename,
-                          valent_device_get_name (device));
-
-  notif = g_notification_new (title);
-  g_notification_set_body (notif, body);
-  g_notification_set_icon (notif, icon);
-  valent_notification_add_device_button (notif,
-                                         device,
-                                         _("Cancel"),
-                                         "share.cancel",
-                                         g_variant_new_string (uuid));
-
-  valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),
-                                          uuid,
-                                          notif);
-
-  /* Track and start the transfer */
-  g_hash_table_insert (self->transfers,
-                       g_strdup (uuid),
-                       g_object_ref (transfer));
-
-  valent_transfer_add_file (transfer, packet, file);
-  valent_transfer_execute (transfer,
-                           NULL,
-                           (GAsyncReadyCallback)download_file_cb,
-                           op);
+  g_hash_table_remove (self->transfers, id);
 }
 
+static void
+valent_share_plugin_open_file (ValentSharePlugin *self,
+                               GFile             *file)
+{
+  ValentDevice *device = NULL;
+  g_autoptr (ValentTransfer) transfer = NULL;
+  g_autofree char *filename = NULL;
+  JsonBuilder *builder;
+  g_autoptr (JsonNode) packet = NULL;
+
+  filename = g_file_get_basename (file);
+
+  builder = valent_packet_start ("kdeconnect.share.request");
+  json_builder_set_member_name (builder, "filename");
+  json_builder_add_string_value (builder, filename);
+  json_builder_set_member_name (builder, "open");
+  json_builder_add_boolean_value (builder, TRUE);
+  packet = valent_packet_finish (builder);
+
+  /* File uploads that request to be opened are sent as discrete transfers
+   * because the remote client (ie. kdeconnect-android) may download them
+   * discretely. Otherwise the remote client may get confused by the
+   * `numberOfFiles` field and consider a concurrent multi-file transfer as
+   * incomplete.
+   */
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  transfer = valent_device_transfer_new_for_file (device, packet, file);
+  g_hash_table_insert (self->transfers,
+                       valent_transfer_dup_id (transfer),
+                       g_object_ref (transfer));
+
+  valent_transfer_execute (transfer,
+                           NULL,
+                           (GAsyncReadyCallback)valent_share_upload_open_cb,
+                           g_object_ref (self));
+  valent_share_upload_open_notification (self, transfer);
+}
 
 /*
  * File Uploads
  */
-typedef struct
-{
-  ValentSharePlugin *plugin;
-  GListModel        *files;
-} UploadOperation;
-
 static void
-upload_files_cb (ValentTransfer *transfer,
-                 GAsyncResult   *result,
-                 gpointer        user_data)
+valent_share_upload_file_notification (ValentSharePlugin *self,
+                                       ValentTransfer    *transfer)
 {
-  ValentDevice *device;
-  g_autofree UploadOperation *op = user_data;
-  g_autoptr (ValentSharePlugin) self = g_steal_pointer (&op->plugin);
-  g_autoptr (GListModel) files = g_steal_pointer (&op->files);
-  g_autoptr (GError) error = NULL;
-  unsigned int n_files;
-  const char *uuid;
-
+  g_autoptr (ValentDevice) device = NULL;
   g_autoptr (GNotification) notification = NULL;
   g_autoptr (GIcon) icon = NULL;
+  const char *title = NULL;
   g_autofree char *body = NULL;
+  g_autofree char *id = NULL;
+  unsigned int n_files = 0;
+  const char *device_name;
+  ValentTransferState state = VALENT_TRANSFER_STATE_PENDING;
 
-  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
-  n_files = g_list_model_get_n_items (files);
-  uuid = valent_transfer_get_id (transfer);
+  g_return_if_fail (VALENT_IS_TRANSFER (transfer));
+  g_return_if_fail (VALENT_IS_SHARE_UPLOAD (transfer));
 
-  if (valent_transfer_execute_finish (transfer, result, &error))
+  if ((n_files = g_list_model_get_n_items (G_LIST_MODEL (transfer))) == 0)
+    return;
+
+  g_object_get (transfer,
+                "device", &device,
+                "id",     &id,
+                "state",  &state,
+                NULL);
+  device_name = valent_device_get_name (device);
+
+  switch (state)
     {
+    case VALENT_TRANSFER_STATE_PENDING:
+    case VALENT_TRANSFER_STATE_ACTIVE:
       icon = g_themed_icon_new ("document-send-symbolic");
+      title = _("Transferring Files");
+      body = g_strdup_printf (ngettext ("Sending one file to %1$s",
+                                        "Sending %2$d files to %1$s",
+                                        n_files),
+                              device_name, n_files);
+      break;
 
-      if (n_files == 1)
-        {
-          g_autoptr (GFile) file = NULL;
-          g_autofree char *filename = NULL;
+    case VALENT_TRANSFER_STATE_COMPLETE:
+      icon = g_themed_icon_new ("document-send-symbolic");
+      title = _("Transfer Complete");
+      body = g_strdup_printf (ngettext ("Sent one file to %1$s",
+                                        "Sent %2$d files to %1$s",
+                                        n_files),
+                              device_name, n_files);
+      break;
 
-          file = g_list_model_get_item (files, 0);
-          filename = g_file_get_basename (file);
-          body = g_strdup_printf (_("Sent “%s” to %s"),
-                                  filename,
-                                  valent_device_get_name (device));
-        }
-      else
-        {
-          body = g_strdup_printf (_("Sent %u files to %s"),
-                                  n_files,
-                                  valent_device_get_name (device));
-        }
-
-      notification = g_notification_new (_("Transfer Successful"));
-      g_notification_set_body (notification, body);
-      g_notification_set_icon (notification, icon);
+    case VALENT_TRANSFER_STATE_FAILED:
+      icon = g_themed_icon_new ("dialog-warning-symbolic");
+      title = _("Transfer Failed");
+      body = g_strdup_printf (ngettext ("Sending one file to %1$s",
+                                        "Sending %2$d files to %1$s",
+                                        n_files),
+                              device_name, n_files);
+      break;
     }
-  else if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+
+  notification = g_notification_new (title);
+  g_notification_set_body (notification, body);
+  g_notification_set_icon (notification, icon);
+
+  if (state == VALENT_TRANSFER_STATE_ACTIVE)
     {
-      icon = g_themed_icon_new ("dialog-error-symbolic");
-
-      if (n_files == 1)
-        {
-          g_autoptr (GFile) file = NULL;
-          g_autofree char *filename = NULL;
-
-          file = g_list_model_get_item (files, 0);
-          filename = g_file_get_basename (file);
-          body = g_strdup_printf (_("Sending “%s” to %s: %s"),
-                                  filename,
-                                  valent_device_get_name (device),
-                                  error->message);
-        }
-      else
-        {
-          body = g_strdup_printf (_("Sending %u files to %s: %s"),
-                                  n_files,
-                                  valent_device_get_name (device),
-                                  error->message);
-        }
-
-      notification = g_notification_new (_("Transfer Failed"));
-      g_notification_set_body (notification, body);
-      g_notification_set_icon (notification, icon);
+      valent_notification_add_device_button (notification,
+                                             device,
+                                             _("Cancel"),
+                                             "share.cancel",
+                                             g_variant_new_string (id));
     }
 
-  /* Update or hide the existing notification */
-  valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self), uuid);
-
-  if (notification != NULL)
-    valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),
-                                            uuid,
-                                            notification);
-
-  g_hash_table_remove (self->transfers, uuid);
+  valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),
+                                          id,
+                                          notification);
 }
 
 static void
-upload_files (ValentSharePlugin *self,
-              GListModel        *files,
-              gboolean           open)
+valent_share_upload_file_cb (ValentTransfer *transfer,
+                             GAsyncResult   *result,
+                             gpointer        user_data)
 {
-  UploadOperation *op;
-  ValentDevice *device;
-  g_autoptr (ValentTransfer) transfer = NULL;
-  g_autoptr (GNotification) notif = NULL;
-  g_autoptr (GIcon) icon = NULL;
-  const char *title;
-  g_autofree char *body = NULL;
-  const char *uuid;
-  unsigned int n_files;
-  JsonBuilder *builder;
+  g_autoptr (ValentSharePlugin) self = VALENT_SHARE_PLUGIN (user_data);
+  g_autofree char *id = NULL;
+  g_autoptr (GError) error = NULL;
 
-  op = g_new0 (UploadOperation, 1);
-  op->plugin = g_object_ref (self);
-  op->files = g_object_ref (files);
+  g_assert (VALENT_IS_SHARE_UPLOAD (transfer));
+  g_assert (VALENT_IS_SHARE_PLUGIN (self));
 
-  /* Track the transfer's cancellable */
-  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
-  transfer = valent_transfer_new (device);
-  n_files = g_list_model_get_n_items (files);
+  id = valent_transfer_dup_id (transfer);
 
-  /* Add files */
-  for (unsigned int i = 0; i < n_files; i++)
+  if (valent_transfer_execute_finish (transfer, result, &error) ||
+      !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+    valent_share_upload_file_notification (self, transfer);
+  else
+    valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self), id);
+
+  if (self->upload == transfer)
+    g_clear_object (&self->upload);
+
+  g_hash_table_remove (self->transfers, id);
+}
+
+static void
+valent_share_upload_files_added (ValentTransfer    *transfer,
+                                 unsigned int       position,
+                                 unsigned int       removed,
+                                 unsigned int       added,
+                                 ValentSharePlugin *self)
+{
+  g_assert (VALENT_IS_SHARE_UPLOAD (transfer));
+  g_assert (VALENT_IS_SHARE_PLUGIN (self));
+
+  /* If no files were added, something went wrong */
+  g_return_if_fail (added > 0);
+
+  /* Start the transfer, if necessary */
+  if (valent_transfer_get_state (transfer) == VALENT_TRANSFER_STATE_PENDING)
     {
-      g_autoptr (JsonNode) packet = NULL;
-      g_autoptr (GFile) file = g_list_model_get_item (files, i);
-      g_autofree char *filename = NULL;
-
-      /* Build Packet */
-      builder = valent_packet_start ("kdeconnect.share.request");
-
-      filename = g_file_get_basename (file);
-      json_builder_set_member_name (builder, "filename");
-      json_builder_add_string_value (builder, filename);
-
-      // TODO
-      json_builder_set_member_name (builder, "open");
-      json_builder_add_boolean_value (builder, FALSE);
-
-      packet = valent_packet_finish (builder);
-
-      /* Append transfer */
-      valent_transfer_add_file (transfer, packet, file);
+      valent_transfer_execute (transfer,
+                               NULL,
+                               (GAsyncReadyCallback)valent_share_upload_file_cb,
+                               g_object_ref (self));
     }
 
-  /* Notify the user */
-  uuid = valent_transfer_get_id (transfer);
-  title = _("Transferring Files");
-  body = g_strdup (_("Transferring Files"));
-  icon = g_themed_icon_new ("document-send-symbolic");
+  valent_share_upload_file_notification (self, transfer);
+}
 
-  notif = g_notification_new (title);
-  g_notification_set_body (notif, body);
-  g_notification_set_icon (notif, icon);
-  valent_notification_add_device_button (notif,
-                                         device,
-                                         _("Cancel"),
-                                         "share.cancel",
-                                         g_variant_new_string (uuid));
+static void
+valent_share_plugin_upload_file (ValentSharePlugin *self,
+                                 GFile             *file)
+{
+  g_assert (VALENT_IS_SHARE_PLUGIN (self));
+  g_assert (G_IS_FILE (file));
 
-  valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),
-                                          uuid,
-                                          notif);
+  /* Create a new transfer, if necessary */
+  if (self->upload == NULL)
+    {
+      ValentDevice *device;
 
-  /* Start the transfer */
-  g_hash_table_insert (self->transfers,
-                       g_strdup (uuid),
-                       g_object_ref (transfer));
-  valent_transfer_execute (transfer,
-                           NULL,
-                           (GAsyncReadyCallback)upload_files_cb,
-                           op);
+      device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+
+      self->upload = valent_share_upload_new (device);
+      g_hash_table_replace (self->transfers,
+                            valent_transfer_dup_id (self->upload),
+                            g_object_ref (self->upload));
+
+      g_signal_connect (self->upload,
+                        "items-changed",
+                        G_CALLBACK (valent_share_upload_files_added),
+                        self);
+    }
+
+  valent_share_upload_add_file (VALENT_SHARE_UPLOAD (self->upload), file);
+}
+
+static void
+valent_share_plugin_upload_files (ValentSharePlugin *self,
+                                  GListModel        *files)
+{
+  g_assert (VALENT_IS_SHARE_PLUGIN (self));
+  g_assert (G_IS_LIST_MODEL (files));
+  g_assert (g_list_model_get_item_type (files) == G_TYPE_FILE);
+
+  /* Create a new transfer, if necessary */
+  if (self->upload == NULL)
+    {
+      ValentDevice *device;
+
+      device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+
+      self->upload = valent_share_upload_new (device);
+      g_hash_table_replace (self->transfers,
+                            valent_transfer_dup_id (self->upload),
+                            g_object_ref (self->upload));
+
+      g_signal_connect (self->upload,
+                        "items-changed",
+                        G_CALLBACK (valent_share_upload_files_added),
+                        self);
+    }
+
+  valent_share_upload_add_files (VALENT_SHARE_UPLOAD (self->upload), files);
 }
 
 /*
@@ -366,49 +594,55 @@ share_response (GtkNativeDialog *dialog,
   if (response_id == GTK_RESPONSE_ACCEPT)
     {
       files = gtk_file_chooser_get_files (GTK_FILE_CHOOSER (dialog));
-      upload_files (self, files, FALSE);
+      valent_share_plugin_upload_files (self, files);
     }
 
   gtk_native_dialog_destroy (dialog);
 }
 
 /**
- * share:
+ * ValentSharePlugin|share.chooser:
  * @parameter: %NULL
  *
- * The default share action opens a #GtkFileChooserDialog for selecting files.
- * It is the most reasonable user-visible action.
+ * The default share action opens the platform-specific dialog for selecting
+ * files, typically a #GtkFileChooserDialog.
  */
 static void
-share_action (GSimpleAction *action,
-              GVariant      *parameter,
-              gpointer       user_data)
+share_chooser_action (GSimpleAction *action,
+                      GVariant      *parameter,
+                      gpointer       user_data)
 {
   ValentSharePlugin *self = VALENT_SHARE_PLUGIN (user_data);
-  GtkFileChooserNative *dialog;
+  GtkNativeDialog *dialog;
 
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
 
-  dialog = gtk_file_chooser_native_new (_("Share Files"),
-                                        NULL,
-                                        GTK_FILE_CHOOSER_ACTION_OPEN,
-                                        _("Share"),
-                                        _("Cancel"));
+  if (!gtk_init_check ())
+    {
+      g_warning ("%s: No display available", G_OBJECT_TYPE_NAME (self));
+      return;
+    }
 
-  gtk_file_chooser_set_select_multiple (GTK_FILE_CHOOSER (dialog), TRUE);
+  dialog = g_object_new (GTK_TYPE_FILE_CHOOSER_NATIVE,
+                         "title",           _("Share Files"),
+                         "accept-label",    _("Share"),
+                         "cancel-label",    _("Cancel"),
+                         "select-multiple", TRUE,
+                         "action",          GTK_FILE_CHOOSER_ACTION_OPEN,
+                         NULL);
 
   g_signal_connect (dialog,
                     "response",
                     G_CALLBACK (share_response),
                     self);
 
-  gtk_native_dialog_show (GTK_NATIVE_DIALOG (dialog));
+  gtk_native_dialog_show (dialog);
 }
 
 /**
- * share-cancel:
+ * ValentSharePlugin|share.cancel:
  * @parameter: "s"
- * @uuid: The transfer UUID
+ * @id: The transfer ID
  *
  * Each transfer is given a UUID for the purposes of cancelling it. Usually this
  * action will only be activated from the transfer notification as sent by
@@ -420,73 +654,75 @@ share_cancel_action (GSimpleAction *action,
                      gpointer       user_data)
 {
   ValentSharePlugin *self = VALENT_SHARE_PLUGIN (user_data);
-  const char *uuid;
   ValentTransfer *transfer;
+  const char *id;
 
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
 
-  uuid = g_variant_get_string (parameter, NULL);
-  transfer = g_hash_table_lookup (self->transfers, uuid);
+  id = g_variant_get_string (parameter, NULL);
+  transfer = g_hash_table_lookup (self->transfers, id);
 
   if (transfer != NULL)
     valent_transfer_cancel (transfer);
 }
 
 /**
- * share-files:
- * @parameter: "as"
- * @uris: A list of file URIs
- *
- * This is the best action to use for directly invoked uploads that still
- * require user notification and interaction.
- */
-static void
-share_files_action (GSimpleAction *action,
-                    GVariant      *parameter,
-                    gpointer       user_data)
-{
-  ValentSharePlugin *self = VALENT_SHARE_PLUGIN (user_data);
-  g_autoptr (GListStore) files = NULL;
-  const char **uris;
-  gsize n_files;
-
-  g_assert (VALENT_IS_SHARE_PLUGIN (self));
-
-  files = g_list_store_new (G_TYPE_FILE);
-  uris = g_variant_get_strv (parameter, &n_files);
-
-  for (unsigned int i = 0; i < n_files; i++)
-    {
-      g_autoptr (GFile) file = NULL;
-
-      file = g_file_new_for_uri (uris[i]);
-      g_list_store_append (files, file);
-    }
-  g_free (uris);
-
-  upload_files (self, G_LIST_MODEL (files), FALSE);
-}
-
-/**
- * share-open:
+ * ValentSharePlugin|share.open:
  * @parameter: "s"
  * @uri: File URI to open
  *
- * This action opens a file or directory.
+ * This action is used to open a URI.
+ *
+ * By convention, the remote device will open the URI with the default handler
+ * for that type.
+ *
+ * If the URI scheme is `file://`, it will be converted to a file upload,
+ * requesting it be opened after transfer.
  */
 static void
 share_open_action (GSimpleAction *action,
                    GVariant      *parameter,
                    gpointer       user_data)
 {
-  const char *uri;
+  ValentSharePlugin *self = VALENT_SHARE_PLUGIN (user_data);
+  const char *uri_string = NULL;
+  g_autoptr (GUri) uri = NULL;
+  g_autoptr (GError) error = NULL;
 
-  uri = g_variant_get_string (parameter, NULL);
-  g_app_info_launch_default_for_uri_async (uri, NULL, NULL, NULL, NULL);
+  g_assert (VALENT_IS_SHARE_PLUGIN (self));
+  g_assert (g_variant_is_of_type (parameter, G_VARIANT_TYPE_STRING));
+
+  uri_string = g_variant_get_string (parameter, NULL);
+
+  if ((uri = g_uri_parse (uri_string, G_URI_FLAGS_NONE, &error)) == NULL)
+    {
+      g_warning ("%s(): %s", G_STRFUNC, error->message);
+      return;
+    }
+
+  if (g_str_equal ("file", g_uri_get_scheme (uri)))
+    {
+      g_autoptr (GFile) file = NULL;
+
+      file = g_file_new_for_uri (uri_string);
+      valent_share_plugin_open_file (self, file);
+    }
+  else
+    {
+      JsonBuilder *builder;
+      g_autoptr (JsonNode) packet = NULL;
+
+      builder = valent_packet_start ("kdeconnect.share.request");
+      json_builder_set_member_name (builder, "url");
+      json_builder_add_string_value (builder, uri_string);
+      packet = valent_packet_finish (builder);
+
+      valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
+    }
 }
 
 /**
- * share-text:
+ * ValentSharePlugin|share.text:
  * @parameter: "s"
  * @text: text to share
  *
@@ -505,6 +741,7 @@ share_text_action (GSimpleAction *action,
   g_autoptr (JsonNode) packet = NULL;
 
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
+  g_assert (g_variant_is_of_type (parameter, G_VARIANT_TYPE_STRING));
 
   text = g_variant_get_string (parameter, NULL);
 
@@ -517,46 +754,120 @@ share_text_action (GSimpleAction *action,
 }
 
 /**
- * share-url:
+ * ValentSharePlugin|share.uri:
  * @parameter: "s"
- * @url: URL to share
+ * @uri: URI to share
  *
- * This action simply sends a URL as a string of text. By convention the remote
- * device will open the URL in the default browser.
+ * This action is used to share a URI.
+ *
+ * By convention, the remote device will open the URI with the default handler
+ * for that type.
+ *
+ * If the URI scheme is `file://`, it will be converted to a file upload.
  */
 static void
-share_url_action (GSimpleAction *action,
+share_uri_action (GSimpleAction *action,
                   GVariant      *parameter,
                   gpointer       user_data)
 {
   ValentSharePlugin *self = VALENT_SHARE_PLUGIN (user_data);
-  const char *url;
-  JsonBuilder *builder;
-  g_autoptr (JsonNode) packet = NULL;
+  const char *uri_string = NULL;
+  g_autoptr (GUri) uri = NULL;
+  g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
+  g_assert (g_variant_is_of_type (parameter, G_VARIANT_TYPE_STRING));
 
-  url = g_variant_get_string (parameter, NULL);
+  uri_string = g_variant_get_string (parameter, NULL);
 
-  builder = valent_packet_start ("kdeconnect.share.request");
-  json_builder_set_member_name (builder, "url");
-  json_builder_add_string_value (builder, url);
-  packet = valent_packet_finish (builder);
+  if ((uri = g_uri_parse (uri_string, G_URI_FLAGS_NONE, &error)) == NULL)
+    {
+      g_warning ("%s(): %s", G_STRFUNC, error->message);
+      return;
+    }
 
-  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
+  if (g_str_equal ("file", g_uri_get_scheme (uri)))
+    {
+      g_autoptr (GFile) file = NULL;
+
+      file = g_file_new_for_uri (uri_string);
+      valent_share_plugin_upload_file (self, file);
+    }
+  else
+    {
+      JsonBuilder *builder;
+      g_autoptr (JsonNode) packet = NULL;
+
+      builder = valent_packet_start ("kdeconnect.share.request");
+      json_builder_set_member_name (builder, "url");
+      json_builder_add_string_value (builder, uri_string);
+      packet = valent_packet_finish (builder);
+
+      valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
+    }
+}
+
+/**
+ * ValentSharePlugin|share.uris:
+ * @parameter: "as"
+ * @uris: a list of URIs
+ *
+ * This action is a convenience for sending multiple URIs, as with the
+ * `ValentSharePlugin|share.uri` #GAction.
+ */
+static void
+share_uris_action (GSimpleAction *action,
+                   GVariant      *parameter,
+                   gpointer       user_data)
+{
+  GVariantIter iter;
+  GVariant *child;
+
+  g_assert (VALENT_IS_SHARE_PLUGIN (user_data));
+  g_assert (g_variant_is_of_type (parameter, G_VARIANT_TYPE_STRING_ARRAY));
+
+  g_variant_iter_init (&iter, parameter);
+
+  while ((child = g_variant_iter_next_value (&iter)) != NULL)
+    {
+      share_uri_action (action, child, user_data);
+      g_clear_pointer (&child, g_variant_unref);
+    }
+}
+
+/**
+ * ValentSharePlugin|share.view:
+ * @parameter: "s"
+ * @uri: File or directory URI to view
+ *
+ * This action opens a file or directory.
+ */
+static void
+share_view_action (GSimpleAction *action,
+                   GVariant      *parameter,
+                   gpointer       user_data)
+{
+  const char *uri;
+
+  g_assert (VALENT_IS_SHARE_PLUGIN (user_data));
+  g_assert (g_variant_is_of_type (parameter, G_VARIANT_TYPE_STRING));
+
+  uri = g_variant_get_string (parameter, NULL);
+  g_app_info_launch_default_for_uri_async (uri, NULL, NULL, NULL, NULL);
 }
 
 static GActionEntry actions[] = {
-    {"share",  share_action,        NULL, NULL, NULL},
-    {"cancel", share_cancel_action, "s",  NULL, NULL},
-    {"files",  share_files_action,  "as", NULL, NULL},
-    {"open",   share_open_action,   "s",  NULL, NULL},
-    {"text",   share_text_action,   "s",  NULL, NULL},
-    {"url",    share_url_action,    "s",  NULL, NULL}
+    {"chooser", share_chooser_action, NULL, NULL, NULL},
+    {"cancel",  share_cancel_action,  "s",  NULL, NULL},
+    {"open",    share_open_action,    "s",  NULL, NULL},
+    {"text",    share_text_action,    "s",  NULL, NULL},
+    {"uri",     share_uri_action,     "s",  NULL, NULL},
+    {"uris",    share_uris_action,    "as", NULL, NULL},
+    {"view",    share_view_action,    "s",  NULL, NULL}
 };
 
 static const ValentMenuEntry items[] = {
-    {N_("Send Files"), "device.share.share", "document-send-symbolic"}
+    {N_("Send Files"), "device.share.chooser", "document-send-symbolic"}
 };
 
 /*
@@ -566,13 +877,16 @@ static void
 valent_share_plugin_handle_file (ValentSharePlugin *self,
                                  JsonNode          *packet)
 {
+  g_autoptr (ValentTransfer) transfer = NULL;
   ValentDevice *device;
   const char *filename;
   g_autoptr (GFile) file = NULL;
+  gint64 number_of_files = 0;
 
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
 
+  /* Common packet fields */
   if (!valent_packet_has_payload (packet))
     {
       g_warning ("%s(): missing payload info", G_STRFUNC);
@@ -586,10 +900,119 @@ valent_share_plugin_handle_file (ValentSharePlugin *self,
       return;
     }
 
+  /* Newer implementations support sequential multi-file transfers */
+  if (!valent_packet_get_int (packet, "numberOfFiles", &number_of_files))
+    {
+      json_object_set_int_member (valent_packet_get_body (packet),
+                                  "numberOfFiles",
+                                  1);
+    }
+
+  if (!valent_packet_get_int (packet, "totalPayloadSize", NULL))
+    {
+      json_object_set_int_member (valent_packet_get_body (packet),
+                                  "totalPayloadSize",
+                                  valent_packet_get_payload_size (packet));
+    }
+
   device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
   file = valent_device_new_download_file (device, filename, TRUE);
 
-  download_file (self, file, packet);
+  /* If the packet includes a request to open the file when the transfer
+   * completes, use a separate routine for success/failure. */
+  if (valent_packet_check_field (packet, "open"))
+    {
+      transfer = valent_device_transfer_new_for_file (device, packet, file);
+      g_hash_table_replace (self->transfers,
+                            valent_transfer_dup_id (transfer),
+                            g_object_ref (transfer));
+
+      valent_transfer_execute (transfer,
+                               NULL,
+                               (GAsyncReadyCallback)valent_share_download_open_cb,
+                               g_object_ref (self));
+      valent_share_download_open_notification (self, transfer);
+      return;
+    }
+
+  /* If the packet is missing the `numberOfFiles` field it is a legacy transfer
+   * transfer; use a discrete transfer with standard success/failure handling. */
+  if (!number_of_files)
+    {
+      transfer = valent_share_download_new (device);
+      g_hash_table_replace (self->transfers,
+                            valent_transfer_dup_id (transfer),
+                            g_object_ref (transfer));
+
+      valent_share_download_add_file (VALENT_SHARE_DOWNLOAD (transfer),
+                                      file,
+                                      packet);
+
+      valent_transfer_execute (transfer,
+                               NULL,
+                               (GAsyncReadyCallback)valent_share_download_file_cb,
+                               g_object_ref (self));
+      valent_share_download_file_notification (self, transfer);
+      return;
+    }
+
+  /* Otherwise the file will appended to a multi-file transfer */
+  if (self->download != NULL)
+    {
+      transfer = g_object_ref (self->download);
+    }
+  else
+    {
+      transfer = valent_share_download_new (device);
+      g_hash_table_replace (self->transfers,
+                            valent_transfer_dup_id (transfer),
+                            g_object_ref (transfer));
+    }
+
+  valent_share_download_add_file (VALENT_SHARE_DOWNLOAD (transfer),
+                                  file,
+                                  packet);
+
+  if (self->download != transfer)
+    g_set_object (&self->download, transfer);
+
+  if (valent_transfer_get_state (transfer) == VALENT_TRANSFER_STATE_PENDING)
+    {
+      valent_transfer_execute (transfer,
+                               NULL,
+                               (GAsyncReadyCallback)valent_share_download_file_cb,
+                               g_object_ref (self));
+    }
+
+  valent_share_download_file_notification (self, transfer);
+}
+
+static void
+valent_share_plugin_handle_file_update (ValentSharePlugin *self,
+                                        JsonNode          *packet)
+{
+  g_assert (VALENT_IS_SHARE_PLUGIN (self));
+  g_assert (VALENT_IS_PACKET (packet));
+
+  if (self->download == NULL)
+    return;
+
+  if (!valent_packet_check_field (packet, "numberOfFiles"))
+    {
+      g_warning ("%s(): expected \"numberOfFiles\" field holding an integer",
+                 G_STRFUNC);
+      return;
+    }
+
+  if (!valent_packet_check_field (packet, "totalPayloadSize"))
+    {
+      g_warning ("%s(): expected \"totalPayloadSize\" field holding an integer",
+                 G_STRFUNC);
+      return;
+    }
+
+  valent_share_download_update (VALENT_SHARE_DOWNLOAD (self->download), packet);
+  valent_share_download_file_notification (self, self->download);
 }
 
 static void
@@ -601,9 +1024,11 @@ valent_share_plugin_handle_text (ValentSharePlugin *self,
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
   g_assert (text != NULL);
 
-  // TODO: fallback for headless
-  if (!gtk_is_initialized ())
-    return;
+  if (!gtk_init_check ())
+    {
+      g_warning ("%s: No display available", G_STRFUNC);
+      return;
+    }
 
   dialog = g_object_new (GTK_TYPE_MESSAGE_DIALOG,
                          "text",           "Shared Text",
@@ -635,10 +1060,6 @@ valent_share_plugin_handle_url (ValentSharePlugin *self,
 static void
 valent_share_plugin_enable (ValentDevicePlugin *plugin)
 {
-  ValentSharePlugin *self = VALENT_SHARE_PLUGIN (plugin);
-
-  g_assert (VALENT_IS_SHARE_PLUGIN (self));
-
   g_action_map_add_action_entries (G_ACTION_MAP (plugin),
                                    actions,
                                    G_N_ELEMENTS (actions),
@@ -646,12 +1067,6 @@ valent_share_plugin_enable (ValentDevicePlugin *plugin)
   valent_device_plugin_add_menu_entries (plugin,
                                          items,
                                          G_N_ELEMENTS (items));
-
-  /* Prepare Transfer table */
-  self->transfers = g_hash_table_new_full (g_str_hash,
-                                           g_str_equal,
-                                           g_free,
-                                           g_object_unref);
 }
 
 static void
@@ -659,20 +1074,21 @@ valent_share_plugin_disable (ValentDevicePlugin *plugin)
 {
   ValentSharePlugin *self = VALENT_SHARE_PLUGIN (plugin);
   GHashTableIter iter;
-  gpointer transfer;
+  ValentTransfer *transfer;
 
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
 
   /* Cancel active transfers */
   g_hash_table_iter_init (&iter, self->transfers);
 
-  while (g_hash_table_iter_next (&iter, NULL, &transfer))
+  while (g_hash_table_iter_next (&iter, NULL, (void **)&transfer))
     {
-      valent_transfer_cancel (VALENT_TRANSFER (transfer));
+      valent_transfer_cancel (transfer);
       g_hash_table_iter_remove (&iter);
     }
 
-  g_clear_pointer (&self->transfers, g_hash_table_unref);
+  g_clear_object (&self->download);
+  g_clear_object (&self->upload);
 
   valent_device_plugin_remove_menu_entries (plugin,
                                             items,
@@ -705,6 +1121,9 @@ valent_share_plugin_update_state (ValentDevicePlugin *plugin,
           valent_transfer_cancel (transfer);
           g_hash_table_iter_remove (&iter);
         }
+
+      g_clear_object (&self->download);
+      g_clear_object (&self->upload);
     }
 
   valent_device_plugin_toggle_actions (plugin, available);
@@ -737,6 +1156,10 @@ valent_share_plugin_handle_packet (ValentDevicePlugin *plugin,
       else
         g_warning ("%s(): unsupported share request", G_STRFUNC);
     }
+  else if (g_strcmp0 (type, "kdeconnect.share.request.update") == 0)
+    {
+      valent_share_plugin_handle_file_update (self, packet);
+    }
   else
     g_assert_not_reached ();
 }
@@ -745,9 +1168,22 @@ valent_share_plugin_handle_packet (ValentDevicePlugin *plugin,
  * GObject
  */
 static void
+valent_share_plugin_finalize (GObject *object)
+{
+  ValentSharePlugin *self = VALENT_SHARE_PLUGIN (object);
+
+  g_clear_pointer (&self->transfers, g_hash_table_unref);
+
+  G_OBJECT_CLASS (valent_share_plugin_parent_class)->finalize (object);
+}
+
+static void
 valent_share_plugin_class_init (ValentSharePluginClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
+
+  object_class->finalize = valent_share_plugin_finalize;
 
   plugin_class->enable = valent_share_plugin_enable;
   plugin_class->disable = valent_share_plugin_disable;
@@ -758,5 +1194,9 @@ valent_share_plugin_class_init (ValentSharePluginClass *klass)
 static void
 valent_share_plugin_init (ValentSharePlugin *self)
 {
+  self->transfers = g_hash_table_new_full (g_str_hash,
+                                           g_str_equal,
+                                           g_free,
+                                           g_object_unref);
 }
 
