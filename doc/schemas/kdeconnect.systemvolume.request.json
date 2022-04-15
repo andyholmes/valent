@@ -48,7 +48,7 @@
                 },
                 "enabled": {
                     "type": "boolean",
-                    "description": "The requested enabled state."
+                    "description": "Indicates the stream should become the active default. Always true if present."
                 },
                 "muted": {
                     "type": "boolean",

@@ -189,7 +189,7 @@ on_load_plugin (PeasEngine              *engine,
       peas_engine_provides_extension (engine, info, VALENT_TYPE_CONTACT_STORE_PROVIDER) ||
       peas_engine_provides_extension (engine, info, VALENT_TYPE_INPUT_ADAPTER) ||
       peas_engine_provides_extension (engine, info, VALENT_TYPE_MEDIA_PLAYER_PROVIDER) ||
-      peas_engine_provides_extension (engine, info, VALENT_TYPE_MIXER_CONTROL) ||
+      peas_engine_provides_extension (engine, info, VALENT_TYPE_MIXER_ADAPTER) ||
       peas_engine_provides_extension (engine, info, VALENT_TYPE_NOTIFICATION_SOURCE) ||
       peas_engine_provides_extension (engine, info, VALENT_TYPE_SESSION_ADAPTER) ||
       peas_engine_provides_extension (engine, info, VALENT_TYPE_PREFERENCES_PAGE))
@@ -518,7 +518,7 @@ valent_preferences_window_class_init (ValentPreferencesWindowClass *klass)
 
   extensions[EXTEN_MIXER_ADAPTER] =
     (ExtensionDescription){
-      VALENT_TYPE_MIXER_CONTROL,
+      VALENT_TYPE_MIXER_ADAPTER,
       N_("Volume Control"),
       "mixer",
     };

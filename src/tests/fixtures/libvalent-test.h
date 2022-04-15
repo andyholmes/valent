@@ -14,7 +14,7 @@
 #include "valent-mock-input-adapter.h"
 #include "valent-mock-media-player.h"
 #include "valent-mock-media-player-provider.h"
-#include "valent-mock-mixer-control.h"
+#include "valent-mock-mixer-adapter.h"
 #include "valent-mock-notification-source.h"
 #include "valent-mock-session-adapter.h"
 #include "valent-test-fixture.h"

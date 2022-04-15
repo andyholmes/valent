@@ -16,11 +16,11 @@ struct _ValentSystemvolumePlugin
 {
   ValentDevicePlugin  parent_instance;
 
-  GSettings         *settings;
+  GSettings          *settings;
 
-  ValentMixer       *mixer;
-  unsigned int       mixer_watch : 1;
-  GHashTable        *state_cache;
+  ValentMixer        *mixer;
+  unsigned int        mixer_watch : 1;
+  GHashTable         *state_cache;
 };
 
 static void valent_systemvolume_plugin_handle_request     (ValentSystemvolumePlugin *self,
@@ -42,10 +42,12 @@ typedef struct
   char              *description;
   unsigned int       volume;
   gboolean           muted;
+  gboolean           enabled;
 } StreamState;
 
 static StreamState *
-stream_state_new (ValentMixerStream *stream)
+stream_state_new (ValentMixer       *mixer,
+                  ValentMixerStream *stream)
 {
   StreamState *state;
 
@@ -57,6 +59,7 @@ stream_state_new (ValentMixerStream *stream)
   state->description = g_strdup (valent_mixer_stream_get_description (stream));
   state->volume = valent_mixer_stream_get_level (stream);
   state->muted = valent_mixer_stream_get_muted (stream);
+  state->enabled = valent_mixer_get_default_output (mixer) == stream;
 
   return state;
 }
@@ -69,12 +72,23 @@ stream_state_free (gpointer data)
   g_clear_object (&state->stream);
   g_clear_pointer (&state->name, g_free);
   g_clear_pointer (&state->description, g_free);
-  g_free (state);
+  g_clear_pointer (&state, g_free);
 }
 
 /*
  * ValentMixer Callbacks
  */
+static void
+on_default_output_changed (ValentMixer              *mixer,
+                           GParamSpec               *pspec,
+                           ValentSystemvolumePlugin *self)
+{
+  g_assert (VALENT_IS_MIXER (mixer));
+  g_assert (VALENT_IS_SYSTEMVOLUME_PLUGIN (self));
+
+  valent_systemvolume_plugin_send_sinklist (self);
+}
+
 static void
 on_stream_changed (ValentMixer              *mixer,
                    ValentMixerStream        *stream,
@@ -121,6 +135,8 @@ on_stream_changed (ValentMixer              *mixer,
   json_builder_add_boolean_value (builder, state->muted);
   json_builder_set_member_name (builder, "volume");
   json_builder_add_int_value (builder, state->volume);
+  json_builder_set_member_name (builder, "enabled");
+  json_builder_add_boolean_value (builder, state->enabled);
   packet = valent_packet_finish (builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
@@ -170,6 +186,10 @@ valent_systemvolume_plugin_watch_mixer (ValentSystemvolumePlugin *self,
   if (watch)
     {
       g_signal_connect (self->mixer,
+                        "notify::default-output",
+                        G_CALLBACK (on_default_output_changed),
+                        self);
+      g_signal_connect (self->mixer,
                         "stream-added::output",
                         G_CALLBACK (on_stream_added),
                         self);
@@ -203,6 +223,8 @@ valent_systemvolume_plugin_send_sinklist (ValentSystemvolumePlugin *self)
 
   g_assert (VALENT_IS_SYSTEMVOLUME_PLUGIN (self));
 
+  /* Clear the state cache to avoid sending defunct streams */
+  g_hash_table_remove_all (self->state_cache);
   sinks = valent_mixer_get_outputs (self->mixer);
 
   /* Sink List */
@@ -216,7 +238,7 @@ valent_systemvolume_plugin_send_sinklist (ValentSystemvolumePlugin *self)
       StreamState *state;
 
       /* Cache entry */
-      state = stream_state_new (sink);
+      state = stream_state_new (self->mixer, sink);
       g_hash_table_replace (self->state_cache, g_strdup (state->name), state);
 
       /* List entry */
@@ -231,6 +253,8 @@ valent_systemvolume_plugin_send_sinklist (ValentSystemvolumePlugin *self)
       json_builder_add_int_value (builder, state->volume);
       json_builder_set_member_name (builder, "maxVolume");
       json_builder_add_int_value (builder, max_volume);
+      json_builder_set_member_name (builder, "enabled");
+      json_builder_add_boolean_value (builder, state->enabled);
       json_builder_end_object (builder);
     }
 
@@ -251,6 +275,7 @@ valent_systemvolume_plugin_handle_sink_change (ValentSystemvolumePlugin *self,
   const char *name;
   gint64 volume;
   gboolean muted;
+  gboolean enabled;
 
   g_assert (VALENT_IS_SYSTEMVOLUME_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
@@ -261,25 +286,20 @@ valent_systemvolume_plugin_handle_sink_change (ValentSystemvolumePlugin *self,
       return;
     }
 
-  /* The device shouldn't know about streams we haven't told it about */
   if ((state = g_hash_table_lookup (self->state_cache, name)) == NULL)
     {
       valent_systemvolume_plugin_send_sinklist (self);
       return;
     }
 
-  /* Update StreamState and Change */
   if (valent_packet_get_int (packet, "volume", &volume) && volume >= 0)
-    {
-      state->volume = volume;
-      valent_mixer_stream_set_level (state->stream, state->volume);
-    }
+    valent_mixer_stream_set_level (state->stream, volume);
 
   if (valent_packet_get_boolean (packet, "muted", &muted))
-    {
-      state->muted = muted;
-      valent_mixer_stream_set_muted (state->stream, state->muted);
-    }
+    valent_mixer_stream_set_muted (state->stream, muted);
+
+  if (valent_packet_get_boolean (packet, "enabled", &enabled) && enabled)
+    valent_mixer_set_default_output (self->mixer, state->stream);
 }
 
 static void

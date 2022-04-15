@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/schema#",
     "title": "kdeconnect.systemvolume",
-    "description": "This packet is a lock status update.",
+    "description": "This packet is a mixer stream state update.",
     "examples": [
         {
             "id": 0,

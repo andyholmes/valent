@@ -37,6 +37,22 @@
       "name": "test_sink1",
       "volume": 50
     }
+  },
+  "request-enabled1": {
+    "id": 0,
+    "type": "kdeconnect.systemvolume.request",
+    "body": {
+      "name": "test_sink1",
+      "enabled": true
+    }
+  },
+  "request-enabled2": {
+    "id": 0,
+    "type": "kdeconnect.systemvolume.request",
+    "body": {
+      "name": "test_sink2",
+      "enabled": true
+    }
   }
 }
 

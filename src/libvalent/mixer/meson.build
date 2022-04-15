@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
+# SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 libvalent_mixer_header_dir = join_paths(libvalent_header_dir, 'mixer')
 libvalent_mixer_header_subdir = join_paths(libvalent_header_subdir, 'mixer')
@@ -12,7 +12,7 @@ libvalent_mixer_generated_sources = []
 libvalent_mixer_public_headers = [
   'libvalent-mixer.h',
   'valent-mixer.h',
-  'valent-mixer-control.h',
+  'valent-mixer-adapter.h',
   'valent-mixer-stream.h',
 ]
 
@@ -31,7 +31,7 @@ install_headers(libvalent_mixer_public_headers,
 # Sources
 libvalent_mixer_public_sources = [
   'valent-mixer.c',
-  'valent-mixer-control.c',
+  'valent-mixer-adapter.c',
   'valent-mixer-stream.c',
 ]
 

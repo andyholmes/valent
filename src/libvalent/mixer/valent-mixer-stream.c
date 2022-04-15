@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
+// SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 #define G_LOG_DOMAIN "valent-mixer-stream"
 
@@ -10,22 +10,23 @@
 
 
 /**
- * SECTION:valentmixerstream
- * @short_description: Base class for mixer streams
- * @title: ValentMixerStream
- * @stability: Unstable
- * @include: libvalent-mixer.h
+ * ValentMixerStream:
  *
- * #ValentMixerStream is a base class for mixer streams.
+ * A base class for mixer streams.
+ *
+ * #ValentMixerStream is a base class for mixer streams, intended for use by
+ * implementations of [class@Valent.MixerAdapter].
+ *
+ * Since: 1.0
  */
 
 typedef struct
 {
-  char                   *name;
-  char                   *description;
-  ValentMixerStreamFlags  flags;
-  unsigned int            level;
-  unsigned int            muted : 1;
+  char                 *name;
+  char                 *description;
+  ValentMixerDirection  direction;
+  unsigned int          level;
+  unsigned int          muted : 1;
 } ValentMixerStreamPrivate;
 
 G_DEFINE_TYPE_WITH_PRIVATE (ValentMixerStream, valent_mixer_stream, G_TYPE_OBJECT)
@@ -33,7 +34,7 @@ G_DEFINE_TYPE_WITH_PRIVATE (ValentMixerStream, valent_mixer_stream, G_TYPE_OBJEC
 enum {
   PROP_0,
   PROP_DESCRIPTION,
-  PROP_FLAGS,
+  PROP_DIRECTION,
   PROP_LEVEL,
   PROP_MUTED,
   PROP_NAME,
@@ -75,6 +76,14 @@ valent_mixer_stream_real_get_description (ValentMixerStream *stream)
     return "Unnamed Stream";
 
   return priv->description;
+}
+
+ValentMixerDirection
+valent_mixer_stream_real_get_direction (ValentMixerStream *stream)
+{
+  ValentMixerStreamPrivate *priv = valent_mixer_stream_get_instance_private (stream);
+
+  return priv->direction;
 }
 
 static unsigned int
@@ -149,8 +158,8 @@ valent_mixer_stream_get_property (GObject    *object,
       g_value_set_string (value, valent_mixer_stream_get_description (self));
       break;
 
-    case PROP_FLAGS:
-      g_value_set_flags (value, valent_mixer_stream_get_flags (self));
+    case PROP_DIRECTION:
+      g_value_set_enum (value, valent_mixer_stream_get_direction (self));
       break;
 
     case PROP_LEVEL:
@@ -185,8 +194,8 @@ valent_mixer_stream_set_property (GObject      *object,
       priv->description = g_value_dup_string (value);
       break;
 
-    case PROP_FLAGS:
-      priv->flags = g_value_get_flags (value);
+    case PROP_DIRECTION:
+      priv->direction = g_value_get_enum (value);
       break;
 
     case PROP_LEVEL:
@@ -218,15 +227,21 @@ valent_mixer_stream_class_init (ValentMixerStreamClass *klass)
 
   stream_class->get_name = valent_mixer_stream_real_get_name;
   stream_class->get_description = valent_mixer_stream_real_get_description;
+  stream_class->get_direction = valent_mixer_stream_real_get_direction;
   stream_class->get_level = valent_mixer_stream_real_get_level;
   stream_class->set_level = valent_mixer_stream_real_set_level;
   stream_class->get_muted = valent_mixer_stream_real_get_muted;
   stream_class->set_muted = valent_mixer_stream_real_set_muted;
 
   /**
-   * ValentMixerStream:description:
+   * ValentMixerStream:description: (getter get_description)
    *
-   * The "description" property holds the human-readable label of the stream.
+   * The human-readable label of the stream.
+   *
+   * Implementation may emit [signal@GObject.Object::notify] for this property
+   * if it changes.
+   *
+   * Since: 1.0
    */
   properties [PROP_DESCRIPTION] =
     g_param_spec_string ("description",
@@ -239,25 +254,29 @@ valent_mixer_stream_class_init (ValentMixerStreamClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentMixerStream:flags:
+   * ValentMixerStream:direction: (getter get_direction)
    *
-   * The "flags" property holds the type flags for the stream.
+   * The port direction of the stream.
+   *
+   * Since: 1.0
    */
-  properties [PROP_FLAGS] =
-    g_param_spec_flags ("flags",
-                        "Flags",
-                        "The type flags for the stream",
-                        VALENT_TYPE_MIXER_STREAM_FLAGS,
-                        VALENT_MIXER_STREAM_UNKNOWN,
-                        (G_PARAM_CONSTRUCT_ONLY |
-                         G_PARAM_READWRITE |
-                         G_PARAM_EXPLICIT_NOTIFY |
-                         G_PARAM_STATIC_STRINGS));
+  properties [PROP_DIRECTION] =
+    g_param_spec_enum ("direction",
+                       "Direction",
+                       "The port direction of the stream",
+                       VALENT_TYPE_MIXER_DIRECTION,
+                       VALENT_MIXER_INPUT,
+                       (G_PARAM_CONSTRUCT_ONLY |
+                        G_PARAM_READWRITE |
+                        G_PARAM_EXPLICIT_NOTIFY |
+                        G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentMixerStream:level:
+   * ValentMixerStream:level: (getter get_level) (setter set_level)
    *
-   * The "level" property holds the input or output level of the stream.
+   * The input or output level of the stream.
+   *
+   * Since: 1.0
    */
   properties [PROP_LEVEL] =
     g_param_spec_uint ("level",
@@ -270,9 +289,11 @@ valent_mixer_stream_class_init (ValentMixerStreamClass *klass)
                         G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentMixerStream:muted:
+   * ValentMixerStream:muted: (getter get_muted) (setter set_muted)
    *
-   * The "muted" property indicates whether the stream is muted.
+   * Whether the stream is muted.
+   *
+   * Since: 1.0
    */
   properties [PROP_MUTED] =
     g_param_spec_boolean ("muted",
@@ -284,9 +305,11 @@ valent_mixer_stream_class_init (ValentMixerStreamClass *klass)
                            G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentMixerStream:name:
+   * ValentMixerStream:name: (getter get_name)
    *
-   * The "name" property holds the unique name of the stream.
+   * The unique name of the stream.
+   *
+   * Since: 1.0
    */
   properties [PROP_NAME] =
     g_param_spec_string ("name",
@@ -307,118 +330,175 @@ valent_mixer_stream_init (ValentMixerStream *stream)
 }
 
 /**
- * valent_mixer_stream_get_name:
+ * valent_mixer_stream_get_name: (get-property name) (virtual get_name)
  * @stream: a #ValentMixerStream
  *
- * Get the unique stream name. For strings to display to users, see
- * valent_mixer_stream_dup_label(), valent_mixer_stream_get_primary_text() and
- * valent_mixer_stream_get_secondary_text().
+ * Get the unique name of @stream.
  *
- * Returns: (transfer none): a string name
+ * Returns: (transfer none): a unique name
+ *
+ * Since: 1.0
  */
 const char *
 valent_mixer_stream_get_name (ValentMixerStream *stream)
 {
+  const char *ret;
+
+  VALENT_ENTRY;
+
   g_return_val_if_fail (VALENT_IS_MIXER_STREAM (stream), NULL);
 
-  return VALENT_MIXER_STREAM_GET_CLASS (stream)->get_name (stream);
+  ret = VALENT_MIXER_STREAM_GET_CLASS (stream)->get_name (stream);
+
+  VALENT_RETURN (ret);
 }
 
 /**
- * valent_mixer_stream_get_description:
+ * valent_mixer_stream_get_description: (get-property description) (virtual get_description)
  * @stream: a #ValentMixerStream
  *
- * Get the human-readable label for @stream.
+ * Get the human-readable label of @stream.
  *
- * Returns: (transfer none): a newly allocated string
+ * Returns: (transfer none): a stream description
+ *
+ * Since: 1.0
  */
 const char *
 valent_mixer_stream_get_description (ValentMixerStream *stream)
 {
+  const char *ret;
+
+  VALENT_ENTRY;
+
   g_return_val_if_fail (VALENT_IS_MIXER_STREAM (stream), NULL);
 
-  return VALENT_MIXER_STREAM_GET_CLASS (stream)->get_description (stream);
+  ret = VALENT_MIXER_STREAM_GET_CLASS (stream)->get_description (stream);
+
+  VALENT_RETURN (ret);
 }
 
 /**
- * valent_mixer_stream_get_flags:
+ * valent_mixer_stream_get_direction: (get-property direction) (virtual get_direction)
  * @stream: a #ValentMixerStream
  *
- * Get the type flags for the stream.
+ * Get the port direction of @stream.
  *
- * Returns: the #ValentMixerStreamFlags that apply to @stream
+ * Returns: the #ValentMixerDirection of @stream
+ *
+ * Since: 1.0
  */
-ValentMixerStreamFlags
-valent_mixer_stream_get_flags (ValentMixerStream *stream)
+ValentMixerDirection
+valent_mixer_stream_get_direction (ValentMixerStream *stream)
 {
   ValentMixerStreamPrivate *priv = valent_mixer_stream_get_instance_private (stream);
 
-  g_return_val_if_fail (VALENT_IS_MIXER_STREAM (stream), VALENT_MIXER_STREAM_UNKNOWN);
+  g_return_val_if_fail (VALENT_IS_MIXER_STREAM (stream), VALENT_MIXER_INPUT);
 
-  return priv->flags;
+  return priv->direction;
 }
 
 /**
- * valent_mixer_stream_get_level:
+ * valent_mixer_stream_get_level: (get-property level) (virtual get_level)
  * @stream: a #ValentMixerStream
  *
- * Get the level of the stream (eg. speaker volume, microphone sensitivity).
+ * Get the level of @stream (eg. speaker volume, microphone sensitivity).
  *
- * Returns: stream level
+ * Implementations that override this method should also override
+ * [vfunc@Valent.MixerStream.set_level].
+ *
+ * Returns: a volume level between `0` and `100`
+ *
+ * Since: 1.0
  */
 unsigned int
 valent_mixer_stream_get_level (ValentMixerStream *stream)
 {
+  unsigned int ret;
+
+  VALENT_ENTRY;
+
   g_return_val_if_fail (VALENT_IS_MIXER_STREAM (stream), 0);
 
-  return VALENT_MIXER_STREAM_GET_CLASS (stream)->get_level (stream);
+  ret = VALENT_MIXER_STREAM_GET_CLASS (stream)->get_level (stream);
+
+  VALENT_RETURN (ret);
 }
 
 /**
- * valent_mixer_stream_set_level:
+ * valent_mixer_stream_set_level: (set-property level) (virtual set_level)
  * @stream: a #ValentMixerStream
- * @level: a level
+ * @level: a volume level between `0` and `100`
  *
- * Set the level of the stream (eg. speaker volume, microphone sensitivity).
+ * Set the level of @stream (eg. speaker volume, microphone sensitivity).
+ *
+ * Implementations that override this method should also override
+ * [vfunc@Valent.MixerStream.get_level].
+ *
+ * Since: 1.0
  */
 void
 valent_mixer_stream_set_level (ValentMixerStream *stream,
                                unsigned int       level)
 {
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_MIXER_STREAM (stream));
+  g_return_if_fail (level <= 100);
 
   VALENT_MIXER_STREAM_GET_CLASS (stream)->set_level (stream, level);
+
+  VALENT_EXIT;
 }
 
 /**
- * valent_mixer_stream_get_muted:
+ * valent_mixer_stream_get_muted: (get-property muted) (virtual get_muted)
  * @stream: a #ValentMixerStream
  *
- * Get the muted state of the default input stream (eg. microphone on/off).
+ * Get the muted state of @stream.
  *
- * Returns: mute state
+ * Implementations that override this method should also override
+ * [vfunc@Valent.MixerStream.set_muted].
+ *
+ * Returns: %TRUE if the stream is muted, or %FALSE if not
+ *
+ * Since: 1.0
  */
 gboolean
 valent_mixer_stream_get_muted (ValentMixerStream *stream)
 {
+  gboolean ret;
+
+  VALENT_ENTRY;
+
   g_return_val_if_fail (VALENT_IS_MIXER_STREAM (stream), FALSE);
 
-  return VALENT_MIXER_STREAM_GET_CLASS (stream)->get_muted (stream);
+  ret = VALENT_MIXER_STREAM_GET_CLASS (stream)->get_muted (stream);
+
+  VALENT_RETURN (ret);
 }
 
 /**
- * valent_mixer_stream_set_muted:
+ * valent_mixer_stream_set_muted: (set-property muted) (virtual set_muted)
  * @stream: a #ValentMixerStream
- * @state: a muted
+ * @state: whether the stream should be muted
  *
- * Set the muted state of the default input stream (eg. microphone on/off).
+ * Set the muted state of @stream.
+ *
+ * Implementations that override this method should also override
+ * [vfunc@Valent.MixerStream.get_muted].
+ *
+ * Since: 1.0
  */
 void
 valent_mixer_stream_set_muted (ValentMixerStream *stream,
                                gboolean           state)
 {
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_MIXER_STREAM (stream));
 
   VALENT_MIXER_STREAM_GET_CLASS (stream)->set_muted (stream, state);
+
+  VALENT_EXIT;
 }
 
