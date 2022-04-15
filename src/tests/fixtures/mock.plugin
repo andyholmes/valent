@@ -18,6 +18,6 @@ X-ClipboardAdapterPriority=1000000
 X-ContactStoreProviderPriority=1000000
 X-InputAdapterPriority=1000000
 X-MediaPlayerProviderPriority=1000000
-X-MixerControlPriority=1000000
+X-MixerAdapterPriority=1000000
 X-NotificationSourcePriority=1000000
 X-SessionAdapterPriority=1000000

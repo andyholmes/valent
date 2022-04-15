@@ -8,7 +8,7 @@
 
 typedef struct
 {
-  ValentMixerControl *control;
+  ValentMixerAdapter *adapter;
   ValentMixerStream  *speakers;
   ValentMixerStream  *headphones;
   ValentMixerStream  *microphone;
@@ -18,6 +18,9 @@ static void
 mixer_info_free (gpointer data)
 {
   MixerInfo *info = data;
+
+  /* NOTE: we need to finalize the mixer singleton between tests */
+  v_assert_finalize_object (valent_mixer_get_default ());
 
   g_clear_object (&info->speakers);
   g_clear_object (&info->headphones);
@@ -31,43 +34,41 @@ telephony_plugin_fixture_set_up (ValentTestFixture *fixture,
 {
   MixerInfo *info;
   ValentMixer *mixer;
-  ValentMixerControl *control;
+  ValentMixerAdapter *adapter;
 
   valent_test_fixture_init (fixture, user_data);
 
   mixer = valent_mixer_get_default ();
   g_assert_true (VALENT_IS_MIXER (mixer));
 
-  while ((control = valent_mock_mixer_control_get_instance ()) == NULL)
+  while ((adapter = valent_mock_mixer_adapter_get_instance ()) == NULL)
     g_main_context_iteration (NULL, FALSE);
 
   info = g_new0 (MixerInfo, 1);
-  info->control = control;
+  info->adapter = adapter;
   info->speakers = g_object_new (VALENT_TYPE_MIXER_STREAM,
                                  "name",        "mock-speakers",
                                  "description", "Mock Speakers",
-                                 "flags",       (VALENT_MIXER_STREAM_LOCAL |
-                                                 VALENT_MIXER_STREAM_SINK),
+                                 "direction",   VALENT_MIXER_OUTPUT,
                                  "level",       100,
                                  NULL);
   info->headphones = g_object_new (VALENT_TYPE_MIXER_STREAM,
                                    "name",        "mock-headphones",
                                    "description", "Mock Headphones",
-                                   "flags",       (VALENT_MIXER_STREAM_LOCAL |
-                                                  VALENT_MIXER_STREAM_SINK),
+                                   "direction",   VALENT_MIXER_OUTPUT,
                                    "level",       100,
                                    NULL);
   info->microphone = g_object_new (VALENT_TYPE_MIXER_STREAM,
                                    "name",        "mock-microphone",
                                    "description", "Mock Microphone",
-                                   "flags",       (VALENT_MIXER_STREAM_LOCAL |
-                                                   VALENT_MIXER_STREAM_SOURCE),
+                                   "direction",   VALENT_MIXER_INPUT,
                                    "level",       100,
                                    NULL);
   valent_test_fixture_set_data (fixture, info, mixer_info_free);
 
-  valent_mixer_control_emit_stream_added (info->control, info->speakers);
-  valent_mixer_control_emit_stream_added (info->control, info->microphone);
+  valent_mixer_adapter_emit_stream_added (info->adapter, info->speakers);
+  valent_mixer_adapter_emit_stream_added (info->adapter, info->microphone);
+  valent_mixer_adapter_emit_stream_added (info->adapter, info->headphones);
 }
 
 static void
@@ -96,6 +97,8 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->speakers), ==, FALSE);
   g_assert_cmpuint (valent_mixer_stream_get_level (info->microphone), ==, 100);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->microphone), ==, FALSE);
+  g_assert_cmpuint (valent_mixer_stream_get_level (info->headphones), ==, 100);
+  g_assert_cmpuint (valent_mixer_stream_get_muted (info->headphones), ==, FALSE);
 
   packet = valent_test_fixture_lookup_packet (fixture, "ringing-cancel");
   valent_test_fixture_handle_packet (fixture, packet);
@@ -104,8 +107,8 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->speakers), ==, FALSE);
   g_assert_cmpuint (valent_mixer_stream_get_level (info->microphone), ==, 100);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->microphone), ==, FALSE);
-
-  /* Receive an answered call event-chain */
+  g_assert_cmpuint (valent_mixer_stream_get_level (info->headphones), ==, 100);
+  g_assert_cmpuint (valent_mixer_stream_get_muted (info->headphones), ==, FALSE);
 
   /* Receive an answered call event-chain. What we expect is:
    *
@@ -122,6 +125,8 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->speakers), ==, FALSE);
   g_assert_cmpuint (valent_mixer_stream_get_level (info->microphone), ==, 100);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->microphone), ==, FALSE);
+  g_assert_cmpuint (valent_mixer_stream_get_level (info->headphones), ==, 100);
+  g_assert_cmpuint (valent_mixer_stream_get_muted (info->headphones), ==, FALSE);
 
   packet = valent_test_fixture_lookup_packet (fixture, "talking");
   valent_test_fixture_handle_packet (fixture, packet);
@@ -130,6 +135,8 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->speakers), ==, TRUE);
   g_assert_cmpuint (valent_mixer_stream_get_level (info->microphone), ==, 100);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->microphone), ==, TRUE);
+  g_assert_cmpuint (valent_mixer_stream_get_level (info->headphones), ==, 100);
+  g_assert_cmpuint (valent_mixer_stream_get_muted (info->headphones), ==, FALSE);
 
   packet = valent_test_fixture_lookup_packet (fixture, "talking-cancel");
   valent_test_fixture_handle_packet (fixture, packet);
@@ -138,6 +145,8 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->speakers), ==, FALSE);
   g_assert_cmpuint (valent_mixer_stream_get_level (info->microphone), ==, 100);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->microphone), ==, FALSE);
+  g_assert_cmpuint (valent_mixer_stream_get_level (info->headphones), ==, 100);
+  g_assert_cmpuint (valent_mixer_stream_get_muted (info->headphones), ==, FALSE);
 
   /* Receive an answered call event-chain. In this case, emulate inserting
    * headphones after the phone started ringing. Thus what we expect is:
@@ -156,7 +165,9 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->speakers), ==, FALSE);
   g_assert_cmpuint (valent_mixer_stream_get_level (info->microphone), ==, 100);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->microphone), ==, FALSE);
-  valent_mixer_control_emit_stream_added (info->control, info->headphones);
+  g_assert_cmpuint (valent_mixer_stream_get_level (info->headphones), ==, 100);
+  g_assert_cmpuint (valent_mixer_stream_get_muted (info->headphones), ==, FALSE);
+  valent_mixer_adapter_set_default_output (info->adapter, info->headphones);
 
   packet = valent_test_fixture_lookup_packet (fixture, "talking");
   valent_test_fixture_handle_packet (fixture, packet);

@@ -11,11 +11,11 @@
 
 G_BEGIN_DECLS
 
-#define VALENT_TYPE_MOCK_MIXER_CONTROL (valent_mock_mixer_control_get_type ())
+#define VALENT_TYPE_MOCK_MIXER_ADAPTER (valent_mock_mixer_adapter_get_type ())
 
-G_DECLARE_FINAL_TYPE (ValentMockMixerControl, valent_mock_mixer_control, VALENT, MOCK_MIXER_CONTROL, ValentMixerControl)
+G_DECLARE_FINAL_TYPE (ValentMockMixerAdapter, valent_mock_mixer_adapter, VALENT, MOCK_MIXER_ADAPTER, ValentMixerAdapter)
 
-ValentMixerControl * valent_mock_mixer_control_get_instance (void);
+ValentMixerAdapter * valent_mock_mixer_adapter_get_instance (void);
 
 G_END_DECLS
 
