@@ -6,6 +6,7 @@
     "command" : "valent",
     "finish-args" : [
         "--device=dri",
+        "--env=PULSE_PROP_media.category=Manager",
         "--filesystem=xdg-download",
         "--filesystem=xdg-run/gvfsd",
         "--own-name=org.mpris.MediaPlayer2.Valent",

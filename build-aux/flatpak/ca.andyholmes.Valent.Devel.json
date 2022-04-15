@@ -10,6 +10,7 @@
     "finish-args" : [
         "--allow=devel",
         "--device=dri",
+        "--env=PULSE_PROP_media.category=Manager",
         "--filesystem=xdg-data/valent/plugins",
         "--filesystem=xdg-download",
         "--filesystem=xdg-run/gvfsd",
