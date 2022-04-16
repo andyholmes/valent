@@ -343,10 +343,10 @@ valent_clipboard_plugin_handle_packet (ValentDevicePlugin *plugin,
   g_assert (VALENT_IS_PACKET (packet));
 
   /* The remote clipboard content changed */
-  if (g_strcmp0 (type, "kdeconnect.clipboard") == 0)
+  if (strcmp (type, "kdeconnect.clipboard") == 0)
     valent_clipboard_plugin_handle_clipboard (self, packet);
 
-  else if (g_strcmp0 (type, "kdeconnect.clipboard.connect") == 0)
+  else if (strcmp (type, "kdeconnect.clipboard.connect") == 0)
     valent_clipboard_plugin_handle_clipboard_connect (self, packet);
 
   else

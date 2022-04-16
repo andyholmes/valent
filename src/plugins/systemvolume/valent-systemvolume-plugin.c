@@ -388,7 +388,7 @@ valent_systemvolume_plugin_handle_packet (ValentDevicePlugin *plugin,
   g_assert (type != NULL);
   g_assert (VALENT_IS_PACKET (packet));
 
-  if (g_strcmp0 (type, "kdeconnect.systemvolume.request") == 0)
+  if (strcmp (type, "kdeconnect.systemvolume.request") == 0)
     valent_systemvolume_plugin_handle_request (self, packet);
   else
     g_assert_not_reached ();

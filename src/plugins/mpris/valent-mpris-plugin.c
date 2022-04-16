@@ -907,10 +907,10 @@ valent_mpris_plugin_handle_packet (ValentDevicePlugin *plugin,
   g_assert (type != NULL);
   g_assert (VALENT_IS_PACKET (packet));
 
-  if (g_strcmp0 (type, "kdeconnect.mpris") == 0)
+  if (strcmp (type, "kdeconnect.mpris") == 0)
     valent_mpris_plugin_handle_mpris (self, packet);
 
-  else if (g_strcmp0 (type, "kdeconnect.mpris.request") == 0)
+  else if (strcmp (type, "kdeconnect.mpris.request") == 0)
     valent_mpris_plugin_handle_mpris_request (self, packet);
 
   else
