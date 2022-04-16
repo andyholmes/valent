@@ -129,7 +129,7 @@ valent_findmyphone_plugin_handle_packet (ValentDevicePlugin *plugin,
   g_assert (type != NULL);
   g_assert (VALENT_IS_PACKET (packet));
 
-  if (g_strcmp0 (type, "kdeconnect.findmyphone.request") == 0)
+  if (strcmp (type, "kdeconnect.findmyphone.request") == 0)
     valent_findmyphone_plugin_handle_findmyphone_request (self);
   else
     g_assert_not_reached ();

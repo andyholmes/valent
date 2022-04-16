@@ -514,7 +514,7 @@ valent_sms_plugin_handle_packet (ValentDevicePlugin *plugin,
   g_assert (type != NULL);
   g_assert (VALENT_IS_PACKET (packet));
 
-  if (g_strcmp0 (type, "kdeconnect.sms.messages") == 0)
+  if (strcmp (type, "kdeconnect.sms.messages") == 0)
     valent_sms_plugin_handle_messages (self, packet);
   else
     g_assert_not_reached ();

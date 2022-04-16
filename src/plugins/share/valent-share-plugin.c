@@ -1142,7 +1142,7 @@ valent_share_plugin_handle_packet (ValentDevicePlugin *plugin,
   g_assert (type != NULL);
   g_assert (VALENT_IS_PACKET (packet));
 
-  if (g_strcmp0 (type, "kdeconnect.share.request") == 0)
+  if (strcmp (type, "kdeconnect.share.request") == 0)
     {
       if (valent_packet_check_field (packet, "filename"))
         valent_share_plugin_handle_file (self, packet);
@@ -1156,7 +1156,7 @@ valent_share_plugin_handle_packet (ValentDevicePlugin *plugin,
       else
         g_warning ("%s(): unsupported share request", G_STRFUNC);
     }
-  else if (g_strcmp0 (type, "kdeconnect.share.request.update") == 0)
+  else if (strcmp (type, "kdeconnect.share.request.update") == 0)
     {
       valent_share_plugin_handle_file_update (self, packet);
     }

@@ -240,9 +240,9 @@ valent_lock_plugin_handle_packet (ValentDevicePlugin *plugin,
   g_assert (type != NULL);
   g_assert (VALENT_IS_PACKET (packet));
 
-  if (g_strcmp0 (type, "kdeconnect.lock") == 0)
+  if (strcmp (type, "kdeconnect.lock") == 0)
     valent_lock_plugin_handle_lock (self, packet);
-  else if (g_strcmp0 (type, "kdeconnect.lock.request") == 0)
+  else if (strcmp (type, "kdeconnect.lock.request") == 0)
     valent_lock_plugin_handle_lock_request (self, packet);
   else
     g_assert_not_reached ();
