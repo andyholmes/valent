@@ -143,7 +143,7 @@ jobs:
           platforms: arm64
 
       - name: Build
-        uses: bilelmoussaoui/flatpak-github-actions/flatpak-builder@v4
+        uses: bilelmoussaoui/flatpak-github-actions/flatpak-builder@master
         with:
           arch: ${{ matrix.arch }}
           bundle: ca.andyholmes.Valent.flatpak
