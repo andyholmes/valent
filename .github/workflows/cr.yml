@@ -26,7 +26,7 @@ jobs:
 
     steps:
       - name: Login
-        if: ${{ github.ref == 'refs/head/main' }}
+        if: ${{ github.event_name != 'pull_request' }}
         uses: docker/login-action@v1
         with:
           registry: ${{ env.REGISTRY }}
@@ -37,5 +37,5 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           file: ./src/tests/extra/Dockerfile
-          push: ${{ github.ref == 'refs/head/main' }}
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
