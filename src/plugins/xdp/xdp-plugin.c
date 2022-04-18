@@ -14,20 +14,21 @@
 G_MODULE_EXPORT void
 valent_xdp_plugin_register_types (PeasObjectModule *module)
 {
-  /* Ensure this is GUI instance before registering */
-  if (!gtk_init_check ())
-    return;
+  /* This extension only makes sense in a graphical environment. */
+  if (gtk_init_check ())
+    {
+      peas_object_module_register_extension_type (module,
+                                                  VALENT_TYPE_INPUT_ADAPTER,
+                                                  VALENT_TYPE_XDP_INPUT);
+    }
 
-  peas_object_module_register_extension_type (module,
-                                              VALENT_TYPE_INPUT_ADAPTER,
-                                              VALENT_TYPE_XDP_INPUT);
-
-  /* Ensure this is a Flatpak instance before registering */
+  /* This extension only makes sense in a sandboxed environment, where the
+   * XDG autostart entry isn't installed in the standard location. */
   if (!valent_in_flatpak ())
-    return;
-
-  peas_object_module_register_extension_type (module,
-                                              VALENT_TYPE_APPLICATION_PLUGIN,
-                                              VALENT_TYPE_XDP_BACKGROUND);
+    {
+      peas_object_module_register_extension_type (module,
+                                                  VALENT_TYPE_APPLICATION_PLUGIN,
+                                                  VALENT_TYPE_XDP_BACKGROUND);
+    }
 }
 
