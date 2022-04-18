@@ -15,15 +15,12 @@
 G_MODULE_EXPORT void
 valent_gtk_plugin_register_types (PeasObjectModule *module)
 {
-  /* Ensure this is GUI instance before registering */
-  if (gtk_init_check () && GDK_IS_DISPLAY (gdk_display_get_default ()))
+  /* These extensions inherently rely on GTK being initialized */
+  if (gtk_init_check ())
     {
-      /* ValentClipboardAdapter */
       peas_object_module_register_extension_type (module,
                                                   VALENT_TYPE_CLIPBOARD_ADAPTER,
                                                   VALENT_TYPE_GDK_CLIPBOARD);
-
-      /* ValentNotificationSource */
       peas_object_module_register_extension_type (module,
                                                   VALENT_TYPE_NOTIFICATION_SOURCE,
                                                   VALENT_TYPE_GTK_NOTIFICATIONS);
