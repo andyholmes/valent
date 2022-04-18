@@ -20,7 +20,7 @@ struct _ValentSystemvolumePlugin
 
   ValentMixer        *mixer;
   unsigned int        mixer_watch : 1;
-  GHashTable         *state_cache;
+  GHashTable         *states;
 };
 
 static void valent_systemvolume_plugin_handle_request     (ValentSystemvolumePlugin *self,
@@ -33,7 +33,7 @@ G_DEFINE_TYPE (ValentSystemvolumePlugin, valent_systemvolume_plugin, VALENT_TYPE
 
 
 /*
- * StreamState Cache
+ * Local Mixer
  */
 typedef struct
 {
@@ -41,8 +41,8 @@ typedef struct
   char              *name;
   char              *description;
   unsigned int       volume;
-  gboolean           muted;
-  gboolean           enabled;
+  unsigned int       muted : 1;
+  unsigned int       enabled : 1;
 } StreamState;
 
 static StreamState *
@@ -51,6 +51,7 @@ stream_state_new (ValentMixer       *mixer,
 {
   StreamState *state;
 
+  g_assert (VALENT_IS_MIXER (mixer));
   g_assert (VALENT_IS_MIXER_STREAM (stream));
 
   state = g_new0 (StreamState, 1);
@@ -75,28 +76,39 @@ stream_state_free (gpointer data)
   g_clear_pointer (&state, g_free);
 }
 
-/*
- * ValentMixer Callbacks
- */
 static void
 on_default_output_changed (ValentMixer              *mixer,
                            GParamSpec               *pspec,
                            ValentSystemvolumePlugin *self)
 {
+  ValentMixerStream *default_output = NULL;
+  GHashTableIter iter;
+  StreamState *state;
+
   g_assert (VALENT_IS_MIXER (mixer));
   g_assert (VALENT_IS_SYSTEMVOLUME_PLUGIN (self));
 
+  default_output = valent_mixer_get_default_output (mixer);
+
+  g_hash_table_iter_init (&iter, self->states);
+
+  while (g_hash_table_iter_next (&iter, NULL, (void **)&state))
+    state->enabled = state->stream == default_output;
+
+  /* It's unclear whether the `enabled` field with a value of `false` is
+   * relevant in the protocol, we resend the whole list */
   valent_systemvolume_plugin_send_sinklist (self);
 }
 
 static void
-on_stream_changed (ValentMixer              *mixer,
+on_output_changed (ValentMixer              *mixer,
                    ValentMixerStream        *stream,
                    ValentSystemvolumePlugin *self)
 {
   StreamState *state;
   const char *name;
   const char *description;
+  gboolean enabled;
   gboolean muted;
   unsigned int volume;
   JsonBuilder *builder;
@@ -106,44 +118,69 @@ on_stream_changed (ValentMixer              *mixer,
   g_assert (VALENT_IS_MIXER_STREAM (stream));
   g_assert (VALENT_IS_SYSTEMVOLUME_PLUGIN (self));
 
-  /* If this is a new stream or the label changed, we need to send the list */
+  /* If this is an unknown stream, send a new sink list */
   name = valent_mixer_stream_get_name (stream);
-  state = g_hash_table_lookup (self->state_cache, name);
-  description = valent_mixer_stream_get_description (stream);
 
-  if (state == NULL || g_strcmp0 (state->description, description) != 0)
+  if ((state = g_hash_table_lookup (self->states, name)) == NULL)
     {
       valent_systemvolume_plugin_send_sinklist (self);
       return;
     }
 
-  /* If neither volume/mute changed we can avoid a packet */
+  /* If the description changed it's probably because the port changed, so
+   * remove the cache entry to force reloading all the sink properties */
+  description = valent_mixer_stream_get_description (stream);
+
+  if (g_strcmp0 (state->description, description) != 0)
+    {
+      g_hash_table_remove (self->states, name);
+      valent_systemvolume_plugin_send_sinklist (self);
+      return;
+    }
+
+  /* If none of the other properties changed, there's nothing to update */
+  enabled = valent_mixer_get_default_output (mixer) == stream;
   muted = valent_mixer_stream_get_muted (stream);
   volume = valent_mixer_stream_get_level (stream);
 
-  if (state->volume == volume && state->muted == muted)
+  if (state->enabled == enabled &&
+      state->muted == muted &&
+      state->volume == volume)
     return;
-
-  state->muted = muted;
-  state->volume = volume;
 
   /* Sink update */
   builder = valent_packet_start ("kdeconnect.systemvolume");
   json_builder_set_member_name (builder, "name");
   json_builder_add_string_value (builder, state->name);
-  json_builder_set_member_name (builder, "muted");
-  json_builder_add_boolean_value (builder, state->muted);
-  json_builder_set_member_name (builder, "volume");
-  json_builder_add_int_value (builder, state->volume);
-  json_builder_set_member_name (builder, "enabled");
-  json_builder_add_boolean_value (builder, state->enabled);
+
+  if (state->muted != muted)
+    {
+      state->muted = muted;
+      json_builder_set_member_name (builder, "muted");
+      json_builder_add_boolean_value (builder, state->muted);
+    }
+
+  if (state->volume != volume)
+    {
+      state->volume = volume;
+      json_builder_set_member_name (builder, "volume");
+      json_builder_add_int_value (builder, state->volume);
+    }
+
+  if (state->enabled != enabled)
+    {
+      state->enabled = enabled;
+      json_builder_set_member_name (builder, "enabled");
+      json_builder_add_boolean_value (builder, state->enabled);
+    }
+
   packet = valent_packet_finish (builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
 static void
-on_stream_added (ValentMixer              *mixer,
+on_output_added (ValentMixer              *mixer,
                  ValentMixerStream        *stream,
                  ValentSystemvolumePlugin *self)
 {
@@ -155,7 +192,7 @@ on_stream_added (ValentMixer              *mixer,
 }
 
 static void
-on_stream_removed (ValentMixer              *mixer,
+on_output_removed (ValentMixer              *mixer,
                    ValentMixerStream        *stream,
                    ValentSystemvolumePlugin *self)
 {
@@ -167,7 +204,7 @@ on_stream_removed (ValentMixer              *mixer,
 
   name = valent_mixer_stream_get_name (stream);
 
-  if (g_hash_table_remove (self->state_cache, name))
+  if (g_hash_table_remove (self->states, name))
     valent_systemvolume_plugin_send_sinklist (self);
 }
 
@@ -191,15 +228,15 @@ valent_systemvolume_plugin_watch_mixer (ValentSystemvolumePlugin *self,
                         self);
       g_signal_connect (self->mixer,
                         "stream-added::output",
-                        G_CALLBACK (on_stream_added),
+                        G_CALLBACK (on_output_added),
                         self);
       g_signal_connect (self->mixer,
                         "stream-removed::output",
-                        G_CALLBACK (on_stream_removed),
+                        G_CALLBACK (on_output_removed),
                         self);
       g_signal_connect (self->mixer,
                         "stream-changed::output",
-                        G_CALLBACK (on_stream_changed),
+                        G_CALLBACK (on_output_changed),
                         self);
       self->mixer_watch = TRUE;
     }
@@ -224,7 +261,6 @@ valent_systemvolume_plugin_send_sinklist (ValentSystemvolumePlugin *self)
   g_assert (VALENT_IS_SYSTEMVOLUME_PLUGIN (self));
 
   /* Clear the state cache to avoid sending defunct streams */
-  g_hash_table_remove_all (self->state_cache);
   sinks = valent_mixer_get_outputs (self->mixer);
 
   /* Sink List */
@@ -235,13 +271,15 @@ valent_systemvolume_plugin_send_sinklist (ValentSystemvolumePlugin *self)
   for (unsigned int i = 0; i < sinks->len; i++)
     {
       ValentMixerStream *sink = g_ptr_array_index (sinks, i);
+      const char *name = valent_mixer_stream_get_name (sink);
       StreamState *state;
 
-      /* Cache entry */
-      state = stream_state_new (self->mixer, sink);
-      g_hash_table_replace (self->state_cache, g_strdup (state->name), state);
+      if ((state = g_hash_table_lookup (self->states, name)) == NULL)
+        {
+          state = stream_state_new (self->mixer, sink);
+          g_hash_table_replace (self->states, g_strdup (name), state);
+        }
 
-      /* List entry */
       json_builder_begin_object (builder);
       json_builder_set_member_name (builder, "name");
       json_builder_add_string_value (builder, state->name);
@@ -264,9 +302,6 @@ valent_systemvolume_plugin_send_sinklist (ValentSystemvolumePlugin *self)
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
-/*
- * Packet Handlers
- */
 static void
 valent_systemvolume_plugin_handle_sink_change (ValentSystemvolumePlugin *self,
                                                JsonNode                 *packet)
@@ -286,7 +321,7 @@ valent_systemvolume_plugin_handle_sink_change (ValentSystemvolumePlugin *self,
       return;
     }
 
-  if ((state = g_hash_table_lookup (self->state_cache, name)) == NULL)
+  if ((state = g_hash_table_lookup (self->states, name)) == NULL)
     {
       valent_systemvolume_plugin_send_sinklist (self);
       return;
@@ -308,9 +343,11 @@ valent_systemvolume_plugin_handle_request (ValentSystemvolumePlugin *self,
 {
   g_assert (VALENT_IS_SYSTEMVOLUME_PLUGIN (self));
 
+  /* A request for a list of audio outputs */
   if (valent_packet_check_field (packet, "requestSinks"))
     valent_systemvolume_plugin_send_sinklist (self);
 
+  /* A request to change an audio output */
   else if (valent_packet_check_field (packet, "name"))
     valent_systemvolume_plugin_handle_sink_change (self, packet);
 
@@ -335,10 +372,10 @@ valent_systemvolume_plugin_enable (ValentDevicePlugin *plugin)
   self->settings = valent_device_plugin_new_settings (device_id, "systemvolume");
 
   /* Setup stream state cache */
-  self->state_cache = g_hash_table_new_full (g_str_hash,
-                                             g_str_equal,
-                                             g_free,
-                                             stream_state_free);
+  self->states = g_hash_table_new_full (g_str_hash,
+                                        g_str_equal,
+                                        g_free,
+                                        stream_state_free);
 }
 
 static void
@@ -348,7 +385,7 @@ valent_systemvolume_plugin_disable (ValentDevicePlugin *plugin)
 
   /* Clear stream state cache */
   valent_systemvolume_plugin_watch_mixer (self, FALSE);
-  g_clear_pointer (&self->state_cache, g_hash_table_unref);
+  g_clear_pointer (&self->states, g_hash_table_unref);
 
   g_clear_object (&self->settings);
 }

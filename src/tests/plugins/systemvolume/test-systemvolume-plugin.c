@@ -67,14 +67,21 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
 {
   MixerInfo *info = fixture->data;
   JsonNode *packet;
+  JsonArray *sink_list;
+  JsonObject *sink_info;
 
   valent_mixer_adapter_emit_stream_added (info->adapter, info->sink1);
 
   valent_test_fixture_connect (fixture, TRUE);
 
+  /* Expect list of sinks upon connection */
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.systemvolume");
   v_assert_packet_field (packet, "sinkList");
+  g_assert_true (valent_packet_get_array (packet, "sinkList", &sink_list));
+  g_assert_cmpuint (json_array_get_length (sink_list), ==, 1);
+  sink_info = json_array_get_object_element (sink_list, 0);
+  g_assert_cmpstr (json_object_get_string_member (sink_info, "name"), ==, "test_sink1");
   json_node_unref (packet);
 
   /* Request the sink list */
@@ -84,6 +91,10 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.systemvolume");
   v_assert_packet_field (packet, "sinkList");
+  g_assert_true (valent_packet_get_array (packet, "sinkList", &sink_list));
+  g_assert_cmpuint (json_array_get_length (sink_list), ==, 1);
+  sink_info = json_array_get_object_element (sink_list, 0);
+  g_assert_cmpstr (json_object_get_string_member (sink_info, "name"), ==, "test_sink1");
   json_node_unref (packet);
 
   /* Expect confirmation of a request to change the mute state */
@@ -95,8 +106,6 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   v_assert_packet_type (packet, "kdeconnect.systemvolume");
   v_assert_packet_cmpstr (packet, "name", ==, "test_sink1");
   v_assert_packet_true (packet, "muted");
-  v_assert_packet_cmpint (packet, "volume", ==, 100);
-  v_assert_packet_true (packet, "enabled");
   json_node_unref (packet);
 
   /* Expect notification of changes to the muted state */
@@ -106,8 +115,6 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   v_assert_packet_type (packet, "kdeconnect.systemvolume");
   v_assert_packet_cmpstr (packet, "name", ==, "test_sink1");
   v_assert_packet_false (packet, "muted");
-  v_assert_packet_cmpint (packet, "volume", ==, 100);
-  v_assert_packet_true (packet, "enabled");
   json_node_unref (packet);
 
   /* Expect confirmation of a request to change the volume level */
@@ -118,9 +125,7 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.systemvolume");
   v_assert_packet_cmpstr (packet, "name", ==, "test_sink1");
-  v_assert_packet_false (packet, "muted");
   v_assert_packet_cmpint (packet, "volume", ==, 50);
-  v_assert_packet_true (packet, "enabled");
   json_node_unref (packet);
 
   /* Expect notification of changes to the volume level */
@@ -129,9 +134,7 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.systemvolume");
   v_assert_packet_cmpstr (packet, "name", ==, "test_sink1");
-  v_assert_packet_false (packet, "muted");
   v_assert_packet_cmpint (packet, "volume", ==, 100);
-  v_assert_packet_true (packet, "enabled");
   json_node_unref (packet);
 
   /* Expect notification of added streams */
@@ -140,6 +143,12 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.systemvolume");
   v_assert_packet_field (packet, "sinkList");
+  g_assert_true (valent_packet_get_array (packet, "sinkList", &sink_list));
+  g_assert_cmpuint (json_array_get_length (sink_list), ==, 2);
+  sink_info = json_array_get_object_element (sink_list, 0);
+  g_assert_cmpstr (json_object_get_string_member (sink_info, "name"), ==, "test_sink1");
+  sink_info = json_array_get_object_element (sink_list, 1);
+  g_assert_cmpstr (json_object_get_string_member (sink_info, "name"), ==, "test_sink2");
   json_node_unref (packet);
 
   /* Expect confirmation of a request to change the default stream */
@@ -150,6 +159,12 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.systemvolume");
   v_assert_packet_field (packet, "sinkList");
+  g_assert_true (valent_packet_get_array (packet, "sinkList", &sink_list));
+  g_assert_cmpuint (json_array_get_length (sink_list), ==, 2);
+  sink_info = json_array_get_object_element (sink_list, 0);
+  g_assert_cmpstr (json_object_get_string_member (sink_info, "name"), ==, "test_sink1");
+  sink_info = json_array_get_object_element (sink_list, 1);
+  g_assert_cmpstr (json_object_get_string_member (sink_info, "name"), ==, "test_sink2");
   json_node_unref (packet);
 
   packet = valent_test_fixture_lookup_packet (fixture, "request-enabled1");
@@ -159,6 +174,12 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.systemvolume");
   v_assert_packet_field (packet, "sinkList");
+  g_assert_true (valent_packet_get_array (packet, "sinkList", &sink_list));
+  g_assert_cmpuint (json_array_get_length (sink_list), ==, 2);
+  sink_info = json_array_get_object_element (sink_list, 0);
+  g_assert_cmpstr (json_object_get_string_member (sink_info, "name"), ==, "test_sink1");
+  sink_info = json_array_get_object_element (sink_list, 1);
+  g_assert_cmpstr (json_object_get_string_member (sink_info, "name"), ==, "test_sink2");
   json_node_unref (packet);
 
   /* Expect notification of removed streams */
@@ -167,6 +188,10 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.systemvolume");
   v_assert_packet_field (packet, "sinkList");
+  g_assert_true (valent_packet_get_array (packet, "sinkList", &sink_list));
+  g_assert_cmpuint (json_array_get_length (sink_list), ==, 1);
+  sink_info = json_array_get_object_element (sink_list, 0);
+  g_assert_cmpstr (json_object_get_string_member (sink_info, "name"), ==, "test_sink1");
   json_node_unref (packet);
 
   /* Expect to be corrected for an invalid stream request */
@@ -176,9 +201,11 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.systemvolume");
   v_assert_packet_field (packet, "sinkList");
+  g_assert_true (valent_packet_get_array (packet, "sinkList", &sink_list));
+  g_assert_cmpuint (json_array_get_length (sink_list), ==, 1);
+  sink_info = json_array_get_object_element (sink_list, 0);
+  g_assert_cmpstr (json_object_get_string_member (sink_info, "name"), ==, "test_sink1");
   json_node_unref (packet);
-
-
 }
 
 int
