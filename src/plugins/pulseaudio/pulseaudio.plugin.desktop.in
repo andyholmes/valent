@@ -11,4 +11,5 @@ Embedded=valent_pulseaudio_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
+X-MixerAdapterPriority=100
 
