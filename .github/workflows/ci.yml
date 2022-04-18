@@ -82,11 +82,15 @@ jobs:
         include:
           - compiler: GCC
             CC: gcc
+            CC_LD: gold
             CXX: g++
+            CXX_LD: gold
             coverage: true
           - compiler: LLVM
             CC: clang
+            CC_LD: lld
             CXX: clang++
+            CXX_LD: lld
             coverage: false
       fail-fast: false
 
@@ -99,7 +103,9 @@ jobs:
       - name: Build
         env:
           CC: ${{ matrix.CC }}
+          CC_LD: ${{ matrix.CC_LD }}
           CXX: ${{ matrix.CXX }}
+          CXX_LD: ${{ matrix.CXX_LD }}
         run: |
           meson setup --buildtype=debugoptimized \
                       -Db_coverage=true \
