@@ -15,13 +15,12 @@
 G_MODULE_EXPORT void
 valent_fdo_plugin_register_types (PeasObjectModule *module)
 {
-  /* Ensure this is GUI instance before registering */
-  if (gtk_init_check ())
-    {
-      peas_object_module_register_extension_type (module,
-                                                  VALENT_TYPE_NOTIFICATION_SOURCE,
-                                                  VALENT_TYPE_FDO_NOTIFICATIONS);
-    }
+  /* Although notifications typically only make sense in a graphical
+   * environment, it is standard interface that one could implement for devices
+   * without a graphical display (ie. home automation device). */
+  peas_object_module_register_extension_type (module,
+                                              VALENT_TYPE_NOTIFICATION_SOURCE,
+                                              VALENT_TYPE_FDO_NOTIFICATIONS);
 
   peas_object_module_register_extension_type (module,
                                               VALENT_TYPE_SESSION_ADAPTER,
