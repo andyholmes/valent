@@ -123,7 +123,7 @@ jobs:
           xvfb-run -a -s '-screen 0 1024x768x24' \
           meson test -C _build \
                      --print-errorlogs \
-                     --repeat=5 \
+                     --repeat=3 \
                      --suite=valent
 
       - name: Test Report
