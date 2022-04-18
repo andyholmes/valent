@@ -7,7 +7,7 @@ FROM registry.fedoraproject.org/fedora:36
 # dependencies (with debug symbols)
 RUN dnf install -y --enablerepo=*-debuginfo \
         glibc-langpack-en glibc-locale-source clang gcc gettext gi-docgen git \
-        graphviz libabigail libasan libtsan libubsan meson appstream \
+        graphviz libabigail libasan libtsan libubsan lld meson appstream \
         desktop-file-utils dbus-daemon lcov python-dbusmock rsync \
         xorg-x11-server-Xvfb \
         alsa-lib-devel                alsa-lib-debuginfo \
