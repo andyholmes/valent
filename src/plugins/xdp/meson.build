@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 # Require libportal
-libportal_version = '0.5'
+libportal_version = ['>= 0.5', '<= 0.6']
 libportal_dep = dependency('libportal-gtk4',
    version: libportal_version,
   required: false,
