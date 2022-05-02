@@ -10,7 +10,7 @@ G_BEGIN_DECLS
 
 #define VALENT_TYPE_FDO_NOTIFICATIONS (valent_fdo_notifications_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentFdoNotifications, valent_fdo_notifications, VALENT, FDO_NOTIFICATIONS, ValentNotificationSource)
+G_DECLARE_FINAL_TYPE (ValentFdoNotifications, valent_fdo_notifications, VALENT, FDO_NOTIFICATIONS, ValentNotificationsAdapter)
 
 G_END_DECLS
 

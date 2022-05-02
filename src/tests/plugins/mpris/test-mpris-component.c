@@ -7,8 +7,8 @@
 #include <libvalent-test.h>
 
 #include "test-mpris-common.h"
+#include "valent-mpris-adapter.h"
 #include "valent-mpris-player.h"
-#include "valent-mpris-player-provider.h"
 #include "valent-mpris-remote.h"
 
 
@@ -33,8 +33,8 @@ timeout_cb (gpointer data)
 }
 
 static void
-mpris_provider_fixture_set_up (MprisComponentFixture *fixture,
-                               gconstpointer          user_data)
+mpris_adapter_fixture_set_up (MprisComponentFixture *fixture,
+                              gconstpointer          user_data)
 {
   g_autoptr (GSettings) settings = NULL;
 
@@ -51,8 +51,8 @@ mpris_provider_fixture_set_up (MprisComponentFixture *fixture,
 }
 
 static void
-mpris_provider_fixture_tear_down (MprisComponentFixture *fixture,
-                                  gconstpointer          user_data)
+mpris_adapter_fixture_tear_down (MprisComponentFixture *fixture,
+                                 gconstpointer          user_data)
 {
   g_clear_pointer (&fixture->loop, g_main_loop_unref);
   g_clear_object (&fixture->player);
@@ -89,8 +89,8 @@ on_player_method (ValentMediaPlayer     *player,
 }
 
 static void
-test_mpris_component_provider (MprisComponentFixture *fixture,
-                               gconstpointer          user_data)
+test_mpris_component_adapter (MprisComponentFixture *fixture,
+                              gconstpointer          user_data)
 {
   g_autoptr (ValentMprisRemote) remote = NULL;
 
@@ -231,17 +231,17 @@ main (int   argc,
 {
   g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 
-  g_test_add ("/plugins/mpris/provider",
+  g_test_add ("/plugins/mpris/adapter",
               MprisComponentFixture, NULL,
-              mpris_provider_fixture_set_up,
-              test_mpris_component_provider,
-              mpris_provider_fixture_tear_down);
+              mpris_adapter_fixture_set_up,
+              test_mpris_component_adapter,
+              mpris_adapter_fixture_tear_down);
 
   g_test_add ("/plugins/mpris/player",
               MprisComponentFixture, NULL,
-              mpris_provider_fixture_set_up,
+              mpris_adapter_fixture_set_up,
               test_mpris_component_player,
-              mpris_provider_fixture_tear_down);
+              mpris_adapter_fixture_tear_down);
 
   return g_test_run ();
 }

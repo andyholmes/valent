@@ -81,18 +81,18 @@ on_player_method (ValentMediaPlayer     *player,
 }
 
 static void
-test_media_component_provider (MediaComponentFixture *fixture,
-                               gconstpointer          user_data)
+test_media_component_adapter (MediaComponentFixture *fixture,
+                              gconstpointer          user_data)
 {
   g_autoptr (GPtrArray) players = NULL;
-  ValentMediaPlayerProvider *provider;
+  ValentMediaAdapter *adapter;
   PeasPluginInfo *plugin_info;
 
-  while ((provider = valent_mock_media_player_provider_get_instance ()) == NULL)
+  while ((adapter = valent_mock_media_adapter_get_instance ()) == NULL)
     continue;
 
   /* Properties */
-  g_object_get (provider,
+  g_object_get (adapter,
                 "plugin-info", &plugin_info,
                 NULL);
 
@@ -100,33 +100,33 @@ test_media_component_provider (MediaComponentFixture *fixture,
   g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
 
   /* Signals */
-  g_signal_connect (provider,
+  g_signal_connect (adapter,
                     "player-added",
                     G_CALLBACK (on_player_added),
                     fixture);
-  valent_media_player_provider_emit_player_added (provider, fixture->player);
-  g_assert_true (fixture->data == provider);
+  valent_media_adapter_emit_player_added (adapter, fixture->player);
+  g_assert_true (fixture->data == adapter);
   fixture->data = NULL;
 
-  players = valent_media_player_provider_get_players (provider);
+  players = valent_media_adapter_get_players (adapter);
   g_assert_cmpint (players->len, ==, 1);
 
-  g_signal_connect (provider,
+  g_signal_connect (adapter,
                     "player-removed",
                     G_CALLBACK (on_player_removed),
                     fixture);
-  valent_media_player_provider_emit_player_removed (provider, fixture->player);
-  g_assert_true (fixture->data == provider);
+  valent_media_adapter_emit_player_removed (adapter, fixture->player);
+  g_assert_true (fixture->data == adapter);
   fixture->data = NULL;
 
-  g_signal_handlers_disconnect_by_data (provider, fixture);
+  g_signal_handlers_disconnect_by_data (adapter, fixture);
 }
 
 static void
 test_media_component_player (MediaComponentFixture *fixture,
                              gconstpointer          user_data)
 {
-  ValentMediaPlayerProvider *provider;
+  ValentMediaAdapter *adapter;
 
   /* org.mpris.MediaPlayer2.Player */
   ValentMediaActions flags;
@@ -136,16 +136,16 @@ test_media_component_player (MediaComponentFixture *fixture,
   g_autoptr (GVariant) metadata = NULL;
   gint64 position;
 
-  while ((provider = valent_mock_media_player_provider_get_instance ()) == NULL)
+  while ((adapter = valent_mock_media_adapter_get_instance ()) == NULL)
     continue;
 
   /* Add Player */
-  g_signal_connect (provider,
+  g_signal_connect (adapter,
                     "player-added",
                     G_CALLBACK (on_player_added),
                     fixture);
-  valent_media_player_provider_emit_player_added (provider, fixture->player);
-  g_assert_true (fixture->data == provider);
+  valent_media_adapter_emit_player_added (adapter, fixture->player);
+  g_assert_true (fixture->data == adapter);
   fixture->data = NULL;
 
   /* Test Player Properties */
@@ -231,16 +231,16 @@ test_media_component_player (MediaComponentFixture *fixture,
   fixture->state = FALSE;
 
   /* Remove Player */
-  g_signal_connect (provider,
+  g_signal_connect (adapter,
                     "player-removed",
                     G_CALLBACK (on_player_removed),
                     fixture);
-  valent_media_player_provider_emit_player_removed (provider, fixture->player);
-  g_assert_true (fixture->data == provider);
+  valent_media_adapter_emit_player_removed (adapter, fixture->player);
+  g_assert_true (fixture->data == adapter);
   fixture->data = NULL;
 
   g_signal_handlers_disconnect_by_data (fixture->media, fixture);
-  g_signal_handlers_disconnect_by_data (provider, fixture);
+  g_signal_handlers_disconnect_by_data (adapter, fixture);
 }
 
 static void
@@ -248,10 +248,10 @@ test_media_component_self (MediaComponentFixture *fixture,
                            gconstpointer          user_data)
 {
   g_autoptr (GPtrArray) players = NULL;
-  ValentMediaPlayerProvider *provider;
+  ValentMediaAdapter *adapter;
   ValentMediaPlayer *player;
 
-  while ((provider = valent_mock_media_player_provider_get_instance ()) == NULL)
+  while ((adapter = valent_mock_media_adapter_get_instance ()) == NULL)
     continue;
 
   /* Add Player */
@@ -259,7 +259,7 @@ test_media_component_self (MediaComponentFixture *fixture,
                     "player-added",
                     G_CALLBACK (on_player_added),
                     fixture);
-  valent_media_player_provider_emit_player_added (provider, fixture->player);
+  valent_media_adapter_emit_player_added (adapter, fixture->player);
   g_assert_true (fixture->data == fixture->media);
   fixture->data = NULL;
 
@@ -284,7 +284,7 @@ test_media_component_self (MediaComponentFixture *fixture,
                     "player-removed",
                     G_CALLBACK (on_player_removed),
                     fixture);
-  valent_media_player_provider_emit_player_removed (provider, fixture->player);
+  valent_media_adapter_emit_player_removed (adapter, fixture->player);
   g_assert_true (fixture->data == fixture->media);
   fixture->data = NULL;
 
@@ -297,10 +297,10 @@ main (int   argc,
 {
   g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 
-  g_test_add ("/components/media/provider",
+  g_test_add ("/components/media/adapter",
               MediaComponentFixture, NULL,
               media_component_fixture_set_up,
-              test_media_component_provider,
+              test_media_component_adapter,
               media_component_fixture_tear_down);
 
   g_test_add ("/components/media/player",

@@ -7,8 +7,8 @@
 #include <libvalent-test.h>
 
 #include "test-mpris-common.h"
+#include "valent-mpris-adapter.h"
 #include "valent-mpris-player.h"
-#include "valent-mpris-player-provider.h"
 #include "valent-mpris-remote.h"
 
 
@@ -24,14 +24,14 @@ typedef struct
 
 static void
 mpris_remote_fixture_set_up (MprisRemoteFixture *fixture,
-                               gconstpointer          user_data)
+                             gconstpointer       user_data)
 {
   fixture->loop = g_main_loop_new (NULL, FALSE);
 }
 
 static void
 mpris_remote_fixture_tear_down (MprisRemoteFixture *fixture,
-                                  gconstpointer          user_data)
+                                gconstpointer       user_data)
 {
   while (g_main_context_iteration (NULL, FALSE))
     continue;
@@ -58,8 +58,8 @@ on_name_owner_changed (GDBusConnection *connection,
 }
 
 static void
-get_all_cb (GDBusConnection       *connection,
-            GAsyncResult          *result,
+get_all_cb (GDBusConnection    *connection,
+            GAsyncResult       *result,
             MprisRemoteFixture *fixture)
 {
   g_autoptr (GVariant) reply = NULL;
@@ -72,9 +72,9 @@ get_all_cb (GDBusConnection       *connection,
 }
 
 static void
-set_cb (GDBusConnection       *connection,
-            GAsyncResult          *result,
-            MprisRemoteFixture *fixture)
+set_cb (GDBusConnection    *connection,
+        GAsyncResult       *result,
+        MprisRemoteFixture *fixture)
 {
   g_autoptr (GVariant) reply = NULL;
   GError *error = NULL;
@@ -86,9 +86,9 @@ set_cb (GDBusConnection       *connection,
 }
 
 static void
-on_remote_method (ValentMprisRemote     *remote,
-                  const char            *method,
-                  GVariant              *args,
+on_remote_method (ValentMprisRemote  *remote,
+                  const char         *method,
+                  GVariant           *args,
                   MprisRemoteFixture *fixture)
 {
   test_mpris_remote_method (remote, method, args, fixture);
@@ -114,7 +114,7 @@ typedef struct {
 
 static void
 test_mpris_remote_dbus (MprisRemoteFixture *fixture,
-                         gconstpointer       user_data)
+                        gconstpointer       user_data)
 {
   g_autoptr (ValentMprisRemote) remote = NULL;
   g_autoptr (GDBusConnection) connection = NULL;

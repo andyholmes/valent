@@ -7,7 +7,7 @@
 #include <libvalent-test.h>
 
 
-static ValentNotificationSource *source = NULL;
+static ValentNotificationsAdapter *adapter = NULL;
 
 static void
 notification_plugin_fixture_set_up (ValentTestFixture *fixture,
@@ -17,7 +17,7 @@ notification_plugin_fixture_set_up (ValentTestFixture *fixture,
   valent_test_fixture_init_settings (fixture, "notification");
 
   // TODO: test with session active/inactive
-  while ((source = valent_mock_notification_source_get_instance ()) == NULL)
+  while ((adapter = valent_mock_notifications_adapter_get_instance ()) == NULL)
     g_main_context_iteration (NULL, FALSE);
 }
 
@@ -97,7 +97,7 @@ test_notification_plugin_send_notification (ValentTestFixture *fixture,
 
   /* Send an empty notification */
   notification = valent_notification_new (NULL);
-  valent_notification_source_emit_notification_added (source, notification);
+  valent_notifications_adapter_emit_notification_added (adapter, notification);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification");
@@ -113,7 +113,7 @@ test_notification_plugin_send_notification (ValentTestFixture *fixture,
   valent_notification_set_application (notification, "Test Application");
   valent_notification_set_title (notification, "Test Title");
   valent_notification_set_body (notification, "Test Body");
-  valent_notification_source_emit_notification_added (source, notification);
+  valent_notifications_adapter_emit_notification_added (adapter, notification);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification");
@@ -127,7 +127,7 @@ test_notification_plugin_send_notification (ValentTestFixture *fixture,
   /* Send a notification with a themed icon */
   valent_notification_set_icon_from_string (notification,
                                             "dialog-information-symbolic");
-  valent_notification_source_emit_notification_added (source, notification);
+  valent_notifications_adapter_emit_notification_added (adapter, notification);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification");
@@ -147,7 +147,7 @@ test_notification_plugin_send_notification (ValentTestFixture *fixture,
   /* Send a notification with a file icon */
   valent_notification_set_icon_from_string (notification,
                                             "file://"TEST_DATA_DIR"image.png");
-  valent_notification_source_emit_notification_added (source, notification);
+  valent_notifications_adapter_emit_notification_added (adapter, notification);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification");
@@ -166,7 +166,7 @@ test_notification_plugin_send_notification (ValentTestFixture *fixture,
   bytes = g_file_load_bytes (file, NULL, NULL, NULL);
   icon = g_bytes_icon_new (bytes);
   valent_notification_set_icon (notification, icon);
-  valent_notification_source_emit_notification_added (source, notification);
+  valent_notifications_adapter_emit_notification_added (adapter, notification);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification");
@@ -181,7 +181,7 @@ test_notification_plugin_send_notification (ValentTestFixture *fixture,
   json_node_unref (packet);
 
   /* Remove Notification */
-  valent_notification_source_emit_notification_removed (source, "test-id");
+  valent_notifications_adapter_emit_notification_removed (adapter, "test-id");
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification.request");

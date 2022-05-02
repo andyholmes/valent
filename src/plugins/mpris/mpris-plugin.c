@@ -7,8 +7,8 @@
 #include <libvalent-core.h>
 #include <libvalent-media.h>
 
+#include "valent-mpris-adapter.h"
 #include "valent-mpris-plugin.h"
-#include "valent-mpris-player-provider.h"
 
 
 G_MODULE_EXPORT void
@@ -18,7 +18,7 @@ valent_mpris_plugin_register_types (PeasObjectModule *module)
                                               VALENT_TYPE_DEVICE_PLUGIN,
                                               VALENT_TYPE_MPRIS_PLUGIN);
   peas_object_module_register_extension_type (module,
-                                              VALENT_TYPE_MEDIA_PLAYER_PROVIDER,
-                                              VALENT_TYPE_MPRIS_PLAYER_PROVIDER);
+                                              VALENT_TYPE_MEDIA_ADAPTER,
+                                              VALENT_TYPE_MPRIS_ADAPTER);
 }
 

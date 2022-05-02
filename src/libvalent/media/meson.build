@@ -12,8 +12,8 @@ libvalent_media_generated_sources = []
 libvalent_media_public_headers = [
   'libvalent-media.h',
   'valent-media.h',
+  'valent-media-adapter.h',
   'valent-media-player.h',
-  'valent-media-player-provider.h',
 ]
 
 libvalent_media_private_headers = [
@@ -31,8 +31,8 @@ install_headers(libvalent_media_public_headers,
 # Sources
 libvalent_media_public_sources = [
   'valent-media.c',
+  'valent-media-adapter.c',
   'valent-media-player.c',
-  'valent-media-player-provider.c',
 ]
 
 

@@ -12,8 +12,8 @@ libvalent_notifications_generated_sources = []
 libvalent_notifications_public_headers = [
   'libvalent-notifications.h',
   'valent-notification.h',
-  'valent-notification-source.h',
   'valent-notifications.h',
+  'valent-notifications-adapter.h',
 ]
 
 libvalent_notifications_private_headers = [
@@ -27,8 +27,8 @@ install_headers(libvalent_notifications_public_headers,
 # Sources
 libvalent_notifications_public_sources = [
   'valent-notification.c',
-  'valent-notification-source.c',
   'valent-notifications.c',
+  'valent-notifications-adapter.c',
 ]
 
 

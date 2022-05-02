@@ -22,7 +22,7 @@ valent_gtk_plugin_register_types (PeasObjectModule *module)
                                                   VALENT_TYPE_CLIPBOARD_ADAPTER,
                                                   VALENT_TYPE_GDK_CLIPBOARD);
       peas_object_module_register_extension_type (module,
-                                                  VALENT_TYPE_NOTIFICATION_SOURCE,
+                                                  VALENT_TYPE_NOTIFICATIONS_ADAPTER,
                                                   VALENT_TYPE_GTK_NOTIFICATIONS);
     }
 }

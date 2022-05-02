@@ -7,10 +7,9 @@
 # error "Only <libvalent-media.h> can be included directly."
 #endif
 
-#include <glib.h>
-#include <glib-object.h>
-
+#include <gio/gio.h>
 #include <libvalent-core.h>
+
 #include "valent-media-player.h"
 
 G_BEGIN_DECLS

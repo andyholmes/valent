@@ -8,9 +8,9 @@
 
 G_BEGIN_DECLS
 
-#define VALENT_TYPE_EBOOK_PROVIDER (valent_ebook_provider_get_type ())
+#define VALENT_TYPE_EBOOK_ADAPTER (valent_ebook_adapter_get_type ())
 
-G_DECLARE_FINAL_TYPE (ValentEBookProvider, valent_ebook_provider, VALENT, EBOOK_PROVIDER, ValentContactStoreProvider)
+G_DECLARE_FINAL_TYPE (ValentEBookAdapter, valent_ebook_adapter, VALENT, EBOOK_ADAPTER, ValentContactsAdapter)
 
 G_END_DECLS
 

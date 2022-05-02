@@ -10,8 +10,8 @@
 #include <libvalent-core.h>
 
 #include "valent-media.h"
+#include "valent-media-adapter.h"
 #include "valent-media-player.h"
-#include "valent-media-player-provider.h"
 
 
 /**
@@ -22,7 +22,7 @@
  * #ValentMedia is an aggregator of media players, intended for use by
  * [class@Valent.DevicePlugin] implementations.
  *
- * Plugins can implement [class@Valent.MediaPlayerProvider] to provide an
+ * Plugins can implement [class@Valent.MediaAdapter] to provide an
  * interface to manage instances of [class@Valent.MediaPlayer].
  *
  * Since: 1.0
@@ -84,9 +84,9 @@ on_player_seeked (ValentMediaPlayer *player,
 }
 
 static void
-on_player_added (ValentMediaPlayerProvider *provider,
-                 ValentMediaPlayer         *player,
-                 ValentMedia               *self)
+on_player_added (ValentMediaAdapter *adapter,
+                 ValentMediaPlayer  *player,
+                 ValentMedia        *self)
 {
   VALENT_ENTRY;
 
@@ -113,9 +113,9 @@ on_player_added (ValentMediaPlayerProvider *provider,
 }
 
 static void
-on_player_removed (ValentMediaPlayerProvider *provider,
-                   ValentMediaPlayer         *player,
-                   ValentMedia               *self)
+on_player_removed (ValentMediaAdapter *adapter,
+                   ValentMediaPlayer  *player,
+                   ValentMedia        *self)
 {
   VALENT_ENTRY;
 
@@ -137,20 +137,20 @@ on_player_removed (ValentMediaPlayerProvider *provider,
 }
 
 static void
-valent_media_player_provider_load_cb (ValentMediaPlayerProvider *provider,
-                                      GAsyncResult              *result,
-                                      ValentMedia               *self)
+valent_media_adapter_load_cb (ValentMediaAdapter *adapter,
+                              GAsyncResult       *result,
+                              ValentMedia        *self)
 {
   g_autoptr (GError) error = NULL;
 
   VALENT_ENTRY;
 
-  g_assert (VALENT_IS_MEDIA_PLAYER_PROVIDER (provider));
-  g_assert (g_task_is_valid (result, provider));
+  g_assert (VALENT_IS_MEDIA_ADAPTER (adapter));
+  g_assert (g_task_is_valid (result, adapter));
 
-  if (!valent_media_player_provider_load_finish (provider, result, &error) &&
+  if (!valent_media_adapter_load_finish (adapter, result, &error) &&
       !valent_error_ignore (error))
-    g_warning ("%s failed to load: %s", G_OBJECT_TYPE_NAME (provider), error->message);
+    g_warning ("%s failed to load: %s", G_OBJECT_TYPE_NAME (adapter), error->message);
 
   VALENT_EXIT;
 }
@@ -164,30 +164,30 @@ valent_media_extension_added (ValentComponent *component,
                               PeasExtension   *extension)
 {
   ValentMedia *self = VALENT_MEDIA (component);
-  ValentMediaPlayerProvider *provider = VALENT_MEDIA_PLAYER_PROVIDER (extension);
+  ValentMediaAdapter *adapter = VALENT_MEDIA_ADAPTER (extension);
 
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_COMPONENT (component));
-  g_assert (VALENT_IS_MEDIA_PLAYER_PROVIDER (provider));
+  g_assert (VALENT_IS_MEDIA_ADAPTER (adapter));
   g_assert (VALENT_IS_MEDIA (self));
 
-  g_signal_connect_object (provider,
+  g_signal_connect_object (adapter,
                            "player-added",
                            G_CALLBACK (on_player_added),
                            self,
                            0);
 
-  g_signal_connect_object (provider,
+  g_signal_connect_object (adapter,
                            "player-removed",
                            G_CALLBACK (on_player_removed),
                            self,
                            0);
 
-  valent_media_player_provider_load_async (provider,
-                                           self->cancellable,
-                                           (GAsyncReadyCallback)valent_media_player_provider_load_cb,
-                                           self);
+  valent_media_adapter_load_async (adapter,
+                                   self->cancellable,
+                                   (GAsyncReadyCallback)valent_media_adapter_load_cb,
+                                   self);
 
   VALENT_EXIT;
 }
@@ -197,7 +197,7 @@ valent_media_extension_removed (ValentComponent *component,
                                 PeasExtension   *extension)
 {
   ValentMedia *self = VALENT_MEDIA (component);
-  ValentMediaPlayerProvider *provider = VALENT_MEDIA_PLAYER_PROVIDER (extension);
+  ValentMediaAdapter *adapter = VALENT_MEDIA_ADAPTER (extension);
   g_autoptr (GPtrArray) players = NULL;
 
   VALENT_ENTRY;
@@ -205,12 +205,12 @@ valent_media_extension_removed (ValentComponent *component,
   g_assert (VALENT_IS_COMPONENT (component));
   g_assert (VALENT_IS_MEDIA (component));
 
-  players = valent_media_player_provider_get_players (provider);
+  players = valent_media_adapter_get_players (adapter);
 
   for (unsigned int i = 0; i < players->len; i++)
-    valent_media_player_provider_emit_player_removed (provider, g_ptr_array_index (players, i));
+    valent_media_adapter_emit_player_removed (adapter, g_ptr_array_index (players, i));
 
-  g_signal_handlers_disconnect_by_data (provider, self);
+  g_signal_handlers_disconnect_by_data (adapter, self);
 
   VALENT_EXIT;
 }
@@ -261,7 +261,7 @@ valent_media_class_init (ValentMediaClass *klass)
    * @player: an #ValentMediaPlayer
    *
    * Emitted when a [class@Valent.MediaPlayer] has been added to a
-   * [class@Valent.MediaPlayerProvider] implementation.
+   * [class@Valent.MediaAdapter] implementation.
    *
    * Since: 1.0
    */
@@ -283,7 +283,7 @@ valent_media_class_init (ValentMediaClass *klass)
    * @player: an #ValentMediaPlayer
    *
    * Emitted when a [class@Valent.MediaPlayer] has been removed from a
-   * [class@Valent.MediaPlayerProvider] implementation.
+   * [class@Valent.MediaAdapter] implementation.
    *
    * Since: 1.0
    */
@@ -364,7 +364,7 @@ valent_media_get_default (void)
     {
       default_media = g_object_new (VALENT_TYPE_MEDIA,
                                     "plugin-context", "media",
-                                    "plugin-type",    VALENT_TYPE_MEDIA_PLAYER_PROVIDER,
+                                    "plugin-type",    VALENT_TYPE_MEDIA_ADAPTER,
                                     NULL);
 
       g_object_add_weak_pointer (G_OBJECT (default_media),

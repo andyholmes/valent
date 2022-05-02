@@ -5,9 +5,9 @@
 
 #define VALENT_NOTIFICATIONS_INSIDE
 
-#include "valent-notifications.h"
 #include "valent-notification.h"
-#include "valent-notification-source.h"
+#include "valent-notifications.h"
+#include "valent-notifications-adapter.h"
 
 #undef VALENT_NOTIFICATIONS_INSIDE
 

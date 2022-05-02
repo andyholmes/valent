@@ -17,7 +17,7 @@
  * A base class for media players.
  *
  * A #ValentMediaPlayer is a base class for plugins to providing an interface to
- * media players via [class@Valent.MediaPlayerProvider].
+ * media players via [class@Valent.MediaAdapter].
  *
  * Since: 1.0
  */

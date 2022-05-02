@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-#define G_LOG_DOMAIN "valent-mpris-player-provider"
+#define G_LOG_DOMAIN "valent-mpris-adapter"
 
 #include "config.h"
 
@@ -10,26 +10,26 @@
 
 #include "valent-mpris-common.h"
 #include "valent-mpris-player.h"
-#include "valent-mpris-player-provider.h"
+#include "valent-mpris-adapter.h"
 
 
-struct _ValentMPRISPlayerProvider
+struct _ValentMPRISAdapter
 {
-  ValentMediaPlayerProvider  parent_instance;
+  ValentMediaAdapter  parent_instance;
 
-  GDBusConnection           *connection;
-  unsigned int               name_owner_changed_id;
-  GHashTable                *players;
+  GDBusConnection    *connection;
+  unsigned int        name_owner_changed_id;
+  GHashTable         *players;
 };
 
-G_DEFINE_TYPE (ValentMPRISPlayerProvider, valent_mpris_player_provider, VALENT_TYPE_MEDIA_PLAYER_PROVIDER)
+G_DEFINE_TYPE (ValentMPRISAdapter, valent_mpris_adapter, VALENT_TYPE_MEDIA_ADAPTER)
 
 
 /*
  * Emitted when the properties of a #MPRISPlayer change.
  */
 static void
-add_player (ValentMPRISPlayerProvider *self,
+add_player (ValentMPRISAdapter *self,
             ValentMPRISPlayer         *player)
 {
   g_autofree char *name = NULL;
@@ -39,22 +39,22 @@ add_player (ValentMPRISPlayerProvider *self,
                        g_steal_pointer (&name),
                        g_object_ref (player));
 
-  valent_media_player_provider_emit_player_added (VALENT_MEDIA_PLAYER_PROVIDER (self),
+  valent_media_adapter_emit_player_added (VALENT_MEDIA_ADAPTER (self),
                                                   VALENT_MEDIA_PLAYER (player));
 }
 
 static void
-remove_player (ValentMPRISPlayerProvider *self,
+remove_player (ValentMPRISAdapter *self,
                const char                *name)
 {
-  ValentMediaPlayerProvider *provider = VALENT_MEDIA_PLAYER_PROVIDER (self);
+  ValentMediaAdapter *adapter = VALENT_MEDIA_ADAPTER (self);
   gpointer key, value;
 
-  g_assert (VALENT_IS_MEDIA_PLAYER_PROVIDER (self));
+  g_assert (VALENT_IS_MEDIA_ADAPTER (self));
 
   if (g_hash_table_steal_extended (self->players, name, &key, &value))
     {
-      valent_media_player_provider_emit_player_removed (provider, value);
+      valent_media_adapter_emit_player_removed (adapter, value);
       g_free (key);
       g_object_unref (value);
     }
@@ -65,11 +65,11 @@ valent_mpris_player_new_cb (GObject      *object,
                             GAsyncResult *result,
                             gpointer      user_data)
 {
-  ValentMPRISPlayerProvider *self = VALENT_MPRIS_PLAYER_PROVIDER (user_data);
+  ValentMPRISAdapter *self = VALENT_MPRIS_ADAPTER (user_data);
   g_autoptr (ValentMPRISPlayer) player = NULL;
   g_autoptr (GError) error = NULL;
 
-  g_assert (VALENT_IS_MPRIS_PLAYER_PROVIDER (self));
+  g_assert (VALENT_IS_MPRIS_ADAPTER (self));
 
   if ((player = valent_mpris_player_new_finish (result, &error)) != NULL)
     add_player (self, player);
@@ -86,7 +86,7 @@ on_name_owner_changed (GDBusConnection *connection,
                        GVariant        *parameters,
                        gpointer         user_data)
 {
-  ValentMPRISPlayerProvider *self = VALENT_MPRIS_PLAYER_PROVIDER (user_data);
+  ValentMPRISAdapter *self = VALENT_MPRIS_ADAPTER (user_data);
   gboolean known;
   const char *name;
   const char *old_owner;
@@ -114,7 +114,7 @@ list_names_cb (GDBusConnection *connection,
                GAsyncResult    *result,
                gpointer         user_data)
 {
-  ValentMPRISPlayerProvider *self;
+  ValentMPRISAdapter *self;
   g_autoptr (GTask) task = G_TASK (user_data);
   g_autoptr (GVariant) reply = NULL;
 
@@ -167,19 +167,19 @@ list_names_cb (GDBusConnection *connection,
 }
 
 static void
-valent_mpris_player_provider_load_async (ValentMediaPlayerProvider *provider,
+valent_mpris_adapter_load_async (ValentMediaAdapter *adapter,
                                          GCancellable              *cancellable,
                                          GAsyncReadyCallback        callback,
                                          gpointer                   user_data)
 {
-  ValentMPRISPlayerProvider *self = VALENT_MPRIS_PLAYER_PROVIDER (provider);
+  ValentMPRISAdapter *self = VALENT_MPRIS_ADAPTER (adapter);
   g_autoptr (GTask) task = NULL;
   GError *error = NULL;
 
-  g_assert (VALENT_IS_MPRIS_PLAYER_PROVIDER (self));
+  g_assert (VALENT_IS_MPRIS_ADAPTER (self));
 
-  task = g_task_new (provider, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_mpris_player_provider_load_async);
+  task = g_task_new (adapter, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_mpris_adapter_load_async);
 
   self->connection = g_bus_get_sync (G_BUS_TYPE_SESSION,
                                      cancellable,
@@ -206,9 +206,9 @@ valent_mpris_player_provider_load_async (ValentMediaPlayerProvider *provider,
  * GObject
  */
 static void
-valent_mpris_player_provider_finalize (GObject *object)
+valent_mpris_adapter_finalize (GObject *object)
 {
-  ValentMPRISPlayerProvider *self = VALENT_MPRIS_PLAYER_PROVIDER (object);
+  ValentMPRISAdapter *self = VALENT_MPRIS_ADAPTER (object);
 
   if (self->name_owner_changed_id > 0)
     {
@@ -220,22 +220,22 @@ valent_mpris_player_provider_finalize (GObject *object)
   g_clear_object (&self->connection);
   g_clear_pointer (&self->players, g_hash_table_unref);
 
-  G_OBJECT_CLASS (valent_mpris_player_provider_parent_class)->finalize (object);
+  G_OBJECT_CLASS (valent_mpris_adapter_parent_class)->finalize (object);
 }
 
 static void
-valent_mpris_player_provider_class_init (ValentMPRISPlayerProviderClass *klass)
+valent_mpris_adapter_class_init (ValentMPRISAdapterClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
-  ValentMediaPlayerProviderClass *provider_class = VALENT_MEDIA_PLAYER_PROVIDER_CLASS (klass);
+  ValentMediaAdapterClass *adapter_class = VALENT_MEDIA_ADAPTER_CLASS (klass);
 
-  object_class->finalize = valent_mpris_player_provider_finalize;
+  object_class->finalize = valent_mpris_adapter_finalize;
 
-  provider_class->load_async = valent_mpris_player_provider_load_async;
+  adapter_class->load_async = valent_mpris_adapter_load_async;
 }
 
 static void
-valent_mpris_player_provider_init (ValentMPRISPlayerProvider *self)
+valent_mpris_adapter_init (ValentMPRISAdapter *self)
 {
   self->players = g_hash_table_new_full (g_str_hash, g_str_equal,
                                          g_free, g_object_unref);

@@ -9,14 +9,14 @@
 
 typedef struct
 {
-  ValentContacts             *contacts;
-  ValentContactStoreProvider *provider;
-  ValentContactStore         *store;
-  EContact                   *contact;
-  GMainLoop                  *loop;
-  gpointer                    emitter;
-  gpointer                    emitted;
-  gpointer                    result;
+  ValentContacts        *contacts;
+  ValentContactsAdapter *adapter;
+  ValentContactStore    *store;
+  EContact              *contact;
+  GMainLoop             *loop;
+  gpointer               emitter;
+  gpointer               emitted;
+  gpointer               result;
 } ContactsComponentFixture;
 
 
@@ -173,9 +173,9 @@ contacts_component_fixture_set_up (ContactsComponentFixture *fixture,
   fixture->contact = e_contact_new_from_vcard_with_uid (vcard, "test-contact");
   fixture->loop = g_main_loop_new (NULL, FALSE);
 
-  // HACK: Wait for the provider to be constructed, then a bit longer for
-  //       valent_contact_store_provider_load_async() to resolve
-  while ((fixture->provider = valent_mock_contact_store_provider_get_instance ()) == NULL)
+  // HACK: Wait for the adapter to be constructed, then a bit longer for
+  //       valent_contacts_adapter_load_async() to resolve
+  while ((fixture->adapter = valent_mock_contacts_adapter_get_instance ()) == NULL)
     continue;
 
   while (g_main_context_iteration (NULL, FALSE))
@@ -193,55 +193,53 @@ contacts_component_fixture_tear_down (ContactsComponentFixture *fixture,
 }
 
 static void
-test_contacts_component_provider (ContactsComponentFixture *fixture,
-                                  gconstpointer             user_data)
+test_contacts_component_adapter (ContactsComponentFixture *fixture,
+                                 gconstpointer             user_data)
 {
   PeasPluginInfo *info;
   GPtrArray *stores;
 
   /* Properties */
-  g_object_get (fixture->provider,
+  g_object_get (fixture->adapter,
                 "plugin-info", &info,
                 NULL);
   g_assert_cmpstr (peas_plugin_info_get_module_name (info), ==, "mock");
   g_boxed_free (PEAS_TYPE_PLUGIN_INFO, info);
 
   /* Signals */
-  g_signal_connect (fixture->provider,
+  g_signal_connect (fixture->adapter,
                     "store-added",
                     G_CALLBACK (on_store_added),
                     fixture);
-  g_signal_connect (fixture->provider,
+  g_signal_connect (fixture->adapter,
                     "store-removed",
                     G_CALLBACK (on_store_removed),
                     fixture);
 
   /* ::store-added is emitted and the internal representation is updated */
-  valent_contact_store_provider_emit_store_added (fixture->provider,
-                                                  fixture->store);
-  g_assert_true (fixture->emitter == fixture->provider);
+  valent_contacts_adapter_emit_store_added (fixture->adapter, fixture->store);
+  g_assert_true (fixture->emitter == fixture->adapter);
   g_assert_true (fixture->emitted == fixture->store);
   fixture->emitter = NULL;
   fixture->emitted = NULL;
 
-  stores = valent_contact_store_provider_get_stores (fixture->provider);
+  stores = valent_contacts_adapter_get_stores (fixture->adapter);
   g_assert_cmpuint (stores->len, ==, 2);
   g_assert_true (g_ptr_array_index (stores, 1) == fixture->store);
   g_clear_pointer (&stores, g_ptr_array_unref);
 
   /* ::store-removed is emitted and the internal representation is updated */
-  valent_contact_store_provider_emit_store_removed (fixture->provider,
-                                                    fixture->store);
-  g_assert_true (fixture->emitter == fixture->provider);
+  valent_contacts_adapter_emit_store_removed (fixture->adapter, fixture->store);
+  g_assert_true (fixture->emitter == fixture->adapter);
   g_assert_true (fixture->emitted == fixture->store);
   fixture->emitter = NULL;
   fixture->emitted = NULL;
 
-  stores = valent_contact_store_provider_get_stores (fixture->provider);
+  stores = valent_contacts_adapter_get_stores (fixture->adapter);
   g_assert_cmpuint (stores->len, ==, 1);
   g_clear_pointer (&stores, g_ptr_array_unref);
 
-  g_signal_handlers_disconnect_by_data (fixture->provider, fixture);
+  g_signal_handlers_disconnect_by_data (fixture->adapter, fixture);
 }
 
 static void
@@ -401,8 +399,7 @@ test_contacts_component_self (ContactsComponentFixture *fixture,
                     fixture);
 
   /* ::store-added propagates to ValentContacts */
-  valent_contact_store_provider_emit_store_added (fixture->provider,
-                                                  fixture->store);
+  valent_contacts_adapter_emit_store_added (fixture->adapter, fixture->store);
   g_assert_true (VALENT_IS_CONTACTS (fixture->emitter));
   g_assert_true (VALENT_IS_CONTACT_STORE (fixture->emitted));
   fixture->emitter = NULL;
@@ -416,8 +413,7 @@ test_contacts_component_self (ContactsComponentFixture *fixture,
   g_assert_true (VALENT_IS_CONTACT_STORE (store));
 
   /* ::store-removed propagates to ValentContacts */
-  valent_contact_store_provider_emit_store_removed (fixture->provider,
-                                                    fixture->store);
+  valent_contacts_adapter_emit_store_removed (fixture->adapter, fixture->store);
   g_assert_true (VALENT_IS_CONTACTS (fixture->emitter));
   g_assert_true (VALENT_IS_CONTACT_STORE (fixture->emitted));
   fixture->emitter = NULL;
@@ -465,10 +461,10 @@ main (int   argc,
 {
   g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 
-  g_test_add ("/components/contacts/provider",
+  g_test_add ("/components/contacts/adapter",
               ContactsComponentFixture, NULL,
               contacts_component_fixture_set_up,
-              test_contacts_component_provider,
+              test_contacts_component_adapter,
               contacts_component_fixture_tear_down);
 
   g_test_add ("/components/contacts/store",

@@ -11,8 +11,8 @@
 #include <libvalent-core.h>
 
 #include "valent-notification.h"
-#include "valent-notification-source.h"
 #include "valent-notifications.h"
+#include "valent-notifications-adapter.h"
 
 
 /**
@@ -23,7 +23,7 @@
  * #ValentNotifications is an aggregator of notifications, intended for use by
  * [class@Valent.DevicePlugin] implementations.
  *
- * Plugins can implement [class@Valent.NotificationSource] to provide an
+ * Plugins can implement [class@Valent.NotificationsAdapter] to provide an
  * interface to monitor, send and withdraw notifications.
  *
  * Since: 1.0
@@ -178,14 +178,14 @@ add_application (ValentNotifications *self,
 
 
 /*
- * ValentNotificationSource Callbacks
+ * ValentNotificationsAdapter Callbacks
  */
 static void
-on_notification_added (ValentNotificationSource *source,
-                       ValentNotification       *notification,
-                       ValentNotifications      *self)
+on_notification_added (ValentNotificationsAdapter *adapter,
+                       ValentNotification         *notification,
+                       ValentNotifications        *self)
 {
-  g_assert (VALENT_IS_NOTIFICATION_SOURCE (source));
+  g_assert (VALENT_IS_NOTIFICATIONS_ADAPTER (adapter));
   g_assert (VALENT_IS_NOTIFICATION (notification));
   g_assert (VALENT_IS_NOTIFICATIONS (self));
 
@@ -195,11 +195,11 @@ on_notification_added (ValentNotificationSource *source,
 }
 
 static void
-on_notification_removed (ValentNotificationSource *source,
-                         const char               *id,
-                         ValentNotifications      *self)
+on_notification_removed (ValentNotificationsAdapter *adapter,
+                         const char                 *id,
+                         ValentNotifications        *self)
 {
-  g_assert (VALENT_IS_NOTIFICATION_SOURCE (source));
+  g_assert (VALENT_IS_NOTIFICATIONS_ADAPTER (adapter));
   g_assert (id != NULL);
   g_assert (VALENT_IS_NOTIFICATIONS (self));
 
@@ -207,21 +207,21 @@ on_notification_removed (ValentNotificationSource *source,
 }
 
 static void
-valent_notification_source_load_cb (ValentNotificationSource *source,
-                                    GAsyncResult             *result,
-                                    ValentNotifications      *self)
+valent_notifications_adapter_load_cb (ValentNotificationsAdapter *adapter,
+                                      GAsyncResult               *result,
+                                      ValentNotifications        *self)
 {
   g_autoptr (GError) error = NULL;
 
   VALENT_ENTRY;
 
-  g_assert (VALENT_IS_NOTIFICATION_SOURCE (source));
-  g_assert (g_task_is_valid (result, source));
+  g_assert (VALENT_IS_NOTIFICATIONS_ADAPTER (adapter));
+  g_assert (g_task_is_valid (result, adapter));
   g_assert (VALENT_IS_NOTIFICATIONS (self));
 
-  if (!valent_notification_source_load_finish (source, result, &error) &&
+  if (!valent_notifications_adapter_load_finish (adapter, result, &error) &&
       !valent_error_ignore (error))
-    g_warning ("%s failed to load: %s", G_OBJECT_TYPE_NAME (source), error->message);
+    g_warning ("%s failed to load: %s", G_OBJECT_TYPE_NAME (adapter), error->message);
 
   VALENT_EXIT;
 }
@@ -235,25 +235,25 @@ valent_notifications_extension_added (ValentComponent *component,
                                       PeasExtension   *extension)
 {
   ValentNotifications *self = VALENT_NOTIFICATIONS (component);
-  ValentNotificationSource *source = VALENT_NOTIFICATION_SOURCE (extension);
+  ValentNotificationsAdapter *adapter = VALENT_NOTIFICATIONS_ADAPTER (extension);
 
   g_assert (VALENT_IS_NOTIFICATIONS (self));
-  g_assert (VALENT_IS_NOTIFICATION_SOURCE (source));
+  g_assert (VALENT_IS_NOTIFICATIONS_ADAPTER (adapter));
 
-  g_signal_connect_object (source,
+  g_signal_connect_object (adapter,
                            "notification-added",
                            G_CALLBACK (on_notification_added),
                            self, 0);
 
-  g_signal_connect_object (source,
+  g_signal_connect_object (adapter,
                            "notification-removed",
                            G_CALLBACK (on_notification_removed),
                            self, 0);
 
-  valent_notification_source_load_async (source,
-                                         NULL, // TODO self->cancellable,
-                                         (GAsyncReadyCallback)valent_notification_source_load_cb,
-                                         self);
+  valent_notifications_adapter_load_async (adapter,
+                                           NULL,
+                                           (GAsyncReadyCallback)valent_notifications_adapter_load_cb,
+                                           self);
 }
 
 static void
@@ -261,13 +261,13 @@ valent_notifications_extension_removed (ValentComponent *component,
                                         PeasExtension   *extension)
 {
   ValentNotifications *self = VALENT_NOTIFICATIONS (component);
-  ValentNotificationSource *source = VALENT_NOTIFICATION_SOURCE (extension);
+  ValentNotificationsAdapter *adapter = VALENT_NOTIFICATIONS_ADAPTER (extension);
 
   g_assert (VALENT_IS_NOTIFICATIONS (self));
-  g_assert (VALENT_IS_NOTIFICATION_SOURCE (source));
+  g_assert (VALENT_IS_NOTIFICATIONS_ADAPTER (adapter));
 
-  g_signal_handlers_disconnect_by_func (source, on_notification_added, self);
-  g_signal_handlers_disconnect_by_func (source, on_notification_removed, self);
+  g_signal_handlers_disconnect_by_func (adapter, on_notification_added, self);
+  g_signal_handlers_disconnect_by_func (adapter, on_notification_removed, self);
 }
 
 
@@ -301,7 +301,7 @@ valent_notifications_class_init (ValentNotificationsClass *klass)
    * @notification: a #ValentNotification
    *
    * Emitted when a notification is added to a
-   * [class@Valent.NotificationSource].
+   * [class@Valent.NotificationsAdapter].
    *
    * Since: 1.0
    */
@@ -323,7 +323,7 @@ valent_notifications_class_init (ValentNotificationsClass *klass)
    * @id: a notification id
    *
    * Emitted when a notification is removed from a
-   * [class@Valent.NotificationSource].
+   * [class@Valent.NotificationsAdapter].
    *
    * Since: 1.0
    */
@@ -362,7 +362,7 @@ valent_notifications_get_default (void)
     {
       default_listener = g_object_new (VALENT_TYPE_NOTIFICATIONS,
                                        "plugin-context", "notifications",
-                                       "plugin-type",    VALENT_TYPE_NOTIFICATION_SOURCE,
+                                       "plugin-type",    VALENT_TYPE_NOTIFICATIONS_ADAPTER,
                                        NULL);
 
       g_object_add_weak_pointer (G_OBJECT (default_listener),
