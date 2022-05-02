@@ -52,8 +52,12 @@ valent_object_notify_main (gpointer data)
  * @object: (type GObject.Object): a #GObject
  * @property_name: a property name
  *
- * Like g_object_notify() if the caller is in the main-thread. Otherwise, the
- * request is deferred to the main thread.
+ * Emit [signal@GObject.Object::notify] on @object, on the main thread.
+ *
+ * Like [method@GObject.Object.notify] if the caller is in the main thread,
+ * otherwise the invocation is deferred to the main thread.
+ *
+ * Since: 1.0
  */
 void
 valent_object_notify (gpointer    object,
@@ -88,8 +92,12 @@ valent_object_notify (gpointer    object,
  * @object: (type GObject.Object): a #GObject
  * @pspec: a #GParamSpec
  *
- * Like g_object_notify_by_pspec() if the caller is in the main-thread.
- * Otherwise, the request is deferred to the main thread.
+ * Emit [signal@GObject.Object::notify] on @object, on the main thread.
+ *
+ * Like [method@GObject.Object.notify_by_pspec] if the caller is in the main
+ * thread, otherwise the invocation is deferred to the main thread.
+ *
+ * Since: 1.0
  */
 void
 valent_object_notify_by_pspec (gpointer    object,
@@ -124,6 +132,8 @@ valent_object_notify_by_pspec (gpointer    object,
  * @list: (type GLib.List) (element-type GObject.Object) (nullable): a #GList
  *
  * A convenience function for freeing a #GSList of #GObject.
+ *
+ * Since: 1.0
  */
 void
 valent_object_list_free (gpointer list)
@@ -136,6 +146,8 @@ valent_object_list_free (gpointer list)
  * @slist: (type GLib.SList) (element-type GObject.Object) (nullable): a #GSList
  *
  * A convenience function for freeing a #GSList of #GObject.
+ *
+ * Since: 1.0
  */
 void
 valent_object_slist_free (gpointer slist)

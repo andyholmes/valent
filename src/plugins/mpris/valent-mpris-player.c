@@ -802,8 +802,7 @@ valent_mpris_player_init (ValentMPRISPlayer *media_player)
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
  *
- * Asynchronous version of valent_mpris_player_new_sync(). Call
- * valent_mpris_player_new_finish() to get the result.
+ * Create a new MPRISv2 client.
  *
  * Returns: (transfer full): a #ValentMPRISPlayer
  */
@@ -827,7 +826,7 @@ valent_mpris_player_new (const char          *bus_name,
  * @result: a #GAsyncResult
  * @error: (nullable): a #GError
  *
- * Finish an operation started with valent_mpris_player_new().
+ * Finish an operation started ny [func@Valent.MPRISPlayer.new].
  *
  * Returns: (transfer full) (nullable): a #ValentMPRISPlayer
  */

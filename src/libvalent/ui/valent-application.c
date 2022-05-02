@@ -12,12 +12,13 @@
 
 
 /**
- * SECTION:valentapplication
- * @short_description: Valent Application
- * @title: ValentApplication
- * @stability: Unstable
+ * ValentApplication:
+ *
+ * The primary application class of Valent.
  *
  * #ValentApplication is the primary application class for Valent.
+ *
+ * Since: 1.0
  */
 
 struct _ValentApplication
@@ -136,7 +137,7 @@ on_load_plugin (PeasEngine        *engine,
   plugin->settings = valent_component_new_settings ("application", module);
   g_hash_table_insert (self->plugins, info, plugin);
 
-  /* The PeasExtension is created and destroyed bases on the enabled state */
+  /* The PeasExtension is created and destroyed based on the enabled state */
   g_signal_connect (plugin->settings,
                     "changed::enabled",
                     G_CALLBACK (on_enabled_changed),
@@ -183,7 +184,10 @@ valent_application_load_plugins (ValentApplication *self)
   plugins = peas_engine_get_plugin_list (engine);
 
   for (const GList *iter = plugins; iter; iter = iter->next)
-    on_load_plugin (engine, iter->data, self);
+    {
+      if (peas_plugin_info_is_loaded (iter->data))
+        on_load_plugin (engine, iter->data, self);
+    }
 
   g_signal_connect_after (engine,
                           "load-plugin",

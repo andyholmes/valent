@@ -18,7 +18,9 @@
  * An interface for device plugin preferences.
  *
  * #ValentDevicePreferencesPage is an interface for [class@Valent.DevicePlugin]
- * implementations that want to a provide preferences page.
+ * implementations that want to provide a preferences page.
+ *
+ * Since: 1.0
  */
 
 G_DEFINE_INTERFACE (ValentDevicePreferencesPage, valent_device_preferences_page, ADW_TYPE_PREFERENCES_PAGE)
@@ -36,6 +38,8 @@ valent_device_preferences_page_default_init (ValentDevicePreferencesPageInterfac
    * ValentDevicePreferencesPage:device-id:
    *
    * The ID of the [class@Valent.Device] the plugin is bound to.
+   *
+   * Since: 1.0
    */
   g_object_interface_install_property (iface,
                                        g_param_spec_string ("device-id",
@@ -51,6 +55,8 @@ valent_device_preferences_page_default_init (ValentDevicePreferencesPageInterfac
    * ValentDevicePreferencesPage:plugin-info:
    *
    * The [struct@Peas.PluginInfo] describing the plugin this page configures.
+   *
+   * Since: 1.0
    */
   g_object_interface_install_property (iface,
                                        g_param_spec_boxed ("plugin-info",

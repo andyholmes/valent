@@ -18,6 +18,7 @@ G_DECLARE_FINAL_TYPE (ValentNotifications, valent_notifications, VALENT, NOTIFIC
 
 VALENT_AVAILABLE_IN_1_0
 ValentNotifications * valent_notifications_get_default      (void);
+
 VALENT_AVAILABLE_IN_1_0
 GVariant            * valent_notifications_get_applications (ValentNotifications *notifications);
 

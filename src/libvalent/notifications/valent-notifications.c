@@ -7,6 +7,7 @@
 
 #include <gio/gio.h>
 #include <gio/gdesktopappinfo.h>
+#include <libpeas/peas.h>
 #include <libvalent-core.h>
 
 #include "valent-notification.h"
@@ -15,18 +16,17 @@
 
 
 /**
- * SECTION:valentnotifications
- * @short_description: Notification Listener
- * @title: ValentNotifications
- * @stability: Unstable
- * @include: libvalent-notifications.h
+ * ValentNotifications:
  *
- * #ValentNotifications is an aggregator for notification services, with a
- * simple API generally intended to be used by #ValentDevicePlugin
- * implementations.
+ * A class for sending and receiving notifications.
  *
- * Plugins can provide adapters for services by subclassing the
- * #ValentNotificationSource base class.
+ * #ValentNotifications is an aggregator of notifications, intended for use by
+ * [class@Valent.DevicePlugin] implementations.
+ *
+ * Plugins can implement [class@Valent.NotificationSource] to provide an
+ * interface to monitor, send and withdraw notifications.
+ *
+ * Since: 1.0
  */
 
 struct _ValentNotifications
@@ -300,8 +300,10 @@ valent_notifications_class_init (ValentNotificationsClass *klass)
    * @notifications: a #ValentNotifications
    * @notification: a #ValentNotification
    *
-   * #ValentNotifications::notification-removed is emitted when a new notification
-   * is added to @notifications.
+   * Emitted when a notification is added to a
+   * [class@Valent.NotificationSource].
+   *
+   * Since: 1.0
    */
   signals [NOTIFICATION_ADDED] =
     g_signal_new ("notification-added",
@@ -320,8 +322,10 @@ valent_notifications_class_init (ValentNotificationsClass *klass)
    * @notifications: a #ValentNotifications
    * @id: a notification id
    *
-   * #ValentNotifications::notification-removed is emitted when a notification
-   * is removed from @notifications.
+   * Emitted when a notification is removed from a
+   * [class@Valent.NotificationSource].
+   *
+   * Since: 1.0
    */
   signals [NOTIFICATION_REMOVED] =
     g_signal_new ("notification-removed",
@@ -343,33 +347,13 @@ valent_notifications_init (ValentNotifications *self)
 }
 
 /**
- * valent_notifications_get_applications:
- * @notifications: (nullable): a #ValentNotifications
- *
- * Get a dictionary of applications that are known to send notifications.
- *
- * Returns: (transfer none): a #GVariant
- */
-GVariant *
-valent_notifications_get_applications (ValentNotifications *notifications)
-{
-  g_return_val_if_fail (notifications == NULL || VALENT_IS_NOTIFICATIONS (notifications), NULL);
-
-  if (notifications == NULL)
-      notifications = valent_notifications_get_default ();
-
-  if (notifications->applications == NULL)
-    query_applications (notifications);
-
-  return notifications->applications;
-}
-
-/**
  * valent_notifications_get_default:
  *
- * Get the #ValentNotifications singleton.
+ * Get the default [class@Valent.Notifications].
  *
- * Returns: (transfer none): a #ValentNotifications
+ * Returns: (transfer none) (not nullable): a #ValentNotifications
+ *
+ * Since: 1.0
  */
 ValentNotifications *
 valent_notifications_get_default (void)
@@ -386,5 +370,29 @@ valent_notifications_get_default (void)
     }
 
   return default_listener;
+}
+
+/**
+ * valent_notifications_get_applications:
+ * @notifications: (nullable): a #ValentNotifications
+ *
+ * Get a dictionary of applications that are known to send notifications.
+ *
+ * Returns: (transfer none): a #GVariant
+ *
+ * Since: 1.0
+ */
+GVariant *
+valent_notifications_get_applications (ValentNotifications *notifications)
+{
+  g_return_val_if_fail (notifications == NULL || VALENT_IS_NOTIFICATIONS (notifications), NULL);
+
+  if (notifications == NULL)
+      notifications = valent_notifications_get_default ();
+
+  if (notifications->applications == NULL)
+    query_applications (notifications);
+
+  return notifications->applications;
 }
 

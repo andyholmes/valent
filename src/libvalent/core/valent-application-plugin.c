@@ -9,21 +9,24 @@
 #include <libpeas/peas.h>
 
 #include "valent-application-plugin.h"
+#include "valent-debug.h"
 #include "valent-object.h"
 
 
 /**
  * ValentApplicationPlugin:
  *
- * An abstract base-class for application plugins.
+ * An abstract base class for application plugins.
  *
- * #ValentApplicationPlugin is a base-class for plugins that operate in the
- * scope of the application. This generally means integrating with the
- * desktop in a way that is unrelated to devices.
+ * #ValentApplicationPlugin is a base class for plugins that operate in the
+ * scope of the application. This usually means integrating the application with
+ * the host environment (eg. XDG Autostart).
  *
- * # `.plugin` File
+ * ## `.plugin` File
  *
  * Application plugins have no special fields in the `.plugin` file.
+ *
+ * Since: 1.0
  */
 
 typedef struct
@@ -173,36 +176,45 @@ valent_application_plugin_init (ValentApplicationPlugin *adapter)
  * valent_application_plugin_enable: (virtual enable)
  * @plugin: a #ValentApplicationPlugin
  *
- * This function is called after the extension is loaded and should prepare
- * anything the plugin needs to perform its function.
+ * Enable the plugin.
+ *
+ * Implementations should override this method to prepare anything the plugin
+ * needs to perform its function.
  *
  * Since: 1.0
  */
 void
 valent_application_plugin_enable (ValentApplicationPlugin *plugin)
 {
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_APPLICATION_PLUGIN (plugin));
 
   VALENT_APPLICATION_PLUGIN_GET_CLASS (plugin)->enable (plugin);
+
+  VALENT_EXIT;
 }
 
 /**
  * valent_application_plugin_disable: (virtual disable)
  * @plugin: a #ValentApplicationPlugin
  *
- * This function is called before the extension is unloaded and should clean up
- * any resources that were allocated in valent_application_plugin_enable().
+ * Disable the plugin.
  *
- * It is guaranteed that this function will be called if
- * valent_application_plugin_enable() has been called.
+ * Implementations should override this method to cleanup any resources that
+ * were allocated in [method@Valent.ApplicationPlugin.enable].
  *
  * Since: 1.0
  */
 void
 valent_application_plugin_disable (ValentApplicationPlugin *plugin)
 {
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_APPLICATION_PLUGIN (plugin));
 
   VALENT_APPLICATION_PLUGIN_GET_CLASS (plugin)->disable (plugin);
+
+  VALENT_EXIT;
 }
 

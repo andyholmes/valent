@@ -5,6 +5,7 @@
 
 #include "config.h"
 
+#include <gio/gio.h>
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
 
@@ -14,18 +15,17 @@
 
 
 /**
- * SECTION:valentmedia
- * @short_description: Media Abstraction
- * @title: ValentMedia
- * @stability: Unstable
- * @include: libvalent-media.h
+ * ValentMedia:
  *
- * #ValentMedia is an aggregator of desktop media players, with a simple API
- * generally intended to be used by #ValentDevicePlugin implementations.
+ * A class for monitoring and controlling media players.
  *
- * Plugins can provide adapters for media players by subclassing the
- * #ValentMediaPlayerProvider base class to register #ValentMediaPlayer
- * instances by emitting #ValentMediaPlayerProvider::player-added.
+ * #ValentMedia is an aggregator of media players, intended for use by
+ * [class@Valent.DevicePlugin] implementations.
+ *
+ * Plugins can implement [class@Valent.MediaPlayerProvider] to provide an
+ * interface to manage instances of [class@Valent.MediaPlayer].
+ *
+ * Since: 1.0
  */
 
 struct _ValentMedia
@@ -257,11 +257,13 @@ valent_media_class_init (ValentMediaClass *klass)
 
   /**
    * ValentMedia::player-added:
-   * @self: an #ValentMedia
+   * @media: an #ValentMedia
    * @player: an #ValentMediaPlayer
    *
-   * The "player-added" signal is emitted when a provider has discovered a
-   * player has become available.
+   * Emitted when a [class@Valent.MediaPlayer] has been added to a
+   * [class@Valent.MediaPlayerProvider] implementation.
+   *
+   * Since: 1.0
    */
   signals [PLAYER_ADDED] =
     g_signal_new ("player-added",
@@ -277,11 +279,13 @@ valent_media_class_init (ValentMediaClass *klass)
 
   /**
    * ValentMedia::player-removed:
-   * @self: an #ValentMedia
+   * @media: an #ValentMedia
    * @player: an #ValentMediaPlayer
    *
-   * The "player-removed" signal is emitted when a provider has discovered a
-   * player is no longer available.
+   * Emitted when a [class@Valent.MediaPlayer] has been removed from a
+   * [class@Valent.MediaPlayerProvider] implementation.
+   *
+   * Since: 1.0
    */
   signals [PLAYER_REMOVED] =
     g_signal_new ("player-removed",
@@ -297,11 +301,12 @@ valent_media_class_init (ValentMediaClass *klass)
 
   /**
    * ValentMedia::player-changed:
-   * @media: a #ValentMedia
-   * @player: a #GDBusProxy
+   * @media: an #ValentMedia
+   * @player: an #ValentMediaPlayer
    *
-   * The #ValentMedia::player-changed signal is emitted when an MPRIS player's
-   * state changes in some way.
+   * Emitted when the state of a [class@Valent.MediaPlayer] has changed.
+   *
+   * Since: 1.0
    */
   signals [PLAYER_CHANGED] =
     g_signal_new ("player-changed",
@@ -317,12 +322,14 @@ valent_media_class_init (ValentMediaClass *klass)
 
   /**
    * ValentMedia::player-seeked:
-   * @media: a #ValentMedia
-   * @player: a #ValentMediaPlayer
-   * @offset: an offset
+   * @media: an #ValentMedia
+   * @player: an #ValentMediaPlayer
+   * @offset: the relative change in microseconds (us)
    *
-   * The #ValentMedia::player-seeked signal is emitted when an MPRIS player's
-   * position is changed by explicit action.
+   * Emitted when the playback position of a [class@Valent.MediaPlayer] has been
+   * changed as the result of an external action.
+   *
+   * Since: 1.0
    */
   signals [PLAYER_SEEKED] =
     g_signal_new ("player-seeked",
@@ -344,9 +351,11 @@ valent_media_init (ValentMedia *self)
 /**
  * valent_media_get_default:
  *
- * Get the default #ValentMedia.
+ * Get the default [class@Valent.Media].
  *
- * Returns: (transfer none): The default media
+ * Returns: (transfer none) (not nullable): a #ValentMedia
+ *
+ * Since: 1.0
  */
 ValentMedia *
 valent_media_get_default (void)
@@ -373,20 +382,24 @@ valent_media_get_default (void)
  *
  * Returns: (transfer container) (element-type Valent.MediaPlayer) (not nullable):
  *  a #GPtrArray of #ValentMediaPlayer
+ *
+ * Since: 1.0
  */
 GPtrArray *
 valent_media_get_players (ValentMedia *media)
 {
-  GPtrArray *players;
+  GPtrArray *ret;
+
+  VALENT_ENTRY;
 
   g_return_val_if_fail (VALENT_IS_MEDIA (media), NULL);
 
-  players = g_ptr_array_new_with_free_func (g_object_unref);
+  ret = g_ptr_array_new_with_free_func (g_object_unref);
 
   for (unsigned int i = 0; i < media->players->len; i++)
-    g_ptr_array_add (players, g_object_ref (g_ptr_array_index (media->players, i)));
+    g_ptr_array_add (ret, g_object_ref (g_ptr_array_index (media->players, i)));
 
-  return players;
+  VALENT_RETURN (ret);
 }
 
 /**
@@ -397,12 +410,16 @@ valent_media_get_players (ValentMedia *media)
  * Get the #ValentMediaPlayer with the identity @name.
  *
  * Returns: (transfer none) (nullable): a #ValentMediaPlayer
+ *
+ * Since: 1.0
  */
 ValentMediaPlayer *
 valent_media_get_player_by_name (ValentMedia *media,
                                  const char  *name)
 {
   ValentMediaPlayer *player;
+
+  VALENT_ENTRY;
 
   g_return_val_if_fail (VALENT_IS_MEDIA (media), NULL);
   g_return_val_if_fail (name != NULL, NULL);
@@ -412,10 +429,10 @@ valent_media_get_player_by_name (ValentMedia *media,
       player = g_ptr_array_index (media->players, i);
 
       if (g_strcmp0 (valent_media_player_get_name (player), name) == 0)
-        return player;
+        VALENT_RETURN (player);
     }
 
-  return NULL;
+  VALENT_RETURN (NULL);
 }
 
 /**
@@ -424,11 +441,15 @@ valent_media_get_player_by_name (ValentMedia *media,
  *
  * Pause any playing media players. Any player whose playback status is changed
  * will be tracked so that playback may be resumed with valent_media_play().
+ *
+ * Since: 1.0
  */
 void
 valent_media_pause (ValentMedia *media)
 {
   ValentMediaPlayer *player;
+
+  VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_MEDIA (media));
 
@@ -442,6 +463,8 @@ valent_media_pause (ValentMedia *media)
           g_ptr_array_add (media->paused, player);
         }
     }
+
+  VALENT_EXIT;
 }
 
 /**
@@ -449,11 +472,15 @@ valent_media_pause (ValentMedia *media)
  * @media: a #ValentMedia
  *
  * Unpause any media players we previously paused.
+ *
+ * Since: 1.0
  */
 void
 valent_media_unpause (ValentMedia *media)
 {
   ValentMediaPlayer *player;
+
+  VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_MEDIA (media));
 
@@ -466,5 +493,7 @@ valent_media_unpause (ValentMedia *media)
     }
 
   g_ptr_array_remove_range (media->paused, 0, media->paused->len);
+
+  VALENT_EXIT;
 }
 

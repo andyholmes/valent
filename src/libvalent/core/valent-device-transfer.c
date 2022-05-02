@@ -28,13 +28,14 @@
  * [property@Valent.DeviceTransfer:packet]. If the KDE Connect packet holds
  * payload information the transfer is assumed to be a download, otherwise it is
  * assumed to be an upload.
+ *
+ * Since: 1.0
  */
 
 struct _ValentDeviceTransfer
 {
   ValentObject  parent_instance;
 
-  GCancellable *cancellable;
   ValentDevice *device;
   GFile        *file;
   JsonNode     *packet;
@@ -287,12 +288,16 @@ valent_device_transfer_execute (ValentTransfer      *transfer,
 {
   g_autoptr (GTask) task = NULL;
 
+  VALENT_ENTRY;
+
   g_assert (VALENT_IS_DEVICE_TRANSFER (transfer));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   task = g_task_new (transfer, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_device_transfer_execute);
   g_task_run_in_thread (task, valent_device_transfer_execute_task);
+
+  VALENT_EXIT;
 }
 
 /*
@@ -304,7 +309,6 @@ valent_device_transfer_finalize (GObject *object)
   ValentDeviceTransfer *self = VALENT_DEVICE_TRANSFER (object);
 
   valent_object_lock (VALENT_OBJECT (self));
-  g_clear_object (&self->cancellable);
   g_clear_object (&self->device);
   g_clear_object (&self->file);
   g_clear_pointer (&self->packet, json_node_unref);
@@ -386,9 +390,11 @@ valent_device_transfer_class_init (ValentDeviceTransferClass *klass)
   transfer_class->execute = valent_device_transfer_execute;
 
   /**
-   * ValentDeviceTransfer:device:
+   * ValentDeviceTransfer:device: (getter ref_device)
    *
    * The [class@Valent.Device] this transfer is for.
+   *
+   * Since: 1.0
    */
   properties [PROP_DEVICE] =
     g_param_spec_object ("device",
@@ -401,9 +407,14 @@ valent_device_transfer_class_init (ValentDeviceTransferClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentDeviceTransfer:file:
+   * ValentDeviceTransfer:file: (getter ref_file)
    *
-   * The [iface@Gio.File] to transfer.
+   * The local [iface@Gio.File].
+   *
+   * If this a download, then this is the destination. If it's upload, this is
+   * the source.
+   *
+   * Since: 1.0
    */
   properties [PROP_FILE] =
     g_param_spec_object ("file",
@@ -416,9 +427,11 @@ valent_device_transfer_class_init (ValentDeviceTransferClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentDeviceTransfer:packet:
+   * ValentDeviceTransfer:packet: (getter ref_packet)
    *
    * The KDE Connect packet describing the payload.
+   *
+   * Since: 1.0
    */
   properties [PROP_PACKET] =
     g_param_spec_boxed ("packet",
@@ -436,13 +449,12 @@ valent_device_transfer_class_init (ValentDeviceTransferClass *klass)
 static void
 valent_device_transfer_init (ValentDeviceTransfer *self)
 {
-  self->cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
 }
 
 /**
  * valent_device_transfer_new_for_file:
  * @device: a #ValentDevice
- * @packet: a #JsonNode
+ * @packet: a KDE Connect packet
  * @file: a #GFile
  *
  * A convenience for creating a simple file transfer.
@@ -471,7 +483,7 @@ valent_device_transfer_new_for_file (ValentDevice *device,
  * valent_device_transfer_ref_device: (get-property device)
  * @transfer: a #ValentDeviceTransfer
  *
- * Get the #ValentDevice for @transfer.
+ * Get the [class@Valent.Device].
  *
  * Returns: (transfer full) (nullable): a #ValentDevice
  *
@@ -485,7 +497,8 @@ valent_device_transfer_ref_device (ValentDeviceTransfer *transfer)
   g_return_val_if_fail (VALENT_IS_DEVICE_TRANSFER (transfer), NULL);
 
   valent_object_lock (VALENT_OBJECT (transfer));
-  ret = g_object_ref (transfer->device);
+  if (transfer->device != NULL)
+    ret = g_object_ref (transfer->device);
   valent_object_unlock (VALENT_OBJECT (transfer));
 
   return g_steal_pointer (&ret);
@@ -495,9 +508,9 @@ valent_device_transfer_ref_device (ValentDeviceTransfer *transfer)
  * valent_device_transfer_ref_file: (get-property file)
  * @transfer: a #ValentDeviceTransfer
  *
- * Get the #GFile for @transfer.
+ * Get the local [iface@Gio.File].
  *
- * Returns: (transfer full) (nullable): a #ValentDevice
+ * Returns: (transfer full) (nullable): a #GFile
  *
  * Since: 1.0
  */
@@ -509,7 +522,8 @@ valent_device_transfer_ref_file (ValentDeviceTransfer *transfer)
   g_return_val_if_fail (VALENT_IS_DEVICE_TRANSFER (transfer), NULL);
 
   valent_object_lock (VALENT_OBJECT (transfer));
-  ret = g_object_ref (transfer->file);
+  if (transfer->file != NULL)
+    ret = g_object_ref (transfer->file);
   valent_object_unlock (VALENT_OBJECT (transfer));
 
   return g_steal_pointer (&ret);
@@ -519,9 +533,9 @@ valent_device_transfer_ref_file (ValentDeviceTransfer *transfer)
  * valent_device_transfer_ref_packet: (get-property packet)
  * @transfer: a #ValentDeviceTransfer
  *
- * Get the packet for @transfer.
+ * Get the KDE Connect packet.
  *
- * Returns: (transfer full) (not nullable): a #JsonNode
+ * Returns: (transfer full) (nullable): a KDE Connect packet
  *
  * Since: 1.0
  */
@@ -533,7 +547,8 @@ valent_device_transfer_ref_packet (ValentDeviceTransfer *transfer)
   g_return_val_if_fail (VALENT_IS_DEVICE_TRANSFER (transfer), NULL);
 
   valent_object_lock (VALENT_OBJECT (transfer));
-  ret = json_node_ref (transfer->packet);
+  if (transfer->packet != NULL)
+    ret = json_node_ref (transfer->packet);
   valent_object_unlock (VALENT_OBJECT (transfer));
 
   return g_steal_pointer (&ret);

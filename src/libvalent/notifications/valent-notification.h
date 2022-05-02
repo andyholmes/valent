@@ -22,7 +22,7 @@ VALENT_AVAILABLE_IN_1_0
 const char            * valent_notification_get_application        (ValentNotification    *notification);
 VALENT_AVAILABLE_IN_1_0
 void                    valent_notification_set_application        (ValentNotification    *notification,
-                                                                    const char            *name);
+                                                                    const char            *application);
 VALENT_AVAILABLE_IN_1_0
 const char            * valent_notification_get_body               (ValentNotification    *notification);
 VALENT_AVAILABLE_IN_1_0

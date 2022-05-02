@@ -5,9 +5,7 @@
 
 #include "config.h"
 
-#include <errno.h>
 #include <gio/gio.h>
-#include <sqlite3.h>
 
 #include "valent-data.h"
 #include "valent-debug.h"
@@ -16,17 +14,13 @@
 
 
 /**
- * SECTION:valentdata
- * @short_description: An object for handling contextual data
- * @title: ValentData
- * @stability: Unstable
- * @include: libvalent-core.h
+ * ValentData:
  *
- * The #ValentData class is intended to abstract storing and loading data for a
- * given context, such as a device or plugin.
+ * A class for a persistent storage context.
  *
- * There are conveniences for working with #GFile, getting and settings file
- * contents and high-level `sqlite`.
+ * #ValentData is an abstraction of persistent storage with domain and scope.
+ *
+ * Since: 1.0
  */
 
 typedef struct
@@ -43,7 +37,6 @@ G_DEFINE_TYPE_WITH_PRIVATE (ValentData, valent_data, G_TYPE_OBJECT)
 
 /**
  * ValentDataClass:
- * @sql_init: the virtual function pointer for valent_data_sql_init()
  *
  * The virtual function table for #ValentData.
  */
@@ -60,9 +53,6 @@ enum {
 };
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
-
-/* Ensure that sqlite3_int64 is the same size as gint64 */
-G_STATIC_ASSERT (sizeof (sqlite3_int64) == sizeof (gint64));
 
 
 static inline gboolean
@@ -239,9 +229,11 @@ valent_data_class_init (ValentDataClass *klass)
   object_class->set_property = valent_data_set_property;
 
   /**
-   * ValentData:cache-path:
+   * ValentData:cache-path: (getter get_cache_path)
    *
-   * Path to the cache directory for this #ValentData.
+   * Path to the cache directory.
+   *
+   * Since: 1.0
    */
   properties [PROP_CACHE_PATH] =
     g_param_spec_string ("cache-path",
@@ -253,9 +245,11 @@ valent_data_class_init (ValentDataClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentData:config-path:
+   * ValentData:config-path: (getter get_config_path)
    *
-   * Path to the config directory for this #ValentData.
+   * Path to the config directory.
+   *
+   * Since: 1.0
    */
   properties [PROP_CONFIG_PATH] =
     g_param_spec_string ("config-path",
@@ -267,13 +261,15 @@ valent_data_class_init (ValentDataClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentData:context:
+   * ValentData:context: (getter get_context)
    *
-   * The "context" property is the specific context for this #ValentData.
+   * The specific context for this #ValentData.
    *
    * For example, the application will generally have no context (%NULL),
    * therefore using the root of #ValentData:base-path , while devices or
    * backends will generally store their data in subdirectories of these.
+   *
+   * Since: 1.0
    */
   properties [PROP_CONTEXT] =
     g_param_spec_string ("context",
@@ -286,9 +282,11 @@ valent_data_class_init (ValentDataClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentData:data-path:
+   * ValentData:data-path: (getter get_data_path)
    *
-   * Path to the data directory for this #ValentData.
+   * Path to the data directory.
+   *
+   * Since: 1.0
    */
   properties [PROP_DATA_PATH] =
     g_param_spec_string ("data-path",
@@ -300,20 +298,19 @@ valent_data_class_init (ValentDataClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentData:parent:
+   * ValentData:parent: (getter get_parent)
    *
-   * The "parent" #ValentData of this instance. If given during construction the
-   * ancestor #ValentData will be taken into consideration when using path and
-   * filenames.
+   * The parent context.
    *
-   * For example, a #ValentManager, with a #ValentData object, manages devices
-   * with #ValentData objects that are children of the manager's data object,
-   * and so on with plugins.
+   * If given during construction the parent #ValentData will be taken into
+   * consideration when constructing paths.
+   *
+   * Since: 1.0
    */
   properties [PROP_PARENT] =
     g_param_spec_object ("parent",
                          "Parent",
-                         "Parent data object",
+                         "The parent context",
                          VALENT_TYPE_DATA,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -336,6 +333,8 @@ valent_data_init (ValentData *self)
  * Create a new #ValentData for @context.
  *
  * Returns: (transfer full): a new #ValentData.
+ *
+ * Since: 1.0
  */
 ValentData *
 valent_data_new (const char *context,
@@ -355,6 +354,8 @@ valent_data_new (const char *context,
  * valid and existing.
  *
  * Returns: (transfer full): a directory path
+ *
+ * Since: 1.0
  */
 char *
 valent_data_get_directory (GUserDirectory directory)
@@ -425,10 +426,15 @@ valent_data_get_directory (GUserDirectory directory)
  * @basename: (type filename): a file name
  * @unique: whether the resulting filepath should be unique
  *
- * Create a new #GFile for @filename in @base_path. If @unique is %TRUE, the
- * file will be guaranteed not to conflict with an existing file.
+ * A convenience for creating a [iface@Gio.File].
+ *
+ * If @unique is true, the returned file is guaranteed not to exist. If
+ * @basename exists in @dirname, the resulting file's name will have a
+ * parenthesized number appended to it (ie. `image.png (2)`).
  *
  * Returns: (transfer full): a #GFile
+ *
+ * Since: 1.0
  */
 GFile *
 valent_data_get_file (const char *dirname,
@@ -460,9 +466,14 @@ valent_data_get_file (const char *dirname,
  * @data: a #ValentData
  * @filename: (type filename): a filename
  *
- * Get a #GFile for @filename in the cache directory of @data.
+ * Create a new cache file.
+ *
+ * This method creates a new [iface@Gio.File] for @filename in the
+ * [property@Valent.Data:cache-path].
  *
  * Returns: (transfer full) (nullable): a new #GFile
+ *
+ * Since: 1.0
  */
 GFile *
 valent_data_new_cache_file (ValentData *data,
@@ -477,12 +488,14 @@ valent_data_new_cache_file (ValentData *data,
 }
 
 /**
- * valent_data_get_cache_path:
+ * valent_data_get_cache_path: (get-property cache-path)
  * @data: a #ValentData
  *
- * Get the cache directory of @data as a string.
+ * Get the path to the cache directory.
  *
- * Returns: (transfer none): a path
+ * Returns: (transfer none): a directory path
+ *
+ * Since: 1.0
  */
 const char *
 valent_data_get_cache_path (ValentData *data)
@@ -500,9 +513,14 @@ valent_data_get_cache_path (ValentData *data)
  * @data: a #ValentData
  * @filename: (type filename): a filename
  *
- * Get a #GFile for @filename in the config directory of @data.
+ * Create a new config file.
+ *
+ * This method creates a new [iface@Gio.File] for @filename in the
+ * [property@Valent.Data:config-path].
  *
  * Returns: (transfer full) (nullable): a new #GFile
+ *
+ * Since: 1.0
  */
 GFile *
 valent_data_new_config_file (ValentData *data,
@@ -517,12 +535,14 @@ valent_data_new_config_file (ValentData *data,
 }
 
 /**
- * valent_data_get_config_path:
+ * valent_data_get_config_path: (get-property config-path)
  * @data: a #ValentData
  *
- * Get the config directory of @data as a string.
+ * Get the path to the config directory.
  *
- * Returns: (transfer none): a path
+ * Returns: (transfer none): a directory path
+ *
+ * Since: 1.0
  */
 const char *
 valent_data_get_config_path (ValentData *data)
@@ -536,12 +556,14 @@ valent_data_get_config_path (ValentData *data)
 }
 
 /**
- * valent_data_get_context:
+ * valent_data_get_context: (get-property context)
  * @data: a #ValentData
  *
- * Get the context of @data.
+ * Get the context.
  *
- * Returns: (not nullable) (transfer none): the context
+ * Returns: (transfer none): the context
+ *
+ * Since: 1.0
  */
 const char *
 valent_data_get_context (ValentData *data)
@@ -558,9 +580,14 @@ valent_data_get_context (ValentData *data)
  * @data: a #ValentData
  * @filename: (type filename): a filename
  *
- * Get a #GFile for @filename in the data directory of @data.
+ * Create a new data file.
+ *
+ * This method creates a new [iface@Gio.File] for @filename in the
+ * [property@Valent.Data:data-path].
  *
  * Returns: (transfer full) (nullable): a new #GFile
+ *
+ * Since: 1.0
  */
 GFile *
 valent_data_new_data_file (ValentData *data,
@@ -575,12 +602,14 @@ valent_data_new_data_file (ValentData *data,
 }
 
 /**
- * valent_data_get_data_path:
+ * valent_data_get_data_path: (get-property data-path)
  * @data: a #ValentData
  *
- * Get the data directory of @data as a string.
+ * Get the path to the data directory.
  *
- * Returns: (transfer none): a path
+ * Returns: (transfer none): a directory path
+ *
+ * Since: 1.0
  */
 const char *
 valent_data_get_data_path (ValentData *data)
@@ -594,11 +623,13 @@ valent_data_get_data_path (ValentData *data)
 }
 
 /**
- * valent_data_get_parent:
+ * valent_data_get_parent: (get-property parent)
  * @data: a #ValentData
  *
- * Get the parent #ValentData of @data. If %NULL is returned, then @data is
- * equivalent to or a reference of the root #ValentData context for Valent.
+ * Get the parent [class@Valent.Data].
+ *
+ * If %NULL is returned, then @data is equivalent to or a reference of the root
+ * #ValentData context for Valent.
  *
  * Returns: (transfer none) (nullable): a #ValentData
  */
@@ -616,7 +647,11 @@ valent_data_get_parent (ValentData *data)
  * valent_data_clear_cache:
  * @data: a #ValentData
  *
- * Delete all cache data for @data.
+ * Clear cache data.
+ *
+ * The method will remove all files in the [property@Valent.Data:cache-path].
+ *
+ * Since: 1.0
  */
 void
 valent_data_clear_cache (ValentData *data)
@@ -637,9 +672,16 @@ valent_data_clear_cache (ValentData *data)
  * valent_data_clear_data:
  * @data: a #ValentData
  *
- * Delete all files in the cache, config and data directories for @data. This is
- * a no-op for the root #ValentData object, since it would wipe all data for all
- * contexts.
+ * Delete all files in the cache, config and data directories for @data.
+ *
+ * The method will remove all files in the [property@Valent.Data:cache-path],
+ * [property@Valent.Data:config-path] and [property@Valent.Data:data-path]
+ * directories.
+ *
+ * This is a no-op for the root #ValentData object, since it would wipe all data
+ * for all contexts.
+ *
+ * Since: 1.0
  */
 void
 valent_data_clear_data (ValentData *data)

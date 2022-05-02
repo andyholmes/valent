@@ -19,6 +19,8 @@
  * to the required one.
  *
  * Returns: %TRUE if the requirement is met, or %FALSE if not
+ *
+ * Since: 1.0
  */
 gboolean
 valent_check_version (unsigned int major,
@@ -41,6 +43,8 @@ valent_check_version (unsigned int major,
  * For example, if the version `1.2` this is `1`.
  *
  * Returns: the major version component of libvalent
+ *
+ * Since: 1.0
  */
 unsigned int
 valent_get_major_version (void)
@@ -56,6 +60,8 @@ valent_get_major_version (void)
  * For example, if the version `1.2` this is `2`.
  *
  * Returns: the minor version component of libvalent
+ *
+ * Since: 1.0
  */
 unsigned int
 valent_get_minor_version (void)
@@ -71,6 +77,8 @@ valent_get_minor_version (void)
  * For example, if the version `1.2.3` this is `3`.
  *
  * Returns: the micro version component of libvalent
+ *
+ * Since: 1.0
  */
 unsigned int
 valent_get_micro_version (void)

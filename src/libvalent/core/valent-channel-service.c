@@ -19,32 +19,31 @@
 
 
 /**
- * SECTION:valentchannelservice
- * @short_description: Base class for channel services
- * @title: ValentChannelService
- * @stability: Unstable
- * @include: libvalent-core.h
+ * ValentChannelService:
  *
- * #ValentChannelService is base class for services that provide #ValentChannel
- * objects, analogous to to #GSocketService and #GSocketConnection. In the
- * context of the protocol, #ValentChannelService serves as the counterpart to
- * #ValentDevice by representing the local device.
+ * An abstract base class for connection backends.
  *
- * The interface is intentionally abstract, to allow channel services for very
- * different protocols. All that is required is for the service to emit
- * #ValentChannelService::channel when a #ValentChannel is ready to be used by a
- * #ValentDevice.
+ * #ValentChannelService is a base class for plugins that implement an interface
+ * to negotiate connections with other devices.
  *
- * # `.plugin` File
+ * ## Implementation Notes
  *
- * #ValentChannelService implementations should define the `X-ChannelProtocol`
- * key to indicate the underlying protocol. This is used when constructing the
- * identity packet to filter device plugins with inherent requirements, such as
- * SFTP.
+ * Implementations should override [vfunc@Valent.ChannelService.start] to
+ * provide failable initialization and [vfunc@Valent.ChannelService.stop] as an
+ * idempotent cleanup function. Implementations may safely emit
+ * [signal@Valent.ChannelService::channel] from any thread.
  *
- * Currently recognized values are `tcp` and `bluetooth`. If the plugin is
- * missing this key, it will be assumed supported and its incoming and outgoing
- * capabilities included in the identity packet.
+ * ## `.plugin` File
+ *
+ * Implementations may define the following extra fields in the `.plugin` file:
+ *
+ * - `X-ChannelProtocol`
+ *
+ *     A string indicating the transport protocol. This is used to filter device
+ *     plugins when constructing the identity packet (eg. SFTP).
+ *
+ *     Currently recognized values are `tcp` and `bluetooth`. If the plugin is
+ *     missing this key, it will be assumed supported.
  */
 
 typedef struct
@@ -268,14 +267,13 @@ valent_channel_service_real_build_identity (ValentChannelService *service)
 
   g_assert (VALENT_IS_CHANNEL_SERVICE (service));
 
-  engine = valent_get_engine ();
-
   /* Filter plugins */
+  engine = valent_get_engine ();
   plugins = peas_engine_get_plugin_list (engine);
 
   for (const GList *iter = plugins; iter; iter = iter->next)
     {
-      if G_LIKELY (valent_channel_service_supports_plugin (service, iter->data))
+      if (valent_channel_service_supports_plugin (service, iter->data))
         supported = g_list_prepend (supported, iter->data);
     }
 
@@ -331,8 +329,10 @@ valent_channel_service_real_build_identity (ValentChannelService *service)
 
 
   /* Store the identity */
+  valent_object_lock (VALENT_OBJECT (service));
   g_clear_pointer (&priv->identity, json_node_unref);
   priv->identity = json_builder_get_root (builder);
+  valent_object_unlock (VALENT_OBJECT (service));
 }
 
 static void
@@ -506,12 +506,14 @@ valent_channel_service_class_init (ValentChannelServiceClass *klass)
   /**
    * ValentChannelService:data:
    *
-   * The data manager for the service.
+   * The data context.
+   *
+   * Since: 1.0
    */
   properties [PROP_DATA] =
     g_param_spec_object ("data",
                          "Data",
-                         "The data manager for the service",
+                         "The data context",
                          VALENT_TYPE_DATA,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -519,15 +521,22 @@ valent_channel_service_class_init (ValentChannelServiceClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentChannelService:id:
+   * ValentChannelService:id: (getter dup_id)
    *
-   * The local ID string used to uniquely identify the service to the remote
-   * device.
+   * The local ID.
+   *
+   * This is the ID used to identify the local device, which should be unique
+   * among devices in a given network.
+   *
+   * This property is thread-safe. Emissions of [signal@GObject.Object::notify]
+   * are guaranteed to happen in the main thread.
+   *
+   * Since: 1.0
    */
   properties [PROP_ID] =
     g_param_spec_string ("id",
                          "ID",
-                         "The service ID string",
+                         "The local ID",
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -535,23 +544,39 @@ valent_channel_service_class_init (ValentChannelServiceClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentChannelService:identity:
+   * ValentChannelService:identity: (getter ref_identity)
    *
-   * The local identity packet used to identify the service to the remote device.
+   * The local identity packet.
+   *
+   * This is the identity packet sent by the [class@Valent.ChannelService]
+   * implementation to describe the local device.
+   *
+   * This property is thread-safe. Emissions of [signal@GObject.Object::notify]
+   * are guaranteed to happen in the main thread.
+   *
+   * Since: 1.0
    */
   properties [PROP_IDENTITY] =
     g_param_spec_boxed ("identity",
                         "Identity",
-                        "Identity",
+                        "The local identity packet",
                         JSON_TYPE_NODE,
                         (G_PARAM_READABLE |
                          G_PARAM_EXPLICIT_NOTIFY |
                          G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentChannelService:name:
+   * ValentChannelService:name: (getter get_name) (setter set_name)
    *
-   * The display name of the local device.
+   * The local display name.
+   *
+   * This is the user-visible label packet used to identify the local device in
+   * user interfaces.
+   *
+   * This property is thread-safe. Emissions of [signal@GObject.Object::notify]
+   * are guaranteed to happen in the main thread.
+   *
+   * Since: 1.0
    */
   properties [PROP_NAME] =
     g_param_spec_string ("name",
@@ -566,12 +591,14 @@ valent_channel_service_class_init (ValentChannelServiceClass *klass)
   /**
    * ValentChannelService:plugin-info:
    *
-   * The #PeasPluginInfo describing this channel service.
+   * The [struct@Peas.PluginInfo] describing this channel service.
+   *
+   * Since: 1.0
    */
   properties [PROP_PLUGIN_INFO] =
     g_param_spec_boxed ("plugin-info",
                         "Plugin Info",
-                        "Plugin Info",
+                        "The plugin info describing this channel service",
                         PEAS_TYPE_PLUGIN_INFO,
                         (G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
@@ -585,13 +612,12 @@ valent_channel_service_class_init (ValentChannelServiceClass *klass)
    * @service: a #ValentChannelService
    * @channel: a #ValentChannel
    *
-   * Implementations should emit #ValentChannelService::channel when a new
-   * connection is successfully made.
+   * Emitted when a new channel has been negotiated.
    *
-   * In practice, when #ValentChannelService is emitted a #ValentManager will
-   * have a #ValentDevice to take ownership of the #ValentChannel.
-   * Implementations may drop their reference after the signal handlers return
-   * unless they have some other reason to track the channel state.
+   * In practice, when this is emitted a [class@Valent.DeviceManager] will
+   * ensure a [class@Valent.Device] exists to take ownership of @channel.
+   *
+   * Since: 1.0
    */
   signals [CHANNEL] =
     g_signal_new ("channel",
@@ -612,12 +638,14 @@ valent_channel_service_init (ValentChannelService *self)
 }
 
 /**
- * valent_channel_service_dup_id:
+ * valent_channel_service_dup_id: (get-property id)
  * @service: a #ValentChannelService
  *
- * Get the service ID.
+ * Get the local ID.
  *
  * Returns: (transfer full) (not nullable): the service ID
+ *
+ * Since: 1.0
  */
 char *
 valent_channel_service_dup_id (ValentChannelService *service)
@@ -635,13 +663,14 @@ valent_channel_service_dup_id (ValentChannelService *service)
 }
 
 /**
- * valent_channel_service_ref_identity:
+ * valent_channel_service_ref_identity: (get-property identity)
  * @service: a #ValentChannelService
  *
- * Get the identity packet @service will use to identify itself to remote
- * devices.
+ * Get the local identity packet.
  *
- * Returns: (transfer full): a #JsonNode
+ * Returns: (transfer full): a KDE Connect packet
+ *
+ * Since: 1.0
  */
 JsonNode *
 valent_channel_service_ref_identity (ValentChannelService *service)
@@ -659,10 +688,10 @@ valent_channel_service_ref_identity (ValentChannelService *service)
 }
 
 /**
- * valent_channel_service_get_name:
+ * valent_channel_service_get_name: (get-property name)
  * @service: a #ValentChannelService
  *
- * Get the display name of the local device.
+ * Get the local display name.
  *
  * Returns: (transfer none): the local display name
  *
@@ -679,11 +708,11 @@ valent_channel_service_get_name (ValentChannelService *service)
 }
 
 /**
- * valent_channel_service_set_name:
+ * valent_channel_service_set_name: (set-property name)
  * @service: a #ValentChannelService
  * @name: (not nullable): a display name
  *
- * Set the display name of the local device to @name.
+ * Set the local display name.
  *
  * Since: 1.0
  */
@@ -718,9 +747,16 @@ valent_channel_service_set_name (ValentChannelService *service,
  * valent_channel_service_build_identity: (virtual build_identity)
  * @service: a #ValentChannelService
  *
- * Rebuild the identity packet used to identify the service to other devices.
- * Implementations that plan to modify the default should chain-up, then call
- * valent_channel_service_ref_identity() and modify that.
+ * Rebuild the local KDE Connect identity packet.
+ *
+ * This method is called to rebuild the identity packet used to identify the
+ * host device to remote devices.
+ *
+ * Implementations that override [vfunc@Valent.ChannelService.build_identity]
+ * should chain-up first, then call [method@Valent.ChannelService.ref_identity]
+ * and modify that.
+ *
+ * Since: 1.0
  */
 void
 valent_channel_service_build_identity (ValentChannelService *service)
@@ -729,9 +765,7 @@ valent_channel_service_build_identity (ValentChannelService *service)
 
   g_return_if_fail (VALENT_IS_CHANNEL_SERVICE (service));
 
-  valent_object_lock (VALENT_OBJECT (service));
   VALENT_CHANNEL_SERVICE_GET_CLASS (service)->build_identity (service);
-  valent_object_unlock (VALENT_OBJECT (service));
 
   VALENT_EXIT;
 }
@@ -741,20 +775,27 @@ valent_channel_service_build_identity (ValentChannelService *service)
  * @service: a #ValentChannelService
  * @target: (nullable): a target string
  *
- * Identify the local device either to @target if given, or possibly it's
- * respective network as a whole if %NULL.
+ * Identify the host device to the network.
  *
- * Implementations may ignore @target or perform some transformation on it. For
- * example, #ValentLanChannelService will construct a #GSocketAddress from it or
- * broadcast to the LAN if %NULL.
+ * This method is called to announce the availability of the host device to
+ * other devices.
+ *
+ * Implementations that override [vfunc@Valent.ChannelService.identify] may
+ * ignore @target or use it to address a particular device.
+ *
+ * Since: 1.0
  */
 void
 valent_channel_service_identify (ValentChannelService *service,
                                  const char           *target)
 {
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_CHANNEL_SERVICE (service));
 
   VALENT_CHANNEL_SERVICE_GET_CLASS (service)->identify (service, target);
+
+  VALENT_EXIT;
 }
 
 /**
@@ -764,7 +805,7 @@ valent_channel_service_identify (ValentChannelService *service,
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
  *
- * Start @service and begin accepting connections.
+ * Start the service.
  *
  * This method is called by the #ValentManager singleton when a
  * #ValentChannelService implementation is enabled. It is therefore a programmer
@@ -772,6 +813,8 @@ valent_channel_service_identify (ValentChannelService *service,
  *
  * Before this operation completes valent_channel_service_stop() may be called,
  * so implementations may want to chain to @cancellable.
+ *
+ * Since: 1.0
  */
 void
 valent_channel_service_start (ValentChannelService *service,
@@ -779,16 +822,13 @@ valent_channel_service_start (ValentChannelService *service,
                               GAsyncReadyCallback   callback,
                               gpointer              user_data)
 {
-  g_autoptr (GCancellable) destroy = NULL;
-
   VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_CHANNEL_SERVICE (service));
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  destroy = valent_object_ref_cancellable (VALENT_OBJECT (service));
   VALENT_CHANNEL_SERVICE_GET_CLASS (service)->start (service,
-                                                     destroy,
+                                                     cancellable,
                                                      callback,
                                                      user_data);
 
@@ -796,12 +836,14 @@ valent_channel_service_start (ValentChannelService *service,
 }
 
 /**
- * valent_channel_service_start_finish:
+ * valent_channel_service_start_finish: (virtual start_finish)
  * @service: a #ValentChannelService
  * @result: a #GAsyncResult
  * @error: (nullable): a #GError
  *
- * Finish an operation started by valent_channel_service_start().
+ * Finish an operation started by [method@Valent.ChannelService.start].
+ *
+ * Since: 1.0
  */
 gboolean
 valent_channel_service_start_finish (ValentChannelService  *service,
@@ -827,11 +869,15 @@ valent_channel_service_start_finish (ValentChannelService  *service,
  * valent_channel_service_stop: (virtual stop)
  * @service: a #ValentChannelService
  *
+ * Stop the service.
+ *
  * Stop processing incoming identity packets and prevent the broadcast of the
  * local identity which results in the same behaviour from other devices.
  *
  * Implementations of this method must chain-up and be idempotent; it is called
  * automatically when the last reference to @service is dropped.
+ *
+ * Since: 1.0
  */
 void
 valent_channel_service_stop (ValentChannelService *service)
@@ -846,16 +892,16 @@ valent_channel_service_stop (ValentChannelService *service)
 }
 
 /**
- * valent_channel_service_channel:
+ * valent_channel_service_emit_channel:
  * @service: a #ValentChannelService
  * @channel: a #ValentChannel
  *
- * Emits the #ValentChannelService::channel signal on @service, in the main
- * thread.
+ * Emit [signal@Valent.ChannelService::channel] on @service.
  *
- * An implementation of #ValentChannelService should call this when a
- * #ValentChannel has completed the connection process and is ready to be
- * attached to a #ValentDevice.
+ * This method should only be called by implementations of
+ * [class@Valent.ChannelService].
+ *
+ * Since: 1.0
  */
 void
 valent_channel_service_emit_channel (ValentChannelService *service,
@@ -886,14 +932,18 @@ valent_channel_service_emit_channel (ValentChannelService *service,
  * @service: a #ValentChannelService
  * @info: a #PeasPluginInfo
  *
- * Check if the #ValentDevicePlugin described by @info requires a specific
- * transport protocol (indicated by a `X-ChannelProtocol` field) and if so that
- * @service utilizes that transport protocol.
+ * Check if @service supports @info.
  *
- * This is useful for plugins that wrap protocols such as SFTP, which requires
- * TCP.
+ * This is a convenience for comparing the `X-ChannelProtocol` field between
+ * @info and [property@Valent.ChannelService:plugin-info].
  *
- * Returns: %TRUE if supported
+ * Returns %TRUE if either @info or [property@Valent.ChannelService:plugin-info]
+ * are missing the `X-ChannelProtocol` field or if the fields match. Returns
+ * %FALSE if @info specifies a different protocol.
+ *
+ * Returns: %TRUE if supported, or %FALSE if not
+ *
+ * Since: 1.0
  */
 gboolean
 valent_channel_service_supports_plugin (ValentChannelService *service,

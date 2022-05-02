@@ -20,17 +20,6 @@
 #define SHA256_HEX_LEN 64
 #define SHA256_STR_LEN 96
 
-
-/**
- * SECTION:valentcertificate
- * @short_description: Utilities for working with TLS Certificates
- * @title: Certificate Utilities
- * @stability: Unstable
- * @include: libvalent-core.h
- *
- * A small collection of helpers for working with TLS certificates.
- */
-
 G_DEFINE_QUARK (VALENT_CERTIFICATE_CN, valent_certificate_cn);
 G_DEFINE_QUARK (VALENT_CERTIFICATE_FP, valent_certificate_fp);
 G_DEFINE_QUARK (VALENT_CERTIFICATE_PK, valent_certificate_pk);
@@ -47,6 +36,8 @@ G_DEFINE_QUARK (VALENT_CERTIFICATE_PK, valent_certificate_pk);
  * @key_path and @cert_path respectively.
  *
  * Returns: %TRUE if successful, or %FALSE with @error set
+ *
+ * Since: 1.0
  */
 static gboolean
 valent_certificate_generate (const char  *cert_path,
@@ -62,6 +53,8 @@ valent_certificate_generate (const char  *cert_path,
   unsigned int serial;
   int rc;
   gboolean ret = FALSE;
+
+  VALENT_ENTRY;
 
   /*
    * Private Key
@@ -166,7 +159,7 @@ valent_certificate_generate (const char  *cert_path,
     gnutls_x509_crt_deinit (crt);
     gnutls_x509_privkey_deinit (privkey);
 
-  return ret;
+  VALENT_RETURN (ret);
 }
 
 static void
@@ -192,12 +185,18 @@ valent_certificate_new_task (GTask        *task,
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
  *
- * Ensure a TLS certificate with the filename `certificate.pem` and private key
- * with filename `private.pem` exist in a directory at @path.
+ * Get a TLS certificate and private key pair.
+ *
+ * This ensures a TLS certificate with the filename `certificate.pem` and
+ * private key with filename `private.pem` exist in a directory at @path.
  *
  * If either one doesn't exist, a new certificate and private key pair will be
  * generated. The common name will be set to a string returned by
- * g_uuid_string_random().
+ * [func@GLib.uuid_string_random].
+ *
+ * Get the result with [func@Valent.certificate_new_finish].
+ *
+ * Since: 1.0
  */
 void
 valent_certificate_new (const char          *path,
@@ -221,12 +220,14 @@ valent_certificate_new (const char          *path,
  * @result: a #GAsyncResult provided to callback
  * @error: (nullable): a #GError
  *
- * Complete an operation started with valent_certificate_new().
+ * Finish an operation started by [func@Valent.certificate_new].
  *
  * If either generating or loading the certificate failed, %NULL will be
  * returned with @error set.
  *
  * Returns: (transfer full) (nullable): a #GTlsCertificate
+ *
+ * Since: 1.0
  */
 GTlsCertificate *
 valent_certificate_new_finish (GAsyncResult  *result,
@@ -242,17 +243,21 @@ valent_certificate_new_finish (GAsyncResult  *result,
  * @path: (type filename): a directory path
  * @error: (nullable): a #GError
  *
- * Ensure a TLS certificate with the filename `certificate.pem` and private key
- * with filename `private.pem` exist in a directory at @path.
+ * Get a TLS certificate and private key pair.
+ *
+ * This ensures a TLS certificate with the filename `certificate.pem` and
+ * private key with filename `private.pem` exist in a directory at @path.
  *
  * If either one doesn't exist, a new certificate and private key pair will be
  * generated. The common name will be set to a string returned by
- * g_uuid_string_random().
+ * [func@GLib.uuid_string_random].
  *
  * If either generating or loading the certificate fails, %NULL will be returned
  * with @error set.
  *
  * Returns: (transfer full) (nullable): a #GTlsCertificate
+ *
+ * Since: 1.0
  */
 GTlsCertificate *
 valent_certificate_new_sync (const char  *path,
@@ -289,9 +294,11 @@ valent_certificate_new_sync (const char  *path,
  * the single source of truth for a device's ID.
  *
  * Returns: (transfer none) (nullable): the certificate ID
+ *
+ * Since: 1.0
  */
 const char *
-valent_certificate_get_common_name (GTlsCertificate  *certificate)
+valent_certificate_get_common_name (GTlsCertificate *certificate)
 {
   g_autoptr (GByteArray) certificate_der = NULL;
   gnutls_x509_crt_t crt;
@@ -349,6 +356,8 @@ valent_certificate_get_common_name (GTlsCertificate  *certificate)
  * Get a SHA256 fingerprint hash of @certificate.
  *
  * Returns: (transfer none): a SHA256 hash
+ *
+ * Since: 1.0
  */
 const char *
 valent_certificate_get_fingerprint (GTlsCertificate *certificate)
@@ -400,6 +409,8 @@ valent_certificate_get_fingerprint (GTlsCertificate *certificate)
  * Get the public key of @certificate.
  *
  * Returns: (transfer none): a DER-encoded publickey
+ *
+ * Since: 1.0
  */
 GByteArray *
 valent_certificate_get_public_key (GTlsCertificate *certificate)

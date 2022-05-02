@@ -10,11 +10,9 @@
 #include "valent-macros.h"
 
 /**
- * SECTION:valentobject
- * @title: ValentObject
- * @short_description: Base object with support for object trees
- * @stability: Unstable
- * @include: libvalent-core.h
+ * ValentObject:
+ *
+ * A base class for objects.
  *
  * #ValentObject is a specialized #GObject class, based on GNOME Builder's
  * `IdeObject`. It provides a simple base class with helpers for working in
@@ -23,6 +21,8 @@
  * Instances have a #GRecMutex and a #GCancellable that is created on demand by
  * valent_object_ref_cancellable() is called. When the object is destroyed, the
  * #GCancellable::cancel signal is emitted.
+ *
+ * Since: 1.0
  */
 
 typedef struct
@@ -75,13 +75,12 @@ valent_object_destroy_main (ValentObject *object)
 }
 
 static gboolean
-valent_object_dispose_main (gpointer data)
+valent_object_dispose_main (ValentObject *object)
 {
-  ValentObject *self = VALENT_OBJECT (data);
+  g_assert (VALENT_IS_MAIN_THREAD ());
+  g_assert (VALENT_IS_OBJECT (object));
 
-  g_assert (VALENT_IS_OBJECT (data));
-
-  g_object_run_dispose (G_OBJECT (self));
+  g_object_run_dispose (G_OBJECT (object));
 
   return G_SOURCE_REMOVE;
 }
@@ -115,7 +114,7 @@ valent_object_dispose (GObject *object)
        * happens when an object was temporarily created/destroyed on a thread.
        */
       g_idle_add_full (G_PRIORITY_LOW + 1000,
-                       valent_object_dispose_main,
+                       (GSourceFunc)valent_object_dispose_main,
                        g_object_ref (self),
                        g_object_unref);
       return;
@@ -124,14 +123,12 @@ valent_object_dispose (GObject *object)
   g_assert (VALENT_IS_OBJECT (object));
 
   valent_object_private_lock (priv);
-
   if (!priv->in_destruction)
     {
       priv->in_destruction = TRUE;
       g_signal_emit (self, signals [DESTROY], 0);
       priv->in_destruction = FALSE;
     }
-
   valent_object_private_unlock (priv);
 
   G_OBJECT_CLASS (valent_object_parent_class)->dispose (object);
@@ -208,11 +205,14 @@ valent_object_class_init (ValentObjectClass *klass)
   klass->destroy = valent_object_real_destroy;
 
   /**
-   * ValentObject:cancellable:
+   * ValentObject:cancellable: (getter ref_cancellable)
    *
-   * The "cancellable" property is a #GCancellable that can be used by
-   * operations that will be cancelled when the #ValentObject::destroy signal is
-   * emitted on @self.
+   * The object [class@Gio.Cancellable].
+   *
+   * A #GCancellable that can be used by operations that should be cancelled
+   * when the object is destroyed (ie. enters disposal).
+   *
+   * Since: 1.0
    */
   properties [PROP_CANCELLABLE] =
     g_param_spec_object ("cancellable",
@@ -229,11 +229,15 @@ valent_object_class_init (ValentObjectClass *klass)
   /**
    * ValentObject::destroy:
    *
-   * The "destroy" signal is emitted when the object should destroy itself
-   * and cleanup any state that is no longer necessary.
+   * Emitted when the object is being destroyed.
    *
-   * Note that you must still drop any references you hold to the object to
-   * avoid leaking memory.
+   * This signal is emitted when the object enter disposal and always on the
+   * main thread. Note that you must still drop any references you hold to the
+   * object to avoid leaking memory.
+   *
+   * Implementations that override [vfunc@Valent.Object.destroy] must chain-up.
+   *
+   * Since: 1.0
    */
   signals [DESTROY] =
     g_signal_new ("destroy",
@@ -262,9 +266,11 @@ valent_object_init (ValentObject *self)
  * valent_object_lock:
  * @object: a #ValentObject
  *
- * Acquires a lock on @object. Call valent_object_unlock() to release the lock.
+ * Acquire a lock on @object.
  *
- * The synchronization used is a #GRecMutex.
+ * Call [method@Valent.Object.unlock] to release the lock.
+ *
+ * Since: 1.0
  */
 void
 valent_object_lock (ValentObject *object)
@@ -280,9 +286,11 @@ valent_object_lock (ValentObject *object)
  * valent_object_unlock:
  * @object: a #ValentObject
  *
- * Releases a lock previously acquired with valent_object_lock().
+ * Release a lock on @object.
  *
- * The synchronization used is a #GRecMutex.
+ * The lock must have previously been acquired by [method@Valent.Object.lock].
+ *
+ * Since: 1.0
  */
 void
 valent_object_unlock (ValentObject *object)
@@ -298,9 +306,11 @@ valent_object_unlock (ValentObject *object)
  * valent_object_ref_cancellable:
  * @object: a #ValentObject
  *
- * Gets a #GCancellable for the object.
+ * Get a [class@Gio.Cancellable] for the object.
  *
  * Returns: (transfer full) (not nullable): a #GCancellable
+ *
+ * Since: 1.0
  */
 GCancellable *
 valent_object_ref_cancellable (ValentObject *object)
@@ -323,16 +333,25 @@ valent_object_ref_cancellable (ValentObject *object)
  * valent_object_destroy:
  * @object: a #ValentObject
  *
- * Destroys @object.
+ * Destroy the object.
+ *
+ * If called from the main thread, it calls [method@GObject.Object.run_dispose],
+ * which activates the object [class@Gio.Cancellable] and emits
+ * [signal@Valent.Object::destroy].
+ *
+ * If called from another thread, an idle source will be added to invoke it on
+ * the main thread.
+ *
+ * Since: 1.0
  */
 void
-valent_object_destroy (ValentObject *self)
+valent_object_destroy (ValentObject *object)
 {
-  ValentObjectPrivate *priv = valent_object_get_instance_private (self);
+  ValentObjectPrivate *priv = valent_object_get_instance_private (object);
 
-  g_return_if_fail (VALENT_IS_OBJECT (self));
+  g_return_if_fail (VALENT_IS_OBJECT (object));
 
-  g_object_ref (self);
+  g_object_ref (object);
   valent_object_private_lock (priv);
 
   if (VALENT_IS_MAIN_THREAD ())
@@ -340,27 +359,29 @@ valent_object_destroy (ValentObject *self)
       g_cancellable_cancel (priv->cancellable);
 
       if (!priv->in_destruction && !priv->destroyed)
-        g_object_run_dispose (G_OBJECT (self));
+        g_object_run_dispose (G_OBJECT (object));
     }
   else
     {
       g_idle_add_full (G_PRIORITY_LOW + 1000,
                        (GSourceFunc)valent_object_destroy_main,
-                       g_object_ref (self),
+                       g_object_ref (object),
                        g_object_unref);
     }
 
   valent_object_private_unlock (priv);
-  g_object_unref (self);
+  g_object_unref (object);
 }
 
 /**
  * valent_object_in_destruction:
  * @object: a #ValentObject
  *
- * Checks if @object is destroyed or in destruction.
+ * Get whether the object is destroyed or in destruction.
  *
  * Returns: %TRUE if destroyed, or %FALSE if not
+ *
+ * Since: 1.0
  */
 gboolean
 valent_object_in_destruction (ValentObject *object)

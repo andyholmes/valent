@@ -14,7 +14,9 @@
  * @VALENT_POINTER_6: Scroll-left
  * @VALENT_POINTER_7: Scroll-right
  *
- * An enumeration of mouse pointer buttons.
+ * Enumeration of pointer buttons.
+ *
+ * Since: 1.0
  */
 typedef enum
 {

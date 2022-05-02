@@ -15,37 +15,48 @@
 #include "valent-object.h"
 #include "valent-packet.h"
 
-#define BUFFER_SIZE 4096
-
 
 /**
- * SECTION:valentchannel
- * @short_description: Base class for connections
- * @title: ValentChannel
- * @stability: Unstable
- * @include: libvalent-core.h
+ * ValentChannel:
  *
- * The #ValentChannel object is a base class for implementations of device
- * connections in Valent. Typically these are created by a #ValentChannelService
- * implementation that wraps a #GIOStream connection before emitting
- * #ValentChannelService::channel.
+ * A base class for device connections.
  *
- * Implementations will usually implement at least valent_channel_download() and
- * valent_channel_upload() for data transfer between devices. They may also
- * implement valent_channel_store_data() for storing channel specific data when
- * a devices is paired (eg. a TLS certificate).
+ * #ValentChannel is a base class for the primary communication channel in
+ * Valent. It is effectively an abstraction layer around a [class@Gio.IOStream].
+ *
+ * ## Packet Exchange
+ *
+ * The core of the KDE Connect protocol is built on the exchange of JSON
+ * packets, similar to JSON-RPC. Packets can be queued concurrently from
+ * different threads with [method@Valent.Channel.write_packet] and read
+ * sequentially with [method@Valent.Channel.read_packet].
+ *
+ * Packets may contain payload information, allowing devices to negotiate
+ * auxiliary connections. Incoming connections can be accepted by passing the
+ * packet to [method@Valent.Channel.download], or opened by passing the packet
+ * to [method@Valent.Channel.upload].
+ *
+ * ## Implementation Notes
+ *
+ * Implementations should override [vfunc@Valent.Channel.download] and
+ * [vfunc@Valent.Channel.upload] to support accepting and opening auxiliary
+ * connections, respectively. If pairing involves exchanging a key, override
+ * [vfunc@Valent.Channel.get_verification_key]. To know when to store persistent
+ * data related to the connection, override [vfunc@Valent.Channel.store_data].
+ *
+ * Since: 1.0
  */
 
 typedef struct
 {
-  GIOStream         *base_stream;
-  JsonNode          *identity;
-  JsonNode          *peer_identity;
+  GIOStream        *base_stream;
+  JsonNode         *identity;
+  JsonNode         *peer_identity;
 
   /* Packet Buffer */
-  GDataInputStream  *input_buffer;
-  GQueue             output_buffer;
-  unsigned int       output_loop : 1;
+  GDataInputStream *input_buffer;
+  GQueue            output_buffer;
+  unsigned int      output_pending : 1;
 } ValentChannelPrivate;
 
 G_DEFINE_TYPE_WITH_PRIVATE (ValentChannel, valent_channel, VALENT_TYPE_OBJECT)
@@ -157,14 +168,16 @@ valent_channel_return_error_if_closed (ValentChannel *self,
     return TRUE;
 
   valent_object_lock (VALENT_OBJECT (self));
-
   if (priv->base_stream == NULL || g_io_stream_is_closed (priv->base_stream))
     {
+      g_queue_clear_full (&priv->output_buffer, valent_channel_write_cancel);
+      g_clear_object (&priv->input_buffer);
+      valent_object_unlock (VALENT_OBJECT (self));
+
       g_task_return_new_error (task,
                                G_IO_ERROR,
                                G_IO_ERROR_CONNECTION_CLOSED,
                                "Channel is closed");
-      valent_object_unlock (VALENT_OBJECT (self));
       return TRUE;
     }
 
@@ -179,16 +192,19 @@ valent_channel_set_base_stream (ValentChannel *self,
   GInputStream *input_stream;
 
   g_assert (VALENT_IS_CHANNEL (self));
-  g_assert (G_IS_IO_STREAM (base_stream));
 
-  valent_object_lock (VALENT_OBJECT (self));
-  priv->base_stream = g_object_ref (base_stream);
-  input_stream = g_io_stream_get_input_stream (base_stream);
-  priv->input_buffer = g_object_new (G_TYPE_DATA_INPUT_STREAM,
-                                     "base-stream",       input_stream,
-                                     "close-base-stream", FALSE,
-                                     NULL);
-  valent_object_unlock (VALENT_OBJECT (self));
+  if (base_stream != NULL)
+    {
+      valent_object_lock (VALENT_OBJECT (self));
+      priv->base_stream = g_object_ref (base_stream);
+      input_stream = g_io_stream_get_input_stream (base_stream);
+      priv->input_buffer = g_object_new (G_TYPE_DATA_INPUT_STREAM,
+                                         "base-stream",       input_stream,
+                                         "close-base-stream", FALSE,
+                                         NULL);
+      g_queue_init (&priv->output_buffer);
+      valent_object_unlock (VALENT_OBJECT (self));
+    }
 }
 
 
@@ -202,14 +218,11 @@ valent_channel_finalize (GObject *object)
   ValentChannelPrivate *priv = valent_channel_get_instance_private (self);
 
   valent_object_lock (VALENT_OBJECT (self));
-
+  g_queue_clear (&priv->output_buffer);
   g_clear_object (&priv->input_buffer);
-  g_queue_clear_full (&priv->output_buffer, valent_channel_write_cancel);
-
   g_clear_object (&priv->base_stream);
   g_clear_pointer (&priv->identity, json_node_unref);
   g_clear_pointer (&priv->peer_identity, json_node_unref);
-
   valent_object_unlock (VALENT_OBJECT (self));
 
   G_OBJECT_CLASS (valent_channel_parent_class)->finalize (object);
@@ -286,9 +299,14 @@ valent_channel_class_init (ValentChannelClass *klass)
   klass->store_data = valent_channel_real_store_data;
 
   /**
-   * ValentChannel:base-stream:
+   * ValentChannel:base-stream: (getter ref_base_stream)
    *
-   * The base #GIOStream for the channel.
+   * The base [class@Gio.IOStream] for the channel.
+   *
+   * Implementations of [class@Valent.ChannelService] must set this property
+   * during construction.
+   *
+   * Since: 1.0
    */
   properties [PROP_BASE_STREAM] =
     g_param_spec_object ("base-stream",
@@ -301,15 +319,22 @@ valent_channel_class_init (ValentChannelClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentChannel:identity:
+   * ValentChannel:identity: (getter get_identity)
    *
-   * The identity packet sent by the #ValentChannelService. In other words, this
-   * identity packet represents the local device.
+   * The local identity packet.
+   *
+   * This is the identity packet sent by the [class@Valent.ChannelService]
+   * implementation to identify the host system.
+   *
+   * Implementations of [class@Valent.ChannelService] must set this property
+   * during construction.
+   *
+   * Since: 1.0
    */
   properties [PROP_IDENTITY] =
     g_param_spec_boxed ("identity",
                         "Identity",
-                        "Identity",
+                        "The local device identity",
                         JSON_TYPE_NODE,
                         (G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
@@ -317,15 +342,21 @@ valent_channel_class_init (ValentChannelClass *klass)
                          G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentChannel:peer-identity:
+   * ValentChannel:peer-identity: (getter get_peer_identity)
    *
-   * The identity packet sent by the peer. In other words, this identity packet
-   * represents the remote device.
+   * The peer identity packet.
+   *
+   * This is the identity packet sent by the peer to identify itself.
+   *
+   * Implementations of [class@Valent.ChannelService] must set this property
+   * during construction.
+   *
+   * Since: 1.0
    */
   properties [PROP_PEER_IDENTITY] =
     g_param_spec_boxed ("peer-identity",
                         "Peer Identity",
-                        "Peer Identity",
+                        "The peer identity packet",
                         JSON_TYPE_NODE,
                         (G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
@@ -338,18 +369,17 @@ valent_channel_class_init (ValentChannelClass *klass)
 static void
 valent_channel_init (ValentChannel *self)
 {
-  ValentChannelPrivate *priv = valent_channel_get_instance_private (self);
-
-  g_queue_init (&priv->output_buffer);
 }
 
 /**
- * valent_channel_ref_base_stream:
+ * valent_channel_ref_base_stream: (get-property base-stream)
  * @channel: a #ValentChannel
  *
- * Gets the #GIOStream for the channel, or %NULL if unset.
+ * Get the base [class@Gio.IOStream].
  *
- * Returns: (transfer full) (nullable): the base #GIOStream.
+ * Returns: (transfer full) (nullable): the base stream
+ *
+ * Since: 1.0
  */
 GIOStream *
 valent_channel_ref_base_stream (ValentChannel *channel)
@@ -368,13 +398,14 @@ valent_channel_ref_base_stream (ValentChannel *channel)
 }
 
 /**
- * valent_channel_get_identity:
+ * valent_channel_get_identity: (get-property identity)
  * @channel: A #ValentChannel
  *
- * Gets the identity packet sent by the #ValentChannelService during connection
- * negotiation.
+ * Get the local identity packet.
  *
- * Returns: (transfer none): The identity
+ * Returns: (transfer none): a KDE Connect packet
+ *
+ * Since: 1.0
  */
 JsonNode *
 valent_channel_get_identity (ValentChannel *channel)
@@ -387,12 +418,14 @@ valent_channel_get_identity (ValentChannel *channel)
 }
 
 /**
- * valent_channel_get_peer_identity:
+ * valent_channel_get_peer_identity: (get-property peer-identity)
  * @channel: A #ValentChannel
  *
- * Gets the identity packet sent by the peer during connection negotiation.
+ * Get the peer identity packet.
  *
- * Returns: (transfer none): The peer identity
+ * Returns: (transfer none): a KDE Connect packet
+ *
+ * Since: 1.0
  */
 JsonNode *
 valent_channel_get_peer_identity (ValentChannel *channel)
@@ -410,17 +443,25 @@ valent_channel_get_peer_identity (ValentChannel *channel)
  *
  * Get a verification key for the connection.
  *
- * Implementations should return a string for the user to confirm the connection
- * is being made by a particular device, similar to a Bluetooth PIN.
+ * Implementations that involve exchanging a key should return a string for the
+ * user to authenticate the connection, similar to a Bluetooth PIN.
  *
  * Returns: (transfer none): a verification key
+ *
+ * Since: 1.0
  */
 const char *
 valent_channel_get_verification_key (ValentChannel *channel)
 {
+  const char *ret;
+
+  VALENT_ENTRY;
+
   g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
 
-  return VALENT_CHANNEL_GET_CLASS (channel)->get_verification_key (channel);
+  ret = VALENT_CHANNEL_GET_CLASS (channel)->get_verification_key (channel);
+
+  VALENT_RETURN (ret);
 }
 
 /**
@@ -429,7 +470,7 @@ valent_channel_get_verification_key (ValentChannel *channel)
  * @cancellable: (nullable): a #GCancellable
  * @error: (nullable): a #GError
  *
- * Synchronously close @channel.
+ * Close the channel.
  *
  * Returns: %TRUE if successful, or %FALSE with @error set
  */
@@ -448,8 +489,12 @@ valent_channel_close (ValentChannel  *channel,
   g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
   valent_object_lock (VALENT_OBJECT (channel));
-  if (priv->base_stream != NULL)
-    ret = g_io_stream_close (priv->base_stream, cancellable, error);
+  if (priv->base_stream != NULL && !g_io_stream_is_closed (priv->base_stream))
+    {
+      ret = g_io_stream_close (priv->base_stream, cancellable, error);
+      g_queue_clear_full (&priv->output_buffer, valent_channel_write_cancel);
+      g_clear_object (&priv->input_buffer);
+    }
   valent_object_unlock (VALENT_OBJECT (channel));
 
   VALENT_RETURN (ret);
@@ -462,18 +507,15 @@ valent_channel_close_task (GTask        *task,
                            GCancellable *cancellable)
 {
   ValentChannel *self = source_object;
-  ValentChannelPrivate *priv = valent_channel_get_instance_private (self);
   GError *error = NULL;
 
-  if (valent_channel_return_error_if_closed (self, task))
-      return;
+  if (g_task_return_error_if_cancelled (task))
+    return;
 
-  if (!g_io_stream_close (priv->base_stream, cancellable, &error))
-    g_task_return_error (task, error);
-  else
+  if (valent_channel_close (self, cancellable, &error))
     g_task_return_boolean (task, TRUE);
-
-  valent_object_unlock (VALENT_OBJECT (self));
+  else
+    g_task_return_error (task, error);
 }
 
 /**
@@ -483,7 +525,11 @@ valent_channel_close_task (GTask        *task,
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
  *
- * This is the asynchronous version of valent_channel_close().
+ * Close the channel asynchronously.
+ *
+ * Call [method@Valent.Channel.close_finish] to get the result.
+ *
+ * Since: 1.0
  */
 void
 valent_channel_close_async (ValentChannel       *channel,
@@ -491,7 +537,6 @@ valent_channel_close_async (ValentChannel       *channel,
                             GAsyncReadyCallback  callback,
                             gpointer             user_data)
 {
-  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
   g_autoptr (GTask) task = NULL;
 
   VALENT_ENTRY;
@@ -501,15 +546,7 @@ valent_channel_close_async (ValentChannel       *channel,
 
   task = g_task_new (channel, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_channel_close_async);
-
-  valent_object_lock (VALENT_OBJECT (channel));
-
-  if (priv->base_stream == NULL || g_io_stream_is_closed (priv->base_stream))
-    g_task_return_boolean (task, TRUE);
-  else
-    g_task_run_in_thread (task, valent_channel_close_task);
-
-  valent_object_unlock (VALENT_OBJECT (channel));
+  g_task_run_in_thread (task, valent_channel_close_task);
 
   VALENT_EXIT;
 }
@@ -520,9 +557,11 @@ valent_channel_close_async (ValentChannel       *channel,
  * @result: a #GAsyncResult
  * @error: (nullable): a #GError
  *
- * Finishes an async operation started by valent_channel_close_async().
+ * Finish an operation started by [method@Valent.Channel.close_async].
  *
  * Returns: %TRUE if successful, or %FALSE with @error set
+ *
+ * Since: 1.0
  */
 gboolean
 valent_channel_close_finish (ValentChannel  *channel,
@@ -585,8 +624,11 @@ valent_channel_read_packet_task (GTask        *task,
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
  *
- * Asynchronously read the next #JsonNode packet from @channel. Call
- * valent_channel_read_packet_finish() to get the result.
+ * Read the next KDE Connect packet from @channel.
+ *
+ * Call [method@Valent.Channel.read_packet_finish] to get the result.
+ *
+ * Since: 1.0
  */
 void
 valent_channel_read_packet (ValentChannel       *channel,
@@ -614,9 +656,11 @@ valent_channel_read_packet (ValentChannel       *channel,
  * @result: a #GAsyncResult
  * @error: (nullable): a #GError
  *
- * Finishes an operation started by valent_channel_read_packet().
+ * Finish an operation started by [method@Valent.Channel.read_packet].
  *
- * Returns: (transfer full): a #JsonNode or %NULL with @error set
+ * Returns: (transfer full): a KDE Connect packet, or %NULL with @error set
+ *
+ * Since: 1.0
  */
 JsonNode *
 valent_channel_read_packet_finish (ValentChannel  *channel,
@@ -637,7 +681,7 @@ valent_channel_read_packet_finish (ValentChannel  *channel,
 }
 
 static void
-valent_channel_write_loop (GTask        *task,
+valent_channel_flush_task (GTask        *task,
                            gpointer      source_object,
                            gpointer      task_data,
                            GCancellable *cancellable)
@@ -656,27 +700,27 @@ valent_channel_write_loop (GTask        *task,
     {
       g_autoptr (GTask) next = NULL;
       JsonNode *packet = NULL;
+      GCancellable *cancel = NULL;
       GError *error = NULL;
 
-      /* Lock while deciding whether to exit the loop, otherwise packets queued
-       * in the interim may not get sent. */
-      valent_object_lock (VALENT_OBJECT (self));
+      /* Hold the lock to avoid dropping packets. */
+      if (valent_channel_return_error_if_closed (self, task))
+        return;
+
       next = g_queue_pop_head (&priv->output_buffer);
-      priv->output_loop = (next != NULL);
+      priv->output_pending = (next != NULL);
       valent_object_unlock (VALENT_OBJECT (self));
 
       if (next == NULL)
         break;
 
       packet = g_task_get_task_data (next);
+      cancel = g_task_get_cancellable (next);
 
-      if (!valent_packet_to_stream (stream, packet, cancellable, &error))
-        {
-          g_task_return_error (next, error);
-          break;
-        }
-
-      g_task_return_boolean (next, TRUE);
+      if (valent_packet_to_stream (stream, packet, cancel, &error))
+        g_task_return_boolean (next, TRUE);
+      else
+        g_task_return_error (next, error);
     }
 
   g_task_return_boolean (task, TRUE);
@@ -685,13 +729,19 @@ valent_channel_write_loop (GTask        *task,
 /**
  * valent_channel_write_packet:
  * @channel: a #ValentChannel
- * @packet: a #JsonNode
+ * @packet: a KDE Connect packet
  * @cancellable: (nullable): a #GCancellable
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
  *
- * Asynchronously write the #JsonNode @packet to @channel. Call
- * valent_channel_write_packet_finish() to get the result.
+ * Send a packet over the channel.
+ *
+ * Internally [class@Valent.Channel] uses an outgoing packet buffer, so
+ * multiple requests can be started safely from any thread.
+ *
+ * Call [method@Valent.Channel.write_packet_finish] to get the result.
+ *
+ * Since: 1.0
  */
 void
 valent_channel_write_packet (ValentChannel       *channel,
@@ -716,23 +766,20 @@ valent_channel_write_packet (ValentChannel       *channel,
                         (GDestroyNotify)json_node_unref);
 
   if (valent_channel_return_error_if_closed (channel, task))
-    return;
+    VALENT_EXIT;
 
   g_queue_push_tail (&priv->output_buffer, g_steal_pointer (&task));
 
-  if (priv->output_loop == FALSE)
+  if (priv->output_pending == FALSE)
     {
-      g_autoptr (GTask) loop = NULL;
-      g_autoptr (GCancellable) close = NULL;
+      g_autoptr (GTask) operation = NULL;
 
-      priv->output_loop = TRUE;
+      priv->output_pending = TRUE;
 
-      close = valent_object_ref_cancellable (VALENT_OBJECT (channel));
-      loop = g_task_new (channel, close, NULL, NULL);
-      g_task_set_source_tag (loop, valent_channel_write_loop);
-      g_task_run_in_thread (loop, valent_channel_write_loop);
+      operation = g_task_new (channel, NULL, NULL, NULL);
+      g_task_set_source_tag (operation, valent_channel_flush_task);
+      g_task_run_in_thread (operation, valent_channel_flush_task);
     }
-
   valent_object_unlock (VALENT_OBJECT (channel));
 
   VALENT_EXIT;
@@ -744,9 +791,11 @@ valent_channel_write_packet (ValentChannel       *channel,
  * @result: a #GAsyncResult
  * @error: (nullable): a #GError
  *
- * Finishes an async operation started by valent_channel_write_packet().
+ * Finish an operation started by [method@Valent.Channel.write_packet].
  *
  * Returns: %TRUE if successful, or %FALSE with @error set
+ *
+ * Since: 1.0
  */
 gboolean
 valent_channel_write_packet_finish (ValentChannel  *channel,
@@ -771,11 +820,15 @@ valent_channel_write_packet_finish (ValentChannel  *channel,
  * @channel: a #ValentChannel
  * @data: a #ValentData
  *
- * This is called when a device is paired, allowing implementations to store
- * data required to authenticate during later connections.
+ * Store channel metadata.
  *
- * The default implementation stores the remote identity packet, so
- * implementations should chain-up to retain that behaviour.
+ * This method is called to store channel specific data. Implementations can
+ * override this method to store extra data (eg. TLS Certificate).
+ *
+ * Implementations that override [vfunc@Valent.Channel.store_data] must
+ * chain-up.
+ *
+ * Since: 1.0
  */
 void
 valent_channel_store_data (ValentChannel *channel,
@@ -794,17 +847,21 @@ valent_channel_store_data (ValentChannel *channel,
 /**
  * valent_channel_download: (virtual download)
  * @channel: a #ValentChannel
- * @packet: a #JsonNode packet
+ * @packet: a KDE Connect packet
  * @cancellable: (nullable): a #GCancellable
  * @error: (nullable): a #GError
  *
- * Open a connection offered by the remote device. The remote device is expected
- * to populate @packet with information to negotiate the connection (eg. port).
+ * Accept a payload connection from the remote device.
  *
- * Typically the #GInputStream of the result will be used to read the contents
- * of a payload, while the #GInputStream is left unused.
+ * Implementations should use the payload information in @packet necessary to
+ * negotiate the connection (eg. TCP port).
+ *
+ * In most cases the [property@Gio.IOStream:input-stream] of the result will be
+ * used, while the [property@Gio.IOStream:output-stream] is left unused.
  *
  * Returns: (transfer full) (nullable): a #GIOStream
+ *
+ * Since: 1.0
  */
 GIOStream *
 valent_channel_download (ValentChannel  *channel,
@@ -832,17 +889,21 @@ valent_channel_download (ValentChannel  *channel,
 /**
  * valent_channel_upload: (virtual upload)
  * @channel: a #ValentChannel
- * @packet: a #JsonNode packet to send with payload info
+ * @packet: a KDE Connect packet
  * @cancellable: (nullable): a #GCancellable
  * @error: (nullable): a #GError
  *
- * Offer a connection to the remote device. Implementations are expected to
- * populate @packet with information to negotiate the connection (eg. port).
+ * Open a payload connection to the remote device.
  *
- * Typically the #GOutputStream of the result will be used to write the contents
- * of a payload, while the #GInputStream is left unused.
+ * Implementations should set the payload information in @packet necessary to
+ * negotiate the connection (eg. TCP port).
+ *
+ * In most cases the [property@Gio.IOStream:output-stream] of the result will be
+ * used, while the [property@Gio.IOStream:input-stream] is left unused.
  *
  * Returns: (transfer full) (nullable): a #GIOStream
+ *
+ * Since: 1.0
  */
 GIOStream *
 valent_channel_upload (ValentChannel  *channel,

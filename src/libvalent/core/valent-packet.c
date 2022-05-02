@@ -23,6 +23,8 @@ G_DEFINE_QUARK (valent-packet-error, valent_packet_error)
  * field set to @type.
  *
  * Returns: (transfer full): a KDE Connect packet
+ *
+ * Since: 1.0
  */
 JsonNode *
 valent_packet_new (const char *type)
@@ -55,6 +57,8 @@ valent_packet_new (const char *type)
  * result.
  *
  * Returns: (transfer full) (nullable): A #JsonBuilder object
+ *
+ * Since: 1.0
  */
 JsonBuilder *
 valent_packet_start (const char *type)
@@ -86,6 +90,8 @@ valent_packet_start (const char *type)
  * #JsonNode packet. @builder will be consumed by this function.
  *
  * Returns: (transfer full): a KDE Connect packet
+ *
+ * Since: 1.0
  */
 JsonNode *
 valent_packet_finish (JsonBuilder *builder)
@@ -112,6 +118,8 @@ valent_packet_finish (JsonBuilder *builder)
  * Convenience function for getting the timestamp of a KDE Connect packet.
  *
  * Returns: a UNIX epoch timestamp
+ *
+ * Since: 1.0
  */
 gint64
 valent_packet_get_id (JsonNode *packet)
@@ -137,6 +145,8 @@ valent_packet_get_id (JsonNode *packet)
  * Convenience function for getting the capability type of a KDE Connect packet.
  *
  * Returns: (transfer none) (nullable): a KDE Connect capability
+ *
+ * Since: 1.0
  */
 const char *
 valent_packet_get_type (JsonNode *packet)
@@ -162,6 +172,8 @@ valent_packet_get_type (JsonNode *packet)
  * Convenience function for getting the packet body of a KDE Connect packet.
  *
  * Returns: (transfer none) (nullable): a #JsonObject
+ *
+ * Since: 1.0
  */
 JsonObject *
 valent_packet_get_body (JsonNode *packet)
@@ -192,6 +204,8 @@ valent_packet_get_body (JsonNode *packet)
  * - The `payloadTransferInfo` field is not a %JSON_NODE_OBJECT
  *
  * Returns: %TRUE if @packet has a payload
+ *
+ * Since: 1.0
  */
 gboolean
 valent_packet_has_payload (JsonNode *packet)
@@ -228,6 +242,8 @@ valent_packet_has_payload (JsonNode *packet)
  * criteria.
  *
  * Returns: (transfer none) (nullable): a #JsonObject
+ *
+ * Since: 1.0
  */
 JsonObject *
 valent_packet_get_payload_full (JsonNode  *packet,
@@ -280,6 +296,8 @@ valent_packet_get_payload_full (JsonNode  *packet,
  *
  * A convenience method for setting the `payloadTransferInfo` and `payloadSize`
  * fields on @packet.
+ *
+ * Since: 1.0
  */
 void
 valent_packet_set_payload_full (JsonNode   *packet,
@@ -303,6 +321,8 @@ valent_packet_set_payload_full (JsonNode   *packet,
  * A convenience for retrieve the 'payloadTransferInfo` field from @packet.
  *
  * Returns: (transfer none) (nullable): a #JsonObject
+ *
+ * Since: 1.0
  */
 JsonObject *
 valent_packet_get_payload_info (JsonNode *packet)
@@ -326,6 +346,8 @@ valent_packet_get_payload_info (JsonNode *packet)
  * @info: (transfer full): a #JsonObject
  *
  * A convenience method for setting the `payloadTransferInfo` field on @packet.
+ *
+ * Since: 1.0
  */
 void
 valent_packet_set_payload_info (JsonNode   *packet,
@@ -348,6 +370,8 @@ valent_packet_set_payload_info (JsonNode   *packet,
  * Get the `payloadSize` field of @packet in bytes.
  *
  * Returns: the payload size
+ *
+ * Since: 1.0
  */
 goffset
 valent_packet_get_payload_size (JsonNode *packet)
@@ -373,6 +397,8 @@ valent_packet_get_payload_size (JsonNode *packet)
  * @size: the payload size in bytes
  *
  * Set the `payloadSize` field of @packet to @size.
+ *
+ * Since: 1.0
  */
 void
 valent_packet_set_payload_size (JsonNode *packet,
@@ -399,6 +425,8 @@ valent_packet_set_payload_size (JsonNode *packet,
  * 2. If @field is a %G_TYPE_STRING, %FALSE is returned if the string is empty.
  *
  * Returns: %TRUE, or %FALSE on failure
+ *
+ * Since: 1.0
  */
 gboolean
 valent_packet_check_field (JsonNode   *packet,
@@ -443,6 +471,8 @@ valent_packet_check_field (JsonNode   *packet,
  * @value will not be set.
  *
  * Returns: %TRUE, or %FALSE on failure
+ *
+ * Since: 1.0
  */
 gboolean
 valent_packet_get_boolean (JsonNode   *packet,
@@ -485,6 +515,8 @@ valent_packet_get_boolean (JsonNode   *packet,
  * @value will not be set.
  *
  * Returns: %TRUE, or %FALSE on failure
+ *
+ * Since: 1.0
  */
 gboolean
 valent_packet_get_double (JsonNode   *packet,
@@ -527,6 +559,8 @@ valent_packet_get_double (JsonNode   *packet,
  * @value will not be set.
  *
  * Returns: %TRUE, or %FALSE on failure
+ *
+ * Since: 1.0
  */
 gboolean
 valent_packet_get_int (JsonNode   *packet,
@@ -569,6 +603,8 @@ valent_packet_get_int (JsonNode   *packet,
  * returned and @value will not be set.
  *
  * Returns: %TRUE, or %FALSE on failure
+ *
+ * Since: 1.0
  */
 gboolean
 valent_packet_get_string (JsonNode    *packet,
@@ -617,6 +653,8 @@ valent_packet_get_string (JsonNode    *packet,
  * @value will not be set.
  *
  * Returns: %TRUE, or %FALSE on failure
+ *
+ * Since: 1.0
  */
 gboolean
 valent_packet_get_array (JsonNode    *packet,
@@ -659,6 +697,8 @@ valent_packet_get_array (JsonNode    *packet,
  * and @value will not be set.
  *
  * Returns: %TRUE, or %FALSE on failure
+ *
+ * Since: 1.0
  */
 gboolean
 valent_packet_get_object (JsonNode    *packet,
@@ -701,6 +741,8 @@ valent_packet_get_object (JsonNode    *packet,
  * strings, %NULL will be returned.
  *
  * Returns: (transfer full) (nullable) (array zero-terminated=1): a list of strings
+ *
+ * Since: 1.0
  */
 GStrv
 valent_packet_dup_strv (JsonNode   *packet,
@@ -752,6 +794,8 @@ valent_packet_dup_strv (JsonNode   *packet,
  * Check if @packet is a well-formed KDE Connect packet.
  *
  * Returns: %TRUE if @packet is valid, or %FALSE with @error set
+ *
+ * Since: 1.0
  */
 gboolean
 valent_packet_validate (JsonNode  *packet,
@@ -855,6 +899,8 @@ valent_packet_validate (JsonNode  *packet,
  * a KDE Connect packet, %NULL will be returned with @error set.
  *
  * Returns: (transfer full): a KDE Connect packet, or %NULL with @error set.
+ *
+ * Since: 1.0
  */
 JsonNode *
 valent_packet_from_stream (GInputStream  *stream,
@@ -922,6 +968,8 @@ valent_packet_from_stream (GInputStream  *stream,
  * A convenience function for writing a packet to a connection.
  *
  * Returns: %TRUE if successful, or %FALSE with @error set
+ *
+ * Since: 1.0
  */
 gboolean
 valent_packet_to_stream (GOutputStream  *stream,
@@ -980,6 +1028,8 @@ valent_packet_to_stream (GOutputStream  *stream,
  * a serialized string with newline ending, ready to be written to a stream.
  *
  * Returns: (transfer full) (nullable): the serialized packet.
+ *
+ * Since: 1.0
  */
 char *
 valent_packet_serialize (JsonNode *packet)
@@ -1013,6 +1063,8 @@ valent_packet_serialize (JsonNode *packet)
  * If parsing or validation fails, @error will be set and %NULL returned.
  *
  * Returns: (transfer full) (nullable): a KDE Connect packet
+ *
+ * Since: 1.0
  */
 JsonNode *
 valent_packet_deserialize (const char  *json,

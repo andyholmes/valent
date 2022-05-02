@@ -14,15 +14,15 @@
 
 
 /**
- * SECTION:valentcontactcache
- * @short_description: An #EBookCache wrapper
- * @title: ValentContactCache
- * @stability: Unstable
- * @include: libvalent-contacts.h
+ * ValentContactCache:
  *
- * The #ValentContactCache class is an implementation of #ValentContactStore for
- * local contact stores. It is effectively a simple wrapper around #EBookCache,
- * providing a fallback when Evolution Data Server is not available.
+ * An implementation of [class@Valent.ContactStore].
+ *
+ * #ValentContactCache is a simple implementation of [class@Valent.ContactStore]
+ * for local contact store, used as a fallback when Evolution Data Server is not
+ * available.
+ *
+ * Since: 1.0
  */
 
 struct _ValentContactCache
@@ -367,6 +367,8 @@ valent_contact_cache_class_init (ValentContactCacheClass *klass)
    * ValentContactCache:path:
    *
    * The path to the database file.
+   *
+   * Since: 1.0
    */
   properties [PROP_PATH] =
     g_param_spec_string ("path",

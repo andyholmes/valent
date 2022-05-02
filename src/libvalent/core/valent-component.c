@@ -14,16 +14,15 @@
 
 
 /**
- * SECTION:valentcomponent
- * @short_description: Base class for components
- * @title: ValentComponent
- * @stability: Unstable
- * @include: libvalent-core.h
+ * ValentComponent:
+ *
+ * An abstract base class for components.
  *
  * #ValentComponent is a base class for session and system components, such as
- * the clipboard or volume control. Each #ValentComponent is typically a
- * singleton representing a unique resource, but may be backed by one or more
- * extensions implemented by #PeasExtensions.
+ * the clipboard or volume control. Each component is typically used in a
+ * singleton pattern, backed by one or more extensions.
+ *
+ * Since: 1.0
  */
 
 typedef struct
@@ -171,17 +170,15 @@ on_load_plugin (PeasEngine      *engine,
   ComponentPlugin *plugin;
   const char *module;
 
+  VALENT_ENTRY;
+
   g_assert (PEAS_IS_ENGINE (engine));
   g_assert (info != NULL);
   g_assert (VALENT_IS_COMPONENT (self));
 
-  /* This would generally only happen at startup */
-  if G_UNLIKELY (!peas_plugin_info_is_loaded (info))
-    return;
-
   /* We're only interested in one GType */
   if (!peas_engine_provides_extension (engine, info, priv->plugin_type))
-    return;
+    VALENT_EXIT;
 
   VALENT_NOTE ("%s: %s",
                g_type_name (priv->plugin_type),
@@ -204,6 +201,8 @@ on_load_plugin (PeasEngine      *engine,
 
   if (g_settings_get_boolean (plugin->settings, "enabled"))
     valent_component_enable_extension (self, plugin);
+
+  VALENT_EXIT;
 }
 
 static void
@@ -213,19 +212,23 @@ on_unload_plugin (PeasEngine      *engine,
 {
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
 
+  VALENT_ENTRY;
+
   g_assert (PEAS_IS_ENGINE (engine));
   g_assert (info != NULL);
   g_assert (VALENT_IS_COMPONENT (self));
 
   /* We're only interested in one GType */
   if (!peas_engine_provides_extension (engine, info, priv->plugin_type))
-    return;
+    VALENT_EXIT;
 
   VALENT_NOTE ("%s: %s",
                g_type_name (priv->plugin_type),
                peas_plugin_info_get_module_name (info));
 
   g_hash_table_remove (priv->plugins, info);
+
+  VALENT_EXIT;
 }
 
 
@@ -242,13 +245,15 @@ valent_component_constructed (GObject *object)
   g_assert (priv->plugin_context != NULL);
   g_assert (priv->plugin_type != G_TYPE_NONE);
 
-  /* Setup known plugins */
+  /* Setup PeasEngine */
   plugins = peas_engine_get_plugin_list (priv->engine);
 
   for (const GList *iter = plugins; iter; iter = iter->next)
-    on_load_plugin (priv->engine, iter->data, self);
+    {
+      if (peas_plugin_info_is_loaded (iter->data))
+        on_load_plugin (priv->engine, iter->data, self);
+    }
 
-  /* Watch for new and removed plugins */
   g_signal_connect_after (priv->engine,
                           "load-plugin",
                           G_CALLBACK (on_load_plugin),
@@ -348,9 +353,12 @@ valent_component_class_init (ValentComponentClass *klass)
   /**
    * ValentComponent:plugin-context:
    *
-   * The context for the component. This is a #GSettings safe string such as
-   * "contacts" or "media", used to distinguish the settings and configuration
-   * files of pluggable extensions.
+   * The domain of the component.
+   *
+   * This is a #GSettings safe string such as "contacts" or "media", used to
+   * structure settings and files of components and their extensions.
+   *
+   * Since: 1.0
    */
   properties [PROP_PLUGIN_CONTEXT] =
     g_param_spec_string ("plugin-context",
@@ -365,7 +373,9 @@ valent_component_class_init (ValentComponentClass *klass)
   /**
    * ValentComponent:plugin-type:
    *
-   * The #GType of the extension this component aggregates.
+   * The extension point [alias@GLib.Type].
+   *
+   * Since: 1.0
    */
   properties [PROP_PLUGIN_TYPE] =
     g_param_spec_gtype ("plugin-type",
@@ -384,8 +394,12 @@ valent_component_class_init (ValentComponentClass *klass)
    * @component: an #ValentComponent
    * @extension: an #PeasExtension
    *
-   * The "extension-added" signal is emitted when @component has enabled a
-   * supported extension.
+   * Emitted when a [alias@Peas.Extension] has been enabled.
+   *
+   * Implementations of [class@Valent.Component] must chain-up if they override
+   * [vfunc@Valent.Component.extension_added].
+   *
+   * Since: 1.0
    */
   signals [EXTENSION_ADDED] =
     g_signal_new ("extension-added",
@@ -404,8 +418,12 @@ valent_component_class_init (ValentComponentClass *klass)
    * @component: an #ValentComponent
    * @extension: an #PeasExtension
    *
-   * The "extension-removed" signal is emitted when @component is about to
-   * disable a supported extension.
+   * Emitted when a [alias@Peas.Extension] has been disabled.
+   *
+   * Implementations of [class@Valent.Component] must chain-up if they override
+   * [vfunc@Valent.Component.extension_removed].
+   *
+   * Since: 1.0
    */
   signals [EXTENSION_REMOVED] =
     g_signal_new ("extension-removed",
@@ -434,10 +452,14 @@ valent_component_init (ValentComponent *self)
  * @component: a #ValentComponent
  * @key: The priority key in the plugin info
  *
- * Get the extension with the highest priority for @component. The default
- * value for extensions is `0`; the lower the value the higher the priority.
+ * Get the extension with the highest priority.
+ *
+ * The default value for extensions is `0`; the lower the value the higher the
+ * priority.
  *
  * Returns: (transfer none) (nullable): a #PeasExtension
+ *
+ * Since: 1.0
  */
 PeasExtension *
 valent_component_get_priority_provider (ValentComponent *component,
@@ -450,7 +472,10 @@ valent_component_get_priority_provider (ValentComponent *component,
   PeasExtension *extension = NULL;
   gint64 priority = 0;
 
+  VALENT_ENTRY;
+
   g_return_val_if_fail (VALENT_IS_COMPONENT (component), NULL);
+  g_return_val_if_fail (key != NULL && *key != '\0', NULL);
 
   g_hash_table_iter_init (&iter, priv->plugins);
 
@@ -470,7 +495,7 @@ valent_component_get_priority_provider (ValentComponent *component,
         }
     }
 
-  return extension;
+  VALENT_RETURN (extension);
 }
 
 /**
@@ -478,12 +503,14 @@ valent_component_get_priority_provider (ValentComponent *component,
  * @context: a #ValentDevice ID
  * @module_name: a #PeasPluginInfo module name
  *
- * A convenience function for components to create a #GSettings object for a
- * context and module name.
+ * Create a [class@Gio.Settings] for an extension.
  *
- * It is expected that @context is a valid string for a #GSettings path.
+ * A convenience function to create a #GSettings object for a context and module
+ * name.
  *
  * Returns: (transfer full): the new #GSettings object
+ *
+ * Since: 1.0
  */
 GSettings *
 valent_component_new_settings (const char *context,

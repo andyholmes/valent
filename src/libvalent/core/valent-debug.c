@@ -164,10 +164,12 @@ valent_log_handler (const char     *domain,
  * Initializes logging for Valent.
  *
  * This should be called before the application starts, which is typically when
- * g_application_run() is invoked.
+ * [method@Gio.Application.run] is invoked.
  *
  * If %VALENT_ENABLE_PROFILING is defined, trace markers and messages at level
- * @VALENT_LOG_LEVEL_TRACE will be passed to sysprof.
+ * %VALENT_LOG_LEVEL_TRACE will be passed to sysprof.
+ *
+ * Since: 1.0
  */
 void
 valent_debug_init (void)
@@ -195,10 +197,12 @@ valent_debug_init (void)
 /**
  * valent_debug_clear:
  *
- * Shutdown logging for Valent, previously initialized by valent_debug_init().
+ * Shutdown logging for Valent.
  *
- * This should be called after the application tops, which is typically when the
- * call to g_application_run() returns.
+ * This should be called after the application stops, which is typically when
+ * the call to [method@Gio.Application.run] returns.
+ *
+ * Since: 1.0
  */
 void
 valent_debug_clear (void)

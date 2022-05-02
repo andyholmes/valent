@@ -37,6 +37,8 @@
  * aggregate action group for plugins. Plugin actions are automatically included
  * in the device action group with the plugin module name as a prefix
  * (eg. `share.files`).
+ *
+ * Since: 1.0
  */
 
 struct _ValentDevice
@@ -543,6 +545,8 @@ valent_device_handle_pair (ValentDevice *device,
 {
   gboolean pair;
 
+  VALENT_ENTRY;
+
   g_assert (VALENT_IS_DEVICE (device));
   g_assert (VALENT_IS_PACKET (packet));
 
@@ -551,7 +555,7 @@ valent_device_handle_pair (ValentDevice *device,
       g_warning ("%s(): malformed pair packet from \"%s\"",
                  G_STRFUNC,
                  device->name);
-      return;
+      VALENT_EXIT;
     }
 
   /* Device is requesting pairing or accepting our request */
@@ -585,6 +589,8 @@ valent_device_handle_pair (ValentDevice *device,
       VALENT_NOTE ("Pairing rejected by \"%s\"", device->name);
       valent_device_set_paired (device, FALSE);
     }
+
+  VALENT_EXIT;
 }
 
 /*
@@ -597,6 +603,8 @@ valent_device_handle_identity (ValentDevice *device,
   const char *device_id;
   const char *device_name;
   const char *device_type;
+
+  VALENT_ENTRY;
 
   g_assert (VALENT_IS_DEVICE (device));
   g_assert (VALENT_IS_PACKET (packet));
@@ -611,7 +619,7 @@ valent_device_handle_identity (ValentDevice *device,
                   G_STRFUNC,
                   device->id);
       valent_object_unlock (VALENT_OBJECT (device));
-      return;
+      VALENT_EXIT;
     }
 
   /* Device Name */
@@ -667,6 +675,8 @@ valent_device_handle_identity (ValentDevice *device,
 
   /* Recheck plugins and load or unload if capabilities have changed */
   valent_device_reload_plugins (device);
+
+  VALENT_EXIT;
 }
 
 
@@ -726,13 +736,11 @@ on_unload_plugin (PeasEngine     *engine,
                   PeasPluginInfo *info,
                   ValentDevice   *device)
 {
-  DevicePlugin *plugin;
-
   g_assert (PEAS_IS_ENGINE (engine));
   g_assert (info != NULL);
   g_assert (VALENT_IS_DEVICE (device));
 
-  if ((plugin = g_hash_table_lookup (device->plugins, info)) == NULL)
+  if (!g_hash_table_contains (device->plugins, info))
     return;
 
   VALENT_NOTE ("%s: %s",
@@ -996,6 +1004,8 @@ valent_device_class_init (ValentDeviceClass *klass)
    * This property indicates whether the device has an active
    * [class@Valent.Channel] that has been authenticated. It does not imply the
    * the device has been paired, however.
+   *
+   * Since: 1.0
    */
   properties [PROP_CONNECTED] =
     g_param_spec_boolean ("connected",
@@ -1009,15 +1019,17 @@ valent_device_class_init (ValentDeviceClass *klass)
   /**
    * ValentDevice:data: (getter ref_data)
    *
-   * The data context for the device.
+   * The data context.
    *
    * This provides a relative point for files and settings, specific to the
    * device in question.
+   *
+   * Since: 1.0
    */
   properties [PROP_DATA] =
     g_param_spec_object ("data",
                          "Data Manager",
-                         "The data manager for this device manager",
+                         "The data context",
                          VALENT_TYPE_DATA,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -1030,6 +1042,8 @@ valent_device_class_init (ValentDeviceClass *klass)
    * A symbolic icon name for the device.
    *
    * See [property@Valent.Device:type].
+   *
+   * Since: 1.0
    */
   properties [PROP_ICON_NAME] =
     g_param_spec_string ("icon-name",
@@ -1048,6 +1062,8 @@ valent_device_class_init (ValentDeviceClass *klass)
    * By convention, the single source of truth for a device ID in KDE Connect is
    * the common name of its TLS certificate. It is not well-defined how this ID
    * is generated, however.
+   *
+   * Since: 1.0
    */
   properties [PROP_ID] =
     g_param_spec_string ("id",
@@ -1062,6 +1078,8 @@ valent_device_class_init (ValentDeviceClass *klass)
    * ValentDevice:name: (getter get_name)
    *
    * A display name for the device.
+   *
+   * Since: 1.0
    */
   properties [PROP_NAME] =
     g_param_spec_string ("name",
@@ -1080,6 +1098,8 @@ valent_device_class_init (ValentDeviceClass *klass)
    * This property indicates whether the device is paired with respect to the
    * KDE Connect protocol and may be unrelated to the underlying transport
    * protocol (eg. Bluetooth).
+   *
+   * Since: 1.0
    */
   properties [PROP_PAIRED] =
     g_param_spec_boolean ("paired",
@@ -1095,9 +1115,10 @@ valent_device_class_init (ValentDeviceClass *klass)
    *
    * The state of the device.
    *
-   * This property provides more granular information about the device state
-   * than the [property@Valent.Device:connected] or
-   * [property@Valent.Device:paired] properties.
+   * This is intended to provide more granular information about the state than
+   * [property@Valent.Device:connected] or [property@Valent.Device:paired].
+   *
+   * Since: 1.0
    */
   properties [PROP_STATE] =
     g_param_spec_flags ("state",
@@ -1118,6 +1139,8 @@ valent_device_class_init (ValentDeviceClass *klass)
    *
    * This is generally only useful for things like selecting an icon, since the
    * device will describe its capabilities by other means.
+   *
+   * Since: 1.0
    */
   properties [PROP_TYPE] =
     g_param_spec_string ("type",
@@ -1140,6 +1163,8 @@ valent_device_class_init (ValentDeviceClass *klass)
    * This could be a result of the [class@Peas.Engine] loading a plugin that
    * provides a [class@Valent.DevicePlugin] extension or the device receiving an
    * identity packet indicating the capabilities of the device have changed.
+   *
+   * Since: 1.0
    */
   signals [PLUGIN_ADDED] =
     g_signal_new ("plugin-added",
@@ -1163,6 +1188,8 @@ valent_device_class_init (ValentDeviceClass *klass)
    * This could be a result of the [class@Peas.Engine] unloading a plugin that
    * provided a [class@Valent.DevicePlugin] extension or the device receiving an
    * identity packet indicating the capabilities of the device have changed.
+   *
+   * Since: 1.0
    */
   signals [PLUGIN_REMOVED] =
     g_signal_new ("plugin-removed",
@@ -1184,6 +1211,8 @@ valent_device_class_init (ValentDeviceClass *klass)
  * Construct a new device for @identity.
  *
  * Returns: (transfer full) (nullable): a new #ValentDevice
+ *
+ * Since: 1.0
  */
 ValentDevice *
 valent_device_new (JsonNode *identity)
@@ -1215,6 +1244,8 @@ valent_device_new (JsonNode *identity)
  * Construct a new device for @identity.
  *
  * Returns: (transfer full) (nullable): a new #ValentDevice
+ *
+ * Since: 1.0
  */
 ValentDevice *
 valent_device_new_full (JsonNode   *identity,
@@ -1275,6 +1306,8 @@ valent_device_queue_packet_cb (ValentChannel *channel,
  *
  * See [method@Valent.Device.send_packet] for a failable and cancellable variant
  * of this method.
+ *
+ * Since: 1.0
  */
 void
 valent_device_queue_packet (ValentDevice *device,
@@ -1358,6 +1391,8 @@ valent_device_send_packet_cb (ValentChannel *channel,
  * If @device is disconnected or unpaired when this method is called,
  * %G_IO_ERROR_NOT_CONNECTED or %G_IO_ERROR_PERMISSION_DENIED will be set on the
  * result, respectively.
+ *
+ * Since: 1.0
  */
 void
 valent_device_send_packet (ValentDevice        *device,
@@ -1416,9 +1451,11 @@ valent_device_send_packet (ValentDevice        *device,
  * @result: a #GAsyncResult
  * @error: (nullable): a #GError
  *
- * Finish an operation started with [method@Valent.Device.send_packet].
+ * Finish an operation started by [method@Valent.Device.send_packet].
  *
  * Returns: %TRUE if successful, or %FALSE with @error set
+ *
+ * Since: 1.0
  */
 gboolean
 valent_device_send_packet_finish (ValentDevice  *device,
@@ -1436,9 +1473,11 @@ valent_device_send_packet_finish (ValentDevice  *device,
  * valent_device_ref_channel:
  * @device: a #ValentDevice
  *
- * Get the active packet exchange channel, or %NULL if disconnected.
+ * Get the active channel.
  *
- * Returns: (transfer full) (nullable): a #ValentChannel
+ * Returns: (transfer full) (nullable): a #ValentChannel, or %NULL if disconnected
+ *
+ * Since: 1.0
  */
 ValentChannel *
 valent_device_ref_channel (ValentDevice *device)
@@ -1498,7 +1537,9 @@ read_packet_cb (ValentChannel *channel,
  * @device: A #ValentDevice
  * @channel: (nullable): A #ValentChannel
  *
- * Sets the active packet exchange channel to @channel.
+ * Sets the active channel.
+ *
+ * Since: 1.0
  */
 void
 valent_device_set_channel (ValentDevice  *device,
@@ -1560,6 +1601,8 @@ valent_device_set_channel (ValentDevice  *device,
  * Get whether the device is connected.
  *
  * Returns: %TRUE if the device has an active connection.
+ *
+ * Since: 1.0
  */
 gboolean
 valent_device_get_connected (ValentDevice *device)
@@ -1582,6 +1625,8 @@ valent_device_get_connected (ValentDevice *device)
  * Get the data context for the device.
  *
  * Returns: (transfer full): a #ValentData
+ *
+ * Since: 1.0
  */
 ValentData *
 valent_device_ref_data (ValentDevice *device)
@@ -1602,9 +1647,11 @@ valent_device_ref_data (ValentDevice *device)
  * valent_device_get_icon_name: (get-property icon-name)
  * @device: a #ValentDevice
  *
- * Get the symbolic icon name of the device.
+ * Get the symbolic icon name.
  *
  * Returns: (transfer none): the icon name.
+ *
+ * Since: 1.0
  */
 const char *
 valent_device_get_icon_name (ValentDevice *device)
@@ -1618,9 +1665,11 @@ valent_device_get_icon_name (ValentDevice *device)
  * valent_device_get_id: (get-property id)
  * @device: a #ValentDevice
  *
- * Get the unique ID of the device.
+ * Get the unique ID.
  *
  * Returns: (transfer none): the device id.
+ *
+ * Since: 1.0
  */
 const char *
 valent_device_get_id (ValentDevice *device)
@@ -1641,6 +1690,8 @@ valent_device_get_id (ValentDevice *device)
  * with presentation details like a label or icon.
  *
  * Returns: (transfer none): a #GMenuModel
+ *
+ * Since: 1.0
  */
 GMenuModel *
 valent_device_get_menu (ValentDevice *device)
@@ -1656,7 +1707,9 @@ valent_device_get_menu (ValentDevice *device)
  *
  * Get the display name of the device.
  *
- * Returns: (transfer none) (nullable): a display name, or %NULL if unset.
+ * Returns: (transfer none) (nullable): a display name, or %NULL if unset
+ *
+ * Since: 1.0
  */
 const char *
 valent_device_get_name (ValentDevice *device)
@@ -1672,7 +1725,9 @@ valent_device_get_name (ValentDevice *device)
  *
  * Get whether the device is paired.
  *
- * Returns: %TRUE if the device is paired.
+ * Returns: %TRUE if the device is paired, or %FALSE if unpaired
+ *
+ * Since: 1.0
  */
 gboolean
 valent_device_get_paired (ValentDevice *device)
@@ -1691,12 +1746,14 @@ valent_device_get_paired (ValentDevice *device)
 /**
  * valent_device_set_paired: (set-property paired)
  * @device: a #ValentDevice
- * @paired: boolean
+ * @paired: %TRUE if paired, %FALSE if unpaired
  *
  * Set the paired state of the device.
  *
  * NOTE: since valent_device_update_plugins() will be called as a side effect,
  * this must be called after valent_device_send_pair().
+ *
+ * Since: 1.0
  */
 void
 valent_device_set_paired (ValentDevice *device,
@@ -1739,6 +1796,8 @@ valent_device_set_paired (ValentDevice *device,
  * Get a list of the loaded plugins.
  *
  * Returns: (transfer container) (element-type Peas.PluginInfo): a #GPtrArray
+ *
+ * Since: 1.0
  */
 GPtrArray *
 valent_device_get_plugins (ValentDevice *device)
@@ -1766,6 +1825,8 @@ valent_device_get_plugins (ValentDevice *device)
  * Get the state of the device.
  *
  * Returns: #ValentDeviceStateFlags describing the state of the device
+ *
+ * Since: 1.0
  */
 ValentDeviceState
 valent_device_get_state (ValentDevice *device)
@@ -1798,9 +1859,13 @@ valent_device_get_state (ValentDevice *device)
  * @device: a #ValentDevice
  * @packet: a KDE Connect packet
  *
- * Take @packet and handle it as a packet from the remote device represented by
- * @device. Pair packets are handled by @device, while all others will be passed
- * to plugins which claim to support the @packet type.
+ * Handle a packet from the remote device.
+ *
+ * Handle @packet as a message from the remote device. Pair packets are handled
+ * by @device internally, while all others will be passed to plugins which claim
+ * to support the @packet type.
+ *
+ * Since: 1.0
  */
 void
 valent_device_handle_packet (ValentDevice *device,
@@ -1844,6 +1909,8 @@ valent_device_handle_packet (ValentDevice *device,
  * filename by appending `(#)`.
  *
  * Returns: (transfer full) (nullable): a #GFile
+ *
+ * Since: 1.0
  */
 GFile *
 valent_device_new_download_file (ValentDevice *device,
@@ -1879,8 +1946,12 @@ valent_device_new_download_file (ValentDevice *device,
  * valent_device_reload_plugins:
  * @device: a #ValentDevice
  *
+ * Reload all plugins.
+ *
  * Check each available plugin and load or unload them if the required
  * capabilities have changed.
+ *
+ * Since: 1.0
  */
 static void
 valent_device_reload_plugins (ValentDevice *device)
@@ -1904,7 +1975,11 @@ valent_device_reload_plugins (ValentDevice *device)
  * valent_device_update_plugins:
  * @device: a #ValentDevice
  *
- * Call valent_device_plugin_update_state() on each enabled plugin.
+ * Update all plugins.
+ *
+ * Call [method@Valent.DevicePlugin.update_state] on each enabled plugin.
+ *
+ * Since: 1.0
  */
 static void
 valent_device_update_plugins (ValentDevice *device)
@@ -1934,9 +2009,11 @@ valent_device_update_plugins (ValentDevice *device)
  * @device: a #ValentDevice
  * @info: a #PeasPluginInfo
  *
- * Check if @device support the plugin described by @info.
+ * Check if @device supports the plugin described by @info.
  *
- * Returns: %TRUE if supported
+ * Returns: %TRUE if supported, or %FALSE if not
+ *
+ * Since: 1.0
  */
 static gboolean
 valent_device_supports_plugin (ValentDevice   *device,

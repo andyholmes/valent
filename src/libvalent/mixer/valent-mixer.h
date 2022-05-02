@@ -20,6 +20,7 @@ G_DECLARE_FINAL_TYPE (ValentMixer, valent_mixer, VALENT, MIXER, ValentComponent)
 
 VALENT_AVAILABLE_IN_1_0
 ValentMixer       * valent_mixer_get_default        (void);
+
 VALENT_AVAILABLE_IN_1_0
 ValentMixerStream * valent_mixer_get_default_input  (ValentMixer       *mixer);
 VALENT_AVAILABLE_IN_1_0

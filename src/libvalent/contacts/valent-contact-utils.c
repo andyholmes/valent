@@ -12,23 +12,14 @@
 
 
 /**
- * SECTION:valentcontactutils
- * @short_description: Utilities for working with contacts
- * @title: Contact Utilities
- * @stability: Unstable
- * @include: libvalent-contacts.h
- *
- * Helper functions and utilities for working with contacts and phone numbers.
- */
-
-
-/**
  * valent_phone_number_normalize:
  * @number: a phone number string
  *
  * Return a normalized version of @number.
  *
  * Returns: (transfer full): a normalized phone number string
+ *
+ * Since: 1.0
  */
 char *
 valent_phone_number_normalize (const char *number)
@@ -100,6 +91,8 @@ valent_phone_number_compare_normalized (const char *number1,
  * or %FALSE if they don't.
  *
  * Returns: %TRUE or %FALSE indicating equality
+ *
+ * Since: 1.0
  */
 gboolean
 valent_phone_number_equal (const char *number1,
@@ -135,6 +128,8 @@ valent_phone_number_equal (const char *number1,
  * @number has already been normalized with valent_phone_number_normalize().
  *
  * Returns: %TRUE if @number belongs to the contact
+ *
+ * Since: 1.0
  */
 gboolean
 valent_phone_number_of_contact (EContact   *contact,

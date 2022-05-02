@@ -6,6 +6,7 @@
 #include "config.h"
 
 #include <gio/gio.h>
+#include <libpeas/peas.h>
 #include <libvalent-core.h>
 
 #include "valent-contacts.h"
@@ -16,28 +17,19 @@
 
 
 /**
- * SECTION:valentcontacts
- * @short_description: Contacts Abstraction
- * @title: ValentContacts
- * @stability: Unstable
- * @include: libvalent-contacts.h
+ * ValentContacts:
  *
- * #ValentContacts is an abstraction of desktop contact sources, with a simple
- * API generally intended to be used by #ValentDevicePlugin implementations.
+ * A class for managing address books.
  *
- * ## Providers and Models ##
+ * #ValentContacts is an address book manager, intended for use by
+ * [class@Valent.DevicePlugin] implementations.
  *
- * #ValentContacts loads and tracks implementations of
- * #ValentContactStoreProvider known to the default #ValentEngine. Each
- * #ValentContactStoreProvider may provide stores implementing
- * #ValentContactStore and create new stores backed by that provider.
+ * Plugins can implement [class@Valent.ContactStoreProvider] to provide an
+ * interface to manage instances of [class@Valent.ContactStore]. If no provider
+ * is available, #ValentContacts will create [class@Valent.ContactCache] as
+ * necessary.
  *
- * For example, the Evolution Data Server (`eds`) plugin implements
- * #ValentContactStoreProvider in #ValentEBookProvider and provides a
- * #ValentEBookStore for each address book known to Evolution. If no other
- * provider is available, #ValentContacts will fallback to providing
- * #ValentContactStore objects, a simple #EBookCache implementation of
- * #ValentContactStore.
+ * Since: 1.0
  */
 
 struct _ValentContacts
@@ -252,8 +244,10 @@ valent_contacts_class_init (ValentContactsClass *klass)
    * @contacts: a #ValentContacts
    * @store: a #ValentContactStore
    *
-   * ValentContactStore::store-added is emitted when a contact store (address
-   * book) is added to @store.
+   * Emitted when a [class@Valent.ContactStore] is added to a
+   * [class@Valent.ContactStoreProvider].
+   *
+   * Since: 1.0
    */
   signals [STORE_ADDED] =
     g_signal_new ("store-added",
@@ -272,8 +266,10 @@ valent_contacts_class_init (ValentContactsClass *klass)
    * @contacts: a #ValentContacts
    * @store: a #ValentContactStore
    *
-   * ValentContactStore::store-removed is emitted when a contact store (address
-   * book) is removed from @store.
+   * Emitted when a [class@Valent.ContactStore] is removed from a
+   * [class@Valent.ContactStoreProvider].
+   *
+   * Since: 1.0
    */
   signals [STORE_REMOVED] =
     g_signal_new ("store-removed",
@@ -298,9 +294,11 @@ valent_contacts_init (ValentContacts *self)
 /**
  * valent_contacts_get_default:
  *
- * Get the default #ValentContacts.
+ * Get the default [class@Valent.Contacts].
  *
- * Returns: (transfer none): The default contacts
+ * Returns: (transfer none) (not nullable): a #ValentContacts
+ *
+ * Since: 1.0
  */
 ValentContacts *
 valent_contacts_get_default (void)
@@ -325,17 +323,23 @@ valent_contacts_get_default (void)
  * @uid: a unique id
  * @name: a display name
  *
- * Get a #ValentContactStore for @uid. If the contact store does not exist, one
- * will be created using the default provider and passed @name and @description.
+ * Get a #ValentContactStore for @uid.
  *
- * Returns: (transfer none): a #ValentContactStore
+ * If the contact store does not exist, one will be created using the default
+ * provider and passed @name and @description.
+ *
+ * Returns: (transfer none) (not nullable): an address book
+ *
+ * Since: 1.0
  */
 ValentContactStore *
 valent_contacts_ensure_store (ValentContacts *contacts,
                               const char     *uid,
                               const char     *name)
 {
-  ValentContactStore *store;
+  ValentContactStore *ret;
+
+  VALENT_ENTRY;
 
   g_return_val_if_fail (uid != NULL && *uid != '\0', NULL);
   g_return_val_if_fail (name != NULL && *name != '\0', NULL);
@@ -345,15 +349,15 @@ valent_contacts_ensure_store (ValentContacts *contacts,
     contacts = valent_contacts_get_default ();
 
   /* Try to find an existing store */
-  if ((store = valent_contacts_get_store (contacts, uid)) != NULL)
-    return store;
+  if ((ret = valent_contacts_get_store (contacts, uid)) != NULL)
+    VALENT_RETURN (ret);
 
   /* Create a new store */
-  store = valent_contacts_create_store (uid, name, NULL);
-  g_ptr_array_add (contacts->stores, store);
-  g_signal_emit (G_OBJECT (contacts), signals [STORE_ADDED], 0, store);
+  ret = valent_contacts_create_store (uid, name, NULL);
+  g_ptr_array_add (contacts->stores, ret);
+  g_signal_emit (G_OBJECT (contacts), signals [STORE_ADDED], 0, ret);
 
-  return store;
+  VALENT_RETURN (ret);
 }
 
 /**
@@ -363,12 +367,16 @@ valent_contacts_ensure_store (ValentContacts *contacts,
  *
  * Get a #ValentContactStore for @uid.
  *
- * Returns: (transfer none) (nullable): a #ValentContactStore
+ * Returns: (transfer none) (nullable): an address book, or %NULL if not found
+ *
+ * Since: 1.0
  */
 ValentContactStore *
 valent_contacts_get_store (ValentContacts *contacts,
                            const char     *uid)
 {
+  VALENT_ENTRY;
+
   g_return_val_if_fail (VALENT_IS_CONTACTS (contacts), NULL);
   g_return_val_if_fail (uid != NULL, NULL);
 
@@ -377,10 +385,10 @@ valent_contacts_get_store (ValentContacts *contacts,
       ValentContactStore *store = g_ptr_array_index (contacts->stores, i);
 
       if (g_strcmp0 (valent_contact_store_get_uid (store), uid) == 0)
-        return store;
+        VALENT_RETURN (store);
     }
 
-  return NULL;
+  VALENT_RETURN (NULL);
 }
 
 /**
@@ -389,21 +397,25 @@ valent_contacts_get_store (ValentContacts *contacts,
  *
  * Get a list of the contact stores known to @contacts.
  *
- * Returns: (transfer container) (element-type Valent.ContactStore):
- *   a #GPtrArray of #ValentContactStore
+ * Returns: (transfer container) (element-type Valent.ContactStore): a list of
+ *     address books
+ *
+ * Since: 1.0
  */
 GPtrArray *
 valent_contacts_get_stores (ValentContacts *contacts)
 {
-  g_autoptr (GPtrArray) stores = NULL;
+  GPtrArray *ret;
+
+  VALENT_ENTRY;
 
   g_return_val_if_fail (VALENT_IS_CONTACTS (contacts), NULL);
 
-  stores = g_ptr_array_new_with_free_func (g_object_unref);
+  ret = g_ptr_array_new_with_free_func (g_object_unref);
 
   for (unsigned int i = 0; i < contacts->stores->len; i++)
-    g_ptr_array_add (stores, g_object_ref (g_ptr_array_index (contacts->stores, i)));
+    g_ptr_array_add (ret, g_object_ref (g_ptr_array_index (contacts->stores, i)));
 
-  return g_steal_pointer (&stores);
+  VALENT_RETURN (ret);
 }
 

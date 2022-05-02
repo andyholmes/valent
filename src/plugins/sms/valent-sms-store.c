@@ -14,6 +14,8 @@
 #include "valent-sms-store.h"
 #include "valent-sms-store-private.h"
 
+/* Ensure that sqlite3_int64 is the same size as gint64 */
+G_STATIC_ASSERT (sizeof (sqlite3_int64) == sizeof (gint64));
 
 struct _ValentSmsStore
 {

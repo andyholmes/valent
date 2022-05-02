@@ -14,21 +14,24 @@
 
 
 /**
- * SECTION:valentinputadapter
- * @short_description: Interface for input adapters
- * @title: ValentInputAdapter
- * @stability: Unstable
- * @include: libvalent-input.h
+ * ValentInputAdapter:
  *
- * #ValentInputAdapter is a base class for plugins that provide a means to
- * simulate keyboard and pointer events on the host system on behalf of remote
- * devices.
+ * An abstract base class for virtual input devices.
  *
- * ## .plugin File ##
+ * #ValentInputAdapter is a base class for plugins that provide an interface to
+ * the pointer and keyboard. This usually means simulating pointer and keyboard
+ * events on the host system.
  *
- * Plugins require no special entries in the `.plugin` file, but may specify the
- * `X-InputAdapterPriority` field with an integer value. The implementation with
- * the lowest value will take precedence.
+ * ## `.plugin` File
+ *
+ * Implementations may define the following extra fields in the `.plugin` file:
+ *
+ * - `X-InputAdapterPriority`
+ *
+ *     An integer indicating the adapter priority. The implementation with the
+ *     lowest value will be used as the primary adapter.
+ *
+ * Since: 1.0
  */
 
 typedef struct
@@ -155,12 +158,14 @@ valent_input_adapter_class_init (ValentInputAdapterClass *klass)
   /**
    * ValentInputAdapter:plugin-info:
    *
-   * The #PeasPluginInfo describing this adapter.
+   * The [struct@Peas.PluginInfo] describing this adapter.
+   *
+   * Since: 1.0
    */
   properties [PROP_PLUGIN_INFO] =
     g_param_spec_boxed ("plugin-info",
                         "Plugin Info",
-                        "Plugin Info",
+                        "The plugin info describing this adapter",
                         PEAS_TYPE_PLUGIN_INFO,
                         (G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
@@ -179,91 +184,118 @@ valent_input_adapter_init (ValentInputAdapter *adapter)
  * valent_input_adapter_keyboard_keysym:
  * @adapter: a #ValentInputAdapter
  * @keysym: a keysym
- * @state: if pressed
+ * @state: %TRUE to press, or %FALSE to release
  *
- * Simulate a keysym event for @keysym.
+ * Press or release @keysym.
+ *
+ * Since: 1.0
  */
 void
 valent_input_adapter_keyboard_keysym (ValentInputAdapter *adapter,
                                       unsigned int        keysym,
                                       gboolean            state)
 {
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_INPUT_ADAPTER (adapter));
 
   /* Silently ignore empty symbols */
   if G_UNLIKELY (keysym == 0)
-    return;
+    VALENT_EXIT;
 
   VALENT_INPUT_ADAPTER_GET_CLASS (adapter)->keyboard_keysym (adapter,
                                                              keysym,
                                                              state);
+
+  VALENT_EXIT;
 }
 
 /**
  * valent_input_adapter_pointer_axis:
  * @adapter: a #ValentInputAdapter
- * @dx: relate movement on x-axis
- * @dy: relate movement on y-axis
+ * @dx: movement on x-axis
+ * @dy: movement on y-axis
  *
- * Simulate pointer movement (@dx, @dy). Implementations should handle any
- * necessary scaling.
+ * Scroll the surface under the pointer (@dx, @dy), relative to its current
+ * position.
+ *
+ * Implementations should handle any necessary scaling.
+ *
+ * Since: 1.0
  */
 void
 valent_input_adapter_pointer_axis (ValentInputAdapter *adapter,
                                    double              dx,
                                    double              dy)
 {
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_INPUT_ADAPTER (adapter));
 
   /* Silently ignore 0-delta motion */
   if G_UNLIKELY (dx == 0.0 && dy == 0.0)
-    return;
+    VALENT_EXIT;
 
   VALENT_INPUT_ADAPTER_GET_CLASS (adapter)->pointer_axis (adapter, dx, dy);
+
+  VALENT_EXIT;
 }
 
 /**
  * valent_input_adapter_pointer_button:
  * @adapter: a #ValentInputAdapter
- * @button: a #ValentPointerBUtton
- * @state: a #ValentInputButtonState
+ * @button: a #ValentPointerButton
+ * @state: %TRUE to press, or %FALSE to release
  *
- * TODO
+ * Press or release @button.
+ *
+ * Since: 1.0
  */
 void
 valent_input_adapter_pointer_button (ValentInputAdapter  *adapter,
                                      ValentPointerButton  button,
                                      gboolean             state)
 {
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_INPUT_ADAPTER (adapter));
-  g_return_if_fail (button > 0 && button < 9);
+  g_return_if_fail (VALENT_IS_POINTER_BUTTON (button));
 
   VALENT_INPUT_ADAPTER_GET_CLASS (adapter)->pointer_button (adapter,
                                                             button,
                                                             state);
+
+  VALENT_EXIT;
 }
 
 /**
  * valent_input_adapter_pointer_motion:
  * @adapter: a #ValentInputAdapter
- * @dx: relate movement on x-axis
- * @dy: relate movement on y-axis
+ * @dx: movement on x-axis
+ * @dy: movement on y-axis
  *
- * Simulate pointer movement (@dx, @dy). Implementations should handle any
- * necessary scaling.
+ * Move the pointer (@dx, @dy), relative to its current position.
+ *
+ * Implementation should handle any necessary scaling
+ *
+ * Since: 1.0
  */
 void
 valent_input_adapter_pointer_motion (ValentInputAdapter *adapter,
                                      double              dx,
                                      double              dy)
 {
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_INPUT_ADAPTER (adapter));
 
   /* Silently ignore 0-delta motion */
   if G_UNLIKELY (dx == 0.0 && dy == 0.0)
-    return;
+    VALENT_EXIT;
 
   VALENT_INPUT_ADAPTER_GET_CLASS (adapter)->pointer_motion (adapter, dx, dy);
+
+  VALENT_EXIT;
 }
 
 /**
@@ -272,16 +304,23 @@ valent_input_adapter_pointer_motion (ValentInputAdapter *adapter,
  * @x: position on x-axis
  * @y: position on y-axis
  *
- * Simulate absolute pointer movement (@x, @y). Implementations should handle
- * any necessary scaling.
+ * Move the pointer to the absolute position (@x, @y).
+ *
+ * Implementation should handle any necessary scaling
+ *
+ * Since: 1.0
  */
 void
 valent_input_adapter_pointer_position (ValentInputAdapter *adapter,
                                        double              x,
                                        double              y)
 {
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_INPUT_ADAPTER (adapter));
 
   VALENT_INPUT_ADAPTER_GET_CLASS (adapter)->pointer_position (adapter, x, y);
+
+  VALENT_EXIT;
 }
 
