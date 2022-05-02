@@ -8,9 +8,7 @@
 #endif
 
 #include <gio/gio.h>
-#include <json-glib/json-glib.h>
 
-#include "valent-device.h"
 #include "valent-object.h"
 
 G_BEGIN_DECLS
@@ -23,6 +21,8 @@ G_BEGIN_DECLS
  * @VALENT_TRANSFER_STATE_FAILED: The transfer failed
  *
  * Enumeration of transfer states.
+ *
+ * Since: 1.0
  */
 typedef enum
 {

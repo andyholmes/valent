@@ -12,21 +12,24 @@
 
 
 /**
- * SECTION:valentnotificationsource
- * @short_description: Interface for notification sources
- * @title: ValentNotificationSource
- * @stability: Unstable
- * @include: libvalent-notifications.h
+ * ValentNotificationSource:
  *
- * #ValentNotificationSource is a base class for notification sources, which typically monitor the
- * DBus interface of notification servers. Implementations emit
- * #ValentNotificationSource::notification-added and #ValentNotificationSource::notification-removed
- * to indicate changes.
+ * An abstract base class for notification servers.
  *
- * It is possible to implement valent_notification_source_add_notification() and
- * valent_notification_source_remove_notification() to expose the ability to send notifications and
- * remove notifications on a specific service, but the methods provided by #ValentDevice and
- * #GApplication are more useful if you just want to send notifications to the host device.
+ * #ValentNotificationSource is a base class for notification servers. This
+ * usually means monitoring a D-Bus service for notifications being sent and
+ * withdrawn.
+ *
+ * ## `.plugin` File
+ *
+ * Implementations may define the following extra fields in the `.plugin` file:
+ *
+ * - `X-NotificationSourcePriority`
+ *
+ *     An integer indicating the adapter priority. The implementation with the
+ *     lowest value will be used as the primary adapter.
+ *
+ * Since: 1.0
  */
 
 typedef struct
@@ -97,6 +100,10 @@ valent_notification_source_real_load_finish (ValentNotificationSource  *source,
                                              GAsyncResult              *result,
                                              GError                   **error)
 {
+  g_assert (VALENT_IS_NOTIFICATION_SOURCE (source));
+  g_assert (g_task_is_valid (result, source));
+  g_assert (error == NULL || *error == NULL);
+
   return g_task_propagate_boolean (G_TASK (result), error);
 }
 /* LCOV_EXCL_STOP */
@@ -104,7 +111,6 @@ valent_notification_source_real_load_finish (ValentNotificationSource  *source,
 /*
  * GObject
  */
-
 static void
 valent_notification_source_get_property (GObject    *object,
                                          guint       prop_id,
@@ -161,12 +167,14 @@ valent_notification_source_class_init (ValentNotificationSourceClass *klass)
   /**
    * ValentNotificationSource:plugin-info:
    *
-   * The #PeasPluginInfo describing this source.
+   * The [struct@Peas.PluginInfo] describing this adapter.
+   *
+   * Since: 1.0
    */
   properties [PROP_PLUGIN_INFO] =
     g_param_spec_boxed ("plugin-info",
                         "Plugin Info",
-                        "Plugin Info",
+                        "The plugin info describing this adapter",
                         PEAS_TYPE_PLUGIN_INFO,
                         (G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
@@ -178,10 +186,14 @@ valent_notification_source_class_init (ValentNotificationSourceClass *klass)
   /**
    * ValentNotificationSource::notification-added:
    * @source: a #ValentNotificationSource
-   * @notification: a #GVariant
+   * @notification: a #ValentNotification
    *
-   * ValentNotificationSource::notification-removed is emitted when a
-   * notification is added to @source.
+   * Emitted when a [class@Valent.Notification] is added to @source.
+   *
+   * Implementations must chain up if they override
+   * [vfunc@Valent.NotificationSource.notification_added].
+   *
+   * Since: 1.0
    */
   signals [NOTIFICATION_ADDED] =
     g_signal_new ("notification-added",
@@ -198,10 +210,14 @@ valent_notification_source_class_init (ValentNotificationSourceClass *klass)
   /**
    * ValentNotificationSource::notification-removed:
    * @source: a #ValentNotificationSource
-   * @id: a notification id
+   * @notification: a #ValentNotification
    *
-   * ValentNotificationSource::notification-removed is emitted when a
-   * notification is removed from @source.
+   * Emitted when a [class@Valent.Notification] is removed from @source.
+   *
+   * Implementations must chain up if they override
+   * [vfunc@Valent.NotificationSource.notification_removed].
+   *
+   * Since: 1.0
    */
   signals [NOTIFICATION_REMOVED] =
     g_signal_new ("notification-removed",
@@ -224,9 +240,14 @@ valent_notification_source_init (ValentNotificationSource *source)
 /**
  * valent_notification_source_emit_notification_added:
  * @source: a #ValentNotificationSource
- * @notification: a #GVariant
+ * @notification: a #ValentNotification
  *
- * Emits the #ValentNotificationSource::notification-added signal on @source.
+ * Emit [signal@Valent.NotificationSource::notification-added] on @source.
+ *
+ * This method should only be called by implementations of
+ * [class@Valent.NotificationSource].
+ *
+ * Since: 1.0
  */
 void
 valent_notification_source_emit_notification_added (ValentNotificationSource *source,
@@ -242,7 +263,12 @@ valent_notification_source_emit_notification_added (ValentNotificationSource *so
  * @source: a #ValentNotificationSource
  * @id: a notification id
  *
- * Emits the #ValentNotificationSource::notification-removed signal on @source.
+ * Emit [signal@Valent.NotificationSource::notification-removed] on @source.
+ *
+ * This method should only be called by implementations of
+ * [class@Valent.NotificationSource].
+ *
+ * Since: 1.0
  */
 void
 valent_notification_source_emit_notification_removed (ValentNotificationSource *source,
@@ -254,11 +280,13 @@ valent_notification_source_emit_notification_removed (ValentNotificationSource *
 }
 
 /**
- * valent_notification_source_add_notification:
+ * valent_notification_source_add_notification: (virtual add_notification)
  * @source: a #ValentNotificationSource
  * @notification: a #ValentNotification
  *
- * Send @notification to the @source notification server.
+ * Send @notification to the @source.
+ *
+ * Since: 1.0
  */
 void
 valent_notification_source_add_notification (ValentNotificationSource *source,
@@ -276,11 +304,13 @@ valent_notification_source_add_notification (ValentNotificationSource *source,
 }
 
 /**
- * valent_notification_source_remove_notification:
+ * valent_notification_source_remove_notification: (virtual remove_notification)
  * @source: a #ValentNotificationSource
  * @id: a notification id
  *
- * Withdraw @id from the @source notification server.
+ * Withdraw @id from @source.
+ *
+ * Since: 1.0
  */
 void
 valent_notification_source_remove_notification (ValentNotificationSource *source,
@@ -298,22 +328,23 @@ valent_notification_source_remove_notification (ValentNotificationSource *source
 }
 
 /**
- * valent_notification_source_load_async:
+ * valent_notification_source_load_async: (virtual load_async)
  * @source: an #ValentNotificationSource
  * @cancellable: (nullable): a #GCancellable
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
  *
- * Requests that the #ValentNotificationSource asynchronously load any known players.
+ * Load any notifications known to @source.
  *
- * This should only be called once on an #ValentNotificationSource. It is an error
- * to call this function more than once for a single #ValentNotificationSource.
+ * Implementations are expected to emit
+ * [signal@Valent.NotificationSource::notification-added] for each notification
+ * before completing the operation.
  *
- * #ValentNotificationSource implementations are expected to emit the
- * #ValentNotificationSource::notification-added signal for each notification they've discovered.
- * That should be done for known players before returning from the asynchronous
- * operation so that the notification manager does not need to wait for additional
- * players to enter the "settled" state.
+ * This method is called by the [class@Valent.Notifications] singleton and must
+ * only be called once for each implementation. It is therefore a programmer
+ * error for an API user to call this method.
+ *
+ * Since: 1.0
  */
 void
 valent_notification_source_load_async (ValentNotificationSource *source,
@@ -335,15 +366,16 @@ valent_notification_source_load_async (ValentNotificationSource *source,
 }
 
 /**
- * valent_notification_source_load_finish:
+ * valent_notification_source_load_finish: (virtual load_finish)
  * @source: an #ValentNotificationSource
  * @result: a #GAsyncResult provided to callback
  * @error: (nullable): a #GError
  *
- * Completes an asynchronous request to load known players via
- * valent_notification_source_load_async().
+ * Finish an operation started by [method@Valent.NotificationSource.load_async].
  *
  * Returns: %TRUE if successful, or %FALSE with @error set
+ *
+ * Since: 1.0
  */
 gboolean
 valent_notification_source_load_finish (ValentNotificationSource  *source,

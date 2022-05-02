@@ -13,13 +13,24 @@
 
 
 /**
- * SECTION:valentmediaplayerprovider
- * @short_description: Base class for media player providers
- * @title: ValentMediaPlayerProvider
- * @stability: Unstable
- * @include: libvalent-media.h
+ * ValentMediaPlayerProvider:
  *
- * #ValentMediaPlayerProvider is base class for services that provide #ValentMediaPlayer objects.
+ * An abstract base class for media player providers.
+ *
+ * #ValentMediaPlayerProvider is a base class for plugins that provide an
+ * interface to manage media players. This usually means monitoring and
+ * querying [class@Valent.MediaPlayer] instances.
+ *
+ * ## `.plugin` File
+ *
+ * Implementations may define the following extra fields in the `.plugin` file:
+ *
+ * - `X-MediaPlayerProviderPriority`
+ *
+ *     An integer indicating the adapter priority. The implementation with the
+ *     lowest value will be used as the primary adapter.
+ *
+ * Since: 1.0
  */
 
 typedef struct
@@ -77,6 +88,10 @@ valent_media_player_provider_real_load_finish (ValentMediaPlayerProvider  *provi
                                                GAsyncResult               *result,
                                                GError                    **error)
 {
+  g_assert (VALENT_IS_MEDIA_PLAYER_PROVIDER (provider));
+  g_assert (g_task_is_valid (result, provider));
+  g_assert (error == NULL || *error == NULL);
+
   return g_task_propagate_boolean (G_TASK (result), error);
 }
 
@@ -185,12 +200,14 @@ valent_media_player_provider_class_init (ValentMediaPlayerProviderClass *klass)
   /**
    * ValentMediaPlayerProvider:plugin-info:
    *
-   * The #PeasPluginInfo describing this provider.
+   * The [struct@Peas.PluginInfo] describing this adapter.
+   *
+   * Since: 1.0
    */
   properties [PROP_PLUGIN_INFO] =
     g_param_spec_boxed ("plugin-info",
                         "Plugin Info",
-                        "Plugin Info",
+                        "The plugin info describing this adapter",
                         PEAS_TYPE_PLUGIN_INFO,
                         (G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
@@ -204,11 +221,12 @@ valent_media_player_provider_class_init (ValentMediaPlayerProviderClass *klass)
    * @provider: an #ValentMediaPlayerProvider
    * @player: an #ValentMediaPlayer
    *
-   * The "player-added" signal is emitted when a provider has discovered a
-   * player has become available.
+   * Emitted when a [class@Valent.MediaPlayer] has been added to @provider.
    *
-   * Subclasses of #ValentMediaPlayerManager must chain-up if they override the
-   * #ValentMediaPlayerProviderClass.player_added vfunc.
+   * Implementations of #ValentMediaPlayerProvider must chain-up if they
+   * override [vfunc@Valent.MediaPlayerProvider.player_added].
+   *
+   * Since: 1.0
    */
   signals [PLAYER_ADDED] =
     g_signal_new ("player-added",
@@ -227,11 +245,12 @@ valent_media_player_provider_class_init (ValentMediaPlayerProviderClass *klass)
    * @provider: an #ValentMediaPlayerProvider
    * @player: an #ValentMediaPlayer
    *
-   * The "player-removed" signal is emitted when a provider has discovered a
-   * player is no longer available.
+   * Emitted when a [class@Valent.MediaPlayer] has been removed from @provider.
    *
-   * Subclasses of #ValentMediaPlayerManager must chain-up if they override the
-   * #ValentMediaPlayerProviderClass.player_removed vfunc.
+   * Implementations of #ValentMediaPlayerProvider must chain-up if they
+   * override [vfunc@Valent.MediaPlayerProvider.player_removed].
+   *
+   * Since: 1.0
    */
   signals [PLAYER_REMOVED] =
     g_signal_new ("player-removed",
@@ -256,10 +275,12 @@ valent_media_player_provider_init (ValentMediaPlayerProvider *provider)
  * @provider: a #ValentMediaPlayerProvider
  * @player: a #ValentMediaPlayer
  *
- * Emits the #ValentMediaPlayerProvider::player-added signal.
+ * Emit [signal@Valent.MediaPlayerProvider::player-added] on @provider.
  *
- * This should only be called by subclasses of #ValentMediaPlayerProvider when a new media player
- * has been discovered.
+ * This method should only be called by implementations of
+ * [class@Valent.MediaPlayerProvider].
+ *
+ * Since: 1.0
  */
 void
 valent_media_player_provider_emit_player_added (ValentMediaPlayerProvider *provider,
@@ -276,10 +297,12 @@ valent_media_player_provider_emit_player_added (ValentMediaPlayerProvider *provi
  * @provider: a #ValentMediaPlayerProvider
  * @player: a #ValentMediaPlayer
  *
- * Emits the #ValentMediaPlayerProvider::player-removed signal.
+ * Emit [signal@Valent.MediaPlayerProvider::player-removed] on @provider.
  *
- * This should only be called by subclasses of #ValentMediaPlayerProvider when a previously added
- * media player has been removed.
+ * This method should only be called by implementations of
+ * [class@Valent.MediaPlayerProvider].
+ *
+ * Since: 1.0
  */
 void
 valent_media_player_provider_emit_player_removed (ValentMediaPlayerProvider *provider,
@@ -288,26 +311,29 @@ valent_media_player_provider_emit_player_removed (ValentMediaPlayerProvider *pro
   g_return_if_fail (VALENT_IS_MEDIA_PLAYER_PROVIDER (provider));
   g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
 
+  g_object_ref (player);
   g_signal_emit (G_OBJECT (provider), signals [PLAYER_REMOVED], 0, player);
+  g_object_unref (player);
 }
 
 /**
- * valent_media_player_provider_load_async:
+ * valent_media_player_provider_load_async: (virtual load_async)
  * @provider: an #ValentMediaPlayerProvider
  * @cancellable: (nullable): a #GCancellable
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
  *
- * Requests that the #ValentMediaPlayerProvider asynchronously load any known players.
+ * Load any media players known to @provider.
  *
- * This should only be called once on an #ValentMediaPlayerProvider. It is an error
- * to call this function more than once for a single #ValentMediaPlayerProvider.
+ * Implementations are expected to emit
+ * [signal@Valent.MediaPlayerProvider::player-added] for each player before
+ * completing the operation.
  *
- * #ValentMediaPlayerProvider implementations are expected to emit the
- * #ValentMediaPlayerProvider::media_player-added signal for each media_player they've discovered.
- * That should be done for known players before returning from the asynchronous
- * operation so that the media_player manager does not need to wait for additional
- * players to enter the "settled" state.
+ * This method is called by the [class@Valent.Media] singleton and must only
+ * be called once for each implementation. It is therefore a programmer error
+ * for an API user to call this method.
+ *
+ * Since: 1.0
  */
 void
 valent_media_player_provider_load_async (ValentMediaPlayerProvider *provider,
@@ -329,15 +355,16 @@ valent_media_player_provider_load_async (ValentMediaPlayerProvider *provider,
 }
 
 /**
- * valent_media_player_provider_load_finish:
+ * valent_media_player_provider_load_finish: (virtual load_finish)
  * @provider: an #ValentMediaPlayerProvider
  * @result: a #GAsyncResult provided to callback
  * @error: (nullable): a #GError
  *
- * Completes an asynchronous request to load known players via
- * valent_media_player_provider_load_async().
+ * Finish an operation started by [method@Valent.MediaPlayerProvider.load_async].
  *
  * Returns: %TRUE if successful, or %FALSE with @error set
+ *
+ * Since: 1.0
  */
 gboolean
 valent_media_player_provider_load_finish (ValentMediaPlayerProvider  *provider,
@@ -350,8 +377,11 @@ valent_media_player_provider_load_finish (ValentMediaPlayerProvider  *provider,
 
   g_return_val_if_fail (VALENT_IS_MEDIA_PLAYER_PROVIDER (provider), FALSE);
   g_return_val_if_fail (g_task_is_valid (result, provider), FALSE);
+  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-  ret = VALENT_MEDIA_PLAYER_PROVIDER_GET_CLASS (provider)->load_finish (provider, result, error);
+  ret = VALENT_MEDIA_PLAYER_PROVIDER_GET_CLASS (provider)->load_finish (provider,
+                                                                        result,
+                                                                        error);
 
   VALENT_RETURN (ret);
 }
@@ -365,23 +395,27 @@ valent_media_player_provider_load_finish (ValentMediaPlayerProvider  *provider,
  *
  * Returns: (transfer container) (element-type Valent.MediaPlayer): a list of
  *   players.
+ *
+ * Since: 1.0
  */
 GPtrArray *
 valent_media_player_provider_get_players (ValentMediaPlayerProvider *provider)
 {
   ValentMediaPlayerProviderPrivate *priv = valent_media_player_provider_get_instance_private (provider);
-  g_autoptr (GPtrArray) players = NULL;
+  GPtrArray *ret;
+
+  VALENT_ENTRY;
 
   g_return_val_if_fail (VALENT_IS_MEDIA_PLAYER_PROVIDER (provider), NULL);
 
-  players = g_ptr_array_new_with_free_func (g_object_unref);
+  ret = g_ptr_array_new_with_free_func (g_object_unref);
 
   if (priv->players != NULL)
     {
       for (unsigned int i = 0; i < priv->players->len; i++)
-        g_ptr_array_add (players, g_object_ref (g_ptr_array_index (priv->players, i)));
+        g_ptr_array_add (ret, g_object_ref (g_ptr_array_index (priv->players, i)));
     }
 
-  return g_steal_pointer (&players);
+  VALENT_RETURN (ret);
 }
 

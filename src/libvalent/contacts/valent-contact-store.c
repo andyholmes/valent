@@ -13,24 +13,19 @@
 
 
 /**
- * SECTION:valentcontactstore
- * @short_description: A helper for ESource address books
- * @title: ValentContactStore
- * @stability: Unstable
- * @include: libvalent-contacts.h
+ * ValentContactStore:
  *
- * The #ValentContactStore class is a base class for objects providing #EContact
- * instances.
+ * An abstract base class for address books.
  *
- * If instantiated directly it is effectively a wrapper around #EBookCache,
- * providing a file-based fallback when Evolution Data Server is not available.
+ * #ValentContactStore is a base class to provide an interface to an address
+ * book. This usually means adding, removing and querying contacts.
  *
- * If subclasses for another provider, all virtual function must be overridden.
+ * Since: 1.0
  */
 
 typedef struct
 {
-  ESource    *source;
+  ESource *source;
 } ValentContactStorePrivate;
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentContactStore, valent_contact_store, VALENT_TYPE_OBJECT)
@@ -41,7 +36,6 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentContactStore, valent_contact_store, V
  * @get_contact: the virtual function pointer for valent_contact_store_get_contact()
  * @remove_contact: the virtual function pointer for valent_contact_store_remove_contact()
  * @query: the virtual function pointer for valent_contact_store_query()
- * @prepare_backend: the virtual function pointer for valent_contact_store_prepare_backend()
  * @contact_added: the class closure for #ValentContactStore::contact-added
  * @contact_removed: the class closure for #ValentContactStore::contact-removed
  *
@@ -284,9 +278,11 @@ valent_contact_store_class_init (ValentContactStoreClass *klass)
   klass->get_contact = valent_contact_store_real_get_contact;
 
   /**
-   * ValentContactStore:name:
+   * ValentContactStore:name: (getter get_name) (setter set_name)
    *
    * The display name.
+   *
+   * Since: 1.0
    */
   properties [PROP_NAME] =
     g_param_spec_string ("name",
@@ -298,14 +294,16 @@ valent_contact_store_class_init (ValentContactStoreClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentContactStore:source:
+   * ValentContactStore:source: (getter get_source)
    *
-   * The #ESource describing the store.
+   * The store [class@EDataServer.Source].
+   *
+   * Since: 1.0
    */
   properties [PROP_SOURCE] =
     g_param_spec_object ("source",
                          "Source",
-                         "The ESource backing the store",
+                         "The store source",
                          E_TYPE_SOURCE,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -313,9 +311,11 @@ valent_contact_store_class_init (ValentContactStoreClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentContactStore:uid:
+   * ValentContactStore:uid: (getter get_uid)
    *
    * The unique identifier.
+   *
+   * Since: 1.0
    */
   properties [PROP_UID] =
     g_param_spec_string ("uid",
@@ -331,10 +331,11 @@ valent_contact_store_class_init (ValentContactStoreClass *klass)
   /**
    * ValentContactStore::contact-added:
    * @store: a #ValentContactStore
-   * @contact: the #EContact
+   * @contact: a #EContact
    *
-   * ValentContactStore::contact-added is emitted when a new contact is added to
-   * @store.
+   * Emitted when an [class@EBookContacts.Contact] is added to @store.
+   *
+   * Since: 1.0
    */
   signals [CONTACT_ADDED] =
     g_signal_new ("contact-added",
@@ -355,8 +356,9 @@ valent_contact_store_class_init (ValentContactStoreClass *klass)
    * @store: a #ValentContactStore
    * @uid: the UID of the removed contact
    *
-   * ValentContactStore::contact-removed is emitted when a contact is removed
-   * from @store.
+   * Emitted when an [class@EBookContacts.Contact] is removed from @store.
+   *
+   * Since: 1.0
    */
   signals [CONTACT_REMOVED] =
     g_signal_new ("contact-removed",
@@ -383,12 +385,13 @@ valent_contact_store_init (ValentContactStore *store)
  * @store: a #ValentContactStore
  * @contact: the #EContact
  *
- * Emits the #ValentContactStore::contact-added signal on @store.
+ * Emits [signal@Valent.ContactStore::contact-added] signal on @store.
  *
- * This function should only be called by classes implementing
- * #ValentContactStore. It has to be called after the internal representation
- * of @store has been updated, because handlers connected to this signal
- * might query the new state of the provider.
+ * This method should only be called by implementations of
+ * [class@Valent.ContactStore]. Signal handlers may query the state, so it must
+ * emitted after the internal representation has been updated.
+ *
+ * Since: 1.0
  */
 void
 valent_contact_store_emit_contact_added (ValentContactStore *store,
@@ -419,12 +422,13 @@ valent_contact_store_emit_contact_added (ValentContactStore *store,
  * @store: a #ValentContactStore
  * @uid: the UID of @contact
  *
- * Emits the #ValentContactStore::contact-removed signal on @store.
+ * Emits [signal@Valent.ContactStore::contact-removed] on @store.
  *
- * This function should only be called by classes implementing
- * #ValentContactStore. It has to be called after the internal representation
- * of @store has been updated, because handlers connected to this signal
- * might query the new state of the provider.
+ * This method should only be called by implementations of
+ * [class@Valent.ContactStore]. Signal handlers may query the state, so it must
+ * emitted after the internal representation has been updated.
+ *
+ * Since: 1.0
  */
 void
 valent_contact_store_emit_contact_removed (ValentContactStore *store,
@@ -451,12 +455,14 @@ valent_contact_store_emit_contact_removed (ValentContactStore *store,
 }
 
 /**
- * valent_contact_store_get_name:
+ * valent_contact_store_get_name: (get-property name)
  * @store: a #ValentContactStore
  *
  * Get the display name of @store.
  *
  * Returns: (transfer none): a display name
+ *
+ * Since: 1.0
  */
 const char *
 valent_contact_store_get_name (ValentContactStore *store)
@@ -469,11 +475,13 @@ valent_contact_store_get_name (ValentContactStore *store)
 }
 
 /**
- * valent_contact_store_set_name:
+ * valent_contact_store_set_name: (set-property name)
  * @store: a #ValentContactStore
  * @name: a display name
  *
  * Set the display name of @store to @name.
+ *
+ * Since: 1.0
  */
 void
 valent_contact_store_set_name (ValentContactStore *store,
@@ -489,12 +497,14 @@ valent_contact_store_set_name (ValentContactStore *store,
 }
 
 /**
- * valent_contact_store_get_source:
+ * valent_contact_store_get_source: (get-property source)
  * @store: a #ValentContactStore
  *
  * Get the #ESource backing @store.
  *
- * Returns: (transfer none): an #ESource
+ * Returns: (transfer none) (not nullable): an #ESource
+ *
+ * Since: 1.0
  */
 ESource *
 valent_contact_store_get_source (ValentContactStore *store)
@@ -507,12 +517,14 @@ valent_contact_store_get_source (ValentContactStore *store)
 }
 
 /**
- * valent_contact_store_get_uid:
+ * valent_contact_store_get_uid: (get-property uid)
  * @store: a #ValentContactStore
  *
  * Get the UID of @store.
  *
  * Returns: (transfer none): a UID
+ *
+ * Since: 1.0
  */
 const char *
 valent_contact_store_get_uid (ValentContactStore *store)
@@ -531,8 +543,13 @@ valent_contact_store_get_uid (ValentContactStore *store)
  * @cancellable: (nullable): #GCancellable
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
- * This is a convenience wrapper for valent_contact_store_add_contacts(), which
- * is the preferred way to add or modify multiple contacts when possible.
+ *
+ * A convenience wrapper around [method@Valent.ContactStore.add_contacts] for
+ * adding a single contact.
+ *
+ * Call [method@Valent.ContactStore.add_finish] to get the result.
+ *
+ * Since: 1.0
  */
 void
 valent_contact_store_add_contact (ValentContactStore  *store,
@@ -567,8 +584,11 @@ valent_contact_store_add_contact (ValentContactStore  *store,
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
  *
- * Add @contacts to @store. Call valent_contact_store_add_finish() to get the
- * result.
+ * Add @contacts to @store.
+ *
+ * Call [method@Valent.ContactStore.add_finish] to get the result.
+ *
+ * Since: 1.0
  */
 void
 valent_contact_store_add_contacts (ValentContactStore  *store,
@@ -598,10 +618,11 @@ valent_contact_store_add_contacts (ValentContactStore  *store,
  * @result: a #GAsyncResult
  * @error: (nullable): a #GError
  *
- * Finish an operation started by valent_contact_store_add_contact() or
- * valent_contact_store_add_contacts().
+ * Finish an operation started by [method@Valent.ContactStore.add_contacts].
  *
  * Returns: %TRUE if successful, or %FALSE with @error set
+ *
+ * Since: 1.0
  */
 gboolean
 valent_contact_store_add_finish (ValentContactStore  *store,
@@ -629,8 +650,11 @@ valent_contact_store_add_finish (ValentContactStore  *store,
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
  *
- * Remove contact @uid from @store. Call valent_contact_store_remove_finish() to
- * get the result.
+ * Remove contact @uid from @store.
+ *
+ * Call [method@Valent.ContactStore.remove_finish] to get the result.
+ *
+ * Since: 1.0
  */
 void
 valent_contact_store_remove_contact (ValentContactStore  *store,
@@ -660,9 +684,11 @@ valent_contact_store_remove_contact (ValentContactStore  *store,
  * @result: a #GAsyncResult
  * @error: (nullable): a #GError
  *
- * Finish an operation started by valent_contact_store_remove_contact().
+ * Finish an operation started by [method@Valent.ContactStore.remove_contact].
  *
  * Returns: %TRUE if successful, or %FALSE with @error set
+ *
+ * Since: 1.0
  */
 gboolean
 valent_contact_store_remove_finish (ValentContactStore  *store,
@@ -690,8 +716,11 @@ valent_contact_store_remove_finish (ValentContactStore  *store,
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
  *
- * Asynchronous version of valent_contact_store_query(). Call
- * valent_contact_store_query_finish() to get the result.
+ * Query @store for contacts matching @query.
+ *
+ * Call [method@Valent.ContactStore.query_finish] to get the result.
+ *
+ * Since: 1.0
  */
 void
 valent_contact_store_query (ValentContactStore  *store,
@@ -721,9 +750,11 @@ valent_contact_store_query (ValentContactStore  *store,
  * @result: a #GAsyncResult
  * @error: (nullable): a #GError
  *
- * Finish an operation started by valent_contact_store_query().
+ * Finish an operation started by [method@Valent.ContactStore.query].
  *
  * Returns: (transfer full) (element-type EContact): a #GSList
+ *
+ * Since: 1.0
  */
 GSList *
 valent_contact_store_query_finish (ValentContactStore  *store,
@@ -751,8 +782,11 @@ valent_contact_store_query_finish (ValentContactStore  *store,
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
  *
- * Asynchronous version of valent_contact_store_get_contact(). Call
- * valent_contact_store_get_contact_finish() to get the result.
+ * Get a contact by UID.
+ *
+ * Call [method@Valent.ContactStore.get_contact_finish] to get the result.
+ *
+ * Since: 1.0
  */
 void
 valent_contact_store_get_contact (ValentContactStore  *store,
@@ -785,6 +819,8 @@ valent_contact_store_get_contact (ValentContactStore  *store,
  * Finish an operation started by valent_contact_store_get_contact().
  *
  * Returns: (transfer full) (nullable): a #EContact
+ *
+ * Since: 1.0
  */
 EContact *
 valent_contact_store_get_contact_finish (ValentContactStore  *store,
@@ -812,8 +848,12 @@ valent_contact_store_get_contact_finish (ValentContactStore  *store,
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
  *
- * A convenience wrapper around valent_contact_store_query() for searching
- * contacts by UID. Call valent_contact_store_query_finish() to get the result.
+ * A convenience wrapper around [method@Valent.ContactStore.query] for searching
+ * contacts by UID.
+ *
+ * Call [method@Valent.ContactStore.query_finish] to get the result.
+ *
+ * Since: 1.0
  */
 void
 valent_contact_store_get_contacts (ValentContactStore   *store,
@@ -826,6 +866,8 @@ valent_contact_store_get_contacts (ValentContactStore   *store,
   g_autofree EBookQuery **queries = NULL;
   g_autoptr (EBookQuery) query = NULL;
   unsigned int n;
+
+  VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_CONTACT_STORE (store));
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
@@ -840,6 +882,8 @@ valent_contact_store_get_contacts (ValentContactStore   *store,
   sexp = e_book_query_to_string (query);
 
   valent_contact_store_query (store, sexp, cancellable, callback, user_data);
+
+  VALENT_EXIT;
 }
 
 static void
@@ -853,10 +897,15 @@ dup_for_phone_cb (ValentContactStore *store,
   EContact *contact = NULL;
   GError *error = NULL;
 
+  VALENT_ENTRY;
+
   contacts = valent_contact_store_query_finish (store, result, &error);
 
   if (error != NULL)
-    return g_task_return_error (task, error);
+    {
+      g_task_return_error (task, error);
+      VALENT_EXIT;
+    }
 
   /* Prefer using libphonenumber */
   if (e_phone_number_is_supported ())
@@ -889,6 +938,8 @@ dup_for_phone_cb (ValentContactStore *store,
     }
 
   g_task_return_pointer (task, contact, g_object_unref);
+
+  VALENT_EXIT;
 }
 
 /**
@@ -899,8 +950,12 @@ dup_for_phone_cb (ValentContactStore *store,
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
  *
- * Asynchronous version of valent_contact_store_dup_for_phone(). Call
- * valent_contact_store_dup_for_phone_finish() to get the result.
+ * A convenience wrapper around [method@Valent.ContactStore.query] for finding a
+ * contact by phone number.
+ *
+ * Call [method@Valent.ContactStore.dup_for_phone_finish] to get the result.
+ *
+ * Since: 1.0
  */
 void
 valent_contact_store_dup_for_phone_async (ValentContactStore  *store,
@@ -912,6 +967,8 @@ valent_contact_store_dup_for_phone_async (ValentContactStore  *store,
   g_autoptr (GTask) task = NULL;
   g_autoptr (EBookQuery) query = NULL;
   g_autofree char *sexp = NULL;
+
+  VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_CONTACT_STORE (store));
   g_return_if_fail (number != NULL);
@@ -940,6 +997,8 @@ valent_contact_store_dup_for_phone_async (ValentContactStore  *store,
                               cancellable,
                               (GAsyncReadyCallback)dup_for_phone_cb,
                               g_steal_pointer (&task));
+
+  VALENT_EXIT;
 }
 
 /**
@@ -948,19 +1007,27 @@ valent_contact_store_dup_for_phone_async (ValentContactStore  *store,
  * @result: a #GAsyncResult
  * @error: (nullable): a #GError
  *
- * Finish an operation started by valent_contact_store_dup_contacts_async().
+ * Finish an operation started by [method@Valent.ContactStore.dup_for_phone_async].
  *
  * Returns: (transfer full): an #EContact
+ *
+ * Since: 1.0
  */
 EContact *
 valent_contact_store_dup_for_phone_finish (ValentContactStore  *store,
                                            GAsyncResult        *result,
                                            GError             **error)
 {
+  EContact *ret;
+
+  VALENT_ENTRY;
+
   g_return_val_if_fail (VALENT_IS_CONTACT_STORE (store), NULL);
   g_return_val_if_fail (g_task_is_valid (result, store), NULL);
   g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
-  return g_task_propagate_pointer (G_TASK (result), error);
+  ret = g_task_propagate_pointer (G_TASK (result), error);
+
+  VALENT_RETURN (ret);
 }
 

@@ -24,6 +24,8 @@ void   valent_debug_clear (void);
  * VALENT_LOG_LEVEL_TRACE: (skip)
  *
  * The #GLogLevelFlags log level for profiling messages in Valent.
+ *
+ * Since: 1.0
  */
 #ifndef VALENT_LOG_LEVEL_TRACE
 # define VALENT_LOG_LEVEL_TRACE ((GLogLevelFlags)(1 << G_LOG_LEVEL_USER_SHIFT))
@@ -38,6 +40,8 @@ void   valent_debug_clear (void);
  *
  * The macros include %VALENT_ENTRY, %VALENT_EXIT, %VALENT_RETURN, %VALENT_GOTO
  * and %VALENT_PROBE.
+ *
+ * Since: 1.0
  */
 #ifndef VALENT_ENABLE_PROFILING
 # define VALENT_ENABLE_PROFILING @VALENT_ENABLE_PROFILING@
@@ -52,6 +56,8 @@ void   valent_debug_clear (void);
  *
  * Traces the entry into a function. Place this at the beginning of functions,
  * above pre-condition checks.
+ *
+ * Since: 1.0
  */
 
 /**
@@ -59,6 +65,8 @@ void   valent_debug_clear (void);
  *
  * Traces the exit from a function. Use this instead of `return` to return
  * and log the function exiting.
+ *
+ * Since: 1.0
  */
 
 /**
@@ -67,6 +75,8 @@ void   valent_debug_clear (void);
  *
  * Traces the exit from a function. Use this instead of `return` to return @_r
  * and log the function exiting.
+ *
+ * Since: 1.0
  */
 
 /**
@@ -75,12 +85,16 @@ void   valent_debug_clear (void);
  *
  * Traces the jump to a label in a function. Use this instead of `goto` to jump
  * to @_l and log the label.
+ *
+ * Since: 1.0
  */
 
 /**
  * VALENT_PROBE: (skip)
  *
  * Appends to the tracing log that a line of code was reached.
+ *
+ * Since: 1.0
  */
 
 
@@ -153,6 +167,8 @@ void valent_trace_mark (const char *strfunc,
  * @...: the message parameters
  *
  * Logs a formatted message at %G_LOG_LEVEL_DEBUG.
+ *
+ * Since: 1.0
  */
 
 /**
@@ -161,6 +177,8 @@ void valent_trace_mark (const char *strfunc,
  * @...: the message parameters
  *
  * Appends to the log that incomplete code has been reached.
+ *
+ * Since: 1.0
  */
 
 /**
@@ -169,6 +187,8 @@ void valent_trace_mark (const char *strfunc,
  * @...: the message parameters
  *
  * Appends to the log that unstable code has been reached.
+ *
+ * Since: 1.0
  */
 
 /**
@@ -178,6 +198,8 @@ void valent_trace_mark (const char *strfunc,
  *
  * Logs @_node as pretty-printed JSON at %G_LOG_LEVEL_DEBUG, prefixed with
  * @_ctx for context.
+ *
+ * Since: 1.0
  */
 
 

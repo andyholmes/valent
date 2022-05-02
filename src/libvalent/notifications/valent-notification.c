@@ -10,19 +10,13 @@
 #include "valent-notification.h"
 
 /**
- * SECTION:valentnotification
- * @short_description: An abstraction of notifications
- * @title: ValentNotification
- * @stability: Unstable
- * @include: libvalent-notifications.h
+ * ValentNotification:
  *
- * The #ValentNotification class is intended to abstract notifications with the intent of allowing
- * them to be presented to the user in different ways. For example as a desktop #GNotification,
- * in-app notification or other method.
+ * A class representing a notification.
  *
- * #ValentNotification is effectively a super-set of #GNotification that includes a few properties
- * normally found in libnotify notifications, while being more read-write friendly than
- * #GNotification.
+ * #ValentNotification is a derivable, generic class for a notification.
+ *
+ * Since: 1.0
  */
 
 struct _ValentNotification
@@ -265,21 +259,31 @@ valent_notification_class_init (ValentNotificationClass *klass)
   /**
    * ValentNotification:action:
    *
-   * The "action" is a convenience setter for valent_notification_set_action().
+   * The default notification action.
+   *
+   * Since: 1.0
    */
   properties [PROP_ACTION] =
     g_param_spec_string ("action",
                          "Action",
-                         "Action name for the notification",
+                         "The default notification action",
                          NULL,
-                         (G_PARAM_READWRITE |
+                         (G_PARAM_WRITABLE |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentNotification:application:
+   * ValentNotification:application: (getter get_application) (setter set_application)
    *
-   * The "application" property is the name of the notifying application.
+   * The notifying application.
+   *
+   * The semantics of this property are not well-defined. It may be the
+   * application name (ie. the `appName` argument passed to
+   * `org.freedesktop.Notifications.Notify()`), the desktop application ID (ie.
+   * from `org.gtk.Notifications.AddNotification()`) or some other identifying
+   * string.
+   *
+   * Since: 1.0
    */
   properties [PROP_APPLICATION] =
     g_param_spec_string ("application",
@@ -291,70 +295,82 @@ valent_notification_class_init (ValentNotificationClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentNotification:body:
+   * ValentNotification:body: (getter get_body) (setter set_body)
    *
-   * The "body" property is the secondary text of the notification.
+   * The notification body.
+   *
+   * Since: 1.0
    */
   properties [PROP_BODY] =
     g_param_spec_string ("body",
                          "Body",
-                         "Body for the notification",
+                         "The notification body",
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentNotification:icon:
+   * ValentNotification:icon: (getter get_icon) (setter set_icon)
    *
-   * The "icon" property is the #GIcon for the notification.
+   * The notification [iface@Gio.Icon].
+   *
+   * Since: 1.0
    */
   properties [PROP_ICON] =
     g_param_spec_object ("icon",
                          "Icon",
-                         "GIcon for the notification",
+                         "The notification icon",
                          G_TYPE_ICON,
                          (G_PARAM_READWRITE |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentNotification:icon-name:
+   * ValentNotification:icon-name: (setter set_icon_from_string)
    *
-   * The "icon-name" property is an icon name string for the device type.
+   * A string used to construct the notification icon.
+   *
+   * See [method@Valent.Notification.set_icon_from_string].
+   *
+   * Since: 1.0
    */
   properties [PROP_ICON_NAME] =
     g_param_spec_string ("icon-name",
                          "Icon Name",
-                         "Icon name representing the device",
+                         "A string used to construct an icon",
                          NULL,
-                         (G_PARAM_READWRITE |
+                         (G_PARAM_WRITABLE |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentNotification:id:
+   * ValentNotification:id: (getter get_id) (setter set_id)
    *
-   * The "id" property is a unique string for the device, usually the hostname.
+   * The unique ID of the notification.
+   *
+   * Since: 1.0
    */
   properties [PROP_ID] =
     g_param_spec_string ("id",
                          "Id",
-                         "Unique id for the notification",
+                         "The unique ID of the notification",
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentNotification:priority:
+   * ValentNotification:priority: (getter get_priority) (setter set_priority)
    *
-   * The "priority" property is a unique string for the device, usually the hostname.
+   * The notification priority.
+   *
+   * Since: 1.0
    */
   properties [PROP_PRIORITY] =
     g_param_spec_enum ("priority",
                          "Priority",
-                         "Unique id for the notification",
+                         "The notification priority",
                          G_TYPE_NOTIFICATION_PRIORITY,
                          G_NOTIFICATION_PRIORITY_NORMAL,
                          (G_PARAM_READWRITE |
@@ -362,24 +378,28 @@ valent_notification_class_init (ValentNotificationClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentNotification:time:
+   * ValentNotification:time: (getter get_time) (setter set_time)
    *
-   * The "time" property is the posting time of the notification in ms.
+   * The posting time of the notification in milliseconds.
+   *
+   * Since: 1.0
    */
   properties [PROP_TIME] =
     g_param_spec_int64 ("time",
                         "Time",
                         "Posting time of the notification",
-                        G_MININT64, G_MAXINT64,
+                        0, G_MAXINT64,
                         0,
                         (G_PARAM_READWRITE |
                          G_PARAM_EXPLICIT_NOTIFY |
                          G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentNotification:title:
+   * ValentNotification:title: (getter get_title) (setter set_title)
    *
-   * The "title" property is the primary text of the notification.
+   * The title of the notification
+   *
+   * Since: 1.0
    */
   properties [PROP_TITLE] =
     g_param_spec_string ("title",
@@ -397,11 +417,15 @@ valent_notification_class_init (ValentNotificationClass *klass)
  * valent_notification_new:
  * @title: (nullable): a notification title
  *
- * Create a new #ValentNotification. While a notification without a title (or
- * primary text) is not strictly possible, this is allowed during creation as a
- * convenience for the case where @title is selected from choices later.
+ * Create a new #ValentNotification.
  *
- * Returns: (transfer full) (type Valent.Notification): a new notification.
+ * A notification without a title (or primary text) is not strictly possible,
+ * but this is allowed during construction for the case where it is more
+ * convenient to set it later.
+ *
+ * Returns: (transfer full): a #ValentNotification
+ *
+ * Since: 1.0
  */
 ValentNotification *
 valent_notification_new (const char *title)
@@ -419,8 +443,12 @@ valent_notification_new (const char *title)
  * @notification: a #ValentNotification
  * @action: a detailed action
  *
- * Sets the default action of @notification to @action. @action may be a
- * detailed action as parse by g_action_parse_detailed_name().
+ * Sets the default notification action.
+ *
+ * @action may be a detailed action as parsed by
+ * [func@Gio.Action.parse_detailed_name].
+ *
+ * Since: 1.0
  */
 void
 valent_notification_set_action (ValentNotification *notification,
@@ -442,12 +470,14 @@ valent_notification_set_action (ValentNotification *notification,
 }
 
 /**
- * valent_notification_get_application:
+ * valent_notification_get_application: (get-property application)
  * @notification: a #ValentNotification
  *
- * Get the name of the notifying application for @notification.
+ * Get the notifying application.
  *
  * Returns: (transfer none) (nullable): the notifying application name
+ *
+ * Since: 1.0
  */
 const char *
 valent_notification_get_application (ValentNotification *notification)
@@ -458,33 +488,37 @@ valent_notification_get_application (ValentNotification *notification)
 }
 
 /**
- * valent_notification_set_application:
+ * valent_notification_set_application: (set-property application)
  * @notification: a #ValentNotification
- * @name: (nullable): an body for the notification
+ * @application: (nullable): the notifying application
  *
- * Set the name of the notifying application for @notification to @name.
+ * Set the notifying application.
+ *
+ * Since: 1.0
  */
 void
 valent_notification_set_application (ValentNotification *notification,
-                                     const char         *name)
+                                     const char         *application)
 {
   g_return_if_fail (VALENT_IS_NOTIFICATION (notification));
 
-  if (g_strcmp0 (notification->application, name) == 0)
+  if (g_strcmp0 (notification->application, application) == 0)
     return;
 
   g_clear_pointer (&notification->application, g_free);
-  notification->application = g_strdup (name);
+  notification->application = g_strdup (application);
   g_object_notify_by_pspec (G_OBJECT (notification), properties [PROP_APPLICATION]);
 }
 
 /**
- * valent_notification_get_body:
+ * valent_notification_get_body: (get-property body)
  * @notification: a #ValentNotification
  *
- * Get the body for @notification.
+ * Get the notification body.
  *
  * Returns: (transfer none) (nullable): the notification body
+ *
+ * Since: 1.0
  */
 const char *
 valent_notification_get_body (ValentNotification *notification)
@@ -495,11 +529,13 @@ valent_notification_get_body (ValentNotification *notification)
 }
 
 /**
- * valent_notification_set_body:
+ * valent_notification_set_body: (set-property body)
  * @notification: a #ValentNotification
- * @body: (nullable): a body for the notification
+ * @body: (nullable): a notification body
  *
- * Set the body for @notification.
+ * Set the notification body.
+ *
+ * Since: 1.0
  */
 void
 valent_notification_set_body (ValentNotification *notification,
@@ -507,7 +543,7 @@ valent_notification_set_body (ValentNotification *notification,
 {
   g_return_if_fail (VALENT_IS_NOTIFICATION (notification));
 
-  if (g_strcmp0 (notification->application, body) == 0)
+  if (g_strcmp0 (notification->body, body) == 0)
     return;
 
   g_clear_pointer (&notification->body, g_free);
@@ -516,12 +552,14 @@ valent_notification_set_body (ValentNotification *notification,
 }
 
 /**
- * valent_notification_get_icon:
+ * valent_notification_get_icon: (set-property icon)
  * @notification: a #ValentNotification
  *
- * Get the #GIcon for @notification.
+ * Get the notification icon.
  *
- * Returns: (transfer none) (type Gio.Icon): the
+ * Returns: (transfer none) (nullable): a #GIcon
+ *
+ * Since: 1.0
  */
 GIcon *
 valent_notification_get_icon (ValentNotification *notification)
@@ -532,11 +570,13 @@ valent_notification_get_icon (ValentNotification *notification)
 }
 
 /**
- * valent_notification_set_icon:
+ * valent_notification_set_icon: (set-property icon)
  * @notification: a #ValentNotification
  * @icon: (nullable): a #GIcon
  *
- * Set the #GIcon for @notification, taking a reference on @icon if not %NULL.
+ * Set the notification icon.
+ *
+ * Since: 1.0
  */
 void
 valent_notification_set_icon (ValentNotification *notification,
@@ -557,57 +597,62 @@ valent_notification_set_icon (ValentNotification *notification,
  * @notification: a #ValentNotification
  * @icon_name: (nullable): a themed icon name
  *
- * Set the #GIcon for @notification from a themed icon name.
+ * Set the notification icon from a string.
+ *
+ * This is a convenience for calling [func@Gio.Icon.new_for_string] and then
+ * and then [method@Valent.Notification.set_icon].
+ *
+ * Since: 1.0
  */
 void
 valent_notification_set_icon_from_string (ValentNotification *notification,
                                           const char         *icon_name)
 {
+  g_autoptr (GIcon) icon = NULL;
+
   g_return_if_fail (VALENT_IS_NOTIFICATION (notification));
 
   if (icon_name != NULL)
-    {
-      g_autoptr (GIcon) icon = NULL;
+    icon = g_icon_new_for_string (icon_name, NULL);
 
-      icon = g_icon_new_for_string (icon_name, NULL);
-      g_set_object (&notification->icon, icon);
-    }
-  else
-    g_clear_object (&notification->icon);
+  valent_notification_set_icon (notification, icon);
 }
 
 /**
- * valent_notification_get_id:
+ * valent_notification_get_id: (get-property id)
  * @notification: a #ValentNotification
  *
- * Get the id for @notification.
+ * Get the notification ID.
  *
- * Returns: (transfer none) (not nullable): the notification id
+ * Returns: (transfer none) (not nullable): a unique ID
+ *
+ * Since: 1.0
  */
 const char *
 valent_notification_get_id (ValentNotification *notification)
 {
   g_return_val_if_fail (VALENT_IS_NOTIFICATION (notification), NULL);
-  g_assert (notification->id != NULL);
 
   return notification->id;
 }
 
 /**
- * valent_notification_set_id:
+ * valent_notification_set_id: (set-property id)
  * @notification: a #ValentNotification
- * @id: (not nullable): an id for the notification
+ * @id: (not nullable): a unique ID
  *
- * Set the id for @notification.
+ * Set the notification ID.
+ *
+ * Since: 1.0
  */
 void
 valent_notification_set_id (ValentNotification *notification,
                             const char         *id)
 {
   g_return_if_fail (VALENT_IS_NOTIFICATION (notification));
-  g_return_if_fail (id != NULL);
+  g_return_if_fail (id != NULL && *id != '\0');
 
-  if (g_str_equal (notification->id, id))
+  if (g_strcmp0 (notification->id, id) == 0)
     return;
 
   g_clear_pointer (&notification->id, g_free);
@@ -619,14 +664,16 @@ valent_notification_set_id (ValentNotification *notification,
  * valent_notification_get_priority:
  * @notification: a #ValentNotification
  *
- * Get the priority for @notification.
+ * Get the notification priority.
  *
- * Returns: (type GNotificationPriority): the notification id
+ * Returns: a #GNotificationPriority
+ *
+ * Since: 1.0
  */
 GNotificationPriority
 valent_notification_get_priority (ValentNotification *notification)
 {
-  g_return_val_if_fail (VALENT_IS_NOTIFICATION (notification), 0);
+  g_return_val_if_fail (VALENT_IS_NOTIFICATION (notification), G_NOTIFICATION_PRIORITY_NORMAL);
 
   return notification->priority;
 }
@@ -634,9 +681,11 @@ valent_notification_get_priority (ValentNotification *notification)
 /**
  * valent_notification_set_priority:
  * @notification: a #ValentNotification
- * @priority: (type GNotificationPriority): a priority
+ * @priority: a #GNotificationPriority
  *
- * Set the priority for @notification.
+ * Set the notification priority.
+ *
+ * Since: 1.0
  */
 void
 valent_notification_set_priority (ValentNotification    *notification,
@@ -652,12 +701,14 @@ valent_notification_set_priority (ValentNotification    *notification,
 }
 
 /**
- * valent_notification_get_time:
+ * valent_notification_get_time: (get-property time)
  * @notification: a #ValentNotification
  *
- * Get the posted time for @notification in ms.
+ * Get the notification time.
  *
- * Returns: a UNIX epoch timestamp
+ * Returns: a UNIX epoch timestamp (ms)
+ *
+ * Since: 1.0
  */
 gint64
 valent_notification_get_time (ValentNotification *notification)
@@ -668,11 +719,13 @@ valent_notification_get_time (ValentNotification *notification)
 }
 
 /**
- * valent_notification_set_time:
+ * valent_notification_set_time: (set-property time)
  * @notification: a #ValentNotification
- * @time: a millisecond timestamp
+ * @time: a UNIX epoch timestamp (ms)
  *
- * Set the posted time for @notification in ms.
+ * Set the notification time.
+ *
+ * Since: 1.0
  */
 void
 valent_notification_set_time (ValentNotification *notification,
@@ -688,12 +741,14 @@ valent_notification_set_time (ValentNotification *notification,
 }
 
 /**
- * valent_notification_get_title:
+ * valent_notification_get_title: (get-property title)
  * @notification: a #ValentNotification
  *
- * Get the title for @notification.
+ * Get the notification title.
  *
- * Returns: (transfer none) (not nullable): the notification title
+ * Returns: (transfer none) (nullable): the notification title
+ *
+ * Since: 1.0
  */
 const char *
 valent_notification_get_title (ValentNotification *notification)
@@ -704,11 +759,13 @@ valent_notification_get_title (ValentNotification *notification)
 }
 
 /**
- * valent_notification_set_title:
+ * valent_notification_set_title: (set-property title)
  * @notification: a #ValentNotification
- * @title: (not nullable): a title for the notification
+ * @title: (not nullable): a notification title
  *
- * Set the title for @notification.
+ * Set the notification title.
+ *
+ * Since: 1.0
  */
 void
 valent_notification_set_title (ValentNotification *notification,
@@ -728,11 +785,13 @@ valent_notification_set_title (ValentNotification *notification,
 /**
  * valent_notification_add_button_with_target:
  * @notification: a #ValentNotification
- * @label: a label for the button
+ * @label: a button label
  * @action: an action name
- * @target: (type GVariant) (nullable): an action target
+ * @target: (nullable): an action target
  *
- * Add a button to @notification.
+ * Add a notification button.
+ *
+ * Since: 1.0
  */
 void
 valent_notification_add_button_with_target (ValentNotification *notification,
@@ -760,10 +819,12 @@ valent_notification_add_button_with_target (ValentNotification *notification,
 /**
  * valent_notification_add_button:
  * @notification: a #ValentNotification
- * @label: a label for the button
+ * @label: a button label
  * @action: an action name
  *
- * Add a button to @notification.
+ * Add a notification button.
+ *
+ * Since: 1.0
  */
 void
 valent_notification_add_button (ValentNotification *notification,
@@ -794,8 +855,12 @@ valent_notification_add_button (ValentNotification *notification,
  * @action: an action name
  * @target: (nullable): a #GVariant to use as @action's parameter
  *
- * Sets the default action of @notification to @action. If @target is non-%NULL,
- * @action will be activated with @target as its parameter.
+ * Set the default notification action.
+ *
+ * If @target is non-%NULL, @action will be activated with @target as its
+ * parameter.
+ *
+ * Since: 1.0
  */
 void
 valent_notification_set_action_and_target (ValentNotification *notification,
@@ -818,9 +883,11 @@ valent_notification_set_action_and_target (ValentNotification *notification,
  * valent_notification_serialize:
  * @notification: a #ValentNotification
  *
- * Serializes @notification into a floating variant of type a{sv}.
+ * Serialize the notification into a variant of type `a{sv}`.
  *
  * Returns: (nullable): a floating #GVariant
+ *
+ * Since: 1.0
  */
 GVariant *
 valent_notification_serialize (ValentNotification *notification)
@@ -898,6 +965,8 @@ valent_notification_serialize (ValentNotification *notification)
  * #GNotification or #ValentNotification.
  *
  * Returns: (transfer full) (nullable): a #ValentNotification
+ *
+ * Since: 1.0
  */
 ValentNotification *
 valent_notification_deserialize (GVariant *variant)
@@ -986,6 +1055,8 @@ valent_notification_deserialize (GVariant *variant)
  * Converts a notification to a hash value, using g_str_hash() on the ID.
  *
  * Returns: a hash value
+ *
+ * Since: 1.0
  */
 unsigned int
 valent_notification_hash (gconstpointer notification)
@@ -1003,6 +1074,8 @@ valent_notification_hash (gconstpointer notification)
  * Compare two notifications for equality by ID.
  *
  * Returns: %TRUE if equal, or %FALSE if not
+ *
+ * Since: 1.0
  */
 gboolean
 valent_notification_equal (gconstpointer notification1,

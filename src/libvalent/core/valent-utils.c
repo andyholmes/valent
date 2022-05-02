@@ -15,16 +15,6 @@
 #include "valent-version.h"
 
 
-/**
- * SECTION:valentutils
- * @short_description: A collection of miscellaneous helpers
- * @title: Utilities
- * @stability: Unstable
- * @include: libvalent-core.h
- *
- * A small collection of miscellaneous helpers for working with Valent.
- */
-
 static GThread *main_thread;
 static gboolean in_flatpak;
 
@@ -48,12 +38,15 @@ valent_init_ctor (void)
 /**
  * valent_get_main_thread:
  *
- * Gets #GThread of the main thread.
+ * Get the main thread.
  *
- * Generally this is used by macros to determine what thread the code is
- * currently running within.
+ * Usually this function is not called directly. Instead, the macro
+ * `VALENT_IS_MAIN_THREAD()` is used to determine whether or not the code
+ * is currently running on the main thread.
  *
  * Returns: (transfer none): a #GThread
+ *
+ * Since: 1.0
  */
 GThread *
 valent_get_main_thread (void)
@@ -67,6 +60,8 @@ valent_get_main_thread (void)
  * Checks whether Valent is running in a Flatpak.
  *
  * Returns: %TRUE if running in a Flatpak, or %FALSE if not
+ *
+ * Since: 1.0
  */
 gboolean
 valent_in_flatpak (void)
@@ -80,6 +75,8 @@ valent_in_flatpak (void)
  * Get a current UNIX epoch timestamp in milliseconds.
  *
  * Returns: a 64-bit timestamp
+ *
+ * Since: 1.0
  */
 gint64
 valent_timestamp_ms (void)
@@ -104,6 +101,8 @@ valent_timestamp_ms (void)
  * @engine: (nullable): a #PeasEngine
  *
  * Initialize the global #PeasEngine and load plugins.
+ *
+ * Since: 1.0
  */
 void
 valent_load_plugins (PeasEngine *engine)
@@ -168,10 +167,14 @@ valent_load_plugins (PeasEngine *engine)
 /**
  * valent_get_engine:
  *
- * Get the global #PeasEngine. The first call to this function initializes the
- * engine and loads the plugins.
+ * Get the global #PeasEngine.
+ *
+ * The first call to this function initializes the engine and loads the
+ * built-in plugins.
  *
  * Returns: (transfer none): a #PeasEngine
+ *
+ * Since: 1.0
  */
 PeasEngine *
 valent_get_engine (void)

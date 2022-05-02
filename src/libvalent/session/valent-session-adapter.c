@@ -13,19 +13,24 @@
 
 
 /**
- * SECTION:valentsessionadapter
- * @short_description: Interface for session adapters
- * @title: ValentSessionAdapter
- * @stability: Unstable
- * @include: libvalent-session.h
+ * ValentSessionAdapter:
  *
- * The #ValentSessionAdapter interface should be implemented by libpeas
- * plugins that operate at the desktop level. This generally means providing
- * access to the desktop session.
+ * An abstract base class for session managers.
  *
- * ## .plugin File ##
+ * #ValentSessionAdapter is a base class for plugins that provide an interface
+ * to the desktop session manager. This usually means monitoring the idle state,
+ * locking and unlocking the session.
  *
- * Session adapter require no special entries in the `.plugin` file.
+ * ## `.plugin` File
+ *
+ * Implementations may define the following extra fields in the `.plugin` file:
+ *
+ * - `X-SessionAdapterPriority`
+ *
+ *     An integer indicating the adapter priority. The implementation with the
+ *     lowest value will be used as the primary adapter.
+ *
+ * Since: 1.0
  */
 
 typedef struct
@@ -151,23 +156,27 @@ valent_session_adapter_class_init (ValentSessionAdapterClass *klass)
   klass->set_locked = valent_session_adapter_real_set_locked;
 
   /**
-   * ValentSessionAdapter:active:
+   * ValentSessionAdapter:active: (getter get_active)
    *
    * Whether the session is active.
+   *
+   * Since: 1.0
    */
   properties [PROP_ACTIVE] =
     g_param_spec_boolean ("active",
                           "Active",
                           "Whether the session is active",
                           FALSE,
-                          (G_PARAM_READWRITE |
+                          (G_PARAM_READABLE |
                            G_PARAM_EXPLICIT_NOTIFY |
                            G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentSessionAdapter:locked:
+   * ValentSessionAdapter:locked: (getter get_locked) (setter set_locked)
    *
    * Whether the session is locked.
+   *
+   * Since: 1.0
    */
   properties [PROP_LOCKED] =
     g_param_spec_boolean ("locked",
@@ -181,12 +190,14 @@ valent_session_adapter_class_init (ValentSessionAdapterClass *klass)
   /**
    * ValentSessionAdapter:plugin-info:
    *
-   * The #PeasPluginInfo describing this adapter.
+   * The [struct@Peas.PluginInfo] describing this adapter.
+   *
+   * Since: 1.0
    */
   properties [PROP_PLUGIN_INFO] =
     g_param_spec_boxed ("plugin-info",
                         "Plugin Info",
-                        "Plugin Info",
+                        "The plugin info describing this adapter",
                         PEAS_TYPE_PLUGIN_INFO,
                         (G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
@@ -199,7 +210,9 @@ valent_session_adapter_class_init (ValentSessionAdapterClass *klass)
    * ValentSessionAdapter::changed:
    * @adapter: a #ValentSessionAdapter
    *
-   * #ValentSessionAdapter::changed is emitted when @adapter changes.
+   * Emitted when @adapter changes.
+   *
+   * Since: 1.0
    */
   signals [CHANGED] =
     g_signal_new ("changed",
@@ -219,7 +232,12 @@ valent_session_adapter_init (ValentSessionAdapter *adapter)
  * valent_session_adapter_emit_changed:
  * @adapter: a #ValentSessionAdapter
  *
- * Emits the #ValentSessionAdapter::changed signal on @adapter.
+ * Emit [signal@Valent.SessionAdapter::changed] on @adapter.
+ *
+ * This method should only be called by implementations of
+ * [class@Valent.SessionAdapter].
+ *
+ * Since: 1.0
  */
 void
 valent_session_adapter_emit_changed (ValentSessionAdapter *adapter)
@@ -230,10 +248,14 @@ valent_session_adapter_emit_changed (ValentSessionAdapter *adapter)
 }
 
 /**
- * valent_session_adapter_get_active:
+ * valent_session_adapter_get_active: (virtual get_active) (get-property active)
  * @adapter: a #ValentSessionAdapter
  *
- * Get the active state of @adapter.
+ * Get whether the session is active.
+ *
+ * Returns: %TRUE if active, %FALSE if idle
+ *
+ * Since: 1.0
  */
 gboolean
 valent_session_adapter_get_active (ValentSessionAdapter *adapter)
@@ -250,10 +272,14 @@ valent_session_adapter_get_active (ValentSessionAdapter *adapter)
 }
 
 /**
- * valent_session_adapter_get_locked:
+ * valent_session_adapter_get_locked: (virtual get_locked) (get-property locked)
  * @adapter: a #ValentSessionAdapter
  *
- * Get the locked state of @adapter.
+ * Get whether the session is locked.
+ *
+ * Returns: %TRUE if locked, %FALSE if unlocked
+ *
+ * Since: 1.0
  */
 gboolean
 valent_session_adapter_get_locked (ValentSessionAdapter *adapter)
@@ -270,11 +296,13 @@ valent_session_adapter_get_locked (ValentSessionAdapter *adapter)
 }
 
 /**
- * valent_session_adapter_set_locked:
+ * valent_session_adapter_set_locked: (virtual set_locked) (set-property locked)
  * @adapter: a #ValentSessionAdapter
- * @state: locked state
+ * @state: %TRUE to lock, %FALSE to unlock
  *
- * Set the locked state of @adapter to @state.
+ * Set whether the session is locked.
+ *
+ * Since: 1.0
  */
 void
 valent_session_adapter_set_locked (ValentSessionAdapter *adapter,

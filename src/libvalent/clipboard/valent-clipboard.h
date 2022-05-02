@@ -17,6 +17,9 @@ VALENT_AVAILABLE_IN_1_0
 G_DECLARE_FINAL_TYPE (ValentClipboard, valent_clipboard, VALENT, CLIPBOARD, ValentComponent)
 
 VALENT_AVAILABLE_IN_1_0
+ValentClipboard * valent_clipboard_get_default     (void);
+
+VALENT_AVAILABLE_IN_1_0
 void              valent_clipboard_get_text_async  (ValentClipboard      *clipboard,
                                                     GCancellable         *cancellable,
                                                     GAsyncReadyCallback   callback,
@@ -30,9 +33,6 @@ void              valent_clipboard_set_text        (ValentClipboard      *clipbo
                                                     const char           *text);
 VALENT_AVAILABLE_IN_1_0
 gint64            valent_clipboard_get_timestamp   (ValentClipboard      *clipboard);
-
-VALENT_AVAILABLE_IN_1_0
-ValentClipboard * valent_clipboard_get_default     (void);
 
 G_END_DECLS
 

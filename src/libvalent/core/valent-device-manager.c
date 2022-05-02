@@ -31,6 +31,8 @@
  * connecting them when [signal@Valent.ChannelService::channel] is emitted by an
  * enabled implementation, exporting them on D-Bus and removing them when they
  * become unavailable.
+ *
+ * Since: 1.0
  */
 
 struct _ValentDeviceManager
@@ -882,12 +884,16 @@ valent_device_manager_class_init (ValentDeviceManagerClass *klass)
   /**
    * ValentDeviceManager:data:
    *
-   * The [class@Valent.Data] for the manager.
+   * The data context.
+   *
+   * Usually this is the root data context for the application.
+   *
+   * Since: 1.0
    */
   properties [PROP_DATA] =
     g_param_spec_object ("data",
                          "Data Manager",
-                         "The data manager for this manager",
+                         "The data context",
                          VALENT_TYPE_DATA,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -895,13 +901,15 @@ valent_device_manager_class_init (ValentDeviceManagerClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentDeviceManager:id:
+   * ValentDeviceManager:id: (getter get_id)
    *
-   * The unique ID the local device will use to distinguish itself from remote
-   * devices.
+   * The unique ID of the local device.
    *
-   * The ID is equivalent to the common name of the service TLS certificate,
-   * which will be generated if necessary.
+   * This is intended to be unique within the device's network ok KDE Connect
+   * clients. The ID is equivalent to the common name of the service TLS
+   * certificate, which will be generated if necessary.
+   *
+   * Since: 1.0
    */
   properties [PROP_ID] =
     g_param_spec_string ("id",
@@ -913,9 +921,11 @@ valent_device_manager_class_init (ValentDeviceManagerClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentDeviceManager:name:
+   * ValentDeviceManager:name: (getter get_name) (setter set_name)
    *
    * The display name of the local device.
+   *
+   * Since: 1.0
    */
   properties [PROP_NAME] =
     g_param_spec_string ("name",
@@ -934,11 +944,9 @@ valent_device_manager_class_init (ValentDeviceManagerClass *klass)
    * @manager: a #ValentDeviceManager
    * @device: a #ValentDevice
    *
-   * The "device-added" signal is emitted when a new [class@Valent.Device] has
-   * been added to @manager.
+   * Emitted when a new [class@Valent.Device] has been added to @manager.
    *
-   * Note that the internal state of @manager has already been updated when this
-   * signal is emitted and @manager will hold a reference to @device.
+   * Since: 1.0
    */
   signals [DEVICE_ADDED] =
     g_signal_new ("device-added",
@@ -957,12 +965,12 @@ valent_device_manager_class_init (ValentDeviceManagerClass *klass)
    * @manager: a #ValentDeviceManager
    * @device: a #ValentDevice
    *
-   * The "device-removed" signal is emitted when a [class@Valent.Device] has
-   * been removed from @manager. Devices are removed automatically when they
-   * become both unpaired and disconnected.
+   * Emitted when a [class@Valent.Device] has been removed from @manager.
    *
-   * Note that the internal state of @manager has already be updated when this
-   * signal is emitted.
+   * Devices are removed automatically when they become both unpaired and
+   * disconnected.
+   *
+   * Since: 1.0
    */
   signals [DEVICE_REMOVED] =
     g_signal_new ("device-removed",
@@ -1005,6 +1013,8 @@ valent_device_manager_init (ValentDeviceManager *self)
  * instances.
  *
  * Returns: (transfer full) (nullable): a #ValentDeviceManager
+ *
+ * Since: 1.0
  */
 ValentDeviceManager *
 valent_device_manager_new_sync (ValentData    *data,
@@ -1044,6 +1054,8 @@ valent_device_manager_new_sync (ValentData    *data,
  *
  * When the manager is ready @callback will be invoked and you can use
  * [ctor@Valent.DeviceManager.new_finish] to get the result.
+ *
+ * Since: 1.0
  */
 void
 valent_device_manager_new (ValentData          *data,
@@ -1071,6 +1083,8 @@ valent_device_manager_new (ValentData          *data,
  * Finish an operation started by [func@Valent.DeviceManager.new].
  *
  * Returns: (transfer full) (nullable): a #ValentDeviceManager
+ *
+ * Since: 1.0
  */
 ValentDeviceManager *
 valent_device_manager_new_finish (GAsyncResult  *result,
@@ -1101,6 +1115,8 @@ valent_device_manager_new_finish (GAsyncResult  *result,
  * Try to find a #ValentDevice with the id @id, otherwise return %NULL.
  *
  * Returns: (transfer none) (nullable): a #ValentDevice
+ *
+ * Since: 1.0
  */
 ValentDevice *
 valent_device_manager_get_device (ValentDeviceManager *manager,
@@ -1118,7 +1134,9 @@ valent_device_manager_get_device (ValentDeviceManager *manager,
  *
  * Get a list of the the [class@Valent.Device] objects managed by @manager.
  *
- * Returns: (transfer full) (element-type Valent.Device): a #GPtrArray
+ * Returns: (transfer container) (element-type Valent.Device): a #GPtrArray
+ *
+ * Since: 1.0
  */
 GPtrArray *
 valent_device_manager_get_devices (ValentDeviceManager *manager)
@@ -1140,7 +1158,7 @@ valent_device_manager_get_devices (ValentDeviceManager *manager)
 }
 
 /**
- * valent_device_manager_get_id:
+ * valent_device_manager_get_id: (get-property id)
  * @manager: a #ValentDeviceManager
  *
  * Get a copy of the identity string for this device manager.
@@ -1156,7 +1174,7 @@ valent_device_manager_get_id (ValentDeviceManager *manager)
 }
 
 /**
- * valent_device_manager_get_name:
+ * valent_device_manager_get_name: (get-property name)
  * @manager: a #ValentDeviceManager
  *
  * Get the display name of the local device.
@@ -1174,7 +1192,7 @@ valent_device_manager_get_name (ValentDeviceManager *manager)
 }
 
 /**
- * valent_device_manager_set_name:
+ * valent_device_manager_set_name: (set-property name)
  * @manager: a #ValentDeviceManager
  * @name: (not nullable): a display name
  *
@@ -1202,14 +1220,18 @@ valent_device_manager_set_name (ValentDeviceManager *manager,
  * @manager: a #ValentDeviceManager
  * @uri: a URI
  *
- * Request a connection from the device at @uri if given, otherwise ask each
- * loaded [class@Valent.ChannelService] implementation to identity itself on its
+ * Identify the local device to the network.
+ *
+ * This method calls [method@Valent.ChannelService.identify] for each loaded
+ * [class@Valent.ChannelService], requesting to identify itself on its
  * respective network.
  *
  * The @uri argument is string in the form `plugin://address`, such as
  * `lan://192.168.0.10:1716`. The `plugin` segment should be the module name of
  * a plugin that implements [class@Valent.ChannelService] and `address` segment
  * should be a format the implementation understands.
+ *
+ * Since: 1.0
  */
 void
 valent_device_manager_identify (ValentDeviceManager *manager,
@@ -1217,6 +1239,8 @@ valent_device_manager_identify (ValentDeviceManager *manager,
 {
   GHashTableIter iter;
   gpointer info, service;
+
+  VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_DEVICE_MANAGER (manager));
 
@@ -1227,7 +1251,7 @@ valent_device_manager_identify (ValentDeviceManager *manager,
       address = g_strsplit (uri, "://", -1);
 
       if (address[0] == NULL || address[1] == NULL)
-        return;
+        VALENT_EXIT;
 
       g_hash_table_iter_init (&iter, manager->services);
 
@@ -1246,32 +1270,44 @@ valent_device_manager_identify (ValentDeviceManager *manager,
       while (g_hash_table_iter_next (&iter, NULL, &service))
         valent_device_manager_identify_service (manager, service, NULL);
     }
+
+  VALENT_EXIT;
 }
 
 /**
  * valent_device_manager_start:
  * @manager: a #ValentDeviceManager
  *
- * Load all the [class@Valent.ChannelService] implementations known to the
- * [class@Peas.Engine], allowing new connections to be opened.
+ * Start managing devices.
+ *
+ * Calling this method causes @manager to load all [class@Valent.ChannelService]
+ * implementations known to the [class@Peas.Engine], allowing new connections to
+ * be opened.
+ *
+ * Since: 1.0
  */
 void
 valent_device_manager_start (ValentDeviceManager *manager)
 {
   const GList *plugins = NULL;
 
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_DEVICE_MANAGER (manager));
 
   /* We're already started */
   if (manager->cancellable != NULL)
-    return;
+    VALENT_EXIT;
 
   /* Setup services */
   manager->cancellable = g_cancellable_new ();
   plugins = peas_engine_get_plugin_list (manager->engine);
 
   for (const GList *iter = plugins; iter; iter = iter->next)
-    on_load_service (manager->engine, iter->data, manager);
+    {
+      if (peas_plugin_info_is_loaded (iter->data))
+        on_load_service (manager->engine, iter->data, manager);
+    }
 
   g_signal_connect_after (manager->engine,
                           "load-plugin",
@@ -1281,23 +1317,32 @@ valent_device_manager_start (ValentDeviceManager *manager)
                     "unload-plugin",
                     G_CALLBACK (on_unload_service),
                     manager);
+
+  VALENT_EXIT;
 }
 
 /**
  * valent_device_manager_stop:
  * @manager: a #ValentDeviceManager
  *
- * Unload all the [class@Valent.ChannelService] implementations loaded from the
- * [class@Peas.Engine], preventing any new connections from being opened.
+ * Stop managing devices.
+ *
+ * Calling this method causes @manager to unload all
+ * [class@Valent.ChannelService] implementations, preventing any new connections
+ * from being opened.
+ *
+ * Since: 1.0
  */
 void
 valent_device_manager_stop (ValentDeviceManager *manager)
 {
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_DEVICE_MANAGER (manager));
 
   /* We're already stopped */
   if (manager->cancellable == NULL)
-    return;
+    VALENT_EXIT;
 
   /* Cancel any running operations */
   g_cancellable_cancel (manager->cancellable);
@@ -1306,6 +1351,8 @@ valent_device_manager_stop (ValentDeviceManager *manager)
   /* Stop and remove services */
   g_signal_handlers_disconnect_by_data (manager->engine, manager);
   g_hash_table_remove_all (manager->services);
+
+  VALENT_EXIT;
 }
 
 /**
@@ -1314,8 +1361,12 @@ valent_device_manager_stop (ValentDeviceManager *manager)
  * @connection: a #GDBusConnection
  * @object_path: a D-Bus object path
  *
- * Export @manager and all managed [class@Valent.Device] objects on @connection
- * at @object_path.
+ * Export the manager on D-Bus.
+ *
+ * Calling this method exports @manager and all managed [class@Valent.Device]
+ * objects on @connection at @object_path.
+ *
+ * Since: 1.0
  */
 void
 valent_device_manager_export (ValentDeviceManager *manager,
@@ -1325,12 +1376,14 @@ valent_device_manager_export (ValentDeviceManager *manager,
   GHashTableIter iter;
   ValentDevice *device;
 
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_DEVICE_MANAGER (manager));
   g_return_if_fail (G_IS_DBUS_CONNECTION (connection));
   g_return_if_fail (g_variant_is_object_path (object_path));
 
   if (manager->dbus != NULL)
-    return;
+    VALENT_EXIT;
 
   manager->dbus = g_dbus_object_manager_server_new (object_path);
   g_dbus_object_manager_server_set_connection (manager->dbus, connection);
@@ -1339,13 +1392,20 @@ valent_device_manager_export (ValentDeviceManager *manager,
 
   while (g_hash_table_iter_next (&iter, NULL, (void **)&device))
     valent_device_manager_export_device (manager, device);
+
+  VALENT_EXIT;
 }
 
 /**
  * valent_device_manager_unexport:
  * @manager: a #ValentDeviceManager
  *
- * Unexport @manager and all managed [class@Valent.Device] objects from D-Bus.
+ * Unexport the manager from D-Bus.
+ *
+ * Calling this method unexports @manager from D-Bus, including all managed
+ * [class@Valent.Device].
+ *
+ * Since: 1.0
  */
 void
 valent_device_manager_unexport (ValentDeviceManager *manager)
@@ -1353,10 +1413,12 @@ valent_device_manager_unexport (ValentDeviceManager *manager)
   GHashTableIter iter;
   ValentDevice *device;
 
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_DEVICE_MANAGER (manager));
 
   if (manager->dbus == NULL)
-    return;
+    VALENT_EXIT;
 
   g_hash_table_iter_init (&iter, manager->devices);
 
@@ -1365,5 +1427,7 @@ valent_device_manager_unexport (ValentDeviceManager *manager)
 
   g_dbus_object_manager_server_set_connection (manager->dbus, NULL);
   g_clear_object (&manager->dbus);
+
+  VALENT_EXIT;
 }
 

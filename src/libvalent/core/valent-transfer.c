@@ -17,9 +17,11 @@
 /**
  * ValentTransfer:
  *
- * An abstract base-class for data transfers.
+ * An abstract base class for data transfers.
  *
  * #ValentTransfer is a generic class for transfers.
+ *
+ * Since: 1.0
  */
 
 typedef struct
@@ -166,6 +168,11 @@ valent_transfer_class_init (ValentTransferClass *klass)
    *
    * If not specified at construction, a random UUID will be generated on-demand
    * with [func@GLib.uuid_string_random].
+   *
+   * This property is thread-safe. Emissions of [signal@GObject.Object::notify]
+   * are guaranteed to happen in the main thread.
+   *
+   * Since: 1.0
    */
   properties [PROP_ID] =
     g_param_spec_string ("id",
@@ -180,15 +187,17 @@ valent_transfer_class_init (ValentTransferClass *klass)
   /**
    * ValentTransfer:progress: (getter get_progress) (setter set_progress)
    *
-   * Get the progress of the transfer.
+   * The progress of the transfer.
    *
-   * This is set to `1.0` when the transfer operation finishes, whether or not
-   * it succeeds. It is not guaranteed to change before that unless the
-   * implementation sets it.
+   * This value will change from `0.0` to `1.0` during the course of the
+   * operation. It is guaranteed to change to `1.0` when the transfer operation
+   * completes, but not guaranteed to change before that unless set by an
+   * implementation.
    *
-   * This property is thread-safe and may be changed or retrieved from any
-   * thread. Emissions of [signal@GObject.Object::notify] are guaranteed to
-   * happen in the main thread.
+   * This property is thread-safe. Emissions of [signal@GObject.Object::notify]
+   * are guaranteed to happen in the main thread.
+   *
+   * Since: 1.0
    */
   properties [PROP_PROGRESS] =
     g_param_spec_double ("progress",
@@ -203,11 +212,17 @@ valent_transfer_class_init (ValentTransferClass *klass)
   /**
    * ValentTransfer:state: (getter get_state)
    *
-   * The state of the transfer.
+   * The [enum@Valent.TransferState] of the transfer.
    *
    * The value will change from %VALENT_TRANSFER_STATE_PENDING to
    * %VALENT_TRANSFER_STATE_ACTIVE when [method@Valent.Transfer.execute] is
-   * called.
+   * called. When the operation completes it will change to either
+   * %VALENT_TRANSFER_STATE_COMPLETE or %VALENT_TRANSFER_STATE_FAILED.
+   *
+   * This property is thread-safe. Emissions of [signal@GObject.Object::notify]
+   * are guaranteed to happen in the main thread.
+   *
+   * Since: 1.0
    */
   properties [PROP_STATE] =
     g_param_spec_enum ("state",
@@ -234,7 +249,7 @@ valent_transfer_init (ValentTransfer *self)
  * valent_transfer_dup_id: (get-property id)
  * @transfer: a #ValentTransfer
  *
- * Get the ID of @transfer.
+ * Get the transfer ID.
  *
  * Returns: (transfer full) (not nullable): a unique ID
  *
@@ -261,9 +276,9 @@ valent_transfer_dup_id (ValentTransfer *transfer)
  * valent_transfer_get_progress: (get-property progress)
  * @transfer: a #ValentTransfer
  *
- * Get the progress of @transfer.
+ * Get the transfer progress.
  *
- * Returns: the transfer progress
+ * Returns: a number from `0.0` to `1.0`
  *
  * Since: 1.0
  */
@@ -285,11 +300,12 @@ valent_transfer_get_progress (ValentTransfer *transfer)
 /**
  * valent_transfer_set_progress: (set-property progress)
  * @transfer: a #ValentTransfer
- * @progress: a progress
+ * @progress: a number from `0.0` to `1.0`
  *
- * Set the progress of @transfer.
+ * Set the transfer progress.
  *
- * This method should only be called by implementations.
+ * This method should only be called by implementations of
+ * [class@Valent.Transfer].
  *
  * Since: 1.0
  */
@@ -316,7 +332,7 @@ valent_transfer_set_progress (ValentTransfer *transfer,
  * valent_transfer_get_state: (get-property state)
  * @transfer: a #ValentTransfer
  *
- * Get the state of @transfer.
+ * Get the transfer state.
  *
  * Returns: a #ValentTransferState
  *
@@ -415,7 +431,7 @@ valent_transfer_execute (ValentTransfer      *transfer,
                                "%s is already in progress",
                                G_OBJECT_TYPE_NAME (transfer));
       valent_object_unlock (VALENT_OBJECT (transfer));
-      return;
+      VALENT_EXIT;
     }
 
   task = g_task_new (transfer, cancellable, callback, user_data);
@@ -447,7 +463,7 @@ valent_transfer_execute (ValentTransfer      *transfer,
  * @result: a #GAsyncResult
  * @error: (nullable): a #GError
  *
- * Finish an operation started with [method@Valent.Transfer.execute].
+ * Finish an operation started by [method@Valent.Transfer.execute].
  *
  * Returns: %TRUE if successful, or %FALSE with @error set
  *
@@ -489,10 +505,14 @@ valent_transfer_cancel (ValentTransfer *transfer)
 {
   ValentTransferPrivate *priv = valent_transfer_get_instance_private (transfer);
 
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_TRANSFER (transfer));
 
   if (!g_cancellable_is_cancelled (priv->cancellable))
     g_cancellable_cancel (priv->cancellable);
+
+  VALENT_EXIT;
 }
 
 /**
@@ -500,7 +520,7 @@ valent_transfer_cancel (ValentTransfer *transfer)
  * @transfer: a #ValentTransfer
  * @error: (nullable): a #GError
  *
- * Check the status of @transfer.
+ * Check the transfer status.
  *
  * Returns %TRUE if the transfer operation is in progress or completed
  * successfully. Returns %FALSE with @error set if the transfer failed.
@@ -516,6 +536,8 @@ valent_transfer_check_status (ValentTransfer  *transfer,
   ValentTransferPrivate *priv = valent_transfer_get_instance_private (transfer);
   gboolean ret = TRUE;
 
+  VALENT_ENTRY;
+
   g_return_val_if_fail (VALENT_IS_TRANSFER (transfer), FALSE);
   g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
@@ -528,6 +550,6 @@ valent_transfer_check_status (ValentTransfer  *transfer,
     }
   valent_object_unlock (VALENT_OBJECT (transfer));
 
-  return ret;
+  VALENT_RETURN (ret);
 }
 

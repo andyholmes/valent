@@ -14,19 +14,17 @@
 
 
 /**
- * SECTION:valentinput
- * @short_description: Input Abstraction
- * @title: ValentInput
- * @stability: Unstable
- * @include: libvalent-input.h
+ * ValentInput:
  *
- * #ValentInput is an abstraction of the available #ValentInputAdapter
- * implementations, generally intended to be used by #ValentDevicePlugin
- * implementations.
+ * A class for controlling pointer and keyboard devices.
  *
- * Plugins can provide implementations by subclassing the #ValentInputAdapter
- * base class. The priority of implementations is determined by the `.plugin`
- * file key `X-InputAdapterPriority`, with the lowest value taking precedence.
+ * #ValentInput is an abstraction of virtual input devices, intended for use by
+ * [class@Valent.DevicePlugin] implementations.
+ *
+ * Plugins can implement [class@Valent.InputAdapter] to provide an interface to
+ * control the pointer and keyboard.
+ *
+ * Since: 1.0
  */
 
 struct _ValentInput
@@ -98,9 +96,11 @@ valent_input_init (ValentInput *self)
 /**
  * valent_input_get_default:
  *
- * Get the default #ValentInput.
+ * Get the default [class@Valent.Input].
  *
- * Returns: (transfer none): The default input
+ * Returns: (transfer none) (not nullable): a #ValentInput
+ *
+ * Since: 1.0
  */
 ValentInput *
 valent_input_get_default (void)
@@ -125,13 +125,18 @@ valent_input_get_default (void)
  * @keysym: a GDK KeySym
  * @mask: a #GdkModifierType
  *
- * Simulate a press and release of @keysym with modifiers locked to @mask.
+ * A convenience method to press and release @keysym with the modifiers locked
+ * for @mask.
+ *
+ * Since: 1.0
  */
 void
 valent_input_keyboard_action (ValentInput     *input,
                               unsigned int     keysym,
                               GdkModifierType  mask)
 {
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_INPUT (input));
   g_return_if_fail (keysym > 0);
 
@@ -143,27 +148,33 @@ valent_input_keyboard_action (ValentInput     *input,
 
   if (mask != 0)
     valent_input_keyboard_mask (input, mask, FALSE);
+
+  VALENT_EXIT;
 }
 
 /**
  * valent_input_keyboard_keysym:
  * @input: a #ValentInput
  * @keysym: a keysym
- * @state: if pressed
+ * @state: %TRUE to press, or %FALSE to release
  *
- * Simulate a keysym event for @keysym using the default #ValentInputAdapter.
+ * Press or release @keysym.
+ *
+ * Since: 1.0
  */
 void
 valent_input_keyboard_keysym (ValentInput  *input,
                               unsigned int  keysym,
                               gboolean      state)
 {
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_INPUT (input));
 
   if G_LIKELY (input->default_adapter != NULL)
     valent_input_adapter_keyboard_keysym (input->default_adapter, keysym, state);
-  else
-    g_debug ("%s(): no input adapter available", G_STRFUNC);
+
+  VALENT_EXIT;
 }
 
 /**
@@ -172,14 +183,17 @@ valent_input_keyboard_keysym (ValentInput  *input,
  * @mask: a #GdkModifierType
  * @lock: whether to lock modifiers
  *
- * A convenience function that wraps valent_input_keyboard_keysym() to toggle
- * the keysyms for @mask.
+ * A convenience method to lock or unlock the modifiers for @mask.
+ *
+ * Since: 1.0
  */
 void
 valent_input_keyboard_mask (ValentInput     *input,
                             GdkModifierType  mask,
                             gboolean         lock)
 {
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_INPUT (input));
   g_return_if_fail (mask > 0);
 
@@ -194,40 +208,59 @@ valent_input_keyboard_mask (ValentInput     *input,
 
   if (mask & GDK_SUPER_MASK)
     valent_input_keyboard_keysym (input, GDK_KEY_Super_L, lock);
+
+  VALENT_EXIT;
 }
 
+/**
+ * valent_input_pointer_axis:
+ * @input: a #ValentInput
+ * @dx: movement on x-axis
+ * @dy: movement on y-axis
+ *
+ * Scroll the surface under the pointer (@dx, @dy), relative to its current
+ * position.
+ *
+ * Since: 1.0
+ */
 void
 valent_input_pointer_axis (ValentInput *input,
                            double       dx,
                            double       dy)
 {
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_INPUT (input));
 
   if G_LIKELY (input->default_adapter != NULL)
     valent_input_adapter_pointer_axis (input->default_adapter, dx, dy);
-  else
-    g_debug ("%s(): no input adapter available", G_STRFUNC);
+
+  VALENT_EXIT;
 }
 
 /**
  * valent_input_pointer_button:
  * @input: a #ValentInput
- * @button: a #ValentPointeruUtton
- * @state: a state
+ * @button: a #ValentPointerButton
+ * @state: %TRUE to press, or %FALSE to release
  *
- * TODO
+ * Press or release @button.
+ *
+ * Since: 1.0
  */
 void
 valent_input_pointer_button (ValentInput         *input,
                              ValentPointerButton  button,
                              gboolean             state)
 {
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_INPUT (input));
 
   if G_LIKELY (input->default_adapter != NULL)
     valent_input_adapter_pointer_button (input->default_adapter, button, state);
-  else
-    g_debug ("%s(): no input adapter available", G_STRFUNC);
+
+  VALENT_EXIT;
 }
 
 /**
@@ -235,12 +268,16 @@ valent_input_pointer_button (ValentInput         *input,
  * @input: a #ValentInput
  * @button: a #ValentPointerButton
  *
- * A convenience function for pressing and releasing a pointer @button.
+ * A convenience method for pressing and releasing @button.
+ *
+ * Since: 1.0
  */
 void
 valent_input_pointer_click (ValentInput         *input,
                             ValentPointerButton  button)
 {
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_INPUT (input));
 
   if G_LIKELY (input->default_adapter != NULL)
@@ -252,30 +289,33 @@ valent_input_pointer_click (ValentInput         *input,
                                            button,
                                            FALSE);
     }
-  else
-    g_debug ("%s(): no input adapter available", G_STRFUNC);
+
+  VALENT_EXIT;
 }
 
 /**
  * valent_input_pointer_motion:
  * @input: a #ValentInput
- * @dx: relate movement on x-axis
- * @dy: relate movement on y-axis
+ * @dx: position on x-axis
+ * @dy: position on y-axis
  *
- * Simulate pointer movement (@dx, @dy). Implementations handle any necessary
- * scaling.
+ * Move the pointer (@dx, @dy), relative to its current position.
+ *
+ * Since: 1.0
  */
 void
 valent_input_pointer_motion (ValentInput *input,
                              double       dx,
                              double       dy)
 {
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_INPUT (input));
 
   if G_LIKELY (input->default_adapter != NULL)
     valent_input_adapter_pointer_motion (input->default_adapter, dx, dy);
-  else
-    g_debug ("%s(): no input adapter available", G_STRFUNC);
+
+  VALENT_EXIT;
 }
 
 /**
@@ -284,19 +324,22 @@ valent_input_pointer_motion (ValentInput *input,
  * @x: position on x-axis
  * @y: position on y-axis
  *
- * Simulate absolute pointer movement (@x, @y). Implementations handle any
- * necessary scaling.
+ * Move the pointer to the absolute position (@x, @y).
+ *
+ * Since: 1.0
  */
 void
 valent_input_pointer_position (ValentInput *input,
                                double       x,
                                double       y)
 {
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_INPUT (input));
 
   if G_LIKELY (input->default_adapter != NULL)
     valent_input_adapter_pointer_position (input->default_adapter, x, y);
-  else
-    g_debug ("%s(): no input adapter available", G_STRFUNC);
+
+  VALENT_EXIT;
 }
 

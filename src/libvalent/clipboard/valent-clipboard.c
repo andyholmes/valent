@@ -14,27 +14,23 @@
 
 
 /**
- * SECTION:valentclipboard
- * @short_description: Clipboard Abstraction
- * @title: ValentClipboard
- * @stability: Unstable
- * @include: libvalent-clipboard.h
+ * ValentClipboard:
  *
- * #ValentClipboard is an abstraction of the available #ValentClipboardAdapter
- * implementations, generally intended to be used by #ValentDevicePlugin
- * implementations.
+ * A class for reading and writing the desktop clipboard.
  *
- * Plugins can provide implementations by subclassing the
- * #ValentClipboardAdapter base class. The priority of implementations is
- * determined by the `.plugin` file key `X-ClipboardAdapterPriority`, with the
- * lowest value taking precedence.
+ * #ValentClipboard is an abstraction of clipboard selections, intended for use
+ * by [class@Valent.DevicePlugin] implementations.
+ *
+ * Plugins can implement [class@Valent.ClipboardAdapter] to provide an interface
+ * to access a clipboard selection.
+ *
+ * Since: 1.0
  */
 
 struct _ValentClipboard
 {
   ValentComponent         parent_instance;
 
-  GCancellable           *cancellable;
   ValentClipboardAdapter *default_adapter;
 };
 
@@ -76,7 +72,7 @@ on_clipboard_adapter_changed (ValentClipboardAdapter *clipboard,
 {
   VALENT_ENTRY;
 
-  if (clipboard == self->default_adapter)
+  if (self->default_adapter == clipboard)
     g_signal_emit (G_OBJECT (self), signals [CHANGED], 0);
 
   VALENT_EXIT;
@@ -136,22 +132,10 @@ valent_clipboard_extension_removed (ValentComponent *component,
  * GObject
  */
 static void
-valent_clipboard_dispose (GObject *object)
-{
-  ValentClipboard *self = VALENT_CLIPBOARD (object);
-
-  if (!g_cancellable_is_cancelled (self->cancellable))
-    g_cancellable_cancel (self->cancellable);
-
-  G_OBJECT_CLASS (valent_clipboard_parent_class)->dispose (object);
-}
-
-static void
 valent_clipboard_finalize (GObject *object)
 {
   ValentClipboard *self = VALENT_CLIPBOARD (object);
 
-  g_clear_object (&self->cancellable);
   g_clear_object (&self->default_adapter);
 
   G_OBJECT_CLASS (valent_clipboard_parent_class)->finalize (object);
@@ -163,7 +147,6 @@ valent_clipboard_class_init (ValentClipboardClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentComponentClass *component_class = VALENT_COMPONENT_CLASS (klass);
 
-  object_class->dispose = valent_clipboard_dispose;
   object_class->finalize = valent_clipboard_finalize;
 
   component_class->extension_added = valent_clipboard_extension_added;
@@ -173,8 +156,10 @@ valent_clipboard_class_init (ValentClipboardClass *klass)
    * ValentClipboard::changed:
    * @clipboard: a #ValentClipboard
    *
-   * #ValentClipboard::changed is emitted when the content of the default
-   * #ValentClipboardAdapter changes.
+   * Emitted when the content of the primary [class@Valent.ClipboardAdapter]
+   * changes.
+   *
+   * Since: 1.0
    */
   signals [CHANGED] =
     g_signal_new ("changed",
@@ -188,9 +173,33 @@ valent_clipboard_class_init (ValentClipboardClass *klass)
 static void
 valent_clipboard_init (ValentClipboard *self)
 {
-  self->cancellable = g_cancellable_new ();
 }
 
+/**
+ * valent_clipboard_get_default:
+ *
+ * Get the default [class@Valent.Clipboard].
+ *
+ * Returns: (transfer none) (not nullable): a #ValentClipboard
+ *
+ * Since: 1.0
+ */
+ValentClipboard *
+valent_clipboard_get_default (void)
+{
+  if (default_clipboard == NULL)
+    {
+      default_clipboard = g_object_new (VALENT_TYPE_CLIPBOARD,
+                                        "plugin-context", "clipboard",
+                                        "plugin-type",    VALENT_TYPE_CLIPBOARD_ADAPTER,
+                                        NULL);
+
+      g_object_add_weak_pointer (G_OBJECT (default_clipboard),
+                                 (gpointer)&default_clipboard);
+    }
+
+  return default_clipboard;
+}
 
 /**
  * valent_clipboard_get_text_async:
@@ -199,7 +208,11 @@ valent_clipboard_init (ValentClipboard *self)
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
  *
- * Get the text content of @clipboard.
+ * Get the text content of the primary clipboard adapter.
+ *
+ * Call [method@Valent.Clipboard.get_text_finish] to get the result.
+ *
+ * Since: 1.0
  */
 void
 valent_clipboard_get_text_async (ValentClipboard     *clipboard,
@@ -224,6 +237,7 @@ valent_clipboard_get_text_async (ValentClipboard     *clipboard,
     }
 
   task = g_task_new (clipboard, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_clipboard_get_text_async);
   valent_clipboard_adapter_get_text_async (clipboard->default_adapter,
                                            cancellable,
                                            (GAsyncReadyCallback)get_text_cb,
@@ -238,9 +252,11 @@ valent_clipboard_get_text_async (ValentClipboard     *clipboard,
  * @result: a #GAsyncResult
  * @error: (nullable): a #GError
  *
- * Finish an operation started with valent_clipboard_get_text_async().
+ * Finish an operation started by [method@Valent.Clipboard.get_text_async].
  *
  * Returns: (transfer full) (nullable): the text content
+ *
+ * Since: 1.0
  */
 char *
 valent_clipboard_get_text_finish (ValentClipboard  *clipboard,
@@ -264,7 +280,9 @@ valent_clipboard_get_text_finish (ValentClipboard  *clipboard,
  * @clipboard: a #ValentClipboard
  * @text: (nullable): text content
  *
- * Set the content of the clipboard to @text.
+ * Set the content of the primary clipboard adapter to @text.
+ *
+ * Since: 1.0
  */
 void
 valent_clipboard_set_text (ValentClipboard *clipboard,
@@ -274,13 +292,8 @@ valent_clipboard_set_text (ValentClipboard *clipboard,
 
   g_return_if_fail (VALENT_IS_CLIPBOARD (clipboard));
 
-  if G_UNLIKELY (clipboard->default_adapter == NULL)
-    {
-      g_warning ("%s(): no clipboard adapter available", G_STRFUNC);
-      VALENT_EXIT;
-    }
-
-  valent_clipboard_adapter_set_text (clipboard->default_adapter, text);
+  if G_LIKELY (clipboard->default_adapter != NULL)
+    valent_clipboard_adapter_set_text (clipboard->default_adapter, text);
 
   VALENT_EXIT;
 }
@@ -293,6 +306,8 @@ valent_clipboard_set_text (ValentClipboard *clipboard,
  * UNIX epoch.
  *
  * Returns: a UNIX epoch timestamp (ms)
+ *
+ * Since: 1.0
  */
 gint64
 valent_clipboard_get_timestamp (ValentClipboard *clipboard)
@@ -303,35 +318,9 @@ valent_clipboard_get_timestamp (ValentClipboard *clipboard)
 
   g_return_val_if_fail (VALENT_IS_CLIPBOARD (clipboard), 0);
 
-  if G_UNLIKELY (clipboard->default_adapter == NULL)
-    VALENT_RETURN (ret);
-
-  ret = valent_clipboard_adapter_get_timestamp (clipboard->default_adapter);
+  if G_LIKELY (clipboard->default_adapter != NULL)
+    ret = valent_clipboard_adapter_get_timestamp (clipboard->default_adapter);
 
   VALENT_RETURN (ret);
-}
-
-/**
- * valent_clipboard_get_default:
- *
- * Get the default #ValentClipboard.
- *
- * Returns: (transfer none): The default clipboard
- */
-ValentClipboard *
-valent_clipboard_get_default (void)
-{
-  if (default_clipboard == NULL)
-    {
-      default_clipboard = g_object_new (VALENT_TYPE_CLIPBOARD,
-                                        "plugin-context", "clipboard",
-                                        "plugin-type",    VALENT_TYPE_CLIPBOARD_ADAPTER,
-                                        NULL);
-
-      g_object_add_weak_pointer (G_OBJECT (default_clipboard),
-                                 (gpointer)&default_clipboard);
-    }
-
-  return default_clipboard;
 }
 

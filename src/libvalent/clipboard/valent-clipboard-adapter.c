@@ -13,25 +13,30 @@
 
 
 /**
- * SECTION:valentclipboardadapter
- * @short_description: Interface for clipboard adapters
- * @title: ValentClipboardAdapter
- * @stability: Unstable
- * @include: libvalent-clipboard.h
+ * ValentClipboardAdapter:
  *
- * #ValentClipboardAdapter is a base class for plugins that provide read-write
- * access to the desktop clipboard for use by remote devices.
+ * An abstract base class for clipboard selections.
  *
- * ## .plugin File ##
+ * #ValentClipboardAdapter is a base class for plugins that provide an interface
+ * to the desktop clipboard. This usually means reading and writing content,
+ * including notification of content changes.
  *
- * Plugins require no special entries in the `.plugin` file, but may specify the
- * `X-ClipboardAdapterPriority` field with an integer value. The implementation
- * with the lowest value will take precedence.
+ * ## `.plugin` File
+ *
+ * Implementations may define the following extra fields in the `.plugin` file:
+ *
+ * - `X-ClipboardAdapterPriority`
+ *
+ *     An integer indicating the adapter priority. The implementation with the
+ *     lowest value will be used as the primary adapter.
+ *
+ * Since: 1.0
  */
 
 typedef struct
 {
   PeasPluginInfo *plugin_info;
+  gint64          timestamp;
 } ValentClipboardAdapterPrivate;
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentClipboardAdapter, valent_clipboard_adapter, G_TYPE_OBJECT)
@@ -83,6 +88,10 @@ valent_clipboard_adapter_real_get_text_finish (ValentClipboardAdapter  *adapter,
                                                GAsyncResult            *result,
                                                GError                 **error)
 {
+  g_assert (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
+  g_assert (g_task_is_valid (result, adapter));
+  g_assert (error == NULL || *error == NULL);
+
   return g_task_propagate_pointer (G_TASK (result), error);
 }
 
@@ -96,7 +105,21 @@ valent_clipboard_adapter_real_set_text (ValentClipboardAdapter *adapter,
 static gint64
 valent_clipboard_adapter_real_get_timestamp (ValentClipboardAdapter *adapter)
 {
-  return 0;
+  ValentClipboardAdapterPrivate *priv = valent_clipboard_adapter_get_instance_private (adapter);
+
+  g_assert (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
+
+  return priv->timestamp;
+}
+
+static void
+valent_clipboard_adapter_real_changed (ValentClipboardAdapter *adapter)
+{
+  ValentClipboardAdapterPrivate *priv = valent_clipboard_adapter_get_instance_private (adapter);
+
+  g_assert (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
+
+  priv->timestamp = valent_timestamp_ms ();
 }
 /* LCOV_EXCL_STOP */
 
@@ -151,6 +174,7 @@ valent_clipboard_adapter_class_init (ValentClipboardAdapterClass *klass)
   object_class->get_property = valent_clipboard_adapter_get_property;
   object_class->set_property = valent_clipboard_adapter_set_property;
 
+  klass->changed = valent_clipboard_adapter_real_changed;
   klass->get_text_async = valent_clipboard_adapter_real_get_text_async;
   klass->get_text_finish = valent_clipboard_adapter_real_get_text_finish;
   klass->set_text = valent_clipboard_adapter_real_set_text;
@@ -159,12 +183,14 @@ valent_clipboard_adapter_class_init (ValentClipboardAdapterClass *klass)
   /**
    * ValentClipboardAdapter:plugin-info:
    *
-   * The #PeasPluginInfo describing this adapter.
+   * The [struct@Peas.PluginInfo] describing this adapter.
+   *
+   * Since: 1.0
    */
   properties [PROP_PLUGIN_INFO] =
     g_param_spec_boxed ("plugin-info",
                         "Plugin Info",
-                        "Plugin Info",
+                        "The plugin info describing this adapter",
                         PEAS_TYPE_PLUGIN_INFO,
                         (G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
@@ -177,12 +203,17 @@ valent_clipboard_adapter_class_init (ValentClipboardAdapterClass *klass)
    * ValentClipboardAdapter::changed:
    * @adapter: a #ValentClipboardAdapter
    *
-   * #ValentClipboardAdapter::changed is emitted when @adapter changes.
+   * Emitted when the content of @adapter changes.
+   *
+   * The default handler for this signal updates the value returned by the
+   * default implementation of [vfunc@Valent.ClipboardAdapter.get_timestamp].
+   *
+   * Since: 1.0
    */
   signals [CHANGED] =
     g_signal_new ("changed",
                   G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_LAST,
+                  G_SIGNAL_RUN_FIRST,
                   G_STRUCT_OFFSET (ValentClipboardAdapterClass, changed),
                   NULL, NULL, NULL,
                   G_TYPE_NONE, 0);
@@ -194,10 +225,18 @@ valent_clipboard_adapter_init (ValentClipboardAdapter *adapter)
 }
 
 /**
- * valent_clipboard_adapter_emit_changed:
+ * valent_clipboard_adapter_emit_changed: (virtual changed)
  * @adapter: a #ValentClipboardAdapter
  *
- * Emits the #ValentClipboardAdapter::changed signal on @adapter.
+ * Emits [signal@Valent.ClipboardAdapter::changed] signal on @adapter.
+ *
+ * The default handler for this signal updates the value returned by the default
+ * implementation of [vfunc@Valent.ClipboardAdapter.get_timestamp].
+ *
+ * This method should only be called by implementations of
+ * [class@Valent.ClipboardAdapter].
+ *
+ * Since: 1.0
  */
 void
 valent_clipboard_adapter_emit_changed (ValentClipboardAdapter *adapter)
@@ -215,6 +254,10 @@ valent_clipboard_adapter_emit_changed (ValentClipboardAdapter *adapter)
  * @user_data: (closure): user supplied data
  *
  * Get the text content of @adapter.
+ *
+ * Call [method@Valent.ClipboardAdapter.get_text_finish] to get the result.
+ *
+ * Since: 1.0
  */
 void
 valent_clipboard_adapter_get_text_async (ValentClipboardAdapter *adapter,
@@ -239,9 +282,11 @@ valent_clipboard_adapter_get_text_async (ValentClipboardAdapter *adapter,
  * @result: a #GAsyncResult
  * @error: (nullable): a #GError
  *
- * Get the text content of @adapter.
+ * Finish an operation started by [method@Valent.ClipboardAdapter.get_text_async].
  *
- * Returns: (transfer full) (nullable): the text content
+ * Returns: (transfer full) (nullable): text content, or %NULL with @error set
+ *
+ * Since: 1.0
  */
 char *
 valent_clipboard_adapter_get_text_finish (ValentClipboardAdapter  *adapter,
@@ -256,7 +301,9 @@ valent_clipboard_adapter_get_text_finish (ValentClipboardAdapter  *adapter,
   g_return_val_if_fail (g_task_is_valid (result, adapter), NULL);
   g_return_val_if_fail (*error == NULL || error == NULL, NULL);
 
-  ret = VALENT_CLIPBOARD_ADAPTER_GET_CLASS (adapter)->get_text_finish (adapter, result, error);
+  ret = VALENT_CLIPBOARD_ADAPTER_GET_CLASS (adapter)->get_text_finish (adapter,
+                                                                       result,
+                                                                       error);
 
   VALENT_RETURN (ret);
 }
@@ -266,8 +313,9 @@ valent_clipboard_adapter_get_text_finish (ValentClipboardAdapter  *adapter,
  * @adapter: a #ValentClipboardAdapter
  * @text: (nullable): text content
  *
- * Set the text content of @adapter to @text. The default handler simply caches
- * @text and emits #GObject::notify.
+ * Set the text content of @adapter to @text.
+ *
+ * Since: 1.0
  */
 void
 valent_clipboard_adapter_set_text (ValentClipboardAdapter *adapter,
@@ -283,13 +331,17 @@ valent_clipboard_adapter_set_text (ValentClipboardAdapter *adapter,
 }
 
 /**
- * valent_clipboard_adapter_get_timestamp:
+ * valent_clipboard_adapter_get_timestamp: (virtual get_timestamp)
  * @adapter: a #ValentClipboardAdapter
  *
- * Get the timestamp of the current clipboard content, in milliseconds since the
- * UNIX epoch.
+ * Get the timestamp of the current clipboard content.
+ *
+ * The default implementation of this method returns the last time
+ * [signal@Valent.ClipboardAdapter::changed] was emitted
  *
  * Returns: a UNIX epoch timestamp (ms)
+ *
+ * Since: 1.0
  */
 gint64
 valent_clipboard_adapter_get_timestamp (ValentClipboardAdapter *adapter)

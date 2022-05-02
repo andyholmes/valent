@@ -9,6 +9,7 @@
 #include <json-glib/json-glib.h>
 #include <libpeas/peas.h>
 
+#include "valent-debug.h"
 #include "valent-device.h"
 #include "valent-device-plugin.h"
 #include "valent-packet.h"
@@ -18,64 +19,68 @@
 /**
  * ValentDevicePlugin:
  *
- * An abstract base-class for device plugins.
+ * An abstract base class for device plugins.
  *
- * #ValentDevicePlugin is a base-class for plugins that operate in the scope of
+ * #ValentDevicePlugin is a base class for plugins that operate in the scope of
  * a single device. This usually means communicating with other devices, however
  * plugins aren't required to be packet based and may offer connectionless
  * functionality.
  *
- * # Plugin States
+ * ## Plugin Requirements
  *
  * Device plugins essentially have two sets of dependent conditions for being
- * enabled. Plugins are made available to the user if any of the following
- * criteria are met:
+ * enabled. Plugins become available (ie. can be enabled) when any of the
+ * following are true:
  *
- * - the device's outgoing types match any of the plugin's incoming capabilities
- * - the device's incoming types match any of the plugin's outgoing capabilities
+ * - any of the device's outgoing capabilities match any of the plugin's
+ *   incoming capabilities
+ * - any of the device's incoming capabilities match any of the plugin's
+ *   outgoing capabilities
  * - the plugin doesn't list any capabilities (eg. a non-packet based plugin)
  *
- * When a plugin becomes available, it may be enabled, disabled and configured
- * independent of the device state. This allows the user to restrict the
- * device's access before pairing and configure plugins while it is offline.
+ * When a plugin becomes available it may be enabled, disabled and configured.
  *
- * The [alias@Peas.Extension] instance is only constructed once the plugin has
- * been enabled by the user, after which [method@Valent.DevicePlugin.enable] and
- * [method@Valent.DevicePlugin.update_state] will be called to setup the plugin.
- * When the plugin is disabled, [method@Valent.DevicePlugin.disable] will be
- * called just before the [alias@Peas.Extension] is disposed.
- *
- * If the connected or paired state of the device changes,
- * [method@Valent.DevicePlugin.update_state] will be called on the plugin. Note
- * that this function is not called when a plugin is disabled, so plugins must
- * ensure they cleanup any state when [method@Valent.DevicePlugin.disable] is
- * called.
- *
- * # Plugin Actions
+ * ## Plugin Actions
  *
  * #ValentDevicePlugin implements the [iface@Gio.ActionGroup] and
  * [iface@Gio.ActionMap] interfaces, providing a simple way for plugins to
- * expose functions and states. If the [class@Valent.DeviceManager] is exported
- * on D-Bus, the actions will be exported along with the [class@Valent.Device].
+ * expose functions and states. Each [iface@Gio.Action] added to the action map
+ * will be included in the device action group with the plugin's module name as
+ * a prefix (eg. `share.uri`).
  *
- * Each [iface@Gio.Action] added to the action map will be added to the device
- * action group with the plugin's module name as a prefix. For example, if a
- * plugin with the module name `share` has an action with the name `files`, the
- * action will be available as `share.files` in the device action group.
+ * If the [class@Valent.DeviceManager] is exported on D-Bus, the actions will be
+ * exported along with the [class@Valent.Device].
  *
- * # `.plugin` File
+ * ## Implementation Notes
  *
- * Device plugins may contain extra information in the `.plugin` file:
+ * Implementations that define `X-IncomingCapabilities` in the `.plugin` file
+ * must override [vfunc@Valent.DevicePlugin.handle_packet] to handle incoming
+ * packets. Implementations that depend on the device state, especially those
+ * that define `X-OutgoingCapabilities` in the `.plugin` file, should override
+ * [vfunc@Valent.DevicePlugin.update_state].
+ *
+ * For device plugin preferences see [iface@Valent.DevicePreferencesPage].
+ *
+ * ## `.plugin` File
+ *
+ * Implementations may define the following extra fields in the `.plugin` file:
  *
  * - `X-IncomingCapabilities`
  *
- *     A list of strings separated by semi-colons indicating the packets that
- *     the plugin can handle.
+ *     A list of packet types (eg. `kdeconnect.ping`) separated by semi-colons
+ *     indicating the packets that the plugin can handle.
  *
  * - `X-OutgoingCapabilities`
  *
- *     A list of strings separated by semi-colons indicating the packets that
- *     the plugin may provide.
+ *     A list of packet types (eg. `kdeconnect.share.request`) separated by
+ *     semi-colons indicating the packets that the plugin may send.
+ *
+ * - `X-ChannelProtocol`
+ *
+ *     A string indicating the transport protocol the plugin requires. Current
+ *     possible values include `tcp` and `bluetooth`.
+ *
+ * Since: 1.0
  */
 
 typedef struct
@@ -446,7 +451,9 @@ valent_device_plugin_class_init (ValentDevicePluginClass *klass)
   /**
    * ValentDevicePlugin:device: (getter get_device)
    *
-   * The device this plugin is bound is bound to.
+   * The [class@Valent.Device] this plugin is bound to.
+   *
+   * Since: 1.0
    */
   properties [PROP_DEVICE] =
     g_param_spec_object ("device",
@@ -461,12 +468,14 @@ valent_device_plugin_class_init (ValentDevicePluginClass *klass)
   /**
    * ValentDevicePlugin:plugin-info:
    *
-   * The #PeasPluginInfo describing this device plugin.
+   * The [struct@Peas.PluginInfo] describing this plugin.
+   *
+   * Since: 1.0
    */
   properties [PROP_PLUGIN_INFO] =
     g_param_spec_boxed ("plugin-info",
                         "Plugin Info",
-                        "Plugin Info",
+                        "The plugin info describing this plugin",
                         PEAS_TYPE_PLUGIN_INFO,
                         (G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
@@ -494,6 +503,8 @@ valent_device_plugin_init (ValentDevicePlugin *self)
  * Get the device this plugin is bound to.
  *
  * Returns: (transfer none): a #ValentDevice
+ *
+ * Since: 1.0
  */
 ValentDevice *
 valent_device_plugin_get_device (ValentDevicePlugin *plugin)
@@ -512,8 +523,10 @@ valent_device_plugin_get_device (ValentDevicePlugin *plugin)
  *
  * Queue a KDE Connect packet to be sent to the device this plugin is bound to.
  *
- * This is a convenience for calling [method@Valent.DevicePlugin.get_device] and
- * then [method@Valent.Device.queue_packet].
+ * For notification of success call [method@Valent.DevicePlugin.get_device] and
+ * then [method@Valent.Device.send_packet].
+ *
+ * Since: 1.0
  */
 void
 valent_device_plugin_queue_packet (ValentDevicePlugin *plugin,
@@ -540,6 +553,8 @@ valent_device_plugin_queue_packet (ValentDevicePlugin *plugin,
  *
  * Call [method@Valent.DevicePlugin.hide_notification] to make the same
  * transformation on @id and withdraw the notification.
+ *
+ * Since: 1.0
  */
 void
 valent_device_plugin_show_notification (ValentDevicePlugin *plugin,
@@ -569,8 +584,12 @@ valent_device_plugin_show_notification (ValentDevicePlugin *plugin,
  * @plugin: a #ValentDevicePlugin
  * @id: an id for the notification
  *
- * A convenience for withdrawing a notification previously shown with
+ * A convenience for withdrawing a notification.
+ *
+ * This method will withdraw a notification shown with
  * [method@Valent.DevicePlugin.show_notification].
+ *
+ * Since: 1.0
  */
 void
 valent_device_plugin_hide_notification (ValentDevicePlugin *plugin,
@@ -606,6 +625,8 @@ valent_device_plugin_hide_notification (ValentDevicePlugin *plugin,
  * `ca.andyholmes.valent.module_name`.
  *
  * Returns: (transfer full): the new #GSettings object
+ *
+ * Since: 1.0
  */
 GSettings *
 valent_device_plugin_new_settings (const char *device_id,
@@ -639,6 +660,8 @@ valent_device_plugin_new_settings (const char *device_id,
  * can handle.
  *
  * Returns: (transfer full) (nullable): a list of packet types
+ *
+ * Since: 1.0
  */
 GStrv
 valent_device_plugin_get_incoming (PeasPluginInfo *info)
@@ -660,6 +683,8 @@ valent_device_plugin_get_incoming (PeasPluginInfo *info)
  * may provide.
  *
  * Returns: (transfer full) (nullable): a list of packet types
+ *
+ * Since: 1.0
  */
 GStrv
 valent_device_plugin_get_outgoing (PeasPluginInfo *info)
@@ -678,8 +703,12 @@ valent_device_plugin_get_outgoing (PeasPluginInfo *info)
  * @plugin: a #ValentDevicePlugin
  * @enabled: boolean
  *
+ * Enable or disable all actions.
+ *
  * Set the [property@Gio.Action:enabled] property of the actions for @plugin to
  * @enabled.
+ *
+ * Since: 1.0
  */
 void
 valent_device_plugin_toggle_actions (ValentDevicePlugin *plugin,
@@ -707,6 +736,8 @@ valent_device_plugin_toggle_actions (ValentDevicePlugin *plugin,
  * A convenience function for creating multiple [class@Gio.MenuItem] instances
  * and adding them to the device [class@Gio.MenuModel]. Each item is
  * constructed as per one [struct@Valent.MenuEntry].
+ *
+ * Since: 1.0
  */
 void
 valent_device_plugin_add_menu_entries (ValentDevicePlugin    *plugin,
@@ -767,6 +798,8 @@ _g_menu_find_action (GMenu      *menu,
  * @n_entries: the length of @entries, or -1 if @entries is %NULL-terminated
  *
  * A counterpart to [method@Valent.DevicePlugin.add_menu_entries].
+ *
+ * Since: 1.0
  */
 void
 valent_device_plugin_remove_menu_entries (ValentDevicePlugin    *plugin,
@@ -800,6 +833,8 @@ valent_device_plugin_remove_menu_entries (ValentDevicePlugin    *plugin,
  * the attribute @name holding @value.
  *
  * Returns: position of the item or -1 if not found
+ *
+ * Since: 1.0
  */
 int
 valent_device_plugin_find_menu_item (ValentDevicePlugin *plugin,
@@ -844,6 +879,8 @@ valent_device_plugin_find_menu_item (ValentDevicePlugin *plugin,
  * the specified attribute and value.
  *
  * Returns: the index of the removed item or -1 if not found.
+ *
+ * Since: 1.0
  */
 int
 valent_device_plugin_remove_menu_item (ValentDevicePlugin *plugin,
@@ -878,6 +915,8 @@ valent_device_plugin_remove_menu_item (ValentDevicePlugin *plugin,
  *
  * If the devices menu does not contain a top-level item with the same action
  * name as @item, the item will be appended instead.
+ *
+ * Since: 1.0
  */
 void
 valent_device_plugin_replace_menu_item (ValentDevicePlugin *plugin,
@@ -916,13 +955,19 @@ valent_device_plugin_replace_menu_item (ValentDevicePlugin *plugin,
  *
  * It is guaranteed that [method@Valent.DevicePlugin.disable] will be called if
  * this function has been called.
+ *
+ * Since: 1.0
  */
 void
 valent_device_plugin_enable (ValentDevicePlugin *plugin)
 {
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
 
   VALENT_DEVICE_PLUGIN_GET_CLASS (plugin)->enable (plugin);
+
+  VALENT_EXIT;
 }
 
 /**
@@ -937,13 +982,19 @@ valent_device_plugin_enable (ValentDevicePlugin *plugin)
  *
  * It is guaranteed that this function will be called if
  * [method@Valent.DevicePlugin.enable] has been called.
+ *
+ * Since: 1.0
  */
 void
 valent_device_plugin_disable (ValentDevicePlugin *plugin)
 {
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
 
   VALENT_DEVICE_PLUGIN_GET_CLASS (plugin)->disable (plugin);
+
+  VALENT_EXIT;
 }
 
 /**
@@ -959,17 +1010,23 @@ valent_device_plugin_disable (ValentDevicePlugin *plugin)
  *
  * This is optional for implementations which do not register any incoming
  * capabilities, such as plugins that do not provide packet-based functionality.
+ *
+ * Since: 1.0
  */
 void
 valent_device_plugin_handle_packet (ValentDevicePlugin *plugin,
                                     const char         *type,
                                     JsonNode           *packet)
 {
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
   g_return_if_fail (type != NULL && *type != '\0');
   g_return_if_fail (VALENT_IS_PACKET (packet));
 
   VALENT_DEVICE_PLUGIN_GET_CLASS (plugin)->handle_packet (plugin, type, packet);
+
+  VALENT_EXIT;
 }
 
 /**
@@ -985,14 +1042,20 @@ valent_device_plugin_handle_packet (ValentDevicePlugin *plugin,
  *
  * This is optional for all implementations as plugins aren't required to be
  * dependent on the device state.
+ *
+ * Since: 1.0
  */
 void
 valent_device_plugin_update_state (ValentDevicePlugin *plugin,
                                    ValentDeviceState   state)
 {
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
 
   VALENT_DEVICE_PLUGIN_GET_CLASS (plugin)->update_state (plugin, state);
+
+  VALENT_EXIT;
 }
 
 
@@ -1008,6 +1071,8 @@ valent_device_plugin_update_state (ValentDevicePlugin *plugin,
  * Set the default action for @notification. @action is wrapped in the special
  * `device` action for @device, which allows it to be activated from the `app`
  * action scope.
+ *
+ * Since: 1.0
  */
 void
 valent_notification_set_device_action (GNotification *notification,
@@ -1045,6 +1110,8 @@ valent_notification_set_device_action (GNotification *notification,
  * Add an action button to @notification. @action is wrapped in the special
  * `device` action for @device, which allows it to be activated from the `app`
  * action scope.
+ *
+ * Since: 1.0
  */
 void
 valent_notification_add_device_button (GNotification *notification,

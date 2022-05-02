@@ -14,17 +14,24 @@
 
 
 /**
- * SECTION:valentcontactstoreprovider
- * @short_description: Base class for contact store providers
- * @title: ValentContactStoreProvider
- * @stability: Unstable
- * @include: libvalent-contacts.h
+ * ValentContactStoreProvider:
  *
- * #ValentContactStoreProvider is a base class for #ValentContactStore providers.
+ * An abstract base class for address book providers.
  *
- * The interface is simple enough that most implementations will only need to
- * emit #ValentContactStoreProvider::store-added and
- * and #ValentContactStoreProvider::store-removed at the appropriate times.
+ * #ValentContactStoreProvider is a base class for plugins that provide an
+ * interface to manage address books. This usually means monitoring and
+ * querying [class@Valent.ContactStore] instances.
+ *
+ * ## `.plugin` File
+ *
+ * Implementations may define the following extra fields in the `.plugin` file:
+ *
+ * - `X-ContactStoreProviderPriority`
+ *
+ *     An integer indicating the adapter priority. The implementation with the
+ *     lowest value will be used as the primary adapter.
+ *
+ * Since: 1.0
  */
 
 typedef struct
@@ -82,6 +89,10 @@ valent_contact_store_provider_real_load_finish (ValentContactStoreProvider  *pro
                                                 GAsyncResult                *result,
                                                 GError                     **error)
 {
+  g_assert (VALENT_IS_CONTACT_STORE_PROVIDER (provider));
+  g_assert (g_task_is_valid (result, provider));
+  g_assert (error == NULL || *error == NULL);
+
   return g_task_propagate_boolean (G_TASK (result), error);
 }
 
@@ -118,7 +129,6 @@ valent_contact_store_provider_real_store_removed (ValentContactStoreProvider *pr
                G_OBJECT_TYPE_NAME (provider));
 }
 /* LCOV_EXCL_STOP */
-
 
 /*
  * GObject
@@ -191,12 +201,14 @@ valent_contact_store_provider_class_init (ValentContactStoreProviderClass *klass
   /**
    * ValentContactStoreProvider:plugin-info:
    *
-   * The #PeasPluginInfo describing this provider.
+   * The [struct@Peas.PluginInfo] describing this adapter.
+   *
+   * Since: 1.0
    */
   properties [PROP_PLUGIN_INFO] =
     g_param_spec_boxed ("plugin-info",
                         "Plugin Info",
-                        "Plugin Info",
+                        "The plugin info describing this adapter",
                         PEAS_TYPE_PLUGIN_INFO,
                         (G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
@@ -210,12 +222,12 @@ valent_contact_store_provider_class_init (ValentContactStoreProviderClass *klass
    * @provider: an #ValentContactStoreProvider
    * @store: an #ValentContact
    *
-   * The "store-added" signal is emitted when a provider has discovered a
-   * store has become available. The internal representation has already been
-   * updated by the time this signal is emitted.
+   * Emitted when a [class@Valent.ContactStore] has been added to @provider.
    *
-   * Subclasses of #ValentContactStoreProvider must chain-up if they override
-   * the default #ValentContactStoreProviderClass.store_added closure.
+   * Implementations of #ValentContactStoreProvider must chain-up if they
+   * override [vfunc@Valent.ContactStoreProvider.store_added].
+   *
+   * Since: 1.0
    */
   signals [STORE_ADDED] =
     g_signal_new ("store-added",
@@ -234,12 +246,12 @@ valent_contact_store_provider_class_init (ValentContactStoreProviderClass *klass
    * @provider: an #ValentContactStoreProvider
    * @store: an #ValentContact
    *
-   * The "store-removed" signal is emitted when a provider has discovered a
-   * store is no longer available. The internal representation has already been
-   * updated by the time this signal is emitted.
+   * Emitted when a [class@Valent.ContactStore] has been removed from @provider.
    *
-   * Subclasses of #ValentContactStoreProvider must chain-up if they override
-   * the default #ValentContactStoreProviderClass.store_removed closure.
+   * Implementations of #ValentContactStoreProvider must chain-up if they
+   * override [vfunc@Valent.ContactStoreProvider.store_removed].
+   *
+   * Since: 1.0
    */
   signals [STORE_REMOVED] =
     g_signal_new ("store-removed",
@@ -267,11 +279,12 @@ valent_contact_store_provider_init (ValentContactStoreProvider *provider)
  * @provider: a #ValentContactStoreProvider
  * @store: a #ValentContactStore
  *
- * Emits the #ValentContactStoreProvider::store-added signal on @provider. A
- * reference will be held on @store until it is removed.
+ * Emit [signal@Valent.ContactStoreProvider::store-added] on @provider.
  *
- * This function should only be called by implementations of
- * #ValentContactStoreProvider.
+ * This method should only be called by implementations of
+ * [class@Valent.ContactStoreProvider].
+ *
+ * Since: 1.0
  */
 void
 valent_contact_store_provider_emit_store_added (ValentContactStoreProvider *provider,
@@ -288,11 +301,12 @@ valent_contact_store_provider_emit_store_added (ValentContactStoreProvider *prov
  * @provider: a #ValentContactStoreProvider
  * @store: a #ValentContactStore
  *
- * Emits the #ValentContactStoreProvider::store-removed signal on @provider. A
- * reference will be held on @store until all signal handlers have resolved.
+ * Emit [signal@Valent.ContactStoreProvider::store-removed] on @provider.
  *
- * This function should only be called by implementations of
- * #ValentContactStoreProvider.
+ * This method should only be called by implementations of
+ * [class@Valent.ContactStoreProvider].
+ *
+ * Since: 1.0
  */
 void
 valent_contact_store_provider_emit_store_removed (ValentContactStoreProvider *provider,
@@ -312,41 +326,47 @@ valent_contact_store_provider_emit_store_removed (ValentContactStoreProvider *pr
  *
  * Get a list of the contact stores known to @provider.
  *
- * Returns: (transfer full) (element-type Valent.ContactStore): a list of stores
+ * Returns: (transfer container) (element-type Valent.ContactStore): a list of
+ *     stores
+ *
+ * Since: 1.0
  */
 GPtrArray *
 valent_contact_store_provider_get_stores (ValentContactStoreProvider *provider)
 {
   ValentContactStoreProviderPrivate *priv = valent_contact_store_provider_get_instance_private (provider);
-  g_autoptr (GPtrArray) stores = NULL;
+  GPtrArray *ret;
+
+  VALENT_ENTRY;
 
   g_return_val_if_fail (VALENT_IS_CONTACT_STORE_PROVIDER (provider), NULL);
 
-  stores = g_ptr_array_new_with_free_func (g_object_unref);
+  ret = g_ptr_array_new_with_free_func (g_object_unref);
 
   for (unsigned int i = 0; i < priv->stores->len; i++)
-    g_ptr_array_add (stores, g_object_ref (g_ptr_array_index (priv->stores, i)));
+    g_ptr_array_add (ret, g_object_ref (g_ptr_array_index (priv->stores, i)));
 
-  return g_steal_pointer (&stores);
+  VALENT_RETURN (ret);
 }
 
 /**
- * valent_contact_store_provider_load_async:
+ * valent_contact_store_provider_load_async: (virtual load_async)
  * @provider: an #ValentContactStoreProvider
  * @cancellable: (nullable): a #GCancellable
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
  *
- * Requests that the #ValentContactStoreProvider asynchronously load any known
- * contact stores.
+ * Load any contact stores known to the provider.
  *
- * This method is called by the #ValentContacts singleton and should only be
- * called once for each #ValentContactStoreProvider. It is therefore a
- * programmer error for an API user to call this method.
+ * Implementations are expected to emit
+ * [signal@Valent.ContactStoreProvider::store-added] for each store before
+ * completing the operation.
  *
- * #ValentContactStoreProvider implementations are expected to emit the
- * #ValentContactStoreProvider::store-added signal for each contact store
- * before returning from the asynchronous operation.
+ * This method is called by the [class@Valent.Contacts] singleton and must only
+ * be called once for each implementation. It is therefore a programmer error
+ * for an API user to call this method.
+ *
+ * Since: 1.0
  */
 void
 valent_contact_store_provider_load_async (ValentContactStoreProvider *provider,
@@ -368,14 +388,16 @@ valent_contact_store_provider_load_async (ValentContactStoreProvider *provider,
 }
 
 /**
- * valent_contact_store_provider_load_finish:
+ * valent_contact_store_provider_load_finish: (virtual load_finish)
  * @provider: an #ValentContactStoreProvider
  * @result: a #GAsyncResult provided to callback
  * @error: (nullable): a #GError
  *
- * Completes an operation started by valent_contact_store_provider_load_async().
+ * Finish an operation started by [method@Valent.ContactStoreProvider.load_async].
  *
  * Returns: %TRUE if successful, or %FALSE with @error set
+ *
+ * Since: 1.0
  */
 gboolean
 valent_contact_store_provider_load_finish (ValentContactStoreProvider  *provider,

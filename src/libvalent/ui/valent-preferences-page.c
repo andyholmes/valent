@@ -24,6 +24,8 @@
  * Implementations of [class@Valent.DevicePlugin] should instead implement
  * [iface@Valent.DevicePreferencesPage], which will allow plugins to store
  * per-devices settings.
+ *
+ * Since: 1.0
  */
 
 G_DEFINE_INTERFACE (ValentPreferencesPage, valent_preferences_page, ADW_TYPE_PREFERENCES_PAGE)
@@ -32,6 +34,8 @@ G_DEFINE_INTERFACE (ValentPreferencesPage, valent_preferences_page, ADW_TYPE_PRE
  * ValentPreferencesPageInterface:
  *
  * The virtual function table for #ValentPreferencesPage.
+ *
+ * Since: 1.0
  */
 
 static void
@@ -41,6 +45,8 @@ valent_preferences_page_default_init (ValentPreferencesPageInterface *iface)
    * ValentPreferencesPage:plugin-info:
    *
    * The [struct@Peas.PluginInfo] describing the plugin this page configures.
+   *
+   * Since: 1.0
    */
   g_object_interface_install_property (iface,
                                        g_param_spec_boxed ("plugin-info",

@@ -14,18 +14,17 @@
 
 
 /**
- * SECTION:valentsession
- * @short_description: Session Abstraction
- * @title: ValentSession
- * @stability: Unstable
- * @include: libvalent-session.h
+ * ValentSession:
  *
- * #ValentSession is an aggregator of desktop sessions, with a simple
- * API generally intended to be used by #ValentDevicePlugin implementations.
+ * A class for monitoring the session state.
  *
- * Plugins can provide adapters for session selections by subclassing the
- * #ValentSeesionAdapter base class. The priority of session adapters is
- * determined by the `.plugin` file key `X-SessionAdapterPriority`.
+ * #ValentSession is an abstraction of session managers, intended for use by
+ * [class@Valent.DevicePlugin] implementations.
+ *
+ * Plugins can implement [class@Valent.SessionAdapter] to provide an interface
+ * to monitor and control the session state.
+ *
+ * Since: 1.0
  */
 
 struct _ValentSession
@@ -157,8 +156,10 @@ valent_session_class_init (ValentSessionClass *klass)
    * ValentSession::changed:
    * @session: a #ValentSession
    *
-   * #ValentSession::changed is emitted when the content of the default #ValentSessionAdapter
+   * Emitted when the state of the primary [class@Valent.SessionAdapter]
    * changes.
+   *
+   * Since: 1.0
    */
   signals [CHANGED] =
     g_signal_new ("changed",
@@ -175,14 +176,41 @@ valent_session_init (ValentSession *self)
   self->cancellable = g_cancellable_new ();
 }
 
+/**
+ * valent_session_get_default:
+ *
+ * Get the default [class@Valent.Session].
+ *
+ * Returns: (transfer none) (nullable): a #ValentSession
+ *
+ * Since: 1.0
+ */
+ValentSession *
+valent_session_get_default (void)
+{
+  if (default_adapter == NULL)
+    {
+      default_adapter = g_object_new (VALENT_TYPE_SESSION,
+                                      "plugin-context", "session",
+                                      "plugin-type",    VALENT_TYPE_SESSION_ADAPTER,
+                                      NULL);
+
+      g_object_add_weak_pointer (G_OBJECT (default_adapter),
+                                 (gpointer)&default_adapter);
+    }
+
+  return default_adapter;
+}
 
 /**
  * valent_session_get_active:
  * @session: a #ValentSession
  *
- * Get the active state of @session.
+ * Get the active state of the primary [class@Valent.SessionAdapter].
  *
- * Returns: the idle state
+ * Returns: %TRUE if the session is active, or %FALSE if not
+ *
+ * Since: 1.0
  */
 gboolean
 valent_session_get_active (ValentSession *session)
@@ -203,9 +231,11 @@ valent_session_get_active (ValentSession *session)
  * valent_session_get_locked:
  * @session: a #ValentSession
  *
- * Get the locked state of @session.
+ * Get the locked state of the primary [class@Valent.SessionAdapter].
  *
- * Returns: the locked state
+ * Returns: %TRUE if the session is locked, or %FALSE if unlocked
+ *
+ * Since: 1.0
  */
 gboolean
 valent_session_get_locked (ValentSession *session)
@@ -225,9 +255,11 @@ valent_session_get_locked (ValentSession *session)
 /**
  * valent_session_set_locked:
  * @session: a #ValentSession
- * @state: locked state
+ * @state: %TRUE to lock, or %FALSE to unlock
  *
- * Set the locked state of @session to @state.
+ * Set the locked state of the primary [class@Valent.SessionAdapter].
+ *
+ * Since: 1.0
  */
 void
 valent_session_set_locked (ValentSession *session,
@@ -241,29 +273,5 @@ valent_session_set_locked (ValentSession *session,
     valent_session_adapter_set_locked (session->default_adapter, state);
 
   VALENT_EXIT;
-}
-
-/**
- * valent_session_get_default:
- *
- * Get the default #ValentSession.
- *
- * Returns: (transfer none): The default session
- */
-ValentSession *
-valent_session_get_default (void)
-{
-  if (default_adapter == NULL)
-    {
-      default_adapter = g_object_new (VALENT_TYPE_SESSION,
-                                      "plugin-context", "session",
-                                      "plugin-type",    VALENT_TYPE_SESSION_ADAPTER,
-                                      NULL);
-
-      g_object_add_weak_pointer (G_OBJECT (default_adapter),
-                                 (gpointer)&default_adapter);
-    }
-
-  return default_adapter;
 }
 

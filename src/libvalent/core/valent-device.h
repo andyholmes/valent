@@ -9,7 +9,6 @@
 
 #include <gio/gio.h>
 #include <json-glib/json-glib.h>
-#include <libpeas/peas.h>
 
 #include "valent-channel.h"
 #include "valent-data.h"
@@ -19,13 +18,15 @@ G_BEGIN_DECLS
 
 /**
  * ValentDeviceState:
- * @VALENT_DEVICE_STATE_NONE: Device unpaired and disconnected
+ * @VALENT_DEVICE_STATE_NONE: Device is unpaired and disconnected
  * @VALENT_DEVICE_STATE_CONNECTED: Device is connected
  * @VALENT_DEVICE_STATE_PAIRED: Device is paired
  * @VALENT_DEVICE_STATE_PAIR_INCOMING: Pair request received from device
  * @VALENT_DEVICE_STATE_PAIR_OUTGOING: Pair request sent to device
  *
  * Device state flags.
+ *
+ * Since: 1.0
  */
 typedef enum
 {

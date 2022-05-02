@@ -200,13 +200,14 @@ on_property_changed (GObject          *object,
   if (mapping == NULL)
     return;
 
-  /* Update the cache */
+  /* Update the cached value */
   value = valent_device_impl_get_variant (self, mapping->name, mapping->type);
 
   g_hash_table_replace (self->cache,
                         g_strdup (mapping->info->name),
                         g_variant_ref_sink (value));
 
+  /* Queue the change */
   g_hash_table_replace (self->pending,
                         g_strdup (mapping->info->name),
                         g_variant_ref_sink (value));
@@ -304,10 +305,10 @@ valent_device_impl_flush (GDBusInterfaceSkeleton *skeleton)
   GHashTableIter pending_properties;
   gpointer key, value;
 
-  /* Collect the pending property changes */
+  /* Sort the pending property changes into "changed" and "invalidated" */
+  g_hash_table_iter_init (&pending_properties, self->pending);
   g_variant_builder_init (&changed_properties, G_VARIANT_TYPE_VARDICT);
   g_variant_builder_init (&invalidated_properties, G_VARIANT_TYPE_STRING_ARRAY);
-  g_hash_table_iter_init (&pending_properties, self->pending);
 
   while (g_hash_table_iter_next (&pending_properties, &key, &value))
     {
@@ -325,7 +326,7 @@ valent_device_impl_flush (GDBusInterfaceSkeleton *skeleton)
                               g_variant_builder_end (&invalidated_properties));
   g_variant_ref_sink (parameters);
 
-  /* Emit PropertiesChanged on each connection */
+  /* Emit "PropertiesChanged" on each connection */
   connections = g_dbus_interface_skeleton_get_connections (skeleton);
   object_path = g_dbus_interface_skeleton_get_object_path (skeleton);
 

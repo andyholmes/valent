@@ -12,27 +12,20 @@
 
 
 /**
- * SECTION:valentmediaplayer
- * @short_description: Base class for media players
- * @title: ValentMediaPlayer
- * @stability: Unstable
- * @include: libvalent-media.h
+ * ValentMediaPlayer:
  *
- * A #ValentMediaPlayer is a base class for media players that more or less
- * mirrors the MPRISv2 specification. The primary difference is that media
- * player control is not spread across several interfaces as is the case with
- * the application, player, playlist and tracklist DBus interfaces.
+ * A base class for media players.
  *
- * The built-in MPRIS plugin provides an implementation for MPRISv2 players, so
- * it is primarily an abstraction for the sake of plugins that want to control
- * the media state in response to certain events.
+ * A #ValentMediaPlayer is a base class for plugins to providing an interface to
+ * media players via [class@Valent.MediaPlayerProvider].
+ *
+ * Since: 1.0
  */
 
 G_DEFINE_TYPE (ValentMediaPlayer, valent_media_player, G_TYPE_OBJECT)
 
 /**
  * ValentMediaPlayerClass:
- * @parent_class: The parent class.
  * @changed: the class closure for #ValentMediaPlayer::changed signal
  * @next: the virtual function pointer for valent_media_player_next()
  * @open_uri: the virtual function pointer for valent_media_player_open_uri()
@@ -103,6 +96,13 @@ valent_media_player_real_get_position (ValentMediaPlayer *player)
   return 0;
 }
 
+static void
+valent_media_player_real_set_position (ValentMediaPlayer *player,
+                                       const char        *track_id,
+                                       gint64             position)
+{
+}
+
 static ValentMediaState
 valent_media_player_real_get_state (ValentMediaPlayer *player)
 {
@@ -113,7 +113,6 @@ static void
 valent_media_player_real_set_state (ValentMediaPlayer *player,
                                     ValentMediaState   state)
 {
-  g_debug ("%s(): operation not supported (%u)", G_STRFUNC, state);
 }
 
 static double
@@ -126,25 +125,21 @@ static void
 valent_media_player_real_set_volume (ValentMediaPlayer *player,
                                      double             volume)
 {
-  g_debug ("%s(): operation not supported", G_STRFUNC);
 }
 
 static void
 valent_media_player_real_next (ValentMediaPlayer *player)
 {
-  g_debug ("%s(): operation not supported", G_STRFUNC);
 }
 
 static void
 valent_media_player_real_pause (ValentMediaPlayer *player)
 {
-  g_debug ("%s(): operation not supported", G_STRFUNC);
 }
 
 static void
 valent_media_player_real_play (ValentMediaPlayer *player)
 {
-  g_debug ("%s(): operation not supported", G_STRFUNC);
 }
 
 static void
@@ -261,6 +256,7 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
   player_class->get_metadata = valent_media_player_real_get_metadata;
   player_class->get_name = valent_media_player_real_get_name;
   player_class->get_position = valent_media_player_real_get_position;
+  player_class->set_position = valent_media_player_real_set_position;
   player_class->get_state = valent_media_player_real_get_state;
   player_class->set_state = valent_media_player_real_set_state;
   player_class->get_volume = valent_media_player_real_get_volume;
@@ -276,64 +272,73 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
   /**
    * ValentMediaPlayer:flags:
    *
-   * A bitmask of #ValentMediaActions that are actionable on the player.
+   * The available actions.
+   *
+   * Implementations should emit [GObject.Object::notify] when they change the
+   * internal representation of this property.
+   *
+   * Since: 1.0
    */
   properties [PROP_FLAGS] =
     g_param_spec_flags ("flags",
                         "Flags",
-                        "Action Flags",
+                        "The available actions",
                         VALENT_TYPE_MEDIA_ACTIONS,
                         VALENT_MEDIA_ACTION_NONE,
                         (G_PARAM_READABLE |
+                         G_PARAM_EXPLICIT_NOTIFY |
                          G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentMediaPlayer:metadata:
+   * ValentMediaPlayer:metadata: (getter get_metadata)
    *
-   * The metadata of the current element.
+   * The metadata of the active media item.
    *
-   * If there is a current track, this must have a "mpris:trackid" entry (of
-   * D-Bus type "o") at the very least, which contains a D-Bus path that
-   * uniquely identifies this track.
+   * The content of the vardict should be in the same format as the MPRISv2
+   * standard.
    *
-   * See the type documentation for more details.
+   * Implementations should emit [GObject.Object::notify] when they change the
+   * internal representation of this property.
+   *
+   * Since: 1.0
    */
   properties [PROP_METADATA] =
     g_param_spec_variant ("metadata",
                           "Metadata",
-                          "Metadata",
+                          "The metadata of the active media item",
                           G_VARIANT_TYPE ("a{sv}"),
                           NULL,
                           (G_PARAM_READABLE |
+                           G_PARAM_EXPLICIT_NOTIFY |
                            G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentMediaPlayer:name:
+   * ValentMediaPlayer:name: (getter get_name)
    *
-   * The name of the media player, corresponding to the `Identity` property of
-   * the `org.mpris.MediaPlayer2` interface.
+   * The display name of the media player.
+   *
+   * Since: 1.0
    */
   properties [PROP_NAME] =
     g_param_spec_string ("name",
                          "Name",
-                         "Name",
+                         "The display name",
                          NULL,
                          (G_PARAM_READABLE |
+                          G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentMediaPlayer:position:
+   * ValentMediaPlayer:position: (getter get_position) (setter set_position)
    *
-   * The current track position in microseconds, between `0` and the
-   * 'mpris:length' metadata entry (see #ValentMediaPlayer:position).
+   * The current track position in microseconds (us).
    *
-   * Note: If the media player allows it, the current playback position can be
-   * changed either the SetPosition method or the Seek method on this interface.
-   * If this is not the case, the CanSeek property is %FALSE, and setting this
-   * property has no effect.
+   * Acceptable values are between `0` and the `mpris:length` metadata entry
+   * (see [property@Valent.MediaPlayer:metadata]). If the player does not have
+   * %VALENT_MEDIA_ACTION_SEEK in [property@Valent.MediaPlayer:flags], setting
+   * this property should have no effect.
    *
-   * If the playback progresses in a way that is inconstistant with the Rate
-   * property, the Seeked signal is emitted.
+   * Since: 1.0
    */
   properties [PROP_POSITION] =
     g_param_spec_int64 ("position",
@@ -342,17 +347,24 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
                         G_MININT64, G_MAXINT64,
                         0,
                         (G_PARAM_READABLE |
+                         G_PARAM_EXPLICIT_NOTIFY |
                          G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentMediaPlayer:state:
+   * ValentMediaPlayer:state: (getter get_state) (setter set_state)
    *
-   * A bitmask of #ValentMediaState that describes the playback state.
+   * The playback state.
+   *
+   * If the player does not have the appropriate bitmask in
+   * [property@Valent.MediaPlayer:flags], setting this property should have no
+   * effect.
+   *
+   * Since: 1.0
    */
   properties [PROP_STATE] =
     g_param_spec_flags ("state",
                         "State",
-                        "State Flags",
+                        "The playback state",
                         VALENT_TYPE_MEDIA_STATE,
                         VALENT_MEDIA_STATE_STOPPED,
                         (G_PARAM_READWRITE |
@@ -360,15 +372,13 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
                          G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentMediaPlayer:volume:
+   * ValentMediaPlayer:volume: (getter get_volume) (setter set_volume)
    *
    * The volume level.
    *
-   * When setting, if a negative value is passed, the volume should be set to
-   * `0.0`.
+   * Attempts to change this property may be ignored by some implementations.
    *
-   * Implementations subclassing #ValentMediaPlayer may ignore attempts to
-   * change this property.
+   * Since: 1.0
    */
   properties [PROP_VOLUME] =
     g_param_spec_double ("volume",
@@ -385,16 +395,20 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
   /**
    * ValentMediaPlayer::changed:
    * @player: a #ValentMediaPlayer
-   * @position: the new position in microseconds
    *
-   * #ValentMediaPlayer::changed is a convenience function for notifying of
-   * multiple property changes. Implementations may emit GObject::notify but
-   * must emit #ValentMediaPlayer::changed.
+   * Emitted when the state or properties of @player changes.
+   *
+   * This signal is a convenience for notifying of multiple changes in a single
+   * emission. Implementations may emit [signal@GObject.Object::notify] for
+   * properties, but must emit this signal for handlers that may be connected to
+   * [signal@Valent.Media::player-changed].
+   *
+   * Since: 1.0
    */
   signals [CHANGED] =
     g_signal_new ("changed",
                   VALENT_TYPE_MEDIA_PLAYER,
-                  G_SIGNAL_RUN_FIRST,
+                  G_SIGNAL_RUN_LAST,
                   0,
                   NULL, NULL, NULL,
                   G_TYPE_NONE, 0);
@@ -404,8 +418,8 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
    * @player: a #ValentMediaPlayer
    * @position: the new position in microseconds
    *
-   * #ValentMediaPlayer::seeked is emitted when the track position has changed
-   * in a way that is inconsistent with the current playing state.
+   * Emitted when the track position has changed in a way that is
+   * inconsistent with the current playing state.
    *
    * When this signal is not received, clients should assume that:
    *
@@ -416,6 +430,8 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
    * track changes, unless the track is starting at an unexpected position. An
    * expected position would be the last known one when going from Paused to
    * Playing, and `0` when going from Stopped to Playing.
+   *
+   * Since: 1.0
    */
   signals [SEEKED] =
     g_signal_new ("seeked",
@@ -435,7 +451,13 @@ valent_media_player_init (ValentMediaPlayer *self)
  * valent_media_player_emit_changed:
  * @player: a #ValentMediaPlayer
  *
- * Emit ValentMediaPlayer::changed.
+ * Emit [signal@Valent.MediaPlayer::changed] on @player.
+ *
+ * This method should only be called by implementations of
+ * [class@Valent.MediaPlayer]. Signal handlers may query the state, so it must
+ * emitted after the internal representation has been updated.
+ *
+ * Since: 1.0
  */
 void
 valent_media_player_emit_changed (ValentMediaPlayer *player)
@@ -450,7 +472,13 @@ valent_media_player_emit_changed (ValentMediaPlayer *player)
  * @player: a #ValentMediaPlayer
  * @offset: an offset
  *
- * Emit ValentMediaPlayer::seeked.
+ * Emit [signal@Valent.MediaPlayer::seeked].
+ *
+ * This method should only be called by implementations of
+ * [class@Valent.MediaPlayer]. Signal handlers may query the state, so it must
+ * emitted after the internal representation has been updated.
+ *
+ * Since: 1.0
  */
 void
 valent_media_player_emit_seeked (ValentMediaPlayer *player,
@@ -467,7 +495,9 @@ valent_media_player_emit_seeked (ValentMediaPlayer *player,
  *
  * A convenience for checking if @player's playback status is `Playing`.
  *
- * Returns: %TRUE if playing
+ * Returns: %TRUE if playing, %FALSE if not
+ *
+ * Since: 1.0
  */
 gboolean
 valent_media_player_is_playing (ValentMediaPlayer *player)
@@ -488,174 +518,237 @@ valent_media_player_is_playing (ValentMediaPlayer *player)
 }
 
 /**
- * valent_media_player_get_flags:
+ * valent_media_player_get_flags: (virtual get_flags) (get-property flags)
  * @player: a #ValentMediaPlayer
  *
- * Get the available actions for @player.
+ * Get flags describing the available actions of @player.
  *
- * Returns: #ValentMediaActions
+ * Returns: a bitmask of #ValentMediaActions
+ *
+ * Since: 1.0
  */
 ValentMediaActions
 valent_media_player_get_flags (ValentMediaPlayer *player)
 {
+  ValentMediaActions ret;
+
+  VALENT_ENTRY;
+
   g_return_val_if_fail (VALENT_IS_MEDIA_PLAYER (player), VALENT_MEDIA_ACTION_NONE);
 
-  return VALENT_MEDIA_PLAYER_GET_CLASS (player)->get_flags (player);
+  ret = VALENT_MEDIA_PLAYER_GET_CLASS (player)->get_flags (player);
+
+  VALENT_RETURN (ret);
 }
 
 /**
- * valent_media_player_get_metadata:
+ * valent_media_player_get_metadata: (virtual get_metadata) (get-property metadata)
  * @player: a #ValentMediaPlayer
  *
- * Get the current track's metadata. See #ValentMediaPlayer:metadata.
+ * Get the metadata of the active media items.
  *
- * Returns: (transfer full): a #GVariant
+ * Implementations should typically have an entry for the `mpris:length` field.
+ * Other fields generally supported by KDE Connect clients include
+ * `mpris:artUrl`, `xesam:artist`, `xesam:album` and `xesam:title`.
+ *
+ * Returns: (transfer full): a #GVariant of type `a{sv}`
+ *
+ * Since: 1.0
  */
 GVariant *
 valent_media_player_get_metadata (ValentMediaPlayer *player)
 {
+  GVariant *ret;
+
+  VALENT_ENTRY;
+
   g_return_val_if_fail (VALENT_IS_MEDIA_PLAYER (player), NULL);
 
-  return VALENT_MEDIA_PLAYER_GET_CLASS (player)->get_metadata (player);
+  ret = VALENT_MEDIA_PLAYER_GET_CLASS (player)->get_metadata (player);
+
+  VALENT_RETURN (ret);
 }
 
 /**
- * valent_media_player_get_name:
+ * valent_media_player_get_name: (virtual get_name) (get-property name)
  * @player: a #ValentMediaPlayer
  *
- * Get the display name of the media player. This corresponds to the `Identity`
- * property of the org.mpris.MediaPlayer2 interface.
+ * Get the display name of the @player.
  *
  * Returns: (transfer none): player name
+ *
+ * Since: 1.0
  */
 const char *
 valent_media_player_get_name (ValentMediaPlayer *player)
 {
+  const char *ret;
+
+  VALENT_ENTRY;
+
   g_return_val_if_fail (VALENT_IS_MEDIA_PLAYER (player), NULL);
 
-  return VALENT_MEDIA_PLAYER_GET_CLASS (player)->get_name (player);
+  ret = VALENT_MEDIA_PLAYER_GET_CLASS (player)->get_name (player);
+
+  VALENT_RETURN (ret);
 }
 
 /**
- * valent_media_player_get_position:
+ * valent_media_player_get_position: (virtual get_position) (get-property position)
  * @player: a #ValentMediaPlayer
  *
- * Get the current position. See #ValentMediaPlayer:position.
+ * Get the current position.
  *
  * Returns: the current position
+ *
+ * Since: 1.0
  */
 gint64
 valent_media_player_get_position (ValentMediaPlayer *player)
 {
+  gint64 ret;
+
+  VALENT_ENTRY;
+
   g_return_val_if_fail (VALENT_IS_MEDIA_PLAYER (player), 0);
 
-  return VALENT_MEDIA_PLAYER_GET_CLASS (player)->get_position (player);
+  ret = VALENT_MEDIA_PLAYER_GET_CLASS (player)->get_position (player);
+
+  VALENT_RETURN (ret);
 }
 
 /**
- * valent_media_player_set_position:
+ * valent_media_player_set_position: (virtual set_position) (set-property position)
  * @player: a #ValentMediaPlayer
  * @track_id: track ID
  * @position: position offset
  *
- * Set the current position. See #ValentMediaPlayer:position.
+ * Set the current position.
+ *
+ * Since: 1.0
  */
 void
 valent_media_player_set_position (ValentMediaPlayer *player,
                                   const char        *track_id,
                                   gint64             position)
 {
-  ValentMediaPlayerClass *klass;
+  VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
   g_return_if_fail (track_id != NULL);
 
-  klass = VALENT_MEDIA_PLAYER_GET_CLASS (player);
-  g_return_if_fail (klass->set_position);
+  VALENT_MEDIA_PLAYER_GET_CLASS (player)->set_position (player,
+                                                        track_id,
+                                                        position);
 
-  klass->set_position (player, track_id, position);
+  VALENT_EXIT;
 }
 
 /**
- * valent_media_player_get_state:
+ * valent_media_player_get_state: (virtual get_state) (get-property state)
  * @player: a #ValentMediaPlayer
  *
  * Get the playback state for @player.
  *
  * Returns: #ValentMediaState
+ *
+ * Since: 1.0
  */
 ValentMediaState
 valent_media_player_get_state (ValentMediaPlayer *player)
 {
+  ValentMediaState ret;
+
+  VALENT_ENTRY;
+
   g_return_val_if_fail (VALENT_IS_MEDIA_PLAYER (player), VALENT_MEDIA_STATE_STOPPED);
 
-  return VALENT_MEDIA_PLAYER_GET_CLASS (player)->get_state (player);
+  ret = VALENT_MEDIA_PLAYER_GET_CLASS (player)->get_state (player);
+
+  VALENT_RETURN (ret);
 }
 
 /**
- * valent_media_player_set_state:
+ * valent_media_player_set_state: (virtual set_state) (set-property state)
  * @player: a #ValentMediaPlayer
  * @state: a #ValentMediaState
  *
  * Set the playback state of @player to @state.
+ *
+ * Since: 1.0
  */
 void
 valent_media_player_set_state (ValentMediaPlayer *player,
                                ValentMediaState   state)
 {
+  VALENT_ENTRY;
+
   g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
 
   VALENT_MEDIA_PLAYER_GET_CLASS (player)->set_state (player, state);
+
+  VALENT_EXIT;
 }
 
 /**
- * valent_media_player_get_volume:
+ * valent_media_player_get_volume: (virtual get_volume) (get-property volume)
  * @player: a #ValentMediaPlayer
  *
- * Set the volume level. See #ValentMediaPlayer:volume.
+ * Get the volume level.
  *
  * Returns: the volume of @player
+ *
+ * Since: 1.0
  */
 double
 valent_media_player_get_volume (ValentMediaPlayer *player)
 {
+  double ret;
+
+  VALENT_ENTRY;
+
   g_return_val_if_fail (VALENT_IS_MEDIA_PLAYER (player), 0.0);
 
-  return VALENT_MEDIA_PLAYER_GET_CLASS (player)->get_volume (player);
+  ret = VALENT_MEDIA_PLAYER_GET_CLASS (player)->get_volume (player);
+
+  VALENT_RETURN (ret);
 }
 
 /**
- * valent_media_player_set_volume:
+ * valent_media_player_set_volume: (virtual set_volume) (set-property volume)
  * @player: a #ValentMediaPlayer
  * @volume: volume level
  *
- * Set the volume level. See #ValentMediaPlayer:volume.
+ * Set the volume level of @player.
+ *
+ * Since: 1.0
  */
 void
 valent_media_player_set_volume (ValentMediaPlayer *player,
                                 double             volume)
 {
-  ValentMediaPlayerClass *klass;
+  VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
 
-  klass = VALENT_MEDIA_PLAYER_GET_CLASS (player);
-  g_return_if_fail (klass->set_volume);
+  VALENT_MEDIA_PLAYER_GET_CLASS (player)->set_volume (player, volume);
 
-  klass->set_volume (player, volume);
+  VALENT_EXIT;
 }
 
 /**
- * valent_media_player_next:
+ * valent_media_player_next: (virtual next)
  * @player: a #ValentMediaPlayer
  *
- * Skips to the next track in the tracklist.
+ * Skip to the next media item.
  *
  * If there is no next track (and endless playback and track repeat are both
  * off), stop playback. If playback is paused or stopped, it remains that way.
  *
- * If #ValentMediaPlayer:flags does not include %VALENT_MEDIA_ACTION_NEXT,
- * attempting to call this method should have no effect.
+ * If [property@Valent.MediaPlayer:flags] does not include
+ * %VALENT_MEDIA_ACTION_NEXT, calling this method should have no effect.
+ *
+ * Since: 1.0
  */
 void
 valent_media_player_next (ValentMediaPlayer *player)
@@ -670,7 +763,7 @@ valent_media_player_next (ValentMediaPlayer *player)
 }
 
 /**
- * valent_media_player_open_uri:
+ * valent_media_player_open_uri: (virtual open_uri)
  * @player: a #ValentMediaPlayer
  * @uri: a URI
  *
@@ -691,6 +784,8 @@ valent_media_player_next (ValentMediaPlayer *player)
  * org.mpris.MediaPlayer2.TrackList.TrackListReplaced signal should be fired, as
  * well as the org.freedesktop.DBus.Properties.PropertiesChanged signal on the
  * tracklist interface.
+ *
+ * Since: 1.0
  */
 void
 valent_media_player_open_uri (ValentMediaPlayer *player,
@@ -712,17 +807,19 @@ valent_media_player_open_uri (ValentMediaPlayer *player,
 }
 
 /**
- * valent_media_player_pause:
+ * valent_media_player_pause: (virtual pause)
  * @player: a #ValentMediaPlayer
  *
  * Pauses playback.
  *
  * If playback is already paused, this has no effect. Calling
- * valent_media_player_play() after this should cause playback to start again
- * from the same position.
+ * [method@Valent.MediaPlayer.pause] after this should cause playback to start
+ * again from the same position.
  *
- * If #ValentMediaPlayer:flags does not include %VALENT_MEDIA_ACTION_PAUSE,
- * attempting to call this method should have no effect.
+ * If [property@Valent.MediaPlayer:flags] does not include
+ * %VALENT_MEDIA_ACTION_PAUSE, calling this method should have no effect.
+ *
+ * Since: 1.0
  */
 void
 valent_media_player_pause (ValentMediaPlayer *player)
@@ -737,16 +834,18 @@ valent_media_player_pause (ValentMediaPlayer *player)
 }
 
 /**
- * valent_media_player_play:
+ * valent_media_player_play: (virtual play)
  * @player: a #ValentMediaPlayer
  *
- * Starts or resumes playback.
+ * Start playback.
  *
  * If already playing, this has no effect. If paused, playback resumes from the
  * current position. If there is no track to play, this has no effect.
  *
- * If #ValentMediaPlayer:flags does not include %VALENT_MEDIA_ACTION_PLAY,
- * attempting to call this method should have no effect.
+ * If [property@Valent.MediaPlayer:flags] does not include
+ * %VALENT_MEDIA_ACTION_PLAY, calling this method should have no effect.
+ *
+ * Since: 1.0
  */
 void
 valent_media_player_play (ValentMediaPlayer *player)
@@ -761,17 +860,19 @@ valent_media_player_play (ValentMediaPlayer *player)
 }
 
 /**
- * valent_media_player_play_pause:
+ * valent_media_player_play_pause: (virtual play_pause)
  * @player: a #ValentMediaPlayer
  *
- * Pauses playback.
+ * Start or pause playback, depending on the current state.
  *
  * If playback is already paused, resumes playback. If playback is stopped,
  * starts playback.
  *
- * If #ValentMediaPlayer:flags does not include %VALENT_MEDIA_ACTION_PLAY or
- * %VALENT_MEDIA_ACTION_PAUSE, attempting to call this method should have no
- * effect.
+ * If [property@Valent.MediaPlayer:flags] does not include
+ * %VALENT_MEDIA_ACTION_PLAY or %VALENT_MEDIA_ACTION_PAUSE, calling this method
+ * should have no effect.
+ *
+ * Since: 1.0
  */
 void
 valent_media_player_play_pause (ValentMediaPlayer *player)
@@ -786,16 +887,18 @@ valent_media_player_play_pause (ValentMediaPlayer *player)
 }
 
 /**
- * valent_media_player_previous:
+ * valent_media_player_previous: (virtual previous)
  * @player: a #ValentMediaPlayer
  *
- * Skips to the previous track in the tracklist.
+ * Skip to the previous media item.
  *
  * If there is no previous track (and endless playback and track repeat are both
  * off), stop playback. If playback is paused or stopped, it remains that way.
  *
- * If #ValentMediaPlayer:flags does not include %VALENT_MEDIA_ACTION_PREVIOUS,
- * attempting to call this method should have no effect.
+ * If [property@Valent.MediaPlayer:flags] does not include
+ * %VALENT_MEDIA_ACTION_PREVIOUS, calling this method should have no effect.
+ *
+ * Since: 1.0
  */
 void
 valent_media_player_previous (ValentMediaPlayer *player)
@@ -810,19 +913,21 @@ valent_media_player_previous (ValentMediaPlayer *player)
 }
 
 /**
- * valent_media_player_seek:
+ * valent_media_player_seek: (virtual seek)
  * @player: a #ValentMediaPlayer
  * @offset: number of microseconds to seek forward
  *
- * Seeks forward in the current track by the specified number of microseconds.
+ * Seek in the current media item by @offset microseconds.
  *
  * A negative value seeks back. If this would mean seeking back further than the
  * start of the track, the position is set to `0`. If the value passed in would
  * mean seeking beyond the end of the track, acts like a call to
  * valent_media_player_seek().
  *
- * If #ValentMediaPlayer:flags does not include %VALENT_MEDIA_ACTION_SEEK,
- * attempting to call this method should have no effect.
+ * If [property@Valent.MediaPlayer:flags] does not include
+ * %VALENT_MEDIA_ACTION_SEEK, calling this method should have no effect.
+ *
+ * Since: 1.0
  */
 void
 valent_media_player_seek (ValentMediaPlayer *player,
@@ -838,17 +943,19 @@ valent_media_player_seek (ValentMediaPlayer *player,
 }
 
 /**
- * valent_media_player_stop:
+ * valent_media_player_stop: (virtual stop)
  * @player: a #ValentMediaPlayer
  *
- * Stops playback.
+ * Stop playback.
  *
  * If playback is already stopped, this has no effect. Calling
  * valent_media_player_play() after this should cause playback to start again
  * from the beginning of the track.
  *
- * If #ValentMediaPlayer:flags does not include %VALENT_MEDIA_ACTION_STOP,
- * attempting to call this method should have no effect.
+ * If [property@Valent.MediaPlayer:flags] does not include
+ * %VALENT_MEDIA_ACTION_STOP, calling this method should have no effect.
+ *
+ * Since: 1.0
  */
 void
 valent_media_player_stop (ValentMediaPlayer *player)

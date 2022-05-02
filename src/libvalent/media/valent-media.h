@@ -21,6 +21,9 @@ VALENT_AVAILABLE_IN_1_0
 G_DECLARE_FINAL_TYPE (ValentMedia, valent_media, VALENT, MEDIA, ValentComponent)
 
 VALENT_AVAILABLE_IN_1_0
+ValentMedia       * valent_media_get_default        (void);
+
+VALENT_AVAILABLE_IN_1_0
 GPtrArray         * valent_media_get_players        (ValentMedia *media);
 VALENT_AVAILABLE_IN_1_0
 ValentMediaPlayer * valent_media_get_player_by_name (ValentMedia *media,
@@ -30,9 +33,6 @@ VALENT_AVAILABLE_IN_1_0
 void                valent_media_pause              (ValentMedia *media);
 VALENT_AVAILABLE_IN_1_0
 void                valent_media_unpause            (ValentMedia *media);
-
-VALENT_AVAILABLE_IN_1_0
-ValentMedia       * valent_media_get_default        (void);
 
 G_END_DECLS
 

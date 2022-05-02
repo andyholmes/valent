@@ -5,8 +5,9 @@
 
 #include "config.h"
 
-#include <libvalent-core.h>
+#include <gio/gio.h>
 #include <libpeas/peas.h>
+#include <libvalent-core.h>
 
 #include "valent-mixer.h"
 #include "valent-mixer-adapter.h"
@@ -18,11 +19,11 @@
  *
  * A class for monitoring and controlling the system volume.
  *
- * #ValentMixer is an aggregator of volume mixers, with a simple API generally
- * intended for use by #ValentDevicePlugin implementations.
+ * #ValentMixer is an abstraction of volume mixers, intended for use by
+ * [class@Valent.DevicePlugin] implementations.
  *
- * Plugins can provide adapters for various backends by subclassing
- * #ValentMixerAdapter interface.
+ * Plugins can implement [class@Valent.MixerAdapter] to provide an interface to
+ * monitor and control audio streams.
  *
  * Since: 1.0
  */
@@ -352,8 +353,8 @@ valent_mixer_class_init (ValentMixerClass *klass)
    * @mixer: a #ValentMixer
    * @stream: a #ValentMixerStream
    *
-   * The "stream-added" signal is emitted when a stream is added to a
-   * [class@Valent.MixerAdapter] being monitored by @mixer.
+   * Emitted when a stream is added to a [class@Valent.MixerAdapter] being
+   * monitored by @mixer.
    *
    * Since: 1.0
    */
@@ -374,8 +375,8 @@ valent_mixer_class_init (ValentMixerClass *klass)
    * @mixer: a #ValentMixer
    * @stream: a #ValentMixerStream
    *
-   * The "stream-changed" signal is emitted when a stream is changed from a
-   * [class@Valent.MixerAdapter] being monitored by @mixer.
+   * Emitted when a stream from a [class@Valent.MixerAdapter] being monitored by
+   * @mixer changes.
    *
    * Since: 1.0
    */
@@ -396,8 +397,8 @@ valent_mixer_class_init (ValentMixerClass *klass)
    * @mixer: a #ValentMixer
    * @stream: a #ValentMixerStream
    *
-   * The "stream-removed" signal is emitted when a stream is removed from a
-   * [class@Valent.MixerAdapter] being monitored by @mixer.
+   * Emitted when a stream is removed from a [class@Valent.MixerAdapter] being
+   * monitored by @mixer.
    *
    * Since: 1.0
    */
@@ -428,9 +429,9 @@ valent_mixer_init (ValentMixer *self)
 /**
  * valent_mixer_get_default:
  *
- * Get the default mixer.
+ * Get the default [class@Valent.Mixer].
  *
- * Returns: (transfer none): The default mixer
+ * Returns: (transfer none) (not nullable): a #ValentMixer
  *
  * Since: 1.0
  */
