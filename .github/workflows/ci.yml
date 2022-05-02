@@ -106,9 +106,10 @@ jobs:
           CC_LD: ${{ matrix.CC_LD }}
           CXX: ${{ matrix.CXX }}
           CXX_LD: ${{ matrix.CXX_LD }}
+          COVERAGE: ${{ matrix.coverage }}
         run: |
           meson setup --buildtype=debugoptimized \
-                      -Db_coverage=true \
+                      -Db_coverage=${COVERAGE} \
                       -Dplugin_bluez=true \
                       -Dtests=true \
                       _build
