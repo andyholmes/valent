@@ -10,8 +10,8 @@
 #include <libvalent-core.h>
 
 #include "valent-contacts.h"
+#include "valent-contacts-adapter.h"
 #include "valent-contact-store.h"
-#include "valent-contact-store-provider.h"
 #include "valent-contact-utils.h"
 #include "valent-contact-cache.h"
 
@@ -24,9 +24,9 @@
  * #ValentContacts is an address book manager, intended for use by
  * [class@Valent.DevicePlugin] implementations.
  *
- * Plugins can implement [class@Valent.ContactStoreProvider] to provide an
- * interface to manage instances of [class@Valent.ContactStore]. If no provider
- * is available, #ValentContacts will create [class@Valent.ContactCache] as
+ * Plugins can implement [class@Valent.ContactsAdapter] to provide an interface
+ * to manage instances of [class@Valent.ContactStore]. If no adapter is
+ * available, #ValentContacts will create [class@Valent.ContactCache] as
  * necessary.
  *
  * Since: 1.0
@@ -34,12 +34,12 @@
 
 struct _ValentContacts
 {
-  ValentComponent             parent_instance;
+  ValentComponent        parent_instance;
 
-  GCancellable               *cancellable;
+  GCancellable          *cancellable;
 
-  ValentContactStoreProvider *default_provider;
-  GPtrArray                  *stores;
+  ValentContactsAdapter *default_adapter;
+  GPtrArray             *stores;
 };
 
 G_DEFINE_TYPE (ValentContacts, valent_contacts, VALENT_TYPE_COMPONENT)
@@ -58,12 +58,12 @@ static ValentContacts *default_contacts = NULL;
 
 
 /*
- * ValentContactStoreProvider Callbacks
+ * ValentContactsAdapter Callbacks
  */
 static void
-on_store_added (ValentContactStoreProvider *provider,
-                ValentContactStore         *store,
-                ValentContacts             *self)
+on_store_added (ValentContactsAdapter *adapter,
+                ValentContactStore    *store,
+                ValentContacts        *self)
 {
   VALENT_ENTRY;
 
@@ -80,9 +80,9 @@ on_store_added (ValentContactStoreProvider *provider,
 }
 
 static void
-on_store_removed (ValentContactStoreProvider *provider,
-                  ValentContactStore         *store,
-                  ValentContacts             *self)
+on_store_removed (ValentContactsAdapter *adapter,
+                  ValentContactStore    *store,
+                  ValentContacts        *self)
 {
   VALENT_ENTRY;
 
@@ -99,17 +99,17 @@ on_store_removed (ValentContactStoreProvider *provider,
 }
 
 static void
-valent_contact_store_provider_load_cb (ValentContactStoreProvider *provider,
-                                       GAsyncResult               *result,
-                                       ValentContacts             *contacts)
+valent_contacts_adapter_load_cb (ValentContactsAdapter *adapter,
+                                 GAsyncResult          *result,
+                                 ValentContacts        *contacts)
 {
   g_autoptr (GError) error = NULL;
 
   VALENT_ENTRY;
 
-  if (!valent_contact_store_provider_load_finish (provider, result, &error) &&
+  if (!valent_contacts_adapter_load_finish (adapter, result, &error) &&
       !valent_error_ignore (error))
-    g_warning ("%s: %s", G_OBJECT_TYPE_NAME (provider), error->message);
+    g_warning ("%s: %s", G_OBJECT_TYPE_NAME (adapter), error->message);
 
   VALENT_EXIT;
 }
@@ -123,30 +123,30 @@ valent_contacts_extension_added (ValentComponent *component,
                                  PeasExtension   *extension)
 {
   ValentContacts *self = VALENT_CONTACTS (component);
-  ValentContactStoreProvider *provider = VALENT_CONTACT_STORE_PROVIDER (extension);
+  ValentContactsAdapter *adapter = VALENT_CONTACTS_ADAPTER (extension);
 
   g_assert (VALENT_IS_CONTACTS (self));
-  g_assert (VALENT_IS_CONTACT_STORE_PROVIDER (provider));
+  g_assert (VALENT_IS_CONTACTS_ADAPTER (adapter));
 
-  if (self->default_provider == NULL)
-    g_set_object (&self->default_provider, provider);
+  if (self->default_adapter == NULL)
+    g_set_object (&self->default_adapter, adapter);
 
-  g_signal_connect_object (provider,
+  g_signal_connect_object (adapter,
                            "store-added",
                            G_CALLBACK (on_store_added),
                            self,
                            0);
 
-  g_signal_connect_object (provider,
+  g_signal_connect_object (adapter,
                            "store-removed",
                            G_CALLBACK (on_store_removed),
                            self,
                            0);
 
-  valent_contact_store_provider_load_async (provider,
-                                            self->cancellable,
-                                            (GAsyncReadyCallback)valent_contact_store_provider_load_cb,
-                                            self);
+  valent_contacts_adapter_load_async (adapter,
+                                      self->cancellable,
+                                      (GAsyncReadyCallback)valent_contacts_adapter_load_cb,
+                                      self);
 }
 
 static void
@@ -154,23 +154,23 @@ valent_contacts_extension_removed (ValentComponent *component,
                                    PeasExtension   *extension)
 {
   ValentContacts *self = VALENT_CONTACTS (component);
-  ValentContactStoreProvider *provider = VALENT_CONTACT_STORE_PROVIDER (extension);
+  ValentContactsAdapter *adapter = VALENT_CONTACTS_ADAPTER (extension);
   g_autoptr (GPtrArray) stores = NULL;
 
   g_assert (VALENT_IS_CONTACTS (self));
-  g_assert (VALENT_IS_CONTACT_STORE_PROVIDER (provider));
+  g_assert (VALENT_IS_CONTACTS_ADAPTER (adapter));
 
-  if (self->default_provider == provider)
-    g_clear_object (&self->default_provider);
+  if (self->default_adapter == adapter)
+    g_clear_object (&self->default_adapter);
 
   /* Simulate removal */
-  stores = valent_contact_store_provider_get_stores (provider);
+  stores = valent_contacts_adapter_get_stores (adapter);
 
   for (unsigned int i = 0; i < stores->len; i++)
-    valent_contact_store_provider_emit_store_removed (provider, g_ptr_array_index (stores, i));
+    valent_contacts_adapter_emit_store_removed (adapter, g_ptr_array_index (stores, i));
 
-  g_signal_handlers_disconnect_by_func (provider, on_store_added, self);
-  g_signal_handlers_disconnect_by_func (provider, on_store_removed, self);
+  g_signal_handlers_disconnect_by_func (adapter, on_store_added, self);
+  g_signal_handlers_disconnect_by_func (adapter, on_store_removed, self);
 }
 
 /*
@@ -219,7 +219,7 @@ valent_contacts_finalize (GObject *object)
 
   g_clear_object (&self->cancellable);
   g_clear_pointer (&self->stores, g_ptr_array_unref);
-  g_clear_object (&self->default_provider);
+  g_clear_object (&self->default_adapter);
 
   G_OBJECT_CLASS (valent_contacts_parent_class)->finalize (object);
 }
@@ -245,7 +245,7 @@ valent_contacts_class_init (ValentContactsClass *klass)
    * @store: a #ValentContactStore
    *
    * Emitted when a [class@Valent.ContactStore] is added to a
-   * [class@Valent.ContactStoreProvider].
+   * [class@Valent.ContactsAdapter].
    *
    * Since: 1.0
    */
@@ -267,7 +267,7 @@ valent_contacts_class_init (ValentContactsClass *klass)
    * @store: a #ValentContactStore
    *
    * Emitted when a [class@Valent.ContactStore] is removed from a
-   * [class@Valent.ContactStoreProvider].
+   * [class@Valent.ContactsAdapter].
    *
    * Since: 1.0
    */
@@ -307,7 +307,7 @@ valent_contacts_get_default (void)
     {
       default_contacts = g_object_new (VALENT_TYPE_CONTACTS,
                                        "plugin-context", "contacts",
-                                       "plugin-type",    VALENT_TYPE_CONTACT_STORE_PROVIDER,
+                                       "plugin-type",    VALENT_TYPE_CONTACTS_ADAPTER,
                                        NULL);
 
       g_object_add_weak_pointer (G_OBJECT (default_contacts),
@@ -326,7 +326,7 @@ valent_contacts_get_default (void)
  * Get a #ValentContactStore for @uid.
  *
  * If the contact store does not exist, one will be created using the default
- * provider and passed @name and @description.
+ * adapter and passed @name and @description.
  *
  * Returns: (transfer none) (not nullable): an address book
  *

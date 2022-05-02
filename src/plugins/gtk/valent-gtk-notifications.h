@@ -10,7 +10,7 @@ G_BEGIN_DECLS
 
 #define VALENT_TYPE_GTK_NOTIFICATIONS (valent_gtk_notifications_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentGtkNotifications, valent_gtk_notifications, VALENT, GTK_NOTIFICATIONS, ValentNotificationSource)
+G_DECLARE_FINAL_TYPE (ValentGtkNotifications, valent_gtk_notifications, VALENT, GTK_NOTIFICATIONS, ValentNotificationsAdapter)
 
 G_END_DECLS
 

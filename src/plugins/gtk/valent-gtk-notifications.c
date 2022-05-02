@@ -14,20 +14,20 @@
 
 struct _ValentGtkNotifications
 {
-  ValentNotificationSource  parent_instance;
+  ValentNotificationsAdapter  parent_instance;
 
-  GCancellable             *cancellable;
+  GCancellable               *cancellable;
 
-  GDBusInterfaceVTable      vtable;
-  GDBusNodeInfo            *node_info;
-  GDBusInterfaceInfo       *iface_info;
-  GDBusConnection          *monitor;
-  unsigned int              monitor_id;
-  char                     *name_owner;
-  unsigned int              name_owner_id;
+  GDBusInterfaceVTable        vtable;
+  GDBusNodeInfo              *node_info;
+  GDBusInterfaceInfo         *iface_info;
+  GDBusConnection            *monitor;
+  unsigned int                monitor_id;
+  char                       *name_owner;
+  unsigned int                name_owner_id;
 };
 
-G_DEFINE_TYPE (ValentGtkNotifications, valent_gtk_notifications, VALENT_TYPE_NOTIFICATION_SOURCE)
+G_DEFINE_TYPE (ValentGtkNotifications, valent_gtk_notifications, VALENT_TYPE_NOTIFICATIONS_ADAPTER)
 
 
 /*
@@ -56,8 +56,8 @@ static const char *interface_matches[] = {
 
 
 static void
-_add_notification (ValentNotificationSource *source,
-                   GVariant                 *parameters)
+_add_notification (ValentNotificationsAdapter *adapter,
+                   GVariant                   *parameters)
 {
   g_autoptr (ValentNotification) notification = NULL;
   g_autofree char *desktop_id = NULL;
@@ -91,12 +91,12 @@ _add_notification (ValentNotificationSource *source,
       valent_notification_set_application (notification, app_name);
     }
 
-  valent_notification_source_emit_notification_added (source, notification);
+  valent_notifications_adapter_emit_notification_added (adapter, notification);
 }
 
 static void
-_remove_notification (ValentNotificationSource *source,
-                      GVariant                 *parameters)
+_remove_notification (ValentNotificationsAdapter *adapter,
+                      GVariant                   *parameters)
 {
   const char *app_id;
   const char *notif_id;
@@ -107,7 +107,7 @@ _remove_notification (ValentNotificationSource *source,
   if (g_str_equal (app_id, APPLICATION_ID))
     return;
 
-  valent_notification_source_emit_notification_removed (source, notif_id);
+  valent_notifications_adapter_emit_notification_removed (adapter, notif_id);
 }
 
 static void
@@ -120,12 +120,12 @@ valent_gtk_notifications_method_call (GDBusConnection       *connection,
                                       GDBusMethodInvocation *invocation,
                                       gpointer               user_data)
 {
-  ValentNotificationSource *source = VALENT_NOTIFICATION_SOURCE (user_data);
+  ValentNotificationsAdapter *adapter = VALENT_NOTIFICATIONS_ADAPTER (user_data);
   ValentGtkNotifications *self = VALENT_GTK_NOTIFICATIONS (user_data);
   GDBusMessage *message;
   const char *destination;
 
-  g_assert (VALENT_IS_GTK_NOTIFICATIONS (source));
+  g_assert (VALENT_IS_GTK_NOTIFICATIONS (adapter));
 
   message = g_dbus_method_invocation_get_message (invocation);
   destination = g_dbus_message_get_destination (message);
@@ -135,10 +135,10 @@ valent_gtk_notifications_method_call (GDBusConnection       *connection,
     goto out;
 
   if (g_strcmp0 (method_name, "AddNotification") == 0)
-    _add_notification (source, parameters);
+    _add_notification (adapter, parameters);
 
   else if (g_strcmp0 (method_name, "RemoveNotification") == 0)
-    _remove_notification (source, parameters);
+    _remove_notification (adapter, parameters);
 
   out:
     g_object_unref (invocation);
@@ -252,15 +252,15 @@ new_for_address_cb (GObject      *object,
 
 
 /*
- * ValentNotificationSource
+ * ValentNotificationsAdapter
  */
 static void
-valent_gtk_notifications_load_async (ValentNotificationSource *source,
-                                     GCancellable             *cancellable,
-                                     GAsyncReadyCallback       callback,
-                                     gpointer                  user_data)
+valent_gtk_notifications_load_async (ValentNotificationsAdapter *adapter,
+                                     GCancellable               *cancellable,
+                                     GAsyncReadyCallback         callback,
+                                     gpointer                    user_data)
 {
-  ValentGtkNotifications *self = VALENT_GTK_NOTIFICATIONS (source);
+  ValentGtkNotifications *self = VALENT_GTK_NOTIFICATIONS (adapter);
   g_autoptr (GTask) task = NULL;
   GError *error = NULL;
   g_autofree char *address = NULL;
@@ -274,7 +274,7 @@ valent_gtk_notifications_load_async (ValentNotificationSource *source,
                              self->cancellable,
                              G_CONNECT_SWAPPED);
 
-  task = g_task_new (source, self->cancellable, callback, user_data);
+  task = g_task_new (adapter, self->cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_gtk_notifications_load_async);
 
   /* Get a bus address */
@@ -338,12 +338,12 @@ static void
 valent_gtk_notifications_class_init (ValentGtkNotificationsClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
-  ValentNotificationSourceClass *source_class = VALENT_NOTIFICATION_SOURCE_CLASS (klass);
+  ValentNotificationsAdapterClass *adapter_class = VALENT_NOTIFICATIONS_ADAPTER_CLASS (klass);
 
   object_class->dispose = valent_gtk_notifications_dispose;
   object_class->finalize = valent_gtk_notifications_finalize;
 
-  source_class->load_async = valent_gtk_notifications_load_async;
+  adapter_class->load_async = valent_gtk_notifications_load_async;
 }
 
 static void

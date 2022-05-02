@@ -60,9 +60,9 @@ enum {
   EXTEN_APPLICATION_PLUGIN,
   EXTEN_CHANNEL_SERVICE,
   EXTEN_CLIPBOARD_ADAPTER,
-  EXTEN_CONTACT_STORE_PROVIDER,
+  EXTEN_CONTACTS_ADAPTER,
   EXTEN_INPUT_ADAPTER,
-  EXTEN_MEDIA_PLAYER_PROVIDER,
+  EXTEN_MEDIA_ADAPTER,
   EXTEN_MIXER_ADAPTER,
   EXTEN_NOTIFICATION_ADAPTER,
   EXTEN_SESSION_ADAPTER,
@@ -186,11 +186,11 @@ on_load_plugin (PeasEngine              *engine,
   if (peas_engine_provides_extension (engine, info, VALENT_TYPE_APPLICATION_PLUGIN) ||
       peas_engine_provides_extension (engine, info, VALENT_TYPE_CLIPBOARD_ADAPTER) ||
       peas_engine_provides_extension (engine, info, VALENT_TYPE_CHANNEL_SERVICE) ||
-      peas_engine_provides_extension (engine, info, VALENT_TYPE_CONTACT_STORE_PROVIDER) ||
+      peas_engine_provides_extension (engine, info, VALENT_TYPE_CONTACTS_ADAPTER) ||
       peas_engine_provides_extension (engine, info, VALENT_TYPE_INPUT_ADAPTER) ||
-      peas_engine_provides_extension (engine, info, VALENT_TYPE_MEDIA_PLAYER_PROVIDER) ||
+      peas_engine_provides_extension (engine, info, VALENT_TYPE_MEDIA_ADAPTER) ||
       peas_engine_provides_extension (engine, info, VALENT_TYPE_MIXER_ADAPTER) ||
-      peas_engine_provides_extension (engine, info, VALENT_TYPE_NOTIFICATION_SOURCE) ||
+      peas_engine_provides_extension (engine, info, VALENT_TYPE_NOTIFICATIONS_ADAPTER) ||
       peas_engine_provides_extension (engine, info, VALENT_TYPE_SESSION_ADAPTER) ||
       peas_engine_provides_extension (engine, info, VALENT_TYPE_PREFERENCES_PAGE))
     {
@@ -495,9 +495,9 @@ valent_preferences_window_class_init (ValentPreferencesWindowClass *klass)
       "clipboard",
     };
 
-  extensions[EXTEN_CONTACT_STORE_PROVIDER] =
+  extensions[EXTEN_CONTACTS_ADAPTER] =
     (ExtensionDescription){
-      VALENT_TYPE_CONTACT_STORE_PROVIDER,
+      VALENT_TYPE_CONTACTS_ADAPTER,
       N_("Contacts"),
       "contacts",
     };
@@ -509,9 +509,9 @@ valent_preferences_window_class_init (ValentPreferencesWindowClass *klass)
       "input",
     };
 
-  extensions[EXTEN_MEDIA_PLAYER_PROVIDER] =
+  extensions[EXTEN_MEDIA_ADAPTER] =
     (ExtensionDescription){
-      VALENT_TYPE_MEDIA_PLAYER_PROVIDER,
+      VALENT_TYPE_MEDIA_ADAPTER,
       N_("Media Players"),
       "media",
     };
@@ -525,7 +525,7 @@ valent_preferences_window_class_init (ValentPreferencesWindowClass *klass)
 
   extensions[EXTEN_NOTIFICATION_ADAPTER] =
     (ExtensionDescription){
-      VALENT_TYPE_NOTIFICATION_SOURCE,
+      VALENT_TYPE_NOTIFICATIONS_ADAPTER,
       N_("Notifications"),
       "notifications",
     };

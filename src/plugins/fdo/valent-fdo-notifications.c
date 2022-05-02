@@ -14,22 +14,22 @@
 
 struct _ValentFdoNotifications
 {
-  ValentNotificationSource  parent_instance;
+  ValentNotificationsAdapter  parent_instance;
 
-  GCancellable             *cancellable;
+  GCancellable               *cancellable;
 
-  GDBusInterfaceVTable      vtable;
-  GDBusNodeInfo            *node_info;
-  GDBusInterfaceInfo       *iface_info;
-  GDBusConnection          *monitor;
-  unsigned int              monitor_id;
-  char                     *name_owner;
-  unsigned int              name_owner_id;
-  GDBusConnection          *session;
-  unsigned int              closed_id;
+  GDBusInterfaceVTable        vtable;
+  GDBusNodeInfo              *node_info;
+  GDBusInterfaceInfo         *iface_info;
+  GDBusConnection            *monitor;
+  unsigned int                monitor_id;
+  char                       *name_owner;
+  unsigned int                name_owner_id;
+  GDBusConnection            *session;
+  unsigned int                closed_id;
 };
 
-G_DEFINE_TYPE (ValentFdoNotifications, valent_fdo_notifications, VALENT_TYPE_NOTIFICATION_SOURCE)
+G_DEFINE_TYPE (ValentFdoNotifications, valent_fdo_notifications, VALENT_TYPE_NOTIFICATIONS_ADAPTER)
 
 
 /*
@@ -123,8 +123,8 @@ _g_icon_new_for_variant (GVariant *image_data)
 }
 
 static void
-_notification_closed (ValentNotificationSource *source,
-                      GVariant                 *parameters)
+_notification_closed (ValentNotificationsAdapter *adapter,
+                      GVariant                   *parameters)
 {
   guint32 id, reason;
   g_autofree char *id_str = NULL;
@@ -132,12 +132,12 @@ _notification_closed (ValentNotificationSource *source,
   g_variant_get (parameters, "(uu)", &id, &reason);
 
   id_str = g_strdup_printf ("%u", id);
-  valent_notification_source_emit_notification_removed (source, id_str);
+  valent_notifications_adapter_emit_notification_removed (adapter, id_str);
 }
 
 static void
-_notify (ValentNotificationSource *source,
-         GVariant                 *parameters)
+_notify (ValentNotificationsAdapter *adapter,
+         GVariant                   *parameters)
 {
   g_autoptr (ValentNotification) notification = NULL;
   g_autoptr (GIcon) icon = NULL;
@@ -211,7 +211,7 @@ _notify (ValentNotificationSource *source,
   /* Set a timestamp */
   valent_notification_set_time (notification, valent_timestamp_ms ());
 
-  valent_notification_source_emit_notification_added (source, notification);
+  valent_notifications_adapter_emit_notification_added (adapter, notification);
 }
 
 static void
@@ -224,12 +224,12 @@ valent_fdo_notifications_method_call (GDBusConnection       *connection,
                                       GDBusMethodInvocation *invocation,
                                       gpointer               user_data)
 {
-  ValentNotificationSource *source = VALENT_NOTIFICATION_SOURCE (user_data);
+  ValentNotificationsAdapter *adapter = VALENT_NOTIFICATIONS_ADAPTER (user_data);
   ValentFdoNotifications *self = VALENT_FDO_NOTIFICATIONS (user_data);
   GDBusMessage *message;
   const char *destination;
 
-  g_assert (VALENT_IS_NOTIFICATION_SOURCE (source));
+  g_assert (VALENT_IS_NOTIFICATIONS_ADAPTER (adapter));
   g_assert (VALENT_IS_FDO_NOTIFICATIONS (self));
 
   message = g_dbus_method_invocation_get_message (invocation);
@@ -242,7 +242,7 @@ valent_fdo_notifications_method_call (GDBusConnection       *connection,
     goto out;
 
   if (g_strcmp0 (method_name, "Notify") == 0)
-    _notify (source, parameters);
+    _notify (adapter, parameters);
 
   out:
     g_object_unref (invocation);
@@ -257,12 +257,12 @@ on_notification_closed (GDBusConnection *connection,
                         GVariant        *parameters,
                         gpointer         user_data)
 {
-  ValentNotificationSource *source = VALENT_NOTIFICATION_SOURCE (user_data);
+  ValentNotificationsAdapter *adapter = VALENT_NOTIFICATIONS_ADAPTER (user_data);
 
-  g_assert (VALENT_IS_NOTIFICATION_SOURCE (source));
+  g_assert (VALENT_IS_NOTIFICATIONS_ADAPTER (adapter));
   g_assert (g_strcmp0 (signal_name, "NotificationClosed") == 0);
 
-  _notification_closed (source, parameters);
+  _notification_closed (adapter, parameters);
 }
 
 /*
@@ -390,15 +390,15 @@ new_for_address_cb (GObject      *object,
 
 
 /*
- * ValentNotificationSource
+ * ValentNotificationsAdapter
  */
 static void
-valent_fdo_notifications_load_async (ValentNotificationSource *source,
-                                     GCancellable             *cancellable,
-                                     GAsyncReadyCallback       callback,
-                                     gpointer                  user_data)
+valent_fdo_notifications_load_async (ValentNotificationsAdapter *adapter,
+                                     GCancellable               *cancellable,
+                                     GAsyncReadyCallback         callback,
+                                     gpointer                    user_data)
 {
-  ValentFdoNotifications *self = VALENT_FDO_NOTIFICATIONS (source);
+  ValentFdoNotifications *self = VALENT_FDO_NOTIFICATIONS (adapter);
   g_autoptr (GTask) task = NULL;
   g_autofree char *address = NULL;
   GError *error = NULL;
@@ -412,7 +412,7 @@ valent_fdo_notifications_load_async (ValentNotificationSource *source,
                              self->cancellable,
                              G_CONNECT_SWAPPED);
 
-  task = g_task_new (source, self->cancellable, callback, user_data);
+  task = g_task_new (adapter, self->cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_fdo_notifications_load_async);
 
   /* Get a bus address */
@@ -483,12 +483,12 @@ static void
 valent_fdo_notifications_class_init (ValentFdoNotificationsClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
-  ValentNotificationSourceClass *source_class = VALENT_NOTIFICATION_SOURCE_CLASS (klass);
+  ValentNotificationsAdapterClass *adapter_class = VALENT_NOTIFICATIONS_ADAPTER_CLASS (klass);
 
   object_class->dispose = valent_fdo_notifications_dispose;
   object_class->finalize = valent_fdo_notifications_finalize;
 
-  source_class->load_async = valent_fdo_notifications_load_async;
+  adapter_class->load_async = valent_fdo_notifications_load_async;
 }
 
 static void

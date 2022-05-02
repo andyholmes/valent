@@ -6,14 +6,14 @@
 #include <libpeas/peas.h>
 #include <libvalent-contacts.h>
 
-#include "valent-ebook-provider.h"
+#include "valent-ebook-adapter.h"
 
 
 G_MODULE_EXPORT void
 valent_eds_plugin_register_types (PeasObjectModule *module)
 {
   peas_object_module_register_extension_type (module,
-                                              VALENT_TYPE_CONTACT_STORE_PROVIDER,
-                                              VALENT_TYPE_EBOOK_PROVIDER);
+                                              VALENT_TYPE_CONTACTS_ADAPTER,
+                                              VALENT_TYPE_EBOOK_ADAPTER);
 }
 

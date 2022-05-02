@@ -12,5 +12,5 @@ Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
 X-ClipboardAdapterPriority=100
-X-NotificationSourcePriority=100
+X-NotificationsAdapterPriority=100
 

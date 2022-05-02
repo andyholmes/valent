@@ -62,38 +62,38 @@ get_text_cb (ValentClipboard           *clipboard,
 }
 
 static void
-test_clipboard_component_provider (ClipboardComponentFixture *fixture,
-                                   gconstpointer              user_data)
+test_clipboard_component_adapter (ClipboardComponentFixture *fixture,
+                                  gconstpointer              user_data)
 {
-  ValentClipboardAdapter *provider;
+  ValentClipboardAdapter *adapter;
   g_autofree char *text = NULL;
   PeasPluginInfo *info;
 
-  while ((provider = valent_mock_clipboard_adapter_get_instance ()) == NULL)
+  while ((adapter = valent_mock_clipboard_adapter_get_instance ()) == NULL)
     continue;
 
   /* Properties */
-  g_object_get (provider,
+  g_object_get (adapter,
                 "plugin-info", &info,
                 NULL);
   g_assert_nonnull (info);
   g_boxed_free (PEAS_TYPE_PLUGIN_INFO, info);
 
   /* Signals */
-  g_signal_connect (provider,
+  g_signal_connect (adapter,
                     "changed",
                     G_CALLBACK (on_changed),
                     fixture);
 
-  valent_clipboard_adapter_emit_changed (provider);
-  g_assert_true (fixture->data == provider);
+  valent_clipboard_adapter_emit_changed (adapter);
+  g_assert_true (fixture->data == adapter);
   fixture->data = NULL;
 
   /* Methods */
   text = g_uuid_string_random ();
   valent_clipboard_set_text (fixture->clipboard, text);
 
-  valent_clipboard_adapter_get_text_async (provider,
+  valent_clipboard_adapter_get_text_async (adapter,
                                            NULL,
                                            (GAsyncReadyCallback)adapter_get_text_cb,
                                            fixture);
@@ -128,10 +128,10 @@ main (int   argc,
 {
   g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 
-  g_test_add ("/components/clipboard/provider",
+  g_test_add ("/components/clipboard/adapter",
               ClipboardComponentFixture, NULL,
               clipboard_component_fixture_set_up,
-              test_clipboard_component_provider,
+              test_clipboard_component_adapter,
               clipboard_component_fixture_tear_down);
 
   g_test_add ("/components/clipboard/self",

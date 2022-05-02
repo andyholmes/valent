@@ -154,7 +154,7 @@ test_gtk_notifications_source (GtkNotificationsFixture *fixture,
   g_autofree char *body = NULL;
   GNotificationPriority priority;
 
-  /* Wait a bit longer for valent_notification_source_load_async() to resolve
+  /* Wait a bit longer for valent_notifications_adapter_load_async() to resolve
    * NOTE: this is longer than most tests due to the chained async functions
    *       being called in ValentGtkNotifications.
    */
