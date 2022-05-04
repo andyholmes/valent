@@ -110,7 +110,6 @@ valent_contact_cache_remove_task (GTask        *task,
                                   GCancellable *cancellable)
 {
   ValentContactCache *self = VALENT_CONTACT_CACHE (source_object);
-  ValentContactStore *store = VALENT_CONTACT_STORE (source_object);
   const char *uid = task_data;
   GError *error = NULL;
 
@@ -129,7 +128,7 @@ valent_contact_cache_remove_task (GTask        *task,
   if (error != NULL)
     return g_task_return_error (task, error);
 
-  valent_contact_store_emit_contact_removed (store, uid);
+  valent_contact_store_emit_contact_removed (VALENT_CONTACT_STORE (self), uid);
 
   g_task_return_boolean (task, TRUE);
 }
@@ -310,9 +309,9 @@ valent_contact_cache_finalize (GObject *object)
 
 static void
 valent_contact_cache_get_property (GObject    *object,
-                                  guint       prop_id,
-                                  GValue     *value,
-                                  GParamSpec *pspec)
+                                   guint       prop_id,
+                                   GValue     *value,
+                                   GParamSpec *pspec)
 {
   ValentContactCache *self = VALENT_CONTACT_CACHE (object);
 
