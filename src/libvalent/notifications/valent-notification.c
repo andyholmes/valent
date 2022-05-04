@@ -41,7 +41,6 @@ enum {
   PROP_APPLICATION,
   PROP_BODY,
   PROP_ICON,
-  PROP_ICON_NAME,
   PROP_ID,
   PROP_PRIORITY,
   PROP_TIME,
@@ -215,10 +214,6 @@ valent_notification_set_property (GObject      *object,
       valent_notification_set_icon (self, g_value_get_object (value));
       break;
 
-    case PROP_ICON_NAME:
-      valent_notification_set_icon_from_string (self, g_value_get_string (value));
-      break;
-
     case PROP_ID:
       valent_notification_set_id (self, g_value_get_string (value));
       break;
@@ -323,24 +318,6 @@ valent_notification_class_init (ValentNotificationClass *klass)
                          "The notification icon",
                          G_TYPE_ICON,
                          (G_PARAM_READWRITE |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentNotification:icon-name: (setter set_icon_from_string)
-   *
-   * A string used to construct the notification icon.
-   *
-   * See [method@Valent.Notification.set_icon_from_string].
-   *
-   * Since: 1.0
-   */
-  properties [PROP_ICON_NAME] =
-    g_param_spec_string ("icon-name",
-                         "Icon Name",
-                         "A string used to construct an icon",
-                         NULL,
-                         (G_PARAM_WRITABLE |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
@@ -590,32 +567,6 @@ valent_notification_set_icon (ValentNotification *notification,
 
   g_set_object (&notification->icon, icon);
   g_object_notify_by_pspec (G_OBJECT (notification), properties [PROP_ICON]);
-}
-
-/**
- * valent_notification_set_icon_from_string:
- * @notification: a #ValentNotification
- * @icon_name: (nullable): a themed icon name
- *
- * Set the notification icon from a string.
- *
- * This is a convenience for calling [func@Gio.Icon.new_for_string] and then
- * and then [method@Valent.Notification.set_icon].
- *
- * Since: 1.0
- */
-void
-valent_notification_set_icon_from_string (ValentNotification *notification,
-                                          const char         *icon_name)
-{
-  g_autoptr (GIcon) icon = NULL;
-
-  g_return_if_fail (VALENT_IS_NOTIFICATION (notification));
-
-  if (icon_name != NULL)
-    icon = g_icon_new_for_string (icon_name, NULL);
-
-  valent_notification_set_icon (notification, icon);
 }
 
 /**

@@ -34,9 +34,6 @@ VALENT_AVAILABLE_IN_1_0
 void                    valent_notification_set_icon               (ValentNotification    *notification,
                                                                     GIcon                 *icon);
 VALENT_AVAILABLE_IN_1_0
-void                    valent_notification_set_icon_from_string   (ValentNotification    *notification,
-                                                                    const char            *icon_name);
-VALENT_AVAILABLE_IN_1_0
 const char            * valent_notification_get_id                 (ValentNotification    *notification);
 VALENT_AVAILABLE_IN_1_0
 void                    valent_notification_set_id                 (ValentNotification    *notification,
