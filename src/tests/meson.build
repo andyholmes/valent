@@ -20,7 +20,6 @@ tests_env = [
   'PYTHONDONTWRITEBYTECODE=yes',
   'MALLOC_CHECK_=2',
   'GDK_BACKEND=wayland,x11',
-  'GDK_PIXBUF_MODULE_FILE=@0@/data/loaders.cache'.format(meson.current_build_dir()),
   'GTK_A11Y=test',
   # See: https://github.com/google/sanitizers/issues/1322
   'ASAN_OPTIONS=detect_leaks=1,intercept_tls_get_addr=0',
@@ -62,15 +61,6 @@ gschemas_compiled = custom_target('gschemas.compiled',
            command: ['glib-compile-schemas', test_schema_dir],
   build_by_default: true,
            install: false,
-)
-
-
-# Generate GdkPixbuf loader cache
-gdkpixbuf_test_init = find_program('gdkpixbuf-test-init.sh')
-
-run_command(gdkpixbuf_test_init,
-  check: true,
-    env: tests_env,
 )
 
 

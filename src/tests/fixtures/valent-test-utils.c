@@ -443,7 +443,8 @@ valent_test_upload (ValentChannel  *channel,
  * This function is used to initialize a GUI test program for Valent.
  *
  * In order, it will:
- * - Call g_test_init() passing @argcp, @argvp and %G_TEST_OPTION_ISOLATE_DIRS
+ * - Call g_content_type_set_mime_dirs() to ensure GdkPixbuf works
+ * - Call g_test_init() with the %G_TEST_OPTION_ISOLATE_DIRS option
  * - Set the locale to “en_US.UTF-8”
  * - Call gtk_init()
  * - Call adw_init()

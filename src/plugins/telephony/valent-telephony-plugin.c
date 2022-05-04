@@ -213,7 +213,7 @@ valent_telephony_plugin_get_event_icon (JsonNode   *packet,
   if (valent_packet_get_string (packet, "phoneThumbnail", &phone_thumbnail))
     {
       g_autoptr (GdkPixbufLoader) loader = NULL;
-      g_autoptr (GdkPixbuf) pixbuf = NULL;
+      GdkPixbuf *pixbuf = NULL;
       g_autoptr (GError) error = NULL;
       g_autofree guchar *data = NULL;
       gsize dlen;
@@ -229,7 +229,7 @@ valent_telephony_plugin_get_event_icon (JsonNode   *packet,
         g_debug ("%s(): %s", G_STRFUNC, error->message);
 
       if (pixbuf != NULL)
-        return G_ICON (g_steal_pointer (&pixbuf));
+        return G_ICON (g_object_ref (pixbuf));
     }
 
   if (g_str_equal (event, "ringing"))

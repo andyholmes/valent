@@ -129,9 +129,11 @@ send_notification (FdoNotificationsFixture *fixture,
       gsize pixels_len;
       gboolean has_alpha;
       GVariant *value;
+      GError *error = NULL;
 
-      // TODO: fix pixbuf loader problem
-      pixbuf = gdk_pixbuf_new_from_file (TEST_DATA_DIR"image.png", NULL);
+      pixbuf = gdk_pixbuf_new_from_file (TEST_DATA_DIR"image.png", &error);
+      g_assert_no_error (error);
+
       g_object_get (pixbuf,
                     "width",           &width,
                     "height",          &height,
@@ -252,9 +254,9 @@ test_fdo_notifications_source (FdoNotificationsFixture *fixture,
   g_main_loop_run (fixture->loop);
   g_assert_cmpstr (id, ==, fixture->notification_id);
 
-  /* TODO: Add notification (with pixbuf) */
-  // send_notification (fixture, TRUE);
-  // g_main_loop_run (fixture->loop);
+  /* Add notification (with pixbuf) */
+  send_notification (fixture, TRUE);
+  g_main_loop_run (fixture->loop);
 
   g_signal_handlers_disconnect_by_data (fixture->notifications, fixture);
 }
@@ -263,6 +265,7 @@ int
 main (int   argc,
       char *argv[])
 {
+  g_content_type_set_mime_dirs (NULL);
   g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 
   g_test_add ("/plugins/fdo/notifications",
