@@ -159,7 +159,7 @@ valent_notification_upload_get_icon_bytes (GIcon         *icon,
 {
   g_autoptr (GBytes) bytes = NULL;
   g_autoptr (GdkPixbufLoader) loader = NULL;
-  g_autoptr (GdkPixbuf) pixbuf = NULL;
+  GdkPixbuf *pixbuf = NULL;
   g_autoptr (GError) warn = NULL;
   char *data;
   gsize size;

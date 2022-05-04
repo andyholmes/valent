@@ -133,13 +133,8 @@ int
 main (int   argc,
       char *argv[])
 {
-  /* TODO: skip using valent_test_ui_init() because gdk-pixbuf fails to load
-   *       JPEG images with %G_TEST_OPTION_ISOLATE_DIRS set, even if
-   *       `GDK_PIXBUF_MODULE_FILE` is set correctly in the env.
-   */
-  g_test_init (&argc, &argv, NULL);
-  gtk_init ();
-  adw_init ();
+  g_content_type_set_mime_dirs (NULL);
+  valent_test_ui_init (&argc, &argv, NULL);
 
   g_test_add_func ("/plugins/sms/avatar-from-contact",
                    test_sms_avatar_from_contact);
