@@ -14,6 +14,7 @@
 #include "valent-message.h"
 #include "valent-sms-conversation.h"
 #include "valent-sms-store.h"
+#include "valent-sms-utils.h"
 #include "valent-sms-window.h"
 #include "valent-message-row.h"
 
@@ -75,7 +76,7 @@ phone_lookup_cb (ValentContactStore *store,
   g_autoptr (GError) error = NULL;
   g_autoptr (EContact) contact = NULL;
 
-  contact = valent_contact_store_dup_for_phone_finish (store, result, &error);
+  contact = valent_sms_contact_from_phone_finish (store, result, &error);
 
   if (contact == NULL)
       g_warning ("%s(): %s", G_STRFUNC, error->message);
@@ -143,11 +144,11 @@ search_messages_cb (ValentSmsStore  *store,
             continue;
         }
 
-      valent_contact_store_dup_for_phone_async (window->contact_store,
-                                                address,
-                                                NULL,
-                                                (GAsyncReadyCallback)phone_lookup_cb,
-                                                row);
+      valent_sms_contact_from_phone (window->contact_store,
+                                     address,
+                                     NULL,
+                                     (GAsyncReadyCallback)phone_lookup_cb,
+                                     row);
     }
 }
 
@@ -507,11 +508,13 @@ conversation_list_create (gpointer item,
       participant = g_variant_get_child_value (addresses, 0);
 
       if (g_variant_lookup (participant, "address", "&s", &address))
-        valent_contact_store_dup_for_phone_async (window->contact_store,
-                                                  address,
-                                                  NULL,
-                                                  (GAsyncReadyCallback)phone_lookup_cb,
-                                                  row);
+        {
+          valent_sms_contact_from_phone (window->contact_store,
+                                         address,
+                                         NULL,
+                                         (GAsyncReadyCallback)phone_lookup_cb,
+                                         row);
+        }
     }
 
   return row;

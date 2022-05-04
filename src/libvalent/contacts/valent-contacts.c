@@ -12,7 +12,6 @@
 #include "valent-contacts.h"
 #include "valent-contacts-adapter.h"
 #include "valent-contact-store.h"
-#include "valent-contact-utils.h"
 #include "valent-contact-cache.h"
 
 

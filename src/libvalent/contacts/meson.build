@@ -15,7 +15,6 @@ libvalent_contacts_public_headers = [
   'valent-contacts-adapter.h',
   'valent-contact-cache.h',
   'valent-contact-store.h',
-  'valent-contact-utils.h',
   'valent-eds.h',
 ]
 
@@ -36,7 +35,6 @@ libvalent_contacts_public_sources = [
   'valent-contacts-adapter.c',
   'valent-contact-cache.c',
   'valent-contact-store.c',
-  'valent-contact-utils.c',
 ]
 
 

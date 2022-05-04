@@ -15,6 +15,7 @@
 #include "valent-sms-conversation.h"
 #include "valent-sms-conversation-row.h"
 #include "valent-sms-store.h"
+#include "valent-sms-utils.h"
 
 
 struct _ValentSmsConversation
@@ -80,7 +81,7 @@ phone_lookup_cb (ValentContactStore *store,
   g_autoptr (GError) error = NULL;
   GtkWidget *conversation;
 
-  contact = valent_contact_store_dup_for_phone_finish (store, result, &error);
+  contact = valent_sms_contact_from_phone_finish (store, result, &error);
 
   if (contact == NULL)
     {
@@ -240,11 +241,11 @@ valent_sms_conversation_insert_message (ValentSmsConversation *self,
 
       if (contact == NULL)
         {
-          valent_contact_store_dup_for_phone_async (self->contact_store,
-                                                    sender,
-                                                    NULL,
-                                                    (GAsyncReadyCallback)phone_lookup_cb,
-                                                    g_object_ref_sink (row));
+          valent_sms_contact_from_phone (self->contact_store,
+                                         sender,
+                                         NULL,
+                                         (GAsyncReadyCallback)phone_lookup_cb,
+                                         g_object_ref_sink (row));
         }
     }
 

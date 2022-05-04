@@ -120,15 +120,5 @@ VALENT_AVAILABLE_IN_1_0
 GSList     * valent_contact_store_query_finish         (ValentContactStore   *store,
                                                         GAsyncResult         *result,
                                                         GError              **error);
-VALENT_AVAILABLE_IN_1_0
-void         valent_contact_store_dup_for_phone_async  (ValentContactStore   *store,
-                                                        const char           *number,
-                                                        GCancellable         *cancellable,
-                                                        GAsyncReadyCallback   callback,
-                                                        gpointer              user_data);
-VALENT_AVAILABLE_IN_1_0
-EContact   * valent_contact_store_dup_for_phone_finish (ValentContactStore   *store,
-                                                        GAsyncResult         *result,
-                                                        GError              **error);
 
 G_END_DECLS
