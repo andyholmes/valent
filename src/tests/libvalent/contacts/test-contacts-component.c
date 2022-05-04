@@ -20,20 +20,6 @@ typedef struct
 } ContactsComponentFixture;
 
 
-typedef struct
-{
-  const char *original;
-  const char *normalized;
-} PhoneNumber;
-
-static const PhoneNumber numbers[] = {
-  {"754-3010",         "7543010"},     // Local
-  {"(541) 754-3010",   "5417543010"},  // Domestic
-  {"+1-541-754-3010",  "15417543010"}, // International
-  {"1-541-754-3010",   "15417543010"}, // International (US)
-  {"001-541-754-3010", "15417543010"}  // International (EU)
-};
-
 static const char vcard[] =
  "BEGIN:VCARD\n"
  "VERSION:2.1\n"
@@ -138,18 +124,6 @@ query_contact_cb (ValentContactStore       *store,
   GError *error = NULL;
 
   fixture->result = valent_contact_store_query_finish (store, result, &error);
-  g_assert_no_error (error);
-  g_main_loop_quit (fixture->loop);
-}
-
-static void
-dup_for_phone_cb (ValentContactStore       *store,
-                  GAsyncResult             *result,
-                  ContactsComponentFixture *fixture)
-{
-  GError *error = NULL;
-
-  fixture->result = valent_contact_store_dup_for_phone_finish (store, result, &error);
   g_assert_no_error (error);
   g_main_loop_quit (fixture->loop);
 }
@@ -345,19 +319,6 @@ test_contacts_component_store (ContactsComponentFixture *fixture,
   g_clear_pointer (&contacts, valent_object_slist_free);
   g_clear_object (&contact);
 
-  /* Contacts can be queried by telephone number */
-  valent_contact_store_dup_for_phone_async (fixture->store,
-                                            "+1-123-456-7890",
-                                            NULL,
-                                            (GAsyncReadyCallback)dup_for_phone_cb,
-                                            fixture);
-  g_main_loop_run (fixture->loop);
-
-  contact = g_steal_pointer (&fixture->result);
-  g_assert_true (E_IS_CONTACT (contact));
-  g_assert_cmpstr (e_contact_get_const (contact, E_CONTACT_UID), ==, "test-contact");
-  g_clear_object (&contact);
-
   /* ::contact-removed is emitted when contacts are removed */
   valent_contact_store_remove_contact (fixture->store,
                                        "test-contact",
@@ -422,39 +383,6 @@ test_contacts_component_self (ContactsComponentFixture *fixture,
   g_signal_handlers_disconnect_by_data (fixture->contacts, fixture);
 }
 
-static void
-test_contacts_component_utils (void)
-{
-  g_autoptr (EContact) contact = NULL;
-  char *normalized;
-  gboolean ret;
-
-  /* Normalize & Compare */
-  for (unsigned int i = 0; i < G_N_ELEMENTS (numbers); i++)
-    {
-      gboolean equal;
-
-      normalized = valent_phone_number_normalize (numbers[i].original);
-      g_assert_cmpstr (normalized, ==, numbers[i].normalized);
-      g_free (normalized);
-
-      if (i > 0)
-        {
-          equal = valent_phone_number_equal (numbers[i - 1].original,
-                                             numbers[i].original);
-          g_assert_true (equal);
-        }
-    }
-
-  /* Test Contact */
-  contact = e_contact_new_from_vcard_with_uid (vcard, "test-contact");
-  normalized = valent_phone_number_normalize ("123-456-7890");
-
-  ret = valent_phone_number_of_contact (contact, normalized);
-  g_assert_true (ret);
-  g_free (normalized);
-}
-
 int
 main (int   argc,
       char *argv[])
@@ -478,9 +406,6 @@ main (int   argc,
               contacts_component_fixture_set_up,
               test_contacts_component_self,
               contacts_component_fixture_tear_down);
-
-  g_test_add_func ("/components/contacts/utils",
-                   test_contacts_component_utils);
 
   return g_test_run ();
 }
