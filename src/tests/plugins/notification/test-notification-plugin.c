@@ -125,9 +125,10 @@ test_notification_plugin_send_notification (ValentTestFixture *fixture,
   json_node_unref (packet);
 
   /* Send a notification with a themed icon */
-  valent_notification_set_icon_from_string (notification,
-                                            "dialog-information-symbolic");
+  icon = g_themed_icon_new ("dialog-information-symbolic");
+  valent_notification_set_icon (notification, icon);
   valent_notifications_adapter_emit_notification_added (adapter, notification);
+  g_clear_object (&icon);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification");
@@ -145,9 +146,12 @@ test_notification_plugin_send_notification (ValentTestFixture *fixture,
   json_node_unref (packet);
 
   /* Send a notification with a file icon */
-  valent_notification_set_icon_from_string (notification,
-                                            "file://"TEST_DATA_DIR"image.png");
+  file = g_file_new_for_uri ("file://"TEST_DATA_DIR"image.png");
+  icon = g_file_icon_new (file);
+  valent_notification_set_icon (notification, icon);
   valent_notifications_adapter_emit_notification_added (adapter, notification);
+  g_clear_object (&file);
+  g_clear_object (&icon);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification");
@@ -195,9 +199,8 @@ test_notification_plugin_actions (ValentTestFixture *fixture,
 {
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *packet;
-  GVariantDict dict;
   g_autoptr (GIcon) icon = NULL;
-  g_autoptr (GVariant) iconv = NULL;
+  g_autoptr (ValentNotification) notification = NULL;
   GError *error = NULL;
 
   /* Expect notification request */
@@ -210,16 +213,16 @@ test_notification_plugin_actions (ValentTestFixture *fixture,
 
   /* Send a notification with a themed icon */
   icon = g_themed_icon_new ("dialog-information-symbolic");
-  iconv = g_icon_serialize (icon);
+  notification = g_object_new (VALENT_TYPE_NOTIFICATION,
+                               "id",          "test-id",
+                               "application", "Test Application",
+                               "title",       "Test Title",
+                               "body",        "Test Body",
+                               "icon",        icon,
+                               NULL);
 
-  g_variant_dict_init (&dict, NULL);
-  g_variant_dict_insert (&dict, "id", "s", "test-id");
-  g_variant_dict_insert (&dict, "application", "s", "Test Application");
-  g_variant_dict_insert (&dict, "title", "s", "Test Title");
-  g_variant_dict_insert (&dict, "body", "s", "Test Body");
-  g_variant_dict_insert_value (&dict, "icon", iconv);
   g_action_group_activate_action (actions, "notification.send",
-                                  g_variant_dict_end (&dict));
+                                  valent_notification_serialize (notification));
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification");
