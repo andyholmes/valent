@@ -60,6 +60,7 @@ pkgconfig.generate(
      requires: [
        'gio-2.0',
        'gio-unix-2.0',
+       'gnutls',
        'gtk-4.0',
        'json-glib-1.0',
        'libpeas-1.0',
