@@ -295,7 +295,7 @@ int
 main (int   argc,
       char *argv[])
 {
-  g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
+  valent_test_init (&argc, &argv, NULL);
 
   g_test_add ("/components/media/adapter",
               MediaComponentFixture, NULL,

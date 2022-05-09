@@ -2,6 +2,7 @@
 // SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 #include <libvalent-core.h>
+#include <libvalent-test.h>
 
 
 static const char *corrupt_packet =
@@ -296,7 +297,7 @@ int
 main (int   argc,
       char *argv[])
 {
-  g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
+  valent_test_init (&argc, &argv, NULL);
 
   g_test_add_func ("/core/packet/builder",
                    test_packet_builder);
