@@ -103,6 +103,64 @@ valent_channel_real_download (ValentChannel  *channel,
   return NULL;
 }
 
+static void
+valent_channel_download_task (GTask        *task,
+                              gpointer      source_object,
+                              gpointer      task_data,
+                              GCancellable *cancellable)
+{
+  ValentChannel *self = source_object;
+  JsonNode *packet = task_data;
+  g_autoptr (GIOStream) stream = NULL;
+  GError *error = NULL;
+
+  if (g_task_return_error_if_cancelled (task))
+    return;
+
+  stream = VALENT_CHANNEL_GET_CLASS (self)->download (self,
+                                                      packet,
+                                                      cancellable,
+                                                      &error);
+
+  if (stream == NULL)
+    return g_task_return_error (task, error);
+
+  g_task_return_pointer (task, g_steal_pointer (&stream), g_object_unref);
+}
+
+static void
+valent_channel_real_download_async (ValentChannel       *channel,
+                                    JsonNode            *packet,
+                                    GCancellable        *cancellable,
+                                    GAsyncReadyCallback  callback,
+                                    gpointer             user_data)
+{
+  g_autoptr (GTask) task = NULL;
+
+  g_assert (VALENT_IS_CHANNEL (channel));
+  g_assert (VALENT_IS_PACKET (packet));
+  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  task = g_task_new (channel, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_channel_real_download_async);
+  g_task_set_task_data (task,
+                        json_node_ref (packet),
+                        (GDestroyNotify)json_node_unref);
+  g_task_run_in_thread (task, valent_channel_download_task);
+}
+
+static GIOStream *
+valent_channel_real_download_finish (ValentChannel  *channel,
+                                     GAsyncResult   *result,
+                                     GError        **error)
+{
+  g_assert (VALENT_IS_CHANNEL (channel));
+  g_assert (g_task_is_valid (result, channel));
+  g_assert (error == NULL || *error == NULL);
+
+  return g_task_propagate_pointer (G_TASK (result), error);
+}
+
 static GIOStream *
 valent_channel_real_upload (ValentChannel  *channel,
                             JsonNode       *packet,
@@ -115,6 +173,64 @@ valent_channel_real_upload (ValentChannel  *channel,
                "%s does not implement upload()",
                G_OBJECT_TYPE_NAME (channel));
   return NULL;
+}
+
+static void
+valent_channel_upload_task (GTask        *task,
+                            gpointer      source_object,
+                            gpointer      task_data,
+                            GCancellable *cancellable)
+{
+  ValentChannel *self = source_object;
+  JsonNode *packet = task_data;
+  g_autoptr (GIOStream) stream = NULL;
+  GError *error = NULL;
+
+  if (g_task_return_error_if_cancelled (task))
+    return;
+
+  stream = VALENT_CHANNEL_GET_CLASS (self)->upload (self,
+                                                    packet,
+                                                    cancellable,
+                                                    &error);
+
+  if (stream == NULL)
+    return g_task_return_error (task, error);
+
+  g_task_return_pointer (task, g_steal_pointer (&stream), g_object_unref);
+}
+
+static void
+valent_channel_real_upload_async (ValentChannel       *channel,
+                                  JsonNode            *packet,
+                                  GCancellable        *cancellable,
+                                  GAsyncReadyCallback  callback,
+                                  gpointer             user_data)
+{
+  g_autoptr (GTask) task = NULL;
+
+  g_assert (VALENT_IS_CHANNEL (channel));
+  g_assert (VALENT_IS_PACKET (packet));
+  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  task = g_task_new (channel, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_channel_real_upload_async);
+  g_task_set_task_data (task,
+                        json_node_ref (packet),
+                        (GDestroyNotify)json_node_unref);
+  g_task_run_in_thread (task, valent_channel_upload_task);
+}
+
+static GIOStream *
+valent_channel_real_upload_finish (ValentChannel  *channel,
+                                   GAsyncResult   *result,
+                                   GError        **error)
+{
+  g_assert (VALENT_IS_CHANNEL (channel));
+  g_assert (g_task_is_valid (result, channel));
+  g_assert (error == NULL || *error == NULL);
+
+  return g_task_propagate_pointer (G_TASK (result), error);
 }
 
 static void
@@ -295,7 +411,11 @@ valent_channel_class_init (ValentChannelClass *klass)
 
   klass->get_verification_key = valent_channel_real_get_verification_key;
   klass->download = valent_channel_real_download;
+  klass->download_async = valent_channel_real_download_async;
+  klass->download_finish = valent_channel_real_download_finish;
   klass->upload = valent_channel_real_upload;
+  klass->upload_async = valent_channel_real_upload_async;
+  klass->upload_finish = valent_channel_real_upload_finish;
   klass->store_data = valent_channel_real_store_data;
 
   /**
@@ -851,13 +971,15 @@ valent_channel_store_data (ValentChannel *channel,
  * @cancellable: (nullable): a #GCancellable
  * @error: (nullable): a #GError
  *
- * Accept a payload connection from the remote device.
+ * Open an auxiliary connection, usually to download data.
  *
- * Implementations should use the payload information in @packet necessary to
- * negotiate the connection (eg. TCP port).
+ * Implementations should use information from the `payloadTransferInfo` field
+ * to open a connection and wait for it to be accepted. In most cases the remote
+ * device will write data to the stream and then close it when finished.
  *
- * In most cases the [property@Gio.IOStream:input-stream] of the result will be
- * used, while the [property@Gio.IOStream:output-stream] is left unused.
+ * For example, a TCP-based implementation could connect to a port in the
+ * `payloadTransferInfo` dictionary on the same host as the channel. When the
+ * connection is accepted the caller can perform operations on it as required.
  *
  * Returns: (transfer full) (nullable): a #GIOStream
  *
@@ -887,19 +1009,92 @@ valent_channel_download (ValentChannel  *channel,
 }
 
 /**
+ * valent_channel_download_async: (virtual download_async)
+ * @channel: a #ValentChannel
+ * @packet: a KDE Connect packet
+ * @cancellable: (nullable): a #GCancellable
+ * @callback: (scope async): a #GAsyncReadyCallback
+ * @user_data: (closure): user supplied data
+ *
+ * Open an auxiliary connection, usually to download data.
+ *
+ * This is a non-blocking variant of [method@Valent.Channel.download]. Call
+ * [method@Valent.Channel.download_finish] to get the result.
+ *
+ * The default implementation of this method invokes
+ * [vfunc@Valent.Channel.download] in a thread.
+ *
+ * Since: 1.0
+ */
+void
+valent_channel_download_async (ValentChannel       *channel,
+                               JsonNode            *packet,
+                               GCancellable        *cancellable,
+                               GAsyncReadyCallback  callback,
+                               gpointer             user_data)
+{
+  VALENT_ENTRY;
+
+  g_return_if_fail (VALENT_IS_CHANNEL (channel));
+  g_return_if_fail (VALENT_IS_PACKET (packet));
+  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  VALENT_CHANNEL_GET_CLASS (channel)->download_async (channel,
+                                                      packet,
+                                                      cancellable,
+                                                      callback,
+                                                      user_data);
+
+  VALENT_EXIT;
+}
+
+/**
+ * valent_channel_download_finish: (virtual download_finish)
+ * @channel: a #ValentChannel
+ * @result: a #GAsyncResult
+ * @error: (nullable): a #GError
+ *
+ * Finish an operation started with [method@Valent.Channel.download_async].
+ *
+ * Returns: (transfer full) (nullable): a #GIOStream
+ */
+GIOStream *
+valent_channel_download_finish (ValentChannel  *channel,
+                                GAsyncResult   *result,
+                                GError        **error)
+{
+  GIOStream *ret;
+
+  VALENT_ENTRY;
+
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), FALSE);
+  g_return_val_if_fail (g_task_is_valid (result, channel), FALSE);
+  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+  ret = VALENT_CHANNEL_GET_CLASS (channel)->download_finish (channel,
+                                                             result,
+                                                             error);
+
+  VALENT_RETURN (ret);
+}
+
+/**
  * valent_channel_upload: (virtual upload)
  * @channel: a #ValentChannel
  * @packet: a KDE Connect packet
  * @cancellable: (nullable): a #GCancellable
  * @error: (nullable): a #GError
  *
- * Open a payload connection to the remote device.
+ * Accept an auxiliary connection, usually to upload data.
  *
- * Implementations should set the payload information in @packet necessary to
- * negotiate the connection (eg. TCP port).
+ * Implementations should set the `payloadTransferInfo` field with information
+ * the peer can use to open a connection and wait to accept that connection. In
+ * most cases the remote device with expect the caller to write to the stream
+ * and then close it when finished.
  *
- * In most cases the [property@Gio.IOStream:output-stream] of the result will be
- * used, while the [property@Gio.IOStream:input-stream] is left unused.
+ * For example, a TCP-based implementation could start listening on a port then
+ * send the packet with that port in the `payloadTransferInfo` dictionary. When
+ * a connection is accepted the caller can perform operations on it as required.
  *
  * Returns: (transfer full) (nullable): a #GIOStream
  *
@@ -924,6 +1119,76 @@ valent_channel_upload (ValentChannel  *channel,
                                                     packet,
                                                     cancellable,
                                                     error);
+
+  VALENT_RETURN (ret);
+}
+
+/**
+ * valent_channel_upload_async: (virtual upload_async)
+ * @channel: a #ValentChannel
+ * @packet: a KDE Connect packet
+ * @cancellable: (nullable): a #GCancellable
+ * @callback: (scope async): a #GAsyncReadyCallback
+ * @user_data: (closure): user supplied data
+ *
+ * Accept an auxiliary connection, usually to upload data.
+ *
+ * This is a non-blocking variant of [method@Valent.Channel.upload]. Call
+ * [method@Valent.Channel.upload_finish] to get the result.
+ *
+ * The default implementation of this method invokes
+ * [vfunc@Valent.Channel.upload] in a thread.
+ *
+ * Since: 1.0
+ */
+void
+valent_channel_upload_async (ValentChannel       *channel,
+                             JsonNode            *packet,
+                             GCancellable        *cancellable,
+                             GAsyncReadyCallback  callback,
+                             gpointer             user_data)
+{
+  VALENT_ENTRY;
+
+  g_return_if_fail (VALENT_IS_CHANNEL (channel));
+  g_return_if_fail (VALENT_IS_PACKET (packet));
+  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  VALENT_CHANNEL_GET_CLASS (channel)->upload_async (channel,
+                                                    packet,
+                                                    cancellable,
+                                                    callback,
+                                                    user_data);
+
+  VALENT_EXIT;
+}
+
+/**
+ * valent_channel_upload_finish: (virtual upload_finish)
+ * @channel: a #ValentChannel
+ * @result: a #GAsyncResult
+ * @error: (nullable): a #GError
+ *
+ * Finish an operation started with [method@Valent.Channel.upload_async].
+ *
+ * Returns: (transfer full) (nullable): a #GIOStream
+ */
+GIOStream *
+valent_channel_upload_finish (ValentChannel  *channel,
+                              GAsyncResult   *result,
+                              GError        **error)
+{
+  GIOStream *ret;
+
+  VALENT_ENTRY;
+
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), FALSE);
+  g_return_val_if_fail (g_task_is_valid (result, channel), FALSE);
+  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+  ret = VALENT_CHANNEL_GET_CLASS (channel)->upload_finish (channel,
+                                                           result,
+                                                           error);
 
   VALENT_RETURN (ret);
 }

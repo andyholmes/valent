@@ -134,15 +134,48 @@ write_packet_cb (ValentChannel         *channel,
   g_main_loop_quit (fixture->loop);
 }
 
+/*
+ * Payload Callbacks
+ */
 static void
-on_upload (ValentChannel *endpoint,
-                      GAsyncResult  *result,
-                      gpointer       user_data)
+g_output_stream_splice_cb (GOutputStream *target,
+                           GAsyncResult  *result,
+                           gssize        *transferred)
+{
+  gssize ret;
+  GError *error = NULL;
+
+  ret = g_output_stream_splice_finish (target, result, &error);
+  g_assert_no_error (error);
+
+  if (transferred != NULL)
+    *transferred = ret;
+}
+
+static void
+valent_channel_download_cb (ValentChannel  *channel,
+                            GAsyncResult   *result,
+                            GIOStream     **stream)
+{
+  GError *error = NULL;
+
+  g_assert_nonnull (stream);
+
+  *stream = valent_channel_download_finish (channel, result, &error);
+  g_assert_no_error (error);
+  g_assert_true (G_IS_IO_STREAM (*stream));
+}
+
+static void
+read_download_cb (ValentChannel         *endpoint,
+                  GAsyncResult          *result,
+                  ChannelServiceFixture *fixture)
 {
   g_autoptr (JsonNode) packet = NULL;
   g_autoptr (GIOStream) stream = NULL;
   g_autoptr (GOutputStream) target = NULL;
-  goffset payload_size, transferred;
+  goffset payload_size;
+  gssize transferred = -2;
   GError *error = NULL;
 
   /* We expect the packet to be properly populated with payload information */
@@ -151,31 +184,84 @@ on_upload (ValentChannel *endpoint,
   g_assert_true (VALENT_IS_PACKET (packet));
   g_assert_true (valent_packet_has_payload (packet));
 
-  payload_size = valent_packet_get_payload_size (packet);
-  g_assert_cmpint (payload_size, >, 0);
-
   /* We expect to be able to create a transfer stream from the packet */
-  stream = valent_channel_download (endpoint, packet, NULL, &error);
-  g_assert_no_error (error);
-  g_assert_true (G_IS_IO_STREAM (stream));
+  valent_channel_download_async (endpoint,
+                                 packet,
+                                 NULL,
+                                 (GAsyncReadyCallback)valent_channel_download_cb,
+                                 &stream);
+
+  while (stream == NULL)
+    g_main_context_iteration (NULL, FALSE);
 
   /* We expect to be able to transfer the full payload */
   target = g_memory_output_stream_new_resizable ();
-  transferred = g_output_stream_splice (target,
-                                        g_io_stream_get_input_stream (stream),
-                                        (G_OUTPUT_STREAM_SPLICE_CLOSE_SOURCE |
-                                         G_OUTPUT_STREAM_SPLICE_CLOSE_TARGET),
-                                        NULL,
-                                        &error);
-  g_assert_no_error (error);
+  g_output_stream_splice_async (target,
+                                g_io_stream_get_input_stream (stream),
+                                (G_OUTPUT_STREAM_SPLICE_CLOSE_SOURCE |
+                                 G_OUTPUT_STREAM_SPLICE_CLOSE_TARGET),
+                                G_PRIORITY_DEFAULT,
+                                NULL,
+                                (GAsyncReadyCallback)g_output_stream_splice_cb,
+                                &transferred);
+
+  while (transferred == -2)
+    g_main_context_iteration (NULL, FALSE);
+
+  payload_size = valent_packet_get_payload_size (packet);
   g_assert_cmpint (transferred, ==, payload_size);
+}
+
+static void
+valent_channel_upload_cb (ValentChannel *channel,
+                          GAsyncResult  *result,
+                          GFile         *file)
+{
+  g_autoptr (GIOStream) stream = NULL;
+  g_autoptr (GFileInputStream) file_source = NULL;
+  GError *error = NULL;
+
+  stream = valent_channel_upload_finish (channel, result, &error);
+  g_assert_no_error (error);
+  g_assert (G_IS_IO_STREAM (stream));
+
+  file_source = g_file_read (file, NULL, &error);
+  g_assert_no_error (error);
+
+  g_output_stream_splice_async (g_io_stream_get_output_stream (stream),
+                                G_INPUT_STREAM (file_source),
+                                (G_OUTPUT_STREAM_SPLICE_CLOSE_SOURCE |
+                                 G_OUTPUT_STREAM_SPLICE_CLOSE_TARGET),
+                                G_PRIORITY_DEFAULT,
+                                NULL,
+                                (GAsyncReadyCallback)g_output_stream_splice_cb,
+                                NULL);
+}
+
+static void
+read_upload_cb (ValentChannel         *endpoint,
+                GAsyncResult          *result,
+                ChannelServiceFixture *fixture)
+{
+  g_autoptr (JsonNode) packet = NULL;
+  GError *error = NULL;
+
+  /* We expect the packet to be properly populated with payload information */
+  packet = valent_channel_read_packet_finish (endpoint, result, &error);
+  g_assert_no_error (error);
+  g_assert_true (VALENT_IS_PACKET (packet));
+  g_assert_true (valent_packet_has_payload (packet));
+
+  valent_test_download (endpoint, packet, &error);
+  g_assert_no_error (error);
+
+  g_main_loop_quit (fixture->loop);
 }
 
 
 static void
 test_channel_service_basic (void)
 {
-  /* g_autoptr (GMainLoop) loop = NULL; */
   g_autoptr (ValentChannelService) service = NULL;
   g_autoptr (ValentData) data = NULL;
   PeasPluginInfo *plugin_info;
@@ -307,17 +393,31 @@ test_channel_service_channel (ChannelServiceFixture *fixture,
                               fixture);
   g_main_loop_run (fixture->loop);
 
-  /* Transfers */
+  /* Download */
+  valent_channel_read_packet (fixture->endpoint,
+                              NULL,
+                              (GAsyncReadyCallback)read_download_cb,
+                              fixture);
+
   file = g_file_new_for_path (TEST_DATA_DIR"image.png");
   packet = json_object_get_member (json_node_get_object (fixture->packets),
                                    "test-transfer");
 
-  valent_channel_read_packet (fixture->endpoint,
-                              NULL,
-                              (GAsyncReadyCallback)on_upload,
-                              NULL);
   valent_test_upload (fixture->channel, packet, file, &error);
   g_assert_no_error (error);
+
+  /* Upload */
+  /* NOTE: The `payloadTransferInfo` has been set by the previous test */
+  valent_channel_upload_async (fixture->channel,
+                               packet,
+                               NULL,
+                               (GAsyncReadyCallback)valent_channel_upload_cb,
+                               file);
+  valent_channel_read_packet (fixture->endpoint,
+                              NULL,
+                              (GAsyncReadyCallback)read_upload_cb,
+                              fixture);
+  g_main_loop_run (fixture->loop);
 
   /* Closing */
   valent_channel_close_async (fixture->endpoint,
