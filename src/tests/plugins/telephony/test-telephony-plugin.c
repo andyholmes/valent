@@ -237,8 +237,7 @@ main (int   argc,
 {
   const char *path = TEST_DATA_DIR"/plugin-telephony.json";
 
-  g_content_type_set_mime_dirs (NULL);
-  g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
+  valent_test_init (&argc, &argv, NULL);
 
   g_test_add ("/plugins/telephony/basic",
               ValentTestFixture, path,

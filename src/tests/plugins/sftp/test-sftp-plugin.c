@@ -71,7 +71,7 @@ main (int   argc,
 {
   const char *path = TEST_DATA_DIR"/plugin-sftp.json";
 
-  g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
+  valent_test_init (&argc, &argv, NULL);
 
   g_test_add ("/plugins/sftp/basic",
               ValentTestFixture, path,

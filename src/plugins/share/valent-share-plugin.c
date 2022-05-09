@@ -617,7 +617,7 @@ share_chooser_action (GSimpleAction *action,
 
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
 
-  if (!gtk_init_check ())
+  if (!gtk_is_initialized ())
     {
       g_warning ("%s: No display available", G_OBJECT_TYPE_NAME (self));
       return;
@@ -1024,7 +1024,7 @@ valent_share_plugin_handle_text (ValentSharePlugin *self,
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
   g_assert (text != NULL);
 
-  if (!gtk_init_check ())
+  if (!gtk_is_initialized ())
     {
       g_warning ("%s: No display available", G_STRFUNC);
       return;

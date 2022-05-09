@@ -3,12 +3,20 @@
 
 #include <locale.h>
 #include <stdio.h>
+#include <sys/socket.h>
+
 #include <gtk/gtk.h>
 #include <adwaita.h>
 #include <json-glib/json-glib.h>
 #include <libvalent-core.h>
+#include <libvalent-contacts.h>
+#include <libvalent-clipboard.h>
+#include <libvalent-input.h>
+#include <libvalent-media.h>
+#include <libvalent-mixer.h>
+#include <libvalent-notifications.h>
+#include <libvalent-session.h>
 #include <libvalent-ui.h>
-#include <sys/socket.h>
 
 #include "valent-mock-channel.h"
 #include "valent-test-utils.h"
@@ -430,6 +438,83 @@ valent_test_upload (ValentChannel  *channel,
   return g_task_propagate_boolean (task, error);
 }
 
+static void
+valent_type_ensure (void)
+{
+  /* Core */
+  g_type_ensure (VALENT_TYPE_DATA);
+  g_type_ensure (VALENT_TYPE_OBJECT);
+  g_type_ensure (VALENT_TYPE_COMPONENT);
+  g_type_ensure (VALENT_TYPE_TRANSFER);
+
+  g_type_ensure (VALENT_TYPE_CHANNEL);
+  g_type_ensure (VALENT_TYPE_CHANNEL_SERVICE);
+  g_type_ensure (VALENT_TYPE_DEVICE);
+  g_type_ensure (VALENT_TYPE_DEVICE_MANAGER);
+  g_type_ensure (VALENT_TYPE_DEVICE_PLUGIN);
+  g_type_ensure (VALENT_TYPE_DEVICE_TRANSFER);
+
+  /* Components */
+  g_type_ensure (VALENT_TYPE_CLIPBOARD);
+  g_type_ensure (VALENT_TYPE_CLIPBOARD_ADAPTER);
+  g_type_ensure (VALENT_TYPE_CONTACTS);
+  g_type_ensure (VALENT_TYPE_CONTACTS_ADAPTER);
+  g_type_ensure (VALENT_TYPE_CONTACT_STORE);
+  g_type_ensure (VALENT_TYPE_CONTACT_CACHE);
+  g_type_ensure (VALENT_TYPE_INPUT);
+  g_type_ensure (VALENT_TYPE_INPUT_ADAPTER);
+  g_type_ensure (VALENT_TYPE_MEDIA);
+  g_type_ensure (VALENT_TYPE_MEDIA_ADAPTER);
+  g_type_ensure (VALENT_TYPE_MEDIA_PLAYER);
+  g_type_ensure (VALENT_TYPE_MIXER);
+  g_type_ensure (VALENT_TYPE_MIXER_ADAPTER);
+  g_type_ensure (VALENT_TYPE_MIXER_STREAM);
+  g_type_ensure (VALENT_TYPE_NOTIFICATIONS);
+  g_type_ensure (VALENT_TYPE_NOTIFICATIONS_ADAPTER);
+  g_type_ensure (VALENT_TYPE_SESSION);
+  g_type_ensure (VALENT_TYPE_SESSION_ADAPTER);
+
+  /* UI */
+  g_type_ensure (VALENT_TYPE_APPLICATION);
+  g_type_ensure (VALENT_TYPE_APPLICATION_PLUGIN);
+
+  g_type_ensure (VALENT_TYPE_DEVICE_ACTIVITY);
+  g_type_ensure (VALENT_TYPE_DEVICE_GADGET);
+  g_type_ensure (VALENT_TYPE_DEVICE_PREFERENCES_PAGE);
+  g_type_ensure (VALENT_TYPE_PREFERENCES_PAGE);
+}
+
+/**
+ * valent_test_init:
+ * @argcp: Address of the `argc` parameter of the
+ *        main() function. Changed if any arguments were handled.
+ * @argvp: (inout) (array length=argcp): Address of the
+ *        `argv` parameter of main().
+ *        Any parameters understood by g_test_init() or gtk_init() are
+ *        stripped before return.
+ * @...: currently unused
+ *
+ * This function is used to initialize a GUI test program for Valent.
+ *
+ * In order, it will:
+ * - Call g_content_type_set_mime_dirs() to ensure GdkPixbuf works
+ * - Call g_test_init() with the %G_TEST_OPTION_ISOLATE_DIRS option
+ * - Call g_type_ensure() for all public classes
+ *
+ * Like g_test_init(), any known arguments will be processed and stripped from
+ * @argcp and @argvp.
+ */
+void
+valent_test_init (int    *argcp,
+                  char ***argvp,
+                  ...)
+{
+  g_content_type_set_mime_dirs (NULL);
+  g_test_init (argcp, argvp, G_TEST_OPTION_ISOLATE_DIRS, NULL);
+
+  valent_type_ensure ();
+}
+
 /**
  * valent_test_ui_init:
  * @argcp: Address of the `argc` parameter of the
@@ -457,15 +542,13 @@ valent_test_ui_init (int    *argcp,
                      char ***argvp,
                      ...)
 {
+  g_content_type_set_mime_dirs (NULL);
   g_test_init (argcp, argvp, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 
-  /* NOTE: If this isn't done early, valent_channel_get_type_once() may get
-   *       called off-thread and cause ThreadSanitizer to throw a fit */
-  g_type_ensure (VALENT_TYPE_CHANNEL);
+  valent_type_ensure ();
 
   gtk_disable_setlocale ();
   setlocale (LC_ALL, "en_US.UTF-8");
-
   gtk_init ();
   adw_init ();
 }

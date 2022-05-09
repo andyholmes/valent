@@ -56,7 +56,7 @@ _gtk_icon_theme_get_default (void)
 
   if (g_once_init_enter (&guard))
     {
-      if (gtk_init_check ())
+      if (gtk_is_initialized ())
         {
           GdkDisplay *display = NULL;
 

@@ -313,12 +313,7 @@ main (int   argc,
 {
   const char *path = TEST_DATA_DIR"/plugin-notification.json";
 
-  g_content_type_set_mime_dirs (NULL);
-  g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
-
-  /* Normally this would be done by valent_test_ui_init(), but that setup takes
-   * far too long for this test suite. */
-  g_type_ensure (VALENT_TYPE_CHANNEL);
+  valent_test_init (&argc, &argv, NULL);
 
   if (!gtk_init_check ())
     g_test_message ("Skipping themed icon transfers");

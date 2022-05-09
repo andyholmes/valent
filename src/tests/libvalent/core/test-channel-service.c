@@ -435,7 +435,7 @@ int
 main (int   argc,
       char *argv[])
 {
-  g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
+  valent_test_init (&argc, &argv, NULL);
 
   g_type_ensure (VALENT_TYPE_MOCK_CHANNEL);
   g_type_ensure (VALENT_TYPE_MOCK_CHANNEL_SERVICE);

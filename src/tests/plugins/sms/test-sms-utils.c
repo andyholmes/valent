@@ -133,7 +133,6 @@ int
 main (int   argc,
       char *argv[])
 {
-  g_content_type_set_mime_dirs (NULL);
   valent_test_ui_init (&argc, &argv, NULL);
 
   g_test_add_func ("/plugins/sms/avatar-from-contact",

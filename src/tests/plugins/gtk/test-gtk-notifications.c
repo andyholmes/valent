@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
+#include <locale.h>
+
 #include <gio/gio.h>
 #include <libvalent-core.h>
 #include <libvalent-notifications.h>
@@ -204,7 +206,12 @@ int
 main (int   argc,
       char *argv[])
 {
-  g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
+  valent_test_init (&argc, &argv, NULL);
+
+  /* NOTE: This suite will time out if valent_ui_test_init() is used */
+  gtk_disable_setlocale ();
+  setlocale (LC_ALL, "en_US.UTF-8");
+  gtk_init ();
 
   g_test_add ("/plugins/gtk/notifications",
               GtkNotificationsFixture, NULL,

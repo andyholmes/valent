@@ -13,6 +13,9 @@
 
 G_BEGIN_DECLS
 
+void             valent_test_init         (int    *argcp,
+                                           char ***argvp,
+                                           ...);
 void             valent_test_ui_init      (int    *argcp,
                                            char ***argvp,
                                            ...);
