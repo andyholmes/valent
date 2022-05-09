@@ -30,10 +30,10 @@ option('profile',
   description: 'Build profile (default, devel)',
 )
 
-option('profiling',
+option('tracing',
          type: 'boolean',
         value: false,
-  description: 'Enable profiling of the codebase',
+  description: 'Enable trace logging',
 )
 
 option('tests',

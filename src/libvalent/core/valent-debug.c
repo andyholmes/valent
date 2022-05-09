@@ -8,20 +8,20 @@
 # define _GNU_SOURCE
 #endif
 
-#include "valent-debug.h"
-
-#include <sys/time.h>
+#include <glib.h>
 #include <time.h>
 #include <unistd.h>
 
-#ifdef VALENT_ENABLE_PROFILING
+#ifdef HAVE_SYSPROF
 # include <sched.h>
 # include <signal.h>
 # include <sysprof-capture.h>
-#endif
+#endif /* HAVE_SYSPROF */
+
+#include "valent-debug.h"
 
 
-#ifdef VALENT_ENABLE_PROFILING
+#ifdef HAVE_SYSPROF
 G_LOCK_DEFINE_STATIC (sysprof_mutex);
 
 static SysprofCaptureWriter *sysprof = NULL;
@@ -33,14 +33,16 @@ current_cpu (void)
   return sched_getcpu ();
 #else
   return 0;
-#endif
+#endif /* HAVE_SCHED_GETCPU */
 }
+#endif /* HAVE_SYSPROF */
 
 static void
-valent_trace_log (const char     *domain,
-                  GLogLevelFlags  level,
+valent_trace_log (const char     *log_domain,
+                  GLogLevelFlags  log_level,
                   const char     *message)
 {
+#ifdef HAVE_SYSPROF
   G_LOCK (sysprof_mutex);
   if G_LIKELY (sysprof)
     {
@@ -48,11 +50,12 @@ valent_trace_log (const char     *domain,
                                       SYSPROF_CAPTURE_CURRENT_TIME,
                                       current_cpu (),
                                       getpid (),
-                                      level,
-                                      domain,
+                                      log_level,
+                                      log_domain,
                                       message);
     }
   G_UNLOCK (sysprof_mutex);
+#endif /* HAVE_SYSPROF */
 }
 
 void
@@ -60,6 +63,7 @@ valent_trace_mark (const char *strfunc,
                    gint64      begin_time_usec,
                    gint64      end_time_usec)
 {
+#ifdef HAVE_SYSPROF
   G_LOCK (sysprof_mutex);
   if G_LIKELY (sysprof)
     {
@@ -77,15 +81,18 @@ valent_trace_mark (const char *strfunc,
                                        strfunc);
     }
   G_UNLOCK (sysprof_mutex);
+#endif /* HAVE_SYSPROF */
 }
-#endif
 
 
 G_LOCK_DEFINE_STATIC (log_mutex);
 
-GIOChannel *log_channel = NULL;
+typedef const char * (*ValentLogLevelStrFunc) (GLogLevelFlags log_level);
 
-static const char* ignored_domains[] =
+ValentLogLevelStrFunc  log_function = NULL;
+GIOChannel            *log_channel = NULL;
+
+static const char *ignored_domains[] =
 {
   "GLib-Net",
   "GLib",
@@ -95,6 +102,24 @@ static const char* ignored_domains[] =
 
 static const char *
 valent_log_level_str (GLogLevelFlags log_level)
+{
+  switch (((gulong)log_level & G_LOG_LEVEL_MASK))
+    {
+    case G_LOG_LEVEL_ERROR:      return "   ERROR";
+    case G_LOG_LEVEL_CRITICAL:   return "CRITICAL";
+    case G_LOG_LEVEL_WARNING:    return " WARNING";
+    case G_LOG_LEVEL_MESSAGE:    return " MESSAGE";
+    case G_LOG_LEVEL_INFO:       return "    INFO";
+    case G_LOG_LEVEL_DEBUG:      return "   DEBUG";
+    case VALENT_LOG_LEVEL_TRACE: return "   TRACE";
+
+    default:
+      return " UNKNOWN";
+    }
+}
+
+static const char *
+valent_log_level_str_color (GLogLevelFlags log_level)
 {
   switch (((gulong)log_level & G_LOG_LEVEL_MASK))
     {
@@ -112,8 +137,8 @@ valent_log_level_str (GLogLevelFlags log_level)
 }
 
 static void
-valent_log_handler (const char     *domain,
-                    GLogLevelFlags  level,
+valent_log_handler (const char     *log_domain,
+                    GLogLevelFlags  log_level,
                     const char     *message,
                     gpointer        user_data)
 {
@@ -123,13 +148,11 @@ valent_log_handler (const char     *domain,
   char ftime[32];
   char *buffer;
 
-#ifdef VALENT_ENABLE_PROFILING
-  if (level == VALENT_LOG_LEVEL_TRACE)
-    valent_trace_log (domain, level, message);
-#endif
+  if (log_level == VALENT_LOG_LEVEL_TRACE)
+    valent_trace_log (log_domain, log_level, message);
 
   /* Ignore noisy log domains */
-  if (domain && g_strv_contains (ignored_domains, domain))
+  if (log_domain && g_strv_contains (ignored_domains, log_domain))
     return;
 
   /* Prepare log message */
@@ -146,8 +169,8 @@ valent_log_handler (const char     *domain,
   buffer = g_strdup_printf ("%s.%04d %30s: %s: %s\n",
                             ftime,
                             (int)((now % G_USEC_PER_SEC) / 100L),
-                            domain,
-                            valent_log_level_str (level),
+                            log_domain,
+                            log_function (log_level),
                             message);
 
   G_LOCK (log_mutex);
@@ -166,8 +189,12 @@ valent_log_handler (const char     *domain,
  * This should be called before the application starts, which is typically when
  * [method@Gio.Application.run] is invoked.
  *
- * If %VALENT_ENABLE_PROFILING is defined, trace markers and messages at level
- * %VALENT_LOG_LEVEL_TRACE will be passed to sysprof.
+ * If %VALENT_DEBUG_ENABLE is defined, debugging messages only useful for
+ * development will be printed to the log.
+ *
+ * If %VALENT_TRACE_ENABLE is defined, tracing will be performed at the log
+ * level %VALENT_LOG_LEVEL_TRACE. These will be passed to sysprof for profiling,
+ * if available.
  *
  * Since: 1.0
  */
@@ -177,12 +204,17 @@ valent_debug_init (void)
   G_LOCK (log_mutex);
   if (log_channel == NULL)
     {
+      if (isatty (STDOUT_FILENO))
+        log_function = valent_log_level_str_color;
+      else
+        log_function = valent_log_level_str;
+
       log_channel = g_io_channel_unix_new (STDOUT_FILENO);
       g_log_set_default_handler (valent_log_handler, NULL);
     }
   G_UNLOCK (log_mutex);
 
-#ifdef VALENT_ENABLE_PROFILING
+#if defined(VALENT_TRACE_ENABLE) && defined(HAVE_SYSPROF)
   G_LOCK (sysprof_mutex);
   if (sysprof == NULL)
     {
@@ -191,7 +223,7 @@ valent_debug_init (void)
       sysprof = sysprof_capture_writer_new_from_env (0);
     }
   G_UNLOCK (sysprof_mutex);
-#endif
+#endif /* VALENT_ENABLETRACE && HAVE_SYSPROF */
 }
 
 /**
@@ -208,20 +240,20 @@ void
 valent_debug_clear (void)
 {
   G_LOCK (log_mutex);
-  if (log_channel)
+  if (log_channel != NULL)
     {
       g_clear_pointer (&log_channel, g_io_channel_unref);
       g_log_set_default_handler (valent_log_handler, NULL);
     }
   G_UNLOCK (log_mutex);
 
-#ifdef VALENT_ENABLE_PROFILING
+#if defined(VALENT_TRACE_ENABLE) && defined(HAVE_SYSPROF)
   G_LOCK (sysprof_mutex);
-  if (sysprof)
+  if (sysprof != NULL)
     {
       sysprof_capture_writer_flush (sysprof);
       g_clear_pointer (&sysprof, sysprof_capture_writer_unref);
     }
   G_UNLOCK (sysprof_mutex);
-#endif
+#endif /* VALENT_ENABLETRACE && HAVE_SYSPROF */
 }
