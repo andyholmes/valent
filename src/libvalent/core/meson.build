@@ -88,7 +88,7 @@ libvalent_core_generated_headers += [libvalent_core_version_h]
 # Debugging and Profiling Support
 libvalent_core_conf = configuration_data()
 libvalent_core_conf.set10('VALENT_ENABLE_DEBUG', get_option('debug'))
-libvalent_core_conf.set10('VALENT_ENABLE_PROFILING', get_option('profiling'))
+libvalent_core_conf.set10('VALENT_ENABLE_TRACE', get_option('tracing'))
 
 libvalent_debug_h = configure_file(
           input: 'valent-debug.h.in',
@@ -125,7 +125,8 @@ libvalent_core_deps = [
   gnutls_dep,
 ]
 
-if get_option('profiling')
+if get_option('tracing') and libsysprof_capture.found()
+  libvalent_c_args += ['-DHAVE_SYSPROF']
   libvalent_core_deps += [libsysprof_capture]
 endif
 

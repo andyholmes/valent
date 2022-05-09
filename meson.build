@@ -226,13 +226,12 @@ libedataserver_dep = dependency('libedataserver-1.2', version: eds_version)
 # libvalent-ui
 libadwaita_dep = dependency('libadwaita-1', version: libadwaita_version)
 
-if get_option('profiling')
-  libsysprof_capture = dependency('sysprof-capture-4',
-     version: '>= 3.38',
-      static: true,
-    required: true,
-  )
-endif
+# Debugging
+libsysprof_capture = dependency('sysprof-capture-4',
+   version: '>= 3.38',
+    static: true,
+  required: false,
+)
 
 
 #
@@ -255,9 +254,9 @@ meson.add_install_script('build-aux/meson/postinstall.py')
 summary({
   'Documentation':         get_option('documentation'),
   'Introspection':         get_option('introspection'),
-  'Tests':                 get_option('tests'),
   'Optimization':          get_option('optimization'),
-  'Profiling':             get_option('profiling'),
+  'Tests':                 get_option('tests'),
+  'Tracing':               get_option('tracing'),
   'Debugging':             get_option('debug'),
 }, section: 'Build')
 

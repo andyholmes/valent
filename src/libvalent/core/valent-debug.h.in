@@ -23,7 +23,7 @@ void   valent_debug_clear (void);
 /**
  * VALENT_LOG_LEVEL_TRACE: (skip)
  *
- * The #GLogLevelFlags log level for profiling messages in Valent.
+ * The #GLogLevelFlags log level for trace messages in Valent.
  *
  * Since: 1.0
  */
@@ -33,21 +33,24 @@ void   valent_debug_clear (void);
 
 
 /**
- * VALENT_ENABLE_PROFILING: (skip)
+ * VALENT_ENABLE_TRACE: (skip)
  *
- * If %TRUE, the various profiling macros will trace function entry, exit and
- * jump labels for sysprof. If %FALSE, these macros will be compiled out.
+ * Whether tracing is enabled.
+ *
+ * If %TRUE, the macros for tracing function entry, exit and jump labels will
+ * write to the log and pass events to sysprof, if it's available. If %FALSE,
+ * these macros will be compiled out.
  *
  * The macros include %VALENT_ENTRY, %VALENT_EXIT, %VALENT_RETURN, %VALENT_GOTO
  * and %VALENT_PROBE.
  *
  * Since: 1.0
  */
-#ifndef VALENT_ENABLE_PROFILING
-# define VALENT_ENABLE_PROFILING @VALENT_ENABLE_PROFILING@
+#ifndef VALENT_ENABLE_TRACE
+# define VALENT_ENABLE_TRACE @VALENT_ENABLE_TRACE@
 #endif
-#if VALENT_ENABLE_PROFILING != 1
-# undef VALENT_ENABLE_PROFILING
+#if VALENT_ENABLE_TRACE != 1
+# undef VALENT_ENABLE_TRACE
 #endif
 
 
@@ -98,7 +101,7 @@ void   valent_debug_clear (void);
  */
 
 
-#ifdef VALENT_ENABLE_PROFILING
+#ifdef VALENT_ENABLE_TRACE
 
 extern
 void valent_trace_mark (const char *strfunc,
@@ -148,8 +151,11 @@ void valent_trace_mark (const char *strfunc,
 /**
  * VALENT_ENABLE_DEBUG: (skip)
  *
- * If %TRUE, the various debugging macros will print extra messages to the log
- * useful only for development. If %FALSE, these macros will be compiled out.
+ * Whether debugging is enabled.
+ *
+ * If %TRUE, the macros for debugging will write messages to the log that are
+ * only appropriate during development. If %FALSE, these macros will be compiled
+ * out.
  *
  * The macros include %VALENT_NOTE, %VALENT_TODO, %VALENT_FIXME and
  * %VALENT_JSON.

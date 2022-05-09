@@ -209,8 +209,8 @@
                 "--libdir=/app/lib",
                 "-Dplugin_bluez=true",
                 "-Dprofile=devel",
-                "-Dprofiling=true",
-                "-Dtests=true"
+                "-Dtests=true",
+                "-Dtracing=true"
             ],
             "post-install" : [
                 "install -d /app/extensions"
