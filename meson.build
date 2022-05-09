@@ -224,7 +224,7 @@ libedata_book_dep = dependency('libedata-book-1.2', version: eds_version)
 libedataserver_dep = dependency('libedataserver-1.2', version: eds_version)
 
 # libvalent-ui
-libadwaita_dep = dependency('libadwaita-1', version: libadwaita_version, required: false)
+libadwaita_dep = dependency('libadwaita-1', version: libadwaita_version)
 
 if get_option('profiling')
   libsysprof_capture = dependency('sysprof-capture-4',
