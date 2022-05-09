@@ -2,8 +2,5 @@
 _build*
 
 # meson wraps
-subprojects/libadwaita
-subprojects/libsass*
-subprojects/sassc*
 subprojects/libportal
 subprojects/walbottle
