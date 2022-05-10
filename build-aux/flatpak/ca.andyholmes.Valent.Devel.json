@@ -77,10 +77,10 @@
         },
         {
             "name" : "libical",
+            "buildsystem" : "cmake-ninja",
             "cleanup" : [
                 "/lib/cmake"
             ],
-            "buildsystem" : "cmake-ninja",
             "config-opts" : [
                 "-DCMAKE_INSTALL_LIBDIR:PATH=/app/lib",
                 "-DBUILD_SHARED_LIBS:BOOL=ON",
@@ -99,6 +99,7 @@
         },
         {
             "name" : "evolution-data-server",
+            "buildsystem" : "cmake-ninja",
             "cleanup" : [
                 "/etc",
                 "/lib/cmake",
@@ -127,7 +128,6 @@
                 "-DWITH_SYSTEMDUSERUNITDIR=OFF",
                 "-DWITH_DBUS_SERVICE_DIR=OFF"
             ],
-            "buildsystem" : "cmake-ninja",
             "sources" : [
                 {
                     "type" : "git",
@@ -163,6 +163,7 @@
         {
             "name" : "libportal",
             "buildsystem" : "meson",
+            "builddir": true,
             "config-opts" : [
                 "-Dbackends=gtk4",
                 "-Ddocs=false",
@@ -179,14 +180,14 @@
         },
         {
             "name" : "sysprof",
+            "buildsystem" : "meson",
+            "builddir" : true,
             "config-opts" : [
                 "--libdir=/app/lib",
                 "--buildtype=debugoptimized",
                 "-Denable_gtk=false",
                 "-Dwith_sysprofd=host"
             ],
-            "buildsystem" : "meson",
-            "builddir" : true,
             "cleanup" : [
                 "/bin/*",
                 "/libexec/sysprof",
@@ -205,6 +206,7 @@
         {
             "name" : "valent",
             "buildsystem" : "meson",
+            "builddir" : true,
             "config-opts" : [
                 "--libdir=/app/lib",
                 "-Dplugin_bluez=true",
@@ -215,7 +217,6 @@
             "post-install" : [
                 "install -d /app/extensions"
             ],
-            "builddir" : true,
             "sources" : [
                 {
                     "type" : "git",
