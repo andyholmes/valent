@@ -36,7 +36,7 @@ test_photo_plugin_send_request (ValentTestFixture *fixture,
   json_node_unref (packet);
 
   /* Upload a photo to the device */
-  file = g_file_new_for_uri ("file://"TEST_DATA_DIR"image.png");
+  file = g_file_new_for_uri ("file://"TEST_DATA_DIR"/image.png");
   packet = valent_test_fixture_lookup_packet (fixture, "photo-transfer");
   valent_test_fixture_upload (fixture, packet, file, &error);
   g_assert_no_error (error);

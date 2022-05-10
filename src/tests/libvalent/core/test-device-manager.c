@@ -36,7 +36,7 @@ manager_fixture_set_up (ManagerFixture *fixture,
                            NULL);
   g_mkdir_with_parents (path, 0700);
 
-  packets = valent_test_load_json (TEST_DATA_DIR"core.json");
+  packets = valent_test_load_json (TEST_DATA_DIR"/core.json");
   identity = json_object_get_member (json_node_get_object (packets), "identity");
   identity_json = json_to_string (identity, TRUE);
   identity_path = g_build_filename (path, "identity.json", NULL);

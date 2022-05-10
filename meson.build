@@ -4,7 +4,7 @@
 project('valent', 'c',
           license: 'GPL-3.0-or-later',
           version: '1.0.0.alpha',
-    meson_version: '>= 0.56.0',
+    meson_version: '>= 0.58.0',
   default_options: [
     'buildtype=debugoptimized',
     'warning_level=2',

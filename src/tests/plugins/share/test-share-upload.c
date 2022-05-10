@@ -8,10 +8,10 @@
 
 
 static const char * const test_files[] = {
-    "file://"TEST_DATA_DIR"image.png",
-    "file://"TEST_DATA_DIR"contact.vcf",
-    "file://"TEST_DATA_DIR"contact2.vcf",
-    "file://"TEST_DATA_DIR"contact3.vcf",
+    "file://"TEST_DATA_DIR"/image.png",
+    "file://"TEST_DATA_DIR"/contact.vcf",
+    "file://"TEST_DATA_DIR"/contact2.vcf",
+    "file://"TEST_DATA_DIR"/contact3.vcf",
 };
 static guint n_test_files = G_N_ELEMENTS (test_files);
 

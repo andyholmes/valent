@@ -5,8 +5,8 @@
 libpeas_libdir = libpeas_dep.get_variable('libdir')
 
 typelib_dirs = [
-  '@0@/src/libvalent'.format(meson.project_build_root()),
   join_paths(libpeas_libdir, 'girepository-1.0'),
+  join_paths(meson.project_build_root(), 'src', 'libvalent'),
 ]
 
 tests_env = [
@@ -31,10 +31,11 @@ tests_env = [
 ]
 
 test_c_args = [
-  '-DTEST_DATA_DIR="@0@/data/"'.format(meson.current_source_dir()),
+  '-I@0@'.format(join_paths(meson.project_source_root(), 'src')),
   '-DJSON_SCHEMA_DIR="@0@"'.format(
         join_paths(meson.project_source_root(), 'doc', 'schemas')),
-  '-I' + join_paths(meson.project_source_root(), 'src'),
+  '-DTEST_DATA_DIR="@0@"'.format(
+        join_paths (meson.current_source_dir(), 'data')),
 ]
 
 test_link_args = [
