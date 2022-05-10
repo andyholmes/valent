@@ -35,9 +35,6 @@ struct _ValentInputAdapterClass
   void           (*pointer_motion)   (ValentInputAdapter *adapter,
                                       double              dx,
                                       double              dy);
-  void           (*pointer_position) (ValentInputAdapter *adapter,
-                                      double              x,
-                                      double              y);
 };
 
 VALENT_AVAILABLE_IN_1_0
@@ -56,10 +53,6 @@ VALENT_AVAILABLE_IN_1_0
 void   valent_input_adapter_pointer_motion   (ValentInputAdapter  *adapter,
                                               double               dx,
                                               double               dy);
-VALENT_AVAILABLE_IN_1_0
-void   valent_input_adapter_pointer_position (ValentInputAdapter  *adapter,
-                                              double               x,
-                                              double               y);
 
 G_END_DECLS
 

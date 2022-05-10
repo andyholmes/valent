@@ -33,14 +33,6 @@ static void valent_mousepad_plugin_send_echo (ValentMousepadPlugin       *self,
 G_DEFINE_TYPE (ValentMousepadPlugin, valent_mousepad_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
-/**
- * event_to_mask:
- * @body: a #JsonObject
- *
- * Convert a mousepad event described by @body into a #GdkModifierType.
- *
- * Returns: #GdkModifierType
- */
 static GdkModifierType
 event_to_mask (JsonObject *body)
 {
@@ -60,6 +52,41 @@ event_to_mask (JsonObject *body)
 
   return mask;
 }
+
+static inline void
+keyboard_mask (ValentInput  *input,
+               unsigned int  mask,
+               gboolean      lock)
+{
+  if (mask & GDK_ALT_MASK)
+    valent_input_keyboard_keysym (input, GDK_KEY_Alt_L, lock);
+
+  if (mask & GDK_CONTROL_MASK)
+    valent_input_keyboard_keysym (input, GDK_KEY_Control_L, lock);
+
+  if (mask & GDK_SHIFT_MASK)
+    valent_input_keyboard_keysym (input, GDK_KEY_Shift_L, lock);
+
+  if (mask & GDK_SUPER_MASK)
+    valent_input_keyboard_keysym (input, GDK_KEY_Super_L, lock);
+}
+
+static inline void
+keyboard_press (ValentInput  *input,
+                unsigned int  keysym,
+                unsigned int  mask)
+{
+
+  if (mask != 0)
+    keyboard_mask (input, mask, TRUE);
+
+  valent_input_keyboard_keysym (input, keysym, TRUE);
+  valent_input_keyboard_keysym (input, keysym, FALSE);
+
+  if (mask != 0)
+    keyboard_mask (input, mask, FALSE);
+}
+
 
 /*
  * Packet Handlers
@@ -108,12 +135,12 @@ handle_mousepad_request (ValentMousepadPlugin *self,
 
           codepoint = g_utf8_get_char_validated (key, -1);
           keyval = gdk_unicode_to_keyval (codepoint);
-          valent_input_keyboard_action (self->input, keyval, mask);
+          keyboard_press (self->input, keyval, mask);
         }
       else if (has_special)
         {
           if ((keyval = valent_mousepad_keycode_to_keyval (keycode)) != 0)
-            valent_input_keyboard_action (self->input, keyval, mask);
+            keyboard_press (self->input, keyval, mask);
         }
 
       if (valent_packet_check_field (packet, "sendAck"))
@@ -121,29 +148,46 @@ handle_mousepad_request (ValentMousepadPlugin *self,
     }
 
   else if (valent_packet_check_field (packet, "singleclick"))
-    valent_input_pointer_click (self->input, VALENT_POINTER_PRIMARY);
+    {
+      valent_input_pointer_button (self->input, VALENT_POINTER_PRIMARY, TRUE);
+      valent_input_pointer_button (self->input, VALENT_POINTER_PRIMARY, FALSE);
+    }
 
   else if (valent_packet_check_field (packet, "doubleclick"))
     {
-      valent_input_pointer_click (self->input, VALENT_POINTER_PRIMARY);
-      valent_input_pointer_click (self->input, VALENT_POINTER_PRIMARY);
+      valent_input_pointer_button (self->input, VALENT_POINTER_PRIMARY, TRUE);
+      valent_input_pointer_button (self->input, VALENT_POINTER_PRIMARY, FALSE);
+      valent_input_pointer_button (self->input, VALENT_POINTER_PRIMARY, TRUE);
+      valent_input_pointer_button (self->input, VALENT_POINTER_PRIMARY, FALSE);
     }
 
   else if (valent_packet_check_field (packet, "middleclick"))
-    valent_input_pointer_click (self->input, VALENT_POINTER_MIDDLE);
+    {
+      valent_input_pointer_button (self->input, VALENT_POINTER_MIDDLE, TRUE);
+      valent_input_pointer_button (self->input, VALENT_POINTER_MIDDLE, FALSE);
+    }
 
   else if (valent_packet_check_field (packet, "rightclick"))
-    valent_input_pointer_click (self->input, VALENT_POINTER_SECONDARY);
+    {
+      valent_input_pointer_button (self->input, VALENT_POINTER_SECONDARY, TRUE);
+      valent_input_pointer_button (self->input, VALENT_POINTER_SECONDARY, FALSE);
+    }
 
   else if (valent_packet_check_field (packet, "singlehold"))
-    valent_input_pointer_button (self->input, VALENT_POINTER_PRIMARY, TRUE);
+    {
+      valent_input_pointer_button (self->input, VALENT_POINTER_PRIMARY, TRUE);
+    }
 
   /* Not used by kdeconnect-android, hold is released with a regular click */
   else if (valent_packet_check_field (packet, "singlerelease"))
-    valent_input_pointer_button (self->input, VALENT_POINTER_PRIMARY, FALSE);
+    {
+      valent_input_pointer_button (self->input, VALENT_POINTER_PRIMARY, FALSE);
+    }
 
   else
-    g_debug ("%s: unknown input", G_STRFUNC);
+    {
+      g_debug ("%s: unknown input", G_STRFUNC);
+    }
 }
 
 static void

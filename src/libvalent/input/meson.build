@@ -51,8 +51,6 @@ libvalent_input_generated_headers += [libvalent_input_enums[1]]
 # Dependencies
 libvalent_input_deps = [
   libvalent_core_dep,
-
-  gtk_dep,
 ]
 
 

@@ -5,7 +5,7 @@
 
 #include "config.h"
 
-#include <gdk/gdk.h>
+#include <glib-object.h>
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
 
@@ -120,39 +120,6 @@ valent_input_get_default (void)
 }
 
 /**
- * valent_input_keyboard_action:
- * @input: a #ValentInput
- * @keysym: a GDK KeySym
- * @mask: a #GdkModifierType
- *
- * A convenience method to press and release @keysym with the modifiers locked
- * for @mask.
- *
- * Since: 1.0
- */
-void
-valent_input_keyboard_action (ValentInput     *input,
-                              unsigned int     keysym,
-                              GdkModifierType  mask)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_INPUT (input));
-  g_return_if_fail (keysym > 0);
-
-  if (mask != 0)
-    valent_input_keyboard_mask (input, mask, TRUE);
-
-  valent_input_keyboard_keysym (input, keysym, TRUE);
-  valent_input_keyboard_keysym (input, keysym, FALSE);
-
-  if (mask != 0)
-    valent_input_keyboard_mask (input, mask, FALSE);
-
-  VALENT_EXIT;
-}
-
-/**
  * valent_input_keyboard_keysym:
  * @input: a #ValentInput
  * @keysym: a keysym
@@ -173,41 +140,6 @@ valent_input_keyboard_keysym (ValentInput  *input,
 
   if G_LIKELY (input->default_adapter != NULL)
     valent_input_adapter_keyboard_keysym (input->default_adapter, keysym, state);
-
-  VALENT_EXIT;
-}
-
-/**
- * valent_input_keyboard_mask:
- * @input: a #ValentInput
- * @mask: a #GdkModifierType
- * @lock: whether to lock modifiers
- *
- * A convenience method to lock or unlock the modifiers for @mask.
- *
- * Since: 1.0
- */
-void
-valent_input_keyboard_mask (ValentInput     *input,
-                            GdkModifierType  mask,
-                            gboolean         lock)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_INPUT (input));
-  g_return_if_fail (mask > 0);
-
-  if (mask & GDK_ALT_MASK)
-    valent_input_keyboard_keysym (input, GDK_KEY_Alt_L, lock);
-
-  if (mask & GDK_CONTROL_MASK)
-    valent_input_keyboard_keysym (input, GDK_KEY_Control_L, lock);
-
-  if (mask & GDK_SHIFT_MASK)
-    valent_input_keyboard_keysym (input, GDK_KEY_Shift_L, lock);
-
-  if (mask & GDK_SUPER_MASK)
-    valent_input_keyboard_keysym (input, GDK_KEY_Super_L, lock);
 
   VALENT_EXIT;
 }
@@ -264,36 +196,6 @@ valent_input_pointer_button (ValentInput         *input,
 }
 
 /**
- * valent_input_pointer_click:
- * @input: a #ValentInput
- * @button: a #ValentPointerButton
- *
- * A convenience method for pressing and releasing @button.
- *
- * Since: 1.0
- */
-void
-valent_input_pointer_click (ValentInput         *input,
-                            ValentPointerButton  button)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_INPUT (input));
-
-  if G_LIKELY (input->default_adapter != NULL)
-    {
-      valent_input_adapter_pointer_button (input->default_adapter,
-                                           button,
-                                           TRUE);
-      valent_input_adapter_pointer_button (input->default_adapter,
-                                           button,
-                                           FALSE);
-    }
-
-  VALENT_EXIT;
-}
-
-/**
  * valent_input_pointer_motion:
  * @input: a #ValentInput
  * @dx: position on x-axis
@@ -314,31 +216,6 @@ valent_input_pointer_motion (ValentInput *input,
 
   if G_LIKELY (input->default_adapter != NULL)
     valent_input_adapter_pointer_motion (input->default_adapter, dx, dy);
-
-  VALENT_EXIT;
-}
-
-/**
- * valent_input_pointer_position:
- * @input: a #ValentInput
- * @x: position on x-axis
- * @y: position on y-axis
- *
- * Move the pointer to the absolute position (@x, @y).
- *
- * Since: 1.0
- */
-void
-valent_input_pointer_position (ValentInput *input,
-                               double       x,
-                               double       y)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_INPUT (input));
-
-  if G_LIKELY (input->default_adapter != NULL)
-    valent_input_adapter_pointer_position (input->default_adapter, x, y);
 
   VALENT_EXIT;
 }
