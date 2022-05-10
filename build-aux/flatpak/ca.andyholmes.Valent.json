@@ -64,10 +64,10 @@
         },
         {
             "name" : "libical",
+            "buildsystem" : "cmake-ninja",
             "cleanup" : [
                 "/lib/cmake"
             ],
-            "buildsystem" : "cmake-ninja",
             "config-opts" : [
                 "-DCMAKE_INSTALL_LIBDIR:PATH=/app/lib",
                 "-DBUILD_SHARED_LIBS:BOOL=ON",
@@ -86,6 +86,7 @@
         },
         {
             "name" : "evolution-data-server",
+            "buildsystem" : "cmake-ninja",
             "cleanup" : [
                 "/etc",
                 "/lib/cmake",
@@ -114,7 +115,6 @@
                 "-DWITH_SYSTEMDUSERUNITDIR=OFF",
                 "-DWITH_DBUS_SERVICE_DIR=OFF"
             ],
-            "buildsystem" : "cmake-ninja",
             "sources" : [
                 {
                     "type" : "git",
@@ -150,6 +150,7 @@
         {
             "name" : "libportal",
             "buildsystem" : "meson",
+            "builddir": true,
             "config-opts" : [
                 "-Dbackends=gtk4",
                 "-Ddocs=false",
@@ -167,6 +168,7 @@
         {
             "name" : "valent",
             "buildsystem" : "meson",
+            "builddir": true,
             "config-opts" : [
                 "--buildtype=release",
                 "--libdir=/app/lib"
@@ -174,7 +176,6 @@
             "post-install" : [
                 "install -d /app/extensions"
             ],
-            "builddir" : true,
             "sources" : [
                 {
                     "type" : "git",
