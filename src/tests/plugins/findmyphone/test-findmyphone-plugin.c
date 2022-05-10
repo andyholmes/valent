@@ -105,13 +105,11 @@ main (int   argc,
               test_findmyphone_plugin_send_request,
               valent_test_fixture_clear);
 
-#ifdef VALENT_TEST_FUZZ
   g_test_add ("/plugins/findmyphone/fuzz",
               ValentTestFixture, path,
               valent_test_fixture_init,
               test_findmyphone_plugin_fuzz,
               valent_test_fixture_clear);
-#endif
 
   if (gst_is_initialized ())
     gst_deinit ();

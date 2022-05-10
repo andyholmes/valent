@@ -363,13 +363,11 @@ main (int   argc,
               test_share_plugin_uris,
               valent_test_fixture_clear);
 
-#ifdef VALENT_TEST_FUZZ
   g_test_add ("/plugins/share/fuzz",
               ValentTestFixture, path,
               valent_test_fixture_init,
               test_share_plugin_fuzz,
               valent_test_fixture_clear);
-#endif
 
   return g_test_run ();
 }

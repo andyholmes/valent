@@ -379,13 +379,11 @@ main (int   argc,
               test_battery_plugin_handle_request,
               valent_test_fixture_clear);
 
-#ifdef VALENT_TEST_FUZZ
   g_test_add ("/plugins/battery/fuzz",
               ValentTestFixture, path,
               valent_test_fixture_init,
               test_battery_plugin_fuzz,
               valent_test_fixture_clear);
-#endif
 
   return g_test_run ();
 }

@@ -192,13 +192,11 @@ main (int   argc,
               test_contacts_plugin_provide_contacts,
               valent_test_fixture_clear);
 
-#ifdef VALENT_TEST_FUZZ
   g_test_add ("/plugins/contacts/fuzz",
               ValentTestFixture, path,
               valent_test_fixture_init,
               test_contacts_plugin_fuzz,
               valent_test_fixture_clear);
-#endif
 
   return g_test_run ();
 }

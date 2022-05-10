@@ -104,13 +104,11 @@ main (int   argc,
               test_ping_plugin_send_request,
               valent_test_fixture_clear);
 
-#ifdef VALENT_TEST_FUZZ
   g_test_add ("/plugins/ping/fuzz",
               ValentTestFixture, path,
               valent_test_fixture_init,
               test_ping_plugin_fuzz,
               valent_test_fixture_clear);
-#endif
 
   return g_test_run ();
 }
