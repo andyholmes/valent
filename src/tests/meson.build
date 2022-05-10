@@ -18,7 +18,7 @@ tests_env = [
   'GSETTINGS_BACKEND=memory',
   'GSETTINGS_SCHEMA_DIR=@0@/schemas'.format(meson.project_build_root()),
   'PYTHONDONTWRITEBYTECODE=yes',
-  'MALLOC_CHECK_=2',
+  'MALLOC_CHECK_=3',
   'GDK_BACKEND=wayland,x11',
   'GTK_A11Y=test',
   # See: https://github.com/google/sanitizers/issues/1322

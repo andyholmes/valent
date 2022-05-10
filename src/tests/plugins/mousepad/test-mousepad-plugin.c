@@ -330,13 +330,11 @@ main (int   argc,
               test_mousepad_plugin_send_pointer_request,
               mousepad_plugin_fixture_tear_down);
 
-#ifdef VALENT_TEST_FUZZ
   g_test_add ("/plugins/mousepad/fuzz",
               ValentTestFixture, path,
               valent_test_fixture_init,
               test_mousepad_plugin_fuzz,
               mousepad_plugin_fixture_tear_down);
-#endif
 
   return g_test_run ();
 }

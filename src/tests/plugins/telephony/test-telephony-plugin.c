@@ -257,13 +257,11 @@ main (int   argc,
               test_telephony_plugin_mute_call,
               valent_test_fixture_clear);
 
-#ifdef VALENT_TEST_FUZZ
   g_test_add ("/plugins/telephony/fuzz",
               ValentTestFixture, path,
               telephony_plugin_fixture_set_up,
               test_telephony_plugin_fuzz,
               valent_test_fixture_clear);
-#endif
 
   return g_test_run ();
 }

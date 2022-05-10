@@ -644,13 +644,11 @@ main (int   argc,
               test_mpris_plugin_handle_player,
               valent_test_fixture_clear);
 
-#ifdef VALENT_TEST_FUZZ
   g_test_add ("/plugins/mpris/fuzz",
               ValentTestFixture, path,
               valent_test_fixture_init,
               test_mpris_plugin_fuzz,
               valent_test_fixture_clear);
-#endif
 
   return g_test_run ();
 }

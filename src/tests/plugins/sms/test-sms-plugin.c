@@ -111,13 +111,11 @@ main (int   argc,
               test_sms_plugin_handle_request,
               valent_test_fixture_clear);
 
-#ifdef VALENT_TEST_FUZZ
   g_test_add ("/plugins/sms/fuzz",
               ValentTestFixture, path,
               valent_test_fixture_init,
               test_sms_plugin_fuzz,
               valent_test_fixture_clear);
-#endif
 
   return g_test_run ();
 }

@@ -209,13 +209,11 @@ main (int   argc,
               test_clipboard_plugin_actions,
               clipboard_plugin_fixture_tear_down);
 
-#ifdef VALENT_TEST_FUZZ
   g_test_add ("/plugins/clipboard/fuzz",
               ValentTestFixture, path,
               valent_test_fixture_init,
               test_clipboard_plugin_fuzz,
               valent_test_fixture_clear);
-#endif
 
   return g_test_run ();
 }

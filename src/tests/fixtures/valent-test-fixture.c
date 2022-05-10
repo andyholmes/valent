@@ -425,6 +425,7 @@ gboolean
 valent_test_fixture_schema_fuzz (ValentTestFixture *fixture,
                                  const char        *path)
 {
+#ifdef VALENT_TEST_FUZZ
   g_autoptr (JsonParser) parser = NULL;
   WblSchema *schema;
   GPtrArray *instances;
@@ -452,6 +453,7 @@ valent_test_fixture_schema_fuzz (ValentTestFixture *fixture,
 
   g_ptr_array_unref (instances);
   g_object_unref (schema);
+#endif
 
   return TRUE;
 }
