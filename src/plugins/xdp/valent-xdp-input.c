@@ -323,23 +323,6 @@ valent_xdp_input_pointer_motion (ValentInputAdapter *adapter,
   xdp_session_pointer_motion (self->session, dx, dy);
 }
 
-static void
-valent_xdp_input_pointer_position (ValentInputAdapter *adapter,
-                                   double              x,
-                                   double              y)
-{
-  ValentXdpInput *self = VALENT_XDP_INPUT (adapter);
-
-  g_assert (VALENT_IS_INPUT_ADAPTER (adapter));
-  g_assert (VALENT_IS_XDP_INPUT (self));
-
-  if G_UNLIKELY (!ensure_session (self))
-    return;
-
-  // FIXME: stream = 0?
-  xdp_session_pointer_position (self->session, 0, x, y);
-}
-
 
 /*
  * GObject
@@ -389,7 +372,6 @@ valent_xdp_input_class_init (ValentXdpInputClass *klass)
   adapter_class->pointer_axis = valent_xdp_input_pointer_axis;
   adapter_class->pointer_button = valent_xdp_input_pointer_button;
   adapter_class->pointer_motion = valent_xdp_input_pointer_motion;
-  adapter_class->pointer_position = valent_xdp_input_pointer_position;
 }
 
 static void

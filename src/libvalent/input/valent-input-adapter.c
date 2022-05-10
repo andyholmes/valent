@@ -47,7 +47,6 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentInputAdapter, valent_input_adapter, G
  * @pointer_axis: the virtual function pointer for valent_input_adapter_pointer_axis()
  * @pointer_button: the virtual function pointer for valent_input_adapter_pointer_button()
  * @pointer_motion: the virtual function pointer for valent_input_adapter_pointer_motion()
- * @pointer_position: the virtual function pointer for valent_input_adapter_pointer_position()
  *
  * The virtual function table for #ValentInputAdapter.
  */
@@ -87,13 +86,6 @@ static void
 valent_input_adapter_real_pointer_motion (ValentInputAdapter *adapter,
                                           double              dx,
                                           double              dy)
-{
-}
-
-static void
-valent_input_adapter_real_pointer_position (ValentInputAdapter *adapter,
-                                            double              x,
-                                            double              y)
 {
 }
 /* LCOV_EXCL_STOP */
@@ -153,7 +145,6 @@ valent_input_adapter_class_init (ValentInputAdapterClass *klass)
   klass->pointer_axis = valent_input_adapter_real_pointer_axis;
   klass->pointer_button = valent_input_adapter_real_pointer_button;
   klass->pointer_motion = valent_input_adapter_real_pointer_motion;
-  klass->pointer_position = valent_input_adapter_real_pointer_position;
 
   /**
    * ValentInputAdapter:plugin-info:
@@ -294,32 +285,6 @@ valent_input_adapter_pointer_motion (ValentInputAdapter *adapter,
     VALENT_EXIT;
 
   VALENT_INPUT_ADAPTER_GET_CLASS (adapter)->pointer_motion (adapter, dx, dy);
-
-  VALENT_EXIT;
-}
-
-/**
- * valent_input_adapter_pointer_position:
- * @adapter: a #ValentInputAdapter
- * @x: position on x-axis
- * @y: position on y-axis
- *
- * Move the pointer to the absolute position (@x, @y).
- *
- * Implementation should handle any necessary scaling
- *
- * Since: 1.0
- */
-void
-valent_input_adapter_pointer_position (ValentInputAdapter *adapter,
-                                       double              x,
-                                       double              y)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_INPUT_ADAPTER (adapter));
-
-  VALENT_INPUT_ADAPTER_GET_CLASS (adapter)->pointer_position (adapter, x, y);
 
   VALENT_EXIT;
 }

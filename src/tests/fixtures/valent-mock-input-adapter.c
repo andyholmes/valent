@@ -85,20 +85,6 @@ valent_mock_input_adapter_pointer_motion (ValentInputAdapter *adapter,
   valent_test_event_push (event);
 }
 
-static void
-valent_mock_input_adapter_pointer_position (ValentInputAdapter *adapter,
-                                            double              x,
-                                            double              y)
-{
-  char *event;
-
-  g_assert (VALENT_IS_INPUT_ADAPTER (adapter));
-  g_assert (VALENT_IS_MOCK_INPUT_ADAPTER (adapter));
-
-  event = g_strdup_printf ("POINTER POSITION %.1f %.1f", x, y);
-  valent_test_event_push (event);
-}
-
 
 /*
  * GObject
@@ -112,7 +98,6 @@ valent_mock_input_adapter_class_init (ValentMockInputAdapterClass *klass)
   adapter_class->pointer_axis = valent_mock_input_adapter_pointer_axis;
   adapter_class->pointer_button = valent_mock_input_adapter_pointer_button;
   adapter_class->pointer_motion = valent_mock_input_adapter_pointer_motion;
-  adapter_class->pointer_position = valent_mock_input_adapter_pointer_position;
 }
 
 static void

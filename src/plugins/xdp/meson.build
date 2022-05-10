@@ -36,6 +36,7 @@ plugin_xdp_deps = [
   libvalent_core_dep,
   libvalent_input_dep,
 
+  gtk_dep,
   libportal_dep,
 ]
 
