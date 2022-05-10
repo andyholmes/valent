@@ -9,20 +9,20 @@
 
 
 static const char * const test_files[] = {
-    "file://"TEST_DATA_DIR"image.png",
-    "file://"TEST_DATA_DIR"contact.vcf",
-    "file://"TEST_DATA_DIR"contact2.vcf",
-    "file://"TEST_DATA_DIR"contact3.vcf",
+    "file://"TEST_DATA_DIR"/image.png",
+    "file://"TEST_DATA_DIR"/contact.vcf",
+    "file://"TEST_DATA_DIR"/contact2.vcf",
+    "file://"TEST_DATA_DIR"/contact3.vcf",
 };
 
 static const char * const test_uris[] = {
   "mailto:contact@andyholmes.ca",
   "tel:5552368",
   "https://gnome.org",
-  "file://"TEST_DATA_DIR"image.png",
-  "file://"TEST_DATA_DIR"contact.vcf",
-  "file://"TEST_DATA_DIR"contact2.vcf",
-  "file://"TEST_DATA_DIR"contact3.vcf",
+  "file://"TEST_DATA_DIR"/image.png",
+  "file://"TEST_DATA_DIR"/contact.vcf",
+  "file://"TEST_DATA_DIR"/contact2.vcf",
+  "file://"TEST_DATA_DIR"/contact3.vcf",
 };
 static guint n_test_uris = G_N_ELEMENTS (test_uris);
 
@@ -51,7 +51,7 @@ test_share_plugin_handle_request (ValentTestFixture *fixture,
   JsonNode *packet;
 
   valent_test_fixture_connect (fixture, TRUE);
-  file = g_file_new_for_uri ("file://"TEST_DATA_DIR"image.png");
+  file = g_file_new_for_uri ("file://"TEST_DATA_DIR"/image.png");
 
   /* Receive a file */
   packet = valent_test_fixture_lookup_packet (fixture, "share-file");

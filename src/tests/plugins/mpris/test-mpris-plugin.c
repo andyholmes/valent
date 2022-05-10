@@ -371,16 +371,16 @@ test_mpris_plugin_handle_request (ValentTestFixture *fixture,
 
   /* Update for album transfer */
   g_variant_dict_init (&dict, NULL);
-  g_variant_dict_insert (&dict, "mpris:artUrl", "s", "file://"TEST_DATA_DIR"image.png");
+  g_variant_dict_insert (&dict, "mpris:artUrl", "s", "file://"TEST_DATA_DIR"/image.png");
   valent_mpris_remote_update_metadata (remote, g_variant_dict_end (&dict));
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
-  v_assert_packet_cmpstr (packet, "albumArtUrl", ==, "file://"TEST_DATA_DIR"image.png");
+  v_assert_packet_cmpstr (packet, "albumArtUrl", ==, "file://"TEST_DATA_DIR"/image.png");
   json_node_unref (packet);
 
   /* Request album art transfer */
-  packet = create_albumart_request ("file://"TEST_DATA_DIR"image.png");
+  packet = create_albumart_request ("file://"TEST_DATA_DIR"/image.png");
   valent_test_fixture_handle_packet (fixture, packet);
   json_node_unref (packet);
 

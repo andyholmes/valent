@@ -399,7 +399,7 @@ test_channel_service_channel (ChannelServiceFixture *fixture,
                               (GAsyncReadyCallback)read_download_cb,
                               fixture);
 
-  file = g_file_new_for_path (TEST_DATA_DIR"image.png");
+  file = g_file_new_for_path (TEST_DATA_DIR"/image.png");
   packet = json_object_get_member (json_node_get_object (fixture->packets),
                                    "test-transfer");
 

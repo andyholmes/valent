@@ -481,7 +481,7 @@ test_lan_service_channel (LanBackendFixture *fixture,
   g_assert_cmpstr (channel_verification, ==, endpoint_verification);
 
   /* Transfers */
-  file = g_file_new_for_path (TEST_DATA_DIR"image.png");
+  file = g_file_new_for_path (TEST_DATA_DIR"/image.png");
   packet = json_object_get_member (json_node_get_object (fixture->packets),
                                    "transfer");
 
