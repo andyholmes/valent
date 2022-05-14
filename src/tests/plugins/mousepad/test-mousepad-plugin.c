@@ -231,17 +231,19 @@ test_mousepad_plugin_send_pointer_request (ValentTestFixture *fixture,
 
   valent_test_fixture_connect (fixture, TRUE);
 
-  g_assert_true (g_action_group_get_action_enabled (actions, "mousepad.event"));
-
   /* Expect remote state */
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mousepad.keyboardstate");
   v_assert_packet_true (packet, "state");
   json_node_unref (packet);
 
+  g_assert_false (g_action_group_get_action_enabled (actions, "mousepad.event"));
+
   /* Receive endpoint keyboard state */
   packet = valent_test_fixture_lookup_packet (fixture, "keyboardstate-true");
   valent_test_fixture_handle_packet (fixture, packet);
+
+  g_assert_true (g_action_group_get_action_enabled (actions, "mousepad.event"));
 
   /* Pointer Motion */
   g_variant_dict_init (&dict, NULL);
