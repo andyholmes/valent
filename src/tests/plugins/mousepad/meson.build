@@ -9,7 +9,7 @@ plugin_mousepad_test_deps = [
 
 plugin_mousepad_tests = [
   'test-mousepad-plugin',
-  'test-mousepad-dialog',
+  'test-mousepad-remote',
 ]
 
 foreach test : plugin_mousepad_tests

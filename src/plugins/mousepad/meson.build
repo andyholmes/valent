@@ -11,8 +11,8 @@ plugin_mousepad_deps = [
 # Sources
 plugin_mousepad_sources = files([
   'mousepad-plugin.c',
-  'valent-mousepad-dialog.c',
   'valent-mousepad-plugin.c',
+  'valent-mousepad-remote.c',
 ])
 
 plugin_mousepad_include_directories = [include_directories('.')]

@@ -38,9 +38,9 @@ src/plugins/gtk/gtk.plugin.desktop.in
 src/plugins/lan/lan.plugin.desktop.in
 src/plugins/lock/lock.plugin.desktop.in
 src/plugins/mousepad/mousepad.plugin.desktop.in
-src/plugins/mousepad/valent-mousepad-dialog.c
-src/plugins/mousepad/valent-mousepad-dialog.ui
 src/plugins/mousepad/valent-mousepad-plugin.c
+src/plugins/mousepad/valent-mousepad-remote.c
+src/plugins/mousepad/valent-mousepad-remote.ui
 src/plugins/mpris/mpris.plugin.desktop.in
 src/plugins/mpris/valent-mpris-plugin.c
 src/plugins/notification/notification.plugin.desktop.in
