@@ -405,6 +405,23 @@ valent_mousepad_plugin_mousepad_keyboardstate (ValentMousepadPlugin *self)
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
+static void
+valent_mousepad_plugin_toggle_actions (ValentMousepadPlugin *self,
+                                       gboolean              available)
+{
+  GAction *action;
+
+  g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
+
+  action = g_action_map_lookup_action (G_ACTION_MAP (self), "dialog");
+  g_simple_action_set_enabled (G_SIMPLE_ACTION (action), available);
+
+  action = g_action_map_lookup_action (G_ACTION_MAP (self), "event");
+  g_simple_action_set_enabled (G_SIMPLE_ACTION (action),
+                               available && self->remote_state);
+}
+
+
 /*
  * GActions
  */
@@ -443,9 +460,7 @@ event_action (GSimpleAction *action,
   unsigned int keysym;
 
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
-
-  if (!self->remote_state)
-    return;
+  g_return_if_fail (self->remote_state);
 
   g_variant_dict_init (&dict, parameter);
 
@@ -524,8 +539,10 @@ valent_mousepad_plugin_update_state (ValentDevicePlugin *plugin,
 
   if (available)
     valent_mousepad_plugin_mousepad_keyboardstate (self);
+  else
+    self->remote_state = FALSE;
 
-  valent_device_plugin_toggle_actions (plugin, available);
+  valent_mousepad_plugin_toggle_actions (self, available);
 }
 
 static void
