@@ -7,8 +7,8 @@
   <gresource prefix="/plugins/sms">
     <file>sms.plugin</file>
     <file>sms.css</file>
-    <file>valent-sms-conversation.ui</file>
-    <file>valent-sms-window.ui</file>
+    <file preprocess="xml-stripblanks">valent-sms-conversation.ui</file>
+    <file preprocess="xml-stripblanks">valent-sms-window.ui</file>
   </gresource>
   <gresource prefix="/ca/andyholmes/Valent/icons">
     <file preprocess="xml-stripblanks" alias="scalable/actions/sms-send.svg">data/sms-send.svg</file>

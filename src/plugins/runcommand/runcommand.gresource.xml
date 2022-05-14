@@ -6,8 +6,8 @@
 <gresources>
   <gresource prefix="/plugins/runcommand">
     <file>runcommand.plugin</file>
-    <file>valent-runcommand-preferences.ui</file>
-    <file>valent-runcommand-editor.ui</file>
+    <file preprocess="xml-stripblanks">valent-runcommand-preferences.ui</file>
+    <file preprocess="xml-stripblanks">valent-runcommand-editor.ui</file>
   </gresource>
   <gresource prefix="/ca/andyholmes/Valent/icons">
     <file preprocess="xml-stripblanks" alias="scalable/apps/valent-runcommand-plugin-symbolic.svg">data/valent-runcommand-plugin-symbolic.svg</file>

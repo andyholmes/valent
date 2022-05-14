@@ -6,7 +6,7 @@
 <gresources>
   <gresource prefix="/plugins/battery">
     <file>battery.plugin</file>
-    <file>valent-battery-preferences.ui</file>
+    <file preprocess="xml-stripblanks">valent-battery-preferences.ui</file>
   </gresource>
   <gresource prefix="/ca/andyholmes/Valent/icons">
     <file preprocess="xml-stripblanks" alias="scalable/apps/valent-battery-plugin-symbolic.svg">data/valent-battery-plugin-symbolic.svg</file>
