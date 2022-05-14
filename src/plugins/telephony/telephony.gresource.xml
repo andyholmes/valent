@@ -6,7 +6,7 @@
 <gresources>
   <gresource prefix="/plugins/telephony">
     <file>telephony.plugin</file>
-    <file>valent-telephony-preferences.ui</file>
+    <file preprocess="xml-stripblanks">valent-telephony-preferences.ui</file>
   </gresource>
   <gresource prefix="/ca/andyholmes/Valent/icons">
     <file preprocess="xml-stripblanks" alias="scalable/apps/valent-telephony-plugin-symbolic.svg">data/valent-telephony-plugin-symbolic.svg</file>

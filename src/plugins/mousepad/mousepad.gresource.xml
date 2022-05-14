@@ -6,7 +6,7 @@
 <gresources>
   <gresource prefix="/plugins/mousepad">
     <file>mousepad.plugin</file>
-    <file>valent-mousepad-dialog.ui</file>
+    <file preprocess="xml-stripblanks">valent-mousepad-dialog.ui</file>
   </gresource>
   <gresource prefix="/ca/andyholmes/Valent/icons">
     <file preprocess="xml-stripblanks" alias="scalable/apps/valent-mousepad-plugin-symbolic.svg">data/valent-mousepad-plugin-symbolic.svg</file>
