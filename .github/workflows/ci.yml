@@ -3,6 +3,7 @@ name: CI
 on:
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   lint:
@@ -62,13 +63,13 @@ jobs:
 
       - name: Compare
         env:
-          STABLE_REF: d5d08260691aa27d1e7e0c80d7b4e0a42ff96d02
+          STABLE_REF: ef86443e187bec1b868316b8b1a172574f78e309
           COMMIT_REF: ${{ github.event.pull_request.head.sha }}
         run: |
           ./src/tests/extra/abicheck.py ${STABLE_REF} ${COMMIT_REF}
 
   test:
-    name: Unit Tests
+    name: Tests
     needs: [lint]
     runs-on: ubuntu-latest
     container:
@@ -76,22 +77,28 @@ jobs:
 
     strategy:
       matrix:
-        compiler:
+        label:
           - GCC
           - LLVM
+          - ASan, UBSan
+          - TSan
         include:
-          - compiler: GCC
-            CC: gcc
-            CC_LD: gold
-            CXX: g++
-            CXX_LD: gold
+          - label: GCC
+            cc: gcc
             coverage: true
-          - compiler: LLVM
-            CC: clang
-            CC_LD: lld
-            CXX: clang++
-            CXX_LD: lld
+            sanitize: none
+          - label: LLVM
+            cc: llvm
             coverage: false
+            sanitize: none
+          - label: ASan, UBSan
+            cc: gcc
+            coverage: false
+            sanitize: address,undefined
+          - label: TSan
+            cc: gcc
+            coverage: false
+            sanitize: thread
       fail-fast: false
 
     steps:
@@ -102,14 +109,20 @@ jobs:
 
       - name: Build
         env:
-          CC: ${{ matrix.CC }}
-          CC_LD: ${{ matrix.CC_LD }}
-          CXX: ${{ matrix.CXX }}
-          CXX_LD: ${{ matrix.CXX_LD }}
-          COVERAGE: ${{ matrix.coverage }}
+          CC: ${{ matrix.cc == 'llvm' && 'clang' || 'gcc' }}
+          CC_LD: ${{ matrix.cc == 'llvm' && 'lld' || 'gold' }}
+          CXX: ${{ matrix.cc == 'llvm' && 'clang++' || 'g++' }}
+          CXX_LD: ${{ matrix.cc == 'llvm' && 'lld' || 'gold' }}
+          BUILD_COVERAGE: ${{ matrix.coverage }}
+          BUILD_SANITIZE: ${{ matrix.sanitize }}
+          BUILD_FUZZING: ${{ matrix.sanitize == 'none' }}
+          BUILD_INTROSPECTION: ${{ matrix.sanitize == 'none' }}
         run: |
           meson setup --buildtype=debugoptimized \
-                      -Db_coverage=${COVERAGE} \
+                      -Db_coverage=${BUILD_COVERAGE} \
+                      -Db_sanitize=${BUILD_SANITIZE} \
+                      -Dfuzz_tests=${BUILD_FUZZING} \
+                      -Dintrospection=${BUILD_INTROSPECTION} \
                       -Dplugin_bluez=true \
                       -Dtests=true \
                       _build
@@ -117,21 +130,22 @@ jobs:
 
       - name: Test
         env:
-          CC: ${{ matrix.CC }}
-          CXX: ${{ matrix.CXX }}
+          TEST_REPEAT: ${{ matrix.sanitize == 'none' && 3 || 1 }}
+          TEST_TIMEOUT: ${{ matrix.sanitize == 'none' && 1 || 2 }}
         run: |
           dbus-run-session -- \
           xvfb-run -a -s '-screen 0 1024x768x24' \
           meson test -C _build \
                      --print-errorlogs \
-                     --repeat=3 \
-                     --suite=valent
+                     --repeat=${TEST_REPEAT} \
+                     --suite=valent \
+                     --timeout-multiplier ${TEST_TIMEOUT}
 
       - name: Test Report
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
-          name: Unit Tests (${{ matrix.compiler }})
+          name: Tests (${{ matrix.label }})
           path: _build/meson-logs/testlog.txt
 
       - name: Coverage
@@ -163,14 +177,6 @@ jobs:
                --rc lcov_branch_coverage=1 \
                --output-file _build/meson-logs/coverage.info
 
-          genhtml --prefix "${WORKSPACE}" \
-                  --output-directory _build/meson-logs/coverage-html \
-                  --title 'Code Coverage' \
-                  --legend \
-                  --show-details \
-                  --branch-coverage \
-                  _build/meson-logs/coverage.info
-
       - name: Coverage Report
         if: ${{ matrix.coverage }}
         continue-on-error: true
@@ -178,57 +184,3 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: ${{ github.workspace }}/_build/meson-logs/coverage.info
-
-  sanitizer:
-    name: Sanitizer
-    needs: [lint]
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/andyholmes/valent:latest
-
-    strategy:
-      matrix:
-        sanitizer:
-          - ASan, UBSan
-          - TSan
-        include:
-          - sanitizer: ASan, UBSan
-            INSTRUMENTATION: address,undefined
-          - sanitizer: TSan
-            INSTRUMENTATION: thread
-      fail-fast: false
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          submodules: true
-
-      - name: Build
-        env:
-          INSTRUMENTATION: ${{ matrix.INSTRUMENTATION }}
-        run: |
-          meson setup --buildtype=debugoptimized \
-                      -Db_sanitize=${INSTRUMENTATION} \
-                      -Dintrospection=false \
-                      -Dplugin_bluez=true \
-                      -Dtests=true \
-                      -Dfuzz_tests=false \
-                      _build
-          meson compile -C _build
-
-      - name: Test
-        run: |
-          dbus-run-session -- \
-          xvfb-run -a -s '-screen 0 1024x768x24' \
-          meson test -C _build \
-                     --print-errorlogs \
-                     --suite=valent \
-                     --timeout-multiplier 2
-
-      - name: Report
-        if: ${{ failure() }}
-        uses: actions/upload-artifact@v2
-        with:
-          name: Sanitizer (${{ matrix.sanitizer }})
-          path: _build/meson-logs/testlog.txt

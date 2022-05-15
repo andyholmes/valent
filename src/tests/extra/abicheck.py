@@ -24,7 +24,8 @@ def get_current_revision():
 
     if revision == 'HEAD':
         # This is a detached HEAD, get the commit hash
-        revision = subprocess.check_output(['git', 'rev-parse', 'HEAD']).strip().decode('utf-8')
+        revision = subprocess.check_output(['git', 'rev-parse', 'HEAD'],
+                                           encoding='utf-8').strip()
 
     return revision
 
@@ -117,6 +118,13 @@ if __name__ == '__main__':
 
     if args.stable == args.commit:
         sys.exit(0)
+
+    # See: CVE-2022-24765
+    subprocess.check_call(['git', 'config',
+                                  '--global',
+                                  '--add',
+                                  'safe.directory',
+                                  os.getcwd()])
 
     stable_dir = build_install(args.stable)
     commit_dir = build_install(args.commit)
