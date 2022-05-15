@@ -63,7 +63,7 @@ libvalent_test_generated_headers = [libvalent_test_resources[1]]
 
 
 # Dependencies
-libwalbottle_dep = dependency('walbottle-0', required: false)
+libwalbottle_dep = dependency('libwalbottle-0', required: false)
 
 if not libwalbottle_dep.found()
   libwalbottle = subproject('walbottle',
