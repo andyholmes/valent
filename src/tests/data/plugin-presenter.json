@@ -1,0 +1,36 @@
+{
+  "identity": {
+    "id": 0,
+    "type": "kdeconnect.identity",
+    "body": {
+      "deviceId": "test-device",
+      "deviceName": "Test Device",
+      "protocolVersion": 7,
+      "deviceType": "phone",
+      "incomingCapabilities": [
+        "kdeconnect.mousepad.request",
+        "kdeconnect.presenter"
+      ],
+      "outgoingCapabilities": [
+        "kdeconnect.mousepad.request",
+        "kdeconnect.presenter"
+      ]
+    }
+  },
+  "presenter-motion1": {
+    "id": 0,
+    "type": "kdeconnect.presenter",
+    "body": {
+      "dx": -0.1,
+      "dy": -0.1
+    }
+  },
+  "presenter-motion2": {
+    "id": 0,
+    "type": "kdeconnect.presenter",
+    "body": {
+      "dx": 0.1,
+      "dy": 0.1
+    }
+  }
+}

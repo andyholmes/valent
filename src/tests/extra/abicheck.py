@@ -77,6 +77,7 @@ def build_install(revision):
                                '-Dplugin_notification=false',
                                '-Dplugin_photo=false',
                                '-Dplugin_ping=false',
+                               '-Dplugin_presenter=false',
                                '-Dplugin_pulseaudio=false',
                                '-Dplugin_runcommand=false',
                                '-Dplugin_sftp=false',
