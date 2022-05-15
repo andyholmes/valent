@@ -17,6 +17,7 @@ plugin_tests = [
   'notification',
   'photo',
   'ping',
+  'presenter',
   'runcommand',
   'sftp',
   'share',

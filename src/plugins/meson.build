@@ -23,7 +23,7 @@ plugins = [
   'notification',
   'photo',
   'ping',
-  #'presenter', TODO
+  'presenter',
   'runcommand',
   'sftp',
   'share',

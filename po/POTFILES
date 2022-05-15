@@ -52,6 +52,10 @@ src/plugins/photo/photo.plugin.desktop.in
 src/plugins/photo/valent-photo-plugin.c
 src/plugins/ping/ping.plugin.desktop.in
 src/plugins/ping/valent-ping-plugin.c
+src/plugins/presenter/presenter.plugin.desktop.in
+src/plugins/presenter/valent-presenter-plugin.c
+src/plugins/presenter/valent-presenter-remote.c
+src/plugins/presenter/valent-presenter-remote.ui
 src/plugins/pulseaudio/pulseaudio.plugin.desktop.in
 src/plugins/runcommand/runcommand.plugin.desktop.in
 src/plugins/runcommand/valent-runcommand-editor.c

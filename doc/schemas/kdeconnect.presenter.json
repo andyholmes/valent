@@ -15,13 +15,6 @@
             "id": 0,
             "type": "kdeconnect.presenter",
             "body": {
-                "specialKey": 8
-            }
-        },
-        {
-            "id": 0,
-            "type": "kdeconnect.presenter",
-            "body": {
                 "stop": true
             }
         }
@@ -50,12 +43,6 @@
                 "dy": {
                     "type": "number",
                     "description": "A double precision integer indicating a position delta on the Y-axis."
-                },
-                "specialKey": {
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 32,
-                    "description": "A request to press-release a single non-printable character, usually a control character or function key such as Backspace or F10."
                 },
                 "stop": {
                     "type": "boolean",

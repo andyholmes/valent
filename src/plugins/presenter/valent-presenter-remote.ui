@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> -->
+
+<interface domain="valent">
+  <template class="ValentPresenterRemote" parent="AdwWindow">
+    <property name="title" translatable="yes">Presentation Remote</property>
+    <property name="width-request">360</property>
+    <property name="height-request">294</property>
+    <property name="default-width">360</property>
+    <property name="default-height">648</property>
+    <property name="content">
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkWindowHandle">
+            <property name="margin-top">6</property>
+            <property name="margin-end">6</property>
+            <property name="margin-start">6</property>
+            <property name="margin-bottom">6</property>
+            <child>
+              <object class="GtkCenterBox">
+                <child type="center">
+                  <object class="AdwWindowTitle">
+                  <property name="title"
+                            bind-source="ValentPresenterRemote"
+                            bind-property="title"
+                            bind-flags="sync-create"/>
+                  </object>
+                </child>
+                <child type="end">
+                  <object class="GtkWindowControls">
+                    <property name="side">end</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkGrid">
+            <property name="vexpand">1</property>
+            <property name="margin-bottom">16</property>
+            <property name="margin-end">16</property>
+            <property name="margin-start">16</property>
+            <property name="margin-top">16</property>
+            <property name="row-spacing">16</property>
+            <property name="column-spacing">16</property>
+            <child>
+              <object class="GtkBox" id="session_controls">
+                <property name="hexpand">1</property>
+                <property name="spacing">16</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="column-span">2</property>
+                  <property name="row">0</property>
+                </layout>
+                <child>
+                  <object class="GtkButton" id="start_button">
+                    <!-- NOTE: the keysym is "GDK_KEY_F5" -->
+                    <property name="action-name">device.mousepad.event</property>
+                    <property name="action-target">{'keysym': &lt;uint32 65474&gt;}</property>
+                    <property name="tooltip-text" translatable="yes">Start</property>
+                    <property name="hexpand">1</property>
+                    <property name="child">
+                      <object class="GtkImage">
+                        <property name="icon-name">presenter-start-symbolic</property>
+                        <property name="pixel-size">32</property>
+                        <property name="margin-bottom">16</property>
+                        <property name="margin-end">16</property>
+                        <property name="margin-start">16</property>
+                        <property name="margin-top">16</property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="open_button">
+                    <property name="action-name">remote.open</property>
+                    <property name="tooltip-text" translatable="yes">Open</property>
+                    <property name="hexpand">1</property>
+                    <property name="child">
+                      <object class="GtkImage">
+                        <property name="icon-name">presenter-open-symbolic</property>
+                        <property name="pixel-size">32</property>
+                        <property name="margin-bottom">16</property>
+                        <property name="margin-end">16</property>
+                        <property name="margin-start">16</property>
+                        <property name="margin-top">16</property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="stop_button">
+                    <!-- NOTE: the keysym is "GDK_KEY_Escape" -->
+                    <property name="action-name">device.mousepad.event</property>
+                    <property name="action-target">{'keysym': &lt;uint32 65307&gt;}</property>
+                    <property name="tooltip-text" translatable="yes">Stop</property>
+                    <property name="hexpand">1</property>
+                    <property name="child">
+                      <object class="GtkImage">
+                        <property name="icon-name">presenter-stop-symbolic</property>
+                        <property name="pixel-size">32</property>
+                        <property name="margin-bottom">16</property>
+                        <property name="margin-end">16</property>
+                        <property name="margin-start">16</property>
+                        <property name="margin-top">16</property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkImage">
+                <property name="icon-name">valent-presenter-plugin-symbolic</property>
+                <property name="pixel-size">128</property>
+                <property name="vexpand">1</property>
+                <property name="hexpand">1</property>
+                <property name="opacity">0.1</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="column-span">2</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="previous_button">
+                <!-- NOTE: the keysym is "GDK_KEY_Page_Up" -->
+                <property name="action-name">device.mousepad.event</property>
+                <property name="action-target">{'keysym': &lt;uint32 65365&gt;}</property>
+                <property name="tooltip-text" translatable="yes">Previous</property>
+                <property name="hexpand">1</property>
+                <property name="child">
+                  <object class="GtkImage">
+                    <property name="icon-name">go-previous-symbolic</property>
+                    <property name="pixel-size">64</property>
+                    <property name="margin-bottom">16</property>
+                    <property name="margin-end">16</property>
+                    <property name="margin-start">16</property>
+                    <property name="margin-top">16</property>
+                  </object>
+                </property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="next_button">
+                <!-- NOTE: the keysym is "GDK_KEY_Page_Down" -->
+                <property name="action-name">device.mousepad.event</property>
+                <property name="action-target">{'keysym': &lt;uint32 65366&gt;}</property>
+                <property name="tooltip-text" translatable="yes">Next</property>
+                <property name="hexpand">1</property>
+                <property name="child">
+                  <object class="GtkImage">
+                    <property name="icon-name">go-next-symbolic</property>
+                    <property name="pixel-size">64</property>
+                    <property name="margin-bottom">16</property>
+                    <property name="margin-end">16</property>
+                    <property name="margin-start">16</property>
+                    <property name="margin-top">16</property>
+                  </object>
+                </property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="pointer_button">
+                <property name="action-name">remote.pointer</property>
+                <property name="tooltip-text" translatable="yes">Pointer</property>
+                <property name="hexpand">1</property>
+                <property name="child">
+                  <object class="GtkImage">
+                    <property name="icon-name">presenter-pointer-symbolic</property>
+                    <property name="pixel-size">32</property>
+                    <property name="margin-bottom">16</property>
+                    <property name="margin-end">16</property>
+                    <property name="margin-start">16</property>
+                    <property name="margin-top">16</property>
+                  </object>
+                </property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="column-span">2</property>
+                  <property name="row">3</property>
+                </layout>
+              </object>
+            </child>
+          </object>
+        </child>
+        <style>
+          <class name="osd"/>
+        </style>
+      </object>
+    </property>
+  </template>
+</interface>
