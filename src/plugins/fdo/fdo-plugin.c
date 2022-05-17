@@ -3,7 +3,6 @@
 
 #include "config.h"
 
-#include <gtk/gtk.h>
 #include <libpeas/peas.h>
 #include <libvalent-notifications.h>
 #include <libvalent-session.h>
