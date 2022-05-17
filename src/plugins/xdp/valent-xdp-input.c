@@ -5,6 +5,14 @@
 
 #include "config.h"
 
+#ifdef __linux__
+# include <linux/input-event-codes.h>
+#else
+# define BTN_LEFT    0x110
+# define BTN_RIGHT   0x111
+# define BTN_MIDDLE  0x112
+#endif
+
 #include <glib-object.h>
 #include <gdk/gdk.h>
 #ifdef GDK_WINDOWING_X11
@@ -224,28 +232,23 @@ valent_xdp_input_keyboard_keysym (ValentInputAdapter *adapter,
   xdp_session_keyboard_key (self->session, TRUE, keysym, state);
 }
 
-static int
-translate_pointer_button (ValentPointerButton button)
+static unsigned int
+translate_to_evdev_button (unsigned int button)
 {
   switch (button)
     {
     case VALENT_POINTER_PRIMARY:
-      return 0x110;
+      return BTN_LEFT;
 
     case VALENT_POINTER_MIDDLE:
-      return 0x112;
+      return BTN_MIDDLE;
 
     case VALENT_POINTER_SECONDARY:
-      return 0x111;
-
-    case VALENT_POINTER_WHEEL_DOWN:
-      return 0x110; // FIXME
-
-    case VALENT_POINTER_WHEEL_UP:
-      return 0x10F;
+      return BTN_RIGHT;
 
     default:
-      return 0x110;
+      /* Any other buttons go after the legacy scroll buttons (4-7). */
+      return button + (BTN_LEFT - 1) - 4;
     }
 }
 
@@ -289,21 +292,20 @@ valent_xdp_input_pointer_axis (ValentInputAdapter *adapter,
 }
 
 static void
-valent_xdp_input_pointer_button (ValentInputAdapter  *adapter,
-                                 ValentPointerButton  button,
-                                 gboolean             pressed)
+valent_xdp_input_pointer_button (ValentInputAdapter *adapter,
+                                 unsigned int        button,
+                                 gboolean            pressed)
 {
   ValentXdpInput *self = VALENT_XDP_INPUT (adapter);
 
   g_assert (VALENT_IS_INPUT_ADAPTER (adapter));
   g_assert (VALENT_IS_XDP_INPUT (self));
-  g_assert (button > 0 && button < 8);
 
   if G_UNLIKELY (!ensure_session (self))
     return;
 
   /* Translate the button to EVDEV constant */
-  button = translate_pointer_button (button);
+  button = translate_to_evdev_button (button);
   xdp_session_pointer_button (self->session, button, pressed);
 }
 
