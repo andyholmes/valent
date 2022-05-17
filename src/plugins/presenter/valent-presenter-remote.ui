@@ -114,26 +114,14 @@
               </object>
             </child>
             <child>
-              <object class="GtkImage">
-                <property name="icon-name">valent-presenter-plugin-symbolic</property>
-                <property name="pixel-size">128</property>
-                <property name="vexpand">1</property>
-                <property name="hexpand">1</property>
-                <property name="opacity">0.1</property>
-                <layout>
-                  <property name="column">0</property>
-                  <property name="column-span">2</property>
-                  <property name="row">1</property>
-                </layout>
-              </object>
-            </child>
-            <child>
               <object class="GtkButton" id="previous_button">
                 <!-- NOTE: the keysym is "GDK_KEY_Page_Up" -->
                 <property name="action-name">device.mousepad.event</property>
                 <property name="action-target">{'keysym': &lt;uint32 65365&gt;}</property>
                 <property name="tooltip-text" translatable="yes">Previous</property>
                 <property name="hexpand">1</property>
+                <property name="valign">end</property>
+                <property name="vexpand">1</property>
                 <property name="child">
                   <object class="GtkImage">
                     <property name="icon-name">go-previous-symbolic</property>
@@ -157,6 +145,8 @@
                 <property name="action-target">{'keysym': &lt;uint32 65366&gt;}</property>
                 <property name="tooltip-text" translatable="yes">Next</property>
                 <property name="hexpand">1</property>
+                <property name="valign">end</property>
+                <property name="vexpand">1</property>
                 <property name="child">
                   <object class="GtkImage">
                     <property name="icon-name">go-next-symbolic</property>
