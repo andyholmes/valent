@@ -14,7 +14,6 @@ plugin_fdo_deps = [
   libvalent_notifications_dep,
   libvalent_session_dep,
 
-  gtk_dep,
   gdk_pixbuf_dep,
 ]
 

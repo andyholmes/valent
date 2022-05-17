@@ -5,8 +5,6 @@
 plugin_battery_deps = [
   libvalent_core_dep,
   libvalent_ui_dep,
-
-  gtk_dep,
 ]
 
 # Sources
