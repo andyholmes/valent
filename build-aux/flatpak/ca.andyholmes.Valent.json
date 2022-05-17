@@ -170,8 +170,8 @@
             "buildsystem" : "meson",
             "builddir": true,
             "config-opts" : [
-                "--buildtype=release",
-                "--libdir=/app/lib"
+                "--prefix=/app",
+                "--buildtype=release"
             ],
             "post-install" : [
                 "install -d /app/extensions"
