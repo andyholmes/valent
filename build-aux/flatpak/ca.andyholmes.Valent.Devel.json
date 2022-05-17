@@ -208,7 +208,8 @@
             "buildsystem" : "meson",
             "builddir" : true,
             "config-opts" : [
-                "--libdir=/app/lib",
+                "--prefix=/app",
+                "--buildtype=debugoptimized",
                 "-Dplugin_bluez=true",
                 "-Dprofile=devel",
                 "-Dtests=true",
