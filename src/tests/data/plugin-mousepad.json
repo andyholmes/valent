@@ -124,5 +124,12 @@
     "body": {
       "specialKey": 4
     }
+  },
+  "keyboard-keysym-string": {
+    "id": 0,
+    "type": "kdeconnect.mousepad.request",
+    "body": {
+      "key": "test"
+    }
   }
 }
