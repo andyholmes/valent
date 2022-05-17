@@ -6,6 +6,8 @@
 #include "config.h"
 
 #include <glib/gi18n.h>
+#include <gdk/gdk.h>
+#include <gtk/gtk.h>
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
 #include <libvalent-input.h>
@@ -70,33 +72,14 @@ keyboard_mask (ValentInput  *input,
     valent_input_keyboard_keysym (input, GDK_KEY_Super_L, lock);
 }
 
-static inline void
-keyboard_press (ValentInput  *input,
-                unsigned int  keysym,
-                unsigned int  mask)
-{
-
-  if (mask != 0)
-    keyboard_mask (input, mask, TRUE);
-
-  valent_input_keyboard_keysym (input, keysym, TRUE);
-  valent_input_keyboard_keysym (input, keysym, FALSE);
-
-  if (mask != 0)
-    keyboard_mask (input, mask, FALSE);
-}
-
-
 /*
  * Packet Handlers
  */
 static void
-handle_mousepad_request (ValentMousepadPlugin *self,
-                         JsonNode             *packet)
+valent_mousepad_plugin_handle_mousepad_request (ValentMousepadPlugin *self,
+                                                JsonNode             *packet)
 {
   JsonObject *body;
-  gboolean has_key;
-  gboolean has_special;
   const char *key;
   gint64 keycode;
 
@@ -120,28 +103,63 @@ handle_mousepad_request (ValentMousepadPlugin *self,
     }
 
   /* Keyboard Event */
-  else if ((has_key = valent_packet_get_string (packet, "key", &key)) ||
-           (has_special = valent_packet_get_int (packet, "specialKey", &keycode)))
+  else if (valent_packet_get_string (packet, "key", &key))
+    {
+      GdkModifierType mask;
+      const char *next;
+      gunichar codepoint;
+
+      /* Lock modifiers */
+      if ((mask = event_to_mask (body)) != 0)
+        keyboard_mask (self->input, mask, TRUE);
+
+      /* Input each keysym */
+      next = key;
+
+      while ((codepoint = g_utf8_get_char (next)) != 0)
+        {
+          unsigned int keysym;
+
+          keysym = gdk_unicode_to_keyval (codepoint);
+          valent_input_keyboard_keysym (self->input, keysym, TRUE);
+          valent_input_keyboard_keysym (self->input, keysym, FALSE);
+
+          next = g_utf8_next_char (next);
+        }
+
+      /* Unlock modifiers */
+      if (mask != 0)
+        keyboard_mask (self->input, mask, FALSE);
+
+      /* Send ack, if requested */
+      if (valent_packet_check_field (packet, "sendAck"))
+        valent_mousepad_plugin_send_echo (self, packet);
+    }
+  else if (valent_packet_get_int (packet, "specialKey", &keycode))
     {
       GdkModifierType mask;
       unsigned int keyval;
 
-      mask = event_to_mask (body);
-
-      if (has_key)
+      if ((keyval = valent_mousepad_keycode_to_keyval (keycode)) == 0)
         {
-          gunichar codepoint;
-
-          codepoint = g_utf8_get_char_validated (key, -1);
-          keyval = gdk_unicode_to_keyval (codepoint);
-          keyboard_press (self->input, keyval, mask);
-        }
-      else if (has_special)
-        {
-          if ((keyval = valent_mousepad_keycode_to_keyval (keycode)) != 0)
-            keyboard_press (self->input, keyval, mask);
+          g_warning ("%s(): expected \"specialKey\" field holding a keycode",
+                     G_STRFUNC);
+          return;
         }
 
+      /* Lock modifiers */
+      if ((mask = event_to_mask (body)) != 0)
+        keyboard_mask (self->input, mask, TRUE);
+
+      /* Input each keysym */
+      valent_input_keyboard_keysym (self->input, keyval, TRUE);
+      valent_input_keyboard_keysym (self->input, keyval, FALSE);
+
+      /* Unlock modifiers */
+      if (mask != 0)
+        keyboard_mask (self->input, mask, FALSE);
+
+      /* Send ack, if requested */
       if (valent_packet_check_field (packet, "sendAck"))
         valent_mousepad_plugin_send_echo (self, packet);
     }
@@ -190,8 +208,8 @@ handle_mousepad_request (ValentMousepadPlugin *self,
 }
 
 static void
-handle_mousepad_echo (ValentMousepadPlugin *self,
-                      JsonNode             *packet)
+valent_mousepad_plugin_handle_mousepad_echo (ValentMousepadPlugin *self,
+                                             JsonNode             *packet)
 {
   JsonObject *body;
   GdkModifierType mask = 0;
@@ -233,8 +251,8 @@ handle_mousepad_echo (ValentMousepadPlugin *self,
 }
 
 static void
-handle_mousepad_keyboardstate (ValentMousepadPlugin *self,
-                               JsonNode             *packet)
+valent_mousepad_plugin_handle_mousepad_keyboardstate (ValentMousepadPlugin *self,
+                                                      JsonNode             *packet)
 {
   gboolean state;
 
@@ -408,6 +426,9 @@ valent_mousepad_plugin_mousepad_keyboardstate (ValentMousepadPlugin *self)
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
+/*
+ * GActions
+ */
 static void
 valent_mousepad_plugin_toggle_actions (ValentMousepadPlugin *self,
                                        gboolean              available)
@@ -417,17 +438,14 @@ valent_mousepad_plugin_toggle_actions (ValentMousepadPlugin *self,
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
 
   action = g_action_map_lookup_action (G_ACTION_MAP (self), "remote");
-  g_simple_action_set_enabled (G_SIMPLE_ACTION (action), available);
+  g_simple_action_set_enabled (G_SIMPLE_ACTION (action),
+                               available && gtk_is_initialized ());
 
   action = g_action_map_lookup_action (G_ACTION_MAP (self), "event");
   g_simple_action_set_enabled (G_SIMPLE_ACTION (action),
                                available && self->remote_state);
 }
 
-
-/*
- * GActions
- */
 static void
 mousepad_remote_action (GSimpleAction *action,
                         GVariant      *parameter,
@@ -494,7 +512,7 @@ static const GActionEntry actions[] = {
 };
 
 static const ValentMenuEntry items[] = {
-    {N_("Remote Input"), "device.mousepad.dialog", "input-keyboard-symbolic"}
+    {N_("Remote Input"), "device.mousepad.remote", "input-keyboard-symbolic"}
 };
 
 /*
@@ -560,15 +578,15 @@ valent_mousepad_plugin_handle_packet (ValentDevicePlugin *plugin,
 
   /* A request to simulate input */
   if (strcmp (type, "kdeconnect.mousepad.request") == 0)
-    handle_mousepad_request (self, packet);
+    valent_mousepad_plugin_handle_mousepad_request (self, packet);
 
   /* A confirmation of input we requested */
   else if (strcmp (type, "kdeconnect.mousepad.echo") == 0)
-    handle_mousepad_echo (self, packet);
+    valent_mousepad_plugin_handle_mousepad_echo (self, packet);
 
   /* The remote keyboard is ready/not ready for input */
   else if (strcmp (type, "kdeconnect.mousepad.keyboardstate") == 0)
-    handle_mousepad_keyboardstate (self, packet);
+    valent_mousepad_plugin_handle_mousepad_keyboardstate (self, packet);
 
   else
     g_assert_not_reached ();

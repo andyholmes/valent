@@ -131,6 +131,19 @@ test_mousepad_plugin_handle_request (ValentTestFixture *fixture,
 
   valent_test_event_cmpstr ("KEYSYM 65361 1");
   valent_test_event_cmpstr ("KEYSYM 65361 0");
+
+  /* Keypress (String) */
+  packet = valent_test_fixture_lookup_packet (fixture, "keyboard-keysym-string");
+  valent_test_fixture_handle_packet (fixture, packet);
+
+  valent_test_event_cmpstr ("KEYSYM 116 1");
+  valent_test_event_cmpstr ("KEYSYM 116 0");
+  valent_test_event_cmpstr ("KEYSYM 101 1");
+  valent_test_event_cmpstr ("KEYSYM 101 0");
+  valent_test_event_cmpstr ("KEYSYM 115 1");
+  valent_test_event_cmpstr ("KEYSYM 115 0");
+  valent_test_event_cmpstr ("KEYSYM 116 1");
+  valent_test_event_cmpstr ("KEYSYM 116 0");
 }
 
 static void
