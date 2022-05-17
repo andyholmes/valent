@@ -173,7 +173,7 @@ valent_input_pointer_axis (ValentInput *input,
 /**
  * valent_input_pointer_button:
  * @input: a #ValentInput
- * @button: a #ValentPointerButton
+ * @button: a button
  * @state: %TRUE to press, or %FALSE to release
  *
  * Press or release @button.
@@ -181,9 +181,9 @@ valent_input_pointer_axis (ValentInput *input,
  * Since: 1.0
  */
 void
-valent_input_pointer_button (ValentInput         *input,
-                             ValentPointerButton  button,
-                             gboolean             state)
+valent_input_pointer_button (ValentInput  *input,
+                             unsigned int  button,
+                             gboolean      state)
 {
   VALENT_ENTRY;
 

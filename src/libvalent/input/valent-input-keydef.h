@@ -4,31 +4,31 @@
 #pragma once
 
 /**
- * ValentPointerButton:
- * @VALENT_POINTER_UNKNOWN: Unknown button
- * @VALENT_POINTER_PRIMARY: Primary button (usually left)
- * @VALENT_POINTER_MIDDLE: Middle Button
- * @VALENT_POINTER_SECONDARY: Secondary Button (usually right)
- * @VALENT_POINTER_WHEEL_DOWN: Scroll-down
- * @VALENT_POINTER_WHEEL_UP: Scroll-up
- * @VALENT_POINTER_6: Scroll-left
- * @VALENT_POINTER_7: Scroll-right
+ * VALENT_POINTER_PRIMARY: (value 1)
  *
- * Enumeration of pointer buttons.
+ * The primary button.
  *
- * Since: 1.0
+ * This is typically the left mouse button, or the right button in a left-handed
+ * setup.
  */
-typedef enum
-{
-  VALENT_POINTER_UNKNOWN,
-  VALENT_POINTER_PRIMARY,
-  VALENT_POINTER_MIDDLE,
-  VALENT_POINTER_SECONDARY,
-  VALENT_POINTER_WHEEL_DOWN,
-  VALENT_POINTER_WHEEL_UP,
-  VALENT_POINTER_6,
-  VALENT_POINTER_7,
-} ValentPointerButton;
+#define VALENT_POINTER_PRIMARY   (1)
 
-#define VALENT_IS_POINTER_BUTTON(button) (button > 0 && button < 8)
+/**
+ * VALENT_POINTER_MIDDLE: (value 2)
+ *
+ * The middle button.
+ *
+ * This is typically the button activated when the mouse wheel is pressed.
+ */
+#define VALENT_POINTER_MIDDLE    (2)
+
+/**
+ * VALENT_POINTER_SECONDARY: (value 3)
+ *
+ * The primary button.
+ *
+ * This is typically the right mouse button, or the left button in a left-handed
+ * setup.
+ */
+#define VALENT_POINTER_SECONDARY (3)
 

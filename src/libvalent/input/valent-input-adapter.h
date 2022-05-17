@@ -23,36 +23,36 @@ struct _ValentInputAdapterClass
   GObjectClass   parent_class;
 
   /* virtual functions */
-  void           (*keyboard_keysym)  (ValentInputAdapter *adapter,
-                                      unsigned int        keysym,
-                                      gboolean            state);
-  void           (*pointer_axis)     (ValentInputAdapter *adapter,
-                                      double              dx,
-                                      double              dy);
-  void           (*pointer_button)   (ValentInputAdapter *adapter,
-                                      ValentPointerButton button,
-                                      gboolean            state);
-  void           (*pointer_motion)   (ValentInputAdapter *adapter,
-                                      double              dx,
-                                      double              dy);
+  void           (*keyboard_keysym) (ValentInputAdapter *adapter,
+                                     unsigned int        keysym,
+                                     gboolean            state);
+  void           (*pointer_axis)    (ValentInputAdapter *adapter,
+                                     double              dx,
+                                     double              dy);
+  void           (*pointer_button)  (ValentInputAdapter *adapter,
+                                     unsigned int        button,
+                                     gboolean            state);
+  void           (*pointer_motion)  (ValentInputAdapter *adapter,
+                                     double              dx,
+                                     double              dy);
 };
 
 VALENT_AVAILABLE_IN_1_0
-void   valent_input_adapter_keyboard_keysym  (ValentInputAdapter  *adapter,
-                                              unsigned int         keysym,
-                                              gboolean             state);
+void   valent_input_adapter_keyboard_keysym (ValentInputAdapter *adapter,
+                                             unsigned int        keysym,
+                                             gboolean            state);
 VALENT_AVAILABLE_IN_1_0
-void   valent_input_adapter_pointer_axis     (ValentInputAdapter  *adapter,
-                                              double               dx,
-                                              double               dy);
+void   valent_input_adapter_pointer_axis    (ValentInputAdapter *adapter,
+                                             double              dx,
+                                             double              dy);
 VALENT_AVAILABLE_IN_1_0
-void   valent_input_adapter_pointer_button   (ValentInputAdapter  *adapter,
-                                              ValentPointerButton  button,
-                                              gboolean             state);
+void   valent_input_adapter_pointer_button  (ValentInputAdapter *adapter,
+                                             unsigned int        button,
+                                             gboolean            state);
 VALENT_AVAILABLE_IN_1_0
-void   valent_input_adapter_pointer_motion   (ValentInputAdapter  *adapter,
-                                              double               dx,
-                                              double               dy);
+void   valent_input_adapter_pointer_motion  (ValentInputAdapter *adapter,
+                                             double              dx,
+                                             double              dy);
 
 G_END_DECLS
 

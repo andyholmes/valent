@@ -19,24 +19,24 @@ VALENT_AVAILABLE_IN_1_0
 G_DECLARE_FINAL_TYPE (ValentInput, valent_input, VALENT, INPUT, ValentComponent)
 
 VALENT_AVAILABLE_IN_1_0
-ValentInput * valent_input_get_default      (void);
+ValentInput * valent_input_get_default     (void);
 
 VALENT_AVAILABLE_IN_1_0
-void          valent_input_keyboard_keysym  (ValentInput         *input,
-                                             unsigned int         keysym,
-                                             gboolean             state);
+void          valent_input_keyboard_keysym (ValentInput  *input,
+                                            unsigned int  keysym,
+                                            gboolean      state);
 VALENT_AVAILABLE_IN_1_0
-void          valent_input_pointer_axis     (ValentInput         *input,
-                                             double               dx,
-                                             double               dy);
+void          valent_input_pointer_axis    (ValentInput  *input,
+                                            double        dx,
+                                            double        dy);
 VALENT_AVAILABLE_IN_1_0
-void          valent_input_pointer_button   (ValentInput         *input,
-                                             ValentPointerButton  button,
-                                             gboolean             state);
+void          valent_input_pointer_button  (ValentInput  *input,
+                                            unsigned int  button,
+                                            gboolean      state);
 VALENT_AVAILABLE_IN_1_0
-void          valent_input_pointer_motion   (ValentInput         *input,
-                                             double               dx,
-                                             double               dy);
+void          valent_input_pointer_motion  (ValentInput  *input,
+                                            double        dx,
+                                            double        dy);
 
 G_END_DECLS
 

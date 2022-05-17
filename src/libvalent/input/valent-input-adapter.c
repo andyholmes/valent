@@ -77,7 +77,7 @@ valent_input_adapter_real_pointer_axis (ValentInputAdapter *adapter,
 
 static void
 valent_input_adapter_real_pointer_button (ValentInputAdapter  *adapter,
-                                          ValentPointerButton  button,
+                                          unsigned int         button,
                                           gboolean             state)
 {
 }
@@ -235,7 +235,7 @@ valent_input_adapter_pointer_axis (ValentInputAdapter *adapter,
 /**
  * valent_input_adapter_pointer_button:
  * @adapter: a #ValentInputAdapter
- * @button: a #ValentPointerButton
+ * @button: a button number
  * @state: %TRUE to press, or %FALSE to release
  *
  * Press or release @button.
@@ -243,14 +243,13 @@ valent_input_adapter_pointer_axis (ValentInputAdapter *adapter,
  * Since: 1.0
  */
 void
-valent_input_adapter_pointer_button (ValentInputAdapter  *adapter,
-                                     ValentPointerButton  button,
-                                     gboolean             state)
+valent_input_adapter_pointer_button (ValentInputAdapter *adapter,
+                                     unsigned int        button,
+                                     gboolean            state)
 {
   VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_INPUT_ADAPTER (adapter));
-  g_return_if_fail (VALENT_IS_POINTER_BUTTON (button));
 
   VALENT_INPUT_ADAPTER_GET_CLASS (adapter)->pointer_button (adapter,
                                                             button,

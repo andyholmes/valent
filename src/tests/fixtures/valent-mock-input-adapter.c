@@ -56,15 +56,14 @@ valent_mock_input_adapter_pointer_axis (ValentInputAdapter *adapter,
 }
 
 static void
-valent_mock_input_adapter_pointer_button (ValentInputAdapter  *adapter,
-                                          ValentPointerButton  button,
-                                          gboolean             pressed)
+valent_mock_input_adapter_pointer_button (ValentInputAdapter *adapter,
+                                          unsigned int        button,
+                                          gboolean            pressed)
 {
   char *event;
 
   g_assert (VALENT_IS_INPUT_ADAPTER (adapter));
   g_assert (VALENT_IS_MOCK_INPUT_ADAPTER (adapter));
-  g_assert (button > 0 && button < 8);
 
   event = g_strdup_printf ("POINTER BUTTON %u %i", button, pressed);
   valent_test_event_push (event);
