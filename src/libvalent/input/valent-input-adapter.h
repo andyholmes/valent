@@ -9,8 +9,6 @@
 
 #include <libvalent-core.h>
 
-#include "valent-input-keydef.h"
-
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_INPUT_ADAPTER (valent_input_adapter_get_type())

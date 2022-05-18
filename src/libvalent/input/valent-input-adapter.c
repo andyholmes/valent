@@ -10,7 +10,6 @@
 #include <libvalent-core.h>
 
 #include "valent-input-adapter.h"
-#include "valent-input-keydef.h"
 
 
 /**
