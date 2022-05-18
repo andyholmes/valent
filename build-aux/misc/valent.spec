@@ -1,11 +1,12 @@
 %global tarball_version %%(echo %{version} | tr '~' '.')
 
 %global glib2_version 2.66.0
-%global gtk4_version 4.4.0
+%global gtk4_version 4.6.0
 %global json_glib_version 1.6.0
 %global libpeas_version 1.22.0
 %global libeds_version 3.34.0
 %global sqlite_version 3.24.0
+%global libadwaita_version 1.1.0
 
 Name:           valent
 Version:        1.0.0~alpha
@@ -25,7 +26,7 @@ BuildRequires:  pkgconfig(gio-unix-2.0) >= %{glib2_version}
 BuildRequires:  pkgconfig(glib-2.0) >= %{glib2_version}
 BuildRequires:  pkgconfig(gnutls)
 BuildRequires:  pkgconfig(gtk4) >= %{gtk4_version}
-BuildRequires:  pkgconfig(libadwaita-1)
+BuildRequires:  pkgconfig(libadwaita-1) >= %{libadwaita_version}
 BuildRequires:  pkgconfig(json-glib-1.0) >= %{json_glib_version}
 BuildRequires:  pkgconfig(libpeas-1.0) >= %{libpeas_version}
 BuildRequires:  pkgconfig(libebook-1.2) >= %{libeds_version}
@@ -37,7 +38,6 @@ BuildRequires:  pkgconfig(gstreamer-1.0)
 # TODO: For `photo` plugin
 BuildRequires:  pkgconfig(gstreamer-video-1.0)
 # For `pulseaudio` plugin
-BuildRequires:  pkgconfig(alsa)
 BuildRequires:  pkgconfig(libpulse)
 BuildRequires:  pkgconfig(libpulse-mainloop-glib)
 BuildRequires:  %{_bindir}/desktop-file-validate
@@ -49,9 +49,10 @@ Requires:       glib2%{?_isa} >= %{glib2_version}
 Requires:       gtk4%{?_isa} >= %{gtk4_version}
 Requires:       json-glib%{?_isa} >= %{json_glib_version}
 Requires:       libpeas%{?_isa} >= %{libpeas_version}
-Requires:       libpeas-loader-python3%{?_isa} >= %{libpeas_version}
 Requires:       evolution-data-server%{?_isa} >= %{libeds_version}
 Requires:       gnutls%{?_isa}
+
+Recommends:     libpeas-loader-python3%{?_isa} >= %{libpeas_version}
 
 %description
 Securely connect your devices to open files and links where you need them, get
@@ -99,6 +100,7 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/*.desktop
 %exclude %{_libdir}/pkgconfig/
 %{_libdir}/girepository-1.0/
 %{_libdir}/libvalent.so*
+%{_sysconfdir}/xdg/autostart/ca.andyholmes.Valent-autostart.desktop
 
 %files devel
 %{_datadir}/gir-1.0/
