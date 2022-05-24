@@ -362,8 +362,6 @@ valent_application_startup (GApplication *application)
   /* Load plugins and start the device manager */
   valent_application_load_plugins (self);
   valent_device_manager_start (self->manager);
-
-  gtk_window_set_default_icon_name (APPLICATION_ID);
 }
 
 static void
