@@ -66,7 +66,7 @@ libvalent_mixer = static_library('valent-mixer-' + valent_api_version,
 )
 
 libvalent_mixer_dep = declare_dependency(
-              sources: libvalent_mixer_private_headers,
+              sources: [libvalent_mixer_generated_headers, libvalent_mixer_private_headers],
          dependencies: libvalent_mixer_deps,
             link_with: libvalent_mixer,
   include_directories: include_directories('.'),

@@ -50,7 +50,7 @@ libvalent_session = static_library('valent-session-' + valent_api_version,
 )
 
 libvalent_session_dep = declare_dependency(
-              sources: libvalent_session_private_headers,
+              sources: [libvalent_session_generated_headers, libvalent_session_private_headers],
          dependencies: libvalent_session_deps,
             link_with: libvalent_session,
   include_directories: include_directories('.'),

@@ -3,10 +3,16 @@
 
 #pragma once
 
+#include <libvalent-core.h>
+
+G_BEGIN_DECLS
+
 #define VALENT_CLIPBOARD_INSIDE
 
 #include "valent-clipboard.h"
 #include "valent-clipboard-adapter.h"
 
 #undef VALENT_CLIPBOARD_INSIDE
+
+G_END_DECLS
 
