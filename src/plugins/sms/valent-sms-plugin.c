@@ -401,6 +401,12 @@ messaging_action (GSimpleAction *action,
 
   g_assert (VALENT_IS_SMS_PLUGIN (self));
 
+  if (!gtk_is_initialized ())
+    {
+      g_warning ("%s: No display available", G_STRFUNC);
+      return;
+    }
+
   if (self->window == NULL)
     {
       ValentContactStore *store;

@@ -24,35 +24,33 @@ struct _ValentDataClass
 };
 
 VALENT_AVAILABLE_IN_1_0
-ValentData    * valent_data_new          (const char      *context,
-                                          ValentData      *parent);
-
-/* Properties */
+ValentData    * valent_data_new          (const char *context,
+                                          ValentData *parent);
 VALENT_AVAILABLE_IN_1_0
-const char * valent_data_get_cache_path  (ValentData      *data);
+const char * valent_data_get_cache_path  (ValentData *data);
 VALENT_AVAILABLE_IN_1_0
-const char * valent_data_get_config_path (ValentData      *data);
+const char * valent_data_get_config_path (ValentData *data);
 VALENT_AVAILABLE_IN_1_0
-const char * valent_data_get_data_path   (ValentData      *data);
+const char * valent_data_get_data_path   (ValentData *data);
 VALENT_AVAILABLE_IN_1_0
-const char * valent_data_get_context     (ValentData      *data);
+const char * valent_data_get_context     (ValentData *data);
 VALENT_AVAILABLE_IN_1_0
-ValentData * valent_data_get_parent      (ValentData      *data);
-
-/* Public Methods */
+ValentData * valent_data_get_parent      (ValentData *data);
 VALENT_AVAILABLE_IN_1_0
-void         valent_data_clear_cache     (ValentData      *data);
+const char * valent_data_get_uid         (ValentData *data);
 VALENT_AVAILABLE_IN_1_0
-void         valent_data_clear_data      (ValentData      *data);
+void         valent_data_clear_cache     (ValentData *data);
 VALENT_AVAILABLE_IN_1_0
-GFile      * valent_data_new_cache_file  (ValentData      *data,
-                                          const char      *filename);
+void         valent_data_clear_data      (ValentData *data);
 VALENT_AVAILABLE_IN_1_0
-GFile      * valent_data_new_config_file (ValentData      *data,
-                                          const char      *filename);
+GFile      * valent_data_new_cache_file  (ValentData *data,
+                                          const char *filename);
 VALENT_AVAILABLE_IN_1_0
-GFile      * valent_data_new_data_file   (ValentData      *data,
-                                          const char      *filename);
+GFile      * valent_data_new_config_file (ValentData *data,
+                                          const char *filename);
+VALENT_AVAILABLE_IN_1_0
+GFile      * valent_data_new_data_file   (ValentData *data,
+                                          const char *filename);
 
 /* Static Utilities */
 VALENT_AVAILABLE_IN_1_0

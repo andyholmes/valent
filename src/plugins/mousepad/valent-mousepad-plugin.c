@@ -454,6 +454,7 @@ mousepad_remote_action (GSimpleAction *action,
   ValentMousepadPlugin *self = VALENT_MOUSEPAD_PLUGIN (user_data);
 
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
+  g_assert (gtk_is_initialized ());
 
   if (self->remote == NULL)
     {

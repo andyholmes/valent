@@ -7,6 +7,7 @@
 
 #include "valent-mixer.h"
 #include "valent-mixer-adapter.h"
+#include "valent-mixer-enums.h"
 #include "valent-mixer-stream.h"
 
 #undef VALENT_MIXER_INSIDE

@@ -771,6 +771,8 @@ valent_device_manager_dispose (GObject *object)
       g_signal_emit (G_OBJECT (self), signals [DEVICE_REMOVED], 0, device);
       g_hash_table_iter_remove (&iter);
     }
+
+  G_OBJECT_CLASS (valent_device_manager_parent_class)->dispose (object);
 }
 
 static void

@@ -117,6 +117,7 @@ presenter_remote_action (GSimpleAction *action,
   ValentPresenterPlugin *self = VALENT_PRESENTER_PLUGIN (user_data);
 
   g_assert (VALENT_IS_PRESENTER_PLUGIN (self));
+  g_assert (gtk_is_initialized ());
 
   if (self->remote == NULL)
     {

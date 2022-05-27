@@ -2,8 +2,8 @@
 # SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 subdir('core')
-subdir('contacts')
 subdir('clipboard')
+subdir('contacts')
 subdir('input')
 subdir('media')
 subdir('mixer')
