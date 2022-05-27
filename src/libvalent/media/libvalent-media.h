@@ -3,6 +3,10 @@
 
 #pragma once
 
+#include <libvalent-core.h>
+
+G_BEGIN_DECLS
+
 #define VALENT_MEDIA_INSIDE
 
 #include "valent-media.h"
@@ -11,4 +15,6 @@
 #include "valent-media-player.h"
 
 #undef VALENT_MEDIA_INSIDE
+
+G_END_DECLS
 

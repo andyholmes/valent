@@ -66,7 +66,7 @@ libvalent_media = static_library('valent-media-' + valent_api_version,
 )
 
 libvalent_media_dep = declare_dependency(
-              sources: libvalent_media_private_headers,
+              sources: [libvalent_media_generated_headers, libvalent_media_private_headers],
          dependencies: libvalent_media_deps,
             link_with: libvalent_media,
   include_directories: include_directories('.'),

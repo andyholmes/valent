@@ -16,7 +16,7 @@ jobs:
           submodules: false
 
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: 3.x
 
@@ -64,7 +64,7 @@ jobs:
 
       - name: Compare
         env:
-          STABLE_REF: ef86443e187bec1b868316b8b1a172574f78e309
+          STABLE_REF: 1a2b1841c2dbee83ecd24032a70d67846ad23920
           COMMIT_REF: ${{ github.event.pull_request.head.sha }}
         run: |
           ./src/tests/extra/abicheck.py ${STABLE_REF} ${COMMIT_REF}

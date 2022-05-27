@@ -104,7 +104,7 @@ libvalent_core_generated_headers += [libvalent_debug_h]
 # Enumerations
 libvalent_core_enums = gnome.mkenums_simple('valent-core-enums',
           body_prefix: '#include "config.h"',
-        header_prefix: '#include <libvalent-core.h>',
+        header_prefix: '#include "valent-version.h"',
             decorator: '_VALENT_EXTERN',
               sources: libvalent_core_enum_headers,
        install_header: true,
@@ -143,7 +143,7 @@ libvalent_core = static_library('valent-core-' + valent_api_version,
 )
 
 libvalent_core_dep = declare_dependency(
-              sources: libvalent_core_private_headers,
+              sources: libvalent_core_private_headers + libvalent_core_generated_headers,
          dependencies: libvalent_core_deps,
             link_with: libvalent_core,
   include_directories: [config_h_inc, include_directories('.')],
@@ -156,6 +156,7 @@ libvalent_public_sources += files(libvalent_core_public_sources)
 libvalent_public_headers += files(libvalent_core_public_headers)
 libvalent_private_headers += files(libvalent_core_private_headers)
 libvalent_generated_headers += libvalent_core_generated_headers
+libvalent_generated_sources += libvalent_core_generated_sources
 libvalent_include_subdirs += libvalent_core_header_subdir
 libvalent_gir_extra_args += ['--c-include=libvalent-core.h', '-DVALENT_CORE_COMPILATION']
 

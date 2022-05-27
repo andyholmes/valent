@@ -3,9 +3,13 @@
 
 #pragma once
 
-#define VALENT_UI_INSIDE
-
 #include <adwaita.h>
+#include <gtk/gtk.h>
+#include <libvalent-core.h>
+
+G_BEGIN_DECLS
+
+#define VALENT_UI_INSIDE
 
 #include "valent-application.h"
 #include "valent-device-activity.h"

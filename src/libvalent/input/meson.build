@@ -51,7 +51,7 @@ libvalent_input = static_library('valent-input-' + valent_api_version,
 )
 
 libvalent_input_dep = declare_dependency(
-              sources: libvalent_input_private_headers,
+              sources: [libvalent_input_generated_headers, libvalent_input_private_headers],
          dependencies: libvalent_input_deps,
             link_with: libvalent_input,
   include_directories: include_directories('.'),
