@@ -819,6 +819,12 @@ notification_reply_action (GSimpleAction *action,
       g_autoptr (ValentNotificationDialog) dialog = NULL;
       g_autoptr (ValentNotification) notification = NULL;
 
+      if (!gtk_is_initialized ())
+        {
+          g_warning ("%s: No display available", G_STRFUNC);
+          return;
+        }
+
       notification = valent_notification_deserialize (notificationv);
 
       if ((dialog = g_hash_table_lookup (self->dialogs, notification)) == NULL)

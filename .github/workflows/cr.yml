@@ -27,14 +27,14 @@ jobs:
     steps:
       - name: Login
         if: ${{ github.event_name != 'pull_request' }}
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ env.USERNAME }}
           password: ${{ env.PASSWORD }}
 
       - name: Build
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           file: ./src/tests/extra/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}

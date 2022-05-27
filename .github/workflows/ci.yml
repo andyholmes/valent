@@ -31,6 +31,7 @@ jobs:
           reuse lint
 
       - name: Spelling (codespell)
+        if: ${{ always() }}
         run: |
           codespell --config src/tests/extra/setup.cfg
 
@@ -143,7 +144,7 @@ jobs:
 
       - name: Test Report
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Tests (${{ matrix.label }})
           path: _build/meson-logs/testlog.txt
