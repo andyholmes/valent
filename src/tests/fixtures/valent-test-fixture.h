@@ -63,7 +63,7 @@ gboolean            valent_test_fixture_upload        (ValentTestFixture  *fixtu
                                                        JsonNode           *packet,
                                                        GFile              *file,
                                                        GError            **error);
-gboolean            valent_test_fixture_schema_fuzz   (ValentTestFixture  *fixture,
+void                valent_test_fixture_schema_fuzz   (ValentTestFixture  *fixture,
                                                        const char         *path);
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (ValentTestFixture, valent_test_fixture_unref)
