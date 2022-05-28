@@ -63,20 +63,6 @@ libvalent_test_generated_headers = [libvalent_test_resources[1]]
 
 
 # Dependencies
-libwalbottle_dep = dependency('libwalbottle-0', required: false)
-
-if not libwalbottle_dep.found()
-  libwalbottle = subproject('walbottle',
-    default_options: [
-      'gtk_doc=false',
-      'installed_tests=false',
-      'introspection=disabled',
-      'werror=false',
-    ],
-  )
-  libwalbottle_dep = libwalbottle.get_variable('libwalbottle_dep')
-endif
-
 libvalent_test_deps = [
   libvalent_core_dep,
   libvalent_clipboard_dep,
@@ -87,8 +73,26 @@ libvalent_test_deps = [
   libvalent_notifications_dep,
   libvalent_session_dep,
   libvalent_ui_dep,
-  libwalbottle_dep,
 ]
+
+if get_option('fuzz_tests')
+  libwalbottle_dep = dependency('libwalbottle-0', required: false)
+
+  if not libwalbottle_dep.found()
+    libwalbottle = subproject('walbottle',
+      default_options: [
+        'gtk_doc=false',
+        'installed_tests=false',
+        'introspection=disabled',
+        'werror=false',
+      ],
+    )
+    libwalbottle_dep = libwalbottle.get_variable('libwalbottle_dep')
+  endif
+
+  libvalent_c_args += ['-DHAVE_WALBOTTLE']
+  libvalent_test_deps += [libwalbottle_dep]
+endif
 
 
 # Library Definitions
@@ -101,7 +105,7 @@ libvalent_test = static_library('valent-test-' + valent_api_version,
 )
 
 libvalent_test_dep = declare_dependency(
-              sources: libvalent_test_private_headers,
+              sources: [libvalent_test_private_headers, libvalent_test_generated_headers],
          dependencies: libvalent_test_deps,
             link_with: libvalent_test,
   include_directories: include_directories('.'),

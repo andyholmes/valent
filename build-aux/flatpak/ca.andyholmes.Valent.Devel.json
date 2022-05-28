@@ -185,8 +185,8 @@
             "config-opts" : [
                 "--libdir=/app/lib",
                 "--buildtype=debugoptimized",
-                "-Denable_gtk=false",
-                "-Dwith_sysprofd=host"
+                "-Dgtk=false",
+                "-Dsysprofd=host"
             ],
             "cleanup" : [
                 "/bin/*",

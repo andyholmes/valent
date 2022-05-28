@@ -2,7 +2,10 @@
 // SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 #include <libvalent-core.h>
-#include <libwalbottle/wbl-schema.h>
+
+#ifdef HAVE_WALBOTTLE
+# include <libwalbottle/wbl-schema.h>
+#endif /* HAVE_WALBOTTLE */
 
 #include "valent-device-private.h"
 #include "valent-test-fixture.h"
@@ -421,11 +424,11 @@ valent_test_fixture_upload (ValentTestFixture  *fixture,
  * Generate test vectors for the JSON Schema at @path and pass them to the
  * #ValentDevice for @fixture.
  */
-gboolean
+void
 valent_test_fixture_schema_fuzz (ValentTestFixture *fixture,
                                  const char        *path)
 {
-#ifdef VALENT_TEST_FUZZ
+#ifdef HAVE_WALBOTTLE
   g_autoptr (JsonParser) parser = NULL;
   WblSchema *schema;
   GPtrArray *instances;
@@ -453,8 +456,6 @@ valent_test_fixture_schema_fuzz (ValentTestFixture *fixture,
 
   g_ptr_array_unref (instances);
   g_object_unref (schema);
-#endif
-
-  return TRUE;
+#endif /* HAVE_WALBOTTLE */
 }
 

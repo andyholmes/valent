@@ -50,25 +50,20 @@ run_command(gsettings_test_init,
   check: true,
 )
 
-compile_schemas = find_program('glib-compile-schemas')
-test_schema_dir = join_paths(meson.project_build_root(), 'schemas')
-
-test('Validate GSchema files', compile_schemas,
-  args: ['--strict', '--dry-run', test_schema_dir],
-)
+tests_schema_dir = join_paths(meson.project_build_root(), 'schemas')
 
 gschemas_compiled = custom_target('gschemas.compiled',
             output: 'gschemas.compiled',
-           command: ['glib-compile-schemas', test_schema_dir],
+           command: ['glib-compile-schemas', tests_schema_dir],
   build_by_default: true,
            install: false,
 )
 
-
-# Run fuzzing tests
-if get_option('fuzz_tests')
-  test_c_args += ['-DVALENT_TEST_FUZZ=1']
-endif
+test('Validate GSchema files', find_program('glib-compile-schemas'),
+         args: ['--strict', '--dry-run', tests_schema_dir],
+          env: tests_env,
+  is_parallel: false,
+)
 
 
 subdir('fixtures')
