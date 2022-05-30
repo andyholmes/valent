@@ -160,17 +160,16 @@ valent_media_adapter_load_cb (ValentMediaAdapter *adapter,
  * ValentComponent
  */
 static void
-valent_media_extension_added (ValentComponent *component,
-                              PeasExtension   *extension)
+valent_media_enable_extension (ValentComponent *component,
+                               PeasExtension   *extension)
 {
   ValentMedia *self = VALENT_MEDIA (component);
   ValentMediaAdapter *adapter = VALENT_MEDIA_ADAPTER (extension);
 
   VALENT_ENTRY;
 
-  g_assert (VALENT_IS_COMPONENT (component));
-  g_assert (VALENT_IS_MEDIA_ADAPTER (adapter));
   g_assert (VALENT_IS_MEDIA (self));
+  g_assert (VALENT_IS_MEDIA_ADAPTER (adapter));
 
   g_signal_connect_object (adapter,
                            "player-added",
@@ -193,7 +192,7 @@ valent_media_extension_added (ValentComponent *component,
 }
 
 static void
-valent_media_extension_removed (ValentComponent *component,
+valent_media_disable_extension (ValentComponent *component,
                                 PeasExtension   *extension)
 {
   ValentMedia *self = VALENT_MEDIA (component);
@@ -202,15 +201,16 @@ valent_media_extension_removed (ValentComponent *component,
 
   VALENT_ENTRY;
 
-  g_assert (VALENT_IS_COMPONENT (component));
-  g_assert (VALENT_IS_MEDIA (component));
+  g_assert (VALENT_IS_MEDIA (self));
+  g_assert (VALENT_IS_MEDIA_ADAPTER (adapter));
 
   players = valent_media_adapter_get_players (adapter);
 
   for (unsigned int i = 0; i < players->len; i++)
     valent_media_adapter_emit_player_removed (adapter, g_ptr_array_index (players, i));
 
-  g_signal_handlers_disconnect_by_data (adapter, self);
+  g_signal_handlers_disconnect_by_func (adapter, on_player_added, self);
+  g_signal_handlers_disconnect_by_func (adapter, on_player_removed, self);
 
   VALENT_EXIT;
 }
@@ -251,8 +251,8 @@ valent_media_class_init (ValentMediaClass *klass)
   object_class->dispose = valent_media_dispose;
   object_class->finalize = valent_media_finalize;
 
-  component_class->extension_added = valent_media_extension_added;
-  component_class->extension_removed = valent_media_extension_removed;
+  component_class->enable_extension = valent_media_enable_extension;
+  component_class->disable_extension = valent_media_disable_extension;
 
 
   /**
@@ -363,8 +363,9 @@ valent_media_get_default (void)
   if (default_media == NULL)
     {
       default_media = g_object_new (VALENT_TYPE_MEDIA,
-                                    "plugin-context", "media",
-                                    "plugin-type",    VALENT_TYPE_MEDIA_ADAPTER,
+                                    "plugin-context",  "media",
+                                    "plugin-priority", "MediaAdapterPriority",
+                                    "plugin-type",     VALENT_TYPE_MEDIA_ADAPTER,
                                     NULL);
 
       g_object_add_weak_pointer (G_OBJECT (default_media),

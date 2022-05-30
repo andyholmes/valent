@@ -231,8 +231,8 @@ valent_notifications_adapter_load_cb (ValentNotificationsAdapter *adapter,
  * ValentComponent
  */
 static void
-valent_notifications_extension_added (ValentComponent *component,
-                                      PeasExtension   *extension)
+valent_notifications_enable_extension (ValentComponent *component,
+                                       PeasExtension   *extension)
 {
   ValentNotifications *self = VALENT_NOTIFICATIONS (component);
   ValentNotificationsAdapter *adapter = VALENT_NOTIFICATIONS_ADAPTER (extension);
@@ -257,7 +257,7 @@ valent_notifications_extension_added (ValentComponent *component,
 }
 
 static void
-valent_notifications_extension_removed (ValentComponent *component,
+valent_notifications_disable_extension (ValentComponent *component,
                                         PeasExtension   *extension)
 {
   ValentNotifications *self = VALENT_NOTIFICATIONS (component);
@@ -292,8 +292,8 @@ valent_notifications_class_init (ValentNotificationsClass *klass)
 
   object_class->finalize = valent_notifications_finalize;
 
-  component_class->extension_added = valent_notifications_extension_added;
-  component_class->extension_removed = valent_notifications_extension_removed;
+  component_class->enable_extension = valent_notifications_enable_extension;
+  component_class->disable_extension = valent_notifications_disable_extension;
 
   /**
    * ValentNotifications::notification-added:
@@ -361,8 +361,9 @@ valent_notifications_get_default (void)
   if (default_listener == NULL)
     {
       default_listener = g_object_new (VALENT_TYPE_NOTIFICATIONS,
-                                       "plugin-context", "notifications",
-                                       "plugin-type",    VALENT_TYPE_NOTIFICATIONS_ADAPTER,
+                                       "plugin-context",  "notifications",
+                                       "plugin-priority", "NotificationsAdapterPriority",
+                                       "plugin-type",     VALENT_TYPE_NOTIFICATIONS_ADAPTER,
                                        NULL);
 
       g_object_add_weak_pointer (G_OBJECT (default_listener),

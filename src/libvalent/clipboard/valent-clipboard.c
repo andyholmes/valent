@@ -11,6 +11,7 @@
 
 #include "valent-clipboard.h"
 #include "valent-clipboard-adapter.h"
+#include "valent-component-private.h"
 
 
 /**
@@ -82,48 +83,48 @@ on_clipboard_adapter_changed (ValentClipboardAdapter *clipboard,
  * ValentComponent
  */
 static void
-valent_clipboard_extension_added (ValentComponent *component,
-                                  PeasExtension   *extension)
+valent_clipboard_enable_extension (ValentComponent *component,
+                                   PeasExtension   *extension)
 {
   ValentClipboard *self = VALENT_CLIPBOARD (component);
-  ValentClipboardAdapter *clipboard = VALENT_CLIPBOARD_ADAPTER (extension);
-  PeasExtension *provider;
+  ValentClipboardAdapter *adapter = VALENT_CLIPBOARD_ADAPTER (extension);
+  PeasExtension *new_primary;
 
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_CLIPBOARD (self));
+  g_assert (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
 
-  g_signal_connect_object (clipboard,
+  g_signal_connect_object (adapter,
                            "changed",
                            G_CALLBACK (on_clipboard_adapter_changed),
                            component, 0);
 
-  provider = valent_component_get_priority_provider (component,
-                                                     "ClipboardAdapterPriority");
-
-  if ((PeasExtension *)self->default_adapter != provider)
-    g_set_object (&self->default_adapter, VALENT_CLIPBOARD_ADAPTER (provider));
+  /* Set default provider */
+  new_primary = valent_component_get_primary (component);
+  self->default_adapter = VALENT_CLIPBOARD_ADAPTER (new_primary);
 
   VALENT_EXIT;
 }
 
 static void
-valent_clipboard_extension_removed (ValentComponent *component,
+valent_clipboard_disable_extension (ValentComponent *component,
                                     PeasExtension   *extension)
 {
   ValentClipboard *self = VALENT_CLIPBOARD (component);
-  ValentClipboardAdapter *clipboard = VALENT_CLIPBOARD_ADAPTER (extension);
-  PeasExtension *provider;
+  ValentClipboardAdapter *adapter = VALENT_CLIPBOARD_ADAPTER (extension);
+  PeasExtension *new_primary;
 
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_CLIPBOARD (self));
+  g_assert (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
 
-  g_signal_handlers_disconnect_by_data (clipboard, self);
+  g_signal_handlers_disconnect_by_data (adapter, self);
 
-  provider = valent_component_get_priority_provider (component,
-                                                     "ClipboardAdapterPriority");
-  g_set_object (&self->default_adapter, VALENT_CLIPBOARD_ADAPTER (provider));
+  /* Set default provider */
+  new_primary = valent_component_get_primary (component);
+  self->default_adapter = VALENT_CLIPBOARD_ADAPTER (new_primary);
 
   VALENT_EXIT;
 }
@@ -132,25 +133,12 @@ valent_clipboard_extension_removed (ValentComponent *component,
  * GObject
  */
 static void
-valent_clipboard_finalize (GObject *object)
-{
-  ValentClipboard *self = VALENT_CLIPBOARD (object);
-
-  g_clear_object (&self->default_adapter);
-
-  G_OBJECT_CLASS (valent_clipboard_parent_class)->finalize (object);
-}
-
-static void
 valent_clipboard_class_init (ValentClipboardClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentComponentClass *component_class = VALENT_COMPONENT_CLASS (klass);
 
-  object_class->finalize = valent_clipboard_finalize;
-
-  component_class->extension_added = valent_clipboard_extension_added;
-  component_class->extension_removed = valent_clipboard_extension_removed;
+  component_class->enable_extension = valent_clipboard_enable_extension;
+  component_class->disable_extension = valent_clipboard_disable_extension;
 
   /**
    * ValentClipboard::changed:
@@ -190,8 +178,9 @@ valent_clipboard_get_default (void)
   if (default_clipboard == NULL)
     {
       default_clipboard = g_object_new (VALENT_TYPE_CLIPBOARD,
-                                        "plugin-context", "clipboard",
-                                        "plugin-type",    VALENT_TYPE_CLIPBOARD_ADAPTER,
+                                        "plugin-context",  "clipboard",
+                                        "plugin-priority", "ClipboardAdapterPriority",
+                                        "plugin-type",     VALENT_TYPE_CLIPBOARD_ADAPTER,
                                         NULL);
 
       g_object_add_weak_pointer (G_OBJECT (default_clipboard),

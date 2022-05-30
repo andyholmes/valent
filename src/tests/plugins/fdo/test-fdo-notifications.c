@@ -45,7 +45,7 @@ fdo_notifications_fixture_set_up (FdoNotificationsFixture *fixture,
   g_autoptr (GSettings) settings = NULL;
 
   /* Disable the mock plugin */
-  settings = valent_component_new_settings ("notifications", "mock");
+  settings = valent_component_create_settings ("notifications", "mock");
   g_settings_set_boolean (settings, "enabled", FALSE);
 
   fixture->connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);

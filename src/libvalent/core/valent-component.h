@@ -23,19 +23,16 @@ struct _ValentComponentClass
 {
   GObjectClass   parent_class;
 
-  /* signals */
-  void           (*extension_added)   (ValentComponent *component,
+  /* virtual functions */
+  void           (*enable_extension)  (ValentComponent *component,
                                        PeasExtension   *extension);
-  void           (*extension_removed) (ValentComponent *component,
+  void           (*disable_extension) (ValentComponent *component,
                                        PeasExtension   *extension);
 };
 
 VALENT_AVAILABLE_IN_1_0
-PeasExtension * valent_component_get_priority_provider (ValentComponent *component,
-                                                        const char      *key);
-VALENT_AVAILABLE_IN_1_0
-GSettings     * valent_component_new_settings          (const char      *context,
-                                                        const char      *module_name);
+GSettings * valent_component_create_settings (const char *context,
+                                              const char *module_name);
 
 G_END_DECLS
 

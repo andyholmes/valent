@@ -39,7 +39,7 @@ mpris_adapter_fixture_set_up (MprisComponentFixture *fixture,
   g_autoptr (GSettings) settings = NULL;
 
   /* Disable the mock plugin */
-  settings = valent_component_new_settings ("media", "mock");
+  settings = valent_component_create_settings ("media", "mock");
   g_settings_set_boolean (settings, "enabled", FALSE);
 
   fixture->loop = g_main_loop_new (NULL, FALSE);

@@ -92,7 +92,7 @@ plugins_timeout_cb (gpointer data)
 
   engine = valent_get_engine ();
   info = peas_engine_get_plugin_info (engine, "mock");
-  settings = valent_component_new_settings ("application", "mock");
+  settings = valent_component_create_settings ("application", "mock");
 
   switch (stage++)
     {

@@ -395,7 +395,7 @@ test_manager_dispose (ManagerFixture *fixture,
     g_main_context_iteration (NULL, FALSE);
 
   /* Disable & Enabled channel service */
-  settings = valent_component_new_settings ("network", "mock");
+  settings = valent_component_create_settings ("network", "mock");
 
   g_settings_set_boolean (settings, "enabled", FALSE);
 

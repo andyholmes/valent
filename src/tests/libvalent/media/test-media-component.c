@@ -9,10 +9,11 @@
 
 typedef struct
 {
-  ValentMedia       *media;
-  ValentMediaPlayer *player;
-  gpointer           data;
-  unsigned int       state;
+  ValentMedia        *media;
+  ValentMediaAdapter *adapter;
+  ValentMediaPlayer  *player;
+  gpointer            data;
+  unsigned int        state;
 } MediaComponentFixture;
 
 static void
@@ -20,11 +21,15 @@ media_component_fixture_set_up (MediaComponentFixture *fixture,
                                 gconstpointer          user_data)
 {
   fixture->media = valent_media_get_default ();
+  fixture->player = g_object_new (VALENT_TYPE_MOCK_MEDIA_PLAYER, NULL);
+
+  while ((fixture->adapter = valent_mock_media_adapter_get_instance ()) == NULL)
+    g_main_context_iteration (NULL, FALSE);
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
 
-  fixture->player = g_object_new (VALENT_TYPE_MOCK_MEDIA_PLAYER, NULL);
+  g_object_ref (fixture->adapter);
 }
 
 static void
@@ -32,6 +37,7 @@ media_component_fixture_tear_down (MediaComponentFixture *fixture,
                                    gconstpointer          user_data)
 {
   v_assert_finalize_object (fixture->media);
+  v_await_finalize_object (fixture->adapter);
   v_assert_finalize_object (fixture->player);
 
   while (g_main_context_iteration (NULL, FALSE))
@@ -85,14 +91,10 @@ test_media_component_adapter (MediaComponentFixture *fixture,
                               gconstpointer          user_data)
 {
   g_autoptr (GPtrArray) players = NULL;
-  ValentMediaAdapter *adapter;
   PeasPluginInfo *plugin_info;
 
-  while ((adapter = valent_mock_media_adapter_get_instance ()) == NULL)
-    continue;
-
   /* Properties */
-  g_object_get (adapter,
+  g_object_get (fixture->adapter,
                 "plugin-info", &plugin_info,
                 NULL);
 
@@ -100,34 +102,32 @@ test_media_component_adapter (MediaComponentFixture *fixture,
   g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
 
   /* Signals */
-  g_signal_connect (adapter,
+  g_signal_connect (fixture->adapter,
                     "player-added",
                     G_CALLBACK (on_player_added),
                     fixture);
-  valent_media_adapter_emit_player_added (adapter, fixture->player);
-  g_assert_true (fixture->data == adapter);
+  valent_media_adapter_emit_player_added (fixture->adapter, fixture->player);
+  g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
-  players = valent_media_adapter_get_players (adapter);
+  players = valent_media_adapter_get_players (fixture->adapter);
   g_assert_cmpint (players->len, ==, 1);
 
-  g_signal_connect (adapter,
+  g_signal_connect (fixture->adapter,
                     "player-removed",
                     G_CALLBACK (on_player_removed),
                     fixture);
-  valent_media_adapter_emit_player_removed (adapter, fixture->player);
-  g_assert_true (fixture->data == adapter);
+  valent_media_adapter_emit_player_removed (fixture->adapter, fixture->player);
+  g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
-  g_signal_handlers_disconnect_by_data (adapter, fixture);
+  g_signal_handlers_disconnect_by_data (fixture->adapter, fixture);
 }
 
 static void
 test_media_component_player (MediaComponentFixture *fixture,
                              gconstpointer          user_data)
 {
-  ValentMediaAdapter *adapter;
-
   /* org.mpris.MediaPlayer2.Player */
   ValentMediaActions flags;
   ValentMediaState state;
@@ -136,16 +136,13 @@ test_media_component_player (MediaComponentFixture *fixture,
   g_autoptr (GVariant) metadata = NULL;
   gint64 position;
 
-  while ((adapter = valent_mock_media_adapter_get_instance ()) == NULL)
-    continue;
-
   /* Add Player */
-  g_signal_connect (adapter,
+  g_signal_connect (fixture->adapter,
                     "player-added",
                     G_CALLBACK (on_player_added),
                     fixture);
-  valent_media_adapter_emit_player_added (adapter, fixture->player);
-  g_assert_true (fixture->data == adapter);
+  valent_media_adapter_emit_player_added (fixture->adapter, fixture->player);
+  g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
   /* Test Player Properties */
@@ -231,16 +228,16 @@ test_media_component_player (MediaComponentFixture *fixture,
   fixture->state = FALSE;
 
   /* Remove Player */
-  g_signal_connect (adapter,
+  g_signal_connect (fixture->adapter,
                     "player-removed",
                     G_CALLBACK (on_player_removed),
                     fixture);
-  valent_media_adapter_emit_player_removed (adapter, fixture->player);
-  g_assert_true (fixture->data == adapter);
+  valent_media_adapter_emit_player_removed (fixture->adapter, fixture->player);
+  g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
   g_signal_handlers_disconnect_by_data (fixture->media, fixture);
-  g_signal_handlers_disconnect_by_data (adapter, fixture);
+  g_signal_handlers_disconnect_by_data (fixture->adapter, fixture);
 }
 
 static void
@@ -248,18 +245,14 @@ test_media_component_self (MediaComponentFixture *fixture,
                            gconstpointer          user_data)
 {
   g_autoptr (GPtrArray) players = NULL;
-  ValentMediaAdapter *adapter;
   ValentMediaPlayer *player;
-
-  while ((adapter = valent_mock_media_adapter_get_instance ()) == NULL)
-    continue;
 
   /* Add Player */
   g_signal_connect (fixture->media,
                     "player-added",
                     G_CALLBACK (on_player_added),
                     fixture);
-  valent_media_adapter_emit_player_added (adapter, fixture->player);
+  valent_media_adapter_emit_player_added (fixture->adapter, fixture->player);
   g_assert_true (fixture->data == fixture->media);
   fixture->data = NULL;
 
@@ -284,7 +277,7 @@ test_media_component_self (MediaComponentFixture *fixture,
                     "player-removed",
                     G_CALLBACK (on_player_removed),
                     fixture);
-  valent_media_adapter_emit_player_removed (adapter, fixture->player);
+  valent_media_adapter_emit_player_removed (fixture->adapter, fixture->player);
   g_assert_true (fixture->data == fixture->media);
   fixture->data = NULL;
 

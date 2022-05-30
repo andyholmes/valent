@@ -150,7 +150,7 @@ plugin_row_add_extensions (AdwExpanderRow *plugin_row,
       adw_action_row_add_suffix (ADW_ACTION_ROW (row), sw);
       adw_action_row_set_activatable_widget (ADW_ACTION_ROW (row), sw);
 
-      settings = valent_component_new_settings (extension.domain, module_name);
+      settings = valent_component_create_settings (extension.domain, module_name);
       g_settings_bind (settings, "enabled",
                        sw,       "active",
                        G_SETTINGS_BIND_DEFAULT);

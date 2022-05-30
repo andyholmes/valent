@@ -33,12 +33,10 @@
 
 struct _ValentContacts
 {
-  ValentComponent        parent_instance;
+  ValentComponent  parent_instance;
 
-  GCancellable          *cancellable;
-
-  ValentContactsAdapter *default_adapter;
-  GPtrArray             *stores;
+  GCancellable    *cancellable;
+  GPtrArray       *stores;
 };
 
 G_DEFINE_TYPE (ValentContacts, valent_contacts, VALENT_TYPE_COMPONENT)
@@ -118,17 +116,17 @@ valent_contacts_adapter_load_cb (ValentContactsAdapter *adapter,
  * ValentComponent
  */
 static void
-valent_contacts_extension_added (ValentComponent *component,
-                                 PeasExtension   *extension)
+valent_contacts_enable_extension (ValentComponent *component,
+                                  PeasExtension   *extension)
 {
   ValentContacts *self = VALENT_CONTACTS (component);
   ValentContactsAdapter *adapter = VALENT_CONTACTS_ADAPTER (extension);
 
+  VALENT_ENTRY;
+
   g_assert (VALENT_IS_CONTACTS (self));
   g_assert (VALENT_IS_CONTACTS_ADAPTER (adapter));
 
-  if (self->default_adapter == NULL)
-    g_set_object (&self->default_adapter, adapter);
 
   g_signal_connect_object (adapter,
                            "store-added",
@@ -146,21 +144,22 @@ valent_contacts_extension_added (ValentComponent *component,
                                       self->cancellable,
                                       (GAsyncReadyCallback)valent_contacts_adapter_load_cb,
                                       self);
+
+  VALENT_EXIT;
 }
 
 static void
-valent_contacts_extension_removed (ValentComponent *component,
+valent_contacts_disable_extension (ValentComponent *component,
                                    PeasExtension   *extension)
 {
   ValentContacts *self = VALENT_CONTACTS (component);
   ValentContactsAdapter *adapter = VALENT_CONTACTS_ADAPTER (extension);
   g_autoptr (GPtrArray) stores = NULL;
 
+  VALENT_ENTRY;
+
   g_assert (VALENT_IS_CONTACTS (self));
   g_assert (VALENT_IS_CONTACTS_ADAPTER (adapter));
-
-  if (self->default_adapter == adapter)
-    g_clear_object (&self->default_adapter);
 
   /* Simulate removal */
   stores = valent_contacts_adapter_get_stores (adapter);
@@ -170,6 +169,8 @@ valent_contacts_extension_removed (ValentComponent *component,
 
   g_signal_handlers_disconnect_by_func (adapter, on_store_added, self);
   g_signal_handlers_disconnect_by_func (adapter, on_store_removed, self);
+
+  VALENT_EXIT;
 }
 
 /*
@@ -218,7 +219,6 @@ valent_contacts_finalize (GObject *object)
 
   g_clear_object (&self->cancellable);
   g_clear_pointer (&self->stores, g_ptr_array_unref);
-  g_clear_object (&self->default_adapter);
 
   G_OBJECT_CLASS (valent_contacts_parent_class)->finalize (object);
 }
@@ -235,8 +235,8 @@ valent_contacts_class_init (ValentContactsClass *klass)
   object_class->dispose = valent_contacts_dispose;
   object_class->finalize = valent_contacts_finalize;
 
-  component_class->extension_added = valent_contacts_extension_added;
-  component_class->extension_removed = valent_contacts_extension_removed;
+  component_class->enable_extension = valent_contacts_enable_extension;
+  component_class->disable_extension = valent_contacts_disable_extension;
 
   /**
    * ValentContacts::store-added:
@@ -305,8 +305,9 @@ valent_contacts_get_default (void)
   if (default_contacts == NULL)
     {
       default_contacts = g_object_new (VALENT_TYPE_CONTACTS,
-                                       "plugin-context", "contacts",
-                                       "plugin-type",    VALENT_TYPE_CONTACTS_ADAPTER,
+                                       "plugin-context",  "contacts",
+                                       "plugin-priority", "ContactsAdapterPriority",
+                                       "plugin-type",     VALENT_TYPE_CONTACTS_ADAPTER,
                                        NULL);
 
       g_object_add_weak_pointer (G_OBJECT (default_contacts),

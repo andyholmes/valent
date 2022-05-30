@@ -20,6 +20,7 @@ mixer_info_free (gpointer data)
 
   /* NOTE: we need to finalize the mixer singleton between tests */
   v_assert_finalize_object (valent_mixer_get_default ());
+  v_await_finalize_object (info->adapter);
 
   g_clear_object (&info->sink1);
   g_clear_object (&info->sink2);
@@ -43,7 +44,7 @@ systemvolume_plugin_fixture_set_up (ValentTestFixture *fixture,
     g_main_context_iteration (NULL, FALSE);
 
   info = g_new0 (MixerInfo, 1);
-  info->adapter = adapter;
+  info->adapter = g_object_ref (adapter);
   info->sink1 = g_object_new (VALENT_TYPE_MIXER_STREAM,
                               "name",        "test_sink1",
                               "description", "Test Speakers",

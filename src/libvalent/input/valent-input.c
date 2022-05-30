@@ -9,6 +9,7 @@
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
 
+#include "valent-component-private.h"
 #include "valent-input.h"
 #include "valent-input-adapter.h"
 
@@ -44,37 +45,39 @@ static ValentInput *default_input = NULL;
  * ValentComponent
  */
 static void
-valent_input_extension_added (ValentComponent *component,
-                              PeasExtension   *extension)
+valent_input_enable_extension (ValentComponent *component,
+                               PeasExtension   *extension)
 {
   ValentInput *self = VALENT_INPUT (component);
-  PeasExtension *provider;
+  PeasExtension *new_primary;
 
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_INPUT (self));
+  g_assert (VALENT_IS_INPUT_ADAPTER (extension));
 
-  provider = valent_component_get_priority_provider (component,
-                                                     "InputAdapterPriority");
-  g_set_object (&self->default_adapter, VALENT_INPUT_ADAPTER (provider));
+  /* Set default provider */
+  new_primary = valent_component_get_primary (component);
+  self->default_adapter = VALENT_INPUT_ADAPTER (new_primary);
 
   VALENT_EXIT;
 }
 
 static void
-valent_input_extension_removed (ValentComponent *component,
+valent_input_disable_extension (ValentComponent *component,
                                 PeasExtension   *extension)
 {
   ValentInput *self = VALENT_INPUT (component);
-  PeasExtension *provider;
+  PeasExtension *new_primary;
 
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_INPUT (self));
+  g_assert (VALENT_IS_INPUT_ADAPTER (extension));
 
-  provider = valent_component_get_priority_provider (component,
-                                                     "InputAdapterPriority");
-  g_set_object (&self->default_adapter, VALENT_INPUT_ADAPTER (provider));
+  /* Set default provider */
+  new_primary = valent_component_get_primary (component);
+  self->default_adapter = VALENT_INPUT_ADAPTER (new_primary);
 
   VALENT_EXIT;
 }
@@ -84,8 +87,8 @@ valent_input_class_init (ValentInputClass *klass)
 {
   ValentComponentClass *component_class = VALENT_COMPONENT_CLASS (klass);
 
-  component_class->extension_added = valent_input_extension_added;
-  component_class->extension_removed = valent_input_extension_removed;
+  component_class->enable_extension = valent_input_enable_extension;
+  component_class->disable_extension = valent_input_disable_extension;
 }
 
 static void
@@ -108,8 +111,9 @@ valent_input_get_default (void)
   if (default_input == NULL)
     {
       default_input = g_object_new (VALENT_TYPE_INPUT,
-                                    "plugin-context", "input",
-                                    "plugin-type",    VALENT_TYPE_INPUT_ADAPTER,
+                                    "plugin-context",  "input",
+                                    "plugin-priority", "InputAdapterPriority",
+                                    "plugin-type",     VALENT_TYPE_INPUT_ADAPTER,
                                     NULL);
 
       g_object_add_weak_pointer (G_OBJECT (default_input),

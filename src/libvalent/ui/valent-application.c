@@ -134,7 +134,7 @@ on_load_plugin (PeasEngine        *engine,
   plugin = g_new0 (ApplicationPlugin, 1);
   plugin->application = G_APPLICATION (self);
   plugin->info = info;
-  plugin->settings = valent_component_new_settings ("application", module);
+  plugin->settings = valent_component_create_settings ("application", module);
   g_hash_table_insert (self->plugins, info, plugin);
 
   /* The PeasExtension is created and destroyed based on the enabled state */

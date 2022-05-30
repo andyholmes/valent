@@ -9,12 +9,13 @@
 
 typedef struct
 {
-  ValentMixer       *mixer;
-  ValentMixerStream *input1;
-  ValentMixerStream *input2;
-  ValentMixerStream *output1;
-  ValentMixerStream *output2;
-  gpointer           data;
+  ValentMixer        *mixer;
+  ValentMixerAdapter *adapter;
+  ValentMixerStream  *input1;
+  ValentMixerStream  *input2;
+  ValentMixerStream  *output1;
+  ValentMixerStream  *output2;
+  gpointer            data;
 } MixerComponentFixture;
 
 static void
@@ -86,6 +87,11 @@ mixer_component_fixture_set_up (MixerComponentFixture *fixture,
                                    "description", "Test Headphones",
                                    "direction",   VALENT_MIXER_OUTPUT,
                                    NULL);
+
+  while ((fixture->adapter = valent_mock_mixer_adapter_get_instance ()) == NULL)
+    g_main_context_iteration (NULL, FALSE);
+
+  g_object_ref (fixture->adapter);
 }
 
 static void
@@ -93,6 +99,7 @@ mixer_component_fixture_tear_down (MixerComponentFixture *fixture,
                                    gconstpointer          user_data)
 {
   v_assert_finalize_object (fixture->mixer);
+  v_await_finalize_object (fixture->adapter);
   v_assert_finalize_object (fixture->input1);
   v_assert_finalize_object (fixture->input2);
   v_assert_finalize_object (fixture->output1);
@@ -103,7 +110,6 @@ static void
 test_mixer_component_adapter (MixerComponentFixture *fixture,
                               gconstpointer          user_data)
 {
-  ValentMixerAdapter *adapter;
   g_autoptr (GPtrArray) inputs = NULL;
   g_autoptr (GPtrArray) outputs = NULL;
   ValentMixerStream *stream;
@@ -111,11 +117,8 @@ test_mixer_component_adapter (MixerComponentFixture *fixture,
   g_autoptr (ValentMixerStream) default_input = NULL;
   g_autoptr (ValentMixerStream) default_output = NULL;
 
-  while ((adapter = valent_mock_mixer_adapter_get_instance ()) == NULL)
-    continue;
-
   /* Properties */
-  g_object_get (adapter,
+  g_object_get (fixture->adapter,
                 "default-input",  &default_input,
                 "default-output", &default_output,
                 "plugin-info",    &plugin_info,
@@ -127,130 +130,126 @@ test_mixer_component_adapter (MixerComponentFixture *fixture,
   g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
 
   /* Add Streams */
-  g_signal_connect (adapter,
+  g_signal_connect (fixture->adapter,
                     "stream-added::input",
                     G_CALLBACK (on_stream_added),
                     fixture);
 
-  valent_mixer_adapter_emit_stream_added (adapter, fixture->input1);
-  g_assert_true (fixture->data == adapter);
+  valent_mixer_adapter_emit_stream_added (fixture->adapter, fixture->input1);
+  g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
-  valent_mixer_adapter_emit_stream_added (adapter, fixture->input2);
-  g_assert_true (fixture->data == adapter);
+  valent_mixer_adapter_emit_stream_added (fixture->adapter, fixture->input2);
+  g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
-  g_signal_connect (adapter,
+  g_signal_connect (fixture->adapter,
                     "stream-added::output",
                     G_CALLBACK (on_stream_added),
                     fixture);
 
-  valent_mixer_adapter_emit_stream_added (adapter, fixture->output1);
-  g_assert_true (fixture->data == adapter);
+  valent_mixer_adapter_emit_stream_added (fixture->adapter, fixture->output1);
+  g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
-  valent_mixer_adapter_emit_stream_added (adapter, fixture->output2);
-  g_assert_true (fixture->data == adapter);
+  valent_mixer_adapter_emit_stream_added (fixture->adapter, fixture->output2);
+  g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
   /* Check Defaults */
-  g_signal_connect (adapter,
+  g_signal_connect (fixture->adapter,
                     "notify::default-input",
                     G_CALLBACK (on_default_input_changed),
                     fixture);
-  g_signal_connect (adapter,
+  g_signal_connect (fixture->adapter,
                     "notify::default-output",
                     G_CALLBACK (on_default_output_changed),
                     fixture);
 
-  stream = valent_mixer_adapter_get_default_input (adapter);
+  stream = valent_mixer_adapter_get_default_input (fixture->adapter);
   g_assert_true (stream == fixture->input1);
 
-  valent_mixer_adapter_set_default_input (adapter, fixture->input2);
-  g_assert_true (fixture->data == adapter);
-  stream = valent_mixer_adapter_get_default_input (adapter);
+  valent_mixer_adapter_set_default_input (fixture->adapter, fixture->input2);
+  g_assert_true (fixture->data == fixture->adapter);
+  stream = valent_mixer_adapter_get_default_input (fixture->adapter);
   g_assert_true (stream == fixture->input2);
 
-  stream = valent_mixer_adapter_get_default_output (adapter);
+  stream = valent_mixer_adapter_get_default_output (fixture->adapter);
   g_assert_true (stream == fixture->output1);
 
-  valent_mixer_adapter_set_default_output (adapter, fixture->output2);
-  g_assert_true (fixture->data == adapter);
-  stream = valent_mixer_adapter_get_default_output (adapter);
+  valent_mixer_adapter_set_default_output (fixture->adapter, fixture->output2);
+  g_assert_true (fixture->data == fixture->adapter);
+  stream = valent_mixer_adapter_get_default_output (fixture->adapter);
   g_assert_true (stream == fixture->output2);
 
-  g_object_set (adapter,
+  g_object_set (fixture->adapter,
                 "default-input",  fixture->input1,
                 "default-output", fixture->output1,
                 NULL);
 
-  stream = valent_mixer_adapter_get_default_input (adapter);
+  stream = valent_mixer_adapter_get_default_input (fixture->adapter);
   g_assert_true (stream == fixture->input1);
-  stream = valent_mixer_adapter_get_default_output (adapter);
+  stream = valent_mixer_adapter_get_default_output (fixture->adapter);
   g_assert_true (stream == fixture->output1);
 
   /* Check Lists */
-  inputs = valent_mixer_adapter_get_inputs (adapter);
+  inputs = valent_mixer_adapter_get_inputs (fixture->adapter);
   g_assert_true (g_ptr_array_index (inputs, 0) == fixture->input1);
   g_assert_true (g_ptr_array_index (inputs, 1) == fixture->input2);
   g_clear_pointer (&inputs, g_ptr_array_unref);
 
-  outputs = valent_mixer_adapter_get_outputs (adapter);
+  outputs = valent_mixer_adapter_get_outputs (fixture->adapter);
   g_assert_true (g_ptr_array_index (outputs, 0) == fixture->output1);
   g_assert_true (g_ptr_array_index (outputs, 1) == fixture->output2);
   g_clear_pointer (&outputs, g_ptr_array_unref);
 
   /* Remove Streams */
-  g_signal_connect (adapter,
+  g_signal_connect (fixture->adapter,
                     "stream-removed::input",
                     G_CALLBACK (on_stream_removed),
                     fixture);
 
-  valent_mixer_adapter_emit_stream_removed (adapter, fixture->input2);
-  g_assert_true (fixture->data == adapter);
+  valent_mixer_adapter_emit_stream_removed (fixture->adapter, fixture->input2);
+  g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
-  inputs = valent_mixer_adapter_get_inputs (adapter);
+  inputs = valent_mixer_adapter_get_inputs (fixture->adapter);
   g_assert_cmpuint (inputs->len, ==, 1);
   g_clear_pointer (&inputs, g_ptr_array_unref);
 
-  g_signal_connect (adapter,
+  g_signal_connect (fixture->adapter,
                     "stream-removed::output",
                     G_CALLBACK (on_stream_removed),
                     fixture);
 
-  valent_mixer_adapter_emit_stream_removed (adapter, fixture->output2);
-  g_assert_true (fixture->data == adapter);
+  valent_mixer_adapter_emit_stream_removed (fixture->adapter, fixture->output2);
+  g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
-  outputs = valent_mixer_adapter_get_outputs (adapter);
+  outputs = valent_mixer_adapter_get_outputs (fixture->adapter);
   g_assert_cmpuint (outputs->len, ==, 1);
   g_clear_pointer (&outputs, g_ptr_array_unref);
 
-  g_signal_handlers_disconnect_by_data (adapter, fixture);
+  g_signal_handlers_disconnect_by_data (fixture->adapter, fixture);
 }
 
 static void
 test_mixer_component_stream (MixerComponentFixture *fixture,
                              gconstpointer          user_data)
 {
-  ValentMixerAdapter *adapter;
   ValentMixerDirection direction;
   int level;
   gboolean muted;
   char *name, *description;
 
-  while ((adapter = valent_mock_mixer_adapter_get_instance ()) == NULL)
-    continue;
-
   /* Add Streams */
-  g_signal_connect (adapter,
+  g_signal_connect (fixture->adapter,
                     "stream-added::input",
                     G_CALLBACK (on_stream_added),
                     fixture);
 
-  valent_mixer_adapter_emit_stream_added (adapter, fixture->input1);
-  g_assert_true (fixture->data == adapter);
+  valent_mixer_adapter_emit_stream_added (fixture->adapter, fixture->input1);
+  g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
   /* Test Stream */
@@ -271,7 +270,7 @@ test_mixer_component_stream (MixerComponentFixture *fixture,
   g_free (name);
   g_free (description);
 
-  g_signal_connect (adapter,
+  g_signal_connect (fixture->adapter,
                     "stream-changed::input",
                     G_CALLBACK (on_stream_changed),
                     fixture);
@@ -281,23 +280,19 @@ test_mixer_component_stream (MixerComponentFixture *fixture,
                 "muted", FALSE,
                 NULL);
 
-  g_assert_true (fixture->data == adapter);
+  g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
-  g_signal_handlers_disconnect_by_data (adapter, fixture);
+  g_signal_handlers_disconnect_by_data (fixture->adapter, fixture);
 }
 
 static void
 test_mixer_component_self (MixerComponentFixture *fixture,
                            gconstpointer          user_data)
 {
-  ValentMixerAdapter *adapter;
   g_autoptr (GPtrArray) inputs = NULL;
   g_autoptr (GPtrArray) outputs = NULL;
   ValentMixerStream *stream;
-
-  while ((adapter = valent_mock_mixer_adapter_get_instance ()) == NULL)
-    continue;
 
   /* Add Streams */
   g_signal_connect (fixture->mixer,
@@ -305,11 +300,11 @@ test_mixer_component_self (MixerComponentFixture *fixture,
                     G_CALLBACK (on_stream_added),
                     fixture);
 
-  valent_mixer_adapter_emit_stream_added (adapter, fixture->input1);
+  valent_mixer_adapter_emit_stream_added (fixture->adapter, fixture->input1);
   g_assert_true (fixture->data == fixture->mixer);
   fixture->data = NULL;
 
-  valent_mixer_adapter_emit_stream_added (adapter, fixture->input2);
+  valent_mixer_adapter_emit_stream_added (fixture->adapter, fixture->input2);
   g_assert_true (fixture->data == fixture->mixer);
   fixture->data = NULL;
 
@@ -318,11 +313,11 @@ test_mixer_component_self (MixerComponentFixture *fixture,
                     G_CALLBACK (on_stream_added),
                     fixture);
 
-  valent_mixer_adapter_emit_stream_added (adapter, fixture->output1);
+  valent_mixer_adapter_emit_stream_added (fixture->adapter, fixture->output1);
   g_assert_true (fixture->data == fixture->mixer);
   fixture->data = NULL;
 
-  valent_mixer_adapter_emit_stream_added (adapter, fixture->output2);
+  valent_mixer_adapter_emit_stream_added (fixture->adapter, fixture->output2);
   g_assert_true (fixture->data == fixture->mixer);
   fixture->data = NULL;
 
@@ -391,7 +386,7 @@ test_mixer_component_self (MixerComponentFixture *fixture,
                     G_CALLBACK (on_stream_removed),
                     fixture);
 
-  valent_mixer_adapter_emit_stream_removed (adapter, fixture->input1);
+  valent_mixer_adapter_emit_stream_removed (fixture->adapter, fixture->input1);
   g_assert_true (fixture->data == fixture->mixer);
   fixture->data = NULL;
 
@@ -400,7 +395,7 @@ test_mixer_component_self (MixerComponentFixture *fixture,
                     G_CALLBACK (on_stream_removed),
                     fixture);
 
-  valent_mixer_adapter_emit_stream_removed (adapter, fixture->output1);
+  valent_mixer_adapter_emit_stream_removed (fixture->adapter, fixture->output1);
   g_assert_true (fixture->data == fixture->mixer);
   fixture->data = NULL;
 
