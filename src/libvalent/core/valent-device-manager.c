@@ -380,7 +380,7 @@ on_load_service (PeasEngine          *engine,
   service = g_new0 (ChannelService, 1);
   service->manager = self;
   service->info = info;
-  service->settings = valent_component_new_settings ("network", module);
+  service->settings = valent_component_create_settings ("network", module);
   g_signal_connect (service->settings,
                     "changed::enabled",
                     G_CALLBACK (on_enabled_changed),

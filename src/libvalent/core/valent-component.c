@@ -27,10 +27,12 @@
 
 typedef struct
 {
-  PeasEngine *engine;
-  char       *plugin_context;
-  GType       plugin_type;
-  GHashTable *plugins;
+  PeasEngine    *engine;
+  char          *plugin_context;
+  char          *plugin_priority;
+  GType          plugin_type;
+  GHashTable    *plugins;
+  PeasExtension *primary;
 } ValentComponentPrivate;
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentComponent, valent_component, G_TYPE_OBJECT);
@@ -38,8 +40,8 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentComponent, valent_component, G_TYPE_O
 
 /**
  * ValentComponentClass:
- * @extension_added: the class closure for the #ValentComponent::extension-added signal
- * @extension_removed: the class closure for the #ValentComponent::extension-removed signal
+ * @enable_extension: the virtual function pointer for enable_extension()
+ * @disable_extension: the virtual function pointer for disable_extension()
  *
  * The virtual function table for #ValentComponent.
  */
@@ -47,19 +49,12 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentComponent, valent_component, G_TYPE_O
 enum {
   PROP_0,
   PROP_PLUGIN_CONTEXT,
+  PROP_PLUGIN_PRIORITY,
   PROP_PLUGIN_TYPE,
   N_PROPERTIES
 };
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
-
-enum {
-  EXTENSION_ADDED,
-  EXTENSION_REMOVED,
-  N_SIGNALS
-};
-
-static guint signals[N_SIGNALS] = { 0, };
 
 
 typedef struct
@@ -77,9 +72,9 @@ component_plugin_free (gpointer data)
 
   if (plugin->extension != NULL)
     {
-      g_signal_emit (G_OBJECT (plugin->component),
-                     signals [EXTENSION_REMOVED], 0,
-                     plugin->extension);
+      ValentComponentClass *klass = VALENT_COMPONENT_GET_CLASS (plugin->component);
+
+      klass->disable_extension (plugin->component, plugin->extension);
       g_clear_object (&plugin->extension);
     }
 
@@ -95,7 +90,7 @@ get_extension_priority (PeasPluginInfo *info,
   const char *priority_str = NULL;
   gint64 priority = 0;
 
-  if (info != NULL)
+  if (info != NULL && key != NULL)
     priority_str = peas_plugin_info_get_external_data (info, key);
 
   if (priority_str != NULL)
@@ -104,9 +99,42 @@ get_extension_priority (PeasPluginInfo *info,
   return priority;
 }
 
+static void
+valent_component_update_primary (ValentComponent *self)
+{
+  ValentComponentPrivate *priv = valent_component_get_instance_private (self);
+  GHashTableIter iter;
+  PeasPluginInfo *info;
+  ComponentPlugin *plugin;
+  PeasExtension *extension = NULL;
+  gint64 extension_priority = 0;
+
+  g_assert (VALENT_IS_COMPONENT (self));
+
+  g_hash_table_iter_init (&iter, priv->plugins);
+
+  while (g_hash_table_iter_next (&iter, (void **)&info, (void **)&plugin))
+    {
+      gint64 priority;
+
+      if (plugin->extension == NULL)
+        continue;
+
+      priority = get_extension_priority (info, priv->plugin_priority);
+
+      if (extension == NULL || priority < extension_priority)
+        {
+          extension = plugin->extension;
+          extension_priority = priority;
+        }
+    }
+
+  priv->primary = extension;
+}
+
 
 /*
- * Invoked when a source is enabled or disabled in settings.
+ * GSettings Handlers
  */
 static void
 valent_component_enable_extension (ValentComponent *self,
@@ -123,23 +151,29 @@ valent_component_enable_extension (ValentComponent *self,
                                                     NULL);
   g_return_if_fail (PEAS_IS_EXTENSION (plugin->extension));
 
-  g_signal_emit (G_OBJECT (self),
-                 signals [EXTENSION_ADDED], 0,
-                 plugin->extension);
+  if (priv->primary != plugin->extension)
+    valent_component_update_primary (self);
+
+  VALENT_COMPONENT_GET_CLASS (self)->enable_extension (self, plugin->extension);
 }
 
 static void
 valent_component_disable_extension (ValentComponent *self,
                                     ComponentPlugin *plugin)
 {
+  ValentComponentPrivate *priv = valent_component_get_instance_private (self);
+  g_autoptr (PeasExtension) extension = NULL;
+
   g_assert (VALENT_IS_COMPONENT (self));
   g_assert (plugin != NULL);
-  g_return_if_fail (PEAS_IS_EXTENSION (plugin->extension));
 
-  g_signal_emit (G_OBJECT (self),
-                 signals [EXTENSION_REMOVED], 0,
-                 plugin->extension);
-  g_clear_object (&plugin->extension);
+  extension = g_steal_pointer (&plugin->extension);
+  g_return_if_fail (PEAS_IS_EXTENSION (extension));
+
+  if (priv->primary == extension)
+    valent_component_update_primary (self);
+
+  VALENT_COMPONENT_GET_CLASS (self)->disable_extension (self, extension);
 }
 
 static void
@@ -189,11 +223,11 @@ on_load_plugin (PeasEngine      *engine,
   plugin = g_new0 (ComponentPlugin, 1);
   plugin->component = self;
   plugin->info = info;
-  plugin->settings = valent_component_new_settings (priv->plugin_context,
-                                                    module);
+  plugin->settings = valent_component_create_settings (priv->plugin_context,
+                                                       module);
   g_hash_table_insert (priv->plugins, info, plugin);
 
-  /* The PeasExtension is created and destroyed based on the enabled state */
+  /* The extension is created and destroyed based on the enabled state */
   g_signal_connect (plugin->settings,
                     "changed::enabled",
                     G_CALLBACK (on_enabled_changed),
@@ -231,6 +265,23 @@ on_unload_plugin (PeasEngine      *engine,
   VALENT_EXIT;
 }
 
+/* LCOV_EXCL_START */
+static void
+valent_component_real_enable_extension (ValentComponent *component,
+                                        PeasExtension   *extension)
+{
+  g_assert (VALENT_IS_COMPONENT (component));
+  g_assert (PEAS_IS_EXTENSION (extension));
+}
+
+static void
+valent_component_real_disable_extension (ValentComponent *component,
+                                         PeasExtension   *extension)
+{
+  g_assert (VALENT_IS_COMPONENT (component));
+  g_assert (PEAS_IS_EXTENSION (extension));
+}
+/* LCOV_EXCL_STOP */
 
 /*
  * GObject
@@ -286,6 +337,7 @@ valent_component_finalize (GObject *object)
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
 
   g_clear_pointer (&priv->plugin_context, g_free);
+  g_clear_pointer (&priv->plugin_priority, g_free);
   g_clear_pointer (&priv->plugins, g_hash_table_unref);
 
   G_OBJECT_CLASS (valent_component_parent_class)->finalize (object);
@@ -304,6 +356,10 @@ valent_component_get_property (GObject    *object,
     {
     case PROP_PLUGIN_CONTEXT:
       g_value_set_string (value, priv->plugin_context);
+      break;
+
+    case PROP_PLUGIN_PRIORITY:
+      g_value_set_string (value, priv->plugin_priority);
       break;
 
     case PROP_PLUGIN_TYPE:
@@ -330,6 +386,10 @@ valent_component_set_property (GObject      *object,
       priv->plugin_context = g_value_dup_string (value);
       break;
 
+    case PROP_PLUGIN_PRIORITY:
+      priv->plugin_priority = g_value_dup_string (value);
+      break;
+
     case PROP_PLUGIN_TYPE:
       priv->plugin_type = g_value_get_gtype (value);
       break;
@@ -350,6 +410,9 @@ valent_component_class_init (ValentComponentClass *klass)
   object_class->get_property = valent_component_get_property;
   object_class->set_property = valent_component_set_property;
 
+  klass->enable_extension = valent_component_real_enable_extension;
+  klass->disable_extension = valent_component_real_disable_extension;
+
   /**
    * ValentComponent:plugin-context:
    *
@@ -364,6 +427,26 @@ valent_component_class_init (ValentComponentClass *klass)
     g_param_spec_string ("plugin-context",
                          "Plugin Context",
                          "The context of the component",
+                         NULL,
+                         (G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT_ONLY |
+                          G_PARAM_EXPLICIT_NOTIFY |
+                          G_PARAM_STATIC_STRINGS));
+
+  /**
+   * ValentComponent:plugin-priority:
+   *
+   * The priority key for the component.
+   *
+   * This is the name of a key in the `.plugin` file used to determine the
+   * primary implementation.
+   *
+   * Since: 1.0
+   */
+  properties [PROP_PLUGIN_PRIORITY] =
+    g_param_spec_string ("plugin-priority",
+                         "Plugin Priority",
+                         "The priority key for the component",
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -388,54 +471,6 @@ valent_component_class_init (ValentComponentClass *klass)
                          G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
-
-  /**
-   * ValentComponent::extension-added:
-   * @component: an #ValentComponent
-   * @extension: an #PeasExtension
-   *
-   * Emitted when a [alias@Peas.Extension] has been enabled.
-   *
-   * Implementations of [class@Valent.Component] must chain-up if they override
-   * [vfunc@Valent.Component.extension_added].
-   *
-   * Since: 1.0
-   */
-  signals [EXTENSION_ADDED] =
-    g_signal_new ("extension-added",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_LAST,
-                  G_STRUCT_OFFSET (ValentComponentClass, extension_added),
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
-                  G_TYPE_NONE, 1, PEAS_TYPE_EXTENSION);
-  g_signal_set_va_marshaller (signals [EXTENSION_ADDED],
-                              G_TYPE_FROM_CLASS (klass),
-                              g_cclosure_marshal_VOID__OBJECTv);
-
-  /**
-   * ValentComponent::extension-removed:
-   * @component: an #ValentComponent
-   * @extension: an #PeasExtension
-   *
-   * Emitted when a [alias@Peas.Extension] has been disabled.
-   *
-   * Implementations of [class@Valent.Component] must chain-up if they override
-   * [vfunc@Valent.Component.extension_removed].
-   *
-   * Since: 1.0
-   */
-  signals [EXTENSION_REMOVED] =
-    g_signal_new ("extension-removed",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_LAST,
-                  G_STRUCT_OFFSET (ValentComponentClass, extension_removed),
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
-                  G_TYPE_NONE, 1, PEAS_TYPE_EXTENSION);
-  g_signal_set_va_marshaller (signals [EXTENSION_REMOVED],
-                              G_TYPE_FROM_CLASS (klass),
-                              g_cclosure_marshal_VOID__OBJECTv);
 }
 
 static void
@@ -448,58 +483,26 @@ valent_component_init (ValentComponent *self)
 }
 
 /**
- * valent_component_get_priority_provider:
+ * valent_component_get_primary:
  * @component: a #ValentComponent
- * @key: The priority key in the plugin info
  *
- * Get the extension with the highest priority.
- *
- * The default value for extensions is `0`; the lower the value the higher the
- * priority.
+ * Get the extension with the highest priority for @component. The default
+ * value for extensions is `0`; the lower the value the higher the priority.
  *
  * Returns: (transfer none) (nullable): a #PeasExtension
- *
- * Since: 1.0
  */
 PeasExtension *
-valent_component_get_priority_provider (ValentComponent *component,
-                                        const char      *key)
+valent_component_get_primary (ValentComponent *component)
 {
   ValentComponentPrivate *priv = valent_component_get_instance_private (component);
-  GHashTableIter iter;
-  PeasPluginInfo *info;
-  ComponentPlugin *plugin;
-  PeasExtension *extension = NULL;
-  gint64 priority = 0;
-
-  VALENT_ENTRY;
 
   g_return_val_if_fail (VALENT_IS_COMPONENT (component), NULL);
-  g_return_val_if_fail (key != NULL && *key != '\0', NULL);
 
-  g_hash_table_iter_init (&iter, priv->plugins);
-
-  while (g_hash_table_iter_next (&iter, (void **)&info, (void **)&plugin))
-    {
-      gint64 curr_priority;
-
-      if (plugin->extension == NULL)
-        continue;
-
-      curr_priority = get_extension_priority (info, key);
-
-      if (extension == NULL || curr_priority < priority)
-        {
-          priority = curr_priority;
-          extension = plugin->extension;
-        }
-    }
-
-  VALENT_RETURN (extension);
+  return priv->primary;
 }
 
 /**
- * valent_component_new_settings:
+ * valent_component_create_settings:
  * @context: a #ValentDevice ID
  * @module_name: a #PeasPluginInfo module name
  *
@@ -513,8 +516,8 @@ valent_component_get_priority_provider (ValentComponent *component,
  * Since: 1.0
  */
 GSettings *
-valent_component_new_settings (const char *context,
-                               const char *module_name)
+valent_component_create_settings (const char *context,
+                                  const char *module_name)
 {
   g_autofree char *path = NULL;
 

@@ -9,9 +9,10 @@
 
 typedef struct
 {
-  ValentClipboard *clipboard;
-  GMainLoop       *loop;
-  gpointer         data;
+  ValentClipboard        *clipboard;
+  ValentClipboardAdapter *adapter;
+  GMainLoop              *loop;
+  gpointer                data;
 } ClipboardComponentFixture;
 
 static void
@@ -20,6 +21,11 @@ clipboard_component_fixture_set_up (ClipboardComponentFixture *fixture,
 {
   fixture->clipboard = valent_clipboard_get_default ();
   fixture->loop = g_main_loop_new (NULL, FALSE);
+
+  while ((fixture->adapter = valent_mock_clipboard_adapter_get_instance ()) == NULL)
+    g_main_context_iteration (NULL, FALSE);
+
+  g_object_ref (fixture->adapter);
 }
 
 static void
@@ -27,6 +33,7 @@ clipboard_component_fixture_tear_down (ClipboardComponentFixture *fixture,
                                        gconstpointer              user_data)
 {
   v_assert_finalize_object (fixture->clipboard);
+  v_await_finalize_object (fixture->adapter);
   g_clear_pointer (&fixture->loop, g_main_loop_unref);
 }
 
@@ -65,35 +72,31 @@ static void
 test_clipboard_component_adapter (ClipboardComponentFixture *fixture,
                                   gconstpointer              user_data)
 {
-  ValentClipboardAdapter *adapter;
   g_autofree char *text = NULL;
   PeasPluginInfo *info;
 
-  while ((adapter = valent_mock_clipboard_adapter_get_instance ()) == NULL)
-    continue;
-
   /* Properties */
-  g_object_get (adapter,
+  g_object_get (fixture->adapter,
                 "plugin-info", &info,
                 NULL);
   g_assert_nonnull (info);
   g_boxed_free (PEAS_TYPE_PLUGIN_INFO, info);
 
   /* Signals */
-  g_signal_connect (adapter,
+  g_signal_connect (fixture->adapter,
                     "changed",
                     G_CALLBACK (on_changed),
                     fixture);
 
-  valent_clipboard_adapter_emit_changed (adapter);
-  g_assert_true (fixture->data == adapter);
+  valent_clipboard_adapter_emit_changed (fixture->adapter);
+  g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
   /* Methods */
   text = g_uuid_string_random ();
   valent_clipboard_set_text (fixture->clipboard, text);
 
-  valent_clipboard_adapter_get_text_async (adapter,
+  valent_clipboard_adapter_get_text_async (fixture->adapter,
                                            NULL,
                                            (GAsyncReadyCallback)adapter_get_text_cb,
                                            fixture);

@@ -21,7 +21,7 @@ clipboard_component_fixture_set_up (GdkClipboardFixture *fixture,
   g_autoptr (GSettings) settings = NULL;
 
   /* Disable the mock plugin */
-  settings = valent_component_new_settings ("clipboard", "mock");
+  settings = valent_component_create_settings ("clipboard", "mock");
   g_settings_set_boolean (settings, "enabled", FALSE);
 
   fixture->clipboard = valent_clipboard_get_default ();

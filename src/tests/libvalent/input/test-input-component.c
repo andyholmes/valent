@@ -9,7 +9,8 @@
 
 typedef struct
 {
-  ValentInput *input;
+  ValentInput        *input;
+  ValentInputAdapter *adapter;
 } InputComponentFixture;
 
 static void
@@ -17,6 +18,11 @@ input_component_fixture_set_up (InputComponentFixture *fixture,
                                 gconstpointer          user_data)
 {
   fixture->input = valent_input_get_default ();
+
+  while ((fixture->adapter = valent_mock_input_adapter_get_instance ()) == NULL)
+    g_main_context_iteration (NULL, FALSE);
+
+  g_object_ref (fixture->adapter);
 }
 
 static void
@@ -24,21 +30,17 @@ input_component_fixture_tear_down (InputComponentFixture *fixture,
                                    gconstpointer          user_data)
 {
   v_assert_finalize_object (fixture->input);
+  v_await_finalize_object (fixture->adapter);
 }
 
 static void
 test_input_component_adapter (InputComponentFixture *fixture,
                               gconstpointer          user_data)
 {
-
-  ValentInputAdapter *adapter;
   PeasPluginInfo *plugin_info;
 
-  while ((adapter = valent_mock_input_adapter_get_instance ()) == NULL)
-    continue;
-
   /* Properties */
-  g_object_get (adapter,
+  g_object_get (fixture->adapter,
                 "plugin-info", &plugin_info,
                 NULL);
 
@@ -46,23 +48,23 @@ test_input_component_adapter (InputComponentFixture *fixture,
   g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
 
   /* Pointer Motion (relative) */
-  valent_input_adapter_pointer_motion (adapter, 1.0, 1.0);
+  valent_input_adapter_pointer_motion (fixture->adapter, 1.0, 1.0);
   valent_test_event_cmpstr ("POINTER MOTION 1.0 1.0");
 
   /* Pointer Scroll */
-  valent_input_adapter_pointer_axis (adapter, 0.0, 1.0);
+  valent_input_adapter_pointer_axis (fixture->adapter, 0.0, 1.0);
   valent_test_event_cmpstr ("POINTER AXIS 0.0 1.0");
 
   /* Pointer Button (press/release) */
-  valent_input_adapter_pointer_button (adapter, VALENT_POINTER_PRIMARY, TRUE);
+  valent_input_adapter_pointer_button (fixture->adapter, VALENT_POINTER_PRIMARY, TRUE);
   valent_test_event_cmpstr ("POINTER BUTTON 1 1");
-  valent_input_adapter_pointer_button (adapter, VALENT_POINTER_PRIMARY, FALSE);
+  valent_input_adapter_pointer_button (fixture->adapter, VALENT_POINTER_PRIMARY, FALSE);
   valent_test_event_cmpstr ("POINTER BUTTON 1 0");
 
   /* Keysym (press/release) */
-  valent_input_adapter_keyboard_keysym (adapter, 'a', TRUE);
+  valent_input_adapter_keyboard_keysym (fixture->adapter, 'a', TRUE);
   valent_test_event_cmpstr ("KEYSYM 97 1");
-  valent_input_adapter_keyboard_keysym (adapter, 'a', FALSE);
+  valent_input_adapter_keyboard_keysym (fixture->adapter, 'a', FALSE);
   valent_test_event_cmpstr ("KEYSYM 97 0");
 }
 

@@ -9,9 +9,10 @@
 
 typedef struct
 {
-  ValentNotifications *notifications;
-  ValentNotification  *notification;
-  gpointer             data;
+  ValentNotifications        *notifications;
+  ValentNotificationsAdapter *adapter;
+  ValentNotification         *notification;
+  gpointer                    data;
 } NotificationsComponentFixture;
 
 static void
@@ -39,6 +40,15 @@ notifications_component_fixture_set_up (NotificationsComponentFixture *fixture,
                                         "title", "Test Title",
                                         "id",    "test-id",
                                         NULL);
+
+  while ((fixture->adapter = valent_mock_notifications_adapter_get_instance ()) == NULL)
+    g_main_context_iteration (NULL, FALSE);
+
+  /* Wait a bit longer for valent_notifications_adapter_load_async() to resolve */
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
+  g_object_ref (fixture->adapter);
 }
 
 static void
@@ -46,6 +56,7 @@ notifications_component_fixture_tear_down (NotificationsComponentFixture *fixtur
                                            gconstpointer                  user_data)
 {
   v_assert_finalize_object (fixture->notifications);
+  v_await_finalize_object (fixture->adapter);
   v_assert_finalize_object (fixture->notification);
 }
 
@@ -53,49 +64,40 @@ static void
 test_notifications_component_adapter (NotificationsComponentFixture *fixture,
                                       gconstpointer                  user_data)
 {
-  ValentNotificationsAdapter *adapter;
   PeasPluginInfo *info;
 
-  while ((adapter = valent_mock_notifications_adapter_get_instance ()) == NULL)
-    continue;
-
-  /* Wait a bit longer for valent_notifications_adapter_load_async() to resolve */
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
-  g_signal_connect (adapter,
+  g_signal_connect (fixture->adapter,
                     "notification-added",
                     G_CALLBACK (on_notification_added),
                     fixture);
-  g_signal_connect (adapter,
+  g_signal_connect (fixture->adapter,
                     "notification-removed",
                     G_CALLBACK (on_notification_removed),
                     fixture);
 
   /* Properties */
-  g_object_get (adapter,
+  g_object_get (fixture->adapter,
                 "plugin-info", &info,
                 NULL);
   g_assert_nonnull (info);
   g_boxed_free (PEAS_TYPE_PLUGIN_INFO, info);
 
   /* Signals */
-  valent_notifications_adapter_emit_notification_added (adapter, fixture->notification);
-  g_assert_true (fixture->data == adapter);
+  valent_notifications_adapter_emit_notification_added (fixture->adapter, fixture->notification);
+  g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
-  valent_notifications_adapter_emit_notification_removed (adapter, "test-id");
-  g_assert_true (fixture->data == adapter);
+  valent_notifications_adapter_emit_notification_removed (fixture->adapter, "test-id");
+  g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
-  g_signal_handlers_disconnect_by_data (adapter, fixture);
+  g_signal_handlers_disconnect_by_data (fixture->adapter, fixture);
 }
 
 static void
 test_notifications_component_notification (NotificationsComponentFixture *fixture,
                                            gconstpointer                  user_data)
 {
-  ValentNotificationsAdapter *adapter;
   g_autoptr (ValentNotification) notification = NULL;
   g_autoptr (GVariant) serialized = NULL;
   g_autoptr (GIcon) icon = NULL;
@@ -107,18 +109,11 @@ test_notifications_component_notification (NotificationsComponentFixture *fixtur
   GNotificationPriority priority;
   gint64 time, time_out;
 
-  while ((adapter = valent_mock_notifications_adapter_get_instance ()) == NULL)
-    continue;
-
-  /* Wait a bit longer for valent_notifications_adapter_load_async() to resolve */
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
-  g_signal_connect (adapter,
+  g_signal_connect (fixture->adapter,
                     "notification-added",
                     G_CALLBACK (on_notification_added),
                     fixture);
-  g_signal_connect (adapter,
+  g_signal_connect (fixture->adapter,
                     "notification-removed",
                     G_CALLBACK (on_notification_removed),
                     fixture);
@@ -140,8 +135,8 @@ test_notifications_component_notification (NotificationsComponentFixture *fixtur
   valent_notification_add_button (fixture->notification, "Button 1", "foo.bar::baz");
 
 
-  valent_notifications_adapter_emit_notification_added (adapter, fixture->notification);
-  g_assert_true (fixture->data == adapter);
+  valent_notifications_adapter_emit_notification_added (fixture->adapter, fixture->notification);
+  g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
   /* Test Notification */
@@ -170,26 +165,17 @@ test_notifications_component_notification (NotificationsComponentFixture *fixtur
   g_assert_cmpuint (valent_notification_hash (fixture->notification), ==, valent_notification_hash (notification));
 
   /* Remove Notification */
-  valent_notifications_adapter_emit_notification_removed (adapter, "test-id");
-  g_assert_true (fixture->data == adapter);
+  valent_notifications_adapter_emit_notification_removed (fixture->adapter, "test-id");
+  g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
-  g_signal_handlers_disconnect_by_data (adapter, fixture);
+  g_signal_handlers_disconnect_by_data (fixture->adapter, fixture);
 }
 
 static void
 test_notifications_component_self (NotificationsComponentFixture *fixture,
                                    gconstpointer                  user_data)
 {
-  ValentNotificationsAdapter *adapter;
-
-  while ((adapter = valent_mock_notifications_adapter_get_instance ()) == NULL)
-    continue;
-
-  /* Wait a bit longer for valent_notifications_adapter_load_async() to resolve */
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
   g_signal_connect (fixture->notifications,
                     "notification-added",
                     G_CALLBACK (on_notification_added),
@@ -200,16 +186,16 @@ test_notifications_component_self (NotificationsComponentFixture *fixture,
                     fixture);
 
   /* Add notification */
-  valent_notifications_adapter_emit_notification_added (adapter, fixture->notification);
+  valent_notifications_adapter_emit_notification_added (fixture->adapter, fixture->notification);
   g_assert_true (fixture->data == fixture->notifications);
   fixture->data = NULL;
 
   /* Remove notification */
-  valent_notifications_adapter_emit_notification_removed (adapter, "test-id");
+  valent_notifications_adapter_emit_notification_removed (fixture->adapter, "test-id");
   g_assert_true (fixture->data == fixture->notifications);
   fixture->data = NULL;
 
-  g_signal_handlers_disconnect_by_data (adapter, fixture->notifications);
+  g_signal_handlers_disconnect_by_data (fixture->adapter, fixture->notifications);
 }
 
 int

@@ -9,6 +9,7 @@
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
 
+#include "valent-component-private.h"
 #include "valent-mixer.h"
 #include "valent-mixer-adapter.h"
 #include "valent-mixer-stream.h"
@@ -152,14 +153,16 @@ on_stream_removed (ValentMixerAdapter *adapter,
  * ValentComponent
  */
 static void
-valent_mixer_extension_added (ValentComponent *component,
-                              PeasExtension   *extension)
+valent_mixer_enable_extension (ValentComponent *component,
+                               PeasExtension   *extension)
 {
   ValentMixer *self = VALENT_MIXER (component);
   ValentMixerAdapter *adapter = VALENT_MIXER_ADAPTER (extension);
   g_autoptr (GPtrArray) inputs = NULL;
   g_autoptr (GPtrArray) outputs = NULL;
-  PeasExtension *provider;
+  PeasExtension *new_primary;
+
+  VALENT_ENTRY;
 
   g_assert (VALENT_IS_MIXER (self));
   g_assert (VALENT_IS_MIXER_ADAPTER (adapter));
@@ -201,22 +204,24 @@ valent_mixer_extension_added (ValentComponent *component,
                            G_CALLBACK (on_stream_removed),
                            self, 0);
 
-  provider = valent_component_get_priority_provider (component,
-                                                     "MixerAdapterPriority");
+  /* Set default provider */
+  new_primary = valent_component_get_primary (component);
+  self->default_adapter = VALENT_MIXER_ADAPTER (new_primary);
 
-  if ((PeasExtension *)self->default_adapter != provider)
-    g_set_object (&self->default_adapter, VALENT_MIXER_ADAPTER (provider));
+  VALENT_EXIT;
 }
 
 static void
-valent_mixer_extension_removed (ValentComponent *component,
+valent_mixer_disable_extension (ValentComponent *component,
                                 PeasExtension   *extension)
 {
   ValentMixer *self = VALENT_MIXER (component);
   ValentMixerAdapter *adapter = VALENT_MIXER_ADAPTER (extension);
   g_autoptr (GPtrArray) inputs = NULL;
   g_autoptr (GPtrArray) outputs = NULL;
-  PeasExtension *provider;
+  PeasExtension *new_primary;
+
+  VALENT_ENTRY;
 
   g_assert (VALENT_IS_MIXER (self));
   g_assert (VALENT_IS_MIXER_ADAPTER (adapter));
@@ -234,10 +239,11 @@ valent_mixer_extension_removed (ValentComponent *component,
 
   g_signal_handlers_disconnect_by_data (adapter, self);
 
-  /* Reset default mixer */
-  provider = valent_component_get_priority_provider (component,
-                                                     "MixerAdapterPriority");
-  g_set_object (&self->default_adapter, VALENT_MIXER_ADAPTER (provider));
+  /* Set default provider */
+  new_primary = valent_component_get_primary (component);
+  self->default_adapter = VALENT_MIXER_ADAPTER (new_primary);
+
+  VALENT_EXIT;
 }
 
 
@@ -311,8 +317,8 @@ valent_mixer_class_init (ValentMixerClass *klass)
   object_class->get_property = valent_mixer_get_property;
   object_class->set_property = valent_mixer_set_property;
 
-  component_class->extension_added = valent_mixer_extension_added;
-  component_class->extension_removed = valent_mixer_extension_removed;
+  component_class->enable_extension = valent_mixer_enable_extension;
+  component_class->disable_extension = valent_mixer_disable_extension;
 
   /**
    * ValentMixer:default-input: (getter get_default_input) (setter set_default_input)
@@ -441,8 +447,9 @@ valent_mixer_get_default (void)
   if (default_mixer == NULL)
     {
       default_mixer = g_object_new (VALENT_TYPE_MIXER,
-                                    "plugin-context", "mixer",
-                                    "plugin-type",    VALENT_TYPE_MIXER_ADAPTER,
+                                    "plugin-context",  "mixer",
+                                    "plugin-priority", "MixerAdapterPriority",
+                                    "plugin-type",     VALENT_TYPE_MIXER_ADAPTER,
                                     NULL);
 
       g_object_add_weak_pointer (G_OBJECT (default_mixer),

@@ -9,6 +9,7 @@
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
 
+#include "valent-component-private.h"
 #include "valent-session.h"
 #include "valent-session-adapter.h"
 
@@ -63,16 +64,17 @@ on_session_adapter_changed (ValentSessionAdapter *adapter,
  * ValentComponent
  */
 static void
-valent_session_extension_added (ValentComponent *component,
-                                PeasExtension   *extension)
+valent_session_enable_extension (ValentComponent *component,
+                                 PeasExtension   *extension)
 {
   ValentSession *self = VALENT_SESSION (component);
   ValentSessionAdapter *adapter = VALENT_SESSION_ADAPTER (extension);
-  PeasExtension *provider;
+  PeasExtension *new_primary = NULL;
 
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_SESSION (self));
+  g_assert (VALENT_IS_SESSION_ADAPTER (adapter));
 
   /* Watch for changes */
   g_signal_connect_object (adapter,
@@ -81,36 +83,31 @@ valent_session_extension_added (ValentComponent *component,
                            component, 0);
 
   /* Set default provider */
-  provider = valent_component_get_priority_provider (component,
-                                                     "SessionAdapterPriority");
-
-  if ((PeasExtension *)self->default_adapter != provider)
-    g_set_object (&self->default_adapter, VALENT_SESSION_ADAPTER (provider));
+  new_primary = valent_component_get_primary (component);
+  self->default_adapter = VALENT_SESSION_ADAPTER (new_primary);
 
   VALENT_EXIT;
 }
 
 static void
-valent_session_extension_removed (ValentComponent *component,
+valent_session_disable_extension (ValentComponent *component,
                                   PeasExtension   *extension)
 {
   ValentSession *self = VALENT_SESSION (component);
   ValentSessionAdapter *adapter = VALENT_SESSION_ADAPTER (extension);
-  PeasExtension *provider;
+  PeasExtension *new_primary = NULL;
 
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_SESSION (self));
+  g_assert (VALENT_IS_SESSION_ADAPTER (adapter));
 
   /* Stop watching changes */
   g_signal_handlers_disconnect_by_data (adapter, self);
 
   /* Set default provider */
-  provider = valent_component_get_priority_provider (component,
-                                                     "SessionAdapterPriority");
-
-  if ((PeasExtension *)self->default_adapter == extension)
-    g_set_object (&self->default_adapter, VALENT_SESSION_ADAPTER (provider));
+  new_primary = valent_component_get_primary (component);
+  self->default_adapter = VALENT_SESSION_ADAPTER (new_primary);
 
   VALENT_EXIT;
 }
@@ -135,7 +132,6 @@ valent_session_finalize (GObject *object)
   ValentSession *self = VALENT_SESSION (object);
 
   g_clear_object (&self->cancellable);
-  g_clear_object (&self->default_adapter);
 
   G_OBJECT_CLASS (valent_session_parent_class)->finalize (object);
 }
@@ -149,8 +145,8 @@ valent_session_class_init (ValentSessionClass *klass)
   object_class->dispose = valent_session_dispose;
   object_class->finalize = valent_session_finalize;
 
-  component_class->extension_added = valent_session_extension_added;
-  component_class->extension_removed = valent_session_extension_removed;
+  component_class->enable_extension = valent_session_enable_extension;
+  component_class->disable_extension = valent_session_disable_extension;
 
   /**
    * ValentSession::changed:
@@ -191,8 +187,9 @@ valent_session_get_default (void)
   if (default_adapter == NULL)
     {
       default_adapter = g_object_new (VALENT_TYPE_SESSION,
-                                      "plugin-context", "session",
-                                      "plugin-type",    VALENT_TYPE_SESSION_ADAPTER,
+                                      "plugin-context",  "session",
+                                      "plugin-priority", "SessionAdapterPriority",
+                                      "plugin-type",     VALENT_TYPE_SESSION_ADAPTER,
                                       NULL);
 
       g_object_add_weak_pointer (G_OBJECT (default_adapter),

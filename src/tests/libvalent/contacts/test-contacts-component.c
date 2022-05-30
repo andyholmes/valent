@@ -150,10 +150,12 @@ contacts_component_fixture_set_up (ContactsComponentFixture *fixture,
   // HACK: Wait for the adapter to be constructed, then a bit longer for
   //       valent_contacts_adapter_load_async() to resolve
   while ((fixture->adapter = valent_mock_contacts_adapter_get_instance ()) == NULL)
-    continue;
+    g_main_context_iteration (NULL, FALSE);
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
+
+  g_object_ref (fixture->adapter);
 }
 
 static void
@@ -161,6 +163,7 @@ contacts_component_fixture_tear_down (ContactsComponentFixture *fixture,
                                       gconstpointer             user_data)
 {
   v_await_finalize_object (fixture->contacts);
+  v_await_finalize_object (fixture->adapter);
   v_await_finalize_object (fixture->store);
   v_assert_finalize_object (fixture->contact);
   g_clear_pointer (&fixture->loop, g_main_loop_unref);
