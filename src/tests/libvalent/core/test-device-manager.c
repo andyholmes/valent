@@ -11,10 +11,11 @@
 
 typedef struct
 {
-  GMainLoop           *loop;
-  ValentDeviceManager *manager;
-  ValentDevice        *device;
-  gpointer             data;
+  GMainLoop            *loop;
+  ValentDeviceManager  *manager;
+  ValentChannelService *service;
+  ValentDevice         *device;
+  gpointer              data;
 } ManagerFixture;
 
 
@@ -45,6 +46,12 @@ manager_fixture_set_up (ManagerFixture *fixture,
   /* Init the manager */
   fixture->loop = g_main_loop_new (NULL, FALSE);
   fixture->manager = valent_device_manager_new_sync (data, NULL, NULL);
+
+  /* Wait for the manager to start */
+  valent_device_manager_start (fixture->manager);
+
+  while ((fixture->service = valent_mock_channel_service_get_instance ()) == NULL)
+    g_main_context_iteration (NULL, FALSE);
 }
 
 static void
@@ -52,6 +59,9 @@ manager_fixture_tear_down (ManagerFixture *fixture,
                            gconstpointer   user_data)
 {
   valent_device_manager_stop (fixture->manager);
+
+  while (valent_mock_channel_service_get_instance () != NULL)
+    g_main_context_iteration (NULL, FALSE);
 
   v_await_finalize_object (fixture->manager);
   g_clear_pointer (&fixture->loop, g_main_loop_unref);
@@ -78,7 +88,7 @@ on_device_removed (ValentDeviceManager *manager,
 static void
 manager_new_cb (GObject      *object,
                 GAsyncResult *result,
-                GMainLoop    *loop)
+                gboolean     *done)
 {
   g_autoptr (ValentDeviceManager) manager = NULL;
   g_autoptr (GError) error = NULL;
@@ -87,20 +97,22 @@ manager_new_cb (GObject      *object,
   g_assert_no_error (error);
   g_assert_true (VALENT_IS_DEVICE_MANAGER (manager));
 
-  g_main_loop_quit (loop);
+  if (done != NULL)
+    *done = TRUE;
 }
 
 static void
 test_manager_new (void)
 {
-  g_autoptr (GMainLoop) loop = NULL;
+  gboolean done = FALSE;
 
-  loop = g_main_loop_new (NULL, FALSE);
   valent_device_manager_new (NULL,
                              NULL,
                              (GAsyncReadyCallback)manager_new_cb,
-                             loop);
-  g_main_loop_run (loop);
+                             &done);
+
+  while (!done)
+    g_main_context_iteration (NULL, FALSE);
 }
 
 static void
@@ -146,7 +158,6 @@ static void
 test_manager_management (ManagerFixture *fixture,
                          gconstpointer   user_data)
 {
-  ValentChannelService *service;
   GPtrArray *devices;
 
   g_signal_connect (fixture->manager,
@@ -157,12 +168,6 @@ test_manager_management (ManagerFixture *fixture,
                     "device-removed",
                     G_CALLBACK (on_device_removed),
                     fixture);
-
-  /* Loads services when started */
-  valent_device_manager_start (fixture->manager);
-
-  while ((service = valent_mock_channel_service_get_instance ()) == NULL)
-    g_main_context_iteration (NULL, FALSE);
 
   /* Adds devices from the cache when started */
   while (fixture->device == NULL)
@@ -191,20 +196,12 @@ test_manager_management (ManagerFixture *fixture,
   /* Retains paired devices that disconnect */
   g_object_notify (G_OBJECT (fixture->device), "state");
   g_assert_true (VALENT_IS_DEVICE (fixture->device));
-
-  /* Unloads services when stopped */
-  valent_device_manager_stop (fixture->manager);
-
-  while ((service = valent_mock_channel_service_get_instance ()) != NULL)
-    g_main_context_iteration (NULL, FALSE);
 }
 
 static void
 test_manager_identify_uri (ManagerFixture *fixture,
                            gconstpointer   user_data)
 {
-  ValentChannelService *service;
-
   g_signal_connect (fixture->manager,
                     "device-added",
                     G_CALLBACK (on_device_added),
@@ -213,11 +210,6 @@ test_manager_identify_uri (ManagerFixture *fixture,
                     "device-removed",
                     G_CALLBACK (on_device_removed),
                     fixture);
-
-  valent_device_manager_start (fixture->manager);
-
-  while ((service = valent_mock_channel_service_get_instance ()) == NULL)
-    g_main_context_iteration (NULL, FALSE);
 
   /* Drop the cached device */
   while (fixture->device == NULL)
@@ -228,11 +220,6 @@ test_manager_identify_uri (ManagerFixture *fixture,
   /* Forwards URIs to the correct service */
   valent_device_manager_identify (fixture->manager, "mock://127.0.0.1");
   g_assert_true (VALENT_IS_DEVICE (fixture->device));
-
-  valent_device_manager_stop (fixture->manager);
-
-  while ((service = valent_mock_channel_service_get_instance ()) != NULL)
-    g_main_context_iteration (NULL, FALSE);
 }
 
 static void
@@ -278,7 +265,6 @@ static void
 test_manager_dbus (ManagerFixture *fixture,
                    gconstpointer   user_data)
 {
-  ValentChannelService *service;
   ValentDevice *device;
   g_autoptr (GDBusConnection) connection = NULL;
   g_autoptr (GDBusObjectManager) manager = NULL;
@@ -300,11 +286,6 @@ test_manager_dbus (ManagerFixture *fixture,
                     fixture);
 
   /* Wait for the manager to start */
-  valent_device_manager_start (fixture->manager);
-
-  while ((service = valent_mock_channel_service_get_instance ()) == NULL)
-    g_main_context_iteration (NULL, FALSE);
-
   while (fixture->device == NULL)
     g_main_context_iteration (NULL, FALSE);
 
@@ -372,12 +353,6 @@ test_manager_dbus (ManagerFixture *fixture,
 
   valent_device_manager_unexport (fixture->manager);
   g_main_loop_run (fixture->loop);
-
-  /* Stop */
-  valent_device_manager_stop (fixture->manager);
-
-  while ((service = valent_mock_channel_service_get_instance ()) != NULL)
-    g_main_context_iteration (NULL, FALSE);
 }
 
 static void
