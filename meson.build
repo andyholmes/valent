@@ -4,7 +4,7 @@
 project('valent', 'c',
           license: 'GPL-3.0-or-later',
           version: '1.0.0.alpha',
-    meson_version: '>= 0.58.0',
+    meson_version: '>= 0.59.0',
   default_options: [
     'buildtype=debugoptimized',
     'warning_level=2',
@@ -245,7 +245,11 @@ if get_option('documentation')
   subdir('doc/sdk')
 endif
 
-meson.add_install_script('build-aux/meson/postinstall.py')
+gnome.post_install(
+  glib_compile_schemas: true,
+  gtk_update_icon_cache: true,
+  update_desktop_database: true,
+)
 
 
 #
