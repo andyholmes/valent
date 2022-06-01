@@ -407,16 +407,22 @@ valent_preferences_window_constructed (GObject *object)
   plugins = peas_engine_get_plugin_list (engine);
 
   for (const GList *iter = plugins; iter; iter = iter->next)
-    on_load_plugin (engine, iter->data, self);
+    {
+      if (peas_plugin_info_is_loaded (iter->data))
+        on_load_plugin (engine, iter->data, self);
+    }
 
-  g_signal_connect_after (engine,
-                          "load-plugin",
-                          G_CALLBACK (on_load_plugin),
-                          self);
-  g_signal_connect (engine,
-                    "unload-plugin",
-                    G_CALLBACK (on_unload_plugin),
-                    self);
+  g_signal_connect_object (engine,
+                           "load-plugin",
+                           G_CALLBACK (on_load_plugin),
+                           self,
+                           G_CONNECT_AFTER);
+
+  g_signal_connect_object (engine,
+                           "unload-plugin",
+                           G_CALLBACK (on_unload_plugin),
+                           self,
+                           0);
 
   G_OBJECT_CLASS (valent_preferences_window_parent_class)->constructed (object);
 }

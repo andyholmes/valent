@@ -1282,14 +1282,17 @@ valent_device_manager_start (ValentDeviceManager *manager)
         on_load_service (manager->engine, iter->data, manager);
     }
 
-  g_signal_connect_after (manager->engine,
-                          "load-plugin",
-                          G_CALLBACK (on_load_service),
-                          manager);
-  g_signal_connect (manager->engine,
-                    "unload-plugin",
-                    G_CALLBACK (on_unload_service),
-                    manager);
+  g_signal_connect_object (manager->engine,
+                           "load-plugin",
+                           G_CALLBACK (on_load_service),
+                           manager,
+                           G_CONNECT_AFTER);
+
+  g_signal_connect_object (manager->engine,
+                           "unload-plugin",
+                           G_CALLBACK (on_unload_service),
+                           manager,
+                           0);
 
   VALENT_EXIT;
 }
