@@ -305,14 +305,17 @@ valent_component_constructed (GObject *object)
         on_load_plugin (priv->engine, iter->data, self);
     }
 
-  g_signal_connect_after (priv->engine,
-                          "load-plugin",
-                          G_CALLBACK (on_load_plugin),
-                          self);
-  g_signal_connect (priv->engine,
-                    "unload-plugin",
-                    G_CALLBACK (on_unload_plugin),
-                    self);
+  g_signal_connect_object (priv->engine,
+                           "load-plugin",
+                           G_CALLBACK (on_load_plugin),
+                           self,
+                           G_CONNECT_AFTER);
+
+  g_signal_connect_object (priv->engine,
+                           "unload-plugin",
+                           G_CALLBACK (on_unload_plugin),
+                           self,
+                           0);
 
   G_OBJECT_CLASS (valent_component_parent_class)->constructed (object);
 }
