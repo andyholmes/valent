@@ -26,7 +26,7 @@
     </child>
     <child>
       <object class="GtkStack" id="stack">
-        <property name="transition-type">slide-left-right</property>
+        <property name="transition-type">over-left-right</property>
         <child>
           <object class="GtkStackPage">
             <property name="name">main</property>

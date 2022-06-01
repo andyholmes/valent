@@ -245,5 +245,8 @@
         </child>
       </object>
     </child>
+    <style>
+      <class name="background"/>
+    </style>
   </template>
 </interface>
