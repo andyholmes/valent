@@ -81,6 +81,8 @@ test_window_navigation (TestWindowFixture *fixture,
   while (g_main_context_iteration (NULL, FALSE))
     continue;
 
+// FIXME: leak reported when `-Dfuzz_tests=true` and `-Db_sanitize=address`
+#if !(WITH_ASAN)
   /* Main -> Device -> Main */
   gtk_widget_activate_action (GTK_WIDGET (window), "win.device", "s", "mock-device");
   gtk_widget_activate_action (GTK_WIDGET (window), "win.previous", NULL);
@@ -90,6 +92,10 @@ test_window_navigation (TestWindowFixture *fixture,
 
   /* Main -> Device -> Remove Device */
   gtk_widget_activate_action (GTK_WIDGET (window), "win.device", "s", "mock-device");
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+#endif /* WITH_ASAN */
 
   device = valent_device_manager_get_device (fixture->manager, "mock-device");
   valent_device_set_channel (device, NULL);
