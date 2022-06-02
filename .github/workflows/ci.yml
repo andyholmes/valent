@@ -116,7 +116,7 @@ jobs:
           CXX_LD: ${{ matrix.cc == 'llvm' && 'lld' || 'gold' }}
           BUILD_COVERAGE: ${{ matrix.coverage }}
           BUILD_SANITIZE: ${{ matrix.sanitize }}
-          BUILD_FUZZING: ${{ matrix.sanitize == 'none' }}
+          BUILD_FUZZING: ${{ matrix.sanitize != 'address' }}
           BUILD_INTROSPECTION: ${{ matrix.sanitize == 'none' }}
         run: |
           meson setup --buildtype=debugoptimized \
@@ -132,7 +132,7 @@ jobs:
       - name: Test
         env:
           TEST_REPEAT: ${{ matrix.sanitize == 'none' && 3 || 1 }}
-          TEST_TIMEOUT: ${{ matrix.sanitize == 'none' && 1 || 2 }}
+          TEST_TIMEOUT: ${{ matrix.sanitize == 'none' && 1 || 4 }}
         run: |
           dbus-run-session -- \
           xvfb-run -a -s '-screen 0 1024x768x24' \
