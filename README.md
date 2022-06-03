@@ -24,15 +24,14 @@ Valent is an implementation of the [KDE Connect][kdeconnect] protocol, built on
 
 ## Status
 
-This is not (yet) a public project, meaning:
+This project is in an early stage of development, with no stable releases. For
+those interested in trying out Valent, there are nightly Flatpak builds
+available for [`x86_64`][flatpak-x86_64] and [`aarch64`][flatpak-aarch64].
 
-* There are no stable releases
-* Bug reports, features requests and contributions are not accepted
-* It is untested, unstable and unsupported
+Join the community in [Discussions] to ask questions, share ideas and get
+involved in Valent!
 
-There are automated builds available for testing purposes. Flatpak packages are
-built for [x86_64][flatpak-x86_64] and [aarch64][flatpak-aarch64].
-
+[discussions]: https://github.com/andyholmes/valent/discussions
 [flatpak-aarch64]: https://nightly.link/andyholmes/valent/workflows/cd/main/ca.andyholmes.Valent-aarch64.zip
 [flatpak-x86_64]: https://nightly.link/andyholmes/valent/workflows/cd/main/ca.andyholmes.Valent-x86_64.zip
 [gnome]: https://www.gnome.org
