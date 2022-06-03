@@ -64,7 +64,7 @@ jobs:
 
       - name: Compare
         env:
-          STABLE_REF: 1a2b1841c2dbee83ecd24032a70d67846ad23920
+          STABLE_REF: 77866a28493dcc40cad651e314853b5fb511edcf
           COMMIT_REF: ${{ github.event.pull_request.head.sha }}
         run: |
           ./src/tests/extra/abicheck.py ${STABLE_REF} ${COMMIT_REF}
@@ -116,13 +116,11 @@ jobs:
           CXX_LD: ${{ matrix.cc == 'llvm' && 'lld' || 'gold' }}
           BUILD_COVERAGE: ${{ matrix.coverage }}
           BUILD_SANITIZE: ${{ matrix.sanitize }}
-          BUILD_FUZZING: ${{ matrix.sanitize != 'address' }}
           BUILD_INTROSPECTION: ${{ matrix.sanitize == 'none' }}
         run: |
           meson setup --buildtype=debugoptimized \
                       -Db_coverage=${BUILD_COVERAGE} \
                       -Db_sanitize=${BUILD_SANITIZE} \
-                      -Dfuzz_tests=${BUILD_FUZZING} \
                       -Dintrospection=${BUILD_INTROSPECTION} \
                       -Dplugin_bluez=true \
                       -Dtests=true \
