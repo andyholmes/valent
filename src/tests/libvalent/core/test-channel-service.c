@@ -223,7 +223,7 @@ valent_channel_upload_cb (ValentChannel *channel,
 
   stream = valent_channel_upload_finish (channel, result, &error);
   g_assert_no_error (error);
-  g_assert (G_IS_IO_STREAM (stream));
+  g_assert_true (G_IS_IO_STREAM (stream));
 
   file_source = g_file_read (file, NULL, &error);
   g_assert_no_error (error);
