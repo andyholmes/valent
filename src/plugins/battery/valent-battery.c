@@ -255,7 +255,7 @@ g_dbus_proxy_new_for_bus_cb (GObject       *object,
 
   if ((value = g_dbus_proxy_get_cached_property (self->proxy, "IsPresent")) != NULL)
     {
-      double is_present = g_variant_get_boolean (value);
+      gboolean is_present = g_variant_get_boolean (value);
 
       if (is_present)
         valent_battery_load_properties (self);
