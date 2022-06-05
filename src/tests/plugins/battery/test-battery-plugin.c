@@ -290,6 +290,16 @@ test_battery_plugin_handle_request (ValentTestFixture *fixture,
   v_assert_packet_true (packet, "request");
   json_node_unref (packet);
 
+  // FIXME: ValentBattery::changed is emitted when properties are first loaded,
+  //        but this often result in these bogus `0` charge level states. These
+  //        can cause mislesding low battery notifications on devices. */
+  packet = valent_test_fixture_expect_packet (fixture);
+  v_assert_packet_type (packet, "kdeconnect.battery");
+  v_assert_packet_cmpint (packet, "currentCharge", ==, 0);
+  v_assert_packet_false (packet, "isCharging");
+  v_assert_packet_cmpint (packet, "thresholdEvent", ==, 0);
+  json_node_unref (packet);
+
   /* Expect updates */
   upower_set_battery (connection, "Percentage", g_variant_new_double (42.0));
 
