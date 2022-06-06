@@ -122,7 +122,6 @@ jobs:
                       -Db_coverage=${BUILD_COVERAGE} \
                       -Db_sanitize=${BUILD_SANITIZE} \
                       -Dintrospection=${BUILD_INTROSPECTION} \
-                      -Dplugin_bluez=true \
                       -Dtests=true \
                       _build
           meson compile -C _build
