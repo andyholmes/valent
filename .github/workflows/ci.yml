@@ -23,12 +23,7 @@ jobs:
       - name: Setup Linters
         run: |
           python -m pip install --upgrade pip
-          pip install codespell mypy pylint reuse yamllint
-
-      - name: Licensing (reuse)
-        if: ${{ always() }}
-        run: |
-          reuse lint
+          pip install codespell mypy pylint yamllint
 
       - name: Spelling (codespell)
         if: ${{ always() }}
@@ -47,6 +42,20 @@ jobs:
         run: |
           yamllint --config-file src/tests/extra/yamllint.yml \
                    $(git ls-files '*.yml')
+
+  reuse:
+    name: REUSE Compliance
+    needs: [lint]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Lint
+        uses: fsfe/reuse-action@v1
+        with:
+          args: lint
 
   abicheck:
     name: ABI Compliance
