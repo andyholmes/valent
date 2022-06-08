@@ -23,12 +23,7 @@ jobs:
       - name: Setup Linters
         run: |
           python -m pip install --upgrade pip
-          pip install codespell mypy pylint yamllint
-
-      - name: Spelling (codespell)
-        if: ${{ always() }}
-        run: |
-          codespell --config src/tests/extra/setup.cfg
+          pip install mypy pylint yamllint
 
       - name: Python (mypy, pylint)
         if: ${{ always() }}
@@ -42,6 +37,21 @@ jobs:
         run: |
           yamllint --config-file src/tests/extra/yamllint.yml \
                    $(git ls-files '*.yml')
+
+  codespell:
+    name: Codespell
+    needs: [lint]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Spell Check
+        uses: codespell-project/actions-codespell@master
+        with:
+          ignore_words_list: doubleclick,inout,sav
+          skip: ./src/tests/data,./subprojects,./*.po
 
   reuse:
     name: REUSE Compliance
