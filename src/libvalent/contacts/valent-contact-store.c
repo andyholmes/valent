@@ -139,21 +139,21 @@ valent_contact_store_real_add_contacts (ValentContactStore  *store,
 }
 
 static void
-valent_contact_store_real_remove_contact (ValentContactStore  *store,
-                                          const char          *uid,
-                                          GCancellable        *cancellable,
-                                          GAsyncReadyCallback  callback,
-                                          gpointer             user_data)
+valent_contact_store_real_remove_contacts (ValentContactStore  *store,
+                                           GSList              *uids,
+                                           GCancellable        *cancellable,
+                                           GAsyncReadyCallback  callback,
+                                           gpointer             user_data)
 {
   g_assert (VALENT_IS_CONTACT_STORE (store));
-  g_assert (uid != NULL);
+  g_assert (uids != NULL);
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   g_task_report_new_error (store, callback, user_data,
-                           valent_contact_store_real_remove_contact,
+                           valent_contact_store_real_remove_contacts,
                            G_IO_ERROR,
                            G_IO_ERROR_NOT_SUPPORTED,
-                           "%s does not implement remove_contact()",
+                           "%s does not implement remove_contacts()",
                            G_OBJECT_TYPE_NAME (store));
 }
 
@@ -272,7 +272,7 @@ valent_contact_store_class_init (ValentContactStoreClass *klass)
   object_class->set_property = valent_contact_store_set_property;
 
   klass->add_contacts = valent_contact_store_real_add_contacts;
-  klass->remove_contact = valent_contact_store_real_remove_contact;
+  klass->remove_contacts = valent_contact_store_real_remove_contacts;
   klass->query = valent_contact_store_real_query;
   klass->get_contact = valent_contact_store_real_get_contact;
 
@@ -546,7 +546,7 @@ valent_contact_store_get_uid (ValentContactStore *store)
  * A convenience wrapper around [method@Valent.ContactStore.add_contacts] for
  * adding a single contact.
  *
- * Call [method@Valent.ContactStore.add_finish] to get the result.
+ * Call [method@Valent.ContactStore.add_contacts_finish] to get the result.
  *
  * Since: 1.0
  */
@@ -585,7 +585,7 @@ valent_contact_store_add_contact (ValentContactStore  *store,
  *
  * Add @contacts to @store.
  *
- * Call [method@Valent.ContactStore.add_finish] to get the result.
+ * Call [method@Valent.ContactStore.add_contacts_finish] to get the result.
  *
  * Since: 1.0
  */
@@ -612,21 +612,22 @@ valent_contact_store_add_contacts (ValentContactStore  *store,
 }
 
 /**
- * valent_contact_store_add_finish:
+ * valent_contact_store_add_contacts_finish:
  * @store: a #ValentContactStore
  * @result: a #GAsyncResult
  * @error: (nullable): a #GError
  *
- * Finish an operation started by [method@Valent.ContactStore.add_contacts].
+ * Finish an operation started by [method@Valent.ContactStore.add_contact] or
+ * [method@Valent.ContactStore.add_contacts].
  *
  * Returns: %TRUE if successful, or %FALSE with @error set
  *
  * Since: 1.0
  */
 gboolean
-valent_contact_store_add_finish (ValentContactStore  *store,
-                                 GAsyncResult        *result,
-                                 GError             **error)
+valent_contact_store_add_contacts_finish (ValentContactStore  *store,
+                                          GAsyncResult        *result,
+                                          GError             **error)
 {
   gboolean ret;
 
@@ -642,7 +643,7 @@ valent_contact_store_add_finish (ValentContactStore  *store,
 }
 
 /**
- * valent_contact_store_remove_contact: (virtual remove_contact)
+ * valent_contact_store_remove_contact:
  * @store: a #ValentContactStore
  * @uid: a contact UID
  * @cancellable: (nullable): #GCancellable
@@ -651,7 +652,10 @@ valent_contact_store_add_finish (ValentContactStore  *store,
  *
  * Remove contact @uid from @store.
  *
- * Call [method@Valent.ContactStore.remove_finish] to get the result.
+ * A convenience wrapper around [method@Valent.ContactStore.remove_contacts] for
+ * removing a single contact.
+ *
+ * Call [method@Valent.ContactStore.remove_contacts_finish] to get the result.
  *
  * Since: 1.0
  */
@@ -662,37 +666,77 @@ valent_contact_store_remove_contact (ValentContactStore  *store,
                                      GAsyncReadyCallback  callback,
                                      gpointer             user_data)
 {
+  g_autoptr (GSList) contacts = NULL;
+
   VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_CONTACT_STORE (store));
   g_return_if_fail (uid != NULL);
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  VALENT_CONTACT_STORE_GET_CLASS (store)->remove_contact (store,
-                                                          uid,
-                                                          cancellable,
-                                                          callback,
-                                                          user_data);
+  contacts = g_slist_append (contacts, (char *)uid);
+  valent_contact_store_remove_contacts (store,
+                                        contacts,
+                                        cancellable,
+                                        callback,
+                                        user_data);
 
   VALENT_EXIT;
 }
 
 /**
- * valent_contact_store_remove_finish:
+ * valent_contact_store_remove_contacts: (virtual remove_contacts)
+ * @store: a #ValentContactStore
+ * @uids: (element-type utf8): a #GSList of contact UIDs
+ * @cancellable: (nullable): #GCancellable
+ * @callback: (scope async): a #GAsyncReadyCallback
+ * @user_data: (closure): user supplied data
+ *
+ * Remove contact @uid from @store.
+ *
+ * Call [method@Valent.ContactStore.remove_contacts_finish] to get the result.
+ *
+ * Since: 1.0
+ */
+void
+valent_contact_store_remove_contacts (ValentContactStore  *store,
+                                      GSList              *uids,
+                                      GCancellable        *cancellable,
+                                      GAsyncReadyCallback  callback,
+                                      gpointer             user_data)
+{
+  VALENT_ENTRY;
+
+  g_return_if_fail (VALENT_IS_CONTACT_STORE (store));
+  g_return_if_fail (uids != NULL);
+  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  VALENT_CONTACT_STORE_GET_CLASS (store)->remove_contacts (store,
+                                                           uids,
+                                                           cancellable,
+                                                           callback,
+                                                           user_data);
+
+  VALENT_EXIT;
+}
+
+/**
+ * valent_contact_store_remove_contacts_finish:
  * @store: a #ValentContactStore
  * @result: a #GAsyncResult
  * @error: (nullable): a #GError
  *
- * Finish an operation started by [method@Valent.ContactStore.remove_contact].
+ * Finish an operation started by [method@Valent.ContactStore.remove_contact] or
+ * [method@Valent.ContactStore.remove_contacts].
  *
  * Returns: %TRUE if successful, or %FALSE with @error set
  *
  * Since: 1.0
  */
 gboolean
-valent_contact_store_remove_finish (ValentContactStore  *store,
-                                    GAsyncResult        *result,
-                                    GError             **error)
+valent_contact_store_remove_contacts_finish (ValentContactStore  *store,
+                                             GAsyncResult        *result,
+                                             GError             **error)
 {
   gboolean ret;
 

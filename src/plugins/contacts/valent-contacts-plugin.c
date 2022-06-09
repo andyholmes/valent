@@ -267,7 +267,7 @@ valent_contact_store_add_contacts_cb (ValentContactStore *store,
 {
   g_autoptr (GError) error = NULL;
 
-  if (!valent_contact_store_add_finish (store, result, &error) &&
+  if (!valent_contact_store_add_contacts_finish (store, result, &error) &&
       !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
     g_warning ("%s(): %s", G_STRFUNC, error->message);
 }

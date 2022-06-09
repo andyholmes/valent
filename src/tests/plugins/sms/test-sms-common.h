@@ -32,7 +32,7 @@ valent_test_contact_store_new_cb (ValentContactStore *store,
 {
   g_autoptr (GError) error = NULL;
 
-  valent_contact_store_add_finish (store, result, &error);
+  valent_contact_store_add_contacts_finish (store, result, &error);
   g_assert_no_error (error);
   done = TRUE;
 }

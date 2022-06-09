@@ -85,35 +85,35 @@ valent_ebook_store_remove_cb (GObject      *object,
   g_autoptr (GTask) task = G_TASK (user_data);
   GError *error = NULL;
 
-  if (!e_book_client_remove_contact_by_uid_finish (client, result, &error))
+  if (!e_book_client_remove_contacts_finish (client, result, &error))
     return g_task_return_error (task, error);
 
   g_task_return_boolean (task, TRUE);
 }
 
 static void
-valent_ebook_store_remove_contact (ValentContactStore  *store,
-                                   const char          *uid,
-                                   GCancellable        *cancellable,
-                                   GAsyncReadyCallback  callback,
-                                   gpointer             user_data)
+valent_ebook_store_remove_contacts (ValentContactStore  *store,
+                                    GSList              *uids,
+                                    GCancellable        *cancellable,
+                                    GAsyncReadyCallback  callback,
+                                    gpointer             user_data)
 {
   ValentEBookStore *self = VALENT_EBOOK_STORE (store);
   g_autoptr (GTask) task = NULL;
 
   g_assert (VALENT_IS_CONTACT_STORE (store));
-  g_assert (uid != NULL);
+  g_assert (uids != NULL);
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   task = g_task_new (store, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_ebook_store_remove_contact);
+  g_task_set_source_tag (task, valent_ebook_store_remove_contacts);
 
-  e_book_client_remove_contact_by_uid (self->client,
-                                       uid,
-                                       E_BOOK_OPERATION_FLAG_NONE,
-                                       cancellable,
-                                       valent_ebook_store_remove_cb,
-                                       g_steal_pointer (&task));
+  e_book_client_remove_contacts (self->client,
+                                 uids,
+                                 E_BOOK_OPERATION_FLAG_NONE,
+                                 cancellable,
+                                 valent_ebook_store_remove_cb,
+                                 g_steal_pointer (&task));
 }
 
 static void
@@ -380,7 +380,7 @@ valent_ebook_store_class_init (ValentEBookStoreClass *klass)
   object_class->set_property = valent_ebook_store_set_property;
 
   store_class->add_contacts = valent_ebook_store_add_contacts;
-  store_class->remove_contact = valent_ebook_store_remove_contact;
+  store_class->remove_contacts = valent_ebook_store_remove_contacts;
   store_class->get_contact = valent_ebook_store_get_contact;
   store_class->query = valent_ebook_store_query;
 
