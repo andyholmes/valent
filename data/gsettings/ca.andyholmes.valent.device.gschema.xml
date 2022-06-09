@@ -10,11 +10,6 @@
       <summary>Paired</summary>
       <description>Whether the device is paired</description>
     </key>
-    <key name="download-folder" type="s">
-      <default>""</default>
-      <summary>Download folder</summary>
-      <description>Where received files are stored</description>
-    </key>
   </schema>
 </schemalist>
 

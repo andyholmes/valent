@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> -->
+
+<interface domain="valent">
+  <template class="ValentSharePreferences" parent="AdwPreferencesPage">
+    <property name="title" translatable="yes">Share</property>
+    <property name="icon-name">valent-share-plugin-symbolic</property>
+    <child>
+      <object class="AdwPreferencesGroup" id="download_group">
+        <property name="title" translatable="yes">Received Files</property>
+        <property name="description" translatable="yes">Control how received files are handled.</property>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Download directory</property>
+            <property name="subtitle" translatable="yes">Where received files are stored</property>
+            <property name="activatable">1</property>
+            <property name="action-name">preferences.select-download-folder</property>
+            <child type="suffix">
+              <object class="GtkBox">
+                <property name="spacing">12</property>
+                <child>
+                  <object class="GtkLabel" id="download_folder_label">
+                    <property name="ellipsize">start</property>
+                    <property name="max-width-chars">16</property>
+                    <property name="valign">center</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkImage">
+                    <property name="icon-name">folder-symbolic</property>
+                    <property name="valign">center</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

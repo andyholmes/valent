@@ -69,6 +69,9 @@ src/plugins/sftp/valent-sftp-preferences.c
 src/plugins/sftp/valent-sftp-preferences.ui
 src/plugins/share/share.plugin.desktop.in
 src/plugins/share/valent-share-plugin.c
+src/plugins/share/valent-share-plugin.c
+src/plugins/share/valent-share-preferences.c
+src/plugins/share/valent-share-preferences.ui
 src/plugins/sms/sms.plugin.desktop.in
 src/plugins/sms/valent-contact-row.c
 src/plugins/sms/valent-date-label.c

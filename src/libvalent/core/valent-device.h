@@ -81,10 +81,6 @@ VALENT_AVAILABLE_IN_1_0
 gboolean            valent_device_send_packet_finish (ValentDevice         *device,
                                                       GAsyncResult         *result,
                                                       GError              **error);
-VALENT_AVAILABLE_IN_1_0
-GFile             * valent_device_new_download_file  (ValentDevice         *device,
-                                                      const char           *filename,
-                                                      gboolean              unique);
 
 G_END_DECLS
 

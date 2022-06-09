@@ -4,7 +4,7 @@
 # Dependencies
 plugin_share_deps = [
   libvalent_core_dep,
-  gtk_dep,
+  libvalent_ui_dep,
 ]
 
 # Sources
@@ -12,6 +12,7 @@ plugin_share_sources = files([
   'share-plugin.c',
   'valent-share-download.c',
   'valent-share-plugin.c',
+  'valent-share-preferences.c',
   'valent-share-upload.c',
 ])
 
@@ -31,6 +32,11 @@ plugin_share_resources = gnome.compile_resources('share-resources',
   dependencies: [plugin_share_info],
 )
 plugin_share_sources += plugin_share_resources
+
+# Settings
+install_data('ca.andyholmes.valent.share.gschema.xml',
+  install_dir: schemadir
+)
 
 # Static Build
 plugin_share = static_library('plugin-share',

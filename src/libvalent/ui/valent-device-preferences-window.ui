@@ -14,40 +14,6 @@
         <property name="icon-name">phone-symbolic</property>
         <property name="vexpand">1</property>
         <child>
-          <object class="AdwPreferencesGroup" id="general_group">
-            <property name="title" translatable="yes">General</property>
-            <child>
-              <object class="AdwActionRow">
-                <property name="title" translatable="yes">Download directory</property>
-                <property name="subtitle" translatable="yes">Where received files are stored</property>
-                <property name="activatable">1</property>
-                <property name="action-name">win.select-download-folder</property>
-                <child type="suffix">
-                  <object class="GtkBox">
-                    <property name="spacing">12</property>
-                    <child>
-                      <object class="GtkLabel" id="download_folder_label">
-                        <property name="ellipsize">start</property>
-                        <property name="max-width-chars">16</property>
-                        <property name="valign">center</property>
-                        <style>
-                          <class name="dim-label"/>
-                        </style>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImage">
-                        <property name="icon-name">folder-symbolic</property>
-                        <property name="valign">center</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-          </object>
-        </child>
-        <child>
           <object class="AdwPreferencesGroup" id="plugin_group">
             <property name="title" translatable="yes">Plugins</property>
             <child>

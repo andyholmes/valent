@@ -68,6 +68,7 @@ valent_photo_plugin_handle_photo (ValentPhotoPlugin *self,
   g_autoptr (ValentTransfer) transfer = NULL;
   g_autoptr (GCancellable) cancellable = NULL;
   g_autoptr (GFile) file = NULL;
+  g_autofree char *directory = NULL;
   ValentDevice *device;
   const char *filename;
 
@@ -89,7 +90,8 @@ valent_photo_plugin_handle_photo (ValentPhotoPlugin *self,
 
   device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
   cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
-  file = valent_device_new_download_file (device, filename, TRUE);
+  directory = valent_data_get_directory (G_USER_DIRECTORY_PICTURES);
+  file = valent_data_get_file (directory, filename, TRUE);
 
   /* Create a new transfer */
   transfer = valent_device_transfer_new_for_file (device, packet, file);

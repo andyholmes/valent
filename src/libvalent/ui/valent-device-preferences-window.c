@@ -21,17 +21,11 @@ struct _ValentDevicePreferencesWindow
   AdwPreferencesWindow  parent_instance;
 
   ValentDevice         *device;
-  GSettings            *settings;
 
   /* Template widgets */
   AdwPreferencesPage   *main_page;
-
-  AdwPreferencesGroup  *general_group;
-  GtkLabel             *download_folder_label;
-
   AdwPreferencesGroup  *plugin_group;
   GtkListBox           *plugin_list;
-
   AdwPreferencesGroup  *unpair_group;
 
   GHashTable           *pages;
@@ -178,48 +172,6 @@ on_plugin_removed (ValentDevice                  *device,
 }
 
 /*
- * Download Folder
- */
-static gboolean
-on_download_folder_changed (GValue   *value,
-                            GVariant *variant,
-                            gpointer  user_data)
-{
-  const char *label;
-  g_autofree char *basename = NULL;
-  g_autofree char *result = NULL;
-
-  label = g_variant_get_string (variant, NULL);
-  basename = g_path_get_basename (label);
-  result = g_strdup_printf ("…/%s", basename);
-
-  g_value_set_string (value, result);
-
-  return TRUE;
-}
-
-static void
-on_download_folder_response (GtkNativeDialog               *dialog,
-                             int                            response_id,
-                             ValentDevicePreferencesWindow *self)
-{
-  g_autoptr (GFile) file = NULL;
-
-  g_assert (VALENT_IS_DEVICE_PREFERENCES_WINDOW (self));
-
-  if (response_id == GTK_RESPONSE_ACCEPT)
-    {
-      const char *path;
-
-      file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
-      path = g_file_peek_path (file);
-      g_settings_set_string (self->settings, "download-folder", path);
-    }
-
-  gtk_native_dialog_destroy (dialog);
-}
-
-/*
  * GActions
  */
 static void
@@ -250,45 +202,6 @@ previous_action (GtkWidget  *widget,
     adw_preferences_window_set_visible_page_name (window, "main");
 }
 
-static void
-select_download_folder_action (GtkWidget  *widget,
-                               const char *action_name,
-                               GVariant   *parameter)
-{
-  ValentDevicePreferencesWindow *self = VALENT_DEVICE_PREFERENCES_WINDOW (widget);
-  GtkNativeDialog *dialog;
-  g_autofree char *path = NULL;
-
-  g_assert (VALENT_IS_DEVICE_PREFERENCES_WINDOW (self));
-
-  dialog = g_object_new (GTK_TYPE_FILE_CHOOSER_NATIVE,
-                         "action",        GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
-                         "title",         _("Select download folder"),
-                         "accept-label",  _("Open"),
-                         "cancel-label",  _("Cancel"),
-                         "modal",         TRUE,
-                         "transient-for", self,
-                         NULL);
-
-  path = g_settings_get_string (self->settings, "download-folder");
-
-  if (strlen (path) > 0)
-    {
-      g_autoptr (GFile) file = NULL;
-
-      file = g_file_new_for_path (path);
-      gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog),
-                                           file, NULL);
-    }
-
-  g_signal_connect (dialog,
-                    "response",
-                    G_CALLBACK (on_download_folder_response),
-                    self);
-
-  gtk_native_dialog_show (dialog);
-}
-
 /*
  * GObject
  */
@@ -297,7 +210,6 @@ valent_device_preferences_window_constructed (GObject *object)
 {
   ValentDevicePreferencesWindow *self = VALENT_DEVICE_PREFERENCES_WINDOW (object);
   g_autoptr (GPtrArray) plugins = NULL;
-  g_autofree char *path = NULL;
 
   /* Modify the dialog */
   if (!valent_preferences_window_modify (ADW_PREFERENCES_WINDOW (self)))
@@ -314,18 +226,6 @@ valent_device_preferences_window_constructed (GObject *object)
   gtk_widget_insert_action_group (GTK_WIDGET (self),
                                   "device",
                                   G_ACTION_GROUP (self->device));
-
-  /* Device Settings*/
-  path = g_strdup_printf ("/ca/andyholmes/valent/device/%s/",
-                          valent_device_get_id (self->device));
-  self->settings = g_settings_new_with_path ("ca.andyholmes.Valent.Device", path);
-
-  g_settings_bind_with_mapping (self->settings,              "download-folder",
-                                self->download_folder_label, "label",
-                                G_SETTINGS_BIND_GET,
-                                on_download_folder_changed,
-                                NULL,
-                                NULL, NULL);
 
   /* Device Plugins */
   plugins = valent_device_get_plugins (self->device);
@@ -352,7 +252,6 @@ valent_device_preferences_window_dispose (GObject *object)
 
   g_signal_handlers_disconnect_by_data (self->device, self);
   g_clear_object (&self->device);
-  g_clear_object (&self->settings);
 
   G_OBJECT_CLASS (valent_device_preferences_window_parent_class)->dispose (object);
 }
@@ -420,8 +319,6 @@ valent_device_preferences_window_class_init (ValentDevicePreferencesWindowClass 
 
   /* Template */
   gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-device-preferences-window.ui");
-  gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesWindow, general_group);
-  gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesWindow, download_folder_label);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesWindow, main_page);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesWindow, plugin_group);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesWindow, plugin_list);
@@ -429,7 +326,6 @@ valent_device_preferences_window_class_init (ValentDevicePreferencesWindowClass 
 
   gtk_widget_class_install_action (widget_class, "win.page", "s", page_action);
   gtk_widget_class_install_action (widget_class, "win.previous", NULL, previous_action);
-  gtk_widget_class_install_action (widget_class, "win.select-download-folder", NULL, select_download_folder_action);
 
   /**
    * ValentDevicePreferencesWindow:device:

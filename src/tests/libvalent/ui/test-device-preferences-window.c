@@ -75,34 +75,6 @@ test_device_preference_window_navigation (ValentTestFixture *fixture,
   g_assert_null (window);
 }
 
-static void
-test_device_preference_window_select_download_folder (ValentTestFixture *fixture,
-                                                      gconstpointer      user_data)
-{
-  GtkWindow *window;
-
-  g_test_skip ("Settings schema 'org.gtk.gtk4.Settings.FileChooser' is not installed");
-  return;
-
-  window = g_object_new (VALENT_TYPE_DEVICE_PREFERENCES_WINDOW,
-                         "device", fixture->device,
-                         NULL);
-  g_assert_true (VALENT_IS_DEVICE_PREFERENCES_WINDOW (window));
-
-  gtk_window_present (window);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
-  /* Rename Dialog */
-  gtk_widget_activate_action (GTK_WIDGET (window), "win.select-download-folder", NULL);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
-  g_clear_pointer (&window, gtk_window_destroy);
-}
-
 int
 main (int   argc,
       char *argv[])
@@ -121,12 +93,6 @@ main (int   argc,
               ValentTestFixture, path,
               valent_test_fixture_init,
               test_device_preference_window_navigation,
-              valent_test_fixture_clear);
-
-  g_test_add ("/libvalent/ui/device-preferences-window/select-download-folder",
-              ValentTestFixture, path,
-              valent_test_fixture_init,
-              test_device_preference_window_select_download_folder,
               valent_test_fixture_clear);
 
   return g_test_run ();

@@ -35,9 +35,9 @@ valent_mock_device_plugin_handle_echo (ValentMockDevicePlugin *self,
 }
 
 static void
-transfer_cb (ValentTransfer *transfer,
-             GAsyncResult   *result,
-             gpointer        user_data)
+valent_transfer_execute_cb (ValentTransfer *transfer,
+                            GAsyncResult   *result,
+                            gpointer        user_data)
 {
   g_autoptr (ValentDevice) device = NULL;
   g_autoptr (JsonNode) packet = NULL;
@@ -62,9 +62,11 @@ static void
 valent_mock_device_plugin_handle_transfer (ValentMockDevicePlugin *self,
                                            JsonNode               *packet)
 {
-  ValentDevice *device = NULL;
   g_autoptr (ValentTransfer) transfer = NULL;
+  g_autoptr (GCancellable) cancellable = NULL;
   g_autoptr (GFile) file = NULL;
+  g_autofree char *directory = NULL;
+  ValentDevice *device;
   const char *filename;
 
   g_assert (VALENT_IS_MOCK_DEVICE_PLUGIN (self));
@@ -72,7 +74,7 @@ valent_mock_device_plugin_handle_transfer (ValentMockDevicePlugin *self,
 
   if (!valent_packet_has_payload (packet))
     {
-      g_warning ("%s: missing payload info", G_STRFUNC);
+      g_warning ("%s(): missing payload info", G_STRFUNC);
       return;
     }
 
@@ -83,14 +85,17 @@ valent_mock_device_plugin_handle_transfer (ValentMockDevicePlugin *self,
       return;
     }
 
-  /* Create a new transfer */
   device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
-  file = valent_device_new_download_file (device, filename, TRUE);
+  cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
+  directory = valent_data_get_directory (G_USER_DIRECTORY_DOWNLOAD);
+  file = valent_data_get_file (directory, filename, TRUE);
+
+  /* Create a new transfer */
   transfer = valent_device_transfer_new_for_file (device, packet, file);
   valent_transfer_execute (transfer,
-                           NULL,
-                           (GAsyncReadyCallback)transfer_cb,
-                           g_object_ref (self));
+                           cancellable,
+                           (GAsyncReadyCallback)valent_transfer_execute_cb,
+                           self);
 }
 
 /*
