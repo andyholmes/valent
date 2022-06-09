@@ -44,6 +44,12 @@ enum {
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 
+static inline void
+string_slist_free (gpointer slist)
+{
+  g_slist_free_full (slist, g_free);
+}
+
 /*
  * ValentContactStore
  */
@@ -110,45 +116,51 @@ valent_contact_cache_remove_task (GTask        *task,
                                   GCancellable *cancellable)
 {
   ValentContactCache *self = VALENT_CONTACT_CACHE (source_object);
-  const char *uid = task_data;
+  ValentContactStore *store = VALENT_CONTACT_STORE (source_object);
+  GSList *uids = task_data;
   GError *error = NULL;
 
   if (g_task_return_error_if_cancelled (task))
     return;
 
   valent_object_lock (VALENT_OBJECT (self));
-  e_book_cache_remove_contact (self->cache,
-                               uid,
-                               0,
-                               E_CACHE_IS_OFFLINE,
-                               cancellable,
-                               &error);
+  e_book_cache_remove_contacts (self->cache,
+                                uids,
+                                0,
+                                E_CACHE_IS_OFFLINE,
+                                cancellable,
+                                &error);
   valent_object_unlock (VALENT_OBJECT (self));
 
   if (error != NULL)
     return g_task_return_error (task, error);
 
-  valent_contact_store_emit_contact_removed (VALENT_CONTACT_STORE (self), uid);
+  for (const GSList *iter = uids; iter; iter = iter->next)
+    valent_contact_store_emit_contact_removed (store, (char *)iter->data);
 
   g_task_return_boolean (task, TRUE);
 }
 
 static void
-valent_contact_cache_remove_contact (ValentContactStore  *store,
-                                     const char          *uid,
-                                     GCancellable        *cancellable,
-                                     GAsyncReadyCallback  callback,
-                                     gpointer             user_data)
+valent_contact_cache_remove_contacts (ValentContactStore  *store,
+                                      GSList              *uids,
+                                      GCancellable        *cancellable,
+                                      GAsyncReadyCallback  callback,
+                                      gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
+  GSList *removals = NULL;
 
   g_assert (VALENT_IS_CONTACT_STORE (store));
-  g_assert (uid != NULL);
+  g_assert (uids != NULL);
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
+  for (const GSList *iter = uids; iter; iter = iter->next)
+    removals = g_slist_append (removals, g_strdup (iter->data));
+
   task = g_task_new (store, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_contact_cache_remove_contact);
-  g_task_set_task_data (task, g_strdup (uid), g_free);
+  g_task_set_source_tag (task, valent_contact_cache_remove_contacts);
+  g_task_set_task_data (task, removals, string_slist_free);
   g_task_run_in_thread (task, valent_contact_cache_remove_task);
 }
 
@@ -357,7 +369,7 @@ valent_contact_cache_class_init (ValentContactCacheClass *klass)
   object_class->set_property = valent_contact_cache_set_property;
 
   store_class->add_contacts = valent_contact_cache_add_contacts;
-  store_class->remove_contact = valent_contact_cache_remove_contact;
+  store_class->remove_contacts = valent_contact_cache_remove_contacts;
   store_class->query = valent_contact_cache_query;
   store_class->get_contact = valent_contact_cache_get_contact;
 

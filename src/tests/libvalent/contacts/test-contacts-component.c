@@ -75,7 +75,7 @@ add_contact_cb (ValentContactStore       *store,
 {
   GError *error = NULL;
 
-  valent_contact_store_add_finish (store, result, &error);
+  valent_contact_store_add_contacts_finish (store, result, &error);
   g_assert_no_error (error);
   g_main_loop_quit (fixture->loop);
 }
@@ -111,7 +111,7 @@ remove_contact_cb (ValentContactStore       *store,
 {
   GError *error = NULL;
 
-  valent_contact_store_remove_finish (store, result, &error);
+  valent_contact_store_remove_contacts_finish (store, result, &error);
   g_assert_no_error (error);
   g_main_loop_quit (fixture->loop);
 }
