@@ -802,7 +802,6 @@ valent_device_constructed (GObject *object)
 {
   ValentDevice *self = VALENT_DEVICE (object);
   g_autofree char *path = NULL;
-  g_autofree char *download_folder = NULL;
   const GList *plugins = NULL;
 
   /* We must at least have a device ID */
@@ -816,15 +815,6 @@ valent_device_constructed (GObject *object)
   path = g_strdup_printf ("/ca/andyholmes/valent/device/%s/", self->id);
   self->settings = g_settings_new_with_path ("ca.andyholmes.Valent.Device", path);
   self->paired = g_settings_get_boolean (self->settings, "paired");
-
-  download_folder = g_settings_get_string (self->settings, "download-folder");
-
-  if (strlen (download_folder) == 0)
-    {
-      g_clear_pointer (&download_folder, g_free);
-      download_folder = valent_data_get_directory (G_USER_DIRECTORY_DOWNLOAD);
-      g_settings_set_string (self->settings, "download-folder", download_folder);
-    }
 
   /* Load plugins and watch for changes */
   plugins = peas_engine_get_plugin_list (self->engine);
@@ -1902,51 +1892,6 @@ valent_device_handle_packet (ValentDevice *device,
 
   else
     g_debug ("%s: Unsupported packet \"%s\"", device->name, type);
-}
-
-/**
- * valent_device_new_download_file:
- * @device: a #ValentDevice
- * @filename: (type filename): a filename
- * @unique: whether to ensure a unique file
- *
- * Get a new [iface@Gio.File] for in the download directory of the device.
- *
- * If @unique is %TRUE, the returned file is guaranteed not to be an existing
- * filename by appending `(#)`.
- *
- * Returns: (transfer full) (nullable): a #GFile
- *
- * Since: 1.0
- */
-GFile *
-valent_device_new_download_file (ValentDevice *device,
-                                 const char   *filename,
-                                 gboolean      unique)
-{
-  g_autofree char *dirname = NULL;
-
-  g_return_val_if_fail (VALENT_IS_DEVICE (device), NULL);
-  g_return_val_if_fail (filename != NULL, NULL);
-
-  dirname = g_settings_get_string (device->settings, "download-folder");
-
-  if (strlen (dirname) == 0)
-    {
-      g_clear_pointer (&dirname, g_free);
-      dirname = valent_data_get_directory (G_USER_DIRECTORY_DOWNLOAD);
-    }
-  else if (g_mkdir_with_parents (dirname, 0700) == -1)
-    {
-      int error = errno;
-
-      g_critical ("%s(): creating \"%s\": %s",
-                  G_STRFUNC,
-                  dirname,
-                  g_strerror (error));
-    }
-
-  return valent_data_get_file (dirname, filename, unique);
 }
 
 /**

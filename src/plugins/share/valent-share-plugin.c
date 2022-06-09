@@ -20,6 +20,8 @@ struct _ValentSharePlugin
 {
   ValentDevicePlugin  parent_instance;
 
+  GSettings          *settings;
+
   GHashTable         *transfers;
   ValentTransfer     *upload;
   ValentTransfer     *download;
@@ -27,6 +29,36 @@ struct _ValentSharePlugin
 
 G_DEFINE_TYPE (ValentSharePlugin, valent_share_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
+
+static GFile *
+valent_share_plugin_create_download_file (ValentSharePlugin *self,
+                                          const char        *filename,
+                                          gboolean           unique)
+{
+  g_autofree char *dirname = NULL;
+
+  g_return_val_if_fail (VALENT_IS_SHARE_PLUGIN (self), NULL);
+  g_return_val_if_fail (filename != NULL, NULL);
+
+  dirname = g_settings_get_string (self->settings, "download-folder");
+
+  if (strlen (dirname) == 0)
+    {
+      g_clear_pointer (&dirname, g_free);
+      dirname = valent_data_get_directory (G_USER_DIRECTORY_DOWNLOAD);
+    }
+  else if (g_mkdir_with_parents (dirname, 0700) == -1)
+    {
+      int error = errno;
+
+      g_critical ("%s(): creating \"%s\": %s",
+                  G_STRFUNC,
+                  dirname,
+                  g_strerror (error));
+    }
+
+  return valent_data_get_file (dirname, filename, unique);
+}
 
 /*
  * File Downloads
@@ -916,7 +948,7 @@ valent_share_plugin_handle_file (ValentSharePlugin *self,
     }
 
   device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
-  file = valent_device_new_download_file (device, filename, TRUE);
+  file = valent_share_plugin_create_download_file (self, filename, TRUE);
 
   /* If the packet includes a request to open the file when the transfer
    * completes, use a separate routine for success/failure. */
@@ -1060,6 +1092,16 @@ valent_share_plugin_handle_url (ValentSharePlugin *self,
 static void
 valent_share_plugin_enable (ValentDevicePlugin *plugin)
 {
+  ValentSharePlugin *self = VALENT_SHARE_PLUGIN (plugin);
+  ValentDevice *device;
+  const char *device_id;
+
+  g_assert (VALENT_IS_SHARE_PLUGIN (self));
+
+  device = valent_device_plugin_get_device (plugin);
+  device_id = valent_device_get_id (device);
+  self->settings = valent_device_plugin_new_settings (device_id, "share");
+
   g_action_map_add_action_entries (G_ACTION_MAP (plugin),
                                    actions,
                                    G_N_ELEMENTS (actions),
@@ -1172,6 +1214,7 @@ valent_share_plugin_finalize (GObject *object)
 {
   ValentSharePlugin *self = VALENT_SHARE_PLUGIN (object);
 
+  g_clear_object (&self->settings);
   g_clear_pointer (&self->transfers, g_hash_table_unref);
 
   G_OBJECT_CLASS (valent_share_plugin_parent_class)->finalize (object);

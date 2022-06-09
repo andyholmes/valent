@@ -10,6 +10,7 @@ plugin_share_test_deps = [
 plugin_runcommand_tests = [
   'test-share-download',
   'test-share-plugin',
+  'test-share-preferences',
   'test-share-upload',
 ]
 

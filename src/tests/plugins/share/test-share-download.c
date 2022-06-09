@@ -13,12 +13,18 @@ static void
 test_share_download_single (ValentTestFixture *fixture,
                             gconstpointer      user_data)
 {
+  g_autoptr (GSettings) settings = NULL;
   g_autoptr (GFile) file = NULL;
   g_autoptr (GFile) dest = NULL;
+  g_autofree char *dest_dir = NULL;
   JsonNode *packet = NULL;
   GError *error = NULL;
 
   valent_test_fixture_connect (fixture, TRUE);
+
+  /* Ensure the download directory is at it's default */
+  settings = valent_device_plugin_new_settings ("test-device", "share");
+  g_settings_reset (settings, "download-folder");
 
   file = g_file_new_for_uri (test_file);
   packet = valent_test_fixture_lookup_packet (fixture, "share-file");
@@ -29,7 +35,8 @@ test_share_download_single (ValentTestFixture *fixture,
   /* Ensure the download task has an opportunity to finish completely */
   valent_test_fixture_wait (fixture, 1);
 
-  dest = valent_device_new_download_file (fixture->device, "image.png", FALSE);
+  dest_dir = valent_data_get_directory (G_USER_DIRECTORY_DOWNLOAD);
+  dest = valent_data_get_file (dest_dir, "image.png", FALSE);
   g_assert_true (g_file_query_exists (dest, NULL));
 }
 
@@ -37,12 +44,18 @@ static void
 test_share_download_multiple (ValentTestFixture *fixture,
                               gconstpointer      user_data)
 {
+  g_autoptr (GSettings) settings = NULL;
   g_autoptr (GFile) file = NULL;
   g_autoptr (GFile) dest = NULL;
+  g_autofree char *dest_dir = NULL;
   JsonNode *packet = NULL;
   GError *error = NULL;
 
   valent_test_fixture_connect (fixture, TRUE);
+
+  /* Ensure the download directory is at it's default */
+  settings = valent_device_plugin_new_settings ("test-device", "share");
+  g_settings_reset (settings, "download-folder");
 
   file = g_file_new_for_uri (test_file);
 
@@ -66,15 +79,17 @@ test_share_download_multiple (ValentTestFixture *fixture,
   g_assert_no_error (error);
 
   /* Check the received files */
-  dest = valent_device_new_download_file (fixture->device, "image.png", FALSE);
+  dest_dir = valent_data_get_directory (G_USER_DIRECTORY_DOWNLOAD);
+
+  dest = valent_data_get_file (dest_dir, "image.png", FALSE);
   g_assert_true (g_file_query_exists (dest, NULL));
   g_clear_object (&dest);
 
-  dest = valent_device_new_download_file (fixture->device, "image.png (1)", FALSE);
+  dest = valent_data_get_file (dest_dir, "image.png (1)", FALSE);
   g_assert_true (g_file_query_exists (dest, NULL));
   g_clear_object (&dest);
 
-  dest = valent_device_new_download_file (fixture->device, "image.png (2)", FALSE);
+  dest = valent_data_get_file (dest_dir, "image.png (2)", FALSE);
   g_assert_true (g_file_query_exists (dest, NULL));
   g_clear_object (&dest);
 }

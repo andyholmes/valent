@@ -122,8 +122,6 @@ static void
 test_device_new (void)
 {
   ValentDevice *device = NULL;
-  g_autoptr (GFile) file = NULL;
-  g_autofree char *basename = NULL;
   g_autofree char *icon_name = NULL;
   g_autofree char *id = NULL;
   g_autofree char *name = NULL;
@@ -163,13 +161,6 @@ test_device_new (void)
   plugins = valent_device_get_plugins (device);
   g_assert_cmpuint (plugins->len, ==, 1);
   g_ptr_array_unref (plugins);
-
-  /* Download files should be creatable */
-  file = valent_device_new_download_file (device, "test-file", FALSE);
-  g_assert_true (G_IS_FILE (file));
-
-  basename = g_file_get_basename (file);
-  g_assert_cmpstr (basename, ==, "test-file");
 
   v_assert_finalize_object (device);
 }
