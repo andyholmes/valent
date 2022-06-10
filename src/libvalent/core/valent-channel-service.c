@@ -191,37 +191,39 @@ get_chassis_type (void)
 
 /**
  * collect_capabilities:
- * @info: a #GList
- * @field: the field name
+ * @info: a #PeasPluginInfo
+ * @incoming: a #GHashTable
+ * @outgoing: a #GHashTable
  *
- *
+ * Collect the capabilities from @info and add them to @incoming and @outgoing,
+ * using g_hash_table_add() to coalesce duplicates.
  */
-static inline char **
-collect_capabilities (const GList *infos,
-                      const char  *field)
+static inline void
+collect_capabilities (PeasPluginInfo *info,
+                      GHashTable     *incoming,
+                      GHashTable     *outgoing)
 {
-  g_autofree char *tmp = NULL;
-  const char *data;
-  GString *packets = NULL;
+  const char *data = NULL;
 
-  packets = g_string_new ("");
-
-  for (const GList *iter = infos; iter; iter = iter->next)
+  if ((data = peas_plugin_info_get_external_data (info, "IncomingCapabilities")) != NULL)
     {
-      data = peas_plugin_info_get_external_data (iter->data, field);
+      g_autofree char **capabilities = NULL;
 
-      if (data == NULL)
-        continue;
+      capabilities = g_strsplit (data, ";", -1);
 
-      if G_UNLIKELY (packets->len == 0)
-        packets = g_string_append (packets, data);
-      else
-        g_string_append_printf (packets, ";%s", data);
+      for (unsigned int i = 0; capabilities[i] != NULL; i++)
+        g_hash_table_add (incoming, g_steal_pointer (&capabilities[i]));
     }
 
-  tmp = g_string_free (packets, FALSE);
+  if ((data = peas_plugin_info_get_external_data (info, "OutgoingCapabilities")) != NULL)
+    {
+      g_autofree char **capabilities = NULL;
 
-  return g_strsplit (tmp, ";", -1);
+      capabilities = g_strsplit (data, ";", -1);
+
+      for (unsigned int i = 0; capabilities[i] != NULL; i++)
+        g_hash_table_add (incoming, g_steal_pointer (&capabilities[i]));
+    }
 }
 
 /*
@@ -260,21 +262,24 @@ valent_channel_service_real_build_identity (ValentChannelService *service)
   ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (service);
   PeasEngine *engine;
   const GList *plugins = NULL;
-  g_autoptr (GList) supported = NULL;
   g_autoptr (JsonBuilder) builder = NULL;
-  g_auto (GStrv) incoming = NULL;
-  g_auto (GStrv) outgoing = NULL;
+  g_autoptr (GHashTable) incoming = NULL;
+  g_autoptr (GHashTable) outgoing = NULL;
+  GHashTableIter iiter, oiter;
+  const char *capability = NULL;
 
   g_assert (VALENT_IS_CHANNEL_SERVICE (service));
 
-  /* Filter plugins */
+  /* Filter the supported plugins and collect their capabilities */
   engine = valent_get_engine ();
   plugins = peas_engine_get_plugin_list (engine);
+  incoming = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+  outgoing = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
 
   for (const GList *iter = plugins; iter; iter = iter->next)
     {
       if (valent_channel_service_supports_plugin (service, iter->data))
-        supported = g_list_prepend (supported, iter->data);
+        collect_capabilities (iter->data, incoming, outgoing);
     }
 
   /* Build the identity packet */
@@ -305,10 +310,11 @@ valent_channel_service_real_build_identity (ValentChannelService *service)
     json_builder_set_member_name (builder, "incomingCapabilities");
     json_builder_begin_array (builder);
 
-    incoming = collect_capabilities (supported, "X-IncomingCapabilities");
+    g_hash_table_iter_init (&iiter, incoming);
 
-    for (unsigned int i = 0; incoming[i]; i++)
-      json_builder_add_string_value (builder, incoming[i]);
+    while (g_hash_table_iter_next (&iiter, (void **)&capability, NULL))
+      json_builder_add_string_value (builder, capability);
+    capability = NULL;
 
     json_builder_end_array (builder);
 
@@ -316,10 +322,11 @@ valent_channel_service_real_build_identity (ValentChannelService *service)
     json_builder_set_member_name (builder, "outgoingCapabilities");
     json_builder_begin_array (builder);
 
-    outgoing = collect_capabilities (supported, "X-OutgoingCapabilities");
+    g_hash_table_iter_init (&oiter, outgoing);
 
-    for (unsigned int i = 0; outgoing[i]; i++)
-      json_builder_add_string_value (builder, outgoing[i]);
+    while (g_hash_table_iter_next (&oiter, (void **)&capability, NULL))
+      json_builder_add_string_value (builder, capability);
+    capability = NULL;
 
     json_builder_end_array (builder);
 
