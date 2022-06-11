@@ -80,7 +80,7 @@ valent_test_fixture_init (ValentTestFixture *fixture,
 
   /* Init device */
   identity = valent_test_fixture_lookup_packet (fixture, "identity");
-  fixture->device = valent_device_new (identity);
+  fixture->device = valent_device_new_full (identity, NULL);
   valent_device_set_paired (fixture->device, TRUE);
 
   /* Init channels */

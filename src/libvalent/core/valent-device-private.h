@@ -8,14 +8,15 @@
 
 #include "valent-device.h"
 
-
 G_BEGIN_DECLS
 
-void     valent_device_handle_packet   (ValentDevice   *device,
-                                        JsonNode       *packet);
-void     valent_device_set_channel     (ValentDevice   *device,
-                                        ValentChannel  *channel);
-void     valent_device_set_paired      (ValentDevice   *device,
-                                        gboolean        paired);
+ValentDevice * valent_device_new_full      (JsonNode      *identity,
+                                            ValentData    *data);
+void           valent_device_handle_packet (ValentDevice  *device,
+                                            JsonNode      *packet);
+void           valent_device_set_channel   (ValentDevice  *device,
+                                            ValentChannel *channel);
+void           valent_device_set_paired    (ValentDevice  *device,
+                                            gboolean       paired);
 
 G_END_DECLS

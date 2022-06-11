@@ -37,7 +37,7 @@ device_fixture_set_up (DeviceFixture *fixture,
 
   /* Init device */
   identity = get_packet (fixture, "identity");
-  fixture->device = valent_device_new (identity);
+  fixture->device = valent_device_new_full (identity, NULL);
 
   /* Init Channels */
   channels = valent_test_channels (identity, identity);
@@ -132,9 +132,7 @@ test_device_new (void)
   GMenuModel *menu;
   GPtrArray *plugins;
 
-  device = g_object_new (VALENT_TYPE_DEVICE,
-                         "id", "test-device",
-                         NULL);
+  device = valent_device_new ("test-device");
   g_assert_true (VALENT_IS_DEVICE (device));
 
   g_object_get (device,
