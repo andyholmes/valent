@@ -745,9 +745,7 @@ valent_sms_conversation_class_init (ValentSmsConversationClass *klass)
    * The #ValentContactStore providing #EContact objects for the conversation.
    */
   properties [PROP_CONTACT_STORE] =
-    g_param_spec_object ("contact-store",
-                         "Contact Store",
-                         "Contact store providing contact information",
+    g_param_spec_object ("contact-store", NULL, NULL,
                          VALENT_TYPE_CONTACT_STORE,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT |
@@ -761,9 +759,7 @@ valent_sms_conversation_class_init (ValentSmsConversationClass *klass)
    * conversation.
    */
   properties [PROP_MESSAGE_STORE] =
-    g_param_spec_object ("message-store",
-                         "Message Store",
-                         "The SMS message store for this conversation.",
+    g_param_spec_object ("message-store", NULL, NULL,
                          VALENT_TYPE_SMS_STORE,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -776,9 +772,7 @@ valent_sms_conversation_class_init (ValentSmsConversationClass *klass)
    * The thread ID of the conversation.
    */
   properties [PROP_THREAD_ID] =
-    g_param_spec_int64 ("thread-id",
-                        "Thread ID",
-                        "The thread ID of the conversation",
+    g_param_spec_int64 ("thread-id", NULL, NULL,
                         G_MININT64, G_MAXINT64,
                         0,
                         (G_PARAM_READWRITE |

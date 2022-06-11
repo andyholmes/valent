@@ -429,9 +429,7 @@ valent_channel_class_init (ValentChannelClass *klass)
    * Since: 1.0
    */
   properties [PROP_BASE_STREAM] =
-    g_param_spec_object ("base-stream",
-                         "Base Stream",
-                         "Base Stream",
+    g_param_spec_object ("base-stream", NULL, NULL,
                          G_TYPE_IO_STREAM,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -452,9 +450,7 @@ valent_channel_class_init (ValentChannelClass *klass)
    * Since: 1.0
    */
   properties [PROP_IDENTITY] =
-    g_param_spec_boxed ("identity",
-                        "Identity",
-                        "The local device identity",
+    g_param_spec_boxed ("identity", NULL, NULL,
                         JSON_TYPE_NODE,
                         (G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
@@ -474,9 +470,7 @@ valent_channel_class_init (ValentChannelClass *klass)
    * Since: 1.0
    */
   properties [PROP_PEER_IDENTITY] =
-    g_param_spec_boxed ("peer-identity",
-                        "Peer Identity",
-                        "The peer identity packet",
+    g_param_spec_boxed ("peer-identity", NULL, NULL,
                         JSON_TYPE_NODE,
                         (G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |

@@ -156,9 +156,7 @@ valent_mux_output_stream_class_init (ValentMuxOutputStreamClass *klass)
    * The multiplexer supplying data for this stream.
    */
   properties [PROP_MUXER] =
-    g_param_spec_object ("muxer",
-                         "Muxer",
-                         "Multiplexer that muxes and demuxes this stream",
+    g_param_spec_object ("muxer", NULL, NULL,
                          VALENT_TYPE_MUX_CONNECTION,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -171,9 +169,7 @@ valent_mux_output_stream_class_init (ValentMuxOutputStreamClass *klass)
    * UUID of the channel that owns this stream.
    */
   properties [PROP_UUID] =
-    g_param_spec_string ("uuid",
-                         "UUID",
-                         "UUID of the channel owning the stream",
+    g_param_spec_string ("uuid", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |

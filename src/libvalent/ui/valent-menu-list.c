@@ -345,9 +345,7 @@ valent_menu_list_class_init (ValentMenuListClass *klass)
    * The "model" property holds the #GMenuModel used to build this list.
    */
   properties [PROP_MENU_MODEL] =
-    g_param_spec_object ("menu-model",
-                         "Menu Model",
-                         "The menu model used to build the list",
+    g_param_spec_object ("menu-model", NULL, NULL,
                          G_TYPE_MENU_MODEL,
                          (G_PARAM_READWRITE |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -359,9 +357,7 @@ valent_menu_list_class_init (ValentMenuListClass *klass)
    * The parent #ValentMenuList this is a submenu for.
    */
   properties [PROP_SUBMENU_OF] =
-    g_param_spec_object ("submenu-of",
-                         "Submenu Of",
-                         "The parent menu list",
+    g_param_spec_object ("submenu-of", NULL, NULL,
                          VALENT_TYPE_MENU_LIST,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |

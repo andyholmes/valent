@@ -185,9 +185,7 @@ valent_presenter_remote_class_init (ValentPresenterRemoteClass *klass)
   gtk_widget_class_install_action (widget_class, "remote.open", NULL, presenter_open_action);
 
   properties [PROP_DEVICE] =
-    g_param_spec_object ("device",
-                         "Device",
-                         "The device this remote controls",
+    g_param_spec_object ("device", NULL, NULL,
                          VALENT_TYPE_DEVICE,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |

@@ -215,9 +215,7 @@ valent_object_class_init (ValentObjectClass *klass)
    * Since: 1.0
    */
   properties [PROP_CANCELLABLE] =
-    g_param_spec_object ("cancellable",
-                         "Cancellable",
-                         "A cancellable for the object",
+    g_param_spec_object ("cancellable", NULL, NULL,
                          G_TYPE_CANCELLABLE,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |

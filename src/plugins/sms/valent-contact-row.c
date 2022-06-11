@@ -124,9 +124,7 @@ valent_contact_row_class_init (ValentContactRowClass *klass)
    * The #EContact for this row.
    */
   properties [PROP_CONTACT] =
-    g_param_spec_object ("contact",
-                         "Contact",
-                         "The contact this row displays",
+    g_param_spec_object ("contact", NULL, NULL,
                          E_TYPE_CONTACT,
                          (G_PARAM_READWRITE |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -142,9 +140,7 @@ valent_contact_row_class_init (ValentContactRowClass *klass)
    * format.
    */
   properties [PROP_CONTACT_ADDRESS] =
-    g_param_spec_string ("contact-address",
-                         "Contact Address",
-                         "The contact phone number or address",
+    g_param_spec_string ("contact-address", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -157,9 +153,7 @@ valent_contact_row_class_init (ValentContactRowClass *klass)
    * #ValentContactRow:contact.
    */
   properties [PROP_CONTACT_NAME] =
-    g_param_spec_string ("contact-name",
-                         "Contact Name",
-                         "The contact name",
+    g_param_spec_string ("contact-name", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_EXPLICIT_NOTIFY |

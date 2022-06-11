@@ -49,9 +49,7 @@ valent_preferences_page_default_init (ValentPreferencesPageInterface *iface)
    * Since: 1.0
    */
   g_object_interface_install_property (iface,
-                                       g_param_spec_boxed ("plugin-info",
-                                                           "Plugin Info",
-                                                           "The plugin info describing the plugin this page configures",
+                                       g_param_spec_boxed ("plugin-info", NULL, NULL,
                                                            PEAS_TYPE_PLUGIN_INFO,
                                                            (G_PARAM_READWRITE |
                                                             G_PARAM_CONSTRUCT_ONLY |

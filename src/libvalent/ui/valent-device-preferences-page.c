@@ -42,9 +42,7 @@ valent_device_preferences_page_default_init (ValentDevicePreferencesPageInterfac
    * Since: 1.0
    */
   g_object_interface_install_property (iface,
-                                       g_param_spec_string ("device-id",
-                                                            "Device ID",
-                                                            "The ID of the device the plugin is bound to",
+                                       g_param_spec_string ("device-id", NULL, NULL,
                                                             NULL,
                                                             (G_PARAM_READWRITE |
                                                              G_PARAM_CONSTRUCT_ONLY |
@@ -59,9 +57,7 @@ valent_device_preferences_page_default_init (ValentDevicePreferencesPageInterfac
    * Since: 1.0
    */
   g_object_interface_install_property (iface,
-                                       g_param_spec_boxed ("plugin-info",
-                                                           "Plugin Info",
-                                                           "The plugin info describing the plugin this page configures",
+                                       g_param_spec_boxed ("plugin-info", NULL, NULL,
                                                            PEAS_TYPE_PLUGIN_INFO,
                                                            (G_PARAM_READWRITE |
                                                             G_PARAM_CONSTRUCT_ONLY |

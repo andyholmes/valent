@@ -333,9 +333,7 @@ valent_device_preferences_window_class_init (ValentDevicePreferencesWindowClass 
    * The device this panel controls and represents.
    */
   properties [PROP_DEVICE] =
-    g_param_spec_object ("device",
-                         "device",
-                         "The device for this settings widget",
+    g_param_spec_object ("device", NULL, NULL,
                          VALENT_TYPE_DEVICE,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |

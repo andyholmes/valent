@@ -456,9 +456,7 @@ valent_device_plugin_class_init (ValentDevicePluginClass *klass)
    * Since: 1.0
    */
   properties [PROP_DEVICE] =
-    g_param_spec_object ("device",
-                         "Device",
-                         "The device this plugin is bound to",
+    g_param_spec_object ("device", NULL, NULL,
                          VALENT_TYPE_DEVICE,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -473,9 +471,7 @@ valent_device_plugin_class_init (ValentDevicePluginClass *klass)
    * Since: 1.0
    */
   properties [PROP_PLUGIN_INFO] =
-    g_param_spec_boxed ("plugin-info",
-                        "Plugin Info",
-                        "The plugin info describing this plugin",
+    g_param_spec_boxed ("plugin-info", NULL, NULL,
                         PEAS_TYPE_PLUGIN_INFO,
                         (G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |

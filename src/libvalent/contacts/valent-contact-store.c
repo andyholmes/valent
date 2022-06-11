@@ -284,9 +284,7 @@ valent_contact_store_class_init (ValentContactStoreClass *klass)
    * Since: 1.0
    */
   properties [PROP_NAME] =
-    g_param_spec_string ("name",
-                         "Name",
-                         "The display name",
+    g_param_spec_string ("name", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -300,9 +298,7 @@ valent_contact_store_class_init (ValentContactStoreClass *klass)
    * Since: 1.0
    */
   properties [PROP_SOURCE] =
-    g_param_spec_object ("source",
-                         "Source",
-                         "The store source",
+    g_param_spec_object ("source", NULL, NULL,
                          E_TYPE_SOURCE,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -317,9 +313,7 @@ valent_contact_store_class_init (ValentContactStoreClass *klass)
    * Since: 1.0
    */
   properties [PROP_UID] =
-    g_param_spec_string ("uid",
-                         "UID",
-                         "The unique identifier",
+    g_param_spec_string ("uid", NULL, NULL,
                          NULL,
                          (G_PARAM_READABLE |
                           G_PARAM_EXPLICIT_NOTIFY |

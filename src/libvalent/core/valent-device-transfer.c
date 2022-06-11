@@ -397,9 +397,7 @@ valent_device_transfer_class_init (ValentDeviceTransferClass *klass)
    * Since: 1.0
    */
   properties [PROP_DEVICE] =
-    g_param_spec_object ("device",
-                         "Device",
-                         "The device this transfer is for",
+    g_param_spec_object ("device", NULL, NULL,
                          VALENT_TYPE_DEVICE,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -417,9 +415,7 @@ valent_device_transfer_class_init (ValentDeviceTransferClass *klass)
    * Since: 1.0
    */
   properties [PROP_FILE] =
-    g_param_spec_object ("file",
-                         "File",
-                         "The file to transfer",
+    g_param_spec_object ("file", NULL, NULL,
                          G_TYPE_FILE,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -434,9 +430,7 @@ valent_device_transfer_class_init (ValentDeviceTransferClass *klass)
    * Since: 1.0
    */
   properties [PROP_PACKET] =
-    g_param_spec_boxed ("packet",
-                        "Packet",
-                        "The KDE Connect packet describing the payload",
+    g_param_spec_boxed ("packet", NULL, NULL,
                         JSON_TYPE_NODE,
                         (G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |

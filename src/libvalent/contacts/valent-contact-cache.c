@@ -381,9 +381,7 @@ valent_contact_cache_class_init (ValentContactCacheClass *klass)
    * Since: 1.0
    */
   properties [PROP_PATH] =
-    g_param_spec_string ("path",
-                         "Path",
-                         "The path to the database file",
+    g_param_spec_string ("path", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |

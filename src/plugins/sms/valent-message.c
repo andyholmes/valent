@@ -166,15 +166,13 @@ valent_message_class_init (ValentMessageClass *klass)
    * The #ValentMessageBox of the message.
    */
   properties [PROP_BOX] =
-    g_param_spec_uint ("box",
-                       "Category",
-                        "The ValentMessageBox of the message",
-                        VALENT_MESSAGE_BOX_ALL, VALENT_MESSAGE_BOX_FAILED,
-                        VALENT_MESSAGE_BOX_ALL,
-                        (G_PARAM_READWRITE |
-                         G_PARAM_CONSTRUCT_ONLY |
-                         G_PARAM_EXPLICIT_NOTIFY |
-                         G_PARAM_STATIC_STRINGS));
+    g_param_spec_uint ("box", NULL, NULL,
+                       VALENT_MESSAGE_BOX_ALL, VALENT_MESSAGE_BOX_FAILED,
+                       VALENT_MESSAGE_BOX_ALL,
+                       (G_PARAM_READWRITE |
+                        G_PARAM_CONSTRUCT_ONLY |
+                        G_PARAM_EXPLICIT_NOTIFY |
+                        G_PARAM_STATIC_STRINGS));
 
   /**
    * ValentMessage:date:
@@ -182,9 +180,7 @@ valent_message_class_init (ValentMessageClass *klass)
    * A UNIX epoch timestamp for the message.
    */
   properties [PROP_DATE] =
-    g_param_spec_int64 ("date",
-                        "Date",
-                        "Integer indicating the date",
+    g_param_spec_int64 ("date", NULL, NULL,
                         G_MININT64, G_MAXINT64,
                         0,
                         (G_PARAM_READWRITE |
@@ -198,9 +194,7 @@ valent_message_class_init (ValentMessageClass *klass)
    * The unique ID for this message.
    */
   properties [PROP_ID] =
-    g_param_spec_int64 ("id",
-                        "ID",
-                        "Unique ID for this message",
+    g_param_spec_int64 ("id", NULL, NULL,
                         G_MININT64, G_MAXINT64,
                         0,
                         (G_PARAM_READWRITE |
@@ -214,9 +208,7 @@ valent_message_class_init (ValentMessageClass *klass)
    * Ancillary data for the message, such as media.
    */
   properties [PROP_METADATA] =
-    g_param_spec_variant ("metadata",
-                          "Metadata",
-                          "Ancillary data for the message",
+    g_param_spec_variant ("metadata", NULL, NULL,
                           G_VARIANT_TYPE_VARDICT,
                           NULL,
                           (G_PARAM_READWRITE |
@@ -230,9 +222,7 @@ valent_message_class_init (ValentMessageClass *klass)
    * Whether the message has been read.
    */
   properties [PROP_READ] =
-    g_param_spec_boolean ("read",
-                          "Read",
-                          "Whether the message has been read",
+    g_param_spec_boolean ("read", NULL, NULL,
                           FALSE,
                           (G_PARAM_READWRITE |
                            G_PARAM_EXPLICIT_NOTIFY |
@@ -245,9 +235,7 @@ valent_message_class_init (ValentMessageClass *klass)
    * address form.
    */
   properties [PROP_SENDER] =
-    g_param_spec_string ("sender",
-                         "Sender",
-                         "The sender of the message",
+    g_param_spec_string ("sender", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -260,9 +248,7 @@ valent_message_class_init (ValentMessageClass *klass)
    * The text content of the message.
    */
   properties [PROP_TEXT] =
-    g_param_spec_string ("text",
-                         "Text",
-                         "The text content of the message",
+    g_param_spec_string ("text", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -275,9 +261,7 @@ valent_message_class_init (ValentMessageClass *klass)
    * The thread this message belongs to.
    */
   properties [PROP_THREAD_ID] =
-    g_param_spec_int64 ("thread-id",
-                        "Thread ID",
-                        "The thread this message belongs to",
+    g_param_spec_int64 ("thread-id", NULL, NULL,
                         G_MININT64, G_MAXINT64,
                         0,
                         (G_PARAM_READWRITE |

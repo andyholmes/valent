@@ -511,9 +511,7 @@ valent_channel_service_class_init (ValentChannelServiceClass *klass)
    * Since: 1.0
    */
   properties [PROP_DATA] =
-    g_param_spec_object ("data",
-                         "Data",
-                         "The data context",
+    g_param_spec_object ("data", NULL, NULL,
                          VALENT_TYPE_DATA,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -534,9 +532,7 @@ valent_channel_service_class_init (ValentChannelServiceClass *klass)
    * Since: 1.0
    */
   properties [PROP_ID] =
-    g_param_spec_string ("id",
-                         "ID",
-                         "The local ID",
+    g_param_spec_string ("id", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -557,9 +553,7 @@ valent_channel_service_class_init (ValentChannelServiceClass *klass)
    * Since: 1.0
    */
   properties [PROP_IDENTITY] =
-    g_param_spec_boxed ("identity",
-                        "Identity",
-                        "The local identity packet",
+    g_param_spec_boxed ("identity", NULL, NULL,
                         JSON_TYPE_NODE,
                         (G_PARAM_READABLE |
                          G_PARAM_EXPLICIT_NOTIFY |
@@ -579,9 +573,7 @@ valent_channel_service_class_init (ValentChannelServiceClass *klass)
    * Since: 1.0
    */
   properties [PROP_NAME] =
-    g_param_spec_string ("name",
-                         "Name",
-                         "The display name of the local device",
+    g_param_spec_string ("name", NULL, NULL,
                          "Valent",
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT |
@@ -596,9 +588,7 @@ valent_channel_service_class_init (ValentChannelServiceClass *klass)
    * Since: 1.0
    */
   properties [PROP_PLUGIN_INFO] =
-    g_param_spec_boxed ("plugin-info",
-                        "Plugin Info",
-                        "The plugin info describing this channel service",
+    g_param_spec_boxed ("plugin-info", NULL, NULL,
                         PEAS_TYPE_PLUGIN_INFO,
                         (G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |

@@ -461,9 +461,7 @@ valent_window_class_init (ValentWindowClass *klass)
    * The [class@Valent.DeviceManager] that the window represents.
    */
   properties [PROP_DEVICE_MANAGER] =
-    g_param_spec_object ("device-manager",
-                         "Device Manager",
-                         "The device manager for this window",
+    g_param_spec_object ("device-manager", NULL, NULL,
                          VALENT_TYPE_DEVICE_MANAGER,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |

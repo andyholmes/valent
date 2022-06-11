@@ -359,9 +359,7 @@ valent_lan_channel_class_init (ValentLanChannelClass *klass)
    * The local #GTlsCertificate used by the service.
    */
   properties [PROP_CERTIFICATE] =
-    g_param_spec_object ("certificate",
-                         "Certificate",
-                         "TLS Certificate",
+    g_param_spec_object ("certificate", NULL, NULL,
                          G_TYPE_TLS_CERTIFICATE,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -374,9 +372,7 @@ valent_lan_channel_class_init (ValentLanChannelClass *klass)
    * The remote TCP/IP address for the channel.
    */
   properties [PROP_HOST] =
-    g_param_spec_string ("host",
-                         "Host",
-                         "TCP/IP address",
+    g_param_spec_string ("host", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -390,9 +386,7 @@ valent_lan_channel_class_init (ValentLanChannelClass *klass)
    * the certificate has been accepted.
    */
   properties [PROP_PEER_CERTIFICATE] =
-    g_param_spec_object ("peer-certificate",
-                         "Peer Certificate",
-                         "Peer TLS Certificate",
+    g_param_spec_object ("peer-certificate", NULL, NULL,
                          G_TYPE_TLS_CERTIFICATE,
                          (G_PARAM_READABLE |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -404,9 +398,7 @@ valent_lan_channel_class_init (ValentLanChannelClass *klass)
    * The remote TCP/IP port for the channel.
    */
   properties [PROP_PORT] =
-    g_param_spec_uint ("port",
-                       "Port",
-                       "TCP/IP port",
+    g_param_spec_uint ("port", NULL, NULL,
                        0, G_MAXUINT16,
                        VALENT_LAN_TCP_PORT,
                        (G_PARAM_READWRITE |
