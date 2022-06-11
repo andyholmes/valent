@@ -244,9 +244,7 @@ valent_mixer_stream_class_init (ValentMixerStreamClass *klass)
    * Since: 1.0
    */
   properties [PROP_DESCRIPTION] =
-    g_param_spec_string ("description",
-                         "Description",
-                         "The human-readable label of the stream",
+    g_param_spec_string ("description", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -261,9 +259,7 @@ valent_mixer_stream_class_init (ValentMixerStreamClass *klass)
    * Since: 1.0
    */
   properties [PROP_DIRECTION] =
-    g_param_spec_enum ("direction",
-                       "Direction",
-                       "The port direction of the stream",
+    g_param_spec_enum ("direction", NULL, NULL,
                        VALENT_TYPE_MIXER_DIRECTION,
                        VALENT_MIXER_INPUT,
                        (G_PARAM_CONSTRUCT_ONLY |
@@ -279,9 +275,7 @@ valent_mixer_stream_class_init (ValentMixerStreamClass *klass)
    * Since: 1.0
    */
   properties [PROP_LEVEL] =
-    g_param_spec_uint ("level",
-                       "Level",
-                       "The input or output level of the stream",
+    g_param_spec_uint ("level", NULL, NULL,
                        0, 100,
                        0,
                        (G_PARAM_READWRITE |
@@ -296,9 +290,7 @@ valent_mixer_stream_class_init (ValentMixerStreamClass *klass)
    * Since: 1.0
    */
   properties [PROP_MUTED] =
-    g_param_spec_boolean ("muted",
-                          "Muted",
-                          "Whether the stream is muted",
+    g_param_spec_boolean ("muted", NULL, NULL,
                           FALSE,
                           (G_PARAM_READWRITE |
                            G_PARAM_EXPLICIT_NOTIFY |
@@ -312,9 +304,7 @@ valent_mixer_stream_class_init (ValentMixerStreamClass *klass)
    * Since: 1.0
    */
   properties [PROP_NAME] =
-    g_param_spec_string ("name",
-                         "Name",
-                         "The unique name of the stream",
+    g_param_spec_string ("name", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |

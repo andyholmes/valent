@@ -252,9 +252,7 @@ valent_date_label_class_init (ValentDateLabelClass *klass)
    * The timestamp this label represents.
    */
   properties [PROP_DATE] =
-    g_param_spec_int64 ("date",
-                        "Date",
-                        "The timestamp this label represents",
+    g_param_spec_int64 ("date", NULL, NULL,
                         0, G_MAXINT64,
                         0,
                         (G_PARAM_READWRITE |
@@ -267,9 +265,7 @@ valent_date_label_class_init (ValentDateLabelClass *klass)
    * The brevity of the label.
    */
   properties [PROP_MODE] =
-    g_param_spec_uint ("mode",
-                       "Mode",
-                       "The display mode of the label",
+    g_param_spec_uint ("mode", NULL, NULL,
                        0, G_MAXUINT32,
                        0,
                        (G_PARAM_READWRITE |

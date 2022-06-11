@@ -186,9 +186,7 @@ valent_bluez_channel_class_init (ValentBluezChannelClass *klass)
    * The #ValentMuxConnection responsible for muxing and demuxing data.
    */
   properties [PROP_MUXER] =
-    g_param_spec_object ("muxer",
-                         "Muxer",
-                         "The multiplexer responsible for muxing and demuxing data",
+    g_param_spec_object ("muxer", NULL, NULL,
                          VALENT_TYPE_MUX_CONNECTION,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -201,9 +199,7 @@ valent_bluez_channel_class_init (ValentBluezChannelClass *klass)
    * A unique identifier for the channel.
    */
   properties [PROP_UUID] =
-    g_param_spec_string ("uuid",
-                         "UUID",
-                         "Unique identifier for the channel",
+    g_param_spec_string ("uuid", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |

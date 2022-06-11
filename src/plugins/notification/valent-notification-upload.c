@@ -446,9 +446,7 @@ valent_notification_upload_class_init (ValentNotificationUploadClass *klass)
    * The [class@Valent.Device] this transfer is for.
    */
   properties [PROP_DEVICE] =
-    g_param_spec_object ("device",
-                         "Device",
-                         "The device this transfer is for",
+    g_param_spec_object ("device", NULL, NULL,
                          VALENT_TYPE_DEVICE,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -461,9 +459,7 @@ valent_notification_upload_class_init (ValentNotificationUploadClass *klass)
    * The [iface@Gio.Icon] for the notification.
    */
   properties [PROP_ICON] =
-    g_param_spec_object ("icon",
-                         "Icon",
-                         "The icon for the notification",
+    g_param_spec_object ("icon", NULL, NULL,
                          G_TYPE_ICON,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -476,9 +472,7 @@ valent_notification_upload_class_init (ValentNotificationUploadClass *klass)
    * The packet to send the payload with.
    */
   properties [PROP_PACKET] =
-    g_param_spec_boxed ("packet",
-                        "Packet",
-                        "The packet to send the payload with",
+    g_param_spec_boxed ("packet", NULL, NULL,
                         JSON_TYPE_NODE,
                         (G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |

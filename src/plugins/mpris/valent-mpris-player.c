@@ -778,9 +778,7 @@ valent_mpris_player_class_init (ValentMPRISPlayerClass *klass)
    * The well-known or unique name that the player is on.
    */
   properties [PROP_BUS_NAME] =
-    g_param_spec_string ("bus-name",
-                         "Bus Name",
-                         "The well-known or unique name that the player is on.",
+    g_param_spec_string ("bus-name", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |

@@ -235,9 +235,7 @@ valent_bluez_device_class_init (ValentBluezDeviceClass *klass)
    * The DBus object path of the adapter for this device.
    */
   properties [PROP_ADAPTER] =
-    g_param_spec_string ("adapter",
-                         "Adapter",
-                         "The DBus object path of the adapter for this device",
+    g_param_spec_string ("adapter", NULL, NULL,
                          NULL,
                          (G_PARAM_READABLE |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -249,9 +247,7 @@ valent_bluez_device_class_init (ValentBluezDeviceClass *klass)
    * The address of the device.
    */
   properties [PROP_ADDRESS] =
-    g_param_spec_string ("address",
-                         "Address",
-                         "The address of the device",
+    g_param_spec_string ("address", NULL, NULL,
                          NULL,
                          (G_PARAM_READABLE |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -263,9 +259,7 @@ valent_bluez_device_class_init (ValentBluezDeviceClass *klass)
    * Whether the device is connected.
    */
   properties [PROP_CONNECTED] =
-    g_param_spec_boolean ("connected",
-                          "Connected",
-                          "Whether the device is connected",
+    g_param_spec_boolean ("connected", NULL, NULL,
                           FALSE,
                           (G_PARAM_READABLE |
                            G_PARAM_EXPLICIT_NOTIFY |
@@ -277,9 +271,7 @@ valent_bluez_device_class_init (ValentBluezDeviceClass *klass)
    * The icon of the device.
    */
   properties [PROP_ICON_NAME] =
-    g_param_spec_string ("icon-name",
-                         "Icon Name",
-                         "The icon of the device",
+    g_param_spec_string ("icon-name", NULL, NULL,
                          NULL,
                          (G_PARAM_READABLE |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -291,9 +283,7 @@ valent_bluez_device_class_init (ValentBluezDeviceClass *klass)
    * The name of the device.
    */
   properties [PROP_NAME] =
-    g_param_spec_string ("name",
-                         "Name",
-                         "The alias or name of the device",
+    g_param_spec_string ("name", NULL, NULL,
                          NULL,
                          (G_PARAM_READABLE |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -305,9 +295,7 @@ valent_bluez_device_class_init (ValentBluezDeviceClass *klass)
    * Whether the device is paired.
    */
   properties [PROP_PAIRED] =
-    g_param_spec_boolean ("paired",
-                          "Paired",
-                          "Whether the device is paired",
+    g_param_spec_boolean ("paired", NULL, NULL,
                           FALSE,
                           (G_PARAM_READABLE |
                            G_PARAM_EXPLICIT_NOTIFY |
@@ -319,9 +307,7 @@ valent_bluez_device_class_init (ValentBluezDeviceClass *klass)
    * Whether service discovery has been resolved.
    */
   properties [PROP_SERVICES_RESOLVED] =
-    g_param_spec_boolean ("services-resolved",
-                          "Services Resolved",
-                          "Whether service discovery has been resolved",
+    g_param_spec_boolean ("services-resolved", NULL, NULL,
                           FALSE,
                           (G_PARAM_READABLE |
                            G_PARAM_EXPLICIT_NOTIFY |
@@ -333,9 +319,7 @@ valent_bluez_device_class_init (ValentBluezDeviceClass *klass)
    * Whether the device is trusted.
    */
   properties [PROP_TRUSTED] =
-    g_param_spec_boolean ("trusted",
-                          "Trusted",
-                          "Whether the device is trusted",
+    g_param_spec_boolean ("trusted", NULL, NULL,
                           FALSE,
                           (G_PARAM_READABLE |
                            G_PARAM_EXPLICIT_NOTIFY |

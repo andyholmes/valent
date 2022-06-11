@@ -188,9 +188,7 @@ valent_clipboard_adapter_class_init (ValentClipboardAdapterClass *klass)
    * Since: 1.0
    */
   properties [PROP_PLUGIN_INFO] =
-    g_param_spec_boxed ("plugin-info",
-                        "Plugin Info",
-                        "The plugin info describing this adapter",
+    g_param_spec_boxed ("plugin-info", NULL, NULL,
                         PEAS_TYPE_PLUGIN_INFO,
                         (G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |

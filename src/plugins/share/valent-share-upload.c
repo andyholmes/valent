@@ -287,9 +287,7 @@ valent_share_upload_class_init (ValentShareUploadClass *klass)
    * The [class@Valent.Device] this transfer is for.
    */
   properties [PROP_DEVICE] =
-    g_param_spec_object ("device",
-                         "Device",
-                         "The device this transfer is for",
+    g_param_spec_object ("device", NULL, NULL,
                          VALENT_TYPE_DEVICE,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |

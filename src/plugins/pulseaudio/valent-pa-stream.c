@@ -244,9 +244,7 @@ valent_pa_stream_class_init (ValentPaStreamClass *klass)
    * The #GvcMixerStream this stream wraps.
    */
   properties [PROP_BASE_STREAM] =
-    g_param_spec_object ("base-stream",
-                         "Base Stream",
-                         "The underlying GvcMixerStream",
+    g_param_spec_object ("base-stream", NULL, NULL,
                          GVC_TYPE_MIXER_STREAM,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -259,9 +257,7 @@ valent_pa_stream_class_init (ValentPaStreamClass *klass)
    * The maximum volume.
    */
   properties [PROP_VOL_MAX] =
-    g_param_spec_uint ("vol-max",
-                       "Maximum Volume",
-                       "The maximum volume of the underlying GvcMixerStream",
+    g_param_spec_uint ("vol-max", NULL, NULL,
                        0, G_MAXUINT32,
                        G_MAXUINT32,
                        (G_PARAM_READWRITE |

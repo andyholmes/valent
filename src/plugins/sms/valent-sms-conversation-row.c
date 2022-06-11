@@ -170,9 +170,7 @@ valent_sms_conversation_row_class_init (ValentSmsConversationRowClass *klass)
    * The #EContact that sent this message.
    */
   properties [PROP_CONTACT] =
-    g_param_spec_object ("contact",
-                         "Contact",
-                         "The contact that sent this message.",
+    g_param_spec_object ("contact", NULL, NULL,
                          E_TYPE_CONTACT,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT |
@@ -185,9 +183,7 @@ valent_sms_conversation_row_class_init (ValentSmsConversationRowClass *klass)
    * The timestamp of the message.
    */
   properties [PROP_DATE] =
-    g_param_spec_int64 ("date",
-                        "Date",
-                        "The timestamp of the message.",
+    g_param_spec_int64 ("date", NULL, NULL,
                         0, G_MAXINT64,
                         0,
                         (G_PARAM_READABLE |
@@ -200,9 +196,7 @@ valent_sms_conversation_row_class_init (ValentSmsConversationRowClass *klass)
    * The message this row displays.
    */
   properties [PROP_MESSAGE] =
-    g_param_spec_object ("message",
-                         "Message",
-                         "The message this row displays.",
+    g_param_spec_object ("message", NULL, NULL,
                           VALENT_TYPE_MESSAGE,
                           (G_PARAM_READWRITE |
                            G_PARAM_CONSTRUCT |

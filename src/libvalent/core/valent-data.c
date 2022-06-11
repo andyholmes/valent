@@ -236,9 +236,7 @@ valent_data_class_init (ValentDataClass *klass)
    * Since: 1.0
    */
   properties [PROP_CACHE_PATH] =
-    g_param_spec_string ("cache-path",
-                         "Cache Path",
-                         "Path to the cache directory",
+    g_param_spec_string ("cache-path", NULL, NULL,
                          NULL,
                          (G_PARAM_READABLE |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -252,9 +250,7 @@ valent_data_class_init (ValentDataClass *klass)
    * Since: 1.0
    */
   properties [PROP_CONFIG_PATH] =
-    g_param_spec_string ("config-path",
-                         "Config Path",
-                         "Path to the config directory",
+    g_param_spec_string ("config-path", NULL, NULL,
                          NULL,
                          (G_PARAM_READABLE |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -272,9 +268,7 @@ valent_data_class_init (ValentDataClass *klass)
    * Since: 1.0
    */
   properties [PROP_CONTEXT] =
-    g_param_spec_string ("context",
-                         "Context",
-                         "Context to store data for",
+    g_param_spec_string ("context", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -289,9 +283,7 @@ valent_data_class_init (ValentDataClass *klass)
    * Since: 1.0
    */
   properties [PROP_DATA_PATH] =
-    g_param_spec_string ("data-path",
-                         "Data Path",
-                         "Path to the data directory",
+    g_param_spec_string ("data-path", NULL, NULL,
                          NULL,
                          (G_PARAM_READABLE |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -308,9 +300,7 @@ valent_data_class_init (ValentDataClass *klass)
    * Since: 1.0
    */
   properties [PROP_PARENT] =
-    g_param_spec_object ("parent",
-                         "Parent",
-                         "The parent context",
+    g_param_spec_object ("parent", NULL, NULL,
                          VALENT_TYPE_DATA,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |

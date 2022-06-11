@@ -43,9 +43,7 @@ valent_device_activity_default_init (ValentDeviceActivityInterface *iface)
    * Since: 1.0
    */
   g_object_interface_install_property (iface,
-                                       g_param_spec_object ("device",
-                                                            "Device",
-                                                            "The device this activity is for",
+                                       g_param_spec_object ("device", NULL, NULL,
                                                             G_TYPE_OBJECT,
                                                             (G_PARAM_READWRITE |
                                                              G_PARAM_CONSTRUCT_ONLY |

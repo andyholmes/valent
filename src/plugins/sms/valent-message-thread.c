@@ -332,9 +332,7 @@ valent_message_thread_class_init (ValentMessageThreadClass *klass)
    * The ID of the thread.
    */
   properties [PROP_ID] =
-    g_param_spec_int64 ("id",
-                        "ID",
-                        "The ID of the thread",
+    g_param_spec_int64 ("id", NULL, NULL,
                         G_MININT64, G_MAXINT64,
                         0,
                         (G_PARAM_READWRITE |
@@ -348,9 +346,7 @@ valent_message_thread_class_init (ValentMessageThreadClass *klass)
    * The #ValentSmsStore providing #ValentMessage objects for the thread.
    */
   properties [PROP_STORE] =
-    g_param_spec_object ("store",
-                         "Store",
-                         "The message store backing this thread.",
+    g_param_spec_object ("store", NULL, NULL,
                          VALENT_TYPE_SMS_STORE,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |

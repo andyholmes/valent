@@ -328,9 +328,7 @@ valent_mixer_class_init (ValentMixerClass *klass)
    * Since: 1.0
    */
   properties [PROP_DEFAULT_INPUT] =
-    g_param_spec_object ("default-input",
-                         "Default Input",
-                         "The active input stream",
+    g_param_spec_object ("default-input", NULL, NULL,
                          VALENT_TYPE_MIXER_STREAM,
                          (G_PARAM_READWRITE |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -344,9 +342,7 @@ valent_mixer_class_init (ValentMixerClass *klass)
    * Since: 1.0
    */
   properties [PROP_DEFAULT_OUTPUT] =
-    g_param_spec_object ("default-output",
-                         "Default Output",
-                         "The active output stream",
+    g_param_spec_object ("default-output", NULL, NULL,
                          VALENT_TYPE_MIXER_STREAM,
                          (G_PARAM_READWRITE |
                           G_PARAM_EXPLICIT_NOTIFY |

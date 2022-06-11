@@ -138,9 +138,7 @@ valent_application_plugin_class_init (ValentApplicationPluginClass *klass)
    * Since: 1.0
    */
   properties [PROP_APPLICATION] =
-    g_param_spec_object ("application",
-                         "Application",
-                         "The application this plugin is bound to",
+    g_param_spec_object ("application", NULL, NULL,
                          G_TYPE_APPLICATION,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -155,9 +153,7 @@ valent_application_plugin_class_init (ValentApplicationPluginClass *klass)
    * Since: 1.0
    */
   properties [PROP_PLUGIN_INFO] =
-    g_param_spec_boxed ("plugin-info",
-                        "Plugin Info",
-                        "The plugin info describing this plugin",
+    g_param_spec_boxed ("plugin-info", NULL, NULL,
                         PEAS_TYPE_PLUGIN_INFO,
                         (G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |

@@ -175,9 +175,7 @@ valent_transfer_class_init (ValentTransferClass *klass)
    * Since: 1.0
    */
   properties [PROP_ID] =
-    g_param_spec_string ("id",
-                         "ID",
-                         "Unique identifier for the transfer",
+    g_param_spec_string ("id", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -200,9 +198,7 @@ valent_transfer_class_init (ValentTransferClass *klass)
    * Since: 1.0
    */
   properties [PROP_PROGRESS] =
-    g_param_spec_double ("progress",
-                         "Progress",
-                         "The progress of the transfer",
+    g_param_spec_double ("progress", NULL, NULL,
                          0.0, 1.0,
                          0.0,
                          (G_PARAM_READWRITE |
@@ -225,9 +221,7 @@ valent_transfer_class_init (ValentTransferClass *klass)
    * Since: 1.0
    */
   properties [PROP_STATE] =
-    g_param_spec_enum ("state",
-                       "State",
-                       "The state of the transfer",
+    g_param_spec_enum ("state", NULL, NULL,
                        VALENT_TYPE_TRANSFER_STATE,
                        VALENT_TRANSFER_STATE_PENDING,
                        (G_PARAM_READABLE |

@@ -760,9 +760,7 @@ valent_sms_window_class_init (ValentSmsWindowClass *klass)
    * The #ValentContactStore providing contacts for the window.
    */
   properties [PROP_CONTACT_STORE] =
-    g_param_spec_object ("contact-store",
-                         "Contact Store",
-                         "The contact model for this window.",
+    g_param_spec_object ("contact-store", NULL, NULL,
                          VALENT_TYPE_CONTACT_STORE,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -775,9 +773,7 @@ valent_sms_window_class_init (ValentSmsWindowClass *klass)
    * The #ValentSmsStore providing messages for the window.
    */
   properties [PROP_MESSAGE_STORE] =
-    g_param_spec_object ("message-store",
-                         "Message Store",
-                         "The message store for this window.",
+    g_param_spec_object ("message-store", NULL, NULL,
                          VALENT_TYPE_SMS_STORE,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |

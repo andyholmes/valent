@@ -390,9 +390,7 @@ valent_ebook_store_class_init (ValentEBookStoreClass *klass)
    * The #EBookClient for the store.
    */
   properties [PROP_CLIENT] =
-    g_param_spec_object ("client",
-                         "Client",
-                         "The client for the store",
+    g_param_spec_object ("client", NULL, NULL,
                          E_TYPE_BOOK_CLIENT,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |

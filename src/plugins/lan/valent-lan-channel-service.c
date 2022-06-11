@@ -892,9 +892,7 @@ valent_lan_channel_service_class_init (ValentLanChannelServiceClass *klass)
    * This available as a construct property primarily for use in unit tests.
    */
   properties [PROP_BROADCAST_ADDRESS] =
-    g_param_spec_string ("broadcast-address",
-                         "Broadcast Address",
-                         "The UDP broadcast address for outgoing identity packets",
+    g_param_spec_string ("broadcast-address", NULL, NULL,
                          PROTOCOL_ADDR,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -907,9 +905,7 @@ valent_lan_channel_service_class_init (ValentLanChannelServiceClass *klass)
    * The TLS certificate the service uses to authenticate with other devices.
    */
   properties [PROP_CERTIFICATE] =
-    g_param_spec_object ("certificate",
-                         "Certificate",
-                         "TLS Certificate",
+    g_param_spec_object ("certificate", NULL, NULL,
                          G_TYPE_TLS_CERTIFICATE,
                          (G_PARAM_READABLE |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -924,9 +920,7 @@ valent_lan_channel_service_class_init (ValentLanChannelServiceClass *klass)
    * This available as a construct property primarily for use in unit tests.
    */
   properties [PROP_PORT] =
-    g_param_spec_uint ("port",
-                       "Port",
-                       "TCP/IP port",
+    g_param_spec_uint ("port", NULL, NULL,
                        1024, G_MAXUINT16,
                        PROTOCOL_PORT,
                        (G_PARAM_READWRITE |

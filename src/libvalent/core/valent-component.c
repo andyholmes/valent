@@ -427,9 +427,7 @@ valent_component_class_init (ValentComponentClass *klass)
    * Since: 1.0
    */
   properties [PROP_PLUGIN_CONTEXT] =
-    g_param_spec_string ("plugin-context",
-                         "Plugin Context",
-                         "The context of the component",
+    g_param_spec_string ("plugin-context", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -447,9 +445,7 @@ valent_component_class_init (ValentComponentClass *klass)
    * Since: 1.0
    */
   properties [PROP_PLUGIN_PRIORITY] =
-    g_param_spec_string ("plugin-priority",
-                         "Plugin Priority",
-                         "The priority key for the component",
+    g_param_spec_string ("plugin-priority", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -464,9 +460,7 @@ valent_component_class_init (ValentComponentClass *klass)
    * Since: 1.0
    */
   properties [PROP_PLUGIN_TYPE] =
-    g_param_spec_gtype ("plugin-type",
-                        "Plugin Type",
-                        "The GType of the component",
+    g_param_spec_gtype ("plugin-type", NULL, NULL,
                         G_TYPE_NONE,
                         (G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |

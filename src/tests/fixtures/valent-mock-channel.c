@@ -226,9 +226,7 @@ valent_mock_channel_class_init (ValentMockChannelClass *klass)
    * property. The underlying connection is actually a #GUnixConnection.
    */
   properties [PROP_HOST] =
-    g_param_spec_string ("host",
-                         "Host",
-                         "TCP/IP address",
+    g_param_spec_string ("host", NULL, NULL,
                          "127.0.0.1",
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -244,9 +242,7 @@ valent_mock_channel_class_init (ValentMockChannelClass *klass)
    * property. The underlying connection is actually a #GUnixConnection.
    */
   properties [PROP_PORT] =
-    g_param_spec_uint ("port",
-                       "Port",
-                       "TCP/IP port",
+    g_param_spec_uint ("port", NULL, NULL,
                        1024, G_MAXUINT16,
                        VALENT_TEST_TCP_PORT,
                        (G_PARAM_READWRITE |

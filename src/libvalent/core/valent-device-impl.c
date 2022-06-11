@@ -485,9 +485,7 @@ valent_device_impl_class_init (ValentDeviceImplClass *klass)
   skeleton_class->flush = valent_device_impl_flush;
 
   properties[PROP_DEVICE] =
-    g_param_spec_object ("device",
-                         "Device",
-                         "The exported device",
+    g_param_spec_object ("device", NULL, NULL,
                          VALENT_TYPE_DEVICE,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |

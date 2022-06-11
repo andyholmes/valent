@@ -280,9 +280,7 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
    * Since: 1.0
    */
   properties [PROP_FLAGS] =
-    g_param_spec_flags ("flags",
-                        "Flags",
-                        "The available actions",
+    g_param_spec_flags ("flags", NULL, NULL,
                         VALENT_TYPE_MEDIA_ACTIONS,
                         VALENT_MEDIA_ACTION_NONE,
                         (G_PARAM_READABLE |
@@ -303,9 +301,7 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
    * Since: 1.0
    */
   properties [PROP_METADATA] =
-    g_param_spec_variant ("metadata",
-                          "Metadata",
-                          "The metadata of the active media item",
+    g_param_spec_variant ("metadata", NULL, NULL,
                           G_VARIANT_TYPE ("a{sv}"),
                           NULL,
                           (G_PARAM_READABLE |
@@ -320,9 +316,7 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
    * Since: 1.0
    */
   properties [PROP_NAME] =
-    g_param_spec_string ("name",
-                         "Name",
-                         "The display name",
+    g_param_spec_string ("name", NULL, NULL,
                          NULL,
                          (G_PARAM_READABLE |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -341,9 +335,7 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
    * Since: 1.0
    */
   properties [PROP_POSITION] =
-    g_param_spec_int64 ("position",
-                        "Position",
-                        "Position",
+    g_param_spec_int64 ("position", NULL, NULL,
                         G_MININT64, G_MAXINT64,
                         0,
                         (G_PARAM_READABLE |
@@ -362,9 +354,7 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
    * Since: 1.0
    */
   properties [PROP_STATE] =
-    g_param_spec_flags ("state",
-                        "State",
-                        "The playback state",
+    g_param_spec_flags ("state", NULL, NULL,
                         VALENT_TYPE_MEDIA_STATE,
                         VALENT_MEDIA_STATE_STOPPED,
                         (G_PARAM_READWRITE |
@@ -381,9 +371,7 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
    * Since: 1.0
    */
   properties [PROP_VOLUME] =
-    g_param_spec_double ("volume",
-                         "Volume",
-                         "Volume",
+    g_param_spec_double ("volume", NULL, NULL,
                          0.0, G_MAXDOUBLE,
                          0.0,
                          (G_PARAM_READWRITE |

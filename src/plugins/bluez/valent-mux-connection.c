@@ -885,9 +885,7 @@ valent_mux_connection_class_init (ValentMuxConnectionClass *klass)
    * The "base-stream" property is the #GIOStream being wrapped.
    */
   properties [PROP_BASE_STREAM] =
-    g_param_spec_object ("base-stream",
-                         "Base Stream",
-                         "The base stream for this connection",
+    g_param_spec_object ("base-stream", NULL, NULL,
                          G_TYPE_IO_STREAM,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -900,9 +898,7 @@ valent_mux_connection_class_init (ValentMuxConnectionClass *klass)
    * Size of the input buffer allocated to each multiplex channel.
    */
   properties [PROP_BUFFER_SIZE] =
-    g_param_spec_uint ("buffer-size",
-                       "Buffer Size",
-                       "The base stream for this connection",
+    g_param_spec_uint ("buffer-size", NULL, NULL,
                        1024, G_MAXUINT16,
                        BUFFER_SIZE,
                        (G_PARAM_READWRITE |

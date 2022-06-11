@@ -163,9 +163,7 @@ valent_session_adapter_class_init (ValentSessionAdapterClass *klass)
    * Since: 1.0
    */
   properties [PROP_ACTIVE] =
-    g_param_spec_boolean ("active",
-                          "Active",
-                          "Whether the session is active",
+    g_param_spec_boolean ("active", NULL, NULL,
                           FALSE,
                           (G_PARAM_READABLE |
                            G_PARAM_EXPLICIT_NOTIFY |
@@ -179,9 +177,7 @@ valent_session_adapter_class_init (ValentSessionAdapterClass *klass)
    * Since: 1.0
    */
   properties [PROP_LOCKED] =
-    g_param_spec_boolean ("locked",
-                          "Locked",
-                          "Whether the session is locked",
+    g_param_spec_boolean ("locked", NULL, NULL,
                           FALSE,
                           (G_PARAM_READWRITE |
                            G_PARAM_EXPLICIT_NOTIFY |
@@ -195,9 +191,7 @@ valent_session_adapter_class_init (ValentSessionAdapterClass *klass)
    * Since: 1.0
    */
   properties [PROP_PLUGIN_INFO] =
-    g_param_spec_boxed ("plugin-info",
-                        "Plugin Info",
-                        "The plugin info describing this adapter",
+    g_param_spec_boxed ("plugin-info", NULL, NULL,
                         PEAS_TYPE_PLUGIN_INFO,
                         (G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |

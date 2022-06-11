@@ -259,9 +259,7 @@ valent_notification_class_init (ValentNotificationClass *klass)
    * Since: 1.0
    */
   properties [PROP_ACTION] =
-    g_param_spec_string ("action",
-                         "Action",
-                         "The default notification action",
+    g_param_spec_string ("action", NULL, NULL,
                          NULL,
                          (G_PARAM_WRITABLE |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -281,9 +279,7 @@ valent_notification_class_init (ValentNotificationClass *klass)
    * Since: 1.0
    */
   properties [PROP_APPLICATION] =
-    g_param_spec_string ("application",
-                         "Application",
-                         "Application name",
+    g_param_spec_string ("application", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -297,9 +293,7 @@ valent_notification_class_init (ValentNotificationClass *klass)
    * Since: 1.0
    */
   properties [PROP_BODY] =
-    g_param_spec_string ("body",
-                         "Body",
-                         "The notification body",
+    g_param_spec_string ("body", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -313,9 +307,7 @@ valent_notification_class_init (ValentNotificationClass *klass)
    * Since: 1.0
    */
   properties [PROP_ICON] =
-    g_param_spec_object ("icon",
-                         "Icon",
-                         "The notification icon",
+    g_param_spec_object ("icon", NULL, NULL,
                          G_TYPE_ICON,
                          (G_PARAM_READWRITE |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -329,9 +321,7 @@ valent_notification_class_init (ValentNotificationClass *klass)
    * Since: 1.0
    */
   properties [PROP_ID] =
-    g_param_spec_string ("id",
-                         "Id",
-                         "The unique ID of the notification",
+    g_param_spec_string ("id", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -345,14 +335,12 @@ valent_notification_class_init (ValentNotificationClass *klass)
    * Since: 1.0
    */
   properties [PROP_PRIORITY] =
-    g_param_spec_enum ("priority",
-                         "Priority",
-                         "The notification priority",
-                         G_TYPE_NOTIFICATION_PRIORITY,
-                         G_NOTIFICATION_PRIORITY_NORMAL,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
+    g_param_spec_enum ("priority", NULL, NULL,
+                       G_TYPE_NOTIFICATION_PRIORITY,
+                       G_NOTIFICATION_PRIORITY_NORMAL,
+                       (G_PARAM_READWRITE |
+                        G_PARAM_EXPLICIT_NOTIFY |
+                        G_PARAM_STATIC_STRINGS));
 
   /**
    * ValentNotification:time: (getter get_time) (setter set_time)
@@ -362,9 +350,7 @@ valent_notification_class_init (ValentNotificationClass *klass)
    * Since: 1.0
    */
   properties [PROP_TIME] =
-    g_param_spec_int64 ("time",
-                        "Time",
-                        "Posting time of the notification",
+    g_param_spec_int64 ("time", NULL, NULL,
                         0, G_MAXINT64,
                         0,
                         (G_PARAM_READWRITE |
@@ -379,9 +365,7 @@ valent_notification_class_init (ValentNotificationClass *klass)
    * Since: 1.0
    */
   properties [PROP_TITLE] =
-    g_param_spec_string ("title",
-                         "Title",
-                         "Title for the notification",
+    g_param_spec_string ("title", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_EXPLICIT_NOTIFY |

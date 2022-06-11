@@ -175,9 +175,7 @@ valent_notification_dialog_class_init (ValentNotificationDialogClass *klass)
    * The notification the dialog represents.
    */
   properties[PROP_NOTIFICATION] =
-    g_param_spec_object ("notification",
-                         "Notification",
-                         "The notification the dialog represents",
+    g_param_spec_object ("notification", NULL, NULL,
                          VALENT_TYPE_NOTIFICATION,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -190,9 +188,7 @@ valent_notification_dialog_class_init (ValentNotificationDialogClass *klass)
    * The notification reply ID.
    */
   properties[PROP_REPLY_ID] =
-    g_param_spec_string ("reply-id",
-                         "Reply ID",
-                         "The notification reply ID",
+    g_param_spec_string ("reply-id", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT |

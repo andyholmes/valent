@@ -599,9 +599,7 @@ valent_mousepad_remote_class_init (ValentMousepadRemoteClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, on_triple_end);
 
   properties [PROP_DEVICE] =
-    g_param_spec_object ("device",
-                         "Device",
-                         "The target device",
+    g_param_spec_object ("device", NULL, NULL,
                          VALENT_TYPE_DEVICE,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |

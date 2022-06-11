@@ -1004,9 +1004,7 @@ valent_device_class_init (ValentDeviceClass *klass)
    * Since: 1.0
    */
   properties [PROP_CONNECTED] =
-    g_param_spec_boolean ("connected",
-                          "Connected",
-                          "Whether the device is connected",
+    g_param_spec_boolean ("connected", NULL, NULL,
                           FALSE,
                           (G_PARAM_READABLE |
                            G_PARAM_EXPLICIT_NOTIFY |
@@ -1023,9 +1021,7 @@ valent_device_class_init (ValentDeviceClass *klass)
    * Since: 1.0
    */
   properties [PROP_DATA] =
-    g_param_spec_object ("data",
-                         "Data Manager",
-                         "The data context",
+    g_param_spec_object ("data", NULL, NULL,
                          VALENT_TYPE_DATA,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -1042,10 +1038,8 @@ valent_device_class_init (ValentDeviceClass *klass)
    * Since: 1.0
    */
   properties [PROP_ICON_NAME] =
-    g_param_spec_string ("icon-name",
-                         "Icon Name",
-                         "Icon name representing the device",
-                         NULL,
+    g_param_spec_string ("icon-name", NULL, NULL,
+                         "computer-symbolic",
                          (G_PARAM_READABLE |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
@@ -1062,9 +1056,7 @@ valent_device_class_init (ValentDeviceClass *klass)
    * Since: 1.0
    */
   properties [PROP_ID] =
-    g_param_spec_string ("id",
-                         "Id",
-                         "Unique id for the device",
+    g_param_spec_string ("id", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -1079,9 +1071,7 @@ valent_device_class_init (ValentDeviceClass *klass)
    * Since: 1.0
    */
   properties [PROP_NAME] =
-    g_param_spec_string ("name",
-                         "Name",
-                         "Name representing the device",
+    g_param_spec_string ("name", NULL, NULL,
                          NULL,
                          (G_PARAM_READABLE |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -1099,9 +1089,7 @@ valent_device_class_init (ValentDeviceClass *klass)
    * Since: 1.0
    */
   properties [PROP_PAIRED] =
-    g_param_spec_boolean ("paired",
-                          "Paired",
-                          "Whether the device is paired",
+    g_param_spec_boolean ("paired", NULL, NULL,
                           FALSE,
                           (G_PARAM_READABLE |
                            G_PARAM_EXPLICIT_NOTIFY |
@@ -1118,9 +1106,7 @@ valent_device_class_init (ValentDeviceClass *klass)
    * Since: 1.0
    */
   properties [PROP_STATE] =
-    g_param_spec_flags ("state",
-                        "State",
-                        "State of device",
+    g_param_spec_flags ("state", NULL, NULL,
                         VALENT_TYPE_DEVICE_STATE,
                         VALENT_DEVICE_STATE_NONE,
                         (G_PARAM_READABLE |
@@ -1140,10 +1126,8 @@ valent_device_class_init (ValentDeviceClass *klass)
    * Since: 1.0
    */
   properties [PROP_TYPE] =
-    g_param_spec_string ("type",
-                         "Type",
-                         "Type of device (eg. phone, tablet, laptop)",
-                         NULL,
+    g_param_spec_string ("type", NULL, NULL,
+                         "desktop",
                          (G_PARAM_READABLE |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));

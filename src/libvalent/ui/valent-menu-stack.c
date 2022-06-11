@@ -100,9 +100,7 @@ valent_menu_stack_class_init (ValentMenuStackClass *klass)
    * The #GMenuModel for this #ValentMenuStack.
    */
   properties [PROP_MENU_MODEL] =
-    g_param_spec_object ("menu-model",
-                         "menu-model",
-                         "The menu model for this stack",
+    g_param_spec_object ("menu-model", NULL, NULL,
                          G_TYPE_MENU_MODEL,
                          (G_PARAM_READWRITE |
                           G_PARAM_EXPLICIT_NOTIFY |
