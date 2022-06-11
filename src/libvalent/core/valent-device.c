@@ -1879,7 +1879,7 @@ valent_device_handle_packet (ValentDevice *device,
   type = valent_packet_get_type (packet);
 
   /* This is the only packet type an unpaired device can send or receive */
-  if G_UNLIKELY (g_strcmp0 (type, "kdeconnect.pair") == 0)
+  if G_UNLIKELY (strcmp (type, "kdeconnect.pair") == 0)
     valent_device_handle_pair (device, packet);
 
   /* If unpaired, any other packet is ignored and the remote device notified */
