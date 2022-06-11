@@ -1203,46 +1203,32 @@ valent_device_class_init (ValentDeviceClass *klass)
 
 /**
  * valent_device_new:
- * @identity: a KDE Connect identity packet
+ * @id: (not nullable) a device ID
  *
- * Construct a new device for @identity.
+ * Create a new device for @id.
  *
  * Returns: (transfer full) (nullable): a new #ValentDevice
  *
  * Since: 1.0
  */
 ValentDevice *
-valent_device_new (JsonNode *identity)
+valent_device_new (const char *id)
 {
-  ValentDevice *ret;
-  const char *id;
+  g_return_val_if_fail (id != NULL && *id != '\0', NULL);
 
-  g_return_val_if_fail (VALENT_IS_PACKET (identity), NULL);
-
-  if (!valent_packet_get_string (identity, "deviceId", &id))
-    {
-      g_critical ("%s(): missing \"deviceId\" field", G_STRFUNC);
-      return NULL;
-    }
-
-  ret = g_object_new (VALENT_TYPE_DEVICE,
-                      "id", id,
-                      NULL);
-  valent_device_handle_identity (ret, identity);
-
-  return ret;
+  return g_object_new (VALENT_TYPE_DEVICE,
+                       "id", id,
+                       NULL);
 }
 
-/**
+/*< private >
  * valent_device_new_full:
  * @identity: a KDE Connect identity packet
  * @data: (nullable): the data context
  *
- * Construct a new device for @identity.
+ * Create a new device for @identity.
  *
  * Returns: (transfer full) (nullable): a new #ValentDevice
- *
- * Since: 1.0
  */
 ValentDevice *
 valent_device_new_full (JsonNode   *identity,

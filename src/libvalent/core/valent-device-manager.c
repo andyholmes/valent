@@ -514,9 +514,7 @@ valent_device_manager_ensure_device (ValentDeviceManager *manager,
       return NULL;
     }
 
-  device = g_hash_table_lookup (manager->devices, device_id);
-
-  if (device == NULL)
+  if ((device = g_hash_table_lookup (manager->devices, device_id)) == NULL)
     {
       g_autoptr (ValentData) data = NULL;
 
