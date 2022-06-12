@@ -315,9 +315,17 @@ valent_device_enable_plugin (ValentDevice *device,
 
   for (unsigned int i = 0; i < n_capabilities; i++)
     {
-      g_hash_table_insert (device->handlers,
-                           g_strdup (incoming[i]),
-                           plugin->extension);
+      GPtrArray *handlers = NULL;
+
+      if ((handlers = g_hash_table_lookup (device->handlers, incoming[i])) == NULL)
+        {
+          handlers = g_ptr_array_new ();
+          g_hash_table_insert (device->handlers,
+                               g_strdup (incoming[i]),
+                               handlers);
+        }
+
+      g_ptr_array_add (handlers, plugin->extension);
     }
 
   /* Register plugin actions */
@@ -359,7 +367,7 @@ valent_device_disable_plugin (ValentDevice *device,
 {
   g_auto (GStrv) actions = NULL;
   g_auto (GStrv) incoming = NULL;
-  unsigned int len;
+  unsigned int n_capabilities = 0;
 
   g_assert (VALENT_IS_DEVICE (device));
   g_assert (plugin != NULL);
@@ -377,11 +385,19 @@ valent_device_disable_plugin (ValentDevice *device,
     }
 
   /* Unregister packet handlers */
-  incoming = valent_device_plugin_get_incoming (plugin->info);
-  len = incoming ? g_strv_length (incoming) : 0;
+  if ((incoming = valent_device_plugin_get_incoming (plugin->info)) != NULL)
+    n_capabilities = g_strv_length (incoming);
 
-  for (unsigned int i = 0; i < len; i++)
-    g_hash_table_remove (device->handlers, incoming[i]);
+  for (unsigned int i = 0; i < n_capabilities; i++)
+    {
+      GPtrArray *handlers = NULL;
+
+      if ((handlers = g_hash_table_lookup (device->handlers, incoming[i])) == NULL)
+        continue;
+
+      if (g_ptr_array_remove (handlers, plugin->extension) && handlers->len == 0)
+        g_hash_table_remove (device->handlers, incoming[i]);
+    }
 
   /* Invoke the plugin vfunc */
   valent_device_plugin_disable (VALENT_DEVICE_PLUGIN (plugin->extension));
@@ -964,11 +980,14 @@ valent_device_init (ValentDevice *self)
   /* Plugins */
   self->engine = valent_get_engine ();
   self->plugins = g_hash_table_new_full (NULL, NULL, NULL, device_plugin_free);
-  self->handlers = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
-  self->actions = g_hash_table_new_full (g_str_hash,
+  self->handlers = g_hash_table_new_full (g_str_hash,
                                           g_str_equal,
                                           g_free,
-                                          g_object_unref);
+                                          (GDestroyNotify)g_ptr_array_unref);
+  self->actions = g_hash_table_new_full (g_str_hash,
+                                         g_str_equal,
+                                         g_free,
+                                         g_object_unref);
   self->menu = g_menu_new ();
 
   /* Stock Actions */
@@ -1828,17 +1847,18 @@ valent_device_get_state (ValentDevice *device)
  *
  * Handle a packet from the remote device.
  *
- * Handle @packet as a message from the remote device. Pair packets are handled
- * by @device internally, while all others will be passed to plugins which claim
- * to support the @packet type.
+ * Pairing packets are handled by the device and the only packets accepted if
+ * the device is unpaired. Any other packets received from an unpaired device
+ * are ignored and a request to unpair will be sent to the remote device.
  *
- * Since: 1.0
+ * Any other packets received from a paired device will be routed to each plugin
+ * claiming to support it.
  */
 void
 valent_device_handle_packet (ValentDevice *device,
                              JsonNode     *packet)
 {
-  ValentDevicePlugin *handler;
+  GPtrArray *handlers = NULL;
   const char *type;
 
   g_assert (VALENT_IS_DEVICE (device));
@@ -1848,20 +1868,27 @@ valent_device_handle_packet (ValentDevice *device,
 
   type = valent_packet_get_type (packet);
 
-  /* This is the only packet type an unpaired device can send or receive */
   if G_UNLIKELY (strcmp (type, "kdeconnect.pair") == 0)
-    valent_device_handle_pair (device, packet);
-
-  /* If unpaired, any other packet is ignored and the remote device notified */
+    {
+      valent_device_handle_pair (device, packet);
+    }
   else if G_UNLIKELY (!device->paired)
-    valent_device_send_pair (device, FALSE);
+    {
+      valent_device_send_pair (device, FALSE);
+    }
+  else if ((handlers = g_hash_table_lookup (device->handlers, type)) != NULL)
+    {
+      for (unsigned int i = 0, len = handlers->len; i < len; i++)
+        {
+          ValentDevicePlugin *handler = g_ptr_array_index (handlers, i);
 
-  /* If paired, try to find a plugin that can handle the packet type */
-  else if ((handler = g_hash_table_lookup (device->handlers, type)))
-    valent_device_plugin_handle_packet (handler, type, packet);
-
+          valent_device_plugin_handle_packet (handler, type, packet);
+        }
+    }
   else
-    g_debug ("%s: Unsupported packet \"%s\"", device->name, type);
+    {
+      VALENT_NOTE ("%s: Unsupported packet \"%s\"", device->name, type);
+    }
 }
 
 /**
