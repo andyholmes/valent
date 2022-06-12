@@ -38,35 +38,6 @@ jobs:
           yamllint --config-file src/tests/extra/yamllint.yml \
                    $(git ls-files '*.yml')
 
-  codespell:
-    name: Codespell
-    needs: [lint]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Spell Check
-        uses: codespell-project/actions-codespell@master
-        with:
-          ignore_words_list: doubleclick,inout,sav
-          skip: ./src/tests/data,./subprojects,./*.po
-
-  reuse:
-    name: REUSE Compliance
-    needs: [lint]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Lint
-        uses: fsfe/reuse-action@v1
-        with:
-          args: lint
-
   abicheck:
     name: ABI Compliance
     needs: [lint]
@@ -87,6 +58,47 @@ jobs:
           COMMIT_REF: ${{ github.event.pull_request.head.sha }}
         run: |
           ./src/tests/extra/abicheck.py ${STABLE_REF} ${COMMIT_REF}
+
+  reuse:
+    name: REUSE Compliance
+    needs: [lint]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Lint
+        uses: fsfe/reuse-action@v1
+        with:
+          args: lint
+
+  codespell:
+    name: Codespell
+    needs: [lint]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Spell Check
+        uses: codespell-project/actions-codespell@master
+        with:
+          ignore_words_list: doubleclick,inout,sav
+          skip: ./src/tests/data,./subprojects,./*.po
+
+  commitlint:
+    name: Commitlint
+    needs: [lint]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: wagoid/commitlint-github-action@v4
 
   test:
     name: Tests
