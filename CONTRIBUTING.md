@@ -21,6 +21,16 @@ Until the project is ready to start accepting reports, you are invited to
 discuss issues, features and get help in the [Discussions][discussions].
 
 
+## Workflow
+
+Valent uses a simple feature branch workflow, with commit messages following the
+[Conventional Commits][conventional-commits] standard.
+
+Simply create a new branch off of `main` to do your work, separate your changes
+into commits as appropriate and then open a pull request for review. Don't worry
+if any of this is unfamiliar, since this can be fixed up before merging.
+
+
 ## Submitting a Translation
 
 Valent does not yet use a translation service like Weblate or Crowdin. You
@@ -103,6 +113,7 @@ already distributed under an acceptable open source license.
 
 
 [annotations]: https://gi.readthedocs.io/en/latest/annotations/giannotations.html
+[conventional-commits]: https://www.conventionalcommits.org
 [discussions]: https://github.com/andyholmes/valent/discussions
 [linguas]: https://github.com/andyholmes/valent/blob/main/po/LINGUAS
 [po_dir]: https://github.com/andyholmes/valent/tree/main/po
