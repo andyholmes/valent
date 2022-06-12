@@ -1206,7 +1206,7 @@ valent_device_class_init (ValentDeviceClass *klass)
 
 /**
  * valent_device_new:
- * @id: (not nullable) a device ID
+ * @id: (not nullable): a device ID
  *
  * Create a new device for @id.
  *
