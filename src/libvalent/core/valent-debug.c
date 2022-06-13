@@ -21,6 +21,8 @@
 #include "valent-debug.h"
 
 
+/* LCOV_EXCL_START */
+
 #ifdef HAVE_SYSPROF
 G_LOCK_DEFINE_STATIC (sysprof_mutex);
 
@@ -257,3 +259,6 @@ valent_debug_clear (void)
   G_UNLOCK (sysprof_mutex);
 #endif /* VALENT_ENABLETRACE && HAVE_SYSPROF */
 }
+
+/* LCOV_EXCL_STOP */
+
