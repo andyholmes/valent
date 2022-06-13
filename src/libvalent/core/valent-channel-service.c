@@ -471,12 +471,12 @@ valent_channel_service_set_property (GObject      *object,
 
   switch (prop_id)
     {
-    case PROP_ID:
-      priv->id = g_value_dup_string (value);
-      break;
-
     case PROP_DATA:
       priv->data = g_value_dup_object (value);
+      break;
+
+    case PROP_ID:
+      priv->id = g_value_dup_string (value);
       break;
 
     case PROP_NAME:
