@@ -26,11 +26,15 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (ValentBluezProfile, valent_bluez_profile, VALENT, BLUEZ_PROFILE, GDBusInterfaceSkeleton)
 
-gboolean valent_bluez_profile_register   (ValentBluezProfile  *profile,
-                                          GDBusConnection     *connection,
-                                          GCancellable        *cancellable,
-                                          GError             **error);
-void     valent_bluez_profile_unregister (ValentBluezProfile  *profile);
+void       valent_bluez_profile_register        (ValentBluezProfile   *profile,
+                                                 GDBusConnection      *connection,
+                                                 GCancellable         *cancellable,
+                                                 GAsyncReadyCallback   callback,
+                                                 gpointer              user_data);
+gboolean   valent_bluez_profile_register_finish (ValentBluezProfile   *profile,
+                                                 GAsyncResult         *result,
+                                                 GError              **error);
+void       valent_bluez_profile_unregister      (ValentBluezProfile   *profile);
 
 G_END_DECLS
 

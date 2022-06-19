@@ -13,19 +13,16 @@
 #include "valent-bluez-profile.h"
 #include "valent-mux-connection.h"
 
+#define DEFAULT_BUFFER_SIZE 4096
+
 
 struct _ValentBluezChannelService
 {
   ValentChannelService  parent_instance;
 
-  GSettings            *settings;
-
-  GRecMutex             mutex;
-  GDBusConnection      *connection;
   GDBusProxy           *proxy;
-  GHashTable           *devices;
-
   ValentBluezProfile   *profile;
+  GHashTable           *devices;
   GHashTable           *muxers;
 };
 
@@ -50,20 +47,27 @@ handshake_cb (ValentMuxConnection *muxer,
   g_autoptr (ValentChannel) channel = NULL;
   g_autoptr (GError) error = NULL;
 
-  g_assert (VALENT_IS_BLUEZ_CHANNEL_SERVICE (task->service));
+  g_assert (VALENT_IS_BLUEZ_CHANNEL_SERVICE (self));
   g_assert (g_variant_is_object_path (task->object_path));
 
-  /* On success emit ValentChannelService::channel */
-  if ((channel = valent_mux_connection_handshake_finish (muxer, result, &error)))
+  channel = valent_mux_connection_handshake_finish (muxer, result, &error);
+
+  if (channel != NULL)
     {
       g_hash_table_replace (self->muxers,
                             g_strdup (task->object_path),
                             g_object_ref (muxer));
 
-      valent_channel_service_emit_channel (VALENT_CHANNEL_SERVICE (self), channel);
+      valent_channel_service_emit_channel (VALENT_CHANNEL_SERVICE (self),
+                                           channel);
     }
   else
-    g_debug ("[%s] %s: %s", G_STRFUNC, task->object_path, error->message);
+    {
+      g_warning ("%s(): failed to connect to \"%s\": %s",
+                 G_STRFUNC,
+                 task->object_path,
+                 error->message);
+    }
 
   /* The channel owns the muxer now */
   g_clear_object (&task->service);
@@ -92,7 +96,7 @@ on_connection_opened (ValentBluezProfile *profile,
   /* Create a Muxer */
   muxer = g_object_new (VALENT_TYPE_MUX_CONNECTION,
                         "base-stream", connection,
-                        "buffer-size", 4096,
+                        "buffer-size", DEFAULT_BUFFER_SIZE,
                         NULL);
 
   /* Negotiate the connection */
@@ -136,34 +140,28 @@ on_interfaces_added (ValentBluezChannelService *self,
                      const char                *object_path,
                      GVariant                  *interfaces)
 {
+  GDBusConnection *connection;
+  GVariantIter iter;
   const char *interface;
   GVariant *properties;
-  GVariantIter iter;
 
+  connection = g_dbus_proxy_get_connection (self->proxy);
   g_variant_iter_init (&iter, interfaces);
 
   while (g_variant_iter_next (&iter, "{&s@a{sv}}", &interface, &properties))
     {
       if (g_strcmp0 (interface, "org.bluez.Device1") == 0)
         {
-          g_autoptr (GError) error = NULL;
           g_autoptr (ValentBluezDevice) device = NULL;
 
-          device = valent_bluez_device_new (self->connection,
+          device = valent_bluez_device_new (connection,
                                             object_path,
-                                            properties,
-                                            &error);
+                                            properties);
 
-          if (device != NULL)
-            g_hash_table_insert (self->devices,
-                                 g_strdup (object_path),
-                                 g_object_ref (device));
-          else
-            g_warning ("Failed to create Bluez device: %s", error->message);
+          g_hash_table_insert (self->devices,
+                               g_strdup (object_path),
+                               g_object_ref (device));
         }
-
-      else if (g_strcmp0 (interface, "org.bluez.ProfileManager1") == 0)
-        VALENT_TODO ("ProfileManager1 interface ready; register profile here?");
 
       g_variant_unref (properties);
     }
@@ -194,18 +192,18 @@ on_interfaces_removed (ValentBluezChannelService  *self,
 }
 
 static void
-on_g_signal (GDBusProxy *proxy,
-             char       *sender_name,
-             char       *signal_name,
-             GVariant   *parameters,
-             gpointer    user_data)
+on_g_signal (GDBusProxy                *proxy,
+             char                      *sender_name,
+             char                      *signal_name,
+             GVariant                  *parameters,
+             ValentBluezChannelService *self)
 {
-  ValentBluezChannelService *self = VALENT_BLUEZ_CHANNEL_SERVICE (user_data);
+  g_autofree char *name_owner = NULL;
 
   g_assert (VALENT_IS_BLUEZ_CHANNEL_SERVICE (self));
 
   /* Ensure the name is properly owned */
-  if (g_dbus_proxy_get_name_owner (proxy) == NULL)
+  if ((name_owner = g_dbus_proxy_get_name_owner (proxy)) == NULL)
     return;
 
   if (g_strcmp0 (signal_name, "InterfacesAdded") == 0)
@@ -230,69 +228,90 @@ on_g_signal (GDBusProxy *proxy,
 
 static void
 get_managed_objects_cb (GDBusProxy   *proxy,
-                        GAsyncResult *res,
+                        GAsyncResult *result,
                         gpointer      user_data)
 {
-  ValentBluezChannelService *self = VALENT_BLUEZ_CHANNEL_SERVICE (user_data);
-  g_autoptr (GVariant) value = NULL;
-  g_autoptr (GVariant) arg0 = NULL;
-  g_autoptr (GError) error = NULL;
+  g_autoptr (GTask) task = G_TASK (user_data);
+  ValentBluezChannelService *self = g_task_get_source_object (task);
+  g_autoptr (GVariant) reply = NULL;
+  g_autoptr (GVariant) objects = NULL;
+  GError *error = NULL;
   const char *object_path;
   GVariant *interfaces;
   GVariantIter iter;
 
-  g_assert (VALENT_IS_BLUEZ_CHANNEL_SERVICE (self));
+  if ((reply = g_dbus_proxy_call_finish (proxy, result, &error)) == NULL)
+    return g_task_return_error (task, error);
 
-  value = g_dbus_proxy_call_finish (proxy, res, &error);
+  objects = g_variant_get_child_value (reply, 0);
 
-  if G_UNLIKELY (value == NULL)
-    {
-      g_warning ("[%s] %s", G_STRFUNC, error->message);
-      return;
-    }
-
-  arg0 = g_variant_get_child_value (value, 0);
-
-  g_variant_iter_init (&iter, arg0);
+  g_variant_iter_init (&iter, objects);
 
   while (g_variant_iter_next (&iter, "{&o@a{sa{sv}}}", &object_path, &interfaces))
     {
       on_interfaces_added (self, object_path, interfaces);
       g_variant_unref (interfaces);
     }
+
+  g_task_return_boolean (task, TRUE);
 }
 
 static void
-on_name_owner_changed (GDBusProxy *proxy,
-                       GParamSpec *pspec,
-                       gpointer    user_data)
+register_profile_cb (ValentBluezProfile *profile,
+                     GAsyncResult       *result,
+                     gpointer            user_data)
 {
-  ValentBluezChannelService *self = VALENT_BLUEZ_CHANNEL_SERVICE (user_data);
+  g_autoptr (GTask) task = G_TASK (user_data);
+  ValentBluezChannelService *self = g_task_get_source_object (task);
+  GCancellable *cancellable = g_task_get_cancellable (task);
+  GError *error = NULL;
+
+  if (!valent_bluez_profile_register_finish (profile, result, &error))
+    return g_task_return_error (task, error);
+
+  g_dbus_proxy_call (self->proxy,
+                     "GetManagedObjects",
+                     NULL,
+                     G_DBUS_CALL_FLAGS_NONE,
+                     -1,
+                     cancellable,
+                     (GAsyncReadyCallback)get_managed_objects_cb,
+                     g_steal_pointer (&task));
+}
+
+static void
+on_name_owner_changed (GDBusProxy                *proxy,
+                       GParamSpec                *pspec,
+                       ValentBluezChannelService *self)
+{
   g_autofree char *name_owner = NULL;
 
   g_assert (VALENT_IS_BLUEZ_CHANNEL_SERVICE (self));
 
   if ((name_owner = g_dbus_proxy_get_name_owner (proxy)) != NULL)
     {
-      g_dbus_proxy_call (self->proxy,
-                         "GetManagedObjects",
-                         NULL,
-                         G_DBUS_CALL_FLAGS_NONE,
-                         -1,
-                         NULL,
-                         (GAsyncReadyCallback)get_managed_objects_cb,
-                         self);
+      g_autoptr (GTask) task = NULL;
+      GDBusConnection *connection;
+
+      task = g_task_new (self, NULL, NULL, NULL);
+
+      connection = g_dbus_proxy_get_connection (proxy);
+      valent_bluez_profile_register (self->profile,
+                                     connection,
+                                     NULL,
+                                     (GAsyncReadyCallback)register_profile_cb,
+                                     g_steal_pointer (&task));
     }
   else
     {
       GHashTableIter iter;
-      gpointer value;
+      ValentMuxConnection *connection;
 
       g_hash_table_iter_init (&iter, self->muxers);
 
-      while (g_hash_table_iter_next (&iter, NULL, &value))
+      while (g_hash_table_iter_next (&iter, NULL, (void **)&connection))
         {
-          valent_mux_connection_close (value, NULL, NULL);
+          valent_mux_connection_close (connection, NULL, NULL);
           g_hash_table_iter_remove (&iter);
         }
 
@@ -316,7 +335,7 @@ valent_bluez_channel_service_identify (ValentChannelService *service,
   if ((name_owner = g_dbus_proxy_get_name_owner (self->proxy)) == NULL)
     return;
 
-  g_rec_mutex_lock (&self->mutex);
+  valent_object_lock (VALENT_OBJECT (self));
 
   if (target != NULL)
     {
@@ -341,63 +360,54 @@ valent_bluez_channel_service_identify (ValentChannelService *service,
         }
     }
 
-  g_rec_mutex_unlock (&self->mutex);
+  valent_object_unlock (VALENT_OBJECT (self));
 }
 
 static void
-start_task (GTask        *task,
-            gpointer      source_object,
-            gpointer      task_data,
-            GCancellable *cancellable)
+g_dbus_proxy_new_for_bus_cb (GObject      *object,
+                             GAsyncResult *result,
+                             gpointer      user_data)
 {
-  ValentBluezChannelService *self = source_object;
+  g_autoptr (GTask) task = G_TASK (user_data);
+  ValentBluezChannelService *self = g_task_get_source_object (task);
+  GCancellable *cancellable = g_task_get_cancellable (task);
+  g_autofree char *name_owner = NULL;
+  GDBusConnection *connection = NULL;
   GError *error = NULL;
 
-  /* Get the system bus connection */
-  if (self->connection == NULL)
-    self->connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, cancellable, &error);
-
-  if (self->connection == NULL)
+  if ((self->proxy = g_dbus_proxy_new_for_bus_finish (result, &error)) == NULL)
     return g_task_return_error (task, error);
 
-  /* Bluez ObjectManager */
-  self->proxy = g_dbus_proxy_new_sync (self->connection,
-                                       G_DBUS_PROXY_FLAGS_DO_NOT_AUTO_START,
-                                       NULL,
-                                       "org.bluez",
-                                       "/",
-                                       "org.freedesktop.DBus.ObjectManager",
-                                       cancellable,
-                                       &error);
+  g_signal_connect (self->proxy,
+                    "g-signal",
+                    G_CALLBACK (on_g_signal),
+                    self);
 
-  if (self->proxy == NULL)
-    return g_task_return_error (task, error);
+  /* Watch for bluez, but return if it's down currently */
+  g_signal_connect (self->proxy,
+                    "notify::g-name-owner",
+                    G_CALLBACK (on_name_owner_changed),
+                    self);
 
-  g_object_connect (self->proxy,
-                    "signal::notify::g-name-owner", on_name_owner_changed, self,
-                    "signal::g-signal",             on_g_signal,           self,
-                    NULL);
-  on_name_owner_changed (self->proxy, NULL, self);
+  if ((name_owner = g_dbus_proxy_get_name_owner (self->proxy)) == NULL)
+    return g_task_return_boolean (task, TRUE);
 
-  /* Bluetooth service profile */
-  g_object_connect (self->profile,
-                    "signal::connection-opened", on_connection_opened, self,
-                    "signal::connection-closed", on_connection_closed, self,
-                    NULL);
+  /* Make sure we're ready when the profile begins accepting connections */
+  g_signal_connect (self->profile,
+                    "connection-opened",
+                    G_CALLBACK (on_connection_opened),
+                    self);
+  g_signal_connect (self->profile,
+                    "connection-closed",
+                    G_CALLBACK (on_connection_closed),
+                    self);
 
-  if (!valent_bluez_profile_register (self->profile,
-                                      self->connection,
-                                      cancellable,
-                                      &error))
-    {
-      g_signal_handlers_disconnect_by_data (self->profile, self);
-      g_signal_handlers_disconnect_by_data (self->proxy, self);
-      g_clear_object (&self->proxy);
-
-      return g_task_return_error (task, error);
-    }
-
-  return g_task_return_boolean (task, TRUE);
+  connection = g_dbus_proxy_get_connection (self->proxy);
+  valent_bluez_profile_register (self->profile,
+                                 connection,
+                                 cancellable,
+                                 (GAsyncReadyCallback)register_profile_cb,
+                                 g_steal_pointer (&task));
 }
 
 static void
@@ -413,7 +423,16 @@ valent_bluez_channel_service_start (ValentChannelService *service,
 
   task = g_task_new (service, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_bluez_channel_service_start);
-  g_task_run_in_thread (task, start_task);
+
+  g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
+                            G_DBUS_PROXY_FLAGS_DO_NOT_AUTO_START,
+                            NULL,
+                            "org.bluez",
+                            "/",
+                            "org.freedesktop.DBus.ObjectManager",
+                            cancellable,
+                            (GAsyncReadyCallback)g_dbus_proxy_new_for_bus_cb,
+                            g_steal_pointer (&task));
 }
 
 static void
@@ -442,18 +461,13 @@ valent_bluez_channel_service_finalize (GObject *object)
 {
   ValentBluezChannelService *self = VALENT_BLUEZ_CHANNEL_SERVICE (object);
 
-  g_clear_object (&self->settings);
-
   /* Bluez */
-  g_clear_object (&self->connection);
   g_clear_object (&self->proxy);
   g_clear_object (&self->profile);
   g_clear_pointer (&self->devices, g_hash_table_unref);
 
   /* Muxers */
   g_clear_pointer (&self->muxers, g_hash_table_unref);
-  g_clear_object (&self->settings);
-  g_rec_mutex_clear (&self->mutex);
 
   G_OBJECT_CLASS (valent_bluez_channel_service_parent_class)->finalize (object);
 }
@@ -474,17 +488,18 @@ valent_bluez_channel_service_class_init (ValentBluezChannelServiceClass *klass)
 static void
 valent_bluez_channel_service_init (ValentBluezChannelService *self)
 {
-  g_rec_mutex_init (&self->mutex);
-  self->connection = NULL;
   self->profile = g_object_new (VALENT_TYPE_BLUEZ_PROFILE, NULL);
-  self->settings = g_settings_new ("ca.andyholmes.valent.bluez");
 
   /* Bluez Devices */
-  self->devices = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                         g_free, g_object_unref);
+  self->devices = g_hash_table_new_full (g_str_hash,
+                                         g_str_equal,
+                                         g_free,
+                                         g_object_unref);
 
-  /* Muxers */
-  self->muxers = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                        g_free, g_object_unref);
+  /* Muxer Connections */
+  self->muxers = g_hash_table_new_full (g_str_hash,
+                                        g_str_equal,
+                                        g_free,
+                                        g_object_unref);
 }
 

@@ -5,6 +5,8 @@
 
 #include "config.h"
 
+#include <gio/gio.h>
+
 #include "valent-mux-connection.h"
 #include "valent-mux-input-stream.h"
 
@@ -13,8 +15,8 @@ struct _ValentMuxInputStream
 {
   GInputStream         parent_instance;
 
-  char                *uuid;
   ValentMuxConnection *muxer;
+  char                *uuid;
 };
 
 G_DEFINE_TYPE (ValentMuxInputStream, valent_mux_input_stream, G_TYPE_INPUT_STREAM)
@@ -28,24 +30,10 @@ enum {
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
+
 /*
  * GInputStream
  */
-static gboolean
-valent_mux_input_stream_close (GInputStream  *stream,
-                               GCancellable  *cancellable,
-                               GError       **error)
-{
-  ValentMuxInputStream *self = VALENT_MUX_INPUT_STREAM (stream);
-
-  g_assert (VALENT_IS_MUX_INPUT_STREAM (stream));
-
-  return valent_mux_connection_close_channel (self->muxer,
-                                            self->uuid,
-                                            cancellable,
-                                            error);
-}
-
 static gssize
 valent_mux_input_stream_read (GInputStream  *stream,
                               void          *buffer,
@@ -136,7 +124,6 @@ valent_mux_input_stream_class_init (ValentMuxInputStreamClass *klass)
   object_class->set_property = valent_mux_input_stream_set_property;
 
   stream_class->read_fn = valent_mux_input_stream_read;
-  stream_class->close_fn = valent_mux_input_stream_close;
 
   /**
    * ValentMuxInputStream:muxer:

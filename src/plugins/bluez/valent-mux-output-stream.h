@@ -12,3 +12,4 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (ValentMuxOutputStream, valent_mux_output_stream, VALENT, MUX_OUTPUT_STREAM, GOutputStream)
 
 G_END_DECLS
+

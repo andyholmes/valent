@@ -4,6 +4,7 @@
 
 plugin_tests = [
   # Networking
+  'bluez',
   'lan',
 
   # Device Plugins

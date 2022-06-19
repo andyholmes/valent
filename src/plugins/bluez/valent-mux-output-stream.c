@@ -5,6 +5,8 @@
 
 #include "config.h"
 
+#include <gio/gio.h>
+
 #include "valent-mux-connection.h"
 #include "valent-mux-output-stream.h"
 
@@ -13,8 +15,8 @@ struct _ValentMuxOutputStream
 {
   GOutputStream        parent_instance;
 
-  char                *uuid;
   ValentMuxConnection *muxer;
+  char                *uuid;
 };
 
 G_DEFINE_TYPE (ValentMuxOutputStream, valent_mux_output_stream, G_TYPE_OUTPUT_STREAM)
@@ -49,31 +51,6 @@ valent_mux_output_stream_write (GOutputStream  *stream,
                                       count,
                                       cancellable,
                                       error);
-}
-
-static gboolean
-valent_mux_output_stream_flush (GOutputStream  *stream,
-                                GCancellable   *cancellable,
-                                GError        **error)
-{
-  g_assert (VALENT_IS_MUX_OUTPUT_STREAM (stream));
-
-  return TRUE;
-}
-
-static gboolean
-valent_mux_output_stream_close (GOutputStream  *stream,
-                                GCancellable   *cancellable,
-                                GError        **error)
-{
-  ValentMuxOutputStream *self = VALENT_MUX_OUTPUT_STREAM (stream);
-
-  g_assert (VALENT_IS_MUX_OUTPUT_STREAM (stream));
-
-  return valent_mux_connection_close_channel (self->muxer,
-                                              self->uuid,
-                                              cancellable,
-                                              error);
 }
 
 /*
@@ -147,13 +124,11 @@ valent_mux_output_stream_class_init (ValentMuxOutputStreamClass *klass)
   object_class->set_property = valent_mux_output_stream_set_property;
 
   stream_class->write_fn = valent_mux_output_stream_write;
-  stream_class->flush = valent_mux_output_stream_flush;
-  stream_class->close_fn = valent_mux_output_stream_close;
 
   /**
    * ValentMuxOutputStream:muxer:
    *
-   * The multiplexer supplying data for this stream.
+   * The multiplexer handling data for this stream.
    */
   properties [PROP_MUXER] =
     g_param_spec_object ("muxer", NULL, NULL,
