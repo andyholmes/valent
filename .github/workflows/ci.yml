@@ -167,7 +167,6 @@ jobs:
           meson test -C _build \
                      --print-errorlogs \
                      --repeat=${TEST_REPEAT} \
-                     --suite=valent \
                      --timeout-multiplier ${TEST_TIMEOUT}
 
       - name: Test Report

@@ -226,11 +226,15 @@ libedataserver_dep = dependency('libedataserver-1.2', version: eds_version)
 # libvalent-ui
 libadwaita_dep = dependency('libadwaita-1', version: libadwaita_version)
 
-# Debugging
+# Debugging & Testing
 libsysprof_capture = dependency('sysprof-capture-4',
-   version: '>= 3.38',
-    static: true,
   required: false,
+    static: true,
+   version: '>= 3.38',
+)
+libwalbottle_dep = dependency('libwalbottle-0',
+  required: false,
+   version: '>= 0.3.0'
 )
 
 
