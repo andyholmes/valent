@@ -183,8 +183,8 @@
             "buildsystem" : "meson",
             "builddir" : true,
             "config-opts" : [
-                "--libdir=/app/lib",
                 "--buildtype=debugoptimized",
+                "--libdir=/app/lib",
                 "-Dgtk=false",
                 "-Dsysprofd=host"
             ],
@@ -200,6 +200,24 @@
                 {
                     "type" : "git",
                     "url" : "https://gitlab.gnome.org/GNOME/sysprof.git"
+                }
+            ]
+        },
+        {
+            "name" : "walbottle",
+            "buildsystem" : "meson",
+            "builddir": true,
+            "config-opts" : [
+                "-Dgtk_doc=false",
+                "-Dinstalled_tests=false",
+                "-Dintrospection=disabled",
+                "-Dwerror=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.com/andrew.g.r.holmes/walbottle.git",
+                    "branch" : "wip/andyholmes/fix-include-subdir"
                 }
             ]
         },
