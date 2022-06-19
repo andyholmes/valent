@@ -1,0 +1,31 @@
+{
+  "identity": {
+    "id": 0,
+    "type": "kdeconnect.identity",
+    "body": {
+      "deviceId": "endpoint",
+      "deviceName": "Endpoint",
+      "protocolVersion": 7,
+      "deviceType": "phone",
+      "incomingCapabilities": [
+        "kdeconnect.mock.echo",
+        "kdeconnect.mock.transfer"
+      ],
+      "outgoingCapabilities": [
+        "kdeconnect.mock.echo",
+        "kdeconnect.mock.transfer"
+      ]
+    }
+  },
+  "transfer": {
+    "id": 0,
+    "type": "kdeconnect.mock.transfer",
+    "body": {
+      "filename": "image.png"
+    },
+    "payloadSize": 882,
+    "payloadTransferInfo": {
+      "uuid": "FIXME"
+    }
+  }
+}

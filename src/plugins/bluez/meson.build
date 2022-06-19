@@ -13,6 +13,7 @@ plugin_bluez_sources = files([
   'valent-bluez-channel.c',
   'valent-bluez-device.c',
   'valent-bluez-profile.c',
+  'valent-mux-io-stream.c',
   'valent-mux-connection.c',
   'valent-mux-input-stream.c',
   'valent-mux-output-stream.c',
@@ -34,11 +35,6 @@ plugin_bluez_resources = gnome.compile_resources('bluez-resources',
   dependencies: [plugin_bluez_info],
 )
 plugin_bluez_sources += plugin_bluez_resources
-
-# Settings
-install_data('ca.andyholmes.valent.bluez.gschema.xml',
-  install_dir: schemadir
-)
 
 # Static Build
 plugin_bluez = static_library('plugin-bluez',

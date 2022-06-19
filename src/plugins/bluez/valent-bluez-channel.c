@@ -16,7 +16,6 @@ struct _ValentBluezChannel
   ValentChannel        parent_instance;
 
   ValentMuxConnection *muxer;
-  char                *uuid;
 };
 
 G_DEFINE_TYPE (ValentBluezChannel, valent_bluez_channel, VALENT_TYPE_CHANNEL)
@@ -24,7 +23,6 @@ G_DEFINE_TYPE (ValentBluezChannel, valent_bluez_channel, VALENT_TYPE_CHANNEL)
 enum {
   PROP_0,
   PROP_MUXER,
-  PROP_UUID,
   N_PROPERTIES
 };
 
@@ -115,8 +113,9 @@ valent_bluez_channel_finalize (GObject *object)
 {
   ValentBluezChannel *self = VALENT_BLUEZ_CHANNEL (object);
 
+  valent_object_lock (VALENT_OBJECT (self));
   g_clear_object (&self->muxer);
-  g_clear_pointer (&self->uuid, g_free);
+  valent_object_unlock (VALENT_OBJECT (self));
 
   G_OBJECT_CLASS (valent_bluez_channel_parent_class)->finalize (object);
 }
@@ -132,11 +131,9 @@ valent_bluez_channel_get_property (GObject    *object,
   switch (prop_id)
     {
     case PROP_MUXER:
+      valent_object_lock (VALENT_OBJECT (self));
       g_value_set_object (value, self->muxer);
-      break;
-
-    case PROP_UUID:
-      g_value_set_string (value, self->uuid);
+      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     default:
@@ -155,11 +152,9 @@ valent_bluez_channel_set_property (GObject      *object,
   switch (prop_id)
     {
     case PROP_MUXER:
+      valent_object_lock (VALENT_OBJECT (self));
       self->muxer = g_value_dup_object (value);
-      break;
-
-    case PROP_UUID:
-      self->uuid = g_value_dup_string (value);
+      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     default:
@@ -193,41 +188,11 @@ valent_bluez_channel_class_init (ValentBluezChannelClass *klass)
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  /**
-   * ValentBluezChannel:uuid:
-   *
-   * A unique identifier for the channel.
-   */
-  properties [PROP_UUID] =
-    g_param_spec_string ("uuid", NULL, NULL,
-                         NULL,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
-
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 }
 
 static void
 valent_bluez_channel_init (ValentBluezChannel *self)
 {
-}
-
-/**
- * valent_bluez_channel_get_uuid:
- * @channel: a #ValentBluezChannel
- *
- * Gets the UUID for the channel. If a UUID is not currently set for @channel
- * (eg. at construction) a random UUID will be generated.
- *
- * Returns: (not nullable): the UUID
- */
-const char *
-valent_bluez_channel_get_uuid (ValentBluezChannel *self)
-{
-  g_return_val_if_fail (VALENT_IS_BLUEZ_CHANNEL (self), NULL);
-
-  return self->uuid;
 }
 
