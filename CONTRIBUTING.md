@@ -1,4 +1,4 @@
-# Contributing to Valent
+# Contributing
 
 Thanks for thinking about contributing to Valent!
 
@@ -13,7 +13,7 @@ GTK-based environments like elementaryOS or XFCE.
 
 ## Reporting an Issue
 
-Valent is currently in an early stage of development and not accepting bug
+This project is currently in an early stage of development and not accepting bug
 reports. Along with missing features, there are a large number of known issues
 that will be resolved as a result of planned architecture changes.
 
@@ -23,8 +23,8 @@ discuss issues, features and get help in the [Discussions][discussions].
 
 ## Workflow
 
-Valent uses a simple feature branch workflow, with commit messages following the
-[Conventional Commits][conventional-commits] standard.
+This project uses a simple feature branch workflow, with commit messages
+following the [Conventional Commits][conventional-commits] standard.
 
 Simply create a new branch off of `main` to do your work, separate your changes
 into commits as appropriate and then open a pull request for review. Don't worry
@@ -33,9 +33,9 @@ if any of this is unfamiliar, since this can be fixed up before merging.
 
 ## Submitting a Translation
 
-Valent does not yet use a translation service like Weblate or Crowdin. You
-should expect translatable strings to change frequently until the project is
-more mature.
+This project does not yet use a translation service like Weblate or Crowdin. You
+should also expect translatable strings to change frequently until the project
+is more mature.
 
 To contribute a translation, open a pull request which adds your locale to the
 [`LINGUAS`][linguas] file and your translated `.po` file to the [`po/`][po_dir]
@@ -44,15 +44,20 @@ directory.
 
 ## Contributing Code
 
-Valent follows most of the conventions of a typical GNOME project including
-coding style, documentation and introspection, with an emphasis on automated
-testing.
+This projects follows most of the conventions of a typical GNOME project
+including coding style, documentation and introspection, with an emphasis on
+automated testing.
+
+If developing with GNOME Builder, select the `ca.andyholmes.Valent.Devel.json`
+build configuration. For a traditional development environment, the
+[CI Image`Dockerfile`][ci-dockerfile] can serve as a reference for build and
+test dependencies.
 
 
 ### Coding Style
 
-Valent generally follows the [GNOME Coding Style][gnome-coding-style], with
-GNU-style indentation.
+This project generally follows the [GNOME C Coding Style][gnome-coding-style],
+with GNU-style indentation.
 
 * Don't use GLib typedefs like `gchar` or `guint`, unless they have some benefit
   like `gint64`.
@@ -113,6 +118,7 @@ already distributed under an acceptable open source license.
 
 
 [annotations]: https://gi.readthedocs.io/en/latest/annotations/giannotations.html
+[ci-dockerfile]: https://github.com/andyholmes/valent/blob/src/tests/extra/Dockerfile
 [conventional-commits]: https://www.conventionalcommits.org
 [discussions]: https://github.com/andyholmes/valent/discussions
 [linguas]: https://github.com/andyholmes/valent/blob/main/po/LINGUAS
