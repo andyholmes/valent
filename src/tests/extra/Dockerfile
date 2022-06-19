@@ -26,6 +26,18 @@ RUN dnf install -y --enablerepo=fedora-debuginfo,updates-debuginfo \
         sqlite-devel                  sqlite-debuginfo && \
     dnf clean all && rm -rf /var/cache/dnf
 
+RUN git clone https://gitlab.com/andrew.g.r.holmes/walbottle.git \
+              --branch wip/andyholmes/fix-include-subdir \
+              --single-branch && \
+    cd walbottle && \
+    meson setup --prefix=/usr \
+                -Dgtk_doc=false \
+                -Dinstalled_tests=false \
+                -Dintrospection=disabled \
+                -Dwerror=false \
+                _build && \
+    meson install -C _build
+
 # Set the locale
 ENV LANG=en_US.UTF-8
 RUN localedef -c -i en_US -f UTF-8 en_US.UTF-8
