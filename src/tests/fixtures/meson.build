@@ -75,21 +75,7 @@ libvalent_test_deps = [
   libvalent_ui_dep,
 ]
 
-if get_option('fuzz_tests')
-  libwalbottle_dep = dependency('libwalbottle-0', required: false)
-
-  if not libwalbottle_dep.found()
-    libwalbottle = subproject('walbottle',
-      default_options: [
-        'gtk_doc=false',
-        'installed_tests=false',
-        'introspection=disabled',
-        'werror=false',
-      ],
-    )
-    libwalbottle_dep = libwalbottle.get_variable('libwalbottle_dep')
-  endif
-
+if get_option('fuzz_tests') and libwalbottle_dep.found()
   libvalent_c_args += ['-DHAVE_WALBOTTLE']
   libvalent_test_deps += [libwalbottle_dep]
 endif

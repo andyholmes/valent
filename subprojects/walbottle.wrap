@@ -1,6 +1,0 @@
-[wrap-git]
-directory=walbottle
-url=https://gitlab.com/walbottle/walbottle.git
-revision=main
-depth=1
-
