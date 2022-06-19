@@ -3,7 +3,7 @@
 
 # The subdirs update these before libvalent is compiled
 libvalent_c_args = []
-libvalent_gir_extra_args = ['--pkg-export=valent-1.0']
+libvalent_gir_extra_args = ['--pkg-export=@0@'.format(valent_api_name)]
 
 libvalent_header_subdir = join_paths(valent_api_name, 'libvalent')
 libvalent_header_dir = join_paths(includedir, libvalent_header_subdir)
@@ -51,21 +51,21 @@ libvalent_dep = declare_dependency(
 
 # pkgconfig
 pkgconfig.generate(
-      subdirs: libvalent_include_subdirs,
-      version: meson.project_version(),
          name: valent_api_name,
-     filebase: valent_api_name,
-  description: 'Contains the plugin container for Valent.',
-  install_dir: join_paths(libdir, 'pkgconfig'),
+  description: 'Core implementation and plugin API for Valent.',
+      version: meson.project_version(),
      requires: [
        'gio-2.0',
        'gio-unix-2.0',
        'gnutls',
-       'gtk-4.0',
+       'gtk4',
        'json-glib-1.0',
        'libpeas-1.0',
        'libebook-contacts-1.2',
      ],
+      subdirs: libvalent_include_subdirs,
+     filebase: valent_api_name,
+  install_dir: join_paths(libdir, 'pkgconfig'),
 )
 
 # GObject Introspection
