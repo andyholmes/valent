@@ -212,3 +212,28 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: ${{ github.workspace }}/_build/meson-logs/coverage.info
+
+  flatpak:
+    name: Tests (Flatpak)
+    needs: [lint]
+    runs-on: ubuntu-latest
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:gnome-42
+      options: --privileged
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Install D-Bus
+        run: |
+          dnf install dbus-daemon -y
+
+      - name: Build
+        uses: andyholmes/flatpak-github-actions/flatpak-builder@dbus-tests
+        with:
+          bundle: ca.andyholmes.Valent.Tests.flatpak
+          manifest-path: build-aux/flatpak/ca.andyholmes.Valent.Tests.json
+          run-tests: true
