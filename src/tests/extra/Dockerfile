@@ -26,8 +26,10 @@ RUN dnf install -y --enablerepo=fedora-debuginfo,updates-debuginfo \
         sqlite-devel                  sqlite-debuginfo && \
     dnf clean all && rm -rf /var/cache/dnf
 
+# Build libwalbottle from source, since it's not available in most package
+# repositories and generally only practical in CI tests anyways
 RUN git clone https://gitlab.com/andrew.g.r.holmes/walbottle.git \
-              --branch wip/andyholmes/fix-include-subdir \
+              --branch main \
               --single-branch && \
     cd walbottle && \
     meson setup --prefix=/usr \
