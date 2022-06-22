@@ -22,7 +22,6 @@
         "--socket=session-bus",
         "--socket=ssh-auth",
         "--socket=wayland",
-        "--system-talk-name=org.bluez",
         "--system-talk-name=org.freedesktop.hostname1",
         "--system-talk-name=org.freedesktop.login1",
         "--system-talk-name=org.freedesktop.UPower",
@@ -163,7 +162,7 @@
         {
             "name" : "libportal",
             "buildsystem" : "meson",
-            "builddir": true,
+            "builddir" : true,
             "config-opts" : [
                 "-Dbackends=gtk4",
                 "-Ddocs=false",
@@ -175,6 +174,34 @@
                     "type" : "git",
                     "url" : "https://github.com/flatpak/libportal.git",
                     "tag" : "0.6"
+                }
+            ]
+        },
+        {
+            "name" : "dbus-python",
+            "buildsystem" : "simple",
+            "build-commands" : [
+                "pip3 install --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} dbus-python"
+            ],
+            "sources" : [
+                {
+                    "type" : "file",
+                    "url" : "https://files.pythonhosted.org/packages/b1/5c/ccfc167485806c1936f7d3ba97db6c448d0089c5746ba105b6eb22dba60e/dbus-python-1.2.18.tar.gz",
+                    "sha256" : "92bdd1e68b45596c833307a5ff4b217ee6929a1502f5341bae28fd120acf7260"
+	            }
+            ]
+        },
+        {
+            "name" : "python-dbusmock",
+            "buildsystem" : "simple",
+            "build-commands" : [
+                "pip3 install --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} python-dbusmock"
+            ],
+            "sources" : [
+                {
+                    "type" : "file",
+                    "url" : "https://files.pythonhosted.org/packages/b1/82/a901580a954e16f298eaef2ec69cd2927086d5933c934a906b03925a9e3f/python-dbusmock-0.28.0.tar.gz",
+                    "sha256" : "c63edeacec7796c4f379b2e17566d62afa404c048931ac9eba446470cec80ada"
                 }
             ]
         },
@@ -206,7 +233,7 @@
         {
             "name" : "walbottle",
             "buildsystem" : "meson",
-            "builddir": true,
+            "builddir" : true,
             "config-opts" : [
                 "-Dgtk_doc=false",
                 "-Dinstalled_tests=false",
@@ -216,8 +243,8 @@
             "sources" : [
                 {
                     "type" : "git",
-                    "url" : "https://gitlab.com/andrew.g.r.holmes/walbottle.git",
-                    "branch" : "wip/andyholmes/fix-include-subdir"
+                    "url" : "https://gitlab.com/walbottle/walbottle.git",
+                    "branch" : "main"
                 }
             ]
         },

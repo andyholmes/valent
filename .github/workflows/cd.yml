@@ -27,10 +27,9 @@ jobs:
 
       - name: Test
         run: |
-          dbus-run-session -- \
-          xvfb-run -a -s '-screen 0 1024x768x24' \
-          meson test -C _build \
-                     --print-errorlogs
+          dbus-run-session \
+          xvfb-run -d \
+          meson test -C _build
 
       - name: Generate
         env:

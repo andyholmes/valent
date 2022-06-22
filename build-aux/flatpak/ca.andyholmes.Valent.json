@@ -150,7 +150,7 @@
         {
             "name" : "libportal",
             "buildsystem" : "meson",
-            "builddir": true,
+            "builddir" : true,
             "config-opts" : [
                 "-Dbackends=gtk4",
                 "-Ddocs=false",
@@ -168,7 +168,7 @@
         {
             "name" : "valent",
             "buildsystem" : "meson",
-            "builddir": true,
+            "builddir" : true,
             "config-opts" : [
                 "--prefix=/app",
                 "--buildtype=release"
