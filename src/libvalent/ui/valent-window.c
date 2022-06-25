@@ -5,15 +5,10 @@
 
 #include "config.h"
 
+#include <adwaita.h>
 #include <glib/gi18n.h>
+#include <gtk/gtk.h>
 #include <libvalent-core.h>
-#include <libvalent-clipboard.h>
-#include <libvalent-contacts.h>
-#include <libvalent-input.h>
-#include <libvalent-media.h>
-#include <libvalent-mixer.h>
-#include <libvalent-notifications.h>
-#include <libvalent-session.h>
 
 #include "valent-device-panel.h"
 #include "valent-preferences-window.h"
@@ -344,7 +339,6 @@ valent_window_constructed (GObject *object)
 
   g_assert (self->manager != NULL);
 
-  /* Devices */
   devices = valent_device_manager_get_devices (self->manager);
 
   for (unsigned int i = 0; i < devices->len; i++)
@@ -491,7 +485,6 @@ valent_window_init (ValentWindow *self)
       gtk_style_context_add_class (style, "devel");
     }
 
-  /* Devices Page */
   gtk_list_box_set_sort_func (self->device_list, device_sort_func, NULL, NULL);
   self->devices = g_hash_table_new_full (NULL, NULL, NULL, g_free);
 }
