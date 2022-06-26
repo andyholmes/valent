@@ -72,7 +72,8 @@ valent_application_enable_plugin (ValentApplication *self,
   plugin->extension = peas_engine_create_extension (valent_get_engine (),
                                                     plugin->info,
                                                     VALENT_TYPE_APPLICATION_PLUGIN,
-                                                    "application", self,
+                                                    "application",    self,
+                                                    "device-manager", self->manager,
                                                     NULL);
   g_return_if_fail (PEAS_IS_EXTENSION (plugin->extension));
 
@@ -321,9 +322,24 @@ static void
 valent_application_activate (GApplication *application)
 {
   ValentApplication *self = VALENT_APPLICATION (application);
+  GHashTableIter iter;
+  ApplicationPlugin *plugin;
 
   g_assert (VALENT_IS_APPLICATION (self));
 
+  /* Run the plugin handlers */
+  g_hash_table_iter_init (&iter, self->plugins);
+
+  while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
+    {
+      if (plugin->extension == NULL)
+        continue;
+
+      if (valent_application_plugin_activate (VALENT_APPLICATION_PLUGIN (plugin->extension)))
+        return;
+    }
+
+  /* If no plugin takes ownership of the activation, present the main window */
   valent_application_present_window (self, NULL);
 }
 
@@ -333,7 +349,29 @@ valent_application_open (GApplication  *application,
                          int            n_files,
                          const char    *hint)
 {
-  VALENT_TODO ("handle files and URIs");
+  ValentApplication *self = VALENT_APPLICATION (application);
+  GHashTableIter iter;
+  ApplicationPlugin *plugin;
+
+  g_assert (VALENT_IS_APPLICATION (self));
+
+  /* Run the plugin handlers */
+  g_hash_table_iter_init (&iter, self->plugins);
+
+  while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
+    {
+      if (plugin->extension == NULL)
+        continue;
+
+      if (valent_application_plugin_open (VALENT_APPLICATION_PLUGIN (plugin->extension),
+                                          files,
+                                          n_files,
+                                          hint))
+        return;
+    }
+
+  /* If no plugin takes ownership of the files, print a warning. */
+  g_warning ("%s(): %i unhandled files", G_STRFUNC, n_files);
 }
 
 static void
