@@ -9,6 +9,7 @@
 
 #include <glib-object.h>
 
+#include "valent-device-manager.h"
 #include "valent-object.h"
 
 G_BEGIN_DECLS
@@ -23,14 +24,35 @@ struct _ValentApplicationPluginClass
   ValentObjectClass   parent_class;
 
   /* virtual functions */
-  void                (*disable) (ValentApplicationPlugin *plugin);
-  void                (*enable)  (ValentApplicationPlugin *plugin);
+  void                (*disable)      (ValentApplicationPlugin  *plugin);
+  void                (*enable)       (ValentApplicationPlugin  *plugin);
+  gboolean            (*activate)     (ValentApplicationPlugin  *plugin);
+  int                 (*command_line) (ValentApplicationPlugin  *plugin,
+                                       GApplicationCommandLine  *command_line);
+  gboolean            (*open)         (ValentApplicationPlugin  *plugin,
+                                       GFile                   **files,
+                                       int                       n_files,
+                                       const char               *hint);
 };
 
 VALENT_AVAILABLE_IN_1_0
-void   valent_application_plugin_disable (ValentApplicationPlugin *plugin);
+GApplication        * valent_application_plugin_get_application    (ValentApplicationPlugin  *plugin);
 VALENT_AVAILABLE_IN_1_0
-void   valent_application_plugin_enable  (ValentApplicationPlugin *plugin);
+ValentDeviceManager * valent_application_plugin_get_device_manager (ValentApplicationPlugin  *plugin);
+VALENT_AVAILABLE_IN_1_0
+void                  valent_application_plugin_disable            (ValentApplicationPlugin  *plugin);
+VALENT_AVAILABLE_IN_1_0
+void                  valent_application_plugin_enable             (ValentApplicationPlugin  *plugin);
+VALENT_AVAILABLE_IN_1_0
+gboolean              valent_application_plugin_activate           (ValentApplicationPlugin  *plugin);
+VALENT_AVAILABLE_IN_1_0
+int                   valent_application_plugin_command_line       (ValentApplicationPlugin  *plugin,
+                                                                    GApplicationCommandLine  *command_line);
+VALENT_AVAILABLE_IN_1_0
+gboolean              valent_application_plugin_open               (ValentApplicationPlugin  *plugin,
+                                                                    GFile                   **files,
+                                                                    int                       n_files,
+                                                                    const char               *hint);
 
 G_END_DECLS
 

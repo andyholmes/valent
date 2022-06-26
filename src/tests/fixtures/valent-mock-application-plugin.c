@@ -29,6 +29,35 @@ valent_mock_application_plugin_disable (ValentApplicationPlugin *plugin)
   g_assert (VALENT_IS_MOCK_APPLICATION_PLUGIN (plugin));
 }
 
+static gboolean
+valent_mock_application_plugin_activate (ValentApplicationPlugin *plugin)
+{
+  g_assert (VALENT_IS_MOCK_APPLICATION_PLUGIN (plugin));
+
+  return TRUE;
+}
+
+static int
+valent_mock_application_plugin_command_line (ValentApplicationPlugin *plugin,
+                                             GApplicationCommandLine *command_line)
+{
+  g_assert (VALENT_IS_APPLICATION_PLUGIN (plugin));
+  g_assert (G_IS_APPLICATION_COMMAND_LINE (command_line));
+
+  return 0;
+}
+
+static gboolean
+valent_mock_application_plugin_open (ValentApplicationPlugin  *plugin,
+                                     GFile                   **files,
+                                     int                       n_files,
+                                     const char               *hint)
+{
+  g_assert (VALENT_IS_MOCK_APPLICATION_PLUGIN (plugin));
+
+  return TRUE;
+}
+
 /*
  * GObject
  */
@@ -39,6 +68,9 @@ valent_mock_application_plugin_class_init (ValentMockApplicationPluginClass *kla
 
   plugin_class->enable = valent_mock_application_plugin_enable;
   plugin_class->disable = valent_mock_application_plugin_disable;
+  plugin_class->activate = valent_mock_application_plugin_activate;
+  plugin_class->command_line = valent_mock_application_plugin_command_line;
+  plugin_class->open = valent_mock_application_plugin_open;
 }
 
 static void
