@@ -27,7 +27,7 @@
  *
  * Implementations may handle application events by overriding the appropriate
  * virtual function, including [vfunc@Valent.ApplicationPlugin.activate] to
- * handle activation, [vfunc@Valent.ApplicationPlugin.command-line] to handle
+ * handle activation, [vfunc@Valent.ApplicationPlugin.command_line] to handle
  * CLI options, or [vfunc@Valent.ApplicationPlugin.open] to handle files.
  *
  * For plugin preferences see [iface@Valent.PreferencesPage].
