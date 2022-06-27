@@ -13,6 +13,8 @@ plugin_share_sources = files([
   'valent-share-download.c',
   'valent-share-plugin.c',
   'valent-share-preferences.c',
+  'valent-share-target.c',
+  'valent-share-target-chooser.c',
   'valent-share-upload.c',
 ])
 
