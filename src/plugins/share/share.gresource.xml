@@ -7,6 +7,7 @@
   <gresource prefix="/plugins/share">
     <file>share.plugin</file>
     <file preprocess="xml-stripblanks">valent-share-preferences.ui</file>
+    <file preprocess="xml-stripblanks">valent-share-target-chooser.ui</file>
   </gresource>
   <gresource prefix="/ca/andyholmes/Valent/icons">
     <file preprocess="xml-stripblanks" alias="scalable/actions/document-send-symbolic.svg">data/document-send-symbolic.svg</file>

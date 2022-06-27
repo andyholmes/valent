@@ -11,6 +11,8 @@ plugin_runcommand_tests = [
   'test-share-download',
   'test-share-plugin',
   'test-share-preferences',
+  'test-share-target',
+  'test-share-target-chooser',
   'test-share-upload',
 ]
 

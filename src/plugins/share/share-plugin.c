@@ -8,11 +8,15 @@
 
 #include "valent-share-plugin.h"
 #include "valent-share-preferences.h"
+#include "valent-share-target.h"
 
 
 G_MODULE_EXPORT void
 valent_share_plugin_register_types (PeasObjectModule *module)
 {
+  peas_object_module_register_extension_type (module,
+                                              VALENT_TYPE_APPLICATION_PLUGIN,
+                                              VALENT_TYPE_SHARE_TARGET);
   peas_object_module_register_extension_type (module,
                                               VALENT_TYPE_DEVICE_PLUGIN,
                                               VALENT_TYPE_SHARE_PLUGIN);
