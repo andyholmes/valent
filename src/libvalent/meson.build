@@ -53,7 +53,7 @@ libvalent_dep = declare_dependency(
 pkgconfig.generate(
          name: valent_api_name,
   description: 'Core implementation and plugin API for Valent.',
-      version: meson.project_version(),
+      version: valent_version,
      requires: [
        'gio-2.0',
        'gio-unix-2.0',
