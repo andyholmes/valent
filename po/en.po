@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2022-06-08 19:53-0700\n"
+"POT-Creation-Date: 2022-06-27 22:03-0700\n"
 "PO-Revision-Date: 2022-03-28 11:21-0700\n"
 "Last-Translator: Andy Holmes <andrew.g.r.holmes@gmail.com>\n"
 "Language-Team: English <andrew.g.r.holmes@gmail.com>\n"
@@ -52,7 +52,7 @@ msgstr ""
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:12
 #: data/ca.andyholmes.Valent.desktop.in.in:4
-#: src/libvalent/ui/valent-window.c:247
+#: src/libvalent/ui/valent-window.c:242
 msgid "Connect, control and sync devices"
 msgstr ""
 
@@ -109,17 +109,17 @@ msgstr ""
 msgid "Andy Holmes"
 msgstr ""
 
-#: src/libvalent/core/valent-device.c:506
+#: src/libvalent/core/valent-device.c:522
 #, c-format
 msgid "Pairing request from %s"
 msgstr ""
 
-#: src/libvalent/core/valent-device.c:517
+#: src/libvalent/core/valent-device.c:533
 #: src/libvalent/ui/valent-device-panel.ui:139
 msgid "Reject"
 msgstr ""
 
-#: src/libvalent/core/valent-device.c:523
+#: src/libvalent/core/valent-device.c:539
 #: src/libvalent/ui/valent-device-panel.ui:152
 msgid "Accept"
 msgstr ""
@@ -130,7 +130,7 @@ msgid "Unavailable"
 msgstr ""
 
 #: src/libvalent/ui/valent-device-panel.ui:19
-#: src/libvalent/ui/valent-menu-list.c:534
+#: src/libvalent/ui/valent-menu-list.c:530
 #: src/libvalent/ui/valent-preferences-window.c:330
 #: src/plugins/presenter/valent-presenter-remote.ui:121
 msgid "Previous"
@@ -150,7 +150,7 @@ msgid "Request Pairing"
 msgstr ""
 
 #: src/libvalent/ui/valent-device-panel.ui:225
-#: src/libvalent/ui/valent-window.c:126
+#: src/libvalent/ui/valent-window.c:121
 msgid "Disconnected"
 msgstr ""
 
@@ -175,7 +175,7 @@ msgstr ""
 msgid "Mark this device as untrusted"
 msgstr ""
 
-#: src/libvalent/ui/valent-menu-list.c:391
+#: src/libvalent/ui/valent-menu-list.c:387
 msgid "No Actions"
 msgstr ""
 
@@ -196,7 +196,7 @@ msgstr ""
 #: src/libvalent/ui/valent-preferences-window.c:507
 #: src/plugins/contacts/contacts.plugin.desktop.in:7
 #: src/plugins/contacts/valent-contacts-preferences.ui:8
-#: src/plugins/sms/valent-contact-row.c:266
+#: src/plugins/sms/valent-contact-row.c:260
 msgid "Contacts"
 msgstr ""
 
@@ -248,15 +248,15 @@ msgid ""
 "network."
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:121
+#: src/libvalent/ui/valent-window.c:116
 msgid "Unpaired"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:131
+#: src/libvalent/ui/valent-window.c:126
 msgid "Connected"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:250
+#: src/libvalent/ui/valent-window.c:245
 msgid "translator-credits"
 msgstr ""
 
@@ -582,11 +582,11 @@ msgstr ""
 msgid "Sync notifications"
 msgstr ""
 
-#: src/plugins/notification/valent-notification-dialog.ui:10
+#: src/plugins/notification/valent-notification-dialog.ui:12
 msgid "Notification"
 msgstr ""
 
-#: src/plugins/notification/valent-notification-dialog.ui:13
+#: src/plugins/notification/valent-notification-dialog.ui:15
 #: src/plugins/presenter/valent-presenter-remote.c:91
 #: src/plugins/runcommand/valent-runcommand-editor.c:65
 #: src/plugins/runcommand/valent-runcommand-editor.ui:12
@@ -597,10 +597,11 @@ msgstr ""
 #: src/plugins/share/valent-share-plugin.c:497
 #: src/plugins/share/valent-share-plugin.c:661
 #: src/plugins/share/valent-share-preferences.c:111
+#: src/plugins/share/valent-share-target-chooser.ui:24
 msgid "Cancel"
 msgstr ""
 
-#: src/plugins/notification/valent-notification-dialog.ui:18
+#: src/plugins/notification/valent-notification-dialog.ui:20
 msgid "Send"
 msgstr ""
 
@@ -790,7 +791,7 @@ msgid "Browse files and directories"
 msgstr ""
 
 #: src/plugins/sftp/valent-sftp-plugin.c:543
-#: src/plugins/sms/valent-contact-row.c:337
+#: src/plugins/sms/valent-contact-row.c:331
 msgid "Home"
 msgstr ""
 
@@ -943,6 +944,14 @@ msgstr ""
 msgid "Where received files are stored"
 msgstr ""
 
+#: src/plugins/share/valent-share-target-chooser.ui:8
+msgid "Select Device"
+msgstr ""
+
+#: src/plugins/share/valent-share-target-chooser.ui:59
+msgid "No devices available."
+msgstr ""
+
 #: src/plugins/sms/sms.plugin.desktop.in:7
 msgid "SMS"
 msgstr ""
@@ -951,18 +960,18 @@ msgstr ""
 msgid "Send and receive SMS messages"
 msgstr ""
 
-#: src/plugins/sms/valent-contact-row.c:218
-#: src/plugins/sms/valent-contact-row.c:319
-#: src/plugins/sms/valent-contact-row.c:340
-#: src/plugins/sms/valent-contact-row.c:469
+#: src/plugins/sms/valent-contact-row.c:212
+#: src/plugins/sms/valent-contact-row.c:313
+#: src/plugins/sms/valent-contact-row.c:334
+#: src/plugins/sms/valent-contact-row.c:463
 msgid "Other"
 msgstr ""
 
-#: src/plugins/sms/valent-contact-row.c:331
+#: src/plugins/sms/valent-contact-row.c:325
 msgid "Work"
 msgstr ""
 
-#: src/plugins/sms/valent-contact-row.c:334
+#: src/plugins/sms/valent-contact-row.c:328
 msgid "Mobile"
 msgstr ""
 
@@ -990,13 +999,13 @@ msgid_plural "%d mins"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/plugins/sms/valent-sms-conversation.c:925
+#: src/plugins/sms/valent-sms-conversation.c:919
 #: src/plugins/sms/valent-sms-window.c:604
-#: src/plugins/sms/valent-sms-window.c:909
+#: src/plugins/sms/valent-sms-window.c:905
 msgid "New Conversation"
 msgstr ""
 
-#: src/plugins/sms/valent-sms-conversation.c:942
+#: src/plugins/sms/valent-sms-conversation.c:936
 #, c-format
 msgid "%u other contact"
 msgid_plural "%u others"
@@ -1025,7 +1034,7 @@ msgid "Send to %s"
 msgstr ""
 
 #: src/plugins/sms/valent-sms-window.c:631
-#: src/plugins/sms/valent-sms-window.c:931
+#: src/plugins/sms/valent-sms-window.c:927
 msgid "Search Messages"
 msgstr ""
 
