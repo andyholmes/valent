@@ -6,7 +6,9 @@
 <interface domain="valent">
   <template class="ValentNotificationDialog" parent="GtkDialog">
     <property name="default-width">320</property>
-    <property name="default-height">300</property>
+    <property name="default-height">294</property>
+    <property name="width-request">320</property>
+    <property name="height-request">294</property>
     <property name="title" translatable="yes">Notification</property>
     <child type="action">
       <object class="GtkButton" id="cancel_button">
@@ -49,7 +51,7 @@
                       <object class="GtkImage" id="icon_image">
                         <property name="halign">start</property>
                         <property name="valign">start</property>
-                        <property name="icon-name">ca.andyholmes.Valent.Devel</property>
+                        <property name="icon-name">ca.andyholmes.Valent</property>
                         <property name="pixel-size">32</property>
                         <layout>
                           <property name="column">0</property>
