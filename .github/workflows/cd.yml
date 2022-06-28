@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/andyholmes/valent:latest
+    concurreny:
+      group: gh_pages
 
     steps:
       - name: Checkout
@@ -77,16 +79,17 @@ jobs:
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@releases/v4
         with:
-          branch: gh-pages
-          commit-message: Coverage Report
           folder: _build/meson-logs/coverage-html
           target-folder: coverage
+          single-commit: true
 
   documentation:
     name: Documentation
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/andyholmes/valent:latest
+    concurreny:
+      group: gh_pages
 
     steps:
       - name: Checkout
@@ -104,10 +107,9 @@ jobs:
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@releases/v4
         with:
-          branch: gh-pages
-          commit-message: API Reference
           folder: _build/doc/sdk/valent
           target-folder: documentation
+          single-commit: true
 
   flatpak:
     name: Flatpak
