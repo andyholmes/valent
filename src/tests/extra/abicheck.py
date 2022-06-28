@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-# SPDX-License-Identifier: GPL-3.0-or-later
-# SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileCopyrightText: No rights reserved
 
 
 """This script checks libvalent between two git references for ABI breaks.
