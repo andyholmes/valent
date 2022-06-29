@@ -39,10 +39,10 @@ class BluezTestFixture(glibtest.GLibTestCase, dbusmock.DBusTestCase):
         self.dbusmock = dbus.Interface(self.obj_bluez, dbusmock.MOCK_IFACE)
         self.dbusmock_bluez = dbus.Interface(self.obj_bluez, 'org.bluez.Mock')
 
-        # Add an adapter (ie. the local device)
+        # Add an adapter (i.e. the local device)
         self.dbusmock_bluez.AddAdapter('hci0', 'test-device')
 
-        # Add a device (ie. the remote device)
+        # Add a device (i.e. the remote device)
         self.dbusmock_bluez.AddDevice('hci0', 'AA:BB:CC:DD:EE:FF', 'MockDevice')
 
         # Set output to non-blocking

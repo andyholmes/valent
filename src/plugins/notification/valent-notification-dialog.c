@@ -321,7 +321,7 @@ valent_notification_dialog_get_reply (ValentNotificationDialog *dialog)
  * @dialog: a #ValentNotificationDialog
  * @state: the #ValentDevice state
  *
- * Sets whether the associated #ValentDevice is available (ie. connected and
+ * Sets whether the associated #ValentDevice is available (i.e. connected and
  * paired).
  */
 void

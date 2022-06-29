@@ -169,7 +169,7 @@ void valent_trace_mark (const char *strfunc,
 
 /**
  * VALENT_NOTE: (skip)
- * @fmt: the message format (ie. `printf()`)
+ * @fmt: the message format (a la `printf()`)
  * @...: the message parameters
  *
  * Logs a formatted message at %G_LOG_LEVEL_DEBUG.
@@ -179,7 +179,7 @@ void valent_trace_mark (const char *strfunc,
 
 /**
  * VALENT_TODO: (skip)
- * @fmt: the message format (ie. `printf()`)
+ * @fmt: the message format (a la `printf()`)
  * @...: the message parameters
  *
  * Appends to the log that incomplete code has been reached.
@@ -189,7 +189,7 @@ void valent_trace_mark (const char *strfunc,
 
 /**
  * VALENT_FIXME: (skip)
- * @fmt: the message format (ie. `printf()`)
+ * @fmt: the message format (a la `printf()`)
  * @...: the message parameters
  *
  * Appends to the log that unstable code has been reached.

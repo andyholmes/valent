@@ -16,7 +16,7 @@ valent_fdo_plugin_register_types (PeasObjectModule *module)
 {
   /* Although notifications typically only make sense in a graphical
    * environment, it is standard interface that one could implement for devices
-   * without a graphical display (ie. home automation device). */
+   * without a graphical display (i.e. home automation device). */
   peas_object_module_register_extension_type (module,
                                               VALENT_TYPE_NOTIFICATIONS_ADAPTER,
                                               VALENT_TYPE_FDO_NOTIFICATIONS);

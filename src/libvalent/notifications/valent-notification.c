@@ -271,8 +271,8 @@ valent_notification_class_init (ValentNotificationClass *klass)
    * The notifying application.
    *
    * The semantics of this property are not well-defined. It may be the
-   * application name (ie. the `appName` argument passed to
-   * `org.freedesktop.Notifications.Notify()`), the desktop application ID (ie.
+   * application name (i.e. the `appName` argument passed to
+   * `org.freedesktop.Notifications.Notify()`), the desktop application ID (i.e.
    * from `org.gtk.Notifications.AddNotification()`) or some other identifying
    * string.
    *

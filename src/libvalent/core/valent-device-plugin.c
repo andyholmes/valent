@@ -29,7 +29,7 @@
  * ## Plugin Requirements
  *
  * Device plugins essentially have two sets of dependent conditions for being
- * enabled. Plugins become available (ie. can be enabled) when any of the
+ * enabled. Plugins become available (i.e. can be enabled) when any of the
  * following are true:
  *
  * - any of the device's outgoing capabilities match any of the plugin's
