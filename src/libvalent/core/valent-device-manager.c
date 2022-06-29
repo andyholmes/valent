@@ -45,7 +45,6 @@ struct _ValentDeviceManager
   const char               *id;
   char                     *name;
 
-  PeasEngine               *engine;
   GHashTable               *devices;
   GHashTable               *services;
 
@@ -285,7 +284,7 @@ valent_device_manager_enable_service (ValentDeviceManager *self,
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
   g_assert (service != NULL);
 
-  service->extension = peas_engine_create_extension (self->engine,
+  service->extension = peas_engine_create_extension (valent_get_engine (),
                                                      service->info,
                                                      VALENT_TYPE_CHANNEL_SERVICE,
                                                      "data", self->data,
@@ -950,7 +949,6 @@ valent_device_manager_class_init (ValentDeviceManagerClass *klass)
 static void
 valent_device_manager_init (ValentDeviceManager *self)
 {
-  self->engine = valent_get_engine ();
   self->devices = g_hash_table_new_full (g_str_hash,
                                          g_str_equal,
                                          g_free,
@@ -1251,6 +1249,7 @@ valent_device_manager_identify (ValentDeviceManager *manager,
 void
 valent_device_manager_start (ValentDeviceManager *manager)
 {
+  PeasEngine *engine = NULL;
   const GList *plugins = NULL;
 
   VALENT_ENTRY;
@@ -1266,21 +1265,23 @@ valent_device_manager_start (ValentDeviceManager *manager)
 
   /* Setup services */
   manager->cancellable = g_cancellable_new ();
-  plugins = peas_engine_get_plugin_list (manager->engine);
+
+  engine = valent_get_engine ();
+  plugins = peas_engine_get_plugin_list (engine);
 
   for (const GList *iter = plugins; iter; iter = iter->next)
     {
       if (peas_plugin_info_is_loaded (iter->data))
-        on_load_service (manager->engine, iter->data, manager);
+        on_load_service (engine, iter->data, manager);
     }
 
-  g_signal_connect_object (manager->engine,
+  g_signal_connect_object (engine,
                            "load-plugin",
                            G_CALLBACK (on_load_service),
                            manager,
                            G_CONNECT_AFTER);
 
-  g_signal_connect_object (manager->engine,
+  g_signal_connect_object (engine,
                            "unload-plugin",
                            G_CALLBACK (on_unload_service),
                            manager,
@@ -1304,6 +1305,8 @@ valent_device_manager_start (ValentDeviceManager *manager)
 void
 valent_device_manager_stop (ValentDeviceManager *manager)
 {
+  PeasEngine *engine = NULL;
+
   VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_DEVICE_MANAGER (manager));
@@ -1317,7 +1320,8 @@ valent_device_manager_stop (ValentDeviceManager *manager)
   g_clear_object (&manager->cancellable);
 
   /* Stop and remove services */
-  g_signal_handlers_disconnect_by_data (manager->engine, manager);
+  engine = valent_get_engine ();
+  g_signal_handlers_disconnect_by_data (engine, manager);
   g_hash_table_remove_all (manager->services);
 
   VALENT_EXIT;
