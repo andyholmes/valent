@@ -3,6 +3,10 @@
 
 #pragma once
 
+#include <gio/gio.h>
+
+G_BEGIN_DECLS
+
 #define VALENT_CORE_INSIDE
 
 #include "valent-core-enums.h"
@@ -26,4 +30,6 @@
 #include "valent-version.h"
 
 #undef VALENT_CORE_INSIDE
+
+G_END_DECLS
 

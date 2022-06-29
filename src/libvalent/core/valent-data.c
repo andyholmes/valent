@@ -10,7 +10,6 @@
 #include "valent-data.h"
 #include "valent-debug.h"
 #include "valent-macros.h"
-#include "valent-utils.h"
 
 
 /**

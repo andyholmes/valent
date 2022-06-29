@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-#define G_LOG_DOMAIN "valent-utils"
+#define G_LOG_DOMAIN "valent-certificate"
 
 #include "config.h"
 
