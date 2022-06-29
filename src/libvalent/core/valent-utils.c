@@ -8,9 +8,6 @@
 #include <math.h>
 #include <sys/time.h>
 
-#include "../gconstructor.h"
-#include "valent-device.h"
-#include "valent-macros.h"
 #include "valent-utils.h"
 #include "valent-version.h"
 
@@ -19,21 +16,21 @@ static GThread *main_thread;
 static gboolean in_flatpak;
 
 
-#if defined (G_HAS_CONSTRUCTORS)
-# ifdef G_DEFINE_CONSTRUCTOR_NEEDS_PRAGMA
-#  pragma G_DEFINE_CONSTRUCTOR_PRAGMA_ARGS(valent_init_ctor)
-# endif
-G_DEFINE_CONSTRUCTOR(valent_init_ctor)
+#ifndef __has_attribute
+# define __has_attribute(x) 0  /* Compatibility with non-clang compilers. */
+#endif
+
+#if __has_attribute(constructor)
+static void __attribute__((constructor))
+valent_init_ctor (void)
+{
+  in_flatpak = g_file_test ("/.flatpak-info", G_FILE_TEST_EXISTS);
+  main_thread = g_thread_self ();
+}
 #else
 # error Your platform/compiler is missing constructor support
 #endif
 
-static void
-valent_init_ctor (void)
-{
-  main_thread = g_thread_self ();
-  in_flatpak = g_file_test ("/.flatpak-info", G_FILE_TEST_EXISTS);
-}
 
 /**
  * valent_get_main_thread:
