@@ -420,7 +420,7 @@ valent_data_get_directory (GUserDirectory directory)
  *
  * If @unique is true, the returned file is guaranteed not to exist. If
  * @basename exists in @dirname, the resulting file's name will have a
- * parenthesized number appended to it (ie. `image.png (2)`).
+ * parenthesized number appended to it (e.g. `image.png (2)`).
  *
  * Returns: (transfer full): a #GFile
  *

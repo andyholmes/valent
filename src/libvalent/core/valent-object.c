@@ -210,7 +210,7 @@ valent_object_class_init (ValentObjectClass *klass)
    * The object [class@Gio.Cancellable].
    *
    * A #GCancellable that can be used by operations that should be cancelled
-   * when the object is destroyed (ie. enters disposal).
+   * when the object is destroyed (i.e. enters disposal).
    *
    * Since: 1.0
    */

@@ -407,7 +407,7 @@ valent_share_plugin_open_file (ValentSharePlugin *self,
   packet = valent_packet_finish (builder);
 
   /* File uploads that request to be opened are sent as discrete transfers
-   * because the remote client (ie. kdeconnect-android) may download them
+   * because the remote client (i.e. kdeconnect-android) may download them
    * discretely. Otherwise the remote client may get confused by the
    * `numberOfFiles` field and consider a concurrent multi-file transfer as
    * incomplete.
