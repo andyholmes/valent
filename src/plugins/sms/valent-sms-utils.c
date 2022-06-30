@@ -298,6 +298,7 @@ valent_phone_number_normalize (const char *number)
 
   g_return_val_if_fail (number != NULL, NULL);
 
+#ifndef __clang_analyzer__
   i = 0;
   len = strlen (number);
   normalized = g_new (char, len + 1);
@@ -318,6 +319,7 @@ valent_phone_number_normalize (const char *number)
   /* If we fail or the number is stripped completely, return the original */
   if G_UNLIKELY (*normalized == '\0')
     return g_strdup (number);
+#endif
 
   return g_steal_pointer (&normalized);
 }

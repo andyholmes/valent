@@ -50,33 +50,6 @@ static guint signals[N_SIGNALS] = { 0, };
 static ValentNotifications *default_listener = NULL;
 
 
-static char *
-app_info_get_id (GAppInfo *app_info)
-{
-  const char *desktop_id;
-  g_autofree char *ret = NULL;
-  const char *filename;
-  int l;
-
-  desktop_id = g_app_info_get_id (app_info);
-  if (desktop_id != NULL)
-    {
-      ret = g_strdup (desktop_id);
-    }
-  else
-    {
-      filename = g_desktop_app_info_get_filename (G_DESKTOP_APP_INFO (app_info));
-      ret = g_path_get_basename (filename);
-    }
-
-  if (G_UNLIKELY (g_str_has_suffix (ret, ".desktop") == FALSE))
-    return NULL;
-
-  l = strlen (desktop_id);
-  *(ret + l - strlen(".desktop")) = '\0';
-  return g_steal_pointer (&ret);
-}
-
 static GVariant *
 app_info_serialize (GAppInfo *info)
 {

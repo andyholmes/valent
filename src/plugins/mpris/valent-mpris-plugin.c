@@ -704,6 +704,10 @@ valent_mpris_plugin_handle_player_list (ValentMprisPlugin *self,
   gpointer key;
   g_autofree const char **names = NULL;
 
+  g_assert (VALENT_IS_MPRIS_PLUGIN (self));
+  g_assert (player_list != NULL);
+
+#ifndef __clang_analyzer__
   /* Collect the remote player names */
   n_players = json_array_get_length (player_list);
   names = g_new (const char *, n_players + 1);
@@ -746,6 +750,7 @@ valent_mpris_plugin_handle_player_list (ValentMprisPlugin *self,
       valent_mpris_remote_export (remote);
       valent_mpris_plugin_request_update (self, player);
     }
+#endif
 }
 
 static void

@@ -94,6 +94,7 @@ valent_contact_plugin_handle_request_vcards_by_uid (ValentContactsPlugin *self,
 
   g_assert (VALENT_IS_CONTACTS_PLUGIN (self));
 
+#ifndef __clang_analyzer__
   /* Bail if exporting is disabled */
   if (self->local_store == NULL ||
       !g_settings_get_boolean (self->settings, "local-sync"))
@@ -141,6 +142,7 @@ valent_contact_plugin_handle_request_vcards_by_uid (ValentContactsPlugin *self,
                               self->cancellable,
                               (GAsyncReadyCallback)valent_contact_store_query_vcards_cb,
                               self);
+#endif
 }
 
 static void
