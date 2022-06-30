@@ -105,7 +105,7 @@ project_link_args = [
   '-Wl,-z,now',
 ]
 
-# Clang doesn't consider cleanup functions as using a variable
+# https://github.com/llvm/llvm-project/issues/50937
 if cc.get_id() == 'clang'
   project_c_args += ['-Wno-error=unused-but-set-variable']
 endif
