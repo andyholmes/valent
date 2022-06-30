@@ -310,7 +310,7 @@ valent_list_add_contact (GtkListBox *list,
       EVCardAttribute *attr = iter->data;
       ValentContactRow *row;
       g_autofree char *number = NULL;
-      const char *type = _("Other");
+      const char *type = NULL;
 
       number = e_vcard_attribute_get_value (attr);
 

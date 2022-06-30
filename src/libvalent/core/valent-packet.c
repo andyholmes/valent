@@ -417,7 +417,7 @@ valent_packet_set_payload_size (JsonNode *packet,
 /**
  * valent_packet_check_field:
  * @packet: a KDE Connect packet
- * @field: field name
+ * @field: (not nullable): field name
  *
  * Check @packet for @field and return %TRUE if present, with two exceptions:
  *
@@ -437,7 +437,7 @@ valent_packet_check_field (JsonNode   *packet,
   JsonNode *node;
 
   g_return_val_if_fail (JSON_NODE_HOLDS_OBJECT (packet), FALSE);
-  g_return_val_if_fail (field != NULL || *field == '\0', FALSE);
+  g_return_val_if_fail (field != NULL && *field != '\0', FALSE);
 
   root = json_node_get_object (packet);
 
@@ -462,7 +462,7 @@ valent_packet_check_field (JsonNode   *packet,
 /**
  * valent_packet_get_boolean:
  * @packet: a KDE Connect packet
- * @field: field name
+ * @field: (not nullable): field name
  * @value: (out) (nullable): a boolean
  *
  * Lookup @field in the body of @packet and assign it to @value.
@@ -483,7 +483,7 @@ valent_packet_get_boolean (JsonNode   *packet,
   JsonNode *node;
 
   g_return_val_if_fail (JSON_NODE_HOLDS_OBJECT (packet), FALSE);
-  g_return_val_if_fail (field != NULL || *field == '\0', FALSE);
+  g_return_val_if_fail (field != NULL && *field != '\0', FALSE);
 
   root = json_node_get_object (packet);
 
@@ -506,7 +506,7 @@ valent_packet_get_boolean (JsonNode   *packet,
 /**
  * valent_packet_get_double:
  * @packet: a KDE Connect packet
- * @field: field name
+ * @field: (not nullable): field name
  * @value: (out) (nullable): a double
  *
  * Lookup @field in the body of @packet and assign it to @value.
@@ -527,7 +527,7 @@ valent_packet_get_double (JsonNode   *packet,
   JsonNode *node;
 
   g_return_val_if_fail (JSON_NODE_HOLDS_OBJECT (packet), FALSE);
-  g_return_val_if_fail (field != NULL || *field == '\0', FALSE);
+  g_return_val_if_fail (field != NULL && *field != '\0', FALSE);
 
   root = json_node_get_object (packet);
 
@@ -550,7 +550,7 @@ valent_packet_get_double (JsonNode   *packet,
 /**
  * valent_packet_get_int:
  * @packet: a KDE Connect packet
- * @field: field name
+ * @field: (not nullable): field name
  * @value: (out) (nullable): an int64
  *
  * Lookup @field in the body of @packet and assign it to @value.
@@ -571,7 +571,7 @@ valent_packet_get_int (JsonNode   *packet,
   JsonNode *node;
 
   g_return_val_if_fail (JSON_NODE_HOLDS_OBJECT (packet), FALSE);
-  g_return_val_if_fail (field != NULL || *field == '\0', FALSE);
+  g_return_val_if_fail (field != NULL && *field != '\0', FALSE);
 
   root = json_node_get_object (packet);
 
@@ -594,7 +594,7 @@ valent_packet_get_int (JsonNode   *packet,
 /**
  * valent_packet_get_string:
  * @packet: a KDE Connect packet
- * @field: field name
+ * @field: (not nullable): field name
  * @value: (out) (nullable): a string
  *
  * Lookup @field in the body of @packet and assign it to @value.
@@ -616,7 +616,7 @@ valent_packet_get_string (JsonNode    *packet,
   const char *string;
 
   g_return_val_if_fail (JSON_NODE_HOLDS_OBJECT (packet), FALSE);
-  g_return_val_if_fail (field != NULL || *field == '\0', FALSE);
+  g_return_val_if_fail (field != NULL && *field != '\0', FALSE);
 
   root = json_node_get_object (packet);
 
@@ -644,7 +644,7 @@ valent_packet_get_string (JsonNode    *packet,
 /**
  * valent_packet_get_array:
  * @packet: a KDE Connect packet
- * @field: field name
+ * @field: (not nullable): field name
  * @value: (out) (nullable): a #JsonArray
  *
  * Lookup @field in the body of @packet and assign it to @value.
@@ -665,7 +665,7 @@ valent_packet_get_array (JsonNode    *packet,
   JsonNode *node;
 
   g_return_val_if_fail (JSON_NODE_HOLDS_OBJECT (packet), FALSE);
-  g_return_val_if_fail (field != NULL || *field == '\0', FALSE);
+  g_return_val_if_fail (field != NULL && *field != '\0', FALSE);
 
   root = json_node_get_object (packet);
 
@@ -688,7 +688,7 @@ valent_packet_get_array (JsonNode    *packet,
 /**
  * valent_packet_get_object:
  * @packet: a KDE Connect packet
- * @field: field name
+ * @field: (not nullable): field name
  * @value: (out) (nullable): a #JsonObject
  *
  * Lookup @field in the body of @packet and assign it to @value.
@@ -709,7 +709,7 @@ valent_packet_get_object (JsonNode    *packet,
   JsonNode *node;
 
   g_return_val_if_fail (JSON_NODE_HOLDS_OBJECT (packet), FALSE);
-  g_return_val_if_fail (field != NULL || *field == '\0', FALSE);
+  g_return_val_if_fail (field != NULL && *field != '\0', FALSE);
 
   root = json_node_get_object (packet);
 
@@ -732,7 +732,7 @@ valent_packet_get_object (JsonNode    *packet,
 /**
  * valent_packet_dup_strv:
  * @packet: a KDE Connect packet
- * @field: field name
+ * @field: (not nullable): field name
  *
  * Lookup @field in the body of @packet and return a newly allocated list of
  * strings.
@@ -755,8 +755,9 @@ valent_packet_dup_strv (JsonNode   *packet,
   unsigned int n_strings;
 
   g_return_val_if_fail (JSON_NODE_HOLDS_OBJECT (packet), NULL);
-  g_return_val_if_fail (field != NULL || *field == '\0', NULL);
+  g_return_val_if_fail (field != NULL && *field != '\0', NULL);
 
+#ifndef __clang_analyzer__
   root = json_node_get_object (packet);
 
   if G_UNLIKELY ((node = json_object_get_member (root, "body")) == NULL ||
@@ -782,6 +783,7 @@ valent_packet_dup_strv (JsonNode   *packet,
 
       strv[i] = json_node_dup_string (element);
     }
+#endif
 
   return g_steal_pointer (&strv);
 }

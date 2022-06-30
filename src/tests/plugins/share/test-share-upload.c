@@ -190,6 +190,8 @@ test_share_upload_multiple (ValentTestFixture *fixture,
 
       json_node_unref (packet);
     }
+
+  g_clear_pointer (&file_name, g_strfreev);
 }
 
 int
