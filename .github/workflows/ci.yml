@@ -107,6 +107,44 @@ jobs:
           fetch-depth: 0
       - uses: wagoid/commitlint-github-action@v5
 
+  analyze:
+    name: Static Analysis
+    needs: [pre-test]
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/andyholmes/valent:latest
+    env:
+      CC: clang
+      CC_LD: lld
+      CXX: clang++
+      CXX_LD: lld
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Build
+        run: |
+          meson setup --buildtype=debug \
+                      -Dintrospection=false \
+                      -Dtests=true \
+                      _build
+
+      - name: Scan
+        env:
+          SCANBUILD: ${{ github.workspace }}/src/tests/extra/scanbuild.sh
+        run: |
+          ninja -C _build scan-build
+
+      - name: Scan Report
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: Static Analysis
+          path: _build/meson-logs/scanbuild
+
   test:
     name: Tests
     needs: [pre-test]
