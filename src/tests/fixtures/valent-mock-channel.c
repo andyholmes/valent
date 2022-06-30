@@ -271,7 +271,7 @@ valent_mock_channel_dup_host (ValentMockChannel *self)
 {
   char *ret;
 
-  g_return_val_if_fail (VALENT_IS_MOCK_CHANNEL (self), NULL);
+  g_assert (VALENT_IS_MOCK_CHANNEL (self));
 
   valent_object_lock (VALENT_OBJECT (self));
   ret = g_strdup (self->host);
@@ -293,7 +293,7 @@ valent_mock_channel_get_port (ValentMockChannel *self)
 {
   guint16 ret;
 
-  g_return_val_if_fail (VALENT_IS_MOCK_CHANNEL (self), 0);
+  g_assert (VALENT_IS_MOCK_CHANNEL (self));
 
   valent_object_lock (VALENT_OBJECT (self));
   ret = self->port;

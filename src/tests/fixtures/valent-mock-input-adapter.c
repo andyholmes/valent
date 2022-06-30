@@ -78,7 +78,7 @@ valent_mock_input_adapter_pointer_motion (ValentInputAdapter *adapter,
 
   g_assert (VALENT_IS_INPUT_ADAPTER (adapter));
   g_assert (VALENT_IS_MOCK_INPUT_ADAPTER (adapter));
-  g_return_if_fail (dx != 0 || dy != 0);
+  g_assert (dx != 0 || dy != 0);
 
   event = g_strdup_printf ("POINTER MOTION %.1f %.1f", dx, dy);
   valent_test_event_push (event);
