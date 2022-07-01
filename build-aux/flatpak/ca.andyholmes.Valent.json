@@ -14,6 +14,7 @@
         "--share=network",
         "--socket=fallback-x11",
         "--socket=pulseaudio",
+        "--socket=session-bus",
         "--socket=ssh-auth",
         "--socket=wayland",
         "--system-talk-name=org.freedesktop.hostname1",
