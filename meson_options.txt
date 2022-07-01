@@ -48,12 +48,6 @@ option('fuzz_tests',
   description: 'Enable test fuzzing',
 )
 
-option('network_tests',
-         type: 'boolean',
-        value: false,
-  description: 'Allow networking in unit tests',
-)
-
 
 # Network Plugins
 option('plugin_bluez',
