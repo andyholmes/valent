@@ -49,7 +49,8 @@
   <!-- Additional Information -->
   <url type="homepage">https://github.com/andyholmes/valent</url>
   <url type="bugtracker">https://github.com/andyholmes/valent/issues</url>
-  <url type="donation">http://www.gnome.org/friends/</url>
+  <url type="donation">https://github.com/sponsors/andyholmes</url>
+  <url type="faq">https://github.com/andyholmes/valent/discussions</url>
   <url type="help">https://github.com/andyholmes/valent</url>
   <content_rating type="oars-1.1" />
 
