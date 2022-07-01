@@ -34,8 +34,6 @@ jobs:
           meson test -C _build
 
       - name: Generate
-        env:
-          WORKSPACE: ${{ github.workspace }}
         run: |
           lcov --directory _build \
                --capture \
@@ -52,7 +50,7 @@ jobs:
                --output-file _build/meson-logs/coverage.info
 
           lcov --extract _build/meson-logs/coverage.info \
-               "${WORKSPACE}/src/*" \
+               "${GITHUB_WORKSPACE}/src/*" \
                --rc lcov_branch_coverage=1 \
                --output-file _build/meson-logs/coverage.info
           lcov --remove _build/meson-logs/coverage.info \
@@ -61,7 +59,7 @@ jobs:
                --rc lcov_branch_coverage=1 \
                --output-file _build/meson-logs/coverage.info
 
-          genhtml --prefix "${WORKSPACE}" \
+          genhtml --prefix "${GITHUB_WORKSPACE}" \
                   --output-directory _build/meson-logs/coverage-html \
                   --title 'Code Coverage' \
                   --legend \
@@ -142,7 +140,7 @@ jobs:
           platforms: arm64
 
       - name: Build
-        uses: bilelmoussaoui/flatpak-github-actions/flatpak-builder@master
+        uses: flatpak/flatpak-github-actions/flatpak-builder@master
         with:
           arch: ${{ matrix.arch }}
           bundle: ca.andyholmes.Valent.flatpak
