@@ -1,0 +1,76 @@
+name: Static Analysis
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    paths:
+      - '**/*.c'
+      - '**/*.h'
+  schedule:
+    - cron: 45 3 * * 6
+
+jobs:
+  codeql:
+    name: Static Analysis (CodeQL)
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/andyholmes/valent:latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Initialize
+        uses: github/codeql-action/init@v2
+        with:
+          languages: cpp
+
+      - name: Build
+        run: |
+          meson setup --buildtype=release \
+                      _build
+          meson compile -C _build
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@v2
+
+  llvm:
+    name: Static Analysis (LLVM)
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/andyholmes/valent:latest
+    env:
+      CC: clang
+      CC_LD: lld
+      CXX: clang++
+      CXX_LD: lld
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Build
+        run: |
+          meson setup --buildtype=debug \
+                      -Dintrospection=false \
+                      -Dtests=true \
+                      _build
+
+      - name: Scan
+        env:
+          SCANBUILD: ${{ github.workspace }}/src/tests/extra/scanbuild.sh
+        run: |
+          ninja -C _build scan-build
+
+      - name: Scan Report
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: Static Analysis
+          path: _build/meson-logs/scanbuild
