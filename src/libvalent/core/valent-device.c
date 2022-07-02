@@ -16,10 +16,10 @@
 #include "valent-device.h"
 #include "valent-device-plugin.h"
 #include "valent-device-private.h"
+#include "valent-global.h"
 #include "valent-macros.h"
 #include "valent-object.h"
 #include "valent-packet.h"
-#include "valent-utils.h"
 
 #define PAIR_REQUEST_ID      "pair-request"
 #define PAIR_REQUEST_TIMEOUT 30
@@ -978,7 +978,7 @@ valent_device_init (ValentDevice *self)
   GSimpleAction *action;
 
   /* Plugins */
-  self->engine = valent_get_engine ();
+  self->engine = valent_get_plugin_engine ();
   self->plugins = g_hash_table_new_full (NULL, NULL, NULL, device_plugin_free);
   self->handlers = g_hash_table_new_full (g_str_hash,
                                           g_str_equal,

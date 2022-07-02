@@ -14,7 +14,7 @@ test_notification_plugin_preferences (void)
   g_autofree char *device_id = NULL;
   PeasPluginInfo *plugin_info = NULL;
 
-  engine = valent_get_engine ();
+  engine = valent_get_plugin_engine ();
   info = peas_engine_get_plugin_info (engine, "notification");
   prefs = peas_engine_create_extension (engine,
                                         info,

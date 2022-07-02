@@ -69,7 +69,7 @@ lan_service_fixture_set_up (LanBackendFixture *fixture,
 
   fixture->loop = g_main_loop_new (NULL, FALSE);
 
-  plugin_info = peas_engine_get_plugin_info (valent_get_engine (), "lan");
+  plugin_info = peas_engine_get_plugin_info (valent_get_plugin_engine (), "lan");
   fixture->service = g_object_new (VALENT_TYPE_LAN_CHANNEL_SERVICE,
                                    "id",                "test-device",
                                    "broadcast-address", "127.0.0.255",

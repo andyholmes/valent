@@ -383,7 +383,7 @@ test_manager_dispose (ManagerFixture *fixture,
     g_main_context_iteration (NULL, FALSE);
 
   /* Unload plugin */
-  engine = valent_get_engine ();
+  engine = valent_get_plugin_engine ();
   peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "mock"));
 
   while ((service = valent_mock_channel_service_get_instance ()) != NULL)

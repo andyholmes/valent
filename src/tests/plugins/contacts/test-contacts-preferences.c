@@ -14,7 +14,7 @@ test_contacts_plugin_preferences (void)
   g_autofree char *device_id = NULL;
   PeasPluginInfo *plugin_info = NULL;
 
-  engine = valent_get_engine ();
+  engine = valent_get_plugin_engine ();
   info = peas_engine_get_plugin_info (engine, "contacts");
   prefs = peas_engine_create_extension (engine,
                                         info,

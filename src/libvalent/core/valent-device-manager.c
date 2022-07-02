@@ -17,9 +17,9 @@
 #include "valent-device-impl.h"
 #include "valent-device-manager.h"
 #include "valent-device-private.h"
+#include "valent-global.h"
 #include "valent-macros.h"
 #include "valent-packet.h"
-#include "valent-utils.h"
 
 
 /**
@@ -284,7 +284,7 @@ valent_device_manager_enable_service (ValentDeviceManager *self,
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
   g_assert (service != NULL);
 
-  service->extension = peas_engine_create_extension (valent_get_engine (),
+  service->extension = peas_engine_create_extension (valent_get_plugin_engine (),
                                                      service->info,
                                                      VALENT_TYPE_CHANNEL_SERVICE,
                                                      "data", self->data,
@@ -1266,7 +1266,7 @@ valent_device_manager_start (ValentDeviceManager *manager)
   /* Setup services */
   manager->cancellable = g_cancellable_new ();
 
-  engine = valent_get_engine ();
+  engine = valent_get_plugin_engine ();
   plugins = peas_engine_get_plugin_list (engine);
 
   for (const GList *iter = plugins; iter; iter = iter->next)
@@ -1320,7 +1320,7 @@ valent_device_manager_stop (ValentDeviceManager *manager)
   g_clear_object (&manager->cancellable);
 
   /* Stop and remove services */
-  engine = valent_get_engine ();
+  engine = valent_get_plugin_engine ();
   g_signal_handlers_disconnect_by_data (engine, manager);
   g_hash_table_remove_all (manager->services);
 

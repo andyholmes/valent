@@ -86,7 +86,7 @@ on_plugin_added (ValentDevice      *device,
   widgets = g_new0 (PluginWidgets, 1);
   g_hash_table_insert (self->plugins, info, widgets);
 
-  engine = valent_get_engine ();
+  engine = valent_get_plugin_engine ();
 
   /* Gadgets (eg. HeaderBar widgets) */
   if (peas_engine_provides_extension (engine, info, VALENT_TYPE_DEVICE_GADGET))

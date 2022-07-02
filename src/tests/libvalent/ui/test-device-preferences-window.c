@@ -29,7 +29,7 @@ test_device_preference_window_basic (ValentTestFixture *fixture,
   g_clear_object (&device);
 
   /* Unload/Load the plugin */
-  engine = valent_get_engine ();
+  engine = valent_get_plugin_engine ();
   info = peas_engine_get_plugin_info (engine, "mock");
   peas_engine_unload_plugin (engine, info);
   peas_engine_load_plugin (engine, info);

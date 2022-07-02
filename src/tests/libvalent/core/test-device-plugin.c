@@ -21,7 +21,7 @@ device_fixture_set_up (DevicePluginFixture *fixture,
   PeasEngine *engine;
   PeasPluginInfo *plugin_info;
 
-  engine = valent_get_engine ();
+  engine = valent_get_plugin_engine ();
   plugin_info = peas_engine_get_plugin_info (engine, "mock");
 
   fixture->device = g_object_new (VALENT_TYPE_DEVICE,

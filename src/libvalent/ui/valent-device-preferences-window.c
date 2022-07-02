@@ -78,7 +78,7 @@ on_plugin_added (ValentDevice                  *device,
   g_assert (info != NULL);
   g_assert (VALENT_IS_DEVICE_PREFERENCES_WINDOW (self));
 
-  engine = valent_get_engine ();
+  engine = valent_get_plugin_engine ();
   module = peas_plugin_info_get_module_name (info);
   title = peas_plugin_info_get_name (info);
   subtitle = peas_plugin_info_get_description (info);

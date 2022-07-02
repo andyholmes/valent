@@ -21,11 +21,11 @@ libvalent_core_public_headers = [
   'valent-device-manager.h',
   'valent-device-plugin.h',
   'valent-device-transfer.h',
+  'valent-global.h',
   'valent-macros.h',
   'valent-object.h',
   'valent-packet.h',
   'valent-transfer.h',
-  'valent-utils.h',
 ]
 
 libvalent_core_private_headers = [
@@ -58,11 +58,11 @@ libvalent_core_public_sources = [
   'valent-device-manager.c',
   'valent-device-plugin.c',
   'valent-device-transfer.c',
+  'valent-global.c',
   'valent-object.c',
   'valent-object-utils.c',
   'valent-packet.c',
   'valent-transfer.c',
-  'valent-utils.c',
   'valent-version.c',
 ]
 

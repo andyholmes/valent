@@ -11,7 +11,7 @@
 
 #include <glib.h>
 
-#include "valent-utils.h"
+#include "valent-global.h"
 
 G_BEGIN_DECLS
 

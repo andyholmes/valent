@@ -69,7 +69,7 @@ valent_application_enable_plugin (ValentApplication *self,
 {
   g_assert (VALENT_IS_APPLICATION (self));
 
-  plugin->extension = peas_engine_create_extension (valent_get_engine (),
+  plugin->extension = peas_engine_create_extension (valent_get_plugin_engine (),
                                                     plugin->info,
                                                     VALENT_TYPE_APPLICATION_PLUGIN,
                                                     "application",    self,
@@ -183,7 +183,7 @@ valent_application_load_plugins (ValentApplication *self)
                                          NULL,
                                          application_plugin_free);
 
-  engine = valent_get_engine ();
+  engine = valent_get_plugin_engine ();
   plugins = peas_engine_get_plugin_list (engine);
 
   for (const GList *iter = plugins; iter; iter = iter->next)
@@ -212,7 +212,7 @@ valent_application_unload_plugins (ValentApplication *self)
 
   g_assert (VALENT_IS_APPLICATION (self));
 
-  engine = valent_get_engine ();
+  engine = valent_get_plugin_engine ();
   g_signal_handlers_disconnect_by_data (engine, self);
 
   g_hash_table_remove_all (self->plugins);

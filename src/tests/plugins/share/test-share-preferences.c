@@ -14,7 +14,7 @@ test_share_plugin_preferences (void)
   g_autofree char *device_id = NULL;
   PeasPluginInfo *plugin_info = NULL;
 
-  engine = valent_get_engine ();
+  engine = valent_get_plugin_engine ();
   info = peas_engine_get_plugin_info (engine, "share");
   prefs = peas_engine_create_extension (engine,
                                         info,
@@ -44,7 +44,7 @@ test_share_plugin_download_folder (void)
   g_test_skip ("Settings schema 'org.gtk.gtk4.Settings.FileChooser' is not installed");
   return;
 
-  engine = valent_get_engine ();
+  engine = valent_get_plugin_engine ();
   info = peas_engine_get_plugin_info (engine, "share");
   prefs = peas_engine_create_extension (engine,
                                         info,

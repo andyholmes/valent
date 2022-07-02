@@ -125,7 +125,7 @@ static void
 plugin_row_add_extensions (AdwExpanderRow *plugin_row,
                            PeasPluginInfo *info)
 {
-  PeasEngine *engine = valent_get_engine ();
+  PeasEngine *engine = valent_get_plugin_engine ();
   const char *module_name = peas_plugin_info_get_module_name (info);
   GtkWidget *row;
 
@@ -177,7 +177,7 @@ on_load_plugin (PeasEngine              *engine,
   g_assert (info != NULL);
   g_assert (VALENT_IS_PREFERENCES_WINDOW (self));
 
-  engine = valent_get_engine ();
+  engine = valent_get_plugin_engine ();
   module = peas_plugin_info_get_module_name (info);
   title = peas_plugin_info_get_name (info);
   subtitle = peas_plugin_info_get_description (info);
@@ -390,7 +390,7 @@ static void
 valent_preferences_window_constructed (GObject *object)
 {
   ValentPreferencesWindow *self = VALENT_PREFERENCES_WINDOW (object);
-  PeasEngine *engine = valent_get_engine ();
+  PeasEngine *engine = valent_get_plugin_engine ();
   const GList *plugins = NULL;
 
   /* Modify the dialog */
@@ -432,7 +432,7 @@ valent_preferences_window_dispose (GObject *object)
 {
   ValentPreferencesWindow *self = VALENT_PREFERENCES_WINDOW (object);
 
-  g_signal_handlers_disconnect_by_data (valent_get_engine (), self);
+  g_signal_handlers_disconnect_by_data (valent_get_plugin_engine (), self);
   g_clear_object (&self->settings);
 
   G_OBJECT_CLASS (valent_preferences_window_parent_class)->dispose (object);

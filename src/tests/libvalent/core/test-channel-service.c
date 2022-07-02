@@ -27,7 +27,7 @@ channel_service_fixture_set_up (ChannelServiceFixture *fixture,
 
   fixture->loop = g_main_loop_new (NULL, FALSE);
 
-  plugin_info = peas_engine_get_plugin_info (valent_get_engine (), "mock");
+  plugin_info = peas_engine_get_plugin_info (valent_get_plugin_engine (), "mock");
   fixture->service = g_object_new (VALENT_TYPE_MOCK_CHANNEL_SERVICE,
                                    "id",          "mock-service",
                                    "name",        "Mock Service",
@@ -272,7 +272,7 @@ test_channel_service_basic (void)
   PeasPluginInfo *plugin_info_out;
 
   /* ValentChannelService */
-  plugin_info = peas_engine_get_plugin_info (valent_get_engine (), "mock");
+  plugin_info = peas_engine_get_plugin_info (valent_get_plugin_engine (), "mock");
   data = valent_data_new (NULL, NULL);
   service = g_object_new (VALENT_TYPE_MOCK_CHANNEL_SERVICE,
                           "data",        data,

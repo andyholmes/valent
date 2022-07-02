@@ -20,7 +20,7 @@ application_fixture_set_up (ApplicationPluginFixture *fixture,
   PeasEngine *engine;
   PeasPluginInfo *plugin_info;
 
-  engine = valent_get_engine ();
+  engine = valent_get_plugin_engine ();
   plugin_info = peas_engine_get_plugin_info (engine, "mock");
 
   fixture->application = g_application_new ("ca.andyholmes.Valent.Tests",

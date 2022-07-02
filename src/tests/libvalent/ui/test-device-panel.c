@@ -37,7 +37,7 @@ test_device_panel_basic (ValentTestFixture *fixture,
   g_clear_object (&device);
 
   /* Unload the plugin */
-  engine = valent_get_engine ();
+  engine = valent_get_plugin_engine ();
   peas_engine_unload_plugin (engine,
                              peas_engine_get_plugin_info (engine, "mock"));
 
