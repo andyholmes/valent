@@ -459,15 +459,15 @@ test_device_actions (DeviceFixture *fixture,
   v_assert_packet_type (packet, "kdeconnect.mock.echo");
 
   /* Add/Remove */
-  plugin_info = peas_engine_get_plugin_info (valent_get_engine (),
+  plugin_info = peas_engine_get_plugin_info (valent_get_plugin_engine (),
                                              "packetless");
 
-  peas_engine_unload_plugin (valent_get_engine (), plugin_info);
+  peas_engine_unload_plugin (valent_get_plugin_engine (), plugin_info);
   g_assert_false (g_action_group_has_action (actions, "packetless.action"));
   g_assert_true (emitted);
   emitted = FALSE;
 
-  peas_engine_load_plugin (valent_get_engine (), plugin_info);
+  peas_engine_load_plugin (valent_get_plugin_engine (), plugin_info);
   g_assert_true (g_action_group_has_action (actions, "packetless.action"));
   g_assert_true (emitted);
   emitted = FALSE;
@@ -489,7 +489,7 @@ test_device_plugins (DeviceFixture *fixture,
   g_ptr_array_unref (device_plugins);
 
   /* Unload & Load Plugins (Engine) */
-  engine = valent_get_engine ();
+  engine = valent_get_plugin_engine ();
   engine_plugins = peas_engine_get_plugin_list (engine);
 
   /* Unload Plugins */

@@ -44,7 +44,7 @@ bluez_service_fixture_set_up (BluezBackendFixture *fixture,
   fixture->packets = valent_test_load_json (TEST_DATA_DIR"/plugin-bluez.json");
   fixture->connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL);
 
-  plugin_info = peas_engine_get_plugin_info (valent_get_engine (), "bluez");
+  plugin_info = peas_engine_get_plugin_info (valent_get_plugin_engine (), "bluez");
   fixture->service = g_object_new (VALENT_TYPE_BLUEZ_CHANNEL_SERVICE,
                                    "id",          "test-device",
                                    "plugin-info", plugin_info,

@@ -22,11 +22,11 @@ G_BEGIN_DECLS
 #include "valent-device-manager.h"
 #include "valent-device-plugin.h"
 #include "valent-device-transfer.h"
+#include "valent-global.h"
 #include "valent-macros.h"
 #include "valent-object.h"
 #include "valent-packet.h"
 #include "valent-transfer.h"
-#include "valent-utils.h"
 #include "valent-version.h"
 
 #undef VALENT_CORE_INSIDE

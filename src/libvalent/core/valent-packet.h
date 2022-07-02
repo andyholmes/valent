@@ -7,7 +7,6 @@
 # error "Only <libvalent-core.h> can be included directly."
 #endif
 
-#include <gio/gio.h>
 #include <json-glib/json-glib.h>
 
 #include "valent-version.h"
@@ -173,5 +172,7 @@ char        * valent_packet_serialize        (JsonNode       *packet);
 VALENT_AVAILABLE_IN_1_0
 JsonNode    * valent_packet_deserialize      (const char     *json,
                                               GError        **error);
+VALENT_AVAILABLE_IN_1_0
+gint64        valent_timestamp_ms            (void);
 
 G_END_DECLS

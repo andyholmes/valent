@@ -17,7 +17,7 @@ test_battery_plugin_gadget (ValentTestFixture *fixture,
   ValentDevice *device;
   JsonNode *packet;
 
-  engine = valent_get_engine ();
+  engine = valent_get_plugin_engine ();
   info = peas_engine_get_plugin_info (engine, "battery");
   gadget = peas_engine_create_extension (engine,
                                          info,

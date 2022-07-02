@@ -7,7 +7,6 @@
 # error "Only <libvalent-core.h> can be included directly."
 #endif
 
-#include <gio/gio.h>
 #include <libpeas/peas.h>
 
 #include "valent-version.h"
@@ -15,15 +14,11 @@
 G_BEGIN_DECLS
 
 VALENT_AVAILABLE_IN_1_0
-PeasEngine * valent_get_engine      (void);
+GThread    * valent_get_main_thread   (void);
 VALENT_AVAILABLE_IN_1_0
-GThread    * valent_get_main_thread (void);
+PeasEngine * valent_get_plugin_engine (void);
 VALENT_AVAILABLE_IN_1_0
-gboolean     valent_in_flatpak      (void);
-VALENT_AVAILABLE_IN_1_0
-void         valent_load_plugins    (PeasEngine *engine);
-VALENT_AVAILABLE_IN_1_0
-gint64       valent_timestamp_ms    (void);
+gboolean     valent_in_flatpak        (void);
 
 G_END_DECLS
 

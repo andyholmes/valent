@@ -12,10 +12,10 @@
 #include "valent-channel-service.h"
 #include "valent-data.h"
 #include "valent-debug.h"
+#include "valent-global.h"
 #include "valent-macros.h"
 #include "valent-object.h"
 #include "valent-packet.h"
-#include "valent-utils.h"
 
 
 /**
@@ -271,7 +271,7 @@ valent_channel_service_real_build_identity (ValentChannelService *service)
   g_assert (VALENT_IS_CHANNEL_SERVICE (service));
 
   /* Filter the supported plugins and collect their capabilities */
-  engine = valent_get_engine ();
+  engine = valent_get_plugin_engine ();
   plugins = peas_engine_get_plugin_list (engine);
   incoming = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
   outgoing = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);

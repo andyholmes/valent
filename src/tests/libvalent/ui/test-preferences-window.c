@@ -19,7 +19,7 @@ test_preferences_window_basic (void)
   g_assert_true (VALENT_IS_PREFERENCES_WINDOW (window));
 
   /* Unload/Load the plugin */
-  engine = valent_get_engine ();
+  engine = valent_get_plugin_engine ();
   info = peas_engine_get_plugin_info (engine, "mock");
   peas_engine_unload_plugin (engine, info);
   peas_engine_load_plugin (engine, info);

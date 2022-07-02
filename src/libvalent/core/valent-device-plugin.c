@@ -13,7 +13,6 @@
 #include "valent-device.h"
 #include "valent-device-plugin.h"
 #include "valent-packet.h"
-#include "valent-utils.h"
 
 
 /**

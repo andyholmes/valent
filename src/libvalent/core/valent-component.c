@@ -10,7 +10,7 @@
 
 #include "valent-component.h"
 #include "valent-debug.h"
-#include "valent-utils.h"
+#include "valent-global.h"
 
 
 /**
@@ -475,7 +475,7 @@ valent_component_init (ValentComponent *self)
 {
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
 
-  priv->engine = valent_get_engine ();
+  priv->engine = valent_get_plugin_engine ();
   priv->plugins = g_hash_table_new_full (NULL, NULL, NULL, component_plugin_free);
 }
 
