@@ -15,9 +15,26 @@
 
 G_BEGIN_DECLS
 
+/**
+ * VALENT_IS_MAIN_THREAD: (skip)
+ *
+ * Get whether the current thread is the main thread.
+ *
+ * Returns: %TRUE if on the main thread, %FALSE on any other thread
+ */
 #define VALENT_IS_MAIN_THREAD() (g_thread_self() == valent_get_main_thread())
 
-
+/**
+ * valent_error_ignore: (skip)
+ * @error: (nullable): a #GError
+ *
+ * Get if @error represents an ignorable error.
+ *
+ * This will return %TRUE if @error represents [type@Gio.IOErrorEnum.CANCELLED]
+ * or [type@Gio.IOErrorEnum.NOT_SUPPORTED].
+ *
+ * Returns: %TRUE if non-fatal, %FALSE otherwise
+ */
 static inline gboolean
 valent_error_ignore (const GError *error)
 {
