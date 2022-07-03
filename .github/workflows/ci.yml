@@ -61,7 +61,7 @@ jobs:
 
       - name: Compare
         env:
-          STABLE_REF: 8eea8e865d1fddb0663e9c0eda7f14ec6022f942
+          STABLE_REF: ${{ github.event.pull_request.base.sha }}
           COMMIT_REF: ${{ github.event.pull_request.head.sha }}
         run: |
           ./src/tests/extra/abicheck.py ${STABLE_REF} ${COMMIT_REF}
