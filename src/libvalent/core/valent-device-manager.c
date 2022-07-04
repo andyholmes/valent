@@ -1244,6 +1244,9 @@ valent_device_manager_identify (ValentDeviceManager *manager,
  * implementations known to the [class@Peas.Engine], allowing new connections to
  * be opened.
  *
+ * In a typical [class@Gio.Application], this should be called in the
+ * [vfunc@Gio.Application.startup] override, after chaining up.
+ *
  * Since: 1.0
  */
 void
@@ -1300,6 +1303,9 @@ valent_device_manager_start (ValentDeviceManager *manager)
  * [class@Valent.ChannelService] implementations, preventing any new connections
  * from being opened.
  *
+ * In a typical [class@Gio.Application], this should be called in the
+ * [vfunc@Gio.Application.shutdown] override, before chaining up.
+ *
  * Since: 1.0
  */
 void
@@ -1337,6 +1343,9 @@ valent_device_manager_stop (ValentDeviceManager *manager)
  *
  * Calling this method exports @manager and all managed [class@Valent.Device]
  * objects on @connection at @object_path.
+ *
+ * In a typical [class@Gio.Application], this should be called in the
+ * [vfunc@Gio.Application.dbus_register] override, after chaining up.
  *
  * Since: 1.0
  */
@@ -1376,6 +1385,9 @@ valent_device_manager_export (ValentDeviceManager *manager,
  *
  * Calling this method unexports @manager from D-Bus, including all managed
  * [class@Valent.Device].
+ *
+ * In a typical [class@Gio.Application], this should be called in the
+ * [vfunc@Gio.Application.dbus_unregister] override, before chaining up.
  *
  * Since: 1.0
  */
