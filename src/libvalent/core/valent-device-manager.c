@@ -754,20 +754,9 @@ static void
 valent_device_manager_dispose (GObject *object)
 {
   ValentDeviceManager *self = VALENT_DEVICE_MANAGER (object);
-  GHashTableIter iter;
-  ValentDevice *device;
 
   valent_device_manager_stop (self);
   valent_device_manager_unexport (self);
-
-  g_hash_table_iter_init (&iter, self->devices);
-
-  while (g_hash_table_iter_next (&iter, NULL, (void **)&device))
-    {
-      g_signal_handlers_disconnect_by_data (device, self);
-      g_signal_emit (G_OBJECT (self), signals [DEVICE_REMOVED], 0, device);
-      g_hash_table_iter_remove (&iter);
-    }
 
   G_OBJECT_CLASS (valent_device_manager_parent_class)->dispose (object);
 }
@@ -1312,6 +1301,9 @@ void
 valent_device_manager_stop (ValentDeviceManager *manager)
 {
   PeasEngine *engine = NULL;
+  GHashTableIter iter;
+  g_autofree char *device_id = NULL;
+  g_autoptr (ValentDevice) device = NULL;
 
   VALENT_ENTRY;
 
@@ -1329,6 +1321,19 @@ valent_device_manager_stop (ValentDeviceManager *manager)
   engine = valent_get_plugin_engine ();
   g_signal_handlers_disconnect_by_data (engine, manager);
   g_hash_table_remove_all (manager->services);
+
+  /* Remove any devices */
+  g_hash_table_iter_init (&iter, manager->devices);
+
+  while (g_hash_table_iter_next (&iter, (void **)&device_id, (void **)&device))
+    {
+      g_hash_table_iter_steal (&iter);
+      g_signal_handlers_disconnect_by_data (device, manager);
+      g_signal_emit (G_OBJECT (manager), signals [DEVICE_REMOVED], 0, device);
+
+      g_clear_pointer (&device_id, g_free);
+      g_clear_object (&device);
+    }
 
   VALENT_EXIT;
 }
