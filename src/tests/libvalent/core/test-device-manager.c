@@ -46,12 +46,6 @@ manager_fixture_set_up (ManagerFixture *fixture,
   /* Init the manager */
   fixture->loop = g_main_loop_new (NULL, FALSE);
   fixture->manager = valent_device_manager_new_sync (data, NULL, NULL);
-
-  /* Wait for the manager to start */
-  valent_device_manager_start (fixture->manager);
-
-  while ((fixture->service = valent_mock_channel_service_get_instance ()) == NULL)
-    g_main_context_iteration (NULL, FALSE);
 }
 
 static void
@@ -169,10 +163,13 @@ test_manager_management (ManagerFixture *fixture,
                     G_CALLBACK (on_device_removed),
                     fixture);
 
-  /* Adds devices from the cache when started */
+  /* Wait for the manager to start */
+  valent_device_manager_start (fixture->manager);
+
   while (fixture->device == NULL)
     g_main_context_iteration (NULL, FALSE);
 
+  /* Adds devices from the cache when started */
   devices = valent_device_manager_get_devices (fixture->manager);
   g_assert_cmpint (devices->len, ==, 1);
   g_clear_pointer (&devices, g_ptr_array_unref);
@@ -211,10 +208,13 @@ test_manager_identify_uri (ManagerFixture *fixture,
                     G_CALLBACK (on_device_removed),
                     fixture);
 
-  /* Drop the cached device */
+  /* Wait for the manager to start */
+  valent_device_manager_start (fixture->manager);
+
   while (fixture->device == NULL)
     g_main_context_iteration (NULL, FALSE);
 
+  /* Drop the cached device */
   g_object_notify (G_OBJECT (fixture->device), "state");
 
   /* Forwards URIs to the correct service */
@@ -286,6 +286,8 @@ test_manager_dbus (ManagerFixture *fixture,
                     fixture);
 
   /* Wait for the manager to start */
+  valent_device_manager_start (fixture->manager);
+
   while (fixture->device == NULL)
     g_main_context_iteration (NULL, FALSE);
 
@@ -363,7 +365,7 @@ test_manager_dispose (ManagerFixture *fixture,
   ValentChannelService *service = NULL;
   g_autoptr (GSettings) settings = NULL;
 
-  /* Wait for the channel service */
+  /* Startup */
   valent_device_manager_start (fixture->manager);
 
   while ((service = valent_mock_channel_service_get_instance ()) == NULL)
@@ -382,9 +384,20 @@ test_manager_dispose (ManagerFixture *fixture,
   while ((service = valent_mock_channel_service_get_instance ()) == NULL)
     g_main_context_iteration (NULL, FALSE);
 
-  /* Unload plugin */
+  /* Unload/Load plugin */
   engine = valent_get_plugin_engine ();
   peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "mock"));
+
+  while ((service = valent_mock_channel_service_get_instance ()) != NULL)
+    g_main_context_iteration (NULL, FALSE);
+
+  peas_engine_load_plugin (engine, peas_engine_get_plugin_info (engine, "mock"));
+
+  while ((service = valent_mock_channel_service_get_instance ()) == NULL)
+    g_main_context_iteration (NULL, FALSE);
+
+  /* Shutdown */
+  valent_device_manager_stop (fixture->manager);
 
   while ((service = valent_mock_channel_service_get_instance ()) != NULL)
     g_main_context_iteration (NULL, FALSE);
