@@ -1,0 +1,59 @@
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileCopyrightText: No rights reserved
+
+# src/libvalent/core/valent-device-manager.c
+deallocret:src/libvalent/core/valent-device-manager.c:527
+
+# src/libvalent/contacts/
+unknownMacro:src/libvalent/contacts/valent-eds.h:30
+
+# src/libvalent/notifications/valent-notification.c
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:88
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:89
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:838
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:842
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:846
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:850
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:861
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:866
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:885
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:888
+
+# src/libvalent/ui/
+unknownMacro:src/libvalent/ui/valent-application.c:37
+unknownMacro:src/libvalent/ui/valent-preferences-window.c:49
+
+
+# src/plugins/bluez/
+unknownMacro:src/plugins/bluez/valent-bluez-channel-service.c:29
+
+# src/plugins/sms/
+memleak:src/plugins/sms/valent-sms-store.c:809
+memleak:src/plugins/sms/valent-sms-store.c:859
+leakNoVarFunctionCall:src/plugins/sms/valent-sms-conversation.c:583
+leakNoVarFunctionCall:src/plugins/sms/valent-sms-conversation.c:588
+
+# src/plugins/systemvolume/
+unknownMacro:src/plugins/systemvolume/valent-systemvolume-plugin.c:33
+
+# src/plugins/telephony/
+unknownMacro:src/plugins/telephony/valent-telephony-plugin.c:29
+
+
+# src/tests/fixtures/
+# "Allocation with g_variant_new_*, g_signal_emit doesn't release it."
+leakNoVarFunctionCall:src/tests/fixtures/valent-mock-media-player.c:117
+leakNoVarFunctionCall:src/tests/fixtures/valent-mock-media-player.c:173
+
+# src/tests/plugins/bluez/
+memleak:src/tests/plugins/bluez/test-bluez-plugin.c:183
+
+# src/tests/plugins/fdo/
+leakNoVarFunctionCall:src/tests/plugins/fdo/test-fdo-notifications.c:122
+leakNoVarFunctionCall:src/tests/plugins/fdo/test-fdo-session.c:69
+memleak:src/tests/plugins/fdo/test-fdo-notifications.c:164
+
+# src/tests/plugins/gtk/
+leakNoVarFunctionCall:src/tests/plugins/gtk/test-gtk-notifications.c:114
+leakNoVarFunctionCall:src/tests/plugins/gtk/test-gtk-notifications.c:116
+leakNoVarFunctionCall:src/tests/plugins/gtk/test-gtk-notifications.c:118

@@ -117,6 +117,7 @@ jobs:
     strategy:
       matrix:
         label:
+          - cppcheck
           - GCC
           - LLVM
       fail-fast: false
@@ -138,9 +139,24 @@ jobs:
                       -Dtests=true \
                       _build
 
-          if [ ${BUILDTOOL} == "GCC" ]; then
+          if [ "${BUILDTOOL}" == "cppcheck" ]; then
+              cppcheck --quiet \
+                       --library=gtk \
+                       -Isrc/tests/fixtures \
+                       --xml \
+                       src 2> _build/meson-logs/cppcheck.xml
+              cppcheck-htmlreport --file _build/meson-logs/cppcheck.xml \
+                                  --report-dir _build/meson-logs/cppcheck-html \
+                                  --source-dir ${GITHUB_WORKSPACE}
+
+              cppcheck --quiet \
+                       --error-exitcode=1 \
+                       --library=gtk \
+                       -Isrc/tests/fixtures \
+                       src
+          elif [ "${BUILDTOOL}" == "GCC" ]; then
               meson compile -C _build
-          elif [ ${BUILDTOOL} == "LLVM" ]; then
+          elif [ "${BUILDTOOL}" == "LLVM" ]; then
               ninja -C _build scan-build
           fi
 
