@@ -20,7 +20,7 @@ leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:885
 leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:888
 
 # src/libvalent/ui/
-unknownMacro:src/libvalent/ui/valent-application.c:37
+unknownMacro:src/libvalent/ui/valent-application.c:36
 unknownMacro:src/libvalent/ui/valent-preferences-window.c:49
 
 
@@ -34,7 +34,7 @@ leakNoVarFunctionCall:src/plugins/sms/valent-sms-conversation.c:583
 leakNoVarFunctionCall:src/plugins/sms/valent-sms-conversation.c:588
 
 # src/plugins/systemvolume/
-unknownMacro:src/plugins/systemvolume/valent-systemvolume-plugin.c:33
+unknownMacro:src/plugins/systemvolume/valent-systemvolume-plugin.c:32
 
 # src/plugins/telephony/
 unknownMacro:src/plugins/telephony/valent-telephony-plugin.c:29
@@ -50,7 +50,7 @@ memleak:src/tests/plugins/bluez/test-bluez-plugin.c:183
 
 # src/tests/plugins/fdo/
 leakNoVarFunctionCall:src/tests/plugins/fdo/test-fdo-notifications.c:122
-leakNoVarFunctionCall:src/tests/plugins/fdo/test-fdo-session.c:69
+leakNoVarFunctionCall:src/tests/plugins/fdo/test-fdo-session.c:65
 memleak:src/tests/plugins/fdo/test-fdo-notifications.c:164
 
 # src/tests/plugins/gtk/

@@ -143,6 +143,7 @@ jobs:
               cppcheck --quiet \
                        --library=gtk \
                        -Isrc/tests/fixtures \
+                       --suppressions-list=src/tests/extra/cppcheck.supp \
                        --xml \
                        src 2> _build/meson-logs/cppcheck.xml
               cppcheck-htmlreport --file _build/meson-logs/cppcheck.xml \
@@ -153,6 +154,7 @@ jobs:
                        --error-exitcode=1 \
                        --library=gtk \
                        -Isrc/tests/fixtures \
+                       --suppressions-list=src/tests/extra/cppcheck.supp \
                        src
           elif [ "${BUILDTOOL}" == "GCC" ]; then
               meson compile -C _build
