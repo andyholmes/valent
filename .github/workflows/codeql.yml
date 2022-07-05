@@ -1,0 +1,39 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    paths:
+      - '**/*.c'
+      - '**/*.h'
+  schedule:
+    - cron: 45 3 * * 6
+
+jobs:
+  codeql:
+    name: Static Analysis (CodeQL)
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/andyholmes/valent:latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Initialize
+        uses: github/codeql-action/init@v2
+        with:
+          languages: cpp
+
+      - name: Build
+        run: |
+          meson setup --buildtype=release \
+                      _build
+          meson compile -C _build
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@v2
