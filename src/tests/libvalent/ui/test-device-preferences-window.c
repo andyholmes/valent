@@ -21,6 +21,12 @@ test_device_preference_window_basic (ValentTestFixture *fixture,
                          NULL);
   g_assert_true (VALENT_IS_DEVICE_PREFERENCES_WINDOW (window));
 
+  /* Show the window */
+  gtk_window_present (window);
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
   /* Properties */
   g_object_get (window,
                 "device", &device,

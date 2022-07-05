@@ -40,8 +40,8 @@ test_window_basic (TestWindowFixture *fixture,
                          "device-manager", fixture->manager,
                          NULL);
   g_assert_true (VALENT_IS_WINDOW (window));
-  g_assert_nonnull (window);
 
+  /* Show the window */
   gtk_window_present (window);
 
   while (g_main_context_iteration (NULL, FALSE))
@@ -68,8 +68,8 @@ test_window_navigation (TestWindowFixture *fixture,
                          "device-manager", fixture->manager,
                          NULL);
   g_assert_true (VALENT_IS_WINDOW (window));
-  g_assert_nonnull (window);
 
+  /* Show the window */
   gtk_window_present (window);
 
   while (g_main_context_iteration (NULL, FALSE))
@@ -117,7 +117,6 @@ test_window_dialogs (TestWindowFixture *fixture,
                          "device-manager", fixture->manager,
                          NULL);
   g_assert_true (VALENT_IS_WINDOW (window));
-  g_assert_nonnull (window);
 
   gtk_window_present (window);
 
@@ -136,7 +135,6 @@ test_window_dialogs (TestWindowFixture *fixture,
                          "device-manager", fixture->manager,
                          NULL);
   g_assert_true (VALENT_IS_WINDOW (window));
-  g_assert_nonnull (window);
 
   gtk_window_present (window);
 

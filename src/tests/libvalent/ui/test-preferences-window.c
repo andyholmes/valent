@@ -18,6 +18,12 @@ test_preferences_window_basic (void)
                         NULL);
   g_assert_true (VALENT_IS_PREFERENCES_WINDOW (window));
 
+  /* Show the window */
+  gtk_window_present (window);
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
   /* Unload/Load the plugin */
   engine = valent_get_plugin_engine ();
   info = peas_engine_get_plugin_info (engine, "mock");
