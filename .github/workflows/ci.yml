@@ -107,6 +107,50 @@ jobs:
           fetch-depth: 0
       - uses: wagoid/commitlint-github-action@v5
 
+  analyze:
+    name: Static Analysis
+    needs: [pre-test]
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/andyholmes/valent:latest
+
+    strategy:
+      matrix:
+        label:
+          - GCC
+          - LLVM
+      fail-fast: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Build
+        env:
+          BUILDTOOL: ${{ matrix.label }}
+          SCANBUILD: ${{ github.workspace }}/src/tests/extra/scanbuild.sh
+          CFLAGS: ${{ matrix.label == 'GCC' && '-fanalyzer' || '' }}
+        run: |
+          meson setup --buildtype=debug \
+                      -Dintrospection=false \
+                      -Dtests=true \
+                      _build
+
+          if [ ${BUILDTOOL} == "GCC" ]; then
+              meson compile -C _build
+          elif [ ${BUILDTOOL} == "LLVM" ]; then
+              ninja -C _build scan-build
+          fi
+
+      - name: Report (${{ matrix.label }})
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: Static Analysis (${{ matrix.label }})
+          path: _build/meson-logs
+
   test:
     name: Tests
     needs: [pre-test]
