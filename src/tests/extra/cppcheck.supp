@@ -1,9 +1,6 @@
 # SPDX-License-Identifier: CC0-1.0
 # SPDX-FileCopyrightText: No rights reserved
 
-# src/libvalent/core/valent-device-manager.c
-deallocret:src/libvalent/core/valent-device-manager.c:527
-
 # src/libvalent/notifications/valent-notification.c
 leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:88
 leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:89

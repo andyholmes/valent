@@ -500,7 +500,6 @@ static ValentDevice *
 valent_device_manager_ensure_device (ValentDeviceManager *manager,
                                      JsonNode            *identity)
 {
-  ValentDevice *device = NULL;
   const char *device_id;
 
   g_assert (VALENT_IS_DEVICE_MANAGER (manager));
@@ -513,18 +512,18 @@ valent_device_manager_ensure_device (ValentDeviceManager *manager,
       return NULL;
     }
 
-  if ((device = g_hash_table_lookup (manager->devices, device_id)) == NULL)
+  if (!g_hash_table_contains (manager->devices, device_id))
     {
+      g_autoptr (ValentDevice) device = NULL;
       g_autoptr (ValentData) data = NULL;
 
       data = valent_data_new (device_id, manager->data);
       device = valent_device_new_full (identity, data);
 
       valent_device_manager_add_device (manager, device);
-      g_object_unref (device);
     }
 
-  return device;
+  return g_hash_table_lookup (manager->devices, device_id);
 }
 
 static void
