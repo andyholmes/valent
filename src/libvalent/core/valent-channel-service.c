@@ -222,7 +222,7 @@ collect_capabilities (PeasPluginInfo *info,
       capabilities = g_strsplit (data, ";", -1);
 
       for (unsigned int i = 0; capabilities[i] != NULL; i++)
-        g_hash_table_add (incoming, g_steal_pointer (&capabilities[i]));
+        g_hash_table_add (outgoing, g_steal_pointer (&capabilities[i]));
     }
 }
 
