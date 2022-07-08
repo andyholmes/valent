@@ -5,10 +5,56 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
+  codespell:
+    name: Codespell
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Spell Check
+        uses: codespell-project/actions-codespell@master
+        with:
+          ignore_words_list: doubleclick,inout,sav
+          skip: ./src/tests/data,./subprojects,./*.po
+
+  commitlint:
+    name: Commitlint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Lint
+        uses: wagoid/commitlint-github-action@v5
+
+  reuse:
+    name: REUSE Compliance
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Lint
+        uses: fsfe/reuse-action@v1
+        with:
+          args: lint
+
   pre-test:
     name: Pre-Tests
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -45,8 +91,8 @@ jobs:
           fail_on_error: true
           yamllint_flags: --config-file src/tests/extra/yamllint.yml
 
-  abicheck:
-    name: ABI Compliance
+  build:
+    name: Build (Documentation)
     needs: [pre-test]
     runs-on: ubuntu-latest
     container:
@@ -56,56 +102,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0
           submodules: true
 
-      - name: Compare
-        env:
-          STABLE_REF: ${{ github.event.pull_request.base.sha }}
-          COMMIT_REF: ${{ github.event.pull_request.head.sha }}
+      - name: Build
         run: |
-          ./src/tests/extra/abicheck.py ${STABLE_REF} ${COMMIT_REF}
+          meson setup --buildtype=release \
+                      -Ddocumentation=true \
+                      _build
+          meson compile -C _build
 
-  reuse:
-    name: REUSE Compliance
-    needs: [pre-test]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Lint
-        uses: fsfe/reuse-action@v1
+      - name: Upload
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v3
         with:
-          args: lint
-
-  codespell:
-    name: Codespell
-    needs: [pre-test]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Spell Check
-        uses: codespell-project/actions-codespell@master
-        with:
-          ignore_words_list: doubleclick,inout,sav
-          skip: ./src/tests/data,./subprojects,./*.po
-
-  commitlint:
-    name: Commitlint
-    needs: [pre-test]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - uses: wagoid/commitlint-github-action@v5
+          name: Documentation
+          path: _build/doc/sdk/valent
 
   analyze:
     name: Static Analysis
@@ -117,9 +128,19 @@ jobs:
     strategy:
       matrix:
         label:
+          - abidiff
           - cppcheck
           - GCC
           - LLVM
+        include:
+          - label: abidiff
+            suite: abidiff
+          - label: cppcheck
+            suite: cppcheck
+          - label: GCC
+            suite: gcc
+          - label: LLVM
+            suite: llvm
       fail-fast: false
 
     steps:
@@ -128,45 +149,11 @@ jobs:
         with:
           submodules: true
 
-      - name: Build
+      - name: Analyze
         env:
-          BUILDTOOL: ${{ matrix.label }}
-          CC: ${{ matrix.label == 'LLVM' && 'clang' || 'gcc' }}
-          CC_LD: ${{ matrix.label == 'LLVM' && 'lld' || 'bfd' }}
-          CXX: ${{ matrix.label == 'LLVM' && 'clang++' || 'g++' }}
-          CXX_LD: ${{ matrix.label == 'LLVM' && 'lld' || 'bfd' }}
-          CFLAGS: ${{ matrix.label == 'GCC' && '-fanalyzer' || '' }}
-          SCANBUILD: ${{ github.workspace }}/src/tests/extra/scanbuild.sh
+          TESTSUITE: ${{ matrix.suite }}
         run: |
-          meson setup --buildtype=debug \
-                      -Dintrospection=false \
-                      -Dtests=true \
-                      _build
-
-          if [ "${BUILDTOOL}" == "cppcheck" ]; then
-              cppcheck --quiet \
-                       -Isrc/tests/fixtures \
-                       --library=gtk \
-                       --library=src/tests/extra/cppcheck.cfg \
-                       --suppressions-list=src/tests/extra/cppcheck.supp \
-                       --xml \
-                       src 2> _build/meson-logs/cppcheck.xml
-              cppcheck-htmlreport --file _build/meson-logs/cppcheck.xml \
-                                  --report-dir _build/meson-logs/cppcheck-html \
-                                  --source-dir ${GITHUB_WORKSPACE}
-
-              cppcheck --quiet \
-                       --error-exitcode=1 \
-                       -Isrc/tests/fixtures \
-                       --library=gtk \
-                       --library=src/tests/extra/cppcheck.cfg \
-                       --suppressions-list=src/tests/extra/cppcheck.supp \
-                       src
-          elif [ "${BUILDTOOL}" == "GCC" ]; then
-              meson compile -C _build
-          elif [ "${BUILDTOOL}" == "LLVM" ]; then
-              ninja -C _build scan-build
-          fi
+          ./src/tests/extra/ci-runner.sh analyze "${TESTSUITE}"
 
       - name: Report
         if: ${{ failure() }}
@@ -191,13 +178,13 @@ jobs:
           - TSan
         include:
           - label: GCC
-            sanitize: none
+            suite: gcc
           - label: LLVM
-            sanitize: none
+            suite: llvm
           - label: ASan, UBSan
-            sanitize: address,undefined
+            suite: asan
           - label: TSan
-            sanitize: thread
+            suite: tsan
       fail-fast: false
 
     steps:
@@ -206,35 +193,11 @@ jobs:
         with:
           submodules: true
 
-      - name: Build
-        env:
-          CC: ${{ matrix.label == 'LLVM' && 'clang' || 'gcc' }}
-          CC_LD: ${{ matrix.label == 'LLVM' && 'lld' || 'bfd' }}
-          CXX: ${{ matrix.label == 'LLVM' && 'clang++' || 'g++' }}
-          CXX_LD: ${{ matrix.label == 'LLVM' && 'lld' || 'bfd' }}
-          BUILD_COVERAGE: ${{ matrix.label == 'GCC' }}
-          BUILD_SANITIZE: ${{ matrix.sanitize }}
-          BUILD_INTROSPECTION: ${{ matrix.sanitize == 'none' }}
-        run: |
-          meson setup --buildtype=debugoptimized \
-                      -Db_coverage=${BUILD_COVERAGE} \
-                      -Db_sanitize=${BUILD_SANITIZE} \
-                      -Dintrospection=${BUILD_INTROSPECTION} \
-                      -Dtests=true \
-                      _build
-          meson compile -C _build
-
       - name: Test
         env:
-          TEST_REPEAT: ${{ matrix.sanitize == 'none' && 3 || 1 }}
-          TEST_TIMEOUT: ${{ matrix.sanitize == 'none' && 1 || 4 }}
+          TESTSUITE: ${{ matrix.suite }}
         run: |
-          dbus-run-session \
-          xvfb-run -d \
-          meson test -C _build \
-                     --print-errorlogs \
-                     --repeat=${TEST_REPEAT} \
-                     --timeout-multiplier ${TEST_TIMEOUT}
+          ./src/tests/extra/ci-runner.sh test "${TESTSUITE}"
 
       - name: Test Report
         if: ${{ failure() }}
@@ -246,29 +209,7 @@ jobs:
       - name: Coverage
         if: ${{ success() && matrix.label == 'GCC' }}
         run: |
-          lcov --directory _build \
-               --capture \
-               --initial \
-               --output-file _build/meson-logs/coverage.p1
-          lcov --directory _build \
-               --capture \
-               --no-checksum \
-               --rc lcov_branch_coverage=1 \
-               --output-file _build/meson-logs/coverage.p2
-          lcov --add-tracefile _build/meson-logs/coverage.p1 \
-               --add-tracefile _build/meson-logs/coverage.p2 \
-               --rc lcov_branch_coverage=1 \
-               --output-file _build/meson-logs/coverage.info
-
-          lcov --extract _build/meson-logs/coverage.info \
-               "${GITHUB_WORKSPACE}/src/*" \
-               --rc lcov_branch_coverage=1 \
-               --output-file _build/meson-logs/coverage.info
-          lcov --remove _build/meson-logs/coverage.info \
-               '*/src/tests/*' \
-               '*/subprojects/*' \
-               --rc lcov_branch_coverage=1 \
-               --output-file _build/meson-logs/coverage.info
+          ./src/tests/extra/ci-runner.sh test coverage
 
       - name: Coverage Report
         if: ${{ success() && matrix.label == 'GCC' }}
@@ -302,30 +243,3 @@ jobs:
           bundle: ca.andyholmes.Valent.Tests.flatpak
           manifest-path: build-aux/flatpak/ca.andyholmes.Valent.Tests.json
           run-tests: true
-
-  smoke:
-    name: Smoke Tests (Documentation)
-    needs: [pre-test]
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/andyholmes/valent:latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          submodules: true
-
-      - name: Build
-        run: |
-          meson setup --buildtype=release \
-                      -Ddocumentation=true \
-                      _build
-          meson compile -C _build
-
-      - name: Upload
-        if: ${{ failure() }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: Documentation
-          path: _build/doc/sdk/valent
