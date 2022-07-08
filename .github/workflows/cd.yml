@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   coverage:
     name: Coverage
@@ -12,6 +15,8 @@ jobs:
       image: ghcr.io/andyholmes/valent:latest
     concurrency:
       group: gh_pages
+    permissions:
+      pages: write
 
     steps:
       - name: Checkout
@@ -88,6 +93,8 @@ jobs:
       image: ghcr.io/andyholmes/valent:latest
     concurrency:
       group: gh_pages
+    permissions:
+      pages: write
 
     steps:
       - name: Checkout
