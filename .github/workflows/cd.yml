@@ -16,7 +16,7 @@ jobs:
     concurrency:
       group: gh_pages
     permissions:
-      pages: write
+      contents: write
 
     steps:
       - name: Checkout
@@ -94,7 +94,7 @@ jobs:
     concurrency:
       group: gh_pages
     permissions:
-      pages: write
+      contents: write
 
     steps:
       - name: Checkout
