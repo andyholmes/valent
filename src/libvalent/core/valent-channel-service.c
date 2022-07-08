@@ -296,39 +296,37 @@ valent_channel_service_real_build_identity (ValentChannelService *service)
   json_builder_set_member_name (builder, "body");
   json_builder_begin_object (builder);
 
-    /* Metadata */
-    json_builder_set_member_name (builder, "deviceId");
-    json_builder_add_string_value (builder, priv->id);
-    json_builder_set_member_name (builder, "deviceName");
-    json_builder_add_string_value (builder, priv->name);
-    json_builder_set_member_name (builder, "deviceType");
-    json_builder_add_string_value (builder, get_chassis_type());
-    json_builder_set_member_name (builder, "protocolVersion");
-    json_builder_add_int_value (builder, 7);
+  /* Metadata */
+  json_builder_set_member_name (builder, "deviceId");
+  json_builder_add_string_value (builder, priv->id);
+  json_builder_set_member_name (builder, "deviceName");
+  json_builder_add_string_value (builder, priv->name);
+  json_builder_set_member_name (builder, "deviceType");
+  json_builder_add_string_value (builder, get_chassis_type());
+  json_builder_set_member_name (builder, "protocolVersion");
+  json_builder_add_int_value (builder, 7);
 
-    /* Incoming Capabilities */
-    json_builder_set_member_name (builder, "incomingCapabilities");
-    json_builder_begin_array (builder);
+  /* Incoming Capabilities */
+  json_builder_set_member_name (builder, "incomingCapabilities");
+  json_builder_begin_array (builder);
 
-    g_hash_table_iter_init (&iiter, incoming);
+  g_hash_table_iter_init (&iiter, incoming);
 
-    while (g_hash_table_iter_next (&iiter, (void **)&capability, NULL))
-      json_builder_add_string_value (builder, capability);
-    capability = NULL;
+  while (g_hash_table_iter_next (&iiter, (void **)&capability, NULL))
+    json_builder_add_string_value (builder, capability);
 
-    json_builder_end_array (builder);
+  json_builder_end_array (builder);
 
-    /* Outgoing Capabilities */
-    json_builder_set_member_name (builder, "outgoingCapabilities");
-    json_builder_begin_array (builder);
+  /* Outgoing Capabilities */
+  json_builder_set_member_name (builder, "outgoingCapabilities");
+  json_builder_begin_array (builder);
 
-    g_hash_table_iter_init (&oiter, outgoing);
+  g_hash_table_iter_init (&oiter, outgoing);
 
-    while (g_hash_table_iter_next (&oiter, (void **)&capability, NULL))
-      json_builder_add_string_value (builder, capability);
-    capability = NULL;
+  while (g_hash_table_iter_next (&oiter, (void **)&capability, NULL))
+    json_builder_add_string_value (builder, capability);
 
-    json_builder_end_array (builder);
+  json_builder_end_array (builder);
 
   /* End Body, Packet */
   json_builder_end_object (builder);
@@ -952,12 +950,14 @@ valent_channel_service_supports_plugin (ValentChannelService *service,
 
   g_return_val_if_fail (VALENT_IS_CHANNEL_SERVICE (service), FALSE);
 
-  requires = peas_plugin_info_get_external_data (info, "X-ChannelProtocol");
+  requires = peas_plugin_info_get_external_data (info,
+                                                 "X-ChannelProtocol");
 
   if (requires == NULL)
     return TRUE;
 
-  provides = peas_plugin_info_get_external_data (priv->plugin_info, "X-ChannelProtocol");
+  provides = peas_plugin_info_get_external_data (priv->plugin_info,
+                                                 "X-ChannelProtocol");
 
   if (provides == NULL)
     return TRUE;
