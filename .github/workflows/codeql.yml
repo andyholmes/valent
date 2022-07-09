@@ -11,12 +11,17 @@ on:
   schedule:
     - cron: 45 3 * * 6
 
+permissions:
+  contents: read
+
 jobs:
   codeql:
     name: Static Analysis (CodeQL)
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/andyholmes/valent:latest
+    permissions:
+      security-events: write
 
     steps:
       - name: Checkout
