@@ -40,69 +40,6 @@ enum {
 };
 
 
-static const char *
-valent_battery_gadget_get_icon_name (double   percentage,
-                                     gboolean charging)
-{
-  if (percentage == -1)
-    return "battery-missing-symbolic";
-
-  if (percentage == 100)
-    return "battery-level-100-charged-symbolic";
-
-  if (percentage >= 90)
-    return charging
-      ? "battery-level-90-charging-symbolic"
-      : "battery-level-90-symbolic";
-
-  if (percentage >= 80)
-    return charging
-      ? "battery-level-80-charging-symbolic"
-      : "battery-level-80-symbolic";
-
-  if (percentage >= 70)
-    return charging
-      ? "battery-level-70-charging-symbolic"
-      : "battery-level-70-symbolic";
-
-  if (percentage >= 60)
-    return charging
-      ? "battery-level-60-charging-symbolic"
-      : "battery-level-60-symbolic";
-
-  if (percentage >= 50)
-    return charging
-      ? "battery-level-50-charging-symbolic"
-      : "battery-level-50-symbolic";
-
-  if (percentage >= 40)
-    return charging
-      ? "battery-level-40-charging-symbolic"
-      : "battery-level-40-symbolic";
-
-  if (percentage >= 30)
-    return charging
-      ? "battery-level-30-charging-symbolic"
-      : "battery-level-30-symbolic";
-
-  if (percentage >= 20)
-    return charging
-      ? "battery-level-20-charging-symbolic"
-      : "battery-level-20-symbolic";
-
-  if (percentage >= 10)
-    return charging
-      ? "battery-level-10-charging-symbolic"
-      : "battery-level-10-symbolic";
-
-  if (percentage >= 0)
-    return charging
-      ? "battery-level-00-charging-symbolic"
-      : "battery-level-00-symbolic";
-
-  return "battery-missing-symbolic";
-}
-
 static void
 on_action_state_changed (GActionGroup        *action_group,
                          const char          *action_name,
@@ -131,6 +68,9 @@ on_action_state_changed (GActionGroup        *action_group,
       gtk_widget_set_visible (self->button, FALSE);
       return;
     }
+
+  if (!g_variant_lookup (value, "icon-name", "&s", &icon_name))
+    icon_name = "battery-missing-symbolic";
 
   if (percentage == 100)
     {
@@ -175,7 +115,6 @@ on_action_state_changed (GActionGroup        *action_group,
         }
     }
 
-  icon_name = valent_battery_gadget_get_icon_name (percentage, charging);
   gtk_menu_button_set_icon_name (GTK_MENU_BUTTON (self->button), icon_name);
 
   gtk_level_bar_set_value (GTK_LEVEL_BAR (self->level_bar), percentage);

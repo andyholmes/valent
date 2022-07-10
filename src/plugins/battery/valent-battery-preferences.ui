@@ -15,6 +15,7 @@
           <object class="AdwActionRow" id="share_state_row">
             <property name="title" translatable="yes">Share State</property>
             <property name="subtitle" translatable="yes">Send updates of the battery status</property>
+            <property name="activatable-widget">share_state</property>
             <child type="suffix">
               <object class="GtkSwitch" id="share_state">
                 <property name="valign">center</property>
