@@ -93,6 +93,27 @@ def md_enum(schema: dict) -> str:
 
     return '|'.join([f'`{repr(e)}`' for e in enum])
 
+def md_range(schema: dict) -> str:
+    """Return a JSON Schema number, accounting for ``minimum``, ``maximum``,
+    ``exclusiveMinimum`` and ``exclusiveMaximum``, formatted for markdown."""
+
+    lower = schema.get('minimum', None)
+
+    if lower is None:
+        lower = schema.get('exclusiveMinimum', None)
+        lower = lower if lower is None else lower + 1
+
+    upper = schema.get('maximum', None)
+
+    if upper is None:
+        upper = schema.get('exclusiveMaximum', None)
+        upper = upper if upper is None else upper - 1
+
+    if lower is not None and upper is not None:
+        return f'`{repr(lower)}–{repr(upper)}`'
+
+    return 'Unrestricted'
+
 def md_pattern(schema: dict) -> str:
     """Return a JSON Schema ``pattern`` formatted for markdown."""
 
@@ -168,6 +189,10 @@ def write_schema(fobj: TextIO, parent: dict, name: str, schema: dict, indent: st
     if 'enum' in schema:
         fobj.write(f'{indent}**`enum`**: {md_enum(schema)}\n\n')
 
+    if 'minimum' in schema or 'maximum' in schema or \
+       'exclusiveMinimum' in schema or 'exclusiveMaximum' in schema:
+        fobj.write(f'{indent}**`range`**: {md_range(schema)}\n\n')
+
     if 'pattern' in schema:
         fobj.write(f'{indent}**`pattern`**: {md_pattern(schema)}\n\n')
 
@@ -185,6 +210,10 @@ def write_schema(fobj: TextIO, parent: dict, name: str, schema: dict, indent: st
                 write_subschema(fobj, subschema, indent)
 
     for subschema in schema.get('properties', {}).values():
+        if 'title' in subschema or 'description' in subschema:
+            write_subschema(fobj, subschema, indent)
+
+    for subschema in schema.get('patternProperties', {}).values():
         if 'title' in subschema or 'description' in subschema:
             write_subschema(fobj, subschema, indent)
 
@@ -216,9 +245,13 @@ def write_packet(fobj: TextIO, packet: dict, depth: int = 1) -> None:
         # Recurse into `body` fields
         if name == 'body':
             properties = schema.get('properties', {})
+            pattern_properties = schema.get('patternProperties', {})
 
-            if len(properties) > 0:
+            if len(properties) > 0 or len(pattern_properties) > 0:
                 for subname, subschema in properties.items():
+                    write_schema(fobj, schema, subname, subschema)
+
+                for subname, subschema in pattern_properties.items():
                     write_schema(fobj, schema, subname, subschema)
             else:
                 fobj.write('This packet has no body fields.\n\n')
