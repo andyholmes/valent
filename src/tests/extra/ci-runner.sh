@@ -3,9 +3,39 @@
 # SPDX-License-Identifier: CC0-1.0
 # SPDX-FileCopyrightText: No rights reserved
 
-# Fallbacks
+#
+# Top-Level Environment Variables
+#
 WORKSPACE="${GITHUB_WORKSPACE:=$(git rev-parse --show-toplevel)}"
 BUILDDIR="${BUILDDIR:=$WORKSPACE/_build}"
+
+
+#
+# CI/Pre-Tests
+#
+ci_pre_test() {
+    if command -v mypy > /dev/null 2>&1; then
+        # shellcheck disable=SC2046
+        mypy $(git ls-files '*.py')
+    fi
+
+    if command -v pylint > /dev/null 2>&1; then
+        # shellcheck disable=SC2046
+        pylint --rcfile src/tests/extra/setup.cfg \
+               $(git ls-files '*.py')
+    fi
+
+    if command -v shellcheck > /dev/null 2>&1; then
+        # shellcheck disable=SC2046
+        shellcheck $(git ls-files '*.sh')
+    fi
+
+    if command -v yamllint > /dev/null 2>&1; then
+        # shellcheck disable=SC2046
+        yamllint --config-file src/tests/extra/yamllint.yml \
+                 $(git ls-files '*.yml')
+    fi
+}
 
 
 #
@@ -59,6 +89,9 @@ ci_analyze_abidiff_build() {
 }
 
 ci_analyze_abidiff() {
+    # Ensure a log directory exists where it is expected
+    mkdir -p "${BUILDDIR}/meson-logs"
+
     if [ "${GITHUB_ACTIONS}" = "true" ]; then
         BASE_REF="${GITHUB_BASE_REF}"
         HEAD_REF="${GITHUB_HEAD_REF}"
@@ -77,7 +110,6 @@ ci_analyze_abidiff() {
     ci_analyze_abidiff_build "${HEAD_REF}" "${HEAD_DIR}" > /dev/null 2>&1
 
     # Run `abidiff`
-    mkdir -p "${BUILDDIR}/meson-logs"
     abidiff --drop-private-types \
             --fail-no-debug-info \
             --no-added-syms \
@@ -90,7 +122,7 @@ ci_analyze_abidiff() {
 }
 
 ci_analyze_cppcheck() {
-    # We're not building the project, so create logs where they would be
+    # Ensure a log directory exists where it is expected
     mkdir -p "${BUILDDIR}/meson-logs"
 
     cppcheck --quiet \
@@ -156,13 +188,9 @@ ci_analyze() {
 # CI/Tests
 #
 ci_test_coverage() {
-    # If we're passed arguments, re-run the `ci_test()` function
-    if [ $# -gt 0 ]; then
-        ci_test gcc "${@}";
-
-    # If the build directory doesn't exist, we need to run the tests
-    elif [ ! -d "${BUILDDIR}" ]; then
-        ci_test gcc;
+    if [ ! -d "${BUILDDIR}" ]; then
+        echo "No build directory found at '${BUILDDIR}'"
+        exit 1;
     fi
 
     # Capture, filter and generate
@@ -207,7 +235,7 @@ ci_test() {
 
     # Generate Coverage
     if [ "${TEST_PROFILE}" = "coverage" ]; then
-        ci_test_coverage "${@}"
+        ci_test_coverage;
         return;
     fi
 
@@ -274,14 +302,21 @@ ci_test() {
 # $1: the job ID
 # $2: the subjob ID
 #
-if [ "${1}" = "analyze" ]; then
+if [ "${1}" = "pre-test" ]; then
+    shift;
+    ci_pre_test;
+
+elif [ "${1}" = "analyze" ]; then
     shift;
     ci_analyze "${@}";
 elif [ "${1}" = "test" ]; then
     shift;
     ci_test "${@}";
+elif [ "${1}" = "" ]; then
+    echo "$(basename "${0}"): no command specified";
+    exit 2;
 else
-    echo "Unknown command: ${*}";
-    exit 1;
+    echo "$(basename "${0}"): unknown command '${1}'";
+    exit 2;
 fi
 
