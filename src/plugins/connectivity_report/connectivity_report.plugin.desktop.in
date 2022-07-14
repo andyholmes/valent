@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
+
+[Plugin]
+Module=connectivity_report
+Name=Connectivity Report
+Description=Sync network connectivity status
+Icon=valent-connectivity_report-plugin-symbolic
+Builtin=true
+Embedded=valent_connectivity_report_plugin_register_types
+Website=https://github.com/andyholmes/valent
+Help=https://github.com/andyholmes/valent
+Hidden=false
+X-IncomingCapabilities=kdeconnect.connectivity_report;kdeconnect.connectivity_report.request
+X-OutgoingCapabilities=kdeconnect.connectivity_report;kdeconnect.connectivity_report.request
+

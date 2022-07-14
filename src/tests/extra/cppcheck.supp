@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: CC0-1.0
 # SPDX-FileCopyrightText: No rights reserved
 
-# src/libvalent/notifications/valent-notification.c
+# src/libvalent/notifications/
 leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:88
 leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:89
 leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:838
@@ -24,6 +24,15 @@ leakNoVarFunctionCall:src/plugins/sms/valent-sms-conversation.c:588
 # "Allocation with g_variant_new_*, g_signal_emit doesn't release it."
 leakNoVarFunctionCall:src/tests/fixtures/valent-mock-media-player.c:117
 leakNoVarFunctionCall:src/tests/fixtures/valent-mock-media-player.c:173
+
+# src/tests/plugins/connectivity_report/
+leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:227
+leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:229
+leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:231
+leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:247
+leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:253
+leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:255
+leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:257
 
 # src/tests/plugins/bluez/
 memleak:src/tests/plugins/bluez/test-bluez-plugin.c:183

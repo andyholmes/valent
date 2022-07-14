@@ -26,6 +26,12 @@ src/plugins/battery/valent-battery-preferences.ui
 src/plugins/clipboard/clipboard.plugin.desktop.in
 src/plugins/clipboard/valent-clipboard-preferences.c
 src/plugins/clipboard/valent-clipboard-preferences.ui
+src/plugins/connectivity_report/ca.andyholmes.valent.connectivity_report.gschema.xml
+src/plugins/connectivity_report/connectivity_report.plugin.desktop.in
+src/plugins/connectivity_report/valent-connectivity_report-gadget.c
+src/plugins/connectivity_report/valent-connectivity_report-plugin.c
+src/plugins/connectivity_report/valent-connectivity_report-preferences.c
+src/plugins/connectivity_report/valent-connectivity_report-preferences.ui
 src/plugins/contacts/contacts.plugin.desktop.in
 src/plugins/contacts/valent-contacts-preferences.c
 src/plugins/contacts/valent-contacts-preferences.ui

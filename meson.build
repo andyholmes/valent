@@ -276,6 +276,7 @@ summary({
 summary({
   'Battery':               get_option('plugin_battery'),
   'Clipboard':             get_option('plugin_clipboard'),
+  'Connectivity Report':   get_option('plugin_connectivity_report'),
   'Contacts':              get_option('plugin_contacts'),
   'Find My Phone':         get_option('plugin_findmyphone'),
   'Lock':                  get_option('plugin_lock'),

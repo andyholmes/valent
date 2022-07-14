@@ -19,6 +19,7 @@
         "--socket=wayland",
         "--system-talk-name=org.freedesktop.hostname1",
         "--system-talk-name=org.freedesktop.login1",
+        "--system-talk-name=org.freedesktop.ModemManager1",
         "--system-talk-name=org.freedesktop.UPower",
         "--talk-name=org.a11y.Bus",
         "--talk-name=org.freedesktop.DBus",

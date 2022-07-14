@@ -1,0 +1,74 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.connectivity_report",
+    "description": "This packet is a connectivity report.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.connectivity_report",
+            "body": {
+                "signalStrengths": {
+                    "6": {
+                        "networkType": "4G",
+                        "signalStrength": 3
+                    },
+                    "17": {
+                        "networkType": "HSPA",
+                        "signalStrength": -1
+                    }
+                }
+            }
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.connectivity_report"]
+        },
+        "body": {
+            "type": "object",
+            "required": [
+                "signalStrengths"
+            ],
+            "properties": {
+                "signalStrengths": {
+                    "type": "object",
+                    "description": "A dictionary of signal states. Each key is an arbitrary, but unique, string and each value is a `Signal` object.",
+                    "patternProperties": {
+                        "^\\w+$": {
+                            "title": "Signal",
+                            "description": "The ID of the attachment.",
+                            "type": "object",
+                            "required": [
+                                "networkType",
+                                "signalStrength"
+                            ],
+                            "properties": {
+                                "networkType": {
+                                    "type": "string",
+                                    "description": "The network type.",
+                                    "enum": ["GSM", "CDMA", "iDEN", "UMTS", "CDMA2000", "EDGE", "GPRS", "HSPA", "LTE", "5G", "Unknown"]
+                                },
+                                "signalStrength": {
+                                    "type": "number",
+                                    "description": "The signal strength. As with the battery plugin, `-1` means the device is not available. Values `0` through `5` describe the coarse strength of the signal.",
+                                    "minimum": -1,
+                                    "maximum": 5
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

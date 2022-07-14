@@ -1,0 +1,31 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "kdeconnect.connectivity_report.request",
+    "description": "This packet is sent to request a connectivity report.",
+    "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.connectivity_report.request",
+            "body": {}
+        }
+    ],
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "body"
+    ],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["kdeconnect.connectivity_report.request"]
+        },
+        "body": {
+            "type": "object",
+            "properties": {}
+        }
+    }
+}
