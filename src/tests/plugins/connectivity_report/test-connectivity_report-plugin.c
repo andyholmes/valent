@@ -103,7 +103,7 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   packet = valent_test_fixture_lookup_packet (fixture, "modemless-report");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  g_assert_true (g_action_group_get_action_enabled (actions, "connectivity_report.state"));
+  g_assert_false (g_action_group_get_action_enabled (actions, "connectivity_report.state"));
   state = g_action_group_get_action_state (actions, "connectivity_report.state");
 
   g_variant_lookup (state, "signal-strengths", "@a{sv}", &signal_strengths);

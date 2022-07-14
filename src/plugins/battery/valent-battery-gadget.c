@@ -119,7 +119,9 @@ on_action_state_changed (GActionGroup        *action_group,
 
   gtk_level_bar_set_value (GTK_LEVEL_BAR (self->level_bar), percentage);
   gtk_label_set_text (GTK_LABEL (self->label), label);
-  gtk_widget_set_visible (self->button, TRUE);
+
+  if (g_action_group_get_action_enabled (action_group, action_name))
+    gtk_widget_set_visible (self->button, TRUE);
 }
 
 static void
