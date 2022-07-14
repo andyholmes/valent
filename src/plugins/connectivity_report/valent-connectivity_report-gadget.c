@@ -119,7 +119,8 @@ on_action_state_changed (GActionGroup        *action_group,
   if (g_variant_lookup (value, "title", "&s", &title))
     gtk_widget_set_tooltip_text (GTK_WIDGET (self->button), title);
 
-  gtk_widget_set_visible (self->button, TRUE);
+  if (g_action_group_get_action_enabled (action_group, action_name))
+    gtk_widget_set_visible (self->button, TRUE);
 }
 
 static void

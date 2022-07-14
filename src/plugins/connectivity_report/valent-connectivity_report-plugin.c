@@ -261,7 +261,7 @@ valent_connectivity_report_plugin_handle_connectivity_report (ValentConnectivity
   /* Update the GAction */
   action = g_action_map_lookup_action (G_ACTION_MAP (self), "state");
   g_simple_action_set_enabled (G_SIMPLE_ACTION (action),
-                               g_variant_n_children (state) > 0);
+                               json_object_get_size (signal_strengths) > 0);
   g_simple_action_set_state (G_SIMPLE_ACTION (action), state);
 
   /* Notify if necessary */
@@ -269,7 +269,6 @@ valent_connectivity_report_plugin_handle_connectivity_report (ValentConnectivity
     {
       valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self),
                                               "offline");
-
     }
   else if (g_settings_get_boolean (self->settings, "offline-notification"))
     {
