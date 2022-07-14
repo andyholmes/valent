@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> -->
+
+<schemalist gettext-domain="valent">
+  <schema id="ca.andyholmes.valent.connectivity_report">
+    <key name="share-state" type="b">
+      <default>true</default>
+      <summary>Share State</summary>
+      <description>Send connectivity reports</description>
+    </key>
+    <key name="offline-notification" type="b">
+      <default>false</default>
+      <summary>Offline Notification</summary>
+      <description>Show a notification when there is no connectivity</description>
+    </key>
+  </schema>
+</schemalist>

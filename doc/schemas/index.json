@@ -40,6 +40,18 @@
             ]
         },
         {
+            "title": "Connectivity Report Plugin",
+            "description": "The Connectivity Report plugin allows a device to expose the status of its connectivity.",
+            "packets": [
+                "kdeconnect.connectivity_report",
+                "kdeconnect.connectivity_report.request"
+            ],
+            "references": [
+                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/connectivity_report",
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/ConnectivityReportPlugin"
+            ]
+        },
+        {
             "title": "Contacts Plugin",
             "description": "The Contacts plugin allows devices to share contacts in vCard format.",
             "packets": [

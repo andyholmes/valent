@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> -->
+
+<gresources>
+  <gresource prefix="/plugins/connectivity_report">
+    <file>connectivity_report.plugin</file>
+    <file preprocess="xml-stripblanks">valent-connectivity_report-preferences.ui</file>
+  </gresource>
+  <gresource prefix="/ca/andyholmes/Valent/icons">
+    <file preprocess="xml-stripblanks" alias="scalable/apps/valent-connectivity_report-plugin-symbolic.svg">data/valent-connectivity_report-plugin-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-2g-symbolic.svg">data/network-cellular-2g-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-3g-symbolic.svg">data/network-cellular-3g-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-4g-symbolic.svg">data/network-cellular-4g-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-5g-symbolic.svg">data/network-cellular-5g-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-edge-symbolic.svg">data/network-cellular-edge-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-gprs-symbolic.svg">data/network-cellular-gprs-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-hspa-symbolic.svg">data/network-cellular-hspa-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-offline-symbolic.svg">data/network-cellular-offline-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-signal-excellent-symbolic.svg">data/network-cellular-signal-excellent-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-signal-good-symbolic.svg">data/network-cellular-signal-good-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-signal-none-symbolic.svg">data/network-cellular-signal-none-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-signal-ok-symbolic.svg">data/network-cellular-signal-ok-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-signal-weak-symbolic.svg">data/network-cellular-signal-weak-symbolic.svg</file>
+  </gresource>
+</gresources>
+

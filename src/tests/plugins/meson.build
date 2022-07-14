@@ -10,6 +10,7 @@ plugin_tests = [
   # Device Plugins
   'battery',
   'clipboard',
+  'connectivity_report',
   'contacts',
   'findmyphone',
   'lock',

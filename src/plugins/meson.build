@@ -15,6 +15,7 @@ plugins = [
   # Device Plugins
   'battery',
   'clipboard',
+  'connectivity_report',
   'contacts',
   'findmyphone',
   'lock',

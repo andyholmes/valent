@@ -1,0 +1,129 @@
+{
+  "identity": {
+    "id": 0,
+    "type": "kdeconnect.identity",
+    "body": {
+      "deviceId": "test-device",
+      "deviceName": "Test Device",
+      "protocolVersion": 7,
+      "deviceType": "phone",
+      "incomingCapabilities": [
+        "kdeconnect.connectivity_report",
+        "kdeconnect.connectivity_report.request"
+      ],
+      "outgoingCapabilities": [
+        "kdeconnect.connectivity_report",
+        "kdeconnect.connectivity_report.request"
+      ]
+    }
+  },
+  "modemless-report": {
+    "id": 0,
+    "type": "kdeconnect.connectivity_report",
+    "body": {
+      "signalStrengths": {
+      }
+    }
+  },
+  "offline-report": {
+    "id": 0,
+    "type": "kdeconnect.connectivity_report",
+    "body": {
+      "signalStrengths": {
+        "1": {
+          "networkType": "Unknown",
+          "signalStrength": -1
+        }
+      }
+    }
+  },
+  "none-report": {
+    "id": 0,
+    "type": "kdeconnect.connectivity_report",
+    "body": {
+      "signalStrengths": {
+        "1": {
+          "networkType": "GSM",
+          "signalStrength": 0
+        }
+      }
+    }
+  },
+  "weak-report": {
+    "id": 0,
+    "type": "kdeconnect.connectivity_report",
+    "body": {
+      "signalStrengths": {
+        "1": {
+          "networkType": "UMTS",
+          "signalStrength": 1
+        }
+      }
+    }
+  },
+  "ok-report": {
+    "id": 0,
+    "type": "kdeconnect.connectivity_report",
+    "body": {
+      "signalStrengths": {
+        "1": {
+          "networkType": "LTE",
+          "signalStrength": 2
+        }
+      }
+    }
+  },
+  "good-report": {
+    "id": 0,
+    "type": "kdeconnect.connectivity_report",
+    "body": {
+      "signalStrengths": {
+        "1": {
+          "networkType": "EDGE",
+          "signalStrength": 3
+        }
+      }
+    }
+  },
+  "excellent-report": {
+    "id": 0,
+    "type": "kdeconnect.connectivity_report",
+    "body": {
+      "signalStrengths": {
+        "1": {
+          "networkType": "GPRS",
+          "signalStrength": 4
+        }
+      }
+    }
+  },
+  "extra1-report": {
+    "id": 0,
+    "type": "kdeconnect.connectivity_report",
+    "body": {
+      "signalStrengths": {
+        "1": {
+          "networkType": "HSPA",
+          "signalStrength": 5
+        }
+      }
+    }
+  },
+  "extra2-report": {
+    "id": 0,
+    "type": "kdeconnect.connectivity_report",
+    "body": {
+      "signalStrengths": {
+        "1": {
+          "networkType": "5G",
+          "signalStrength": 5
+        }
+      }
+    }
+  },
+  "request-state": {
+    "id": 0,
+    "type": "kdeconnect.connectivity_report.request",
+    "body": {}
+  }
+}

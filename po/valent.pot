@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2022-06-27 22:03-0700\n"
+"POT-Creation-Date: 2022-07-13 14:59-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -105,7 +105,7 @@ msgstr ""
 msgid "Pair and connect your devices"
 msgstr ""
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:56
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:57
 msgid "Andy Holmes"
 msgstr ""
 
@@ -283,6 +283,8 @@ msgstr ""
 
 #: src/plugins/battery/ca.andyholmes.valent.battery.gschema.xml:10
 #: src/plugins/battery/valent-battery-preferences.ui:16
+#: src/plugins/connectivity_report/ca.andyholmes.valent.connectivity_report.gschema.xml:10
+#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:16
 msgid "Share State"
 msgstr ""
 
@@ -292,42 +294,42 @@ msgid "Send updates of the battery status"
 msgstr ""
 
 #: src/plugins/battery/ca.andyholmes.valent.battery.gschema.xml:15
-#: src/plugins/battery/valent-battery-preferences.ui:33
+#: src/plugins/battery/valent-battery-preferences.ui:34
 msgid "Full Battery Notification"
 msgstr ""
 
 #: src/plugins/battery/ca.andyholmes.valent.battery.gschema.xml:16
-#: src/plugins/battery/valent-battery-preferences.ui:34
+#: src/plugins/battery/valent-battery-preferences.ui:35
 msgid "Show a notification when the battery is full"
 msgstr ""
 
 #: src/plugins/battery/ca.andyholmes.valent.battery.gschema.xml:21
-#: src/plugins/battery/valent-battery-preferences.ui:38
+#: src/plugins/battery/valent-battery-preferences.ui:39
 msgid "Full Battery Level"
 msgstr ""
 
 #: src/plugins/battery/ca.andyholmes.valent.battery.gschema.xml:22
-#: src/plugins/battery/valent-battery-preferences.ui:39
+#: src/plugins/battery/valent-battery-preferences.ui:40
 msgid "The level to consider the battery full"
 msgstr ""
 
 #: src/plugins/battery/ca.andyholmes.valent.battery.gschema.xml:26
-#: src/plugins/battery/valent-battery-preferences.ui:58
+#: src/plugins/battery/valent-battery-preferences.ui:59
 msgid "Low Battery Notification"
 msgstr ""
 
 #: src/plugins/battery/ca.andyholmes.valent.battery.gschema.xml:27
-#: src/plugins/battery/valent-battery-preferences.ui:59
+#: src/plugins/battery/valent-battery-preferences.ui:60
 msgid "Show a notification when the battery is low"
 msgstr ""
 
 #: src/plugins/battery/ca.andyholmes.valent.battery.gschema.xml:32
-#: src/plugins/battery/valent-battery-preferences.ui:63
+#: src/plugins/battery/valent-battery-preferences.ui:64
 msgid "Low Battery Level"
 msgstr ""
 
 #: src/plugins/battery/ca.andyholmes.valent.battery.gschema.xml:33
-#: src/plugins/battery/valent-battery-preferences.ui:64
+#: src/plugins/battery/valent-battery-preferences.ui:65
 msgid "The level to consider the battery low"
 msgstr ""
 
@@ -341,24 +343,24 @@ msgid "Sync battery statistics"
 msgstr ""
 
 #. TRANSLATORS: When the battery level is 100%
-#: src/plugins/battery/valent-battery-gadget.c:138
+#: src/plugins/battery/valent-battery-gadget.c:78
 msgid "Fully Charged"
 msgstr ""
 
 #. TRANSLATORS: This is <percentage> (Estimating…)
-#: src/plugins/battery/valent-battery-gadget.c:162
+#: src/plugins/battery/valent-battery-gadget.c:102
 #, c-format
 msgid "%g%% (Estimating…)"
 msgstr ""
 
 #. TRANSLATORS: This is <percentage> (<hours>:<minutes> Until Full)
-#: src/plugins/battery/valent-battery-gadget.c:167
+#: src/plugins/battery/valent-battery-gadget.c:107
 #, c-format
 msgid "%g%% (%d∶%02d Until Full)"
 msgstr ""
 
 #. TRANSLATORS: This is <percentage> (<hours>:<minutes> Remaining)
-#: src/plugins/battery/valent-battery-gadget.c:173
+#: src/plugins/battery/valent-battery-gadget.c:113
 #: src/plugins/battery/valent-battery-plugin.c:297
 #, c-format
 msgid "%g%% (%d∶%02d Remaining)"
@@ -389,11 +391,11 @@ msgstr ""
 msgid "How the local battery state is handled."
 msgstr ""
 
-#: src/plugins/battery/valent-battery-preferences.ui:29
+#: src/plugins/battery/valent-battery-preferences.ui:30
 msgid "Remote Battery"
 msgstr ""
 
-#: src/plugins/battery/valent-battery-preferences.ui:30
+#: src/plugins/battery/valent-battery-preferences.ui:31
 msgid "How the remote battery state is handled."
 msgstr ""
 
@@ -423,6 +425,57 @@ msgstr ""
 
 #: src/plugins/clipboard/valent-clipboard-preferences.ui:28
 msgid "Copy to the remote clipboard"
+msgstr ""
+
+#: src/plugins/connectivity_report/ca.andyholmes.valent.connectivity_report.gschema.xml:11
+#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:17
+msgid "Send connectivity reports"
+msgstr ""
+
+#: src/plugins/connectivity_report/ca.andyholmes.valent.connectivity_report.gschema.xml:15
+#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:34
+msgid "Offline Notification"
+msgstr ""
+
+#: src/plugins/connectivity_report/ca.andyholmes.valent.connectivity_report.gschema.xml:16
+#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:35
+msgid "Show a notification when there is no connectivity"
+msgstr ""
+
+#: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:7
+#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:8
+msgid "Connectivity Report"
+msgstr ""
+
+#: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:8
+msgid "Sync network connectivity status"
+msgstr ""
+
+#. TRANSLATORS: This is <device name>: No Service
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:287
+#, c-format
+msgid "%s: No Service"
+msgstr ""
+
+#. TRANSLATORS: This indicates the remote device has lost service
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:289
+msgid "No mobile network service."
+msgstr ""
+
+#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:12
+msgid "Local Connectivity"
+msgstr ""
+
+#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:13
+msgid "How the local connectivity state is handled."
+msgstr ""
+
+#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:30
+msgid "Remote Connectivity"
+msgstr ""
+
+#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:31
+msgid "How the remote connectivity state is handled."
 msgstr ""
 
 #: src/plugins/contacts/contacts.plugin.desktop.in:8
@@ -961,7 +1014,6 @@ msgid "Send and receive SMS messages"
 msgstr ""
 
 #: src/plugins/sms/valent-contact-row.c:212
-#: src/plugins/sms/valent-contact-row.c:313
 #: src/plugins/sms/valent-contact-row.c:334
 #: src/plugins/sms/valent-contact-row.c:463
 msgid "Other"

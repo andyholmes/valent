@@ -76,6 +76,12 @@ option('plugin_clipboard',
   description: 'Enable Clipboard plugin'
 )
 
+option('plugin_connectivity_report',
+         type: 'boolean',
+        value: true,
+  description: 'Enable Connectivity Report plugin',
+)
+
 option('plugin_contacts',
          type: 'boolean',
         value: true,
