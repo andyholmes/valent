@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2022-07-13 14:59-0700\n"
+"POT-Creation-Date: 2022-07-14 20:56-0700\n"
 "PO-Revision-Date: 2022-03-28 11:21-0700\n"
 "Last-Translator: Andy Holmes <andrew.g.r.holmes@gmail.com>\n"
 "Language-Team: English <andrew.g.r.holmes@gmail.com>\n"
@@ -451,15 +451,37 @@ msgstr ""
 msgid "Sync network connectivity status"
 msgstr ""
 
-#. TRANSLATORS: This is <device name>: No Service
-#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:287
-#, c-format
-msgid "%s: No Service"
+#. TRANSLATORS: When the mobile network signal is available
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:172
+msgid "Mobile Network"
 msgstr ""
 
-#. TRANSLATORS: This indicates the remote device has lost service
-#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:289
-msgid "No mobile network service."
+#. TRANSLATORS: The mobile network signal strength (e.g. "Signal Strength (25%)")
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:174
+#, c-format
+msgid "Signal Strength %f%%"
+msgstr ""
+
+#. TRANSLATORS: When no mobile service is available
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:180
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:187
+msgid "No Service"
+msgstr ""
+
+#. TRANSLATORS: When no mobile network signal is available
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:182
+msgid "No mobile network service"
+msgstr ""
+
+#. TRANSLATORS: When the device is missing a SIM card
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:189
+msgid "No SIM"
+msgstr ""
+
+#. TRANSLATORS: The connectivity notification title (e.g. "PinePhone: No Service")
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:317
+#, c-format
+msgid "%s: %s"
 msgstr ""
 
 #: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:12

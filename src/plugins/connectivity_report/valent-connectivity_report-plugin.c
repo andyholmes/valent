@@ -5,6 +5,8 @@
 
 #include "config.h"
 
+#include <math.h>
+
 #include <glib/gi18n.h>
 #include <gio/gio.h>
 #include <libpeas/peas.h>
@@ -23,10 +25,6 @@ struct _ValentConnectivityReportPlugin
   /* Local Modems */
   ValentTelephony    *telephony;
   unsigned int        telephony_watch : 1;
-
-  /* Remote Modems */
-  const char         *icon_name;
-  double              average;
 };
 
 static void   valent_connectivity_report_plugin_request_state (ValentConnectivityReportPlugin *self);
@@ -164,6 +162,35 @@ get_signal_strength_icon (double signal_strength)
 }
 
 static void
+get_status_labels (double   signal_strength,
+                   char   **status_title,
+                   char   **status_body)
+{
+  if (signal_strength >= 1.0)
+    {
+      /* TRANSLATORS: When the mobile network signal is available */
+      *status_title = g_strdup (_("Mobile Network"));
+      /* TRANSLATORS: The mobile network signal strength (e.g. "Signal Strength (25%)") */
+      *status_body = g_strdup_printf (_("Signal Strength %f%%"),
+                                      floor (signal_strength * 20.0));
+    }
+  else if (signal_strength >= 0.0)
+    {
+      /* TRANSLATORS: When no mobile service is available */
+      *status_title = g_strdup (_("No Service"));
+      /* TRANSLATORS: When no mobile network signal is available */
+      *status_body = g_strdup (_("No mobile network service"));
+    }
+  else
+    {
+      /* TRANSLATORS: When no mobile service is available */
+      *status_title = g_strdup (_("No Service"));
+      /* TRANSLATORS: When the device is missing a SIM card */
+      *status_body = g_strdup (_("No SIM"));
+    }
+}
+
+static void
 valent_connectivity_report_plugin_handle_connectivity_report (ValentConnectivityReportPlugin *self,
                                                               JsonNode                       *packet)
 {
@@ -175,8 +202,12 @@ valent_connectivity_report_plugin_handle_connectivity_report (ValentConnectivity
   JsonObjectIter iter;
   const char *signal_id;
   JsonNode *signal_node;
+  double average_strength = 0.0;
   double n_nodes = 0;
-  const char *icon_name;
+  gboolean is_online = FALSE;
+  const char *status_icon;
+  g_autofree char *status_title = NULL;
+  g_autofree char *status_body = NULL;
 
   g_assert (VALENT_IS_CONNECTIVITY_REPORT_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
@@ -188,8 +219,6 @@ valent_connectivity_report_plugin_handle_connectivity_report (ValentConnectivity
       return;
     }
 
-  self->average = 0.0;
-
   g_variant_builder_init (&builder, G_VARIANT_TYPE_VARDICT);
 
   /* Add each signal */
@@ -200,10 +229,10 @@ valent_connectivity_report_plugin_handle_connectivity_report (ValentConnectivity
   while (json_object_iter_next (&iter, &signal_id, &signal_node))
     {
       GVariantBuilder signal_builder;
-      GVariant *signal_variant;
       JsonObject *signal_obj;
       const char *network_type;
       gint64 signal_strength;
+      const char *icon_name;
 
       if G_UNLIKELY (json_node_get_value_type (signal_node) != JSON_TYPE_OBJECT)
         {
@@ -221,6 +250,15 @@ valent_connectivity_report_plugin_handle_connectivity_report (ValentConnectivity
                                                                  -1);
       icon_name = get_network_type_icon (network_type);
 
+      /* Ignore offline modems (`-1`) when determining the average strength */
+      if (signal_strength >= 0)
+        {
+          average_strength = (n_nodes * average_strength + signal_strength) /
+                             (n_nodes + 1);
+          n_nodes += 1;
+          is_online = TRUE;
+        }
+
       /* Add the signal to the `signal_strengths` dictionary */
       g_variant_builder_init (&signal_builder, G_VARIANT_TYPE_VARDICT);
       g_variant_builder_add (&signal_builder, "{sv}", "network-type",
@@ -229,32 +267,25 @@ valent_connectivity_report_plugin_handle_connectivity_report (ValentConnectivity
                              g_variant_new_int64 (signal_strength));
       g_variant_builder_add (&signal_builder, "{sv}", "icon-name",
                              g_variant_new_string (icon_name));
-      signal_variant = g_variant_builder_end (&signal_builder);
-      g_variant_builder_add (&signals_builder, "{sv}", signal_id, signal_variant);
-
-      /* If the device isn't offline (`-1`), add it to the total to average */
-      if (signal_strength >= 0)
-        {
-          self->average += signal_strength;
-          n_nodes += 1;
-        }
+      g_variant_builder_add (&signals_builder, "{sv}", signal_id,
+                             g_variant_builder_end (&signal_builder));
     }
-
-  if (self->average > 0.0)
-    self->average = self->average / n_nodes;
 
   g_variant_builder_add (&builder, "{sv}", "signal-strengths",
                          g_variant_builder_end (&signals_builder));
 
   /* Set the status properties */
-  icon_name = get_signal_strength_icon (self->average);
+  status_icon = get_signal_strength_icon (is_online ? average_strength : -1);
+  get_status_labels (is_online ? average_strength : -1,
+                     &status_title,
+                     &status_body);
 
   g_variant_builder_add (&builder, "{sv}", "icon-name",
-                         g_variant_new_string (icon_name));
+                         g_variant_new_string (status_icon));
   g_variant_builder_add (&builder, "{sv}", "title",
-                         g_variant_new_string ("Signal Strength"));
+                         g_variant_new_string (status_title));
   g_variant_builder_add (&builder, "{sv}", "body",
-                         g_variant_new_string ("Status Body"));
+                         g_variant_new_string (status_body));
 
   state = g_variant_builder_end (&builder);
 
@@ -265,7 +296,7 @@ valent_connectivity_report_plugin_handle_connectivity_report (ValentConnectivity
   g_simple_action_set_state (G_SIMPLE_ACTION (action), state);
 
   /* Notify if necessary */
-  if (self->average > 0.0)
+  if (average_strength > 0.0)
     {
       valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self),
                                               "offline");
@@ -282,11 +313,11 @@ valent_connectivity_report_plugin_handle_connectivity_report (ValentConnectivity
       device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
       device_name = valent_device_get_name (device);
 
-      /* TRANSLATORS: This is <device name>: No Service */
-      title = g_strdup_printf (_("%s: No Service"), device_name);
-      /* TRANSLATORS: This indicates the remote device has lost service */
-      body = g_strdup (_("No mobile network service."));
-      icon = g_themed_icon_new ("network-cellular-offline-symbolic");
+      /* TRANSLATORS: The connectivity notification title (e.g. "PinePhone: No Service") */
+      title = g_strdup_printf (_("%s: %s"), device_name, status_title);
+      /* TRANSLATORS: The connectivity notification body (e.g. "No mobile network service") */
+      body = g_strdup (status_body);
+      icon = g_themed_icon_new (status_icon);
 
       notification = g_notification_new (title);
       g_notification_set_body (notification, body);
