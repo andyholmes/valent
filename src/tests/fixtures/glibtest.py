@@ -123,6 +123,15 @@ class GLibTestCase(metaclass = _GLibTestCaseMeta):
                                   check=True,
                                   encoding='utf-8')
 
+        # NOTE: If the meson timeout is reached, *this* process will be killed
+        #       and output from the test executable will not be propagated.
+        except subprocess.TimeoutExpired as error:
+            stdout = '' if not error.stdout else error.stdout.decode('utf-8')
+            stderr = '' if not error.stderr else error.stderr.decode('utf-8')
+
+            # pylint: disable-next=no-member
+            self.fail(f'\nstdout:\n{stdout}\nstderr:\n{stderr}') # type: ignore
+
         # On failure, preserve the output and pipe
         except subprocess.CalledProcessError as error:
             # pylint: disable-next=no-member
