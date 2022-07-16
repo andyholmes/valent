@@ -307,7 +307,7 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
       valent_notification_add_device_button (notification,
                                              device,
                                              _("Mute"),
-                                             "mute-call",
+                                             "telephony.mute-call",
                                              NULL);
       g_notification_set_priority (notification,
                                    G_NOTIFICATION_PRIORITY_URGENT);
