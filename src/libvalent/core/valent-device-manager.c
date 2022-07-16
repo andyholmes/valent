@@ -47,6 +47,7 @@ struct _ValentDeviceManager
 
   GHashTable               *devices;
   GHashTable               *services;
+  JsonNode                 *state;
 
   GDBusObjectManagerServer *dbus;
   GHashTable               *exported;
@@ -428,11 +429,31 @@ on_device_state (ValentDevice        *device,
 {
   ValentDeviceState state = valent_device_get_state (device);
 
-  if ((state & VALENT_DEVICE_STATE_CONNECTED) != 0 ||
+  /* Devices that become connected and paired are remembered */
+  if ((state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
       (state & VALENT_DEVICE_STATE_PAIRED) != 0)
-    return;
+    {
+      g_autoptr (ValentChannel) channel = NULL;
+      JsonNode *identity = NULL;
 
-  valent_device_manager_remove_device (self, device);
+      if ((channel = valent_device_ref_channel (device)) == NULL)
+        return;
+
+      identity = valent_channel_get_peer_identity (channel);
+
+      json_object_set_object_member (json_node_get_object (self->state),
+                                     valent_device_get_id (device),
+                                     json_node_dup_object (identity));
+    }
+
+  /* Devices that become disconnected and unpaired are forgotten */
+  if ((state & VALENT_DEVICE_STATE_CONNECTED) == 0 &&
+      (state & VALENT_DEVICE_STATE_PAIRED) == 0)
+    {
+      json_object_remove_member (json_node_get_object (self->state),
+                                 valent_device_get_id (device));
+      valent_device_manager_remove_device (self, device);
+    }
 }
 
 static void
@@ -527,125 +548,64 @@ valent_device_manager_ensure_device (ValentDeviceManager *manager,
 }
 
 static void
-valent_device_manager_load_cb (GObject      *object,
-                               GAsyncResult *result,
-                               gpointer      user_data)
+valent_device_manager_load_state (ValentDeviceManager *self)
 {
-  ValentDeviceManager *manager = VALENT_DEVICE_MANAGER (object);
-  g_autoptr (GPtrArray) ret = NULL;
-  g_autoptr (GError) error = NULL;
+  JsonObjectIter iter;
+  const char *device_id;
+  JsonNode *identity;
 
-  g_assert (VALENT_IS_DEVICE_MANAGER (manager));
-  g_assert (g_task_is_valid (result, manager));
+  g_assert (VALENT_IS_DEVICE_MANAGER (self));
 
-  if ((ret = g_task_propagate_pointer (G_TASK (result), &error)) == NULL)
+  if (self->state == NULL)
     {
-      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_warning ("%s(): %s", G_STRFUNC, error->message);
+      g_autoptr (JsonParser) parser = NULL;
+      g_autofree char *path = NULL;
 
-      return;
+      path = g_build_filename (valent_data_get_cache_path (self->data),
+                               "devices.json",
+                               NULL);
+
+      /* Try to load the state file */
+      parser = json_parser_new ();
+
+      if (json_parser_load_from_file (parser, path, NULL))
+        self->state = json_parser_steal_root (parser);
+
+      if (self->state == NULL || !JSON_NODE_HOLDS_OBJECT (self->state))
+        {
+          g_clear_pointer (&self->state, json_node_unref);
+          self->state = json_node_new (JSON_NODE_OBJECT);
+          json_node_take_object (self->state, json_object_new ());
+        }
     }
 
-  for (unsigned int i = 0, len = ret->len; i < len; i++)
-    valent_device_manager_ensure_device (manager, g_ptr_array_index (ret, i));
+  /* Load devices */
+  json_object_iter_init (&iter, json_node_get_object (self->state));
+
+  while (json_object_iter_next (&iter, &device_id, &identity))
+    valent_device_manager_ensure_device (self, identity);
 }
 
 static void
-valent_device_manager_load_task (GTask        *task,
-                                 gpointer      source_object,
-                                 gpointer      task_data,
-                                 GCancellable *cancellable)
+valent_device_manager_save_state (ValentDeviceManager *self)
 {
-  GFile *directory = G_FILE (task_data);
-  g_autoptr (GPtrArray) ret = NULL;
-  g_autoptr (GFileEnumerator) iter = NULL;
-  g_autoptr (JsonParser) parser = NULL;
+  g_autoptr (JsonGenerator) generator = NULL;
+  g_autofree char *path = NULL;
   g_autoptr (GError) error = NULL;
 
-  g_assert (G_IS_FILE (directory));
+  g_assert (VALENT_IS_DEVICE_MANAGER (self));
 
-  if (g_task_return_error_if_cancelled (task))
-    return;
+  generator = g_object_new (JSON_TYPE_GENERATOR,
+                            "pretty", TRUE,
+                            "root",   self->state,
+                            NULL);
 
-  parser = json_parser_new ();
-  ret = g_ptr_array_new_with_free_func ((GDestroyNotify)json_node_unref);
+  path = g_build_filename (valent_data_get_cache_path (self->data),
+                           "devices.json",
+                           NULL);
 
-  /* Check the config directory for subdirectories */
-  iter = g_file_enumerate_children (directory,
-                                    G_FILE_ATTRIBUTE_STANDARD_NAME,
-                                    G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS,
-                                    cancellable,
-                                    &error);
-
-  if (iter == NULL)
-    return g_task_return_error (task, g_steal_pointer (&error));
-
-  while (TRUE)
-    {
-      GFile *child = NULL;
-      g_autoptr (GFile) identity_file = NULL;
-      g_autoptr (JsonNode) packet = NULL;
-      const char *identity_path = NULL;
-      g_autoptr (GError) warning = NULL;
-
-      if (!g_file_enumerator_iterate (iter, NULL, &child, cancellable, &error))
-        return g_task_return_error (task, g_steal_pointer (&error));
-
-      if (child == NULL)
-        break;
-
-      /* Check for an "identity.json" child */
-      identity_file = g_file_get_child (child, "identity.json");
-
-      if (!g_file_query_exists (identity_file, cancellable))
-        continue;
-
-      /* Parse it as JSON */
-      identity_path = g_file_peek_path (identity_file);
-
-      if (!json_parser_load_from_file (parser, identity_path, &warning))
-        {
-          g_warning ("%s(): failed to parse \"%s\": %s",
-                     G_STRFUNC,
-                     identity_path,
-                     warning->message);
-          continue;
-        }
-
-      /* Validate it as a KDE Connect packet */
-      packet = json_parser_steal_root (parser);
-
-      if (!valent_packet_validate (packet, &warning))
-        {
-          g_warning ("%s(): failed to validate \"%s\": %s",
-                     G_STRFUNC,
-                     identity_path,
-                     warning->message);
-          continue;
-        }
-
-      g_ptr_array_add (ret, g_steal_pointer (&packet));
-    }
-
-  g_task_return_pointer (task,
-                         g_steal_pointer (&ret),
-                         (GDestroyNotify)g_ptr_array_unref);
-}
-
-static void
-valent_device_manager_load (ValentDeviceManager *manager)
-{
-  g_autoptr (GTask) task = NULL;
-  g_autoptr (GFile) file = NULL;
-
-  file = g_file_new_for_path (valent_data_get_config_path (manager->data));
-  task = g_task_new (manager,
-                     manager->cancellable,
-                     valent_device_manager_load_cb,
-                     NULL);
-  g_task_set_source_tag (task, valent_device_manager_load);
-  g_task_set_task_data (task, g_steal_pointer (&file), g_object_unref);
-  g_task_run_in_thread (task, valent_device_manager_load_task);
+  if (!json_generator_to_file (generator, path, &error))
+    g_warning ("%s(): %s", G_STRFUNC, error->message);
 }
 
 /*
@@ -768,6 +728,7 @@ valent_device_manager_finalize (GObject *object)
   g_clear_pointer (&self->exported, g_hash_table_unref);
   g_clear_pointer (&self->services, g_hash_table_unref);
   g_clear_pointer (&self->devices, g_hash_table_unref);
+  g_clear_pointer (&self->state, json_node_unref);
 
   g_clear_object (&self->certificate);
   g_clear_object (&self->data);
@@ -1251,12 +1212,12 @@ valent_device_manager_start (ValentDeviceManager *manager)
   if (manager->cancellable != NULL)
     VALENT_EXIT;
 
-  /* Load devices */
-  valent_device_manager_load (manager);
-
-  /* Setup services */
   manager->cancellable = g_cancellable_new ();
 
+  /* Load devices */
+  valent_device_manager_load_state (manager);
+
+  /* Setup services */
   engine = valent_get_plugin_engine ();
   plugins = peas_engine_get_plugin_list (engine);
 
@@ -1333,6 +1294,8 @@ valent_device_manager_stop (ValentDeviceManager *manager)
       g_clear_pointer (&device_id, g_free);
       g_clear_object (&device);
     }
+
+  valent_device_manager_save_state (manager);
 
   VALENT_EXIT;
 }

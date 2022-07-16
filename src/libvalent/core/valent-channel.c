@@ -237,22 +237,8 @@ static void
 valent_channel_real_store_data (ValentChannel *channel,
                                 ValentData    *data)
 {
-  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
-  g_autoptr (GFile) file = NULL;
-  g_autofree char *json = NULL;
-
   g_assert (VALENT_IS_CHANNEL (channel));
   g_assert (VALENT_IS_DATA (data));
-
-  /* Save the peer identity */
-  json = json_to_string (priv->peer_identity, TRUE);
-  file = valent_data_new_config_file (data, "identity.json");
-  g_file_set_contents_full (g_file_peek_path (file),
-                            json,
-                            -1,
-                            G_FILE_SET_CONTENTS_CONSISTENT,
-                            0600,
-                            NULL);
 }
 /* LCOV_EXCL_STOP */
 
