@@ -340,9 +340,9 @@ valent_telephony_plugin_mute_call (ValentTelephonyPlugin *self)
  * GActions
  */
 static void
-mute_action (GSimpleAction *action,
-             GVariant      *parameter,
-             gpointer       user_data)
+mute_call_action (GSimpleAction *action,
+                  GVariant      *parameter,
+                  gpointer       user_data)
 {
   ValentTelephonyPlugin *self = VALENT_TELEPHONY_PLUGIN (user_data);
 
@@ -352,7 +352,7 @@ mute_action (GSimpleAction *action,
 }
 
 static const GActionEntry actions[] = {
-    {"mute-call", mute_action, NULL, NULL, NULL}
+    {"mute-call", mute_call_action, NULL, NULL, NULL}
 };
 
 /*
