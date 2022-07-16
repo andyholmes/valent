@@ -1,0 +1,21 @@
+{
+  "test-device": {
+    "id": 0,
+    "type": "kdeconnect.identity",
+    "body": {
+      "deviceId": "test-device",
+      "deviceName": "Test Device",
+      "protocolVersion": 7,
+      "deviceType": "phone",
+      "incomingCapabilities": [
+        "kdeconnect.mock.echo",
+        "kdeconnect.mock.transfer"
+      ],
+      "outgoingCapabilities": [
+        "kdeconnect.mock.echo",
+        "kdeconnect.mock.transfer"
+      ],
+      "tcpPort": 1716
+    }
+  }
+}

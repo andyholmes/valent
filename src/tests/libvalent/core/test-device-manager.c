@@ -23,25 +23,21 @@ static void
 manager_fixture_set_up (ManagerFixture *fixture,
                         gconstpointer   user_data)
 {
-  g_autofree char *path = NULL;
+  const char *path = NULL;
   g_autoptr (ValentData) data = NULL;
-  g_autoptr (JsonNode) packets = NULL;
-  JsonNode *identity;
-  g_autofree char *identity_json = NULL;
-  g_autofree char *identity_path = NULL;
+  g_autoptr (JsonNode) state = NULL;
+  g_autofree char *state_json = NULL;
+  g_autofree char *state_path = NULL;
 
   /* Copy the mock device configuration */
   data = valent_data_new (NULL, NULL);
-  path = g_build_filename (valent_data_get_config_path (data),
-                           "test-device",
-                           NULL);
+  path = valent_data_get_cache_path (data);
   g_mkdir_with_parents (path, 0700);
 
-  packets = valent_test_load_json (TEST_DATA_DIR"/core.json");
-  identity = json_object_get_member (json_node_get_object (packets), "identity");
-  identity_json = json_to_string (identity, TRUE);
-  identity_path = g_build_filename (path, "identity.json", NULL);
-  g_file_set_contents (identity_path, identity_json, -1, NULL);
+  state = valent_test_load_json (TEST_DATA_DIR"/core-state.json");
+  state_json = json_to_string (state, TRUE);
+  state_path = g_build_filename (path, "devices.json", NULL);
+  g_file_set_contents (state_path, state_json, -1, NULL);
 
   /* Init the manager */
   fixture->loop = g_main_loop_new (NULL, FALSE);
