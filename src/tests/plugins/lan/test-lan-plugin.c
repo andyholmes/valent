@@ -177,62 +177,22 @@ await_incoming_connection (LanBackendFixture *fixture)
 }
 
 static void
-g_socket_client_connect_to_host_cb (GSocketClient     *client,
-                                    GAsyncResult      *result,
-                                    LanBackendFixture *fixture)
+g_socket_client_connect_to_host_cb (GSocketClient      *client,
+                                    GAsyncResult       *result,
+                                    GSocketConnection **connection)
 {
-  g_autoptr (GSocketConnection) connection = NULL;
-  JsonNode *identity;
-  g_autoptr (JsonNode) peer_identity = NULL;
-  GOutputStream *output_stream;
-  g_autoptr (GIOStream) tls_stream = NULL;
   GError *error = NULL;
 
-  identity = json_object_get_member (json_node_get_object (fixture->packets),
-                                     "identity");
-
-  connection = g_socket_client_connect_to_host_finish (client, result, &error);
+  *connection = g_socket_client_connect_to_host_finish (client, result, &error);
   g_assert_no_error (error);
-  g_assert_nonnull (connection);
-
-  /* We opened a TCP connection in response to the incoming UDP broadcast so the
-   * test service now expects us to write our identity packet.
-   */
-  output_stream = g_io_stream_get_output_stream (G_IO_STREAM (connection));
-  valent_packet_to_stream (output_stream, identity, NULL, &error);
-  g_assert_no_error (error);
-
-  /* The test service is unverified, so we expect it to be accepted on a
-   * trust-on-first-use basis.
-   */
-  tls_stream = valent_lan_encrypt_new_server (connection,
-                                              fixture->certificate,
-                                              "test-device",
-                                              NULL,
-                                              &error);
-  g_assert_no_error (error);
-  g_assert_true (G_IS_TLS_CONNECTION (tls_stream));
-
-  /* We're pretending to be a remote service, so we create an endpoint channel
-   * so that we can pop packets of it from the test service.
-   */
-  peer_identity = g_steal_pointer (&fixture->data);
-  fixture->endpoint = g_object_new (VALENT_TYPE_LAN_CHANNEL,
-                                    "base-stream",   tls_stream,
-                                    "certificate",   fixture->certificate,
-                                    "host",          SERVICE_HOST,
-                                    "port",          SERVICE_PORT,
-                                    "identity",      identity,
-                                    "peer-identity", peer_identity,
-                                    NULL);
+  g_assert_nonnull (*connection);
 }
 
 static void
 on_incoming_broadcast (GDataInputStream  *stream,
                        GAsyncResult      *result,
-                       LanBackendFixture *fixture)
+                       JsonNode         **peer_identity)
 {
-  g_autoptr (GSocketClient) client = NULL;
   g_autofree char *line = NULL;
   GError *error = NULL;
 
@@ -243,23 +203,9 @@ on_incoming_broadcast (GDataInputStream  *stream,
   g_assert_no_error (error);
   g_assert_nonnull (line);
 
-  fixture->data = valent_packet_deserialize (line, &error);
+  *peer_identity = valent_packet_deserialize (line, &error);
   g_assert_no_error (error);
-  g_assert_nonnull (fixture->data);
-
-  /* We opened a TCP connection in response to the incoming UDP broadcast so the
-   * test service now expects us to write our identity packet.
-   */
-  client = g_object_new (G_TYPE_SOCKET_CLIENT,
-                         "enable-proxy", FALSE,
-                         NULL);
-
-  g_socket_client_connect_to_host_async (client,
-                                         SERVICE_ADDR,
-                                         SERVICE_PORT,
-                                         NULL,
-                                         (GAsyncReadyCallback)g_socket_client_connect_to_host_cb,
-                                         fixture);
+  g_assert_nonnull (*peer_identity);
 }
 
 static void
@@ -374,6 +320,13 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
 {
   g_autoptr (GInputStream) unix_stream = NULL;
   g_autoptr (GDataInputStream) data_stream = NULL;
+  g_autoptr (JsonNode) peer_identity = NULL;
+  g_autoptr (GSocketClient) client = NULL;
+  g_autoptr (GSocketConnection) connection = NULL;
+  JsonNode *identity;
+  GOutputStream *output_stream;
+  g_autoptr (GIOStream) tls_stream = NULL;
+  GError *error = NULL;
 
   valent_channel_service_start (fixture->service,
                                 NULL,
@@ -393,7 +346,58 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
                                        G_PRIORITY_DEFAULT,
                                        NULL,
                                        (GAsyncReadyCallback)on_incoming_broadcast,
-                                       fixture);
+                                       &peer_identity);
+
+  while (peer_identity == NULL)
+    g_main_context_iteration (NULL, FALSE);
+
+  /* The test service identity has been received and now we will respond by
+   * opening a TCP connection to it. */
+  client = g_object_new (G_TYPE_SOCKET_CLIENT,
+                         "enable-proxy", FALSE,
+                         NULL);
+  g_socket_client_connect_to_host_async (client,
+                                         SERVICE_ADDR,
+                                         SERVICE_PORT,
+                                         NULL,
+                                         (GAsyncReadyCallback)g_socket_client_connect_to_host_cb,
+                                         &connection);
+
+  while (connection == NULL)
+    g_main_context_iteration (NULL, FALSE);
+
+  /* We opened a TCP connection in response to the incoming UDP broadcast so the
+   * test service now expects us to write our identity packet.
+   */
+  identity = json_object_get_member (json_node_get_object (fixture->packets),
+                                     "identity");
+
+  output_stream = g_io_stream_get_output_stream (G_IO_STREAM (connection));
+  valent_packet_to_stream (output_stream, identity, NULL, &error);
+  g_assert_no_error (error);
+
+  /* The test service is unverified, so it expects to be accepted on a
+   * trust-on-first-use basis.
+   */
+  tls_stream = valent_lan_encrypt_new_server (connection,
+                                              fixture->certificate,
+                                              "test-device",
+                                              NULL,
+                                              &error);
+  g_assert_no_error (error);
+  g_assert_true (G_IS_TLS_CONNECTION (tls_stream));
+
+  /* We're pretending to be a remote service, so we create an endpoint channel
+   * so that we can pop packets of it from the test service.
+   */
+  fixture->endpoint = g_object_new (VALENT_TYPE_LAN_CHANNEL,
+                                    "base-stream",   tls_stream,
+                                    "certificate",   fixture->certificate,
+                                    "host",          SERVICE_HOST,
+                                    "port",          SERVICE_PORT,
+                                    "identity",      identity,
+                                    "peer-identity", peer_identity,
+                                    NULL);
 
   /* When the test service accepts the incoming connection, it should negotiate
    * the TLS connection and create a channel.
