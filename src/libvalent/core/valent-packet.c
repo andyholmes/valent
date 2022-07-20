@@ -782,7 +782,7 @@ valent_packet_dup_strv (JsonNode   *packet,
 
       strv[i] = json_node_dup_string (element);
     }
-#endif
+#endif /* __clang_analyzer__ */
 
   return g_steal_pointer (&strv);
 }
@@ -891,13 +891,18 @@ valent_packet_validate (JsonNode  *packet,
 /**
  * valent_packet_from_stream:
  * @stream: a #GInputStream
+ * @max_len: the maximum number bytes to read, or `-1` for no limit
  * @cancellable: (nullable): a #GCancellable
  * @error: (nullable): a #GError
  *
- * A convenience function for reading a packet from a connection.
+ * Read a KDE Connect packet from an input stream.
  *
- * If the read fails or the packet does not conform to the minimum structure of
+ * If reading fails or the packet does not conform to the minimum structure of
  * a KDE Connect packet, %NULL will be returned with @error set.
+ *
+ * If @max_len is greater than `-1`, then at most @max_len bytes will be read.
+ * If @max_len bytes are read without encountering a line-feed character, %NULL
+ * will be returned with @error set to %G_IO_ERROR_MESSAGE_TOO_LARGE.
  *
  * Returns: (transfer full): a KDE Connect packet, or %NULL with @error set.
  *
@@ -905,27 +910,42 @@ valent_packet_validate (JsonNode  *packet,
  */
 JsonNode *
 valent_packet_from_stream (GInputStream  *stream,
+                           gssize         max_len,
                            GCancellable  *cancellable,
                            GError       **error)
 {
   g_autoptr (JsonParser) parser = NULL;
   g_autoptr (JsonNode) packet = NULL;
   g_autofree char *line = NULL;
-  gsize count = 0;
-  gssize read = 0;
-  gsize size = 4096;
+  gssize count = 0;
+  gssize size = 4096;
 
   g_return_val_if_fail (G_IS_INPUT_STREAM (stream), NULL);
   g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
   g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
+#ifndef __clang_analyzer__
+  if (max_len < 0)
+    max_len = G_MAXSSIZE;
+
   line = g_malloc0 (size);
 
   while (TRUE)
     {
+      gssize read = 0;
+
+      if G_UNLIKELY (count == max_len)
+        {
+          g_set_error (error,
+                       G_IO_ERROR,
+                       G_IO_ERROR_MESSAGE_TOO_LARGE,
+                       "Packet too large");
+          return NULL;
+        }
+
       if G_UNLIKELY (count == size)
         {
-          size = size * 2;
+          size = MIN (size * 2, max_len);
           line = g_realloc (line, size);
         }
 
@@ -955,6 +975,7 @@ valent_packet_from_stream (GInputStream  *stream,
 
   if (!valent_packet_validate (packet, error))
     return NULL;
+#endif /* __clang_analyzer__ */
 
   return g_steal_pointer (&packet);
 }

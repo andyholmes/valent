@@ -124,6 +124,7 @@ g_socket_listener_accept_cb (GSocketListener   *listener,
    * so we now expect the test service to write its identity packet.
    */
   peer_identity = valent_packet_from_stream (g_io_stream_get_input_stream (G_IO_STREAM (connection)),
+                                             -1,
                                              NULL,
                                              &error);
   g_assert_no_error (error);

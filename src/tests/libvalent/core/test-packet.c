@@ -244,7 +244,7 @@ test_packet_streaming (PacketFixture *fixture,
 
   while (json_object_iter_next (&iter, NULL, &packet_in))
     {
-      packet_out = valent_packet_from_stream (in, NULL, &error);
+      packet_out = valent_packet_from_stream (in, -1, NULL, &error);
       g_assert_no_error (error);
 
       g_assert_true (json_node_equal (packet_in, packet_out));
@@ -258,7 +258,7 @@ test_packet_streaming (PacketFixture *fixture,
   /* Large input */
   packet_str = json_to_string (fixture->large_node, FALSE);
   in = g_memory_input_stream_new_from_data (packet_str, -1, NULL);
-  packet_out = valent_packet_from_stream (in, NULL, &error);
+  packet_out = valent_packet_from_stream (in, -1, NULL, &error);
   g_assert_no_error (error);
   g_clear_object (&in);
   g_clear_pointer (&packet_out, json_node_unref);
@@ -267,7 +267,7 @@ test_packet_streaming (PacketFixture *fixture,
   in = g_memory_input_stream_new_from_data (corrupt_packet,
                                             strlen (corrupt_packet),
                                             NULL);
-  packet_out = valent_packet_from_stream (in, NULL, &error);
+  packet_out = valent_packet_from_stream (in, -1, NULL, &error);
   g_assert_error (error, JSON_PARSER_ERROR, JSON_PARSER_ERROR_INVALID_BAREWORD);
   g_clear_object (&in);
   g_clear_pointer (&packet_out, json_node_unref);
@@ -275,20 +275,26 @@ test_packet_streaming (PacketFixture *fixture,
 
   in = g_memory_input_stream_new_from_data ("", 0, NULL);
   g_input_stream_close (in, NULL, NULL);
-  packet_out = valent_packet_from_stream (in, NULL, &error);
+  packet_out = valent_packet_from_stream (in, -1, NULL, &error);
   g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CLOSED);
   g_clear_object (&in);
   g_clear_error (&error);
 
   in = g_memory_input_stream_new_from_data ("", 0, NULL);
-  packet_out = valent_packet_from_stream (in, NULL, &error);
+  packet_out = valent_packet_from_stream (in, -1, NULL, &error);
   g_assert_error (error, VALENT_PACKET_ERROR, VALENT_PACKET_ERROR_INVALID_DATA);
   g_clear_object (&in);
   g_clear_error (&error);
 
   in = g_memory_input_stream_new_from_data ("\n", 1, NULL);
-  packet_out = valent_packet_from_stream (in, NULL, &error);
+  packet_out = valent_packet_from_stream (in, -1, NULL, &error);
   g_assert_error (error, VALENT_PACKET_ERROR, VALENT_PACKET_ERROR_INVALID_DATA);
+  g_clear_object (&in);
+  g_clear_error (&error);
+
+  in = g_memory_input_stream_new_from_data ("1234567890", 10, NULL);
+  packet_out = valent_packet_from_stream (in, 5, NULL, &error);
+  g_assert_error (error, G_IO_ERROR, G_IO_ERROR_MESSAGE_TOO_LARGE);
   g_clear_object (&in);
   g_clear_error (&error);
 }
