@@ -36,7 +36,7 @@ valent_runcommand_can_spawn_host (void)
           host = g_spawn_check_wait_status (status, NULL);
 #else
           host = g_spawn_check_exit_status (status, NULL);
-#endif
+#endif /* GLIB_CHECK_VERSION(2, 70, 0) */
         }
 
       g_once_init_leave (&guard, 1);

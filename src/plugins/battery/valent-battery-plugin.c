@@ -5,11 +5,12 @@
 
 #include "config.h"
 
+#include <math.h>
+
 #include <glib/gi18n.h>
 #include <gio/gio.h>
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
-#include <math.h>
 
 #include "valent-battery.h"
 #include "valent-battery-plugin.h"

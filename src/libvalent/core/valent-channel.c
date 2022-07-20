@@ -5,13 +5,14 @@
 
 #include "config.h"
 
-#include <sys/time.h>
+#include <time.h>
+
+#include <gio/gio.h>
 #include <json-glib/json-glib.h>
 
 #include "valent-channel.h"
 #include "valent-data.h"
 #include "valent-debug.h"
-#include "valent-macros.h"
 #include "valent-object.h"
 #include "valent-packet.h"
 

@@ -8,7 +8,7 @@
 #include <libportal/portal.h>
 #ifdef HAVE_LIBPORTAL_GTK4
 # include <libportal-gtk4/portal-gtk4.h>
-#endif
+#endif /* HAVE_LIBPORTAL_GTK4 */
 
 #include "valent-xdp-utils.h"
 
@@ -61,7 +61,7 @@ valent_xdp_get_parent (GApplication *application)
       if (window != NULL)
         parent = xdp_parent_new_gtk (window);
     }
-#endif
+#endif /* HAVE_LIBPORTAL_GTK4 */
 
   return parent;
 }

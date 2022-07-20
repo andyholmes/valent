@@ -5,8 +5,9 @@
 
 #include "config.h"
 
-#include <gio/gio.h>
 #include <math.h>
+
+#include <gio/gio.h>
 
 #include "valent-battery.h"
 

@@ -59,7 +59,7 @@ launcher_init (ValentRuncommandPlugin *self)
 #else
   flags = (G_SUBPROCESS_FLAGS_STDERR_SILENCE |
            G_SUBPROCESS_FLAGS_STDOUT_SILENCE);
-#endif
+#endif /* VALENT_ENABLE_DEBUG */
 
   self->launcher = g_subprocess_launcher_new (flags);
 

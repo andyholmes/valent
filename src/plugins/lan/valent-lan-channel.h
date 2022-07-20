@@ -4,7 +4,6 @@
 #pragma once
 
 #include <libvalent-core.h>
-#include <json-glib/json-glib.h>
 
 G_BEGIN_DECLS
 

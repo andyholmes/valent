@@ -6,6 +6,7 @@
 #include "config.h"
 
 #include <math.h>
+
 #include <glib/gi18n.h>
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
@@ -750,7 +751,7 @@ valent_mpris_plugin_handle_player_list (ValentMprisPlugin *self,
       valent_mpris_remote_export (remote);
       valent_mpris_plugin_request_update (self, player);
     }
-#endif
+#endif /* __clang_analyzer__ */
 }
 
 static void

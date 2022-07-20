@@ -11,13 +11,13 @@
 # define BTN_LEFT    0x110
 # define BTN_RIGHT   0x111
 # define BTN_MIDDLE  0x112
-#endif
+#endif /* __linux */
 
 #include <glib-object.h>
 #include <gdk/gdk.h>
 #ifdef GDK_WINDOWING_X11
 #  include <gdk/x11/gdkx.h>
-#endif
+#endif /* GDK_WINDOWING_X11 */
 #include <libportal/portal.h>
 #include <libvalent-core.h>
 #include <libvalent-input.h>
@@ -285,7 +285,7 @@ valent_xdp_input_pointer_axis (ValentInputAdapter *adapter,
 
         return;
       }
-  #endif
+  #endif /* GDK_WINDOWING_X11 */
 
   xdp_session_pointer_axis (self->session, FALSE, dx, dy);
   xdp_session_pointer_axis (self->session, TRUE, 0.0, 0.0);

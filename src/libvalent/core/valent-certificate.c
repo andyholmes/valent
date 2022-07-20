@@ -5,11 +5,12 @@
 
 #include "config.h"
 
+#include <time.h>
+
 #include <gio/gio.h>
 #include <gnutls/gnutls.h>
 #include <gnutls/abstract.h>
 #include <gnutls/x509.h>
-#include <sys/time.h>
 
 #include "valent-certificate.h"
 #include "valent-debug.h"
