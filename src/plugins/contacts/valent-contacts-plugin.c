@@ -142,7 +142,7 @@ valent_contact_plugin_handle_request_vcards_by_uid (ValentContactsPlugin *self,
                               self->cancellable,
                               (GAsyncReadyCallback)valent_contact_store_query_vcards_cb,
                               self);
-#endif
+#endif /* __clang_analyzer__ */
 }
 
 static void

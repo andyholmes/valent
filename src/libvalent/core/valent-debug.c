@@ -6,11 +6,12 @@
 
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE
-#endif
+#endif /* _GNU_SOURCE */
 
-#include <glib.h>
 #include <time.h>
 #include <unistd.h>
+
+#include <glib.h>
 
 #ifdef HAVE_SYSPROF
 # include <sched.h>
@@ -165,7 +166,7 @@ valent_log_handler (const char     *log_domain,
   localtime_r (&t, &tt);
 #else
   tt = *localtime (&t);
-#endif
+#endif /* HAVE_LOCALTIME_R */
 
   strftime (ftime, sizeof (ftime), "%H:%M:%S", &tt);
   buffer = g_strdup_printf ("%s.%04d %30s: %s: %s\n",

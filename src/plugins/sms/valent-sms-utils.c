@@ -319,7 +319,7 @@ valent_phone_number_normalize (const char *number)
   /* If we fail or the number is stripped completely, return the original */
   if G_UNLIKELY (*normalized == '\0')
     return g_strdup (number);
-#endif
+#endif /* __clang_analyzer__ */
 
   return g_steal_pointer (&normalized);
 }

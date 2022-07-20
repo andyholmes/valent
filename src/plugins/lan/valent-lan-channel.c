@@ -5,7 +5,9 @@
 
 #include "config.h"
 
+#include <gio/gio.h>
 #include <gio/gnetworking.h>
+#include <json-glib/json-glib.h>
 #include <libvalent-core.h>
 
 #include "valent-lan-channel.h"

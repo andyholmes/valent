@@ -51,7 +51,7 @@ configure_socket (GSocketConnection *connection)
       g_warning ("%s(): TCP_KEEPCNT: %s", G_STRFUNC, error->message);
       g_clear_error (&error);
     }
-#endif
+#endif /* TCP_KEEPIDLE && TCP_KEEPINTVL && TCP_KEEPCNT */
 }
 
 static gboolean

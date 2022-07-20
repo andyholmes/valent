@@ -6,6 +6,8 @@
 #include "config.h"
 
 #include <time.h>
+
+#include <gio/gio.h>
 #include <json-glib/json-glib.h>
 
 #include "valent-packet.h"
@@ -1138,6 +1140,6 @@ valent_timestamp_ms (void)
   gettimeofday (&tv, NULL);
 
   return (tv.tv_sec * 1000L) + tv.tv_usec / 1000L;
-#endif
+#endif /* HAVE_CLOCK_GETTIME */
 }
 

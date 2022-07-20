@@ -6,6 +6,7 @@
 #include "config.h"
 
 #include <math.h>
+
 #include <gvc-mixer-stream.h>
 #include <libvalent-core.h>
 #include <libvalent-mixer.h>

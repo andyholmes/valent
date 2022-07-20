@@ -5,8 +5,10 @@
 
 #include "config.h"
 
-#include <sys/time.h>
+#include <time.h>
+
 #include <gio/gdesktopappinfo.h>
+#include <gio/gio.h>
 #include <libvalent-notifications.h>
 
 #include "valent-gtk-notifications.h"

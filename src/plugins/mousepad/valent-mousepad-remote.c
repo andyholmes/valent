@@ -5,11 +5,12 @@
 
 #include "config.h"
 
+#include <math.h>
+
 #include <glib/gi18n.h>
 #include <libvalent-core.h>
 #include <libvalent-input.h>
 #include <libvalent-ui.h>
-#include <math.h>
 
 #include "valent-mousepad-remote.h"
 #include "valent-mousepad-keydef.h"
