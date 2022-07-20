@@ -160,6 +160,7 @@ gboolean      valent_packet_validate         (JsonNode       *packet,
                                               GError        **error);
 VALENT_AVAILABLE_IN_1_0
 JsonNode    * valent_packet_from_stream      (GInputStream   *stream,
+                                              gssize          max_len,
                                               GCancellable   *cancellable,
                                               GError        **error);
 VALENT_AVAILABLE_IN_1_0

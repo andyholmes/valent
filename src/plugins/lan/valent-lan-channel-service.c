@@ -94,6 +94,7 @@ on_incoming_connection (ValentChannelService   *service,
   /* An incoming TCP connection is in response to an outgoing UDP packet, so the
    * the peer must now write its identity packet. */
   peer_identity = valent_packet_from_stream (g_io_stream_get_input_stream (G_IO_STREAM (connection)),
+                                             -1,
                                              cancellable,
                                              NULL);
 

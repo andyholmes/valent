@@ -982,7 +982,10 @@ valent_mux_connection_handshake (ValentMuxConnection  *connection,
 
   /* Read the remote identity */
   input_stream = g_io_stream_get_input_stream (base_stream);
-  peer_identity = valent_packet_from_stream (input_stream, cancellable, error);
+  peer_identity = valent_packet_from_stream (input_stream,
+                                             -1,
+                                             cancellable,
+                                             error);
 
   if (peer_identity == NULL)
     return NULL;
