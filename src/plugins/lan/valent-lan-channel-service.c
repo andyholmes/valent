@@ -13,10 +13,12 @@
 #include "valent-lan-channel-service.h"
 #include "valent-lan-utils.h"
 
-#define PROTOCOL_ADDR     "255.255.255.255"
-#define PROTOCOL_PORT     1716
-#define TRANSFER_PORT_MIN 1739
-#define TRANSFER_PORT_MAX 1764
+#define PROTOCOL_ADDR        "255.255.255.255"
+#define PROTOCOL_PORT        (1716)
+#define TRANSFER_PORT_MIN    (1739)
+#define TRANSFER_PORT_MAX    (1764)
+
+#define IDENTITY_BUFFER_MAX  (8192)
 
 
 struct _ValentLanChannelService
@@ -144,56 +146,6 @@ on_incoming_connection (ValentChannelService   *service,
   return TRUE;
 }
 
-/**
- * peek_host:
- * @socket: a #GSocket
- * @error: (nullable): a #GError
- *
- * Peek the host from the next UDP message on a socket. Returns %NULL on error
- * and sets @error.
- *
- * Returns: (transfer full): the remote host as a string
- */
-static char *
-peek_host (GSocket       *socket,
-           GCancellable  *cancellable,
-           GError       **error)
-{
-  g_autoptr (GSocketAddress) address;
-  GInetAddress *iaddr;
-  g_autofree GInputVector iv = { NULL, 0 };
-  int flags = G_SOCKET_MSG_PEEK;
-  gssize len;
-
-  g_assert (G_IS_SOCKET (socket));
-  g_assert (error == NULL || *error == NULL);
-
-  len = g_socket_receive_message (socket,
-                                  &address,
-                                  &iv, 0,
-                                  NULL, NULL,
-                                  &flags,
-                                  cancellable,
-                                  error);
-
-  if (len == 0)
-    {
-      g_set_error_literal (error,
-                           G_IO_ERROR,
-                           G_IO_ERROR_CLOSED,
-                           "UDP socket closed");
-      return NULL;
-    }
-  else if (len == -1)
-    {
-      return NULL;
-    }
-
-  iaddr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (address));
-
-  return g_inet_address_to_string (iaddr);
-}
-
 /*
  * Incoming UDP Broadcasts
  *
@@ -207,16 +159,18 @@ peek_host (GSocket       *socket,
 static gboolean
 on_incoming_broadcast (ValentLanChannelService  *self,
                        GSocket                  *socket,
-                       GDataInputStream         *input_stream,
                        GCancellable             *cancellable,
                        GError                  **error)
 {
   ValentChannelService *service = VALENT_CHANNEL_SERVICE (self);
   g_autoptr (GError) warn = NULL;
   g_autoptr (ValentChannel) channel = NULL;
-  gint64 port;
+  g_autoptr (GSocketAddress) address;
+  char buffer[IDENTITY_BUFFER_MAX + 1] = { 0, };
+  gssize len;
+  GInetAddress *iaddr;
   g_autofree char *host = NULL;
-  g_autofree char *line = NULL;
+  gint64 port;
   g_autoptr (JsonNode) identity = NULL;
   g_autoptr (JsonNode) peer_identity = NULL;
   const char *device_id;
@@ -228,37 +182,32 @@ on_incoming_broadcast (ValentLanChannelService  *self,
 
   g_assert (VALENT_IS_CHANNEL_SERVICE (service));
   g_assert (G_IS_SOCKET (socket));
+  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+  g_assert (error == NULL || *error == NULL);
 
-  /* Try to peek the incoming address before we read the packet, and on failure
-   * assume it's a broken pipe.
-   */
-  host = peek_host (socket, cancellable, error);
+  /* Read the message data and extract the remote address */
+  len = g_socket_receive_from (socket,
+                               &address,
+                               buffer,
+                               IDENTITY_BUFFER_MAX,
+                               cancellable,
+                               error);
 
-  if G_UNLIKELY (host == NULL)
-    return FALSE;
-
-  /* We assume there's an identity packet and now we'll confirm it. Read from
-   * the UDP socket until the next line-feed character, parse it as JSON, and
-   * get the port while validating the packet.
-   */
-  line = g_data_input_stream_read_line_utf8 (input_stream,
-                                             NULL,
-                                             cancellable,
-                                             error);
-
-  if G_UNLIKELY (line == NULL)
+  if (len == 0)
     {
-      if (error != NULL && *error == NULL)
-        g_set_error_literal (error,
-                             G_IO_ERROR,
-                             G_IO_ERROR_CONNECTION_CLOSED,
-                             "UDP socket closed");
+      g_set_error_literal (error,
+                           G_IO_ERROR,
+                           G_IO_ERROR_CLOSED,
+                           "UDP socket closed");
+      return FALSE;
+    }
+  else if (len == -1)
+    {
       return FALSE;
     }
 
-  peer_identity = valent_packet_deserialize (line, &warn);
-
-  if G_UNLIKELY (peer_identity == NULL)
+  /* Validate the message as a KDE Connect packet */
+  if ((peer_identity = valent_packet_deserialize (buffer, &warn)) == NULL)
     {
       g_warning ("%s(): failed to parse peer-identity: %s",
                  G_STRFUNC,
@@ -279,7 +228,10 @@ on_incoming_broadcast (ValentLanChannelService  *self,
   if (g_strcmp0 (device_id, local_id) == 0)
     return TRUE;
 
-  /* Get the remote port */
+  /* Get the remote host and port */
+  iaddr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (address));
+  host = g_inet_address_to_string (iaddr);
+
   if (valent_packet_get_int (peer_identity, "tcpPort", &port) &&
       (port < 0 || port > G_MAXUINT16))
     {
@@ -289,7 +241,6 @@ on_incoming_broadcast (ValentLanChannelService  *self,
     }
 
   VALENT_JSON (peer_identity, "Peer Identity");
-
 
   /* Open a TCP connection to the UDP sender and defined port. Disable any use
    * of the system proxy.
@@ -371,20 +322,15 @@ socket_read_loop (gpointer data)
   ValentLanChannelService *self = info->service;
   GSocket *socket = info->socket;
   GCancellable *cancellable = info->cancellable;
-  g_autoptr (GInputStream) base_stream = NULL;
-  g_autoptr (GDataInputStream) input_stream = NULL;
   g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_CHANNEL_SERVICE (info->service));
   g_assert (G_IS_SOCKET (info->socket));
 
   /* Prepare a stream for reading identity packets */
-  base_stream = g_unix_input_stream_new (g_socket_get_fd (socket), TRUE);
-  input_stream = g_data_input_stream_new (base_stream);
-
   while (g_socket_condition_wait (socket, G_IO_IN, cancellable, &error))
     {
-      if (!on_incoming_broadcast (self, socket, input_stream, cancellable, &error))
+      if (!on_incoming_broadcast (self, socket, cancellable, &error))
         break;
     }
 

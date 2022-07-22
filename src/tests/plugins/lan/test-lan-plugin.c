@@ -17,6 +17,10 @@
 #define SERVICE_HOST  "127.0.0.1"
 #define SERVICE_PORT  2716
 
+#define IDENTITY_BUFFER_MAX    (8192)
+
+#define TEST_IDENTITY_OVERSIZE "identity-oversize"
+
 typedef struct
 {
   GMainLoop            *loop;
@@ -315,6 +319,40 @@ test_lan_service_incoming_broadcast (LanBackendFixture *fixture,
 }
 
 static void
+test_lan_service_incoming_broadcast_oversize (void)
+{
+  if (g_test_subprocess ())
+    {
+      LanBackendFixture *fixture;
+      JsonNode *identity;
+      g_autofree char *oversize = NULL;
+
+      /* Perform fixture setup */
+      fixture = g_new0 (LanBackendFixture, 1);
+      lan_service_fixture_set_up (fixture, NULL);
+
+      /* Inject data into the identity packet, to force it to be rejected */
+      identity = json_object_get_member (json_node_get_object (fixture->packets),
+                                         "identity");
+      oversize = g_strnfill (IDENTITY_BUFFER_MAX + 1, '0');
+      json_object_set_string_member (valent_packet_get_body (identity),
+                                     "oversize",
+                                     oversize);
+
+      /* Run the test to be failed */
+      test_lan_service_incoming_broadcast (fixture, TEST_IDENTITY_OVERSIZE);
+
+      /* Perform fixture teardown */
+      lan_service_fixture_tear_down (fixture, NULL);
+      g_clear_pointer (&fixture, g_free);
+
+      return;
+    }
+  g_test_trap_subprocess (NULL, 0, 0);
+  g_test_trap_assert_failed ();
+}
+
+static void
 test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
                                      gconstpointer      user_data)
 {
@@ -515,6 +553,9 @@ main (int   argc,
               lan_service_fixture_set_up,
               test_lan_service_incoming_broadcast,
               lan_service_fixture_tear_down);
+
+  g_test_add_func ("/backends/lan-backend/incoming-broadcast-oversize",
+                   test_lan_service_incoming_broadcast_oversize);
 
   g_test_add ("/backends/lan-backend/outgoing-broadcast",
               LanBackendFixture, NULL,
