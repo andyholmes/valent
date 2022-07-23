@@ -21,10 +21,6 @@
 #define SHA256_HEX_LEN 64
 #define SHA256_STR_LEN 96
 
-G_DEFINE_QUARK (VALENT_CERTIFICATE_CN, valent_certificate_cn);
-G_DEFINE_QUARK (VALENT_CERTIFICATE_FP, valent_certificate_fp);
-G_DEFINE_QUARK (VALENT_CERTIFICATE_PK, valent_certificate_pk);
-
 
 /**
  * valent_certificate_generate:
@@ -312,8 +308,8 @@ valent_certificate_get_common_name (GTlsCertificate *certificate)
   g_return_val_if_fail (G_IS_TLS_CERTIFICATE (certificate), NULL);
 
   /* Check */
-  device_id = g_object_get_qdata (G_OBJECT (certificate),
-                                  valent_certificate_cn_quark());
+  device_id = g_object_get_data (G_OBJECT (certificate),
+                                 "valent-certificate-cn");
 
   if G_LIKELY (device_id != NULL)
     return device_id;
@@ -341,13 +337,12 @@ valent_certificate_get_common_name (GTlsCertificate *certificate)
   gnutls_x509_crt_deinit (crt);
 
   /* Intern the id as private data */
-  g_object_set_qdata_full (G_OBJECT (certificate),
-                           valent_certificate_cn_quark(),
-                           g_strndup (buf, buf_size),
-                           g_free);
+  g_object_set_data_full (G_OBJECT (certificate),
+                          "valent-certificate-cn",
+                          g_strndup (buf, buf_size),
+                          g_free);
 
-  return g_object_get_qdata (G_OBJECT (certificate),
-                             valent_certificate_cn_quark());
+  return g_object_get_data (G_OBJECT (certificate), "valent-certificate-cn");
 }
 
 /**
@@ -373,8 +368,8 @@ valent_certificate_get_fingerprint (GTlsCertificate *certificate)
 
   g_return_val_if_fail (G_IS_TLS_CERTIFICATE (certificate), NULL);
 
-  fingerprint = g_object_get_qdata (G_OBJECT (certificate),
-                                    valent_certificate_fp_quark());
+  fingerprint = g_object_get_data (G_OBJECT (certificate),
+                                   "valent-certificate-fp");
 
   if G_LIKELY (fingerprint != NULL)
     return fingerprint;
@@ -394,13 +389,12 @@ valent_certificate_get_fingerprint (GTlsCertificate *certificate)
   buf[SHA256_STR_LEN - 1] = '\0';
 
   /* Intern the hash as private data */
-  g_object_set_qdata_full (G_OBJECT (certificate),
-                           valent_certificate_fp_quark(),
-                           g_strdup (buf),
-                           g_free);
+  g_object_set_data_full (G_OBJECT (certificate),
+                          "valent-certificate-fp",
+                          g_strdup (buf),
+                          g_free);
 
-  return g_object_get_qdata (G_OBJECT (certificate),
-                             valent_certificate_fp_quark());
+  return g_object_get_data (G_OBJECT (certificate), "valent-certificate-fp");
 }
 
 /**
@@ -426,8 +420,8 @@ valent_certificate_get_public_key (GTlsCertificate *certificate)
 
   g_return_val_if_fail (G_IS_TLS_CERTIFICATE (certificate), NULL);
 
-  pubkey = g_object_get_qdata (G_OBJECT (certificate),
-                               valent_certificate_pk_quark());
+  pubkey = g_object_get_data (G_OBJECT (certificate),
+                              "valent-certificate-pk");
 
   if (pubkey != NULL)
     return g_steal_pointer (&pubkey);
@@ -463,13 +457,13 @@ valent_certificate_get_public_key (GTlsCertificate *certificate)
                                  GNUTLS_X509_FMT_DER,
                                  pubkey->data, &size);
 
-      /* Intern the PEM as private data */
+      /* Intern the DER as private data */
       if (rc == GNUTLS_E_SUCCESS)
         {
-          g_object_set_qdata_full (G_OBJECT (certificate),
-                                   valent_certificate_pk_quark(),
-                                   g_steal_pointer (&pubkey),
-                                   (GDestroyNotify)g_byte_array_unref);
+          g_object_set_data_full (G_OBJECT (certificate),
+                                  "valent-certificate-pk",
+                                  g_steal_pointer (&pubkey),
+                                  (GDestroyNotify)g_byte_array_unref);
         }
       else
         g_warning ("%s(): %s", G_STRFUNC, gnutls_strerror (rc));
@@ -481,7 +475,6 @@ valent_certificate_get_public_key (GTlsCertificate *certificate)
     gnutls_x509_crt_deinit (crt);
     gnutls_pubkey_deinit (crt_pk);
 
-  return g_object_get_qdata (G_OBJECT (certificate),
-                             valent_certificate_pk_quark());
+  return g_object_get_data (G_OBJECT (certificate), "valent-certificate-pk");
 }
 
