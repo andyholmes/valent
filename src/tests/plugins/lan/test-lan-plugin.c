@@ -142,7 +142,6 @@ g_socket_listener_accept_cb (GSocketListener   *listener,
 
   tls_stream = valent_lan_encrypt_new_client (connection,
                                               fixture->certificate,
-                                              device_id,
                                               NULL,
                                               &error);
   g_assert_no_error (error);
@@ -419,7 +418,6 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
    */
   tls_stream = valent_lan_encrypt_new_server (connection,
                                               fixture->certificate,
-                                              "test-device",
                                               NULL,
                                               &error);
   g_assert_no_error (error);
