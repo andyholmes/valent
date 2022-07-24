@@ -9,7 +9,6 @@ G_BEGIN_DECLS
 
 GIOStream * valent_lan_encrypt_new_client (GSocketConnection  *connection,
                                            GTlsCertificate    *certificate,
-                                           const char         *device_id,
                                            GCancellable       *cancellable,
                                            GError            **error);
 GIOStream * valent_lan_encrypt_client     (GSocketConnection  *connection,
@@ -19,7 +18,6 @@ GIOStream * valent_lan_encrypt_client     (GSocketConnection  *connection,
                                            GError            **error);
 GIOStream * valent_lan_encrypt_new_server (GSocketConnection  *connection,
                                            GTlsCertificate    *certificate,
-                                           const char         *device_id,
                                            GCancellable       *cancellable,
                                            GError            **error);
 GIOStream * valent_lan_encrypt_server     (GSocketConnection  *connection,

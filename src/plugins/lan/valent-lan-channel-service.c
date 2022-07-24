@@ -103,21 +103,18 @@ on_incoming_connection (ValentChannelService   *service,
   if (peer_identity == NULL)
     return TRUE;
 
-  /* Now that we have the device ID we can authorize or reject certificates.
-   * NOTE: We're the client when accepting incoming connections */
-  valent_object_lock (VALENT_OBJECT (self));
-
+  /* Ignore identity packets without a deviceId */
   if (!valent_packet_get_string (peer_identity, "deviceId", &device_id))
     {
       g_warning ("%s(): expected \"deviceId\" field holding a string",
                  G_STRFUNC);
-      valent_object_unlock (VALENT_OBJECT (self));
       return TRUE;
     }
 
+  /* NOTE: We're the client when accepting incoming connections */
+  valent_object_lock (VALENT_OBJECT (self));
   tls_stream = valent_lan_encrypt_new_client (connection,
                                               self->certificate,
-                                              device_id,
                                               cancellable,
                                               NULL);
   valent_object_unlock (VALENT_OBJECT (self));
@@ -281,7 +278,6 @@ on_incoming_broadcast (ValentLanChannelService  *self,
   valent_object_lock (VALENT_OBJECT (self));
   tls_stream = valent_lan_encrypt_new_server (connection,
                                               self->certificate,
-                                              device_id,
                                               cancellable,
                                               &warn);
   valent_object_unlock (VALENT_OBJECT (self));

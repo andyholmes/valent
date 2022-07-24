@@ -7,12 +7,13 @@
 
 #include <gio/gio.h>
 #include <gio/gnetworking.h>
+#include <libvalent-core.h>
 
 #include "valent-lan-utils.h"
 
 
 /**
- * configure_socket:
+ * valent_lan_configure_socket:
  * @connection: a #GSocketConnection
  *
  * Configure TCP socket options as they are set in kdeconnect-kde.
@@ -22,14 +23,14 @@
  *
  * See: https://invent.kde.org/network/kdeconnect-kde/blob/master/core/backends/lan/lanlinkprovider.cpp
  */
-static void
-configure_socket (GSocketConnection *connection)
+static inline void
+valent_lan_configure_socket (GSocketConnection *connection)
 {
 #if defined(TCP_KEEPIDLE) && defined(TCP_KEEPINTVL) && defined(TCP_KEEPCNT)
   GSocket *socket;
   GError *error = NULL;
 
-  g_assert (G_IS_SOCKET_CONNECTION (connection));
+  g_assert (G_IS_TCP_CONNECTION (connection));
 
   socket = g_socket_connection_get_socket (connection);
   g_socket_set_keepalive (socket, TRUE);
@@ -61,16 +62,16 @@ certificate_from_device_id (const char       *device_id,
 {
   g_autoptr (GFile) file = NULL;
 
-  g_assert (device_id != NULL);
+  g_assert (device_id != NULL && *device_id != '\0');
   g_assert (certificate != NULL && *certificate == NULL);
   g_assert (error == NULL || *error == NULL);
 
-  /* If no certificate exists we assume that's because the device is unpaired
-   * and we're going to validate the certificate with user interaction */
   file = g_file_new_build_filename (g_get_user_config_dir(), PACKAGE_NAME,
                                     device_id, "certificate.pem",
                                     NULL);
 
+  /* If no certificate exists we assume that's because the device is unpaired
+   * and we're going to validate the certificate with user interaction */
   if (!g_file_query_exists (file, NULL))
     return TRUE;
 
@@ -93,25 +94,25 @@ certificate_from_device_id (const char       *device_id,
  * returns %TRUE.
  */
 static gboolean
-accept_certificate_cb (GTlsConnection       *connection,
-                       GTlsCertificate      *peer_cert,
-                       GTlsCertificateFlags  errors,
-                       gpointer              user_data)
+valent_lan_accept_certificate_cb (GTlsConnection       *connection,
+                                  GTlsCertificate      *peer_cert,
+                                  GTlsCertificateFlags  errors,
+                                  gpointer              user_data)
 {
   return TRUE;
 }
 
 static gboolean
-accept_certificate (GTlsConnection  *connection,
-                    GCancellable    *cancellable,
-                    GError         **error)
+valent_lan_accept_certificate (GTlsConnection  *connection,
+                               GCancellable    *cancellable,
+                               GError         **error)
 {
   unsigned long accept_id;
   gboolean ret;
 
   accept_id = g_signal_connect (G_OBJECT (connection),
                                 "accept-certificate",
-                                G_CALLBACK (accept_certificate_cb),
+                                G_CALLBACK (valent_lan_accept_certificate_cb),
                                 NULL);
 
   ret = g_tls_connection_handshake (connection, cancellable, error);
@@ -121,73 +122,31 @@ accept_certificate (GTlsConnection  *connection,
 }
 
 /**
- * handshake_id:
- * @conn: a #GTlsConnection
- * @device_id: the device id
+ * valent_lan_handshake_certificate:
+ * @connection: a #GTlsConnection
+ * @trusted: a #GTlsCertificate
  * @cancellable: (nullable): a #GCancellable
  * @error: (nullable): a #GError
  *
- * Wrap g_tls_connection_handshake() to implement KDE Connect's authentication.
+ * Authenticate a connection for a known peer.
  *
- * Lookup the TLS certificate for @device_id and compare it with the peer
- * certificate. If the device certificate is not available, the device is
- * assumed to be unpaired and %TRUE will be returned to trust-on-first-use which
- * allows pairing to happen later over an encrypted connection.
+ * This function is used to authenticate a TLS connection against a known and
+ * trusted TLS certificate. This should be used to authenticate auxiliary
+ * connections for authenticated channels.
  *
- * Returns: %TRUE if the certificate matches or it is an unpaired device.
+ * Returns: %TRUE, or %FALSE with @error set
  */
 static gboolean
-handshake_id (GTlsConnection  *connection,
-              const char      *device_id,
-              GCancellable    *cancellable,
-              GError         **error)
-{
-  g_autoptr (GTlsCertificate) trusted = NULL;
-  GTlsCertificate *peer_cert;
-
-  if (!accept_certificate (connection, cancellable, error))
-    return FALSE;
-
-  /* If the certificate existed but we failed to load it, we consider it an
-   * authentication error.
-   *
-   * If there just was no certificate, its probably because we're unpaired and
-   * we're trusting-on-first-use. */
-  if (!certificate_from_device_id (device_id, &trusted, error))
-    return FALSE;
-
-  if (trusted == NULL)
-    return TRUE;
-
-
-  /* Compare the peer certificate with the cached certificate */
-  peer_cert = g_tls_connection_get_peer_certificate (connection);
-
-  if (!g_tls_certificate_is_same (trusted, peer_cert))
-    {
-      g_set_error (error,
-                   G_TLS_ERROR,
-                   G_TLS_ERROR_HANDSHAKE,
-                   "Invalid certificate for \"%s\"",
-                   device_id);
-      return FALSE;
-    }
-
-  return TRUE;
-}
-
-static gboolean
-handshake_certificate (GTlsConnection   *connection,
-                       GTlsCertificate  *trusted,
-                       GCancellable     *cancellable,
-                       GError          **error)
+valent_lan_handshake_certificate (GTlsConnection   *connection,
+                                  GTlsCertificate  *trusted,
+                                  GCancellable     *cancellable,
+                                  GError          **error)
 {
   GTlsCertificate *peer_cert;
 
-  if (!accept_certificate (connection, cancellable, error))
+  if (!valent_lan_accept_certificate (connection, cancellable, error))
     return FALSE;
 
-  /* Compare the peer certificate with the supplied certificate */
   peer_cert = g_tls_connection_get_peer_certificate (connection);
 
   if (!g_tls_certificate_is_same (trusted, peer_cert))
@@ -203,24 +162,79 @@ handshake_certificate (GTlsConnection   *connection,
 }
 
 /**
- * valent_lan_encrypt_new_client:
- * @connection: a #GSocketConnection
- * @device_id: the id for the device this connection claims to be from
+ * valent_lan_handshake_peer:
+ * @connection: a #GTlsConnection
  * @cancellable: (nullable): a #GCancellable
  * @error: (nullable): a #GError
  *
- * Set the standard KDE Connect socket options, wrap @connection in a
- * #GTlsClientConnection and authenticate it.
+ * Authenticate a connection for an unknown peer.
  *
- * This method is used for new connections when the certificate needs to be
- * pulled from the filesystem.
+ * This function is used to authenticate a TLS connection whether the remote
+ * device is paired or not. This should be used to authenticate new connections
+ * when negotiating a [class@Valent.LanChannel].
  *
- * Returns: (transfer full): a TLS encrypted #GIOStream
+ * If the TLS certificate is not known (i.e. previously authenticated), the
+ * device is assumed to be unpaired and %TRUE will be returned to
+ * trust-on-first-use. The certificate will become "known" when if and when the
+ * device is successfully paired.
+ *
+ * Returns: %TRUE, or %FALSE with @error set
+ */
+static gboolean
+valent_lan_handshake_peer (GTlsConnection  *connection,
+                           GCancellable    *cancellable,
+                           GError         **error)
+{
+  g_autoptr (GTlsCertificate) trusted = NULL;
+  GTlsCertificate *peer_cert;
+  const char *peer_id;
+
+  if (!valent_lan_accept_certificate (connection, cancellable, error))
+    return FALSE;
+
+  peer_cert = g_tls_connection_get_peer_certificate (connection);
+  peer_id = valent_certificate_get_common_name (peer_cert);
+
+  if (!certificate_from_device_id (peer_id, &trusted, error))
+    return FALSE;
+
+  if (trusted == NULL)
+    return TRUE;
+
+  if (!g_tls_certificate_is_same (trusted, peer_cert))
+    {
+      g_set_error (error,
+                   G_TLS_ERROR,
+                   G_TLS_ERROR_HANDSHAKE,
+                   "Invalid certificate for \"%s\"",
+                   peer_id);
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+/**
+ * valent_lan_encrypt_new_client:
+ * @connection: a #GSocketConnection
+ * @certificate: a #GTlsCertificate
+ * @cancellable: (nullable): a #GCancellable
+ * @error: (nullable): a #GError
+ *
+ * Authenticate and encrypt a client connection.
+ *
+ * This function sets the standard KDE Connect socket options on @connection,
+ * wraps it in a [class@Gio.TlsConnection] and returns the result.
+ *
+ * The common name is extracted from the peer's TLS certificate and used as the
+ * device ID to check for a trusted certificate. For auxiliary connections
+ * created from an existing channel, use [func@Valent.lan_encrypt_client].
+ *
+ * Returns: (transfer full) (nullable): a TLS encrypted #GIOStream
  */
 GIOStream *
 valent_lan_encrypt_new_client (GSocketConnection  *connection,
                                GTlsCertificate    *certificate,
-                               const char         *device_id,
                                GCancellable       *cancellable,
                                GError            **error)
 {
@@ -229,15 +243,13 @@ valent_lan_encrypt_new_client (GSocketConnection  *connection,
 
   g_assert (G_IS_SOCKET_CONNECTION (connection));
   g_assert (G_IS_TLS_CERTIFICATE (certificate));
-  g_assert (device_id != NULL);
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
   g_assert (error == NULL || *error == NULL);
 
-  /* Set socket options */
-  configure_socket (connection);
+  valent_lan_configure_socket (connection);
 
-  /* Client encryption is used for incoming connections */
-  address = g_socket_connection_get_remote_address(connection, error);
+  /* We're the client when accepting incoming connections */
+  address = g_socket_connection_get_remote_address (connection, error);
 
   if (address == NULL)
     return NULL;
@@ -249,10 +261,11 @@ valent_lan_encrypt_new_client (GSocketConnection  *connection,
   if (tls_stream == NULL)
     return NULL;
 
-  /* Authorize the TLS connection */
   g_tls_connection_set_certificate (G_TLS_CONNECTION (tls_stream), certificate);
 
-  if (!handshake_id (G_TLS_CONNECTION (tls_stream), device_id, cancellable, error))
+  if (!valent_lan_handshake_peer (G_TLS_CONNECTION (tls_stream),
+                                  cancellable,
+                                  error))
     {
       g_io_stream_close (tls_stream, NULL, NULL);
       return NULL;
@@ -265,20 +278,21 @@ valent_lan_encrypt_new_client (GSocketConnection  *connection,
  * valent_lan_encrypt_client:
  * @connection: a #GSocketConnection
  * @certificate: a #GTlsCertificate
- * @peer_cert: a #GTlsCertificate
+ * @peer_certificate: a #GTlsCertificate
  * @cancellable: (nullable): a #GCancellable
  * @error: (nullable): a #GError
  *
- * Set the standard KDE Connect socket options, wrap @connection in a
- * #GTlsClientConnection and authenticate it.
+ * Authenticate and encrypt an auxiliary client connection.
  *
- * This method is used for authenticating sub-connections (eg. transfers) when a
- * copy of the peer certificate is available to compare with.
+ * This function sets the standard KDE Connect socket options on @connection,
+ * wraps it in a [class@Gio.TlsConnection] and returns the result.
+ *
+ * Returns: (transfer full) (nullable): a TLS encrypted #GIOStream
  */
 GIOStream *
 valent_lan_encrypt_client (GSocketConnection  *connection,
                            GTlsCertificate    *certificate,
-                           GTlsCertificate    *peer_cert,
+                           GTlsCertificate    *peer_certificate,
                            GCancellable       *cancellable,
                            GError            **error)
 {
@@ -287,14 +301,14 @@ valent_lan_encrypt_client (GSocketConnection  *connection,
 
   g_assert (G_IS_SOCKET_CONNECTION (connection));
   g_assert (G_IS_TLS_CERTIFICATE (certificate));
-  //g_assert (G_IS_TLS_CERTIFICATE (peer_cert));
+  //g_assert (G_IS_TLS_CERTIFICATE (peer_certificate));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
   g_assert (error == NULL || *error == NULL);
 
   /* TODO: Occasionally we are not passed a certificate. This could mean the
    * parent connection is unauthorized, but more likely there is a logic error
    * elsewhere where we're making a false assumption. */
-  if G_UNLIKELY (!G_IS_TLS_CERTIFICATE (peer_cert))
+  if G_UNLIKELY (!G_IS_TLS_CERTIFICATE (peer_certificate))
     {
       g_set_error (error,
                    G_TLS_ERROR,
@@ -303,11 +317,10 @@ valent_lan_encrypt_client (GSocketConnection  *connection,
       return NULL;
     }
 
-  /* Set socket options */
-  configure_socket (connection);
+  valent_lan_configure_socket (connection);
 
-  /* Client encryption is used for incoming connections */
-  address = g_socket_connection_get_remote_address(connection, error);
+  /* We're the client when accepting auxiliary connections */
+  address = g_socket_connection_get_remote_address (connection, error);
 
   if (address == NULL)
     return NULL;
@@ -319,13 +332,12 @@ valent_lan_encrypt_client (GSocketConnection  *connection,
   if (tls_stream == NULL)
     return NULL;
 
-  /* Authorize the TLS connection */
   g_tls_connection_set_certificate (G_TLS_CONNECTION (tls_stream), certificate);
 
-  if (!handshake_certificate (G_TLS_CONNECTION (tls_stream),
-                              peer_cert,
-                              cancellable,
-                              error))
+  if (!valent_lan_handshake_certificate (G_TLS_CONNECTION (tls_stream),
+                                         peer_certificate,
+                                         cancellable,
+                                         error))
     {
       g_io_stream_close (tls_stream, NULL, NULL);
       return NULL;
@@ -337,22 +349,24 @@ valent_lan_encrypt_client (GSocketConnection  *connection,
 /**
  * valent_lan_encrypt_new_server:
  * @connection: a #GSocketConnection
- * @device_id: the id for the device this connection claims to be from
+ * @certificate: a #GTlsConnection
  * @cancellable: (nullable): a #GCancellable
  * @error: (nullable): a #GError
  *
- * Set the standard KDE Connect socket options, wrap @connection in a
- * #GTlsServerConnection and authenticate it.
+ * Authenticate and encrypt a server connection.
  *
- * This method is used for new connections when the certificate needs to be
- * pulled from the filesystem.
+ * This function sets the standard KDE Connect socket options on @connection,
+ * wraps it in a [class@Gio.TlsConnection] and returns the result.
  *
- * Returns: (type Gio.IOStream) (transfer full): a TLS encrypted #GIOStream
+ * The common name is extracted from the peer's TLS certificate and used as the
+ * device ID to check for a trusted certificate. For auxiliary connections
+ * created from an existing channel, use [func@Valent.lan_encrypt_server].
+ *
+ * Returns: (transfer full) (nullable): a TLS encrypted #GIOStream
  */
 GIOStream *
 valent_lan_encrypt_new_server (GSocketConnection  *connection,
                                GTlsCertificate    *certificate,
-                               const char         *device_id,
                                GCancellable       *cancellable,
                                GError            **error)
 {
@@ -360,14 +374,12 @@ valent_lan_encrypt_new_server (GSocketConnection  *connection,
 
   g_assert (G_IS_SOCKET_CONNECTION (connection));
   g_assert (G_IS_TLS_CERTIFICATE (certificate));
-  g_assert (device_id != NULL);
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
   g_assert (error == NULL || *error == NULL);
 
-  /* Set socket options */
-  configure_socket (connection);
+  valent_lan_configure_socket (connection);
 
-  /* Server encryption is used for responses to identity broadcasts */
+  /* We're the server when opening outgoing connections */
   tls_stream = g_tls_server_connection_new (G_IO_STREAM (connection),
                                             certificate,
                                             error);
@@ -375,13 +387,13 @@ valent_lan_encrypt_new_server (GSocketConnection  *connection,
   if (tls_stream == NULL)
     return NULL;
 
-  /* Set the connection certificate */
   g_object_set (G_TLS_SERVER_CONNECTION (tls_stream),
                 "authentication-mode", G_TLS_AUTHENTICATION_REQUIRED,
                 NULL);
 
-  /* Authorize the TLS connection */
-  if (!handshake_id (G_TLS_CONNECTION (tls_stream), device_id, cancellable, error))
+  if (!valent_lan_handshake_peer (G_TLS_CONNECTION (tls_stream),
+                                  cancellable,
+                                  error))
     {
       g_io_stream_close (tls_stream, NULL, NULL);
       return NULL;
@@ -398,13 +410,12 @@ valent_lan_encrypt_new_server (GSocketConnection  *connection,
  * @cancellable: (nullable): a #GCancellable
  * @error: (nullable): a #GError
  *
- * Set the standard KDE Connect socket options, wrap @connection in a
- * #GTlsServerConnection and authenticate it.
+ * Authenticate and encrypt an auxiliary server connection.
  *
- * This method is used for authenticating sub-connections (eg. transfers) when a
- * copy of the peer certificate is available to compare with.
+ * This function sets the standard KDE Connect socket options on @connection,
+ * wraps it in a [class@Gio.TlsConnection] and returns the result.
  *
- * Returns: (type Gio.IOStream) (transfer full): a TLS encrypted #GIOStream
+ * Returns: (transfer full) (nullable): a TLS encrypted #GIOStream
  */
 GIOStream *
 valent_lan_encrypt_server (GSocketConnection  *connection,
@@ -421,10 +432,9 @@ valent_lan_encrypt_server (GSocketConnection  *connection,
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
   g_assert (error == NULL || *error == NULL);
 
-  /* Set socket options */
-  configure_socket (connection);
+  valent_lan_configure_socket (connection);
 
-  /* Server encryption is used for responses to identity broadcasts */
+  /* We're the server when opening auxiliary connections */
   tls_stream = g_tls_server_connection_new (G_IO_STREAM (connection),
                                             certificate,
                                             error);
@@ -432,16 +442,14 @@ valent_lan_encrypt_server (GSocketConnection  *connection,
   if (tls_stream == NULL)
     return NULL;
 
-  /* Set the connection certificate */
   g_object_set (G_TLS_SERVER_CONNECTION (tls_stream),
                 "authentication-mode", G_TLS_AUTHENTICATION_REQUIRED,
                 NULL);
 
-  /* Authorize the TLS connection */
-  if (!handshake_certificate (G_TLS_CONNECTION (tls_stream),
-                              peer_certificate,
-                              cancellable,
-                              error))
+  if (!valent_lan_handshake_certificate (G_TLS_CONNECTION (tls_stream),
+                                         peer_certificate,
+                                         cancellable,
+                                         error))
     {
       g_io_stream_close (tls_stream, NULL, NULL);
       return NULL;
