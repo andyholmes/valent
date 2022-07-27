@@ -175,7 +175,7 @@ on_incoming_broadcast (ValentLanChannelService  *self,
   g_autoptr (GSocketClient) client = NULL;
   g_autoptr (GSocketConnection) connection = NULL;
   GOutputStream *output_stream;
-  GIOStream *tls_stream;
+  g_autoptr (GIOStream) tls_stream = NULL;
 
   g_assert (VALENT_IS_CHANNEL_SERVICE (service));
   g_assert (G_IS_SOCKET (socket));
