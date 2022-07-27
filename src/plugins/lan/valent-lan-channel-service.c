@@ -87,6 +87,7 @@ on_incoming_connection (ValentChannelService   *service,
   g_autoptr (JsonNode) identity = NULL;
   g_autoptr (JsonNode) peer_identity = NULL;
   const char *device_id;
+  g_autoptr (GTlsCertificate) certificate = NULL;
   g_autoptr (GIOStream) tls_stream = NULL;
   g_autoptr (ValentChannel) channel = NULL;
 
@@ -113,11 +114,13 @@ on_incoming_connection (ValentChannelService   *service,
 
   /* NOTE: We're the client when accepting incoming connections */
   valent_object_lock (VALENT_OBJECT (self));
+  certificate = g_object_ref (self->certificate);
+  valent_object_unlock (VALENT_OBJECT (self));
+
   tls_stream = valent_lan_encrypt_new_client (connection,
-                                              self->certificate,
+                                              certificate,
                                               cancellable,
                                               NULL);
-  valent_object_unlock (VALENT_OBJECT (self));
 
   if (tls_stream == NULL)
     return TRUE;
@@ -131,7 +134,7 @@ on_incoming_connection (ValentChannelService   *service,
   identity = valent_channel_service_ref_identity (service);
   channel = g_object_new (VALENT_TYPE_LAN_CHANNEL,
                           "base-stream",   tls_stream,
-                          "certificate",   self->certificate,
+                          "certificate",   certificate,
                           "host",          host,
                           "identity",      identity,
                           "peer-identity", peer_identity,
@@ -175,6 +178,7 @@ on_incoming_broadcast (ValentLanChannelService  *self,
   g_autoptr (GSocketClient) client = NULL;
   g_autoptr (GSocketConnection) connection = NULL;
   GOutputStream *output_stream;
+  g_autoptr (GTlsCertificate) certificate = NULL;
   g_autoptr (GIOStream) tls_stream = NULL;
 
   g_assert (VALENT_IS_CHANNEL_SERVICE (service));
@@ -274,13 +278,15 @@ on_incoming_broadcast (ValentLanChannelService  *self,
       return TRUE;
     }
 
-  /* We're the TLS Server when responding to identity broadcasts */
+  /* NOTE: We're the server when opening outgoing connections */
   valent_object_lock (VALENT_OBJECT (self));
+  certificate = g_object_ref (self->certificate);
+  valent_object_unlock (VALENT_OBJECT (self));
+
   tls_stream = valent_lan_encrypt_new_server (connection,
-                                              self->certificate,
+                                              certificate,
                                               cancellable,
                                               &warn);
-  valent_object_unlock (VALENT_OBJECT (self));
 
   if (tls_stream == NULL)
     {
@@ -292,7 +298,7 @@ on_incoming_broadcast (ValentLanChannelService  *self,
   /* Create new channel */
   channel = g_object_new (VALENT_TYPE_LAN_CHANNEL,
                           "base-stream",   tls_stream,
-                          "certificate",   self->certificate,
+                          "certificate",   certificate,
                           "host",          host,
                           "port",          port,
                           "identity",      identity,
