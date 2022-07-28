@@ -459,7 +459,8 @@ test_lan_service_channel (LanBackendFixture *fixture,
   const char *channel_verification;
   const char *endpoint_verification;
   char *host;
-  GTlsCertificate *certificate, *peer_certificate, *cert_cmp;
+  g_autoptr (GTlsCertificate) certificate = NULL;
+  g_autoptr (GTlsCertificate) peer_certificate = NULL;
   guint16 port;
   g_autoptr (GFile) file = NULL;
 
@@ -494,22 +495,33 @@ test_lan_service_channel (LanBackendFixture *fixture,
 
   /* Properties */
   g_object_get (fixture->channel,
-                "certificate",      &certificate,
+                "certificate", &certificate,
+                "host",        &host,
+                "port",        &port,
+                NULL);
+  /* FIXME: the call to `g_object_get()` for "peer-certificate" must come after
+   *        and must be a separate call. If not, this will segfault, but only on
+   *        Clang with ASan not enabled. */
+  g_object_get (fixture->channel,
                 "peer-certificate", &peer_certificate,
-                "host",             &host,
-                "port",             &port,
                 NULL);
 
-  cert_cmp = valent_lan_channel_ref_certificate (VALENT_LAN_CHANNEL (fixture->endpoint));
-  peer_certificate = valent_lan_channel_ref_peer_certificate (VALENT_LAN_CHANNEL (fixture->channel));
-  g_assert_true (g_tls_certificate_is_same (cert_cmp, peer_certificate));
-  g_clear_object (&cert_cmp);
+  g_assert_true (G_IS_TLS_CERTIFICATE (certificate));
+  g_assert_true (G_IS_TLS_CERTIFICATE (peer_certificate));
+  g_clear_object (&certificate);
   g_clear_object (&peer_certificate);
 
-  cert_cmp = valent_lan_channel_ref_peer_certificate (VALENT_LAN_CHANNEL (fixture->endpoint));
-  g_assert_true (g_tls_certificate_is_same (cert_cmp, certificate));
-  g_clear_object (&cert_cmp);
+  certificate = valent_lan_channel_ref_certificate (VALENT_LAN_CHANNEL (fixture->endpoint));
+  peer_certificate = valent_lan_channel_ref_peer_certificate (VALENT_LAN_CHANNEL (fixture->channel));
+  g_assert_true (g_tls_certificate_is_same (certificate, peer_certificate));
   g_clear_object (&certificate);
+  g_clear_object (&peer_certificate);
+
+  certificate = valent_lan_channel_ref_certificate (VALENT_LAN_CHANNEL (fixture->channel));
+  peer_certificate = valent_lan_channel_ref_peer_certificate (VALENT_LAN_CHANNEL (fixture->endpoint));
+  g_assert_true (g_tls_certificate_is_same (certificate, peer_certificate));
+  g_clear_object (&certificate);
+  g_clear_object (&peer_certificate);
 
   g_assert_cmpstr (host, ==, ENDPOINT_HOST);
   g_assert_cmpuint (port, ==, ENDPOINT_PORT);

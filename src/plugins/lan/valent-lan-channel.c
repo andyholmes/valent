@@ -464,7 +464,7 @@ valent_lan_channel_ref_peer_certificate (ValentLanChannel *self)
     ret = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (base_stream));
 
   if (ret != NULL)
-      g_object_ref (ret);
+    ret = g_object_ref (ret);
 
   return g_steal_pointer (&ret);
 }
