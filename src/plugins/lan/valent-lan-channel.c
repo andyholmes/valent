@@ -13,11 +13,6 @@
 #include "valent-lan-channel.h"
 #include "valent-lan-utils.h"
 
-#define VALENT_LAN_TCP_PORT 1716
-#define VALENT_LAN_UDP_PORT 1716
-#define VALENT_LAN_AUX_MIN  1739
-#define VALENT_LAN_AUX_MAX  1764
-
 
 struct _ValentLanChannel
 {
@@ -114,12 +109,14 @@ valent_lan_channel_download (ValentChannel  *channel,
     return NULL;
 
   if ((port = json_object_get_int_member (info, "port")) == 0 ||
-      (port < 0 || port > G_MAXUINT16))
+      (port < VALENT_LAN_TRANSFER_PORT_MIN || port > VALENT_LAN_TRANSFER_PORT_MAX))
     {
-      g_set_error_literal (error,
-                           VALENT_PACKET_ERROR,
-                           VALENT_PACKET_ERROR_INVALID_FIELD,
-                           "expected \"port\" field holding a uint16");
+      g_set_error (error,
+                   VALENT_PACKET_ERROR,
+                   VALENT_PACKET_ERROR_INVALID_FIELD,
+                   "expected \"port\" field holding a uint16 between %u-%u",
+                   VALENT_LAN_TRANSFER_PORT_MIN,
+                   VALENT_LAN_TRANSFER_PORT_MAX);
       return NULL;
     }
 
@@ -165,7 +162,7 @@ valent_lan_channel_upload (ValentChannel  *channel,
   JsonObject *info;
   g_autoptr (GSocketListener) listener = NULL;
   g_autoptr (GSocketConnection) connection = NULL;
-  guint16 port = VALENT_LAN_AUX_MIN;
+  guint16 port = VALENT_LAN_TRANSFER_PORT_MIN;
   g_autoptr (GTlsCertificate) certificate = NULL;
   g_autoptr (GTlsCertificate) peer_certificate = NULL;
   g_autoptr (GIOStream) tls_stream = NULL;
@@ -180,7 +177,7 @@ valent_lan_channel_upload (ValentChannel  *channel,
 
   while (!g_socket_listener_add_inet_port (listener, port, NULL, error))
     {
-      if (port >= VALENT_LAN_AUX_MAX)
+      if (port >= VALENT_LAN_TRANSFER_PORT_MAX)
         return NULL;
 
       port++;
@@ -396,7 +393,7 @@ valent_lan_channel_class_init (ValentLanChannelClass *klass)
   properties [PROP_PORT] =
     g_param_spec_uint ("port", NULL, NULL,
                        0, G_MAXUINT16,
-                       VALENT_LAN_TCP_PORT,
+                       VALENT_LAN_PROTOCOL_PORT,
                        (G_PARAM_READWRITE |
                         G_PARAM_CONSTRUCT_ONLY |
                         G_PARAM_EXPLICIT_NOTIFY |
@@ -492,7 +489,7 @@ valent_lan_channel_get_port (ValentLanChannel *self)
 {
   guint16 ret;
 
-  g_return_val_if_fail (VALENT_IS_LAN_CHANNEL (self), 1716);
+  g_return_val_if_fail (VALENT_IS_LAN_CHANNEL (self), 0);
 
   valent_object_lock (VALENT_OBJECT (self));
   ret = self->port;

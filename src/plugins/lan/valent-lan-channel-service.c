@@ -13,13 +13,6 @@
 #include "valent-lan-channel-service.h"
 #include "valent-lan-utils.h"
 
-#define PROTOCOL_ADDR        "255.255.255.255"
-#define PROTOCOL_PORT        (1716)
-#define TRANSFER_PORT_MIN    (1739)
-#define TRANSFER_PORT_MAX    (1764)
-
-#define IDENTITY_BUFFER_MAX  (8192)
-
 #define IDENTITY_BUFFER_MAX  (8192)
 #define IDENTITY_TIMEOUT_MAX (1000)
 
@@ -284,10 +277,12 @@ on_incoming_broadcast (ValentLanChannelService  *self,
   host = g_inet_address_to_string (iaddr);
 
   if (valent_packet_get_int (peer_identity, "tcpPort", &port) &&
-      (port < 0 || port > G_MAXUINT16))
+      (port < VALENT_LAN_PROTOCOL_PORT_MIN || port > VALENT_LAN_PROTOCOL_PORT_MAX))
     {
-      g_warning ("%s(): expected \"tcpPort\" field holding a uint16",
-                 G_STRFUNC);
+      g_warning ("%s(): expected \"tcpPort\" field holding a uint16 between %u-%u",
+                 G_STRFUNC,
+                 VALENT_LAN_PROTOCOL_PORT_MIN,
+                 VALENT_LAN_PROTOCOL_PORT_MAX);
       return TRUE;
     }
 
@@ -621,7 +616,7 @@ valent_lan_channel_service_identify (ValentChannelService *service,
       g_autoptr (GError) error = NULL;
 
       naddr = G_NETWORK_ADDRESS (g_network_address_parse (target,
-                                                          PROTOCOL_PORT,
+                                                          VALENT_LAN_PROTOCOL_PORT,
                                                           &error));
 
       if (naddr == NULL)
@@ -892,7 +887,7 @@ valent_lan_channel_service_class_init (ValentLanChannelServiceClass *klass)
    */
   properties [PROP_BROADCAST_ADDRESS] =
     g_param_spec_string ("broadcast-address", NULL, NULL,
-                         PROTOCOL_ADDR,
+                         VALENT_LAN_PROTOCOL_ADDR,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -913,15 +908,16 @@ valent_lan_channel_service_class_init (ValentLanChannelServiceClass *klass)
   /**
    * ValentLanChannelService:port:
    *
-   * The TCP/IP port for the service. The current KDE Connect protocol (v7)
-   * defines port 1716 as the default.
+   * The TCP/IP port for the service.
+   *
+   * The current KDE Connect protocol (v7) defines port 1716 as the default.
    *
    * This available as a construct property primarily for use in unit tests.
    */
   properties [PROP_PORT] =
     g_param_spec_uint ("port", NULL, NULL,
-                       1024, G_MAXUINT16,
-                       PROTOCOL_PORT,
+                       VALENT_LAN_PROTOCOL_PORT_MIN, VALENT_LAN_PROTOCOL_PORT_MAX,
+                       VALENT_LAN_PROTOCOL_PORT,
                        (G_PARAM_READWRITE |
                         G_PARAM_CONSTRUCT_ONLY |
                         G_PARAM_EXPLICIT_NOTIFY |

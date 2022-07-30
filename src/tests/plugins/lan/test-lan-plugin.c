@@ -10,12 +10,16 @@
 #include "valent-lan-channel.h"
 #include "valent-lan-channel-service.h"
 
-#define ENDPOINT_ADDR "127.0.0.1:3716"
-#define ENDPOINT_HOST "127.0.0.1"
-#define ENDPOINT_PORT 3716
-#define SERVICE_ADDR  "127.0.0.1:2716"
-#define SERVICE_HOST  "127.0.0.1"
-#define SERVICE_PORT  2716
+/* NOTE: These ports must be between 1716-1764 or they will trigger an error.
+ *       Port 1716 is still avoided, since it would conflict with a running
+ *       service when testing on a real system.
+ */
+#define ENDPOINT_ADDR          "127.0.0.1:1717"
+#define ENDPOINT_HOST          "127.0.0.1"
+#define ENDPOINT_PORT          (1717)
+#define SERVICE_ADDR           "127.0.0.1:1718"
+#define SERVICE_HOST           "127.0.0.1"
+#define SERVICE_PORT           (1718)
 
 #define IDENTITY_BUFFER_MAX    (8192)
 

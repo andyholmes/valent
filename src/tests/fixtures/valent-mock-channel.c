@@ -11,7 +11,9 @@
 
 #include "valent-mock-channel.h"
 
-#define VALENT_TEST_TCP_PORT 2716
+#define VALENT_MOCK_PROTOCOL_PORT_DEFAULT (1717)
+#define VALENT_MOCK_PROTOCOL_PORT_MIN     (1717)
+#define VALENT_MOCK_PROTOCOL_PORT_MAX     (1764)
 
 
 struct _ValentMockChannel
@@ -243,8 +245,8 @@ valent_mock_channel_class_init (ValentMockChannelClass *klass)
    */
   properties [PROP_PORT] =
     g_param_spec_uint ("port", NULL, NULL,
-                       1024, G_MAXUINT16,
-                       VALENT_TEST_TCP_PORT,
+                       VALENT_MOCK_PROTOCOL_PORT_MIN, VALENT_MOCK_PROTOCOL_PORT_MAX,
+                       VALENT_MOCK_PROTOCOL_PORT_DEFAULT,
                        (G_PARAM_READWRITE |
                         G_PARAM_CONSTRUCT_ONLY |
                         G_PARAM_EXPLICIT_NOTIFY |
