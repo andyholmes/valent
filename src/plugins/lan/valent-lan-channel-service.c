@@ -255,11 +255,10 @@ on_incoming_connection (ValentChannelService   *service,
   identity = valent_channel_service_ref_identity (service);
   channel = g_object_new (VALENT_TYPE_LAN_CHANNEL,
                           "base-stream",   tls_stream,
-                          "certificate",   certificate,
                           "host",          host,
+                          "port",          self->port,
                           "identity",      identity,
                           "peer-identity", peer_identity,
-                          "port",          self->port,
                           NULL);
 
   valent_channel_service_emit_channel (service, channel);
@@ -424,7 +423,6 @@ on_incoming_broadcast (ValentLanChannelService  *self,
   /* Create new channel */
   channel = g_object_new (VALENT_TYPE_LAN_CHANNEL,
                           "base-stream",   tls_stream,
-                          "certificate",   certificate,
                           "host",          host,
                           "port",          port,
                           "identity",      identity,

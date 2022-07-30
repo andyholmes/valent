@@ -225,7 +225,7 @@ valent_lan_channel_store_data (ValentChannel *channel,
   g_autofree char *certificate_path = NULL;
   g_autoptr (GError) error = NULL;
 
-  g_assert (VALENT_IS_CHANNEL (channel));
+  g_assert (VALENT_IS_LAN_CHANNEL (channel));
   g_assert (VALENT_IS_DATA (data));
 
   /* Chain-up first */
@@ -355,8 +355,7 @@ valent_lan_channel_class_init (ValentLanChannelClass *klass)
   properties [PROP_CERTIFICATE] =
     g_param_spec_object ("certificate", NULL, NULL,
                          G_TYPE_TLS_CERTIFICATE,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
+                         (G_PARAM_READABLE |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
@@ -418,14 +417,15 @@ valent_lan_channel_init (ValentLanChannel *self)
 GTlsCertificate *
 valent_lan_channel_ref_certificate (ValentLanChannel *self)
 {
+  g_autoptr (GIOStream) base_stream = NULL;
   GTlsCertificate *ret = NULL;
 
   g_return_val_if_fail (VALENT_IS_LAN_CHANNEL (self), NULL);
 
-  valent_object_lock (VALENT_OBJECT (self));
-  if (self->certificate != NULL)
-    ret = g_object_ref (self->certificate);
-  valent_object_unlock (VALENT_OBJECT (self));
+  base_stream = valent_channel_ref_base_stream (VALENT_CHANNEL (self));
+
+  if (base_stream != NULL)
+    g_object_get (base_stream, "certificate", &ret, NULL);
 
   return g_steal_pointer (&ret);
 }

@@ -170,11 +170,10 @@ g_socket_listener_accept_cb (GSocketListener   *listener,
                                      "identity");
   fixture->endpoint = g_object_new (VALENT_TYPE_LAN_CHANNEL,
                                     "base-stream",   tls_stream,
-                                    "certificate",   fixture->certificate,
                                     "host",          SERVICE_HOST,
+                                    "port",          SERVICE_PORT,
                                     "identity",      identity,
                                     "peer-identity", peer_identity,
-                                    "port",          SERVICE_PORT,
                                     NULL);
 }
 
@@ -482,7 +481,6 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
    */
   fixture->endpoint = g_object_new (VALENT_TYPE_LAN_CHANNEL,
                                     "base-stream",   tls_stream,
-                                    "certificate",   fixture->certificate,
                                     "host",          SERVICE_HOST,
                                     "port",          SERVICE_PORT,
                                     "identity",      identity,
