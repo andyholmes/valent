@@ -26,6 +26,7 @@
 #define TEST_IDENTITY_OVERSIZE "identity-oversize"
 #define TEST_IDENTITY_TIMEOUT  "identity-timeout"
 #define TEST_TLS_AUTH_TIMEOUT  "tls-auth-timeout"
+#define TEST_TLS_AUTH_SPOOFER  "tls-auth-spoofer"
 
 
 typedef struct
@@ -76,6 +77,7 @@ lan_service_fixture_set_up (LanBackendFixture *fixture,
 {
   PeasPluginInfo *plugin_info;
   g_autofree char *path = NULL;
+  JsonNode *identity;
   GError *error = NULL;
 
   fixture->loop = g_main_loop_new (NULL, FALSE);
@@ -95,6 +97,13 @@ lan_service_fixture_set_up (LanBackendFixture *fixture,
   path = g_dir_make_tmp ("XXXXXX.valent", NULL);
   fixture->certificate = valent_certificate_new_sync (path, &error);
   g_assert_no_error (error);
+
+  /* Set the endpoint deviceId to the certificate's common name */
+  identity = json_object_get_member (json_node_get_object (fixture->packets),
+                                     "identity");
+  json_object_set_string_member (valent_packet_get_body (identity),
+                                 "deviceId",
+                                 valent_certificate_get_common_name (fixture->certificate));
 }
 
 static void
@@ -489,6 +498,47 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
                     fixture);
   g_main_loop_run (fixture->loop);
 
+  /* In this test case we are trying to connect with the same device ID and a
+   * different certificate, so we expect the service to reject the connection.
+   */
+  if (g_strcmp0 (user_data, TEST_TLS_AUTH_SPOOFER) == 0)
+    {
+      g_autoptr (GSocketClient) bad_client = NULL;
+      g_autoptr (GSocketConnection) bad_connection = NULL;
+      g_autoptr (GIOStream) bad_stream = NULL;
+      g_autoptr (GTlsCertificate) bad_certificate = NULL;
+
+      bad_client = g_object_new (G_TYPE_SOCKET_CLIENT,
+                                 "enable-proxy", FALSE,
+                                 NULL);
+      g_socket_client_connect_to_host_async (bad_client,
+                                             SERVICE_ADDR,
+                                             SERVICE_PORT,
+                                             NULL,
+                                             (GAsyncReadyCallback)g_socket_client_connect_to_host_cb,
+                                             &bad_connection);
+
+      while (bad_connection == NULL)
+        g_main_context_iteration (NULL, FALSE);
+
+      output_stream = g_io_stream_get_output_stream (G_IO_STREAM (bad_connection));
+      valent_packet_to_stream (output_stream, identity, NULL, &error);
+      g_assert_no_error (error);
+
+      /* HACK: we're just sending the service's certificate back to itself,
+       *       so the common name won't match the `deviceId` in the identity
+       * TODO: test the case where the certificate common name _does_ match the
+       *       identity, but the certificate itself is different
+       */
+      g_object_get (fixture->service, "certificate", &bad_certificate, NULL);
+      bad_stream = valent_lan_encrypt_new_server (bad_connection,
+                                                  bad_certificate,
+                                                  NULL,
+                                                  &error);
+      g_assert_no_error (error);
+      g_assert_true (G_IS_TLS_CONNECTION (bad_stream));
+    }
+
   g_signal_handlers_disconnect_by_data (fixture->service, fixture);
   valent_channel_service_stop (fixture->service);
 }
@@ -577,6 +627,31 @@ test_lan_service_outgoing_broadcast_tls_timeout (void)
 }
 
 static void
+test_lan_service_outgoing_broadcast_tls_spoofer (void)
+{
+  if (g_test_subprocess ())
+    {
+      LanBackendFixture *fixture;
+
+      /* Perform fixture setup */
+      fixture = g_new0 (LanBackendFixture, 1);
+      lan_service_fixture_set_up (fixture, NULL);
+
+      /* Run the test to be failed */
+      test_lan_service_outgoing_broadcast (fixture, TEST_TLS_AUTH_SPOOFER);
+
+      /* Perform fixture teardown */
+      lan_service_fixture_tear_down (fixture, NULL);
+      g_clear_pointer (&fixture, g_free);
+
+      return;
+    }
+  g_test_trap_subprocess (NULL, 0, 0);
+  g_test_trap_assert_stderr ("*device ID does not match certificate common name*");
+  g_test_trap_assert_failed ();
+}
+
+static void
 test_lan_service_channel (LanBackendFixture *fixture,
                           gconstpointer      user_data)
 {
@@ -630,6 +705,7 @@ test_lan_service_channel (LanBackendFixture *fixture,
   /* FIXME: the call to `g_object_get()` for "peer-certificate" must come after
    *        and must be a separate call. If not, this will segfault, but only on
    *        Clang with ASan not enabled. */
+  // TODO: valgrind
   g_object_get (fixture->channel,
                 "peer-certificate", &peer_certificate,
                 NULL);
@@ -686,35 +762,38 @@ main (int   argc,
   g_type_ensure (VALENT_TYPE_LAN_CHANNEL);
   g_type_ensure (VALENT_TYPE_LAN_CHANNEL_SERVICE);
 
-  g_test_add ("/backends/lan-backend/incoming-broadcast",
-              LanBackendFixture, NULL,
-              lan_service_fixture_set_up,
-              test_lan_service_incoming_broadcast,
-              lan_service_fixture_tear_down);
+  /* g_test_add ("/backends/lan-backend/incoming-broadcast", */
+  /*             LanBackendFixture, NULL, */
+  /*             lan_service_fixture_set_up, */
+  /*             test_lan_service_incoming_broadcast, */
+  /*             lan_service_fixture_tear_down); */
 
-  g_test_add_func ("/backends/lan-backend/incoming-broadcast-oversize",
-                   test_lan_service_incoming_broadcast_oversize);
+  /* g_test_add_func ("/backends/lan-backend/incoming-broadcast-oversize", */
+  /*                  test_lan_service_incoming_broadcast_oversize); */
 
-  g_test_add ("/backends/lan-backend/outgoing-broadcast",
-              LanBackendFixture, NULL,
-              lan_service_fixture_set_up,
-              test_lan_service_outgoing_broadcast,
-              lan_service_fixture_tear_down);
+  /* g_test_add ("/backends/lan-backend/outgoing-broadcast", */
+  /*             LanBackendFixture, NULL, */
+  /*             lan_service_fixture_set_up, */
+  /*             test_lan_service_outgoing_broadcast, */
+  /*             lan_service_fixture_tear_down); */
 
-  g_test_add_func ("/backends/lan-backend/outgoing-broadcast-oversize",
-                   test_lan_service_outgoing_broadcast_oversize);
+  /* g_test_add_func ("/backends/lan-backend/outgoing-broadcast-oversize", */
+  /*                  test_lan_service_outgoing_broadcast_oversize); */
 
-  g_test_add_func ("/backends/lan-backend/outgoing-broadcast-timeout",
-                   test_lan_service_outgoing_broadcast_timeout);
+  /* g_test_add_func ("/backends/lan-backend/outgoing-broadcast-timeout", */
+  /*                  test_lan_service_outgoing_broadcast_timeout); */
 
-  g_test_add_func ("/backends/lan-backend/outgoing-broadcast-tls-auth",
-                   test_lan_service_outgoing_broadcast_tls_timeout);
+  /* g_test_add_func ("/backends/lan-backend/outgoing-broadcast-tls-auth", */
+  /*                  test_lan_service_outgoing_broadcast_tls_timeout); */
 
-  g_test_add ("/backends/lan-backend/channel",
-              LanBackendFixture, NULL,
-              lan_service_fixture_set_up,
-              test_lan_service_channel,
-              lan_service_fixture_tear_down);
+  g_test_add_func ("/backends/lan-backend/outgoing-broadcast-tls-cert",
+                   test_lan_service_outgoing_broadcast_tls_spoofer);
+
+  /* g_test_add ("/backends/lan-backend/channel", */
+  /*             LanBackendFixture, NULL, */
+  /*             lan_service_fixture_set_up, */
+  /*             test_lan_service_channel, */
+  /*             lan_service_fixture_tear_down); */
 
   return g_test_run ();
 }

@@ -33,6 +33,7 @@ struct _ValentLanChannelService
   GSocketService       *listener;
   GSocket              *udp_socket4;
   GSocket              *udp_socket6;
+  GHashTable           *channels;
 };
 
 G_DEFINE_TYPE (ValentLanChannelService, valent_lan_channel_service, VALENT_TYPE_CHANNEL_SERVICE)
@@ -58,6 +59,80 @@ on_network_changed (GNetworkMonitor         *monitor,
 
   if ((self->network_available = network_available))
     valent_channel_service_identify (VALENT_CHANNEL_SERVICE (self), NULL);
+}
+
+static void
+on_channel_destroyed (ValentLanChannelService *self,
+                      ValentLanChannel        *channel)
+{
+  g_autoptr (GTlsCertificate) certificate = NULL;
+  const char *device_id = NULL;
+
+  g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
+  g_assert (VALENT_IS_LAN_CHANNEL (channel));
+
+  certificate = valent_lan_channel_ref_peer_certificate (channel);
+  device_id = valent_certificate_get_common_name (certificate);
+
+  valent_object_lock (VALENT_OBJECT (self));
+  if (g_hash_table_remove (self->channels, device_id))
+    g_signal_handlers_disconnect_by_data (channel, self);
+  valent_object_unlock (VALENT_OBJECT (self));
+}
+
+/**
+ * valent_lan_channel_service_verify_channel:
+ * @self: a #ValentLanChannelService
+ * @device_id: a device ID
+ * @connection: a #GTlsConnection
+ *
+ * Verify an encrypted TLS connection.
+ *
+ * @device_id should be the `deviceID` field from an identity packet. If it does
+ * not match the common name for the peer certificate, %FALSE will be returned.
+ *
+ * @connection should be an encrypted TLS connection. If there is an existing
+ * channel for @device_id with a different certificate, %FALSE will be returned.
+ *
+ * Returns: %TRUE if successful, or %FALSE on failure
+ */
+static gboolean
+valent_lan_channel_service_verify_channel (ValentLanChannelService *self,
+                                           const char              *device_id,
+                                           GIOStream               *connection)
+{
+  ValentLanChannel *channel = NULL;
+  g_autoptr (GTlsCertificate) certificate = NULL;
+  g_autoptr (GTlsCertificate) peer_certificate = NULL;
+  const char *peer_certificate_cn = NULL;
+
+  g_assert (VALENT_IS_CHANNEL_SERVICE (self));
+  g_assert (device_id != NULL && *device_id != '\0');
+  g_assert (G_IS_TLS_CONNECTION (connection));
+
+  g_object_get (connection, "peer-certificate", &peer_certificate, NULL);
+  peer_certificate_cn = valent_certificate_get_common_name (peer_certificate);
+
+  if (g_strcmp0 (device_id, peer_certificate_cn) != 0)
+    {
+      g_warning ("%s(): device ID does not match certificate common name",
+                 G_STRFUNC);
+      return FALSE;
+    }
+
+  valent_object_lock (VALENT_OBJECT (self));
+  if ((channel = g_hash_table_lookup (self->channels, device_id)) != NULL)
+    certificate = valent_lan_channel_ref_peer_certificate (channel);
+  valent_object_unlock (VALENT_OBJECT (self));
+
+  if (certificate && !g_tls_certificate_is_same (certificate, peer_certificate))
+    {
+      g_warning ("%s(): existing channel with different certificate",
+                 G_STRFUNC);
+      return FALSE;
+    }
+
+  return TRUE;
 }
 
 /*
@@ -167,6 +242,9 @@ on_incoming_connection (ValentChannelService   *service,
     }
 
   g_cancellable_disconnect (cancellable, cancellable_id);
+
+  if (!valent_lan_channel_service_verify_channel (self, device_id, tls_stream))
+    return TRUE;
 
   /* Get the host from the connection */
   saddr = g_socket_connection_get_remote_address (connection, NULL);
@@ -339,6 +417,9 @@ on_incoming_broadcast (ValentLanChannelService  *self,
                G_STRFUNC, host, port, warn->message);
       return TRUE;
     }
+
+  if (!valent_lan_channel_service_verify_channel (self, device_id, tls_stream))
+    return TRUE;
 
   /* Create new channel */
   channel = g_object_new (VALENT_TYPE_LAN_CHANNEL,
@@ -594,6 +675,32 @@ valent_lan_channel_service_build_identity (ValentChannelService *service)
 }
 
 static void
+valent_lan_channel_service_channel (ValentChannelService *service,
+                                    ValentChannel        *channel)
+{
+  ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (service);
+  ValentLanChannel *lan_channel = VALENT_LAN_CHANNEL (channel);
+  g_autoptr (GTlsCertificate) peer_certificate = NULL;
+  const char *device_id = NULL;
+
+  g_assert (VALENT_IS_MAIN_THREAD ());
+  g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
+  g_assert (VALENT_IS_LAN_CHANNEL (lan_channel));
+
+  peer_certificate = valent_lan_channel_ref_peer_certificate (lan_channel);
+  device_id = valent_certificate_get_common_name (peer_certificate);
+
+  valent_object_lock (VALENT_OBJECT (service));
+  g_hash_table_replace (self->channels, g_strdup (device_id), channel);
+  g_signal_connect_object (channel,
+                           "destroy",
+                           G_CALLBACK (on_channel_destroyed),
+                           self,
+                           G_CONNECT_SWAPPED);
+  valent_object_unlock (VALENT_OBJECT (service));
+}
+
+static void
 valent_lan_channel_service_identify (ValentChannelService *service,
                                      const char           *target)
 {
@@ -809,6 +916,7 @@ valent_lan_channel_service_finalize (GObject *object)
   g_clear_object (&self->listener);
   g_clear_object (&self->udp_socket4);
   g_clear_object (&self->udp_socket6);
+  g_clear_pointer (&self->channels, g_hash_table_unref);
 
   G_OBJECT_CLASS (valent_lan_channel_service_parent_class)->finalize (object);
 }
@@ -874,6 +982,7 @@ valent_lan_channel_service_class_init (ValentLanChannelServiceClass *klass)
   object_class->set_property = valent_lan_channel_service_set_property;
 
   service_class->build_identity = valent_lan_channel_service_build_identity;
+  service_class->channel = valent_lan_channel_service_channel;
   service_class->identify = valent_lan_channel_service_identify;
   service_class->start = valent_lan_channel_service_start;
   service_class->stop = valent_lan_channel_service_stop;
@@ -929,6 +1038,10 @@ valent_lan_channel_service_class_init (ValentLanChannelServiceClass *klass)
 static void
 valent_lan_channel_service_init (ValentLanChannelService *self)
 {
+  self->channels = g_hash_table_new_full (g_str_hash,
+                                          g_str_equal,
+                                          g_free,
+                                          NULL);
   self->monitor = g_network_monitor_get_default ();
 }
 
