@@ -178,21 +178,13 @@ valent_lan_channel_upload (ValentChannel  *channel,
   /* Find an open port */
   listener = g_socket_listener_new ();
 
-  while (port <= VALENT_LAN_AUX_MAX)
+  while (!g_socket_listener_add_inet_port (listener, port, NULL, error))
     {
-      if (g_socket_listener_add_inet_port (listener, port, NULL, error))
-        {
-          break;
-        }
-      else if (port < VALENT_LAN_AUX_MAX)
-        {
-          g_clear_error (error);
-          port++;
-        }
-      else
-        {
-          return NULL;
-        }
+      if (port >= VALENT_LAN_AUX_MAX)
+        return NULL;
+
+      port++;
+      g_clear_error (error);
     }
 
   /* Set the payload information */
@@ -204,6 +196,7 @@ valent_lan_channel_upload (ValentChannel  *channel,
   valent_channel_write_packet (channel, packet, cancellable, NULL, NULL);
 
   connection = g_socket_listener_accept (listener, NULL, cancellable, error);
+  g_socket_listener_close (listener);
 
   if (connection == NULL)
     return NULL;
