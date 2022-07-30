@@ -20,6 +20,8 @@
 #define IDENTITY_BUFFER_MAX    (8192)
 
 #define TEST_IDENTITY_OVERSIZE "identity-oversize"
+#define TEST_IDENTITY_TIMEOUT  "identity-timeout"
+#define TEST_TLS_AUTH_TIMEOUT  "tls-auth-timeout"
 
 
 typedef struct
@@ -178,6 +180,28 @@ await_incoming_connection (LanBackendFixture *fixture)
                                   NULL,
                                   (GAsyncReadyCallback)g_socket_listener_accept_cb,
                                   fixture);
+}
+
+static gboolean
+on_timeout_cb (gpointer data)
+{
+  gboolean *done = data;
+
+  if (*done == FALSE)
+    *done = TRUE;
+
+  return G_SOURCE_REMOVE;
+}
+
+static void
+await_timeout (unsigned int interval)
+{
+  gboolean done = FALSE;
+
+  g_timeout_add (interval, on_timeout_cb, &done);
+
+  while (!done)
+    g_main_context_iteration (NULL, FALSE);
 }
 
 static void
@@ -407,6 +431,14 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
   /* We opened a TCP connection in response to the incoming UDP broadcast so the
    * test service now expects us to write our identity packet.
    */
+  if (g_test_subprocess ())
+    {
+      /* In this test case we are neglecting to send our identity packet, so
+       * we expect the test service to close the connection after 1000ms */
+      if (g_strcmp0 (user_data, TEST_IDENTITY_TIMEOUT) == 0)
+        await_timeout (1100);
+    }
+
   identity = json_object_get_member (json_node_get_object (fixture->packets),
                                      "identity");
 
@@ -417,6 +449,14 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
   /* The test service is unverified, so it expects to be accepted on a
    * trust-on-first-use basis.
    */
+  if (g_test_subprocess ())
+    {
+      /* In this test case we are neglecting to negotiate a TLS connection, so
+       * we expect the test service to close the connection after 1000ms */
+      if (g_strcmp0 (user_data, TEST_TLS_AUTH_TIMEOUT) == 0)
+        await_timeout (1100);
+    }
+
   tls_stream = valent_lan_encrypt_new_server (connection,
                                               fixture->certificate,
                                               NULL,
@@ -481,6 +521,54 @@ test_lan_service_outgoing_broadcast_oversize (void)
     }
   g_test_trap_subprocess (NULL, 0, 0);
   g_test_trap_assert_stderr ("*Packet too large*");
+  g_test_trap_assert_failed ();
+}
+
+static void
+test_lan_service_outgoing_broadcast_timeout (void)
+{
+  if (g_test_subprocess ())
+    {
+      LanBackendFixture *fixture;
+
+      /* Perform fixture setup */
+      fixture = g_new0 (LanBackendFixture, 1);
+      lan_service_fixture_set_up (fixture, NULL);
+
+      /* Run the test to be failed */
+      test_lan_service_outgoing_broadcast (fixture, TEST_IDENTITY_TIMEOUT);
+
+      /* Perform fixture teardown */
+      lan_service_fixture_tear_down (fixture, NULL);
+      g_clear_pointer (&fixture, g_free);
+
+      return;
+    }
+  g_test_trap_subprocess (NULL, 0, 0);
+  g_test_trap_assert_failed ();
+}
+
+static void
+test_lan_service_outgoing_broadcast_tls_timeout (void)
+{
+  if (g_test_subprocess ())
+    {
+      LanBackendFixture *fixture;
+
+      /* Perform fixture setup */
+      fixture = g_new0 (LanBackendFixture, 1);
+      lan_service_fixture_set_up (fixture, NULL);
+
+      /* Run the test to be failed */
+      test_lan_service_outgoing_broadcast (fixture, TEST_TLS_AUTH_TIMEOUT);
+
+      /* Perform fixture teardown */
+      lan_service_fixture_tear_down (fixture, NULL);
+      g_clear_pointer (&fixture, g_free);
+
+      return;
+    }
+  g_test_trap_subprocess (NULL, 0, 0);
   g_test_trap_assert_failed ();
 }
 
@@ -611,6 +699,12 @@ main (int   argc,
 
   g_test_add_func ("/backends/lan-backend/outgoing-broadcast-oversize",
                    test_lan_service_outgoing_broadcast_oversize);
+
+  g_test_add_func ("/backends/lan-backend/outgoing-broadcast-timeout",
+                   test_lan_service_outgoing_broadcast_timeout);
+
+  g_test_add_func ("/backends/lan-backend/outgoing-broadcast-tls-auth",
+                   test_lan_service_outgoing_broadcast_tls_timeout);
 
   g_test_add ("/backends/lan-backend/channel",
               LanBackendFixture, NULL,
