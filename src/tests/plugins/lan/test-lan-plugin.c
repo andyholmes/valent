@@ -21,6 +21,7 @@
 
 #define TEST_IDENTITY_OVERSIZE "identity-oversize"
 
+
 typedef struct
 {
   GMainLoop            *loop;
@@ -128,7 +129,7 @@ g_socket_listener_accept_cb (GSocketListener   *listener,
    * so we now expect the test service to write its identity packet.
    */
   peer_identity = valent_packet_from_stream (g_io_stream_get_input_stream (G_IO_STREAM (connection)),
-                                             -1,
+                                             IDENTITY_BUFFER_MAX,
                                              NULL,
                                              &error);
   g_assert_no_error (error);
@@ -449,6 +450,41 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
 }
 
 static void
+test_lan_service_outgoing_broadcast_oversize (void)
+{
+  if (g_test_subprocess ())
+    {
+      LanBackendFixture *fixture;
+      JsonNode *identity;
+      g_autofree char *oversize = NULL;
+
+      /* Perform fixture setup */
+      fixture = g_new0 (LanBackendFixture, 1);
+      lan_service_fixture_set_up (fixture, NULL);
+
+      /* Inject data into the identity packet, to force it to be rejected */
+      identity = json_object_get_member (json_node_get_object (fixture->packets),
+                                         "identity");
+      oversize = g_strnfill (IDENTITY_BUFFER_MAX + 1, '0');
+      json_object_set_string_member (valent_packet_get_body (identity),
+                                     "oversize",
+                                     oversize);
+
+      /* Run the test to be failed */
+      test_lan_service_outgoing_broadcast (fixture, TEST_IDENTITY_OVERSIZE);
+
+      /* Perform fixture teardown */
+      lan_service_fixture_tear_down (fixture, NULL);
+      g_clear_pointer (&fixture, g_free);
+
+      return;
+    }
+  g_test_trap_subprocess (NULL, 0, 0);
+  g_test_trap_assert_stderr ("*Packet too large*");
+  g_test_trap_assert_failed ();
+}
+
+static void
 test_lan_service_channel (LanBackendFixture *fixture,
                           gconstpointer      user_data)
 {
@@ -572,6 +608,9 @@ main (int   argc,
               lan_service_fixture_set_up,
               test_lan_service_outgoing_broadcast,
               lan_service_fixture_tear_down);
+
+  g_test_add_func ("/backends/lan-backend/outgoing-broadcast-oversize",
+                   test_lan_service_outgoing_broadcast_oversize);
 
   g_test_add ("/backends/lan-backend/channel",
               LanBackendFixture, NULL,

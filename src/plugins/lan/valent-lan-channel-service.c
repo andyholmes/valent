@@ -20,6 +20,8 @@
 
 #define IDENTITY_BUFFER_MAX  (8192)
 
+#define IDENTITY_BUFFER_MAX  (8192)
+
 
 struct _ValentLanChannelService
 {
@@ -90,6 +92,7 @@ on_incoming_connection (ValentChannelService   *service,
   g_autoptr (GTlsCertificate) certificate = NULL;
   g_autoptr (GIOStream) tls_stream = NULL;
   g_autoptr (ValentChannel) channel = NULL;
+  g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_CHANNEL_SERVICE (service));
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
@@ -97,12 +100,17 @@ on_incoming_connection (ValentChannelService   *service,
   /* An incoming TCP connection is in response to an outgoing UDP packet, so the
    * the peer must now write its identity packet. */
   peer_identity = valent_packet_from_stream (g_io_stream_get_input_stream (G_IO_STREAM (connection)),
-                                             -1,
+                                             IDENTITY_BUFFER_MAX,
                                              cancellable,
-                                             NULL);
+                                             &error);
 
   if (peer_identity == NULL)
-    return TRUE;
+    {
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("%s(): %s", G_STRFUNC, error->message);
+
+      return TRUE;
+    }
 
   /* Ignore identity packets without a deviceId */
   if (!valent_packet_get_string (peer_identity, "deviceId", &device_id))
@@ -120,10 +128,15 @@ on_incoming_connection (ValentChannelService   *service,
   tls_stream = valent_lan_encrypt_new_client (connection,
                                               certificate,
                                               cancellable,
-                                              NULL);
+                                              &error);
 
   if (tls_stream == NULL)
-    return TRUE;
+    {
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("%s(): %s", G_STRFUNC, error->message);
+
+      return TRUE;
+    }
 
   /* Get the host from the connection */
   saddr = g_socket_connection_get_remote_address (connection, NULL);
