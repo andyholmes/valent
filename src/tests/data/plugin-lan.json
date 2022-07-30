@@ -15,7 +15,7 @@
         "kdeconnect.mock.echo",
         "kdeconnect.mock.transfer"
       ],
-      "tcpPort": 3716
+      "tcpPort": 1717
     }
   },
   "transfer": {
