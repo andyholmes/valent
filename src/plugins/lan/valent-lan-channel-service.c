@@ -21,6 +21,7 @@
 #define IDENTITY_BUFFER_MAX  (8192)
 
 #define IDENTITY_BUFFER_MAX  (8192)
+#define IDENTITY_TIMEOUT_MAX (1000)
 
 
 struct _ValentLanChannelService
@@ -77,12 +78,24 @@ on_network_changed (GNetworkMonitor         *monitor,
  * 3) Negotiate TLS encryption (as the TLS Client)
  */
 static gboolean
+incoming_connection_timeout_cb (gpointer data)
+{
+  g_assert (G_IS_CANCELLABLE (data));
+
+  g_cancellable_cancel ((GCancellable *)data);
+
+  return G_SOURCE_REMOVE;
+}
+
+static gboolean
 on_incoming_connection (ValentChannelService   *service,
                         GSocketConnection      *connection,
                         GCancellable           *cancellable,
                         GThreadedSocketService *listener)
 {
   ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (service);
+  g_autoptr (GCancellable) timeout = NULL;
+  unsigned long cancellable_id = 0;
   g_autofree char *host = NULL;
   g_autoptr (GSocketAddress) saddr = NULL;
   GInetAddress *iaddr;
@@ -97,17 +110,35 @@ on_incoming_connection (ValentChannelService   *service,
   g_assert (VALENT_IS_CHANNEL_SERVICE (service));
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
 
+  /* Timeout if the peer fails to authenticate in a timely fashion. */
+  timeout = g_cancellable_new ();
+  g_timeout_add_full (G_PRIORITY_DEFAULT,
+                      IDENTITY_TIMEOUT_MAX,
+                      incoming_connection_timeout_cb,
+                      g_object_ref (timeout),
+                      g_object_unref);
+
+  if (cancellable != NULL)
+    cancellable_id = g_cancellable_connect (cancellable,
+                                            G_CALLBACK (g_cancellable_cancel),
+                                            timeout,
+                                            NULL);
+
   /* An incoming TCP connection is in response to an outgoing UDP packet, so the
    * the peer must now write its identity packet. */
   peer_identity = valent_packet_from_stream (g_io_stream_get_input_stream (G_IO_STREAM (connection)),
                                              IDENTITY_BUFFER_MAX,
-                                             cancellable,
+                                             timeout,
                                              &error);
 
   if (peer_identity == NULL)
     {
       if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
         g_warning ("%s(): %s", G_STRFUNC, error->message);
+      else if (!g_cancellable_is_cancelled (cancellable))
+        g_warning ("%s(): timed out waiting for identity packet", G_STRFUNC);
+
+      g_cancellable_disconnect (cancellable, cancellable_id);
 
       return TRUE;
     }
@@ -127,16 +158,22 @@ on_incoming_connection (ValentChannelService   *service,
 
   tls_stream = valent_lan_encrypt_new_client (connection,
                                               certificate,
-                                              cancellable,
+                                              timeout,
                                               &error);
 
   if (tls_stream == NULL)
     {
       if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
         g_warning ("%s(): %s", G_STRFUNC, error->message);
+      else if (!g_cancellable_is_cancelled (cancellable))
+        g_warning ("%s(): timed out waiting for authentication", G_STRFUNC);
+
+      g_cancellable_disconnect (cancellable, cancellable_id);
 
       return TRUE;
     }
+
+  g_cancellable_disconnect (cancellable, cancellable_id);
 
   /* Get the host from the connection */
   saddr = g_socket_connection_get_remote_address (connection, NULL);
