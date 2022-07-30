@@ -760,38 +760,38 @@ main (int   argc,
   g_type_ensure (VALENT_TYPE_LAN_CHANNEL);
   g_type_ensure (VALENT_TYPE_LAN_CHANNEL_SERVICE);
 
-  /* g_test_add ("/backends/lan-backend/incoming-broadcast", */
-  /*             LanBackendFixture, NULL, */
-  /*             lan_service_fixture_set_up, */
-  /*             test_lan_service_incoming_broadcast, */
-  /*             lan_service_fixture_tear_down); */
+  g_test_add ("/backends/lan-backend/incoming-broadcast",
+              LanBackendFixture, NULL,
+              lan_service_fixture_set_up,
+              test_lan_service_incoming_broadcast,
+              lan_service_fixture_tear_down);
 
-  /* g_test_add_func ("/backends/lan-backend/incoming-broadcast-oversize", */
-  /*                  test_lan_service_incoming_broadcast_oversize); */
+  g_test_add_func ("/backends/lan-backend/incoming-broadcast-oversize",
+                   test_lan_service_incoming_broadcast_oversize);
 
-  /* g_test_add ("/backends/lan-backend/outgoing-broadcast", */
-  /*             LanBackendFixture, NULL, */
-  /*             lan_service_fixture_set_up, */
-  /*             test_lan_service_outgoing_broadcast, */
-  /*             lan_service_fixture_tear_down); */
+  g_test_add ("/backends/lan-backend/outgoing-broadcast",
+              LanBackendFixture, NULL,
+              lan_service_fixture_set_up,
+              test_lan_service_outgoing_broadcast,
+              lan_service_fixture_tear_down);
 
-  /* g_test_add_func ("/backends/lan-backend/outgoing-broadcast-oversize", */
-  /*                  test_lan_service_outgoing_broadcast_oversize); */
+  g_test_add_func ("/backends/lan-backend/outgoing-broadcast-oversize",
+                   test_lan_service_outgoing_broadcast_oversize);
 
-  /* g_test_add_func ("/backends/lan-backend/outgoing-broadcast-timeout", */
-  /*                  test_lan_service_outgoing_broadcast_timeout); */
+  g_test_add_func ("/backends/lan-backend/outgoing-broadcast-timeout",
+                   test_lan_service_outgoing_broadcast_timeout);
 
-  /* g_test_add_func ("/backends/lan-backend/outgoing-broadcast-tls-auth", */
-  /*                  test_lan_service_outgoing_broadcast_tls_timeout); */
+  g_test_add_func ("/backends/lan-backend/outgoing-broadcast-tls-auth",
+                   test_lan_service_outgoing_broadcast_tls_timeout);
 
   g_test_add_func ("/backends/lan-backend/outgoing-broadcast-tls-cert",
                    test_lan_service_outgoing_broadcast_tls_spoofer);
 
-  /* g_test_add ("/backends/lan-backend/channel", */
-  /*             LanBackendFixture, NULL, */
-  /*             lan_service_fixture_set_up, */
-  /*             test_lan_service_channel, */
-  /*             lan_service_fixture_tear_down); */
+  g_test_add ("/backends/lan-backend/channel",
+              LanBackendFixture, NULL,
+              lan_service_fixture_set_up,
+              test_lan_service_channel,
+              lan_service_fixture_tear_down);
 
   return g_test_run ();
 }
