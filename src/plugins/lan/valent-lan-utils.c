@@ -319,7 +319,7 @@ valent_lan_encrypt_client (GSocketConnection  *connection,
 
   valent_lan_configure_socket (connection);
 
-  /* We're the client when accepting auxiliary connections */
+  /* We're the client when opening auxiliary connections */
   address = g_socket_connection_get_remote_address (connection, error);
 
   if (address == NULL)
@@ -434,7 +434,7 @@ valent_lan_encrypt_server (GSocketConnection  *connection,
 
   valent_lan_configure_socket (connection);
 
-  /* We're the server when opening auxiliary connections */
+  /* We're the server when accepting auxiliary connections */
   tls_stream = g_tls_server_connection_new (G_IO_STREAM (connection),
                                             certificate,
                                             error);
