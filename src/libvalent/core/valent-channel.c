@@ -292,15 +292,17 @@ valent_channel_set_base_stream (ValentChannel *self,
                                 GIOStream     *base_stream)
 {
   ValentChannelPrivate *priv = valent_channel_get_instance_private (self);
-  GInputStream *input_stream;
 
   g_assert (VALENT_IS_CHANNEL (self));
 
   if (base_stream != NULL)
     {
+      GInputStream *input_stream;
+
       valent_object_lock (VALENT_OBJECT (self));
-      priv->base_stream = g_object_ref (base_stream);
       input_stream = g_io_stream_get_input_stream (base_stream);
+
+      priv->base_stream = g_object_ref (base_stream);
       priv->input_buffer = g_object_new (G_TYPE_DATA_INPUT_STREAM,
                                          "base-stream",       input_stream,
                                          "close-base-stream", FALSE,

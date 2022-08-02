@@ -5,6 +5,7 @@
 
 #include "config.h"
 
+#include <gio/gio.h>
 #include <gio/gunixinputstream.h>
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
@@ -164,16 +165,16 @@ on_incoming_connection (ValentChannelService   *service,
   ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (service);
   g_autoptr (GCancellable) timeout = NULL;
   unsigned long cancellable_id = 0;
+  g_autoptr (GSocketAddress) s_addr = NULL;
+  GInetAddress *i_addr = NULL;
   g_autofree char *host = NULL;
-  g_autoptr (GSocketAddress) saddr = NULL;
-  GInetAddress *iaddr;
   g_autoptr (JsonNode) identity = NULL;
   g_autoptr (JsonNode) peer_identity = NULL;
   const char *device_id;
   g_autoptr (GTlsCertificate) certificate = NULL;
   g_autoptr (GIOStream) tls_stream = NULL;
   g_autoptr (ValentChannel) channel = NULL;
-  g_autoptr (GError) error = NULL;
+  g_autoptr (GError) warning = NULL;
 
   g_assert (VALENT_IS_CHANNEL_SERVICE (service));
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
@@ -197,12 +198,12 @@ on_incoming_connection (ValentChannelService   *service,
   peer_identity = valent_packet_from_stream (g_io_stream_get_input_stream (G_IO_STREAM (connection)),
                                              IDENTITY_BUFFER_MAX,
                                              timeout,
-                                             &error);
+                                             &warning);
 
   if (peer_identity == NULL)
     {
-      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_warning ("%s(): %s", G_STRFUNC, error->message);
+      if (!g_error_matches (warning, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("%s(): %s", G_STRFUNC, warning->message);
       else if (!g_cancellable_is_cancelled (cancellable))
         g_warning ("%s(): timed out waiting for identity packet", G_STRFUNC);
 
@@ -219,6 +220,8 @@ on_incoming_connection (ValentChannelService   *service,
       return TRUE;
     }
 
+  VALENT_JSON (peer_identity, host);
+
   /* NOTE: We're the client when accepting incoming connections */
   valent_object_lock (VALENT_OBJECT (self));
   certificate = g_object_ref (self->certificate);
@@ -227,12 +230,12 @@ on_incoming_connection (ValentChannelService   *service,
   tls_stream = valent_lan_encrypt_new_client (connection,
                                               certificate,
                                               timeout,
-                                              &error);
+                                              &warning);
 
   if (tls_stream == NULL)
     {
-      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_warning ("%s(): %s", G_STRFUNC, error->message);
+      if (!g_error_matches (warning, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("%s(): %s", G_STRFUNC, warning->message);
       else if (!g_cancellable_is_cancelled (cancellable))
         g_warning ("%s(): timed out waiting for authentication", G_STRFUNC);
 
@@ -247,9 +250,9 @@ on_incoming_connection (ValentChannelService   *service,
     return TRUE;
 
   /* Get the host from the connection */
-  saddr = g_socket_connection_get_remote_address (connection, NULL);
-  iaddr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (saddr));
-  host = g_inet_address_to_string (iaddr);
+  s_addr = g_socket_connection_get_remote_address (connection, NULL);
+  i_addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (s_addr));
+  host = g_inet_address_to_string (i_addr);
 
   /* Create the new channel */
   identity = valent_channel_service_ref_identity (service);
@@ -283,13 +286,12 @@ on_incoming_broadcast (ValentLanChannelService  *self,
                        GError                  **error)
 {
   ValentChannelService *service = VALENT_CHANNEL_SERVICE (self);
-  g_autoptr (GError) warn = NULL;
-  g_autoptr (ValentChannel) channel = NULL;
-  g_autoptr (GSocketAddress) address;
+  gssize read = 0;
   char buffer[IDENTITY_BUFFER_MAX + 1] = { 0, };
-  gssize len;
-  GInetAddress *iaddr;
+  g_autoptr (GSocketAddress) s_addr = NULL;
+  GInetAddress *i_addr = NULL;
   g_autofree char *host = NULL;
+  g_autoptr (ValentChannel) channel = NULL;
   gint64 port = VALENT_LAN_PROTOCOL_PORT;
   g_autoptr (JsonNode) identity = NULL;
   g_autoptr (JsonNode) peer_identity = NULL;
@@ -300,6 +302,7 @@ on_incoming_broadcast (ValentLanChannelService  *self,
   GOutputStream *output_stream;
   g_autoptr (GTlsCertificate) certificate = NULL;
   g_autoptr (GIOStream) tls_stream = NULL;
+  g_autoptr (GError) warning = NULL;
 
   g_assert (VALENT_IS_CHANNEL_SERVICE (service));
   g_assert (G_IS_SOCKET (socket));
@@ -307,32 +310,32 @@ on_incoming_broadcast (ValentLanChannelService  *self,
   g_assert (error == NULL || *error == NULL);
 
   /* Read the message data and extract the remote address */
-  len = g_socket_receive_from (socket,
-                               &address,
-                               buffer,
-                               IDENTITY_BUFFER_MAX,
-                               cancellable,
-                               error);
+  read = g_socket_receive_from (socket,
+                                &s_addr,
+                                buffer,
+                                IDENTITY_BUFFER_MAX,
+                                cancellable,
+                                error);
 
-  if (len == 0)
+  if (read == 0)
     {
       g_set_error_literal (error,
                            G_IO_ERROR,
                            G_IO_ERROR_CLOSED,
-                           "UDP socket closed");
+                           "Socket is closed");
       return FALSE;
     }
-  else if (len == -1)
+  else if (read == -1)
     {
       return FALSE;
     }
 
   /* Validate the message as a KDE Connect packet */
-  if ((peer_identity = valent_packet_deserialize (buffer, &warn)) == NULL)
+  if ((peer_identity = valent_packet_deserialize (buffer, &warning)) == NULL)
     {
       g_warning ("%s(): failed to parse peer-identity: %s",
                  G_STRFUNC,
-                 warn->message);
+                 warning->message);
       return TRUE;
     }
 
@@ -350,8 +353,8 @@ on_incoming_broadcast (ValentLanChannelService  *self,
     return TRUE;
 
   /* Get the remote host and port */
-  iaddr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (address));
-  host = g_inet_address_to_string (iaddr);
+  i_addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (s_addr));
+  host = g_inet_address_to_string (i_addr);
 
   if (!valent_packet_get_int (peer_identity, "tcpPort", &port) ||
       (port < VALENT_LAN_PROTOCOL_PORT_MIN || port > VALENT_LAN_PROTOCOL_PORT_MAX))
@@ -363,7 +366,7 @@ on_incoming_broadcast (ValentLanChannelService  *self,
       return TRUE;
     }
 
-  VALENT_JSON (peer_identity, "Peer Identity");
+  VALENT_JSON (peer_identity, host);
 
   /* Open a TCP connection to the UDP sender and defined port. Disable any use
    * of the system proxy.
@@ -378,12 +381,12 @@ on_incoming_broadcast (ValentLanChannelService  *self,
                                                 host,
                                                 port,
                                                 cancellable,
-                                                &warn);
+                                                &warning);
 
   if (connection == NULL)
     {
       g_debug ("%s(): connecting to (%s:%"G_GINT64_FORMAT"): %s",
-               G_STRFUNC, host, port, warn->message);
+               G_STRFUNC, host, port, warning->message);
       return TRUE;
     }
 
@@ -393,10 +396,10 @@ on_incoming_broadcast (ValentLanChannelService  *self,
   identity = valent_channel_service_ref_identity (service);
   output_stream = g_io_stream_get_output_stream (G_IO_STREAM (connection));
 
-  if (!valent_packet_to_stream (output_stream, identity, cancellable, error))
+  if (!valent_packet_to_stream (output_stream, identity, cancellable, &warning))
     {
       g_debug ("%s(): sending identity to (%s:%"G_GINT64_FORMAT"): %s",
-               G_STRFUNC, host, port, warn->message);
+               G_STRFUNC, host, port, warning->message);
       return TRUE;
     }
 
@@ -408,12 +411,12 @@ on_incoming_broadcast (ValentLanChannelService  *self,
   tls_stream = valent_lan_encrypt_new_server (connection,
                                               certificate,
                                               cancellable,
-                                              &warn);
+                                              &warning);
 
   if (tls_stream == NULL)
     {
       g_debug ("%s(): authenticating (%s:%"G_GINT64_FORMAT"): %s",
-               G_STRFUNC, host, port, warn->message);
+               G_STRFUNC, host, port, warning->message);
       return TRUE;
     }
 
