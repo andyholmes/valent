@@ -18,8 +18,7 @@ struct _ValentLanChannel
 {
   ValentChannel    parent_instance;
 
-  GTlsCertificate *certificate;
-  char            *description;
+  char            *verification_key;
   char            *host;
   guint16          port;
 };
@@ -52,34 +51,34 @@ valent_lan_channel_get_verification_key (ValentChannel *channel)
   GByteArray *peer_pubkey;
   size_t cmplen;
 
-  if (self->description != NULL)
-    return self->description;
-
-  if ((cert = valent_lan_channel_ref_certificate (self)) == NULL ||
-      (peer_cert = valent_lan_channel_ref_peer_certificate (self)) == NULL)
-    g_return_val_if_reached (NULL);
-
-  if ((pubkey = valent_certificate_get_public_key (cert)) == NULL ||
-      (peer_pubkey = valent_certificate_get_public_key (peer_cert)) == NULL)
-    g_return_val_if_reached (NULL);
-
-  checksum = g_checksum_new (G_CHECKSUM_SHA256);
-  cmplen = pubkey->len < peer_pubkey->len ? pubkey->len : peer_pubkey->len;
-
-  if (memcmp (pubkey->data, peer_pubkey->data, cmplen) > 0)
+  if (self->verification_key == NULL)
     {
-      g_checksum_update (checksum, pubkey->data, pubkey->len);
-      g_checksum_update (checksum, peer_pubkey->data, peer_pubkey->len);
-    }
-  else
-    {
-      g_checksum_update (checksum, peer_pubkey->data, peer_pubkey->len);
-      g_checksum_update (checksum, pubkey->data, pubkey->len);
+      if ((cert = valent_lan_channel_ref_certificate (self)) == NULL ||
+          (peer_cert = valent_lan_channel_ref_peer_certificate (self)) == NULL)
+        g_return_val_if_reached (NULL);
+
+      if ((pubkey = valent_certificate_get_public_key (cert)) == NULL ||
+          (peer_pubkey = valent_certificate_get_public_key (peer_cert)) == NULL)
+        g_return_val_if_reached (NULL);
+
+      checksum = g_checksum_new (G_CHECKSUM_SHA256);
+      cmplen = pubkey->len < peer_pubkey->len ? pubkey->len : peer_pubkey->len;
+
+      if (memcmp (pubkey->data, peer_pubkey->data, cmplen) > 0)
+        {
+          g_checksum_update (checksum, pubkey->data, pubkey->len);
+          g_checksum_update (checksum, peer_pubkey->data, peer_pubkey->len);
+        }
+      else
+        {
+          g_checksum_update (checksum, peer_pubkey->data, peer_pubkey->len);
+          g_checksum_update (checksum, pubkey->data, pubkey->len);
+        }
+
+      self->verification_key = g_strdup (g_checksum_get_string (checksum));
     }
 
-  self->description = g_strdup (g_checksum_get_string (checksum));
-
-  return self->description;
+  return self->verification_key;
 }
 
 static GIOStream *
@@ -261,9 +260,8 @@ valent_lan_channel_finalize (GObject *object)
 {
   ValentLanChannel *self = VALENT_LAN_CHANNEL (object);
 
-  g_clear_object (&self->certificate);
-  g_clear_pointer (&self->description, g_free);
   g_clear_pointer (&self->host, g_free);
+  g_clear_pointer (&self->verification_key, g_free);
 
   G_OBJECT_CLASS (valent_lan_channel_parent_class)->finalize (object);
 }
