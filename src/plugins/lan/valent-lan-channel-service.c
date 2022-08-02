@@ -290,7 +290,7 @@ on_incoming_broadcast (ValentLanChannelService  *self,
   gssize len;
   GInetAddress *iaddr;
   g_autofree char *host = NULL;
-  gint64 port;
+  gint64 port = VALENT_LAN_PROTOCOL_PORT;
   g_autoptr (JsonNode) identity = NULL;
   g_autoptr (JsonNode) peer_identity = NULL;
   const char *device_id;
@@ -353,7 +353,7 @@ on_incoming_broadcast (ValentLanChannelService  *self,
   iaddr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (address));
   host = g_inet_address_to_string (iaddr);
 
-  if (valent_packet_get_int (peer_identity, "tcpPort", &port) &&
+  if (!valent_packet_get_int (peer_identity, "tcpPort", &port) ||
       (port < VALENT_LAN_PROTOCOL_PORT_MIN || port > VALENT_LAN_PROTOCOL_PORT_MAX))
     {
       g_warning ("%s(): expected \"tcpPort\" field holding a uint16 between %u-%u",
