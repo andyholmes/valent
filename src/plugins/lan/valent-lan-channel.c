@@ -309,12 +309,6 @@ valent_lan_channel_set_property (GObject      *object,
 
   switch (prop_id)
     {
-    case PROP_CERTIFICATE:
-      valent_object_lock (VALENT_OBJECT (self));
-      self->certificate = g_value_dup_object (value);
-      valent_object_unlock (VALENT_OBJECT (self));
-      break;
-
     case PROP_HOST:
       valent_object_lock (VALENT_OBJECT (self));
       self->host = g_value_dup_string (value);
