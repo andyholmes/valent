@@ -35,29 +35,30 @@ valent_share_plugin_create_download_file (ValentSharePlugin *self,
                                           const char        *filename,
                                           gboolean           unique)
 {
-  g_autofree char *dirname = NULL;
+  g_autofree char *download_folder = NULL;
 
   g_return_val_if_fail (VALENT_IS_SHARE_PLUGIN (self), NULL);
   g_return_val_if_fail (filename != NULL, NULL);
 
-  dirname = g_settings_get_string (self->settings, "download-folder");
+  download_folder = g_settings_get_string (self->settings, "download-folder");
 
-  if (strlen (dirname) == 0)
+  if (download_folder == NULL || *download_folder == '\0')
     {
-      g_clear_pointer (&dirname, g_free);
-      dirname = valent_data_get_directory (G_USER_DIRECTORY_DOWNLOAD);
+      g_clear_pointer (&download_folder, g_free);
+      download_folder = valent_data_get_directory (G_USER_DIRECTORY_DOWNLOAD);
     }
-  else if (g_mkdir_with_parents (dirname, 0700) == -1)
+
+  if (g_mkdir_with_parents (download_folder, 0700) == -1)
     {
       int error = errno;
 
       g_critical ("%s(): creating \"%s\": %s",
                   G_STRFUNC,
-                  dirname,
+                  download_folder,
                   g_strerror (error));
     }
 
-  return valent_data_get_file (dirname, filename, unique);
+  return valent_data_get_file (download_folder, filename, unique);
 }
 
 /*
