@@ -339,62 +339,28 @@ valent_data_new (const char *context,
  * valent_data_get_directory:
  * @directory: a #GUserDirectory
  *
- * Return a #GUserDirectory file path for @directory that is guaranteed to be
- * valid and existing.
+ * Returns the full path of a special directory using its logical id.
  *
- * Returns: (transfer full): a directory path
+ * This function is a wrapper around [func@GLib.get_user_special_dir] that falls
+ * back to the return value of [func@GLib.get_home_dir] if @directory is %NULL,
+ * and makes a call to [func@GLib.mkdir_with_parents] to ensure the path exists.
+ *
+ * Returns: (transfer full): the path to the specified special directory
  *
  * Since: 1.0
  */
 char *
 valent_data_get_directory (GUserDirectory directory)
 {
-  g_autofree char *dirname = NULL;
+  const char *dirname = NULL;
 
-  /* Ensure we get a real path */
-  dirname = g_strdup (g_get_user_special_dir (directory));
+  g_return_val_if_fail (directory >= G_USER_DIRECTORY_DESKTOP &&
+                        directory < G_USER_N_DIRECTORIES, NULL);
+
+  dirname = g_get_user_special_dir (directory);
 
   if (dirname == NULL)
-    {
-      switch (directory)
-        {
-        case G_USER_DIRECTORY_DESKTOP:
-          dirname = g_build_filename (g_get_home_dir(), "Desktop", NULL);
-          break;
-
-        case G_USER_DIRECTORY_DOCUMENTS:
-          dirname = g_build_filename (g_get_home_dir(), "Documents", NULL);
-          break;
-
-        case G_USER_DIRECTORY_DOWNLOAD:
-          dirname = g_build_filename (g_get_home_dir(), "Downloads", NULL);
-          break;
-
-        case G_USER_DIRECTORY_MUSIC:
-          dirname = g_build_filename (g_get_home_dir(), "Music", NULL);
-          break;
-
-        case G_USER_DIRECTORY_PICTURES:
-          dirname = g_build_filename (g_get_home_dir(), "Pictures", NULL);
-          break;
-
-        case G_USER_DIRECTORY_PUBLIC_SHARE:
-          dirname = g_build_filename (g_get_home_dir(), "Public", NULL);
-          break;
-
-        case G_USER_DIRECTORY_TEMPLATES:
-          dirname = g_build_filename (g_get_home_dir(), "Templates", NULL);
-          break;
-
-        case G_USER_DIRECTORY_VIDEOS:
-          dirname = g_build_filename (g_get_home_dir(), "Videos", NULL);
-          break;
-
-        default:
-          dirname = g_strdup (g_get_home_dir());
-          break;
-        }
-    }
+    dirname = g_get_home_dir ();
 
   if (g_mkdir_with_parents (dirname, 0700) == -1)
     {
@@ -406,7 +372,7 @@ valent_data_get_directory (GUserDirectory directory)
                   g_strerror (error));
     }
 
-  return g_steal_pointer (&dirname);
+  return g_strdup (dirname);
 }
 
 /**
