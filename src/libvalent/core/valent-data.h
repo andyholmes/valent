@@ -37,8 +37,6 @@ const char * valent_data_get_context     (ValentData *data);
 VALENT_AVAILABLE_IN_1_0
 ValentData * valent_data_get_parent      (ValentData *data);
 VALENT_AVAILABLE_IN_1_0
-const char * valent_data_get_uid         (ValentData *data);
-VALENT_AVAILABLE_IN_1_0
 void         valent_data_clear_cache     (ValentData *data);
 VALENT_AVAILABLE_IN_1_0
 void         valent_data_clear_data      (ValentData *data);
