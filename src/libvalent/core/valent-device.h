@@ -50,8 +50,6 @@ ValentChannel     * valent_device_ref_channel        (ValentDevice         *devi
 VALENT_AVAILABLE_IN_1_0
 ValentData        * valent_device_ref_data           (ValentDevice         *device);
 VALENT_AVAILABLE_IN_1_0
-gboolean            valent_device_get_connected      (ValentDevice         *device);
-VALENT_AVAILABLE_IN_1_0
 const char        * valent_device_get_icon_name      (ValentDevice         *device);
 VALENT_AVAILABLE_IN_1_0
 const char        * valent_device_get_id             (ValentDevice         *device);

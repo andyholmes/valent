@@ -5,7 +5,6 @@
 
 <node>
   <interface name="ca.andyholmes.Valent.Device">
-    <property type="b" name="Connected" access="read"/>
     <property type="s" name="Id" access="read"/>
     <property type="s" name="Name" access="read"/>
     <property type="s" name="IconName" access="read"/>

@@ -86,7 +86,7 @@ on_notification_added (ValentNotifications      *listener,
 
   device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
 
-  if (!valent_device_get_connected (device))
+  if ((valent_device_get_state (device) & VALENT_DEVICE_STATE_CONNECTED) == 0)
     {
       VALENT_TODO ("Cache notifications for later sending?");
       return;
@@ -112,7 +112,7 @@ on_notification_removed (ValentNotifications      *listener,
 
   device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
 
-  if (!valent_device_get_connected (device))
+  if ((valent_device_get_state (device) & VALENT_DEVICE_STATE_CONNECTED) == 0)
     {
       VALENT_TODO ("Cache notifications for later removal?");
       return;
