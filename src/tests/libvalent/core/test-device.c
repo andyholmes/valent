@@ -25,6 +25,12 @@ get_packet (DeviceFixture *fixture,
   return json_object_get_member (json_node_get_object (fixture->packets), name);
 }
 
+static inline gboolean
+valent_device_get_paired (ValentDevice *device)
+{
+  return (valent_device_get_state (device) & VALENT_DEVICE_STATE_PAIRED) != 0;
+}
+
 static void
 device_fixture_set_up (DeviceFixture *fixture,
                        gconstpointer  user_data)
@@ -127,7 +133,6 @@ test_device_new (void)
   g_autofree char *name = NULL;
   g_autofree char *type = NULL;
   gboolean connected;
-  gboolean paired;
 
   GMenuModel *menu;
   GPtrArray *plugins;
@@ -141,7 +146,6 @@ test_device_new (void)
                 "name",      &name,
                 "type",      &type,
                 "connected", &connected,
-                "paired",    &paired,
                 NULL);
 
   /* id should be set, but everything else should be %FALSE or %NULL */
@@ -150,7 +154,6 @@ test_device_new (void)
   g_assert_null (type);
   g_assert_null (name);
   g_assert_false (connected);
-  g_assert_false (paired);
 
   menu = valent_device_get_menu (device);
   g_assert_true (G_IS_MENU (menu));
@@ -176,7 +179,6 @@ test_device_basic (DeviceFixture *fixture,
   g_autofree char *icon_name = NULL;
   g_autofree char *type = NULL;
   gboolean connected;
-  gboolean paired;
   ValentDeviceState state = VALENT_DEVICE_STATE_NONE;
   GPtrArray *plugins;
 
@@ -188,7 +190,6 @@ test_device_basic (DeviceFixture *fixture,
                 "icon-name",        &icon_name,
                 "type",             &type,
                 "connected",        &connected,
-                "paired",           &paired,
                 "state",            &state,
                 NULL);
 
@@ -202,8 +203,6 @@ test_device_basic (DeviceFixture *fixture,
   g_assert_cmpstr (type, ==, "phone");
   g_assert_false (connected);
   g_assert_false (valent_device_get_connected (fixture->device));
-  g_assert_false (paired);
-  g_assert_false (valent_device_get_paired (fixture->device));
   g_assert_cmpuint (state, ==, VALENT_DEVICE_STATE_NONE);
   g_assert_cmpuint (valent_device_get_state (fixture->device), ==, VALENT_DEVICE_STATE_NONE);
 

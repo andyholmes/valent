@@ -65,14 +65,6 @@ static const GDBusPropertyInfo iface_property_name = {
   NULL
 };
 
-static const GDBusPropertyInfo iface_property_paired = {
-  -1,
-  "Paired",
-  "b",
-  G_DBUS_PROPERTY_INFO_FLAGS_READABLE,
-  NULL
-};
-
 static const GDBusPropertyInfo iface_property_state = {
   -1,
   "State",
@@ -94,7 +86,6 @@ static const GDBusPropertyInfo * const iface_properties[] = {
   &iface_property_icon_name,
   &iface_property_id,
   &iface_property_name,
-  &iface_property_paired,
   &iface_property_state,
   &iface_property_type,
   NULL,
@@ -123,7 +114,6 @@ typedef struct
 static PropertyMapping property_map[] = {
     { "state",     G_TYPE_UINT,    &iface_property_state },
     { "connected", G_TYPE_BOOLEAN, &iface_property_connected },
-    { "paired",    G_TYPE_BOOLEAN, &iface_property_paired },
     { "name",      G_TYPE_STRING,  &iface_property_name },
     { "icon-name", G_TYPE_STRING,  &iface_property_icon_name },
     { "type",      G_TYPE_STRING,  &iface_property_type },
