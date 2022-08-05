@@ -33,14 +33,6 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 /*
  * ca.andyholmes.Valent.Device Interface
  */
-static const GDBusPropertyInfo iface_property_connected = {
-  -1,
-  "Connected",
-  "b",
-  G_DBUS_PROPERTY_INFO_FLAGS_READABLE,
-  NULL
-};
-
 static const GDBusPropertyInfo iface_property_icon_name = {
   -1,
   "IconName",
@@ -82,7 +74,6 @@ static const GDBusPropertyInfo iface_property_type = {
 };
 
 static const GDBusPropertyInfo * const iface_properties[] = {
-  &iface_property_connected,
   &iface_property_icon_name,
   &iface_property_id,
   &iface_property_name,
@@ -113,7 +104,6 @@ typedef struct
 
 static PropertyMapping property_map[] = {
     { "state",     G_TYPE_UINT,    &iface_property_state },
-    { "connected", G_TYPE_BOOLEAN, &iface_property_connected },
     { "name",      G_TYPE_STRING,  &iface_property_name },
     { "icon-name", G_TYPE_STRING,  &iface_property_icon_name },
     { "type",      G_TYPE_STRING,  &iface_property_type },

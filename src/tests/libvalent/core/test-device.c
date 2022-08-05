@@ -26,6 +26,12 @@ get_packet (DeviceFixture *fixture,
 }
 
 static inline gboolean
+valent_device_get_connected (ValentDevice *device)
+{
+  return (valent_device_get_state (device) & VALENT_DEVICE_STATE_CONNECTED) != 0;
+}
+
+static inline gboolean
 valent_device_get_paired (ValentDevice *device)
 {
   return (valent_device_get_state (device) & VALENT_DEVICE_STATE_PAIRED) != 0;
@@ -132,7 +138,7 @@ test_device_new (void)
   g_autofree char *id = NULL;
   g_autofree char *name = NULL;
   g_autofree char *type = NULL;
-  gboolean connected;
+  ValentDeviceState state = VALENT_DEVICE_STATE_NONE;
 
   GMenuModel *menu;
   GPtrArray *plugins;
@@ -144,16 +150,16 @@ test_device_new (void)
                 "id",        &id,
                 "icon-name", &icon_name,
                 "name",      &name,
+                "state",     &state,
                 "type",      &type,
-                "connected", &connected,
                 NULL);
 
   /* id should be set, but everything else should be %FALSE or %NULL */
   g_assert_cmpstr (id, ==, "test-device");
   g_assert_null (icon_name);
-  g_assert_null (type);
   g_assert_null (name);
-  g_assert_false (connected);
+  g_assert_cmpuint (state, ==, VALENT_DEVICE_STATE_NONE);
+  g_assert_null (type);
 
   menu = valent_device_get_menu (device);
   g_assert_true (G_IS_MENU (menu));
@@ -178,7 +184,6 @@ test_device_basic (DeviceFixture *fixture,
   g_autofree char *name = NULL;
   g_autofree char *icon_name = NULL;
   g_autofree char *type = NULL;
-  gboolean connected;
   ValentDeviceState state = VALENT_DEVICE_STATE_NONE;
   GPtrArray *plugins;
 
@@ -189,7 +194,6 @@ test_device_basic (DeviceFixture *fixture,
                 "name",             &name,
                 "icon-name",        &icon_name,
                 "type",             &type,
-                "connected",        &connected,
                 "state",            &state,
                 NULL);
 
@@ -201,8 +205,6 @@ test_device_basic (DeviceFixture *fixture,
   g_assert_cmpstr (icon_name, ==, "phone-symbolic");
   g_assert_cmpstr (valent_device_get_icon_name (fixture->device), ==, "phone-symbolic");
   g_assert_cmpstr (type, ==, "phone");
-  g_assert_false (connected);
-  g_assert_false (valent_device_get_connected (fixture->device));
   g_assert_cmpuint (state, ==, VALENT_DEVICE_STATE_NONE);
   g_assert_cmpuint (valent_device_get_state (fixture->device), ==, VALENT_DEVICE_STATE_NONE);
 

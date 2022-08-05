@@ -83,7 +83,6 @@ G_DEFINE_TYPE_WITH_CODE (ValentDevice, valent_device, VALENT_TYPE_OBJECT,
 
 enum {
   PROP_0,
-  PROP_CONNECTED,
   PROP_DATA,
   PROP_ICON_NAME,
   PROP_ID,
@@ -911,10 +910,6 @@ valent_device_get_property (GObject    *object,
 
   switch (prop_id)
     {
-    case PROP_CONNECTED:
-      g_value_set_boolean (value, valent_device_get_connected (self));
-      break;
-
     case PROP_DATA:
       g_value_take_object (value, valent_device_ref_data (self));
       break;
@@ -1005,24 +1000,6 @@ valent_device_class_init (ValentDeviceClass *klass)
   object_class->finalize = valent_device_finalize;
   object_class->get_property = valent_device_get_property;
   object_class->set_property = valent_device_set_property;
-
-  /**
-   * ValentDevice:connected: (getter get_connected)
-   *
-   * Whether the device is connected.
-   *
-   * This property indicates whether the device has an active
-   * [class@Valent.Channel] that has been authenticated. It does not imply the
-   * the device has been paired, however.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_CONNECTED] =
-    g_param_spec_boolean ("connected", NULL, NULL,
-                          FALSE,
-                          (G_PARAM_READABLE |
-                           G_PARAM_EXPLICIT_NOTIFY |
-                           G_PARAM_STATIC_STRINGS));
 
   /**
    * ValentDevice:data: (getter ref_data)
@@ -1505,7 +1482,8 @@ void
 valent_device_set_channel (ValentDevice  *device,
                            ValentChannel *channel)
 {
-  gboolean connected;
+  gboolean was_connected;
+  gboolean is_connected;
 
   g_return_if_fail (VALENT_IS_DEVICE (device));
   g_return_if_fail (channel == NULL || VALENT_IS_CHANNEL (channel));
@@ -1520,15 +1498,15 @@ valent_device_set_channel (ValentDevice  *device,
 
   /* If there's an active channel, close it asynchronously and drop our
    * reference so the task holds the final reference. */
-  if ((connected = device->channel != NULL))
+  if ((was_connected = (device->channel != NULL)))
     {
       valent_channel_close_async (device->channel, NULL, NULL, NULL);
       g_clear_object (&device->channel);
     }
 
-  /* If there's a new channel handle the peer identity and queue the first read
-   * before calling valent_device_set_connected(). */
-  if (g_set_object (&device->channel, channel))
+  /* If there's a new channel, handle the peer identity and queue the first
+   * read operation before notifying of the state change. */
+  if ((is_connected = g_set_object (&device->channel, channel)))
     {
       JsonNode *peer_identity;
 
@@ -1545,37 +1523,12 @@ valent_device_set_channel (ValentDevice  *device,
 
   valent_object_unlock (VALENT_OBJECT (device));
 
-  /* If the connected state changed, update the plugins and notify */
-  if (valent_device_get_connected (device) == connected)
+  /* If the state changed, update the plugins and notify */
+  if (is_connected == was_connected)
     return;
 
   valent_device_update_plugins (device);
-  valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_CONNECTED]);
   valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
-}
-
-/**
- * valent_device_get_connected: (get-property connected)
- * @device: a #ValentDevice
- *
- * Get whether the device is connected.
- *
- * Returns: %TRUE if the device has an active connection.
- *
- * Since: 1.0
- */
-gboolean
-valent_device_get_connected (ValentDevice *device)
-{
-  gboolean ret;
-
-  g_return_val_if_fail (VALENT_IS_DEVICE (device), FALSE);
-
-  valent_object_lock (VALENT_OBJECT (device));
-  ret = device->channel != NULL;
-  valent_object_unlock (VALENT_OBJECT (device));
-
-  return ret;
 }
 
 /**
