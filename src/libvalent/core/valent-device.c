@@ -88,7 +88,6 @@ enum {
   PROP_ICON_NAME,
   PROP_ID,
   PROP_NAME,
-  PROP_PAIRED,
   PROP_STATE,
   PROP_TYPE,
   N_PROPERTIES
@@ -932,10 +931,6 @@ valent_device_get_property (GObject    *object,
       g_value_set_string (value, self->name);
       break;
 
-    case PROP_PAIRED:
-      g_value_set_boolean (value, self->paired);
-      break;
-
     case PROP_STATE:
       g_value_set_flags (value, valent_device_get_state (self));
       break;
@@ -1097,30 +1092,9 @@ valent_device_class_init (ValentDeviceClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentDevice:paired: (getter get_paired)
-   *
-   * Whether the device is paired.
-   *
-   * This property indicates whether the device is paired with respect to the
-   * KDE Connect protocol and may be unrelated to the underlying transport
-   * protocol (eg. Bluetooth).
-   *
-   * Since: 1.0
-   */
-  properties [PROP_PAIRED] =
-    g_param_spec_boolean ("paired", NULL, NULL,
-                          FALSE,
-                          (G_PARAM_READABLE |
-                           G_PARAM_EXPLICIT_NOTIFY |
-                           G_PARAM_STATIC_STRINGS));
-
-  /**
    * ValentDevice:state: (getter get_state)
    *
    * The state of the device.
-   *
-   * This is intended to provide more granular information about the state than
-   * [property@Valent.Device:connected] or [property@Valent.Device:paired].
    *
    * Since: 1.0
    */
@@ -1706,31 +1680,7 @@ valent_device_get_name (ValentDevice *device)
 }
 
 /**
- * valent_device_get_paired: (get-property paired)
- * @device: a #ValentDevice
- *
- * Get whether the device is paired.
- *
- * Returns: %TRUE if the device is paired, or %FALSE if unpaired
- *
- * Since: 1.0
- */
-gboolean
-valent_device_get_paired (ValentDevice *device)
-{
-  gboolean ret;
-
-  g_return_val_if_fail (VALENT_IS_DEVICE (device), FALSE);
-
-  valent_object_lock (VALENT_OBJECT (device));
-  ret = device->paired;
-  valent_object_unlock (VALENT_OBJECT (device));
-
-  return ret;
-}
-
-/**
- * valent_device_set_paired: (set-property paired)
+ * valent_device_set_paired:
  * @device: a #ValentDevice
  * @paired: %TRUE if paired, %FALSE if unpaired
  *
@@ -1738,8 +1688,6 @@ valent_device_get_paired (ValentDevice *device)
  *
  * NOTE: since valent_device_update_plugins() will be called as a side effect,
  * this must be called after valent_device_send_pair().
- *
- * Since: 1.0
  */
 void
 valent_device_set_paired (ValentDevice *device,
@@ -1771,7 +1719,6 @@ valent_device_set_paired (ValentDevice *device,
 
   /* Update plugins and notify */
   valent_device_update_plugins (device);
-  valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_PAIRED]);
   valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
 }
 

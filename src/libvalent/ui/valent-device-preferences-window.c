@@ -171,6 +171,19 @@ on_plugin_removed (ValentDevice                  *device,
     gtk_list_box_remove (self->plugin_list, row);
 }
 
+static gboolean
+device_state_transform_to (GBinding     *binding,
+                           const GValue *from_value,
+                           GValue       *to_value,
+                           gpointer      user_data)
+{
+  ValentDeviceState state = g_value_get_flags (from_value);
+
+  g_value_set_boolean (to_value, (state & VALENT_DEVICE_STATE_PAIRED) != 0);
+
+  return TRUE;
+}
+
 /*
  * GActions
  */
@@ -219,9 +232,11 @@ valent_device_preferences_window_constructed (GObject *object)
   g_object_bind_property (self->device, "name",
                           self,         "title",
                           G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE);
-  g_object_bind_property (self->device,       "paired",
-                          self->unpair_group, "visible",
-                          G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE);
+  g_object_bind_property_full (self->device,       "state",
+                               self->unpair_group, "visible",
+                               G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE,
+                               device_state_transform_to, NULL,
+                               NULL, NULL);
 
   gtk_widget_insert_action_group (GTK_WIDGET (self),
                                   "device",

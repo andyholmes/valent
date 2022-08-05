@@ -242,14 +242,14 @@ valent_device_manager_check_device (ValentDeviceManager *self,
   gpointer value;
   unsigned int n_unpaired = 0;
 
-  if (valent_device_get_paired (device))
+  if ((valent_device_get_state (device) & VALENT_DEVICE_STATE_PAIRED) != 0)
     return TRUE;
 
   g_hash_table_iter_init (&iter, self->devices);
 
   while (g_hash_table_iter_next (&iter, NULL, &value))
     {
-      if (!valent_device_get_paired (VALENT_DEVICE (value)))
+      if ((valent_device_get_state (value) & VALENT_DEVICE_STATE_PAIRED) == 0)
         n_unpaired++;
     }
 

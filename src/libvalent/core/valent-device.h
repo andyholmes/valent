@@ -60,8 +60,6 @@ GMenuModel        * valent_device_get_menu           (ValentDevice         *devi
 VALENT_AVAILABLE_IN_1_0
 const char        * valent_device_get_name           (ValentDevice         *device);
 VALENT_AVAILABLE_IN_1_0
-gboolean            valent_device_get_paired         (ValentDevice         *device);
-VALENT_AVAILABLE_IN_1_0
 GPtrArray         * valent_device_get_plugins        (ValentDevice         *device);
 VALENT_AVAILABLE_IN_1_0
 ValentDeviceState   valent_device_get_state          (ValentDevice         *device);
