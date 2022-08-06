@@ -38,16 +38,6 @@ expect_packet_cb (ValentChannel  *channel,
     g_critical ("%s(): %s", G_STRFUNC, error->message);
 }
 
-static gboolean
-valent_test_fixture_wait_cb (gpointer data)
-{
-  ValentTestFixture *fixture = data;
-
-  valent_test_fixture_quit (fixture);
-
-  return G_SOURCE_REMOVE;
-}
-
 static void
 valent_test_fixture_free (gpointer data)
 {
@@ -84,7 +74,7 @@ valent_test_fixture_init (ValentTestFixture *fixture,
   valent_device_set_paired (fixture->device, TRUE);
 
   /* Init channels */
-  channels = valent_test_channels (identity, identity);
+  channels = valent_test_channel_pair (identity, identity);
   fixture->channel = g_steal_pointer (&channels[0]);
   fixture->endpoint = g_steal_pointer(&channels[1]);
 }
@@ -275,23 +265,6 @@ valent_test_fixture_quit (ValentTestFixture *fixture)
   g_assert (fixture != NULL);
 
   g_main_loop_quit (fixture->loop);
-}
-
-/**
- * valent_test_fixture_wait:
- * @fixture: a #ValentTestFixture
- * @interval: time to wait in milliseconds
- *
- * Iterate the #GMainLoop of @fixture for @interval milliseconds.
- */
-void
-valent_test_fixture_wait (ValentTestFixture *fixture,
-                          unsigned int       interval)
-{
-  g_assert (fixture != NULL);
-
-  g_timeout_add (interval, valent_test_fixture_wait_cb, fixture);
-  g_main_loop_run (fixture->loop);
 }
 
 /**

@@ -307,11 +307,38 @@ valent_test_load_json (const char *path)
   return json_parser_steal_root (parser);
 }
 
+static gboolean
+valent_test_wait_cb (gpointer data)
+{
+  gboolean *done = data;
+
+  if (done != NULL)
+    *done = TRUE;
+
+  return G_SOURCE_REMOVE;
+}
+
 /**
- * valent_test_channels:
+ * valent_test_wait:
+ * @duration: the time to wait, in milliseconds
+ *
+ * Iterate the default main context for @duration.
+ */
+void
+valent_test_wait (unsigned int duration)
+{
+  gboolean done = FALSE;
+
+  g_timeout_add (duration, valent_test_wait_cb, &done);
+
+  while (!done)
+    g_main_context_iteration (NULL, FALSE);
+}
+
+/**
+ * valent_test_channel_pair:
  * @identity: a #JsonNode
  * @peer_identity: (nullable): a #JsonNode
- * @port: the local port
  *
  * Create a pair of connected channels with @identity representing the local
  * device and @peer_identity representing the endpoint device.
@@ -319,8 +346,8 @@ valent_test_load_json (const char *path)
  * Returns: (array length=2) (element-type Valent.Channel): a pair of #ValentChannel
  */
 ValentChannel **
-valent_test_channels (JsonNode *identity,
-                      JsonNode *peer_identity)
+valent_test_channel_pair (JsonNode *identity,
+                          JsonNode *peer_identity)
 {
   ValentChannel **channels = NULL;
   int sv[2] = { 0, };

@@ -42,8 +42,6 @@ void                valent_test_fixture_connect       (ValentTestFixture  *fixtu
                                                        gboolean            connected);
 void                valent_test_fixture_run           (ValentTestFixture  *fixture);
 void                valent_test_fixture_quit          (ValentTestFixture  *fixture);
-void                valent_test_fixture_wait          (ValentTestFixture  *fixture,
-                                                       unsigned int        interval);
 gpointer            valent_test_fixture_get_data      (ValentTestFixture  *fixture);
 void                valent_test_fixture_set_data      (ValentTestFixture  *fixture,
                                                        gpointer            data,

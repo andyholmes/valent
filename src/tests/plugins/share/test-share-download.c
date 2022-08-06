@@ -33,7 +33,7 @@ test_share_download_single (ValentTestFixture *fixture,
   g_assert_no_error (error);
 
   /* Ensure the download task has an opportunity to finish completely */
-  valent_test_fixture_wait (fixture, 1);
+  valent_test_wait (1);
 
   dest_dir = valent_data_get_directory (G_USER_DIRECTORY_DOWNLOAD);
   dest = valent_data_get_file (dest_dir, "image.png", FALSE);
