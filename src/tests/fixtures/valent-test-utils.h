@@ -43,8 +43,9 @@ gpointer         valent_test_event_pop    (void);
 void             valent_test_event_push   (gpointer        data);
 void             valent_test_event_free   (GDestroyNotify  free_func);
 
+void             valent_test_wait         (unsigned int    duration);
 JsonNode       * valent_test_load_json    (const char     *path);
-ValentChannel ** valent_test_channels     (JsonNode       *identity,
+ValentChannel ** valent_test_channel_pair (JsonNode       *identity,
                                            JsonNode       *peer_identity);
 gboolean         valent_test_download     (ValentChannel  *rig,
                                            JsonNode       *packet,
@@ -115,14 +116,17 @@ static inline void
 /**
  * v_assert_packet_type:
  * @p: a #JsonNode
- * @m: a member name
+ * @t: a KDE Connect packet type
  *
  * Check the body object of @p for the member @m.
  */
-#define v_assert_packet_type(p, t)                                      \
-  G_STMT_START {                                                        \
-    const char *type = valent_packet_get_type (p);                      \
-    g_assert_cmpstr (type, ==, t);                                      \
+#define v_assert_packet_type(p, t)                                             \
+  G_STMT_START {                                                               \
+    const char *__s1 = valent_packet_get_type (p);                             \
+    const char *__s2 = (t);                                                    \
+    if (g_strcmp0 (__s1, __s2) == 0) ; else                                    \
+      g_assertion_message_cmpstr (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, \
+        "type == " #t, __s1, "==", __s2);                                      \
   } G_STMT_END
 
 /**
@@ -132,10 +136,12 @@ static inline void
  *
  * Assert the body object of @p has the member @m.
  */
-#define v_assert_packet_field(p, m)                                     \
-  G_STMT_START {                                                        \
-    JsonObject *body = valent_packet_get_body (p);                      \
-    g_assert_true (json_object_has_member (body, m));                   \
+#define v_assert_packet_field(p, m)                                            \
+  G_STMT_START {                                                               \
+    JsonObject *__body = valent_packet_get_body (p);                           \
+    if G_LIKELY (json_object_has_member (__body, m)) ; else                    \
+      g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC,        \
+                           "packet body should have " #m " member");           \
   } G_STMT_END
 
 /**
@@ -145,10 +151,12 @@ static inline void
  *
  * Assert the body object of @p does not have the member @m.
  */
-#define v_assert_packet_no_field(p, m)                                  \
-  G_STMT_START {                                                        \
-    JsonObject *body = valent_packet_get_body (p);                      \
-    g_assert_false (json_object_has_member (body, m));                  \
+#define v_assert_packet_no_field(p, m)                                         \
+  G_STMT_START {                                                               \
+    JsonObject *__body = valent_packet_get_body (p);                           \
+    if G_LIKELY (!json_object_has_member (__body, m)) ; else                   \
+      g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC,        \
+                           "packet body should not have " #m " member");       \
   } G_STMT_END
 
 /**
@@ -158,16 +166,15 @@ static inline void
  *
  * Check the body object of @p for the member @m.
  */
-#define v_assert_packet_true(p, m)                                      \
-  G_STMT_START {                                                        \
-    JsonObject *body = valent_packet_get_body (p);                      \
-    if G_UNLIKELY (!json_object_has_member (body, m))                   \
-      g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, \
-                           "missing '"#m"' member");                    \
-                                                                        \
-    if (!json_object_get_boolean_member (body, m))                      \
-      g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, \
-                           "'" #m "' should be TRUE");                  \
+#define v_assert_packet_true(p, m)                                             \
+  G_STMT_START {                                                               \
+    JsonObject *__body = valent_packet_get_body (p);                           \
+    if G_LIKELY (json_object_has_member (__body, m)) ; else                    \
+      g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC,        \
+                           "packet body should have " #m " member");           \
+    if G_LIKELY (json_object_get_boolean_member (__body, m)) ; else            \
+      g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC,        \
+                           #m " should be TRUE");                              \
   } G_STMT_END
 
 /**
@@ -177,16 +184,15 @@ static inline void
  *
  * Check the body object of @p for the member @m.
  */
-#define v_assert_packet_false(p, m)                                     \
-  G_STMT_START {                                                        \
-    JsonObject *body = valent_packet_get_body (p);                      \
-    if G_UNLIKELY (!json_object_has_member (body, m))                   \
-      g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, \
-                           "missing '"#m"' member");                    \
-                                                                        \
-    if (json_object_get_boolean_member (body, m))                       \
-      g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, \
-                           "'" #m "' should be FALSE");                 \
+#define v_assert_packet_false(p, m)                                            \
+  G_STMT_START {                                                               \
+    JsonObject *__body = valent_packet_get_body (p);                           \
+    if G_LIKELY (json_object_has_member (__body, m)) ; else                    \
+      g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC,        \
+                           "packet body should have " #m " member");           \
+    if G_LIKELY (!json_object_get_boolean_member (__body, m)) ; else           \
+      g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC,        \
+                           #m " should be FALSE");                             \
   } G_STMT_END
 
 /**
@@ -198,15 +204,17 @@ static inline void
  *
  * Check the body object of @p for the member @m.
  */
-#define v_assert_packet_cmpfloat(p, m, cmp, num)                        \
-  G_STMT_START {                                                        \
-    JsonObject *body = valent_packet_get_body (p);                      \
-    if G_UNLIKELY (!json_object_has_member (body, m))                   \
-      g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, \
-                           "missing '"#m"' member");                    \
-                                                                        \
-    double member = json_object_get_double_member (body, m);            \
-    g_assert_cmpfloat (member, cmp, num);                               \
+#define v_assert_packet_cmpfloat(p, m, cmp, num)                               \
+  G_STMT_START {                                                               \
+    JsonObject *__body = valent_packet_get_body (p);                           \
+    if G_LIKELY (json_object_has_member (__body, m)) ; else                    \
+      g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC,        \
+                           "packet body should have " #m " member");           \
+    double __n1 = json_object_get_double_member (__body, m);                   \
+    double __n2 = (double)(num);                                               \
+    if (__n1 cmp __n2) ; else                                                  \
+      g_assertion_message_cmpnum (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, \
+        #m " " #cmp " " #num, (long double)__n1, #cmp, (double)__n2, 'f');     \
   } G_STMT_END
 
 /**
@@ -218,15 +226,17 @@ static inline void
  *
  * Check the body object of @p for the member @m.
  */
-#define v_assert_packet_cmpint(p, m, cmp, num)                          \
-  G_STMT_START {                                                        \
-    JsonObject *body = valent_packet_get_body (p);                      \
-    if G_UNLIKELY (!json_object_has_member (body, m))                   \
-      g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, \
-                           "missing '"#m"' member");                    \
-                                                                        \
-    gint64 member = json_object_get_int_member (body, m);               \
-    g_assert_cmpint (member, cmp, num);                                 \
+#define v_assert_packet_cmpint(p, m, cmp, num)                                 \
+  G_STMT_START {                                                               \
+    JsonObject *__body = valent_packet_get_body (p);                           \
+    if G_LIKELY (json_object_has_member (__body, m)) ; else                    \
+      g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC,        \
+                           "packet body should have " #m " member");           \
+    gint64 __n1 = json_object_get_double_member (__body, m);                   \
+    gint64 __n2 = (gint64)(num);                                               \
+    if (__n1 cmp __n2) ; else                                                  \
+      g_assertion_message_cmpnum (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, \
+        #m " " #cmp " " #num, (gint64)__n1, #cmp, (gint64)__n2, 'i');          \
   } G_STMT_END
 
 /**
@@ -238,15 +248,17 @@ static inline void
  *
  * Check the body object of @p for the member @m with a value of @str.
  */
-#define v_assert_packet_cmpstr(p, m, cmp, str)                          \
-  G_STMT_START {                                                        \
-    JsonObject *body = valent_packet_get_body (p);                      \
-    if G_UNLIKELY (!json_object_has_member (body, m))                   \
-      g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, \
-                           "missing '"#m"' member");                    \
-                                                                        \
-    const char *member = json_object_get_string_member (body, m);       \
-    g_assert_cmpstr (member, cmp, str);                                 \
+#define v_assert_packet_cmpstr(p, m, cmp, str)                                 \
+  G_STMT_START {                                                               \
+    JsonObject *__body = valent_packet_get_body (p);                           \
+    if G_LIKELY (json_object_has_member (__body, m)) ; else                    \
+      g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC,        \
+                           "packet body should have " #m " member");           \
+    const char *__s1 = json_object_get_string_member (__body, m);              \
+    const char *__s2 = (str);                                                  \
+    if (g_strcmp0 (__s1, __s2) cmp 0) ; else                                   \
+      g_assertion_message_cmpstr (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, \
+        #m " " #cmp " " #str, __s1, #cmp, __s2);                               \
   } G_STMT_END
 
 G_END_DECLS

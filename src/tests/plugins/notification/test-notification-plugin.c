@@ -62,7 +62,7 @@ test_notification_plugin_handle_notification (ValentTestFixture *fixture,
 
   // FIXME: Without this the notification plugin will reliably segfault, which
   //        ostensibly implies ValentDevicePlugin is not thread-safe
-  valent_test_fixture_wait (fixture, 1000);
+  valent_test_wait (1000);
 
   /* Receive a notification with actions */
   packet = valent_test_fixture_lookup_packet (fixture, "notification-actions");

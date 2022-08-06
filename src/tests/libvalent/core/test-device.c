@@ -52,7 +52,7 @@ device_fixture_set_up (DeviceFixture *fixture,
   fixture->device = valent_device_new_full (identity, NULL);
 
   /* Init Channels */
-  channels = valent_test_channels (identity, identity);
+  channels = valent_test_channel_pair (identity, identity);
   fixture->channel = g_steal_pointer (&channels[0]);
   fixture->endpoint = g_steal_pointer (&channels[1]);
 }
