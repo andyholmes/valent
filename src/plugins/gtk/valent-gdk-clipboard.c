@@ -6,7 +6,6 @@
 #include "config.h"
 
 #include <gdk/gdk.h>
-#include <libpeas/peas.h>
 #include <libvalent-core.h>
 #include <libvalent-clipboard.h>
 
@@ -18,14 +17,29 @@ struct _ValentGdkClipboard
   ValentClipboardAdapter  parent_instance;
 
   GCancellable           *cancellable;
-
   GdkClipboard           *clipboard;
-  unsigned long           changed_id;
   gint64                  timestamp;
 };
 
 G_DEFINE_TYPE (ValentGdkClipboard, valent_gdk_clipboard, VALENT_TYPE_CLIPBOARD_ADAPTER)
 
+
+/*
+ * GdkClipboard Callbacks
+ */
+static void
+on_changed (GdkClipboard       *clipboard,
+            ValentGdkClipboard *self)
+{
+  ValentClipboardAdapter *adapter = VALENT_CLIPBOARD_ADAPTER (self);
+
+  g_assert (VALENT_IS_GDK_CLIPBOARD (self));
+  g_assert (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
+
+  // TODO: get the actual TIMESTAMP value
+  self->timestamp = valent_timestamp_ms ();
+  valent_clipboard_adapter_emit_changed (adapter);
+}
 
 /*
  * ValentClipboardAdapter
@@ -70,8 +84,40 @@ valent_gdk_clipboard_get_bytes (ValentClipboardAdapter *adapter,
   GdkContentProvider *content = NULL;
 
   g_assert (VALENT_IS_GDK_CLIPBOARD (self));
-  g_assert (GDK_IS_CLIPBOARD (self->clipboard));
   g_assert (mimetype != NULL && *mimetype != '\0');
+
+  if G_UNLIKELY (!GDK_IS_CLIPBOARD (self->clipboard))
+    {
+      g_task_report_new_error (adapter, callback, user_data,
+                               valent_gdk_clipboard_get_bytes,
+                               G_IO_ERROR,
+                               G_IO_ERROR_NOT_SUPPORTED,
+                               "Clipboard not available");
+      return;
+    }
+
+  if ((content = gdk_clipboard_get_content (self->clipboard)) == NULL)
+    {
+      g_task_report_new_error (adapter, callback, user_data,
+                               valent_gdk_clipboard_get_bytes,
+                               G_IO_ERROR,
+                               G_IO_ERROR_NOT_FOUND,
+                               "Clipboard empty");
+      return;
+    }
+
+  formats = gdk_content_provider_ref_formats (content);
+
+  if (!gdk_content_formats_contain_mime_type (formats, mimetype))
+    {
+      g_task_report_new_error (adapter, callback, user_data,
+                               valent_gdk_clipboard_get_bytes,
+                               G_IO_ERROR,
+                               G_IO_ERROR_NOT_SUPPORTED,
+                               "%s format not available.",
+                               mimetype);
+      return;
+    }
 
   if (cancellable != NULL)
     g_signal_connect_object (cancellable,
@@ -80,32 +126,11 @@ valent_gdk_clipboard_get_bytes (ValentClipboardAdapter *adapter,
                              self->cancellable,
                              G_CONNECT_SWAPPED);
 
+  stream = g_memory_output_stream_new_resizable ();
   task = g_task_new (adapter, self->cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_gdk_clipboard_get_bytes);
-
-  if ((content = gdk_clipboard_get_content (self->clipboard)) == NULL)
-    {
-      g_task_return_new_error (task,
-                               G_IO_ERROR,
-                               G_IO_ERROR_NOT_FOUND,
-                               "Cannot read from empty clipboard.");
-      return;
-    }
-
-  formats = gdk_content_provider_ref_formats (content);
-
-  if (!gdk_content_formats_contain_mime_type (formats, mimetype))
-    {
-      g_task_return_new_error (task,
-                               G_IO_ERROR,
-                               G_IO_ERROR_NOT_SUPPORTED,
-                               "%s format not available.",
-                               mimetype);
-      return;
-    }
-
-  stream = g_memory_output_stream_new_resizable ();
   g_task_set_task_data (task, g_object_ref (stream), g_object_unref);
+
   gdk_content_provider_write_mime_type_async (content,
                                               mimetype,
                                               stream,
@@ -125,6 +150,7 @@ valent_gdk_clipboard_set_bytes (ValentClipboardAdapter *adapter,
 
   g_assert (VALENT_IS_GDK_CLIPBOARD (self));
   g_assert (bytes != NULL || (mimetype != NULL && *mimetype != '\0'));
+  g_return_if_fail (GDK_IS_CLIPBOARD (self->clipboard));
 
   if (bytes != NULL)
     content = gdk_content_provider_new_for_bytes (mimetype, bytes);
@@ -141,7 +167,7 @@ valent_gdk_clipboard_get_mimetypes (ValentClipboardAdapter *adapter)
   const char * const *mimetypes = NULL;
 
   g_assert (VALENT_IS_GDK_CLIPBOARD (self));
-  g_assert (GDK_IS_CLIPBOARD (self->clipboard));
+  g_return_val_if_fail (GDK_IS_CLIPBOARD (self->clipboard), NULL);
 
   if ((content = gdk_clipboard_get_content (self->clipboard)) == NULL)
     return NULL;
@@ -151,6 +177,7 @@ valent_gdk_clipboard_get_mimetypes (ValentClipboardAdapter *adapter)
 
   return g_strdupv ((char **)mimetypes);
 }
+
 static void
 gdk_clipboard_read_text_cb (GdkClipboard *clipboard,
                             GAsyncResult *result,
@@ -181,7 +208,16 @@ valent_gdk_clipboard_get_text_async (ValentClipboardAdapter *adapter,
   g_autoptr (GTask) task = NULL;
 
   g_assert (VALENT_IS_GDK_CLIPBOARD (self));
-  g_assert (GDK_IS_CLIPBOARD (self->clipboard));
+
+  if G_UNLIKELY (!GDK_IS_CLIPBOARD (self->clipboard))
+    {
+      g_task_report_new_error (adapter, callback, user_data,
+                               valent_gdk_clipboard_get_text_async,
+                               G_IO_ERROR,
+                               G_IO_ERROR_NOT_SUPPORTED,
+                               "Clipboard not available");
+      return;
+    }
 
   if (cancellable != NULL)
     g_signal_connect_object (cancellable,
@@ -204,11 +240,21 @@ valent_gdk_clipboard_set_text (ValentClipboardAdapter *adapter,
                                const char             *text)
 {
   ValentGdkClipboard *self = VALENT_GDK_CLIPBOARD (adapter);
+  g_autoptr (GdkContentProvider) content = NULL;
 
   g_assert (VALENT_IS_GDK_CLIPBOARD (self));
-  g_assert (GDK_IS_CLIPBOARD (self->clipboard));
+  g_return_if_fail (GDK_IS_CLIPBOARD (self->clipboard));
 
-  gdk_clipboard_set (self->clipboard, G_TYPE_STRING, text);
+  if (text != NULL)
+    {
+      g_autoptr (GBytes) bytes = NULL;
+
+      bytes = g_bytes_new (text, strlen (text));
+      content = gdk_content_provider_new_for_bytes ("text/plain;charset=utf-8",
+                                                    bytes);
+    }
+
+  gdk_clipboard_set_content (self->clipboard, content);
 }
 
 static gint64
@@ -217,27 +263,9 @@ valent_gdk_clipboard_get_timestamp (ValentClipboardAdapter *adapter)
   ValentGdkClipboard *self = VALENT_GDK_CLIPBOARD (adapter);
 
   g_assert (VALENT_IS_GDK_CLIPBOARD (self));
-  g_assert (GDK_IS_CLIPBOARD (self->clipboard));
+  g_return_val_if_fail (GDK_IS_CLIPBOARD (self->clipboard), 0);
 
   return self->timestamp;
-}
-
-
-/*
- * GdkClipboard Callbacks
- */
-static void
-on_changed (GdkClipboard       *clipboard,
-            ValentGdkClipboard *self)
-{
-  ValentClipboardAdapter *adapter = VALENT_CLIPBOARD_ADAPTER (self);
-
-  g_assert (VALENT_IS_GDK_CLIPBOARD (self));
-  g_assert (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
-
-  // TODO: get the actual TIMESTAMP value
-  self->timestamp = valent_timestamp_ms ();
-  valent_clipboard_adapter_emit_changed (adapter);
 }
 
 /*
@@ -253,10 +281,10 @@ valent_gdk_clipboard_constructed (GObject *object)
   if ((display = gdk_display_get_default ()) != NULL)
     {
       self->clipboard = gdk_display_get_clipboard (display);
-      self->changed_id = g_signal_connect (self->clipboard,
-                                           "changed",
-                                           G_CALLBACK (on_changed),
-                                           self);
+      g_signal_connect_object (self->clipboard,
+                               "changed",
+                               G_CALLBACK (on_changed),
+                               self, 0);
     }
 
   G_OBJECT_CLASS (valent_gdk_clipboard_parent_class)->constructed (object);
@@ -270,8 +298,8 @@ valent_gdk_clipboard_dispose (GObject *object)
   if (!g_cancellable_is_cancelled (self->cancellable))
     g_cancellable_cancel (self->cancellable);
 
-  if (self->clipboard)
-    g_clear_signal_handler (&self->changed_id, self->clipboard);
+  if (self->clipboard != NULL)
+    g_signal_handlers_disconnect_by_data (self->clipboard, self);
 
   G_OBJECT_CLASS (valent_gdk_clipboard_parent_class)->dispose (object);
 }
