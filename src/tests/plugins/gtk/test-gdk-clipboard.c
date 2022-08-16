@@ -38,6 +38,18 @@ clipboard_component_fixture_tear_down (GdkClipboardFixture *fixture,
 }
 
 static void
+valent_clipboard_get_bytes_cb (ValentClipboard     *clipboard,
+                               GAsyncResult        *result,
+                               GdkClipboardFixture *fixture)
+{
+  GError *error = NULL;
+
+  fixture->data = valent_clipboard_get_bytes_finish (clipboard, result, &error);
+  g_assert_no_error (error);
+  g_main_loop_quit (fixture->loop);
+}
+
+static void
 get_text_cb (ValentClipboard     *clipboard,
              GAsyncResult        *result,
              GdkClipboardFixture *fixture)
@@ -65,10 +77,46 @@ test_gdk_clipboard (GdkClipboardFixture *fixture,
 {
   GdkDisplay *display;
   GdkClipboard *clipboard;
+  g_autoptr (GBytes) bytes = NULL;
   g_autofree char *text = NULL;
+  g_auto (GStrv) mimetypes = NULL;
+  gint64 timestamp = 0;
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
+
+  /* Clipboard data can be written */
+  text = g_uuid_string_random ();
+  bytes = g_bytes_new_take (text, strlen (text) + 1);
+  text = NULL;
+  valent_clipboard_set_bytes (fixture->clipboard,
+                              "text/plain;charset=utf-8",
+                              bytes);
+
+  /* Clipboard data can be read */
+  valent_clipboard_get_bytes (fixture->clipboard,
+                              "text/plain;charset=utf-8",
+                              NULL,
+                              (GAsyncReadyCallback)valent_clipboard_get_bytes_cb,
+                              fixture);
+  g_main_loop_run (fixture->loop);
+
+  g_assert_cmpmem (g_bytes_get_data (bytes, NULL),
+                   g_bytes_get_size (bytes),
+                   g_bytes_get_data (fixture->data, NULL),
+                   g_bytes_get_size (fixture->data));
+  g_clear_pointer (&fixture->data, g_bytes_unref);
+
+  /* Clipboard timestamp is updated */
+  timestamp = valent_clipboard_get_timestamp (fixture->clipboard);
+  g_assert_cmpint (timestamp, !=, 0);
+
+  /* Clipboard mimetypes are updated */
+  mimetypes = valent_clipboard_get_mimetypes (fixture->clipboard);
+  g_assert_nonnull (mimetypes);
+  g_assert_true (g_strv_contains ((const char * const *)mimetypes,
+                                  "text/plain;charset=utf-8"));
+  g_clear_pointer (&mimetypes, g_strfreev);
 
   /* Clipboard text can be written */
   text = g_uuid_string_random ();
@@ -85,7 +133,16 @@ test_gdk_clipboard (GdkClipboardFixture *fixture,
   g_clear_pointer (&fixture->data, g_free);
   g_clear_pointer (&text, g_free);
 
-  g_assert_cmpint (valent_clipboard_get_timestamp (fixture->clipboard), !=, 0);
+  /* Clipboard timestamp is updated */
+  timestamp = valent_clipboard_get_timestamp (fixture->clipboard);
+  g_assert_cmpint (timestamp, !=, 0);
+
+  /* Clipboard mimetypes are updated */
+  mimetypes = valent_clipboard_get_mimetypes (fixture->clipboard);
+  g_assert_nonnull (mimetypes);
+  g_assert_true (g_strv_contains ((const char * const *)mimetypes,
+                                  "text/plain;charset=utf-8"));
+  g_clear_pointer (&mimetypes, g_strfreev);
 
   /* Signals fire */
   g_signal_connect (fixture->clipboard,
