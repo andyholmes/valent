@@ -28,6 +28,7 @@ foreach test : plugin_notification_tests
             env: tests_env,
     is_parallel: false,
           suite: ['plugins', 'notification'],
+        timeout: 60,
   )
 endforeach
 
