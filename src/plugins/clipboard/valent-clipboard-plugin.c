@@ -81,9 +81,9 @@ valent_clipboard_plugin_clipboard_connect (ValentClipboardPlugin *self,
 }
 
 static void
-get_text_cb (ValentClipboard       *clipboard,
-             GAsyncResult          *result,
-             ValentClipboardPlugin *self)
+valent_clipboard_read_text_cb (ValentClipboard       *clipboard,
+                               GAsyncResult          *result,
+                               ValentClipboardPlugin *self)
 {
   g_autoptr (GError) error = NULL;
   g_autofree char *text = NULL;
@@ -91,7 +91,7 @@ get_text_cb (ValentClipboard       *clipboard,
   g_assert (VALENT_IS_CLIPBOARD (clipboard));
   g_assert (VALENT_IS_CLIPBOARD_PLUGIN (self));
 
-  text = valent_clipboard_get_text_finish (clipboard, result, &error);
+  text = valent_clipboard_read_text_finish (clipboard, result, &error);
 
   if (error != NULL)
     {
@@ -115,9 +115,9 @@ get_text_cb (ValentClipboard       *clipboard,
 }
 
 static void
-get_text_connect_cb (ValentClipboard       *clipboard,
-                     GAsyncResult          *result,
-                     ValentClipboardPlugin *self)
+valent_clipboard_read_text_connect_cb (ValentClipboard       *clipboard,
+                                       GAsyncResult          *result,
+                                       ValentClipboardPlugin *self)
 {
   g_autoptr (GError) error = NULL;
   g_autofree char *text = NULL;
@@ -125,7 +125,7 @@ get_text_connect_cb (ValentClipboard       *clipboard,
   g_assert (VALENT_IS_CLIPBOARD (clipboard));
   g_assert (VALENT_IS_CLIPBOARD_PLUGIN (self));
 
-  text = valent_clipboard_get_text_finish (clipboard, result, &error);
+  text = valent_clipboard_read_text_finish (clipboard, result, &error);
 
   if (error != NULL)
     {
@@ -153,10 +153,10 @@ static void
 on_clipboard_changed (ValentClipboard       *clipboard,
                       ValentClipboardPlugin *self)
 {
-  valent_clipboard_get_text_async (clipboard,
-                                   NULL,
-                                   (GAsyncReadyCallback)get_text_cb,
-                                   self);
+  valent_clipboard_read_text (clipboard,
+                              NULL,
+                              (GAsyncReadyCallback)valent_clipboard_read_text_cb,
+                              self);
 }
 
 /*
@@ -185,7 +185,7 @@ valent_clipboard_plugin_handle_clipboard (ValentClipboardPlugin *self,
 
   /* Set clipboard */
   if (g_settings_get_boolean (self->settings, "auto-pull"))
-    valent_clipboard_set_text (self->clipboard, content);
+    valent_clipboard_write_text (self->clipboard, content, NULL, NULL, NULL);
 }
 
 static void
@@ -223,7 +223,7 @@ valent_clipboard_plugin_handle_clipboard_connect (ValentClipboardPlugin *self,
 
   /* Set clipboard */
   if (g_settings_get_boolean (self->settings, "auto-pull"))
-    valent_clipboard_set_text (self->clipboard, content);
+    valent_clipboard_write_text (self->clipboard, content, NULL, NULL, NULL);
 }
 
 /*
@@ -239,7 +239,11 @@ clipboard_pull_action (GSimpleAction *action,
   g_assert (VALENT_IS_CLIPBOARD_PLUGIN (self));
 
   /* Set the local clipboard text from the remote buffer */
-  valent_clipboard_set_text (self->clipboard, self->remote_text);
+  valent_clipboard_write_text (self->clipboard,
+                               self->remote_text,
+                               NULL,
+                               NULL,
+                               NULL);
 }
 
 static void
@@ -320,10 +324,10 @@ valent_clipboard_plugin_update_state (ValentDevicePlugin *plugin,
                                              self);
 
       if (g_settings_get_boolean (self->settings, "auto-push"))
-        valent_clipboard_get_text_async (self->clipboard,
-                                         NULL,
-                                         (GAsyncReadyCallback)get_text_connect_cb,
-                                         self);
+        valent_clipboard_read_text (self->clipboard,
+                                    NULL,
+                                    (GAsyncReadyCallback)valent_clipboard_read_text_connect_cb,
+                                    self);
     }
   else
     {
