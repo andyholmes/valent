@@ -253,7 +253,13 @@ valent_device_manager_check_device (ValentDeviceManager *self,
         n_unpaired++;
     }
 
-  return n_unpaired <= DEVICE_UNPAIRED_MAX;
+  if (n_unpaired >= DEVICE_UNPAIRED_MAX)
+    {
+      g_warning ("%s(): too many unpaired devices", G_STRFUNC);
+      return FALSE;
+    }
+
+  return TRUE;
 }
 
 static void
@@ -282,10 +288,7 @@ on_channel (ValentChannelService *service,
     VALENT_EXIT;
 
   if (!valent_device_manager_check_device (self, device))
-    {
-      g_warning ("%s(): too many unpaired devices", G_STRFUNC);
-      VALENT_EXIT;
-    }
+    VALENT_EXIT;
 
   valent_device_set_channel (device, channel);
 
