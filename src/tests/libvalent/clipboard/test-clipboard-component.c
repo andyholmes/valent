@@ -45,13 +45,41 @@ on_changed (ValentClipboardAdapter    *adapter,
 }
 
 static void
-adapter_get_bytes_cb (ValentClipboardAdapter    *adapter,
-                      GAsyncResult              *result,
-                      ClipboardComponentFixture *fixture)
+valent_clipboard_adapter_read_bytes_cb (ValentClipboardAdapter    *adapter,
+                                        GAsyncResult              *result,
+                                        ClipboardComponentFixture *fixture)
 {
   GError *error = NULL;
 
-  fixture->data = valent_clipboard_adapter_get_bytes_finish (adapter,
+  fixture->data = valent_clipboard_adapter_read_bytes_finish (adapter,
+                                                              result,
+                                                              &error);
+  g_assert_no_error (error);
+  g_main_loop_quit (fixture->loop);
+}
+
+static void
+valent_clipboard_adapter_write_bytes_cb (ValentClipboardAdapter    *adapter,
+                                         GAsyncResult              *result,
+                                         ClipboardComponentFixture *fixture)
+{
+  gboolean ret;
+  GError *error = NULL;
+
+  ret = valent_clipboard_adapter_write_bytes_finish (adapter, result, &error);
+  g_assert_true (ret);
+  g_assert_no_error (error);
+  g_main_loop_quit (fixture->loop);
+}
+
+static void
+valent_clipboard_adapter_read_text_cb (ValentClipboardAdapter    *adapter,
+                                       GAsyncResult              *result,
+                                       ClipboardComponentFixture *fixture)
+{
+  GError *error = NULL;
+
+  fixture->data = valent_clipboard_adapter_read_text_finish (adapter,
                                                              result,
                                                              &error);
   g_assert_no_error (error);
@@ -59,39 +87,67 @@ adapter_get_bytes_cb (ValentClipboardAdapter    *adapter,
 }
 
 static void
-adapter_get_text_cb (ValentClipboardAdapter    *adapter,
-                     GAsyncResult              *result,
-                     ClipboardComponentFixture *fixture)
+valent_clipboard_adapter_write_text_cb (ValentClipboardAdapter    *adapter,
+                                        GAsyncResult              *result,
+                                        ClipboardComponentFixture *fixture)
 {
+  gboolean ret;
   GError *error = NULL;
 
-  fixture->data = valent_clipboard_adapter_get_text_finish (adapter,
-                                                            result,
-                                                            &error);
+  ret = valent_clipboard_adapter_write_text_finish (adapter, result, &error);
+  g_assert_true (ret);
   g_assert_no_error (error);
   g_main_loop_quit (fixture->loop);
 }
 
 static void
-get_bytes_cb (ValentClipboard           *clipboard,
-              GAsyncResult              *result,
-              ClipboardComponentFixture *fixture)
+valent_clipboard_read_bytes_cb (ValentClipboard           *clipboard,
+                                GAsyncResult              *result,
+                                ClipboardComponentFixture *fixture)
 {
   GError *error = NULL;
 
-  fixture->data = valent_clipboard_get_bytes_finish (clipboard, result, &error);
+  fixture->data = valent_clipboard_read_bytes_finish (clipboard, result, &error);
   g_assert_no_error (error);
   g_main_loop_quit (fixture->loop);
 }
 
 static void
-get_text_cb (ValentClipboard           *clipboard,
-             GAsyncResult              *result,
-             ClipboardComponentFixture *fixture)
+valent_clipboard_write_bytes_cb (ValentClipboard           *clipboard,
+                                 GAsyncResult              *result,
+                                 ClipboardComponentFixture *fixture)
+{
+  gboolean ret;
+  GError *error = NULL;
+
+  ret = valent_clipboard_write_bytes_finish (clipboard, result, &error);
+  g_assert_true (ret);
+  g_assert_no_error (error);
+  g_main_loop_quit (fixture->loop);
+}
+
+static void
+valent_clipboard_read_text_cb (ValentClipboard           *clipboard,
+                               GAsyncResult              *result,
+                               ClipboardComponentFixture *fixture)
 {
   GError *error = NULL;
 
-  fixture->data = valent_clipboard_get_text_finish (clipboard, result, &error);
+  fixture->data = valent_clipboard_read_text_finish (clipboard, result, &error);
+  g_assert_no_error (error);
+  g_main_loop_quit (fixture->loop);
+}
+
+static void
+valent_clipboard_write_text_cb (ValentClipboard           *clipboard,
+                                GAsyncResult              *result,
+                                ClipboardComponentFixture *fixture)
+{
+  gboolean ret;
+  GError *error = NULL;
+
+  ret = valent_clipboard_write_text_finish (clipboard, result, &error);
+  g_assert_true (ret);
   g_assert_no_error (error);
   g_main_loop_quit (fixture->loop);
 }
@@ -117,16 +173,20 @@ test_clipboard_component_adapter (ClipboardComponentFixture *fixture,
   text = g_uuid_string_random ();
   bytes = g_bytes_new_take (text, strlen (text) + 1);
   text = NULL;
-  valent_clipboard_adapter_set_bytes (fixture->adapter,
-                                      "text/plain;charset=utf-8",
-                                      bytes);
+  valent_clipboard_adapter_write_bytes (fixture->adapter,
+                                        "text/plain;charset=utf-8",
+                                        bytes,
+                                        NULL,
+                                        (GAsyncReadyCallback)valent_clipboard_adapter_write_bytes_cb,
+                                        fixture);
+  g_main_loop_run (fixture->loop);
 
   /* Data can be read */
-  valent_clipboard_adapter_get_bytes (fixture->adapter,
-                                      "text/plain;charset=utf-8",
-                                      NULL,
-                                      (GAsyncReadyCallback)adapter_get_bytes_cb,
-                                      fixture);
+  valent_clipboard_adapter_read_bytes (fixture->adapter,
+                                       "text/plain;charset=utf-8",
+                                       NULL,
+                                       (GAsyncReadyCallback)valent_clipboard_adapter_read_bytes_cb,
+                                       fixture);
   g_main_loop_run (fixture->loop);
 
   g_assert_cmpmem (g_bytes_get_data (bytes, NULL),
@@ -148,13 +208,18 @@ test_clipboard_component_adapter (ClipboardComponentFixture *fixture,
 
   /* Text can be written */
   text = g_uuid_string_random ();
-  valent_clipboard_set_text (fixture->clipboard, text);
+  valent_clipboard_adapter_write_text (fixture->adapter,
+                                       text,
+                                       NULL,
+                                       (GAsyncReadyCallback)valent_clipboard_adapter_write_text_cb,
+                                       fixture);
+  g_main_loop_run (fixture->loop);
 
   /* Text can be read */
-  valent_clipboard_adapter_get_text_async (fixture->adapter,
-                                           NULL,
-                                           (GAsyncReadyCallback)adapter_get_text_cb,
-                                           fixture);
+  valent_clipboard_adapter_read_text (fixture->adapter,
+                                      NULL,
+                                      (GAsyncReadyCallback)valent_clipboard_adapter_read_text_cb,
+                                      fixture);
   g_main_loop_run (fixture->loop);
 
   g_assert_cmpstr (fixture->data, ==, text);
@@ -198,16 +263,20 @@ test_clipboard_component_self (ClipboardComponentFixture *fixture,
   text = g_uuid_string_random ();
   bytes = g_bytes_new_take (text, strlen (text) + 1);
   text = NULL;
-  valent_clipboard_set_bytes (fixture->clipboard,
-                              "text/plain;charset=utf-8",
-                              bytes);
+  valent_clipboard_write_bytes (fixture->clipboard,
+                                "text/plain;charset=utf-8",
+                                bytes,
+                                NULL,
+                                (GAsyncReadyCallback)valent_clipboard_write_bytes_cb,
+                                fixture);
+  g_main_loop_run (fixture->loop);
 
   /* Data can be read */
-  valent_clipboard_get_bytes (fixture->clipboard,
-                              "text/plain;charset=utf-8",
-                              NULL,
-                              (GAsyncReadyCallback)get_bytes_cb,
-                              fixture);
+  valent_clipboard_read_bytes (fixture->clipboard,
+                               "text/plain;charset=utf-8",
+                               NULL,
+                               (GAsyncReadyCallback)valent_clipboard_read_bytes_cb,
+                               fixture);
   g_main_loop_run (fixture->loop);
 
   g_assert_cmpmem (g_bytes_get_data (bytes, NULL),
@@ -229,13 +298,18 @@ test_clipboard_component_self (ClipboardComponentFixture *fixture,
 
   /* Text can be written */
   text = g_uuid_string_random ();
-  valent_clipboard_set_text (fixture->clipboard, text);
+  valent_clipboard_write_text (fixture->clipboard,
+                               text,
+                               NULL,
+                               (GAsyncReadyCallback)valent_clipboard_write_text_cb,
+                               fixture);
+  g_main_loop_run (fixture->loop);
 
   /* Text can be read */
-  valent_clipboard_get_text_async (fixture->clipboard,
-                                   NULL,
-                                   (GAsyncReadyCallback)get_text_cb,
-                                   fixture);
+  valent_clipboard_read_text (fixture->clipboard,
+                              NULL,
+                              (GAsyncReadyCallback)valent_clipboard_read_text_cb,
+                              fixture);
   g_main_loop_run (fixture->loop);
 
   g_assert_cmpstr (fixture->data, ==, text);

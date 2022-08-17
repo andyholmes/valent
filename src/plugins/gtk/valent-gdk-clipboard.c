@@ -44,6 +44,37 @@ on_changed (GdkClipboard       *clipboard,
 /*
  * ValentClipboardAdapter
  */
+static GStrv
+valent_gdk_clipboard_get_mimetypes (ValentClipboardAdapter *adapter)
+{
+  ValentGdkClipboard *self = VALENT_GDK_CLIPBOARD (adapter);
+  g_autoptr (GdkContentFormats) formats = NULL;
+  GdkContentProvider *content = NULL;
+  const char * const *mimetypes = NULL;
+
+  g_assert (VALENT_IS_GDK_CLIPBOARD (self));
+  g_return_val_if_fail (GDK_IS_CLIPBOARD (self->clipboard), NULL);
+
+  if ((content = gdk_clipboard_get_content (self->clipboard)) == NULL)
+    return NULL;
+
+  formats = gdk_content_provider_ref_formats (content);
+  mimetypes = gdk_content_formats_get_mime_types (formats, NULL);
+
+  return g_strdupv ((char **)mimetypes);
+}
+
+static gint64
+valent_gdk_clipboard_get_timestamp (ValentClipboardAdapter *adapter)
+{
+  ValentGdkClipboard *self = VALENT_GDK_CLIPBOARD (adapter);
+
+  g_assert (VALENT_IS_GDK_CLIPBOARD (self));
+  g_return_val_if_fail (GDK_IS_CLIPBOARD (self->clipboard), 0);
+
+  return self->timestamp;
+}
+
 static void
 gdk_content_provider_write_mime_type_cb (GdkContentProvider *content,
                                          GAsyncResult       *result,
@@ -71,11 +102,11 @@ gdk_content_provider_write_mime_type_cb (GdkContentProvider *content,
 }
 
 static void
-valent_gdk_clipboard_get_bytes (ValentClipboardAdapter *adapter,
-                                const char             *mimetype,
-                                GCancellable           *cancellable,
-                                GAsyncReadyCallback     callback,
-                                gpointer                user_data)
+valent_gdk_clipboard_read_bytes (ValentClipboardAdapter *adapter,
+                                 const char             *mimetype,
+                                 GCancellable           *cancellable,
+                                 GAsyncReadyCallback     callback,
+                                 gpointer                user_data)
 {
   ValentGdkClipboard *self = VALENT_GDK_CLIPBOARD (adapter);
   g_autoptr (GTask) task = NULL;
@@ -89,7 +120,7 @@ valent_gdk_clipboard_get_bytes (ValentClipboardAdapter *adapter,
   if G_UNLIKELY (!GDK_IS_CLIPBOARD (self->clipboard))
     {
       g_task_report_new_error (adapter, callback, user_data,
-                               valent_gdk_clipboard_get_bytes,
+                               valent_gdk_clipboard_read_bytes,
                                G_IO_ERROR,
                                G_IO_ERROR_NOT_SUPPORTED,
                                "Clipboard not available");
@@ -99,7 +130,7 @@ valent_gdk_clipboard_get_bytes (ValentClipboardAdapter *adapter,
   if ((content = gdk_clipboard_get_content (self->clipboard)) == NULL)
     {
       g_task_report_new_error (adapter, callback, user_data,
-                               valent_gdk_clipboard_get_bytes,
+                               valent_gdk_clipboard_read_bytes,
                                G_IO_ERROR,
                                G_IO_ERROR_NOT_FOUND,
                                "Clipboard empty");
@@ -111,7 +142,7 @@ valent_gdk_clipboard_get_bytes (ValentClipboardAdapter *adapter,
   if (!gdk_content_formats_contain_mime_type (formats, mimetype))
     {
       g_task_report_new_error (adapter, callback, user_data,
-                               valent_gdk_clipboard_get_bytes,
+                               valent_gdk_clipboard_read_bytes,
                                G_IO_ERROR,
                                G_IO_ERROR_NOT_SUPPORTED,
                                "%s format not available.",
@@ -128,7 +159,7 @@ valent_gdk_clipboard_get_bytes (ValentClipboardAdapter *adapter,
 
   stream = g_memory_output_stream_new_resizable ();
   task = g_task_new (adapter, self->cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_gdk_clipboard_get_bytes);
+  g_task_set_source_tag (task, valent_gdk_clipboard_read_bytes);
   g_task_set_task_data (task, g_object_ref (stream), g_object_unref);
 
   gdk_content_provider_write_mime_type_async (content,
@@ -141,12 +172,16 @@ valent_gdk_clipboard_get_bytes (ValentClipboardAdapter *adapter,
 }
 
 static void
-valent_gdk_clipboard_set_bytes (ValentClipboardAdapter *adapter,
-                                const char             *mimetype,
-                                GBytes                 *bytes)
+valent_gdk_clipboard_write_bytes (ValentClipboardAdapter *adapter,
+                                  const char             *mimetype,
+                                  GBytes                 *bytes,
+                                  GCancellable           *cancellable,
+                                  GAsyncReadyCallback     callback,
+                                  gpointer                user_data)
 {
   ValentGdkClipboard *self = VALENT_GDK_CLIPBOARD (adapter);
   g_autoptr (GdkContentProvider) content = NULL;
+  g_autoptr (GTask) task = NULL;
 
   g_assert (VALENT_IS_GDK_CLIPBOARD (self));
   g_assert (bytes != NULL || (mimetype != NULL && *mimetype != '\0'));
@@ -155,27 +190,19 @@ valent_gdk_clipboard_set_bytes (ValentClipboardAdapter *adapter,
   if (bytes != NULL)
     content = gdk_content_provider_new_for_bytes (mimetype, bytes);
 
-  gdk_clipboard_set_content (self->clipboard, content);
-}
+  if (!gdk_clipboard_set_content (self->clipboard, content))
+    {
+      g_task_report_new_error (adapter, callback, user_data,
+                               valent_gdk_clipboard_write_bytes,
+                               G_IO_ERROR,
+                               G_IO_ERROR_FAILED,
+                               "Failed to set clipboard content");
+      return;
+    }
 
-static GStrv
-valent_gdk_clipboard_get_mimetypes (ValentClipboardAdapter *adapter)
-{
-  ValentGdkClipboard *self = VALENT_GDK_CLIPBOARD (adapter);
-  g_autoptr (GdkContentFormats) formats = NULL;
-  GdkContentProvider *content = NULL;
-  const char * const *mimetypes = NULL;
-
-  g_assert (VALENT_IS_GDK_CLIPBOARD (self));
-  g_return_val_if_fail (GDK_IS_CLIPBOARD (self->clipboard), NULL);
-
-  if ((content = gdk_clipboard_get_content (self->clipboard)) == NULL)
-    return NULL;
-
-  formats = gdk_content_provider_ref_formats (content);
-  mimetypes = gdk_content_formats_get_mime_types (formats, NULL);
-
-  return g_strdupv ((char **)mimetypes);
+  task = g_task_new (adapter, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_gdk_clipboard_write_bytes);
+  g_task_return_boolean (task, TRUE);
 }
 
 static void
@@ -199,10 +226,10 @@ gdk_clipboard_read_text_cb (GdkClipboard *clipboard,
 }
 
 static void
-valent_gdk_clipboard_get_text_async (ValentClipboardAdapter *adapter,
-                                     GCancellable           *cancellable,
-                                     GAsyncReadyCallback     callback,
-                                     gpointer                user_data)
+valent_gdk_clipboard_read_text (ValentClipboardAdapter *adapter,
+                               GCancellable           *cancellable,
+                               GAsyncReadyCallback     callback,
+                               gpointer                user_data)
 {
   ValentGdkClipboard *self = VALENT_GDK_CLIPBOARD (adapter);
   g_autoptr (GTask) task = NULL;
@@ -212,7 +239,7 @@ valent_gdk_clipboard_get_text_async (ValentClipboardAdapter *adapter,
   if G_UNLIKELY (!GDK_IS_CLIPBOARD (self->clipboard))
     {
       g_task_report_new_error (adapter, callback, user_data,
-                               valent_gdk_clipboard_get_text_async,
+                               valent_gdk_clipboard_read_text,
                                G_IO_ERROR,
                                G_IO_ERROR_NOT_SUPPORTED,
                                "Clipboard not available");
@@ -227,7 +254,7 @@ valent_gdk_clipboard_get_text_async (ValentClipboardAdapter *adapter,
                              G_CONNECT_SWAPPED);
 
   task = g_task_new (adapter, self->cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_gdk_clipboard_get_text_async);
+  g_task_set_source_tag (task, valent_gdk_clipboard_read_text);
 
   gdk_clipboard_read_text_async (self->clipboard,
                                  self->cancellable,
@@ -236,11 +263,15 @@ valent_gdk_clipboard_get_text_async (ValentClipboardAdapter *adapter,
 }
 
 static void
-valent_gdk_clipboard_set_text (ValentClipboardAdapter *adapter,
-                               const char             *text)
+valent_gdk_clipboard_write_text (ValentClipboardAdapter *adapter,
+                                 const char             *text,
+                                 GCancellable           *cancellable,
+                                 GAsyncReadyCallback     callback,
+                                 gpointer                user_data)
 {
   ValentGdkClipboard *self = VALENT_GDK_CLIPBOARD (adapter);
   g_autoptr (GdkContentProvider) content = NULL;
+  g_autoptr (GTask) task = NULL;
 
   g_assert (VALENT_IS_GDK_CLIPBOARD (self));
   g_return_if_fail (GDK_IS_CLIPBOARD (self->clipboard));
@@ -254,18 +285,19 @@ valent_gdk_clipboard_set_text (ValentClipboardAdapter *adapter,
                                                     bytes);
     }
 
-  gdk_clipboard_set_content (self->clipboard, content);
-}
+  if (!gdk_clipboard_set_content (self->clipboard, content))
+    {
+      g_task_report_new_error (adapter, callback, user_data,
+                               valent_gdk_clipboard_write_text,
+                               G_IO_ERROR,
+                               G_IO_ERROR_FAILED,
+                               "Failed to set clipboard content");
+      return;
+    }
 
-static gint64
-valent_gdk_clipboard_get_timestamp (ValentClipboardAdapter *adapter)
-{
-  ValentGdkClipboard *self = VALENT_GDK_CLIPBOARD (adapter);
-
-  g_assert (VALENT_IS_GDK_CLIPBOARD (self));
-  g_return_val_if_fail (GDK_IS_CLIPBOARD (self->clipboard), 0);
-
-  return self->timestamp;
+  task = g_task_new (adapter, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_gdk_clipboard_write_text);
+  g_task_return_boolean (task, TRUE);
 }
 
 /*
@@ -325,12 +357,12 @@ valent_gdk_clipboard_class_init (ValentGdkClipboardClass *klass)
   object_class->dispose = valent_gdk_clipboard_dispose;
   object_class->finalize = valent_gdk_clipboard_finalize;
 
-  clipboard_class->get_bytes = valent_gdk_clipboard_get_bytes;
-  clipboard_class->set_bytes = valent_gdk_clipboard_set_bytes;
   clipboard_class->get_mimetypes = valent_gdk_clipboard_get_mimetypes;
-  clipboard_class->get_text_async = valent_gdk_clipboard_get_text_async;
-  clipboard_class->set_text = valent_gdk_clipboard_set_text;
   clipboard_class->get_timestamp = valent_gdk_clipboard_get_timestamp;
+  clipboard_class->read_bytes = valent_gdk_clipboard_read_bytes;
+  clipboard_class->write_bytes = valent_gdk_clipboard_write_bytes;
+  clipboard_class->read_text = valent_gdk_clipboard_read_text;
+  clipboard_class->write_text = valent_gdk_clipboard_write_text;
 }
 
 static void

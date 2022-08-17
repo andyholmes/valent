@@ -48,9 +48,9 @@ static ValentClipboard *default_clipboard = NULL;
 
 
 static void
-valent_clipboard_adapter_get_bytes_cb (ValentClipboardAdapter *adapter,
-                                       GAsyncResult           *result,
-                                       gpointer                user_data)
+valent_clipboard_adapter_read_bytes_cb (ValentClipboardAdapter *adapter,
+                                        GAsyncResult           *result,
+                                        gpointer                user_data)
 {
   g_autoptr (GTask) task = G_TASK (user_data);
   g_autoptr (GBytes) bytes = NULL;
@@ -59,7 +59,7 @@ valent_clipboard_adapter_get_bytes_cb (ValentClipboardAdapter *adapter,
   g_assert (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
   g_assert (g_task_is_valid (result, adapter));
 
-  bytes = valent_clipboard_adapter_get_bytes_finish (adapter, result, &error);
+  bytes = valent_clipboard_adapter_read_bytes_finish (adapter, result, &error);
 
   if (bytes == NULL)
     return g_task_return_error (task, g_steal_pointer (&error));
@@ -70,9 +70,26 @@ valent_clipboard_adapter_get_bytes_cb (ValentClipboardAdapter *adapter,
 }
 
 static void
-valent_clipboard_adapter_get_text_cb (ValentClipboardAdapter *adapter,
-                                      GAsyncResult           *result,
-                                      gpointer                user_data)
+valent_clipboard_adapter_write_bytes_cb (ValentClipboardAdapter *adapter,
+                                         GAsyncResult           *result,
+                                         gpointer                user_data)
+{
+  g_autoptr (GTask) task = G_TASK (user_data);
+  g_autoptr (GError) error = NULL;
+
+  g_assert (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
+  g_assert (g_task_is_valid (result, adapter));
+
+  if (!valent_clipboard_adapter_write_bytes_finish (adapter, result, &error))
+    return g_task_return_error (task, g_steal_pointer (&error));
+
+  g_task_return_boolean (task, TRUE);
+}
+
+static void
+valent_clipboard_adapter_read_text_cb (ValentClipboardAdapter *adapter,
+                                       GAsyncResult           *result,
+                                       gpointer                user_data)
 {
   g_autoptr (GTask) task = G_TASK (user_data);
   g_autoptr (GError) error = NULL;
@@ -81,12 +98,29 @@ valent_clipboard_adapter_get_text_cb (ValentClipboardAdapter *adapter,
   g_assert (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
   g_assert (g_task_is_valid (result, adapter));
 
-  text = valent_clipboard_adapter_get_text_finish (adapter, result, &error);
+  text = valent_clipboard_adapter_read_text_finish (adapter, result, &error);
 
   if (text == NULL)
     return g_task_return_error (task, g_steal_pointer (&error));
 
   g_task_return_pointer (task, g_steal_pointer (&text), g_free);
+}
+
+static void
+valent_clipboard_adapter_write_text_cb (ValentClipboardAdapter *adapter,
+                                        GAsyncResult           *result,
+                                        gpointer                user_data)
+{
+  g_autoptr (GTask) task = G_TASK (user_data);
+  g_autoptr (GError) error = NULL;
+
+  g_assert (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
+  g_assert (g_task_is_valid (result, adapter));
+
+  if (!valent_clipboard_adapter_write_text_finish (adapter, result, &error))
+    return g_task_return_error (task, g_steal_pointer (&error));
+
+  g_task_return_boolean (task, TRUE);
 }
 
 static void
@@ -213,114 +247,6 @@ valent_clipboard_get_default (void)
 }
 
 /**
- * valent_clipboard_get_bytes:
- * @clipboard: a #ValentClipboard
- * @mimetype: a mime-type
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
- * @user_data: (closure): user supplied data
- *
- * Get the content of the primary clipboard adapter.
- *
- * Call [method@Valent.Clipboard.get_bytes_finish] to get the result.
- *
- * Since: 1.0
- */
-void
-valent_clipboard_get_bytes (ValentClipboard     *clipboard,
-                            const char          *mimetype,
-                            GCancellable        *cancellable,
-                            GAsyncReadyCallback  callback,
-                            gpointer             user_data)
-{
-  g_autoptr (GTask) task = NULL;
-
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_CLIPBOARD (clipboard));
-  g_return_if_fail (mimetype != NULL && *mimetype != '\0');
-  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-
-  if G_UNLIKELY (clipboard->default_adapter == NULL)
-    {
-      g_task_report_new_error (clipboard, callback, user_data,
-                               valent_clipboard_get_bytes,
-                               G_IO_ERROR,
-                               G_IO_ERROR_NOT_SUPPORTED,
-                               "No clipboard adapter available");
-      return;
-    }
-
-  task = g_task_new (clipboard, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_clipboard_get_bytes);
-  valent_clipboard_adapter_get_bytes (clipboard->default_adapter,
-                                      mimetype,
-                                      cancellable,
-                                      (GAsyncReadyCallback)valent_clipboard_adapter_get_bytes_cb,
-                                      g_steal_pointer (&task));
-
-  VALENT_EXIT;
-}
-
-/**
- * valent_clipboard_get_bytes_finish:
- * @clipboard: a #ValentClipboard
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
- *
- * Finish an operation started by [method@Valent.Clipboard.get_bytes].
- *
- * Returns: (transfer full) (nullable): the content
- *
- * Since: 1.0
- */
-GBytes *
-valent_clipboard_get_bytes_finish (ValentClipboard  *clipboard,
-                                   GAsyncResult     *result,
-                                   GError          **error)
-{
-  GBytes *ret;
-
-  VALENT_ENTRY;
-
-  g_return_val_if_fail (VALENT_IS_CLIPBOARD (clipboard), NULL);
-  g_return_val_if_fail (g_task_is_valid (result, clipboard), NULL);
-  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
-
-  ret = g_task_propagate_pointer (G_TASK (result), error);
-
-  VALENT_RETURN (g_steal_pointer (&ret));
-}
-
-/**
- * valent_clipboard_set_bytes:
- * @clipboard: a #ValentClipboard
- * @mimetype: a mime-type
- * @bytes: (nullable): content
- *
- * Set the content of the primary clipboard adapter to @bytes.
- *
- * Since: 1.0
- */
-void
-valent_clipboard_set_bytes (ValentClipboard *clipboard,
-                            const char      *mimetype,
-                            GBytes          *bytes)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_CLIPBOARD (clipboard));
-  g_return_if_fail (bytes == NULL || (mimetype != NULL && *mimetype != '\0'));
-
-  if G_LIKELY (clipboard->default_adapter != NULL)
-    valent_clipboard_adapter_set_bytes (clipboard->default_adapter,
-                                        mimetype,
-                                        bytes);
-
-  VALENT_EXIT;
-}
-
-/**
  * valent_clipboard_get_mimetypes:
  * @clipboard: a #ValentClipboard
  *
@@ -347,103 +273,6 @@ valent_clipboard_get_mimetypes (ValentClipboard *clipboard)
 }
 
 /**
- * valent_clipboard_get_text_async:
- * @clipboard: a #ValentClipboard
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
- * @user_data: (closure): user supplied data
- *
- * Get the text content of the primary clipboard adapter.
- *
- * Call [method@Valent.Clipboard.get_text_finish] to get the result.
- *
- * Since: 1.0
- */
-void
-valent_clipboard_get_text_async (ValentClipboard     *clipboard,
-                                 GCancellable        *cancellable,
-                                 GAsyncReadyCallback  callback,
-                                 gpointer             user_data)
-{
-  g_autoptr (GTask) task = NULL;
-
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_CLIPBOARD (clipboard));
-
-  if G_UNLIKELY (clipboard->default_adapter == NULL)
-    {
-      g_task_report_new_error (clipboard, callback, user_data,
-                               valent_clipboard_get_text_async,
-                               G_IO_ERROR,
-                               G_IO_ERROR_NOT_SUPPORTED,
-                               "No clipboard adapter available");
-      return;
-    }
-
-  task = g_task_new (clipboard, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_clipboard_get_text_async);
-  valent_clipboard_adapter_get_text_async (clipboard->default_adapter,
-                                           cancellable,
-                                           (GAsyncReadyCallback)valent_clipboard_adapter_get_text_cb,
-                                           g_steal_pointer (&task));
-
-  VALENT_EXIT;
-}
-
-/**
- * valent_clipboard_get_text_finish:
- * @clipboard: a #ValentClipboard
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
- *
- * Finish an operation started by [method@Valent.Clipboard.get_text_async].
- *
- * Returns: (transfer full) (nullable): the text content
- *
- * Since: 1.0
- */
-char *
-valent_clipboard_get_text_finish (ValentClipboard  *clipboard,
-                                  GAsyncResult     *result,
-                                  GError          **error)
-{
-  char *ret;
-
-  VALENT_ENTRY;
-
-  g_return_val_if_fail (VALENT_IS_CLIPBOARD (clipboard), NULL);
-  g_return_val_if_fail (g_task_is_valid (result, clipboard), NULL);
-
-  ret = g_task_propagate_pointer (G_TASK (result), error);
-
-  VALENT_RETURN (ret);
-}
-
-/**
- * valent_clipboard_set_text:
- * @clipboard: a #ValentClipboard
- * @text: (nullable): text content
- *
- * Set the content of the primary clipboard adapter to @text.
- *
- * Since: 1.0
- */
-void
-valent_clipboard_set_text (ValentClipboard *clipboard,
-                           const char      *text)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_CLIPBOARD (clipboard));
-
-  if G_LIKELY (clipboard->default_adapter != NULL)
-    valent_clipboard_adapter_set_text (clipboard->default_adapter, text);
-
-  VALENT_EXIT;
-}
-
-/**
  * valent_clipboard_get_timestamp:
  * @clipboard: a #ValentClipboard
  *
@@ -465,6 +294,324 @@ valent_clipboard_get_timestamp (ValentClipboard *clipboard)
 
   if G_LIKELY (clipboard->default_adapter != NULL)
     ret = valent_clipboard_adapter_get_timestamp (clipboard->default_adapter);
+
+  VALENT_RETURN (ret);
+}
+
+/**
+ * valent_clipboard_read_bytes:
+ * @clipboard: a #ValentClipboard
+ * @mimetype: a mime-type
+ * @cancellable: (nullable): a #GCancellable
+ * @callback: (scope async): a #GAsyncReadyCallback
+ * @user_data: (closure): user supplied data
+ *
+ * Get the content of the primary clipboard adapter.
+ *
+ * Call [method@Valent.Clipboard.read_bytes_finish] to get the result.
+ *
+ * Since: 1.0
+ */
+void
+valent_clipboard_read_bytes (ValentClipboard     *clipboard,
+                             const char          *mimetype,
+                             GCancellable        *cancellable,
+                             GAsyncReadyCallback  callback,
+                             gpointer             user_data)
+{
+  g_autoptr (GTask) task = NULL;
+
+  VALENT_ENTRY;
+
+  g_return_if_fail (VALENT_IS_CLIPBOARD (clipboard));
+  g_return_if_fail (mimetype != NULL && *mimetype != '\0');
+  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  if G_UNLIKELY (clipboard->default_adapter == NULL)
+    {
+      g_task_report_new_error (clipboard, callback, user_data,
+                               valent_clipboard_read_bytes,
+                               G_IO_ERROR,
+                               G_IO_ERROR_NOT_SUPPORTED,
+                               "No clipboard adapter available");
+      return;
+    }
+
+  task = g_task_new (clipboard, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_clipboard_read_bytes);
+  valent_clipboard_adapter_read_bytes (clipboard->default_adapter,
+                                      mimetype,
+                                      cancellable,
+                                      (GAsyncReadyCallback)valent_clipboard_adapter_read_bytes_cb,
+                                      g_steal_pointer (&task));
+
+  VALENT_EXIT;
+}
+
+/**
+ * valent_clipboard_read_bytes_finish:
+ * @clipboard: a #ValentClipboard
+ * @result: a #GAsyncResult
+ * @error: (nullable): a #GError
+ *
+ * Finish an operation started by [method@Valent.Clipboard.read_bytes].
+ *
+ * Returns: (transfer full) (nullable): the content
+ *
+ * Since: 1.0
+ */
+GBytes *
+valent_clipboard_read_bytes_finish (ValentClipboard  *clipboard,
+                                    GAsyncResult     *result,
+                                    GError          **error)
+{
+  GBytes *ret;
+
+  VALENT_ENTRY;
+
+  g_return_val_if_fail (VALENT_IS_CLIPBOARD (clipboard), NULL);
+  g_return_val_if_fail (g_task_is_valid (result, clipboard), NULL);
+  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+  ret = g_task_propagate_pointer (G_TASK (result), error);
+
+  VALENT_RETURN (g_steal_pointer (&ret));
+}
+
+/**
+ * valent_clipboard_write_bytes:
+ * @clipboard: a #ValentClipboard
+ * @mimetype: (nullable): a mime-type, or %NULL if @bytes is %NULL
+ * @bytes: (nullable): a #GBytes, or %NULL if @mimetype is %NULL
+ * @cancellable: (nullable): a #GCancellable
+ * @callback: (scope async): a #GAsyncReadyCallback
+ * @user_data: (closure): user supplied data
+ *
+ * Set the content of the primary clipboard adapter.
+ *
+ * Call [method@Valent.Clipboard.write_bytes_finish] to get the result.
+ *
+ * Since: 1.0
+ */
+void
+valent_clipboard_write_bytes (ValentClipboard     *clipboard,
+                              const char          *mimetype,
+                              GBytes              *bytes,
+                              GCancellable        *cancellable,
+                              GAsyncReadyCallback  callback,
+                              gpointer             user_data)
+{
+  g_autoptr (GTask) task = NULL;
+
+  VALENT_ENTRY;
+
+  g_return_if_fail (VALENT_IS_CLIPBOARD (clipboard));
+  g_return_if_fail (bytes == NULL || (mimetype != NULL && *mimetype != '\0'));
+  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  if G_UNLIKELY (clipboard->default_adapter == NULL)
+    {
+      g_task_report_new_error (clipboard, callback, user_data,
+                               valent_clipboard_write_bytes,
+                               G_IO_ERROR,
+                               G_IO_ERROR_NOT_SUPPORTED,
+                               "No clipboard adapter available");
+      return;
+    }
+
+  task = g_task_new (clipboard, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_clipboard_write_bytes);
+  valent_clipboard_adapter_write_bytes (clipboard->default_adapter,
+                                        mimetype,
+                                        bytes,
+                                        cancellable,
+                                        (GAsyncReadyCallback)valent_clipboard_adapter_write_bytes_cb,
+                                        g_steal_pointer (&task));
+
+  VALENT_EXIT;
+}
+
+/**
+ * valent_clipboard_write_bytes_finish:
+ * @clipboard: a #ValentClipboard
+ * @result: a #GAsyncResult
+ * @error: (nullable): a #GError
+ *
+ * Finish an operation started by [method@Valent.Clipboard.write_bytes].
+ *
+ * Returns: %TRUE if successful, or %FALSE with @error set
+ *
+ * Since: 1.0
+ */
+gboolean
+valent_clipboard_write_bytes_finish (ValentClipboard  *clipboard,
+                                     GAsyncResult     *result,
+                                     GError          **error)
+{
+  gboolean ret;
+
+  VALENT_ENTRY;
+
+  g_return_val_if_fail (VALENT_IS_CLIPBOARD (clipboard), FALSE);
+  g_return_val_if_fail (g_task_is_valid (result, clipboard), FALSE);
+  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+  ret = g_task_propagate_boolean (G_TASK (result), error);
+
+  VALENT_RETURN (ret);
+}
+
+/**
+ * valent_clipboard_read_text:
+ * @clipboard: a #ValentClipboard
+ * @cancellable: (nullable): a #GCancellable
+ * @callback: (scope async): a #GAsyncReadyCallback
+ * @user_data: (closure): user supplied data
+ *
+ * Get the text content of the primary clipboard adapter.
+ *
+ * Call [method@Valent.Clipboard.read_text_finish] to get the result.
+ *
+ * Since: 1.0
+ */
+void
+valent_clipboard_read_text (ValentClipboard     *clipboard,
+                            GCancellable        *cancellable,
+                            GAsyncReadyCallback  callback,
+                            gpointer             user_data)
+{
+  g_autoptr (GTask) task = NULL;
+
+  VALENT_ENTRY;
+
+  g_return_if_fail (VALENT_IS_CLIPBOARD (clipboard));
+  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  if G_UNLIKELY (clipboard->default_adapter == NULL)
+    {
+      g_task_report_new_error (clipboard, callback, user_data,
+                               valent_clipboard_read_text,
+                               G_IO_ERROR,
+                               G_IO_ERROR_NOT_SUPPORTED,
+                               "No clipboard adapter available");
+      return;
+    }
+
+  task = g_task_new (clipboard, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_clipboard_read_text);
+  valent_clipboard_adapter_read_text (clipboard->default_adapter,
+                                      cancellable,
+                                      (GAsyncReadyCallback)valent_clipboard_adapter_read_text_cb,
+                                      g_steal_pointer (&task));
+
+  VALENT_EXIT;
+}
+
+/**
+ * valent_clipboard_read_text_finish:
+ * @clipboard: a #ValentClipboard
+ * @result: a #GAsyncResult
+ * @error: (nullable): a #GError
+ *
+ * Finish an operation started by [method@Valent.Clipboard.read_text].
+ *
+ * Returns: (transfer full) (nullable): the text content
+ *
+ * Since: 1.0
+ */
+char *
+valent_clipboard_read_text_finish (ValentClipboard  *clipboard,
+                                   GAsyncResult     *result,
+                                   GError          **error)
+{
+  char *ret;
+
+  VALENT_ENTRY;
+
+  g_return_val_if_fail (VALENT_IS_CLIPBOARD (clipboard), NULL);
+  g_return_val_if_fail (g_task_is_valid (result, clipboard), NULL);
+  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+  ret = g_task_propagate_pointer (G_TASK (result), error);
+
+  VALENT_RETURN (g_steal_pointer (&ret));
+}
+
+/**
+ * valent_clipboard_write_text:
+ * @clipboard: a #ValentClipboard
+ * @text: (nullable): text content
+ * @cancellable: (nullable): a #GCancellable
+ * @callback: (scope async): a #GAsyncReadyCallback
+ * @user_data: (closure): user supplied data
+ *
+ * Set the text content of the primary clipboard adapter.
+ *
+ * Call [method@Valent.Clipboard.write_text_finish] to get the result.
+ *
+ * Since: 1.0
+ */
+void
+valent_clipboard_write_text (ValentClipboard     *clipboard,
+                             const char          *text,
+                             GCancellable        *cancellable,
+                             GAsyncReadyCallback  callback,
+                             gpointer             user_data)
+{
+  g_autoptr (GTask) task = NULL;
+
+  VALENT_ENTRY;
+
+  g_return_if_fail (VALENT_IS_CLIPBOARD (clipboard));
+  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  if G_UNLIKELY (clipboard->default_adapter == NULL)
+    {
+      g_task_report_new_error (clipboard, callback, user_data,
+                               valent_clipboard_write_text,
+                               G_IO_ERROR,
+                               G_IO_ERROR_NOT_SUPPORTED,
+                               "No clipboard adapter available");
+      return;
+    }
+
+  task = g_task_new (clipboard, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_clipboard_write_text);
+  valent_clipboard_adapter_write_text (clipboard->default_adapter,
+                                       text,
+                                       cancellable,
+                                       (GAsyncReadyCallback)valent_clipboard_adapter_write_text_cb,
+                                       g_steal_pointer (&task));
+
+  VALENT_EXIT;
+}
+
+/**
+ * valent_clipboard_write_text_finish:
+ * @clipboard: a #ValentClipboard
+ * @result: a #GAsyncResult
+ * @error: (nullable): a #GError
+ *
+ * Finish an operation started by [method@Valent.Clipboard.write_text].
+ *
+ * Returns: %TRUE if successful, or %FALSE with @error set
+ *
+ * Since: 1.0
+ */
+gboolean
+valent_clipboard_write_text_finish (ValentClipboard  *clipboard,
+                                    GAsyncResult     *result,
+                                    GError          **error)
+{
+  gboolean ret;
+
+  VALENT_ENTRY;
+
+  g_return_val_if_fail (VALENT_IS_CLIPBOARD (clipboard), FALSE);
+  g_return_val_if_fail (g_task_is_valid (result, clipboard), FALSE);
+  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+  ret = g_task_propagate_boolean (G_TASK (result), error);
 
   VALENT_RETURN (ret);
 }
