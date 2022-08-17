@@ -7,7 +7,6 @@
 # error "Only <libvalent-core.h> can be included directly."
 #endif
 
-#include <gio/gio.h>
 #include <json-glib/json-glib.h>
 
 #include "valent-channel.h"

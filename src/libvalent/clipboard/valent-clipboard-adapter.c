@@ -561,6 +561,7 @@ valent_clipboard_adapter_read_text (ValentClipboardAdapter *adapter,
   VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
+  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   VALENT_CLIPBOARD_ADAPTER_GET_CLASS (adapter)->read_text (adapter,
                                                            cancellable,

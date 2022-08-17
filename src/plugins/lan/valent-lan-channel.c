@@ -62,7 +62,7 @@ valent_lan_channel_get_verification_key (ValentChannel *channel)
         g_return_val_if_reached (NULL);
 
       checksum = g_checksum_new (G_CHECKSUM_SHA256);
-      cmplen = pubkey->len < peer_pubkey->len ? pubkey->len : peer_pubkey->len;
+      cmplen = MIN (pubkey->len, peer_pubkey->len);
 
       if (memcmp (pubkey->data, peer_pubkey->data, cmplen) > 0)
         {
