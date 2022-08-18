@@ -57,7 +57,7 @@
                 "volume": {
                     "type": "number",
                     "minimum": 0,
-                    "description": "The requested volume. The maxmimum value is provided by the `maxVolume` field of the stream."
+                    "description": "The requested volume. The maximum value is provided by the `maxVolume` field of the stream."
                 }
             }
         }

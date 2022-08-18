@@ -306,9 +306,9 @@ hide_view_switcher_bar (GtkWidget *widget)
  * valent_preferences_window_modify:
  * @window: a #AdwPreferencesWindow
  *
- * Try to modify a [class@Adw.PreferencesWindow] to hide the bottom view swither
- * for cases where the number of pages exceeds the number that can be reasonably
- * handled.
+ * Try to modify a [class@Adw.PreferencesWindow] to hide the bottom view
+ * switcher for cases where the number of pages exceeds the number that can be
+ * reasonably handled.
  *
  * Returns: %TRUE if successful, or %FALSE if not
  */
