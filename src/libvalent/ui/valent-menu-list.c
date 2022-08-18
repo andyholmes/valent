@@ -16,10 +16,9 @@ struct _ValentMenuList
 {
   GtkWidget       parent_instance;
 
-  GtkListBox     *list;
+  GtkWidget      *list;
   GMenuModel     *model;
   ValentMenuList *parent;
-  gulong          items_changed_id;
 };
 
 G_DEFINE_TYPE (ValentMenuList, valent_menu_list, GTK_TYPE_WIDGET)
@@ -39,7 +38,7 @@ valent_menu_list_add_row (ValentMenuList *self,
                           int             index)
 {
   GtkWidget *row;
-  GtkGrid *grid;
+  GtkGrid *row_grid;
   GtkWidget *row_icon;
   GtkWidget *row_label;
   g_autofree char *hidden_when = NULL;
@@ -52,7 +51,10 @@ valent_menu_list_add_row (ValentMenuList *self,
   /* Row Label */
   if (!g_menu_model_get_item_attribute (self->model, index,
                                         "label", "s", &label))
-    return;
+    {
+      g_warning ("%s: menu item without label at %d", G_STRFUNC, index);
+      return;
+    }
 
   /* GAction */
   if (g_menu_model_get_item_attribute (self->model, index,
@@ -80,20 +82,20 @@ valent_menu_list_add_row (ValentMenuList *self,
                       "selectable",     FALSE,
                       NULL);
 
-  grid = g_object_new (GTK_TYPE_GRID,
-                       "column-spacing", 12,
-                       "margin-start",   20,
-                       "margin-end",     20,
-                       "margin-bottom",   8,
-                       "margin-top",      8,
-                       NULL);
-  gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (row), GTK_WIDGET (grid));
+  row_grid = g_object_new (GTK_TYPE_GRID,
+                           "column-spacing", 12,
+                           "margin-start",   20,
+                           "margin-end",     20,
+                           "margin-bottom",   8,
+                           "margin-top",      8,
+                           NULL);
+  gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (row), GTK_WIDGET (row_grid));
 
   row_icon = g_object_new (GTK_TYPE_IMAGE,
                            "gicon",     gicon,
                            "icon-size", GTK_ICON_SIZE_NORMAL,
                            NULL);
-  gtk_grid_attach (grid, row_icon, 0, 0, 1, 1);
+  gtk_grid_attach (row_grid, row_icon, 0, 0, 1, 1);
 
   row_label = g_object_new (GTK_TYPE_LABEL,
                             "label",   label,
@@ -102,13 +104,13 @@ valent_menu_list_add_row (ValentMenuList *self,
                             "valign",  GTK_ALIGN_CENTER,
                             "vexpand", TRUE,
                             NULL);
-  gtk_grid_attach (grid, row_label, 1, 0, 1, 1);
+  gtk_grid_attach (row_grid, row_label, 1, 0, 1, 1);
 
   /* Account for "Go Previous" item */
   if (self->parent != NULL)
     index += 1;
 
-  gtk_list_box_insert (self->list, GTK_WIDGET (row), index);
+  gtk_list_box_insert (GTK_LIST_BOX (self->list), GTK_WIDGET (row), index);
 
   /* NOTE: this must be done after the row is added to the list, otherwise it
    *       may be in a "realized" state and fail an assertion check.
@@ -134,7 +136,7 @@ valent_menu_list_add_section (ValentMenuList *self,
   g_assert (G_IS_MENU_MODEL (model));
 
   section = valent_menu_list_new (model);
-  gtk_list_box_insert (self->list, GTK_WIDGET (section), index);
+  gtk_list_box_insert (GTK_LIST_BOX (self->list), GTK_WIDGET (section), index);
 }
 
 static void
@@ -154,7 +156,7 @@ valent_menu_list_add_submenu (ValentMenuList *self,
   g_assert (G_IS_MENU_MODEL (model));
 
   /* Amend the row */
-  row = gtk_list_box_get_row_at_index (self->list, index);
+  row = gtk_list_box_get_row_at_index (GTK_LIST_BOX (self->list), index);
   g_menu_model_get_item_attribute (self->model, index, "label", "s", &label);
 
   action_detail = g_strdup_printf ("menu.submenu::%s", label);
@@ -203,12 +205,14 @@ static void
 valent_menu_list_remove (ValentMenuList *self,
                          int             index)
 {
-  GtkListBoxRow *row;
+  GtkListBoxRow *row = NULL;
 
   g_assert (VALENT_IS_MENU_LIST (self));
 
-  if ((row = gtk_list_box_get_row_at_index (self->list, index)))
-    gtk_list_box_remove (self->list, GTK_WIDGET (row));
+  row = gtk_list_box_get_row_at_index (GTK_LIST_BOX (self->list), index);
+
+  if (row != NULL)
+    gtk_list_box_remove (GTK_LIST_BOX (self->list), GTK_WIDGET (row));
 }
 
 static void
@@ -221,21 +225,11 @@ on_items_changed (GMenuModel     *model,
   g_assert (G_IS_MENU_MODEL (model));
   g_assert (VALENT_IS_MENU_LIST (self));
 
-  // Remove items
-  while (removed > 0)
-    {
-      valent_menu_list_remove (self, position);
-      removed--;
-    }
+  while (removed-- > 0)
+    valent_menu_list_remove (self, position);
 
-  // Add items
   for (int i = 0; i < added; i++)
-    {
-      int index;
-
-      index = i + position;
-      valent_menu_list_add (self, index);
-    }
+    valent_menu_list_add (self, position + i);
 }
 
 /*
@@ -262,10 +256,11 @@ valent_menu_list_dispose (GObject *object)
 {
   ValentMenuList *self = VALENT_MENU_LIST (object);
 
-  g_clear_signal_handler (&self->items_changed_id, self->model);
+  if (self->model != NULL)
+    g_signal_handlers_disconnect_by_data (self->model, self);
 
-  if (GTK_IS_WIDGET (self->list))
-    gtk_widget_unparent (GTK_WIDGET (self->list));
+  g_clear_pointer (&self->list, gtk_widget_unparent);
+  g_clear_object (&self->parent);
 
   G_OBJECT_CLASS (valent_menu_list_parent_class)->dispose (object);
 }
@@ -276,7 +271,6 @@ valent_menu_list_finalize (GObject *object)
   ValentMenuList *self = VALENT_MENU_LIST (object);
 
   g_clear_object (&self->model);
-  g_clear_object (&self->parent);
 
   G_OBJECT_CLASS (valent_menu_list_parent_class)->finalize (object);
 }
@@ -381,8 +375,8 @@ valent_menu_list_init (ValentMenuList *self)
                              "hexpand",         TRUE,
                              "show-separators", TRUE,
                              NULL);
-  gtk_widget_set_parent (GTK_WIDGET (self->list), GTK_WIDGET (self));
-  gtk_widget_insert_after (GTK_WIDGET (self->list), GTK_WIDGET (self), NULL);
+  gtk_widget_set_parent (self->list, GTK_WIDGET (self));
+  gtk_widget_insert_after (self->list, GTK_WIDGET (self), NULL);
 
   /* Placeholder */
   placeholder = g_object_new (GTK_TYPE_LABEL,
@@ -392,7 +386,7 @@ valent_menu_list_init (ValentMenuList *self)
                               NULL);
   gtk_style_context_add_class (gtk_widget_get_style_context (placeholder),
                                "dim-label");
-  gtk_list_box_set_placeholder (self->list, placeholder);
+  gtk_list_box_set_placeholder (GTK_LIST_BOX (self->list), placeholder);
 }
 
 /**
@@ -444,20 +438,20 @@ valent_menu_list_set_menu_model (ValentMenuList *list,
   g_return_if_fail (model == NULL || G_IS_MENU_MODEL (model));
 
   if (list->model != NULL)
-    g_clear_signal_handler (&list->items_changed_id, list->model);
-
-  /* Hold a reference to @model */
-  g_set_object (&list->model, model);
-
-  if (list->model != NULL)
     {
+      g_signal_handlers_disconnect_by_data (list->model, list);
+      g_clear_object (&list->model);
+    }
+
+  if (g_set_object (&list->model, model))
+    {
+      g_signal_connect_object (list->model,
+                               "items-changed",
+                               G_CALLBACK (on_items_changed),
+                               list, 0);
+
       n_items = g_menu_model_get_n_items (model);
       on_items_changed (model, 0, 0, n_items, list);
-
-      list->items_changed_id = g_signal_connect (list->model,
-                                                 "items-changed",
-                                                 G_CALLBACK (on_items_changed),
-                                                 list);
     }
 }
 
@@ -494,12 +488,10 @@ valent_menu_list_set_submenu_of (ValentMenuList *self,
   GtkWidget *label;
 
   g_assert (VALENT_IS_MENU_LIST (self));
-  // g_assert (VALENT_IS_MENU_LIST (parent));
+  g_assert (parent == NULL || VALENT_IS_MENU_LIST (parent));
 
-  if (!VALENT_IS_MENU_LIST (parent))
+  if (!g_set_object (&self->parent, parent) || parent == NULL)
     return;
-
-  self->parent = g_object_ref (parent);
 
   /* stack = gtk_widget_get_ancestor (GTK_WIDGET (parent), GTK_TYPE_STACK); */
   /* page = gtk_stack_get_page (GTK_STACK (stack), GTK_WIDGET (parent)); */
@@ -536,6 +528,6 @@ valent_menu_list_set_submenu_of (ValentMenuList *self,
                         "vexpand", TRUE,
                         NULL);
   gtk_grid_attach (GTK_GRID (grid), label, 1, 0, 1, 1);
-  gtk_list_box_insert (self->list, GTK_WIDGET (row), 0);
+  gtk_list_box_insert (GTK_LIST_BOX (self->list), GTK_WIDGET (row), 0);
 }
 
