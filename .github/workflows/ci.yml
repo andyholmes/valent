@@ -20,7 +20,7 @@ jobs:
       - name: Spell Check
         uses: codespell-project/actions-codespell@master
         with:
-          ignore_words_list: doubleclick,inout,sav
+          ignore_words_list: doubleclick,inout,onlyonce,sav
           skip: ./src/tests/data,./subprojects,./*.po
 
   commitlint:
