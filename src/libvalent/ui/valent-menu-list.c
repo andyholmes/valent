@@ -104,7 +104,15 @@ valent_menu_list_add_row (ValentMenuList *self,
                             NULL);
   gtk_grid_attach (grid, row_label, 1, 0, 1, 1);
 
-  /* Emulate hidden-when/action-disabled */
+  /* Account for "Go Previous" item */
+  if (self->parent != NULL)
+    index += 1;
+
+  gtk_list_box_insert (self->list, GTK_WIDGET (row), index);
+
+  /* NOTE: this must be done after the row is added to the list, otherwise it
+   *       may be in a "realized" state and fail an assertion check.
+   */
   if (g_menu_model_get_item_attribute (self->model, index,
                                        "hidden-when", "s", &hidden_when))
     {
@@ -113,12 +121,6 @@ valent_menu_list_add_row (ValentMenuList *self,
                                 G_OBJECT (row), "visible",
                                 G_BINDING_SYNC_CREATE);
     }
-
-  /* Account for "Go Previous" item */
-  if (self->parent != NULL)
-    index += 1;
-
-  gtk_list_box_insert (self->list, GTK_WIDGET (row), index);
 }
 
 static void
