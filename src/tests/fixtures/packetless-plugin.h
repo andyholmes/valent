@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include <libpeas/peas.h>
+#include <libvalent-core.h>
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_PACKETLESS_PLUGIN (valent_packetless_plugin_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentPacketlessPlugin, valent_packetless_plugin, VALENT, PACKETLESS_PLUGIN, PeasExtensionBase)
+G_DECLARE_FINAL_TYPE (ValentPacketlessPlugin, valent_packetless_plugin, VALENT, PACKETLESS_PLUGIN, ValentDevicePlugin)
 
 G_MODULE_EXPORT void valent_packetless_plugin_register_types (PeasObjectModule *module);
 
