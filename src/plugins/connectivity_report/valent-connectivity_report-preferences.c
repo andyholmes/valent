@@ -59,8 +59,9 @@ valent_connectivity_report_preferences_constructed (GObject *object)
 {
   ValentConnectivityReportPreferences *self = VALENT_CONNECTIVITY_REPORT_PREFERENCES (object);
 
-  self->settings = valent_device_plugin_new_settings (self->device_id,
-                                                      "connectivity_report");
+  /* Setup GSettings */
+  self->settings = valent_device_plugin_create_settings (self->plugin_info,
+                                                         self->device_id);
 
   g_settings_bind (self->settings,    "share-state",
                    self->share_state, "active",

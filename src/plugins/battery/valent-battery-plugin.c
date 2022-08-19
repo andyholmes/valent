@@ -24,8 +24,6 @@ struct _ValentBatteryPlugin
 {
   ValentDevicePlugin  parent_instance;
 
-  GSettings          *settings;
-
   /* Local Battery */
   ValentBattery      *battery;
   unsigned int        battery_watch : 1;
@@ -105,13 +103,16 @@ valent_battery_plugin_send_state (ValentBatteryPlugin *self)
 {
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
+  GSettings *settings;
   int current_charge;
   gboolean is_charging;
   unsigned int threshold_event;
 
   g_return_if_fail (VALENT_IS_BATTERY_PLUGIN (self));
 
-  if (!g_settings_get_boolean (self->settings, "share-state"))
+  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+
+  if (!g_settings_get_boolean (settings, "share-state"))
     return;
 
   current_charge = valent_battery_current_charge (self->battery);
@@ -248,19 +249,21 @@ valent_battery_plugin_update_notification (ValentBatteryPlugin *self,
   g_autoptr (GIcon) icon = NULL;
   ValentDevice *device;
   const char *device_name;
+  GSettings *settings;
   double full, low;
 
   g_assert (VALENT_IS_BATTERY_PLUGIN (self));
 
   device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
   device_name = valent_device_get_name (device);
+  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
 
-  full = g_settings_get_double (self->settings, "full-notification-level");
-  low = g_settings_get_double (self->settings, "low-notification-level");
+  full = g_settings_get_double (settings, "full-notification-level");
+  low = g_settings_get_double (settings, "low-notification-level");
 
   if (self->percentage == full)
     {
-      if (!g_settings_get_boolean (self->settings, "full-notification"))
+      if (!g_settings_get_boolean (settings, "full-notification"))
         return;
 
       /* TRANSLATORS: This is <device name>: Fully Charged */
@@ -285,7 +288,7 @@ valent_battery_plugin_update_notification (ValentBatteryPlugin *self,
       int minutes;
       int hours;
 
-      if (!g_settings_get_boolean (self->settings, "low-notification"))
+      if (!g_settings_get_boolean (settings, "low-notification"))
         return;
 
       total_minutes = floor (self->time_to_empty / 60);
@@ -386,14 +389,8 @@ static void
 valent_battery_plugin_enable (ValentDevicePlugin *plugin)
 {
   ValentBatteryPlugin *self = VALENT_BATTERY_PLUGIN (plugin);
-  ValentDevice *device;
-  const char *device_id;
 
   g_assert (VALENT_IS_BATTERY_PLUGIN (self));
-
-  device = valent_device_plugin_get_device (plugin);
-  device_id = valent_device_get_id (device);
-  self->settings = valent_device_plugin_new_settings (device_id, "battery");
 
   g_action_map_add_action_entries (G_ACTION_MAP (plugin),
                                    actions,
@@ -411,8 +408,6 @@ valent_battery_plugin_disable (ValentDevicePlugin *plugin)
 
   /* We're about to be disposed, so stop watching the battery for changes */
   valent_battery_plugin_watch_battery (self, FALSE);
-
-  g_clear_object (&self->settings);
 }
 
 static void

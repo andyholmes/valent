@@ -211,8 +211,8 @@ valent_notification_preferences_constructed (GObject *object)
   ValentNotificationPreferences *self = VALENT_NOTIFICATION_PREFERENCES (object);
 
   /* Setup GSettings */
-  self->settings = valent_device_plugin_new_settings (self->device_id,
-                                                      "notification");
+  self->settings = valent_device_plugin_create_settings (self->plugin_info,
+                                                         self->device_id);
 
   /* Forwarding Settings */
   g_settings_bind (self->settings,              "forward-notifications",

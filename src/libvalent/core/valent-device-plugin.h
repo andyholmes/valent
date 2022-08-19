@@ -60,6 +60,8 @@ void           valent_device_plugin_update_state        (ValentDevicePlugin    *
 VALENT_AVAILABLE_IN_1_0
 ValentDevice * valent_device_plugin_get_device          (ValentDevicePlugin    *plugin);
 VALENT_AVAILABLE_IN_1_0
+GSettings *    valent_device_plugin_get_settings        (ValentDevicePlugin    *plugin);
+VALENT_AVAILABLE_IN_1_0
 void           valent_device_plugin_queue_packet        (ValentDevicePlugin    *plugin,
                                                          JsonNode              *packet);
 VALENT_AVAILABLE_IN_1_0
@@ -75,12 +77,12 @@ void           valent_device_plugin_toggle_actions      (ValentDevicePlugin    *
 
 /* Utilities */
 VALENT_AVAILABLE_IN_1_0
+GSettings *    valent_device_plugin_create_settings     (PeasPluginInfo        *plugin_info,
+                                                         const char            *device_id);
+VALENT_AVAILABLE_IN_1_0
 GStrv          valent_device_plugin_get_incoming        (PeasPluginInfo        *info);
 VALENT_AVAILABLE_IN_1_0
 GStrv          valent_device_plugin_get_outgoing        (PeasPluginInfo        *info);
-VALENT_AVAILABLE_IN_1_0
-GSettings *    valent_device_plugin_new_settings        (const char            *device_id,
-                                                         const char            *module_name);
 
 /* TODO: GMenuModel XML */
 VALENT_AVAILABLE_IN_1_0

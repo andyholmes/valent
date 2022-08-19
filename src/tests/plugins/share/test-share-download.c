@@ -13,6 +13,7 @@ static void
 test_share_download_single (ValentTestFixture *fixture,
                             gconstpointer      user_data)
 {
+  PeasPluginInfo *plugin_info = NULL;
   g_autoptr (GSettings) settings = NULL;
   g_autoptr (GFile) file = NULL;
   g_autoptr (GFile) dest = NULL;
@@ -23,7 +24,10 @@ test_share_download_single (ValentTestFixture *fixture,
   valent_test_fixture_connect (fixture, TRUE);
 
   /* Ensure the download directory is at it's default */
-  settings = valent_device_plugin_new_settings ("test-device", "share");
+  plugin_info = peas_engine_get_plugin_info (valent_get_plugin_engine (),
+                                             "share");
+  settings = valent_device_plugin_create_settings (plugin_info,
+                                                   "test-device");
   g_settings_reset (settings, "download-folder");
 
   file = g_file_new_for_uri (test_file);
@@ -44,6 +48,7 @@ static void
 test_share_download_multiple (ValentTestFixture *fixture,
                               gconstpointer      user_data)
 {
+  PeasPluginInfo *plugin_info = NULL;
   g_autoptr (GSettings) settings = NULL;
   g_autoptr (GFile) file = NULL;
   g_autoptr (GFile) dest = NULL;
@@ -54,7 +59,10 @@ test_share_download_multiple (ValentTestFixture *fixture,
   valent_test_fixture_connect (fixture, TRUE);
 
   /* Ensure the download directory is at it's default */
-  settings = valent_device_plugin_new_settings ("test-device", "share");
+  plugin_info = peas_engine_get_plugin_info (valent_get_plugin_engine (),
+                                             "share");
+  settings = valent_device_plugin_create_settings (plugin_info,
+                                                   "test-device");
   g_settings_reset (settings, "download-folder");
 
   file = g_file_new_for_uri (test_file);

@@ -16,15 +16,13 @@ struct _ValentClipboardPlugin
 {
   ValentDevicePlugin  parent_instance;
 
-  GSettings         *settings;
+  ValentClipboard    *clipboard;
+  gulong              changed_id;
 
-  ValentClipboard   *clipboard;
-  gulong             changed_id;
-
-  char              *local_text;
-  gint64             local_timestamp;
-  char              *remote_text;
-  gint64             remote_timestamp;
+  char               *local_text;
+  gint64              local_timestamp;
+  char               *remote_text;
+  gint64              remote_timestamp;
 };
 
 G_DEFINE_TYPE (ValentClipboardPlugin, valent_clipboard_plugin, VALENT_TYPE_DEVICE_PLUGIN)
@@ -103,13 +101,17 @@ valent_clipboard_read_text_cb (ValentClipboard       *clipboard,
 
   if (g_strcmp0 (text, self->local_text) != 0)
     {
+      GSettings *settings;
+
       /* Store the local content */
       g_clear_pointer (&self->local_text, g_free);
       self->local_text = g_steal_pointer (&text);
       self->local_timestamp = valent_clipboard_get_timestamp (clipboard);
 
       /* Inform the device */
-      if (g_settings_get_boolean (self->settings, "auto-push"))
+      settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+
+      if (g_settings_get_boolean (settings, "auto-push"))
         valent_clipboard_plugin_clipboard (self, self->local_text);
     }
 }
@@ -121,6 +123,7 @@ valent_clipboard_read_text_connect_cb (ValentClipboard       *clipboard,
 {
   g_autoptr (GError) error = NULL;
   g_autofree char *text = NULL;
+  GSettings *settings;
 
   g_assert (VALENT_IS_CLIPBOARD (clipboard));
   g_assert (VALENT_IS_CLIPBOARD_PLUGIN (self));
@@ -144,9 +147,12 @@ valent_clipboard_read_text_connect_cb (ValentClipboard       *clipboard,
     }
 
   /* Inform the device */
-  valent_clipboard_plugin_clipboard_connect (self,
-                                             self->local_text,
-                                             self->local_timestamp);
+  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+
+  if (g_settings_get_boolean (settings, "auto-push"))
+    valent_clipboard_plugin_clipboard_connect (self,
+                                               self->local_text,
+                                               self->local_timestamp);
 }
 
 static void
@@ -166,6 +172,7 @@ static void
 valent_clipboard_plugin_handle_clipboard (ValentClipboardPlugin *self,
                                           JsonNode              *packet)
 {
+  GSettings *settings;
   const char *content;
 
   g_assert (VALENT_IS_CLIPBOARD_PLUGIN (self));
@@ -184,7 +191,9 @@ valent_clipboard_plugin_handle_clipboard (ValentClipboardPlugin *self,
   self->remote_timestamp = valent_timestamp_ms ();
 
   /* Set clipboard */
-  if (g_settings_get_boolean (self->settings, "auto-pull"))
+  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+
+  if (g_settings_get_boolean (settings, "auto-pull"))
     valent_clipboard_write_text (self->clipboard, content, NULL, NULL, NULL);
 }
 
@@ -192,6 +201,7 @@ static void
 valent_clipboard_plugin_handle_clipboard_connect (ValentClipboardPlugin *self,
                                                   JsonNode              *packet)
 {
+  GSettings *settings;
   gint64 timestamp;
   const char *content;
 
@@ -222,7 +232,9 @@ valent_clipboard_plugin_handle_clipboard_connect (ValentClipboardPlugin *self,
     return;
 
   /* Set clipboard */
-  if (g_settings_get_boolean (self->settings, "auto-pull"))
+  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+
+  if (g_settings_get_boolean (settings, "auto-pull"))
     valent_clipboard_write_text (self->clipboard, content, NULL, NULL, NULL);
 }
 
@@ -271,14 +283,8 @@ static void
 valent_clipboard_plugin_enable (ValentDevicePlugin *plugin)
 {
   ValentClipboardPlugin *self = VALENT_CLIPBOARD_PLUGIN (plugin);
-  ValentDevice *device;
-  const char *device_id;
 
   g_assert (VALENT_IS_CLIPBOARD_PLUGIN (self));
-
-  device = valent_device_plugin_get_device (plugin);
-  device_id = valent_device_get_id (device);
-  self->settings = valent_device_plugin_new_settings (device_id, "clipboard");
 
   g_action_map_add_action_entries (G_ACTION_MAP (plugin),
                                    actions,
@@ -297,8 +303,6 @@ valent_clipboard_plugin_disable (ValentDevicePlugin *plugin)
 
   /* We're about to be disposed, so stop watching the clipboard for changes */
   g_clear_signal_handler (&self->changed_id, self->clipboard);
-
-  g_clear_object (&self->settings);
 }
 
 static void
@@ -323,11 +327,10 @@ valent_clipboard_plugin_update_state (ValentDevicePlugin *plugin,
                                              G_CALLBACK (on_clipboard_changed),
                                              self);
 
-      if (g_settings_get_boolean (self->settings, "auto-push"))
-        valent_clipboard_read_text (self->clipboard,
-                                    NULL,
-                                    (GAsyncReadyCallback)valent_clipboard_read_text_connect_cb,
-                                    self);
+      valent_clipboard_read_text (self->clipboard,
+                                  NULL,
+                                  (GAsyncReadyCallback)valent_clipboard_read_text_connect_cb,
+                                  self);
     }
   else
     {

@@ -142,7 +142,9 @@ valent_share_preferences_constructed (GObject *object)
   g_autofree char *download_folder = NULL;
 
   /* Setup GSettings */
-  self->settings = valent_device_plugin_new_settings (self->device_id, "share");
+  self->settings = valent_device_plugin_create_settings (self->plugin_info,
+                                                         self->device_id);
+
   download_folder = g_settings_get_string (self->settings, "download-folder");
 
   if (download_folder == NULL || *download_folder == '\0')

@@ -58,8 +58,8 @@ valent_clipboard_preferences_constructed (GObject *object)
   ValentClipboardPreferences *self = VALENT_CLIPBOARD_PREFERENCES (object);
 
   /* Setup GSettings */
-  self->settings = valent_device_plugin_new_settings (self->device_id,
-                                                      "clipboard");
+  self->settings = valent_device_plugin_create_settings (self->plugin_info,
+                                                         self->device_id);
 
   g_settings_bind (self->settings,  "auto-pull",
                    self->sync_pull, "active",

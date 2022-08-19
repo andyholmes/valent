@@ -176,13 +176,16 @@ void
 valent_test_fixture_init_settings (ValentTestFixture *fixture,
                                    const char        *name)
 {
+  PeasPluginInfo *plugin_info = NULL;
   const char *device_id;
 
   g_assert (fixture != NULL);
   g_assert (name != NULL);
 
+  plugin_info = peas_engine_get_plugin_info (valent_get_plugin_engine (), name);
   device_id = valent_device_get_id (fixture->device);
-  fixture->settings = valent_device_plugin_new_settings (device_id, name);
+  fixture->settings = valent_device_plugin_create_settings (plugin_info,
+                                                            device_id);
 }
 
 /**

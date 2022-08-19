@@ -16,8 +16,6 @@ struct _ValentSystemvolumePlugin
 {
   ValentDevicePlugin  parent_instance;
 
-  GSettings          *settings;
-
   ValentMixer        *mixer;
   unsigned int        mixer_watch : 1;
   GHashTable         *states;
@@ -362,14 +360,8 @@ static void
 valent_systemvolume_plugin_enable (ValentDevicePlugin *plugin)
 {
   ValentSystemvolumePlugin *self = VALENT_SYSTEMVOLUME_PLUGIN (plugin);
-  ValentDevice *device;
-  const char *device_id;
 
   g_assert (VALENT_IS_SYSTEMVOLUME_PLUGIN (self));
-
-  device = valent_device_plugin_get_device (plugin);
-  device_id = valent_device_get_id (device);
-  self->settings = valent_device_plugin_new_settings (device_id, "systemvolume");
 
   /* Setup stream state cache */
   self->states = g_hash_table_new_full (g_str_hash,
@@ -386,8 +378,6 @@ valent_systemvolume_plugin_disable (ValentDevicePlugin *plugin)
   /* Clear stream state cache */
   valent_systemvolume_plugin_watch_mixer (self, FALSE);
   g_clear_pointer (&self->states, g_hash_table_unref);
-
-  g_clear_object (&self->settings);
 }
 
 static void

@@ -61,8 +61,8 @@ valent_battery_preferences_constructed (GObject *object)
   ValentBatteryPreferences *self = VALENT_BATTERY_PREFERENCES (object);
 
   /* Setup GSettings */
-  self->settings = valent_device_plugin_new_settings (self->device_id,
-                                                      "battery");
+  self->settings = valent_device_plugin_create_settings (self->plugin_info,
+                                                         self->device_id);
 
   g_settings_bind (self->settings,    "share-state",
                    self->share_state, "active",
