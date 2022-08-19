@@ -18,10 +18,8 @@ struct _ValentSftpPlugin
 {
   ValentDevicePlugin  parent_instance;
 
-  GSettings         *settings;
-
-  GVolumeMonitor    *monitor;
-  ValentSftpSession *session;
+  GVolumeMonitor     *monitor;
+  ValentSftpSession  *session;
 };
 
 G_DEFINE_TYPE (ValentSftpPlugin, valent_sftp_plugin, VALENT_TYPE_DEVICE_PLUGIN)
@@ -512,6 +510,7 @@ static void
 valent_sftp_plugin_handle_request (ValentSftpPlugin *self,
                                    JsonNode         *packet)
 {
+  GSettings *settings;
   JsonBuilder *builder;
   g_autoptr (JsonNode) response = NULL;
 
@@ -520,16 +519,17 @@ valent_sftp_plugin_handle_request (ValentSftpPlugin *self,
   if (!valent_packet_check_field (packet, "startBrowsing"))
     return;
 
+  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
   builder = valent_packet_start ("kdeconnect.sftp");
 
-  if (g_settings_get_boolean (self->settings, "local-allow"))
+  if (g_settings_get_boolean (settings, "local-allow"))
     {
       guint16 local_port;
 
       json_builder_set_member_name (builder, "user");
       json_builder_add_string_value (builder, g_get_user_name ());
 
-      local_port = g_settings_get_uint (self->settings, "local-port");
+      local_port = g_settings_get_uint (settings, "local-port");
       json_builder_set_member_name (builder, "port");
       json_builder_add_int_value (builder, local_port);
 
@@ -607,14 +607,8 @@ static void
 valent_sftp_plugin_enable (ValentDevicePlugin *plugin)
 {
   ValentSftpPlugin *self = VALENT_SFTP_PLUGIN (plugin);
-  ValentDevice *device;
-  const char *device_id;
 
   g_assert (VALENT_IS_SFTP_PLUGIN (self));
-
-  device = valent_device_plugin_get_device (plugin);
-  device_id = valent_device_get_id (device);
-  self->settings = valent_device_plugin_new_settings (device_id, "sftp");
 
   g_action_map_add_action_entries (G_ACTION_MAP (plugin),
                                    actions,
@@ -651,7 +645,6 @@ valent_sftp_plugin_disable (ValentDevicePlugin *plugin)
   valent_device_plugin_remove_menu_entries (plugin,
                                             items,
                                             G_N_ELEMENTS (items));
-  g_clear_object (&self->settings);
 }
 
 static void
@@ -671,9 +664,13 @@ valent_sftp_plugin_update_state (ValentDevicePlugin *plugin,
   /* GMounts */
   if (available)
     {
+      GSettings *settings;
+
       sftp_session_find (self);
 
-      if (g_settings_get_boolean (self->settings, "auto-mount"))
+      settings = valent_device_plugin_get_settings (plugin);
+
+      if (g_settings_get_boolean (settings, "auto-mount"))
         valent_sftp_plugin_sftp_request (self);
     }
 }

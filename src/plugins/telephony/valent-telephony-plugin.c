@@ -19,8 +19,6 @@ struct _ValentTelephonyPlugin
 {
   ValentDevicePlugin  parent_instance;
 
-  GSettings         *settings;
-
   gpointer           prev_input;
   gpointer           prev_output;
   gboolean           prev_paused;
@@ -147,6 +145,7 @@ static void
 valent_telephony_plugin_update_media_state (ValentTelephonyPlugin *self,
                                             const char            *event)
 {
+  GSettings *settings;
   ValentMixer *mixer;
   ValentMixerStream *stream;
   int output_level;
@@ -156,18 +155,20 @@ valent_telephony_plugin_update_media_state (ValentTelephonyPlugin *self,
   g_assert (VALENT_IS_TELEPHONY_PLUGIN (self));
   g_assert (event != NULL && *event != '\0');
 
+  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+
   /* Retrieve the user preference for this event */
   if (g_str_equal (event, "ringing"))
     {
-      output_level = g_settings_get_int (self->settings, "ringing-volume");
-      input_level = g_settings_get_int (self->settings, "ringing-microphone");
-      pause = g_settings_get_boolean (self->settings, "ringing-pause");
+      output_level = g_settings_get_int (settings, "ringing-volume");
+      input_level = g_settings_get_int (settings, "ringing-microphone");
+      pause = g_settings_get_boolean (settings, "ringing-pause");
     }
   else if (g_str_equal (event, "talking"))
     {
-      output_level = g_settings_get_int (self->settings, "talking-volume");
-      input_level = g_settings_get_int (self->settings, "talking-microphone");
-      pause = g_settings_get_boolean (self->settings, "talking-pause");
+      output_level = g_settings_get_int (settings, "talking-volume");
+      input_level = g_settings_get_int (settings, "talking-microphone");
+      pause = g_settings_get_boolean (settings, "talking-pause");
     }
   else
     g_assert_not_reached ();
@@ -361,15 +362,8 @@ static const GActionEntry actions[] = {
 static void
 valent_telephony_plugin_enable (ValentDevicePlugin *plugin)
 {
-  ValentTelephonyPlugin *self = VALENT_TELEPHONY_PLUGIN (plugin);
-  ValentDevice *device;
-  const char *device_id;
+  g_assert (VALENT_IS_TELEPHONY_PLUGIN (plugin));
 
-  g_assert (VALENT_IS_TELEPHONY_PLUGIN (self));
-
-  device = valent_device_plugin_get_device (plugin);
-  device_id = valent_device_get_id (device);
-  self->settings = valent_device_plugin_new_settings (device_id, "telephony");
   g_action_map_add_action_entries (G_ACTION_MAP (plugin),
                                    actions,
                                    G_N_ELEMENTS (actions),
@@ -384,8 +378,6 @@ valent_telephony_plugin_disable (ValentDevicePlugin *plugin)
   /* We're about to be disposed, so clear the stored states */
   g_clear_pointer (&self->prev_output, stream_state_free);
   g_clear_pointer (&self->prev_input, stream_state_free);
-
-  g_clear_object (&self->settings);
 }
 
 static void

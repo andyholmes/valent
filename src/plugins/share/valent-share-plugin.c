@@ -20,8 +20,6 @@ struct _ValentSharePlugin
 {
   ValentDevicePlugin  parent_instance;
 
-  GSettings          *settings;
-
   GHashTable         *transfers;
   ValentTransfer     *upload;
   ValentTransfer     *download;
@@ -35,12 +33,14 @@ valent_share_plugin_create_download_file (ValentSharePlugin *self,
                                           const char        *filename,
                                           gboolean           unique)
 {
+  GSettings *settings;
   g_autofree char *download_folder = NULL;
 
   g_return_val_if_fail (VALENT_IS_SHARE_PLUGIN (self), NULL);
   g_return_val_if_fail (filename != NULL, NULL);
 
-  download_folder = g_settings_get_string (self->settings, "download-folder");
+  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+  download_folder = g_settings_get_string (settings, "download-folder");
 
   if (download_folder == NULL || *download_folder == '\0')
     {
@@ -1093,15 +1093,7 @@ valent_share_plugin_handle_url (ValentSharePlugin *self,
 static void
 valent_share_plugin_enable (ValentDevicePlugin *plugin)
 {
-  ValentSharePlugin *self = VALENT_SHARE_PLUGIN (plugin);
-  ValentDevice *device;
-  const char *device_id;
-
-  g_assert (VALENT_IS_SHARE_PLUGIN (self));
-
-  device = valent_device_plugin_get_device (plugin);
-  device_id = valent_device_get_id (device);
-  self->settings = valent_device_plugin_new_settings (device_id, "share");
+  g_assert (VALENT_IS_SHARE_PLUGIN (plugin));
 
   g_action_map_add_action_entries (G_ACTION_MAP (plugin),
                                    actions,
@@ -1215,7 +1207,6 @@ valent_share_plugin_finalize (GObject *object)
 {
   ValentSharePlugin *self = VALENT_SHARE_PLUGIN (object);
 
-  g_clear_object (&self->settings);
   g_clear_pointer (&self->transfers, g_hash_table_unref);
 
   G_OBJECT_CLASS (valent_share_plugin_parent_class)->finalize (object);

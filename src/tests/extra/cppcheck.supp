@@ -26,14 +26,14 @@ leakNoVarFunctionCall:src/tests/fixtures/valent-mock-media-player.c:117
 leakNoVarFunctionCall:src/tests/fixtures/valent-mock-media-player.c:173
 
 # src/tests/plugins/connectivity_report/
-leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:265
-leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:267
-leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:269
-leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:271
-leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:275
-leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:284
-leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:286
-leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:288
+leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:268
+leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:270
+leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:272
+leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:274
+leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:278
+leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:287
+leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:289
+leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:291
 
 # src/tests/plugins/bluez/
 memleak:src/tests/plugins/bluez/test-bluez-plugin.c:183

@@ -20,8 +20,6 @@ struct _ValentConnectivityReportPlugin
 {
   ValentDevicePlugin  parent_instance;
 
-  GSettings          *settings;
-
   /* Local Modems */
   ValentTelephony    *telephony;
   unsigned int        telephony_watch : 1;
@@ -87,13 +85,16 @@ valent_connectivity_report_plugin_handle_connectivity_report_request (ValentConn
 static void
 valent_connectivity_report_plugin_send_state (ValentConnectivityReportPlugin *self)
 {
+  GSettings *settings;
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
   g_autoptr (JsonNode) signal_node = NULL;
 
   g_return_if_fail (VALENT_IS_CONNECTIVITY_REPORT_PLUGIN (self));
 
-  if (!g_settings_get_boolean (self->settings, "share-state"))
+  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+
+  if (!g_settings_get_boolean (settings, "share-state"))
     return;
 
   signal_node = valent_telephony_get_signal_strengths (self->telephony);
@@ -196,6 +197,7 @@ valent_connectivity_report_plugin_handle_connectivity_report (ValentConnectivity
 {
   GAction *action;
   GVariant *state;
+  GSettings *settings;
   GVariantBuilder builder;
   GVariantBuilder signals_builder;
   JsonObject *signal_strengths;
@@ -219,9 +221,10 @@ valent_connectivity_report_plugin_handle_connectivity_report (ValentConnectivity
       return;
     }
 
-  g_variant_builder_init (&builder, G_VARIANT_TYPE_VARDICT);
+  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
 
   /* Add each signal */
+  g_variant_builder_init (&builder, G_VARIANT_TYPE_VARDICT);
   g_variant_builder_init (&signals_builder, G_VARIANT_TYPE_VARDICT);
 
   json_object_iter_init (&iter, signal_strengths);
@@ -301,7 +304,7 @@ valent_connectivity_report_plugin_handle_connectivity_report (ValentConnectivity
       valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self),
                                               "offline");
     }
-  else if (g_settings_get_boolean (self->settings, "offline-notification"))
+  else if (g_settings_get_boolean (settings, "offline-notification"))
     {
       ValentDevice *device;
       g_autoptr (GNotification) notification = NULL;
@@ -360,15 +363,7 @@ static const GActionEntry actions[] = {
 static void
 valent_connectivity_report_plugin_enable (ValentDevicePlugin *plugin)
 {
-  ValentConnectivityReportPlugin *self = VALENT_CONNECTIVITY_REPORT_PLUGIN (plugin);
-  ValentDevice *device;
-  const char *device_id;
-
-  g_assert (VALENT_IS_CONNECTIVITY_REPORT_PLUGIN (self));
-
-  device = valent_device_plugin_get_device (plugin);
-  device_id = valent_device_get_id (device);
-  self->settings = valent_device_plugin_new_settings (device_id, "connectivity_report");
+  g_assert (VALENT_IS_CONNECTIVITY_REPORT_PLUGIN (plugin));
 
   g_action_map_add_action_entries (G_ACTION_MAP (plugin),
                                    actions,
@@ -385,8 +380,6 @@ valent_connectivity_report_plugin_disable (ValentDevicePlugin *plugin)
 
   /* We're about to be disposed, so stop watching the network for changes */
   valent_connectivity_report_plugin_watch_telephony (self, FALSE);
-
-  g_clear_object (&self->settings);
 }
 
 static void

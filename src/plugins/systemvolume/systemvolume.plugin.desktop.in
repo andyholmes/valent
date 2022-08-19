@@ -11,6 +11,7 @@ Embedded=valent_systemvolume_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
+X-DevicePluginSettings=ca.andyholmes.valent.systemvolume
 X-IncomingCapabilities=kdeconnect.systemvolume.request
 X-OutgoingCapabilities=kdeconnect.systemvolume
 

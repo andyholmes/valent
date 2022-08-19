@@ -425,8 +425,8 @@ valent_runcommand_preferences_constructed (GObject *object)
   ValentRuncommandPreferences *self = VALENT_RUNCOMMAND_PREFERENCES (object);
 
   /* Setup GSettings */
-  self->settings = valent_device_plugin_new_settings (self->device_id,
-                                                      "runcommand");
+  self->settings = valent_device_plugin_create_settings (self->plugin_info,
+                                                         self->device_id);
 
   g_signal_connect (self->settings,
                     "changed::commands",

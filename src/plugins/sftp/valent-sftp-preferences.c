@@ -78,8 +78,8 @@ valent_sftp_preferences_constructed (GObject *object)
   ValentSftpPreferences *self = VALENT_SFTP_PREFERENCES (object);
 
   /* Setup GSettings */
-  self->settings = valent_device_plugin_new_settings (self->device_id,
-                                                      "sftp");
+  self->settings = valent_device_plugin_create_settings (self->plugin_info,
+                                                         self->device_id);
 
   g_settings_bind (self->settings,   "auto-mount",
                    self->auto_mount, "active",

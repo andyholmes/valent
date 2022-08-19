@@ -42,6 +42,14 @@ dbusmock_modemmanager (GDBusConnection *connection,
 }
 
 static void
+connectivity_report_plugin_fixture_set_up (ValentTestFixture *fixture,
+                                           gconstpointer      user_data)
+{
+  valent_test_fixture_init (fixture, user_data);
+  valent_test_fixture_init_settings (fixture, "connectivity_report");
+}
+
+static void
 test_connectivity_report_plugin_actions (ValentTestFixture *fixture,
                                          gconstpointer      user_data)
 {
@@ -82,7 +90,6 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
                                                gconstpointer      user_data)
 {
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
-  g_autoptr (GSettings) settings = NULL;
   JsonNode *packet;
   GVariant *state;
   GVariant *signal_strengths;
@@ -92,9 +99,7 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   gint64 signal_strength;
 
   /* Setup GSettings */
-  settings = valent_device_plugin_new_settings (valent_device_get_id (fixture->device),
-                                                "connectivity_report");
-  g_settings_set_boolean (settings, "offline-notification", TRUE);
+  g_settings_set_boolean (fixture->settings, "offline-notification", TRUE);
 
   /* Modem is in the default state so the action should be disabled */
   g_assert_false (g_action_group_get_action_enabled (actions, "connectivity_report.state"));
@@ -417,31 +422,31 @@ main (int   argc,
 
   g_test_add ("/plugins/connectivity_report/actions",
               ValentTestFixture, path,
-              valent_test_fixture_init,
+              connectivity_report_plugin_fixture_set_up,
               test_connectivity_report_plugin_actions,
               valent_test_fixture_clear);
 
   g_test_add ("/plugins/connectivity_report/connect",
               ValentTestFixture, path,
-              valent_test_fixture_init,
+              connectivity_report_plugin_fixture_set_up,
               test_connectivity_report_plugin_connect,
               valent_test_fixture_clear);
 
   g_test_add ("/plugins/connectivity_report/handle-update",
               ValentTestFixture, path,
-              valent_test_fixture_init,
+              connectivity_report_plugin_fixture_set_up,
               test_connectivity_report_plugin_handle_update,
               valent_test_fixture_clear);
 
   g_test_add ("/plugins/connectivity_report/handle-request",
               ValentTestFixture, path,
-              valent_test_fixture_init,
+              connectivity_report_plugin_fixture_set_up,
               test_connectivity_report_plugin_handle_request,
               valent_test_fixture_clear);
 
   g_test_add ("/plugins/connectivity_report/fuzz",
               ValentTestFixture, path,
-              valent_test_fixture_init,
+              connectivity_report_plugin_fixture_set_up,
               test_connectivity_report_plugin_fuzz,
               valent_test_fixture_clear);
 

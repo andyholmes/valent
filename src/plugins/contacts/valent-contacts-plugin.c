@@ -14,9 +14,8 @@
 
 struct _ValentContactsPlugin
 {
-  ValentDevicePlugin   parent_instance;
+  ValentDevicePlugin  parent_instance;
 
-  GSettings          *settings;
   GCancellable       *cancellable;
 
   ValentContactStore *local_store;
@@ -86,6 +85,7 @@ static void
 valent_contact_plugin_handle_request_vcards_by_uid (ValentContactsPlugin *self,
                                                     JsonNode             *packet)
 {
+  GSettings *settings;
   g_autofree EBookQuery **queries = NULL;
   g_autoptr (EBookQuery) query = NULL;
   g_autofree char *sexp = NULL;
@@ -96,8 +96,9 @@ valent_contact_plugin_handle_request_vcards_by_uid (ValentContactsPlugin *self,
 
 #ifndef __clang_analyzer__
   /* Bail if exporting is disabled */
-  if (self->local_store == NULL ||
-      !g_settings_get_boolean (self->settings, "local-sync"))
+  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+
+  if (self->local_store == NULL || !g_settings_get_boolean (settings, "local-sync"))
     return;
 
   if (!valent_packet_get_array (packet, "uids", &uids))
@@ -192,14 +193,16 @@ static void
 valent_contact_plugin_handle_request_all_uids_timestamps (ValentContactsPlugin *self,
                                                           JsonNode             *packet)
 {
+  GSettings *settings;
   g_autoptr (EBookQuery) query = NULL;
   g_autofree char *sexp = NULL;
 
   g_assert (VALENT_IS_CONTACTS_PLUGIN (self));
 
   /* Bail if exporting is disabled */
-  if (self->local_store == NULL ||
-      !g_settings_get_boolean (self->settings, "local-sync"))
+  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+
+  if (self->local_store == NULL || !g_settings_get_boolean (settings, "local-sync"))
     return;
 
   query = e_book_query_vcard_field_exists (EVC_UID);
@@ -355,13 +358,10 @@ valent_contacts_plugin_enable (ValentDevicePlugin *plugin)
   ValentContactStore *store = NULL;
   g_autofree char *local_uid = NULL;
   ValentDevice *device;
-  const char *device_id;
+  GSettings *settings;
 
   g_assert (VALENT_IS_CONTACTS_PLUGIN (self));
 
-  device = valent_device_plugin_get_device (plugin);
-  device_id = valent_device_get_id (device);
-  self->settings = valent_device_plugin_new_settings (device_id, "contacts");
   g_action_map_add_action_entries (G_ACTION_MAP (plugin),
                                    actions,
                                    G_N_ELEMENTS (actions),
@@ -369,13 +369,15 @@ valent_contacts_plugin_enable (ValentDevicePlugin *plugin)
 
   /* Prepare Addressbooks */
   self->cancellable = g_cancellable_new ();
+  device = valent_device_plugin_get_device (plugin);
+  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
 
   store = valent_contacts_ensure_store (valent_contacts_get_default (),
                                         valent_device_get_id (device),
                                         valent_device_get_name (device));
   g_set_object (&self->remote_store, store);
 
-  local_uid = g_settings_get_string (self->settings, "local-uid");
+  local_uid = g_settings_get_string (settings, "local-uid");
   store = valent_contacts_get_store (valent_contacts_get_default (), local_uid);
   g_set_object (&self->local_store, store);
 }
@@ -390,8 +392,6 @@ valent_contacts_plugin_disable (ValentDevicePlugin *plugin)
   g_clear_object (&self->cancellable);
   g_clear_object (&self->remote_store);
   g_clear_object (&self->local_store);
-
-  g_clear_object (&self->settings);
 }
 
 static void

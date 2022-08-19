@@ -11,6 +11,7 @@ Embedded=valent_connectivity_report_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
+X-DevicePluginSettings=ca.andyholmes.valent.connectivity_report
 X-IncomingCapabilities=kdeconnect.connectivity_report;kdeconnect.connectivity_report.request
 X-OutgoingCapabilities=kdeconnect.connectivity_report;kdeconnect.connectivity_report.request
 

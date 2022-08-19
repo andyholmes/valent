@@ -17,9 +17,7 @@
 
 struct _ValentRuncommandPlugin
 {
-  ValentDevicePlugin    parent_instance;
-
-  GSettings           *settings;
+  ValentDevicePlugin   parent_instance;
 
   GSubprocessLauncher *launcher;
   GHashTable          *subprocesses;
@@ -111,6 +109,7 @@ launcher_execute (ValentRuncommandPlugin  *self,
                   const char              *command,
                   GError                 **error)
 {
+  GSettings *settings;
   g_autoptr (GSubprocess) subprocess = NULL;
   g_autofree char *command_line = NULL;
   g_auto (GStrv) argv = NULL;
@@ -122,7 +121,8 @@ launcher_execute (ValentRuncommandPlugin  *self,
    *       but it's not clear if that is a security risk since isolating
    *       subprocesses is opt-in.
    */
-  isolate = g_settings_get_boolean (self->settings, "isolate-subprocesses");
+  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+  isolate = g_settings_get_boolean (settings, "isolate-subprocesses");
 
   if (valent_in_flatpak () && isolate)
     command_line = g_strdup_printf ("flatpak-spawn "SPAWN_FMT, command);
@@ -178,6 +178,7 @@ static void
 valent_runcommand_plugin_execute_local_command (ValentRuncommandPlugin *self,
                                                 const char             *key)
 {
+  GSettings *settings;
   g_autoptr (GVariant) commands = NULL;
   g_autoptr (GVariant) command = NULL;
   const char *command_str;
@@ -186,7 +187,8 @@ valent_runcommand_plugin_execute_local_command (ValentRuncommandPlugin *self,
   g_return_if_fail (key != NULL);
 
   /* Lookup the command by UUID */
-  commands = g_settings_get_value (self->settings, "commands");
+  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+  commands = g_settings_get_value (settings, "commands");
 
   if (!g_variant_lookup (commands, key, "@a{sv}", &command))
     return valent_runcommand_plugin_send_command_list (self);
@@ -209,6 +211,7 @@ valent_runcommand_plugin_execute_local_command (ValentRuncommandPlugin *self,
 static void
 valent_runcommand_plugin_send_command_list (ValentRuncommandPlugin *self)
 {
+  GSettings *settings;
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
   g_autoptr (GVariant) commands = NULL;
@@ -217,7 +220,8 @@ valent_runcommand_plugin_send_command_list (ValentRuncommandPlugin *self)
   g_assert (VALENT_IS_RUNCOMMAND_PLUGIN (self));
 
   /* The `commandList` dictionary is sent as a string of serialized JSON */
-  commands = g_settings_get_value (self->settings, "commands");
+  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+  commands = g_settings_get_value (settings, "commands");
   command_json = json_gvariant_serialize_data (commands, NULL);
 
   builder = valent_packet_start ("kdeconnect.runcommand");
@@ -365,15 +369,7 @@ static const GActionEntry actions[] = {
 static void
 valent_runcommand_plugin_enable (ValentDevicePlugin *plugin)
 {
-  ValentRuncommandPlugin *self = VALENT_RUNCOMMAND_PLUGIN (plugin);
-  ValentDevice *device;
-  const char *device_id;
-
-  g_assert (VALENT_IS_RUNCOMMAND_PLUGIN (self));
-
-  device = valent_device_plugin_get_device (plugin);
-  device_id = valent_device_get_id (device);
-  self->settings = valent_device_plugin_new_settings (device_id, "runcommand");
+  g_assert (VALENT_IS_RUNCOMMAND_PLUGIN (plugin));
 
   g_action_map_add_action_entries (G_ACTION_MAP (plugin),
                                    actions,
@@ -385,11 +381,11 @@ static void
 valent_runcommand_plugin_disable (ValentDevicePlugin *plugin)
 {
   ValentRuncommandPlugin *self = VALENT_RUNCOMMAND_PLUGIN (plugin);
+  GSettings *settings;
 
   /* Stop watching for command changes */
-  g_clear_signal_handler (&self->commands_changed_id, self->settings);
-
-  g_clear_object (&self->settings);
+  settings = valent_device_plugin_get_settings (plugin);
+  g_clear_signal_handler (&self->commands_changed_id, settings);
 }
 
 static void
@@ -397,6 +393,7 @@ valent_runcommand_plugin_update_state (ValentDevicePlugin *plugin,
                                        ValentDeviceState   state)
 {
   ValentRuncommandPlugin *self = VALENT_RUNCOMMAND_PLUGIN (plugin);
+  GSettings *settings;
   gboolean available;
 
   g_assert (VALENT_IS_RUNCOMMAND_PLUGIN (self));
@@ -406,12 +403,14 @@ valent_runcommand_plugin_update_state (ValentDevicePlugin *plugin,
 
   valent_device_plugin_toggle_actions (plugin, available);
 
+  settings = valent_device_plugin_get_settings (plugin);
+
   if (available)
     {
       if (self->commands_changed_id == 0)
         {
           self->commands_changed_id =
-            g_signal_connect (self->settings,
+            g_signal_connect (settings,
                               "changed::commands",
                               G_CALLBACK (on_commands_changed),
                               self);
@@ -421,7 +420,7 @@ valent_runcommand_plugin_update_state (ValentDevicePlugin *plugin,
     }
   else
     {
-      g_clear_signal_handler (&self->commands_changed_id, self->settings);
+      g_clear_signal_handler (&self->commands_changed_id, settings);
     }
 
   /* If the device is unpaired it is no longer trusted */

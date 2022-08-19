@@ -22,7 +22,6 @@ struct _ValentNotificationPlugin
 {
   ValentDevicePlugin   parent_instance;
 
-  GSettings           *settings;
   GCancellable        *cancellable;
 
   ValentNotifications *notifications;
@@ -63,6 +62,7 @@ on_notification_added (ValentNotifications      *listener,
                        ValentNotification       *notification,
                        ValentNotificationPlugin *self)
 {
+  GSettings *settings;
   ValentDevice *device;
   const char *application;
   g_auto (GStrv) deny = NULL;
@@ -71,15 +71,17 @@ on_notification_added (ValentNotifications      *listener,
   g_assert (VALENT_IS_NOTIFICATION (notification));
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
 
-  if (!g_settings_get_boolean (self->settings, "forward-notifications"))
+  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+
+  if (!g_settings_get_boolean (settings, "forward-notifications"))
     return;
 
-  if (!g_settings_get_boolean (self->settings, "forward-when-active") &&
+  if (!g_settings_get_boolean (settings, "forward-when-active") &&
       valent_session_get_active (self->session))
     return;
 
   application = valent_notification_get_application (notification);
-  deny = g_settings_get_strv (self->settings, "forward-deny");
+  deny = g_settings_get_strv (settings, "forward-deny");
 
   if (application && g_strv_contains ((const char * const *)deny, application))
     return;
@@ -923,15 +925,10 @@ static void
 valent_notification_plugin_enable (ValentDevicePlugin *plugin)
 {
   ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (plugin);
-  ValentDevice *device;
-  const char *device_id;
 
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
 
   /* Setup GSettings */
-  device = valent_device_plugin_get_device (plugin);
-  device_id = valent_device_get_id (device);
-  self->settings = valent_device_plugin_new_settings (device_id, "notification");
   self->cancellable = g_cancellable_new ();
 
   g_action_map_add_action_entries (G_ACTION_MAP (plugin),
@@ -971,8 +968,6 @@ valent_notification_plugin_disable (ValentDevicePlugin *plugin)
 
   g_cancellable_cancel (self->cancellable);
   g_clear_object (&self->cancellable);
-
-  g_clear_object (&self->settings);
 }
 
 static void

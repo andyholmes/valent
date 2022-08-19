@@ -191,8 +191,8 @@ valent_contacts_preferences_constructed (GObject *object)
   g_autoptr (GPtrArray) stores = NULL;
 
   /* Setup GSettings */
-  self->settings = valent_device_plugin_new_settings (self->device_id,
-                                                      "contacts");
+  self->settings = valent_device_plugin_create_settings (self->plugin_info,
+                                                         self->device_id);
 
   g_settings_bind (self->settings,    "remote-sync",
                    self->remote_sync, "active",
