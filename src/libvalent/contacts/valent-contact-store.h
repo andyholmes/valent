@@ -49,6 +49,9 @@ struct _ValentContactStoreClass
                                           EContact             *contact);
   void                (*contact_removed) (ValentContactStore   *store,
                                           const char           *uid);
+
+  /*< private >*/
+  gpointer            padding[8];
 };
 
 

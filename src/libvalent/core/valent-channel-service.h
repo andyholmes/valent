@@ -42,6 +42,9 @@ struct _ValentChannelServiceClass
   /* signals */
   void                (*channel)        (ValentChannelService  *service,
                                          ValentChannel         *channel);
+
+  /*< private >*/
+  gpointer            padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0

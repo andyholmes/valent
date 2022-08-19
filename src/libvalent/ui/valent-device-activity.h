@@ -20,6 +20,9 @@ G_DECLARE_INTERFACE (ValentDeviceActivity, valent_device_activity, VALENT, DEVIC
 struct _ValentDeviceActivityInterface
 {
   GTypeInterface   g_iface;
+
+  /*< private >*/
+  gpointer         padding[8];
 };
 
 G_END_DECLS

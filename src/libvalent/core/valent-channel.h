@@ -52,6 +52,9 @@ struct _ValentChannelClass
                                                GError              **error);
   void                (*store_data)           (ValentChannel        *channel,
                                                ValentData           *data);
+
+  /*< private >*/
+  gpointer            padding[8];
 };
 
 

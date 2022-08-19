@@ -35,6 +35,7 @@ struct _ValentMixerStreamClass
 {
   GObjectClass           parent_class;
 
+  /* virtual functions */
   const char           * (*get_name)        (ValentMixerStream *stream);
   const char           * (*get_description) (ValentMixerStream *stream);
   ValentMixerDirection   (*get_direction)   (ValentMixerStream *stream);
@@ -44,6 +45,9 @@ struct _ValentMixerStreamClass
   gboolean               (*get_muted)       (ValentMixerStream *stream);
   void                   (*set_muted)       (ValentMixerStream *stream,
                                              gboolean           state);
+
+  /*< private >*/
+  gpointer               padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0

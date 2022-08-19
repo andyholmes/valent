@@ -33,6 +33,9 @@ struct _ValentApplicationPluginClass
                                        GFile                   **files,
                                        int                       n_files,
                                        const char               *hint);
+
+  /*< private >*/
+  gpointer            padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0

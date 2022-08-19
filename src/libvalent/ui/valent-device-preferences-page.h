@@ -20,6 +20,9 @@ G_DECLARE_INTERFACE (ValentDevicePreferencesPage, valent_device_preferences_page
 struct _ValentDevicePreferencesPageInterface
 {
   GTypeInterface   g_iface;
+
+  /*< private >*/
+  gpointer         padding[8];
 };
 
 G_END_DECLS

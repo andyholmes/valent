@@ -36,6 +36,9 @@ struct _ValentContactsAdapterClass
                                    ValentContactStore     *store);
   void           (*store_removed) (ValentContactsAdapter  *adapter,
                                    ValentContactStore     *store);
+
+  /*< private >*/
+  gpointer       padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0

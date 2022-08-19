@@ -33,6 +33,9 @@ struct _ValentInputAdapterClass
   void           (*pointer_motion)  (ValentInputAdapter *adapter,
                                      double              dx,
                                      double              dy);
+
+  /*< private >*/
+  gpointer       padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0

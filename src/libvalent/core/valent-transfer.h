@@ -49,6 +49,9 @@ struct _ValentTransferClass
   gboolean            (*execute_finish) (ValentTransfer       *transfer,
                                          GAsyncResult         *result,
                                          GError              **error);
+
+  /*< private >*/
+  gpointer            padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0
