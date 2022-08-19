@@ -28,6 +28,9 @@ struct _ValentComponentClass
                                        PeasExtension   *extension);
   void           (*disable_extension) (ValentComponent *component,
                                        PeasExtension   *extension);
+
+  /*< private >*/
+  gpointer       padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0

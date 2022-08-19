@@ -36,10 +36,13 @@ struct _ValentNotificationsAdapterClass
                                           GError                     **error);
 
   /* signals */
-  void           (*notification_added)   (ValentNotificationsAdapter *adapter,
-                                          ValentNotification         *notification);
-  void           (*notification_removed) (ValentNotificationsAdapter *adapter,
-                                          const char                 *id);
+  void           (*notification_added)   (ValentNotificationsAdapter  *adapter,
+                                          ValentNotification          *notification);
+  void           (*notification_removed) (ValentNotificationsAdapter  *adapter,
+                                          const char                  *id);
+
+  /*< private >*/
+  gpointer       padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0

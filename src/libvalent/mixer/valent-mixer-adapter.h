@@ -38,6 +38,9 @@ struct _ValentMixerAdapterClass
                                              ValentMixerStream  *stream);
   void                (*stream_removed)     (ValentMixerAdapter *adapter,
                                              ValentMixerStream  *stream);
+
+  /*< private >*/
+  gpointer            padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0

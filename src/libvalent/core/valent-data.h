@@ -21,6 +21,9 @@ G_DECLARE_DERIVABLE_TYPE (ValentData, valent_data, VALENT, DATA, GObject)
 struct _ValentDataClass
 {
   GObjectClass   parent_class;
+
+  /*< private >*/
+  gpointer       padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0

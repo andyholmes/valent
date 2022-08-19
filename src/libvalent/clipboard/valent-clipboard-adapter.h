@@ -58,6 +58,9 @@ struct _ValentClipboardAdapterClass
 
   /* signals */
   void           (*changed)            (ValentClipboardAdapter  *adapter);
+
+  /*< private >*/
+  gpointer       padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0

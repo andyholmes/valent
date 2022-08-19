@@ -41,6 +41,9 @@ struct _ValentDevicePluginClass
                                         JsonNode           *packet);
   void                (*update_state)  (ValentDevicePlugin *plugin,
                                         ValentDeviceState   state);
+
+  /*< private >*/
+  gpointer            padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0

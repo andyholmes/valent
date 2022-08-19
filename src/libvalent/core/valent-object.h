@@ -23,7 +23,11 @@ struct _ValentObjectClass
 {
   GObjectClass   parent_class;
 
+  /* signals */
   void           (*destroy)     (ValentObject *object);
+
+  /*< private >*/
+  gpointer       padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0

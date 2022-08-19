@@ -28,6 +28,9 @@ struct _ValentSessionAdapterClass
 
   /* signals */
   void           (*changed)    (ValentSessionAdapter *adapter);
+
+  /*< private >*/
+  gpointer       padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0

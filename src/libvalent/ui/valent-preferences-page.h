@@ -19,7 +19,10 @@ G_DECLARE_INTERFACE (ValentPreferencesPage, valent_preferences_page, VALENT, PRE
 
 struct _ValentPreferencesPageInterface
 {
-  GTypeInterface  g_iface;
+  GTypeInterface   g_iface;
+
+  /*< private >*/
+  gpointer         padding[8];
 };
 
 G_END_DECLS

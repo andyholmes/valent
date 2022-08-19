@@ -36,6 +36,9 @@ struct _ValentMediaAdapterClass
                                     ValentMediaPlayer    *player);
   void           (*player_removed) (ValentMediaAdapter   *adapter,
                                     ValentMediaPlayer    *player);
+
+  /*< private >*/
+  gpointer       padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0

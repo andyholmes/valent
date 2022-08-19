@@ -111,6 +111,9 @@ struct _ValentMediaPlayerClass
   void                 (*changed)      (ValentMediaPlayer *player);
   void                 (*seeked)       (ValentMediaPlayer *player,
                                         gint64             position);
+
+  /*< private >*/
+  gpointer             padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0
