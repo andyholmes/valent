@@ -7,14 +7,6 @@
 
 
 static void
-clipboard_plugin_fixture_set_up (ValentTestFixture *fixture,
-                                 gconstpointer      user_data)
-{
-  valent_test_fixture_init (fixture, user_data);
-  valent_test_fixture_init_settings (fixture, "clipboard");
-}
-
-static void
 clipboard_plugin_fixture_tear_down (ValentTestFixture *fixture,
                                     gconstpointer      user_data)
 {
@@ -191,25 +183,25 @@ main (int   argc,
 
   g_test_add ("/plugins/clipboard/connect",
               ValentTestFixture, path,
-              clipboard_plugin_fixture_set_up,
+              valent_test_fixture_init,
               test_clipboard_plugin_connect,
               clipboard_plugin_fixture_tear_down);
 
   g_test_add ("/plugins/clipboard/handle-content",
               ValentTestFixture, path,
-              clipboard_plugin_fixture_set_up,
+              valent_test_fixture_init,
               test_clipboard_plugin_handle_content,
               clipboard_plugin_fixture_tear_down);
 
   g_test_add ("/plugins/clipboard/send-content",
               ValentTestFixture, path,
-              clipboard_plugin_fixture_set_up,
+              valent_test_fixture_init,
               test_clipboard_plugin_send_content,
               clipboard_plugin_fixture_tear_down);
 
   g_test_add ("/plugins/clipboard/actions",
               ValentTestFixture, path,
-              clipboard_plugin_fixture_set_up,
+              valent_test_fixture_init,
               test_clipboard_plugin_actions,
               clipboard_plugin_fixture_tear_down);
 

@@ -41,7 +41,6 @@ contacts_plugin_fixture_set_up (ValentTestFixture *fixture,
                                 gconstpointer      user_data)
 {
   valent_test_fixture_init (fixture, user_data);
-  valent_test_fixture_init_settings (fixture, "contacts");
 
   g_settings_set_boolean (fixture->settings, "local-sync", TRUE);
   g_settings_set_string (fixture->settings, "local-uid", "test-device");
