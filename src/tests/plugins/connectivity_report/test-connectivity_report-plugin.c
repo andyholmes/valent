@@ -42,14 +42,6 @@ dbusmock_modemmanager (GDBusConnection *connection,
 }
 
 static void
-connectivity_report_plugin_fixture_set_up (ValentTestFixture *fixture,
-                                           gconstpointer      user_data)
-{
-  valent_test_fixture_init (fixture, user_data);
-  valent_test_fixture_init_settings (fixture, "connectivity_report");
-}
-
-static void
 test_connectivity_report_plugin_actions (ValentTestFixture *fixture,
                                          gconstpointer      user_data)
 {
@@ -422,31 +414,31 @@ main (int   argc,
 
   g_test_add ("/plugins/connectivity_report/actions",
               ValentTestFixture, path,
-              connectivity_report_plugin_fixture_set_up,
+              valent_test_fixture_init,
               test_connectivity_report_plugin_actions,
               valent_test_fixture_clear);
 
   g_test_add ("/plugins/connectivity_report/connect",
               ValentTestFixture, path,
-              connectivity_report_plugin_fixture_set_up,
+              valent_test_fixture_init,
               test_connectivity_report_plugin_connect,
               valent_test_fixture_clear);
 
   g_test_add ("/plugins/connectivity_report/handle-update",
               ValentTestFixture, path,
-              connectivity_report_plugin_fixture_set_up,
+              valent_test_fixture_init,
               test_connectivity_report_plugin_handle_update,
               valent_test_fixture_clear);
 
   g_test_add ("/plugins/connectivity_report/handle-request",
               ValentTestFixture, path,
-              connectivity_report_plugin_fixture_set_up,
+              valent_test_fixture_init,
               test_connectivity_report_plugin_handle_request,
               valent_test_fixture_clear);
 
   g_test_add ("/plugins/connectivity_report/fuzz",
               ValentTestFixture, path,
-              connectivity_report_plugin_fixture_set_up,
+              valent_test_fixture_init,
               test_connectivity_report_plugin_fuzz,
               valent_test_fixture_clear);
 

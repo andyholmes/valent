@@ -7,14 +7,6 @@
 
 
 static void
-runcommand_plugin_fixture_set_up (ValentTestFixture *fixture,
-                                  gconstpointer      user_data)
-{
-  valent_test_fixture_init (fixture, user_data);
-  valent_test_fixture_init_settings (fixture, "runcommand");
-}
-
-static void
 test_runcommand_plugin_basic (ValentTestFixture *fixture,
                               gconstpointer      user_data)
 {
@@ -111,19 +103,19 @@ main (int   argc,
 
   g_test_add ("/plugins/runcommand/basic",
               ValentTestFixture, path,
-              runcommand_plugin_fixture_set_up,
+              valent_test_fixture_init,
               test_runcommand_plugin_basic,
               valent_test_fixture_clear);
 
   g_test_add ("/plugins/runcommand/handle-request",
               ValentTestFixture, path,
-              runcommand_plugin_fixture_set_up,
+              valent_test_fixture_init,
               test_runcommand_plugin_handle_request,
               valent_test_fixture_clear);
 
   g_test_add ("/plugins/runcommand/send-request",
               ValentTestFixture, path,
-              runcommand_plugin_fixture_set_up,
+              valent_test_fixture_init,
               test_runcommand_plugin_send_request,
               valent_test_fixture_clear);
 

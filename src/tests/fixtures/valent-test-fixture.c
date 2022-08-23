@@ -59,6 +59,7 @@ valent_test_fixture_init (ValentTestFixture *fixture,
 {
   g_autofree ValentChannel **channels = NULL;
   g_autoptr (JsonParser) parser = NULL;
+  g_autoptr (GPtrArray) plugins = NULL;
   JsonNode *identity;
 
   fixture->loop = g_main_loop_new (NULL, FALSE);
@@ -77,6 +78,25 @@ valent_test_fixture_init (ValentTestFixture *fixture,
   channels = valent_test_channel_pair (identity, identity);
   fixture->channel = g_steal_pointer (&channels[0]);
   fixture->endpoint = g_steal_pointer(&channels[1]);
+
+  /* Init settings */
+  plugins = valent_device_get_plugins (fixture->device);
+
+  for (unsigned int i = 0; i < plugins->len; i++)
+    {
+      PeasPluginInfo *plugin_info = g_ptr_array_index (plugins, i);
+      const char *module_name = peas_plugin_info_get_module_name (plugin_info);
+      const char *device_id;
+
+      if (strcmp (module_name, "mock") == 0 ||
+          strcmp (module_name, "packetless") == 0)
+        continue;
+
+      device_id = valent_device_get_id (fixture->device);
+      fixture->settings = valent_device_plugin_create_settings (plugin_info,
+                                                                device_id);
+      break;
+    }
 }
 
 /**
@@ -163,29 +183,6 @@ valent_test_fixture_unref (ValentTestFixture *fixture)
   g_assert (fixture != NULL);
 
   g_rc_box_release_full (fixture, valent_test_fixture_free);
-}
-
-/**
- * valent_test_fixture_init_settings:
- * @fixture: a #ValentTestFixture
- * @name: a plugin module name
- *
- * Create a #GSettings object for the #ValentDevicePlugin module @name.
- */
-void
-valent_test_fixture_init_settings (ValentTestFixture *fixture,
-                                   const char        *name)
-{
-  PeasPluginInfo *plugin_info = NULL;
-  const char *device_id;
-
-  g_assert (fixture != NULL);
-  g_assert (name != NULL);
-
-  plugin_info = peas_engine_get_plugin_info (valent_get_plugin_engine (), name);
-  device_id = valent_device_get_id (fixture->device);
-  fixture->settings = valent_device_plugin_create_settings (plugin_info,
-                                                            device_id);
 }
 
 /**

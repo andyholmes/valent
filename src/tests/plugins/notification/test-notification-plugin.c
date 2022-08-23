@@ -14,7 +14,6 @@ notification_plugin_fixture_set_up (ValentTestFixture *fixture,
                                     gconstpointer      user_data)
 {
   valent_test_fixture_init (fixture, user_data);
-  valent_test_fixture_init_settings (fixture, "notification");
 
   // TODO: test with session active/inactive
   while ((adapter = valent_mock_notifications_adapter_get_instance ()) == NULL)
