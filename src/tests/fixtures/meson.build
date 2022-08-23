@@ -5,6 +5,11 @@
 # Headers
 libvalent_test_public_headers = [
   'libvalent-test.h',
+  'valent-test-fixture.h',
+  'valent-test-utils.h',
+]
+
+libvalent_test_private_headers = [
   'packetless-plugin.h',
   'valent-mock-application-plugin.h',
   'valent-mock-channel.h',
@@ -21,11 +26,6 @@ libvalent_test_public_headers = [
   'valent-mock-notifications-adapter.h',
   'valent-mock-preferences-page.h',
   'valent-mock-session-adapter.h',
-  'valent-test-fixture.h',
-  'valent-test-utils.h',
-]
-
-libvalent_test_private_headers = [
 ]
 
 

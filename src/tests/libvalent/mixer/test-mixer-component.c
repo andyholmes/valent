@@ -63,6 +63,7 @@ mixer_component_fixture_set_up (MixerComponentFixture *fixture,
                                 gconstpointer          user_data)
 {
   fixture->mixer = valent_mixer_get_default ();
+  fixture->adapter = valent_test_await_adapter (fixture->mixer);
   fixture->input1 = g_object_new (VALENT_TYPE_MIXER_STREAM,
                                   "name",        "test_source1",
                                   "description", "Test Microphone",
@@ -87,9 +88,6 @@ mixer_component_fixture_set_up (MixerComponentFixture *fixture,
                                    "description", "Test Headphones",
                                    "direction",   VALENT_MIXER_OUTPUT,
                                    NULL);
-
-  while ((fixture->adapter = valent_mock_mixer_adapter_get_instance ()) == NULL)
-    g_main_context_iteration (NULL, FALSE);
 
   g_object_ref (fixture->adapter);
 }

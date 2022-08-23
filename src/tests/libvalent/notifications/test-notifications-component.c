@@ -36,17 +36,11 @@ notifications_component_fixture_set_up (NotificationsComponentFixture *fixture,
                                         gconstpointer                  user_data)
 {
   fixture->notifications = valent_notifications_get_default ();
+  fixture->adapter = valent_test_await_adapter (fixture->notifications);
   fixture->notification = g_object_new (VALENT_TYPE_NOTIFICATION,
                                         "title", "Test Title",
                                         "id",    "test-id",
                                         NULL);
-
-  while ((fixture->adapter = valent_mock_notifications_adapter_get_instance ()) == NULL)
-    g_main_context_iteration (NULL, FALSE);
-
-  /* Wait a bit longer for valent_notifications_adapter_load_async() to resolve */
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
 
   g_object_ref (fixture->adapter);
 }

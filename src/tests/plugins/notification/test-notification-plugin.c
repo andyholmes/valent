@@ -4,6 +4,7 @@
 #include <gio/gio.h>
 #include <gtk/gtk.h>
 #include <libvalent-core.h>
+#include <libvalent-notifications.h>
 #include <libvalent-test.h>
 
 
@@ -15,9 +16,7 @@ notification_plugin_fixture_set_up (ValentTestFixture *fixture,
 {
   valent_test_fixture_init (fixture, user_data);
 
-  // TODO: test with session active/inactive
-  while ((adapter = valent_mock_notifications_adapter_get_instance ()) == NULL)
-    g_main_context_iteration (NULL, FALSE);
+  adapter = valent_test_await_adapter (valent_notifications_get_default ());
 }
 
 static void

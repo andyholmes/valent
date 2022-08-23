@@ -18,6 +18,7 @@
 #include <libvalent-session.h>
 #include <libvalent-ui.h>
 
+#include "valent-component-private.h"
 #include "valent-mock-channel.h"
 #include "valent-test-utils.h"
 
@@ -305,6 +306,30 @@ valent_test_load_json (const char *path)
   g_assert_no_error (error);
 
   return json_parser_steal_root (parser);
+}
+
+/**
+ * valent_test_await_adapter:
+ * @component: (type Valent.Component): a #ValentComponent
+ *
+ * Wait for a [class@Valent.Component] adapter to load and return it.
+ *
+ * Returns: a component adapter
+ */
+gpointer
+valent_test_await_adapter (gpointer component)
+{
+  gpointer ret = NULL;
+
+  g_assert (VALENT_IS_COMPONENT (component));
+
+  while ((ret = valent_component_get_primary (component)) == NULL)
+    g_main_context_iteration (NULL, FALSE);
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
+  return ret;
 }
 
 static gboolean

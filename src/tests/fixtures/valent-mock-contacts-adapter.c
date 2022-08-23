@@ -33,8 +33,6 @@ struct _ValentMockContactsAdapter
 G_DEFINE_TYPE (ValentMockContactsAdapter, valent_mock_contacts_adapter, VALENT_TYPE_CONTACTS_ADAPTER)
 
 
-static ValentContactsAdapter *test_instance = NULL;
-
 /*
  * ValentContactsAdapter
  */
@@ -90,24 +88,5 @@ valent_mock_contacts_adapter_class_init (ValentMockContactsAdapterClass *klass)
 static void
 valent_mock_contacts_adapter_init (ValentMockContactsAdapter *self)
 {
-  if (test_instance == NULL)
-    {
-      test_instance = VALENT_CONTACTS_ADAPTER (self);
-      g_object_add_weak_pointer (G_OBJECT (test_instance),
-                                 (gpointer)&test_instance);
-    }
-}
-
-/**
- * valent_mock_contacts_adapter_get_instance:
- *
- * Get the #ValentMockContactsAdapter instance.
- *
- * Returns: (transfer none) (nullable): a #ValentContactsAdapter
- */
-ValentContactsAdapter *
-valent_mock_contacts_adapter_get_instance (void)
-{
-  return test_instance;
 }
 

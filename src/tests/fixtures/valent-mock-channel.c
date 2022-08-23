@@ -166,11 +166,15 @@ valent_mock_channel_get_property (GObject    *object,
   switch (prop_id)
     {
     case PROP_HOST:
-      g_value_take_string (value, valent_mock_channel_dup_host (self));
+      valent_object_lock (VALENT_OBJECT (self));
+      g_value_set_string (value, self->host);
+      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     case PROP_PORT:
-      g_value_set_uint (value, valent_mock_channel_get_port (self));
+      valent_object_lock (VALENT_OBJECT (self));
+      g_value_set_uint (value, self->port);
+      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     default:
@@ -258,49 +262,5 @@ valent_mock_channel_class_init (ValentMockChannelClass *klass)
 static void
 valent_mock_channel_init (ValentMockChannel *self)
 {
-}
-
-/**
- * valent_mock_channel_dup_host:
- * @self: a #ValentMockChannel
- *
- * Get the host or IP address for @self.
- *
- * Returns: (transfer full) (nullable): a host or IP address
- */
-char *
-valent_mock_channel_dup_host (ValentMockChannel *self)
-{
-  char *ret;
-
-  g_assert (VALENT_IS_MOCK_CHANNEL (self));
-
-  valent_object_lock (VALENT_OBJECT (self));
-  ret = g_strdup (self->host);
-  valent_object_unlock (VALENT_OBJECT (self));
-
-  return ret;
-}
-
-/**
- * valent_mock_channel_get_port:
- * @self: a #ValentMockChannel
- *
- * Get the port for @self.
- *
- * Returns: a port number
- */
-guint16
-valent_mock_channel_get_port (ValentMockChannel *self)
-{
-  guint16 ret;
-
-  g_assert (VALENT_IS_MOCK_CHANNEL (self));
-
-  valent_object_lock (VALENT_OBJECT (self));
-  ret = self->port;
-  valent_object_unlock (VALENT_OBJECT (self));
-
-  return ret;
 }
 

@@ -13,47 +13,48 @@
 
 G_BEGIN_DECLS
 
-void             valent_test_init         (int    *argcp,
-                                           char ***argvp,
-                                           ...);
-void             valent_test_ui_init      (int    *argcp,
-                                           char ***argvp,
-                                           ...);
+void             valent_test_init          (int              *argcp,
+                                            char           ***argvp,
+                                                              ...);
+void             valent_test_ui_init       (int              *argcp,
+                                            char           ***argvp,
+                                                              ...);
 
-gboolean         valent_test_mute_domain  (const char     *log_domain,
-                                           GLogLevelFlags  log_level,
-                                           const char     *message,
-                                           gpointer        user_data);
+gboolean         valent_test_mute_domain   (const char       *log_domain,
+                                            GLogLevelFlags    log_level,
+                                            const char       *message,
+                                            gpointer          user_data);
 
-gboolean         valent_test_mute_match   (const char     *log_domain,
-                                           GLogLevelFlags  log_level,
-                                           const char     *message,
-                                           gpointer        user_data);
+gboolean         valent_test_mute_match    (const char       *log_domain,
+                                            GLogLevelFlags    log_level,
+                                            const char       *message,
+                                            gpointer          user_data);
 
-gboolean         valent_test_mute_warning (const char     *log_domain,
-                                           GLogLevelFlags  log_level,
-                                           const char     *message,
-                                           gpointer        user_data);
-gboolean         valent_test_mute_fuzzing (const char     *log_domain,
-                                           GLogLevelFlags  log_level,
-                                           const char     *message,
-                                           gpointer        user_data);
+gboolean         valent_test_mute_warning  (const char       *log_domain,
+                                            GLogLevelFlags    log_level,
+                                            const char       *message,
+                                            gpointer          user_data);
+gboolean         valent_test_mute_fuzzing  (const char       *log_domain,
+                                            GLogLevelFlags    log_level,
+                                            const char       *message,
+                                            gpointer          user_data);
 
-gpointer         valent_test_event_pop    (void);
-void             valent_test_event_push   (gpointer        data);
-void             valent_test_event_free   (GDestroyNotify  free_func);
+gpointer         valent_test_event_pop     (void);
+void             valent_test_event_push    (gpointer          data);
+void             valent_test_event_free    (GDestroyNotify    free_func);
 
-void             valent_test_wait         (unsigned int    duration);
-JsonNode       * valent_test_load_json    (const char     *path);
-ValentChannel ** valent_test_channel_pair (JsonNode       *identity,
-                                           JsonNode       *peer_identity);
-gboolean         valent_test_download     (ValentChannel  *rig,
-                                           JsonNode       *packet,
-                                           GError        **error);
-gboolean         valent_test_upload       (ValentChannel  *channel,
-                                           JsonNode       *packet,
-                                           GFile          *file,
-                                           GError        **error);
+gpointer         valent_test_await_adapter (gpointer          component);
+void             valent_test_wait          (unsigned int      duration);
+JsonNode       * valent_test_load_json     (const char       *path);
+ValentChannel ** valent_test_channel_pair  (JsonNode         *identity,
+                                            JsonNode         *peer_identity);
+gboolean         valent_test_download      (ValentChannel    *channel,
+                                            JsonNode         *packet,
+                                            GError          **error);
+gboolean         valent_test_upload        (ValentChannel    *channel,
+                                            JsonNode         *packet,
+                                            GFile            *file,
+                                            GError          **error);
 
 #define valent_test_event_cmpstr(str)       \
   G_STMT_START {                            \

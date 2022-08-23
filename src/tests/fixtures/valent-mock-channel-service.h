@@ -3,10 +3,6 @@
 
 #pragma once
 
-#if !defined (VALENT_TEST_INSIDE) && !defined (VALENT_TEST_COMPILATION)
-# error "Only <libvalent-test.h> can be included directly."
-#endif
-
 #include <libvalent-core.h>
 
 G_BEGIN_DECLS

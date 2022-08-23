@@ -135,6 +135,7 @@ contacts_component_fixture_set_up (ContactsComponentFixture *fixture,
   g_autoptr (ESource) source = NULL;
 
   fixture->contacts = valent_contacts_get_default ();
+  fixture->adapter = valent_test_await_adapter (fixture->contacts);
 
   /* Create a test store */
   source = e_source_new_with_uid ("test-store", NULL, NULL);
@@ -146,14 +147,6 @@ contacts_component_fixture_set_up (ContactsComponentFixture *fixture,
 
   fixture->contact = e_contact_new_from_vcard_with_uid (vcard, "test-contact");
   fixture->loop = g_main_loop_new (NULL, FALSE);
-
-  // HACK: Wait for the adapter to be constructed, then a bit longer for
-  //       valent_contacts_adapter_load_async() to resolve
-  while ((fixture->adapter = valent_mock_contacts_adapter_get_instance ()) == NULL)
-    g_main_context_iteration (NULL, FALSE);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
 
   g_object_ref (fixture->adapter);
 }

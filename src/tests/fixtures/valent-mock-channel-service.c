@@ -10,6 +10,7 @@
 #include <libvalent-test.h>
 #include <sys/socket.h>
 
+#include "valent-mock-channel.h"
 #include "valent-mock-channel-service.h"
 
 

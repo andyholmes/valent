@@ -20,8 +20,6 @@ struct _ValentMockMixerAdapter
 G_DEFINE_TYPE (ValentMockMixerAdapter, valent_mock_mixer_adapter, VALENT_TYPE_MIXER_ADAPTER)
 
 
-static ValentMixerAdapter *test_instance = NULL;
-
 static void
 on_stream_changed (ValentMixerStream  *stream,
                    GParamSpec         *pspec,
@@ -153,24 +151,5 @@ valent_mock_mixer_adapter_class_init (ValentMockMixerAdapterClass *klass)
 static void
 valent_mock_mixer_adapter_init (ValentMockMixerAdapter *self)
 {
-  if (test_instance == NULL)
-    {
-      test_instance = VALENT_MIXER_ADAPTER (self);
-      g_object_add_weak_pointer (G_OBJECT (test_instance),
-                                 (gpointer)&test_instance);
-    }
-}
-
-/**
- * valent_mock_mixer_adapter_get_instance:
- *
- * Get the #ValentMockMixerAdapter instance.
- *
- * Returns: (transfer none) (nullable): a #ValentMixerAdapter
- */
-ValentMixerAdapter *
-valent_mock_mixer_adapter_get_instance (void)
-{
-  return test_instance;
 }
 
