@@ -6,6 +6,9 @@
 #include <libvalent-core.h>
 #include <libvalent-test.h>
 
+#include "valent-mock-channel.h"
+#include "valent-mock-channel-service.h"
+
 
 typedef struct
 {

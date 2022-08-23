@@ -18,8 +18,6 @@ struct _ValentMockNotificationsAdapter
 G_DEFINE_TYPE (ValentMockNotificationsAdapter, valent_mock_notifications_adapter, VALENT_TYPE_NOTIFICATIONS_ADAPTER)
 
 
-static ValentNotificationsAdapter *test_instance = NULL;
-
 /*
  * ValentNotificationsAdapter
  */
@@ -52,24 +50,5 @@ valent_mock_notifications_adapter_class_init (ValentMockNotificationsAdapterClas
 static void
 valent_mock_notifications_adapter_init (ValentMockNotificationsAdapter *self)
 {
-  if (test_instance == NULL)
-    {
-      test_instance = VALENT_NOTIFICATIONS_ADAPTER (self);
-      g_object_add_weak_pointer (G_OBJECT (test_instance),
-                                 (gpointer)&test_instance);
-    }
-}
-
-/**
- * valent_mock_notifications_adapter_get_instance:
- *
- * Get the #ValentMockNotificationsAdapter instance.
- *
- * Returns: (transfer none) (nullable): a #ValentNotificationsAdapter
- */
-ValentNotificationsAdapter *
-valent_mock_notifications_adapter_get_instance (void)
-{
-  return test_instance;
 }
 

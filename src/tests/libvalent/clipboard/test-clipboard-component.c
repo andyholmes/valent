@@ -20,10 +20,8 @@ clipboard_component_fixture_set_up (ClipboardComponentFixture *fixture,
                                     gconstpointer              user_data)
 {
   fixture->clipboard = valent_clipboard_get_default ();
+  fixture->adapter = valent_test_await_adapter (fixture->clipboard);
   fixture->loop = g_main_loop_new (NULL, FALSE);
-
-  while ((fixture->adapter = valent_mock_clipboard_adapter_get_instance ()) == NULL)
-    g_main_context_iteration (NULL, FALSE);
 
   g_object_ref (fixture->adapter);
 }

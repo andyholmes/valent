@@ -6,6 +6,8 @@
 #include <libvalent-media.h>
 #include <libvalent-test.h>
 
+#include "valent-mock-media-player.h"
+
 
 typedef struct
 {
@@ -21,13 +23,8 @@ media_component_fixture_set_up (MediaComponentFixture *fixture,
                                 gconstpointer          user_data)
 {
   fixture->media = valent_media_get_default ();
+  fixture->adapter = valent_test_await_adapter (fixture->media);
   fixture->player = g_object_new (VALENT_TYPE_MOCK_MEDIA_PLAYER, NULL);
-
-  while ((fixture->adapter = valent_mock_media_adapter_get_instance ()) == NULL)
-    g_main_context_iteration (NULL, FALSE);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
 
   g_object_ref (fixture->adapter);
 }

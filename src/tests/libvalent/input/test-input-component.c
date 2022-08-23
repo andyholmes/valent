@@ -18,9 +18,7 @@ input_component_fixture_set_up (InputComponentFixture *fixture,
                                 gconstpointer          user_data)
 {
   fixture->input = valent_input_get_default ();
-
-  while ((fixture->adapter = valent_mock_input_adapter_get_instance ()) == NULL)
-    g_main_context_iteration (NULL, FALSE);
+  fixture->adapter = valent_test_await_adapter (fixture->input);
 
   g_object_ref (fixture->adapter);
 }

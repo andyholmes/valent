@@ -19,8 +19,6 @@ struct _ValentMockMediaAdapter
 G_DEFINE_TYPE (ValentMockMediaAdapter, valent_mock_media_adapter, VALENT_TYPE_MEDIA_ADAPTER)
 
 
-static ValentMediaAdapter *test_instance = NULL;
-
 /*
  * ValentMediaAdapter
  */
@@ -53,24 +51,5 @@ valent_mock_media_adapter_class_init (ValentMockMediaAdapterClass *klass)
 static void
 valent_mock_media_adapter_init (ValentMockMediaAdapter *self)
 {
-  if (test_instance == NULL)
-    {
-      test_instance = VALENT_MEDIA_ADAPTER (self);
-      g_object_add_weak_pointer (G_OBJECT (test_instance),
-                                 (gpointer)&test_instance);
-    }
-}
-
-/**
- * valent_mock_media_adapter_get_instance:
- *
- * Get the #ValentMockMediaAdapter instance.
- *
- * Returns: (transfer none) (nullable): a #ValentMediaAdapter
- */
-ValentMediaAdapter *
-valent_mock_media_adapter_get_instance (void)
-{
-  return test_instance;
 }
 

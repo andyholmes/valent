@@ -44,6 +44,6 @@ leakNoVarFunctionCall:src/tests/plugins/fdo/test-fdo-session.c:65
 memleak:src/tests/plugins/fdo/test-fdo-notifications.c:164
 
 # src/tests/plugins/gtk/
-leakNoVarFunctionCall:src/tests/plugins/gtk/test-gtk-notifications.c:114
-leakNoVarFunctionCall:src/tests/plugins/gtk/test-gtk-notifications.c:116
-leakNoVarFunctionCall:src/tests/plugins/gtk/test-gtk-notifications.c:118
+leakNoVarFunctionCall:src/tests/plugins/gtk/test-gtk-notifications.c:115
+leakNoVarFunctionCall:src/tests/plugins/gtk/test-gtk-notifications.c:117
+leakNoVarFunctionCall:src/tests/plugins/gtk/test-gtk-notifications.c:119

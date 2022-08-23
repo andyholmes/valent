@@ -4,6 +4,7 @@
 #include <gio/gio.h>
 #include <libvalent-core.h>
 #include <libvalent-media.h>
+#include <libvalent-mixer.h>
 #include <libvalent-test.h>
 
 typedef struct
@@ -33,19 +34,11 @@ telephony_plugin_fixture_set_up (ValentTestFixture *fixture,
                                  gconstpointer      user_data)
 {
   MixerInfo *info;
-  ValentMixer *mixer;
-  ValentMixerAdapter *adapter;
 
   valent_test_fixture_init (fixture, user_data);
 
-  mixer = valent_mixer_get_default ();
-  g_assert_true (VALENT_IS_MIXER (mixer));
-
-  while ((adapter = valent_mock_mixer_adapter_get_instance ()) == NULL)
-    g_main_context_iteration (NULL, FALSE);
-
   info = g_new0 (MixerInfo, 1);
-  info->adapter = adapter;
+  info->adapter = valent_test_await_adapter (valent_mixer_get_default ());
   info->speakers = g_object_new (VALENT_TYPE_MIXER_STREAM,
                                  "name",        "mock-speakers",
                                  "description", "Mock Speakers",

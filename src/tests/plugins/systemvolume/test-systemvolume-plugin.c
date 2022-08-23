@@ -3,6 +3,7 @@
 
 #include <gio/gio.h>
 #include <libvalent-core.h>
+#include <libvalent-mixer.h>
 #include <libvalent-test.h>
 
 
@@ -20,7 +21,6 @@ mixer_info_free (gpointer data)
 
   /* NOTE: we need to finalize the mixer singleton between tests */
   v_assert_finalize_object (valent_mixer_get_default ());
-  v_await_finalize_object (info->adapter);
 
   g_clear_object (&info->sink1);
   g_clear_object (&info->sink2);
@@ -32,19 +32,11 @@ systemvolume_plugin_fixture_set_up (ValentTestFixture *fixture,
                                     gconstpointer      user_data)
 {
   MixerInfo *info;
-  ValentMixer *mixer;
-  ValentMixerAdapter *adapter;
 
   valent_test_fixture_init (fixture, user_data);
 
-  mixer = valent_mixer_get_default ();
-  g_assert_true (VALENT_IS_MIXER (mixer));
-
-  while ((adapter = valent_mock_mixer_adapter_get_instance ()) == NULL)
-    g_main_context_iteration (NULL, FALSE);
-
   info = g_new0 (MixerInfo, 1);
-  info->adapter = g_object_ref (adapter);
+  info->adapter = valent_test_await_adapter (valent_mixer_get_default ());
   info->sink1 = g_object_new (VALENT_TYPE_MIXER_STREAM,
                               "name",        "test_sink1",
                               "description", "Test Speakers",

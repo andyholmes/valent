@@ -21,8 +21,6 @@ struct _ValentMockSessionAdapter
 G_DEFINE_TYPE (ValentMockSessionAdapter, valent_mock_session_adapter, VALENT_TYPE_SESSION_ADAPTER)
 
 
-static ValentSessionAdapter *test_instance = NULL;
-
 /*
  * ValentSessionAdapter
  */
@@ -72,24 +70,5 @@ valent_mock_session_adapter_class_init (ValentMockSessionAdapterClass *klass)
 static void
 valent_mock_session_adapter_init (ValentMockSessionAdapter *self)
 {
-  if (test_instance == NULL)
-    {
-      test_instance = VALENT_SESSION_ADAPTER (self);
-      g_object_add_weak_pointer (G_OBJECT (test_instance),
-                                 (gpointer)&test_instance);
-    }
-}
-
-/**
- * valent_mock_session_adapter_get_instance:
- *
- * Get the #ValentMockSessionAdapter instance.
- *
- * Returns: (transfer none) (nullable): a #ValentSessionAdapter
- */
-ValentSessionAdapter *
-valent_mock_session_adapter_get_instance (void)
-{
-  return test_instance;
 }
 

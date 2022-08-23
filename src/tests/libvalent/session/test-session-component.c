@@ -19,9 +19,7 @@ session_component_fixture_set_up (SessionComponentFixture *fixture,
                                   gconstpointer            user_data)
 {
   fixture->session = valent_session_get_default ();
-
-  while ((fixture->adapter = valent_mock_session_adapter_get_instance ()) == NULL)
-    g_main_context_iteration (NULL, FALSE);
+  fixture->adapter = valent_test_await_adapter (fixture->session);
 
   g_object_ref (fixture->adapter);
 }

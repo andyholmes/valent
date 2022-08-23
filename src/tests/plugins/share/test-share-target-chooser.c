@@ -4,6 +4,8 @@
 #include <libvalent-test.h>
 #include <libvalent-ui.h>
 
+#include "valent-mock-channel.h"
+#include "valent-mock-channel-service.h"
 #include "valent-share-target-chooser.h"
 
 
