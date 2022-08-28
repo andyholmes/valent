@@ -11,6 +11,6 @@ Embedded=valent_mousepad_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
-X-IncomingCapabilities=kdeconnect.mousepad.echo;kdeconnect.mousepad.request;kdeconnect.mousepad.keyboardstate
-X-OutgoingCapabilities=kdeconnect.mousepad.echo;kdeconnect.mousepad.request;kdeconnect.mousepad.keyboardstate
+X-DevicePluginIncoming=kdeconnect.mousepad.echo;kdeconnect.mousepad.request;kdeconnect.mousepad.keyboardstate
+X-DevicePluginOutgoing=kdeconnect.mousepad.echo;kdeconnect.mousepad.request;kdeconnect.mousepad.keyboardstate
 

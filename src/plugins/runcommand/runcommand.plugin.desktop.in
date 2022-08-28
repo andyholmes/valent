@@ -11,7 +11,7 @@ Embedded=valent_runcommand_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
+X-DevicePluginIncoming=kdeconnect.runcommand;kdeconnect.runcommand.request
+X-DevicePluginOutgoing=kdeconnect.runcommand;kdeconnect.runcommand.request
 X-DevicePluginSettings=ca.andyholmes.valent.runcommand
-X-IncomingCapabilities=kdeconnect.runcommand;kdeconnect.runcommand.request
-X-OutgoingCapabilities=kdeconnect.runcommand;kdeconnect.runcommand.request
 

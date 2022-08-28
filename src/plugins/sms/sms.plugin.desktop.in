@@ -11,6 +11,6 @@ Embedded=valent_sms_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
-X-IncomingCapabilities=kdeconnect.sms.messages
-X-OutgoingCapabilities=kdeconnect.sms.request;kdeconnect.sms.request_conversation;kdeconnect.sms.request_conversations
+X-DevicePluginIncoming=kdeconnect.sms.messages
+X-DevicePluginOutgoing=kdeconnect.sms.request;kdeconnect.sms.request_conversation;kdeconnect.sms.request_conversations
 

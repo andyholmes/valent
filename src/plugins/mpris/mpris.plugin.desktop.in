@@ -11,6 +11,6 @@ Embedded=valent_mpris_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
-X-IncomingCapabilities=kdeconnect.mpris;kdeconnect.mpris.request
-X-OutgoingCapabilities=kdeconnect.mpris;kdeconnect.mpris.request
+X-DevicePluginIncoming=kdeconnect.mpris;kdeconnect.mpris.request
+X-DevicePluginOutgoing=kdeconnect.mpris;kdeconnect.mpris.request
 

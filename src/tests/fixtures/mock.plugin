@@ -11,8 +11,8 @@ Embedded=valent_mock_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
-X-IncomingCapabilities=kdeconnect.mock.echo;kdeconnect.mock.transfer
-X-OutgoingCapabilities=kdeconnect.mock.echo;kdeconnect.mock.transfer
+X-DevicePluginIncoming=kdeconnect.mock.echo;kdeconnect.mock.transfer
+X-DevicePluginOutgoing=kdeconnect.mock.echo;kdeconnect.mock.transfer
 # The mock plugins should be lowest priority
 X-ClipboardAdapterPriority=1000000
 X-ContactsAdapterPriority=1000000
