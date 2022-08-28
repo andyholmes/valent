@@ -211,14 +211,14 @@ valent_contacts_preferences_constructed (GObject *object)
   for (unsigned int i = 0; i < stores->len; i++)
     on_store_added (contacts, g_ptr_array_index (stores, i), self);
 
-  g_signal_connect (contacts,
-                    "store-added",
-                    G_CALLBACK (on_store_added),
-                    self);
-  g_signal_connect (contacts,
-                    "store-removed",
-                    G_CALLBACK (on_store_removed),
-                    self);
+  g_signal_connect_object (contacts,
+                           "store-added",
+                           G_CALLBACK (on_store_added),
+                           self, 0);
+  g_signal_connect_object (contacts,
+                           "store-removed",
+                           G_CALLBACK (on_store_removed),
+                           self, 0);
 
   G_OBJECT_CLASS (valent_contacts_preferences_parent_class)->constructed (object);
 }
@@ -227,11 +227,8 @@ static void
 valent_contacts_preferences_finalize (GObject *object)
 {
   ValentContactsPreferences *self = VALENT_CONTACTS_PREFERENCES (object);
-  ValentContacts *contacts;
 
-  contacts = valent_contacts_get_default ();
-  g_signal_handlers_disconnect_by_func (contacts, on_store_added, self);
-  g_signal_handlers_disconnect_by_func (contacts, on_store_removed, self);
+  g_signal_handlers_disconnect_by_data (valent_contacts_get_default (), self);
 
   g_clear_pointer (&self->local_stores, g_hash_table_unref);
   g_clear_pointer (&self->device_id, g_free);
