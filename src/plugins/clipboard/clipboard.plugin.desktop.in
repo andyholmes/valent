@@ -11,7 +11,7 @@ Embedded=valent_clipboard_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
+X-DevicePluginIncoming=kdeconnect.clipboard;kdeconnect.clipboard.connect
+X-DevicePluginOutgoing=kdeconnect.clipboard;kdeconnect.clipboard.connect
 X-DevicePluginSettings=ca.andyholmes.valent.clipboard
-X-IncomingCapabilities=kdeconnect.clipboard;kdeconnect.clipboard.connect
-X-OutgoingCapabilities=kdeconnect.clipboard;kdeconnect.clipboard.connect
 

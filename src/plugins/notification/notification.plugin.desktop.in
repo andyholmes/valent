@@ -11,7 +11,7 @@ Embedded=valent_notification_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
+X-DevicePluginIncoming=kdeconnect.notification;kdeconnect.notification.request
+X-DevicePluginOutgoing=kdeconnect.notification;kdeconnect.notification.action;kdeconnect.notification.reply;kdeconnect.notification.request
 X-DevicePluginSettings=ca.andyholmes.valent.notification
-X-IncomingCapabilities=kdeconnect.notification;kdeconnect.notification.request
-X-OutgoingCapabilities=kdeconnect.notification;kdeconnect.notification.action;kdeconnect.notification.reply;kdeconnect.notification.request
 

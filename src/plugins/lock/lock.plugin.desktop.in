@@ -11,6 +11,6 @@ Embedded=valent_lock_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
-X-IncomingCapabilities=kdeconnect.lock;kdeconnect.lock.request
-X-OutgoingCapabilities=kdeconnect.lock;kdeconnect.lock.request
+X-DevicePluginIncoming=kdeconnect.lock;kdeconnect.lock.request
+X-DevicePluginOutgoing=kdeconnect.lock;kdeconnect.lock.request
 

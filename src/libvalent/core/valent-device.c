@@ -1881,8 +1881,8 @@ valent_device_supports_plugin (ValentDevice   *device,
     return FALSE;
 
   /* Packet-less plugins aren't dependent on device capabilities */
-  in_str = peas_plugin_info_get_external_data (info, "IncomingCapabilities");
-  out_str = peas_plugin_info_get_external_data (info, "OutgoingCapabilities");
+  in_str = peas_plugin_info_get_external_data (info, "DevicePluginIncoming");
+  out_str = peas_plugin_info_get_external_data (info, "DevicePluginOutgoing");
 
   if (in_str == NULL && out_str == NULL)
     return TRUE;

@@ -11,6 +11,6 @@ Embedded=valent_presenter_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
-X-IncomingCapabilities=kdeconnect.presenter
-X-OutgoingCapabilities=kdeconnect.presenter
+X-DevicePluginIncoming=kdeconnect.presenter
+X-DevicePluginOutgoing=kdeconnect.presenter
 

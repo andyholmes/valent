@@ -11,6 +11,6 @@ Embedded=valent_findmyphone_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
-X-IncomingCapabilities=kdeconnect.findmyphone.request
-X-OutgoingCapabilities=kdeconnect.findmyphone.request
+X-DevicePluginIncoming=kdeconnect.findmyphone.request
+X-DevicePluginOutgoing=kdeconnect.findmyphone.request
 

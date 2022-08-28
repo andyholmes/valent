@@ -14,6 +14,10 @@
 #include "valent-device-plugin.h"
 #include "valent-packet.h"
 
+#define PLUGIN_SETTINGS_KEY "X-DevicePluginSettings"
+#define PLUGIN_INCOMING_KEY "X-DevicePluginIncoming"
+#define PLUGIN_OUTGOING_KEY "X-DevicePluginOutgoing"
+
 
 /**
  * ValentDevicePlugin:
@@ -52,10 +56,10 @@
  *
  * ## Implementation Notes
  *
- * Implementations that define `X-IncomingCapabilities` in the `.plugin` file
+ * Implementations that define `X-DevicePluginIncoming` in the `.plugin` file
  * must override [vfunc@Valent.DevicePlugin.handle_packet] to handle incoming
  * packets. Implementations that depend on the device state, especially those
- * that define `X-OutgoingCapabilities` in the `.plugin` file, should override
+ * that define `X-DevicePluginOutgoing` in the `.plugin` file, should override
  * [vfunc@Valent.DevicePlugin.update_state].
  *
  * For device plugin preferences see [iface@Valent.DevicePreferencesPage].
@@ -64,20 +68,20 @@
  *
  * Implementations may define the following extra fields in the `.plugin` file:
  *
- * - `X-DevicePluginSettings`
- *
- *     A [class@Gio.Settings] schema ID for the plugin's settings. See
- *     [func@Valent.DevicePlugin.create_settings] for more information.
- *
- * - `X-IncomingCapabilities`
+ * - `X-DevicePluginIncoming`
  *
  *     A list of packet types (eg. `kdeconnect.ping`) separated by semi-colons
  *     indicating the packets that the plugin can handle.
  *
- * - `X-OutgoingCapabilities`
+ * - `X-DevicePluginOutgoing`
  *
  *     A list of packet types (eg. `kdeconnect.share.request`) separated by
  *     semi-colons indicating the packets that the plugin may send.
+ *
+ * - `X-DevicePluginSettings`
+ *
+ *     A [class@Gio.Settings] schema ID for the plugin's settings. See
+ *     [func@Valent.DevicePlugin.create_settings] for more information.
  *
  * - `X-ChannelProtocol`
  *
@@ -773,7 +777,7 @@ valent_device_plugin_get_incoming (PeasPluginInfo *info)
 
   g_return_val_if_fail (info != NULL, NULL);
 
-  data = peas_plugin_info_get_external_data (info, "IncomingCapabilities");
+  data = peas_plugin_info_get_external_data (info, "DevicePluginIncoming");
 
   return (data == NULL) ? NULL : g_strsplit (data, ";", -1);
 }
@@ -796,7 +800,7 @@ valent_device_plugin_get_outgoing (PeasPluginInfo *info)
 
   g_return_val_if_fail (info != NULL, NULL);
 
-  data = peas_plugin_info_get_external_data (info, "OutgoingCapabilities");
+  data = peas_plugin_info_get_external_data (info, "DevicePluginOutgoing");
 
   return (data == NULL) ? NULL : g_strsplit (data, ";", -1);
 }
@@ -1109,7 +1113,7 @@ valent_device_plugin_disable (ValentDevicePlugin *plugin)
  * Handle a packet from the device the plugin is bound to.
  *
  * This is called when the device receives a packet type included in the
- * `X-IncomingCapabilities` field of the `.plugin` file.
+ * `X-DevicePluginIncoming` field of the `.plugin` file.
  *
  * This is optional for implementations which do not register any incoming
  * capabilities, such as plugins that do not provide packet-based functionality.

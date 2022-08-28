@@ -205,7 +205,7 @@ collect_capabilities (PeasPluginInfo *info,
 {
   const char *data = NULL;
 
-  if ((data = peas_plugin_info_get_external_data (info, "IncomingCapabilities")) != NULL)
+  if ((data = peas_plugin_info_get_external_data (info, "DevicePluginIncoming")) != NULL)
     {
       g_autofree char **capabilities = NULL;
 
@@ -215,7 +215,7 @@ collect_capabilities (PeasPluginInfo *info,
         g_hash_table_add (incoming, g_steal_pointer (&capabilities[i]));
     }
 
-  if ((data = peas_plugin_info_get_external_data (info, "OutgoingCapabilities")) != NULL)
+  if ((data = peas_plugin_info_get_external_data (info, "DevicePluginOutgoing")) != NULL)
     {
       g_autofree char **capabilities = NULL;
 
