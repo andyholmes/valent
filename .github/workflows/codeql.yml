@@ -19,7 +19,7 @@ jobs:
     name: Static Analysis (CodeQL)
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/andyholmes/valent:latest
+      image: ghcr.io/${{ github.repository }}:latest
     permissions:
       security-events: write
 
