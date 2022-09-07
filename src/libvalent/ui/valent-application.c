@@ -272,18 +272,6 @@ device_action (GSimpleAction *action,
 }
 
 static void
-preferences_action (GSimpleAction *action,
-                    GVariant      *parameter,
-                    gpointer       user_data)
-{
-  ValentApplication *self = VALENT_APPLICATION (user_data);
-
-  g_assert (VALENT_IS_APPLICATION (self));
-
-  valent_application_present_window (self, NULL);
-}
-
-static void
 quit_action (GSimpleAction *action,
              GVariant      *parameter,
              gpointer       user_data)
@@ -307,11 +295,26 @@ refresh_action (GSimpleAction *action,
   valent_device_manager_identify (self->manager, NULL);
 }
 
+static void
+window_action (GSimpleAction *action,
+               GVariant      *parameter,
+               gpointer       user_data)
+{
+  ValentApplication *self = VALENT_APPLICATION (user_data);
+
+  g_assert (VALENT_IS_APPLICATION (self));
+
+  valent_application_present_window (self, NULL);
+  gtk_widget_activate_action_variant (GTK_WIDGET (self->window),
+                                      "win.page",
+                                      parameter);
+}
+
 static const GActionEntry actions[] = {
-  { "device",      device_action,      "(ssav)", NULL, NULL },
-  { "preferences", preferences_action, NULL,     NULL, NULL },
-  { "quit",        quit_action,        NULL,     NULL, NULL },
-  { "refresh",     refresh_action,     NULL,     NULL, NULL }
+  { "device",  device_action,      "(ssav)", NULL, NULL },
+  { "quit",    quit_action,        NULL,     NULL, NULL },
+  { "refresh", refresh_action,     NULL,     NULL, NULL },
+  { "window",  window_action,      "s",      NULL, NULL },
 };
 
 

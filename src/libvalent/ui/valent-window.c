@@ -165,7 +165,7 @@ on_device_added (ValentDeviceManager *manager,
 
   /* Row */
   info->row = g_object_new (ADW_TYPE_ACTION_ROW,
-                            "action-name",   "win.device",
+                            "action-name",   "win.page",
                             "action-target", g_variant_new_string (device_id),
                             "icon-name",     icon_name,
                             "title",         name,
@@ -221,6 +221,21 @@ on_device_removed (ValentDeviceManager *manager,
   g_hash_table_remove (self->devices, device);
 }
 
+static void
+valent_window_close_preferences (ValentWindow *self)
+{
+  GtkWidget *visible_child;
+
+  g_assert (VALENT_IS_WINDOW (self));
+
+  visible_child = gtk_stack_get_visible_child (self->stack);
+
+  if (VALENT_IS_DEVICE_PANEL (visible_child))
+    valent_device_panel_close_preferences (VALENT_DEVICE_PANEL (visible_child));
+
+  g_clear_pointer (&self->preferences, gtk_window_destroy);
+}
+
 /*
  * GActions
  */
@@ -249,17 +264,24 @@ about_action (GtkWidget  *widget,
 }
 
 static void
-device_action (GtkWidget  *widget,
-               const char *action_name,
-               GVariant   *parameter)
+page_action (GtkWidget  *widget,
+             const char *action_name,
+             GVariant   *parameter)
 {
   ValentWindow *self = VALENT_WINDOW (widget);
-  const char *device_id;
+  const char *name;
+  GtkWidget *page;
 
   g_assert (VALENT_IS_WINDOW (self));
 
-  device_id = g_variant_get_string (parameter, NULL);
-  gtk_stack_set_visible_child_name (self->stack, device_id);
+  name = g_variant_get_string (parameter, NULL);
+  page = gtk_stack_get_child_by_name (self->stack, name);
+
+  if (page == NULL)
+    page = gtk_stack_get_child_by_name (self->stack, "main");
+
+  valent_window_close_preferences (self);
+  gtk_stack_set_visible_child (self->stack, page);
 }
 
 static void
@@ -444,7 +466,7 @@ valent_window_class_init (ValentWindowClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentWindow, device_list);
 
   gtk_widget_class_install_action (widget_class, "win.about", NULL, about_action);
-  gtk_widget_class_install_action (widget_class, "win.device", "s", device_action);
+  gtk_widget_class_install_action (widget_class, "win.page", "s", page_action);
   gtk_widget_class_install_action (widget_class, "win.preferences", NULL, preferences_action);
   gtk_widget_class_install_action (widget_class, "win.previous", NULL, previous_action);
   gtk_widget_class_install_action (widget_class, "win.refresh", NULL, refresh_action);

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2022-07-14 20:56-0700\n"
+"POT-Creation-Date: 2022-09-06 22:55-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -52,7 +52,7 @@ msgstr ""
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:12
 #: data/ca.andyholmes.Valent.desktop.in.in:4
-#: src/libvalent/ui/valent-window.c:242
+#: src/libvalent/ui/valent-window.c:257
 msgid "Connect, control and sync devices"
 msgstr ""
 
@@ -109,17 +109,17 @@ msgstr ""
 msgid "Andy Holmes"
 msgstr ""
 
-#: src/libvalent/core/valent-device.c:522
+#: src/libvalent/core/valent-device.c:520
 #, c-format
 msgid "Pairing request from %s"
 msgstr ""
 
-#: src/libvalent/core/valent-device.c:533
+#: src/libvalent/core/valent-device.c:531
 #: src/libvalent/ui/valent-device-panel.ui:139
 msgid "Reject"
 msgstr ""
 
-#: src/libvalent/core/valent-device.c:539
+#: src/libvalent/core/valent-device.c:537
 #: src/libvalent/ui/valent-device-panel.ui:152
 msgid "Accept"
 msgstr ""
@@ -130,7 +130,7 @@ msgid "Unavailable"
 msgstr ""
 
 #: src/libvalent/ui/valent-device-panel.ui:19
-#: src/libvalent/ui/valent-menu-list.c:530
+#: src/libvalent/ui/valent-menu-list.c:524
 #: src/libvalent/ui/valent-preferences-window.c:330
 #: src/plugins/presenter/valent-presenter-remote.ui:121
 msgid "Previous"
@@ -175,7 +175,7 @@ msgstr ""
 msgid "Mark this device as untrusted"
 msgstr ""
 
-#: src/libvalent/ui/valent-menu-list.c:387
+#: src/libvalent/ui/valent-menu-list.c:383
 msgid "No Actions"
 msgstr ""
 
@@ -256,7 +256,7 @@ msgstr ""
 msgid "Connected"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:245
+#: src/libvalent/ui/valent-window.c:260
 msgid "translator-credits"
 msgstr ""
 
@@ -343,42 +343,42 @@ msgid "Sync battery statistics"
 msgstr ""
 
 #. TRANSLATORS: When the battery level is 100%
-#: src/plugins/battery/valent-battery-gadget.c:78
+#: src/plugins/battery/valent-battery-gadget.c:79
 msgid "Fully Charged"
 msgstr ""
 
 #. TRANSLATORS: This is <percentage> (Estimating…)
-#: src/plugins/battery/valent-battery-gadget.c:102
+#: src/plugins/battery/valent-battery-gadget.c:103
 #, c-format
 msgid "%g%% (Estimating…)"
 msgstr ""
 
 #. TRANSLATORS: This is <percentage> (<hours>:<minutes> Until Full)
-#: src/plugins/battery/valent-battery-gadget.c:107
+#: src/plugins/battery/valent-battery-gadget.c:108
 #, c-format
 msgid "%g%% (%d∶%02d Until Full)"
 msgstr ""
 
 #. TRANSLATORS: This is <percentage> (<hours>:<minutes> Remaining)
-#: src/plugins/battery/valent-battery-gadget.c:113
-#: src/plugins/battery/valent-battery-plugin.c:297
+#: src/plugins/battery/valent-battery-gadget.c:114
+#: src/plugins/battery/valent-battery-plugin.c:301
 #, c-format
 msgid "%g%% (%d∶%02d Remaining)"
 msgstr ""
 
 #. TRANSLATORS: This is <device name>: Fully Charged
-#: src/plugins/battery/valent-battery-plugin.c:266
+#: src/plugins/battery/valent-battery-plugin.c:270
 #, c-format
 msgid "%s: Fully Charged"
 msgstr ""
 
 #. TRANSLATORS: When the battery level is at maximum
-#: src/plugins/battery/valent-battery-plugin.c:268
+#: src/plugins/battery/valent-battery-plugin.c:272
 msgid "Battery Fully Charged"
 msgstr ""
 
 #. TRANSLATORS: This is <device name>: Battery Low
-#: src/plugins/battery/valent-battery-plugin.c:295
+#: src/plugins/battery/valent-battery-plugin.c:299
 #, c-format
 msgid "%s: Battery Low"
 msgstr ""
@@ -452,34 +452,34 @@ msgid "Sync network connectivity status"
 msgstr ""
 
 #. TRANSLATORS: When the mobile network signal is available
-#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:172
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:173
 msgid "Mobile Network"
 msgstr ""
 
 #. TRANSLATORS: The mobile network signal strength (e.g. "Signal Strength (25%)")
-#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:174
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:175
 #, c-format
 msgid "Signal Strength %f%%"
 msgstr ""
 
 #. TRANSLATORS: When no mobile service is available
-#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:180
-#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:187
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:181
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:188
 msgid "No Service"
 msgstr ""
 
 #. TRANSLATORS: When no mobile network signal is available
-#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:182
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:183
 msgid "No mobile network service"
 msgstr ""
 
 #. TRANSLATORS: When the device is missing a SIM card
-#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:189
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:190
 msgid "No SIM"
 msgstr ""
 
 #. TRANSLATORS: The connectivity notification title (e.g. "PinePhone: No Service")
-#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:317
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:320
 #, c-format
 msgid "%s: %s"
 msgstr ""
@@ -649,7 +649,7 @@ msgstr ""
 msgid "Share control of MPRISv2 players"
 msgstr ""
 
-#: src/plugins/mpris/valent-mpris-plugin.c:375
+#: src/plugins/mpris/valent-mpris-plugin.c:376
 msgid "Unknown"
 msgstr ""
 
@@ -666,11 +666,11 @@ msgstr ""
 #: src/plugins/runcommand/valent-runcommand-editor.c:65
 #: src/plugins/runcommand/valent-runcommand-editor.ui:12
 #: src/plugins/runcommand/valent-runcommand-preferences.c:394
-#: src/plugins/share/valent-share-plugin.c:132
-#: src/plugins/share/valent-share-plugin.c:255
-#: src/plugins/share/valent-share-plugin.c:357
-#: src/plugins/share/valent-share-plugin.c:497
-#: src/plugins/share/valent-share-plugin.c:661
+#: src/plugins/share/valent-share-plugin.c:133
+#: src/plugins/share/valent-share-plugin.c:256
+#: src/plugins/share/valent-share-plugin.c:358
+#: src/plugins/share/valent-share-plugin.c:498
+#: src/plugins/share/valent-share-plugin.c:662
 #: src/plugins/share/valent-share-preferences.c:111
 #: src/plugins/share/valent-share-target-chooser.ui:24
 msgid "Cancel"
@@ -714,10 +714,10 @@ msgid "Failed to receive “%s” from %s"
 msgstr ""
 
 #: src/plugins/photo/valent-photo-plugin.c:57
-#: src/plugins/share/valent-share-plugin.c:116
-#: src/plugins/share/valent-share-plugin.c:242
-#: src/plugins/share/valent-share-plugin.c:344
-#: src/plugins/share/valent-share-plugin.c:481
+#: src/plugins/share/valent-share-plugin.c:117
+#: src/plugins/share/valent-share-plugin.c:243
+#: src/plugins/share/valent-share-plugin.c:345
+#: src/plugins/share/valent-share-plugin.c:482
 msgid "Transfer Failed"
 msgstr ""
 
@@ -824,7 +824,7 @@ msgstr ""
 msgid "Command Line"
 msgstr ""
 
-#: src/plugins/runcommand/valent-runcommand-plugin.c:285
+#: src/plugins/runcommand/valent-runcommand-plugin.c:289
 msgid "Run Command"
 msgstr ""
 
@@ -915,87 +915,87 @@ msgid "Port"
 msgstr ""
 
 #: src/plugins/share/share.plugin.desktop.in:7
-#: src/plugins/share/valent-share-plugin.c:660
+#: src/plugins/share/valent-share-plugin.c:661
 #: src/plugins/share/valent-share-preferences.ui:8
 msgid "Share"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:98
-#: src/plugins/share/valent-share-plugin.c:463
+#: src/plugins/share/valent-share-plugin.c:99
+#: src/plugins/share/valent-share-plugin.c:464
 msgid "Transferring Files"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:99
-#: src/plugins/share/valent-share-plugin.c:117
+#: src/plugins/share/valent-share-plugin.c:100
+#: src/plugins/share/valent-share-plugin.c:118
 #, c-format
 msgid "Receiving one file from %1$s"
 msgid_plural "Receiving %2$d files from %1$s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/plugins/share/valent-share-plugin.c:107
-#: src/plugins/share/valent-share-plugin.c:338
-#: src/plugins/share/valent-share-plugin.c:472
+#: src/plugins/share/valent-share-plugin.c:108
+#: src/plugins/share/valent-share-plugin.c:339
+#: src/plugins/share/valent-share-plugin.c:473
 msgid "Transfer Complete"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:108
+#: src/plugins/share/valent-share-plugin.c:109
 #, c-format
 msgid "Received one file from %1$s"
 msgid_plural "Received %2$d files from %1$s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/plugins/share/valent-share-plugin.c:150
+#: src/plugins/share/valent-share-plugin.c:151
 msgid "Open Folder"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:161
+#: src/plugins/share/valent-share-plugin.c:162
 msgid "Open File"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:232
-#: src/plugins/share/valent-share-plugin.c:332
+#: src/plugins/share/valent-share-plugin.c:233
+#: src/plugins/share/valent-share-plugin.c:333
 msgid "Transferring File"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:233
-#: src/plugins/share/valent-share-plugin.c:243
+#: src/plugins/share/valent-share-plugin.c:234
+#: src/plugins/share/valent-share-plugin.c:244
 #, c-format
 msgid "Opening “%s” from %s"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:333
-#: src/plugins/share/valent-share-plugin.c:345
+#: src/plugins/share/valent-share-plugin.c:334
+#: src/plugins/share/valent-share-plugin.c:346
 #, c-format
 msgid "Opening “%s” on %s"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:339
+#: src/plugins/share/valent-share-plugin.c:340
 #, c-format
 msgid "Opened “%s” on %s"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:464
-#: src/plugins/share/valent-share-plugin.c:482
+#: src/plugins/share/valent-share-plugin.c:465
+#: src/plugins/share/valent-share-plugin.c:483
 #, c-format
 msgid "Sending one file to %1$s"
 msgid_plural "Sending %2$d files to %1$s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/plugins/share/valent-share-plugin.c:473
+#: src/plugins/share/valent-share-plugin.c:474
 #, c-format
 msgid "Sent one file to %1$s"
 msgid_plural "Sent %2$d files to %1$s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/plugins/share/valent-share-plugin.c:659
+#: src/plugins/share/valent-share-plugin.c:660
 msgid "Share Files"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:902
+#: src/plugins/share/valent-share-plugin.c:903
 msgid "Send Files"
 msgstr ""
 
@@ -1181,20 +1181,20 @@ msgstr ""
 msgid "Be notified of incoming and ongoing calls"
 msgstr ""
 
-#: src/plugins/telephony/valent-telephony-plugin.c:276
+#: src/plugins/telephony/valent-telephony-plugin.c:277
 msgid "Unknown Contact"
 msgstr ""
 
-#: src/plugins/telephony/valent-telephony-plugin.c:306
+#: src/plugins/telephony/valent-telephony-plugin.c:307
 msgid "Incoming call"
 msgstr ""
 
-#: src/plugins/telephony/valent-telephony-plugin.c:309
+#: src/plugins/telephony/valent-telephony-plugin.c:310
 #: src/plugins/telephony/valent-telephony-preferences.ui:75
 msgid "Mute"
 msgstr ""
 
-#: src/plugins/telephony/valent-telephony-plugin.c:317
+#: src/plugins/telephony/valent-telephony-plugin.c:318
 msgid "Ongoing call"
 msgstr ""
 

@@ -84,14 +84,14 @@ test_window_navigation (TestWindowFixture *fixture,
 // FIXME: leak reported when `-Dfuzz_tests=true` and `-Db_sanitize=address`
 #if !(WITH_ASAN)
   /* Main -> Device -> Main */
-  gtk_widget_activate_action (GTK_WIDGET (window), "win.device", "s", "mock-device");
+  gtk_widget_activate_action (GTK_WIDGET (window), "win.page", "s", "mock-device");
   gtk_widget_activate_action (GTK_WIDGET (window), "win.previous", NULL);
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
 
   /* Main -> Device -> Remove Device */
-  gtk_widget_activate_action (GTK_WIDGET (window), "win.device", "s", "mock-device");
+  gtk_widget_activate_action (GTK_WIDGET (window), "win.page", "s", "mock-device");
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
@@ -123,7 +123,24 @@ test_window_dialogs (TestWindowFixture *fixture,
   while (g_main_context_iteration (NULL, FALSE))
     continue;
 
+  /* Changing the page closes the preferences */
   gtk_widget_activate_action (GTK_WIDGET (window), "win.preferences", NULL);
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
+  gtk_widget_activate_action (GTK_WIDGET (window), "win.page", "s", "main");
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
+  /* Closing the window closed the preferences */
+  gtk_widget_activate_action (GTK_WIDGET (window), "win.preferences", NULL);
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
+  gtk_widget_activate_action (GTK_WIDGET (window), "win.page", "s", "main");
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;

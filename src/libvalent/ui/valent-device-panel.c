@@ -352,3 +352,20 @@ valent_device_panel_init (ValentDevicePanel *self)
   self->plugins = g_hash_table_new_full (NULL, NULL, NULL, g_free);
 }
 
+/**
+ * valent_device_panel_close_preferences:
+ * @panel: a #ValentDevicePanel
+ *
+ * Close the preferences page.
+ *
+ * This is called by [class@Valent.Window] when the `win.page` action is
+ * activated, to ensure the new page is not blocked by a modal window.
+ */
+void
+valent_device_panel_close_preferences (ValentDevicePanel *panel)
+{
+  g_assert (VALENT_IS_DEVICE_PANEL (panel));
+
+  g_clear_pointer (&panel->preferences, gtk_window_destroy);
+}
+
