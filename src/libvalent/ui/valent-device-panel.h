@@ -11,4 +11,6 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (ValentDevicePanel, valent_device_panel, VALENT, DEVICE_PANEL, GtkBox)
 
+void   valent_device_panel_close_preferences (ValentDevicePanel *panel);
+
 G_END_DECLS

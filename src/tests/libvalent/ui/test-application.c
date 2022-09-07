@@ -43,7 +43,8 @@ actions_timeout_cb (gpointer data)
   switch (stage++)
     {
     case 0:
-      g_action_group_activate_action (actions, "preferences", NULL);
+      target = g_variant_new_string ("main");
+      g_action_group_activate_action (actions, "window", target);
       g_assert_nonnull (gtk_application_get_active_window (application));
       return G_SOURCE_CONTINUE;
 

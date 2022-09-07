@@ -64,6 +64,18 @@ test_device_panel_dialogs (ValentTestFixture *fixture,
   while (g_main_context_iteration (NULL, FALSE))
     continue;
 
+  /* Preferences can be opened and closed */
+  gtk_widget_activate_action (panel, "panel.preferences", NULL);
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
+  valent_device_panel_close_preferences (VALENT_DEVICE_PANEL (panel));
+
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
+  /* Closing the window closes the preferences */
   gtk_widget_activate_action (panel, "panel.preferences", NULL);
 
   while (g_main_context_iteration (NULL, FALSE))

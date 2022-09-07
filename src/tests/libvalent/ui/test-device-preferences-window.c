@@ -66,13 +66,13 @@ test_device_preference_window_navigation (ValentTestFixture *fixture,
   while (g_main_context_iteration (NULL, FALSE))
     continue;
 
-  /* Plugin -> Previous */
+  /* Plugin -> Main */
   gtk_widget_activate_action (GTK_WIDGET (window), "win.previous", NULL);
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
 
-  /* Main -> Previous (Close Preferences) */
+  /* Main -> Close Window */
   gtk_widget_activate_action (GTK_WIDGET (window), "win.previous", NULL);
 
   while (g_main_context_iteration (NULL, FALSE))
