@@ -8,8 +8,8 @@
 #include <gio/gio.h>
 #include <libvalent-media.h>
 
-#include "valent-mpris-common.h"
 #include "valent-mpris-player.h"
+#include "valent-mpris-utils.h"
 
 
 struct _ValentMPRISPlayer
@@ -95,6 +95,7 @@ on_player_properties_changed (GDBusProxy        *proxy,
   GVariantDict dict;
 
   g_assert (VALENT_IS_MPRIS_PLAYER (player));
+  g_assert (changed_properties != NULL);
 
   g_object_freeze_notify (G_OBJECT (player));
   g_variant_dict_init (&dict, changed_properties);
@@ -119,8 +120,9 @@ on_player_signal (GDBusProxy        *proxy,
                   ValentMediaPlayer *player)
 {
   g_assert (VALENT_IS_MPRIS_PLAYER (player));
+  g_assert (signal_name != NULL);
 
-  if (g_strcmp0 (signal_name, "Seeked") == 0)
+  if (strcmp (signal_name, "Seeked") == 0)
     {
       gint64 offset;
 
@@ -190,7 +192,7 @@ valent_mpris_player_init_application_cb (GObject      *object,
 
   g_dbus_proxy_new_for_bus (G_BUS_TYPE_SESSION,
                             G_DBUS_PROXY_FLAGS_GET_INVALIDATED_PROPERTIES,
-                            valent_mpris_get_player_iface (),
+                            VALENT_MPRIS_PLAYER_INFO,
                             self->bus_name,
                             "/org/mpris/MediaPlayer2",
                             "org.mpris.MediaPlayer2.Player",
@@ -217,7 +219,7 @@ valent_mpris_player_init_async (GAsyncInitable      *initable,
 
   g_dbus_proxy_new_for_bus (G_BUS_TYPE_SESSION,
                             G_DBUS_PROXY_FLAGS_GET_INVALIDATED_PROPERTIES,
-                            valent_mpris_get_application_iface (),
+                            VALENT_MPRIS_APPLICATION_INFO,
                             self->bus_name,
                             "/org/mpris/MediaPlayer2",
                             "org.mpris.MediaPlayer2",
@@ -401,16 +403,7 @@ valent_mpris_player_get_repeat (ValentMediaPlayer *player)
 
   loop_status = g_variant_get_string (value, NULL);
 
-  if (strcmp (loop_status, "None") == 0)
-    return VALENT_MEDIA_REPEAT_NONE;
-
-  if (strcmp (loop_status, "Playlist") == 0)
-    return VALENT_MEDIA_REPEAT_ALL;
-
-  if (strcmp (loop_status, "Track") == 0)
-    return VALENT_MEDIA_REPEAT_ONE;
-
-  return VALENT_MEDIA_REPEAT_NONE;
+  return valent_mpris_repeat_from_string (loop_status);
 }
 
 static void
@@ -418,22 +411,7 @@ valent_mpris_player_set_repeat (ValentMediaPlayer *player,
                                 ValentMediaRepeat  repeat)
 {
   ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
-  const char *loop_status = "None";
-
-  switch (repeat)
-    {
-    case VALENT_MEDIA_REPEAT_NONE:
-      loop_status = "None";
-      break;
-    case VALENT_MEDIA_REPEAT_ONE:
-      loop_status = "Track";
-      break;
-    case VALENT_MEDIA_REPEAT_ALL:
-      loop_status = "Playlist";
-      break;
-    default:
-      loop_status = "None";
-    }
+  const char *loop_status = valent_mpris_repeat_to_string (repeat);
 
   g_dbus_proxy_call (self->player,
                      "org.freedesktop.DBus.Properties.Set",
@@ -453,25 +431,16 @@ valent_mpris_player_get_state (ValentMediaPlayer *player)
 {
   ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
   g_autoptr (GVariant) value = NULL;
-  const char *loop_status = NULL;
+  const char *playback_status = NULL;
 
   value = g_dbus_proxy_get_cached_property (self->player, "PlaybackStatus");
 
   if G_UNLIKELY (value == NULL)
     return VALENT_MEDIA_STATE_STOPPED;
 
-  loop_status = g_variant_get_string (value, NULL);
+  playback_status = g_variant_get_string (value, NULL);
 
-  if (strcmp (loop_status, "Playing") == 0)
-    return VALENT_MEDIA_STATE_PLAYING;
-
-  if (strcmp (loop_status, "Paused") == 0)
-    return VALENT_MEDIA_STATE_PAUSED;
-
-  if (strcmp (loop_status, "Stopped") == 0)
-    return VALENT_MEDIA_STATE_STOPPED;
-
-  return VALENT_MEDIA_STATE_STOPPED;
+  return valent_mpris_state_from_string (playback_status);
 }
 
 static gboolean

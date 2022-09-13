@@ -8,9 +8,9 @@
 #include <libvalent-core.h>
 #include <libvalent-media.h>
 
-#include "valent-mpris-common.h"
-#include "valent-mpris-player.h"
 #include "valent-mpris-adapter.h"
+#include "valent-mpris-player.h"
+#include "valent-mpris-utils.h"
 
 
 struct _ValentMPRISAdapter
@@ -30,7 +30,7 @@ G_DEFINE_TYPE (ValentMPRISAdapter, valent_mpris_adapter, VALENT_TYPE_MEDIA_ADAPT
  */
 static void
 add_player (ValentMPRISAdapter *self,
-            ValentMPRISPlayer         *player)
+            ValentMPRISPlayer  *player)
 {
   g_autofree char *name = NULL;
 
@@ -40,12 +40,12 @@ add_player (ValentMPRISAdapter *self,
                        g_object_ref (player));
 
   valent_media_adapter_emit_player_added (VALENT_MEDIA_ADAPTER (self),
-                                                  VALENT_MEDIA_PLAYER (player));
+                                          VALENT_MEDIA_PLAYER (player));
 }
 
 static void
 remove_player (ValentMPRISAdapter *self,
-               const char                *name)
+               const char         *name)
 {
   ValentMediaAdapter *adapter = VALENT_MEDIA_ADAPTER (self);
   gpointer key, value;
