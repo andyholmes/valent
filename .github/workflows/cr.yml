@@ -28,6 +28,16 @@ jobs:
       packages: write
 
     steps:
+      - name: Metadata
+        id: metadata
+        uses: docker/metadata-action@v4
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            # set latest tag for master branch
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=branch
+
       - name: Login
         if: ${{ github.event_name != 'pull_request' }}
         uses: docker/login-action@v2
@@ -41,4 +51,5 @@ jobs:
         with:
           file: ./src/tests/extra/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}

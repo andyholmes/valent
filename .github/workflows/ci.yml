@@ -96,7 +96,7 @@ jobs:
     needs: [pre-test]
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/${{ github.repository }}:latest
+      image: ghcr.io/${{ github.repository }}:${{ github.base_ref }}
 
     steps:
       - name: Checkout
@@ -123,7 +123,7 @@ jobs:
     needs: [pre-test]
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/${{ github.repository }}:latest
+      image: ghcr.io/${{ github.repository }}:${{ github.base_ref }}
 
     strategy:
       matrix:
@@ -167,7 +167,7 @@ jobs:
     needs: [pre-test]
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/${{ github.repository }}:latest
+      image: ghcr.io/${{ github.repository }}:${{ github.base_ref }}
 
     strategy:
       matrix:
