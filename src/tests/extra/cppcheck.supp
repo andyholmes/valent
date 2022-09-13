@@ -19,12 +19,6 @@ memleak:src/plugins/sms/valent-sms-store.c:859
 leakNoVarFunctionCall:src/plugins/sms/valent-sms-conversation.c:583
 leakNoVarFunctionCall:src/plugins/sms/valent-sms-conversation.c:588
 
-
-# src/tests/fixtures/
-# "Allocation with g_variant_new_*, g_signal_emit doesn't release it."
-leakNoVarFunctionCall:src/tests/fixtures/valent-mock-media-player.c:117
-leakNoVarFunctionCall:src/tests/fixtures/valent-mock-media-player.c:173
-
 # src/tests/plugins/connectivity_report/
 leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:268
 leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:270
