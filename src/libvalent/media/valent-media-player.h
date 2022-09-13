@@ -61,16 +61,9 @@ typedef enum
 
 /**
  * ValentMediaState:
- * @VALENT_MEDIA_STATE_UNKNOWN: The player state is unknown.
+ * @VALENT_MEDIA_STATE_STOPPED: The player state is unknown.
  * @VALENT_MEDIA_STATE_PLAYING: Playback is active.
  * @VALENT_MEDIA_STATE_PAUSED: Playback is paused.
- * @VALENT_MEDIA_STATE_STOPPED: Playback is halted.
- * @VALENT_MEDIA_STATE_REPEAT: The current item will be restarted when it finishes.
- * @VALENT_MEDIA_STATE_REPEAT_ALL: The item queue will be restarted when it finishes.
- * @VALENT_MEDIA_STATE_RESERVED1: Reserved
- * @VALENT_MEDIA_STATE_RESERVED2: Reserved
- * @VALENT_MEDIA_STATE_RESERVED3: Reserved
- * @VALENT_MEDIA_STATE_RESERVED4: Reserved
  *
  * Media state flags.
  *
@@ -79,14 +72,8 @@ typedef enum
 typedef enum
 {
   VALENT_MEDIA_STATE_STOPPED,
-  VALENT_MEDIA_STATE_PLAYING    = (1<<0),
-  VALENT_MEDIA_STATE_PAUSED     = (1<<1),
-  VALENT_MEDIA_STATE_REPEAT     = (1<<2),
-  VALENT_MEDIA_STATE_REPEAT_ALL = (1<<3),
-  VALENT_MEDIA_STATE_RESERVED1  = (1<<4),
-  VALENT_MEDIA_STATE_RESERVED2  = (1<<5),
-  VALENT_MEDIA_STATE_RESERVED3  = (1<<6),
-  VALENT_MEDIA_STATE_RESERVED4  = (1<<7)
+  VALENT_MEDIA_STATE_PAUSED,
+  VALENT_MEDIA_STATE_PLAYING,
 } ValentMediaState;
 
 
@@ -122,8 +109,6 @@ struct _ValentMediaPlayerClass
   void                 (*set_shuffle)  (ValentMediaPlayer *player,
                                         gboolean           shuffle);
   ValentMediaState     (*get_state)    (ValentMediaPlayer *player);
-  void                 (*set_state)    (ValentMediaPlayer *player,
-                                        ValentMediaState   state);
   double               (*get_volume)   (ValentMediaPlayer *player);
   void                 (*set_volume)   (ValentMediaPlayer *player,
                                         double             volume);
@@ -167,9 +152,6 @@ void                 valent_media_player_set_shuffle  (ValentMediaPlayer *player
                                                        gboolean           shuffle);
 VALENT_AVAILABLE_IN_1_0
 ValentMediaState     valent_media_player_get_state    (ValentMediaPlayer *player);
-VALENT_AVAILABLE_IN_1_0
-void                 valent_media_player_set_state    (ValentMediaPlayer *player,
-                                                       ValentMediaState   state);
 VALENT_AVAILABLE_IN_1_0
 double               valent_media_player_get_volume   (ValentMediaPlayer *player);
 VALENT_AVAILABLE_IN_1_0
