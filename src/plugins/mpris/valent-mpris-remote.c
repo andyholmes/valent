@@ -373,6 +373,17 @@ player_method_call (GDBusConnection       *connection,
 {
   ValentMprisRemote *self = VALENT_MPRIS_REMOTE (user_data);
 
+  /* Unsupported Methods */
+  if G_UNLIKELY (strcmp (method_name, "OpenUri") == 0)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             G_IO_ERROR,
+                                             G_IO_ERROR_NOT_SUPPORTED,
+                                             "Service does not implement %s",
+                                             method_name);
+      return;
+    }
+
   g_signal_emit (G_OBJECT (self),
                  signals [METHOD_CALL], 0,
                  method_name, parameters);
@@ -801,16 +812,6 @@ valent_mpris_remote_next (ValentMediaPlayer *player)
 }
 
 static void
-valent_mpris_remote_open_uri (ValentMediaPlayer *player,
-                              const char        *uri)
-{
-  g_autoptr (GVariant) value = NULL;
-
-  value = g_variant_ref_sink (g_variant_new ("(s)", uri));
-  g_signal_emit (G_OBJECT (player), signals [METHOD_CALL], 0, "OpenUri", value);
-}
-
-static void
 valent_mpris_remote_pause (ValentMediaPlayer *player)
 {
   g_signal_emit (G_OBJECT (player), signals [METHOD_CALL], 0, "Pause", NULL);
@@ -894,7 +895,6 @@ valent_mpris_remote_class_init (ValentMprisRemoteClass *klass)
   player_class->set_volume = valent_mpris_remote_set_volume;
 
   player_class->next = valent_mpris_remote_next;
-  player_class->open_uri = valent_mpris_remote_open_uri;
   player_class->pause = valent_mpris_remote_pause;
   player_class->play = valent_mpris_remote_play;
   player_class->previous = valent_mpris_remote_previous;

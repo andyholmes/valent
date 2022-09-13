@@ -28,7 +28,6 @@ G_DEFINE_TYPE (ValentMediaPlayer, valent_media_player, G_TYPE_OBJECT)
  * ValentMediaPlayerClass:
  * @changed: the class closure for #ValentMediaPlayer::changed signal
  * @next: the virtual function pointer for valent_media_player_next()
- * @open_uri: the virtual function pointer for valent_media_player_open_uri()
  * @pause: the virtual function pointer for valent_media_player_pause()
  * @play: the virtual function pointer for valent_media_player_play()
  * @play_pause: the virtual function pointer for valent_media_player_play_pause()
@@ -746,50 +745,6 @@ valent_media_player_next (ValentMediaPlayer *player)
   g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
 
   VALENT_MEDIA_PLAYER_GET_CLASS (player)->next (player);
-
-  VALENT_EXIT;
-}
-
-/**
- * valent_media_player_open_uri: (virtual open_uri)
- * @player: a #ValentMediaPlayer
- * @uri: a URI
- *
- * Opens the @uri given as an argument.
- *
- * If the playback is stopped, starts playing. If the uri scheme or the
- * mime-type of the uri to open is not supported, this method does nothing. In
- * particular, if the list of available uri schemes is empty, this method may
- * not be implemented.
- *
- * Clients should not assume that @uri has been opened as soon as this method
- * returns. They should wait until the mpris:trackid field in
- * #ValentMediaPlayer:metadata property changes.
- *
- * If the media player implements the TrackList interface, then the opened track
- * should be made part of the tracklist, the
- * org.mpris.MediaPlayer2.TrackList.TrackAdded or
- * org.mpris.MediaPlayer2.TrackList.TrackListReplaced signal should be fired, as
- * well as the org.freedesktop.DBus.Properties.PropertiesChanged signal on the
- * tracklist interface.
- *
- * Since: 1.0
- */
-void
-valent_media_player_open_uri (ValentMediaPlayer *player,
-                              const char        *uri)
-{
-  ValentMediaPlayerClass *klass;
-
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
-  g_return_if_fail (uri != NULL);
-
-  klass = VALENT_MEDIA_PLAYER_GET_CLASS (player);
-  g_return_if_fail (klass->open_uri);
-
-  klass->open_uri (player, uri);
 
   VALENT_EXIT;
 }
