@@ -203,11 +203,6 @@ test_mpris_component_player (MprisComponentFixture *fixture,
   g_assert_cmpstr (fixture->data, ==, "Previous");
   g_clear_pointer (&fixture->data, g_free);
 
-  valent_media_player_open_uri (fixture->player, "https://andyholmes.ca");
-  g_main_loop_run (fixture->loop);
-  g_assert_cmpstr (fixture->data, ==, "OpenUri");
-  g_clear_pointer (&fixture->data, g_free);
-
   valent_media_player_seek (fixture->player, 1000);
   g_main_loop_run (fixture->loop);
   g_assert_cmpstr (fixture->data, ==, "Seek");

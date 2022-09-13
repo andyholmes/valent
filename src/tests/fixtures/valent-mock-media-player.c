@@ -109,15 +109,6 @@ valent_mock_media_player_next (ValentMediaPlayer *player)
 }
 
 static void
-valent_mock_media_player_open_uri (ValentMediaPlayer *player,
-                                   const char        *uri)
-{
-  ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
-
-  g_signal_emit (G_OBJECT (self), signals [PLAYER_METHOD], 0, "OpenUri", g_variant_new_string (uri));
-}
-
-static void
 valent_mock_media_player_pause (ValentMediaPlayer *player)
 {
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
@@ -211,7 +202,6 @@ valent_mock_media_player_class_init (ValentMockMediaPlayerClass *klass)
   player_class->set_volume = valent_mock_media_player_set_volume;
 
   player_class->next = valent_mock_media_player_next;
-  player_class->open_uri = valent_mock_media_player_open_uri;
   player_class->pause = valent_mock_media_player_pause;
   player_class->play = valent_mock_media_player_play;
   player_class->play_pause = valent_mock_media_player_play_pause;

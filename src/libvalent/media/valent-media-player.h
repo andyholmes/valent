@@ -83,8 +83,6 @@ struct _ValentMediaPlayerClass
 
   /* virtual functions */
   void                 (*next)         (ValentMediaPlayer *player);
-  void                 (*open_uri)     (ValentMediaPlayer *player,
-                                        const char        *uri);
   void                 (*pause)        (ValentMediaPlayer *player);
   void                 (*play)         (ValentMediaPlayer *player);
   void                 (*play_pause)   (ValentMediaPlayer *player);
@@ -148,9 +146,6 @@ void                 valent_media_player_set_volume   (ValentMediaPlayer *player
 
 VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_next         (ValentMediaPlayer *player);
-VALENT_AVAILABLE_IN_1_0
-void                 valent_media_player_open_uri     (ValentMediaPlayer *player,
-                                                       const char        *uri);
 VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_pause        (ValentMediaPlayer *player);
 VALENT_AVAILABLE_IN_1_0

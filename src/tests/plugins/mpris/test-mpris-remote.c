@@ -366,10 +366,6 @@ test_mpris_remote_player (MprisRemoteFixture *fixture,
   g_assert_true (fixture->state);
   fixture->state = FALSE;
 
-  valent_media_player_open_uri (player, "https://andyholmes.ca");
-  g_assert_true (fixture->state);
-  fixture->state = FALSE;
-
   valent_media_player_seek (player, 1000);
   g_assert_true (fixture->state);
   fixture->state = FALSE;

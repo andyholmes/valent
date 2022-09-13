@@ -552,22 +552,6 @@ valent_mpris_player_next (ValentMediaPlayer *player)
 }
 
 static void
-valent_mpris_player_open_uri (ValentMediaPlayer *player,
-                              const char        *uri)
-{
-  ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
-
-  g_dbus_proxy_call (self->player,
-                     "OpenUri",
-                     g_variant_new ("(s)", uri),
-                     G_DBUS_CALL_FLAGS_NONE,
-                     -1,
-                     NULL,
-                     NULL,
-                     NULL);
-}
-
-static void
 valent_mpris_player_pause (ValentMediaPlayer *player)
 {
   ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
@@ -762,7 +746,6 @@ valent_mpris_player_class_init (ValentMPRISPlayerClass *klass)
   player_class->set_volume = valent_mpris_player_set_volume;
 
   player_class->next = valent_mpris_player_next;
-  player_class->open_uri = valent_mpris_player_open_uri;
   player_class->pause = valent_mpris_player_pause;
   player_class->play = valent_mpris_player_play;
   player_class->play_pause = valent_mpris_player_play_pause;
