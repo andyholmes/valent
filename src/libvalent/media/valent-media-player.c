@@ -54,6 +54,7 @@ enum {
   PROP_METADATA,
   PROP_NAME,
   PROP_POSITION,
+  PROP_SHUFFLE,
   PROP_STATE,
   PROP_VOLUME,
   N_PROPERTIES
@@ -98,6 +99,18 @@ valent_media_player_real_get_position (ValentMediaPlayer *player)
 static void
 valent_media_player_real_set_position (ValentMediaPlayer *player,
                                        gint64             position)
+{
+}
+
+static gboolean
+valent_media_player_real_get_shuffle (ValentMediaPlayer *player)
+{
+  return FALSE;
+}
+
+static void
+valent_media_player_real_set_shuffle (ValentMediaPlayer *player,
+                                      gboolean           shuffle)
 {
 }
 
@@ -205,6 +218,10 @@ valent_media_player_get_property (GObject    *object,
       g_value_set_int64 (value, valent_media_player_get_position (self));
       break;
 
+    case PROP_SHUFFLE:
+      g_value_set_boolean (value, valent_media_player_get_shuffle (self));
+      break;
+
     case PROP_STATE:
       g_value_set_flags (value, valent_media_player_get_state (self));
       break;
@@ -236,6 +253,10 @@ valent_media_player_set_property (GObject      *object,
       valent_media_player_set_state (self, g_value_get_flags (value));
       break;
 
+    case PROP_SHUFFLE:
+      valent_media_player_set_shuffle (self, g_value_get_boolean (value));
+      break;
+
     case PROP_VOLUME:
       valent_media_player_set_volume (self, g_value_get_double (value));
       break;
@@ -259,6 +280,8 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
   player_class->get_name = valent_media_player_real_get_name;
   player_class->get_position = valent_media_player_real_get_position;
   player_class->set_position = valent_media_player_real_set_position;
+  player_class->get_shuffle = valent_media_player_real_get_shuffle;
+  player_class->set_shuffle = valent_media_player_real_set_shuffle;
   player_class->get_state = valent_media_player_real_get_state;
   player_class->set_state = valent_media_player_real_set_state;
   player_class->get_volume = valent_media_player_real_get_volume;
@@ -362,6 +385,24 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
                         (G_PARAM_READWRITE |
                          G_PARAM_EXPLICIT_NOTIFY |
                          G_PARAM_STATIC_STRINGS));
+
+  /**
+   * ValentMediaPlayer:shuffle: (getter get_shuffle) (setter set_shuffle)
+   *
+   * Whether playback order is shuffled.
+   *
+   * A value of %FALSE indicates that playback is progressing linearly through a
+   * playlist, while %TRUE means playback is progressing through a playlist in
+   * some other order.
+   *
+   * Since: 1.0
+   */
+  properties [PROP_SHUFFLE] =
+    g_param_spec_boolean ("shuffle", NULL, NULL,
+                          FALSE,
+                          (G_PARAM_READWRITE |
+                           G_PARAM_EXPLICIT_NOTIFY |
+                           G_PARAM_STATIC_STRINGS));
 
   /**
    * ValentMediaPlayer:volume: (getter get_volume) (setter set_volume)
@@ -626,6 +667,52 @@ valent_media_player_set_position (ValentMediaPlayer *player,
   g_return_if_fail (position >= 0);
 
   VALENT_MEDIA_PLAYER_GET_CLASS (player)->set_position (player, position);
+
+  VALENT_EXIT;
+}
+
+/**
+ * valent_media_player_get_shuffle: (virtual get_shuffle) (get-property shuffle)
+ * @player: a #ValentMediaPlayer
+ *
+ * Get whether playback order is shuffled.
+ *
+ * Returns: the shuffle state
+ *
+ * Since: 1.0
+ */
+gboolean
+valent_media_player_get_shuffle (ValentMediaPlayer *player)
+{
+  gboolean ret;
+
+  VALENT_ENTRY;
+
+  g_return_val_if_fail (VALENT_IS_MEDIA_PLAYER (player), FALSE);
+
+  ret = VALENT_MEDIA_PLAYER_GET_CLASS (player)->get_shuffle (player);
+
+  VALENT_RETURN (ret);
+}
+
+/**
+ * valent_media_player_set_shuffle: (virtual set_shuffle) (set-property shuffle)
+ * @player: a #ValentMediaPlayer
+ * @shuffle: shuffle state
+ *
+ * Set whether playback order is shuffled.
+ *
+ * Since: 1.0
+ */
+void
+valent_media_player_set_shuffle (ValentMediaPlayer *player,
+                                  gboolean           shuffle)
+{
+  VALENT_ENTRY;
+
+  g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
+
+  VALENT_MEDIA_PLAYER_GET_CLASS (player)->set_shuffle (player, shuffle);
 
   VALENT_EXIT;
 }

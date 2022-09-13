@@ -60,7 +60,7 @@ static const PropMapping player_properties[] = {
   {"CanSeek",        "flags"},
   {"LoopStatus",     "state"},
   {"PlaybackStatus", "state"},
-  {"Shuffle",        "state"},
+  {"Shuffle",        "shuffle"},
   {"Volume",         "volume"},
 };
 
@@ -266,25 +266,6 @@ valent_mpris_player_set_loop_status (ValentMediaPlayer *player,
 }
 
 static void
-valent_mpris_player_set_shuffle (ValentMediaPlayer *player,
-                                 gboolean           shuffle)
-{
-  ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
-
-  g_dbus_proxy_call (self->player,
-                     "org.freedesktop.DBus.Properties.Set",
-                     g_variant_new ("(ssv)",
-                                    "org.mpris.MediaPlayer2.Player",
-                                    "Shuffle",
-                                    g_variant_new_boolean (shuffle)),
-                     G_DBUS_CALL_FLAGS_NONE,
-                     -1,
-                     NULL,
-                     NULL,
-                     NULL);
-}
-
-static void
 valent_mpris_player_update_flags (ValentMPRISPlayer *self)
 {
   g_autoptr (GVariant) value = NULL;
@@ -402,16 +383,6 @@ valent_mpris_player_update_state (ValentMPRISPlayer *self)
     }
 
   g_clear_pointer (&value, g_variant_unref);
-
-  // Shuffle
-  value = g_dbus_proxy_get_cached_property (self->player, "Shuffle");
-
-  if (value && g_variant_get_boolean (value))
-    self->state |= VALENT_MEDIA_STATE_SHUFFLE;
-  else
-    self->state &= ~VALENT_MEDIA_STATE_SHUFFLE;
-
-  g_clear_pointer (&value, g_variant_unref);
 }
 
 /*
@@ -495,6 +466,39 @@ valent_mpris_player_set_position (ValentMediaPlayer *player,
   g_dbus_proxy_call (self->player,
                      "SetPosition",
                      g_variant_new ("(ox)", "/", position),
+                     G_DBUS_CALL_FLAGS_NONE,
+                     -1,
+                     NULL,
+                     NULL,
+                     NULL);
+}
+
+static gboolean
+valent_mpris_player_get_shuffle (ValentMediaPlayer *player)
+{
+  ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
+  g_autoptr (GVariant) value = NULL;
+
+  value = g_dbus_proxy_get_cached_property (self->player, "Shuffle");
+
+  if G_UNLIKELY (value == NULL)
+    return FALSE;
+
+  return g_variant_get_boolean (value);
+}
+
+static void
+valent_mpris_player_set_shuffle (ValentMediaPlayer *player,
+                                 gboolean           shuffle)
+{
+  ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
+
+  g_dbus_proxy_call (self->player,
+                     "org.freedesktop.DBus.Properties.Set",
+                     g_variant_new ("(ssv)",
+                                    "org.mpris.MediaPlayer2.Player",
+                                    "Shuffle",
+                                    g_variant_new_boolean (shuffle)),
                      G_DBUS_CALL_FLAGS_NONE,
                      -1,
                      NULL,
@@ -740,6 +744,8 @@ valent_mpris_player_class_init (ValentMPRISPlayerClass *klass)
   player_class->get_metadata = valent_mpris_player_get_metadata;
   player_class->get_position = valent_mpris_player_get_position;
   player_class->set_position = valent_mpris_player_set_position;
+  player_class->get_shuffle = valent_mpris_player_get_shuffle;
+  player_class->set_shuffle = valent_mpris_player_set_shuffle;
   player_class->get_state = valent_mpris_player_get_state;
   player_class->get_volume = valent_mpris_player_get_volume;
   player_class->set_volume = valent_mpris_player_set_volume;
