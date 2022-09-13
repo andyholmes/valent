@@ -200,7 +200,7 @@ test_media_component_player (MediaComponentFixture *fixture,
   g_assert_cmpstr (fixture->data, ==, "Seek");
   g_clear_pointer (&fixture->data, g_free);
 
-  valent_media_player_set_position (fixture->player, "track-id", 5);
+  valent_media_player_set_position (fixture->player, 5);
   g_assert_cmpint (valent_media_player_get_position (fixture->player), ==, 5);
 
   /* Test signal propagation */

@@ -58,7 +58,6 @@ valent_mock_media_player_get_position (ValentMediaPlayer *player)
 
 static void
 valent_mock_media_player_set_position (ValentMediaPlayer *player,
-                                       const char        *track_id,
                                        gint64             position)
 {
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);

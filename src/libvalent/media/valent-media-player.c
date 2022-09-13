@@ -33,12 +33,12 @@ G_DEFINE_TYPE (ValentMediaPlayer, valent_media_player, G_TYPE_OBJECT)
  * @play_pause: the virtual function pointer for valent_media_player_play_pause()
  * @previous: the virtual function pointer for valent_media_player_previous()
  * @seek: the virtual function pointer for valent_media_player_seek()
- * @set_position: the virtual function pointer for valent_media_player_set_position()
  * @stop: the virtual function pointer for valent_media_player_stop()
  * @get_flags: Getter for the #ValentMediaPlayer:flags property.
  * @get_metadata: Getter for the #ValentMediaPlayer:metadata property.
  * @get_name: Getter for the #ValentMediaPlayer:name property.
  * @get_position: Getter for the #ValentMediaPlayer:position property.
+ * @set_position: Setter for the #ValentMediaPlayer:position property.
  * @seeked: the class closure for the #ValentMediaPlayer::seeked signal
  * @get_state: Getter for the #ValentMediaPlayer:state property.
  * @set_state: Setter for the #ValentMediaPlayer:state property.
@@ -97,7 +97,6 @@ valent_media_player_real_get_position (ValentMediaPlayer *player)
 
 static void
 valent_media_player_real_set_position (ValentMediaPlayer *player,
-                                       const char        *track_id,
                                        gint64             position)
 {
 }
@@ -229,6 +228,10 @@ valent_media_player_set_property (GObject      *object,
 
   switch (prop_id)
     {
+    case PROP_POSITION:
+      valent_media_player_set_position (self, g_value_get_int64 (value));
+      break;
+
     case PROP_STATE:
       valent_media_player_set_state (self, g_value_get_flags (value));
       break;
@@ -337,7 +340,7 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
     g_param_spec_int64 ("position", NULL, NULL,
                         G_MININT64, G_MAXINT64,
                         0,
-                        (G_PARAM_READABLE |
+                        (G_PARAM_READWRITE |
                          G_PARAM_EXPLICIT_NOTIFY |
                          G_PARAM_STATIC_STRINGS));
 
@@ -607,7 +610,6 @@ valent_media_player_get_position (ValentMediaPlayer *player)
 /**
  * valent_media_player_set_position: (virtual set_position) (set-property position)
  * @player: a #ValentMediaPlayer
- * @track_id: track ID
  * @position: position offset
  *
  * Set the current position.
@@ -616,17 +618,14 @@ valent_media_player_get_position (ValentMediaPlayer *player)
  */
 void
 valent_media_player_set_position (ValentMediaPlayer *player,
-                                  const char        *track_id,
                                   gint64             position)
 {
   VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
-  g_return_if_fail (track_id != NULL);
+  g_return_if_fail (position >= 0);
 
-  VALENT_MEDIA_PLAYER_GET_CLASS (player)->set_position (player,
-                                                        track_id,
-                                                        position);
+  VALENT_MEDIA_PLAYER_GET_CLASS (player)->set_position (player, position);
 
   VALENT_EXIT;
 }

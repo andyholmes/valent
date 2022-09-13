@@ -483,7 +483,6 @@ valent_mpris_player_get_position (ValentMediaPlayer *player)
 
 static void
 valent_mpris_player_set_position (ValentMediaPlayer *player,
-                                  const char        *track_id,
                                   gint64             position)
 {
   ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
@@ -495,7 +494,7 @@ valent_mpris_player_set_position (ValentMediaPlayer *player,
 
   g_dbus_proxy_call (self->player,
                      "SetPosition",
-                     g_variant_new ("(ox)", track_id, position),
+                     g_variant_new ("(ox)", "/", position),
                      G_DBUS_CALL_FLAGS_NONE,
                      -1,
                      NULL,

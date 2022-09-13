@@ -370,7 +370,7 @@ test_mpris_remote_player (MprisRemoteFixture *fixture,
   g_assert_true (fixture->state);
   fixture->state = FALSE;
 
-  //valent_media_player_set_position (player, "/dbus/path", 5);
+  //valent_media_player_set_position (player, 5);
   //g_assert_cmpint (valent_media_player_get_position (player), ==, 5);
 
   /* Remove Player */

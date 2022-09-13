@@ -208,7 +208,7 @@ test_mpris_component_player (MprisComponentFixture *fixture,
   g_assert_cmpstr (fixture->data, ==, "Seek");
   g_clear_pointer (&fixture->data, g_free);
 
-  valent_media_player_set_position (fixture->player, "/dbus/path", 5);
+  valent_media_player_set_position (fixture->player, 5);
   //g_assert_cmpint (valent_media_player_get_position (fixture->player), ==, 5);
 
   /* Remove Player */
