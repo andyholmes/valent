@@ -39,6 +39,8 @@ G_DEFINE_TYPE (ValentMediaPlayer, valent_media_player, G_TYPE_OBJECT)
  * @get_name: Getter for the #ValentMediaPlayer:name property.
  * @get_position: Getter for the #ValentMediaPlayer:position property.
  * @set_position: Setter for the #ValentMediaPlayer:position property.
+ * @get_repeat: Getter for the #ValentMediaPlayer:repeat property.
+ * @set_repeat: Setter for the #ValentMediaPlayer:repeat property.
  * @seeked: the class closure for the #ValentMediaPlayer::seeked signal
  * @get_state: Getter for the #ValentMediaPlayer:state property.
  * @set_state: Setter for the #ValentMediaPlayer:state property.
@@ -54,6 +56,7 @@ enum {
   PROP_METADATA,
   PROP_NAME,
   PROP_POSITION,
+  PROP_REPEAT,
   PROP_SHUFFLE,
   PROP_STATE,
   PROP_VOLUME,
@@ -99,6 +102,18 @@ valent_media_player_real_get_position (ValentMediaPlayer *player)
 static void
 valent_media_player_real_set_position (ValentMediaPlayer *player,
                                        gint64             position)
+{
+}
+
+static ValentMediaRepeat
+valent_media_player_real_get_repeat (ValentMediaPlayer *player)
+{
+  return VALENT_MEDIA_REPEAT_NONE;
+}
+
+static void
+valent_media_player_real_set_repeat (ValentMediaPlayer *player,
+                                     ValentMediaRepeat  repeat)
 {
 }
 
@@ -218,6 +233,10 @@ valent_media_player_get_property (GObject    *object,
       g_value_set_int64 (value, valent_media_player_get_position (self));
       break;
 
+    case PROP_REPEAT:
+      g_value_set_enum (value, valent_media_player_get_repeat (self));
+      break;
+
     case PROP_SHUFFLE:
       g_value_set_boolean (value, valent_media_player_get_shuffle (self));
       break;
@@ -247,6 +266,10 @@ valent_media_player_set_property (GObject      *object,
     {
     case PROP_POSITION:
       valent_media_player_set_position (self, g_value_get_int64 (value));
+      break;
+
+    case PROP_REPEAT:
+      valent_media_player_set_repeat (self, g_value_get_enum (value));
       break;
 
     case PROP_STATE:
@@ -280,6 +303,8 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
   player_class->get_name = valent_media_player_real_get_name;
   player_class->get_position = valent_media_player_real_get_position;
   player_class->set_position = valent_media_player_real_set_position;
+  player_class->get_repeat = valent_media_player_real_get_repeat;
+  player_class->set_repeat = valent_media_player_real_set_repeat;
   player_class->get_shuffle = valent_media_player_real_get_shuffle;
   player_class->set_shuffle = valent_media_player_real_set_shuffle;
   player_class->get_state = valent_media_player_real_get_state;
@@ -366,6 +391,25 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
                         (G_PARAM_READWRITE |
                          G_PARAM_EXPLICIT_NOTIFY |
                          G_PARAM_STATIC_STRINGS));
+
+  /**
+   * ValentMediaPlayer:repeat: (getter get_repeat) (setter set_repeat)
+   *
+   * The repeat mode.
+   *
+   * If the player does not have the appropriate bitmask in
+   * [property@Valent.MediaPlayer:flags], setting this property should have no
+   * effect.
+   *
+   * Since: 1.0
+   */
+  properties [PROP_REPEAT] =
+    g_param_spec_enum ("repeat", NULL, NULL,
+                       VALENT_TYPE_MEDIA_REPEAT,
+                       VALENT_MEDIA_REPEAT_NONE,
+                       (G_PARAM_READWRITE |
+                        G_PARAM_EXPLICIT_NOTIFY |
+                        G_PARAM_STATIC_STRINGS));
 
   /**
    * ValentMediaPlayer:state: (getter get_state) (setter set_state)
@@ -667,6 +711,52 @@ valent_media_player_set_position (ValentMediaPlayer *player,
   g_return_if_fail (position >= 0);
 
   VALENT_MEDIA_PLAYER_GET_CLASS (player)->set_position (player, position);
+
+  VALENT_EXIT;
+}
+
+/**
+ * valent_media_player_get_repeat: (virtual get_repeat) (get-property repeat)
+ * @player: a #ValentMediaPlayer
+ *
+ * Get the repeat mode for @player.
+ *
+ * Returns: #ValentMediaRepeat
+ *
+ * Since: 1.0
+ */
+ValentMediaRepeat
+valent_media_player_get_repeat (ValentMediaPlayer *player)
+{
+  ValentMediaRepeat ret;
+
+  VALENT_ENTRY;
+
+  g_return_val_if_fail (VALENT_IS_MEDIA_PLAYER (player), VALENT_MEDIA_REPEAT_NONE);
+
+  ret = VALENT_MEDIA_PLAYER_GET_CLASS (player)->get_repeat (player);
+
+  VALENT_RETURN (ret);
+}
+
+/**
+ * valent_media_player_set_repeat: (virtual set_repeat) (set-property repeat)
+ * @player: a #ValentMediaPlayer
+ * @repeat: a #ValentMediaRepeat
+ *
+ * Set the repeat mode of @player to @repeat.
+ *
+ * Since: 1.0
+ */
+void
+valent_media_player_set_repeat (ValentMediaPlayer *player,
+                               ValentMediaRepeat   repeat)
+{
+  VALENT_ENTRY;
+
+  g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
+
+  VALENT_MEDIA_PLAYER_GET_CLASS (player)->set_repeat (player, repeat);
 
   VALENT_EXIT;
 }

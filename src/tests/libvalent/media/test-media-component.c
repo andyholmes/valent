@@ -127,6 +127,7 @@ test_media_component_player (MediaComponentFixture *fixture,
 {
   /* org.mpris.MediaPlayer2.Player */
   ValentMediaActions flags;
+  ValentMediaState repeat;
   ValentMediaState state;
   double volume;
   char *name;
@@ -149,6 +150,7 @@ test_media_component_player (MediaComponentFixture *fixture,
                 "flags",    &flags,
                 "metadata", &metadata,
                 "position", &position,
+                "repeat",   &repeat,
                 "shuffle",  &shuffle,
                 "state",    &state,
                 "volume",   &volume,
@@ -157,6 +159,7 @@ test_media_component_player (MediaComponentFixture *fixture,
   g_assert_cmpstr (name, ==, "Media Player");
   g_assert_cmpuint (flags, ==, VALENT_MEDIA_ACTION_NONE);
   g_assert_cmpint (position, ==, 0);
+  g_assert_cmpuint (repeat, ==, VALENT_MEDIA_REPEAT_NONE);
   g_assert_false (shuffle);
   g_assert_cmpuint (state, ==, VALENT_MEDIA_STATE_STOPPED);
   g_assert_cmpfloat (volume, ==, 0.0);
@@ -165,7 +168,7 @@ test_media_component_player (MediaComponentFixture *fixture,
 
   g_object_set (fixture->player,
                 "shuffle", TRUE,
-                "state",   VALENT_MEDIA_STATE_REPEAT_ALL,
+                "repeat",  VALENT_MEDIA_REPEAT_ALL,
                 "volume",  1.0,
                 NULL);
 

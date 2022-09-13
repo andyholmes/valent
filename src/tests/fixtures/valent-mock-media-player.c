@@ -18,6 +18,7 @@ struct _ValentMockMediaPlayer
   /* org.mpris.MediaPlayer2 */
   GVariant          *metadata;
   gint64             position;
+  ValentMediaRepeat  repeat;
   gboolean           shuffle;
   ValentMediaState   state;
   double             volume;
@@ -64,6 +65,23 @@ valent_mock_media_player_set_position (ValentMediaPlayer *player,
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
 
   self->position = position;
+}
+
+static ValentMediaRepeat
+valent_mock_media_player_get_repeat (ValentMediaPlayer *player)
+{
+  ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
+
+  return self->repeat;
+}
+
+static void
+valent_mock_media_player_set_repeat (ValentMediaPlayer *player,
+                                     ValentMediaRepeat  repeat)
+{
+  ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
+
+  self->repeat = repeat;
 }
 
 static gboolean
@@ -213,6 +231,8 @@ valent_mock_media_player_class_init (ValentMockMediaPlayerClass *klass)
   player_class->get_metadata = valent_mock_media_player_get_metadata;
   player_class->get_position = valent_mock_media_player_get_position;
   player_class->set_position = valent_mock_media_player_set_position;
+  player_class->get_repeat = valent_mock_media_player_get_repeat;
+  player_class->set_repeat = valent_mock_media_player_set_repeat;
   player_class->get_shuffle = valent_mock_media_player_get_shuffle;
   player_class->set_shuffle = valent_mock_media_player_set_shuffle;
   player_class->get_state = valent_mock_media_player_get_state;

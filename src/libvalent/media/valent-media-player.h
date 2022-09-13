@@ -42,6 +42,24 @@ typedef enum
 
 
 /**
+ * ValentMediaRepeat:
+ * @VALENT_MEDIA_REPEAT_NONE: Repeat off.
+ * @VALENT_MEDIA_REPEAT_NONE: Repeat the current item.
+ * @VALENT_MEDIA_REPEAT_NONE: Repeat all items.
+ *
+ * Enumeration of loop modes.
+ *
+ * Since: 1.0
+ */
+typedef enum
+{
+  VALENT_MEDIA_REPEAT_NONE,
+  VALENT_MEDIA_REPEAT_ONE,
+  VALENT_MEDIA_REPEAT_ALL,
+} ValentMediaRepeat;
+
+
+/**
  * ValentMediaState:
  * @VALENT_MEDIA_STATE_UNKNOWN: The player state is unknown.
  * @VALENT_MEDIA_STATE_PLAYING: Playback is active.
@@ -97,6 +115,9 @@ struct _ValentMediaPlayerClass
   gint64               (*get_position) (ValentMediaPlayer *player);
   void                 (*set_position) (ValentMediaPlayer *player,
                                         gint64             position);
+  ValentMediaRepeat    (*get_repeat)   (ValentMediaPlayer *player);
+  void                 (*set_repeat)   (ValentMediaPlayer *player,
+                                        ValentMediaRepeat  repeat);
   gboolean             (*get_shuffle)  (ValentMediaPlayer *player);
   void                 (*set_shuffle)  (ValentMediaPlayer *player,
                                         gboolean           shuffle);
@@ -129,6 +150,11 @@ VALENT_AVAILABLE_IN_1_0
 GVariant           * valent_media_player_get_metadata (ValentMediaPlayer *player);
 VALENT_AVAILABLE_IN_1_0
 const char         * valent_media_player_get_name     (ValentMediaPlayer *player);
+VALENT_AVAILABLE_IN_1_0
+ValentMediaRepeat    valent_media_player_get_repeat   (ValentMediaPlayer *player);
+VALENT_AVAILABLE_IN_1_0
+void                 valent_media_player_set_repeat   (ValentMediaPlayer *player,
+                                                       ValentMediaRepeat  repeat);
 VALENT_AVAILABLE_IN_1_0
 gint64               valent_media_player_get_position (ValentMediaPlayer *player);
 VALENT_AVAILABLE_IN_1_0
