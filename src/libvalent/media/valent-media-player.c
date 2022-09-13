@@ -43,7 +43,6 @@ G_DEFINE_TYPE (ValentMediaPlayer, valent_media_player, G_TYPE_OBJECT)
  * @set_repeat: Setter for the #ValentMediaPlayer:repeat property.
  * @seeked: the class closure for the #ValentMediaPlayer::seeked signal
  * @get_state: Getter for the #ValentMediaPlayer:state property.
- * @set_state: Setter for the #ValentMediaPlayer:state property.
  * @get_volume: Getter for the #ValentMediaPlayer:volume property.
  * @set_volume: Setter for the #ValentMediaPlayer:volume property.
  *
@@ -135,12 +134,6 @@ valent_media_player_real_get_state (ValentMediaPlayer *player)
   return VALENT_MEDIA_STATE_STOPPED;
 }
 
-static void
-valent_media_player_real_set_state (ValentMediaPlayer *player,
-                                    ValentMediaState   state)
-{
-}
-
 static double
 valent_media_player_real_get_volume (ValentMediaPlayer *player)
 {
@@ -174,11 +167,11 @@ valent_media_player_real_play_pause (ValentMediaPlayer *player)
   ValentMediaActions flags = valent_media_player_get_flags (player);
   ValentMediaState state = valent_media_player_get_state (player);
 
-  if ((state & VALENT_MEDIA_STATE_STOPPED) == 0 &&
+  if (state == VALENT_MEDIA_STATE_PLAYING &&
       (flags & VALENT_MEDIA_ACTION_PAUSE) != 0)
     valent_media_player_pause (player);
 
-  else if ((state & VALENT_MEDIA_STATE_STOPPED) != 0 &&
+  else if (state != VALENT_MEDIA_STATE_PLAYING &&
            (flags & VALENT_MEDIA_ACTION_PLAY) != 0)
     valent_media_player_play (player);
 }
@@ -242,7 +235,7 @@ valent_media_player_get_property (GObject    *object,
       break;
 
     case PROP_STATE:
-      g_value_set_flags (value, valent_media_player_get_state (self));
+      g_value_set_enum (value, valent_media_player_get_state (self));
       break;
 
     case PROP_VOLUME:
@@ -270,10 +263,6 @@ valent_media_player_set_property (GObject      *object,
 
     case PROP_REPEAT:
       valent_media_player_set_repeat (self, g_value_get_enum (value));
-      break;
-
-    case PROP_STATE:
-      valent_media_player_set_state (self, g_value_get_flags (value));
       break;
 
     case PROP_SHUFFLE:
@@ -308,7 +297,6 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
   player_class->get_shuffle = valent_media_player_real_get_shuffle;
   player_class->set_shuffle = valent_media_player_real_set_shuffle;
   player_class->get_state = valent_media_player_real_get_state;
-  player_class->set_state = valent_media_player_real_set_state;
   player_class->get_volume = valent_media_player_real_get_volume;
   player_class->set_volume = valent_media_player_real_set_volume;
   player_class->next = valent_media_player_real_next;
@@ -412,7 +400,7 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
                         G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentMediaPlayer:state: (getter get_state) (setter set_state)
+   * ValentMediaPlayer:state: (getter get_state)
    *
    * The playback state.
    *
@@ -423,12 +411,12 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
    * Since: 1.0
    */
   properties [PROP_STATE] =
-    g_param_spec_flags ("state", NULL, NULL,
-                        VALENT_TYPE_MEDIA_STATE,
-                        VALENT_MEDIA_STATE_STOPPED,
-                        (G_PARAM_READWRITE |
-                         G_PARAM_EXPLICIT_NOTIFY |
-                         G_PARAM_STATIC_STRINGS));
+    g_param_spec_enum ("state", NULL, NULL,
+                       VALENT_TYPE_MEDIA_STATE,
+                       VALENT_MEDIA_STATE_STOPPED,
+                       (G_PARAM_READWRITE |
+                        G_PARAM_EXPLICIT_NOTIFY |
+                        G_PARAM_STATIC_STRINGS));
 
   /**
    * ValentMediaPlayer:shuffle: (getter get_shuffle) (setter set_shuffle)
@@ -577,19 +565,9 @@ valent_media_player_emit_seeked (ValentMediaPlayer *player,
 gboolean
 valent_media_player_is_playing (ValentMediaPlayer *player)
 {
-  ValentMediaState state;
-
   g_return_val_if_fail (VALENT_IS_MEDIA_PLAYER (player), FALSE);
 
-  state = valent_media_player_get_state (player);
-
-  if ((state & VALENT_MEDIA_STATE_PAUSED) != 0)
-    return FALSE;
-
-  if ((state & VALENT_MEDIA_STATE_PLAYING) != 0)
-    return TRUE;
-
-  return FALSE;
+  return valent_media_player_get_state (player) == VALENT_MEDIA_STATE_PLAYING;
 }
 
 /**
@@ -829,28 +807,6 @@ valent_media_player_get_state (ValentMediaPlayer *player)
   ret = VALENT_MEDIA_PLAYER_GET_CLASS (player)->get_state (player);
 
   VALENT_RETURN (ret);
-}
-
-/**
- * valent_media_player_set_state: (virtual set_state) (set-property state)
- * @player: a #ValentMediaPlayer
- * @state: a #ValentMediaState
- *
- * Set the playback state of @player to @state.
- *
- * Since: 1.0
- */
-void
-valent_media_player_set_state (ValentMediaPlayer *player,
-                               ValentMediaState   state)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
-
-  VALENT_MEDIA_PLAYER_GET_CLASS (player)->set_state (player, state);
-
-  VALENT_EXIT;
 }
 
 /**

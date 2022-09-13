@@ -109,15 +109,6 @@ valent_mock_media_player_get_state (ValentMediaPlayer *player)
   return self->state;
 }
 
-static void
-valent_mock_media_player_set_state (ValentMediaPlayer *player,
-                                    ValentMediaState   state)
-{
-  ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
-
-  self->state = state;
-}
-
 static double
 valent_mock_media_player_get_volume (ValentMediaPlayer *player)
 {
@@ -148,8 +139,7 @@ valent_mock_media_player_pause (ValentMediaPlayer *player)
 {
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
 
-  self->state &= ~VALENT_MEDIA_STATE_PLAYING;
-  self->state |= VALENT_MEDIA_STATE_PAUSED;
+  self->state = VALENT_MEDIA_STATE_PAUSED;
   g_signal_emit (G_OBJECT (self), signals [PLAYER_METHOD], 0, "Pause", NULL);
 }
 
@@ -158,8 +148,7 @@ valent_mock_media_player_play (ValentMediaPlayer *player)
 {
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
 
-  self->state &= ~VALENT_MEDIA_STATE_PAUSED;
-  self->state |= VALENT_MEDIA_STATE_PLAYING;
+  self->state = VALENT_MEDIA_STATE_PLAYING;
   g_signal_emit (G_OBJECT (self), signals [PLAYER_METHOD], 0, "Play", NULL);
 }
 
@@ -168,16 +157,10 @@ valent_mock_media_player_play_pause (ValentMediaPlayer *player)
 {
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
 
-  if ((self->state & VALENT_MEDIA_STATE_PAUSED) != 0)
-    {
-      self->state &= ~VALENT_MEDIA_STATE_PAUSED;
-      self->state |= VALENT_MEDIA_STATE_PLAYING;
-    }
-  else if ((self->state & VALENT_MEDIA_STATE_PLAYING) != 0)
-    {
-      self->state &= ~VALENT_MEDIA_STATE_PLAYING;
-      self->state |= VALENT_MEDIA_STATE_PAUSED;
-    }
+  if (self->state == VALENT_MEDIA_STATE_PAUSED)
+    self->state = VALENT_MEDIA_STATE_PLAYING;
+  else if (self->state == VALENT_MEDIA_STATE_PLAYING)
+    self->state = VALENT_MEDIA_STATE_PAUSED;
 
   g_signal_emit (G_OBJECT (self), signals [PLAYER_METHOD], 0, "PlayPause", NULL);
 }
@@ -236,7 +219,6 @@ valent_mock_media_player_class_init (ValentMockMediaPlayerClass *klass)
   player_class->get_shuffle = valent_mock_media_player_get_shuffle;
   player_class->set_shuffle = valent_mock_media_player_set_shuffle;
   player_class->get_state = valent_mock_media_player_get_state;
-  player_class->set_state = valent_mock_media_player_set_state;
   player_class->get_volume = valent_mock_media_player_get_volume;
   player_class->set_volume = valent_mock_media_player_set_volume;
 

@@ -265,7 +265,7 @@ test_media_component_self (MediaComponentFixture *fixture,
   g_assert_true (player == fixture->player);
   g_assert_true (player == g_ptr_array_index (players, 0));
 
-  valent_media_player_set_state (fixture->player, VALENT_MEDIA_STATE_PLAYING);
+  valent_media_player_play (fixture->player);
   valent_media_pause (fixture->media);
   g_assert_false (valent_media_player_is_playing (fixture->player));
   valent_media_unpause (fixture->media);

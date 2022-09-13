@@ -511,9 +511,9 @@ player_get_property (GDBusConnection  *connection,
 
   if (g_strcmp0 (property_name, "PlaybackStatus") == 0)
     {
-      if ((self->state & VALENT_MEDIA_STATE_PAUSED) != 0)
+      if (self->state == VALENT_MEDIA_STATE_PAUSED)
         value = g_variant_new_string ("Paused");
-      if ((self->state & VALENT_MEDIA_STATE_PLAYING) != 0)
+      if (self->state == VALENT_MEDIA_STATE_PLAYING)
         value = g_variant_new_string ("Playing");
       else
         value = g_variant_new_string ("Stopped");
@@ -1390,30 +1390,26 @@ valent_mpris_remote_update_playback_status (ValentMprisRemote *remote,
 
   if (g_str_equal (status, "Paused"))
     {
-      if ((remote->state & VALENT_MEDIA_STATE_PAUSED) != 0)
+      if (remote->state == VALENT_MEDIA_STATE_PAUSED)
         return;
 
-      remote->state &= ~VALENT_MEDIA_STATE_PLAYING;
-      remote->state |= VALENT_MEDIA_STATE_PAUSED;
+      remote->state = VALENT_MEDIA_STATE_PAUSED;
     }
 
   else if (g_str_equal (status, "Playing"))
     {
-      if ((remote->state & VALENT_MEDIA_STATE_PLAYING) != 0)
+      if (remote->state == VALENT_MEDIA_STATE_PLAYING)
         return;
 
-      remote->state &= ~VALENT_MEDIA_STATE_PAUSED;
-      remote->state |= VALENT_MEDIA_STATE_PLAYING;
+      remote->state = VALENT_MEDIA_STATE_PLAYING;
     }
 
   else if (g_str_equal (status, "Stopped"))
     {
-      if ((remote->state & VALENT_MEDIA_STATE_PAUSED) == 0 &&
-          (remote->state & VALENT_MEDIA_STATE_PLAYING) == 0)
+      if (remote->state == VALENT_MEDIA_STATE_STOPPED)
         return;
 
-      remote->state &= ~VALENT_MEDIA_STATE_PAUSED;
-      remote->state &= ~VALENT_MEDIA_STATE_PLAYING;
+      remote->state = VALENT_MEDIA_STATE_STOPPED;
     }
 
   g_object_notify (G_OBJECT (remote), "state");
