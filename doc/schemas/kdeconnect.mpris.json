@@ -95,6 +95,19 @@
                     "type": "boolean",
                     "description": "Whether playback is active."
                 },
+                "loopStatus": {
+                    "type": "string",
+                    "enum": [
+                        "None",
+                        "Track",
+                        "Playlist"
+                    ],
+                    "description": "The loop status."
+                },
+                "shuffle": {
+                    "type": "boolean",
+                    "description": "Whether shuffle is enabled."
+                },
                 "pos": {
                     "type": "number",
                     "minimum": 0,

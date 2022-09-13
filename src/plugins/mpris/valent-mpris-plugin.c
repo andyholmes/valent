@@ -14,6 +14,7 @@
 
 #include "valent-mpris-plugin.h"
 #include "valent-mpris-remote.h"
+#include "valent-mpris-utils.h"
 
 
 struct _ValentMprisPlugin
@@ -215,6 +216,9 @@ valent_mpris_plugin_handle_mpris_request (ValentMprisPlugin *self,
   gint64 position;
   gboolean request_now_playing;
   gboolean request_volume;
+  const char *loop_status;
+  ValentMediaRepeat repeat;
+  gboolean shuffle;
   gint64 volume;
 
   g_assert (VALENT_IS_MPRIS_PLUGIN (self));
@@ -254,6 +258,17 @@ valent_mpris_plugin_handle_mpris_request (ValentMprisPlugin *self,
       valent_media_player_seek (player, offset);
     }
 
+  /* A request to change the loop status */
+  if (valent_packet_get_string (packet, "setLoopStatus", &loop_status))
+    {
+      repeat = valent_mpris_repeat_from_string (loop_status);
+      valent_media_player_set_repeat (player, repeat);
+    }
+
+  /* A request to change the shuffle mode */
+  if (valent_packet_get_boolean (packet, "setShuffle", &shuffle))
+    valent_media_player_set_shuffle (player, shuffle);
+
   /* A request to change the player volume */
   if (valent_packet_get_int (packet, "setVolume", &volume))
     valent_media_player_set_volume (player, volume / 100.0);
@@ -287,8 +302,11 @@ valent_mpris_plugin_send_player_info (ValentMprisPlugin *self,
   if (request_now_playing)
     {
       ValentMediaActions flags;
+      ValentMediaRepeat repeat;
       gboolean is_playing;
       gint64 position;
+      gboolean shuffle;
+      const char *loop_status = "None";
 
       g_autoptr (GVariant) metadata = NULL;
       g_autofree char *artist = NULL;
@@ -307,6 +325,15 @@ valent_mpris_plugin_send_player_info (ValentMprisPlugin *self,
       json_builder_add_boolean_value (builder,(flags & VALENT_MEDIA_ACTION_PREVIOUS) != 0);
       json_builder_set_member_name (builder, "canSeek");
       json_builder_add_boolean_value (builder, (flags & VALENT_MEDIA_ACTION_SEEK) != 0);
+
+      repeat = valent_media_player_get_repeat (player);
+      loop_status = valent_mpris_repeat_to_string (repeat);
+      json_builder_set_member_name (builder, "loopStatus");
+      json_builder_add_string_value (builder, loop_status);
+
+      shuffle = valent_media_player_get_shuffle (player);
+      json_builder_set_member_name (builder, "shuffle");
+      json_builder_add_boolean_value (builder, shuffle);
 
       is_playing = valent_media_player_is_playing (player);
       json_builder_set_member_name (builder, "isPlaying");
@@ -545,7 +572,25 @@ on_remote_set_property (ValentMprisRemote *remote,
   json_builder_set_member_name (builder, "player");
   json_builder_add_string_value (builder, valent_media_player_get_name (player));
 
-  if (g_strcmp0 (property_name, "Volume") == 0)
+  if (strcmp (property_name, "LoopStatus") == 0)
+    {
+      const char *loop_status = NULL;
+
+      loop_status = g_variant_get_string (value, NULL);
+
+      json_builder_set_member_name (builder, "setLoopStatus");
+      json_builder_add_string_value (builder, loop_status);
+    }
+  else if (strcmp (property_name, "Shuffle") == 0)
+    {
+      gboolean shuffle;
+
+      shuffle = g_variant_get_boolean (value);
+
+      json_builder_set_member_name (builder, "setShuffle");
+      json_builder_add_int_value (builder, shuffle);
+    }
+  else if (strcmp (property_name, "Volume") == 0)
     {
       double volume;
 
@@ -831,6 +876,12 @@ valent_mpris_plugin_handle_player_update (ValentMprisPlugin *self,
 
   if (!valent_packet_get_int (packet, "pos", &position))
     position = 0;
+
+  if (!valent_packet_get_string (packet, "loopStatus", &loop_status))
+    loop_status = NULL;
+
+  if (!valent_packet_get_boolean (packet, "shuffle", &shuffle))
+    shuffle = FALSE;
 
   if (valent_packet_get_int (packet, "volume", &volume))
     volume_level = volume / 100;
