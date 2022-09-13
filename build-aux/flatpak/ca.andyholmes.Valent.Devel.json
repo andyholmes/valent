@@ -117,6 +117,8 @@
                 "-DENABLE_GTK=OFF",
                 "-DENABLE_GTK4=OFF",
                 "-DENABLE_GOA=OFF",
+                "-DENABLE_GOOGLE=OFF",
+                "-DENABLE_OAUTH2=OFF",
                 "-DENABLE_VALA_BINDINGS=OFF",
                 "-DENABLE_WEATHER=OFF",
                 "-DENABLE_OAUTH2_WEBKITGTK4=OFF",
