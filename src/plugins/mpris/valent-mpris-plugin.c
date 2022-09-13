@@ -181,22 +181,22 @@ valent_mpris_plugin_handle_action (ValentMprisPlugin *self,
   g_assert (VALENT_IS_MEDIA_PLAYER (player));
   g_assert (action && *action);
 
-  if (g_str_equal (action, "Next"))
+  if (strcmp (action, "Next") == 0)
     valent_media_player_next (player);
 
-  else if (g_str_equal (action, "Pause"))
+  else if (strcmp (action, "Pause") == 0)
     valent_media_player_pause (player);
 
-  else if (g_str_equal (action, "Play"))
+  else if (strcmp (action, "Play") == 0)
     valent_media_player_play (player);
 
-  else if (g_str_equal (action, "PlayPause"))
+  else if (strcmp (action, "PlayPause") == 0)
     valent_media_player_play_pause (player);
 
-  else if (g_str_equal (action, "Previous"))
+  else if (strcmp (action, "Previous") == 0)
     valent_media_player_previous (player);
 
-  else if (g_str_equal (action, "Stop"))
+  else if (strcmp (action, "Stop") == 0)
     valent_media_player_stop (player);
 
   else
@@ -765,9 +765,11 @@ valent_mpris_plugin_handle_player_update (ValentMprisPlugin *self,
   GVariantDict metadata;
   const char *artist, *title, *album;
   gint64 length, position;
+  const char *loop_status = NULL;
+  gboolean shuffle = FALSE;
+  gboolean is_playing;
   gint64 volume;
   double volume_level = 100.0;
-  gboolean is_playing;
 
   /* Get the remote */
   if (!valent_packet_get_string (packet, "player", &player) ||
@@ -833,12 +835,14 @@ valent_mpris_plugin_handle_player_update (ValentMprisPlugin *self,
   if (valent_packet_get_int (packet, "volume", &volume))
     volume_level = volume / 100;
 
-  valent_mpris_remote_update_player (remote,
-                                     flags,
-                                     g_variant_dict_end (&metadata),
-                                     is_playing ? "Playing" : "Paused",
-                                     position,
-                                     volume_level);
+  valent_mpris_remote_update_full (remote,
+                                   flags,
+                                   g_variant_dict_end (&metadata),
+                                   is_playing ? "Playing" : "Paused",
+                                   position,
+                                   loop_status,
+                                   shuffle,
+                                   volume_level);
 }
 
 static void

@@ -32,12 +32,14 @@ test_mpris_remote_method (ValentMprisRemote *remote,
                 VALENT_MEDIA_ACTION_PAUSE |
                 VALENT_MEDIA_ACTION_SEEK);
 
-      valent_mpris_remote_update_player (remote,
-                                         flags,
-                                         g_variant_dict_end (&dict),
-                                         "Playing",
-                                         0,
-                                         1.0);
+      valent_mpris_remote_update_full (remote,
+                                       flags,
+                                       g_variant_dict_end (&dict),
+                                       "Playing",
+                                       0,
+                                       "None",
+                                       FALSE,
+                                       1.0);
     }
 
   /* Fake track next */
@@ -53,29 +55,32 @@ test_mpris_remote_method (ValentMprisRemote *remote,
                 VALENT_MEDIA_ACTION_PAUSE |
                 VALENT_MEDIA_ACTION_SEEK);
 
-      valent_mpris_remote_update_player (remote,
-                                         flags,
-                                         g_variant_dict_end (&dict),
-                                         "Playing",
-                                         0,
-                                         1.0);
+      valent_mpris_remote_update_full (remote,
+                                       flags,
+                                       g_variant_dict_end (&dict),
+                                       "Playing",
+                                       0,
+                                       "None",
+                                       FALSE,
+                                       1.0);
     }
 
   /* Fake playback pause */
   else if (g_strcmp0 (method, "Pause") == 0)
     {
-
       flags |= (VALENT_MEDIA_ACTION_NEXT |
                 VALENT_MEDIA_ACTION_PREVIOUS |
                 VALENT_MEDIA_ACTION_PLAY |
                 VALENT_MEDIA_ACTION_SEEK);
 
-      valent_mpris_remote_update_player (remote,
-                                         flags,
-                                         NULL,
-                                         "Paused",
-                                         0,
-                                         1.0);
+      valent_mpris_remote_update_full (remote,
+                                       flags,
+                                       NULL,
+                                       "Paused",
+                                       0,
+                                       "None",
+                                       FALSE,
+                                       1.0);
     }
 
   /* Fake seek */
@@ -92,12 +97,14 @@ test_mpris_remote_method (ValentMprisRemote *remote,
     {
       g_variant_dict_init (&dict, NULL);
 
-      valent_mpris_remote_update_player (remote,
-                                         flags,
-                                         g_variant_dict_end (&dict),
-                                         "Stopped",
-                                         0,
-                                         1.0);
+      valent_mpris_remote_update_full (remote,
+                                       flags,
+                                       g_variant_dict_end (&dict),
+                                       "Stopped",
+                                       0,
+                                       "None",
+                                       FALSE,
+                                       1.0);
     }
 }
 
@@ -107,6 +114,9 @@ test_mpris_remote_set_property (ValentMprisRemote *remote,
                                 GVariant          *value,
                                 gpointer           user_data)
 {
+  if (g_strcmp0 (name, "Shuffle") == 0)
+    valent_mpris_remote_update_shuffle (remote, g_variant_get_boolean (value));
+
   if (g_strcmp0 (name, "Volume") == 0)
     valent_mpris_remote_update_volume (remote, g_variant_get_double (value));
 }

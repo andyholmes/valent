@@ -55,12 +55,14 @@ on_remote_method (ValentMprisRemote *remote,
                 VALENT_MEDIA_ACTION_PAUSE |
                 VALENT_MEDIA_ACTION_SEEK);
 
-      valent_mpris_remote_update_player (remote,
-                                         flags,
-                                         g_variant_dict_end (&dict),
-                                         "Playing",
-                                         0,
-                                         1.0);
+      valent_mpris_remote_update_full (remote,
+                                       flags,
+                                       g_variant_dict_end (&dict),
+                                       "Playing",
+                                       0,
+                                       "None",
+                                       FALSE,
+                                       1.0);
     }
 
   /* Fake track next */
@@ -77,12 +79,14 @@ on_remote_method (ValentMprisRemote *remote,
                 VALENT_MEDIA_ACTION_PAUSE |
                 VALENT_MEDIA_ACTION_SEEK);
 
-      valent_mpris_remote_update_player (remote,
-                                         flags,
-                                         g_variant_dict_end (&dict),
-                                         "Playing",
-                                         0,
-                                         1.0);
+      valent_mpris_remote_update_full (remote,
+                                       flags,
+                                       g_variant_dict_end (&dict),
+                                       "Playing",
+                                       0,
+                                       "None",
+                                       FALSE,
+                                       1.0);
     }
 
   /* Fake playback pause */
@@ -94,12 +98,14 @@ on_remote_method (ValentMprisRemote *remote,
                 VALENT_MEDIA_ACTION_PLAY |
                 VALENT_MEDIA_ACTION_SEEK);
 
-      valent_mpris_remote_update_player (remote,
-                                         flags,
-                                         NULL,
-                                         "Paused",
-                                         0,
-                                         1.0);
+      valent_mpris_remote_update_full (remote,
+                                       flags,
+                                       NULL,
+                                       "Paused",
+                                       0,
+                                       "None",
+                                       FALSE,
+                                       1.0);
     }
 
   /* Fake seek */
@@ -116,12 +122,14 @@ on_remote_method (ValentMprisRemote *remote,
     {
       g_variant_dict_init (&dict, NULL);
 
-      valent_mpris_remote_update_player (remote,
-                                         flags,
-                                         g_variant_dict_end (&dict),
-                                         "Stopped",
-                                         0,
-                                         1.0);
+      valent_mpris_remote_update_full (remote,
+                                       flags,
+                                       g_variant_dict_end (&dict),
+                                       "Stopped",
+                                       0,
+                                       "None",
+                                       FALSE,
+                                       1.0);
     }
 }
 

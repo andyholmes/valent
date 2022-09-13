@@ -44,8 +44,8 @@ typedef enum
 /**
  * ValentMediaRepeat:
  * @VALENT_MEDIA_REPEAT_NONE: Repeat off.
- * @VALENT_MEDIA_REPEAT_NONE: Repeat the current item.
- * @VALENT_MEDIA_REPEAT_NONE: Repeat all items.
+ * @VALENT_MEDIA_REPEAT_ALL: Repeat all items.
+ * @VALENT_MEDIA_REPEAT_ONE: Repeat one items.
  *
  * Enumeration of loop modes.
  *
@@ -54,8 +54,8 @@ typedef enum
 typedef enum
 {
   VALENT_MEDIA_REPEAT_NONE,
-  VALENT_MEDIA_REPEAT_ONE,
   VALENT_MEDIA_REPEAT_ALL,
+  VALENT_MEDIA_REPEAT_ONE,
 } ValentMediaRepeat;
 
 
@@ -72,8 +72,8 @@ typedef enum
 typedef enum
 {
   VALENT_MEDIA_STATE_STOPPED,
-  VALENT_MEDIA_STATE_PAUSED,
   VALENT_MEDIA_STATE_PLAYING,
+  VALENT_MEDIA_STATE_PAUSED,
 } ValentMediaState;
 
 

@@ -8,7 +8,7 @@
 #include <gio/gio.h>
 #include <libvalent-media.h>
 
-#include "valent-mpris-common.h"
+#include "valent-mpris-utils.h"
 #include "valent-mpris-remote.h"
 
 
@@ -493,15 +493,9 @@ player_get_property (GDBusConnection  *connection,
   /* Uncommon properties */
   if (g_strcmp0 (property_name, "LoopStatus") == 0)
     {
-      if (self->repeat == VALENT_MEDIA_REPEAT_NONE)
-        value = g_variant_new_string ("None");
-      else if (self->repeat == VALENT_MEDIA_REPEAT_ONE)
-        value = g_variant_new_string ("Track");
-      else if (self->repeat == VALENT_MEDIA_REPEAT_ALL)
-        value = g_variant_new_string ("Playlist");
-      else
-        value = g_variant_new_string ("None");
+      const char *loop_status = valent_mpris_repeat_to_string (self->repeat);
 
+      value = g_variant_new_string (loop_status);
       g_hash_table_replace (self->cache,
                             g_strdup (property_name),
                             g_variant_ref_sink (value));
@@ -511,13 +505,9 @@ player_get_property (GDBusConnection  *connection,
 
   if (g_strcmp0 (property_name, "PlaybackStatus") == 0)
     {
-      if (self->state == VALENT_MEDIA_STATE_PAUSED)
-        value = g_variant_new_string ("Paused");
-      if (self->state == VALENT_MEDIA_STATE_PLAYING)
-        value = g_variant_new_string ("Playing");
-      else
-        value = g_variant_new_string ("Stopped");
+      const char *playback_status = valent_mpris_state_to_string (self->state);
 
+      value = g_variant_new_string (playback_status);
       g_hash_table_replace (self->cache,
                             g_strdup (property_name),
                             g_variant_ref_sink (value));
@@ -555,29 +545,18 @@ player_set_property (GDBusConnection  *connection,
 {
   ValentMprisRemote *self = VALENT_MPRIS_REMOTE (user_data);
 
-  if (g_strcmp0 (property_name, "LoopStatus") == 0)
+  g_assert (property_name != NULL);
+
+  if (strcmp (property_name, "LoopStatus") == 0)
     {
       const char *loop_status = g_variant_get_string (value, NULL);
+      ValentMediaRepeat repeat = valent_mpris_repeat_from_string (loop_status);
 
-      if (self->repeat == VALENT_MEDIA_REPEAT_NONE &&
-          strcmp (loop_status, "None") == 0)
-        return TRUE;
-
-      if (self->repeat == VALENT_MEDIA_REPEAT_ALL &&
-          strcmp (loop_status, "Playlist") == 0)
-        return TRUE;
-
-      if (self->repeat == VALENT_MEDIA_REPEAT_ONE &&
-          strcmp (loop_status, "Track") == 0)
+      if (self->repeat == repeat)
         return TRUE;
     }
 
-  else if (g_strcmp0 (property_name, "Rate") == 0)
-    {
-      return TRUE;
-    }
-
-  else if (g_strcmp0 (property_name, "Shuffle") == 0)
+  else if (strcmp (property_name, "Shuffle") == 0)
     {
       gboolean shuffle = g_variant_get_boolean (value);
 
@@ -585,12 +564,16 @@ player_set_property (GDBusConnection  *connection,
         return TRUE;
     }
 
-  else if (g_strcmp0 (property_name, "Volume") == 0)
+  else if (strcmp (property_name, "Volume") == 0)
     {
       double volume = g_variant_get_double (value);
 
       if (self->volume == volume)
         return TRUE;
+    }
+  else
+    {
+      return TRUE;
     }
 
   g_signal_emit (G_OBJECT (self), signals [SET_PROPERTY], 0, property_name, value);
@@ -693,7 +676,7 @@ valent_mpris_remote_register (ValentMprisRemote  *self,
       self->application_id =
         g_dbus_connection_register_object (self->connection,
                                            "/org/mpris/MediaPlayer2",
-                                           valent_mpris_get_application_iface (),
+                                           VALENT_MPRIS_APPLICATION_INFO,
                                            &self->application_vtable,
                                            self, NULL,
                                            error);
@@ -711,7 +694,7 @@ valent_mpris_remote_register (ValentMprisRemote  *self,
       self->player_id =
         g_dbus_connection_register_object (self->connection,
                                            "/org/mpris/MediaPlayer2",
-                                           valent_mpris_get_player_iface (),
+                                           VALENT_MPRIS_PLAYER_INFO,
                                            &self->player_vtable,
                                            self, NULL,
                                            error);
@@ -1237,6 +1220,8 @@ valent_mpris_remote_emit_seeked (ValentMprisRemote *self,
  * @metadata: (nullable): the track metadata
  * @playback_status: (nullable): the playback status (`Stopped`, `Paused`, `Playing`)
  * @position: the playback position
+ * @loop_status: the loop status
+ * @shuffle: the shuffle mode
  * @volume: the playback volume
  *
  * A convenience method for updating the internal state of the most common
@@ -1245,12 +1230,14 @@ valent_mpris_remote_emit_seeked (ValentMprisRemote *self,
  * If @metadata is a floating reference, it will be consumed.
  */
 void
-valent_mpris_remote_update_player (ValentMprisRemote  *remote,
-                                   ValentMediaActions  flags,
-                                   GVariant           *metadata,
-                                   const char         *playback_status,
-                                   gint64              position,
-                                   double              volume)
+valent_mpris_remote_update_full (ValentMprisRemote  *remote,
+                                 ValentMediaActions  flags,
+                                 GVariant           *metadata,
+                                 const char         *playback_status,
+                                 gint64              position,
+                                 const char         *loop_status,
+                                 gboolean            shuffle,
+                                 double              volume)
 {
   g_assert (VALENT_IS_MPRIS_REMOTE (remote));
 
@@ -1260,9 +1247,14 @@ valent_mpris_remote_update_player (ValentMprisRemote  *remote,
     valent_mpris_remote_update_metadata (remote, metadata);
 
   if (playback_status != NULL)
-    valent_mpris_remote_update_playback_status (remote, playback_status);
+    valent_mpris_remote_update_state (remote, playback_status);
 
   valent_mpris_remote_update_position (remote, position);
+
+  if (loop_status != NULL)
+    valent_mpris_remote_update_repeat (remote, loop_status);
+
+  valent_mpris_remote_update_shuffle (remote, shuffle);
   valent_mpris_remote_update_volume (remote, volume);
 }
 
@@ -1365,7 +1357,7 @@ valent_mpris_remote_update_metadata (ValentMprisRemote *remote,
 {
   g_assert (VALENT_IS_MPRIS_REMOTE (remote));
 
-  if (remote->metadata == NULL && value == NULL)
+  if (remote->metadata == value)
     return;
 
   g_clear_pointer (&remote->metadata, g_variant_unref);
@@ -1375,53 +1367,9 @@ valent_mpris_remote_update_metadata (ValentMprisRemote *remote,
 }
 
 /**
- * valent_mpris_remote_update_playback_status:
- * @remote: a #ValentMprisRemote
- * @status: the playback status
- *
- * Set the `PlaybackStatus`.
- */
-void
-valent_mpris_remote_update_playback_status (ValentMprisRemote *remote,
-                                            const char        *status)
-{
-  g_assert (VALENT_IS_MPRIS_REMOTE (remote));
-  g_assert (status != NULL);
-
-  if (g_str_equal (status, "Paused"))
-    {
-      if (remote->state == VALENT_MEDIA_STATE_PAUSED)
-        return;
-
-      remote->state = VALENT_MEDIA_STATE_PAUSED;
-    }
-
-  else if (g_str_equal (status, "Playing"))
-    {
-      if (remote->state == VALENT_MEDIA_STATE_PLAYING)
-        return;
-
-      remote->state = VALENT_MEDIA_STATE_PLAYING;
-    }
-
-  else if (g_str_equal (status, "Stopped"))
-    {
-      if (remote->state == VALENT_MEDIA_STATE_STOPPED)
-        return;
-
-      remote->state = VALENT_MEDIA_STATE_STOPPED;
-    }
-
-  g_object_notify (G_OBJECT (remote), "state");
-  valent_mpris_remote_set_value (remote,
-                                 "PlaybackStatus",
-                                 g_variant_new_string (status));
-}
-
-/**
  * valent_mpris_remote_update_position:
  * @remote: a #ValentMprisRemote
- * @rate: the playback rate
+ * @position: the playback rate
  *
  * Set the `Position` property.
  */
@@ -1432,6 +1380,85 @@ valent_mpris_remote_update_position (ValentMprisRemote *remote,
   g_assert (VALENT_IS_MPRIS_REMOTE (remote));
 
   remote->position = position;
+}
+
+/**
+ * valent_mpris_remote_update_playback_status:
+ * @remote: a #ValentMprisRemote
+ * @loop_status: the loop status
+ *
+ * Set the `LoopStatus`.
+ */
+void
+valent_mpris_remote_update_repeat (ValentMprisRemote *remote,
+                                   const char        *loop_status)
+{
+  ValentMediaRepeat repeat = VALENT_MEDIA_REPEAT_NONE;
+
+  g_assert (VALENT_IS_MPRIS_REMOTE (remote));
+  g_assert (loop_status != NULL);
+
+  repeat = valent_mpris_repeat_from_string (loop_status);
+
+  if (remote->repeat == repeat)
+    return;
+
+  remote->repeat = repeat;
+  g_object_notify (G_OBJECT (remote), "repeat");
+  valent_mpris_remote_set_value (remote,
+                                 "LoopStatus",
+                                 g_variant_new_string (loop_status));
+}
+
+/**
+ * valent_mpris_remote_update_shuffle:
+ * @remote: a #ValentMprisRemote
+ * @shuffle: shuffle mode
+ *
+ * Set the `Shuffle` property.
+ */
+void
+valent_mpris_remote_update_shuffle (ValentMprisRemote *remote,
+                                    gboolean           shuffle)
+{
+  g_assert (VALENT_IS_MPRIS_REMOTE (remote));
+
+  if (remote->shuffle == shuffle)
+    return;
+
+  remote->shuffle = shuffle;
+  g_object_notify (G_OBJECT (remote), "shuffle");
+  valent_mpris_remote_set_value (remote,
+                                 "Shuffle",
+                                 g_variant_new_boolean (shuffle));
+}
+
+/**
+ * valent_mpris_remote_update_state:
+ * @remote: a #ValentMprisRemote
+ * @playback_status: the playback status
+ *
+ * Set the `PlaybackStatus`.
+ */
+void
+valent_mpris_remote_update_state (ValentMprisRemote *remote,
+                                  const char        *playback_status)
+{
+  ValentMediaState state = VALENT_MEDIA_STATE_STOPPED;
+
+  g_assert (VALENT_IS_MPRIS_REMOTE (remote));
+  g_assert (playback_status != NULL);
+
+  state = valent_mpris_state_from_string (playback_status);
+
+  if (remote->state == state)
+    return;
+
+  remote->state = state;
+  g_object_notify (G_OBJECT (remote), "state");
+  valent_mpris_remote_set_value (remote,
+                                 "PlaybackStatus",
+                                 g_variant_new_string (playback_status));
 }
 
 /**
@@ -1452,6 +1479,8 @@ valent_mpris_remote_update_volume (ValentMprisRemote *remote,
 
   remote->volume = volume;
   g_object_notify (G_OBJECT (remote), "volume");
-  valent_mpris_remote_set_value (remote, "Volume", g_variant_new_double (volume));
+  valent_mpris_remote_set_value (remote,
+                                 "Volume",
+                                 g_variant_new_double (volume));
 }
 
