@@ -38,8 +38,8 @@ struct _ValentMprisRemote
   unsigned int          player_id;
   GDBusInterfaceVTable  player_vtable;
   ValentMediaActions    flags;
+  ValentMediaRepeat     repeat;
   ValentMediaState      state;
-  char                 *loop_status;
   GVariant             *metadata;
   gint64                position;
   unsigned int          shuffle : 1;
@@ -493,10 +493,12 @@ player_get_property (GDBusConnection  *connection,
   /* Uncommon properties */
   if (g_strcmp0 (property_name, "LoopStatus") == 0)
     {
-      if (self->state & VALENT_MEDIA_STATE_REPEAT_ALL)
-        value = g_variant_new_string ("Playlist");
-      else if (self->state & VALENT_MEDIA_STATE_REPEAT)
+      if (self->repeat == VALENT_MEDIA_REPEAT_NONE)
+        value = g_variant_new_string ("None");
+      else if (self->repeat == VALENT_MEDIA_REPEAT_ONE)
         value = g_variant_new_string ("Track");
+      else if (self->repeat == VALENT_MEDIA_REPEAT_ALL)
+        value = g_variant_new_string ("Playlist");
       else
         value = g_variant_new_string ("None");
 
@@ -557,21 +559,17 @@ player_set_property (GDBusConnection  *connection,
     {
       const char *loop_status = g_variant_get_string (value, NULL);
 
-      if ((self->state & VALENT_MEDIA_STATE_REPEAT) != 0)
-        {
-          if (g_strcmp0 (loop_status, "Track") == 0)
-            return TRUE;
-        }
-      else if ((self->state & VALENT_MEDIA_STATE_REPEAT_ALL) != 0)
-        {
-          if (g_strcmp0 (loop_status, "Playlist") == 0)
-            return TRUE;
-        }
-      else
-        {
-          if (g_strcmp0 (loop_status, "None") == 0)
-            return TRUE;
-        }
+      if (self->repeat == VALENT_MEDIA_REPEAT_NONE &&
+          strcmp (loop_status, "None") == 0)
+        return TRUE;
+
+      if (self->repeat == VALENT_MEDIA_REPEAT_ALL &&
+          strcmp (loop_status, "Playlist") == 0)
+        return TRUE;
+
+      if (self->repeat == VALENT_MEDIA_REPEAT_ONE &&
+          strcmp (loop_status, "Track") == 0)
+        return TRUE;
     }
 
   else if (g_strcmp0 (property_name, "Rate") == 0)
@@ -798,6 +796,24 @@ valent_mpris_remote_set_shuffle (ValentMediaPlayer *player,
   g_signal_emit (G_OBJECT (player), signals [SET_PROPERTY], 0, "Shuffle", value);
 }
 
+static ValentMediaRepeat
+valent_mpris_remote_get_repeat (ValentMediaPlayer *player)
+{
+  ValentMprisRemote *self = VALENT_MPRIS_REMOTE (player);
+
+  return self->repeat;
+}
+
+static void
+valent_mpris_remote_set_repeat (ValentMediaPlayer *player,
+                                ValentMediaRepeat  repeat)
+{
+  g_autoptr (GVariant) value = NULL;
+
+  value = g_variant_ref_sink (g_variant_new ("(u)", repeat));
+  g_signal_emit (G_OBJECT (player), signals [SET_PROPERTY], 0, "LoopStatus", value);
+}
+
 static ValentMediaState
 valent_mpris_remote_get_state (ValentMediaPlayer *player)
 {
@@ -887,7 +903,6 @@ valent_mpris_remote_finalize (GObject *object)
   g_clear_object (&self->connection);
 
   g_clear_pointer (&self->identity, g_free);
-  g_clear_pointer (&self->loop_status, g_free);
   g_clear_pointer (&self->metadata, g_variant_unref);
 
   g_clear_pointer (&self->cache, g_hash_table_unref);
@@ -909,6 +924,8 @@ valent_mpris_remote_class_init (ValentMprisRemoteClass *klass)
   player_class->get_metadata = valent_mpris_remote_get_metadata;
   player_class->get_name = valent_mpris_remote_get_name;
   player_class->get_position = valent_mpris_remote_get_position;
+  player_class->get_repeat = valent_mpris_remote_get_repeat;
+  player_class->set_repeat = valent_mpris_remote_set_repeat;
   player_class->get_shuffle = valent_mpris_remote_get_shuffle;
   player_class->set_shuffle = valent_mpris_remote_set_shuffle;
   player_class->get_state = valent_mpris_remote_get_state;
@@ -967,7 +984,6 @@ valent_mpris_remote_init (ValentMprisRemote *self)
   self->identity = g_strdup ("Media Player");
   self->bus_name = g_strdup (VALENT_MPRIS_DBUS_NAME);
 
-  self->loop_status = g_strdup ("None");
   self->volume = 1.0;
   self->state = VALENT_MEDIA_STATE_STOPPED;
 

@@ -22,11 +22,9 @@ struct _ValentMPRISPlayer
   unsigned int        no_position : 1;
 
   ValentMediaActions  flags;
-  ValentMediaState    state;
 };
 
 static void valent_mpris_player_update_flags (ValentMPRISPlayer *self);
-static void valent_mpris_player_update_state (ValentMPRISPlayer *self);
 
 static void async_initable_iface_init        (GAsyncInitableIface *iface);
 
@@ -58,7 +56,7 @@ static const PropMapping player_properties[] = {
   {"CanPause",       "flags"},
   {"CanPlay",        "flags"},
   {"CanSeek",        "flags"},
-  {"LoopStatus",     "state"},
+  {"LoopStatus",     "repeat"},
   {"PlaybackStatus", "state"},
   {"Shuffle",        "shuffle"},
   {"Volume",         "volume"},
@@ -162,7 +160,6 @@ valent_mpris_player_init_player_cb (GObject      *object,
                     self);
 
   valent_mpris_player_update_flags (self);
-  valent_mpris_player_update_state (self);
 
   g_task_return_boolean (task, TRUE);
 }
@@ -247,25 +244,6 @@ async_initable_iface_init (GAsyncInitableIface *iface)
 }
 
 static void
-valent_mpris_player_set_loop_status (ValentMediaPlayer *player,
-                                     const char        *status)
-{
-  ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
-
-  g_dbus_proxy_call (self->player,
-                     "org.freedesktop.DBus.Properties.Set",
-                     g_variant_new ("(ssv)",
-                                    "org.mpris.MediaPlayer2.Player",
-                                    "LoopStatus",
-                                    g_variant_new_string (status)),
-                     G_DBUS_CALL_FLAGS_NONE,
-                     -1,
-                     NULL,
-                     NULL,
-                     NULL);
-}
-
-static void
 valent_mpris_player_update_flags (ValentMPRISPlayer *self)
 {
   g_autoptr (GVariant) value = NULL;
@@ -329,62 +307,6 @@ valent_mpris_player_update_flags (ValentMPRISPlayer *self)
   g_clear_pointer (&value, g_variant_unref);
 }
 
-static void
-valent_mpris_player_update_state (ValentMPRISPlayer *self)
-{
-  const char *loop_status = "None";
-  const char *play_status = "Stopped";
-  g_autoptr (GVariant) value = NULL;
-
-  // Loop Status
-  value = g_dbus_proxy_get_cached_property (self->player, "LoopStatus");
-
-  if (value != NULL)
-    loop_status = g_variant_get_string (value, NULL);
-
-  if (g_strcmp0 (loop_status, "None") == 0)
-    {
-      self->state &= ~(VALENT_MEDIA_STATE_REPEAT |
-                       VALENT_MEDIA_STATE_REPEAT_ALL);
-    }
-  else if (g_strcmp0 (loop_status, "Track") == 0)
-    {
-      self->state &= ~VALENT_MEDIA_STATE_REPEAT_ALL;
-      self->state |= VALENT_MEDIA_STATE_REPEAT;
-    }
-  else if (g_strcmp0 (loop_status, "Playlist") == 0)
-    {
-      self->state &= ~VALENT_MEDIA_STATE_REPEAT;
-      self->state |= VALENT_MEDIA_STATE_REPEAT_ALL;
-    }
-
-  g_clear_pointer (&value, g_variant_unref);
-
-  // Playback Status
-  value = g_dbus_proxy_get_cached_property (self->player, "PlaybackStatus");
-
-  if (value != NULL)
-    play_status = g_variant_get_string (value, NULL);
-
-  if (g_strcmp0 (play_status, "Paused") == 0)
-    {
-      self->state &= ~VALENT_MEDIA_STATE_PLAYING;
-      self->state |= VALENT_MEDIA_STATE_PAUSED;
-    }
-  else if (g_strcmp0 (play_status, "Playing") == 0)
-    {
-      self->state &= ~VALENT_MEDIA_STATE_PAUSED;
-      self->state |= VALENT_MEDIA_STATE_PLAYING;
-    }
-  else if (g_strcmp0 (play_status, "Stopped") == 0)
-    {
-      self->state &= ~VALENT_MEDIA_STATE_PAUSED;
-      self->state &= ~VALENT_MEDIA_STATE_PLAYING;
-    }
-
-  g_clear_pointer (&value, g_variant_unref);
-}
-
 /*
  * ValentMediaPlayer
  */
@@ -394,14 +316,6 @@ valent_mpris_player_get_flags (ValentMediaPlayer *player)
   ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
 
   return self->flags;
-}
-
-static ValentMediaState
-valent_mpris_player_get_state (ValentMediaPlayer *player)
-{
-  ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
-
-  return self->state;
 }
 
 static GVariant *
@@ -471,6 +385,93 @@ valent_mpris_player_set_position (ValentMediaPlayer *player,
                      NULL,
                      NULL,
                      NULL);
+}
+
+static ValentMediaRepeat
+valent_mpris_player_get_repeat (ValentMediaPlayer *player)
+{
+  ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
+  g_autoptr (GVariant) value = NULL;
+  const char *loop_status = NULL;
+
+  value = g_dbus_proxy_get_cached_property (self->player, "LoopStatus");
+
+  if G_UNLIKELY (value == NULL)
+    return VALENT_MEDIA_REPEAT_NONE;
+
+  loop_status = g_variant_get_string (value, NULL);
+
+  if (strcmp (loop_status, "None") == 0)
+    return VALENT_MEDIA_REPEAT_NONE;
+
+  if (strcmp (loop_status, "Playlist") == 0)
+    return VALENT_MEDIA_REPEAT_ALL;
+
+  if (strcmp (loop_status, "Track") == 0)
+    return VALENT_MEDIA_REPEAT_ONE;
+
+  return VALENT_MEDIA_REPEAT_NONE;
+}
+
+static void
+valent_mpris_player_set_repeat (ValentMediaPlayer *player,
+                                ValentMediaRepeat  repeat)
+{
+  ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
+  const char *loop_status = "None";
+
+  switch (repeat)
+    {
+    case VALENT_MEDIA_REPEAT_NONE:
+      loop_status = "None";
+      break;
+    case VALENT_MEDIA_REPEAT_ONE:
+      loop_status = "Track";
+      break;
+    case VALENT_MEDIA_REPEAT_ALL:
+      loop_status = "Playlist";
+      break;
+    default:
+      loop_status = "None";
+    }
+
+  g_dbus_proxy_call (self->player,
+                     "org.freedesktop.DBus.Properties.Set",
+                     g_variant_new ("(ssv)",
+                                    "org.mpris.MediaPlayer2.Player",
+                                    "LoopStatus",
+                                    g_variant_new_string (loop_status)),
+                     G_DBUS_CALL_FLAGS_NONE,
+                     -1,
+                     NULL,
+                     NULL,
+                     NULL);
+}
+
+static ValentMediaState
+valent_mpris_player_get_state (ValentMediaPlayer *player)
+{
+  ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
+  g_autoptr (GVariant) value = NULL;
+  const char *loop_status = NULL;
+
+  value = g_dbus_proxy_get_cached_property (self->player, "PlaybackStatus");
+
+  if G_UNLIKELY (value == NULL)
+    return VALENT_MEDIA_STATE_STOPPED;
+
+  loop_status = g_variant_get_string (value, NULL);
+
+  if (strcmp (loop_status, "Playing") == 0)
+    return VALENT_MEDIA_STATE_PLAYING;
+
+  if (strcmp (loop_status, "Paused") == 0)
+    return VALENT_MEDIA_STATE_PAUSED;
+
+  if (strcmp (loop_status, "Stopped") == 0)
+    return VALENT_MEDIA_STATE_STOPPED;
+
+  return VALENT_MEDIA_STATE_STOPPED;
 }
 
 static gboolean
@@ -684,9 +685,6 @@ valent_mpris_player_notify (GObject    *object,
   if (g_str_equal (name, "flags"))
     valent_mpris_player_update_flags (self);
 
-  else if (g_str_equal (name, "state"))
-    valent_mpris_player_update_state (self);
-
   if (G_OBJECT_CLASS (valent_mpris_player_parent_class)->notify)
     G_OBJECT_CLASS (valent_mpris_player_parent_class)->notify (object, pspec);
 }
@@ -744,6 +742,8 @@ valent_mpris_player_class_init (ValentMPRISPlayerClass *klass)
   player_class->get_metadata = valent_mpris_player_get_metadata;
   player_class->get_position = valent_mpris_player_get_position;
   player_class->set_position = valent_mpris_player_set_position;
+  player_class->get_repeat = valent_mpris_player_get_repeat;
+  player_class->set_repeat = valent_mpris_player_set_repeat;
   player_class->get_shuffle = valent_mpris_player_get_shuffle;
   player_class->set_shuffle = valent_mpris_player_set_shuffle;
   player_class->get_state = valent_mpris_player_get_state;
