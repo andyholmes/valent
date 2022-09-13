@@ -96,7 +96,6 @@ struct _ValentMediaPlayerClass
   const char         * (*get_name)     (ValentMediaPlayer *player);
   gint64               (*get_position) (ValentMediaPlayer *player);
   void                 (*set_position) (ValentMediaPlayer *player,
-                                        const char        *track_id,
                                         gint64             position);
   ValentMediaState     (*get_state)    (ValentMediaPlayer *player);
   void                 (*set_state)    (ValentMediaPlayer *player,
@@ -131,7 +130,6 @@ VALENT_AVAILABLE_IN_1_0
 gint64               valent_media_player_get_position (ValentMediaPlayer *player);
 VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_set_position (ValentMediaPlayer *player,
-                                                       const char        *track_id,
                                                        gint64             position);
 VALENT_AVAILABLE_IN_1_0
 ValentMediaState     valent_media_player_get_state    (ValentMediaPlayer *player);
