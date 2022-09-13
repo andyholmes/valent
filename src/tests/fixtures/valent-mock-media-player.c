@@ -178,8 +178,10 @@ valent_mock_media_player_seek (ValentMediaPlayer *player,
                                gint64             offset)
 {
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
+  g_autoptr (GVariant) value = NULL;
 
-  g_signal_emit (G_OBJECT (self), signals [PLAYER_METHOD], 0, "Seek", g_variant_new_int64 (offset));
+  value = g_variant_ref_sink (g_variant_new_int64 (offset));
+  g_signal_emit (G_OBJECT (self), signals [PLAYER_METHOD], 0, "Seek", value);
 }
 
 static void
@@ -254,7 +256,6 @@ valent_mock_media_player_init (ValentMockMediaPlayer *self)
   GVariantDict dict;
 
   g_variant_dict_init (&dict, NULL);
-  self->metadata = g_variant_dict_end (&dict);
-  g_variant_ref_sink (self->metadata);
+  self->metadata = g_variant_ref_sink (g_variant_dict_end (&dict));
 }
 
