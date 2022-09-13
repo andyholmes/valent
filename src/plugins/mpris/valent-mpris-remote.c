@@ -42,6 +42,7 @@ struct _ValentMprisRemote
   char                 *loop_status;
   GVariant             *metadata;
   gint64                position;
+  unsigned int          shuffle : 1;
   double                volume;
 };
 
@@ -524,7 +525,7 @@ player_get_property (GDBusConnection  *connection,
 
   if (g_strcmp0 (property_name, "Shuffle") == 0)
     {
-      value = g_variant_new_boolean ((self->state & VALENT_MEDIA_STATE_SHUFFLE) != 0);
+      value = g_variant_new_boolean (self->shuffle);
       g_hash_table_replace (self->cache,
                             g_strdup (property_name),
                             g_variant_ref_sink (value));
@@ -582,7 +583,7 @@ player_set_property (GDBusConnection  *connection,
     {
       gboolean shuffle = g_variant_get_boolean (value);
 
-      if (((self->state & VALENT_MEDIA_STATE_SHUFFLE) != 0) == shuffle)
+      if (self->shuffle == shuffle)
         return TRUE;
     }
 
@@ -779,6 +780,24 @@ valent_mpris_remote_get_position (ValentMediaPlayer *player)
   return self->position;
 }
 
+static gboolean
+valent_mpris_remote_get_shuffle (ValentMediaPlayer *player)
+{
+  ValentMprisRemote *self = VALENT_MPRIS_REMOTE (player);
+
+  return self->shuffle;
+}
+
+static void
+valent_mpris_remote_set_shuffle (ValentMediaPlayer *player,
+                                 gboolean           shuffle)
+{
+  g_autoptr (GVariant) value = NULL;
+
+  value = g_variant_ref_sink (g_variant_new ("(b)", shuffle));
+  g_signal_emit (G_OBJECT (player), signals [SET_PROPERTY], 0, "Shuffle", value);
+}
+
 static ValentMediaState
 valent_mpris_remote_get_state (ValentMediaPlayer *player)
 {
@@ -890,6 +909,8 @@ valent_mpris_remote_class_init (ValentMprisRemoteClass *klass)
   player_class->get_metadata = valent_mpris_remote_get_metadata;
   player_class->get_name = valent_mpris_remote_get_name;
   player_class->get_position = valent_mpris_remote_get_position;
+  player_class->get_shuffle = valent_mpris_remote_get_shuffle;
+  player_class->set_shuffle = valent_mpris_remote_set_shuffle;
   player_class->get_state = valent_mpris_remote_get_state;
   player_class->get_volume = valent_mpris_remote_get_volume;
   player_class->set_volume = valent_mpris_remote_set_volume;

@@ -49,10 +49,10 @@ typedef enum
  * @VALENT_MEDIA_STATE_STOPPED: Playback is halted.
  * @VALENT_MEDIA_STATE_REPEAT: The current item will be restarted when it finishes.
  * @VALENT_MEDIA_STATE_REPEAT_ALL: The item queue will be restarted when it finishes.
- * @VALENT_MEDIA_STATE_SHUFFLE: Playback order is non-linear.
  * @VALENT_MEDIA_STATE_RESERVED1: Reserved
  * @VALENT_MEDIA_STATE_RESERVED2: Reserved
  * @VALENT_MEDIA_STATE_RESERVED3: Reserved
+ * @VALENT_MEDIA_STATE_RESERVED4: Reserved
  *
  * Media state flags.
  *
@@ -65,10 +65,10 @@ typedef enum
   VALENT_MEDIA_STATE_PAUSED     = (1<<1),
   VALENT_MEDIA_STATE_REPEAT     = (1<<2),
   VALENT_MEDIA_STATE_REPEAT_ALL = (1<<3),
-  VALENT_MEDIA_STATE_SHUFFLE    = (1<<4),
-  VALENT_MEDIA_STATE_RESERVED1  = (1<<5),
-  VALENT_MEDIA_STATE_RESERVED2  = (1<<6),
-  VALENT_MEDIA_STATE_RESERVED3  = (1<<7)
+  VALENT_MEDIA_STATE_RESERVED1  = (1<<4),
+  VALENT_MEDIA_STATE_RESERVED2  = (1<<5),
+  VALENT_MEDIA_STATE_RESERVED3  = (1<<6),
+  VALENT_MEDIA_STATE_RESERVED4  = (1<<7)
 } ValentMediaState;
 
 
@@ -97,6 +97,9 @@ struct _ValentMediaPlayerClass
   gint64               (*get_position) (ValentMediaPlayer *player);
   void                 (*set_position) (ValentMediaPlayer *player,
                                         gint64             position);
+  gboolean             (*get_shuffle)  (ValentMediaPlayer *player);
+  void                 (*set_shuffle)  (ValentMediaPlayer *player,
+                                        gboolean           shuffle);
   ValentMediaState     (*get_state)    (ValentMediaPlayer *player);
   void                 (*set_state)    (ValentMediaPlayer *player,
                                         ValentMediaState   state);
@@ -131,6 +134,11 @@ gint64               valent_media_player_get_position (ValentMediaPlayer *player
 VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_set_position (ValentMediaPlayer *player,
                                                        gint64             position);
+VALENT_AVAILABLE_IN_1_0
+gboolean             valent_media_player_get_shuffle  (ValentMediaPlayer *player);
+VALENT_AVAILABLE_IN_1_0
+void                 valent_media_player_set_shuffle  (ValentMediaPlayer *player,
+                                                       gboolean           shuffle);
 VALENT_AVAILABLE_IN_1_0
 ValentMediaState     valent_media_player_get_state    (ValentMediaPlayer *player);
 VALENT_AVAILABLE_IN_1_0

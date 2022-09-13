@@ -127,6 +127,7 @@ test_mpris_component_player (MprisComponentFixture *fixture,
   char *name;
   g_autoptr (GVariant) metadata = NULL;
   gint64 position;
+  gboolean shuffle;
 
   /* Watch for the player */
   g_signal_connect (fixture->media,
@@ -145,26 +146,28 @@ test_mpris_component_player (MprisComponentFixture *fixture,
 
   /* Test Player Properties */
   g_object_get (fixture->player,
-                "flags",    &flags,
-                "state",    &state,
-                "volume",   &volume,
                 "name",     &name,
+                "flags",    &flags,
                 "metadata", &metadata,
                 "position", &position,
+                "shuffle",  &shuffle,
+                "state",    &state,
+                "volume",   &volume,
                 NULL);
 
+  g_assert_cmpstr (name, ==, "Test Player");
   g_assert_cmpuint (flags, ==, VALENT_MEDIA_ACTION_NONE);
+  g_assert_cmpint (position, ==, 0);
+  g_assert_false (shuffle);
   g_assert_cmpuint (state, ==, VALENT_MEDIA_STATE_STOPPED);
   g_assert_cmpfloat (volume, ==, 1.0);
-
-  g_assert_cmpstr (name, ==, "Test Player");
-  g_free (name);
-  g_assert_cmpint (position, ==, 0);
+  g_clear_pointer (&name, g_free);
+  g_clear_pointer (&metadata, g_variant_unref);
 
   g_object_set (fixture->player,
-                "state",  (VALENT_MEDIA_STATE_REPEAT_ALL |
-                           VALENT_MEDIA_STATE_SHUFFLE),
-                "volume", 1.0,
+                "shuffle", TRUE,
+                "state",   VALENT_MEDIA_STATE_REPEAT_ALL,
+                "volume",  1.0,
                 NULL);
 
   /* Test Player Methods */
