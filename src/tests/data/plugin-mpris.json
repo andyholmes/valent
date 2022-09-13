@@ -81,6 +81,22 @@
       "action": "Stop"
     }
   },
+  "request-repeat": {
+    "id": 0,
+    "type": "kdeconnect.mpris.request",
+    "body": {
+      "player": "Test Player",
+      "setLoopStatus": "Track"
+    }
+  },
+  "request-shuffle": {
+    "id": 0,
+    "type": "kdeconnect.mpris.request",
+    "body": {
+      "player": "Test Player",
+      "setShuffle": true
+    }
+  },
   "request-volume": {
     "id": 0,
     "type": "kdeconnect.mpris.request",
@@ -118,6 +134,8 @@
       "canSeek": false,
       "isPlaying": false,
       "pos": 0,
+      "loopStatus": "None",
+      "shuffle": false,
       "nowPlaying": "Unknown",
       "volume": 100
     }
@@ -134,6 +152,8 @@
       "canSeek": true,
       "isPlaying": true,
       "pos": 0,
+      "loopStatus": "None",
+      "shuffle": false,
       "albumArtUrl": "/path/to/image.png",
       "nowPlaying": "Unknown",
       "artist": "Test Artist",

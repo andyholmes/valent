@@ -114,6 +114,9 @@ test_mpris_remote_set_property (ValentMprisRemote *remote,
                                 GVariant          *value,
                                 gpointer           user_data)
 {
+  if (g_strcmp0 (name, "LoopStatus") == 0)
+    valent_mpris_remote_update_repeat (remote, g_variant_get_string (value, NULL));
+
   if (g_strcmp0 (name, "Shuffle") == 0)
     valent_mpris_remote_update_shuffle (remote, g_variant_get_boolean (value));
 

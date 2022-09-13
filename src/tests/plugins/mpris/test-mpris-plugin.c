@@ -139,7 +139,13 @@ on_remote_set_property (ValentMprisRemote *remote,
                         GVariant          *value,
                         ValentTestFixture *fixture)
 {
-  if (g_strcmp0 (name, "Volume") == 0)
+  if (strcmp (name, "LoopStatus") == 0)
+    valent_mpris_remote_update_repeat (remote, g_variant_get_string (value, NULL));
+
+  if (strcmp (name, "Shuffle") == 0)
+    valent_mpris_remote_update_shuffle (remote, g_variant_get_boolean (value));
+
+  if (strcmp (name, "Volume") == 0)
     valent_mpris_remote_update_volume (remote, g_variant_get_double (value));
 }
 
@@ -242,6 +248,8 @@ test_mpris_plugin_handle_request (ValentTestFixture *fixture,
   v_assert_packet_false (packet, "canGoPrevious");
   v_assert_packet_false (packet, "canSeek");
   v_assert_packet_false (packet, "isPlaying");
+  v_assert_packet_cmpstr (packet, "loopStatus", ==, "None");
+  v_assert_packet_false (packet, "shuffle");
   v_assert_packet_cmpint (packet, "volume", ==, 100);
 
   v_assert_packet_no_field (packet, "artist");
@@ -264,7 +272,8 @@ test_mpris_plugin_handle_request (ValentTestFixture *fixture,
   v_assert_packet_true (packet, "canGoNext");
   v_assert_packet_true (packet, "canSeek");
   v_assert_packet_true (packet, "isPlaying");
-  v_assert_packet_true (packet, "isPlaying");
+  v_assert_packet_cmpstr (packet, "loopStatus", ==, "None");
+  v_assert_packet_false (packet, "shuffle");
 
   v_assert_packet_cmpstr (packet, "artist", ==, "Test Artist");
   v_assert_packet_cmpstr (packet, "title", ==, "Track 1");
@@ -285,6 +294,9 @@ test_mpris_plugin_handle_request (ValentTestFixture *fixture,
   v_assert_packet_true (packet, "canGoNext");
   v_assert_packet_true (packet, "canGoPrevious");
   v_assert_packet_true (packet, "canSeek");
+  v_assert_packet_true (packet, "isPlaying");
+  v_assert_packet_cmpstr (packet, "loopStatus", ==, "None");
+  v_assert_packet_false (packet, "shuffle");
 
   v_assert_packet_cmpstr (packet, "artist", ==, "Test Artist");
   v_assert_packet_cmpstr (packet, "title", ==, "Track 2");
@@ -305,6 +317,9 @@ test_mpris_plugin_handle_request (ValentTestFixture *fixture,
   v_assert_packet_true (packet, "canGoNext");
   v_assert_packet_false (packet, "canGoPrevious");
   v_assert_packet_true (packet, "canSeek");
+  v_assert_packet_true (packet, "isPlaying");
+  v_assert_packet_cmpstr (packet, "loopStatus", ==, "None");
+  v_assert_packet_false (packet, "shuffle");
 
   v_assert_packet_cmpstr (packet, "artist", ==, "Test Artist");
   v_assert_packet_cmpstr (packet, "title", ==, "Track 1");
@@ -325,6 +340,8 @@ test_mpris_plugin_handle_request (ValentTestFixture *fixture,
   v_assert_packet_true (packet, "canPlay");
   v_assert_packet_true (packet, "canSeek");
   v_assert_packet_false (packet, "isPlaying");
+  v_assert_packet_cmpstr (packet, "loopStatus", ==, "None");
+  v_assert_packet_false (packet, "shuffle");
 
   v_assert_packet_cmpstr (packet, "artist", ==, "Test Artist");
   v_assert_packet_cmpstr (packet, "title", ==, "Track 1");
@@ -359,11 +376,35 @@ test_mpris_plugin_handle_request (ValentTestFixture *fixture,
   v_assert_packet_false (packet, "canGoPrevious");
   v_assert_packet_false (packet, "canSeek");
   v_assert_packet_false (packet, "isPlaying");
+  v_assert_packet_cmpstr (packet, "loopStatus", ==, "None");
+  v_assert_packet_false (packet, "shuffle");
 
   v_assert_packet_no_field (packet, "artist");
   v_assert_packet_no_field (packet, "title");
   v_assert_packet_no_field (packet, "album");
   v_assert_packet_no_field (packet, "length");
+  json_node_unref (packet);
+
+  /* Request repeat change */
+  packet = valent_test_fixture_lookup_packet (fixture, "request-repeat");
+  valent_test_fixture_handle_packet (fixture, packet);
+
+  /* Expect repeat change */
+  packet = valent_test_fixture_expect_packet (fixture);
+  v_assert_packet_type (packet, "kdeconnect.mpris");
+  v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
+  v_assert_packet_cmpstr (packet, "loopStatus", ==, "Track");
+  json_node_unref (packet);
+
+  /* Request shuffle change */
+  packet = valent_test_fixture_lookup_packet (fixture, "request-shuffle");
+  valent_test_fixture_handle_packet (fixture, packet);
+
+  /* Expect shuffle change */
+  packet = valent_test_fixture_expect_packet (fixture);
+  v_assert_packet_type (packet, "kdeconnect.mpris");
+  v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
+  v_assert_packet_true (packet, "shuffle");
   json_node_unref (packet);
 
   /* Request volume change */
@@ -372,7 +413,7 @@ test_mpris_plugin_handle_request (ValentTestFixture *fixture,
 
   /* Expect volume change */
   packet = valent_test_fixture_expect_packet (fixture);
-
+  v_assert_packet_type (packet, "kdeconnect.mpris");
   v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
   v_assert_packet_cmpint (packet, "volume", ==, 50);
   json_node_unref (packet);

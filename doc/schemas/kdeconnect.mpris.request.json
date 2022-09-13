@@ -65,10 +65,23 @@
                     "type": "number",
                     "description": "A request to seek relative to the current position (ms)."
                 },
+                "setLoopStatus": {
+                    "type": "string",
+                    "enum": [
+                        "None",
+                        "Track",
+                        "Playlist"
+                    ],
+                    "description": "A request to set the loop status."
+                },
                 "SetPosition": {
                     "type": "number",
                     "minimum": 0,
                     "description": "A request to set the track position (ms)."
+                },
+                "setShuffle": {
+                    "type": "boolean",
+                    "description": "A request to set the shuffle mode."
                 },
                 "setVolume": {
                     "type": "number",
