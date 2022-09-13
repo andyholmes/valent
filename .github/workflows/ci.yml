@@ -243,3 +243,28 @@ jobs:
           bundle: ca.andyholmes.Valent.Tests.flatpak
           manifest-path: build-aux/flatpak/ca.andyholmes.Valent.Tests.json
           run-tests: true
+
+  flatpak-unstable:
+    name: Tests (Flatpak Unstable)
+    needs: [pre-test]
+    runs-on: ubuntu-latest
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:gnome-nightly
+      options: --privileged
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Install D-Bus
+        run: |
+          dnf install dbus-daemon -y
+
+      - name: Build
+        uses: andyholmes/flatpak-github-actions/flatpak-builder@dbus-tests
+        with:
+          bundle: ca.andyholmes.Valent.Devel.flatpak
+          manifest-path: build-aux/flatpak/ca.andyholmes.Valent.Devel.json
+          run-tests: true
