@@ -645,20 +645,6 @@ valent_mpris_player_finalize (GObject *object)
 }
 
 static void
-valent_mpris_player_notify (GObject    *object,
-                            GParamSpec *pspec)
-{
-  ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (object);
-  const char *name = g_param_spec_get_name (pspec);
-
-  if (g_str_equal (name, "flags"))
-    valent_mpris_player_update_flags (self);
-
-  if (G_OBJECT_CLASS (valent_mpris_player_parent_class)->notify)
-    G_OBJECT_CLASS (valent_mpris_player_parent_class)->notify (object, pspec);
-}
-
-static void
 valent_mpris_player_get_property (GObject    *object,
                                   guint       prop_id,
                                   GValue     *value,
@@ -697,15 +683,29 @@ valent_mpris_player_set_property (GObject      *object,
 }
 
 static void
+valent_mpris_player_notify (GObject    *object,
+                            GParamSpec *pspec)
+{
+  ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (object);
+  const char *name = g_param_spec_get_name (pspec);
+
+  if (g_str_equal (name, "flags"))
+    valent_mpris_player_update_flags (self);
+
+  if (G_OBJECT_CLASS (valent_mpris_player_parent_class)->notify)
+    G_OBJECT_CLASS (valent_mpris_player_parent_class)->notify (object, pspec);
+}
+
+static void
 valent_mpris_player_class_init (ValentMPRISPlayerClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentMediaPlayerClass *player_class = VALENT_MEDIA_PLAYER_CLASS (klass);
 
   object_class->finalize = valent_mpris_player_finalize;
-  object_class->notify = valent_mpris_player_notify;
   object_class->get_property = valent_mpris_player_get_property;
   object_class->set_property = valent_mpris_player_set_property;
+  object_class->notify = valent_mpris_player_notify;
 
   player_class->get_flags = valent_mpris_player_get_flags;
   player_class->get_metadata = valent_mpris_player_get_metadata;

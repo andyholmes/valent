@@ -637,6 +637,20 @@ test_mpris_plugin_handle_player (ValentTestFixture *fixture,
 
 
   /* Properties */
+  valent_media_player_set_repeat (VALENT_MEDIA_PLAYER (proxy), VALENT_MEDIA_REPEAT_ALL);
+  packet = valent_test_fixture_expect_packet (fixture);
+  v_assert_packet_type (packet, "kdeconnect.mpris.request");
+  v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
+  v_assert_packet_cmpstr (packet, "setLoopStatus", ==, "Playlist");
+  json_node_unref (packet);
+
+  valent_media_player_set_shuffle (VALENT_MEDIA_PLAYER (proxy), TRUE);
+  packet = valent_test_fixture_expect_packet (fixture);
+  v_assert_packet_type (packet, "kdeconnect.mpris.request");
+  v_assert_packet_cmpstr (packet, "player", ==, "Test Player");
+  v_assert_packet_true (packet, "setShuffle");
+  json_node_unref (packet);
+
   valent_media_player_set_volume (VALENT_MEDIA_PLAYER (proxy), 0.50);
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
