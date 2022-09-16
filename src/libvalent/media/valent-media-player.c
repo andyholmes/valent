@@ -619,6 +619,9 @@ valent_media_player_get_metadata (ValentMediaPlayer *player)
 
   ret = VALENT_MEDIA_PLAYER_GET_CLASS (player)->get_metadata (player);
 
+  if G_UNLIKELY (ret == NULL)
+    ret = g_variant_parse (G_VARIANT_TYPE_VARDICT, "{}", NULL, NULL, NULL);
+
   VALENT_RETURN (ret);
 }
 

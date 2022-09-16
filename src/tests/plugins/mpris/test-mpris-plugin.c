@@ -568,12 +568,10 @@ test_mpris_plugin_handle_player (ValentTestFixture *fixture,
   valent_test_fixture_upload (fixture, packet, file, &error);
   g_assert_no_error (error);
 
-  while (metadata == NULL)
-    {
-      g_main_context_iteration (NULL, TRUE);
-      metadata = valent_media_player_get_metadata (VALENT_MEDIA_PLAYER (proxy));
-    }
+  /* Wait a tick for the metadata to update */
+  valent_test_wait (1);
 
+  metadata = valent_media_player_get_metadata (VALENT_MEDIA_PLAYER (proxy));
   g_assert_true (g_variant_lookup (metadata, "xesam:artist", "^a&s", &artist));
   g_assert_true (g_variant_lookup (metadata, "xesam:title", "&s", &title));
   g_assert_true (g_variant_lookup (metadata, "xesam:album", "&s", &album));
