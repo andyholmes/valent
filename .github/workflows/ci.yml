@@ -258,5 +258,5 @@ jobs:
         uses: andyholmes/flatpak-github-actions/flatpak-builder@valent
         with:
           bundle: ca.andyholmes.Valent.Devel.flatpak
-          manifest-path: build-aux/flatpak/ca.andyholmes.Valent.Devel.json
+          manifest-path: build-aux/flatpak/ca.andyholmes.Valent.Devel.Tests.json
           run-tests: true
