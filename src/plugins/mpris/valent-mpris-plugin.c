@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
+// SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 #define G_LOG_DOMAIN "valent-mpris-plugin"
 
@@ -12,8 +12,8 @@
 #include <libvalent-core.h>
 #include <libvalent-media.h>
 
+#include "valent-mpris-device.h"
 #include "valent-mpris-plugin.h"
-#include "valent-mpris-remote.h"
 #include "valent-mpris-utils.h"
 
 
@@ -24,7 +24,7 @@ struct _ValentMprisPlugin
   ValentMedia        *media;
   gboolean            media_watch : 1;
 
-  GHashTable         *remotes;
+  GHashTable         *players;
   GHashTable         *artwork_transfers;
 };
 
@@ -499,117 +499,6 @@ valent_mpris_plugin_watch_media (ValentMprisPlugin *self,
  * Remote Players
  */
 static void
-on_remote_method (ValentMprisRemote *remote,
-                  const char        *method_name,
-                  GVariant          *args,
-                  ValentMprisPlugin *self)
-{
-  ValentMediaPlayer *player = VALENT_MEDIA_PLAYER (remote);
-  JsonBuilder *builder;
-  g_autoptr (JsonNode) packet = NULL;
-
-  g_assert (VALENT_IS_MPRIS_PLUGIN (self));
-
-  builder = valent_packet_start ("kdeconnect.mpris.request");
-
-  json_builder_set_member_name (builder, "player");
-  json_builder_add_string_value (builder, valent_media_player_get_name (player));
-
-  if (g_strcmp0 (method_name, "Next") == 0 ||
-      g_strcmp0 (method_name, "Pause") == 0 ||
-      g_strcmp0 (method_name, "Play") == 0 ||
-      g_strcmp0 (method_name, "PlayPause") == 0 ||
-      g_strcmp0 (method_name, "Previous") == 0 ||
-      g_strcmp0 (method_name, "Stop") == 0)
-    {
-      json_builder_set_member_name (builder, "action");
-      json_builder_add_string_value (builder, method_name);
-    }
-
-  // TODO: kdeconnect-android doesn't support `Seek` and instead expects a
-  //       `SetPosition` command...
-  else if (g_strcmp0 (method_name, "Seek") == 0)
-    {
-      gint64 offset;
-
-      g_variant_get (args, "(x)", &offset);
-      json_builder_set_member_name (builder, "Seek");
-      json_builder_add_int_value (builder, floor (offset / 1000));
-    }
-
-  // TODO: test kdeconnect-android response to this
-  else if (g_strcmp0 (method_name, "SetPosition") == 0)
-    {
-      const char *track_id;
-      gint64 position;
-
-      g_variant_get (args, "(&ox)", &track_id, &position);
-      json_builder_set_member_name (builder, "SetPosition");
-      json_builder_add_int_value (builder, floor (position / 1000));
-    }
-  else
-    {
-      g_object_unref (builder);
-      return;
-    }
-
-  packet = valent_packet_finish (builder);
-  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
-}
-
-static void
-on_remote_set_property (ValentMprisRemote *remote,
-                        const char        *property_name,
-                        GVariant          *value,
-                        ValentMprisPlugin *self)
-{
-  ValentMediaPlayer *player = VALENT_MEDIA_PLAYER (remote);
-  JsonBuilder *builder;
-  g_autoptr (JsonNode) packet = NULL;
-
-  builder = valent_packet_start ("kdeconnect.mpris.request");
-
-  json_builder_set_member_name (builder, "player");
-  json_builder_add_string_value (builder, valent_media_player_get_name (player));
-
-  if (strcmp (property_name, "LoopStatus") == 0)
-    {
-      const char *loop_status = NULL;
-
-      loop_status = g_variant_get_string (value, NULL);
-
-      json_builder_set_member_name (builder, "setLoopStatus");
-      json_builder_add_string_value (builder, loop_status);
-    }
-  else if (strcmp (property_name, "Shuffle") == 0)
-    {
-      gboolean shuffle;
-
-      shuffle = g_variant_get_boolean (value);
-
-      json_builder_set_member_name (builder, "setShuffle");
-      json_builder_add_int_value (builder, shuffle);
-    }
-  else if (strcmp (property_name, "Volume") == 0)
-    {
-      double volume;
-
-      volume = g_variant_get_double (value);
-
-      json_builder_set_member_name (builder, "setVolume");
-      json_builder_add_int_value (builder, floor (volume * 100));
-    }
-  else
-    {
-      g_object_unref (builder);
-      return;
-    }
-
-  packet = valent_packet_finish (builder);
-  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
-}
-
-static void
 valent_mpris_plugin_request_player_list (ValentMprisPlugin *self)
 {
   JsonBuilder *builder;
@@ -631,8 +520,8 @@ receive_art_cb (ValentTransfer    *transfer,
   g_autoptr (JsonNode) packet = NULL;
   g_autoptr (GFile) file = NULL;
   g_autoptr (GError) error = NULL;
-  const char *player;
-  ValentMprisRemote *remote;
+  ValentMprisDevice *player = NULL;
+  const char *name;
 
   if (!valent_transfer_execute_finish (transfer, result, &error))
     {
@@ -647,9 +536,9 @@ receive_art_cb (ValentTransfer    *transfer,
                 "packet", &packet,
                 NULL);
 
-  if (valent_packet_get_string (packet, "player", &player) &&
-      (remote = g_hash_table_lookup (self->remotes, player)) != NULL)
-    valent_mpris_remote_update_art (remote, file);
+  if (valent_packet_get_string (packet, "player", &name) &&
+      (player = g_hash_table_lookup (self->players, name)) != NULL)
+    valent_mpris_device_update_art (player, file);
 }
 
 static void
@@ -683,46 +572,6 @@ valent_mpris_plugin_receive_album_art (ValentMprisPlugin *self,
 }
 
 static void
-valent_mpris_plugin_request_album_art (ValentMprisPlugin *self,
-                                       const char        *player,
-                                       const char        *url,
-                                       GVariantDict      *metadata)
-{
-  ValentDevice *device;
-  JsonBuilder *builder;
-  g_autoptr (JsonNode) packet = NULL;
-  g_autoptr (ValentData) data = NULL;
-  g_autoptr (GFile) file = NULL;
-  g_autofree char *filename = NULL;
-
-  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
-  data = valent_device_ref_data (device);
-  filename = g_compute_checksum_for_string (G_CHECKSUM_MD5, url, -1);
-  file = valent_data_new_cache_file (data, filename);
-
-  /* If the album art has been cached, update the metadata dictionary */
-  if (g_file_query_exists (file, NULL))
-    {
-      g_autofree char *art_url = NULL;
-
-      art_url = g_file_get_uri (file);
-      g_variant_dict_insert (metadata, "mpris:artUrl", "s", art_url);
-
-      return;
-    }
-
-  /* Request the album art payload */
-  builder = valent_packet_start ("kdeconnect.mpris.request");
-  json_builder_set_member_name (builder, "player");
-  json_builder_add_string_value (builder, player);
-  json_builder_set_member_name (builder, "albumArtUrl");
-  json_builder_add_string_value (builder, url);
-  packet = valent_packet_finish (builder);
-
-  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
-}
-
-static void
 valent_mpris_plugin_request_update (ValentMprisPlugin *self,
                                     const char        *player)
 {
@@ -745,10 +594,11 @@ static void
 valent_mpris_plugin_handle_player_list (ValentMprisPlugin *self,
                                         JsonArray         *player_list)
 {
-  GHashTableIter iter;
   unsigned int n_players;
-  gpointer key;
   g_autofree const char **names = NULL;
+  GHashTableIter iter;
+  const char *name = NULL;
+  ValentMediaPlayer *export = NULL;
 
   g_assert (VALENT_IS_MPRIS_PLUGIN (self));
   g_assert (player_list != NULL);
@@ -763,38 +613,35 @@ valent_mpris_plugin_handle_player_list (ValentMprisPlugin *self,
   names[n_players] = NULL;
 
   /* Remove old players */
-  g_hash_table_iter_init (&iter, self->remotes);
+  g_hash_table_iter_init (&iter, self->players);
 
-  while (g_hash_table_iter_next (&iter, &key, NULL))
+  while (g_hash_table_iter_next (&iter, (void **)&name, (void **)&export))
     {
-      if (!g_strv_contains (names, key))
-        g_hash_table_iter_remove (&iter);
+      if (g_strv_contains (names, name))
+        continue;
+
+      valent_media_unexport_player (valent_media_get_default(), export);
+      g_hash_table_iter_remove (&iter);
     }
 
   /* Add new players */
   for (unsigned int i = 0; names[i]; i++)
     {
-      ValentMprisRemote *remote;
-      const char *player = names[i];
+      g_autoptr (ValentMprisDevice) player = NULL;
+      name = names[i];
 
-      if (g_hash_table_contains (self->remotes, player))
+      if (g_hash_table_contains (self->players, name))
         continue;
 
-      remote = valent_mpris_remote_new ();
-      valent_mpris_remote_set_name (remote, player);
-      g_hash_table_insert (self->remotes, g_strdup (player), remote);
+      player = valent_mpris_device_new (valent_device_plugin_get_device ((void *)self));
+      valent_mpris_device_update_name (player, name);
+      g_hash_table_replace (self->players,
+                            g_strdup (name),
+                            g_object_ref (player));
 
-      g_signal_connect (remote,
-                        "method-call",
-                        G_CALLBACK (on_remote_method),
-                        self);
-      g_signal_connect (remote,
-                        "set-property",
-                        G_CALLBACK (on_remote_set_property),
-                        self);
-
-      valent_mpris_remote_export (remote);
-      valent_mpris_plugin_request_update (self, player);
+      valent_media_export_player (valent_media_get_default(),
+                                  VALENT_MEDIA_PLAYER (player));
+      valent_mpris_plugin_request_update (self, name);
     }
 #endif /* __clang_analyzer__ */
 }
@@ -803,22 +650,12 @@ static void
 valent_mpris_plugin_handle_player_update (ValentMprisPlugin *self,
                                           JsonNode          *packet)
 {
-  ValentMprisRemote *remote;
-  const char *player;
-  const char *url;
-  ValentMediaActions flags = VALENT_MEDIA_ACTION_NONE;
-  GVariantDict metadata;
-  const char *artist, *title, *album;
-  gint64 length, position;
-  const char *loop_status = NULL;
-  gboolean shuffle = FALSE;
-  gboolean is_playing;
-  gint64 volume;
-  double volume_level = 100.0;
+  ValentMprisDevice *player;
+  const char *name;
 
   /* Get the remote */
-  if (!valent_packet_get_string (packet, "player", &player) ||
-      (remote = g_hash_table_lookup (self->remotes, player)) == NULL)
+  if (!valent_packet_get_string (packet, "player", &name) ||
+      (player = g_hash_table_lookup (self->players, name)) == NULL)
     {
       valent_mpris_plugin_request_player_list (self);
       return;
@@ -830,70 +667,7 @@ valent_mpris_plugin_handle_player_update (ValentMprisPlugin *self,
       return;
     }
 
-  /* Available actions */
-  if (valent_packet_check_field (packet, "canGoNext"))
-    flags |= VALENT_MEDIA_ACTION_NEXT;
-
-  if (valent_packet_check_field (packet, "canGoPrevious"))
-    flags |= VALENT_MEDIA_ACTION_PREVIOUS;
-
-  if (valent_packet_check_field (packet, "canPause"))
-    flags |= VALENT_MEDIA_ACTION_PAUSE;
-
-  if (valent_packet_check_field (packet, "canPlay"))
-    flags |= VALENT_MEDIA_ACTION_PLAY;
-
-  if (valent_packet_check_field (packet, "canSeek"))
-    flags |= VALENT_MEDIA_ACTION_SEEK;
-
-  /* Metadata */
-  g_variant_dict_init (&metadata, NULL);
-
-  if (valent_packet_get_string (packet, "artist", &artist))
-    {
-      g_auto (GStrv) artists = NULL;
-      GVariant *value;
-
-      artists = g_strsplit (artist, ",", -1);
-      value = g_variant_new_strv ((const char * const *)artists, -1);
-      g_variant_dict_insert_value (&metadata, "xesam:artist", value);
-    }
-
-  if (valent_packet_get_string (packet, "title", &title))
-    g_variant_dict_insert (&metadata, "xesam:title", "s", title);
-
-  if (valent_packet_get_string (packet, "album", &album))
-    g_variant_dict_insert (&metadata, "xesam:album", "s", album);
-
-  if (valent_packet_get_int (packet, "length", &length))
-    g_variant_dict_insert (&metadata, "mpris:length", "x", length);
-
-  if (valent_packet_get_string (packet, "albumArtUrl", &url))
-    valent_mpris_plugin_request_album_art (self, player, url, &metadata);
-
-  /* Playback Status */
-  is_playing = valent_packet_check_field (packet, "isPlaying");
-
-  if (!valent_packet_get_int (packet, "pos", &position))
-    position = 0;
-
-  if (!valent_packet_get_string (packet, "loopStatus", &loop_status))
-    loop_status = NULL;
-
-  if (!valent_packet_get_boolean (packet, "shuffle", &shuffle))
-    shuffle = FALSE;
-
-  if (valent_packet_get_int (packet, "volume", &volume))
-    volume_level = volume / 100;
-
-  valent_mpris_remote_update_full (remote,
-                                   flags,
-                                   g_variant_dict_end (&metadata),
-                                   is_playing ? "Playing" : "Paused",
-                                   position,
-                                   loop_status,
-                                   shuffle,
-                                   volume_level);
+  valent_mpris_device_handle_packet (player, packet);
 }
 
 static void
@@ -953,7 +727,7 @@ valent_mpris_plugin_update_state (ValentDevicePlugin *plugin,
   else
     {
       valent_mpris_plugin_watch_media (self, FALSE);
-      g_hash_table_remove_all (self->remotes);
+      g_hash_table_remove_all (self->players);
     }
 }
 
@@ -987,7 +761,7 @@ valent_mpris_plugin_finalize (GObject *object)
   ValentMprisPlugin *self = VALENT_MPRIS_PLUGIN (object);
 
   g_clear_pointer (&self->artwork_transfers, g_hash_table_unref);
-  g_clear_pointer (&self->remotes, g_hash_table_unref);
+  g_clear_pointer (&self->players, g_hash_table_unref);
 
   G_OBJECT_CLASS (valent_mpris_plugin_parent_class)->finalize (object);
 }
@@ -1013,7 +787,7 @@ valent_mpris_plugin_init (ValentMprisPlugin *self)
                                                    g_str_equal,
                                                    g_free,
                                                    g_object_unref);
-  self->remotes = g_hash_table_new_full (g_str_hash,
+  self->players = g_hash_table_new_full (g_str_hash,
                                          g_str_equal,
                                          g_free,
                                          g_object_unref);

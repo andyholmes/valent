@@ -34,6 +34,7 @@ struct _ValentMedia
 
   GCancellable    *cancellable;
 
+  GPtrArray       *adapters;
   GPtrArray       *players;
   GPtrArray       *paused;
 };
@@ -171,6 +172,7 @@ valent_media_enable_extension (ValentComponent *component,
   g_assert (VALENT_IS_MEDIA (self));
   g_assert (VALENT_IS_MEDIA_ADAPTER (adapter));
 
+  g_ptr_array_add (self->adapters, g_object_ref (extension));
   g_signal_connect_object (adapter,
                            "player-added",
                            G_CALLBACK (on_player_added),
@@ -211,6 +213,7 @@ valent_media_disable_extension (ValentComponent *component,
 
   g_signal_handlers_disconnect_by_func (adapter, on_player_added, self);
   g_signal_handlers_disconnect_by_func (adapter, on_player_removed, self);
+  g_ptr_array_remove (self->adapters, extension);
 
   VALENT_EXIT;
 }
@@ -236,6 +239,7 @@ valent_media_finalize (GObject *object)
   ValentMedia *self = VALENT_MEDIA (object);
 
   g_clear_object (&self->cancellable);
+  g_clear_pointer (&self->adapters, g_ptr_array_unref);
   g_clear_pointer (&self->players, g_ptr_array_unref);
   g_clear_pointer (&self->paused, g_ptr_array_unref);
 
@@ -344,6 +348,7 @@ static void
 valent_media_init (ValentMedia *self)
 {
   self->cancellable = g_cancellable_new ();
+  self->adapters = g_ptr_array_new_with_free_func (g_object_unref);
   self->players = g_ptr_array_new_with_free_func (g_object_unref);
   self->paused = g_ptr_array_new ();
 }
@@ -434,6 +439,64 @@ valent_media_get_player_by_name (ValentMedia *media,
     }
 
   VALENT_RETURN (NULL);
+}
+
+/**
+ * valent_media_export_player:
+ * @media: a #ValentMedia
+ * @player: a #ValentMediaPlayer
+ *
+ * Export @player on all adapters that support it.
+ *
+ * Since: 1.0
+ */
+void
+valent_media_export_player (ValentMedia       *media,
+                            ValentMediaPlayer *player)
+{
+  VALENT_ENTRY;
+
+  g_return_if_fail (VALENT_IS_MEDIA (media));
+  g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
+
+  for (unsigned int i = 0; i < media->adapters->len; i++)
+    {
+      ValentMediaAdapter *adapter = NULL;
+
+      adapter = g_ptr_array_index (media->adapters, i);
+      valent_media_adapter_export_player (adapter, player);
+    }
+
+  VALENT_EXIT;
+}
+
+/**
+ * valent_media_unexport_player:
+ * @media: a #ValentMedia
+ * @player: a #ValentMediaPlayer
+ *
+ * Unexport @player from all adapters that support it.
+ *
+ * Since: 1.0
+ */
+void
+valent_media_unexport_player (ValentMedia       *media,
+                              ValentMediaPlayer *player)
+{
+  VALENT_ENTRY;
+
+  g_return_if_fail (VALENT_IS_MEDIA (media));
+  g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
+
+  for (unsigned int i = 0; i < media->adapters->len; i++)
+    {
+      ValentMediaAdapter *adapter = NULL;
+
+      adapter = g_ptr_array_index (media->adapters, i);
+      valent_media_adapter_unexport_player (adapter, player);
+    }
+
+  VALENT_EXIT;
 }
 
 /**

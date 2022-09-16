@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
+# SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 # Dependencies
 plugin_mpris_deps = [
@@ -11,9 +11,10 @@ plugin_mpris_deps = [
 plugin_mpris_sources = files([
   'mpris-plugin.c',
   'valent-mpris-adapter.c',
+  'valent-mpris-device.c',
+  'valent-mpris-impl.c',
   'valent-mpris-player.c',
   'valent-mpris-plugin.c',
-  'valent-mpris-remote.c',
   'valent-mpris-utils.c',
 ])
 

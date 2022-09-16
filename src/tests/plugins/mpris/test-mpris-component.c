@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
+// SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 #include <gio/gio.h>
 #include <libvalent-core.h>
 #include <libvalent-media.h>
 #include <libvalent-test.h>
 
-#include "test-mpris-common.h"
+#include "valent-mock-media-player.h"
 #include "valent-mpris-adapter.h"
+#include "valent-mpris-impl.h"
 #include "valent-mpris-player.h"
-#include "valent-mpris-remote.h"
 
 
 typedef struct
@@ -70,6 +70,15 @@ on_player_added (ValentMedia           *media,
 }
 
 static void
+on_player_notify (ValentMediaPlayer     *player,
+                  GParamSpec            *pspec,
+                  MprisComponentFixture *fixture)
+{
+  fixture->data = player;
+  g_main_loop_quit (fixture->loop);
+}
+
+static void
 on_player_removed (ValentMedia           *media,
                    ValentMediaPlayer     *player,
                    MprisComponentFixture *fixture)
@@ -79,20 +88,23 @@ on_player_removed (ValentMedia           *media,
 }
 
 static void
-on_player_method (ValentMediaPlayer     *player,
-                  const char            *method_name,
-                  GVariant              *args,
-                  MprisComponentFixture *fixture)
+valent_mpris_impl_export_full_cb (ValentMPRISImpl       *impl,
+                                  GAsyncResult          *result,
+                                  MprisComponentFixture *fixture)
 {
-  fixture->data = g_strdup (method_name);
-  g_main_loop_quit (fixture->loop);
+  GError *error = NULL;
+
+  valent_mpris_impl_export_finish (impl, result, &error);
+  g_assert_no_error (error);
 }
 
 static void
 test_mpris_component_adapter (MprisComponentFixture *fixture,
                               gconstpointer          user_data)
 {
-  g_autoptr (ValentMprisRemote) remote = NULL;
+  g_autoptr (GDBusConnection) connection = NULL;
+  g_autoptr (ValentMediaPlayer) player = NULL;
+  g_autoptr (ValentMPRISImpl) impl = NULL;
 
   g_signal_connect (fixture->media,
                     "player-added",
@@ -103,13 +115,21 @@ test_mpris_component_adapter (MprisComponentFixture *fixture,
                     G_CALLBACK (on_player_removed),
                     fixture);
 
+  connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
+  player = g_object_new (VALENT_TYPE_MOCK_MEDIA_PLAYER, NULL);
+  impl = valent_mpris_impl_new (player);
+
   /* Adds exported players */
-  remote = valent_test_mpris_get_remote ();
+  valent_mpris_impl_export_full (impl,
+                                 "org.mpris.MediaPlayer2.Test",
+                                 NULL,
+                                 (GAsyncReadyCallback)valent_mpris_impl_export_full_cb,
+                                 NULL);
   g_main_loop_run (fixture->loop);
   g_assert_true (VALENT_IS_MEDIA_PLAYER (fixture->player));
 
   /* Removes unexported players */
-  valent_mpris_remote_unexport (remote);
+  valent_mpris_impl_unexport (impl);
   g_main_loop_run (fixture->loop);
   g_assert_null (fixture->player);
 
@@ -120,7 +140,9 @@ static void
 test_mpris_component_player (MprisComponentFixture *fixture,
                              gconstpointer          user_data)
 {
-  g_autoptr (ValentMprisRemote) remote = NULL;
+  g_autoptr (GDBusConnection) connection = NULL;
+  g_autoptr (ValentMediaPlayer) player = NULL;
+  g_autoptr (ValentMPRISImpl) impl = NULL;
   ValentMediaActions flags;
   ValentMediaRepeat repeat;
   ValentMediaState state;
@@ -140,12 +162,20 @@ test_mpris_component_player (MprisComponentFixture *fixture,
                     G_CALLBACK (on_player_removed),
                     fixture);
 
-  /* Add player */
-  remote = valent_test_mpris_get_remote ();
+  connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
+  player = g_object_new (VALENT_TYPE_MOCK_MEDIA_PLAYER, NULL);
+  impl = valent_mpris_impl_new (player);
+
+  /* Adds exported players */
+  valent_mpris_impl_export_full (impl,
+                                 "org.mpris.MediaPlayer2.Test",
+                                 NULL,
+                                 (GAsyncReadyCallback)valent_mpris_impl_export_full_cb,
+                                 NULL);
   g_main_loop_run (fixture->loop);
   g_assert_true (VALENT_IS_MEDIA_PLAYER (fixture->player));
 
-  /* Test Player Properties */
+  /* Mock Player Properties */
   g_object_get (fixture->player,
                 "name",     &name,
                 "flags",    &flags,
@@ -157,7 +187,7 @@ test_mpris_component_player (MprisComponentFixture *fixture,
                 "volume",   &volume,
                 NULL);
 
-  g_assert_cmpstr (name, ==, "Test Player");
+  g_assert_cmpstr (name, ==, "Mock Player");
   g_assert_cmpuint (flags, ==, VALENT_MEDIA_ACTION_NONE);
   g_assert_cmpint (position, ==, 0);
   g_assert_cmpuint (repeat, ==, VALENT_MEDIA_REPEAT_NONE);
@@ -170,59 +200,67 @@ test_mpris_component_player (MprisComponentFixture *fixture,
   g_object_set (fixture->player,
                 "shuffle", TRUE,
                 "repeat",  VALENT_MEDIA_REPEAT_ALL,
-                "volume",  1.0,
+                "volume",  0.5,
                 NULL);
 
-  /* Test Player Methods */
-  g_signal_connect (remote,
-                    "method-call",
-                    G_CALLBACK (on_player_method),
+  /* Mock Player Methods */
+  g_signal_connect (fixture->player,
+                    "notify",
+                    G_CALLBACK (on_player_notify),
+                    fixture);
+  g_signal_connect (fixture->player,
+                    "seeked",
+                    G_CALLBACK (on_player_notify),
                     fixture);
 
   valent_media_player_play (fixture->player);
   g_main_loop_run (fixture->loop);
-  g_assert_cmpstr (fixture->data, ==, "Play");
-  g_clear_pointer (&fixture->data, g_free);
+  g_assert_true (fixture->data == fixture->player);
+  fixture->data = NULL;
 
   valent_media_player_play_pause (fixture->player);
   g_main_loop_run (fixture->loop);
-  g_assert_cmpstr (fixture->data, ==, "PlayPause");
-  g_clear_pointer (&fixture->data, g_free);
+  g_assert_true (fixture->data == fixture->player);
+  fixture->data = NULL;
 
   valent_media_player_pause (fixture->player);
   g_main_loop_run (fixture->loop);
-  g_assert_cmpstr (fixture->data, ==, "Pause");
-  g_clear_pointer (&fixture->data, g_free);
+  g_assert_true (fixture->data == fixture->player);
+  fixture->data = NULL;
 
   valent_media_player_stop (fixture->player);
   g_main_loop_run (fixture->loop);
-  g_assert_cmpstr (fixture->data, ==, "Stop");
-  g_clear_pointer (&fixture->data, g_free);
+  g_assert_true (fixture->data == fixture->player);
+  fixture->data = NULL;
 
   valent_media_player_next (fixture->player);
   g_main_loop_run (fixture->loop);
-  g_assert_cmpstr (fixture->data, ==, "Next");
-  g_clear_pointer (&fixture->data, g_free);
+  g_assert_true (fixture->data == fixture->player);
+  fixture->data = NULL;
 
   valent_media_player_previous (fixture->player);
   g_main_loop_run (fixture->loop);
-  g_assert_cmpstr (fixture->data, ==, "Previous");
-  g_clear_pointer (&fixture->data, g_free);
+  g_assert_true (fixture->data == fixture->player);
+  fixture->data = NULL;
 
   valent_media_player_seek (fixture->player, 1000);
   g_main_loop_run (fixture->loop);
-  g_assert_cmpstr (fixture->data, ==, "Seek");
-  g_clear_pointer (&fixture->data, g_free);
+  g_assert_true (fixture->data == fixture->player);
+  fixture->data = NULL;
 
   valent_media_player_set_position (fixture->player, 5);
-  //g_assert_cmpint (valent_media_player_get_position (fixture->player), ==, 5);
+  g_main_loop_run (fixture->loop);
+  /* g_assert_cmpint (valent_media_player_get_position (fixture->player), ==, 5); */
+  /* fixture->data = NULL; */
+
+  g_signal_handlers_disconnect_by_data (fixture->player, fixture);
 
   /* Remove Player */
-  valent_mpris_remote_unexport (remote);
+  valent_mpris_impl_unexport (impl);
   g_main_loop_run (fixture->loop);
   g_assert_null (fixture->player);
 
-  g_signal_handlers_disconnect_by_data (remote, fixture);
+  g_signal_handlers_disconnect_by_data (impl, fixture);
   g_signal_handlers_disconnect_by_data (fixture->media, fixture);
 }
 

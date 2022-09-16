@@ -23,15 +23,20 @@ VALENT_AVAILABLE_IN_1_0
 ValentMedia       * valent_media_get_default        (void);
 
 VALENT_AVAILABLE_IN_1_0
-GPtrArray         * valent_media_get_players        (ValentMedia *media);
+GPtrArray         * valent_media_get_players        (ValentMedia       *media);
 VALENT_AVAILABLE_IN_1_0
-ValentMediaPlayer * valent_media_get_player_by_name (ValentMedia *media,
-                                                     const char  *name);
-
+ValentMediaPlayer * valent_media_get_player_by_name (ValentMedia       *media,
+                                                     const char        *name);
 VALENT_AVAILABLE_IN_1_0
-void                valent_media_pause              (ValentMedia *media);
+void                valent_media_export_player      (ValentMedia       *media,
+                                                     ValentMediaPlayer *player);
 VALENT_AVAILABLE_IN_1_0
-void                valent_media_unpause            (ValentMedia *media);
+void                valent_media_unexport_player    (ValentMedia       *media,
+                                                     ValentMediaPlayer *player);
+VALENT_AVAILABLE_IN_1_0
+void                valent_media_pause              (ValentMedia       *media);
+VALENT_AVAILABLE_IN_1_0
+void                valent_media_unpause            (ValentMedia       *media);
 
 G_END_DECLS
 
