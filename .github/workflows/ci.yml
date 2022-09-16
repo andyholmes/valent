@@ -224,7 +224,7 @@ jobs:
     needs: [pre-test]
     runs-on: ubuntu-latest
     container:
-      image: bilelmoussaoui/flatpak-github-actions:gnome-42
+      image: ghcr.io/andyholmes/flatpak-github-actions:gnome-42
       options: --privileged
 
     steps:
@@ -233,12 +233,8 @@ jobs:
         with:
           submodules: true
 
-      - name: Install D-Bus
-        run: |
-          dnf install dbus-daemon -y
-
       - name: Build
-        uses: andyholmes/flatpak-github-actions/flatpak-builder@dbus-tests
+        uses: andyholmes/flatpak-github-actions/flatpak-builder@valent
         with:
           bundle: ca.andyholmes.Valent.Tests.flatpak
           manifest-path: build-aux/flatpak/ca.andyholmes.Valent.Tests.json
@@ -249,7 +245,7 @@ jobs:
     needs: [pre-test]
     runs-on: ubuntu-latest
     container:
-      image: bilelmoussaoui/flatpak-github-actions:gnome-nightly
+      image: ghcr.io/andyholmes/flatpak-github-actions:gnome-nightly
       options: --privileged
 
     steps:
@@ -258,12 +254,8 @@ jobs:
         with:
           submodules: true
 
-      - name: Install D-Bus
-        run: |
-          dnf install dbus-daemon -y
-
       - name: Build
-        uses: andyholmes/flatpak-github-actions/flatpak-builder@dbus-tests
+        uses: andyholmes/flatpak-github-actions/flatpak-builder@valent
         with:
           bundle: ca.andyholmes.Valent.Devel.flatpak
           manifest-path: build-aux/flatpak/ca.andyholmes.Valent.Devel.json

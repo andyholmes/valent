@@ -120,7 +120,7 @@ jobs:
     name: Flatpak
     runs-on: ubuntu-latest
     container:
-      image: bilelmoussaoui/flatpak-github-actions:gnome-42
+      image: ghcr.io/andyholmes/flatpak-github-actions:gnome-42
       options: --privileged
 
     strategy:
@@ -147,7 +147,7 @@ jobs:
           platforms: arm64
 
       - name: Build
-        uses: flatpak/flatpak-github-actions/flatpak-builder@master
+        uses: andyholmes/flatpak-github-actions/flatpak-builder@valent
         with:
           arch: ${{ matrix.arch }}
           bundle: ca.andyholmes.Valent.flatpak
