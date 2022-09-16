@@ -75,12 +75,11 @@ on_player_removed (GObject               *object,
 }
 
 static void
-on_player_method (ValentMediaPlayer     *player,
-                  const char            *method_name,
-                  GVariant              *args,
+on_player_notify (ValentMediaPlayer     *player,
+                  GParamSpec            *pspec,
                   MediaComponentFixture *fixture)
 {
-  fixture->data = g_strdup (method_name);
+  fixture->data = player;
 }
 
 static void
@@ -144,7 +143,7 @@ test_media_component_player (MediaComponentFixture *fixture,
   g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
-  /* Test Player Properties */
+  /* Mock Player Properties */
   g_object_get (fixture->player,
                 "name",     &name,
                 "flags",    &flags,
@@ -156,58 +155,65 @@ test_media_component_player (MediaComponentFixture *fixture,
                 "volume",   &volume,
                 NULL);
 
-  g_assert_cmpstr (name, ==, "Media Player");
+  g_assert_cmpstr (name, ==, "Mock Player");
   g_assert_cmpuint (flags, ==, VALENT_MEDIA_ACTION_NONE);
   g_assert_cmpint (position, ==, 0);
   g_assert_cmpuint (repeat, ==, VALENT_MEDIA_REPEAT_NONE);
   g_assert_false (shuffle);
   g_assert_cmpuint (state, ==, VALENT_MEDIA_STATE_STOPPED);
-  g_assert_cmpfloat (volume, ==, 0.0);
+  g_assert_cmpfloat (volume, ==, 1.0);
   g_clear_pointer (&name, g_free);
   g_clear_pointer (&metadata, g_variant_unref);
 
   g_object_set (fixture->player,
                 "shuffle", TRUE,
                 "repeat",  VALENT_MEDIA_REPEAT_ALL,
-                "volume",  1.0,
+                "volume",  0.5,
                 NULL);
 
-  /* Test Player Methods */
+  /* Mock Player Methods */
   g_signal_connect (fixture->player,
-                    "player-method",
-                    G_CALLBACK (on_player_method),
+                    "notify",
+                    G_CALLBACK (on_player_notify),
+                    fixture);
+  g_signal_connect (fixture->player,
+                    "seeked",
+                    G_CALLBACK (on_player_notify),
                     fixture);
 
   valent_media_player_play (fixture->player);
-  g_assert_cmpstr (fixture->data, ==, "Play");
-  g_clear_pointer (&fixture->data, g_free);
+  g_assert_true (fixture->data == fixture->player);
+  fixture->data = NULL;
 
   valent_media_player_play_pause (fixture->player);
-  g_assert_cmpstr (fixture->data, ==, "PlayPause");
-  g_clear_pointer (&fixture->data, g_free);
+  g_assert_true (fixture->data == fixture->player);
+  fixture->data = NULL;
 
   valent_media_player_pause (fixture->player);
-  g_assert_cmpstr (fixture->data, ==, "Pause");
-  g_clear_pointer (&fixture->data, g_free);
+  g_assert_true (fixture->data == fixture->player);
+  fixture->data = NULL;
 
   valent_media_player_stop (fixture->player);
-  g_assert_cmpstr (fixture->data, ==, "Stop");
-  g_clear_pointer (&fixture->data, g_free);
+  g_assert_true (fixture->data == fixture->player);
+  fixture->data = NULL;
 
   valent_media_player_next (fixture->player);
-  g_assert_cmpstr (fixture->data, ==, "Next");
-  g_clear_pointer (&fixture->data, g_free);
+  g_assert_true (fixture->data == fixture->player);
+  fixture->data = NULL;
 
   valent_media_player_previous (fixture->player);
-  g_assert_cmpstr (fixture->data, ==, "Previous");
-  g_clear_pointer (&fixture->data, g_free);
+  g_assert_true (fixture->data == fixture->player);
+  fixture->data = NULL;
 
   valent_media_player_seek (fixture->player, 1000);
-  g_assert_cmpstr (fixture->data, ==, "Seek");
-  g_clear_pointer (&fixture->data, g_free);
+  g_assert_true (fixture->data == fixture->player);
+  fixture->data = NULL;
 
   valent_media_player_set_position (fixture->player, 5);
   g_assert_cmpint (valent_media_player_get_position (fixture->player), ==, 5);
+  fixture->data = NULL;
+
+  g_signal_handlers_disconnect_by_data (fixture->player, fixture);
 
   /* Test signal propagation */
   g_signal_connect (fixture->media,
@@ -259,7 +265,7 @@ test_media_component_self (MediaComponentFixture *fixture,
   players = valent_media_get_players (fixture->media);
   g_assert_cmpuint (players->len, ==, 1);
 
-  player = valent_media_get_player_by_name (fixture->media, "Media Player");
+  player = valent_media_get_player_by_name (fixture->media, "Mock Player");
   g_assert_nonnull (player);
 
   g_assert_true (player == fixture->player);

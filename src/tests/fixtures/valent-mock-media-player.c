@@ -13,32 +13,97 @@
 
 struct _ValentMockMediaPlayer
 {
-  ValentMediaPlayer  parent_instance;
+  ValentMediaPlayer   parent_instance;
 
-  /* org.mpris.MediaPlayer2 */
-  GVariant          *metadata;
-  gint64             position;
-  ValentMediaRepeat  repeat;
-  gboolean           shuffle;
-  ValentMediaState   state;
-  double             volume;
+  ValentMediaActions  flags;
+  GVariant           *metadata;
+  gint64              position;
+  ValentMediaRepeat   repeat;
+  gboolean            shuffle;
+  ValentMediaState    state;
+  double              volume;
+
+  unsigned int        track;
 };
 
 
 G_DEFINE_TYPE (ValentMockMediaPlayer, valent_mock_media_player, VALENT_TYPE_MEDIA_PLAYER)
 
 
-enum {
-  PLAYER_METHOD,
-  N_SIGNALS
+static const char *tracks[] = {
+  "{'xesam:title': <'Track 1'>, 'xesam:album': <'Test Album'>, 'xesam:artist': <['Test Artist']>, 'mpris:length': <int64 180000000>}",
+  "{'xesam:title': <'Track 2'>, 'xesam:album': <'Test Album'>, 'xesam:artist': <['Test Artist']>, 'mpris:length': <int64 180000000>}",
+  "{'xesam:title': <'Track 3'>, 'xesam:album': <'Test Album'>, 'xesam:artist': <['Test Artist']>, 'mpris:length': <int64 180000000>}",
 };
 
-static guint signals [N_SIGNALS] = { 0, };
+
+static void
+valent_mock_media_player_update_state (ValentMockMediaPlayer *self)
+{
+  g_assert (VALENT_IS_MOCK_MEDIA_PLAYER (self));
+
+  g_clear_pointer (&self->metadata, g_variant_unref);
+  self->metadata = g_variant_parse (NULL, tracks[self->track], NULL, NULL, NULL);
+
+  if (self->track == 0)
+    {
+      self->flags |= VALENT_MEDIA_ACTION_NEXT;
+      self->flags &= ~VALENT_MEDIA_ACTION_PREVIOUS;
+    }
+  else if (self->track == (G_N_ELEMENTS (tracks) - 1))
+    {
+      self->flags &= ~VALENT_MEDIA_ACTION_NEXT;
+      self->flags |= VALENT_MEDIA_ACTION_PREVIOUS;
+    }
+  else
+    {
+      self->flags |= VALENT_MEDIA_ACTION_NEXT;
+      self->flags |= VALENT_MEDIA_ACTION_PREVIOUS;
+    }
+
+  if (self->state == VALENT_MEDIA_STATE_PAUSED)
+    {
+      self->flags &= ~VALENT_MEDIA_ACTION_PAUSE;
+      self->flags |= VALENT_MEDIA_ACTION_PLAY;
+      self->flags |= VALENT_MEDIA_ACTION_SEEK;
+      self->flags |= VALENT_MEDIA_ACTION_STOP;
+    }
+  else if (self->state == VALENT_MEDIA_STATE_PLAYING)
+    {
+      self->flags |= VALENT_MEDIA_ACTION_PAUSE;
+      self->flags &= ~VALENT_MEDIA_ACTION_PLAY;
+      self->flags |= VALENT_MEDIA_ACTION_SEEK;
+      self->flags |= VALENT_MEDIA_ACTION_STOP;
+    }
+  else if (self->state == VALENT_MEDIA_STATE_STOPPED)
+    {
+      self->flags &= ~VALENT_MEDIA_ACTION_NEXT;
+      self->flags &= ~VALENT_MEDIA_ACTION_PAUSE;
+      self->flags |= VALENT_MEDIA_ACTION_PLAY;
+      self->flags &= ~VALENT_MEDIA_ACTION_PREVIOUS;
+      self->flags &= ~VALENT_MEDIA_ACTION_SEEK;
+      self->flags &= ~VALENT_MEDIA_ACTION_STOP;
+
+      g_clear_pointer (&self->metadata, g_variant_unref);
+    }
+
+  g_object_notify (G_OBJECT (self), "flags");
+  g_object_notify (G_OBJECT (self), "metadata");
+  g_object_notify (G_OBJECT (self), "state");
+}
 
 
 /*
  * ValentMediaPlayer
  */
+static ValentMediaActions
+valent_mock_media_player_get_flags (ValentMediaPlayer *player)
+{
+  ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
+
+  return self->flags;
+}
+
 static GVariant *
 valent_mock_media_player_get_metadata (ValentMediaPlayer *player)
 {
@@ -48,6 +113,12 @@ valent_mock_media_player_get_metadata (ValentMediaPlayer *player)
     return g_variant_ref (self->metadata);
 
   return NULL;
+}
+
+static const char *
+valent_mock_media_player_get_name (ValentMediaPlayer *player)
+{
+  return "Mock Player";
 }
 
 static gint64
@@ -65,6 +136,7 @@ valent_mock_media_player_set_position (ValentMediaPlayer *player,
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
 
   self->position = position;
+  valent_media_player_emit_seeked (player, position);
 }
 
 static ValentMediaRepeat
@@ -82,6 +154,7 @@ valent_mock_media_player_set_repeat (ValentMediaPlayer *player,
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
 
   self->repeat = repeat;
+  g_object_notify (G_OBJECT (self), "repeat");
 }
 
 static gboolean
@@ -99,6 +172,7 @@ valent_mock_media_player_set_shuffle (ValentMediaPlayer *player,
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
 
   self->shuffle = shuffle;
+  g_object_notify (G_OBJECT (self), "shuffle");
 }
 
 static ValentMediaState
@@ -124,6 +198,7 @@ valent_mock_media_player_set_volume (ValentMediaPlayer *player,
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
 
   self->volume = volume;
+  g_object_notify (G_OBJECT (self), "volume");
 }
 
 static void
@@ -131,7 +206,8 @@ valent_mock_media_player_next (ValentMediaPlayer *player)
 {
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
 
-  g_signal_emit (G_OBJECT (self), signals [PLAYER_METHOD], 0, "Next", NULL);
+  self->track += 1;
+  valent_mock_media_player_update_state (self);
 }
 
 static void
@@ -140,7 +216,8 @@ valent_mock_media_player_pause (ValentMediaPlayer *player)
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
 
   self->state = VALENT_MEDIA_STATE_PAUSED;
-  g_signal_emit (G_OBJECT (self), signals [PLAYER_METHOD], 0, "Pause", NULL);
+  valent_mock_media_player_update_state (self);
+  g_object_notify (G_OBJECT (self), "state");
 }
 
 static void
@@ -149,7 +226,8 @@ valent_mock_media_player_play (ValentMediaPlayer *player)
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
 
   self->state = VALENT_MEDIA_STATE_PLAYING;
-  g_signal_emit (G_OBJECT (self), signals [PLAYER_METHOD], 0, "Play", NULL);
+  valent_mock_media_player_update_state (self);
+  g_object_notify (G_OBJECT (self), "state");
 }
 
 static void
@@ -158,11 +236,9 @@ valent_mock_media_player_play_pause (ValentMediaPlayer *player)
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
 
   if (self->state == VALENT_MEDIA_STATE_PAUSED)
-    self->state = VALENT_MEDIA_STATE_PLAYING;
+    valent_mock_media_player_play (player);
   else if (self->state == VALENT_MEDIA_STATE_PLAYING)
-    self->state = VALENT_MEDIA_STATE_PAUSED;
-
-  g_signal_emit (G_OBJECT (self), signals [PLAYER_METHOD], 0, "PlayPause", NULL);
+    valent_mock_media_player_pause (player);
 }
 
 static void
@@ -170,7 +246,8 @@ valent_mock_media_player_previous (ValentMediaPlayer *player)
 {
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
 
-  g_signal_emit (G_OBJECT (self), signals [PLAYER_METHOD], 0, "Previous", NULL);
+  self->track -= 1;
+  valent_mock_media_player_update_state (self);
 }
 
 static void
@@ -178,10 +255,9 @@ valent_mock_media_player_seek (ValentMediaPlayer *player,
                                gint64             offset)
 {
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
-  g_autoptr (GVariant) value = NULL;
 
-  value = g_variant_ref_sink (g_variant_new_int64 (offset));
-  g_signal_emit (G_OBJECT (self), signals [PLAYER_METHOD], 0, "Seek", value);
+  self->position += offset;
+  valent_media_player_emit_seeked (player, self->position);
 }
 
 static void
@@ -189,7 +265,9 @@ valent_mock_media_player_stop (ValentMediaPlayer *player)
 {
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
 
-  g_signal_emit (G_OBJECT (self), signals [PLAYER_METHOD], 0, "Stop", NULL);
+  self->state = VALENT_MEDIA_STATE_STOPPED;
+  valent_mock_media_player_update_state (self);
+  g_object_notify (G_OBJECT (self), "state");
 }
 
 /*
@@ -213,6 +291,8 @@ valent_mock_media_player_class_init (ValentMockMediaPlayerClass *klass)
 
   object_class->finalize = valent_mock_media_player_finalize;
 
+  player_class->get_flags = valent_mock_media_player_get_flags;
+  player_class->get_name = valent_mock_media_player_get_name;
   player_class->get_metadata = valent_mock_media_player_get_metadata;
   player_class->get_position = valent_mock_media_player_get_position;
   player_class->set_position = valent_mock_media_player_set_position;
@@ -231,23 +311,6 @@ valent_mock_media_player_class_init (ValentMockMediaPlayerClass *klass)
   player_class->previous = valent_mock_media_player_previous;
   player_class->seek = valent_mock_media_player_seek;
   player_class->stop = valent_mock_media_player_stop;
-
-  /**
-   * ValentMockMediaPlayer::player-method:
-   * @player: a #ValentMprisRemote
-   * @method_name: the method name
-   * @method_args: the method arguments
-   *
-   * #ValentMprisRemote::player-method is emitted when a method is called by a
-   * consumer of the exported interface.
-   */
-  signals [PLAYER_METHOD] =
-    g_signal_new ("player-method",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_FIRST,
-                  0,
-                  NULL, NULL, NULL,
-                  G_TYPE_NONE, 2, G_TYPE_STRING, G_TYPE_VARIANT);
 }
 
 static void
@@ -257,5 +320,30 @@ valent_mock_media_player_init (ValentMockMediaPlayer *self)
 
   g_variant_dict_init (&dict, NULL);
   self->metadata = g_variant_ref_sink (g_variant_dict_end (&dict));
+  self->volume = 1.0;
+}
+
+/**
+ * valent_mock_media_player_update_art:
+ * @self: a #ValentMockMediaPlayer
+ * @url: a URI
+ *
+ * Update the track metadata with album art at @uri.
+ *
+ * This is a convenience for unit tests, where the file location may not be
+ * known until after compile-time.
+ */
+void
+valent_mock_media_player_update_art (ValentMockMediaPlayer *self,
+                                     const char            *uri)
+{
+  GVariantDict dict;
+
+  g_clear_pointer (&self->metadata, g_variant_unref);
+
+  g_variant_dict_init (&dict, NULL);
+  g_variant_dict_insert (&dict, "mpris:artUrl", "s", uri);
+  self->metadata = g_variant_ref_sink (g_variant_dict_end (&dict));
+  g_object_notify (G_OBJECT (self), "metadata");
 }
 

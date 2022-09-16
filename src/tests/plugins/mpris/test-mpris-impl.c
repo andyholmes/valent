@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
+// SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 #include <gio/gio.h>
 #include <libvalent-core.h>
 #include <libvalent-media.h>
 #include <libvalent-test.h>
 
-#include "test-mpris-common.h"
+#include "valent-mock-media-player.h"
 #include "valent-mpris-adapter.h"
+#include "valent-mpris-impl.h"
 #include "valent-mpris-player.h"
-#include "valent-mpris-remote.h"
 
 
 typedef struct
@@ -19,19 +19,19 @@ typedef struct
   ValentMediaPlayer *player;
   gpointer           data;
   unsigned int       state;
-} MprisRemoteFixture;
+} MPRISImplFixture;
 
 
 static void
-mpris_remote_fixture_set_up (MprisRemoteFixture *fixture,
-                             gconstpointer       user_data)
+mpris_impl_fixture_set_up (MPRISImplFixture *fixture,
+                           gconstpointer     user_data)
 {
   fixture->loop = g_main_loop_new (NULL, FALSE);
 }
 
 static void
-mpris_remote_fixture_tear_down (MprisRemoteFixture *fixture,
-                                gconstpointer       user_data)
+mpris_impl_fixture_tear_down (MPRISImplFixture *fixture,
+                              gconstpointer     user_data)
 {
   while (g_main_context_iteration (NULL, FALSE))
     continue;
@@ -48,7 +48,7 @@ on_name_owner_changed (GDBusConnection *connection,
                        GVariant        *parameters,
                        gpointer         user_data)
 {
-  MprisRemoteFixture *fixture = user_data;
+  MPRISImplFixture *fixture = user_data;
   const char *name, *old_owner, *new_owner;
 
   g_variant_get (parameters, "(&s&s&s)", &name, &old_owner, &new_owner);
@@ -58,9 +58,9 @@ on_name_owner_changed (GDBusConnection *connection,
 }
 
 static void
-get_all_cb (GDBusConnection    *connection,
-            GAsyncResult       *result,
-            MprisRemoteFixture *fixture)
+get_all_cb (GDBusConnection  *connection,
+            GAsyncResult     *result,
+            MPRISImplFixture *fixture)
 {
   g_autoptr (GVariant) reply = NULL;
   GError *error = NULL;
@@ -72,9 +72,9 @@ get_all_cb (GDBusConnection    *connection,
 }
 
 static void
-set_cb (GDBusConnection    *connection,
-        GAsyncResult       *result,
-        MprisRemoteFixture *fixture)
+set_cb (GDBusConnection  *connection,
+        GAsyncResult     *result,
+        MPRISImplFixture *fixture)
 {
   g_autoptr (GVariant) reply = NULL;
   GError *error = NULL;
@@ -86,25 +86,35 @@ set_cb (GDBusConnection    *connection,
 }
 
 static void
-on_remote_method (ValentMprisRemote  *remote,
-                  const char         *method,
-                  GVariant           *args,
-                  MprisRemoteFixture *fixture)
+on_dbus_notify (ValentMediaPlayer *player,
+                GParamSpec        *pspec,
+                MPRISImplFixture  *fixture)
 {
-  test_mpris_remote_method (remote, method, args, fixture);
-
+  fixture->state = TRUE;
+  g_main_loop_quit (fixture->loop);
+}
+static void
+on_dbus_seeked (ValentMediaPlayer *player,
+                gint64             position,
+                MPRISImplFixture  *fixture)
+{
   fixture->state = TRUE;
   g_main_loop_quit (fixture->loop);
 }
 
 static void
-on_remote_set_property (ValentMprisRemote  *remote,
-                        const char         *name,
-                        GVariant           *value,
-                        MprisRemoteFixture *fixture)
+on_player_notify (ValentMediaPlayer *player,
+                  GParamSpec        *pspec,
+                  MPRISImplFixture  *fixture)
 {
   fixture->state = TRUE;
-  g_main_loop_quit (fixture->loop);
+}
+static void
+on_player_seeked (ValentMediaPlayer *player,
+                  gint64             position,
+                  MPRISImplFixture  *fixture)
+{
+  fixture->state = TRUE;
 }
 
 typedef struct {
@@ -113,22 +123,14 @@ typedef struct {
 } DBusTest;
 
 static void
-test_mpris_remote_dbus (MprisRemoteFixture *fixture,
-                        gconstpointer       user_data)
+test_mpris_impl_dbus (MPRISImplFixture *fixture,
+                      gconstpointer     user_data)
 {
-  g_autoptr (ValentMprisRemote) remote = NULL;
+  g_autoptr (ValentMediaPlayer) player = NULL;
+  g_autoptr (ValentMPRISImpl) impl = NULL;
   g_autoptr (GDBusConnection) connection = NULL;
-  g_autoptr (GFile) file = NULL;
+  /* g_autoptr (GFile) file = NULL; */
   unsigned int watch_id;
-
-  /* Create a new remote */
-  remote = valent_mpris_remote_new ();
-  valent_mpris_remote_set_name (remote, "Test Player");
-
-  g_signal_connect (remote,
-                    "method-call",
-                    G_CALLBACK (on_remote_method),
-                    fixture);
 
   /* Watch for the exported service */
   connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
@@ -142,22 +144,25 @@ test_mpris_remote_dbus (MprisRemoteFixture *fixture,
                                                  on_name_owner_changed,
                                                  fixture, NULL);
 
-  /* Export the remote */
-  valent_mpris_remote_export (remote);
+  /* Export the impl */
+  player = g_object_new (VALENT_TYPE_MOCK_MEDIA_PLAYER, NULL);
+  impl = valent_mpris_impl_new (player);
+  valent_mpris_impl_export (impl, connection, NULL);
   g_main_loop_run (fixture->loop);
 
-  /* Methods */
-
+  /* Player Methods */
   static const char *action_methods[] = {
     "Play", "Pause", "PlayPause", "Next", "Previous", "Stop"
   };
 
-  static const DBusTest player_properties[] = {
-    {"LoopStatus", "'Track'"},
-    {"LoopStatus", "'Playlist'"},
-    {"Shuffle", "true"},
-    {"Volume", "0.5"},
-  };
+  g_signal_connect (player,
+                    "notify",
+                    G_CALLBACK (on_dbus_notify),
+                    fixture);
+  g_signal_connect (player,
+                    "seeked",
+                    G_CALLBACK (on_dbus_seeked),
+                    fixture);
 
   for (unsigned int i = 0; i < G_N_ELEMENTS (action_methods); i++)
     {
@@ -190,7 +195,16 @@ test_mpris_remote_dbus (MprisRemoteFixture *fixture,
                           NULL);
   g_main_loop_run (fixture->loop);
 
-  /* DBus Properties */
+  g_signal_handlers_disconnect_by_data (player, fixture);
+
+  /* Player Properties */
+  static const DBusTest player_properties[] = {
+    {"LoopStatus", "'Track'"},
+    {"LoopStatus", "'Playlist'"},
+    {"Shuffle", "true"},
+    {"Volume", "0.5"},
+  };
+
   g_dbus_connection_call (connection,
                           "org.mpris.MediaPlayer2.Valent",
                           "/org/mpris/MediaPlayer2",
@@ -259,22 +273,25 @@ test_mpris_remote_dbus (MprisRemoteFixture *fixture,
     }
 
   /* Other */
-  file = g_file_new_for_path (TEST_DATA_DIR"/image.png");
-  valent_mpris_remote_update_art (remote, file);
+  /* file = g_file_new_for_path (TEST_DATA_DIR"/image.png"); */
+  /* valent_mpris_impl_update_art (impl, file); */
 
-  /* Unexport the remote */
-  valent_mpris_remote_unexport (remote);
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+
+  /* Unexport the impl */
+  valent_mpris_impl_unexport (impl);
   g_main_loop_run (fixture->loop);
 
   g_dbus_connection_signal_unsubscribe (connection, watch_id);
 }
 
 static void
-test_mpris_remote_player (MprisRemoteFixture *fixture,
-                          gconstpointer       user_data)
+test_mpris_impl_player (MPRISImplFixture *fixture,
+                        gconstpointer     user_data)
 {
-  ValentMediaPlayer *player;
-  g_autoptr (ValentMprisRemote) remote = NULL;
+  g_autoptr (ValentMediaPlayer) player = NULL;
+  g_autoptr (ValentMPRISImpl) impl = NULL;
   g_autoptr (GDBusConnection) connection = NULL;
   unsigned int watch_id;
 
@@ -288,19 +305,17 @@ test_mpris_remote_player (MprisRemoteFixture *fixture,
   gint64 position;
   gboolean shuffle;
 
-  /* Create a new remote */
-  remote = valent_mpris_remote_new ();
-  player = VALENT_MEDIA_PLAYER (remote);
-  valent_mpris_remote_set_name (remote, "Test Player");
+  /* Create a new impl */
+  player = g_object_new (VALENT_TYPE_MOCK_MEDIA_PLAYER, NULL);
+  impl = valent_mpris_impl_new (player);
 
-  g_signal_connect (remote,
-                    "method-call",
-                    G_CALLBACK (on_remote_method),
+  g_signal_connect (player,
+                    "notify",
+                    G_CALLBACK (on_player_notify),
                     fixture);
-
-  g_signal_connect (remote,
-                    "set-property",
-                    G_CALLBACK (on_remote_set_property),
+  g_signal_connect (player,
+                    "seeked",
+                    G_CALLBACK (on_player_seeked),
                     fixture);
 
   /* Watch for the exported service */
@@ -315,23 +330,23 @@ test_mpris_remote_player (MprisRemoteFixture *fixture,
                                                  on_name_owner_changed,
                                                  fixture, NULL);
 
-  /* Export the remote */
-  valent_mpris_remote_export (remote);
+  /* Export the impl */
+  valent_mpris_impl_export (impl, connection, NULL);
   g_main_loop_run (fixture->loop);
 
-  /* Test Player Properties */
-  g_object_get (remote,
+  /* Mock Player Properties */
+  g_object_get (player,
                 "name",     &name,
                 "flags",    &flags,
                 "metadata", &metadata,
                 "position", &position,
-                "repeat",  &repeat,
+                "repeat",   &repeat,
                 "shuffle",  &shuffle,
                 "state",    &state,
                 "volume",   &volume,
                 NULL);
 
-  g_assert_cmpstr (name, ==, "Test Player");
+  g_assert_cmpstr (name, ==, "Mock Player");
   g_assert_cmpuint (flags, ==, VALENT_MEDIA_ACTION_NONE);
   g_assert_cmpint (position, ==, 0);
   g_assert_cmpuint (repeat, ==, VALENT_MEDIA_REPEAT_NONE);
@@ -341,13 +356,13 @@ test_mpris_remote_player (MprisRemoteFixture *fixture,
   g_clear_pointer (&name, g_free);
   g_clear_pointer (&metadata, g_variant_unref);
 
-  g_object_set (remote,
+  g_object_set (player,
                 "shuffle", TRUE,
                 "repeat",  VALENT_MEDIA_REPEAT_ALL,
                 "volume",  1.0,
                 NULL);
 
-  /* Test Player Methods */
+  /* Mock Player Methods */
   valent_media_player_play (player);
   g_assert_true (fixture->state);
   fixture->state = FALSE;
@@ -380,11 +395,11 @@ test_mpris_remote_player (MprisRemoteFixture *fixture,
   //g_assert_cmpint (valent_media_player_get_position (player), ==, 5);
 
   /* Remove Player */
-  valent_mpris_remote_unexport (remote);
+  valent_mpris_impl_unexport (impl);
   //g_main_loop_run (fixture->loop);
 
   g_dbus_connection_signal_unsubscribe (connection, watch_id);
-  g_signal_handlers_disconnect_by_data (remote, fixture);
+  g_signal_handlers_disconnect_by_data (impl, fixture);
 }
 
 int
@@ -393,17 +408,17 @@ main (int   argc,
 {
   valent_test_init (&argc, &argv, NULL);
 
-  g_test_add ("/plugins/mpris/remote/dbus",
-              MprisRemoteFixture, NULL,
-              mpris_remote_fixture_set_up,
-              test_mpris_remote_dbus,
-              mpris_remote_fixture_tear_down);
+  g_test_add ("/plugins/mpris/impl/dbus",
+              MPRISImplFixture, NULL,
+              mpris_impl_fixture_set_up,
+              test_mpris_impl_dbus,
+              mpris_impl_fixture_tear_down);
 
-  g_test_add ("/plugins/mpris/remote/player",
-              MprisRemoteFixture, NULL,
-              mpris_remote_fixture_set_up,
-              test_mpris_remote_player,
-              mpris_remote_fixture_tear_down);
+  g_test_add ("/plugins/mpris/impl/player",
+              MPRISImplFixture, NULL,
+              mpris_impl_fixture_set_up,
+              test_mpris_impl_player,
+              mpris_impl_fixture_tear_down);
 
   return g_test_run ();
 }

@@ -28,7 +28,7 @@
     "id": 0,
     "type": "kdeconnect.mpris.request",
     "body": {
-      "player": "Test Player",
+      "player": "Mock Player",
       "requestNowPlaying": true,
       "requestVolume": true
     }
@@ -37,7 +37,7 @@
     "id": 0,
     "type": "kdeconnect.mpris.request",
     "body": {
-      "player": "Test Player",
+      "player": "Mock Player",
       "action": "Play"
     }
   },
@@ -45,7 +45,7 @@
     "id": 0,
     "type": "kdeconnect.mpris.request",
     "body": {
-      "player": "Test Player",
+      "player": "Mock Player",
       "action": "Next"
     }
   },
@@ -53,7 +53,7 @@
     "id": 0,
     "type": "kdeconnect.mpris.request",
     "body": {
-      "player": "Test Player",
+      "player": "Mock Player",
       "action": "Previous"
     }
   },
@@ -61,7 +61,7 @@
     "id": 0,
     "type": "kdeconnect.mpris.request",
     "body": {
-      "player": "Test Player",
+      "player": "Mock Player",
       "action": "Pause"
     }
   },
@@ -69,7 +69,7 @@
     "id": 0,
     "type": "kdeconnect.mpris.request",
     "body": {
-      "player": "Test Player",
+      "player": "Mock Player",
       "Seek": 1000
     }
   },
@@ -77,7 +77,7 @@
     "id": 0,
     "type": "kdeconnect.mpris.request",
     "body": {
-      "player": "Test Player",
+      "player": "Mock Player",
       "action": "Stop"
     }
   },
@@ -85,7 +85,7 @@
     "id": 0,
     "type": "kdeconnect.mpris.request",
     "body": {
-      "player": "Test Player",
+      "player": "Mock Player",
       "setLoopStatus": "Track"
     }
   },
@@ -93,7 +93,7 @@
     "id": 0,
     "type": "kdeconnect.mpris.request",
     "body": {
-      "player": "Test Player",
+      "player": "Mock Player",
       "setShuffle": true
     }
   },
@@ -101,7 +101,7 @@
     "id": 0,
     "type": "kdeconnect.mpris.request",
     "body": {
-      "player": "Test Player",
+      "player": "Mock Player",
       "setVolume": 50
     }
   },
@@ -110,7 +110,7 @@
     "type": "kdeconnect.mpris",
     "body": {
       "playerList": [
-        "Test Player"
+        "Mock Player"
       ]
     }
   },
@@ -126,7 +126,7 @@
     "id": 0,
     "type": "kdeconnect.mpris",
     "body": {
-      "player": "Test Player",
+      "player": "Mock Player",
       "canPause": false,
       "canPlay": false,
       "canGoNext": false,
@@ -144,7 +144,7 @@
     "id": 0,
     "type": "kdeconnect.mpris",
     "body": {
-      "player": "Test Player",
+      "player": "Mock Player",
       "canPause": true,
       "canPlay": true,
       "canGoNext": true,
@@ -167,7 +167,7 @@
     "id": 0,
     "type": "kdeconnect.mpris",
     "body": {
-      "player": "Test Player",
+      "player": "Mock Player",
       "albumArtUrl": "/path/to/image.png",
       "transferringAlbumArt": true
     }

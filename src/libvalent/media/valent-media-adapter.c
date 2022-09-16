@@ -46,6 +46,8 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentMediaAdapter, valent_media_adapter, G
  * ValentMediaAdapterClass:
  * @load_async: the virtual function pointer for valent_media_adapter_load_async()
  * @load_finish: the virtual function pointer for valent_media_adapter_load_finish()
+ * @export_player: the virtual function pointer for valent_media_adapter_export()
+ * @unexport_player: the virtual function pointer for valent_media_adapter_unexport()
  * @player_added: the class closure for #ValentMediaAdapter::player-added signal
  * @player_removed: the class closure for #ValentMediaAdapter:player-removed signal
  *
@@ -93,6 +95,22 @@ valent_media_adapter_real_load_finish (ValentMediaAdapter  *adapter,
   g_assert (error == NULL || *error == NULL);
 
   return g_task_propagate_boolean (G_TASK (result), error);
+}
+
+static void
+valent_media_adapter_real_export_player (ValentMediaAdapter *adapter,
+                                         ValentMediaPlayer  *player)
+{
+  g_assert (VALENT_IS_MEDIA_ADAPTER (adapter));
+  g_assert (VALENT_IS_MEDIA_PLAYER (player));
+}
+
+static void
+valent_media_adapter_real_unexport_player (ValentMediaAdapter *adapter,
+                                           ValentMediaPlayer  *player)
+{
+  g_assert (VALENT_IS_MEDIA_ADAPTER (adapter));
+  g_assert (VALENT_IS_MEDIA_PLAYER (player));
 }
 
 static void
@@ -194,6 +212,8 @@ valent_media_adapter_class_init (ValentMediaAdapterClass *klass)
 
   klass->player_added = valent_media_adapter_real_player_added;
   klass->player_removed = valent_media_adapter_real_player_removed;
+  klass->export_player = valent_media_adapter_real_export_player;
+  klass->unexport_player = valent_media_adapter_real_unexport_player;
   klass->load_async = valent_media_adapter_real_load_async;
   klass->load_finish = valent_media_adapter_real_load_finish;
 
@@ -312,6 +332,58 @@ valent_media_adapter_emit_player_removed (ValentMediaAdapter *adapter,
   g_object_ref (player);
   g_signal_emit (G_OBJECT (adapter), signals [PLAYER_REMOVED], 0, player);
   g_object_unref (player);
+}
+
+/**
+ * valent_media_adapter_export_player: (virtual export_player)
+ * @adapter: an #ValentMediaAdapter
+ * @player: a #ValentMediaPlayer
+ *
+ * Export @player on @adapter.
+ *
+ * This method is intended to allow device plugins to expose remote media
+ * players to the host system. Usually this means exporting an interface on
+ * D-Bus or an mDNS service.
+ *
+ * Implementations must automatically unexport any players when destroyed.
+ *
+ * Since: 1.0
+ */
+void
+valent_media_adapter_export_player (ValentMediaAdapter *adapter,
+                                    ValentMediaPlayer  *player)
+{
+  VALENT_ENTRY;
+
+  g_return_if_fail (VALENT_IS_MEDIA_ADAPTER (adapter));
+  g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
+
+  VALENT_MEDIA_ADAPTER_GET_CLASS (adapter)->export_player (adapter, player);
+
+  VALENT_EXIT;
+}
+
+/**
+ * valent_media_adapter_unexport_player: (virtual unexport_player)
+ * @adapter: an #ValentMediaAdapter
+ * @player: a #ValentMediaPlayer
+ *
+ * Unexport @player from @adapter.
+ *
+ * Since: 1.0
+ */
+void
+valent_media_adapter_unexport_player (ValentMediaAdapter *adapter,
+                                      ValentMediaPlayer  *player)
+{
+  VALENT_ENTRY;
+
+  g_return_if_fail (VALENT_IS_MEDIA_ADAPTER (adapter));
+  g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
+
+  VALENT_MEDIA_ADAPTER_GET_CLASS (adapter)->unexport_player (adapter, player);
+
+  VALENT_EXIT;
 }
 
 /**

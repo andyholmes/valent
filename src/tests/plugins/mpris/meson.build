@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
+# SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 # Dependencies
 plugin_mpris_test_deps = [
@@ -9,8 +9,8 @@ plugin_mpris_test_deps = [
 
 plugin_mpris_tests = [
   'test-mpris-component',
+  'test-mpris-impl',
   'test-mpris-plugin',
-  'test-mpris-remote',
 ]
 
 foreach test : plugin_mpris_tests

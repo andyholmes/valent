@@ -23,19 +23,23 @@ struct _ValentMediaAdapterClass
   GObjectClass   parent_class;
 
   /* virtual functions */
-  void           (*load_async)     (ValentMediaAdapter   *adapter,
-                                    GCancellable         *cancellable,
-                                    GAsyncReadyCallback   callback,
-                                    gpointer              user_data);
-  gboolean       (*load_finish)    (ValentMediaAdapter   *adapter,
-                                    GAsyncResult         *result,
-                                    GError              **error);
+  void           (*load_async)      (ValentMediaAdapter   *adapter,
+                                     GCancellable         *cancellable,
+                                     GAsyncReadyCallback   callback,
+                                     gpointer              user_data);
+  gboolean       (*load_finish)     (ValentMediaAdapter   *adapter,
+                                     GAsyncResult         *result,
+                                     GError              **error);
+  void           (*export_player)   (ValentMediaAdapter   *adapter,
+                                     ValentMediaPlayer    *player);
+  void           (*unexport_player) (ValentMediaAdapter   *adapter,
+                                     ValentMediaPlayer    *player);
 
   /* signals */
-  void           (*player_added)   (ValentMediaAdapter   *adapter,
-                                    ValentMediaPlayer    *player);
-  void           (*player_removed) (ValentMediaAdapter   *adapter,
-                                    ValentMediaPlayer    *player);
+  void           (*player_added)    (ValentMediaAdapter   *adapter,
+                                     ValentMediaPlayer    *player);
+  void           (*player_removed)  (ValentMediaAdapter   *adapter,
+                                     ValentMediaPlayer    *player);
 
   /*< private >*/
   gpointer       padding[8];
@@ -58,6 +62,12 @@ VALENT_AVAILABLE_IN_1_0
 gboolean    valent_media_adapter_load_finish         (ValentMediaAdapter   *adapter,
                                                       GAsyncResult         *result,
                                                       GError              **error);
+VALENT_AVAILABLE_IN_1_0
+void        valent_media_adapter_export_player       (ValentMediaAdapter   *adapter,
+                                                      ValentMediaPlayer    *player);
+VALENT_AVAILABLE_IN_1_0
+void        valent_media_adapter_unexport_player     (ValentMediaAdapter   *adapter,
+                                                      ValentMediaPlayer    *player);
 
 G_END_DECLS
 
