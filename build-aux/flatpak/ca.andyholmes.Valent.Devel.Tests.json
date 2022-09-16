@@ -1,0 +1,241 @@
+{
+    "app-id" : "ca.andyholmes.Valent.Devel.Tests",
+    "runtime" : "org.gnome.Platform",
+    "runtime-version" : "master",
+    "sdk" : "org.gnome.Sdk",
+    "command" : "valent",
+    "finish-args" : [
+        "--device=dri",
+        "--env=PULSE_PROP_media.category=Manager",
+        "--filesystem=xdg-download",
+        "--filesystem=xdg-run/gvfsd",
+        "--own-name=org.mpris.MediaPlayer2.Valent",
+        "--share=ipc",
+        "--share=network",
+        "--socket=fallback-x11",
+        "--socket=pulseaudio",
+        "--socket=session-bus",
+        "--socket=ssh-auth",
+        "--socket=wayland",
+        "--system-talk-name=org.freedesktop.hostname1",
+        "--system-talk-name=org.freedesktop.login1",
+        "--system-talk-name=org.freedesktop.ModemManager1",
+        "--system-talk-name=org.freedesktop.UPower",
+        "--talk-name=org.a11y.Bus",
+        "--talk-name=org.freedesktop.DBus",
+        "--talk-name=org.gnome.evolution.dataserver.AddressBook10",
+        "--talk-name=org.gnome.evolution.dataserver.Sources5",
+        "--talk-name=org.gnome.evolution.dataserver.Subprocess.Backend.*",
+        "--talk-name=org.gnome.OnlineAccounts",
+        "--talk-name=org.gtk.vfs.*",
+        "--talk-name=org.mpris.MediaPlayer2.*"
+    ],
+    "add-extensions" : {
+        "ca.andyholmes.Valent.Plugin" : {
+            "version" : "main",
+            "directory" : "extensions",
+            "add-ld-path" : "lib",
+            "merge-dirs" : "lib/valent/plugins",
+            "subdirectories" : true,
+            "no-autodownload" : true,
+            "autodelete" : true
+        }
+    },
+    "cleanup" : [
+        "/include",
+        "/lib/pkgconfig",
+        "/man",
+        "/share/man",
+        "/share/pkgconfig",
+        "*.la",
+        "*.a"
+    ],
+    "modules" : [
+        {
+            "name" : "intltool",
+            "cleanup" : [
+                "*"
+            ],
+            "sources" : [
+                {
+                    "type" : "archive",
+                    "url" : "https://launchpad.net/intltool/trunk/0.51.0/+download/intltool-0.51.0.tar.gz",
+                    "sha256" : "67c74d94196b153b774ab9f89b2fa6c6ba79352407037c8c14d5aeb334e959cd"
+                }
+            ]
+        },
+        {
+            "name" : "libical",
+            "buildsystem" : "cmake-ninja",
+            "cleanup" : [
+                "/lib/cmake"
+            ],
+            "config-opts" : [
+                "-DCMAKE_INSTALL_LIBDIR:PATH=/app/lib",
+                "-DBUILD_SHARED_LIBS:BOOL=ON",
+                "-DGOBJECT_INTROSPECTION:BOOL=ON",
+                "-DICAL_BUILD_DOCS:BOOL=OFF",
+                "-DICAL_GLIB_VAPI:BOOL=OFF",
+                "-DICAL_GLIB:BOOL=ON"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://github.com/libical/libical.git",
+                    "branch" : "master"
+                }
+            ]
+        },
+        {
+            "name" : "evolution-data-server",
+            "buildsystem" : "cmake-ninja",
+            "cleanup" : [
+                "/etc",
+                "/lib/cmake",
+                "/lib/evolution-data-server/*-backends",
+                "/libexec",
+                "/share/applications",
+                "/share/dbus-1/services",
+                "/share/GConf",
+                "/systemd"
+            ],
+            "config-opts" : [
+                "-DCMAKE_BUILD_TYPE=Release",
+                "-DENABLE_DOT_LOCKING=OFF",
+                "-DENABLE_CANBERRA=OFF",
+                "-DENABLE_GTK=OFF",
+                "-DENABLE_GTK4=OFF",
+                "-DENABLE_GOA=OFF",
+                "-DENABLE_GOOGLE=OFF",
+                "-DENABLE_OAUTH2=OFF",
+                "-DENABLE_VALA_BINDINGS=OFF",
+                "-DENABLE_WEATHER=OFF",
+                "-DENABLE_OAUTH2_WEBKITGTK4=OFF",
+                "-DWITH_OPENLDAP=OFF",
+                "-DWITH_LIBDB=OFF",
+                "-DENABLE_INTROSPECTION=ON",
+                "-DENABLE_INSTALLED_TESTS=OFF",
+                "-DENABLE_GTK_DOC=OFF",
+                "-DENABLE_EXAMPLES=OFF",
+                "-DWITH_SYSTEMDUSERUNITDIR=OFF",
+                "-DWITH_DBUS_SERVICE_DIR=OFF"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.gnome.org/GNOME/evolution-data-server.git",
+                    "branch" : "master"
+                }
+            ]
+        },
+        {
+            "name" : "libpeas",
+            "buildsystem" : "meson",
+            "builddir" : true,
+            "cleanup" : [
+                "/bin/*",
+                "/lib/peas-demo",
+                "/lib/libpeas-gtk*",
+                "/share/icons"
+            ],
+            "config-opts" : [
+                "-Dpython3=true",
+                "-Dintrospection=true",
+                "-Ddemos=false",
+                "-Dglade_catalog=false",
+                "-Dwidgetry=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.gnome.org/GNOME/libpeas.git",
+                    "branch" : "master"
+                }
+            ]
+        },
+        {
+            "name" : "libportal",
+            "buildsystem" : "meson",
+            "builddir" : true,
+            "config-opts" : [
+                "-Dbackends=gtk4",
+                "-Ddocs=false",
+                "-Dintrospection=false",
+                "-Dvapi=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://github.com/flatpak/libportal.git",
+                    "commit" : "13df0b887a7eb7b0f9b14069561a41f62e813155",
+                    "tag" : "0.6"
+                }
+            ]
+        },
+        {
+            "name" : "dbus-python",
+            "buildsystem" : "simple",
+            "build-commands" : [
+                "pip3 install --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} dbus-python"
+            ],
+            "sources" : [
+                {
+                    "type" : "file",
+                    "url" : "https://files.pythonhosted.org/packages/b1/5c/ccfc167485806c1936f7d3ba97db6c448d0089c5746ba105b6eb22dba60e/dbus-python-1.2.18.tar.gz",
+                    "sha256" : "92bdd1e68b45596c833307a5ff4b217ee6929a1502f5341bae28fd120acf7260"
+	            }
+            ]
+        },
+        {
+            "name" : "python-dbusmock",
+            "buildsystem" : "simple",
+            "build-commands" : [
+                "pip3 install --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} python-dbusmock"
+            ],
+            "sources" : [
+                {
+                    "type" : "file",
+                    "url" : "https://files.pythonhosted.org/packages/78/11/e43401e0729514689d8a724a0a1d81ed2d6e3ae497ad10a06b60113b167e/python-dbusmock-0.28.1.tar.gz",
+                    "sha256" : "6434e544c055e3570b20e341e50a3d2dd50b19d9e55d579b919e14879f9f1e57"
+                }
+            ]
+        },
+        {
+            "name" : "walbottle",
+            "buildsystem" : "meson",
+            "builddir" : true,
+            "config-opts" : [
+                "-Dgtk_doc=false",
+                "-Dinstalled_tests=false",
+                "-Dintrospection=disabled",
+                "-Dwerror=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.com/walbottle/walbottle.git",
+                    "branch" : "main"
+                }
+            ]
+        },
+        {
+            "name" : "valent",
+            "buildsystem" : "meson",
+            "builddir" : true,
+            "config-opts" : [
+                "--prefix=/app",
+                "--buildtype=debugoptimized",
+                "-Dtests=true"
+            ],
+            "post-install" : [
+                "install -d /app/extensions"
+            ],
+            "sources" : [
+                {
+                    "type" : "dir",
+                    "path" : "../../"
+                }
+            ]
+        }
+    ]
+}
