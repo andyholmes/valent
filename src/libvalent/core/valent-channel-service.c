@@ -44,6 +44,8 @@
  *
  *     Currently recognized values are `tcp` and `bluetooth`. If the plugin is
  *     missing this key, it will be assumed supported.
+ *
+ * Since: 1.0
  */
 
 typedef struct
@@ -679,7 +681,7 @@ valent_channel_service_ref_identity (ValentChannelService *service)
   ret = json_node_ref (priv->identity);
   valent_object_unlock (VALENT_OBJECT (service));
 
-  return ret;
+  return g_steal_pointer (&ret);
 }
 
 /**

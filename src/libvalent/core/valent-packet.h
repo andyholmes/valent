@@ -25,6 +25,8 @@ G_BEGIN_DECLS
  * Error enumeration for KDE Connect packet validation.
  *
  * This enumeration can be extended at later date
+ *
+ * Since: 1.0
  */
 typedef enum {
   VALENT_PACKET_ERROR_UNKNOWN,

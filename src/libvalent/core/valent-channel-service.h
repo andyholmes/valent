@@ -48,36 +48,36 @@ struct _ValentChannelServiceClass
 };
 
 VALENT_AVAILABLE_IN_1_0
-void       valent_channel_service_emit_channel    (ValentChannelService  *service,
-                                                   ValentChannel         *channel);
+void         valent_channel_service_emit_channel    (ValentChannelService  *service,
+                                                     ValentChannel         *channel);
 VALENT_AVAILABLE_IN_1_0
-char     * valent_channel_service_dup_id          (ValentChannelService  *service);
+char       * valent_channel_service_dup_id          (ValentChannelService  *service);
 VALENT_AVAILABLE_IN_1_0
-JsonNode * valent_channel_service_ref_identity    (ValentChannelService  *service);
+JsonNode   * valent_channel_service_ref_identity    (ValentChannelService  *service);
 VALENT_AVAILABLE_IN_1_0
-const char * valent_channel_service_get_name      (ValentChannelService  *service);
+const char * valent_channel_service_get_name        (ValentChannelService  *service);
 VALENT_AVAILABLE_IN_1_0
-void         valent_channel_service_set_name      (ValentChannelService  *service,
-                                                   const char            *name);
+void         valent_channel_service_set_name        (ValentChannelService  *service,
+                                                     const char            *name);
 VALENT_AVAILABLE_IN_1_0
-void       valent_channel_service_build_identity  (ValentChannelService  *service);
+void         valent_channel_service_build_identity  (ValentChannelService  *service);
 VALENT_AVAILABLE_IN_1_0
-void       valent_channel_service_identify        (ValentChannelService  *service,
-                                                   const char            *target);
+void         valent_channel_service_identify        (ValentChannelService  *service,
+                                                     const char            *target);
 VALENT_AVAILABLE_IN_1_0
-void       valent_channel_service_start           (ValentChannelService  *service,
-                                                   GCancellable          *cancellable,
-                                                   GAsyncReadyCallback    callback,
-                                                   gpointer               user_data);
+void         valent_channel_service_start           (ValentChannelService  *service,
+                                                     GCancellable          *cancellable,
+                                                     GAsyncReadyCallback    callback,
+                                                     gpointer               user_data);
 VALENT_AVAILABLE_IN_1_0
-gboolean   valent_channel_service_start_finish    (ValentChannelService  *service,
-                                                   GAsyncResult          *result,
-                                                   GError               **error);
+gboolean     valent_channel_service_start_finish    (ValentChannelService  *service,
+                                                     GAsyncResult          *result,
+                                                     GError               **error);
 VALENT_AVAILABLE_IN_1_0
-void       valent_channel_service_stop            (ValentChannelService  *service);
+void         valent_channel_service_stop            (ValentChannelService  *service);
 VALENT_AVAILABLE_IN_1_0
-gboolean   valent_channel_service_supports_plugin (ValentChannelService  *service,
-                                                   PeasPluginInfo        *info);
+gboolean     valent_channel_service_supports_plugin (ValentChannelService  *service,
+                                                     PeasPluginInfo        *info);
 
 G_END_DECLS
 
