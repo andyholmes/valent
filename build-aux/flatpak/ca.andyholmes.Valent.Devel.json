@@ -4,14 +4,10 @@
     "runtime-version" : "master",
     "sdk" : "org.gnome.Sdk",
     "command" : "valent",
-    "tags" : [
-        "devel"
-    ],
     "finish-args" : [
         "--allow=devel",
         "--device=dri",
         "--env=PULSE_PROP_media.category=Manager",
-        "--filesystem=xdg-data/valent/plugins",
         "--filesystem=xdg-download",
         "--filesystem=xdg-run/gvfsd",
         "--own-name=org.mpris.MediaPlayer2.Valent",
@@ -33,13 +29,12 @@
         "--talk-name=org.gnome.evolution.dataserver.Sources5",
         "--talk-name=org.gnome.evolution.dataserver.Subprocess.Backend.*",
         "--talk-name=org.gnome.OnlineAccounts",
-        "--talk-name=org.gnome.Shell",
         "--talk-name=org.gtk.vfs.*",
         "--talk-name=org.mpris.MediaPlayer2.*"
     ],
     "add-extensions" : {
         "ca.andyholmes.Valent.Plugin" : {
-            "version" : "main",
+            "version" : "master",
             "directory" : "extensions",
             "add-ld-path" : "lib",
             "merge-dirs" : "lib/valent/plugins",
@@ -47,10 +42,6 @@
             "no-autodownload" : true,
             "autodelete" : true
         }
-    },
-    "build-options" : {
-        "cflags" : "-O2 -g",
-        "cxxflags" : "-O2 -g"
     },
     "cleanup" : [
         "/include",

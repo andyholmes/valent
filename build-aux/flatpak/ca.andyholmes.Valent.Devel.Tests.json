@@ -5,6 +5,7 @@
     "sdk" : "org.gnome.Sdk",
     "command" : "valent",
     "finish-args" : [
+        "--allow=devel",
         "--device=dri",
         "--env=PULSE_PROP_media.category=Manager",
         "--filesystem=xdg-download",
@@ -23,6 +24,7 @@
         "--system-talk-name=org.freedesktop.UPower",
         "--talk-name=org.a11y.Bus",
         "--talk-name=org.freedesktop.DBus",
+        "--talk-name=org.freedesktop.Flatpak",
         "--talk-name=org.gnome.evolution.dataserver.AddressBook10",
         "--talk-name=org.gnome.evolution.dataserver.Sources5",
         "--talk-name=org.gnome.evolution.dataserver.Subprocess.Backend.*",
@@ -32,7 +34,7 @@
     ],
     "add-extensions" : {
         "ca.andyholmes.Valent.Plugin" : {
-            "version" : "main",
+            "version" : "master",
             "directory" : "extensions",
             "add-ld-path" : "lib",
             "merge-dirs" : "lib/valent/plugins",
@@ -201,6 +203,31 @@
             ]
         },
         {
+            "name" : "sysprof",
+            "buildsystem" : "meson",
+            "builddir" : true,
+            "config-opts" : [
+                "--buildtype=debugoptimized",
+                "--libdir=/app/lib",
+                "-Dgtk=false",
+                "-Dsysprofd=host"
+            ],
+            "cleanup" : [
+                "/bin/*",
+                "/libexec/sysprof",
+                "/share/appdata",
+                "/share/applications",
+                "/share/metainfo",
+                "/share/mime/packages"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.gnome.org/GNOME/sysprof.git"
+                }
+            ]
+        },
+        {
             "name" : "walbottle",
             "buildsystem" : "meson",
             "builddir" : true,
@@ -225,7 +252,9 @@
             "config-opts" : [
                 "--prefix=/app",
                 "--buildtype=debugoptimized",
-                "-Dtests=true"
+                "-Dprofile=devel",
+                "-Dtests=true",
+                "-Dtracing=true"
             ],
             "post-install" : [
                 "install -d /app/extensions"
