@@ -86,7 +86,16 @@ on_player_state_changed (ValentMPRISAdapter *self,
       if (valent_mpris_impl_export (export, self->connection, &error))
         {
           self->export = export;
-          valent_media_player_emit_changed (player);
+
+          g_object_freeze_notify (G_OBJECT (player));
+          g_object_notify (G_OBJECT (player), "flags");
+          g_object_notify (G_OBJECT (player), "metadata");
+          g_object_notify (G_OBJECT (player), "name");
+          g_object_notify (G_OBJECT (player), "repeat");
+          g_object_notify (G_OBJECT (player), "shuffle");
+          g_object_notify (G_OBJECT (player), "state");
+          g_object_notify (G_OBJECT (player), "volume");
+          g_object_thaw_notify (G_OBJECT (player));
         }
       else
         {
