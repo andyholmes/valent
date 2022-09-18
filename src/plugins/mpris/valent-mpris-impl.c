@@ -217,8 +217,8 @@ player_get_property (GDBusConnection  *connection,
   if ((value = g_hash_table_lookup (self->cache, property_name)) != NULL)
     return g_variant_ref (value);
 
-  /* Common properties */
-  if G_UNLIKELY (*property_name == 'C')
+  /* Load properties */
+  if (*property_name == 'C')
     flags = valent_media_player_get_flags (self->player);
 
   if (strcmp (property_name, "CanControl") == 0)
