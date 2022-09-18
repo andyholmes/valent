@@ -743,7 +743,9 @@ valent_device_plugin_create_settings (PeasPluginInfo *plugin_info,
                                                             default_source,
                                                             FALSE,
                                                             NULL);
-      schema = g_settings_schema_source_lookup (source, schema_id, TRUE);
+
+      if (source != NULL)
+        schema = g_settings_schema_source_lookup (source, schema_id, TRUE);
     }
 
   if (schema == NULL)
