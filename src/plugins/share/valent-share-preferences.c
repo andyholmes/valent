@@ -14,39 +14,15 @@
 
 struct _ValentSharePreferences
 {
-  AdwPreferencesPage   parent_instance;
-
-  char                *device_id;
-  PeasPluginInfo      *plugin_info;
-  GSettings           *settings;
+  ValentDevicePreferencesPage  parent_instance;
 
   /* Template widgets */
-  AdwPreferencesGroup *download_group;
-  GtkLabel            *download_folder_label;
+  AdwPreferencesGroup         *download_group;
+  GtkLabel                    *download_folder_label;
 };
 
-/* Interfaces */
-static void valent_device_preferences_page_iface_init (ValentDevicePreferencesPageInterface *iface);
+G_DEFINE_TYPE (ValentSharePreferences, valent_share_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
 
-G_DEFINE_TYPE_WITH_CODE (ValentSharePreferences, valent_share_preferences, ADW_TYPE_PREFERENCES_PAGE,
-                         G_IMPLEMENT_INTERFACE (VALENT_TYPE_DEVICE_PREFERENCES_PAGE, valent_device_preferences_page_iface_init))
-
-
-enum {
-  PROP_0,
-  PROP_DEVICE_ID,
-  PROP_PLUGIN_INFO,
-  N_PROPERTIES
-};
-
-
-/*
- * ValentDevicePreferencesPage
- */
-static void
-valent_device_preferences_page_iface_init (ValentDevicePreferencesPageInterface *iface)
-{
-}
 
 /*
  * Download Folder
@@ -70,21 +46,23 @@ on_download_folder_changed (GValue   *value,
 }
 
 static void
-on_download_folder_response (GtkNativeDialog        *dialog,
-                             int                     response_id,
-                             ValentSharePreferences *self)
+on_download_folder_response (GtkNativeDialog             *dialog,
+                             int                          response_id,
+                             ValentDevicePreferencesPage *page)
 {
   g_autoptr (GFile) file = NULL;
 
-  g_assert (VALENT_IS_SHARE_PREFERENCES (self));
+  g_assert (VALENT_IS_DEVICE_PREFERENCES_PAGE (page));
 
   if (response_id == GTK_RESPONSE_ACCEPT)
     {
+      GSettings *settings;
       const char *path;
 
       file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
       path = g_file_peek_path (file);
-      g_settings_set_string (self->settings, "download-folder", path);
+      settings = valent_device_preferences_page_get_settings (page);
+      g_settings_set_string (settings, "download-folder", path);
     }
 
   gtk_native_dialog_destroy (dialog);
@@ -99,6 +77,8 @@ select_download_folder_action (GtkWidget  *widget,
                                GVariant   *parameter)
 {
   ValentSharePreferences *self = VALENT_SHARE_PREFERENCES (widget);
+  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  GSettings *settings;
   GtkNativeDialog *dialog;
   g_autofree char *path = NULL;
 
@@ -113,7 +93,8 @@ select_download_folder_action (GtkWidget  *widget,
                          "transient-for", gtk_widget_get_root (widget),
                          NULL);
 
-  path = g_settings_get_string (self->settings, "download-folder");
+  settings = valent_device_preferences_page_get_settings (page);
+  path = g_settings_get_string (settings, "download-folder");
 
   if (strlen (path) > 0)
     {
@@ -139,22 +120,23 @@ static void
 valent_share_preferences_constructed (GObject *object)
 {
   ValentSharePreferences *self = VALENT_SHARE_PREFERENCES (object);
+  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
   g_autofree char *download_folder = NULL;
+  GSettings *settings;
 
   /* Setup GSettings */
-  self->settings = valent_device_plugin_create_settings (self->plugin_info,
-                                                         self->device_id);
+  settings = valent_device_preferences_page_get_settings (page);
 
-  download_folder = g_settings_get_string (self->settings, "download-folder");
+  download_folder = g_settings_get_string (settings, "download-folder");
 
   if (download_folder == NULL || *download_folder == '\0')
     {
       g_clear_pointer (&download_folder, g_free);
       download_folder = valent_data_get_directory (G_USER_DIRECTORY_DOWNLOAD);
-      g_settings_set_string (self->settings, "download-folder", download_folder);
+      g_settings_set_string (settings, "download-folder", download_folder);
     }
 
-  g_settings_bind_with_mapping (self->settings,              "download-folder",
+  g_settings_bind_with_mapping (settings,                    "download-folder",
                                 self->download_folder_label, "label",
                                 G_SETTINGS_BIND_GET,
                                 on_download_folder_changed,
@@ -165,80 +147,17 @@ valent_share_preferences_constructed (GObject *object)
 }
 
 static void
-valent_share_preferences_finalize (GObject *object)
-{
-  ValentSharePreferences *self = VALENT_SHARE_PREFERENCES (object);
-
-  g_clear_pointer (&self->device_id, g_free);
-  g_clear_object (&self->settings);
-
-  G_OBJECT_CLASS (valent_share_preferences_parent_class)->finalize (object);
-}
-
-static void
-valent_share_preferences_get_property (GObject    *object,
-                                           guint       prop_id,
-                                           GValue     *value,
-                                           GParamSpec *pspec)
-{
-  ValentSharePreferences *self = VALENT_SHARE_PREFERENCES (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE_ID:
-      g_value_set_string (value, self->device_id);
-      break;
-
-    case PROP_PLUGIN_INFO:
-      g_value_set_boxed (value, self->plugin_info);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_share_preferences_set_property (GObject      *object,
-                                           guint         prop_id,
-                                           const GValue *value,
-                                           GParamSpec   *pspec)
-{
-  ValentSharePreferences *self = VALENT_SHARE_PREFERENCES (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE_ID:
-      self->device_id = g_value_dup_string (value);
-      break;
-
-    case PROP_PLUGIN_INFO:
-      self->plugin_info = g_value_get_boxed (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_share_preferences_class_init (ValentSharePreferencesClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
   object_class->constructed = valent_share_preferences_constructed;
-  object_class->finalize = valent_share_preferences_finalize;
-  object_class->get_property = valent_share_preferences_get_property;
-  object_class->set_property = valent_share_preferences_set_property;
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/share/valent-share-preferences.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentSharePreferences, download_group);
   gtk_widget_class_bind_template_child (widget_class, ValentSharePreferences, download_folder_label);
   gtk_widget_class_install_action (widget_class, "preferences.select-download-folder", NULL, select_download_folder_action);
-
-  g_object_class_override_property (object_class, PROP_DEVICE_ID, "device-id");
-  g_object_class_override_property (object_class, PROP_PLUGIN_INFO, "plugin-info");
 }
 
 static void

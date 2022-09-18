@@ -11,8 +11,6 @@ test_share_plugin_preferences (void)
   PeasEngine *engine;
   PeasPluginInfo *info;
   PeasExtension *prefs;
-  g_autofree char *device_id = NULL;
-  PeasPluginInfo *plugin_info = NULL;
 
   engine = valent_get_plugin_engine ();
   info = peas_engine_get_plugin_info (engine, "share");
@@ -22,15 +20,6 @@ test_share_plugin_preferences (void)
                                         "device-id", "test-device",
                                         NULL);
   g_object_ref_sink (prefs);
-
-  g_object_get (prefs,
-                "device-id",   &device_id,
-                "plugin-info", &plugin_info,
-                NULL);
-  g_assert_cmpstr (device_id, ==, "test-device");
-  g_assert_true (plugin_info == info);
-  g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
-
   g_object_unref (prefs);
 }
 

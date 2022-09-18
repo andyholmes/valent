@@ -4,7 +4,7 @@
 <!-- SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <interface domain="valent">
-  <template class="ValentRuncommandPreferences" parent="AdwPreferencesPage">
+  <template class="ValentRuncommandPreferences" parent="ValentDevicePreferencesPage">
     <property name="title" translatable="yes">Commands</property>
     <property name="icon-name">valent-runcommand-plugin-symbolic</property>
     <child>

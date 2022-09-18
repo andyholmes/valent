@@ -4,7 +4,7 @@
 <!-- SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <interface domain="valent">
-  <template class="ValentConnectivityReportPreferences" parent="AdwPreferencesPage">
+  <template class="ValentConnectivityReportPreferences" parent="ValentDevicePreferencesPage">
     <property name="title" translatable="yes">Connectivity Report</property>
     <property name="icon-name">valent-connectivity_report-plugin-symbolic</property>
     <child>

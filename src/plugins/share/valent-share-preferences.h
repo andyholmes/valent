@@ -3,14 +3,12 @@
 
 #pragma once
 
-#include <gtk/gtk.h>
-#include <libvalent-core.h>
 #include <libvalent-ui.h>
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_SHARE_PREFERENCES (valent_share_preferences_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentSharePreferences, valent_share_preferences, VALENT, SHARE_PREFERENCES, AdwPreferencesPage)
+G_DECLARE_FINAL_TYPE (ValentSharePreferences, valent_share_preferences, VALENT, SHARE_PREFERENCES, ValentDevicePreferencesPage)
 
 G_END_DECLS

@@ -4,7 +4,7 @@
 <!-- SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <interface domain="valent">
-  <template class="ValentContactsPreferences" parent="AdwPreferencesPage">
+  <template class="ValentContactsPreferences" parent="ValentDevicePreferencesPage">
     <property name="title" translatable="yes">Contacts</property>
     <property name="icon-name">valent-contacts-plugin-symbolic</property>
     <child>

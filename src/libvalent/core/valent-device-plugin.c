@@ -62,7 +62,7 @@
  * that define `X-DevicePluginOutgoing` in the `.plugin` file, should override
  * [vfunc@Valent.DevicePlugin.update_state].
  *
- * For device plugin preferences see [iface@Valent.DevicePreferencesPage].
+ * For device plugin preferences see [class@Valent.DevicePreferencesPage].
  *
  * ## `.plugin` File
  *
