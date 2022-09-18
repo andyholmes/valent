@@ -8,6 +8,10 @@
 #
 mutex:valent_device_get_type_once
 
+# src/plugins/bluez/valent-mux-io-stream.c
+race:valent_mux_io_stream_constructed
+race:valent_mux_io_stream_finalize
+
 # src/plugins/sms/valent-sms-store.c
 race:valent_sms_store_thread
 
