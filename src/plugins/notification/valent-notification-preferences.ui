@@ -4,7 +4,7 @@
 <!-- SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <interface domain="valent">
-  <template class="ValentNotificationPreferences" parent="AdwPreferencesPage">
+  <template class="ValentNotificationPreferences" parent="ValentDevicePreferencesPage">
     <property name="title" translatable="yes">Notifications</property>
     <property name="icon-name">valent-notification-plugin-symbolic</property>
     <child>

@@ -16,24 +16,22 @@
 
 struct _ValentRuncommandPreferences
 {
-  AdwPreferencesPage   parent_instance;
+  ValentDevicePreferencesPage  parent_instance;
 
-  char                *device_id;
-  PeasPluginInfo      *plugin_info;
-  GSettings           *settings;
-
-  GtkWindow           *command_dialog;
+  GtkWindow                   *command_dialog;
 
   /* Template widgets */
-  AdwPreferencesGroup *command_group;
-  GtkListBox          *command_list;
-  GtkWidget           *command_add;
+  AdwPreferencesGroup         *command_group;
+  GtkListBox                  *command_list;
+  GtkWidget                   *command_add;
 
-  AdwPreferencesGroup *restrictions_group;
-  GtkSwitch           *isolate_subprocesses;
+  AdwPreferencesGroup         *restrictions_group;
+  GtkSwitch                   *isolate_subprocesses;
 };
 
-/* Interfaces */
+G_DEFINE_TYPE (ValentRuncommandPreferences, valent_runcommand_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
+
+
 static void edit_command      (ValentRuncommandPreferences *self,
                                const char                  *uuid,
                                const char                  *name,
@@ -45,18 +43,6 @@ static void save_command      (ValentRuncommandPreferences *self,
                                const char                  *uuid,
                                const char                  *name,
                                const char                  *command);
-
-static void valent_device_preferences_page_iface_init (ValentDevicePreferencesPageInterface *iface);
-
-G_DEFINE_TYPE_WITH_CODE (ValentRuncommandPreferences, valent_runcommand_preferences, ADW_TYPE_PREFERENCES_PAGE,
-                         G_IMPLEMENT_INTERFACE (VALENT_TYPE_DEVICE_PREFERENCES_PAGE, valent_device_preferences_page_iface_init))
-
-enum {
-  PROP_0,
-  PROP_DEVICE_ID,
-  PROP_PLUGIN_INFO,
-  N_PROPERTIES
-};
 
 
 /*
@@ -127,14 +113,18 @@ static void
 remove_command (ValentRuncommandPreferences *self,
                 const char                  *uuid)
 {
+  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  GSettings *settings;
   g_autoptr (GVariant) cmds_var = NULL;
   g_autoptr (GVariantDict) cmds_dict = NULL;
   GVariant *cmds_new;
 
   g_assert (VALENT_IS_RUNCOMMAND_PREFERENCES (self));
 
+  settings = valent_device_preferences_page_get_settings (page);
+
   /* Get the current commands GVariant */
-  cmds_var = g_settings_get_value (self->settings, "commands");
+  cmds_var = g_settings_get_value (settings, "commands");
 
   /* Create the new commands GVariant (floating) */
   cmds_dict = g_variant_dict_new (cmds_var);
@@ -142,7 +132,7 @@ remove_command (ValentRuncommandPreferences *self,
   cmds_new = g_variant_dict_end (cmds_dict);
 
   /* Save the new commands GVariant */
-  g_settings_set_value (self->settings, "commands", cmds_new);
+  g_settings_set_value (settings, "commands", cmds_new);
 }
 
 static void
@@ -151,6 +141,8 @@ save_command (ValentRuncommandPreferences *self,
               const char                  *name,
               const char                  *command)
 {
+  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  GSettings *settings;
   g_autoptr (GVariant) cmds_var = NULL;
   g_autoptr (GVariantDict) cmds_dict = NULL;
   GVariant *commandv;
@@ -159,8 +151,10 @@ save_command (ValentRuncommandPreferences *self,
 
   g_assert (VALENT_IS_RUNCOMMAND_PREFERENCES (self));
 
+  settings = valent_device_preferences_page_get_settings (page);
+
   /* Get the current commands GVariant */
-  cmds_var = g_settings_get_value (self->settings, "commands");
+  cmds_var = g_settings_get_value (settings, "commands");
 
   /* Create the new command GVariant (floating) */
   commandd = g_variant_dict_new (NULL);
@@ -174,7 +168,7 @@ save_command (ValentRuncommandPreferences *self,
   cmds_new = g_variant_dict_end (cmds_dict);
 
   /* Save the new commands GVariant */
-  g_settings_set_value (self->settings, "commands", cmds_new);
+  g_settings_set_value (settings, "commands", cmds_new);
 }
 
 static void
@@ -296,6 +290,8 @@ add_command_row (ValentRuncommandPreferences *self,
 static void
 populate_commands (ValentRuncommandPreferences *self)
 {
+  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  GSettings *settings;
   GtkWidget *child;
   g_autoptr (GVariant) cmds_var = NULL;
   GVariantIter iter;
@@ -304,12 +300,14 @@ populate_commands (ValentRuncommandPreferences *self)
 
   g_assert (VALENT_IS_RUNCOMMAND_PREFERENCES (self));
 
+  settings = valent_device_preferences_page_get_settings (page);
+
   /* Clear list */
   while ((child = gtk_widget_get_first_child (GTK_WIDGET (self->command_list))))
     gtk_list_box_remove (self->command_list, child);
 
   /* Get stored value */
-  cmds_var = g_settings_get_value (self->settings, "commands");
+  cmds_var = g_settings_get_value (settings, "commands");
 
   /* Iterate commands */
   g_variant_iter_init (&iter, cmds_var);
@@ -334,9 +332,9 @@ populate_commands (ValentRuncommandPreferences *self)
 }
 
 static int
-sort_commands  (GtkListBoxRow *row1,
-                GtkListBoxRow *row2,
-                gpointer       user_data)
+sort_commands (GtkListBoxRow *row1,
+               GtkListBoxRow *row2,
+               gpointer       user_data)
 {
   const char *title1;
   const char *title2;
@@ -407,14 +405,6 @@ on_isolate_subprocesses_changed (GtkSwitch                   *sw,
   return TRUE;
 }
 
-/*
- * ValentDevicePreferencesPage
- */
-static void
-valent_device_preferences_page_iface_init (ValentDevicePreferencesPageInterface *iface)
-{
-}
-
 
 /*
  * GObject
@@ -423,12 +413,13 @@ static void
 valent_runcommand_preferences_constructed (GObject *object)
 {
   ValentRuncommandPreferences *self = VALENT_RUNCOMMAND_PREFERENCES (object);
+  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  GSettings *settings;
 
   /* Setup GSettings */
-  self->settings = valent_device_plugin_create_settings (self->plugin_info,
-                                                         self->device_id);
+  settings = valent_device_preferences_page_get_settings (page);
 
-  g_signal_connect (self->settings,
+  g_signal_connect (settings,
                     "changed::commands",
                     G_CALLBACK (on_commands_changed),
                     self);
@@ -451,7 +442,7 @@ valent_runcommand_preferences_constructed (GObject *object)
   else
     {
       gtk_widget_set_sensitive (GTK_WIDGET (self->isolate_subprocesses), TRUE);
-      g_settings_bind (self->settings,
+      g_settings_bind (settings,
                        "isolate-subprocesses",
                        self->isolate_subprocesses,
                        "active",
@@ -467,56 +458,8 @@ valent_runcommand_preferences_finalize (GObject *object)
   ValentRuncommandPreferences *self = VALENT_RUNCOMMAND_PREFERENCES (object);
 
   g_clear_pointer (&self->command_dialog, gtk_window_destroy);
-  g_clear_pointer (&self->device_id, g_free);
-  g_clear_object (&self->settings);
 
   G_OBJECT_CLASS (valent_runcommand_preferences_parent_class)->finalize (object);
-}
-
-static void
-valent_runcommand_preferences_get_property (GObject    *object,
-                                            guint       prop_id,
-                                            GValue     *value,
-                                            GParamSpec *pspec)
-{
-  ValentRuncommandPreferences *self = VALENT_RUNCOMMAND_PREFERENCES (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE_ID:
-      g_value_set_string (value, self->device_id);
-      break;
-
-    case PROP_PLUGIN_INFO:
-      g_value_set_boxed (value, self->plugin_info);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_runcommand_preferences_set_property (GObject      *object,
-                                            guint         prop_id,
-                                            const GValue *value,
-                                            GParamSpec   *pspec)
-{
-  ValentRuncommandPreferences *self = VALENT_RUNCOMMAND_PREFERENCES (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE_ID:
-      self->device_id = g_value_dup_string (value);
-      break;
-
-    case PROP_PLUGIN_INFO:
-      self->plugin_info = g_value_get_boxed (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
 }
 
 static void
@@ -527,8 +470,6 @@ valent_runcommand_preferences_class_init (ValentRuncommandPreferencesClass *klas
 
   object_class->constructed = valent_runcommand_preferences_constructed;
   object_class->finalize = valent_runcommand_preferences_finalize;
-  object_class->get_property = valent_runcommand_preferences_get_property;
-  object_class->set_property = valent_runcommand_preferences_set_property;
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/runcommand/valent-runcommand-preferences.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentRuncommandPreferences, command_group);
@@ -539,9 +480,6 @@ valent_runcommand_preferences_class_init (ValentRuncommandPreferencesClass *klas
 
   gtk_widget_class_bind_template_callback (widget_class, on_add_command);
   gtk_widget_class_bind_template_callback (widget_class, on_isolate_subprocesses_changed);
-
-  g_object_class_override_property (object_class, PROP_DEVICE_ID, "device-id");
-  g_object_class_override_property (object_class, PROP_PLUGIN_INFO, "plugin-info");
 }
 
 static void

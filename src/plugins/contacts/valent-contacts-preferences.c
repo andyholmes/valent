@@ -15,68 +15,60 @@
 
 struct _ValentContactsPreferences
 {
-  AdwPreferencesPage  parent_instance;
+  ValentDevicePreferencesPage  parent_instance;
 
-  char               *device_id;
-  PeasPluginInfo     *plugin_info;
-  GSettings          *settings;
-
-  GHashTable         *local_stores;
+  GHashTable                  *local_stores;
 
   /* Template widgets */
-  AdwExpanderRow     *export_row;
-  GtkSwitch          *remote_sync;
-  GtkSwitch          *remote_import;
+  AdwExpanderRow              *export_row;
+  GtkSwitch                   *remote_sync;
+  GtkSwitch                   *remote_import;
 };
 
-/* Interfaces */
-static void valent_device_preferences_page_iface_init (ValentDevicePreferencesPageInterface *iface);
-
-G_DEFINE_TYPE_WITH_CODE (ValentContactsPreferences, valent_contacts_preferences, ADW_TYPE_PREFERENCES_PAGE,
-                         G_IMPLEMENT_INTERFACE (VALENT_TYPE_DEVICE_PREFERENCES_PAGE, valent_device_preferences_page_iface_init))
-
-
-enum {
-  PROP_0,
-  PROP_DEVICE_ID,
-  PROP_PLUGIN_INFO,
-  N_PROPERTIES
-};
+G_DEFINE_TYPE (ValentContactsPreferences, valent_contacts_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
 
 
 static void
-on_export_row (GtkListBox                *box,
-               GtkListBoxRow             *row,
-               ValentContactsPreferences *self)
+on_export_row (GtkListBox                  *box,
+               GtkListBoxRow               *row,
+               ValentDevicePreferencesPage *page)
 {
+  GSettings *settings;
   g_autofree char *local_uid = NULL;
   const char *uid;
 
   g_assert (GTK_IS_LIST_BOX (box));
   g_assert (GTK_IS_LIST_BOX_ROW (row));
+  g_assert (VALENT_IS_DEVICE_PREFERENCES_PAGE (page));
 
-  local_uid = g_settings_get_string (self->settings, "local-uid");
+  settings = valent_device_preferences_page_get_settings (page);
+  local_uid = g_settings_get_string (settings, "local-uid");
   uid = gtk_widget_get_name (GTK_WIDGET (row));
 
   if (g_strcmp0 (local_uid, uid) == 0)
-    g_settings_reset (self->settings, "local-uid");
+    g_settings_reset (settings, "local-uid");
   else
-    g_settings_set_string (self->settings, "local-uid", uid);
+    g_settings_set_string (settings, "local-uid", uid);
 
   gtk_list_box_invalidate_filter (box);
 }
 
 static gboolean
-export_list_filter_func (GtkListBoxRow             *row,
-                         ValentContactsPreferences *self)
+export_list_filter_func (GtkListBoxRow               *row,
+                         ValentDevicePreferencesPage *page)
 {
+  GSettings *settings;
   g_autofree char *local_uid = NULL;
   const char *uid;
   GtkWidget *select;
   gboolean visible;
 
+  g_assert (GTK_IS_LIST_BOX_ROW (row));
+  g_assert (VALENT_IS_DEVICE_PREFERENCES_PAGE (page));
+
+  settings = valent_device_preferences_page_get_settings (page);
+  local_uid = g_settings_get_string (settings, "local-uid");
   uid = gtk_widget_get_name (GTK_WIDGET (row));
-  local_uid = g_settings_get_string (self->settings, "local-uid");
 
   select = g_object_get_data (G_OBJECT (row), "select");
   visible = (g_strcmp0 (local_uid, uid) == 0);
@@ -89,8 +81,15 @@ static void
 on_store_selected (AdwActionRow              *row,
                    ValentContactsPreferences *self)
 {
+  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  GSettings *settings;
   GHashTableIter iter;
   gpointer store, store_row;
+
+  g_assert (ADW_IS_ACTION_ROW (row));
+  g_assert (VALENT_IS_CONTACTS_PREFERENCES (self));
+
+  settings = valent_device_preferences_page_get_settings (page);
 
   g_hash_table_iter_init (&iter, self->local_stores);
 
@@ -103,7 +102,7 @@ on_store_selected (AdwActionRow              *row,
           const char *local_uid;
 
           local_uid = valent_contact_store_get_uid (store);
-          g_settings_set_string (self->settings, "local-uid", local_uid);
+          g_settings_set_string (settings, "local-uid", local_uid);
         }
 
       gtk_widget_set_visible (check, (row == store_row));
@@ -115,16 +114,24 @@ on_store_added (ValentContacts            *contacts,
                 ValentContactStore        *store,
                 ValentContactsPreferences *self)
 {
+  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  GSettings *settings;
   GtkWidget *row;
   GtkWidget *check;
   const char *icon_name;
   const char *uid;
   g_autofree char *local_uid = NULL;
+  g_autofree char *device_id = NULL;
+
+  g_assert (VALENT_IS_CONTACTS (contacts));
+  g_assert (VALENT_IS_CONTACT_STORE (store));
+  g_assert (VALENT_IS_CONTACTS_PREFERENCES (self));
 
   /* FIXME: select an icon name for the addressbook type */
+  g_object_get (page, "device-id", &device_id, NULL);
   uid = valent_contact_store_get_uid (store);
 
-  if (g_strcmp0 (self->device_id, uid) == 0)
+  if (g_strcmp0 (device_id, uid) == 0)
     icon_name = APPLICATION_ID"-symbolic";
   else
     icon_name = "x-office-address-book";
@@ -142,7 +149,8 @@ on_store_added (ValentContacts            *contacts,
                     self);
 
   /* Check */
-  local_uid = g_settings_get_string (self->settings, "local-uid");
+  settings = valent_device_preferences_page_get_settings (page);
+  local_uid = g_settings_get_string (settings, "local-uid");
   check = g_object_new (GTK_TYPE_IMAGE,
                         "icon-name", "object-select-symbolic",
                         "icon-size", GTK_ICON_SIZE_NORMAL,
@@ -172,35 +180,27 @@ on_store_removed (ValentContacts            *contacts,
 
 
 /*
- * ValentDevicePreferencesPage
- */
-static void
-valent_device_preferences_page_iface_init (ValentDevicePreferencesPageInterface *iface)
-{
-}
-
-
-/*
  * GObject
  */
 static void
 valent_contacts_preferences_constructed (GObject *object)
 {
   ValentContactsPreferences *self = VALENT_CONTACTS_PREFERENCES (object);
+  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  GSettings *settings;
   ValentContacts *contacts;
   g_autoptr (GPtrArray) stores = NULL;
 
   /* Setup GSettings */
-  self->settings = valent_device_plugin_create_settings (self->plugin_info,
-                                                         self->device_id);
+  settings = valent_device_preferences_page_get_settings (page);
 
-  g_settings_bind (self->settings,    "remote-sync",
+  g_settings_bind (settings,          "remote-sync",
                    self->remote_sync, "active",
                    G_SETTINGS_BIND_DEFAULT);
-  g_settings_bind (self->settings,      "remote-import",
+  g_settings_bind (settings,            "remote-import",
                    self->remote_import, "active",
                    G_SETTINGS_BIND_DEFAULT);
-  g_settings_bind (self->settings,   "local-sync",
+  g_settings_bind (settings,         "local-sync",
                    self->export_row, "enable-expansion",
                    G_SETTINGS_BIND_DEFAULT);
 
@@ -234,56 +234,8 @@ valent_contacts_preferences_finalize (GObject *object)
   g_signal_handlers_disconnect_by_func (contacts, on_store_removed, self);
 
   g_clear_pointer (&self->local_stores, g_hash_table_unref);
-  g_clear_pointer (&self->device_id, g_free);
-  g_clear_object (&self->settings);
 
   G_OBJECT_CLASS (valent_contacts_preferences_parent_class)->finalize (object);
-}
-
-static void
-valent_contacts_preferences_get_property (GObject    *object,
-                                          guint       prop_id,
-                                          GValue     *value,
-                                          GParamSpec *pspec)
-{
-  ValentContactsPreferences *self = VALENT_CONTACTS_PREFERENCES (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE_ID:
-      g_value_set_string (value, self->device_id);
-      break;
-
-    case PROP_PLUGIN_INFO:
-      g_value_set_boxed (value, self->plugin_info);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_contacts_preferences_set_property (GObject      *object,
-                                          guint         prop_id,
-                                          const GValue *value,
-                                          GParamSpec   *pspec)
-{
-  ValentContactsPreferences *self = VALENT_CONTACTS_PREFERENCES (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE_ID:
-      self->device_id = g_value_dup_string (value);
-      break;
-
-    case PROP_PLUGIN_INFO:
-      self->plugin_info = g_value_get_boxed (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
 }
 
 static void
@@ -294,8 +246,6 @@ valent_contacts_preferences_class_init (ValentContactsPreferencesClass *klass)
 
   object_class->constructed = valent_contacts_preferences_constructed;
   object_class->finalize = valent_contacts_preferences_finalize;
-  object_class->get_property = valent_contacts_preferences_get_property;
-  object_class->set_property = valent_contacts_preferences_set_property;
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/contacts/valent-contacts-preferences.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentContactsPreferences, export_row);
@@ -303,9 +253,6 @@ valent_contacts_preferences_class_init (ValentContactsPreferencesClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentContactsPreferences, remote_import);
 
   gtk_widget_class_bind_template_callback (widget_class, on_export_row);
-
-  g_object_class_override_property (object_class, PROP_DEVICE_ID, "device-id");
-  g_object_class_override_property (object_class, PROP_PLUGIN_INFO, "plugin-info");
 }
 
 static void

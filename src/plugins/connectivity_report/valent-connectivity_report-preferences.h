@@ -3,14 +3,12 @@
 
 #pragma once
 
-#include <gtk/gtk.h>
-#include <libvalent-core.h>
 #include <libvalent-ui.h>
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_CONNECTIVITY_REPORT_PREFERENCES (valent_connectivity_report_preferences_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentConnectivityReportPreferences, valent_connectivity_report_preferences, VALENT, CONNECTIVITY_REPORT_PREFERENCES, AdwPreferencesPage)
+G_DECLARE_FINAL_TYPE (ValentConnectivityReportPreferences, valent_connectivity_report_preferences, VALENT, CONNECTIVITY_REPORT_PREFERENCES, ValentDevicePreferencesPage)
 
 G_END_DECLS

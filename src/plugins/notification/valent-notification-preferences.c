@@ -15,34 +15,19 @@
 
 struct _ValentNotificationPreferences
 {
-  AdwPreferencesPage   parent_instance;
-
-  char                *device_id;
-  PeasPluginInfo      *plugin_info;
-  GSettings           *settings;
+  ValentDevicePreferencesPage  parent_instance;
 
   /* Template Widgets */
-  AdwPreferencesGroup *forward_group;
-  GtkSwitch           *forward_notifications;
-  GtkSwitch           *forward_when_active;
+  AdwPreferencesGroup         *forward_group;
+  GtkSwitch                   *forward_notifications;
+  GtkSwitch                   *forward_when_active;
 
-  AdwPreferencesGroup *application_group;
-  GtkListBox          *application_list;
-  GHashTable          *application_rows;
+  AdwPreferencesGroup         *application_group;
+  GtkListBox                  *application_list;
+  GHashTable                  *application_rows;
 };
 
-enum {
-  PROP_0,
-  PROP_DEVICE_ID,
-  PROP_PLUGIN_INFO,
-  N_PROPERTIES
-};
-
-/* Interfaces */
-static void valent_device_preferences_page_iface_init (ValentDevicePreferencesPageInterface *iface);
-
-G_DEFINE_TYPE_WITH_CODE (ValentNotificationPreferences, valent_notification_preferences, ADW_TYPE_PREFERENCES_PAGE,
-                         G_IMPLEMENT_INTERFACE (VALENT_TYPE_DEVICE_PREFERENCES_PAGE, valent_device_preferences_page_iface_init))
+G_DEFINE_TYPE (ValentNotificationPreferences, valent_notification_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
 
 
 static int
@@ -76,6 +61,8 @@ on_switch_toggled (GtkSwitch                     *sw,
                    GParamSpec                    *pspec,
                    ValentNotificationPreferences *self)
 {
+  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  GSettings *settings;
   GHashTableIter iter;
   gpointer row, row_switch;
   GVariantBuilder builder;
@@ -96,8 +83,9 @@ on_switch_toggled (GtkSwitch                     *sw,
       g_variant_builder_add (&builder, "s", name);
     }
 
-  forward_deny  = g_variant_builder_end (&builder);
-  g_settings_set_value (self->settings, "forward-deny", forward_deny);
+  forward_deny = g_variant_builder_end (&builder);
+  settings = valent_device_preferences_page_get_settings (page);
+  g_settings_set_value (settings, "forward-deny", forward_deny);
 }
 
 static void
@@ -155,13 +143,16 @@ add_application (ValentNotificationPreferences *self,
 static void
 populate_applications (ValentNotificationPreferences *self)
 {
+  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  GSettings *settings;
   GVariant *known;
   g_auto (GStrv) deny = NULL;
   GVariantIter iter;
   const char *key;
   GVariant *value;
 
-  deny = g_settings_get_strv (self->settings, "forward-deny");
+  settings = valent_device_preferences_page_get_settings (page);
+  deny = g_settings_get_strv (settings, "forward-deny");
 
   /* Query the known applications */
   known = valent_notifications_get_applications (NULL);
@@ -180,25 +171,21 @@ static void
 on_reset_clicked (GtkButton                     *button,
                   ValentNotificationPreferences *self)
 {
+  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  GSettings *settings;
   GHashTableIter iter;
   gpointer row_switch;
 
   g_assert (GTK_IS_BUTTON (button));
   g_assert (VALENT_IS_NOTIFICATION_PREFERENCES (self));
 
+  g_hash_table_iter_init (&iter, self->application_rows);
+
   while (g_hash_table_iter_next (&iter, NULL, &row_switch))
     gtk_switch_set_active (GTK_SWITCH (row_switch), TRUE);
 
-  g_settings_reset (self->settings, "applications");
-}
-
-
-/*
- * ValentDevicePreferencesPage
- */
-static void
-valent_device_preferences_page_iface_init (ValentDevicePreferencesPageInterface *iface)
-{
+  settings = valent_device_preferences_page_get_settings (page);
+  g_settings_reset (settings, "applications");
 }
 
 
@@ -209,17 +196,17 @@ static void
 valent_notification_preferences_constructed (GObject *object)
 {
   ValentNotificationPreferences *self = VALENT_NOTIFICATION_PREFERENCES (object);
+  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  GSettings *settings;
 
   /* Setup GSettings */
-  self->settings = valent_device_plugin_create_settings (self->plugin_info,
-                                                         self->device_id);
+  settings = valent_device_preferences_page_get_settings (page);
 
-  /* Forwarding Settings */
-  g_settings_bind (self->settings,              "forward-notifications",
+  g_settings_bind (settings,                    "forward-notifications",
                    self->forward_notifications, "active",
                    G_SETTINGS_BIND_DEFAULT);
 
-  g_settings_bind (self->settings,            "forward-when-active",
+  g_settings_bind (settings,                  "forward-when-active",
                    self->forward_when_active, "active",
                    G_SETTINGS_BIND_DEFAULT);
 
@@ -238,56 +225,8 @@ valent_notification_preferences_finalize (GObject *object)
   ValentNotificationPreferences *self = VALENT_NOTIFICATION_PREFERENCES (object);
 
   g_clear_pointer (&self->application_rows, g_hash_table_unref);
-  g_clear_pointer (&self->device_id, g_free);
-  g_clear_object (&self->settings);
 
   G_OBJECT_CLASS (valent_notification_preferences_parent_class)->finalize (object);
-}
-
-static void
-valent_notification_preferences_get_property (GObject    *object,
-                                              guint       prop_id,
-                                              GValue     *value,
-                                              GParamSpec *pspec)
-{
-  ValentNotificationPreferences *self = VALENT_NOTIFICATION_PREFERENCES (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE_ID:
-      g_value_set_string (value, self->device_id);
-      break;
-
-    case PROP_PLUGIN_INFO:
-      g_value_set_boxed (value, self->plugin_info);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_notification_preferences_set_property (GObject      *object,
-                                              guint         prop_id,
-                                              const GValue *value,
-                                              GParamSpec   *pspec)
-{
-  ValentNotificationPreferences *self = VALENT_NOTIFICATION_PREFERENCES (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE_ID:
-      self->device_id = g_value_dup_string (value);
-      break;
-
-    case PROP_PLUGIN_INFO:
-      self->plugin_info = g_value_get_boxed (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
 }
 
 static void
@@ -298,8 +237,6 @@ valent_notification_preferences_class_init (ValentNotificationPreferencesClass *
 
   object_class->constructed = valent_notification_preferences_constructed;
   object_class->finalize = valent_notification_preferences_finalize;
-  object_class->get_property = valent_notification_preferences_get_property;
-  object_class->set_property = valent_notification_preferences_set_property;
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/notification/valent-notification-preferences.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentNotificationPreferences, forward_group);
@@ -307,9 +244,6 @@ valent_notification_preferences_class_init (ValentNotificationPreferencesClass *
   gtk_widget_class_bind_template_child (widget_class, ValentNotificationPreferences, forward_when_active);
   gtk_widget_class_bind_template_child (widget_class, ValentNotificationPreferences, application_group);
   gtk_widget_class_bind_template_child (widget_class, ValentNotificationPreferences, application_list);
-
-  g_object_class_override_property (object_class, PROP_DEVICE_ID, "device-id");
-  g_object_class_override_property (object_class, PROP_PLUGIN_INFO, "plugin-info");
 }
 
 static void
