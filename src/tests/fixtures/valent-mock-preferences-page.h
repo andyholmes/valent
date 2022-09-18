@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <adwaita.h>
+#include <libvalent-ui.h>
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_MOCK_PREFERENCES_PAGE (valent_mock_preferences_page_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentMockPreferencesPage, valent_mock_preferences_page, VALENT, MOCK_PREFERENCES_PAGE, AdwPreferencesPage)
+G_DECLARE_FINAL_TYPE (ValentMockPreferencesPage, valent_mock_preferences_page, VALENT, MOCK_PREFERENCES_PAGE, ValentPreferencesPage)
 
 G_END_DECLS

@@ -15,14 +15,14 @@ G_BEGIN_DECLS
 #define VALENT_TYPE_PREFERENCES_PAGE (valent_preferences_page_get_type ())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_INTERFACE (ValentPreferencesPage, valent_preferences_page, VALENT, PREFERENCES_PAGE, AdwPreferencesPage)
+G_DECLARE_DERIVABLE_TYPE (ValentPreferencesPage, valent_preferences_page, VALENT, PREFERENCES_PAGE, AdwPreferencesPage)
 
-struct _ValentPreferencesPageInterface
+struct _ValentPreferencesPageClass
 {
-  GTypeInterface   g_iface;
+  AdwPreferencesPageClass   parent_class;
 
   /*< private >*/
-  gpointer         padding[8];
+  gpointer                  padding[8];
 };
 
 G_END_DECLS
