@@ -75,6 +75,9 @@ application_get_property (GDBusConnection  *connection,
   ValentMPRISImpl *self = VALENT_MPRIS_IMPL (user_data);
   GVariant *value = NULL;
 
+  g_assert (VALENT_IS_MPRIS_IMPL (self));
+  g_assert (property_name != NULL);
+
   if ((value = g_hash_table_lookup (self->cache, property_name)) != NULL)
     return g_variant_ref_sink (value);
 
@@ -315,6 +318,9 @@ player_set_property (GDBusConnection  *connection,
                      gpointer          user_data)
 {
   ValentMPRISImpl *self = VALENT_MPRIS_IMPL (user_data);
+
+  g_assert (VALENT_IS_MPRIS_IMPL (self));
+  g_assert (property_name != NULL);
 
   if (strcmp (property_name, "LoopStatus") == 0)
     {
