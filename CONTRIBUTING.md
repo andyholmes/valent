@@ -118,7 +118,7 @@ already distributed under an acceptable open source license.
 
 
 [annotations]: https://gi.readthedocs.io/en/latest/annotations/giannotations.html
-[ci-dockerfile]: https://github.com/andyholmes/valent/blob/src/tests/extra/Dockerfile
+[ci-dockerfile]: https://github.com/andyholmes/valent/blob/build-aux/docker/Dockerfile
 [conventional-commits]: https://www.conventionalcommits.org
 [discussions]: https://github.com/andyholmes/valent/discussions
 [linguas]: https://github.com/andyholmes/valent/blob/main/po/LINGUAS
