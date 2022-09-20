@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: CC0-1.0
 # SPDX-FileCopyrightText: No rights reserved
 
-FROM registry.fedoraproject.org/fedora:36
+FROM registry.fedoraproject.org/fedora-toolbox:36
 
 # The packages below are roughly grouped into build tooling and build
 # dependencies (with debug symbols)
@@ -25,10 +25,10 @@ RUN dnf install -y --enablerepo=fedora-debuginfo,updates-debuginfo \
         libportal-devel               libportal-debuginfo \
         pulseaudio-libs-devel         pulseaudio-libs-debuginfo \
         sqlite-devel                  sqlite-debuginfo && \
+    dnf install -y gdb && \
     dnf clean all && rm -rf /var/cache/dnf
 
-# Build libwalbottle from source, since it's not available in most package
-# repositories and generally only practical in CI tests anyways
+# Build libwalbottle from source, since it's not available in most repositories
 RUN git clone https://gitlab.com/walbottle/walbottle.git \
               --branch main \
               --single-branch && \
