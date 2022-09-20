@@ -1,4 +1,4 @@
-name: Update CI
+name: CR
 
 on:
   push:
@@ -37,8 +37,10 @@ jobs:
           - Toolbox
         include:
           - label: CI
+            file: ./build-aux/docker/Dockerfile
             image: ghcr.io/${{ github.repository }}
           - label: Toolbox
+            file: ./build-aux/docker/Dockerfile.toolbox
             image: ghcr.io/${{ github.repository }}-toolbox
       fail-fast: false
 
@@ -64,7 +66,7 @@ jobs:
       - name: Build
         uses: docker/build-push-action@v3
         with:
-          file: ./build-aux/docker/Dockerfile
+          file: ${{ matrix.file }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
