@@ -1,7 +1,7 @@
 {
     "app-id" : "ca.andyholmes.Valent",
     "runtime" : "org.gnome.Platform",
-    "runtime-version" : "42",
+    "runtime-version" : "43",
     "sdk" : "org.gnome.Sdk",
     "command" : "valent",
     "finish-args" : [
@@ -122,8 +122,8 @@
                 {
                     "type" : "git",
                     "url" : "https://gitlab.gnome.org/GNOME/evolution-data-server.git",
-                    "commit" : "4a526c5363c9c46b200e7fae019c4911c968673f",
-                    "tag" : "3.44.4"
+                    "commit" : "ed45e3272a88ea9097a4fe25b5d6bfed4e1272ce",
+                    "tag" : "3.46.0"
                 }
             ]
         },
@@ -148,8 +148,8 @@
                 {
                     "type" : "git",
                     "url" : "https://gitlab.gnome.org/GNOME/libpeas.git",
-                    "commit" : "41335bc31cb3e5ec75196e621bb244ca4d96f151",
-                    "tag" : "libpeas-1.32.0"
+                    "commit" : "744e16bdada0eb79c37abac328cb4c3dc6dd42df",
+                    "tag" : "libpeas-1.34.0"
                 }
             ]
         },
