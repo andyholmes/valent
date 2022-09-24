@@ -5,7 +5,11 @@ FROM registry.fedoraproject.org/fedora:37
 
 # The packages below are roughly grouped into build tooling and build
 # dependencies (with debug symbols)
-RUN dnf install -y --enablerepo=fedora-debuginfo,updates-debuginfo \
+#
+# See: https://github.com/andyholmes/copr/tree/main/glib2
+RUN dnf install -y 'dnf-command(copr)' && \
+    dnf copr -y enable andyholmes/main && \
+    dnf install -y --enablerepo=fedora-debuginfo,updates-debuginfo \
         --setopt=install_weak_deps=False \
         glibc-langpack-en glibc-locale-source clang clang-analyzer compiler-rt \
         cppcheck cppcheck-htmlreport gcc gettext gi-docgen git graphviz \
