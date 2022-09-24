@@ -222,7 +222,7 @@ jobs:
     needs: [pre-test]
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/andyholmes/flatpak-github-actions:gnome-42
+      image: ghcr.io/andyholmes/flatpak-github-actions:gnome-43
       options: --privileged
 
     steps:
