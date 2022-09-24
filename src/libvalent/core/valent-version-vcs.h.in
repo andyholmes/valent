@@ -1,0 +1,13 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
+
+#pragma once
+
+#include <glib.h>
+
+G_BEGIN_DECLS
+
+#define VALENT_VCS_TAG "@VCS_TAG@"
+
+G_END_DECLS
+
