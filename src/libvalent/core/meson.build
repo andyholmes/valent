@@ -85,6 +85,15 @@ libvalent_core_version_h = configure_file(
 
 libvalent_core_generated_headers += [libvalent_core_version_h]
 
+libvalent_core_vcs_h = vcs_tag(
+      command: ['git', 'rev-parse', '--short', 'HEAD'],
+     fallback: 'devel',
+        input: 'valent-version-vcs.h.in',
+       output: 'valent-version-vcs.h',
+)
+
+libvalent_core_generated_headers += [libvalent_core_vcs_h]
+
 
 # Debugging and Profiling Support
 libvalent_core_conf = configuration_data()

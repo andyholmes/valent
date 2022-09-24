@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
+// SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 #define G_LOG_DOMAIN "valent-window"
 
@@ -10,6 +10,7 @@
 #include <gtk/gtk.h>
 #include <libvalent-core.h>
 
+#include "valent-application-credits.h"
 #include "valent-device-panel.h"
 #include "valent-preferences-window.h"
 #include "valent-window.h"
@@ -245,22 +246,37 @@ about_action (GtkWidget  *widget,
               GVariant   *parameter)
 {
   GtkWindow *window = GTK_WINDOW (widget);
-  const char *authors[] = {
-    "Andy Holmes <andrew.g.r.holmes@gmail.com>",
-    NULL
-  };
+  GtkWindow *dialog = NULL;
+  static const char *version = NULL;
 
   g_assert (GTK_IS_WINDOW (window));
 
-  gtk_show_about_dialog (window,
-                         "logo-icon-name",     APPLICATION_ID,
-                         "comments",           _("Connect, control and sync devices"),
-                         "version",            PACKAGE_VERSION,
-                         "authors",            authors,
-                         "translator-credits", _("translator-credits"),
+  if (version == NULL)
+    {
+      if (g_strcmp0 (PROFILE_NAME, "devel") == 0)
+        version = PACKAGE_VERSION"+"VALENT_VCS_VERSION;
+      else
+        version = PACKAGE_VERSION;
+    }
+
+  dialog = g_object_new (ADW_TYPE_ABOUT_WINDOW,
+                         "application-icon",  APPLICATION_ID,
+                         "application-name",   _("Valent"),
+                         "copyright",          "© 2022 Andy Holmes",
+                         /* TODO: "issue-url",          PACKAGE_BUGREPORT, */
                          "license-type",       GTK_LICENSE_GPL_3_0,
+                         "developers",         valent_application_credits_developers,
+                         "documenters",        valent_application_credits_documenters,
+                         "transient-for",      window,
+                         "translator-credits", _("translator-credits"),
+                         "version",            version,
                          "website",            PACKAGE_URL,
                          NULL);
+  adw_about_window_add_acknowledgement_section (ADW_ABOUT_WINDOW (dialog),
+                                                _("Funded By"),
+                                                valent_application_credits_sponsors);
+
+  gtk_window_present (dialog);
 }
 
 static void
