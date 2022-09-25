@@ -33,11 +33,7 @@ struct _ValentPreferencesWindow
   AdwPreferencesPage   *main_page;
 
   AdwPreferencesGroup  *general_group;
-
-  GtkDialog            *rename_dialog;
-  GtkEntry             *rename_entry;
-  GtkLabel             *rename_label;
-  GtkButton            *rename_button;
+  AdwEntryRow          *device_name_entry;
 
   AdwPreferencesGroup  *plugin_group;
   GtkListBox           *plugin_list;
@@ -86,36 +82,42 @@ plugin_list_sort (GtkListBoxRow *row1,
 }
 
 /*
- * Rename Dialog Callbacks
+ * Device Name Callbacks
  */
 static void
-on_rename_entry_changed (GtkEntry                *entry,
-                         ValentPreferencesWindow *self)
+on_name_changed (GtkEditable             *editable,
+                 ValentPreferencesWindow *self)
 {
   const char *name = NULL;
-  const char *new_name = NULL;
 
-  name = gtk_label_get_text (self->rename_label);
-  new_name = gtk_editable_get_text (GTK_EDITABLE (entry));
+  g_assert (GTK_IS_EDITABLE (editable));
+  g_assert (VALENT_IS_PREFERENCES_WINDOW (self));
 
-  gtk_widget_set_sensitive (GTK_WIDGET (self->rename_button),
-                            (g_strcmp0 (name, new_name) != 0));
+  name = gtk_editable_get_text (editable);
+
+  if (name == NULL || *name == '\0')
+    return;
+
+  g_settings_set_string (self->settings, "name", name);
 }
 
 static void
-on_rename_dialog_response (GtkDialog               *dialog,
-                           GtkResponseType          response_id,
-                           ValentPreferencesWindow *self)
+on_settings_changed (GSettings *settings,
+                     const char *key,
+                     ValentPreferencesWindow *self)
 {
-  if (response_id == GTK_RESPONSE_OK)
-    {
-      const char *name;
+  const char *value = NULL;
+  g_autofree char *name = NULL;
 
-      name = gtk_editable_get_text (GTK_EDITABLE (self->rename_entry));
-      g_settings_set_string (self->settings, "name", name);
-    }
+  g_assert (G_IS_SETTINGS (settings));
+  g_assert (key != NULL && *key != '\0');
+  g_assert (VALENT_IS_PREFERENCES_WINDOW (self));
 
-  gtk_window_close (GTK_WINDOW (dialog));
+  name = g_settings_get_string (self->settings, "name");
+  value = gtk_editable_get_text (GTK_EDITABLE (self->device_name_entry));
+
+  if (g_strcmp0 (value, name) != 0)
+    gtk_editable_set_text (GTK_EDITABLE (self->device_name_entry), name);
 }
 
 /*
@@ -369,20 +371,6 @@ previous_action (GtkWidget  *widget,
     adw_preferences_window_set_visible_page_name (window, "main");
 }
 
-static void
-rename_action (GtkWidget  *widget,
-               const char *action_name,
-               GVariant   *parameter)
-{
-  ValentPreferencesWindow *self = VALENT_PREFERENCES_WINDOW (widget);
-  g_autofree char *name = NULL;
-
-  name = g_settings_get_string (self->settings, "name");
-  gtk_editable_set_text (GTK_EDITABLE (self->rename_entry), name);
-
-  gtk_window_present (GTK_WINDOW (self->rename_dialog));
-}
-
 /*
  * GObject
  */
@@ -390,6 +378,7 @@ static void
 valent_preferences_window_constructed (GObject *object)
 {
   ValentPreferencesWindow *self = VALENT_PREFERENCES_WINDOW (object);
+  g_autofree char *name = NULL;
   PeasEngine *engine = valent_get_plugin_engine ();
   const GList *plugins = NULL;
 
@@ -399,9 +388,12 @@ valent_preferences_window_constructed (GObject *object)
 
   /* Application Settings */
   self->settings = g_settings_new ("ca.andyholmes.Valent");
-  g_settings_bind (self->settings,     "name",
-                   self->rename_label, "label",
-                   G_SETTINGS_BIND_DEFAULT);
+  g_signal_connect_object (self->settings,
+                           "changed::name",
+                           G_CALLBACK (on_settings_changed),
+                           self, 0);
+  name = g_settings_get_string (self->settings, "name");
+  gtk_editable_set_text (GTK_EDITABLE (self->device_name_entry), name);
 
   /* Application Plugins */
   plugins = peas_engine_get_plugin_list (engine);
@@ -466,18 +458,12 @@ valent_preferences_window_class_init (ValentPreferencesWindowClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentPreferencesWindow, main_page);
   gtk_widget_class_bind_template_child (widget_class, ValentPreferencesWindow, plugin_group);
   gtk_widget_class_bind_template_child (widget_class, ValentPreferencesWindow, plugin_list);
+  gtk_widget_class_bind_template_child (widget_class, ValentPreferencesWindow, device_name_entry);
 
-  gtk_widget_class_bind_template_child (widget_class, ValentPreferencesWindow, rename_entry);
-  gtk_widget_class_bind_template_child (widget_class, ValentPreferencesWindow, rename_label);
-  gtk_widget_class_bind_template_child (widget_class, ValentPreferencesWindow, rename_dialog);
-  gtk_widget_class_bind_template_child (widget_class, ValentPreferencesWindow, rename_button);
-
-  gtk_widget_class_bind_template_callback (widget_class, on_rename_dialog_response);
-  gtk_widget_class_bind_template_callback (widget_class, on_rename_entry_changed);
+  gtk_widget_class_bind_template_callback (widget_class, on_name_changed);
 
   gtk_widget_class_install_action (widget_class, "win.page", "s", page_action);
   gtk_widget_class_install_action (widget_class, "win.previous", NULL, previous_action);
-  gtk_widget_class_install_action (widget_class, "win.rename", NULL, rename_action);
 
   /* ... */
   extensions[EXTEN_APPLICATION_PLUGIN] =
