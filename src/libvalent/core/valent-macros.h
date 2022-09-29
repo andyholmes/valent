@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
+
+// SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
+// SPDX-FileContributor: 2018-2019 Christian Hergert <chergert@redhat.com>
 
 #pragma once
 
@@ -40,6 +42,33 @@ valent_error_ignore (const GError *error)
 {
   return g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED) ||
          g_error_matches (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED);
+}
+
+/**
+ * valent_set_string: (skip)
+ * @ptr: a pointer to a string
+ * @str: the string to set
+ *
+ * Set a string.
+ *
+ * Returns: %TRUE if changed, or %FALSE otherwise
+ */
+static inline gboolean
+valent_set_string (char       **ptr,
+                   const char  *str)
+{
+  char *copy;
+
+  g_assert (ptr != NULL);
+
+  if (*ptr == str || g_strcmp0 (*ptr, str) == 0)
+    return FALSE;
+
+  copy = g_strdup (str);
+  g_free (*ptr);
+  *ptr = copy;
+
+  return TRUE;
 }
 
 G_END_DECLS

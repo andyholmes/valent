@@ -696,12 +696,8 @@ valent_mpris_device_update_name (ValentMprisDevice *player,
   g_return_if_fail (VALENT_IS_MPRIS_DEVICE (player));
   g_return_if_fail (name != NULL);
 
-  if (g_strcmp0 (player->name, name) == 0)
-    return;
-
-  g_clear_pointer (&player->name, g_free);
-  player->name = g_strdup (name);
-  g_object_notify (G_OBJECT (player), "name");
+  if (valent_set_string (&player->name, name))
+    g_object_notify (G_OBJECT (player), "name");
 }
 
 /**

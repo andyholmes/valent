@@ -640,18 +640,14 @@ valent_device_handle_identity (ValentDevice *device,
   if (!valent_packet_get_string (packet, "deviceName", &device_name))
     device_name = "Unnamed";
 
-  if (g_strcmp0 (device->name, device_name) != 0)
-    {
-      g_clear_pointer (&device->name, g_free);
-      device->name = g_strdup (device_name);
-      g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_NAME]);
-    }
+  if (valent_set_string (&device->name, device_name))
+    g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_NAME]);
 
   /* Device Type */
   if (!valent_packet_get_string (packet, "deviceType", &device_type))
     device_type = "desktop";
 
-  if (g_strcmp0 (device->type, device_type) != 0)
+  if (valent_set_string (&device->type, device_type))
     {
       const char *device_icon = "computer-symbolic";
 
@@ -666,12 +662,9 @@ valent_device_handle_identity (ValentDevice *device,
       else if (g_str_equal (device_type, "tv"))
         device_icon = "tv-symbolic";
 
-      g_clear_pointer (&device->icon_name, g_free);
-      device->icon_name = g_strdup (device_icon);
-      g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_ICON_NAME]);
+      if (valent_set_string (&device->icon_name, device_icon))
+        g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_ICON_NAME]);
 
-      g_clear_pointer (&device->type, g_free);
-      device->type = g_strdup (device_type);
       g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_TYPE]);
     }
 

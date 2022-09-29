@@ -1151,12 +1151,8 @@ valent_device_manager_set_name (ValentDeviceManager *manager,
   g_return_if_fail (VALENT_IS_DEVICE_MANAGER (manager));
   g_return_if_fail (name != NULL && *name != '\0');
 
-  if (g_strcmp0 (manager->name, name) == 0)
-    return;
-
-  g_clear_pointer (&manager->name, g_free);
-  manager->name = g_strdup (name);
-  g_object_notify_by_pspec (G_OBJECT (manager), properties [PROP_NAME]);
+  if (valent_set_string (&manager->name, name))
+    g_object_notify_by_pspec (G_OBJECT (manager), properties [PROP_NAME]);
 }
 
 /**
