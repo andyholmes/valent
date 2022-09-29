@@ -19,7 +19,7 @@ jobs:
         uses: codespell-project/actions-codespell@master
         with:
           ignore_words_list: doubleclick,inout,onlyonce,sav
-          skip: ./src/tests/data,./subprojects,./*.po
+          skip: ./tests/data,./subprojects,./*.po
 
   commitlint:
     name: Commitlint
@@ -87,7 +87,7 @@ jobs:
         with:
           reporter: github-pr-review
           fail_on_error: true
-          yamllint_flags: --config-file src/tests/extra/yamllint.yml
+          yamllint_flags: --config-file tests/extra/yamllint.yml
 
   build:
     name: Build (Documentation)
@@ -151,7 +151,7 @@ jobs:
         env:
           TESTSUITE: ${{ matrix.suite }}
         run: |
-          ./src/tests/extra/ci-runner.sh analyze "${TESTSUITE}"
+          ./tests/extra/ci-runner.sh analyze "${TESTSUITE}"
 
       - name: Report
         if: ${{ failure() }}
@@ -195,7 +195,7 @@ jobs:
         env:
           TESTSUITE: ${{ matrix.suite }}
         run: |
-          ./src/tests/extra/ci-runner.sh test "${TESTSUITE}"
+          ./tests/extra/ci-runner.sh test "${TESTSUITE}"
 
       - name: Test Report
         if: ${{ failure() }}
@@ -207,7 +207,7 @@ jobs:
       - name: Coverage
         if: ${{ success() && matrix.label == 'GCC' }}
         run: |
-          ./src/tests/extra/ci-runner.sh test coverage
+          ./tests/extra/ci-runner.sh test coverage
 
       - name: Coverage Report
         if: ${{ success() && matrix.label == 'GCC' }}

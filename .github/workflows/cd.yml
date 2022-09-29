@@ -59,7 +59,7 @@ jobs:
                --rc lcov_branch_coverage=1 \
                --output-file _build/meson-logs/coverage.info
           lcov --remove _build/meson-logs/coverage.info \
-               '*/src/tests/*' \
+               '*/tests/*' \
                '*/subprojects/*' \
                --rc lcov_branch_coverage=1 \
                --output-file _build/meson-logs/coverage.info

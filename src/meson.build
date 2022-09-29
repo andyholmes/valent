@@ -9,10 +9,6 @@ valent_link_args = []
 subdir('libvalent')
 subdir('plugins')
 
-if get_option('tests')
-  subdir('tests')
-endif
-
 
 # Executable
 valent = executable('valent', 'main.c',

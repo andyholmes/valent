@@ -19,7 +19,7 @@ memleak:src/plugins/sms/valent-sms-store.c:859
 leakNoVarFunctionCall:src/plugins/sms/valent-sms-conversation.c:583
 leakNoVarFunctionCall:src/plugins/sms/valent-sms-conversation.c:588
 
-# src/tests/plugins/connectivity_report/
+# tests/plugins/connectivity_report/
 leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:268
 leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:270
 leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:272
@@ -29,15 +29,15 @@ leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report
 leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:289
 leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:291
 
-# src/tests/plugins/bluez/
-memleak:src/tests/plugins/bluez/test-bluez-plugin.c:183
+# tests/plugins/bluez/
+memleak:tests/plugins/bluez/test-bluez-plugin.c:183
 
-# src/tests/plugins/fdo/
-leakNoVarFunctionCall:src/tests/plugins/fdo/test-fdo-notifications.c:122
-leakNoVarFunctionCall:src/tests/plugins/fdo/test-fdo-session.c:65
-memleak:src/tests/plugins/fdo/test-fdo-notifications.c:164
+# tests/plugins/fdo/
+leakNoVarFunctionCall:tests/plugins/fdo/test-fdo-notifications.c:122
+leakNoVarFunctionCall:tests/plugins/fdo/test-fdo-session.c:65
+memleak:tests/plugins/fdo/test-fdo-notifications.c:164
 
-# src/tests/plugins/gtk/
-leakNoVarFunctionCall:src/tests/plugins/gtk/test-gtk-notifications.c:115
-leakNoVarFunctionCall:src/tests/plugins/gtk/test-gtk-notifications.c:117
-leakNoVarFunctionCall:src/tests/plugins/gtk/test-gtk-notifications.c:119
+# tests/plugins/gtk/
+leakNoVarFunctionCall:tests/plugins/gtk/test-gtk-notifications.c:115
+leakNoVarFunctionCall:tests/plugins/gtk/test-gtk-notifications.c:117
+leakNoVarFunctionCall:tests/plugins/gtk/test-gtk-notifications.c:119

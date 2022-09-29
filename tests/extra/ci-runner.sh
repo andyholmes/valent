@@ -21,7 +21,7 @@ ci_pre_test() {
 
     if command -v pylint > /dev/null 2>&1; then
         # shellcheck disable=SC2046
-        pylint --rcfile src/tests/extra/setup.cfg \
+        pylint --rcfile tests/extra/setup.cfg \
                $(git ls-files '*.py')
     fi
 
@@ -32,7 +32,7 @@ ci_pre_test() {
 
     if command -v yamllint > /dev/null 2>&1; then
         # shellcheck disable=SC2046
-        yamllint --config-file src/tests/extra/yamllint.yml \
+        yamllint --config-file tests/extra/yamllint.yml \
                  $(git ls-files '*.yml')
     fi
 }
@@ -127,10 +127,10 @@ ci_analyze_cppcheck() {
 
     cppcheck --quiet \
              --error-exitcode=1 \
-             -I"${WORKSPACE}/src/tests/fixtures" \
+             -I"${WORKSPACE}/tests/fixtures" \
              --library=gtk \
-             --library="${WORKSPACE}/src/tests/extra/cppcheck.cfg" \
-             --suppressions-list="${WORKSPACE}/src/tests/extra/cppcheck.supp" \
+             --library="${WORKSPACE}/tests/extra/cppcheck.cfg" \
+             --suppressions-list="${WORKSPACE}/tests/extra/cppcheck.supp" \
              --xml \
              src 2> "${BUILDDIR}/meson-logs/cppcheck.xml" || \
     (cppcheck-htmlreport --file "${BUILDDIR}/meson-logs/cppcheck.xml" \
@@ -157,7 +157,7 @@ ci_analyze_llvm() {
     export CC_LD=lld
     export CXX=clang++
     export CXX_LD=lld
-    export SCANBUILD="${WORKSPACE}/src/tests/extra/scanbuild.sh"
+    export SCANBUILD="${WORKSPACE}/tests/extra/scanbuild.sh"
 
     meson setup --buildtype=debug \
                 -Dintrospection=false \
@@ -214,7 +214,7 @@ ci_test_coverage() {
          --rc lcov_branch_coverage=1 \
          --output-file "${BUILDDIR}"/meson-logs/coverage.info && \
     lcov --remove "${BUILDDIR}"/meson-logs/coverage.info \
-         '*/src/tests/*' \
+         '*/tests/*' \
          '*/subprojects/*' \
          --rc lcov_branch_coverage=1 \
          --output-file "${BUILDDIR}"/meson-logs/coverage.info
