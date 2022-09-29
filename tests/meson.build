@@ -47,7 +47,7 @@ test_link_args = [
 
 
 # Copy GSettingsSchemas for testing
-gsettings_test_init = find_program('gsettings-test-init.sh')
+gsettings_test_init = find_program('extra/gsettings-test-init.sh')
 
 run_command(gsettings_test_init,
     env: tests_env,

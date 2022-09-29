@@ -249,6 +249,10 @@ if get_option('documentation')
   subdir('doc/sdk')
 endif
 
+if get_option('tests')
+  subdir('tests')
+endif
+
 gnome.post_install(
   glib_compile_schemas: true,
   gtk_update_icon_cache: true,
