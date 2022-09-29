@@ -255,13 +255,9 @@ valent_runcommand_editor_set_uuid (ValentRuncommandEditor *editor,
 {
   g_return_if_fail (VALENT_IS_RUNCOMMAND_EDITOR (editor));
 
-  if (g_strcmp0 (editor->uuid, uuid) == 0)
-    return;
-
-  if (uuid == NULL || *uuid == '\0')
+  if (uuid == NULL)
     uuid = "";
 
-  g_clear_pointer (&editor->uuid, g_free);
-  editor->uuid = g_strdup (uuid);
+  valent_set_string (&editor->uuid, uuid);
 }
 

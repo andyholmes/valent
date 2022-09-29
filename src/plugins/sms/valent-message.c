@@ -6,6 +6,7 @@
 #include "config.h"
 
 #include <gio/gio.h>
+#include <libvalent-core.h>
 
 #include "valent-message.h"
 
@@ -458,8 +459,11 @@ valent_message_update (ValentMessage *message,
       g_object_notify_by_pspec (G_OBJECT (message), properties [PROP_DATE]);
     }
 
-  g_clear_pointer (&message->metadata, g_variant_unref);
-  message->metadata = g_steal_pointer (&update->metadata);
+  if (message->metadata != update->metadata)
+    {
+      g_clear_pointer (&message->metadata, g_variant_unref);
+      message->metadata = g_steal_pointer (&update->metadata);
+    }
 
   if (message->read != update->read)
     {
@@ -467,19 +471,11 @@ valent_message_update (ValentMessage *message,
       g_object_notify_by_pspec (G_OBJECT (message), properties [PROP_READ]);
     }
 
-  if (g_strcmp0 (message->sender, update->sender) != 0)
-    {
-      g_clear_pointer (&message->sender, g_free);
-      message->sender = g_steal_pointer (&update->sender);
-      g_object_notify_by_pspec (G_OBJECT (message), properties [PROP_SENDER]);
-    }
+  if (valent_set_string (&message->sender, update->sender))
+    g_object_notify_by_pspec (G_OBJECT (message), properties [PROP_SENDER]);
 
-  if (g_strcmp0 (message->text, update->text) != 0)
-    {
-      g_clear_pointer (&message->text, g_free);
-      message->text = g_steal_pointer (&update->text);
-      g_object_notify_by_pspec (G_OBJECT (message), properties [PROP_TEXT]);
-    }
+  if (valent_set_string (&message->text, update->text))
+    g_object_notify_by_pspec (G_OBJECT (message), properties [PROP_TEXT]);
 
   g_object_thaw_notify (G_OBJECT (message));
   g_object_unref (update);

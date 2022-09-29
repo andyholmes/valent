@@ -723,12 +723,8 @@ valent_channel_service_set_name (ValentChannelService *service,
   g_return_if_fail (VALENT_IS_CHANNEL_SERVICE (service));
   g_return_if_fail (name != NULL && *name != '\0');
 
-  if (g_strcmp0 (priv->name, name) == 0)
-    return;
-
-  g_clear_pointer (&priv->name, g_free);
-  priv->name = g_strdup (name);
-  g_object_notify_by_pspec (G_OBJECT (service), properties [PROP_NAME]);
+  if (valent_set_string (&priv->name, name))
+    g_object_notify_by_pspec (G_OBJECT (service), properties [PROP_NAME]);
 
   valent_object_lock (VALENT_OBJECT (service));
   if (priv->identity)

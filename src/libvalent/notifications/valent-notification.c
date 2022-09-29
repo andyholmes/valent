@@ -463,12 +463,8 @@ valent_notification_set_application (ValentNotification *notification,
 {
   g_return_if_fail (VALENT_IS_NOTIFICATION (notification));
 
-  if (g_strcmp0 (notification->application, application) == 0)
-    return;
-
-  g_clear_pointer (&notification->application, g_free);
-  notification->application = g_strdup (application);
-  g_object_notify_by_pspec (G_OBJECT (notification), properties [PROP_APPLICATION]);
+  if (valent_set_string (&notification->application, application))
+    g_object_notify_by_pspec (G_OBJECT (notification), properties [PROP_APPLICATION]);
 }
 
 /**
@@ -504,12 +500,8 @@ valent_notification_set_body (ValentNotification *notification,
 {
   g_return_if_fail (VALENT_IS_NOTIFICATION (notification));
 
-  if (g_strcmp0 (notification->body, body) == 0)
-    return;
-
-  g_clear_pointer (&notification->body, g_free);
-  notification->body = g_strdup (body);
-  g_object_notify_by_pspec (G_OBJECT (notification), properties [PROP_BODY]);
+  if (valent_set_string (&notification->body, body))
+    g_object_notify_by_pspec (G_OBJECT (notification), properties [PROP_BODY]);
 }
 
 /**
@@ -587,12 +579,8 @@ valent_notification_set_id (ValentNotification *notification,
   g_return_if_fail (VALENT_IS_NOTIFICATION (notification));
   g_return_if_fail (id != NULL && *id != '\0');
 
-  if (g_strcmp0 (notification->id, id) == 0)
-    return;
-
-  g_clear_pointer (&notification->id, g_free);
-  notification->id = g_strdup (id);
-  g_object_notify_by_pspec (G_OBJECT (notification), properties [PROP_ID]);
+  if (valent_set_string (&notification->id, id))
+    g_object_notify_by_pspec (G_OBJECT (notification), properties [PROP_ID]);
 }
 
 /**
@@ -709,12 +697,8 @@ valent_notification_set_title (ValentNotification *notification,
   g_return_if_fail (VALENT_IS_NOTIFICATION (notification));
   g_return_if_fail (title != NULL);
 
-  if (g_strcmp0 (notification->title, title) == 0)
-    return;
-
-  g_clear_pointer (&notification->title, g_free);
-  notification->title = g_strdup (title);
-  g_object_notify_by_pspec (G_OBJECT (notification), properties [PROP_TITLE]);
+  if (valent_set_string (&notification->title, title))
+    g_object_notify_by_pspec (G_OBJECT (notification), properties [PROP_TITLE]);
 }
 
 /**
@@ -805,10 +789,8 @@ valent_notification_set_action_and_target (ValentNotification *notification,
   g_return_if_fail (VALENT_IS_NOTIFICATION (notification));
   g_return_if_fail (action != NULL && g_action_name_is_valid (action));
 
-  g_clear_pointer (&notification->default_action, g_free);
+  valent_set_string (&notification->default_action, action);
   g_clear_pointer (&notification->default_action_target, g_variant_unref);
-
-  notification->default_action = g_strdup (action);
 
   if (target)
     notification->default_action_target = g_variant_ref_sink (target);

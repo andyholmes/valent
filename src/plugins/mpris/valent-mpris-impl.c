@@ -795,8 +795,7 @@ valent_mpris_impl_export_full (ValentMPRISImpl     *impl,
   g_task_set_source_tag (task, valent_mpris_impl_export_full);
 
   /* Set the new bus name */
-  g_clear_pointer (&impl->bus_name, g_free);
-  impl->bus_name = g_strdup (bus_name);
+  valent_set_string (&impl->bus_name, bus_name);
 
   /* Set up a dedicated connection */
   address = g_dbus_address_get_for_bus_sync (G_BUS_TYPE_SESSION,
