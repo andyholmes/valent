@@ -136,7 +136,7 @@ valent_mock_media_player_set_position (ValentMediaPlayer *player,
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
 
   self->position = position;
-  valent_media_player_emit_seeked (player, position);
+  g_object_notify (G_OBJECT (player), "position");
 }
 
 static ValentMediaRepeat
@@ -257,7 +257,7 @@ valent_mock_media_player_seek (ValentMediaPlayer *player,
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
 
   self->position += offset;
-  valent_media_player_emit_seeked (player, self->position);
+  g_object_notify (G_OBJECT (player), "position");
 }
 
 static void

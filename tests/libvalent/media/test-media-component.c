@@ -176,10 +176,6 @@ test_media_component_player (MediaComponentFixture *fixture,
                     "notify",
                     G_CALLBACK (on_player_notify),
                     fixture);
-  g_signal_connect (fixture->player,
-                    "seeked",
-                    G_CALLBACK (on_player_notify),
-                    fixture);
 
   valent_media_player_play (fixture->player);
   g_assert_true (fixture->data == fixture->player);
@@ -209,8 +205,8 @@ test_media_component_player (MediaComponentFixture *fixture,
   g_assert_true (fixture->data == fixture->player);
   fixture->data = NULL;
 
-  valent_media_player_set_position (fixture->player, 5);
-  g_assert_cmpint (valent_media_player_get_position (fixture->player), ==, 5);
+  valent_media_player_set_position (fixture->player, 2000);
+  g_assert_cmpint (valent_media_player_get_position (fixture->player), ==, 2000);
   fixture->data = NULL;
 
   g_signal_handlers_disconnect_by_data (fixture->player, fixture);
@@ -228,7 +224,7 @@ test_media_component_player (MediaComponentFixture *fixture,
                     "player-seeked",
                     G_CALLBACK (on_player_seeked),
                     fixture);
-  valent_media_player_emit_seeked (fixture->player, 1000);
+  valent_media_player_set_position (fixture->player, 1000);
   g_assert_true (fixture->state);
   fixture->state = FALSE;
 

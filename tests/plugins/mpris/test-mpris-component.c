@@ -208,10 +208,6 @@ test_mpris_component_player (MprisComponentFixture *fixture,
                     "notify",
                     G_CALLBACK (on_player_notify),
                     fixture);
-  g_signal_connect (fixture->player,
-                    "seeked",
-                    G_CALLBACK (on_player_notify),
-                    fixture);
 
   valent_media_player_play (fixture->player);
   g_main_loop_run (fixture->loop);

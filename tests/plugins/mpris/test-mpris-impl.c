@@ -93,25 +93,10 @@ on_dbus_notify (ValentMediaPlayer *player,
   fixture->state = TRUE;
   g_main_loop_quit (fixture->loop);
 }
-static void
-on_dbus_seeked (ValentMediaPlayer *player,
-                gint64             position,
-                MPRISImplFixture  *fixture)
-{
-  fixture->state = TRUE;
-  g_main_loop_quit (fixture->loop);
-}
 
 static void
 on_player_notify (ValentMediaPlayer *player,
                   GParamSpec        *pspec,
-                  MPRISImplFixture  *fixture)
-{
-  fixture->state = TRUE;
-}
-static void
-on_player_seeked (ValentMediaPlayer *player,
-                  gint64             position,
                   MPRISImplFixture  *fixture)
 {
   fixture->state = TRUE;
@@ -158,10 +143,6 @@ test_mpris_impl_dbus (MPRISImplFixture *fixture,
   g_signal_connect (player,
                     "notify",
                     G_CALLBACK (on_dbus_notify),
-                    fixture);
-  g_signal_connect (player,
-                    "seeked",
-                    G_CALLBACK (on_dbus_seeked),
                     fixture);
 
   for (unsigned int i = 0; i < G_N_ELEMENTS (action_methods); i++)
@@ -312,10 +293,6 @@ test_mpris_impl_player (MPRISImplFixture *fixture,
   g_signal_connect (player,
                     "notify",
                     G_CALLBACK (on_player_notify),
-                    fixture);
-  g_signal_connect (player,
-                    "seeked",
-                    G_CALLBACK (on_player_seeked),
                     fixture);
 
   /* Watch for the exported service */

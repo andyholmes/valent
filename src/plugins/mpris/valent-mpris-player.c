@@ -20,6 +20,7 @@ struct _ValentMPRISPlayer
   GDBusProxy         *application;
   GDBusProxy         *player;
   unsigned int        no_position : 1;
+  gint64              internal_position;
 
   ValentMediaActions  flags;
 };
@@ -119,15 +120,15 @@ on_player_signal (GDBusProxy        *proxy,
                   GVariant          *parameters,
                   ValentMediaPlayer *player)
 {
+  ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
+
   g_assert (VALENT_IS_MPRIS_PLAYER (player));
   g_assert (signal_name != NULL);
 
   if (strcmp (signal_name, "Seeked") == 0)
     {
-      gint64 offset;
-
-      g_variant_get (parameters, "(x)", &offset);
-      valent_media_player_emit_seeked (player, offset);
+      g_variant_get (parameters, "(x)", &self->internal_position);
+      g_object_notify (G_OBJECT (player), "position");
     }
 }
 
@@ -339,7 +340,7 @@ valent_mpris_player_get_position (ValentMediaPlayer *player)
   /* Avoid repeated calls for players that don't support this property,
    * particularly web browsers like Mozilla Firefox. */
   if (self->no_position)
-    return 0;
+    return self->internal_position;
 
   result = g_dbus_proxy_call_sync (self->player,
                                    "org.freedesktop.DBus.Properties.Get",
@@ -358,9 +359,9 @@ valent_mpris_player_get_position (ValentMediaPlayer *player)
       else if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT))
         VALENT_TODO ("Unexpected error: G_IO_ERROR_TIMED_OUT");
       else
-        g_warning ("%s(): %s", G_STRFUNC, error->message);
+        g_message ("%s(): %s", G_STRFUNC, error->message);
 
-      return 0;
+      return self->internal_position;
     }
 
   g_variant_get (result, "(v)", &value);

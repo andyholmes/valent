@@ -72,14 +72,17 @@ on_player_changed (ValentMediaPlayer *player,
 
 static void
 on_player_seeked (ValentMediaPlayer *player,
-                  gint64             offset,
+                  GParamSpec        *pspec,
                   ValentMedia       *self)
 {
+  gint64 position = 0;
+
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_MEDIA (self));
 
-  g_signal_emit (G_OBJECT (self), signals [PLAYER_SEEKED], 0, player, offset);
+  position = valent_media_player_get_position (player);
+  g_signal_emit (G_OBJECT (self), signals [PLAYER_SEEKED], 0, player, position);
 
   VALENT_EXIT;
 }
@@ -103,7 +106,7 @@ on_player_added (ValentMediaAdapter *adapter,
                            self, 0);
 
   g_signal_connect_object (player,
-                           "seeked",
+                           "notify::position",
                            G_CALLBACK (on_player_seeked),
                            self, 0);
 
