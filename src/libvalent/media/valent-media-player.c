@@ -41,7 +41,6 @@ G_DEFINE_TYPE (ValentMediaPlayer, valent_media_player, G_TYPE_OBJECT)
  * @set_position: Setter for the #ValentMediaPlayer:position property.
  * @get_repeat: Getter for the #ValentMediaPlayer:repeat property.
  * @set_repeat: Setter for the #ValentMediaPlayer:repeat property.
- * @seeked: the class closure for the #ValentMediaPlayer::seeked signal
  * @get_state: Getter for the #ValentMediaPlayer:state property.
  * @get_volume: Getter for the #ValentMediaPlayer:volume property.
  * @set_volume: Setter for the #ValentMediaPlayer:volume property.
@@ -66,7 +65,6 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 enum {
   CHANGED,
-  SEEKED,
   N_SIGNALS
 };
 
@@ -475,34 +473,6 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
                   0,
                   NULL, NULL, NULL,
                   G_TYPE_NONE, 0);
-
-  /**
-   * ValentMediaPlayer::seeked:
-   * @player: a #ValentMediaPlayer
-   * @position: the new position in microseconds
-   *
-   * Emitted when the track position has changed in a way that is
-   * inconsistent with the current playing state.
-   *
-   * When this signal is not received, clients should assume that:
-   *
-   * - When playing, the position progresses.
-   * - When paused, it remains constant.
-   *
-   * This signal does not need to be emitted when playback starts or when the
-   * track changes, unless the track is starting at an unexpected position. An
-   * expected position would be the last known one when going from Paused to
-   * Playing, and `0` when going from Stopped to Playing.
-   *
-   * Since: 1.0
-   */
-  signals [SEEKED] =
-    g_signal_new ("seeked",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_FIRST,
-                  0,
-                  NULL, NULL, NULL,
-                  G_TYPE_NONE, 1, G_TYPE_INT64);
 }
 
 static void
@@ -528,28 +498,6 @@ valent_media_player_emit_changed (ValentMediaPlayer *player)
   g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
 
   g_signal_emit (G_OBJECT (player), signals [CHANGED], 0);
-}
-
-/**
- * valent_media_player_emit_seeked:
- * @player: a #ValentMediaPlayer
- * @offset: an offset
- *
- * Emit [signal@Valent.MediaPlayer::seeked].
- *
- * This method should only be called by implementations of
- * [class@Valent.MediaPlayer]. Signal handlers may query the state, so it must
- * emitted after the internal representation has been updated.
- *
- * Since: 1.0
- */
-void
-valent_media_player_emit_seeked (ValentMediaPlayer *player,
-                                 gint64             offset)
-{
-  g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
-
-  g_signal_emit (G_OBJECT (player), signals [SEEKED], 0, offset);
 }
 
 /**

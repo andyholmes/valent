@@ -424,6 +424,28 @@ valent_mpris_impl_set_value (ValentMPRISImpl *self,
 }
 
 static void
+valent_mpris_impl_emit_seeked (ValentMPRISImpl   *self,
+                               gint64             position)
+{
+  g_autoptr (GError) error = NULL;
+  gboolean ret;
+
+  if (self->connection == NULL)
+    return;
+
+  ret = g_dbus_connection_emit_signal (self->connection,
+                                       NULL,
+                                       "/org/mpris/MediaPlayer2",
+                                       "org.mpris.MediaPlayer2.Player",
+                                       "Seeked",
+                                       g_variant_new ("(x)", position),
+                                       &error);
+
+  if (!ret)
+    g_warning ("%s(): %s", G_STRFUNC, error->message);
+}
+
+static void
 valent_mpris_impl_propagate_notify (ValentMediaPlayer *player,
                                     GParamSpec        *pspec,
                                     ValentMPRISImpl   *self)
@@ -463,6 +485,17 @@ valent_mpris_impl_propagate_notify (ValentMediaPlayer *player,
                             g_strdup ("Identity"),
                             g_variant_ref_sink (value));
     }
+  else if (strcmp (name, "position") == 0)
+    {
+      gint64 position = valent_media_player_get_position (self->player);
+
+      /* "Seeked" is emitted instead of "PropertiesChanged" for this property */
+      value = g_variant_new_int64 (position);
+      g_hash_table_replace (self->cache,
+                            g_strdup ("Position"),
+                            g_variant_ref_sink (value));
+      valent_mpris_impl_emit_seeked (self,  position);
+    }
   else if (strcmp (name, "repeat") == 0)
     {
       ValentMediaRepeat repeat = valent_media_player_get_repeat (self->player);
@@ -493,29 +526,6 @@ valent_mpris_impl_propagate_notify (ValentMediaPlayer *player,
     }
 }
 
-static void
-valent_mpris_impl_propagate_seeked (ValentMediaPlayer *player,
-                                    gint64             position,
-                                    ValentMPRISImpl   *self)
-{
-  g_autoptr (GError) error = NULL;
-  gboolean ret;
-
-  if (self->connection == NULL)
-    return;
-
-  ret = g_dbus_connection_emit_signal (self->connection,
-                                       NULL,
-                                       "/org/mpris/MediaPlayer2",
-                                       "org.mpris.MediaPlayer2.Player",
-                                       "Seeked",
-                                       g_variant_new ("(x)", position),
-                                       &error);
-
-  if (!ret)
-    g_warning ("%s(): %s", G_STRFUNC, error->message);
-}
-
 /*
  * GObject
  */
@@ -529,10 +539,6 @@ valent_mpris_impl_constructed (GObject *object)
   g_signal_connect_object (self->player,
                            "notify",
                            G_CALLBACK (valent_mpris_impl_propagate_notify),
-                           self, 0);
-  g_signal_connect_object (self->player,
-                           "seeked",
-                           G_CALLBACK (valent_mpris_impl_propagate_seeked),
                            self, 0);
 
   G_OBJECT_CLASS (valent_mpris_impl_parent_class)->constructed (object);
