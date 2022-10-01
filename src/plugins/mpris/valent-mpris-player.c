@@ -60,6 +60,7 @@ static const PropMapping player_properties[] = {
   {"Metadata",       "metadata"},
   {"LoopStatus",     "repeat"},
   {"PlaybackStatus", "state"},
+  {"Position",       "position"},
   {"Shuffle",        "shuffle"},
   {"Volume",         "volume"},
 };
