@@ -31,7 +31,7 @@ void                valent_mpris_device_update_shuffle  (ValentMprisDevice    *p
 void                valent_mpris_device_update_state    (ValentMprisDevice    *player,
                                                          const char           *playback_status);
 void                valent_mpris_device_update_volume   (ValentMprisDevice    *player,
-                                                         double                volume);
+                                                         gint64                volume);
 
 G_END_DECLS
 

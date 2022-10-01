@@ -406,11 +406,11 @@ valent_mpris_plugin_send_player_info (ValentMprisPlugin *self,
   /* Volume Level */
   if (request_volume)
     {
-      double level;
+      gint64 level;
 
       level = floor (valent_media_player_get_volume (player) * 100);
       json_builder_set_member_name (builder, "volume");
-      json_builder_add_double_value (builder, level);
+      json_builder_add_int_value (builder, level);
     }
 
   /* Send Response */
