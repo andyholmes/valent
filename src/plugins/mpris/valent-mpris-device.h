@@ -16,22 +16,8 @@ void                valent_mpris_device_handle_packet   (ValentMprisDevice    *p
                                                          JsonNode             *packet);
 void                valent_mpris_device_update_art      (ValentMprisDevice    *player,
                                                          GFile                *file);
-void                valent_mpris_device_update_flags    (ValentMprisDevice    *player,
-                                                         ValentMediaActions    flags);
-void                valent_mpris_device_update_metadata (ValentMprisDevice    *player,
-                                                         GVariant             *metadata);
 void                valent_mpris_device_update_name     (ValentMprisDevice    *player,
                                                          const char           *name);
-void                valent_mpris_device_update_position (ValentMprisDevice    *player,
-                                                         gint64                position);
-void                valent_mpris_device_update_repeat   (ValentMprisDevice    *player,
-                                                         const char           *loop_status);
-void                valent_mpris_device_update_shuffle  (ValentMprisDevice    *player,
-                                                         gboolean              shuffle);
-void                valent_mpris_device_update_state    (ValentMprisDevice    *player,
-                                                         const char           *playback_status);
-void                valent_mpris_device_update_volume   (ValentMprisDevice    *player,
-                                                         gint64                volume);
 
 G_END_DECLS
 
