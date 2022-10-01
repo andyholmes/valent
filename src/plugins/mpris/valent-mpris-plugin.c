@@ -25,20 +25,11 @@ struct _ValentMprisPlugin
   gboolean            media_watch : 1;
 
   GHashTable         *players;
-  GHashTable         *artwork_transfers;
+  GHashTable         *transfers;
 };
 
 G_DEFINE_TYPE (ValentMprisPlugin, valent_mpris_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
-static void valent_mpris_plugin_handle_action       (ValentMprisPlugin *self,
-                                                     ValentMediaPlayer *player,
-                                                     const char        *action);
-static void valent_mpris_plugin_request_player_list (ValentMprisPlugin *self);
-static void valent_mpris_plugin_request_update      (ValentMprisPlugin *self,
-                                                     const char        *name);
-static void valent_mpris_plugin_send_album_art      (ValentMprisPlugin *self,
-                                                     ValentMediaPlayer *player,
-                                                     const char        *requested_uri);
 static void valent_mpris_plugin_send_player_info    (ValentMprisPlugin *self,
                                                      ValentMediaPlayer *player,
                                                      gboolean           now_playing,
@@ -60,11 +51,10 @@ send_album_art_cb (ValentTransfer    *transfer,
   g_assert (VALENT_IS_TRANSFER (transfer));
 
   if (!valent_transfer_execute_finish (transfer, result, &error))
-
     g_debug ("Failed to upload album art: %s", error->message);
 
   id = valent_transfer_dup_id (transfer);
-  g_hash_table_remove (self->artwork_transfers, id);
+  g_hash_table_remove (self->transfers, id);
 }
 
 static void
@@ -84,7 +74,7 @@ valent_mpris_plugin_send_album_art (ValentMprisPlugin *self,
   g_assert (VALENT_IS_MPRIS_PLUGIN (self));
 
   /* Ignore concurrent requests */
-  if (g_hash_table_contains (self->artwork_transfers, requested_uri))
+  if (g_hash_table_contains (self->transfers, requested_uri))
     return;
 
   /* Check player and URL are safe */
@@ -121,7 +111,7 @@ valent_mpris_plugin_send_album_art (ValentMprisPlugin *self,
   device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
   transfer = valent_device_transfer_new_for_file (device, packet, real_file);
 
-  g_hash_table_insert (self->artwork_transfers,
+  g_hash_table_insert (self->transfers,
                        g_strdup (requested_uri),
                        g_object_ref (transfer));
 
@@ -467,22 +457,22 @@ valent_mpris_plugin_watch_media (ValentMprisPlugin *self,
 
   if (connect)
     {
-      g_signal_connect (self->media,
-                        "player-added",
-                        G_CALLBACK (on_players_changed),
-                        self);
-      g_signal_connect (self->media,
-                        "player-removed",
-                        G_CALLBACK (on_players_changed),
-                        self);
-      g_signal_connect (self->media,
-                        "player-changed",
-                        G_CALLBACK (on_player_changed),
-                        self);
-      g_signal_connect (self->media,
-                        "player-seeked",
-                        G_CALLBACK (on_player_seeked),
-                        self);
+      g_signal_connect_object (self->media,
+                               "player-added",
+                               G_CALLBACK (on_players_changed),
+                               self, 0);
+      g_signal_connect_object (self->media,
+                               "player-removed",
+                               G_CALLBACK (on_players_changed),
+                               self, 0);
+      g_signal_connect_object (self->media,
+                               "player-changed",
+                               G_CALLBACK (on_player_changed),
+                               self, 0);
+      g_signal_connect_object (self->media,
+                               "player-seeked",
+                               G_CALLBACK (on_player_seeked),
+                               self, 0);
       self->media_watch = TRUE;
     }
   else
@@ -595,6 +585,7 @@ valent_mpris_plugin_handle_player_list (ValentMprisPlugin *self,
   g_autofree const char **names = NULL;
   GHashTableIter iter;
   const char *name = NULL;
+  ValentDevice *device = NULL;
   ValentMediaPlayer *export = NULL;
 
   g_assert (VALENT_IS_MPRIS_PLUGIN (self));
@@ -617,11 +608,13 @@ valent_mpris_plugin_handle_player_list (ValentMprisPlugin *self,
       if (g_strv_contains (names, name))
         continue;
 
-      valent_media_unexport_player (valent_media_get_default(), export);
+      valent_media_unexport_player (valent_media_get_default (), export);
       g_hash_table_iter_remove (&iter);
     }
 
   /* Add new players */
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+
   for (unsigned int i = 0; names[i]; i++)
     {
       g_autoptr (ValentMprisDevice) player = NULL;
@@ -630,7 +623,7 @@ valent_mpris_plugin_handle_player_list (ValentMprisPlugin *self,
       if (g_hash_table_contains (self->players, name))
         continue;
 
-      player = valent_mpris_device_new (valent_device_plugin_get_device ((void *)self));
+      player = valent_mpris_device_new (device);
       valent_mpris_device_update_name (player, name);
       g_hash_table_replace (self->players,
                             g_strdup (name),
@@ -757,8 +750,8 @@ valent_mpris_plugin_finalize (GObject *object)
 {
   ValentMprisPlugin *self = VALENT_MPRIS_PLUGIN (object);
 
-  g_clear_pointer (&self->artwork_transfers, g_hash_table_unref);
   g_clear_pointer (&self->players, g_hash_table_unref);
+  g_clear_pointer (&self->transfers, g_hash_table_unref);
 
   G_OBJECT_CLASS (valent_mpris_plugin_parent_class)->finalize (object);
 }
@@ -780,13 +773,13 @@ valent_mpris_plugin_class_init (ValentMprisPluginClass *klass)
 static void
 valent_mpris_plugin_init (ValentMprisPlugin *self)
 {
-  self->artwork_transfers = g_hash_table_new_full (g_str_hash,
-                                                   g_str_equal,
-                                                   g_free,
-                                                   g_object_unref);
   self->players = g_hash_table_new_full (g_str_hash,
                                          g_str_equal,
                                          g_free,
                                          g_object_unref);
+  self->transfers = g_hash_table_new_full (g_str_hash,
+                                           g_str_equal,
+                                           g_free,
+                                           g_object_unref);
 }
 

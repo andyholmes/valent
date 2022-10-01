@@ -25,9 +25,9 @@ struct _ValentMPRISPlayer
   ValentMediaActions  flags;
 };
 
-static void valent_mpris_player_update_flags (ValentMPRISPlayer *self);
+static void valent_mpris_player_sync_flags (ValentMPRISPlayer *self);
 
-static void async_initable_iface_init        (GAsyncInitableIface *iface);
+static void async_initable_iface_init      (GAsyncInitableIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (ValentMPRISPlayer, valent_mpris_player, VALENT_TYPE_MEDIA_PLAYER,
                          G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, async_initable_iface_init))
@@ -77,16 +77,17 @@ on_application_properties_changed (GDBusProxy        *application,
 {
   GVariantDict dict;
 
-  g_assert (VALENT_IS_MPRIS_PLAYER (player));
+  g_assert (VALENT_IS_MEDIA_PLAYER (player));
 
   g_variant_dict_init (&dict, changed_properties);
 
   if (g_variant_dict_contains (&dict, "Identity"))
-    g_object_notify (G_OBJECT (player), "name");
+    {
+      g_object_notify (G_OBJECT (player), "name");
+      valent_media_player_emit_changed (player);
+    }
 
   g_variant_dict_clear (&dict);
-
-  valent_media_player_emit_changed (player);
 }
 
 static void
@@ -158,17 +159,17 @@ valent_mpris_player_init_player_cb (GObject      *object,
   if (self->player == NULL)
     return g_task_return_error (task, error);
 
-  g_signal_connect (self->player,
-                    "g-properties-changed",
-                    G_CALLBACK (on_player_properties_changed),
-                    self);
+  g_signal_connect_object (self->player,
+                           "g-properties-changed",
+                           G_CALLBACK (on_player_properties_changed),
+                           self, 0);
 
-  g_signal_connect (self->player,
-                    "g-signal",
-                    G_CALLBACK (on_player_signal),
-                    self);
+  g_signal_connect_object (self->player,
+                           "g-signal",
+                           G_CALLBACK (on_player_signal),
+                           self, 0);
 
-  valent_mpris_player_update_flags (self);
+  valent_mpris_player_sync_flags (self);
 
   g_task_return_boolean (task, TRUE);
 }
@@ -253,7 +254,7 @@ async_initable_iface_init (GAsyncInitableIface *iface)
 }
 
 static void
-valent_mpris_player_update_flags (ValentMPRISPlayer *self)
+valent_mpris_player_sync_flags (ValentMPRISPlayer *self)
 {
   g_autoptr (GVariant) value = NULL;
 
@@ -701,7 +702,7 @@ valent_mpris_player_notify (GObject    *object,
   const char *name = g_param_spec_get_name (pspec);
 
   if (g_str_equal (name, "flags"))
-    valent_mpris_player_update_flags (self);
+    valent_mpris_player_sync_flags (self);
 
   if (G_OBJECT_CLASS (valent_mpris_player_parent_class)->notify)
     G_OBJECT_CLASS (valent_mpris_player_parent_class)->notify (object, pspec);
@@ -720,6 +721,7 @@ valent_mpris_player_class_init (ValentMPRISPlayerClass *klass)
 
   player_class->get_flags = valent_mpris_player_get_flags;
   player_class->get_metadata = valent_mpris_player_get_metadata;
+  player_class->get_name = valent_mpris_player_get_name;
   player_class->get_position = valent_mpris_player_get_position;
   player_class->set_position = valent_mpris_player_set_position;
   player_class->get_repeat = valent_mpris_player_get_repeat;
@@ -729,7 +731,6 @@ valent_mpris_player_class_init (ValentMPRISPlayerClass *klass)
   player_class->get_state = valent_mpris_player_get_state;
   player_class->get_volume = valent_mpris_player_get_volume;
   player_class->set_volume = valent_mpris_player_set_volume;
-
   player_class->next = valent_mpris_player_next;
   player_class->pause = valent_mpris_player_pause;
   player_class->play = valent_mpris_player_play;
@@ -737,8 +738,6 @@ valent_mpris_player_class_init (ValentMPRISPlayerClass *klass)
   player_class->previous = valent_mpris_player_previous;
   player_class->seek = valent_mpris_player_seek;
   player_class->stop = valent_mpris_player_stop;
-
-  player_class->get_name = valent_mpris_player_get_name;
 
   /**
    * ValentMPRISPlayer:bus-name:

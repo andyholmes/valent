@@ -87,15 +87,6 @@ struct _ValentMediaPlayerClass
   GObjectClass         parent_class;
 
   /* virtual functions */
-  void                 (*next)         (ValentMediaPlayer *player);
-  void                 (*pause)        (ValentMediaPlayer *player);
-  void                 (*play)         (ValentMediaPlayer *player);
-  void                 (*play_pause)   (ValentMediaPlayer *player);
-  void                 (*previous)     (ValentMediaPlayer *player);
-  void                 (*seek)         (ValentMediaPlayer *player,
-                                        gint64             offset);
-  void                 (*stop)         (ValentMediaPlayer *player);
-
   ValentMediaActions   (*get_flags)    (ValentMediaPlayer *player);
   GVariant           * (*get_metadata) (ValentMediaPlayer *player);
   const char         * (*get_name)     (ValentMediaPlayer *player);
@@ -112,6 +103,15 @@ struct _ValentMediaPlayerClass
   double               (*get_volume)   (ValentMediaPlayer *player);
   void                 (*set_volume)   (ValentMediaPlayer *player,
                                         double             volume);
+  void                 (*next)         (ValentMediaPlayer *player);
+  void                 (*pause)        (ValentMediaPlayer *player);
+  void                 (*play)         (ValentMediaPlayer *player);
+  void                 (*play_pause)   (ValentMediaPlayer *player);
+  void                 (*previous)     (ValentMediaPlayer *player);
+  void                 (*seek)         (ValentMediaPlayer *player,
+                                        gint64             offset);
+  void                 (*stop)         (ValentMediaPlayer *player);
+
 
   /* signals */
   void                 (*changed)      (ValentMediaPlayer *player);
@@ -152,7 +152,6 @@ double               valent_media_player_get_volume   (ValentMediaPlayer *player
 VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_set_volume   (ValentMediaPlayer *player,
                                                        double             volume);
-
 VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_next         (ValentMediaPlayer *player);
 VALENT_AVAILABLE_IN_1_0

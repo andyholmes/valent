@@ -377,6 +377,110 @@ valent_mpris_device_request_album_art (ValentMprisDevice *self,
 }
 
 /*
+ * Private
+ */
+static void
+valent_mpris_device_update_flags (ValentMprisDevice  *player,
+                                  ValentMediaActions  flags)
+{
+  g_assert (VALENT_IS_MPRIS_DEVICE (player));
+
+  if ((player->flags ^ flags) == 0)
+    return;
+
+  player->flags = flags;
+  g_object_notify (G_OBJECT (player), "flags");
+}
+
+static void
+valent_mpris_device_update_metadata (ValentMprisDevice *player,
+                                     GVariant          *value)
+{
+  g_autoptr (GVariant) metadata = NULL;
+
+  g_assert (VALENT_IS_MPRIS_DEVICE (player));
+  g_assert (value != NULL);
+
+  if (player->metadata == value)
+    return;
+
+  metadata = g_steal_pointer (&player->metadata);
+  player->metadata = g_variant_ref_sink (value);
+  g_object_notify (G_OBJECT (player), "metadata");
+}
+
+static void
+valent_mpris_device_update_position (ValentMprisDevice *player,
+                                     gint64             position)
+{
+  g_assert (VALENT_IS_MPRIS_DEVICE (player));
+
+  player->position = position;
+}
+
+static void
+valent_mpris_device_update_repeat (ValentMprisDevice *player,
+                                   const char        *loop_status)
+{
+  ValentMediaRepeat repeat = VALENT_MEDIA_REPEAT_NONE;
+
+  g_assert (VALENT_IS_MPRIS_DEVICE (player));
+  g_assert (loop_status != NULL);
+
+  repeat = valent_mpris_repeat_from_string (loop_status);
+
+  if (player->repeat == repeat)
+    return;
+
+  player->repeat = repeat;
+  g_object_notify (G_OBJECT (player), "repeat");
+}
+
+static void
+valent_mpris_device_update_shuffle (ValentMprisDevice *player,
+                                    gboolean           shuffle)
+{
+  g_assert (VALENT_IS_MPRIS_DEVICE (player));
+
+  if (player->shuffle == shuffle)
+    return;
+
+  player->shuffle = shuffle;
+  g_object_notify (G_OBJECT (player), "shuffle");
+}
+
+static void
+valent_mpris_device_update_state (ValentMprisDevice *player,
+                                  const char        *playback_status)
+{
+  ValentMediaState state = VALENT_MEDIA_STATE_STOPPED;
+
+  g_assert (VALENT_IS_MPRIS_DEVICE (player));
+  g_assert (playback_status != NULL);
+
+  state = valent_mpris_state_from_string (playback_status);
+
+  if (player->state == state)
+    return;
+
+  player->state = state;
+  g_object_notify (G_OBJECT (player), "state");
+}
+
+static void
+valent_mpris_device_update_volume (ValentMprisDevice *player,
+                                   gint64             volume)
+{
+  g_assert (VALENT_IS_MPRIS_DEVICE (player));
+
+  if (player->volume == volume)
+    return;
+
+  player->volume = CLAMP ((volume / 100.0), 0.0, 1.0);
+  g_object_notify (G_OBJECT (player), "volume");
+}
+
+/*
  * GObject
  */
 static void
@@ -641,47 +745,6 @@ valent_mpris_device_update_art (ValentMprisDevice *player,
 }
 
 /**
- * valent_mpris_device_update_flags:
- * @player: a #ValentMprisDevice
- * @flags: a #ValentMediaActions
- *
- * Update the player action flags.
- */
-void
-valent_mpris_device_update_flags (ValentMprisDevice  *player,
-                                  ValentMediaActions  flags)
-{
-  g_assert (VALENT_IS_MPRIS_DEVICE (player));
-
-  if ((player->flags ^ flags) == 0)
-    return;
-
-  player->flags = flags;
-  g_object_notify (G_OBJECT (player), "flags");
-}
-
-/**
- * valent_mpris_device_update_metadata:
- * @player: a #ValentMprisDevice
- * @value: the metadata
- *
- * Update the player metadata.
- */
-void
-valent_mpris_device_update_metadata (ValentMprisDevice *player,
-                                     GVariant          *value)
-{
-  g_assert (VALENT_IS_MPRIS_DEVICE (player));
-
-  if (player->metadata == value)
-    return;
-
-  g_clear_pointer (&player->metadata, g_variant_unref);
-  player->metadata = g_variant_ref_sink (value);
-  g_object_notify (G_OBJECT (player), "metadata");
-}
-
-/**
  * valent_media_player_update_name:
  * @player: a #ValentMprisDevice
  * @name: a name
@@ -698,110 +761,3 @@ valent_mpris_device_update_name (ValentMprisDevice *player,
   if (valent_set_string (&player->name, name))
     g_object_notify (G_OBJECT (player), "name");
 }
-
-/**
- * valent_mpris_device_update_position:
- * @player: a #ValentMprisDevice
- * @position: the playback rate
- *
- * Update the player position.
- */
-void
-valent_mpris_device_update_position (ValentMprisDevice *player,
-                                     gint64             position)
-{
-  g_assert (VALENT_IS_MPRIS_DEVICE (player));
-
-  player->position = position;
-}
-
-/**
- * valent_mpris_device_update_repeat:
- * @player: a #ValentMprisDevice
- * @loop_status: the loop status
- *
- * Update the player repeat mode.
- */
-void
-valent_mpris_device_update_repeat (ValentMprisDevice *player,
-                                   const char        *loop_status)
-{
-  ValentMediaRepeat repeat = VALENT_MEDIA_REPEAT_NONE;
-
-  g_assert (VALENT_IS_MPRIS_DEVICE (player));
-  g_assert (loop_status != NULL);
-
-  repeat = valent_mpris_repeat_from_string (loop_status);
-
-  if (player->repeat == repeat)
-    return;
-
-  player->repeat = repeat;
-  g_object_notify (G_OBJECT (player), "repeat");
-}
-
-/**
- * valent_mpris_device_update_shuffle:
- * @player: a #ValentMprisDevice
- * @shuffle: shuffle mode
- *
- * Update the player shuffle mode.
- */
-void
-valent_mpris_device_update_shuffle (ValentMprisDevice *player,
-                                    gboolean           shuffle)
-{
-  g_assert (VALENT_IS_MPRIS_DEVICE (player));
-
-  if (player->shuffle == shuffle)
-    return;
-
-  player->shuffle = shuffle;
-  g_object_notify (G_OBJECT (player), "shuffle");
-}
-
-/**
- * valent_mpris_device_update_state:
- * @player: a #ValentMprisDevice
- * @playback_status: the playback status
- *
- * Update the player state.
- */
-void
-valent_mpris_device_update_state (ValentMprisDevice *player,
-                                  const char        *playback_status)
-{
-  ValentMediaState state = VALENT_MEDIA_STATE_STOPPED;
-
-  g_assert (VALENT_IS_MPRIS_DEVICE (player));
-  g_assert (playback_status != NULL);
-
-  state = valent_mpris_state_from_string (playback_status);
-
-  if (player->state == state)
-    return;
-
-  player->state = state;
-  g_object_notify (G_OBJECT (player), "state");
-}
-
-/**
- * valent_mpris_device_update_volume:
- * @player: a #ValentMprisDevice
- * @volume: a level between `0..100`
- *
- * Update the player volume.
- */
-void
-valent_mpris_device_update_volume (ValentMprisDevice *player,
-                                   gint64             volume)
-{
-  g_assert (VALENT_IS_MPRIS_DEVICE (player));
-
-  if (player->volume == volume)
-    return;
-
-  player->volume = CLAMP ((volume / 100.0), 0.0, 1.0);
-  g_object_notify (G_OBJECT (player), "volume");
-}
-
