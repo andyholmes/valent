@@ -119,7 +119,7 @@ valent_mpris_device_set_position (ValentMediaPlayer *player,
   json_builder_set_member_name (builder, "player");
   json_builder_add_string_value (builder, self->name);
   json_builder_set_member_name (builder, "SetPosition");
-  json_builder_add_int_value (builder, floor (position / 1000));
+  json_builder_add_int_value (builder, position);
   packet = valent_packet_finish (builder);
 
   valent_device_queue_packet (self->device, packet);
@@ -307,13 +307,12 @@ valent_mpris_device_seek (ValentMediaPlayer *player,
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
 
-  // TODO: kdeconnect-android doesn't support this and instead expects a
-  //       SetPosition action
+  /* Convert milliseconds to microseconds */
   builder = valent_packet_start ("kdeconnect.mpris.request");
   json_builder_set_member_name (builder, "player");
   json_builder_add_string_value (builder, self->name);
   json_builder_set_member_name (builder, "Seek");
-  json_builder_add_int_value (builder, floor (offset / 1000));
+  json_builder_add_int_value (builder, offset * 1000L);
   packet = valent_packet_finish (builder);
 
   valent_device_queue_packet (self->device, packet);
@@ -590,7 +589,7 @@ valent_mpris_device_handle_packet (ValentMprisDevice  *player,
     g_variant_dict_insert (&metadata, "xesam:album", "s", album);
 
   if (valent_packet_get_int (packet, "length", &length))
-    g_variant_dict_insert (&metadata, "mpris:length", "x", length);
+    g_variant_dict_insert (&metadata, "mpris:length", "x", length * 1000L);
 
   if (valent_packet_get_string (packet, "albumArtUrl", &url))
     valent_mpris_device_request_album_art (player, url, &metadata);

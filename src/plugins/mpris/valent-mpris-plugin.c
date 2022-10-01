@@ -159,7 +159,7 @@ on_player_seeked (ValentMedia       *media,
   json_builder_set_member_name (builder, "player");
   json_builder_add_string_value (builder, name);
   json_builder_set_member_name (builder, "pos");
-  json_builder_add_int_value (builder, floor (position / 1000));
+  json_builder_add_int_value (builder, position);
   packet = valent_packet_finish (builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
@@ -212,7 +212,7 @@ valent_mpris_plugin_handle_mpris_request (ValentMprisPlugin *self,
   const char *name;
   const char *action;
   const char *url;
-  gint64 offset;
+  gint64 offset_us;
   gint64 position;
   gboolean request_now_playing;
   gboolean request_volume;
@@ -247,16 +247,13 @@ valent_mpris_plugin_handle_mpris_request (ValentMprisPlugin *self,
   if (valent_packet_get_string (packet, "action", &action))
     valent_mpris_plugin_handle_action (self, player, action);
 
-  /* A request to change the relative position */
-  if (valent_packet_get_int (packet, "Seek", &offset))
-    valent_media_player_seek (player, offset * 1000);
+  /* A request to change the relative position (microseconds) */
+  if (valent_packet_get_int (packet, "Seek", &offset_us))
+    valent_media_player_seek (player, offset_us / 1000L);
 
   /* A request to change the absolute position */
   if (valent_packet_get_int (packet, "SetPosition", &position))
-    {
-      offset = (position * 1000) - valent_media_player_get_position (player);
-      valent_media_player_seek (player, offset);
-    }
+    valent_media_player_set_position (player, position);
 
   /* A request to change the loop status */
   if (valent_packet_get_string (packet, "setLoopStatus", &loop_status))
@@ -341,7 +338,7 @@ valent_mpris_plugin_send_player_info (ValentMprisPlugin *self,
 
       position = valent_media_player_get_position (player);
       json_builder_set_member_name (builder, "pos");
-      json_builder_add_int_value (builder, position / 1000);
+      json_builder_add_int_value (builder, position);
 
       /* Track Metadata
        *
@@ -350,7 +347,7 @@ valent_mpris_plugin_send_player_info (ValentMprisPlugin *self,
       if ((metadata = valent_media_player_get_metadata (player)) != NULL)
         {
           g_autofree const char **artists = NULL;
-          gint64 length;
+          gint64 length_us;
           const char *art_url;
           const char *album;
 
@@ -377,10 +374,10 @@ valent_mpris_plugin_send_player_info (ValentMprisPlugin *self,
               json_builder_add_string_value (builder, album);
             }
 
-          if (g_variant_lookup (metadata, "mpris:length", "x", &length))
+          if (g_variant_lookup (metadata, "mpris:length", "x", &length_us))
             {
               json_builder_set_member_name (builder, "length");
-              json_builder_add_int_value (builder, length / 1000);
+              json_builder_add_int_value (builder, length_us / 1000L);
             }
 
           if (g_variant_lookup (metadata, "mpris:artUrl", "&s", &art_url))

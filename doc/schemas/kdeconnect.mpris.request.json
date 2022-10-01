@@ -63,7 +63,7 @@
                 },
                 "Seek": {
                     "type": "number",
-                    "description": "A request to seek relative to the current position (ms)."
+                    "description": "A request to seek relative to the current position (us)."
                 },
                 "setLoopStatus": {
                     "type": "string",

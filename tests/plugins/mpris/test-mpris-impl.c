@@ -167,7 +167,7 @@ test_mpris_impl_dbus (MPRISImplFixture *fixture,
                           "/org/mpris/MediaPlayer2",
                           "org.mpris.MediaPlayer2.Player",
                           "Seek",
-                          g_variant_new ("(x)", 1000),
+                          g_variant_new ("(x)", 1000000),
                           NULL,
                           G_DBUS_CALL_FLAGS_NONE,
                           -1,
@@ -368,8 +368,8 @@ test_mpris_impl_player (MPRISImplFixture *fixture,
   g_assert_true (fixture->state);
   fixture->state = FALSE;
 
-  //valent_media_player_set_position (player, 5);
-  //g_assert_cmpint (valent_media_player_get_position (player), ==, 5);
+  valent_media_player_set_position (player, 2000);
+  g_assert_cmpint (valent_media_player_get_position (player), ==, 2000);
 
   /* Remove Player */
   valent_mpris_impl_unexport (impl);
@@ -399,3 +399,4 @@ main (int   argc,
 
   return g_test_run ();
 }
+

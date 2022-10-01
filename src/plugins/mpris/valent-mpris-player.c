@@ -20,7 +20,7 @@ struct _ValentMPRISPlayer
   GDBusProxy         *application;
   GDBusProxy         *player;
   unsigned int        no_position : 1;
-  gint64              internal_position;
+  gint64              position;
 
   ValentMediaActions  flags;
 };
@@ -57,6 +57,7 @@ static const PropMapping player_properties[] = {
   {"CanPause",       "flags"},
   {"CanPlay",        "flags"},
   {"CanSeek",        "flags"},
+  {"Metadata",       "metadata"},
   {"LoopStatus",     "repeat"},
   {"PlaybackStatus", "state"},
   {"Shuffle",        "shuffle"},
@@ -127,7 +128,11 @@ on_player_signal (GDBusProxy        *proxy,
 
   if (strcmp (signal_name, "Seeked") == 0)
     {
-      g_variant_get (parameters, "(x)", &self->internal_position);
+      gint64 position_us = 0;
+
+      /* Convert microseconds to milliseconds */
+      g_variant_get (parameters, "(x)", &position_us);
+      self->position = position_us / 1000L;
       g_object_notify (G_OBJECT (player), "position");
     }
 }
@@ -329,6 +334,20 @@ valent_mpris_player_get_metadata (ValentMediaPlayer *player)
   return g_dbus_proxy_get_cached_property (self->player, "Metadata");
 }
 
+static const char *
+valent_mpris_player_get_name (ValentMediaPlayer *player)
+{
+  ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
+  g_autoptr (GVariant) value = NULL;
+
+  value = g_dbus_proxy_get_cached_property (self->application, "Identity");
+
+  if G_UNLIKELY (value == NULL)
+    return "MPRIS Player";
+
+  return g_variant_get_string (value, NULL);
+}
+
 static gint64
 valent_mpris_player_get_position (ValentMediaPlayer *player)
 {
@@ -340,7 +359,7 @@ valent_mpris_player_get_position (ValentMediaPlayer *player)
   /* Avoid repeated calls for players that don't support this property,
    * particularly web browsers like Mozilla Firefox. */
   if (self->no_position)
-    return self->internal_position;
+    return self->position;
 
   result = g_dbus_proxy_call_sync (self->player,
                                    "org.freedesktop.DBus.Properties.Get",
@@ -361,12 +380,14 @@ valent_mpris_player_get_position (ValentMediaPlayer *player)
       else
         g_message ("%s(): %s", G_STRFUNC, error->message);
 
-      return self->internal_position;
+      return self->position;
     }
 
+  /* Convert microseconds to milliseconds */
   g_variant_get (result, "(v)", &value);
+  self->position = g_variant_get_int64 (value) / 1000L;
 
-  return g_variant_get_int64 (value);
+  return self->position;
 }
 
 static void
@@ -380,9 +401,10 @@ valent_mpris_player_set_position (ValentMediaPlayer *player,
   if (self->no_position)
     return;
 
+  /* Convert milliseconds to microseconds */
   g_dbus_proxy_call (self->player,
                      "SetPosition",
-                     g_variant_new ("(ox)", "/", position),
+                     g_variant_new ("(ox)", "/", position * 1000L),
                      G_DBUS_CALL_FLAGS_NONE,
                      -1,
                      NULL,
@@ -591,9 +613,10 @@ valent_mpris_player_seek (ValentMediaPlayer *player,
 {
   ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
 
+  /* Convert milliseconds to microseconds */
   g_dbus_proxy_call (self->player,
                      "Seek",
-                     g_variant_new ("(x)", offset),
+                     g_variant_new ("(x)", offset * 1000L),
                      G_DBUS_CALL_FLAGS_NONE,
                      -1,
                      NULL,
@@ -614,20 +637,6 @@ valent_mpris_player_stop (ValentMediaPlayer *player)
                      NULL,
                      NULL,
                      NULL);
-}
-
-static const char *
-valent_mpris_player_get_name (ValentMediaPlayer *player)
-{
-  ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
-  g_autoptr (GVariant) value = NULL;
-
-  value = g_dbus_proxy_get_cached_property (self->application, "Identity");
-
-  if G_UNLIKELY (value == NULL)
-    return "MPRIS Player";
-
-  return g_variant_get_string (value, NULL);
 }
 
 /*

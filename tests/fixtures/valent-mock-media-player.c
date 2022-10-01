@@ -338,10 +338,11 @@ valent_mock_media_player_update_art (ValentMockMediaPlayer *self,
                                      const char            *uri)
 {
   GVariantDict dict;
+  g_autoptr (GVariant) metadata = NULL;
 
-  g_clear_pointer (&self->metadata, g_variant_unref);
+  metadata = g_steal_pointer (&self->metadata);
 
-  g_variant_dict_init (&dict, NULL);
+  g_variant_dict_init (&dict, metadata);
   g_variant_dict_insert (&dict, "mpris:artUrl", "s", uri);
   self->metadata = g_variant_ref_sink (g_variant_dict_end (&dict));
   g_object_notify (G_OBJECT (self), "metadata");
