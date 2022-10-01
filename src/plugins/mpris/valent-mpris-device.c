@@ -610,7 +610,7 @@ valent_mpris_device_handle_packet (ValentMprisDevice  *player,
     valent_mpris_device_update_shuffle (player, shuffle);
 
   if (valent_packet_get_int (packet, "volume", &volume))
-    valent_mpris_device_update_volume (player, volume / 100);
+    valent_mpris_device_update_volume (player, volume);
 }
 
 /**
@@ -788,20 +788,20 @@ valent_mpris_device_update_state (ValentMprisDevice *player,
 /**
  * valent_mpris_device_update_volume:
  * @player: a #ValentMprisDevice
- * @volume: a level
+ * @volume: a level between `0..100`
  *
  * Update the player volume.
  */
 void
 valent_mpris_device_update_volume (ValentMprisDevice *player,
-                                   double             volume)
+                                   gint64             volume)
 {
   g_assert (VALENT_IS_MPRIS_DEVICE (player));
 
   if (player->volume == volume)
     return;
 
-  player->volume = volume;
+  player->volume = CLAMP ((volume / 100.0), 0.0, 1.0);
   g_object_notify (G_OBJECT (player), "volume");
 }
 
