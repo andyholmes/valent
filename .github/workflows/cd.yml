@@ -8,13 +8,11 @@ permissions:
   contents: read
 
 jobs:
-  coverage:
-    name: Coverage
+  report:
+    name: Deploy
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/${{ github.repository }}:${{ github.ref_name}}
-    concurrency:
-      group: gh_pages
     permissions:
       contents: write
 
@@ -28,49 +26,15 @@ jobs:
         run: |
           meson setup --buildtype=debugoptimized \
                       -Db_coverage=true \
+                      -Ddocumentation=true \
                       -Dtests=true \
                       _build
           meson compile -C _build
 
       - name: Test
         run: |
-          dbus-run-session \
-          xvfb-run -d \
-          meson test -C _build
-
-      - name: Generate
-        run: |
-          lcov --directory _build \
-               --capture \
-               --initial \
-               --output-file _build/meson-logs/coverage.p1
-          lcov --directory _build \
-               --capture \
-               --no-checksum \
-               --rc lcov_branch_coverage=1 \
-               --output-file _build/meson-logs/coverage.p2
-          lcov --add-tracefile _build/meson-logs/coverage.p1 \
-               --add-tracefile _build/meson-logs/coverage.p2 \
-               --rc lcov_branch_coverage=1 \
-               --output-file _build/meson-logs/coverage.info
-
-          lcov --extract _build/meson-logs/coverage.info \
-               "${GITHUB_WORKSPACE}/src/*" \
-               --rc lcov_branch_coverage=1 \
-               --output-file _build/meson-logs/coverage.info
-          lcov --remove _build/meson-logs/coverage.info \
-               '*/tests/*' \
-               '*/subprojects/*' \
-               --rc lcov_branch_coverage=1 \
-               --output-file _build/meson-logs/coverage.info
-
-          genhtml --prefix "${GITHUB_WORKSPACE}" \
-                  --output-directory _build/meson-logs/coverage-html \
-                  --title 'Code Coverage' \
-                  --legend \
-                  --show-details \
-                  --branch-coverage \
-                  _build/meson-logs/coverage.info
+          ./tests/extra/ci-runner.sh test gcc && \
+          ./tests/extra/ci-runner.sh test coverage
 
       - name: Report
         continue-on-error: true
@@ -79,37 +43,16 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: ${{ github.workspace }}/_build/meson-logs/coverage.info
 
-      - name: Deploy
+      - name: Coverage
+        continue-on-error: true
         uses: JamesIves/github-pages-deploy-action@releases/v4
         with:
           folder: _build/meson-logs/coverage-html
           target-folder: coverage
           single-commit: true
 
-  documentation:
-    name: Documentation
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/${{ github.repository }}:${{ github.ref_name}}
-    concurrency:
-      group: gh_pages
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          submodules: true
-
-      - name: Build
-        run: |
-          meson setup --buildtype=release \
-                      -Ddocumentation=true \
-                      _build
-          meson compile -C _build
-
-      - name: Deploy
+      - name: Documentation
+        continue-on-error: true
         uses: JamesIves/github-pages-deploy-action@releases/v4
         with:
           folder: _build/doc/sdk/valent
