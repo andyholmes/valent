@@ -298,6 +298,7 @@ test_mpris_plugin_handle_request (ValentTestFixture *fixture,
                                        "file://"TEST_DATA_DIR"/image.png");
 
   packet = valent_test_fixture_expect_packet (fixture);
+  v_assert_packet_type (packet, "kdeconnect.mpris");
   v_assert_packet_cmpstr (packet, "player", ==, "Mock Player");
   v_assert_packet_cmpstr (packet, "albumArtUrl", ==, "file://"TEST_DATA_DIR"/image.png");
   json_node_unref (packet);
@@ -454,7 +455,7 @@ test_mpris_plugin_handle_player (ValentTestFixture *fixture,
   g_assert_cmpstr (artist[0], ==, "Test Artist");
   g_assert_cmpstr (title, ==, "Test Title");
   g_assert_cmpstr (album, ==, "Test Album");
-  g_assert_cmpint (length, ==, 180000);
+  g_assert_cmpint (length, ==, 180000000);
   g_clear_pointer (&artist, g_free);
   g_clear_pointer (&metadata, g_variant_unref);
 
@@ -505,13 +506,13 @@ test_mpris_plugin_handle_player (ValentTestFixture *fixture,
   valent_media_player_seek (VALENT_MEDIA_PLAYER (proxy), 1000);
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
-  v_assert_packet_cmpint (packet, "Seek", ==, 1);
+  v_assert_packet_cmpint (packet, "Seek", ==, 1000000);
   json_node_unref (packet);
 
   valent_media_player_set_position (VALENT_MEDIA_PLAYER (proxy), 1000);
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
-  v_assert_packet_cmpint (packet, "SetPosition", ==, 1);
+  v_assert_packet_cmpint (packet, "SetPosition", ==, 1000);
   json_node_unref (packet);
 
 

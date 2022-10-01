@@ -111,7 +111,7 @@
                 "pos": {
                     "type": "number",
                     "minimum": 0,
-                    "description": "Current track position."
+                    "description": "Current track position (ms)."
                 },
                 "albumArtUrl": {
                     "type": "string",

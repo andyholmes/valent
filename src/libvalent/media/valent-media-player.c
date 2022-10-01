@@ -601,9 +601,9 @@ valent_media_player_get_name (ValentMediaPlayer *player)
  * valent_media_player_get_position: (virtual get_position) (get-property position)
  * @player: a #ValentMediaPlayer
  *
- * Get the current position.
+ * Get the current position in milliseconds.
  *
- * Returns: the current position
+ * Returns: position in milliseconds
  *
  * Since: 1.0
  */
@@ -624,9 +624,9 @@ valent_media_player_get_position (ValentMediaPlayer *player)
 /**
  * valent_media_player_set_position: (virtual set_position) (set-property position)
  * @player: a #ValentMediaPlayer
- * @position: position offset
+ * @position: position in milliseconds
  *
- * Set the current position.
+ * Set the current position in milliseconds.
  *
  * Since: 1.0
  */

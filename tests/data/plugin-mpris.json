@@ -70,7 +70,7 @@
     "type": "kdeconnect.mpris.request",
     "body": {
       "player": "Mock Player",
-      "Seek": 1000
+      "Seek": 1000000
     }
   },
   "request-stop": {
