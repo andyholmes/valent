@@ -16,19 +16,16 @@ static ValentMPRISPlayer *proxy = NULL;
 
 
 static void
-on_player_added (ValentMedia       *media,
-                 ValentMediaPlayer *player,
-                 ValentTestFixture *fixture)
+on_players_changed (ValentMedia       *media,
+                    unsigned int       position,
+                    unsigned int       removed,
+                    unsigned int       added,
+                    ValentTestFixture *fixture)
 {
-  if (g_strcmp0 (valent_media_player_get_name (player), "Mock Player") == 0)
-    valent_test_fixture_quit (fixture);
-}
+  g_autoptr (ValentMediaPlayer) player = NULL;
 
-static void
-on_player_removed (ValentMedia       *media,
-                   ValentMediaPlayer *player,
-                   ValentTestFixture *fixture)
-{
+  player = g_list_model_get_item (G_LIST_MODEL (media), position);
+
   if (g_strcmp0 (valent_media_player_get_name (player), "Mock Player") == 0)
     valent_test_fixture_quit (fixture);
 }
@@ -72,12 +69,8 @@ test_mpris_plugin_handle_request (ValentTestFixture *fixture,
 
   media = valent_media_get_default ();
   g_signal_connect (media,
-                    "player-added",
-                    G_CALLBACK (on_player_added),
-                    fixture);
-  g_signal_connect (media,
-                    "player-removed",
-                    G_CALLBACK (on_player_removed),
+                    "items-changed",
+                    G_CALLBACK (on_players_changed),
                     fixture);
 
   /* Export a mock player that we can use to poke the plugin during testing */

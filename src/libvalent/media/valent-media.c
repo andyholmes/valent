@@ -39,12 +39,14 @@ struct _ValentMedia
   GPtrArray       *paused;
 };
 
-G_DEFINE_TYPE (ValentMedia, valent_media, VALENT_TYPE_COMPONENT)
+static void   g_list_model_iface_init (GListModelInterface *iface);
+
+G_DEFINE_TYPE_EXTENDED (ValentMedia, valent_media, VALENT_TYPE_COMPONENT,
+                        0,
+                        G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
 enum {
-  PLAYER_ADDED,
   PLAYER_CHANGED,
-  PLAYER_REMOVED,
   PLAYER_SEEKED,
   N_SIGNALS
 };
@@ -53,6 +55,45 @@ static guint signals[N_SIGNALS] = { 0, };
 
 static ValentMedia *default_media = NULL;
 
+
+/*
+ * GListModel
+ */
+static gpointer
+valent_media_get_item (GListModel   *list,
+                       unsigned int  position)
+{
+  ValentMedia *self = VALENT_MEDIA (list);
+
+  g_assert (VALENT_IS_MEDIA (self));
+  g_assert (position < self->players->len);
+
+  return g_object_ref (g_ptr_array_index (self->players, position));
+}
+
+static GType
+valent_media_get_item_type (GListModel *list)
+{
+  return VALENT_TYPE_MEDIA_PLAYER;
+}
+
+static unsigned int
+valent_media_get_n_items (GListModel *list)
+{
+  ValentMedia *self = VALENT_MEDIA (list);
+
+  g_assert (VALENT_IS_MEDIA (self));
+
+  return self->players->len;
+}
+
+static void
+g_list_model_iface_init (GListModelInterface *iface)
+{
+  iface->get_item = valent_media_get_item;
+  iface->get_item_type = valent_media_get_item_type;
+  iface->get_n_items = valent_media_get_n_items;
+}
 
 /*
  * Signal Relays
@@ -92,8 +133,12 @@ on_player_added (ValentMediaAdapter *adapter,
                  ValentMediaPlayer  *player,
                  ValentMedia        *self)
 {
+  unsigned int position = 0;
+
   VALENT_ENTRY;
 
+  g_assert (VALENT_IS_MEDIA_ADAPTER (adapter));
+  g_assert (VALENT_IS_MEDIA_PLAYER (player));
   g_assert (VALENT_IS_MEDIA (self));
 
   VALENT_NOTE ("%s: %s",
@@ -104,14 +149,14 @@ on_player_added (ValentMediaAdapter *adapter,
                            "changed",
                            G_CALLBACK (on_player_changed),
                            self, 0);
-
   g_signal_connect_object (player,
                            "notify::position",
                            G_CALLBACK (on_player_seeked),
                            self, 0);
 
+  position = self->players->len;
   g_ptr_array_add (self->players, g_object_ref (player));
-  g_signal_emit (G_OBJECT (self), signals [PLAYER_ADDED], 0, player);
+  g_list_model_items_changed (G_LIST_MODEL (self), position, 0, 1);
 
   VALENT_EXIT;
 }
@@ -121,8 +166,12 @@ on_player_removed (ValentMediaAdapter *adapter,
                    ValentMediaPlayer  *player,
                    ValentMedia        *self)
 {
+  unsigned int position = 0;
+
   VALENT_ENTRY;
 
+  g_assert (VALENT_IS_MEDIA_ADAPTER (adapter));
+  g_assert (VALENT_IS_MEDIA_PLAYER (player));
   g_assert (VALENT_IS_MEDIA (self));
 
   VALENT_NOTE ("%s: %s",
@@ -131,11 +180,13 @@ on_player_removed (ValentMediaAdapter *adapter,
 
   g_signal_handlers_disconnect_by_func (player, on_player_changed, self);
   g_signal_handlers_disconnect_by_func (player, on_player_seeked, self);
-
-  g_ptr_array_remove (self->players, player);
   g_ptr_array_remove (self->paused, player);
 
-  g_signal_emit (G_OBJECT (self), signals [PLAYER_REMOVED], 0, player);
+  if (g_ptr_array_find (self->players, player, &position))
+    {
+      g_ptr_array_remove_index (self->players, position);
+      g_list_model_items_changed (G_LIST_MODEL (self), position, 1, 0);
+    }
 
   VALENT_EXIT;
 }
@@ -175,13 +226,12 @@ valent_media_enable_extension (ValentComponent *component,
   g_assert (VALENT_IS_MEDIA (self));
   g_assert (VALENT_IS_MEDIA_ADAPTER (adapter));
 
-  g_ptr_array_add (self->adapters, g_object_ref (extension));
+  g_ptr_array_add (self->adapters, g_object_ref (adapter));
   g_signal_connect_object (adapter,
                            "player-added",
                            G_CALLBACK (on_player_added),
                            self,
                            0);
-
   g_signal_connect_object (adapter,
                            "player-removed",
                            G_CALLBACK (on_player_removed),
@@ -221,7 +271,6 @@ valent_media_disable_extension (ValentComponent *component,
   VALENT_EXIT;
 }
 
-
 /*
  * GObject
  */
@@ -260,51 +309,6 @@ valent_media_class_init (ValentMediaClass *klass)
 
   component_class->enable_extension = valent_media_enable_extension;
   component_class->disable_extension = valent_media_disable_extension;
-
-
-  /**
-   * ValentMedia::player-added:
-   * @media: an #ValentMedia
-   * @player: an #ValentMediaPlayer
-   *
-   * Emitted when a [class@Valent.MediaPlayer] has been added to a
-   * [class@Valent.MediaAdapter] implementation.
-   *
-   * Since: 1.0
-   */
-  signals [PLAYER_ADDED] =
-    g_signal_new ("player-added",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_FIRST,
-                  0,
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
-                  G_TYPE_NONE, 1, VALENT_TYPE_MEDIA_PLAYER);
-  g_signal_set_va_marshaller (signals [PLAYER_ADDED],
-                              G_TYPE_FROM_CLASS (klass),
-                              g_cclosure_marshal_VOID__OBJECTv);
-
-  /**
-   * ValentMedia::player-removed:
-   * @media: an #ValentMedia
-   * @player: an #ValentMediaPlayer
-   *
-   * Emitted when a [class@Valent.MediaPlayer] has been removed from a
-   * [class@Valent.MediaAdapter] implementation.
-   *
-   * Since: 1.0
-   */
-  signals [PLAYER_REMOVED] =
-    g_signal_new ("player-removed",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_FIRST,
-                  0,
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
-                  G_TYPE_NONE, 1, VALENT_TYPE_MEDIA_PLAYER);
-  g_signal_set_va_marshaller (signals [PLAYER_REMOVED],
-                              G_TYPE_FROM_CLASS (klass),
-                              g_cclosure_marshal_VOID__OBJECTv);
 
   /**
    * ValentMedia::player-changed:
@@ -381,67 +385,6 @@ valent_media_get_default (void)
     }
 
   return default_media;
-}
-
-/**
- * valent_media_get_players:
- * @media: a #ValentMedia
- *
- * Get a list of all the #ValentMediaPlayer instances currently known to @media.
- *
- * Returns: (transfer container) (element-type Valent.MediaPlayer) (not nullable):
- *  a #GPtrArray of #ValentMediaPlayer
- *
- * Since: 1.0
- */
-GPtrArray *
-valent_media_get_players (ValentMedia *media)
-{
-  GPtrArray *ret;
-
-  VALENT_ENTRY;
-
-  g_return_val_if_fail (VALENT_IS_MEDIA (media), NULL);
-
-  ret = g_ptr_array_new_with_free_func (g_object_unref);
-
-  for (unsigned int i = 0; i < media->players->len; i++)
-    g_ptr_array_add (ret, g_object_ref (g_ptr_array_index (media->players, i)));
-
-  VALENT_RETURN (ret);
-}
-
-/**
- * valent_media_get_player_by_name:
- * @media: a #ValentMedia
- * @name: player name
- *
- * Get the #ValentMediaPlayer with the identity @name.
- *
- * Returns: (transfer none) (nullable): a #ValentMediaPlayer
- *
- * Since: 1.0
- */
-ValentMediaPlayer *
-valent_media_get_player_by_name (ValentMedia *media,
-                                 const char  *name)
-{
-  ValentMediaPlayer *player;
-
-  VALENT_ENTRY;
-
-  g_return_val_if_fail (VALENT_IS_MEDIA (media), NULL);
-  g_return_val_if_fail (name != NULL, NULL);
-
-  for (unsigned int i = 0; i < media->players->len; i++)
-    {
-      player = g_ptr_array_index (media->players, i);
-
-      if (g_strcmp0 (valent_media_player_get_name (player), name) == 0)
-        VALENT_RETURN (player);
-    }
-
-  VALENT_RETURN (NULL);
 }
 
 /**
