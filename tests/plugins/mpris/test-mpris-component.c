@@ -61,11 +61,18 @@ mpris_adapter_fixture_tear_down (MprisComponentFixture *fixture,
 }
 
 static void
-on_player_added (ValentMedia           *media,
-                 ValentMediaPlayer     *player,
-                 MprisComponentFixture *fixture)
+on_players_changed (ValentMedia           *media,
+                    unsigned int           position,
+                    unsigned int           removed,
+                    unsigned int           added,
+                    MprisComponentFixture *fixture)
 {
-  fixture->player = player;
+  if (added == 1)
+    fixture->player = g_list_model_get_item (G_LIST_MODEL (media), position);
+
+  if (removed == 1)
+    g_clear_object (&fixture->player);
+
   g_main_loop_quit (fixture->loop);
 }
 
@@ -75,15 +82,6 @@ on_player_notify (ValentMediaPlayer     *player,
                   MprisComponentFixture *fixture)
 {
   fixture->data = player;
-  g_main_loop_quit (fixture->loop);
-}
-
-static void
-on_player_removed (ValentMedia           *media,
-                   ValentMediaPlayer     *player,
-                   MprisComponentFixture *fixture)
-{
-  fixture->player = NULL;
   g_main_loop_quit (fixture->loop);
 }
 
@@ -107,12 +105,8 @@ test_mpris_component_adapter (MprisComponentFixture *fixture,
   g_autoptr (ValentMPRISImpl) impl = NULL;
 
   g_signal_connect (fixture->media,
-                    "player-added",
-                    G_CALLBACK (on_player_added),
-                    fixture);
-  g_signal_connect (fixture->media,
-                    "player-removed",
-                    G_CALLBACK (on_player_removed),
+                    "items-changed",
+                    G_CALLBACK (on_players_changed),
                     fixture);
 
   connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
@@ -154,12 +148,8 @@ test_mpris_component_player (MprisComponentFixture *fixture,
 
   /* Watch for the player */
   g_signal_connect (fixture->media,
-                    "player-added",
-                    G_CALLBACK (on_player_added),
-                    fixture);
-  g_signal_connect (fixture->media,
-                    "player-removed",
-                    G_CALLBACK (on_player_removed),
+                    "items-changed",
+                    G_CALLBACK (on_players_changed),
                     fixture);
 
   connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
