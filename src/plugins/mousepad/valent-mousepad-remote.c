@@ -53,7 +53,9 @@ static void valent_mousepad_remote_pointer_motion  (ValentMousepadRemote *self,
                                                     double                dx,
                                                     double                dy);
 static void valent_mousepad_remote_pointer_press   (ValentMousepadRemote *self);
+#if 0
 static void valent_mousepad_remote_pointer_release (ValentMousepadRemote *self);
+#endif
 static void valent_mousepad_remote_reset           (ValentMousepadRemote *self);
 
 G_DEFINE_TYPE (ValentMousepadRemote, valent_mousepad_remote, ADW_TYPE_WINDOW)
@@ -483,6 +485,7 @@ valent_mousepad_remote_pointer_press (ValentMousepadRemote *self)
   valent_device_queue_packet (self->device, packet);
 }
 
+#if 0
 static void
 valent_mousepad_remote_pointer_release (ValentMousepadRemote *self)
 {
@@ -496,6 +499,7 @@ valent_mousepad_remote_pointer_release (ValentMousepadRemote *self)
 
   valent_device_queue_packet (self->device, packet);
 }
+#endif
 
 static void
 valent_mousepad_remote_reset (ValentMousepadRemote *self)
