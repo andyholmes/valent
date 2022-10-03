@@ -12,7 +12,8 @@
             ],
             "references": [
                 "https://invent.kde.org/network/kdeconnect-kde",
-                "https://invent.kde.org/network/kdeconnect-android"
+                "https://invent.kde.org/network/kdeconnect-android",
+                "https://invent.kde.org/network/kdeconnect-ios"
             ]
         },
         {
@@ -24,7 +25,8 @@
             ],
             "references": [
                 "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/battery",
-                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/BatteryPlugin"
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/BatteryPlugin",
+                "https://invent.kde.org/network/kdeconnect-ios/tree/master/KDE%20Connect/KDE%20Connect/Plugins%20and%20Plugin%20Views/Battery"
             ]
         },
         {
@@ -36,7 +38,8 @@
             ],
             "references": [
                 "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/clipboard",
-                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/ClipboardPlugin"
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/ClipboardPlugin",
+                "https://invent.kde.org/network/kdeconnect-ios/tree/master/KDE%20Connect/KDE%20Connect/Plugins%20and%20Plugin%20Views/Clipboard"
             ]
         },
         {
@@ -75,7 +78,8 @@
                 "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/findmyphone",
                 "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/findthisdevice",
                 "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/FindMyPhonePlugin",
-                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/FindRemoteDevicePlugin"
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/FindRemoteDevicePlugin",
+                "https://invent.kde.org/network/kdeconnect-ios/tree/master/KDE%20Connect/KDE%20Connect/Plugins%20and%20Plugin%20Views/FindMyPhone"
             ]
         },
         {
@@ -103,7 +107,8 @@
                 "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/remotekeyboard",
                 "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/MousePadPlugin",
                 "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/MouseReceiverPlugin",
-                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/RemoteKeyboardPlugin"
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/RemoteKeyboardPlugin",
+                "https://invent.kde.org/network/kdeconnect-ios/tree/master/KDE%20Connect/KDE%20Connect/Plugins%20and%20Plugin%20Views/RemoteInput"
             ]
         },
         {
@@ -156,7 +161,8 @@
             ],
             "references": [
                 "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/ping",
-                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/PingPlugin"
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/PingPlugin",
+                "https://invent.kde.org/network/kdeconnect-ios/tree/master/KDE%20Connect/KDE%20Connect/Plugins%20and%20Plugin%20Views/Ping"
             ]
         },
         {
@@ -167,7 +173,8 @@
             ],
             "references": [
                 "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/presenter",
-                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/PresenterPlugin"
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/PresenterPlugin",
+                "https://invent.kde.org/network/kdeconnect-ios/tree/master/KDE%20Connect/KDE%20Connect/Plugins%20and%20Plugin%20Views/Presenter"
             ]
         },
         {
@@ -180,7 +187,8 @@
             "references": [
                 "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/remotecommands",
                 "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/runcommand",
-                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/RunCommandPlugin"
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/RunCommandPlugin",
+                "https://invent.kde.org/network/kdeconnect-ios/tree/master/KDE%20Connect/KDE%20Connect/Plugins%20and%20Plugin%20Views/RunCommand"
             ]
         },
         {
@@ -199,11 +207,13 @@
             "title": "Share Plugin",
             "description": "The Share plugin allows sharing files, text content and URLs.",
             "packets": [
-                "kdeconnect.share.request"
+                "kdeconnect.share.request",
+                "kdeconnect.share.request.update"
             ],
             "references": [
                 "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/share",
-                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/SharePlugin"
+                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/SharePlugin",
+                "https://invent.kde.org/network/kdeconnect-ios/tree/master/KDE%20Connect/KDE%20Connect/Plugins%20and%20Plugin%20Views/Share"
             ]
         },
         {
