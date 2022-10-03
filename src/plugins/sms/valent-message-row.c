@@ -37,7 +37,6 @@ G_DEFINE_TYPE (ValentMessageRow, valent_message_row, GTK_TYPE_LIST_BOX_ROW)
 enum {
   PROP_0,
   PROP_CONTACT,
-  PROP_DATE,
   PROP_MESSAGE,
   PROP_THREAD_ID,
   N_PROPERTIES
@@ -72,10 +71,6 @@ valent_message_row_get_property (GObject    *object,
     {
     case PROP_CONTACT:
       g_value_set_object (value, self->contact);
-      break;
-
-    case PROP_DATE:
-      g_value_set_int64 (value, valent_message_row_get_date (self));
       break;
 
     case PROP_MESSAGE:
@@ -135,19 +130,6 @@ valent_message_row_class_init (ValentMessageRowClass *klass)
                           G_PARAM_CONSTRUCT |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentMessageRow:date
-   *
-   * The timestamp of the message.
-   */
-  properties [PROP_DATE] =
-    g_param_spec_int64 ("date", NULL, NULL,
-                        0, G_MAXINT64,
-                        0,
-                        (G_PARAM_READABLE |
-                         G_PARAM_EXPLICIT_NOTIFY |
-                         G_PARAM_STATIC_STRINGS));
 
   /**
    * ValentMessageRow:message
@@ -291,25 +273,6 @@ valent_message_row_set_contact (ValentMessageRow *row,
 
   valent_message_row_update (row);
   g_object_notify_by_pspec (G_OBJECT (row), properties [PROP_CONTACT]);
-}
-
-/**
- * valent_message_row_get_date:
- * @row: a #ValentMessageRow
- *
- * Get the timestamp of the message.
- *
- * Returns: a UNIX epoch timestamp
- */
-gint64
-valent_message_row_get_date (ValentMessageRow *row)
-{
-  g_return_val_if_fail (VALENT_IS_MESSAGE_ROW (row), 0);
-
-  if G_UNLIKELY (row->message == NULL)
-    return 0;
-
-  return valent_message_get_date (row->message);
 }
 
 /**
