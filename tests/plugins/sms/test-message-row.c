@@ -24,7 +24,6 @@ test_sms_message_row (void)
   g_autoptr (ValentMessage) message_out = NULL;
   ValentMessageBox box = VALENT_MESSAGE_BOX_OUTBOX;
   gint64 date = 123456789;
-  gint64 date_out;
   gint64 id = 987654321;
   GVariant *metadata = g_variant_new_parsed ("{'event': <1>}");
   gboolean read = TRUE;
@@ -52,24 +51,20 @@ test_sms_message_row (void)
   /* Properties */
   contact_out = valent_message_row_get_contact (VALENT_MESSAGE_ROW (row));
   message_out = valent_message_row_get_message (VALENT_MESSAGE_ROW (row));
-  date_out = valent_message_row_get_date (VALENT_MESSAGE_ROW (row));
   thread_id_out = valent_message_row_get_thread_id (VALENT_MESSAGE_ROW (row));
 
   g_assert_true (contact == contact_out);
   g_assert_true (message == message_out);
-  g_assert_cmpint (date, ==, date_out);
   g_assert_cmpint (thread_id, ==, thread_id_out);
 
   g_object_get (row,
                 "contact",   &contact_out,
                 "message",   &message_out,
-                "date",      &date_out,
                 "thread-id", &thread_id_out,
                 NULL);
 
   g_assert_true (contact == contact_out);
   g_assert_true (message == message_out);
-  g_assert_cmpint (date, ==, date_out);
   g_assert_cmpint (thread_id, ==, thread_id_out);
 
   /* Display */
