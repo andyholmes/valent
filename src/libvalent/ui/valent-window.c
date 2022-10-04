@@ -20,7 +20,6 @@ struct _ValentWindow
 {
   AdwApplicationWindow  parent_instance;
   ValentDeviceManager  *manager;
-  GSettings            *settings;
 
   GHashTable           *devices;
 
@@ -420,7 +419,6 @@ valent_window_finalize (GObject *object)
 
   g_clear_pointer (&self->devices, g_hash_table_unref);
   g_clear_object (&self->manager);
-  g_clear_object (&self->settings);
 
   G_OBJECT_CLASS (valent_window_parent_class)->finalize (object);
 }
