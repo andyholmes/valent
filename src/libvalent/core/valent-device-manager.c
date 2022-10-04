@@ -599,7 +599,7 @@ valent_device_manager_ensure_device (ValentDeviceManager *manager,
       return NULL;
     }
 
-  if (valent_device_manager_get_device (manager, device_id) == NULL)
+  if (valent_device_manager_get_device_by_id (manager, device_id) == NULL)
     {
       g_autoptr (ValentDevice) device = NULL;
       g_autoptr (ValentData) data = NULL;
@@ -610,7 +610,7 @@ valent_device_manager_ensure_device (ValentDeviceManager *manager,
       valent_device_manager_add_device (manager, device);
     }
 
-  return valent_device_manager_get_device (manager, device_id);
+  return valent_device_manager_get_device_by_id (manager, device_id);
 }
 
 static void
@@ -1035,7 +1035,7 @@ valent_device_manager_new_finish (GAsyncResult  *result,
 }
 
 /**
- * valent_device_manager_get_device:
+ * valent_device_manager_get_device_by_id:
  * @manager: a #ValentDeviceManager
  * @id: the id of the device
  *
@@ -1046,8 +1046,8 @@ valent_device_manager_new_finish (GAsyncResult  *result,
  * Since: 1.0
  */
 ValentDevice *
-valent_device_manager_get_device (ValentDeviceManager *manager,
-                                  const char          *id)
+valent_device_manager_get_device_by_id (ValentDeviceManager *manager,
+                                        const char          *id)
 {
   g_return_val_if_fail (VALENT_IS_DEVICE_MANAGER (manager), NULL);
   g_return_val_if_fail (id != NULL, NULL);
