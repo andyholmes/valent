@@ -105,11 +105,6 @@ project_link_args = [
   '-Wl,-z,now',
 ]
 
-# https://github.com/llvm/llvm-project/issues/50937
-if cc.get_id() == 'clang'
-  project_c_args += ['-Wno-error=unused-but-set-variable']
-endif
-
 if get_option('buildtype') != 'plain'
   project_c_args += ['-fstack-protector-strong']
 endif
