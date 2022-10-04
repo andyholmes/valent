@@ -21,8 +21,6 @@ struct _ValentWindow
   AdwApplicationWindow  parent_instance;
   ValentDeviceManager  *manager;
 
-  GHashTable           *devices;
-
   /* Template widgets */
   GtkStack             *stack;
   GtkListBox           *device_list;
@@ -45,13 +43,6 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 /*
  * Device Callbacks
  */
-typedef struct
-{
-  GtkWidget *row;
-  GtkWidget *panel;
-  GtkWidget *status;
-} DeviceInfo;
-
 static int
 device_sort_func (GtkListBoxRow *row1,
                   GtkListBoxRow *row2,
@@ -94,131 +85,118 @@ device_sort_func (GtkListBoxRow *row1,
 static void
 on_device_changed (ValentDevice *device,
                    GParamSpec   *pspec,
-                   ValentWindow *self)
+                   GtkWidget    *status)
 {
   ValentDeviceState state;
   GtkStyleContext *style;
-  DeviceInfo *info;
 
   g_assert (VALENT_IS_DEVICE (device));
-  g_assert (VALENT_IS_WINDOW (self));
-
-  info = g_hash_table_lookup (self->devices, device);
-
-  if G_UNLIKELY (info == NULL)
-    return;
+  g_assert (GTK_IS_LABEL (status));
 
   state = valent_device_get_state (device);
-  style = gtk_widget_get_style_context (info->status);
+  style = gtk_widget_get_style_context (GTK_WIDGET (status));
 
   if ((state & VALENT_DEVICE_STATE_PAIRED) == 0)
     {
-      gtk_label_set_label (GTK_LABEL (info->status), _("Unpaired"));
+      gtk_label_set_label (GTK_LABEL (status), _("Unpaired"));
       gtk_style_context_remove_class (style, "dim-label");
     }
   else if ((state & VALENT_DEVICE_STATE_CONNECTED) == 0)
     {
-      gtk_label_set_label (GTK_LABEL (info->status), _("Disconnected"));
+      gtk_label_set_label (GTK_LABEL (status), _("Disconnected"));
       gtk_style_context_add_class (style, "dim-label");
     }
   else
     {
-      gtk_label_set_label (GTK_LABEL (info->status), _("Connected"));
+      gtk_label_set_label (GTK_LABEL (status), _("Connected"));
       gtk_style_context_remove_class (style, "dim-label");
     }
-
-  gtk_list_box_invalidate_sort (self->device_list);
 }
 
 static void
-on_device_added (ValentDeviceManager *manager,
-                 ValentDevice        *device,
-                 ValentWindow        *self)
+on_row_destroy (GtkWidget *row,
+                GtkWidget *panel)
 {
-  DeviceInfo *info;
+  GtkWidget *stack = NULL;
+
+  g_assert (GTK_IS_WIDGET (row));
+  g_assert (GTK_IS_WIDGET (panel));
+
+  if ((stack = gtk_widget_get_ancestor (panel, GTK_TYPE_STACK)) != NULL)
+    gtk_stack_remove (GTK_STACK (stack), panel);
+}
+
+static GtkWidget *
+valent_window_create_row_func (gpointer item,
+                               gpointer user_data)
+{
+  ValentWindow *self = VALENT_WINDOW (user_data);
+  ValentDevice *device = VALENT_DEVICE (item);
   const char *device_id;
   const char *name;
-  const char *icon_name;
   GtkStackPage *page;
+  GtkWidget *panel;
+  GtkWidget *row;
   GtkWidget *box;
+  GtkWidget *status;
   GtkWidget *arrow;
 
-  g_assert (VALENT_IS_DEVICE_MANAGER (manager));
-  g_assert (VALENT_IS_DEVICE (device));
   g_assert (VALENT_IS_WINDOW (self));
-
-  info = g_new0 (DeviceInfo, 1);
-  g_hash_table_insert (self->devices, device, info);
+  g_assert (VALENT_IS_DEVICE (item));
 
   device_id = valent_device_get_id (device);
   name = valent_device_get_name (device);
-  icon_name = valent_device_get_icon_name (device);
-
-  /* Panel */
-  info->panel = g_object_new (VALENT_TYPE_DEVICE_PANEL,
-                              "device", device,
-                              NULL);
-  page = gtk_stack_add_titled (self->stack, info->panel, device_id, name);
-  g_object_bind_property (device, "name",
-                          page,   "title",
-                          G_BINDING_SYNC_CREATE);
 
   /* Row */
-  info->row = g_object_new (ADW_TYPE_ACTION_ROW,
-                            "action-name",   "win.page",
-                            "action-target", g_variant_new_string (device_id),
-                            "icon-name",     icon_name,
-                            "title",         name,
-                            "activatable",   TRUE,
-                            "selectable",    FALSE,
-                            NULL);
-  g_object_set_data (G_OBJECT (info->row), "device", device);
+  row = g_object_new (ADW_TYPE_ACTION_ROW,
+                      "action-name",   "win.page",
+                      "action-target", g_variant_new_string (device_id),
+                      "activatable",   TRUE,
+                      "selectable",    FALSE,
+                      NULL);
+  g_object_set_data (G_OBJECT (row), "device", device);
 
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 12);
-  adw_action_row_add_suffix (ADW_ACTION_ROW (info->row), box);
+  adw_action_row_add_suffix (ADW_ACTION_ROW (row), box);
 
-  info->status = g_object_new (GTK_TYPE_LABEL, NULL);
-  gtk_box_append (GTK_BOX (box), info->status);
+  status = g_object_new (GTK_TYPE_LABEL, NULL);
+  gtk_box_append (GTK_BOX (box), status);
 
   arrow = gtk_image_new_from_icon_name ("go-next-symbolic");
   gtk_style_context_add_class (gtk_widget_get_style_context (arrow), "dim-label");
   gtk_box_append (GTK_BOX (box), arrow);
 
   /* Bind to device */
-  g_object_bind_property (device,    "name",
-                          info->row, "title",
+  g_object_bind_property (device, "name",
+                          row,    "title",
                           G_BINDING_SYNC_CREATE);
-  g_object_bind_property (device,    "icon-name",
-                          info->row, "icon-name",
+  g_object_bind_property (device, "icon-name",
+                          row,    "icon-name",
                           G_BINDING_SYNC_CREATE);
 
-  g_signal_connect (device,
-                    "notify::state",
-                    G_CALLBACK (on_device_changed),
-                    self);
-  on_device_changed (device, NULL, self);
+  g_signal_connect_object (device,
+                           "notify::state",
+                           G_CALLBACK (on_device_changed),
+                           status, 0);
+  on_device_changed (device, NULL, status);
 
-  gtk_list_box_insert (self->device_list, info->row, -1);
-}
+  /* Panel */
+  panel = g_object_new (VALENT_TYPE_DEVICE_PANEL,
+                        "device", device,
+                        NULL);
+  page = gtk_stack_add_titled (self->stack, panel, device_id, name);
+  g_object_bind_property (device, "name",
+                          page,   "title",
+                          G_BINDING_SYNC_CREATE);
+  g_object_bind_property (device, "icon-name",
+                          page,   "icon-name",
+                          G_BINDING_SYNC_CREATE);
+  g_signal_connect_object (row,
+                           "destroy",
+                           G_CALLBACK (on_row_destroy),
+                           panel, 0);
 
-static void
-on_device_removed (ValentDeviceManager *manager,
-                   ValentDevice        *device,
-                   ValentWindow        *self)
-{
-  DeviceInfo *info;
-
-  if ((info = g_hash_table_lookup (self->devices, device)) == NULL)
-    return;
-
-  if (gtk_stack_get_visible_child (self->stack) == info->panel)
-    gtk_stack_set_visible_child_name (self->stack, "main");
-
-  g_signal_handlers_disconnect_by_data (device, self);
-  gtk_list_box_remove (self->device_list, info->row);
-  gtk_stack_remove (self->stack, info->panel);
-
-  g_hash_table_remove (self->devices, device);
+  return g_steal_pointer (&row);
 }
 
 static void
@@ -371,24 +349,13 @@ static void
 valent_window_constructed (GObject *object)
 {
   ValentWindow *self = VALENT_WINDOW (object);
-  g_autoptr (GPtrArray) devices = NULL;
 
   g_assert (self->manager != NULL);
 
-  devices = valent_device_manager_get_devices (self->manager);
-
-  for (unsigned int i = 0; i < devices->len; i++)
-    on_device_added (self->manager, g_ptr_array_index (devices, i), self);
-
-  g_signal_connect (self->manager,
-                    "device-added",
-                    G_CALLBACK (on_device_added),
-                    self);
-
-  g_signal_connect (self->manager,
-                    "device-removed",
-                    G_CALLBACK (on_device_removed),
-                    self);
+  gtk_list_box_bind_model (self->device_list,
+                           G_LIST_MODEL (self->manager),
+                           valent_window_create_row_func,
+                           self, NULL);
 
   G_OBJECT_CLASS (valent_window_parent_class)->constructed (object);
 }
@@ -397,17 +364,9 @@ static void
 valent_window_dispose (GObject *object)
 {
   ValentWindow *self = VALENT_WINDOW (object);
-  GHashTableIter iter;
-  ValentDevice *device;
 
   g_clear_pointer (&self->preferences, gtk_window_destroy);
   g_clear_handle_id (&self->refresh_id, g_source_remove);
-  g_signal_handlers_disconnect_by_data (self->manager, self);
-
-  g_hash_table_iter_init (&iter, self->devices);
-
-  while (g_hash_table_iter_next (&iter, (void **)&device, NULL))
-    g_signal_handlers_disconnect_by_data (device, self);
 
   G_OBJECT_CLASS (valent_window_parent_class)->dispose (object);
 }
@@ -417,7 +376,6 @@ valent_window_finalize (GObject *object)
 {
   ValentWindow *self = VALENT_WINDOW (object);
 
-  g_clear_pointer (&self->devices, g_hash_table_unref);
   g_clear_object (&self->manager);
 
   G_OBJECT_CLASS (valent_window_parent_class)->finalize (object);
@@ -519,8 +477,5 @@ valent_window_init (ValentWindow *self)
       style = gtk_widget_get_style_context (GTK_WIDGET (self));
       gtk_style_context_add_class (style, "devel");
     }
-
-  gtk_list_box_set_sort_func (self->device_list, device_sort_func, NULL, NULL);
-  self->devices = g_hash_table_new_full (NULL, NULL, NULL, g_free);
 }
 

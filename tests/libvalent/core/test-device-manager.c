@@ -60,22 +60,25 @@ manager_fixture_tear_down (ManagerFixture *fixture,
   g_clear_pointer (&fixture->loop, g_main_loop_unref);
 }
 
-
 static void
-on_device_added (ValentDeviceManager *manager,
-                 ValentDevice        *device,
-                 ManagerFixture      *fixture)
+on_devices_changed (GListModel     *list,
+                    unsigned int    position,
+                    unsigned int    removed,
+                    unsigned int    added,
+                    ManagerFixture *fixture)
 {
-  fixture->device = device;
-}
+  if (added == 1)
+    {
+      g_autoptr (ValentDevice) device = NULL;
 
-static void
-on_device_removed (ValentDeviceManager *manager,
-                   ValentDevice        *device,
-                   ManagerFixture      *fixture)
-{
-  if (fixture->device == device)
-    fixture->device = NULL;
+      device = g_list_model_get_item (list, position);
+      fixture->device = device;
+    }
+
+  if (removed == 1)
+    {
+      fixture->device = NULL;
+    }
 }
 
 static void
@@ -151,15 +154,11 @@ static void
 test_manager_management (ManagerFixture *fixture,
                          gconstpointer   user_data)
 {
-  GPtrArray *devices;
+  unsigned int n_devices = 0;
 
   g_signal_connect (fixture->manager,
-                    "device-added",
-                    G_CALLBACK (on_device_added),
-                    fixture);
-  g_signal_connect (fixture->manager,
-                    "device-removed",
-                    G_CALLBACK (on_device_removed),
+                    "items-changed",
+                    G_CALLBACK (on_devices_changed),
                     fixture);
 
   /* Wait for the manager to start */
@@ -169,25 +168,22 @@ test_manager_management (ManagerFixture *fixture,
     g_main_context_iteration (NULL, FALSE);
 
   /* Adds devices from the cache when started */
-  devices = valent_device_manager_get_devices (fixture->manager);
-  g_assert_cmpint (devices->len, ==, 1);
-  g_clear_pointer (&devices, g_ptr_array_unref);
+  n_devices = g_list_model_get_n_items (G_LIST_MODEL (fixture->manager));
+  g_assert_cmpuint (n_devices, ==, 1);
 
   /* Removes unpaired devices that disconnect */
   g_object_notify (G_OBJECT (fixture->device), "state");
   g_assert_false (VALENT_IS_DEVICE (fixture->device));
 
-  devices = valent_device_manager_get_devices (fixture->manager);
-  g_assert_cmpint (devices->len, ==, 0);
-  g_clear_pointer (&devices, g_ptr_array_unref);
+  n_devices = g_list_model_get_n_items (G_LIST_MODEL (fixture->manager));
+  g_assert_cmpuint (n_devices, ==, 0);
 
   /* Adds devices from channels */
   valent_device_manager_identify (fixture->manager, NULL);
   g_assert_true (VALENT_IS_DEVICE (fixture->device));
 
-  devices = valent_device_manager_get_devices (fixture->manager);
-  g_assert_cmpint (devices->len, ==, 1);
-  g_clear_pointer (&devices, g_ptr_array_unref);
+  n_devices = g_list_model_get_n_items (G_LIST_MODEL (fixture->manager));
+  g_assert_cmpuint (n_devices, ==, 1);
 
   /* Retains paired devices that disconnect */
   g_object_notify (G_OBJECT (fixture->device), "state");
@@ -199,12 +195,8 @@ test_manager_identify_uri (ManagerFixture *fixture,
                            gconstpointer   user_data)
 {
   g_signal_connect (fixture->manager,
-                    "device-added",
-                    G_CALLBACK (on_device_added),
-                    fixture);
-  g_signal_connect (fixture->manager,
-                    "device-removed",
-                    G_CALLBACK (on_device_removed),
+                    "items-changed",
+                    G_CALLBACK (on_devices_changed),
                     fixture);
 
   /* Wait for the manager to start */
@@ -276,12 +268,8 @@ test_manager_dbus (ManagerFixture *fixture,
   const char *object_path;
 
   g_signal_connect (fixture->manager,
-                    "device-added",
-                    G_CALLBACK (on_device_added),
-                    fixture);
-  g_signal_connect (fixture->manager,
-                    "device-removed",
-                    G_CALLBACK (on_device_removed),
+                    "items-changed",
+                    G_CALLBACK (on_devices_changed),
                     fixture);
 
   /* Wait for the manager to start */
