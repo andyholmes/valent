@@ -269,6 +269,54 @@ on_incoming_connection (ValentChannelService   *service,
   return TRUE;
 }
 
+/**
+ * valent_lan_channel_service_tcp_setup:
+ * @self: a #ValentLanChannelService
+ * @error: (nullable): a #GError
+ *
+ * A wrapper around g_socket_listener_add_inet_port() that can be called
+ * multiple times.
+ *
+ * Returns: %TRUE if successful, or %FALSE with @error set
+ */
+static gboolean
+valent_lan_channel_service_tcp_setup (ValentLanChannelService  *self,
+                                      GCancellable             *cancellable,
+                                      GError                  **error)
+{
+  g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
+  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+  g_assert (error == NULL || *error == NULL);
+
+  if (g_cancellable_set_error_if_cancelled (cancellable, error))
+    return FALSE;
+
+  valent_object_lock (VALENT_OBJECT (self));
+
+  /* Pass the service as the callback data for the "run" signal, while the
+   * listener holds a reference to the cancellable for this "start" sequence.
+   */
+  self->listener = g_threaded_socket_service_new (10);
+  g_signal_connect_swapped (self->listener,
+                            "run",
+                            G_CALLBACK (on_incoming_connection),
+                            self);
+
+  if (!g_socket_listener_add_inet_port (G_SOCKET_LISTENER (self->listener),
+                                        self->port,
+                                        G_OBJECT (cancellable),
+                                        error))
+    {
+      g_socket_service_stop (self->listener);
+      g_socket_listener_close (G_SOCKET_LISTENER (self->listener));
+      g_clear_object (&self->listener);
+    }
+
+  valent_object_unlock (VALENT_OBJECT (self));
+
+  return G_IS_SOCKET_SERVICE (self->listener);
+}
+
 /*
  * Incoming UDP Broadcasts
  *
@@ -437,26 +485,19 @@ on_incoming_broadcast (ValentLanChannelService  *self,
   return TRUE;
 }
 
-typedef struct
+static void
+socket_read_task (GTask        *task,
+                  gpointer      source_object,
+                  gpointer      task_data,
+                  GCancellable *cancellable)
 {
-  ValentLanChannelService *service;
-  GSocket                 *socket;
-  GCancellable            *cancellable;
-} SocketThreadData;
-
-static gpointer
-socket_read_loop (gpointer data)
-{
-  SocketThreadData *info = data;
-  ValentLanChannelService *self = info->service;
-  GSocket *socket = info->socket;
-  GCancellable *cancellable = info->cancellable;
+  ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (source_object);
+  GSocket *socket = G_SOCKET (task_data);
   g_autoptr (GError) error = NULL;
 
-  g_assert (VALENT_IS_CHANNEL_SERVICE (info->service));
-  g_assert (G_IS_SOCKET (info->socket));
+  g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
+  g_assert (G_IS_SOCKET (socket));
 
-  /* Prepare a stream for reading identity packets */
   while (g_socket_condition_wait (socket, G_IO_IN, cancellable, &error))
     {
       if (!on_incoming_broadcast (self, socket, cancellable, &error))
@@ -466,60 +507,7 @@ socket_read_loop (gpointer data)
   if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
     g_warning ("%s(): %s", G_STRFUNC, error->message);
 
-  g_clear_object (&info->service);
-  g_clear_object (&info->socket);
-  g_clear_object (&info->cancellable);
-  g_clear_pointer (&info, g_free);
-
-  return NULL;
-}
-
-/**
- * valent_lan_channel_service_tcp_setup:
- * @self: a #ValentLanChannelService
- * @error: (nullable): a #GError
- *
- * A wrapper around g_socket_listener_add_inet_port() that can be called
- * multiple times.
- *
- * Returns: %TRUE if successful, or %FALSE with @error set
- */
-static gboolean
-valent_lan_channel_service_tcp_setup (ValentLanChannelService  *self,
-                                      GCancellable             *cancellable,
-                                      GError                  **error)
-{
-  g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
-  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-  g_assert (error == NULL || *error == NULL);
-
-  if (g_cancellable_set_error_if_cancelled (cancellable, error))
-    return FALSE;
-
-  valent_object_lock (VALENT_OBJECT (self));
-
-  /* Pass the service as the callback data for the "run" signal, while the
-   * listener holds a reference to the cancellable for this "start" sequence.
-   */
-  self->listener = g_threaded_socket_service_new (10);
-  g_signal_connect_swapped (self->listener,
-                            "run",
-                            G_CALLBACK (on_incoming_connection),
-                            self);
-
-  if (!g_socket_listener_add_inet_port (G_SOCKET_LISTENER (self->listener),
-                                        self->port,
-                                        G_OBJECT (cancellable),
-                                        error))
-    {
-      g_socket_service_stop (self->listener);
-      g_socket_listener_close (G_SOCKET_LISTENER (self->listener));
-      g_clear_object (&self->listener);
-    }
-
-  valent_object_unlock (VALENT_OBJECT (self));
-
-  return G_IS_SOCKET_SERVICE (self->listener);
+  g_task_return_boolean (task, TRUE);
 }
 
 /**
@@ -561,8 +549,7 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
     {
       g_autoptr (GInetAddress) inet_address = NULL;
       g_autoptr (GSocketAddress) address = NULL;
-      g_autoptr (GThread) thread = NULL;
-      SocketThreadData *data;
+      g_autoptr (GTask) task = NULL;
 
       /* Bind the port */
       inet_address = g_inet_address_new_any (G_SOCKET_FAMILY_IPV6);
@@ -579,11 +566,10 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
         }
 
       /* Watch the socket for incoming identity packets */
-      data = g_new0 (SocketThreadData, 1);
-      data->service = g_object_ref (self);
-      data->socket = g_object_ref (socket6);
-      data->cancellable = g_object_ref (cancellable);
-      thread = g_thread_new (NULL, socket_read_loop, data);
+      task = g_task_new (self, cancellable, NULL, NULL);
+      g_task_set_source_tag (task, valent_lan_channel_service_udp_setup);
+      g_task_set_task_data (task, g_object_ref (socket6), g_object_unref);
+      g_task_run_in_thread (task, socket_read_task);
 
       self->udp_socket6 = g_steal_pointer (&socket6);
 
@@ -605,8 +591,7 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
     {
       g_autoptr (GInetAddress) inet_address = NULL;
       g_autoptr (GSocketAddress) address = NULL;
-      g_autoptr (GThread) thread = NULL;
-      SocketThreadData *data;
+      g_autoptr (GTask) task = NULL;
 
       /* Bind the port */
       inet_address = g_inet_address_new_any (G_SOCKET_FAMILY_IPV4);
@@ -623,11 +608,10 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
         }
 
       /* Watch the socket for incoming identity packets */
-      data = g_new0 (SocketThreadData, 1);
-      data->service = g_object_ref (self);
-      data->socket = g_object_ref (socket4);
-      data->cancellable = g_object_ref (cancellable);
-      thread = g_thread_new (NULL, socket_read_loop, data);
+      task = g_task_new (self, cancellable, NULL, NULL);
+      g_task_set_source_tag (task, valent_lan_channel_service_udp_setup);
+      g_task_set_task_data (task, g_object_ref (socket4), g_object_unref);
+      g_task_run_in_thread (task, socket_read_task);
 
       self->udp_socket4 = g_steal_pointer (&socket4);
     }
