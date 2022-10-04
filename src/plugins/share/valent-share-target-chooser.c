@@ -39,16 +39,24 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 
 static void
-on_action_changed (GActionGroup *action_group,
-                   const char   *action_name,
-                   GtkWidget    *widget)
+on_action_added (GActionGroup *action_group,
+                 const char   *action_name,
+                 GtkWidget    *widget)
 {
   gboolean visible = FALSE;
 
-  if (g_action_group_get_action_enabled (action_group, "share.uris"))
+  if (g_action_group_get_action_enabled (action_group, action_name))
     visible = TRUE;
 
   gtk_widget_set_visible (widget, visible);
+}
+
+static void
+on_action_removed (GActionGroup *action_group,
+                   const char   *action_name,
+                   GtkWidget    *widget)
+{
+  gtk_widget_set_visible (widget, FALSE);
 }
 
 static void
@@ -57,12 +65,7 @@ on_action_enabled_changed (GActionGroup *action_group,
                            gboolean      enabled,
                            GtkWidget    *widget)
 {
-  gboolean visible = FALSE;
-
-  if (g_action_group_get_action_enabled (action_group, "share.uris"))
-    visible = TRUE;
-
-  gtk_widget_set_visible (widget, visible);
+  gtk_widget_set_visible (widget, enabled);
 }
 
 static void
@@ -77,8 +80,6 @@ on_device_added (ValentDeviceManager      *manager,
   g_assert (VALENT_IS_SHARE_TARGET_CHOOSER (self));
 
   row = g_object_new (ADW_TYPE_ACTION_ROW,
-                      "icon-name",    valent_device_get_icon_name (device),
-                      "title",        valent_device_get_name (device),
                       "activatable",  TRUE,
                       "selectable",   FALSE,
                       "margin-top",   12,
@@ -87,24 +88,30 @@ on_device_added (ValentDeviceManager      *manager,
                       NULL);
   gtk_style_context_add_class (gtk_widget_get_style_context (row), "card");
 
+  g_object_bind_property (device, "icon-name",
+                          row,    "icon-name",
+                          G_BINDING_DEFAULT);
+  g_object_bind_property (device, "name",
+                          row,    "title",
+                          G_BINDING_DEFAULT);
   g_object_set_data_full (G_OBJECT (row),
                           "device",
                           g_object_ref (device),
                           g_object_unref);
 
-  on_action_changed (G_ACTION_GROUP (device), "share.uris", row);
   g_signal_connect_object (device,
-                           "action-added",
-                           G_CALLBACK (on_action_changed),
+                           "action-added::share.uris",
+                           G_CALLBACK (on_action_added),
                            row, 0);
   g_signal_connect_object (device,
-                           "action-removed",
-                           G_CALLBACK (on_action_changed),
+                           "action-removed::share.uris",
+                           G_CALLBACK (on_action_removed),
                            row, 0);
   g_signal_connect_object (device,
-                           "action-enabled-changed",
+                           "action-enabled-changed::share.uris",
                            G_CALLBACK (on_action_enabled_changed),
                            row, 0);
+  on_action_added (G_ACTION_GROUP (device), "share.uris", row);
 
   gtk_list_box_append (self->device_list, row);
   g_hash_table_insert (self->device_rows, device, row);
