@@ -307,7 +307,7 @@ test_manager_dbus (ManagerFixture *fixture,
                     G_CALLBACK (on_properties_changed),
                     fixture);
 
-  device = valent_device_manager_get_device (fixture->manager, "test-device");
+  device = valent_device_manager_get_device_by_id (fixture->manager, "test-device");
   g_object_notify (G_OBJECT (device), "type");
   g_main_loop_run (fixture->loop);
 

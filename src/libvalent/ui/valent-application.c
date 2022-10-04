@@ -265,7 +265,7 @@ device_action (GSimpleAction *action,
   g_variant_iter_next (targetv, "v", &target);
 
   /* Forward the activation */
-  device = valent_device_manager_get_device (self->manager, device_id);
+  device = valent_device_manager_get_device_by_id (self->manager, device_id);
 
   if (device != NULL)
     g_action_group_activate_action (G_ACTION_GROUP (device), name, target);

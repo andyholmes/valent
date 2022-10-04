@@ -97,7 +97,7 @@ test_window_navigation (TestWindowFixture *fixture,
     continue;
 #endif /* WITH_ASAN */
 
-  device = valent_device_manager_get_device (fixture->manager, "mock-device");
+  device = valent_device_manager_get_device_by_id (fixture->manager, "mock-device");
   valent_device_set_channel (device, NULL);
 
   while (g_main_context_iteration (NULL, FALSE))
