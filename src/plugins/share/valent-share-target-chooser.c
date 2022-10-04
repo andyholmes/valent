@@ -68,16 +68,14 @@ on_action_enabled_changed (GActionGroup *action_group,
   gtk_widget_set_visible (widget, enabled);
 }
 
-static void
-on_device_added (ValentDeviceManager      *manager,
-                 ValentDevice             *device,
-                 ValentShareTargetChooser *self)
+static GtkWidget *
+valent_share_target_chooser_create_row (gpointer item,
+                                        gpointer user_data)
 {
+  ValentDevice *device = VALENT_DEVICE (item);
   GtkWidget *row;
 
-  g_assert (VALENT_IS_DEVICE_MANAGER (manager));
   g_assert (VALENT_IS_DEVICE (device));
-  g_assert (VALENT_IS_SHARE_TARGET_CHOOSER (self));
 
   row = g_object_new (ADW_TYPE_ACTION_ROW,
                       "activatable",  TRUE,
@@ -113,27 +111,7 @@ on_device_added (ValentDeviceManager      *manager,
                            row, 0);
   on_action_added (G_ACTION_GROUP (device), "share.uris", row);
 
-  gtk_list_box_append (self->device_list, row);
-  g_hash_table_insert (self->device_rows, device, row);
-}
-
-static void
-on_device_removed (ValentDeviceManager      *manager,
-                   ValentDevice             *device,
-                   ValentShareTargetChooser *self)
-{
-  GtkWidget *row;
-
-  g_assert (VALENT_IS_DEVICE_MANAGER (manager));
-  g_assert (VALENT_IS_DEVICE (device));
-  g_assert (VALENT_IS_SHARE_TARGET_CHOOSER (self));
-
-  if ((row = g_hash_table_lookup (self->device_rows, device)) != NULL)
-    {
-      g_signal_handlers_disconnect_by_data (device, row);
-      gtk_list_box_remove (self->device_list, row);
-      g_hash_table_remove (self->device_rows, device);
-    }
+  return row;
 }
 
 static void
@@ -187,24 +165,14 @@ static void
 valent_share_target_chooser_constructed (GObject *object)
 {
   ValentShareTargetChooser *self = VALENT_SHARE_TARGET_CHOOSER (object);
-  g_autoptr (GPtrArray) devices = NULL;
 
   g_assert (VALENT_IS_DEVICE_MANAGER (self->manager));
   g_assert (G_IS_LIST_MODEL (self->files));
 
-  devices = valent_device_manager_get_devices (self->manager);
-
-  for (unsigned int i = 0; i < devices->len; i++)
-    on_device_added (self->manager, g_ptr_array_index (devices, i), self);
-
-  g_signal_connect (self->manager,
-                    "device-added",
-                    G_CALLBACK (on_device_added),
-                    self);
-  g_signal_connect (self->manager,
-                    "device-removed",
-                    G_CALLBACK (on_device_removed),
-                    self);
+  gtk_list_box_bind_model (self->device_list,
+                           G_LIST_MODEL (self->manager),
+                           valent_share_target_chooser_create_row,
+                           NULL, NULL);
 
   /* Broadcast every 5 seconds to re-connect devices that may have gone idle */
   valent_device_manager_identify (self->manager, NULL);
