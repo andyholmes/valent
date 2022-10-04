@@ -14,26 +14,20 @@ BUILDDIR="${BUILDDIR:=$WORKSPACE/_build}"
 # CI/Pre-Tests
 #
 ci_pre_test() {
-    if command -v mypy > /dev/null 2>&1; then
-        # shellcheck disable=SC2046
-        mypy $(git ls-files '*.py')
-    fi
-
     if command -v pylint > /dev/null 2>&1; then
         # shellcheck disable=SC2046
         pylint --rcfile tests/extra/setup.cfg \
                $(git ls-files '*.py')
     fi
 
+    if command -v mypy > /dev/null 2>&1; then
+        # shellcheck disable=SC2046
+        mypy $(git ls-files '*.py')
+    fi
+
     if command -v shellcheck > /dev/null 2>&1; then
         # shellcheck disable=SC2046
         shellcheck $(git ls-files '*.sh')
-    fi
-
-    if command -v yamllint > /dev/null 2>&1; then
-        # shellcheck disable=SC2046
-        yamllint --config-file tests/extra/yamllint.yml \
-                 $(git ls-files '*.yml')
     fi
 }
 
