@@ -180,7 +180,6 @@ preferences_action (GtkWidget  *widget,
                                         "default-width",  allocation.width,
                                         "default-height", allocation.height,
                                         "device",         self->device,
-                                        "modal",          TRUE,
                                         "transient-for",  window,
                                         NULL);
 
