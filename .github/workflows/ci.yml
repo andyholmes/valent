@@ -81,14 +81,6 @@ jobs:
           reporter: github-pr-review
           fail_on_error: true
 
-      - name: yamllint
-        if: ${{ always() }}
-        uses: reviewdog/action-yamllint@v1
-        with:
-          reporter: github-pr-review
-          fail_on_error: true
-          yamllint_flags: --config-file tests/extra/yamllint.yml
-
   build:
     name: Build (Documentation)
     needs: [pre-test]
