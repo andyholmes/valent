@@ -297,10 +297,11 @@ valent_lan_channel_service_tcp_setup (ValentLanChannelService  *self,
    * listener holds a reference to the cancellable for this "start" sequence.
    */
   self->listener = g_threaded_socket_service_new (10);
-  g_signal_connect_swapped (self->listener,
-                            "run",
-                            G_CALLBACK (on_incoming_connection),
-                            self);
+  g_signal_connect_object (self->listener,
+                           "run",
+                           G_CALLBACK (on_incoming_connection),
+                           self,
+                           G_CONNECT_SWAPPED);
 
   if (!g_socket_listener_add_inet_port (G_SOCKET_LISTENER (self->listener),
                                         self->port,
@@ -841,10 +842,10 @@ valent_lan_channel_service_start (ValentChannelService *service,
                              G_CONNECT_SWAPPED);
 
   self->network_available = g_network_monitor_get_network_available (self->monitor);
-  g_signal_connect (self->monitor,
-                    "network-changed",
-                    G_CALLBACK (on_network_changed),
-                    self);
+  g_signal_connect_object (self->monitor,
+                           "network-changed",
+                           G_CALLBACK (on_network_changed),
+                           self, 0);
 
   task = g_task_new (service, self->cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_lan_channel_service_start);
