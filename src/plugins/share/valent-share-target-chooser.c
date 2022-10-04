@@ -21,7 +21,6 @@ struct _ValentShareTargetChooser
   GListModel          *files;
 
   GtkListBox          *device_list;
-  GHashTable          *device_rows;
 
   unsigned int         refresh_id;
 };
@@ -202,7 +201,6 @@ valent_share_target_chooser_finalize (GObject *object)
 {
   ValentShareTargetChooser *self = VALENT_SHARE_TARGET_CHOOSER (object);
 
-  g_clear_pointer (&self->device_rows, g_hash_table_unref);
   g_clear_object (&self->files);
 
   G_OBJECT_CLASS (valent_share_target_chooser_parent_class)->finalize (object);
@@ -303,7 +301,5 @@ static void
 valent_share_target_chooser_init (ValentShareTargetChooser *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
-
-  self->device_rows = g_hash_table_new (NULL, NULL);
 }
 
