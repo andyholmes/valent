@@ -117,20 +117,11 @@ jobs:
 
     strategy:
       matrix:
-        label:
+        profile:
           - abidiff
           - cppcheck
-          - GCC
-          - LLVM
-        include:
-          - label: abidiff
-            suite: abidiff
-          - label: cppcheck
-            suite: cppcheck
-          - label: GCC
-            suite: gcc
-          - label: LLVM
-            suite: llvm
+          - gcc
+          - llvm
       fail-fast: false
 
     steps:
@@ -141,15 +132,19 @@ jobs:
 
       - name: Analyze
         env:
-          TESTSUITE: ${{ matrix.suite }}
+          CX_PROFILE: ${{ matrix.profile }}
+          CX_SETUP_OPTIONS: '-Dintrospection=false -Dtests=true'
+          CX_CPPCHECK_LIBRARY: ${{ github.workspace }}/tests/extra/cppcheck.cfg
+          CX_CPPCHECK_SUPPRESSIONS: ${{ github.workspace }}/tests/extra/cppcheck.supp
+          CX_CPPCHECK_OPTIONS: -I${{ github.workspace}}/tests/fixtures
         run: |
-          ./tests/extra/ci-runner.sh analyze "${TESTSUITE}"
+          ./tests/extra/ci-runner.sh analyze
 
       - name: Report
         if: ${{ failure() }}
         uses: actions/upload-artifact@v3
         with:
-          name: Static Analysis (${{ matrix.label }})
+          name: Static Analysis (${{ matrix.profile }})
           path: _build/meson-logs
 
   test:
@@ -161,20 +156,15 @@ jobs:
 
     strategy:
       matrix:
-        label:
-          - GCC
-          - LLVM
-          - ASan, UBSan
-          - TSan
+        compiler: [gcc, llvm]
+        profile: [default, asan, tsan]
         include:
-          - label: GCC
-            suite: gcc
-          - label: LLVM
-            suite: llvm
-          - label: ASan, UBSan
-            suite: asan
-          - label: TSan
-            suite: tsan
+          - profile: default
+            options: '-Dtests=true'
+          - profile: asan
+            options: '-Dintrospection=false -Dtests=true'
+          - profile: tsan
+            options: '-Dintrospection=false -Dtests=true'
       fail-fast: false
 
     steps:
@@ -185,25 +175,25 @@ jobs:
 
       - name: Test
         env:
-          TESTSUITE: ${{ matrix.suite }}
+          CX_COMPILER: ${{ matrix.compiler }}
+          CX_PROFILE: ${{ matrix.profile }}
+          CX_SETUP_OPTIONS: ${{ matrix.options }}
+          CX_SETUP_COVERAGE: ${{ matrix.compiler == 'gcc' && matrix.profile == 'default' }}
+          CX_TEST_REPEAT: 3
+          CX_LCOV_INCLUDE_PATH: '${{ github.workspace }}/src/*'
+          CX_LCOV_EXCLUDE_PATH: '*/tests/* */subprojects/*'
         run: |
-          ./tests/extra/ci-runner.sh test "${TESTSUITE}"
+          ./tests/extra/ci-runner.sh test
 
       - name: Test Report
         if: ${{ failure() }}
         uses: actions/upload-artifact@v3
         with:
-          name: Tests (${{ matrix.label }})
+          name: Tests (${{ matrix.profile }})
           path: _build/meson-logs/testlog.txt
 
-      - name: Coverage
-        if: ${{ success() && matrix.label == 'GCC' }}
-        run: |
-          ./tests/extra/ci-runner.sh test coverage
-
-      - name: Coverage Report
-        if: ${{ success() && matrix.label == 'GCC' }}
-        continue-on-error: true
+      - name: Coverage (coveralls.io)
+        if: ${{ matrix.compiler == 'gcc' && matrix.profile == 'default' }}
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
