@@ -9,6 +9,7 @@
 #include <gtk/gtk.h>
 #include <libvalent-core.h>
 #include <libvalent-notifications.h>
+#include <libvalent-ui.h>
 
 #include "valent-notification-dialog.h"
 
@@ -84,7 +85,12 @@ valent_notification_dialog_set_notification (ValentNotificationDialog *self,
       body = valent_notification_get_body (self->notification);
 
       if (body != NULL)
-        gtk_label_set_label (self->body_label, body);
+        {
+          g_autofree char *label = NULL;
+
+          label = valent_string_to_markup (body);
+          gtk_label_set_label (self->body_label, label);
+        }
     }
 
   valent_notification_dialog_check (self);

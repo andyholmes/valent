@@ -9,14 +9,11 @@
 #include <gtk/gtk.h>
 #include <pango/pango.h>
 #include <libvalent-contacts.h>
+#include <libvalent-ui.h>
 
 #include "valent-message.h"
 #include "valent-sms-conversation-row.h"
 #include "valent-sms-utils.h"
-
-#define URL_PATTERN "\\b(http(s)?://)?([a-z0-9-])+(\\.[a-z0-9-]+)*\\.[a-zA-Z]{2,5}(:\\d{1,5})?(/\\S*)?\\b"
-#define URL_FLAGS   (G_REGEX_CASELESS | G_REGEX_NO_AUTO_CAPTURE | G_REGEX_OPTIMIZE)
-#define URL_REPLACE "<a href=\"\\0\">\\0</a>"
 
 
 struct _ValentSmsConversationRow
@@ -46,21 +43,6 @@ enum {
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
-static GRegex *url_regex = NULL;
-
-
-static char *
-linkify_text (const char *text)
-{
-  g_autofree char *escaped = NULL;
-
-  if (text == NULL || *text == '\0' || url_regex == NULL)
-    return g_strdup (text);
-
-  escaped = g_markup_escape_text (text, -1);
-
-  return g_regex_replace (url_regex, escaped, -1, 0, URL_REPLACE, 0, NULL);
-}
 
 /* LCOV_EXCL_START */
 static gboolean
@@ -204,10 +186,6 @@ valent_sms_conversation_row_class_init (ValentSmsConversationRowClass *klass)
                            G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
-
-  /* Initialize URL regular expression */
-  url_regex = g_regex_new (URL_PATTERN, URL_FLAGS, 0, NULL);
-  g_warn_if_fail (url_regex != NULL);
 }
 
 static void
@@ -486,7 +464,7 @@ valent_sms_conversation_row_update (ValentSmsConversationRow *row)
       g_autofree char *label = NULL;
 
       text = valent_message_get_text (row->message);
-      label = linkify_text (text);
+      label = valent_string_to_markup (text);
       gtk_label_set_label (GTK_LABEL (row->text_label), label);
     }
 
