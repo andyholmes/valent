@@ -20,16 +20,14 @@ VALENT_AVAILABLE_IN_1_0
 G_DECLARE_FINAL_TYPE (ValentDeviceManager, valent_device_manager, VALENT, DEVICE_MANAGER, GObject)
 
 VALENT_AVAILABLE_IN_1_0
-void                  valent_device_manager_new              (ValentData           *data,
-                                                              GCancellable         *cancellable,
+void                  valent_device_manager_new              (GCancellable         *cancellable,
                                                               GAsyncReadyCallback   callback,
                                                               gpointer              user_data);
 VALENT_AVAILABLE_IN_1_0
 ValentDeviceManager * valent_device_manager_new_finish       (GAsyncResult         *result,
                                                               GError              **error);
 VALENT_AVAILABLE_IN_1_0
-ValentDeviceManager * valent_device_manager_new_sync         (ValentData           *data,
-                                                              GCancellable         *cancellable,
+ValentDeviceManager * valent_device_manager_new_sync         (GCancellable         *cancellable,
                                                               GError              **error);
 VALENT_AVAILABLE_IN_1_0
 ValentDevice        * valent_device_manager_get_device_by_id (ValentDeviceManager  *manager,

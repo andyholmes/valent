@@ -24,7 +24,7 @@ test_share_target_chooser (void)
   files = g_list_store_new (G_TYPE_FILE);
   g_list_store_append (files, file);
 
-  manager = valent_device_manager_new_sync (NULL, NULL, NULL);
+  manager = valent_device_manager_new_sync (NULL, NULL);
   window = g_object_new (VALENT_TYPE_SHARE_TARGET_CHOOSER,
                          "device-manager", manager,
                          "files",          files,

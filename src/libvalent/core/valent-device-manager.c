@@ -929,35 +929,27 @@ valent_device_manager_init (ValentDeviceManager *self)
 
 /**
  * valent_device_manager_new_sync:
- * @data: (nullable): a #ValentData
  * @cancellable: (nullable): a #GCancellable
  * @error: (nullable): a #GError
  *
  * Create a new #ValentDeviceManager.
- *
- * If given, @data will be used as the root [class@Valent.Data] for all
- * [class@Valent.ChannelService] implementations and [class@Valent.Device]
- * instances.
  *
  * Returns: (transfer full) (nullable): a #ValentDeviceManager
  *
  * Since: 1.0
  */
 ValentDeviceManager *
-valent_device_manager_new_sync (ValentData    *data,
-                                GCancellable  *cancellable,
+valent_device_manager_new_sync (GCancellable  *cancellable,
                                 GError       **error)
 {
   GInitable *manager;
 
-  g_return_val_if_fail (data == NULL || VALENT_IS_DATA (data), NULL);
   g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
   g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
   manager = g_initable_new (VALENT_TYPE_DEVICE_MANAGER,
                             cancellable,
                             error,
-                            "data", data,
                             NULL);
 
   if (manager == NULL)
@@ -968,7 +960,6 @@ valent_device_manager_new_sync (ValentData    *data,
 
 /**
  * valent_device_manager_new:
- * @data: (nullable): a #ValentData
  * @cancellable: (nullable): a #GCancellable
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
@@ -985,12 +976,10 @@ valent_device_manager_new_sync (ValentData    *data,
  * Since: 1.0
  */
 void
-valent_device_manager_new (ValentData          *data,
-                           GCancellable        *cancellable,
+valent_device_manager_new (GCancellable        *cancellable,
                            GAsyncReadyCallback  callback,
                            gpointer             user_data)
 {
-  g_return_if_fail (data == NULL || VALENT_IS_DATA (data));
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   g_async_initable_new_async (VALENT_TYPE_DEVICE_MANAGER,
@@ -998,7 +987,6 @@ valent_device_manager_new (ValentData          *data,
                               cancellable,
                               callback,
                               user_data,
-                              "data", data,
                               NULL);
 }
 

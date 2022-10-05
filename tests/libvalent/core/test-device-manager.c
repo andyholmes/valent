@@ -44,7 +44,7 @@ manager_fixture_set_up (ManagerFixture *fixture,
 
   /* Init the manager */
   fixture->loop = g_main_loop_new (NULL, FALSE);
-  fixture->manager = valent_device_manager_new_sync (data, NULL, NULL);
+  fixture->manager = valent_device_manager_new_sync (NULL, NULL);
 }
 
 static void
@@ -103,7 +103,6 @@ test_manager_new (void)
   gboolean done = FALSE;
 
   valent_device_manager_new (NULL,
-                             NULL,
                              (GAsyncReadyCallback)manager_new_cb,
                              &done);
 

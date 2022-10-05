@@ -17,7 +17,7 @@ static void
 test_window_set_up (TestWindowFixture *fixture,
                     gconstpointer      user_data)
 {
-  fixture->manager = valent_device_manager_new_sync (NULL, NULL, NULL);
+  fixture->manager = valent_device_manager_new_sync (NULL, NULL);
   valent_device_manager_start (fixture->manager);
 }
 
