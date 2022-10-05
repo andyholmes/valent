@@ -11,9 +11,49 @@ BUILDDIR="${BUILDDIR:=$WORKSPACE/_build}"
 
 
 #
-# CI/Pre-Tests
+# General Variables
 #
-ci_pre_test() {
+# | Variable                   | meson setup                     |
+# |----------------------------|---------------------------------|
+# | CX_COMPILER                | Compiler Collection (gcc, llvm) |
+# | CX_PROFILE                 | Test Profile                    |
+#
+#
+# Setup Variables
+#
+# | Variable                   | meson setup                     |
+# |----------------------------|---------------------------------|
+# | CX_SETUP_BUILDTYPE         | --buildtype                     |
+# | CX_SETUP_COVERAGE          | -Db_coverage                    |
+# | CX_SETUP_SANITIZE          | -Db_sanitize                    |
+# | CX_SETUP_OPTIONS           | extra options                   |
+#
+#
+# Test Variables
+#
+# | Variable                   | meson test                      |
+# |----------------------------|---------------------------------|
+# | CX_TEST_REPEAT             | --repeat                        |
+# | CX_TEST_TIMEOUT_MULTIPLIER | --timeout-multiplier            |
+# | CX_TEST_OPTIONS            | extra options                   |
+#
+#
+# Other Variables
+#
+# | Variable                   | CLI flag                        |
+# |----------------------------|---------------------------------|
+# | CX_CPPCHECK_LIBRARY        | --library                       |
+# | CX_CPPCHECK_SUPPRESSIONS   | --timeout-multiplier            |
+# | CX_CPPCHECK_OPTIONS        | extra options                   |
+# | CX_LCOV_EXCLUDE_PATH       | glob paths to exclude           |
+# | CX_LCOV_INCLUDE_PATH       | glob paths to include           |
+#
+
+
+#
+# pretest
+#
+cx_pre_test() {
     if command -v pylint > /dev/null 2>&1; then
         # shellcheck disable=SC2046
         pylint --rcfile tests/extra/setup.cfg \
@@ -33,9 +73,9 @@ ci_pre_test() {
 
 
 #
-# CI/Static Analysis
+# analyze
 #
-ci_analyze_abidiff_build() {
+cx_analyze_abidiff_build() {
     TARGET_REF="${1}"
     TARGET_DIR="${2}"
 
@@ -82,7 +122,7 @@ ci_analyze_abidiff_build() {
     DESTDIR="${TARGET_DIR}" meson install -C "${BUILDSUBDIR}"
 }
 
-ci_analyze_abidiff() {
+cx_analyze_abidiff() {
     # Ensure a log directory exists where it is expected
     mkdir -p "${BUILDDIR}/meson-logs"
 
@@ -100,8 +140,8 @@ ci_analyze_abidiff() {
     BASE_DIR="${BUILDDIR}/_base"
     HEAD_DIR="${BUILDDIR}/_head"
 
-    ci_analyze_abidiff_build "${BASE_REF}" "${BASE_DIR}" > /dev/null 2>&1
-    ci_analyze_abidiff_build "${HEAD_REF}" "${HEAD_DIR}" > /dev/null 2>&1
+    cx_analyze_abidiff_build "${BASE_REF}" "${BASE_DIR}" > /dev/null 2>&1
+    cx_analyze_abidiff_build "${HEAD_REF}" "${HEAD_DIR}" > /dev/null 2>&1
 
     # Run `abidiff`
     abidiff --drop-private-types \
@@ -115,73 +155,78 @@ ci_analyze_abidiff() {
     (cat "${BUILDDIR}/meson-logs/abidiff.log" && exit 1);
 }
 
-ci_analyze_cppcheck() {
+cx_analyze_cppcheck() {
     # Ensure a log directory exists where it is expected
     mkdir -p "${BUILDDIR}/meson-logs"
 
-    cppcheck --quiet \
-             --error-exitcode=1 \
-             -I"${WORKSPACE}/tests/fixtures" \
+    if [ "${CX_CPPCHECK_LIBRARY}" != "" ]; then
+        CX_CPPCHECK_OPTIONS="${CX_CPPCHECK_OPTIONS} --library=${CX_CPPCHECK_LIBRARY}"
+    fi
+
+    if [ "${CX_CPPCHECK_SUPPRESSIONS}" != "" ]; then
+        CX_CPPCHECK_OPTIONS="${CX_CPPCHECK_OPTIONS} --suppressions-list=${CX_CPPCHECK_SUPPRESSIONS}"
+    fi
+
+    # shellcheck disable=SC2086
+    cppcheck --error-exitcode=1 \
              --library=gtk \
-             --library="${WORKSPACE}/tests/extra/cppcheck.cfg" \
-             --suppressions-list="${WORKSPACE}/tests/extra/cppcheck.supp" \
+             --quiet \
              --xml \
+             ${CX_CPPCHECK_OPTIONS} \
              src 2> "${BUILDDIR}/meson-logs/cppcheck.xml" || \
     (cppcheck-htmlreport --file "${BUILDDIR}/meson-logs/cppcheck.xml" \
                          --report-dir "${BUILDDIR}/meson-logs/cppcheck-html" \
                          --source-dir "${WORKSPACE}" && exit 1);
 }
 
-ci_analyze_gcc() {
+cx_analyze_gcc() {
     export CC=gcc
     export CC_LD=bfd
     export CXX=g++
     export CXX_LD=bfd
-    export CFLAGS="-fanalyzer"
+    export CFLAGS="${CFLAGS} -fanalyzer"
 
-    meson setup --buildtype=debug \
-                -Dintrospection=false \
-                -Dtests=true \
+    # shellcheck disable=SC2086
+    meson setup --buildtype="${CX_SETUP_BUILDTYPE:=debug}" \
+                ${CX_SETUP_OPTIONS} \
                 "${BUILDDIR}" &&
     meson compile -C "${BUILDDIR}"
 }
 
-ci_analyze_llvm() {
+cx_analyze_llvm() {
     export CC=clang
     export CC_LD=lld
     export CXX=clang++
     export CXX_LD=lld
     export SCANBUILD="${WORKSPACE}/tests/extra/scanbuild.sh"
 
-    meson setup --buildtype=debug \
-                -Dintrospection=false \
-                -Dtests=true \
+    # shellcheck disable=SC2086
+    meson setup --buildtype="${CX_SETUP_BUILDTYPE:=debug}" \
+                ${CX_SETUP_OPTIONS} \
                 "${BUILDDIR}" &&
     ninja -C "${BUILDDIR}" scan-build
 }
 
-ci_analyze() {
-    ANALYZER_PROFILE="${ANALYZER_PROFILE:=$1}"
-
-    if [ "${ANALYZER_PROFILE}" = "abidiff" ]; then
-        ci_analyze_abidiff
-    elif [ "${ANALYZER_PROFILE}" = "cppcheck" ]; then
-        ci_analyze_cppcheck
-    elif [ "${ANALYZER_PROFILE}" = "gcc" ]; then
-        ci_analyze_gcc
-    elif [ "${ANALYZER_PROFILE}" = "llvm" ]; then
-        ci_analyze_llvm
+cx_analyze() {
+    if [ "${CX_PROFILE}" = "abidiff" ]; then
+        cx_analyze_abidiff
+    elif [ "${CX_PROFILE}" = "cppcheck" ]; then
+        cx_analyze_cppcheck
+    elif [ "${CX_PROFILE}" = "gcc" ]; then
+        cx_analyze_gcc
+    elif [ "${CX_PROFILE}" = "llvm" ]; then
+        cx_analyze_llvm
     else
-        echo "Unknown profile: ${ANALYZER_PROFILE}";
+        echo "Unknown profile: ${CX_PROFILE}";
         exit 1;
     fi
 }
 
 
 #
-# CI/Tests
+# test
 #
-ci_test_coverage() {
+cx_test_coverage() {
     if [ ! -d "${BUILDDIR}" ]; then
         echo "No build directory found at '${BUILDDIR}'"
         exit 1;
@@ -191,90 +236,76 @@ ci_test_coverage() {
     lcov --directory "${BUILDDIR}" \
          --capture \
          --initial \
-         --output-file "${BUILDDIR}"/meson-logs/coverage.p1 && \
+         --output-file "${BUILDDIR}/meson-logs/coverage.p1" && \
     lcov --directory "${BUILDDIR}" \
          --capture \
          --no-checksum \
          --rc lcov_branch_coverage=1 \
-         --output-file "${BUILDDIR}"/meson-logs/coverage.p2 && \
-    lcov --add-tracefile "${BUILDDIR}"/meson-logs/coverage.p1 \
-         --add-tracefile "${BUILDDIR}"/meson-logs/coverage.p2 \
+         --output-file "${BUILDDIR}/meson-logs/coverage.p2" && \
+    lcov --add-tracefile "${BUILDDIR}/meson-logs/coverage.p1" \
+         --add-tracefile "${BUILDDIR}/meson-logs/coverage.p2" \
          --rc lcov_branch_coverage=1 \
-         --output-file "${BUILDDIR}"/meson-logs/coverage.info
+         --output-file "${BUILDDIR}/meson-logs/coverage.info"
 
     # Filter out tests and subprojects
-    lcov --extract "${BUILDDIR}"/meson-logs/coverage.info \
-         "${WORKSPACE}/src/*" \
+    # shellcheck disable=SC2086
+    lcov --extract "${BUILDDIR}/meson-logs/coverage.info" \
+         "${CX_LCOV_INCLUDE_PATH}" \
          --rc lcov_branch_coverage=1 \
-         --output-file "${BUILDDIR}"/meson-logs/coverage.info && \
-    lcov --remove "${BUILDDIR}"/meson-logs/coverage.info \
-         '*/tests/*' \
-         '*/subprojects/*' \
+         --output-file "${BUILDDIR}/meson-logs/coverage.info" && \
+    lcov --remove "${BUILDDIR}/meson-logs/coverage.info" \
+         "${CX_LCOV_EXCLUDE_PATH}" \
          --rc lcov_branch_coverage=1 \
-         --output-file "${BUILDDIR}"/meson-logs/coverage.info
+         --output-file "${BUILDDIR}/meson-logs/coverage.info"
 
     # Generate HTML
     genhtml --prefix "${WORKSPACE}" \
-            --output-directory "${BUILDDIR}"/meson-logs/coverage-html \
+            --output-directory "${BUILDDIR}/meson-logs/coverage-html" \
             --title 'Code Coverage' \
             --legend \
             --show-details \
             --branch-coverage \
-            "${BUILDDIR}"/meson-logs/coverage.info
+            "${BUILDDIR}/meson-logs/coverage.info"
 }
 
-ci_test() {
-    TEST_PROFILE="${TEST_PROFILE:=$1}"
-    shift;
-
-    # Generate Coverage
-    if [ "${TEST_PROFILE}" = "coverage" ]; then
-        ci_test_coverage;
-        return;
-    fi
-
-    # Compiler Toolchain
-    if [ "${TEST_PROFILE}" = "llvm" ]; then
-        export CC=clang
-        export CC_LD=lld
-        export CXX=clang++
-        export CXX_LD=lld
-    else
+cx_test() {
+    # Compiler Profiles
+    if [ "${CX_COMPILER}" = "gcc" ]; then
         export CC=gcc
         export CC_LD=bfd
         export CXX=g++
         export CXX_LD=bfd
+    elif [ "${CX_COMPILER}" = "llvm" ]; then
+        export CC=clang
+        export CC_LD=lld
+        export CXX=clang++
+        export CXX_LD=lld
     fi
 
-    # Meson Options
-    if [ "${TEST_PROFILE}" = "gcc" ]; then
-        BUILD_COVERAGE=true
-    elif [ "${TEST_PROFILE}" = "asan" ]; then
-        BUILD_SANITIZE=address,undefined
-        BUILD_INTROSPECTION=false
-        TEST_REPEAT=1
-        TEST_TIMEOUT=3
-    elif [ "${TEST_PROFILE}" = "tsan" ]; then
-        BUILD_SANITIZE=thread
-        BUILD_INTROSPECTION=false
-        TEST_REPEAT=1
-        TEST_TIMEOUT=3
+    # Instrumentation Profiles
+    if [ "${CX_PROFILE}" = "asan" ]; then
+        CX_SETUP_SANITIZE=address,undefined
+        CX_TEST_REPEAT=1
+        CX_TEST_TIMEOUT=3
+    elif [ "${CX_PROFILE}" = "tsan" ]; then
+        CX_SETUP_SANITIZE=thread
+        CX_TEST_REPEAT=1
+        CX_TEST_TIMEOUT=3
     fi
 
-    # NOTE: Local Overrides
-    if [ "${GITHUB_ACTIONS}" != "true" ]; then
-        BUILD_FUZZING=false
-        TEST_REPEAT=1
+    # Clang needs `-Db_lundef=false` to use the sanitizers
+    if [ "${CX_SETUP_SANITIZE:=none}" != "none" ] && [ "${CC}" = "clang" ]; then
+        CX_SETUP_LUNDEF=false
     fi
 
     # Build
     if [ ! -d "${BUILDDIR}" ]; then
-        meson setup --buildtype="${BUILD_TYPE:=debugoptimized}" \
-                    -Db_coverage="${BUILD_COVERAGE:=false}" \
-                    -Db_sanitize="${BUILD_SANITIZE:=none}" \
-                    -Dfuzz_tests="${BUILD_FUZZING:=true}" \
-                    -Dintrospection="${BUILD_INTROSPECTION:=true}" \
-                    -Dtests=true \
+        # shellcheck disable=SC2086
+        meson setup --buildtype="${CX_SETUP_BUILDTYPE:=debugoptimized}" \
+                    -Db_coverage="${CX_SETUP_COVERAGE:=false}" \
+                    -Db_lundef="${CX_SETUP_LUNDEF:=true}" \
+                    -Db_sanitize="${CX_SETUP_SANITIZE:=none}" \
+                    ${CX_SETUP_OPTIONS} \
                     "${BUILDDIR}"
     fi
 
@@ -285,9 +316,14 @@ ci_test() {
     xvfb-run -d \
     meson test -C "${BUILDDIR}" \
                --print-errorlogs \
-               --repeat="${TEST_REPEAT:=3}" \
-               --timeout-multiplier="${TEST_TIMEOUT:=1}" \
+               --repeat="${CX_TEST_REPEAT:=1}" \
+               --timeout-multiplier="${CX_TEST_TIMEOUT:=1}" \
                "${@}"
+
+    # Coverage (Optional)
+    if [ "${CX_SETUP_COVERAGE}" = "true" ]; then
+        cx_test_coverage;
+    fi
 }
 
 
@@ -298,14 +334,14 @@ ci_test() {
 #
 if [ "${1}" = "pre-test" ]; then
     shift;
-    ci_pre_test;
+    cx_pre_test;
 
 elif [ "${1}" = "analyze" ]; then
     shift;
-    ci_analyze "${@}";
+    cx_analyze "${@}";
 elif [ "${1}" = "test" ]; then
     shift;
-    ci_test "${@}";
+    cx_test "${@}";
 elif [ "${1}" = "" ]; then
     echo "$(basename "${0}"): no command specified";
     exit 2;

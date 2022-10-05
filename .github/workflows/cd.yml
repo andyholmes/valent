@@ -23,18 +23,11 @@ jobs:
           submodules: true
 
       - name: Build
+        env:
+          CX_SETUP_COVERAGE: true
+          CX_SETUP_OPTIONS: '-Ddocumentation=true -Dtests=true'
         run: |
-          meson setup --buildtype=debugoptimized \
-                      -Db_coverage=true \
-                      -Ddocumentation=true \
-                      -Dtests=true \
-                      _build
-          meson compile -C _build
-
-      - name: Test
-        run: |
-          ./tests/extra/ci-runner.sh test gcc && \
-          ./tests/extra/ci-runner.sh test coverage
+          ./tests/extra/ci-runner.sh test
 
       - name: Report
         continue-on-error: true
