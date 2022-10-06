@@ -13,6 +13,7 @@
 
 #include "valent-share-plugin.h"
 #include "valent-share-download.h"
+#include "valent-share-text-dialog.h"
 #include "valent-share-upload.h"
 
 
@@ -23,6 +24,8 @@ struct _ValentSharePlugin
   GHashTable         *transfers;
   ValentTransfer     *upload;
   ValentTransfer     *download;
+
+  GPtrArray          *windows;
 };
 
 G_DEFINE_TYPE (ValentSharePlugin, valent_share_plugin, VALENT_TYPE_DEVICE_PLUGIN)
@@ -1049,32 +1052,68 @@ valent_share_plugin_handle_file_update (ValentSharePlugin *self,
 }
 
 static void
+valent_share_plugin_handle_text_cb (GFile        *file,
+                                    GAsyncResult *result,
+                                    gpointer      user_data)
+{
+  g_autoptr (GError) error = NULL;
+
+  if (!g_file_replace_contents_finish (file, result, NULL, &error))
+    g_warning ("Saving \"%s\": %s", g_file_peek_path (file), error->message);
+}
+
+static void
 valent_share_plugin_handle_text (ValentSharePlugin *self,
                                  const char        *text)
 {
-  GtkMessageDialog *dialog;
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (self);
+  const char *name = NULL;
+  GtkWindow *window;
 
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
   g_assert (text != NULL);
 
+  name = valent_device_get_name (valent_device_plugin_get_device (plugin));
+
   if (!gtk_is_initialized ())
     {
-      g_warning ("%s: No display available", G_STRFUNC);
-      return;
+      g_autoptr (GBytes) bytes = NULL;
+      g_autoptr (GDateTime) date = NULL;
+      g_autofree char *date_str = NULL;
+      g_autoptr (GFile) file = NULL;
+      g_autofree char *filename = NULL;
+
+      bytes = g_bytes_new (text, strlen (text));
+      date = g_date_time_new_now_local ();
+      date_str = g_date_time_format (date, "%F %T");
+      filename = g_strdup_printf ("Text from %s (%s).txt", date_str, name);
+      file = valent_share_plugin_create_download_file (self, filename, TRUE);
+
+      g_file_replace_contents_bytes_async (file,
+                                           bytes,
+                                           NULL,
+                                           FALSE,
+                                           G_FILE_CREATE_REPLACE_DESTINATION,
+                                           NULL,
+                                           (GAsyncReadyCallback)valent_share_plugin_handle_text_cb,
+                                           NULL);
     }
+  else
+    {
+      window = g_object_new (VALENT_TYPE_SHARE_TEXT_DIALOG,
+                             "body", name,
+                             "text", text,
+                             NULL);
+      g_signal_connect_data (window,
+                             "destroy",
+                             G_CALLBACK (g_ptr_array_remove),
+                             g_ptr_array_ref (self->windows),
+                             (void *)g_ptr_array_unref,
+                             G_CONNECT_SWAPPED);
+      g_ptr_array_add (self->windows, window);
 
-  dialog = g_object_new (GTK_TYPE_MESSAGE_DIALOG,
-                         "text",           "Shared Text",
-                         "secondary-text", text,
-                         "buttons",        GTK_BUTTONS_CLOSE,
-                         NULL);
-
-  g_signal_connect (dialog,
-                    "response",
-                    G_CALLBACK (gtk_window_destroy),
-                    NULL);
-
-  gtk_window_present_with_time (GTK_WINDOW (dialog), GDK_CURRENT_TIME);
+      gtk_window_present_with_time (window, GDK_CURRENT_TIME);
+    }
 }
 
 static void
@@ -1124,6 +1163,10 @@ valent_share_plugin_disable (ValentDevicePlugin *plugin)
 
   g_clear_object (&self->download);
   g_clear_object (&self->upload);
+
+  /* Close open windows */
+  g_ptr_array_foreach (self->windows, (void *)gtk_window_destroy, NULL);
+  g_ptr_array_remove_range (self->windows, 0, self->windows->len);
 
   valent_device_plugin_remove_menu_entries (plugin,
                                             items,
@@ -1208,6 +1251,7 @@ valent_share_plugin_finalize (GObject *object)
   ValentSharePlugin *self = VALENT_SHARE_PLUGIN (object);
 
   g_clear_pointer (&self->transfers, g_hash_table_unref);
+  g_clear_pointer (&self->windows, g_ptr_array_unref);
 
   G_OBJECT_CLASS (valent_share_plugin_parent_class)->finalize (object);
 }
@@ -1233,5 +1277,6 @@ valent_share_plugin_init (ValentSharePlugin *self)
                                            g_str_equal,
                                            g_free,
                                            g_object_unref);
+  self->windows = g_ptr_array_new ();
 }
 
