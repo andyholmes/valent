@@ -73,7 +73,6 @@ G_DEFINE_TYPE_WITH_CODE (ValentDeviceManager, valent_device_manager, G_TYPE_OBJE
 
 enum {
   PROP_0,
-  PROP_DATA,
   PROP_ID,
   PROP_NAME,
   N_PROPERTIES
@@ -685,8 +684,7 @@ valent_device_manager_initable_init (GInitable     *initable,
   ValentDeviceManager *self = VALENT_DEVICE_MANAGER (initable);
   const char *path = NULL;
 
-  if (self->data == NULL)
-    self->data = valent_data_new (NULL, NULL);
+  g_assert (VALENT_IS_DEVICE_MANAGER (self));
 
   /* Generate certificate */
   path = valent_data_get_config_path (self->data);
@@ -739,10 +737,6 @@ valent_device_manager_init_async (GAsyncInitable      *initable,
   const char *path = NULL;
 
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
-
-  /* Ensure we have a data manager */
-  if (self->data == NULL)
-    self->data = valent_data_new (NULL, NULL);
 
   task = g_task_new (initable, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_device_manager_init_async);
@@ -813,10 +807,6 @@ valent_device_manager_get_property (GObject    *object,
 
   switch (prop_id)
     {
-    case PROP_DATA:
-      g_value_set_object (value, self->data);
-      break;
-
     case PROP_ID:
       g_value_set_string (value, self->id);
       break;
@@ -840,10 +830,6 @@ valent_device_manager_set_property (GObject      *object,
 
   switch (prop_id)
     {
-    case PROP_DATA:
-      self->data = g_value_dup_object (value);
-      break;
-
     case PROP_NAME:
       valent_device_manager_set_name (self, g_value_get_string (value));
       break;
@@ -862,23 +848,6 @@ valent_device_manager_class_init (ValentDeviceManagerClass *klass)
   object_class->finalize = valent_device_manager_finalize;
   object_class->get_property = valent_device_manager_get_property;
   object_class->set_property = valent_device_manager_set_property;
-
-  /**
-   * ValentDeviceManager:data:
-   *
-   * The data context.
-   *
-   * Usually this is the root data context for the application.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_DATA] =
-    g_param_spec_object ("data", NULL, NULL,
-                         VALENT_TYPE_DATA,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
 
   /**
    * ValentDeviceManager:id: (getter get_id)
@@ -919,6 +888,7 @@ valent_device_manager_class_init (ValentDeviceManagerClass *klass)
 static void
 valent_device_manager_init (ValentDeviceManager *self)
 {
+  self->data = valent_data_new (NULL, NULL);
   self->devices = g_ptr_array_new_with_free_func (g_object_unref);
   self->services = g_hash_table_new_full (NULL,
                                           NULL,
