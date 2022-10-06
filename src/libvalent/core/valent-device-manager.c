@@ -936,10 +936,6 @@ valent_device_manager_new_sync (GCancellable  *cancellable,
  *
  * Asynchronously create a new #ValentDeviceManager.
  *
- * If given, @data will be used as the root [class@Valent.Data] for all
- * [class@Valent.ChannelService] implementations and [class@Valent.Device]
- * instances.
- *
  * When the manager is ready @callback will be invoked and you can use
  * [ctor@Valent.DeviceManager.new_finish] to get the result.
  *
