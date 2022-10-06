@@ -16,44 +16,15 @@ BUILDDIR="${BUILDDIR:=$WORKSPACE/_build}"
 # | Variable                   | meson setup                     |
 # |----------------------------|---------------------------------|
 # | CX_COMPILER                | Compiler Collection (gcc, llvm) |
-# | CX_PROFILE                 | Test Profile                    |
-#
-#
-# Setup Variables
-#
-# | Variable                   | meson setup                     |
-# |----------------------------|---------------------------------|
-# | CX_SETUP_BUILDTYPE         | --buildtype                     |
-# | CX_SETUP_COVERAGE          | -Db_coverage                    |
-# | CX_SETUP_SANITIZE          | -Db_sanitize                    |
-# | CX_SETUP_OPTIONS           | extra options                   |
-#
-#
-# Test Variables
-#
-# | Variable                   | meson test                      |
-# |----------------------------|---------------------------------|
-# | CX_TEST_REPEAT             | --repeat                        |
-# | CX_TEST_TIMEOUT_MULTIPLIER | --timeout-multiplier            |
-# | CX_TEST_OPTIONS            | extra options                   |
-#
-#
-# Other Variables
-#
-# | Variable                   | CLI flag                        |
-# |----------------------------|---------------------------------|
-# | CX_CPPCHECK_LIBRARY        | --library                       |
-# | CX_CPPCHECK_SUPPRESSIONS   | --timeout-multiplier            |
-# | CX_CPPCHECK_OPTIONS        | extra options                   |
-# | CX_LCOV_EXCLUDE_PATH       | glob paths to exclude           |
-# | CX_LCOV_INCLUDE_PATH       | glob paths to include           |
-#
+# | CX_SUITE                   | Test Profile                    |
+CX_COMPILER=${CX_COMPILER:=default}
+CX_SUITE=${CX_SUITE:=test}
 
 
 #
-# pretest
+# Profiles
 #
-cx_pre_test() {
+cx_suite_pretest() {
     if command -v pylint > /dev/null 2>&1; then
         # shellcheck disable=SC2046
         pylint --rcfile tests/extra/setup.cfg \
@@ -71,11 +42,7 @@ cx_pre_test() {
     fi
 }
 
-
-#
-# analyze
-#
-cx_analyze_abidiff_build() {
+cx_suite_abidiff_build() {
     TARGET_REF="${1}"
     TARGET_DIR="${2}"
 
@@ -85,36 +52,11 @@ cx_analyze_abidiff_build() {
     BUILDSUBDIR="${BUILDDIR}/$(git rev-parse "${TARGET_REF}")"
 
     if [ ! -d "${BUILDSUBDIR}" ]; then
-        meson setup --prefix=/usr \
+        # shellcheck disable=SC2086
+        meson setup --buildtype="${CX_SETUP_BUILDTYPE:=release}" \
+                    --prefix=/usr \
                     --libdir=lib \
-                    -Db_coverage=false \
-                    -Ddocumentation=false \
-                    -Dintrospection=false \
-                    -Dtests=false \
-                    -Dplugin_battery=false \
-                    -Dplugin_bluez=false \
-                    -Dplugin_clipboard=false \
-                    -Dplugin_contacts=false \
-                    -Dplugin_eds=false \
-                    -Dplugin_fdo=false \
-                    -Dplugin_findmyphone=false \
-                    -Dplugin_gtk=false \
-                    -Dplugin_lan=false \
-                    -Dplugin_lock=false \
-                    -Dplugin_mousepad=false \
-                    -Dplugin_mpris=false \
-                    -Dplugin_notification=false \
-                    -Dplugin_photo=false \
-                    -Dplugin_ping=false \
-                    -Dplugin_presenter=false \
-                    -Dplugin_pulseaudio=false \
-                    -Dplugin_runcommand=false \
-                    -Dplugin_sftp=false \
-                    -Dplugin_share=false \
-                    -Dplugin_sms=false \
-                    -Dplugin_systemvolume=false \
-                    -Dplugin_telephony=false \
-                    -Dplugin_xdp=false \
+                    ${CX_SETUP_ARGS} \
                     "${BUILDSUBDIR}"
     fi
 
@@ -122,7 +64,19 @@ cx_analyze_abidiff_build() {
     DESTDIR="${TARGET_DIR}" meson install -C "${BUILDSUBDIR}"
 }
 
-cx_analyze_abidiff() {
+#
+# PROFILE: abidiff
+#
+# Run the compiler's static analysis tool.
+#
+# The setup phase respects the following environment variables:
+#
+# | Variable                           | meson setup                         |
+# |------------------------------------|-------------------------------------|
+# | CX_SETUP_BUILDTYPE                 | --buildtype                         |
+# | CX_SETUP_ARGS                      | additional command-line arguments   |
+#
+cx_suite_abidiff() {
     # Ensure a log directory exists where it is expected
     mkdir -p "${BUILDDIR}/meson-logs"
 
@@ -140,8 +94,8 @@ cx_analyze_abidiff() {
     BASE_DIR="${BUILDDIR}/_base"
     HEAD_DIR="${BUILDDIR}/_head"
 
-    cx_analyze_abidiff_build "${BASE_REF}" "${BASE_DIR}" > /dev/null 2>&1
-    cx_analyze_abidiff_build "${HEAD_REF}" "${HEAD_DIR}" > /dev/null 2>&1
+    cx_suite_abidiff_build "${BASE_REF}" "${BASE_DIR}" > /dev/null 2>&1
+    cx_suite_abidiff_build "${HEAD_REF}" "${HEAD_DIR}" > /dev/null 2>&1
 
     # Run `abidiff`
     abidiff --drop-private-types \
@@ -155,16 +109,29 @@ cx_analyze_abidiff() {
     (cat "${BUILDDIR}/meson-logs/abidiff.log" && exit 1);
 }
 
-cx_analyze_cppcheck() {
+#
+# PROFILE: cppcheck
+#
+# Run the `cppcheck` tool on the source code.
+#
+# The profile respects the following environment variables:
+#
+# | Variable                           | CLI flag                            |
+# |------------------------------------|-------------------------------------|
+# | CX_CPPCHECK_LIBRARY                | --library                           |
+# | CX_CPPCHECK_SUPPRESSIONS           | --timeout-multiplier                |
+# | CX_CPPCHECK_ARGS                   | additional command-line arguments   |
+#
+cx_suite_cppcheck() {
     # Ensure a log directory exists where it is expected
     mkdir -p "${BUILDDIR}/meson-logs"
 
     if [ "${CX_CPPCHECK_LIBRARY}" != "" ]; then
-        CX_CPPCHECK_OPTIONS="${CX_CPPCHECK_OPTIONS} --library=${CX_CPPCHECK_LIBRARY}"
+        CX_CPPCHECK_ARGS="${CX_CPPCHECK_ARGS} --library=${CX_CPPCHECK_LIBRARY}"
     fi
 
     if [ "${CX_CPPCHECK_SUPPRESSIONS}" != "" ]; then
-        CX_CPPCHECK_OPTIONS="${CX_CPPCHECK_OPTIONS} --suppressions-list=${CX_CPPCHECK_SUPPRESSIONS}"
+        CX_CPPCHECK_ARGS="${CX_CPPCHECK_ARGS} --suppressions-list=${CX_CPPCHECK_SUPPRESSIONS}"
     fi
 
     # shellcheck disable=SC2086
@@ -172,67 +139,34 @@ cx_analyze_cppcheck() {
              --library=gtk \
              --quiet \
              --xml \
-             ${CX_CPPCHECK_OPTIONS} \
+             ${CX_CPPCHECK_ARGS} \
              src 2> "${BUILDDIR}/meson-logs/cppcheck.xml" || \
     (cppcheck-htmlreport --file "${BUILDDIR}/meson-logs/cppcheck.xml" \
                          --report-dir "${BUILDDIR}/meson-logs/cppcheck-html" \
                          --source-dir "${WORKSPACE}" && exit 1);
 }
 
-cx_analyze_gcc() {
-    export CC=gcc
-    export CC_LD=bfd
-    export CXX=g++
-    export CXX_LD=bfd
-    export CFLAGS="${CFLAGS} -fanalyzer"
-
-    # shellcheck disable=SC2086
-    meson setup --buildtype="${CX_SETUP_BUILDTYPE:=debug}" \
-                ${CX_SETUP_OPTIONS} \
-                "${BUILDDIR}" &&
-    meson compile -C "${BUILDDIR}"
-}
-
-cx_analyze_llvm() {
-    export CC=clang
-    export CC_LD=lld
-    export CXX=clang++
-    export CXX_LD=lld
-    export SCANBUILD="${WORKSPACE}/tests/extra/scanbuild.sh"
-
-    # shellcheck disable=SC2086
-    meson setup --buildtype="${CX_SETUP_BUILDTYPE:=debug}" \
-                ${CX_SETUP_OPTIONS} \
-                "${BUILDDIR}" &&
-    ninja -C "${BUILDDIR}" scan-build
-}
-
-cx_analyze() {
-    if [ "${CX_PROFILE}" = "abidiff" ]; then
-        cx_analyze_abidiff
-    elif [ "${CX_PROFILE}" = "cppcheck" ]; then
-        cx_analyze_cppcheck
-    elif [ "${CX_PROFILE}" = "gcc" ]; then
-        cx_analyze_gcc
-    elif [ "${CX_PROFILE}" = "llvm" ]; then
-        cx_analyze_llvm
-    else
-        echo "Unknown profile: ${CX_PROFILE}";
-        exit 1;
-    fi
-}
-
-
 #
-# test
+# PROFILE: coverage
 #
-cx_test_coverage() {
+# A custom lcov generator.
+#
+# If $BUILDDIR does not exist, `cx_suite_test()` will be called and relayed
+# any arguments passed to the function.
+#
+# The coverage phase respects the following environment variables:
+#
+# | Variable                           | lcov                                |
+# |------------------------------------|-------------------------------------|
+# | CX_LCOV_INCLUDE_PATH               | path glob to include                |
+# | CX_LCOV_EXCLUDE_PATH               | path glob to exclude                |
+#
+cx_suite_coverage() {
     if [ ! -d "${BUILDDIR}" ]; then
-        echo "No build directory found at '${BUILDDIR}'"
-        exit 1;
+        CX_SETUP_COVERAGE=true
+        cx_suite_test "${@}"
     fi
 
-    # Capture, filter and generate
     lcov --directory "${BUILDDIR}" \
          --capture \
          --initial \
@@ -247,7 +181,6 @@ cx_test_coverage() {
          --rc lcov_branch_coverage=1 \
          --output-file "${BUILDDIR}/meson-logs/coverage.info"
 
-    # Filter out tests and subprojects
     # shellcheck disable=SC2086
     lcov --extract "${BUILDDIR}/meson-logs/coverage.info" \
          "${CX_LCOV_INCLUDE_PATH}" \
@@ -258,7 +191,6 @@ cx_test_coverage() {
          --rc lcov_branch_coverage=1 \
          --output-file "${BUILDDIR}/meson-logs/coverage.info"
 
-    # Generate HTML
     genhtml --prefix "${WORKSPACE}" \
             --output-directory "${BUILDDIR}/meson-logs/coverage-html" \
             --title 'Code Coverage' \
@@ -268,8 +200,135 @@ cx_test_coverage() {
             "${BUILDDIR}/meson-logs/coverage.info"
 }
 
-cx_test() {
-    # Compiler Profiles
+#
+# PROFILE: test
+#
+# Setup a `meson` build directory at $BUILDDIR, compile the project and run the
+# test suite. Each phase can be configured with environment variables.
+#
+# The setup phase respects the following environment variables:
+#
+# | Variable                           | meson setup                         |
+# |------------------------------------|-------------------------------------|
+# | CX_SETUP_BUILDTYPE                 | --buildtype                         |
+# | CX_SETUP_COVERAGE                  | -Db_coverage                        |
+# | CX_SETUP_LUNDEF                    | -Db_lundef                          |
+# | CX_SETUP_NDEBUG                    | -Db_ndebug                          |
+# | CX_SETUP_SANITIZE                  | -Db_sanitize                        |
+# | CX_SETUP_ARGS                      | additional command-line arguments   |
+#
+#
+# The test phase respects the following environment variables:
+#
+# | Variable                           | meson test                          |
+# |------------------------------------|-------------------------------------|
+# | CX_TEST_REPEAT                     | --repeat                            |
+# | CX_TEST_TIMEOUT_MULTIPLIER         | --timeout-multiplier                |
+# | CX_TEST_ARGS                       | additional command-line arguments   |
+#
+cx_suite_test() {
+    if [ ! -d "${BUILDDIR}" ]; then
+        # shellcheck disable=SC2086
+        meson setup --buildtype="${CX_SETUP_BUILDTYPE:=debugoptimized}" \
+                    -Db_coverage="${CX_SETUP_COVERAGE:=false}" \
+                    -Db_lundef="${CX_SETUP_LUNDEF:=true}" \
+                    -Db_ndebug="${CX_SETUP_NDEBUG:=false}" \
+                    -Db_sanitize="${CX_SETUP_SANITIZE:=none}" \
+                    ${CX_SETUP_ARGS} \
+                    "${BUILDDIR}"
+    fi
+
+    # Build
+    meson compile -C "${BUILDDIR}"
+
+    # shellcheck disable=SC2086
+    dbus-run-session xvfb-run -d \
+    meson test -C "${BUILDDIR}" \
+               --print-errorlogs \
+               --repeat="${CX_TEST_REPEAT:=1}" \
+               --timeout-multiplier="${CX_TEST_TIMEOUT_MULTIPLIER:=1}" \
+               ${CX_TEST_ARGS} \
+               "${@}"
+}
+
+#
+# PROFILE: asan
+#
+# Run the "test" profile with AddressSantizer and UndefinedBehaviourSanitizer.
+#
+# The setup and test phases respect the same environment variables as the "test"
+# profile.
+#
+cx_suite_asan() {
+    CX_SETUP_SANITIZE="address,undefined"
+
+    # Clang needs `-Db_lundef=false` to use sanitizers
+    if [ "${CC}" = "clang" ]; then
+        CX_SETUP_LUNDEF=false
+    fi
+
+    # Chain-up to the test profile
+    export CX_TEST_TIMEOUT_MULTIPLIER=3
+    cx_suite_test "${@}"
+}
+
+#
+# PROFILE: tsan
+#
+# Run the "test" profile with ThreadSanitizer.
+#
+# The setup and test phases respect the same environment variables as the "test"
+# profile.
+#
+cx_suite_tsan() {
+    CX_SETUP_SANITIZE="thread"
+
+    # Clang needs `-Db_lundef=false` to use sanitizers
+    if [ "${CC}" = "clang" ]; then
+        CX_SETUP_LUNDEF=false
+    fi
+
+    # Chain-up to the test profile
+    export CX_TEST_TIMEOUT_MULTIPLIER=3
+    cx_suite_test "${@}"
+}
+
+#
+# PROFILE: analyzer
+#
+# Run the compiler's static analysis tool.
+#
+# The setup phase respects the following environment variables:
+#
+# | Variable                           | meson setup                         |
+# |------------------------------------|-------------------------------------|
+# | CX_SETUP_BUILDTYPE                 | --buildtype                         |
+# | CX_SETUP_ARGS                      | additional command-line arguments   |
+#
+cx_suite_analyzer() {
+    # GCC analyzer
+    if [ "${CC}" = "gcc" ]; then
+        export CFLAGS="${CFLAGS} -fanalyzer"
+
+        # shellcheck disable=SC2086
+        meson setup --buildtype="${CX_SETUP_BUILDTYPE:=debug}" \
+                    ${CX_SETUP_ARGS} \
+                    "${BUILDDIR}" &&
+        meson compile -C "${BUILDDIR}"
+
+    # clang-analyzer
+    elif [ "${CC}" = "clang" ]; then
+        export SCANBUILD="${WORKSPACE}/tests/extra/scanbuild.sh"
+
+        # shellcheck disable=SC2086
+        meson setup --buildtype="${CX_SETUP_BUILDTYPE:=debug}" \
+                    ${CX_SETUP_ARGS} \
+                    "${BUILDDIR}" &&
+        ninja -C "${BUILDDIR}" scan-build
+    fi
+}
+
+cx_main() {
     if [ "${CX_COMPILER}" = "gcc" ]; then
         export CC=gcc
         export CC_LD=bfd
@@ -282,71 +341,27 @@ cx_test() {
         export CXX_LD=lld
     fi
 
-    # Instrumentation Profiles
-    if [ "${CX_PROFILE}" = "asan" ]; then
-        CX_SETUP_SANITIZE=address,undefined
-        CX_TEST_REPEAT=1
-        CX_TEST_TIMEOUT=3
-    elif [ "${CX_PROFILE}" = "tsan" ]; then
-        CX_SETUP_SANITIZE=thread
-        CX_TEST_REPEAT=1
-        CX_TEST_TIMEOUT=3
-    fi
+    # Compiler Profiles
+    if [ "${CX_SUITE}" = "pretest" ]; then
+        cx_suite_pretest "${@}";
+    elif [ "${CX_SUITE}" = "test" ]; then
+        cx_suite_test "${@}";
+    elif [ "${CX_SUITE}" = "asan" ]; then
+        cx_suite_asan "${@}";
+    elif [ "${CX_SUITE}" = "tsan" ]; then
+        cx_suite_tsan "${@}";
+    elif [ "${CX_SUITE}" = "analyzer" ]; then
+        cx_suite_analyzer;
+    elif [ "${CX_SUITE}" = "coverage" ]; then
+        cx_suite_coverage "${@}";
 
-    # Clang needs `-Db_lundef=false` to use the sanitizers
-    if [ "${CX_SETUP_SANITIZE:=none}" != "none" ] && [ "${CC}" = "clang" ]; then
-        CX_SETUP_LUNDEF=false
-    fi
-
-    # Build
-    if [ ! -d "${BUILDDIR}" ]; then
-        # shellcheck disable=SC2086
-        meson setup --buildtype="${CX_SETUP_BUILDTYPE:=debugoptimized}" \
-                    -Db_coverage="${CX_SETUP_COVERAGE:=false}" \
-                    -Db_lundef="${CX_SETUP_LUNDEF:=true}" \
-                    -Db_sanitize="${CX_SETUP_SANITIZE:=none}" \
-                    ${CX_SETUP_OPTIONS} \
-                    "${BUILDDIR}"
-    fi
-
-    meson compile -C "${BUILDDIR}"
-
-    # Test
-    dbus-run-session \
-    xvfb-run -d \
-    meson test -C "${BUILDDIR}" \
-               --print-errorlogs \
-               --repeat="${CX_TEST_REPEAT:=1}" \
-               --timeout-multiplier="${CX_TEST_TIMEOUT:=1}" \
-               "${@}"
-
-    # Coverage (Optional)
-    if [ "${CX_SETUP_COVERAGE}" = "true" ]; then
-        cx_test_coverage;
+    # Other tools
+    elif [ "${CX_SUITE}" = "abidiff" ]; then
+        cx_suite_abidiff;
+    elif [ "${CX_SUITE}" = "cppcheck" ]; then
+        cx_suite_cppcheck;
     fi
 }
 
-
-#
-# The main function of the script, used to select a job and subjob to execute.
-# $1: the job ID
-# $2: the subjob ID
-#
-if [ "${1}" = "pre-test" ]; then
-    shift;
-    cx_pre_test;
-
-elif [ "${1}" = "analyze" ]; then
-    shift;
-    cx_analyze "${@}";
-elif [ "${1}" = "test" ]; then
-    shift;
-    cx_test "${@}";
-elif [ "${1}" = "" ]; then
-    echo "$(basename "${0}"): no command specified";
-    exit 2;
-else
-    echo "$(basename "${0}"): unknown command '${1}'";
-    exit 2;
-fi
+cx_main "${@}";
 
