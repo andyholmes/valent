@@ -24,12 +24,12 @@ jobs:
 
       - name: Build
         env:
-          CX_SETUP_COVERAGE: true
+          CX_SUITE: coverage
           CX_SETUP_OPTIONS: '-Ddocumentation=true -Dtests=true'
           CX_LCOV_INCLUDE_PATH: '${{ github.workspace }}/src/*'
           CX_LCOV_EXCLUDE_PATH: '*/tests/* */subprojects/*'
         run: |
-          ./tests/extra/ci-runner.sh test
+          ./tests/extra/ci-runner.sh
 
       - name: Report
         continue-on-error: true
