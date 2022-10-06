@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2022-09-06 22:55-0700\n"
+"POT-Creation-Date: 2022-10-03 12:35-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -46,13 +46,12 @@ msgstr ""
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
 #: data/ca.andyholmes.Valent.desktop.in.in:3
 #: src/libvalent/ui/valent-preferences-window.ui:13
-#: src/libvalent/ui/valent-window.ui:40
+#: src/libvalent/ui/valent-window.c:264 src/libvalent/ui/valent-window.ui:40
 msgid "Valent"
 msgstr ""
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:12
 #: data/ca.andyholmes.Valent.desktop.in.in:4
-#: src/libvalent/ui/valent-window.c:257
 msgid "Connect, control and sync devices"
 msgstr ""
 
@@ -150,7 +149,7 @@ msgid "Request Pairing"
 msgstr ""
 
 #: src/libvalent/ui/valent-device-panel.ui:225
-#: src/libvalent/ui/valent-window.c:121
+#: src/libvalent/ui/valent-window.c:122
 msgid "Disconnected"
 msgstr ""
 
@@ -248,16 +247,20 @@ msgid ""
 "network."
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:116
+#: src/libvalent/ui/valent-window.c:117
 msgid "Unpaired"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:126
+#: src/libvalent/ui/valent-window.c:127
 msgid "Connected"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:260
+#: src/libvalent/ui/valent-window.c:271
 msgid "translator-credits"
+msgstr ""
+
+#: src/libvalent/ui/valent-window.c:276
+msgid "Funded By"
 msgstr ""
 
 #: src/libvalent/ui/valent-window.ui:45
@@ -649,7 +652,7 @@ msgstr ""
 msgid "Share control of MPRISv2 players"
 msgstr ""
 
-#: src/plugins/mpris/valent-mpris-plugin.c:376
+#: src/plugins/mpris/valent-mpris-plugin.c:413
 msgid "Unknown"
 msgstr ""
 
@@ -665,13 +668,13 @@ msgstr ""
 #: src/plugins/presenter/valent-presenter-remote.c:91
 #: src/plugins/runcommand/valent-runcommand-editor.c:65
 #: src/plugins/runcommand/valent-runcommand-editor.ui:12
-#: src/plugins/runcommand/valent-runcommand-preferences.c:394
-#: src/plugins/share/valent-share-plugin.c:133
-#: src/plugins/share/valent-share-plugin.c:256
-#: src/plugins/share/valent-share-plugin.c:358
-#: src/plugins/share/valent-share-plugin.c:498
-#: src/plugins/share/valent-share-plugin.c:662
-#: src/plugins/share/valent-share-preferences.c:111
+#: src/plugins/runcommand/valent-runcommand-preferences.c:392
+#: src/plugins/share/valent-share-plugin.c:136
+#: src/plugins/share/valent-share-plugin.c:259
+#: src/plugins/share/valent-share-plugin.c:361
+#: src/plugins/share/valent-share-plugin.c:501
+#: src/plugins/share/valent-share-plugin.c:665
+#: src/plugins/share/valent-share-preferences.c:91
 #: src/plugins/share/valent-share-target-chooser.ui:24
 msgid "Cancel"
 msgstr ""
@@ -714,10 +717,10 @@ msgid "Failed to receive “%s” from %s"
 msgstr ""
 
 #: src/plugins/photo/valent-photo-plugin.c:57
-#: src/plugins/share/valent-share-plugin.c:117
-#: src/plugins/share/valent-share-plugin.c:243
-#: src/plugins/share/valent-share-plugin.c:345
-#: src/plugins/share/valent-share-plugin.c:482
+#: src/plugins/share/valent-share-plugin.c:120
+#: src/plugins/share/valent-share-plugin.c:246
+#: src/plugins/share/valent-share-plugin.c:348
+#: src/plugins/share/valent-share-plugin.c:485
 msgid "Transfer Failed"
 msgstr ""
 
@@ -757,7 +760,7 @@ msgstr ""
 
 #: src/plugins/presenter/valent-presenter-remote.c:90
 #: src/plugins/presenter/valent-presenter-remote.ui:81
-#: src/plugins/share/valent-share-preferences.c:110
+#: src/plugins/share/valent-share-preferences.c:90
 msgid "Open"
 msgstr ""
 
@@ -812,7 +815,7 @@ msgid "Select"
 msgstr ""
 
 #: src/plugins/runcommand/valent-runcommand-editor.ui:8
-#: src/plugins/runcommand/valent-runcommand-preferences.c:275
+#: src/plugins/runcommand/valent-runcommand-preferences.c:269
 msgid "Edit"
 msgstr ""
 
@@ -828,19 +831,19 @@ msgstr ""
 msgid "Run Command"
 msgstr ""
 
-#: src/plugins/runcommand/valent-runcommand-preferences.c:285
+#: src/plugins/runcommand/valent-runcommand-preferences.c:279
 msgid "Remove"
 msgstr ""
 
-#: src/plugins/runcommand/valent-runcommand-preferences.c:386
+#: src/plugins/runcommand/valent-runcommand-preferences.c:384
 msgid "Run Unrestricted?"
 msgstr ""
 
-#: src/plugins/runcommand/valent-runcommand-preferences.c:387
+#: src/plugins/runcommand/valent-runcommand-preferences.c:385
 msgid "Commands will be run on the host system without restriction."
 msgstr ""
 
-#: src/plugins/runcommand/valent-runcommand-preferences.c:395
+#: src/plugins/runcommand/valent-runcommand-preferences.c:393
 msgid "I Understand"
 msgstr ""
 
@@ -915,91 +918,91 @@ msgid "Port"
 msgstr ""
 
 #: src/plugins/share/share.plugin.desktop.in:7
-#: src/plugins/share/valent-share-plugin.c:661
+#: src/plugins/share/valent-share-plugin.c:664
 #: src/plugins/share/valent-share-preferences.ui:8
 msgid "Share"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:99
-#: src/plugins/share/valent-share-plugin.c:464
+#: src/plugins/share/valent-share-plugin.c:102
+#: src/plugins/share/valent-share-plugin.c:467
 msgid "Transferring Files"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:100
-#: src/plugins/share/valent-share-plugin.c:118
+#: src/plugins/share/valent-share-plugin.c:103
+#: src/plugins/share/valent-share-plugin.c:121
 #, c-format
 msgid "Receiving one file from %1$s"
 msgid_plural "Receiving %2$d files from %1$s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/plugins/share/valent-share-plugin.c:108
-#: src/plugins/share/valent-share-plugin.c:339
-#: src/plugins/share/valent-share-plugin.c:473
+#: src/plugins/share/valent-share-plugin.c:111
+#: src/plugins/share/valent-share-plugin.c:342
+#: src/plugins/share/valent-share-plugin.c:476
 msgid "Transfer Complete"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:109
+#: src/plugins/share/valent-share-plugin.c:112
 #, c-format
 msgid "Received one file from %1$s"
 msgid_plural "Received %2$d files from %1$s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/plugins/share/valent-share-plugin.c:151
+#: src/plugins/share/valent-share-plugin.c:154
 msgid "Open Folder"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:162
+#: src/plugins/share/valent-share-plugin.c:165
 msgid "Open File"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:233
-#: src/plugins/share/valent-share-plugin.c:333
+#: src/plugins/share/valent-share-plugin.c:236
+#: src/plugins/share/valent-share-plugin.c:336
 msgid "Transferring File"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:234
-#: src/plugins/share/valent-share-plugin.c:244
+#: src/plugins/share/valent-share-plugin.c:237
+#: src/plugins/share/valent-share-plugin.c:247
 #, c-format
 msgid "Opening “%s” from %s"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:334
-#: src/plugins/share/valent-share-plugin.c:346
+#: src/plugins/share/valent-share-plugin.c:337
+#: src/plugins/share/valent-share-plugin.c:349
 #, c-format
 msgid "Opening “%s” on %s"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:340
+#: src/plugins/share/valent-share-plugin.c:343
 #, c-format
 msgid "Opened “%s” on %s"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:465
-#: src/plugins/share/valent-share-plugin.c:483
+#: src/plugins/share/valent-share-plugin.c:468
+#: src/plugins/share/valent-share-plugin.c:486
 #, c-format
 msgid "Sending one file to %1$s"
 msgid_plural "Sending %2$d files to %1$s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/plugins/share/valent-share-plugin.c:474
+#: src/plugins/share/valent-share-plugin.c:477
 #, c-format
 msgid "Sent one file to %1$s"
 msgid_plural "Sent %2$d files to %1$s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/plugins/share/valent-share-plugin.c:660
+#: src/plugins/share/valent-share-plugin.c:663
 msgid "Share Files"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:903
+#: src/plugins/share/valent-share-plugin.c:906
 msgid "Send Files"
 msgstr ""
 
-#: src/plugins/share/valent-share-preferences.c:109
+#: src/plugins/share/valent-share-preferences.c:89
 msgid "Select download folder"
 msgstr ""
 
@@ -1025,6 +1028,23 @@ msgstr ""
 
 #: src/plugins/share/valent-share-target-chooser.ui:59
 msgid "No devices available."
+msgstr ""
+
+#: src/plugins/share/valent-share-text-dialog.ui:8
+#: src/plugins/share/valent-share-text-dialog.ui:14
+msgid "Shared Text"
+msgstr ""
+
+#: src/plugins/share/valent-share-text-dialog.ui:52
+msgid "_Close"
+msgstr ""
+
+#: src/plugins/share/valent-share-text-dialog.ui:53
+msgid "_Save"
+msgstr ""
+
+#: src/plugins/share/valent-share-text-dialog.ui:54
+msgid "_Copy"
 msgstr ""
 
 #: src/plugins/sms/sms.plugin.desktop.in:7
