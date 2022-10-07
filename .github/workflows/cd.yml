@@ -25,7 +25,7 @@ jobs:
       - name: Build
         env:
           CX_SUITE: coverage
-          CX_SETUP_OPTIONS: '-Ddocumentation=true -Dtests=true'
+          CX_SETUP_ARGS: '-Ddocumentation=true -Dtests=true'
           CX_LCOV_INCLUDE_PATH: '${{ github.workspace }}/src/*'
           CX_LCOV_EXCLUDE_PATH: '*/tests/* */subprojects/*'
         run: |
