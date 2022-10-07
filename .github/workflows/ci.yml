@@ -117,9 +117,12 @@ jobs:
 
     strategy:
       matrix:
-        suite:
-          - abidiff
-          - cppcheck
+        suite: [abidiff, cppcheck]
+        include:
+          - suite: abidiff
+            setup_args: '-Dintrospection=false -Dplugins=false'
+          - suite: cppcheck
+            setup_args: '-Dintrospection=false -Dtests=true'
       fail-fast: false
 
     steps:
@@ -131,7 +134,7 @@ jobs:
       - name: Analyze
         env:
           CX_SUITE: ${{ matrix.suite }}
-          CX_SETUP_ARGS: '-Dintrospection=false -Dtests=true'
+          CX_SETUP_ARGS: ${{ matrix.setup_args }}
           CX_CPPCHECK_LIBRARY: ${{ github.workspace }}/tests/extra/cppcheck.cfg
           CX_CPPCHECK_SUPPRESSIONS: ${{ github.workspace }}/tests/extra/cppcheck.supp
           CX_CPPCHECK_ARGS: -I${{ github.workspace}}/tests/fixtures
@@ -158,16 +161,16 @@ jobs:
         suite: [test, asan, tsan, analyzer]
         include:
           - suite: test
-            options: '-Dtests=true'
-            test_options: '--repeat=3'
+            setup_args: '-Dtests=true'
+            test_args: '--repeat=3'
           - suite: asan
-            options: '-Dintrospection=false -Dtests=true'
-            test_options: '--timeout-multiplier=3'
+            setup_args: '-Dintrospection=false -Dtests=true'
+            test_args: '--timeout-multiplier=3'
           - suite: tsan
-            options: '-Dintrospection=false -Dtests=true'
-            test_options: '--timeout-multiplier=3'
+            setup_args: '-Dintrospection=false -Dtests=true'
+            test_args: '--timeout-multiplier=3'
           - suite: analyzer
-            options: '-Dintrospection=false -Dtests=true'
+            setup_args: '-Dintrospection=false -Dtests=true'
       fail-fast: false
 
     steps:
@@ -181,8 +184,8 @@ jobs:
           CX_COMPILER: ${{ matrix.compiler }}
           CX_SUITE: ${{ matrix.suite }}
           CX_SETUP_COVERAGE: ${{ matrix.compiler == 'gcc' && matrix.suite == 'test' }}
-          CX_SETUP_ARGS: ${{ matrix.options }}
-          CX_TEST_ARGS: ${{ matrix.test_options }}
+          CX_SETUP_ARGS: ${{ matrix.setup_args }}
+          CX_TEST_ARGS: ${{ matrix.test_args }}
         run: |
           ./tests/extra/ci-runner.sh
 
