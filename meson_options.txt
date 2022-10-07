@@ -4,203 +4,207 @@
 
 # Documentation & Introspection
 option('documentation',
+  description: 'Build API documentation',
          type: 'boolean',
         value: false,
-  description: 'Build API documentation',
 )
 
 option('introspection',
+  description: 'Build introspection data',
          type: 'boolean',
         value: true,
-  description: 'Build introspection data',
 )
 
 option('firewalld',
+  description: 'Install firewalld configuration file',
          type: 'boolean',
         value: false,
-  description: 'Install firewalld configuration file',
 )
 
 
-# Debugging & Tests
+# Debugging
 option('profile',
+  description: 'Build profile (default, devel)',
          type: 'combo',
         value: 'default',
       choices: ['default', 'devel'],
-  description: 'Build profile (default, devel)',
 )
 
 option('tracing',
+  description: 'Enable trace logging',
          type: 'boolean',
         value: false,
-  description: 'Enable trace logging',
 )
 
+
+# Tests
 option('tests',
+  description: 'Build tests',
          type: 'boolean',
         value: false,
-  description: 'Build unit tests',
 )
 
 option('fuzz_tests',
+  description: 'Enable fuzzing tests',
          type: 'boolean',
         value: true,
-  description: 'Enable test fuzzing',
 )
 
 
-# Network Plugins
+# Plugins
+option('plugins',
+  description: 'Build plugins',
+         type: 'boolean',
+        value: true,
+)
+
+option('plugin_battery',
+  description: 'Enable Battery plugin',
+         type: 'boolean',
+        value: true,
+)
+
 option('plugin_bluez',
+  description: 'Enable Bluetooth Networking (Bluez)',
          type: 'boolean',
         value: false,
-  description: 'Enable Bluetooth Networking (Bluez)'
-)
-
-option('plugin_lan',
-         type: 'boolean',
-        value: true,
-  description: 'Enable LAN Networking'
-)
-
-
-# Device Plugins
-option('plugin_battery',
-         type: 'boolean',
-        value: true,
-  description: 'Enable Battery plugin'
 )
 
 option('plugin_clipboard',
+  description: 'Enable Clipboard plugin',
          type: 'boolean',
         value: true,
-  description: 'Enable Clipboard plugin'
 )
 
 option('plugin_connectivity_report',
+  description: 'Enable Connectivity Report plugin',
          type: 'boolean',
         value: true,
-  description: 'Enable Connectivity Report plugin',
 )
 
 option('plugin_contacts',
+  description: 'Enable Contacts plugin',
          type: 'boolean',
         value: true,
-  description: 'Enable Contacts plugin'
 )
 
-option('plugin_findmyphone',
-         type: 'boolean',
-        value: true,
-  description: 'Enable FindMyPhone plugin'
-)
-
-option('plugin_lock',
-         type: 'boolean',
-        value: true,
-  description: 'Enable Lock plugin'
-)
-
-option('plugin_mousepad',
-         type: 'boolean',
-        value: true,
-  description: 'Enable Mousepad plugin'
-)
-
-option('plugin_mpris',
-         type: 'boolean',
-        value: true,
-  description: 'Enable MPRIS plugin'
-)
-
-option('plugin_notification',
-         type: 'boolean',
-        value: true,
-  description: 'Enable Notifications plugin'
-)
-
-option('plugin_photo',
-         type: 'boolean',
-        value: true,
-  description: 'Enable Photo plugin'
-)
-
-option('plugin_ping',
-         type: 'boolean',
-        value: true,
-  description: 'Enable Ping plugin'
-)
-
-option('plugin_presenter',
-         type: 'boolean',
-        value: true,
-  description: 'Enable Presenter plugin'
-)
-
-option('plugin_runcommand',
-         type: 'boolean',
-        value: true,
-  description: 'Enable RunCommand plugin'
-)
-
-option('plugin_sftp',
-         type: 'boolean',
-        value: true,
-  description: 'Enable SFTP plugin'
-)
-
-option('plugin_share',
-         type: 'boolean',
-        value: true,
-  description: 'Enable Share plugin'
-)
-
-option('plugin_sms',
-         type: 'boolean',
-        value: true,
-  description: 'Enable SMS plugin'
-)
-
-option('plugin_systemvolume',
-         type: 'boolean',
-        value: true,
-  description: 'Enable SystemVolume plugin'
-)
-
-option('plugin_telephony',
-         type: 'boolean',
-        value: true,
-  description: 'Enable Telephony plugin'
-)
-
-
-# System Integration
 option('plugin_eds',
+  description: 'Enable Evolution Data Server support',
          type: 'boolean',
         value: true,
-  description: 'Enable Evolution Data Server support'
 )
 
 option('plugin_fdo',
+  description: 'Enable freedesktop.org support',
          type: 'boolean',
         value: true,
-  description: 'Enable freedesktop.org support'
+)
+
+option('plugin_findmyphone',
+  description: 'Enable FindMyPhone plugin',
+         type: 'boolean',
+        value: true,
 )
 
 option('plugin_gtk',
+  description: 'Enable Extra GTK support',
          type: 'boolean',
         value: true,
-  description: 'Enable Extra GTK support'
+)
+
+option('plugin_lan',
+  description: 'Enable LAN Networking',
+         type: 'boolean',
+        value: true,
+)
+
+option('plugin_lock',
+  description: 'Enable Lock plugin',
+         type: 'boolean',
+        value: true,
+)
+
+option('plugin_mousepad',
+  description: 'Enable Mousepad plugin',
+         type: 'boolean',
+        value: true,
+)
+
+option('plugin_mpris',
+  description: 'Enable MPRIS plugin',
+         type: 'boolean',
+        value: true,
+)
+
+option('plugin_notification',
+  description: 'Enable Notifications plugin',
+         type: 'boolean',
+        value: true,
+)
+
+option('plugin_photo',
+  description: 'Enable Photo plugin',
+         type: 'boolean',
+        value: true,
+)
+
+option('plugin_ping',
+  description: 'Enable Ping plugin',
+         type: 'boolean',
+        value: true,
+)
+
+option('plugin_presenter',
+  description: 'Enable Presenter plugin',
+         type: 'boolean',
+        value: true,
 )
 
 option('plugin_pulseaudio',
+  description: 'Enable PulseAudio support',
          type: 'boolean',
         value: true,
-  description: 'Enable PulseAudio support'
+)
+
+option('plugin_runcommand',
+  description: 'Enable RunCommand plugin',
+         type: 'boolean',
+        value: true,
+)
+
+option('plugin_sftp',
+  description: 'Enable SFTP plugin',
+         type: 'boolean',
+        value: true,
+)
+
+option('plugin_share',
+  description: 'Enable Share plugin',
+         type: 'boolean',
+        value: true,
+)
+
+option('plugin_sms',
+  description: 'Enable SMS plugin',
+         type: 'boolean',
+        value: true,
+)
+
+option('plugin_systemvolume',
+  description: 'Enable SystemVolume plugin',
+         type: 'boolean',
+        value: true,
+)
+
+option('plugin_telephony',
+  description: 'Enable Telephony plugin',
+         type: 'boolean',
+        value: true,
 )
 
 option('plugin_xdp',
+  description: 'Enable libportal support',
          type: 'boolean',
         value: true,
-  description: 'Enable libportal support'
 )
 

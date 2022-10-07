@@ -262,42 +262,9 @@ summary({
   'Documentation':         get_option('documentation'),
   'Introspection':         get_option('introspection'),
   'Optimization':          get_option('optimization'),
+  'Plugins':               get_option('plugins'),
   'Tests':                 get_option('tests'),
   'Tracing':               get_option('tracing'),
   'Debugging':             get_option('debug'),
 }, section: 'Build')
-
-summary({
-  'Bluetooth':             get_option('plugin_bluez'),
-  'LAN':                   get_option('plugin_lan'),
-}, section: 'Networking')
-
-summary({
-  'Battery':               get_option('plugin_battery'),
-  'Clipboard':             get_option('plugin_clipboard'),
-  'Connectivity Report':   get_option('plugin_connectivity_report'),
-  'Contacts':              get_option('plugin_contacts'),
-  'Find My Phone':         get_option('plugin_findmyphone'),
-  'Lock':                  get_option('plugin_lock'),
-  'Mousepad':              get_option('plugin_mousepad'),
-  'MPRIS':                 get_option('plugin_mpris'),
-  'Notification':          get_option('plugin_notification'),
-  'Photo':                 get_option('plugin_photo'),
-  'Ping':                  get_option('plugin_ping'),
-  'Presenter':             get_option('plugin_presenter'),
-  'Run Command':           get_option('plugin_runcommand'),
-  'SFTP':                  get_option('plugin_sftp'),
-  'Share':                 get_option('plugin_share'),
-  'SMS':                   get_option('plugin_sms'),
-  'System Volume':         get_option('plugin_systemvolume'),
-  'Telephony':             get_option('plugin_telephony'),
-}, section: 'Device Plugins')
-
-summary({
-  'Evolution Data Server': get_option('plugin_eds'),
-  'freedesktop.org':       get_option('plugin_fdo'),
-  'GTK':                   get_option('plugin_gtk'),
-  'PulseAudio':            get_option('plugin_pulseaudio'),
-  'XDP':                   get_option('plugin_xdp'),
-}, section: 'Integration')
 
