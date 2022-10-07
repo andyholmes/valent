@@ -8,16 +8,16 @@ plugins_static = []
 
 # Peas Plugins
 plugins = [
-  # Networking
-  'bluez',
-  'lan',
-
-  # Device Plugins
   'battery',
+  'bluez',
   'clipboard',
   'connectivity_report',
   'contacts',
+  'eds',
+  'fdo',
   'findmyphone',
+  'gtk',
+  'lan',
   'lock',
   'mousepad',
   'mpris',
@@ -25,25 +25,21 @@ plugins = [
   'photo',
   'ping',
   'presenter',
+  'pulseaudio',
   'runcommand',
   'sftp',
   'share',
   'sms',
   'systemvolume',
   'telephony',
-
-  # Integration
-  'eds',
-  'fdo',
-  'gtk',
-  'pulseaudio',
   'xdp',
 ]
 
-# Each plugin has it's own build
-foreach plugin : plugins
-  if get_option('plugin_' + plugin)
-    subdir(plugin)
-  endif
-endforeach
+if get_option('plugins')
+  foreach plugin : plugins
+    if get_option('plugin_@0@'.format(plugin))
+      subdir(plugin)
+    endif
+  endforeach
+endif
 
