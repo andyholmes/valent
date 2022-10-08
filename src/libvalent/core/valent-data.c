@@ -26,10 +26,10 @@ typedef struct
 {
   ValentData *parent;
 
-  char       *cache_path;
-  char       *config_path;
-  char       *data_path;
   char       *context;
+  GFile      *cache;
+  GFile      *config;
+  GFile      *data;
 } ValentDataPrivate;
 
 G_DEFINE_TYPE_WITH_PRIVATE (ValentData, valent_data, G_TYPE_OBJECT)
@@ -51,13 +51,15 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 
 static inline gboolean
-ensure_directory (const char *path)
+ensure_directory (GFile *dir)
 {
-  g_assert (path != NULL && *path != '\0');
+  g_assert (G_IS_FILE (dir));
 
-  if (g_mkdir_with_parents (path, 0700) == -1)
+  if (g_mkdir_with_parents (g_file_peek_path (dir), 0700) == -1)
     {
-      VALENT_NOTE ("Failed to create \"%s\": %s", path, g_strerror (errno));
+      VALENT_NOTE ("Failed to create \"%s\": %s",
+                   g_file_peek_path (dir),
+                   g_strerror (errno));
       return FALSE;
     }
 
@@ -113,27 +115,36 @@ valent_data_constructed (GObject *object)
       const char *base_path;
 
       base_path = valent_data_get_cache_path (priv->parent);
-      priv->cache_path = g_build_filename (base_path, priv->context, NULL);
+      priv->cache = g_file_new_build_filename (base_path,
+                                               priv->context,
+                                               NULL);
 
       base_path = valent_data_get_config_path (priv->parent);
-      priv->config_path = g_build_filename (base_path, priv->context, NULL);
+      priv->config = g_file_new_build_filename (base_path,
+                                                priv->context,
+                                                NULL);
 
       base_path = valent_data_get_data_path (priv->parent);
-      priv->data_path = g_build_filename (base_path, priv->context, NULL);
+      priv->data = g_file_new_build_filename (base_path,
+                                              priv->context,
+                                              NULL);
     }
   else
     {
-      priv->cache_path = g_build_filename (g_get_user_cache_dir (),
-                                           PACKAGE_NAME, priv->context,
-                                           NULL);
+      priv->cache = g_file_new_build_filename (g_get_user_cache_dir (),
+                                               PACKAGE_NAME,
+                                               priv->context,
+                                               NULL);
 
-      priv->config_path = g_build_filename (g_get_user_config_dir (),
-                                            PACKAGE_NAME, priv->context,
-                                            NULL);
+      priv->config = g_file_new_build_filename (g_get_user_config_dir (),
+                                                PACKAGE_NAME,
+                                                priv->context,
+                                                NULL);
 
-      priv->data_path = g_build_filename (g_get_user_data_dir (),
-                                          PACKAGE_NAME, priv->context,
-                                          NULL);
+      priv->data = g_file_new_build_filename (g_get_user_data_dir (),
+                                              PACKAGE_NAME,
+                                              priv->context,
+                                              NULL);
     }
 
   G_OBJECT_CLASS (valent_data_parent_class)->constructed (object);
@@ -145,9 +156,9 @@ valent_data_finalize (GObject *object)
   ValentData *self = VALENT_DATA (object);
   ValentDataPrivate *priv = valent_data_get_instance_private (self);
 
-  g_clear_pointer (&priv->cache_path, g_free);
-  g_clear_pointer (&priv->config_path, g_free);
-  g_clear_pointer (&priv->data_path, g_free);
+  g_clear_object (&priv->cache);
+  g_clear_object (&priv->config);
+  g_clear_object (&priv->data);
   g_clear_pointer (&priv->context, g_free);
   g_clear_object (&priv->parent);
 
@@ -379,9 +390,9 @@ valent_data_new_cache_file (ValentData *data,
   ValentDataPrivate *priv = valent_data_get_instance_private (data);
 
   g_return_val_if_fail (VALENT_IS_DATA (data), NULL);
-  g_return_val_if_fail (ensure_directory (priv->cache_path), NULL);
+  g_return_val_if_fail (ensure_directory (priv->cache), NULL);
 
-  return g_file_new_build_filename (priv->cache_path, filename, NULL);
+  return g_file_get_child (priv->cache, filename);
 }
 
 /**
@@ -400,9 +411,9 @@ valent_data_get_cache_path (ValentData *data)
   ValentDataPrivate *priv = valent_data_get_instance_private (data);
 
   g_return_val_if_fail (VALENT_IS_DATA (data), NULL);
-  g_return_val_if_fail (ensure_directory (priv->cache_path), NULL);
+  g_return_val_if_fail (ensure_directory (priv->cache), NULL);
 
-  return priv->cache_path;
+  return g_file_peek_path (priv->cache);
 }
 
 /**
@@ -426,9 +437,9 @@ valent_data_new_config_file (ValentData *data,
   ValentDataPrivate *priv = valent_data_get_instance_private (data);
 
   g_return_val_if_fail (VALENT_IS_DATA (data), NULL);
-  g_return_val_if_fail (ensure_directory (priv->config_path), NULL);
+  g_return_val_if_fail (ensure_directory (priv->config), NULL);
 
-  return g_file_new_build_filename (priv->config_path, filename, NULL);
+  return g_file_get_child (priv->config, filename);
 }
 
 /**
@@ -447,9 +458,9 @@ valent_data_get_config_path (ValentData *data)
   ValentDataPrivate *priv = valent_data_get_instance_private (data);
 
   g_return_val_if_fail (VALENT_IS_DATA (data), NULL);
-  g_return_val_if_fail (ensure_directory (priv->config_path), NULL);
+  g_return_val_if_fail (ensure_directory (priv->config), NULL);
 
-  return priv->config_path;
+  return g_file_peek_path (priv->config);
 }
 
 /**
@@ -493,9 +504,9 @@ valent_data_new_data_file (ValentData *data,
   ValentDataPrivate *priv = valent_data_get_instance_private (data);
 
   g_return_val_if_fail (VALENT_IS_DATA (data), NULL);
-  g_return_val_if_fail (ensure_directory (priv->data_path), NULL);
+  g_return_val_if_fail (ensure_directory (priv->data), NULL);
 
-  return g_file_new_build_filename (priv->data_path, filename, NULL);
+  return g_file_get_child (priv->data, filename);
 }
 
 /**
@@ -514,9 +525,9 @@ valent_data_get_data_path (ValentData *data)
   ValentDataPrivate *priv = valent_data_get_instance_private (data);
 
   g_return_val_if_fail (VALENT_IS_DATA (data), NULL);
-  g_return_val_if_fail (ensure_directory (priv->data_path), NULL);
+  g_return_val_if_fail (ensure_directory (priv->data), NULL);
 
-  return priv->data_path;
+  return g_file_peek_path (priv->data);
 }
 
 /**
@@ -555,13 +566,10 @@ valent_data_clear_cache (ValentData *data)
 {
   ValentDataPrivate *priv = valent_data_get_instance_private (data);
   g_autoptr (GError) error = NULL;
-  g_autoptr (GFile) directory = NULL;
 
   g_return_if_fail (VALENT_IS_DATA (data));
 
-  directory = g_file_new_for_path (priv->cache_path);
-
-  if (!remove_directory (directory, NULL, &error))
+  if (!remove_directory (priv->cache, NULL, &error))
     VALENT_NOTE ("Error deleting cache directory: %s", error->message);
 }
 
@@ -583,9 +591,6 @@ valent_data_clear_data (ValentData *data)
 {
   ValentDataPrivate *priv = valent_data_get_instance_private (data);
   g_autoptr (GError) error = NULL;
-  g_autoptr (GFile) cache_dir = NULL;
-  g_autoptr (GFile) config_dir = NULL;
-  g_autoptr (GFile) data_dir = NULL;
 
   g_return_if_fail (VALENT_IS_DATA (data));
 
@@ -593,25 +598,19 @@ valent_data_clear_data (ValentData *data)
   if (priv->context == NULL)
     return;
 
-  cache_dir = g_file_new_for_path (priv->cache_path);
-
-  if (!remove_directory (cache_dir, NULL, &error))
+  if (!remove_directory (priv->cache, NULL, &error))
     {
       VALENT_NOTE ("%s", error->message);
       g_clear_error (&error);
     }
 
-  config_dir = g_file_new_for_path (priv->config_path);
-
-  if (!remove_directory (config_dir, NULL, &error))
+  if (!remove_directory (priv->config, NULL, &error))
     {
       VALENT_NOTE ("%s", error->message);
       g_clear_error (&error);
     }
 
-  data_dir = g_file_new_for_path (priv->data_path);
-
-  if (!remove_directory (data_dir, NULL, &error))
+  if (!remove_directory (priv->data, NULL, &error))
     {
       VALENT_NOTE ("%s", error->message);
       g_clear_error (&error);
