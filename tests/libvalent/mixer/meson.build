@@ -24,6 +24,6 @@ foreach test : libvalent_mixer_tests
   test(test, test_program,
             env: tests_env,
     is_parallel: false,
-          suite: ['components', 'mixer'],
+          suite: ['libvalent', 'mixer'],
   )
 endforeach

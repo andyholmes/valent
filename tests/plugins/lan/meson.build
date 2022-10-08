@@ -23,7 +23,7 @@ foreach test : plugin_lan_tests
   test(test, test_program,
             env: tests_env,
     is_parallel: false,
-        suite: ['plugins', 'lan'],
+          suite: ['plugins', 'lan'],
   )
 endforeach
 
