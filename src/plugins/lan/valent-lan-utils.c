@@ -12,7 +12,7 @@
 #include "valent-lan-utils.h"
 
 
-/**
+/* < private >
  * valent_lan_configure_socket:
  * @connection: a #GSocketConnection
  *
@@ -55,38 +55,6 @@ valent_lan_configure_socket (GSocketConnection *connection)
 #endif /* TCP_KEEPIDLE && TCP_KEEPINTVL && TCP_KEEPCNT */
 }
 
-static gboolean
-certificate_from_device_id (const char       *device_id,
-                            GTlsCertificate **certificate,
-                            GError          **error)
-{
-  g_autoptr (GFile) file = NULL;
-
-  g_assert (device_id != NULL && *device_id != '\0');
-  g_assert (certificate != NULL && *certificate == NULL);
-  g_assert (error == NULL || *error == NULL);
-
-  file = g_file_new_build_filename (g_get_user_config_dir(), PACKAGE_NAME,
-                                    device_id, "certificate.pem",
-                                    NULL);
-
-  /* If no certificate exists we assume that's because the device is unpaired
-   * and we're going to validate the certificate with user interaction */
-  if (!g_file_query_exists (file, NULL))
-    return TRUE;
-
-  /* FIXME: handle the case of a corrupted certificate */
-  *certificate = g_tls_certificate_new_from_file (g_file_peek_path (file),
-                                                  error);
-
-  if (*certificate == NULL)
-    {
-      //g_file_delete (cert_file, NULL, NULL);
-      return FALSE;
-    }
-
-  return TRUE;
-}
 
 /*
  * The KDE Connect protocol follows a trust-on-first-use approach to TLS, so we
@@ -121,7 +89,7 @@ valent_lan_accept_certificate (GTlsConnection  *connection,
   return ret;
 }
 
-/**
+/* < private >
  * valent_lan_handshake_certificate:
  * @connection: a #GTlsConnection
  * @trusted: a #GTlsCertificate
@@ -161,7 +129,7 @@ valent_lan_handshake_certificate (GTlsConnection   *connection,
   return TRUE;
 }
 
-/**
+/* < private >
  * valent_lan_handshake_peer:
  * @connection: a #GTlsConnection
  * @cancellable: (nullable): a #GCancellable
@@ -185,23 +153,34 @@ valent_lan_handshake_peer (GTlsConnection  *connection,
                            GCancellable    *cancellable,
                            GError         **error)
 {
-  g_autoptr (GTlsCertificate) trusted = NULL;
-  GTlsCertificate *peer_cert;
+  g_autoptr (GFile) file = NULL;
+  g_autoptr (GTlsCertificate) peer_trusted = NULL;
+  GTlsCertificate *peer_certificate;
   const char *peer_id;
 
   if (!valent_lan_accept_certificate (connection, cancellable, error))
     return FALSE;
 
-  peer_cert = g_tls_connection_get_peer_certificate (connection);
-  peer_id = valent_certificate_get_common_name (peer_cert);
+  peer_certificate = g_tls_connection_get_peer_certificate (connection);
+  peer_id = valent_certificate_get_common_name (peer_certificate);
 
-  if (!certificate_from_device_id (peer_id, &trusted, error))
-    return FALSE;
+  /* If the certificate can not be found, assume that's because the device is
+   * unpaired and the certificate will be verified with user interaction */
+  file = g_file_new_build_filename (g_get_user_config_dir(), PACKAGE_NAME,
+                                    peer_id, "certificate.pem",
+                                    NULL);
 
-  if (trusted == NULL)
+  if (!g_file_query_exists (file, NULL))
     return TRUE;
 
-  if (!g_tls_certificate_is_same (trusted, peer_cert))
+  peer_trusted = g_tls_certificate_new_from_file (g_file_peek_path (file),
+                                                  error);
+
+  // TODO: handle the case of a corrupted certificate
+  if (peer_trusted == NULL)
+    return FALSE;
+
+  if (!g_tls_certificate_is_same (peer_trusted, peer_certificate))
     {
       g_set_error (error,
                    G_TLS_ERROR,
@@ -215,7 +194,7 @@ valent_lan_handshake_peer (GTlsConnection  *connection,
 }
 
 /**
- * valent_lan_encrypt_new_client:
+ * valent_lan_encrypt_client_connection:
  * @connection: a #GSocketConnection
  * @certificate: a #GTlsCertificate
  * @cancellable: (nullable): a #GCancellable
@@ -233,10 +212,10 @@ valent_lan_handshake_peer (GTlsConnection  *connection,
  * Returns: (transfer full) (nullable): a TLS encrypted #GIOStream
  */
 GIOStream *
-valent_lan_encrypt_new_client (GSocketConnection  *connection,
-                               GTlsCertificate    *certificate,
-                               GCancellable       *cancellable,
-                               GError            **error)
+valent_lan_encrypt_client_connection (GSocketConnection  *connection,
+                                      GTlsCertificate    *certificate,
+                                      GCancellable       *cancellable,
+                                      GError            **error)
 {
   g_autoptr (GSocketAddress) address = NULL;
   g_autoptr (GIOStream) tls_stream = NULL;
@@ -319,12 +298,12 @@ valent_lan_encrypt_client (GSocketConnection  *connection,
 
   valent_lan_configure_socket (connection);
 
-  /* We're the client when opening auxiliary connections */
   address = g_socket_connection_get_remote_address (connection, error);
 
   if (address == NULL)
     return NULL;
 
+  /* We're the client when opening auxiliary connections */
   tls_stream = g_tls_client_connection_new (G_IO_STREAM (connection),
                                             G_SOCKET_CONNECTABLE (address),
                                             error);
@@ -347,7 +326,7 @@ valent_lan_encrypt_client (GSocketConnection  *connection,
 }
 
 /**
- * valent_lan_encrypt_new_server:
+ * valent_lan_encrypt_server_connection:
  * @connection: a #GSocketConnection
  * @certificate: a #GTlsConnection
  * @cancellable: (nullable): a #GCancellable
@@ -365,10 +344,10 @@ valent_lan_encrypt_client (GSocketConnection  *connection,
  * Returns: (transfer full) (nullable): a TLS encrypted #GIOStream
  */
 GIOStream *
-valent_lan_encrypt_new_server (GSocketConnection  *connection,
-                               GTlsCertificate    *certificate,
-                               GCancellable       *cancellable,
-                               GError            **error)
+valent_lan_encrypt_server_connection (GSocketConnection  *connection,
+                                      GTlsCertificate    *certificate,
+                                      GCancellable       *cancellable,
+                                      GError            **error)
 {
   g_autoptr (GIOStream) tls_stream = NULL;
 

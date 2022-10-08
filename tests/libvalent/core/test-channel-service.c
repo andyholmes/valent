@@ -446,13 +446,13 @@ main (int   argc,
   g_test_add_func ("/core/channel-service/basic",
                    test_channel_service_basic);
 
-  g_test_add ("/core/channel-service/identify",
+  g_test_add ("/libvalent/core/channel-service/identify",
               ChannelServiceFixture, NULL,
               channel_service_fixture_set_up,
               test_channel_service_identify,
               channel_service_fixture_tear_down);
 
-  g_test_add ("/core/channel-service/channel",
+  g_test_add ("/libvalent/core/channel-service/channel",
               ChannelServiceFixture, NULL,
               channel_service_fixture_set_up,
               test_channel_service_channel,

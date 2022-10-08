@@ -77,7 +77,7 @@ main (int   argc,
 {
   valent_test_init (&argc, &argv, NULL);
 
-  g_test_add ("/core/application-plugin/basic",
+  g_test_add ("/libvalent/core/application-plugin/basic",
               ApplicationPluginFixture, NULL,
               application_fixture_set_up,
               test_application_plugin_basic,

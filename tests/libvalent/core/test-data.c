@@ -93,13 +93,13 @@ main (int   argc,
 {
   valent_test_init (&argc, &argv, NULL);
 
-  g_test_add ("/core/data/basic",
+  g_test_add ("/libvalent/core/data/basic",
               DataFixture, NULL,
               data_fixture_set_up,
               test_data_basic,
               data_fixture_tear_down);
 
-  g_test_add ("/core/data/directories",
+  g_test_add ("/libvalent/core/data/directories",
               DataFixture, NULL,
               data_fixture_set_up,
               test_data_directories,

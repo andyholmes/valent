@@ -53,24 +53,24 @@ G_BEGIN_DECLS
 #define VALENT_LAN_TRANSFER_PORT_MAX (1764)
 
 
-GIOStream * valent_lan_encrypt_new_client (GSocketConnection  *connection,
-                                           GTlsCertificate    *certificate,
-                                           GCancellable       *cancellable,
-                                           GError            **error);
-GIOStream * valent_lan_encrypt_client     (GSocketConnection  *connection,
-                                           GTlsCertificate    *certificate,
-                                           GTlsCertificate    *peer_cert,
-                                           GCancellable       *cancellable,
-                                           GError            **error);
-GIOStream * valent_lan_encrypt_new_server (GSocketConnection  *connection,
-                                           GTlsCertificate    *certificate,
-                                           GCancellable       *cancellable,
-                                           GError            **error);
-GIOStream * valent_lan_encrypt_server     (GSocketConnection  *connection,
-                                           GTlsCertificate    *certificate,
-                                           GTlsCertificate    *peer_cert,
-                                           GCancellable       *cancellable,
-                                           GError            **error);
+GIOStream * valent_lan_encrypt_client            (GSocketConnection  *connection,
+                                                  GTlsCertificate    *certificate,
+                                                  GTlsCertificate    *peer_cert,
+                                                  GCancellable       *cancellable,
+                                                  GError            **error);
+GIOStream * valent_lan_encrypt_client_connection (GSocketConnection  *connection,
+                                                  GTlsCertificate    *certificate,
+                                                  GCancellable       *cancellable,
+                                                  GError            **error);
+GIOStream * valent_lan_encrypt_server            (GSocketConnection  *connection,
+                                                  GTlsCertificate    *certificate,
+                                                  GTlsCertificate    *peer_cert,
+                                                  GCancellable       *cancellable,
+                                                  GError            **error);
+GIOStream * valent_lan_encrypt_server_connection (GSocketConnection  *connection,
+                                                  GTlsCertificate    *certificate,
+                                                  GCancellable       *cancellable,
+                                                  GError            **error);
 
 G_END_DECLS
 

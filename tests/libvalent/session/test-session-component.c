@@ -112,13 +112,13 @@ main (int   argc,
 {
   valent_test_init (&argc, &argv, NULL);
 
-  g_test_add ("/components/session/adapter",
+  g_test_add ("/libvalent/session/adapter",
               SessionComponentFixture, NULL,
               session_component_fixture_set_up,
               test_session_component_adapter,
               session_component_fixture_tear_down);
 
-  g_test_add ("/components/session/self",
+  g_test_add ("/libvalent/session/self",
               SessionComponentFixture, NULL,
               session_component_fixture_set_up,
               test_session_component_self,

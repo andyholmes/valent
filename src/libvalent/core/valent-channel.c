@@ -105,10 +105,10 @@ valent_channel_real_download (ValentChannel  *channel,
 }
 
 static void
-valent_channel_download_task (GTask        *task,
-                              gpointer      source_object,
-                              gpointer      task_data,
-                              GCancellable *cancellable)
+valent_channel_real_download_task (GTask        *task,
+                                   gpointer      source_object,
+                                   gpointer      task_data,
+                                   GCancellable *cancellable)
 {
   ValentChannel *self = source_object;
   JsonNode *packet = task_data;
@@ -147,7 +147,7 @@ valent_channel_real_download_async (ValentChannel       *channel,
   g_task_set_task_data (task,
                         json_node_ref (packet),
                         (GDestroyNotify)json_node_unref);
-  g_task_run_in_thread (task, valent_channel_download_task);
+  g_task_run_in_thread (task, valent_channel_real_download_task);
 }
 
 static GIOStream *

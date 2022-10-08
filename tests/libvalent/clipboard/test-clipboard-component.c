@@ -344,13 +344,13 @@ main (int   argc,
 {
   valent_test_init (&argc, &argv, NULL);
 
-  g_test_add ("/components/clipboard/adapter",
+  g_test_add ("/libvalent/clipboard/adapter",
               ClipboardComponentFixture, NULL,
               clipboard_component_fixture_set_up,
               test_clipboard_component_adapter,
               clipboard_component_fixture_tear_down);
 
-  g_test_add ("/components/clipboard/self",
+  g_test_add ("/libvalent/clipboard/self",
               ClipboardComponentFixture, NULL,
               clipboard_component_fixture_set_up,
               test_clipboard_component_self,

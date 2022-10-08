@@ -97,13 +97,13 @@ main (int   argc,
 {
   valent_test_init (&argc, &argv, NULL);
 
-  g_test_add ("/components/input/adapter",
+  g_test_add ("/libvalent/input/adapter",
               InputComponentFixture, NULL,
               input_component_fixture_set_up,
               test_input_component_adapter,
               input_component_fixture_tear_down);
 
-  g_test_add ("/components/input/self",
+  g_test_add ("/libvalent/input/self",
               InputComponentFixture, NULL,
               input_component_fixture_set_up,
               test_input_component_self,
