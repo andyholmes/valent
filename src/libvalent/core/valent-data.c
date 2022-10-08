@@ -40,13 +40,9 @@ G_DEFINE_TYPE_WITH_PRIVATE (ValentData, valent_data, G_TYPE_OBJECT)
  * The virtual function table for #ValentData.
  */
 
-
 enum {
   PROP_0,
-  PROP_CACHE_PATH,
-  PROP_CONFIG_PATH,
   PROP_CONTEXT,
-  PROP_DATA_PATH,
   PROP_PARENT,
   N_PROPERTIES
 };
@@ -168,20 +164,8 @@ valent_data_get_property (GObject    *object,
 
   switch (prop_id)
     {
-    case PROP_CACHE_PATH:
-      g_value_set_string (value, valent_data_get_cache_path (self));
-      break;
-
-    case PROP_CONFIG_PATH:
-      g_value_set_string (value, valent_data_get_config_path (self));
-      break;
-
     case PROP_CONTEXT:
       g_value_set_string (value, valent_data_get_context (self));
-      break;
-
-    case PROP_DATA_PATH:
-      g_value_set_string (value, valent_data_get_data_path (self));
       break;
 
     case PROP_PARENT:
@@ -228,34 +212,6 @@ valent_data_class_init (ValentDataClass *klass)
   object_class->set_property = valent_data_set_property;
 
   /**
-   * ValentData:cache-path: (getter get_cache_path)
-   *
-   * Path to the cache directory.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_CACHE_PATH] =
-    g_param_spec_string ("cache-path", NULL, NULL,
-                         NULL,
-                         (G_PARAM_READABLE |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentData:config-path: (getter get_config_path)
-   *
-   * Path to the config directory.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_CONFIG_PATH] =
-    g_param_spec_string ("config-path", NULL, NULL,
-                         NULL,
-                         (G_PARAM_READABLE |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
-
-  /**
    * ValentData:context: (getter get_context)
    *
    * The specific context for this #ValentData.
@@ -271,20 +227,6 @@ valent_data_class_init (ValentDataClass *klass)
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentData:data-path: (getter get_data_path)
-   *
-   * Path to the data directory.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_DATA_PATH] =
-    g_param_spec_string ("data-path", NULL, NULL,
-                         NULL,
-                         (G_PARAM_READABLE |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
@@ -423,8 +365,8 @@ valent_data_get_file (const char *dirname,
  *
  * Create a new cache file.
  *
- * This method creates a new [iface@Gio.File] for @filename in the
- * [property@Valent.Data:cache-path].
+ * This method creates a new [iface@Gio.File] for @filename in the cache
+ * directory.
  *
  * Returns: (transfer full) (nullable): a new #GFile
  *
@@ -443,7 +385,7 @@ valent_data_new_cache_file (ValentData *data,
 }
 
 /**
- * valent_data_get_cache_path: (get-property cache-path)
+ * valent_data_get_cache_path:
  * @data: a #ValentData
  *
  * Get the path to the cache directory.
@@ -470,8 +412,8 @@ valent_data_get_cache_path (ValentData *data)
  *
  * Create a new config file.
  *
- * This method creates a new [iface@Gio.File] for @filename in the
- * [property@Valent.Data:config-path].
+ * This method creates a new [iface@Gio.File] for @filename in the config
+ * directory.
  *
  * Returns: (transfer full) (nullable): a new #GFile
  *
@@ -490,7 +432,7 @@ valent_data_new_config_file (ValentData *data,
 }
 
 /**
- * valent_data_get_config_path: (get-property config-path)
+ * valent_data_get_config_path:
  * @data: a #ValentData
  *
  * Get the path to the config directory.
@@ -537,8 +479,8 @@ valent_data_get_context (ValentData *data)
  *
  * Create a new data file.
  *
- * This method creates a new [iface@Gio.File] for @filename in the
- * [property@Valent.Data:data-path].
+ * This method creates a new [iface@Gio.File] for @filename in the data
+ * directory.
  *
  * Returns: (transfer full) (nullable): a new #GFile
  *
@@ -557,7 +499,7 @@ valent_data_new_data_file (ValentData *data,
 }
 
 /**
- * valent_data_get_data_path: (get-property data-path)
+ * valent_data_get_data_path:
  * @data: a #ValentData
  *
  * Get the path to the data directory.
@@ -604,7 +546,7 @@ valent_data_get_parent (ValentData *data)
  *
  * Clear cache data.
  *
- * The method will remove all files in the [property@Valent.Data:cache-path].
+ * The method will remove all files in the cache directory.
  *
  * Since: 1.0
  */
@@ -629,9 +571,7 @@ valent_data_clear_cache (ValentData *data)
  *
  * Delete all files in the cache, config and data directories for @data.
  *
- * The method will remove all files in the [property@Valent.Data:cache-path],
- * [property@Valent.Data:config-path] and [property@Valent.Data:data-path]
- * directories.
+ * The method will remove all files in the cache, config and data directories.
  *
  * This is a no-op for the root #ValentData object, since it would wipe all data
  * for all contexts.
