@@ -59,7 +59,7 @@ test_share_text_dialog_copy (void)
     g_main_context_iteration (NULL, FALSE);
 }
 
-static void
+VALENT_NO_ASAN static void
 test_share_text_dialog_save (void)
 {
   GtkWindow *window = NULL;
@@ -99,13 +99,11 @@ main (int   argc,
                    test_share_text_dialog_copy);
 
   // FIXME: Settings schema 'org.gtk.gtk4.Settings.FileChooser' is not installed
-#if !(WITH_ASAN)
   if (!valent_in_flatpak ())
     {
       g_test_add_func ("/plugins/share/text-dialog-save",
                        test_share_text_dialog_save);
     }
-#endif
 
   return g_test_run ();
 }
