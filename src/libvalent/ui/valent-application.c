@@ -292,7 +292,7 @@ refresh_action (GSimpleAction *action,
 
   g_assert (VALENT_IS_APPLICATION (self));
 
-  valent_device_manager_identify (self->manager, NULL);
+  valent_device_manager_refresh (self->manager);
 }
 
 static void

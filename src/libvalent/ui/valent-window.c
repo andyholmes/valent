@@ -338,7 +338,7 @@ refresh_action (GtkWidget  *widget,
   if (self->refresh_id > 0)
     return;
 
-  valent_device_manager_identify (self->manager, NULL);
+  valent_device_manager_refresh (self->manager);
   self->refresh_id = g_timeout_add_seconds (5, refresh_cb, self);
 }
 
