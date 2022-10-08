@@ -40,10 +40,6 @@ test_c_args = [
     join_paths(meson.project_source_root(), 'doc', 'schemas')),
   '-DTEST_DATA_DIR="@0@"'.format(
     join_paths (meson.current_source_dir(), 'data')),
-  # Some tests may need to be skipped under certain sanitizers
-  '-DWITH_ASAN=@0@'.format(get_option('b_sanitize').contains('address')),
-  '-DWITH_TSAN=@0@'.format(get_option('b_sanitize').contains('thread')),
-  '-DWITH_UBSAN=@0@'.format(get_option('b_sanitize').contains('undefined')),
 ]
 
 test_link_args = [
