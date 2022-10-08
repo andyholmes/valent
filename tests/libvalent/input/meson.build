@@ -24,6 +24,6 @@ foreach test : libvalent_input_tests
   test(test, test_program,
             env: tests_env,
     is_parallel: false,
-          suite: ['components', 'input'],
+          suite: ['libvalent', 'input'],
   )
 endforeach

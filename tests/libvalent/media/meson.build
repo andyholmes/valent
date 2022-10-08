@@ -24,6 +24,6 @@ foreach test : libvalent_media_tests
   test(test, test_program,
             env: tests_env,
     is_parallel: false,
-          suite: ['components', 'media'],
+          suite: ['libvalent', 'media'],
   )
 endforeach

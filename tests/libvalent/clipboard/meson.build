@@ -24,6 +24,6 @@ foreach test : libvalent_clipboard_tests
   test(test, test_program,
             env: tests_env,
     is_parallel: false,
-          suite: ['components', 'clipboard'],
+          suite: ['libvalent', 'clipboard'],
   )
 endforeach

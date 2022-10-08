@@ -30,6 +30,6 @@ foreach test : libvalent_ui_tests
   test(test, test_program,
             env: tests_env,
     is_parallel: false,
-          suite: 'ui',
+          suite: ['libvalent', 'ui'],
   )
 endforeach
