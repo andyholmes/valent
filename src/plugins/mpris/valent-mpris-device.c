@@ -352,7 +352,7 @@ valent_mpris_device_request_album_art (ValentMprisDevice *self,
 
   data = valent_device_ref_data (self->device);
   filename = g_compute_checksum_for_string (G_CHECKSUM_MD5, url, -1);
-  file = valent_data_new_cache_file (data, filename);
+  file = valent_data_create_cache_file (data, filename);
 
   /* If the album art has been cached, update the metadata dictionary */
   if (g_file_query_exists (file, NULL))

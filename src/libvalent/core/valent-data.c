@@ -370,7 +370,7 @@ valent_data_get_file (const char *dirname,
 }
 
 /**
- * valent_data_new_cache_file:
+ * valent_data_create_cache_file:
  * @data: a #ValentData
  * @filename: (type filename): a filename
  *
@@ -384,13 +384,14 @@ valent_data_get_file (const char *dirname,
  * Since: 1.0
  */
 GFile *
-valent_data_new_cache_file (ValentData *data,
-                            const char *filename)
+valent_data_create_cache_file (ValentData *data,
+                               const char *filename)
 {
   ValentDataPrivate *priv = valent_data_get_instance_private (data);
 
   g_return_val_if_fail (VALENT_IS_DATA (data), NULL);
   g_return_val_if_fail (ensure_directory (priv->cache), NULL);
+  g_return_val_if_fail (filename != NULL && *filename != '\0', NULL);
 
   return g_file_get_child (priv->cache, filename);
 }
@@ -417,7 +418,7 @@ valent_data_get_cache_path (ValentData *data)
 }
 
 /**
- * valent_data_new_config_file:
+ * valent_data_create_config_file:
  * @data: a #ValentData
  * @filename: (type filename): a filename
  *
@@ -431,13 +432,14 @@ valent_data_get_cache_path (ValentData *data)
  * Since: 1.0
  */
 GFile *
-valent_data_new_config_file (ValentData *data,
-                             const char *filename)
+valent_data_create_config_file (ValentData *data,
+                                const char *filename)
 {
   ValentDataPrivate *priv = valent_data_get_instance_private (data);
 
   g_return_val_if_fail (VALENT_IS_DATA (data), NULL);
   g_return_val_if_fail (ensure_directory (priv->config), NULL);
+  g_return_val_if_fail (filename != NULL && *filename != '\0', NULL);
 
   return g_file_get_child (priv->config, filename);
 }
@@ -484,7 +486,7 @@ valent_data_get_context (ValentData *data)
 }
 
 /**
- * valent_data_new_data_file:
+ * valent_data_create_data_file:
  * @data: a #ValentData
  * @filename: (type filename): a filename
  *
@@ -498,13 +500,14 @@ valent_data_get_context (ValentData *data)
  * Since: 1.0
  */
 GFile *
-valent_data_new_data_file (ValentData *data,
-                           const char *filename)
+valent_data_create_data_file (ValentData *data,
+                              const char *filename)
 {
   ValentDataPrivate *priv = valent_data_get_instance_private (data);
 
   g_return_val_if_fail (VALENT_IS_DATA (data), NULL);
   g_return_val_if_fail (ensure_directory (priv->data), NULL);
+  g_return_val_if_fail (filename != NULL && *filename != '\0', NULL);
 
   return g_file_get_child (priv->data, filename);
 }

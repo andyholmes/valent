@@ -72,16 +72,16 @@ test_data_directories (DataFixture   *fixture,
   g_assert_false (g_file_test (data_path, G_FILE_TEST_IS_DIR));
 
   /* Cache, Config, Data file */
-  cache_file = valent_data_new_cache_file (fixture->data, "filename.ext");
+  cache_file = valent_data_create_cache_file (fixture->data, "filename.ext");
   g_assert_true (G_IS_FILE (cache_file));
 
-  config_file = valent_data_new_config_file (fixture->data, "filename.ext");
+  config_file = valent_data_create_config_file (fixture->data, "filename.ext");
   g_assert_true (G_IS_FILE (config_file));
 
-  data_file = valent_data_new_data_file (fixture->data, "filename.ext");
+  data_file = valent_data_create_data_file (fixture->data, "filename.ext");
   g_assert_true (G_IS_FILE (data_file));
 
-  /* Parent directories should be created by valent_data_new_*_file() */
+  /* Parent directories should be created by valent_data_create_*_file() */
   g_assert_true (g_file_test (cache_path, G_FILE_TEST_IS_DIR));
   g_assert_true (g_file_test (config_path, G_FILE_TEST_IS_DIR));
   g_assert_true (g_file_test (data_path, G_FILE_TEST_IS_DIR));

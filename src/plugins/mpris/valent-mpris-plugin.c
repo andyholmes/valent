@@ -569,7 +569,7 @@ valent_mpris_plugin_receive_album_art (ValentMprisPlugin *self,
   device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
   data = valent_device_ref_data (device);
   filename = g_compute_checksum_for_string (G_CHECKSUM_MD5, url, -1);
-  file = valent_data_new_cache_file (data, filename);
+  file = valent_data_create_cache_file (data, filename);
 
   transfer = valent_device_transfer_new_for_file (device, packet, file);
   valent_transfer_execute (transfer,
