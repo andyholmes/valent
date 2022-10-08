@@ -374,31 +374,31 @@ main (int   argc,
 
   g_test_add_func ("/core/manager/new", test_manager_new);
 
-  g_test_add ("/core/manager/basic",
+  g_test_add ("/libvalent/core/device-manager/basic",
               ManagerFixture, NULL,
               manager_fixture_set_up,
               test_manager_basic,
               manager_fixture_tear_down);
 
-  g_test_add ("/core/manager/management",
+  g_test_add ("/libvalent/core/device-manager/management",
               ManagerFixture, NULL,
               manager_fixture_set_up,
               test_manager_management,
               manager_fixture_tear_down);
 
-  g_test_add ("/core/manager/identify-uri",
+  g_test_add ("/libvalent/core/device-manager/identify-uri",
               ManagerFixture, NULL,
               manager_fixture_set_up,
               test_manager_identify_uri,
               manager_fixture_tear_down);
 
-  g_test_add ("/core/manager/dbus",
+  g_test_add ("/libvalent/core/device-manager/dbus",
               ManagerFixture, NULL,
               manager_fixture_set_up,
               test_manager_dbus,
               manager_fixture_tear_down);
 
-  g_test_add ("/core/manager/dispose",
+  g_test_add ("/libvalent/core/device-manager/dispose",
               ManagerFixture, NULL,
               manager_fixture_set_up,
               test_manager_dispose,

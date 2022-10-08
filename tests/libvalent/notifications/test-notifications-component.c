@@ -198,19 +198,19 @@ main (int   argc,
 {
   valent_test_init (&argc, &argv, NULL);
 
-  g_test_add ("/components/notifications/adapter",
+  g_test_add ("/libvalent/notifications/adapter",
               NotificationsComponentFixture, NULL,
               notifications_component_fixture_set_up,
               test_notifications_component_adapter,
               notifications_component_fixture_tear_down);
 
-  g_test_add ("/components/notifications/notification",
+  g_test_add ("/libvalent/notifications/notification",
               NotificationsComponentFixture, NULL,
               notifications_component_fixture_set_up,
               test_notifications_component_notification,
               notifications_component_fixture_tear_down);
 
-  g_test_add ("/components/notifications/self",
+  g_test_add ("/libvalent/notifications/self",
               NotificationsComponentFixture, NULL,
               notifications_component_fixture_set_up,
               test_notifications_component_self,

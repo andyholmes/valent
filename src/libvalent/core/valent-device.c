@@ -1703,7 +1703,7 @@ valent_device_get_plugins (ValentDevice *device)
  *
  * Get the state of the device.
  *
- * Returns: #ValentDeviceStateFlags describing the state of the device
+ * Returns: #ValentDeviceState flags describing the state of the device
  *
  * Since: 1.0
  */
@@ -1792,8 +1792,6 @@ valent_device_handle_packet (ValentDevice *device,
  *
  * Check each available plugin and load or unload them if the required
  * capabilities have changed.
- *
- * Since: 1.0
  */
 static void
 valent_device_reload_plugins (ValentDevice *device)
@@ -1820,8 +1818,6 @@ valent_device_reload_plugins (ValentDevice *device)
  * Update all plugins.
  *
  * Call [method@Valent.DevicePlugin.update_state] on each enabled plugin.
- *
- * Since: 1.0
  */
 static void
 valent_device_update_plugins (ValentDevice *device)
@@ -1854,8 +1850,6 @@ valent_device_update_plugins (ValentDevice *device)
  * Check if @device supports the plugin described by @info.
  *
  * Returns: %TRUE if supported, or %FALSE if not
- *
- * Since: 1.0
  */
 static gboolean
 valent_device_supports_plugin (ValentDevice   *device,

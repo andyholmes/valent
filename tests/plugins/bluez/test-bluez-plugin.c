@@ -380,14 +380,14 @@ main (int   argc,
   g_type_ensure (VALENT_TYPE_BLUEZ_CHANNEL);
   g_type_ensure (VALENT_TYPE_BLUEZ_CHANNEL_SERVICE);
 
-  g_test_add ("/plugin/bluez/new-connection",
+  g_test_add ("/plugins/bluez/new-connection",
               BluezBackendFixture, NULL,
               bluez_service_fixture_set_up,
               test_bluez_service_new_connection,
               bluez_service_fixture_tear_down);
 
 #if 0
-  g_test_add ("/backends/bluez-backend/channel",
+  g_test_add ("/plugins/bluez/channel",
               BluezBackendFixture, NULL,
               bluez_service_fixture_set_up,
               test_bluez_service_channel,

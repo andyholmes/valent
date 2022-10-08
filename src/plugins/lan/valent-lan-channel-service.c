@@ -205,7 +205,7 @@ on_incoming_connection (ValentChannelService   *service,
       if (!g_error_matches (warning, G_IO_ERROR, G_IO_ERROR_CANCELLED))
         g_warning ("%s(): %s", G_STRFUNC, warning->message);
       else if (!g_cancellable_is_cancelled (cancellable))
-        g_warning ("%s(): timed out waiting for identity packet", G_STRFUNC);
+        g_warning ("%s(): timed out waiting for peer identity", G_STRFUNC);
 
       g_cancellable_disconnect (cancellable, cancellable_id);
 
@@ -227,10 +227,10 @@ on_incoming_connection (ValentChannelService   *service,
   certificate = g_object_ref (self->certificate);
   valent_object_unlock (VALENT_OBJECT (self));
 
-  tls_stream = valent_lan_encrypt_new_client (connection,
-                                              certificate,
-                                              timeout,
-                                              &warning);
+  tls_stream = valent_lan_encrypt_client_connection (connection,
+                                                     certificate,
+                                                     timeout,
+                                                     &warning);
 
   if (tls_stream == NULL)
     {
@@ -457,10 +457,10 @@ on_incoming_broadcast (ValentLanChannelService  *self,
   certificate = g_object_ref (self->certificate);
   valent_object_unlock (VALENT_OBJECT (self));
 
-  tls_stream = valent_lan_encrypt_new_server (connection,
-                                              certificate,
-                                              cancellable,
-                                              &warning);
+  tls_stream = valent_lan_encrypt_server_connection (connection,
+                                                     certificate,
+                                                     cancellable,
+                                                     &warning);
 
   if (tls_stream == NULL)
     {
@@ -529,16 +529,18 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
 {
   g_autoptr (GSocket) socket4 = NULL;
   g_autoptr (GSocket) socket6 = NULL;
+  guint16 port = VALENT_LAN_PROTOCOL_PORT;
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
 
   valent_object_lock (VALENT_OBJECT (self));
-
   if (self->udp_socket6 || self->udp_socket4)
     {
       valent_object_unlock (VALENT_OBJECT (self));
       return TRUE;
     }
+  port = self->port;
+  valent_object_unlock (VALENT_OBJECT (self));
 
   /* first try to create an IPv6 socket */
   socket6 = g_socket_new (G_SOCKET_FAMILY_IPV6,
@@ -554,17 +556,12 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
 
       /* Bind the port */
       inet_address = g_inet_address_new_any (G_SOCKET_FAMILY_IPV6);
-      address = g_inet_socket_address_new (inet_address, self->port);
+      address = g_inet_socket_address_new (inet_address, port);
 
       if (g_socket_bind (socket6, address, TRUE, error))
-        {
-          g_socket_set_broadcast (socket6, TRUE);
-        }
+        g_socket_set_broadcast (socket6, TRUE);
       else
-        {
-          valent_object_unlock (VALENT_OBJECT (self));
-          return FALSE;
-        }
+        return FALSE;
 
       /* Watch the socket for incoming identity packets */
       task = g_task_new (self, cancellable, NULL, NULL);
@@ -572,14 +569,13 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
       g_task_set_task_data (task, g_object_ref (socket6), g_object_unref);
       g_task_run_in_thread (task, socket_read_task);
 
-      self->udp_socket6 = g_steal_pointer (&socket6);
+      valent_object_lock (VALENT_OBJECT (self));
+      self->udp_socket6 = g_object_ref (socket6);
+      valent_object_unlock (VALENT_OBJECT (self));
 
       /* If this socket also speaks IPv4 then we are done. */
-      if (g_socket_speaks_ipv4 (self->udp_socket6))
-        {
-          valent_object_unlock (VALENT_OBJECT (self));
-          return TRUE;
-        }
+      if (g_socket_speaks_ipv4 (socket6))
+        return TRUE;
     }
 
   /* We need an IPv4 socket, either instead or in addition to our IPv6 */
@@ -596,17 +592,12 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
 
       /* Bind the port */
       inet_address = g_inet_address_new_any (G_SOCKET_FAMILY_IPV4);
-      address = g_inet_socket_address_new (inet_address, self->port);
+      address = g_inet_socket_address_new (inet_address, port);
 
       if (g_socket_bind (socket4, address, TRUE, error))
-        {
-          g_socket_set_broadcast (socket4, TRUE);
-        }
+        g_socket_set_broadcast (socket4, TRUE);
       else
-        {
-          valent_object_unlock (VALENT_OBJECT (self));
-          return FALSE;
-        }
+        return FALSE;
 
       /* Watch the socket for incoming identity packets */
       task = g_task_new (self, cancellable, NULL, NULL);
@@ -614,20 +605,18 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
       g_task_set_task_data (task, g_object_ref (socket4), g_object_unref);
       g_task_run_in_thread (task, socket_read_task);
 
-      self->udp_socket4 = g_steal_pointer (&socket4);
+      valent_object_lock (VALENT_OBJECT (self));
+      self->udp_socket4 = g_object_ref (socket4);
+      valent_object_unlock (VALENT_OBJECT (self));
     }
   else
     {
       if (self->udp_socket6 == NULL)
-        {
-          valent_object_unlock (VALENT_OBJECT (self));
-          return FALSE;
-        }
+        return FALSE;
 
       g_clear_error (error);
     }
 
-  valent_object_unlock (VALENT_OBJECT (self));
   return TRUE;
 }
 

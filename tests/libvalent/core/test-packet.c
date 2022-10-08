@@ -314,19 +314,19 @@ main (int   argc,
   g_test_add_func ("/core/packet/get",
                    test_packet_get);
 
-  g_test_add ("/core/packet/invalid",
+  g_test_add ("/libvalent/core/packet/invalid",
               PacketFixture, NULL,
               packet_fixture_set_up,
               test_packet_invalid,
               packet_fixture_tear_down);
 
-  g_test_add ("/core/packet/serializing",
+  g_test_add ("/libvalent/core/packet/serializing",
               PacketFixture, NULL,
               packet_fixture_set_up,
               test_packet_serializing,
               packet_fixture_tear_down);
 
-  g_test_add ("/core/packet/streaming",
+  g_test_add ("/libvalent/core/packet/streaming",
               PacketFixture, NULL,
               packet_fixture_set_up,
               test_packet_streaming,

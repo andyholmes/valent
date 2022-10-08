@@ -297,19 +297,19 @@ main (int   argc,
 {
   valent_test_init (&argc, &argv, NULL);
 
-  g_test_add ("/components/media/adapter",
+  g_test_add ("/libvalent/media/adapter",
               MediaComponentFixture, NULL,
               media_component_fixture_set_up,
               test_media_component_adapter,
               media_component_fixture_tear_down);
 
-  g_test_add ("/components/media/player",
+  g_test_add ("/libvalent/media/player",
               MediaComponentFixture, NULL,
               media_component_fixture_set_up,
               test_media_component_player,
               media_component_fixture_tear_down);
 
-  g_test_add ("/components/media/self",
+  g_test_add ("/libvalent/media/self",
               MediaComponentFixture, NULL,
               media_component_fixture_set_up,
               test_media_component_self,

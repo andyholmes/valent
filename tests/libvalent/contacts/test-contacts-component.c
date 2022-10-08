@@ -385,19 +385,19 @@ main (int   argc,
 {
   valent_test_init (&argc, &argv, NULL);
 
-  g_test_add ("/components/contacts/adapter",
+  g_test_add ("/libvalent/contacts/adapter",
               ContactsComponentFixture, NULL,
               contacts_component_fixture_set_up,
               test_contacts_component_adapter,
               contacts_component_fixture_tear_down);
 
-  g_test_add ("/components/contacts/store",
+  g_test_add ("/libvalent/contacts/store",
               ContactsComponentFixture, NULL,
               contacts_component_fixture_set_up,
               test_contacts_component_store,
               contacts_component_fixture_tear_down);
 
-  g_test_add ("/components/contacts/self",
+  g_test_add ("/libvalent/contacts/self",
               ContactsComponentFixture, NULL,
               contacts_component_fixture_set_up,
               test_contacts_component_self,

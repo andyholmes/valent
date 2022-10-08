@@ -406,19 +406,19 @@ main (int   argc,
 {
   valent_test_init (&argc, &argv, NULL);
 
-  g_test_add ("/components/mixer/adapter",
+  g_test_add ("/libvalent/mixer/adapter",
               MixerComponentFixture, NULL,
               mixer_component_fixture_set_up,
               test_mixer_component_adapter,
               mixer_component_fixture_tear_down);
 
-  g_test_add ("/components/mixer/stream",
+  g_test_add ("/libvalent/mixer/stream",
               MixerComponentFixture, NULL,
               mixer_component_fixture_set_up,
               test_mixer_component_stream,
               mixer_component_fixture_tear_down);
 
-  g_test_add ("/components/mixer/self",
+  g_test_add ("/libvalent/mixer/self",
               MixerComponentFixture, NULL,
               mixer_component_fixture_set_up,
               test_mixer_component_self,

@@ -156,10 +156,10 @@ g_socket_listener_accept_cb (GSocketListener   *listener,
   valent_packet_get_string (peer_identity, "deviceId", &device_id);
   g_assert_true (device_id != NULL && *device_id != '\0');
 
-  tls_stream = valent_lan_encrypt_new_client (connection,
-                                              fixture->certificate,
-                                              NULL,
-                                              &error);
+  tls_stream = valent_lan_encrypt_client_connection (connection,
+                                                     fixture->certificate,
+                                                     NULL,
+                                                     &error);
   g_assert_no_error (error);
   g_assert_true (G_IS_TLS_CONNECTION (tls_stream));
 
@@ -469,10 +469,10 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
         await_timeout (1100);
     }
 
-  tls_stream = valent_lan_encrypt_new_server (connection,
-                                              fixture->certificate,
-                                              NULL,
-                                              &error);
+  tls_stream = valent_lan_encrypt_server_connection (connection,
+                                                     fixture->certificate,
+                                                     NULL,
+                                                     &error);
   g_assert_no_error (error);
   g_assert_true (G_IS_TLS_CONNECTION (tls_stream));
 
@@ -529,10 +529,10 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
        *       identity, but the certificate itself is different
        */
       g_object_get (fixture->service, "certificate", &bad_certificate, NULL);
-      bad_stream = valent_lan_encrypt_new_server (bad_connection,
-                                                  bad_certificate,
-                                                  NULL,
-                                                  &error);
+      bad_stream = valent_lan_encrypt_server_connection (bad_connection,
+                                                         bad_certificate,
+                                                         NULL,
+                                                         &error);
       g_assert_no_error (error);
       g_assert_true (G_IS_TLS_CONNECTION (bad_stream));
     }
@@ -760,34 +760,34 @@ main (int   argc,
   g_type_ensure (VALENT_TYPE_LAN_CHANNEL);
   g_type_ensure (VALENT_TYPE_LAN_CHANNEL_SERVICE);
 
-  g_test_add ("/backends/lan-backend/incoming-broadcast",
+  g_test_add ("/plugins/lan/incoming-broadcast",
               LanBackendFixture, NULL,
               lan_service_fixture_set_up,
               test_lan_service_incoming_broadcast,
               lan_service_fixture_tear_down);
 
-  g_test_add_func ("/backends/lan-backend/incoming-broadcast-oversize",
+  g_test_add_func ("/plugins/lan/incoming-broadcast-oversize",
                    test_lan_service_incoming_broadcast_oversize);
 
-  g_test_add ("/backends/lan-backend/outgoing-broadcast",
+  g_test_add ("/plugins/lan/outgoing-broadcast",
               LanBackendFixture, NULL,
               lan_service_fixture_set_up,
               test_lan_service_outgoing_broadcast,
               lan_service_fixture_tear_down);
 
-  g_test_add_func ("/backends/lan-backend/outgoing-broadcast-oversize",
+  g_test_add_func ("/plugins/lan/outgoing-broadcast-oversize",
                    test_lan_service_outgoing_broadcast_oversize);
 
-  g_test_add_func ("/backends/lan-backend/outgoing-broadcast-timeout",
+  g_test_add_func ("/plugins/lan/outgoing-broadcast-timeout",
                    test_lan_service_outgoing_broadcast_timeout);
 
-  g_test_add_func ("/backends/lan-backend/outgoing-broadcast-tls-auth",
+  g_test_add_func ("/plugins/lan/outgoing-broadcast-tls-auth",
                    test_lan_service_outgoing_broadcast_tls_timeout);
 
-  g_test_add_func ("/backends/lan-backend/outgoing-broadcast-tls-cert",
+  g_test_add_func ("/plugins/lan/outgoing-broadcast-tls-cert",
                    test_lan_service_outgoing_broadcast_tls_spoofer);
 
-  g_test_add ("/backends/lan-backend/channel",
+  g_test_add ("/plugins/lan/channel",
               LanBackendFixture, NULL,
               lan_service_fixture_set_up,
               test_lan_service_channel,

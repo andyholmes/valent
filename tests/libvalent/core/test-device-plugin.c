@@ -227,13 +227,13 @@ main (int   argc,
 {
   valent_test_init (&argc, &argv, NULL);
 
-  g_test_add ("/core/device-plugin/basic",
+  g_test_add ("/libvalent/core/device-plugin/basic",
               DevicePluginFixture, NULL,
               device_fixture_set_up,
               test_device_plugin_basic,
               device_fixture_tear_down);
 
-  g_test_add ("/core/device-plugin/actions",
+  g_test_add ("/libvalent/core/device-plugin/actions",
               DevicePluginFixture, NULL,
               device_fixture_set_up,
               test_device_plugin_actions,
