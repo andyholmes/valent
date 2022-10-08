@@ -22,7 +22,9 @@ CX_SUITE=${CX_SUITE:=test}
 
 
 #
-# Profiles
+# SUITE: pretest
+#
+# Run a series of linters on test fixtures, before running the real tests.
 #
 cx_suite_pretest() {
     if command -v pylint > /dev/null 2>&1; then
@@ -65,7 +67,7 @@ cx_suite_abidiff_build() {
 }
 
 #
-# PROFILE: abidiff
+# SUITE: abidiff
 #
 # Run the compiler's static analysis tool.
 #
@@ -110,7 +112,7 @@ cx_suite_abidiff() {
 }
 
 #
-# PROFILE: cppcheck
+# SUITE: cppcheck
 #
 # Run the `cppcheck` tool on the source code.
 #
@@ -147,7 +149,7 @@ cx_suite_cppcheck() {
 }
 
 #
-# PROFILE: coverage
+# SUITE: coverage
 #
 # A custom lcov generator.
 #
@@ -181,15 +183,21 @@ cx_suite_coverage() {
          --rc lcov_branch_coverage=1 \
          --output-file "${BUILDDIR}/meson-logs/coverage.info"
 
-    # shellcheck disable=SC2086
-    lcov --extract "${BUILDDIR}/meson-logs/coverage.info" \
-         "${CX_LCOV_INCLUDE_PATH}" \
-         --rc lcov_branch_coverage=1 \
-         --output-file "${BUILDDIR}/meson-logs/coverage.info" && \
-    lcov --remove "${BUILDDIR}/meson-logs/coverage.info" \
-         "${CX_LCOV_EXCLUDE_PATH}" \
-         --rc lcov_branch_coverage=1 \
-         --output-file "${BUILDDIR}/meson-logs/coverage.info"
+    if [ "${CX_LCOV_INCLUDE_PATH}" != "" ]; then
+        # shellcheck disable=SC2086
+        lcov --extract "${BUILDDIR}/meson-logs/coverage.info" \
+             "${CX_LCOV_INCLUDE_PATH}" \
+             --rc lcov_branch_coverage=1 \
+             --output-file "${BUILDDIR}/meson-logs/coverage.info"
+    fi
+
+    if [ "${CX_LCOV_EXCLUDE_PATH}" != "" ]; then
+        # shellcheck disable=SC2086
+        lcov --remove "${BUILDDIR}/meson-logs/coverage.info" \
+             "${CX_LCOV_EXCLUDE_PATH}" \
+             --rc lcov_branch_coverage=1 \
+             --output-file "${BUILDDIR}/meson-logs/coverage.info"
+    fi
 
     genhtml --prefix "${WORKSPACE}" \
             --output-directory "${BUILDDIR}/meson-logs/coverage-html" \
@@ -201,7 +209,7 @@ cx_suite_coverage() {
 }
 
 #
-# PROFILE: test
+# SUITE: test
 #
 # Setup a `meson` build directory at $BUILDDIR, compile the project and run the
 # test suite. Each phase can be configured with environment variables.
@@ -212,10 +220,8 @@ cx_suite_coverage() {
 # |------------------------------------|-------------------------------------|
 # | CX_SETUP_BUILDTYPE                 | --buildtype                         |
 # | CX_SETUP_COVERAGE                  | -Db_coverage                        |
-# | CX_SETUP_LUNDEF                    | -Db_lundef                          |
-# | CX_SETUP_NDEBUG                    | -Db_ndebug                          |
 # | CX_SETUP_SANITIZE                  | -Db_sanitize                        |
-# | CX_SETUP_ARGS                      | additional command-line arguments   |
+# | CX_SETUP_ARGS                      | Additional `meson setup` arguments  |
 #
 #
 # The test phase respects the following environment variables:
@@ -224,15 +230,13 @@ cx_suite_coverage() {
 # |------------------------------------|-------------------------------------|
 # | CX_TEST_REPEAT                     | --repeat                            |
 # | CX_TEST_TIMEOUT_MULTIPLIER         | --timeout-multiplier                |
-# | CX_TEST_ARGS                       | additional command-line arguments   |
+# | CX_TEST_ARGS                       | Additional `meson test` arguments   |
 #
 cx_suite_test() {
     if [ ! -d "${BUILDDIR}" ]; then
         # shellcheck disable=SC2086
         meson setup --buildtype="${CX_SETUP_BUILDTYPE:=debugoptimized}" \
                     -Db_coverage="${CX_SETUP_COVERAGE:=false}" \
-                    -Db_lundef="${CX_SETUP_LUNDEF:=true}" \
-                    -Db_ndebug="${CX_SETUP_NDEBUG:=false}" \
                     -Db_sanitize="${CX_SETUP_SANITIZE:=none}" \
                     ${CX_SETUP_ARGS} \
                     "${BUILDDIR}"
@@ -242,17 +246,18 @@ cx_suite_test() {
     meson compile -C "${BUILDDIR}"
 
     # shellcheck disable=SC2086
-    dbus-run-session xvfb-run -d \
-    meson test -C "${BUILDDIR}" \
-               --print-errorlogs \
-               --repeat="${CX_TEST_REPEAT:=1}" \
-               --timeout-multiplier="${CX_TEST_TIMEOUT_MULTIPLIER:=1}" \
-               ${CX_TEST_ARGS} \
-               "${@}"
+    dbus-run-session \
+        xvfb-run -d \
+            meson test -C "${BUILDDIR}" \
+                       --print-errorlogs \
+                       --repeat="${CX_TEST_REPEAT:=1}" \
+                       --timeout-multiplier="${CX_TEST_TIMEOUT_MULTIPLIER:=1}" \
+                       ${CX_TEST_ARGS} \
+                       "${@}"
 }
 
 #
-# PROFILE: asan
+# SUITE: asan
 #
 # Run the "test" profile with AddressSantizer and UndefinedBehaviourSanitizer.
 #
@@ -261,19 +266,19 @@ cx_suite_test() {
 #
 cx_suite_asan() {
     CX_SETUP_SANITIZE="address,undefined"
+    CX_TEST_TIMEOUT_MULTIPLIER=3
 
     # Clang needs `-Db_lundef=false` to use sanitizers
     if [ "${CC}" = "clang" ]; then
-        CX_SETUP_LUNDEF=false
+        CX_SETUP_ARGS="${CX_SETUP_ARGS} -Db_lundef=false"
     fi
 
     # Chain-up to the test profile
-    export CX_TEST_TIMEOUT_MULTIPLIER=3
     cx_suite_test "${@}"
 }
 
 #
-# PROFILE: tsan
+# SUITE: tsan
 #
 # Run the "test" profile with ThreadSanitizer.
 #
@@ -282,19 +287,19 @@ cx_suite_asan() {
 #
 cx_suite_tsan() {
     CX_SETUP_SANITIZE="thread"
+    CX_TEST_TIMEOUT_MULTIPLIER=3
 
     # Clang needs `-Db_lundef=false` to use sanitizers
     if [ "${CC}" = "clang" ]; then
-        CX_SETUP_LUNDEF=false
+        CX_SETUP_ARGS="${CX_SETUP_ARGS} -Db_lundef=false"
     fi
 
     # Chain-up to the test profile
-    export CX_TEST_TIMEOUT_MULTIPLIER=3
     cx_suite_test "${@}"
 }
 
 #
-# PROFILE: analyzer
+# SUITE: analyzer
 #
 # Run the compiler's static analysis tool.
 #
