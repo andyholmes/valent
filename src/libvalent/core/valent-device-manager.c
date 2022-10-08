@@ -390,20 +390,6 @@ valent_device_manager_disable_service (ValentDeviceManager *self,
     }
 }
 
-static inline void
-valent_device_manager_identify_service (ValentDeviceManager *self,
-                                        ChannelService      *service,
-                                        const char          *target)
-{
-  g_assert (VALENT_IS_DEVICE_MANAGER (self));
-
-  if (service->extension == NULL)
-    return;
-
-  valent_channel_service_identify (VALENT_CHANNEL_SERVICE (service->extension),
-                                   target);
-}
-
 static void
 on_enabled_changed (GSettings      *settings,
                     const char     *key,
@@ -1072,59 +1058,35 @@ valent_device_manager_set_name (ValentDeviceManager *manager,
 }
 
 /**
- * valent_device_manager_identify:
+ * valent_device_manager_refresh:
  * @manager: a #ValentDeviceManager
- * @uri: a URI
  *
- * Identify the local device to the network.
+ * Refresh the available devices.
  *
- * This method calls [method@Valent.ChannelService.identify] for each loaded
- * [class@Valent.ChannelService], requesting to identify itself on its
- * respective network.
- *
- * The @uri argument is string in the form `plugin://address`, such as
- * `lan://192.168.0.10:1716`. The `plugin` segment should be the module name of
- * a plugin that implements [class@Valent.ChannelService] and `address` segment
- * should be a format the implementation understands.
+ * This method calls [method@Valent.ChannelService.identify] for each enabled
+ * service, requesting it to announce itself on its respective network.
  *
  * Since: 1.0
  */
 void
-valent_device_manager_identify (ValentDeviceManager *manager,
-                                const char          *uri)
+valent_device_manager_refresh (ValentDeviceManager *manager)
 {
   GHashTableIter iter;
-  gpointer info, service;
+  ChannelService *service;
 
   VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_DEVICE_MANAGER (manager));
 
-  if (uri != NULL)
+  g_hash_table_iter_init (&iter, manager->services);
+
+  while (g_hash_table_iter_next (&iter, NULL, (void **)&service))
     {
-      g_auto (GStrv) address = NULL;
+      if (service->extension == NULL)
+        continue;
 
-      address = g_strsplit (uri, "://", -1);
-
-      if (address[0] == NULL || address[1] == NULL)
-        VALENT_EXIT;
-
-      g_hash_table_iter_init (&iter, manager->services);
-
-      while (g_hash_table_iter_next (&iter, &info, &service))
-        {
-          const char *module = peas_plugin_info_get_module_name (info);
-
-          if (g_str_equal (address[0], module))
-            valent_device_manager_identify_service (manager, service, address[1]);
-        }
-    }
-  else
-    {
-      g_hash_table_iter_init (&iter, manager->services);
-
-      while (g_hash_table_iter_next (&iter, NULL, &service))
-        valent_device_manager_identify_service (manager, service, NULL);
+      valent_channel_service_identify (VALENT_CHANNEL_SERVICE (service->extension),
+                                       NULL);
     }
 
   VALENT_EXIT;

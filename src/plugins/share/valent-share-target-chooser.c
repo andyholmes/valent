@@ -152,7 +152,7 @@ refresh_cb (gpointer data)
 
   g_assert (VALENT_IS_SHARE_TARGET_CHOOSER (self));
 
-  valent_device_manager_identify (self->manager, NULL);
+  valent_device_manager_refresh (self->manager);
 
   return TRUE;
 }
@@ -174,7 +174,7 @@ valent_share_target_chooser_constructed (GObject *object)
                            NULL, NULL);
 
   /* Broadcast every 5 seconds to re-connect devices that may have gone idle */
-  valent_device_manager_identify (self->manager, NULL);
+  valent_device_manager_refresh (self->manager);
   self->refresh_id = g_timeout_add_seconds (5, refresh_cb, self);
 
   G_OBJECT_CLASS (valent_share_target_chooser_parent_class)->constructed (object);

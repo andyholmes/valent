@@ -50,7 +50,7 @@ test_share_target_chooser (void)
     g_main_context_iteration (NULL, FALSE);
 
   /* ... */
-  valent_device_manager_identify (manager, NULL);
+  valent_device_manager_refresh (manager);
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;

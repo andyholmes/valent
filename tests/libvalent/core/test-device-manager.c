@@ -155,7 +155,7 @@ test_manager_management (ManagerFixture *fixture,
   g_assert_cmpuint (n_devices, ==, 0);
 
   /* Adds devices from channels */
-  valent_device_manager_identify (fixture->manager, NULL);
+  valent_device_manager_refresh (fixture->manager);
   g_assert_true (VALENT_IS_DEVICE (fixture->device));
 
   n_devices = g_list_model_get_n_items (G_LIST_MODEL (fixture->manager));
@@ -163,29 +163,6 @@ test_manager_management (ManagerFixture *fixture,
 
   /* Retains paired devices that disconnect */
   g_object_notify (G_OBJECT (fixture->device), "state");
-  g_assert_true (VALENT_IS_DEVICE (fixture->device));
-}
-
-static void
-test_manager_identify_uri (ManagerFixture *fixture,
-                           gconstpointer   user_data)
-{
-  g_signal_connect (fixture->manager,
-                    "items-changed",
-                    G_CALLBACK (on_devices_changed),
-                    fixture);
-
-  /* Wait for the manager to start */
-  valent_device_manager_start (fixture->manager);
-
-  while (fixture->device == NULL)
-    g_main_context_iteration (NULL, FALSE);
-
-  /* Drop the cached device */
-  g_object_notify (G_OBJECT (fixture->device), "state");
-
-  /* Forwards URIs to the correct service */
-  valent_device_manager_identify (fixture->manager, "mock://127.0.0.1");
   g_assert_true (VALENT_IS_DEVICE (fixture->device));
 }
 
@@ -384,12 +361,6 @@ main (int   argc,
               ManagerFixture, NULL,
               manager_fixture_set_up,
               test_manager_management,
-              manager_fixture_tear_down);
-
-  g_test_add ("/libvalent/core/device-manager/identify-uri",
-              ManagerFixture, NULL,
-              manager_fixture_set_up,
-              test_manager_identify_uri,
               manager_fixture_tear_down);
 
   g_test_add ("/libvalent/core/device-manager/dbus",

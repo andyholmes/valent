@@ -40,8 +40,7 @@ VALENT_AVAILABLE_IN_1_0
 void                  valent_device_manager_set_name         (ValentDeviceManager  *manager,
                                                               const char           *name);
 VALENT_AVAILABLE_IN_1_0
-void                  valent_device_manager_identify         (ValentDeviceManager  *manager,
-                                                              const char           *uri);
+void                  valent_device_manager_refresh          (ValentDeviceManager  *manager);
 VALENT_AVAILABLE_IN_1_0
 void                  valent_device_manager_start            (ValentDeviceManager  *manager);
 VALENT_AVAILABLE_IN_1_0
