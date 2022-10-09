@@ -59,7 +59,7 @@ test_share_text_dialog_copy (void)
     g_main_context_iteration (NULL, FALSE);
 }
 
-VALENT_NO_ASAN static void
+static void
 test_share_text_dialog_save (void)
 {
   GtkWindow *window = NULL;
@@ -74,11 +74,13 @@ test_share_text_dialog_save (void)
   while (g_main_context_iteration (NULL, FALSE))
     continue;
 
+#if !(VALENT_HAVE_ASAN)
   /* Save to file */
   adw_message_dialog_response (ADW_MESSAGE_DIALOG (window), "save");
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
+#endif // !(VALENT_HAVE_ASAN)
 
   /* The dialog gets no response, so destroy manually */
   gtk_window_destroy (window);
