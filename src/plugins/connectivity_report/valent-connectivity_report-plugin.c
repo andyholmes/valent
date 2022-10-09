@@ -11,6 +11,7 @@
 #include <gio/gio.h>
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
+#include <libvalent-device.h>
 
 #include "valent-connectivity_report-plugin.h"
 #include "valent-telephony.h"

@@ -4,7 +4,8 @@
 #include "config.h"
 
 #include <libpeas/peas.h>
-#include <libvalent-core.h>
+#include <libvalent-device.h>
+#include <libvalent-ui.h>
 
 #include "valent-share-plugin.h"
 #include "valent-share-preferences.h"

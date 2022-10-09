@@ -8,6 +8,7 @@
 #include <glib/gi18n.h>
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
+#include <libvalent-device.h>
 #include <libvalent-ui.h>
 
 #include "valent-message.h"

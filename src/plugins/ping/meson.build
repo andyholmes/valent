@@ -4,6 +4,7 @@
 # Dependencies
 plugin_ping_deps = [
   libvalent_core_dep,
+  libvalent_device_dep,
 ]
 
 # Sources

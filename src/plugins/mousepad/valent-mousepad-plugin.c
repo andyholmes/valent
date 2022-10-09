@@ -10,6 +10,7 @@
 #include <gtk/gtk.h>
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
+#include <libvalent-device.h>
 #include <libvalent-input.h>
 
 #include "valent-mousepad-remote.h"

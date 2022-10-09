@@ -21,6 +21,7 @@ libvalent_deps = []
 subdir('core')
 subdir('clipboard')
 subdir('contacts')
+subdir('device')
 subdir('input')
 subdir('media')
 subdir('mixer')

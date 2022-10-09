@@ -8,6 +8,7 @@
 #include <math.h>
 
 #include <gio/gio.h>
+#include <libvalent-device.h>
 #include <libvalent-media.h>
 
 #include "valent-mpris-utils.h"

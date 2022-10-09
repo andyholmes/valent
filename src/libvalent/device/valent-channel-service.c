@@ -7,14 +7,10 @@
 
 #include <gio/gio.h>
 #include <libpeas/peas.h>
+#include <libvalent-core.h>
 
 #include "valent-channel.h"
 #include "valent-channel-service.h"
-#include "valent-data.h"
-#include "valent-debug.h"
-#include "valent-global.h"
-#include "valent-macros.h"
-#include "valent-object.h"
 #include "valent-packet.h"
 
 

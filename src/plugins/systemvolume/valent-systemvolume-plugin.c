@@ -5,8 +5,9 @@
 
 #include "config.h"
 
-#include <libpeas/peas.h>
+#include <json-glib/json-glib.h>
 #include <libvalent-core.h>
+#include <libvalent-device.h>
 #include <libvalent-mixer.h>
 
 #include "valent-systemvolume-plugin.h"

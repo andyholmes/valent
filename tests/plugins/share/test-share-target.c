@@ -3,7 +3,9 @@
 
 #include <gio/gio.h>
 #include <libvalent-core.h>
+#include <libvalent-device.h>
 #include <libvalent-test.h>
+#include <libvalent-ui.h>
 
 
 typedef struct

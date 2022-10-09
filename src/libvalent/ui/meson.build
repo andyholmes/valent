@@ -12,6 +12,7 @@ libvalent_ui_generated_sources = []
 libvalent_ui_public_headers = [
   'libvalent-ui.h',
   'valent-application.h',
+  'valent-application-plugin.h',
   'valent-device-activity.h',
   'valent-device-gadget.h',
   'valent-device-preferences-page.h',
@@ -38,6 +39,7 @@ install_headers(libvalent_ui_public_headers,
 # Sources
 libvalent_ui_public_sources = [
   'valent-application.c',
+  'valent-application-plugin.c',
   'valent-device-activity.c',
   'valent-device-gadget.c',
   'valent-device-panel.c',
@@ -68,6 +70,7 @@ libvalent_ui_deps = [
   libvalent_core_dep,
   libvalent_clipboard_dep,
   libvalent_contacts_dep,
+  libvalent_device_dep,
   libvalent_input_dep,
   libvalent_media_dep,
   libvalent_mixer_dep,

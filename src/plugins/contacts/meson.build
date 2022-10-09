@@ -5,6 +5,7 @@
 plugin_contacts_deps = [
   libvalent_core_dep,
   libvalent_contacts_dep,
+  libvalent_device_dep,
   libvalent_ui_dep,
 ]
 

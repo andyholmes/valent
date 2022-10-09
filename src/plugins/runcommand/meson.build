@@ -4,6 +4,7 @@
 # Dependencies
 plugin_runcommand_deps = [
   libvalent_core_dep,
+  libvalent_device_dep,
   libvalent_ui_dep,
 ]
 

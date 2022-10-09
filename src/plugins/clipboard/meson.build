@@ -5,6 +5,7 @@
 plugin_clipboard_deps = [
   libvalent_core_dep,
   libvalent_clipboard_dep,
+  libvalent_device_dep,
   libvalent_ui_dep,
 ]
 

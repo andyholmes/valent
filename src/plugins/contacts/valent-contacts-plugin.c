@@ -7,6 +7,7 @@
 
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
+#include <libvalent-device.h>
 #include <libvalent-contacts.h>
 
 #include "valent-contacts-plugin.h"

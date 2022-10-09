@@ -8,10 +8,12 @@ libvalent_core_test_deps = [
 ]
 
 libvalent_core_tests = [
-  'test-certificate',
-  'test-data',
-  'test-object',
-  'test-utils',
+  'test-channel-service',
+  'test-device',
+  'test-device-manager',
+  'test-device-plugin',
+  'test-device-transfer',
+  'test-packet',
 ]
 
 foreach test : libvalent_core_tests

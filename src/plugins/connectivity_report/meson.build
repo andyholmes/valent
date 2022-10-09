@@ -4,6 +4,7 @@
 # Dependencies
 plugin_connectivity_report_deps = [
   libvalent_core_dep,
+  libvalent_device_dep,
   libvalent_ui_dep,
 ]
 
@@ -48,4 +49,5 @@ plugin_connectivity_report = static_library('plugin-connectivity_report',
 
 #plugins_link_args += ['-Wl,--undefined=valent_connectivity_report_plugin_register_types']
 plugins_static += [plugin_connectivity_report]
+
 

@@ -9,11 +9,9 @@
 
 #include <gio/gio.h>
 #include <json-glib/json-glib.h>
+#include <libvalent-core.h>
 
 #include "valent-channel.h"
-#include "valent-data.h"
-#include "valent-debug.h"
-#include "valent-object.h"
 #include "valent-packet.h"
 
 

@@ -11,31 +11,21 @@ libvalent_core_generated_sources = []
 # Headers
 libvalent_core_public_headers = [
   'libvalent-core.h',
-  'valent-application-plugin.h',
+  # 'valent-application-plugin.h',
   'valent-certificate.h',
-  'valent-channel.h',
-  'valent-channel-service.h',
   'valent-component.h',
   'valent-data.h',
-  'valent-device.h',
-  'valent-device-manager.h',
-  'valent-device-plugin.h',
-  'valent-device-transfer.h',
   'valent-global.h',
   'valent-macros.h',
   'valent-object.h',
-  'valent-packet.h',
   'valent-transfer.h',
 ]
 
 libvalent_core_private_headers = [
   'valent-component-private.h',
-  'valent-device-impl.h',
-  'valent-device-private.h',
 ]
 
 libvalent_core_enum_headers = [
-  'valent-device.h',
   'valent-transfer.h',
 ]
 
@@ -46,22 +36,13 @@ install_headers(libvalent_core_public_headers,
 
 # Sources
 libvalent_core_public_sources = [
-  'valent-application-plugin.c',
   'valent-certificate.c',
-  'valent-channel.c',
-  'valent-channel-service.c',
   'valent-component.c',
   'valent-data.c',
   'valent-debug.c',
-  'valent-device.c',
-  'valent-device-impl.c',
-  'valent-device-manager.c',
-  'valent-device-plugin.c',
-  'valent-device-transfer.c',
   'valent-global.c',
   'valent-object.c',
   'valent-object-utils.c',
-  'valent-packet.c',
   'valent-transfer.c',
   'valent-version.c',
 ]

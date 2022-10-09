@@ -2,6 +2,7 @@
 // SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 #include <libvalent-core.h>
+#include <libvalent-device.h>
 
 #ifdef HAVE_WALBOTTLE
 # include <libwalbottle/wbl-schema.h>

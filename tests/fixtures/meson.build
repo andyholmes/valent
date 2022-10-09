@@ -67,6 +67,7 @@ libvalent_test_deps = [
   libvalent_core_dep,
   libvalent_clipboard_dep,
   libvalent_contacts_dep,
+  libvalent_device_dep,
   libvalent_input_dep,
   libvalent_media_dep,
   libvalent_mixer_dep,

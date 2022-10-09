@@ -7,18 +7,14 @@
 
 #include <glib/gi18n.h>
 #include <gio/gio.h>
+#include <libvalent-core.h>
 
-#include "valent-core-enums.h"
+#include "valent-device-enums.h"
 
 #include "valent-channel.h"
-#include "valent-data.h"
-#include "valent-debug.h"
 #include "valent-device.h"
 #include "valent-device-plugin.h"
 #include "valent-device-private.h"
-#include "valent-global.h"
-#include "valent-macros.h"
-#include "valent-object.h"
 #include "valent-packet.h"
 
 #define PAIR_REQUEST_ID      "pair-request"

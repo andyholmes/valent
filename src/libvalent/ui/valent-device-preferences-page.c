@@ -8,6 +8,7 @@
 #include <gio/gio.h>
 #include <gtk/gtk.h>
 #include <adwaita.h>
+#include <libvalent-device.h>
 
 #include "valent-device-preferences-page.h"
 

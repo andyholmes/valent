@@ -6,6 +6,7 @@
 #include <gtk/gtk.h>
 #include <libpeas/peas.h>
 #include <libvalent-input.h>
+#include <libvalent-ui.h>
 
 #include "valent-xdp-background.h"
 #include "valent-xdp-input.h"

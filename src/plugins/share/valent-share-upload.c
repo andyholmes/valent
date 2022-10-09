@@ -7,6 +7,7 @@
 
 #include <gio/gio.h>
 #include <libvalent-core.h>
+#include <libvalent-device.h>
 
 #include "valent-share-upload.h"
 

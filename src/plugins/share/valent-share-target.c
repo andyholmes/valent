@@ -6,6 +6,7 @@
 #include <gio/gio.h>
 #include <gtk/gtk.h>
 #include <libvalent-core.h>
+#include <libvalent-ui.h>
 
 #include "valent-share-target.h"
 #include "valent-share-target-chooser.h"

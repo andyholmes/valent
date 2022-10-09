@@ -10,6 +10,7 @@
 #include <glib/gi18n.h>
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
+#include <libvalent-device.h>
 #include <libvalent-media.h>
 
 #include "valent-mpris-device.h"

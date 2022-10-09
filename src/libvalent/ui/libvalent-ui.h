@@ -12,6 +12,7 @@ G_BEGIN_DECLS
 #define VALENT_UI_INSIDE
 
 #include "valent-application.h"
+#include "valent-application-plugin.h"
 #include "valent-device-activity.h"
 #include "valent-device-gadget.h"
 #include "valent-device-preferences-page.h"
