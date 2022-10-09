@@ -7,12 +7,6 @@ leak:make_comparable
 # https://gitlab.freedesktop.org/fontconfig/fontconfig/-/issues/77
 leak:libfontconfig.so
 
-# https://gitlab.freedesktop.org/gstreamer/gst-plugins-base/merge_requests/1078
-leak:gst_gio_src_query
-
-# https://gitlab.gnome.org/GNOME/gtk/-/issues/5110
-leak:gdk_clipboard_read_text_async
-
 # https://gitlab.gnome.org/GNOME/gvfs/-/issues/577
 leak:g_daemon_vfs_init
 
