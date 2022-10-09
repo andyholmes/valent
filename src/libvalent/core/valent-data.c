@@ -109,7 +109,6 @@ valent_data_constructed (GObject *object)
   ValentData *self = VALENT_DATA (object);
   ValentDataPrivate *priv = valent_data_get_instance_private (self);
 
-  /* A parent #ValentData object */
   if (priv->parent != NULL)
     {
       const char *base_path;
