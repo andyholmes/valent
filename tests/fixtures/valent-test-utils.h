@@ -65,39 +65,65 @@ gboolean         valent_test_upload        (ValentChannel    *channel,
 
 
 /**
- * VALENT_NO_ASAN: (skip)
+ * VALENT_NO_ASAN:
  *
  * A function attribute that disables AddressSanitizer.
  */
 #define VALENT_NO_ASAN
+#if defined(__has_attribute)
+  #if __has_attribute(no_sanitize)
+    #undef VALENT_NO_ASAN
+    #define VALENT_NO_ASAN __attribute__((no_sanitize("address")))
+  #endif
+#endif
+
+/**
+ * VALENT_HAVE_ASAN:
+ *
+ * A function attribute that disables AddressSanitizer.
+ */
+#define VALENT_HAVE_ASAN 0
 #if defined(__SANITIZE_ADDRESS__)
- #undef VALENT_NO_ASAN
- #define VALENT_NO_ASAN __attribute__((no_sanitize("address")))
+ #undef VALENT_HAVE_ASAN
+ #define VALENT_HAVE_ASAN 1
 #elif defined(__has_feature)
  #if __has_feature(address_sanitizer)
-  #undef VALENT_NO_ASAN
-  #define VALENT_NO_ASAN __attribute__((no_sanitize("address")))
+  #undef VALENT_HAVE_ASAN
+  #define VALENT_HAVE_ASAN 1
  #endif
 #endif
 
 /**
- * VALENT_NO_TSAN: (skip)
+ * VALENT_NO_TSAN:
  *
  * A function attribute that disables ThreadSanitizer.
  */
 #define VALENT_NO_TSAN
+#if defined(__has_attribute)
+  #if __has_attribute(no_sanitize)
+    #undef VALENT_NO_TSAN
+    #define VALENT_NO_TSAN __attribute__((no_sanitize("thread")))
+  #endif
+#endif
+
+/**
+ * VALENT_HAVE_TSAN:
+ *
+ * Whether ThreadSanitizer is in use.
+ */
+#define VALENT_HAVE_TSAN 0
 #if defined(__SANITIZE_THREAD__)
- #undef VALENT_NO_TSAN
- #define VALENT_NO_TSAN __attribute__((no_sanitize("thread")))
+ #undef VALENT_HAVE_TSAN
+ #define VALENT_HAVE_TSAN 1
 #elif defined(__has_feature)
  #if __has_feature(thread_sanitizer)
-  #undef VALENT_NO_TSAN
-  #define VALENT_NO_TSAN __attribute__((no_sanitize("thread")))
+  #undef VALENT_HAVE_TSAN
+  #define VALENT_HAVE_TSAN 1
  #endif
 #endif
 
 /**
- * VALENT_NO_UBSAN: (skip)
+ * VALENT_NO_UBSAN:
  *
  * A function attribute that disables UndefinedBehaviourSanitizer.
  *
@@ -108,6 +134,21 @@ gboolean         valent_test_upload        (ValentChannel    *channel,
  #if __has_feature(undefined_sanitizer)
   #undef VALENT_NO_UBSAN
   #define VALENT_NO_UBSAN __attribute__((no_sanitize("undefined")))
+ #endif
+#endif
+
+/**
+ * VALENT_HAVE_UBSAN:
+ *
+ * Whether UndefinedBehaviourSanitizer is in use.
+ *
+ * This macro only works on Clang.
+ */
+#define VALENT_HAVE_UBSAN 0
+#if defined(__has_feature)
+ #if __has_feature(undefined_sanitizer)
+  #undef VALENT_HAVE_UBSAN
+  #define VALENT_HAVE_UBSAN 1
  #endif
 #endif
 
