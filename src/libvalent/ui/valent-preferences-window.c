@@ -291,14 +291,12 @@ hide_view_switcher_bar (GtkWidget *widget)
       return TRUE;
     }
 
-  child = gtk_widget_get_first_child (widget);
-
-  while (child)
+  for (child = gtk_widget_get_first_child (widget);
+       child != NULL;
+       child = gtk_widget_get_next_sibling (child))
     {
       if (hide_view_switcher_bar (child))
         return TRUE;
-
-      child = gtk_widget_get_next_sibling (child);
     }
 
   return FALSE;
