@@ -4,6 +4,7 @@
 # Dependencies
 plugin_systemvolume_deps = [
   libvalent_core_dep,
+  libvalent_device_dep,
   libvalent_mixer_dep,
 ]
 

@@ -4,12 +4,14 @@
 # Dependencies
 libvalent_ui_test_deps = [
   libvalent_core_dep,
+  libvalent_device_dep,
   libvalent_ui_dep,
   libvalent_test_dep,
 ]
 
 libvalent_ui_tests = [
   'test-application',
+  'test-application-plugin',
   'test-device-panel',
   'test-device-preferences-page',
   'test-device-preferences-window',

@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <libvalent-core.h>
+#include <libvalent-device.h>
 
 G_BEGIN_DECLS
 

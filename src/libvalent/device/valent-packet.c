@@ -5,8 +5,6 @@
 
 #include "config.h"
 
-#include <time.h>
-
 #include <gio/gio.h>
 #include <json-glib/json-glib.h>
 
@@ -1112,34 +1110,5 @@ valent_packet_deserialize (const char  *json,
     return NULL;
 
   return g_steal_pointer (&packet);
-}
-
-/**
- * valent_timestamp_ms:
- *
- * Get a current UNIX epoch timestamp in milliseconds.
- *
- * This timestamp format is used in several parts of the KDE Connect protocol.
- *
- * Returns: a 64-bit timestamp
- *
- * Since: 1.0
- */
-gint64
-valent_timestamp_ms (void)
-{
-#ifdef HAVE_CLOCK_GETTIME
-  struct timespec ts;
-
-  clock_gettime (CLOCK_REALTIME, &ts);
-
-  return (ts.tv_sec * 1000L) + ts.tv_nsec / 1000000L;
-#else
-  struct timeval tv;
-
-  gettimeofday (&tv, NULL);
-
-  return (tv.tv_sec * 1000L) + tv.tv_usec / 1000L;
-#endif /* HAVE_CLOCK_GETTIME */
 }
 

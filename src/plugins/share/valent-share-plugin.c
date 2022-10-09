@@ -8,8 +8,8 @@
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
 #include <json-glib/json-glib.h>
-#include <libpeas/peas.h>
 #include <libvalent-core.h>
+#include <libvalent-device.h>
 
 #include "valent-share-plugin.h"
 #include "valent-share-download.h"

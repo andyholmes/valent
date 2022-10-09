@@ -8,6 +8,7 @@
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
 #include <libvalent-clipboard.h>
+#include <libvalent-device.h>
 
 #include "valent-clipboard-plugin.h"
 

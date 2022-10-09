@@ -8,8 +8,8 @@
 #include <gio/gio.h>
 #include <json-glib/json-glib.h>
 #include <libpeas/peas.h>
+#include <libvalent-core.h>
 
-#include "valent-debug.h"
 #include "valent-device.h"
 #include "valent-device-plugin.h"
 #include "valent-packet.h"

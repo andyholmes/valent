@@ -7,13 +7,12 @@
 
 #include <math.h>
 
+#include <libvalent-core.h>
+
 #include "valent-channel.h"
-#include "valent-debug.h"
 #include "valent-device.h"
 #include "valent-device-transfer.h"
-#include "valent-macros.h"
 #include "valent-packet.h"
-#include "valent-transfer.h"
 
 
 /**

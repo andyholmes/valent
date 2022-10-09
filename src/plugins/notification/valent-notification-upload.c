@@ -7,7 +7,9 @@
 
 #include <gio/gio.h>
 #include <gtk/gtk.h>
+#include <json-glib/json-glib.h>
 #include <libvalent-core.h>
+#include <libvalent-device.h>
 
 #include "valent-notification-upload.h"
 

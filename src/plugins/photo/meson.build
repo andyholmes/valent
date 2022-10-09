@@ -11,6 +11,7 @@ endif
 # Dependencies
 plugin_photo_deps = [
   libvalent_core_dep,
+  libvalent_device_dep,
   gstreamer_video_dep,
 ]
 

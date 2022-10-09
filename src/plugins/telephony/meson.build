@@ -5,6 +5,7 @@
 # Dependencies
 plugin_telephony_deps = [
   libvalent_core_dep,
+  libvalent_device_dep,
   libvalent_ui_dep,
 ]
 

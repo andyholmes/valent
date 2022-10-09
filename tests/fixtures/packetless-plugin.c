@@ -3,6 +3,7 @@
 
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
+#include <libvalent-device.h>
 
 #include "packetless-plugin.h"
 

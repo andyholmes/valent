@@ -9,6 +9,7 @@
 #include <gio/gnetworking.h>
 #include <json-glib/json-glib.h>
 #include <libvalent-core.h>
+#include <libvalent-device.h>
 
 #include "valent-lan-channel.h"
 #include "valent-lan-utils.h"

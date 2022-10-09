@@ -6,19 +6,14 @@
 #include "config.h"
 
 #include <gio/gio.h>
+#include <libvalent-core.h>
 
-#include "valent-certificate.h"
 #include "valent-channel.h"
 #include "valent-channel-service.h"
-#include "valent-component.h"
-#include "valent-data.h"
-#include "valent-debug.h"
 #include "valent-device.h"
 #include "valent-device-impl.h"
 #include "valent-device-manager.h"
 #include "valent-device-private.h"
-#include "valent-global.h"
-#include "valent-macros.h"
 #include "valent-packet.h"
 
 #define DEVICE_UNPAIRED_MAX (10)

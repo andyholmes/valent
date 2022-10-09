@@ -4,7 +4,7 @@
 #include "config.h"
 
 #include <libpeas/peas.h>
-#include <libvalent-core.h>
+#include <libvalent-device.h>
 
 #include "valent-findmyphone-plugin.h"
 

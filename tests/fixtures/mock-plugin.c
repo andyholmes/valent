@@ -5,6 +5,7 @@
 #include <libvalent-core.h>
 #include <libvalent-clipboard.h>
 #include <libvalent-contacts.h>
+#include <libvalent-device.h>
 #include <libvalent-input.h>
 #include <libvalent-media.h>
 #include <libvalent-mixer.h>

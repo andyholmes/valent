@@ -10,6 +10,7 @@
 #include <gtk/gtk.h>
 #include <pango/pango.h>
 #include <libvalent-core.h>
+#include <libvalent-device.h>
 
 #include "valent-device-preferences-page.h"
 #include "valent-device-preferences-window.h"

@@ -12,12 +12,14 @@
 #include <libvalent-core.h>
 #include <libvalent-clipboard.h>
 #include <libvalent-contacts.h>
+#include <libvalent-device.h>
 #include <libvalent-input.h>
 #include <libvalent-media.h>
 #include <libvalent-mixer.h>
 #include <libvalent-notifications.h>
 #include <libvalent-session.h>
 
+#include "valent-application-plugin.h"
 #include "valent-preferences-page.h"
 #include "valent-preferences-window.h"
 #include "valent-preferences-window-private.h"

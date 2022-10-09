@@ -3,13 +3,12 @@
 
 #pragma once
 
-#if !defined (VALENT_CORE_INSIDE) && !defined (VALENT_CORE_COMPILATION)
-# error "Only <libvalent-core.h> can be included directly."
+#if !defined (VALENT_DEVICE_INSIDE) && !defined (VALENT_DEVICE_COMPILATION)
+# error "Only <libvalent-device.h> can be included directly."
 #endif
 
 #include <json-glib/json-glib.h>
-
-#include "valent-version.h"
+#include <libvalent-core.h>
 
 G_BEGIN_DECLS
 
@@ -175,7 +174,5 @@ char        * valent_packet_serialize        (JsonNode       *packet);
 VALENT_AVAILABLE_IN_1_0
 JsonNode    * valent_packet_deserialize      (const char     *json,
                                               GError        **error);
-VALENT_AVAILABLE_IN_1_0
-gint64        valent_timestamp_ms            (void);
 
 G_END_DECLS

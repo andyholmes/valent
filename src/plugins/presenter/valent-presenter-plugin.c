@@ -7,8 +7,9 @@
 
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
-#include <libpeas/peas.h>
+#include <json-glib/json-glib.h>
 #include <libvalent-core.h>
+#include <libvalent-device.h>
 #include <libvalent-input.h>
 
 #include "valent-presenter-plugin.h"

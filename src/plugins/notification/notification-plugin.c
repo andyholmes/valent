@@ -4,6 +4,7 @@
 #include "config.h"
 
 #include <libpeas/peas.h>
+#include <libvalent-device.h>
 #include <libvalent-notifications.h>
 
 #include "valent-notification-plugin.h"

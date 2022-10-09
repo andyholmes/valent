@@ -3,15 +3,15 @@
 
 #pragma once
 
-#if !defined (VALENT_CORE_INSIDE) && !defined (VALENT_CORE_COMPILATION)
-# error "Only <libvalent-core.h> can be included directly."
+#if !defined (VALENT_DEVICE_INSIDE) && !defined (VALENT_DEVICE_COMPILATION)
+# error "Only <libvalent-device.h> can be included directly."
 #endif
 
 #include <gio/gio.h>
 #include <json-glib/json-glib.h>
+#include <libvalent-core.h>
 
 #include "valent-device.h"
-#include "valent-transfer.h"
 
 G_BEGIN_DECLS
 

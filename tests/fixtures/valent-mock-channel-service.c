@@ -5,10 +5,12 @@
 
 #include "config.h"
 
+#include <sys/socket.h>
+
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
+#include <libvalent-device.h>
 #include <libvalent-test.h>
-#include <sys/socket.h>
 
 #include "valent-mock-channel.h"
 #include "valent-mock-channel-service.h"

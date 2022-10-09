@@ -7,11 +7,9 @@
 
 #include <gio/gio.h>
 #include <libpeas/peas.h>
+#include <libvalent-device.h>
 
 #include "valent-application-plugin.h"
-#include "valent-debug.h"
-#include "valent-device-manager.h"
-#include "valent-object.h"
 
 
 /**

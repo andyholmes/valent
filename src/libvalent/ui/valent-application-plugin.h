@@ -3,14 +3,11 @@
 
 #pragma once
 
-#if !defined (VALENT_CORE_INSIDE) && !defined (VALENT_CORE_COMPILATION)
+#if !defined (VALENT_UI_INSIDE) && !defined (VALENT_UI_COMPILATION)
 # error "Only <libvalent-core.h> can be included directly."
 #endif
 
-#include <glib-object.h>
-
-#include "valent-device-manager.h"
-#include "valent-object.h"
+#include <libvalent-device.h>
 
 G_BEGIN_DECLS
 
