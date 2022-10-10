@@ -59,8 +59,7 @@ handshake_cb (ValentMuxConnection *muxer,
                             g_strdup (task->object_path),
                             g_object_ref (muxer));
 
-      valent_channel_service_emit_channel (VALENT_CHANNEL_SERVICE (self),
-                                           channel);
+      valent_channel_service_channel (VALENT_CHANNEL_SERVICE (self), channel);
     }
   else
     {

@@ -59,9 +59,9 @@ telephony_plugin_fixture_set_up (ValentTestFixture *fixture,
                                    NULL);
   valent_test_fixture_set_data (fixture, info, mixer_info_free);
 
-  valent_mixer_adapter_emit_stream_added (info->adapter, info->speakers);
-  valent_mixer_adapter_emit_stream_added (info->adapter, info->microphone);
-  valent_mixer_adapter_emit_stream_added (info->adapter, info->headphones);
+  valent_mixer_adapter_stream_added (info->adapter, info->speakers);
+  valent_mixer_adapter_stream_added (info->adapter, info->microphone);
+  valent_mixer_adapter_stream_added (info->adapter, info->headphones);
 }
 
 static void

@@ -236,7 +236,7 @@ valent_notifications_adapter_init (ValentNotificationsAdapter *adapter)
 }
 
 /**
- * valent_notifications_adapter_emit_notification_added:
+ * valent_notifications_adapter_notification_added:
  * @adapter: a #ValentNotificationsAdapter
  * @notification: a #ValentNotification
  *
@@ -248,8 +248,8 @@ valent_notifications_adapter_init (ValentNotificationsAdapter *adapter)
  * Since: 1.0
  */
 void
-valent_notifications_adapter_emit_notification_added (ValentNotificationsAdapter *adapter,
-                                                      ValentNotification         *notification)
+valent_notifications_adapter_notification_added (ValentNotificationsAdapter *adapter,
+                                                 ValentNotification         *notification)
 {
   g_return_if_fail (VALENT_IS_NOTIFICATIONS_ADAPTER (adapter));
 
@@ -257,7 +257,7 @@ valent_notifications_adapter_emit_notification_added (ValentNotificationsAdapter
 }
 
 /**
- * valent_notifications_adapter_emit_notification_removed:
+ * valent_notifications_adapter_notification_removed:
  * @adapter: a #ValentNotificationsAdapter
  * @id: a notification id
  *
@@ -269,8 +269,8 @@ valent_notifications_adapter_emit_notification_added (ValentNotificationsAdapter
  * Since: 1.0
  */
 void
-valent_notifications_adapter_emit_notification_removed (ValentNotificationsAdapter *adapter,
-                                                        const char                 *id)
+valent_notifications_adapter_notification_removed (ValentNotificationsAdapter *adapter,
+                                                   const char                 *id)
 {
   g_return_if_fail (VALENT_IS_NOTIFICATIONS_ADAPTER (adapter));
 

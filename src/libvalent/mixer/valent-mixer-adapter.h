@@ -44,26 +44,26 @@ struct _ValentMixerAdapterClass
 };
 
 VALENT_AVAILABLE_IN_1_0
-void                valent_mixer_adapter_emit_stream_added   (ValentMixerAdapter *adapter,
-                                                              ValentMixerStream  *stream);
+void                valent_mixer_adapter_stream_added       (ValentMixerAdapter *adapter,
+                                                             ValentMixerStream  *stream);
 VALENT_AVAILABLE_IN_1_0
-void                valent_mixer_adapter_emit_stream_changed (ValentMixerAdapter *adapter,
-                                                              ValentMixerStream  *stream);
+void                valent_mixer_adapter_stream_changed     (ValentMixerAdapter *adapter,
+                                                             ValentMixerStream  *stream);
 VALENT_AVAILABLE_IN_1_0
-void                valent_mixer_adapter_emit_stream_removed (ValentMixerAdapter *adapter,
-                                                              ValentMixerStream  *stream);
+void                valent_mixer_adapter_stream_removed     (ValentMixerAdapter *adapter,
+                                                             ValentMixerStream  *stream);
 VALENT_AVAILABLE_IN_1_0
-ValentMixerStream * valent_mixer_adapter_get_default_input   (ValentMixerAdapter *adapter);
+ValentMixerStream * valent_mixer_adapter_get_default_input  (ValentMixerAdapter *adapter);
 VALENT_AVAILABLE_IN_1_0
-void                valent_mixer_adapter_set_default_input   (ValentMixerAdapter *adapter,
-                                                              ValentMixerStream  *stream);
+void                valent_mixer_adapter_set_default_input  (ValentMixerAdapter *adapter,
+                                                             ValentMixerStream  *stream);
 VALENT_AVAILABLE_IN_1_0
-ValentMixerStream * valent_mixer_adapter_get_default_output  (ValentMixerAdapter *adapter);
+ValentMixerStream * valent_mixer_adapter_get_default_output (ValentMixerAdapter *adapter);
 VALENT_AVAILABLE_IN_1_0
-void                valent_mixer_adapter_set_default_output  (ValentMixerAdapter *adapter,
-                                                              ValentMixerStream  *stream);
+void                valent_mixer_adapter_set_default_output (ValentMixerAdapter *adapter,
+                                                             ValentMixerStream  *stream);
 VALENT_AVAILABLE_IN_1_0
-GPtrArray         * valent_mixer_adapter_get_inputs          (ValentMixerAdapter *adapter);
+GPtrArray         * valent_mixer_adapter_get_inputs         (ValentMixerAdapter *adapter);
 VALENT_AVAILABLE_IN_1_0
 GPtrArray         * valent_mixer_adapter_get_outputs         (ValentMixerAdapter *adapter);
 

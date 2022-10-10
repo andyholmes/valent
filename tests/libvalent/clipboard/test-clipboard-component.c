@@ -241,7 +241,7 @@ test_clipboard_component_adapter (ClipboardComponentFixture *fixture,
                     G_CALLBACK (on_changed),
                     fixture);
 
-  valent_clipboard_adapter_emit_changed (fixture->adapter);
+  valent_clipboard_adapter_changed (fixture->adapter);
   g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
@@ -331,7 +331,7 @@ test_clipboard_component_self (ClipboardComponentFixture *fixture,
                     G_CALLBACK (on_changed),
                     fixture);
 
-  valent_clipboard_adapter_emit_changed (fixture->adapter);
+  valent_clipboard_adapter_changed (fixture->adapter);
   g_assert_true (fixture->data == fixture->clipboard);
   fixture->data = NULL;
 

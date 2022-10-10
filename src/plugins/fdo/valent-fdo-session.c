@@ -41,7 +41,7 @@ on_properties_changed (GDBusProxy       *proxy,
     return;
 
   g_object_notify (G_OBJECT (self), "active");
-  valent_session_adapter_emit_changed (VALENT_SESSION_ADAPTER (self));
+  valent_session_adapter_changed (VALENT_SESSION_ADAPTER (self));
 }
 
 static void
@@ -59,7 +59,7 @@ on_signal (GDBusProxy       *proxy,
     self->locked = FALSE;
 
   g_object_notify (G_OBJECT (self), "locked");
-  valent_session_adapter_emit_changed (VALENT_SESSION_ADAPTER (self));
+  valent_session_adapter_changed (VALENT_SESSION_ADAPTER (self));
 }
 
 /*

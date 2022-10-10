@@ -66,11 +66,11 @@ GListModel     * valent_sms_store_get_thread            (ValentSmsStore       *s
                                                          gint64                thread_id);
 gint64           valent_sms_store_get_thread_date       (ValentSmsStore       *store,
                                                          gint64                thread_id);
-void             valent_sms_store_emit_message_added    (ValentSmsStore       *store,
+void             valent_sms_store_message_added         (ValentSmsStore       *store,
                                                          ValentMessage        *message);
-void             valent_sms_store_emit_message_removed  (ValentSmsStore       *store,
+void             valent_sms_store_message_removed       (ValentSmsStore       *store,
                                                          ValentMessage        *message);
-void             valent_sms_store_emit_message_changed  (ValentSmsStore       *store,
+void             valent_sms_store_message_changed       (ValentSmsStore       *store,
                                                          ValentMessage        *message);
 
 G_END_DECLS

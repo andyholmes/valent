@@ -51,7 +51,7 @@ valent_mock_session_adapter_set_locked (ValentSessionAdapter *adapter,
 
   self->locked = state;
   g_object_notify (G_OBJECT (self), "locked");
-  valent_session_adapter_emit_changed (adapter);
+  valent_session_adapter_changed (adapter);
 }
 
 /*

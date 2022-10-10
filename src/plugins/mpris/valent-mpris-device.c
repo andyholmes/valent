@@ -52,7 +52,7 @@ valent_mpris_device_flush (gpointer data)
 
   g_assert (VALENT_IS_MPRIS_DEVICE (self));
 
-  valent_media_player_emit_changed (VALENT_MEDIA_PLAYER (self));
+  valent_media_player_changed (VALENT_MEDIA_PLAYER (self));
   g_clear_handle_id (&self->flush_id, g_source_remove);
 
   return G_SOURCE_REMOVE;

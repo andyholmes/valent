@@ -262,7 +262,7 @@ valent_media_disable_extension (ValentComponent *component,
   players = valent_media_adapter_get_players (adapter);
 
   for (unsigned int i = 0; i < players->len; i++)
-    valent_media_adapter_emit_player_removed (adapter, g_ptr_array_index (players, i));
+    valent_media_adapter_player_removed (adapter, g_ptr_array_index (players, i));
 
   g_signal_handlers_disconnect_by_func (adapter, on_player_added, self);
   g_signal_handlers_disconnect_by_func (adapter, on_player_removed, self);

@@ -42,22 +42,22 @@ struct _ValentContactsAdapterClass
 };
 
 VALENT_AVAILABLE_IN_1_0
-void        valent_contacts_adapter_emit_store_added   (ValentContactsAdapter  *adapter,
-                                                        ValentContactStore     *store);
+void        valent_contacts_adapter_store_added   (ValentContactsAdapter  *adapter,
+                                                   ValentContactStore     *store);
 VALENT_AVAILABLE_IN_1_0
-void        valent_contacts_adapter_emit_store_removed (ValentContactsAdapter  *adapter,
-                                                        ValentContactStore     *store);
+void        valent_contacts_adapter_store_removed (ValentContactsAdapter  *adapter,
+                                                   ValentContactStore     *store);
 VALENT_AVAILABLE_IN_1_0
-GPtrArray * valent_contacts_adapter_get_stores         (ValentContactsAdapter  *adapter);
+GPtrArray * valent_contacts_adapter_get_stores    (ValentContactsAdapter  *adapter);
 VALENT_AVAILABLE_IN_1_0
-void        valent_contacts_adapter_load_async         (ValentContactsAdapter  *adapter,
-                                                        GCancellable           *cancellable,
-                                                        GAsyncReadyCallback     callback,
-                                                        gpointer                user_data);
+void        valent_contacts_adapter_load_async    (ValentContactsAdapter  *adapter,
+                                                   GCancellable           *cancellable,
+                                                   GAsyncReadyCallback     callback,
+                                                   gpointer                user_data);
 VALENT_AVAILABLE_IN_1_0
-gboolean    valent_contacts_adapter_load_finish        (ValentContactsAdapter  *adapter,
-                                                        GAsyncResult           *result,
-                                                        GError                **error);
+gboolean    valent_contacts_adapter_load_finish   (ValentContactsAdapter  *adapter,
+                                                   GAsyncResult           *result,
+                                                   GError                **error);
 
 G_END_DECLS
 

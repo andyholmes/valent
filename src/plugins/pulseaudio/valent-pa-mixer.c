@@ -96,7 +96,7 @@ on_stream_added (GvcMixerControl *control,
                  valent_mixer_stream_get_name (stream));
     }
 
-  valent_mixer_adapter_emit_stream_added (VALENT_MIXER_ADAPTER (self), stream);
+  valent_mixer_adapter_stream_added (VALENT_MIXER_ADAPTER (self), stream);
 }
 
 static void
@@ -121,7 +121,7 @@ on_stream_removed (GvcMixerControl *control,
    *        wants to perform.
    */
 
-  valent_mixer_adapter_emit_stream_removed (VALENT_MIXER_ADAPTER (self), stream);
+  valent_mixer_adapter_stream_removed (VALENT_MIXER_ADAPTER (self), stream);
   g_hash_table_remove (self->streams, GUINT_TO_POINTER (stream_id));
 }
 
@@ -136,7 +136,7 @@ on_stream_changed (GvcMixerControl *control,
   stream = g_hash_table_lookup (self->streams, GUINT_TO_POINTER (stream_id));
 
   if (stream != NULL)
-    valent_mixer_adapter_emit_stream_changed (adapter, stream);
+    valent_mixer_adapter_stream_changed (adapter, stream);
 }
 
 static void
@@ -198,7 +198,7 @@ valent_pa_mixer_unload (ValentPaMixer *self)
 
   while (g_hash_table_iter_next (&iter, NULL, (void **)&stream))
     {
-      valent_mixer_adapter_emit_stream_removed (adapter, stream);
+      valent_mixer_adapter_stream_removed (adapter, stream);
       g_hash_table_iter_remove (&iter);
     }
 

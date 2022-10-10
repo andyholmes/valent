@@ -206,7 +206,7 @@ on_objects_added (EBookClientView    *view,
   g_assert (VALENT_IS_CONTACT_STORE (store));
 
   for (const GSList *iter = contacts; iter; iter = iter->next)
-    valent_contact_store_emit_contact_added (store, E_CONTACT (iter->data));
+    valent_contact_store_contact_added (store, E_CONTACT (iter->data));
 }
 
 static void
@@ -218,7 +218,7 @@ on_objects_removed (EBookClientView    *view,
   g_assert (VALENT_IS_CONTACT_STORE (store));
 
   for (const GSList *iter = uids; iter; iter = iter->next)
-    valent_contact_store_emit_contact_removed (store, (const char *)iter->data);
+    valent_contact_store_contact_removed (store, (const char *)iter->data);
 }
 
 static void

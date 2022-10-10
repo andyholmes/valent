@@ -27,7 +27,7 @@ on_stream_changed (ValentMixerStream  *stream,
 {
   g_assert (VALENT_IS_MOCK_MIXER_ADAPTER (adapter));
 
-  valent_mixer_adapter_emit_stream_changed (adapter, stream);
+  valent_mixer_adapter_stream_changed (adapter, stream);
 }
 
 /*

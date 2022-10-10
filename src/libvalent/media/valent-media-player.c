@@ -481,7 +481,7 @@ valent_media_player_init (ValentMediaPlayer *self)
 }
 
 /**
- * valent_media_player_emit_changed:
+ * valent_media_player_changed:
  * @player: a #ValentMediaPlayer
  *
  * Emit [signal@Valent.MediaPlayer::changed] on @player.
@@ -493,7 +493,7 @@ valent_media_player_init (ValentMediaPlayer *self)
  * Since: 1.0
  */
 void
-valent_media_player_emit_changed (ValentMediaPlayer *player)
+valent_media_player_changed (ValentMediaPlayer *player)
 {
   g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
 

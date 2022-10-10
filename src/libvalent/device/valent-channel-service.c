@@ -234,7 +234,7 @@ typedef struct
 } ChannelEmission;
 
 static gboolean
-valent_channel_service_emit_channel_main (gpointer data)
+valent_channel_service_channel_main (gpointer data)
 {
   ChannelEmission *emission = data;
   g_autoptr (ValentChannelService) service = NULL;
@@ -242,7 +242,7 @@ valent_channel_service_emit_channel_main (gpointer data)
   g_rec_mutex_lock (&channel_lock);
 
   if ((service = g_weak_ref_get (&emission->service)) != NULL)
-    valent_channel_service_emit_channel (service, emission->channel);
+    valent_channel_service_channel (service, emission->channel);
 
   g_weak_ref_clear (&emission->service);
   g_clear_object (&emission->channel);
@@ -881,7 +881,7 @@ valent_channel_service_stop (ValentChannelService *service)
 }
 
 /**
- * valent_channel_service_emit_channel:
+ * valent_channel_service_channel:
  * @service: a #ValentChannelService
  * @channel: a #ValentChannel
  *
@@ -893,8 +893,8 @@ valent_channel_service_stop (ValentChannelService *service)
  * Since: 1.0
  */
 void
-valent_channel_service_emit_channel (ValentChannelService *service,
-                                     ValentChannel        *channel)
+valent_channel_service_channel (ValentChannelService *service,
+                                ValentChannel        *channel)
 {
   ChannelEmission *emission;
 
@@ -913,7 +913,7 @@ valent_channel_service_emit_channel (ValentChannelService *service,
   emission->channel = g_object_ref (channel);
   g_rec_mutex_unlock (&channel_lock);
 
-  g_timeout_add (0, valent_channel_service_emit_channel_main, emission);
+  g_timeout_add (0, valent_channel_service_channel_main, emission);
 }
 
 /**

@@ -46,28 +46,28 @@ struct _ValentMediaAdapterClass
 };
 
 VALENT_AVAILABLE_IN_1_0
-void        valent_media_adapter_emit_player_added   (ValentMediaAdapter   *adapter,
-                                                      ValentMediaPlayer    *player);
+void        valent_media_adapter_player_added    (ValentMediaAdapter   *adapter,
+                                                  ValentMediaPlayer    *player);
 VALENT_AVAILABLE_IN_1_0
-void        valent_media_adapter_emit_player_removed (ValentMediaAdapter   *adapter,
-                                                      ValentMediaPlayer    *player);
+void        valent_media_adapter_player_removed  (ValentMediaAdapter   *adapter,
+                                                  ValentMediaPlayer    *player);
 VALENT_AVAILABLE_IN_1_0
-GPtrArray * valent_media_adapter_get_players         (ValentMediaAdapter   *adapter);
+GPtrArray * valent_media_adapter_get_players     (ValentMediaAdapter   *adapter);
 VALENT_AVAILABLE_IN_1_0
-void        valent_media_adapter_load_async          (ValentMediaAdapter   *adapter,
-                                                      GCancellable         *cancellable,
-                                                      GAsyncReadyCallback   callback,
-                                                      gpointer              user_data);
+void        valent_media_adapter_load_async      (ValentMediaAdapter   *adapter,
+                                                  GCancellable         *cancellable,
+                                                  GAsyncReadyCallback   callback,
+                                                  gpointer              user_data);
 VALENT_AVAILABLE_IN_1_0
-gboolean    valent_media_adapter_load_finish         (ValentMediaAdapter   *adapter,
-                                                      GAsyncResult         *result,
-                                                      GError              **error);
+gboolean    valent_media_adapter_load_finish     (ValentMediaAdapter   *adapter,
+                                                  GAsyncResult         *result,
+                                                  GError              **error);
 VALENT_AVAILABLE_IN_1_0
-void        valent_media_adapter_export_player       (ValentMediaAdapter   *adapter,
-                                                      ValentMediaPlayer    *player);
+void        valent_media_adapter_export_player   (ValentMediaAdapter   *adapter,
+                                                  ValentMediaPlayer    *player);
 VALENT_AVAILABLE_IN_1_0
-void        valent_media_adapter_unexport_player     (ValentMediaAdapter   *adapter,
-                                                      ValentMediaPlayer    *player);
+void        valent_media_adapter_unexport_player (ValentMediaAdapter   *adapter,
+                                                  ValentMediaPlayer    *player);
 
 G_END_DECLS
 

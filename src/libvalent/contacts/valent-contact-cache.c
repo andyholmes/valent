@@ -81,7 +81,7 @@ valent_contact_cache_add_task (GTask        *task,
     return g_task_return_error (task, error);
 
   for (const GSList *iter = contacts; iter; iter = iter->next)
-    valent_contact_store_emit_contact_added (store, E_CONTACT (iter->data));
+    valent_contact_store_contact_added (store, E_CONTACT (iter->data));
 
   g_task_return_boolean (task, TRUE);
 }
@@ -136,7 +136,7 @@ valent_contact_cache_remove_task (GTask        *task,
     return g_task_return_error (task, error);
 
   for (const GSList *iter = uids; iter; iter = iter->next)
-    valent_contact_store_emit_contact_removed (store, (char *)iter->data);
+    valent_contact_store_contact_removed (store, (char *)iter->data);
 
   g_task_return_boolean (task, TRUE);
 }

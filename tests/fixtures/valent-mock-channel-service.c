@@ -100,7 +100,7 @@ valent_mock_channel_service_identify (ValentChannelService *service,
   g_object_add_weak_pointer (G_OBJECT (self->endpoint),
                              (gpointer)&self->endpoint);
 
-  valent_channel_service_emit_channel (service, self->channel);
+  valent_channel_service_channel (service, self->channel);
 }
 
 static void

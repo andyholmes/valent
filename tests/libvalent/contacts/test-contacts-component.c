@@ -187,7 +187,7 @@ test_contacts_component_adapter (ContactsComponentFixture *fixture,
                     fixture);
 
   /* ::store-added is emitted and the internal representation is updated */
-  valent_contacts_adapter_emit_store_added (fixture->adapter, fixture->store);
+  valent_contacts_adapter_store_added (fixture->adapter, fixture->store);
   g_assert_true (fixture->emitter == fixture->adapter);
   g_assert_true (fixture->emitted == fixture->store);
   fixture->emitter = NULL;
@@ -199,7 +199,7 @@ test_contacts_component_adapter (ContactsComponentFixture *fixture,
   g_clear_pointer (&stores, g_ptr_array_unref);
 
   /* ::store-removed is emitted and the internal representation is updated */
-  valent_contacts_adapter_emit_store_removed (fixture->adapter, fixture->store);
+  valent_contacts_adapter_store_removed (fixture->adapter, fixture->store);
   g_assert_true (fixture->emitter == fixture->adapter);
   g_assert_true (fixture->emitted == fixture->store);
   fixture->emitter = NULL;
@@ -356,7 +356,7 @@ test_contacts_component_self (ContactsComponentFixture *fixture,
                     fixture);
 
   /* ::store-added propagates to ValentContacts */
-  valent_contacts_adapter_emit_store_added (fixture->adapter, fixture->store);
+  valent_contacts_adapter_store_added (fixture->adapter, fixture->store);
   g_assert_true (VALENT_IS_CONTACTS (fixture->emitter));
   g_assert_true (VALENT_IS_CONTACT_STORE (fixture->emitted));
   fixture->emitter = NULL;
@@ -370,7 +370,7 @@ test_contacts_component_self (ContactsComponentFixture *fixture,
   g_assert_true (VALENT_IS_CONTACT_STORE (store));
 
   /* ::store-removed propagates to ValentContacts */
-  valent_contacts_adapter_emit_store_removed (fixture->adapter, fixture->store);
+  valent_contacts_adapter_store_removed (fixture->adapter, fixture->store);
   g_assert_true (VALENT_IS_CONTACTS (fixture->emitter));
   g_assert_true (VALENT_IS_CONTACT_STORE (fixture->emitted));
   fixture->emitter = NULL;

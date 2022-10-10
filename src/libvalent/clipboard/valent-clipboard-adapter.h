@@ -64,7 +64,7 @@ struct _ValentClipboardAdapterClass
 };
 
 VALENT_AVAILABLE_IN_1_0
-void       valent_clipboard_adapter_emit_changed       (ValentClipboardAdapter  *adapter);
+void       valent_clipboard_adapter_changed            (ValentClipboardAdapter  *adapter);
 VALENT_AVAILABLE_IN_1_0
 GStrv      valent_clipboard_adapter_get_mimetypes      (ValentClipboardAdapter  *adapter);
 VALENT_AVAILABLE_IN_1_0
