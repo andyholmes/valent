@@ -223,7 +223,7 @@ valent_session_adapter_init (ValentSessionAdapter *adapter)
 }
 
 /**
- * valent_session_adapter_emit_changed:
+ * valent_session_adapter_changed:
  * @adapter: a #ValentSessionAdapter
  *
  * Emit [signal@Valent.SessionAdapter::changed] on @adapter.
@@ -234,7 +234,7 @@ valent_session_adapter_init (ValentSessionAdapter *adapter)
  * Since: 1.0
  */
 void
-valent_session_adapter_emit_changed (ValentSessionAdapter *adapter)
+valent_session_adapter_changed (ValentSessionAdapter *adapter)
 {
   g_return_if_fail (VALENT_IS_SESSION_ADAPTER (adapter));
 

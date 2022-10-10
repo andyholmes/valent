@@ -56,10 +56,10 @@ struct _ValentContactStoreClass
 
 
 VALENT_AVAILABLE_IN_1_0
-void         valent_contact_store_emit_contact_added     (ValentContactStore   *store,
+void         valent_contact_store_contact_added          (ValentContactStore   *store,
                                                           EContact             *contact);
 VALENT_AVAILABLE_IN_1_0
-void         valent_contact_store_emit_contact_removed   (ValentContactStore   *store,
+void         valent_contact_store_contact_removed        (ValentContactStore   *store,
                                                           const char           *uid);
 VALENT_AVAILABLE_IN_1_0
 const char * valent_contact_store_get_name               (ValentContactStore   *store);

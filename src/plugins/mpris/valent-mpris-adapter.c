@@ -133,7 +133,7 @@ valent_mpris_player_new_cb (GObject      *object,
                         g_steal_pointer (&name),
                         g_object_ref (player));
 
-  valent_media_adapter_emit_player_added (VALENT_MEDIA_ADAPTER (self),
+  valent_media_adapter_player_added (VALENT_MEDIA_ADAPTER (self),
                                           VALENT_MEDIA_PLAYER (player));
 }
 
@@ -174,7 +174,7 @@ on_name_owner_changed (GDBusConnection *connection,
 
       if (g_hash_table_steal_extended (self->players, name, &key, &value))
         {
-          valent_media_adapter_emit_player_removed (adapter, value);
+          valent_media_adapter_player_removed (adapter, value);
           g_free (key);
           g_object_unref (value);
         }

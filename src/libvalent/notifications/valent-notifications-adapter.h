@@ -46,26 +46,26 @@ struct _ValentNotificationsAdapterClass
 };
 
 VALENT_AVAILABLE_IN_1_0
-void       valent_notifications_adapter_emit_notification_added   (ValentNotificationsAdapter  *adapter,
-                                                                   ValentNotification          *notification);
+void       valent_notifications_adapter_notification_added   (ValentNotificationsAdapter  *adapter,
+                                                              ValentNotification          *notification);
 VALENT_AVAILABLE_IN_1_0
-void       valent_notifications_adapter_emit_notification_removed (ValentNotificationsAdapter  *adapter,
-                                                                   const char                  *id);
+void       valent_notifications_adapter_notification_removed (ValentNotificationsAdapter  *adapter,
+                                                              const char                  *id);
 VALENT_AVAILABLE_IN_1_0
-void       valent_notifications_adapter_add_notification          (ValentNotificationsAdapter  *adapter,
-                                                                   ValentNotification          *notification);
+void       valent_notifications_adapter_add_notification     (ValentNotificationsAdapter  *adapter,
+                                                              ValentNotification          *notification);
 VALENT_AVAILABLE_IN_1_0
-void       valent_notifications_adapter_remove_notification       (ValentNotificationsAdapter  *adapter,
-                                                                   const char                  *id);
+void       valent_notifications_adapter_remove_notification  (ValentNotificationsAdapter  *adapter,
+                                                              const char                  *id);
 VALENT_AVAILABLE_IN_1_0
-void       valent_notifications_adapter_load_async                (ValentNotificationsAdapter  *adapter,
-                                                                   GCancellable                *cancellable,
-                                                                   GAsyncReadyCallback          callback,
-                                                                   gpointer                     user_data);
+void       valent_notifications_adapter_load_async           (ValentNotificationsAdapter  *adapter,
+                                                              GCancellable                *cancellable,
+                                                              GAsyncReadyCallback          callback,
+                                                              gpointer                     user_data);
 VALENT_AVAILABLE_IN_1_0
-gboolean   valent_notifications_adapter_load_finish               (ValentNotificationsAdapter  *adapter,
-                                                                   GAsyncResult                *result,
-                                                                   GError                     **error);
+gboolean   valent_notifications_adapter_load_finish          (ValentNotificationsAdapter  *adapter,
+                                                              GAsyncResult                *result,
+                                                              GError                     **error);
 
 G_END_DECLS
 

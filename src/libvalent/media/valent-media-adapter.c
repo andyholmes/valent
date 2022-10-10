@@ -289,7 +289,7 @@ valent_media_adapter_init (ValentMediaAdapter *adapter)
 }
 
 /**
- * valent_media_adapter_emit_player_added:
+ * valent_media_adapter_player_added:
  * @adapter: a #ValentMediaAdapter
  * @player: a #ValentMediaPlayer
  *
@@ -301,8 +301,8 @@ valent_media_adapter_init (ValentMediaAdapter *adapter)
  * Since: 1.0
  */
 void
-valent_media_adapter_emit_player_added (ValentMediaAdapter *adapter,
-                                        ValentMediaPlayer  *player)
+valent_media_adapter_player_added (ValentMediaAdapter *adapter,
+                                   ValentMediaPlayer  *player)
 {
   g_return_if_fail (VALENT_IS_MEDIA_ADAPTER (adapter));
   g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
@@ -311,7 +311,7 @@ valent_media_adapter_emit_player_added (ValentMediaAdapter *adapter,
 }
 
 /**
- * valent_media_adapter_emit_player_removed:
+ * valent_media_adapter_player_removed:
  * @adapter: a #ValentMediaAdapter
  * @player: a #ValentMediaPlayer
  *
@@ -323,8 +323,8 @@ valent_media_adapter_emit_player_added (ValentMediaAdapter *adapter,
  * Since: 1.0
  */
 void
-valent_media_adapter_emit_player_removed (ValentMediaAdapter *adapter,
-                                          ValentMediaPlayer  *player)
+valent_media_adapter_player_removed (ValentMediaAdapter *adapter,
+                                     ValentMediaPlayer  *player)
 {
   g_return_if_fail (VALENT_IS_MEDIA_ADAPTER (adapter));
   g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));

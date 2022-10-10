@@ -133,7 +133,7 @@ _notification_closed (ValentNotificationsAdapter *adapter,
   g_variant_get (parameters, "(uu)", &id, &reason);
 
   id_str = g_strdup_printf ("%u", id);
-  valent_notifications_adapter_emit_notification_removed (adapter, id_str);
+  valent_notifications_adapter_notification_removed (adapter, id_str);
 }
 
 static void
@@ -212,7 +212,7 @@ _notify (ValentNotificationsAdapter *adapter,
   /* Set a timestamp */
   valent_notification_set_time (notification, valent_timestamp_ms ());
 
-  valent_notifications_adapter_emit_notification_added (adapter, notification);
+  valent_notifications_adapter_notification_added (adapter, notification);
 }
 
 static void

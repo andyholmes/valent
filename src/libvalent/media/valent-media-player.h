@@ -121,7 +121,7 @@ struct _ValentMediaPlayerClass
 };
 
 VALENT_AVAILABLE_IN_1_0
-void                 valent_media_player_emit_changed (ValentMediaPlayer *player);
+void                 valent_media_player_changed      (ValentMediaPlayer *player);
 VALENT_AVAILABLE_IN_1_0
 gboolean             valent_media_player_is_playing   (ValentMediaPlayer *player);
 VALENT_AVAILABLE_IN_1_0

@@ -77,11 +77,11 @@ test_notifications_component_adapter (NotificationsComponentFixture *fixture,
   g_boxed_free (PEAS_TYPE_PLUGIN_INFO, info);
 
   /* Signals */
-  valent_notifications_adapter_emit_notification_added (fixture->adapter, fixture->notification);
+  valent_notifications_adapter_notification_added (fixture->adapter, fixture->notification);
   g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
-  valent_notifications_adapter_emit_notification_removed (fixture->adapter, "test-id");
+  valent_notifications_adapter_notification_removed (fixture->adapter, "test-id");
   g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
@@ -129,7 +129,7 @@ test_notifications_component_notification (NotificationsComponentFixture *fixtur
   valent_notification_add_button (fixture->notification, "Button 1", "foo.bar::baz");
 
 
-  valent_notifications_adapter_emit_notification_added (fixture->adapter, fixture->notification);
+  valent_notifications_adapter_notification_added (fixture->adapter, fixture->notification);
   g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
@@ -159,7 +159,7 @@ test_notifications_component_notification (NotificationsComponentFixture *fixtur
   g_assert_cmpuint (valent_notification_hash (fixture->notification), ==, valent_notification_hash (notification));
 
   /* Remove Notification */
-  valent_notifications_adapter_emit_notification_removed (fixture->adapter, "test-id");
+  valent_notifications_adapter_notification_removed (fixture->adapter, "test-id");
   g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
@@ -180,12 +180,12 @@ test_notifications_component_self (NotificationsComponentFixture *fixture,
                     fixture);
 
   /* Add notification */
-  valent_notifications_adapter_emit_notification_added (fixture->adapter, fixture->notification);
+  valent_notifications_adapter_notification_added (fixture->adapter, fixture->notification);
   g_assert_true (fixture->data == fixture->notifications);
   fixture->data = NULL;
 
   /* Remove notification */
-  valent_notifications_adapter_emit_notification_removed (fixture->adapter, "test-id");
+  valent_notifications_adapter_notification_removed (fixture->adapter, "test-id");
   g_assert_true (fixture->data == fixture->notifications);
   fixture->data = NULL;
 

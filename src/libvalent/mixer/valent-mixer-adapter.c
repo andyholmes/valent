@@ -373,7 +373,7 @@ valent_mixer_adapter_init (ValentMixerAdapter *self)
 }
 
 /**
- * valent_mixer_adapter_emit_stream_added:
+ * valent_mixer_adapter_stream_added:
  * @adapter: a #ValentMixerAdapter
  * @stream: a #ValentMixerStream
  *
@@ -385,8 +385,8 @@ valent_mixer_adapter_init (ValentMixerAdapter *self)
  * Since: 1.0
  */
 void
-valent_mixer_adapter_emit_stream_added (ValentMixerAdapter *adapter,
-                                        ValentMixerStream  *stream)
+valent_mixer_adapter_stream_added (ValentMixerAdapter *adapter,
+                                   ValentMixerStream  *stream)
 {
   GQuark detail = 0;
 
@@ -402,7 +402,7 @@ valent_mixer_adapter_emit_stream_added (ValentMixerAdapter *adapter,
 }
 
 /**
- * valent_mixer_adapter_emit_stream_changed:
+ * valent_mixer_adapter_stream_changed:
  * @adapter: a #ValentMixerAdapter
  * @stream: a #ValentMixerStream
  *
@@ -414,8 +414,8 @@ valent_mixer_adapter_emit_stream_added (ValentMixerAdapter *adapter,
  * Since: 1.0
  */
 void
-valent_mixer_adapter_emit_stream_changed (ValentMixerAdapter *adapter,
-                                          ValentMixerStream  *stream)
+valent_mixer_adapter_stream_changed (ValentMixerAdapter *adapter,
+                                     ValentMixerStream  *stream)
 {
   GQuark detail = 0;
 
@@ -431,7 +431,7 @@ valent_mixer_adapter_emit_stream_changed (ValentMixerAdapter *adapter,
 }
 
 /**
- * valent_mixer_adapter_emit_stream_removed:
+ * valent_mixer_adapter_stream_removed:
  * @adapter: a #ValentMixerAdapter
  * @stream: a #ValentMixerStream
  *
@@ -443,8 +443,8 @@ valent_mixer_adapter_emit_stream_changed (ValentMixerAdapter *adapter,
  * Since: 1.0
  */
 void
-valent_mixer_adapter_emit_stream_removed (ValentMixerAdapter *adapter,
-                                          ValentMixerStream  *stream)
+valent_mixer_adapter_stream_removed (ValentMixerAdapter *adapter,
+                                     ValentMixerStream  *stream)
 {
   GQuark detail = 0;
 

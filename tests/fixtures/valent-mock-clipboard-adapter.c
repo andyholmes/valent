@@ -106,7 +106,7 @@ valent_mock_clipboard_adapter_write_bytes (ValentClipboardAdapter *adapter,
   self->text = g_strdup (text);
   self->timestamp = valent_timestamp_ms ();
 
-  valent_clipboard_adapter_emit_changed (adapter);
+  valent_clipboard_adapter_changed (adapter);
 
   task = g_task_new (self, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_mock_clipboard_adapter_write_bytes);
@@ -153,7 +153,7 @@ valent_mock_clipboard_adapter_write_text (ValentClipboardAdapter *adapter,
   self->text = g_strdup (text);
   self->timestamp = valent_timestamp_ms ();
 
-  valent_clipboard_adapter_emit_changed (adapter);
+  valent_clipboard_adapter_changed (adapter);
 
   task = g_task_new (self, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_mock_clipboard_adapter_write_text);

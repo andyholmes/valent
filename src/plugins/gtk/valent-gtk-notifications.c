@@ -93,7 +93,7 @@ _add_notification (ValentNotificationsAdapter *adapter,
       valent_notification_set_application (notification, app_name);
     }
 
-  valent_notifications_adapter_emit_notification_added (adapter, notification);
+  valent_notifications_adapter_notification_added (adapter, notification);
 }
 
 static void
@@ -109,7 +109,7 @@ _remove_notification (ValentNotificationsAdapter *adapter,
   if (g_str_equal (app_id, APPLICATION_ID))
     return;
 
-  valent_notifications_adapter_emit_notification_removed (adapter, notif_id);
+  valent_notifications_adapter_notification_removed (adapter, notif_id);
 }
 
 static void

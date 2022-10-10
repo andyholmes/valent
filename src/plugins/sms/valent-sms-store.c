@@ -327,15 +327,15 @@ update_hook (gpointer       user_data,
   switch (event)
     {
     case SQLITE_INSERT:
-      valent_sms_store_emit_message_added (self, message);
+      valent_sms_store_message_added (self, message);
       break;
 
     case SQLITE_UPDATE:
-      valent_sms_store_emit_message_changed (self, message);
+      valent_sms_store_message_changed (self, message);
       break;
 
     case SQLITE_DELETE:
-      valent_sms_store_emit_message_removed (self, message);
+      valent_sms_store_message_removed (self, message);
       break;
     }
 }
@@ -1497,7 +1497,7 @@ valent_sms_store_get_thread_items (ValentSmsStore      *store,
 }
 
 /**
- * valent_sms_store_emit_message_added:
+ * valent_sms_store_message_added:
  * @store: a #ValentSmsStore
  * @message: a #ValentMessage
  *
@@ -1509,8 +1509,8 @@ valent_sms_store_get_thread_items (ValentSmsStore      *store,
  * might query the new state of the provider.
  */
 void
-valent_sms_store_emit_message_added (ValentSmsStore *store,
-                                     ValentMessage  *message)
+valent_sms_store_message_added (ValentSmsStore *store,
+                                ValentMessage  *message)
 {
   ChangeEmission *emission;
 
@@ -1532,7 +1532,7 @@ valent_sms_store_emit_message_added (ValentSmsStore *store,
 }
 
 /**
- * valent_sms_store_emit_message_removed:
+ * valent_sms_store_message_removed:
  * @store: a #ValentSmsStore
  * @message: a #ValentMessage
  *
@@ -1544,8 +1544,8 @@ valent_sms_store_emit_message_added (ValentSmsStore *store,
  * might query the new state of the provider.
  */
 void
-valent_sms_store_emit_message_removed (ValentSmsStore *store,
-                                       ValentMessage  *message)
+valent_sms_store_message_removed (ValentSmsStore *store,
+                                  ValentMessage  *message)
 {
   ChangeEmission *emission;
 
@@ -1567,7 +1567,7 @@ valent_sms_store_emit_message_removed (ValentSmsStore *store,
 }
 
 /**
- * valent_sms_store_emit_message_changed:
+ * valent_sms_store_message_changed:
  * @store: a #ValentSmsStore
  * @message: a #ValentMessage
  *
@@ -1579,8 +1579,8 @@ valent_sms_store_emit_message_removed (ValentSmsStore *store,
  * might query the new state of the provider.
  */
 void
-valent_sms_store_emit_message_changed (ValentSmsStore *store,
-                                       ValentMessage  *message)
+valent_sms_store_message_changed (ValentSmsStore *store,
+                                  ValentMessage  *message)
 {
   ChangeEmission *emission;
 

@@ -63,7 +63,7 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   JsonArray *sink_list;
   JsonObject *sink_info;
 
-  valent_mixer_adapter_emit_stream_added (info->adapter, info->sink1);
+  valent_mixer_adapter_stream_added (info->adapter, info->sink1);
 
   valent_test_fixture_connect (fixture, TRUE);
 
@@ -131,7 +131,7 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   json_node_unref (packet);
 
   /* Expect notification of added streams */
-  valent_mixer_adapter_emit_stream_added (info->adapter, info->sink2);
+  valent_mixer_adapter_stream_added (info->adapter, info->sink2);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.systemvolume");
@@ -176,7 +176,7 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   json_node_unref (packet);
 
   /* Expect notification of removed streams */
-  valent_mixer_adapter_emit_stream_removed (info->adapter, info->sink2);
+  valent_mixer_adapter_stream_removed (info->adapter, info->sink2);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.systemvolume");

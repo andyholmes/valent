@@ -73,7 +73,7 @@ typedef struct
 } SignalEmission;
 
 static gboolean
-valent_contact_store_emit_contact_added_main (gpointer data)
+valent_contact_store_contact_added_main (gpointer data)
 {
   SignalEmission *emission = data;
   g_autoptr (ValentContactStore) store = NULL;
@@ -96,7 +96,7 @@ valent_contact_store_emit_contact_added_main (gpointer data)
 }
 
 static gboolean
-valent_contact_store_emit_contact_removed_main (gpointer data)
+valent_contact_store_contact_removed_main (gpointer data)
 {
   SignalEmission *emission = data;
   g_autoptr (ValentContactStore) store = NULL;
@@ -374,7 +374,7 @@ valent_contact_store_init (ValentContactStore *store)
 }
 
 /**
- * valent_contact_store_emit_contact_added:
+ * valent_contact_store_contact_added:
  * @store: a #ValentContactStore
  * @contact: the #EContact
  *
@@ -387,8 +387,8 @@ valent_contact_store_init (ValentContactStore *store)
  * Since: 1.0
  */
 void
-valent_contact_store_emit_contact_added (ValentContactStore *store,
-                                         EContact           *contact)
+valent_contact_store_contact_added (ValentContactStore *store,
+                                    EContact           *contact)
 {
   SignalEmission *emission;
 
@@ -407,11 +407,11 @@ valent_contact_store_emit_contact_added (ValentContactStore *store,
   emission->contact = g_object_ref (contact);
   g_rec_mutex_unlock (&emission->mutex);
 
-  g_timeout_add (0, valent_contact_store_emit_contact_added_main, emission);
+  g_timeout_add (0, valent_contact_store_contact_added_main, emission);
 }
 
 /**
- * valent_contact_store_emit_contact_removed:
+ * valent_contact_store_contact_removed:
  * @store: a #ValentContactStore
  * @uid: the UID of @contact
  *
@@ -424,8 +424,8 @@ valent_contact_store_emit_contact_added (ValentContactStore *store,
  * Since: 1.0
  */
 void
-valent_contact_store_emit_contact_removed (ValentContactStore *store,
-                                           const char         *uid)
+valent_contact_store_contact_removed (ValentContactStore *store,
+                                      const char         *uid)
 {
   SignalEmission *emission;
 
@@ -444,7 +444,7 @@ valent_contact_store_emit_contact_removed (ValentContactStore *store,
   emission->uid = g_strdup (uid);
   g_rec_mutex_unlock (&emission->mutex);
 
-  g_timeout_add (0, valent_contact_store_emit_contact_removed_main, emission);
+  g_timeout_add (0, valent_contact_store_contact_removed_main, emission);
 }
 
 /**

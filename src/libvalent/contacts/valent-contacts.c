@@ -165,7 +165,7 @@ valent_contacts_disable_extension (ValentComponent *component,
   stores = valent_contacts_adapter_get_stores (adapter);
 
   for (unsigned int i = 0; i < stores->len; i++)
-    valent_contacts_adapter_emit_store_removed (adapter, g_ptr_array_index (stores, i));
+    valent_contacts_adapter_store_removed (adapter, g_ptr_array_index (stores, i));
 
   g_signal_handlers_disconnect_by_func (adapter, on_store_added, self);
   g_signal_handlers_disconnect_by_func (adapter, on_store_removed, self);

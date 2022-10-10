@@ -265,7 +265,7 @@ on_incoming_connection (ValentChannelService   *service,
                           "peer-identity", peer_identity,
                           NULL);
 
-  valent_channel_service_emit_channel (service, channel);
+  valent_channel_service_channel (service, channel);
 
   return TRUE;
 }
@@ -482,7 +482,7 @@ on_incoming_broadcast (ValentLanChannelService  *self,
                           "peer-identity", peer_identity,
                           NULL);
 
-  valent_channel_service_emit_channel (service, channel);
+  valent_channel_service_channel (service, channel);
 
   return TRUE;
 }

@@ -328,7 +328,7 @@ valent_clipboard_adapter_init (ValentClipboardAdapter *adapter)
 }
 
 /**
- * valent_clipboard_adapter_emit_changed: (virtual changed)
+ * valent_clipboard_adapter_changed: (virtual changed)
  * @adapter: a #ValentClipboardAdapter
  *
  * Emits [signal@Valent.ClipboardAdapter::changed] signal on @adapter.
@@ -342,7 +342,7 @@ valent_clipboard_adapter_init (ValentClipboardAdapter *adapter)
  * Since: 1.0
  */
 void
-valent_clipboard_adapter_emit_changed (ValentClipboardAdapter *adapter)
+valent_clipboard_adapter_changed (ValentClipboardAdapter *adapter)
 {
   g_return_if_fail (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
 

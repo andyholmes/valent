@@ -133,11 +133,11 @@ test_mixer_component_adapter (MixerComponentFixture *fixture,
                     G_CALLBACK (on_stream_added),
                     fixture);
 
-  valent_mixer_adapter_emit_stream_added (fixture->adapter, fixture->input1);
+  valent_mixer_adapter_stream_added (fixture->adapter, fixture->input1);
   g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
-  valent_mixer_adapter_emit_stream_added (fixture->adapter, fixture->input2);
+  valent_mixer_adapter_stream_added (fixture->adapter, fixture->input2);
   g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
@@ -146,11 +146,11 @@ test_mixer_component_adapter (MixerComponentFixture *fixture,
                     G_CALLBACK (on_stream_added),
                     fixture);
 
-  valent_mixer_adapter_emit_stream_added (fixture->adapter, fixture->output1);
+  valent_mixer_adapter_stream_added (fixture->adapter, fixture->output1);
   g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
-  valent_mixer_adapter_emit_stream_added (fixture->adapter, fixture->output2);
+  valent_mixer_adapter_stream_added (fixture->adapter, fixture->output2);
   g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
@@ -207,7 +207,7 @@ test_mixer_component_adapter (MixerComponentFixture *fixture,
                     G_CALLBACK (on_stream_removed),
                     fixture);
 
-  valent_mixer_adapter_emit_stream_removed (fixture->adapter, fixture->input2);
+  valent_mixer_adapter_stream_removed (fixture->adapter, fixture->input2);
   g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
@@ -220,7 +220,7 @@ test_mixer_component_adapter (MixerComponentFixture *fixture,
                     G_CALLBACK (on_stream_removed),
                     fixture);
 
-  valent_mixer_adapter_emit_stream_removed (fixture->adapter, fixture->output2);
+  valent_mixer_adapter_stream_removed (fixture->adapter, fixture->output2);
   g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
@@ -246,7 +246,7 @@ test_mixer_component_stream (MixerComponentFixture *fixture,
                     G_CALLBACK (on_stream_added),
                     fixture);
 
-  valent_mixer_adapter_emit_stream_added (fixture->adapter, fixture->input1);
+  valent_mixer_adapter_stream_added (fixture->adapter, fixture->input1);
   g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
@@ -298,11 +298,11 @@ test_mixer_component_self (MixerComponentFixture *fixture,
                     G_CALLBACK (on_stream_added),
                     fixture);
 
-  valent_mixer_adapter_emit_stream_added (fixture->adapter, fixture->input1);
+  valent_mixer_adapter_stream_added (fixture->adapter, fixture->input1);
   g_assert_true (fixture->data == fixture->mixer);
   fixture->data = NULL;
 
-  valent_mixer_adapter_emit_stream_added (fixture->adapter, fixture->input2);
+  valent_mixer_adapter_stream_added (fixture->adapter, fixture->input2);
   g_assert_true (fixture->data == fixture->mixer);
   fixture->data = NULL;
 
@@ -311,11 +311,11 @@ test_mixer_component_self (MixerComponentFixture *fixture,
                     G_CALLBACK (on_stream_added),
                     fixture);
 
-  valent_mixer_adapter_emit_stream_added (fixture->adapter, fixture->output1);
+  valent_mixer_adapter_stream_added (fixture->adapter, fixture->output1);
   g_assert_true (fixture->data == fixture->mixer);
   fixture->data = NULL;
 
-  valent_mixer_adapter_emit_stream_added (fixture->adapter, fixture->output2);
+  valent_mixer_adapter_stream_added (fixture->adapter, fixture->output2);
   g_assert_true (fixture->data == fixture->mixer);
   fixture->data = NULL;
 
@@ -384,7 +384,7 @@ test_mixer_component_self (MixerComponentFixture *fixture,
                     G_CALLBACK (on_stream_removed),
                     fixture);
 
-  valent_mixer_adapter_emit_stream_removed (fixture->adapter, fixture->input1);
+  valent_mixer_adapter_stream_removed (fixture->adapter, fixture->input1);
   g_assert_true (fixture->data == fixture->mixer);
   fixture->data = NULL;
 
@@ -393,7 +393,7 @@ test_mixer_component_self (MixerComponentFixture *fixture,
                     G_CALLBACK (on_stream_removed),
                     fixture);
 
-  valent_mixer_adapter_emit_stream_removed (fixture->adapter, fixture->output1);
+  valent_mixer_adapter_stream_removed (fixture->adapter, fixture->output1);
   g_assert_true (fixture->data == fixture->mixer);
   fixture->data = NULL;
 

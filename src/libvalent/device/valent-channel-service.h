@@ -46,7 +46,7 @@ struct _ValentChannelServiceClass
 };
 
 VALENT_AVAILABLE_IN_1_0
-void         valent_channel_service_emit_channel    (ValentChannelService  *service,
+void         valent_channel_service_channel         (ValentChannelService  *service,
                                                      ValentChannel         *channel);
 VALENT_AVAILABLE_IN_1_0
 char       * valent_channel_service_dup_id          (ValentChannelService  *service);

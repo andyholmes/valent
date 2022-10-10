@@ -21,8 +21,8 @@
  * contact UID and name are `mock-contact` and `Mock Contact`, respectively,
  * with a telephone number of `123-456-7890`.
  *
- * Simply call valent_contacts_adapter_emit_store_added() to add more
- * stores and valent_contacts_adapter_emit_store_removed() to remove them.
+ * Simply call valent_contacts_adapter_store_added() to add more
+ * stores and valent_contacts_adapter_store_removed() to remove them.
  */
 
 struct _ValentMockContactsAdapter
@@ -57,7 +57,7 @@ valent_mock_contacts_adapter_load_async (ValentContactsAdapter *adapter,
   store = g_object_new (VALENT_TYPE_CONTACT_CACHE,
                         "source", source,
                         NULL);
-  valent_contacts_adapter_emit_store_added (adapter, store);
+  valent_contacts_adapter_store_added (adapter, store);
 
   /* Mock Contact */
   contact = e_contact_new_from_vcard_with_uid ("BEGIN:VCARD\n"

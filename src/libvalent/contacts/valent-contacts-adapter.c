@@ -273,7 +273,7 @@ valent_contacts_adapter_init (ValentContactsAdapter *adapter)
 }
 
 /**
- * valent_contacts_adapter_emit_store_added:
+ * valent_contacts_adapter_store_added:
  * @adapter: a #ValentContactsAdapter
  * @store: a #ValentContactStore
  *
@@ -285,8 +285,8 @@ valent_contacts_adapter_init (ValentContactsAdapter *adapter)
  * Since: 1.0
  */
 void
-valent_contacts_adapter_emit_store_added (ValentContactsAdapter *adapter,
-                                          ValentContactStore    *store)
+valent_contacts_adapter_store_added (ValentContactsAdapter *adapter,
+                                     ValentContactStore    *store)
 {
   g_return_if_fail (VALENT_IS_CONTACTS_ADAPTER (adapter));
   g_return_if_fail (VALENT_IS_CONTACT_STORE (store));
@@ -295,7 +295,7 @@ valent_contacts_adapter_emit_store_added (ValentContactsAdapter *adapter,
 }
 
 /**
- * valent_contacts_adapter_emit_store_removed:
+ * valent_contacts_adapter_store_removed:
  * @adapter: a #ValentContactsAdapter
  * @store: a #ValentContactStore
  *
@@ -307,8 +307,8 @@ valent_contacts_adapter_emit_store_added (ValentContactsAdapter *adapter,
  * Since: 1.0
  */
 void
-valent_contacts_adapter_emit_store_removed (ValentContactsAdapter *adapter,
-                                            ValentContactStore    *store)
+valent_contacts_adapter_store_removed (ValentContactsAdapter *adapter,
+                                       ValentContactStore    *store)
 {
   g_return_if_fail (VALENT_IS_CONTACTS_ADAPTER (adapter));
   g_return_if_fail (VALENT_IS_CONTACT_STORE (store));

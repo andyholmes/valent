@@ -38,7 +38,7 @@ on_changed (GdkClipboard       *clipboard,
 
   // TODO: get the actual TIMESTAMP value
   self->timestamp = valent_timestamp_ms ();
-  valent_clipboard_adapter_emit_changed (adapter);
+  valent_clipboard_adapter_changed (adapter);
 }
 
 /*

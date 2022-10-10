@@ -112,7 +112,7 @@ test_media_component_adapter (MediaComponentFixture *fixture,
                     "player-added",
                     G_CALLBACK (on_player_added),
                     fixture);
-  valent_media_adapter_emit_player_added (fixture->adapter, fixture->player);
+  valent_media_adapter_player_added (fixture->adapter, fixture->player);
   g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
@@ -123,7 +123,7 @@ test_media_component_adapter (MediaComponentFixture *fixture,
                     "player-removed",
                     G_CALLBACK (on_player_removed),
                     fixture);
-  valent_media_adapter_emit_player_removed (fixture->adapter, fixture->player);
+  valent_media_adapter_player_removed (fixture->adapter, fixture->player);
   g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
@@ -149,7 +149,7 @@ test_media_component_player (MediaComponentFixture *fixture,
                     "player-added",
                     G_CALLBACK (on_player_added),
                     fixture);
-  valent_media_adapter_emit_player_added (fixture->adapter, fixture->player);
+  valent_media_adapter_player_added (fixture->adapter, fixture->player);
   g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
@@ -226,7 +226,7 @@ test_media_component_player (MediaComponentFixture *fixture,
                     "player-changed",
                     G_CALLBACK (on_player_changed),
                     fixture);
-  valent_media_player_emit_changed (fixture->player);
+  valent_media_player_changed (fixture->player);
   g_assert_true (fixture->state);
   fixture->state = FALSE;
 
@@ -243,7 +243,7 @@ test_media_component_player (MediaComponentFixture *fixture,
                     "player-removed",
                     G_CALLBACK (on_player_removed),
                     fixture);
-  valent_media_adapter_emit_player_removed (fixture->adapter, fixture->player);
+  valent_media_adapter_player_removed (fixture->adapter, fixture->player);
   g_assert_true (fixture->data == fixture->adapter);
   fixture->data = NULL;
 
@@ -264,7 +264,7 @@ test_media_component_self (MediaComponentFixture *fixture,
                     fixture);
 
   /* Add Player */
-  valent_media_adapter_emit_player_added (fixture->adapter, fixture->player);
+  valent_media_adapter_player_added (fixture->adapter, fixture->player);
   g_assert_true (fixture->data == fixture->media);
   fixture->data = NULL;
 
@@ -284,7 +284,7 @@ test_media_component_self (MediaComponentFixture *fixture,
   g_assert_true (valent_media_player_is_playing (fixture->player));
 
   /* Remove Player */
-  valent_media_adapter_emit_player_removed (fixture->adapter, fixture->player);
+  valent_media_adapter_player_removed (fixture->adapter, fixture->player);
   g_assert_true (fixture->data == fixture->media);
   fixture->data = NULL;
 

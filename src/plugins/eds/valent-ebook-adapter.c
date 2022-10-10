@@ -53,8 +53,7 @@ e_book_client_connect_cb (GObject            *object,
                         "source", source,
                         NULL);
   g_hash_table_replace (self->stores, g_object_ref (source), store);
-  valent_contacts_adapter_emit_store_added (VALENT_CONTACTS_ADAPTER (self),
-                                            store);
+  valent_contacts_adapter_store_added (VALENT_CONTACTS_ADAPTER (self), store);
 }
 
 static void
@@ -93,7 +92,7 @@ on_source_removed (ESourceRegistry    *registry,
 
   if (g_hash_table_steal_extended (self->stores, source, &esource, &store))
     {
-      valent_contacts_adapter_emit_store_removed (adapter, store);
+      valent_contacts_adapter_store_removed (adapter, store);
       g_object_unref (esource);
       g_object_unref (store);
     }

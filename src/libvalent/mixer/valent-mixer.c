@@ -230,12 +230,12 @@ valent_mixer_disable_extension (ValentComponent *component,
   inputs = valent_mixer_adapter_get_inputs (adapter);
 
   for (unsigned int i = 0; i < inputs->len; i++)
-    valent_mixer_adapter_emit_stream_removed (adapter, g_ptr_array_index (inputs, i));
+    valent_mixer_adapter_stream_removed (adapter, g_ptr_array_index (inputs, i));
 
   outputs = valent_mixer_adapter_get_outputs (adapter);
 
   for (unsigned int i = 0; i < outputs->len; i++)
-    valent_mixer_adapter_emit_stream_removed (adapter, g_ptr_array_index (outputs, i));
+    valent_mixer_adapter_stream_removed (adapter, g_ptr_array_index (outputs, i));
 
   g_signal_handlers_disconnect_by_data (adapter, self);
 
