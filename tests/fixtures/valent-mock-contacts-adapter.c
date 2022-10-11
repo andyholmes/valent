@@ -33,6 +33,19 @@ struct _ValentMockContactsAdapter
 G_DEFINE_TYPE (ValentMockContactsAdapter, valent_mock_contacts_adapter, VALENT_TYPE_CONTACTS_ADAPTER)
 
 
+static void
+valent_contact_store_add_contact_cb (ValentContactStore *store,
+                                     GAsyncResult       *result,
+                                     gboolean           *done)
+{
+  g_autoptr (GError) error = NULL;
+
+  if (done != NULL)
+    *done = valent_contact_store_add_contacts_finish (store, result, &error);
+
+  g_assert_no_error (error);
+}
+
 /*
  * ValentContactsAdapter
  */
@@ -46,6 +59,7 @@ valent_mock_contacts_adapter_load_async (ValentContactsAdapter *adapter,
   g_autoptr (ESource) source = NULL;
   g_autoptr (EContact) contact = NULL;
   g_autoptr (ValentContactStore) store = NULL;
+  gboolean done = FALSE;
 
   g_assert (VALENT_IS_MOCK_CONTACTS_ADAPTER (adapter));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
@@ -66,7 +80,14 @@ valent_mock_contacts_adapter_load_async (ValentContactsAdapter *adapter,
                                                "TEL;CELL:123-456-7890\n"
                                                "END:VCARD\n",
                                                "mock-contact");
-  valent_contact_store_add_contact (store, contact, NULL, NULL, NULL);
+  valent_contact_store_add_contact (store,
+                                    contact,
+                                    NULL,
+                                    (GAsyncReadyCallback)valent_contact_store_add_contact_cb,
+                                    &done);
+
+  while (!done)
+    g_main_context_iteration (NULL, FALSE);
 
   /* Token Source */
   task = g_task_new (adapter, cancellable, callback, user_data);
