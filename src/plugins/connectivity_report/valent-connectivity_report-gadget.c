@@ -187,9 +187,9 @@ valent_connectivity_report_gadget_dispose (GObject *object)
 
 static void
 valent_connectivity_report_gadget_get_property (GObject    *object,
-                                    guint       prop_id,
-                                    GValue     *value,
-                                    GParamSpec *pspec)
+                                                guint       prop_id,
+                                                GValue     *value,
+                                                GParamSpec *pspec)
 {
   ValentConnectivityReportGadget *self = VALENT_CONNECTIVITY_REPORT_GADGET (object);
 
@@ -206,9 +206,9 @@ valent_connectivity_report_gadget_get_property (GObject    *object,
 
 static void
 valent_connectivity_report_gadget_set_property (GObject      *object,
-                                    guint         prop_id,
-                                    const GValue *value,
-                                    GParamSpec   *pspec)
+                                                guint         prop_id,
+                                                const GValue *value,
+                                                GParamSpec   *pspec)
 {
   ValentConnectivityReportGadget *self = VALENT_CONNECTIVITY_REPORT_GADGET (object);
 

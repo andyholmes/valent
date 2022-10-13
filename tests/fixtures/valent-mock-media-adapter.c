@@ -20,32 +20,6 @@ G_DEFINE_TYPE (ValentMockMediaAdapter, valent_mock_media_adapter, VALENT_TYPE_ME
 
 
 /*
- * ValentMediaAdapter
- */
-static void
-valent_mock_media_adapter_init_async (GAsyncInitable      *initable,
-                                      int                  priority,
-                                      GCancellable        *cancellable,
-                                      GAsyncReadyCallback  callback,
-                                      gpointer             user_data)
-{
-  g_autoptr (GTask) task = NULL;
-
-  g_assert (VALENT_IS_MOCK_MEDIA_ADAPTER (initable));
-
-  task = g_task_new (initable, cancellable, callback, user_data);
-  g_task_set_priority (task, priority);
-  g_task_set_source_tag (task, valent_mock_media_adapter_init_async);
-  g_task_return_boolean (task, TRUE);
-}
-
-static void
-g_async_initable_iface_init (GAsyncInitableIface *iface)
-{
-  iface->init_async = valent_mock_media_adapter_init_async;
-}
-
-/*
  * GObject
  */
 static void

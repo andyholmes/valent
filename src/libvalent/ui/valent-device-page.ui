@@ -4,7 +4,7 @@
 <!-- SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <interface domain="valent">
-  <template class="ValentDevicePanel" parent="GtkBox">
+  <template class="ValentDevicePage" parent="GtkBox">
     <property name="orientation">vertical</property>
     <child>
       <object class="GtkHeaderBar">

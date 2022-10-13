@@ -359,10 +359,10 @@ valent_device_manager_enable_service (ValentDeviceManager *self,
                           service->extension, "name",
                           G_BINDING_DEFAULT);
 
-  g_signal_connect (service->extension,
-                    "channel",
-                    G_CALLBACK (on_channel),
-                    self);
+  g_signal_connect_object (service->extension,
+                           "channel",
+                           G_CALLBACK (on_channel),
+                           self, 0);
 
   if (G_IS_ASYNC_INITABLE (service->extension))
     {

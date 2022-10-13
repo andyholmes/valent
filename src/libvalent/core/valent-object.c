@@ -85,7 +85,9 @@ valent_object_dispose_main (ValentObject *object)
   return G_SOURCE_REMOVE;
 }
 
-
+/*
+ * ValentObject
+ */
 static void
 valent_object_real_destroy (ValentObject *self)
 {
@@ -96,7 +98,6 @@ valent_object_real_destroy (ValentObject *self)
   g_cancellable_cancel (priv->cancellable);
   priv->destroyed = TRUE;
 }
-
 
 /*
  * GObject

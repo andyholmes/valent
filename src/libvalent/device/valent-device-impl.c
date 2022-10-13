@@ -379,10 +379,10 @@ valent_device_impl_constructed (GObject *object)
       g_hash_table_insert (self->cache, g_strdup (mapping.info->name), value);
     }
 
-  g_signal_connect (self->device,
-                    "notify",
-                    G_CALLBACK (on_property_changed),
-                    self);
+  g_signal_connect_object (self->device,
+                           "notify",
+                           G_CALLBACK (on_property_changed),
+                           self, 0);
 
   G_OBJECT_CLASS (valent_device_impl_parent_class)->constructed (object);
 }

@@ -118,41 +118,41 @@ msgid "Pairing request from %s"
 msgstr "Koppelverzoek van %s"
 
 #: src/libvalent/core/valent-device.c:531
-#: src/libvalent/ui/valent-device-panel.ui:139
+#: src/libvalent/ui/valent-device-page.ui:139
 msgid "Reject"
 msgstr "Afwijzen"
 
 #: src/libvalent/core/valent-device.c:537
-#: src/libvalent/ui/valent-device-panel.ui:152
+#: src/libvalent/ui/valent-device-page.ui:152
 msgid "Accept"
 msgstr "Goedkeuren"
 
-#: src/libvalent/ui/valent-device-panel.c:154
-#: src/libvalent/ui/valent-device-panel.ui:109
+#: src/libvalent/ui/valent-device-page.c:154
+#: src/libvalent/ui/valent-device-page.ui:109
 msgid "Unavailable"
 msgstr "Niet beschikbaar"
 
-#: src/libvalent/ui/valent-device-panel.ui:19
+#: src/libvalent/ui/valent-device-page.ui:19
 #: src/libvalent/ui/valent-menu-list.c:524
 #: src/libvalent/ui/valent-preferences-window.c:330
 #: src/plugins/presenter/valent-presenter-remote.ui:121
 msgid "Previous"
 msgstr "Vorige"
 
-#: src/libvalent/ui/valent-device-panel.ui:27
+#: src/libvalent/ui/valent-device-page.ui:27
 #: src/libvalent/ui/valent-window.ui:98
 msgid "Preferences"
 msgstr "Voorkeuren"
 
-#: src/libvalent/ui/valent-device-panel.ui:101
+#: src/libvalent/ui/valent-device-page.ui:101
 msgid "Verification Key"
 msgstr "Verificatiesleutel"
 
-#: src/libvalent/ui/valent-device-panel.ui:130
+#: src/libvalent/ui/valent-device-page.ui:130
 msgid "Request Pairing"
 msgstr "Koppelverzoek versturen"
 
-#: src/libvalent/ui/valent-device-panel.ui:225
+#: src/libvalent/ui/valent-device-page.ui:225
 #: src/libvalent/ui/valent-window.c:121
 msgid "Disconnected"
 msgstr "Niet verbonden"
