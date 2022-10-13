@@ -27,13 +27,6 @@ struct _ValentNotificationsAdapterClass
                                           ValentNotification          *notification);
   void           (*remove_notification)  (ValentNotificationsAdapter  *adapter,
                                           const char                  *id);
-  void           (*load_async)           (ValentNotificationsAdapter  *adapter,
-                                          GCancellable                *cancellable,
-                                          GAsyncReadyCallback          callback,
-                                          gpointer                     user_data);
-  gboolean       (*load_finish)          (ValentNotificationsAdapter  *adapter,
-                                          GAsyncResult                *result,
-                                          GError                     **error);
 
   /* signals */
   void           (*notification_added)   (ValentNotificationsAdapter  *adapter,
@@ -57,15 +50,6 @@ void       valent_notifications_adapter_add_notification     (ValentNotification
 VALENT_AVAILABLE_IN_1_0
 void       valent_notifications_adapter_remove_notification  (ValentNotificationsAdapter  *adapter,
                                                               const char                  *id);
-VALENT_AVAILABLE_IN_1_0
-void       valent_notifications_adapter_load_async           (ValentNotificationsAdapter  *adapter,
-                                                              GCancellable                *cancellable,
-                                                              GAsyncReadyCallback          callback,
-                                                              gpointer                     user_data);
-VALENT_AVAILABLE_IN_1_0
-gboolean   valent_notifications_adapter_load_finish          (ValentNotificationsAdapter  *adapter,
-                                                              GAsyncResult                *result,
-                                                              GError                     **error);
 
 G_END_DECLS
 

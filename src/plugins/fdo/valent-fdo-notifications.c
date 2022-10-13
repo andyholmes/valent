@@ -17,8 +17,6 @@ struct _ValentFdoNotifications
 {
   ValentNotificationsAdapter  parent_instance;
 
-  GCancellable               *cancellable;
-
   GDBusInterfaceVTable        vtable;
   GDBusNodeInfo              *node_info;
   GDBusInterfaceInfo         *iface_info;
@@ -30,7 +28,11 @@ struct _ValentFdoNotifications
   unsigned int                closed_id;
 };
 
-G_DEFINE_TYPE (ValentFdoNotifications, valent_fdo_notifications, VALENT_TYPE_NOTIFICATIONS_ADAPTER)
+static void   g_async_initable_iface_init (GAsyncInitableIface *iface);
+
+G_DEFINE_TYPE_EXTENDED (ValentFdoNotifications, valent_fdo_notifications, VALENT_TYPE_NOTIFICATIONS_ADAPTER,
+                        0,
+                        G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init))
 
 
 /*
@@ -319,7 +321,7 @@ become_monitor_cb (GDBusConnection *connection,
   g_autoptr (GTask) task = G_TASK (user_data);
   ValentFdoNotifications *self = g_task_get_source_object (task);
   g_autoptr (GVariant) reply = NULL;
-  GError *error = NULL;
+  g_autoptr (GError) error = NULL;
 
   reply = g_dbus_connection_call_finish (connection, result, &error);
 
@@ -327,7 +329,7 @@ become_monitor_cb (GDBusConnection *connection,
     {
       g_clear_object (&self->monitor);
       g_dbus_error_strip_remote_error (error);
-      return g_task_return_error (task, error);
+      return g_task_return_error (task, g_steal_pointer (&error));
     }
 
   g_task_return_boolean (task, TRUE);
@@ -340,14 +342,15 @@ new_for_address_cb (GObject      *object,
 {
   g_autoptr (GTask) task = G_TASK (user_data);
   ValentFdoNotifications *self = g_task_get_source_object (task);
-  GError *error = NULL;
+  GCancellable *cancellable = g_task_get_cancellable (task);
+  g_autoptr (GError) error = NULL;
 
   self->monitor = g_dbus_connection_new_for_address_finish (result, &error);
 
   if (self->monitor == NULL)
     {
       g_dbus_error_strip_remote_error (error);
-      return g_task_return_error (task, error);
+      return g_task_return_error (task, g_steal_pointer (&error));
     }
 
   /* Export the monitor interface */
@@ -363,7 +366,7 @@ new_for_address_cb (GObject      *object,
     {
       g_clear_object (&self->monitor);
       g_dbus_error_strip_remote_error (error);
-      return g_task_return_error (task, error);
+      return g_task_return_error (task, g_steal_pointer (&error));
     }
 
   /* Become a monitor for notifications */
@@ -376,7 +379,7 @@ new_for_address_cb (GObject      *object,
                           NULL,
                           G_DBUS_CALL_FLAGS_NONE,
                           -1,
-                          self->cancellable,
+                          cancellable,
                           (GAsyncReadyCallback)become_monitor_cb,
                           g_steal_pointer (&task));
 
@@ -391,34 +394,28 @@ new_for_address_cb (GObject      *object,
 
 
 /*
- * ValentNotificationsAdapter
+ * GAsyncInitable
  */
 static void
-valent_fdo_notifications_load_async (ValentNotificationsAdapter *adapter,
+valent_fdo_notifications_init_async (GAsyncInitable             *initable,
+                                     int                         priority,
                                      GCancellable               *cancellable,
                                      GAsyncReadyCallback         callback,
                                      gpointer                    user_data)
 {
-  ValentFdoNotifications *self = VALENT_FDO_NOTIFICATIONS (adapter);
   g_autoptr (GTask) task = NULL;
   g_autofree char *address = NULL;
   GError *error = NULL;
 
-  g_assert (VALENT_IS_FDO_NOTIFICATIONS (self));
+  g_assert (VALENT_IS_FDO_NOTIFICATIONS (initable));
 
-  if (cancellable != NULL)
-    g_signal_connect_object (cancellable,
-                             "cancelled",
-                             G_CALLBACK (g_cancellable_cancel),
-                             self->cancellable,
-                             G_CONNECT_SWAPPED);
-
-  task = g_task_new (adapter, self->cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_fdo_notifications_load_async);
+  task = g_task_new (initable, cancellable, callback, user_data);
+  g_task_set_priority (task, priority);
+  g_task_set_source_tag (task, valent_fdo_notifications_init_async);
 
   /* Get a bus address */
   address = g_dbus_address_get_for_bus_sync (G_BUS_TYPE_SESSION,
-                                             self->cancellable,
+                                             cancellable,
                                              &error);
 
   if (address == NULL)
@@ -429,9 +426,15 @@ valent_fdo_notifications_load_async (ValentNotificationsAdapter *adapter,
                                      G_DBUS_CONNECTION_FLAGS_AUTHENTICATION_CLIENT |
                                      G_DBUS_CONNECTION_FLAGS_MESSAGE_BUS_CONNECTION,
                                      NULL,
-                                     self->cancellable,
+                                     cancellable,
                                      (GAsyncReadyCallback)new_for_address_cb,
                                      g_steal_pointer (&task));
+}
+
+static void
+g_async_initable_iface_init (GAsyncInitableIface *iface)
+{
+  iface->init_async = valent_fdo_notifications_init_async;
 }
 
 /*
@@ -441,9 +444,6 @@ static void
 valent_fdo_notifications_dispose (GObject *object)
 {
   ValentFdoNotifications *self = VALENT_FDO_NOTIFICATIONS (object);
-
-  if (!g_cancellable_is_cancelled (self->cancellable))
-    g_cancellable_cancel (self->cancellable);
 
   if (self->closed_id > 0)
     {
@@ -474,7 +474,6 @@ valent_fdo_notifications_finalize (GObject *object)
 {
   ValentFdoNotifications *self = VALENT_FDO_NOTIFICATIONS (object);
 
-  g_clear_object (&self->cancellable);
   g_clear_pointer (&self->node_info, g_dbus_node_info_unref);
 
   G_OBJECT_CLASS (valent_fdo_notifications_parent_class)->finalize (object);
@@ -484,18 +483,14 @@ static void
 valent_fdo_notifications_class_init (ValentFdoNotificationsClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
-  ValentNotificationsAdapterClass *adapter_class = VALENT_NOTIFICATIONS_ADAPTER_CLASS (klass);
 
   object_class->dispose = valent_fdo_notifications_dispose;
   object_class->finalize = valent_fdo_notifications_finalize;
-
-  adapter_class->load_async = valent_fdo_notifications_load_async;
 }
 
 static void
 valent_fdo_notifications_init (ValentFdoNotifications *self)
 {
-  self->cancellable = g_cancellable_new ();
   self->node_info = g_dbus_node_info_new_for_xml (interface_xml, NULL);
   self->iface_info = self->node_info->interfaces[0];
 

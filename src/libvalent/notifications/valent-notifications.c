@@ -179,26 +179,6 @@ on_notification_removed (ValentNotificationsAdapter *adapter,
   g_signal_emit (G_OBJECT (self), signals [NOTIFICATION_REMOVED], 0, id);
 }
 
-static void
-valent_notifications_adapter_load_cb (ValentNotificationsAdapter *adapter,
-                                      GAsyncResult               *result,
-                                      ValentNotifications        *self)
-{
-  g_autoptr (GError) error = NULL;
-
-  VALENT_ENTRY;
-
-  g_assert (VALENT_IS_NOTIFICATIONS_ADAPTER (adapter));
-  g_assert (g_task_is_valid (result, adapter));
-  g_assert (VALENT_IS_NOTIFICATIONS (self));
-
-  if (!valent_notifications_adapter_load_finish (adapter, result, &error) &&
-      !valent_error_ignore (error))
-    g_warning ("%s failed to load: %s", G_OBJECT_TYPE_NAME (adapter), error->message);
-
-  VALENT_EXIT;
-}
-
 
 /*
  * ValentComponent
@@ -209,6 +189,8 @@ valent_notifications_enable_extension (ValentComponent *component,
 {
   ValentNotifications *self = VALENT_NOTIFICATIONS (component);
   ValentNotificationsAdapter *adapter = VALENT_NOTIFICATIONS_ADAPTER (extension);
+
+  VALENT_ENTRY;
 
   g_assert (VALENT_IS_NOTIFICATIONS (self));
   g_assert (VALENT_IS_NOTIFICATIONS_ADAPTER (adapter));
@@ -223,10 +205,7 @@ valent_notifications_enable_extension (ValentComponent *component,
                            G_CALLBACK (on_notification_removed),
                            self, 0);
 
-  valent_notifications_adapter_load_async (adapter,
-                                           NULL,
-                                           (GAsyncReadyCallback)valent_notifications_adapter_load_cb,
-                                           self);
+  VALENT_EXIT;
 }
 
 static void
