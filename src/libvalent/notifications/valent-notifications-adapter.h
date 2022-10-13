@@ -16,26 +16,26 @@ G_BEGIN_DECLS
 #define VALENT_TYPE_NOTIFICATIONS_ADAPTER (valent_notifications_adapter_get_type())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_DERIVABLE_TYPE (ValentNotificationsAdapter, valent_notifications_adapter, VALENT, NOTIFICATIONS_ADAPTER, GObject)
+G_DECLARE_DERIVABLE_TYPE (ValentNotificationsAdapter, valent_notifications_adapter, VALENT, NOTIFICATIONS_ADAPTER, ValentObject)
 
 struct _ValentNotificationsAdapterClass
 {
-  GObjectClass   parent_class;
+  ValentObjectClass   parent_class;
 
   /* virtual functions */
-  void           (*add_notification)     (ValentNotificationsAdapter  *adapter,
-                                          ValentNotification          *notification);
-  void           (*remove_notification)  (ValentNotificationsAdapter  *adapter,
-                                          const char                  *id);
+  void                (*add_notification)     (ValentNotificationsAdapter  *adapter,
+                                               ValentNotification          *notification);
+  void                (*remove_notification)  (ValentNotificationsAdapter  *adapter,
+                                               const char                  *id);
 
   /* signals */
-  void           (*notification_added)   (ValentNotificationsAdapter  *adapter,
-                                          ValentNotification          *notification);
-  void           (*notification_removed) (ValentNotificationsAdapter  *adapter,
-                                          const char                  *id);
+  void                (*notification_added)   (ValentNotificationsAdapter  *adapter,
+                                               ValentNotification          *notification);
+  void                (*notification_removed) (ValentNotificationsAdapter  *adapter,
+                                               const char                  *id);
 
   /*< private >*/
-  gpointer       padding[8];
+  gpointer            padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0

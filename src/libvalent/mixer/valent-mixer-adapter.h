@@ -17,11 +17,11 @@ G_BEGIN_DECLS
 #define VALENT_TYPE_MIXER_ADAPTER (valent_mixer_adapter_get_type())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_DERIVABLE_TYPE (ValentMixerAdapter, valent_mixer_adapter, VALENT, MIXER_ADAPTER, GObject)
+G_DECLARE_DERIVABLE_TYPE (ValentMixerAdapter, valent_mixer_adapter, VALENT, MIXER_ADAPTER, ValentObject)
 
 struct _ValentMixerAdapterClass
 {
-  GObjectClass        parent_class;
+  ValentObjectClass   parent_class;
 
   /* virtual functions */
   ValentMixerStream * (*get_default_input)  (ValentMixerAdapter *adapter);

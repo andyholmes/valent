@@ -38,7 +38,7 @@ typedef struct
   PeasPluginInfo *plugin_info;
 } ValentSessionAdapterPrivate;
 
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentSessionAdapter, valent_session_adapter, G_TYPE_OBJECT)
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentSessionAdapter, valent_session_adapter, VALENT_TYPE_OBJECT)
 
 /**
  * ValentSessionAdapterClass:

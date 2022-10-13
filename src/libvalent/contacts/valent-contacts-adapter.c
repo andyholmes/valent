@@ -40,7 +40,7 @@ typedef struct
   GPtrArray      *stores;
 } ValentContactsAdapterPrivate;
 
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentContactsAdapter, valent_contacts_adapter, G_TYPE_OBJECT)
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentContactsAdapter, valent_contacts_adapter, VALENT_TYPE_OBJECT)
 
 /**
  * ValentContactsAdapterClass:

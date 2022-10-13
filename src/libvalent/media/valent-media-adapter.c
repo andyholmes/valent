@@ -39,7 +39,7 @@ typedef struct
   GPtrArray      *players;
 } ValentMediaAdapterPrivate;
 
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentMediaAdapter, valent_media_adapter, G_TYPE_OBJECT)
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentMediaAdapter, valent_media_adapter, VALENT_TYPE_OBJECT)
 
 /**
  * ValentMediaAdapterClass:
