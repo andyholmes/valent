@@ -10,6 +10,7 @@
 #include <gio/gio.h>
 #include <libpeas/peas.h>
 
+#include "valent-object.h"
 #include "valent-version.h"
 
 G_BEGIN_DECLS
@@ -17,20 +18,20 @@ G_BEGIN_DECLS
 #define VALENT_TYPE_COMPONENT (valent_component_get_type())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_DERIVABLE_TYPE (ValentComponent, valent_component, VALENT, COMPONENT, GObject)
+G_DECLARE_DERIVABLE_TYPE (ValentComponent, valent_component, VALENT, COMPONENT, ValentObject)
 
 struct _ValentComponentClass
 {
-  GObjectClass   parent_class;
+  ValentObjectClass   parent_class;
 
   /* virtual functions */
-  void           (*enable_extension)  (ValentComponent *component,
-                                       PeasExtension   *extension);
-  void           (*disable_extension) (ValentComponent *component,
-                                       PeasExtension   *extension);
+  void                (*enable_extension)  (ValentComponent *component,
+                                            PeasExtension   *extension);
+  void                (*disable_extension) (ValentComponent *component,
+                                           PeasExtension   *extension);
 
   /*< private >*/
-  gpointer       padding[8];
+  gpointer            padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0
