@@ -22,7 +22,7 @@
  * Since: 1.0
  */
 
-G_DEFINE_TYPE (ValentMediaPlayer, valent_media_player, G_TYPE_OBJECT)
+G_DEFINE_TYPE (ValentMediaPlayer, valent_media_player, VALENT_TYPE_OBJECT)
 
 /**
  * ValentMediaPlayerClass:
