@@ -39,19 +39,53 @@ struct _ValentContacts
   GPtrArray       *stores;
 };
 
-G_DEFINE_TYPE (ValentContacts, valent_contacts, VALENT_TYPE_COMPONENT)
+static void   g_list_model_iface_init (GListModelInterface *iface);
 
-enum
-{
-  STORE_ADDED,
-  STORE_REMOVED,
-  N_SIGNALS
-};
-
-static guint signals[N_SIGNALS] = { 0, };
-
+G_DEFINE_TYPE_EXTENDED (ValentContacts, valent_contacts, VALENT_TYPE_COMPONENT,
+                        0,
+                        G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
 static ValentContacts *default_contacts = NULL;
+
+
+/*
+ * GListModel
+ */
+static gpointer
+valent_contacts_get_item (GListModel   *list,
+                          unsigned int  position)
+{
+  ValentContacts *self = VALENT_CONTACTS (list);
+
+  g_assert (VALENT_IS_CONTACTS (self));
+  g_assert (position < self->stores->len);
+
+  return g_object_ref (g_ptr_array_index (self->stores, position));
+}
+
+static GType
+valent_contacts_get_item_type (GListModel *list)
+{
+  return VALENT_TYPE_CONTACT_STORE;
+}
+
+static unsigned int
+valent_contacts_get_n_items (GListModel *list)
+{
+  ValentContacts *self = VALENT_CONTACTS (list);
+
+  g_assert (VALENT_IS_CONTACTS (self));
+
+  return self->stores->len;
+}
+
+static void
+g_list_model_iface_init (GListModelInterface *iface)
+{
+  iface->get_item = valent_contacts_get_item;
+  iface->get_item_type = valent_contacts_get_item_type;
+  iface->get_n_items = valent_contacts_get_n_items;
+}
 
 
 /*
@@ -62,6 +96,8 @@ on_store_added (ValentContactsAdapter *adapter,
                 ValentContactStore    *store,
                 ValentContacts        *self)
 {
+  unsigned int position = 0;
+
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_CONTACTS (self));
@@ -70,8 +106,9 @@ on_store_added (ValentContactsAdapter *adapter,
                G_OBJECT_TYPE_NAME (store),
                valent_contact_store_get_name (store));
 
+  position = self->stores->len;
   g_ptr_array_add (self->stores, g_object_ref (store));
-  g_signal_emit (G_OBJECT (self), signals [STORE_ADDED], 0, store);
+  g_list_model_items_changed (G_LIST_MODEL (self), position, 0, 1);
 
   VALENT_EXIT;
 }
@@ -81,6 +118,8 @@ on_store_removed (ValentContactsAdapter *adapter,
                   ValentContactStore    *store,
                   ValentContacts        *self)
 {
+  unsigned int position = 0;
+
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_CONTACTS (self));
@@ -89,8 +128,11 @@ on_store_removed (ValentContactsAdapter *adapter,
                G_OBJECT_TYPE_NAME (store),
                valent_contact_store_get_name (store));
 
-  g_ptr_array_remove (self->stores, store);
-  g_signal_emit (G_OBJECT (self), signals [STORE_REMOVED], 0, store);
+  if (g_ptr_array_find (self->stores, store, &position))
+    {
+      g_ptr_array_remove_index (self->stores, position);
+      g_list_model_items_changed (G_LIST_MODEL (self), position, 1, 0);
+    }
 
   VALENT_EXIT;
 }
@@ -237,50 +279,6 @@ valent_contacts_class_init (ValentContactsClass *klass)
 
   component_class->enable_extension = valent_contacts_enable_extension;
   component_class->disable_extension = valent_contacts_disable_extension;
-
-  /**
-   * ValentContacts::store-added:
-   * @contacts: a #ValentContacts
-   * @store: a #ValentContactStore
-   *
-   * Emitted when a [class@Valent.ContactStore] is added to a
-   * [class@Valent.ContactsAdapter].
-   *
-   * Since: 1.0
-   */
-  signals [STORE_ADDED] =
-    g_signal_new ("store-added",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_LAST,
-                  0,
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
-                  G_TYPE_NONE, 1, VALENT_TYPE_CONTACT_STORE);
-  g_signal_set_va_marshaller (signals [STORE_ADDED],
-                              G_TYPE_FROM_CLASS (klass),
-                              g_cclosure_marshal_VOID__OBJECTv);
-
-  /**
-   * ValentContacts::store-removed:
-   * @contacts: a #ValentContacts
-   * @store: a #ValentContactStore
-   *
-   * Emitted when a [class@Valent.ContactStore] is removed from a
-   * [class@Valent.ContactsAdapter].
-   *
-   * Since: 1.0
-   */
-  signals [STORE_REMOVED] =
-    g_signal_new ("store-removed",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_FIRST,
-                  0,
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
-                  G_TYPE_NONE, 1, VALENT_TYPE_CONTACT_STORE);
-  g_signal_set_va_marshaller (signals [STORE_ADDED],
-                              G_TYPE_FROM_CLASS (klass),
-                              g_cclosure_marshal_VOID__OBJECTv);
 }
 
 static void
@@ -319,7 +317,7 @@ valent_contacts_get_default (void)
 
 /**
  * valent_contacts_ensure_store:
- * @contacts: (nullable): a #ValentContacts
+ * @contacts: a #ValentContacts
  * @uid: a unique id
  * @name: a display name
  *
@@ -338,30 +336,28 @@ valent_contacts_ensure_store (ValentContacts *contacts,
                               const char     *name)
 {
   ValentContactStore *ret;
+  unsigned int position = 0;
 
   VALENT_ENTRY;
 
   g_return_val_if_fail (uid != NULL && *uid != '\0', NULL);
   g_return_val_if_fail (name != NULL && *name != '\0', NULL);
 
-  /* Use the default ValentContacts */
-  if (contacts == NULL)
-    contacts = valent_contacts_get_default ();
-
   /* Try to find an existing store */
-  if ((ret = valent_contacts_get_store (contacts, uid)) != NULL)
+  if ((ret = valent_contacts_lookup_store (contacts, uid)) != NULL)
     VALENT_RETURN (ret);
 
   /* Create a new store */
   ret = valent_contacts_create_store (uid, name, NULL);
+  position = contacts->stores->len;
   g_ptr_array_add (contacts->stores, ret);
-  g_signal_emit (G_OBJECT (contacts), signals [STORE_ADDED], 0, ret);
+  g_list_model_items_changed (G_LIST_MODEL (contacts), position, 0, 1);
 
   VALENT_RETURN (ret);
 }
 
 /**
- * valent_contacts_get_store:
+ * valent_contacts_lookup_store:
  * @contacts: a #ValentContacts
  * @uid: an address book id
  *
@@ -372,8 +368,8 @@ valent_contacts_ensure_store (ValentContacts *contacts,
  * Since: 1.0
  */
 ValentContactStore *
-valent_contacts_get_store (ValentContacts *contacts,
-                           const char     *uid)
+valent_contacts_lookup_store (ValentContacts *contacts,
+                              const char     *uid)
 {
   VALENT_ENTRY;
 
@@ -389,33 +385,5 @@ valent_contacts_get_store (ValentContacts *contacts,
     }
 
   VALENT_RETURN (NULL);
-}
-
-/**
- * valent_contacts_get_stores:
- * @contacts: a #ValentContacts
- *
- * Get a list of the contact stores known to @contacts.
- *
- * Returns: (transfer container) (element-type Valent.ContactStore): a list of
- *     address books
- *
- * Since: 1.0
- */
-GPtrArray *
-valent_contacts_get_stores (ValentContacts *contacts)
-{
-  GPtrArray *ret;
-
-  VALENT_ENTRY;
-
-  g_return_val_if_fail (VALENT_IS_CONTACTS (contacts), NULL);
-
-  ret = g_ptr_array_new_with_free_func (g_object_unref);
-
-  for (unsigned int i = 0; i < contacts->stores->len; i++)
-    g_ptr_array_add (ret, g_object_ref (g_ptr_array_index (contacts->stores, i)));
-
-  VALENT_RETURN (ret);
 }
 
