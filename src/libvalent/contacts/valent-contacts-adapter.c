@@ -44,8 +44,6 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentContactsAdapter, valent_contacts_adap
 
 /**
  * ValentContactsAdapterClass:
- * @load_async: the virtual function pointer for valent_contacts_adapter_load_async()
- * @load_finish: the virtual function pointer for valent_contacts_adapter_load_finish()
  * @store_added: class closure for #ValentContactsAdapter::store-added
  * @store_removed: class closure for #ValentContactsAdapter::store-removed
  *
@@ -70,32 +68,6 @@ static guint signals[N_SIGNALS] = { 0, };
 
 
 /* LCOV_EXCL_START */
-static void
-valent_contacts_adapter_real_load_async (ValentContactsAdapter *adapter,
-                                         GCancellable          *cancellable,
-                                         GAsyncReadyCallback    callback,
-                                         gpointer               user_data)
-{
-  g_task_report_new_error (adapter, callback, user_data,
-                           valent_contacts_adapter_real_load_async,
-                           G_IO_ERROR,
-                           G_IO_ERROR_NOT_SUPPORTED,
-                           "%s does not implement load_async",
-                           G_OBJECT_TYPE_NAME (adapter));
-}
-
-static gboolean
-valent_contacts_adapter_real_load_finish (ValentContactsAdapter  *adapter,
-                                          GAsyncResult           *result,
-                                          GError                **error)
-{
-  g_assert (VALENT_IS_CONTACTS_ADAPTER (adapter));
-  g_assert (g_task_is_valid (result, adapter));
-  g_assert (error == NULL || *error == NULL);
-
-  return g_task_propagate_boolean (G_TASK (result), error);
-}
-
 static void
 valent_contacts_adapter_real_store_added (ValentContactsAdapter *adapter,
                                           ValentContactStore    *store)
@@ -193,8 +165,6 @@ valent_contacts_adapter_class_init (ValentContactsAdapterClass *klass)
   object_class->get_property = valent_contacts_adapter_get_property;
   object_class->set_property = valent_contacts_adapter_set_property;
 
-  klass->load_async = valent_contacts_adapter_real_load_async;
-  klass->load_finish = valent_contacts_adapter_real_load_finish;
   klass->store_added = valent_contacts_adapter_real_store_added;
   klass->store_removed = valent_contacts_adapter_real_store_removed;
 
@@ -343,76 +313,6 @@ valent_contacts_adapter_get_stores (ValentContactsAdapter *adapter)
 
   for (unsigned int i = 0; i < priv->stores->len; i++)
     g_ptr_array_add (ret, g_object_ref (g_ptr_array_index (priv->stores, i)));
-
-  VALENT_RETURN (ret);
-}
-
-/**
- * valent_contacts_adapter_load_async: (virtual load_async)
- * @adapter: an #ValentContactsAdapter
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
- * @user_data: (closure): user supplied data
- *
- * Load any contact stores known to the adapter.
- *
- * Implementations are expected to emit
- * [signal@Valent.ContactsAdapter::store-added] for each store before
- * completing the operation.
- *
- * This method is called by the [class@Valent.Contacts] singleton and must only
- * be called once for each implementation. It is therefore a programmer error
- * for an API user to call this method.
- *
- * Since: 1.0
- */
-void
-valent_contacts_adapter_load_async (ValentContactsAdapter *adapter,
-                                    GCancellable          *cancellable,
-                                    GAsyncReadyCallback    callback,
-                                    gpointer               user_data)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_CONTACTS_ADAPTER (adapter));
-  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-
-  VALENT_CONTACTS_ADAPTER_GET_CLASS (adapter)->load_async (adapter,
-                                                           cancellable,
-                                                           callback,
-                                                           user_data);
-
-  VALENT_EXIT;
-}
-
-/**
- * valent_contacts_adapter_load_finish: (virtual load_finish)
- * @adapter: an #ValentContactsAdapter
- * @result: a #GAsyncResult provided to callback
- * @error: (nullable): a #GError
- *
- * Finish an operation started by [method@Valent.ContactsAdapter.load_async].
- *
- * Returns: %TRUE if successful, or %FALSE with @error set
- *
- * Since: 1.0
- */
-gboolean
-valent_contacts_adapter_load_finish (ValentContactsAdapter  *adapter,
-                                     GAsyncResult           *result,
-                                     GError                **error)
-{
-  gboolean ret;
-
-  VALENT_ENTRY;
-
-  g_return_val_if_fail (VALENT_IS_CONTACTS_ADAPTER (adapter), FALSE);
-  g_return_val_if_fail (g_task_is_valid (result, adapter), FALSE);
-  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
-
-  ret = VALENT_CONTACTS_ADAPTER_GET_CLASS (adapter)->load_finish (adapter,
-                                                                  result,
-                                                                  error);
 
   VALENT_RETURN (ret);
 }
