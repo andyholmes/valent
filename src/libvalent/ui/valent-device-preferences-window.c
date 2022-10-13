@@ -249,14 +249,14 @@ valent_device_preferences_window_constructed (GObject *object)
   for (unsigned int i = 0; i < plugins->len; i++)
     on_plugin_added (self->device, g_ptr_array_index (plugins, i), self);
 
-  g_signal_connect (self->device,
-                    "plugin-added",
-                    G_CALLBACK (on_plugin_added),
-                    self);
-  g_signal_connect (self->device,
-                    "plugin-removed",
-                    G_CALLBACK (on_plugin_removed),
-                    self);
+  g_signal_connect_object (self->device,
+                           "plugin-added",
+                           G_CALLBACK (on_plugin_added),
+                           self, 0);
+  g_signal_connect_object (self->device,
+                           "plugin-removed",
+                           G_CALLBACK (on_plugin_removed),
+                           self, 0);
 
   G_OBJECT_CLASS (valent_device_preferences_window_parent_class)->constructed (object);
 }
@@ -266,7 +266,6 @@ valent_device_preferences_window_dispose (GObject *object)
 {
   ValentDevicePreferencesWindow *self = VALENT_DEVICE_PREFERENCES_WINDOW (object);
 
-  g_signal_handlers_disconnect_by_data (self->device, self);
   g_clear_object (&self->device);
 
   G_OBJECT_CLASS (valent_device_preferences_window_parent_class)->dispose (object);

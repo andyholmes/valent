@@ -13,7 +13,6 @@ libvalent_ui_public_headers = [
   'libvalent-ui.h',
   'valent-application.h',
   'valent-application-plugin.h',
-  'valent-device-activity.h',
   'valent-device-gadget.h',
   'valent-device-preferences-page.h',
   'valent-preferences-page.h',
@@ -22,7 +21,7 @@ libvalent_ui_public_headers = [
 
 libvalent_ui_private_headers = [
   'valent-application-credits.h',
-  'valent-device-panel.h',
+  'valent-device-page.h',
   'valent-device-preferences-window.h',
   'valent-menu-list.h',
   'valent-menu-stack.h',
@@ -40,9 +39,8 @@ install_headers(libvalent_ui_public_headers,
 libvalent_ui_public_sources = [
   'valent-application.c',
   'valent-application-plugin.c',
-  'valent-device-activity.c',
   'valent-device-gadget.c',
-  'valent-device-panel.c',
+  'valent-device-page.c',
   'valent-device-preferences-page.c',
   'valent-device-preferences-window.c',
   'valent-menu-list.c',

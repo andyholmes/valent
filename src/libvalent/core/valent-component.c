@@ -148,9 +148,13 @@ g_async_initable_init_async_cb (GObject      *object,
 {
   g_autoptr (GError) error = NULL;
 
+  VALENT_ENTRY;
+
   if (!g_async_initable_init_finish (G_ASYNC_INITABLE (object), result, &error) &&
       !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
     g_warning ("%s failed to load: %s", G_OBJECT_TYPE_NAME (object), error->message);
+
+  VALENT_EXIT;
 }
 
 static void

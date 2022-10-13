@@ -126,14 +126,14 @@ e_source_registry_new_cb (GObject      *object,
   for (const GList *iter = sources; iter; iter = iter->next)
     on_source_added (self->registry, E_SOURCE (iter->data), self);
 
-  g_signal_connect (self->registry,
-                    "source-added",
-                    G_CALLBACK (on_source_added),
-                    self);
-  g_signal_connect (self->registry,
-                    "source-removed",
-                    G_CALLBACK (on_source_removed),
-                    self);
+  g_signal_connect_object (self->registry,
+                           "source-added",
+                           G_CALLBACK (on_source_added),
+                           self, 0);
+  g_signal_connect_object (self->registry,
+                           "source-removed",
+                           G_CALLBACK (on_source_removed),
+                           self, 0);
 
   g_task_return_boolean (task, TRUE);
 }
@@ -176,12 +176,7 @@ valent_ebook_adapter_dispose (GObject *object)
   if (!g_cancellable_is_cancelled (self->cancellable))
     g_cancellable_cancel (self->cancellable);
 
-  if (self->registry != NULL)
-    {
-      g_signal_handlers_disconnect_by_data (self->registry, self);
-      g_clear_object (&self->registry);
-    }
-
+  g_clear_object (&self->registry);
   g_hash_table_remove_all (self->stores);
 
   G_OBJECT_CLASS (valent_ebook_adapter_parent_class)->dispose (object);

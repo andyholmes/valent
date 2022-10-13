@@ -12,7 +12,7 @@
 #include <libvalent-device.h>
 
 #include "valent-application-credits.h"
-#include "valent-device-panel.h"
+#include "valent-device-page.h"
 #include "valent-preferences-window.h"
 #include "valent-window.h"
 
@@ -182,7 +182,7 @@ valent_window_create_row_func (gpointer item,
   on_device_changed (device, NULL, status);
 
   /* Panel */
-  panel = g_object_new (VALENT_TYPE_DEVICE_PANEL,
+  panel = g_object_new (VALENT_TYPE_DEVICE_PAGE,
                         "device", device,
                         NULL);
   page = gtk_stack_add_titled (self->stack, panel, device_id, name);
@@ -209,8 +209,8 @@ valent_window_close_preferences (ValentWindow *self)
 
   visible_child = gtk_stack_get_visible_child (self->stack);
 
-  if (VALENT_IS_DEVICE_PANEL (visible_child))
-    valent_device_panel_close_preferences (VALENT_DEVICE_PANEL (visible_child));
+  if (VALENT_IS_DEVICE_PAGE (visible_child))
+    valent_device_page_close_preferences (VALENT_DEVICE_PAGE (visible_child));
 
   g_clear_pointer (&self->preferences, gtk_window_destroy);
 }

@@ -4,22 +4,22 @@
 #include <libvalent-test.h>
 #include <libvalent-ui.h>
 
-#include "valent-device-panel.h"
+#include "valent-device-page.h"
 
 
 static void
-test_device_panel_basic (ValentTestFixture *fixture,
-                         gconstpointer      user_data)
+test_device_page_basic (ValentTestFixture *fixture,
+                        gconstpointer      user_data)
 {
   GtkWindow *window;
   GtkWidget *panel;
   ValentDevice *device = NULL;
   PeasEngine *engine;
 
-  panel = g_object_new (VALENT_TYPE_DEVICE_PANEL,
+  panel = g_object_new (VALENT_TYPE_DEVICE_PAGE,
                         "device", fixture->device,
                         NULL);
-  g_assert_true (VALENT_IS_DEVICE_PANEL (panel));
+  g_assert_true (VALENT_IS_DEVICE_PAGE (panel));
 
   window = g_object_new (ADW_TYPE_WINDOW,
                          "content", panel,
@@ -45,16 +45,16 @@ test_device_panel_basic (ValentTestFixture *fixture,
 }
 
 static void
-test_device_panel_dialogs (ValentTestFixture *fixture,
-                           gconstpointer      user_data)
+test_device_page_dialogs (ValentTestFixture *fixture,
+                          gconstpointer      user_data)
 {
   GtkWindow *window;
   GtkWidget *panel;
 
-  panel = g_object_new (VALENT_TYPE_DEVICE_PANEL,
+  panel = g_object_new (VALENT_TYPE_DEVICE_PAGE,
                         "device", fixture->device,
                         NULL);
-  g_assert_true (VALENT_IS_DEVICE_PANEL (panel));
+  g_assert_true (VALENT_IS_DEVICE_PAGE (panel));
 
   window = g_object_new (ADW_TYPE_WINDOW,
                          "content", panel,
@@ -70,7 +70,7 @@ test_device_panel_dialogs (ValentTestFixture *fixture,
   while (g_main_context_iteration (NULL, FALSE))
     continue;
 
-  valent_device_panel_close_preferences (VALENT_DEVICE_PANEL (panel));
+  valent_device_page_close_preferences (VALENT_DEVICE_PAGE (panel));
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;
@@ -92,16 +92,16 @@ main (int   argc,
 
   valent_test_ui_init (&argc, &argv, NULL);
 
-  g_test_add ("/libvalent/ui/device-panel/basic",
+  g_test_add ("/libvalent/ui/device-page/basic",
               ValentTestFixture, path,
               valent_test_fixture_init,
-              test_device_panel_basic,
+              test_device_page_basic,
               valent_test_fixture_clear);
 
-  g_test_add ("/libvalent/ui/device-panel/dialogs",
+  g_test_add ("/libvalent/ui/device-page/dialogs",
               ValentTestFixture, path,
               valent_test_fixture_init,
-              test_device_panel_dialogs,
+              test_device_page_dialogs,
               valent_test_fixture_clear);
 
   return g_test_run ();

@@ -7,8 +7,8 @@ data/gsettings/ca.andyholmes.valent.plugin.gschema.xml
 data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in
 data/ca.andyholmes.Valent.desktop.in.in
 src/libvalent/device/valent-device.c
-src/libvalent/ui/valent-device-panel.c
-src/libvalent/ui/valent-device-panel.ui
+src/libvalent/ui/valent-device-page.c
+src/libvalent/ui/valent-device-page.ui
 src/libvalent/ui/valent-device-preferences-window.c
 src/libvalent/ui/valent-device-preferences-window.ui
 src/libvalent/ui/valent-menu-list.c
