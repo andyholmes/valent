@@ -51,7 +51,6 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentMixerAdapter, valent_mixer_adapter, G
  * @get_default_output: the virtual function pointer for valent_mixer_adapter_get_default_output()
  * @set_default_output: the virtual function pointer for valent_mixer_adapter_set_default_output()
  * @stream_added: the class closure for the #ValentMixerAdapter::stream-added signal
- * @stream_changed: the class closure for the #ValentMixerAdapter::stream-changed signal
  * @stream_removed: the class closure for the #ValentMixerAdapter::stream-removed signal
  *
  * The virtual function table for #ValentMixerAdapter.
@@ -69,7 +68,6 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 enum {
   STREAM_ADDED,
-  STREAM_CHANGED,
   STREAM_REMOVED,
   N_SIGNALS
 };
@@ -94,12 +92,6 @@ valent_mixer_adapter_real_stream_added (ValentMixerAdapter *adapter,
     g_ptr_array_add (priv->inputs, g_object_ref (stream));
   else
     g_ptr_array_add (priv->outputs, g_object_ref (stream));
-}
-
-static void
-valent_mixer_adapter_real_stream_changed (ValentMixerAdapter *adapter,
-                                          ValentMixerStream  *stream)
-{
 }
 
 static void
@@ -235,7 +227,6 @@ valent_mixer_adapter_class_init (ValentMixerAdapterClass *klass)
   klass->get_default_output = valent_mixer_adapter_real_get_default_output;
   klass->set_default_output = valent_mixer_adapter_real_set_default_output;
   klass->stream_added = valent_mixer_adapter_real_stream_added;
-  klass->stream_changed = valent_mixer_adapter_real_stream_changed;
   klass->stream_removed = valent_mixer_adapter_real_stream_removed;
 
   /**
@@ -304,33 +295,12 @@ valent_mixer_adapter_class_init (ValentMixerAdapterClass *klass)
   signals [STREAM_ADDED] =
     g_signal_new ("stream-added",
                   G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_FIRST | G_SIGNAL_DETAILED,
+                  G_SIGNAL_RUN_FIRST,
                   G_STRUCT_OFFSET (ValentMixerAdapterClass, stream_added),
                   NULL, NULL,
                   g_cclosure_marshal_VOID__OBJECT,
                   G_TYPE_NONE, 1, VALENT_TYPE_MIXER_STREAM);
   g_signal_set_va_marshaller (signals [STREAM_ADDED],
-                              G_TYPE_FROM_CLASS (klass),
-                              g_cclosure_marshal_VOID__OBJECTv);
-
-  /**
-   * ValentMixerAdapter::stream-changed:
-   * @adapter: a #ValentMixerAdapter
-   * @stream: a #ValentMixerStream
-   *
-   * Emitted when a stream is changed that belongs to @adapter.
-   *
-   * Since: 1.0
-   */
-  signals [STREAM_CHANGED] =
-    g_signal_new ("stream-changed",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_FIRST | G_SIGNAL_DETAILED,
-                  G_STRUCT_OFFSET (ValentMixerAdapterClass, stream_changed),
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
-                  G_TYPE_NONE, 1, VALENT_TYPE_MIXER_STREAM);
-  g_signal_set_va_marshaller (signals [STREAM_CHANGED],
                               G_TYPE_FROM_CLASS (klass),
                               g_cclosure_marshal_VOID__OBJECTv);
 
@@ -349,7 +319,7 @@ valent_mixer_adapter_class_init (ValentMixerAdapterClass *klass)
   signals [STREAM_REMOVED] =
     g_signal_new ("stream-removed",
                   G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_FIRST | G_SIGNAL_DETAILED,
+                  G_SIGNAL_RUN_FIRST,
                   G_STRUCT_OFFSET (ValentMixerAdapterClass, stream_removed),
                   NULL, NULL,
                   g_cclosure_marshal_VOID__OBJECT,
@@ -388,46 +358,10 @@ void
 valent_mixer_adapter_stream_added (ValentMixerAdapter *adapter,
                                    ValentMixerStream  *stream)
 {
-  GQuark detail = 0;
-
   g_return_if_fail (VALENT_IS_MIXER_ADAPTER (adapter));
   g_return_if_fail (VALENT_IS_MIXER_STREAM (stream));
 
-  if (valent_mixer_stream_get_direction (stream) == VALENT_MIXER_INPUT)
-    detail = input_detail;
-  else
-    detail = output_detail;
-
-  g_signal_emit (G_OBJECT (adapter), signals [STREAM_ADDED], detail, stream);
-}
-
-/**
- * valent_mixer_adapter_stream_changed:
- * @adapter: a #ValentMixerAdapter
- * @stream: a #ValentMixerStream
- *
- * Emit [signal@Valent.MixerAdapter::stream-changed] on @adapter.
- *
- * This method should only be called by implementations of
- * [class@Valent.MixerAdapter].
- *
- * Since: 1.0
- */
-void
-valent_mixer_adapter_stream_changed (ValentMixerAdapter *adapter,
-                                     ValentMixerStream  *stream)
-{
-  GQuark detail = 0;
-
-  g_return_if_fail (VALENT_IS_MIXER_ADAPTER (adapter));
-  g_return_if_fail (VALENT_IS_MIXER_STREAM (stream));
-
-  if (valent_mixer_stream_get_direction (stream) == VALENT_MIXER_INPUT)
-    detail = input_detail;
-  else
-    detail = output_detail;
-
-  g_signal_emit (G_OBJECT (adapter), signals [STREAM_CHANGED], detail, stream);
+  g_signal_emit (G_OBJECT (adapter), signals [STREAM_ADDED], 0, stream);
 }
 
 /**
@@ -446,17 +380,10 @@ void
 valent_mixer_adapter_stream_removed (ValentMixerAdapter *adapter,
                                      ValentMixerStream  *stream)
 {
-  GQuark detail = 0;
-
   g_return_if_fail (VALENT_IS_MIXER_ADAPTER (adapter));
   g_return_if_fail (VALENT_IS_MIXER_STREAM (stream));
 
-  if (valent_mixer_stream_get_direction (stream) == VALENT_MIXER_INPUT)
-    detail = input_detail;
-  else
-    detail = output_detail;
-
-  g_signal_emit (G_OBJECT (adapter), signals [STREAM_REMOVED], detail, stream);
+  g_signal_emit (G_OBJECT (adapter), signals [STREAM_REMOVED], 0, stream);
 }
 
 /**

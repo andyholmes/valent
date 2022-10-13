@@ -20,16 +20,6 @@ struct _ValentMockMixerAdapter
 G_DEFINE_TYPE (ValentMockMixerAdapter, valent_mock_mixer_adapter, VALENT_TYPE_MIXER_ADAPTER)
 
 
-static void
-on_stream_changed (ValentMixerStream  *stream,
-                   GParamSpec         *pspec,
-                   ValentMixerAdapter *adapter)
-{
-  g_assert (VALENT_IS_MOCK_MIXER_ADAPTER (adapter));
-
-  valent_mixer_adapter_stream_changed (adapter, stream);
-}
-
 /*
  * ValentMixerAdapter
  */
@@ -85,11 +75,6 @@ valent_mock_mixer_adapter_stream_added (ValentMixerAdapter *adapter,
   if (self->default_output == NULL && direction == VALENT_MIXER_OUTPUT)
     valent_mixer_adapter_set_default_output (adapter, stream);
 
-  g_signal_connect (stream,
-                    "notify",
-                    G_CALLBACK (on_stream_changed),
-                    adapter);
-
   VALENT_MIXER_ADAPTER_CLASS (valent_mock_mixer_adapter_parent_class)->stream_added (adapter,
                                                                                      stream);
 }
@@ -111,8 +96,6 @@ valent_mock_mixer_adapter_stream_removed (ValentMixerAdapter *adapter,
       g_clear_object (&self->default_output);
       g_object_notify (G_OBJECT (adapter), "default-output");
     }
-
-  g_signal_handlers_disconnect_by_func (stream, on_stream_changed, adapter);
 
   VALENT_MIXER_ADAPTER_CLASS (valent_mock_mixer_adapter_parent_class)->stream_removed (adapter,
                                                                                        stream);

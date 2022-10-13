@@ -109,6 +109,7 @@ valent_pa_stream_set_level (ValentMixerStream *stream,
 
   gvc_mixer_stream_set_volume (self->stream, (guint32)volume);
   gvc_mixer_stream_push_volume (self->stream);
+  g_object_notify (G_OBJECT (stream), "level");
 }
 
 static gboolean
@@ -132,6 +133,7 @@ valent_pa_stream_set_muted (ValentMixerStream *stream,
   g_assert (GVC_IS_MIXER_STREAM (self->stream));
 
   gvc_mixer_stream_change_is_muted (self->stream, state);
+  g_object_notify (G_OBJECT (stream), "muted");
 }
 
 static const char *
