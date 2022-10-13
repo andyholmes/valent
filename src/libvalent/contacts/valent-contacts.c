@@ -35,7 +35,6 @@ struct _ValentContacts
 {
   ValentComponent  parent_instance;
 
-  GCancellable    *cancellable;
   GPtrArray       *stores;
 };
 
@@ -163,6 +162,7 @@ valent_contacts_enable_extension (ValentComponent *component,
 {
   ValentContacts *self = VALENT_CONTACTS (component);
   ValentContactsAdapter *adapter = VALENT_CONTACTS_ADAPTER (extension);
+  g_autoptr (GCancellable) cancellable = NULL;
 
   VALENT_ENTRY;
 
@@ -182,8 +182,9 @@ valent_contacts_enable_extension (ValentComponent *component,
                            self,
                            0);
 
+  cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
   valent_contacts_adapter_load_async (adapter,
-                                      self->cancellable,
+                                      cancellable,
                                       (GAsyncReadyCallback)valent_contacts_adapter_load_cb,
                                       self);
 
@@ -244,22 +245,10 @@ valent_contacts_create_store (const char *uid,
  * GObject
  */
 static void
-valent_contacts_dispose (GObject *object)
-{
-  ValentContacts *self = VALENT_CONTACTS (object);
-
-  if (!g_cancellable_is_cancelled (self->cancellable))
-    g_cancellable_cancel (self->cancellable);
-
-  G_OBJECT_CLASS (valent_contacts_parent_class)->dispose (object);
-}
-
-static void
 valent_contacts_finalize (GObject *object)
 {
   ValentContacts *self = VALENT_CONTACTS (object);
 
-  g_clear_object (&self->cancellable);
   g_clear_pointer (&self->stores, g_ptr_array_unref);
 
   G_OBJECT_CLASS (valent_contacts_parent_class)->finalize (object);
@@ -274,7 +263,6 @@ valent_contacts_class_init (ValentContactsClass *klass)
   /* Ensure we don't hit a MT race condition */
   g_type_ensure (E_TYPE_SOURCE);
 
-  object_class->dispose = valent_contacts_dispose;
   object_class->finalize = valent_contacts_finalize;
 
   component_class->enable_extension = valent_contacts_enable_extension;
@@ -284,7 +272,6 @@ valent_contacts_class_init (ValentContactsClass *klass)
 static void
 valent_contacts_init (ValentContacts *self)
 {
-  self->cancellable = g_cancellable_new ();
   self->stores = g_ptr_array_new_with_free_func (g_object_unref);
 }
 

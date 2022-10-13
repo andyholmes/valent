@@ -32,8 +32,6 @@ struct _ValentMedia
 {
   ValentComponent  parent_instance;
 
-  GCancellable    *cancellable;
-
   GPtrArray       *adapters;
   GPtrArray       *players;
   GPtrArray       *paused;
@@ -220,6 +218,7 @@ valent_media_enable_extension (ValentComponent *component,
 {
   ValentMedia *self = VALENT_MEDIA (component);
   ValentMediaAdapter *adapter = VALENT_MEDIA_ADAPTER (extension);
+  g_autoptr (GCancellable) cancellable = NULL;
 
   VALENT_ENTRY;
 
@@ -238,8 +237,9 @@ valent_media_enable_extension (ValentComponent *component,
                            self,
                            0);
 
+  cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
   valent_media_adapter_load_async (adapter,
-                                   self->cancellable,
+                                   cancellable,
                                    (GAsyncReadyCallback)valent_media_adapter_load_cb,
                                    self);
 
@@ -275,22 +275,10 @@ valent_media_disable_extension (ValentComponent *component,
  * GObject
  */
 static void
-valent_media_dispose (GObject *object)
-{
-  ValentMedia *self = VALENT_MEDIA (object);
-
-  if (!g_cancellable_is_cancelled (self->cancellable))
-    g_cancellable_cancel (self->cancellable);
-
-  G_OBJECT_CLASS (valent_media_parent_class)->dispose (object);
-}
-
-static void
 valent_media_finalize (GObject *object)
 {
   ValentMedia *self = VALENT_MEDIA (object);
 
-  g_clear_object (&self->cancellable);
   g_clear_pointer (&self->adapters, g_ptr_array_unref);
   g_clear_pointer (&self->players, g_ptr_array_unref);
   g_clear_pointer (&self->paused, g_ptr_array_unref);
@@ -304,7 +292,6 @@ valent_media_class_init (ValentMediaClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentComponentClass *component_class = VALENT_COMPONENT_CLASS (klass);
 
-  object_class->dispose = valent_media_dispose;
   object_class->finalize = valent_media_finalize;
 
   component_class->enable_extension = valent_media_enable_extension;
@@ -354,7 +341,6 @@ valent_media_class_init (ValentMediaClass *klass)
 static void
 valent_media_init (ValentMedia *self)
 {
-  self->cancellable = g_cancellable_new ();
   self->adapters = g_ptr_array_new_with_free_func (g_object_unref);
   self->players = g_ptr_array_new_with_free_func (g_object_unref);
   self->paused = g_ptr_array_new ();
