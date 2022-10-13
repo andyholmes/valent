@@ -64,12 +64,16 @@ typedef struct
   PeasPluginInfo  *info;
   PeasExtension   *extension;
   GSettings       *settings;
+  GCancellable    *cancellable;
 } ComponentPlugin;
 
 static void
 component_plugin_free (gpointer data)
 {
   ComponentPlugin *plugin = data;
+
+  g_cancellable_cancel (plugin->cancellable);
+  g_clear_object (&plugin->cancellable);
 
   if (plugin->extension != NULL)
     {
@@ -138,6 +142,18 @@ valent_component_update_primary (ValentComponent *self)
  * GSettings Handlers
  */
 static void
+g_async_initable_init_async_cb (GObject      *object,
+                                GAsyncResult *result,
+                                gpointer      user_data)
+{
+  g_autoptr (GError) error = NULL;
+
+  if (!g_async_initable_init_finish (G_ASYNC_INITABLE (object), result, &error) &&
+      !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+    g_warning ("%s failed to load: %s", G_OBJECT_TYPE_NAME (object), error->message);
+}
+
+static void
 valent_component_enable_extension (ValentComponent *self,
                                    ComponentPlugin *plugin)
 {
@@ -156,6 +172,28 @@ valent_component_enable_extension (ValentComponent *self,
     valent_component_update_primary (self);
 
   VALENT_COMPONENT_GET_CLASS (self)->enable_extension (self, plugin->extension);
+
+  if (G_IS_ASYNC_INITABLE (plugin->extension))
+    {
+      g_autoptr (GCancellable) cancellable = NULL;
+
+      /* Use a cancellable in case the plugin is unloaded before the operation
+       * completes. Chain the component's cancellable in case it's destroyed. */
+      plugin->cancellable = g_cancellable_new ();
+
+      cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
+      g_signal_connect_object (cancellable,
+                               "cancelled",
+                               G_CALLBACK (g_cancellable_cancel),
+                               plugin->cancellable,
+                               G_CONNECT_SWAPPED);
+
+      g_async_initable_init_async (G_ASYNC_INITABLE (plugin->extension),
+                                   G_PRIORITY_DEFAULT,
+                                   plugin->cancellable,
+                                   (GAsyncReadyCallback)g_async_initable_init_async_cb,
+                                   NULL);
+    }
 }
 
 static void
@@ -168,6 +206,11 @@ valent_component_disable_extension (ValentComponent *self,
   g_assert (VALENT_IS_COMPONENT (self));
   g_assert (plugin != NULL);
 
+  /* Ensure any in-progress initialization is cancelled */
+  g_cancellable_cancel (plugin->cancellable);
+  g_clear_object (&plugin->cancellable);
+
+  /* Steal the object and reset the primary adapter */
   extension = g_steal_pointer (&plugin->extension);
   g_return_if_fail (PEAS_IS_EXTENSION (extension));
 
