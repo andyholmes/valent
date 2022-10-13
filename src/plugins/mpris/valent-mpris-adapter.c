@@ -27,7 +27,11 @@ struct _ValentMPRISAdapter
   GHashTable         *exports;
 };
 
-G_DEFINE_TYPE (ValentMPRISAdapter, valent_mpris_adapter, VALENT_TYPE_MEDIA_ADAPTER)
+static void   g_async_initable_iface_init (GAsyncInitableIface *iface);
+
+G_DEFINE_TYPE_EXTENDED (ValentMPRISAdapter, valent_mpris_adapter, VALENT_TYPE_MEDIA_ADAPTER,
+                        0,
+                        G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init))
 
 
 static unsigned int n_exports = 0;
@@ -181,6 +185,9 @@ on_name_owner_changed (GDBusConnection *connection,
     }
 }
 
+/*
+ * GAsyncInitable
+ */
 static void
 list_names_cb (GDBusConnection *connection,
                GAsyncResult    *result,
@@ -239,19 +246,21 @@ list_names_cb (GDBusConnection *connection,
 }
 
 static void
-valent_mpris_adapter_load_async (ValentMediaAdapter  *adapter,
+valent_mpris_adapter_init_async (GAsyncInitable      *initable,
+                                 int                  priority,
                                  GCancellable        *cancellable,
                                  GAsyncReadyCallback  callback,
                                  gpointer             user_data)
 {
-  ValentMPRISAdapter *self = VALENT_MPRIS_ADAPTER (adapter);
+  ValentMPRISAdapter *self = VALENT_MPRIS_ADAPTER (initable);
   g_autoptr (GTask) task = NULL;
   GError *error = NULL;
 
   g_assert (VALENT_IS_MPRIS_ADAPTER (self));
 
-  task = g_task_new (adapter, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_mpris_adapter_load_async);
+  task = g_task_new (initable, cancellable, callback, user_data);
+  g_task_set_priority (task, priority);
+  g_task_set_source_tag (task, valent_mpris_adapter_init_async);
 
   self->connection = g_bus_get_sync (G_BUS_TYPE_SESSION,
                                      cancellable,
@@ -274,6 +283,15 @@ valent_mpris_adapter_load_async (ValentMediaAdapter  *adapter,
                           g_steal_pointer (&task));
 }
 
+static void
+g_async_initable_iface_init (GAsyncInitableIface *iface)
+{
+  iface->init_async = valent_mpris_adapter_init_async;
+}
+
+/*
+ * ValentMediaAdapter
+ */
 static void
 export_full_cb (ValentMPRISImpl    *impl,
                 GAsyncResult       *result,
@@ -402,7 +420,6 @@ valent_mpris_adapter_class_init (ValentMPRISAdapterClass *klass)
   object_class->dispose = valent_mpris_adapter_dispose;
   object_class->finalize = valent_mpris_adapter_finalize;
 
-  adapter_class->load_async = valent_mpris_adapter_load_async;
   adapter_class->export_player = valent_mpris_adapter_export;
   adapter_class->unexport_player = valent_mpris_adapter_unexport;
 }

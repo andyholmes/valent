@@ -189,26 +189,6 @@ on_player_removed (ValentMediaAdapter *adapter,
   VALENT_EXIT;
 }
 
-static void
-valent_media_adapter_load_cb (ValentMediaAdapter *adapter,
-                              GAsyncResult       *result,
-                              ValentMedia        *self)
-{
-  g_autoptr (GError) error = NULL;
-
-  VALENT_ENTRY;
-
-  g_assert (VALENT_IS_MEDIA_ADAPTER (adapter));
-  g_assert (g_task_is_valid (result, adapter));
-
-  if (!valent_media_adapter_load_finish (adapter, result, &error) &&
-      !valent_error_ignore (error))
-    g_warning ("%s failed to load: %s", G_OBJECT_TYPE_NAME (adapter), error->message);
-
-  VALENT_EXIT;
-}
-
-
 /*
  * ValentComponent
  */
@@ -218,7 +198,6 @@ valent_media_enable_extension (ValentComponent *component,
 {
   ValentMedia *self = VALENT_MEDIA (component);
   ValentMediaAdapter *adapter = VALENT_MEDIA_ADAPTER (extension);
-  g_autoptr (GCancellable) cancellable = NULL;
 
   VALENT_ENTRY;
 
@@ -236,12 +215,6 @@ valent_media_enable_extension (ValentComponent *component,
                            G_CALLBACK (on_player_removed),
                            self,
                            0);
-
-  cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
-  valent_media_adapter_load_async (adapter,
-                                   cancellable,
-                                   (GAsyncReadyCallback)valent_media_adapter_load_cb,
-                                   self);
 
   VALENT_EXIT;
 }

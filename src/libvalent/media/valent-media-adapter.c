@@ -36,7 +36,6 @@
 typedef struct
 {
   PeasPluginInfo *plugin_info;
-
   GPtrArray      *players;
 } ValentMediaAdapterPrivate;
 
@@ -44,8 +43,6 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentMediaAdapter, valent_media_adapter, G
 
 /**
  * ValentMediaAdapterClass:
- * @load_async: the virtual function pointer for valent_media_adapter_load_async()
- * @load_finish: the virtual function pointer for valent_media_adapter_load_finish()
  * @export_player: the virtual function pointer for valent_media_adapter_export()
  * @unexport_player: the virtual function pointer for valent_media_adapter_unexport()
  * @player_added: the class closure for #ValentMediaAdapter::player-added signal
@@ -71,32 +68,6 @@ enum {
 static guint signals[N_SIGNALS] = { 0, };
 
 /* LCOV_EXCL_START */
-static void
-valent_media_adapter_real_load_async (ValentMediaAdapter  *adapter,
-                                      GCancellable        *cancellable,
-                                      GAsyncReadyCallback  callback,
-                                      gpointer             user_data)
-{
-  g_task_report_new_error (adapter, callback, user_data,
-                           valent_media_adapter_real_load_async,
-                           G_IO_ERROR,
-                           G_IO_ERROR_NOT_SUPPORTED,
-                           "%s does not implement load_async",
-                           G_OBJECT_TYPE_NAME (adapter));
-}
-
-static gboolean
-valent_media_adapter_real_load_finish (ValentMediaAdapter  *adapter,
-                                       GAsyncResult        *result,
-                                       GError             **error)
-{
-  g_assert (VALENT_IS_MEDIA_ADAPTER (adapter));
-  g_assert (g_task_is_valid (result, adapter));
-  g_assert (error == NULL || *error == NULL);
-
-  return g_task_propagate_boolean (G_TASK (result), error);
-}
-
 static void
 valent_media_adapter_real_export_player (ValentMediaAdapter *adapter,
                                          ValentMediaPlayer  *player)
@@ -214,8 +185,6 @@ valent_media_adapter_class_init (ValentMediaAdapterClass *klass)
   klass->player_removed = valent_media_adapter_real_player_removed;
   klass->export_player = valent_media_adapter_real_export_player;
   klass->unexport_player = valent_media_adapter_real_unexport_player;
-  klass->load_async = valent_media_adapter_real_load_async;
-  klass->load_finish = valent_media_adapter_real_load_finish;
 
   /**
    * ValentMediaAdapter:plugin-info:
@@ -384,76 +353,6 @@ valent_media_adapter_unexport_player (ValentMediaAdapter *adapter,
   VALENT_MEDIA_ADAPTER_GET_CLASS (adapter)->unexport_player (adapter, player);
 
   VALENT_EXIT;
-}
-
-/**
- * valent_media_adapter_load_async: (virtual load_async)
- * @adapter: an #ValentMediaAdapter
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
- * @user_data: (closure): user supplied data
- *
- * Load any media players known to @adapter.
- *
- * Implementations are expected to emit
- * [signal@Valent.MediaAdapter::player-added] for each player before
- * completing the operation.
- *
- * This method is called by the [class@Valent.Media] singleton and must only
- * be called once for each implementation. It is therefore a programmer error
- * for an API user to call this method.
- *
- * Since: 1.0
- */
-void
-valent_media_adapter_load_async (ValentMediaAdapter  *adapter,
-                                 GCancellable        *cancellable,
-                                 GAsyncReadyCallback  callback,
-                                 gpointer             user_data)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_MEDIA_ADAPTER (adapter));
-  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-
-  VALENT_MEDIA_ADAPTER_GET_CLASS (adapter)->load_async (adapter,
-                                                        cancellable,
-                                                        callback,
-                                                        user_data);
-
-  VALENT_EXIT;
-}
-
-/**
- * valent_media_adapter_load_finish: (virtual load_finish)
- * @adapter: an #ValentMediaAdapter
- * @result: a #GAsyncResult provided to callback
- * @error: (nullable): a #GError
- *
- * Finish an operation started by [method@Valent.MediaAdapter.load_async].
- *
- * Returns: %TRUE if successful, or %FALSE with @error set
- *
- * Since: 1.0
- */
-gboolean
-valent_media_adapter_load_finish (ValentMediaAdapter  *adapter,
-                                  GAsyncResult        *result,
-                                  GError             **error)
-{
-  gboolean ret;
-
-  VALENT_ENTRY;
-
-  g_return_val_if_fail (VALENT_IS_MEDIA_ADAPTER (adapter), FALSE);
-  g_return_val_if_fail (g_task_is_valid (result, adapter), FALSE);
-  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
-
-  ret = VALENT_MEDIA_ADAPTER_GET_CLASS (adapter)->load_finish (adapter,
-                                                               result,
-                                                               error);
-
-  VALENT_RETURN (ret);
 }
 
 /**
