@@ -307,7 +307,7 @@ valent_object_unlock (ValentObject *object)
  *
  * Get a [class@Gio.Cancellable] for the object.
  *
- * Returns: (transfer full) (not nullable): a #GCancellable
+ * Returns: (transfer full) (not nullable): @object's #GCancellable
  *
  * Since: 1.0
  */
@@ -322,6 +322,75 @@ valent_object_ref_cancellable (ValentObject *object)
   valent_object_private_lock (priv);
   if (priv->cancellable == NULL)
     priv->cancellable = g_cancellable_new ();
+  ret = g_object_ref (priv->cancellable);
+  valent_object_private_unlock (priv);
+
+  return g_steal_pointer (&ret);
+}
+
+/**
+ * valent_object_attach_cancellable:
+ * @object: a #ValentObject
+ * @cancellable: (nullable): a #GCancellable
+ *
+ * Attach the object's cancellable another cancellable.
+ *
+ * This connects [property@Valent.Object:cancellable] to @cancellable's
+ * [signal@Gio.Cancellable::cancelled] so that if @cancellable is cancelled,
+ * @object's cancellable will be cancelled. For convenience, this method returns
+ * a reference of [property@Valent.Object:cancellable].
+ *
+ * Typically the returned [class@Gio.Cancellable] is passed to a
+ * [iface@Gio.AsyncInitable] implementation to ensure initialization is
+ * cancelled if @cancellable is triggered or @object is destroyed.
+ *
+ * ```c
+ * static void
+ * foo_async_initable_init_async (GAsyncInitable      *initable,
+ *                                int                  io_priority,
+ *                                GCancellable        *cancellable,
+ *                                GAsyncReadyCallback  callback,
+ *                                gpointer             user_data)
+ * {
+ *   g_autoptr (GTask) task = NULL;
+ *   g_autoptr (GCancellable) destroy = NULL;
+ *
+ *   g_assert (VALENT_IS_OBJECT (initable));
+ *
+ *   destroy = valent_object_attach_cancellable (VALENT_OBJECT (initable),
+ *                                               cancellable);
+ *
+ *   task = g_task_new (initable, destroy, callback, user_data);
+ *   g_task_set_priority (task, io_priority);
+ *   g_task_run_in_thread (task, foo_async_initable_init_task);
+ * }
+ * ```
+ *
+ * Returns: (transfer full) (not nullable): @object's #GCancellable
+ *
+ * Since: 1.0
+ */
+GCancellable *
+valent_object_attach_cancellable (ValentObject *object,
+                                  GCancellable *cancellable)
+{
+  ValentObjectPrivate *priv = valent_object_get_instance_private (object);
+  GCancellable *ret;
+
+  g_return_val_if_fail (VALENT_IS_OBJECT (object), NULL);
+  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+
+  valent_object_private_lock (priv);
+  if (priv->cancellable == NULL)
+    priv->cancellable = g_cancellable_new ();
+
+  if (cancellable != NULL)
+    g_signal_connect_object (cancellable,
+                             "cancelled",
+                             G_CALLBACK (g_cancellable_cancel),
+                             priv->cancellable,
+                             G_CONNECT_SWAPPED);
+
   ret = g_object_ref (priv->cancellable);
   valent_object_private_unlock (priv);
 

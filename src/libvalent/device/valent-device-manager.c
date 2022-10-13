@@ -366,14 +366,14 @@ valent_device_manager_enable_service (ValentDeviceManager *self,
 
   if (G_IS_ASYNC_INITABLE (service->extension))
     {
-      g_autoptr (GCancellable) cancellable = NULL;
+      g_autoptr (GCancellable) destroy = NULL;
 
       /* Use a cancellable in case the plugin is unloaded before the operation
        * completes. Chain the component's cancellable in case it's destroyed. */
       service->cancellable = g_cancellable_new ();
 
-      cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
-      g_signal_connect_object (cancellable,
+      destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
+      g_signal_connect_object (destroy,
                                "cancelled",
                                G_CALLBACK (g_cancellable_cancel),
                                service->cancellable,
@@ -733,17 +733,22 @@ valent_device_manager_init_async (GAsyncInitable      *initable,
 {
   ValentDeviceManager *self = VALENT_DEVICE_MANAGER (initable);
   g_autoptr (GTask) task = NULL;
+  g_autoptr (GCancellable) destroy = NULL;
   const char *path = NULL;
 
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
 
-  task = g_task_new (initable, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_device_manager_init_async);
+  /* Cancel initialization if the object is destroyed */
+  destroy = valent_object_attach_cancellable (VALENT_OBJECT (initable),
+                                              cancellable);
+
+  task = g_task_new (initable, destroy, callback, user_data);
   g_task_set_priority (task, io_priority);
+  g_task_set_source_tag (task, valent_device_manager_init_async);
 
   path = valent_data_get_config_path (self->data);
   valent_certificate_new (path,
-                          cancellable,
+                          destroy,
                           valent_certificate_new_cb,
                           g_steal_pointer (&task));
 }

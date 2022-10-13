@@ -179,14 +179,14 @@ valent_component_enable_extension (ValentComponent *self,
 
   if (G_IS_ASYNC_INITABLE (plugin->extension))
     {
-      g_autoptr (GCancellable) cancellable = NULL;
+      g_autoptr (GCancellable) destroy = NULL;
 
       /* Use a cancellable in case the plugin is unloaded before the operation
        * completes. Chain the component's cancellable in case it's destroyed. */
       plugin->cancellable = g_cancellable_new ();
 
-      cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
-      g_signal_connect_object (cancellable,
+      destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
+      g_signal_connect_object (destroy,
                                "cancelled",
                                G_CALLBACK (g_cancellable_cancel),
                                plugin->cancellable,

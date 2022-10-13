@@ -26,7 +26,6 @@
 
 typedef struct
 {
-  GCancellable        *cancellable;
   GError              *error;
   char                *id;
   double               progress;
@@ -88,7 +87,6 @@ valent_transfer_finalize (GObject *object)
   ValentTransferPrivate *priv = valent_transfer_get_instance_private (self);
 
   valent_object_lock (VALENT_OBJECT (self));
-  g_clear_object (&priv->cancellable);
   g_clear_error (&priv->error);
   g_clear_pointer (&priv->id, g_free);
   valent_object_unlock (VALENT_OBJECT (self));
@@ -234,9 +232,6 @@ valent_transfer_class_init (ValentTransferClass *klass)
 static void
 valent_transfer_init (ValentTransfer *self)
 {
-  ValentTransferPrivate *priv = valent_transfer_get_instance_private (self);
-
-  priv->cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
 }
 
 /**
@@ -409,6 +404,7 @@ valent_transfer_execute (ValentTransfer      *transfer,
 {
   ValentTransferPrivate *priv = valent_transfer_get_instance_private (transfer);
   g_autoptr (GTask) task = NULL;
+  g_autoptr (GCancellable) destroy = NULL;
 
   VALENT_ENTRY;
 
@@ -428,18 +424,14 @@ valent_transfer_execute (ValentTransfer      *transfer,
       VALENT_EXIT;
     }
 
-  task = g_task_new (transfer, cancellable, callback, user_data);
+  destroy = valent_object_attach_cancellable (VALENT_OBJECT (transfer),
+                                              cancellable);
+
+  task = g_task_new (transfer, destroy, callback, user_data);
   g_task_set_source_tag (task, valent_transfer_execute);
 
-  if (cancellable != NULL)
-    g_signal_connect_object (cancellable,
-                             "cancelled",
-                             G_CALLBACK (g_cancellable_cancel),
-                             priv->cancellable,
-                             G_CONNECT_SWAPPED);
-
   VALENT_TRANSFER_GET_CLASS (transfer)->execute (transfer,
-                                                 priv->cancellable,
+                                                 destroy,
                                                  valent_transfer_execute_cb,
                                                  g_steal_pointer (&task));
 
@@ -497,14 +489,14 @@ valent_transfer_execute_finish (ValentTransfer  *transfer,
 void
 valent_transfer_cancel (ValentTransfer *transfer)
 {
-  ValentTransferPrivate *priv = valent_transfer_get_instance_private (transfer);
+  g_autoptr (GCancellable) cancellable = NULL;
 
   VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_TRANSFER (transfer));
 
-  if (!g_cancellable_is_cancelled (priv->cancellable))
-    g_cancellable_cancel (priv->cancellable);
+  cancellable = valent_object_ref_cancellable (VALENT_OBJECT (transfer));
+  g_cancellable_cancel (cancellable);
 
   VALENT_EXIT;
 }
