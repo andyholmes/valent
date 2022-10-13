@@ -14,34 +14,34 @@ G_BEGIN_DECLS
 #define VALENT_TYPE_SESSION_ADAPTER (valent_session_adapter_get_type())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_DERIVABLE_TYPE (ValentSessionAdapter, valent_session_adapter, VALENT, SESSION_ADAPTER, GObject)
+G_DECLARE_DERIVABLE_TYPE (ValentSessionAdapter, valent_session_adapter, VALENT, SESSION_ADAPTER, ValentObject)
 
 struct _ValentSessionAdapterClass
 {
-  GObjectClass   parent_class;
+  ValentObjectClass   parent_class;
 
   /* virtual functions */
-  gboolean       (*get_active) (ValentSessionAdapter *adapter);
-  gboolean       (*get_locked) (ValentSessionAdapter *adapter);
-  void           (*set_locked) (ValentSessionAdapter *adapter,
-                                gboolean              state);
+  gboolean            (*get_active) (ValentSessionAdapter *adapter);
+  gboolean            (*get_locked) (ValentSessionAdapter *adapter);
+  void                (*set_locked) (ValentSessionAdapter *adapter,
+                                     gboolean              state);
 
   /* signals */
-  void           (*changed)    (ValentSessionAdapter *adapter);
+  void                (*changed)    (ValentSessionAdapter *adapter);
 
   /*< private >*/
-  gpointer       padding[8];
+  gpointer            padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0
-void       valent_session_adapter_changed (ValentSessionAdapter *adapter);
+void       valent_session_adapter_changed    (ValentSessionAdapter *adapter);
 VALENT_AVAILABLE_IN_1_0
-gboolean   valent_session_adapter_get_active   (ValentSessionAdapter *adapter);
+gboolean   valent_session_adapter_get_active (ValentSessionAdapter *adapter);
 VALENT_AVAILABLE_IN_1_0
-gboolean   valent_session_adapter_get_locked   (ValentSessionAdapter *adapter);
+gboolean   valent_session_adapter_get_locked (ValentSessionAdapter *adapter);
 VALENT_AVAILABLE_IN_1_0
-void       valent_session_adapter_set_locked   (ValentSessionAdapter *adapter,
-                                                gboolean              state);
+void       valent_session_adapter_set_locked (ValentSessionAdapter *adapter,
+                                              gboolean              state);
 
 G_END_DECLS
 

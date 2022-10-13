@@ -16,26 +16,26 @@ G_BEGIN_DECLS
 #define VALENT_TYPE_MEDIA_ADAPTER (valent_media_adapter_get_type())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_DERIVABLE_TYPE (ValentMediaAdapter, valent_media_adapter, VALENT, MEDIA_ADAPTER, GObject)
+G_DECLARE_DERIVABLE_TYPE (ValentMediaAdapter, valent_media_adapter, VALENT, MEDIA_ADAPTER, ValentObject)
 
 struct _ValentMediaAdapterClass
 {
-  GObjectClass   parent_class;
+  ValentObjectClass   parent_class;
 
   /* virtual functions */
-  void           (*export_player)   (ValentMediaAdapter   *adapter,
-                                     ValentMediaPlayer    *player);
-  void           (*unexport_player) (ValentMediaAdapter   *adapter,
-                                     ValentMediaPlayer    *player);
+  void                (*export_player)   (ValentMediaAdapter   *adapter,
+                                          ValentMediaPlayer    *player);
+  void                (*unexport_player) (ValentMediaAdapter   *adapter,
+                                          ValentMediaPlayer    *player);
 
   /* signals */
-  void           (*player_added)    (ValentMediaAdapter   *adapter,
-                                     ValentMediaPlayer    *player);
-  void           (*player_removed)  (ValentMediaAdapter   *adapter,
-                                     ValentMediaPlayer    *player);
+  void                (*player_added)    (ValentMediaAdapter   *adapter,
+                                          ValentMediaPlayer    *player);
+  void                (*player_removed)  (ValentMediaAdapter   *adapter,
+                                          ValentMediaPlayer    *player);
 
   /*< private >*/
-  gpointer       padding[8];
+  gpointer            padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0

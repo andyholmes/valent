@@ -37,7 +37,7 @@ typedef struct
   PeasPluginInfo *plugin_info;
 } ValentNotificationsAdapterPrivate;
 
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentNotificationsAdapter, valent_notifications_adapter, G_TYPE_OBJECT)
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentNotificationsAdapter, valent_notifications_adapter, VALENT_TYPE_OBJECT)
 
 /**
  * ValentNotificationsAdapterClass:

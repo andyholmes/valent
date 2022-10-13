@@ -14,28 +14,28 @@ G_BEGIN_DECLS
 #define VALENT_TYPE_INPUT_ADAPTER (valent_input_adapter_get_type())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_DERIVABLE_TYPE (ValentInputAdapter, valent_input_adapter, VALENT, INPUT_ADAPTER, GObject)
+G_DECLARE_DERIVABLE_TYPE (ValentInputAdapter, valent_input_adapter, VALENT, INPUT_ADAPTER, ValentObject)
 
 struct _ValentInputAdapterClass
 {
-  GObjectClass   parent_class;
+  ValentObjectClass   parent_class;
 
   /* virtual functions */
-  void           (*keyboard_keysym) (ValentInputAdapter *adapter,
-                                     unsigned int        keysym,
-                                     gboolean            state);
-  void           (*pointer_axis)    (ValentInputAdapter *adapter,
-                                     double              dx,
-                                     double              dy);
-  void           (*pointer_button)  (ValentInputAdapter *adapter,
-                                     unsigned int        button,
-                                     gboolean            state);
-  void           (*pointer_motion)  (ValentInputAdapter *adapter,
-                                     double              dx,
-                                     double              dy);
+  void                (*keyboard_keysym) (ValentInputAdapter *adapter,
+                                          unsigned int        keysym,
+                                          gboolean            state);
+  void                (*pointer_axis)    (ValentInputAdapter *adapter,
+                                          double              dx,
+                                          double              dy);
+  void                (*pointer_button)  (ValentInputAdapter *adapter,
+                                          unsigned int        button,
+                                          gboolean            state);
+  void                (*pointer_motion)  (ValentInputAdapter *adapter,
+                                          double              dx,
+                                          double              dy);
 
   /*< private >*/
-  gpointer       padding[8];
+  gpointer            padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0

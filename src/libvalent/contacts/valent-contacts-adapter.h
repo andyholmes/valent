@@ -16,20 +16,20 @@ G_BEGIN_DECLS
 #define VALENT_TYPE_CONTACTS_ADAPTER (valent_contacts_adapter_get_type())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_DERIVABLE_TYPE (ValentContactsAdapter, valent_contacts_adapter, VALENT, CONTACTS_ADAPTER, GObject)
+G_DECLARE_DERIVABLE_TYPE (ValentContactsAdapter, valent_contacts_adapter, VALENT, CONTACTS_ADAPTER, ValentObject)
 
 struct _ValentContactsAdapterClass
 {
-  GObjectClass   parent_class;
+  ValentObjectClass   parent_class;
 
   /* signals */
-  void           (*store_added)   (ValentContactsAdapter  *adapter,
-                                   ValentContactStore     *store);
-  void           (*store_removed) (ValentContactsAdapter  *adapter,
-                                   ValentContactStore     *store);
+  void                (*store_added)   (ValentContactsAdapter  *adapter,
+                                        ValentContactStore     *store);
+  void                (*store_removed) (ValentContactsAdapter  *adapter,
+                                        ValentContactStore     *store);
 
   /*< private >*/
-  gpointer       padding[8];
+  gpointer            padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0

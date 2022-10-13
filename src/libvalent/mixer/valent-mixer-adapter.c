@@ -41,7 +41,7 @@ typedef struct
   GPtrArray      *outputs;
 } ValentMixerAdapterPrivate;
 
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentMixerAdapter, valent_mixer_adapter, G_TYPE_OBJECT)
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentMixerAdapter, valent_mixer_adapter, VALENT_TYPE_OBJECT)
 
 
 /**
