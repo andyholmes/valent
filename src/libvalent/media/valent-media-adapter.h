@@ -23,13 +23,6 @@ struct _ValentMediaAdapterClass
   GObjectClass   parent_class;
 
   /* virtual functions */
-  void           (*load_async)      (ValentMediaAdapter   *adapter,
-                                     GCancellable         *cancellable,
-                                     GAsyncReadyCallback   callback,
-                                     gpointer              user_data);
-  gboolean       (*load_finish)     (ValentMediaAdapter   *adapter,
-                                     GAsyncResult         *result,
-                                     GError              **error);
   void           (*export_player)   (ValentMediaAdapter   *adapter,
                                      ValentMediaPlayer    *player);
   void           (*unexport_player) (ValentMediaAdapter   *adapter,
@@ -53,15 +46,6 @@ void        valent_media_adapter_player_removed  (ValentMediaAdapter   *adapter,
                                                   ValentMediaPlayer    *player);
 VALENT_AVAILABLE_IN_1_0
 GPtrArray * valent_media_adapter_get_players     (ValentMediaAdapter   *adapter);
-VALENT_AVAILABLE_IN_1_0
-void        valent_media_adapter_load_async      (ValentMediaAdapter   *adapter,
-                                                  GCancellable         *cancellable,
-                                                  GAsyncReadyCallback   callback,
-                                                  gpointer              user_data);
-VALENT_AVAILABLE_IN_1_0
-gboolean    valent_media_adapter_load_finish     (ValentMediaAdapter   *adapter,
-                                                  GAsyncResult         *result,
-                                                  GError              **error);
 VALENT_AVAILABLE_IN_1_0
 void        valent_media_adapter_export_player   (ValentMediaAdapter   *adapter,
                                                   ValentMediaPlayer    *player);
