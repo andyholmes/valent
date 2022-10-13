@@ -424,8 +424,8 @@ valent_transfer_execute (ValentTransfer      *transfer,
       VALENT_EXIT;
     }
 
-  destroy = valent_object_attach_cancellable (VALENT_OBJECT (transfer),
-                                              cancellable);
+  destroy = valent_object_chain_cancellable (VALENT_OBJECT (transfer),
+                                             cancellable);
 
   task = g_task_new (transfer, destroy, callback, user_data);
   g_task_set_source_tag (task, valent_transfer_execute);

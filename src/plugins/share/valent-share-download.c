@@ -32,7 +32,6 @@ struct _ValentShareDownload
 {
   ValentTransfer  parent_instance;
 
-  GCancellable   *cancellable;
   ValentDevice   *device;
   GPtrArray      *items;
 
@@ -216,7 +215,6 @@ valent_share_download_finalize (GObject *object)
 {
   ValentShareDownload *self = VALENT_SHARE_DOWNLOAD (object);
 
-  g_clear_object (&self->cancellable);
   g_clear_object (&self->device);
   g_clear_pointer (&self->items, g_ptr_array_unref);
 
@@ -292,7 +290,6 @@ valent_share_download_class_init (ValentShareDownloadClass *klass)
 static void
 valent_share_download_init (ValentShareDownload *self)
 {
-  self->cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
   self->items = g_ptr_array_new_with_free_func (g_object_unref);
 }
 

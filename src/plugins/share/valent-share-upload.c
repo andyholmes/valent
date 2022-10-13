@@ -25,7 +25,6 @@ struct _ValentShareUpload
 {
   ValentTransfer  parent_instance;
 
-  GCancellable   *cancellable;
   ValentDevice   *device;
   GPtrArray      *items;
 
@@ -220,7 +219,6 @@ valent_share_upload_finalize (GObject *object)
   ValentShareUpload *self = VALENT_SHARE_UPLOAD (object);
 
   valent_object_lock (VALENT_OBJECT (self));
-  g_clear_object (&self->cancellable);
   g_clear_object (&self->device);
   g_clear_pointer (&self->items, g_ptr_array_unref);
   valent_object_unlock (VALENT_OBJECT (self));
@@ -301,7 +299,6 @@ valent_share_upload_class_init (ValentShareUploadClass *klass)
 static void
 valent_share_upload_init (ValentShareUpload *self)
 {
-  self->cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
   self->items = g_ptr_array_new_with_free_func (g_object_unref);
 }
 
@@ -444,6 +441,7 @@ valent_share_upload_add_file (ValentShareUpload *upload,
                               GFile             *file)
 {
   g_autoptr (GTask) task = NULL;
+  g_autoptr (GCancellable) destroy = NULL;
   g_autoptr (GPtrArray) items = NULL;
 
   VALENT_ENTRY;
@@ -456,10 +454,8 @@ valent_share_upload_add_file (ValentShareUpload *upload,
   items = g_ptr_array_new_full (1, g_object_unref);
   g_ptr_array_add (items, g_object_ref (file));
 
-  task = g_task_new (upload,
-                     upload->cancellable,
-                     valent_share_upload_add_files_cb,
-                     NULL);
+  destroy = valent_object_ref_cancellable (VALENT_OBJECT (upload));
+  task = g_task_new (upload, destroy, valent_share_upload_add_files_cb, NULL);
   g_task_set_source_tag (task, valent_share_upload_add_file);
   g_task_set_task_data (task,
                         g_steal_pointer (&items),
@@ -485,6 +481,7 @@ valent_share_upload_add_files (ValentShareUpload *upload,
                                GListModel        *files)
 {
   g_autoptr (GTask) task = NULL;
+  g_autoptr (GCancellable) destroy = NULL;
   g_autoptr (GPtrArray) items = NULL;
   unsigned int n_files = 0;
 
@@ -502,10 +499,8 @@ valent_share_upload_add_files (ValentShareUpload *upload,
   for (unsigned int i = 0; i < n_files; i++)
     g_ptr_array_add (items, g_list_model_get_item (files, i));
 
-  task = g_task_new (upload,
-                     upload->cancellable,
-                     valent_share_upload_add_files_cb,
-                     NULL);
+  destroy = valent_object_ref_cancellable (VALENT_OBJECT (upload));
+  task = g_task_new (upload, destroy, valent_share_upload_add_files_cb, NULL);
   g_task_set_source_tag (task, valent_share_upload_add_files);
   g_task_set_task_data (task,
                         g_steal_pointer (&items),
