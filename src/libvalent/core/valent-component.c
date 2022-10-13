@@ -182,19 +182,14 @@ valent_component_enable_extension (ValentComponent *self,
       g_autoptr (GCancellable) destroy = NULL;
 
       /* Use a cancellable in case the plugin is unloaded before the operation
-       * completes. Chain the component's cancellable in case it's destroyed. */
+       * completes. Chain to the component in case it's destroyed. */
       plugin->cancellable = g_cancellable_new ();
-
-      destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
-      g_signal_connect_object (destroy,
-                               "cancelled",
-                               G_CALLBACK (g_cancellable_cancel),
-                               plugin->cancellable,
-                               G_CONNECT_SWAPPED);
+      destroy = valent_object_chain_cancellable (VALENT_OBJECT (self),
+                                                 plugin->cancellable);
 
       g_async_initable_init_async (G_ASYNC_INITABLE (plugin->extension),
                                    G_PRIORITY_DEFAULT,
-                                   plugin->cancellable,
+                                   destroy,
                                    (GAsyncReadyCallback)g_async_initable_init_async_cb,
                                    NULL);
     }

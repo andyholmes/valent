@@ -40,6 +40,9 @@ VALENT_AVAILABLE_IN_1_0
 GCancellable * valent_object_attach_cancellable (ValentObject *object,
                                                  GCancellable *cancellable);
 VALENT_AVAILABLE_IN_1_0
+GCancellable * valent_object_chain_cancellable  (ValentObject *object,
+                                                 GCancellable *cancellable);
+VALENT_AVAILABLE_IN_1_0
 gboolean       valent_object_in_destruction     (ValentObject *object);
 VALENT_AVAILABLE_IN_1_0
 void           valent_object_destroy            (ValentObject *object);

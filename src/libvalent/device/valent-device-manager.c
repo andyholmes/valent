@@ -369,19 +369,14 @@ valent_device_manager_enable_service (ValentDeviceManager *self,
       g_autoptr (GCancellable) destroy = NULL;
 
       /* Use a cancellable in case the plugin is unloaded before the operation
-       * completes. Chain the component's cancellable in case it's destroyed. */
+       * completes. Chain to the manager in case it's destroyed. */
       service->cancellable = g_cancellable_new ();
-
-      destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
-      g_signal_connect_object (destroy,
-                               "cancelled",
-                               G_CALLBACK (g_cancellable_cancel),
-                               service->cancellable,
-                               G_CONNECT_SWAPPED);
+      destroy = valent_object_chain_cancellable (VALENT_OBJECT (self),
+                                                 service->cancellable);
 
       g_async_initable_init_async (G_ASYNC_INITABLE (service->extension),
                                    G_PRIORITY_DEFAULT,
-                                   service->cancellable,
+                                   destroy,
                                    (GAsyncReadyCallback)g_async_initable_init_async_cb,
                                    NULL);
     }
