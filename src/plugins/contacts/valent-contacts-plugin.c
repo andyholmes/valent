@@ -379,7 +379,8 @@ valent_contacts_plugin_enable (ValentDevicePlugin *plugin)
   g_set_object (&self->remote_store, store);
 
   local_uid = g_settings_get_string (settings, "local-uid");
-  store = valent_contacts_get_store (valent_contacts_get_default (), local_uid);
+  store = valent_contacts_lookup_store (valent_contacts_get_default (),
+                                        local_uid);
   g_set_object (&self->local_store, store);
 }
 

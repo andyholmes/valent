@@ -22,6 +22,7 @@ struct _ValentContactsPreferences
 
   /* Template widgets */
   AdwExpanderRow              *export_row;
+  GtkListBox                  *export_list;
   GtkSwitch                   *remote_sync;
   GtkSwitch                   *remote_import;
 };
@@ -110,12 +111,13 @@ on_store_selected (AdwActionRow              *row,
     }
 }
 
-static void
-on_store_added (ValentContacts            *contacts,
-                ValentContactStore        *store,
-                ValentContactsPreferences *self)
+static GtkWidget *
+valent_contacts_preferences_create_row_func (gpointer item,
+                                             gpointer user_data)
 {
+  ValentContactsPreferences *self = VALENT_CONTACTS_PREFERENCES (user_data);
   ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  ValentContactStore *store = VALENT_CONTACT_STORE (item);
   GSettings *settings;
   GtkWidget *row;
   GtkWidget *check;
@@ -124,7 +126,6 @@ on_store_added (ValentContacts            *contacts,
   g_autofree char *local_uid = NULL;
   g_autofree char *device_id = NULL;
 
-  g_assert (VALENT_IS_CONTACTS (contacts));
   g_assert (VALENT_IS_CONTACT_STORE (store));
   g_assert (VALENT_IS_CONTACTS_PREFERENCES (self));
 
@@ -164,19 +165,32 @@ on_store_added (ValentContacts            *contacts,
                           row,   "title",
                           G_BINDING_SYNC_CREATE);
 
-  adw_expander_row_add_row (self->export_row, row);
-  g_hash_table_insert (self->local_stores, store, row);
+  return row;
 }
 
-static void
-on_store_removed (ValentContacts            *contacts,
-                  ValentContactStore        *store,
-                  ValentContactsPreferences *self)
+static GtkListBox *
+_adw_expander_row_get_list (AdwExpanderRow *row)
 {
-  gpointer row;
+  GtkWidget *box;
+  GtkWidget *child;
 
-  if (g_hash_table_steal_extended (self->local_stores, store, NULL, &row))
-    adw_expander_row_remove (self->export_row, row);
+  /* First child is a GtkBox */
+  box = gtk_widget_get_first_child (GTK_WIDGET (row));
+
+  /* The GtkBox contains the primary AdwActionRow and a GtkRevealer */
+  for (child = gtk_widget_get_first_child (box);
+       child != NULL;
+       child = gtk_widget_get_next_sibling (child))
+    {
+      if (GTK_IS_REVEALER (child))
+        break;
+    }
+
+  /* The GtkRevealer's child is the GtkListBox */
+  if (GTK_IS_REVEALER (child))
+    return GTK_LIST_BOX (gtk_revealer_get_child (GTK_REVEALER (child)));
+
+  return NULL;
 }
 
 
@@ -190,7 +204,6 @@ valent_contacts_preferences_constructed (GObject *object)
   ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
   GSettings *settings;
   ValentContacts *contacts;
-  g_autoptr (GPtrArray) stores = NULL;
 
   /* Setup GSettings */
   settings = valent_device_preferences_page_get_settings (page);
@@ -205,21 +218,11 @@ valent_contacts_preferences_constructed (GObject *object)
                    self->export_row, "enable-expansion",
                    G_SETTINGS_BIND_DEFAULT);
 
-  /* Contacts */
   contacts = valent_contacts_get_default ();
-  stores = valent_contacts_get_stores (contacts);
-
-  for (unsigned int i = 0; i < stores->len; i++)
-    on_store_added (contacts, g_ptr_array_index (stores, i), self);
-
-  g_signal_connect (contacts,
-                    "store-added",
-                    G_CALLBACK (on_store_added),
-                    self);
-  g_signal_connect (contacts,
-                    "store-removed",
-                    G_CALLBACK (on_store_removed),
-                    self);
+  gtk_list_box_bind_model (self->export_list,
+                           G_LIST_MODEL (contacts),
+                           valent_contacts_preferences_create_row_func,
+                           self, NULL);
 
   G_OBJECT_CLASS (valent_contacts_preferences_parent_class)->constructed (object);
 }
@@ -228,11 +231,6 @@ static void
 valent_contacts_preferences_finalize (GObject *object)
 {
   ValentContactsPreferences *self = VALENT_CONTACTS_PREFERENCES (object);
-  ValentContacts *contacts;
-
-  contacts = valent_contacts_get_default ();
-  g_signal_handlers_disconnect_by_func (contacts, on_store_added, self);
-  g_signal_handlers_disconnect_by_func (contacts, on_store_removed, self);
 
   g_clear_pointer (&self->local_stores, g_hash_table_unref);
 
@@ -261,6 +259,7 @@ valent_contacts_preferences_init (ValentContactsPreferences *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
 
+  self->export_list = _adw_expander_row_get_list (self->export_row);
   self->local_stores = g_hash_table_new (NULL, NULL);
 }
 

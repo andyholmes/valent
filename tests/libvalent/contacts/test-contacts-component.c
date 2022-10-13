@@ -51,6 +51,31 @@ on_store_removed (GObject                  *object,
 }
 
 static void
+on_stores_changed (GListModel               *list,
+                   unsigned int              position,
+                   unsigned int              removed,
+                   unsigned int              added,
+                   ContactsComponentFixture *fixture)
+{
+  g_autoptr (GObject) item = NULL;
+
+  // position 0 is the default mock store
+  if (position == 1 && removed == 1)
+    {
+      fixture->emitter = NULL;
+      fixture->emitted = NULL;
+    }
+
+  if (position == 1 && added == 1)
+    {
+      item = g_list_model_get_item (list, position);
+
+      fixture->emitter = list;
+      fixture->emitted = item;
+    }
+}
+
+static void
 on_contact_added (GObject                  *object,
                   EContact                 *contact,
                   ContactsComponentFixture *fixture)
@@ -343,38 +368,30 @@ static void
 test_contacts_component_self (ContactsComponentFixture *fixture,
                               gconstpointer             user_data)
 {
-  g_autoptr (GPtrArray) stores = NULL;
   ValentContactStore *store;
+  unsigned int n_stores = 0;
 
   g_signal_connect (fixture->contacts,
-                    "store-added",
-                    G_CALLBACK (on_store_added),
-                    fixture);
-  g_signal_connect (fixture->contacts,
-                    "store-removed",
-                    G_CALLBACK (on_store_removed),
+                    "items-changed",
+                    G_CALLBACK (on_stores_changed),
                     fixture);
 
   /* ::store-added propagates to ValentContacts */
   valent_contacts_adapter_store_added (fixture->adapter, fixture->store);
   g_assert_true (VALENT_IS_CONTACTS (fixture->emitter));
   g_assert_true (VALENT_IS_CONTACT_STORE (fixture->emitted));
-  fixture->emitter = NULL;
-  fixture->emitted = NULL;
 
   /* There should be two stores, including the one just added */
-  stores = valent_contacts_get_stores (fixture->contacts);
-  g_assert_cmpuint (stores->len, ==, 2);
+  n_stores = g_list_model_get_n_items (G_LIST_MODEL (fixture->contacts));
+  g_assert_cmpuint (n_stores, ==, 2);
 
-  store = valent_contacts_get_store (fixture->contacts, "test-store");
+  store = valent_contacts_lookup_store (fixture->contacts, "test-store");
   g_assert_true (VALENT_IS_CONTACT_STORE (store));
 
   /* ::store-removed propagates to ValentContacts */
   valent_contacts_adapter_store_removed (fixture->adapter, fixture->store);
-  g_assert_true (VALENT_IS_CONTACTS (fixture->emitter));
-  g_assert_true (VALENT_IS_CONTACT_STORE (fixture->emitted));
-  fixture->emitter = NULL;
-  fixture->emitted = NULL;
+  g_assert_null (fixture->emitter);
+  g_assert_null (fixture->emitted);
 
   g_signal_handlers_disconnect_by_data (fixture->contacts, fixture);
 }
