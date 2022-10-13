@@ -103,27 +103,14 @@ valent_mock_channel_service_identify (ValentChannelService *service,
   valent_channel_service_channel (service, self->channel);
 }
 
+
+/*
+ * GObject
+ */
 static void
-valent_mock_channel_service_start (ValentChannelService *service,
-                                   GCancellable         *cancellable,
-                                   GAsyncReadyCallback   callback,
-                                   gpointer              user_data)
+valent_mock_channel_service_dispose (GObject *object)
 {
-  ValentMockChannelService *self = VALENT_MOCK_CHANNEL_SERVICE (service);
-  g_autoptr (GTask) task = NULL;
-
-  g_assert (VALENT_IS_MOCK_CHANNEL_SERVICE (service));
-  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-
-  task = g_task_new (service, self->cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_mock_channel_service_start);
-  g_task_return_boolean (task, TRUE);
-}
-
-static void
-valent_mock_channel_service_stop (ValentChannelService *service)
-{
-  ValentMockChannelService *self = VALENT_MOCK_CHANNEL_SERVICE (service);
+  ValentMockChannelService *self = VALENT_MOCK_CHANNEL_SERVICE (object);
 
   g_assert (VALENT_IS_MOCK_CHANNEL_SERVICE (self));
 
@@ -142,20 +129,19 @@ valent_mock_channel_service_stop (ValentChannelService *service)
     }
 
   g_cancellable_cancel (self->cancellable);
+
+  G_OBJECT_CLASS (valent_mock_channel_service_parent_class)->dispose (object);
 }
 
-
-/*
- * GObject
- */
 static void
 valent_mock_channel_service_class_init (ValentMockChannelServiceClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentChannelServiceClass *service_class = VALENT_CHANNEL_SERVICE_CLASS (klass);
 
+  object_class->dispose = valent_mock_channel_service_dispose;
+
   service_class->identify = valent_mock_channel_service_identify;
-  service_class->start = valent_mock_channel_service_start;
-  service_class->stop = valent_mock_channel_service_stop;
 }
 
 static void

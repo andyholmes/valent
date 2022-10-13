@@ -60,21 +60,6 @@ channel_service_fixture_tear_down (ChannelServiceFixture *fixture,
  * ValentChannelService Callbacks
  */
 static void
-start_cb (ValentChannelService  *service,
-          GAsyncResult          *result,
-          ChannelServiceFixture *fixture)
-{
-  gboolean ret;
-  GError *error = NULL;
-
-  ret = valent_channel_service_start_finish (service, result, &error);
-  g_assert_no_error (error);
-  g_assert_true (ret);
-
-  g_main_loop_quit (fixture->loop);
-}
-
-static void
 on_channel (ValentChannelService  *service,
             ValentChannel         *channel,
             ChannelServiceFixture *fixture)
@@ -309,12 +294,6 @@ static void
 test_channel_service_identify (ChannelServiceFixture *fixture,
                                gconstpointer          user_data)
 {
-  valent_channel_service_start (fixture->service,
-                                NULL,
-                                (GAsyncReadyCallback)start_cb,
-                                fixture);
-  g_main_loop_run (fixture->loop);
-
   g_signal_connect (fixture->service,
                     "channel",
                     G_CALLBACK (on_channel),
@@ -327,7 +306,7 @@ test_channel_service_identify (ChannelServiceFixture *fixture,
                              (gpointer)&fixture->endpoint);
 
   g_signal_handlers_disconnect_by_data (fixture->service, fixture);
-  valent_channel_service_stop (fixture->service);
+  valent_object_destroy (VALENT_OBJECT (fixture->service));
 }
 
 static void
@@ -342,12 +321,6 @@ test_channel_service_channel (ChannelServiceFixture *fixture,
   const char *channel_verification;
   const char *endpoint_verification;
   g_autoptr (GFile) file = NULL;
-
-  valent_channel_service_start (fixture->service,
-                                NULL,
-                                (GAsyncReadyCallback)start_cb,
-                                fixture);
-  g_main_loop_run (fixture->loop);
 
   g_signal_connect (fixture->service,
                     "channel",
@@ -431,7 +404,7 @@ test_channel_service_channel (ChannelServiceFixture *fixture,
   valent_channel_close (fixture->channel, NULL, NULL);
 
   g_signal_handlers_disconnect_by_data (fixture->service, fixture);
-  valent_channel_service_stop (fixture->service);
+  valent_object_destroy (VALENT_OBJECT (fixture->service));
 }
 
 int

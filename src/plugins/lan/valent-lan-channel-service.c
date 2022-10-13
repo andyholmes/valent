@@ -23,7 +23,6 @@ struct _ValentLanChannelService
 {
   ValentChannelService  parent_instance;
 
-  GCancellable         *cancellable;
   GTlsCertificate      *certificate;
 
   GNetworkMonitor      *monitor;
@@ -38,7 +37,11 @@ struct _ValentLanChannelService
   GHashTable           *channels;
 };
 
-G_DEFINE_TYPE (ValentLanChannelService, valent_lan_channel_service, VALENT_TYPE_CHANNEL_SERVICE)
+static void   g_async_initable_iface_init (GAsyncInitableIface *iface);
+
+G_DEFINE_TYPE_EXTENDED (ValentLanChannelService, valent_lan_channel_service, VALENT_TYPE_CHANNEL_SERVICE,
+                        0,
+                        G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init))
 
 enum {
   PROP_0,
@@ -771,24 +774,24 @@ valent_lan_channel_service_identify (ValentChannelService *service,
 }
 
 static void
-start_task (GTask        *task,
-            gpointer      source_object,
-            gpointer      task_data,
-            GCancellable *cancellable)
+valent_lan_channel_service_init_task (GTask        *task,
+                                      gpointer      source_object,
+                                      gpointer      task_data,
+                                      GCancellable *cancellable)
 {
   ValentLanChannelService *self = source_object;
-  GError *error = NULL;
+  g_autoptr (GError) error = NULL;
 
   if (g_task_return_error_if_cancelled (task))
     return;
 
   /* TCP Listener */
   if (!valent_lan_channel_service_tcp_setup (self, cancellable, &error))
-    return g_task_return_error (task, error);
+    return g_task_return_error (task, g_steal_pointer (&error));
 
   /* UDP Socket(s) */
   if (!valent_lan_channel_service_udp_setup (self, cancellable, &error))
-    return g_task_return_error (task, error);
+    return g_task_return_error (task, g_steal_pointer (&error));
 
   g_task_return_boolean (task, TRUE);
 }
@@ -805,30 +808,36 @@ valent_certificate_new_cb (GObject      *object,
   valent_object_lock (VALENT_OBJECT (self));
   self->certificate = valent_certificate_new_finish (result, &error);
   valent_object_unlock (VALENT_OBJECT (self));
-  g_task_run_in_thread (task, start_task);
+
+  g_task_run_in_thread (task, valent_lan_channel_service_init_task);
 }
 
+/*
+ * GAsyncInitable
+ */
 static void
-valent_lan_channel_service_start (ValentChannelService *service,
-                                  GCancellable         *cancellable,
-                                  GAsyncReadyCallback   callback,
-                                  gpointer              user_data)
+valent_lan_channel_service_init_async (GAsyncInitable      *initable,
+                                       int                  priority,
+                                       GCancellable        *cancellable,
+                                       GAsyncReadyCallback  callback,
+                                       gpointer             user_data)
 {
-  ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (service);
+  ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (initable);
   g_autoptr (ValentData) data = NULL;
   g_autoptr (GTask) task = NULL;
+  g_autoptr (GCancellable) destroy = NULL;
 
-  g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (service));
+  g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (initable));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  g_clear_object (&self->cancellable);
-  self->cancellable = g_cancellable_new ();
+  /* Chain to the service cancellable */
+  destroy = valent_object_ref_cancellable (VALENT_OBJECT (initable));
 
   if (cancellable != NULL)
     g_signal_connect_object (cancellable,
                              "cancelled",
                              G_CALLBACK (g_cancellable_cancel),
-                             self->cancellable,
+                             destroy,
                              G_CONNECT_SWAPPED);
 
   self->network_available = g_network_monitor_get_network_available (self->monitor);
@@ -837,34 +846,35 @@ valent_lan_channel_service_start (ValentChannelService *service,
                            G_CALLBACK (on_network_changed),
                            self, 0);
 
-  task = g_task_new (service, self->cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_lan_channel_service_start);
+  task = g_task_new (initable, destroy, callback, user_data);
+  g_task_set_priority (task, priority);
+  g_task_set_source_tag (task, valent_lan_channel_service_init_async);
 
-  g_object_get (service, "data", &data, NULL);
+  g_object_get (initable, "data", &data, NULL);
   valent_certificate_new (valent_data_get_config_path (data),
-                          self->cancellable,
+                          destroy,
                           valent_certificate_new_cb,
                           g_steal_pointer (&task));
 }
 
 static void
-valent_lan_channel_service_stop (ValentChannelService *service)
+g_async_initable_iface_init (GAsyncInitableIface *iface)
 {
-  ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (service);
+  iface->init_async = valent_lan_channel_service_init_async;
+}
 
-  g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
 
-  if (self->cancellable == NULL)
-    return;
+/*
+ * GObject
+ */
+static void
+valent_lan_channel_service_dispose (GObject *object)
+{
+  ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (object);
 
-  g_cancellable_cancel (self->cancellable);
-  g_clear_object (&self->cancellable);
-
-  /* Network Monitor */
   g_signal_handlers_disconnect_by_data (self->monitor, self);
 
   valent_object_lock (VALENT_OBJECT (self));
-
   if (self->listener != NULL)
     {
       g_socket_service_stop (G_SOCKET_SERVICE (self->listener));
@@ -874,14 +884,11 @@ valent_lan_channel_service_stop (ValentChannelService *service)
 
   g_clear_object (&self->udp_socket4);
   g_clear_object (&self->udp_socket6);
-
   valent_object_unlock (VALENT_OBJECT (self));
+
+  G_OBJECT_CLASS (valent_lan_channel_service_parent_class)->dispose (object);
 }
 
-
-/*
- * GObject
- */
 static void
 valent_lan_channel_service_finalize (GObject *object)
 {
@@ -889,9 +896,6 @@ valent_lan_channel_service_finalize (GObject *object)
 
   g_clear_object (&self->certificate);
   g_clear_pointer (&self->broadcast_address, g_free);
-  g_clear_object (&self->listener);
-  g_clear_object (&self->udp_socket4);
-  g_clear_object (&self->udp_socket6);
   g_clear_pointer (&self->channels, g_hash_table_unref);
 
   G_OBJECT_CLASS (valent_lan_channel_service_parent_class)->finalize (object);
@@ -953,6 +957,7 @@ valent_lan_channel_service_class_init (ValentLanChannelServiceClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentChannelServiceClass *service_class = VALENT_CHANNEL_SERVICE_CLASS (klass);
 
+  object_class->dispose = valent_lan_channel_service_dispose;
   object_class->finalize = valent_lan_channel_service_finalize;
   object_class->get_property = valent_lan_channel_service_get_property;
   object_class->set_property = valent_lan_channel_service_set_property;
@@ -960,8 +965,6 @@ valent_lan_channel_service_class_init (ValentLanChannelServiceClass *klass)
   service_class->build_identity = valent_lan_channel_service_build_identity;
   service_class->channel = valent_lan_channel_service_channel;
   service_class->identify = valent_lan_channel_service_identify;
-  service_class->start = valent_lan_channel_service_start;
-  service_class->stop = valent_lan_channel_service_stop;
 
   /**
    * ValentLanChannelService:broadcast-address:

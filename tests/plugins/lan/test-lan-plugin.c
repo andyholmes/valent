@@ -289,14 +289,14 @@ on_incoming_transfer (ValentChannel *endpoint,
  * Test Service Callbacks
  */
 static void
-start_cb (ValentChannelService *service,
-          GAsyncResult         *result,
-          LanBackendFixture    *fixture)
+g_async_initable_init_async_cb (GAsyncInitable    *initable,
+                                GAsyncResult      *result,
+                                LanBackendFixture *fixture)
 {
   gboolean ret;
   GError *error = NULL;
 
-  ret = valent_channel_service_start_finish (service, result, &error);
+  ret = g_async_initable_init_finish (initable, result, &error);
   g_assert_no_error (error);
   g_assert_true (ret);
 
@@ -321,10 +321,11 @@ test_lan_service_incoming_broadcast (LanBackendFixture *fixture,
   JsonNode *identity;
   g_autofree char *identity_json = NULL;
 
-  valent_channel_service_start (fixture->service,
-                                NULL,
-                                (GAsyncReadyCallback)start_cb,
-                                fixture);
+  g_async_initable_init_async (G_ASYNC_INITABLE (fixture->service),
+                               G_PRIORITY_DEFAULT,
+                               NULL,
+                               (GAsyncReadyCallback)g_async_initable_init_async_cb,
+                               fixture);
   g_main_loop_run (fixture->loop);
 
   /* Listen for an incoming TCP connection */
@@ -351,7 +352,7 @@ test_lan_service_incoming_broadcast (LanBackendFixture *fixture,
   g_main_loop_run (fixture->loop);
 
   g_signal_handlers_disconnect_by_data (fixture->service, fixture);
-  valent_channel_service_stop (fixture->service);
+  valent_object_destroy (VALENT_OBJECT (fixture->service));
 }
 
 static void
@@ -402,10 +403,11 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
   g_autoptr (GIOStream) tls_stream = NULL;
   GError *error = NULL;
 
-  valent_channel_service_start (fixture->service,
-                                NULL,
-                                (GAsyncReadyCallback)start_cb,
-                                fixture);
+  g_async_initable_init_async (G_ASYNC_INITABLE (fixture->service),
+                               G_PRIORITY_DEFAULT,
+                               NULL,
+                               (GAsyncReadyCallback)g_async_initable_init_async_cb,
+                               fixture);
   g_main_loop_run (fixture->loop);
 
   /* Send a UDP broadcast directly to the mock endpoint. When the identity
@@ -538,7 +540,7 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
     }
 
   g_signal_handlers_disconnect_by_data (fixture->service, fixture);
-  valent_channel_service_stop (fixture->service);
+  valent_object_destroy (VALENT_OBJECT (fixture->service));
 }
 
 static void
@@ -665,10 +667,11 @@ test_lan_service_channel (LanBackendFixture *fixture,
   guint16 port;
   g_autoptr (GFile) file = NULL;
 
-  valent_channel_service_start (fixture->service,
-                                NULL,
-                                (GAsyncReadyCallback)start_cb,
-                                fixture);
+  g_async_initable_init_async (G_ASYNC_INITABLE (fixture->service),
+                               G_PRIORITY_DEFAULT,
+                               NULL,
+                               (GAsyncReadyCallback)g_async_initable_init_async_cb,
+                               fixture);
   g_main_loop_run (fixture->loop);
 
   /* Listen for an incoming TCP connection */
@@ -748,7 +751,7 @@ test_lan_service_channel (LanBackendFixture *fixture,
   g_assert_no_error (error);
 
   g_signal_handlers_disconnect_by_data (fixture->service, fixture);
-  valent_channel_service_stop (fixture->service);
+  valent_object_destroy (VALENT_OBJECT (fixture->service));
 }
 
 int

@@ -83,14 +83,14 @@ bluez_service_fixture_tear_down (BluezBackendFixture *fixture,
  * Test Service Callbacks
  */
 static void
-start_cb (ValentChannelService *service,
-          GAsyncResult         *result,
-          BluezBackendFixture  *fixture)
+g_async_initable_init_async_cb (GAsyncInitable      *initable,
+                                GAsyncResult        *result,
+                                BluezBackendFixture *fixture)
 {
   gboolean ret;
   GError *error = NULL;
 
-  ret = valent_channel_service_start_finish (service, result, &error);
+  ret = g_async_initable_init_finish (initable, result, &error);
   g_assert_no_error (error);
   g_assert_true (ret);
 
@@ -260,10 +260,11 @@ test_bluez_service_new_connection (BluezBackendFixture *fixture,
   JsonNode *identity;
   GError *error = NULL;
 
-  valent_channel_service_start (fixture->service,
-                                NULL,
-                                (GAsyncReadyCallback)start_cb,
-                                fixture);
+  g_async_initable_init_async (G_ASYNC_INITABLE (fixture->service),
+                               G_PRIORITY_DEFAULT,
+                               NULL,
+                               (GAsyncReadyCallback)g_async_initable_init_async_cb,
+                               fixture);
   g_main_loop_run (fixture->loop);
 
   g_signal_connect (fixture->service,
@@ -303,7 +304,7 @@ test_bluez_service_new_connection (BluezBackendFixture *fixture,
   g_main_loop_run (fixture->loop);
 
   g_signal_handlers_disconnect_by_data (fixture->service, fixture);
-  valent_channel_service_stop (fixture->service);
+  valent_object_destroy (VALENT_OBJECT (fixture->service));
 }
 
 #if 0
@@ -319,10 +320,11 @@ test_bluez_service_channel (BluezBackendFixture *fixture,
   const char *endpoint_verification;
   g_autoptr (GFile) file = NULL;
 
-  valent_channel_service_start (fixture->service,
-                                NULL,
-                                (GAsyncReadyCallback)start_cb,
-                                fixture);
+  g_async_initable_init_async (G_ASYNC_INITABLE (fixture->service),
+                               G_PRIORITY_DEFAULT,
+                               NULL,
+                               (GAsyncReadyCallback)g_async_initable_init_async_cb,
+                               fixture);
   g_main_loop_run (fixture->loop);
 
   /* Listen for an incoming TCP connection */
@@ -367,7 +369,7 @@ test_bluez_service_channel (BluezBackendFixture *fixture,
   g_assert_no_error (error);
 
   g_signal_handlers_disconnect_by_data (fixture->service, fixture);
-  valent_channel_service_stop (fixture->service);
+  valent_object_destroy (VALENT_OBJECT (fixture->service));
 }
 #endif
 

@@ -34,7 +34,7 @@
 
 struct _ValentDeviceManager
 {
-  GObject                   parent_instance;
+  ValentObject              parent_instance;
 
   GCancellable             *cancellable;
   ValentData               *data;
@@ -61,7 +61,7 @@ static void   g_initable_iface_init       (GInitableIface      *iface);
 static void   g_async_initable_iface_init (GAsyncInitableIface *iface);
 static void   g_list_model_iface_init     (GListModelInterface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (ValentDeviceManager, valent_device_manager, G_TYPE_OBJECT,
+G_DEFINE_TYPE_WITH_CODE (ValentDeviceManager, valent_device_manager, VALENT_TYPE_OBJECT,
                          G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, g_initable_iface_init)
                          G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init)
                          G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
@@ -243,6 +243,7 @@ typedef struct
   PeasPluginInfo      *info;
   PeasExtension       *extension;
   GSettings           *settings;
+  GCancellable        *cancellable;
 } ChannelService;
 
 static void
@@ -250,10 +251,10 @@ channel_service_free (gpointer data)
 {
   ChannelService *info = data;
 
-  if (info->extension)
+  if (info->extension != NULL)
     {
       g_signal_handlers_disconnect_by_data (info->extension, info->manager);
-      valent_channel_service_stop (VALENT_CHANNEL_SERVICE (info->extension));
+      valent_object_destroy (VALENT_OBJECT (info->extension));
       g_clear_object (&info->extension);
     }
 
@@ -321,19 +322,19 @@ on_channel (ValentChannelService *service,
 }
 
 static void
-valent_channel_service_start_cb (ValentChannelService *service,
-                                 GAsyncResult         *result,
-                                 ValentDeviceManager  *self)
+g_async_initable_init_async_cb (GAsyncInitable *initable,
+                                GAsyncResult   *result,
+                                gpointer        user_data)
 {
   g_autoptr (GError) error = NULL;
 
   VALENT_ENTRY;
 
-  g_assert (VALENT_IS_CHANNEL_SERVICE (service));
+  g_assert (VALENT_IS_CHANNEL_SERVICE (initable));
 
-  if (!valent_channel_service_start_finish (service, result, &error) &&
-      !valent_error_ignore (error))
-    g_warning ("%s: %s", G_OBJECT_TYPE_NAME (service), error->message);
+  if (!g_async_initable_init_finish (initable, result, &error) &&
+      !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+    g_warning ("%s: %s", G_OBJECT_TYPE_NAME (initable), error->message);
 
   VALENT_EXIT;
 }
@@ -363,10 +364,27 @@ valent_device_manager_enable_service (ValentDeviceManager *self,
                     G_CALLBACK (on_channel),
                     self);
 
-  valent_channel_service_start (VALENT_CHANNEL_SERVICE (service->extension),
-                                self->cancellable,
-                                (GAsyncReadyCallback)valent_channel_service_start_cb,
-                                self);
+  if (G_IS_ASYNC_INITABLE (service->extension))
+    {
+      g_autoptr (GCancellable) cancellable = NULL;
+
+      /* Use a cancellable in case the plugin is unloaded before the operation
+       * completes. Chain the component's cancellable in case it's destroyed. */
+      service->cancellable = g_cancellable_new ();
+
+      cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
+      g_signal_connect_object (cancellable,
+                               "cancelled",
+                               G_CALLBACK (g_cancellable_cancel),
+                               service->cancellable,
+                               G_CONNECT_SWAPPED);
+
+      g_async_initable_init_async (G_ASYNC_INITABLE (service->extension),
+                                   G_PRIORITY_DEFAULT,
+                                   service->cancellable,
+                                   (GAsyncReadyCallback)g_async_initable_init_async_cb,
+                                   NULL);
+    }
 }
 
 static inline void
@@ -380,7 +398,7 @@ valent_device_manager_disable_service (ValentDeviceManager *self,
   if (service->extension != NULL)
     {
       g_signal_handlers_disconnect_by_data (service->extension, self);
-      valent_channel_service_stop (VALENT_CHANNEL_SERVICE (service->extension));
+      valent_object_destroy (VALENT_OBJECT (service->extension));
       g_clear_object (&service->extension);
     }
 }
