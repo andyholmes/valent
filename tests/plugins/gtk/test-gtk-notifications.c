@@ -135,16 +135,6 @@ add_notification (GtkNotificationsFixture *fixture)
                           fixture);
 }
 
-static gboolean
-on_timeout (gpointer data)
-{
-  GtkNotificationsFixture *fixture = data;
-
-  g_main_loop_quit (fixture->loop);
-
-  return G_SOURCE_REMOVE;
-}
-
 static void
 test_gtk_notifications_source (GtkNotificationsFixture *fixture,
                                gconstpointer            user_data)
@@ -157,12 +147,11 @@ test_gtk_notifications_source (GtkNotificationsFixture *fixture,
   g_autofree char *body = NULL;
   GNotificationPriority priority;
 
-  /* Wait a bit longer for valent_notifications_adapter_load_async() to resolve
+  /* Wait a bit longer for initialization to finish
    * NOTE: this is longer than most tests due to the chained async functions
    *       being called in ValentGtkNotifications.
    */
-  g_timeout_add_seconds (1, on_timeout, fixture);
-  g_main_loop_run (fixture->loop);
+  valent_test_wait (1000);
 
   g_signal_connect (fixture->notifications,
                     "notification-added",

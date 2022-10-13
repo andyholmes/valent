@@ -189,16 +189,6 @@ send_notification (FdoNotificationsFixture *fixture,
                           fixture);
 }
 
-static gboolean
-on_timeout (gpointer data)
-{
-  FdoNotificationsFixture *fixture = data;
-
-  g_main_loop_quit (fixture->loop);
-
-  return G_SOURCE_REMOVE;
-}
-
 static void
 test_fdo_notifications_source (FdoNotificationsFixture *fixture,
                                gconstpointer            user_data)
@@ -211,12 +201,11 @@ test_fdo_notifications_source (FdoNotificationsFixture *fixture,
   g_autofree char *body = NULL;
   GNotificationPriority priority;
 
-  /* Wait a bit longer for valent_notifications_adapter_load_async() to resolve
+  /* Wait a bit longer for initialization to finish
    * NOTE: this is longer than most tests due to the chained async functions
    *       being called in ValentFdoNotifications.
    */
-  g_timeout_add_seconds (1, on_timeout, fixture);
-  g_main_loop_run (fixture->loop);
+  valent_test_wait (1000);
 
   g_signal_connect (fixture->notifications,
                     "notification-added",

@@ -43,8 +43,6 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentNotificationsAdapter, valent_notifica
  * ValentNotificationsAdapterClass:
  * @add_notification: the virtual function pointer for valent_notifications_adapter_add_notification()
  * @remove_notification: the virtual function pointer for valent_notifications_adapter_remove_notification()
- * @load_async: the virtual function pointer for valent_notifications_adapter_load_async()
- * @load_finish: the virtual function pointer for valent_notifications_adapter_load_finish()
  * @notification_added: the class closure for #ValentNotificationsAdapter::notification-added signal
  * @notification_removed: the class closure for #ValentNotificationsAdapter::notification-removed signal
  *
@@ -79,32 +77,6 @@ static void
 valent_notifications_adapter_real_remove_notification (ValentNotificationsAdapter *adapter,
                                                        const char                 *id)
 {
-}
-
-static void
-valent_notifications_adapter_real_load_async (ValentNotificationsAdapter *adapter,
-                                              GCancellable               *cancellable,
-                                              GAsyncReadyCallback         callback,
-                                              gpointer                    user_data)
-{
-  g_task_report_new_error (adapter, callback, user_data,
-                           valent_notifications_adapter_real_load_async,
-                           G_IO_ERROR,
-                           G_IO_ERROR_NOT_SUPPORTED,
-                           "%s does not implement load_async",
-                           G_OBJECT_TYPE_NAME (adapter));
-}
-
-static gboolean
-valent_notifications_adapter_real_load_finish (ValentNotificationsAdapter  *adapter,
-                                               GAsyncResult                *result,
-                                               GError                     **error)
-{
-  g_assert (VALENT_IS_NOTIFICATIONS_ADAPTER (adapter));
-  g_assert (g_task_is_valid (result, adapter));
-  g_assert (error == NULL || *error == NULL);
-
-  return g_task_propagate_boolean (G_TASK (result), error);
 }
 /* LCOV_EXCL_STOP */
 
@@ -161,8 +133,6 @@ valent_notifications_adapter_class_init (ValentNotificationsAdapterClass *klass)
 
   klass->add_notification = valent_notifications_adapter_real_add_notification;
   klass->remove_notification = valent_notifications_adapter_real_remove_notification;
-  klass->load_async = valent_notifications_adapter_real_load_async;
-  klass->load_finish = valent_notifications_adapter_real_load_finish;
 
   /**
    * ValentNotificationsAdapter:plugin-info:
@@ -323,75 +293,5 @@ valent_notifications_adapter_remove_notification (ValentNotificationsAdapter *ad
                                                                          id);
 
   VALENT_EXIT;
-}
-
-/**
- * valent_notifications_adapter_load_async: (virtual load_async)
- * @adapter: an #ValentNotificationsAdapter
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
- * @user_data: (closure): user supplied data
- *
- * Load any notifications known to @adapter.
- *
- * Implementations are expected to emit
- * [signal@Valent.NotificationsAdapter::notification-added] for each notification
- * before completing the operation.
- *
- * This method is called by the [class@Valent.Notifications] singleton and must
- * only be called once for each implementation. It is therefore a programmer
- * error for an API user to call this method.
- *
- * Since: 1.0
- */
-void
-valent_notifications_adapter_load_async (ValentNotificationsAdapter *adapter,
-                                         GCancellable               *cancellable,
-                                         GAsyncReadyCallback         callback,
-                                         gpointer                    user_data)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_NOTIFICATIONS_ADAPTER (adapter));
-  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-
-  VALENT_NOTIFICATIONS_ADAPTER_GET_CLASS (adapter)->load_async (adapter,
-                                                                cancellable,
-                                                                callback,
-                                                                user_data);
-
-  VALENT_EXIT;
-}
-
-/**
- * valent_notifications_adapter_load_finish: (virtual load_finish)
- * @adapter: an #ValentNotificationsAdapter
- * @result: a #GAsyncResult provided to callback
- * @error: (nullable): a #GError
- *
- * Finish an operation started by [method@Valent.NotificationsAdapter.load_async].
- *
- * Returns: %TRUE if successful, or %FALSE with @error set
- *
- * Since: 1.0
- */
-gboolean
-valent_notifications_adapter_load_finish (ValentNotificationsAdapter  *adapter,
-                                          GAsyncResult                *result,
-                                          GError                     **error)
-{
-  gboolean ret;
-
-  VALENT_ENTRY;
-
-  g_return_val_if_fail (VALENT_IS_NOTIFICATIONS_ADAPTER (adapter), FALSE);
-  g_return_val_if_fail (g_task_is_valid (result, adapter), FALSE);
-  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
-
-  ret = VALENT_NOTIFICATIONS_ADAPTER_GET_CLASS (adapter)->load_finish (adapter,
-                                                                       result,
-                                                                       error);
-
-  VALENT_RETURN (ret);
 }
 
