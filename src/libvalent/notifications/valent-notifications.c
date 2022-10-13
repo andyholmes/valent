@@ -184,8 +184,8 @@ on_notification_removed (ValentNotificationsAdapter *adapter,
  * ValentComponent
  */
 static void
-valent_notifications_enable_extension (ValentComponent *component,
-                                       PeasExtension   *extension)
+valent_notifications_bind_extension (ValentComponent *component,
+                                     PeasExtension   *extension)
 {
   ValentNotifications *self = VALENT_NOTIFICATIONS (component);
   ValentNotificationsAdapter *adapter = VALENT_NOTIFICATIONS_ADAPTER (extension);
@@ -209,8 +209,8 @@ valent_notifications_enable_extension (ValentComponent *component,
 }
 
 static void
-valent_notifications_disable_extension (ValentComponent *component,
-                                        PeasExtension   *extension)
+valent_notifications_unbind_extension (ValentComponent *component,
+                                       PeasExtension   *extension)
 {
   ValentNotifications *self = VALENT_NOTIFICATIONS (component);
   ValentNotificationsAdapter *adapter = VALENT_NOTIFICATIONS_ADAPTER (extension);
@@ -244,8 +244,8 @@ valent_notifications_class_init (ValentNotificationsClass *klass)
 
   object_class->finalize = valent_notifications_finalize;
 
-  component_class->enable_extension = valent_notifications_enable_extension;
-  component_class->disable_extension = valent_notifications_disable_extension;
+  component_class->bind_extension = valent_notifications_bind_extension;
+  component_class->unbind_extension = valent_notifications_unbind_extension;
 
   /**
    * ValentNotifications::notification-added:

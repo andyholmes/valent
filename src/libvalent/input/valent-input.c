@@ -45,8 +45,8 @@ static ValentInput *default_input = NULL;
  * ValentComponent
  */
 static void
-valent_input_enable_extension (ValentComponent *component,
-                               PeasExtension   *extension)
+valent_input_bind_extension (ValentComponent *component,
+                             PeasExtension   *extension)
 {
   ValentInput *self = VALENT_INPUT (component);
   PeasExtension *new_primary;
@@ -64,8 +64,8 @@ valent_input_enable_extension (ValentComponent *component,
 }
 
 static void
-valent_input_disable_extension (ValentComponent *component,
-                                PeasExtension   *extension)
+valent_input_unbind_extension (ValentComponent *component,
+                               PeasExtension   *extension)
 {
   ValentInput *self = VALENT_INPUT (component);
   PeasExtension *new_primary;
@@ -87,8 +87,8 @@ valent_input_class_init (ValentInputClass *klass)
 {
   ValentComponentClass *component_class = VALENT_COMPONENT_CLASS (klass);
 
-  component_class->enable_extension = valent_input_enable_extension;
-  component_class->disable_extension = valent_input_disable_extension;
+  component_class->bind_extension = valent_input_bind_extension;
+  component_class->unbind_extension = valent_input_unbind_extension;
 }
 
 static void

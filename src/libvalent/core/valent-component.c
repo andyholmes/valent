@@ -41,8 +41,8 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentComponent, valent_component, VALENT_T
 
 /**
  * ValentComponentClass:
- * @enable_extension: the virtual function pointer for enable_extension()
- * @disable_extension: the virtual function pointer for disable_extension()
+ * @bind_extension: the virtual function pointer for bind_extension()
+ * @unbind_extension: the virtual function pointer for unbind_extension()
  *
  * The virtual function table for #ValentComponent.
  */
@@ -79,7 +79,7 @@ component_plugin_free (gpointer data)
     {
       ValentComponentClass *klass = VALENT_COMPONENT_GET_CLASS (plugin->component);
 
-      klass->disable_extension (plugin->component, plugin->extension);
+      klass->unbind_extension (plugin->component, plugin->extension);
       g_clear_object (&plugin->extension);
     }
 
@@ -171,7 +171,7 @@ valent_component_enable_extension (ValentComponent *self,
   if (priv->primary != plugin->extension)
     valent_component_update_primary (self);
 
-  VALENT_COMPONENT_GET_CLASS (self)->enable_extension (self, plugin->extension);
+  VALENT_COMPONENT_GET_CLASS (self)->bind_extension (self, plugin->extension);
 
   if (G_IS_ASYNC_INITABLE (plugin->extension))
     {
@@ -217,7 +217,7 @@ valent_component_disable_extension (ValentComponent *self,
   if (priv->primary == extension)
     valent_component_update_primary (self);
 
-  VALENT_COMPONENT_GET_CLASS (self)->disable_extension (self, extension);
+  VALENT_COMPONENT_GET_CLASS (self)->unbind_extension (self, extension);
 }
 
 static void
@@ -311,16 +311,16 @@ on_unload_plugin (PeasEngine      *engine,
 
 /* LCOV_EXCL_START */
 static void
-valent_component_real_enable_extension (ValentComponent *component,
-                                        PeasExtension   *extension)
+valent_component_real_bind_extension (ValentComponent *component,
+                                      PeasExtension   *extension)
 {
   g_assert (VALENT_IS_COMPONENT (component));
   g_assert (PEAS_IS_EXTENSION (extension));
 }
 
 static void
-valent_component_real_disable_extension (ValentComponent *component,
-                                         PeasExtension   *extension)
+valent_component_real_unbind_extension (ValentComponent *component,
+                                        PeasExtension   *extension)
 {
   g_assert (VALENT_IS_COMPONENT (component));
   g_assert (PEAS_IS_EXTENSION (extension));
@@ -457,8 +457,8 @@ valent_component_class_init (ValentComponentClass *klass)
   object_class->get_property = valent_component_get_property;
   object_class->set_property = valent_component_set_property;
 
-  klass->enable_extension = valent_component_real_enable_extension;
-  klass->disable_extension = valent_component_real_disable_extension;
+  klass->bind_extension = valent_component_real_bind_extension;
+  klass->unbind_extension = valent_component_real_unbind_extension;
 
   /**
    * ValentComponent:plugin-context:

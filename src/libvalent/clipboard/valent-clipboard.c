@@ -139,8 +139,8 @@ on_clipboard_adapter_changed (ValentClipboardAdapter *clipboard,
  * ValentComponent
  */
 static void
-valent_clipboard_enable_extension (ValentComponent *component,
-                                   PeasExtension   *extension)
+valent_clipboard_bind_extension (ValentComponent *component,
+                                 PeasExtension   *extension)
 {
   ValentClipboard *self = VALENT_CLIPBOARD (component);
   ValentClipboardAdapter *adapter = VALENT_CLIPBOARD_ADAPTER (extension);
@@ -164,8 +164,8 @@ valent_clipboard_enable_extension (ValentComponent *component,
 }
 
 static void
-valent_clipboard_disable_extension (ValentComponent *component,
-                                    PeasExtension   *extension)
+valent_clipboard_unbind_extension (ValentComponent *component,
+                                   PeasExtension   *extension)
 {
   ValentClipboard *self = VALENT_CLIPBOARD (component);
   ValentClipboardAdapter *adapter = VALENT_CLIPBOARD_ADAPTER (extension);
@@ -193,8 +193,8 @@ valent_clipboard_class_init (ValentClipboardClass *klass)
 {
   ValentComponentClass *component_class = VALENT_COMPONENT_CLASS (klass);
 
-  component_class->enable_extension = valent_clipboard_enable_extension;
-  component_class->disable_extension = valent_clipboard_disable_extension;
+  component_class->bind_extension = valent_clipboard_bind_extension;
+  component_class->unbind_extension = valent_clipboard_unbind_extension;
 
   /**
    * ValentClipboard::changed:
