@@ -166,8 +166,12 @@ on_name_owner_changed (GDBusConnection *connection,
 
   if (strlen (new_owner) > 0 && !known)
     {
+      g_autoptr (GCancellable) destroy = NULL;
+
+      /* Cancel initialization if the adapter is destroyed */
+      destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
       valent_mpris_player_new (name,
-                               NULL,
+                               destroy,
                                (GAsyncReadyCallback)valent_mpris_player_new_cb,
                                self);
     }
@@ -247,27 +251,32 @@ list_names_cb (GDBusConnection *connection,
 
 static void
 valent_mpris_adapter_init_async (GAsyncInitable      *initable,
-                                 int                  priority,
+                                 int                  io_priority,
                                  GCancellable        *cancellable,
                                  GAsyncReadyCallback  callback,
                                  gpointer             user_data)
 {
   ValentMPRISAdapter *self = VALENT_MPRIS_ADAPTER (initable);
   g_autoptr (GTask) task = NULL;
-  GError *error = NULL;
+  g_autoptr (GCancellable) destroy = NULL;
+  g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_MPRIS_ADAPTER (self));
 
-  task = g_task_new (initable, cancellable, callback, user_data);
-  g_task_set_priority (task, priority);
+  /* Cancel initialization if the object is destroyed */
+  destroy = valent_object_attach_cancellable (VALENT_OBJECT (initable),
+                                              cancellable);
+
+  task = g_task_new (initable, destroy, callback, user_data);
+  g_task_set_priority (task, io_priority);
   g_task_set_source_tag (task, valent_mpris_adapter_init_async);
 
   self->connection = g_bus_get_sync (G_BUS_TYPE_SESSION,
-                                     cancellable,
+                                     destroy,
                                      &error);
 
   if (self->connection == NULL)
-    return g_task_return_error (task, error);
+    return g_task_return_error (task, g_steal_pointer (&error));
 
   g_dbus_connection_call (self->connection,
                           "org.freedesktop.DBus",
@@ -278,7 +287,7 @@ valent_mpris_adapter_init_async (GAsyncInitable      *initable,
                           NULL,
                           G_DBUS_CALL_FLAGS_NONE,
                           -1,
-                          cancellable,
+                          destroy,
                           (GAsyncReadyCallback)list_names_cb,
                           g_steal_pointer (&task));
 }
@@ -327,14 +336,18 @@ valent_mpris_adapter_export (ValentMediaAdapter *adapter,
     }
   else
     {
+      g_autoptr (GCancellable) destroy = NULL;
       g_autofree char *bus_name = NULL;
+
+      /* Cancel export if the object is destroyed */
+      destroy = valent_object_ref_cancellable (VALENT_OBJECT (adapter));
 
       bus_name = g_strdup_printf ("%s.Player%u",
                                   VALENT_MPRIS_DBUS_NAME,
                                   n_exports++);
       valent_mpris_impl_export_full (impl,
                                      bus_name,
-                                     NULL, // cancellable,
+                                     destroy,
                                      (GAsyncReadyCallback)export_full_cb,
                                      self);
     }

@@ -419,7 +419,7 @@ g_dbus_proxy_new_for_bus_cb (GObject      *object,
  */
 static void
 valent_bluez_channel_service_init_async (GAsyncInitable      *initable,
-                                         int                  priority,
+                                         int                  io_priority,
                                          GCancellable        *cancellable,
                                          GAsyncReadyCallback  callback,
                                          gpointer             user_data)
@@ -427,21 +427,15 @@ valent_bluez_channel_service_init_async (GAsyncInitable      *initable,
   g_autoptr (GTask) task = NULL;
   g_autoptr (GCancellable) destroy = NULL;
 
-  g_assert (VALENT_IS_CHANNEL_SERVICE (service));
+  g_assert (VALENT_IS_CHANNEL_SERVICE (initable));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  /* Chain to the service cancellable */
-  destroy = valent_object_ref_cancellable (VALENT_OBJECT (initable));
-
-  if (cancellable != NULL)
-    g_signal_connect_object (cancellable,
-                             "cancelled",
-                             G_CALLBACK (g_cancellable_cancel),
-                             destroy,
-                             G_CONNECT_SWAPPED);
+  /* Cancel initialization if the object is destroyed */
+  destroy = valent_object_attach_cancellable (VALENT_OBJECT (initable),
+                                              cancellable);
 
   task = g_task_new (initable, destroy, callback, user_data);
-  g_task_set_priority (task, priority);
+  g_task_set_priority (task, io_priority);
   g_task_set_source_tag (task, valent_bluez_channel_service_init_async);
 
   g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,

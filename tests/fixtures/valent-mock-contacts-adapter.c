@@ -56,12 +56,13 @@ valent_contact_store_add_contact_cb (ValentContactStore *store,
 
 static void
 valent_mock_contacts_adapter_init_async (GAsyncInitable      *initable,
-                                         int                  priority,
+                                         int                  io_priority,
                                          GCancellable        *cancellable,
                                          GAsyncReadyCallback  callback,
                                          gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
+  g_autoptr (GCancellable) destroy = NULL;
   g_autoptr (ESource) source = NULL;
   g_autoptr (EContact) contact = NULL;
   g_autoptr (ValentContactStore) store = NULL;
@@ -70,8 +71,12 @@ valent_mock_contacts_adapter_init_async (GAsyncInitable      *initable,
   g_assert (VALENT_IS_MOCK_CONTACTS_ADAPTER (initable));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  task = g_task_new (initable, cancellable, callback, user_data);
-  g_task_set_priority (task, priority);
+  /* Cancel initialization if the object is destroyed */
+  destroy = valent_object_attach_cancellable (VALENT_OBJECT (initable),
+                                              cancellable);
+
+  task = g_task_new (initable, destroy, callback, user_data);
+  g_task_set_priority (task, io_priority);
   g_task_set_source_tag (task, valent_mock_contacts_adapter_init_async);
 
   /* Mock Store */
@@ -93,7 +98,7 @@ valent_mock_contacts_adapter_init_async (GAsyncInitable      *initable,
   /* Add the contact to the store, then add the store to the adapter */
   valent_contact_store_add_contact (store,
                                     contact,
-                                    NULL,
+                                    destroy,
                                     (GAsyncReadyCallback)valent_contact_store_add_contact_cb,
                                     &done);
 

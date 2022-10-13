@@ -398,35 +398,40 @@ new_for_address_cb (GObject      *object,
  */
 static void
 valent_fdo_notifications_init_async (GAsyncInitable             *initable,
-                                     int                         priority,
+                                     int                         io_priority,
                                      GCancellable               *cancellable,
                                      GAsyncReadyCallback         callback,
                                      gpointer                    user_data)
 {
   g_autoptr (GTask) task = NULL;
+  g_autoptr (GCancellable) destroy = NULL;
   g_autofree char *address = NULL;
-  GError *error = NULL;
+  g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_FDO_NOTIFICATIONS (initable));
 
-  task = g_task_new (initable, cancellable, callback, user_data);
-  g_task_set_priority (task, priority);
+  /* Cancel initialization if the object is destroyed */
+  destroy = valent_object_attach_cancellable (VALENT_OBJECT (initable),
+                                              cancellable);
+
+  task = g_task_new (initable, destroy, callback, user_data);
+  g_task_set_priority (task, io_priority);
   g_task_set_source_tag (task, valent_fdo_notifications_init_async);
 
   /* Get a bus address */
   address = g_dbus_address_get_for_bus_sync (G_BUS_TYPE_SESSION,
-                                             cancellable,
+                                             destroy,
                                              &error);
 
   if (address == NULL)
-    return g_task_return_error (task, error);
+    return g_task_return_error (task, g_steal_pointer (&error));
 
   /* Get a dedicated connection for monitoring */
   g_dbus_connection_new_for_address (address,
                                      G_DBUS_CONNECTION_FLAGS_AUTHENTICATION_CLIENT |
                                      G_DBUS_CONNECTION_FLAGS_MESSAGE_BUS_CONNECTION,
                                      NULL,
-                                     cancellable,
+                                     destroy,
                                      (GAsyncReadyCallback)new_for_address_cb,
                                      g_steal_pointer (&task));
 }
