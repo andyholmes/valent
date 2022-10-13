@@ -25,9 +25,9 @@ struct _ValentComponentClass
   ValentObjectClass   parent_class;
 
   /* virtual functions */
-  void                (*enable_extension)  (ValentComponent *component,
-                                            PeasExtension   *extension);
-  void                (*disable_extension) (ValentComponent *component,
+  void                (*bind_extension)   (ValentComponent *component,
+                                           PeasExtension   *extension);
+  void                (*unbind_extension) (ValentComponent *component,
                                            PeasExtension   *extension);
 
   /*< private >*/

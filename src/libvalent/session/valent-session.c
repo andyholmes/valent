@@ -64,8 +64,8 @@ on_session_adapter_changed (ValentSessionAdapter *adapter,
  * ValentComponent
  */
 static void
-valent_session_enable_extension (ValentComponent *component,
-                                 PeasExtension   *extension)
+valent_session_bind_extension (ValentComponent *component,
+                               PeasExtension   *extension)
 {
   ValentSession *self = VALENT_SESSION (component);
   ValentSessionAdapter *adapter = VALENT_SESSION_ADAPTER (extension);
@@ -90,8 +90,8 @@ valent_session_enable_extension (ValentComponent *component,
 }
 
 static void
-valent_session_disable_extension (ValentComponent *component,
-                                  PeasExtension   *extension)
+valent_session_unbind_extension (ValentComponent *component,
+                                 PeasExtension   *extension)
 {
   ValentSession *self = VALENT_SESSION (component);
   ValentSessionAdapter *adapter = VALENT_SESSION_ADAPTER (extension);
@@ -145,8 +145,8 @@ valent_session_class_init (ValentSessionClass *klass)
   object_class->dispose = valent_session_dispose;
   object_class->finalize = valent_session_finalize;
 
-  component_class->enable_extension = valent_session_enable_extension;
-  component_class->disable_extension = valent_session_disable_extension;
+  component_class->bind_extension = valent_session_bind_extension;
+  component_class->unbind_extension = valent_session_unbind_extension;
 
   /**
    * ValentSession::changed:

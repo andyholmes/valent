@@ -252,8 +252,8 @@ on_stream_removed (ValentMixerAdapter *adapter,
  * ValentComponent
  */
 static void
-valent_mixer_enable_extension (ValentComponent *component,
-                               PeasExtension   *extension)
+valent_mixer_bind_extension (ValentComponent *component,
+                             PeasExtension   *extension)
 {
   ValentMixer *self = VALENT_MIXER (component);
   ValentMixerAdapter *adapter = VALENT_MIXER_ADAPTER (extension);
@@ -306,8 +306,8 @@ valent_mixer_enable_extension (ValentComponent *component,
 }
 
 static void
-valent_mixer_disable_extension (ValentComponent *component,
-                                PeasExtension   *extension)
+valent_mixer_unbind_extension (ValentComponent *component,
+                               PeasExtension   *extension)
 {
   ValentMixer *self = VALENT_MIXER (component);
   ValentMixerAdapter *adapter = VALENT_MIXER_ADAPTER (extension);
@@ -412,8 +412,8 @@ valent_mixer_class_init (ValentMixerClass *klass)
   object_class->get_property = valent_mixer_get_property;
   object_class->set_property = valent_mixer_set_property;
 
-  component_class->enable_extension = valent_mixer_enable_extension;
-  component_class->disable_extension = valent_mixer_disable_extension;
+  component_class->bind_extension = valent_mixer_bind_extension;
+  component_class->unbind_extension = valent_mixer_unbind_extension;
 
   /**
    * ValentMixer:default-input: (getter get_default_input) (setter set_default_input)

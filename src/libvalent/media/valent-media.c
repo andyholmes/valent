@@ -193,8 +193,8 @@ on_player_removed (ValentMediaAdapter *adapter,
  * ValentComponent
  */
 static void
-valent_media_enable_extension (ValentComponent *component,
-                               PeasExtension   *extension)
+valent_media_bind_extension (ValentComponent *component,
+                             PeasExtension   *extension)
 {
   ValentMedia *self = VALENT_MEDIA (component);
   ValentMediaAdapter *adapter = VALENT_MEDIA_ADAPTER (extension);
@@ -220,8 +220,8 @@ valent_media_enable_extension (ValentComponent *component,
 }
 
 static void
-valent_media_disable_extension (ValentComponent *component,
-                                PeasExtension   *extension)
+valent_media_unbind_extension (ValentComponent *component,
+                               PeasExtension   *extension)
 {
   ValentMedia *self = VALENT_MEDIA (component);
   ValentMediaAdapter *adapter = VALENT_MEDIA_ADAPTER (extension);
@@ -267,8 +267,8 @@ valent_media_class_init (ValentMediaClass *klass)
 
   object_class->finalize = valent_media_finalize;
 
-  component_class->enable_extension = valent_media_enable_extension;
-  component_class->disable_extension = valent_media_disable_extension;
+  component_class->bind_extension = valent_media_bind_extension;
+  component_class->unbind_extension = valent_media_unbind_extension;
 
   /**
    * ValentMedia::player-changed:
