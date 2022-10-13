@@ -30,9 +30,16 @@ struct _ValentMockContactsAdapter
   ValentContactsAdapter  parent_instance;
 };
 
-G_DEFINE_TYPE (ValentMockContactsAdapter, valent_mock_contacts_adapter, VALENT_TYPE_CONTACTS_ADAPTER)
+static void   g_async_initable_iface_init (GAsyncInitableIface *iface);
+
+G_DEFINE_TYPE_EXTENDED (ValentMockContactsAdapter, valent_mock_contacts_adapter, VALENT_TYPE_CONTACTS_ADAPTER,
+                        0,
+                        G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init))
 
 
+/*
+ * GAsyncInitable
+ */
 static void
 valent_contact_store_add_contact_cb (ValentContactStore *store,
                                      GAsyncResult       *result,
@@ -40,20 +47,19 @@ valent_contact_store_add_contact_cb (ValentContactStore *store,
 {
   g_autoptr (GError) error = NULL;
 
-  if (done != NULL)
-    *done = valent_contact_store_add_contacts_finish (store, result, &error);
+  if (!valent_contact_store_add_contacts_finish (store, result, &error))
+    g_assert_no_error (error);
 
-  g_assert_no_error (error);
+  if (done != NULL)
+    *done = TRUE;
 }
 
-/*
- * ValentContactsAdapter
- */
 static void
-valent_mock_contacts_adapter_load_async (ValentContactsAdapter *adapter,
-                                         GCancellable          *cancellable,
-                                         GAsyncReadyCallback    callback,
-                                         gpointer               user_data)
+valent_mock_contacts_adapter_init_async (GAsyncInitable      *initable,
+                                         int                  priority,
+                                         GCancellable        *cancellable,
+                                         GAsyncReadyCallback  callback,
+                                         gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
   g_autoptr (ESource) source = NULL;
@@ -61,8 +67,12 @@ valent_mock_contacts_adapter_load_async (ValentContactsAdapter *adapter,
   g_autoptr (ValentContactStore) store = NULL;
   gboolean done = FALSE;
 
-  g_assert (VALENT_IS_MOCK_CONTACTS_ADAPTER (adapter));
+  g_assert (VALENT_IS_MOCK_CONTACTS_ADAPTER (initable));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  task = g_task_new (initable, cancellable, callback, user_data);
+  g_task_set_priority (task, priority);
+  g_task_set_source_tag (task, valent_mock_contacts_adapter_init_async);
 
   /* Mock Store */
   source = e_source_new_with_uid ("mock-store", NULL, NULL);
@@ -71,7 +81,6 @@ valent_mock_contacts_adapter_load_async (ValentContactsAdapter *adapter,
   store = g_object_new (VALENT_TYPE_CONTACT_CACHE,
                         "source", source,
                         NULL);
-  valent_contacts_adapter_store_added (adapter, store);
 
   /* Mock Contact */
   contact = e_contact_new_from_vcard_with_uid ("BEGIN:VCARD\n"
@@ -80,6 +89,8 @@ valent_mock_contacts_adapter_load_async (ValentContactsAdapter *adapter,
                                                "TEL;CELL:123-456-7890\n"
                                                "END:VCARD\n",
                                                "mock-contact");
+
+  /* Add the contact to the store, then add the store to the adapter */
   valent_contact_store_add_contact (store,
                                     contact,
                                     NULL,
@@ -89,10 +100,14 @@ valent_mock_contacts_adapter_load_async (ValentContactsAdapter *adapter,
   while (!done)
     g_main_context_iteration (NULL, FALSE);
 
-  /* Token Source */
-  task = g_task_new (adapter, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_mock_contacts_adapter_load_async);
+  valent_contacts_adapter_store_added (g_task_get_source_object (task), store);
   g_task_return_boolean (task, TRUE);
+}
+
+static void
+g_async_initable_iface_init (GAsyncInitableIface *iface)
+{
+  iface->init_async = valent_mock_contacts_adapter_init_async;
 }
 
 /*
@@ -101,9 +116,6 @@ valent_mock_contacts_adapter_load_async (ValentContactsAdapter *adapter,
 static void
 valent_mock_contacts_adapter_class_init (ValentMockContactsAdapterClass *klass)
 {
-  ValentContactsAdapterClass *adapter_class = VALENT_CONTACTS_ADAPTER_CLASS (klass);
-
-  adapter_class->load_async = valent_mock_contacts_adapter_load_async;
 }
 
 static void

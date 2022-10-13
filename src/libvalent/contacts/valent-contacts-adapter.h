@@ -22,15 +22,6 @@ struct _ValentContactsAdapterClass
 {
   GObjectClass   parent_class;
 
-  /* virtual functions */
-  void           (*load_async)    (ValentContactsAdapter  *adapter,
-                                   GCancellable           *cancellable,
-                                   GAsyncReadyCallback     callback,
-                                   gpointer                user_data);
-  gboolean       (*load_finish)   (ValentContactsAdapter  *adapter,
-                                   GAsyncResult           *result,
-                                   GError                **error);
-
   /* signals */
   void           (*store_added)   (ValentContactsAdapter  *adapter,
                                    ValentContactStore     *store);
@@ -49,15 +40,6 @@ void        valent_contacts_adapter_store_removed (ValentContactsAdapter  *adapt
                                                    ValentContactStore     *store);
 VALENT_AVAILABLE_IN_1_0
 GPtrArray * valent_contacts_adapter_get_stores    (ValentContactsAdapter  *adapter);
-VALENT_AVAILABLE_IN_1_0
-void        valent_contacts_adapter_load_async    (ValentContactsAdapter  *adapter,
-                                                   GCancellable           *cancellable,
-                                                   GAsyncReadyCallback     callback,
-                                                   gpointer                user_data);
-VALENT_AVAILABLE_IN_1_0
-gboolean    valent_contacts_adapter_load_finish   (ValentContactsAdapter  *adapter,
-                                                   GAsyncResult           *result,
-                                                   GError                **error);
 
 G_END_DECLS
 

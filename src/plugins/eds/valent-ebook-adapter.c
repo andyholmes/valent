@@ -22,8 +22,11 @@ struct _ValentEBookAdapter
   GHashTable            *stores;
 };
 
+static void   g_async_initable_iface_init (GAsyncInitableIface *iface);
 
-G_DEFINE_TYPE (ValentEBookAdapter, valent_ebook_adapter, VALENT_TYPE_CONTACTS_ADAPTER)
+G_DEFINE_TYPE_EXTENDED (ValentEBookAdapter, valent_ebook_adapter, VALENT_TYPE_CONTACTS_ADAPTER,
+                        0,
+                        G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init))
 
 
 /*
@@ -99,7 +102,7 @@ on_source_removed (ESourceRegistry    *registry,
 }
 
 /*
- * ValentContactsAdapter
+ * GAsyncInitable
  */
 static void
 e_source_registry_new_cb (GObject      *object,
@@ -136,22 +139,30 @@ e_source_registry_new_cb (GObject      *object,
 }
 
 static void
-valent_ebook_adapter_load_async (ValentContactsAdapter *adapter,
+valent_ebook_adapter_init_async (GAsyncInitable        *initable,
+                                 int                    priority,
                                  GCancellable          *cancellable,
                                  GAsyncReadyCallback    callback,
                                  gpointer               user_data)
 {
   g_autoptr (GTask) task = NULL;
 
-  g_assert (VALENT_IS_EBOOK_ADAPTER (adapter));
+  g_assert (VALENT_IS_EBOOK_ADAPTER (initable));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  task = g_task_new (adapter, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_ebook_adapter_load_async);
+  task = g_task_new (initable, cancellable, callback, user_data);
+  g_task_set_priority (task, priority);
+  g_task_set_source_tag (task, valent_ebook_adapter_init_async);
 
   e_source_registry_new (cancellable,
                          e_source_registry_new_cb,
                          g_steal_pointer (&task));
+}
+
+static void
+g_async_initable_iface_init (GAsyncInitableIface *iface)
+{
+  iface->init_async = valent_ebook_adapter_init_async;
 }
 
 /*
@@ -191,12 +202,9 @@ static void
 valent_ebook_adapter_class_init (ValentEBookAdapterClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
-  ValentContactsAdapterClass *adapter_class = VALENT_CONTACTS_ADAPTER_CLASS (klass);
 
   object_class->dispose = valent_ebook_adapter_dispose;
   object_class->finalize = valent_ebook_adapter_finalize;
-
-  adapter_class->load_async = valent_ebook_adapter_load_async;
 }
 
 static void

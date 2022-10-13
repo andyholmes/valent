@@ -136,22 +136,6 @@ on_store_removed (ValentContactsAdapter *adapter,
   VALENT_EXIT;
 }
 
-static void
-valent_contacts_adapter_load_cb (ValentContactsAdapter *adapter,
-                                 GAsyncResult          *result,
-                                 ValentContacts        *contacts)
-{
-  g_autoptr (GError) error = NULL;
-
-  VALENT_ENTRY;
-
-  if (!valent_contacts_adapter_load_finish (adapter, result, &error) &&
-      !valent_error_ignore (error))
-    g_warning ("%s: %s", G_OBJECT_TYPE_NAME (adapter), error->message);
-
-  VALENT_EXIT;
-}
-
 
 /*
  * ValentComponent
@@ -162,13 +146,11 @@ valent_contacts_enable_extension (ValentComponent *component,
 {
   ValentContacts *self = VALENT_CONTACTS (component);
   ValentContactsAdapter *adapter = VALENT_CONTACTS_ADAPTER (extension);
-  g_autoptr (GCancellable) cancellable = NULL;
 
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_CONTACTS (self));
   g_assert (VALENT_IS_CONTACTS_ADAPTER (adapter));
-
 
   g_signal_connect_object (adapter,
                            "store-added",
@@ -181,12 +163,6 @@ valent_contacts_enable_extension (ValentComponent *component,
                            G_CALLBACK (on_store_removed),
                            self,
                            0);
-
-  cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
-  valent_contacts_adapter_load_async (adapter,
-                                      cancellable,
-                                      (GAsyncReadyCallback)valent_contacts_adapter_load_cb,
-                                      self);
 
   VALENT_EXIT;
 }
