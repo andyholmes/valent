@@ -11,6 +11,7 @@
 #include "valent-component.h"
 #include "valent-debug.h"
 #include "valent-global.h"
+#include "valent-object.h"
 
 
 /**
@@ -35,7 +36,7 @@ typedef struct
   PeasExtension *primary;
 } ValentComponentPrivate;
 
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentComponent, valent_component, G_TYPE_OBJECT);
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentComponent, valent_component, VALENT_TYPE_OBJECT);
 
 
 /**
