@@ -7,7 +7,6 @@
 # error "Only <libvalent-device.h> can be included directly."
 #endif
 
-#include <gio/gio.h>
 #include <libvalent-core.h>
 
 #include "valent-device.h"
@@ -17,7 +16,7 @@ G_BEGIN_DECLS
 #define VALENT_TYPE_DEVICE_MANAGER (valent_device_manager_get_type())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_FINAL_TYPE (ValentDeviceManager, valent_device_manager, VALENT, DEVICE_MANAGER, GObject)
+G_DECLARE_FINAL_TYPE (ValentDeviceManager, valent_device_manager, VALENT, DEVICE_MANAGER, ValentObject)
 
 VALENT_AVAILABLE_IN_1_0
 void                  valent_device_manager_new              (GCancellable         *cancellable,

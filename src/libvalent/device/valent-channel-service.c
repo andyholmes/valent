@@ -24,10 +24,8 @@
  *
  * ## Implementation Notes
  *
- * Implementations should override [vfunc@Valent.ChannelService.start] to
- * provide failable initialization and [vfunc@Valent.ChannelService.stop] as an
- * idempotent cleanup function. Implementations may safely emit
- * [signal@Valent.ChannelService::channel] from any thread.
+ * Implementations may safely invoke [method@Valent.ChannelService.channel] from
+ * any thread; it is guaranteed to be emitted in the main thread.
  *
  * ## `.plugin` File
  *
@@ -60,9 +58,6 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentChannelService, valent_channel_servic
  * ValentChannelServiceClass:
  * @build_identity: the virtual function pointer for valent_channel_service_build_identity()
  * @identify: the virtual function pointer for valent_channel_service_identify()
- * @start: the virtual function pointer for valent_channel_service_start()
- * @start_finish: the virtual function pointer for valent_channel_service_start_finish()
- * @stop: the virtual function pointer for valent_channel_service_stop()
  * @channel: the class closure for #ValentChannelService::channel
  *
  * The virtual function table for #ValentChannelService.
@@ -344,38 +339,6 @@ valent_channel_service_real_identify (ValentChannelService *service,
 {
   g_assert (VALENT_IS_CHANNEL_SERVICE (service));
 }
-
-static void
-valent_channel_service_real_start (ValentChannelService *service,
-                                   GCancellable         *cancellable,
-                                   GAsyncReadyCallback   callback,
-                                   gpointer              user_data)
-{
-  g_task_report_new_error (service, callback, user_data,
-                           valent_channel_service_real_start,
-                           G_IO_ERROR,
-                           G_IO_ERROR_NOT_SUPPORTED,
-                           "%s does not implement start",
-                           G_OBJECT_TYPE_NAME (service));
-}
-
-static gboolean
-valent_channel_service_real_start_finish (ValentChannelService  *service,
-                                          GAsyncResult          *result,
-                                          GError               **error)
-{
-  g_assert (VALENT_IS_CHANNEL_SERVICE (service));
-  g_assert (g_task_is_valid (result, service));
-  g_assert (error == NULL || *error == NULL);
-
-  return g_task_propagate_boolean (G_TASK (result), error);
-}
-
-static void
-valent_channel_service_real_stop (ValentChannelService *service)
-{
-  g_assert (VALENT_IS_CHANNEL_SERVICE (service));
-}
 /* LCOV_EXCL_STOP */
 
 /*
@@ -394,16 +357,6 @@ valent_channel_service_constructed (GObject *object)
   valent_channel_service_build_identity (self);
 
   G_OBJECT_CLASS (valent_channel_service_parent_class)->constructed (object);
-}
-
-static void
-valent_channel_service_dispose (GObject *object)
-{
-  ValentChannelService *self = VALENT_CHANNEL_SERVICE (object);
-
-  valent_channel_service_stop (self);
-
-  G_OBJECT_CLASS (valent_channel_service_parent_class)->dispose (object);
 }
 
 static void
@@ -495,16 +448,12 @@ valent_channel_service_class_init (ValentChannelServiceClass *klass)
   ValentChannelServiceClass *service_class = VALENT_CHANNEL_SERVICE_CLASS (klass);
 
   object_class->constructed = valent_channel_service_constructed;
-  object_class->dispose = valent_channel_service_dispose;
   object_class->finalize = valent_channel_service_finalize;
   object_class->get_property = valent_channel_service_get_property;
   object_class->set_property = valent_channel_service_set_property;
 
   service_class->build_identity = valent_channel_service_real_build_identity;
   service_class->identify = valent_channel_service_real_identify;
-  service_class->start = valent_channel_service_real_start;
-  service_class->start_finish = valent_channel_service_real_start_finish;
-  service_class->stop = valent_channel_service_real_stop;
 
   /**
    * ValentChannelService:data:
@@ -783,99 +732,6 @@ valent_channel_service_identify (ValentChannelService *service,
   g_return_if_fail (VALENT_IS_CHANNEL_SERVICE (service));
 
   VALENT_CHANNEL_SERVICE_GET_CLASS (service)->identify (service, target);
-
-  VALENT_EXIT;
-}
-
-/**
- * valent_channel_service_start: (virtual start)
- * @service: a #ValentChannelService
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
- * @user_data: (closure): user supplied data
- *
- * Start the service.
- *
- * This method is called by the #ValentManager singleton when a
- * #ValentChannelService implementation is enabled. It is therefore a programmer
- * error for an API user to call this method.
- *
- * Before this operation completes valent_channel_service_stop() may be called,
- * so implementations may want to chain to @cancellable.
- *
- * Since: 1.0
- */
-void
-valent_channel_service_start (ValentChannelService *service,
-                              GCancellable         *cancellable,
-                              GAsyncReadyCallback   callback,
-                              gpointer              user_data)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_CHANNEL_SERVICE (service));
-  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-
-  VALENT_CHANNEL_SERVICE_GET_CLASS (service)->start (service,
-                                                     cancellable,
-                                                     callback,
-                                                     user_data);
-
-  VALENT_EXIT;
-}
-
-/**
- * valent_channel_service_start_finish: (virtual start_finish)
- * @service: a #ValentChannelService
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
- *
- * Finish an operation started by [method@Valent.ChannelService.start].
- *
- * Since: 1.0
- */
-gboolean
-valent_channel_service_start_finish (ValentChannelService  *service,
-                                     GAsyncResult          *result,
-                                     GError               **error)
-{
-  gboolean ret;
-
-  VALENT_ENTRY;
-
-  g_return_val_if_fail (VALENT_IS_CHANNEL_SERVICE (service), FALSE);
-  g_return_val_if_fail (g_task_is_valid (result, service), FALSE);
-  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
-
-  ret = VALENT_CHANNEL_SERVICE_GET_CLASS (service)->start_finish (service,
-                                                                  result,
-                                                                  error);
-
-  VALENT_RETURN (ret);
-}
-
-/**
- * valent_channel_service_stop: (virtual stop)
- * @service: a #ValentChannelService
- *
- * Stop the service.
- *
- * Stop processing incoming identity packets and prevent the broadcast of the
- * local identity which results in the same behaviour from other devices.
- *
- * Implementations of this method must chain-up and be idempotent; it is called
- * automatically when the last reference to @service is dropped.
- *
- * Since: 1.0
- */
-void
-valent_channel_service_stop (ValentChannelService *service)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_CHANNEL_SERVICE (service));
-
-  VALENT_CHANNEL_SERVICE_GET_CLASS (service)->stop (service);
 
   VALENT_EXIT;
 }

@@ -27,7 +27,11 @@ struct _ValentBluezChannelService
   GHashTable           *muxers;
 };
 
-G_DEFINE_TYPE (ValentBluezChannelService, valent_bluez_channel_service, VALENT_TYPE_CHANNEL_SERVICE)
+static void   g_async_initable_iface_init (GAsyncInitableIface *iface);
+
+G_DEFINE_TYPE_EXTENDED (ValentBluezChannelService, valent_bluez_channel_service, VALENT_TYPE_CHANNEL_SERVICE,
+                        0,
+                        G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init))
 
 
 /*
@@ -410,19 +414,35 @@ g_dbus_proxy_new_for_bus_cb (GObject      *object,
                                  g_steal_pointer (&task));
 }
 
+/*
+ * GAsyncInitable
+ */
 static void
-valent_bluez_channel_service_start (ValentChannelService *service,
-                                    GCancellable         *cancellable,
-                                    GAsyncReadyCallback   callback,
-                                    gpointer              user_data)
+valent_bluez_channel_service_init_async (GAsyncInitable      *initable,
+                                         int                  priority,
+                                         GCancellable        *cancellable,
+                                         GAsyncReadyCallback  callback,
+                                         gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
+  g_autoptr (GCancellable) destroy = NULL;
 
   g_assert (VALENT_IS_CHANNEL_SERVICE (service));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  task = g_task_new (service, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_bluez_channel_service_start);
+  /* Chain to the service cancellable */
+  destroy = valent_object_ref_cancellable (VALENT_OBJECT (initable));
+
+  if (cancellable != NULL)
+    g_signal_connect_object (cancellable,
+                             "cancelled",
+                             G_CALLBACK (g_cancellable_cancel),
+                             destroy,
+                             G_CONNECT_SWAPPED);
+
+  task = g_task_new (initable, destroy, callback, user_data);
+  g_task_set_priority (task, priority);
+  g_task_set_source_tag (task, valent_bluez_channel_service_init_async);
 
   g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
                             G_DBUS_PROXY_FLAGS_DO_NOT_AUTO_START,
@@ -430,17 +450,24 @@ valent_bluez_channel_service_start (ValentChannelService *service,
                             "org.bluez",
                             "/",
                             "org.freedesktop.DBus.ObjectManager",
-                            cancellable,
+                            destroy,
                             (GAsyncReadyCallback)g_dbus_proxy_new_for_bus_cb,
                             g_steal_pointer (&task));
 }
 
 static void
-valent_bluez_channel_service_stop (ValentChannelService *service)
+g_async_initable_iface_init (GAsyncInitableIface *iface)
 {
-  ValentBluezChannelService *self = VALENT_BLUEZ_CHANNEL_SERVICE (service);
+  iface->init_async = valent_bluez_channel_service_init_async;
+}
 
-  g_assert (VALENT_IS_BLUEZ_CHANNEL_SERVICE (service));
+/*
+ * GObject
+ */
+static void
+valent_bluez_channel_service_dispose (GObject *object)
+{
+  ValentBluezChannelService *self = VALENT_BLUEZ_CHANNEL_SERVICE (object);
 
   if (self->proxy != NULL)
     {
@@ -448,14 +475,15 @@ valent_bluez_channel_service_stop (ValentChannelService *service)
       g_clear_object (&self->proxy);
     }
 
-  g_signal_handlers_disconnect_by_data (self->profile, self);
-  valent_bluez_profile_unregister (self->profile);
+  if (self->profile != NULL)
+    {
+      g_signal_handlers_disconnect_by_data (self->profile, self);
+      valent_bluez_profile_unregister (self->profile);
+    }
+
+  G_OBJECT_CLASS (valent_bluez_channel_service_parent_class)->dispose (object);
 }
 
-
-/*
- * GObject
- */
 static void
 valent_bluez_channel_service_finalize (GObject *object)
 {
@@ -478,11 +506,10 @@ valent_bluez_channel_service_class_init (ValentBluezChannelServiceClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentChannelServiceClass *service_class = VALENT_CHANNEL_SERVICE_CLASS (klass);
 
+  object_class->dispose = valent_bluez_channel_service_dispose;
   object_class->finalize = valent_bluez_channel_service_finalize;
 
   service_class->identify = valent_bluez_channel_service_identify;
-  service_class->start = valent_bluez_channel_service_start;
-  service_class->stop = valent_bluez_channel_service_stop;
 }
 
 static void
