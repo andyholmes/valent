@@ -15,6 +15,134 @@
 #include "valent-mixer-stream.h"
 
 
+/*< private >
+ *
+ * ValentMixerStreams:
+ *
+ * A [iface@Gio.ListModel] implementation for grouping inputs and outputs.
+ */
+#define VALENT_TYPE_MIXER_STREAMS (valent_mixer_streams_get_type ())
+
+G_DECLARE_FINAL_TYPE (ValentMixerStreams, valent_mixer_streams, VALENT, MIXER_STREAMS, GObject)
+
+struct _ValentMixerStreams
+{
+  GObject    parent_instance;
+  GPtrArray *items;
+};
+
+static void   g_list_model_iface_init (GListModelInterface *iface);
+
+G_DEFINE_TYPE_EXTENDED (ValentMixerStreams, valent_mixer_streams, G_TYPE_OBJECT,
+                        0,
+                        G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
+
+
+static gpointer
+valent_mixer_streams_get_item (GListModel   *list,
+                               unsigned int  position)
+{
+  ValentMixerStreams *self = VALENT_MIXER_STREAMS (list);
+
+  g_assert (VALENT_IS_MIXER_STREAMS (self));
+  g_assert (position < self->items->len);
+
+  return g_object_ref (g_ptr_array_index (self->items, position));
+}
+
+static GType
+valent_mixer_streams_get_item_type (GListModel *list)
+{
+  return VALENT_TYPE_MIXER_STREAM;
+}
+
+static unsigned int
+valent_mixer_streams_get_n_items (GListModel *list)
+{
+  ValentMixerStreams *self = VALENT_MIXER_STREAMS (list);
+
+  g_assert (VALENT_IS_MIXER_STREAMS (self));
+
+  return self->items->len;
+}
+
+static void
+g_list_model_iface_init (GListModelInterface *iface)
+{
+  iface->get_item = valent_mixer_streams_get_item;
+  iface->get_item_type = valent_mixer_streams_get_item_type;
+  iface->get_n_items = valent_mixer_streams_get_n_items;
+}
+
+static void
+valent_mixer_streams_finalize (GObject *object)
+{
+  ValentMixerStreams *self = VALENT_MIXER_STREAMS (object);
+
+  g_clear_pointer (&self->items, g_ptr_array_unref);
+
+  G_OBJECT_CLASS (valent_mixer_streams_parent_class)->finalize (object);
+}
+
+static void
+valent_mixer_streams_class_init (ValentMixerStreamsClass *klass)
+{
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->finalize = valent_mixer_streams_finalize;
+}
+
+static void
+valent_mixer_streams_init (ValentMixerStreams *self)
+{
+  self->items = g_ptr_array_new_with_free_func (g_object_unref);
+}
+
+static inline void
+valent_mixer_streams_add (ValentMixerStreams *self,
+                          ValentMixerStream  *stream)
+{
+  unsigned int position = 0;
+
+  g_assert (VALENT_IS_MIXER_STREAMS (self));
+  g_assert (VALENT_IS_MIXER_STREAM (stream));
+
+  position = self->items->len;
+  g_ptr_array_add (self->items, g_object_ref (stream));
+  g_list_model_items_changed (G_LIST_MODEL (self), position, 0, 1);
+}
+
+#if 0
+static inline void
+valent_mixer_streams_insert (ValentMixerStreams *self,
+                             unsigned int        position,
+                             ValentMixerStream  *stream)
+{
+  g_assert (VALENT_IS_MIXER_STREAMS (self));
+  g_assert (VALENT_IS_MIXER_STREAM (stream));
+
+  g_ptr_array_insert (self->items, position, g_object_ref (stream));
+  g_list_model_items_changed (G_LIST_MODEL (self), position, 1, 0);
+}
+#endif
+
+static inline void
+valent_mixer_streams_remove (ValentMixerStreams *self,
+                             ValentMixerStream  *stream)
+{
+  unsigned int position = 0;
+
+  g_assert (VALENT_IS_MIXER_STREAMS (self));
+  g_assert (VALENT_IS_MIXER_STREAM (stream));
+
+  if (g_ptr_array_find (self->items, stream, &position))
+    {
+      g_ptr_array_remove_index (self->items, position);
+      g_list_model_items_changed (G_LIST_MODEL (self), position, 1, 0);
+    }
+}
+
+
 /**
  * ValentMixer:
  *
@@ -34,8 +162,9 @@ struct _ValentMixer
   ValentComponent     parent_instance;
 
   ValentMixerAdapter *default_adapter;
-  GPtrArray          *inputs;
-  GPtrArray          *outputs;
+  GListModel         *inputs;
+  GListModel         *outputs;
+  GPtrArray          *streams;
 };
 
 G_DEFINE_TYPE (ValentMixer, valent_mixer, VALENT_TYPE_COMPONENT)
@@ -49,19 +178,8 @@ enum {
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
-enum {
-  STREAM_ADDED,
-  STREAM_CHANGED,
-  STREAM_REMOVED,
-  N_SIGNALS
-};
-
-static guint signals[N_SIGNALS] = { 0, };
-
-
 static ValentMixer *default_mixer = NULL;
-static GQuark input_detail = 0;
-static GQuark output_detail = 0;
+
 
 /*
  * ValentMixerAdapter Callbacks
@@ -88,48 +206,25 @@ on_default_output_changed (ValentMixerAdapter *adapter,
   g_object_notify_by_pspec (G_OBJECT (self), properties [PROP_DEFAULT_OUTPUT]);
 }
 
-static inline void
-valent_mixer_propagate_signal (ValentMixer       *self,
-                               unsigned int       signal_id,
-                               ValentMixerStream *stream)
-{
-  GQuark detail = 0;
-
-  if (valent_mixer_stream_get_direction (stream) == VALENT_MIXER_INPUT)
-    detail = input_detail;
-  else
-    detail = output_detail;
-
-  g_signal_emit (G_OBJECT (self), signal_id, detail, stream);
-}
-
 static void
 on_stream_added (ValentMixerAdapter *adapter,
                  ValentMixerStream  *stream,
                  ValentMixer        *self)
 {
+  ValentMixerDirection direction = VALENT_MIXER_INPUT;
+
   g_assert (VALENT_IS_MIXER_ADAPTER (adapter));
   g_assert (VALENT_IS_MIXER_STREAM (stream));
   g_assert (VALENT_IS_MIXER (self));
 
-  if (valent_mixer_stream_get_direction (stream) == VALENT_MIXER_INPUT)
-    g_ptr_array_add (self->inputs, g_object_ref (stream));
-  else
-    g_ptr_array_add (self->outputs, g_object_ref (stream));
+  direction = valent_mixer_stream_get_direction (stream);
 
-  valent_mixer_propagate_signal (self, signals [STREAM_ADDED], stream);
-}
+  if (direction == VALENT_MIXER_INPUT && self->inputs != NULL)
+    valent_mixer_streams_add (VALENT_MIXER_STREAMS (self->inputs), stream);
+  else if (direction == VALENT_MIXER_OUTPUT && self->outputs != NULL)
+    valent_mixer_streams_add (VALENT_MIXER_STREAMS (self->outputs), stream);
 
-static void
-on_stream_changed (ValentMixerAdapter *adapter,
-                   ValentMixerStream  *stream,
-                   ValentMixer        *self)
-{
-  g_assert (VALENT_IS_MIXER_ADAPTER (adapter));
-  g_assert (VALENT_IS_MIXER_STREAM (stream));
-  g_assert (VALENT_IS_MIXER (self));
-
-  valent_mixer_propagate_signal (self, signals [STREAM_CHANGED], stream);
+  g_ptr_array_add (self->streams, g_object_ref (stream));
 }
 
 static void
@@ -137,16 +232,20 @@ on_stream_removed (ValentMixerAdapter *adapter,
                    ValentMixerStream  *stream,
                    ValentMixer        *self)
 {
+  ValentMixerDirection direction = VALENT_MIXER_INPUT;
+
   g_assert (VALENT_IS_MIXER_ADAPTER (adapter));
   g_assert (VALENT_IS_MIXER_STREAM (stream));
   g_assert (VALENT_IS_MIXER (self));
 
-  if (valent_mixer_stream_get_direction (stream) == VALENT_MIXER_INPUT)
-    g_ptr_array_remove (self->inputs, stream);
-  else
-    g_ptr_array_remove (self->outputs, stream);
+  direction = valent_mixer_stream_get_direction (stream);
 
-  valent_mixer_propagate_signal (self, signals [STREAM_REMOVED], stream);
+  if (direction == VALENT_MIXER_INPUT && self->inputs != NULL)
+    valent_mixer_streams_remove (VALENT_MIXER_STREAMS (self->inputs), stream);
+  else if (direction == VALENT_MIXER_OUTPUT && self->outputs != NULL)
+    valent_mixer_streams_remove (VALENT_MIXER_STREAMS (self->outputs), stream);
+
+  g_ptr_array_remove (self->streams, stream);
 }
 
 /*
@@ -192,11 +291,6 @@ valent_mixer_enable_extension (ValentComponent *component,
   g_signal_connect_object (adapter,
                            "stream-added",
                            G_CALLBACK (on_stream_added),
-                           self, 0);
-
-  g_signal_connect_object (adapter,
-                           "stream-changed",
-                           G_CALLBACK (on_stream_changed),
                            self, 0);
 
   g_signal_connect_object (adapter,
@@ -255,8 +349,9 @@ valent_mixer_finalize (GObject *object)
 {
   ValentMixer *self = VALENT_MIXER (object);
 
-  g_clear_pointer (&self->inputs, g_ptr_array_unref);
-  g_clear_pointer (&self->outputs, g_ptr_array_unref);
+  g_clear_weak_pointer (&self->inputs);
+  g_clear_weak_pointer (&self->outputs);
+  g_clear_pointer (&self->streams, g_ptr_array_unref);
 
   G_OBJECT_CLASS (valent_mixer_parent_class)->finalize (object);
 }
@@ -349,83 +444,12 @@ valent_mixer_class_init (ValentMixerClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
-
-  /**
-   * ValentMixer::stream-added:
-   * @mixer: a #ValentMixer
-   * @stream: a #ValentMixerStream
-   *
-   * Emitted when a stream is added to a [class@Valent.MixerAdapter] being
-   * monitored by @mixer.
-   *
-   * Since: 1.0
-   */
-  signals [STREAM_ADDED] =
-    g_signal_new ("stream-added",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-                  0,
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
-                  G_TYPE_NONE, 1, VALENT_TYPE_MIXER_STREAM);
-  g_signal_set_va_marshaller (signals [STREAM_ADDED],
-                              G_TYPE_FROM_CLASS (klass),
-                              g_cclosure_marshal_VOID__OBJECTv);
-
-  /**
-   * ValentMixer::stream-changed:
-   * @mixer: a #ValentMixer
-   * @stream: a #ValentMixerStream
-   *
-   * Emitted when a stream from a [class@Valent.MixerAdapter] being monitored by
-   * @mixer changes.
-   *
-   * Since: 1.0
-   */
-  signals [STREAM_CHANGED] =
-    g_signal_new ("stream-changed",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-                  0,
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
-                  G_TYPE_NONE, 1, VALENT_TYPE_MIXER_STREAM);
-  g_signal_set_va_marshaller (signals [STREAM_CHANGED],
-                              G_TYPE_FROM_CLASS (klass),
-                              g_cclosure_marshal_VOID__OBJECTv);
-
-  /**
-   * ValentMixer::stream-removed:
-   * @mixer: a #ValentMixer
-   * @stream: a #ValentMixerStream
-   *
-   * Emitted when a stream is removed from a [class@Valent.MixerAdapter] being
-   * monitored by @mixer.
-   *
-   * Since: 1.0
-   */
-  signals [STREAM_REMOVED] =
-    g_signal_new ("stream-removed",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-                  0,
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
-                  G_TYPE_NONE, 1, VALENT_TYPE_MIXER_STREAM);
-  g_signal_set_va_marshaller (signals [STREAM_REMOVED],
-                              G_TYPE_FROM_CLASS (klass),
-                              g_cclosure_marshal_VOID__OBJECTv);
-
-  /* Signal Details */
-  input_detail = g_quark_from_static_string ("input");
-  output_detail = g_quark_from_static_string ("output");
 }
 
 static void
 valent_mixer_init (ValentMixer *self)
 {
-  self->inputs = g_ptr_array_new_with_free_func (g_object_unref);
-  self->outputs = g_ptr_array_new_with_free_func (g_object_unref);
+  self->streams = g_ptr_array_new_with_free_func (g_object_unref);
 }
 
 /**
@@ -559,25 +583,33 @@ valent_mixer_set_default_output (ValentMixer       *mixer,
  *
  * Get a list of all the input streams being monitored by @mixer.
  *
- * Returns: (transfer container) (element-type Valent.MixerStream): a #GPtrArray
+ * Returns: (transfer full): a #GListModel
  *
  * Since: 1.0
  */
-GPtrArray *
+GListModel *
 valent_mixer_get_inputs (ValentMixer *mixer)
 {
-  GPtrArray *ret;
-
   VALENT_ENTRY;
 
   g_return_val_if_fail (VALENT_IS_MIXER (mixer), NULL);
 
-  ret = g_ptr_array_new_with_free_func (g_object_unref);
+  if (mixer->inputs != NULL)
+    VALENT_RETURN (g_object_ref (mixer->inputs));
 
-  for (unsigned int i = 0; i < mixer->inputs->len; i++)
-    g_ptr_array_add (ret, g_object_ref (g_ptr_array_index (mixer->inputs, i)));
+  mixer->inputs = g_object_new (VALENT_TYPE_MIXER_STREAMS, NULL);
+  g_object_add_weak_pointer (G_OBJECT (mixer->inputs),
+                             (gpointer *)&mixer->inputs);
 
-  VALENT_RETURN (ret);
+  for (unsigned int i = 0; i < mixer->streams->len; i++)
+    {
+      ValentMixerStream *stream = g_ptr_array_index (mixer->streams, i);
+
+      if (valent_mixer_stream_get_direction (stream) == VALENT_MIXER_INPUT)
+        valent_mixer_streams_add (VALENT_MIXER_STREAMS (mixer->inputs), stream);
+    }
+
+  VALENT_RETURN (mixer->inputs);
 }
 
 /**
@@ -586,24 +618,32 @@ valent_mixer_get_inputs (ValentMixer *mixer)
  *
  * Get a list of all the output streams being monitored by @mixer.
  *
- * Returns: (transfer container) (element-type Valent.MixerStream): a #GPtrArray
+ * Returns: (transfer full): a #GListModel
  *
  * Since: 1.0
  */
-GPtrArray *
+GListModel *
 valent_mixer_get_outputs (ValentMixer *mixer)
 {
-  GPtrArray *ret;
-
   VALENT_ENTRY;
 
   g_return_val_if_fail (VALENT_IS_MIXER (mixer), NULL);
 
-  ret = g_ptr_array_new_with_free_func (g_object_unref);
+  if (mixer->outputs != NULL)
+    VALENT_RETURN (g_object_ref (mixer->outputs));
 
-  for (unsigned int i = 0; i < mixer->outputs->len; i++)
-    g_ptr_array_add (ret, g_object_ref (g_ptr_array_index (mixer->outputs, i)));
+  mixer->outputs = g_object_new (VALENT_TYPE_MIXER_STREAMS, NULL);
+  g_object_add_weak_pointer (G_OBJECT (mixer->outputs),
+                             (gpointer *)&mixer->outputs);
 
-  VALENT_RETURN (ret);
+  for (unsigned int i = 0; i < mixer->streams->len; i++)
+    {
+      ValentMixerStream *stream = g_ptr_array_index (mixer->streams, i);
+
+      if (valent_mixer_stream_get_direction (stream) == VALENT_MIXER_OUTPUT)
+        valent_mixer_streams_add (VALENT_MIXER_STREAMS (mixer->outputs), stream);
+    }
+
+  VALENT_RETURN (mixer->outputs);
 }
 

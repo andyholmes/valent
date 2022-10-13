@@ -130,13 +130,10 @@ on_stream_changed (GvcMixerControl *control,
                    unsigned int     stream_id,
                    ValentPaMixer   *self)
 {
-  ValentMixerAdapter *adapter = VALENT_MIXER_ADAPTER (self);
   ValentMixerStream *stream;
 
   stream = g_hash_table_lookup (self->streams, GUINT_TO_POINTER (stream_id));
-
-  if (stream != NULL)
-    valent_mixer_adapter_stream_changed (adapter, stream);
+  g_object_notify (G_OBJECT (stream), "level");
 }
 
 static void
@@ -202,11 +199,7 @@ valent_pa_mixer_unload (ValentPaMixer *self)
       g_hash_table_iter_remove (&iter);
     }
 
-  g_signal_handlers_disconnect_by_func (self->control, on_default_sink_changed, self);
-  g_signal_handlers_disconnect_by_func (self->control, on_default_source_changed, self);
-  g_signal_handlers_disconnect_by_func (self->control, on_stream_added, self);
-  g_signal_handlers_disconnect_by_func (self->control, on_stream_removed, self);
-  g_signal_handlers_disconnect_by_func (self->control, on_stream_changed, self);
+  g_signal_handlers_disconnect_by_data (self->control, self);
 }
 
 static void

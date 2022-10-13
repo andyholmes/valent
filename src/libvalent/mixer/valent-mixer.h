@@ -32,9 +32,9 @@ VALENT_AVAILABLE_IN_1_0
 void                valent_mixer_set_default_output (ValentMixer       *mixer,
                                                      ValentMixerStream *stream);
 VALENT_AVAILABLE_IN_1_0
-GPtrArray         * valent_mixer_get_inputs         (ValentMixer       *mixer);
+GListModel        * valent_mixer_get_inputs         (ValentMixer       *mixer);
 VALENT_AVAILABLE_IN_1_0
-GPtrArray         * valent_mixer_get_outputs        (ValentMixer       *mixer);
+GListModel        * valent_mixer_get_outputs        (ValentMixer       *mixer);
 
 G_END_DECLS
 

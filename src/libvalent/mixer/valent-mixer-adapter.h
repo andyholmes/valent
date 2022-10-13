@@ -34,8 +34,6 @@ struct _ValentMixerAdapterClass
   /* signals */
   void                (*stream_added)       (ValentMixerAdapter *adapter,
                                              ValentMixerStream  *stream);
-  void                (*stream_changed)     (ValentMixerAdapter *adapter,
-                                             ValentMixerStream  *stream);
   void                (*stream_removed)     (ValentMixerAdapter *adapter,
                                              ValentMixerStream  *stream);
 
@@ -45,9 +43,6 @@ struct _ValentMixerAdapterClass
 
 VALENT_AVAILABLE_IN_1_0
 void                valent_mixer_adapter_stream_added       (ValentMixerAdapter *adapter,
-                                                             ValentMixerStream  *stream);
-VALENT_AVAILABLE_IN_1_0
-void                valent_mixer_adapter_stream_changed     (ValentMixerAdapter *adapter,
                                                              ValentMixerStream  *stream);
 VALENT_AVAILABLE_IN_1_0
 void                valent_mixer_adapter_stream_removed     (ValentMixerAdapter *adapter,
