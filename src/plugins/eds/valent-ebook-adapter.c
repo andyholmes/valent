@@ -31,16 +31,15 @@ G_DEFINE_TYPE_WITH_CODE (ValentEBookAdapter, valent_ebook_adapter, VALENT_TYPE_C
  * ESourceRegistry Callbacks
  */
 static void
-e_book_client_connect_cb (GObject            *object,
-                          GAsyncResult       *result,
-                          ValentEBookAdapter *self)
+g_async_initable_new_async_cb (GAsyncInitable     *initable,
+                               GAsyncResult       *result,
+                               ValentEBookAdapter *self)
 {
-  g_autoptr (EClient) client = NULL;
+  ESource *source = NULL;
+  g_autoptr (GObject) object = NULL;
   g_autoptr (GError) error = NULL;
-  ValentContactStore *store;
-  ESource *source;
 
-  if ((client = e_book_client_connect_finish (result, &error)) == NULL)
+  if ((object = g_async_initable_new_finish (initable, result, &error)) == NULL)
     {
       if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
         g_warning ("Failed loading address book: %s", error->message);
@@ -48,13 +47,12 @@ e_book_client_connect_cb (GObject            *object,
       return;
     }
 
-  source = e_client_get_source (client);
-  store = g_object_new (VALENT_TYPE_EBOOK_STORE,
-                        "client", client,
-                        "source", source,
-                        NULL);
-  g_hash_table_replace (self->stores, g_object_ref (source), store);
-  valent_contacts_adapter_store_added (VALENT_CONTACTS_ADAPTER (self), store);
+  source = valent_contact_store_get_source (VALENT_CONTACT_STORE (object));
+  g_hash_table_replace (self->stores,
+                        g_object_ref (source),
+                        g_object_ref (object));
+  valent_contacts_adapter_store_added (VALENT_CONTACTS_ADAPTER (self),
+                                       VALENT_CONTACT_STORE (object));
 }
 
 static void
@@ -71,13 +69,14 @@ on_source_added (ESourceRegistry    *registry,
   if (!e_source_has_extension (source, E_SOURCE_EXTENSION_ADDRESS_BOOK))
     return;
 
-  /* Chain to the service cancellable */
   destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
-  e_book_client_connect (source,
-                         -1,
-                         destroy,
-                         (GAsyncReadyCallback)e_book_client_connect_cb,
-                         self);
+  g_async_initable_new_async (VALENT_TYPE_EBOOK_STORE,
+                              G_PRIORITY_DEFAULT,
+                              destroy,
+                              (GAsyncReadyCallback)g_async_initable_new_async_cb,
+                              self,
+                              "source", source,
+                              NULL);
 }
 
 static void

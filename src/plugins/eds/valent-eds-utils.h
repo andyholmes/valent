@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <gio/gio.h>
-#include <libvalent-core.h>
 #include <libvalent-contacts.h>
 
 G_BEGIN_DECLS

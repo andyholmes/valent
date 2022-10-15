@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <libvalent-core.h>
 #include <libvalent-contacts.h>
 
 G_BEGIN_DECLS
