@@ -748,21 +748,10 @@ valent_device_manager_init_async (GAsyncInitable      *initable,
                           g_steal_pointer (&task));
 }
 
-static gboolean
-valent_device_manager_init_finish (GAsyncInitable  *initable,
-                                   GAsyncResult    *result,
-                                   GError         **error)
-{
-  g_return_val_if_fail (g_task_is_valid (result, initable), FALSE);
-
-  return g_task_propagate_boolean (G_TASK (result), error);
-}
-
 static void
 g_async_initable_iface_init (GAsyncInitableIface *iface)
 {
   iface->init_async = valent_device_manager_init_async;
-  iface->init_finish = valent_device_manager_init_finish;
 }
 
 /*
