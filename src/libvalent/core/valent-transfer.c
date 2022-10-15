@@ -311,7 +311,7 @@ valent_transfer_set_progress (ValentTransfer *transfer,
   if (priv->progress != progress)
     {
       priv->progress = progress;
-      valent_object_notify_by_pspec (G_OBJECT (transfer),
+      valent_object_notify_by_pspec (VALENT_OBJECT (transfer),
                                      properties [PROP_PROGRESS]);
     }
   valent_object_unlock (VALENT_OBJECT (transfer));
@@ -375,7 +375,7 @@ valent_transfer_execute_cb (GObject      *object,
       g_task_return_error (task, g_error_copy (priv->error));
     }
 
-  valent_object_notify_by_pspec (G_OBJECT (self), properties [PROP_STATE]);
+  valent_object_notify_by_pspec (VALENT_OBJECT (self), properties [PROP_STATE]);
 
   VALENT_EXIT;
 }
@@ -438,7 +438,7 @@ valent_transfer_execute (ValentTransfer      *transfer,
   priv->state = VALENT_TRANSFER_STATE_ACTIVE;
   valent_object_unlock (VALENT_OBJECT (transfer));
 
-  valent_object_notify_by_pspec (G_OBJECT (transfer), properties [PROP_STATE]);
+  valent_object_notify_by_pspec (VALENT_OBJECT (transfer), properties [PROP_STATE]);
 
   VALENT_EXIT;
 }
