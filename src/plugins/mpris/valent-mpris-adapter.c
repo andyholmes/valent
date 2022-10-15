@@ -108,18 +108,20 @@ on_player_state_changed (ValentMPRISAdapter *self,
 }
 
 static void
-valent_mpris_player_new_cb (GObject      *object,
-                            GAsyncResult *result,
-                            gpointer      user_data)
+g_async_initable_new_async_cb (GObject      *object,
+                               GAsyncResult *result,
+                               gpointer      user_data)
 {
   ValentMPRISAdapter *self = VALENT_MPRIS_ADAPTER (user_data);
-  g_autoptr (ValentMPRISPlayer) player = NULL;
+  GAsyncInitable *initable = G_ASYNC_INITABLE (object);
+  g_autoptr (GObject) player = NULL;
   g_autofree char *name = NULL;
   g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_MPRIS_ADAPTER (self));
+  g_assert (G_IS_ASYNC_INITABLE (initable));
 
-  if ((player = valent_mpris_player_new_finish (result, &error)) == NULL)
+  if ((player = g_async_initable_new_finish (initable, result, &error)) == NULL)
     {
       if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
         g_warning ("%s(): %s", G_STRFUNC, error->message);
@@ -137,7 +139,7 @@ valent_mpris_player_new_cb (GObject      *object,
                         g_object_ref (player));
 
   valent_media_adapter_player_added (VALENT_MEDIA_ADAPTER (self),
-                                          VALENT_MEDIA_PLAYER (player));
+                                     VALENT_MEDIA_PLAYER (player));
 }
 
 static void
@@ -163,18 +165,21 @@ on_name_owner_changed (GDBusConnection *connection,
 
   known = g_hash_table_contains (self->players, name);
 
-  if (strlen (new_owner) > 0 && !known)
+  if (*new_owner != '\0' && !known)
     {
       g_autoptr (GCancellable) destroy = NULL;
 
       /* Cancel initialization if the adapter is destroyed */
       destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
-      valent_mpris_player_new (name,
-                               destroy,
-                               (GAsyncReadyCallback)valent_mpris_player_new_cb,
-                               self);
+      g_async_initable_new_async (VALENT_TYPE_MPRIS_PLAYER,
+                                  G_PRIORITY_DEFAULT,
+                                  destroy,
+                                  g_async_initable_new_async_cb,
+                                  self,
+                                  "bus-name", name,
+                                  NULL);
     }
-  else if (strlen (old_owner) > 0 && known)
+  else if (*old_owner != '\0' && known)
     {
       ValentMediaAdapter *adapter = VALENT_MEDIA_ADAPTER (self);
       gpointer key, value;
@@ -207,26 +212,31 @@ list_names_cb (GDBusConnection *connection,
 
   if (reply != NULL)
     {
+      g_autoptr (GCancellable) destroy = NULL;
       g_autoptr (GVariant) names = NULL;
       GVariantIter iter;
       const char *name;
 
+      destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
       names = g_variant_get_child_value (reply, 0);
       g_variant_iter_init (&iter, names);
 
       while (g_variant_iter_next (&iter, "&s", &name))
         {
+          if G_LIKELY (!g_str_has_prefix (name, "org.mpris.MediaPlayer2"))
+            continue;
+
           /* This is the D-Bus name we export on */
           if G_UNLIKELY (g_str_has_prefix (name, VALENT_MPRIS_DBUS_NAME))
             return;
 
-          if G_LIKELY (!g_str_has_prefix (name, "org.mpris.MediaPlayer2"))
-            continue;
-
-          valent_mpris_player_new (name,
-                                   g_task_get_cancellable (task),
-                                   valent_mpris_player_new_cb,
-                                   self);
+          g_async_initable_new_async (VALENT_TYPE_MPRIS_PLAYER,
+                                      G_PRIORITY_DEFAULT,
+                                      destroy,
+                                      g_async_initable_new_async_cb,
+                                      self,
+                                      "bus-name", name,
+                                      NULL);
         }
     }
 
