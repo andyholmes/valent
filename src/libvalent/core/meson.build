@@ -109,7 +109,6 @@ libvalent_core_deps = [
   libm_dep,
   gio_dep,
   gio_unix_dep,
-  jsonglib_dep,
   libpeas_dep,
 
   gnutls_dep,
