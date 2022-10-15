@@ -42,7 +42,6 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentSessionAdapter, valent_session_adapte
 
 /**
  * ValentSessionAdapterClass:
- * @changed: class closure for #ValentSessionAdapter::changed signal
  * @get_active: the virtual function pointer for valent_session_adapter_get_active()
  * @get_locked: the virtual function pointer for valent_session_adapter_get_locked()
  * @set_locked: the virtual function pointer for valent_session_adapter_set_locked()
@@ -59,13 +58,6 @@ enum {
 };
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
-
-enum {
-  CHANGED,
-  N_SIGNALS
-};
-
-static guint signals[N_SIGNALS] = { 0, };
 
 
 /* LCOV_EXCL_START */
@@ -199,46 +191,11 @@ valent_session_adapter_class_init (ValentSessionAdapterClass *klass)
                          G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
-
-  /**
-   * ValentSessionAdapter::changed:
-   * @adapter: a #ValentSessionAdapter
-   *
-   * Emitted when @adapter changes.
-   *
-   * Since: 1.0
-   */
-  signals [CHANGED] =
-    g_signal_new ("changed",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_LAST,
-                  G_STRUCT_OFFSET (ValentSessionAdapterClass, changed),
-                  NULL, NULL, NULL,
-                  G_TYPE_NONE, 0);
 }
 
 static void
 valent_session_adapter_init (ValentSessionAdapter *adapter)
 {
-}
-
-/**
- * valent_session_adapter_changed:
- * @adapter: a #ValentSessionAdapter
- *
- * Emit [signal@Valent.SessionAdapter::changed] on @adapter.
- *
- * This method should only be called by implementations of
- * [class@Valent.SessionAdapter].
- *
- * Since: 1.0
- */
-void
-valent_session_adapter_changed (ValentSessionAdapter *adapter)
-{
-  g_return_if_fail (VALENT_IS_SESSION_ADAPTER (adapter));
-
-  g_signal_emit (G_OBJECT (adapter), signals [CHANGED], 0);
 }
 
 /**

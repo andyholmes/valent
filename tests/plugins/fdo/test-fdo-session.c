@@ -82,19 +82,10 @@ dbusmock_update_property (FdoSessionFixture *fixture,
 
 static void
 on_session_changed (ValentSession     *session,
+                    GParamSpec        *pspec,
                     FdoSessionFixture *fixture)
 {
   g_main_loop_quit (fixture->loop);
-}
-
-static gboolean
-on_timeout (gpointer data)
-{
-  FdoSessionFixture *fixture = data;
-
-  g_main_loop_quit (fixture->loop);
-
-  return G_SOURCE_REMOVE;
 }
 
 static void
@@ -104,11 +95,10 @@ test_fdo_session_adapter (FdoSessionFixture *fixture,
   /* Wait a bit longer for the D-Bus calls to resolve
    * NOTE: this is longer than most tests due to the chained async functions
    */
-  g_timeout_add_seconds (1, on_timeout, fixture);
-  g_main_loop_run (fixture->loop);
+  valent_test_wait (1000);
 
   g_signal_connect (fixture->session,
-                    "changed",
+                    "notify",
                     G_CALLBACK (on_session_changed),
                     fixture);
 

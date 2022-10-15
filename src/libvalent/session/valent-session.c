@@ -32,11 +32,19 @@ struct _ValentSession
 {
   ValentComponent       parent_instance;
 
-  GCancellable         *cancellable;
   ValentSessionAdapter *default_adapter;
 };
 
 G_DEFINE_TYPE (ValentSession, valent_session, VALENT_TYPE_COMPONENT)
+
+enum {
+  PROP_0,
+  PROP_ACTIVE,
+  PROP_LOCKED,
+  N_PROPERTIES
+};
+
+static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 enum {
   CHANGED,
@@ -49,13 +57,27 @@ static ValentSession *default_adapter = NULL;
 
 
 static void
-on_session_adapter_changed (ValentSessionAdapter *adapter,
-                            ValentSession        *self)
+on_active_changed (ValentSessionAdapter *adapter,
+                   GParamSpec           *pspec,
+                   ValentSession        *self)
 {
   VALENT_ENTRY;
 
   if (self->default_adapter == adapter)
-    g_signal_emit (G_OBJECT (self), signals [CHANGED], 0);
+    g_object_notify_by_pspec (G_OBJECT (self), properties [PROP_ACTIVE]);
+
+  VALENT_EXIT;
+}
+
+static void
+on_locked_changed (ValentSessionAdapter *adapter,
+                   GParamSpec           *pspec,
+                   ValentSession        *self)
+{
+  VALENT_ENTRY;
+
+  if (self->default_adapter == adapter)
+    g_object_notify_by_pspec (G_OBJECT (self), properties [PROP_LOCKED]);
 
   VALENT_EXIT;
 }
@@ -76,10 +98,13 @@ valent_session_bind_extension (ValentComponent *component,
   g_assert (VALENT_IS_SESSION (self));
   g_assert (VALENT_IS_SESSION_ADAPTER (adapter));
 
-  /* Watch for changes */
   g_signal_connect_object (adapter,
-                           "changed",
-                           G_CALLBACK (on_session_adapter_changed),
+                           "notify::active",
+                           G_CALLBACK (on_active_changed),
+                           component, 0);
+  g_signal_connect_object (adapter,
+                           "notify::locked",
+                           G_CALLBACK (on_locked_changed),
                            component, 0);
 
   /* Set default provider */
@@ -116,24 +141,45 @@ valent_session_unbind_extension (ValentComponent *component,
  * GObject
  */
 static void
-valent_session_dispose (GObject *object)
+valent_session_get_property (GObject    *object,
+                             guint       prop_id,
+                             GValue     *value,
+                             GParamSpec *pspec)
 {
   ValentSession *self = VALENT_SESSION (object);
 
-  if (!g_cancellable_is_cancelled (self->cancellable))
-    g_cancellable_cancel (self->cancellable);
+  switch (prop_id)
+    {
+    case PROP_ACTIVE:
+      g_value_set_boolean (value, valent_session_get_active (self));
+      break;
 
-  G_OBJECT_CLASS (valent_session_parent_class)->dispose (object);
+    case PROP_LOCKED:
+      g_value_set_boolean (value, valent_session_get_locked (self));
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
 }
 
 static void
-valent_session_finalize (GObject *object)
+valent_session_set_property (GObject      *object,
+                             guint         prop_id,
+                             const GValue *value,
+                             GParamSpec   *pspec)
 {
   ValentSession *self = VALENT_SESSION (object);
 
-  g_clear_object (&self->cancellable);
+  switch (prop_id)
+    {
+    case PROP_LOCKED:
+      valent_session_set_locked (self, g_value_get_boolean (value));
+      break;
 
-  G_OBJECT_CLASS (valent_session_parent_class)->finalize (object);
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
 }
 
 static void
@@ -142,11 +188,41 @@ valent_session_class_init (ValentSessionClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentComponentClass *component_class = VALENT_COMPONENT_CLASS (klass);
 
-  object_class->dispose = valent_session_dispose;
-  object_class->finalize = valent_session_finalize;
+  object_class->get_property = valent_session_get_property;
+  object_class->set_property = valent_session_set_property;
 
   component_class->bind_extension = valent_session_bind_extension;
   component_class->unbind_extension = valent_session_unbind_extension;
+
+  /**
+   * ValentSession:active: (getter get_active)
+   *
+   * Whether the session is active.
+   *
+   * Since: 1.0
+   */
+  properties [PROP_ACTIVE] =
+    g_param_spec_boolean ("active", NULL, NULL,
+                          FALSE,
+                          (G_PARAM_READABLE |
+                           G_PARAM_EXPLICIT_NOTIFY |
+                           G_PARAM_STATIC_STRINGS));
+
+  /**
+   * ValentSession:locked: (getter get_locked) (setter set_locked)
+   *
+   * Whether the session is locked.
+   *
+   * Since: 1.0
+   */
+  properties [PROP_LOCKED] =
+    g_param_spec_boolean ("locked", NULL, NULL,
+                          FALSE,
+                          (G_PARAM_READWRITE |
+                           G_PARAM_EXPLICIT_NOTIFY |
+                           G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 
   /**
    * ValentSession::changed:
@@ -169,7 +245,6 @@ valent_session_class_init (ValentSessionClass *klass)
 static void
 valent_session_init (ValentSession *self)
 {
-  self->cancellable = g_cancellable_new ();
 }
 
 /**
@@ -200,7 +275,7 @@ valent_session_get_default (void)
 }
 
 /**
- * valent_session_get_active:
+ * valent_session_get_active: (get-property active)
  * @session: a #ValentSession
  *
  * Get the active state of the primary [class@Valent.SessionAdapter].
@@ -225,7 +300,7 @@ valent_session_get_active (ValentSession *session)
 }
 
 /**
- * valent_session_get_locked:
+ * valent_session_get_locked: (get-property locked)
  * @session: a #ValentSession
  *
  * Get the locked state of the primary [class@Valent.SessionAdapter].
@@ -250,7 +325,7 @@ valent_session_get_locked (ValentSession *session)
 }
 
 /**
- * valent_session_set_locked:
+ * valent_session_set_locked: (set-property locked)
  * @session: a #ValentSession
  * @state: %TRUE to lock, or %FALSE to unlock
  *

@@ -72,7 +72,7 @@ valent_lock_plugin_handle_lock_request (ValentLockPlugin *self,
  * Remote Lock
  */
 static void
-update_actions (ValentLockPlugin *self)
+valent_lock_plugin_update_actions (ValentLockPlugin *self)
 {
   GAction *action;
 
@@ -91,7 +91,7 @@ valent_lock_plugin_handle_lock (ValentLockPlugin *self,
   g_assert (VALENT_IS_PACKET (packet));
 
   if (valent_packet_get_boolean (packet, "isLocked", &self->remote_locked))
-    update_actions (self);
+    valent_lock_plugin_update_actions (self);
 }
 
 static void
@@ -214,13 +214,14 @@ valent_lock_plugin_update_state (ValentDevicePlugin *plugin,
       if (self->session_changed_id == 0)
         {
           self->session_changed_id =
-            g_signal_connect_swapped (self->session,
-                                      "changed",
-                                      G_CALLBACK (valent_lock_plugin_send_state),
-                                      self);
+            g_signal_connect_object (self->session,
+                                     "notify::locked",
+                                     G_CALLBACK (valent_lock_plugin_send_state),
+                                     self,
+                                     G_CONNECT_SWAPPED);
         }
 
-      update_actions (self);
+      valent_lock_plugin_update_actions (self);
       valent_lock_plugin_request_state (self);
     }
   else
