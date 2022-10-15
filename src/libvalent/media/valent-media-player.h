@@ -112,16 +112,10 @@ struct _ValentMediaPlayerClass
                                         gint64             offset);
   void                 (*stop)         (ValentMediaPlayer *player);
 
-
-  /* signals */
-  void                 (*changed)      (ValentMediaPlayer *player);
-
   /*< private >*/
   gpointer             padding[8];
 };
 
-VALENT_AVAILABLE_IN_1_0
-void                 valent_media_player_changed      (ValentMediaPlayer *player);
 VALENT_AVAILABLE_IN_1_0
 gboolean             valent_media_player_is_playing   (ValentMediaPlayer *player);
 VALENT_AVAILABLE_IN_1_0

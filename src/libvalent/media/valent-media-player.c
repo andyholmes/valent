@@ -26,7 +26,6 @@ G_DEFINE_TYPE (ValentMediaPlayer, valent_media_player, VALENT_TYPE_OBJECT)
 
 /**
  * ValentMediaPlayerClass:
- * @changed: the class closure for #ValentMediaPlayer::changed signal
  * @next: the virtual function pointer for valent_media_player_next()
  * @pause: the virtual function pointer for valent_media_player_pause()
  * @play: the virtual function pointer for valent_media_player_play()
@@ -62,13 +61,6 @@ enum {
 };
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
-
-enum {
-  CHANGED,
-  N_SIGNALS
-};
-
-static guint signals[N_SIGNALS] = { 0, };
 
 
 /* LCOV_EXCL_START */
@@ -452,52 +444,11 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
-
-  /**
-   * ValentMediaPlayer::changed:
-   * @player: a #ValentMediaPlayer
-   *
-   * Emitted when the state or properties of @player changes.
-   *
-   * This signal is a convenience for notifying of multiple changes in a single
-   * emission. Implementations may emit [signal@GObject.Object::notify] for
-   * properties, but must emit this signal for handlers that may be connected to
-   * [signal@Valent.Media::player-changed].
-   *
-   * Since: 1.0
-   */
-  signals [CHANGED] =
-    g_signal_new ("changed",
-                  VALENT_TYPE_MEDIA_PLAYER,
-                  G_SIGNAL_RUN_LAST,
-                  0,
-                  NULL, NULL, NULL,
-                  G_TYPE_NONE, 0);
 }
 
 static void
 valent_media_player_init (ValentMediaPlayer *self)
 {
-}
-
-/**
- * valent_media_player_changed:
- * @player: a #ValentMediaPlayer
- *
- * Emit [signal@Valent.MediaPlayer::changed] on @player.
- *
- * This method should only be called by implementations of
- * [class@Valent.MediaPlayer]. Signal handlers may query the state, so it must
- * emitted after the internal representation has been updated.
- *
- * Since: 1.0
- */
-void
-valent_media_player_changed (ValentMediaPlayer *player)
-{
-  g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
-
-  g_signal_emit (G_OBJECT (player), signals [CHANGED], 0);
 }
 
 /**
