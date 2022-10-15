@@ -20,7 +20,6 @@ struct _ValentMprisDevice
   ValentMediaPlayer   parent_instance;
 
   ValentDevice       *device;
-  unsigned int        flush_id;
   unsigned int        timer_id;
 
   ValentMediaActions  flags;
@@ -44,19 +43,6 @@ enum {
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
-
-static gboolean
-valent_mpris_device_flush (gpointer data)
-{
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (data);
-
-  g_assert (VALENT_IS_MPRIS_DEVICE (self));
-
-  valent_media_player_changed (VALENT_MEDIA_PLAYER (self));
-  g_clear_handle_id (&self->flush_id, g_source_remove);
-
-  return G_SOURCE_REMOVE;
-}
 
 static gboolean
 valent_mpris_device_timer (gpointer data)
@@ -489,7 +475,6 @@ valent_mpris_device_dispose (GObject *object)
 {
   ValentMprisDevice *self = VALENT_MPRIS_DEVICE (object);
 
-  g_clear_handle_id (&self->flush_id, g_source_remove);
   g_clear_handle_id (&self->timer_id, g_source_remove);
 
   G_OBJECT_CLASS (valent_mpris_device_parent_class)->dispose (object);
@@ -550,9 +535,6 @@ valent_mpris_device_notify (GObject    *object,
                             GParamSpec *pspec)
 {
   ValentMprisDevice *self = VALENT_MPRIS_DEVICE (object);
-
-  if (self->flush_id == 0)
-    self->flush_id = g_idle_add (valent_mpris_device_flush, self);
 
   if (self->timer_id == 0 && self->state == VALENT_MEDIA_STATE_PLAYING)
     self->timer_id = g_timeout_add_seconds (1, valent_mpris_device_timer, self);

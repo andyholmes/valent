@@ -82,10 +82,7 @@ on_application_properties_changed (GDBusProxy        *application,
   g_variant_dict_init (&dict, changed_properties);
 
   if (g_variant_dict_contains (&dict, "Identity"))
-    {
-      g_object_notify (G_OBJECT (player), "name");
-      valent_media_player_changed (player);
-    }
+    g_object_notify (G_OBJECT (player), "name");
 
   g_variant_dict_clear (&dict);
 }
@@ -112,8 +109,6 @@ on_player_properties_changed (GDBusProxy        *proxy,
 
   g_variant_dict_clear (&dict);
   g_object_thaw_notify (G_OBJECT (player));
-
-  valent_media_player_changed (player);
 }
 
 static void

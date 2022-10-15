@@ -27,6 +27,9 @@ struct _ValentMprisPlugin
 
   GHashTable         *players;
   GHashTable         *transfers;
+
+  GHashTable         *pending;
+  unsigned int        flush_id;
 };
 
 G_DEFINE_TYPE (ValentMprisPlugin, valent_mpris_plugin, VALENT_TYPE_DEVICE_PLUGIN)
@@ -143,6 +146,25 @@ valent_mpris_plugin_send_album_art (ValentMprisPlugin *self,
                            self);
 }
 
+static gboolean
+valent_mpris_plugin_flush (gpointer data)
+{
+  ValentMprisPlugin *self = VALENT_MPRIS_PLUGIN (data);
+  GHashTableIter iter;
+  ValentMediaPlayer *player;
+
+  g_hash_table_iter_init (&iter, self->pending);
+  while (g_hash_table_iter_next (&iter, (void **)&player, NULL))
+    {
+      valent_mpris_plugin_send_player_info (self, player, TRUE, TRUE);
+      g_hash_table_iter_remove (&iter);
+    }
+
+  self->flush_id = 0;
+
+  return G_SOURCE_REMOVE;
+}
+
 static void
 on_player_changed (ValentMedia       *media,
                    ValentMediaPlayer *player,
@@ -150,7 +172,10 @@ on_player_changed (ValentMedia       *media,
 {
   g_assert (VALENT_IS_MPRIS_PLUGIN (self));
 
-  valent_mpris_plugin_send_player_info (self, player, TRUE, TRUE);
+  g_hash_table_add (self->pending, player);
+
+  if (self->flush_id == 0)
+    self->flush_id = g_idle_add (valent_mpris_plugin_flush, self);
 }
 
 static void
@@ -184,6 +209,9 @@ on_players_changed (ValentMedia       *media,
                     unsigned int       added,
                     ValentMprisPlugin *self)
 {
+  if (removed > 0)
+    g_hash_table_remove_all (self->pending);
+
   valent_mpris_plugin_send_player_list (self);
 }
 
@@ -498,6 +526,7 @@ valent_mpris_plugin_watch_media (ValentMprisPlugin *self,
     }
   else
     {
+      g_clear_handle_id (&self->flush_id, g_source_remove);
       g_signal_handlers_disconnect_by_data (self->media, self);
       self->media_watch = FALSE;
     }
@@ -771,6 +800,7 @@ valent_mpris_plugin_finalize (GObject *object)
 {
   ValentMprisPlugin *self = VALENT_MPRIS_PLUGIN (object);
 
+  g_clear_pointer (&self->pending, g_hash_table_unref);
   g_clear_pointer (&self->players, g_hash_table_unref);
   g_clear_pointer (&self->transfers, g_hash_table_unref);
 
@@ -802,5 +832,6 @@ valent_mpris_plugin_init (ValentMprisPlugin *self)
                                            g_str_equal,
                                            g_free,
                                            g_object_unref);
+  self->pending = g_hash_table_new (NULL, NULL);
 }
 

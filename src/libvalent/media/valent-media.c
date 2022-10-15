@@ -98,30 +98,23 @@ g_list_model_iface_init (GListModelInterface *iface)
  */
 static void
 on_player_changed (ValentMediaPlayer *player,
+                   GParamSpec        *pspec,
                    ValentMedia       *self)
 {
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_MEDIA (self));
 
-  g_signal_emit (G_OBJECT (self), signals [PLAYER_CHANGED], 0, player);
-
-  VALENT_EXIT;
-}
-
-static void
-on_player_seeked (ValentMediaPlayer *player,
-                  GParamSpec        *pspec,
-                  ValentMedia       *self)
-{
-  gint64 position = 0;
-
-  VALENT_ENTRY;
-
-  g_assert (VALENT_IS_MEDIA (self));
-
-  position = valent_media_player_get_position (player);
-  g_signal_emit (G_OBJECT (self), signals [PLAYER_SEEKED], 0, player, position);
+  if (g_strcmp0 (pspec->name, "position") == 0)
+    {
+      gint64 position = 0;
+      position = valent_media_player_get_position (player);
+      g_signal_emit (G_OBJECT (self), signals [PLAYER_SEEKED], 0, player, position);
+    }
+  else
+    {
+      g_signal_emit (G_OBJECT (self), signals [PLAYER_CHANGED], 0, player);
+    }
 
   VALENT_EXIT;
 }
@@ -144,12 +137,8 @@ on_player_added (ValentMediaAdapter *adapter,
                valent_media_player_get_name (player));
 
   g_signal_connect_object (player,
-                           "changed",
+                           "notify",
                            G_CALLBACK (on_player_changed),
-                           self, 0);
-  g_signal_connect_object (player,
-                           "notify::position",
-                           G_CALLBACK (on_player_seeked),
                            self, 0);
 
   position = self->players->len;
@@ -176,8 +165,7 @@ on_player_removed (ValentMediaAdapter *adapter,
                G_OBJECT_TYPE_NAME (player),
                valent_media_player_get_name (player));
 
-  g_signal_handlers_disconnect_by_func (player, on_player_changed, self);
-  g_signal_handlers_disconnect_by_func (player, on_player_seeked, self);
+  g_signal_handlers_disconnect_by_data (player, self);
   g_ptr_array_remove (self->paused, player);
 
   if (g_ptr_array_find (self->players, player, &position))

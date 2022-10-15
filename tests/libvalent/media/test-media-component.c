@@ -226,7 +226,7 @@ test_media_component_player (MediaComponentFixture *fixture,
                     "player-changed",
                     G_CALLBACK (on_player_changed),
                     fixture);
-  valent_media_player_changed (fixture->player);
+  g_object_notify (G_OBJECT (fixture->player), "state");
   g_assert_true (fixture->state);
   fixture->state = FALSE;
 
