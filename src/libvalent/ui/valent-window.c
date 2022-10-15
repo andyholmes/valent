@@ -22,7 +22,7 @@ struct _ValentWindow
   AdwApplicationWindow  parent_instance;
   ValentDeviceManager  *manager;
 
-  /* Template widgets */
+  /* template */
   GtkStack             *stack;
   GtkListBox           *device_list;
   unsigned int          refresh_id;

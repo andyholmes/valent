@@ -17,7 +17,7 @@ struct _ValentTelephonyPreferences
 {
   ValentDevicePreferencesPage  parent_instance;
 
-  /* Template widgets */
+  /* template */
   AdwPreferencesGroup         *ringing_group;
   AdwComboRow                 *ringing_volume;
   GtkSwitch                   *ringing_pause;

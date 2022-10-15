@@ -20,10 +20,10 @@ struct _ValentShareTargetChooser
 
   ValentDeviceManager *manager;
   GListModel          *files;
-
-  GtkListBox          *device_list;
-
   unsigned int         refresh_id;
+
+  /* template */
+  GtkListBox          *device_list;
 };
 
 G_DEFINE_TYPE (ValentShareTargetChooser, valent_share_target_chooser, GTK_TYPE_WINDOW)

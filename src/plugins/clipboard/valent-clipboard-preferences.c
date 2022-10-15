@@ -17,7 +17,7 @@ struct _ValentClipboardPreferences
 {
   ValentDevicePreferencesPage  parent_instance;
 
-  /* Template widgets */
+  /* template */
   GtkSwitch                   *sync_pull;
   GtkSwitch                   *sync_push;
 };

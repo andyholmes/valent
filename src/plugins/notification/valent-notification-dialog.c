@@ -22,7 +22,7 @@ struct _ValentNotificationDialog
   char               *reply_id;
   gboolean            state;
 
-  /* Template widgets */
+  /* template */
   GtkButton          *cancel_button;
   GtkButton          *send_button;
   GtkImage           *icon_image;

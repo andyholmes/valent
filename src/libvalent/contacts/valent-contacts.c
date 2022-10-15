@@ -40,9 +40,8 @@ struct _ValentContacts
 
 static void   g_list_model_iface_init (GListModelInterface *iface);
 
-G_DEFINE_TYPE_EXTENDED (ValentContacts, valent_contacts, VALENT_TYPE_COMPONENT,
-                        0,
-                        G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
+G_DEFINE_TYPE_WITH_CODE (ValentContacts, valent_contacts, VALENT_TYPE_COMPONENT,
+                         G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
 static ValentContacts *default_contacts = NULL;
 

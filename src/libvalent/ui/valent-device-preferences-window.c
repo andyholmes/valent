@@ -23,7 +23,7 @@ struct _ValentDevicePreferencesWindow
 
   ValentDevice         *device;
 
-  /* Template widgets */
+  /* template */
   AdwPreferencesPage   *main_page;
   AdwPreferencesGroup  *plugin_group;
   GtkListBox           *plugin_list;
@@ -332,7 +332,6 @@ valent_device_preferences_window_class_init (ValentDevicePreferencesWindowClass 
   object_class->get_property = valent_device_preferences_window_get_property;
   object_class->set_property = valent_device_preferences_window_set_property;
 
-  /* Template */
   gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-device-preferences-window.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesWindow, main_page);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesWindow, plugin_group);

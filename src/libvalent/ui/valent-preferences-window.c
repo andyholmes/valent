@@ -31,7 +31,7 @@ struct _ValentPreferencesWindow
 
   GSettings            *settings;
 
-  /* Template widgets */
+  /* template */
   AdwPreferencesPage   *main_page;
 
   AdwPreferencesGroup  *general_group;
@@ -459,7 +459,6 @@ valent_preferences_window_class_init (ValentPreferencesWindowClass *klass)
   object_class->dispose = valent_preferences_window_dispose;
   object_class->finalize = valent_preferences_window_finalize;
 
-  /* Template */
   gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-preferences-window.ui");
 
   gtk_widget_class_bind_template_child (widget_class, ValentPreferencesWindow, general_group);

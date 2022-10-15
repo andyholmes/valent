@@ -30,9 +30,8 @@ struct _ValentFdoNotifications
 
 static void   g_async_initable_iface_init (GAsyncInitableIface *iface);
 
-G_DEFINE_TYPE_EXTENDED (ValentFdoNotifications, valent_fdo_notifications, VALENT_TYPE_NOTIFICATIONS_ADAPTER,
-                        0,
-                        G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init))
+G_DEFINE_TYPE_WITH_CODE (ValentFdoNotifications, valent_fdo_notifications, VALENT_TYPE_NOTIFICATIONS_ADAPTER,
+                         G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init))
 
 
 /*
