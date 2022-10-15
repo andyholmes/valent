@@ -3,14 +3,11 @@
 
 #pragma once
 
-#include <libpeas/peas.h>
-
 #include "valent-component.h"
-
 
 G_BEGIN_DECLS
 
-PeasExtension * valent_component_get_primary (ValentComponent *component);
+PeasExtension * valent_component_get_preferred (ValentComponent *self);
 
 G_END_DECLS
 

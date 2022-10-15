@@ -11,7 +11,6 @@
 
 #include "valent-clipboard.h"
 #include "valent-clipboard-adapter.h"
-#include "valent-component-private.h"
 
 
 /**
@@ -139,48 +138,31 @@ on_clipboard_adapter_changed (ValentClipboardAdapter *clipboard,
  * ValentComponent
  */
 static void
-valent_clipboard_bind_extension (ValentComponent *component,
+valent_clipboard_bind_preferred (ValentComponent *component,
                                  PeasExtension   *extension)
 {
   ValentClipboard *self = VALENT_CLIPBOARD (component);
   ValentClipboardAdapter *adapter = VALENT_CLIPBOARD_ADAPTER (extension);
-  PeasExtension *new_primary;
 
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_CLIPBOARD (self));
-  g_assert (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
+  g_assert (adapter == NULL || VALENT_IS_CLIPBOARD_ADAPTER (adapter));
 
-  g_signal_connect_object (adapter,
-                           "changed",
-                           G_CALLBACK (on_clipboard_adapter_changed),
-                           component, 0);
+  if (self->default_adapter != NULL)
+    {
+      g_signal_handlers_disconnect_by_data (self->default_adapter, self);
+      self->default_adapter = NULL;
+    }
 
-  /* Set default provider */
-  new_primary = valent_component_get_primary (component);
-  self->default_adapter = VALENT_CLIPBOARD_ADAPTER (new_primary);
-
-  VALENT_EXIT;
-}
-
-static void
-valent_clipboard_unbind_extension (ValentComponent *component,
-                                   PeasExtension   *extension)
-{
-  ValentClipboard *self = VALENT_CLIPBOARD (component);
-  ValentClipboardAdapter *adapter = VALENT_CLIPBOARD_ADAPTER (extension);
-  PeasExtension *new_primary;
-
-  VALENT_ENTRY;
-
-  g_assert (VALENT_IS_CLIPBOARD (self));
-  g_assert (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
-
-  g_signal_handlers_disconnect_by_data (adapter, self);
-
-  /* Set default provider */
-  new_primary = valent_component_get_primary (component);
-  self->default_adapter = VALENT_CLIPBOARD_ADAPTER (new_primary);
+  if (adapter != NULL)
+    {
+      self->default_adapter = adapter;
+      g_signal_connect_object (self->default_adapter,
+                               "changed",
+                               G_CALLBACK (on_clipboard_adapter_changed),
+                               self, 0);
+    }
 
   VALENT_EXIT;
 }
@@ -193,8 +175,7 @@ valent_clipboard_class_init (ValentClipboardClass *klass)
 {
   ValentComponentClass *component_class = VALENT_COMPONENT_CLASS (klass);
 
-  component_class->bind_extension = valent_clipboard_bind_extension;
-  component_class->unbind_extension = valent_clipboard_unbind_extension;
+  component_class->bind_preferred = valent_clipboard_bind_preferred;
 
   /**
    * ValentClipboard::changed:

@@ -29,6 +29,8 @@ struct _ValentComponentClass
                                            PeasExtension   *extension);
   void                (*unbind_extension) (ValentComponent *component,
                                            PeasExtension   *extension);
+  void                (*bind_preferred)   (ValentComponent *component,
+                                           PeasExtension   *extension);
 
   /*< private >*/
   gpointer            padding[8];

@@ -9,7 +9,6 @@
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
 
-#include "valent-component-private.h"
 #include "valent-session.h"
 #include "valent-session-adapter.h"
 
@@ -86,53 +85,35 @@ on_locked_changed (ValentSessionAdapter *adapter,
  * ValentComponent
  */
 static void
-valent_session_bind_extension (ValentComponent *component,
+valent_session_bind_preferred (ValentComponent *component,
                                PeasExtension   *extension)
 {
   ValentSession *self = VALENT_SESSION (component);
   ValentSessionAdapter *adapter = VALENT_SESSION_ADAPTER (extension);
-  PeasExtension *new_primary = NULL;
 
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_SESSION (self));
   g_assert (VALENT_IS_SESSION_ADAPTER (adapter));
 
-  g_signal_connect_object (adapter,
-                           "notify::active",
-                           G_CALLBACK (on_active_changed),
-                           component, 0);
-  g_signal_connect_object (adapter,
-                           "notify::locked",
-                           G_CALLBACK (on_locked_changed),
-                           component, 0);
+  if (self->default_adapter != NULL)
+    {
+      g_signal_handlers_disconnect_by_data (self->default_adapter, self);
+      self->default_adapter = NULL;
+    }
 
-  /* Set default provider */
-  new_primary = valent_component_get_primary (component);
-  self->default_adapter = VALENT_SESSION_ADAPTER (new_primary);
-
-  VALENT_EXIT;
-}
-
-static void
-valent_session_unbind_extension (ValentComponent *component,
-                                 PeasExtension   *extension)
-{
-  ValentSession *self = VALENT_SESSION (component);
-  ValentSessionAdapter *adapter = VALENT_SESSION_ADAPTER (extension);
-  PeasExtension *new_primary = NULL;
-
-  VALENT_ENTRY;
-
-  g_assert (VALENT_IS_SESSION (self));
-  g_assert (VALENT_IS_SESSION_ADAPTER (adapter));
-
-  /* Stop watching changes */
-  g_signal_handlers_disconnect_by_data (adapter, self);
-
-  /* Set default provider */
-  new_primary = valent_component_get_primary (component);
-  self->default_adapter = VALENT_SESSION_ADAPTER (new_primary);
+  if (adapter != NULL)
+    {
+      self->default_adapter = adapter;
+      g_signal_connect_object (self->default_adapter,
+                               "notify::active",
+                               G_CALLBACK (on_active_changed),
+                               self, 0);
+      g_signal_connect_object (self->default_adapter,
+                               "notify::locked",
+                               G_CALLBACK (on_locked_changed),
+                               self, 0);
+    }
 
   VALENT_EXIT;
 }
@@ -191,8 +172,7 @@ valent_session_class_init (ValentSessionClass *klass)
   object_class->get_property = valent_session_get_property;
   object_class->set_property = valent_session_set_property;
 
-  component_class->bind_extension = valent_session_bind_extension;
-  component_class->unbind_extension = valent_session_unbind_extension;
+  component_class->bind_preferred = valent_session_bind_preferred;
 
   /**
    * ValentSession:active: (getter get_active)
