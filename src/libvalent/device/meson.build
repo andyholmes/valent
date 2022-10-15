@@ -63,6 +63,8 @@ libvalent_device_generated_headers += [libvalent_device_enums[1]]
 # Dependencies
 libvalent_device_deps = [
   libvalent_core_dep,
+
+  jsonglib_dep,
 ]
 
 # Library Definitions
