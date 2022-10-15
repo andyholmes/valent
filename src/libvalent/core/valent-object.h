@@ -43,18 +43,17 @@ VALENT_AVAILABLE_IN_1_0
 GCancellable * valent_object_chain_cancellable  (ValentObject *object,
                                                  GCancellable *cancellable);
 VALENT_AVAILABLE_IN_1_0
+void           valent_object_destroy            (ValentObject *object);
+VALENT_AVAILABLE_IN_1_0
 gboolean       valent_object_in_destruction     (ValentObject *object);
 VALENT_AVAILABLE_IN_1_0
-void           valent_object_destroy            (ValentObject *object);
-
-/* Utilities */
-VALENT_AVAILABLE_IN_1_0
-void           valent_object_notify             (gpointer      object,
+void           valent_object_notify             (ValentObject *object,
                                                  const char   *property_name);
 VALENT_AVAILABLE_IN_1_0
-void           valent_object_notify_by_pspec    (gpointer      object,
+void           valent_object_notify_by_pspec    (ValentObject *object,
                                                  GParamSpec   *pspec);
 
+/* Utilities */
 VALENT_AVAILABLE_IN_1_0
 void           valent_object_list_free          (gpointer      list);
 VALENT_AVAILABLE_IN_1_0

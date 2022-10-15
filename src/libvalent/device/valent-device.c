@@ -436,7 +436,7 @@ valent_device_reset_pair (gpointer object)
   g_clear_handle_id (&device->incoming_pair, g_source_remove);
   g_clear_handle_id (&device->outgoing_pair, g_source_remove);
 
-  valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
+  g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
 
   return G_SOURCE_REMOVE;
 }
@@ -546,7 +546,7 @@ valent_device_notify_pair (ValentDevice *device)
   device->incoming_pair = g_timeout_add_seconds (PAIR_REQUEST_TIMEOUT,
                                                  valent_device_reset_pair,
                                                  device);
-  valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
+  g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
 }
 
 static void
@@ -782,7 +782,7 @@ pair_action (GSimpleAction *action,
                                                      device);
       VALENT_NOTE ("Pair request sent to \"%s\"", device->name);
 
-      valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
+      g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
     }
 }
 
@@ -1517,7 +1517,7 @@ valent_device_set_channel (ValentDevice  *device,
     return;
 
   valent_device_update_plugins (device);
-  valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
+  g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
 }
 
 /**
@@ -1661,7 +1661,7 @@ valent_device_set_paired (ValentDevice *device,
 
   /* Update plugins and notify */
   valent_device_update_plugins (device);
-  valent_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
+  g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
 }
 
 /**
