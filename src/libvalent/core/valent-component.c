@@ -146,13 +146,18 @@ g_async_initable_init_async_cb (GObject      *object,
                                 GAsyncResult *result,
                                 gpointer      user_data)
 {
+  GAsyncInitable *initable = G_ASYNC_INITABLE (object);
   g_autoptr (GError) error = NULL;
 
   VALENT_ENTRY;
 
-  if (!g_async_initable_init_finish (G_ASYNC_INITABLE (object), result, &error) &&
+  if (!g_async_initable_init_finish (initable, result, &error) &&
       !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-    g_warning ("%s failed to load: %s", G_OBJECT_TYPE_NAME (object), error->message);
+    {
+      g_warning ("%s initialization failed: %s",
+                 G_OBJECT_TYPE_NAME (initable),
+                 error->message);
+    }
 
   VALENT_EXIT;
 }
@@ -162,6 +167,8 @@ valent_component_enable_extension (ValentComponent *self,
                                    ComponentPlugin *plugin)
 {
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
+
+  VALENT_ENTRY;
 
   g_assert (VALENT_IS_COMPONENT (self));
   g_assert (plugin != NULL);
@@ -177,22 +184,43 @@ valent_component_enable_extension (ValentComponent *self,
 
   VALENT_COMPONENT_GET_CLASS (self)->bind_extension (self, plugin->extension);
 
+  /* If the extension requires initialization, use a chained cancellable in case
+   * the plugin is unloaded or the component is destroyed. */
   if (G_IS_ASYNC_INITABLE (plugin->extension))
     {
+      GAsyncInitable *initable = G_ASYNC_INITABLE (plugin->extension);
       g_autoptr (GCancellable) destroy = NULL;
 
-      /* Use a cancellable in case the plugin is unloaded before the operation
-       * completes. Chain to the component in case it's destroyed. */
       plugin->cancellable = g_cancellable_new ();
       destroy = valent_object_chain_cancellable (VALENT_OBJECT (self),
                                                  plugin->cancellable);
 
-      g_async_initable_init_async (G_ASYNC_INITABLE (plugin->extension),
+      g_async_initable_init_async (initable,
                                    G_PRIORITY_DEFAULT,
                                    destroy,
-                                   (GAsyncReadyCallback)g_async_initable_init_async_cb,
+                                   g_async_initable_init_async_cb,
                                    NULL);
     }
+  else if (G_IS_INITABLE (plugin->extension))
+    {
+      GInitable *initable = G_INITABLE (plugin->extension);
+      g_autoptr (GCancellable) destroy = NULL;
+      g_autoptr (GError) error = NULL;
+
+      plugin->cancellable = g_cancellable_new ();
+      destroy = valent_object_chain_cancellable (VALENT_OBJECT (self),
+                                                 plugin->cancellable);
+
+      if (!g_initable_init (initable, destroy, &error) &&
+          !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        {
+          g_warning ("%s initialization failed: %s",
+                     G_OBJECT_TYPE_NAME (initable),
+                     error->message);
+        }
+    }
+
+  VALENT_EXIT;
 }
 
 static void
