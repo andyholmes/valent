@@ -209,7 +209,6 @@ static void
 test_manager_dbus (ManagerFixture *fixture,
                    gconstpointer   user_data)
 {
-  ValentDevice *device;
   g_autoptr (GDBusConnection) connection = NULL;
   g_autoptr (GDBusObjectManager) manager = NULL;
   g_autolist (GDBusObject) objects = NULL;
@@ -260,8 +259,7 @@ test_manager_dbus (ManagerFixture *fixture,
                     G_CALLBACK (on_properties_changed),
                     fixture);
 
-  device = valent_device_manager_get_device_by_id (fixture->manager, "test-device");
-  g_object_notify (G_OBJECT (device), "type");
+  g_object_notify (G_OBJECT (fixture->device), "type");
   g_main_loop_run (fixture->loop);
 
   g_assert_true (fixture->data == interface);

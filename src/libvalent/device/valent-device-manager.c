@@ -515,6 +515,24 @@ on_device_state (ValentDevice        *device,
     }
 }
 
+static ValentDevice *
+valent_device_manager_lookup (ValentDeviceManager *manager,
+                              const char          *id)
+{
+  g_assert (VALENT_IS_DEVICE_MANAGER (manager));
+  g_assert (id != NULL);
+
+  for (unsigned int i = 0; i < manager->devices->len; i++)
+    {
+      ValentDevice *device = g_ptr_array_index (manager->devices, i);
+
+      if (strcmp (id, valent_device_get_id (device)) == 0)
+        return device;
+    }
+
+  return NULL;
+}
+
 static void
 valent_device_manager_add_device (ValentDeviceManager *self,
                                   ValentDevice        *device)
@@ -592,7 +610,7 @@ valent_device_manager_ensure_device (ValentDeviceManager *manager,
       return NULL;
     }
 
-  if (valent_device_manager_get_device_by_id (manager, device_id) == NULL)
+  if (valent_device_manager_lookup (manager, device_id) == NULL)
     {
       g_autoptr (ValentDevice) device = NULL;
       g_autoptr (ValentData) data = NULL;
@@ -603,7 +621,7 @@ valent_device_manager_ensure_device (ValentDeviceManager *manager,
       valent_device_manager_add_device (manager, device);
     }
 
-  return valent_device_manager_get_device_by_id (manager, device_id);
+  return valent_device_manager_lookup (manager, device_id);
 }
 
 static void
@@ -974,35 +992,6 @@ valent_device_manager_new_finish (GAsyncResult  *result,
     return NULL;
 
   return VALENT_DEVICE_MANAGER (manager);
-}
-
-/**
- * valent_device_manager_get_device_by_id:
- * @manager: a #ValentDeviceManager
- * @id: the id of the device
- *
- * Try to find a #ValentDevice with the id @id, otherwise return %NULL.
- *
- * Returns: (transfer none) (nullable): a #ValentDevice
- *
- * Since: 1.0
- */
-ValentDevice *
-valent_device_manager_get_device_by_id (ValentDeviceManager *manager,
-                                        const char          *id)
-{
-  g_return_val_if_fail (VALENT_IS_DEVICE_MANAGER (manager), NULL);
-  g_return_val_if_fail (id != NULL, NULL);
-
-  for (unsigned int i = 0; i < manager->devices->len; i++)
-    {
-      ValentDevice *device = g_ptr_array_index (manager->devices, i);
-
-      if (strcmp (id, valent_device_get_id (device)) == 0)
-        return device;
-    }
-
-  return NULL;
 }
 
 /**
