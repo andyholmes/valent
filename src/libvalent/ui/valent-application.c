@@ -254,7 +254,7 @@ device_action (GSimpleAction *action,
                gpointer       user_data)
 {
   ValentApplication *self = VALENT_APPLICATION (user_data);
-  ValentDevice *device;
+  unsigned int n_devices = 0;
   const char *device_id;
   const char *name;
   g_autoptr (GVariantIter) targetv = NULL;
@@ -267,10 +267,20 @@ device_action (GSimpleAction *action,
   g_variant_iter_next (targetv, "v", &target);
 
   /* Forward the activation */
-  device = valent_device_manager_get_device_by_id (self->manager, device_id);
+  n_devices = g_list_model_get_n_items (G_LIST_MODEL (self->manager));
 
-  if (device != NULL)
-    g_action_group_activate_action (G_ACTION_GROUP (device), name, target);
+  for (unsigned int i = 0; i < n_devices; i++)
+    {
+      g_autoptr (ValentDevice) device = NULL;
+
+      device = g_list_model_get_item (G_LIST_MODEL (self->manager), i);
+
+      if (g_strcmp0 (device_id, valent_device_get_id (device)) == 0)
+        {
+          g_action_group_activate_action (G_ACTION_GROUP (device), name, target);
+          break;
+        }
+    }
 }
 
 static void

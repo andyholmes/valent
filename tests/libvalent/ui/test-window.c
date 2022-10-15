@@ -62,7 +62,7 @@ test_window_navigation (TestWindowFixture *fixture,
                         gconstpointer      user_data)
 {
   GtkWindow *window;
-  ValentDevice *device;
+  g_autoptr (ValentDevice) device = NULL;
 
   window = g_object_new (VALENT_TYPE_WINDOW,
                          "device-manager", fixture->manager,
@@ -94,7 +94,7 @@ test_window_navigation (TestWindowFixture *fixture,
   while (g_main_context_iteration (NULL, FALSE))
     continue;
 
-  device = valent_device_manager_get_device_by_id (fixture->manager, "mock-device");
+  device = g_list_model_get_item (G_LIST_MODEL (fixture->manager), 0);
   valent_device_set_channel (device, NULL);
 
   while (g_main_context_iteration (NULL, FALSE))
