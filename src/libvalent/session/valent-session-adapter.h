@@ -26,15 +26,10 @@ struct _ValentSessionAdapterClass
   void                (*set_locked) (ValentSessionAdapter *adapter,
                                      gboolean              state);
 
-  /* signals */
-  void                (*changed)    (ValentSessionAdapter *adapter);
-
   /*< private >*/
   gpointer            padding[8];
 };
 
-VALENT_AVAILABLE_IN_1_0
-void       valent_session_adapter_changed    (ValentSessionAdapter *adapter);
 VALENT_AVAILABLE_IN_1_0
 gboolean   valent_session_adapter_get_active (ValentSessionAdapter *adapter);
 VALENT_AVAILABLE_IN_1_0
