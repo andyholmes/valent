@@ -323,7 +323,7 @@ valent_test_await_adapter (gpointer component)
 
   g_assert (VALENT_IS_COMPONENT (component));
 
-  while ((ret = valent_component_get_primary (component)) == NULL)
+  while ((ret = valent_component_get_preferred (component)) == NULL)
     g_main_context_iteration (NULL, FALSE);
 
   while (g_main_context_iteration (NULL, FALSE))

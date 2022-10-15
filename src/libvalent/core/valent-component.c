@@ -33,7 +33,7 @@ typedef struct
   char          *plugin_priority;
   GType          plugin_type;
   GHashTable    *plugins;
-  PeasExtension *primary;
+  PeasExtension *preferred;
 } ValentComponentPrivate;
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentComponent, valent_component, VALENT_TYPE_OBJECT);
@@ -89,8 +89,8 @@ component_plugin_free (gpointer data)
 
 
 static gint64
-get_extension_priority (PeasPluginInfo *info,
-                        const char     *key)
+_peas_plugin_info_get_priority (PeasPluginInfo *info,
+                                const char     *key)
 {
   const char *priority_str = NULL;
   gint64 priority = 0;
@@ -105,7 +105,7 @@ get_extension_priority (PeasPluginInfo *info,
 }
 
 static void
-valent_component_update_primary (ValentComponent *self)
+valent_component_update_preferred (ValentComponent *self)
 {
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
   GHashTableIter iter;
@@ -125,7 +125,7 @@ valent_component_update_primary (ValentComponent *self)
       if (plugin->extension == NULL)
         continue;
 
-      priority = get_extension_priority (info, priv->plugin_priority);
+      priority = _peas_plugin_info_get_priority (info, priv->plugin_priority);
 
       if (extension == NULL || priority < extension_priority)
         {
@@ -134,7 +134,11 @@ valent_component_update_primary (ValentComponent *self)
         }
     }
 
-  priv->primary = extension;
+  if (priv->preferred != extension)
+    {
+      priv->preferred = extension;
+      VALENT_COMPONENT_GET_CLASS (self)->bind_preferred (self, priv->preferred);
+    }
 }
 
 
@@ -179,10 +183,8 @@ valent_component_enable_extension (ValentComponent *self,
                                                     NULL);
   g_return_if_fail (PEAS_IS_EXTENSION (plugin->extension));
 
-  if (priv->primary != plugin->extension)
-    valent_component_update_primary (self);
-
   VALENT_COMPONENT_GET_CLASS (self)->bind_extension (self, plugin->extension);
+  valent_component_update_preferred (self);
 
   /* If the extension requires initialization, use a chained cancellable in case
    * the plugin is unloaded or the component is destroyed. */
@@ -237,12 +239,12 @@ valent_component_disable_extension (ValentComponent *self,
   g_cancellable_cancel (plugin->cancellable);
   g_clear_object (&plugin->cancellable);
 
-  /* Steal the object and reset the primary adapter */
+  /* Steal the object and reset the preferred adapter */
   extension = g_steal_pointer (&plugin->extension);
   g_return_if_fail (PEAS_IS_EXTENSION (extension));
 
-  if (priv->primary == extension)
-    valent_component_update_primary (self);
+  if (priv->preferred == extension)
+    valent_component_update_preferred (self);
 
   VALENT_COMPONENT_GET_CLASS (self)->unbind_extension (self, extension);
 }
@@ -338,6 +340,14 @@ on_unload_plugin (PeasEngine      *engine,
 
 /* LCOV_EXCL_START */
 static void
+valent_component_real_bind_preferred (ValentComponent *component,
+                                      PeasExtension   *extension)
+{
+  g_assert (VALENT_IS_COMPONENT (component));
+  g_assert (PEAS_IS_EXTENSION (extension));
+}
+
+static void
 valent_component_real_bind_extension (ValentComponent *component,
                                       PeasExtension   *extension)
 {
@@ -353,6 +363,27 @@ valent_component_real_unbind_extension (ValentComponent *component,
   g_assert (PEAS_IS_EXTENSION (extension));
 }
 /* LCOV_EXCL_STOP */
+
+/*< private >
+ * valent_component_get_preferred:
+ * @self: a #ValentComponent
+ *
+ * Get the extension with the highest priority for @self.
+ *
+ * The default value for extensions is `0`; the lower the value the higher the
+ * priority.
+ *
+ * Returns: (transfer none) (nullable): a #PeasExtension
+ */
+PeasExtension *
+valent_component_get_preferred (ValentComponent *self)
+{
+  ValentComponentPrivate *priv = valent_component_get_instance_private (self);
+
+  g_assert (VALENT_IS_COMPONENT (self));
+
+  return priv->preferred;
+}
 
 /*
  * GObject
@@ -486,6 +517,7 @@ valent_component_class_init (ValentComponentClass *klass)
 
   klass->bind_extension = valent_component_real_bind_extension;
   klass->unbind_extension = valent_component_real_unbind_extension;
+  klass->bind_preferred = valent_component_real_bind_preferred;
 
   /**
    * ValentComponent:plugin-context:
@@ -511,7 +543,7 @@ valent_component_class_init (ValentComponentClass *klass)
    * The priority key for the component.
    *
    * This is the name of a key in the `.plugin` file used to determine the
-   * primary implementation.
+   * preferred implementation.
    *
    * Since: 1.0
    */
@@ -548,25 +580,6 @@ valent_component_init (ValentComponent *self)
 
   priv->engine = valent_get_plugin_engine ();
   priv->plugins = g_hash_table_new_full (NULL, NULL, NULL, component_plugin_free);
-}
-
-/**
- * valent_component_get_primary:
- * @component: a #ValentComponent
- *
- * Get the extension with the highest priority for @component. The default
- * value for extensions is `0`; the lower the value the higher the priority.
- *
- * Returns: (transfer none) (nullable): a #PeasExtension
- */
-PeasExtension *
-valent_component_get_primary (ValentComponent *component)
-{
-  ValentComponentPrivate *priv = valent_component_get_instance_private (component);
-
-  g_return_val_if_fail (VALENT_IS_COMPONENT (component), NULL);
-
-  return priv->primary;
 }
 
 /**

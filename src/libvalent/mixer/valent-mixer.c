@@ -9,7 +9,6 @@
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
 
-#include "valent-component-private.h"
 #include "valent-mixer.h"
 #include "valent-mixer-adapter.h"
 #include "valent-mixer-stream.h"
@@ -251,94 +250,79 @@ on_stream_removed (ValentMixerAdapter *adapter,
  * ValentComponent
  */
 static void
-valent_mixer_bind_extension (ValentComponent *component,
+valent_mixer_bind_preferred (ValentComponent *component,
                              PeasExtension   *extension)
 {
   ValentMixer *self = VALENT_MIXER (component);
   ValentMixerAdapter *adapter = VALENT_MIXER_ADAPTER (extension);
-  g_autoptr (GPtrArray) inputs = NULL;
-  g_autoptr (GPtrArray) outputs = NULL;
-  PeasExtension *new_primary;
 
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_MIXER (self));
-  g_assert (VALENT_IS_MIXER_ADAPTER (adapter));
+  g_assert (adapter == NULL || VALENT_IS_MIXER_ADAPTER (adapter));
 
-  /* Add current streams */
-  inputs = valent_mixer_adapter_get_inputs (adapter);
+  if (self->default_adapter != NULL)
+    {
+      g_autoptr (GPtrArray) inputs = NULL;
+      g_autoptr (GPtrArray) outputs = NULL;
 
-  for (unsigned int i = 0; i < inputs->len; i++)
-    on_stream_added (adapter, g_ptr_array_index (inputs, i), self);
+      /* Simulate stream removal */
+      g_signal_handlers_disconnect_by_data (self->default_adapter, self);
 
-  outputs = valent_mixer_adapter_get_outputs (adapter);
+      inputs = valent_mixer_adapter_get_inputs (self->default_adapter);
 
-  for (unsigned int i = 0; i < outputs->len; i++)
-    on_stream_added (adapter, g_ptr_array_index (outputs, i), self);
+      for (unsigned int i = 0; i < inputs->len; i++)
+        on_stream_removed (adapter, g_ptr_array_index (inputs, i), self);
 
-  /* Watch for changes */
-  g_signal_connect_object (adapter,
-                           "notify::default-input",
-                           G_CALLBACK (on_default_input_changed),
-                           self, 0);
+      outputs = valent_mixer_adapter_get_outputs (self->default_adapter);
 
-  g_signal_connect_object (adapter,
-                           "notify::default-output",
-                           G_CALLBACK (on_default_output_changed),
-                           self, 0);
+      for (unsigned int i = 0; i < outputs->len; i++)
+        on_stream_removed (adapter, g_ptr_array_index (outputs, i), self);
 
-  g_signal_connect_object (adapter,
-                           "stream-added",
-                           G_CALLBACK (on_stream_added),
-                           self, 0);
+      self->default_adapter = NULL;
+    }
 
-  g_signal_connect_object (adapter,
-                           "stream-removed",
-                           G_CALLBACK (on_stream_removed),
-                           self, 0);
+  if (adapter != NULL)
+    {
+      g_autoptr (GPtrArray) inputs = NULL;
+      g_autoptr (GPtrArray) outputs = NULL;
 
-  /* Set default provider */
-  new_primary = valent_component_get_primary (component);
-  self->default_adapter = VALENT_MIXER_ADAPTER (new_primary);
+      /* Add current streams */
+      inputs = valent_mixer_adapter_get_inputs (adapter);
 
-  VALENT_EXIT;
-}
+      for (unsigned int i = 0; i < inputs->len; i++)
+        on_stream_added (adapter, g_ptr_array_index (inputs, i), self);
 
-static void
-valent_mixer_unbind_extension (ValentComponent *component,
-                               PeasExtension   *extension)
-{
-  ValentMixer *self = VALENT_MIXER (component);
-  ValentMixerAdapter *adapter = VALENT_MIXER_ADAPTER (extension);
-  g_autoptr (GPtrArray) inputs = NULL;
-  g_autoptr (GPtrArray) outputs = NULL;
-  PeasExtension *new_primary;
+      outputs = valent_mixer_adapter_get_outputs (adapter);
 
-  VALENT_ENTRY;
+      for (unsigned int i = 0; i < outputs->len; i++)
+        on_stream_added (adapter, g_ptr_array_index (outputs, i), self);
 
-  g_assert (VALENT_IS_MIXER (self));
-  g_assert (VALENT_IS_MIXER_ADAPTER (adapter));
+      /* Watch for changes */
+      self->default_adapter = adapter;
+      g_signal_connect_object (self->default_adapter,
+                               "notify::default-input",
+                               G_CALLBACK (on_default_input_changed),
+                               self, 0);
 
-  /* Simulate stream removal */
-  inputs = valent_mixer_adapter_get_inputs (adapter);
+      g_signal_connect_object (self->default_adapter,
+                               "notify::default-output",
+                               G_CALLBACK (on_default_output_changed),
+                               self, 0);
 
-  for (unsigned int i = 0; i < inputs->len; i++)
-    valent_mixer_adapter_stream_removed (adapter, g_ptr_array_index (inputs, i));
+      g_signal_connect_object (self->default_adapter,
+                               "stream-added",
+                               G_CALLBACK (on_stream_added),
+                               self, 0);
 
-  outputs = valent_mixer_adapter_get_outputs (adapter);
-
-  for (unsigned int i = 0; i < outputs->len; i++)
-    valent_mixer_adapter_stream_removed (adapter, g_ptr_array_index (outputs, i));
-
-  g_signal_handlers_disconnect_by_data (adapter, self);
-
-  /* Set default provider */
-  new_primary = valent_component_get_primary (component);
-  self->default_adapter = VALENT_MIXER_ADAPTER (new_primary);
+      g_signal_connect_object (self->default_adapter,
+                               "stream-removed",
+                               G_CALLBACK (on_stream_removed),
+                               self, 0);
+    }
 
   VALENT_EXIT;
 }
-
 
 /*
  * GObject
@@ -411,8 +395,7 @@ valent_mixer_class_init (ValentMixerClass *klass)
   object_class->get_property = valent_mixer_get_property;
   object_class->set_property = valent_mixer_set_property;
 
-  component_class->bind_extension = valent_mixer_bind_extension;
-  component_class->unbind_extension = valent_mixer_unbind_extension;
+  component_class->bind_preferred = valent_mixer_bind_preferred;
 
   /**
    * ValentMixer:default-input: (getter get_default_input) (setter set_default_input)

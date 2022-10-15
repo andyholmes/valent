@@ -9,7 +9,6 @@
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
 
-#include "valent-component-private.h"
 #include "valent-input.h"
 #include "valent-input-adapter.h"
 
@@ -45,39 +44,18 @@ static ValentInput *default_input = NULL;
  * ValentComponent
  */
 static void
-valent_input_bind_extension (ValentComponent *component,
+valent_input_bind_preferred (ValentComponent *component,
                              PeasExtension   *extension)
 {
   ValentInput *self = VALENT_INPUT (component);
-  PeasExtension *new_primary;
+  ValentInputAdapter *adapter = VALENT_INPUT_ADAPTER (extension);
 
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_INPUT (self));
-  g_assert (VALENT_IS_INPUT_ADAPTER (extension));
+  g_assert (adapter == NULL || VALENT_IS_INPUT_ADAPTER (adapter));
 
-  /* Set default provider */
-  new_primary = valent_component_get_primary (component);
-  self->default_adapter = VALENT_INPUT_ADAPTER (new_primary);
-
-  VALENT_EXIT;
-}
-
-static void
-valent_input_unbind_extension (ValentComponent *component,
-                               PeasExtension   *extension)
-{
-  ValentInput *self = VALENT_INPUT (component);
-  PeasExtension *new_primary;
-
-  VALENT_ENTRY;
-
-  g_assert (VALENT_IS_INPUT (self));
-  g_assert (VALENT_IS_INPUT_ADAPTER (extension));
-
-  /* Set default provider */
-  new_primary = valent_component_get_primary (component);
-  self->default_adapter = VALENT_INPUT_ADAPTER (new_primary);
+  self->default_adapter = adapter;
 
   VALENT_EXIT;
 }
@@ -87,8 +65,7 @@ valent_input_class_init (ValentInputClass *klass)
 {
   ValentComponentClass *component_class = VALENT_COMPONENT_CLASS (klass);
 
-  component_class->bind_extension = valent_input_bind_extension;
-  component_class->unbind_extension = valent_input_unbind_extension;
+  component_class->bind_preferred = valent_input_bind_preferred;
 }
 
 static void
