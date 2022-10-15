@@ -43,6 +43,11 @@ enum {
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
+static inline void
+object_slist_free (gpointer slist)
+{
+  g_slist_free_full (slist, g_object_unref);
+}
 
 static inline void
 string_slist_free (gpointer slist)
@@ -105,7 +110,7 @@ valent_contact_cache_add_contacts (ValentContactStore  *store,
 
   task = g_task_new (store, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_contact_cache_add_contacts);
-  g_task_set_task_data (task, additions, valent_object_slist_free);
+  g_task_set_task_data (task, additions, object_slist_free);
   g_task_run_in_thread (task, valent_contact_cache_add_task);
 }
 
@@ -249,7 +254,7 @@ valent_contact_cache_query_task (GTask        *task,
     }
   g_slist_free_full (results, e_book_cache_search_data_free);
 
-  g_task_return_pointer (task, contacts, valent_object_slist_free);
+  g_task_return_pointer (task, contacts, object_slist_free);
 }
 
 static void
