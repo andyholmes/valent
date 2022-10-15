@@ -134,126 +134,6 @@ on_player_signal (GDBusProxy        *proxy,
     }
 }
 
-/*
- * GAsyncInitable
- */
-static void
-valent_mpris_player_init_player_cb (GObject      *object,
-                                    GAsyncResult *result,
-                                    gpointer      user_data)
-{
-  g_autoptr (GTask) task = G_TASK (user_data);
-  ValentMPRISPlayer *self = g_task_get_source_object (task);
-  GError *error = NULL;
-
-  g_assert (VALENT_IS_MPRIS_PLAYER (self));
-  g_assert (self->bus_name != NULL);
-
-  self->player = g_dbus_proxy_new_finish (result, &error);
-
-  if (self->player == NULL)
-    return g_task_return_error (task, error);
-
-  g_signal_connect_object (self->player,
-                           "g-properties-changed",
-                           G_CALLBACK (on_player_properties_changed),
-                           self, 0);
-
-  g_signal_connect_object (self->player,
-                           "g-signal",
-                           G_CALLBACK (on_player_signal),
-                           self, 0);
-
-  valent_mpris_player_sync_flags (self);
-
-  g_task_return_boolean (task, TRUE);
-}
-
-static void
-valent_mpris_player_init_application_cb (GObject      *object,
-                                         GAsyncResult *result,
-                                         gpointer      user_data)
-{
-  g_autoptr (GTask) task = G_TASK (user_data);
-  ValentMPRISPlayer *self = g_task_get_source_object (task);
-  GCancellable *cancellable = g_task_get_cancellable (task);
-  GError *error = NULL;
-
-  g_assert (VALENT_IS_MPRIS_PLAYER (self));
-  g_assert (self->bus_name != NULL);
-  g_assert (G_IS_TASK (task));
-
-  self->application = g_dbus_proxy_new_finish (result, &error);
-
-  if (self->application == NULL)
-    return g_task_return_error (task, error);
-
-  g_signal_connect (self->application,
-                    "g-properties-changed",
-                    G_CALLBACK (on_application_properties_changed),
-                    self);
-
-  g_dbus_proxy_new_for_bus (G_BUS_TYPE_SESSION,
-                            G_DBUS_PROXY_FLAGS_GET_INVALIDATED_PROPERTIES,
-                            VALENT_MPRIS_PLAYER_INFO,
-                            self->bus_name,
-                            "/org/mpris/MediaPlayer2",
-                            "org.mpris.MediaPlayer2.Player",
-                            cancellable,
-                            valent_mpris_player_init_player_cb,
-                            g_steal_pointer (&task));
-}
-
-static void
-valent_mpris_player_init_async (GAsyncInitable      *initable,
-                                int                  io_priority,
-                                GCancellable        *cancellable,
-                                GAsyncReadyCallback  callback,
-                                gpointer             user_data)
-{
-  ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (initable);
-  g_autoptr (GTask) task = NULL;
-  g_autoptr (GCancellable) destroy = NULL;
-
-  g_return_if_fail (VALENT_IS_MPRIS_PLAYER (self));
-  g_return_if_fail (self->bus_name != NULL);
-
-  /* Cancel initialization if the object is destroyed */
-  destroy = valent_object_attach_cancellable (VALENT_OBJECT (initable),
-                                              cancellable);
-
-  task = g_task_new (initable, destroy, callback, user_data);
-  g_task_set_priority (task, io_priority);
-  g_task_set_source_tag (task, valent_mpris_player_init_async);
-
-  g_dbus_proxy_new_for_bus (G_BUS_TYPE_SESSION,
-                            G_DBUS_PROXY_FLAGS_GET_INVALIDATED_PROPERTIES,
-                            VALENT_MPRIS_APPLICATION_INFO,
-                            self->bus_name,
-                            "/org/mpris/MediaPlayer2",
-                            "org.mpris.MediaPlayer2",
-                            destroy,
-                            valent_mpris_player_init_application_cb,
-                            g_steal_pointer (&task));
-}
-
-static gboolean
-valent_mpris_player_init_finish (GAsyncInitable  *initable,
-                                 GAsyncResult    *result,
-                                 GError         **error)
-{
-  g_return_val_if_fail (g_task_is_valid (result, initable), FALSE);
-
-  return g_task_propagate_boolean (G_TASK (result), error);
-}
-
-static void
-async_initable_iface_init (GAsyncInitableIface *iface)
-{
-  iface->init_async = valent_mpris_player_init_async;
-  iface->init_finish = valent_mpris_player_init_finish;
-}
-
 static void
 valent_mpris_player_sync_flags (ValentMPRISPlayer *self)
 {
@@ -643,6 +523,115 @@ valent_mpris_player_stop (ValentMediaPlayer *player)
 }
 
 /*
+ * GAsyncInitable
+ */
+static void
+valent_mpris_player_init_player_cb (GObject      *object,
+                                    GAsyncResult *result,
+                                    gpointer      user_data)
+{
+  g_autoptr (GTask) task = G_TASK (user_data);
+  ValentMPRISPlayer *self = g_task_get_source_object (task);
+  g_autoptr (GError) error = NULL;
+
+  g_assert (VALENT_IS_MPRIS_PLAYER (self));
+  g_assert (self->bus_name != NULL);
+
+  self->player = g_dbus_proxy_new_finish (result, &error);
+
+  if (self->player == NULL)
+    return g_task_return_error (task, g_steal_pointer (&error));
+
+  g_signal_connect_object (self->player,
+                           "g-properties-changed",
+                           G_CALLBACK (on_player_properties_changed),
+                           self, 0);
+
+  g_signal_connect_object (self->player,
+                           "g-signal",
+                           G_CALLBACK (on_player_signal),
+                           self, 0);
+
+  valent_mpris_player_sync_flags (self);
+
+  g_task_return_boolean (task, TRUE);
+}
+
+static void
+valent_mpris_player_init_application_cb (GObject      *object,
+                                         GAsyncResult *result,
+                                         gpointer      user_data)
+{
+  g_autoptr (GTask) task = G_TASK (user_data);
+  ValentMPRISPlayer *self = g_task_get_source_object (task);
+  GCancellable *cancellable = g_task_get_cancellable (task);
+  g_autoptr (GError) error = NULL;
+
+  g_assert (VALENT_IS_MPRIS_PLAYER (self));
+  g_assert (self->bus_name != NULL);
+  g_assert (G_IS_TASK (task));
+
+  self->application = g_dbus_proxy_new_finish (result, &error);
+
+  if (self->application == NULL)
+    return g_task_return_error (task, g_steal_pointer (&error));
+
+  g_signal_connect_object (self->application,
+                           "g-properties-changed",
+                           G_CALLBACK (on_application_properties_changed),
+                           self, 0);
+
+  g_dbus_proxy_new_for_bus (G_BUS_TYPE_SESSION,
+                            G_DBUS_PROXY_FLAGS_GET_INVALIDATED_PROPERTIES,
+                            VALENT_MPRIS_PLAYER_INFO,
+                            self->bus_name,
+                            "/org/mpris/MediaPlayer2",
+                            "org.mpris.MediaPlayer2.Player",
+                            cancellable,
+                            valent_mpris_player_init_player_cb,
+                            g_steal_pointer (&task));
+}
+
+static void
+valent_mpris_player_init_async (GAsyncInitable      *initable,
+                                int                  io_priority,
+                                GCancellable        *cancellable,
+                                GAsyncReadyCallback  callback,
+                                gpointer             user_data)
+{
+  ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (initable);
+  g_autoptr (GTask) task = NULL;
+  g_autoptr (GCancellable) destroy = NULL;
+
+  g_assert (VALENT_IS_MPRIS_PLAYER (self));
+  g_return_if_fail (self->bus_name != NULL);
+
+  /* Cancel initialization if the object is destroyed */
+  destroy = valent_object_attach_cancellable (VALENT_OBJECT (initable),
+                                              cancellable);
+
+  task = g_task_new (initable, destroy, callback, user_data);
+  g_task_set_priority (task, io_priority);
+  g_task_set_source_tag (task, valent_mpris_player_init_async);
+
+  g_dbus_proxy_new_for_bus (G_BUS_TYPE_SESSION,
+                            G_DBUS_PROXY_FLAGS_GET_INVALIDATED_PROPERTIES,
+                            VALENT_MPRIS_APPLICATION_INFO,
+                            self->bus_name,
+                            "/org/mpris/MediaPlayer2",
+                            "org.mpris.MediaPlayer2",
+                            destroy,
+                            valent_mpris_player_init_application_cb,
+                            g_steal_pointer (&task));
+}
+
+static void
+async_initable_iface_init (GAsyncInitableIface *iface)
+{
+  iface->init_async = valent_mpris_player_init_async;
+}
+
+/*
  * GObject
  */
 static void
@@ -759,58 +748,5 @@ valent_mpris_player_class_init (ValentMPRISPlayerClass *klass)
 static void
 valent_mpris_player_init (ValentMPRISPlayer *media_player)
 {
-}
-
-/**
- * valent_mpris_player_new:
- * @name: a well-known or unique bus name
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
- * @user_data: (closure): user supplied data
- *
- * Create a new MPRISv2 client.
- *
- * Returns: (transfer full): a #ValentMPRISPlayer
- */
-void
-valent_mpris_player_new (const char          *bus_name,
-                         GCancellable        *cancellable,
-                         GAsyncReadyCallback  callback,
-                         gpointer             user_data)
-{
-  g_async_initable_new_async (VALENT_TYPE_MPRIS_PLAYER,
-                              G_PRIORITY_DEFAULT,
-                              cancellable,
-                              callback,
-                              user_data,
-                              "bus-name", bus_name,
-                              NULL);
-}
-
-/**
- * valent_mpris_player_new_finish:
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
- *
- * Finish an operation started ny [func@Valent.MPRISPlayer.new].
- *
- * Returns: (transfer full) (nullable): a #ValentMPRISPlayer
- */
-ValentMPRISPlayer *
-valent_mpris_player_new_finish (GAsyncResult  *result,
-                                GError       **error)
-{
-  GObject *ret;
-  g_autoptr (GObject) source_object = NULL;
-
-  source_object = g_async_result_get_source_object (result);
-  ret = g_async_initable_new_finish (G_ASYNC_INITABLE (source_object),
-                                     result,
-                                     error);
-
-  if (ret != NULL)
-    return VALENT_MPRIS_PLAYER (ret);
-
-  return NULL;
 }
 
