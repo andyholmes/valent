@@ -23,7 +23,11 @@ struct _ValentFdoSession
   gboolean              locked;
 };
 
-G_DEFINE_TYPE (ValentFdoSession, valent_fdo_session, VALENT_TYPE_SESSION_ADAPTER)
+static void   g_async_initable_iface_init (GAsyncInitableIface *iface);
+
+G_DEFINE_TYPE_EXTENDED (ValentFdoSession, valent_fdo_session, VALENT_TYPE_SESSION_ADAPTER,
+                        0,
+                        G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init))
 
 
 /*
@@ -105,25 +109,23 @@ valent_fdo_session_set_locked (ValentSessionAdapter *adapter,
 }
 
 static void
-new_session_cb (GObject          *object,
-                GAsyncResult     *result,
-                ValentFdoSession *self)
+new_session_cb (GObject      *object,
+                GAsyncResult *result,
+                gpointer      user_data)
 {
+  g_autoptr (GTask) task = G_TASK (user_data);
+  ValentFdoSession *self = g_task_get_source_object (task);
   g_autoptr (GVariant) active = NULL;
   g_autoptr (GVariant) locked = NULL;
   g_autoptr (GError) error = NULL;
 
+  g_assert (G_IS_TASK (task));
   g_assert (VALENT_IS_FDO_SESSION (self));
 
   self->proxy = g_dbus_proxy_new_for_bus_finish (result, &error);
 
   if (self->proxy == NULL)
-    {
-      if (!valent_error_ignore (error))
-        g_warning ("%s(): %s", G_STRFUNC, error->message);
-
-      return;
-    }
+    return g_task_return_error (task, g_steal_pointer (&error));
 
   /* Preload properties */
   active = g_dbus_proxy_get_cached_property (self->proxy, "Active");
@@ -137,38 +139,36 @@ new_session_cb (GObject          *object,
     self->locked = g_variant_get_boolean (locked);
 
   /* Watch for changes */
-  g_signal_connect (self->proxy,
-                    "g-properties-changed",
-                    G_CALLBACK (on_properties_changed),
-                    self);
+  g_signal_connect_object (self->proxy,
+                           "g-properties-changed",
+                           G_CALLBACK (on_properties_changed),
+                           self, 0);
 
-  g_signal_connect (self->proxy,
-                    "g-signal",
-                    G_CALLBACK (on_signal),
-                    self);
+  g_signal_connect_object (self->proxy,
+                           "g-signal",
+                           G_CALLBACK (on_signal),
+                           self, 0);
+
+  g_task_return_boolean (task, TRUE);
 }
 
 static void
-get_display_cb (GDBusConnection  *connection,
-                GAsyncResult     *result,
-                ValentFdoSession *self)
+get_display_cb (GDBusConnection *connection,
+                GAsyncResult    *result,
+                gpointer         user_data)
 {
+  g_autoptr (GTask) task = G_TASK (user_data);
   g_autoptr (GError) error = NULL;
   g_autoptr (GVariant) reply = NULL;
   g_autoptr (GVariant) value = NULL;
   const char *session_id, *object_path;
 
-  g_assert (VALENT_IS_FDO_SESSION (self));
+  g_assert (G_IS_TASK (task));
 
   reply = g_dbus_connection_call_finish (connection, result, &error);
 
   if (reply == NULL)
-    {
-      if (!valent_error_ignore (error))
-        g_warning ("%s(): %s", G_STRFUNC, error->message);
-
-      return;
-    }
+    return g_task_return_error (task, g_steal_pointer (&error));
 
   g_variant_get (reply, "(v)", &value);
   g_variant_get (value, "(&s&o)", &session_id, &object_path);
@@ -178,31 +178,27 @@ get_display_cb (GDBusConnection  *connection,
                     "org.freedesktop.login1",
                     object_path,
                     "org.freedesktop.login1.Session",
-                    self->cancellable,
+                    g_task_get_cancellable (task),
                     (GAsyncReadyCallback)new_session_cb,
-                    self);
+                    g_object_ref (task));
 }
 
 static void
-get_user_cb (GDBusConnection  *connection,
-             GAsyncResult     *result,
-             ValentFdoSession *self)
+get_user_cb (GDBusConnection *connection,
+             GAsyncResult    *result,
+             gpointer         user_data)
 {
+  g_autoptr (GTask) task = G_TASK (user_data);
   g_autoptr (GError) error = NULL;
   g_autoptr (GVariant) reply = NULL;
   const char *object_path;
 
-  g_assert (VALENT_IS_FDO_SESSION (self));
+  g_assert (G_IS_TASK (task));
 
   reply = g_dbus_connection_call_finish (connection, result, &error);
 
   if (reply == NULL)
-    {
-      if (!valent_error_ignore (error))
-        g_warning ("%s(): %s", G_STRFUNC, error->message);
-
-      return;
-    }
+    return g_task_return_error (task, g_steal_pointer (&error));
 
   g_variant_get (reply, "(&o)", &object_path);
   g_dbus_connection_call (connection,
@@ -216,40 +212,66 @@ get_user_cb (GDBusConnection  *connection,
                           G_VARIANT_TYPE ("(v)"),
                           G_DBUS_CALL_FLAGS_NONE,
                           -1,
-                          self->cancellable,
+                          g_task_get_cancellable (task),
                           (GAsyncReadyCallback)get_display_cb,
-                          self);
+                          g_object_ref (task));
+}
+
+/*
+ * GAsyncInitable
+ */
+static void
+valent_fdo_notifications_init_async (GAsyncInitable             *initable,
+                                     int                         io_priority,
+                                     GCancellable               *cancellable,
+                                     GAsyncReadyCallback         callback,
+                                     gpointer                    user_data)
+{
+  g_autoptr (GTask) task = NULL;
+  g_autoptr (GCancellable) destroy = NULL;
+  g_autoptr (GDBusConnection) connection = NULL;
+  g_autoptr (GError) error = NULL;
+
+  g_assert (VALENT_IS_FDO_SESSION (initable));
+
+  /* Cancel initialization if the object is destroyed */
+  destroy = valent_object_attach_cancellable (VALENT_OBJECT (initable),
+                                              cancellable);
+
+  task = g_task_new (initable, destroy, callback, user_data);
+  g_task_set_priority (task, io_priority);
+  g_task_set_source_tag (task, valent_fdo_notifications_init_async);
+
+  /* Get a bus address */
+  connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, destroy, &error);
+
+  if (connection == NULL)
+    return g_task_return_error (task, g_steal_pointer (&error));
+
+  /* Check for phosh session */
+  g_dbus_connection_call (connection,
+                          "org.freedesktop.login1",
+                          "/org/freedesktop/login1",
+                          "org.freedesktop.login1.Manager",
+                          "GetUser",
+                          g_variant_new ("(u)", geteuid ()),
+                          G_VARIANT_TYPE ("(o)"),
+                          G_DBUS_CALL_FLAGS_NONE,
+                          -1,
+                          destroy,
+                          (GAsyncReadyCallback)get_user_cb,
+                          g_steal_pointer (&task));
+}
+
+static void
+g_async_initable_iface_init (GAsyncInitableIface *iface)
+{
+  iface->init_async = valent_fdo_notifications_init_async;
 }
 
 /*
  * GObject
  */
-static void
-valent_fdo_session_constructed (GObject *object)
-{
-  ValentFdoSession *self = VALENT_FDO_SESSION (object);
-  g_autoptr (GDBusConnection) connection = NULL;
-
-  /* Check for phosh session */
-  if ((connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL)) != NULL)
-    {
-      g_dbus_connection_call (connection,
-                              "org.freedesktop.login1",
-                              "/org/freedesktop/login1",
-                              "org.freedesktop.login1.Manager",
-                              "GetUser",
-                              g_variant_new ("(u)", geteuid ()),
-                              G_VARIANT_TYPE ("(o)"),
-                              G_DBUS_CALL_FLAGS_NONE,
-                              -1,
-                              self->cancellable,
-                              (GAsyncReadyCallback)get_user_cb,
-                              self);
-    }
-
-  G_OBJECT_CLASS (valent_fdo_session_parent_class)->constructed (object);
-}
-
 static void
 valent_fdo_session_dispose (GObject *object)
 {
@@ -283,7 +305,6 @@ valent_fdo_session_class_init (ValentFdoSessionClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentSessionAdapterClass *session_class = VALENT_SESSION_ADAPTER_CLASS (klass);
 
-  object_class->constructed = valent_fdo_session_constructed;
   object_class->dispose = valent_fdo_session_dispose;
   object_class->finalize = valent_fdo_session_finalize;
 
