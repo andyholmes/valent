@@ -18,7 +18,7 @@ struct _ValentRuncommandEditor
 
   char      *uuid;
 
-  /* Template widgets */
+  /* template */
   GtkButton *cancel_button;
   GtkButton *save_button;
   GtkEntry  *command_entry;

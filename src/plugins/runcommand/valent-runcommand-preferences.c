@@ -20,7 +20,7 @@ struct _ValentRuncommandPreferences
 
   GtkWindow                   *command_dialog;
 
-  /* Template widgets */
+  /* template */
   AdwPreferencesGroup         *command_group;
   GtkListBox                  *command_list;
   GtkWidget                   *command_add;

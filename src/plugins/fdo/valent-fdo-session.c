@@ -25,9 +25,8 @@ struct _ValentFdoSession
 
 static void   g_async_initable_iface_init (GAsyncInitableIface *iface);
 
-G_DEFINE_TYPE_EXTENDED (ValentFdoSession, valent_fdo_session, VALENT_TYPE_SESSION_ADAPTER,
-                        0,
-                        G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init))
+G_DEFINE_TYPE_WITH_CODE (ValentFdoSession, valent_fdo_session, VALENT_TYPE_SESSION_ADAPTER,
+                         G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init))
 
 
 /*

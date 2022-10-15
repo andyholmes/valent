@@ -33,9 +33,8 @@ struct _ValentMixerStreams
 
 static void   g_list_model_iface_init (GListModelInterface *iface);
 
-G_DEFINE_TYPE_EXTENDED (ValentMixerStreams, valent_mixer_streams, G_TYPE_OBJECT,
-                        0,
-                        G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
+G_DEFINE_TYPE_WITH_CODE (ValentMixerStreams, valent_mixer_streams, G_TYPE_OBJECT,
+                         G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
 
 static gpointer

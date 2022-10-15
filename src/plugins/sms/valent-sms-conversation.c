@@ -22,7 +22,7 @@ struct _ValentSmsConversation
 {
   GtkWidget           parent_instance;
 
-  /* Template Widgets */
+  /* template */
   GtkWidget          *message_view;
   GtkListBox         *message_list;
   GtkWidget          *message_entry;

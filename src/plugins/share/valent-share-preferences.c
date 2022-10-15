@@ -16,7 +16,7 @@ struct _ValentSharePreferences
 {
   ValentDevicePreferencesPage  parent_instance;
 
-  /* Template widgets */
+  /* template */
   AdwPreferencesGroup         *download_group;
   GtkLabel                    *download_folder_label;
 };

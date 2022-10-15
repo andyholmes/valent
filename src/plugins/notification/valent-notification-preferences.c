@@ -17,7 +17,7 @@ struct _ValentNotificationPreferences
 {
   ValentDevicePreferencesPage  parent_instance;
 
-  /* Template Widgets */
+  /* template */
   AdwPreferencesGroup         *forward_group;
   GtkSwitch                   *forward_notifications;
   GtkSwitch                   *forward_when_active;

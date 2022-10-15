@@ -29,9 +29,8 @@ struct _ValentBluezChannelService
 
 static void   g_async_initable_iface_init (GAsyncInitableIface *iface);
 
-G_DEFINE_TYPE_EXTENDED (ValentBluezChannelService, valent_bluez_channel_service, VALENT_TYPE_CHANNEL_SERVICE,
-                        0,
-                        G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init))
+G_DEFINE_TYPE_WITH_CODE (ValentBluezChannelService, valent_bluez_channel_service, VALENT_TYPE_CHANNEL_SERVICE,
+                         G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init))
 
 
 /*

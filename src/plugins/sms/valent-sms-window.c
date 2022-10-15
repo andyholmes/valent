@@ -26,7 +26,7 @@ struct _ValentSmsWindow
   ValentContactStore   *contact_store;
   ValentSmsStore       *message_store;
 
-  /* Template Widgets */
+  /* template */
   AdwLeaflet           *content_box;
   AdwHeaderBar         *content_header;
   AdwHeaderBar         *sidebar_header;

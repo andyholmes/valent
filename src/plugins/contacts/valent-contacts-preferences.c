@@ -20,7 +20,7 @@ struct _ValentContactsPreferences
 
   GHashTable                  *local_stores;
 
-  /* Template widgets */
+  /* template */
   AdwExpanderRow              *export_row;
   GtkListBox                  *export_list;
   GtkSwitch                   *remote_sync;

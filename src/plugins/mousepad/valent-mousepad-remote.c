@@ -33,7 +33,7 @@ struct _ValentMousepadRemote
   unsigned int        longpress_id;
   int                 scale;
 
-  /* Template widgets */
+  /* template */
   GtkWidget          *editor;
   GtkEventController *keyboard;
   GtkWidget          *touchpad;

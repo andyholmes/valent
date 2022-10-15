@@ -309,7 +309,7 @@ valent_device_page_class_init (ValentDevicePageClass *klass)
   object_class->get_property = valent_device_page_get_property;
   object_class->set_property = valent_device_page_set_property;
 
-  /* Template */
+  /* template */
   gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-device-page.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePage, title);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePage, gadgets);

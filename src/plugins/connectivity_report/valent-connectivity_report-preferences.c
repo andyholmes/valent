@@ -17,7 +17,7 @@ struct _ValentConnectivityReportPreferences
 {
   ValentDevicePreferencesPage  parent_instance;
 
-  /* Template widgets */
+  /* template */
   AdwActionRow                *share_state_row;
   GtkSwitch                   *share_state;
 

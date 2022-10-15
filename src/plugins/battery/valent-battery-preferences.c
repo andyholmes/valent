@@ -17,7 +17,7 @@ struct _ValentBatteryPreferences
 {
   ValentDevicePreferencesPage  parent_instance;
 
-  /* Template widgets */
+  /* template */
   GtkSwitch                   *share_state;
 
   AdwExpanderRow              *full_notification;

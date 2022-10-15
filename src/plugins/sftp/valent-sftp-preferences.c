@@ -16,7 +16,7 @@ struct _ValentSftpPreferences
 {
   ValentDevicePreferencesPage  parent_instance;
 
-  /* Template widgets */
+  /* template */
   GtkSwitch                   *auto_mount;
   AdwExpanderRow              *local_allow;
   GtkAdjustment               *local_port;
