@@ -42,7 +42,6 @@ libvalent_core_public_sources = [
   'valent-debug.c',
   'valent-global.c',
   'valent-object.c',
-  'valent-object-utils.c',
   'valent-transfer.c',
   'valent-version.c',
 ]

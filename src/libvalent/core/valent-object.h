@@ -53,11 +53,5 @@ VALENT_AVAILABLE_IN_1_0
 void           valent_object_notify_by_pspec    (ValentObject *object,
                                                  GParamSpec   *pspec);
 
-/* Utilities */
-VALENT_AVAILABLE_IN_1_0
-void           valent_object_list_free          (gpointer      list);
-VALENT_AVAILABLE_IN_1_0
-void           valent_object_slist_free         (gpointer      slist);
-
 G_END_DECLS
 

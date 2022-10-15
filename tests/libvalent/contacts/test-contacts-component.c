@@ -248,7 +248,7 @@ test_contacts_component_store (ContactsComponentFixture *fixture,
   EBookQuery *query = NULL;
   g_autofree char *sexp = NULL;
   EContact *contact = NULL;
-  GSList *contacts = NULL;
+  g_autoslist (EContact) contacts = NULL;
 
   /* Properties */
   g_object_get (fixture->store,
@@ -314,7 +314,8 @@ test_contacts_component_store (ContactsComponentFixture *fixture,
   contact = g_object_ref (contacts->data);
   g_assert_true (E_IS_CONTACT (contact));
   g_assert_cmpstr (e_contact_get_const (contact, E_CONTACT_UID), ==, "test-contact");
-  g_clear_pointer (&contacts, valent_object_slist_free);
+  g_slist_free_full (contacts, g_object_unref);
+  contacts = NULL;
   g_clear_object (&contact);
 
   /* Contacts can be queried with EQuery search expressions */
@@ -337,7 +338,8 @@ test_contacts_component_store (ContactsComponentFixture *fixture,
   contact = g_object_ref (contacts->data);
   g_assert_true (E_IS_CONTACT (contact));
   g_assert_cmpstr (e_contact_get_const (contact, E_CONTACT_UID), ==, "test-contact");
-  g_clear_pointer (&contacts, valent_object_slist_free);
+  g_slist_free_full (contacts, g_object_unref);
+  contacts = NULL;
   g_clear_object (&contact);
 
   /* ::contact-removed is emitted when contacts are removed */

@@ -267,8 +267,6 @@ test_manager_dbus (ManagerFixture *fixture,
   g_assert_true (fixture->data == interface);
   fixture->data = NULL;
 
-  g_clear_pointer (&objects, valent_object_list_free);
-
   /* Exports Actions */
   actions = g_dbus_action_group_get (connection, unique_name, object_path);
 
