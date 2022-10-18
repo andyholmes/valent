@@ -266,7 +266,7 @@ cx_suite_test() {
 #
 cx_suite_asan() {
     CX_SETUP_SANITIZE="address,undefined"
-    CX_TEST_TIMEOUT_MULTIPLIER=3
+    CX_TEST_TIMEOUT_MULTIPLIER="${CX_TEST_TIMEOUT_MULTIPLIER:=3}"
 
     # Clang needs `-Db_lundef=false` to use sanitizers
     if [ "${CC}" = "clang" ]; then
@@ -287,7 +287,7 @@ cx_suite_asan() {
 #
 cx_suite_tsan() {
     CX_SETUP_SANITIZE="thread"
-    CX_TEST_TIMEOUT_MULTIPLIER=3
+    CX_TEST_TIMEOUT_MULTIPLIER="${CX_TEST_TIMEOUT_MULTIPLIER:=3}"
 
     # Clang needs `-Db_lundef=false` to use sanitizers
     if [ "${CC}" = "clang" ]; then
@@ -346,9 +346,10 @@ cx_main() {
         export CXX_LD=lld
     fi
 
-    # Compiler Profiles
     if [ "${CX_SUITE}" = "pretest" ]; then
         cx_suite_pretest "${@}";
+
+    # Compiler Profiles
     elif [ "${CX_SUITE}" = "test" ]; then
         cx_suite_test "${@}";
     elif [ "${CX_SUITE}" = "asan" ]; then

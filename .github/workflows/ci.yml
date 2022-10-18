@@ -117,11 +117,10 @@ jobs:
 
     strategy:
       matrix:
-        suite: [abidiff, cppcheck]
-        include:
-          - suite: abidiff
+        suite:
+          - name: abidiff
             setup_args: '-Dintrospection=false -Dplugins=false'
-          - suite: cppcheck
+          - name: cppcheck
             setup_args: '-Dintrospection=false -Dtests=true'
       fail-fast: false
 
@@ -133,8 +132,8 @@ jobs:
 
       - name: Analyze
         env:
-          CX_SUITE: ${{ matrix.suite }}
-          CX_SETUP_ARGS: ${{ matrix.setup_args }}
+          CX_SUITE: ${{ matrix.suite.name }}
+          CX_SETUP_ARGS: ${{ matrix.suite.setup_args }}
           CX_CPPCHECK_LIBRARY: ${{ github.workspace }}/tests/extra/cppcheck.cfg
           CX_CPPCHECK_SUPPRESSIONS: ${{ github.workspace }}/tests/extra/cppcheck.supp
           CX_CPPCHECK_ARGS: -I${{ github.workspace}}/tests/fixtures
@@ -145,7 +144,7 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v3
         with:
-          name: Static Analysis (${{ matrix.suite }})
+          name: Static Analysis (${{ matrix.suite.name }})
           path: _build/meson-logs
 
   test:
@@ -165,10 +164,8 @@ jobs:
             test_args: '--repeat=3'
           - suite: asan
             setup_args: '-Dintrospection=false -Dtests=true'
-            test_args: '--timeout-multiplier=3'
           - suite: tsan
             setup_args: '-Dintrospection=false -Dtests=true'
-            test_args: '--timeout-multiplier=3'
           - suite: analyzer
             setup_args: '-Dintrospection=false -Dtests=true'
       fail-fast: false
