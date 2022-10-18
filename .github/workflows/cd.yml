@@ -58,10 +58,11 @@ jobs:
     name: Flatpak
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/andyholmes/flatpak-github-actions:gnome-43
+      image: ghcr.io/andyholmes/flatter/gnome:43
       options: --privileged
 
     strategy:
+      max-parallel: 1
       matrix:
         arch: [x86_64, aarch64]
       fail-fast: false
@@ -84,9 +85,24 @@ jobs:
         with:
           platforms: arm64
 
-      - name: Build
-        uses: andyholmes/flatpak-github-actions/flatpak-builder@valent
+      - name: Setup GPG
+        id: gpg
+        uses: crazy-max/ghaction-import-gpg@v5
         with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Build
+        uses: andyholmes/flatter@main
+        with:
+          files: |
+            build-aux/flatpak/ca.andyholmes.Valent.json
           arch: ${{ matrix.arch }}
-          bundle: ca.andyholmes.Valent.flatpak
-          manifest-path: build-aux/flatpak/ca.andyholmes.Valent.json
+          gpg-sign: ${{ steps.gpg.outputs.fingerprint }}
+
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@releases/v4
+        with:
+          folder: repo
+          target-folder: repo
+          single-commit: true
