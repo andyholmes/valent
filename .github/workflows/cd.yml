@@ -4,9 +4,6 @@ on:
   push:
     branches: [main]
 
-permissions:
-  contents: write
-
 jobs:
   report:
     name: Deploy
@@ -60,6 +57,8 @@ jobs:
     container:
       image: ghcr.io/andyholmes/flatter/gnome:43
       options: --privileged
+    permissions:
+      contents: write
 
     strategy:
       max-parallel: 1
@@ -97,6 +96,7 @@ jobs:
         with:
           files: |
             build-aux/flatpak/ca.andyholmes.Valent.json
+          upload-flatpak-bundle: true
           arch: ${{ matrix.arch }}
           gpg-sign: ${{ steps.gpg.outputs.fingerprint }}
 
