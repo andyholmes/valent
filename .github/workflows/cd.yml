@@ -72,12 +72,7 @@ jobs:
         with:
           submodules: true
 
-      - name: Prepare Docker
-        if: ${{ matrix.arch == 'aarch64' }}
-        run: |
-          dnf -y install docker
-
-      - name: Prepare QEMU
+      - name: Setup QEMU
         if: ${{ matrix.arch == 'aarch64' }}
         id: qemu
         uses: docker/setup-qemu-action@v2
