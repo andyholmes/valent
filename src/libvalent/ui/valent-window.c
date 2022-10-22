@@ -251,7 +251,7 @@ about_action (GtkWidget  *widget,
                          "website",            PACKAGE_URL,
                          NULL);
   adw_about_window_add_acknowledgement_section (ADW_ABOUT_WINDOW (dialog),
-                                                _("Funded By"),
+                                                _("Sponsors"),
                                                 valent_application_credits_sponsors);
 
   gtk_window_present (dialog);
