@@ -214,7 +214,7 @@ jobs:
     needs: [pre-test]
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/andyholmes/flatpak-github-actions:gnome-43
+      image: bilelmoussaoui/flatpak-github-actions:gnome-43
       options: --privileged
 
     steps:
@@ -224,7 +224,7 @@ jobs:
           submodules: true
 
       - name: Build
-        uses: andyholmes/flatpak-github-actions/flatpak-builder@valent
+        uses: flatpak/flatpak-github-actions/flatpak-builder@master
         with:
           bundle: ca.andyholmes.Valent.flatpak
           manifest-path: build-aux/flatpak/ca.andyholmes.Valent.Tests.json
@@ -235,7 +235,7 @@ jobs:
     needs: [pre-test]
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/andyholmes/flatpak-github-actions:gnome-nightly
+      image: bilelmoussaoui/flatpak-github-actions:gnome-nightly
       options: --privileged
 
     steps:
@@ -245,7 +245,7 @@ jobs:
           submodules: true
 
       - name: Build
-        uses: andyholmes/flatpak-github-actions/flatpak-builder@valent
+        uses: flatpak/flatpak-github-actions/flatpak-builder@master
         with:
           bundle: ca.andyholmes.Valent.Devel.flatpak
           manifest-path: build-aux/flatpak/ca.andyholmes.Valent.Devel.Tests.json
