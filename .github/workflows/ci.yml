@@ -117,10 +117,11 @@ jobs:
 
     strategy:
       matrix:
-        suite:
-          - name: abidiff
+        suite: [abidiff, cppcheck]
+        include:
+          - suite: abidiff
             setup_args: '-Dintrospection=false -Dplugins=false'
-          - name: cppcheck
+          - suite: cppcheck
             setup_args: '-Dintrospection=false -Dtests=true'
       fail-fast: false
 
