@@ -88,10 +88,10 @@ valent_share_target_chooser_create_row (gpointer item,
 
   g_object_bind_property (device, "icon-name",
                           row,    "icon-name",
-                          G_BINDING_DEFAULT);
+                          G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE);
   g_object_bind_property (device, "name",
                           row,    "title",
-                          G_BINDING_DEFAULT);
+                          G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE);
   g_object_set_data_full (G_OBJECT (row),
                           "device",
                           g_object_ref (device),
