@@ -52,6 +52,9 @@ typedef struct
   char           *name;
 } ValentChannelServicePrivate;
 
+static gboolean   valent_channel_service_supports_plugin (ValentChannelService *service,
+                                                          PeasPluginInfo       *info);
+
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentChannelService, valent_channel_service, VALENT_TYPE_OBJECT);
 
 /**
@@ -772,7 +775,7 @@ valent_channel_service_channel (ValentChannelService *service,
   g_timeout_add (0, valent_channel_service_channel_main, emission);
 }
 
-/**
+/*< private >
  * valent_channel_service_supports_plugin:
  * @service: a #ValentChannelService
  * @info: a #PeasPluginInfo
@@ -787,10 +790,8 @@ valent_channel_service_channel (ValentChannelService *service,
  * %FALSE if @info specifies a different protocol.
  *
  * Returns: %TRUE if supported, or %FALSE if not
- *
- * Since: 1.0
  */
-gboolean
+static gboolean
 valent_channel_service_supports_plugin (ValentChannelService *service,
                                         PeasPluginInfo       *info)
 {

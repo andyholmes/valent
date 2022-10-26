@@ -48,7 +48,6 @@ test_device_plugin_basic (DevicePluginFixture *fixture,
 {
   g_autoptr (ValentDevice) device = NULL;
   PeasPluginInfo *plugin_info = NULL;
-  GStrv capabilities = NULL;
 
   /* Test properties */
   g_object_get (fixture->extension,
@@ -58,15 +57,6 @@ test_device_plugin_basic (DevicePluginFixture *fixture,
 
   g_assert_true (VALENT_IS_DEVICE (device));
   g_assert_nonnull (plugin_info);
-
-  /* Capabilities */
-  capabilities = valent_device_plugin_get_incoming (plugin_info);
-  g_assert_cmpuint (g_strv_length (capabilities), ==, 2);
-  g_clear_pointer (&capabilities, g_strfreev);
-
-  capabilities = valent_device_plugin_get_outgoing (plugin_info);
-  g_assert_cmpuint (g_strv_length (capabilities), ==, 2);
-  g_clear_pointer (&capabilities, g_strfreev);
 
   g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
 }
