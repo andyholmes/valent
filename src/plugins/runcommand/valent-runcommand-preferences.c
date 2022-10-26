@@ -115,24 +115,20 @@ remove_command (ValentRuncommandPreferences *self,
 {
   ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
   GSettings *settings;
-  g_autoptr (GVariant) cmds_var = NULL;
-  g_autoptr (GVariantDict) cmds_dict = NULL;
-  GVariant *cmds_new;
+  g_autoptr (GVariant) commands = NULL;
+  GVariantDict dict;
+  GVariant *value;
 
   g_assert (VALENT_IS_RUNCOMMAND_PREFERENCES (self));
 
   settings = valent_device_preferences_page_get_settings (page);
+  commands = g_settings_get_value (settings, "commands");
 
-  /* Get the current commands GVariant */
-  cmds_var = g_settings_get_value (settings, "commands");
+  g_variant_dict_init (&dict, commands);
+  g_variant_dict_remove (&dict, uuid);
+  value = g_variant_dict_end (&dict);
 
-  /* Create the new commands GVariant (floating) */
-  cmds_dict = g_variant_dict_new (cmds_var);
-  g_variant_dict_remove (cmds_dict, uuid);
-  cmds_new = g_variant_dict_end (cmds_dict);
-
-  /* Save the new commands GVariant */
-  g_settings_set_value (settings, "commands", cmds_new);
+  g_settings_set_value (settings, "commands", value);
 }
 
 static void
@@ -143,32 +139,25 @@ save_command (ValentRuncommandPreferences *self,
 {
   ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
   GSettings *settings;
-  g_autoptr (GVariant) cmds_var = NULL;
-  g_autoptr (GVariantDict) cmds_dict = NULL;
-  GVariant *commandv;
-  g_autoptr (GVariantDict) commandd = NULL;
-  GVariant *cmds_new;
+  g_autoptr (GVariant) commands = NULL;
+  GVariantDict dict;
+  GVariant *item;
+  GVariant *value;
 
   g_assert (VALENT_IS_RUNCOMMAND_PREFERENCES (self));
 
   settings = valent_device_preferences_page_get_settings (page);
+  commands = g_settings_get_value (settings, "commands");
 
-  /* Get the current commands GVariant */
-  cmds_var = g_settings_get_value (settings, "commands");
+  item = g_variant_new_parsed ("{'name': <%s>, 'command': <%s>}",
+                               name,
+                               command);
 
-  /* Create the new command GVariant (floating) */
-  commandd = g_variant_dict_new (NULL);
-  g_variant_dict_insert (commandd, "name", "s", name);
-  g_variant_dict_insert (commandd, "command", "s", command);
-  commandv = g_variant_dict_end (commandd);
+  g_variant_dict_init (&dict, commands);
+  g_variant_dict_insert_value (&dict, uuid, item);
+  value = g_variant_dict_end (&dict);
 
-  /* Create the new commands GVariant (floating) */
-  cmds_dict = g_variant_dict_new (cmds_var);
-  g_variant_dict_insert_value (cmds_dict, uuid, commandv);
-  cmds_new = g_variant_dict_end (cmds_dict);
-
-  /* Save the new commands GVariant */
-  g_settings_set_value (settings, "commands", cmds_new);
+  g_settings_set_value (settings, "commands", value);
 }
 
 static void
@@ -291,43 +280,34 @@ static void
 populate_commands (ValentRuncommandPreferences *self)
 {
   ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
-  GSettings *settings;
   GtkWidget *child;
-  g_autoptr (GVariant) cmds_var = NULL;
+  GSettings *settings;
+  g_autoptr (GVariant) commands = NULL;
   GVariantIter iter;
   char *uuid;
-  GVariant *cmd;
+  GVariant *item;
 
   g_assert (VALENT_IS_RUNCOMMAND_PREFERENCES (self));
 
-  settings = valent_device_preferences_page_get_settings (page);
-
-  /* Clear list */
   while ((child = gtk_widget_get_first_child (GTK_WIDGET (self->command_list))))
     gtk_list_box_remove (self->command_list, child);
 
-  /* Get stored value */
-  cmds_var = g_settings_get_value (settings, "commands");
+  settings = valent_device_preferences_page_get_settings (page);
+  commands = g_settings_get_value (settings, "commands");
 
-  /* Iterate commands */
-  g_variant_iter_init (&iter, cmds_var);
+  g_variant_iter_init (&iter, commands);
 
-  while (g_variant_iter_next (&iter, "{sv}", &uuid, &cmd))
+  while (g_variant_iter_next (&iter, "{sv}", &uuid, &item))
     {
-      g_autoptr (GVariantDict) cmd_dict = NULL;
-      g_autofree char *name = NULL;
-      g_autofree char *command = NULL;
+      const char *name = NULL;
+      const char *command = NULL;
 
-      cmd_dict = g_variant_dict_new (cmd);
-      g_variant_dict_lookup (cmd_dict, "name", "s", &name);
-      g_variant_dict_lookup (cmd_dict, "command", "s", &command);
-
-      if (name && command)
+      if (g_variant_lookup (item, "name", "&s", &name) &&
+          g_variant_lookup (item, "command", "&s", &command))
         add_command_row (self, uuid, name, command);
 
-      // must free data for ourselves
-      g_free (uuid);
-      g_variant_unref (cmd);
+      g_clear_pointer (&uuid, g_free);
+      g_clear_pointer (&item, g_variant_unref);
     }
 }
 
