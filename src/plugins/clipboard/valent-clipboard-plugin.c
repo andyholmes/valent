@@ -94,7 +94,7 @@ valent_clipboard_read_text_cb (ValentClipboard       *clipboard,
 
   if (error != NULL)
     {
-      if (!valent_error_ignore (error))
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
         g_warning ("%s(): %s", G_STRFUNC, error->message);
 
       return;
@@ -133,7 +133,7 @@ valent_clipboard_read_text_connect_cb (ValentClipboard       *clipboard,
 
   if (error != NULL)
     {
-      if (!valent_error_ignore (error))
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
         g_warning ("%s(): %s", G_STRFUNC, error->message);
 
       return;

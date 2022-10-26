@@ -289,8 +289,7 @@ valent_device_enable_plugin (ValentDevice *device,
                              DevicePlugin *plugin)
 {
   g_auto (GStrv) actions = NULL;
-  g_auto (GStrv) incoming = NULL;
-  unsigned int n_capabilities = 0;
+  const char *incoming = NULL;
 
   g_assert (VALENT_IS_DEVICE (device));
   g_assert (plugin != NULL);
@@ -304,22 +303,28 @@ valent_device_enable_plugin (ValentDevice *device,
   g_return_if_fail (PEAS_IS_EXTENSION (plugin->extension));
 
   /* Register packet handlers */
-  if ((incoming = valent_device_plugin_get_incoming (plugin->info)) != NULL)
-    n_capabilities = g_strv_length (incoming);
+  incoming = peas_plugin_info_get_external_data (plugin->info,
+                                                 "DevicePluginIncoming");
 
-  for (unsigned int i = 0; i < n_capabilities; i++)
+  if (incoming != NULL)
     {
-      GPtrArray *handlers = NULL;
+      g_auto (GStrv) capabilities = NULL;
 
-      if ((handlers = g_hash_table_lookup (device->handlers, incoming[i])) == NULL)
+      capabilities = g_strsplit (incoming, ";", -1);
+
+      for (unsigned int i = 0; capabilities[i] != NULL; i++)
         {
-          handlers = g_ptr_array_new ();
-          g_hash_table_insert (device->handlers,
-                               g_strdup (incoming[i]),
-                               handlers);
-        }
+          GPtrArray *handlers = NULL;
+          const char *type = capabilities[i];
 
-      g_ptr_array_add (handlers, plugin->extension);
+          if ((handlers = g_hash_table_lookup (device->handlers, type)) == NULL)
+            {
+              handlers = g_ptr_array_new ();
+              g_hash_table_insert (device->handlers, g_strdup (type), handlers);
+            }
+
+          g_ptr_array_add (handlers, plugin->extension);
+        }
     }
 
   /* Register plugin actions */
@@ -360,8 +365,7 @@ valent_device_disable_plugin (ValentDevice *device,
                               DevicePlugin *plugin)
 {
   g_auto (GStrv) actions = NULL;
-  g_auto (GStrv) incoming = NULL;
-  unsigned int n_capabilities = 0;
+  const char *incoming = NULL;
 
   g_assert (VALENT_IS_DEVICE (device));
   g_assert (plugin != NULL);
@@ -379,18 +383,26 @@ valent_device_disable_plugin (ValentDevice *device,
     }
 
   /* Unregister packet handlers */
-  if ((incoming = valent_device_plugin_get_incoming (plugin->info)) != NULL)
-    n_capabilities = g_strv_length (incoming);
+  incoming = peas_plugin_info_get_external_data (plugin->info,
+                                                 "DevicePluginIncoming");
 
-  for (unsigned int i = 0; i < n_capabilities; i++)
+  if (incoming != NULL)
     {
-      GPtrArray *handlers = NULL;
+      g_auto (GStrv) capabilities = NULL;
 
-      if ((handlers = g_hash_table_lookup (device->handlers, incoming[i])) == NULL)
-        continue;
+      capabilities = g_strsplit (incoming, ";", -1);
 
-      if (g_ptr_array_remove (handlers, plugin->extension) && handlers->len == 0)
-        g_hash_table_remove (device->handlers, incoming[i]);
+      for (unsigned int i = 0; capabilities[i] != NULL; i++)
+        {
+          const char *type = capabilities[i];
+          GPtrArray *handlers = NULL;
+
+          if ((handlers = g_hash_table_lookup (device->handlers, type)) == NULL)
+            continue;
+
+          if (g_ptr_array_remove (handlers, plugin->extension) && handlers->len == 0)
+            g_hash_table_remove (device->handlers, type);
+        }
     }
 
   /* Invoke the plugin vfunc */
@@ -1780,7 +1792,7 @@ valent_device_handle_packet (ValentDevice *device,
     }
 }
 
-/**
+/*< private >
  * valent_device_reload_plugins:
  * @device: a #ValentDevice
  *
@@ -1807,7 +1819,7 @@ valent_device_reload_plugins (ValentDevice *device)
     }
 }
 
-/**
+/*< private >
  * valent_device_update_plugins:
  * @device: a #ValentDevice
  *
@@ -1838,7 +1850,7 @@ valent_device_update_plugins (ValentDevice *device)
     }
 }
 
-/**
+/*< private >
  * valent_device_supports_plugin:
  * @device: a #ValentDevice
  * @info: a #PeasPluginInfo

@@ -14,9 +14,6 @@
 #include "valent-device-plugin.h"
 #include "valent-packet.h"
 
-#define PLUGIN_SETTINGS_KEY "X-DevicePluginSettings"
-#define PLUGIN_INCOMING_KEY "X-DevicePluginIncoming"
-#define PLUGIN_OUTGOING_KEY "X-DevicePluginOutgoing"
 
 
 /**
@@ -759,52 +756,6 @@ valent_device_plugin_create_settings (PeasPluginInfo *plugin_info,
                           device_id, module_name);
 
   return g_settings_new_full (schema, NULL, path);
-}
-
-/**
- * valent_device_plugin_get_incoming:
- * @info: a #ValentDevicePluginInfo
- *
- * Get a list of incoming KDE Connect packets that the plugin described by @info
- * can handle.
- *
- * Returns: (transfer full) (nullable): a list of packet types
- *
- * Since: 1.0
- */
-GStrv
-valent_device_plugin_get_incoming (PeasPluginInfo *info)
-{
-  const char *data;
-
-  g_return_val_if_fail (info != NULL, NULL);
-
-  data = peas_plugin_info_get_external_data (info, "DevicePluginIncoming");
-
-  return (data == NULL) ? NULL : g_strsplit (data, ";", -1);
-}
-
-/**
- * valent_device_plugin_get_outgoing:
- * @info: a #PeasPluginInfo
- *
- * Get a list of outgoing KDE Connect packets that the plugin described by @info
- * may provide.
- *
- * Returns: (transfer full) (nullable): a list of packet types
- *
- * Since: 1.0
- */
-GStrv
-valent_device_plugin_get_outgoing (PeasPluginInfo *info)
-{
-  const char *data;
-
-  g_return_val_if_fail (info != NULL, NULL);
-
-  data = peas_plugin_info_get_external_data (info, "DevicePluginOutgoing");
-
-  return (data == NULL) ? NULL : g_strsplit (data, ";", -1);
 }
 
 /**

@@ -80,10 +80,6 @@ void           valent_device_plugin_toggle_actions      (ValentDevicePlugin    *
 VALENT_AVAILABLE_IN_1_0
 GSettings *    valent_device_plugin_create_settings     (PeasPluginInfo        *plugin_info,
                                                          const char            *device_id);
-VALENT_AVAILABLE_IN_1_0
-GStrv          valent_device_plugin_get_incoming        (PeasPluginInfo        *info);
-VALENT_AVAILABLE_IN_1_0
-GStrv          valent_device_plugin_get_outgoing        (PeasPluginInfo        *info);
 
 /* TODO: GMenuModel XML */
 VALENT_AVAILABLE_IN_1_0

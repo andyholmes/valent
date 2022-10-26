@@ -52,9 +52,6 @@ void         valent_channel_service_build_identity  (ValentChannelService  *serv
 VALENT_AVAILABLE_IN_1_0
 void         valent_channel_service_identify        (ValentChannelService  *service,
                                                      const char            *target);
-VALENT_AVAILABLE_IN_1_0
-gboolean     valent_channel_service_supports_plugin (ValentChannelService  *service,
-                                                     PeasPluginInfo        *info);
 
 G_END_DECLS
 
