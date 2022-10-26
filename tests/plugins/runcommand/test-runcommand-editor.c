@@ -12,7 +12,7 @@ test_runcommand_dialog (void)
 {
   g_autoptr (ValentRuncommandEditor) dialog = NULL;
 
-  dialog = (ValentRuncommandEditor *)valent_runcommand_editor_new ();
+  dialog = g_object_new (VALENT_TYPE_RUNCOMMAND_EDITOR, NULL);
   gtk_window_present (GTK_WINDOW (dialog));
 
   g_assert_cmpstr (valent_runcommand_editor_get_command (dialog), ==, "");

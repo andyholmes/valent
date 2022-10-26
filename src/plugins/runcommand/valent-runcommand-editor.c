@@ -138,30 +138,6 @@ valent_runcommand_editor_init (ValentRuncommandEditor *self)
   self->uuid = g_strdup ("");
 }
 
-GtkDialog *
-valent_runcommand_editor_new (void)
-{
-  return g_object_new (VALENT_TYPE_RUNCOMMAND_EDITOR,
-                       "use-header-bar", TRUE,
-                       NULL);
-}
-
-/**
- * valent_runcommand_editor_clear:
- * @editor: a #ValentRuncommandEditor
- *
- * Clear the name, command and UUID of @editor.
- */
-void
-valent_runcommand_editor_clear (ValentRuncommandEditor *editor)
-{
-  g_return_if_fail (VALENT_IS_RUNCOMMAND_EDITOR (editor));
-
-  valent_runcommand_editor_set_uuid (editor, "");
-  gtk_editable_set_text (GTK_EDITABLE (editor->name_entry), "");
-  gtk_editable_set_text (GTK_EDITABLE (editor->command_entry), "");
-}
-
 /**
  * valent_runcommand_editor_get_command:
  * @editor: a #ValentRuncommandEditor
@@ -261,3 +237,18 @@ valent_runcommand_editor_set_uuid (ValentRuncommandEditor *editor,
   valent_set_string (&editor->uuid, uuid);
 }
 
+/**
+ * valent_runcommand_editor_clear:
+ * @editor: a #ValentRuncommandEditor
+ *
+ * Clear the name, command and UUID of @editor.
+ */
+void
+valent_runcommand_editor_clear (ValentRuncommandEditor *editor)
+{
+  g_return_if_fail (VALENT_IS_RUNCOMMAND_EDITOR (editor));
+
+  valent_runcommand_editor_set_uuid (editor, "");
+  gtk_editable_set_text (GTK_EDITABLE (editor->name_entry), "");
+  gtk_editable_set_text (GTK_EDITABLE (editor->command_entry), "");
+}
