@@ -43,6 +43,7 @@ src/plugins/findmyphone/valent-findmyphone-ringer.c
 src/plugins/gtk/gtk.plugin.desktop.in
 src/plugins/lan/lan.plugin.desktop.in
 src/plugins/lock/lock.plugin.desktop.in
+src/plugins/lock/valent-lock-gadget.c
 src/plugins/mousepad/mousepad.plugin.desktop.in
 src/plugins/mousepad/valent-mousepad-plugin.c
 src/plugins/mousepad/valent-mousepad-remote.c

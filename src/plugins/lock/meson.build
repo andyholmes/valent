@@ -1,16 +1,18 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
+# SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 # Dependencies
 plugin_lock_deps = [
   libvalent_core_dep,
   libvalent_device_dep,
   libvalent_session_dep,
+  libvalent_ui_dep,
 ]
 
 # Sources
 plugin_lock_sources = files([
   'lock-plugin.c',
+  'valent-lock-gadget.c',
   'valent-lock-plugin.c',
 ])
 

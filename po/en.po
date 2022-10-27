@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2022-10-22 12:28-0700\n"
+"POT-Creation-Date: 2022-10-27 13:31-0700\n"
 "PO-Revision-Date: 2022-03-28 11:21-0700\n"
 "Last-Translator: Andy Holmes <andrew.g.r.holmes@gmail.com>\n"
 "Language-Team: English <andrew.g.r.holmes@gmail.com>\n"
@@ -108,17 +108,17 @@ msgstr ""
 msgid "Andy Holmes"
 msgstr ""
 
-#: src/libvalent/device/valent-device.c:516
+#: src/libvalent/device/valent-device.c:528
 #, c-format
 msgid "Pairing request from %s"
 msgstr ""
 
-#: src/libvalent/device/valent-device.c:527
+#: src/libvalent/device/valent-device.c:539
 #: src/libvalent/ui/valent-device-page.ui:139
 msgid "Reject"
 msgstr ""
 
-#: src/libvalent/device/valent-device.c:533
+#: src/libvalent/device/valent-device.c:545
 #: src/libvalent/ui/valent-device-page.ui:152
 msgid "Accept"
 msgstr ""
@@ -593,6 +593,7 @@ msgid "Connect devices over LAN"
 msgstr ""
 
 #: src/plugins/lock/lock.plugin.desktop.in:7
+#: src/plugins/lock/valent-lock-gadget.c:121
 msgid "Lock"
 msgstr ""
 
@@ -668,7 +669,7 @@ msgstr ""
 #: src/plugins/presenter/valent-presenter-remote.c:92
 #: src/plugins/runcommand/valent-runcommand-editor.c:65
 #: src/plugins/runcommand/valent-runcommand-editor.ui:12
-#: src/plugins/runcommand/valent-runcommand-preferences.c:392
+#: src/plugins/runcommand/valent-runcommand-preferences.c:372
 #: src/plugins/share/valent-share-plugin.c:136
 #: src/plugins/share/valent-share-plugin.c:259
 #: src/plugins/share/valent-share-plugin.c:361
@@ -815,7 +816,7 @@ msgid "Select"
 msgstr ""
 
 #: src/plugins/runcommand/valent-runcommand-editor.ui:8
-#: src/plugins/runcommand/valent-runcommand-preferences.c:269
+#: src/plugins/runcommand/valent-runcommand-preferences.c:258
 msgid "Edit"
 msgstr ""
 
@@ -832,19 +833,19 @@ msgstr ""
 msgid "Run Command"
 msgstr ""
 
-#: src/plugins/runcommand/valent-runcommand-preferences.c:279
+#: src/plugins/runcommand/valent-runcommand-preferences.c:268
 msgid "Remove"
 msgstr ""
 
-#: src/plugins/runcommand/valent-runcommand-preferences.c:384
+#: src/plugins/runcommand/valent-runcommand-preferences.c:364
 msgid "Run Unrestricted?"
 msgstr ""
 
-#: src/plugins/runcommand/valent-runcommand-preferences.c:385
+#: src/plugins/runcommand/valent-runcommand-preferences.c:365
 msgid "Commands will be run on the host system without restriction."
 msgstr ""
 
-#: src/plugins/runcommand/valent-runcommand-preferences.c:393
+#: src/plugins/runcommand/valent-runcommand-preferences.c:373
 msgid "I Understand"
 msgstr ""
 

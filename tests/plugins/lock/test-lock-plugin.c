@@ -12,8 +12,7 @@ test_lock_plugin_basic (ValentTestFixture *fixture,
 {
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
 
-  g_assert_true (g_action_group_has_action (actions, "lock.lock"));
-  g_assert_true (g_action_group_has_action (actions, "lock.unlock"));
+  g_assert_true (g_action_group_has_action (actions, "lock.state"));
 }
 
 static void
@@ -71,8 +70,9 @@ test_lock_plugin_send_request (ValentTestFixture *fixture,
   valent_test_fixture_handle_packet (fixture, packet);
 
   /* lock the endpoint */
-  g_assert_true (g_action_group_get_action_enabled (actions, "lock.lock"));
-  g_action_group_activate_action (actions, "lock.lock", NULL);
+  g_assert_true (g_action_group_get_action_enabled (actions, "lock.state"));
+  g_action_group_change_action_state (actions, "lock.state",
+                                      g_variant_new_boolean (TRUE));
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.lock.request");
@@ -83,8 +83,9 @@ test_lock_plugin_send_request (ValentTestFixture *fixture,
   valent_test_fixture_handle_packet (fixture, packet);
 
   /* lock the endpoint (message) */
-  g_assert_true (g_action_group_get_action_enabled (actions, "lock.unlock"));
-  g_action_group_activate_action (actions, "lock.unlock", NULL);
+  g_assert_true (g_action_group_get_action_enabled (actions, "lock.state"));
+  g_action_group_change_action_state (actions, "lock.state",
+                                      g_variant_new_boolean (FALSE));
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.lock.request");
