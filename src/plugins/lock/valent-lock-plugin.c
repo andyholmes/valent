@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
+// SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 #define G_LOG_DOMAIN "valent-lock-plugin"
 
@@ -18,10 +18,10 @@ struct _ValentLockPlugin
 {
   ValentDevicePlugin  parent_instance;
 
-  ValentSession     *session;
-  unsigned long      session_changed_id;
+  ValentSession      *session;
+  unsigned long       session_changed_id;
 
-  gboolean           remote_locked;
+  gboolean            remote_locked;
 };
 
 G_DEFINE_TYPE (ValentLockPlugin, valent_lock_plugin, VALENT_TYPE_DEVICE_PLUGIN)
@@ -76,11 +76,9 @@ valent_lock_plugin_update_actions (ValentLockPlugin *self)
 {
   GAction *action;
 
-  action = g_action_map_lookup_action (G_ACTION_MAP (self), "lock");
-  g_simple_action_set_enabled (G_SIMPLE_ACTION (action), !self->remote_locked);
-
-  action = g_action_map_lookup_action (G_ACTION_MAP (self), "unlock");
-  g_simple_action_set_enabled (G_SIMPLE_ACTION (action), self->remote_locked);
+  action = g_action_map_lookup_action (G_ACTION_MAP (self), "state");
+  g_simple_action_set_state (G_SIMPLE_ACTION (action),
+                             g_variant_new_boolean (self->remote_locked));
 }
 
 static void
@@ -127,38 +125,23 @@ valent_lock_plugin_set_state (ValentLockPlugin *self,
  * GActions
  */
 static void
-lock_action (GSimpleAction *action,
-             GVariant      *parameter,
-             gpointer       user_data)
+state_action (GSimpleAction *action,
+              GVariant      *parameter,
+              gpointer       user_data)
 {
   ValentLockPlugin *self = VALENT_LOCK_PLUGIN (user_data);
+  gboolean lock = FALSE;
 
   g_assert (VALENT_IS_LOCK_PLUGIN (self));
 
-  valent_lock_plugin_set_state (self, TRUE);
-}
+  lock = g_variant_get_boolean (parameter);
 
-static void
-unlock_action (GSimpleAction *action,
-               GVariant      *parameter,
-               gpointer       user_data)
-{
-  ValentLockPlugin *self = VALENT_LOCK_PLUGIN (user_data);
-
-  g_assert (VALENT_IS_LOCK_PLUGIN (self));
-
-  valent_lock_plugin_set_state (self, FALSE);
+  if (self->remote_locked != lock)
+    valent_lock_plugin_set_state (self, lock);
 }
 
 static const GActionEntry actions[] = {
-    {"lock",       lock_action,   NULL, NULL,    NULL},
-    {"unlock",     unlock_action, NULL, NULL,    NULL},
-    {"lock-state", NULL,          NULL, "false", NULL},
-};
-
-static const ValentMenuEntry items[] = {
-    {N_("Lock"),   "device.lock.lock",   "phonelink-lock-symbolic"},
-    {N_("Unlock"), "device.lock.unlock", "phonelink-lock-symbolic"}
+    {"state", NULL, NULL, "false", state_action},
 };
 
 /*
@@ -177,9 +160,6 @@ valent_lock_plugin_enable (ValentDevicePlugin *plugin)
                                    actions,
                                    G_N_ELEMENTS (actions),
                                    plugin);
-  valent_device_plugin_add_menu_entries (plugin,
-                                         items,
-                                         G_N_ELEMENTS (items));
 }
 
 static void
@@ -191,10 +171,6 @@ valent_lock_plugin_disable (ValentDevicePlugin *plugin)
 
   /* We're about to dispose, so stop watching the session */
   g_clear_signal_handler (&self->session_changed_id, self->session);
-
-  valent_device_plugin_remove_menu_entries (plugin,
-                                            items,
-                                            G_N_ELEMENTS (items));
 }
 
 static void
@@ -221,6 +197,7 @@ valent_lock_plugin_update_state (ValentDevicePlugin *plugin,
                                      G_CONNECT_SWAPPED);
         }
 
+      valent_device_plugin_toggle_actions (plugin, available);
       valent_lock_plugin_update_actions (self);
       valent_lock_plugin_request_state (self);
     }

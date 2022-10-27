@@ -9,6 +9,7 @@ plugin_lock_test_deps = [
 
 plugin_lock_tests = [
   'test-lock-plugin',
+  'test-lock-gadget',
 ]
 
 foreach test : plugin_lock_tests
