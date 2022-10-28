@@ -305,28 +305,28 @@ main (int   argc,
 {
   valent_test_init (&argc, &argv, NULL);
 
-  g_test_add_func ("/core/packet/builder",
+  g_test_add_func ("/libvalent/device/packet/builder",
                    test_packet_builder);
 
-  g_test_add_func ("/core/packet/payloads",
+  g_test_add_func ("/libvalent/device/packet/payloads",
                    test_packet_payloads);
 
-  g_test_add_func ("/core/packet/get",
+  g_test_add_func ("/libvalent/device/packet/get",
                    test_packet_get);
 
-  g_test_add ("/libvalent/core/packet/invalid",
+  g_test_add ("/libvalent/device/packet/invalid",
               PacketFixture, NULL,
               packet_fixture_set_up,
               test_packet_invalid,
               packet_fixture_tear_down);
 
-  g_test_add ("/libvalent/core/packet/serializing",
+  g_test_add ("/libvalent/device/packet/serializing",
               PacketFixture, NULL,
               packet_fixture_set_up,
               test_packet_serializing,
               packet_fixture_tear_down);
 
-  g_test_add ("/libvalent/core/packet/streaming",
+  g_test_add ("/libvalent/device/packet/streaming",
               PacketFixture, NULL,
               packet_fixture_set_up,
               test_packet_streaming,

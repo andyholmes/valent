@@ -713,64 +713,64 @@ main (int   argc,
 {
   valent_test_init (&argc, &argv, NULL);
 
-  g_test_add_func ("/core/device/new",
+  g_test_add_func ("/libvalent/device/device/new",
                    test_device_new);
 
-  g_test_add ("/libvalent/core/device/basic",
+  g_test_add ("/libvalent/device/device/basic",
               DeviceFixture, NULL,
               device_fixture_set_up,
               test_device_basic,
               device_fixture_tear_down);
 
-  g_test_add ("/libvalent/core/device/connecting",
+  g_test_add ("/libvalent/device/device/connecting",
               DeviceFixture, NULL,
               device_fixture_set_up,
               test_device_connecting,
               device_fixture_tear_down);
 
-  g_test_add ("/libvalent/core/device/pairing",
+  g_test_add ("/libvalent/device/device/pairing",
               DeviceFixture, NULL,
               device_fixture_set_up,
               test_device_pairing,
               device_fixture_tear_down);
 
-  g_test_add ("/libvalent/core/device/actions",
+  g_test_add ("/libvalent/device/device/actions",
               DeviceFixture, NULL,
               device_fixture_set_up,
               test_device_actions,
               device_fixture_tear_down);
 
-  g_test_add ("/libvalent/core/device/plugins",
+  g_test_add ("/libvalent/device/device/plugins",
               DeviceFixture, NULL,
               device_fixture_set_up,
               test_device_plugins,
               device_fixture_tear_down);
 
-  g_test_add ("/libvalent/core/device/handle-packet",
+  g_test_add ("/libvalent/device/device/handle-packet",
               DeviceFixture, NULL,
               device_fixture_set_up,
               test_handle_packet,
               device_fixture_tear_down);
 
-  g_test_add ("/libvalent/core/device/queue-packet-available",
+  g_test_add ("/libvalent/device/device/queue-packet-available",
               DeviceFixture, NULL,
               device_fixture_set_up,
               test_queue_packet_available,
               device_fixture_tear_down);
 
-  g_test_add ("/libvalent/core/device/queue-packet-disconnected",
+  g_test_add ("/libvalent/device/device/queue-packet-disconnected",
               DeviceFixture, NULL,
               device_fixture_set_up,
               test_queue_packet_disconnected,
               device_fixture_tear_down);
 
-  g_test_add ("/libvalent/core/device/queue-packet-unpaired",
+  g_test_add ("/libvalent/device/device/queue-packet-unpaired",
               DeviceFixture, NULL,
               device_fixture_set_up,
               test_queue_packet_unpaired,
               device_fixture_tear_down);
 
-  g_test_add ("/libvalent/core/device/send-packet",
+  g_test_add ("/libvalent/device/device/send-packet",
               DeviceFixture, NULL,
               device_fixture_set_up,
               test_send_packet,

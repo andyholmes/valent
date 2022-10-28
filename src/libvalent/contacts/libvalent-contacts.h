@@ -10,7 +10,6 @@ G_BEGIN_DECLS
 #define VALENT_CONTACTS_INSIDE
 
 #include "valent-contacts.h"
-#include "valent-contact-cache.h"
 #include "valent-contact-store.h"
 #include "valent-contacts-adapter.h"
 #include "valent-eds.h"

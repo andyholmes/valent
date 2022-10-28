@@ -53,7 +53,7 @@ valent_ui_replace_eval_uri (const GMatchInfo *info,
 
 /**
  * valent_string_to_markup:
- * @text: (nullable) input text
+ * @text: (nullable): input text
  *
  * Add markup to text for recognized elements.
  *

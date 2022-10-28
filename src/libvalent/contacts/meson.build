@@ -13,12 +13,12 @@ libvalent_contacts_public_headers = [
   'libvalent-contacts.h',
   'valent-contacts.h',
   'valent-contacts-adapter.h',
-  'valent-contact-cache.h',
   'valent-contact-store.h',
   'valent-eds.h',
 ]
 
 libvalent_contacts_private_headers = [
+  'valent-contact-cache-private.h',
 ]
 
 libvalent_contacts_enum_headers = [

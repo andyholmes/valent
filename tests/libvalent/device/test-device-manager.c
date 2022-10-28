@@ -345,27 +345,27 @@ main (int   argc,
 {
   valent_test_init (&argc, &argv, NULL);
 
-  g_test_add_func ("/core/manager/new", test_manager_new);
+  g_test_add_func ("/libvalent/device/manager/new", test_manager_new);
 
-  g_test_add ("/libvalent/core/device-manager/basic",
+  g_test_add ("/libvalent/device/device-manager/basic",
               ManagerFixture, NULL,
               manager_fixture_set_up,
               test_manager_basic,
               manager_fixture_tear_down);
 
-  g_test_add ("/libvalent/core/device-manager/management",
+  g_test_add ("/libvalent/device/device-manager/management",
               ManagerFixture, NULL,
               manager_fixture_set_up,
               test_manager_management,
               manager_fixture_tear_down);
 
-  g_test_add ("/libvalent/core/device-manager/dbus",
+  g_test_add ("/libvalent/device/device-manager/dbus",
               ManagerFixture, NULL,
               manager_fixture_set_up,
               test_manager_dbus,
               manager_fixture_tear_down);
 
-  g_test_add ("/libvalent/core/device-manager/dispose",
+  g_test_add ("/libvalent/device/device-manager/dispose",
               ManagerFixture, NULL,
               manager_fixture_set_up,
               test_manager_dispose,

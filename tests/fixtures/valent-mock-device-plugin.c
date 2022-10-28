@@ -46,7 +46,7 @@ valent_transfer_execute_cb (ValentTransfer *transfer,
   g_autoptr (GError) error = NULL;
 
   if (!valent_transfer_execute_finish (transfer, result, &error))
-    g_critical ("Failed to transfer file");
+    g_assert_no_error (error);
 
   g_object_get (transfer,
                 "device", &device,

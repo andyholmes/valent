@@ -6,6 +6,7 @@
 #include <libvalent-contacts.h>
 #include <libvalent-test.h>
 
+#include "valent-contact-cache-private.h"
 
 typedef struct
 {

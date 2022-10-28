@@ -27,8 +27,6 @@ struct _ValentBatteryGadget
   GtkWidget    *label;
 };
 
-
-/* Interfaces */
 static void valent_device_gadget_iface_init (ValentDeviceGadgetInterface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (ValentBatteryGadget, valent_battery_gadget, GTK_TYPE_WIDGET,
