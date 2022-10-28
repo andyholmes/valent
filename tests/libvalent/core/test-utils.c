@@ -29,7 +29,7 @@ main (int   argc,
 {
   valent_test_init (&argc, &argv, NULL);
 
-  g_test_add_func ("/core/utils/version",
+  g_test_add_func ("/libvalent/core/utils/version",
                    test_utils_version);
 
   g_test_run ();

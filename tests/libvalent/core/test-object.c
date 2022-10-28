@@ -232,19 +232,19 @@ main (int   argc,
 {
   valent_test_init (&argc, &argv, NULL);
 
-  g_test_add_func ("/core/object/basic",
+  g_test_add_func ("/libvalent/core/object/basic",
                    test_object_basic);
 
-  g_test_add_func ("/core/object/construct-thread",
+  g_test_add_func ("/libvalent/core/object/construct-thread",
                    test_object_construct_thread);
 
-  g_test_add_func ("/core/object/dispose-thread",
+  g_test_add_func ("/libvalent/core/object/dispose-thread",
                    test_object_dispose_thread);
 
-  g_test_add_func ("/core/object/destroy-thread",
+  g_test_add_func ("/libvalent/core/object/destroy-thread",
                    test_object_destroy_thread);
 
-  g_test_add_func ("/core/object/notify-thread",
+  g_test_add_func ("/libvalent/core/object/notify-thread",
                    test_object_notify_thread);
 
   g_test_run ();

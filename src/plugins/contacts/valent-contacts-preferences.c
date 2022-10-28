@@ -55,30 +55,6 @@ on_export_row (GtkListBox                  *box,
   gtk_list_box_invalidate_filter (box);
 }
 
-static gboolean
-export_list_filter_func (GtkListBoxRow               *row,
-                         ValentDevicePreferencesPage *page)
-{
-  GSettings *settings;
-  g_autofree char *local_uid = NULL;
-  const char *uid;
-  GtkWidget *select;
-  gboolean visible;
-
-  g_assert (GTK_IS_LIST_BOX_ROW (row));
-  g_assert (VALENT_IS_DEVICE_PREFERENCES_PAGE (page));
-
-  settings = valent_device_preferences_page_get_settings (page);
-  local_uid = g_settings_get_string (settings, "local-uid");
-  uid = gtk_widget_get_name (GTK_WIDGET (row));
-
-  select = g_object_get_data (G_OBJECT (row), "select");
-  visible = (g_strcmp0 (local_uid, uid) == 0);
-  gtk_widget_set_visible (select, visible);
-
-  return TRUE;
-}
-
 static void
 on_store_selected (AdwActionRow              *row,
                    ValentContactsPreferences *self)
@@ -145,10 +121,10 @@ valent_contacts_preferences_create_row_func (gpointer item,
                       "title",       valent_contact_store_get_name (store),
                       NULL);
 
-  g_signal_connect (G_OBJECT (row),
-                    "activated",
-                    G_CALLBACK (on_store_selected),
-                    self);
+  g_signal_connect_object (G_OBJECT (row),
+                           "activated",
+                           G_CALLBACK (on_store_selected),
+                           self, 0);
 
   /* Check */
   settings = valent_device_preferences_page_get_settings (page);

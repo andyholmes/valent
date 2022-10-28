@@ -19,6 +19,7 @@
 #include <libvalent-ui.h>
 
 #include "valent-component-private.h"
+#include "valent-contact-cache-private.h"
 #include "valent-mock-channel.h"
 #include "valent-test-utils.h"
 

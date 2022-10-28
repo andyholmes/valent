@@ -7,7 +7,7 @@
 
 #include <libvalent-core.h>
 
-#include "valent-contact-cache.h"
+#include "valent-contact-cache-private.h"
 #include "valent-contact-store.h"
 #include "valent-eds.h"
 

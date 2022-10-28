@@ -8,6 +8,7 @@
 #include <gio/gio.h>
 #include <libvalent-contacts.h>
 
+#include "valent-contact-cache-private.h"
 #include "valent-mock-contacts-adapter.h"
 
 

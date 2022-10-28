@@ -42,47 +42,8 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 
 /*
- * Device Callbacks
+ * ValentDevice Callbacks
  */
-static int
-device_sort_func (GtkListBoxRow *row1,
-                  GtkListBoxRow *row2,
-                  gpointer       user_data)
-{
-  ValentDevice *device1, *device2;
-  ValentDeviceState state_a, state_b;
-  gboolean connected_a, connected_b;
-  gboolean paired_a, paired_b;
-
-  device1 = g_object_get_data (G_OBJECT (row1), "device");
-  device2 = g_object_get_data (G_OBJECT (row2), "device");
-
-  state_a = valent_device_get_state (device1);
-  state_b = valent_device_get_state (device2);
-
-  // Sort connected before disconnected
-  connected_a = state_a & VALENT_DEVICE_STATE_CONNECTED;
-  connected_b = state_b & VALENT_DEVICE_STATE_CONNECTED;
-
-  if (connected_a > connected_b)
-    return -1;
-  else if (connected_a < connected_b)
-    return 1;
-
-  // Sort paired before unpaired
-  paired_a = state_a & VALENT_DEVICE_STATE_PAIRED;
-  paired_b = state_b & VALENT_DEVICE_STATE_PAIRED;
-
-  if (paired_a > paired_b)
-    return -1;
-  else if (paired_a < paired_b)
-    return 1;
-
-  // Sort equals by name
-  return g_utf8_collate (valent_device_get_name (device1),
-                         valent_device_get_name (device2));
-}
-
 static void
 on_device_changed (ValentDevice *device,
                    GParamSpec   *pspec,
@@ -155,7 +116,6 @@ valent_window_create_row_func (gpointer item,
                       "activatable",   TRUE,
                       "selectable",    FALSE,
                       NULL);
-  g_object_set_data (G_OBJECT (row), "device", device);
 
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 12);
   adw_action_row_add_suffix (ADW_ACTION_ROW (row), box);

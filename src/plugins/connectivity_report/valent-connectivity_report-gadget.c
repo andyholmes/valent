@@ -25,8 +25,6 @@ struct _ValentConnectivityReportGadget
   GtkWidget    *box;
 };
 
-
-/* Interfaces */
 static void valent_device_gadget_iface_init (ValentDeviceGadgetInterface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (ValentConnectivityReportGadget, valent_connectivity_report_gadget, GTK_TYPE_WIDGET,

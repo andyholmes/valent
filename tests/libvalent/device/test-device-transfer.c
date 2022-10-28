@@ -94,7 +94,7 @@ main (int   argc,
 
   valent_test_init (&argc, &argv, NULL);
 
-  g_test_add ("/libvalent/core/device-transfer",
+  g_test_add ("/libvalent/device/device-transfer",
               ValentTestFixture, path,
               valent_test_fixture_init,
               test_device_transfer,

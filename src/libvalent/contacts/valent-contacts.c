@@ -12,7 +12,7 @@
 #include "valent-contacts.h"
 #include "valent-contacts-adapter.h"
 #include "valent-contact-store.h"
-#include "valent-contact-cache.h"
+#include "valent-contact-cache-private.h"
 
 
 /**
@@ -24,9 +24,7 @@
  * [class@Valent.DevicePlugin] implementations.
  *
  * Plugins can implement [class@Valent.ContactsAdapter] to provide an interface
- * to manage instances of [class@Valent.ContactStore]. If no adapter is
- * available, #ValentContacts will create [class@Valent.ContactCache] as
- * necessary.
+ * to manage instances of [class@Valent.ContactStore].
  *
  * Since: 1.0
  */
@@ -286,7 +284,8 @@ valent_contacts_get_default (void)
  * Get a #ValentContactStore for @uid.
  *
  * If the contact store does not exist, one will be created using the default
- * adapter and passed @name and @description.
+ * adapter and passed @name and @description. If no adapter is available, a new
+ * file-based store will be created.
  *
  * Returns: (transfer none) (not nullable): an address book
  *

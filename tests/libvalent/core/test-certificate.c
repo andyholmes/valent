@@ -70,9 +70,9 @@ main (int   argc,
 {
   valent_test_init (&argc, &argv, NULL);
 
-  g_test_add_func ("/core/certificate/new",
+  g_test_add_func ("/libvalent/core/certificate/new",
                    test_certificate_new);
-  g_test_add_func ("/core/certificate/properties",
+  g_test_add_func ("/libvalent/core/certificate/properties",
                    test_certificate_properties);
 
   return g_test_run ();

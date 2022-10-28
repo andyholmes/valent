@@ -19,8 +19,6 @@ struct _ValentMockDeviceGadget
   ValentDevice *device;
 };
 
-
-/* Interfaces */
 static void valent_device_gadget_iface_init (ValentDeviceGadgetInterface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (ValentMockDeviceGadget, valent_mock_device_gadget, GTK_TYPE_WIDGET,
