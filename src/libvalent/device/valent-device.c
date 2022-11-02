@@ -1652,10 +1652,9 @@ valent_device_set_paired (ValentDevice *device,
   valent_object_lock (VALENT_OBJECT (device));
 
   /* If nothing's changed, only reset pending pair timeouts */
-  valent_device_reset_pair (device);
-
   if (device->paired == paired)
     {
+      valent_device_reset_pair (device);
       valent_object_unlock (VALENT_OBJECT (device));
       return;
     }
@@ -1673,7 +1672,7 @@ valent_device_set_paired (ValentDevice *device,
 
   /* Update plugins and notify */
   valent_device_update_plugins (device);
-  g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
+  valent_device_reset_pair (device);
 }
 
 /**
