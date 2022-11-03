@@ -3,9 +3,7 @@
 
 # Dependencies
 plugin_mpris_deps = [
-  libvalent_core_dep,
-  libvalent_device_dep,
-  libvalent_media_dep,
+  libvalent_dep,
 ]
 
 # Sources

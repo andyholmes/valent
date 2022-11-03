@@ -180,7 +180,7 @@ valent_contacts_unbind_extension (ValentComponent *component,
   /* Simulate removal */
   stores = valent_contacts_adapter_get_stores (adapter);
 
-  for (unsigned int i = 0; i < stores->len; i++)
+  for (unsigned int i = 0, len = stores->len; i < len; i++)
     valent_contacts_adapter_store_removed (adapter, g_ptr_array_index (stores, i));
 
   g_signal_handlers_disconnect_by_func (adapter, on_store_added, self);
@@ -305,8 +305,13 @@ valent_contacts_ensure_store (ValentContacts *contacts,
   g_return_val_if_fail (name != NULL && *name != '\0', NULL);
 
   /* Try to find an existing store */
-  if ((ret = valent_contacts_lookup_store (contacts, uid)) != NULL)
-    VALENT_RETURN (ret);
+  for (unsigned int i = 0, len = contacts->stores->len; i < len; i++)
+    {
+      ret = g_ptr_array_index (contacts->stores, i);
+
+      if (g_strcmp0 (valent_contact_store_get_uid (ret), uid) == 0)
+        VALENT_RETURN (ret);
+    }
 
   /* Create a new store */
   ret = valent_contacts_create_store (uid, name, NULL);
@@ -337,7 +342,7 @@ valent_contacts_lookup_store (ValentContacts *contacts,
   g_return_val_if_fail (VALENT_IS_CONTACTS (contacts), NULL);
   g_return_val_if_fail (uid != NULL, NULL);
 
-  for (unsigned int i = 0; i < contacts->stores->len; i++)
+  for (unsigned int i = 0, len = contacts->stores->len; i < len; i++)
     {
       ValentContactStore *store = g_ptr_array_index (contacts->stores, i);
 

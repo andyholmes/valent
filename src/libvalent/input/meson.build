@@ -23,7 +23,7 @@ libvalent_input_enum_headers = [
 ]
 
 install_headers(libvalent_input_public_headers,
-  subdir: libvalent_input_header_subdir
+  subdir: libvalent_input_header_subdir,
 )
 
 
@@ -45,9 +45,8 @@ libvalent_input = static_library('valent-input-' + valent_api_version,
                                  libvalent_input_public_sources,
                                  libvalent_input_generated_sources,
                                  libvalent_input_generated_headers,
-  dependencies: libvalent_input_deps,
         c_args: libvalent_c_args + release_args + ['-DVALENT_INPUT_COMPILATION'],
-           pic: true,
+  dependencies: libvalent_input_deps,
 )
 
 libvalent_input_dep = declare_dependency(
@@ -65,6 +64,6 @@ libvalent_public_headers += files(libvalent_input_public_headers)
 libvalent_private_headers += files(libvalent_input_private_headers)
 libvalent_generated_headers += libvalent_input_generated_headers
 libvalent_generated_sources += libvalent_input_generated_sources
-libvalent_include_subdirs += libvalent_input_header_subdir
+libvalent_pkgconfig_subdirs += libvalent_input_header_subdir
 libvalent_gir_extra_args += ['--c-include=libvalent-input.h', '-DVALENT_INPUT_COMPILATION']
 

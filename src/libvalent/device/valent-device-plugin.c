@@ -787,223 +787,6 @@ valent_device_plugin_toggle_actions (ValentDevicePlugin *plugin,
 }
 
 /**
- * valent_device_plugin_add_menu_entries:
- * @plugin: a #ValentDevicePlugin
- * @entries: (array length=n_entries) (element-type Valent.MenuEntry): a pointer
- *           to the first item in an array of #ValentMenuEntry structs
- * @n_entries: the length of @entries, or -1 if @entries is %NULL-terminated
- *
- * A convenience function for creating multiple [class@Gio.MenuItem] instances
- * and adding them to the device [class@Gio.MenuModel]. Each item is
- * constructed as per one [struct@Valent.MenuEntry].
- *
- * Since: 1.0
- */
-void
-valent_device_plugin_add_menu_entries (ValentDevicePlugin    *plugin,
-                                       const ValentMenuEntry *entries,
-                                       int                    n_entries)
-{
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
-  GMenu *menu;
-
-  g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
-  g_return_if_fail (entries != NULL || n_entries == 0);
-
-  menu = G_MENU (valent_device_get_menu (priv->device));
-
-  for (int i = 0; i < n_entries; i++)
-    {
-      g_autoptr (GMenuItem) item = NULL;
-      g_autoptr (GIcon) icon = NULL;
-
-      icon = g_themed_icon_new (entries[i].icon_name);
-      item = g_menu_item_new(entries[i].label, entries[i].action);
-      g_menu_item_set_icon (item, icon);
-      g_menu_item_set_attribute (item, "hidden-when", "s", "action-disabled");
-      g_menu_append_item (menu, item);
-    }
-}
-
-static int
-_g_menu_find_action (GMenu      *menu,
-                     const char *action)
-{
-  GMenuModel *model = G_MENU_MODEL (menu);
-  int i, n_items;
-
-  g_return_val_if_fail (G_IS_MENU (menu), -1);
-  g_return_val_if_fail (action != NULL, -1);
-
-  n_items = g_menu_model_get_n_items (model);
-
-  for (i = 0; i < n_items; i++)
-    {
-      g_autofree char *item_str = NULL;
-
-      g_menu_model_get_item_attribute (model, i, "action", "s", &item_str);
-
-      if (g_strcmp0 (item_str, action) == 0)
-        return i;
-    }
-
-  return -1;
-}
-
-/**
- * valent_device_plugin_remove_menu_entries:
- * @plugin: a #ValentDevicePlugin
- * @entries: (array length=n_entries) (element-type Valent.MenuEntry): a pointer
- *           to the first item in an array of #ValentMenuEntry structs
- * @n_entries: the length of @entries, or -1 if @entries is %NULL-terminated
- *
- * A counterpart to [method@Valent.DevicePlugin.add_menu_entries].
- *
- * Since: 1.0
- */
-void
-valent_device_plugin_remove_menu_entries (ValentDevicePlugin    *plugin,
-                                          const ValentMenuEntry *entries,
-                                          int                    n_entries)
-{
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
-  GMenu *menu;
-
-  g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
-  g_return_if_fail (entries != NULL || n_entries == 0);
-
-  menu = G_MENU (valent_device_get_menu (priv->device));
-
-  for (int i = 0; i < n_entries; i++)
-    {
-      int index = _g_menu_find_action (menu, entries[i].action);
-
-      if (index > -1)
-        g_menu_remove (menu, index);
-    }
-}
-
-/**
- * valent_device_plugin_find_menu_item:
- * @plugin: a #ValentDevicePlugin
- * @attribute: an attribute name to match
- * @value: an attribute value to match
- *
- * Search the top-level of a [class@Gio.MenuModel] for the index of an item with
- * the attribute @name holding @value.
- *
- * Returns: position of the item or -1 if not found
- *
- * Since: 1.0
- */
-int
-valent_device_plugin_find_menu_item (ValentDevicePlugin *plugin,
-                                     const char         *attribute,
-                                     const GVariant     *value)
-{
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
-  GMenuModel *model;
-  int i, n_items;
-
-  g_return_val_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin), -1);
-  g_return_val_if_fail (attribute != NULL, -1);
-  g_return_val_if_fail (value != NULL, -1);
-
-  model = valent_device_get_menu (priv->device);
-
-  n_items = g_menu_model_get_n_items (model);
-
-  for (i = 0; i < n_items; i++)
-    {
-      g_autoptr (GVariant) ivar = NULL;
-
-      ivar = g_menu_model_get_item_attribute_value (model, i, attribute, NULL);
-
-      if (ivar == NULL)
-        continue;
-
-      if (g_variant_equal (value, ivar))
-        return i;
-    }
-
-  return -1;
-}
-
-/**
- * valent_device_plugin_remove_menu_item:
- * @plugin: a #ValentDevicePlugin
- * @attribute: an attribute name to match
- * @value: an attribute value to match
- *
- * Remove an item in the top-level of the device [class@Gio.MenuModel] with
- * the specified attribute and value.
- *
- * Returns: the index of the removed item or -1 if not found.
- *
- * Since: 1.0
- */
-int
-valent_device_plugin_remove_menu_item (ValentDevicePlugin *plugin,
-                                       const char         *attribute,
-                                       const GVariant     *value)
-{
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
-  GMenu *menu;
-  int position;
-
-  g_return_val_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin), -1);
-  g_return_val_if_fail (attribute != NULL, -1);
-  g_return_val_if_fail (value != NULL, -1);
-
-  menu = G_MENU (valent_device_get_menu (priv->device));
-  position = valent_device_plugin_find_menu_item (plugin, attribute, value);
-
-  if (position > -1)
-    g_menu_remove (menu, position);
-
-  return position;
-}
-
-/**
- * valent_device_plugin_replace_menu_item:
- * @plugin: a #ValentDevicePlugin
- * @item: a #GMenuItem
- * @attribute: an attribute name to match
- *
- * Replace an item in the top-level of the device [class@Gio.MenuModel] with
- * @item.
- *
- * If the devices menu does not contain a top-level item with the same action
- * name as @item, the item will be appended instead.
- *
- * Since: 1.0
- */
-void
-valent_device_plugin_replace_menu_item (ValentDevicePlugin *plugin,
-                                        GMenuItem          *item,
-                                        const char         *attribute)
-{
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
-  g_autoptr (GVariant) value = NULL;
-  GMenu *menu;
-  int position = -1;
-
-  g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
-  g_return_if_fail (G_IS_MENU_ITEM (item));
-
-  menu = G_MENU (valent_device_get_menu (priv->device));
-  value = g_menu_item_get_attribute_value (item, attribute, NULL);
-
-  if (value != NULL)
-    position = valent_device_plugin_remove_menu_item (plugin, attribute, value);
-
-  if (position > -1)
-    g_menu_insert_item (menu, position, item);
-  else
-    g_menu_append_item (menu, item);
-}
-
-/**
  * valent_device_plugin_enable: (virtual enable)
  * @plugin: a #ValentDevicePlugin
  *
@@ -1118,6 +901,179 @@ valent_device_plugin_update_state (ValentDevicePlugin *plugin,
   VALENT_EXIT;
 }
 
+/**
+ * valent_device_plugin_add_menu_entries:
+ * @plugin: a #ValentDevicePlugin
+ * @entries: (array length=n_entries) (element-type Valent.MenuEntry): a pointer
+ *           to the first item in an array of #ValentMenuEntry structs
+ * @n_entries: the length of @entries, or -1 if @entries is %NULL-terminated
+ *
+ * A convenience function for creating multiple [class@Gio.MenuItem] instances
+ * and adding them to the device [class@Gio.MenuModel]. Each item is
+ * constructed as per one [struct@Valent.MenuEntry].
+ *
+ * Since: 1.0
+ */
+void
+valent_device_plugin_add_menu_entries (ValentDevicePlugin    *plugin,
+                                       const ValentMenuEntry *entries,
+                                       int                    n_entries)
+{
+  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
+  GMenu *menu;
+
+  g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
+  g_return_if_fail (entries != NULL || n_entries == 0);
+
+  menu = G_MENU (valent_device_get_menu (priv->device));
+
+  for (int i = 0; i < n_entries; i++)
+    {
+      g_autoptr (GMenuItem) item = NULL;
+      g_autoptr (GIcon) icon = NULL;
+
+      icon = g_themed_icon_new (entries[i].icon_name);
+      item = g_menu_item_new(entries[i].label, entries[i].action);
+      g_menu_item_set_icon (item, icon);
+      g_menu_item_set_attribute (item, "hidden-when", "s", "action-disabled");
+      g_menu_append_item (menu, item);
+    }
+}
+
+static int
+_g_menu_find_action (GMenu      *menu,
+                     const char *action)
+{
+  GMenuModel *model = G_MENU_MODEL (menu);
+  int i, n_items;
+
+  g_assert (G_IS_MENU (menu));
+  g_assert (action != NULL);
+
+  n_items = g_menu_model_get_n_items (model);
+
+  for (i = 0; i < n_items; i++)
+    {
+      g_autofree char *item_str = NULL;
+
+      g_menu_model_get_item_attribute (model, i, "action", "s", &item_str);
+
+      if (g_strcmp0 (item_str, action) == 0)
+        return i;
+    }
+
+  return -1;
+}
+
+/**
+ * valent_device_plugin_remove_menu_entries:
+ * @plugin: a #ValentDevicePlugin
+ * @entries: (array length=n_entries) (element-type Valent.MenuEntry): a pointer
+ *           to the first item in an array of #ValentMenuEntry structs
+ * @n_entries: the length of @entries, or -1 if @entries is %NULL-terminated
+ *
+ * A counterpart to [method@Valent.DevicePlugin.add_menu_entries].
+ *
+ * Since: 1.0
+ */
+void
+valent_device_plugin_remove_menu_entries (ValentDevicePlugin    *plugin,
+                                          const ValentMenuEntry *entries,
+                                          int                    n_entries)
+{
+  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
+  GMenu *menu;
+
+  g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
+  g_return_if_fail (entries != NULL || n_entries == 0);
+
+  menu = G_MENU (valent_device_get_menu (priv->device));
+
+  for (int i = 0; i < n_entries; i++)
+    {
+      int index = _g_menu_find_action (menu, entries[i].action);
+
+      if (index > -1)
+        g_menu_remove (menu, index);
+    }
+}
+
+static int
+valent_device_plugin_find_menu_item (ValentDevicePlugin *plugin,
+                                     const char         *attribute,
+                                     const GVariant     *value)
+{
+  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
+  GMenuModel *model;
+  int i, n_items;
+
+  g_return_val_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin), -1);
+  g_return_val_if_fail (attribute != NULL, -1);
+  g_return_val_if_fail (value != NULL, -1);
+
+  model = valent_device_get_menu (priv->device);
+
+  n_items = g_menu_model_get_n_items (model);
+
+  for (i = 0; i < n_items; i++)
+    {
+      g_autoptr (GVariant) ivar = NULL;
+
+      ivar = g_menu_model_get_item_attribute_value (model, i, attribute, NULL);
+
+      if (ivar == NULL)
+        continue;
+
+      if (g_variant_equal (value, ivar))
+        return i;
+    }
+
+  return -1;
+}
+
+/**
+ * valent_device_plugin_replace_menu_item:
+ * @plugin: a #ValentDevicePlugin
+ * @item: a #GMenuItem
+ * @attribute: an attribute name to match
+ *
+ * Replace an item in the top-level of the device [class@Gio.MenuModel] with
+ * @item.
+ *
+ * If the devices menu does not contain a top-level item with the same action
+ * name as @item, the item will be appended instead.
+ *
+ * Since: 1.0
+ */
+void
+valent_device_plugin_replace_menu_item (ValentDevicePlugin *plugin,
+                                        GMenuItem          *item,
+                                        const char         *attribute)
+{
+  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
+  g_autoptr (GVariant) value = NULL;
+  GMenu *menu;
+  int position = -1;
+
+  g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
+  g_return_if_fail (G_IS_MENU_ITEM (item));
+
+  menu = G_MENU (valent_device_get_menu (priv->device));
+  value = g_menu_item_get_attribute_value (item, attribute, NULL);
+
+  if (value != NULL)
+    {
+      position = valent_device_plugin_find_menu_item (plugin, attribute, value);
+
+      if (position > -1)
+        g_menu_remove (menu, position);
+    }
+
+  if (position > -1)
+    g_menu_insert_item (menu, position, item);
+  else
+    g_menu_append_item (menu, item);
+}
 
 // TODO move to libvalent-notification
 

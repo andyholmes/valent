@@ -3,8 +3,6 @@
 
 # Dependencies
 libvalent_notifications_test_deps = [
-  libvalent_core_dep,
-  libvalent_notifications_dep,
   libvalent_test_dep,
 ]
 

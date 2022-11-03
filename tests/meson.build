@@ -32,6 +32,7 @@ tests_env = [
   'TSAN_OPTIONS=force_seq_cst_atomics=1,history_size=5,suppressions=@0@'.format(
     join_paths(meson.current_source_dir(), 'extra', 'tsan.supp')),
   'UBSAN_OPTIONS=print_stacktrace=1:print_summary=1:halt_on_error=1',
+  'PYTHONDONTWRITEBYTECODE=yes',
 ]
 
 test_c_args = [

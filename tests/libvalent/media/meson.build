@@ -3,8 +3,6 @@
 
 # Dependencies
 libvalent_media_test_deps = [
-  libvalent_core_dep,
-  libvalent_media_dep,
   libvalent_test_dep,
 ]
 
@@ -27,3 +25,4 @@ foreach test : libvalent_media_tests
           suite: ['libvalent', 'media'],
   )
 endforeach
+

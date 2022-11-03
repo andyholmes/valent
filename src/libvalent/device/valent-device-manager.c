@@ -271,7 +271,7 @@ valent_device_manager_check_device (ValentDeviceManager *self,
   if ((valent_device_get_state (device) & VALENT_DEVICE_STATE_PAIRED) != 0)
     return TRUE;
 
-  for (unsigned int i = 0; i < self->devices->len; i++)
+  for (unsigned int i = 0, len = self->devices->len; i < len; i++)
     {
       ValentDevice *check = g_ptr_array_index (self->devices, i);
 
@@ -522,7 +522,7 @@ valent_device_manager_lookup (ValentDeviceManager *manager,
   g_assert (VALENT_IS_DEVICE_MANAGER (manager));
   g_assert (id != NULL);
 
-  for (unsigned int i = 0; i < manager->devices->len; i++)
+  for (unsigned int i = 0, len = manager->devices->len; i < len; i++)
     {
       ValentDevice *device = g_ptr_array_index (manager->devices, i);
 
@@ -1230,7 +1230,7 @@ valent_device_manager_export (ValentDeviceManager *manager,
   manager->dbus = g_dbus_object_manager_server_new (object_path);
   g_dbus_object_manager_server_set_connection (manager->dbus, connection);
 
-  for (unsigned int i = 0; i < manager->devices->len; i++)
+  for (unsigned int i = 0, len = manager->devices->len; i < len; i++)
     {
       ValentDevice *device = g_ptr_array_index (manager->devices, i);
 
@@ -1264,7 +1264,7 @@ valent_device_manager_unexport (ValentDeviceManager *manager)
   if (manager->dbus == NULL)
     VALENT_EXIT;
 
-  for (unsigned int i = 0; i < manager->devices->len; i++)
+  for (unsigned int i = 0, len = manager->devices->len; i < len; i++)
     {
       ValentDevice *device = g_ptr_array_index (manager->devices, i);
 

@@ -3,8 +3,7 @@
 
 # Dependencies
 plugin_eds_deps = [
-  libvalent_core_dep,
-  libvalent_contacts_dep,
+  libvalent_dep,
 
   libebook_dep,
   libebook_contacts_dep,

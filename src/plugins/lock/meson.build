@@ -3,10 +3,7 @@
 
 # Dependencies
 plugin_lock_deps = [
-  libvalent_core_dep,
-  libvalent_device_dep,
-  libvalent_session_dep,
-  libvalent_ui_dep,
+  libvalent_dep,
 ]
 
 # Sources

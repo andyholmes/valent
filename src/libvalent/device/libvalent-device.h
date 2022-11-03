@@ -7,9 +7,9 @@
 
 G_BEGIN_DECLS
 
-#define VALENT_DEVICE_INSIDE
-
 #include "valent-device-enums.h"
+
+#define VALENT_DEVICE_INSIDE
 
 #include "valent-channel.h"
 #include "valent-channel-service.h"

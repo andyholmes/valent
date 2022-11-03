@@ -3,8 +3,6 @@
 
 # Dependencies
 libvalent_contacts_test_deps = [
-  libvalent_core_dep,
-  libvalent_contacts_dep,
   libvalent_test_dep,
 ]
 

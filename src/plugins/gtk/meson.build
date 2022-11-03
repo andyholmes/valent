@@ -3,9 +3,7 @@
 
 # Dependencies
 plugin_gtk_deps = [
-  libvalent_core_dep,
-  libvalent_clipboard_dep,
-  libvalent_notifications_dep,
+  libvalent_dep,
 
   gtk_dep,
 ]

@@ -3,9 +3,6 @@
 
 # Dependencies
 libvalent_ui_test_deps = [
-  libvalent_core_dep,
-  libvalent_device_dep,
-  libvalent_ui_dep,
   libvalent_test_dep,
 ]
 
@@ -35,3 +32,4 @@ foreach test : libvalent_ui_tests
           suite: ['libvalent', 'ui'],
   )
 endforeach
+

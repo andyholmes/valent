@@ -83,18 +83,6 @@ GSettings *    valent_device_plugin_create_settings     (PeasPluginInfo        *
 
 /* TODO: GMenuModel XML */
 VALENT_AVAILABLE_IN_1_0
-int             valent_device_plugin_find_menu_item     (ValentDevicePlugin    *plugin,
-                                                         const char            *attribute,
-                                                         const GVariant        *value);
-VALENT_AVAILABLE_IN_1_0
-int             valent_device_plugin_remove_menu_item   (ValentDevicePlugin    *plugin,
-                                                         const char            *attribute,
-                                                         const GVariant        *value);
-VALENT_AVAILABLE_IN_1_0
-void            valent_device_plugin_replace_menu_item  (ValentDevicePlugin    *plugin,
-                                                         GMenuItem             *item,
-                                                         const char            *attribute);
-VALENT_AVAILABLE_IN_1_0
 void           valent_device_plugin_add_menu_entries    (ValentDevicePlugin    *plugin,
                                                          const ValentMenuEntry *entries,
                                                          int                    n_entries);
@@ -102,6 +90,10 @@ VALENT_AVAILABLE_IN_1_0
 void           valent_device_plugin_remove_menu_entries (ValentDevicePlugin    *plugin,
                                                          const ValentMenuEntry *entries,
                                                          int                    n_entries);
+VALENT_AVAILABLE_IN_1_0
+void            valent_device_plugin_replace_menu_item  (ValentDevicePlugin    *plugin,
+                                                         GMenuItem             *item,
+                                                         const char            *attribute);
 
 /* Miscellaneous Helpers */
 VALENT_AVAILABLE_IN_1_0

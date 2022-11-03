@@ -3,8 +3,6 @@
 
 # Dependencies
 libvalent_clipboard_test_deps = [
-  libvalent_core_dep,
-  libvalent_clipboard_dep,
   libvalent_test_dep,
 ]
 

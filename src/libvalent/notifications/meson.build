@@ -20,7 +20,7 @@ libvalent_notifications_private_headers = [
 ]
 
 install_headers(libvalent_notifications_public_headers,
-  subdir: libvalent_notifications_header_subdir
+  subdir: libvalent_notifications_header_subdir,
 )
 
 
@@ -43,9 +43,8 @@ libvalent_notifications = static_library('valent-notifications-' + valent_api_ve
                                          libvalent_notifications_public_sources,
                                          libvalent_notifications_generated_sources,
                                          libvalent_notifications_generated_headers,
-  dependencies: libvalent_notifications_deps,
         c_args: libvalent_c_args + release_args + ['-DVALENT_NOTIFICATIONS_COMPILATION'],
-           pic: true,
+  dependencies: libvalent_notifications_deps,
 )
 
 libvalent_notifications_dep = declare_dependency(
@@ -63,6 +62,6 @@ libvalent_public_headers += files(libvalent_notifications_public_headers)
 libvalent_private_headers += files(libvalent_notifications_private_headers)
 libvalent_generated_headers += libvalent_notifications_generated_headers
 libvalent_generated_sources += libvalent_notifications_generated_sources
-libvalent_include_subdirs += libvalent_notifications_header_subdir
+libvalent_pkgconfig_subdirs += libvalent_notifications_header_subdir
 libvalent_gir_extra_args += ['--c-include=libvalent-notifications.h', '-DVALENT_NOTIFICATIONS_COMPILATION']
 

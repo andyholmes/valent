@@ -17,8 +17,7 @@ endif
 
 # Dependencies
 plugin_pulseaudio_deps = [
-  libvalent_core_dep,
-  libvalent_mixer_dep,
+  libvalent_dep,
 
   libgvc_dep,
 ]

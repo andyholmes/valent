@@ -3,10 +3,7 @@
 
 # Dependencies
 plugin_mousepad_deps = [
-  libvalent_core_dep,
-  libvalent_device_dep,
-  libvalent_input_dep,
-  libvalent_ui_dep,
+  libvalent_dep,
 ]
 
 # Sources

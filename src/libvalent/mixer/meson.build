@@ -24,7 +24,7 @@ libvalent_mixer_enum_headers = [
 ]
 
 install_headers(libvalent_mixer_public_headers,
-  subdir: libvalent_mixer_header_subdir
+  subdir: libvalent_mixer_header_subdir,
 )
 
 
@@ -60,9 +60,8 @@ libvalent_mixer = static_library('valent-mixer-' + valent_api_version,
                                  libvalent_mixer_public_sources,
                                  libvalent_mixer_generated_sources,
                                  libvalent_mixer_generated_headers,
-  dependencies: libvalent_mixer_deps,
         c_args: libvalent_c_args + release_args + ['-DVALENT_MIXER_COMPILATION'],
-           pic: true,
+  dependencies: libvalent_mixer_deps,
 )
 
 libvalent_mixer_dep = declare_dependency(
@@ -80,6 +79,6 @@ libvalent_public_headers += files(libvalent_mixer_public_headers)
 libvalent_private_headers += files(libvalent_mixer_private_headers)
 libvalent_generated_headers += libvalent_mixer_generated_headers
 libvalent_generated_sources += libvalent_mixer_generated_sources
-libvalent_include_subdirs += libvalent_mixer_header_subdir
+libvalent_pkgconfig_subdirs += libvalent_mixer_header_subdir
 libvalent_gir_extra_args += ['--c-include=libvalent-mixer.h', '-DVALENT_MIXER_COMPILATION']
 

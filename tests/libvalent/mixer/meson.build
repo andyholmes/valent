@@ -3,8 +3,6 @@
 
 # Dependencies
 libvalent_mixer_test_deps = [
-  libvalent_core_dep,
-  libvalent_mixer_dep,
   libvalent_test_dep,
 ]
 

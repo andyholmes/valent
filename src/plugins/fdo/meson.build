@@ -10,9 +10,7 @@ endif
 
 # Dependencies
 plugin_fdo_deps = [
-  libvalent_core_dep,
-  libvalent_notifications_dep,
-  libvalent_session_dep,
+  libvalent_dep,
 
   gdk_pixbuf_dep,
 ]

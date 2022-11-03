@@ -33,9 +33,7 @@ endif
 
 # Dependencies
 plugin_xdp_deps = [
-  libvalent_core_dep,
-  libvalent_input_dep,
-  libvalent_ui_dep,
+  libvalent_dep,
 
   gtk_dep,
   libportal_dep,

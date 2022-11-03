@@ -9,6 +9,7 @@
 #include <adwaita.h>
 #include <json-glib/json-glib.h>
 #include <libvalent-core.h>
+#include <libvalent-device.h>
 #include <libvalent-contacts.h>
 #include <libvalent-clipboard.h>
 #include <libvalent-input.h>
