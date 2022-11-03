@@ -3,8 +3,8 @@
 
 # Dependencies
 plugin_lan_test_deps = [
-  libvalent_core_dep,
   libvalent_test_dep,
+  plugin_lan_deps,
 ]
 
 plugin_lan_tests = [

@@ -64,16 +64,7 @@ libvalent_test_generated_headers = [libvalent_test_resources[1]]
 
 # Dependencies
 libvalent_test_deps = [
-  libvalent_core_dep,
-  libvalent_clipboard_dep,
-  libvalent_contacts_dep,
-  libvalent_device_dep,
-  libvalent_input_dep,
-  libvalent_media_dep,
-  libvalent_mixer_dep,
-  libvalent_notifications_dep,
-  libvalent_session_dep,
-  libvalent_ui_dep,
+  libvalent_deps,
 ]
 
 if get_option('fuzz_tests') and libwalbottle_dep.found()
@@ -87,8 +78,8 @@ libvalent_test = static_library('valent-test-' + valent_api_version,
                                 libvalent_test_public_sources,
                                 libvalent_test_generated_sources,
                                 libvalent_test_generated_headers,
-  dependencies: libvalent_test_deps,
         c_args: libvalent_c_args + release_args + ['-DVALENT_TEST_COMPILATION'],
+  dependencies: libvalent_test_deps,
 )
 
 libvalent_test_dep = declare_dependency(

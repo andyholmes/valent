@@ -10,10 +10,7 @@ endif
 
 # Dependencies
 plugin_findmyphone_deps = [
-  libvalent_core_dep,
-  libvalent_device_dep,
-  libvalent_session_dep,
-  libvalent_ui_dep,
+  libvalent_dep,
 
   gstreamer_dep
 ]

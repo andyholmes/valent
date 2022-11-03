@@ -25,7 +25,7 @@ libvalent_contacts_enum_headers = [
 ]
 
 install_headers(libvalent_contacts_public_headers,
-  subdir: libvalent_contacts_header_subdir
+  subdir: libvalent_contacts_header_subdir,
 )
 
 
@@ -52,9 +52,8 @@ libvalent_contacts = static_library('valent-contacts-' + valent_api_version,
                                     libvalent_contacts_public_sources,
                                     libvalent_contacts_generated_sources,
                                     libvalent_contacts_generated_headers,
-  dependencies: libvalent_contacts_deps,
         c_args: libvalent_c_args + release_args + ['-DVALENT_CONTACTS_COMPILATION'],
-           pic: true,
+  dependencies: libvalent_contacts_deps,
 )
 
 libvalent_contacts_dep = declare_dependency(
@@ -72,6 +71,6 @@ libvalent_public_headers += files(libvalent_contacts_public_headers)
 libvalent_private_headers += files(libvalent_contacts_private_headers)
 libvalent_generated_headers += libvalent_contacts_generated_headers
 libvalent_generated_sources += libvalent_contacts_generated_sources
-libvalent_include_subdirs += libvalent_contacts_header_subdir
+libvalent_pkgconfig_subdirs += libvalent_contacts_header_subdir
 libvalent_gir_extra_args += ['--c-include=libvalent-contacts.h', '-DVALENT_CONTACTS_COMPILATION']
 

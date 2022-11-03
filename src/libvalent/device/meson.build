@@ -30,7 +30,7 @@ libvalent_device_enum_headers = [
 ]
 
 install_headers(libvalent_device_public_headers,
-  subdir: libvalent_device_header_subdir
+  subdir: libvalent_device_header_subdir,
 )
 
 
@@ -72,17 +72,15 @@ libvalent_device = static_library('valent-device-' + valent_api_version,
                                   libvalent_device_public_sources,
                                   libvalent_device_generated_sources,
                                   libvalent_device_generated_headers,
-         dependencies: libvalent_device_deps,
-               c_args: libvalent_c_args + release_args + ['-DVALENT_DEVICE_COMPILATION'],
-                  pic: true,
-  include_directories: [config_h_inc, include_directories('.')],
+        c_args: libvalent_c_args + release_args + ['-DVALENT_DEVICE_COMPILATION'],
+  dependencies: libvalent_device_deps,
 )
 
 libvalent_device_dep = declare_dependency(
-              sources: libvalent_device_private_headers + libvalent_device_generated_headers,
+              sources: [libvalent_device_private_headers, libvalent_device_generated_headers],
          dependencies: libvalent_device_deps,
             link_with: libvalent_device,
-  include_directories: [config_h_inc, include_directories('.')],
+  include_directories: include_directories('.'),
 )
 
 
@@ -93,6 +91,6 @@ libvalent_public_headers += files(libvalent_device_public_headers)
 libvalent_private_headers += files(libvalent_device_private_headers)
 libvalent_generated_headers += libvalent_device_generated_headers
 libvalent_generated_sources += libvalent_device_generated_sources
-libvalent_include_subdirs += libvalent_device_header_subdir
+libvalent_pkgconfig_subdirs += libvalent_device_header_subdir
 libvalent_gir_extra_args += ['--c-include=libvalent-device.h', '-DVALENT_DEVICE_COMPILATION']
 

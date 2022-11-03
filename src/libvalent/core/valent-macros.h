@@ -44,7 +44,7 @@ valent_set_string (char       **ptr,
 
   g_assert (ptr != NULL);
 
-  if (*ptr == str || g_strcmp0 (*ptr, str) == 0)
+  if (*ptr == str || (*ptr && str && strcmp (*ptr, str) == 0))
     return FALSE;
 
   copy = g_strdup (str);

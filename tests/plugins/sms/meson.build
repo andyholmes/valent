@@ -3,8 +3,6 @@
 
 # Dependencies
 plugin_sms_test_deps = [
-  libvalent_core_dep,
-  libvalent_contacts_dep,
   libvalent_test_dep,
   plugin_sms_deps,
 ]

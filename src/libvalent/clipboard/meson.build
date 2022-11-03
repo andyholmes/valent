@@ -22,7 +22,7 @@ libvalent_clipboard_enum_headers = [
 ]
 
 install_headers(libvalent_clipboard_public_headers,
-  subdir: libvalent_clipboard_header_subdir
+  subdir: libvalent_clipboard_header_subdir,
 )
 
 
@@ -44,9 +44,8 @@ libvalent_clipboard = static_library('valent-clipboard-' + valent_api_version,
                                      libvalent_clipboard_public_sources,
                                      libvalent_clipboard_generated_sources,
                                      libvalent_clipboard_generated_headers,
-  dependencies: libvalent_clipboard_deps,
         c_args: libvalent_c_args + release_args + ['-DVALENT_CLIPBOARD_COMPILATION'],
-           pic: true,
+  dependencies: libvalent_clipboard_deps,
 )
 
 libvalent_clipboard_dep = declare_dependency(
@@ -64,6 +63,6 @@ libvalent_public_headers += files(libvalent_clipboard_public_headers)
 libvalent_private_headers += files(libvalent_clipboard_private_headers)
 libvalent_generated_headers += libvalent_clipboard_generated_headers
 libvalent_generated_sources += libvalent_clipboard_generated_sources
-libvalent_include_subdirs += libvalent_clipboard_header_subdir
+libvalent_pkgconfig_subdirs += libvalent_clipboard_header_subdir
 libvalent_gir_extra_args += ['--c-include=libvalent-clipboard.h', '-DVALENT_CLIPBOARD_COMPILATION']
 

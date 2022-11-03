@@ -3,8 +3,6 @@
 
 # Dependencies
 libvalent_input_test_deps = [
-  libvalent_core_dep,
-  libvalent_input_dep,
   libvalent_test_dep,
 ]
 

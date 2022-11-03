@@ -252,3 +252,4 @@ valent_runcommand_editor_clear (ValentRuncommandEditor *editor)
   gtk_editable_set_text (GTK_EDITABLE (editor->name_entry), "");
   gtk_editable_set_text (GTK_EDITABLE (editor->command_entry), "");
 }
+

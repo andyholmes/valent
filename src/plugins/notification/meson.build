@@ -3,11 +3,7 @@
 
 # Dependencies
 plugin_notification_deps = [
-  libvalent_core_dep,
-  libvalent_device_dep,
-  libvalent_notifications_dep,
-  libvalent_session_dep,
-  libvalent_ui_dep,
+  libvalent_dep,
 ]
 
 # Sources

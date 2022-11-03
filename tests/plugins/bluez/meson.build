@@ -3,8 +3,8 @@
 
 # Dependencies
 plugin_bluez_test_deps = [
-  libvalent_core_dep,
   libvalent_test_dep,
+  plugin_bluez_deps,
 ]
 
 plugin_bluez_tests = {

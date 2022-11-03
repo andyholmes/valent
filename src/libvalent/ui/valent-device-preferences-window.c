@@ -8,7 +8,6 @@
 #include <glib/gi18n.h>
 #include <adwaita.h>
 #include <gtk/gtk.h>
-#include <pango/pango.h>
 #include <libvalent-core.h>
 #include <libvalent-device.h>
 

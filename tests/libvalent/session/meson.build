@@ -3,8 +3,6 @@
 
 # Dependencies
 libvalent_session_test_deps = [
-  libvalent_core_dep,
-  libvalent_session_dep,
   libvalent_test_dep,
 ]
 

@@ -14,7 +14,7 @@ libvalent_private_sources = []
 libvalent_private_headers = []
 libvalent_generated_sources = []
 libvalent_generated_headers = []
-libvalent_include_subdirs = []
+libvalent_pkgconfig_subdirs = []
 libvalent_static = []
 libvalent_deps = []
 
@@ -36,18 +36,18 @@ subdir('ui')
 libvalent = shared_library('valent',
               version: valent_api_version,
             soversion: '0',
-  include_directories: [include_directories('.')],
+               c_args: libvalent_c_args + release_args,
          dependencies: libvalent_deps,
            link_whole: libvalent_static,
-               c_args: libvalent_c_args + release_args,
+  include_directories: libvalent_include_directories,
               install: true,
           install_dir: libdir,
 )
 
 libvalent_dep = declare_dependency(
+         dependencies: libvalent_deps,
             link_with: libvalent,
-  include_directories: [include_directories('.')],
-         dependencies: libvalent_deps
+  include_directories: libvalent_include_directories,
 )
 
 # pkgconfig
@@ -64,7 +64,7 @@ pkgconfig.generate(
        'libpeas-1.0',
        'libebook-contacts-1.2',
      ],
-      subdirs: libvalent_include_subdirs,
+      subdirs: libvalent_pkgconfig_subdirs,
      filebase: valent_api_name,
   install_dir: join_paths(libdir, 'pkgconfig'),
 )
@@ -82,10 +82,10 @@ if get_option('introspection')
   ]
 
   libvalent_gir_sources = [
-    libvalent_public_sources +
-    libvalent_public_headers +
-    libvalent_generated_headers +
-    libvalent_generated_sources
+    libvalent_public_sources,
+    libvalent_public_headers,
+    libvalent_generated_headers,
+    libvalent_generated_sources,
   ]
 
   libvalent_gir = gnome.generate_gir(libvalent,
