@@ -9,8 +9,6 @@
 
 #include <glib.h>
 
-#include "valent-version-vcs.h"
-
 G_BEGIN_DECLS
 
 /**
@@ -47,15 +45,6 @@ G_BEGIN_DECLS
  * The API version of libvalent, encoded as a string (eg. `"1.0"`).
  */
 #define VALENT_API_VERSION "@API_VERSION@"
-
-/**
- * VALENT_VCS_VERSION:
- *
- * The VCS version of libvalent, encoded as a string (eg. `"a3908c9"`).
- *
- * If this is a release build, the version will be `stable`.
- */
-#define VALENT_VCS_VERSION VALENT_VCS_TAG
 
 /**
  * VALENT_CHECK_VERSION:
