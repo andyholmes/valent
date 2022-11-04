@@ -19,6 +19,7 @@
 #include <libvalent-session.h>
 #include <libvalent-ui.h>
 
+#include "libvalent-ui-resources.h"
 #include "valent-component-private.h"
 #include "valent-contact-cache-private.h"
 #include "valent-mock-channel.h"
@@ -583,6 +584,8 @@ valent_test_init (int    *argcp,
  * In order, it will:
  * - Call g_content_type_set_mime_dirs() to ensure GdkPixbuf works
  * - Call g_test_init() with the %G_TEST_OPTION_ISOLATE_DIRS option
+ * - Call g_type_ensure() for public classes
+ * - Register GResources
  * - Set the locale to “en_US.UTF-8”
  * - Call gtk_init()
  * - Call adw_init()
@@ -599,6 +602,8 @@ valent_test_ui_init (int    *argcp,
   g_test_init (argcp, argvp, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 
   valent_type_ensure ();
+
+  g_resources_register (valent_ui_get_resource ());
 
   gtk_disable_setlocale ();
   setlocale (LC_ALL, "en_US.UTF-8");

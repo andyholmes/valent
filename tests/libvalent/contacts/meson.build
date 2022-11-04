@@ -16,7 +16,7 @@ foreach test : libvalent_contacts_tests
            dependencies: libvalent_contacts_test_deps,
     include_directories: libvalent_include_directories,
               link_args: test_link_args,
-             link_whole: [libvalent_test, libvalent_contacts],
+             link_whole: libvalent_test,
   )
 
   test(test, test_program,

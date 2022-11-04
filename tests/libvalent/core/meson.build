@@ -19,7 +19,7 @@ foreach test : libvalent_core_tests
            dependencies: libvalent_core_test_deps,
     include_directories: libvalent_include_directories,
               link_args: test_link_args,
-             link_whole: [libvalent_test, libvalent_core],
+             link_whole: libvalent_test,
   )
 
   test(test, test_program,
