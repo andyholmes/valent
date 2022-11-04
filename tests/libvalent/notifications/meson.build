@@ -16,7 +16,7 @@ foreach test : libvalent_notifications_tests
            dependencies: libvalent_notifications_test_deps,
     include_directories: libvalent_include_directories,
               link_args: test_link_args,
-             link_whole: [libvalent_test, libvalent_notifications],
+             link_whole: libvalent_test,
   )
 
   test(test, test_program,

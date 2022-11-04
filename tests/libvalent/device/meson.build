@@ -21,7 +21,7 @@ foreach test : libvalent_device_tests
            dependencies: libvalent_device_test_deps,
     include_directories: libvalent_include_directories,
               link_args: test_link_args,
-             link_whole: [libvalent_test, libvalent_device],
+             link_whole: libvalent_test,
   )
 
   test(test, test_program,
