@@ -526,6 +526,7 @@ valent_type_ensure (void)
   g_type_ensure (VALENT_TYPE_MIXER_STREAM);
   g_type_ensure (VALENT_TYPE_NOTIFICATIONS);
   g_type_ensure (VALENT_TYPE_NOTIFICATIONS_ADAPTER);
+  g_type_ensure (VALENT_TYPE_NOTIFICATION);
   g_type_ensure (VALENT_TYPE_SESSION);
   g_type_ensure (VALENT_TYPE_SESSION_ADAPTER);
 
