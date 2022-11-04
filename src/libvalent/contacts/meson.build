@@ -43,7 +43,6 @@ libvalent_contacts_deps = [
   libvalent_core_dep,
 
   libebook_dep,
-  libebook_contacts_dep,
 ]
 
 

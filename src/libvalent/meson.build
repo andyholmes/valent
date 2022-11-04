@@ -52,21 +52,24 @@ libvalent_dep = declare_dependency(
 
 # pkgconfig
 pkgconfig.generate(
-         name: valent_api_name,
+         name: 'Valent',
   description: 'Core implementation and plugin API for Valent.',
       version: valent_version,
+     filebase: valent_api_name,
+    libraries: [libvalent],
+      subdirs: libvalent_pkgconfig_subdirs,
      requires: [
        'gio-2.0',
-       'gio-unix-2.0',
-       'gnutls',
        'gtk4',
        'json-glib-1.0',
+       'libadwaita-1',
+       'libebook-1.2',
        'libpeas-1.0',
-       'libebook-contacts-1.2',
      ],
-      subdirs: libvalent_pkgconfig_subdirs,
-     filebase: valent_api_name,
-  install_dir: join_paths(libdir, 'pkgconfig'),
+     requires_private: [
+       'gio-unix-2.0',
+       'gnutls',
+     ],
 )
 
 # GObject Introspection
