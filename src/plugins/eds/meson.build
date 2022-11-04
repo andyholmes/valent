@@ -6,7 +6,6 @@ plugin_eds_deps = [
   libvalent_dep,
 
   libebook_dep,
-  libebook_contacts_dep,
 ]
 
 # Sources

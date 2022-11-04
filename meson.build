@@ -209,16 +209,13 @@ gio_unix_dep = dependency('gio-unix-2.0', version: gio_version)
 gnutls_dep = dependency('gnutls', version: gnutls_version)
 jsonglib_dep = dependency('json-glib-1.0', version: json_glib_version)
 libpeas_dep = dependency('libpeas-1.0', version: libpeas_version)
-gtk_dep = dependency('gtk4', version: gtk_version)
 sqlite_dep = dependency('sqlite3', version: sqlite_version)
 
 # libvalent-contacts
 libebook_dep = dependency('libebook-1.2', version: eds_version)
-libebook_contacts_dep = dependency('libebook-contacts-1.2', version: eds_version)
-libedata_book_dep = dependency('libedata-book-1.2', version: eds_version)
-libedataserver_dep = dependency('libedataserver-1.2', version: eds_version)
 
 # libvalent-ui
+gtk_dep = dependency('gtk4', version: gtk_version)
 libadwaita_dep = dependency('libadwaita-1', version: libadwaita_version)
 
 # Debugging & Testing

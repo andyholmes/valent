@@ -108,9 +108,8 @@ libvalent_core_deps = [
   libm_dep,
   gio_dep,
   gio_unix_dep,
-  libpeas_dep,
-
   gnutls_dep,
+  libpeas_dep,
 ]
 
 if get_option('tracing') and libsysprof_capture.found()
