@@ -44,11 +44,9 @@
         }
     },
     "cleanup" : [
-        "/include",
-        "/lib/pkgconfig",
+        "/libexec",
         "/man",
         "/share/man",
-        "/share/pkgconfig",
         "*.la",
         "*.a"
     ],
