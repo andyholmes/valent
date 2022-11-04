@@ -11,6 +11,8 @@
 #include <libvalent-core.h>
 #include <libvalent-device.h>
 
+#include "valent-version-vcs.h"
+
 #include "valent-application-credits.h"
 #include "valent-device-page.h"
 #include "valent-preferences-window.h"
@@ -192,7 +194,7 @@ about_action (GtkWidget  *widget,
   if (version == NULL)
     {
       if (g_strcmp0 (PROFILE_NAME, "devel") == 0)
-        version = PACKAGE_VERSION"+"VALENT_VCS_VERSION;
+        version = PACKAGE_VERSION"+"VALENT_VCS_TAG;
       else
         version = PACKAGE_VERSION;
     }
