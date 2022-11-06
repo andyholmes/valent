@@ -4,8 +4,8 @@
 #pragma once
 
 #include <adwaita.h>
-#include <gtk/gtk.h>
 #include <libvalent-core.h>
+#include <libvalent-device.h>
 
 G_BEGIN_DECLS
 
