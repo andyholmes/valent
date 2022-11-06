@@ -14,15 +14,15 @@ metainfo_file = i18n.merge_file(
           configuration: metainfo_conf,
         ),
        output: '@0@.metainfo.xml'.format(application_id),
-      install: true,
-  install_dir: join_paths(datadir, 'metainfo'),
        po_dir: po_dir,
+  install_dir: join_paths(datadir, 'metainfo'),
+      install: true,
 )
 
-appstream_util = find_program('appstream-util', required: false)
-if appstream_util.found()
-  test('Validate AppStream file', appstream_util,
-       args: ['--nonet', 'validate-relax', metainfo_file],
+appstreamcli = find_program('appstreamcli', required: false)
+if appstreamcli.found()
+  test('Validate AppStream file', appstreamcli,
+       args: ['validate', '--nonet', metainfo_file],
     depends: [metainfo_file],
   )
 endif
