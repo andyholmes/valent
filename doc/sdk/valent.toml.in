@@ -16,7 +16,7 @@ dependencies = [
   "Gtk-4.0",
   "Json-1.0",
   "Peas-1.0",
-  "EBookContacts-1.2",
+  "EBook-1.2",
 ]
 devhelp = true
 search_index = true
@@ -42,9 +42,9 @@ search_index = true
   description = "A GObject-based plugin engine"
   docs_url = "https://gnome.pages.gitlab.gnome.org/libpeas/libpeas-1.0/"
 
-  [dependencies."EBookContacts-1.2"]
-  name = "EBookContacts"
-  description = "The contact library for Evolution Data Server"
+  [dependencies."EBook-1.2"]
+  name = "EBook"
+  description = "A library for contacts and address books"
   docs_url = "https://developer-old.gnome.org/eds/stable/"
 
 [theme]

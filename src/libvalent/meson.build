@@ -81,7 +81,7 @@ if get_option('introspection')
     'Gtk-4.0',
     'Json-1.0',
     'Peas-1.0',
-    'EBookContacts-1.2',
+    'EBook-1.2',
   ]
 
   libvalent_gir_sources = [
