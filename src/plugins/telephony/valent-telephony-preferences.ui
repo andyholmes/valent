@@ -23,6 +23,7 @@
         <child>
           <object class="AdwActionRow">
             <property name="title" translatable="yes">Pause Media</property>
+            <property name="activatable-widget">ringing_pause</property>
             <child type="suffix">
               <object class="GtkSwitch" id="ringing_pause">
                 <property name="valign">center</property>
@@ -48,6 +49,7 @@
         <child>
           <object class="AdwActionRow">
             <property name="title" translatable="yes">Mute Microphone</property>
+            <property name="activatable-widget">talking_microphone</property>
             <child type="suffix">
               <object class="GtkSwitch" id="talking_microphone">
                 <property name="valign">center</property>
@@ -58,6 +60,7 @@
         <child>
           <object class="AdwActionRow">
             <property name="title" translatable="yes">Pause Media</property>
+            <property name="activatable-widget">talking_pause</property>
             <child type="suffix">
               <object class="GtkSwitch" id="talking_pause">
                 <property name="valign">center</property>

@@ -62,6 +62,7 @@
           <object class="AdwActionRow">
             <property name="title">Isolate Subprocesses</property>
             <property name="subtitle">Execute commands in a sandbox</property>
+            <property name="activatable-widget">isolate_subprocesses</property>
             <child type="suffix">
               <object class="GtkSwitch" id="isolate_subprocesses">
                 <property name="valign">center</property>

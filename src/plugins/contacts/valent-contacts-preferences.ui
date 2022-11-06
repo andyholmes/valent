@@ -15,6 +15,7 @@
           <object class="AdwActionRow">
             <property name="title" translatable="yes">Sync Contacts</property>
             <property name="subtitle" translatable="yes">Download contacts from remote device.</property>
+            <property name="activatable-widget">remote_sync</property>
             <child type="suffix">
               <object class="GtkSwitch" id="remote_sync">
                 <property name="valign">center</property>
@@ -26,6 +27,7 @@
           <object class="AdwActionRow">
             <property name="title" translatable="yes">Import Contacts</property>
             <property name="subtitle" translatable="yes">Allow other applications to use the remote contacts.</property>
+            <property name="activatable-widget">remote_import</property>
             <property name="sensitive" bind-source="remote_sync" bind-property="active" bind-flags="sync-create"/>
             <child type="suffix">
               <object class="GtkSwitch" id="remote_import">
