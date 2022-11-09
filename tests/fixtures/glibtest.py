@@ -38,7 +38,7 @@ class _GLibTestCaseAttr:
     # pylint: disable-next=line-too-long
     def __get__(self, instance: Type[GLibTestCaseAttr], owner: Optional[Any]) -> Callable[[unittest.TestCase], None]:
         # pylint: disable-next=no-value-for-parameter
-        bound_method = self.__func.__get__(instance, owner) # type: ignore
+        bound_method = self.__func.__get__(instance, owner)
         partial_method = functools.partial(bound_method, self.path)
         partial_method.__doc__ = bound_method.__doc__
         partial_method.__qualname__ = f'{owner.__qualname__}.{self.path}' # type: ignore
@@ -80,7 +80,7 @@ class _GLibTestCaseMeta(type):
                                    env=env,
                                    timeout=15)
         except subprocess.TimeoutExpired as error:
-            sys.stderr.write(error.stdout.decode('utf-8'))
+            sys.stderr.write(error.stdout.decode('utf-8')) # type: ignore
             raise RuntimeError(f'Querying tests: {error}') from error
         except subprocess.CalledProcessError as error:
             sys.stderr.write(error.stdout)
