@@ -95,6 +95,7 @@ project_c_args = [
 
   # These should be kept in sync (eg. GTK 4.4 requires GLib 2.66)
   '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_66',
+  '-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_66',
   '-DGDK_VERSION_MIN_REQUIRED=GDK_VERSION_4_6',
 
   # TODO: These should be fixed instead of downgraded to warnings

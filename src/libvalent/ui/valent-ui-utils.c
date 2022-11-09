@@ -35,7 +35,7 @@ valent_ui_replace_eval_uri (const GMatchInfo *info,
       escaped = g_markup_printf_escaped ("<a href=\"%s\">%s</a>",
                                          text, text);
     }
-  else if (g_regex_match (email_regex, text, G_REGEX_MATCH_DEFAULT, NULL))
+  else if (g_regex_match (email_regex, text, 0, NULL))
     {
       escaped = g_markup_printf_escaped ("<a href=\"mailto:%s\">%s</a>",
                                          text, text);
@@ -87,7 +87,7 @@ valent_string_to_markup (const char *text)
                                  text,
                                  text_len,
                                  0,
-                                 G_REGEX_MATCH_DEFAULT,
+                                 0,
                                  valent_ui_replace_eval_uri,
                                  NULL,
                                  &error);
