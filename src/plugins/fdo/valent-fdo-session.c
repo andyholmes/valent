@@ -17,7 +17,6 @@ struct _ValentFdoSession
   ValentSessionAdapter  parent_instance;
 
   GDBusProxy           *proxy;
-  GCancellable         *cancellable;
 
   gboolean              active;
   gboolean              locked;
@@ -93,9 +92,7 @@ valent_fdo_session_set_locked (ValentSessionAdapter *adapter,
   ValentFdoSession *self = VALENT_FDO_SESSION (adapter);
 
   g_assert (VALENT_IS_FDO_SESSION (self));
-
-  if (self->proxy == NULL)
-    return;
+  g_return_if_fail (G_IS_DBUS_PROXY (self->proxy));
 
   g_dbus_proxy_call (self->proxy,
                      state ? "Lock" : "Unlock",
@@ -247,7 +244,7 @@ valent_fdo_notifications_init_async (GAsyncInitable             *initable,
   if (connection == NULL)
     return g_task_return_error (task, g_steal_pointer (&error));
 
-  /* Check for phosh session */
+  /* Check for logind */
   g_dbus_connection_call (connection,
                           "org.freedesktop.login1",
                           "/org/freedesktop/login1",
@@ -276,26 +273,9 @@ valent_fdo_session_dispose (GObject *object)
 {
   ValentFdoSession *self = VALENT_FDO_SESSION (object);
 
-  if (!g_cancellable_is_cancelled (self->cancellable))
-    g_cancellable_cancel (self->cancellable);
-
-  if (self->proxy != NULL)
-    {
-      g_signal_handlers_disconnect_by_data (self->proxy, self);
-      g_clear_object (&self->proxy);
-    }
+  g_clear_object (&self->proxy);
 
   G_OBJECT_CLASS (valent_fdo_session_parent_class)->dispose (object);
-}
-
-static void
-valent_fdo_session_finalize (GObject *object)
-{
-  ValentFdoSession *self = VALENT_FDO_SESSION (object);
-
-  g_clear_object (&self->cancellable);
-
-  G_OBJECT_CLASS (valent_fdo_session_parent_class)->finalize (object);
 }
 
 static void
@@ -305,7 +285,6 @@ valent_fdo_session_class_init (ValentFdoSessionClass *klass)
   ValentSessionAdapterClass *session_class = VALENT_SESSION_ADAPTER_CLASS (klass);
 
   object_class->dispose = valent_fdo_session_dispose;
-  object_class->finalize = valent_fdo_session_finalize;
 
   session_class->get_active = valent_fdo_session_get_active;
   session_class->get_locked = valent_fdo_session_get_locked;
@@ -315,6 +294,5 @@ valent_fdo_session_class_init (ValentFdoSessionClass *klass)
 static void
 valent_fdo_session_init (ValentFdoSession *self)
 {
-  self->cancellable = g_cancellable_new ();
 }
 
