@@ -173,34 +173,6 @@
             ]
         },
         {
-            "name" : "dbus-python",
-            "buildsystem" : "simple",
-            "build-commands" : [
-                "pip3 install --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} dbus-python"
-            ],
-            "sources" : [
-                {
-                    "type" : "file",
-                    "url" : "https://files.pythonhosted.org/packages/b1/5c/ccfc167485806c1936f7d3ba97db6c448d0089c5746ba105b6eb22dba60e/dbus-python-1.2.18.tar.gz",
-                    "sha256" : "92bdd1e68b45596c833307a5ff4b217ee6929a1502f5341bae28fd120acf7260"
-	            }
-            ]
-        },
-        {
-            "name" : "python-dbusmock",
-            "buildsystem" : "simple",
-            "build-commands" : [
-                "pip3 install --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} python-dbusmock"
-            ],
-            "sources" : [
-                {
-                    "type" : "file",
-                    "url" : "https://files.pythonhosted.org/packages/78/11/e43401e0729514689d8a724a0a1d81ed2d6e3ae497ad10a06b60113b167e/python-dbusmock-0.28.1.tar.gz",
-                    "sha256" : "6434e544c055e3570b20e341e50a3d2dd50b19d9e55d579b919e14879f9f1e57"
-                }
-            ]
-        },
-        {
             "name" : "sysprof",
             "buildsystem" : "meson",
             "builddir" : true,
@@ -233,7 +205,6 @@
                 "--prefix=/app",
                 "--buildtype=debugoptimized",
                 "-Dprofile=devel",
-                "-Dtests=true",
                 "-Dtracing=true"
             ],
             "post-install" : [
