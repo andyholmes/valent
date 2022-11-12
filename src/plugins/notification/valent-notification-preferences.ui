@@ -23,7 +23,8 @@
         </child>
         <child>
           <object class="AdwActionRow">
-            <property name="title" translatable="yes">Send When Active</property>
+            <property name="title" translatable="yes">Forward When Active</property>
+            <property name="subtitle" translatable="yes">Send notifications when the session is active</property>
             <property name="activatable-widget">forward_when_active</property>
             <property name="sensitive" bind-source="forward_notifications" bind-property="active" bind-flags="sync-create"/>
             <child type="suffix">
@@ -39,7 +40,10 @@
     <child>
       <object class="AdwPreferencesGroup" id="application_group">
         <property name="title" translatable="yes">Applications</property>
-        <property name="sensitive" bind-source="forward_notifications" bind-property="active" bind-flags="sync-create"/>
+        <property name="sensitive"
+                  bind-source="forward_notifications"
+                  bind-property="active"
+                  bind-flags="sync-create"/>
         <property name="header-suffix">
           <object class="GtkButton">
             <property name="action-name">preferences.reset</property>
