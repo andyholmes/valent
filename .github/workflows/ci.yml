@@ -215,7 +215,7 @@ jobs:
     needs: [pre-test]
     runs-on: ubuntu-latest
     container:
-      image: bilelmoussaoui/flatpak-github-actions:gnome-43
+      image: ghcr.io/andyholmes/flatter/gnome:43
       options: --privileged
 
     steps:
@@ -224,19 +224,33 @@ jobs:
         with:
           submodules: true
 
-      - name: Build
-        uses: flatpak/flatpak-github-actions/flatpak-builder@master
+      - name: Setup GPG
+        id: gpg
+        uses: crazy-max/ghaction-import-gpg@v5
         with:
-          bundle: ca.andyholmes.Valent.flatpak
-          manifest-path: build-aux/flatpak/ca.andyholmes.Valent.Tests.json
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Build
+        uses: andyholmes/flatter@main
+        with:
+          files: |
+            build-aux/flatpak/ca.andyholmes.Valent.json
+          gpg-sign: ${{ steps.gpg.outputs.fingerprint }}
           run-tests: true
+          test-config-opts: |
+            --buildtype=debugoptimized
+            -Dtests=true
+          test-modules: |
+            ca.andyholmes.Valent.Tests.json
+          upload-bundles: true
 
   flatpak-unstable:
     name: Tests (Flatpak Unstable)
     needs: [pre-test]
     runs-on: ubuntu-latest
     container:
-      image: bilelmoussaoui/flatpak-github-actions:gnome-nightly
+      image: ghcr.io/andyholmes/flatter/gnome:master
       options: --privileged
 
     steps:
@@ -246,8 +260,15 @@ jobs:
           submodules: true
 
       - name: Build
-        uses: flatpak/flatpak-github-actions/flatpak-builder@master
+        uses: andyholmes/flatter@main
         with:
-          bundle: ca.andyholmes.Valent.Devel.flatpak
-          manifest-path: build-aux/flatpak/ca.andyholmes.Valent.Devel.Tests.json
+          files: |
+            build-aux/flatpak/ca.andyholmes.Valent.Devel.json
+          gpg-sign: ${{ steps.gpg.outputs.fingerprint }}
           run-tests: true
+          test-config-opts: |
+            --buildtype=debugoptimized
+            -Dtests=true
+          test-modules: |
+            ca.andyholmes.Valent.Tests.json
+          upload-bundles: true
