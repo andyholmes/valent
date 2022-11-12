@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2022-10-27 13:31-0700\n"
+"POT-Creation-Date: 2022-11-12 12:48-0800\n"
 "PO-Revision-Date: 2022-09-12 19:59+0200\n"
 "Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
 "Language-Team: Dutch\n"
@@ -45,7 +45,7 @@ msgstr "Of de plug-in is ingeschakeld."
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
 #: data/ca.andyholmes.Valent.desktop.in.in:3
 #: src/libvalent/ui/valent-preferences-window.ui:13
-#: src/libvalent/ui/valent-window.c:242 src/libvalent/ui/valent-window.ui:40
+#: src/libvalent/ui/valent-window.c:204 src/libvalent/ui/valent-window.ui:40
 msgid "Valent"
 msgstr "Valent"
 
@@ -152,7 +152,7 @@ msgid "Request Pairing"
 msgstr "Koppelverzoek versturen"
 
 #: src/libvalent/ui/valent-device-page.ui:225
-#: src/libvalent/ui/valent-window.c:107
+#: src/libvalent/ui/valent-window.c:70
 msgid "Disconnected"
 msgstr "Niet verbonden"
 
@@ -251,19 +251,19 @@ msgid ""
 msgstr ""
 "De apparaatnaam wordt gebruikt om dit apparaat op het netwerk te herkennen."
 
-#: src/libvalent/ui/valent-window.c:102
+#: src/libvalent/ui/valent-window.c:65
 msgid "Unpaired"
 msgstr "Niet gekoppeld"
 
-#: src/libvalent/ui/valent-window.c:112
+#: src/libvalent/ui/valent-window.c:75
 msgid "Connected"
 msgstr "Verbonden"
 
-#: src/libvalent/ui/valent-window.c:249
+#: src/libvalent/ui/valent-window.c:211
 msgid "translator-credits"
 msgstr "Heimen Stoffels <vistausss@fastmail.com>"
 
-#: src/libvalent/ui/valent-window.c:254
+#: src/libvalent/ui/valent-window.c:216
 msgid "Sponsors"
 msgstr ""
 
@@ -350,24 +350,24 @@ msgid "Sync battery statistics"
 msgstr "Accustatistieken synchroniseren"
 
 #. TRANSLATORS: When the battery level is 100%
-#: src/plugins/battery/valent-battery-gadget.c:80
+#: src/plugins/battery/valent-battery-gadget.c:78
 msgid "Fully Charged"
 msgstr "Volledig opgeladen"
 
 #. TRANSLATORS: This is <percentage> (Estimating…)
-#: src/plugins/battery/valent-battery-gadget.c:104
+#: src/plugins/battery/valent-battery-gadget.c:102
 #, c-format
 msgid "%g%% (Estimating…)"
 msgstr "%g%% (bezig met berekenen…)"
 
 #. TRANSLATORS: This is <percentage> (<hours>:<minutes> Until Full)
-#: src/plugins/battery/valent-battery-gadget.c:109
+#: src/plugins/battery/valent-battery-gadget.c:107
 #, c-format
 msgid "%g%% (%d∶%02d Until Full)"
 msgstr "%g%% (volledig opgeladen over %d∶%02d)"
 
 #. TRANSLATORS: This is <percentage> (<hours>:<minutes> Remaining)
-#: src/plugins/battery/valent-battery-gadget.c:115
+#: src/plugins/battery/valent-battery-gadget.c:113
 #: src/plugins/battery/valent-battery-plugin.c:302
 #, c-format
 msgid "%g%% (%d∶%02d Remaining)"
@@ -428,11 +428,11 @@ msgstr "Externe klembordwijzigingen"
 msgid "Copy to the local clipboard"
 msgstr "Kopiëren naar lokaal klembord"
 
-#: src/plugins/clipboard/valent-clipboard-preferences.ui:27
+#: src/plugins/clipboard/valent-clipboard-preferences.ui:28
 msgid "Local Clipboard Changes"
 msgstr "Lokale klembordwijzigingen"
 
-#: src/plugins/clipboard/valent-clipboard-preferences.ui:28
+#: src/plugins/clipboard/valent-clipboard-preferences.ui:29
 msgid "Copy to the remote clipboard"
 msgstr "Kopiëren naar extern klembord"
 
@@ -522,7 +522,7 @@ msgid "Control how remote contacts are used."
 msgstr "Geef aan hoe externe contactpersonen dienen te worden gebruikt."
 
 #: src/plugins/contacts/valent-contacts-preferences.ui:16
-#: src/plugins/contacts/valent-contacts-preferences.ui:45
+#: src/plugins/contacts/valent-contacts-preferences.ui:47
 msgid "Sync Contacts"
 msgstr "Contactpersonen synchroniseren"
 
@@ -530,24 +530,24 @@ msgstr "Contactpersonen synchroniseren"
 msgid "Download contacts from remote device."
 msgstr "Haal de lijst met contactpersonen van het externe apparaat op."
 
-#: src/plugins/contacts/valent-contacts-preferences.ui:27
+#: src/plugins/contacts/valent-contacts-preferences.ui:28
 msgid "Import Contacts"
 msgstr "Contactpersonen importeren"
 
-#: src/plugins/contacts/valent-contacts-preferences.ui:28
+#: src/plugins/contacts/valent-contacts-preferences.ui:29
 msgid "Allow other applications to use the remote contacts."
 msgstr ""
 "Sta toe dan andere toepassingen de externe contactpersonen mogen gebruiken."
 
-#: src/plugins/contacts/valent-contacts-preferences.ui:41
+#: src/plugins/contacts/valent-contacts-preferences.ui:43
 msgid "Local Contacts"
 msgstr "Lokale contactpersonen"
 
-#: src/plugins/contacts/valent-contacts-preferences.ui:42
+#: src/plugins/contacts/valent-contacts-preferences.ui:44
 msgid "Control how local contacts are used."
 msgstr "Geef aan hoe lokale contactpersonen dienen te worden gebruikt."
 
-#: src/plugins/contacts/valent-contacts-preferences.ui:46
+#: src/plugins/contacts/valent-contacts-preferences.ui:48
 msgid "Upload contacts to remote device."
 msgstr "Verstuur de lijst met contactpersonen naar het externe apparaat."
 
@@ -700,14 +700,24 @@ msgid "Forward Notifications"
 msgstr "Meldingen doorsturen"
 
 #: src/plugins/notification/valent-notification-preferences.ui:26
-msgid "Send When Active"
+#, fuzzy
+msgid "Forward When Active"
 msgstr "Versturen indien actief"
 
-#: src/plugins/notification/valent-notification-preferences.ui:40
+#: src/plugins/notification/valent-notification-preferences.ui:27
+#, fuzzy
+msgid "Send notifications when the session is active"
+msgstr "Toon een melding als de verbinding verbroken is."
+
+#: src/plugins/notification/valent-notification-preferences.ui:42
 msgid "Applications"
 msgstr "Toepassingen"
 
-#: src/plugins/notification/valent-notification-preferences.ui:66
+#: src/plugins/notification/valent-notification-preferences.ui:50
+msgid "_Reset"
+msgstr ""
+
+#: src/plugins/notification/valent-notification-preferences.ui:78
 msgid "No Applications"
 msgstr "Geen toepassingen"
 
@@ -879,16 +889,16 @@ msgstr "SFTP"
 msgid "Browse files and directories"
 msgstr "Mappen en bestanden verkennen"
 
-#: src/plugins/sftp/valent-sftp-plugin.c:544
+#: src/plugins/sftp/valent-sftp-plugin.c:541
 #: src/plugins/sms/valent-contact-row.c:331
 msgid "Home"
 msgstr "Persoonlijke map"
 
-#: src/plugins/sftp/valent-sftp-plugin.c:550
+#: src/plugins/sftp/valent-sftp-plugin.c:547
 msgid "Permission denied"
 msgstr "Toegang geweigerd"
 
-#: src/plugins/sftp/valent-sftp-plugin.c:600
+#: src/plugins/sftp/valent-sftp-plugin.c:597
 msgid "Browse Files"
 msgstr "Bestanden verkennen"
 
@@ -910,23 +920,23 @@ msgstr ""
 "Probeer het bestandssysteem automatisch aan te koppelen zodra het apparaat "
 "verbonden is."
 
-#: src/plugins/sftp/valent-sftp-preferences.ui:29
+#: src/plugins/sftp/valent-sftp-preferences.ui:30
 msgid "Local Filesystem"
 msgstr "Lokaal bestandssysteem"
 
-#: src/plugins/sftp/valent-sftp-preferences.ui:30
+#: src/plugins/sftp/valent-sftp-preferences.ui:31
 msgid "How the local filesystem is handled."
 msgstr "Hoe het lokale bestandssysteem dient te worden behandeld."
 
-#: src/plugins/sftp/valent-sftp-preferences.ui:33
+#: src/plugins/sftp/valent-sftp-preferences.ui:34
 msgid "Local Access"
 msgstr "Lokale toegang"
 
-#: src/plugins/sftp/valent-sftp-preferences.ui:34
+#: src/plugins/sftp/valent-sftp-preferences.ui:35
 msgid "Expose the local SSH service."
 msgstr "Start de lokale ssh-dienst."
 
-#: src/plugins/sftp/valent-sftp-preferences.ui:38
+#: src/plugins/sftp/valent-sftp-preferences.ui:39
 msgid "Port"
 msgstr "Poort"
 
@@ -1220,7 +1230,7 @@ msgid "Incoming call"
 msgstr "Inkomende oproep"
 
 #: src/plugins/telephony/valent-telephony-plugin.c:311
-#: src/plugins/telephony/valent-telephony-preferences.ui:75
+#: src/plugins/telephony/valent-telephony-preferences.ui:78
 msgid "Mute"
 msgstr "Dempen"
 
@@ -1237,33 +1247,33 @@ msgid "What to do when the phone rings."
 msgstr "Welke actie er dient te worden genomen als de telefoon overgaat."
 
 #: src/plugins/telephony/valent-telephony-preferences.ui:16
-#: src/plugins/telephony/valent-telephony-preferences.ui:41
+#: src/plugins/telephony/valent-telephony-preferences.ui:42
 msgid "Volume"
 msgstr "Volume"
 
 #: src/plugins/telephony/valent-telephony-preferences.ui:25
-#: src/plugins/telephony/valent-telephony-preferences.ui:60
+#: src/plugins/telephony/valent-telephony-preferences.ui:62
 msgid "Pause Media"
 msgstr "Media onderbreken"
 
-#: src/plugins/telephony/valent-telephony-preferences.ui:37
+#: src/plugins/telephony/valent-telephony-preferences.ui:38
 msgid "Ongoing Calls"
 msgstr "Actieve gesprekken"
 
-#: src/plugins/telephony/valent-telephony-preferences.ui:38
+#: src/plugins/telephony/valent-telephony-preferences.ui:39
 msgid "What to do when the phone is answered."
 msgstr ""
 "Welke actie er dient te worden genomen als de telefoon wordt beantwoord."
 
-#: src/plugins/telephony/valent-telephony-preferences.ui:50
+#: src/plugins/telephony/valent-telephony-preferences.ui:51
 msgid "Mute Microphone"
 msgstr "Microfoon dempen"
 
-#: src/plugins/telephony/valent-telephony-preferences.ui:73
+#: src/plugins/telephony/valent-telephony-preferences.ui:76
 msgid "Nothing"
 msgstr "Niets doen"
 
-#: src/plugins/telephony/valent-telephony-preferences.ui:74
+#: src/plugins/telephony/valent-telephony-preferences.ui:77
 msgid "Lower"
 msgstr "Verlagen"
 
