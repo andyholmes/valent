@@ -32,7 +32,7 @@ plugin_telephony_resources = gnome.compile_resources('telephony-resources',
 plugin_telephony_sources += plugin_telephony_resources
 
 # Settings
-install_data('ca.andyholmes.valent.telephony.gschema.xml',
+install_data('ca.andyholmes.Valent.Plugin.telephony.gschema.xml',
   install_dir: schemadir
 )
 

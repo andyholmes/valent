@@ -13,5 +13,5 @@ Help=https://github.com/andyholmes/valent
 Hidden=false
 X-DevicePluginIncoming=kdeconnect.connectivity_report;kdeconnect.connectivity_report.request
 X-DevicePluginOutgoing=kdeconnect.connectivity_report;kdeconnect.connectivity_report.request
-X-DevicePluginSettings=ca.andyholmes.valent.connectivity_report
+X-DevicePluginSettings=ca.andyholmes.Valent.Plugin.connectivity_report
 

@@ -4,7 +4,7 @@
 <!-- SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <schemalist gettext-domain="valent">
-  <schema id="ca.andyholmes.valent.connectivity_report">
+  <schema id="ca.andyholmes.Valent.Plugin.connectivity_report">
     <key name="share-state" type="b">
       <default>true</default>
       <summary>Share State</summary>

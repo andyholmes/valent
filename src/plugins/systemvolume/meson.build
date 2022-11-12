@@ -30,7 +30,7 @@ plugin_systemvolume_resources = gnome.compile_resources('systemvolume-resources'
 plugin_systemvolume_sources += plugin_systemvolume_resources
 
 # Settings
-install_data('ca.andyholmes.valent.systemvolume.gschema.xml',
+install_data('ca.andyholmes.Valent.Plugin.systemvolume.gschema.xml',
   install_dir: schemadir
 )
 

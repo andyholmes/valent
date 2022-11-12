@@ -33,7 +33,7 @@ plugin_runcommand_resources = gnome.compile_resources('runcommand-resources',
 plugin_runcommand_sources += plugin_runcommand_resources
 
 # Settings
-install_data('ca.andyholmes.valent.runcommand.gschema.xml',
+install_data('ca.andyholmes.Valent.Plugin.runcommand.gschema.xml',
   install_dir: schemadir
 )
 

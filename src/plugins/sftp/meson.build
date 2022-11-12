@@ -31,7 +31,7 @@ plugin_sftp_resources = gnome.compile_resources('sftp-resources',
 plugin_sftp_sources += plugin_sftp_resources
 
 # Settings
-install_data('ca.andyholmes.valent.sftp.gschema.xml',
+install_data('ca.andyholmes.Valent.Plugin.sftp.gschema.xml',
   install_dir: schemadir
 )
 

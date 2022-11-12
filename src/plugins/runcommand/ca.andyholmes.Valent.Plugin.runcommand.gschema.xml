@@ -4,7 +4,7 @@
 <!-- SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <schemalist gettext-domain="valent">
-  <schema id="ca.andyholmes.valent.runcommand">
+  <schema id="ca.andyholmes.Valent.Plugin.runcommand">
     <key name="commands" type="a{sv}">
       <default>{}</default>
     </key>

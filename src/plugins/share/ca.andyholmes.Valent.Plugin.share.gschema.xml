@@ -4,12 +4,12 @@
 <!-- SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <schemalist gettext-domain="valent">
-  <schema id="ca.andyholmes.valent.mpris">
-    <key name="read-players" type="b">
-      <default>true</default>
-    </key>
-    <key name="write-players" type="b">
-      <default>true</default>
+  <schema id="ca.andyholmes.Valent.Plugin.share">
+    <key name="download-folder" type="s">
+      <default>""</default>
+      <summary>Download folder</summary>
+      <description>Where received files are stored</description>
     </key>
   </schema>
 </schemalist>
+

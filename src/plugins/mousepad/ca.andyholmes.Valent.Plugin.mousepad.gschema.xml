@@ -4,9 +4,9 @@
 <!-- SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <schemalist gettext-domain="valent">
-  <schema id="ca.andyholmes.valent.sms">
-    <key name="legacy-sms" type="b">
-      <default>false</default>
+  <schema id="ca.andyholmes.Valent.Plugin.mousepad">
+    <key name="write-input" type="b">
+      <default>true</default>
     </key>
   </schema>
 </schemalist>

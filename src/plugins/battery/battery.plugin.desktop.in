@@ -13,5 +13,5 @@ Help=https://github.com/andyholmes/valent
 Hidden=false
 X-DevicePluginIncoming=kdeconnect.battery;kdeconnect.battery.request
 X-DevicePluginOutgoing=kdeconnect.battery;kdeconnect.battery.request
-X-DevicePluginSettings=ca.andyholmes.valent.battery
+X-DevicePluginSettings=ca.andyholmes.Valent.Plugin.battery
 

@@ -4,15 +4,9 @@
 <!-- SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <schemalist gettext-domain="valent">
-  <schema id="ca.andyholmes.valent.notification">
-    <key name="forward-notifications" type="b">
-      <default>true</default>
-    </key>
-    <key name="forward-when-active" type="b">
+  <schema id="ca.andyholmes.Valent.Plugin.sms">
+    <key name="legacy-sms" type="b">
       <default>false</default>
-    </key>
-    <key name="forward-deny" type="as">
-      <default>[]</default>
     </key>
   </schema>
 </schemalist>

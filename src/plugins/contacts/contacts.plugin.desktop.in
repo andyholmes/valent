@@ -13,5 +13,5 @@ Help=https://github.com/andyholmes/valent
 Hidden=false
 X-DevicePluginIncoming=kdeconnect.contacts.request_all_uids_timestamps;kdeconnect.contacts.request_vcards_by_uid;kdeconnect.contacts.response_uids_timestamps;kdeconnect.contacts.response_vcards
 X-DevicePluginOutgoing=kdeconnect.contacts.request_all_uids_timestamps;kdeconnect.contacts.request_vcards_by_uid;kdeconnect.contacts.response_uids_timestamps;kdeconnect.contacts.response_vcards
-X-DevicePluginSettings=ca.andyholmes.valent.contacts
+X-DevicePluginSettings=ca.andyholmes.Valent.Plugin.contacts
 

@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-data/gsettings/ca.andyholmes.valent.device.gschema.xml
-data/gsettings/ca.andyholmes.valent.gschema.xml
-data/gsettings/ca.andyholmes.valent.plugin.gschema.xml
+data/gsettings/ca.andyholmes.Valent.Device.gschema.xml
+data/gsettings/ca.andyholmes.Valent.gschema.xml
+data/gsettings/ca.andyholmes.Valent.Plugin.gschema.xml
 data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in
 data/ca.andyholmes.Valent.desktop.in.in
 src/libvalent/device/valent-device.c
@@ -17,7 +17,7 @@ src/libvalent/ui/valent-preferences-window.ui
 src/libvalent/ui/valent-window.c
 src/libvalent/ui/valent-window.ui
 src/main.c
-src/plugins/battery/ca.andyholmes.valent.battery.gschema.xml
+src/plugins/battery/ca.andyholmes.Valent.Plugin.battery.gschema.xml
 src/plugins/battery/battery.plugin.desktop.in
 src/plugins/battery/valent-battery-gadget.c
 src/plugins/battery/valent-battery-plugin.c
@@ -26,7 +26,7 @@ src/plugins/battery/valent-battery-preferences.ui
 src/plugins/clipboard/clipboard.plugin.desktop.in
 src/plugins/clipboard/valent-clipboard-preferences.c
 src/plugins/clipboard/valent-clipboard-preferences.ui
-src/plugins/connectivity_report/ca.andyholmes.valent.connectivity_report.gschema.xml
+src/plugins/connectivity_report/ca.andyholmes.Valent.Plugin.connectivity_report.gschema.xml
 src/plugins/connectivity_report/connectivity_report.plugin.desktop.in
 src/plugins/connectivity_report/valent-connectivity_report-gadget.c
 src/plugins/connectivity_report/valent-connectivity_report-plugin.c
@@ -96,7 +96,7 @@ src/plugins/telephony/telephony.plugin.desktop.in
 src/plugins/telephony/valent-telephony-plugin.c
 src/plugins/telephony/valent-telephony-preferences.c
 src/plugins/telephony/valent-telephony-preferences.ui
-src/plugins/xdp/ca.andyholmes.valent.xdp.gschema.xml
+src/plugins/xdp/ca.andyholmes.Valent.Plugin.xdp.gschema.xml
 src/plugins/xdp/valent-xdp-background.c
 src/plugins/xdp/xdp.plugin.desktop.in
 

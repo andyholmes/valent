@@ -13,5 +13,5 @@ Help=https://github.com/andyholmes/valent
 Hidden=false
 X-DevicePluginIncoming=kdeconnect.clipboard;kdeconnect.clipboard.connect
 X-DevicePluginOutgoing=kdeconnect.clipboard;kdeconnect.clipboard.connect
-X-DevicePluginSettings=ca.andyholmes.valent.clipboard
+X-DevicePluginSettings=ca.andyholmes.Valent.Plugin.clipboard
 

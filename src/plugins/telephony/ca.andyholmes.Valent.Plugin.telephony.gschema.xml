@@ -4,7 +4,7 @@
 <!-- SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <schemalist gettext-domain="valent">
-  <schema id="ca.andyholmes.valent.telephony">
+  <schema id="ca.andyholmes.Valent.Plugin.telephony">
     <key name="ringing-volume" type="i">
       <default>15</default>
       <range min='-1' max='100'/>
