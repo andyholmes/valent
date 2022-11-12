@@ -226,24 +226,6 @@
             ]
         },
         {
-            "name" : "walbottle",
-            "buildsystem" : "meson",
-            "builddir" : true,
-            "config-opts" : [
-                "-Dgtk_doc=false",
-                "-Dinstalled_tests=false",
-                "-Dintrospection=disabled",
-                "-Dwerror=false"
-            ],
-            "sources" : [
-                {
-                    "type" : "git",
-                    "url" : "https://gitlab.com/walbottle/walbottle.git",
-                    "branch" : "main"
-                }
-            ]
-        },
-        {
             "name" : "valent",
             "buildsystem" : "meson",
             "builddir" : true,
