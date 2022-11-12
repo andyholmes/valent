@@ -68,7 +68,6 @@ G_DEFINE_TYPE_WITH_CODE (ValentDeviceManager, valent_device_manager, VALENT_TYPE
 
 enum {
   PROP_0,
-  PROP_ID,
   PROP_NAME,
   N_PROPERTIES
 };
@@ -813,10 +812,6 @@ valent_device_manager_get_property (GObject    *object,
 
   switch (prop_id)
     {
-    case PROP_ID:
-      g_value_set_string (value, self->id);
-      break;
-
     case PROP_NAME:
       g_value_set_string (value, self->name);
       break;
@@ -854,24 +849,6 @@ valent_device_manager_class_init (ValentDeviceManagerClass *klass)
   object_class->finalize = valent_device_manager_finalize;
   object_class->get_property = valent_device_manager_get_property;
   object_class->set_property = valent_device_manager_set_property;
-
-  /**
-   * ValentDeviceManager:id: (getter get_id)
-   *
-   * The unique ID of the local device.
-   *
-   * This is intended to be unique within the device's network ok KDE Connect
-   * clients. The ID is equivalent to the common name of the service TLS
-   * certificate, which will be generated if necessary.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_ID] =
-    g_param_spec_string ("id", NULL, NULL,
-                         NULL,
-                         (G_PARAM_READABLE |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
 
   /**
    * ValentDeviceManager:name: (getter get_name) (setter set_name)
@@ -992,22 +969,6 @@ valent_device_manager_new_finish (GAsyncResult  *result,
     return NULL;
 
   return VALENT_DEVICE_MANAGER (manager);
-}
-
-/**
- * valent_device_manager_get_id: (get-property id)
- * @manager: a #ValentDeviceManager
- *
- * Get the unique ID of the local device.
- *
- * Returns: (transfer none): a unique ID
- */
-const char *
-valent_device_manager_get_id (ValentDeviceManager *manager)
-{
-  g_return_val_if_fail (VALENT_IS_DEVICE_MANAGER (manager), NULL);
-
-  return manager->id;
 }
 
 /**

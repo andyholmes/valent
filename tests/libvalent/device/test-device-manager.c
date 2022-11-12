@@ -114,15 +114,12 @@ static void
 test_manager_basic (ManagerFixture *fixture,
                     gconstpointer   user_data)
 {
-  g_autofree char *id = NULL;
   g_autofree char *name = NULL;
 
   /* Test properties */
   g_object_get (fixture->manager,
-                "id",   &id,
                 "name", &name,
                 NULL);
-  g_assert_nonnull (id);
   g_assert_cmpstr (name, ==, "Valent");
 }
 
