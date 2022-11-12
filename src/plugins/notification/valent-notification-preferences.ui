@@ -40,6 +40,13 @@
       <object class="AdwPreferencesGroup" id="application_group">
         <property name="title" translatable="yes">Applications</property>
         <property name="sensitive" bind-source="forward_notifications" bind-property="active" bind-flags="sync-create"/>
+        <property name="header-suffix">
+          <object class="GtkButton">
+            <property name="action-name">preferences.reset</property>
+            <property name="label" translatable="yes">_Reset</property>
+            <property name="use-underline">1</property>
+          </object>
+        </property>
         <child>
           <object class="GtkListBox" id="application_list">
             <property name="hexpand">1</property>

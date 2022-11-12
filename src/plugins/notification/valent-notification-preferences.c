@@ -168,16 +168,18 @@ populate_applications (ValentNotificationPreferences *self)
 }
 
 static void
-on_reset_clicked (GtkButton                     *button,
-                  ValentNotificationPreferences *self)
+reset_action (GtkWidget  *widget,
+              const char *action,
+              GVariant   *parameter)
 {
-  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (widget);
+  ValentNotificationPreferences *self = VALENT_NOTIFICATION_PREFERENCES (page);
   GSettings *settings;
   GHashTableIter iter;
   gpointer row_switch;
 
-  g_assert (GTK_IS_BUTTON (button));
   g_assert (VALENT_IS_NOTIFICATION_PREFERENCES (self));
+  g_assert (VALENT_IS_DEVICE_PREFERENCES_PAGE (self));
 
   g_hash_table_iter_init (&iter, self->application_rows);
 
@@ -244,6 +246,7 @@ valent_notification_preferences_class_init (ValentNotificationPreferencesClass *
   gtk_widget_class_bind_template_child (widget_class, ValentNotificationPreferences, forward_when_active);
   gtk_widget_class_bind_template_child (widget_class, ValentNotificationPreferences, application_group);
   gtk_widget_class_bind_template_child (widget_class, ValentNotificationPreferences, application_list);
+  gtk_widget_class_install_action (widget_class, "preferences.reset", NULL, reset_action);
 }
 
 static void
