@@ -32,7 +32,7 @@
     ],
     "add-extensions" : {
         "ca.andyholmes.Valent.Plugin" : {
-            "version" : "stable",
+            "version" : "master",
             "directory" : "extensions",
             "add-ld-path" : "lib",
             "merge-dirs" : "lib/valent/plugins",
