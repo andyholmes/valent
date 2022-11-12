@@ -36,7 +36,7 @@ plugin_share_resources = gnome.compile_resources('share-resources',
 plugin_share_sources += plugin_share_resources
 
 # Settings
-install_data('ca.andyholmes.valent.share.gschema.xml',
+install_data('ca.andyholmes.Valent.Plugin.share.gschema.xml',
   install_dir: schemadir
 )
 

@@ -33,7 +33,7 @@ plugin_battery_resources = gnome.compile_resources('battery-resources',
 plugin_battery_sources += plugin_battery_resources
 
 # Settings
-install_data('ca.andyholmes.valent.battery.gschema.xml',
+install_data('ca.andyholmes.Valent.Plugin.battery.gschema.xml',
   install_dir: schemadir
 )
 

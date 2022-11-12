@@ -31,7 +31,7 @@ plugin_clipboard_resources = gnome.compile_resources('clipboard-resources',
 plugin_clipboard_sources += plugin_clipboard_resources
 
 # Settings
-install_data('ca.andyholmes.valent.clipboard.gschema.xml',
+install_data('ca.andyholmes.Valent.Plugin.clipboard.gschema.xml',
   install_dir: schemadir
 )
 

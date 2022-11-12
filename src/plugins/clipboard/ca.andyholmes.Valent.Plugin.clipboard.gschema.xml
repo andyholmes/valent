@@ -4,18 +4,15 @@
 <!-- SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <schemalist gettext-domain="valent">
-  <schema id="ca.andyholmes.valent.contacts">
-    <key name="remote-sync" type="b">
-      <default>true</default>
-    </key>
-    <key name="remote-import" type="b">
+  <schema id="ca.andyholmes.Valent.Plugin.clipboard">
+    <key name="auto-pull" type="b">
       <default>false</default>
     </key>
-    <key name="local-sync" type="b">
+    <key name="auto-push" type="b">
       <default>false</default>
     </key>
-    <key name="local-uid" type="s">
-      <default>""</default>
+    <key name="access-clipboard" type="b">
+      <default>false</default>
     </key>
   </schema>
 </schemalist>

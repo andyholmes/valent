@@ -13,5 +13,5 @@ Help=https://github.com/andyholmes/valent
 Hidden=false
 X-DevicePluginIncoming=kdeconnect.systemvolume.request
 X-DevicePluginOutgoing=kdeconnect.systemvolume
-X-DevicePluginSettings=ca.andyholmes.valent.systemvolume
+X-DevicePluginSettings=ca.andyholmes.Valent.Plugin.systemvolume
 

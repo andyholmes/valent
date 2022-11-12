@@ -33,7 +33,7 @@ plugin_connectivity_report_resources = gnome.compile_resources('connectivity_rep
 plugin_connectivity_report_sources += plugin_connectivity_report_resources
 
 # Settings
-install_data('ca.andyholmes.valent.connectivity_report.gschema.xml',
+install_data('ca.andyholmes.Valent.Plugin.connectivity_report.gschema.xml',
   install_dir: schemadir
 )
 

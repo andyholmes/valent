@@ -380,6 +380,6 @@ static void
 valent_xdp_input_init (ValentXdpInput *self)
 {
   self->cancellable = g_cancellable_new ();
-  self->settings = g_settings_new ("ca.andyholmes.valent.xdp");
+  self->settings = g_settings_new ("ca.andyholmes.Valent.Plugin.xdp");
 }
 

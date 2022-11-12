@@ -31,7 +31,7 @@ plugin_contacts_resources = gnome.compile_resources('contacts-resources',
 plugin_contacts_sources += plugin_contacts_resources
 
 # Settings
-install_data('ca.andyholmes.valent.contacts.gschema.xml',
+install_data('ca.andyholmes.Valent.Plugin.contacts.gschema.xml',
   install_dir: schemadir
 )
 

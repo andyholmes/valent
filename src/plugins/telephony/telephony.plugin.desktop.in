@@ -13,5 +13,5 @@ Help=https://github.com/andyholmes/valent
 Hidden=false
 X-DevicePluginIncoming=kdeconnect.telephony
 X-DevicePluginOutgoing=kdeconnect.telephony.request_mute
-X-DevicePluginSettings=ca.andyholmes.valent.telephony
+X-DevicePluginSettings=ca.andyholmes.Valent.Plugin.telephony
 

@@ -33,7 +33,7 @@ plugin_notification_resources = gnome.compile_resources('notification-resources'
 plugin_notification_sources += plugin_notification_resources
 
 # Settings
-install_data('ca.andyholmes.valent.notification.gschema.xml',
+install_data('ca.andyholmes.Valent.Plugin.notification.gschema.xml',
   install_dir: schemadir
 )
 

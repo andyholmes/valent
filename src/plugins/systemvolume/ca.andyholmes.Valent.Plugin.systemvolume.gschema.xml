@@ -4,8 +4,8 @@
 <!-- SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <schemalist gettext-domain="valent">
-  <schema id="ca.andyholmes.valent.mousepad">
-    <key name="write-input" type="b">
+  <schema id="ca.andyholmes.Valent.Plugin.systemvolume">
+    <key name="share-sinks" type="b">
       <default>true</default>
     </key>
   </schema>

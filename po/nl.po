@@ -17,28 +17,28 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.1.1\n"
 
-#: data/gsettings/ca.andyholmes.valent.device.gschema.xml:10
+#: data/gsettings/ca.andyholmes.Valent.Device.gschema.xml:10
 msgid "Paired"
 msgstr "Gekoppeld"
 
-#: data/gsettings/ca.andyholmes.valent.device.gschema.xml:11
+#: data/gsettings/ca.andyholmes.Valent.Device.gschema.xml:11
 msgid "Whether the device is paired"
 msgstr "Of het apparaat is gekoppeld."
 
-#: data/gsettings/ca.andyholmes.valent.gschema.xml:10
+#: data/gsettings/ca.andyholmes.Valent.gschema.xml:10
 #: src/plugins/runcommand/valent-runcommand-editor.ui:44
 msgid "Name"
 msgstr "Naam"
 
-#: data/gsettings/ca.andyholmes.valent.gschema.xml:11
+#: data/gsettings/ca.andyholmes.Valent.gschema.xml:11
 msgid "The display name for the local device."
 msgstr "De naam van het lokale apparaat."
 
-#: data/gsettings/ca.andyholmes.valent.plugin.gschema.xml:10
+#: data/gsettings/ca.andyholmes.Valent.Plugin.gschema.xml:10
 msgid "Plugin State"
 msgstr "Plug-instatus"
 
-#: data/gsettings/ca.andyholmes.valent.plugin.gschema.xml:11
+#: data/gsettings/ca.andyholmes.Valent.Plugin.gschema.xml:11
 msgid "Whether the plugin is enabled or not."
 msgstr "Of de plug-in is ingeschakeld."
 
@@ -288,54 +288,54 @@ msgstr "Over Valent"
 msgid "Quit"
 msgstr "Afsluiten"
 
-#: src/plugins/battery/ca.andyholmes.valent.battery.gschema.xml:10
+#: src/plugins/battery/ca.andyholmes.Valent.Plugin.battery.gschema.xml:10
 #: src/plugins/battery/valent-battery-preferences.ui:16
-#: src/plugins/connectivity_report/ca.andyholmes.valent.connectivity_report.gschema.xml:10
+#: src/plugins/connectivity_report/ca.andyholmes.Valent.Plugin.connectivity_report.gschema.xml:10
 #: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:16
 msgid "Share State"
 msgstr "Deelstatus"
 
-#: src/plugins/battery/ca.andyholmes.valent.battery.gschema.xml:11
+#: src/plugins/battery/ca.andyholmes.Valent.Plugin.battery.gschema.xml:11
 #: src/plugins/battery/valent-battery-preferences.ui:17
 msgid "Send updates of the battery status"
 msgstr "Updates omtrent accuniveau delen"
 
-#: src/plugins/battery/ca.andyholmes.valent.battery.gschema.xml:15
+#: src/plugins/battery/ca.andyholmes.Valent.Plugin.battery.gschema.xml:15
 #: src/plugins/battery/valent-battery-preferences.ui:34
 msgid "Full Battery Notification"
 msgstr "Volledig opgeladen"
 
-#: src/plugins/battery/ca.andyholmes.valent.battery.gschema.xml:16
+#: src/plugins/battery/ca.andyholmes.Valent.Plugin.battery.gschema.xml:16
 #: src/plugins/battery/valent-battery-preferences.ui:35
 msgid "Show a notification when the battery is full"
 msgstr "Toon een melding als de accu volledig is opgeladen"
 
-#: src/plugins/battery/ca.andyholmes.valent.battery.gschema.xml:21
+#: src/plugins/battery/ca.andyholmes.Valent.Plugin.battery.gschema.xml:21
 #: src/plugins/battery/valent-battery-preferences.ui:39
 msgid "Full Battery Level"
 msgstr "Oplaadniveau"
 
-#: src/plugins/battery/ca.andyholmes.valent.battery.gschema.xml:22
+#: src/plugins/battery/ca.andyholmes.Valent.Plugin.battery.gschema.xml:22
 #: src/plugins/battery/valent-battery-preferences.ui:40
 msgid "The level to consider the battery full"
 msgstr "Het niveau waarop de accu als volledig opgeladen wordt bestempeld."
 
-#: src/plugins/battery/ca.andyholmes.valent.battery.gschema.xml:26
+#: src/plugins/battery/ca.andyholmes.Valent.Plugin.battery.gschema.xml:26
 #: src/plugins/battery/valent-battery-preferences.ui:59
 msgid "Low Battery Notification"
 msgstr "Laag accuniveau"
 
-#: src/plugins/battery/ca.andyholmes.valent.battery.gschema.xml:27
+#: src/plugins/battery/ca.andyholmes.Valent.Plugin.battery.gschema.xml:27
 #: src/plugins/battery/valent-battery-preferences.ui:60
 msgid "Show a notification when the battery is low"
 msgstr "Toon een melding als de accu bijna leeg is."
 
-#: src/plugins/battery/ca.andyholmes.valent.battery.gschema.xml:32
+#: src/plugins/battery/ca.andyholmes.Valent.Plugin.battery.gschema.xml:32
 #: src/plugins/battery/valent-battery-preferences.ui:64
 msgid "Low Battery Level"
 msgstr "Ontlaadniveau"
 
-#: src/plugins/battery/ca.andyholmes.valent.battery.gschema.xml:33
+#: src/plugins/battery/ca.andyholmes.Valent.Plugin.battery.gschema.xml:33
 #: src/plugins/battery/valent-battery-preferences.ui:65
 msgid "The level to consider the battery low"
 msgstr "Het niveau waarop de accu als laag niveau wordt bestempeld."
@@ -436,17 +436,17 @@ msgstr "Lokale klembordwijzigingen"
 msgid "Copy to the remote clipboard"
 msgstr "Kopiëren naar extern klembord"
 
-#: src/plugins/connectivity_report/ca.andyholmes.valent.connectivity_report.gschema.xml:11
+#: src/plugins/connectivity_report/ca.andyholmes.Valent.Plugin.connectivity_report.gschema.xml:11
 #: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:17
 msgid "Send connectivity reports"
 msgstr "Verbindingsmeldingen"
 
-#: src/plugins/connectivity_report/ca.andyholmes.valent.connectivity_report.gschema.xml:15
+#: src/plugins/connectivity_report/ca.andyholmes.Valent.Plugin.connectivity_report.gschema.xml:15
 #: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:34
 msgid "Offline Notification"
 msgstr "Offline"
 
-#: src/plugins/connectivity_report/ca.andyholmes.valent.connectivity_report.gschema.xml:16
+#: src/plugins/connectivity_report/ca.andyholmes.Valent.Plugin.connectivity_report.gschema.xml:16
 #: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:35
 msgid "Show a notification when there is no connectivity"
 msgstr "Toon een melding als de verbinding verbroken is."
@@ -1277,15 +1277,15 @@ msgstr "Niets doen"
 msgid "Lower"
 msgstr "Verlagen"
 
-#: src/plugins/xdp/ca.andyholmes.valent.xdp.gschema.xml:10
+#: src/plugins/xdp/ca.andyholmes.Valent.Plugin.xdp.gschema.xml:10
 msgid "Autostart"
 msgstr "Automatisch opstarten"
 
-#: src/plugins/xdp/ca.andyholmes.valent.xdp.gschema.xml:11
+#: src/plugins/xdp/ca.andyholmes.Valent.Plugin.xdp.gschema.xml:11
 msgid "Start the service at login."
 msgstr "Start de dienst automatisch na het aanmelden."
 
-#: src/plugins/xdp/ca.andyholmes.valent.xdp.gschema.xml:15
+#: src/plugins/xdp/ca.andyholmes.Valent.Plugin.xdp.gschema.xml:15
 msgid "Session timeout in seconds, 0 for no timeout."
 msgstr "Sessie-timeout in seconden. 0 = geen timeout."
 

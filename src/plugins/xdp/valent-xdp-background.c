@@ -144,7 +144,7 @@ valent_xdp_background_enable (ValentApplicationPlugin *plugin)
 
   self->cancellable = g_cancellable_new ();
 
-  self->settings = g_settings_new ("ca.andyholmes.valent.xdp");
+  self->settings = g_settings_new ("ca.andyholmes.Valent.Plugin.xdp");
   g_signal_connect (self->settings,
                     "changed::autostart",
                     G_CALLBACK (on_autostart_changed),
