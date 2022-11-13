@@ -18,9 +18,7 @@ GThread    * valent_get_main_thread   (void);
 VALENT_AVAILABLE_IN_1_0
 PeasEngine * valent_get_plugin_engine (void);
 VALENT_AVAILABLE_IN_1_0
-gboolean     valent_in_flatpak        (void);
-VALENT_AVAILABLE_IN_1_0
-gint64        valent_timestamp_ms     (void);
+gint64       valent_timestamp_ms      (void);
 
 G_END_DECLS
 

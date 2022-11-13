@@ -9,14 +9,14 @@
 
 #include <gio/gio.h>
 #include <libpeas/peas.h>
+#include <libportal/portal.h>
 
 #include "valent-global.h"
 #include "valent-version.h"
 
 
-static PeasEngine *default_engine = NULL;
-static gboolean in_flatpak = FALSE;
 static GThread *main_thread;
+static PeasEngine *default_engine = NULL;
 
 
 /*
@@ -29,7 +29,6 @@ static GThread *main_thread;
 static void __attribute__((constructor))
 valent_init_ctor (void)
 {
-  in_flatpak = g_file_test ("/.flatpak-info", G_FILE_TEST_EXISTS);
   main_thread = g_thread_self ();
 }
 #else
@@ -97,7 +96,7 @@ valent_get_plugin_engine (void)
       peas_engine_add_search_path (default_engine, "resource:///plugins", NULL);
 
       /* Flatpak Extensions */
-      if (valent_in_flatpak ())
+      if (xdp_portal_running_under_flatpak ())
         {
           g_autofree char *flatpak_dir = NULL;
 
@@ -114,21 +113,6 @@ valent_get_plugin_engine (void)
     }
 
   return default_engine;
-}
-
-/**
- * valent_in_flatpak:
- *
- * Checks whether Valent is running in a Flatpak.
- *
- * Returns: %TRUE if running in a Flatpak, or %FALSE if not
- *
- * Since: 1.0
- */
-gboolean
-valent_in_flatpak (void)
-{
-  return in_flatpak;
 }
 
 /**

@@ -4,6 +4,7 @@
 #include "config.h"
 
 #include <glib/gi18n.h>
+#include <libportal/portal.h>
 #include <libvalent-core.h>
 #include <libvalent-ui.h>
 
@@ -23,7 +24,7 @@ valent_plugin_init (void)
   /* The package plugin directory, typically `$LIBDIR/valent/plugins`. */
   peas_engine_prepend_search_path (engine, PACKAGE_PLUGINSDIR, NULL);
 
-  if (valent_in_flatpak ())
+  if (xdp_portal_running_under_flatpak ())
     {
       g_autofree char *real_plugin_dir = NULL;
 

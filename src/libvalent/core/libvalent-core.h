@@ -9,10 +9,9 @@ G_BEGIN_DECLS
 
 #define VALENT_CORE_INSIDE
 
-#include "valent-core-enums.h"
-
 #include "valent-certificate.h"
 #include "valent-component.h"
+#include "valent-core-enums.h"
 #include "valent-data.h"
 #include "valent-debug.h"
 #include "valent-global.h"

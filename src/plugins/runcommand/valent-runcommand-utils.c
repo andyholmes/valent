@@ -6,6 +6,7 @@
 #include "config.h"
 
 #include <gio/gio.h>
+#include <libportal/portal.h>
 #include <libvalent-core.h>
 
 #include "valent-runcommand-utils.h"
@@ -26,7 +27,7 @@ valent_runcommand_can_spawn_host (void)
 
   if (g_once_init_enter (&guard))
     {
-      if (valent_in_flatpak ())
+      if (xdp_portal_running_under_flatpak ())
         {
           int status = 0;
 

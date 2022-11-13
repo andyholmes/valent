@@ -69,6 +69,7 @@ pkgconfig.generate(
      requires_private: [
        'gio-unix-2.0',
        'gnutls',
+       'libportal',
      ],
 )
 

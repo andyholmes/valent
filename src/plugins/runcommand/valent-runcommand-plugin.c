@@ -7,6 +7,7 @@
 
 #include <glib/gi18n.h>
 #include <json-glib/json-glib.h>
+#include <libportal/portal.h>
 #include <libvalent-core.h>
 #include <libvalent-device.h>
 
@@ -125,12 +126,35 @@ launcher_execute (ValentRuncommandPlugin  *self,
   settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
   isolate = g_settings_get_boolean (settings, "isolate-subprocesses");
 
-  if (valent_in_flatpak () && isolate)
-    command_line = g_strdup_printf ("flatpak-spawn "SPAWN_FMT, command);
-  else if (valent_in_flatpak ())
-    command_line = g_strdup_printf ("flatpak-spawn --host "SPAWN_FMT, command);
+  /* When running in a Flatpak sandbox that allows spawning subprocesses on the
+   * host, use `--sandbox` to make it slightly more difficult for a bad actor to
+   * abuse. Use `--host` when not isolating, to allow more risky behaviour.
+   *
+   * If spawning on the host is disallowed, call `flatpak-spawn` without options
+   * when isolating and plain `sh -c` when not. */
+  if (xdp_portal_running_under_flatpak ())
+    {
+      if (valent_runcommand_can_spawn_host ())
+        {
+          if (isolate)
+            command_line = g_strdup_printf ("flatpak-spawn --sandbox "SPAWN_FMT,
+                                            command);
+          else
+            command_line = g_strdup_printf ("flatpak-spawn --host "SPAWN_FMT,
+                                            command);
+        }
+      else
+        {
+          if (isolate)
+            command_line = g_strdup_printf ("flatpak-spawn "SPAWN_FMT, command);
+          else
+            command_line = g_strdup_printf (SPAWN_FMT, command);
+        }
+    }
   else
-    command_line = g_strdup_printf (SPAWN_FMT, command);
+    {
+      command_line = g_strdup_printf (SPAWN_FMT, command);
+    }
 
   if (!g_shell_parse_argv (command_line, NULL, &argv, error))
     return FALSE;

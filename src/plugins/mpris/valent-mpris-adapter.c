@@ -5,6 +5,7 @@
 
 #include "config.h"
 
+#include <libportal/portal.h>
 #include <libvalent-core.h>
 #include <libvalent-media.h>
 
@@ -334,7 +335,9 @@ valent_mpris_adapter_export (ValentMediaAdapter *adapter,
   impl = valent_mpris_impl_new (player);
   g_hash_table_replace (self->exports, player, g_object_ref (impl));
 
-  if (valent_in_flatpak ())
+  /* If running in a sandbox, assume only one D-Bus name may be owned and watch
+   * the player to see if it should be prioritized for export */
+  if (xdp_portal_running_under_sandbox ())
     {
       g_signal_connect_object (player,
                                "notify::state",
@@ -375,7 +378,9 @@ valent_mpris_adapter_unexport (ValentMediaAdapter *adapter,
   if (!g_hash_table_steal_extended (self->exports, player, NULL, (void **)&impl))
     return;
 
-  if (valent_in_flatpak ())
+  /* If running in a sandbox, stop watching the player and ensure export
+   * priority is relinquished */
+  if (xdp_portal_running_under_sandbox ())
     {
       g_signal_handlers_disconnect_by_data (impl, self);
 

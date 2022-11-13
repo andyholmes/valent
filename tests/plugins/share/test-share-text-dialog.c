@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
+#include <libportal/portal.h>
 #include <libvalent-test.h>
 #include <libvalent-ui.h>
 
@@ -101,7 +102,7 @@ main (int   argc,
                    test_share_text_dialog_copy);
 
   // FIXME: Settings schema 'org.gtk.gtk4.Settings.FileChooser' is not installed
-  if (!valent_in_flatpak ())
+  if (!xdp_portal_running_under_flatpak ())
     {
       g_test_add_func ("/plugins/share/text-dialog-save",
                        test_share_text_dialog_save);

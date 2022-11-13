@@ -1,34 +1,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-# Require libportal
-libportal_version = ['>= 0.5', '<= 0.6']
-libportal_dep = dependency('libportal-gtk4',
-   version: libportal_version,
-  required: false,
-)
-
-if libportal_dep.found()
+# Check the GTK4 backend for libportal
+if dependency('libportal-gtk4', required: false).found()
   plugins_c_args += [ '-DHAVE_LIBPORTAL_GTK4' ]
-else
-  libportal_dep = dependency('libportal',
-     version: libportal_version,
-    required: false,
-  )
-
-  if not libportal_dep.found()
-    libportal = subproject('libportal',
-      default_options: [
-        'backends=gtk4',
-        'docs=false',
-        'introspection=false',
-        'vapi=false',
-        'werror=false',
-      ],
-    )
-    libportal_dep = libportal.get_variable('libportal_dep')
-    plugins_c_args += [ '-DHAVE_LIBPORTAL_GTK4' ]
-  endif
 endif
 
 # Dependencies
