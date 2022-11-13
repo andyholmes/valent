@@ -133,8 +133,8 @@ jobs:
 
       - name: Analyze
         env:
-          CX_SUITE: ${{ matrix.suite.name }}
-          CX_SETUP_ARGS: ${{ matrix.suite.setup_args }}
+          CX_SUITE: ${{ matrix.suite }}
+          CX_SETUP_ARGS: ${{ matrix.setup_args }}
           CX_CPPCHECK_LIBRARY: ${{ github.workspace }}/tests/extra/cppcheck.cfg
           CX_CPPCHECK_SUPPRESSIONS: ${{ github.workspace }}/tests/extra/cppcheck.supp
           CX_CPPCHECK_ARGS: -I${{ github.workspace}}/tests/fixtures
