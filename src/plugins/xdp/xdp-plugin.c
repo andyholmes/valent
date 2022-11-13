@@ -6,10 +6,12 @@
 #include <gtk/gtk.h>
 #include <libpeas/peas.h>
 #include <libvalent-input.h>
+#include <libvalent-session.h>
 #include <libvalent-ui.h>
 
 #include "valent-xdp-background.h"
 #include "valent-xdp-input.h"
+#include "valent-xdp-session.h"
 
 
 G_MODULE_EXPORT void
@@ -23,13 +25,18 @@ valent_xdp_plugin_register_types (PeasObjectModule *module)
                                                   VALENT_TYPE_XDP_INPUT);
     }
 
-  /* This extension only makes sense in a sandboxed environment, where the
-   * XDG autostart entry isn't installed in the standard location. */
+  /* These extensions only makes sense in a sandboxed environment, where the
+   * XDG autostart entry isn't installed in the standard location and logind is
+   * not available. */
   if (!valent_in_flatpak ())
     {
       peas_object_module_register_extension_type (module,
                                                   VALENT_TYPE_APPLICATION_PLUGIN,
                                                   VALENT_TYPE_XDP_BACKGROUND);
+
+      peas_object_module_register_extension_type (module,
+                                                  VALENT_TYPE_SESSION_ADAPTER,
+                                                  VALENT_TYPE_XDP_SESSION);
     }
 }
 
