@@ -12,4 +12,5 @@ Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
 X-InputAdapterPriority=100
+X-SessionAdapterPriority=200
 
