@@ -6,6 +6,7 @@
 #include "config.h"
 
 #include <glib/gi18n.h>
+#include <libportal/portal.h>
 #include <libvalent-core.h>
 #include <libvalent-ui.h>
 
@@ -414,7 +415,7 @@ valent_runcommand_preferences_constructed (GObject *object)
       gtk_widget_set_sensitive (GTK_WIDGET (self->isolate_subprocesses), FALSE);
       gtk_switch_set_active (self->isolate_subprocesses, TRUE);
     }
-  else if (!valent_in_flatpak ())
+  else if (!xdp_portal_running_under_flatpak ())
     {
       gtk_widget_set_sensitive (GTK_WIDGET (self->isolate_subprocesses), FALSE);
       gtk_switch_set_active (self->isolate_subprocesses, FALSE);

@@ -203,6 +203,7 @@ libpeas_version = '>= 1.22.0'
 eds_version = '>= 3.34'
 sqlite_version = '>= 3.24.0'
 libadwaita_version = '>= 1.2.0'
+libportal_version = ['>= 0.5', '<= 0.6']
 
 libm_dep = cc.find_library('m', required: true)
 gio_dep = dependency('gio-2.0', version: gio_version)
@@ -211,6 +212,25 @@ gnutls_dep = dependency('gnutls', version: gnutls_version)
 jsonglib_dep = dependency('json-glib-1.0', version: json_glib_version)
 libpeas_dep = dependency('libpeas-1.0', version: libpeas_version)
 sqlite_dep = dependency('sqlite3', version: sqlite_version)
+
+libportal_dep = dependency('libportal-gtk4',
+   version: libportal_version,
+  required: false,
+)
+
+if not libportal_dep.found()
+  libportal_dep = dependency('libportal',
+            version: libportal_version,
+           fallback: ['libportal', 'libportal_dep'],
+    default_options: [
+      'backends=gtk4',
+      'docs=false',
+      'introspection=false',
+      'vapi=false',
+      'werror=false',
+    ],
+  )
+endif
 
 # libvalent-contacts
 libebook_dep = dependency('libebook-1.2', version: eds_version)

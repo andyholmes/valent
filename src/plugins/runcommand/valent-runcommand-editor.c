@@ -7,6 +7,7 @@
 
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
+#include <libportal/portal.h>
 #include <libvalent-core.h>
 
 #include "valent-runcommand-editor.h"
@@ -128,7 +129,9 @@ valent_runcommand_editor_init (ValentRuncommandEditor *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
 
-  if (!valent_in_flatpak ())
+  /* Disable the file chooser if in a sandbox, since it may return a path to an
+   * executable that can't actually be executed. */
+  if (!xdp_portal_running_under_sandbox ())
     {
       gtk_entry_set_icon_from_icon_name (self->command_entry,
                                          GTK_ENTRY_ICON_SECONDARY,

@@ -7,6 +7,7 @@
 
 #include <gtk/gtk.h>
 #include <libpeas/peas.h>
+#include <libportal/portal.h>
 #include <libvalent-core.h>
 #include <libvalent-device.h>
 #include <libvalent-notifications.h>
@@ -247,8 +248,9 @@ download_icon_task (GTask        *task,
         }
     }
 
-  /* If we're in a flatpak we send the file as a GBytesIcon */
-  if (valent_in_flatpak ())
+  /* If we're in a sandbox, send the file as a GBytesIcon in case the file path
+   * is not valid for the host system. */
+  if (xdp_portal_running_under_sandbox ())
     {
       g_autoptr (GBytes) bytes = NULL;
 

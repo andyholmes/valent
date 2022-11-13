@@ -5,6 +5,7 @@
 
 #include <gtk/gtk.h>
 #include <libpeas/peas.h>
+#include <libportal/portal.h>
 #include <libvalent-input.h>
 #include <libvalent-session.h>
 #include <libvalent-ui.h>
@@ -28,7 +29,7 @@ valent_xdp_plugin_register_types (PeasObjectModule *module)
   /* These extensions only makes sense in a sandboxed environment, where the
    * XDG autostart entry isn't installed in the standard location and logind is
    * not available. */
-  if (!valent_in_flatpak ())
+  if (xdp_portal_running_under_sandbox ())
     {
       peas_object_module_register_extension_type (module,
                                                   VALENT_TYPE_APPLICATION_PLUGIN,
