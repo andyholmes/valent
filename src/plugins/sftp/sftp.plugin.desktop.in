@@ -14,5 +14,4 @@ Hidden=false
 X-DevicePluginIncoming=kdeconnect.sftp;kdeconnect.sftp.request
 X-DevicePluginOutgoing=kdeconnect.sftp;kdeconnect.sftp.request
 X-DevicePluginSettings=ca.andyholmes.Valent.Plugin.sftp
-X-ChannelProtocol=tcp
 

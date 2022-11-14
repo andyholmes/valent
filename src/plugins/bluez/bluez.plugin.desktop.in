@@ -11,4 +11,3 @@ Embedded=valent_bluez_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
-X-ChannelProtocol=bluetooth
