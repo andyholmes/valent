@@ -29,15 +29,7 @@
  *
  * ## `.plugin` File
  *
- * Implementations may define the following extra fields in the `.plugin` file:
- *
- * - `X-ChannelProtocol`
- *
- *     A string indicating the transport protocol. This is used to filter device
- *     plugins when constructing the identity packet (eg. SFTP).
- *
- *     Currently recognized values are `tcp` and `bluetooth`. If the plugin is
- *     missing this key, it will be assumed supported.
+ * Channel services have no special fields in the `.plugin` file.
  *
  * Since: 1.0
  */
@@ -51,9 +43,6 @@ typedef struct
   JsonNode       *identity;
   char           *name;
 } ValentChannelServicePrivate;
-
-static gboolean   valent_channel_service_supports_plugin (ValentChannelService *service,
-                                                          PeasPluginInfo       *info);
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentChannelService, valent_channel_service, VALENT_TYPE_OBJECT);
 
@@ -273,10 +262,7 @@ valent_channel_service_real_build_identity (ValentChannelService *service)
   outgoing = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
 
   for (const GList *iter = plugins; iter; iter = iter->next)
-    {
-      if (valent_channel_service_supports_plugin (service, iter->data))
-        collect_capabilities (iter->data, incoming, outgoing);
-    }
+    collect_capabilities (iter->data, incoming, outgoing);
 
   /* Build the identity packet */
   builder = json_builder_new ();
@@ -773,46 +759,5 @@ valent_channel_service_channel (ValentChannelService *service,
   g_rec_mutex_unlock (&channel_lock);
 
   g_timeout_add (0, valent_channel_service_channel_main, emission);
-}
-
-/*< private >
- * valent_channel_service_supports_plugin:
- * @service: a #ValentChannelService
- * @info: a #PeasPluginInfo
- *
- * Check if @service supports @info.
- *
- * This is a convenience for comparing the `X-ChannelProtocol` field between
- * @info and [property@Valent.ChannelService:plugin-info].
- *
- * Returns %TRUE if either @info or [property@Valent.ChannelService:plugin-info]
- * are missing the `X-ChannelProtocol` field or if the fields match. Returns
- * %FALSE if @info specifies a different protocol.
- *
- * Returns: %TRUE if supported, or %FALSE if not
- */
-static gboolean
-valent_channel_service_supports_plugin (ValentChannelService *service,
-                                        PeasPluginInfo       *info)
-{
-  ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (service);
-  const char *requires;
-  const char *provides;
-
-  g_return_val_if_fail (VALENT_IS_CHANNEL_SERVICE (service), FALSE);
-
-  requires = peas_plugin_info_get_external_data (info,
-                                                 "X-ChannelProtocol");
-
-  if (requires == NULL)
-    return TRUE;
-
-  provides = peas_plugin_info_get_external_data (priv->plugin_info,
-                                                 "X-ChannelProtocol");
-
-  if (provides == NULL)
-    return TRUE;
-
-  return g_strcmp0 (requires, provides) == 0;
 }
 

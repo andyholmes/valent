@@ -80,11 +80,6 @@
  *     A [class@Gio.Settings] schema ID for the plugin's settings. See
  *     [func@Valent.DevicePlugin.create_settings] for more information.
  *
- * - `X-ChannelProtocol`
- *
- *     A string indicating the transport protocol the plugin requires. Current
- *     possible values include `tcp` and `bluetooth`.
- *
  * Since: 1.0
  */
 
