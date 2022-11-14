@@ -1,4 +1,4 @@
-name: CI
+name: Continuous Integration
 
 on:
   pull_request:
@@ -266,9 +266,4 @@ jobs:
             build-aux/flatpak/ca.andyholmes.Valent.Devel.json
           gpg-sign: ${{ steps.gpg.outputs.fingerprint }}
           run-tests: true
-          test-config-opts: |
-            --buildtype=debugoptimized
-            -Dtests=true
-          test-modules: |
-            ca.andyholmes.Valent.Tests.json
           upload-bundles: true
