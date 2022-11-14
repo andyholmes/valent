@@ -197,6 +197,7 @@
                 }
             ]
         },
+        "ca.andyholmes.Valent.Tests.json",
         {
             "name" : "valent",
             "buildsystem" : "meson",
@@ -205,6 +206,7 @@
                 "--prefix=/app",
                 "--buildtype=debugoptimized",
                 "-Dprofile=devel",
+                "-Dtests=true",
                 "-Dtracing=true"
             ],
             "post-install" : [

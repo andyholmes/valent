@@ -1,4 +1,4 @@
-name: CD
+name: Continuous Deployment
 
 on:
   push:
@@ -87,17 +87,18 @@ jobs:
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
       - name: Build
+        id: build
         uses: andyholmes/flatter@main
         with:
           files: |
             build-aux/flatpak/ca.andyholmes.Valent.json
-          upload-bundles: true
           arch: ${{ matrix.arch }}
           gpg-sign: ${{ steps.gpg.outputs.fingerprint }}
+          upload-bundles: true
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@releases/v4
         with:
-          folder: repo
+          folder: ${{ steps.build.outputs.repository }}
           target-folder: repo
           single-commit: true

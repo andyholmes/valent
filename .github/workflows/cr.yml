@@ -1,4 +1,4 @@
-name: CR
+name: Container Registry
 
 on:
   push:
