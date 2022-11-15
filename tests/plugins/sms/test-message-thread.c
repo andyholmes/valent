@@ -11,19 +11,6 @@
 
 
 static void
-remove_message_cb (ValentSmsStore *store,
-                   GAsyncResult   *result,
-                   GMainLoop      *loop)
-{
-  g_autoptr (GError) error = NULL;
-
-  valent_sms_store_remove_thread_finish (store, result, &error);
-  g_assert_no_error (error);
-
-  g_main_loop_quit (loop);
-}
-
-static void
 on_thread_items_changed (GListModel   *model,
                          unsigned int  position,
                          unsigned int  removed,

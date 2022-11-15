@@ -33,14 +33,10 @@ valent_api_name = 'valent-@0@'.format(valent_api_version)
 #
 # Build Profile
 #
-profile = get_option('profile')
-
-if profile == 'devel'
+if get_option('profile') == 'devel'
   application_id = 'ca.andyholmes.Valent.Devel'
-  application_path = '/ca/andyholmes/Valent/Devel'
 else
   application_id = 'ca.andyholmes.Valent'
-  application_path = '/ca/andyholmes/Valent'
 endif
 
 
@@ -144,24 +140,14 @@ config_h_inc = include_directories('.')
 config_h_defines = {
   # Desktop
   'APPLICATION_ID':     application_id,
-  'APPLICATION_PATH':   application_path,
 
   # AC_INIT
   'PACKAGE_NAME':       meson.project_name(),
   'PACKAGE_TARNAME':    '@0@-@1@'.format(meson.project_name(), meson.project_version()),
   'PACKAGE_VERSION':    meson.project_version(),
   'PACKAGE_STRING':     '@0@ @1@'.format(meson.project_name(), meson.project_version()),
-  'PACKAGE_BUGREPORT':  'https://github.com/andyholmes/@0@/issues'.format(meson.project_name()),
+  'PACKAGE_BUGREPORT':  'https://github.com/andyholmes/@0@/discussions'.format(meson.project_name()),
   'PACKAGE_URL':        'https://github.com/andyholmes/@0@'.format(meson.project_name()),
-
-  # Paths
-  'PACKAGE_DATADIR':    pkgdatadir,
-  'PACKAGE_LIBDIR':     pkglibdir,
-  'PACKAGE_LIBEXECDIR': pkglibexecdir,
-  'PACKAGE_INCLUDEDIR': pkgincludedir,
-  'PACKAGE_PLUGINSDIR': pkgpluginsdir,
-
-  'PROFILE_NAME':       profile,
 
   # i18n
   'GETTEXT_PACKAGE':    meson.project_name(),
@@ -209,7 +195,7 @@ libm_dep = cc.find_library('m', required: true)
 gio_dep = dependency('gio-2.0', version: gio_version)
 gio_unix_dep = dependency('gio-unix-2.0', version: gio_version)
 gnutls_dep = dependency('gnutls', version: gnutls_version)
-jsonglib_dep = dependency('json-glib-1.0', version: json_glib_version)
+json_glib_dep = dependency('json-glib-1.0', version: json_glib_version)
 libpeas_dep = dependency('libpeas-1.0', version: libpeas_version)
 sqlite_dep = dependency('sqlite3', version: sqlite_version)
 

@@ -145,7 +145,7 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v3
         with:
-          name: Static Analysis (${{ matrix.suite.name }})
+          name: Static Analysis (${{ matrix.suite }})
           path: _build/meson-logs
 
   test:

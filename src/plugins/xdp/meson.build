@@ -1,11 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-# Check the GTK4 backend for libportal
-if dependency('libportal-gtk4', required: false).found()
-  plugins_c_args += [ '-DHAVE_LIBPORTAL_GTK4' ]
-endif
-
 # Dependencies
 plugin_xdp_deps = [
   libvalent_dep,
@@ -13,6 +8,10 @@ plugin_xdp_deps = [
   gtk_dep,
   libportal_dep,
 ]
+
+if dependency('libportal-gtk4', required: false).found()
+  plugins_c_args += [ '-DHAVE_LIBPORTAL_GTK4' ]
+endif
 
 # Sources
 plugin_xdp_sources = files([

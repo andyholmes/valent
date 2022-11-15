@@ -193,17 +193,17 @@ about_action (GtkWidget  *widget,
 
   if (version == NULL)
     {
-      if (g_strcmp0 (PROFILE_NAME, "devel") == 0)
+      if (g_str_has_suffix (APPLICATION_ID, "Devel"))
         version = PACKAGE_VERSION"+"VALENT_VCS_TAG;
       else
         version = PACKAGE_VERSION;
     }
 
   dialog = g_object_new (ADW_TYPE_ABOUT_WINDOW,
-                         "application-icon",  APPLICATION_ID,
+                         "application-icon",   APPLICATION_ID,
                          "application-name",   _("Valent"),
                          "copyright",          "© 2022 Andy Holmes",
-                         /* TODO: "issue-url",          PACKAGE_BUGREPORT, */
+                         "issue-url",          PACKAGE_BUGREPORT,
                          "license-type",       GTK_LICENSE_GPL_3_0,
                          "developers",         valent_application_credits_developers,
                          "documenters",        valent_application_credits_documenters,
@@ -432,13 +432,5 @@ static void
 valent_window_init (ValentWindow *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
-
-  if (g_strcmp0 (PROFILE_NAME, "devel") == 0)
-    {
-      GtkStyleContext *style;
-
-      style = gtk_widget_get_style_context (GTK_WIDGET (self));
-      gtk_style_context_add_class (style, "devel");
-    }
 }
 
