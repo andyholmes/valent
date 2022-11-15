@@ -95,11 +95,11 @@ xdp_portal_session_monitor_start_cb (GObject      *object,
 }
 
 static void
-valent_xdp_notifications_init_async (GAsyncInitable             *initable,
-                                     int                         io_priority,
-                                     GCancellable               *cancellable,
-                                     GAsyncReadyCallback         callback,
-                                     gpointer                    user_data)
+valent_xdp_session_init_async (GAsyncInitable      *initable,
+                               int                  io_priority,
+                               GCancellable        *cancellable,
+                               GAsyncReadyCallback  callback,
+                               gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
   g_autoptr (GCancellable) destroy = NULL;
@@ -113,7 +113,7 @@ valent_xdp_notifications_init_async (GAsyncInitable             *initable,
 
   task = g_task_new (initable, destroy, callback, user_data);
   g_task_set_priority (task, io_priority);
-  g_task_set_source_tag (task, valent_xdp_notifications_init_async);
+  g_task_set_source_tag (task, valent_xdp_session_init_async);
 
   parent = valent_xdp_get_parent (NULL);
   xdp_portal_session_monitor_start (valent_xdp_get_default (),
@@ -127,7 +127,7 @@ valent_xdp_notifications_init_async (GAsyncInitable             *initable,
 static void
 g_async_initable_iface_init (GAsyncInitableIface *iface)
 {
-  iface->init_async = valent_xdp_notifications_init_async;
+  iface->init_async = valent_xdp_session_init_async;
 }
 
 /*

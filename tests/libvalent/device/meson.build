@@ -19,7 +19,6 @@ foreach test : libvalent_device_tests
   test_program = executable(test, '@0@.c'.format(test),
                  c_args: test_c_args,
            dependencies: libvalent_device_test_deps,
-    include_directories: libvalent_include_directories,
               link_args: test_link_args,
              link_whole: libvalent_test,
   )

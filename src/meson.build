@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-valent_c_args = []
+valent_c_args = ['-DVALENT_PLUGINSDIR="@0@"'.format(pkgpluginsdir)]
 valent_link_args = []
 
 
@@ -17,7 +17,6 @@ valent = executable('valent', 'main.c',
             link_args: valent_link_args,
            link_whole: plugins_static,
          dependencies: libvalent_dep,
-  include_directories: [include_directories('.')],
                   pie: true,
 )
 

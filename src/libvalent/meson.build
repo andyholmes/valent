@@ -3,6 +3,7 @@
 
 # The subdirs update these before libvalent is compiled
 libvalent_c_args = []
+libvalent_link_args = []
 libvalent_gir_extra_args = ['--pkg-export=@0@'.format(valent_api_name)]
 
 libvalent_header_subdir = join_paths(valent_api_name, 'libvalent')
@@ -21,12 +22,12 @@ libvalent_deps = []
 subdir('core')
 subdir('clipboard')
 subdir('contacts')
-subdir('device')
 subdir('input')
 subdir('media')
 subdir('mixer')
 subdir('notifications')
 subdir('session')
+subdir('device')
 subdir('ui')
 
 
@@ -37,9 +38,9 @@ libvalent = shared_library('valent',
               version: valent_api_version,
             soversion: '0',
                c_args: libvalent_c_args + release_args,
-         dependencies: libvalent_deps,
+            link_args: libvalent_link_args,
            link_whole: libvalent_static,
-  include_directories: libvalent_include_directories,
+         dependencies: libvalent_deps,
               install: true,
           install_dir: libdir,
 )
@@ -76,13 +77,12 @@ pkgconfig.generate(
 # GObject Introspection
 if get_option('introspection')
   libvalent_gir_includes = [
-    'GObject-2.0',
     'Gio-2.0',
-    'Gdk-4.0',
     'Gtk-4.0',
     'Json-1.0',
-    'Peas-1.0',
+    'Adw-1',
     'EBook-1.2',
+    'Peas-1.0',
   ]
 
   libvalent_gir_sources = [

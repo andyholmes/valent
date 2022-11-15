@@ -22,7 +22,7 @@ valent_plugin_init (void)
   peas_engine_prepend_search_path (engine, xdg_plugin_dir, NULL);
 
   /* The package plugin directory, typically `$LIBDIR/valent/plugins`. */
-  peas_engine_prepend_search_path (engine, PACKAGE_PLUGINSDIR, NULL);
+  peas_engine_prepend_search_path (engine, VALENT_PLUGINSDIR, NULL);
 
   if (xdp_portal_running_under_flatpak ())
     {

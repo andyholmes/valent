@@ -22,7 +22,7 @@ option('firewalld',
 )
 
 
-# Debugging
+# Development
 option('profile',
   description: 'Build profile (default, devel)',
          type: 'combo',
@@ -30,14 +30,6 @@ option('profile',
       choices: ['default', 'devel'],
 )
 
-option('tracing',
-  description: 'Enable trace logging',
-         type: 'boolean',
-        value: false,
-)
-
-
-# Tests
 option('tests',
   description: 'Build tests',
          type: 'boolean',
@@ -48,6 +40,12 @@ option('fuzz_tests',
   description: 'Enable fuzzing tests',
          type: 'boolean',
         value: true,
+)
+
+option('tracing',
+  description: 'Enable trace logging',
+         type: 'boolean',
+        value: false,
 )
 
 

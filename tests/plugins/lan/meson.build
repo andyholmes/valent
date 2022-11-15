@@ -13,11 +13,11 @@ plugin_lan_tests = [
 
 foreach test : plugin_lan_tests
   test_program = executable(test, '@0@.c'.format(test),
-               c_args: test_c_args,
-         dependencies: plugin_lan_test_deps,
-  include_directories: plugin_lan_include_directories,
-            link_args: test_link_args,
-           link_whole: [libvalent_test, plugin_lan],
+                 c_args: test_c_args,
+           dependencies: plugin_lan_test_deps,
+    include_directories: plugin_lan_include_directories,
+              link_args: test_link_args,
+             link_whole: [libvalent_test, plugin_lan],
   )
 
   test(test, test_program,
