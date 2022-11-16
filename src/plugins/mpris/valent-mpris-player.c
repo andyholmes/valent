@@ -20,9 +20,10 @@ struct _ValentMPRISPlayer
   GDBusProxy         *application;
   GDBusProxy         *player;
   unsigned int        no_position : 1;
-  gint64              position;
+  unsigned int        timer_id;
 
   ValentMediaActions  flags;
+  gint64              position;
 };
 
 static void valent_mpris_player_sync_flags (ValentMPRISPlayer *self);
@@ -39,6 +40,34 @@ enum {
 };
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+
+
+static gboolean
+valent_mpris_player_tick (gpointer data)
+{
+  ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (data);
+
+  g_assert (VALENT_IS_MPRIS_PLAYER (self));
+
+  self->position += 1000;
+
+  return G_SOURCE_CONTINUE;
+}
+
+static inline void
+valent_mpris_player_timer (ValentMPRISPlayer *self)
+{
+  ValentMediaState state;
+
+  g_assert (VALENT_IS_MPRIS_PLAYER (self));
+
+  state = valent_media_player_get_state (VALENT_MEDIA_PLAYER (self));
+
+  if (self->timer_id == 0 && state == VALENT_MEDIA_STATE_PLAYING)
+    self->timer_id = g_timeout_add_seconds (1, valent_mpris_player_tick, self);
+  else if (state != VALENT_MEDIA_STATE_PLAYING)
+    g_clear_handle_id (&self->timer_id, g_source_remove);
+}
 
 
 /*
@@ -95,6 +124,8 @@ on_player_properties_changed (GDBusProxy        *proxy,
 {
   GVariantDict dict;
 
+  VALENT_ENTRY;
+
   g_assert (VALENT_IS_MPRIS_PLAYER (player));
   g_assert (changed_properties != NULL);
 
@@ -103,12 +134,18 @@ on_player_properties_changed (GDBusProxy        *proxy,
 
   for (unsigned int i = 0; i < G_N_ELEMENTS (player_properties); i++)
     {
+      // MPRISv2 players shouldn't emit `PropertiesChanged` for `Position`
+      if (strcmp (player_properties[i].dbus, "Position") == 0)
+        continue;
+
       if (g_variant_dict_contains (&dict, player_properties[i].dbus))
         g_object_notify (G_OBJECT (player), player_properties[i].name);
     }
 
   g_variant_dict_clear (&dict);
   g_object_thaw_notify (G_OBJECT (player));
+
+  VALENT_EXIT;
 }
 
 static void
@@ -119,6 +156,8 @@ on_player_signal (GDBusProxy        *proxy,
                   ValentMediaPlayer *player)
 {
   ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
+
+  VALENT_ENTRY;
 
   g_assert (VALENT_IS_MPRIS_PLAYER (player));
   g_assert (signal_name != NULL);
@@ -132,6 +171,8 @@ on_player_signal (GDBusProxy        *proxy,
       self->position = position_us / 1000L;
       g_object_notify (G_OBJECT (player), "position");
     }
+
+  VALENT_EXIT;
 }
 
 static void
@@ -635,6 +676,16 @@ async_initable_iface_init (GAsyncInitableIface *iface)
  * GObject
  */
 static void
+valent_mpris_player_dispose (GObject *object)
+{
+  ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (object);
+
+  g_clear_handle_id (&self->timer_id, g_source_remove);
+
+  G_OBJECT_CLASS (valent_mpris_player_parent_class)->dispose (object);
+}
+
+static void
 valent_mpris_player_finalize (GObject *object)
 {
   ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (object);
@@ -691,11 +742,18 @@ valent_mpris_player_notify (GObject    *object,
   ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (object);
   const char *name = g_param_spec_get_name (pspec);
 
+  VALENT_ENTRY;
+
   if (g_str_equal (name, "flags"))
     valent_mpris_player_sync_flags (self);
 
+  if (g_str_equal (name, "state"))
+    valent_mpris_player_timer (self);
+
   if (G_OBJECT_CLASS (valent_mpris_player_parent_class)->notify)
     G_OBJECT_CLASS (valent_mpris_player_parent_class)->notify (object, pspec);
+
+  VALENT_EXIT;
 }
 
 static void
@@ -704,6 +762,7 @@ valent_mpris_player_class_init (ValentMPRISPlayerClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentMediaPlayerClass *player_class = VALENT_MEDIA_PLAYER_CLASS (klass);
 
+  object_class->dispose = valent_mpris_player_dispose;
   object_class->finalize = valent_mpris_player_finalize;
   object_class->get_property = valent_mpris_player_get_property;
   object_class->set_property = valent_mpris_player_set_property;
