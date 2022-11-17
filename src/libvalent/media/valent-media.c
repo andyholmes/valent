@@ -413,7 +413,7 @@ valent_media_pause (ValentMedia *media)
     {
       player = g_ptr_array_index (media->players, i);
 
-      if (valent_media_player_is_playing (player))
+      if (valent_media_player_get_state (player) == VALENT_MEDIA_STATE_PLAYING)
         {
           valent_media_player_pause (player);
           g_ptr_array_add (media->paused, player);
@@ -444,7 +444,7 @@ valent_media_unpause (ValentMedia *media)
     {
       player = g_ptr_array_index (media->players, i);
 
-      if (!valent_media_player_is_playing (player))
+      if (valent_media_player_get_state (player) == VALENT_MEDIA_STATE_PAUSED)
         valent_media_player_play (player);
     }
 

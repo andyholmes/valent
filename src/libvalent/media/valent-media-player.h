@@ -117,8 +117,6 @@ struct _ValentMediaPlayerClass
 };
 
 VALENT_AVAILABLE_IN_1_0
-gboolean             valent_media_player_is_playing   (ValentMediaPlayer *player);
-VALENT_AVAILABLE_IN_1_0
 ValentMediaActions   valent_media_player_get_flags    (ValentMediaPlayer *player);
 VALENT_AVAILABLE_IN_1_0
 GVariant           * valent_media_player_get_metadata (ValentMediaPlayer *player);
