@@ -302,8 +302,8 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
    *
    * The available actions.
    *
-   * Implementations should emit [GObject.Object::notify] when they change the
-   * internal representation of this property.
+   * Implementations should emit [signal@GObject.Object::notify] when they
+   * change the internal representation of this property.
    *
    * Since: 1.0
    */
@@ -323,8 +323,8 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
    * The content of the vardict should be in the same format as the MPRISv2
    * standard.
    *
-   * Implementations should emit [GObject.Object::notify] when they change the
-   * internal representation of this property.
+   * Implementations should emit [signal@GObject.Object::notify] when they
+   * change the internal representation of this property.
    *
    * Since: 1.0
    */
@@ -340,6 +340,10 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
    * ValentMediaPlayer:name: (getter get_name)
    *
    * The display name of the media player.
+   *
+   * Typically, this property should remain constant through the lifetime of the
+   * media player. Implementations should emit [signal@GObject.Object::notify]
+   * the internal representation of this property changes, regardless.
    *
    * Since: 1.0
    */
@@ -379,6 +383,9 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
    * [property@Valent.MediaPlayer:flags], setting this property should have no
    * effect.
    *
+   * Implementations should emit [signal@GObject.Object::notify] when they
+   * change the internal representation of this property.
+   *
    * Since: 1.0
    */
   properties [PROP_REPEAT] =
@@ -397,6 +404,9 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
    * If the player does not have the appropriate bitmask in
    * [property@Valent.MediaPlayer:flags], setting this property should have no
    * effect.
+   *
+   * Implementations should emit [signal@GObject.Object::notify] when they
+   * change the internal representation of this property.
    *
    * Since: 1.0
    */
@@ -417,6 +427,9 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
    * playlist, while %TRUE means playback is progressing through a playlist in
    * some other order.
    *
+   * Implementations should emit [signal@GObject.Object::notify] when they
+   * change the internal representation of this property.
+   *
    * Since: 1.0
    */
   properties [PROP_SHUFFLE] =
@@ -432,6 +445,9 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
    * The volume level.
    *
    * Attempts to change this property may be ignored by some implementations.
+   *
+   * Implementations should emit [signal@GObject.Object::notify] when they
+   * change the internal representation of this property.
    *
    * Since: 1.0
    */
