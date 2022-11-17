@@ -143,7 +143,7 @@ test_mpris_component_player (MprisComponentFixture *fixture,
   double volume;
   char *name;
   g_autoptr (GVariant) metadata = NULL;
-  gint64 position;
+  double position;
   gboolean shuffle;
 
   /* Watch for the player */
@@ -179,7 +179,7 @@ test_mpris_component_player (MprisComponentFixture *fixture,
 
   g_assert_cmpstr (name, ==, "Mock Player");
   g_assert_cmpuint (flags, ==, VALENT_MEDIA_ACTION_NONE);
-  g_assert_cmpint (position, ==, 0);
+  g_assert_cmpfloat (position, ==, 0.0);
   g_assert_cmpuint (repeat, ==, VALENT_MEDIA_REPEAT_NONE);
   g_assert_false (shuffle);
   g_assert_cmpuint (state, ==, VALENT_MEDIA_STATE_STOPPED);
@@ -234,9 +234,9 @@ test_mpris_component_player (MprisComponentFixture *fixture,
   g_assert_true (fixture->data == fixture->player);
   fixture->data = NULL;
 
-  valent_media_player_set_position (fixture->player, 5);
+  valent_media_player_set_position (fixture->player, 5.0);
   g_main_loop_run (fixture->loop);
-  /* g_assert_cmpint (valent_media_player_get_position (fixture->player), ==, 5); */
+  /* g_assert_cmpfloat (valent_media_player_get_position (fixture->player), ==, 5.0); */
   /* fixture->data = NULL; */
 
   g_signal_handlers_disconnect_by_data (fixture->player, fixture);

@@ -82,15 +82,15 @@ valent_media_player_real_get_name (ValentMediaPlayer *player)
   return "Media Player";
 }
 
-static gint64
+static double
 valent_media_player_real_get_position (ValentMediaPlayer *player)
 {
-  return 0;
+  return 0.0;
 }
 
 static void
 valent_media_player_real_set_position (ValentMediaPlayer *player,
-                                       gint64             position)
+                                       double             position)
 {
 }
 
@@ -174,7 +174,7 @@ valent_media_player_real_previous (ValentMediaPlayer *player)
 
 static void
 valent_media_player_real_seek (ValentMediaPlayer *player,
-                               gint64             offset)
+                               double             offset)
 {
   g_debug ("%s(): operation not supported", G_STRFUNC);
 }
@@ -213,7 +213,7 @@ valent_media_player_get_property (GObject    *object,
       break;
 
     case PROP_POSITION:
-      g_value_set_int64 (value, valent_media_player_get_position (self));
+      g_value_set_double (value, valent_media_player_get_position (self));
       break;
 
     case PROP_REPEAT:
@@ -248,7 +248,7 @@ valent_media_player_set_property (GObject      *object,
   switch (prop_id)
     {
     case PROP_POSITION:
-      valent_media_player_set_position (self, g_value_get_int64 (value));
+      valent_media_player_set_position (self, g_value_get_double (value));
       break;
 
     case PROP_REPEAT:
@@ -357,7 +357,7 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
   /**
    * ValentMediaPlayer:position: (getter get_position) (setter set_position)
    *
-   * The current track position in microseconds (us).
+   * The current track position in seconds.
    *
    * Acceptable values are between `0` and the `mpris:length` metadata entry
    * (see [property@Valent.MediaPlayer:metadata]). If the player does not have
@@ -367,12 +367,12 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
    * Since: 1.0
    */
   properties [PROP_POSITION] =
-    g_param_spec_int64 ("position", NULL, NULL,
-                        G_MININT64, G_MAXINT64,
-                        0,
-                        (G_PARAM_READWRITE |
-                         G_PARAM_EXPLICIT_NOTIFY |
-                         G_PARAM_STATIC_STRINGS));
+    g_param_spec_double ("position", NULL, NULL,
+                         0.0, G_MAXDOUBLE,
+                         0.0,
+                         (G_PARAM_READWRITE |
+                          G_PARAM_EXPLICIT_NOTIFY |
+                          G_PARAM_STATIC_STRINGS));
 
   /**
    * ValentMediaPlayer:repeat: (getter get_repeat) (setter set_repeat)
@@ -546,16 +546,16 @@ valent_media_player_get_name (ValentMediaPlayer *player)
  * valent_media_player_get_position: (virtual get_position) (get-property position)
  * @player: a #ValentMediaPlayer
  *
- * Get the current position in milliseconds.
+ * Get the current position in seconds.
  *
- * Returns: position in milliseconds
+ * Returns: position in seconds
  *
  * Since: 1.0
  */
-gint64
+double
 valent_media_player_get_position (ValentMediaPlayer *player)
 {
-  gint64 ret;
+  double ret;
 
   VALENT_ENTRY;
 
@@ -569,20 +569,20 @@ valent_media_player_get_position (ValentMediaPlayer *player)
 /**
  * valent_media_player_set_position: (virtual set_position) (set-property position)
  * @player: a #ValentMediaPlayer
- * @position: position in milliseconds
+ * @position: position in seconds
  *
- * Set the current position in milliseconds.
+ * Set the current position in seconds.
  *
  * Since: 1.0
  */
 void
 valent_media_player_set_position (ValentMediaPlayer *player,
-                                  gint64             position)
+                                  double             position)
 {
   VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
-  g_return_if_fail (position >= 0);
+  g_return_if_fail (position >= 0.0);
 
   VALENT_MEDIA_PLAYER_GET_CLASS (player)->set_position (player, position);
 
@@ -886,9 +886,9 @@ valent_media_player_previous (ValentMediaPlayer *player)
 /**
  * valent_media_player_seek: (virtual seek)
  * @player: a #ValentMediaPlayer
- * @offset: number of microseconds to seek forward
+ * @offset: number of seconds to seek forward
  *
- * Seek in the current media item by @offset microseconds.
+ * Seek in the current media item by @offset seconds.
  *
  * A negative value seeks back. If this would mean seeking back further than the
  * start of the track, the position is set to `0`. If the value passed in would
@@ -902,7 +902,7 @@ valent_media_player_previous (ValentMediaPlayer *player)
  */
 void
 valent_media_player_seek (ValentMediaPlayer *player,
-                          gint64             offset)
+                          double             offset)
 {
   VALENT_ENTRY;
 

@@ -25,7 +25,7 @@ struct _ValentMprisDevice
   ValentMediaActions  flags;
   char               *name;
   GVariant           *metadata;
-  gint64              position;
+  double              position;
   ValentMediaRepeat   repeat;
   unsigned int        shuffle : 1;
   ValentMediaState    state;
@@ -51,7 +51,7 @@ valent_mpris_device_tick (gpointer data)
 
   g_assert (VALENT_IS_MPRIS_DEVICE (self));
 
-  self->position += 1000;
+  self->position += 1;
 
   return G_SOURCE_CONTINUE;
 }
@@ -98,7 +98,7 @@ valent_mpris_device_get_name (ValentMediaPlayer *player)
   return self->name;
 }
 
-static gint64
+static double
 valent_mpris_device_get_position (ValentMediaPlayer *player)
 {
   ValentMprisDevice *self = VALENT_MPRIS_DEVICE (player);
@@ -108,17 +108,18 @@ valent_mpris_device_get_position (ValentMediaPlayer *player)
 
 static void
 valent_mpris_device_set_position (ValentMediaPlayer *player,
-                                  gint64             position)
+                                  double             position)
 {
   ValentMprisDevice *self = VALENT_MPRIS_DEVICE (player);
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
 
+  /* Convert seconds to milliseconds */
   builder = valent_packet_start ("kdeconnect.mpris.request");
   json_builder_set_member_name (builder, "player");
   json_builder_add_string_value (builder, self->name);
   json_builder_set_member_name (builder, "SetPosition");
-  json_builder_add_int_value (builder, position);
+  json_builder_add_int_value (builder, position * 1000L);
   packet = valent_packet_finish (builder);
 
   valent_device_queue_packet (self->device, packet);
@@ -300,18 +301,18 @@ valent_mpris_device_previous (ValentMediaPlayer *player)
 
 static void
 valent_mpris_device_seek (ValentMediaPlayer *player,
-                          gint64             offset)
+                          double             offset)
 {
   ValentMprisDevice *self = VALENT_MPRIS_DEVICE (player);
   JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
 
-  /* Convert milliseconds to microseconds */
+  /* Convert seconds to microseconds */
   builder = valent_packet_start ("kdeconnect.mpris.request");
   json_builder_set_member_name (builder, "player");
   json_builder_add_string_value (builder, self->name);
   json_builder_set_member_name (builder, "Seek");
-  json_builder_add_int_value (builder, offset * 1000L);
+  json_builder_add_int_value (builder, offset * G_TIME_SPAN_SECOND);
   packet = valent_packet_finish (builder);
 
   valent_device_queue_packet (self->device, packet);
@@ -414,7 +415,8 @@ valent_mpris_device_update_position (ValentMprisDevice *player,
 {
   g_assert (VALENT_IS_MPRIS_DEVICE (player));
 
-  player->position = position;
+  /* Convert milliseconds to seconds */
+  player->position = position / 1000L;
 }
 
 static void
@@ -688,6 +690,7 @@ valent_mpris_device_handle_packet (ValentMprisDevice  *player,
   if (valent_packet_get_string (packet, "album", &album))
     g_variant_dict_insert (&metadata, "xesam:album", "s", album);
 
+  /* Convert milliseconds to microseconds */
   if (valent_packet_get_int (packet, "length", &length))
     g_variant_dict_insert (&metadata, "mpris:length", "x", length * 1000L);
 

@@ -23,7 +23,7 @@ struct _ValentMPRISPlayer
   unsigned int        timer_id;
 
   ValentMediaActions  flags;
-  gint64              position;
+  double              position;
 };
 
 static void valent_mpris_player_sync_flags (ValentMPRISPlayer *self);
@@ -49,7 +49,7 @@ valent_mpris_player_tick (gpointer data)
 
   g_assert (VALENT_IS_MPRIS_PLAYER (self));
 
-  self->position += 1000;
+  self->position += 1;
 
   return G_SOURCE_CONTINUE;
 }
@@ -166,9 +166,9 @@ on_player_signal (GDBusProxy        *proxy,
     {
       gint64 position_us = 0;
 
-      /* Convert microseconds to milliseconds */
+      /* Convert microseconds to seconds */
       g_variant_get (parameters, "(x)", &position_us);
-      self->position = position_us / 1000L;
+      self->position = position_us / G_TIME_SPAN_SECOND;
       g_object_notify (G_OBJECT (player), "position");
     }
 
@@ -272,7 +272,7 @@ valent_mpris_player_get_name (ValentMediaPlayer *player)
   return g_variant_get_string (value, NULL);
 }
 
-static gint64
+static double
 valent_mpris_player_get_position (ValentMediaPlayer *player)
 {
   ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
@@ -307,28 +307,29 @@ valent_mpris_player_get_position (ValentMediaPlayer *player)
       return self->position;
     }
 
-  /* Convert microseconds to milliseconds */
+  /* Convert microseconds to seconds */
   g_variant_get (result, "(v)", &value);
-  self->position = g_variant_get_int64 (value) / 1000L;
+  self->position = g_variant_get_int64 (value) / G_TIME_SPAN_SECOND;
 
   return self->position;
 }
 
 static void
 valent_mpris_player_set_position (ValentMediaPlayer *player,
-                                  gint64             position)
+                                  double             position)
 {
   ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
+  gint64 position_us = (gint64)position * G_TIME_SPAN_SECOND;
 
   /* Avoid repeated calls for players that don't support this property,
    * particularly web browsers like Mozilla Firefox. */
   if (self->no_position)
     return;
 
-  /* Convert milliseconds to microseconds */
+  /* Convert seconds to microseconds */
   g_dbus_proxy_call (self->player,
                      "SetPosition",
-                     g_variant_new ("(ox)", "/", position * 1000L),
+                     g_variant_new ("(ox)", "/", position_us),
                      G_DBUS_CALL_FLAGS_NONE,
                      -1,
                      NULL,
@@ -533,14 +534,14 @@ valent_mpris_player_previous (ValentMediaPlayer *player)
 
 static void
 valent_mpris_player_seek (ValentMediaPlayer *player,
-                          gint64             offset)
+                          double             offset)
 {
   ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
 
-  /* Convert milliseconds to microseconds */
+  /* Convert seconds to microseconds */
   g_dbus_proxy_call (self->player,
                      "Seek",
-                     g_variant_new ("(x)", offset * 1000L),
+                     g_variant_new ("(x)", (gint64)offset * G_TIME_SPAN_SECOND),
                      G_DBUS_CALL_FLAGS_NONE,
                      -1,
                      NULL,

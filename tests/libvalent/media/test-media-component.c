@@ -70,10 +70,10 @@ on_player_changed (ValentMedia           *media,
 static void
 on_player_seeked (ValentMedia           *media,
                   ValentMediaPlayer     *player,
-                  gint64                 offset,
+                  double                 offset,
                   MediaComponentFixture *fixture)
 {
-  fixture->state = (offset == 1000);
+  fixture->state = (offset == 1.0);
 }
 
 static void
@@ -141,7 +141,7 @@ test_media_component_player (MediaComponentFixture *fixture,
   double volume;
   char *name;
   g_autoptr (GVariant) metadata = NULL;
-  gint64 position;
+  double position;
   gboolean shuffle;
 
   /* Add Player */
@@ -211,12 +211,12 @@ test_media_component_player (MediaComponentFixture *fixture,
   g_assert_true (fixture->data == fixture->player);
   fixture->data = NULL;
 
-  valent_media_player_seek (fixture->player, 1000);
+  valent_media_player_seek (fixture->player, 1.0);
   g_assert_true (fixture->data == fixture->player);
   fixture->data = NULL;
 
-  valent_media_player_set_position (fixture->player, 2000);
-  g_assert_cmpint (valent_media_player_get_position (fixture->player), ==, 2000);
+  valent_media_player_set_position (fixture->player, 2.0);
+  g_assert_cmpint (valent_media_player_get_position (fixture->player), ==, 2.0);
   fixture->data = NULL;
 
   g_signal_handlers_disconnect_by_data (fixture->player, fixture);
@@ -234,7 +234,7 @@ test_media_component_player (MediaComponentFixture *fixture,
                     "player-seeked",
                     G_CALLBACK (on_player_seeked),
                     fixture);
-  valent_media_player_set_position (fixture->player, 1000);
+  valent_media_player_set_position (fixture->player, 1.0);
   g_assert_true (fixture->state);
   fixture->state = FALSE;
 

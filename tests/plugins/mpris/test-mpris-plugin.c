@@ -502,13 +502,13 @@ test_mpris_plugin_handle_player (ValentTestFixture *fixture,
   json_node_unref (packet);
 
   /* Seek & SetPosition */
-  valent_media_player_seek (fixture->data, 1000);
+  valent_media_player_seek (fixture->data, 1.0);
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
-  v_assert_packet_cmpint (packet, "Seek", ==, 1000000);
+  v_assert_packet_cmpint (packet, "Seek", ==, G_TIME_SPAN_SECOND);
   json_node_unref (packet);
 
-  valent_media_player_set_position (fixture->data, 1000);
+  valent_media_player_set_position (fixture->data, 1.0);
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
   v_assert_packet_cmpint (packet, "SetPosition", ==, 1000);

@@ -90,9 +90,9 @@ struct _ValentMediaPlayerClass
   ValentMediaActions   (*get_flags)    (ValentMediaPlayer *player);
   GVariant           * (*get_metadata) (ValentMediaPlayer *player);
   const char         * (*get_name)     (ValentMediaPlayer *player);
-  gint64               (*get_position) (ValentMediaPlayer *player);
+  double               (*get_position) (ValentMediaPlayer *player);
   void                 (*set_position) (ValentMediaPlayer *player,
-                                        gint64             position);
+                                        double             position);
   ValentMediaRepeat    (*get_repeat)   (ValentMediaPlayer *player);
   void                 (*set_repeat)   (ValentMediaPlayer *player,
                                         ValentMediaRepeat  repeat);
@@ -109,7 +109,7 @@ struct _ValentMediaPlayerClass
   void                 (*play_pause)   (ValentMediaPlayer *player);
   void                 (*previous)     (ValentMediaPlayer *player);
   void                 (*seek)         (ValentMediaPlayer *player,
-                                        gint64             offset);
+                                        double             offset);
   void                 (*stop)         (ValentMediaPlayer *player);
 
   /*< private >*/
@@ -128,10 +128,10 @@ VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_set_repeat   (ValentMediaPlayer *player,
                                                        ValentMediaRepeat  repeat);
 VALENT_AVAILABLE_IN_1_0
-gint64               valent_media_player_get_position (ValentMediaPlayer *player);
+double               valent_media_player_get_position (ValentMediaPlayer *player);
 VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_set_position (ValentMediaPlayer *player,
-                                                       gint64             position);
+                                                       double             position);
 VALENT_AVAILABLE_IN_1_0
 gboolean             valent_media_player_get_shuffle  (ValentMediaPlayer *player);
 VALENT_AVAILABLE_IN_1_0
@@ -156,7 +156,7 @@ VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_previous     (ValentMediaPlayer *player);
 VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_seek         (ValentMediaPlayer *player,
-                                                       gint64             offset);
+                                                       double             offset);
 VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_stop         (ValentMediaPlayer *player);
 
