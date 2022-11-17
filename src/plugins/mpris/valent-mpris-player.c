@@ -67,6 +67,9 @@ valent_mpris_player_timer (ValentMPRISPlayer *self)
     self->timer_id = g_timeout_add_seconds (1, valent_mpris_player_tick, self);
   else if (state != VALENT_MEDIA_STATE_PLAYING)
     g_clear_handle_id (&self->timer_id, g_source_remove);
+
+  if (state == VALENT_MEDIA_STATE_STOPPED)
+    self->position = 0.0;
 }
 
 

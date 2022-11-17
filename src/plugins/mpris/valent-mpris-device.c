@@ -65,6 +65,9 @@ valent_mpris_device_timer (ValentMprisDevice *self)
     self->timer_id = g_timeout_add_seconds (1, valent_mpris_device_tick, self);
   else if (self->state != VALENT_MEDIA_STATE_PLAYING)
     g_clear_handle_id (&self->timer_id, g_source_remove);
+
+  if (self->state == VALENT_MEDIA_STATE_STOPPED)
+    self->position = 0.0;
 }
 
 
