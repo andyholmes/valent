@@ -17,7 +17,7 @@ struct _ValentMockMediaPlayer
 
   ValentMediaActions  flags;
   GVariant           *metadata;
-  gint64              position;
+  double              position;
   ValentMediaRepeat   repeat;
   gboolean            shuffle;
   ValentMediaState    state;
@@ -121,7 +121,7 @@ valent_mock_media_player_get_name (ValentMediaPlayer *player)
   return "Mock Player";
 }
 
-static gint64
+static double
 valent_mock_media_player_get_position (ValentMediaPlayer *player)
 {
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
@@ -131,7 +131,7 @@ valent_mock_media_player_get_position (ValentMediaPlayer *player)
 
 static void
 valent_mock_media_player_set_position (ValentMediaPlayer *player,
-                                       gint64             position)
+                                       double             position)
 {
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
 
@@ -252,7 +252,7 @@ valent_mock_media_player_previous (ValentMediaPlayer *player)
 
 static void
 valent_mock_media_player_seek (ValentMediaPlayer *player,
-                               gint64             offset)
+                               double             offset)
 {
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
 

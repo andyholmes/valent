@@ -106,7 +106,8 @@ on_player_changed (ValentMediaPlayer *player,
 
   if (g_strcmp0 (pspec->name, "position") == 0)
     {
-      gint64 position = 0;
+      double position = 0;
+
       position = valent_media_player_get_position (player);
       g_signal_emit (G_OBJECT (self), signals [PLAYER_SEEKED], 0, player, position);
     }
@@ -282,7 +283,7 @@ valent_media_class_init (ValentMediaClass *klass)
    * ValentMedia::player-seeked:
    * @media: an #ValentMedia
    * @player: an #ValentMediaPlayer
-   * @offset: the relative change in microseconds (us)
+   * @offset: the new position in seconds
    *
    * Emitted when the playback position of a [class@Valent.MediaPlayer] has been
    * changed as the result of an external action.
@@ -295,7 +296,7 @@ valent_media_class_init (ValentMediaClass *klass)
                   G_SIGNAL_RUN_LAST,
                   0,
                   NULL, NULL, NULL,
-                  G_TYPE_NONE, 2, VALENT_TYPE_MEDIA_PLAYER, G_TYPE_INT64);
+                  G_TYPE_NONE, 2, VALENT_TYPE_MEDIA_PLAYER, G_TYPE_DOUBLE);
 }
 
 static void

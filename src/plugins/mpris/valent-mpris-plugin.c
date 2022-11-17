@@ -181,7 +181,7 @@ on_player_changed (ValentMedia       *media,
 static void
 on_player_seeked (ValentMedia       *media,
                   ValentMediaPlayer *player,
-                  gint64             position,
+                  double             position,
                   ValentMprisPlugin *self)
 {
   const char *name;
@@ -192,11 +192,12 @@ on_player_seeked (ValentMedia       *media,
 
   name = valent_media_player_get_name (player);
 
+  /* Convert seconds to milliseconds */
   builder = valent_packet_start ("kdeconnect.mpris");
   json_builder_set_member_name (builder, "player");
   json_builder_add_string_value (builder, name);
   json_builder_set_member_name (builder, "pos");
-  json_builder_add_int_value (builder, position);
+  json_builder_add_int_value (builder, position * 1000L);
   packet = valent_packet_finish (builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
@@ -289,13 +290,13 @@ valent_mpris_plugin_handle_mpris_request (ValentMprisPlugin *self,
   if (valent_packet_get_string (packet, "action", &action))
     valent_mpris_plugin_handle_action (self, player, action);
 
-  /* A request to change the relative position (microseconds) */
+  /* A request to change the relative position (microseconds to seconds) */
   if (valent_packet_get_int (packet, "Seek", &offset_us))
-    valent_media_player_seek (player, offset_us / 1000L);
+    valent_media_player_seek (player, offset_us / G_TIME_SPAN_SECOND);
 
-  /* A request to change the absolute position */
+  /* A request to change the absolute position (milliseconds to seconds) */
   if (valent_packet_get_int (packet, "SetPosition", &position))
-    valent_media_player_set_position (player, position);
+    valent_media_player_set_position (player, position / 1000L);
 
   /* A request to change the loop status */
   if (valent_packet_get_string (packet, "setLoopStatus", &loop_status))
@@ -343,7 +344,7 @@ valent_mpris_plugin_send_player_info (ValentMprisPlugin *self,
       ValentMediaActions flags;
       ValentMediaRepeat repeat;
       gboolean is_playing;
-      gint64 position;
+      double position;
       gboolean shuffle;
       const char *loop_status = "None";
 
@@ -378,9 +379,10 @@ valent_mpris_plugin_send_player_info (ValentMprisPlugin *self,
       json_builder_set_member_name (builder, "isPlaying");
       json_builder_add_boolean_value (builder, is_playing);
 
+      /* Convert seconds to milliseconds */
       position = valent_media_player_get_position (player);
       json_builder_set_member_name (builder, "pos");
-      json_builder_add_int_value (builder, position);
+      json_builder_add_int_value (builder, position * 1000L);
 
       /* Track Metadata
        *
@@ -416,6 +418,7 @@ valent_mpris_plugin_send_player_info (ValentMprisPlugin *self,
               json_builder_add_string_value (builder, album);
             }
 
+          /* Convert microseconds to milliseconds */
           if (g_variant_lookup (metadata, "mpris:length", "x", &length_us))
             {
               json_builder_set_member_name (builder, "length");

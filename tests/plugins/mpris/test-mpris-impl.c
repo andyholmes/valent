@@ -283,7 +283,7 @@ test_mpris_impl_player (MPRISImplFixture *fixture,
   double volume;
   char *name;
   g_autoptr (GVariant) metadata = NULL;
-  gint64 position;
+  double position;
   gboolean shuffle;
 
   /* Create a new impl */
@@ -325,7 +325,7 @@ test_mpris_impl_player (MPRISImplFixture *fixture,
 
   g_assert_cmpstr (name, ==, "Mock Player");
   g_assert_cmpuint (flags, ==, VALENT_MEDIA_ACTION_NONE);
-  g_assert_cmpint (position, ==, 0);
+  g_assert_cmpfloat (position, ==, 0.0);
   g_assert_cmpuint (repeat, ==, VALENT_MEDIA_REPEAT_NONE);
   g_assert_false (shuffle);
   g_assert_cmpuint (state, ==, VALENT_MEDIA_STATE_STOPPED);
@@ -364,12 +364,12 @@ test_mpris_impl_player (MPRISImplFixture *fixture,
   g_assert_true (fixture->state);
   fixture->state = FALSE;
 
-  valent_media_player_seek (player, 1000);
+  valent_media_player_seek (player, 1.0);
   g_assert_true (fixture->state);
   fixture->state = FALSE;
 
-  valent_media_player_set_position (player, 2000);
-  g_assert_cmpint (valent_media_player_get_position (player), ==, 2000);
+  valent_media_player_set_position (player, 2.0);
+  g_assert_cmpfloat (valent_media_player_get_position (player), ==, 2.0);
 
   /* Remove Player */
   valent_mpris_impl_unexport (impl);

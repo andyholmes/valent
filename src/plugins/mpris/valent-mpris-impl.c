@@ -169,17 +169,17 @@ player_method_call (GDBusConnection       *connection,
     {
       gint64 offset_us;
 
-      /* Convert microseconds to milliseconds */
+      /* Convert microseconds to seconds */
       g_variant_get (parameters, "(x)", &offset_us);
-      valent_media_player_seek (self->player, offset_us / 1000L);
+      valent_media_player_seek (self->player, offset_us / G_TIME_SPAN_SECOND);
     }
   else if (strcmp (method_name, "SetPosition") == 0)
     {
       gint64 position_us;
 
-      /* Convert microseconds to milliseconds */
+      /* Convert microseconds to seconds */
       g_variant_get (parameters, "(&ox)", NULL, &position_us);
-      valent_media_player_set_position (self->player, position_us / 1000L);
+      valent_media_player_set_position (self->player, position_us / G_TIME_SPAN_SECOND);
     }
   else if (strcmp (method_name, "Stop") == 0)
     {
@@ -256,10 +256,10 @@ player_get_property (GDBusConnection  *connection,
     }
   else if (strcmp (property_name, "Position") == 0)
     {
-      gint64 position = valent_media_player_get_position (self->player);
+      double position = valent_media_player_get_position (self->player);
 
-      /* Convert milliseconds to microseconds */
-      value = g_variant_new_int64 (position * 1000L);
+      /* Convert seconds to microseconds */
+      value = g_variant_new_int64 (position * G_TIME_SPAN_SECOND);
     }
   else if (strcmp (property_name, "LoopStatus") == 0)
     {
@@ -490,16 +490,16 @@ valent_mpris_impl_propagate_notify (ValentMediaPlayer *player,
     }
   else if (strcmp (name, "position") == 0)
     {
-      gint64 position = valent_media_player_get_position (self->player);
+      double position = valent_media_player_get_position (self->player);
 
-      /* Convert milliseconds to microseconds */
-      value = g_variant_new_int64 (position * 1000L);
+      /* Convert seconds to microseconds */
+      value = g_variant_new_int64 (position * G_TIME_SPAN_SECOND);
       g_hash_table_replace (self->cache,
                             g_strdup ("Position"),
                             g_variant_ref_sink (value));
 
-      /* Emit "Seeked" instead of "PropertiesChanged" */
-      valent_mpris_impl_propagate_seeked (self, position * 1000L);
+      /* Convert seconds to microseconds */
+      valent_mpris_impl_propagate_seeked (self, position * G_TIME_SPAN_SECOND);
     }
   else if (strcmp (name, "repeat") == 0)
     {
