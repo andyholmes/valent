@@ -374,7 +374,7 @@ valent_mpris_plugin_send_player_info (ValentMprisPlugin *self,
       json_builder_set_member_name (builder, "shuffle");
       json_builder_add_boolean_value (builder, shuffle);
 
-      is_playing = valent_media_player_is_playing (player);
+      is_playing = valent_media_player_get_state (player) == VALENT_MEDIA_STATE_PLAYING;
       json_builder_set_member_name (builder, "isPlaying");
       json_builder_add_boolean_value (builder, is_playing);
 

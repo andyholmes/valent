@@ -464,24 +464,6 @@ valent_media_player_init (ValentMediaPlayer *self)
 }
 
 /**
- * valent_media_player_is_playing:
- * @player: a #ValentMediaPlayer
- *
- * A convenience for checking if @player's playback status is `Playing`.
- *
- * Returns: %TRUE if playing, %FALSE if not
- *
- * Since: 1.0
- */
-gboolean
-valent_media_player_is_playing (ValentMediaPlayer *player)
-{
-  g_return_val_if_fail (VALENT_IS_MEDIA_PLAYER (player), FALSE);
-
-  return valent_media_player_get_state (player) == VALENT_MEDIA_STATE_PLAYING;
-}
-
-/**
  * valent_media_player_get_flags: (virtual get_flags) (get-property flags)
  * @player: a #ValentMediaPlayer
  *

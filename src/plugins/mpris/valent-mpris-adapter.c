@@ -59,7 +59,7 @@ on_player_state_changed (ValentMPRISAdapter *self,
     }
 
   /* If the player has stopped, select a different one for export */
-  if (!valent_media_player_is_playing (player))
+  if (valent_media_player_get_state (player) != VALENT_MEDIA_STATE_PLAYING)
     {
       GHashTableIter iter;
 
@@ -71,7 +71,7 @@ on_player_state_changed (ValentMPRISAdapter *self,
 
       while (g_hash_table_iter_next (&iter, (void **)&player, (void **)&export))
         {
-          if (valent_media_player_is_playing (player))
+          if (valent_media_player_get_state (player) == VALENT_MEDIA_STATE_PLAYING)
             break;
         }
     }
