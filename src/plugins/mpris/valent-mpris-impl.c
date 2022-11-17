@@ -222,6 +222,15 @@ player_get_property (GDBusConnection  *connection,
   if ((value = g_hash_table_lookup (self->cache, property_name)) != NULL)
     return g_variant_ref (value);
 
+  /* The `Position` is not cached, because `PropertiesChanged` is not emitted */
+  if (strcmp (property_name, "Position") == 0)
+    {
+      double position = valent_media_player_get_position (self->player);
+
+      /* Convert seconds to microseconds */
+      return g_variant_new_int64 (position * G_TIME_SPAN_SECOND);
+    }
+
   /* Load properties */
   if (*property_name == 'C')
     flags = valent_media_player_get_flags (self->player);
@@ -253,13 +262,6 @@ player_get_property (GDBusConnection  *connection,
   else if (strcmp (property_name, "Metadata") == 0)
     {
       value = valent_media_player_get_metadata (self->player);
-    }
-  else if (strcmp (property_name, "Position") == 0)
-    {
-      double position = valent_media_player_get_position (self->player);
-
-      /* Convert seconds to microseconds */
-      value = g_variant_new_int64 (position * G_TIME_SPAN_SECOND);
     }
   else if (strcmp (property_name, "LoopStatus") == 0)
     {
