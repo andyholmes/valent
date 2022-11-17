@@ -401,10 +401,6 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
    *
    * The playback state.
    *
-   * If the player does not have the appropriate bitmask in
-   * [property@Valent.MediaPlayer:flags], setting this property should have no
-   * effect.
-   *
    * Implementations should emit [signal@GObject.Object::notify] when they
    * change the internal representation of this property.
    *
@@ -414,7 +410,7 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
     g_param_spec_enum ("state", NULL, NULL,
                        VALENT_TYPE_MEDIA_STATE,
                        VALENT_MEDIA_STATE_STOPPED,
-                       (G_PARAM_READWRITE |
+                       (G_PARAM_READABLE |
                         G_PARAM_EXPLICIT_NOTIFY |
                         G_PARAM_STATIC_STRINGS));
 
