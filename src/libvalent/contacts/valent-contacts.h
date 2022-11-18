@@ -26,9 +26,6 @@ VALENT_AVAILABLE_IN_1_0
 ValentContactStore * valent_contacts_ensure_store (ValentContacts *contacts,
                                                    const char     *uid,
                                                    const char     *name);
-VALENT_AVAILABLE_IN_1_0
-ValentContactStore * valent_contacts_lookup_store (ValentContacts *contacts,
-                                                   const char     *uid);
 
 G_END_DECLS
 
