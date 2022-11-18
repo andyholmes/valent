@@ -6,7 +6,7 @@
 %global libpeas_version >= 1.22.0
 %global libeds_version >= 3.34.0
 %global sqlite_version >= 3.24.0
-%global libadwaita_version >= 1.1.0
+%global libadwaita_version >= 1.2.0
 %global libportal_version >= 0.5, pkgconfig(libportal) <= 0.6
 
 Name:           valent
@@ -24,16 +24,13 @@ BuildRequires:  gettext
 BuildRequires:  meson
 BuildRequires:  pkgconfig(gio-2.0) %{glib2_version}
 BuildRequires:  pkgconfig(gio-unix-2.0) %{glib2_version}
-BuildRequires:  pkgconfig(glib-2.0) %{glib2_version}
 BuildRequires:  pkgconfig(gnutls)
 BuildRequires:  pkgconfig(gtk4) %{gtk4_version}
-BuildRequires:  pkgconfig(libadwaita-1) %{libadwaita_version}
 BuildRequires:  pkgconfig(json-glib-1.0) %{json_glib_version}
-BuildRequires:  pkgconfig(libpeas-1.0) %{libpeas_version}
+BuildRequires:  pkgconfig(libadwaita-1) %{libadwaita_version}
 BuildRequires:  pkgconfig(libebook-1.2) %{libeds_version}
-BuildRequires:  pkgconfig(libebook-contacts-1.2) %{libeds_version}
-BuildRequires:  pkgconfig(libedata-book-1.2) %{libeds_version}
-BuildRequires:  pkgconfig(libedataserver-1.2) %{libeds_version}
+BuildRequires:  pkgconfig(libpeas-1.0) %{libpeas_version}
+BuildRequires:  pkgconfig(libportal) %{libportal_version}
 BuildRequires:  pkgconfig(sqlite3) %{sqlite_version}
 BuildRequires:  pkgconfig(gstreamer-1.0)
 # TODO: For `photo` plugin
@@ -43,8 +40,6 @@ BuildRequires:  pkgconfig(libpulse)
 BuildRequires:  pkgconfig(libpulse-mainloop-glib)
 BuildRequires:  %{_bindir}/desktop-file-validate
 BuildRequires:  %{_bindir}/appstream-util
-# For `xdp` plugin
-BuildRequires:  pkgconfig(libportal) %{libportal_version}
 
 Requires:       glib2%{?_isa} %{glib2_version}
 Requires:       gtk4%{?_isa} %{gtk4_version}
@@ -54,6 +49,7 @@ Requires:       evolution-data-server%{?_isa} %{libeds_version}
 Requires:       gnutls%{?_isa}
 
 Recommends:     libpeas-loader-python3%{?_isa} %{libpeas_version}
+Recommends:     pkgconfig(libportal-gtk4) %{libportal_version}
 
 %description
 Securely connect your devices to open files and links where you need them, get
@@ -91,7 +87,7 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/*.desktop
 %{_bindir}/valent
 %{_datadir}/applications/ca.andyholmes.Valent.desktop
 %{_datadir}/dbus-1/services/ca.andyholmes.Valent.service
-%{_datadir}/glib-2.0/schemas/ca.andyholmes.valent*.gschema.xml
+%{_datadir}/glib-2.0/schemas/ca.andyholmes.Valent*.gschema.xml
 %{_datadir}/icons/hicolor/scalable/apps/ca.andyholmes.Valent.svg
 %{_datadir}/icons/hicolor/symbolic/apps/ca.andyholmes.Valent-symbolic.svg
 %{_datadir}/metainfo/ca.andyholmes.Valent.metainfo.xml
@@ -107,7 +103,7 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/*.desktop
 %{_includedir}/valent*/
 
 %changelog
-* Sun Mar 6 2022 Andy Holmes <andrew.g.r.holmes@gmail.com> - 1.0.0~alpha
+* Fri Nov 18 2022 Andy Holmes <andrew.g.r.holmes@gmail.com> - 1.0.0~alpha
 
 - Initial packaging
 

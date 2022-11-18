@@ -172,7 +172,9 @@ valent_telephony_plugin_update_media_state (ValentTelephonyPlugin *self,
       pause = g_settings_get_boolean (settings, "talking-pause");
     }
   else
-    g_assert_not_reached ();
+    {
+      g_return_if_reached ();
+    }
 
   /* Speakers & Microphone */
   mixer = valent_mixer_get_default ();
@@ -327,14 +329,11 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
 static void
 valent_telephony_plugin_mute_call (ValentTelephonyPlugin *self)
 {
-  JsonBuilder *builder;
   g_autoptr (JsonNode) packet = NULL;
 
   g_assert (VALENT_IS_TELEPHONY_PLUGIN (self));
 
-  builder = valent_packet_start ("kdeconnect.telephony.request_mute");
-  packet = valent_packet_finish (builder);
-
+  packet = valent_packet_new ("kdeconnect.telephony.request_mute");
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
