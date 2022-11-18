@@ -322,34 +322,3 @@ valent_contacts_ensure_store (ValentContacts *contacts,
   VALENT_RETURN (ret);
 }
 
-/**
- * valent_contacts_lookup_store:
- * @contacts: a #ValentContacts
- * @uid: an address book id
- *
- * Get a #ValentContactStore for @uid.
- *
- * Returns: (transfer none) (nullable): an address book, or %NULL if not found
- *
- * Since: 1.0
- */
-ValentContactStore *
-valent_contacts_lookup_store (ValentContacts *contacts,
-                              const char     *uid)
-{
-  VALENT_ENTRY;
-
-  g_return_val_if_fail (VALENT_IS_CONTACTS (contacts), NULL);
-  g_return_val_if_fail (uid != NULL, NULL);
-
-  for (unsigned int i = 0, len = contacts->stores->len; i < len; i++)
-    {
-      ValentContactStore *store = g_ptr_array_index (contacts->stores, i);
-
-      if (g_strcmp0 (valent_contact_store_get_uid (store), uid) == 0)
-        VALENT_RETURN (store);
-    }
-
-  VALENT_RETURN (NULL);
-}
-

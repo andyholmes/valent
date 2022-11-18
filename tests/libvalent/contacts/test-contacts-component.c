@@ -371,7 +371,6 @@ static void
 test_contacts_component_self (ContactsComponentFixture *fixture,
                               gconstpointer             user_data)
 {
-  ValentContactStore *store;
   unsigned int n_stores = 0;
 
   g_signal_connect (fixture->contacts,
@@ -387,9 +386,6 @@ test_contacts_component_self (ContactsComponentFixture *fixture,
   /* There should be two stores, including the one just added */
   n_stores = g_list_model_get_n_items (G_LIST_MODEL (fixture->contacts));
   g_assert_cmpuint (n_stores, ==, 2);
-
-  store = valent_contacts_lookup_store (fixture->contacts, "test-store");
-  g_assert_true (VALENT_IS_CONTACT_STORE (store));
 
   /* ::store-removed propagates to ValentContacts */
   valent_contacts_adapter_store_removed (fixture->adapter, fixture->store);

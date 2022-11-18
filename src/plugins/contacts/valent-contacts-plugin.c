@@ -356,6 +356,7 @@ static void
 valent_contacts_plugin_enable (ValentDevicePlugin *plugin)
 {
   ValentContactsPlugin *self = VALENT_CONTACTS_PLUGIN (plugin);
+  ValentContacts *contacts = valent_contacts_get_default ();
   ValentContactStore *store = NULL;
   g_autofree char *local_uid = NULL;
   ValentDevice *device;
@@ -378,10 +379,26 @@ valent_contacts_plugin_enable (ValentDevicePlugin *plugin)
                                         valent_device_get_name (device));
   g_set_object (&self->remote_store, store);
 
+  /* Local address book, shared with remote device */
   local_uid = g_settings_get_string (settings, "local-uid");
-  store = valent_contacts_lookup_store (valent_contacts_get_default (),
-                                        local_uid);
-  g_set_object (&self->local_store, store);
+
+  if (*local_uid != '\0')
+    {
+      unsigned int n_stores = g_list_model_get_n_items (G_LIST_MODEL (contacts));
+
+      for (unsigned int i = 0; i < n_stores; i++)
+        {
+          g_autoptr (ValentContactStore) local = NULL;
+
+          local = g_list_model_get_item (G_LIST_MODEL (contacts), i);
+
+          if (g_strcmp0 (valent_contact_store_get_uid (local), local_uid) != 0)
+            continue;
+
+          g_set_object (&self->local_store, local);
+          break;
+        }
+    }
 }
 
 static void
