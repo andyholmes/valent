@@ -12,11 +12,11 @@ subdir('plugins')
 
 # Executable
 valent = executable('valent', 'main.c',
-              install: true,
-               c_args: valent_c_args + release_args,
-            link_args: valent_link_args,
-           link_whole: plugins_static,
-         dependencies: libvalent_dep,
-                  pie: true,
+        c_args: valent_c_args + release_args,
+     link_args: valent_link_args,
+    link_whole: plugins_static,
+  dependencies: libvalent_dep,
+       install: true,
+           pie: true,
 )
 

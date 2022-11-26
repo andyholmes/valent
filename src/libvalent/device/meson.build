@@ -68,7 +68,7 @@ libvalent_device_deps = [
 ]
 
 # Library Definitions
-libvalent_device = static_library('valent-device-' + valent_api_version,
+libvalent_device = static_library('valent-device-@0@'.format(libvalent_api_version),
                                   libvalent_device_public_sources,
                                   libvalent_device_generated_sources,
                                   libvalent_device_generated_headers,

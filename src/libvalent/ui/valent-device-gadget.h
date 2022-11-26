@@ -8,21 +8,21 @@
 #endif
 
 #include <gtk/gtk.h>
-#include <libvalent-core.h>
+#include <libvalent-device.h>
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_DEVICE_GADGET (valent_device_gadget_get_type ())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_INTERFACE (ValentDeviceGadget, valent_device_gadget, VALENT, DEVICE_GADGET, GtkWidget)
+G_DECLARE_DERIVABLE_TYPE (ValentDeviceGadget, valent_device_gadget, VALENT, DEVICE_GADGET, GtkWidget)
 
-struct _ValentDeviceGadgetInterface
+struct _ValentDeviceGadgetClass
 {
-  GTypeInterface   g_iface;
+  GtkWidgetClass  parent_class;
 
   /*< private >*/
-  gpointer         padding[8];
+  gpointer        padding[8];
 };
 
 G_END_DECLS

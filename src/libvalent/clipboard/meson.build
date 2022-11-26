@@ -40,7 +40,7 @@ libvalent_clipboard_deps = [
 
 
 # Library Definitions
-libvalent_clipboard = static_library('valent-clipboard-' + valent_api_version,
+libvalent_clipboard = static_library('valent-clipboard-@0@'.format(libvalent_api_version),
                                      libvalent_clipboard_public_sources,
                                      libvalent_clipboard_generated_sources,
                                      libvalent_clipboard_generated_headers,

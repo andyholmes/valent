@@ -772,9 +772,9 @@ valent_channel_read_packet_finish (ValentChannel  *channel,
 
   VALENT_ENTRY;
 
-  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), FALSE);
-  g_return_val_if_fail (g_task_is_valid (result, channel), FALSE);
-  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
+  g_return_val_if_fail (g_task_is_valid (result, channel), NULL);
+  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
   ret = g_task_propagate_pointer (G_TASK (result), error);
 
@@ -976,10 +976,10 @@ valent_channel_download (ValentChannel  *channel,
 
   VALENT_ENTRY;
 
-  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), FALSE);
-  g_return_val_if_fail (VALENT_IS_PACKET (packet), FALSE);
-  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
-  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
+  g_return_val_if_fail (VALENT_IS_PACKET (packet), NULL);
+  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
   ret = VALENT_CHANNEL_GET_CLASS (channel)->download (channel,
                                                       packet,
@@ -1048,9 +1048,9 @@ valent_channel_download_finish (ValentChannel  *channel,
 
   VALENT_ENTRY;
 
-  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), FALSE);
-  g_return_val_if_fail (g_task_is_valid (result, channel), FALSE);
-  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
+  g_return_val_if_fail (g_task_is_valid (result, channel), NULL);
+  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
   ret = VALENT_CHANNEL_GET_CLASS (channel)->download_finish (channel,
                                                              result,
@@ -1091,10 +1091,10 @@ valent_channel_upload (ValentChannel  *channel,
 
   VALENT_ENTRY;
 
-  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), FALSE);
-  g_return_val_if_fail (VALENT_IS_PACKET (packet), FALSE);
-  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
-  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
+  g_return_val_if_fail (VALENT_IS_PACKET (packet), NULL);
+  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
   ret = VALENT_CHANNEL_GET_CLASS (channel)->upload (channel,
                                                     packet,
@@ -1163,9 +1163,9 @@ valent_channel_upload_finish (ValentChannel  *channel,
 
   VALENT_ENTRY;
 
-  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), FALSE);
-  g_return_val_if_fail (g_task_is_valid (result, channel), FALSE);
-  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
+  g_return_val_if_fail (g_task_is_valid (result, channel), NULL);
+  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
   ret = VALENT_CHANNEL_GET_CLASS (channel)->upload_finish (channel,
                                                            result,

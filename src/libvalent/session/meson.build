@@ -40,7 +40,7 @@ libvalent_session_deps = [
 
 
 # Library Definitions
-libvalent_session = static_library('valent-session-' + valent_api_version,
+libvalent_session = static_library('valent-session-@0@'.format(libvalent_api_version),
                                    libvalent_session_public_sources,
                                    libvalent_session_generated_sources,
                                    libvalent_session_generated_headers,

@@ -105,8 +105,8 @@ cx_suite_abidiff() {
             --no-added-syms \
             --headers-dir1 "${BASE_DIR}/usr/include" \
             --headers-dir2 "${HEAD_DIR}/usr/include" \
-            "${BASE_DIR}/usr/lib/libvalent.so" \
-            "${HEAD_DIR}/usr/lib/libvalent.so" > \
+            "${BASE_DIR}/usr/lib/libvalent-1.so" \
+            "${HEAD_DIR}/usr/lib/libvalent-1.so" > \
             "${BUILDDIR}/meson-logs/abidiff.log" || \
     (cat "${BUILDDIR}/meson-logs/abidiff.log" && exit 1);
 }

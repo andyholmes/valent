@@ -74,7 +74,7 @@ endif
 
 
 # Library Definitions
-libvalent_test = static_library('valent-test-' + valent_api_version,
+libvalent_test = static_library('valent-test-@0@'.format(libvalent_api_version),
                                 libvalent_test_public_sources,
                                 libvalent_test_generated_sources,
                                 libvalent_test_generated_headers,

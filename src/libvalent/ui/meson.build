@@ -81,7 +81,7 @@ libvalent_ui_deps = [
 
 
 # Library Definitions
-libvalent_ui = static_library('valent-ui-' + valent_api_version,
+libvalent_ui = static_library('valent-ui-@0@'.format(libvalent_api_version),
                               libvalent_ui_public_sources,
                               libvalent_ui_generated_sources,
                               libvalent_ui_generated_headers,
