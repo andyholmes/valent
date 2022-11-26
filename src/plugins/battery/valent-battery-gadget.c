@@ -18,26 +18,14 @@
 
 struct _ValentBatteryGadget
 {
-  GtkWidget     parent_instance;
+  ValentDeviceGadget  parent_instance;
 
-  ValentDevice *device;
-
-  GtkWidget    *button;
-  GtkWidget    *level_bar;
-  GtkWidget    *label;
+  GtkWidget          *button;
+  GtkWidget          *level_bar;
+  GtkWidget          *label;
 };
 
-static void valent_device_gadget_iface_init (ValentDeviceGadgetInterface *iface);
-
-G_DEFINE_TYPE_WITH_CODE (ValentBatteryGadget, valent_battery_gadget, GTK_TYPE_WIDGET,
-                         G_IMPLEMENT_INTERFACE (VALENT_TYPE_DEVICE_GADGET, valent_device_gadget_iface_init))
-
-
-enum {
-  PROP_0,
-  PROP_DEVICE,
-  N_PROPERTIES
-};
+G_DEFINE_TYPE (ValentBatteryGadget, valent_battery_gadget, VALENT_TYPE_DEVICE_GADGET)
 
 
 static void
@@ -142,35 +130,28 @@ on_action_enabled_changed (GActionGroup        *action_group,
 }
 
 /*
- * ValentDeviceGadget
- */
-static void
-valent_device_gadget_iface_init (ValentDeviceGadgetInterface *iface)
-{
-}
-
-/*
  * GObject
  */
 static void
 valent_battery_gadget_constructed (GObject *object)
 {
   ValentBatteryGadget *self = VALENT_BATTERY_GADGET (object);
-  GActionGroup *action_group = G_ACTION_GROUP (self->device);
+  GActionGroup *action_group = NULL;
   gboolean enabled = FALSE;
 
-  g_signal_connect (action_group,
-                    "action-state-changed::battery.state",
-                    G_CALLBACK (on_action_state_changed),
-                    self);
-
-  g_signal_connect (action_group,
-                    "action-enabled-changed::battery.state",
-                    G_CALLBACK (on_action_enabled_changed),
-                    self);
+  g_object_get (object, "device", &action_group, NULL);
+  g_signal_connect_object (action_group,
+                           "action-state-changed::battery.state",
+                           G_CALLBACK (on_action_state_changed),
+                           self, 0);
+  g_signal_connect_object (action_group,
+                           "action-enabled-changed::battery.state",
+                           G_CALLBACK (on_action_enabled_changed),
+                           self, 0);
 
   enabled = g_action_group_get_action_enabled (action_group, "battery.state");
   on_action_enabled_changed (action_group, "battery.state", enabled, self);
+  g_clear_object (&action_group);
 
   G_OBJECT_CLASS (valent_battery_gadget_parent_class)->constructed (object);
 }
@@ -180,64 +161,18 @@ valent_battery_gadget_dispose (GObject *object)
 {
   ValentBatteryGadget *self = VALENT_BATTERY_GADGET (object);
 
-  g_signal_handlers_disconnect_by_data (self->device, self);
   g_clear_pointer (&self->button, gtk_widget_unparent);
 
   G_OBJECT_CLASS (valent_battery_gadget_parent_class)->dispose (object);
 }
 
 static void
-valent_battery_gadget_get_property (GObject    *object,
-                                    guint       prop_id,
-                                    GValue     *value,
-                                    GParamSpec *pspec)
-{
-  ValentBatteryGadget *self = VALENT_BATTERY_GADGET (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      g_value_set_object (value, self->device);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_battery_gadget_set_property (GObject      *object,
-                                    guint         prop_id,
-                                    const GValue *value,
-                                    GParamSpec   *pspec)
-{
-  ValentBatteryGadget *self = VALENT_BATTERY_GADGET (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      self->device = g_value_get_object (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_battery_gadget_class_init (ValentBatteryGadgetClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
-  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
   object_class->constructed = valent_battery_gadget_constructed;
   object_class->dispose = valent_battery_gadget_dispose;
-  object_class->get_property = valent_battery_gadget_get_property;
-  object_class->set_property = valent_battery_gadget_set_property;
-
-  g_object_class_override_property (object_class, PROP_DEVICE, "device");
-
-  gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_BIN_LAYOUT);
 }
 
 static void

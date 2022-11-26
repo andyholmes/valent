@@ -56,7 +56,7 @@ libvalent_mixer_deps = [
 
 
 # Library Definitions
-libvalent_mixer = static_library('valent-mixer-' + valent_api_version,
+libvalent_mixer = static_library('valent-mixer-@0@'.format(libvalent_api_version),
                                  libvalent_mixer_public_sources,
                                  libvalent_mixer_generated_sources,
                                  libvalent_mixer_generated_headers,

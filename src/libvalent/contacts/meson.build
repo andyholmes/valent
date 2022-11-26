@@ -47,7 +47,7 @@ libvalent_contacts_deps = [
 
 
 # Library Definitions
-libvalent_contacts = static_library('valent-contacts-' + valent_api_version,
+libvalent_contacts = static_library('valent-contacts-@0@'.format(libvalent_api_version),
                                     libvalent_contacts_public_sources,
                                     libvalent_contacts_generated_sources,
                                     libvalent_contacts_generated_headers,

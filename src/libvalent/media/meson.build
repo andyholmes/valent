@@ -56,7 +56,7 @@ libvalent_media_deps = [
 
 
 # Library Definitions
-libvalent_media = static_library('valent-media-' + valent_api_version,
+libvalent_media = static_library('valent-media-@0@'.format(libvalent_api_version),
                                  libvalent_media_public_sources,
                                  libvalent_media_generated_sources,
                                  libvalent_media_generated_headers,

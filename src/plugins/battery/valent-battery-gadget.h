@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <gtk/gtk.h>
+#include <libvalent-ui.h>
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_BATTERY_GADGET (valent_battery_gadget_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentBatteryGadget, valent_battery_gadget, VALENT, BATTERY_GADGET, GtkWidget)
+G_DECLARE_FINAL_TYPE (ValentBatteryGadget, valent_battery_gadget, VALENT, BATTERY_GADGET, ValentDeviceGadget)
 
 G_END_DECLS

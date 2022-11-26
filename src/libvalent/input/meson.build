@@ -41,7 +41,7 @@ libvalent_input_deps = [
 
 
 # Library Definitions
-libvalent_input = static_library('valent-input-' + valent_api_version,
+libvalent_input = static_library('valent-input-@0@'.format(libvalent_api_version),
                                  libvalent_input_public_sources,
                                  libvalent_input_generated_sources,
                                  libvalent_input_generated_headers,

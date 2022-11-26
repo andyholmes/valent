@@ -120,7 +120,7 @@ endif
 
 
 # Library Definitions
-libvalent_core = static_library('valent-core-' + valent_api_version,
+libvalent_core = static_library('valent-core-@0@'.format(libvalent_api_version),
                                 libvalent_core_public_sources,
                                 libvalent_core_generated_sources,
                                 libvalent_core_generated_headers,

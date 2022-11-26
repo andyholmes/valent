@@ -26,8 +26,6 @@ MINOR_VERSION = version_split[1].to_int()
 MICRO_VERSION = version_split[2].to_int()
 
 valent_version = '@0@.@1@.@2@'.format(MAJOR_VERSION, MINOR_VERSION, MICRO_VERSION)
-valent_api_version = '@0@.@1@'.format(MAJOR_VERSION, MINOR_VERSION)
-valent_api_name = 'valent-@0@'.format(valent_api_version)
 
 
 #

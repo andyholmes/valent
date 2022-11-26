@@ -1,12 +1,16 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
+libvalent_api_version = meson.project_version().split('.')[0]
+libvalent_api_name = 'libvalent-@0@'.format(libvalent_api_version)
+libvalent_so_version = valent_version
+
 # The subdirs update these before libvalent is compiled
 libvalent_c_args = []
 libvalent_link_args = []
-libvalent_gir_extra_args = ['--pkg-export=@0@'.format(valent_api_name)]
+libvalent_gir_extra_args = ['--pkg-export=@0@'.format(libvalent_api_name)]
 
-libvalent_header_subdir = join_paths(valent_api_name, 'libvalent')
+libvalent_header_subdir = join_paths(libvalent_api_name, 'libvalent')
 libvalent_header_dir = join_paths(includedir, libvalent_header_subdir)
 libvalent_include_directories = []
 libvalent_public_sources = []
@@ -34,29 +38,28 @@ subdir('ui')
 #
 # Shared library
 #
-libvalent = shared_library('valent',
-              version: valent_api_version,
-            soversion: '0',
-               c_args: libvalent_c_args + release_args,
-            link_args: libvalent_link_args,
-           link_whole: libvalent_static,
-         dependencies: libvalent_deps,
-              install: true,
-          install_dir: libdir,
+libvalent = shared_library('valent-@0@'.format(libvalent_api_version),
+       version: libvalent_api_version,
+     soversion: libvalent_so_version,
+        c_args: libvalent_c_args + release_args,
+     link_args: libvalent_link_args,
+    link_whole: libvalent_static,
+  dependencies: libvalent_deps,
+       install: true,
 )
 
 libvalent_dep = declare_dependency(
-         dependencies: libvalent_deps,
             link_with: libvalent,
   include_directories: libvalent_include_directories,
+         dependencies: libvalent_deps,
 )
 
 # pkgconfig
 pkgconfig.generate(
          name: 'Valent',
   description: 'Core implementation and plugin API for Valent.',
-      version: valent_version,
-     filebase: valent_api_name,
+      version: libvalent_so_version,
+     filebase: libvalent_api_name,
     libraries: [libvalent],
       subdirs: libvalent_pkgconfig_subdirs,
      requires: [
@@ -95,7 +98,7 @@ if get_option('introspection')
   libvalent_gir = gnome.generate_gir(libvalent,
                 sources: libvalent_gir_sources,
               namespace: 'Valent',
-              nsversion: valent_api_version,
+              nsversion: libvalent_api_version,
           symbol_prefix: meson.project_name(),
       identifier_prefix: 'Valent',
                includes: libvalent_gir_includes,

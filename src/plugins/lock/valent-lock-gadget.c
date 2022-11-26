@@ -16,34 +16,14 @@
 
 struct _ValentLockGadget
 {
-  GtkWidget     parent_instance;
-
-  ValentDevice *device;
+  ValentDeviceGadget  parent_instance;
 
   /* widgets */
-  GtkWidget    *button;
+  GtkWidget          *button;
 };
 
-static void valent_device_gadget_iface_init (ValentDeviceGadgetInterface *iface);
+G_DEFINE_TYPE (ValentLockGadget, valent_lock_gadget, VALENT_TYPE_DEVICE_GADGET)
 
-G_DEFINE_TYPE_WITH_CODE (ValentLockGadget, valent_lock_gadget, GTK_TYPE_WIDGET,
-                         G_IMPLEMENT_INTERFACE (VALENT_TYPE_DEVICE_GADGET, valent_device_gadget_iface_init))
-
-
-enum {
-  PROP_0,
-  PROP_DEVICE,
-  N_PROPERTIES
-};
-
-
-/*
- * ValentDeviceGadget
- */
-static void
-valent_device_gadget_iface_init (ValentDeviceGadgetInterface *iface)
-{
-}
 
 /*
  * GObject
@@ -59,56 +39,11 @@ valent_lock_gadget_dispose (GObject *object)
 }
 
 static void
-valent_lock_gadget_get_property (GObject    *object,
-                                 guint       prop_id,
-                                 GValue     *value,
-                                 GParamSpec *pspec)
-{
-  ValentLockGadget *self = VALENT_LOCK_GADGET (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      g_value_set_object (value, self->device);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_lock_gadget_set_property (GObject      *object,
-                                 guint         prop_id,
-                                 const GValue *value,
-                                 GParamSpec   *pspec)
-{
-  ValentLockGadget *self = VALENT_LOCK_GADGET (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      self->device = g_value_get_object (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_lock_gadget_class_init (ValentLockGadgetClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
-  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
   object_class->dispose = valent_lock_gadget_dispose;
-  object_class->get_property = valent_lock_gadget_get_property;
-  object_class->set_property = valent_lock_gadget_set_property;
-
-  g_object_class_override_property (object_class, PROP_DEVICE, "device");
-
-  gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_BIN_LAYOUT);
 }
 
 static void

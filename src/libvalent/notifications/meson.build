@@ -39,7 +39,7 @@ libvalent_notifications_deps = [
 
 
 # Library Definitions
-libvalent_notifications = static_library('valent-notifications-' + valent_api_version,
+libvalent_notifications = static_library('valent-notifications-@0@'.format(libvalent_api_version),
                                          libvalent_notifications_public_sources,
                                          libvalent_notifications_generated_sources,
                                          libvalent_notifications_generated_headers,
