@@ -133,13 +133,14 @@ jobs:
 
       - name: Analyze
         env:
-          CX_SUITE: ${{ matrix.suite }}
-          CX_SETUP_ARGS: ${{ matrix.setup_args }}
-          CX_CPPCHECK_LIBRARY: ${{ github.workspace }}/tests/extra/cppcheck.cfg
-          CX_CPPCHECK_SUPPRESSIONS: ${{ github.workspace }}/tests/extra/cppcheck.supp
-          CX_CPPCHECK_ARGS: -I${{ github.workspace}}/tests/fixtures
+          ACTUARY_SUITE: ${{ matrix.suite }}
+          ACTUARY_SETUP_ARGS: ${{ matrix.setup_args }}
+          ACTUARY_ABIDIFF_LIB: libvalent-1.so
+          ACTUARY_CPPCHECK_LIBRARY: ${{ github.workspace }}/tests/extra/cppcheck.cfg
+          ACTUARY_CPPCHECK_SUPPRESSIONS: ${{ github.workspace }}/tests/extra/cppcheck.supp
+          ACTUARY_CPPCHECK_ARGS: -I${{ github.workspace}}/tests/fixtures
         run: |
-          ./tests/extra/ci-runner.sh
+          actuary
 
       - name: Report
         if: ${{ failure() }}
@@ -179,13 +180,13 @@ jobs:
 
       - name: Test
         env:
-          CX_COMPILER: ${{ matrix.compiler }}
-          CX_SUITE: ${{ matrix.suite }}
-          CX_SETUP_COVERAGE: ${{ matrix.compiler == 'gcc' && matrix.suite == 'test' }}
-          CX_SETUP_ARGS: ${{ matrix.setup_args }}
-          CX_TEST_ARGS: ${{ matrix.test_args }}
+          ACTUARY_COMPILER: ${{ matrix.compiler }}
+          ACTUARY_SUITE: ${{ matrix.suite }}
+          ACTUARY_SETUP_COVERAGE: ${{ matrix.compiler == 'gcc' && matrix.suite == 'test' }}
+          ACTUARY_SETUP_ARGS: ${{ matrix.setup_args }}
+          ACTUARY_TEST_ARGS: ${{ matrix.test_args }}
         run: |
-          ./tests/extra/ci-runner.sh
+          actuary
 
       - name: Test Report
         if: ${{ failure() }}
@@ -197,11 +198,11 @@ jobs:
       - name: Coverage (lcov)
         if: ${{ matrix.compiler == 'gcc' && matrix.suite == 'test' }}
         env:
-          CX_SUITE: coverage
-          CX_LCOV_INCLUDE_PATH: '${{ github.workspace }}/src/*'
-          CX_LCOV_EXCLUDE_PATH: '*/tests/* */subprojects/*'
+          ACTUARY_SUITE: lcov
+          ACTUARY_LCOV_INCLUDE_PATH: '${{ github.workspace }}/src/*'
+          ACTUARY_LCOV_EXCLUDE_PATH: '*/tests/* */subprojects/*'
         run: |
-          ./tests/extra/ci-runner.sh
+          actuary
 
       - name: Coverage (coveralls.io)
         if: ${{ matrix.compiler == 'gcc' && matrix.suite == 'test' }}

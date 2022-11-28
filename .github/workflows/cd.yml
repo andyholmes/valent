@@ -21,12 +21,12 @@ jobs:
 
       - name: Build
         env:
-          CX_SUITE: coverage
-          CX_SETUP_ARGS: '-Ddocumentation=true -Dtests=true'
-          CX_LCOV_INCLUDE_PATH: '${{ github.workspace }}/src/*'
-          CX_LCOV_EXCLUDE_PATH: '*/tests/* */subprojects/*'
+          ACTUARY_SUITE: lcov
+          ACTUARY_SETUP_ARGS: '-Ddocumentation=true -Dtests=true'
+          ACTUARY_LCOV_INCLUDE_PATH: '${{ github.workspace }}/src/*'
+          ACTUARY_LCOV_EXCLUDE_PATH: '*/tests/* */subprojects/*'
         run: |
-          ./tests/extra/ci-runner.sh
+          actuary
 
       - name: Report
         continue-on-error: true
