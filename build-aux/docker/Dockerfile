@@ -1,21 +1,16 @@
 # SPDX-License-Identifier: CC0-1.0
 # SPDX-FileCopyrightText: No rights reserved
 
-FROM registry.fedoraproject.org/fedora:37
+FROM ghcr.io/andyholmes/actuary:latest
 
-# The packages below are roughly grouped into build tooling and build
-# dependencies (with debug symbols)
+# Install dependencies
 #
 # See: https://github.com/andyholmes/copr/tree/main/glib2
 RUN dnf install -y 'dnf-command(copr)' && \
     dnf copr -y enable andyholmes/main && \
     dnf install -y --enablerepo=fedora-debuginfo,updates-debuginfo \
         --setopt=install_weak_deps=False \
-        glibc-langpack-en glibc-locale-source clang clang-analyzer compiler-rt \
-        cppcheck cppcheck-htmlreport gcc gettext gi-docgen git graphviz \
-        libabigail libasan libtsan libubsan lld llvm meson appstream \
-        desktop-file-utils dbus-daemon lcov python-dbusmock rsync \
-        xorg-x11-server-Xvfb \
+        glibc-langpack-en glibc-locale-source gi-docgen graphviz rsync \
         evolution-data-server-devel   evolution-data-server-debuginfo \
         glib2-devel                   glib2-debuginfo \
         gnutls-devel                  gnutls-debuginfo \
