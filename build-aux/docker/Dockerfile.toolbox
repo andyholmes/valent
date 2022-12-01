@@ -3,7 +3,6 @@
 
 FROM ghcr.io/andyholmes/actuary-toolbox:latest
 
-# Install dependencies
 RUN dnf install -y --enablerepo=fedora-debuginfo,updates-debuginfo \
         --setopt=install_weak_deps=False \
         glibc-langpack-en glibc-locale-source gi-docgen graphviz rsync \
@@ -20,7 +19,6 @@ RUN dnf install -y --enablerepo=fedora-debuginfo,updates-debuginfo \
         libportal-devel               libportal-debuginfo \
         pulseaudio-libs-devel         pulseaudio-libs-debuginfo \
         sqlite-devel                  sqlite-debuginfo && \
-    dnf install -y gdb && \
     dnf clean all && rm -rf /var/cache/dnf
 
 # Build libwalbottle from source, since it's not available in most repositories

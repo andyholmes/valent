@@ -24,15 +24,19 @@ Valent is an implementation of the [KDE Connect][kdeconnect] protocol, built on
 
 ## Status
 
-This project is in an early stage of development, with no stable releases. For
-those interested in testing Valent, there are nightly Flatpak builds for
-desktop and mobile Linux in the [nightly repository][valent-flatpakref].
+This project is currently in alpha. It generally works as intended, but is still
+missing some features and may contain bugs.
 
-Join the community in [Discussions] to ask questions, share ideas and get
-involved in Valent!
+If that's okay with you, there is a [nightly Flatpak][nightly-flatpakref] that
+you can try out. It includes the nightly Flatpak repository, so you'll get
+updates along with your other applications.
 
-[discussions]: https://github.com/andyholmes/valent/discussions
+## Related
+
+[![Valent (GNOME Shell Extension)](https://gh-card.dev/repos/andyholmes/gnome-shell-extension-valent.svg)](https://github.com/andyholmes/gnome-shell-extension-valent)
+[![Valent (Plugin Template)](https://gh-card.dev/repos/andyholmes/valent-plugin-example.svg)](https://github.com/andyholmes/valent-plugin-example)
+
+
 [gnome]: https://www.gnome.org
 [kdeconnect]: https://kdeconnect.kde.org
-[valent-flatpakref]: https://valent.andyholmes.ca/valent.flatpakref
-
+[nightly-flatpakref]: https://valent.andyholmes.ca/valent.flatpakref
