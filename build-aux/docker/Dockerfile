@@ -3,12 +3,7 @@
 
 FROM ghcr.io/andyholmes/actuary:latest
 
-# Install dependencies
-#
-# See: https://github.com/andyholmes/copr/tree/main/glib2
-RUN dnf install -y 'dnf-command(copr)' && \
-    dnf copr -y enable andyholmes/main && \
-    dnf install -y --enablerepo=fedora-debuginfo,updates-debuginfo \
+RUN dnf install -y --enablerepo=fedora-debuginfo,updates-debuginfo \
         --setopt=install_weak_deps=False \
         glibc-langpack-en glibc-locale-source gi-docgen graphviz rsync \
         evolution-data-server-devel   evolution-data-server-debuginfo \
