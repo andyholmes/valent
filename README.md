@@ -33,8 +33,7 @@ updates along with your other applications.
 
 ## Related
 
-[![Valent (GNOME Shell Extension)](https://gh-card.dev/repos/andyholmes/gnome-shell-extension-valent.svg)](https://github.com/andyholmes/gnome-shell-extension-valent)
-[![Valent (Plugin Template)](https://gh-card.dev/repos/andyholmes/valent-plugin-example.svg)](https://github.com/andyholmes/valent-plugin-example)
+[![Valent (GNOME Shell Extension)](https://gh-card.dev/repos/andyholmes/gnome-shell-extension-valent.svg)](https://github.com/andyholmes/gnome-shell-extension-valent) [![Valent (Plugin Template)](https://gh-card.dev/repos/andyholmes/valent-plugin-example.svg)](https://github.com/andyholmes/valent-plugin-example)
 
 
 [gnome]: https://www.gnome.org
