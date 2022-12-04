@@ -19,27 +19,30 @@ jobs:
         with:
           submodules: true
 
-      - name: Build
-        env:
-          ACTUARY_SUITE: lcov
-          ACTUARY_SETUP_ARGS: '-Ddocumentation=true -Dtests=true'
-          ACTUARY_LCOV_INCLUDE_PATH: '${{ github.workspace }}/src/*'
-          ACTUARY_LCOV_EXCLUDE_PATH: '*/tests/* */subprojects/*'
-        run: |
-          actuary
+      - name: Test
+        id: test
+        uses: andyholmes/actuary@main
+        with:
+          suite: test
+          setup-args: |
+            -Ddocumentation=true
+            -Dtests=true
+          test-coverage: ${{ matrix.compiler == 'gcc' && matrix.suite == 'test' }}
+          lcov-include: "'${{ github.workspace }}/src/*'"
+          lcov-exclude: "'*/tests/* */subprojects/*'"
 
       - name: Report
         continue-on-error: true
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: ${{ github.workspace }}/_build/meson-logs/coverage.info
+          path-to-lcov: ${{ steps.test.outputs.coverage }}
 
       - name: Coverage
         continue-on-error: true
         uses: JamesIves/github-pages-deploy-action@releases/v4
         with:
-          folder: _build/meson-logs/coverage-html
+          folder: ${{ steps.test.outputs.coverage-html }}
           target-folder: coverage
           single-commit: true
 

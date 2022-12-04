@@ -120,9 +120,13 @@ jobs:
         suite: [abidiff, cppcheck]
         include:
           - suite: abidiff
-            setup_args: '-Dintrospection=false -Dplugins=false'
+            setup-args: |
+              -Dintrospection=false
+              -Dplugins=false
           - suite: cppcheck
-            setup_args: '-Dintrospection=false -Dtests=true'
+            setup-args: |
+              -Dintrospection=false
+              -Dtests=true
       fail-fast: false
 
     steps:
@@ -132,15 +136,16 @@ jobs:
           submodules: true
 
       - name: Analyze
-        env:
-          ACTUARY_SUITE: ${{ matrix.suite }}
-          ACTUARY_SETUP_ARGS: ${{ matrix.setup_args }}
-          ACTUARY_ABIDIFF_LIB: libvalent-1.so
-          ACTUARY_CPPCHECK_LIBRARY: ${{ github.workspace }}/tests/extra/cppcheck.cfg
-          ACTUARY_CPPCHECK_SUPPRESSIONS: ${{ github.workspace }}/tests/extra/cppcheck.supp
-          ACTUARY_CPPCHECK_ARGS: -I${{ github.workspace}}/tests/fixtures
-        run: |
-          actuary
+        uses: andyholmes/actuary@main
+        with:
+          suite: ${{ matrix.suite }}
+          setup-args: ${{ matrix.setup-args }}
+          abidiff-lib: libvalent-1.so
+          cppcheck-args:
+            -Itests/fixtures
+            --library=tests/extra/cppcheck.cfg
+            --suppressions-list=tests/extra/cppcheck.supp
+          cppcheck-path: src
 
       - name: Report
         if: ${{ failure() }}
@@ -162,14 +167,22 @@ jobs:
         suite: [test, asan, tsan, analyzer]
         include:
           - suite: test
-            setup_args: '-Dtests=true'
-            test_args: '--repeat=3'
+            setup-args: |
+              -Dtests=true
+            test-args: |
+              --repeat=3
           - suite: asan
-            setup_args: '-Dintrospection=false -Dtests=true'
+            setup-args: |
+              -Dintrospection=false
+              -Dtests=true
           - suite: tsan
-            setup_args: '-Dintrospection=false -Dtests=true'
+            setup-args: |
+              -Dintrospection=false
+              -Dtests=true
           - suite: analyzer
-            setup_args: '-Dintrospection=false -Dtests=true'
+            setup-args: |
+              -Dintrospection=false
+              -Dtests=true
       fail-fast: false
 
     steps:
@@ -179,37 +192,37 @@ jobs:
           submodules: true
 
       - name: Test
-        env:
-          ACTUARY_COMPILER: ${{ matrix.compiler }}
-          ACTUARY_SUITE: ${{ matrix.suite }}
-          ACTUARY_SETUP_COVERAGE: ${{ matrix.compiler == 'gcc' && matrix.suite == 'test' }}
-          ACTUARY_SETUP_ARGS: ${{ matrix.setup_args }}
-          ACTUARY_TEST_ARGS: ${{ matrix.test_args }}
-        run: |
-          actuary
+        id: test
+        uses: andyholmes/actuary@main
+        with:
+          suite: ${{ matrix.suite }}
+          compiler: ${{ matrix.compiler }}
+          setup-args: ${{ matrix.setup-args }}
+          test-args: ${{ matrix.test-args }}
+          test-coverage: ${{ matrix.compiler == 'gcc' && matrix.suite == 'test' }}
+          lcov-include: '${{ github.workspace }}/src/*'
+          lcov-exclude: '*/tests/* */subprojects/*'
 
       - name: Test Report
         if: ${{ failure() }}
         uses: actions/upload-artifact@v3
         with:
           name: Tests (${{ matrix.compiler }}, ${{ matrix.suite }})
-          path: _build/meson-logs/testlog.txt
+          path: ${{ steps.test.outputs.log }}
 
-      - name: Coverage (lcov)
+      - name: Coverage (html)
         if: ${{ matrix.compiler == 'gcc' && matrix.suite == 'test' }}
-        env:
-          ACTUARY_SUITE: lcov
-          ACTUARY_LCOV_INCLUDE_PATH: '${{ github.workspace }}/src/*'
-          ACTUARY_LCOV_EXCLUDE_PATH: '*/tests/* */subprojects/*'
-        run: |
-          actuary
+        uses: actions/upload-artifact@v3
+        with:
+          name: Tests (coverage)
+          path: ${{ steps.test.outputs.coverage-html }}
 
       - name: Coverage (coveralls.io)
         if: ${{ matrix.compiler == 'gcc' && matrix.suite == 'test' }}
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: ${{ github.workspace }}/_build/meson-logs/coverage.info
+          path-to-lcov: ${{ steps.test.outputs.coverage }}
 
   flatpak:
     name: Tests (Flatpak)
