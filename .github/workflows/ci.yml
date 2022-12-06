@@ -141,7 +141,7 @@ jobs:
           suite: ${{ matrix.suite }}
           setup-args: ${{ matrix.setup-args }}
           abidiff-lib: libvalent-1.so
-          cppcheck-args:
+          cppcheck-args: |
             -Itests/fixtures
             --library=tests/extra/cppcheck.cfg
             --suppressions-list=tests/extra/cppcheck.supp
