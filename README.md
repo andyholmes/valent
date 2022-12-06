@@ -1,6 +1,6 @@
-[![CD](https://github.com/andyholmes/valent/actions/workflows/cd.yml/badge.svg)](https://github.com/andyholmes/valent/actions/workflows/cd.yml)
-[![Coverage](https://coveralls.io/repos/github/andyholmes/valent/badge.svg?branch=main)](https://andyholmes.ca/valent/coverage/index.html)
-[![API](https://img.shields.io/badge/API-unstable-yellow)](https://andyholmes.ca/valent/documentation/index.html)
+[![Flatpak](https://img.shields.io/badge/Flatpak-nightly-blue)](https://valent.andyholmes.ca/valent.flatpakref)
+[![Coverage](https://valent.andyholmes.ca/coverage/badge.svg)](https://valent.andyholmes.ca/coverage)
+[![API](https://img.shields.io/badge/API-unstable-yellow)](https://valent.andyholmes.ca/documentation)
 
 # Valent
 
