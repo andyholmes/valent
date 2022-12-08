@@ -43,7 +43,9 @@ valent_mixer_streams_get_item (GListModel   *list,
   ValentMixerStreams *self = VALENT_MIXER_STREAMS (list);
 
   g_assert (VALENT_IS_MIXER_STREAMS (self));
-  g_assert (position < self->items->len);
+
+  if G_UNLIKELY (position >= self->items->len)
+    return NULL;
 
   return g_object_ref (g_ptr_array_index (self->items, position));
 }

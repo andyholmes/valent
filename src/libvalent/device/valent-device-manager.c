@@ -85,7 +85,9 @@ valent_device_manager_get_item (GListModel   *list,
   ValentDeviceManager *self = VALENT_DEVICE_MANAGER (list);
 
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
-  g_assert (position < self->devices->len);
+
+  if G_UNLIKELY (position >= self->devices->len)
+    return NULL;
 
   return g_object_ref (g_ptr_array_index (self->devices, position));
 }

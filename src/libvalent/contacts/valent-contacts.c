@@ -54,7 +54,9 @@ valent_contacts_get_item (GListModel   *list,
   ValentContacts *self = VALENT_CONTACTS (list);
 
   g_assert (VALENT_IS_CONTACTS (self));
-  g_assert (position < self->stores->len);
+
+  if G_UNLIKELY (position >= self->stores->len)
+    return NULL;
 
   return g_object_ref (g_ptr_array_index (self->stores, position));
 }

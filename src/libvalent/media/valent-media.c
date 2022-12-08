@@ -63,7 +63,9 @@ valent_media_get_item (GListModel   *list,
   ValentMedia *self = VALENT_MEDIA (list);
 
   g_assert (VALENT_IS_MEDIA (self));
-  g_assert (position < self->players->len);
+
+  if G_UNLIKELY (position >= self->players->len)
+    return NULL;
 
   return g_object_ref (g_ptr_array_index (self->players, position));
 }

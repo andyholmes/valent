@@ -169,14 +169,13 @@ valent_share_download_get_item (GListModel   *model,
                                 unsigned int  position)
 {
   ValentShareDownload *self = VALENT_SHARE_DOWNLOAD (model);
-  g_autoptr (ValentTransfer) ret = NULL;
 
   g_assert (VALENT_SHARE_DOWNLOAD (self));
 
-  if (position < self->items->len)
-    ret = g_object_ref (g_ptr_array_index (self->items, position));
+  if G_UNLIKELY (position >= self->items->len)
+    return NULL;
 
-  return g_steal_pointer (&ret);
+  return g_object_ref (g_ptr_array_index (self->items, position));
 }
 
 static GType
