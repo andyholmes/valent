@@ -396,8 +396,7 @@ valent_mpris_plugin_send_player_info (ValentMprisPlugin *self,
           const char *album;
 
           if (g_variant_lookup (metadata, "xesam:artist", "^a&s", &artists) &&
-              g_strv_length ((char **)artists) > 0 &&
-              g_utf8_strlen (artists[0], -1) > 0)
+              artists[0] != NULL && *artists[0] != '\0')
             {
               artist = g_strjoinv (", ", (char **)artists);
               json_builder_set_member_name (builder, "artist");
@@ -405,14 +404,14 @@ valent_mpris_plugin_send_player_info (ValentMprisPlugin *self,
             }
 
           if (g_variant_lookup (metadata, "xesam:title", "&s", &title) &&
-              g_utf8_strlen (title, -1) > 0)
+              *title != '\0')
             {
               json_builder_set_member_name (builder, "title");
               json_builder_add_string_value (builder, title);
             }
 
           if (g_variant_lookup (metadata, "xesam:album", "&s", &album) &&
-              g_utf8_strlen (album, -1) > 0)
+              *album != '\0')
             {
               json_builder_set_member_name (builder, "album");
               json_builder_add_string_value (builder, album);

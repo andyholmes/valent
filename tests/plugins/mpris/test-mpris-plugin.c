@@ -230,6 +230,13 @@ test_mpris_plugin_handle_request (ValentTestFixture *fixture,
   packet = valent_test_fixture_lookup_packet (fixture, "request-stop");
   valent_test_fixture_handle_packet (fixture, packet);
 
+  /* Expect position to reset */
+  packet = valent_test_fixture_expect_packet (fixture);
+  v_assert_packet_type (packet, "kdeconnect.mpris");
+  v_assert_packet_cmpstr (packet, "player", ==, "Mock Player");
+  v_assert_packet_cmpint (packet, "pos", ==, 0);
+  json_node_unref (packet);
+
   /* Expect quiescent state */
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris");

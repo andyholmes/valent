@@ -19,7 +19,6 @@ struct _ValentMPRISPlayer
   char               *bus_name;
   GDBusProxy         *application;
   GDBusProxy         *player;
-  unsigned int        no_position : 1;
   unsigned int        timer_id;
 
   ValentMediaActions  flags;
@@ -69,7 +68,10 @@ valent_mpris_player_timer (ValentMPRISPlayer *self)
     g_clear_handle_id (&self->timer_id, g_source_remove);
 
   if (state == VALENT_MEDIA_STATE_STOPPED)
-    self->position = 0.0;
+    {
+      self->position = 0.0;
+      g_object_notify (G_OBJECT (self), "position");
+    }
 }
 
 
@@ -123,30 +125,38 @@ static void
 on_player_properties_changed (GDBusProxy        *proxy,
                               GVariant          *changed_properties,
                               GStrv              invalidated_properties,
-                              ValentMediaPlayer *player)
+                              ValentMPRISPlayer *self)
 {
   GVariantDict dict;
 
   VALENT_ENTRY;
 
-  g_assert (VALENT_IS_MPRIS_PLAYER (player));
+  g_assert (VALENT_IS_MPRIS_PLAYER (self));
   g_assert (changed_properties != NULL);
 
-  g_object_freeze_notify (G_OBJECT (player));
+  g_object_freeze_notify (G_OBJECT (self));
   g_variant_dict_init (&dict, changed_properties);
 
   for (unsigned int i = 0; i < G_N_ELEMENTS (player_properties); i++)
     {
-      // MPRISv2 players shouldn't emit `PropertiesChanged` for `Position`
-      if (strcmp (player_properties[i].dbus, "Position") == 0)
-        continue;
-
       if (g_variant_dict_contains (&dict, player_properties[i].dbus))
-        g_object_notify (G_OBJECT (player), player_properties[i].name);
+        {
+          /* `PropertiesChanged` should not be emitted for `Position`, but if it
+           * is, we might as well update the internal representation. */
+          if (g_str_equal (player_properties[i].dbus, "Position"))
+            {
+              gint64 position_us = 0;
+
+              g_variant_dict_lookup (&dict, "Position", "x", &position_us);
+              self->position = position_us / G_TIME_SPAN_SECOND;
+            }
+          else
+            g_object_notify (G_OBJECT (self), player_properties[i].name);
+        }
     }
 
   g_variant_dict_clear (&dict);
-  g_object_thaw_notify (G_OBJECT (player));
+  g_object_thaw_notify (G_OBJECT (self));
 
   VALENT_EXIT;
 }
@@ -285,7 +295,7 @@ valent_mpris_player_get_position (ValentMediaPlayer *player)
 
   /* Avoid repeated calls for players that don't support this property,
    * particularly web browsers like Mozilla Firefox. */
-  if (self->no_position)
+  if (self->position > 0.0)
     return self->position;
 
   result = g_dbus_proxy_call_sync (self->player,
@@ -300,12 +310,8 @@ valent_mpris_player_get_position (ValentMediaPlayer *player)
 
   if (result == NULL)
     {
-      if (g_error_matches (error, G_DBUS_ERROR, G_DBUS_ERROR_NOT_SUPPORTED))
-        self->no_position = TRUE;
-      else if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT))
-        VALENT_TODO ("Unexpected error: G_IO_ERROR_TIMED_OUT");
-      else
-        g_message ("%s(): %s", G_STRFUNC, error->message);
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_TIMED_OUT))
+        g_debug ("%s(): %s", G_STRFUNC, error->message);
 
       return self->position;
     }
@@ -323,11 +329,6 @@ valent_mpris_player_set_position (ValentMediaPlayer *player,
 {
   ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
   gint64 position_us = (gint64)position * G_TIME_SPAN_SECOND;
-
-  /* Avoid repeated calls for players that don't support this property,
-   * particularly web browsers like Mozilla Firefox. */
-  if (self->no_position)
-    return;
 
   /* Convert seconds to microseconds */
   g_dbus_proxy_call (self->player,

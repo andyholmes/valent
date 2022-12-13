@@ -67,7 +67,10 @@ valent_mpris_device_timer (ValentMprisDevice *self)
     g_clear_handle_id (&self->timer_id, g_source_remove);
 
   if (self->state == VALENT_MEDIA_STATE_STOPPED)
-    self->position = 0.0;
+    {
+      self->position = 0.0;
+      g_object_notify (G_OBJECT (self), "position");
+    }
 }
 
 
