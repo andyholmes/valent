@@ -11,8 +11,8 @@
 #include <libvalent-device.h>
 #include <libvalent-media.h>
 
-#include "valent-mpris-utils.h"
 #include "valent-mpris-device.h"
+#include "valent-mpris-utils.h"
 
 
 struct _ValentMprisDevice
@@ -20,12 +20,12 @@ struct _ValentMprisDevice
   ValentMediaPlayer   parent_instance;
 
   ValentDevice       *device;
-  unsigned int        timer_id;
 
   ValentMediaActions  flags;
   char               *name;
   GVariant           *metadata;
   double              position;
+  double              position_time;
   ValentMediaRepeat   repeat;
   unsigned int        shuffle : 1;
   ValentMediaState    state;
@@ -42,36 +42,6 @@ enum {
 };
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
-
-
-static gboolean
-valent_mpris_device_tick (gpointer data)
-{
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (data);
-
-  g_assert (VALENT_IS_MPRIS_DEVICE (self));
-
-  self->position += 1;
-
-  return G_SOURCE_CONTINUE;
-}
-
-static inline void
-valent_mpris_device_timer (ValentMprisDevice *self)
-{
-  g_assert (VALENT_IS_MPRIS_DEVICE (self));
-
-  if (self->timer_id == 0 && self->state == VALENT_MEDIA_STATE_PLAYING)
-    self->timer_id = g_timeout_add_seconds (1, valent_mpris_device_tick, self);
-  else if (self->state != VALENT_MEDIA_STATE_PLAYING)
-    g_clear_handle_id (&self->timer_id, g_source_remove);
-
-  if (self->state == VALENT_MEDIA_STATE_STOPPED)
-    {
-      self->position = 0.0;
-      g_object_notify (G_OBJECT (self), "position");
-    }
-}
 
 
 /*
@@ -108,6 +78,9 @@ static double
 valent_mpris_device_get_position (ValentMediaPlayer *player)
 {
   ValentMprisDevice *self = VALENT_MPRIS_DEVICE (player);
+
+  if (self->state == VALENT_MEDIA_STATE_PLAYING)
+    return self->position + (valent_mpris_get_time () - self->position_time);
 
   return self->position;
 }
@@ -423,6 +396,7 @@ valent_mpris_device_update_position (ValentMprisDevice *player,
 
   /* Convert milliseconds to seconds */
   player->position = position / 1000L;
+  player->position_time = valent_mpris_get_time ();
   g_object_notify (G_OBJECT (player), "position");
 }
 
@@ -472,6 +446,14 @@ valent_mpris_device_update_state (ValentMprisDevice *player,
     return;
 
   player->state = state;
+
+  if (player->state == VALENT_MEDIA_STATE_STOPPED)
+    {
+      player->position = 0.0;
+      player->position_time = 0;
+      g_object_notify (G_OBJECT (player), "position");
+    }
+
   g_object_notify (G_OBJECT (player), "state");
 }
 
@@ -491,16 +473,6 @@ valent_mpris_device_update_volume (ValentMprisDevice *player,
 /*
  * GObject
  */
-static void
-valent_mpris_device_dispose (GObject *object)
-{
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (object);
-
-  g_clear_handle_id (&self->timer_id, g_source_remove);
-
-  G_OBJECT_CLASS (valent_mpris_device_parent_class)->dispose (object);
-}
-
 static void
 valent_mpris_device_finalize (GObject *object)
 {
@@ -552,30 +524,14 @@ valent_mpris_device_set_property (GObject      *object,
 }
 
 static void
-valent_mpris_device_notify (GObject    *object,
-                            GParamSpec *pspec)
-{
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (object);
-  const char *name = g_param_spec_get_name (pspec);
-
-  if (g_str_equal (name, "state"))
-    valent_mpris_device_timer (self);
-
-  if (G_OBJECT_CLASS (valent_mpris_device_parent_class)->notify)
-    G_OBJECT_CLASS (valent_mpris_device_parent_class)->notify (object, pspec);
-}
-
-static void
 valent_mpris_device_class_init (ValentMprisDeviceClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentMediaPlayerClass *player_class = VALENT_MEDIA_PLAYER_CLASS (klass);
 
-  object_class->dispose = valent_mpris_device_dispose;
   object_class->finalize = valent_mpris_device_finalize;
   object_class->get_property = valent_mpris_device_get_property;
   object_class->set_property = valent_mpris_device_set_property;
-  object_class->notify = valent_mpris_device_notify;
 
   player_class->get_flags = valent_mpris_device_get_flags;
   player_class->get_metadata = valent_mpris_device_get_metadata;

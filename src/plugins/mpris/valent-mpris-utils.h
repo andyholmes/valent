@@ -37,5 +37,6 @@ ValentMediaRepeat    valent_mpris_repeat_from_string    (const char        *loop
 const char         * valent_mpris_repeat_to_string      (ValentMediaRepeat  repeat);
 ValentMediaState     valent_mpris_state_from_string     (const char        *playback_status);
 const char         * valent_mpris_state_to_string       (ValentMediaState   state);
+double               valent_mpris_get_time              (void);
 
 G_END_DECLS

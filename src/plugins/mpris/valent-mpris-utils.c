@@ -5,6 +5,8 @@
 
 #include "config.h"
 
+#include <math.h>
+
 #include <gio/gio.h>
 #include <libvalent-media.h>
 
@@ -214,5 +216,18 @@ valent_mpris_state_to_string (ValentMediaState state)
       return "Paused";
 
   return "Stopped";
+}
+
+/**
+ * valent_mpris_get_time:
+ *
+ * Get a monotonic timestamp, in seconds.
+ *
+ * Returns: a timestamp in seconds
+ */
+double
+valent_mpris_get_time (void)
+{
+  return floor (g_get_real_time () / G_TIME_SPAN_SECOND);
 }
 
