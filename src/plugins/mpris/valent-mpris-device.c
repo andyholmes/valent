@@ -423,6 +423,7 @@ valent_mpris_device_update_position (ValentMprisDevice *player,
 
   /* Convert milliseconds to seconds */
   player->position = position / 1000L;
+  g_object_notify (G_OBJECT (player), "position");
 }
 
 static void
