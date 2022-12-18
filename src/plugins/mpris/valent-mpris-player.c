@@ -25,12 +25,10 @@ struct _ValentMPRISPlayer
   double              position_time;
 };
 
-static void valent_mpris_player_sync_flags (ValentMPRISPlayer *self);
-
-static void async_initable_iface_init      (GAsyncInitableIface *iface);
+static void   g_async_initable_iface_init    (GAsyncInitableIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (ValentMPRISPlayer, valent_mpris_player, VALENT_TYPE_MEDIA_PLAYER,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, async_initable_iface_init))
+                         G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init))
 
 enum {
   PROP_0,
@@ -643,7 +641,7 @@ valent_mpris_player_init_async (GAsyncInitable      *initable,
 }
 
 static void
-async_initable_iface_init (GAsyncInitableIface *iface)
+g_async_initable_iface_init (GAsyncInitableIface *iface)
 {
   iface->init_async = valent_mpris_player_init_async;
 }
