@@ -348,3 +348,21 @@ valent_mock_media_player_update_art (ValentMockMediaPlayer *self,
   g_object_notify (G_OBJECT (self), "metadata");
 }
 
+/**
+ * valent_mock_media_player_update_flags:
+ * @self: a #ValentMockMediaPlayer
+ * @flags: a #ValentMediaActions
+ *
+ * Update the track metadata with album art at @uri.
+ *
+ * This is a convenience for unit tests, where the player must being with
+ * particular flags set.
+ */
+void
+valent_mock_media_player_update_flags (ValentMockMediaPlayer *self,
+                                       ValentMediaActions     flags)
+{
+  self->flags = flags;
+  g_object_notify (G_OBJECT (self), "flags");
+}
+

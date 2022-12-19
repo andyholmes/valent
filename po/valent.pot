@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2022-11-12 12:48-0800\n"
+"POT-Creation-Date: 2022-12-19 01:02-0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -131,6 +131,7 @@ msgstr ""
 #: src/libvalent/ui/valent-device-page.ui:19
 #: src/libvalent/ui/valent-menu-list.c:524
 #: src/libvalent/ui/valent-preferences-window.c:330
+#: src/plugins/mpris/valent-mpris-remote.ui:186
 #: src/plugins/presenter/valent-presenter-remote.ui:121
 msgid "Previous"
 msgstr ""
@@ -346,24 +347,24 @@ msgid "Sync battery statistics"
 msgstr ""
 
 #. TRANSLATORS: When the battery level is 100%
-#: src/plugins/battery/valent-battery-gadget.c:78
+#: src/plugins/battery/valent-battery-gadget.c:66
 msgid "Fully Charged"
 msgstr ""
 
 #. TRANSLATORS: This is <percentage> (Estimating…)
-#: src/plugins/battery/valent-battery-gadget.c:102
+#: src/plugins/battery/valent-battery-gadget.c:90
 #, c-format
 msgid "%g%% (Estimating…)"
 msgstr ""
 
 #. TRANSLATORS: This is <percentage> (<hours>:<minutes> Until Full)
-#: src/plugins/battery/valent-battery-gadget.c:107
+#: src/plugins/battery/valent-battery-gadget.c:95
 #, c-format
 msgid "%g%% (%d∶%02d Until Full)"
 msgstr ""
 
 #. TRANSLATORS: This is <percentage> (<hours>:<minutes> Remaining)
-#: src/plugins/battery/valent-battery-gadget.c:113
+#: src/plugins/battery/valent-battery-gadget.c:101
 #: src/plugins/battery/valent-battery-plugin.c:302
 #, c-format
 msgid "%g%% (%d∶%02d Remaining)"
@@ -593,7 +594,7 @@ msgid "Connect devices over LAN"
 msgstr ""
 
 #: src/plugins/lock/lock.plugin.desktop.in:7
-#: src/plugins/lock/valent-lock-gadget.c:121
+#: src/plugins/lock/valent-lock-gadget.c:56
 msgid "Lock"
 msgstr ""
 
@@ -653,8 +654,144 @@ msgstr ""
 msgid "Share control of MPRISv2 players"
 msgstr ""
 
-#: src/plugins/mpris/valent-mpris-plugin.c:442
+#: src/plugins/mpris/valent-mpris-plugin.c:448
 msgid "Unknown"
+msgstr ""
+
+#: src/plugins/mpris/valent-mpris-plugin.c:774
+#: src/plugins/mpris/valent-mpris-remote.ui:8
+msgid "Media Remote"
+msgstr ""
+
+#: src/plugins/mpris/valent-mpris-remote.c:278
+msgid "Pause"
+msgstr ""
+
+#: src/plugins/mpris/valent-mpris-remote.c:288
+#: src/plugins/mpris/valent-mpris-remote.ui:237
+msgid "Play"
+msgstr ""
+
+#: src/plugins/mpris/valent-mpris-remote.ui:211
+msgid "Seek Back"
+msgstr ""
+
+#: src/plugins/mpris/valent-mpris-remote.ui:262
+msgid "Seek Forward"
+msgstr ""
+
+#: src/plugins/mpris/valent-mpris-remote.ui:288
+#: src/plugins/presenter/valent-presenter-remote.ui:146
+msgid "Next"
+msgstr ""
+
+#: src/plugins/mpris/valent-mpris-remote.ui:314
+msgid "Repeat"
+msgstr ""
+
+#: src/plugins/mpris/valent-mpris-remote.ui:361
+msgid "Shuffle"
+msgstr ""
+
+#. translators: Unknown time
+#: src/plugins/mpris/valent-time-helpers.c:49
+msgid "--:--"
+msgstr ""
+
+#. hour:minutes:seconds
+#. Translators: This is a time format, like "9:05:02" for 9
+#. * hours, 5 minutes, and 2 seconds. You may change ":" to
+#. * the separator that your locale uses or use "%Id" instead
+#. * of "%d" if your locale uses localized digits.
+#.
+#: src/plugins/mpris/valent-time-helpers.c:85
+#, c-format
+msgctxt "long time format"
+msgid "%d:%02d:%02d"
+msgstr ""
+
+#. hour:minutes:seconds.msecs
+#. Translators: This is a time format, like "9:05:02.050" for 9
+#. * hours, 5 minutes, 2 seconds and 50 milliseconds. You may change ":" to
+#. * the separator that your locale uses or use "%Id" instead
+#. * of "%d" if your locale uses localized digits.
+#.
+#: src/plugins/mpris/valent-time-helpers.c:93
+#, c-format
+msgctxt "long time format"
+msgid "%d:%02d:%02d.%03d"
+msgstr ""
+
+#. -hour:minutes:seconds
+#. Translators: This is a time format, like "-9:05:02" for 9
+#. * hours, 5 minutes, and 2 seconds playback remaining. You may
+#. * change ":" to the separator that your locale uses or use
+#. * "%Id" instead of "%d" if your locale uses localized digits.
+#.
+#: src/plugins/mpris/valent-time-helpers.c:103
+#, c-format
+msgctxt "long time format"
+msgid "-%d:%02d:%02d"
+msgstr ""
+
+#. -hour:minutes:seconds.msecs
+#. Translators: This is a time format, like "-9:05:02.050" for 9
+#. * hours, 5 minutes, 2 seconds and 50 milliseconds playback remaining. You may
+#. * change ":" to the separator that your locale uses or use
+#. * "%Id" instead of "%d" if your locale uses localized digits.
+#.
+#: src/plugins/mpris/valent-time-helpers.c:111
+#, c-format
+msgctxt "long time format"
+msgid "-%d:%02d:%02d.%03d"
+msgstr ""
+
+#. -minutes:seconds
+#. Translators: This is a time format, like "-5:02" for 5
+#. * minutes and 2 seconds playback remaining. You may change
+#. * ":" to the separator that your locale uses or use "%Id"
+#. * instead of "%d" if your locale uses localized digits.
+#.
+#: src/plugins/mpris/valent-time-helpers.c:124
+#, c-format
+msgctxt "short time format"
+msgid "-%d:%02d"
+msgstr ""
+
+#. -minutes:seconds.msec
+#. Translators: This is a time format, like "-5:02.050" for 5
+#. * minutes 2 seconds and 50 milliseconds playback remaining. You may change
+#. * ":" to the separator that your locale uses or use "%Id"
+#. * instead of "%d" if your locale uses localized digits.
+#.
+#: src/plugins/mpris/valent-time-helpers.c:132
+#, c-format
+msgctxt "short time format"
+msgid "-%d:%02d.%03d"
+msgstr ""
+
+#. minutes:seconds.msec
+#. Translators: This is a time format, like "5:02" for 5
+#. * minutes 2 seconds and 50 milliseconds. You may change ":" to the
+#. * separator that your locale uses or use "%Id" instead of
+#. * "%d" if your locale uses localized digits.
+#.
+#: src/plugins/mpris/valent-time-helpers.c:143
+#, c-format
+msgctxt "short time format"
+msgid "%d:%02d.%03d"
+msgstr ""
+
+#. minutes:seconds
+#. Translators: This is a time format, like "5:02" for 5
+#. * minutes and 2 seconds. You may change ":" to the
+#. * separator that your locale uses or use "%Id" instead of
+#. * "%d" if your locale uses localized digits.
+#.
+#: src/plugins/mpris/valent-time-helpers.c:152
+#, c-format
+msgctxt "short time format"
+msgid "%d:%02d"
 msgstr ""
 
 #: src/plugins/notification/notification.plugin.desktop.in:8
@@ -667,9 +804,9 @@ msgstr ""
 
 #: src/plugins/notification/valent-notification-dialog.ui:15
 #: src/plugins/presenter/valent-presenter-remote.c:92
-#: src/plugins/runcommand/valent-runcommand-editor.c:65
+#: src/plugins/runcommand/valent-runcommand-editor.c:66
 #: src/plugins/runcommand/valent-runcommand-editor.ui:12
-#: src/plugins/runcommand/valent-runcommand-preferences.c:372
+#: src/plugins/runcommand/valent-runcommand-preferences.c:373
 #: src/plugins/share/valent-share-plugin.c:136
 #: src/plugins/share/valent-share-plugin.c:259
 #: src/plugins/share/valent-share-plugin.c:361
@@ -789,10 +926,6 @@ msgstr ""
 msgid "Stop"
 msgstr ""
 
-#: src/plugins/presenter/valent-presenter-remote.ui:146
-msgid "Next"
-msgstr ""
-
 #: src/plugins/presenter/valent-presenter-remote.ui:169
 msgid "Pointer"
 msgstr ""
@@ -815,16 +948,16 @@ msgstr ""
 msgid "Execute commands remotely"
 msgstr ""
 
-#: src/plugins/runcommand/valent-runcommand-editor.c:63
+#: src/plugins/runcommand/valent-runcommand-editor.c:64
 msgid "Select Command"
 msgstr ""
 
-#: src/plugins/runcommand/valent-runcommand-editor.c:64
+#: src/plugins/runcommand/valent-runcommand-editor.c:65
 msgid "Select"
 msgstr ""
 
 #: src/plugins/runcommand/valent-runcommand-editor.ui:8
-#: src/plugins/runcommand/valent-runcommand-preferences.c:258
+#: src/plugins/runcommand/valent-runcommand-preferences.c:259
 msgid "Edit"
 msgstr ""
 
@@ -837,23 +970,23 @@ msgstr ""
 msgid "Command Line"
 msgstr ""
 
-#: src/plugins/runcommand/valent-runcommand-plugin.c:290
+#: src/plugins/runcommand/valent-runcommand-plugin.c:314
 msgid "Run Command"
 msgstr ""
 
-#: src/plugins/runcommand/valent-runcommand-preferences.c:268
+#: src/plugins/runcommand/valent-runcommand-preferences.c:269
 msgid "Remove"
 msgstr ""
 
-#: src/plugins/runcommand/valent-runcommand-preferences.c:364
+#: src/plugins/runcommand/valent-runcommand-preferences.c:365
 msgid "Run Unrestricted?"
 msgstr ""
 
-#: src/plugins/runcommand/valent-runcommand-preferences.c:365
+#: src/plugins/runcommand/valent-runcommand-preferences.c:366
 msgid "Commands will be run on the host system without restriction."
 msgstr ""
 
-#: src/plugins/runcommand/valent-runcommand-preferences.c:373
+#: src/plugins/runcommand/valent-runcommand-preferences.c:374
 msgid "I Understand"
 msgstr ""
 
@@ -1207,20 +1340,20 @@ msgstr ""
 msgid "Be notified of incoming and ongoing calls"
 msgstr ""
 
-#: src/plugins/telephony/valent-telephony-plugin.c:278
+#: src/plugins/telephony/valent-telephony-plugin.c:280
 msgid "Unknown Contact"
 msgstr ""
 
-#: src/plugins/telephony/valent-telephony-plugin.c:308
+#: src/plugins/telephony/valent-telephony-plugin.c:310
 msgid "Incoming call"
 msgstr ""
 
-#: src/plugins/telephony/valent-telephony-plugin.c:311
+#: src/plugins/telephony/valent-telephony-plugin.c:313
 #: src/plugins/telephony/valent-telephony-preferences.ui:78
 msgid "Mute"
 msgstr ""
 
-#: src/plugins/telephony/valent-telephony-plugin.c:319
+#: src/plugins/telephony/valent-telephony-plugin.c:321
 msgid "Ongoing call"
 msgstr ""
 
