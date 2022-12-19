@@ -27,7 +27,7 @@ jobs:
           setup-args: |
             -Ddocumentation=true
             -Dtests=true
-          test-coverage: ${{ matrix.compiler == 'gcc' && matrix.suite == 'test' }}
+          test-coverage: true
           lcov-include: "'${{ github.workspace }}/src/*'"
           lcov-exclude: "'*/tests/* */subprojects/*'"
 
