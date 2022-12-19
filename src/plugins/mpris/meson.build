@@ -14,7 +14,9 @@ plugin_mpris_sources = files([
   'valent-mpris-impl.c',
   'valent-mpris-player.c',
   'valent-mpris-plugin.c',
+  'valent-mpris-remote.c',
   'valent-mpris-utils.c',
+  'valent-time-helpers.c',
 ])
 
 plugin_mpris_include_directories = [include_directories('.')]

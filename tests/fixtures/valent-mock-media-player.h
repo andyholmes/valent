@@ -11,8 +11,10 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (ValentMockMediaPlayer, valent_mock_media_player, VALENT, MOCK_MEDIA_PLAYER, ValentMediaPlayer)
 
-void   valent_mock_media_player_update_art (ValentMockMediaPlayer *self,
-                                            const char            *uri);
+void   valent_mock_media_player_update_art    (ValentMockMediaPlayer *self,
+                                               const char            *uri);
+void    valent_mock_media_player_update_flags (ValentMockMediaPlayer *self,
+                                               ValentMediaActions     flags);
 
 G_END_DECLS
 
