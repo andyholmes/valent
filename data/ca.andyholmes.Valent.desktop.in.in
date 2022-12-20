@@ -8,7 +8,6 @@ Terminal=false
 Type=Application
 Categories=GNOME;GTK;Network;
 StartupNotify=true
-MimeType=x-scheme-handler/sms;x-scheme-handler/tel;
 DBusActivatable=true
 X-GNOME-UsesNotifications=true
 # Translators: Do NOT translate or transliterate this text (these are enum types)!
