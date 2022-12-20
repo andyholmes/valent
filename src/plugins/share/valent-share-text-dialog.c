@@ -115,8 +115,6 @@ valent_share_text_dialog_response (AdwMessageDialog *dialog,
 static gboolean
 valent_share_text_dialog_close_request (GtkWindow *window)
 {
-  g_message ("%s()", G_STRFUNC);
-
   /* Chain-up to AdwMessageDialog to avoid re-entrancy with `response` */
   GTK_WINDOW_CLASS (valent_share_text_dialog_parent_class)->close_request (window);
 
