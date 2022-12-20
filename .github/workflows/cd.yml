@@ -28,8 +28,8 @@ jobs:
             -Ddocumentation=true
             -Dtests=true
           test-coverage: true
-          lcov-include: "'${{ github.workspace }}/src/*'"
-          lcov-exclude: "'*/tests/* */subprojects/*'"
+          lcov-include: '${{ github.workspace }}/src/*'
+          lcov-exclude: '*/tests/* */subprojects/*'
 
       - name: Report
         continue-on-error: true
