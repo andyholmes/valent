@@ -1,0 +1,159 @@
+name: Bug Report
+description: Report a problem
+labels: ['triage']
+body:
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      options:
+        - label: I will prove that I'm an awesome person by using my manners
+          required: true
+        - label: I agree that I am only entitled to [The Four Essential Freedoms](https://www.gnu.org/philosophy/free-sw.html#four-freedoms)
+          required: true
+        - label: I understand this project is in alpha and bugs are expected
+          required: true
+
+  - type: markdown
+    attributes:
+      value: '## Description'
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Current Behavior
+      description: A concise description of what you're experiencing.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: A concise description of what you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: List the steps to perform that will trigger the bug.
+      placeholder: |
+          1. Go to '...'
+          2. Click on '....'
+          3. Scroll down to '....'
+          4. See error
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: '## Desktop Environment'
+
+  - type: input
+    id: distribution
+    attributes:
+      label: Operating System
+      placeholder: Ubuntu 22.10, Fedora 37, Arch...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: desktop
+    attributes:
+      label: Desktop
+      options:
+        - GNOME Shell
+        - Budgie
+        - Cinnamon
+        - Pantheon (elementary)
+        - XFCE
+        - Other (please specify)
+    validations:
+      required: true
+
+  - type: input
+    id: desktop-other
+    attributes:
+      label: Other Desktop
+      placeholder: Ubuntu 22.10, Fedora 37, Arch...
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: '## Application Environment'
+
+  - type: dropdown
+    id: source
+    attributes:
+      label: Installed from
+      options:
+        - Nightly Flatpak
+        - Built from source (Flatpak)
+        - Built from source (Other)
+        - Distribution Package
+        - Other method
+    validations:
+      required: true
+
+  - type: dropdown
+    id: version
+    attributes:
+      label: Version
+      description: >
+        What version of the project are you running?
+      options:
+        - 1.0.0.alpha
+    validations:
+      required: true
+
+  - type: dropdown
+    id: devices
+    attributes:
+      label: Devices
+      description: >
+        If the problem relates to other devices, select them here.
+      multiple: true
+      options:
+        - KDE Connect (Android)
+        - KDE Connect (Desktop Linux)
+        - KDE Connect (Plasma Mobile)
+        - KDE Connect (iOS)
+        - KDE Connect (macOS)
+        - KDE Connect (SailfishOS)
+        - KDE Connect (Windows)
+        - GSConnect (GNOME Shell)
+        - Valent (Desktop Linux)
+        - Valent (Phosh)
+
+  - type: input
+    id: plugins
+    attributes:
+      label: Plugins
+      description: >
+        If the problem affects specific plugins, list them here.
+
+  - type: markdown
+    attributes:
+      value: '## Additional Information'
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: >
+        Please copy and paste any relevant log output. This will be
+        automatically formatted into code, so no need for backticks.
+      render: shell
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: >
+        Please attach any relevant screenshots or screencasts that can help
+        demonstrate the problem.
+      placeholder: >
+        Attach files by dragging & dropping or copying & pasting them.
