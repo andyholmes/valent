@@ -51,23 +51,14 @@ body:
     attributes:
       value: '## Desktop Environment'
 
-  - type: input
-    id: distribution
-    attributes:
-      label: Operating System
-      placeholder: Ubuntu 22.10, Fedora 37, Arch...
-    validations:
-      required: true
-
   - type: dropdown
     id: desktop
     attributes:
       label: Desktop
       options:
         - GNOME Shell
-        - Budgie
         - Cinnamon
-        - Pantheon (elementary)
+        - Pantheon
         - XFCE
         - Other (please specify)
     validations:
@@ -77,9 +68,17 @@ body:
     id: desktop-other
     attributes:
       label: Other Desktop
-      placeholder: Ubuntu 22.10, Fedora 37, Arch...
+      placeholder: Budgie, LXDE, MATE, ...
     validations:
       required: false
+
+  - type: input
+    id: distribution
+    attributes:
+      label: Operating System
+      placeholder: Ubuntu 22.10, Fedora 37, Arch, ...
+    validations:
+      required: true
 
   - type: markdown
     attributes:
