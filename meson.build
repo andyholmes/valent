@@ -144,7 +144,7 @@ config_h_defines = {
   'PACKAGE_TARNAME':    '@0@-@1@'.format(meson.project_name(), meson.project_version()),
   'PACKAGE_VERSION':    meson.project_version(),
   'PACKAGE_STRING':     '@0@ @1@'.format(meson.project_name(), meson.project_version()),
-  'PACKAGE_BUGREPORT':  'https://github.com/andyholmes/@0@/discussions'.format(meson.project_name()),
+  'PACKAGE_BUGREPORT':  'https://github.com/andyholmes/@0@/issues'.format(meson.project_name()),
   'PACKAGE_URL':        'https://github.com/andyholmes/@0@'.format(meson.project_name()),
 
   # i18n
