@@ -8,6 +8,7 @@
 #include <adwaita.h>
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
+#include <libportal/portal.h>
 #include <libvalent-core.h>
 #include <libvalent-device.h>
 
@@ -42,6 +43,70 @@ enum {
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
+
+static JsonNode *
+valent_get_debug_info (void)
+{
+  g_autoptr (JsonBuilder) builder = NULL;
+  g_autofree char *os_name = NULL;
+  const char *desktop = NULL;
+  const char *session = NULL;
+  const char *environment = NULL;
+  const GList *plugins = NULL;
+
+  os_name = g_get_os_info (G_OS_INFO_KEY_PRETTY_NAME);
+  desktop = g_getenv ("XDG_CURRENT_DESKTOP");
+  session = g_getenv ("XDG_SESSION_TYPE");
+  environment = xdp_portal_running_under_flatpak () ? "flatpak" :
+                  (xdp_portal_running_under_snap (NULL) ? "snap" : "host");
+
+  builder = json_builder_new ();
+  json_builder_begin_object (builder);
+
+  /* Application */
+  json_builder_set_member_name (builder, "application");
+  json_builder_begin_object (builder);
+  json_builder_set_member_name (builder, "id");
+  json_builder_add_string_value (builder, APPLICATION_ID);
+  json_builder_set_member_name (builder, "version");
+  json_builder_add_string_value (builder, VALENT_VERSION);
+  json_builder_set_member_name (builder, "commit");
+  json_builder_add_string_value (builder, VALENT_VCS_TAG);
+  json_builder_end_object (builder);
+
+  /* Runtime */
+  json_builder_set_member_name (builder, "runtime");
+  json_builder_begin_object (builder);
+  json_builder_set_member_name (builder, "os");
+  json_builder_add_string_value (builder, os_name != NULL ? os_name : "unknown");
+  json_builder_set_member_name (builder, "desktop");
+  json_builder_add_string_value (builder, desktop != NULL ? desktop : "unknown");
+  json_builder_set_member_name (builder, "session");
+  json_builder_add_string_value (builder, session != NULL ? session : "unknown");
+  json_builder_set_member_name (builder, "environment");
+  json_builder_add_string_value (builder, environment);
+  json_builder_end_object (builder);
+
+  /* Plugins */
+  plugins = peas_engine_get_plugin_list (valent_get_plugin_engine ());
+
+  json_builder_set_member_name (builder, "plugins");
+  json_builder_begin_object (builder);
+
+  for (const GList *iter = plugins; iter != NULL; iter = iter->next)
+    {
+      const char *name = peas_plugin_info_get_module_name (iter->data);
+      gboolean loaded = peas_plugin_info_is_loaded (iter->data);
+
+      json_builder_set_member_name (builder, name);
+      json_builder_add_boolean_value (builder, loaded);
+    }
+  json_builder_end_object (builder);
+
+  json_builder_end_object (builder);
+
+  return json_builder_get_root (builder);
+}
 
 /*
  * ValentDevice Callbacks
@@ -187,30 +252,28 @@ about_action (GtkWidget  *widget,
 {
   GtkWindow *window = GTK_WINDOW (widget);
   GtkWindow *dialog = NULL;
-  static const char *version = NULL;
+  g_autoptr (JsonNode) debug_json = NULL;
+  g_autofree char *debug_info = NULL;
 
   g_assert (GTK_IS_WINDOW (window));
 
-  if (version == NULL)
-    {
-      if (g_str_has_suffix (APPLICATION_ID, "Devel"))
-        version = PACKAGE_VERSION"+"VALENT_VCS_TAG;
-      else
-        version = PACKAGE_VERSION;
-    }
+  debug_json = valent_get_debug_info ();
+  debug_info = json_to_string (debug_json, TRUE);
 
   dialog = g_object_new (ADW_TYPE_ABOUT_WINDOW,
-                         "application-icon",   APPLICATION_ID,
-                         "application-name",   _("Valent"),
-                         "copyright",          "© 2022 Andy Holmes",
-                         "issue-url",          PACKAGE_BUGREPORT,
-                         "license-type",       GTK_LICENSE_GPL_3_0,
-                         "developers",         valent_application_credits_developers,
-                         "documenters",        valent_application_credits_documenters,
-                         "transient-for",      window,
-                         "translator-credits", _("translator-credits"),
-                         "version",            version,
-                         "website",            PACKAGE_URL,
+                         "application-icon",    APPLICATION_ID,
+                         "application-name",    _("Valent"),
+                         "copyright",           "© 2022 Andy Holmes",
+                         "issue-url",           PACKAGE_BUGREPORT,
+                         "license-type",        GTK_LICENSE_GPL_3_0,
+                         "debug-info",          debug_info,
+                         "debug-info-filename", "valent-debug.json",
+                         "developers",          valent_application_credits_developers,
+                         "documenters",         valent_application_credits_documenters,
+                         "transient-for",       window,
+                         "translator-credits",  _("translator-credits"),
+                         "version",             PACKAGE_VERSION,
+                         "website",             PACKAGE_URL,
                          NULL);
   adw_about_window_add_acknowledgement_section (ADW_ABOUT_WINDOW (dialog),
                                                 _("Sponsors"),
