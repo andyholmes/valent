@@ -13,12 +13,13 @@ GTK-based environments like elementaryOS or XFCE.
 
 ## Reporting an Issue
 
-This project is currently in an early stage of development and not accepting bug
-reports. Along with missing features, there are a large number of known issues
-that will be resolved as a result of planned architecture changes.
+This project is currently in alpha. It generally works as intended, but is still
+missing some features and may contain bugs. Before reporting an issue, please
+verify it has not been fixed in the `main` branch.
 
-Until the project is ready to start accepting reports, you are invited to
-discuss issues, features and get help in the [Discussions][discussions].
+* If you confirm a problem exists, open a [new issue][issues]
+* To request a feature, start a [new discussion][features]
+* To report a security vulnerability, please e-mail <valent@andyholmes.ca>
 
 
 ## Workflow
@@ -49,9 +50,8 @@ including coding style, documentation and introspection, with an emphasis on
 automated testing.
 
 If developing with GNOME Builder, select the `ca.andyholmes.Valent.Devel.json`
-build configuration. For a traditional development environment, the
-[CI Image`Dockerfile`][ci-dockerfile] can serve as a reference for build and
-test dependencies.
+build configuration. If your distribution supports `toolbox`, you can pull and
+use `ghcr.io/andyholmes/valent-toolbox` as the build environment.
 
 
 ### Coding Style
@@ -118,9 +118,9 @@ already distributed under an acceptable open source license.
 
 
 [annotations]: https://gi.readthedocs.io/en/latest/annotations/giannotations.html
-[ci-dockerfile]: https://github.com/andyholmes/valent/blob/build-aux/docker/Dockerfile
 [conventional-commits]: https://www.conventionalcommits.org
-[discussions]: https://github.com/andyholmes/valent/discussions
+[features]: https://github.com/andyholmes/valent/discussions/new?category=feature-request
+[issues]: https://github.com/andyholmes/valent/issues/new
 [linguas]: https://github.com/andyholmes/valent/blob/main/po/LINGUAS
 [po_dir]: https://github.com/andyholmes/valent/tree/main/po
 [gnome-coding-style]: https://developer.gnome.org/documentation/guidelines/programming/coding-style.html

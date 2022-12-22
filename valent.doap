@@ -17,7 +17,7 @@
   <category rdf:resource="http://api.gnome.org/doap-extensions#apps" />
 
   <bug-database rdf:resource="https://github.com/andyholmes/valent/issues/" />
-  <homepage rdf:resource="https://github.com/andyholmes/valent/" />
+  <homepage rdf:resource="https://valent.andyholmes.ca" />
   <license rdf:resource="http://usefulinc.com/doap/licenses/gpl" />
   <programming-language>C</programming-language>
 
