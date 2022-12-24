@@ -115,6 +115,38 @@ valent_share_target_chooser_create_row (gpointer item,
 }
 
 static void
+on_items_changed (GListModel               *list,
+                  unsigned int              position,
+                  unsigned int              removed,
+                  unsigned int              added,
+                  ValentShareTargetChooser *self)
+{
+  g_assert (VALENT_IS_SHARE_TARGET_CHOOSER (self));
+
+  while (removed--)
+    {
+      GtkListBoxRow *row;
+
+      row = gtk_list_box_get_row_at_index (self->device_list, position);
+      gtk_list_box_remove (self->device_list, GTK_WIDGET (row));
+    }
+
+  for (unsigned int i = 0; i < added; i++)
+    {
+      g_autoptr (GObject) item = NULL;
+      g_autoptr (GtkWidget) widget = NULL;
+
+      item = g_list_model_get_item (list, position + i);
+      widget = valent_share_target_chooser_create_row (item, NULL);
+
+      if (g_object_is_floating (widget))
+        g_object_ref_sink (widget);
+
+      gtk_list_box_insert (self->device_list, widget, position + i);
+    }
+}
+
+static void
 on_row_activated (GtkListBox               *box,
                   GtkListBoxRow            *row,
                   ValentShareTargetChooser *self)
@@ -169,14 +201,21 @@ valent_share_target_chooser_constructed (GObject *object)
   g_assert (VALENT_IS_DEVICE_MANAGER (self->manager));
   g_assert (G_IS_LIST_MODEL (self->files));
 
-  gtk_list_box_bind_model (self->device_list,
-                           G_LIST_MODEL (self->manager),
-                           valent_share_target_chooser_create_row,
-                           NULL, NULL);
+  g_signal_connect_object (self->manager,
+                           "items-changed",
+                           G_CALLBACK (on_items_changed),
+                           self, 0);
+
+  on_items_changed (G_LIST_MODEL (self->manager),
+                    0,
+                    0,
+                    g_list_model_get_n_items (G_LIST_MODEL (self->manager)),
+                    self);
 
   /* Broadcast every 5 seconds to re-connect devices that may have gone idle */
   valent_device_manager_refresh (self->manager);
-  self->refresh_id = g_timeout_add_seconds (5, refresh_cb, self);
+  self->refresh_id = g_timeout_add_seconds_full (G_PRIORITY_LOW, 5, refresh_cb,
+                                                 NULL, NULL);
 
   G_OBJECT_CLASS (valent_share_target_chooser_parent_class)->constructed (object);
 }
