@@ -26,27 +26,12 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 /*
  * Autocleanups
  */
-#ifndef glib_autoptr_clear_EBookBackendFactory
+#if !(EDS_CHECK_VERSION(3,47,0))
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (EBookBackendFactory, g_object_unref)
-#endif
-
-#ifndef glib_autoptr_clear_EBookClientView
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (EBookClientView, g_object_unref)
-#endif
-
-#ifndef glib_autoptr_clear_EBookQuery
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (EBookQuery, e_book_query_unref)
-#endif
-
-#ifndef glib_autoptr_clear_EContact
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (EContact, g_object_unref)
-#endif
-
-#ifndef glib_autoptr_clear_EContactPhoto
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (EContactPhoto, e_contact_photo_free)
-#endif
-
-#ifndef glib_autoptr_clear_EVCardAttribute
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (EVCardAttribute, e_vcard_attribute_free)
-#endif
+#endif /* !(EDS_CHECK_VERSION(3,47,0)) */
 
