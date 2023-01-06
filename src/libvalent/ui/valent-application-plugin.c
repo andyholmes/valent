@@ -189,7 +189,7 @@ valent_application_plugin_class_init (ValentApplicationPluginClass *klass)
   klass->open = valent_application_plugin_real_open;
 
   /**
-   * ValentApplicationPlugin:application:
+   * ValentApplicationPlugin:application: (getter get_application):
    *
    * The [class@Gio.Application] this plugin is bound to.
    *
@@ -204,7 +204,7 @@ valent_application_plugin_class_init (ValentApplicationPluginClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentApplicationPlugin:device-maanger:
+   * ValentApplicationPlugin:device-manager: (getter get_device_manager):
    *
    * The [class@Valent.DeviceManager] this plugin is bound to.
    *

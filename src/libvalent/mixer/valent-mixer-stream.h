@@ -18,6 +18,8 @@ G_BEGIN_DECLS
  * @VALENT_MIXER_OUTPUT: An output stream or "sink" (eg. speakers)
  *
  * Enumeration of stream directions.
+ *
+ * Since: 1.0
  */
 typedef enum
 {
