@@ -1038,6 +1038,8 @@ valent_channel_download_async (ValentChannel       *channel,
  * Finish an operation started with [method@Valent.Channel.download_async].
  *
  * Returns: (transfer full) (nullable): a #GIOStream
+ *
+ * Since: 1.0
  */
 GIOStream *
 valent_channel_download_finish (ValentChannel  *channel,
@@ -1153,6 +1155,8 @@ valent_channel_upload_async (ValentChannel       *channel,
  * Finish an operation started with [method@Valent.Channel.upload_async].
  *
  * Returns: (transfer full) (nullable): a #GIOStream
+ *
+ * Since: 1.0
  */
 GIOStream *
 valent_channel_upload_finish (ValentChannel  *channel,
