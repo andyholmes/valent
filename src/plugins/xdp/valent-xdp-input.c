@@ -36,7 +36,6 @@ struct _ValentXdpInput
   GSettings          *settings;
 
   XdpSession         *session;
-  unsigned long       session_id;
   gint64              session_expiry;
   guint               session_expiry_id;
   gboolean            session_starting;
@@ -66,7 +65,6 @@ on_session_closed (XdpSession *session,
 
   /* Mark the session as inactive */
   self->started = FALSE;
-  g_clear_signal_handler (&self->session_id, self->session);
   g_clear_object (&self->session);
 }
 
@@ -94,7 +92,7 @@ on_session_expired (gpointer user_data)
 
   /* Otherwise if there's an active session, close it */
   if (self->session != NULL)
-    on_session_closed (self->session, self);
+    xdp_session_close (self->session);
 
   // Reset the GSource Id
   self->session_expiry_id = 0;
@@ -129,12 +127,6 @@ on_session_started (XdpSession   *session,
 
       return;
     }
-
-  /* Hold a reference to the session and watch for closes */
-  self->session_id = g_signal_connect (self->session,
-                                       "closed",
-                                       G_CALLBACK (on_session_closed),
-                                       self);
 
   /* Set a timeout */
   timeout = g_settings_get_int (self->settings, "xdp-session-timeout");
@@ -174,7 +166,11 @@ on_session_created (XdpPortal    *portal,
       return;
     }
 
-  /* Hold a reference to the session and queue the start */
+  g_signal_connect_object (self->session,
+                           "closed",
+                           G_CALLBACK (on_session_closed),
+                           self, 0);
+
   parent = valent_xdp_get_parent (NULL);
   xdp_session_start (self->session,
                      parent,
@@ -342,7 +338,6 @@ valent_xdp_input_dispose (GObject *object)
       if (self->started)
         xdp_session_close (self->session);
 
-      g_clear_signal_handler (&self->session_id, self->session);
       g_clear_object (&self->session);
     }
 
