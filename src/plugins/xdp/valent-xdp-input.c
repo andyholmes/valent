@@ -25,8 +25,6 @@
 #include "valent-xdp-input.h"
 #include "valent-xdp-utils.h"
 
-#define REMOTE_SESSION_TIMEOUT 15
-
 
 struct _ValentXdpInput
 {
@@ -52,9 +50,11 @@ static void
 session_update (ValentXdpInput *self)
 {
   g_autoptr (GDateTime) now = NULL;
+  unsigned int timeout = 0;
 
   now = g_date_time_new_now_local ();
-  self->session_expiry = g_date_time_to_unix (now) + REMOTE_SESSION_TIMEOUT;
+  timeout = g_settings_get_uint (self->settings, "xdp-session-timeout");
+  self->session_expiry = g_date_time_to_unix (now) + timeout;
 }
 
 static void
@@ -65,6 +65,7 @@ on_session_closed (XdpSession *session,
 
   /* Mark the session as inactive */
   self->started = FALSE;
+  g_clear_handle_id (&self->session_expiry_id, g_source_remove);
   g_clear_object (&self->session);
 }
 
@@ -129,7 +130,7 @@ on_session_started (XdpSession   *session,
     }
 
   /* Set a timeout */
-  timeout = g_settings_get_int (self->settings, "xdp-session-timeout");
+  timeout = g_settings_get_uint (self->settings, "xdp-session-timeout");
 
   if (timeout > 0)
     {
@@ -332,14 +333,8 @@ valent_xdp_input_dispose (GObject *object)
 
   g_cancellable_cancel (self->cancellable);
 
-  /* Stop and dispose any active session */
   if (self->session != NULL)
-    {
-      if (self->started)
-        xdp_session_close (self->session);
-
-      g_clear_object (&self->session);
-    }
+    xdp_session_close (self->session);
 
   G_OBJECT_CLASS (valent_xdp_input_parent_class)->dispose (object);
 }
