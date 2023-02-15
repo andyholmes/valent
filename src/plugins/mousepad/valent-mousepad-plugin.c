@@ -285,13 +285,13 @@ valent_mousepad_plugin_mousepad_request_keyboard (ValentMousepadPlugin *self,
                                                   unsigned int          keyval,
                                                   GdkModifierType       mask)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
   unsigned int special_key = 0;
 
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
 
-  builder = valent_packet_start ("kdeconnect.mousepad.request");
+  valent_packet_init (&builder, "kdeconnect.mousepad.request");
 
   if ((special_key = valent_mousepad_keyval_to_keycode (keyval)) != 0)
     {
@@ -312,7 +312,6 @@ valent_mousepad_plugin_mousepad_request_keyboard (ValentMousepadPlugin *self,
           g_warning ("Converting %s to string: %s",
                      gdk_keyval_name (keyval),
                      error->message);
-          g_object_unref (builder);
           return;
         }
 
@@ -344,7 +343,7 @@ valent_mousepad_plugin_mousepad_request_keyboard (ValentMousepadPlugin *self,
       json_builder_add_boolean_value (builder, TRUE);
     }
 
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
@@ -355,12 +354,12 @@ valent_mousepad_plugin_mousepad_request_pointer (ValentMousepadPlugin *self,
                                                  double                dy,
                                                  gboolean              axis)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
 
-  builder = valent_packet_start ("kdeconnect.mousepad.request");
+  valent_packet_init (&builder, "kdeconnect.mousepad.request");
 
   json_builder_set_member_name (builder, "dx");
   json_builder_add_double_value (builder, dx);
@@ -373,7 +372,7 @@ valent_mousepad_plugin_mousepad_request_pointer (ValentMousepadPlugin *self,
       json_builder_add_boolean_value (builder, TRUE);
     }
 
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
@@ -382,7 +381,7 @@ static void
 valent_mousepad_plugin_send_echo (ValentMousepadPlugin *self,
                                   JsonNode             *packet)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) response = NULL;
   JsonObjectIter iter;
   const char *name;
@@ -390,7 +389,7 @@ valent_mousepad_plugin_send_echo (ValentMousepadPlugin *self,
 
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
 
-  builder = valent_packet_start ("kdeconnect.mousepad.echo");
+  valent_packet_init (&builder, "kdeconnect.mousepad.echo");
 
   json_object_iter_init (&iter, valent_packet_get_body (packet));
 
@@ -406,7 +405,7 @@ valent_mousepad_plugin_send_echo (ValentMousepadPlugin *self,
   json_builder_set_member_name (builder, "isAck");
   json_builder_add_boolean_value (builder, TRUE);
 
-  response = valent_packet_finish (builder);
+  response = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), response);
 }
@@ -414,15 +413,15 @@ valent_mousepad_plugin_send_echo (ValentMousepadPlugin *self,
 static void
 valent_mousepad_plugin_mousepad_keyboardstate (ValentMousepadPlugin *self)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
   g_return_if_fail (VALENT_IS_MOUSEPAD_PLUGIN (self));
 
-  builder = valent_packet_start ("kdeconnect.mousepad.keyboardstate");
+  valent_packet_init (&builder, "kdeconnect.mousepad.keyboardstate");
   json_builder_set_member_name (builder, "state");
   json_builder_add_boolean_value (builder, TRUE);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }

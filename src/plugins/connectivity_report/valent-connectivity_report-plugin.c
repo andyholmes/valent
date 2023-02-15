@@ -87,7 +87,7 @@ static void
 valent_connectivity_report_plugin_send_state (ValentConnectivityReportPlugin *self)
 {
   GSettings *settings;
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
   g_autoptr (JsonNode) signal_node = NULL;
 
@@ -100,10 +100,10 @@ valent_connectivity_report_plugin_send_state (ValentConnectivityReportPlugin *se
 
   signal_node = valent_telephony_get_signal_strengths (self->telephony);
 
-  builder = valent_packet_start ("kdeconnect.connectivity_report");
+  valent_packet_init (&builder, "kdeconnect.connectivity_report");
   json_builder_set_member_name (builder, "signalStrengths");
   json_builder_add_value (builder, g_steal_pointer (&signal_node));
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }

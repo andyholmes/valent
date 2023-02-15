@@ -564,15 +564,15 @@ valent_notification_plugin_handle_notification_request (ValentNotificationPlugin
 static void
 valent_notification_plugin_request_notifications (ValentNotificationPlugin *self)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
 
-  builder = valent_packet_start ("kdeconnect.notification.request");
+  valent_packet_init (&builder, "kdeconnect.notification.request");
   json_builder_set_member_name (builder, "request");
   json_builder_add_boolean_value (builder, TRUE);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
@@ -581,16 +581,16 @@ static void
 valent_notification_plugin_close_notification (ValentNotificationPlugin *self,
                                                const char               *id)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
   g_assert (id != NULL);
 
-  builder = valent_packet_start ("kdeconnect.notification.request");
+  valent_packet_init (&builder, "kdeconnect.notification.request");
   json_builder_set_member_name (builder, "cancel");
   json_builder_add_string_value (builder, id);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
@@ -662,7 +662,7 @@ valent_notification_plugin_send_notification (ValentNotificationPlugin *self,
                                               const char               *body,
                                               GIcon                    *icon)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
   g_autofree char *ticker = NULL;
 
@@ -671,7 +671,7 @@ valent_notification_plugin_send_notification (ValentNotificationPlugin *self,
   g_return_if_fail (icon == NULL || G_IS_ICON (icon));
 
   /* Build packet */
-  builder = valent_packet_start ("kdeconnect.notification");
+  valent_packet_init (&builder, "kdeconnect.notification");
   json_builder_set_member_name (builder, "id");
   json_builder_add_string_value (builder, id);
 
@@ -689,7 +689,7 @@ valent_notification_plugin_send_notification (ValentNotificationPlugin *self,
   json_builder_set_member_name (builder, "ticker");
   json_builder_add_string_value (builder, ticker);
 
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   if (icon == NULL)
     valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
@@ -706,7 +706,7 @@ notification_action_action (GSimpleAction *action,
                             gpointer       user_data)
 {
   ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (user_data);
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
   char *id;
   char *name;
@@ -715,12 +715,12 @@ notification_action_action (GSimpleAction *action,
 
   g_variant_get (parameter, "(&s&s)", &id, &name);
 
-  builder = valent_packet_start ("kdeconnect.notification.action");
+  valent_packet_init (&builder, "kdeconnect.notification.action");
   json_builder_set_member_name (builder, "key");
   json_builder_add_string_value (builder, id);
   json_builder_set_member_name (builder, "action");
   json_builder_add_string_value (builder, name);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
@@ -732,19 +732,19 @@ notification_cancel_action (GSimpleAction *action,
 {
   ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (user_data);
   const char *id;
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
 
   id = g_variant_get_string (parameter, NULL);
 
-  builder = valent_packet_start ("kdeconnect.notification");
+  valent_packet_init (&builder, "kdeconnect.notification");
   json_builder_set_member_name (builder, "id");
   json_builder_add_string_value (builder, id);
   json_builder_set_member_name (builder, "isCancel");
   json_builder_add_boolean_value (builder, TRUE);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
@@ -781,15 +781,15 @@ on_notification_reply (ValentNotificationDialog *dialog,
 
   if (response_id == GTK_RESPONSE_OK && *reply != '\0')
     {
-      JsonBuilder *builder;
+      g_autoptr (JsonBuilder) builder = NULL;
       g_autoptr (JsonNode) packet = NULL;
 
-      builder = valent_packet_start ("kdeconnect.notification.reply");
+      valent_packet_init (&builder, "kdeconnect.notification.reply");
       json_builder_set_member_name (builder, "requestReplyId");
       json_builder_add_string_value (builder, reply_id);
       json_builder_set_member_name (builder, "message");
       json_builder_add_string_value (builder, reply);
-      packet = valent_packet_finish (builder);
+      packet = valent_packet_end (&builder);
 
       valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
     }
@@ -862,15 +862,15 @@ notification_reply_action (GSimpleAction *action,
     }
   else
     {
-      JsonBuilder *builder;
+      g_autoptr (JsonBuilder) builder = NULL;
       g_autoptr (JsonNode) packet = NULL;
 
-      builder = valent_packet_start ("kdeconnect.notification.reply");
+      valent_packet_init (&builder, "kdeconnect.notification.reply");
       json_builder_set_member_name (builder, "requestReplyId");
       json_builder_add_string_value (builder, reply_id);
       json_builder_set_member_name (builder, "message");
       json_builder_add_string_value (builder, message);
-      packet = valent_packet_finish (builder);
+      packet = valent_packet_end (&builder);
 
       valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
     }

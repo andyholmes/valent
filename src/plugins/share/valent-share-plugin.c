@@ -398,17 +398,17 @@ valent_share_plugin_open_file (ValentSharePlugin *self,
   ValentDevice *device = NULL;
   g_autoptr (ValentTransfer) transfer = NULL;
   g_autofree char *filename = NULL;
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
   filename = g_file_get_basename (file);
 
-  builder = valent_packet_start ("kdeconnect.share.request");
+  valent_packet_init (&builder, "kdeconnect.share.request");
   json_builder_set_member_name (builder, "filename");
   json_builder_add_string_value (builder, filename);
   json_builder_set_member_name (builder, "open");
   json_builder_add_boolean_value (builder, TRUE);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   /* File uploads that request to be opened are sent as discrete transfers
    * because the remote client (i.e. kdeconnect-android) may download them
@@ -745,13 +745,13 @@ share_open_action (GSimpleAction *action,
     }
   else
     {
-      JsonBuilder *builder;
+      g_autoptr (JsonBuilder) builder = NULL;
       g_autoptr (JsonNode) packet = NULL;
 
-      builder = valent_packet_start ("kdeconnect.share.request");
+      valent_packet_init (&builder, "kdeconnect.share.request");
       json_builder_set_member_name (builder, "url");
       json_builder_add_string_value (builder, uri_string);
-      packet = valent_packet_finish (builder);
+      packet = valent_packet_end (&builder);
 
       valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
     }
@@ -773,7 +773,7 @@ share_text_action (GSimpleAction *action,
 {
   ValentSharePlugin *self = VALENT_SHARE_PLUGIN (user_data);
   const char *text;
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
@@ -781,10 +781,10 @@ share_text_action (GSimpleAction *action,
 
   text = g_variant_get_string (parameter, NULL);
 
-  builder = valent_packet_start ("kdeconnect.share.request");
+  valent_packet_init (&builder, "kdeconnect.share.request");
   json_builder_set_member_name (builder, "text");
   json_builder_add_string_value (builder, text);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
@@ -831,13 +831,13 @@ share_uri_action (GSimpleAction *action,
     }
   else
     {
-      JsonBuilder *builder;
+      g_autoptr (JsonBuilder) builder = NULL;
       g_autoptr (JsonNode) packet = NULL;
 
-      builder = valent_packet_start ("kdeconnect.share.request");
+      valent_packet_init (&builder, "kdeconnect.share.request");
       json_builder_set_member_name (builder, "url");
       json_builder_add_string_value (builder, uri_string);
-      packet = valent_packet_finish (builder);
+      packet = valent_packet_end (&builder);
 
       valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
     }

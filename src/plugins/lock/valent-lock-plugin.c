@@ -36,7 +36,7 @@ static void valent_lock_plugin_send_state    (ValentLockPlugin *self);
 static void
 valent_lock_plugin_send_state (ValentLockPlugin *self)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
   gboolean state;
 
@@ -44,10 +44,10 @@ valent_lock_plugin_send_state (ValentLockPlugin *self)
 
   state = valent_session_get_locked (self->session);
 
-  builder = valent_packet_start ("kdeconnect.lock");
+  valent_packet_init (&builder, "kdeconnect.lock");
   json_builder_set_member_name (builder, "isLocked");
   json_builder_add_boolean_value (builder, state);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
@@ -95,13 +95,13 @@ valent_lock_plugin_handle_lock (ValentLockPlugin *self,
 static void
 valent_lock_plugin_request_state (ValentLockPlugin *self)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
-  builder = valent_packet_start ("kdeconnect.lock.request");
+  valent_packet_init (&builder, "kdeconnect.lock.request");
   json_builder_set_member_name (builder, "requestLocked");
   json_builder_add_boolean_value (builder, TRUE);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
@@ -110,13 +110,13 @@ static void
 valent_lock_plugin_set_state (ValentLockPlugin *self,
                               gboolean          state)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
-  builder = valent_packet_start ("kdeconnect.lock.request");
+  valent_packet_init (&builder, "kdeconnect.lock.request");
   json_builder_set_member_name (builder, "setLocked");
   json_builder_add_boolean_value (builder, state);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }

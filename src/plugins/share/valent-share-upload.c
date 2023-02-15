@@ -52,16 +52,16 @@ static void
 valent_share_upload_update (ValentShareUpload *self)
 {
   g_autoptr (JsonNode) packet = NULL;
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
 
   g_assert (VALENT_IS_SHARE_UPLOAD (self));
 
-  builder = valent_packet_start ("kdeconnect.share.request.update");
+  valent_packet_init (&builder, "kdeconnect.share.request.update");
   json_builder_set_member_name (builder, "numberOfFiles");
   json_builder_add_int_value (builder, self->items->len);
   json_builder_set_member_name (builder, "totalPayloadSize");
   json_builder_add_int_value (builder, self->payload_size);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_queue_packet (self->device, packet);
 }
@@ -393,7 +393,7 @@ valent_share_upload_add_files_task (GTask        *task,
       g_autoptr (ValentTransfer) transfer = NULL;
       g_autoptr (GFileInfo) info = NULL;
       g_autoptr (JsonNode) packet = NULL;
-      JsonBuilder *builder;
+      g_autoptr (JsonBuilder) builder = NULL;
       const char *filename;
       goffset payload_size;
       g_autoptr (GError) error = NULL;
@@ -411,12 +411,12 @@ valent_share_upload_add_files_task (GTask        *task,
       filename = g_file_info_get_name (info);
       payload_size = g_file_info_get_size (info);
 
-      builder = valent_packet_start ("kdeconnect.share.request");
+      valent_packet_init (&builder, "kdeconnect.share.request");
       json_builder_set_member_name (builder, "filename");
       json_builder_add_string_value (builder, filename);
       json_builder_set_member_name (builder, "open");
       json_builder_add_boolean_value (builder, FALSE);
-      packet = valent_packet_finish (builder);
+      packet = valent_packet_end (&builder);
 
       valent_packet_set_payload_size (packet, payload_size);
 

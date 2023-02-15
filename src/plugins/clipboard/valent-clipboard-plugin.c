@@ -36,7 +36,7 @@ static void
 valent_clipboard_plugin_clipboard (ValentClipboardPlugin *self,
                                    const char            *content)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
   g_return_if_fail (VALENT_IS_CLIPBOARD_PLUGIN (self));
@@ -46,10 +46,10 @@ valent_clipboard_plugin_clipboard (ValentClipboardPlugin *self,
     return;
 
   /* Build the packet */
-  builder = valent_packet_start ("kdeconnect.clipboard");
+  valent_packet_init (&builder, "kdeconnect.clipboard");
   json_builder_set_member_name (builder, "content");
   json_builder_add_string_value (builder, content);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
@@ -59,7 +59,7 @@ valent_clipboard_plugin_clipboard_connect (ValentClipboardPlugin *self,
                                            const char            *content,
                                            gint64                 timestamp)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
   g_return_if_fail (VALENT_IS_CLIPBOARD_PLUGIN (self));
@@ -69,12 +69,12 @@ valent_clipboard_plugin_clipboard_connect (ValentClipboardPlugin *self,
     return;
 
   /* Build the packet */
-  builder = valent_packet_start ("kdeconnect.clipboard.connect");
+  valent_packet_init (&builder, "kdeconnect.clipboard.connect");
   json_builder_set_member_name (builder, "content");
   json_builder_add_string_value (builder, content);
   json_builder_set_member_name (builder, "timestamp");
   json_builder_add_int_value (builder, timestamp);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }

@@ -102,7 +102,7 @@ valent_battery_plugin_handle_battery_request (ValentBatteryPlugin *self,
 static void
 valent_battery_plugin_send_state (ValentBatteryPlugin *self)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
   GSettings *settings;
   int current_charge;
@@ -120,14 +120,14 @@ valent_battery_plugin_send_state (ValentBatteryPlugin *self)
   is_charging = valent_battery_is_charging (self->battery);
   threshold_event = valent_battery_threshold_event (self->battery);
 
-  builder = valent_packet_start ("kdeconnect.battery");
+  valent_packet_init (&builder, "kdeconnect.battery");
   json_builder_set_member_name (builder, "currentCharge");
   json_builder_add_int_value (builder, current_charge);
   json_builder_set_member_name (builder, "isCharging");
   json_builder_add_boolean_value (builder, is_charging);
   json_builder_set_member_name (builder, "thresholdEvent");
   json_builder_add_int_value (builder, threshold_event);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
@@ -355,15 +355,15 @@ valent_battery_plugin_handle_battery (ValentBatteryPlugin *self,
 static void
 valent_battery_plugin_request_state (ValentBatteryPlugin *self)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
   g_assert (VALENT_IS_BATTERY_PLUGIN (self));
 
-  builder = valent_packet_start ("kdeconnect.battery.request");
+  valent_packet_init (&builder, "kdeconnect.battery.request");
   json_builder_set_member_name (builder, "request");
   json_builder_add_boolean_value (builder, TRUE);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }

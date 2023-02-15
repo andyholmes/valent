@@ -95,7 +95,7 @@ valent_mpris_plugin_send_album_art (ValentMprisPlugin *self,
   const char *real_uri;
   g_autoptr (GFile) real_file = NULL;
   g_autoptr (GFile) requested_file = NULL;
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
   g_autoptr (ValentTransfer) transfer = NULL;
   ValentDevice *device;
@@ -127,14 +127,14 @@ valent_mpris_plugin_send_album_art (ValentMprisPlugin *self,
     }
 
   /* Build the payload packet */
-  builder = valent_packet_start ("kdeconnect.mpris");
+  valent_packet_init (&builder, "kdeconnect.mpris");
   json_builder_set_member_name (builder, "player");
   json_builder_add_string_value (builder, valent_media_player_get_name (player));
   json_builder_set_member_name (builder, "albumArtUrl");
   json_builder_add_string_value (builder, requested_uri);
   json_builder_set_member_name (builder, "transferringAlbumArt");
   json_builder_add_boolean_value (builder, TRUE);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   /* Start the transfer */
   device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
@@ -189,7 +189,7 @@ on_player_seeked (ValentMedia       *media,
                   ValentMprisPlugin *self)
 {
   const char *name;
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
   g_assert (VALENT_IS_MPRIS_PLUGIN (self));
@@ -197,12 +197,12 @@ on_player_seeked (ValentMedia       *media,
   name = valent_media_player_get_name (player);
 
   /* Convert seconds to milliseconds */
-  builder = valent_packet_start ("kdeconnect.mpris");
+  valent_packet_init (&builder, "kdeconnect.mpris");
   json_builder_set_member_name (builder, "player");
   json_builder_add_string_value (builder, name);
   json_builder_set_member_name (builder, "pos");
   json_builder_add_int_value (builder, position * 1000L);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
@@ -329,14 +329,14 @@ valent_mpris_plugin_send_player_info (ValentMprisPlugin *self,
                                       gboolean           request_volume)
 {
   const char *name;
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) response = NULL;
 
   g_assert (VALENT_IS_MPRIS_PLUGIN (self));
   g_assert (VALENT_IS_MEDIA_PLAYER (player));
 
   /* Start the packet */
-  builder = valent_packet_start ("kdeconnect.mpris");
+  valent_packet_init (&builder, "kdeconnect.mpris");
 
   name = valent_media_player_get_name (player);
   json_builder_set_member_name (builder, "player");
@@ -462,20 +462,20 @@ valent_mpris_plugin_send_player_info (ValentMprisPlugin *self,
     }
 
   /* Send Response */
-  response = valent_packet_finish (builder);
+  response = valent_packet_end (&builder);
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), response);
 }
 
 static void
 valent_mpris_plugin_send_player_list (ValentMprisPlugin *self)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
   unsigned int n_players = 0;
 
   g_assert (VALENT_IS_MPRIS_PLUGIN (self));
 
-  builder = valent_packet_start ("kdeconnect.mpris");
+  valent_packet_init (&builder, "kdeconnect.mpris");
 
   /* Player List */
   json_builder_set_member_name (builder, "playerList");
@@ -501,7 +501,7 @@ valent_mpris_plugin_send_player_list (ValentMprisPlugin *self)
   json_builder_set_member_name (builder, "supportAlbumArtPayload");
   json_builder_add_boolean_value (builder, TRUE);
 
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
@@ -544,13 +544,13 @@ valent_mpris_plugin_watch_media (ValentMprisPlugin *self,
 static void
 valent_mpris_plugin_request_player_list (ValentMprisPlugin *self)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
-  builder = valent_packet_start ("kdeconnect.mpris.request");
+  valent_packet_init (&builder, "kdeconnect.mpris.request");
   json_builder_set_member_name (builder, "requestPlayerList");
   json_builder_add_boolean_value (builder, TRUE);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
@@ -618,17 +618,17 @@ static void
 valent_mpris_plugin_request_update (ValentMprisPlugin *self,
                                     const char        *player)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
-  builder = valent_packet_start ("kdeconnect.mpris.request");
+  valent_packet_init (&builder, "kdeconnect.mpris.request");
   json_builder_set_member_name (builder, "player");
   json_builder_add_string_value (builder, player);
   json_builder_set_member_name (builder, "requestNowPlaying");
   json_builder_add_boolean_value (builder, TRUE);
   json_builder_set_member_name (builder, "requestVolume");
   json_builder_add_boolean_value (builder, TRUE);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }

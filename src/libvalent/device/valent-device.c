@@ -482,7 +482,7 @@ static void
 valent_device_send_pair (ValentDevice *device,
                          gboolean      pair)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
   g_autoptr (GCancellable) cancellable = NULL;
 
@@ -496,10 +496,10 @@ valent_device_send_pair (ValentDevice *device,
       return;
     }
 
-  builder = valent_packet_start ("kdeconnect.pair");
+  valent_packet_init (&builder, "kdeconnect.pair");
   json_builder_set_member_name (builder, "pair");
   json_builder_add_boolean_value (builder, pair);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_channel_write_packet (device->channel,
                                packet,

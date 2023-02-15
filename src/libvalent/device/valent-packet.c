@@ -16,7 +16,7 @@ G_DEFINE_QUARK (valent-packet-error, valent_packet_error)
 
 /**
  * valent_packet_new:
- * @type: A KDE Connect packet type
+ * @type: a KDE Connect packet type
  *
  * A convenience function for creating a new KDE Connect packet with the type
  * field set to @type.
@@ -46,68 +46,78 @@ valent_packet_new (const char *type)
   return json_builder_get_root (builder);
 }
 
+
 /**
- * valent_packet_start:
- * @type: A KDE Connect packet type
+ * valent_packet_init: (skip)
+ * @builder: a location to initialize a `JsonBuilder`
+ * @type: a KDE Connect packet type
  *
- * A convenience function for building the first half of a KDE Connect packet
- * and returning a #JsonBuilder positioned in the `body` object. Add members to
- * the and call valent_packet_finish() to close the #JsonBuilder and get the
- * result.
+ * Initialize a [class@Json.Builder] and KDE Connect packet.
  *
- * Returns: (transfer full) (nullable): A #JsonBuilder object
+ * Creates a new [class@Json.Builder] and initializes a packet for @type,
+ * leaving the builder in the `body` object. Call [func@Valent.packet_end]
+ * to finish the packet and get the result.
+ *
+ * ```c
+ * g_autoptr (JsonBuilder) builder = NULL;
+ * g_autoptr (JsonNode) packet = NULL;
+ *
+ * valent_packet_init (&builder, "kdeconnect.ping");
+ * json_builder_set_member_name (builder, "message");
+ * json_builder_add_string_value (builder, "Ping!");
+ * packet = valent_packet_end (&builder);
+ * ```
+ *
  *
  * Since: 1.0
  */
-JsonBuilder *
-valent_packet_start (const char *type)
+void
+valent_packet_init (JsonBuilder **builder,
+                    const char   *type)
 {
-  JsonBuilder *builder;
+  g_return_if_fail (builder != NULL && *builder == NULL);
+  g_return_if_fail (type != NULL && *type != '\0');
 
-  g_return_val_if_fail (type != NULL, NULL);
+  *builder = json_builder_new ();
+  json_builder_begin_object (*builder);
+  json_builder_set_member_name (*builder, "id");
+  json_builder_add_int_value (*builder, 0);
+  json_builder_set_member_name (*builder, "type");
+  json_builder_add_string_value (*builder, type);
+  json_builder_set_member_name (*builder, "body");
 
-  builder = json_builder_new ();
-  json_builder_begin_object (builder);
-
-  json_builder_set_member_name (builder, "id");
-  json_builder_add_int_value (builder, 0);
-  json_builder_set_member_name (builder, "type");
-  json_builder_add_string_value (builder, type);
-
-  /* body */
-  json_builder_set_member_name (builder, "body");
-  json_builder_begin_object (builder);
-
-  return builder;
+  json_builder_begin_object (*builder);
 }
 
 /**
- * valent_packet_finish:
- * @builder: (transfer full): a #JsonBuilder
+ * valent_packet_end: (skip)
+ * @builder: a pointer to a `JsonBuilder`
  *
- * Finishes a packet started with valent_packet_start() and returns the finished
- * #JsonNode packet. @builder will be consumed by this function.
+ * Finish a packet created with [func@Valent.packet_init].
  *
- * Returns: (transfer full): a KDE Connect packet
+ * This function closes the `body` and root objects, then calls
+ * [method@Json.Builder.get_root]. Then the reference count of @builder is
+ * decreased and the pointer is set to %NULL, before returning the packet.
+ *
+ * Returns: (transfer full) (nullable): a KDE Connect packet
  *
  * Since: 1.0
  */
 JsonNode *
-valent_packet_finish (JsonBuilder *builder)
+valent_packet_end (JsonBuilder **builder)
 {
-  JsonNode *packet;
+  JsonNode *ret = NULL;
 
-  g_return_val_if_fail (JSON_IS_BUILDER (builder), NULL);
+  g_return_val_if_fail (builder != NULL && JSON_IS_BUILDER (*builder), NULL);
 
-  /* Finish the "body" object and packet object */
-  json_builder_end_object (builder);
-  json_builder_end_object (builder);
+  /* Finish the `body` object and the root object */
+  json_builder_end_object (*builder);
+  json_builder_end_object (*builder);
 
-  /* Get the root object and consume the builder */
-  packet = json_builder_get_root (builder);
-  g_object_unref (builder);
+  ret = json_builder_get_root (*builder);
+  g_clear_object (builder);
 
-  return packet;
+  return g_steal_pointer (&ret);
 }
 
 /**

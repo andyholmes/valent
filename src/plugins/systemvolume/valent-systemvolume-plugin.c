@@ -72,7 +72,7 @@ on_stream_changed (ValentMixerStream        *stream,
   gboolean enabled;
   gboolean muted;
   unsigned int volume;
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
   g_assert (VALENT_IS_MIXER_STREAM (stream));
@@ -108,7 +108,7 @@ on_stream_changed (ValentMixerStream        *stream,
     return;
 
   /* Sink update */
-  builder = valent_packet_start ("kdeconnect.systemvolume");
+  valent_packet_init (&builder, "kdeconnect.systemvolume");
   json_builder_set_member_name (builder, "name");
   json_builder_add_string_value (builder, state->name);
 
@@ -133,7 +133,7 @@ on_stream_changed (ValentMixerStream        *stream,
       json_builder_add_boolean_value (builder, state->enabled);
     }
 
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
@@ -282,14 +282,14 @@ valent_systemvolume_plugin_watch_mixer (ValentSystemvolumePlugin *self,
 static void
 valent_systemvolume_plugin_send_sinklist (ValentSystemvolumePlugin *self)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
   unsigned int max_volume = 100;
 
   g_assert (VALENT_IS_SYSTEMVOLUME_PLUGIN (self));
 
   /* Sink List */
-  builder = valent_packet_start ("kdeconnect.systemvolume");
+  valent_packet_init (&builder, "kdeconnect.systemvolume");
   json_builder_set_member_name (builder, "sinkList");
   json_builder_begin_array (builder);
 
@@ -316,7 +316,7 @@ valent_systemvolume_plugin_send_sinklist (ValentSystemvolumePlugin *self)
     }
 
   json_builder_end_array (builder);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }

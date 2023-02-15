@@ -276,13 +276,13 @@ valent_sms_plugin_request_conversation (ValentSmsPlugin *self,
                                         gint64           start_date,
                                         gint64           max_results)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
   g_return_if_fail (VALENT_IS_SMS_PLUGIN (self));
   g_return_if_fail (thread_id >= 0);
 
-  builder = valent_packet_start ("kdeconnect.sms.request_conversation");
+  valent_packet_init (&builder, "kdeconnect.sms.request_conversation");
   json_builder_set_member_name (builder, "threadID");
   json_builder_add_int_value (builder, thread_id);
 
@@ -298,7 +298,7 @@ valent_sms_plugin_request_conversation (ValentSmsPlugin *self,
       json_builder_add_int_value (builder, max_results);
     }
 
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
@@ -306,13 +306,13 @@ valent_sms_plugin_request_conversation (ValentSmsPlugin *self,
 static void
 valent_sms_plugin_request_conversations (ValentSmsPlugin *self)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
   g_return_if_fail (VALENT_IS_SMS_PLUGIN (self));
 
-  builder = valent_packet_start ("kdeconnect.sms.request_conversations");
-  packet = valent_packet_finish (builder);
+  valent_packet_init (&builder, "kdeconnect.sms.request_conversations");
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
@@ -321,7 +321,7 @@ static void
 valent_sms_plugin_request (ValentSmsPlugin *self,
                            ValentMessage   *message)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
   GVariant *metadata;
   g_autoptr (GVariant) addresses = NULL;
@@ -343,7 +343,7 @@ valent_sms_plugin_request (ValentSmsPlugin *self,
       sub_id = -1;
 
   // Build the packet
-  builder = valent_packet_start ("kdeconnect.sms.request");
+  valent_packet_init (&builder, "kdeconnect.sms.request");
 
   json_builder_set_member_name (builder, "version");
   json_builder_add_int_value (builder, 2);
@@ -359,7 +359,7 @@ valent_sms_plugin_request (ValentSmsPlugin *self,
   json_builder_set_member_name (builder, "subID");
   json_builder_add_int_value (builder, sub_id);
 
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
