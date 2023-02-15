@@ -33,13 +33,7 @@ valent_runcommand_can_spawn_host (void)
 
           g_spawn_command_line_sync ("flatpak-spawn --host true",
                                      NULL, NULL, &status, NULL);
-#if GLIB_CHECK_VERSION(2, 70, 0)
-          G_GNUC_BEGIN_IGNORE_DEPRECATIONS
           host = g_spawn_check_wait_status (status, NULL);
-          G_GNUC_END_IGNORE_DEPRECATIONS
-#else
-          host = g_spawn_check_exit_status (status, NULL);
-#endif /* GLIB_CHECK_VERSION(2, 70, 0) */
         }
 
       g_once_init_leave (&guard, 1);
