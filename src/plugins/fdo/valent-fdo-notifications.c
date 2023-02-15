@@ -105,14 +105,7 @@ _g_icon_new_for_variant (GVariant *image_data)
       return NULL;
     }
 
-#if GLIB_CHECK_VERSION (2, 68, 0)
-  G_GNUC_BEGIN_IGNORE_DEPRECATIONS
   data = g_memdup2 (g_variant_get_data (data_variant), data_len);
-  G_GNUC_END_IGNORE_DEPRECATIONS
-#else
-  data = g_memdup (g_variant_get_data (data_variant), (guint)data_len);
-#endif /* GLIB_CHECK_VERSION (2, 68, 0) */
-
   pixbuf = gdk_pixbuf_new_from_data (data,
                                      GDK_COLORSPACE_RGB,
                                      has_alpha,
