@@ -41,15 +41,15 @@ export_cb (ValentMPRISImpl   *impl,
 static JsonNode *
 create_albumart_request (const char *art_url)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
 
-  builder = valent_packet_start ("kdeconnect.mpris.request");
+  valent_packet_init (&builder, "kdeconnect.mpris.request");
   json_builder_set_member_name (builder, "player");
   json_builder_add_string_value (builder, "Mock Player");
   json_builder_set_member_name (builder, "albumArtUrl");
   json_builder_add_string_value (builder, art_url);
 
-  return valent_packet_finish (builder);
+  return valent_packet_end (&builder);
 }
 
 static void

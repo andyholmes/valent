@@ -93,9 +93,10 @@ valent_packet_is_valid (JsonNode *packet)
 VALENT_AVAILABLE_IN_1_0
 JsonNode    * valent_packet_new              (const char     *type);
 VALENT_AVAILABLE_IN_1_0
-JsonBuilder * valent_packet_start            (const char     *type);
+void          valent_packet_init             (JsonBuilder   **builder,
+                                              const char     *type);
 VALENT_AVAILABLE_IN_1_0
-JsonNode    * valent_packet_finish           (JsonBuilder    *builder);
+JsonNode    * valent_packet_end              (JsonBuilder   **builder);
 VALENT_AVAILABLE_IN_1_0
 gint64        valent_packet_get_id           (JsonNode       *packet);
 VALENT_AVAILABLE_IN_1_0

@@ -55,14 +55,14 @@ packet_fixture_tear_down (PacketFixture *fixture,
 static void
 test_packet_builder (void)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
   gint64 id;
   const char *type;
   JsonObject *body;
 
-  builder = valent_packet_start ("kdeconnect.mock");
-  packet = valent_packet_finish (builder);
+  valent_packet_init (&builder, "kdeconnect.mock");
+  packet = valent_packet_end (&builder);
   g_assert_true (valent_packet_is_valid (packet));
 
   id = valent_packet_get_id (packet);
@@ -78,7 +78,7 @@ test_packet_builder (void)
 static void
 test_packet_get (void)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
   gboolean boolean_value = FALSE;
   double double_value = 0.0;
@@ -88,7 +88,7 @@ test_packet_get (void)
   JsonObject *object_value;
   g_auto (GStrv) strv = NULL;
 
-  builder = valent_packet_start ("kdeconnect.mock");
+  valent_packet_init (&builder, "kdeconnect.mock");
   json_builder_set_member_name (builder, "boolean");
   json_builder_add_boolean_value (builder, TRUE);
   json_builder_set_member_name (builder, "double");
@@ -105,7 +105,7 @@ test_packet_get (void)
   json_builder_set_member_name (builder, "object");
   json_builder_begin_object (builder);
   json_builder_end_object (builder);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   g_assert_true (valent_packet_is_valid (packet));
 

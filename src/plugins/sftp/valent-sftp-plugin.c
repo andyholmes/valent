@@ -509,7 +509,7 @@ valent_sftp_plugin_handle_request (ValentSftpPlugin *self,
                                    JsonNode         *packet)
 {
   GSettings *settings;
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) response = NULL;
 
   g_assert (VALENT_IS_SFTP_PLUGIN (self));
@@ -518,7 +518,7 @@ valent_sftp_plugin_handle_request (ValentSftpPlugin *self,
     return;
 
   settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
-  builder = valent_packet_start ("kdeconnect.sftp");
+  valent_packet_init (&builder, "kdeconnect.sftp");
 
   if (g_settings_get_boolean (settings, "local-allow"))
     {
@@ -547,14 +547,14 @@ valent_sftp_plugin_handle_request (ValentSftpPlugin *self,
       json_builder_add_string_value (builder, _("Permission denied"));
     }
 
-  response = valent_packet_finish (builder);
+  response = valent_packet_end (&builder);
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), response);
 }
 
 static void
 valent_sftp_plugin_sftp_request (ValentSftpPlugin *self)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
   g_assert (VALENT_IS_SFTP_PLUGIN (self));
@@ -562,10 +562,10 @@ valent_sftp_plugin_sftp_request (ValentSftpPlugin *self)
   if (sftp_session_find (self))
     return;
 
-  builder = valent_packet_start ("kdeconnect.sftp.request");
+  valent_packet_init (&builder, "kdeconnect.sftp.request");
   json_builder_set_member_name (builder, "startBrowsing");
   json_builder_add_boolean_value (builder, TRUE);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }

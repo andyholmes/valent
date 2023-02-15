@@ -34,7 +34,7 @@ valent_contact_store_query_vcards_cb (ValentContactStore   *store,
                                       GAsyncResult         *result,
                                       ValentContactsPlugin *self)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) response = NULL;
   g_autoslist (GObject) contacts = NULL;
   g_autoptr (GError) error = NULL;
@@ -49,7 +49,7 @@ valent_contact_store_query_vcards_cb (ValentContactStore   *store,
       return;
     }
 
-  builder = valent_packet_start ("kdeconnect.contacts.response_vcards");
+  valent_packet_init (&builder, "kdeconnect.contacts.response_vcards");
 
   /* Add UIDs */
   json_builder_set_member_name (builder, "uids");
@@ -78,7 +78,7 @@ valent_contact_store_query_vcards_cb (ValentContactStore   *store,
     }
 
   /* Finish and send the response */
-  response = valent_packet_finish (builder);
+  response = valent_packet_end (&builder);
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), response);
 }
 
@@ -152,7 +152,7 @@ valent_contact_store_query_uids_cb (ValentContactStore   *store,
                                     GAsyncResult         *result,
                                     ValentContactsPlugin *self)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) response = NULL;
   g_autoslist (GObject) contacts = NULL;
   g_autoptr (GError) error = NULL;
@@ -170,7 +170,7 @@ valent_contact_store_query_uids_cb (ValentContactStore   *store,
     g_warning ("%s(): %s", G_STRFUNC, error->message);
 
   /* Build response */
-  builder = valent_packet_start ("kdeconnect.contacts.response_uids_timestamps");
+  valent_packet_init (&builder, "kdeconnect.contacts.response_uids_timestamps");
 
   for (const GSList *iter = contacts; iter; iter = iter->next)
     {
@@ -186,7 +186,7 @@ valent_contact_store_query_uids_cb (ValentContactStore   *store,
       json_builder_add_int_value (builder, timestamp);
     }
 
-  response = valent_packet_finish (builder);
+  response = valent_packet_end (&builder);
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), response);
 }
 
@@ -224,7 +224,7 @@ valent_contact_plugin_handle_response_uids_timestamps (ValentContactsPlugin *sel
                                                        JsonNode             *packet)
 {
   g_autoptr (JsonNode) request = NULL;
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   JsonObjectIter iter;
   const char *uid;
   JsonNode *node;
@@ -233,7 +233,7 @@ valent_contact_plugin_handle_response_uids_timestamps (ValentContactsPlugin *sel
   g_assert (VALENT_IS_CONTACTS_PLUGIN (self));
 
   /* Start the packet */
-  builder = valent_packet_start ("kdeconnect.contacts.request_vcards_by_uid");
+  valent_packet_init (&builder, "kdeconnect.contacts.request_vcards_by_uid");
   json_builder_set_member_name (builder, "uids");
   json_builder_begin_array (builder);
 
@@ -260,7 +260,7 @@ valent_contact_plugin_handle_response_uids_timestamps (ValentContactsPlugin *sel
     }
 
   json_builder_end_array (builder);
-  request = valent_packet_finish (builder);
+  request = valent_packet_end (&builder);
 
   if (n_requested > 0)
     valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), request);

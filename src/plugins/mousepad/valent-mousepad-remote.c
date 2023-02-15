@@ -95,7 +95,7 @@ on_key_pressed (GtkEventControllerKey *controller,
 {
   GdkEvent *event;
   unsigned int special_key;
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
   g_assert (VALENT_IS_MOUSEPAD_REMOTE (self));
@@ -106,7 +106,7 @@ on_key_pressed (GtkEventControllerKey *controller,
   if (keyval == 0 || gdk_key_event_is_modifier (event))
     return TRUE;
 
-  builder = valent_packet_start ("kdeconnect.mousepad.request");
+  valent_packet_init (&builder, "kdeconnect.mousepad.request");
 
   /* Check for control character or printable key */
   if ((special_key = valent_mousepad_keyval_to_keycode (keyval)) > 0)
@@ -128,7 +128,6 @@ on_key_pressed (GtkEventControllerKey *controller,
           g_warning ("Converting %s to string: %s",
                      gdk_keyval_name (keyval),
                      error->message);
-          g_object_unref (builder);
           return TRUE;
         }
 
@@ -165,7 +164,7 @@ on_key_pressed (GtkEventControllerKey *controller,
   json_builder_set_member_name (builder, "sendAck");
   json_builder_add_boolean_value (builder, TRUE);
 
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
   valent_device_queue_packet (self->device, packet);
 
   return TRUE;
@@ -387,20 +386,20 @@ valent_mousepad_remote_pointer_axis (ValentMousepadRemote *self,
                                      double                dx,
                                      double                dy)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
   /* NOTE: We only support the Y-axis */
   dx = 0.0;
 
-  builder = valent_packet_start ("kdeconnect.mousepad.request");
+  valent_packet_init (&builder, "kdeconnect.mousepad.request");
   json_builder_set_member_name (builder, "dx");
   json_builder_add_double_value (builder, dx);
   json_builder_set_member_name (builder, "dy");
   json_builder_add_double_value (builder, dy);
   json_builder_set_member_name (builder, "scroll");
   json_builder_add_boolean_value (builder, TRUE);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_queue_packet (self->device, packet);
 }
@@ -410,12 +409,12 @@ valent_mousepad_remote_pointer_button (ValentMousepadRemote *self,
                                        unsigned int          button,
                                        unsigned int          n_press)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
   if (n_press == 1)
     {
-      builder = valent_packet_start ("kdeconnect.mousepad.request");
+      valent_packet_init (&builder, "kdeconnect.mousepad.request");
 
       switch (button)
         {
@@ -435,18 +434,17 @@ valent_mousepad_remote_pointer_button (ValentMousepadRemote *self,
           break;
 
         default:
-          g_object_unref (builder);
           g_return_if_reached ();
         }
 
-      packet = valent_packet_finish (builder);
+      packet = valent_packet_end (&builder);
     }
   else if (button == GDK_BUTTON_PRIMARY && n_press == 2)
     {
-      builder = valent_packet_start ("kdeconnect.mousepad.request");
+      valent_packet_init (&builder, "kdeconnect.mousepad.request");
       json_builder_set_member_name (builder, "doubleclick");
       json_builder_add_boolean_value (builder, TRUE);
-      packet = valent_packet_finish (builder);
+      packet = valent_packet_end (&builder);
     }
 
   if (packet != NULL)
@@ -458,15 +456,15 @@ valent_mousepad_remote_pointer_motion (ValentMousepadRemote *self,
                                        double                dx,
                                        double                dy)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
-  builder = valent_packet_start ("kdeconnect.mousepad.request");
+  valent_packet_init (&builder, "kdeconnect.mousepad.request");
   json_builder_set_member_name (builder, "dx");
   json_builder_add_double_value (builder, dx);
   json_builder_set_member_name (builder, "dy");
   json_builder_add_double_value (builder, dy);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_queue_packet (self->device, packet);
 }
@@ -474,13 +472,13 @@ valent_mousepad_remote_pointer_motion (ValentMousepadRemote *self,
 static void
 valent_mousepad_remote_pointer_press (ValentMousepadRemote *self)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
-  builder = valent_packet_start ("kdeconnect.mousepad.request");
+  valent_packet_init (&builder, "kdeconnect.mousepad.request");
   json_builder_set_member_name (builder, "singlehold");
   json_builder_add_boolean_value (builder, TRUE);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_queue_packet (self->device, packet);
 }
@@ -489,13 +487,13 @@ valent_mousepad_remote_pointer_press (ValentMousepadRemote *self)
 static void
 valent_mousepad_remote_pointer_release (ValentMousepadRemote *self)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
-  builder = valent_packet_start ("kdeconnect.mousepad.request");
+  valent_packet_init (&builder, "kdeconnect.mousepad.request");
   json_builder_set_member_name (builder, "singlerelease");
   json_builder_add_boolean_value (builder, TRUE);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_queue_packet (self->device, packet);
 }

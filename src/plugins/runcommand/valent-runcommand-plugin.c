@@ -237,7 +237,7 @@ static void
 valent_runcommand_plugin_send_command_list (ValentRuncommandPlugin *self)
 {
   GSettings *settings;
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
   g_autoptr (GVariant) commands = NULL;
   g_autofree char *command_json = NULL;
@@ -249,10 +249,10 @@ valent_runcommand_plugin_send_command_list (ValentRuncommandPlugin *self)
   commands = g_settings_get_value (settings, "commands");
   command_json = json_gvariant_serialize_data (commands, NULL);
 
-  builder = valent_packet_start ("kdeconnect.runcommand");
+  valent_packet_init (&builder, "kdeconnect.runcommand");
   json_builder_set_member_name (builder, "commandList");
   json_builder_add_string_value (builder, command_json);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
@@ -282,16 +282,16 @@ static void
 valent_runcommand_plugin_execute_remote_command (ValentRuncommandPlugin *self,
                                                  const char             *key)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
   g_assert (VALENT_IS_RUNCOMMAND_PLUGIN (self));
   g_assert (key != NULL);
 
-  builder = valent_packet_start ("kdeconnect.runcommand.request");
+  valent_packet_init (&builder, "kdeconnect.runcommand.request");
   json_builder_set_member_name (builder, "key");
   json_builder_add_string_value (builder, key);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }

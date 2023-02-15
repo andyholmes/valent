@@ -60,17 +60,17 @@ valent_presenter_plugin_send_motion (ValentPresenterPlugin *self,
                                      double                 dx,
                                      double                 dy)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
   g_assert (VALENT_IS_PRESENTER_PLUGIN (self));
 
-  builder = valent_packet_start ("kdeconnect.presenter");
+  valent_packet_init (&builder, "kdeconnect.presenter");
   json_builder_set_member_name (builder, "dx");
   json_builder_add_double_value (builder, dx);
   json_builder_set_member_name (builder, "dy");
   json_builder_add_double_value (builder, dy);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
@@ -78,15 +78,15 @@ valent_presenter_plugin_send_motion (ValentPresenterPlugin *self,
 static void
 valent_presenter_plugin_send_stop (ValentPresenterPlugin *self)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
   g_assert (VALENT_IS_PRESENTER_PLUGIN (self));
 
-  builder = valent_packet_start ("kdeconnect.presenter");
+  valent_packet_init (&builder, "kdeconnect.presenter");
   json_builder_set_member_name (builder, "stop");
   json_builder_add_boolean_value (builder, TRUE);
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }

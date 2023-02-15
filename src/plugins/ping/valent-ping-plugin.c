@@ -49,12 +49,12 @@ static void
 valent_ping_plugin_send_ping (ValentPingPlugin *self,
                               const char       *message)
 {
-  JsonBuilder *builder;
+  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
   g_assert (VALENT_IS_PING_PLUGIN (self));
 
-  builder = valent_packet_start ("kdeconnect.ping");
+  valent_packet_init (&builder, "kdeconnect.ping");
 
   if (message != NULL && *message != '\0')
     {
@@ -62,7 +62,7 @@ valent_ping_plugin_send_ping (ValentPingPlugin *self,
       json_builder_add_string_value (builder, message);
     }
 
-  packet = valent_packet_finish (builder);
+  packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
