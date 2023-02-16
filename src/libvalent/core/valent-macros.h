@@ -26,6 +26,14 @@ G_BEGIN_DECLS
  */
 #define VALENT_IS_MAIN_THREAD() (g_thread_self() == valent_get_main_thread())
 
+/**
+ * VALENT_STRV_INIT: (skip)
+ *
+ * Initialize a static, %NULL-terminated character array.
+ *
+ * Returns: (transfer none): an array of strings
+ */
+#define VALENT_STRV_INIT(...) ((const char * const[]) { __VA_ARGS__, NULL})
 
 /**
  * valent_set_string: (skip)
