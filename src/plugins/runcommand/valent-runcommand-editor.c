@@ -33,51 +33,6 @@ G_DEFINE_TYPE (ValentRuncommandEditor, valent_runcommand_editor, GTK_TYPE_DIALOG
  * GtkDialog
  */
 static void
-on_browse_response (GtkDialog              *dialog,
-                    int                     response_id,
-                    ValentRuncommandEditor *editor)
-{
-  if (response_id == GTK_RESPONSE_ACCEPT)
-    {
-      GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
-      g_autoptr (GFile) file = NULL;
-
-      file = gtk_file_chooser_get_file (chooser);
-      valent_runcommand_editor_set_command (editor, g_file_peek_path (file));
-    }
-}
-
-static void
-on_browse_command (GtkEntry               *entry,
-                   GtkEntryIconPosition    icon_pos,
-                   ValentRuncommandEditor *editor)
-{
-  GtkFileChooserNative *native;
-  GtkFileFilter *filter;
-
-  g_assert (VALENT_IS_RUNCOMMAND_EDITOR (editor));
-
-  filter = gtk_file_filter_new ();
-  gtk_file_filter_add_mime_type (filter, "application/*");
-
-  native = g_object_new (GTK_TYPE_FILE_CHOOSER_NATIVE,
-                         "title",         _("Select Command"),
-                         "accept-label",  _("Select"),
-                         "cancel-label",  _("Cancel"),
-                         "filter",        filter,
-                         "modal",         TRUE,
-                         "transient-for", editor,
-                         NULL);
-
-  g_signal_connect (native,
-                    "response",
-                    G_CALLBACK (on_browse_response),
-                    editor);
-
-  gtk_native_dialog_show (GTK_NATIVE_DIALOG (native));
-}
-
-static void
 on_entry_changed (GtkEntry               *entry,
                   ValentRuncommandEditor *self)
 {
@@ -119,8 +74,6 @@ valent_runcommand_editor_class_init (ValentRuncommandEditorClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentRuncommandEditor, save_button);
   gtk_widget_class_bind_template_child (widget_class, ValentRuncommandEditor, command_entry);
   gtk_widget_class_bind_template_child (widget_class, ValentRuncommandEditor, name_entry);
-
-  gtk_widget_class_bind_template_callback (widget_class, on_browse_command);
   gtk_widget_class_bind_template_callback (widget_class, on_entry_changed);
 }
 
@@ -128,15 +81,6 @@ static void
 valent_runcommand_editor_init (ValentRuncommandEditor *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
-
-  /* Disable the file chooser if in a sandbox, since it may return a path to an
-   * executable that can't actually be executed. */
-  if (!xdp_portal_running_under_sandbox ())
-    {
-      gtk_entry_set_icon_from_icon_name (self->command_entry,
-                                         GTK_ENTRY_ICON_SECONDARY,
-                                         "folder-symbolic");
-    }
 
   self->uuid = g_strdup ("");
 }
