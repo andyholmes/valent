@@ -82,7 +82,6 @@
                 <property name="activates-default">1</property>
                 <property name="valign">center</property>
                 <property name="hexpand">1</property>
-                <signal name="icon-release" handler="on_browse_command" object="ValentRuncommandEditor" swapped="no"/>
                 <signal name="changed" handler="on_entry_changed" object="ValentRuncommandEditor" swapped="no"/>
                 <layout>
                   <property name="column">1</property>
