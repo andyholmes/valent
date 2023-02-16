@@ -7,7 +7,7 @@
 
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
-#include <pango/pango.h>
+#include <libvalent-core.h>
 
 #include "valent-menu-list.h"
 
@@ -366,12 +366,12 @@ valent_menu_list_class_init (ValentMenuListClass *klass)
 static void
 valent_menu_list_init (ValentMenuList *self)
 {
-  static char *list_classes[] = { "boxed-list", "boxed-list-placeholder", NULL};
   GtkWidget *placeholder;
 
   /* Item List */
   self->list = g_object_new (GTK_TYPE_LIST_BOX,
-                             "css-classes",     list_classes,
+                             "css-classes",     VALENT_STRV_INIT ("boxed-list",
+                                                                  "boxed-list-placeholder"),
                              "hexpand",         TRUE,
                              "show-separators", TRUE,
                              NULL);
