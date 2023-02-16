@@ -16,30 +16,13 @@
         <child>
           <object class="AdwPreferencesGroup" id="general_group">
             <child>
-              <object class="AdwActionRow">
+              <object class="AdwEntryRow" id="name_entry">
                 <property name="title" translatable="yes">Device Name</property>
-                <property name="activatable">1</property>
-                <property name="selectable">0</property>
-                <property name="action-name">win.rename</property>
-                <child type="suffix">
-                  <object class="GtkBox">
-                    <property name="spacing">12</property>
-                    <property name="vexpand">1</property>
-                    <property name="valign">center</property>
-                    <child>
-                      <object class="GtkLabel" id="rename_label">
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImage">
-                        <property name="icon-name">go-next-symbolic</property>
-                      </object>
-                    </child>
-                    <style>
-                      <class name="dim-label"/>
-                    </style>
-                  </object>
-                </child>
+                <property name="show-apply-button">1</property>
+                <signal name="apply"
+                        handler="on_name_apply"
+                        object="ValentPreferencesWindow"
+                        swapped="no"/>
               </object>
             </child>
           </object>
@@ -71,61 +54,4 @@
       </object>
     </child>
   </template>
-  <object class="GtkDialog" id="rename_dialog">
-    <property name="title" translatable="yes">Rename Device</property>
-    <property name="destroy-with-parent">1</property>
-    <property name="hide-on-close">1</property>
-    <property name="modal">1</property>
-    <property name="transient-for">ValentPreferencesWindow</property>
-    <property name="use-header-bar">1</property>
-    <signal name="response"
-            handler="on_rename_dialog_response"
-            object="ValentPreferencesWindow"
-            swapped="no"/>
-    <child type="action">
-      <object class="GtkButton" id="cancel_button">
-        <property name="label" translatable="yes">_Cancel</property>
-        <property name="use-underline">1</property>
-      </object>
-    </child>
-    <child type="action">
-      <object class="GtkButton" id="rename_button">
-        <property name="label" translatable="yes">_Rename</property>
-        <property name="use-underline">1</property>
-      </object>
-    </child>
-    <action-widgets>
-      <action-widget response="cancel">cancel_button</action-widget>
-      <action-widget response="ok" default="true">rename_button</action-widget>
-    </action-widgets>
-    <child internal-child="content_area">
-      <object class="GtkBox">
-        <property name="orientation">vertical</property>
-        <property name="margin-start">18</property>
-        <property name="margin-end">18</property>
-        <property name="margin-top">18</property>
-        <property name="margin-bottom">18</property>
-        <property name="spacing">12</property>
-        <child>
-          <object class="GtkLabel">
-            <property name="label" translatable="yes">The device name is used to identify this device to other devices on the network.</property>
-            <property name="max-width-chars">35</property>
-            <property name="wrap">1</property>
-            <property name="xalign">0.0</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkEntry" id="rename_entry">
-            <property name="receives-default">1</property>
-            <property name="input-purpose">name</property>
-            <property name="activates-default">1</property>
-            <signal name="changed"
-                    handler="on_rename_entry_changed"
-                    object="ValentPreferencesWindow"
-                    swapped="no"/>
-          </object>
-        </child>
-      </object>
-    </child>
-  </object>
 </interface>
