@@ -34,7 +34,7 @@ struct _ValentClipboard
   ValentClipboardAdapter *default_adapter;
 };
 
-G_DEFINE_TYPE (ValentClipboard, valent_clipboard, VALENT_TYPE_COMPONENT)
+G_DEFINE_FINAL_TYPE (ValentClipboard, valent_clipboard, VALENT_TYPE_COMPONENT)
 
 enum {
   CHANGED,

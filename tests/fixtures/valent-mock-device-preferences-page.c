@@ -15,7 +15,7 @@ struct _ValentMockDevicePreferencesPage
   ValentDevicePreferencesPage  parent_instance;
 };
 
-G_DEFINE_TYPE (ValentMockDevicePreferencesPage, valent_mock_device_preferences_page, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
+G_DEFINE_FINAL_TYPE (ValentMockDevicePreferencesPage, valent_mock_device_preferences_page, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
 
 
 /*

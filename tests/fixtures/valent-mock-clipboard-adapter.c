@@ -21,7 +21,7 @@ struct _ValentMockClipboardAdapter
   gint64                  timestamp;
 };
 
-G_DEFINE_TYPE (ValentMockClipboardAdapter, valent_mock_clipboard_adapter, VALENT_TYPE_CLIPBOARD_ADAPTER)
+G_DEFINE_FINAL_TYPE (ValentMockClipboardAdapter, valent_mock_clipboard_adapter, VALENT_TYPE_CLIPBOARD_ADAPTER)
 
 
 /*

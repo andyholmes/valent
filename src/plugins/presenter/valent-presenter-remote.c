@@ -21,7 +21,7 @@ struct _ValentPresenterRemote
   ValentDevice *device;
 };
 
-G_DEFINE_TYPE (ValentPresenterRemote, valent_presenter_remote, ADW_TYPE_WINDOW)
+G_DEFINE_FINAL_TYPE (ValentPresenterRemote, valent_presenter_remote, ADW_TYPE_WINDOW)
 
 enum {
   PROP_0,

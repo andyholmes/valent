@@ -19,7 +19,7 @@ struct _ValentMuxOutputStream
   char                *uuid;
 };
 
-G_DEFINE_TYPE (ValentMuxOutputStream, valent_mux_output_stream, G_TYPE_OUTPUT_STREAM)
+G_DEFINE_FINAL_TYPE (ValentMuxOutputStream, valent_mux_output_stream, G_TYPE_OUTPUT_STREAM)
 
 enum {
   PROP_0,

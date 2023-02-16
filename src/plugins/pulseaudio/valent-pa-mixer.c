@@ -28,7 +28,7 @@ struct _ValentPaMixer
   unsigned int        vol_max;
 };
 
-G_DEFINE_TYPE (ValentPaMixer, valent_pa_mixer, VALENT_TYPE_MIXER_ADAPTER)
+G_DEFINE_FINAL_TYPE (ValentPaMixer, valent_pa_mixer, VALENT_TYPE_MIXER_ADAPTER)
 
 
 /*

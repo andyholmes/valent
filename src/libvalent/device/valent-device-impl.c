@@ -19,7 +19,7 @@ struct _ValentDeviceImpl
   unsigned int            flush_id;
 };
 
-G_DEFINE_TYPE (ValentDeviceImpl, valent_device_impl, G_TYPE_DBUS_INTERFACE_SKELETON);
+G_DEFINE_FINAL_TYPE (ValentDeviceImpl, valent_device_impl, G_TYPE_DBUS_INTERFACE_SKELETON);
 
 enum {
   PROP_0,

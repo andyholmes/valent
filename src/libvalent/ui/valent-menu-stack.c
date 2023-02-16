@@ -19,7 +19,7 @@ struct _ValentMenuStack
   ValentMenuList *main;
 };
 
-G_DEFINE_TYPE (ValentMenuStack, valent_menu_stack, GTK_TYPE_WIDGET)
+G_DEFINE_FINAL_TYPE (ValentMenuStack, valent_menu_stack, GTK_TYPE_WIDGET)
 
 enum {
   PROP_0,

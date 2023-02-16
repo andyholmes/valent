@@ -25,7 +25,7 @@ struct _ValentTelephonyPlugin
   gboolean           prev_paused;
 };
 
-G_DEFINE_TYPE (ValentTelephonyPlugin, valent_telephony_plugin, VALENT_TYPE_DEVICE_PLUGIN)
+G_DEFINE_FINAL_TYPE (ValentTelephonyPlugin, valent_telephony_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
 /*

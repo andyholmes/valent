@@ -50,7 +50,7 @@ struct _ValentSmsConversation
 
 static void   valent_sms_conversation_send_message (ValentSmsConversation *self);
 
-G_DEFINE_TYPE (ValentSmsConversation, valent_sms_conversation, GTK_TYPE_WIDGET)
+G_DEFINE_FINAL_TYPE (ValentSmsConversation, valent_sms_conversation, GTK_TYPE_WIDGET)
 
 enum {
   PROP_0,

@@ -37,7 +37,7 @@ struct _ValentMuxConnection
   GMutex         io_mutex;
 };
 
-G_DEFINE_TYPE (ValentMuxConnection, valent_mux_connection, G_TYPE_OBJECT)
+G_DEFINE_FINAL_TYPE (ValentMuxConnection, valent_mux_connection, G_TYPE_OBJECT)
 
 enum {
   PROP_0,

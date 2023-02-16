@@ -34,7 +34,7 @@ struct _ValentNotificationUpload
   GIcon          *icon;
 };
 
-G_DEFINE_TYPE (ValentNotificationUpload, valent_notification_upload, VALENT_TYPE_TRANSFER)
+G_DEFINE_FINAL_TYPE (ValentNotificationUpload, valent_notification_upload, VALENT_TYPE_TRANSFER)
 
 enum {
   PROP_0,

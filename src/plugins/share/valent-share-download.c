@@ -43,8 +43,8 @@ struct _ValentShareDownload
 static void       g_list_model_iface_init       (GListModelInterface *iface);
 static gboolean   valent_share_download_timeout (gpointer             data);
 
-G_DEFINE_TYPE_WITH_CODE (ValentShareDownload, valent_share_download, VALENT_TYPE_TRANSFER,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
+G_DEFINE_FINAL_TYPE_WITH_CODE (ValentShareDownload, valent_share_download, VALENT_TYPE_TRANSFER,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
 enum {
   PROP_0,

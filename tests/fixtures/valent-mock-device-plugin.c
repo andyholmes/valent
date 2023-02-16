@@ -12,7 +12,7 @@ struct _ValentMockDevicePlugin
   ValentDevicePlugin  parent_instance;
 };
 
-G_DEFINE_TYPE (ValentMockDevicePlugin, valent_mock_device_plugin, VALENT_TYPE_DEVICE_PLUGIN)
+G_DEFINE_FINAL_TYPE (ValentMockDevicePlugin, valent_mock_device_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
 /*

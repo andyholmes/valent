@@ -32,7 +32,7 @@ struct _ValentDevicePreferencesWindow
   GHashTable           *rows;
 };
 
-G_DEFINE_TYPE (ValentDevicePreferencesWindow, valent_device_preferences_window, ADW_TYPE_PREFERENCES_WINDOW)
+G_DEFINE_FINAL_TYPE (ValentDevicePreferencesWindow, valent_device_preferences_window, ADW_TYPE_PREFERENCES_WINDOW)
 
 enum {
   PROP_0,

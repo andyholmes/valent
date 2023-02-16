@@ -20,7 +20,7 @@ struct _ValentGdkClipboard
   gint64                  timestamp;
 };
 
-G_DEFINE_TYPE (ValentGdkClipboard, valent_gdk_clipboard, VALENT_TYPE_CLIPBOARD_ADAPTER)
+G_DEFINE_FINAL_TYPE (ValentGdkClipboard, valent_gdk_clipboard, VALENT_TYPE_CLIPBOARD_ADAPTER)
 
 
 /*

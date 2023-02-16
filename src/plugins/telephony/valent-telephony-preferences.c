@@ -28,7 +28,7 @@ struct _ValentTelephonyPreferences
   GtkSwitch                   *talking_microphone;
 };
 
-G_DEFINE_TYPE (ValentTelephonyPreferences, valent_telephony_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
+G_DEFINE_FINAL_TYPE (ValentTelephonyPreferences, valent_telephony_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
 
 
 /* Mapping functions for converting our [-1...100] volume range to a boolean,

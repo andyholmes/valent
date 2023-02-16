@@ -18,7 +18,7 @@ struct _ValentMockSessionAdapter
   unsigned int          locked : 1;
 };
 
-G_DEFINE_TYPE (ValentMockSessionAdapter, valent_mock_session_adapter, VALENT_TYPE_SESSION_ADAPTER)
+G_DEFINE_FINAL_TYPE (ValentMockSessionAdapter, valent_mock_session_adapter, VALENT_TYPE_SESSION_ADAPTER)
 
 
 /*

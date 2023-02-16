@@ -25,7 +25,7 @@ struct _ValentConnectivityReportPreferences
   GtkSwitch                   *offline_notification;
 };
 
-G_DEFINE_TYPE (ValentConnectivityReportPreferences, valent_connectivity_report_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
+G_DEFINE_FINAL_TYPE (ValentConnectivityReportPreferences, valent_connectivity_report_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
 
 
 /*

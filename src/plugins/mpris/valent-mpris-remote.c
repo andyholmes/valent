@@ -40,7 +40,7 @@ struct _ValentMprisRemote
   GtkVolumeButton   *volume_button;
 };
 
-G_DEFINE_TYPE (ValentMprisRemote, valent_mpris_remote, ADW_TYPE_WINDOW)
+G_DEFINE_FINAL_TYPE (ValentMprisRemote, valent_mpris_remote, ADW_TYPE_WINDOW)
 
 enum {
   PROP_0,

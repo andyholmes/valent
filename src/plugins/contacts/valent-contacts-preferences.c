@@ -27,7 +27,7 @@ struct _ValentContactsPreferences
   GtkSwitch                   *remote_import;
 };
 
-G_DEFINE_TYPE (ValentContactsPreferences, valent_contacts_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
+G_DEFINE_FINAL_TYPE (ValentContactsPreferences, valent_contacts_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
 
 
 static void

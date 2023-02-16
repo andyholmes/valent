@@ -34,7 +34,7 @@ struct _ValentMprisPlugin
   unsigned int        flush_id;
 };
 
-G_DEFINE_TYPE (ValentMprisPlugin, valent_mpris_plugin, VALENT_TYPE_DEVICE_PLUGIN)
+G_DEFINE_FINAL_TYPE (ValentMprisPlugin, valent_mpris_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 static void valent_mpris_plugin_send_player_info    (ValentMprisPlugin *self,
                                                      ValentMediaPlayer *player,

@@ -28,7 +28,7 @@ struct _ValentSharePlugin
   GPtrArray          *windows;
 };
 
-G_DEFINE_TYPE (ValentSharePlugin, valent_share_plugin, VALENT_TYPE_DEVICE_PLUGIN)
+G_DEFINE_FINAL_TYPE (ValentSharePlugin, valent_share_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
 static GFile *

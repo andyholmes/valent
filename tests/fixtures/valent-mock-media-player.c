@@ -27,7 +27,7 @@ struct _ValentMockMediaPlayer
 };
 
 
-G_DEFINE_TYPE (ValentMockMediaPlayer, valent_mock_media_player, VALENT_TYPE_MEDIA_PLAYER)
+G_DEFINE_FINAL_TYPE (ValentMockMediaPlayer, valent_mock_media_player, VALENT_TYPE_MEDIA_PLAYER)
 
 
 static const char *tracks[] = {

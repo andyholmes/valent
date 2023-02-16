@@ -40,7 +40,7 @@ struct _ValentDevicePage
   GtkWindow       *preferences;
 };
 
-G_DEFINE_TYPE (ValentDevicePage, valent_device_page, GTK_TYPE_BOX)
+G_DEFINE_FINAL_TYPE (ValentDevicePage, valent_device_page, GTK_TYPE_BOX)
 
 enum {
   PROP_0,

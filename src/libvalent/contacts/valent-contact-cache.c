@@ -32,7 +32,7 @@ struct _ValentContactCache
   char               *path;
 };
 
-G_DEFINE_TYPE (ValentContactCache, valent_contact_cache, VALENT_TYPE_CONTACT_STORE)
+G_DEFINE_FINAL_TYPE (ValentContactCache, valent_contact_cache, VALENT_TYPE_CONTACT_STORE)
 
 
 enum {

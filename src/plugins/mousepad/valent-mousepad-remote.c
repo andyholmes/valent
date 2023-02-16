@@ -58,7 +58,7 @@ static void valent_mousepad_remote_pointer_release (ValentMousepadRemote *self);
 #endif
 static void valent_mousepad_remote_reset           (ValentMousepadRemote *self);
 
-G_DEFINE_TYPE (ValentMousepadRemote, valent_mousepad_remote, ADW_TYPE_WINDOW)
+G_DEFINE_FINAL_TYPE (ValentMousepadRemote, valent_mousepad_remote, ADW_TYPE_WINDOW)
 
 enum {
   PROP_0,

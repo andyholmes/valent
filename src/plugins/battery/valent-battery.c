@@ -24,7 +24,7 @@ struct _ValentBattery
   unsigned int  threshold_event;
 };
 
-G_DEFINE_TYPE (ValentBattery, valent_battery, G_TYPE_OBJECT)
+G_DEFINE_FINAL_TYPE (ValentBattery, valent_battery, G_TYPE_OBJECT)
 
 enum {
   CHANGED,

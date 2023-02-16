@@ -27,7 +27,7 @@ struct _ValentNotificationPreferences
   GHashTable                  *application_rows;
 };
 
-G_DEFINE_TYPE (ValentNotificationPreferences, valent_notification_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
+G_DEFINE_FINAL_TYPE (ValentNotificationPreferences, valent_notification_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
 
 
 static int

@@ -26,7 +26,7 @@ struct _ValentBatteryPreferences
   GtkAdjustment               *low_notification_level;
 };
 
-G_DEFINE_TYPE (ValentBatteryPreferences, valent_battery_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
+G_DEFINE_FINAL_TYPE (ValentBatteryPreferences, valent_battery_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
 
 
 /*

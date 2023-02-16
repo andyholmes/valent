@@ -24,7 +24,7 @@ struct _ValentLockPlugin
   gboolean            remote_locked;
 };
 
-G_DEFINE_TYPE (ValentLockPlugin, valent_lock_plugin, VALENT_TYPE_DEVICE_PLUGIN)
+G_DEFINE_FINAL_TYPE (ValentLockPlugin, valent_lock_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 static void valent_lock_plugin_request_state (ValentLockPlugin *self);
 static void valent_lock_plugin_send_state    (ValentLockPlugin *self);

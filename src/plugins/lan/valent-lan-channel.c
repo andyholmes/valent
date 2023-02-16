@@ -24,7 +24,7 @@ struct _ValentLanChannel
   guint16          port;
 };
 
-G_DEFINE_TYPE (ValentLanChannel, valent_lan_channel, VALENT_TYPE_CHANNEL)
+G_DEFINE_FINAL_TYPE (ValentLanChannel, valent_lan_channel, VALENT_TYPE_CHANNEL)
 
 enum {
   PROP_0,

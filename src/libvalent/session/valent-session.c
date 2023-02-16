@@ -34,7 +34,7 @@ struct _ValentSession
   ValentSessionAdapter *default_adapter;
 };
 
-G_DEFINE_TYPE (ValentSession, valent_session, VALENT_TYPE_COMPONENT)
+G_DEFINE_FINAL_TYPE (ValentSession, valent_session, VALENT_TYPE_COMPONENT)
 
 enum {
   PROP_0,

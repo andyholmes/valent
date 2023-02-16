@@ -17,7 +17,7 @@ struct _ValentMockMixerAdapter
   ValentMixerStream  *default_output;
 };
 
-G_DEFINE_TYPE (ValentMockMixerAdapter, valent_mock_mixer_adapter, VALENT_TYPE_MIXER_ADAPTER)
+G_DEFINE_FINAL_TYPE (ValentMockMixerAdapter, valent_mock_mixer_adapter, VALENT_TYPE_MIXER_ADAPTER)
 
 
 /*

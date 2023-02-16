@@ -32,7 +32,7 @@ struct _ValentNotificationDialog
   GtkTextView        *reply_entry;
 };
 
-G_DEFINE_TYPE (ValentNotificationDialog, valent_notification_dialog, GTK_TYPE_DIALOG)
+G_DEFINE_FINAL_TYPE (ValentNotificationDialog, valent_notification_dialog, GTK_TYPE_DIALOG)
 
 enum {
   PROP_0,

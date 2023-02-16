@@ -33,7 +33,7 @@ struct _ValentWindow
   GtkWindow            *preferences;
 };
 
-G_DEFINE_TYPE (ValentWindow, valent_window, ADW_TYPE_APPLICATION_WINDOW)
+G_DEFINE_FINAL_TYPE (ValentWindow, valent_window, ADW_TYPE_APPLICATION_WINDOW)
 
 enum {
   PROP_0,

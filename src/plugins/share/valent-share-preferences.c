@@ -21,7 +21,7 @@ struct _ValentSharePreferences
   GtkLabel                    *download_folder_label;
 };
 
-G_DEFINE_TYPE (ValentSharePreferences, valent_share_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
+G_DEFINE_FINAL_TYPE (ValentSharePreferences, valent_share_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
 
 
 /*

@@ -26,7 +26,7 @@ struct _ValentMockChannelService
   ValentChannel        *endpoint;
 };
 
-G_DEFINE_TYPE (ValentMockChannelService, valent_mock_channel_service, VALENT_TYPE_CHANNEL_SERVICE)
+G_DEFINE_FINAL_TYPE (ValentMockChannelService, valent_mock_channel_service, VALENT_TYPE_CHANNEL_SERVICE)
 
 static ValentChannelService *test_instance = NULL;
 

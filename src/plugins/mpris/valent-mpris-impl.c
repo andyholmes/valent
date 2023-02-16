@@ -34,7 +34,7 @@ struct _ValentMPRISImpl
   GDBusInterfaceVTable  player_vtable;
 };
 
-G_DEFINE_TYPE (ValentMPRISImpl, valent_mpris_impl, G_TYPE_OBJECT)
+G_DEFINE_FINAL_TYPE (ValentMPRISImpl, valent_mpris_impl, G_TYPE_OBJECT)
 
 
 enum {

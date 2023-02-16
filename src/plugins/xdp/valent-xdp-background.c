@@ -25,7 +25,7 @@ struct _ValentXdpBackground
   unsigned long            active_id;
 };
 
-G_DEFINE_TYPE (ValentXdpBackground, valent_xdp_background, VALENT_TYPE_APPLICATION_PLUGIN)
+G_DEFINE_FINAL_TYPE (ValentXdpBackground, valent_xdp_background, VALENT_TYPE_APPLICATION_PLUGIN)
 
 
 static gboolean

@@ -24,7 +24,7 @@ struct _ValentBluezProfile
   unsigned int            registered : 1;
 };
 
-G_DEFINE_TYPE (ValentBluezProfile, valent_bluez_profile, G_TYPE_DBUS_INTERFACE_SKELETON)
+G_DEFINE_FINAL_TYPE (ValentBluezProfile, valent_bluez_profile, G_TYPE_DBUS_INTERFACE_SKELETON)
 
 enum {
   CONNECTION_OPENED,

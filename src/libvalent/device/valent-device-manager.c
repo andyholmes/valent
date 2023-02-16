@@ -61,10 +61,10 @@ static void   g_initable_iface_init       (GInitableIface      *iface);
 static void   g_async_initable_iface_init (GAsyncInitableIface *iface);
 static void   g_list_model_iface_init     (GListModelInterface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (ValentDeviceManager, valent_device_manager, VALENT_TYPE_OBJECT,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, g_initable_iface_init)
-                         G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init)
-                         G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
+G_DEFINE_FINAL_TYPE_WITH_CODE (ValentDeviceManager, valent_device_manager, VALENT_TYPE_OBJECT,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, g_initable_iface_init)
+                               G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init)
+                               G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
 enum {
   PROP_0,

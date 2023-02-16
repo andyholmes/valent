@@ -29,7 +29,7 @@ struct _ValentSmsStore
   GListStore      *summary;
 };
 
-G_DEFINE_TYPE (ValentSmsStore, valent_sms_store, VALENT_TYPE_DATA)
+G_DEFINE_FINAL_TYPE (ValentSmsStore, valent_sms_store, VALENT_TYPE_DATA)
 
 enum {
   MESSAGE_ADDED,
