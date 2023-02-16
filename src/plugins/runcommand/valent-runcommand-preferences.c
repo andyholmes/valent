@@ -30,7 +30,7 @@ struct _ValentRuncommandPreferences
   GtkSwitch                   *isolate_subprocesses;
 };
 
-G_DEFINE_TYPE (ValentRuncommandPreferences, valent_runcommand_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
+G_DEFINE_FINAL_TYPE (ValentRuncommandPreferences, valent_runcommand_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
 
 
 static void edit_command      (ValentRuncommandPreferences *self,

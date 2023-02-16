@@ -22,7 +22,7 @@ struct _ValentClipboardPreferences
   GtkSwitch                   *sync_push;
 };
 
-G_DEFINE_TYPE (ValentClipboardPreferences, valent_clipboard_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
+G_DEFINE_FINAL_TYPE (ValentClipboardPreferences, valent_clipboard_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
 
 
 /*

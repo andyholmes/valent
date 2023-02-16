@@ -73,8 +73,8 @@ static gboolean   valent_device_supports_plugin (ValentDevice   *device,
 
 static void   g_action_group_iface_init     (GActionGroupInterface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (ValentDevice, valent_device, VALENT_TYPE_OBJECT,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_ACTION_GROUP, g_action_group_iface_init))
+G_DEFINE_FINAL_TYPE_WITH_CODE (ValentDevice, valent_device, VALENT_TYPE_OBJECT,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_ACTION_GROUP, g_action_group_iface_init))
 
 
 enum {

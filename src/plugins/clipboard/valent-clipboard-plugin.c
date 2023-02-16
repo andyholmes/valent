@@ -26,7 +26,7 @@ struct _ValentClipboardPlugin
   gint64              remote_timestamp;
 };
 
-G_DEFINE_TYPE (ValentClipboardPlugin, valent_clipboard_plugin, VALENT_TYPE_DEVICE_PLUGIN)
+G_DEFINE_FINAL_TYPE (ValentClipboardPlugin, valent_clipboard_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
 /*

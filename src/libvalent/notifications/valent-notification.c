@@ -48,7 +48,7 @@ enum {
   N_PROPERTIES
 };
 
-G_DEFINE_TYPE (ValentNotification, valent_notification, G_TYPE_OBJECT)
+G_DEFINE_FINAL_TYPE (ValentNotification, valent_notification, G_TYPE_OBJECT)
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 

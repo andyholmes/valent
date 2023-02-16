@@ -21,7 +21,7 @@ struct _ValentMenuList
   ValentMenuList *parent;
 };
 
-G_DEFINE_TYPE (ValentMenuList, valent_menu_list, GTK_TYPE_WIDGET)
+G_DEFINE_FINAL_TYPE (ValentMenuList, valent_menu_list, GTK_TYPE_WIDGET)
 
 enum {
   PROP_0,

@@ -34,7 +34,7 @@ struct _ValentInput
   ValentInputAdapter *default_adapter;
 };
 
-G_DEFINE_TYPE (ValentInput, valent_input, VALENT_TYPE_COMPONENT)
+G_DEFINE_FINAL_TYPE (ValentInput, valent_input, VALENT_TYPE_COMPONENT)
 
 
 static ValentInput *default_input = NULL;

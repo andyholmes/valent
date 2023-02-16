@@ -16,7 +16,7 @@ struct _ValentMockMediaAdapter
   ValentMediaAdapter  parent_instance;
 };
 
-G_DEFINE_TYPE (ValentMockMediaAdapter, valent_mock_media_adapter, VALENT_TYPE_MEDIA_ADAPTER)
+G_DEFINE_FINAL_TYPE (ValentMockMediaAdapter, valent_mock_media_adapter, VALENT_TYPE_MEDIA_ADAPTER)
 
 
 /*

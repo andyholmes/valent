@@ -32,7 +32,7 @@ struct _ValentMousepadPlugin
 static void   valent_mousepad_plugin_send_echo (ValentMousepadPlugin *self,
                                                 JsonNode             *packet);
 
-G_DEFINE_TYPE (ValentMousepadPlugin, valent_mousepad_plugin, VALENT_TYPE_DEVICE_PLUGIN)
+G_DEFINE_FINAL_TYPE (ValentMousepadPlugin, valent_mousepad_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
 static GdkModifierType

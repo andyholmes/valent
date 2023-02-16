@@ -19,7 +19,7 @@ struct _ValentBluezChannel
   ValentMuxConnection *muxer;
 };
 
-G_DEFINE_TYPE (ValentBluezChannel, valent_bluez_channel, VALENT_TYPE_CHANNEL)
+G_DEFINE_FINAL_TYPE (ValentBluezChannel, valent_bluez_channel, VALENT_TYPE_CHANNEL)
 
 enum {
   PROP_0,

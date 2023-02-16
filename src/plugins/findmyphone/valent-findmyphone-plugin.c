@@ -23,7 +23,7 @@ struct _ValentFindmyphonePlugin
   ValentSession           *session;
 };
 
-G_DEFINE_TYPE (ValentFindmyphonePlugin, valent_findmyphone_plugin, VALENT_TYPE_DEVICE_PLUGIN)
+G_DEFINE_FINAL_TYPE (ValentFindmyphonePlugin, valent_findmyphone_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
 static void

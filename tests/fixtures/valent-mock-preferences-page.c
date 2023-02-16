@@ -16,7 +16,7 @@ struct _ValentMockPreferencesPage
   ValentPreferencesPage  parent_instance;
 };
 
-G_DEFINE_TYPE (ValentMockPreferencesPage, valent_mock_preferences_page, VALENT_TYPE_PREFERENCES_PAGE)
+G_DEFINE_FINAL_TYPE (ValentMockPreferencesPage, valent_mock_preferences_page, VALENT_TYPE_PREFERENCES_PAGE)
 
 
 /*

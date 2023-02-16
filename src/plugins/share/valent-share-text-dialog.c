@@ -22,7 +22,7 @@ struct _ValentShareTextDialog
   GtkLabel         *text_label;
 };
 
-G_DEFINE_TYPE (ValentShareTextDialog, valent_share_text_dialog, ADW_TYPE_MESSAGE_DIALOG)
+G_DEFINE_FINAL_TYPE (ValentShareTextDialog, valent_share_text_dialog, ADW_TYPE_MESSAGE_DIALOG)
 
 enum {
   PROP_0,

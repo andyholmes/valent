@@ -43,7 +43,7 @@ struct _ValentPreferencesWindow
   GtkListBox           *plugin_list;
 };
 
-G_DEFINE_TYPE (ValentPreferencesWindow, valent_preferences_window, ADW_TYPE_PREFERENCES_WINDOW)
+G_DEFINE_FINAL_TYPE (ValentPreferencesWindow, valent_preferences_window, ADW_TYPE_PREFERENCES_WINDOW)
 
 
 typedef struct

@@ -18,7 +18,7 @@ struct _ValentMockInputAdapter
   ValentInputAdapter  parent_instance;
 };
 
-G_DEFINE_TYPE (ValentMockInputAdapter, valent_mock_input_adapter, VALENT_TYPE_INPUT_ADAPTER)
+G_DEFINE_FINAL_TYPE (ValentMockInputAdapter, valent_mock_input_adapter, VALENT_TYPE_INPUT_ADAPTER)
 
 
 /*

@@ -30,7 +30,7 @@ struct _ValentSmsConversationRow
   GtkWidget     *text_label;
 };
 
-G_DEFINE_TYPE (ValentSmsConversationRow, valent_sms_conversation_row, GTK_TYPE_LIST_BOX_ROW)
+G_DEFINE_FINAL_TYPE (ValentSmsConversationRow, valent_sms_conversation_row, GTK_TYPE_LIST_BOX_ROW)
 
 
 enum {

@@ -36,8 +36,8 @@ struct _ValentShareUpload
 static void       g_list_model_iface_init  (GListModelInterface *iface);
 static gboolean   valent_share_upload_idle (gpointer             data);
 
-G_DEFINE_TYPE_WITH_CODE (ValentShareUpload, valent_share_upload, VALENT_TYPE_TRANSFER,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
+G_DEFINE_FINAL_TYPE_WITH_CODE (ValentShareUpload, valent_share_upload, VALENT_TYPE_TRANSFER,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
 enum {
   PROP_0,

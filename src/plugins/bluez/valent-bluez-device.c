@@ -28,7 +28,7 @@ struct _ValentBluezDevice
   gboolean         paired;
 };
 
-G_DEFINE_TYPE (ValentBluezDevice, valent_bluez_device, G_TYPE_OBJECT)
+G_DEFINE_FINAL_TYPE (ValentBluezDevice, valent_bluez_device, G_TYPE_OBJECT)
 
 enum {
   PROP_0,

@@ -30,7 +30,7 @@ struct _ValentTelephony
   GHashTable         *modems;
 };
 
-G_DEFINE_TYPE (ValentTelephony, valent_telephony, VALENT_TYPE_OBJECT)
+G_DEFINE_FINAL_TYPE (ValentTelephony, valent_telephony, VALENT_TYPE_OBJECT)
 
 enum {
   CHANGED,

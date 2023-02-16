@@ -29,7 +29,7 @@ struct _ValentContactRow
   GtkWidget     *address_type_label;
 };
 
-G_DEFINE_TYPE (ValentContactRow, valent_contact_row, GTK_TYPE_LIST_BOX_ROW)
+G_DEFINE_FINAL_TYPE (ValentContactRow, valent_contact_row, GTK_TYPE_LIST_BOX_ROW)
 
 enum {
   PROP_0,

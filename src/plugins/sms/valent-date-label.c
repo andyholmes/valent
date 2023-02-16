@@ -22,7 +22,7 @@ struct _ValentDateLabel
   unsigned int  mode;
 };
 
-G_DEFINE_TYPE (ValentDateLabel, valent_date_label, GTK_TYPE_WIDGET)
+G_DEFINE_FINAL_TYPE (ValentDateLabel, valent_date_label, GTK_TYPE_WIDGET)
 
 enum {
   PROP_0,

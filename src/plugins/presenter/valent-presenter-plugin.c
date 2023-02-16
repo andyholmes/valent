@@ -24,7 +24,7 @@ struct _ValentPresenterPlugin
   GtkWindow          *remote;
 };
 
-G_DEFINE_TYPE (ValentPresenterPlugin, valent_presenter_plugin, VALENT_TYPE_DEVICE_PLUGIN)
+G_DEFINE_FINAL_TYPE (ValentPresenterPlugin, valent_presenter_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
 static void

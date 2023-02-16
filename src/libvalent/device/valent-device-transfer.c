@@ -40,7 +40,7 @@ struct _ValentDeviceTransfer
   JsonNode     *packet;
 };
 
-G_DEFINE_TYPE (ValentDeviceTransfer, valent_device_transfer, VALENT_TYPE_TRANSFER)
+G_DEFINE_FINAL_TYPE (ValentDeviceTransfer, valent_device_transfer, VALENT_TYPE_TRANSFER)
 
 
 enum {

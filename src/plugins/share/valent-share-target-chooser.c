@@ -26,7 +26,7 @@ struct _ValentShareTargetChooser
   GtkListBox          *device_list;
 };
 
-G_DEFINE_TYPE (ValentShareTargetChooser, valent_share_target_chooser, GTK_TYPE_WINDOW)
+G_DEFINE_FINAL_TYPE (ValentShareTargetChooser, valent_share_target_chooser, GTK_TYPE_WINDOW)
 
 enum {
   PROP_0,

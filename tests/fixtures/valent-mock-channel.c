@@ -26,7 +26,7 @@ struct _ValentMockChannel
   guint16        port;
 };
 
-G_DEFINE_TYPE (ValentMockChannel, valent_mock_channel, VALENT_TYPE_CHANNEL)
+G_DEFINE_FINAL_TYPE (ValentMockChannel, valent_mock_channel, VALENT_TYPE_CHANNEL)
 
 enum {
   PROP_0,

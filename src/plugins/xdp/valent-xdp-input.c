@@ -40,7 +40,7 @@ struct _ValentXdpInput
   gboolean            started;
 };
 
-G_DEFINE_TYPE (ValentXdpInput, valent_xdp_input, VALENT_TYPE_INPUT_ADAPTER)
+G_DEFINE_FINAL_TYPE (ValentXdpInput, valent_xdp_input, VALENT_TYPE_INPUT_ADAPTER)
 
 
 /*

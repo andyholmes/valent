@@ -46,7 +46,7 @@ struct _ValentSmsWindow
   GtkWidget            *placeholder_contact;
 };
 
-G_DEFINE_TYPE (ValentSmsWindow, valent_sms_window, ADW_TYPE_APPLICATION_WINDOW)
+G_DEFINE_FINAL_TYPE (ValentSmsWindow, valent_sms_window, ADW_TYPE_APPLICATION_WINDOW)
 
 enum {
   PROP_0,

@@ -23,7 +23,7 @@ struct _ValentPaStream
   unsigned int       vol_max;
 };
 
-G_DEFINE_TYPE (ValentPaStream, valent_pa_stream, VALENT_TYPE_MIXER_STREAM)
+G_DEFINE_FINAL_TYPE (ValentPaStream, valent_pa_stream, VALENT_TYPE_MIXER_STREAM)
 
 enum {
   PROP_0,

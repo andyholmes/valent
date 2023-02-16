@@ -31,7 +31,7 @@ struct _ValentMessageRow
   GtkWidget     *body_label;
 };
 
-G_DEFINE_TYPE (ValentMessageRow, valent_message_row, GTK_TYPE_LIST_BOX_ROW)
+G_DEFINE_FINAL_TYPE (ValentMessageRow, valent_message_row, GTK_TYPE_LIST_BOX_ROW)
 
 
 enum {

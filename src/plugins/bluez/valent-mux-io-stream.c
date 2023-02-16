@@ -24,7 +24,7 @@ struct _ValentMuxIOStream
   GOutputStream       *output_stream;
 };
 
-G_DEFINE_TYPE (ValentMuxIOStream, valent_mux_io_stream, G_TYPE_IO_STREAM)
+G_DEFINE_FINAL_TYPE (ValentMuxIOStream, valent_mux_io_stream, G_TYPE_IO_STREAM)
 
 enum {
   PROP_0,

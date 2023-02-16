@@ -22,7 +22,7 @@ struct _ValentSftpPreferences
   GtkAdjustment               *local_port;
 };
 
-G_DEFINE_TYPE (ValentSftpPreferences, valent_sftp_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
+G_DEFINE_FINAL_TYPE (ValentSftpPreferences, valent_sftp_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
 
 
 static void

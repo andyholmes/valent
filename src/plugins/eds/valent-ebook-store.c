@@ -24,8 +24,8 @@ struct _ValentEBookStore
 
 static void   g_async_initable_iface_init (GAsyncInitableIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (ValentEBookStore, valent_ebook_store, VALENT_TYPE_CONTACT_STORE,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init))
+G_DEFINE_FINAL_TYPE_WITH_CODE (ValentEBookStore, valent_ebook_store, VALENT_TYPE_CONTACT_STORE,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init))
 
 
 /*

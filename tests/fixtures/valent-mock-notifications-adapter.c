@@ -15,7 +15,7 @@ struct _ValentMockNotificationsAdapter
   ValentNotificationsAdapter  parent_instance;
 };
 
-G_DEFINE_TYPE (ValentMockNotificationsAdapter, valent_mock_notifications_adapter, VALENT_TYPE_NOTIFICATIONS_ADAPTER)
+G_DEFINE_FINAL_TYPE (ValentMockNotificationsAdapter, valent_mock_notifications_adapter, VALENT_TYPE_NOTIFICATIONS_ADAPTER)
 
 
 /*

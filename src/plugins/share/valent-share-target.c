@@ -19,7 +19,7 @@ struct _ValentShareTarget
   GPtrArray               *windows;
 };
 
-G_DEFINE_TYPE (ValentShareTarget, valent_share_target, VALENT_TYPE_APPLICATION_PLUGIN)
+G_DEFINE_FINAL_TYPE (ValentShareTarget, valent_share_target, VALENT_TYPE_APPLICATION_PLUGIN)
 
 
 static void

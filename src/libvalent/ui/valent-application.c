@@ -35,7 +35,7 @@ struct _ValentApplication
   GtkWindow           *window;
 };
 
-G_DEFINE_TYPE (ValentApplication, valent_application, GTK_TYPE_APPLICATION)
+G_DEFINE_FINAL_TYPE (ValentApplication, valent_application, GTK_TYPE_APPLICATION)
 
 
 /*

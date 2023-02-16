@@ -25,7 +25,7 @@ struct _ValentBatteryGadget
   GtkWidget          *label;
 };
 
-G_DEFINE_TYPE (ValentBatteryGadget, valent_battery_gadget, VALENT_TYPE_DEVICE_GADGET)
+G_DEFINE_FINAL_TYPE (ValentBatteryGadget, valent_battery_gadget, VALENT_TYPE_DEVICE_GADGET)
 
 
 static void

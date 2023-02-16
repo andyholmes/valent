@@ -22,7 +22,7 @@ struct _ValentLockGadget
   GtkWidget          *button;
 };
 
-G_DEFINE_TYPE (ValentLockGadget, valent_lock_gadget, VALENT_TYPE_DEVICE_GADGET)
+G_DEFINE_FINAL_TYPE (ValentLockGadget, valent_lock_gadget, VALENT_TYPE_DEVICE_GADGET)
 
 
 /*

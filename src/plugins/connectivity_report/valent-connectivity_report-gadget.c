@@ -23,7 +23,7 @@ struct _ValentConnectivityReportGadget
   GtkWidget          *box;
 };
 
-G_DEFINE_TYPE (ValentConnectivityReportGadget, valent_connectivity_report_gadget, VALENT_TYPE_DEVICE_GADGET)
+G_DEFINE_FINAL_TYPE (ValentConnectivityReportGadget, valent_connectivity_report_gadget, VALENT_TYPE_DEVICE_GADGET)
 
 
 static void

@@ -18,7 +18,7 @@ struct _ValentPingPlugin
   ValentDevicePlugin  parent_instance;
 };
 
-G_DEFINE_TYPE (ValentPingPlugin, valent_ping_plugin, VALENT_TYPE_DEVICE_PLUGIN)
+G_DEFINE_FINAL_TYPE (ValentPingPlugin, valent_ping_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
 static void

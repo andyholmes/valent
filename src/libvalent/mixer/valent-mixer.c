@@ -32,8 +32,8 @@ struct _ValentMixerStreams
 
 static void   g_list_model_iface_init (GListModelInterface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (ValentMixerStreams, valent_mixer_streams, G_TYPE_OBJECT,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
+G_DEFINE_FINAL_TYPE_WITH_CODE (ValentMixerStreams, valent_mixer_streams, G_TYPE_OBJECT,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
 
 static gpointer
@@ -167,7 +167,7 @@ struct _ValentMixer
   GPtrArray          *streams;
 };
 
-G_DEFINE_TYPE (ValentMixer, valent_mixer, VALENT_TYPE_COMPONENT)
+G_DEFINE_FINAL_TYPE (ValentMixer, valent_mixer, VALENT_TYPE_COMPONENT)
 
 enum {
   PROP_0,

@@ -12,7 +12,7 @@ struct _ValentMockApplicationPlugin
   ValentApplicationPlugin  parent_instance;
 };
 
-G_DEFINE_TYPE (ValentMockApplicationPlugin, valent_mock_application_plugin, VALENT_TYPE_APPLICATION_PLUGIN)
+G_DEFINE_FINAL_TYPE (ValentMockApplicationPlugin, valent_mock_application_plugin, VALENT_TYPE_APPLICATION_PLUGIN)
 
 
 /*

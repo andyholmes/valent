@@ -35,7 +35,7 @@ static void            valent_sms_plugin_request_conversation  (ValentSmsPlugin 
                                                                 gint64           max_results);
 static void            valent_sms_plugin_request_conversations (ValentSmsPlugin *self);
 
-G_DEFINE_TYPE (ValentSmsPlugin, valent_sms_plugin, VALENT_TYPE_DEVICE_PLUGIN)
+G_DEFINE_FINAL_TYPE (ValentSmsPlugin, valent_sms_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
 /**

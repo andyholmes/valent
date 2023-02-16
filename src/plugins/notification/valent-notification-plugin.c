@@ -31,7 +31,7 @@ struct _ValentNotificationPlugin
   GHashTable          *dialogs;
 };
 
-G_DEFINE_TYPE (ValentNotificationPlugin, valent_notification_plugin, VALENT_TYPE_DEVICE_PLUGIN)
+G_DEFINE_FINAL_TYPE (ValentNotificationPlugin, valent_notification_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 static void valent_notification_plugin_handle_notification         (ValentNotificationPlugin *self,
                                                                     JsonNode                 *packet);

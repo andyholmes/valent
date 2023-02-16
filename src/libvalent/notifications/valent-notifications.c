@@ -36,7 +36,7 @@ struct _ValentNotifications
   GVariant        *applications;
 };
 
-G_DEFINE_TYPE (ValentNotifications, valent_notifications, VALENT_TYPE_COMPONENT)
+G_DEFINE_FINAL_TYPE (ValentNotifications, valent_notifications, VALENT_TYPE_COMPONENT)
 
 enum {
   NOTIFICATION_ADDED,

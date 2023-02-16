@@ -32,7 +32,7 @@ struct _ValentMprisDevice
   double              volume;
 };
 
-G_DEFINE_TYPE (ValentMprisDevice, valent_mpris_device, VALENT_TYPE_MEDIA_PLAYER)
+G_DEFINE_FINAL_TYPE (ValentMprisDevice, valent_mpris_device, VALENT_TYPE_MEDIA_PLAYER)
 
 
 enum {

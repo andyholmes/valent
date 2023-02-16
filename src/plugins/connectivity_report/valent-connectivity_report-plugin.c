@@ -29,7 +29,7 @@ struct _ValentConnectivityReportPlugin
 static void   valent_connectivity_report_plugin_request_state (ValentConnectivityReportPlugin *self);
 static void   valent_connectivity_report_plugin_send_state    (ValentConnectivityReportPlugin *self);
 
-G_DEFINE_TYPE (ValentConnectivityReportPlugin, valent_connectivity_report_plugin, VALENT_TYPE_DEVICE_PLUGIN)
+G_DEFINE_FINAL_TYPE (ValentConnectivityReportPlugin, valent_connectivity_report_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
 /*

@@ -45,7 +45,7 @@ static const char * valent_battery_plugin_get_icon_name (ValentBatteryPlugin *se
 static void         valent_battery_plugin_request_state (ValentBatteryPlugin *self);
 static void         valent_battery_plugin_send_state    (ValentBatteryPlugin *self);
 
-G_DEFINE_TYPE (ValentBatteryPlugin, valent_battery_plugin, VALENT_TYPE_DEVICE_PLUGIN)
+G_DEFINE_FINAL_TYPE (ValentBatteryPlugin, valent_battery_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
 /*

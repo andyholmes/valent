@@ -25,7 +25,7 @@ struct _ValentMessage
   gint64            thread_id;
 };
 
-G_DEFINE_TYPE (ValentMessage, valent_message, G_TYPE_OBJECT)
+G_DEFINE_FINAL_TYPE (ValentMessage, valent_message, G_TYPE_OBJECT)
 
 enum {
   PROP_0,

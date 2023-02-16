@@ -23,7 +23,7 @@ struct _ValentSftpPlugin
   ValentSftpSession  *session;
 };
 
-G_DEFINE_TYPE (ValentSftpPlugin, valent_sftp_plugin, VALENT_TYPE_DEVICE_PLUGIN)
+G_DEFINE_FINAL_TYPE (ValentSftpPlugin, valent_sftp_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
 static char *

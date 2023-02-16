@@ -29,7 +29,7 @@ static void valent_systemvolume_plugin_handle_sink_change (ValentSystemvolumePlu
                                                            JsonNode                 *packet);
 static void valent_systemvolume_plugin_send_sinklist      (ValentSystemvolumePlugin *self);
 
-G_DEFINE_TYPE (ValentSystemvolumePlugin, valent_systemvolume_plugin, VALENT_TYPE_DEVICE_PLUGIN)
+G_DEFINE_FINAL_TYPE (ValentSystemvolumePlugin, valent_systemvolume_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
 /*

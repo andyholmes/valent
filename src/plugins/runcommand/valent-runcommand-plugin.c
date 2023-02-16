@@ -27,7 +27,7 @@ struct _ValentRuncommandPlugin
   unsigned long        commands_changed_id;
 };
 
-G_DEFINE_TYPE (ValentRuncommandPlugin, valent_runcommand_plugin, VALENT_TYPE_DEVICE_PLUGIN)
+G_DEFINE_FINAL_TYPE (ValentRuncommandPlugin, valent_runcommand_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 static void valent_runcommand_plugin_execute_local_command     (ValentRuncommandPlugin *self,
                                                                 const char             *key);
