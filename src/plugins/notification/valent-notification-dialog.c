@@ -281,12 +281,8 @@ valent_notification_dialog_set_reply_id (ValentNotificationDialog *dialog,
 {
   g_return_if_fail (VALENT_IS_NOTIFICATION_DIALOG (dialog));
 
-  if (g_strcmp0 (dialog->reply_id, reply_id) == 0)
+  if (!valent_set_string (&dialog->reply_id, reply_id))
     return;
-
-  g_clear_pointer (&dialog->reply_id, g_free);
-  dialog->reply_id = g_strdup (reply_id);
-  g_object_notify_by_pspec (G_OBJECT (dialog), properties [PROP_REPLY_ID]);
 
   if (reply_id == NULL || *reply_id == '\0')
     {
@@ -298,6 +294,8 @@ valent_notification_dialog_set_reply_id (ValentNotificationDialog *dialog,
       gtk_widget_set_visible (GTK_WIDGET (dialog->reply_frame), TRUE);
       gtk_widget_set_visible (GTK_WIDGET (dialog->send_button), TRUE);
     }
+
+  g_object_notify_by_pspec (G_OBJECT (dialog), properties [PROP_REPLY_ID]);
 }
 
 /**
