@@ -559,7 +559,7 @@ valent_media_player_get_position (ValentMediaPlayer *player)
 
   VALENT_ENTRY;
 
-  g_return_val_if_fail (VALENT_IS_MEDIA_PLAYER (player), 0);
+  g_return_val_if_fail (VALENT_IS_MEDIA_PLAYER (player), 0.0);
 
   ret = VALENT_MEDIA_PLAYER_GET_CLASS (player)->get_position (player);
 

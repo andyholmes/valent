@@ -426,13 +426,10 @@ valent_telephony_serialize_modem (GDBusProxy *proxy)
 JsonNode *
 valent_telephony_get_signal_strengths (ValentTelephony *telephony)
 {
-  g_autoptr (JsonBuilder)builder = NULL;
-  JsonNode *ret = NULL;
+  g_autoptr (JsonBuilder) builder = NULL;
   GHashTableIter iter;
   gpointer key, value;
   unsigned int m = 0;
-
-  VALENT_ENTRY;
 
   g_return_val_if_fail (VALENT_IS_TELEPHONY (telephony), NULL);
 
@@ -454,8 +451,7 @@ valent_telephony_get_signal_strengths (ValentTelephony *telephony)
     }
 
   json_builder_end_object (builder);
-  ret = json_builder_get_root (builder);
 
-  VALENT_RETURN (ret);
+  return json_builder_get_root (builder);
 }
 

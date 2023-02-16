@@ -79,18 +79,18 @@ on_browse_command (GtkEntry               *entry,
 
 static void
 on_entry_changed (GtkEntry               *entry,
-                  ValentRuncommandEditor *editor)
+                  ValentRuncommandEditor *self)
 {
   const char *command;
   const char *name;
 
-  command = valent_runcommand_editor_get_command (editor);
-  name = valent_runcommand_editor_get_name (editor);
+  command = valent_runcommand_editor_get_command (self);
+  name = valent_runcommand_editor_get_name (self);
 
-  if (g_utf8_strlen (name, -1) > 0 && g_utf8_strlen (command, -1) > 0)
-    gtk_widget_set_sensitive (GTK_WIDGET (editor->save_button), TRUE);
+  if ((name != NULL && *name != '\0') && (command != NULL && *command != '\0'))
+    gtk_widget_set_sensitive (GTK_WIDGET (self->save_button), TRUE);
   else
-    gtk_widget_set_sensitive (GTK_WIDGET (editor->save_button), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET (self->save_button), FALSE);
 }
 
 /*

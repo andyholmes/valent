@@ -683,13 +683,13 @@ valent_lan_channel_service_identify (ValentChannelService *service,
                                      const char           *target)
 {
   ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (service);
-  g_autoptr (GNetworkAddress) naddr = NULL;
+  g_autoptr (GSocketConnectable) naddr = NULL;
   g_autoptr (GSocketAddress) address = NULL;
   g_autoptr (JsonNode) identity = NULL;
   g_autofree char *identity_json = NULL;
   glong identity_len;
-  const char *hostname;
-  guint16 port;
+  const char *hostname = self->broadcast_address;
+  guint16 port = self->port;
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
 
@@ -700,9 +700,9 @@ valent_lan_channel_service_identify (ValentChannelService *service,
     {
       g_autoptr (GError) error = NULL;
 
-      naddr = G_NETWORK_ADDRESS (g_network_address_parse (target,
-                                                          VALENT_LAN_PROTOCOL_PORT,
-                                                          &error));
+      naddr = g_network_address_parse (target,
+                                       VALENT_LAN_PROTOCOL_PORT,
+                                       &error);
 
       if (naddr == NULL)
         {
@@ -713,13 +713,8 @@ valent_lan_channel_service_identify (ValentChannelService *service,
           return;
         }
 
-      hostname = g_network_address_get_hostname (naddr);
-      port = g_network_address_get_port (naddr);
-    }
-  else
-    {
-      hostname = self->broadcast_address;
-      port = self->port;
+      hostname = g_network_address_get_hostname (G_NETWORK_ADDRESS (naddr));
+      port = g_network_address_get_port (G_NETWORK_ADDRESS (naddr));
     }
 
   address = g_inet_socket_address_new_from_string (hostname, port);

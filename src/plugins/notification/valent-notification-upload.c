@@ -223,10 +223,10 @@ valent_notification_upload_get_icon_bytes (GIcon         *icon,
   /* Now attempt to load the bytes as a pixbuf */
   loader = gdk_pixbuf_loader_new ();
 
-  g_signal_connect (loader,
-                    "size-prepared",
-                    G_CALLBACK (on_size_prepared),
-                    NULL);
+  g_signal_connect_object (loader,
+                           "size-prepared",
+                           G_CALLBACK (on_size_prepared),
+                           NULL, 0);
 
   if (!gdk_pixbuf_loader_write_bytes (loader, bytes, &warn) ||
       !gdk_pixbuf_loader_close (loader, &warn))
@@ -335,16 +335,12 @@ valent_notification_upload_execute (ValentTransfer      *transfer,
 {
   g_autoptr (GTask) task = NULL;
 
-  VALENT_ENTRY;
-
   g_assert (VALENT_IS_NOTIFICATION_UPLOAD (transfer));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   task = g_task_new (transfer, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_notification_upload_execute);
   g_task_run_in_thread (task, valent_notification_upload_execute_task);
-
-  VALENT_EXIT;
 }
 
 /*
