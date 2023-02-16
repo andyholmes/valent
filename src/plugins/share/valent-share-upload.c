@@ -329,8 +329,6 @@ valent_share_upload_add_files_cb (GObject      *object,
   unsigned int position, added;
   g_autoptr (GError) error = NULL;
 
-  VALENT_ENTRY;
-
   g_assert (VALENT_IS_SHARE_UPLOAD (self));
   g_assert (g_task_is_valid (result, self));
 
@@ -340,7 +338,7 @@ valent_share_upload_add_files_cb (GObject      *object,
         g_warning ("%s: %s", G_OBJECT_TYPE_NAME (self), error->message);
 
       self->processing_files--;
-      VALENT_EXIT;
+      return;
     }
 
   position = self->items->len;
@@ -360,8 +358,6 @@ valent_share_upload_add_files_cb (GObject      *object,
 
   g_list_model_items_changed (G_LIST_MODEL (self), position, 0, added);
   valent_share_upload_update (self);
-
-  VALENT_EXIT;
 }
 
 static void
@@ -443,8 +439,6 @@ valent_share_upload_add_file (ValentShareUpload *upload,
   g_autoptr (GCancellable) destroy = NULL;
   g_autoptr (GPtrArray) items = NULL;
 
-  VALENT_ENTRY;
-
   g_return_if_fail (VALENT_IS_SHARE_UPLOAD (upload));
   g_return_if_fail (G_IS_FILE (file));
 
@@ -460,8 +454,6 @@ valent_share_upload_add_file (ValentShareUpload *upload,
                         g_steal_pointer (&items),
                         (GDestroyNotify)g_ptr_array_unref);
   g_task_run_in_thread (task, valent_share_upload_add_files_task);
-
-  VALENT_EXIT;
 }
 
 /**
@@ -484,8 +476,6 @@ valent_share_upload_add_files (ValentShareUpload *upload,
   g_autoptr (GPtrArray) items = NULL;
   unsigned int n_files = 0;
 
-  VALENT_ENTRY;
-
   g_return_if_fail (VALENT_IS_SHARE_UPLOAD (upload));
   g_return_if_fail (G_IS_LIST_MODEL (files));
   g_return_if_fail (g_list_model_get_item_type (files) == G_TYPE_FILE);
@@ -505,7 +495,5 @@ valent_share_upload_add_files (ValentShareUpload *upload,
                         g_steal_pointer (&items),
                         (GDestroyNotify)g_ptr_array_unref);
   g_task_run_in_thread (task, valent_share_upload_add_files_task);
-
-  VALENT_EXIT;
 }
 

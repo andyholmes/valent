@@ -307,13 +307,11 @@ static void
 on_entry_changed (GtkEntry              *entry,
                   ValentSmsConversation *conversation)
 {
-  gboolean has_message;
   const char *text;
 
   text = gtk_editable_get_text (GTK_EDITABLE (entry));
-  has_message = (g_utf8_strlen (text, -1) > 0);
 
-  gtk_entry_set_icon_sensitive (entry, GTK_ENTRY_ICON_SECONDARY, has_message);
+  gtk_entry_set_icon_sensitive (entry, GTK_ENTRY_ICON_SECONDARY, *text != '\0');
 }
 
 /*
@@ -566,7 +564,7 @@ valent_sms_conversation_send_message (ValentSmsConversation *self)
 
   text = gtk_editable_get_text (GTK_EDITABLE (self->message_entry));
 
-  if (!g_utf8_strlen (text, -1))
+  if (text == NULL || *text == '\0')
     return;
 
   // Metadata

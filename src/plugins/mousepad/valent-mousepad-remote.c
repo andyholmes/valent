@@ -439,7 +439,7 @@ valent_mousepad_remote_pointer_button (ValentMousepadRemote *self,
 
       packet = valent_packet_end (&builder);
     }
-  else if (button == GDK_BUTTON_PRIMARY && n_press == 2)
+  else if (n_press == 2 && button == GDK_BUTTON_PRIMARY)
     {
       valent_packet_init (&builder, "kdeconnect.mousepad.request");
       json_builder_set_member_name (builder, "doubleclick");

@@ -328,8 +328,6 @@ valent_share_download_add_file (ValentShareDownload *download,
   gint64 number_of_files;
   goffset total_payload_size;
 
-  VALENT_ENTRY;
-
   g_return_if_fail (VALENT_IS_SHARE_DOWNLOAD (download));
   g_return_if_fail (G_IS_FILE (file));
   g_return_if_fail (VALENT_IS_PACKET (packet));
@@ -352,8 +350,6 @@ valent_share_download_add_file (ValentShareDownload *download,
   /* FIXME: this indicates the number of total transfers, not the number of
    *        items currently available in the list model. */
   g_list_model_items_changed (G_LIST_MODEL (download), position, 0, added);
-
-  VALENT_EXIT;
 }
 
 /**
