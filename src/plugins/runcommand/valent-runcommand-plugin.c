@@ -14,8 +14,6 @@
 #include "valent-runcommand-plugin.h"
 #include "valent-runcommand-utils.h"
 
-#define SPAWN_FMT "/bin/sh -c %s"
-
 
 struct _ValentRuncommandPlugin
 {
@@ -111,52 +109,36 @@ launcher_execute (ValentRuncommandPlugin  *self,
                   const char              *command,
                   GError                 **error)
 {
-  GSettings *settings;
   g_autoptr (GSubprocess) subprocess = NULL;
-  g_autofree char *command_line = NULL;
+  g_autoptr (GString) command_line = NULL;
+  g_autofree char *quoted = NULL;
   g_auto (GStrv) argv = NULL;
-  gboolean isolate;
+
+  g_assert (VALENT_IS_RUNCOMMAND_PLUGIN (self));
+  g_assert (command != NULL && *command != '\0');
+  g_assert (error == NULL || *error == NULL);
 
   launcher_init (self);
 
-  /* TODO: A user to could define a command including `flatpak-spawn --host`,
-   *       but it's not clear if that is a security risk since isolating
-   *       subprocesses is opt-in.
-   */
-  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
-  isolate = g_settings_get_boolean (settings, "isolate-subprocesses");
+  command_line = g_string_new ("");
 
-  /* When running in a Flatpak sandbox that allows spawning subprocesses on the
-   * host, use `--sandbox` to make it slightly more difficult for a bad actor to
-   * abuse. Use `--host` when not isolating, to allow more risky behaviour.
-   *
-   * If spawning on the host is disallowed, call `flatpak-spawn` without options
-   * when isolating and plain `sh -c` when not. */
-  if (xdp_portal_running_under_flatpak ())
+  /* When running in a Flatpak, run the command on the host if requested */
+  if (xdp_portal_running_under_flatpak () &&
+      valent_runcommand_can_spawn_host ())
     {
-      if (valent_runcommand_can_spawn_host ())
-        {
-          if (isolate)
-            command_line = g_strdup_printf ("flatpak-spawn --sandbox "SPAWN_FMT,
-                                            command);
-          else
-            command_line = g_strdup_printf ("flatpak-spawn --host "SPAWN_FMT,
-                                            command);
-        }
-      else
-        {
-          if (isolate)
-            command_line = g_strdup_printf ("flatpak-spawn "SPAWN_FMT, command);
-          else
-            command_line = g_strdup_printf (SPAWN_FMT, command);
-        }
-    }
-  else
-    {
-      command_line = g_strdup_printf (SPAWN_FMT, command);
+      GSettings *settings;
+
+      settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+
+      if (!g_settings_get_boolean (settings, "isolate-subprocesses"))
+        g_string_append (command_line, "flatpak-spawn --host ");
     }
 
-  if (!g_shell_parse_argv (command_line, NULL, &argv, error))
+  /* Quote the command for the subshell */
+  quoted = g_shell_quote (command);
+  g_string_append_printf (command_line, "sh -c %s", quoted);
+
+  if (!g_shell_parse_argv (command_line->str, NULL, &argv, error))
     return FALSE;
 
   subprocess = g_subprocess_launcher_spawnv (self->launcher,
