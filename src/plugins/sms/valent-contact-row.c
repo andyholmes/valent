@@ -165,10 +165,7 @@ valent_contact_row_class_init (ValentContactRowClass *klass)
 static void
 valent_contact_row_init (ValentContactRow *self)
 {
-  GtkStyleContext *style;
-
-  style = gtk_widget_get_style_context (GTK_WIDGET (self));
-  gtk_style_context_add_class (style, "valent-contact-row");
+  gtk_widget_add_css_class (GTK_WIDGET (self), "valent-contact-row");
 
   self->grid = g_object_new (GTK_TYPE_GRID,
                              "column-spacing", 8,
@@ -204,8 +201,7 @@ valent_contact_row_init (ValentContactRow *self)
                                       "vexpand",   TRUE,
                                       "xalign",    0.0,
                                       NULL);
-  style = gtk_widget_get_style_context (self->address_label);
-  gtk_style_context_add_class (style, "dim-label");
+  gtk_widget_add_css_class (self->address_label, "dim-label");
   gtk_grid_attach (GTK_GRID (self->grid), self->address_label, 1, 1, 1, 1);
 
   self->address_type_label = g_object_new (GTK_TYPE_LABEL,
@@ -217,8 +213,7 @@ valent_contact_row_init (ValentContactRow *self)
                                    "vexpand",   TRUE,
                                    "xalign",    0.0,
                                    NULL);
-  style = gtk_widget_get_style_context (self->address_type_label);
-  gtk_style_context_add_class (style, "dim-label");
+  gtk_widget_add_css_class (self->address_type_label, "dim-label");
   gtk_grid_attach (GTK_GRID (self->grid), self->address_type_label, 2, 1, 1, 1);
 }
 
@@ -254,7 +249,6 @@ valent_contact_row_header_func (GtkListBoxRow *row,
   else if (!VALENT_IS_CONTACT_ROW (before))
     {
       GtkWidget *label;
-      GtkStyleContext *style;
 
       label = g_object_new (GTK_TYPE_LABEL,
                             "label",        _("Contacts"),
@@ -263,9 +257,8 @@ valent_contact_row_header_func (GtkListBoxRow *row,
                             "margin-start", 6,
                             "margin-top",   6,
                             NULL);
-      style = gtk_widget_get_style_context (label);
-      gtk_style_context_add_class (style, "dim-label");
-      gtk_style_context_add_class (style, "list-header-title");
+      gtk_widget_add_css_class (label, "dim-label");
+      gtk_widget_add_css_class (label, "list-header-title");
       gtk_list_box_row_set_header (row, label);
 
       valent_contact_row_set_compact (contact_row, FALSE);

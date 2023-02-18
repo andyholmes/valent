@@ -163,10 +163,7 @@ valent_message_row_class_init (ValentMessageRowClass *klass)
 static void
 valent_message_row_init (ValentMessageRow *self)
 {
-  GtkStyleContext *style;
-
-  style = gtk_widget_get_style_context (GTK_WIDGET (self));
-  gtk_style_context_add_class (style, "valent-message-row");
+  gtk_widget_add_css_class (GTK_WIDGET (self), "valent-message-row");
 
   self->grid = g_object_new (GTK_TYPE_GRID,
                              "column-spacing", 8,
@@ -199,8 +196,7 @@ valent_message_row_init (ValentMessageRow *self)
   self->date_label = g_object_new (VALENT_TYPE_DATE_LABEL,
                                    "halign",     GTK_ALIGN_END,
                                    NULL);
-  style = gtk_widget_get_style_context (self->date_label);
-  gtk_style_context_add_class (style, "dim-label");
+  gtk_widget_add_css_class (self->date_label, "dim-label");
   gtk_grid_attach (GTK_GRID (self->grid), self->date_label, 2, 0, 1, 1);
 
   self->body_label = g_object_new (GTK_TYPE_LABEL,

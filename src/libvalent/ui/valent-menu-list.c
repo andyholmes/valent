@@ -164,7 +164,7 @@ valent_menu_list_add_submenu (ValentMenuList *self,
 
   grid = gtk_list_box_row_get_child (row);
   arrow = gtk_image_new_from_icon_name ("go-next-symbolic");
-  gtk_style_context_add_class (gtk_widget_get_style_context (arrow), "dim-label");
+  gtk_widget_add_css_class (arrow, "dim-label");
   gtk_grid_attach (GTK_GRID (grid), arrow, 2, 0, 1, 1);
 
   /* Add the submenu */
@@ -384,8 +384,7 @@ valent_menu_list_init (ValentMenuList *self)
                               "margin-top",    18,
                               "margin-bottom", 18,
                               NULL);
-  gtk_style_context_add_class (gtk_widget_get_style_context (placeholder),
-                               "dim-label");
+  gtk_widget_add_css_class (placeholder, "dim-label");
   gtk_list_box_set_placeholder (GTK_LIST_BOX (self->list), placeholder);
 }
 
@@ -517,7 +516,7 @@ valent_menu_list_set_submenu_of (ValentMenuList *self,
                        "icon-name", "go-previous-symbolic",
                        "icon-size", GTK_ICON_SIZE_NORMAL,
                        NULL);
-  gtk_style_context_add_class (gtk_widget_get_style_context (icon), "dim-label");
+  gtk_widget_add_css_class (icon, "dim-label");
   gtk_grid_attach (GTK_GRID (grid), icon, 0, 0, 1, 1);
 
   label = g_object_new (GTK_TYPE_LABEL,

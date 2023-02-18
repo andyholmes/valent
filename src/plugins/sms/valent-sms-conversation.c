@@ -171,8 +171,7 @@ message_list_header_func (GtkListBoxRow *row,
           GtkWidget *header;
 
           header = valent_date_label_new (row_date);
-          gtk_style_context_add_class (gtk_widget_get_style_context (header),
-                                       "dim-label");
+          gtk_widget_add_css_class (header, "dim-label");
           gtk_list_box_row_set_header (row, header);
 
           /* If the row's message is incoming, show the avatar also */
