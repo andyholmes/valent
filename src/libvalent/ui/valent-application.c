@@ -296,18 +296,6 @@ quit_action (GSimpleAction *action,
 }
 
 static void
-refresh_action (GSimpleAction *action,
-                GVariant      *parameter,
-                gpointer       user_data)
-{
-  ValentApplication *self = VALENT_APPLICATION (user_data);
-
-  g_assert (VALENT_IS_APPLICATION (self));
-
-  valent_device_manager_refresh (self->manager);
-}
-
-static void
 window_action (GSimpleAction *action,
                GVariant      *parameter,
                gpointer       user_data)
@@ -325,7 +313,6 @@ window_action (GSimpleAction *action,
 static const GActionEntry actions[] = {
   { "device",  device_action,      "(ssav)", NULL, NULL },
   { "quit",    quit_action,        NULL,     NULL, NULL },
-  { "refresh", refresh_action,     NULL,     NULL, NULL },
   { "window",  window_action,      "s",      NULL, NULL },
 };
 
