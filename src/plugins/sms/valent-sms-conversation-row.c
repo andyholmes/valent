@@ -191,10 +191,7 @@ valent_sms_conversation_row_class_init (ValentSmsConversationRowClass *klass)
 static void
 valent_sms_conversation_row_init (ValentSmsConversationRow *self)
 {
-  GtkStyleContext *style;
-
-  style = gtk_widget_get_style_context (GTK_WIDGET (self));
-  gtk_style_context_add_class (style, "valent-sms-conversation-row");
+  gtk_widget_add_css_class (GTK_WIDGET (self), "valent-sms-conversation-row");
 
   self->grid = g_object_new (GTK_TYPE_GRID,
                              "can-focus",      FALSE,
@@ -445,8 +442,6 @@ valent_sms_conversation_row_show_avatar (ValentSmsConversationRow *row,
 void
 valent_sms_conversation_row_update (ValentSmsConversationRow *row)
 {
-  GtkStyleContext *style;
-
   g_return_if_fail (VALENT_IS_SMS_CONVERSATION_ROW (row));
 
   // text
@@ -477,16 +472,14 @@ valent_sms_conversation_row_update (ValentSmsConversationRow *row)
    *
    * The CSS classes determine the chat bubble style and color.
    */
-  style = gtk_widget_get_style_context (row->bubble);
-
   if (row->incoming)
     {
       gtk_widget_set_halign (row->grid, GTK_ALIGN_START);
       gtk_widget_set_margin_end (row->grid, 44);
       gtk_widget_set_margin_start (row->grid, 6);
 
-      gtk_style_context_remove_class (style, "valent-sms-outgoing");
-      gtk_style_context_add_class (style, "valent-sms-incoming");
+      gtk_widget_remove_css_class (row->bubble, "valent-sms-outgoing");
+      gtk_widget_add_css_class (row->bubble, "valent-sms-incoming");
       gtk_widget_set_halign (GTK_WIDGET (row), GTK_ALIGN_START);
     }
   else
@@ -495,8 +488,8 @@ valent_sms_conversation_row_update (ValentSmsConversationRow *row)
       gtk_widget_set_margin_end (row->grid, 6);
       gtk_widget_set_margin_start (row->grid, 88);
 
-      gtk_style_context_remove_class (style, "valent-sms-incoming");
-      gtk_style_context_add_class (style, "valent-sms-outgoing");
+      gtk_widget_remove_css_class (row->bubble, "valent-sms-incoming");
+      gtk_widget_add_css_class (row->bubble, "valent-sms-outgoing");
       gtk_widget_set_halign (GTK_WIDGET (row), GTK_ALIGN_END);
     }
 }

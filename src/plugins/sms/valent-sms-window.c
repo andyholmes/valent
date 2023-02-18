@@ -181,7 +181,6 @@ search_header_func (GtkListBoxRow *row,
       if (before == NULL || !VALENT_IS_MESSAGE_ROW (before))
         {
           GtkWidget *label;
-          GtkStyleContext *style;
 
           label = g_object_new (GTK_TYPE_LABEL,
                                 "label",        _("Conversations"),
@@ -190,9 +189,8 @@ search_header_func (GtkListBoxRow *row,
                                 "margin-start", 6,
                                 "margin-top",   6,
                                 NULL);
-          style = gtk_widget_get_style_context (label);
-          gtk_style_context_add_class (style, "dim-label");
-          gtk_style_context_add_class (style, "list-header-title");
+          gtk_widget_add_css_class (label, "dim-label");
+          gtk_widget_add_css_class (label, "list-header-title");
           gtk_list_box_row_set_header (row, label);
         }
     }

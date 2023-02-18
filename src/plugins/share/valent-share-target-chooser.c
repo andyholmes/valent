@@ -84,7 +84,7 @@ valent_share_target_chooser_create_row (gpointer item,
                       "margin-start", 12,
                       "margin-end",   12,
                       NULL);
-  gtk_style_context_add_class (gtk_widget_get_style_context (row), "card");
+  gtk_widget_add_css_class (row, "card");
 
   g_object_bind_property (device, "icon-name",
                           row,    "icon-name",

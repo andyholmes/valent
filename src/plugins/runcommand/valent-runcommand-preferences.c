@@ -372,8 +372,7 @@ on_isolate_subprocesses_changed (GtkSwitch                   *sw,
 
   gtk_dialog_add_button (dialog, _("Cancel"), GTK_RESPONSE_CANCEL);
   button = gtk_button_new_with_label (_("I Understand"));
-  gtk_style_context_add_class (gtk_widget_get_style_context (button),
-                               "destructive-action");
+  gtk_widget_add_css_class (button, "destructive-action");
   gtk_dialog_add_action_widget (dialog, button, GTK_RESPONSE_ACCEPT);
 
   g_signal_connect (dialog,

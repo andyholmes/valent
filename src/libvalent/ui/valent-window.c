@@ -117,28 +117,26 @@ on_device_changed (ValentDevice *device,
                    GtkWidget    *status)
 {
   ValentDeviceState state;
-  GtkStyleContext *style;
 
   g_assert (VALENT_IS_DEVICE (device));
   g_assert (GTK_IS_LABEL (status));
 
   state = valent_device_get_state (device);
-  style = gtk_widget_get_style_context (GTK_WIDGET (status));
 
   if ((state & VALENT_DEVICE_STATE_PAIRED) == 0)
     {
       gtk_label_set_label (GTK_LABEL (status), _("Unpaired"));
-      gtk_style_context_remove_class (style, "dim-label");
+      gtk_widget_remove_css_class (status, "dim-label");
     }
   else if ((state & VALENT_DEVICE_STATE_CONNECTED) == 0)
     {
       gtk_label_set_label (GTK_LABEL (status), _("Disconnected"));
-      gtk_style_context_add_class (style, "dim-label");
+      gtk_widget_add_css_class (status, "dim-label");
     }
   else
     {
       gtk_label_set_label (GTK_LABEL (status), _("Connected"));
-      gtk_style_context_remove_class (style, "dim-label");
+      gtk_widget_remove_css_class (status, "dim-label");
     }
 }
 
@@ -191,7 +189,7 @@ valent_window_create_row_func (gpointer item,
   gtk_box_append (GTK_BOX (box), status);
 
   arrow = gtk_image_new_from_icon_name ("go-next-symbolic");
-  gtk_style_context_add_class (gtk_widget_get_style_context (arrow), "dim-label");
+  gtk_widget_add_css_class (arrow, "dim-label");
   gtk_box_append (GTK_BOX (box), arrow);
 
   /* Bind to device */
