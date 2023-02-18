@@ -179,15 +179,15 @@ on_row_activated (GtkListBox               *box,
 }
 
 static gboolean
-refresh_cb (gpointer data)
+valent_share_target_chooser_refresh (gpointer data)
 {
-  ValentShareTargetChooser *self = VALENT_SHARE_TARGET_CHOOSER (data);
+  ValentDeviceManager *manager = VALENT_DEVICE_MANAGER (data);
 
-  g_assert (VALENT_IS_SHARE_TARGET_CHOOSER (self));
+  g_assert (VALENT_IS_DEVICE_MANAGER (manager));
 
-  valent_device_manager_refresh (self->manager);
+  valent_device_manager_refresh (manager);
 
-  return TRUE;
+  return G_SOURCE_CONTINUE;
 }
 
 /*
@@ -214,8 +214,11 @@ valent_share_target_chooser_constructed (GObject *object)
 
   /* Broadcast every 5 seconds to re-connect devices that may have gone idle */
   valent_device_manager_refresh (self->manager);
-  self->refresh_id = g_timeout_add_seconds_full (G_PRIORITY_LOW, 5, refresh_cb,
-                                                 NULL, NULL);
+  self->refresh_id = g_timeout_add_seconds_full (G_PRIORITY_LOW,
+                                                 5,
+                                                 valent_share_target_chooser_refresh,
+                                                 g_object_ref (self->manager),
+                                                 g_object_unref);
 
   G_OBJECT_CLASS (valent_share_target_chooser_parent_class)->constructed (object);
 }
