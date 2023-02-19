@@ -24,7 +24,7 @@ struct _ValentMPRISAdapter
   GHashTable         *players;
 
   /* Exports */
-  ValentMPRISImpl    *export;
+  ValentMPRISImpl    *active_export;
   GHashTable         *exports;
 };
 
@@ -49,47 +49,54 @@ on_player_state_changed (ValentMPRISAdapter *self,
   if (g_hash_table_size (self->exports) == 0)
     return;
 
-  /* There is at least one player exported, but @player may be %NULL */
-  if ((export = g_hash_table_lookup (self->exports, player)) == NULL)
+  /* There is at least one export, but @player may be %NULL */
+  if (player == NULL)
     {
       GHashTableIter iter;
 
       g_hash_table_iter_init (&iter, self->exports);
       g_hash_table_iter_next (&iter, (void **)&player, (void **)&export);
     }
+  else
+    {
+      export = g_hash_table_lookup (self->exports, player);
 
-  /* If the player has stopped, select a different one for export */
+      /* Bail: it wasn't the exported player that stopped */
+      if (self->active_export && self->active_export != export)
+        return;
+    }
+
+  /* If the player has stopped, look for another one that is active */
   if (valent_media_player_get_state (player) != VALENT_MEDIA_STATE_PLAYING)
     {
       GHashTableIter iter;
-
-      /* It wasn't the exported player that stopped */
-      if (self->export && self->export != export)
-        return;
+      gpointer key, value;
 
       g_hash_table_iter_init (&iter, self->exports);
 
-      while (g_hash_table_iter_next (&iter, (void **)&player, (void **)&export))
+      while (g_hash_table_iter_next (&iter, &key, &value))
         {
-          if (valent_media_player_get_state (player) == VALENT_MEDIA_STATE_PLAYING)
-            break;
+          if (valent_media_player_get_state (key) != VALENT_MEDIA_STATE_PLAYING)
+            continue;
+
+          player = key;
+          export = value;
+          break;
         }
     }
 
-  /* Nothing to do */
-  if (self->export == export)
-    return;
+  g_assert (VALENT_IS_MPRIS_IMPL (export));
 
   /* Unexport any current player and replace it with the active player */
-  g_clear_pointer (&self->export, valent_mpris_impl_unexport);
-
-  if (export != NULL)
+  if (self->active_export != export)
     {
       g_autoptr (GError) error = NULL;
 
+      g_clear_pointer (&self->active_export, valent_mpris_impl_unexport);
+
       if (valent_mpris_impl_export (export, self->connection, &error))
         {
-          self->export = export;
+          self->active_export = export;
 
           g_object_freeze_notify (G_OBJECT (player));
           g_object_notify (G_OBJECT (player), "flags");
@@ -384,9 +391,9 @@ valent_mpris_adapter_unexport (ValentMediaAdapter *adapter,
     {
       g_signal_handlers_disconnect_by_data (impl, self);
 
-      if (self->export == impl)
+      if (self->active_export == impl)
         {
-          g_clear_pointer (&self->export, valent_mpris_impl_unexport);
+          g_clear_pointer (&self->active_export, valent_mpris_impl_unexport);
           on_player_state_changed (self, NULL, NULL);
         }
     }
