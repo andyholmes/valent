@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/schema#",
-    "title": "kdeconnect.share.request",
+    "title": "kdeconnect.share.request.update",
     "description": "This packet is the metadata for a multi-file transfer. By convention it is sent in advance of the packets containing the payload, which will include the same fields, potentially with updated totals.",
     "examples": [
         {
