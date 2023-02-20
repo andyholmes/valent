@@ -5,70 +5,138 @@
 
 <interface domain="valent">
   <template class="ValentShareTargetChooser" parent="GtkWindow">
-    <property name="title" translatable="yes">Select Device</property>
+    <property name="title" translatable="yes">Share Files</property>
     <property name="width-request">360</property>
     <property name="height-request">294</property>
-    <child type="titlebar">
+    <style>
+      <class name="messagedialog"/>
+    </style>
+    <property name="titlebar">
       <object class="GtkHeaderBar">
-        <property name="show-title-buttons">1</property>
-        <property name="title-widget">
-          <object class="AdwWindowTitle">
-            <property name="title"
-                      bind-source="ValentShareTargetChooser"
-                      bind-property="title"
-                      bind-flags="sync-create"/>
-          </object>
-        </property>
+        <property name="show-title-buttons">0</property>
         <child type="start">
           <object class="GtkButton">
-            <property name="label" translatable="yes">Cancel</property>
-            <property name="action-name">window.close</property>
+            <property name="action-name">chooser.cancel</property>
+            <property name="label" translatable="yes">_Cancel</property>
+            <property name="use-underline">1</property>
+         </object>
+        </child>
+        <child type="end">
+          <object class="GtkButton">
+            <property name="action-name">chooser.share</property>
+            <property name="label" translatable="yes">_Share</property>
+            <property name="use-underline">1</property>
+            <property name="visible">0</property>
+            <style>
+              <class name="suggested-action"/>
+            </style>
          </object>
         </child>
       </object>
-    </child>
+    </property>
     <child>
       <object class="GtkBox">
         <property name="orientation">vertical</property>
+
+        <!-- Message Area -->
         <child>
           <object class="GtkScrolledWindow">
             <property name="hscrollbar-policy">never</property>
             <property name="hexpand">1</property>
             <property name="vexpand">1</property>
+
             <child>
-              <object class="GtkListBox" id="device_list">
-                <property name="selection-mode">none</property>
-                <signal name="row-activated"
-                        handler="on_row_activated"
-                        object="ValentShareTargetChooser"
-                        swapped="no"/>
-                <child type="placeholder">
-                  <object class="GtkBox">
-                    <property name="orientation">vertical</property>
-                    <property name="spacing">18</property>
-                    <property name="halign">center</property>
-                    <property name="valign">center</property>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <style>
+                  <class name="message-area"/>
+                </style>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Choose a device to share the selected files with.</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwClamp">
                     <child>
-                      <object class="GtkImage">
-                        <property name="icon-name">phonelink-off-symbolic</property>
-                        <property name="pixel-size">128</property>
+                      <object class="GtkFrame">
+                        <child>
+                          <object class="GtkListBox" id="device_list">
+                            <accessibility>
+                              <property name="label" translatable="yes">Devices</property>
+                            </accessibility>
+                            <property name="activate-on-single-click">1</property>
+                            <property name="selection-mode">single</property>
+                            <signal name="row-activated"
+                                    handler="on_row_activated"
+                                    object="ValentShareTargetChooser"
+                                    swapped="no"/>
+                            <signal name="selected-rows-changed"
+                                    handler="on_selected_rows_changed"
+                                    object="ValentShareTargetChooser"
+                                    swapped="no"/>
+                            <style>
+                              <class name="boxed-list"/>
+                              <class name="boxed-list-placeholder"/>
+                            </style>
+                            <child type="placeholder">
+                              <object class="AdwActionRow">
+                                <property name="title" translatable="yes">Searching…</property>
+                                <child type="prefix">
+                                  <object class="GtkSpinner">
+                                    <property name="spinning">1</property>
+                                  </object>
+                                </child>
+                                <style>
+                                  <class name="dim-label"/>
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
                       </object>
                     </child>
-                    <child>
-                      <object class="GtkLabel">
-                        <property name="label" translatable="yes">No devices available.</property>
-                        <attributes>
-                          <attribute name="scale" value="1.2"/>
-                        </attributes>
-                      </object>
-                    </child>
-                    <style>
-                      <class name="dim-label"/>
-                    </style>
                   </object>
                 </child>
               </object>
             </child>
+          </object>
+        </child>
+
+        <!-- Default Device
+
+             TODO: Add GSettings and preferences for the application plugin
+                   and hook-up the switch below for a default device.
+        -->
+        <child>
+          <object class="GtkSeparator">
+            <property name="valign">end</property>
+            <property name="visible">0</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkCenterBox">
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
+            <property name="valign">end</property>
+            <property name="visible">0</property>
+            <child type="start">
+              <object class="GtkLabel" id="default_label">
+                <property name="label" translatable="yes">Always use this device</property>
+                <property name="valign">center</property>
+              </object>
+            </child>
+            <child type="end">
+              <object class="GtkSwitch" id="default_switch">
+                <property name="valign">center</property>
+                <accessibility>
+                  <relation name="labelled-by">default_label</relation>
+                </accessibility>
+              </object>
+            </child>
+            <style>
+              <class name="toolbar"/>
+            </style>
           </object>
         </child>
       </object>

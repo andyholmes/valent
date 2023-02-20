@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2022-12-19 01:02-0800\n"
+"POT-Creation-Date: 2023-02-19 20:33-0800\n"
 "PO-Revision-Date: 2022-09-12 19:59+0200\n"
 "Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
 "Language-Team: Dutch\n"
@@ -45,7 +45,7 @@ msgstr "Of de plug-in is ingeschakeld."
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
 #: data/ca.andyholmes.Valent.desktop.in.in:3
 #: src/libvalent/ui/valent-preferences-window.ui:13
-#: src/libvalent/ui/valent-window.c:204 src/libvalent/ui/valent-window.ui:40
+#: src/libvalent/ui/valent-window.c:263 src/libvalent/ui/valent-window.ui:40
 msgid "Valent"
 msgstr "Valent"
 
@@ -107,7 +107,7 @@ msgstr ""
 msgid "Pair and connect your devices"
 msgstr "Maak verbinding met uw apparaten"
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:57
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:56
 msgid "Andy Holmes"
 msgstr "Andy Holmes"
 
@@ -132,8 +132,8 @@ msgid "Unavailable"
 msgstr "Niet beschikbaar"
 
 #: src/libvalent/ui/valent-device-page.ui:19
-#: src/libvalent/ui/valent-menu-list.c:524
-#: src/libvalent/ui/valent-preferences-window.c:330
+#: src/libvalent/ui/valent-menu-list.c:523
+#: src/libvalent/ui/valent-preferences-window.c:331
 #: src/plugins/mpris/valent-mpris-remote.ui:186
 #: src/plugins/presenter/valent-presenter-remote.ui:121
 msgid "Previous"
@@ -153,7 +153,7 @@ msgid "Request Pairing"
 msgstr "Koppelverzoek versturen"
 
 #: src/libvalent/ui/valent-device-page.ui:225
-#: src/libvalent/ui/valent-window.c:70
+#: src/libvalent/ui/valent-window.c:133
 msgid "Disconnected"
 msgstr "Niet verbonden"
 
@@ -166,7 +166,7 @@ msgid "Plugins"
 msgstr "Plug-ins"
 
 #: src/libvalent/ui/valent-device-preferences-window.ui:26
-#: src/libvalent/ui/valent-preferences-window.ui:57
+#: src/libvalent/ui/valent-preferences-window.ui:40
 msgid "No Plugins"
 msgstr "Er zijn geen plug-ins."
 
@@ -182,46 +182,46 @@ msgstr "Apparaat markeren als onvertrouwd"
 msgid "No Actions"
 msgstr "Er zijn geen acties."
 
-#: src/libvalent/ui/valent-preferences-window.c:485
+#: src/libvalent/ui/valent-preferences-window.c:470
 msgid "Global"
 msgstr "Algemeen"
 
-#: src/libvalent/ui/valent-preferences-window.c:492
+#: src/libvalent/ui/valent-preferences-window.c:477
 msgid "Device Connections"
 msgstr "Verbonden apparaten"
 
-#: src/libvalent/ui/valent-preferences-window.c:499
+#: src/libvalent/ui/valent-preferences-window.c:484
 #: src/plugins/clipboard/clipboard.plugin.desktop.in:7
 #: src/plugins/clipboard/valent-clipboard-preferences.ui:8
 msgid "Clipboard"
 msgstr "Klembord"
 
-#: src/libvalent/ui/valent-preferences-window.c:506
+#: src/libvalent/ui/valent-preferences-window.c:491
 #: src/plugins/contacts/contacts.plugin.desktop.in:7
 #: src/plugins/contacts/valent-contacts-preferences.ui:8
-#: src/plugins/sms/valent-contact-row.c:260
+#: src/plugins/sms/valent-contact-row.c:254
 msgid "Contacts"
 msgstr "Contactpersonen"
 
-#: src/libvalent/ui/valent-preferences-window.c:513
+#: src/libvalent/ui/valent-preferences-window.c:498
 msgid "Mouse and Keyboard"
 msgstr "Muis en toetsenbord"
 
-#: src/libvalent/ui/valent-preferences-window.c:520
+#: src/libvalent/ui/valent-preferences-window.c:505
 msgid "Media Players"
 msgstr "Mediaspelers"
 
-#: src/libvalent/ui/valent-preferences-window.c:527
+#: src/libvalent/ui/valent-preferences-window.c:512
 msgid "Volume Control"
 msgstr "Volumeregeling"
 
-#: src/libvalent/ui/valent-preferences-window.c:534
+#: src/libvalent/ui/valent-preferences-window.c:519
 #: src/plugins/notification/notification.plugin.desktop.in:7
 #: src/plugins/notification/valent-notification-preferences.ui:8
 msgid "Notifications"
 msgstr "Meldingen"
 
-#: src/libvalent/ui/valent-preferences-window.c:541
+#: src/libvalent/ui/valent-preferences-window.c:526
 msgid "Session Manager"
 msgstr "Sessiebeheer"
 
@@ -229,42 +229,23 @@ msgstr "Sessiebeheer"
 msgid "Device Name"
 msgstr "Apparaatnaam"
 
-#: src/libvalent/ui/valent-preferences-window.ui:49
+#: src/libvalent/ui/valent-preferences-window.ui:32
 msgid "Desktop Integration"
 msgstr "Bureaubladintegratie"
 
-#: src/libvalent/ui/valent-preferences-window.ui:75
-msgid "Rename Device"
-msgstr "Naam wijzigen"
-
-#: src/libvalent/ui/valent-preferences-window.ui:87
-msgid "_Cancel"
-msgstr "_Annuleren"
-
-#: src/libvalent/ui/valent-preferences-window.ui:93
-msgid "_Rename"
-msgstr "Naam wij_zigen"
-
-#: src/libvalent/ui/valent-preferences-window.ui:111
-msgid ""
-"The device name is used to identify this device to other devices on the "
-"network."
-msgstr ""
-"De apparaatnaam wordt gebruikt om dit apparaat op het netwerk te herkennen."
-
-#: src/libvalent/ui/valent-window.c:65
+#: src/libvalent/ui/valent-window.c:128
 msgid "Unpaired"
 msgstr "Niet gekoppeld"
 
-#: src/libvalent/ui/valent-window.c:75
+#: src/libvalent/ui/valent-window.c:138
 msgid "Connected"
 msgstr "Verbonden"
 
-#: src/libvalent/ui/valent-window.c:211
+#: src/libvalent/ui/valent-window.c:272
 msgid "translator-credits"
 msgstr "Heimen Stoffels <vistausss@fastmail.com>"
 
-#: src/libvalent/ui/valent-window.c:216
+#: src/libvalent/ui/valent-window.c:277
 msgid "Sponsors"
 msgstr ""
 
@@ -273,6 +254,7 @@ msgid "Refresh"
 msgstr "Herladen"
 
 #: src/libvalent/ui/valent-window.ui:64
+#: src/plugins/share/valent-share-target-chooser.ui:66
 msgid "Devices"
 msgstr "Apparaten"
 
@@ -617,7 +599,7 @@ msgstr "Touchpad"
 msgid "Control the mouse and keyboard"
 msgstr "Bedien de muis en het toetsenbord"
 
-#: src/plugins/mousepad/valent-mousepad-plugin.c:517
+#: src/plugins/mousepad/valent-mousepad-plugin.c:516
 msgid "Remote Input"
 msgstr "Externe invoer"
 
@@ -813,7 +795,6 @@ msgstr "Melding"
 
 #: src/plugins/notification/valent-notification-dialog.ui:15
 #: src/plugins/presenter/valent-presenter-remote.c:92
-#: src/plugins/runcommand/valent-runcommand-editor.c:66
 #: src/plugins/runcommand/valent-runcommand-editor.ui:12
 #: src/plugins/runcommand/valent-runcommand-preferences.c:373
 #: src/plugins/share/valent-share-plugin.c:136
@@ -822,7 +803,6 @@ msgstr "Melding"
 #: src/plugins/share/valent-share-plugin.c:501
 #: src/plugins/share/valent-share-plugin.c:665
 #: src/plugins/share/valent-share-preferences.c:91
-#: src/plugins/share/valent-share-target-chooser.ui:24
 msgid "Cancel"
 msgstr "Annuleren"
 
@@ -959,14 +939,6 @@ msgstr "Opdrachten"
 msgid "Execute commands remotely"
 msgstr "Voer externe opdrachten uit"
 
-#: src/plugins/runcommand/valent-runcommand-editor.c:64
-msgid "Select Command"
-msgstr "Kies een opdracht"
-
-#: src/plugins/runcommand/valent-runcommand-editor.c:65
-msgid "Select"
-msgstr "Kiezen"
-
 #: src/plugins/runcommand/valent-runcommand-editor.ui:8
 #: src/plugins/runcommand/valent-runcommand-preferences.c:259
 msgid "Edit"
@@ -981,7 +953,7 @@ msgstr "Opslaan"
 msgid "Command Line"
 msgstr "Opdrachtregel"
 
-#: src/plugins/runcommand/valent-runcommand-plugin.c:314
+#: src/plugins/runcommand/valent-runcommand-plugin.c:296
 msgid "Run Command"
 msgstr "Opdracht uitvoeren"
 
@@ -1025,7 +997,7 @@ msgid "Browse files and directories"
 msgstr "Mappen en bestanden verkennen"
 
 #: src/plugins/sftp/valent-sftp-plugin.c:541
-#: src/plugins/sms/valent-contact-row.c:331
+#: src/plugins/sms/valent-contact-row.c:324
 msgid "Home"
 msgstr "Persoonlijke map"
 
@@ -1153,6 +1125,7 @@ msgstr[0] "Eén bestand verstuurd naar %1$s"
 msgstr[1] "%2$d bestanden verstuurd naar %1$s"
 
 #: src/plugins/share/valent-share-plugin.c:663
+#: src/plugins/share/valent-share-target-chooser.ui:8
 msgid "Share Files"
 msgstr "Bestanden delen"
 
@@ -1180,13 +1153,27 @@ msgstr "Downloadmap"
 msgid "Where received files are stored"
 msgstr "Waar ontvangen bestanden dienen te worden opgeslagen"
 
-#: src/plugins/share/valent-share-target-chooser.ui:8
-msgid "Select Device"
-msgstr "Kies een apparaat"
+#: src/plugins/share/valent-share-target-chooser.ui:20
+msgid "_Cancel"
+msgstr "_Annuleren"
 
-#: src/plugins/share/valent-share-target-chooser.ui:59
-msgid "No devices available."
-msgstr "Er zijn geen apparaten beschikbaar."
+#: src/plugins/share/valent-share-target-chooser.ui:27
+#, fuzzy
+msgid "_Share"
+msgstr "Delen"
+
+#: src/plugins/share/valent-share-target-chooser.ui:56
+msgid "Choose a device to share the selected files with."
+msgstr ""
+
+#: src/plugins/share/valent-share-target-chooser.ui:84
+#, fuzzy
+msgid "Searching…"
+msgstr "Bezig met zoeken naar apparaten…"
+
+#: src/plugins/share/valent-share-target-chooser.ui:125
+msgid "Always use this device"
+msgstr ""
 
 #: src/plugins/share/valent-share-text-dialog.ui:8
 #: src/plugins/share/valent-share-text-dialog.ui:15
@@ -1210,17 +1197,17 @@ msgstr "Sms"
 msgid "Send and receive SMS messages"
 msgstr "Verstuur en ontvang sms'jes"
 
-#: src/plugins/sms/valent-contact-row.c:212
-#: src/plugins/sms/valent-contact-row.c:334
-#: src/plugins/sms/valent-contact-row.c:463
+#: src/plugins/sms/valent-contact-row.c:208
+#: src/plugins/sms/valent-contact-row.c:327
+#: src/plugins/sms/valent-contact-row.c:456
 msgid "Other"
 msgstr "Overig"
 
-#: src/plugins/sms/valent-contact-row.c:325
+#: src/plugins/sms/valent-contact-row.c:318
 msgid "Work"
 msgstr "Zakelijk"
 
-#: src/plugins/sms/valent-contact-row.c:328
+#: src/plugins/sms/valent-contact-row.c:321
 msgid "Mobile"
 msgstr "Mobiel"
 
@@ -1248,13 +1235,13 @@ msgid_plural "%d mins"
 msgstr[0] "%d min."
 msgstr[1] "%d min."
 
-#: src/plugins/sms/valent-sms-conversation.c:919
-#: src/plugins/sms/valent-sms-window.c:604
-#: src/plugins/sms/valent-sms-window.c:905
+#: src/plugins/sms/valent-sms-conversation.c:916
+#: src/plugins/sms/valent-sms-window.c:602
+#: src/plugins/sms/valent-sms-window.c:903
 msgid "New Conversation"
 msgstr "Nieuw gesprek"
 
-#: src/plugins/sms/valent-sms-conversation.c:936
+#: src/plugins/sms/valent-sms-conversation.c:933
 #, c-format
 msgid "%u other contact"
 msgid_plural "%u others"
@@ -1273,17 +1260,17 @@ msgstr "Voer een bericht in…"
 msgid "Messaging"
 msgstr "Berichten"
 
-#: src/plugins/sms/valent-sms-window.c:187
+#: src/plugins/sms/valent-sms-window.c:186
 msgid "Conversations"
 msgstr "Gesprekken"
 
-#: src/plugins/sms/valent-sms-window.c:312
+#: src/plugins/sms/valent-sms-window.c:310
 #, c-format
 msgid "Send to %s"
 msgstr "Versturen naar %s"
 
-#: src/plugins/sms/valent-sms-window.c:631
-#: src/plugins/sms/valent-sms-window.c:927
+#: src/plugins/sms/valent-sms-window.c:629
+#: src/plugins/sms/valent-sms-window.c:925
 msgid "Search Messages"
 msgstr "Berichten doorzoeken"
 
@@ -1435,3 +1422,28 @@ msgstr "Portalen"
 #: src/plugins/xdp/xdp.plugin.desktop.in:8
 msgid "Integration with desktop portals"
 msgstr "Integratie met bureaubladportalen"
+
+#~ msgid "Rename Device"
+#~ msgstr "Naam wijzigen"
+
+#~ msgid "_Rename"
+#~ msgstr "Naam wij_zigen"
+
+#~ msgid ""
+#~ "The device name is used to identify this device to other devices on the "
+#~ "network."
+#~ msgstr ""
+#~ "De apparaatnaam wordt gebruikt om dit apparaat op het netwerk te "
+#~ "herkennen."
+
+#~ msgid "Select Command"
+#~ msgstr "Kies een opdracht"
+
+#~ msgid "Select"
+#~ msgstr "Kiezen"
+
+#~ msgid "Select Device"
+#~ msgstr "Kies een apparaat"
+
+#~ msgid "No devices available."
+#~ msgstr "Er zijn geen apparaten beschikbaar."
