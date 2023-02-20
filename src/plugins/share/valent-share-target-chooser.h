@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <adwaita.h>
 #include <gtk/gtk.h>
 
 G_BEGIN_DECLS

@@ -88,10 +88,10 @@ valent_share_target_open (ValentApplicationPlugin  *plugin,
                          "files",          list,
                          NULL);
 
-  g_signal_connect (G_OBJECT (window),
-                    "destroy",
-                    G_CALLBACK (on_destroy),
-                    self);
+  g_signal_connect_object (G_OBJECT (window),
+                           "destroy",
+                           G_CALLBACK (on_destroy),
+                           self, 0);
   g_ptr_array_add (self->windows, window);
 
   gtk_window_present (window);
