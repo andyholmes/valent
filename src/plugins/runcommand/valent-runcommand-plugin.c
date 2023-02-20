@@ -222,18 +222,52 @@ valent_runcommand_plugin_send_command_list (ValentRuncommandPlugin *self)
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
   g_autoptr (GVariant) commands = NULL;
-  g_autofree char *command_json = NULL;
+  g_autoptr (JsonBuilder) commands_builder = NULL;
+  g_autoptr (JsonNode) commands_node = NULL;
+  g_autofree char *commands_json = NULL;
+  GVariantIter iter;
+  char *key;
+  GVariant *value;
 
   g_assert (VALENT_IS_RUNCOMMAND_PLUGIN (self));
 
-  /* The `commandList` dictionary is sent as a string of serialized JSON */
   settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
   commands = g_settings_get_value (settings, "commands");
-  command_json = json_gvariant_serialize_data (commands, NULL);
+
+  /* The `commandList` dictionary is sent as a string of serialized JSON */
+  commands_builder = json_builder_new ();
+  json_builder_begin_object (commands_builder);
+
+  g_variant_iter_init (&iter, commands);
+
+  while (g_variant_iter_next (&iter, "{sv}", &key, &value))
+    {
+      const char *name = NULL;
+      const char *command = NULL;
+
+      if (g_variant_lookup (value, "name", "&s", &name) &&
+          g_variant_lookup (value, "command", "&s", &command))
+        {
+          json_builder_set_member_name (commands_builder, key);
+          json_builder_begin_object (commands_builder);
+          json_builder_set_member_name (commands_builder, "name");
+          json_builder_add_string_value (commands_builder, name);
+          json_builder_set_member_name (commands_builder, "command");
+          json_builder_add_string_value (commands_builder, command);
+          json_builder_end_object (commands_builder);
+        }
+
+      g_clear_pointer (&key, g_free);
+      g_clear_pointer (&value, g_variant_unref);
+    }
+
+  json_builder_end_object (commands_builder);
+  commands_node = json_builder_get_root (commands_builder);
+  commands_json = json_to_string (commands_node, FALSE);
 
   valent_packet_init (&builder, "kdeconnect.runcommand");
   json_builder_set_member_name (builder, "commandList");
-  json_builder_add_string_value (builder, command_json);
+  json_builder_add_string_value (builder, commands_json);
   packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
