@@ -83,20 +83,13 @@ enum {
   PROP_ICON_NAME,
   PROP_ID,
   PROP_NAME,
+  PROP_PLUGINS,
   PROP_STATE,
   PROP_TYPE,
   N_PROPERTIES
 };
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
-
-enum {
-  PLUGIN_ADDED,
-  PLUGIN_REMOVED,
-  N_SIGNALS
-};
-
-static guint signals[N_SIGNALS] = { 0, };
 
 
 /*
@@ -743,7 +736,7 @@ on_load_plugin (PeasEngine     *engine,
     valent_device_enable_plugin (device, plugin);
 
   /* Notify now so that plugins can be configured regardless of device state */
-  g_signal_emit (G_OBJECT (device), signals [PLUGIN_ADDED], 0, info);
+  g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_PLUGINS]);
 }
 
 static void
@@ -763,7 +756,7 @@ on_unload_plugin (PeasEngine     *engine,
                peas_plugin_info_get_module_name (info));
 
   g_hash_table_remove (device->plugins, info);
-  g_signal_emit (G_OBJECT (device), signals [PLUGIN_REMOVED], 0, info);
+  g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_PLUGINS]);
 }
 
 
@@ -927,6 +920,10 @@ valent_device_get_property (GObject    *object,
       g_value_set_string (value, self->name);
       break;
 
+    case PROP_PLUGINS:
+      g_value_take_boxed (value, valent_device_get_plugins (self));
+      break;
+
     case PROP_STATE:
       g_value_set_flags (value, valent_device_get_state (self));
       break;
@@ -1070,6 +1067,20 @@ valent_device_class_init (ValentDeviceClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
+   * ValentDevice:plugins: (getter get_plugins)
+   *
+   * A list of loaded plugin names.
+   *
+   * Since: 1.0
+   */
+  properties [PROP_PLUGINS] =
+    g_param_spec_boxed ("plugins", NULL, NULL,
+                        G_TYPE_STRV,
+                        (G_PARAM_READABLE |
+                         G_PARAM_EXPLICIT_NOTIFY |
+                         G_PARAM_STATIC_STRINGS));
+
+  /**
    * ValentDevice:state: (getter get_state)
    *
    * The state of the device.
@@ -1104,56 +1115,6 @@ valent_device_class_init (ValentDeviceClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
-
-  /**
-   * ValentDevice::plugin-added:
-   * @device: a #ValentDevice
-   * @plugin_info: a #PeasPluginInfo
-   *
-   * Emitted when a supported plugin has been loaded by the device.
-   *
-   * This could be a result of the [class@Peas.Engine] loading a plugin that
-   * provides a [class@Valent.DevicePlugin] extension or the device receiving an
-   * identity packet indicating the capabilities of the device have changed.
-   *
-   * Since: 1.0
-   */
-  signals [PLUGIN_ADDED] =
-    g_signal_new ("plugin-added",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_LAST,
-                  0,
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__BOXED,
-                  G_TYPE_NONE, 1, PEAS_TYPE_PLUGIN_INFO);
-  g_signal_set_va_marshaller (signals [PLUGIN_ADDED],
-                              G_TYPE_FROM_CLASS (klass),
-                              g_cclosure_marshal_VOID__BOXEDv);
-
-  /**
-   * ValentDevice::plugin-removed:
-   * @device: a #ValentDevice
-   * @plugin_info: a #PeasPluginInfo
-   *
-   * Emitted when a supported plugin has been unloaded by the device.
-   *
-   * This could be a result of the [class@Peas.Engine] unloading a plugin that
-   * provided a [class@Valent.DevicePlugin] extension or the device receiving an
-   * identity packet indicating the capabilities of the device have changed.
-   *
-   * Since: 1.0
-   */
-  signals [PLUGIN_REMOVED] =
-    g_signal_new ("plugin-removed",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_LAST,
-                  0,
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__BOXED,
-                  G_TYPE_NONE, 1, PEAS_TYPE_PLUGIN_INFO);
-  g_signal_set_va_marshaller (signals [PLUGIN_REMOVED],
-                              G_TYPE_FROM_CLASS (klass),
-                              g_cclosure_marshal_VOID__BOXEDv);
 }
 
 /**
@@ -1676,32 +1637,31 @@ valent_device_set_paired (ValentDevice *device,
 }
 
 /**
- * valent_device_get_plugins:
+ * valent_device_get_plugins: (get-property plugins)
  * @device: a #ValentDevice
  *
  * Get a list of the loaded plugins.
  *
- * Returns: (transfer container) (element-type Peas.PluginInfo): a #GPtrArray
+ * Returns: (transfer full): a list of loaded plugins
  *
  * Since: 1.0
  */
-GPtrArray *
+GStrv
 valent_device_get_plugins (ValentDevice *device)
 {
+  g_autoptr (GStrvBuilder) builder = NULL;
   GHashTableIter iter;
-  gpointer info;
-  GPtrArray *plugins;
+  PeasPluginInfo *info;
 
   g_return_val_if_fail (VALENT_IS_DEVICE (device), NULL);
 
-  plugins = g_ptr_array_new ();
-
+  builder = g_strv_builder_new ();
   g_hash_table_iter_init (&iter, device->plugins);
 
-  while (g_hash_table_iter_next (&iter, &info, NULL))
-    g_ptr_array_add (plugins, info);
+  while (g_hash_table_iter_next (&iter, (void **)&info, NULL))
+    g_strv_builder_add (builder, peas_plugin_info_get_module_name (info));
 
-  return plugins;
+  return g_strv_builder_end (builder);
 }
 
 /**

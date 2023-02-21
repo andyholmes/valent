@@ -58,9 +58,10 @@ void
 valent_test_fixture_init (ValentTestFixture *fixture,
                           gconstpointer      user_data)
 {
+  PeasEngine *engine = valent_get_plugin_engine ();
   g_autofree ValentChannel **channels = NULL;
   g_autoptr (JsonParser) parser = NULL;
-  g_autoptr (GPtrArray) plugins = NULL;
+  g_auto (GStrv) plugins = NULL;
   JsonNode *identity;
 
   fixture->loop = g_main_loop_new (NULL, FALSE);
@@ -83,16 +84,17 @@ valent_test_fixture_init (ValentTestFixture *fixture,
   /* Init settings */
   plugins = valent_device_get_plugins (fixture->device);
 
-  for (unsigned int i = 0; i < plugins->len; i++)
+  for (unsigned int i = 0; plugins[i]; i++)
     {
-      PeasPluginInfo *plugin_info = g_ptr_array_index (plugins, i);
-      const char *module_name = peas_plugin_info_get_module_name (plugin_info);
+      PeasPluginInfo *plugin_info;
+      const char *module_name = plugins[i];
       const char *device_id;
 
       if (strcmp (module_name, "mock") == 0 ||
           strcmp (module_name, "packetless") == 0)
         continue;
 
+      plugin_info = peas_engine_get_plugin_info (engine, module_name);
       device_id = valent_device_get_id (fixture->device);
       fixture->settings = valent_device_plugin_create_settings (plugin_info,
                                                                 device_id);

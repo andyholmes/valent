@@ -22,11 +22,13 @@ struct _ValentDevicePage
   GtkBox           parent_instance;
 
   ValentDevice    *device;
+  GHashTable      *plugins;
+  GtkWindow       *preferences;
 
+  /* template */
   AdwWindowTitle  *title;
   GtkWidget       *stack;
 
-  /* Main */
   GtkWidget       *pair_group;
   GtkWidget       *pair_request;
   GtkWidget       *pair_spinner;
@@ -35,9 +37,6 @@ struct _ValentDevicePage
   GtkWidget       *connected_group;
   GtkWidget       *gadgets;
   ValentMenuStack *menu_actions;
-
-  GHashTable      *plugins;
-  GtkWindow       *preferences;
 };
 
 G_DEFINE_FINAL_TYPE (ValentDevicePage, valent_device_page, GTK_TYPE_BOX)
@@ -56,38 +55,35 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
  */
 typedef struct
 {
+  GtkWidget *gadgets;
   GtkWidget *gadget;
-} PluginWidgets;
+} PluginData;
 
 static void
-plugin_widgets_free (ValentDevicePage *self,
-                     PluginWidgets    *widgets)
+plugin_data_free (gpointer data)
 {
-  g_assert (VALENT_IS_DEVICE_PAGE (self));
+  PluginData *plugin = (PluginData *)data;
 
-  if (widgets->gadget != NULL)
-    gtk_box_remove (GTK_BOX (self->gadgets), widgets->gadget);
+  if (plugin->gadgets != NULL && plugin->gadget != NULL)
+    gtk_box_remove (GTK_BOX (plugin->gadgets), plugin->gadget);
 
-  g_free (widgets);
+  g_free (plugin);
 }
 
 static void
-on_plugin_added (ValentDevice     *device,
-                 PeasPluginInfo   *info,
-                 ValentDevicePage *self)
+valent_device_page_add_plugin (ValentDevicePage *self,
+                               const char       *module)
 {
   PeasEngine *engine;
-  PluginWidgets *widgets;
+  PeasPluginInfo *info;
+  PluginData *plugin;
 
-  g_assert (VALENT_IS_DEVICE (device));
-  g_assert (info != NULL);
   g_assert (VALENT_IS_DEVICE_PAGE (self));
-
-  /* Track the plugin's widgets */
-  widgets = g_new0 (PluginWidgets, 1);
-  g_hash_table_insert (self->plugins, info, widgets);
+  g_assert (module != NULL && *module != '\0');
 
   engine = valent_get_plugin_engine ();
+  info = peas_engine_get_plugin_info (engine, module);
+  plugin = g_new0 (PluginData, 1);
 
   /* Gadgets (eg. HeaderBar widgets) */
   if (peas_engine_provides_extension (engine, info, VALENT_TYPE_DEVICE_GADGET))
@@ -97,26 +93,47 @@ on_plugin_added (ValentDevice     *device,
       gadget = peas_engine_create_extension (engine,
                                              info,
                                              VALENT_TYPE_DEVICE_GADGET,
-                                             "device", device,
+                                             "device", self->device,
                                              NULL);
 
       if (gadget != NULL)
         {
-          widgets->gadget = GTK_WIDGET (gadget);
-          gtk_box_append (GTK_BOX (self->gadgets), widgets->gadget);
+          gtk_box_append (GTK_BOX (self->gadgets), GTK_WIDGET (gadget));
+          plugin->gadgets = GTK_WIDGET (self->gadgets);
+          plugin->gadget = GTK_WIDGET (gadget);
         }
     }
+
+  g_hash_table_replace (self->plugins,
+                        g_strdup (module),
+                        g_steal_pointer (&plugin));
 }
 
 static void
-on_plugin_removed (ValentDevice     *device,
-                   PeasPluginInfo   *info,
-                   ValentDevicePage *self)
+on_plugins_changed (ValentDevice     *device,
+                    GParamSpec       *pspec,
+                    ValentDevicePage *self)
 {
-  gpointer widgets;
+  g_auto (GStrv) plugins = NULL;
+  GHashTableIter iter;
+  const char *module;
 
-  if (g_hash_table_steal_extended (self->plugins, info, NULL, &widgets))
-    plugin_widgets_free (self, widgets);
+  plugins = valent_device_get_plugins (device);
+
+  /* Remove */
+  g_hash_table_iter_init (&iter, self->plugins);
+
+  while (g_hash_table_iter_next (&iter, (void **)&module, NULL))
+    {
+      if (!g_strv_contains ((const char * const *)plugins, module))
+        g_hash_table_iter_remove (&iter);
+    }
+
+  for (unsigned int i = 0; plugins[i] != NULL; i++)
+    {
+      if (!g_hash_table_contains (self->plugins, plugins[i]))
+        valent_device_page_add_plugin (self, plugins[i]);
+    }
 }
 
 /*
@@ -198,7 +215,6 @@ static void
 valent_device_page_constructed (GObject *object)
 {
   ValentDevicePage *self = VALENT_DEVICE_PAGE (object);
-  g_autoptr (GPtrArray) plugins = NULL;
   GMenuModel *menu;
 
   g_object_bind_property (self->device, "name",
@@ -220,20 +236,12 @@ valent_device_page_constructed (GObject *object)
                            self, 0);
   on_state_changed (self->device, NULL, self);
 
-  /* Plugin list */
-  plugins = valent_device_get_plugins (self->device);
-
-  for (unsigned int i = 0; i < plugins->len; i++)
-    on_plugin_added (self->device, g_ptr_array_index (plugins, i), self);
-
+  /* Plugin Gadgets */
   g_signal_connect_object (self->device,
-                           "plugin-added",
-                           G_CALLBACK (on_plugin_added),
+                           "notify::plugins",
+                           G_CALLBACK (on_plugins_changed),
                            self, 0);
-  g_signal_connect_object (self->device,
-                           "plugin-removed",
-                           G_CALLBACK (on_plugin_removed),
-                           self, 0);
+  on_plugins_changed (self->device, NULL, self);
 
   G_OBJECT_CLASS (valent_device_page_parent_class)->constructed (object);
 }
@@ -243,20 +251,11 @@ valent_device_page_dispose (GObject *object)
 {
   ValentDevicePage *self = VALENT_DEVICE_PAGE (object);
 
-  g_clear_pointer (&self->preferences, gtk_window_destroy);
   g_clear_object (&self->device);
+  g_clear_pointer (&self->plugins, g_hash_table_unref);
+  g_clear_pointer (&self->preferences, gtk_window_destroy);
 
   G_OBJECT_CLASS (valent_device_page_parent_class)->dispose (object);
-}
-
-static void
-valent_device_page_finalize (GObject *object)
-{
-  ValentDevicePage *self = VALENT_DEVICE_PAGE (object);
-
-  g_clear_pointer (&self->plugins, g_hash_table_unref);
-
-  G_OBJECT_CLASS (valent_device_page_parent_class)->finalize (object);
 }
 
 static void
@@ -305,7 +304,6 @@ valent_device_page_class_init (ValentDevicePageClass *klass)
 
   object_class->constructed = valent_device_page_constructed;
   object_class->dispose = valent_device_page_dispose;
-  object_class->finalize = valent_device_page_finalize;
   object_class->get_property = valent_device_page_get_property;
   object_class->set_property = valent_device_page_set_property;
 
@@ -348,7 +346,10 @@ valent_device_page_init (ValentDevicePage *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
 
-  self->plugins = g_hash_table_new_full (NULL, NULL, NULL, g_free);
+  self->plugins = g_hash_table_new_full (g_str_hash,
+                                         g_str_equal,
+                                         g_free,
+                                         plugin_data_free);
 }
 
 /**
