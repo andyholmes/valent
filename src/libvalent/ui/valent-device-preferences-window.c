@@ -21,15 +21,13 @@ struct _ValentDevicePreferencesWindow
   AdwPreferencesWindow  parent_instance;
 
   ValentDevice         *device;
+  GHashTable           *plugins;
 
   /* template */
   AdwPreferencesPage   *main_page;
   AdwPreferencesGroup  *plugin_group;
   GtkListBox           *plugin_list;
   AdwPreferencesGroup  *unpair_group;
-
-  GHashTable           *pages;
-  GHashTable           *rows;
 };
 
 G_DEFINE_FINAL_TYPE (ValentDevicePreferencesWindow, valent_device_preferences_window, ADW_TYPE_PREFERENCES_WINDOW)
@@ -59,61 +57,86 @@ plugin_list_sort (GtkListBoxRow *row1,
 /*
  * Plugin Callbacks
  */
+typedef struct
+{
+  AdwPreferencesWindow *window;
+  AdwPreferencesPage   *page;
+  GtkWidget            *row;
+} PluginData;
+
 static void
-on_plugin_added (ValentDevice                  *device,
-                 PeasPluginInfo                *info,
-                 ValentDevicePreferencesWindow *self)
+plugin_data_free (gpointer data)
+{
+  PluginData *plugin = (PluginData *)data;
+  ValentDevicePreferencesWindow *self = VALENT_DEVICE_PREFERENCES_WINDOW (plugin->window);
+
+  g_assert (VALENT_IS_DEVICE_PREFERENCES_WINDOW (self));
+
+  if (plugin->page != NULL)
+    adw_preferences_window_remove (plugin->window, plugin->page);
+
+  if (plugin->row != NULL)
+    gtk_list_box_remove (self->plugin_list, plugin->row);
+
+  g_free (plugin);
+}
+
+static void
+valent_device_preferences_window_add_plugin (ValentDevicePreferencesWindow *self,
+                                             const char                    *module)
 {
   g_autoptr (GSettings) settings = NULL;
   g_autofree char *path = NULL;
   PeasEngine *engine;
-  const char *module;
+  PeasPluginInfo *info;
+  PluginData *plugin;
   const char *title;
   const char *subtitle;
   const char *icon_name;
   const char *device_id;
-  GtkWidget *row, *sw, *separator, *button;
+  GtkWidget *sw, *separator, *button;
 
-  g_assert (VALENT_IS_DEVICE (device));
-  g_assert (info != NULL);
   g_assert (VALENT_IS_DEVICE_PREFERENCES_WINDOW (self));
+  g_assert (module != NULL && *module != '\0');
 
   engine = valent_get_plugin_engine ();
-  module = peas_plugin_info_get_module_name (info);
+  info = peas_engine_get_plugin_info (engine, module);
+  plugin = g_new0 (PluginData, 1);
+  plugin->window = ADW_PREFERENCES_WINDOW (self);
+
   title = peas_plugin_info_get_name (info);
   subtitle = peas_plugin_info_get_description (info);
   icon_name = peas_plugin_info_get_icon_name (info);
-  device_id = valent_device_get_id (device);
+  device_id = valent_device_get_id (self->device);
 
   /* Plugin Row */
-  row = g_object_new (ADW_TYPE_ACTION_ROW,
-                      "icon-name", icon_name,
-                      "title",     title,
-                      "subtitle",  subtitle,
-                      NULL);
+  plugin->row = g_object_new (ADW_TYPE_ACTION_ROW,
+                              "icon-name", icon_name,
+                              "title",     title,
+                              "subtitle",  subtitle,
+                              NULL);
 
   sw = g_object_new (GTK_TYPE_SWITCH,
                      "active",  TRUE,
                      "valign",  GTK_ALIGN_CENTER,
                      NULL);
-  adw_action_row_add_suffix (ADW_ACTION_ROW (row), sw);
+  adw_action_row_add_suffix (ADW_ACTION_ROW (plugin->row), sw);
 
   separator = g_object_new (GTK_TYPE_SEPARATOR,
                             "margin-bottom", 8,
                             "margin-top",    8,
                             "orientation",   GTK_ORIENTATION_VERTICAL,
                             NULL);
-  adw_action_row_add_suffix (ADW_ACTION_ROW (row), separator);
+  adw_action_row_add_suffix (ADW_ACTION_ROW (plugin->row), separator);
 
   button = g_object_new (GTK_TYPE_BUTTON,
                                "icon-name", "emblem-system-symbolic",
                                "sensitive", FALSE,
                                "valign",    GTK_ALIGN_CENTER,
                                NULL);
-  adw_action_row_add_suffix (ADW_ACTION_ROW (row), button);
+  adw_action_row_add_suffix (ADW_ACTION_ROW (plugin->row), button);
 
-  gtk_list_box_insert (self->plugin_list, row, -1);
-  g_hash_table_insert (self->rows, info, g_object_ref (row));
+  gtk_list_box_insert (self->plugin_list, plugin->row, -1);
 
   /* Plugin Toggle */
   path = g_strdup_printf ("/ca/andyholmes/valent/device/%s/plugin/%s/",
@@ -124,7 +147,7 @@ on_plugin_added (ValentDevice                  *device,
   g_settings_bind (settings, "enabled",
                    sw,       "active",
                    G_SETTINGS_BIND_DEFAULT);
-  g_object_set_data_full (G_OBJECT (row),
+  g_object_set_data_full (G_OBJECT (plugin->row),
                           "plugin-settings",
                           g_steal_pointer (&settings),
                           g_object_unref);
@@ -146,7 +169,7 @@ on_plugin_added (ValentDevice                  *device,
                                            NULL);
       adw_preferences_window_add (ADW_PREFERENCES_WINDOW (self),
                                   ADW_PREFERENCES_PAGE (page));
-      g_hash_table_insert (self->pages, info, g_object_ref (page));
+      plugin->page = ADW_PREFERENCES_PAGE (page);
 
       g_object_set (button,
                     "action-target", g_variant_new_string (module),
@@ -154,21 +177,37 @@ on_plugin_added (ValentDevice                  *device,
                     "sensitive",     TRUE,
                     NULL);
     }
+
+  g_hash_table_replace (self->plugins,
+                        g_strdup (module),
+                        g_steal_pointer (&plugin));
 }
 
 static void
-on_plugin_removed (ValentDevice                  *device,
-                   PeasPluginInfo                *info,
-                   ValentDevicePreferencesWindow *self)
+on_plugins_changed (ValentDevice                  *device,
+                    GParamSpec                    *pspec,
+                    ValentDevicePreferencesWindow *self)
 {
-  g_autoptr (AdwPreferencesPage) page = NULL;
-  g_autoptr (GtkWidget) row = NULL;
+  g_auto (GStrv) plugins = NULL;
+  GHashTableIter iter;
+  const char *module;
 
-  if (g_hash_table_steal_extended (self->pages, info, NULL, (void **)&page))
-    adw_preferences_window_remove (ADW_PREFERENCES_WINDOW (self), page);
+  plugins = valent_device_get_plugins (device);
 
-  if (g_hash_table_steal_extended (self->rows, info, NULL, (void **)&row))
-    gtk_list_box_remove (self->plugin_list, row);
+  /* Remove */
+  g_hash_table_iter_init (&iter, self->plugins);
+
+  while (g_hash_table_iter_next (&iter, (void **)&module, NULL))
+    {
+      if (!g_strv_contains ((const char * const *)plugins, module))
+        g_hash_table_iter_remove (&iter);
+    }
+
+  for (unsigned int i = 0; plugins[i] != NULL; i++)
+    {
+      if (!g_hash_table_contains (self->plugins, plugins[i]))
+        valent_device_preferences_window_add_plugin (self, plugins[i]);
+    }
 }
 
 static gboolean
@@ -222,7 +261,6 @@ static void
 valent_device_preferences_window_constructed (GObject *object)
 {
   ValentDevicePreferencesWindow *self = VALENT_DEVICE_PREFERENCES_WINDOW (object);
-  g_autoptr (GPtrArray) plugins = NULL;
 
   /* Modify the dialog */
   if (!valent_preferences_window_modify (ADW_PREFERENCES_WINDOW (self)))
@@ -242,20 +280,12 @@ valent_device_preferences_window_constructed (GObject *object)
                                   "device",
                                   G_ACTION_GROUP (self->device));
 
-  /* Device Plugins */
-  plugins = valent_device_get_plugins (self->device);
-
-  for (unsigned int i = 0; i < plugins->len; i++)
-    on_plugin_added (self->device, g_ptr_array_index (plugins, i), self);
-
+  /* Device_plugins */
   g_signal_connect_object (self->device,
-                           "plugin-added",
-                           G_CALLBACK (on_plugin_added),
+                           "notify::plugins",
+                           G_CALLBACK (on_plugins_changed),
                            self, 0);
-  g_signal_connect_object (self->device,
-                           "plugin-removed",
-                           G_CALLBACK (on_plugin_removed),
-                           self, 0);
+  on_plugins_changed (self->device, NULL, self);
 
   G_OBJECT_CLASS (valent_device_preferences_window_parent_class)->constructed (object);
 }
@@ -266,19 +296,9 @@ valent_device_preferences_window_dispose (GObject *object)
   ValentDevicePreferencesWindow *self = VALENT_DEVICE_PREFERENCES_WINDOW (object);
 
   g_clear_object (&self->device);
+  g_clear_pointer (&self->plugins, g_hash_table_unref);
 
   G_OBJECT_CLASS (valent_device_preferences_window_parent_class)->dispose (object);
-}
-
-static void
-valent_device_preferences_window_finalize (GObject *object)
-{
-  ValentDevicePreferencesWindow *self = VALENT_DEVICE_PREFERENCES_WINDOW (object);
-
-  g_clear_pointer (&self->pages, g_hash_table_unref);
-  g_clear_pointer (&self->rows, g_hash_table_unref);
-
-  G_OBJECT_CLASS (valent_device_preferences_window_parent_class)->finalize (object);
 }
 
 static void
@@ -327,7 +347,6 @@ valent_device_preferences_window_class_init (ValentDevicePreferencesWindowClass 
 
   object_class->constructed = valent_device_preferences_window_constructed;
   object_class->dispose = valent_device_preferences_window_dispose;
-  object_class->finalize = valent_device_preferences_window_finalize;
   object_class->get_property = valent_device_preferences_window_get_property;
   object_class->set_property = valent_device_preferences_window_set_property;
 
@@ -362,8 +381,9 @@ valent_device_preferences_window_init (ValentDevicePreferencesWindow *self)
   gtk_widget_init_template (GTK_WIDGET (self));
 
   gtk_list_box_set_sort_func (self->plugin_list, plugin_list_sort, NULL, NULL);
-
-  self->rows = g_hash_table_new_full (NULL, NULL, NULL, g_object_unref);
-  self->pages = g_hash_table_new_full (NULL, NULL, NULL, g_object_unref);
+  self->plugins = g_hash_table_new_full (g_str_hash,
+                                         g_str_equal,
+                                         g_free,
+                                         plugin_data_free);
 }
 
