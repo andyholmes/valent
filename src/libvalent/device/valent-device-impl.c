@@ -130,10 +130,6 @@ valent_device_impl_get_variant (ValentDeviceImpl *impl,
       variant = g_variant_new_uint32 (g_value_get_uint (&value));
       break;
 
-    case G_TYPE_BOOLEAN:
-      variant = g_variant_new_boolean (g_value_get_boolean (&value));
-      break;
-
     case G_TYPE_STRING:
       variant = g_variant_new_string (g_value_get_string (&value));
       break;
