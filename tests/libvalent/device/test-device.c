@@ -45,7 +45,7 @@ device_fixture_set_up (DeviceFixture *fixture,
   JsonNode *identity;
 
   fixture->loop = g_main_loop_new (NULL, FALSE);
-  fixture->packets = valent_test_load_json (TEST_DATA_DIR"/core.json");
+  fixture->packets = valent_test_load_json ("core.json");
 
   /* Init device */
   identity = get_packet (fixture, "identity");

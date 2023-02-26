@@ -175,7 +175,7 @@ int
 main (int   argc,
       char *argv[])
 {
-  const char *path = TEST_DATA_DIR"/plugin-contacts.json";
+  const char *path = "plugin-contacts.json";
 
   valent_test_init (&argc, &argv, NULL);
 

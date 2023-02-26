@@ -254,7 +254,7 @@ test_mpris_impl_dbus (MPRISImplFixture *fixture,
     }
 
   /* Other */
-  /* file = g_file_new_for_path (TEST_DATA_DIR"/image.png"); */
+  /* file = g_file_new_for_uri ("resource:///tests/image.png"); */
   /* valent_mpris_impl_update_art (impl, file); */
 
   while (g_main_context_iteration (NULL, FALSE))

@@ -10,10 +10,10 @@
 
 
 static const char * const test_files[] = {
-    "file://"TEST_DATA_DIR"/image.png",
-    "file://"TEST_DATA_DIR"/contact.vcf",
-    "file://"TEST_DATA_DIR"/contact2.vcf",
-    "file://"TEST_DATA_DIR"/contact3.vcf",
+    "resource:///tests/image.png",
+    "resource:///tests/contact.vcf",
+    "resource:///tests/contact2.vcf",
+    "resource:///tests/contact3.vcf",
 };
 static guint n_test_files = G_N_ELEMENTS (test_files);
 
@@ -205,7 +205,7 @@ int
 main (int   argc,
       char *argv[])
 {
-  const char *path = TEST_DATA_DIR"/plugin-share.json";
+  const char *path = "plugin-share.json";
 
   valent_test_init (&argc, &argv, NULL);
 

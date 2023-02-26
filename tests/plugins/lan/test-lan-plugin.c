@@ -90,7 +90,7 @@ lan_service_fixture_set_up (LanBackendFixture *fixture,
                                    "plugin-info",       plugin_info,
                                    NULL);
 
-  fixture->packets = valent_test_load_json (TEST_DATA_DIR"/plugin-lan.json");
+  fixture->packets = valent_test_load_json ("plugin-lan.json");
   fixture->socket = create_socket ();
 
   /* Generate a certificate for the phony client */
@@ -739,7 +739,7 @@ test_lan_service_channel (LanBackendFixture *fixture,
   g_assert_cmpstr (channel_verification, ==, endpoint_verification);
 
   /* Transfers */
-  file = g_file_new_for_path (TEST_DATA_DIR"/image.png");
+  file = g_file_new_for_uri ("resource:///tests/image.png");
   packet = json_object_get_member (json_node_get_object (fixture->packets),
                                    "transfer");
 

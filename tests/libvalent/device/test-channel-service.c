@@ -37,7 +37,7 @@ channel_service_fixture_set_up (ChannelServiceFixture *fixture,
                                    "plugin-info", plugin_info,
                                    NULL);
 
-  fixture->packets = valent_test_load_json (TEST_DATA_DIR"/core.json");
+  fixture->packets = valent_test_load_json ("core.json");
 }
 
 static void
@@ -375,7 +375,7 @@ test_channel_service_channel (ChannelServiceFixture *fixture,
                               (GAsyncReadyCallback)read_download_cb,
                               fixture);
 
-  file = g_file_new_for_path (TEST_DATA_DIR"/image.png");
+  file = g_file_new_for_uri ("resource:///tests/image.png");
   packet = json_object_get_member (json_node_get_object (fixture->packets),
                                    "test-transfer");
 

@@ -51,10 +51,10 @@ valent_test_contact1 (void)
 
   if G_UNLIKELY (contact == NULL)
     {
-      g_autofree char *vcard = NULL;
+      g_autoptr (GBytes) bytes = NULL;
 
-      g_file_get_contents (TEST_DATA_DIR"/contact.vcf", &vcard, NULL, NULL);
-      contact = e_contact_new_from_vcard_with_uid (vcard,
+      bytes = g_resources_lookup_data ("/tests/contact.vcf", 0, NULL);
+      contact = e_contact_new_from_vcard_with_uid (g_bytes_get_data (bytes, NULL),
                                                    "4077i252298cf8ded4bfe");
     }
 
@@ -75,10 +75,10 @@ valent_test_contact2 (void)
 
   if G_UNLIKELY (contact == NULL)
     {
-      g_autofree char *vcard = NULL;
+      g_autoptr (GBytes) bytes = NULL;
 
-      g_file_get_contents (TEST_DATA_DIR"/contact2.vcf", &vcard, NULL, NULL);
-      contact = e_contact_new_from_vcard_with_uid (vcard,
+      bytes = g_resources_lookup_data ("/tests/contact2.vcf", 0, NULL);
+      contact = e_contact_new_from_vcard_with_uid (g_bytes_get_data (bytes, NULL),
                                                    "4077i252298cf8ded4bff");
     }
 
@@ -99,10 +99,10 @@ valent_test_contact3 (void)
 
   if G_UNLIKELY (contact == NULL)
     {
-      g_autofree char *vcard = NULL;
+      g_autoptr (GBytes) bytes = NULL;
 
-      g_file_get_contents (TEST_DATA_DIR"/contact3.vcf", &vcard, NULL, NULL);
-      contact = e_contact_new_from_vcard_with_uid (vcard,
+      bytes = g_resources_lookup_data ("/tests/contact3.vcf", 0, NULL);
+      contact = e_contact_new_from_vcard_with_uid (g_bytes_get_data (bytes, NULL),
                                                    "4077i252298cf8ded4bfg");
     }
 

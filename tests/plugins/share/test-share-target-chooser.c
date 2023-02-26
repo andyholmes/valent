@@ -20,7 +20,7 @@ test_share_target_chooser (void)
   g_autoptr (GListStore) files_out = NULL;
   g_autoptr (GFile) file = NULL;
 
-  file = g_file_new_for_uri ("file://"TEST_DATA_DIR"/image.png");
+  file = g_file_new_for_uri ("resource:///tests/image.png");
   files = g_list_store_new (G_TYPE_FILE);
   g_list_store_append (files, file);
 

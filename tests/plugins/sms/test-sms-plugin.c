@@ -95,7 +95,7 @@ int
 main (int   argc,
       char *argv[])
 {
-  const char *path = TEST_DATA_DIR"/plugin-sms.json";
+  const char *path = "plugin-sms.json";
 
   valent_test_ui_init (&argc, &argv, NULL);
 

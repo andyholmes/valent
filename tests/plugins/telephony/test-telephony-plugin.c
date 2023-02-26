@@ -228,7 +228,7 @@ int
 main (int   argc,
       char *argv[])
 {
-  const char *path = TEST_DATA_DIR"/plugin-telephony.json";
+  const char *path = "plugin-telephony.json";
 
   valent_test_init (&argc, &argv, NULL);
 

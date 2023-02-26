@@ -292,16 +292,16 @@ test_mpris_plugin_handle_request (ValentTestFixture *fixture,
 
   /* Update for album transfer */
   valent_mock_media_player_update_art (VALENT_MOCK_MEDIA_PLAYER (player),
-                                       "file://"TEST_DATA_DIR"/image.png");
+                                       "resource:///tests/image.png");
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris");
   v_assert_packet_cmpstr (packet, "player", ==, "Mock Player");
-  v_assert_packet_cmpstr (packet, "albumArtUrl", ==, "file://"TEST_DATA_DIR"/image.png");
+  v_assert_packet_cmpstr (packet, "albumArtUrl", ==, "resource:///tests/image.png");
   json_node_unref (packet);
 
   /* Request album art transfer */
-  packet = create_albumart_request ("file://"TEST_DATA_DIR"/image.png");
+  packet = create_albumart_request ("resource:///tests/image.png");
   valent_test_fixture_handle_packet (fixture, packet);
   json_node_unref (packet);
 
@@ -441,11 +441,11 @@ test_mpris_plugin_handle_player (ValentTestFixture *fixture,
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
   v_assert_packet_cmpstr (packet, "player", ==, "Mock Player");
-  v_assert_packet_cmpstr (packet, "albumArtUrl", ==, "/path/to/image.png");
+  v_assert_packet_cmpstr (packet, "albumArtUrl", ==, "resource:///tests/image.png");
   json_node_unref (packet);
 
   packet = valent_test_fixture_lookup_packet (fixture, "player-albumart");
-  file = g_file_new_for_path (TEST_DATA_DIR"/image.png");
+  file = g_file_new_for_uri ("resource:///tests/image.png");
   valent_test_fixture_upload (fixture, packet, file, &error);
   g_assert_no_error (error);
 
@@ -576,7 +576,7 @@ int
 main (int   argc,
       char *argv[])
 {
-  const char *path = TEST_DATA_DIR"/plugin-mpris.json";
+  const char *path = "plugin-mpris.json";
 
   valent_test_init (&argc, &argv, NULL);
 

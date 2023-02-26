@@ -14,14 +14,14 @@ test_sms_contact_row (void)
 {
   GtkWidget *window, *list;
   GtkWidget *row;
+  g_autoptr (GBytes) bytes = NULL;
   g_autoptr (EContact) contact = NULL;
   g_autoptr (EContact) contact_out = NULL;
   g_autofree char *contact_name = NULL;
   g_autofree char *contact_addr = NULL;
-  g_autofree char *vcard = NULL;
 
-  g_file_get_contents (TEST_DATA_DIR"/contact.vcf", &vcard, NULL, NULL);
-  contact = e_contact_new_from_vcard (vcard);
+  bytes = g_resources_lookup_data ("/tests/contact.vcf", 0, NULL);
+  contact = e_contact_new_from_vcard (g_bytes_get_data (bytes, NULL));
 
   /* Construction */
   row = valent_contact_row_new (contact);
@@ -57,11 +57,12 @@ static void
 test_sms_contact_list (void)
 {
   GtkWidget *window, *list;
+  g_autoptr (GBytes) bytes = NULL;
   g_autoptr (EContact) contact = NULL;
-  g_autofree char *vcard = NULL;
 
-  g_file_get_contents (TEST_DATA_DIR"/contact.vcf", &vcard, NULL, NULL);
-  contact = e_contact_new_from_vcard_with_uid (vcard, "4077i252298cf8ded4bfe");
+  bytes = g_resources_lookup_data ("/tests/contact.vcf", 0, NULL);
+  contact = e_contact_new_from_vcard_with_uid (g_bytes_get_data (bytes, NULL),
+                                               "4077i252298cf8ded4bfe");
 
   /* Display */
   list = gtk_list_box_new ();

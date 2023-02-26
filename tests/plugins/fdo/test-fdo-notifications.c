@@ -131,7 +131,7 @@ send_notification (FdoNotificationsFixture *fixture,
       GVariant *value;
       GError *error = NULL;
 
-      pixbuf = gdk_pixbuf_new_from_file (TEST_DATA_DIR"/image.png", &error);
+      pixbuf = gdk_pixbuf_new_from_resource ("/tests/image.png", &error);
       g_assert_no_error (error);
 
       g_object_get (pixbuf,

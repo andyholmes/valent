@@ -97,7 +97,7 @@ int
 main (int   argc,
       char *argv[])
 {
-  const char *path = TEST_DATA_DIR"/plugin-runcommand.json";
+  const char *path = "plugin-runcommand.json";
 
   valent_test_init (&argc, &argv, NULL);
 

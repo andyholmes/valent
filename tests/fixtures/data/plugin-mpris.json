@@ -154,7 +154,7 @@
       "pos": 0,
       "loopStatus": "None",
       "shuffle": false,
-      "albumArtUrl": "/path/to/image.png",
+      "albumArtUrl": "resource:///tests/image.png",
       "nowPlaying": "Unknown",
       "artist": "Test Artist",
       "title": "Test Title",
@@ -168,7 +168,7 @@
     "type": "kdeconnect.mpris",
     "body": {
       "player": "Mock Player",
-      "albumArtUrl": "/path/to/image.png",
+      "albumArtUrl": "resource:///tests/image.png",
       "transferringAlbumArt": true
     }
   }

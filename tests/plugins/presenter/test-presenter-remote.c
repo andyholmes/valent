@@ -41,7 +41,7 @@ int
 main (int   argc,
       char *argv[])
 {
-  const char *path = TEST_DATA_DIR"/plugin-presenter.json";
+  const char *path = "plugin-presenter.json";
 
   valent_test_ui_init (&argc, &argv, NULL);
 

@@ -69,7 +69,7 @@ int
 main (int   argc,
       char *argv[])
 {
-  const char *path = TEST_DATA_DIR"/plugin-sftp.json";
+  const char *path = "plugin-sftp.json";
 
   valent_test_init (&argc, &argv, NULL);
 

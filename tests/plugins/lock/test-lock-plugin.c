@@ -114,7 +114,7 @@ int
 main (int   argc,
       char *argv[])
 {
-  const char *path = TEST_DATA_DIR"/plugin-lock.json";
+  const char *path = "plugin-lock.json";
 
   valent_test_init (&argc, &argv, NULL);
 

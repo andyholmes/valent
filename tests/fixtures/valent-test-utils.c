@@ -233,10 +233,16 @@ JsonNode *
 valent_test_load_json (const char *path)
 {
   g_autoptr (JsonParser) parser = NULL;
+  g_autoptr (GBytes) bytes = NULL;
+  g_autofree char *resource_path = NULL;
   GError *error = NULL;
 
+  resource_path = g_build_filename ("/tests", path, NULL);
+  bytes = g_resources_lookup_data (resource_path, 0, &error);
+  g_assert_no_error (error);
+
   parser = json_parser_new ();
-  json_parser_load_from_file (parser, path, &error);
+  json_parser_load_from_data (parser, g_bytes_get_data (bytes, NULL), -1, &error);
   g_assert_no_error (error);
 
   return json_parser_steal_root (parser);

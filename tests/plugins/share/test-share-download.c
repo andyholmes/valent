@@ -7,7 +7,7 @@
 #include "valent-share-download.h"
 
 
-static const char *test_file = "file://"TEST_DATA_DIR"/image.png";
+static const char *test_file = "resource:///tests/image.png";
 
 static void
 test_share_download_single (ValentTestFixture *fixture,
@@ -94,7 +94,7 @@ int
 main (int   argc,
       char *argv[])
 {
-  const char *path = TEST_DATA_DIR"/plugin-share.json";
+  const char *path = "plugin-share.json";
 
   valent_test_init (&argc, &argv, NULL);
 

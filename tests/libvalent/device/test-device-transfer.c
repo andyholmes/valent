@@ -26,7 +26,7 @@ test_device_transfer (ValentTestFixture *fixture,
 
   valent_test_fixture_connect (fixture, TRUE);
 
-  file = g_file_new_for_uri ("file://"TEST_DATA_DIR"/image.png");
+  file = g_file_new_for_uri ("resource:///tests/image.png");
   src_info = g_file_query_info (file,
                                 G_FILE_ATTRIBUTE_TIME_CREATED","
                                 G_FILE_ATTRIBUTE_TIME_CREATED_USEC","
@@ -90,7 +90,7 @@ int
 main (int   argc,
       char *argv[])
 {
-  const char *path = TEST_DATA_DIR"/core.json";
+  const char *path = "core.json";
 
   valent_test_init (&argc, &argv, NULL);
 
