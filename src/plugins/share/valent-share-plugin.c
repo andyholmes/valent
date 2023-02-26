@@ -736,7 +736,8 @@ share_open_action (GSimpleAction *action,
       return;
     }
 
-  if (g_str_equal ("file", g_uri_get_scheme (uri)))
+  if (g_str_equal ("file", g_uri_get_scheme (uri)) ||
+      g_str_equal ("resource", g_uri_get_scheme (uri)))
     {
       g_autoptr (GFile) file = NULL;
 
@@ -822,7 +823,8 @@ share_uri_action (GSimpleAction *action,
       return;
     }
 
-  if (g_str_equal ("file", g_uri_get_scheme (uri)))
+  if (g_str_equal ("file", g_uri_get_scheme (uri)) ||
+      g_str_equal ("resource", g_uri_get_scheme (uri)))
     {
       g_autoptr (GFile) file = NULL;
 
