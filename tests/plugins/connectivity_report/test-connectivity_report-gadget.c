@@ -80,7 +80,7 @@ int
 main (int   argc,
       char *argv[])
 {
-  const char *path = TEST_DATA_DIR"/plugin-connectivity_report.json";
+  const char *path = "plugin-connectivity_report.json";
 
   valent_test_ui_init (&argc, &argv, NULL);
 

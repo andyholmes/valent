@@ -317,7 +317,7 @@ int
 main (int   argc,
       char *argv[])
 {
-  const char *path = TEST_DATA_DIR"/plugin-mousepad.json";
+  const char *path = "plugin-mousepad.json";
 
   valent_test_init (&argc, &argv, NULL);
 

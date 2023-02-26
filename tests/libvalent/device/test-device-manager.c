@@ -37,7 +37,7 @@ manager_fixture_set_up (ManagerFixture *fixture,
   path = valent_data_get_cache_path (data);
   g_mkdir_with_parents (path, 0700);
 
-  state = valent_test_load_json (TEST_DATA_DIR"/core-state.json");
+  state = valent_test_load_json ("core-state.json");
   state_json = json_to_string (state, TRUE);
   state_path = g_build_filename (path, "devices.json", NULL);
   g_file_set_contents (state_path, state_json, -1, NULL);

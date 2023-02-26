@@ -39,8 +39,6 @@ test_c_args = [
   '-I@0@'.format(join_paths(meson.project_source_root(), 'src')),
   '-DJSON_SCHEMA_DIR="@0@"'.format(
     join_paths(meson.project_source_root(), 'doc', 'schemas')),
-  '-DTEST_DATA_DIR="@0@"'.format(
-    join_paths (meson.current_source_dir(), 'data')),
 ]
 
 test_link_args = [

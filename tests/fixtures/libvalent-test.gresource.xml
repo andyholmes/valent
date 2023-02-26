@@ -10,5 +10,37 @@
   <gresource prefix="/plugins/packetless">
     <file>packetless.plugin</file>
   </gresource>
+  <gresource prefix="/tests">
+    <file alias="contact.vcf">data/contact.vcf</file>
+    <file alias="contact2.vcf">data/contact2.vcf</file>
+    <file alias="contact3.vcf">data/contact3.vcf</file>
+    <file alias="image.png">data/image.png</file>
+
+    <file preprocess="json-stripblanks" alias="core.json">data/core.json</file>
+    <file preprocess="json-stripblanks" alias="core-large.json">data/core-large.json</file>
+    <file preprocess="json-stripblanks" alias="core-packet.json">data/core-packet.json</file>
+    <file preprocess="json-stripblanks" alias="core-state.json">data/core-state.json</file>
+    <file preprocess="json-stripblanks" alias="plugin-battery.json">data/plugin-battery.json</file>
+    <file preprocess="json-stripblanks" alias="plugin-bluez.json">data/plugin-bluez.json</file>
+    <file preprocess="json-stripblanks" alias="plugin-clipboard.json">data/plugin-clipboard.json</file>
+    <file preprocess="json-stripblanks" alias="plugin-connectivity_report.json">data/plugin-connectivity_report.json</file>
+    <file preprocess="json-stripblanks" alias="plugin-contacts.json">data/plugin-contacts.json</file>
+    <file preprocess="json-stripblanks" alias="plugin-findmyphone.json">data/plugin-findmyphone.json</file>
+    <file preprocess="json-stripblanks" alias="plugin-lan.json">data/plugin-lan.json</file>
+    <file preprocess="json-stripblanks" alias="plugin-lock.json">data/plugin-lock.json</file>
+    <file preprocess="json-stripblanks" alias="plugin-mock.json">data/plugin-mock.json</file>
+    <file preprocess="json-stripblanks" alias="plugin-mousepad.json">data/plugin-mousepad.json</file>
+    <file preprocess="json-stripblanks" alias="plugin-mpris.json">data/plugin-mpris.json</file>
+    <file preprocess="json-stripblanks" alias="plugin-notification.json">data/plugin-notification.json</file>
+    <file preprocess="json-stripblanks" alias="plugin-photo.json">data/plugin-photo.json</file>
+    <file preprocess="json-stripblanks" alias="plugin-ping.json">data/plugin-ping.json</file>
+    <file preprocess="json-stripblanks" alias="plugin-presenter.json">data/plugin-presenter.json</file>
+    <file preprocess="json-stripblanks" alias="plugin-runcommand.json">data/plugin-runcommand.json</file>
+    <file preprocess="json-stripblanks" alias="plugin-sftp.json">data/plugin-sftp.json</file>
+    <file preprocess="json-stripblanks" alias="plugin-share.json">data/plugin-share.json</file>
+    <file preprocess="json-stripblanks" alias="plugin-sms.json">data/plugin-sms.json</file>
+    <file preprocess="json-stripblanks" alias="plugin-systemvolume.json">data/plugin-systemvolume.json</file>
+    <file preprocess="json-stripblanks" alias="plugin-telephony.json">data/plugin-telephony.json</file>
+  </gresource>
 </gresources>
 

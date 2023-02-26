@@ -18,7 +18,7 @@ test_sms_conversation_row (void)
 
   g_autoptr (EContact) contact = NULL;
   g_autoptr (EContact) contact_out = NULL;
-  g_autofree char *vcard = NULL;
+  g_autoptr (GBytes) bytes = NULL;
 
   g_autoptr (ValentMessage) message = NULL;
   g_autoptr (ValentMessage) message_out = NULL;
@@ -32,8 +32,8 @@ test_sms_conversation_row (void)
   const char *text = "Test Message https://www.gnome.org";
   gint64 thread_id = 987321654;
 
-  g_file_get_contents (TEST_DATA_DIR"/contact.vcf", &vcard, NULL, NULL);
-  contact = e_contact_new_from_vcard (vcard);
+  bytes = g_resources_lookup_data ("/tests/contact.vcf", 0, NULL);
+  contact = e_contact_new_from_vcard (g_bytes_get_data (bytes, NULL));
 
   message = g_object_new (VALENT_TYPE_MESSAGE,
                           "box",       box,

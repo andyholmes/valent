@@ -53,7 +53,7 @@ test_notification_plugin_handle_notification (ValentTestFixture *fixture,
   valent_test_fixture_handle_packet (fixture, packet);
 
   /* Receive a notification with an icon */
-  file = g_file_new_for_uri ("file://"TEST_DATA_DIR"/image.png");
+  file = g_file_new_for_uri ("resource:///tests/image.png");
   packet = valent_test_fixture_lookup_packet (fixture, "notification-icon");
   valent_test_fixture_upload (fixture, packet, file, &error);
   g_assert_no_error (error);
@@ -144,7 +144,7 @@ test_notification_plugin_send_notification (ValentTestFixture *fixture,
   json_node_unref (packet);
 
   /* Send a notification with a file icon */
-  file = g_file_new_for_uri ("file://"TEST_DATA_DIR"/image.png");
+  file = g_file_new_for_uri ("resource:///tests/image.png");
   icon = g_file_icon_new (file);
   valent_notification_set_icon (notification, icon);
   valent_notifications_adapter_notification_added (adapter, notification);
@@ -164,7 +164,7 @@ test_notification_plugin_send_notification (ValentTestFixture *fixture,
   json_node_unref (packet);
 
   /* Send a notification with a bytes icon */
-  file = g_file_new_for_uri ("file://"TEST_DATA_DIR"/image.png");
+  file = g_file_new_for_uri ("resource:///tests/image.png");
   bytes = g_file_load_bytes (file, NULL, NULL, NULL);
   icon = g_bytes_icon_new (bytes);
   valent_notification_set_icon (notification, icon);
@@ -309,7 +309,7 @@ int
 main (int   argc,
       char *argv[])
 {
-  const char *path = TEST_DATA_DIR"/plugin-notification.json";
+  const char *path = "plugin-notification.json";
 
   valent_test_init (&argc, &argv, NULL);
 

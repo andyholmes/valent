@@ -80,7 +80,7 @@ int
 main (int   argc,
       char *argv[])
 {
-  const char *path = TEST_DATA_DIR"/plugin-mpris.json";
+  const char *path = "plugin-mpris.json";
 
   valent_test_ui_init (&argc, &argv, NULL);
 

@@ -39,10 +39,10 @@ test_sms_avatar_from_contact (void)
   GtkWidget *avatar;
   GdkPaintable *paintable;
   g_autoptr (EContact) contact = NULL;
-  g_autofree char *vcard = NULL;
+  g_autoptr (GBytes) bytes = NULL;
 
-  g_file_get_contents (TEST_DATA_DIR"/contact.vcf", &vcard, NULL, NULL);
-  contact = e_contact_new_from_vcard (vcard);
+  bytes = g_resources_lookup_data ("/tests/contact.vcf", 0, NULL);
+  contact = e_contact_new_from_vcard (g_bytes_get_data (bytes, NULL));
 
   avatar = g_object_new (ADW_TYPE_AVATAR,
                          "size", 32,

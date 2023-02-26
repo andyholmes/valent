@@ -85,7 +85,7 @@ int
 main (int   argc,
       char *argv[])
 {
-  const char *path = TEST_DATA_DIR"/plugin-mock.json";
+  const char *path = "plugin-mock.json";
 
   valent_test_ui_init (&argc, &argv, NULL);
 

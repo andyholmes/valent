@@ -28,19 +28,13 @@ static void
 packet_fixture_set_up (PacketFixture *fixture,
                        gconstpointer  user_data)
 {
-  g_autoptr (JsonParser) parser = NULL;
-
-  parser = json_parser_new ();
-  json_parser_load_from_file (parser, TEST_DATA_DIR"/core.json", NULL);
-  fixture->node = json_parser_steal_root (parser);
+  fixture->node = valent_test_load_json ("core.json");
   fixture->packets = json_node_get_object (fixture->node);
 
-  json_parser_load_from_file (parser, TEST_DATA_DIR"/core-packet.json", NULL);
-  fixture->invalid_node = json_parser_steal_root (parser);
+  fixture->invalid_node = valent_test_load_json ("core-packet.json");
   fixture->invalid_packets = json_node_get_object (fixture->invalid_node);
 
-  json_parser_load_from_file (parser, TEST_DATA_DIR"/core-large.json", NULL);
-  fixture->large_node = json_parser_steal_root (parser);
+  fixture->large_node = valent_test_load_json ("core-large.json");
 }
 
 static void

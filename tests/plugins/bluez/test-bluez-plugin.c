@@ -41,7 +41,7 @@ bluez_service_fixture_set_up (BluezBackendFixture *fixture,
   PeasPluginInfo *plugin_info;
 
   fixture->loop = g_main_loop_new (NULL, FALSE);
-  fixture->packets = valent_test_load_json (TEST_DATA_DIR"/plugin-bluez.json");
+  fixture->packets = valent_test_load_json ("plugin-bluez.json");
   fixture->connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL);
 
   plugin_info = peas_engine_get_plugin_info (valent_get_plugin_engine (), "bluez");
@@ -357,7 +357,7 @@ test_bluez_service_channel (BluezBackendFixture *fixture,
   g_assert_cmpstr (channel_verification, ==, endpoint_verification);
 
   /* Transfers */
-  file = g_file_new_for_path (TEST_DATA_DIR"image.png");
+  file = g_file_new_for_uri ("resource:///tests/image.png");
   packet = json_object_get_member (json_node_get_object (fixture->packets),
                                    "transfer");
 

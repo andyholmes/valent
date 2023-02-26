@@ -59,17 +59,15 @@ valent_test_fixture_init (ValentTestFixture *fixture,
                           gconstpointer      user_data)
 {
   PeasEngine *engine = valent_get_plugin_engine ();
+  const char *path = (const char *)user_data;
   g_autofree ValentChannel **channels = NULL;
-  g_autoptr (JsonParser) parser = NULL;
   g_auto (GStrv) plugins = NULL;
   JsonNode *identity;
 
-  fixture->loop = g_main_loop_new (NULL, FALSE);
+  g_assert (path != NULL && *path != '\0');
 
-  /* Load test packets */
-  parser = json_parser_new ();
-  json_parser_load_from_file (parser, user_data, NULL);
-  fixture->packets = json_parser_steal_root (parser);
+  fixture->loop = g_main_loop_new (NULL, FALSE);
+  fixture->packets = valent_test_load_json (path);
 
   /* Init device */
   identity = valent_test_fixture_lookup_packet (fixture, "identity");
