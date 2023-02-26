@@ -21,6 +21,11 @@
             <property name="margin-bottom">6</property>
             <child>
               <object class="GtkCenterBox">
+                <child type="start">
+                  <object class="GtkWindowControls">
+                    <property name="side">start</property>
+                  </object>
+                </child>
                 <child type="center">
                   <object class="AdwWindowTitle">
                   <property name="title"
