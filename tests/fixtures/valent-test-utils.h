@@ -18,20 +18,6 @@ void             valent_test_ui_init       (int              *argcp,
                                             char           ***argvp,
                                                               ...);
 
-gboolean         valent_test_mute_domain   (const char       *log_domain,
-                                            GLogLevelFlags    log_level,
-                                            const char       *message,
-                                            gpointer          user_data);
-
-gboolean         valent_test_mute_match    (const char       *log_domain,
-                                            GLogLevelFlags    log_level,
-                                            const char       *message,
-                                            gpointer          user_data);
-
-gboolean         valent_test_mute_warning  (const char       *log_domain,
-                                            GLogLevelFlags    log_level,
-                                            const char       *message,
-                                            gpointer          user_data);
 gboolean         valent_test_mute_fuzzing  (const char       *log_domain,
                                             GLogLevelFlags    log_level,
                                             const char       *message,
