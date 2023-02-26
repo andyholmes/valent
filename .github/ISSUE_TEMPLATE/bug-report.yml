@@ -2,18 +2,6 @@ name: Bug Report
 description: Report a problem
 labels: ['triage']
 body:
-  - type: checkboxes
-    id: terms
-    attributes:
-      label: Code of Conduct
-      options:
-        - label: I will prove that I'm an awesome person by using my manners
-          required: true
-        - label: I agree that I am only entitled to [The Four Essential Freedoms](https://www.gnu.org/philosophy/free-sw.html#four-freedoms)
-          required: true
-        - label: I understand this project is in alpha and bugs are expected
-          required: true
-
   - type: markdown
     attributes:
       value: '## Description'
@@ -34,22 +22,9 @@ body:
     validations:
       required: true
 
-  - type: textarea
-    id: reproduce
-    attributes:
-      label: Steps to Reproduce
-      description: List the steps to perform that will trigger the bug.
-      placeholder: |
-          1. Go to '...'
-          2. Click on '....'
-          3. Scroll down to '....'
-          4. See error
-    validations:
-      required: true
-
   - type: markdown
     attributes:
-      value: '## Desktop Environment'
+      value: '## Desktop'
 
   - type: dropdown
     id: desktop
@@ -82,7 +57,7 @@ body:
 
   - type: markdown
     attributes:
-      value: '## Application Environment'
+      value: '## Application'
 
   - type: dropdown
     id: source
@@ -93,7 +68,7 @@ body:
         - Built from source (Flatpak)
         - Built from source (Other)
         - Distribution Package
-        - Other method
+        - Other
     validations:
       required: true
 
@@ -105,6 +80,7 @@ body:
         What version of the project are you running?
       options:
         - 1.0.0.alpha
+        - nightly
     validations:
       required: true
 
