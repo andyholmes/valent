@@ -9,7 +9,9 @@
 
 #include <gio/gio.h>
 #include <json-glib/json-glib.h>
-#include <libvalent-core.h>
+
+#include "../core/valent-data.h"
+#include "../core/valent-object.h"
 
 G_BEGIN_DECLS
 

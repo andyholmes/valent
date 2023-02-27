@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <libvalent-core.h>
-
 G_BEGIN_DECLS
 
 #include "valent-input.h"

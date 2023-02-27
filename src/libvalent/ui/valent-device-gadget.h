@@ -8,7 +8,8 @@
 #endif
 
 #include <gtk/gtk.h>
-#include <libvalent-device.h>
+
+#include "../core/valent-object.h"
 
 G_BEGIN_DECLS
 

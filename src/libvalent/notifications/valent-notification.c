@@ -6,6 +6,7 @@
 #include "config.h"
 
 #include <gio/gio.h>
+#include <libvalent-core.h>
 
 #include "valent-notification.h"
 

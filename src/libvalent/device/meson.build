@@ -48,7 +48,7 @@ libvalent_device_public_sources = [
 # Enumerations
 libvalent_device_enums = gnome.mkenums_simple('valent-device-enums',
           body_prefix: '#include "config.h"',
-        header_prefix: '#include <libvalent-core.h>',
+        header_prefix: '#include "../core/valent-version.h"',
             decorator: '_VALENT_EXTERN',
               sources: libvalent_device_enum_headers,
        install_header: true,

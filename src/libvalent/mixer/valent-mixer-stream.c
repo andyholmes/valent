@@ -5,6 +5,8 @@
 
 #include "config.h"
 
+#include <libvalent-core.h>
+
 #include "valent-mixer-enums.h"
 #include "valent-mixer-stream.h"
 

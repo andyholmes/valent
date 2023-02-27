@@ -7,7 +7,7 @@
 # error "Only <valent.h> can be included directly."
 #endif
 
-#include <libvalent-core.h>
+#include "../core/valent-object.h"
 
 G_BEGIN_DECLS
 

@@ -4,7 +4,8 @@
 #pragma once
 
 #include <gtk/gtk.h>
-#include <libvalent-core.h>
+
+#include "../core/valent-object.h"
 
 G_BEGIN_DECLS
 

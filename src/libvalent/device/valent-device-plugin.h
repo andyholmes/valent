@@ -9,7 +9,6 @@
 
 #include <json-glib/json-glib.h>
 #include <libpeas/peas.h>
-#include <libvalent-core.h>
 
 #include "valent-device.h"
 

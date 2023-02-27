@@ -8,7 +8,6 @@
 #endif
 
 #include <json-glib/json-glib.h>
-#include <libvalent-core.h>
 
 #include "valent-channel.h"
 
