@@ -137,11 +137,6 @@ test_window_dialogs (TestWindowFixture *fixture,
   while (g_main_context_iteration (NULL, FALSE))
     continue;
 
-  gtk_widget_activate_action (GTK_WIDGET (window), "win.page", "s", "main");
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
   g_clear_pointer (&window, gtk_window_destroy);
 
   /* About */
