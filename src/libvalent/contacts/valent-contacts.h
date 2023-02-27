@@ -7,8 +7,7 @@
 # error "Only <valent.h> can be included directly."
 #endif
 
-#include <libvalent-core.h>
-
+#include "../core/valent-component.h"
 #include "valent-contact-store.h"
 
 

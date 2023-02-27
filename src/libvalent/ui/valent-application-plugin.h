@@ -7,7 +7,7 @@
 # error "Only <valent.h> can be included directly."
 #endif
 
-#include <libvalent-device.h>
+#include "../device/valent-device-manager.h"
 
 G_BEGIN_DECLS
 

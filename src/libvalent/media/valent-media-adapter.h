@@ -7,8 +7,6 @@
 # error "Only <valent.h> can be included directly."
 #endif
 
-#include <gio/gio.h>
-
 #include "valent-media-player.h"
 
 G_BEGIN_DECLS

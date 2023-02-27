@@ -7,10 +7,7 @@
 # error "Only <valent.h> can be included directly."
 #endif
 
-#include <libvalent-core.h>
-
 #include "valent-mixer-stream.h"
-
 
 G_BEGIN_DECLS
 

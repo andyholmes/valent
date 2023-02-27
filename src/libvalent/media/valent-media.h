@@ -8,8 +8,8 @@
 #endif
 
 #include <gio/gio.h>
-#include <libvalent-core.h>
 
+#include "../core/valent-component.h"
 #include "valent-media-player.h"
 
 G_BEGIN_DECLS

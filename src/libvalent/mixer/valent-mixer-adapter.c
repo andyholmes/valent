@@ -6,6 +6,7 @@
 #include "config.h"
 
 #include <libpeas/peas.h>
+#include <libvalent-core.h>
 
 #include "valent-mixer.h"
 #include "valent-mixer-adapter.h"

@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <gio/gio.h>
-
 #include "valent-device.h"
 
 G_BEGIN_DECLS

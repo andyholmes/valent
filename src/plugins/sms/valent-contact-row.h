@@ -4,7 +4,7 @@
 #pragma once
 
 #include <gtk/gtk.h>
-#include <libvalent-contacts.h>
+#include <valent.h>
 
 G_BEGIN_DECLS
 

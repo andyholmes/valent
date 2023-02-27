@@ -7,10 +7,9 @@
 # error "Only <valent.h> can be included directly."
 #endif
 
-#include <gio/gio.h>
 #include <json-glib/json-glib.h>
-#include <libvalent-core.h>
 
+#include "../core/valent-transfer.h"
 #include "valent-device.h"
 
 G_BEGIN_DECLS

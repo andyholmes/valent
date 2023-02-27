@@ -8,6 +8,7 @@
 #include <gio/gio.h>
 #include <json-glib/json-glib.h>
 
+#include "valent-global.h"
 #include "valent-packet.h"
 
 
