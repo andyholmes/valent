@@ -1252,18 +1252,6 @@ valent_sms_store_find_messages_finish (ValentSmsStore  *store,
   return g_task_propagate_pointer (G_TASK (result), error);
 }
 
-
-static inline int
-summary_sort (gconstpointer a,
-              gconstpointer b,
-              gpointer      user_data)
-{
-  gint64 date1 = valent_message_get_date ((ValentMessage *)a);
-  gint64 date2 = valent_message_get_date ((ValentMessage *)b);
-
-  return (date1 < date2) ? -1 : (date1 > date2);
-}
-
 /**
  * valent_sms_store_get_message:
  * @store: a #ValentSmsStore
