@@ -254,6 +254,7 @@ valent_sms_conversation_insert_message (ValentSmsConversation *self,
   return GTK_WIDGET (row);
 }
 
+#if 0
 /**
  * valent_conversation_remove_message:
  * @conversation: a #ValentSmsConversation
@@ -283,6 +284,7 @@ valent_sms_conversation_remove_message (ValentSmsConversation *conversation,
         }
     }
 }
+#endif
 
 /*
  * Message Entry Callbacks
@@ -330,6 +332,7 @@ valent_sms_conversation_pop_tail (ValentSmsConversation *self)
   return g_list_model_get_item (self->thread, self->position_lower);
 }
 
+#if 0
 static inline ValentMessage *
 valent_sms_conversation_pop_head (ValentSmsConversation *self)
 {
@@ -343,6 +346,7 @@ valent_sms_conversation_pop_head (ValentSmsConversation *self)
 
   return g_list_model_get_item (self->thread, self->position_upper);
 }
+#endif
 
 static void
 valent_sms_conversation_populate_reverse (ValentSmsConversation *self)
@@ -454,22 +458,6 @@ on_scroll_notify_upper (GtkAdjustment         *adjustment,
     return;
 
   valent_sms_conversation_queue_update (self);
-}
-
-static void
-on_scroll_value_changed (GtkAdjustment         *adjustment,
-                         ValentSmsConversation *self)
-{
-  double page_size;
-
-  if G_UNLIKELY (!gtk_widget_get_realized (GTK_WIDGET (self)))
-    return;
-
-  if ((page_size = gtk_adjustment_get_page_size (adjustment)) == 0)
-    return;
-
-  if (gtk_adjustment_get_value (adjustment) < page_size * 2)
-    valent_sms_conversation_populate (self);
 }
 
 static void

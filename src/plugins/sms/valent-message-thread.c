@@ -45,7 +45,8 @@ enum {
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 
-static int
+#if 0
+static inline int
 valent_message_thread_lookup_func (gconstpointer a,
                                    gconstpointer b,
                                    gpointer      user_data)
@@ -55,7 +56,7 @@ valent_message_thread_lookup_func (gconstpointer a,
   return valent_message_get_id ((ValentMessage *)a) == *id ? 0 : 1;
 }
 
-static int
+static inline int
 valent_message_thread_sort_func (gconstpointer a,
                                  gconstpointer b,
                                  gpointer      user_data)
@@ -124,6 +125,7 @@ valent_message_thread_add_message (ValentMessageThread *self,
 
   return position;
 }
+#endif
 
 static void
 get_message_cb (ValentSmsStore *store,
