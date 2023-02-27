@@ -22,7 +22,6 @@
 #include "valent-application-plugin.h"
 #include "valent-preferences-page.h"
 #include "valent-preferences-window.h"
-#include "valent-preferences-window-private.h"
 
 
 struct _ValentPreferencesWindow

@@ -7,8 +7,6 @@
 
 G_BEGIN_DECLS
 
-#define VALENT_CORE_INSIDE
-
 #include "valent-certificate.h"
 #include "valent-component.h"
 #include "valent-core-enums.h"
@@ -19,8 +17,6 @@ G_BEGIN_DECLS
 #include "valent-object.h"
 #include "valent-transfer.h"
 #include "valent-version.h"
-
-#undef VALENT_CORE_INSIDE
 
 G_END_DECLS
 

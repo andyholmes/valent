@@ -2,8 +2,7 @@
 // SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 #include <libpeas/peas.h>
-#include <libvalent-core.h>
-#include <libvalent-device.h>
+#include <valent.h>
 
 #include "packetless-plugin.h"
 

@@ -6,9 +6,7 @@
 #include "config.h"
 
 #include <gtk/gtk.h>
-#include <libvalent-core.h>
-#include <libvalent-device.h>
-#include <libvalent-ui.h>
+#include <valent.h>
 
 #include "valent-connectivity_report-gadget.h"
 

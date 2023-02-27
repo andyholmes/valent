@@ -3,8 +3,7 @@
 
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <gio/gio.h>
-#include <libvalent-core.h>
-#include <libvalent-notifications.h>
+#include <valent.h>
 #include <libvalent-test.h>
 
 

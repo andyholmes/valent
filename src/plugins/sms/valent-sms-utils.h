@@ -5,7 +5,7 @@
 
 #include <adwaita.h>
 #include <gdk/gdk.h>
-#include <libvalent-contacts.h>
+#include <valent.h>
 
 G_BEGIN_DECLS
 

@@ -9,8 +9,7 @@
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
 #include <pango/pango.h>
-#include <libvalent-contacts.h>
-#include <libvalent-core.h>
+#include <valent.h>
 
 #include "valent-contact-row.h"
 #include "valent-sms-utils.h"

@@ -9,9 +9,8 @@
 
 #include <glib/gi18n.h>
 #include <gio/gio.h>
-#include <libpeas/peas.h>
-#include <libvalent-core.h>
-#include <libvalent-device.h>
+#include <json-glib/json-glib.h>
+#include <valent.h>
 
 #include "valent-connectivity_report-plugin.h"
 #include "valent-telephony.h"

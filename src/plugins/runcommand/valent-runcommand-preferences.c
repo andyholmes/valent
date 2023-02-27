@@ -6,9 +6,10 @@
 #include "config.h"
 
 #include <glib/gi18n.h>
+#include <adwaita.h>
+#include <gtk/gtk.h>
 #include <libportal/portal.h>
-#include <libvalent-core.h>
-#include <libvalent-ui.h>
+#include <valent.h>
 
 #include "valent-runcommand-editor.h"
 #include "valent-runcommand-preferences.h"

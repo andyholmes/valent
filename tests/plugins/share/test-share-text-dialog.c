@@ -2,8 +2,8 @@
 // SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 #include <libportal/portal.h>
+#include <valent.h>
 #include <libvalent-test.h>
-#include <libvalent-ui.h>
 
 #include "valent-share-text-dialog.h"
 

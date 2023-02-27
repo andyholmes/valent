@@ -3,8 +3,7 @@
 
 #include <gio/gio.h>
 #include <gdk/gdk.h>
-#include <libvalent-core.h>
-#include <libvalent-clipboard.h>
+#include <valent.h>
 #include <libvalent-test.h>
 
 

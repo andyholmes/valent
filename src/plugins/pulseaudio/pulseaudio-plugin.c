@@ -3,9 +3,8 @@
 
 #include "config.h"
 
-#include <gio/gio.h>
 #include <libpeas/peas.h>
-#include <libvalent-mixer.h>
+#include <valent.h>
 
 #include "valent-pa-mixer.h"
 

@@ -5,10 +5,9 @@
 
 #include "config.h"
 
+#include <gio/gio.h>
 #include <json-glib/json-glib.h>
-#include <libvalent-core.h>
-#include <libvalent-device.h>
-#include <libvalent-mixer.h>
+#include <valent.h>
 
 #include "valent-systemvolume-plugin.h"
 

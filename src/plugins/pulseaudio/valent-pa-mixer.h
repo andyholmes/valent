@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <libvalent-mixer.h>
+#include <valent.h>
 
 G_BEGIN_DECLS
 

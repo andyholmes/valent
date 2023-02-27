@@ -5,7 +5,7 @@
 
 #include "config.h"
 
-#include <libvalent-core.h>
+#include <valent.h>
 
 #include "valent-bluez-device.h"
 #include "valent-bluez-profile.h"

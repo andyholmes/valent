@@ -19,8 +19,7 @@
 #  include <gdk/x11/gdkx.h>
 #endif /* GDK_WINDOWING_X11 */
 #include <libportal/portal.h>
-#include <libvalent-core.h>
-#include <libvalent-input.h>
+#include <valent.h>
 
 #include "valent-xdp-input.h"
 #include "valent-xdp-utils.h"

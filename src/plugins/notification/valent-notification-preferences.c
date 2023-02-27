@@ -6,9 +6,9 @@
 #include "config.h"
 
 #include <glib/gi18n.h>
-#include <libvalent-core.h>
-#include <libvalent-notifications.h>
-#include <libvalent-ui.h>
+#include <adwaita.h>
+#include <gtk/gtk.h>
+#include <valent.h>
 
 #include "valent-notification-preferences.h"
 

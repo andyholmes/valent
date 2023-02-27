@@ -7,7 +7,7 @@
 # error "Only <libvalent-test.h> can be included directly."
 #endif
 
-#include <libvalent-device.h>
+#include <valent.h>
 
 G_BEGIN_DECLS
 

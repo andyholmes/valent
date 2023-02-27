@@ -6,10 +6,9 @@
 #include "config.h"
 
 #include <glib/gi18n.h>
-#include <libpeas/peas.h>
-#include <libvalent-core.h>
-#include <libvalent-device.h>
-#include <libvalent-session.h>
+#include <gio/gio.h>
+#include <json-glib/json-glib.h>
+#include <valent.h>
 
 #include "valent-findmyphone-plugin.h"
 #include "valent-findmyphone-ringer.h"
@@ -17,7 +16,7 @@
 
 struct _ValentFindmyphonePlugin
 {
-  ValentDevicePlugin        parent_instance;
+  ValentDevicePlugin       parent_instance;
 
   ValentFindmyphoneRinger *ringer;
   ValentSession           *session;

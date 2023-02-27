@@ -9,8 +9,7 @@
 
 #include <gio/gio.h>
 #include <json-glib/json-glib.h>
-#include <libvalent-core.h>
-#include <libvalent-device.h>
+#include <valent.h>
 
 G_BEGIN_DECLS
 

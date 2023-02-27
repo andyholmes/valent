@@ -6,8 +6,7 @@
 #include "config.h"
 
 #include <libpeas/peas.h>
-#include <libvalent-core.h>
-#include <libvalent-session.h>
+#include <valent.h>
 
 #include "valent-fdo-session.h"
 

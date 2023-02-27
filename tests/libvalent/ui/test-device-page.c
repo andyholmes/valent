@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
+#include <valent.h>
 #include <libvalent-test.h>
-#include <libvalent-ui.h>
 
 #include "valent-device-page.h"
 
@@ -66,11 +66,6 @@ test_device_page_dialogs (ValentTestFixture *fixture,
 
   /* Preferences can be opened and closed */
   gtk_widget_activate_action (panel, "panel.preferences", NULL);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
-  valent_device_page_close_preferences (VALENT_DEVICE_PAGE (panel));
 
   while (g_main_context_iteration (NULL, FALSE))
     continue;

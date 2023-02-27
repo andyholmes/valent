@@ -3,8 +3,7 @@
 
 #include <gio/gio.h>
 #include <gtk/gtk.h>
-#include <libvalent-core.h>
-#include <libvalent-media.h>
+#include <valent.h>
 #include <libvalent-test.h>
 
 #include "valent-mock-media-player.h"

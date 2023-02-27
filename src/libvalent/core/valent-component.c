@@ -9,6 +9,7 @@
 #include <libpeas/peas.h>
 
 #include "valent-component.h"
+#include "valent-component-private.h"
 #include "valent-debug.h"
 #include "valent-global.h"
 #include "valent-object.h"
@@ -582,7 +583,7 @@ valent_component_init (ValentComponent *self)
   priv->plugins = g_hash_table_new_full (NULL, NULL, NULL, component_plugin_free);
 }
 
-/**
+/*< private >
  * valent_component_create_settings:
  * @context: a #ValentDevice ID
  * @module_name: a #PeasPluginInfo module name

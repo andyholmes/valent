@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "valent-device-private.h"
+
 #define VALENT_TEST_INSIDE
 
 #include "valent-test-fixture.h"

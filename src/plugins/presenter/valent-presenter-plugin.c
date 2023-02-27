@@ -6,11 +6,10 @@
 #include "config.h"
 
 #include <glib/gi18n.h>
+#include <gio/gio.h>
 #include <gtk/gtk.h>
 #include <json-glib/json-glib.h>
-#include <libvalent-core.h>
-#include <libvalent-device.h>
-#include <libvalent-input.h>
+#include <valent.h>
 
 #include "valent-presenter-plugin.h"
 #include "valent-presenter-remote.h"

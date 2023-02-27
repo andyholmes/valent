@@ -6,12 +6,10 @@
 #include "config.h"
 
 #include <gtk/gtk.h>
-#include <libpeas/peas.h>
 #include <libportal/portal.h>
-#include <libvalent-core.h>
-#include <libvalent-device.h>
-#include <libvalent-notifications.h>
-#include <libvalent-session.h>
+#include <gio/gio.h>
+#include <json-glib/json-glib.h>
+#include <valent.h>
 
 #include "valent-notification-dialog.h"
 #include "valent-notification-plugin.h"

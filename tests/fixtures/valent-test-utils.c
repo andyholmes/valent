@@ -8,18 +8,8 @@
 #include <gtk/gtk.h>
 #include <adwaita.h>
 #include <json-glib/json-glib.h>
-#include <libvalent-core.h>
-#include <libvalent-device.h>
-#include <libvalent-contacts.h>
-#include <libvalent-clipboard.h>
-#include <libvalent-input.h>
-#include <libvalent-media.h>
-#include <libvalent-mixer.h>
-#include <libvalent-notifications.h>
-#include <libvalent-session.h>
-#include <libvalent-ui.h>
+#include <valent.h>
 
-#include "libvalent-ui-resources.h"
 #include "valent-component-private.h"
 #include "valent-contact-cache-private.h"
 #include "valent-mock-channel.h"
@@ -540,8 +530,6 @@ valent_test_ui_init (int    *argcp,
   g_test_init (argcp, argvp, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 
   valent_type_ensure ();
-
-  g_resources_register (valent_ui_get_resource ());
 
   gtk_disable_setlocale ();
   setlocale (LC_ALL, "en_US.UTF-8");

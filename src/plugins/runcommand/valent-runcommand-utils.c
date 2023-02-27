@@ -7,7 +7,7 @@
 
 #include <gio/gio.h>
 #include <libportal/portal.h>
-#include <libvalent-core.h>
+#include <valent.h>
 
 #include "valent-runcommand-utils.h"
 

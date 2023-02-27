@@ -2,8 +2,7 @@
 // SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 #include <gio/gio.h>
-#include <libvalent-core.h>
-#include <libvalent-session.h>
+#include <valent.h>
 #include <libvalent-test.h>
 
 // See mock_session.py

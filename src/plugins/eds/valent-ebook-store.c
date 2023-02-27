@@ -5,8 +5,7 @@
 
 #include "config.h"
 
-#include <libvalent-core.h>
-#include <libvalent-contacts.h>
+#include <valent.h>
 
 #include "valent-ebook-store.h"
 #include "valent-eds-utils.h"

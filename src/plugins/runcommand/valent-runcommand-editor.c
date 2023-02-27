@@ -7,8 +7,9 @@
 
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
-#include <libportal/portal.h>
-#include <libvalent-core.h>
+#include <gio/gio.h>
+#include <json-glib/json-glib.h>
+#include <valent.h>
 
 #include "valent-runcommand-editor.h"
 

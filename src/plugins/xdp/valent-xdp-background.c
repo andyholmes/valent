@@ -8,8 +8,7 @@
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
 #include <libportal/portal.h>
-#include <libvalent-core.h>
-#include <libvalent-ui.h>
+#include <valent.h>
 
 #include "valent-xdp-background.h"
 #include "valent-xdp-utils.h"

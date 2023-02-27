@@ -64,7 +64,7 @@ libvalent_test_generated_headers = [libvalent_test_resources[1]]
 
 # Dependencies
 libvalent_test_deps = [
-  libvalent_deps,
+  libvalent_dep,
 ]
 
 if get_option('fuzz_tests') and libwalbottle_dep.found()

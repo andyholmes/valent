@@ -7,11 +7,10 @@
 
 #include <glib/gi18n.h>
 #include <gdk/gdk.h>
+#include <gio/gio.h>
 #include <gtk/gtk.h>
-#include <libpeas/peas.h>
-#include <libvalent-core.h>
-#include <libvalent-device.h>
-#include <libvalent-input.h>
+#include <json-glib/json-glib.h>
+#include <valent.h>
 
 #include "valent-mousepad-remote.h"
 #include "valent-mousepad-keydef.h"

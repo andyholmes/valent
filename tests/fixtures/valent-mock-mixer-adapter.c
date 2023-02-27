@@ -3,8 +3,7 @@
 
 #include "config.h"
 
-#include <libvalent-core.h>
-#include <libvalent-mixer.h>
+#include <valent.h>
 
 #include "valent-mock-mixer-adapter.h"
 

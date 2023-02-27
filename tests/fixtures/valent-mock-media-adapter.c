@@ -5,8 +5,7 @@
 
 #include "config.h"
 
-#include <libvalent-core.h>
-#include <libvalent-media.h>
+#include <valent.h>
 
 #include "valent-mock-media-adapter.h"
 

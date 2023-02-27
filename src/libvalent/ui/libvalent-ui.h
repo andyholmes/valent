@@ -3,13 +3,7 @@
 
 #pragma once
 
-#include <adwaita.h>
-#include <libvalent-core.h>
-#include <libvalent-device.h>
-
 G_BEGIN_DECLS
-
-#define VALENT_UI_INSIDE
 
 #include "valent-application.h"
 #include "valent-application-plugin.h"
@@ -17,8 +11,6 @@ G_BEGIN_DECLS
 #include "valent-device-preferences-page.h"
 #include "valent-preferences-page.h"
 #include "valent-ui-utils.h"
-
-#undef VALENT_UI_INSIDE
 
 G_END_DECLS
 

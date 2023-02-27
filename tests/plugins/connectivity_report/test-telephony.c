@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 #include <gio/gio.h>
-#include <libvalent-core.h>
+#include <valent.h>
 #include <libvalent-test.h>
 
 #include "valent-telephony.h"

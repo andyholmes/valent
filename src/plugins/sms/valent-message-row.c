@@ -8,8 +8,7 @@
 #include <adwaita.h>
 #include <gtk/gtk.h>
 #include <pango/pango.h>
-#include <libvalent-contacts.h>
-#include <libvalent-core.h>
+#include <valent.h>
 
 #include "valent-date-label.h"
 #include "valent-message-row.h"

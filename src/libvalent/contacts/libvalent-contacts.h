@@ -7,14 +7,10 @@
 
 G_BEGIN_DECLS
 
-#define VALENT_CONTACTS_INSIDE
-
 #include "valent-contacts.h"
 #include "valent-contact-store.h"
 #include "valent-contacts-adapter.h"
 #include "valent-eds.h"
-
-#undef VALENT_CONTACTS_INSIDE
 
 G_END_DECLS
 

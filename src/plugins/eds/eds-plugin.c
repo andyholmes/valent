@@ -4,7 +4,7 @@
 #include "config.h"
 
 #include <libpeas/peas.h>
-#include <libvalent-contacts.h>
+#include <valent.h>
 
 #include "valent-ebook-adapter.h"
 

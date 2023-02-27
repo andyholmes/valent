@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-#include <libvalent-core.h>
-#include <libvalent-device.h>
+#include <valent.h>
 
 #include "valent-mock-device-plugin.h"
 

@@ -3,8 +3,8 @@
 
 #pragma once
 
-#if !defined (VALENT_MEDIA_INSIDE) && !defined (VALENT_MEDIA_COMPILATION)
-# error "Only <libvalent-media.h> can be included directly."
+#if !defined (VALENT_INSIDE) && !defined (VALENT_COMPILATION)
+# error "Only <valent.h> can be included directly."
 #endif
 
 #include <gio/gio.h>

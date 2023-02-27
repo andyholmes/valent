@@ -3,8 +3,8 @@
 
 #pragma once
 
-#if !defined (VALENT_UI_INSIDE) && !defined (VALENT_UI_COMPILATION)
-# error "Only <libvalent-ui.h> can be included directly."
+#if !defined (VALENT_INSIDE) && !defined (VALENT_COMPILATION)
+# error "Only <valent.h> can be included directly."
 #endif
 
 #include <adwaita.h>

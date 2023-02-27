@@ -2,11 +2,11 @@
 // SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 #include <gio/gio.h>
-#include <libvalent-core.h>
-#include <libvalent-contacts.h>
+#include <valent.h>
 #include <libvalent-test.h>
 
 #include "valent-contact-cache-private.h"
+
 
 typedef struct
 {

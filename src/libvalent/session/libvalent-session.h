@@ -7,12 +7,8 @@
 
 G_BEGIN_DECLS
 
-#define VALENT_SESSION_INSIDE
-
 #include "valent-session.h"
 #include "valent-session-adapter.h"
-
-#undef VALENT_SESSION_INSIDE
 
 G_END_DECLS
 

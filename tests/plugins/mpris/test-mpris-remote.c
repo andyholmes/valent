@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-#include <libvalent-core.h>
+#include <valent.h>
 #include <libvalent-test.h>
-#include <libvalent-media.h>
-#include <libvalent-ui.h>
 
 #include "valent-mpris-remote.h"
 #include "valent-mock-media-player.h"

@@ -5,7 +5,7 @@
 
 #include "config.h"
 
-#include <libvalent-session.h>
+#include <valent.h>
 
 #include "valent-mock-session-adapter.h"
 

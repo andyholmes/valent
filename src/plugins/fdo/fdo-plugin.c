@@ -4,8 +4,7 @@
 #include "config.h"
 
 #include <libpeas/peas.h>
-#include <libvalent-notifications.h>
-#include <libvalent-session.h>
+#include <valent.h>
 
 #include "valent-fdo-notifications.h"
 #include "valent-fdo-session.h"

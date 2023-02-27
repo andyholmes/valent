@@ -7,13 +7,9 @@
 
 G_BEGIN_DECLS
 
-#define VALENT_NOTIFICATIONS_INSIDE
-
 #include "valent-notification.h"
 #include "valent-notifications.h"
 #include "valent-notifications-adapter.h"
-
-#undef VALENT_NOTIFICATIONS_INSIDE
 
 G_END_DECLS
 

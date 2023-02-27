@@ -4,8 +4,7 @@
 #pragma once
 
 #include <gio/gio.h>
-#include <libvalent-contacts.h>
-#include <libvalent-core.h>
+#include <valent.h>
 
 #include "valent-sms-store.h"
 

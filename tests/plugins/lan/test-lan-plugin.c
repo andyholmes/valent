@@ -3,7 +3,7 @@
 
 #include <gio/gio.h>
 #include <gio/gunixinputstream.h>
-#include <libvalent-core.h>
+#include <valent.h>
 #include <libvalent-test.h>
 
 #include "valent-lan-utils.h"

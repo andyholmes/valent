@@ -8,7 +8,7 @@
 #include "config.h"
 
 #include <gio/gio.h>
-#include <libvalent-core.h>
+#include <valent.h>
 
 #include "valent-message-thread.h"
 #include "valent-sms-store.h"
