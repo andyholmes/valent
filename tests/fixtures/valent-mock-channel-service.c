@@ -8,8 +8,7 @@
 #include <sys/socket.h>
 
 #include <libpeas/peas.h>
-#include <libvalent-core.h>
-#include <libvalent-device.h>
+#include <valent.h>
 #include <libvalent-test.h>
 
 #include "valent-mock-channel.h"

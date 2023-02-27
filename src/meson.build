@@ -10,7 +10,7 @@ subdir('libvalent')
 subdir('plugins')
 
 
-# Executable
+# Application
 valent = executable('valent', 'main.c',
         c_args: valent_c_args + release_args,
      link_args: valent_link_args,

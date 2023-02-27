@@ -4,11 +4,13 @@
 #pragma once
 
 #include <gtk/gtk.h>
+#include <libvalent-core.h>
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_DEVICE_PAGE (valent_device_page_get_type())
 
+_VALENT_EXTERN
 G_DECLARE_FINAL_TYPE (ValentDevicePage, valent_device_page, VALENT, DEVICE_PAGE, GtkBox)
 
 void   valent_device_page_close_preferences (ValentDevicePage *panel);

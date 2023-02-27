@@ -5,8 +5,8 @@
 
 #pragma once
 
-#if !defined (VALENT_CORE_INSIDE) && !defined (VALENT_CORE_COMPILATION)
-# error "Only <libvalent-core.h> can be included directly."
+#if !defined (VALENT_INSIDE) && !defined (VALENT_COMPILATION)
+# error "Only <valent.h> can be included directly."
 #endif
 
 #ifndef __GI_SCANNER__

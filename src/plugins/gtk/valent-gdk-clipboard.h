@@ -3,8 +3,7 @@
 
 #pragma once
 
-#include <libvalent-core.h>
-#include <libvalent-clipboard.h>
+#include <valent.h>
 
 G_BEGIN_DECLS
 

@@ -9,9 +9,7 @@
 
 #include <gtk/gtk.h>
 #include <glib/gi18n.h>
-#include <libvalent-core.h>
-#include <libvalent-device.h>
-#include <libvalent-ui.h>
+#include <valent.h>
 
 #include "valent-battery-gadget.h"
 

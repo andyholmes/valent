@@ -4,8 +4,7 @@
 #include "config.h"
 
 #include <libpeas/peas.h>
-#include <libvalent-device.h>
-#include <libvalent-media.h>
+#include <valent.h>
 
 #include "valent-mpris-adapter.h"
 #include "valent-mpris-plugin.h"

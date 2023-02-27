@@ -6,8 +6,7 @@
 #include "config.h"
 
 #include <libportal/portal.h>
-#include <libvalent-core.h>
-#include <libvalent-media.h>
+#include <valent.h>
 
 #include "valent-mpris-adapter.h"
 #include "valent-mpris-impl.h"

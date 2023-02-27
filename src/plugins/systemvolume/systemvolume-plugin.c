@@ -4,8 +4,7 @@
 #include "config.h"
 
 #include <libpeas/peas.h>
-#include <libvalent-device.h>
-#include <libvalent-mixer.h>
+#include <valent.h>
 
 #include "valent-systemvolume-plugin.h"
 

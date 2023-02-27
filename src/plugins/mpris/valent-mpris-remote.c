@@ -8,9 +8,7 @@
 #include <adwaita.h>
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
-#include <libvalent-core.h>
-#include <libvalent-device.h>
-#include <libvalent-media.h>
+#include <valent.h>
 
 #include "valent-mpris-remote.h"
 #include "valent-mpris-utils.h"

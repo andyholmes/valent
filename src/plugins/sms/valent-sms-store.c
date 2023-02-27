@@ -6,7 +6,7 @@
 #include "config.h"
 
 #include <gio/gio.h>
-#include <libvalent-core.h>
+#include <valent.h>
 #include <sqlite3.h>
 
 #include "valent-message.h"
@@ -1025,8 +1025,6 @@ valent_sms_store_add_message (ValentSmsStore      *store,
   g_autoptr (GTask) task = NULL;
   g_autoptr (GPtrArray) messages = NULL;
 
-  VALENT_ENTRY;
-
   g_return_if_fail (VALENT_IS_SMS_STORE (store));
   g_return_if_fail (VALENT_IS_MESSAGE (message));
 
@@ -1039,8 +1037,6 @@ valent_sms_store_add_message (ValentSmsStore      *store,
                         g_steal_pointer (&messages),
                         (GDestroyNotify)g_ptr_array_unref);
   valent_sms_store_push (store, task, add_messages_task);
-
-  VALENT_EXIT;
 }
 
 /**
@@ -1062,8 +1058,6 @@ valent_sms_store_add_messages (ValentSmsStore      *store,
 {
   g_autoptr (GTask) task = NULL;
 
-  VALENT_ENTRY;
-
   g_return_if_fail (VALENT_IS_SMS_STORE (store));
   g_return_if_fail (messages != NULL);
 
@@ -1073,8 +1067,6 @@ valent_sms_store_add_messages (ValentSmsStore      *store,
                         g_ptr_array_ref (messages),
                         (GDestroyNotify)g_ptr_array_unref);
   valent_sms_store_push (store, task, add_messages_task);
-
-  VALENT_EXIT;
 }
 
 /**
@@ -1092,17 +1084,11 @@ valent_sms_store_add_messages_finish (ValentSmsStore  *store,
                                       GAsyncResult    *result,
                                       GError         **error)
 {
-  gboolean ret;
-
-  VALENT_ENTRY;
-
   g_return_val_if_fail (VALENT_IS_SMS_STORE (store), FALSE);
   g_return_val_if_fail (g_task_is_valid (result, store), FALSE);
   g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-  ret = g_task_propagate_boolean (G_TASK (result), error);
-
-  VALENT_RETURN (ret);
+  return g_task_propagate_boolean (G_TASK (result), error);
 }
 
 /**
@@ -1125,8 +1111,6 @@ valent_sms_store_remove_message (ValentSmsStore      *store,
   g_autoptr (GTask) task = NULL;
   gint64 *task_data;
 
-  VALENT_ENTRY;
-
   g_return_if_fail (VALENT_IS_SMS_STORE (store));
 
   task_data = g_new0 (gint64, 1);
@@ -1136,8 +1120,6 @@ valent_sms_store_remove_message (ValentSmsStore      *store,
   g_task_set_task_data (task, task_data, g_free);
   g_task_set_source_tag (task, valent_sms_store_remove_message);
   valent_sms_store_push (store, task, remove_message_task);
-
-  VALENT_EXIT;
 }
 
 /**
@@ -1155,17 +1137,11 @@ valent_sms_store_remove_message_finish (ValentSmsStore  *store,
                                         GAsyncResult    *result,
                                         GError         **error)
 {
-  gboolean ret;
-
-  VALENT_ENTRY;
-
   g_return_val_if_fail (VALENT_IS_SMS_STORE (store), FALSE);
   g_return_val_if_fail (g_task_is_valid (result, store), FALSE);
   g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-  ret = g_task_propagate_boolean (G_TASK (result), error);
-
-  VALENT_RETURN (ret);
+  return g_task_propagate_boolean (G_TASK (result), error);
 }
 
 /**
@@ -1188,8 +1164,6 @@ valent_sms_store_remove_thread (ValentSmsStore      *store,
   g_autoptr (GTask) task = NULL;
   gint64 *task_data;
 
-  VALENT_ENTRY;
-
   g_return_if_fail (VALENT_IS_SMS_STORE (store));
   g_return_if_fail (thread_id >= 0);
 
@@ -1200,8 +1174,6 @@ valent_sms_store_remove_thread (ValentSmsStore      *store,
   g_task_set_task_data (task, task_data, g_free);
   g_task_set_source_tag (task, valent_sms_store_remove_thread);
   valent_sms_store_push (store, task, remove_thread_task);
-
-  VALENT_EXIT;
 }
 
 /**
@@ -1219,17 +1191,11 @@ valent_sms_store_remove_thread_finish (ValentSmsStore  *store,
                                        GAsyncResult    *result,
                                        GError         **error)
 {
-  gboolean ret;
-
-  VALENT_ENTRY;
-
   g_return_val_if_fail (VALENT_IS_SMS_STORE (store), FALSE);
   g_return_val_if_fail (g_task_is_valid (result, store), FALSE);
   g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-  ret = g_task_propagate_boolean (G_TASK (result), error);
-
-  VALENT_RETURN (ret);
+  return g_task_propagate_boolean (G_TASK (result), error);
 }
 
 /**
@@ -1254,8 +1220,6 @@ valent_sms_store_find_messages (ValentSmsStore      *store,
 {
   g_autoptr (GTask) task = NULL;
 
-  VALENT_ENTRY;
-
   g_return_if_fail (VALENT_IS_SMS_STORE (store));
   g_return_if_fail (query != NULL);
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
@@ -1264,8 +1228,6 @@ valent_sms_store_find_messages (ValentSmsStore      *store,
   g_task_set_source_tag (task, valent_sms_store_find_messages);
   g_task_set_task_data (task, g_strdup (query), g_free);
   valent_sms_store_push (store, task, find_messages_task);
-
-  VALENT_EXIT;
 }
 
 /**
@@ -1283,17 +1245,11 @@ valent_sms_store_find_messages_finish (ValentSmsStore  *store,
                                        GAsyncResult    *result,
                                        GError         **error)
 {
-  GPtrArray *ret;
-
-  VALENT_ENTRY;
-
   g_return_val_if_fail (VALENT_IS_SMS_STORE (store), NULL);
   g_return_val_if_fail (g_task_is_valid (result, store), NULL);
   g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
-  ret = g_task_propagate_pointer (G_TASK (result), error);
-
-  VALENT_RETURN (ret);
+  return g_task_propagate_pointer (G_TASK (result), error);
 }
 
 
@@ -1330,8 +1286,6 @@ valent_sms_store_get_message (ValentSmsStore      *store,
   g_autoptr (GTask) task = NULL;
   gint64 *task_data;
 
-  VALENT_ENTRY;
-
   g_return_if_fail (VALENT_IS_SMS_STORE (store));
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
@@ -1342,8 +1296,6 @@ valent_sms_store_get_message (ValentSmsStore      *store,
   g_task_set_task_data (task, task_data, g_free);
   g_task_set_source_tag (task, valent_sms_store_get_message);
   valent_sms_store_push (store, task, get_message_task);
-
-  VALENT_EXIT;
 }
 
 /**
@@ -1361,17 +1313,11 @@ valent_sms_store_get_message_finish (ValentSmsStore  *store,
                                      GAsyncResult    *result,
                                      GError         **error)
 {
-  ValentMessage *ret;
-
-  VALENT_ENTRY;
-
   g_return_val_if_fail (VALENT_IS_SMS_STORE (store), NULL);
   g_return_val_if_fail (g_task_is_valid (result, store), FALSE);
   g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-  ret = g_task_propagate_pointer (G_TASK (result), error);
-
-  VALENT_RETURN (ret);
+  return g_task_propagate_pointer (G_TASK (result), error);
 }
 
 /**
@@ -1386,17 +1332,11 @@ GListModel *
 valent_sms_store_get_summary (ValentSmsStore *store)
 {
   g_autoptr (GTask) task = NULL;
-  GListModel *ret;
-
-  VALENT_ENTRY;
 
   g_return_val_if_fail (VALENT_IS_SMS_STORE (store), NULL);
 
   if (store->summary != NULL)
-    {
-      ret = g_object_ref (G_LIST_MODEL (store->summary));
-      VALENT_RETURN (ret);
-    }
+    return g_object_ref (G_LIST_MODEL (store->summary));
 
   store->summary = g_list_store_new (VALENT_TYPE_MESSAGE);
   g_object_add_weak_pointer (G_OBJECT (store->summary),
@@ -1406,9 +1346,7 @@ valent_sms_store_get_summary (ValentSmsStore *store)
   g_task_set_source_tag (task, valent_sms_store_get_summary);
   valent_sms_store_push (store, task, get_summary_task);
 
-  ret = G_LIST_MODEL (store->summary);
-
-  VALENT_RETURN (ret);
+  return G_LIST_MODEL (store->summary);
 }
 
 /**

@@ -5,7 +5,7 @@
 
 #include "config.h"
 
-#include <libvalent-ui.h>
+#include <valent.h>
 
 #include "valent-mock-device-gadget.h"
 

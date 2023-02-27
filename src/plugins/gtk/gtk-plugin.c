@@ -5,8 +5,7 @@
 
 #include <gtk/gtk.h>
 #include <libpeas/peas.h>
-#include <libvalent-clipboard.h>
-#include <libvalent-notifications.h>
+#include <valent.h>
 
 #include "valent-gdk-clipboard.h"
 #include "valent-gtk-notifications.h"

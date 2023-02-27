@@ -8,8 +8,7 @@
 #include <glib/gi18n.h>
 #include <json-glib/json-glib.h>
 #include <libportal/portal.h>
-#include <libvalent-core.h>
-#include <libvalent-device.h>
+#include <valent.h>
 
 #include "valent-runcommand-plugin.h"
 #include "valent-runcommand-utils.h"

@@ -6,7 +6,7 @@
 #include "config.h"
 
 #include <gio/gio.h>
-#include <libvalent-media.h>
+#include <valent.h>
 
 #include "valent-mock-media-player.h"
 

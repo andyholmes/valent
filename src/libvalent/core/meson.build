@@ -3,14 +3,12 @@
 
 libvalent_core_header_dir = join_paths(libvalent_header_dir, 'core')
 libvalent_core_header_subdir = join_paths(libvalent_header_subdir, 'core')
-libvalent_include_directories += include_directories('.')
 libvalent_core_generated_headers = []
 libvalent_core_generated_sources = []
 
 
 # Headers
 libvalent_core_public_headers = [
-  'libvalent-core.h',
   'valent-certificate.h',
   'valent-component.h',
   'valent-data.h',
@@ -104,7 +102,7 @@ libvalent_core_generated_headers += [libvalent_core_enums[1]]
 
 
 # Dependencies
-libvalent_core_deps = [
+libvalent_deps += [
   libm_dep,
   gio_dep,
   gio_unix_dep,
@@ -115,35 +113,14 @@ libvalent_core_deps = [
 
 if get_option('tracing') and libsysprof_capture.found()
   libvalent_c_args += ['-DHAVE_SYSPROF']
-  libvalent_core_deps += [libsysprof_capture]
+  libvalent_deps += [libsysprof_capture]
 endif
 
 
-# Library Definitions
-libvalent_core = static_library('valent-core-@0@'.format(libvalent_api_version),
-                                libvalent_core_public_sources,
-                                libvalent_core_generated_sources,
-                                libvalent_core_generated_headers,
-               c_args: libvalent_c_args + release_args + ['-DVALENT_CORE_COMPILATION'],
-         dependencies: libvalent_core_deps,
-  include_directories: [config_h_inc, include_directories('.')],
-)
-
-libvalent_core_dep = declare_dependency(
-              sources: libvalent_core_private_headers + libvalent_core_generated_headers,
-         dependencies: libvalent_core_deps,
-            link_with: libvalent_core,
-  include_directories: [config_h_inc, include_directories('.')],
-)
-
-
-libvalent_static += [libvalent_core]
-libvalent_deps += [libvalent_core_dep]
+libvalent_include_directories += [include_directories('.')]
 libvalent_public_sources += files(libvalent_core_public_sources)
 libvalent_public_headers += files(libvalent_core_public_headers)
 libvalent_private_headers += files(libvalent_core_private_headers)
 libvalent_generated_headers += libvalent_core_generated_headers
 libvalent_generated_sources += libvalent_core_generated_sources
-libvalent_pkgconfig_subdirs += libvalent_core_header_subdir
-libvalent_gir_extra_args += ['--c-include=libvalent-core.h', '-DVALENT_CORE_COMPILATION']
 

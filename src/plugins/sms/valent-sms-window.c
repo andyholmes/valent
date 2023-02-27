@@ -8,7 +8,7 @@
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
 #include <adwaita.h>
-#include <libvalent-contacts.h>
+#include <valent.h>
 
 #include "valent-contact-row.h"
 #include "valent-message.h"

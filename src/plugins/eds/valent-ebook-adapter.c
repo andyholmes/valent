@@ -6,8 +6,7 @@
 #include "config.h"
 
 #include <gio/gio.h>
-#include <libvalent-core.h>
-#include <libvalent-contacts.h>
+#include <valent.h>
 
 #include "valent-ebook-adapter.h"
 #include "valent-ebook-store.h"

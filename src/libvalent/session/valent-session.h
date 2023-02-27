@@ -3,8 +3,8 @@
 
 #pragma once
 
-#if !defined (VALENT_SESSION_INSIDE) && !defined (VALENT_SESSION_COMPILATION)
-# error "Only <libvalent-session.h> can be included directly."
+#if !defined (VALENT_INSIDE) && !defined (VALENT_COMPILATION)
+# error "Only <valent.h> can be included directly."
 #endif
 
 #include <libvalent-core.h>

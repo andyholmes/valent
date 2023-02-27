@@ -6,7 +6,7 @@
 #include "config.h"
 
 #include <gio/gio.h>
-#include <libvalent-media.h>
+#include <valent.h>
 
 #include "valent-mpris-player.h"
 #include "valent-mpris-utils.h"
@@ -93,8 +93,6 @@ on_player_properties_changed (GDBusProxy        *proxy,
 {
   GVariantDict dict;
 
-  VALENT_ENTRY;
-
   g_assert (VALENT_IS_MPRIS_PLAYER (self));
   g_assert (changed_properties != NULL);
 
@@ -122,8 +120,6 @@ on_player_properties_changed (GDBusProxy        *proxy,
 
   g_variant_dict_clear (&dict);
   g_object_thaw_notify (G_OBJECT (self));
-
-  VALENT_EXIT;
 }
 
 static void
@@ -134,8 +130,6 @@ on_player_signal (GDBusProxy        *proxy,
                   ValentMediaPlayer *player)
 {
   ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
-
-  VALENT_ENTRY;
 
   g_assert (VALENT_IS_MPRIS_PLAYER (player));
   g_assert (signal_name != NULL);
@@ -150,8 +144,6 @@ on_player_signal (GDBusProxy        *proxy,
       self->position_time = valent_mpris_get_time ();
       g_object_notify (G_OBJECT (player), "position");
     }
-
-  VALENT_EXIT;
 }
 
 static void
@@ -707,8 +699,6 @@ valent_mpris_player_notify (GObject    *object,
   ValentMediaPlayer *player = VALENT_MEDIA_PLAYER (object);
   const char *name = g_param_spec_get_name (pspec);
 
-  VALENT_ENTRY;
-
   if (g_str_equal (name, "flags"))
     valent_mpris_player_sync_flags (self);
 
@@ -722,8 +712,6 @@ valent_mpris_player_notify (GObject    *object,
 
   if (G_OBJECT_CLASS (valent_mpris_player_parent_class)->notify)
     G_OBJECT_CLASS (valent_mpris_player_parent_class)->notify (object, pspec);
-
-  VALENT_EXIT;
 }
 
 static void

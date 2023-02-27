@@ -7,7 +7,7 @@
 
 #include <gio/gio.h>
 #include <json-glib/json-glib.h>
-#include <libvalent-core.h>
+#include <valent.h>
 
 #include "valent-telephony.h"
 

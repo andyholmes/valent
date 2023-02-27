@@ -4,7 +4,7 @@
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
 #include <gio/gunixinputstream.h>
-#include <libvalent-core.h>
+#include <valent.h>
 #include <libvalent-test.h>
 #include <sys/socket.h>
 

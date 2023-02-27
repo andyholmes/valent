@@ -5,8 +5,7 @@
 
 #include "config.h"
 
-#include <libvalent-core.h>
-#include <libvalent-ui.h>
+#include <valent.h>
 
 #include "valent-mock-preferences-page.h"
 

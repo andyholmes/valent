@@ -7,8 +7,6 @@
 
 G_BEGIN_DECLS
 
-#define VALENT_DEVICE_INSIDE
-
 #include "valent-channel.h"
 #include "valent-channel-service.h"
 #include "valent-device.h"
@@ -17,8 +15,6 @@ G_BEGIN_DECLS
 #include "valent-device-plugin.h"
 #include "valent-device-transfer.h"
 #include "valent-packet.h"
-
-#undef VALENT_DEVICE_INSIDE
 
 G_END_DECLS
 

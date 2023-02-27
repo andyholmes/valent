@@ -4,8 +4,7 @@
 #include "config.h"
 
 #include <libpeas/peas.h>
-#include <libvalent-device.h>
-#include <libvalent-ui.h>
+#include <valent.h>
 
 #include "valent-runcommand-plugin.h"
 #include "valent-runcommand-preferences.h"

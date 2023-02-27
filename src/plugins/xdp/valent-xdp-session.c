@@ -6,7 +6,7 @@
 #include "config.h"
 
 #include <libportal/portal.h>
-#include <libvalent-session.h>
+#include <valent.h>
 
 #include "valent-xdp-session.h"
 #include "valent-xdp-utils.h"

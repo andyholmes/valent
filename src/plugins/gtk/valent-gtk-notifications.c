@@ -9,7 +9,7 @@
 
 #include <gio/gdesktopappinfo.h>
 #include <gio/gio.h>
-#include <libvalent-notifications.h>
+#include <valent.h>
 
 #include "valent-gtk-notifications.h"
 

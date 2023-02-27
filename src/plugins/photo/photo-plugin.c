@@ -4,7 +4,7 @@
 #include "config.h"
 
 #include <libpeas/peas.h>
-#include <libvalent-device.h>
+#include <valent.h>
 
 #include "valent-photo-plugin.h"
 

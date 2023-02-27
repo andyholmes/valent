@@ -6,8 +6,7 @@
 #include "config.h"
 
 #include <gio/gio.h>
-#include <libvalent-core.h>
-#include <libvalent-device.h>
+#include <valent.h>
 
 #include "valent-share-download.h"
 

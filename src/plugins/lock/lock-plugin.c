@@ -4,8 +4,7 @@
 #include "config.h"
 
 #include <libpeas/peas.h>
-#include <libvalent-device.h>
-#include <libvalent-ui.h>
+#include <valent.h>
 
 #include "valent-lock-gadget.h"
 #include "valent-lock-plugin.h"

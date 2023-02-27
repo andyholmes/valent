@@ -6,8 +6,7 @@
 #include "config.h"
 
 #include <gdk/gdk.h>
-#include <libvalent-core.h>
-#include <libvalent-clipboard.h>
+#include <valent.h>
 
 #include "valent-gdk-clipboard.h"
 

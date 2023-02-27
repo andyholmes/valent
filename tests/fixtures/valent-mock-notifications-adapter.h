@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <libvalent-notifications.h>
+#include <valent.h>
 
 G_BEGIN_DECLS
 

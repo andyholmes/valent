@@ -2,16 +2,7 @@
 // SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 #include <libpeas/peas.h>
-#include <libvalent-core.h>
-#include <libvalent-clipboard.h>
-#include <libvalent-contacts.h>
-#include <libvalent-device.h>
-#include <libvalent-input.h>
-#include <libvalent-media.h>
-#include <libvalent-mixer.h>
-#include <libvalent-notifications.h>
-#include <libvalent-session.h>
-#include <libvalent-ui.h>
+#include <valent.h>
 
 #include "valent-mock-application-plugin.h"
 #include "valent-mock-channel-service.h"

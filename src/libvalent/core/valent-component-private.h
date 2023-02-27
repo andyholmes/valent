@@ -7,6 +7,7 @@
 
 G_BEGIN_DECLS
 
+_VALENT_EXTERN
 PeasExtension * valent_component_get_preferred (ValentComponent *self);
 
 G_END_DECLS

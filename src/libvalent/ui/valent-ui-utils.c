@@ -6,8 +6,10 @@
 #include "config.h"
 
 #include <pango/pango.h>
-
 #include <libvalent-core.h>
+
+#include "valent-ui-utils.h"
+
 
 // Andy Holmes
 #define EMAIL_PATTERN "\\b(?:.+@.+\\.[a-z]{2,4}\\b)"

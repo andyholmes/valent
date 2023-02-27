@@ -4,7 +4,7 @@
 #pragma once
 
 #include <gio/gio.h>
-#include <libvalent-core.h>
+#include <valent.h>
 
 #include "valent-message.h"
 

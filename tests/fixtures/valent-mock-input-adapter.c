@@ -6,8 +6,7 @@
 #include "config.h"
 
 #include <glib-object.h>
-#include <libvalent-core.h>
-#include <libvalent-input.h>
+#include <valent.h>
 #include <libvalent-test.h>
 
 #include "valent-mock-input-adapter.h"

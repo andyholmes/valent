@@ -5,7 +5,7 @@
 
 #include "config.h"
 
-#include <libvalent-notifications.h>
+#include <valent.h>
 
 #include "valent-mock-notifications-adapter.h"
 

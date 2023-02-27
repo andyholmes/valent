@@ -9,8 +9,7 @@
 #include <gvc-mixer-sink.h>
 #include <gvc-mixer-source.h>
 #include <gvc-mixer-stream.h>
-#include <libvalent-core.h>
-#include <libvalent-mixer.h>
+#include <valent.h>
 
 #include "valent-pa-mixer.h"
 #include "valent-pa-stream.h"

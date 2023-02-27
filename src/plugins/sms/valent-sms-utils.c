@@ -8,7 +8,7 @@
 #include <adwaita.h>
 #include <gdk/gdk.h>
 #include <glib/gi18n.h>
-#include <libvalent-contacts.h>
+#include <valent.h>
 
 #include "valent-sms-utils.h"
 
@@ -150,15 +150,10 @@ valent_sms_contact_from_phone_cb (ValentContactStore *store,
   EContact *contact = NULL;
   GError *error = NULL;
 
-  VALENT_ENTRY;
-
   contacts = valent_contact_store_query_finish (store, result, &error);
 
   if (error != NULL)
-    {
-      g_task_return_error (task, error);
-      VALENT_EXIT;
-    }
+    return g_task_return_error (task, error);
 
   /* Prefer using libphonenumber */
   if (e_phone_number_is_supported ())
@@ -190,8 +185,6 @@ valent_sms_contact_from_phone_cb (ValentContactStore *store,
     }
 
   g_task_return_pointer (task, contact, g_object_unref);
-
-  VALENT_EXIT;
 }
 
 /**
@@ -217,8 +210,6 @@ valent_sms_contact_from_phone (ValentContactStore  *store,
   g_autoptr (GTask) task = NULL;
   g_autoptr (EBookQuery) query = NULL;
   g_autofree char *sexp = NULL;
-
-  VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_CONTACT_STORE (store));
   g_return_if_fail (number != NULL && *number != '\0');
@@ -247,8 +238,6 @@ valent_sms_contact_from_phone (ValentContactStore  *store,
                               cancellable,
                               (GAsyncReadyCallback)valent_sms_contact_from_phone_cb,
                               g_steal_pointer (&task));
-
-  VALENT_EXIT;
 }
 
 /**
@@ -266,17 +255,11 @@ valent_sms_contact_from_phone_finish (ValentContactStore  *store,
                                       GAsyncResult        *result,
                                       GError             **error)
 {
-  EContact *ret;
-
-  VALENT_ENTRY;
-
   g_return_val_if_fail (VALENT_IS_CONTACT_STORE (store), NULL);
   g_return_val_if_fail (g_task_is_valid (result, store), NULL);
   g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
-  ret = g_task_propagate_pointer (G_TASK (result), error);
-
-  VALENT_RETURN (ret);
+  return g_task_propagate_pointer (G_TASK (result), error);
 }
 
 /**

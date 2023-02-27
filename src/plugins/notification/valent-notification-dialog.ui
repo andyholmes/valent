@@ -51,7 +51,7 @@
                       <object class="GtkImage" id="icon_image">
                         <property name="halign">start</property>
                         <property name="valign">start</property>
-                        <property name="icon-name">ca.andyholmes.Valent</property>
+                        <property name="icon-name">phonelink-symbolic</property>
                         <property name="pixel-size">32</property>
                         <layout>
                           <property name="column">0</property>

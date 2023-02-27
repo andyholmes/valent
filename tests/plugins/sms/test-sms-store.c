@@ -2,9 +2,8 @@
 // SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 #include <gdk/gdk.h>
-#include <libvalent-core.h>
+#include <valent.h>
 #include <libvalent-test.h>
-#include <libvalent-ui.h>
 
 #include "test-sms-common.h"
 #include "valent-sms-store.h"

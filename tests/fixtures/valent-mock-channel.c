@@ -8,8 +8,7 @@
 #include <sys/socket.h>
 
 #include <gio/gio.h>
-#include <libvalent-core.h>
-#include <libvalent-device.h>
+#include <valent.h>
 
 #include "valent-mock-channel.h"
 

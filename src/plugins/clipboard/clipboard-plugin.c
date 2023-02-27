@@ -4,8 +4,7 @@
 #include "config.h"
 
 #include <libpeas/peas.h>
-#include <libvalent-device.h>
-#include <libvalent-ui.h>
+#include <valent.h>
 
 #include "valent-clipboard-plugin.h"
 #include "valent-clipboard-preferences.h"

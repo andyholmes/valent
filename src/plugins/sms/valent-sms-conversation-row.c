@@ -8,8 +8,7 @@
 #include <adwaita.h>
 #include <gtk/gtk.h>
 #include <pango/pango.h>
-#include <libvalent-contacts.h>
-#include <libvalent-ui.h>
+#include <valent.h>
 
 #include "valent-message.h"
 #include "valent-sms-conversation-row.h"

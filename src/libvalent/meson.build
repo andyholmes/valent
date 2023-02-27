@@ -6,20 +6,18 @@ libvalent_api_name = 'libvalent-@0@'.format(libvalent_api_version)
 libvalent_so_version = valent_version
 
 # The subdirs update these before libvalent is compiled
-libvalent_c_args = []
+libvalent_c_args = ['-DVALENT_COMPILATION']
 libvalent_link_args = []
-libvalent_gir_extra_args = ['--pkg-export=@0@'.format(libvalent_api_name)]
 
 libvalent_header_subdir = join_paths(libvalent_api_name, 'libvalent')
 libvalent_header_dir = join_paths(includedir, libvalent_header_subdir)
-libvalent_include_directories = []
+libvalent_include_directories = [config_h_inc, include_directories('.')]
 libvalent_public_sources = []
-libvalent_public_headers = []
+libvalent_public_headers = ['valent.h']
 libvalent_private_sources = []
 libvalent_private_headers = []
 libvalent_generated_sources = []
 libvalent_generated_headers = []
-libvalent_pkgconfig_subdirs = []
 libvalent_static = []
 libvalent_deps = []
 
@@ -38,17 +36,25 @@ subdir('ui')
 #
 # Shared library
 #
+install_headers('valent.h',
+  subdir: libvalent_header_subdir,
+)
+
 libvalent = shared_library('valent-@0@'.format(libvalent_api_version),
-       version: libvalent_api_version,
-     soversion: libvalent_so_version,
-        c_args: libvalent_c_args + release_args,
-     link_args: libvalent_link_args,
-    link_whole: libvalent_static,
-  dependencies: libvalent_deps,
-       install: true,
+                           libvalent_public_sources,
+                           libvalent_generated_sources,
+                           libvalent_generated_headers,
+  include_directories: libvalent_include_directories,
+         dependencies: libvalent_deps,
+               c_args: libvalent_c_args + release_args,
+            link_args: libvalent_link_args,
+              version: libvalent_api_version,
+            soversion: libvalent_so_version,
+              install: true,
 )
 
 libvalent_dep = declare_dependency(
+              sources: [libvalent_generated_headers, libvalent_private_headers],
             link_with: libvalent,
   include_directories: libvalent_include_directories,
          dependencies: libvalent_deps,
@@ -61,7 +67,7 @@ pkgconfig.generate(
       version: libvalent_so_version,
      filebase: libvalent_api_name,
     libraries: [libvalent],
-      subdirs: libvalent_pkgconfig_subdirs,
+      subdirs: [libvalent_header_subdir],
      requires: [
        'gio-2.0',
        'gtk4',
@@ -79,6 +85,11 @@ pkgconfig.generate(
 
 # GObject Introspection
 if get_option('introspection')
+  libvalent_gir_extra_args = [
+    '--c-include=valent.h',
+    '--pkg-export=@0@'.format(libvalent_api_name),
+  ]
+
   libvalent_gir_includes = [
     'Gio-2.0',
     'Gtk-4.0',

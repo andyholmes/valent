@@ -5,7 +5,7 @@
 
 #include <adwaita.h>
 #include <gtk/gtk.h>
-#include <libvalent-contacts.h>
+#include <valent.h>
 
 #include "valent-message.h"
 #include "valent-sms-store.h"
