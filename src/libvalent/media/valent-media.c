@@ -324,7 +324,7 @@ valent_media_get_default (void)
   if (default_media == NULL)
     {
       default_media = g_object_new (VALENT_TYPE_MEDIA,
-                                    "plugin-context",  "media",
+                                    "plugin-domain",   "media",
                                     "plugin-priority", "MediaAdapterPriority",
                                     "plugin-type",     VALENT_TYPE_MEDIA_ADAPTER,
                                     NULL);

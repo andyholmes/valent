@@ -217,28 +217,26 @@ valent_lan_channel_upload (ValentChannel  *channel,
 
 static void
 valent_lan_channel_store_data (ValentChannel *channel,
-                               ValentData    *data)
+                               ValentContext *context)
 {
   g_autoptr (GTlsCertificate) certificate = NULL;
   g_autofree char *certificate_pem = NULL;
-  g_autofree char *certificate_path = NULL;
+  g_autoptr (GFile) certificate_file = NULL;
   g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_LAN_CHANNEL (channel));
-  g_assert (VALENT_IS_DATA (data));
+  g_assert (VALENT_IS_CONTEXT (context));
 
   /* Chain-up first */
   VALENT_CHANNEL_CLASS (valent_lan_channel_parent_class)->store_data (channel,
-                                                                      data);
+                                                                      context);
 
   /* Save the peer certificate */
   g_object_get (channel, "peer-certificate", &certificate, NULL);
   g_object_get (certificate, "certificate-pem", &certificate_pem, NULL);
 
-  certificate_path = g_build_filename (valent_data_get_config_path (data),
-                                       "certificate.pem",
-                                       NULL);
-  g_file_set_contents_full (certificate_path,
+  certificate_file = valent_context_get_config_file (context, "certificate.pem");
+  g_file_set_contents_full (g_file_peek_path (certificate_file),
                             certificate_pem,
                             strlen (certificate_pem),
                             G_FILE_SET_CONTENTS_DURABLE,
@@ -246,10 +244,12 @@ valent_lan_channel_store_data (ValentChannel *channel,
                             &error);
 
   if (error != NULL)
-    g_warning ("%s(): failed to write \"%s\": %s",
-               G_STRFUNC,
-               certificate_path,
-               error->message);
+    {
+      g_warning ("%s(): failed to write \"%s\": %s",
+                 G_STRFUNC,
+                 g_file_peek_path (certificate_file),
+                 error->message);
+    }
 }
 
 /*

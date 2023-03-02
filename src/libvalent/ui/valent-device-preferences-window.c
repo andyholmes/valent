@@ -85,15 +85,15 @@ static void
 valent_device_preferences_window_add_plugin (ValentDevicePreferencesWindow *self,
                                              const char                    *module)
 {
+  ValentContext *context = NULL;
+  g_autoptr (ValentContext) plugin_context = NULL;
   g_autoptr (GSettings) settings = NULL;
-  g_autofree char *path = NULL;
   PeasEngine *engine;
   PeasPluginInfo *info;
   PluginData *plugin;
   const char *title;
   const char *subtitle;
   const char *icon_name;
-  const char *device_id;
   GtkWidget *sw, *separator, *button;
 
   g_assert (VALENT_IS_DEVICE_PREFERENCES_WINDOW (self));
@@ -107,7 +107,6 @@ valent_device_preferences_window_add_plugin (ValentDevicePreferencesWindow *self
   title = peas_plugin_info_get_name (info);
   subtitle = peas_plugin_info_get_description (info);
   icon_name = peas_plugin_info_get_icon_name (info);
-  device_id = valent_device_get_id (self->device);
 
   /* Plugin Row */
   plugin->row = g_object_new (ADW_TYPE_ACTION_ROW,
@@ -139,11 +138,10 @@ valent_device_preferences_window_add_plugin (ValentDevicePreferencesWindow *self
   gtk_list_box_insert (self->plugin_list, plugin->row, -1);
 
   /* Plugin Toggle */
-  path = g_strdup_printf ("/ca/andyholmes/valent/device/%s/plugin/%s/",
-                          device_id,
-                          module);
-  settings = g_settings_new_with_path ("ca.andyholmes.Valent.Plugin", path);
-
+  context = valent_device_get_context (self->device);
+  plugin_context = valent_context_get_plugin_context (context, info);
+  settings = valent_context_create_settings (plugin_context,
+                                             "ca.andyholmes.Valent.Plugin");
   g_settings_bind (settings, "enabled",
                    sw,       "active",
                    G_SETTINGS_BIND_DEFAULT);
@@ -162,7 +160,7 @@ valent_device_preferences_window_add_plugin (ValentDevicePreferencesWindow *self
       page = peas_engine_create_extension (engine,
                                            info,
                                            VALENT_TYPE_DEVICE_PREFERENCES_PAGE,
-                                           "device-id", device_id,
+                                           "context",   plugin_context,
                                            "name",      module,
                                            "icon-name", icon_name,
                                            "title",     title,

@@ -9,8 +9,8 @@ G_BEGIN_DECLS
 
 #include "valent-certificate.h"
 #include "valent-component.h"
+#include "valent-context.h"
 #include "valent-core-enums.h"
-#include "valent-data.h"
 #include "valent-debug.h"
 #include "valent-global.h"
 #include "valent-macros.h"

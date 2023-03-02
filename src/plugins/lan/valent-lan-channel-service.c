@@ -818,7 +818,7 @@ valent_lan_channel_service_init_async (GAsyncInitable      *initable,
   ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (initable);
   g_autoptr (GTask) task = NULL;
   g_autoptr (GCancellable) destroy = NULL;
-  g_autoptr (ValentData) data = NULL;
+  g_autoptr (ValentContext) context = NULL;
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (initable));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
@@ -837,8 +837,8 @@ valent_lan_channel_service_init_async (GAsyncInitable      *initable,
   g_task_set_priority (task, io_priority);
   g_task_set_source_tag (task, valent_lan_channel_service_init_async);
 
-  g_object_get (initable, "data", &data, NULL);
-  valent_certificate_new (valent_data_get_config_path (data),
+  g_object_get (initable, "context", &context, NULL);
+  valent_certificate_new (valent_context_get_config_path (context),
                           destroy,
                           valent_certificate_new_cb,
                           g_steal_pointer (&task));

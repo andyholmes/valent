@@ -313,7 +313,7 @@ valent_notifications_get_default (void)
   if (default_listener == NULL)
     {
       default_listener = g_object_new (VALENT_TYPE_NOTIFICATIONS,
-                                       "plugin-context",  "notifications",
+                                       "plugin-domain",   "notifications",
                                        "plugin-priority", "NotificationsAdapterPriority",
                                        "plugin-type",     VALENT_TYPE_NOTIFICATIONS_ADAPTER,
                                        NULL);

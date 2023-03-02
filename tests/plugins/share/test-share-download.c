@@ -15,7 +15,7 @@ test_share_download_single (ValentTestFixture *fixture,
 {
   g_autoptr (GFile) file = NULL;
   g_autoptr (GFile) dest = NULL;
-  g_autofree char *dest_dir = NULL;
+  const char *dest_dir = NULL;
   JsonNode *packet = NULL;
   GError *error = NULL;
 
@@ -33,8 +33,8 @@ test_share_download_single (ValentTestFixture *fixture,
   /* Ensure the download task has an opportunity to finish completely */
   valent_test_wait (1);
 
-  dest_dir = valent_data_get_directory (G_USER_DIRECTORY_DOWNLOAD);
-  dest = valent_data_get_file (dest_dir, "image.png", FALSE);
+  dest_dir = valent_get_user_directory (G_USER_DIRECTORY_DOWNLOAD);
+  dest = valent_get_user_file (dest_dir, "image.png", FALSE);
   g_assert_true (g_file_query_exists (dest, NULL));
 }
 
@@ -44,7 +44,7 @@ test_share_download_multiple (ValentTestFixture *fixture,
 {
   g_autoptr (GFile) file = NULL;
   g_autoptr (GFile) dest = NULL;
-  g_autofree char *dest_dir = NULL;
+  const char *dest_dir = NULL;
   JsonNode *packet = NULL;
   GError *error = NULL;
 
@@ -75,17 +75,17 @@ test_share_download_multiple (ValentTestFixture *fixture,
   g_assert_no_error (error);
 
   /* Check the received files */
-  dest_dir = valent_data_get_directory (G_USER_DIRECTORY_DOWNLOAD);
+  dest_dir = valent_get_user_directory (G_USER_DIRECTORY_DOWNLOAD);
 
-  dest = valent_data_get_file (dest_dir, "image.png", FALSE);
+  dest = valent_get_user_file (dest_dir, "image.png", FALSE);
   g_assert_true (g_file_query_exists (dest, NULL));
   g_clear_object (&dest);
 
-  dest = valent_data_get_file (dest_dir, "image.png (1)", FALSE);
+  dest = valent_get_user_file (dest_dir, "image.png (1)", FALSE);
   g_assert_true (g_file_query_exists (dest, NULL));
   g_clear_object (&dest);
 
-  dest = valent_data_get_file (dest_dir, "image.png (2)", FALSE);
+  dest = valent_get_user_file (dest_dir, "image.png (2)", FALSE);
   g_assert_true (g_file_query_exists (dest, NULL));
   g_clear_object (&dest);
 }

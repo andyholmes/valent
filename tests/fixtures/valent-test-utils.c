@@ -239,6 +239,28 @@ valent_test_load_json (const char *path)
 }
 
 /**
+ * valent_test_mock_settings:
+ * @context: a context path
+ * @module_name: a #PeasPluginInfo module name
+ *
+ * A convenience function to create a `GSettings` object for component domain.
+ *
+ * Returns: (transfer full): the new `GSettings` object
+ */
+GSettings *
+valent_test_mock_settings (const char *domain)
+{
+  g_autofree char *path = NULL;
+
+  g_assert (domain != NULL && *domain != '\0');
+
+  path = g_strdup_printf ("/ca/andyholmes/valent/%s/plugin/mock/", domain);
+  g_message ("%s: %s", G_STRFUNC, path);
+
+  return g_settings_new_with_path ("ca.andyholmes.Valent.Plugin", path);
+}
+
+/**
  * valent_test_await_adapter:
  * @component: (type Valent.Component): a #ValentComponent
  *
@@ -424,7 +446,7 @@ static void
 valent_type_ensure (void)
 {
   /* Core */
-  g_type_ensure (VALENT_TYPE_DATA);
+  g_type_ensure (VALENT_TYPE_CONTEXT);
   g_type_ensure (VALENT_TYPE_OBJECT);
   g_type_ensure (VALENT_TYPE_COMPONENT);
   g_type_ensure (VALENT_TYPE_TRANSFER);

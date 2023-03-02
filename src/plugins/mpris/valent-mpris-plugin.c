@@ -588,7 +588,7 @@ valent_mpris_plugin_receive_album_art (ValentMprisPlugin *self,
                                        JsonNode          *packet)
 {
   ValentDevice *device;
-  g_autoptr (ValentData) data = NULL;
+  ValentContext *context = NULL;
   const char *url;
   g_autofree char *filename = NULL;
   g_autoptr (GFile) file = NULL;
@@ -602,9 +602,9 @@ valent_mpris_plugin_receive_album_art (ValentMprisPlugin *self,
     }
 
   device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
-  data = valent_device_ref_data (device);
+  context = valent_device_get_context (device);
   filename = g_compute_checksum_for_string (G_CHECKSUM_MD5, url, -1);
-  file = valent_data_create_cache_file (data, filename);
+  file = valent_context_get_cache_file (context, filename);
 
   transfer = valent_device_transfer_new_for_file (device, packet, file);
   valent_transfer_execute (transfer,

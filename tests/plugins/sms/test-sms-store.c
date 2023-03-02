@@ -125,7 +125,7 @@ test_sms_store (void)
   g_autoptr (GMainLoop) loop = NULL;
   gulong signal_id;
 
-  g_autoptr (ValentData) data = NULL;
+  g_autoptr (ValentContext) context = NULL;
   g_autoptr (ValentSmsStore) store = NULL;
   g_autoptr (GPtrArray) messages = NULL;
   g_autoptr (GListModel) summary = NULL;
@@ -134,8 +134,11 @@ test_sms_store (void)
   loop = g_main_loop_new (NULL, FALSE);
 
   /* Prepare Store */
-  data = valent_data_new ("test-device", NULL);
-  store = valent_sms_store_new (data);
+  context = g_object_new (VALENT_TYPE_CONTEXT,
+                          "domain", "device",
+                          "id",     "test-device",
+                          NULL);
+  store = valent_sms_store_new (context);
   messages = valent_test_sms_get_messages ();
 
   g_signal_connect (G_OBJECT (store),

@@ -30,7 +30,8 @@
 typedef struct
 {
   PeasEngine    *engine;
-  char          *plugin_context;
+  ValentContext *context;
+  char          *plugin_domain;
   char          *plugin_priority;
   GType          plugin_type;
   GHashTable    *plugins;
@@ -50,7 +51,7 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentComponent, valent_component, VALENT_T
 
 enum {
   PROP_0,
-  PROP_PLUGIN_CONTEXT,
+  PROP_PLUGIN_DOMAIN,
   PROP_PLUGIN_PRIORITY,
   PROP_PLUGIN_TYPE,
   N_PROPERTIES
@@ -59,33 +60,20 @@ enum {
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 
-typedef struct
-{
-  ValentComponent *component;
-  PeasPluginInfo  *info;
-  PeasExtension   *extension;
-  GSettings       *settings;
-  GCancellable    *cancellable;
-} ComponentPlugin;
-
 static void
 component_plugin_free (gpointer data)
 {
-  ComponentPlugin *plugin = data;
-
-  g_cancellable_cancel (plugin->cancellable);
-  g_clear_object (&plugin->cancellable);
+  ValentPlugin *plugin = data;
 
   if (plugin->extension != NULL)
     {
-      ValentComponentClass *klass = VALENT_COMPONENT_GET_CLASS (plugin->component);
+      ValentComponentClass *klass = VALENT_COMPONENT_GET_CLASS (plugin->parent);
 
-      klass->unbind_extension (plugin->component, plugin->extension);
-      g_clear_object (&plugin->extension);
+      if (klass->unbind_extension != NULL)
+        klass->unbind_extension (plugin->parent, plugin->extension);
     }
 
-  g_clear_object (&plugin->settings);
-  g_clear_pointer (&plugin, g_free);
+  g_clear_pointer (&plugin, valent_plugin_free);
 }
 
 
@@ -111,7 +99,7 @@ valent_component_update_preferred (ValentComponent *self)
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
   GHashTableIter iter;
   PeasPluginInfo *info;
-  ComponentPlugin *plugin;
+  ValentPlugin *plugin;
   PeasExtension *extension = NULL;
   gint64 extension_priority = 0;
 
@@ -168,8 +156,8 @@ g_async_initable_init_async_cb (GObject      *object,
 }
 
 static void
-valent_component_enable_extension (ValentComponent *self,
-                                   ComponentPlugin *plugin)
+valent_component_enable_plugin (ValentComponent *self,
+                                ValentPlugin    *plugin)
 {
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
 
@@ -227,8 +215,8 @@ valent_component_enable_extension (ValentComponent *self,
 }
 
 static void
-valent_component_disable_extension (ValentComponent *self,
-                                    ComponentPlugin *plugin)
+valent_component_disable_plugin (ValentComponent *self,
+                                 ValentPlugin    *plugin)
 {
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
   g_autoptr (PeasExtension) extension = NULL;
@@ -251,19 +239,15 @@ valent_component_disable_extension (ValentComponent *self,
 }
 
 static void
-on_enabled_changed (GSettings       *settings,
-                    const char      *key,
-                    ComponentPlugin *plugin)
+on_plugin_enabled_changed (ValentPlugin *plugin)
 {
-  ValentComponent *self = VALENT_COMPONENT (plugin->component);
+  g_assert (plugin != NULL);
+  g_assert (VALENT_IS_COMPONENT (plugin->parent));
 
-  g_assert (G_IS_SETTINGS (settings));
-  g_assert (VALENT_IS_COMPONENT (self));
-
-  if (g_settings_get_boolean (settings, key))
-    valent_component_enable_extension (self, plugin);
+  if (valent_plugin_get_enabled (plugin))
+    valent_component_enable_plugin (plugin->parent, plugin);
   else
-    valent_component_disable_extension (self, plugin);
+    valent_component_disable_plugin (plugin->parent, plugin);
 }
 
 /*
@@ -275,8 +259,7 @@ on_load_plugin (PeasEngine      *engine,
                 ValentComponent *self)
 {
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
-  ComponentPlugin *plugin;
-  const char *module;
+  ValentPlugin *plugin;
 
   VALENT_ENTRY;
 
@@ -292,23 +275,12 @@ on_load_plugin (PeasEngine      *engine,
                g_type_name (priv->plugin_type),
                peas_plugin_info_get_module_name (info));
 
-  module = peas_plugin_info_get_module_name (info);
-
-  plugin = g_new0 (ComponentPlugin, 1);
-  plugin->component = self;
-  plugin->info = info;
-  plugin->settings = valent_component_create_settings (priv->plugin_context,
-                                                       module);
+  plugin = valent_plugin_new (self, priv->context, info,
+                              G_CALLBACK (on_plugin_enabled_changed));
   g_hash_table_insert (priv->plugins, info, plugin);
 
-  /* The extension is created and destroyed based on the enabled state */
-  g_signal_connect (plugin->settings,
-                    "changed::enabled",
-                    G_CALLBACK (on_enabled_changed),
-                    plugin);
-
-  if (g_settings_get_boolean (plugin->settings, "enabled"))
-    valent_component_enable_extension (self, plugin);
+  if (valent_plugin_get_enabled (plugin))
+    valent_component_enable_plugin (self, plugin);
 
   VALENT_EXIT;
 }
@@ -396,8 +368,10 @@ valent_component_constructed (GObject *object)
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
   const GList *plugins = NULL;
 
-  g_assert (priv->plugin_context != NULL);
+  g_assert (priv->plugin_domain != NULL);
   g_assert (priv->plugin_type != G_TYPE_NONE);
+
+  priv->context = valent_context_new (NULL, priv->plugin_domain, NULL);
 
   /* Setup PeasEngine */
   plugins = peas_engine_get_plugin_list (priv->engine);
@@ -442,9 +416,10 @@ valent_component_finalize (GObject *object)
   ValentComponent *self = VALENT_COMPONENT (object);
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
 
-  g_clear_pointer (&priv->plugin_context, g_free);
+  g_clear_pointer (&priv->plugin_domain, g_free);
   g_clear_pointer (&priv->plugin_priority, g_free);
   g_clear_pointer (&priv->plugins, g_hash_table_unref);
+  g_clear_object (&priv->context);
 
   G_OBJECT_CLASS (valent_component_parent_class)->finalize (object);
 }
@@ -460,8 +435,8 @@ valent_component_get_property (GObject    *object,
 
   switch (prop_id)
     {
-    case PROP_PLUGIN_CONTEXT:
-      g_value_set_string (value, priv->plugin_context);
+    case PROP_PLUGIN_DOMAIN:
+      g_value_set_string (value, priv->plugin_domain);
       break;
 
     case PROP_PLUGIN_PRIORITY:
@@ -488,8 +463,8 @@ valent_component_set_property (GObject      *object,
 
   switch (prop_id)
     {
-    case PROP_PLUGIN_CONTEXT:
-      priv->plugin_context = g_value_dup_string (value);
+    case PROP_PLUGIN_DOMAIN:
+      priv->plugin_domain = g_value_dup_string (value);
       break;
 
     case PROP_PLUGIN_PRIORITY:
@@ -525,13 +500,13 @@ valent_component_class_init (ValentComponentClass *klass)
    *
    * The domain of the component.
    *
-   * This is a #GSettings safe string such as "contacts" or "media", used to
+   * This is a `GSettings` safe string such as "contacts" or "media", used to
    * structure settings and files of components and their extensions.
    *
    * Since: 1.0
    */
-  properties [PROP_PLUGIN_CONTEXT] =
-    g_param_spec_string ("plugin-context", NULL, NULL,
+  properties [PROP_PLUGIN_DOMAIN] =
+    g_param_spec_string ("plugin-domain", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -581,34 +556,5 @@ valent_component_init (ValentComponent *self)
 
   priv->engine = valent_get_plugin_engine ();
   priv->plugins = g_hash_table_new_full (NULL, NULL, NULL, component_plugin_free);
-}
-
-/*< private >
- * valent_component_create_settings:
- * @context: a #ValentDevice ID
- * @module_name: a #PeasPluginInfo module name
- *
- * Create a [class@Gio.Settings] for an extension.
- *
- * A convenience function to create a #GSettings object for a context and module
- * name.
- *
- * Returns: (transfer full): the new #GSettings object
- *
- * Since: 1.0
- */
-GSettings *
-valent_component_create_settings (const char *context,
-                                  const char *module_name)
-{
-  g_autofree char *path = NULL;
-
-  g_return_val_if_fail (context != NULL, NULL);
-  g_return_val_if_fail (module_name != NULL, NULL);
-
-  path = g_strdup_printf ("/ca/andyholmes/valent/%s/plugin/%s/",
-                          context, module_name);
-
-  return g_settings_new_with_path ("ca.andyholmes.Valent.Plugin", path);
 }
 

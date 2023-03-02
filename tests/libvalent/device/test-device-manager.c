@@ -26,20 +26,21 @@ static void
 manager_fixture_set_up (ManagerFixture *fixture,
                         gconstpointer   user_data)
 {
-  const char *path = NULL;
-  g_autoptr (ValentData) data = NULL;
+  const char *cache_path = NULL;
+  g_autoptr (ValentContext) context = NULL;
+  g_autoptr (GFile) cache = NULL;
   g_autoptr (JsonNode) state = NULL;
   g_autofree char *state_json = NULL;
   g_autofree char *state_path = NULL;
 
   /* Copy the mock device configuration */
-  data = valent_data_new (NULL, NULL);
-  path = valent_data_get_cache_path (data);
-  g_mkdir_with_parents (path, 0700);
+  context = valent_context_new (NULL, NULL, NULL);
+  cache = valent_context_get_cache_file (context, ".");
+  cache_path = g_file_peek_path (cache);
 
   state = valent_test_load_json ("core-state.json");
   state_json = json_to_string (state, TRUE);
-  state_path = g_build_filename (path, "devices.json", NULL);
+  state_path = g_build_filename (cache_path, "devices.json", NULL);
   g_file_set_contents (state_path, state_json, -1, NULL);
 
   /* Init the manager */
@@ -305,8 +306,7 @@ test_manager_dispose (ManagerFixture *fixture,
     g_main_context_iteration (NULL, FALSE);
 
   /* Disable & Enabled channel service */
-  settings = valent_component_create_settings ("network", "mock");
-
+  settings = valent_test_mock_settings ("network");
   g_settings_set_boolean (settings, "enabled", FALSE);
 
   while ((service = valent_mock_channel_service_get_instance ()) != NULL)

@@ -8,6 +8,7 @@
 #include <gio/gio.h>
 #include <gtk/gtk.h>
 #include <adwaita.h>
+#include <libvalent-core.h>
 #include <libvalent-device.h>
 
 #include "valent-device-preferences-page.h"
@@ -26,7 +27,7 @@
 
 typedef struct
 {
-  char           *device_id;
+  ValentContext  *context;
   PeasPluginInfo *plugin_info;
   GSettings      *settings;
 } ValentDevicePreferencesPagePrivate;
@@ -35,7 +36,7 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentDevicePreferencesPage, valent_device_
 
 enum {
   PROP_0,
-  PROP_DEVICE_ID,
+  PROP_CONTEXT,
   PROP_PLUGIN_INFO,
   PROP_SETTINGS,
   N_PROPERTIES
@@ -61,7 +62,7 @@ valent_device_preferences_page_finalize (GObject *object)
   ValentDevicePreferencesPage *self = VALENT_DEVICE_PREFERENCES_PAGE (object);
   ValentDevicePreferencesPagePrivate *priv = valent_device_preferences_page_get_instance_private (self);
 
-  g_clear_pointer (&priv->device_id, g_free);
+  g_clear_object (&priv->context);
   g_clear_object (&priv->settings);
 
   G_OBJECT_CLASS (valent_device_preferences_page_parent_class)->finalize (object);
@@ -78,8 +79,8 @@ valent_device_preferences_page_get_property (GObject    *object,
 
   switch (prop_id)
     {
-    case PROP_DEVICE_ID:
-      g_value_set_string (value, priv->device_id);
+    case PROP_CONTEXT:
+      g_value_set_object (value, valent_device_preferences_page_get_context (self));
       break;
 
     case PROP_PLUGIN_INFO:
@@ -106,8 +107,8 @@ valent_device_preferences_page_set_property (GObject      *object,
 
   switch (prop_id)
     {
-    case PROP_DEVICE_ID:
-      priv->device_id = g_value_dup_string (value);
+    case PROP_CONTEXT:
+      priv->context = g_value_dup_object (value);
       break;
 
     case PROP_PLUGIN_INFO:
@@ -129,15 +130,15 @@ valent_device_preferences_page_class_init (ValentDevicePreferencesPageClass *kla
   object_class->set_property = valent_device_preferences_page_set_property;
 
   /**
-   * ValentDevicePreferencesPage:device-id:
+   * ValentDevicePreferencesPage:context: (getter get_context)
    *
-   * The ID of the [class@Valent.Device] the plugin is bound to.
+   * The [class@Valent.Context] for the [class@Valent.DevicePlugin].
    *
    * Since: 1.0
    */
-  properties [PROP_DEVICE_ID] =
-    g_param_spec_string ("device-id", NULL, NULL,
-                         NULL,
+  properties [PROP_CONTEXT] =
+    g_param_spec_object ("context", NULL, NULL,
+                         VALENT_TYPE_CONTEXT,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -181,12 +182,38 @@ valent_device_preferences_page_init (ValentDevicePreferencesPage *self)
 }
 
 /**
+ * valent_device_preferences_page_get_context:
+ * @page: a #ValentDevicePreferencesPage
+ *
+ * Get the [class@Valent.Context] for the [class@Valent.DevicePlugin].
+ *
+ * Returns: (transfer none) (nullable): a #ValentContext
+ *
+ * Since: 1.0
+ */
+ValentContext *
+valent_device_preferences_page_get_context (ValentDevicePreferencesPage *page)
+{
+  ValentDevicePreferencesPagePrivate *priv = valent_device_preferences_page_get_instance_private (page);
+
+  if (priv->context == NULL)
+    {
+      g_autoptr (ValentContext) context = NULL;
+
+      context = valent_context_new (NULL, "device", "default");
+      priv->context = valent_context_get_plugin_context (context, priv->plugin_info);
+    }
+
+  return priv->context;
+}
+
+/**
  * valent_device_preferences_page_get_settings:
  * @page: a #ValentDevicePreferencesPage
  *
  * Get the [class@Gio.Settings] for the [class@Valent.DevicePlugin].
  *
- * Returns: (transfer none) (nullable): a #GSettings
+ * Returns: (transfer none) (nullable): a `GSettings`
  *
  * Since: 1.0
  */
@@ -198,8 +225,12 @@ valent_device_preferences_page_get_settings (ValentDevicePreferencesPage *page)
   /* Setup GSettings */
   if (priv->settings == NULL)
     {
-      priv->settings = valent_device_plugin_create_settings (priv->plugin_info,
-                                                             priv->device_id);
+      ValentContext *context = NULL;
+
+      context = valent_device_preferences_page_get_context (page);
+      priv->settings = valent_context_get_plugin_settings (context,
+                                                           priv->plugin_info,
+                                                           "X-DevicePluginSettings");
     }
 
   return priv->settings;

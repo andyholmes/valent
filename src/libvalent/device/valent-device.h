@@ -45,7 +45,7 @@ ValentDevice      * valent_device_new                (const char           *id);
 VALENT_AVAILABLE_IN_1_0
 ValentChannel     * valent_device_ref_channel        (ValentDevice         *device);
 VALENT_AVAILABLE_IN_1_0
-ValentData        * valent_device_ref_data           (ValentDevice         *device);
+ValentContext     * valent_device_get_context        (ValentDevice         *device);
 VALENT_AVAILABLE_IN_1_0
 const char        * valent_device_get_icon_name      (ValentDevice         *device);
 VALENT_AVAILABLE_IN_1_0

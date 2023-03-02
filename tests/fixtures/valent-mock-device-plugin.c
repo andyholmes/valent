@@ -65,7 +65,7 @@ valent_mock_device_plugin_handle_transfer (ValentMockDevicePlugin *self,
   g_autoptr (ValentTransfer) transfer = NULL;
   g_autoptr (GCancellable) cancellable = NULL;
   g_autoptr (GFile) file = NULL;
-  g_autofree char *directory = NULL;
+  const char *directory = NULL;
   ValentDevice *device;
   const char *filename;
 
@@ -87,8 +87,8 @@ valent_mock_device_plugin_handle_transfer (ValentMockDevicePlugin *self,
 
   device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
   cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
-  directory = valent_data_get_directory (G_USER_DIRECTORY_DOWNLOAD);
-  file = valent_data_get_file (directory, filename, TRUE);
+  directory = valent_get_user_directory (G_USER_DIRECTORY_DOWNLOAD);
+  file = valent_get_user_file (directory, filename, TRUE);
 
   /* Create a new transfer */
   transfer = valent_device_transfer_new_for_file (device, packet, file);

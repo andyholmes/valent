@@ -285,7 +285,6 @@ valent_contact_cache_constructed (GObject *object)
   ValentContactCache *self = VALENT_CONTACT_CACHE (object);
   ValentContactStore *store = VALENT_CONTACT_STORE (object);
   ESource *source;
-  g_autoptr (ValentData) data = NULL;
   g_autoptr (GError) error = NULL;
 
   source = valent_contact_store_get_source (store);
@@ -294,11 +293,12 @@ valent_contact_cache_constructed (GObject *object)
    * is used as the ESource UID. */
   if (self->path == NULL)
     {
-      data = valent_data_new (e_source_get_uid (source), NULL);
-      self->path = g_build_filename (valent_data_get_cache_path (data),
-                                     "contacts",
-                                     "contacts.db",
-                                     NULL);
+      g_autoptr (ValentContext) context = NULL;
+      g_autoptr (GFile) contacts_db = NULL;
+
+      context = valent_context_new (NULL, "contacts", e_source_get_uid (source));
+      contacts_db = valent_context_get_cache_file (context, "contacts.db");
+      self->path = g_file_get_path (contacts_db);
     }
 
   valent_object_lock (VALENT_OBJECT (self));

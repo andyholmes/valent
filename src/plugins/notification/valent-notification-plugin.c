@@ -138,15 +138,10 @@ valent_notification_plugin_get_icon_file (ValentNotificationPlugin *self,
 
   if (valent_packet_get_string (packet, "payloadHash", &payload_hash))
     {
-      ValentDevice *device;
-      g_autoptr (ValentData) data = NULL;
+      ValentContext *context = NULL;
 
-      device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
-      data = valent_device_ref_data (device);
-      file = g_file_new_build_filename (valent_data_get_cache_path (data),
-                                        "notification",
-                                        payload_hash,
-                                        NULL);
+      context = valent_device_plugin_get_context (VALENT_DEVICE_PLUGIN (self));
+      file = valent_context_get_cache_file (context, payload_hash);
     }
   else
     {

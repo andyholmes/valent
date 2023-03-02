@@ -47,38 +47,35 @@ struct _ValentDevicePluginClass
 };
 
 VALENT_AVAILABLE_IN_1_0
-void           valent_device_plugin_disable             (ValentDevicePlugin    *plugin);
+void            valent_device_plugin_disable             (ValentDevicePlugin    *plugin);
 VALENT_AVAILABLE_IN_1_0
-void           valent_device_plugin_enable              (ValentDevicePlugin    *plugin);
+void            valent_device_plugin_enable              (ValentDevicePlugin    *plugin);
 VALENT_AVAILABLE_IN_1_0
-void           valent_device_plugin_handle_packet       (ValentDevicePlugin    *plugin,
-                                                         const char            *type,
-                                                         JsonNode              *packet);
+void            valent_device_plugin_handle_packet       (ValentDevicePlugin    *plugin,
+                                                          const char            *type,
+                                                          JsonNode              *packet);
 VALENT_AVAILABLE_IN_1_0
-void           valent_device_plugin_update_state        (ValentDevicePlugin    *plugin,
-                                                         ValentDeviceState      state);
+void            valent_device_plugin_update_state        (ValentDevicePlugin    *plugin,
+                                                          ValentDeviceState      state);
 VALENT_AVAILABLE_IN_1_0
-ValentDevice * valent_device_plugin_get_device          (ValentDevicePlugin    *plugin);
+ValentContext * valent_device_plugin_get_context         (ValentDevicePlugin    *plugin);
 VALENT_AVAILABLE_IN_1_0
-GSettings *    valent_device_plugin_get_settings        (ValentDevicePlugin    *plugin);
+ValentDevice  * valent_device_plugin_get_device          (ValentDevicePlugin    *plugin);
 VALENT_AVAILABLE_IN_1_0
-void           valent_device_plugin_queue_packet        (ValentDevicePlugin    *plugin,
-                                                         JsonNode              *packet);
+GSettings     * valent_device_plugin_get_settings        (ValentDevicePlugin    *plugin);
 VALENT_AVAILABLE_IN_1_0
-void           valent_device_plugin_show_notification   (ValentDevicePlugin    *plugin,
-                                                         const char            *id,
-                                                         GNotification         *notification);
+void            valent_device_plugin_queue_packet        (ValentDevicePlugin    *plugin,
+                                                          JsonNode              *packet);
 VALENT_AVAILABLE_IN_1_0
-void           valent_device_plugin_hide_notification   (ValentDevicePlugin    *plugin,
-                                                         const char            *id);
+void            valent_device_plugin_show_notification   (ValentDevicePlugin    *plugin,
+                                                          const char            *id,
+                                                          GNotification         *notification);
 VALENT_AVAILABLE_IN_1_0
-void           valent_device_plugin_toggle_actions      (ValentDevicePlugin    *plugin,
-                                                         gboolean               enabled);
-
-/* Utilities */
+void            valent_device_plugin_hide_notification   (ValentDevicePlugin    *plugin,
+                                                          const char            *id);
 VALENT_AVAILABLE_IN_1_0
-GSettings *    valent_device_plugin_create_settings     (PeasPluginInfo        *plugin_info,
-                                                         const char            *device_id);
+void            valent_device_plugin_toggle_actions      (ValentDevicePlugin    *plugin,
+                                                          gboolean               enabled);
 
 /* TODO: GMenuModel XML */
 VALENT_AVAILABLE_IN_1_0
@@ -96,17 +93,16 @@ void            valent_device_plugin_replace_menu_item  (ValentDevicePlugin    *
 
 /* Miscellaneous Helpers */
 VALENT_AVAILABLE_IN_1_0
-void           valent_notification_set_device_action    (GNotification         *notification,
-                                                         ValentDevice          *device,
-                                                         const char            *action,
-                                                         GVariant              *target);
-
+void            valent_notification_set_device_action    (GNotification         *notification,
+                                                          ValentDevice          *device,
+                                                          const char            *action,
+                                                          GVariant              *target);
 VALENT_AVAILABLE_IN_1_0
-void           valent_notification_add_device_button    (GNotification         *notification,
-                                                         ValentDevice          *device,
-                                                         const char            *label,
-                                                         const char            *action,
-                                                         GVariant              *target);
+void            valent_notification_add_device_button    (GNotification         *notification,
+                                                          ValentDevice          *device,
+                                                          const char            *label,
+                                                          const char            *action,
+                                                          GVariant              *target);
 
 G_END_DECLS
 

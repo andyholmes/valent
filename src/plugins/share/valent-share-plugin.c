@@ -42,13 +42,17 @@ valent_share_plugin_create_download_file (ValentSharePlugin *self,
   g_return_val_if_fail (VALENT_IS_SHARE_PLUGIN (self), NULL);
   g_return_val_if_fail (filename != NULL, NULL);
 
+  /* Check for a configured download directory, returning a fallback if
+   * necessary, but don't save the fallback as though it were configured. */
   settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
   download_folder = g_settings_get_string (settings, "download-folder");
 
   if (download_folder == NULL || *download_folder == '\0')
     {
-      g_clear_pointer (&download_folder, g_free);
-      download_folder = valent_data_get_directory (G_USER_DIRECTORY_DOWNLOAD);
+      const char *user_download = NULL;
+
+      user_download = valent_get_user_directory (G_USER_DIRECTORY_DOWNLOAD);
+      valent_set_string (&download_folder, user_download);
     }
 
   if (g_mkdir_with_parents (download_folder, 0700) == -1)
@@ -61,7 +65,7 @@ valent_share_plugin_create_download_file (ValentSharePlugin *self,
                   g_strerror (error));
     }
 
-  return valent_data_get_file (download_folder, filename, unique);
+  return valent_get_user_file (download_folder, filename, unique);
 }
 
 /*

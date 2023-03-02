@@ -242,7 +242,7 @@ valent_session_get_default (void)
   if (default_adapter == NULL)
     {
       default_adapter = g_object_new (VALENT_TYPE_SESSION,
-                                      "plugin-context",  "session",
+                                      "plugin-domain",   "session",
                                       "plugin-priority", "SessionAdapterPriority",
                                       "plugin-type",     VALENT_TYPE_SESSION_ADAPTER,
                                       NULL);

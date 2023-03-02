@@ -12,6 +12,7 @@
 #include "valent-device-enums.h"
 
 #include "valent-channel.h"
+#include "valent-component-private.h"
 #include "valent-device.h"
 #include "valent-device-plugin.h"
 #include "valent-device-private.h"
@@ -41,7 +42,7 @@ struct _ValentDevice
 {
   ValentObject    parent_instance;
 
-  ValentData     *data;
+  ValentContext  *context;
   GSettings      *settings;
 
   /* Properties */
@@ -79,7 +80,7 @@ G_DEFINE_FINAL_TYPE_WITH_CODE (ValentDevice, valent_device, VALENT_TYPE_OBJECT,
 
 enum {
   PROP_0,
-  PROP_DATA,
+  PROP_CONTEXT,
   PROP_ICON_NAME,
   PROP_ID,
   PROP_NAME,
@@ -184,36 +185,28 @@ g_action_group_iface_init (GActionGroupInterface *iface)
 /*
  * Private plugin methods
  */
-typedef struct
-{
-  ValentDevice   *device;
-  PeasPluginInfo *info;
-  PeasExtension  *extension;
-  GSettings      *settings;
-} DevicePlugin;
-
 static void
 device_plugin_free (gpointer data)
 {
-  DevicePlugin *plugin = data;
+  ValentPlugin *plugin = data;
 
-  /* We guarantee calling valent_device_plugin_disable() */
+  /* We guarantee calling valent_device_plugin_disable() and `::action-removed`
+   * needs to be emitted before the plugin is freed. */
   if (plugin->extension != NULL)
     {
       valent_device_plugin_disable (VALENT_DEVICE_PLUGIN (plugin->extension));
       g_clear_object (&plugin->extension);
     }
 
-  g_clear_object (&plugin->settings);
-  g_clear_pointer (&plugin, g_free);
+  g_clear_pointer (&plugin, valent_plugin_free);
 }
 
 static void
 on_plugin_action_added (GActionGroup *action_group,
                         const char   *action_name,
-                        DevicePlugin *plugin)
+                        ValentPlugin *plugin)
 {
-  ValentDevice *self = VALENT_DEVICE (plugin->device);
+  ValentDevice *self = VALENT_DEVICE (plugin->parent);
   g_autofree char *full_name = NULL;
   GAction *action;
 
@@ -226,21 +219,21 @@ on_plugin_action_added (GActionGroup *action_group,
   g_hash_table_replace (self->actions,
                         g_strdup (full_name),
                         g_object_ref (action));
-  g_action_group_action_added (G_ACTION_GROUP (plugin->device), full_name);
+  g_action_group_action_added (G_ACTION_GROUP (plugin->parent), full_name);
 }
 
 static void
 on_plugin_action_enabled_changed (GActionGroup *action_group,
                                   const char   *action_name,
                                   gboolean      enabled,
-                                  DevicePlugin *plugin)
+                                  ValentPlugin *plugin)
 {
   g_autofree char *full_name = NULL;
 
   full_name = g_strdup_printf ("%s.%s",
                                peas_plugin_info_get_module_name (plugin->info),
                                action_name);
-  g_action_group_action_enabled_changed (G_ACTION_GROUP (plugin->device),
+  g_action_group_action_enabled_changed (G_ACTION_GROUP (plugin->parent),
                                          full_name,
                                          enabled);
 }
@@ -248,16 +241,16 @@ on_plugin_action_enabled_changed (GActionGroup *action_group,
 static void
 on_plugin_action_removed (GActionGroup *action_group,
                           const char   *action_name,
-                          DevicePlugin *plugin)
+                          ValentPlugin *plugin)
 {
-  ValentDevice *self = VALENT_DEVICE (plugin->device);
+  ValentDevice *self = VALENT_DEVICE (plugin->parent);
   g_autofree char *full_name = NULL;
 
   full_name = g_strdup_printf ("%s.%s",
                                peas_plugin_info_get_module_name (plugin->info),
                                action_name);
 
-  g_action_group_action_removed (G_ACTION_GROUP (plugin->device), full_name);
+  g_action_group_action_removed (G_ACTION_GROUP (plugin->parent), full_name);
   g_hash_table_remove (self->actions, full_name);
 }
 
@@ -265,21 +258,21 @@ static void
 on_plugin_action_state_changed (GActionGroup *action_group,
                                 const char   *action_name,
                                 GVariant     *value,
-                                DevicePlugin *plugin)
+                                ValentPlugin *plugin)
 {
   g_autofree char *full_name = NULL;
 
   full_name = g_strdup_printf ("%s.%s",
                                peas_plugin_info_get_module_name (plugin->info),
                                action_name);
-  g_action_group_action_state_changed (G_ACTION_GROUP (plugin->device),
+  g_action_group_action_state_changed (G_ACTION_GROUP (plugin->parent),
                                        full_name,
                                        value);
 }
 
 static void
 valent_device_enable_plugin (ValentDevice *device,
-                             DevicePlugin *plugin)
+                             ValentPlugin *plugin)
 {
   g_auto (GStrv) actions = NULL;
   const char *incoming = NULL;
@@ -291,7 +284,8 @@ valent_device_enable_plugin (ValentDevice *device,
   plugin->extension = peas_engine_create_extension (device->engine,
                                                     plugin->info,
                                                     VALENT_TYPE_DEVICE_PLUGIN,
-                                                    "device", device,
+                                                    "context", plugin->context,
+                                                    "device",  plugin->parent,
                                                     NULL);
   g_return_if_fail (PEAS_IS_EXTENSION (plugin->extension));
 
@@ -355,7 +349,7 @@ valent_device_enable_plugin (ValentDevice *device,
 
 static void
 valent_device_disable_plugin (ValentDevice *device,
-                              DevicePlugin *plugin)
+                              ValentPlugin *plugin)
 {
   g_auto (GStrv) actions = NULL;
   const char *incoming = NULL;
@@ -404,18 +398,15 @@ valent_device_disable_plugin (ValentDevice *device,
 }
 
 static void
-on_enabled_changed (GSettings    *settings,
-                    const char   *key,
-                    DevicePlugin *plugin)
+on_plugin_enabled_changed (ValentPlugin *plugin)
 {
-  g_assert (G_IS_SETTINGS (settings));
-  g_assert (key != NULL);
   g_assert (plugin != NULL);
+  g_assert (VALENT_IS_DEVICE (plugin->parent));
 
-  if (g_settings_get_boolean (settings, "enabled"))
-    valent_device_enable_plugin (plugin->device, plugin);
+  if (valent_plugin_get_enabled (plugin))
+    valent_device_enable_plugin (plugin->parent, plugin);
   else
-    valent_device_disable_plugin (plugin->device, plugin);
+    valent_device_disable_plugin (plugin->parent, plugin);
 }
 
 
@@ -694,49 +685,33 @@ valent_device_handle_identity (ValentDevice *device,
 static void
 on_load_plugin (PeasEngine     *engine,
                 PeasPluginInfo *info,
-                ValentDevice   *device)
+                ValentDevice   *self)
 {
-  DevicePlugin *plugin;
-  const char *module;
-  g_autofree char *path = NULL;
+  ValentPlugin *plugin;
 
   g_assert (PEAS_IS_ENGINE (engine));
   g_assert (info != NULL);
-  g_assert (VALENT_IS_DEVICE (device));
+  g_assert (VALENT_IS_DEVICE (self));
 
-  if (!valent_device_supports_plugin (device, info))
+  if (!valent_device_supports_plugin (self, info))
     return;
 
-  if (g_hash_table_contains (device->plugins, info))
+  if (g_hash_table_contains (self->plugins, info))
     return;
 
   VALENT_NOTE ("%s: %s",
-               device->name,
+               self->name,
                peas_plugin_info_get_module_name (info));
 
   /* Register the plugin & data (hash tables are ref owners) */
-  module = peas_plugin_info_get_module_name (info);
-  path = g_strdup_printf ("/ca/andyholmes/valent/device/%s/plugin/%s/",
-                          device->id, module);
+  plugin = valent_plugin_new (self, self->context, info,
+                              G_CALLBACK (on_plugin_enabled_changed));
+  g_hash_table_insert (self->plugins, info, plugin);
 
-  plugin = g_new0 (DevicePlugin, 1);
-  plugin->device = device;
-  plugin->info = info;
-  plugin->settings = g_settings_new_with_path ("ca.andyholmes.Valent.Plugin",
-                                               path);
-  g_hash_table_insert (device->plugins, info, plugin);
+  if (valent_plugin_get_enabled (plugin))
+    valent_device_enable_plugin (self, plugin);
 
-  /* The PeasExtension is created and destroyed based on the enabled state */
-  g_signal_connect (plugin->settings,
-                    "changed::enabled",
-                    G_CALLBACK (on_enabled_changed),
-                    plugin);
-
-  if (g_settings_get_boolean (plugin->settings, "enabled"))
-    valent_device_enable_plugin (device, plugin);
-
-  /* Notify now so that plugins can be configured regardless of device state */
-  g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_PLUGINS]);
+  g_object_notify_by_pspec (G_OBJECT (self), properties [PROP_PLUGINS]);
 }
 
 static void
@@ -815,9 +790,9 @@ valent_device_constructed (GObject *object)
   /* We must at least have a device ID */
   g_assert (self->id != NULL);
 
-  /* Data Manager */
-  if (self->data == NULL)
-    self->data = valent_data_new (self->id, NULL);
+  /* Context */
+  if (self->context == NULL)
+    self->context = valent_context_new (NULL, "device", self->id);
 
   /* GSettings*/
   path = g_strdup_printf ("/ca/andyholmes/valent/device/%s/", self->id);
@@ -871,7 +846,7 @@ valent_device_finalize (GObject *object)
 {
   ValentDevice *self = VALENT_DEVICE (object);
 
-  g_clear_object (&self->data);
+  g_clear_object (&self->context);
   g_clear_object (&self->settings);
 
   /* Properties */
@@ -904,8 +879,8 @@ valent_device_get_property (GObject    *object,
 
   switch (prop_id)
     {
-    case PROP_DATA:
-      g_value_take_object (value, valent_device_ref_data (self));
+    case PROP_CONTEXT:
+      g_value_set_object (value, self->context);
       break;
 
     case PROP_ICON_NAME:
@@ -947,8 +922,8 @@ valent_device_set_property (GObject      *object,
 
   switch (prop_id)
     {
-    case PROP_DATA:
-      self->data = g_value_dup_object (value);
+    case PROP_CONTEXT:
+      self->context = g_value_dup_object (value);
       break;
 
     case PROP_ID:
@@ -1000,18 +975,15 @@ valent_device_class_init (ValentDeviceClass *klass)
   object_class->set_property = valent_device_set_property;
 
   /**
-   * ValentDevice:data: (getter ref_data)
+   * ValentDevice:context: (getter get_context)
    *
    * The data context.
    *
-   * This provides a relative point for files and settings, specific to the
-   * device in question.
-   *
    * Since: 1.0
    */
-  properties [PROP_DATA] =
-    g_param_spec_object ("data", NULL, NULL,
-                         VALENT_TYPE_DATA,
+  properties [PROP_CONTEXT] =
+    g_param_spec_object ("context", NULL, NULL,
+                         VALENT_TYPE_CONTEXT,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -1140,15 +1112,15 @@ valent_device_new (const char *id)
 /*< private >
  * valent_device_new_full:
  * @identity: a KDE Connect identity packet
- * @data: (nullable): the data context
+ * @context: (nullable): a #ValentContext
  *
  * Create a new device for @identity.
  *
  * Returns: (transfer full) (nullable): a new #ValentDevice
  */
 ValentDevice *
-valent_device_new_full (JsonNode   *identity,
-                        ValentData *data)
+valent_device_new_full (JsonNode      *identity,
+                        ValentContext *context)
 {
   ValentDevice *ret;
   const char *id;
@@ -1162,8 +1134,8 @@ valent_device_new_full (JsonNode   *identity,
     }
 
   ret = g_object_new (VALENT_TYPE_DEVICE,
-                      "id",   id,
-                      "data", data,
+                      "id",      id,
+                      "context", context,
                       NULL);
   valent_device_handle_identity (ret, identity);
 
@@ -1494,28 +1466,21 @@ valent_device_set_channel (ValentDevice  *device,
 }
 
 /**
- * valent_device_ref_data: (get-property data)
+ * valent_device_get_context: (get-property context)
  * @device: a #ValentDevice
  *
- * Get the data context for the device.
+ * Get the data context.
  *
- * Returns: (transfer full): a #ValentData
+ * Returns: (transfer full): a #ValentContext
  *
  * Since: 1.0
  */
-ValentData *
-valent_device_ref_data (ValentDevice *device)
+ValentContext *
+valent_device_get_context (ValentDevice *device)
 {
-  ValentData *ret = NULL;
-
   g_return_val_if_fail (VALENT_IS_DEVICE (device), NULL);
 
-  valent_object_lock (VALENT_OBJECT (device));
-  if (device->data != NULL)
-    ret = g_object_ref (device->data);
-  valent_object_unlock (VALENT_OBJECT (device));
-
-  return ret;
+  return device->context;
 }
 
 /**
@@ -1622,9 +1587,9 @@ valent_device_set_paired (ValentDevice *device,
 
   /* FIXME: If we're connected store/clear connection data */
   if (paired && device->channel != NULL)
-    valent_channel_store_data (device->channel, device->data);
+    valent_channel_store_data (device->channel, device->context);
   else if (!paired)
-    valent_data_clear_data (device->data);
+    valent_context_clear (device->context);
 
   device->paired = paired;
   g_settings_set_boolean (device->settings, "paired", device->paired);
@@ -1791,7 +1756,7 @@ valent_device_update_plugins (ValentDevice *device)
 {
   ValentDeviceState state = VALENT_DEVICE_STATE_NONE;
   GHashTableIter iter;
-  DevicePlugin *plugin;
+  ValentPlugin *plugin;
 
   g_assert (VALENT_IS_DEVICE (device));
 

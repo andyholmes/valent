@@ -234,10 +234,10 @@ valent_channel_real_upload_finish (ValentChannel  *channel,
 
 static void
 valent_channel_real_store_data (ValentChannel *channel,
-                                ValentData    *data)
+                                ValentContext *context)
 {
   g_assert (VALENT_IS_CHANNEL (channel));
-  g_assert (VALENT_IS_DATA (data));
+  g_assert (VALENT_IS_CONTEXT (context));
 }
 /* LCOV_EXCL_STOP */
 
@@ -919,7 +919,7 @@ valent_channel_write_packet_finish (ValentChannel  *channel,
 /**
  * valent_channel_store_data: (virtual store_data)
  * @channel: a #ValentChannel
- * @data: a #ValentData
+ * @context: a #ValentContext
  *
  * Store channel metadata.
  *
@@ -933,14 +933,14 @@ valent_channel_write_packet_finish (ValentChannel  *channel,
  */
 void
 valent_channel_store_data (ValentChannel *channel,
-                           ValentData    *data)
+                           ValentContext  *context)
 {
   VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_CHANNEL (channel));
-  g_return_if_fail (VALENT_IS_DATA (data));
+  g_return_if_fail (VALENT_IS_CONTEXT (context));
 
-  VALENT_CHANNEL_GET_CLASS (channel)->store_data (channel, data);
+  VALENT_CHANNEL_GET_CLASS (channel)->store_data (channel, context);
 
   VALENT_EXIT;
 }
