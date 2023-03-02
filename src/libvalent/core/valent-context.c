@@ -557,8 +557,6 @@ valent_context_get_data_file (ValentContext *context,
  *
  * Create a new #ValentContext for a plugin.
  *
- * If given, @parent will be taken into consideration when building paths.
- *
  * If given, @domain should be an identifier describing the scope of the
  * contexts that will share it.
  *
