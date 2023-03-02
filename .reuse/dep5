@@ -1,7 +1,7 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 
 Files: *.desktop *.service *.json *.po *.pot
-Copyright: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
+Copyright: Andy Holmes <andrew.g.r.holmes@gmail.com>
 License: GPL-3.0-or-later
 
 Files: .github .gitignore .gitmodules build-aux/misc/* CHANGELOG.md

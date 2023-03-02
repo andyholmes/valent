@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
+# SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 libvalent_media_header_dir = join_paths(libvalent_header_dir, 'media')
 libvalent_media_header_subdir = join_paths(libvalent_header_subdir, 'media')

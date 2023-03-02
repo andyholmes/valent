@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
+# SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 libvalent_api_version = meson.project_version().split('.')[0]
 libvalent_api_name = 'libvalent-@0@'.format(libvalent_api_version)

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
+# SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 # Dependencies
 libvalent_clipboard_test_deps = [

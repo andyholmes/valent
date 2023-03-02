@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
+# SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 '''ModeManager mock template
 
@@ -17,7 +17,7 @@ available to set in 'parameters' is 'Version'.
 # of the license.
 
 __author__ = 'Andy Holmes'
-__copyright__ = '(c) 2022 Andy Holmes'
+__copyright__ = '(c) Andy Holmes'
 
 import dbus # type: ignore
 import dbusmock # type: ignore

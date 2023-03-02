@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: 2018 Red Hat, Inc
 # SPDX-FileContributor: Benjamin Berg <bberg@redhat.com>
-# SPDX-FileCopyrightText: 2021 Andy Holmes <andrew.g.r.holmes@gmail.com>
+# SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 
 """This module provides helpers for running GLib-based test programs with
