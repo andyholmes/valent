@@ -818,7 +818,9 @@ valent_lan_channel_service_init_async (GAsyncInitable      *initable,
   ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (initable);
   g_autoptr (GTask) task = NULL;
   g_autoptr (GCancellable) destroy = NULL;
+  g_autoptr (GFile) config_dir = NULL;
   g_autoptr (ValentContext) context = NULL;
+  ValentContext *root_context = NULL;
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (initable));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
@@ -837,8 +839,12 @@ valent_lan_channel_service_init_async (GAsyncInitable      *initable,
   g_task_set_priority (task, io_priority);
   g_task_set_source_tag (task, valent_lan_channel_service_init_async);
 
+  // TODO: the certificate is in the root context
   g_object_get (initable, "context", &context, NULL);
-  valent_certificate_new (valent_context_get_config_path (context),
+  root_context = valent_context_get_root (context);
+  config_dir = valent_context_get_config_file (root_context, ".");
+
+  valent_certificate_new (g_file_peek_path (config_dir),
                           destroy,
                           valent_certificate_new_cb,
                           g_steal_pointer (&task));
