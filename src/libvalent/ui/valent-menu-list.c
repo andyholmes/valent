@@ -191,13 +191,13 @@ valent_menu_list_add (ValentMenuList *self,
 
   while (g_menu_link_iter_get_next (iter, &link_name, &link_value))
     {
-      if (g_strcmp0 (link_name, "section") == 0)
+      if (g_strcmp0 (link_name, G_MENU_LINK_SECTION) == 0)
         valent_menu_list_add_section (self, index, link_value);
 
-      else if (g_strcmp0 (link_name, "submenu") == 0)
+      else if (g_strcmp0 (link_name, G_MENU_LINK_SUBMENU) == 0)
         valent_menu_list_add_submenu (self, index, link_value);
 
-      g_object_unref (link_value);
+      g_clear_object (&link_value);
     }
 }
 
@@ -236,9 +236,9 @@ on_items_changed (GMenuModel     *model,
  * GActions
  */
 static void
-submenu_action (GtkWidget  *widget,
-                const char *name,
-                GVariant   *parameter)
+menu_submenu_action (GtkWidget  *widget,
+                     const char *name,
+                     GVariant   *parameter)
 {
   GtkWidget *stack;
   const char *child_name;
@@ -332,7 +332,7 @@ valent_menu_list_class_init (ValentMenuListClass *klass)
   object_class->get_property = valent_menu_list_get_property;
   object_class->set_property = valent_menu_list_set_property;
 
-  gtk_widget_class_install_action (widget_class, "menu.submenu", "s", submenu_action);
+  gtk_widget_class_install_action (widget_class, "menu.submenu", "s", menu_submenu_action);
   gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_GRID_LAYOUT);
 
   /**
