@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
+// SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 #define G_LOG_DOMAIN "valent-window"
 
@@ -261,7 +261,7 @@ about_action (GtkWidget  *widget,
   dialog = g_object_new (ADW_TYPE_ABOUT_WINDOW,
                          "application-icon",    APPLICATION_ID,
                          "application-name",    _("Valent"),
-                         "copyright",           "© 2022 Andy Holmes",
+                         "copyright",           "© Andy Holmes",
                          "issue-url",           PACKAGE_BUGREPORT,
                          "license-type",        GTK_LICENSE_GPL_3_0,
                          "debug-info",          debug_info,

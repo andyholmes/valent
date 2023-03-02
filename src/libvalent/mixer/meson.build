@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# SPDX-FileCopyrightText: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
+# SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 libvalent_mixer_header_dir = join_paths(libvalent_header_dir, 'mixer')
 libvalent_mixer_header_subdir = join_paths(libvalent_header_subdir, 'mixer')
