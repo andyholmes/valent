@@ -50,7 +50,7 @@ ValentContext * valent_context_get_parent             (ValentContext  *context);
 VALENT_AVAILABLE_IN_1_0
 const char    * valent_context_get_path               (ValentContext  *context);
 VALENT_AVAILABLE_IN_1_0
-ValentContext * valent_context_get_plugin_context     (ValentContext  *parent,
+ValentContext * valent_context_get_plugin_context     (ValentContext  *context,
                                                        PeasPluginInfo *plugin_info);
 VALENT_AVAILABLE_IN_1_0
 GSettings     * valent_context_get_plugin_settings    (ValentContext  *context,

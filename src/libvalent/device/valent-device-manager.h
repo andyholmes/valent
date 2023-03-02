@@ -32,18 +32,16 @@ VALENT_AVAILABLE_IN_1_0
 void                  valent_device_manager_set_name   (ValentDeviceManager  *manager,
                                                         const char           *name);
 VALENT_AVAILABLE_IN_1_0
-void                  valent_device_manager_refresh    (ValentDeviceManager  *manager);
-VALENT_AVAILABLE_IN_1_0
-void                  valent_device_manager_start      (ValentDeviceManager  *manager);
-VALENT_AVAILABLE_IN_1_0
-void                  valent_device_manager_stop       (ValentDeviceManager  *manager);
-
-/* D-Bus */
-VALENT_AVAILABLE_IN_1_0
 void                  valent_device_manager_export     (ValentDeviceManager  *manager,
                                                         GDBusConnection      *connection,
                                                         const char           *object_path);
 VALENT_AVAILABLE_IN_1_0
 void                  valent_device_manager_unexport   (ValentDeviceManager  *manager);
+VALENT_AVAILABLE_IN_1_0
+void                  valent_device_manager_refresh    (ValentDeviceManager  *manager);
+VALENT_AVAILABLE_IN_1_0
+void                  valent_device_manager_start      (ValentDeviceManager  *manager);
+VALENT_AVAILABLE_IN_1_0
+void                  valent_device_manager_stop       (ValentDeviceManager  *manager);
 
 G_END_DECLS
