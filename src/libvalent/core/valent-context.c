@@ -684,7 +684,7 @@ valent_context_get_root (ValentContext *context)
   g_return_val_if_fail (VALENT_IS_CONTEXT (context), NULL);
 
   if (priv->parent != NULL)
-    root = valent_context_get_root (context);
+    root = valent_context_get_root (priv->parent);
 
   return root;
 }
