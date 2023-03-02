@@ -9,7 +9,7 @@
 
 #include <adwaita.h>
 
-#include "../core/valent-object.h"
+#include "../core/valent-context.h"
 
 G_BEGIN_DECLS
 
@@ -27,7 +27,9 @@ struct _ValentDevicePreferencesPageClass
 };
 
 VALENT_AVAILABLE_IN_1_0
-GSettings * valent_device_preferences_page_get_settings (ValentDevicePreferencesPage *page);
+ValentContext * valent_device_preferences_page_get_context  (ValentDevicePreferencesPage *page);
+VALENT_AVAILABLE_IN_1_0
+GSettings     * valent_device_preferences_page_get_settings (ValentDevicePreferencesPage *page);
 
 G_END_DECLS
 

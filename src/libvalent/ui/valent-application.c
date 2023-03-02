@@ -12,6 +12,7 @@
 
 #include "valent-application.h"
 #include "valent-application-plugin.h"
+#include "valent-component-private.h"
 #include "valent-window.h"
 
 
@@ -32,6 +33,7 @@ struct _ValentApplication
   GSettings           *settings;
   ValentDeviceManager *manager;
   GHashTable          *plugins;
+  ValentContext       *plugins_context;
   GtkWindow           *window;
 };
 
@@ -41,33 +43,21 @@ G_DEFINE_FINAL_TYPE (ValentApplication, valent_application, GTK_TYPE_APPLICATION
 /*
  * PeasEngine
  */
-typedef struct
-{
-  GApplication   *application;
-  PeasPluginInfo *info;
-  PeasExtension  *extension;
-  GSettings      *settings;
-} ApplicationPlugin;
-
 static void
 application_plugin_free (gpointer data)
 {
-  ApplicationPlugin *plugin = data;
+  ValentPlugin *plugin = data;
 
   /* We guarantee calling valent_application_plugin_disable() */
   if (plugin->extension != NULL)
-    {
-      valent_application_plugin_disable (VALENT_APPLICATION_PLUGIN (plugin->extension));
-      g_clear_object (&plugin->extension);
-    }
+    valent_application_plugin_disable (VALENT_APPLICATION_PLUGIN (plugin->extension));
 
-  g_clear_object (&plugin->settings);
-  g_clear_pointer (&plugin, g_free);
+  g_clear_pointer (&plugin, valent_plugin_free);
 }
 
 static inline void
 valent_application_enable_plugin (ValentApplication *self,
-                                  ApplicationPlugin *plugin)
+                                  ValentPlugin      *plugin)
 {
   g_assert (VALENT_IS_APPLICATION (self));
 
@@ -84,7 +74,7 @@ valent_application_enable_plugin (ValentApplication *self,
 
 static inline void
 valent_application_disable_plugin (ValentApplication *self,
-                                   ApplicationPlugin *plugin)
+                                   ValentPlugin      *plugin)
 {
   g_assert (VALENT_IS_APPLICATION (self));
 
@@ -97,21 +87,15 @@ valent_application_disable_plugin (ValentApplication *self,
 }
 
 static void
-on_enabled_changed (GSettings         *settings,
-                    const char        *key,
-                    ApplicationPlugin *plugin)
+on_plugin_enabled_changed (ValentPlugin *plugin)
 {
-  ValentApplication *self = VALENT_APPLICATION (plugin->application);
+  g_assert (plugin != NULL);
+  g_assert (VALENT_IS_APPLICATION (plugin->parent));
 
-  g_assert (G_IS_SETTINGS (settings));
-  g_assert (VALENT_IS_APPLICATION (self));
-
-  g_debug ("%s: %s", G_STRFUNC, peas_plugin_info_get_module_name (plugin->info));
-
-  if (g_settings_get_boolean (settings, key))
-    valent_application_enable_plugin (self, plugin);
+  if (valent_plugin_get_enabled (plugin))
+    valent_application_enable_plugin (plugin->parent, plugin);
   else
-    valent_application_disable_plugin (self, plugin);
+    valent_application_disable_plugin (plugin->parent, plugin);
 }
 
 static void
@@ -119,8 +103,7 @@ on_load_plugin (PeasEngine        *engine,
                 PeasPluginInfo    *info,
                 ValentApplication *self)
 {
-  ApplicationPlugin *plugin = NULL;
-  const char *module;
+  ValentPlugin *plugin = NULL;
 
   g_assert (PEAS_IS_ENGINE (engine));
   g_assert (info != NULL);
@@ -134,21 +117,11 @@ on_load_plugin (PeasEngine        *engine,
                g_type_name (VALENT_TYPE_APPLICATION_PLUGIN),
                peas_plugin_info_get_module_name (info));
 
-  module = peas_plugin_info_get_module_name (info);
-
-  plugin = g_new0 (ApplicationPlugin, 1);
-  plugin->application = G_APPLICATION (self);
-  plugin->info = info;
-  plugin->settings = valent_component_create_settings ("application", module);
+  plugin = valent_plugin_new (self, self->plugins_context, info,
+                              G_CALLBACK (on_plugin_enabled_changed));
   g_hash_table_insert (self->plugins, info, plugin);
 
-  /* The PeasExtension is created and destroyed based on the enabled state */
-  g_signal_connect (plugin->settings,
-                    "changed::enabled",
-                    G_CALLBACK (on_enabled_changed),
-                    plugin);
-
-  if (g_settings_get_boolean (plugin->settings, "enabled"))
+  if (valent_plugin_get_enabled (plugin))
     valent_application_enable_plugin (self, plugin);
 }
 
@@ -325,7 +298,7 @@ valent_application_activate (GApplication *application)
 {
   ValentApplication *self = VALENT_APPLICATION (application);
   GHashTableIter iter;
-  ApplicationPlugin *plugin;
+  ValentPlugin *plugin;
 
   g_assert (VALENT_IS_APPLICATION (self));
 
@@ -353,7 +326,7 @@ valent_application_open (GApplication  *application,
 {
   ValentApplication *self = VALENT_APPLICATION (application);
   GHashTableIter iter;
-  ApplicationPlugin *plugin;
+  ValentPlugin *plugin;
 
   g_assert (VALENT_IS_APPLICATION (self));
 
@@ -405,6 +378,7 @@ valent_application_startup (GApplication *application)
   valent_device_manager_set_name (self->manager, name);
 
   /* Load plugins and start the device manager */
+  self->plugins_context = valent_context_new (NULL, "application", NULL);
   valent_application_load_plugins (self);
   valent_device_manager_start (self->manager);
 }
@@ -419,6 +393,7 @@ valent_application_shutdown (GApplication *application)
   g_clear_pointer (&self->window, gtk_window_destroy);
   valent_device_manager_stop (self->manager);
   valent_application_unload_plugins (self);
+  g_clear_object (&self->plugins_context);
   g_clear_object (&self->settings);
 
   G_APPLICATION_CLASS (valent_application_parent_class)->shutdown (application);

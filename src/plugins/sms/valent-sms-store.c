@@ -19,7 +19,7 @@ G_STATIC_ASSERT (sizeof (sqlite3_int64) == sizeof (gint64));
 
 struct _ValentSmsStore
 {
-  ValentData       parent_instance;
+  ValentContext    parent_instance;
 
   GAsyncQueue     *queue;
   sqlite3         *connection;
@@ -29,7 +29,7 @@ struct _ValentSmsStore
   GListStore      *summary;
 };
 
-G_DEFINE_FINAL_TYPE (ValentSmsStore, valent_sms_store, VALENT_TYPE_DATA)
+G_DEFINE_FINAL_TYPE (ValentSmsStore, valent_sms_store, VALENT_TYPE_CONTEXT)
 
 enum {
   MESSAGE_ADDED,
@@ -814,10 +814,10 @@ valent_sms_store_open (ValentSmsStore *self)
   g_autoptr (GThread) thread = NULL;
   g_autoptr (GError) error = NULL;
   g_autoptr (GTask) task = NULL;
-  const char *cache_path;
+  g_autoptr (GFile) file = NULL;
 
-  cache_path = valent_data_get_cache_path (VALENT_DATA (self));
-  self->path = g_build_filename (cache_path, "sms.db", NULL);
+  file = valent_context_get_cache_file (VALENT_CONTEXT (self), "sms.db");
+  self->path = g_file_get_path (file);
 
   task = g_task_new (self, NULL, NULL, NULL);
   g_task_set_source_tag (task, valent_sms_store_open);
@@ -990,18 +990,19 @@ valent_sms_store_init (ValentSmsStore *self)
 
 /**
  * valent_sms_store_new:
- * @parent: a #ValentData
+ * @parent: a #ValentContext
  *
  * Create a new #ValentSmsStore.
  *
  * Returns: (transfer full): a new sms store
  */
 ValentSmsStore *
-valent_sms_store_new (ValentData *parent)
+valent_sms_store_new (ValentContext *parent)
 {
   return g_object_new (VALENT_TYPE_SMS_STORE,
-                       "parent",  parent,
-                       "context", "sms",
+                       "domain", "plugin",
+                       "id",     "sms",
+                       "parent", parent,
                        NULL);
 }
 

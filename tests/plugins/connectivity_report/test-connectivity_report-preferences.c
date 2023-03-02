@@ -17,7 +17,6 @@ test_connectivity_report_plugin_preferences (void)
   prefs = peas_engine_create_extension (engine,
                                         info,
                                         VALENT_TYPE_DEVICE_PREFERENCES_PAGE,
-                                        "device-id", "test-device",
                                         NULL);
   g_object_ref_sink (prefs);
   g_object_unref (prefs);

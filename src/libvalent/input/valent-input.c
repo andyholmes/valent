@@ -88,7 +88,7 @@ valent_input_get_default (void)
   if (default_input == NULL)
     {
       default_input = g_object_new (VALENT_TYPE_INPUT,
-                                    "plugin-context",  "input",
+                                    "plugin-domain",   "input",
                                     "plugin-priority", "InputAdapterPriority",
                                     "plugin-type",     VALENT_TYPE_INPUT_ADAPTER,
                                     NULL);

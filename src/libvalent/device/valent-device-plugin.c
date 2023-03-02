@@ -14,6 +14,7 @@
 #include "valent-device-plugin.h"
 #include "valent-packet.h"
 
+#define PLUGIN_SETTINGS_KEY "X-DevicePluginSettings"
 
 
 /**
@@ -78,7 +79,7 @@
  * - `X-DevicePluginSettings`
  *
  *     A [class@Gio.Settings] schema ID for the plugin's settings. See
- *     [func@Valent.DevicePlugin.create_settings] for more information.
+ *     [method@Valent.Context.get_plugin_settings] for more information.
  *
  * Since: 1.0
  */
@@ -88,6 +89,7 @@ typedef struct
   ValentDevice   *device;
   PeasPluginInfo *plugin_info;
   GHashTable     *actions;
+  ValentContext  *context;
   GSettings      *settings;
 } ValentDevicePluginPrivate;
 
@@ -101,6 +103,7 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentDevicePlugin, valent_device_plugin, VALE
 
 enum {
   PROP_0,
+  PROP_CONTEXT,
   PROP_DEVICE,
   PROP_PLUGIN_INFO,
   PROP_SETTINGS,
@@ -356,20 +359,6 @@ valent_device_plugin_real_update_state (ValentDevicePlugin *plugin,
  * GObject
  */
 static void
-valent_device_plugin_constructed (GObject *object)
-{
-  ValentDevicePlugin *self = VALENT_DEVICE_PLUGIN (object);
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (self);
-  const char *device_id = NULL;
-
-  device_id = valent_device_get_id (priv->device);
-  priv->settings = valent_device_plugin_create_settings (priv->plugin_info,
-                                                         device_id);
-
-  G_OBJECT_CLASS (valent_device_plugin_parent_class)->constructed (object);
-}
-
-static void
 valent_device_plugin_dispose (GObject *object)
 {
   ValentDevicePlugin *self = VALENT_DEVICE_PLUGIN (object);
@@ -399,6 +388,7 @@ valent_device_plugin_finalize (GObject *object)
   ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (self);
 
   g_clear_pointer (&priv->actions, g_hash_table_unref);
+  g_clear_object (&priv->context);
 
   G_OBJECT_CLASS (valent_device_plugin_parent_class)->finalize (object);
 }
@@ -414,6 +404,10 @@ valent_device_plugin_get_property (GObject    *object,
 
   switch (prop_id)
     {
+    case PROP_CONTEXT:
+      g_value_set_object (value, valent_device_plugin_get_context (self));
+      break;
+
     case PROP_DEVICE:
       g_value_set_object (value, priv->device);
       break;
@@ -423,7 +417,7 @@ valent_device_plugin_get_property (GObject    *object,
       break;
 
     case PROP_SETTINGS:
-      g_value_set_object (value, priv->settings);
+      g_value_set_object (value, valent_device_plugin_get_settings (self));
       break;
 
     default:
@@ -442,6 +436,10 @@ valent_device_plugin_set_property (GObject      *object,
 
   switch (prop_id)
     {
+    case PROP_CONTEXT:
+      priv->context = g_value_dup_object (value);
+      break;
+
     case PROP_DEVICE:
       priv->device = g_value_get_object (value);
       break;
@@ -460,7 +458,6 @@ valent_device_plugin_class_init (ValentDevicePluginClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  object_class->constructed = valent_device_plugin_constructed;
   object_class->dispose = valent_device_plugin_dispose;
   object_class->finalize = valent_device_plugin_finalize;
   object_class->get_property = valent_device_plugin_get_property;
@@ -470,6 +467,21 @@ valent_device_plugin_class_init (ValentDevicePluginClass *klass)
   klass->enable = valent_device_plugin_real_enable;
   klass->handle_packet = valent_device_plugin_real_handle_packet;
   klass->update_state = valent_device_plugin_real_update_state;
+
+  /**
+   * ValentDevicePlugin:context: (getter get_context)
+   *
+   * The [class@Valent.Device] this plugin is bound to.
+   *
+   * Since: 1.0
+   */
+  properties [PROP_CONTEXT] =
+    g_param_spec_object ("context", NULL, NULL,
+                         VALENT_TYPE_CONTEXT,
+                         (G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT_ONLY |
+                          G_PARAM_EXPLICIT_NOTIFY |
+                          G_PARAM_STATIC_STRINGS));
 
   /**
    * ValentDevicePlugin:device: (getter get_device)
@@ -530,6 +542,36 @@ valent_device_plugin_init (ValentDevicePlugin *self)
 }
 
 /**
+ * valent_device_plugin_get_context: (get-property context)
+ * @plugin: a #ValentDevicePlugin
+ *
+ * Get the settings for this plugin.
+ *
+ * Returns: (transfer none) (nullable): a #ValentContext
+ *
+ * Since: 1.0
+ */
+ValentContext *
+valent_device_plugin_get_context (ValentDevicePlugin *plugin)
+{
+  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
+
+  g_return_val_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin), NULL);
+
+  if (priv->context == NULL)
+    {
+      ValentContext *context = NULL;
+      const char *module_name = NULL;
+
+      context = valent_device_get_context (priv->device);
+      module_name = peas_plugin_info_get_module_name (priv->plugin_info);
+      priv->context = valent_context_new (context, "plugin", module_name);
+    }
+
+  return priv->context;
+}
+
+/**
  * valent_device_plugin_get_device: (get-property device)
  * @plugin: a #ValentDevicePlugin
  *
@@ -555,7 +597,7 @@ valent_device_plugin_get_device (ValentDevicePlugin *plugin)
  *
  * Get the settings for this plugin.
  *
- * Returns: (transfer none) (nullable): a #GSettings
+ * Returns: (transfer none) (nullable): a `GSettings`
  *
  * Since: 1.0
  */
@@ -565,6 +607,13 @@ valent_device_plugin_get_settings (ValentDevicePlugin *plugin)
   ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
 
   g_return_val_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin), NULL);
+
+  if (priv->settings == NULL)
+    {
+      priv->settings = valent_context_get_plugin_settings (priv->context,
+                                                           priv->plugin_info,
+                                                           PLUGIN_SETTINGS_KEY);
+    }
 
   return priv->settings;
 }
@@ -663,94 +712,6 @@ valent_device_plugin_hide_notification (ValentDevicePlugin *plugin,
                                      peas_plugin_info_get_module_name (priv->plugin_info),
                                      id);
   g_application_withdraw_notification (application, notification_id);
-}
-
-/**
- * valent_device_plugin_create_settings:
- * @plugin_info: a #PeasPluginInfo
- * @device_id: a #ValentDevice ID
- *
- * A convenience function for plugins to create a [class@Gio.Settings] object
- * for a device plugin.
- *
- * If @plugin_info contains the `X-DevicePluginSettings` key, it is used as the
- * schema ID, otherwise this function will return %NULL.
- *
- * If the plugin is not built-in, an attempt will be made to compile the
- * [struct@Gio.SettingsSchema] in the module directory.
- *
- * Returns: (transfer full) (nullable): the new #GSettings object
- *
- * Since: 1.0
- */
-GSettings *
-valent_device_plugin_create_settings (PeasPluginInfo *plugin_info,
-                                      const char     *device_id)
-{
-  GSettingsSchemaSource *default_source;
-  g_autoptr (GSettingsSchema) schema = NULL;
-  const char *schema_id = NULL;
-  const char *module_name = NULL;
-  g_autofree char *path = NULL;
-
-  g_return_val_if_fail (plugin_info != NULL, NULL);
-  g_return_val_if_fail (device_id != NULL, NULL);
-
-  schema_id = peas_plugin_info_get_external_data (plugin_info,
-                                                  "X-DevicePluginSettings");
-
-  if (schema_id == NULL || *schema_id == '\0')
-    return NULL;
-
-  /* Check the default schema source first */
-  default_source = g_settings_schema_source_get_default ();
-  schema = g_settings_schema_source_lookup (default_source, schema_id, TRUE);
-
-  /* Adapted from `peas-plugin-info.c` (LGPL-2.1-or-later) */
-  if (schema == NULL)
-    {
-      g_autoptr (GSettingsSchemaSource) source = NULL;
-      g_autoptr (GFile) gschema_compiled = NULL;
-      const char *module_dir = NULL;
-
-      module_dir = peas_plugin_info_get_module_dir (plugin_info);
-      gschema_compiled = g_file_new_build_filename (module_dir,
-                                                    "gschemas.compiled",
-                                                    NULL);
-
-      if (!g_file_query_exists (gschema_compiled, NULL))
-        {
-          const char *argv[] = {
-            "glib-compile-schemas",
-            "--targetdir", module_dir,
-            module_dir,
-            NULL
-          };
-
-          g_spawn_sync (NULL, (char **)argv, NULL, G_SPAWN_SEARCH_PATH,
-                        NULL, NULL, NULL, NULL, NULL, NULL);
-        }
-
-      source = g_settings_schema_source_new_from_directory (module_dir,
-                                                            default_source,
-                                                            FALSE,
-                                                            NULL);
-
-      if (source != NULL)
-        schema = g_settings_schema_source_lookup (source, schema_id, TRUE);
-    }
-
-  if (schema == NULL)
-    {
-      g_critical ("Settings schema '%s' not installed", schema_id);
-      return NULL;
-    }
-
-  module_name = peas_plugin_info_get_module_name (plugin_info);
-  path = g_strdup_printf ("/ca/andyholmes/valent/device/%s/plugin/%s/",
-                          device_id, module_name);
-
-  return g_settings_new_full (schema, NULL, path);
 }
 
 /**

@@ -12,9 +12,9 @@ G_BEGIN_DECLS
 
 #define VALENT_TYPE_SMS_STORE (valent_sms_store_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentSmsStore, valent_sms_store, VALENT, SMS_STORE, ValentData)
+G_DECLARE_FINAL_TYPE (ValentSmsStore, valent_sms_store, VALENT, SMS_STORE, ValentContext)
 
-ValentSmsStore * valent_sms_store_new                   (ValentData           *prefix);
+ValentSmsStore * valent_sms_store_new                   (ValentContext        *parent);
 
 void             valent_sms_store_add_message           (ValentSmsStore       *store,
                                                          ValentMessage        *message,

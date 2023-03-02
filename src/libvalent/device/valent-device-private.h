@@ -9,7 +9,7 @@ G_BEGIN_DECLS
 
 _VALENT_EXTERN
 ValentDevice * valent_device_new_full      (JsonNode      *identity,
-                                            ValentData    *data);
+                                            ValentContext *context);
 _VALENT_EXTERN
 void           valent_device_handle_packet (ValentDevice  *device,
                                             JsonNode      *packet);

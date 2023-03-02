@@ -265,7 +265,7 @@ valent_contacts_get_default (void)
   if (default_contacts == NULL)
     {
       default_contacts = g_object_new (VALENT_TYPE_CONTACTS,
-                                       "plugin-context",  "contacts",
+                                       "plugin-domain",   "contacts",
                                        "plugin-priority", "ContactsAdapterPriority",
                                        "plugin-type",     VALENT_TYPE_CONTACTS_ADAPTER,
                                        NULL);

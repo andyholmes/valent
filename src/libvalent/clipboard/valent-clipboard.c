@@ -215,7 +215,7 @@ valent_clipboard_get_default (void)
   if (default_clipboard == NULL)
     {
       default_clipboard = g_object_new (VALENT_TYPE_CLIPBOARD,
-                                        "plugin-context",  "clipboard",
+                                        "plugin-domain",   "clipboard",
                                         "plugin-priority", "ClipboardAdapterPriority",
                                         "plugin-type",     VALENT_TYPE_CLIPBOARD_ADAPTER,
                                         NULL);

@@ -16,7 +16,7 @@ test_device_transfer (ValentTestFixture *fixture,
   g_autoptr (GFileInfo) src_info = NULL;
   g_autoptr (GFile) dest = NULL;
   g_autoptr (GFileInfo) dest_info = NULL;
-  g_autofree char *dest_dir = NULL;
+  const char *dest_dir = NULL;
   JsonNode *packet = NULL;
   guint64 src_btime_s, src_mtime_s, dest_mtime_s;
   guint32 src_btime_us, src_mtime_us, dest_mtime_us;
@@ -60,8 +60,8 @@ test_device_transfer (ValentTestFixture *fixture,
   /* Ensure the download task has time to set the file mtime */
   valent_test_wait (1);
 
-  dest_dir = valent_data_get_directory (G_USER_DIRECTORY_DOWNLOAD);
-  dest = valent_data_get_file (dest_dir, "image.png", FALSE);
+  dest_dir = valent_get_user_directory (G_USER_DIRECTORY_DOWNLOAD);
+  dest = valent_get_user_file (dest_dir, "image.png", FALSE);
   dest_info = g_file_query_info (dest,
                                  G_FILE_ATTRIBUTE_TIME_MODIFIED","
                                  G_FILE_ATTRIBUTE_TIME_MODIFIED_USEC","

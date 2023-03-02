@@ -11,7 +11,6 @@ test_device_preferences_page_basic (void)
   PeasEngine *engine;
   PeasPluginInfo *info;
   PeasExtension *prefs;
-  g_autofree char *device_id = NULL;
   PeasPluginInfo *plugin_info = NULL;
   g_autoptr (GSettings) settings = NULL;
 
@@ -20,16 +19,13 @@ test_device_preferences_page_basic (void)
   prefs = peas_engine_create_extension (engine,
                                         info,
                                         VALENT_TYPE_DEVICE_PREFERENCES_PAGE,
-                                        "device-id", "test-device",
                                         NULL);
   g_object_ref_sink (prefs);
 
   g_object_get (prefs,
-                "device-id",   &device_id,
                 "plugin-info", &plugin_info,
                 "settings",    &settings,
                 NULL);
-  g_assert_cmpstr (device_id, ==, "test-device");
   g_assert_true (plugin_info == info);
   g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
   g_assert_false (G_IS_SETTINGS (settings));

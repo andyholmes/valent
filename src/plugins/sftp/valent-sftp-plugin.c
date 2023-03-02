@@ -391,28 +391,20 @@ static void
 sftp_session_begin (ValentSftpPlugin  *self,
                     ValentSftpSession *session)
 {
-  ValentDevice *device;
+  g_autoptr (ValentContext) context = NULL;
   g_autoptr (GSubprocess) proc = NULL;
   g_autoptr (GError) error = NULL;
-  g_autoptr (ValentData) data = NULL;
-  ValentData *root_data;
-  g_autofree char *path = NULL;
+  g_autoptr (GFile) private_key = NULL;
 
   g_assert (VALENT_IS_SFTP_PLUGIN (self));
 
-  /* Get the manager's data object */
-  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
-  data = valent_device_ref_data (device);
-  root_data = valent_data_get_parent (data);
-
-  /* Add the private key to the ssh-agent */
-  path = g_build_filename (valent_data_get_config_path (root_data),
-                           "private.pem",
-                           NULL);
+  /* Get the root context and add the private key to the ssh-agent */
+  context = valent_context_new (NULL, NULL, NULL);
+  private_key = valent_context_get_config_file (context, "private.pem");
   proc = g_subprocess_new (G_SUBPROCESS_FLAGS_STDOUT_SILENCE |
                            G_SUBPROCESS_FLAGS_STDERR_MERGE,
                            &error,
-                           "ssh-add", path,
+                           "ssh-add", g_file_peek_path (private_key),
                            NULL);
 
   if (proc == NULL)

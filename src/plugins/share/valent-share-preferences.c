@@ -132,8 +132,10 @@ valent_share_preferences_constructed (GObject *object)
 
   if (download_folder == NULL || *download_folder == '\0')
     {
-      g_clear_pointer (&download_folder, g_free);
-      download_folder = valent_data_get_directory (G_USER_DIRECTORY_DOWNLOAD);
+      const char *user_download = NULL;
+
+      user_download = valent_get_user_directory (G_USER_DIRECTORY_DOWNLOAD);
+      valent_set_string (&download_folder, user_download);
       g_settings_set_string (settings, "download-folder", download_folder);
     }
 

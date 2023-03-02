@@ -7,11 +7,9 @@
 # error "Only <valent.h> can be included directly."
 #endif
 
-#include <gio/gio.h>
 #include <json-glib/json-glib.h>
 
-#include "../core/valent-data.h"
-#include "../core/valent-object.h"
+#include "../core/valent-context.h"
 
 G_BEGIN_DECLS
 
@@ -51,7 +49,7 @@ struct _ValentChannelClass
                                                GAsyncResult         *result,
                                                GError              **error);
   void                (*store_data)           (ValentChannel        *channel,
-                                               ValentData           *data);
+                                               ValentContext        *context);
 
   /*< private >*/
   gpointer            padding[8];
@@ -98,7 +96,7 @@ GIOStream  * valent_channel_upload_finish        (ValentChannel        *channel,
                                                   GError              **error);
 VALENT_AVAILABLE_IN_1_0
 void         valent_channel_store_data           (ValentChannel        *channel,
-                                                  ValentData           *data);
+                                                  ValentContext        *context);
 VALENT_AVAILABLE_IN_1_0
 void         valent_channel_read_packet          (ValentChannel        *channel,
                                                   GCancellable         *cancellable,

@@ -10,6 +10,7 @@
 
 #include "valent-channel.h"
 #include "valent-channel-service.h"
+#include "valent-component-private.h"
 #include "valent-device.h"
 #include "valent-device-impl.h"
 #include "valent-device-manager.h"
@@ -37,13 +38,14 @@ struct _ValentDeviceManager
   ValentObject              parent_instance;
 
   GCancellable             *cancellable;
-  ValentData               *data;
+  ValentContext            *context;
   GTlsCertificate          *certificate;
   const char               *id;
   char                     *name;
 
   GPtrArray                *devices;
-  GHashTable               *services;
+  GHashTable               *plugins;
+  ValentContext            *plugins_context;
   JsonNode                 *state;
 
   GDBusObjectManagerServer *dbus;
@@ -238,29 +240,18 @@ valent_device_manager_unexport_device (ValentDeviceManager *self,
 /*
  * Channel Services
  */
-typedef struct
-{
-  ValentDeviceManager *manager;
-  PeasPluginInfo      *info;
-  PeasExtension       *extension;
-  GSettings           *settings;
-  GCancellable        *cancellable;
-} ChannelService;
-
 static void
-channel_service_free (gpointer data)
+manager_plugin_free (gpointer data)
 {
-  ChannelService *info = data;
+  ValentPlugin *plugin = data;
 
-  if (info->extension != NULL)
+  if (plugin->extension != NULL)
     {
-      g_signal_handlers_disconnect_by_data (info->extension, info->manager);
-      valent_object_destroy (VALENT_OBJECT (info->extension));
-      g_clear_object (&info->extension);
+      g_signal_handlers_disconnect_by_data (plugin->extension, plugin->parent);
+      valent_object_destroy (VALENT_OBJECT (plugin->extension));
     }
 
-  g_clear_object (&info->settings);
-  g_clear_pointer (&info, g_free);
+  g_clear_pointer (&plugin, valent_plugin_free);
 }
 
 static gboolean
@@ -341,41 +332,41 @@ g_async_initable_init_async_cb (GAsyncInitable *initable,
 }
 
 static inline void
-valent_device_manager_enable_service (ValentDeviceManager *self,
-                                      ChannelService      *service)
+valent_device_manager_enable_plugin (ValentDeviceManager *self,
+                                     ValentPlugin        *plugin)
 {
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
-  g_assert (service != NULL);
+  g_assert (plugin != NULL);
 
-  service->extension = peas_engine_create_extension (valent_get_plugin_engine (),
-                                                     service->info,
-                                                     VALENT_TYPE_CHANNEL_SERVICE,
-                                                     "data", self->data,
-                                                     "id",   self->id,
-                                                     "name", self->name,
-                                                     NULL);
-  g_return_if_fail (PEAS_IS_EXTENSION (service->extension));
+  plugin->extension = peas_engine_create_extension (valent_get_plugin_engine (),
+                                                    plugin->info,
+                                                    VALENT_TYPE_CHANNEL_SERVICE,
+                                                    "context", plugin->context,
+                                                    "id",      self->id,
+                                                    "name",    self->name,
+                                                    NULL);
+  g_return_if_fail (PEAS_IS_EXTENSION (plugin->extension));
 
-  g_object_bind_property (self,               "name",
-                          service->extension, "name",
+  g_object_bind_property (self,              "name",
+                          plugin->extension, "name",
                           G_BINDING_DEFAULT);
 
-  g_signal_connect_object (service->extension,
+  g_signal_connect_object (plugin->extension,
                            "channel",
                            G_CALLBACK (on_channel),
                            self, 0);
 
-  if (G_IS_ASYNC_INITABLE (service->extension))
+  if (G_IS_ASYNC_INITABLE (plugin->extension))
     {
       g_autoptr (GCancellable) destroy = NULL;
 
       /* Use a cancellable in case the plugin is unloaded before the operation
        * completes. Chain to the manager in case it's destroyed. */
-      service->cancellable = g_cancellable_new ();
+      plugin->cancellable = g_cancellable_new ();
       destroy = valent_object_chain_cancellable (VALENT_OBJECT (self),
-                                                 service->cancellable);
+                                                 plugin->cancellable);
 
-      g_async_initable_init_async (G_ASYNC_INITABLE (service->extension),
+      g_async_initable_init_async (G_ASYNC_INITABLE (plugin->extension),
                                    G_PRIORITY_DEFAULT,
                                    destroy,
                                    (GAsyncReadyCallback)g_async_initable_init_async_cb,
@@ -384,35 +375,31 @@ valent_device_manager_enable_service (ValentDeviceManager *self,
 }
 
 static inline void
-valent_device_manager_disable_service (ValentDeviceManager *self,
-                                       ChannelService      *service)
+valent_device_manager_disable_plugin (ValentDeviceManager *self,
+                                      ValentPlugin        *plugin)
 {
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
-  g_assert (service != NULL);
-  g_return_if_fail (PEAS_IS_EXTENSION (service->extension));
+  g_assert (plugin != NULL);
+  g_return_if_fail (PEAS_IS_EXTENSION (plugin->extension));
 
-  if (service->extension != NULL)
+  if (plugin->extension != NULL)
     {
-      g_signal_handlers_disconnect_by_data (service->extension, self);
-      valent_object_destroy (VALENT_OBJECT (service->extension));
-      g_clear_object (&service->extension);
+      g_signal_handlers_disconnect_by_data (plugin->extension, self);
+      valent_object_destroy (VALENT_OBJECT (plugin->extension));
+      g_clear_object (&plugin->extension);
     }
 }
 
 static void
-on_enabled_changed (GSettings      *settings,
-                    const char     *key,
-                    ChannelService *service)
+on_plugin_enabled_changed (ValentPlugin *plugin)
 {
-  ValentDeviceManager *self = service->manager;
+  g_assert (plugin != NULL);
+  g_assert (VALENT_IS_DEVICE_MANAGER (plugin->parent));
 
-  g_assert (G_IS_SETTINGS (settings));
-  g_assert (VALENT_IS_DEVICE_MANAGER (self));
-
-  if (g_settings_get_boolean (settings, key))
-    valent_device_manager_enable_service (self, service);
+  if (valent_plugin_get_enabled (plugin))
+    valent_device_manager_enable_plugin (plugin->parent, plugin);
   else
-    valent_device_manager_disable_service (self, service);
+    valent_device_manager_disable_plugin (plugin->parent, plugin);
 }
 
 static void
@@ -420,8 +407,7 @@ on_load_service (PeasEngine          *engine,
                  PeasPluginInfo      *info,
                  ValentDeviceManager *self)
 {
-  ChannelService *service;
-  const char *module;
+  ValentPlugin *plugin;
 
   g_assert (PEAS_IS_ENGINE (engine));
   g_assert (info != NULL);
@@ -435,20 +421,12 @@ on_load_service (PeasEngine          *engine,
                g_type_name (VALENT_TYPE_CHANNEL_SERVICE),
                peas_plugin_info_get_module_name (info));
 
-  module = peas_plugin_info_get_module_name (info);
+  plugin = valent_plugin_new (self, self->plugins_context, info,
+                              G_CALLBACK (on_plugin_enabled_changed));
+  g_hash_table_insert (self->plugins, info, plugin);
 
-  service = g_new0 (ChannelService, 1);
-  service->manager = self;
-  service->info = info;
-  service->settings = valent_component_create_settings ("network", module);
-  g_signal_connect (service->settings,
-                    "changed::enabled",
-                    G_CALLBACK (on_enabled_changed),
-                    service);
-  g_hash_table_insert (self->services, info, service);
-
-  if (g_settings_get_boolean (service->settings, "enabled"))
-    valent_device_manager_enable_service (self, service);
+  if (valent_plugin_get_enabled (plugin))
+    valent_device_manager_enable_plugin (self, plugin);
 }
 
 static void
@@ -468,7 +446,7 @@ on_unload_service (PeasEngine          *engine,
                g_type_name (VALENT_TYPE_CHANNEL_SERVICE),
                peas_plugin_info_get_module_name (info));
 
-  g_hash_table_remove (self->services, info);
+  g_hash_table_remove (self->plugins, info);
 }
 
 /*
@@ -613,11 +591,11 @@ valent_device_manager_ensure_device (ValentDeviceManager *manager,
 
   if (valent_device_manager_lookup (manager, device_id) == NULL)
     {
+      g_autoptr (ValentContext) context = NULL;
       g_autoptr (ValentDevice) device = NULL;
-      g_autoptr (ValentData) data = NULL;
 
-      data = valent_data_new (device_id, manager->data);
-      device = valent_device_new_full (identity, data);
+      context = valent_context_new (manager->context, "device", device_id);
+      device = valent_device_new_full (identity, context);
 
       valent_device_manager_add_device (manager, device);
     }
@@ -637,16 +615,14 @@ valent_device_manager_load_state (ValentDeviceManager *self)
   if (self->state == NULL)
     {
       g_autoptr (JsonParser) parser = NULL;
-      g_autofree char *path = NULL;
+      g_autoptr (GFile) file = NULL;
 
-      path = g_build_filename (valent_data_get_cache_path (self->data),
-                               "devices.json",
-                               NULL);
+      file = valent_context_get_cache_file (self->context, "devices.json");
 
       /* Try to load the state file */
       parser = json_parser_new ();
 
-      if (json_parser_load_from_file (parser, path, NULL))
+      if (json_parser_load_from_file (parser, g_file_peek_path (file), NULL))
         self->state = json_parser_steal_root (parser);
 
       if (self->state == NULL || !JSON_NODE_HOLDS_OBJECT (self->state))
@@ -668,7 +644,7 @@ static void
 valent_device_manager_save_state (ValentDeviceManager *self)
 {
   g_autoptr (JsonGenerator) generator = NULL;
-  g_autofree char *path = NULL;
+  g_autoptr (GFile) file = NULL;
   g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
@@ -678,11 +654,9 @@ valent_device_manager_save_state (ValentDeviceManager *self)
                             "root",   self->state,
                             NULL);
 
-  path = g_build_filename (valent_data_get_cache_path (self->data),
-                           "devices.json",
-                           NULL);
+  file = valent_context_get_cache_file (self->context, "devices.json");
 
-  if (!json_generator_to_file (generator, path, &error))
+  if (!json_generator_to_file (generator, g_file_peek_path (file), &error))
     g_warning ("%s(): %s", G_STRFUNC, error->message);
 }
 
@@ -700,7 +674,7 @@ valent_device_manager_initable_init (GInitable     *initable,
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
 
   /* Generate certificate */
-  path = valent_data_get_config_path (self->data);
+  path = valent_context_get_config_path (self->context);
   self->certificate = valent_certificate_new_sync (path, error);
 
   if (self->certificate == NULL)
@@ -760,7 +734,7 @@ valent_device_manager_init_async (GAsyncInitable      *initable,
   g_task_set_priority (task, io_priority);
   g_task_set_source_tag (task, valent_device_manager_init_async);
 
-  path = valent_data_get_config_path (self->data);
+  path = valent_context_get_config_path (self->context);
   valent_certificate_new (path,
                           destroy,
                           valent_certificate_new_cb,
@@ -793,12 +767,13 @@ valent_device_manager_finalize (GObject *object)
   ValentDeviceManager *self = VALENT_DEVICE_MANAGER (object);
 
   g_clear_pointer (&self->exported, g_hash_table_unref);
-  g_clear_pointer (&self->services, g_hash_table_unref);
+  g_clear_pointer (&self->plugins, g_hash_table_unref);
+  g_clear_pointer (&self->plugins_context, g_object_unref);
   g_clear_pointer (&self->devices, g_ptr_array_unref);
   g_clear_pointer (&self->state, json_node_unref);
 
   g_clear_object (&self->certificate);
-  g_clear_object (&self->data);
+  g_clear_object (&self->context);
   g_clear_pointer (&self->name, g_free);
 
   G_OBJECT_CLASS (valent_device_manager_parent_class)->finalize (object);
@@ -873,13 +848,11 @@ valent_device_manager_class_init (ValentDeviceManagerClass *klass)
 static void
 valent_device_manager_init (ValentDeviceManager *self)
 {
-  self->data = valent_data_new (NULL, NULL);
+  self->context = valent_context_new (NULL, NULL, NULL);
   self->devices = g_ptr_array_new_with_free_func (g_object_unref);
-  self->services = g_hash_table_new_full (NULL,
-                                          NULL,
-                                          NULL,
-                                          channel_service_free);
   self->exported = g_hash_table_new (NULL, NULL);
+  self->plugins = g_hash_table_new_full (NULL, NULL, NULL, manager_plugin_free);
+  self->plugins_context = valent_context_new (self->context, "network", NULL);
 }
 
 /**
@@ -1026,20 +999,20 @@ void
 valent_device_manager_refresh (ValentDeviceManager *manager)
 {
   GHashTableIter iter;
-  ChannelService *service;
+  ValentPlugin *plugin;
 
   VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_DEVICE_MANAGER (manager));
 
-  g_hash_table_iter_init (&iter, manager->services);
+  g_hash_table_iter_init (&iter, manager->plugins);
 
-  while (g_hash_table_iter_next (&iter, NULL, (void **)&service))
+  while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
     {
-      if (service->extension == NULL)
+      if (plugin->extension == NULL)
         continue;
 
-      valent_channel_service_identify (VALENT_CHANNEL_SERVICE (service->extension),
+      valent_channel_service_identify (VALENT_CHANNEL_SERVICE (plugin->extension),
                                        NULL);
     }
 
@@ -1141,7 +1114,7 @@ valent_device_manager_stop (ValentDeviceManager *manager)
   /* Stop and remove services */
   engine = valent_get_plugin_engine ();
   g_signal_handlers_disconnect_by_data (engine, manager);
-  g_hash_table_remove_all (manager->services);
+  g_hash_table_remove_all (manager->plugins);
 
   /* Remove any devices */
   n_devices = manager->devices->len;

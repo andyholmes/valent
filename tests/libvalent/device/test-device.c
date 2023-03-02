@@ -175,7 +175,7 @@ static void
 test_device_basic (DeviceFixture *fixture,
                    gconstpointer  user_data)
 {
-  g_autoptr (ValentData) data = NULL;
+  g_autoptr (ValentContext) context = NULL;
   g_autofree char *id = NULL;
   g_autofree char *name = NULL;
   g_autofree char *icon_name = NULL;
@@ -185,7 +185,7 @@ test_device_basic (DeviceFixture *fixture,
 
   /* Test properties */
   g_object_get (fixture->device,
-                "data",             &data,
+                "context",          &context,
                 "id",               &id,
                 "name",             &name,
                 "plugins",          &plugins,
@@ -194,7 +194,7 @@ test_device_basic (DeviceFixture *fixture,
                 "state",            &state,
                 NULL);
 
-  g_assert_true (VALENT_IS_DATA (data));
+  g_assert_true (VALENT_IS_CONTEXT (context));
   g_assert_cmpstr (id, ==, "test-device");
   g_assert_cmpstr (valent_device_get_id (fixture->device), ==, "test-device");
   g_assert_cmpstr (name, ==, "Test Device");

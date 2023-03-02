@@ -38,7 +38,7 @@ typedef struct
 {
   PeasPluginInfo *plugin_info;
 
-  ValentData     *data;
+  ValentContext  *context;
   char           *id;
   JsonNode       *identity;
   char           *name;
@@ -57,7 +57,7 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentChannelService, valent_channel_servic
 
 enum {
   PROP_0,
-  PROP_DATA,
+  PROP_CONTEXT,
   PROP_ID,
   PROP_IDENTITY,
   PROP_NAME,
@@ -340,8 +340,16 @@ valent_channel_service_constructed (GObject *object)
   ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (self);
 
   /* Ensure we have a data manager */
-  if (priv->data == NULL)
-    priv->data = valent_data_new (NULL, NULL);
+  if (priv->context == NULL)
+    {
+      const char *id = NULL;
+
+      id = peas_plugin_info_get_module_name (priv->plugin_info);
+      priv->context = g_object_new (VALENT_TYPE_CONTEXT,
+                                    "domain", "network",
+                                    "id",     id,
+                                    NULL);
+    }
 
   valent_channel_service_build_identity (self);
 
@@ -354,7 +362,7 @@ valent_channel_service_finalize (GObject *object)
   ValentChannelService *self = VALENT_CHANNEL_SERVICE (object);
   ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (self);
 
-  g_clear_object (&priv->data);
+  g_clear_object (&priv->context);
   g_clear_pointer (&priv->id, g_free);
   g_clear_pointer (&priv->identity, json_node_unref);
   g_clear_pointer (&priv->name, g_free);
@@ -373,8 +381,8 @@ valent_channel_service_get_property (GObject    *object,
 
   switch (prop_id)
     {
-    case PROP_DATA:
-      g_value_set_object (value, priv->data);
+    case PROP_CONTEXT:
+      g_value_set_object (value, priv->context);
       break;
 
     case PROP_ID:
@@ -409,8 +417,8 @@ valent_channel_service_set_property (GObject      *object,
 
   switch (prop_id)
     {
-    case PROP_DATA:
-      priv->data = g_value_dup_object (value);
+    case PROP_CONTEXT:
+      priv->context = g_value_dup_object (value);
       break;
 
     case PROP_ID:
@@ -445,15 +453,15 @@ valent_channel_service_class_init (ValentChannelServiceClass *klass)
   service_class->identify = valent_channel_service_real_identify;
 
   /**
-   * ValentChannelService:data:
+   * ValentChannelService:context:
    *
    * The data context.
    *
    * Since: 1.0
    */
-  properties [PROP_DATA] =
-    g_param_spec_object ("data", NULL, NULL,
-                         VALENT_TYPE_DATA,
+  properties [PROP_CONTEXT] =
+    g_param_spec_object ("context", NULL, NULL,
+                         VALENT_TYPE_CONTEXT,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |

@@ -93,19 +93,21 @@ valent_contacts_preferences_create_row_func (gpointer item,
   ValentContactsPreferences *self = VALENT_CONTACTS_PREFERENCES (user_data);
   ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
   ValentContactStore *store = VALENT_CONTACT_STORE (item);
+  ValentContext *context = NULL;
+  const char *device_id = NULL;
   GSettings *settings;
   GtkWidget *row;
   GtkWidget *check;
   const char *icon_name;
   const char *uid;
   g_autofree char *local_uid = NULL;
-  g_autofree char *device_id = NULL;
 
   g_assert (VALENT_IS_CONTACT_STORE (store));
   g_assert (VALENT_IS_CONTACTS_PREFERENCES (self));
 
   /* FIXME: select an icon name for the addressbook type */
-  g_object_get (page, "device-id", &device_id, NULL);
+  context = valent_device_preferences_page_get_context (page);
+  device_id = valent_context_get_id (context);
   uid = valent_contact_store_get_uid (store);
 
   if (g_strcmp0 (device_id, uid) == 0)
