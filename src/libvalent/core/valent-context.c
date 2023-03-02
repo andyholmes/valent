@@ -667,6 +667,29 @@ valent_context_get_plugin_settings (ValentContext  *context,
 }
 
 /**
+ * valent_context_get_root:
+ *
+ * Get the root context.
+ *
+ * Returns: (transfer none): a `ValentContext`
+ *
+ * Since: 1.0
+ */
+ValentContext *
+valent_context_get_root (ValentContext *context)
+{
+  ValentContextPrivate *priv = valent_context_get_instance_private (context);
+  ValentContext *root = context;
+
+  g_return_val_if_fail (VALENT_IS_CONTEXT (context), NULL);
+
+  if (priv->parent != NULL)
+    root = valent_context_get_root (context);
+
+  return root;
+}
+
+/**
  * valent_context_create_settings:
  * @context: a #ValentContext
  * @schema_id: a `GSettings` schema ID
