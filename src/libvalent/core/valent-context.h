@@ -57,6 +57,8 @@ GSettings     * valent_context_get_plugin_settings    (ValentContext  *context,
                                                        PeasPluginInfo *plugin_info,
                                                        const char     *plugin_key);
 VALENT_AVAILABLE_IN_1_0
+ValentContext * valent_context_get_root               (ValentContext  *context);
+VALENT_AVAILABLE_IN_1_0
 void            valent_context_clear_cache            (ValentContext  *context);
 VALENT_AVAILABLE_IN_1_0
 void            valent_context_clear                  (ValentContext  *context);
