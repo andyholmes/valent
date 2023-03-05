@@ -10,6 +10,8 @@
 
 #include "valent-gdk-clipboard.h"
 
+#define CLIPBOARD_MAXSIZE (16 * 1024)
+
 
 struct _ValentGdkClipboard
 {
@@ -49,6 +51,74 @@ on_changed (GdkClipboard       *clipboard,
   valent_clipboard_adapter_changed (adapter);
 }
 
+static void
+g_input_stream_read_bytes_cb (GInputStream *stream,
+                              GAsyncResult *result,
+                              gpointer      user_data)
+{
+  g_autoptr (GTask) task = G_TASK (user_data);
+  g_autoptr (GBytes) bytes = NULL;
+  g_autoptr (GError) error = NULL;
+
+  bytes = g_input_stream_read_bytes_finish (stream, result, &error);
+
+  if (bytes == NULL)
+    return g_task_return_error (task, g_steal_pointer (&error));
+
+  g_task_return_pointer (task,
+                         g_bytes_ref (bytes),
+                         (GDestroyNotify)g_bytes_unref);
+}
+
+static void
+gdk_clipboard_read_cb (GdkClipboard *clipboard,
+                       GAsyncResult *result,
+                       gpointer      user_data)
+{
+  g_autoptr (GTask) task = G_TASK (user_data);
+  GCancellable *cancellable = g_task_get_cancellable (task);
+  g_autoptr (GInputStream) input = NULL;
+  const char *mimetype = NULL;
+  g_autoptr (GError) error = NULL;
+
+  g_assert (GDK_IS_CLIPBOARD (clipboard));
+  g_assert (g_task_is_valid (result, clipboard));
+
+  input = gdk_clipboard_read_finish (clipboard, result, &mimetype, &error);
+
+  if (input == NULL)
+    return g_task_return_error (task, g_steal_pointer (&error));
+
+  g_input_stream_read_bytes_async (input,
+                                   G_PRIORITY_DEFAULT,
+                                   CLIPBOARD_MAXSIZE,
+                                   cancellable,
+                                   (GAsyncReadyCallback)g_input_stream_read_bytes_cb,
+                                   g_steal_pointer (&task));
+}
+
+static void
+gdk_clipboard_read_text_cb (GdkClipboard *clipboard,
+                            GAsyncResult *result,
+                            gpointer      user_data)
+{
+  g_autoptr (GTask) task = G_TASK (user_data);
+  char *text = NULL;
+  GError *error = NULL;
+
+  g_assert (GDK_IS_CLIPBOARD (clipboard));
+  g_assert (g_task_is_valid (result, clipboard));
+
+  text = gdk_clipboard_read_text_finish (clipboard, result, &error);
+
+  if (text == NULL)
+    return g_task_return_error (task, error);
+
+  g_task_return_pointer (task,
+                         g_bytes_new_take (text, strlen (text) + 1),
+                         (GDestroyNotify)g_bytes_unref);
+}
+
 /*
  * ValentClipboardAdapter
  */
@@ -82,52 +152,6 @@ valent_gdk_clipboard_get_timestamp (ValentClipboardAdapter *adapter)
 }
 
 static void
-gdk_clipboard_read_text_cb (GdkClipboard *clipboard,
-                            GAsyncResult *result,
-                            gpointer      user_data)
-{
-  g_autoptr (GTask) task = G_TASK (user_data);
-  char *text = NULL;
-  GError *error = NULL;
-
-  g_assert (GDK_IS_CLIPBOARD (clipboard));
-  g_assert (g_task_is_valid (result, clipboard));
-
-  text = gdk_clipboard_read_text_finish (clipboard, result, &error);
-
-  if (text == NULL)
-    return g_task_return_error (task, error);
-
-  g_task_return_pointer (task,
-                         g_bytes_new_take (text, strlen (text) + 1),
-                         (GDestroyNotify)g_bytes_unref);
-}
-
-static void
-gdk_content_provider_write_mime_type_cb (GdkContentProvider *content,
-                                         GAsyncResult       *result,
-                                         gpointer            user_data)
-{
-  g_autoptr (GTask) task = G_TASK (user_data);
-  GCancellable *cancellable = g_task_get_cancellable (task);
-  GMemoryOutputStream *stream = g_task_get_task_data (task);
-  g_autoptr (GError) error = NULL;
-
-  g_assert (GDK_IS_CONTENT_PROVIDER (content));
-  g_assert (g_task_is_valid (result, content));
-
-  if (!gdk_content_provider_write_mime_type_finish (content, result, &error))
-    return g_task_return_error (task, g_steal_pointer (&error));
-
-  if (!g_output_stream_close (G_OUTPUT_STREAM (stream), cancellable, &error))
-    return g_task_return_error (task, g_steal_pointer (&error));
-
-  g_task_return_pointer (task,
-                         g_memory_output_stream_steal_as_bytes (stream),
-                         (GDestroyNotify)g_bytes_unref);
-}
-
-static void
 valent_gdk_clipboard_read_bytes (ValentClipboardAdapter *adapter,
                                  const char             *mimetype,
                                  GCancellable           *cancellable,
@@ -136,9 +160,7 @@ valent_gdk_clipboard_read_bytes (ValentClipboardAdapter *adapter,
 {
   ValentGdkClipboard *self = VALENT_GDK_CLIPBOARD (adapter);
   g_autoptr (GTask) task = NULL;
-  g_autoptr (GdkContentFormats) formats = NULL;
-  g_autoptr (GOutputStream) stream = NULL;
-  GdkContentProvider *content = NULL;
+  GdkContentFormats *formats = NULL;
 
   g_assert (VALENT_IS_GDK_CLIPBOARD (self));
   g_assert (mimetype != NULL && *mimetype != '\0');
@@ -150,16 +172,6 @@ valent_gdk_clipboard_read_bytes (ValentClipboardAdapter *adapter,
                                G_IO_ERROR,
                                G_IO_ERROR_NOT_SUPPORTED,
                                "Clipboard not available");
-      return;
-    }
-
-  if ((content = gdk_clipboard_get_content (self->clipboard)) == NULL)
-    {
-      g_task_report_new_error (adapter, callback, user_data,
-                               valent_gdk_clipboard_read_bytes,
-                               G_IO_ERROR,
-                               G_IO_ERROR_NOT_SUPPORTED,
-                               "Clipboard empty");
       return;
     }
 
@@ -176,7 +188,15 @@ valent_gdk_clipboard_read_bytes (ValentClipboardAdapter *adapter,
       return;
     }
 
-  formats = gdk_content_provider_ref_formats (content);
+  if ((formats = gdk_clipboard_get_formats (self->clipboard)) == NULL)
+    {
+      g_task_report_new_error (adapter, callback, user_data,
+                               valent_gdk_clipboard_read_bytes,
+                               G_IO_ERROR,
+                               G_IO_ERROR_NOT_SUPPORTED,
+                               "Clipboard empty");
+      return;
+    }
 
   if (!gdk_content_formats_contain_mime_type (formats, mimetype))
     {
@@ -189,18 +209,16 @@ valent_gdk_clipboard_read_bytes (ValentClipboardAdapter *adapter,
       return;
     }
 
-  stream = g_memory_output_stream_new_resizable ();
   task = g_task_new (adapter, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_gdk_clipboard_read_bytes);
-  g_task_set_task_data (task, g_object_ref (stream), g_object_unref);
+  g_task_set_task_data (task, g_strdup (mimetype), g_free);
 
-  gdk_content_provider_write_mime_type_async (content,
-                                              mimetype,
-                                              stream,
-                                              G_PRIORITY_DEFAULT,
-                                              cancellable,
-                                              (GAsyncReadyCallback)gdk_content_provider_write_mime_type_cb,
-                                              g_steal_pointer (&task));
+  gdk_clipboard_read_async (self->clipboard,
+                            (const char *[]){ mimetype, NULL },
+                            G_PRIORITY_DEFAULT,
+                            cancellable,
+                            (GAsyncReadyCallback)gdk_clipboard_read_cb,
+                            g_steal_pointer (&task));
 }
 
 static void
