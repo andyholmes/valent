@@ -81,7 +81,6 @@ gdk_content_provider_write_mime_type_cb (GdkContentProvider *content,
   g_autoptr (GTask) task = G_TASK (user_data);
   GCancellable *cancellable = g_task_get_cancellable (task);
   GMemoryOutputStream *stream = g_task_get_task_data (task);
-  g_autoptr (GBytes) bytes = NULL;
   g_autoptr (GError) error = NULL;
 
   g_assert (GDK_IS_CONTENT_PROVIDER (content));
@@ -93,9 +92,8 @@ gdk_content_provider_write_mime_type_cb (GdkContentProvider *content,
   if (!g_output_stream_close (G_OUTPUT_STREAM (stream), cancellable, &error))
     return g_task_return_error (task, g_steal_pointer (&error));
 
-  bytes = g_memory_output_stream_steal_as_bytes (stream);
   g_task_return_pointer (task,
-                         g_steal_pointer (&bytes),
+                         g_memory_output_stream_steal_as_bytes (stream),
                          (GDestroyNotify)g_bytes_unref);
 }
 
@@ -130,7 +128,7 @@ valent_gdk_clipboard_read_bytes (ValentClipboardAdapter *adapter,
       g_task_report_new_error (adapter, callback, user_data,
                                valent_gdk_clipboard_read_bytes,
                                G_IO_ERROR,
-                               G_IO_ERROR_NOT_FOUND,
+                               G_IO_ERROR_NOT_SUPPORTED,
                                "Clipboard empty");
       return;
     }

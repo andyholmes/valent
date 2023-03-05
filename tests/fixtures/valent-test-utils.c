@@ -255,7 +255,6 @@ valent_test_mock_settings (const char *domain)
   g_assert (domain != NULL && *domain != '\0');
 
   path = g_strdup_printf ("/ca/andyholmes/valent/%s/plugin/mock/", domain);
-  g_message ("%s: %s", G_STRFUNC, path);
 
   return g_settings_new_with_path ("ca.andyholmes.Valent.Plugin", path);
 }
