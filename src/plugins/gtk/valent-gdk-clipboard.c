@@ -46,17 +46,15 @@ static GStrv
 valent_gdk_clipboard_get_mimetypes (ValentClipboardAdapter *adapter)
 {
   ValentGdkClipboard *self = VALENT_GDK_CLIPBOARD (adapter);
-  g_autoptr (GdkContentFormats) formats = NULL;
-  GdkContentProvider *content = NULL;
+  GdkContentFormats *formats = NULL;
   const char * const *mimetypes = NULL;
 
   g_assert (VALENT_IS_GDK_CLIPBOARD (self));
   g_return_val_if_fail (GDK_IS_CLIPBOARD (self->clipboard), NULL);
 
-  if ((content = gdk_clipboard_get_content (self->clipboard)) == NULL)
+  if ((formats = gdk_clipboard_get_formats (self->clipboard)) == NULL)
     return NULL;
 
-  formats = gdk_content_provider_ref_formats (content);
   mimetypes = gdk_content_formats_get_mime_types (formats, NULL);
 
   return g_strdupv ((char **)mimetypes);
