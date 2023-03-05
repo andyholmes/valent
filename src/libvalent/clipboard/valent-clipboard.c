@@ -45,6 +45,16 @@ static guint signals[N_SIGNALS] = { 0, };
 
 static ValentClipboard *default_clipboard = NULL;
 
+static const char * const text_mimetypes[] = {
+  "text/plain;charset=utf-8",
+  "text/plain",
+  "UTF8_STRING",
+  "STRING",
+  "TEXT",
+  "COMPOUND_TEXT",
+  NULL,
+};
+
 
 static void
 valent_clipboard_adapter_read_bytes_cb (ValentClipboardAdapter *adapter,
@@ -92,34 +102,24 @@ valent_clipboard_adapter_read_text_cb (ValentClipboardAdapter *adapter,
 {
   g_autoptr (GTask) task = G_TASK (user_data);
   g_autoptr (GError) error = NULL;
-  g_autofree char *text = NULL;
+  g_autoptr (GBytes) bytes = NULL;
+  const char *data = NULL;
+  gsize size;
 
   g_assert (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
   g_assert (g_task_is_valid (result, adapter));
 
-  text = valent_clipboard_adapter_read_text_finish (adapter, result, &error);
+  bytes = valent_clipboard_adapter_read_bytes_finish (adapter, result, &error);
 
-  if (text == NULL)
+  if (bytes == NULL)
     return g_task_return_error (task, g_steal_pointer (&error));
 
-  g_task_return_pointer (task, g_steal_pointer (&text), g_free);
-}
+  data = g_bytes_get_data (bytes, &size);
 
-static void
-valent_clipboard_adapter_write_text_cb (ValentClipboardAdapter *adapter,
-                                        GAsyncResult           *result,
-                                        gpointer                user_data)
-{
-  g_autoptr (GTask) task = G_TASK (user_data);
-  g_autoptr (GError) error = NULL;
-
-  g_assert (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
-  g_assert (g_task_is_valid (result, adapter));
-
-  if (!valent_clipboard_adapter_write_text_finish (adapter, result, &error))
-    return g_task_return_error (task, g_steal_pointer (&error));
-
-  g_task_return_boolean (task, TRUE);
+  if (size > 0 && data[size - 1] == '\0')
+    g_task_return_pointer (task, g_strdup (data), g_free);
+  else
+    g_task_return_pointer (task, g_strndup (data, size), g_free);
 }
 
 static void
@@ -462,6 +462,8 @@ valent_clipboard_read_text (ValentClipboard     *clipboard,
                             gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
+  g_auto (GStrv) mimetypes = NULL;
+  const char *mimetype = NULL;
 
   VALENT_ENTRY;
 
@@ -478,12 +480,36 @@ valent_clipboard_read_text (ValentClipboard     *clipboard,
       return;
     }
 
+  mimetypes = valent_clipboard_adapter_get_mimetypes (clipboard->default_adapter);
+
+  if (mimetypes != NULL)
+    {
+      for (unsigned int i = 0; i < G_N_ELEMENTS (text_mimetypes); i++)
+        {
+          const char *text_mimetype = text_mimetypes[i];
+
+          if (g_strv_contains ((const char * const *)mimetypes, text_mimetype))
+            {
+              mimetype = text_mimetypes[i];
+              break;
+            }
+        }
+    }
+
+  if (mimetype == NULL)
+    return g_task_report_new_error (clipboard, callback, user_data,
+                                    valent_clipboard_read_text,
+                                    G_IO_ERROR,
+                                    G_IO_ERROR_NOT_SUPPORTED,
+                                    "text not available");
+
   task = g_task_new (clipboard, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_clipboard_read_text);
-  valent_clipboard_adapter_read_text (clipboard->default_adapter,
-                                      cancellable,
-                                      (GAsyncReadyCallback)valent_clipboard_adapter_read_text_cb,
-                                      g_steal_pointer (&task));
+  valent_clipboard_adapter_read_bytes (clipboard->default_adapter,
+                                       mimetype,
+                                       cancellable,
+                                       (GAsyncReadyCallback)valent_clipboard_adapter_read_text_cb,
+                                       g_steal_pointer (&task));
 
   VALENT_EXIT;
 }
@@ -521,7 +547,7 @@ valent_clipboard_read_text_finish (ValentClipboard  *clipboard,
 /**
  * valent_clipboard_write_text:
  * @clipboard: a #ValentClipboard
- * @text: (nullable): text content
+ * @text: text content
  * @cancellable: (nullable): a #GCancellable
  * @callback: (scope async): a #GAsyncReadyCallback
  * @user_data: (closure): user supplied data
@@ -540,11 +566,13 @@ valent_clipboard_write_text (ValentClipboard     *clipboard,
                              gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
+  g_autoptr (GBytes) bytes = NULL;
 
   VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_CLIPBOARD (clipboard));
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+  g_return_if_fail (text != NULL);
 
   if G_UNLIKELY (clipboard->default_adapter == NULL)
     {
@@ -558,11 +586,14 @@ valent_clipboard_write_text (ValentClipboard     *clipboard,
 
   task = g_task_new (clipboard, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_clipboard_write_text);
-  valent_clipboard_adapter_write_text (clipboard->default_adapter,
-                                       text,
-                                       cancellable,
-                                       (GAsyncReadyCallback)valent_clipboard_adapter_write_text_cb,
-                                       g_steal_pointer (&task));
+
+  bytes = g_bytes_new (text, strlen (text) + 1);
+  valent_clipboard_adapter_write_bytes (clipboard->default_adapter,
+                                        "text/plain;charset=utf-8",
+                                        bytes,
+                                        cancellable,
+                                        (GAsyncReadyCallback)valent_clipboard_adapter_write_bytes_cb,
+                                        g_steal_pointer (&task));
 
   VALENT_EXIT;
 }
