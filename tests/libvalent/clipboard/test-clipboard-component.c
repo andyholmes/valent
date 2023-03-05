@@ -70,34 +70,6 @@ valent_clipboard_adapter_write_bytes_cb (ValentClipboardAdapter    *adapter,
 }
 
 static void
-valent_clipboard_adapter_read_text_cb (ValentClipboardAdapter    *adapter,
-                                       GAsyncResult              *result,
-                                       ClipboardComponentFixture *fixture)
-{
-  GError *error = NULL;
-
-  fixture->data = valent_clipboard_adapter_read_text_finish (adapter,
-                                                             result,
-                                                             &error);
-  g_assert_no_error (error);
-  g_main_loop_quit (fixture->loop);
-}
-
-static void
-valent_clipboard_adapter_write_text_cb (ValentClipboardAdapter    *adapter,
-                                        GAsyncResult              *result,
-                                        ClipboardComponentFixture *fixture)
-{
-  gboolean ret;
-  GError *error = NULL;
-
-  ret = valent_clipboard_adapter_write_text_finish (adapter, result, &error);
-  g_assert_true (ret);
-  g_assert_no_error (error);
-  g_main_loop_quit (fixture->loop);
-}
-
-static void
 valent_clipboard_read_bytes_cb (ValentClipboard           *clipboard,
                                 GAsyncResult              *result,
                                 ClipboardComponentFixture *fixture)
@@ -191,37 +163,6 @@ test_clipboard_component_adapter (ClipboardComponentFixture *fixture,
                    g_bytes_get_data (fixture->data, NULL),
                    g_bytes_get_size (fixture->data));
   g_clear_pointer (&fixture->data, g_bytes_unref);
-
-  /* Timestamp is updated */
-  timestamp = valent_clipboard_adapter_get_timestamp (fixture->adapter);
-  g_assert_cmpint (timestamp, !=, 0);
-
-  /* Mimetypes are updated */
-  mimetypes = valent_clipboard_adapter_get_mimetypes (fixture->adapter);
-  g_assert_nonnull (mimetypes);
-  g_assert_true (g_strv_contains ((const char * const *)mimetypes,
-                                  "text/plain;charset=utf-8"));
-  g_clear_pointer (&mimetypes, g_strfreev);
-
-  /* Text can be written */
-  text = g_uuid_string_random ();
-  valent_clipboard_adapter_write_text (fixture->adapter,
-                                       text,
-                                       NULL,
-                                       (GAsyncReadyCallback)valent_clipboard_adapter_write_text_cb,
-                                       fixture);
-  g_main_loop_run (fixture->loop);
-
-  /* Text can be read */
-  valent_clipboard_adapter_read_text (fixture->adapter,
-                                      NULL,
-                                      (GAsyncReadyCallback)valent_clipboard_adapter_read_text_cb,
-                                      fixture);
-  g_main_loop_run (fixture->loop);
-
-  g_assert_cmpstr (fixture->data, ==, text);
-  g_clear_pointer (&fixture->data, g_free);
-  g_clear_pointer (&text, g_free);
 
   /* Timestamp is updated */
   timestamp = valent_clipboard_adapter_get_timestamp (fixture->adapter);

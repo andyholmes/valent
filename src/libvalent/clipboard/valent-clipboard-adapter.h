@@ -40,21 +40,6 @@ struct _ValentClipboardAdapterClass
   gboolean            (*write_bytes_finish) (ValentClipboardAdapter  *adapter,
                                              GAsyncResult            *result,
                                              GError                 **error);
-  void                (*read_text)          (ValentClipboardAdapter  *adapter,
-                                             GCancellable            *cancellable,
-                                             GAsyncReadyCallback      callback,
-                                             gpointer                 user_data);
-  char              * (*read_text_finish)   (ValentClipboardAdapter  *adapter,
-                                             GAsyncResult            *result,
-                                             GError                 **error);
-  void                (*write_text)         (ValentClipboardAdapter  *adapter,
-                                             const char              *text,
-                                             GCancellable            *cancellable,
-                                             GAsyncReadyCallback      callback,
-                                             gpointer                 user_data);
-  gboolean            (*write_text_finish)  (ValentClipboardAdapter  *adapter,
-                                             GAsyncResult            *result,
-                                             GError                 **error);
 
   /* signals */
   void                (*changed)            (ValentClipboardAdapter  *adapter);
@@ -88,25 +73,6 @@ void       valent_clipboard_adapter_write_bytes        (ValentClipboardAdapter  
                                                         gpointer                 user_data);
 VALENT_AVAILABLE_IN_1_0
 gboolean   valent_clipboard_adapter_write_bytes_finish (ValentClipboardAdapter  *adapter,
-                                                        GAsyncResult            *result,
-                                                        GError                 **error);
-VALENT_AVAILABLE_IN_1_0
-void       valent_clipboard_adapter_read_text          (ValentClipboardAdapter  *adapter,
-                                                        GCancellable            *cancellable,
-                                                        GAsyncReadyCallback      callback,
-                                                        gpointer                 user_data);
-VALENT_AVAILABLE_IN_1_0
-char     * valent_clipboard_adapter_read_text_finish   (ValentClipboardAdapter  *adapter,
-                                                        GAsyncResult            *result,
-                                                        GError                 **error);
-VALENT_AVAILABLE_IN_1_0
-void      valent_clipboard_adapter_write_text          (ValentClipboardAdapter  *adapter,
-                                                        const char              *text,
-                                                        GCancellable            *cancellable,
-                                                        GAsyncReadyCallback      callback,
-                                                        gpointer                 user_data);
-VALENT_AVAILABLE_IN_1_0
-gboolean   valent_clipboard_adapter_write_text_finish  (ValentClipboardAdapter  *adapter,
                                                         GAsyncResult            *result,
                                                         GError                 **error);
 

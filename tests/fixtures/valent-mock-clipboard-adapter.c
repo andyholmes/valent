@@ -15,7 +15,7 @@ struct _ValentMockClipboardAdapter
 {
   ValentClipboardAdapter  parent_instance;
 
-  char                   *text;
+  GBytes                 *content;
   GStrv                   mimetypes;
   gint64                  timestamp;
 };
@@ -60,9 +60,10 @@ valent_mock_clipboard_adapter_read_bytes (ValentClipboardAdapter *adapter,
   g_assert (mimetype != NULL && *mimetype != '\0');
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  if (self->text == NULL)
+  if (self->content == NULL)
     {
-      g_task_return_new_error (task,
+      g_task_report_new_error (adapter, callback, user_data,
+                               valent_mock_clipboard_adapter_read_bytes,
                                G_IO_ERROR,
                                G_IO_ERROR_NOT_FOUND,
                                "Clipboard empty");
@@ -72,7 +73,7 @@ valent_mock_clipboard_adapter_read_bytes (ValentClipboardAdapter *adapter,
   task = g_task_new (self, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_mock_clipboard_adapter_read_bytes);
   g_task_return_pointer (task,
-                         g_bytes_new (self->text, strlen (self->text) + 1),
+                         g_bytes_ref (self->content),
                          (GDestroyNotify)g_bytes_unref);
 }
 
@@ -86,77 +87,27 @@ valent_mock_clipboard_adapter_write_bytes (ValentClipboardAdapter *adapter,
 {
   ValentMockClipboardAdapter *self = VALENT_MOCK_CLIPBOARD_ADAPTER (adapter);
   g_autoptr (GTask) task = NULL;
-  const char *text = NULL;
 
   g_assert (VALENT_IS_MOCK_CLIPBOARD_ADAPTER (self));
   g_assert (bytes == NULL || (mimetype != NULL && *mimetype != '\0'));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  if (bytes != NULL && g_str_has_prefix (mimetype, "text/plain"))
-    text = g_bytes_get_data (bytes, NULL);
-
-  if (g_strcmp0 (self->text, text) == 0)
-    return;
-
-  g_clear_pointer (&self->mimetypes, g_strfreev);
-  g_clear_pointer (&self->text, g_free);
-
-  self->mimetypes = g_strdupv ((char *[]){"text/plain;charset=utf-8", NULL});
-  self->text = g_strdup (text);
-  self->timestamp = valent_timestamp_ms ();
-
-  valent_clipboard_adapter_changed (adapter);
-
   task = g_task_new (self, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_mock_clipboard_adapter_write_bytes);
-  g_task_return_pointer (task, g_strdup (self->text), g_free);
-}
 
-static void
-valent_mock_clipboard_adapter_read_text (ValentClipboardAdapter *adapter,
-                                         GCancellable           *cancellable,
-                                         GAsyncReadyCallback     callback,
-                                         gpointer                user_data)
-{
-  ValentMockClipboardAdapter *self = VALENT_MOCK_CLIPBOARD_ADAPTER (adapter);
-  g_autoptr (GTask) task = NULL;
+  if (g_bytes_equal (self->content, bytes))
+    return g_task_return_boolean (task, TRUE);
 
-  g_assert (VALENT_IS_MOCK_CLIPBOARD_ADAPTER (self));
-  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-
-  task = g_task_new (self, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_mock_clipboard_adapter_read_text);
-  g_task_return_pointer (task, g_strdup (self->text), g_free);
-}
-
-static void
-valent_mock_clipboard_adapter_write_text (ValentClipboardAdapter *adapter,
-                                          const char             *text,
-                                          GCancellable           *cancellable,
-                                          GAsyncReadyCallback     callback,
-                                          gpointer                user_data)
-{
-  ValentMockClipboardAdapter *self = VALENT_MOCK_CLIPBOARD_ADAPTER (adapter);
-  g_autoptr (GTask) task = NULL;
-
-  g_assert (VALENT_IS_MOCK_CLIPBOARD_ADAPTER (self));
-  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-
-  if (g_strcmp0 (self->text, text) == 0)
-    return;
-
+  g_clear_pointer (&self->content, g_bytes_unref);
   g_clear_pointer (&self->mimetypes, g_strfreev);
-  g_clear_pointer (&self->text, g_free);
 
-  self->mimetypes = g_strdupv ((char *[]){"text/plain;charset=utf-8", NULL});
-  self->text = g_strdup (text);
+  self->content = g_bytes_ref (bytes);
+  self->mimetypes = g_strdupv ((char *[]){(char *)mimetype, NULL});
   self->timestamp = valent_timestamp_ms ();
 
   valent_clipboard_adapter_changed (adapter);
 
-  task = g_task_new (self, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_mock_clipboard_adapter_write_text);
-  g_task_return_pointer (task, g_strdup (self->text), g_free);
+  g_task_return_boolean (task, TRUE);
 }
 
 /*
@@ -167,8 +118,8 @@ valent_mock_clipboard_adapter_finalize (GObject *object)
 {
   ValentMockClipboardAdapter *self = VALENT_MOCK_CLIPBOARD_ADAPTER (object);
 
+  g_clear_pointer (&self->content, g_bytes_unref);
   g_clear_pointer (&self->mimetypes, g_strfreev);
-  g_clear_pointer (&self->text, g_free);
 
   G_OBJECT_CLASS (valent_mock_clipboard_adapter_parent_class)->finalize (object);
 }
@@ -185,14 +136,12 @@ valent_mock_clipboard_adapter_class_init (ValentMockClipboardAdapterClass *klass
   clipboard_class->get_timestamp = valent_mock_clipboard_adapter_get_timestamp;
   clipboard_class->read_bytes = valent_mock_clipboard_adapter_read_bytes;
   clipboard_class->write_bytes = valent_mock_clipboard_adapter_write_bytes;
-  clipboard_class->read_text = valent_mock_clipboard_adapter_read_text;
-  clipboard_class->write_text = valent_mock_clipboard_adapter_write_text;
 }
 
 static void
 valent_mock_clipboard_adapter_init (ValentMockClipboardAdapter *self)
 {
+  self->content = g_bytes_new ("connect", strlen ("connect") + 1);
   self->mimetypes = g_strdupv ((char *[]){"text/plain;charset=utf-8", NULL});
-  self->text = g_strdup ("connect");
 }
 

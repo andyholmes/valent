@@ -50,10 +50,6 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentClipboardAdapter, valent_clipboard_ad
  * @read_bytes_finish: the virtual function pointer for valent_clipboard_adapter_read_bytes_finish()
  * @write_bytes: the virtual function pointer for valent_clipboard_adapter_write_bytes()
  * @write_bytes_finish: the virtual function pointer for valent_clipboard_adapter_write_bytes_finish()
- * @read_text: the virtual function pointer for valent_clipboard_adapter_read_text()
- * @read_text_finish: the virtual function pointer for valent_clipboard_adapter_read_text_finish()
- * @write_text: the virtual function pointer for valent_clipboard_adapter_write_text()
- * @write_text_finish: the virtual function pointer for valent_clipboard_adapter_write_text_finish()
  *
  * The virtual function table for #ValentClipboardAdapter.
  */
@@ -156,62 +152,6 @@ valent_clipboard_adapter_real_write_bytes_finish (ValentClipboardAdapter  *adapt
 }
 
 static void
-valent_clipboard_adapter_real_read_text (ValentClipboardAdapter *adapter,
-                                         GCancellable           *cancellable,
-                                         GAsyncReadyCallback     callback,
-                                         gpointer                user_data)
-{
-  g_task_report_new_error (adapter, callback, user_data,
-                           valent_clipboard_adapter_real_read_text,
-                           G_IO_ERROR,
-                           G_IO_ERROR_NOT_SUPPORTED,
-                           "%s does not implement read_text",
-                           G_OBJECT_TYPE_NAME (adapter));
-}
-
-static char *
-valent_clipboard_adapter_real_read_text_finish (ValentClipboardAdapter  *adapter,
-                                                GAsyncResult            *result,
-                                                GError                 **error)
-{
-  g_assert (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
-  g_assert (g_task_is_valid (result, adapter));
-  g_assert (error == NULL || *error == NULL);
-
-  return g_task_propagate_pointer (G_TASK (result), error);
-}
-
-static void
-valent_clipboard_adapter_real_write_text (ValentClipboardAdapter *adapter,
-                                          const char             *text,
-                                          GCancellable           *cancellable,
-                                          GAsyncReadyCallback     callback,
-                                          gpointer                user_data)
-{
-  g_assert (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
-  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-
-  g_task_report_new_error (adapter, callback, user_data,
-                           valent_clipboard_adapter_real_read_text,
-                           G_IO_ERROR,
-                           G_IO_ERROR_NOT_SUPPORTED,
-                           "%s does not implement write_text",
-                           G_OBJECT_TYPE_NAME (adapter));
-}
-
-static gboolean
-valent_clipboard_adapter_real_write_text_finish (ValentClipboardAdapter  *adapter,
-                                                 GAsyncResult            *result,
-                                                 GError                 **error)
-{
-  g_assert (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
-  g_assert (g_task_is_valid (result, adapter));
-  g_assert (error == NULL || *error == NULL);
-
-  return g_task_propagate_boolean (G_TASK (result), error);
-}
-
-static void
 valent_clipboard_adapter_real_changed (ValentClipboardAdapter *adapter)
 {
   ValentClipboardAdapterPrivate *priv = valent_clipboard_adapter_get_instance_private (adapter);
@@ -280,10 +220,6 @@ valent_clipboard_adapter_class_init (ValentClipboardAdapterClass *klass)
   klass->read_bytes_finish = valent_clipboard_adapter_real_read_bytes_finish;
   klass->write_bytes = valent_clipboard_adapter_real_write_bytes;
   klass->write_bytes_finish = valent_clipboard_adapter_real_write_bytes_finish;
-  klass->read_text = valent_clipboard_adapter_real_read_text;
-  klass->read_text_finish = valent_clipboard_adapter_real_read_text_finish;
-  klass->write_text = valent_clipboard_adapter_real_write_text;
-  klass->write_text_finish = valent_clipboard_adapter_real_write_text_finish;
 
   /**
    * ValentClipboardAdapter:plugin-info:
@@ -535,136 +471,6 @@ valent_clipboard_adapter_write_bytes_finish (ValentClipboardAdapter  *adapter,
   ret = VALENT_CLIPBOARD_ADAPTER_GET_CLASS (adapter)->write_bytes_finish (adapter,
                                                                           result,
                                                                           error);
-
-  VALENT_RETURN (ret);
-}
-
-/**
- * valent_clipboard_adapter_read_text: (virtual read_text)
- * @adapter: a #ValentClipboardAdapter
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
- * @user_data: (closure): user supplied data
- *
- * Get the text content of @adapter.
- *
- * Call [method@Valent.ClipboardAdapter.read_text_finish] to get the result.
- *
- * Since: 1.0
- */
-void
-valent_clipboard_adapter_read_text (ValentClipboardAdapter *adapter,
-                                    GCancellable           *cancellable,
-                                    GAsyncReadyCallback     callback,
-                                    gpointer                user_data)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
-  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-
-  VALENT_CLIPBOARD_ADAPTER_GET_CLASS (adapter)->read_text (adapter,
-                                                           cancellable,
-                                                           callback,
-                                                           user_data);
-  VALENT_EXIT;
-}
-
-/**
- * valent_clipboard_adapter_read_text_finish: (virtual read_text_finish)
- * @adapter: a #ValentClipboardAdapter
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
- *
- * Finish an operation started by [method@Valent.ClipboardAdapter.read_text].
- *
- * Returns: (transfer full) (nullable): text content, or %NULL with @error set
- *
- * Since: 1.0
- */
-char *
-valent_clipboard_adapter_read_text_finish (ValentClipboardAdapter  *adapter,
-                                           GAsyncResult            *result,
-                                           GError                 **error)
-{
-  char *ret;
-
-  VALENT_ENTRY;
-
-  g_return_val_if_fail (VALENT_IS_CLIPBOARD_ADAPTER (adapter), NULL);
-  g_return_val_if_fail (g_task_is_valid (result, adapter), NULL);
-  g_return_val_if_fail (*error == NULL || error == NULL, NULL);
-
-  ret = VALENT_CLIPBOARD_ADAPTER_GET_CLASS (adapter)->read_text_finish (adapter,
-                                                                        result,
-                                                                        error);
-
-  VALENT_RETURN (ret);
-}
-
-/**
- * valent_clipboard_adapter_write_text: (virtual write_text)
- * @adapter: a #ValentClipboardAdapter
- * @text: (nullable): text content
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
- * @user_data: (closure): user supplied data
- *
- * Set the text content of the clipboard.
- *
- * Call [method@Valent.ClipboardAdapter.write_text_finish] to get the result.
- *
- * Since: 1.0
- */
-void
-valent_clipboard_adapter_write_text (ValentClipboardAdapter *adapter,
-                                     const char             *text,
-                                     GCancellable           *cancellable,
-                                     GAsyncReadyCallback     callback,
-                                     gpointer                user_data)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
-  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-
-  VALENT_CLIPBOARD_ADAPTER_GET_CLASS (adapter)->write_text (adapter,
-                                                            text,
-                                                            cancellable,
-                                                            callback,
-                                                            user_data);
-
-  VALENT_EXIT;
-}
-
-/**
- * valent_clipboard_adapter_write_text_finish: (virtual write_text_finish)
- * @adapter: a #ValentClipboardAdapter
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
- *
- * Finish an operation started by [method@Valent.ClipboardAdapter.write_text].
- *
- * Returns: %TRUE if successful, or %FALSE with @error set
- *
- * Since: 1.0
- */
-gboolean
-valent_clipboard_adapter_write_text_finish (ValentClipboardAdapter  *adapter,
-                                            GAsyncResult            *result,
-                                            GError                 **error)
-{
-  gboolean ret;
-
-  VALENT_ENTRY;
-
-  g_return_val_if_fail (VALENT_IS_CLIPBOARD_ADAPTER (adapter), FALSE);
-  g_return_val_if_fail (g_task_is_valid (result, adapter), FALSE);
-  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
-
-  ret = VALENT_CLIPBOARD_ADAPTER_GET_CLASS (adapter)->write_text_finish (adapter,
-                                                                         result,
-                                                                         error);
 
   VALENT_RETURN (ret);
 }
