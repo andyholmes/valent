@@ -392,6 +392,8 @@ valent_window_dispose (GObject *object)
   g_clear_pointer (&self->preferences, gtk_window_destroy);
   g_clear_handle_id (&self->refresh_id, g_source_remove);
 
+  gtk_widget_dispose_template (GTK_WIDGET (object), VALENT_TYPE_WINDOW);
+
   G_OBJECT_CLASS (valent_window_parent_class)->dispose (object);
 }
 

@@ -429,6 +429,9 @@ valent_preferences_window_dispose (GObject *object)
   g_signal_handlers_disconnect_by_data (valent_get_plugin_engine (), self);
   g_clear_object (&self->settings);
 
+  gtk_widget_dispose_template (GTK_WIDGET (object),
+                               VALENT_TYPE_PREFERENCES_WINDOW);
+
   G_OBJECT_CLASS (valent_preferences_window_parent_class)->dispose (object);
 }
 

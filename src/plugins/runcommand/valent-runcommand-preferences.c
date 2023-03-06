@@ -434,6 +434,16 @@ valent_runcommand_preferences_constructed (GObject *object)
 }
 
 static void
+valent_runcommand_preferences_dispose (GObject *object)
+{
+  GtkWidget *widget = GTK_WIDGET (object);
+
+  gtk_widget_dispose_template (widget, VALENT_TYPE_RUNCOMMAND_PREFERENCES);
+
+  G_OBJECT_CLASS (valent_runcommand_preferences_parent_class)->dispose (object);
+}
+
+static void
 valent_runcommand_preferences_finalize (GObject *object)
 {
   ValentRuncommandPreferences *self = VALENT_RUNCOMMAND_PREFERENCES (object);
@@ -450,6 +460,7 @@ valent_runcommand_preferences_class_init (ValentRuncommandPreferencesClass *klas
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
   object_class->constructed = valent_runcommand_preferences_constructed;
+  object_class->dispose = valent_runcommand_preferences_dispose;
   object_class->finalize = valent_runcommand_preferences_finalize;
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/runcommand/valent-runcommand-preferences.ui");

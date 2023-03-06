@@ -657,6 +657,16 @@ valent_sms_window_constructed (GObject *object)
 }
 
 static void
+valent_sms_window_dispose (GObject *object)
+{
+  GtkWidget *widget = GTK_WIDGET (object);
+
+  gtk_widget_dispose_template (widget, VALENT_TYPE_SMS_WINDOW);
+
+  G_OBJECT_CLASS (valent_sms_window_parent_class)->dispose (object);
+}
+
+static void
 valent_sms_window_finalize (GObject *object)
 {
   ValentSmsWindow *self = VALENT_SMS_WINDOW (object);
@@ -720,6 +730,7 @@ valent_sms_window_class_init (ValentSmsWindowClass *klass)
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
   object_class->constructed = valent_sms_window_constructed;
+  object_class->dispose = valent_sms_window_dispose;
   object_class->finalize = valent_sms_window_finalize;
   object_class->get_property = valent_sms_window_get_property;
   object_class->set_property = valent_sms_window_set_property;

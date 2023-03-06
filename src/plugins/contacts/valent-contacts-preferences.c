@@ -205,6 +205,16 @@ valent_contacts_preferences_constructed (GObject *object)
 }
 
 static void
+valent_contacts_preferences_dispose (GObject *object)
+{
+  GtkWidget *widget = GTK_WIDGET (object);
+
+  gtk_widget_dispose_template (widget, VALENT_TYPE_CONTACTS_PREFERENCES);
+
+  G_OBJECT_CLASS (valent_contacts_preferences_parent_class)->dispose (object);
+}
+
+static void
 valent_contacts_preferences_finalize (GObject *object)
 {
   ValentContactsPreferences *self = VALENT_CONTACTS_PREFERENCES (object);
@@ -221,6 +231,7 @@ valent_contacts_preferences_class_init (ValentContactsPreferencesClass *klass)
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
   object_class->constructed = valent_contacts_preferences_constructed;
+  object_class->dispose = valent_contacts_preferences_dispose;
   object_class->finalize = valent_contacts_preferences_finalize;
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/contacts/valent-contacts-preferences.ui");

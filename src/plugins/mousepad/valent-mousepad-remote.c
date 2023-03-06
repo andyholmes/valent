@@ -520,6 +520,8 @@ valent_mousepad_remote_dispose (GObject *object)
 
   valent_mousepad_remote_reset (self);
 
+  gtk_widget_dispose_template (GTK_WIDGET (object), VALENT_TYPE_MOUSEPAD_REMOTE);
+
   G_OBJECT_CLASS (valent_mousepad_remote_parent_class)->dispose (object);
 }
 

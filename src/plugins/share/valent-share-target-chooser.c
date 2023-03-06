@@ -311,6 +311,9 @@ valent_share_target_chooser_dispose (GObject *object)
       g_clear_object (&self->manager);
     }
 
+  gtk_widget_dispose_template (GTK_WIDGET (object),
+                               VALENT_TYPE_SHARE_TARGET_CHOOSER);
+
   G_OBJECT_CLASS (valent_share_target_chooser_parent_class)->dispose (object);
 }
 
