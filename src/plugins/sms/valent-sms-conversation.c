@@ -624,8 +624,8 @@ valent_sms_conversation_dispose (GObject *object)
       g_clear_object (&self->thread);
     }
 
-  g_clear_pointer (&self->message_view, gtk_widget_unparent);
-  g_clear_pointer (&self->message_entry, gtk_widget_unparent);
+  gtk_widget_dispose_template (GTK_WIDGET (object),
+                               VALENT_TYPE_SMS_CONVERSATION);
 
   G_OBJECT_CLASS (valent_sms_conversation_parent_class)->dispose (object);
 }

@@ -125,6 +125,16 @@ valent_share_text_dialog_close_request (GtkWindow *window)
  * GObject
  */
 static void
+valent_share_text_dialog_dispose (GObject *object)
+{
+  GtkWidget *widget = GTK_WIDGET (object);
+
+  gtk_widget_dispose_template (widget, VALENT_TYPE_SHARE_TEXT_DIALOG);
+
+  G_OBJECT_CLASS (valent_share_text_dialog_parent_class)->dispose (object);
+}
+
+static void
 valent_share_text_dialog_finalize (GObject *object)
 {
   ValentShareTextDialog *self = VALENT_SHARE_TEXT_DIALOG (object);
@@ -181,6 +191,7 @@ valent_share_text_dialog_class_init (ValentShareTextDialogClass *klass)
   AdwMessageDialogClass *dialog_class = ADW_MESSAGE_DIALOG_CLASS (klass);
 
   object_class->finalize = valent_share_text_dialog_finalize;
+  object_class->dispose = valent_share_text_dialog_dispose;
   object_class->get_property = valent_share_text_dialog_get_property;
   object_class->set_property = valent_share_text_dialog_set_property;
 

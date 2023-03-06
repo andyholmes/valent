@@ -133,6 +133,16 @@ valent_presenter_remote_constructed (GObject *object)
 }
 
 static void
+valent_presenter_remote_dispose (GObject *object)
+{
+  GtkWidget *widget = GTK_WIDGET (object);
+
+  gtk_widget_dispose_template (widget, VALENT_TYPE_PRESENTER_REMOTE);
+
+  G_OBJECT_CLASS (valent_presenter_remote_parent_class)->dispose (object);
+}
+
+static void
 valent_presenter_remote_get_property (GObject    *object,
                                       guint       prop_id,
                                       GValue     *value,
@@ -177,6 +187,7 @@ valent_presenter_remote_class_init (ValentPresenterRemoteClass *klass)
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
   object_class->constructed = valent_presenter_remote_constructed;
+  object_class->dispose = valent_presenter_remote_dispose;
   object_class->get_property = valent_presenter_remote_get_property;
   object_class->set_property = valent_presenter_remote_set_property;
 

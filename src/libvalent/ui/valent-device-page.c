@@ -255,6 +255,8 @@ valent_device_page_dispose (GObject *object)
   g_clear_pointer (&self->plugins, g_hash_table_unref);
   g_clear_pointer (&self->preferences, gtk_window_destroy);
 
+  gtk_widget_dispose_template (GTK_WIDGET (object), VALENT_TYPE_DEVICE_PAGE);
+
   G_OBJECT_CLASS (valent_device_page_parent_class)->dispose (object);
 }
 

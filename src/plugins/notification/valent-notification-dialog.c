@@ -98,6 +98,16 @@ valent_notification_dialog_set_notification (ValentNotificationDialog *self,
  * GObject
  */
 static void
+valent_notification_dialog_dispose (GObject *object)
+{
+  GtkWidget *widget = GTK_WIDGET (object);
+
+  gtk_widget_dispose_template (widget, VALENT_TYPE_NOTIFICATION_DIALOG);
+
+  G_OBJECT_CLASS (valent_notification_dialog_parent_class)->dispose (object);
+}
+
+static void
 valent_notification_dialog_finalize (GObject *object)
 {
   ValentNotificationDialog *self = VALENT_NOTIFICATION_DIALOG (object);
@@ -160,6 +170,7 @@ valent_notification_dialog_class_init (ValentNotificationDialogClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
+  object_class->dispose = valent_notification_dialog_dispose;
   object_class->finalize = valent_notification_dialog_finalize;
   object_class->get_property = valent_notification_dialog_get_property;
   object_class->set_property = valent_notification_dialog_set_property;

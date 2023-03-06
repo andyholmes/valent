@@ -526,6 +526,8 @@ valent_mpris_remote_dispose (GObject *object)
       g_clear_object (&self->player);
     }
 
+  gtk_widget_dispose_template (GTK_WIDGET (object), VALENT_TYPE_MPRIS_REMOTE);
+
   G_OBJECT_CLASS (valent_mpris_remote_parent_class)->dispose (object);
 }
 

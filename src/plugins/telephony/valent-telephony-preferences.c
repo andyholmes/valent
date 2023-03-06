@@ -175,12 +175,23 @@ valent_telephony_preferences_constructed (GObject *object)
 }
 
 static void
+valent_telephony_preferences_dispose (GObject *object)
+{
+  GtkWidget *widget = GTK_WIDGET (object);
+
+  gtk_widget_dispose_template (widget, VALENT_TYPE_TELEPHONY_PREFERENCES);
+
+  G_OBJECT_CLASS (valent_telephony_preferences_parent_class)->dispose (object);
+}
+
+static void
 valent_telephony_preferences_class_init (ValentTelephonyPreferencesClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
   object_class->constructed = valent_telephony_preferences_constructed;
+  object_class->dispose = valent_telephony_preferences_dispose;
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/telephony/valent-telephony-preferences.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentTelephonyPreferences, ringing_group);

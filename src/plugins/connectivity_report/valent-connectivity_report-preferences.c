@@ -53,12 +53,23 @@ valent_connectivity_report_preferences_constructed (GObject *object)
 }
 
 static void
+valent_connectivity_report_preferences_dispose (GObject *object)
+{
+  GtkWidget *widget = GTK_WIDGET (object);
+
+  gtk_widget_dispose_template (widget, VALENT_TYPE_CONNECTIVITY_REPORT_PREFERENCES);
+
+  G_OBJECT_CLASS (valent_connectivity_report_preferences_parent_class)->dispose (object);
+}
+
+static void
 valent_connectivity_report_preferences_class_init (ValentConnectivityReportPreferencesClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
   object_class->constructed = valent_connectivity_report_preferences_constructed;
+  object_class->dispose = valent_connectivity_report_preferences_dispose;
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/connectivity_report/valent-connectivity_report-preferences.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentConnectivityReportPreferences, share_state_row);
