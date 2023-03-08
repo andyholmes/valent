@@ -20,14 +20,14 @@ VALENT_AVAILABLE_IN_1_0
 G_DECLARE_FINAL_TYPE (ValentDeviceTransfer, valent_device_transfer, VALENT, DEVICE_TRANSFER, ValentTransfer)
 
 VALENT_AVAILABLE_IN_1_0
-ValentTransfer * valent_device_transfer_new_for_file (ValentDevice         *device,
-                                                      JsonNode             *packet,
-                                                      GFile                *file);
+ValentTransfer * valent_device_transfer_new        (ValentDevice         *device,
+                                                    JsonNode             *packet,
+                                                    GFile                *file);
 VALENT_AVAILABLE_IN_1_0
-ValentDevice   * valent_device_transfer_ref_device   (ValentDeviceTransfer *transfer);
+ValentDevice   * valent_device_transfer_ref_device (ValentDeviceTransfer *transfer);
 VALENT_AVAILABLE_IN_1_0
-GFile          * valent_device_transfer_ref_file     (ValentDeviceTransfer *transfer);
+GFile          * valent_device_transfer_ref_file   (ValentDeviceTransfer *transfer);
 VALENT_AVAILABLE_IN_1_0
-JsonNode       * valent_device_transfer_ref_packet   (ValentDeviceTransfer *transfer);
+JsonNode       * valent_device_transfer_ref_packet (ValentDeviceTransfer *transfer);
 
 G_END_DECLS

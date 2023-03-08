@@ -343,7 +343,7 @@ valent_share_download_add_file (ValentShareDownload *download,
   download->number_of_files = number_of_files;
   download->payload_size = total_payload_size;
 
-  item = valent_device_transfer_new_for_file (download->device, packet, file);
+  item = valent_device_transfer_new (download->device, packet, file);
   g_ptr_array_add (download->items, g_steal_pointer (&item));
 
   /* FIXME: this indicates the number of total transfers, not the number of

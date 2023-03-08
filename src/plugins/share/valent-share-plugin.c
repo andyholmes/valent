@@ -421,7 +421,7 @@ valent_share_plugin_open_file (ValentSharePlugin *self,
    * incomplete.
    */
   device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
-  transfer = valent_device_transfer_new_for_file (device, packet, file);
+  transfer = valent_device_transfer_new (device, packet, file);
   g_hash_table_insert (self->transfers,
                        valent_transfer_dup_id (transfer),
                        g_object_ref (transfer));
@@ -964,7 +964,7 @@ valent_share_plugin_handle_file (ValentSharePlugin *self,
    * completes, use a separate routine for success/failure. */
   if (valent_packet_check_field (packet, "open"))
     {
-      transfer = valent_device_transfer_new_for_file (device, packet, file);
+      transfer = valent_device_transfer_new (device, packet, file);
       g_hash_table_replace (self->transfers,
                             valent_transfer_dup_id (transfer),
                             g_object_ref (transfer));

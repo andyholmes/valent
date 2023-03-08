@@ -91,7 +91,7 @@ valent_mock_device_plugin_handle_transfer (ValentMockDevicePlugin *self,
   file = valent_get_user_file (directory, filename, TRUE);
 
   /* Create a new transfer */
-  transfer = valent_device_transfer_new_for_file (device, packet, file);
+  transfer = valent_device_transfer_new (device, packet, file);
   valent_transfer_execute (transfer,
                            cancellable,
                            (GAsyncReadyCallback)valent_transfer_execute_cb,
