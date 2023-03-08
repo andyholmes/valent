@@ -55,6 +55,9 @@ xdp_portal_request_background_cb (GObject      *object,
   g_assert (XDP_IS_PORTAL (portal));
 
   if (!xdp_portal_request_background_finish (portal, result, &error))
+    g_debug ("ValentXdpPlugin: permission denied");
+
+  if (error != NULL)
     g_warning ("ValentXdpPlugin: %s", error->message);
 }
 
@@ -123,10 +126,10 @@ on_autostart_changed (GSettings           *settings,
    * request until that changes. */
   if (!valent_xdp_background_is_active (self))
     {
-      self->active_id = g_signal_connect (g_application_get_default (),
-                                          "notify::active-window",
-                                          G_CALLBACK (on_active_window_changed),
-                                          self);
+      self->active_id = g_signal_connect_object (g_application_get_default (),
+                                                 "notify::active-window",
+                                                 G_CALLBACK (on_active_window_changed),
+                                                 self, 0);
       return;
     }
 
