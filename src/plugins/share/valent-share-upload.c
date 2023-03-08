@@ -415,7 +415,7 @@ valent_share_upload_add_files_task (GTask        *task,
 
       valent_packet_set_payload_size (packet, payload_size);
 
-      transfer = valent_device_transfer_new_for_file (device, packet, file);
+      transfer = valent_device_transfer_new (device, packet, file);
       g_ptr_array_add (items, g_steal_pointer (&transfer));
     }
 

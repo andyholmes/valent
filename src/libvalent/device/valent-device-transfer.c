@@ -445,7 +445,7 @@ valent_device_transfer_init (ValentDeviceTransfer *self)
 }
 
 /**
- * valent_device_transfer_new_for_file:
+ * valent_device_transfer_new:
  * @device: a #ValentDevice
  * @packet: a KDE Connect packet
  * @file: a #GFile
@@ -457,9 +457,9 @@ valent_device_transfer_init (ValentDeviceTransfer *self)
  * Since: 1.0
  */
 ValentTransfer *
-valent_device_transfer_new_for_file (ValentDevice *device,
-                                     JsonNode     *packet,
-                                     GFile        *file)
+valent_device_transfer_new (ValentDevice *device,
+                            JsonNode     *packet,
+                            GFile        *file)
 {
   g_return_val_if_fail (VALENT_IS_DEVICE (device), NULL);
   g_return_val_if_fail (VALENT_IS_PACKET (packet), NULL);
