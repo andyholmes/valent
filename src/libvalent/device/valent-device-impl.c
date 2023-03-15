@@ -65,20 +65,11 @@ static const GDBusPropertyInfo iface_property_state = {
   NULL
 };
 
-static const GDBusPropertyInfo iface_property_type = {
-  -1,
-  "Type",
-  "s",
-  G_DBUS_PROPERTY_INFO_FLAGS_READABLE,
-  NULL
-};
-
 static const GDBusPropertyInfo * const iface_properties[] = {
   &iface_property_icon_name,
   &iface_property_id,
   &iface_property_name,
   &iface_property_state,
-  &iface_property_type,
   NULL,
 };
 
@@ -106,7 +97,6 @@ static PropertyMapping property_map[] = {
     { "state",     G_TYPE_UINT,    &iface_property_state },
     { "name",      G_TYPE_STRING,  &iface_property_name },
     { "icon-name", G_TYPE_STRING,  &iface_property_icon_name },
-    { "type",      G_TYPE_STRING,  &iface_property_type },
     { "id",        G_TYPE_STRING,  &iface_property_id },
 };
 

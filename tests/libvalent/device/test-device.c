@@ -136,7 +136,6 @@ test_device_new (void)
   g_autofree char *id = NULL;
   g_autofree char *name = NULL;
   g_auto (GStrv) plugins = NULL;
-  g_autofree char *type = NULL;
   ValentDeviceState state = VALENT_DEVICE_STATE_NONE;
 
   GMenuModel *menu;
@@ -150,7 +149,6 @@ test_device_new (void)
                 "name",      &name,
                 "plugins",   &plugins,
                 "state",     &state,
-                "type",      &type,
                 NULL);
 
   /* id should be set, but everything else should be %FALSE or %NULL */
@@ -160,7 +158,6 @@ test_device_new (void)
   /* Only "Packetless" plugin should be loaded */
   g_assert_cmpuint (g_strv_length (plugins), ==, 1);
   g_assert_cmpuint (state, ==, VALENT_DEVICE_STATE_NONE);
-  g_assert_null (type);
 
   menu = valent_device_get_menu (device);
   g_assert_true (G_IS_MENU (menu));
@@ -179,7 +176,6 @@ test_device_basic (DeviceFixture *fixture,
   g_autofree char *id = NULL;
   g_autofree char *name = NULL;
   g_autofree char *icon_name = NULL;
-  g_autofree char *type = NULL;
   g_auto (GStrv) plugins = NULL;
   ValentDeviceState state = VALENT_DEVICE_STATE_NONE;
 
@@ -190,7 +186,6 @@ test_device_basic (DeviceFixture *fixture,
                 "name",             &name,
                 "plugins",          &plugins,
                 "icon-name",        &icon_name,
-                "type",             &type,
                 "state",            &state,
                 NULL);
 
@@ -203,7 +198,6 @@ test_device_basic (DeviceFixture *fixture,
   g_assert_cmpuint (g_strv_length (plugins), ==, 2);
   g_assert_cmpstr (icon_name, ==, "phone-symbolic");
   g_assert_cmpstr (valent_device_get_icon_name (fixture->device), ==, "phone-symbolic");
-  g_assert_cmpstr (type, ==, "phone");
   g_assert_cmpuint (state, ==, VALENT_DEVICE_STATE_NONE);
   g_assert_cmpuint (valent_device_get_state (fixture->device), ==, VALENT_DEVICE_STATE_NONE);
 }

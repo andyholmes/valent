@@ -18,6 +18,12 @@
 #include "valent-device-private.h"
 #include "valent-packet.h"
 
+#define DEVICE_TYPE_DESKTOP  "desktop"
+#define DEVICE_TYPE_LAPTOP   "laptop"
+#define DEVICE_TYPE_PHONE    "phone"
+#define DEVICE_TYPE_TABLET   "tablet"
+#define DEVICE_TYPE_TV       "tv"
+
 #define PAIR_REQUEST_ID      "pair-request"
 #define PAIR_REQUEST_TIMEOUT 30
 
@@ -86,7 +92,6 @@ enum {
   PROP_NAME,
   PROP_PLUGINS,
   PROP_STATE,
-  PROP_TYPE,
   N_PROPERTIES
 };
 
@@ -637,27 +642,25 @@ valent_device_handle_identity (ValentDevice *device,
 
   /* Device Type */
   if (!valent_packet_get_string (packet, "deviceType", &device_type))
-    device_type = "desktop";
+    device_type = DEVICE_TYPE_DESKTOP;
 
   if (valent_set_string (&device->type, device_type))
     {
       const char *device_icon = "computer-symbolic";
 
-      if (g_str_equal (device_type, "desktop"))
+      if (g_str_equal (device_type, DEVICE_TYPE_DESKTOP))
         device_icon = "computer-symbolic";
-      else if (g_str_equal (device_type, "laptop"))
+      else if (g_str_equal (device_type, DEVICE_TYPE_LAPTOP))
         device_icon = "laptop-symbolic";
-      else if (g_str_equal (device_type, "phone"))
+      else if (g_str_equal (device_type, DEVICE_TYPE_PHONE))
         device_icon = "phone-symbolic";
-      else if (g_str_equal (device_type, "tablet"))
+      else if (g_str_equal (device_type, DEVICE_TYPE_TABLET))
         device_icon = "tablet-symbolic";
-      else if (g_str_equal (device_type, "tv"))
+      else if (g_str_equal (device_type, DEVICE_TYPE_TV))
         device_icon = "tv-symbolic";
 
       if (valent_set_string (&device->icon_name, device_icon))
         g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_ICON_NAME]);
-
-      g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_TYPE]);
     }
 
   /* Generally, these should be static, but could change if the connection type
@@ -903,10 +906,6 @@ valent_device_get_property (GObject    *object,
       g_value_set_flags (value, valent_device_get_state (self));
       break;
 
-    case PROP_TYPE:
-      g_value_set_string (value, self->type);
-      break;
-
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -994,8 +993,6 @@ valent_device_class_init (ValentDeviceClass *klass)
    *
    * A symbolic icon name for the device.
    *
-   * See [property@Valent.Device:type].
-   *
    * Since: 1.0
    */
   properties [PROP_ICON_NAME] =
@@ -1066,25 +1063,6 @@ valent_device_class_init (ValentDeviceClass *klass)
                         (G_PARAM_READABLE |
                          G_PARAM_EXPLICIT_NOTIFY |
                          G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentDevice:type:
-   *
-   * A string hint, indicating the form-factor of the device.
-   *
-   * Known values include `desktop`, `laptop`, `smartphone`, `tablet` and `tv`.
-   *
-   * This is generally only useful for things like selecting an icon, since the
-   * device will describe its capabilities by other means.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_TYPE] =
-    g_param_spec_string ("type", NULL, NULL,
-                         "desktop",
-                         (G_PARAM_READABLE |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 }
