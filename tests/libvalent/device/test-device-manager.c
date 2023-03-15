@@ -257,7 +257,7 @@ test_manager_dbus (ManagerFixture *fixture,
                     G_CALLBACK (on_properties_changed),
                     fixture);
 
-  g_object_notify (G_OBJECT (fixture->device), "type");
+  g_object_notify (G_OBJECT (fixture->device), "icon-name");
   g_main_loop_run (fixture->loop);
 
   g_assert_true (fixture->data == interface);
