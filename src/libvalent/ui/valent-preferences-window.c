@@ -226,7 +226,11 @@ on_load_plugin (PeasEngine              *engine,
                              "icon-name",     "emblem-system-symbolic",
                              "valign",        GTK_ALIGN_CENTER,
                              NULL);
+#if ADW_CHECK_VERSION (1, 4, 0)
+      adw_expander_row_add_suffix (ADW_EXPANDER_ROW (row), button);
+#else
       adw_expander_row_add_action (ADW_EXPANDER_ROW (row), button);
+#endif
 
       page = peas_engine_create_extension (engine,
                                            info,
