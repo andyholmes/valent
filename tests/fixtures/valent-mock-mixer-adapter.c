@@ -18,6 +18,30 @@ struct _ValentMockMixerAdapter
 
 G_DEFINE_FINAL_TYPE (ValentMockMixerAdapter, valent_mock_mixer_adapter, VALENT_TYPE_MIXER_ADAPTER)
 
+static void
+valent_mock_mixer_adapter_items_changed (GListModel   *list,
+                                         unsigned int  position,
+                                         unsigned int  removed,
+                                         unsigned int  added)
+{
+  ValentMockMixerAdapter *self = VALENT_MOCK_MIXER_ADAPTER (list);
+
+  if (added > 0)
+    {
+      g_autoptr (ValentMixerStream) stream = g_list_model_get_item (list, position);
+
+      if (self->default_input == NULL &&
+          valent_mixer_stream_get_direction (stream) == VALENT_MIXER_INPUT)
+        valent_mixer_adapter_set_default_input (VALENT_MIXER_ADAPTER (self),
+                                                stream);
+      else if (self->default_output == NULL &&
+          valent_mixer_stream_get_direction (stream) == VALENT_MIXER_OUTPUT)
+        valent_mixer_adapter_set_default_output (VALENT_MIXER_ADAPTER (self),
+                                                 stream);
+    }
+
+  g_signal_chain_from_overridden_handler (list, position, removed, added);
+}
 
 /*
  * ValentMixerAdapter
@@ -58,48 +82,6 @@ valent_mock_mixer_adapter_set_default_output (ValentMixerAdapter *adapter,
     g_object_notify (G_OBJECT (adapter), "default-output");
 }
 
-static void
-valent_mock_mixer_adapter_stream_added (ValentMixerAdapter *adapter,
-                                        ValentMixerStream  *stream)
-{
-  ValentMockMixerAdapter *self = VALENT_MOCK_MIXER_ADAPTER (adapter);
-  ValentMixerDirection direction;
-
-  /* Set a default input/output automatically, for convenience in tests */
-  direction = valent_mixer_stream_get_direction (stream);
-
-  if (self->default_input == NULL && direction == VALENT_MIXER_INPUT)
-    valent_mixer_adapter_set_default_input (adapter, stream);
-
-  if (self->default_output == NULL && direction == VALENT_MIXER_OUTPUT)
-    valent_mixer_adapter_set_default_output (adapter, stream);
-
-  VALENT_MIXER_ADAPTER_CLASS (valent_mock_mixer_adapter_parent_class)->stream_added (adapter,
-                                                                                     stream);
-}
-
-static void
-valent_mock_mixer_adapter_stream_removed (ValentMixerAdapter *adapter,
-                                          ValentMixerStream  *stream)
-{
-  ValentMockMixerAdapter *self = VALENT_MOCK_MIXER_ADAPTER (adapter);
-
-  if (self->default_input == stream)
-    {
-      g_clear_object (&self->default_input);
-      g_object_notify (G_OBJECT (adapter), "default-input");
-    }
-
-  if (self->default_output == stream)
-    {
-      g_clear_object (&self->default_output);
-      g_object_notify (G_OBJECT (adapter), "default-output");
-    }
-
-  VALENT_MIXER_ADAPTER_CLASS (valent_mock_mixer_adapter_parent_class)->stream_removed (adapter,
-                                                                                       stream);
-}
-
 /*
  * GObject
  */
@@ -126,8 +108,10 @@ valent_mock_mixer_adapter_class_init (ValentMockMixerAdapterClass *klass)
   adapter_class->set_default_input = valent_mock_mixer_adapter_set_default_input;
   adapter_class->get_default_output = valent_mock_mixer_adapter_get_default_output;
   adapter_class->set_default_output = valent_mock_mixer_adapter_set_default_output;
-  adapter_class->stream_added = valent_mock_mixer_adapter_stream_added;
-  adapter_class->stream_removed = valent_mock_mixer_adapter_stream_removed;
+
+  g_signal_override_class_handler ("items-changed",
+                                   VALENT_TYPE_MOCK_MIXER_ADAPTER,
+                                   G_CALLBACK (valent_mock_mixer_adapter_items_changed));
 }
 
 static void

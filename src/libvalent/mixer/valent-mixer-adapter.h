@@ -28,12 +28,6 @@ struct _ValentMixerAdapterClass
   void                (*set_default_output) (ValentMixerAdapter *adapter,
                                              ValentMixerStream  *stream);
 
-  /* signals */
-  void                (*stream_added)       (ValentMixerAdapter *adapter,
-                                             ValentMixerStream  *stream);
-  void                (*stream_removed)     (ValentMixerAdapter *adapter,
-                                             ValentMixerStream  *stream);
-
   /*< private >*/
   gpointer            padding[8];
 };
@@ -54,10 +48,6 @@ ValentMixerStream * valent_mixer_adapter_get_default_output (ValentMixerAdapter 
 VALENT_AVAILABLE_IN_1_0
 void                valent_mixer_adapter_set_default_output (ValentMixerAdapter *adapter,
                                                              ValentMixerStream  *stream);
-VALENT_AVAILABLE_IN_1_0
-GPtrArray         * valent_mixer_adapter_get_inputs         (ValentMixerAdapter *adapter);
-VALENT_AVAILABLE_IN_1_0
-GPtrArray         * valent_mixer_adapter_get_outputs         (ValentMixerAdapter *adapter);
 
 G_END_DECLS
 
