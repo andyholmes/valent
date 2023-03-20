@@ -58,7 +58,13 @@
                 {
                     "type" : "archive",
                     "url" : "https://launchpad.net/intltool/trunk/0.51.0/+download/intltool-0.51.0.tar.gz",
-                    "sha256" : "67c74d94196b153b774ab9f89b2fa6c6ba79352407037c8c14d5aeb334e959cd"
+                    "sha256" : "67c74d94196b153b774ab9f89b2fa6c6ba79352407037c8c14d5aeb334e959cd",
+                    "x-checker-data" : {
+                        "type" : "anitya",
+                        "project-id" : 1385,
+                        "stable-only" : true,
+                        "url-template" : "https://launchpad.net/intltool/trunk/$version/+download/intltool-$version.tar.gz"
+                    }
                 }
             ]
         },
@@ -81,7 +87,13 @@
                     "type" : "git",
                     "url" : "https://github.com/libical/libical.git",
                     "commit" : "098fb68688b853410daed96812a6fe0a22e0e15f",
-                    "tag" : "v3.0.14"
+                    "tag" : "v3.0.14",
+                    "x-checker-data" : {
+                        "type" : "anitya",
+                        "project-id" : 1637,
+                        "stable-only" : true,
+                        "tag-template" : "v$version"
+                    }
                 }
             ]
         },
@@ -121,7 +133,13 @@
                     "type" : "git",
                     "url" : "https://gitlab.gnome.org/GNOME/evolution-data-server.git",
                     "commit" : "ed45e3272a88ea9097a4fe25b5d6bfed4e1272ce",
-                    "tag" : "3.46.0"
+                    "tag" : "3.46.0",
+                    "x-checker-data" : {
+                        "type" : "anitya",
+                        "project-id" : 10935,
+                        "stable-only" : true,
+                        "tag-template" : "$version"
+                    }
                 }
             ]
         },
@@ -147,7 +165,13 @@
                     "type" : "git",
                     "url" : "https://gitlab.gnome.org/GNOME/libpeas.git",
                     "commit" : "744e16bdada0eb79c37abac328cb4c3dc6dd42df",
-                    "tag" : "libpeas-1.34.0"
+                    "tag" : "libpeas-1.34.0",
+                    "x-checker-data" : {
+                        "type" : "anitya",
+                        "project-id" : 6871,
+                        "stable-only" : true,
+                        "tag-template" : "libpeas-$version"
+                    }
                 }
             ]
         },
@@ -166,7 +190,13 @@
                     "type" : "git",
                     "url" : "https://github.com/flatpak/libportal.git",
                     "commit" : "13df0b887a7eb7b0f9b14069561a41f62e813155",
-                    "tag" : "0.6"
+                    "tag" : "0.6",
+                    "x-checker-data" : {
+                        "type" : "anitya",
+                        "project-id" : 230124,
+                        "stable-only" : true,
+                        "tag-template" : "$version"
+                    }
                 }
             ]
         },
