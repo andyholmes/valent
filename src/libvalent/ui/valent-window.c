@@ -150,7 +150,12 @@ on_row_destroy (GtkWidget *row,
   g_assert (GTK_IS_WIDGET (panel));
 
   if ((stack = gtk_widget_get_ancestor (panel, GTK_TYPE_STACK)) != NULL)
-    gtk_stack_remove (GTK_STACK (stack), panel);
+    {
+      if (gtk_stack_get_visible_child (GTK_STACK (stack)) == panel)
+        gtk_stack_set_visible_child_name (GTK_STACK (stack), "main");
+
+      gtk_stack_remove (GTK_STACK (stack), panel);
+    }
 }
 
 static GtkWidget *
