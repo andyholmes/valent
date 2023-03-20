@@ -18,7 +18,6 @@ struct _ValentSystemvolumePlugin
 
   ValentMixer        *mixer;
   unsigned int        mixer_watch : 1;
-  GListModel         *sinks;
   GPtrArray          *states;
 };
 
@@ -148,10 +147,10 @@ stream_state_new (ValentSystemvolumePlugin *self,
 
   state = g_new0 (StreamState, 1);
   state->stream = g_object_ref (stream);
-  g_signal_connect (state->stream,
-                    "notify",
-                    G_CALLBACK (on_stream_changed),
-                    self);
+  g_signal_connect_object (state->stream,
+                           "notify",
+                           G_CALLBACK (on_stream_changed),
+                           self, 0);
 
   state->name = g_strdup (valent_mixer_stream_get_name (stream));
   state->description = g_strdup (valent_mixer_stream_get_description (stream));
@@ -205,20 +204,24 @@ on_items_changed (GListModel               *list,
                   unsigned int              added,
                   ValentSystemvolumePlugin *self)
 {
+  unsigned int n_streams = 0;
+
   g_assert (G_IS_LIST_MODEL (list));
   g_assert (VALENT_IS_SYSTEMVOLUME_PLUGIN (self));
 
-  g_ptr_array_remove_range (self->states, position, removed);
+  g_ptr_array_remove_range (self->states, 0, self->states->len);
+  n_streams = g_list_model_get_n_items (list);
 
-  for (unsigned int i = 0; i < added; i++)
+  for (unsigned int i = 0; i < n_streams; i++)
     {
       g_autoptr (ValentMixerStream) stream = NULL;
-      StreamState *state = NULL;
 
-      stream = g_list_model_get_item (list, position + i);
-      state = stream_state_new (self, stream);
+      stream = g_list_model_get_item (list, i);
 
-      g_ptr_array_insert (self->states, position + i, state);
+      if (valent_mixer_stream_get_direction (stream) != VALENT_MIXER_OUTPUT)
+        continue;
+
+      g_ptr_array_add (self->states, stream_state_new (self, stream));
     }
 
   valent_systemvolume_plugin_send_sinklist (self);
@@ -238,39 +241,23 @@ valent_systemvolume_plugin_watch_mixer (ValentSystemvolumePlugin *self,
 
   if (watch)
     {
-      if (self->sinks == NULL)
-        {
-          unsigned int n_sinks = 0;
+      GListModel *list = G_LIST_MODEL (self->mixer);
 
-          self->sinks = valent_mixer_get_outputs (self->mixer);
-          n_sinks = g_list_model_get_n_items (self->sinks);
-
-          for (unsigned int i = 0; i < n_sinks; i++)
-            {
-              g_autoptr (ValentMixerStream) stream = NULL;
-              StreamState *state = NULL;
-
-              stream = g_list_model_get_item (self->sinks, i);
-              state = stream_state_new (self, stream);
-              g_ptr_array_add (self->states, state);
-            }
-        }
-
-      g_signal_connect (self->mixer,
-                        "notify::default-output",
-                        G_CALLBACK (on_default_output_changed),
-                        self);
-      g_signal_connect (self->sinks,
-                        "items-changed",
-                        G_CALLBACK (on_items_changed),
-                        self);
+      g_signal_connect_object (self->mixer,
+                               "notify::default-output",
+                               G_CALLBACK (on_default_output_changed),
+                               self, 0);
+      g_signal_connect_object (self->mixer,
+                               "items-changed",
+                               G_CALLBACK (on_items_changed),
+                               self, 0);
+      on_items_changed (list, 0, 0, g_list_model_get_n_items (list), self);
       self->mixer_watch = TRUE;
     }
   else
     {
       g_signal_handlers_disconnect_by_data (self->mixer, self);
-      g_signal_handlers_disconnect_by_data (self->sinks, self);
-      g_clear_object (&self->sinks);
+      g_ptr_array_remove_range (self->states, 0, self->states->len);
       self->mixer_watch = FALSE;
     }
 }
@@ -411,15 +398,9 @@ valent_systemvolume_plugin_update_state (ValentDevicePlugin *plugin,
 
   /* Watch stream changes */
   if (available)
-    {
-      valent_systemvolume_plugin_watch_mixer (self, TRUE);
-      valent_systemvolume_plugin_send_sinklist (self);
-    }
+    valent_systemvolume_plugin_watch_mixer (self, TRUE);
   else
-    {
-      valent_systemvolume_plugin_watch_mixer (self, FALSE);
-      g_ptr_array_remove_range (self->states, 0, self->states->len);
-    }
+    valent_systemvolume_plugin_watch_mixer (self, FALSE);
 }
 
 static void
