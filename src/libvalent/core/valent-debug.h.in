@@ -103,7 +103,7 @@ void   valent_debug_clear (void);
 
 #ifdef VALENT_ENABLE_TRACE
 
-extern
+_VALENT_EXTERN
 void valent_trace_mark (const char *strfunc,
                         gint64      begin_time_usec,
                         gint64      end_time_usec);
