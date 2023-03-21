@@ -596,8 +596,8 @@ valent_mpris_plugin_receive_album_art (ValentMprisPlugin *self,
 
   if (!valent_packet_get_string (packet, "albumArtUrl", &url))
     {
-      g_warning ("%s(): expected \"albumArtUrl\" field holding a string",
-                 G_STRFUNC);
+      g_debug ("%s(): expected \"albumArtUrl\" field holding a string",
+               G_STRFUNC);
       return;
     }
 

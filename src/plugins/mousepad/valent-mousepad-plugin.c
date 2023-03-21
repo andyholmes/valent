@@ -142,8 +142,8 @@ valent_mousepad_plugin_handle_mousepad_request (ValentMousepadPlugin *self,
 
       if ((keyval = valent_mousepad_keycode_to_keyval (keycode)) == 0)
         {
-          g_warning ("%s(): expected \"specialKey\" field holding a keycode",
-                     G_STRFUNC);
+          g_debug ("%s(): expected \"specialKey\" field holding a keycode",
+                   G_STRFUNC);
           return;
         }
 
@@ -262,7 +262,8 @@ valent_mousepad_plugin_handle_mousepad_keyboardstate (ValentMousepadPlugin *self
   /* Update the remote keyboard state */
   if (!valent_packet_get_boolean (packet, "state", &state))
     {
-      g_warning ("%s(): expected \"state\" field holding a boolean", G_STRFUNC);
+      g_debug ("%s(): expected \"state\" field holding a boolean",
+               G_STRFUNC);
       return;
     }
 

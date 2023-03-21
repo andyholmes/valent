@@ -216,8 +216,8 @@ valent_connectivity_report_plugin_handle_connectivity_report (ValentConnectivity
 
   if (!valent_packet_get_object (packet, "signalStrengths", &signal_strengths))
     {
-      g_warning ("%s(): expected \"signalStrengths\" field holding an object",
-                 G_STRFUNC);
+      g_debug ("%s(): expected \"signalStrengths\" field holding an object",
+               G_STRFUNC);
       return;
     }
 
@@ -239,7 +239,8 @@ valent_connectivity_report_plugin_handle_connectivity_report (ValentConnectivity
 
       if G_UNLIKELY (json_node_get_value_type (signal_node) != JSON_TYPE_OBJECT)
         {
-          g_warning ("%s(): expected entry value holding an object", G_STRFUNC);
+          g_debug ("%s(): expected entry value holding an object",
+                   G_STRFUNC);
           continue;
         }
 

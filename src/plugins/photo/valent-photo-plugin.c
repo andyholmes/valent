@@ -84,8 +84,8 @@ valent_photo_plugin_handle_photo (ValentPhotoPlugin *self,
 
   if (!valent_packet_get_string (packet, "filename", &filename))
     {
-      g_warning ("%s(): expected \"filename\" field holding a string",
-                 G_STRFUNC);
+      g_debug ("%s(): expected \"filename\" field holding a string",
+               G_STRFUNC);
       return;
     }
 

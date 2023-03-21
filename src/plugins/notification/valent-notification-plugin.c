@@ -323,14 +323,16 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
   /* Ensure we have a notification id */
   if (!valent_packet_get_string (packet, "id", &id))
     {
-      g_warning ("%s(): expected \"id\" field holding a string", G_STRFUNC);
+      g_debug ("%s(): expected \"id\" field holding a string",
+               G_STRFUNC);
       return;
     }
 
   /* This should never be absent, but we check anyways */
   if (!valent_packet_get_string (packet, "appName", &app_name))
     {
-      g_warning ("%s(): expected \"appName\" field holding a string", G_STRFUNC);
+      g_debug ("%s(): expected \"appName\" field holding a string",
+               G_STRFUNC);
       return;
     }
 
@@ -346,7 +348,8 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
 
   if (title == NULL || text == NULL)
     {
-      g_warning ("%s(): expected either title and text, or ticker", G_STRFUNC);
+      g_debug ("%s(): expected either title and text, or ticker",
+               G_STRFUNC);
       return;
     }
 
@@ -495,7 +498,8 @@ valent_notification_plugin_handle_notification (ValentNotificationPlugin *self,
 
       if (!valent_packet_get_string (packet, "id", &id))
         {
-          g_warning ("%s(): expected \"id\" field holding a string", G_STRFUNC);
+          g_debug ("%s(): expected \"id\" field holding a string",
+                   G_STRFUNC);
           return;
         }
 
@@ -807,7 +811,7 @@ notification_reply_action (GSimpleAction *action,
   /* If the reply ID is empty, we've received a broken request */
   if (reply_id == NULL || *reply_id == '\0')
     {
-      g_warning ("%s(): expected requestReplyId", G_STRFUNC);
+      g_debug ("%s(): expected requestReplyId", G_STRFUNC);
       return;
     }
 

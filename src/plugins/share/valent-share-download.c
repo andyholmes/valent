@@ -367,15 +367,15 @@ valent_share_download_update (ValentShareDownload *self,
 
   if (!valent_packet_get_int (packet, "numberOfFiles", &self->number_of_files))
     {
-      g_warning ("%s(): expected \"numberOfFiles\" field holding an integer",
-                 G_STRFUNC);
+      g_debug ("%s(): expected \"numberOfFiles\" field holding an integer",
+               G_STRFUNC);
       return;
     }
 
   if (!valent_packet_get_int (packet, "totalPayloadSize", &self->payload_size))
     {
-      g_warning ("%s(): expected \"totalPayloadSize\" field holding an integer",
-                 G_STRFUNC);
+      g_debug ("%s(): expected \"totalPayloadSize\" field holding an integer",
+               G_STRFUNC);
       return;
     }
 }

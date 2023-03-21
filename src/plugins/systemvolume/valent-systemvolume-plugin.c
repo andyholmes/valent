@@ -322,7 +322,8 @@ valent_systemvolume_plugin_handle_sink_change (ValentSystemvolumePlugin *self,
 
   if (!valent_packet_get_string (packet, "name", &name))
     {
-      g_warning ("%s(): expected \"name\" field holding a string", G_STRFUNC);
+      g_debug ("%s(): expected \"name\" field holding a string",
+               G_STRFUNC);
       return;
     }
 
