@@ -19,26 +19,18 @@ G_DECLARE_DERIVABLE_TYPE (ValentContactsAdapter, valent_contacts_adapter, VALENT
 
 struct _ValentContactsAdapterClass
 {
-  ValentObjectClass   parent_class;
-
-  /* signals */
-  void                (*store_added)   (ValentContactsAdapter  *adapter,
-                                        ValentContactStore     *store);
-  void                (*store_removed) (ValentContactsAdapter  *adapter,
-                                        ValentContactStore     *store);
+  ValentObjectClass  parent_class;
 
   /*< private >*/
-  gpointer            padding[8];
+  gpointer           padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0
-void        valent_contacts_adapter_store_added   (ValentContactsAdapter  *adapter,
-                                                   ValentContactStore     *store);
+void   valent_contacts_adapter_store_added   (ValentContactsAdapter *adapter,
+                                              ValentContactStore    *store);
 VALENT_AVAILABLE_IN_1_0
-void        valent_contacts_adapter_store_removed (ValentContactsAdapter  *adapter,
-                                                   ValentContactStore     *store);
-VALENT_AVAILABLE_IN_1_0
-GPtrArray * valent_contacts_adapter_get_stores    (ValentContactsAdapter  *adapter);
+void   valent_contacts_adapter_store_removed (ValentContactsAdapter *adapter,
+                                              ValentContactStore    *store);
 
 G_END_DECLS
 
