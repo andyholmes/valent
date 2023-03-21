@@ -557,6 +557,7 @@ valent_test_ui_init (int    *argcp,
   gtk_init ();
   adw_init ();
 
+  /* NOTE: Set manually since GDK_DEBUG=default-settings doesn't work for us */
   g_object_set (gtk_settings_get_default (),
                 "gtk-enable-animations", FALSE,
                 NULL);
