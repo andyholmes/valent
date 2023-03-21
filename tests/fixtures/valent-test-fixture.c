@@ -133,8 +133,7 @@ valent_test_fixture_clear (ValentTestFixture *fixture,
   if (fixture->data && fixture->data_free)
     g_clear_pointer (&fixture->data, fixture->data_free);
 
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 }
 
 /**

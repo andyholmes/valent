@@ -38,13 +38,10 @@ test_window_basic (TestWindowFixture *fixture,
   window = g_object_new (VALENT_TYPE_WINDOW,
                          "device-manager", fixture->manager,
                          NULL);
-  g_assert_true (VALENT_IS_WINDOW (window));
+  g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
 
-  /* Show the window */
   gtk_window_present (window);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 
   /* Properties */
   g_object_get (window,
@@ -53,7 +50,10 @@ test_window_basic (TestWindowFixture *fixture,
   g_assert_true (fixture->manager == manager);
   g_clear_object (&manager);
 
-  g_clear_pointer (&window, gtk_window_destroy);
+  gtk_window_destroy (window);
+
+  while (window != NULL)
+    g_main_context_iteration (NULL, FALSE);
 }
 
 VALENT_NO_ASAN static void
@@ -66,40 +66,30 @@ test_window_navigation (TestWindowFixture *fixture,
   window = g_object_new (VALENT_TYPE_WINDOW,
                          "device-manager", fixture->manager,
                          NULL);
-  g_assert_true (VALENT_IS_WINDOW (window));
+  g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
 
-  /* Show the window */
+  /* Wait for the window to be presented, then wait for the mock device */
   gtk_window_present (window);
+  valent_test_await_pending ();
 
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
-  /* Refresh */
   gtk_widget_activate_action (GTK_WIDGET (window), "win.refresh", NULL);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 
   /* Main -> Device -> Main */
   gtk_widget_activate_action (GTK_WIDGET (window), "win.page", "s", "mock-device");
   gtk_widget_activate_action (GTK_WIDGET (window), "win.previous", NULL);
 
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
   /* Main -> Device -> Remove Device */
   gtk_widget_activate_action (GTK_WIDGET (window), "win.page", "s", "mock-device");
 
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
   device = g_list_model_get_item (G_LIST_MODEL (fixture->manager), 0);
   valent_device_set_channel (device, NULL);
+  valent_test_await_pending ();
 
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  gtk_window_destroy (window);
 
-  g_clear_pointer (&window, gtk_window_destroy);
+  while (window != NULL)
+    g_main_context_iteration (NULL, FALSE);
 }
 
 static void
@@ -115,26 +105,16 @@ test_window_dialogs (TestWindowFixture *fixture,
   g_assert_true (VALENT_IS_WINDOW (window));
 
   gtk_window_present (window);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 
   /* Changing the page closes the preferences */
   gtk_widget_activate_action (GTK_WIDGET (window), "win.preferences", NULL);
 
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
   gtk_widget_activate_action (GTK_WIDGET (window), "win.page", "s", "main");
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
 
   /* Closing the window closed the preferences */
   gtk_widget_activate_action (GTK_WIDGET (window), "win.preferences", NULL);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 
   g_clear_pointer (&window, gtk_window_destroy);
 
@@ -145,19 +125,18 @@ test_window_dialogs (TestWindowFixture *fixture,
   window = g_object_new (VALENT_TYPE_WINDOW,
                          "device-manager", fixture->manager,
                          NULL);
-  g_assert_true (VALENT_IS_WINDOW (window));
+  g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
 
   gtk_window_present (window);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 
   gtk_widget_activate_action (GTK_WIDGET (window), "win.about", NULL);
+  valent_test_await_pending ();
 
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  gtk_window_destroy (window);
 
-  g_clear_pointer (&window, gtk_window_destroy);
+  while (window != NULL)
+    g_main_context_iteration (NULL, FALSE);
 #endif
 }
 

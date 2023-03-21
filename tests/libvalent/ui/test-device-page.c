@@ -24,10 +24,10 @@ test_device_page_basic (ValentTestFixture *fixture,
   window = g_object_new (ADW_TYPE_WINDOW,
                          "content", panel,
                          NULL);
-  gtk_window_present (window);
+  g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
 
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  gtk_window_present (window);
+  valent_test_await_pending ();
 
   /* Properties */
   g_object_get (panel,
@@ -41,7 +41,10 @@ test_device_page_basic (ValentTestFixture *fixture,
   peas_engine_unload_plugin (engine,
                              peas_engine_get_plugin_info (engine, "mock"));
 
-  g_clear_pointer (&window, gtk_window_destroy);
+  gtk_window_destroy (window);
+
+  while (window != NULL)
+    g_main_context_iteration (NULL, FALSE);
 }
 
 static void
@@ -59,24 +62,21 @@ test_device_page_dialogs (ValentTestFixture *fixture,
   window = g_object_new (ADW_TYPE_WINDOW,
                          "content", panel,
                          NULL);
-  gtk_window_present (window);
+  g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
 
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  gtk_window_present (window);
+  valent_test_await_pending ();
 
   /* Preferences can be opened and closed */
   gtk_widget_activate_action (panel, "panel.preferences", NULL);
 
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
   /* Closing the window closes the preferences */
   gtk_widget_activate_action (panel, "panel.preferences", NULL);
 
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  gtk_window_destroy (window);
 
-  g_clear_pointer (&window, gtk_window_destroy);
+  while (window != NULL)
+    g_main_context_iteration (NULL, FALSE);
 }
 
 int

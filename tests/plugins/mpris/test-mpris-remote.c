@@ -37,9 +37,7 @@ test_mpris_remote (ValentTestFixture *fixture,
 
   /* Show the window */
   gtk_window_present (remote);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 
   /* Add a player */
   player = g_object_new (VALENT_TYPE_MOCK_MEDIA_PLAYER, NULL);
@@ -69,9 +67,7 @@ test_mpris_remote (ValentTestFixture *fixture,
 
   /* Destroy the window */
   gtk_window_destroy (remote);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 }
 
 int

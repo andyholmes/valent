@@ -16,13 +16,10 @@ test_preferences_window_basic (void)
 
   window = g_object_new (VALENT_TYPE_PREFERENCES_WINDOW,
                         NULL);
-  g_assert_true (VALENT_IS_PREFERENCES_WINDOW (window));
+  g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
 
-  /* Show the window */
   gtk_window_present (window);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 
   /* Unload/Load the plugin */
   engine = valent_get_plugin_engine ();
@@ -30,7 +27,10 @@ test_preferences_window_basic (void)
   peas_engine_unload_plugin (engine, info);
   peas_engine_load_plugin (engine, info);
 
-  g_clear_pointer (&window, gtk_window_destroy);
+  gtk_window_destroy (window);
+
+  while (window != NULL)
+    g_main_context_iteration (NULL, FALSE);
 }
 
 static void
@@ -40,31 +40,19 @@ test_preferences_window_navigation (void)
 
   window = g_object_new (VALENT_TYPE_PREFERENCES_WINDOW,
                         NULL);
-  g_assert_true (VALENT_IS_PREFERENCES_WINDOW (window));
-
   g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
-  gtk_window_present (window);
 
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  gtk_window_present (window);
+  valent_test_await_pending ();
 
   /* Main -> Plugin */
   gtk_widget_activate_action (GTK_WIDGET (window), "win.page", "s", "mock");
 
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
   /* Plugin -> Previous */
   gtk_widget_activate_action (GTK_WIDGET (window), "win.previous", NULL);
 
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
   /* Main -> Previous (Close Preferences) */
   gtk_widget_activate_action (GTK_WIDGET (window), "win.previous", NULL);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
 
   g_assert_null (window);
 }
@@ -76,20 +64,19 @@ test_preferences_window_rename (void)
 
   window = g_object_new (VALENT_TYPE_PREFERENCES_WINDOW,
                         NULL);
-  g_assert_true (VALENT_IS_PREFERENCES_WINDOW (window));
+  g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
 
   gtk_window_present (window);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 
   /* Rename Dialog */
   gtk_widget_activate_action (GTK_WIDGET (window), "win.rename", NULL);
+  valent_test_await_pending ();
 
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  gtk_window_destroy (window);
 
-  g_clear_pointer (&window, gtk_window_destroy);
+  while (window != NULL)
+    g_main_context_iteration (NULL, FALSE);
 }
 
 int

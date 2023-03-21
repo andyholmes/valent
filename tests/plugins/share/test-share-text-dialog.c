@@ -21,9 +21,7 @@ test_share_text_dialog (void)
   g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
 
   gtk_window_present (window);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 
   /* Properties */
   g_object_get (window,
@@ -49,9 +47,7 @@ test_share_text_dialog_copy (void)
   g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
 
   gtk_window_present (window);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 
   /* Copy to clipboard */
   adw_message_dialog_response (ADW_MESSAGE_DIALOG (window), "copy");
@@ -71,16 +67,12 @@ test_share_text_dialog_save (void)
   g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
 
   gtk_window_present (window);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 
 #if !(VALENT_HAVE_ASAN)
   /* Save to file */
   adw_message_dialog_response (ADW_MESSAGE_DIALOG (window), "save");
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 #endif // !(VALENT_HAVE_ASAN)
 
   /* The dialog gets no response, so destroy manually */

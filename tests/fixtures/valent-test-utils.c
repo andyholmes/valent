@@ -283,6 +283,21 @@ valent_test_await_adapter (gpointer component)
   return ret;
 }
 
+/**
+ * valent_test_await_pending:
+ *
+ * Wait for any pending sources to dispatch.
+ *
+ * This is useful for iterating the main context until known operations complete
+ * that can't be introspected by tasks (i.e. internal asynchronous operations).
+ */
+void
+valent_test_await_pending (void)
+{
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+}
+
 static gboolean
 valent_test_wait_cb (gpointer data)
 {

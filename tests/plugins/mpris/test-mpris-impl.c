@@ -32,9 +32,7 @@ static void
 mpris_impl_fixture_tear_down (MPRISImplFixture *fixture,
                               gconstpointer     user_data)
 {
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
-
+  valent_test_await_pending ();
   g_clear_pointer (&fixture->loop, g_main_loop_unref);
 }
 
@@ -255,9 +253,7 @@ test_mpris_impl_dbus (MPRISImplFixture *fixture,
   /* Other */
   /* file = g_file_new_for_uri ("resource:///tests/image.png"); */
   /* valent_mpris_impl_update_art (impl, file); */
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 
   /* Unexport the impl */
   valent_mpris_impl_unexport (impl);
