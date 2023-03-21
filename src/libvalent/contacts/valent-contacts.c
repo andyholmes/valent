@@ -33,6 +33,7 @@ struct _ValentContacts
 {
   ValentComponent  parent_instance;
 
+  GPtrArray       *adapters;
   GPtrArray       *stores;
 };
 
@@ -43,6 +44,47 @@ G_DEFINE_FINAL_TYPE_WITH_CODE (ValentContacts, valent_contacts, VALENT_TYPE_COMP
 
 static ValentContacts *default_contacts = NULL;
 
+
+static void
+on_items_changed (GListModel     *list,
+                  unsigned int    position,
+                  unsigned int    removed,
+                  unsigned int    added,
+                  ValentContacts *self)
+{
+  unsigned int real_position = 0;
+
+  VALENT_ENTRY;
+
+  g_assert (VALENT_IS_CONTACTS_ADAPTER (list));
+  g_assert (VALENT_IS_CONTACTS (self));
+
+  /* Translate the adapter position */
+  for (unsigned int i = 0; i < self->adapters->len; i++)
+    {
+      GListModel *adapter = g_ptr_array_index (self->adapters, i);
+
+      if (adapter == list)
+        break;
+
+      real_position += g_list_model_get_n_items (adapter);
+    }
+
+  real_position += position;
+
+  /* Propagate the changes */
+  for (unsigned int i = 0; i < removed; i++)
+    g_ptr_array_remove_index (self->stores, real_position);
+
+  for (unsigned int i = 0; i < added; i++)
+    g_ptr_array_insert (self->stores,
+                        real_position + i,
+                        g_list_model_get_item (list, position + i));
+
+  g_list_model_items_changed (G_LIST_MODEL (self), real_position, removed, added);
+
+  VALENT_EXIT;
+}
 
 /*
  * GListModel
@@ -85,57 +127,6 @@ g_list_model_iface_init (GListModelInterface *iface)
   iface->get_n_items = valent_contacts_get_n_items;
 }
 
-
-/*
- * ValentContactsAdapter Callbacks
- */
-static void
-on_store_added (ValentContactsAdapter *adapter,
-                ValentContactStore    *store,
-                ValentContacts        *self)
-{
-  unsigned int position = 0;
-
-  VALENT_ENTRY;
-
-  g_assert (VALENT_IS_CONTACTS (self));
-
-  VALENT_NOTE ("%s: %s",
-               G_OBJECT_TYPE_NAME (store),
-               valent_contact_store_get_name (store));
-
-  position = self->stores->len;
-  g_ptr_array_add (self->stores, g_object_ref (store));
-  g_list_model_items_changed (G_LIST_MODEL (self), position, 0, 1);
-
-  VALENT_EXIT;
-}
-
-static void
-on_store_removed (ValentContactsAdapter *adapter,
-                  ValentContactStore    *store,
-                  ValentContacts        *self)
-{
-  unsigned int position = 0;
-
-  VALENT_ENTRY;
-
-  g_assert (VALENT_IS_CONTACTS (self));
-
-  VALENT_NOTE ("%s: %s",
-               G_OBJECT_TYPE_NAME (store),
-               valent_contact_store_get_name (store));
-
-  if (g_ptr_array_find (self->stores, store, &position))
-    {
-      g_ptr_array_remove_index (self->stores, position);
-      g_list_model_items_changed (G_LIST_MODEL (self), position, 1, 0);
-    }
-
-  VALENT_EXIT;
-}
-
-
 /*
  * ValentComponent
  */
@@ -144,22 +135,18 @@ valent_contacts_bind_extension (ValentComponent *component,
                                 PeasExtension   *extension)
 {
   ValentContacts *self = VALENT_CONTACTS (component);
-  ValentContactsAdapter *adapter = VALENT_CONTACTS_ADAPTER (extension);
+  GListModel *list = G_LIST_MODEL (extension);
 
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_CONTACTS (self));
-  g_assert (VALENT_IS_CONTACTS_ADAPTER (adapter));
+  g_assert (VALENT_IS_CONTACTS_ADAPTER (extension));
 
-  g_signal_connect_object (adapter,
-                           "store-added",
-                           G_CALLBACK (on_store_added),
-                           self,
-                           0);
-
-  g_signal_connect_object (adapter,
-                           "store-removed",
-                           G_CALLBACK (on_store_removed),
+  g_ptr_array_add (self->adapters, g_object_ref (extension));
+  on_items_changed (list, 0, 0, g_list_model_get_n_items (list), self);
+  g_signal_connect_object (list,
+                           "items-changed",
+                           G_CALLBACK (on_items_changed),
                            self,
                            0);
 
@@ -171,22 +158,24 @@ valent_contacts_unbind_extension (ValentComponent *component,
                                   PeasExtension   *extension)
 {
   ValentContacts *self = VALENT_CONTACTS (component);
-  ValentContactsAdapter *adapter = VALENT_CONTACTS_ADAPTER (extension);
-  g_autoptr (GPtrArray) stores = NULL;
+  GListModel *list = G_LIST_MODEL (extension);
 
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_CONTACTS (self));
-  g_assert (VALENT_IS_CONTACTS_ADAPTER (adapter));
+  g_assert (VALENT_IS_CONTACTS_ADAPTER (extension));
 
-  /* Simulate removal */
-  stores = valent_contacts_adapter_get_stores (adapter);
+  if (!g_ptr_array_find (self->adapters, extension, NULL))
+    {
+      g_warning ("No such adapter \"%s\" found in \"%s\"",
+                 G_OBJECT_TYPE_NAME (extension),
+                 G_OBJECT_TYPE_NAME (component));
+      return;
+    }
 
-  for (unsigned int i = 0, len = stores->len; i < len; i++)
-    valent_contacts_adapter_store_removed (adapter, g_ptr_array_index (stores, i));
-
-  g_signal_handlers_disconnect_by_func (adapter, on_store_added, self);
-  g_signal_handlers_disconnect_by_func (adapter, on_store_removed, self);
+  g_signal_handlers_disconnect_by_func (list, on_items_changed, self);
+  on_items_changed (list, 0, g_list_model_get_n_items (list), 0, self);
+  g_ptr_array_remove (self->adapters, extension);
 
   VALENT_EXIT;
 }
@@ -224,6 +213,7 @@ valent_contacts_finalize (GObject *object)
 {
   ValentContacts *self = VALENT_CONTACTS (object);
 
+  g_clear_pointer (&self->adapters, g_ptr_array_unref);
   g_clear_pointer (&self->stores, g_ptr_array_unref);
 
   G_OBJECT_CLASS (valent_contacts_parent_class)->finalize (object);
@@ -247,6 +237,7 @@ valent_contacts_class_init (ValentContactsClass *klass)
 static void
 valent_contacts_init (ValentContacts *self)
 {
+  self->adapters = g_ptr_array_new_with_free_func (g_object_unref);
   self->stores = g_ptr_array_new_with_free_func (g_object_unref);
 }
 
