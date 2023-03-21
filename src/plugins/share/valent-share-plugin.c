@@ -937,8 +937,8 @@ valent_share_plugin_handle_file (ValentSharePlugin *self,
 
   if (!valent_packet_get_string (packet, "filename", &filename))
     {
-      g_warning ("%s(): expected \"filename\" field holding a string",
-                 G_STRFUNC);
+      g_debug ("%s(): expected \"filename\" field holding a string",
+               G_STRFUNC);
       return;
     }
 
@@ -1041,15 +1041,15 @@ valent_share_plugin_handle_file_update (ValentSharePlugin *self,
 
   if (!valent_packet_check_field (packet, "numberOfFiles"))
     {
-      g_warning ("%s(): expected \"numberOfFiles\" field holding an integer",
-                 G_STRFUNC);
+      g_debug ("%s(): expected \"numberOfFiles\" field holding an integer",
+               G_STRFUNC);
       return;
     }
 
   if (!valent_packet_check_field (packet, "totalPayloadSize"))
     {
-      g_warning ("%s(): expected \"totalPayloadSize\" field holding an integer",
-                 G_STRFUNC);
+      g_debug ("%s(): expected \"totalPayloadSize\" field holding an integer",
+               G_STRFUNC);
       return;
     }
 

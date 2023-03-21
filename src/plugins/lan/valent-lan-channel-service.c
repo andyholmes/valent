@@ -217,8 +217,8 @@ on_incoming_connection (ValentChannelService   *service,
   /* Ignore identity packets without a deviceId */
   if (!valent_packet_get_string (peer_identity, "deviceId", &device_id))
     {
-      g_warning ("%s(): expected \"deviceId\" field holding a string",
-                 G_STRFUNC);
+      g_debug ("%s(): expected \"deviceId\" field holding a string",
+               G_STRFUNC);
       return TRUE;
     }
 
@@ -393,8 +393,8 @@ on_incoming_broadcast (ValentLanChannelService  *self,
   /* Ignore broadcasts without a deviceId or from ourselves */
   if (!valent_packet_get_string (peer_identity, "deviceId", &device_id))
     {
-      g_warning ("%s(): expected \"deviceId\" field holding a string",
-                 G_STRFUNC);
+      g_debug ("%s(): expected \"deviceId\" field holding a string",
+               G_STRFUNC);
       return TRUE;
     }
 
@@ -410,10 +410,10 @@ on_incoming_broadcast (ValentLanChannelService  *self,
   if (!valent_packet_get_int (peer_identity, "tcpPort", &port) ||
       (port < VALENT_LAN_PROTOCOL_PORT_MIN || port > VALENT_LAN_PROTOCOL_PORT_MAX))
     {
-      g_warning ("%s(): expected \"tcpPort\" field holding a uint16 between %u-%u",
-                 G_STRFUNC,
-                 VALENT_LAN_PROTOCOL_PORT_MIN,
-                 VALENT_LAN_PROTOCOL_PORT_MAX);
+      g_debug ("%s(): expected \"tcpPort\" field holding a uint16 between %u-%u",
+               G_STRFUNC,
+               VALENT_LAN_PROTOCOL_PORT_MIN,
+               VALENT_LAN_PROTOCOL_PORT_MAX);
       return TRUE;
     }
 

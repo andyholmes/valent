@@ -103,7 +103,8 @@ valent_contact_plugin_handle_request_vcards_by_uid (ValentContactsPlugin *self,
 
   if (!valent_packet_get_array (packet, "uids", &uids))
     {
-      g_warning ("%s(): expected \"uids\" field holding an array", G_STRFUNC);
+      g_debug ("%s(): expected \"uids\" field holding an array",
+               G_STRFUNC);
       return;
     }
 
@@ -122,8 +123,8 @@ valent_contact_plugin_handle_request_vcards_by_uid (ValentContactsPlugin *self,
 
       if G_UNLIKELY (uid == NULL || *uid == '\0')
         {
-          g_warning ("%s(): expected \"uids\" element to contain a string",
-                     G_STRFUNC);
+          g_debug ("%s(): expected \"uids\" element to contain a string",
+                   G_STRFUNC);
           continue;
         }
 

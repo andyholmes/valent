@@ -279,15 +279,15 @@ valent_clipboard_plugin_handle_clipboard_connect (ValentClipboardPlugin *self,
 
   if (!valent_packet_get_int (packet, "timestamp", &timestamp))
     {
-      g_warning ("%s(): expected \"timestamp\" field holding an integer",
-                 G_STRFUNC);
+      g_debug ("%s(): expected \"timestamp\" field holding an integer",
+               G_STRFUNC);
       return;
     }
 
   if (!valent_packet_get_string (packet, "content", &content))
     {
-      g_warning ("%s(): expected \"content\" field holding a string",
-                 G_STRFUNC);
+      g_debug ("%s(): expected \"content\" field holding a string",
+               G_STRFUNC);
       return;
     }
 

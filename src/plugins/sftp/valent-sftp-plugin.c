@@ -84,13 +84,15 @@ sftp_session_new (ValentSftpPlugin *self,
   if (!valent_packet_get_int (packet, "port", &port) ||
       (port < 0 || port > G_MAXUINT16))
     {
-      g_warning ("%s(): expected \"port\" field holding a uint16", G_STRFUNC);
+      g_debug ("%s(): expected \"port\" field holding a uint16",
+               G_STRFUNC);
       return NULL;
     }
 
   if ((host = get_device_host (self)) == NULL)
     {
-      g_warning ("%s(): failed to get host address", G_STRFUNC);
+      g_warning ("%s(): failed to get host address",
+                 G_STRFUNC);
       return NULL;
     }
 

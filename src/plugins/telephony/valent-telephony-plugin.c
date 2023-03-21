@@ -260,7 +260,8 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
 
   if (!valent_packet_get_string (packet, "event", &event))
     {
-      g_warning ("%s(): expected \"event\" field holding a string", G_STRFUNC);
+      g_debug ("%s(): expected \"event\" field holding a string",
+               G_STRFUNC);
       return;
     }
 

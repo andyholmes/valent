@@ -584,8 +584,8 @@ valent_device_manager_ensure_device (ValentDeviceManager *manager,
 
   if (!valent_packet_get_string (identity, "deviceId", &device_id))
     {
-      g_warning ("%s(): expected \"deviceId\" field holding a string",
-                 G_STRFUNC);
+      g_debug ("%s(): expected \"deviceId\" field holding a string",
+               G_STRFUNC);
       return NULL;
     }
 
