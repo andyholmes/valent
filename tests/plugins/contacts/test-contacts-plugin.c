@@ -110,8 +110,7 @@ test_contacts_plugin_request_contacts (ValentTestFixture *fixture,
   contacts = g_steal_pointer (&fixture->data);
   g_assert_cmpuint (g_slist_length (contacts), ==, 2);
 
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 }
 
 static void

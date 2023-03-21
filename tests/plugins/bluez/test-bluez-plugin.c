@@ -274,16 +274,12 @@ test_bluez_service_new_connection (BluezBackendFixture *fixture,
 
   /* Pair and wait for PropertiesChanged to resolve */
   dbusmock_pair_device (fixture);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 
   /* Update UUIDs and identify */
   dbusmock_update_uuids (fixture);
   valent_channel_service_identify (fixture->service, NULL);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 
   /* Open connection */
   socket = g_socket_new_from_fd (fixture->fds[0], &error);

@@ -36,8 +36,7 @@ media_component_fixture_tear_down (MediaComponentFixture *fixture,
   v_await_finalize_object (fixture->adapter);
   v_assert_finalize_object (fixture->player);
 
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 }
 
 static void

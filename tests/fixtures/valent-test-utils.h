@@ -28,6 +28,7 @@ void             valent_test_event_push    (gpointer          data);
 void             valent_test_event_free    (GDestroyNotify    free_func);
 
 gpointer         valent_test_await_adapter (gpointer          component);
+void             valent_test_await_pending (void);
 void             valent_test_wait          (unsigned int      duration);
 JsonNode       * valent_test_load_json     (const char       *path);
 GSettings      * valent_test_mock_settings (const char       *domain);

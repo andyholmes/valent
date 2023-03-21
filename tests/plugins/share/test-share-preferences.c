@@ -39,17 +39,13 @@ test_share_plugin_download_folder (void)
                                         VALENT_TYPE_DEVICE_PREFERENCES_PAGE,
                                         NULL);
   g_object_ref_sink (prefs);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 
   /* FileChooser Dialog */
   gtk_widget_activate_action (GTK_WIDGET (prefs),
                               "preferences.select-download-folder",
                               NULL);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 
   g_object_unref (prefs);
 }

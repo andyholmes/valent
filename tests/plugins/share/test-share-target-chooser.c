@@ -29,6 +29,7 @@ test_share_target_chooser (void)
                          "device-manager", manager,
                          "files",          files,
                          NULL);
+  g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
 
   g_object_get (window,
                 "device-manager", &manager_out,
@@ -39,9 +40,7 @@ test_share_target_chooser (void)
 
   /* Wait for the window to open */
   gtk_window_present (window);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 
   /* Wait for the manager to start */
   valent_device_manager_start (manager);
@@ -51,20 +50,14 @@ test_share_target_chooser (void)
 
   /* ... */
   valent_device_manager_refresh (manager);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 
   valent_device_manager_stop (manager);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 
   /* Wait for the window to close */
   gtk_window_destroy (window);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 }
 
 int

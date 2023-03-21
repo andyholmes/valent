@@ -76,9 +76,7 @@ test_share_plugin_handle_request (ValentTestFixture *fixture,
   /* Receive a URL */
   packet = valent_test_fixture_lookup_packet (fixture, "share-url");
   valent_test_fixture_handle_packet (fixture, packet);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 }
 
 static void

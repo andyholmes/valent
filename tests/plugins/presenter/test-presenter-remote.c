@@ -26,14 +26,10 @@ test_presenter_remote (ValentTestFixture *fixture,
   g_clear_object (&device);
 
   gtk_window_present (remote);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 
   gtk_window_destroy (remote);
-
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
+  valent_test_await_pending ();
 }
 
 int
