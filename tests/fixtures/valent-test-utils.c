@@ -556,5 +556,9 @@ valent_test_ui_init (int    *argcp,
   setlocale (LC_ALL, "en_US.UTF-8");
   gtk_init ();
   adw_init ();
+
+  g_object_set (gtk_settings_get_default (),
+                "gtk-enable-animations", FALSE,
+                NULL);
 }
 
