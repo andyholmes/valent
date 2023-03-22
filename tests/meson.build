@@ -19,6 +19,7 @@ tests_env = [
   'G_SLICE=always-malloc',
   # https://docs.gtk.org/gio/overview.html
   'GIO_USE_VFS=local',
+  'GIO_USE_VOLUME_MONITOR=unix',
   'GSETTINGS_BACKEND=memory',
   'GSETTINGS_SCHEMA_DIR=@0@/schemas'.format(meson.project_build_root()),
   'GVFS_DISABLE_FUSE=true',
