@@ -118,5 +118,22 @@ if get_option('introspection')
     install_dir_typelib: typelibdir,
              extra_args: libvalent_gir_extra_args,
   )
+
+  # Vala API Bindings
+  if get_option('vapi')
+    libvalent_vapi = gnome.generate_vapi(libvalent_api_name,
+           sources: libvalent_gir[0],
+          packages: [
+             'gio-2.0',
+             'gtk4',
+             'json-glib-1.0',
+             'libadwaita-1',
+             'libebook-1.2',
+             'libpeas-1.0',
+          ],
+           install: true,
+       install_dir: vapidir,
+    )
+  endif
 endif
 

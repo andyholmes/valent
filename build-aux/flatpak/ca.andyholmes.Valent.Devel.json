@@ -75,7 +75,7 @@
                 "-DBUILD_SHARED_LIBS:BOOL=ON",
                 "-DGOBJECT_INTROSPECTION:BOOL=ON",
                 "-DICAL_BUILD_DOCS:BOOL=OFF",
-                "-DICAL_GLIB_VAPI:BOOL=OFF",
+                "-DICAL_GLIB_VAPI:BOOL=ON",
                 "-DICAL_GLIB:BOOL=ON"
             ],
             "sources" : [
@@ -108,7 +108,7 @@
                 "-DENABLE_GOA=OFF",
                 "-DENABLE_GOOGLE=OFF",
                 "-DENABLE_OAUTH2=OFF",
-                "-DENABLE_VALA_BINDINGS=OFF",
+                "-DENABLE_VALA_BINDINGS=ON",
                 "-DENABLE_WEATHER=OFF",
                 "-DENABLE_OAUTH2_WEBKITGTK4=OFF",
                 "-DWITH_OPENLDAP=OFF",
