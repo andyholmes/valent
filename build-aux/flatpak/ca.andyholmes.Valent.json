@@ -1,7 +1,7 @@
 {
     "app-id" : "ca.andyholmes.Valent",
     "runtime" : "org.gnome.Platform",
-    "runtime-version" : "43",
+    "runtime-version" : "44",
     "sdk" : "org.gnome.Sdk",
     "command" : "valent",
     "finish-args" : [
@@ -114,6 +114,7 @@
                 "-DCMAKE_BUILD_TYPE=Release",
                 "-DENABLE_DOT_LOCKING=OFF",
                 "-DENABLE_CANBERRA=OFF",
+                "-DENABLE_OAUTH2_WEBKITGTK4=OFF",
                 "-DENABLE_GTK=OFF",
                 "-DENABLE_GOA=OFF",
                 "-DENABLE_GOOGLE=OFF",
