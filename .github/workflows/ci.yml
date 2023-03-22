@@ -229,7 +229,7 @@ jobs:
     needs: [pre-test]
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/andyholmes/flatter/gnome:43
+      image: ghcr.io/andyholmes/flatter/gnome:44
       options: --privileged
 
     steps:
