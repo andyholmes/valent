@@ -11,6 +11,7 @@
 
 
 import os
+import re
 import subprocess
 import sys
 import functools
@@ -86,11 +87,26 @@ class _GLibTestCaseMeta(type):
             sys.stderr.write(error.stdout)
             raise RuntimeError(f'Querying tests: {error}') from error
         else:
+            lines = tests.stdout.split('\n')
             n_tests = 0
+            version = int(re.findall(r'TAP version (\d+)|$', lines[0])[0])
 
-            for line in tests.stdout.split('\n'):
-                # Filter empty lines, diagnostics and plan
-                if not line or line.startswith(('#', '1..',)):
+            for line in lines:
+                # Filter empty lines
+                if not line:
+                    continue
+
+                # pylint: disable-next=fixme
+                # TODO: validate test plan
+                if line.startswith('1..'):
+                    continue
+
+                # See: glib@f893df4b7d52cce6c2abcd485a8cfc15320835b7
+                if version == 13 and line.startswith('# /'):
+                    line = line[2:]
+
+                # Filter diagnostics
+                if line.startswith('#'):
                     continue
 
                 n_tests += 1
