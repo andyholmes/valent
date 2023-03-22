@@ -15,6 +15,12 @@ option('introspection',
         value: true,
 )
 
+option('vapi',
+  description: 'Build Vala bindings',
+         type: 'boolean',
+        value: true,
+)
+
 option('firewalld',
   description: 'Install firewalld configuration file',
          type: 'boolean',

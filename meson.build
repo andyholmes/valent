@@ -53,6 +53,7 @@ docdir = join_paths(datadir, 'doc')
 schemadir = join_paths(datadir, 'glib-2.0', 'schemas')
 girdir = join_paths(datadir, 'gir-1.0')
 typelibdir = join_paths(libdir, 'girepository-1.0')
+vapidir = join_paths(datadir, 'vala', 'vapi')
 
 pkgdatadir = join_paths(datadir, meson.project_name())
 pkgincludedir = join_paths(includedir, meson.project_name())
@@ -258,12 +259,13 @@ gnome.post_install(
 # Build Summary
 #
 summary({
-  'Documentation':         get_option('documentation'),
-  'Introspection':         get_option('introspection'),
-  'Optimization':          get_option('optimization'),
-  'Plugins':               get_option('plugins'),
-  'Tests':                 get_option('tests'),
-  'Tracing':               get_option('tracing'),
-  'Debugging':             get_option('debug'),
+  'Documentation': get_option('documentation'),
+  'Introspection': get_option('introspection'),
+  'VAPI':          get_option('vapi'),
+  'Optimization':  get_option('optimization'),
+  'Plugins':       get_option('plugins'),
+  'Tests':         get_option('tests'),
+  'Tracing':       get_option('tracing'),
+  'Debugging':     get_option('debug'),
 }, section: 'Build')
 
