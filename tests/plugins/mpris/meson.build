@@ -26,8 +26,10 @@ foreach test : plugin_mpris_tests
   )
 
   test(test, test_program,
+           args: ['--tap'],
             env: test_mpris_env,
     is_parallel: false,
+       protocol: 'tap',
           suite: ['plugins', 'mpris'],
   )
 endforeach

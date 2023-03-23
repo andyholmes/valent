@@ -24,8 +24,10 @@ foreach test : plugin_mousepad_tests
   )
 
   test(test, test_program,
+           args: ['--tap'],
             env: test_mousepad_env,
     is_parallel: false,
+       protocol: 'tap',
           suite: ['plugins', 'mousepad'],
   )
 endforeach

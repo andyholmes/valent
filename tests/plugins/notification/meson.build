@@ -25,8 +25,10 @@ foreach test : plugin_notification_tests
   )
 
   test(test, test_program,
+           args: ['--tap'],
             env: tests_env,
     is_parallel: false,
+       protocol: 'tap',
           suite: ['plugins', 'notification'],
         timeout: 60,
   )

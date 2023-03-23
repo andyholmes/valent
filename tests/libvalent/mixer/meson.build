@@ -19,8 +19,10 @@ foreach test : libvalent_mixer_tests
   )
 
   test(test, test_program,
+           args: ['--tap'],
             env: tests_env,
     is_parallel: false,
+       protocol: 'tap',
           suite: ['libvalent', 'mixer'],
   )
 endforeach

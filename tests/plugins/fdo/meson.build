@@ -28,6 +28,7 @@ foreach test, test_runner : plugin_fdo_tests
   test(test, test_runner,
             env: plugin_fdo_tests_env,
     is_parallel: false,
+       protocol: 'tap',
           suite: ['plugins', 'fdo'],
   )
 endforeach

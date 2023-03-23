@@ -32,6 +32,7 @@ foreach test, test_runner : plugin_gtk_tests
   test(test, test_runner,
             env: plugin_gtk_tests_env,
     is_parallel: false,
+       protocol: 'tap',
           suite: ['plugins', 'gtk'],
   )
 endforeach

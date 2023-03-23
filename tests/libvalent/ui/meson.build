@@ -26,8 +26,10 @@ foreach test : libvalent_ui_tests
   )
 
   test(test, test_program,
+           args: ['--tap'],
             env: tests_env,
     is_parallel: false,
+       protocol: 'tap',
           suite: ['libvalent', 'ui'],
   )
 endforeach

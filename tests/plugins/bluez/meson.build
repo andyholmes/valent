@@ -27,6 +27,7 @@ foreach test, test_runner : plugin_bluez_tests
   test(test, test_runner,
             env: plugin_bluez_tests_env,
     is_parallel: false,
+       protocol: 'tap',
           suite: ['plugins', 'bluez'],
   )
 endforeach

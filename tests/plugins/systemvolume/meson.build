@@ -21,8 +21,10 @@ foreach test : plugin_systemvolume_tests
   )
 
   test(test, test_program,
+           args: ['--tap'],
             env: tests_env,
     is_parallel: false,
+       protocol: 'tap',
           suite: ['plugins', 'systemvolume'],
   )
 endforeach

@@ -25,8 +25,10 @@ foreach test : plugin_findmyphone_tests
   )
 
   test(test, test_program,
+           args: ['--tap'],
             env: plugin_findmyphone_tests_env,
     is_parallel: false,
+       protocol: 'tap',
           suite: ['plugins', 'findmyphone'],
   )
 endforeach
