@@ -149,7 +149,7 @@
                 {
                     "type" : "git",
                     "url" : "https://gitlab.gnome.org/GNOME/libpeas.git",
-                    "branch" : "master"
+                    "branch" : "1.36"
                 }
             ]
         },
