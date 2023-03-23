@@ -25,7 +25,7 @@ test_application_basic (void)
 
   service = _valent_application_new ();
 
-  g_timeout_add_seconds (1, basic_timeout_cb, service);
+  g_idle_add (basic_timeout_cb, service);
 
   ret = g_application_run (G_APPLICATION (service), 0, NULL);
 
@@ -76,7 +76,7 @@ test_application_actions (void)
   service = _valent_application_new ();
 
   stage = 0;
-  g_timeout_add_seconds (1, actions_timeout_cb, service);
+  g_idle_add (actions_timeout_cb, service);
 
   ret = g_application_run (G_APPLICATION (service), 0, NULL);
 
@@ -128,7 +128,7 @@ test_application_plugins (void)
   service = _valent_application_new ();
 
   stage = 0;
-  g_timeout_add_seconds (1, plugins_timeout_cb, service);
+  g_idle_add (plugins_timeout_cb, service);
 
   ret = g_application_run (G_APPLICATION (service), 0, NULL);
 
