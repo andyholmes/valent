@@ -49,8 +49,8 @@ test_sftp_plugin_send_request (ValentTestFixture *fixture,
 }
 
 static const char *schemas[] = {
-  JSON_SCHEMA_DIR"/kdeconnect.sftp.json",
-  JSON_SCHEMA_DIR"/kdeconnect.sftp.request.json",
+  "/tests/kdeconnect.sftp.json",
+  "/tests/kdeconnect.sftp.request.json",
 };
 
 static void

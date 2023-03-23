@@ -555,8 +555,8 @@ test_mpris_plugin_handle_player (ValentTestFixture *fixture,
 }
 
 static const char *schemas[] = {
-  JSON_SCHEMA_DIR"/kdeconnect.mpris.json",
-  JSON_SCHEMA_DIR"/kdeconnect.mpris.request.json",
+  "/tests/kdeconnect.mpris.json",
+  "/tests/kdeconnect.mpris.request.json",
 };
 
 static void

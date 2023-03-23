@@ -297,8 +297,8 @@ test_share_plugin_uris (ValentTestFixture *fixture,
 }
 
 static const char *schemas[] = {
-  JSON_SCHEMA_DIR"/kdeconnect.share.request.json",
-  JSON_SCHEMA_DIR"/kdeconnect.share.request.update.json",
+  "/tests/kdeconnect.share.request.json",
+  "/tests/kdeconnect.share.request.update.json",
 };
 
 static void

@@ -405,11 +405,16 @@ valent_test_fixture_schema_fuzz (ValentTestFixture *fixture,
 {
 #ifdef HAVE_WALBOTTLE
   g_autoptr (JsonParser) parser = NULL;
+  g_autoptr (GBytes) data = NULL;
   WblSchema *schema;
   GPtrArray *instances;
 
+  data = g_resources_lookup_data (path, G_RESOURCE_LOOKUP_FLAGS_NONE, NULL);
   schema = wbl_schema_new ();
-  wbl_schema_load_from_file (schema, path, NULL);
+  wbl_schema_load_from_data (schema,
+                             g_bytes_get_data (data, NULL),
+                             g_bytes_get_size (data),
+                             NULL);
   instances = wbl_schema_generate_instances (schema,
                                              WBL_GENERATE_INSTANCE_NONE);
 

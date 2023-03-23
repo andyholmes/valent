@@ -94,8 +94,8 @@ test_lock_plugin_send_request (ValentTestFixture *fixture,
 }
 
 static const char *schemas[] = {
-  JSON_SCHEMA_DIR"/kdeconnect.lock.json",
-  JSON_SCHEMA_DIR"/kdeconnect.lock.request.json",
+  "/tests/kdeconnect.lock.json",
+  "/tests/kdeconnect.lock.request.json",
 };
 
 static void

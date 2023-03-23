@@ -63,7 +63,7 @@ test_ping_plugin_send_request (ValentTestFixture *fixture,
 }
 
 static const char *schemas[] = {
-  JSON_SCHEMA_DIR"/kdeconnect.ping.json",
+  "/tests/kdeconnect.ping.json",
 };
 
 static void

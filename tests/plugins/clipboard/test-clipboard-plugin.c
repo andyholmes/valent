@@ -157,8 +157,8 @@ test_clipboard_plugin_actions (ValentTestFixture *fixture,
 }
 
 static const char *schemas[] = {
-  JSON_SCHEMA_DIR"/kdeconnect.clipboard.json",
-  JSON_SCHEMA_DIR"/kdeconnect.clipboard.connect.json",
+  "/tests/kdeconnect.clipboard.json",
+  "/tests/kdeconnect.clipboard.connect.json",
 };
 
 static void
