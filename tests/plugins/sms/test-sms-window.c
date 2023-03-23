@@ -8,28 +8,6 @@
 #include "test-sms-common.h"
 #include "valent-sms-window.h"
 
-/* This is 50ms longer than the default animation timing for most widgets */
-#define TEST_ANIMATION_TIME 250
-
-
-static GMainLoop *loop = NULL;
-
-
-static gboolean
-test_wait_cb (gpointer data)
-{
-  g_main_loop_quit (loop);
-
-  return G_SOURCE_REMOVE;
-}
-
-static inline void
-test_wait (unsigned int timeout_ms)
-{
-  g_timeout_add (timeout_ms, (GSourceFunc)test_wait_cb, loop);
-  g_main_loop_run (loop);
-}
-
 
 static void
 test_sms_window (void)
@@ -41,7 +19,6 @@ test_sms_window (void)
   ValentSmsWindow *window;
 
   /* Prepare Stores */
-  loop = g_main_loop_new (NULL, FALSE);
   contacts = valent_test_contact_store_new ();
   messages = valent_test_sms_store_new ();
 
@@ -50,10 +27,10 @@ test_sms_window (void)
                          "contact-store", contacts,
                          "message-store", messages,
                          NULL);
-  gtk_window_present (GTK_WINDOW (window));
+  g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
 
-  /* Let the window load */
-  test_wait (500);
+  gtk_window_present (GTK_WINDOW (window));
+  valent_test_await_pending ();
 
   /* Properties */
   contacts_out = valent_sms_window_get_contact_store (window);
@@ -74,36 +51,37 @@ test_sms_window (void)
   g_action_group_activate_action (G_ACTION_GROUP (window),
                                   "new",
                                   NULL);
-  test_wait (TEST_ANIMATION_TIME);
+  valent_test_await_pending ();
 
   valent_sms_window_search_contacts (window, "num");
-  test_wait (TEST_ANIMATION_TIME);
+  valent_test_await_pending ();
 
   valent_sms_window_search_contacts (window, "123");
-  test_wait (TEST_ANIMATION_TIME);
+  valent_test_await_pending ();
 
   /* Activate win.previous */
   g_action_group_activate_action (G_ACTION_GROUP (window),
                                   "previous",
                                   NULL);
-  test_wait (TEST_ANIMATION_TIME);
+  valent_test_await_pending ();
 
   /* Activate win.search */
   g_action_group_activate_action (G_ACTION_GROUP (window),
                                   "search",
                                   NULL);
-  test_wait (TEST_ANIMATION_TIME);
+  valent_test_await_pending ();
 
   valent_sms_window_search_messages (window, "Thread");
-  test_wait (TEST_ANIMATION_TIME);
+  valent_test_await_pending ();
 
   /* Show conversation */
   valent_sms_window_set_active_thread (window, 1);
-  test_wait (TEST_ANIMATION_TIME);
-
+  valent_test_await_pending ();
 
   gtk_window_destroy (GTK_WINDOW (window));
-  g_clear_pointer (&loop, g_main_loop_unref);
+
+  while (window != NULL)
+    g_main_context_iteration (NULL, FALSE);
 }
 
 int

@@ -21,16 +21,6 @@ typedef struct
 } MprisComponentFixture;
 
 
-static gboolean
-timeout_cb (gpointer data)
-{
-  MprisComponentFixture *fixture = data;
-
-  g_main_loop_quit (fixture->loop);
-
-  return G_SOURCE_REMOVE;
-}
-
 static void
 mpris_adapter_fixture_set_up (MprisComponentFixture *fixture,
                               gconstpointer          user_data)
@@ -45,8 +35,7 @@ mpris_adapter_fixture_set_up (MprisComponentFixture *fixture,
   fixture->media = valent_media_get_default ();
 
   /* Wait just a tick to avoid a strange race condition */
-  g_timeout_add (1, timeout_cb, fixture);
-  g_main_loop_run (fixture->loop);
+  valent_test_await_pending ();
 }
 
 static void

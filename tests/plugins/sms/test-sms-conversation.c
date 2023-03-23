@@ -9,15 +9,6 @@
 #include "valent-sms-conversation.h"
 
 
-static gboolean
-timeout_func (GMainLoop *loop)
-{
-  g_main_loop_quit (loop);
-
-  return G_SOURCE_REMOVE;
-}
-
-
 static void
 test_sms_conversation (void)
 {
@@ -48,10 +39,10 @@ test_sms_conversation (void)
                          "default-height", 480,
                          "default-width",  600,
                          NULL);
-  gtk_window_present (GTK_WINDOW (window));
+  g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
 
-  g_timeout_add_seconds (1, (GSourceFunc)timeout_func, loop);
-  g_main_loop_run (loop);
+  gtk_window_present (GTK_WINDOW (window));
+  valent_test_await_pending ();
 
   /* Properties */
   g_object_get (conversation,
@@ -65,6 +56,9 @@ test_sms_conversation (void)
   g_assert_cmpint (thread_id, ==, valent_sms_conversation_get_thread_id (VALENT_SMS_CONVERSATION (conversation)));
 
   gtk_window_destroy (GTK_WINDOW (window));
+
+  while (window != NULL)
+    g_main_context_iteration (NULL, FALSE);
 }
 
 int

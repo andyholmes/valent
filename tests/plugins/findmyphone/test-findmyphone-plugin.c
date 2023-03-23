@@ -17,16 +17,6 @@ test_findmyphone_plugin_basic (ValentTestFixture *fixture,
   g_assert_true (g_action_group_has_action (actions, "findmyphone.ring"));
 }
 
-static gboolean
-on_ringing_stop (gpointer data)
-{
-  ValentTestFixture *fixture = data;
-
-  valent_test_fixture_quit (fixture);
-
-  return G_SOURCE_REMOVE;
-}
-
 static void
 test_findmyphone_plugin_handle_request (ValentTestFixture *fixture,
                                         gconstpointer      user_data)
@@ -37,9 +27,7 @@ test_findmyphone_plugin_handle_request (ValentTestFixture *fixture,
 
   /* Start ringing */
   valent_test_fixture_handle_packet (fixture, packet);
-
-  g_timeout_add_seconds (1, on_ringing_stop, fixture);
-  valent_test_fixture_run (fixture);
+  valent_test_wait (1);
 
   /* Stop ringing */
   valent_test_fixture_handle_packet (fixture, packet);
