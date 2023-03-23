@@ -22,8 +22,10 @@ foreach test : plugin_lock_tests
   )
 
   test(test, test_program,
+           args: ['--tap'],
             env: tests_env,
     is_parallel: false,
+       protocol: 'tap',
           suite: ['plugins', 'lock'],
   )
 endforeach

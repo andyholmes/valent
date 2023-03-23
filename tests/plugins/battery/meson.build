@@ -32,6 +32,7 @@ foreach test : plugin_battery_tests
   test(test, plugin_battery_test_wrapper,
             env: plugin_battery_tests_env,
     is_parallel: false,
+       protocol: 'tap',
           suite: ['plugins', 'battery'],
   )
 endforeach

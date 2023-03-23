@@ -32,6 +32,7 @@ foreach test : plugin_connectivity_report_tests
   test(test, plugin_connectivity_report_test_wrapper,
             env: plugin_connectivity_report_tests_env,
     is_parallel: false,
+       protocol: 'tap',
           suite: ['plugins', 'connectivity_report'],
   )
 endforeach
