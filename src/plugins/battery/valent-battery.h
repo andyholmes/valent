@@ -14,6 +14,7 @@ G_DECLARE_FINAL_TYPE (ValentBattery, valent_battery, VALENT, BATTERY, GObject)
 ValentBattery * valent_battery_get_default     (void);
 int             valent_battery_current_charge  (ValentBattery *battery);
 gboolean        valent_battery_is_charging     (ValentBattery *battery);
+gboolean        valent_battery_is_present      (ValentBattery *battery);
 unsigned int    valent_battery_threshold_event (ValentBattery *battery);
 
 G_END_DECLS
