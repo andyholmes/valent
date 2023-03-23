@@ -67,7 +67,7 @@ test_presenter_plugin_send_request (ValentTestFixture *fixture,
 }
 
 static const char *schemas[] = {
-  JSON_SCHEMA_DIR"/kdeconnect.presenter.json",
+  "/tests/kdeconnect.presenter.json",
 };
 
 static void

@@ -57,6 +57,7 @@ libvalent_test_public_sources = [
 libvalent_test_resources = gnome.compile_resources('libvalent-test-resources',
                                                    'libvalent-test.gresource.xml',
   c_name: 'valent_test',
+  source_dir: [join_paths(meson.project_source_root(), 'doc', 'schemas')],
 )
 libvalent_test_generated_sources = [libvalent_test_resources]
 libvalent_test_generated_headers = [libvalent_test_resources[1]]

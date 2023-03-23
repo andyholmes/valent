@@ -16,6 +16,54 @@
     <file alias="contact3.vcf">data/contact3.vcf</file>
     <file alias="image.png">data/image.png</file>
 
+    <!-- KDE Connect Packet Schemas -->
+    <file preprocess="json-stripblanks">kdeconnect.battery.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.battery.request.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.clipboard.connect.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.clipboard.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.connectivity_report.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.connectivity_report.request.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.contacts.request_all_uids_timestamps.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.contacts.request_vcards_by_uid.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.contacts.response_uids_timestamps.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.contacts.response_vcards.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.findmyphone.request.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.identity.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.lock.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.lock.request.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.mousepad.echo.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.mousepad.keyboardstate.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.mousepad.request.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.mpris.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.mpris.request.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.notification.action.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.notification.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.notification.reply.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.notification.request.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.pair.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.photo.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.photo.request.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.ping.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.presenter.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.runcommand.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.runcommand.request.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.sftp.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.sftp.request.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.share.request.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.share.request.update.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.sms.attachment_file.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.sms.messages.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.sms.request_attachment.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.sms.request_conversation.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.sms.request_conversations.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.sms.request.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.systemvolume.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.systemvolume.request.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.telephony.json</file>
+    <file preprocess="json-stripblanks">kdeconnect.telephony.request_mute.json</file>
+
+    <!-- Test Vectors -->
     <file preprocess="json-stripblanks" alias="core.json">data/core.json</file>
     <file preprocess="json-stripblanks" alias="core-large.json">data/core-large.json</file>
     <file preprocess="json-stripblanks" alias="core-packet.json">data/core-packet.json</file>

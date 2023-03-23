@@ -70,12 +70,12 @@ test_sms_plugin_handle_request (ValentTestFixture *fixture,
 }
 
 static const char *schemas[] = {
-  JSON_SCHEMA_DIR"/kdeconnect.sms.attachment_file.json",
-  /* JSON_SCHEMA_DIR"/kdeconnect.sms.messages.json", */
-  /* JSON_SCHEMA_DIR"/kdeconnect.sms.request.json", */
-  JSON_SCHEMA_DIR"/kdeconnect.sms.request_attachment.json",
-  JSON_SCHEMA_DIR"/kdeconnect.sms.request_conversation.json",
-  JSON_SCHEMA_DIR"/kdeconnect.sms.request_conversations.json",
+  "/tests/kdeconnect.sms.attachment_file.json",
+  /* "/tests/kdeconnect.sms.messages.json", */
+  /* "/tests/kdeconnect.sms.request.json", */
+  "/tests/kdeconnect.sms.request_attachment.json",
+  "/tests/kdeconnect.sms.request_conversation.json",
+  "/tests/kdeconnect.sms.request_conversations.json",
 };
 
 static void

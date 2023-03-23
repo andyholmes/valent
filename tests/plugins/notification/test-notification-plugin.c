@@ -286,10 +286,10 @@ test_notification_plugin_actions (ValentTestFixture *fixture,
 }
 
 static const char *schemas[] = {
-  JSON_SCHEMA_DIR"/kdeconnect.notification.json",
-  JSON_SCHEMA_DIR"/kdeconnect.notification.action.json",
-  JSON_SCHEMA_DIR"/kdeconnect.notification.reply.json",
-  JSON_SCHEMA_DIR"/kdeconnect.notification.request.json",
+  "/tests/kdeconnect.notification.json",
+  "/tests/kdeconnect.notification.action.json",
+  "/tests/kdeconnect.notification.reply.json",
+  "/tests/kdeconnect.notification.request.json",
 };
 
 static void

@@ -64,7 +64,7 @@ test_findmyphone_plugin_send_request (ValentTestFixture *fixture,
 }
 
 static const char *schemas[] = {
-  JSON_SCHEMA_DIR"/kdeconnect.findmyphone.request.json",
+  "/tests/kdeconnect.findmyphone.request.json",
 };
 
 static void

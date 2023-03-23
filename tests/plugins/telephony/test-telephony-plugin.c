@@ -206,8 +206,8 @@ test_telephony_plugin_mute_call (ValentTestFixture *fixture,
 }
 
 static const char *schemas[] = {
-  JSON_SCHEMA_DIR"/kdeconnect.telephony.json",
-  JSON_SCHEMA_DIR"/kdeconnect.telephony.request_mute.json",
+  "/tests/kdeconnect.telephony.json",
+  "/tests/kdeconnect.telephony.request_mute.json",
 };
 
 static void

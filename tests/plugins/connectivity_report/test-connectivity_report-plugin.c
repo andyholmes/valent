@@ -388,8 +388,8 @@ test_connectivity_report_plugin_handle_request (ValentTestFixture *fixture,
 }
 
 static const char *schemas[] = {
-  /* JSON_SCHEMA_DIR"/kdeconnect.connectivity_report.json", */
-  JSON_SCHEMA_DIR"/kdeconnect.connectivity_report.request.json",
+  /* "/tests/kdeconnect.connectivity_report.json", */
+  "/tests/kdeconnect.connectivity_report.request.json",
 };
 
 static void
