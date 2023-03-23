@@ -11,19 +11,15 @@ import fcntl
 import os
 import subprocess
 import sys
+import unittest
 
 import dbusmock # type: ignore
 
 
-# Add the shared directory to the search path
-G_TEST_SRCDIR = os.environ.get('G_TEST_SRCDIR', '')
-sys.path.append(os.path.join(G_TEST_SRCDIR, 'fixtures'))
-
-# pylint: disable-next=wrong-import-position
-import glibtest # type: ignore
+TEMPLATE_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
-class ModemManagerTestFixture(glibtest.GLibTestCase, dbusmock.DBusTestCase):
+class ModemManagerTestFixture(dbusmock.DBusTestCase):
     """A test fixture for the connectivity report plugin."""
 
     @classmethod
@@ -33,7 +29,7 @@ class ModemManagerTestFixture(glibtest.GLibTestCase, dbusmock.DBusTestCase):
 
     def setUp(self) -> None:
         (self.p_mock, self.obj_modemmanager) = self.spawn_server_template(
-            f'{G_TEST_SRCDIR}/plugins/connectivity_report/modemmanager.py', {
+            f'{TEMPLATE_DIR}/modemmanager.py', {
             },
             stdout=subprocess.PIPE)
 
@@ -46,6 +42,21 @@ class ModemManagerTestFixture(glibtest.GLibTestCase, dbusmock.DBusTestCase):
         self.p_mock.terminate()
         self.p_mock.wait()
 
+    def test_run(self) -> None:
+        try:
+            test = subprocess.run([os.environ.get('G_TEST_EXE', ''), '--tap'],
+                                  capture_output=True,
+                                  check=True,
+                                  encoding='utf-8')
+
+            sys.stdout.write(test.stdout)
+            sys.stderr.write(test.stderr)
+        except subprocess.SubprocessError as error:
+            # pylint: disable-next=no-member
+            self.fail(error.stdout) # type: ignore
+
 
 if __name__ == '__main__':
-    glibtest.main()
+    # Output to stderr; we're forwarding TAP output of the real program
+    runner = unittest.TextTestRunner(stream=sys.stderr, verbosity=2)
+    unittest.main(testRunner=runner)
