@@ -11,9 +11,6 @@ typelib_dirs = [
 
 tests_env = [
   'MALLOC_CHECK_=3',
-  'GI_TYPELIB_PATH=@0@:$(GI_TYPELIB_PATH)'.format(':'.join(typelib_dirs)),
-  'G_TEST_SRCDIR=@0@'.format(meson.current_source_dir()),
-  'G_TEST_BUILDDIR=@0@'.format(meson.current_build_dir()),
   # https://docs.gtk.org/glib/running.html
   'G_DEBUG=gc-friendly',
   'G_SLICE=always-malloc',
@@ -23,6 +20,8 @@ tests_env = [
   'GSETTINGS_BACKEND=memory',
   'GSETTINGS_SCHEMA_DIR=@0@/schemas'.format(meson.project_build_root()),
   'GVFS_DISABLE_FUSE=true',
+  # https://gnome.pages.gitlab.gnome.org/gobject-introspection/girepository/GIRepository.html
+  'GI_TYPELIB_PATH=@0@:$(GI_TYPELIB_PATH)'.format(':'.join(typelib_dirs)),
   # https://docs.gtk.org/gtk4/running.html
   'GDK_BACKEND=wayland,x11',
   'GDK_DEBUG=default-settings',
@@ -38,7 +37,6 @@ tests_env = [
 ]
 
 test_c_args = [
-  '-I@0@'.format(join_paths(meson.project_source_root(), 'src')),
 ]
 
 test_link_args = [
