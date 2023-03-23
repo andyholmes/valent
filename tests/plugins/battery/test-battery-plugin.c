@@ -77,12 +77,16 @@ test_battery_plugin_connect (ValentTestFixture *fixture,
 
   valent_test_fixture_connect (fixture, TRUE);
 
+  // NOTE: `ValentBattery` starts with is-present=false so there is no
+  //       expectation of a connect-time packet here.
+#if 0
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.battery");
-  v_assert_packet_cmpint (packet, "currentCharge", ==, -1);
+  v_assert_packet_cmpint (packet, "currentCharge", ==, 0);
   v_assert_packet_false (packet, "isCharging");
   v_assert_packet_cmpint (packet, "thresholdEvent", ==, 0);
   json_node_unref (packet);
+#endif
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.battery.request");
@@ -278,26 +282,20 @@ test_battery_plugin_handle_request (ValentTestFixture *fixture,
   /* Expect connect packets */
   valent_test_fixture_connect (fixture, TRUE);
 
-  packet = valent_test_fixture_expect_packet (fixture);
-  v_assert_packet_type (packet, "kdeconnect.battery");
-  v_assert_packet_cmpint (packet, "currentCharge", ==, -1);
-  v_assert_packet_false (packet, "isCharging");
-  v_assert_packet_cmpint (packet, "thresholdEvent", ==, 0);
-  json_node_unref (packet);
-
-  packet = valent_test_fixture_expect_packet (fixture);
-  v_assert_packet_type (packet, "kdeconnect.battery.request");
-  v_assert_packet_true (packet, "request");
-  json_node_unref (packet);
-
-  // FIXME: ValentBattery::changed is emitted when properties are first loaded,
-  //        but this often result in these bogus `0` charge level states. These
-  //        can cause mislesding low battery notifications on devices. */
+  // NOTE: `ValentBattery` starts with is-present=false so there is no
+  //       expectation of a connect-time packet here.
+#if 0
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.battery");
   v_assert_packet_cmpint (packet, "currentCharge", ==, 0);
   v_assert_packet_false (packet, "isCharging");
   v_assert_packet_cmpint (packet, "thresholdEvent", ==, 0);
+  json_node_unref (packet);
+#endif
+
+  packet = valent_test_fixture_expect_packet (fixture);
+  v_assert_packet_type (packet, "kdeconnect.battery.request");
+  v_assert_packet_true (packet, "request");
   json_node_unref (packet);
 
   /* Expect updates */

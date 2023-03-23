@@ -81,8 +81,9 @@ test_battery_proxy (void)
                             loop);
 
   /* Initial State */
-  g_assert_cmpint (valent_battery_current_charge (battery), ==, -1);
+  g_assert_cmpint (valent_battery_current_charge (battery), ==, 0);
   g_assert_false (valent_battery_is_charging (battery));
+  g_assert_false (valent_battery_is_present (battery));
   g_assert_cmpuint (valent_battery_threshold_event (battery), ==, 0);
 
   // NOTE: ValentBattery emits ::changed once when it initializes properties
@@ -91,6 +92,7 @@ test_battery_proxy (void)
   /* Initial Properties */
   g_assert_cmpint (valent_battery_current_charge (battery), ==, 0);
   g_assert_false (valent_battery_is_charging (battery));
+  g_assert_true (valent_battery_is_present (battery));
   g_assert_cmpuint (valent_battery_threshold_event (battery), ==, 0);
 
   /* Percentage */
@@ -155,8 +157,9 @@ test_battery_proxy (void)
   set_device_properties (connection, FALSE, 0.0, 0, 0);
   g_main_loop_run (loop);
 
-  g_assert_cmpint (valent_battery_current_charge (battery), ==, -1);
+  g_assert_cmpint (valent_battery_current_charge (battery), ==, 0);
   g_assert_false (valent_battery_is_charging (battery));
+  g_assert_false (valent_battery_is_present (battery));
   g_assert_cmpuint (valent_battery_threshold_event (battery), ==, 0);
 
   set_device_properties (connection, TRUE, 0.0, 0, 0);
@@ -164,6 +167,7 @@ test_battery_proxy (void)
 
   g_assert_cmpint (valent_battery_current_charge (battery), ==, 0);
   g_assert_false (valent_battery_is_charging (battery));
+  g_assert_true (valent_battery_is_present (battery));
   g_assert_cmpuint (valent_battery_threshold_event (battery), ==, 0);
 
 

@@ -19,8 +19,9 @@ struct _ValentBattery
   GDBusProxy   *proxy;
   GCancellable *cancellable;
 
-  int           current_charge;
-  gboolean      is_charging;
+  unsigned int  current_charge;
+  unsigned int  is_charging : 1;
+  unsigned int  is_present : 1;
   unsigned int  threshold_event;
 };
 
@@ -127,6 +128,14 @@ valent_battery_load_properties (ValentBattery *self)
 {
   g_autoptr (GVariant) value = NULL;
 
+  if ((value = g_dbus_proxy_get_cached_property (self->proxy, "IsPresent")) != NULL)
+    {
+      gboolean is_present = g_variant_get_boolean (value);
+
+      self->is_present = is_present;
+      g_clear_pointer (&value, g_variant_unref);
+    }
+
   g_assert (VALENT_IS_BATTERY (self));
 
   if ((value = g_dbus_proxy_get_cached_property (self->proxy, "Percentage")) != NULL)
@@ -173,17 +182,18 @@ on_properties_changed (GDBusProxy    *proxy,
   if (g_variant_lookup (changed_properties, "IsPresent", "b", &is_present))
     {
       /* An existing battery was physically inserted */
-      if (is_present && self->current_charge < 0)
+      if (!self->is_present && is_present)
         {
           valent_battery_load_properties (self);
           changed = TRUE;
         }
 
       /* An existing battery was physically removed */
-      else if (!is_present && self->current_charge >= 0)
+      else if (self->is_present && !is_present)
         {
-          self->current_charge = -1;
+          self->current_charge = 0;
           self->is_charging = FALSE;
+          self->is_present = FALSE;
           self->threshold_event = 0;
           changed = TRUE;
         }
@@ -197,7 +207,7 @@ on_properties_changed (GDBusProxy    *proxy,
 
   if (g_variant_lookup (changed_properties, "Percentage", "d", &percentage))
     {
-      int current_charge = floor (percentage);
+      unsigned int current_charge = floor (percentage);
 
       if (self->current_charge != current_charge)
         {
@@ -320,8 +330,9 @@ static void
 valent_battery_init (ValentBattery *self)
 {
   self->cancellable = g_cancellable_new ();
-  self->current_charge = -1;
+  self->current_charge = 0;
   self->is_charging = FALSE;
+  self->is_present = FALSE;
   self->threshold_event = 0;
 
   g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
@@ -365,12 +376,15 @@ valent_battery_get_default (void)
  * The value returned by this method is a simplification of a UPower device
  * battery percentage, useful for KDE Connect clients.
  *
- * Returns: a charge percentage, or `-1` if unavailable
+ * Returns: a charge percentage, or `0` if unavailable
  */
 int
 valent_battery_current_charge (ValentBattery *battery)
 {
-  g_return_val_if_fail (VALENT_IS_BATTERY (battery), -1);
+  g_return_val_if_fail (VALENT_IS_BATTERY (battery), 0);
+
+  if (!battery->is_present)
+    return 0;
 
   return battery->current_charge;
 }
@@ -392,6 +406,22 @@ valent_battery_is_charging (ValentBattery *battery)
   g_return_val_if_fail (VALENT_IS_BATTERY (battery), FALSE);
 
   return battery->is_charging;
+}
+
+/**
+ * valent_battery_is_present:
+ * @battery: a #ValentBattery
+ *
+ * Get whether the battery is present.
+ *
+ * Returns: %TRUE if the battery is present, %FALSE otherwise
+ */
+gboolean
+valent_battery_is_present (ValentBattery *battery)
+{
+  g_return_val_if_fail (VALENT_IS_BATTERY (battery), FALSE);
+
+  return battery->is_present;
 }
 
 /**

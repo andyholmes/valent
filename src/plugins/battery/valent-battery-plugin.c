@@ -73,10 +73,10 @@ valent_battery_plugin_watch_battery (ValentBatteryPlugin *self,
 
   if (watch)
     {
-      g_signal_connect (self->battery,
-                        "changed",
-                        G_CALLBACK (on_battery_changed),
-                        self);
+      g_signal_connect_object (self->battery,
+                               "changed",
+                               G_CALLBACK (on_battery_changed),
+                               self, 0);
       self->battery_watch = TRUE;
     }
   else
@@ -108,6 +108,13 @@ valent_battery_plugin_send_state (ValentBatteryPlugin *self)
   unsigned int threshold_event;
 
   g_return_if_fail (VALENT_IS_BATTERY_PLUGIN (self));
+
+  if (!valent_battery_is_present (self->battery))
+    return;
+
+  /* If the level is zero or less it's probably bogus, so send nothing */
+  if (valent_battery_current_charge (self->battery) <= 0)
+    return;
 
   settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
 
