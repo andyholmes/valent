@@ -48,6 +48,12 @@ option('fuzz_tests',
         value: true,
 )
 
+option('installed_tests',
+  description: 'Install tests',
+         type: 'boolean',
+        value: true,
+)
+
 option('tracing',
   description: 'Enable trace logging',
          type: 'boolean',

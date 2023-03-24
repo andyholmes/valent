@@ -19,6 +19,8 @@ foreach test : libvalent_core_tests
            dependencies: libvalent_core_test_deps,
               link_args: test_link_args,
              link_whole: libvalent_test,
+                install: get_option('installed_tests'),
+            install_dir: installed_tests_execdir,
   )
 
   test(test, test_program,
@@ -28,5 +30,9 @@ foreach test : libvalent_core_tests
        protocol: 'tap',
           suite: ['libvalent', 'core'],
   )
+
+  installed_tests_plan += [{
+    'program': test_program,
+  }]
 endforeach
 

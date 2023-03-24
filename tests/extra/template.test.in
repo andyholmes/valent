@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileCopyrightText: No rights reserved
+
+[Test]
+Type=@installed_tests_type@
+Exec=env @installed_tests_env@ @installed_tests_execdir@/@installed_tests_exec@
+Output=TAP
+

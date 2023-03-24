@@ -22,6 +22,8 @@ foreach test : plugin_notification_tests
     include_directories: plugin_notification_include_directories,
               link_args: test_link_args,
              link_whole: [libvalent_test, plugin_notification],
+                install: get_option('installed_tests'),
+            install_dir: installed_tests_execdir,
   )
 
   test(test, test_program,
@@ -32,5 +34,9 @@ foreach test : plugin_notification_tests
           suite: ['plugins', 'notification'],
         timeout: 60,
   )
+
+  installed_tests_plan += [{
+    'program': test_program,
+  }]
 endforeach
 
