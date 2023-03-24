@@ -1,7 +1,7 @@
 %global tarball_version %%(echo %{version} | tr '~' '.')
 
-%global glib2_version >= 2.66.0
-%global gtk4_version >= 4.6.0
+%global glib2_version >= 2.72.0
+%global gtk4_version >= 4.8.0
 %global json_glib_version >= 1.6.0
 %global libpeas_version >= 1.22.0
 %global libeds_version >= 3.34.0
@@ -93,17 +93,18 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/*.desktop
 %{_datadir}/metainfo/ca.andyholmes.Valent.metainfo.xml
 %{_prefix}/lib/firewalld/services/ca.andyholmes.Valent.xml
 %{_libdir}/girepository-1.0/
-%{_libdir}/libvalent.so*
+%{_libdir}/libvalent-1.so*
 %{_sysconfdir}/xdg/autostart/ca.andyholmes.Valent-autostart.desktop
 
 %files devel
 %{_datadir}/gir-1.0/
 %{_datadir}/doc/
+%{_datadir}/vala/vapi/
 %{_libdir}/pkgconfig/
-%{_includedir}/valent*/
+%{_includedir}/libvalent-1/
 
 %changelog
-* Fri Nov 18 2022 Andy Holmes <andrew.g.r.holmes@gmail.com> - 1.0.0~alpha
+* Thu Mar 23 2023 Andy Holmes <andrew.g.r.holmes@gmail.com> - 1.0.0~alpha
 
 - Initial packaging
 
