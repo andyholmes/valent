@@ -39,14 +39,16 @@ typedef struct
   GPtrArray      *players;
 } ValentMediaAdapterPrivate;
 
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentMediaAdapter, valent_media_adapter, VALENT_TYPE_OBJECT)
+static void   g_list_model_iface_init (GListModelInterface *iface);
+
+G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentMediaAdapter, valent_media_adapter, VALENT_TYPE_OBJECT,
+                                  G_ADD_PRIVATE (ValentMediaAdapter)
+                                  G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
 /**
  * ValentMediaAdapterClass:
  * @export_player: the virtual function pointer for valent_media_adapter_export()
  * @unexport_player: the virtual function pointer for valent_media_adapter_unexport()
- * @player_added: the class closure for #ValentMediaAdapter::player-added signal
- * @player_removed: the class closure for #ValentMediaAdapter:player-removed signal
  *
  * The virtual function table for #ValentMediaAdapter.
  */
@@ -59,13 +61,49 @@ enum {
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
-enum {
-  PLAYER_ADDED,
-  PLAYER_REMOVED,
-  N_SIGNALS
-};
 
-static guint signals[N_SIGNALS] = { 0, };
+/*
+ * GListModel
+ */
+static gpointer
+valent_media_adapter_get_item (GListModel   *list,
+                               unsigned int  position)
+{
+  ValentMediaAdapter *self = VALENT_MEDIA_ADAPTER (list);
+  ValentMediaAdapterPrivate *priv = valent_media_adapter_get_instance_private (self);
+
+  g_assert (VALENT_IS_MEDIA_ADAPTER (self));
+
+  if G_UNLIKELY (position >= priv->players->len)
+    return NULL;
+
+  return g_object_ref (g_ptr_array_index (priv->players, position));
+}
+
+static GType
+valent_media_adapter_get_item_type (GListModel *list)
+{
+  return VALENT_TYPE_MEDIA_ADAPTER;
+}
+
+static unsigned int
+valent_media_adapter_get_n_items (GListModel *list)
+{
+  ValentMediaAdapter *self = VALENT_MEDIA_ADAPTER (list);
+  ValentMediaAdapterPrivate *priv = valent_media_adapter_get_instance_private (self);
+
+  g_assert (VALENT_IS_MEDIA_ADAPTER (self));
+
+  return priv->players->len;
+}
+
+static void
+g_list_model_iface_init (GListModelInterface *iface)
+{
+  iface->get_item = valent_media_adapter_get_item;
+  iface->get_item_type = valent_media_adapter_get_item_type;
+  iface->get_n_items = valent_media_adapter_get_n_items;
+}
 
 /* LCOV_EXCL_START */
 static void
@@ -83,53 +121,20 @@ valent_media_adapter_real_unexport_player (ValentMediaAdapter *adapter,
   g_assert (VALENT_IS_MEDIA_ADAPTER (adapter));
   g_assert (VALENT_IS_MEDIA_PLAYER (player));
 }
-
-static void
-valent_media_adapter_real_player_added (ValentMediaAdapter *adapter,
-                                        ValentMediaPlayer  *player)
-{
-  ValentMediaAdapterPrivate *priv = valent_media_adapter_get_instance_private (adapter);
-
-  g_assert (VALENT_IS_MEDIA_ADAPTER (adapter));
-  g_assert (VALENT_IS_MEDIA_PLAYER (player));
-
-  if (priv->players == NULL)
-    priv->players = g_ptr_array_new_with_free_func (g_object_unref);
-  g_ptr_array_add (priv->players, g_object_ref (player));
-}
-
-static void
-valent_media_adapter_real_player_removed (ValentMediaAdapter *adapter,
-                                          ValentMediaPlayer  *player)
-{
-  ValentMediaAdapterPrivate *priv = valent_media_adapter_get_instance_private (adapter);
-
-  g_assert (VALENT_IS_MEDIA_ADAPTER (adapter));
-  g_assert (VALENT_IS_MEDIA_PLAYER (player));
-
-  /* Maybe we just disposed */
-  if (priv->players == NULL)
-    return;
-
-  if (!g_ptr_array_remove (priv->players, player))
-    g_warning ("No such media player \"%s\" found in \"%s\"",
-               G_OBJECT_TYPE_NAME (player),
-               G_OBJECT_TYPE_NAME (adapter));
-}
 /* LCOV_EXCL_STOP */
 
 /*
  * GObject
  */
 static void
-valent_media_adapter_dispose (GObject *object)
+valent_media_adapter_finalize (GObject *object)
 {
   ValentMediaAdapter *self = VALENT_MEDIA_ADAPTER (object);
   ValentMediaAdapterPrivate *priv = valent_media_adapter_get_instance_private (self);
 
   g_clear_pointer (&priv->players, g_ptr_array_unref);
 
-  G_OBJECT_CLASS (valent_media_adapter_parent_class)->dispose (object);
+  G_OBJECT_CLASS (valent_media_adapter_parent_class)->finalize (object);
 }
 
 static void
@@ -177,12 +182,10 @@ valent_media_adapter_class_init (ValentMediaAdapterClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  object_class->dispose = valent_media_adapter_dispose;
+  object_class->finalize = valent_media_adapter_finalize;
   object_class->get_property = valent_media_adapter_get_property;
   object_class->set_property = valent_media_adapter_set_property;
 
-  klass->player_added = valent_media_adapter_real_player_added;
-  klass->player_removed = valent_media_adapter_real_player_removed;
   klass->export_player = valent_media_adapter_real_export_player;
   klass->unexport_player = valent_media_adapter_real_unexport_player;
 
@@ -202,59 +205,14 @@ valent_media_adapter_class_init (ValentMediaAdapterClass *klass)
                          G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
-
-  /**
-   * ValentMediaAdapter::player-added:
-   * @adapter: an #ValentMediaAdapter
-   * @player: an #ValentMediaPlayer
-   *
-   * Emitted when a [class@Valent.MediaPlayer] has been added to @adapter.
-   *
-   * Implementations of #ValentMediaAdapter must chain-up if they
-   * override [vfunc@Valent.MediaAdapter.player_added].
-   *
-   * Since: 1.0
-   */
-  signals [PLAYER_ADDED] =
-    g_signal_new ("player-added",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_LAST,
-                  G_STRUCT_OFFSET (ValentMediaAdapterClass, player_added),
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
-                  G_TYPE_NONE, 1, VALENT_TYPE_MEDIA_PLAYER);
-  g_signal_set_va_marshaller (signals [PLAYER_ADDED],
-                              G_TYPE_FROM_CLASS (klass),
-                              g_cclosure_marshal_VOID__OBJECTv);
-
-  /**
-   * ValentMediaAdapter::player-removed:
-   * @adapter: an #ValentMediaAdapter
-   * @player: an #ValentMediaPlayer
-   *
-   * Emitted when a [class@Valent.MediaPlayer] has been removed from @adapter.
-   *
-   * Implementations of #ValentMediaAdapter must chain-up if they
-   * override [vfunc@Valent.MediaAdapter.player_removed].
-   *
-   * Since: 1.0
-   */
-  signals [PLAYER_REMOVED] =
-    g_signal_new ("player-removed",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_LAST,
-                  G_STRUCT_OFFSET (ValentMediaAdapterClass, player_removed),
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
-                  G_TYPE_NONE, 1, VALENT_TYPE_MEDIA_PLAYER);
-  g_signal_set_va_marshaller (signals [PLAYER_REMOVED],
-                              G_TYPE_FROM_CLASS (klass),
-                              g_cclosure_marshal_VOID__OBJECTv);
 }
 
 static void
-valent_media_adapter_init (ValentMediaAdapter *adapter)
+valent_media_adapter_init (ValentMediaAdapter *self)
 {
+  ValentMediaAdapterPrivate *priv = valent_media_adapter_get_instance_private (self);
+
+  priv->players = g_ptr_array_new_with_free_func (g_object_unref);
 }
 
 /**
@@ -262,10 +220,11 @@ valent_media_adapter_init (ValentMediaAdapter *adapter)
  * @adapter: a #ValentMediaAdapter
  * @player: a #ValentMediaPlayer
  *
- * Emit [signal@Valent.MediaAdapter::player-added] on @adapter.
+ * Called when @player has been added to @adapter.
  *
  * This method should only be called by implementations of
- * [class@Valent.MediaAdapter].
+ * [class@Valent.MediaAdapter]. @adapter will hold a reference on @player and
+ * emit [signal@Gio.ListModel::items-changed].
  *
  * Since: 1.0
  */
@@ -273,10 +232,15 @@ void
 valent_media_adapter_player_added (ValentMediaAdapter *adapter,
                                    ValentMediaPlayer  *player)
 {
+  ValentMediaAdapterPrivate *priv = valent_media_adapter_get_instance_private (adapter);
+  unsigned int position = 0;
+
   g_return_if_fail (VALENT_IS_MEDIA_ADAPTER (adapter));
   g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
 
-  g_signal_emit (G_OBJECT (adapter), signals [PLAYER_ADDED], 0, player);
+  position = priv->players->len;
+  g_ptr_array_add (priv->players, g_object_ref (player));
+  g_list_model_items_changed (G_LIST_MODEL (adapter), position, 0, 1);
 }
 
 /**
@@ -284,10 +248,11 @@ valent_media_adapter_player_added (ValentMediaAdapter *adapter,
  * @adapter: a #ValentMediaAdapter
  * @player: a #ValentMediaPlayer
  *
- * Emit [signal@Valent.MediaAdapter::player-removed] on @adapter.
+ * Called when @player has been removed from @adapter.
  *
  * This method should only be called by implementations of
- * [class@Valent.MediaAdapter].
+ * [class@Valent.MediaAdapter]. @adapter will drop its reference on @player
+ * and emit [signal@Gio.ListModel::items-changed].
  *
  * Since: 1.0
  */
@@ -295,12 +260,23 @@ void
 valent_media_adapter_player_removed (ValentMediaAdapter *adapter,
                                      ValentMediaPlayer  *player)
 {
+  ValentMediaAdapterPrivate *priv = valent_media_adapter_get_instance_private (adapter);
+  g_autoptr (ValentMediaPlayer) item = NULL;
+  unsigned int position = 0;
+
   g_return_if_fail (VALENT_IS_MEDIA_ADAPTER (adapter));
   g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
 
-  g_object_ref (player);
-  g_signal_emit (G_OBJECT (adapter), signals [PLAYER_REMOVED], 0, player);
-  g_object_unref (player);
+  if (!g_ptr_array_find (priv->players, player, &position))
+    {
+      g_warning ("No such player \"%s\" found in \"%s\"",
+                 G_OBJECT_TYPE_NAME (player),
+                 G_OBJECT_TYPE_NAME (adapter));
+      return;
+    }
+
+  item = g_ptr_array_steal_index (priv->players, position);
+  g_list_model_items_changed (G_LIST_MODEL (adapter), position, 1, 0);
 }
 
 /**
@@ -353,38 +329,5 @@ valent_media_adapter_unexport_player (ValentMediaAdapter *adapter,
   VALENT_MEDIA_ADAPTER_GET_CLASS (adapter)->unexport_player (adapter, player);
 
   VALENT_EXIT;
-}
-
-/**
- * valent_media_adapter_get_players:
- * @adapter: an #ValentMediaAdapter
- *
- * Gets a new #GPtrArray containing a list of #ValentMediaPlayer instances that
- * were registered by @adapter.
- *
- * Returns: (transfer container) (element-type Valent.MediaPlayer): a list of
- *   players.
- *
- * Since: 1.0
- */
-GPtrArray *
-valent_media_adapter_get_players (ValentMediaAdapter *adapter)
-{
-  ValentMediaAdapterPrivate *priv = valent_media_adapter_get_instance_private (adapter);
-  GPtrArray *ret;
-
-  VALENT_ENTRY;
-
-  g_return_val_if_fail (VALENT_IS_MEDIA_ADAPTER (adapter), NULL);
-
-  ret = g_ptr_array_new_with_free_func (g_object_unref);
-
-  if (priv->players != NULL)
-    {
-      for (unsigned int i = 0; i < priv->players->len; i++)
-        g_ptr_array_add (ret, g_object_ref (g_ptr_array_index (priv->players, i)));
-    }
-
-  VALENT_RETURN (ret);
 }
 
