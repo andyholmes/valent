@@ -13,7 +13,8 @@ typedef struct
   ValentMedia        *media;
   ValentMediaAdapter *adapter;
   ValentMediaPlayer  *player;
-  gpointer            data;
+  gpointer            emitter;
+  gpointer            emitted;
   unsigned int        state;
 } MediaComponentFixture;
 
@@ -40,21 +41,28 @@ media_component_fixture_tear_down (MediaComponentFixture *fixture,
 }
 
 static void
-on_players_changed (ValentMedia           *media,
-                    unsigned int           position,
-                    unsigned int           removed,
-                    unsigned int           added,
-                    MediaComponentFixture *fixture)
+on_items_changed (GListModel            *list,
+                  unsigned int           position,
+                  unsigned int           removed,
+                  unsigned int           added,
+                  MediaComponentFixture *fixture)
 {
-  fixture->data = media;
-}
+  g_autoptr (GObject) item = NULL;
 
-static void
-on_player_added (GObject               *object,
-                 ValentMediaPlayer     *player,
-                 MediaComponentFixture *fixture)
-{
-  fixture->data = object;
+  // position 0 is the default mock store
+  if (position == 0 && removed == 1)
+    {
+      fixture->emitter = NULL;
+      fixture->emitted = NULL;
+    }
+
+  if (position == 0 && added == 1)
+    {
+      item = g_list_model_get_item (list, position);
+
+      fixture->emitter = list;
+      fixture->emitted = item;
+    }
 }
 
 static void
@@ -75,55 +83,43 @@ on_player_seeked (ValentMedia           *media,
 }
 
 static void
-on_player_removed (GObject               *object,
-                   ValentMediaPlayer     *player,
-                   MediaComponentFixture *fixture)
-{
-  fixture->data = object;
-}
-
-static void
 on_player_notify (ValentMediaPlayer     *player,
                   GParamSpec            *pspec,
                   MediaComponentFixture *fixture)
 {
-  fixture->data = player;
+  fixture->emitter = player;
 }
 
 static void
 test_media_component_adapter (MediaComponentFixture *fixture,
                               gconstpointer          user_data)
 {
-  g_autoptr (GPtrArray) players = NULL;
   PeasPluginInfo *plugin_info;
 
   /* Properties */
   g_object_get (fixture->adapter,
                 "plugin-info", &plugin_info,
                 NULL);
-
-  g_assert_nonnull (plugin_info);
+  g_assert_cmpstr (peas_plugin_info_get_module_name (plugin_info), ==, "mock");
   g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
 
   /* Signals */
   g_signal_connect (fixture->adapter,
-                    "player-added",
-                    G_CALLBACK (on_player_added),
+                    "items-changed",
+                    G_CALLBACK (on_items_changed),
                     fixture);
+
+  /* ::items-changed is emitted and the internal representation is updated */
   valent_media_adapter_player_added (fixture->adapter, fixture->player);
-  g_assert_true (fixture->data == fixture->adapter);
-  fixture->data = NULL;
+  g_assert_true (fixture->emitter == fixture->adapter);
+  g_assert_true (fixture->emitted == fixture->player);
+  g_assert_cmpuint (g_list_model_get_n_items (G_LIST_MODEL (fixture->adapter)), ==, 1);
 
-  players = valent_media_adapter_get_players (fixture->adapter);
-  g_assert_cmpint (players->len, ==, 1);
-
-  g_signal_connect (fixture->adapter,
-                    "player-removed",
-                    G_CALLBACK (on_player_removed),
-                    fixture);
+  /* ::items-changed is emitted and the internal representation is updated */
   valent_media_adapter_player_removed (fixture->adapter, fixture->player);
-  g_assert_true (fixture->data == fixture->adapter);
-  fixture->data = NULL;
+  g_assert_null (fixture->emitter);
+  g_assert_null (fixture->emitted);
+  g_assert_cmpuint (g_list_model_get_n_items (G_LIST_MODEL (fixture->adapter)), ==, 0);
 
   g_signal_handlers_disconnect_by_data (fixture->adapter, fixture);
 }
@@ -144,12 +140,14 @@ test_media_component_player (MediaComponentFixture *fixture,
 
   /* Add Player */
   g_signal_connect (fixture->adapter,
-                    "player-added",
-                    G_CALLBACK (on_player_added),
+                    "items-changed",
+                    G_CALLBACK (on_items_changed),
                     fixture);
+
   valent_media_adapter_player_added (fixture->adapter, fixture->player);
-  g_assert_true (fixture->data == fixture->adapter);
-  fixture->data = NULL;
+  g_assert_true (fixture->emitter == fixture->adapter);
+  g_assert_true (fixture->emitted == fixture->player);
+  g_assert_cmpuint (g_list_model_get_n_items (G_LIST_MODEL (fixture->adapter)), ==, 1);
 
   /* Mock Player Properties */
   g_object_get (fixture->player,
@@ -186,36 +184,36 @@ test_media_component_player (MediaComponentFixture *fixture,
                     fixture);
 
   valent_media_player_play (fixture->player);
-  g_assert_true (fixture->data == fixture->player);
-  fixture->data = NULL;
+  g_assert_true (fixture->emitter == fixture->player);
+  fixture->emitter = NULL;
 
   valent_media_player_play_pause (fixture->player);
-  g_assert_true (fixture->data == fixture->player);
-  fixture->data = NULL;
+  g_assert_true (fixture->emitter == fixture->player);
+  fixture->emitter = NULL;
 
   valent_media_player_pause (fixture->player);
-  g_assert_true (fixture->data == fixture->player);
-  fixture->data = NULL;
+  g_assert_true (fixture->emitter == fixture->player);
+  fixture->emitter = NULL;
 
   valent_media_player_stop (fixture->player);
-  g_assert_true (fixture->data == fixture->player);
-  fixture->data = NULL;
+  g_assert_true (fixture->emitter == fixture->player);
+  fixture->emitter = NULL;
 
   valent_media_player_next (fixture->player);
-  g_assert_true (fixture->data == fixture->player);
-  fixture->data = NULL;
+  g_assert_true (fixture->emitter == fixture->player);
+  fixture->emitter = NULL;
 
   valent_media_player_previous (fixture->player);
-  g_assert_true (fixture->data == fixture->player);
-  fixture->data = NULL;
+  g_assert_true (fixture->emitter == fixture->player);
+  fixture->emitter = NULL;
 
   valent_media_player_seek (fixture->player, 1.0);
-  g_assert_true (fixture->data == fixture->player);
-  fixture->data = NULL;
+  g_assert_true (fixture->emitter == fixture->player);
+  fixture->emitter = NULL;
 
   valent_media_player_set_position (fixture->player, 2.0);
   g_assert_cmpint (valent_media_player_get_position (fixture->player), ==, 2.0);
-  fixture->data = NULL;
+  fixture->emitter = NULL;
 
   g_signal_handlers_disconnect_by_data (fixture->player, fixture);
 
@@ -237,13 +235,10 @@ test_media_component_player (MediaComponentFixture *fixture,
   fixture->state = FALSE;
 
   /* Remove Player */
-  g_signal_connect (fixture->adapter,
-                    "player-removed",
-                    G_CALLBACK (on_player_removed),
-                    fixture);
   valent_media_adapter_player_removed (fixture->adapter, fixture->player);
-  g_assert_true (fixture->data == fixture->adapter);
-  fixture->data = NULL;
+  g_assert_null (fixture->emitter);
+  g_assert_null (fixture->emitted);
+  g_assert_cmpuint (g_list_model_get_n_items (G_LIST_MODEL (fixture->adapter)), ==, 0);
 
   g_signal_handlers_disconnect_by_data (fixture->media, fixture);
   g_signal_handlers_disconnect_by_data (fixture->adapter, fixture);
@@ -256,25 +251,26 @@ test_media_component_self (MediaComponentFixture *fixture,
   g_autoptr (ValentMediaPlayer) player = NULL;
   unsigned int n_players = 0;
 
+  /* Signals */
   g_signal_connect (fixture->media,
                     "items-changed",
-                    G_CALLBACK (on_players_changed),
+                    G_CALLBACK (on_items_changed),
                     fixture);
 
-  /* Add Player */
+  /* ::items-changed propagates to ValentMedia */
   valent_media_adapter_player_added (fixture->adapter, fixture->player);
-  g_assert_true (fixture->data == fixture->media);
-  fixture->data = NULL;
+  g_assert_true (fixture->emitter == fixture->media);
+  g_assert_true (fixture->emitted == fixture->player);
+  g_assert_cmpuint (g_list_model_get_n_items (G_LIST_MODEL (fixture->media)), ==, 1);
 
   /* Test Component */
   n_players = g_list_model_get_n_items (G_LIST_MODEL (fixture->media));
   g_assert_cmpuint (n_players, ==, 1);
 
   player = g_list_model_get_item (G_LIST_MODEL (fixture->media), 0);
-  g_assert_nonnull (player);
-
   g_assert_true (player == fixture->player);
 
+  /* Players can be paused and unpaused */
   valent_media_player_play (fixture->player);
   g_assert_true (valent_media_player_get_state (player) == VALENT_MEDIA_STATE_PLAYING);
   valent_media_pause (fixture->media);
@@ -282,10 +278,11 @@ test_media_component_self (MediaComponentFixture *fixture,
   valent_media_unpause (fixture->media);
   g_assert_true (valent_media_player_get_state (player) == VALENT_MEDIA_STATE_PLAYING);
 
-  /* Remove Player */
+  /* ::items-changed propagates to ValentMedia */
   valent_media_adapter_player_removed (fixture->adapter, fixture->player);
-  g_assert_true (fixture->data == fixture->media);
-  fixture->data = NULL;
+  g_assert_null (fixture->emitter);
+  g_assert_null (fixture->emitted);
+  g_assert_cmpuint (g_list_model_get_n_items (G_LIST_MODEL (fixture->media)), ==, 0);
 
   g_signal_handlers_disconnect_by_data (fixture->media, fixture);
 }

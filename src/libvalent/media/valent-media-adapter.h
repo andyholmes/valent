@@ -26,12 +26,6 @@ struct _ValentMediaAdapterClass
   void                (*unexport_player) (ValentMediaAdapter   *adapter,
                                           ValentMediaPlayer    *player);
 
-  /* signals */
-  void                (*player_added)    (ValentMediaAdapter   *adapter,
-                                          ValentMediaPlayer    *player);
-  void                (*player_removed)  (ValentMediaAdapter   *adapter,
-                                          ValentMediaPlayer    *player);
-
   /*< private >*/
   gpointer            padding[8];
 };
@@ -42,8 +36,6 @@ void        valent_media_adapter_player_added    (ValentMediaAdapter   *adapter,
 VALENT_AVAILABLE_IN_1_0
 void        valent_media_adapter_player_removed  (ValentMediaAdapter   *adapter,
                                                   ValentMediaPlayer    *player);
-VALENT_AVAILABLE_IN_1_0
-GPtrArray * valent_media_adapter_get_players     (ValentMediaAdapter   *adapter);
 VALENT_AVAILABLE_IN_1_0
 void        valent_media_adapter_export_player   (ValentMediaAdapter   *adapter,
                                                   ValentMediaPlayer    *player);
