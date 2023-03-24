@@ -16,6 +16,8 @@ foreach test : libvalent_clipboard_tests
            dependencies: libvalent_clipboard_test_deps,
               link_args: test_link_args,
              link_whole: libvalent_test,
+                install: get_option('installed_tests'),
+            install_dir: installed_tests_execdir,
   )
 
   test(test, test_program,
@@ -25,4 +27,8 @@ foreach test : libvalent_clipboard_tests
        protocol: 'tap',
           suite: ['libvalent', 'clipboard'],
   )
+
+  installed_tests_plan += [{
+    'program': test_program,
+  }]
 endforeach

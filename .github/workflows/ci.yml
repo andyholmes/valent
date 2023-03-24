@@ -224,6 +224,43 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: ${{ steps.test.outputs.coverage }}
 
+  installed-tests:
+    name: Tests (Installed)
+    needs: [pre-test]
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}:${{ github.base_ref }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Build
+        run: |
+          meson setup --buildtype=release \
+                      --prefix=/usr \
+                      -Dtests=true \
+                      -Dfuzz_tests=false \
+                      _build
+          meson compile -C _build
+          meson install -C _build
+
+      - name: Test
+        run: |
+          dbus-run-session \
+            xvfb-run -d \
+              gnome-desktop-testing-runner --log-directory=_build/meson-logs \
+                                           libvalent-1
+
+      - name: Test Report
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: Tests (Installed)
+          path: _build/meson-logs
+
   flatpak:
     name: Tests (Flatpak)
     needs: [pre-test]

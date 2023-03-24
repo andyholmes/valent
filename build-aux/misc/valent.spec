@@ -63,11 +63,18 @@ Requires:       %{name}%{?_isa} = %{version}-%{release}
 The %{name}-devel package contains libraries and header files for
 developing plugins for %{name}.
 
+%package        tests
+Summary:        Installed tests for %{name}
+Requires:       %{name}%{?_isa} = %{version}-%{release}
+
+%description    tests
+The %{name}-tests package contains precompiled unit tests for %{name}
+
 %prep
 %autosetup -p1 -n %{name}-%{tarball_version}
 
 %build
-%meson --buildtype=release -Ddocumentation=true -Dfirewalld=true
+%meson --buildtype=release -Ddocumentation=true -Dfirewalld=true -Dtests=true -Dfuzz_tests=false
 %meson_build
 
 %install
@@ -102,6 +109,10 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/*.desktop
 %{_datadir}/vala/vapi/
 %{_libdir}/pkgconfig/
 %{_includedir}/libvalent-1/
+
+%files tests
+%{_datadir}/installed-tests/libvalent-1/
+%{_libexecdir}/installed-tests/libvalent-1/
 
 %changelog
 * Thu Mar 23 2023 Andy Holmes <andrew.g.r.holmes@gmail.com> - 1.0.0~alpha

@@ -23,6 +23,8 @@ foreach test : plugin_mpris_tests
     include_directories: plugin_mpris_include_directories,
               link_args: test_link_args,
              link_whole: [libvalent_test, plugin_mpris],
+                install: get_option('installed_tests'),
+            install_dir: installed_tests_execdir,
   )
 
   test(test, test_program,
@@ -32,4 +34,8 @@ foreach test : plugin_mpris_tests
        protocol: 'tap',
           suite: ['plugins', 'mpris'],
   )
+
+  installed_tests_plan += [{
+    'program': test_program,
+  }]
 endforeach

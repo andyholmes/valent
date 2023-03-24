@@ -20,6 +20,8 @@ foreach test : plugin_runcommand_tests
     include_directories: plugin_runcommand_include_directories,
               link_args: test_link_args,
              link_whole: [libvalent_test, plugin_runcommand],
+                install: get_option('installed_tests'),
+            install_dir: installed_tests_execdir,
   )
 
   test(test, test_program,
@@ -29,5 +31,9 @@ foreach test : plugin_runcommand_tests
        protocol: 'tap',
           suite: ['plugins', 'runcommand'],
   )
+
+  installed_tests_plan += [{
+    'program': test_program,
+  }]
 endforeach
 

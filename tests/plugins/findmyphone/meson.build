@@ -22,6 +22,8 @@ foreach test : plugin_findmyphone_tests
     include_directories: plugin_findmyphone_include_directories,
               link_args: test_link_args,
              link_whole: [libvalent_test, plugin_findmyphone],
+                install: get_option('installed_tests'),
+            install_dir: installed_tests_execdir,
   )
 
   test(test, test_program,
@@ -31,5 +33,10 @@ foreach test : plugin_findmyphone_tests
        protocol: 'tap',
           suite: ['plugins', 'findmyphone'],
   )
+
+  installed_tests_plan += [{
+    'program': test_program,
+    'env': ['GST_PLUGIN_SYSTEM_PATH_1_0=""'],
+  }]
 endforeach
 

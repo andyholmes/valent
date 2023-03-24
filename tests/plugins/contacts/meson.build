@@ -19,6 +19,8 @@ foreach test : plugin_contacts_tests
     include_directories: plugin_contacts_include_directories,
               link_args: test_link_args,
              link_whole: [libvalent_test, plugin_contacts],
+                install: get_option('installed_tests'),
+            install_dir: installed_tests_execdir,
   )
 
   test(test, test_program,
@@ -28,5 +30,9 @@ foreach test : plugin_contacts_tests
        protocol: 'tap',
           suite: ['plugins', 'contacts'],
   )
+
+  installed_tests_plan += [{
+    'program': test_program,
+  }]
 endforeach
 

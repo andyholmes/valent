@@ -18,6 +18,8 @@ foreach test : plugin_photo_tests
     include_directories: plugin_photo_include_directories,
               link_args: test_link_args,
              link_whole: [libvalent_test, plugin_photo],
+                install: get_option('installed_tests'),
+            install_dir: installed_tests_execdir,
   )
 
   test(test, test_program,
@@ -27,5 +29,9 @@ foreach test : plugin_photo_tests
        protocol: 'tap',
           suite: ['plugins', 'photo'],
   )
+
+  installed_tests_plan += [{
+    'program': test_program,
+  }]
 endforeach
 

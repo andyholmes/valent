@@ -28,6 +28,8 @@ foreach test : plugin_sms_tests
     include_directories: plugin_sms_include_directories,
               link_args: test_link_args,
              link_whole: [libvalent_test, plugin_sms],
+                install: get_option('installed_tests'),
+            install_dir: installed_tests_execdir,
   )
 
   test(test, test_program,
@@ -38,5 +40,9 @@ foreach test : plugin_sms_tests
           suite: ['plugins', 'sms'],
         timeout: 240,
   )
+
+  installed_tests_plan += [{
+    'program': test_program,
+  }]
 endforeach
 
