@@ -108,14 +108,14 @@ g_list_model_iface_init (GListModelInterface *iface)
  * GObject
  */
 static void
-valent_contacts_adapter_dispose (GObject *object)
+valent_contacts_adapter_finalize (GObject *object)
 {
   ValentContactsAdapter *self = VALENT_CONTACTS_ADAPTER (object);
   ValentContactsAdapterPrivate *priv = valent_contacts_adapter_get_instance_private (self);
 
   g_clear_pointer (&priv->stores, g_ptr_array_unref);
 
-  G_OBJECT_CLASS (valent_contacts_adapter_parent_class)->dispose (object);
+  G_OBJECT_CLASS (valent_contacts_adapter_parent_class)->finalize (object);
 }
 
 static void
@@ -163,7 +163,7 @@ valent_contacts_adapter_class_init (ValentContactsAdapterClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  object_class->dispose = valent_contacts_adapter_dispose;
+  object_class->finalize = valent_contacts_adapter_finalize;
   object_class->get_property = valent_contacts_adapter_get_property;
   object_class->set_property = valent_contacts_adapter_set_property;
 
