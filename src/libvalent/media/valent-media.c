@@ -42,40 +42,8 @@ static void   g_list_model_iface_init (GListModelInterface *iface);
 G_DEFINE_FINAL_TYPE_WITH_CODE (ValentMedia, valent_media, VALENT_TYPE_COMPONENT,
                                G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
-enum {
-  PLAYER_CHANGED,
-  PLAYER_SEEKED,
-  N_SIGNALS
-};
-
-static guint signals[N_SIGNALS] = { 0, };
-
 static ValentMedia *default_media = NULL;
 
-
-static void
-on_player_changed (ValentMediaPlayer *player,
-                   GParamSpec        *pspec,
-                   ValentMedia       *self)
-{
-  VALENT_ENTRY;
-
-  g_assert (VALENT_IS_MEDIA (self));
-
-  if (g_strcmp0 (pspec->name, "position") == 0)
-    {
-      double position = 0;
-
-      position = valent_media_player_get_position (player);
-      g_signal_emit (G_OBJECT (self), signals [PLAYER_SEEKED], 0, player, position);
-    }
-  else
-    {
-      g_signal_emit (G_OBJECT (self), signals [PLAYER_CHANGED], 0, player);
-    }
-
-  VALENT_EXIT;
-}
 
 static void
 on_items_changed (GListModel   *list,
@@ -119,10 +87,6 @@ on_items_changed (GListModel   *list,
       ValentMediaPlayer *player = NULL;
 
       player = g_list_model_get_item (list, position + i);
-      g_signal_connect_object (player,
-                               "notify",
-                               G_CALLBACK (on_player_changed),
-                               self, 0);
       g_ptr_array_insert (self->players, real_position + i, player);
     }
 
@@ -250,46 +214,6 @@ valent_media_class_init (ValentMediaClass *klass)
 
   component_class->bind_extension = valent_media_bind_extension;
   component_class->unbind_extension = valent_media_unbind_extension;
-
-  /**
-   * ValentMedia::player-changed:
-   * @media: an #ValentMedia
-   * @player: an #ValentMediaPlayer
-   *
-   * Emitted when the state of a [class@Valent.MediaPlayer] has changed.
-   *
-   * Since: 1.0
-   */
-  signals [PLAYER_CHANGED] =
-    g_signal_new ("player-changed",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_LAST,
-                  0,
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
-                  G_TYPE_NONE, 1, VALENT_TYPE_MEDIA_PLAYER);
-  g_signal_set_va_marshaller (signals [PLAYER_CHANGED],
-                              G_TYPE_FROM_CLASS (klass),
-                              g_cclosure_marshal_VOID__OBJECTv);
-
-  /**
-   * ValentMedia::player-seeked:
-   * @media: an #ValentMedia
-   * @player: an #ValentMediaPlayer
-   * @offset: the new position in seconds
-   *
-   * Emitted when the playback position of a [class@Valent.MediaPlayer] has been
-   * changed as the result of an external action.
-   *
-   * Since: 1.0
-   */
-  signals [PLAYER_SEEKED] =
-    g_signal_new ("player-seeked",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_LAST,
-                  0,
-                  NULL, NULL, NULL,
-                  G_TYPE_NONE, 2, VALENT_TYPE_MEDIA_PLAYER, G_TYPE_DOUBLE);
 }
 
 static void

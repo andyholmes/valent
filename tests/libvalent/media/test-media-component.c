@@ -66,23 +66,6 @@ on_items_changed (GListModel            *list,
 }
 
 static void
-on_player_changed (ValentMedia           *media,
-                   ValentMediaPlayer     *player,
-                   MediaComponentFixture *fixture)
-{
-  fixture->state = TRUE;
-}
-
-static void
-on_player_seeked (ValentMedia           *media,
-                  ValentMediaPlayer     *player,
-                  double                 offset,
-                  MediaComponentFixture *fixture)
-{
-  fixture->state = (offset == 1.0);
-}
-
-static void
 on_player_notify (ValentMediaPlayer     *player,
                   GParamSpec            *pspec,
                   MediaComponentFixture *fixture)
@@ -212,23 +195,6 @@ test_media_component_player (MediaComponentFixture *fixture,
   fixture->emitter = NULL;
 
   g_signal_handlers_disconnect_by_data (fixture->player, fixture);
-
-  /* Test signal propagation */
-  g_signal_connect (fixture->media,
-                    "player-changed",
-                    G_CALLBACK (on_player_changed),
-                    fixture);
-  g_object_notify (G_OBJECT (fixture->player), "state");
-  g_assert_true (fixture->state);
-  fixture->state = FALSE;
-
-  g_signal_connect (fixture->media,
-                    "player-seeked",
-                    G_CALLBACK (on_player_seeked),
-                    fixture);
-  valent_media_player_set_position (fixture->player, 1.0);
-  g_assert_true (fixture->state);
-  fixture->state = FALSE;
 
   /* Remove Player */
   valent_media_adapter_player_removed (fixture->adapter, fixture->player);
