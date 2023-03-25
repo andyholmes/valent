@@ -231,17 +231,6 @@ valent_mock_media_player_play (ValentMediaPlayer *player)
 }
 
 static void
-valent_mock_media_player_play_pause (ValentMediaPlayer *player)
-{
-  ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
-
-  if (self->state == VALENT_MEDIA_STATE_PAUSED)
-    valent_mock_media_player_play (player);
-  else if (self->state == VALENT_MEDIA_STATE_PLAYING)
-    valent_mock_media_player_pause (player);
-}
-
-static void
 valent_mock_media_player_previous (ValentMediaPlayer *player)
 {
   ValentMockMediaPlayer *self = VALENT_MOCK_MEDIA_PLAYER (player);
@@ -307,7 +296,6 @@ valent_mock_media_player_class_init (ValentMockMediaPlayerClass *klass)
   player_class->next = valent_mock_media_player_next;
   player_class->pause = valent_mock_media_player_pause;
   player_class->play = valent_mock_media_player_play;
-  player_class->play_pause = valent_mock_media_player_play_pause;
   player_class->previous = valent_mock_media_player_previous;
   player_class->seek = valent_mock_media_player_seek;
   player_class->stop = valent_mock_media_player_stop;

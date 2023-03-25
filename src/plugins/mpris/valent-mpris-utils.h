@@ -59,4 +59,18 @@ double               valent_mpris_get_time              (void);
 char               * valent_mpris_time_to_string        (gint64             msecs,
                                                          TotemTimeFlag      flags);
 
+#define valent_mpris_play_pause(player) \
+  G_STMT_START {                                                         \
+      ValentMediaActions flags = valent_media_player_get_flags (player); \
+      ValentMediaState state = valent_media_player_get_state (player);   \
+                                                                         \
+      if (state == VALENT_MEDIA_STATE_PLAYING &&                         \
+          (flags & VALENT_MEDIA_ACTION_PAUSE) != 0)                      \
+        valent_media_player_pause (VALENT_MEDIA_PLAYER (player));        \
+                                                                         \
+      else if (state != VALENT_MEDIA_STATE_PLAYING &&                    \
+               (flags & VALENT_MEDIA_ACTION_PLAY) != 0)                  \
+        valent_media_player_play (VALENT_MEDIA_PLAYER (player));         \
+  } G_STMT_END                                                           \
+
 G_END_DECLS

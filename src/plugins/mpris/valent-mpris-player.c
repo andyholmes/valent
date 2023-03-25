@@ -467,6 +467,7 @@ valent_mpris_player_play (ValentMediaPlayer *player)
                      NULL);
 }
 
+#if 0
 static void
 valent_mpris_player_play_pause (ValentMediaPlayer *player)
 {
@@ -481,6 +482,7 @@ valent_mpris_player_play_pause (ValentMediaPlayer *player)
                      NULL,
                      NULL);
 }
+#endif
 
 static void
 valent_mpris_player_previous (ValentMediaPlayer *player)
@@ -740,7 +742,6 @@ valent_mpris_player_class_init (ValentMPRISPlayerClass *klass)
   player_class->next = valent_mpris_player_next;
   player_class->pause = valent_mpris_player_pause;
   player_class->play = valent_mpris_player_play;
-  player_class->play_pause = valent_mpris_player_play_pause;
   player_class->previous = valent_mpris_player_previous;
   player_class->seek = valent_mpris_player_seek;
   player_class->stop = valent_mpris_player_stop;

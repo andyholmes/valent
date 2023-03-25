@@ -187,10 +187,6 @@ test_media_component_player (MediaComponentFixture *fixture,
   g_assert_true (fixture->emitter == fixture->player);
   fixture->emitter = NULL;
 
-  valent_media_player_play_pause (fixture->player);
-  g_assert_true (fixture->emitter == fixture->player);
-  fixture->emitter = NULL;
-
   valent_media_player_pause (fixture->player);
   g_assert_true (fixture->emitter == fixture->player);
   fixture->emitter = NULL;

@@ -159,7 +159,7 @@ player_method_call (GDBusConnection       *connection,
     }
   else if (strcmp (method_name, "PlayPause") == 0)
     {
-      valent_media_player_play_pause (self->player);
+      valent_mpris_play_pause (self->player);
     }
   else if (strcmp (method_name, "Previous") == 0)
     {

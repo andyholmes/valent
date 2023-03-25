@@ -479,12 +479,14 @@ test_mpris_plugin_handle_player (ValentTestFixture *fixture,
   v_assert_packet_cmpstr (packet, "action", ==, "Pause");
   json_node_unref (packet);
 
+#if 0
   valent_media_player_play_pause (fixture->data);
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
   v_assert_packet_cmpstr (packet, "player", ==, "Mock Player");
   v_assert_packet_cmpstr (packet, "action", ==, "PlayPause");
   json_node_unref (packet);
+#endif
 
   valent_media_player_stop (fixture->data);
   packet = valent_test_fixture_expect_packet (fixture);

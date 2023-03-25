@@ -235,7 +235,7 @@
                     <child>
                       <object class="GtkButton" id="play_pause_button">
                         <property name="tooltip-text" translatable="yes">Play</property>
-                        <property name="action-name">remote.play-pause</property>
+                        <property name="action-name">remote.play</property>
                         <property name="halign">center</property>
                         <property name="valign">center</property>
                         <property name="child">
