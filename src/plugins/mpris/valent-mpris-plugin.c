@@ -169,21 +169,7 @@ valent_mpris_plugin_flush (gpointer data)
 }
 
 static void
-on_player_changed (ValentMedia       *media,
-                   ValentMediaPlayer *player,
-                   ValentMprisPlugin *self)
-{
-  g_assert (VALENT_IS_MPRIS_PLUGIN (self));
-
-  g_hash_table_add (self->pending, player);
-
-  if (self->flush_id == 0)
-    self->flush_id = g_idle_add (valent_mpris_plugin_flush, self);
-}
-
-static void
-on_player_seeked (ValentMedia       *media,
-                  ValentMediaPlayer *player,
+on_player_seeked (ValentMediaPlayer *player,
                   double             position,
                   ValentMprisPlugin *self)
 {
@@ -207,6 +193,29 @@ on_player_seeked (ValentMedia       *media,
 }
 
 static void
+on_player_changed (ValentMediaPlayer *player,
+                   GParamSpec        *pspec,
+                   ValentMprisPlugin *self)
+{
+  g_assert (VALENT_IS_MPRIS_PLUGIN (self));
+
+  if (g_str_equal (pspec->name, "position"))
+    {
+      double position = 0.0;
+
+      position = valent_media_player_get_position (player);
+      on_player_seeked (player, position, self);
+    }
+  else
+    {
+      g_hash_table_add (self->pending, player);
+
+      if (self->flush_id == 0)
+        self->flush_id = g_idle_add (valent_mpris_plugin_flush, self);
+    }
+}
+
+static void
 on_players_changed (ValentMedia       *media,
                     unsigned int       position,
                     unsigned int       removed,
@@ -215,6 +224,17 @@ on_players_changed (ValentMedia       *media,
 {
   if (removed > 0)
     g_hash_table_remove_all (self->pending);
+
+  for (unsigned int i = 0; i < added; i++)
+    {
+      g_autoptr (ValentMediaPlayer) player = NULL;
+
+      player = g_list_model_get_item (G_LIST_MODEL (media), position + i);
+      g_signal_connect_object (player,
+                               "notify",
+                               G_CALLBACK (on_player_changed),
+                               self, 0);
+    }
 
   valent_mpris_plugin_send_player_list (self);
 }
@@ -506,31 +526,51 @@ valent_mpris_plugin_send_player_list (ValentMprisPlugin *self)
 
 static void
 valent_mpris_plugin_watch_media (ValentMprisPlugin *self,
-                                 gboolean           connect)
+                                 gboolean           state)
 {
-  if (connect == self->media_watch)
+  if (self->media_watch == state)
     return;
 
   self->media = valent_media_get_default ();
 
-  if (connect)
+  if (state)
     {
+      unsigned int n_players = 0;
+
+      n_players = g_list_model_get_n_items (G_LIST_MODEL (self->media));
+
+      for (unsigned int i = 0; i < n_players; i++)
+        {
+          g_autoptr (ValentMediaPlayer) player = NULL;
+
+          player = g_list_model_get_item (G_LIST_MODEL (self->media), i);
+          g_signal_connect_object (player,
+                                   "notify",
+                                   G_CALLBACK (on_player_changed),
+                                   self, 0);
+        }
+
       g_signal_connect_object (self->media,
                                "items-changed",
                                G_CALLBACK (on_players_changed),
                                self, 0);
-      g_signal_connect_object (self->media,
-                               "player-changed",
-                               G_CALLBACK (on_player_changed),
-                               self, 0);
-      g_signal_connect_object (self->media,
-                               "player-seeked",
-                               G_CALLBACK (on_player_seeked),
-                               self, 0);
+
       self->media_watch = TRUE;
     }
   else
     {
+      unsigned int n_players = 0;
+
+      n_players = g_list_model_get_n_items (G_LIST_MODEL (self->media));
+
+      for (unsigned int i = 0; i < n_players; i++)
+        {
+          g_autoptr (ValentMediaPlayer) player = NULL;
+
+          player = g_list_model_get_item (G_LIST_MODEL (self->media), i);
+          g_signal_handlers_disconnect_by_data (player, self);
+        }
+
       g_clear_handle_id (&self->flush_id, g_source_remove);
       g_signal_handlers_disconnect_by_data (self->media, self);
       self->media_watch = FALSE;
