@@ -4,8 +4,8 @@ Files: *.desktop *.service *.json *.po *.pot
 Copyright: Andy Holmes <andrew.g.r.holmes@gmail.com>
 License: GPL-3.0-or-later
 
-Files: .github .gitignore .gitmodules build-aux/misc/* CHANGELOG.md
-    CONTRIBUTING.md README.md *.oga *.png *.svg *.vcf *.wrap
+Files: .github .gitignore .gitmodules build-aux/* CHANGELOG.md CONTRIBUTING.md
+    README.md *.oga *.png *.svg *.vcf *.wrap
 Copyright: No rights reserved
 License: CC0-1.0
 
