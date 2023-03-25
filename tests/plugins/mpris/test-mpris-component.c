@@ -192,11 +192,6 @@ test_mpris_component_player (MprisComponentFixture *fixture,
   g_assert_true (fixture->data == fixture->player);
   fixture->data = NULL;
 
-  valent_media_player_play_pause (fixture->player);
-  g_main_loop_run (fixture->loop);
-  g_assert_true (fixture->data == fixture->player);
-  fixture->data = NULL;
-
   valent_media_player_pause (fixture->player);
   g_main_loop_run (fixture->loop);
   g_assert_true (fixture->data == fixture->player);

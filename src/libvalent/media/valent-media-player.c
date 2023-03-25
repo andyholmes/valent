@@ -30,7 +30,6 @@ G_DEFINE_TYPE (ValentMediaPlayer, valent_media_player, VALENT_TYPE_OBJECT)
  * @next: the virtual function pointer for valent_media_player_next()
  * @pause: the virtual function pointer for valent_media_player_pause()
  * @play: the virtual function pointer for valent_media_player_play()
- * @play_pause: the virtual function pointer for valent_media_player_play_pause()
  * @previous: the virtual function pointer for valent_media_player_previous()
  * @seek: the virtual function pointer for valent_media_player_seek()
  * @stop: the virtual function pointer for valent_media_player_stop()
@@ -150,21 +149,6 @@ valent_media_player_real_pause (ValentMediaPlayer *player)
 static void
 valent_media_player_real_play (ValentMediaPlayer *player)
 {
-}
-
-static void
-valent_media_player_real_play_pause (ValentMediaPlayer *player)
-{
-  ValentMediaActions flags = valent_media_player_get_flags (player);
-  ValentMediaState state = valent_media_player_get_state (player);
-
-  if (state == VALENT_MEDIA_STATE_PLAYING &&
-      (flags & VALENT_MEDIA_ACTION_PAUSE) != 0)
-    valent_media_player_pause (player);
-
-  else if (state != VALENT_MEDIA_STATE_PLAYING &&
-           (flags & VALENT_MEDIA_ACTION_PLAY) != 0)
-    valent_media_player_play (player);
 }
 
 static void
@@ -293,7 +277,6 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
   player_class->next = valent_media_player_real_next;
   player_class->pause = valent_media_player_real_pause;
   player_class->play = valent_media_player_real_play;
-  player_class->play_pause = valent_media_player_real_play_pause;
   player_class->previous = valent_media_player_real_previous;
   player_class->seek = valent_media_player_real_seek;
   player_class->stop = valent_media_player_real_stop;
@@ -827,33 +810,6 @@ valent_media_player_play (ValentMediaPlayer *player)
   g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
 
   VALENT_MEDIA_PLAYER_GET_CLASS (player)->play (player);
-
-  VALENT_EXIT;
-}
-
-/**
- * valent_media_player_play_pause: (virtual play_pause)
- * @player: a #ValentMediaPlayer
- *
- * Start or pause playback, depending on the current state.
- *
- * If playback is already paused, resumes playback. If playback is stopped,
- * starts playback.
- *
- * If [property@Valent.MediaPlayer:flags] does not include
- * %VALENT_MEDIA_ACTION_PLAY or %VALENT_MEDIA_ACTION_PAUSE, calling this method
- * should have no effect.
- *
- * Since: 1.0
- */
-void
-valent_media_player_play_pause (ValentMediaPlayer *player)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
-
-  VALENT_MEDIA_PLAYER_GET_CLASS (player)->play_pause (player);
 
   VALENT_EXIT;
 }

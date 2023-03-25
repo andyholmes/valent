@@ -243,6 +243,7 @@ valent_mpris_device_play (ValentMediaPlayer *player)
   valent_device_queue_packet (self->device, packet);
 }
 
+#if 0
 static void
 valent_mpris_device_play_pause (ValentMediaPlayer *player)
 {
@@ -259,6 +260,7 @@ valent_mpris_device_play_pause (ValentMediaPlayer *player)
 
   valent_device_queue_packet (self->device, packet);
 }
+#endif
 
 static void
 valent_mpris_device_previous (ValentMediaPlayer *player)
@@ -548,7 +550,6 @@ valent_mpris_device_class_init (ValentMprisDeviceClass *klass)
   player_class->next = valent_mpris_device_next;
   player_class->pause = valent_mpris_device_pause;
   player_class->play = valent_mpris_device_play;
-  player_class->play_pause = valent_mpris_device_play_pause;
   player_class->previous = valent_mpris_device_previous;
   player_class->seek = valent_mpris_device_seek;
   player_class->stop = valent_mpris_device_stop;

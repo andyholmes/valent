@@ -106,7 +106,6 @@ struct _ValentMediaPlayerClass
   void                 (*next)         (ValentMediaPlayer *player);
   void                 (*pause)        (ValentMediaPlayer *player);
   void                 (*play)         (ValentMediaPlayer *player);
-  void                 (*play_pause)   (ValentMediaPlayer *player);
   void                 (*previous)     (ValentMediaPlayer *player);
   void                 (*seek)         (ValentMediaPlayer *player,
                                         double             offset);
@@ -150,8 +149,6 @@ VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_pause        (ValentMediaPlayer *player);
 VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_play         (ValentMediaPlayer *player);
-VALENT_AVAILABLE_IN_1_0
-void                 valent_media_player_play_pause   (ValentMediaPlayer *player);
 VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_previous     (ValentMediaPlayer *player);
 VALENT_AVAILABLE_IN_1_0

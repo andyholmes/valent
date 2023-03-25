@@ -106,7 +106,6 @@ valent_mpris_remote_clear (ValentMprisRemote *self)
   gtk_widget_action_set_enabled (widget, "remote.next", FALSE);
   gtk_widget_action_set_enabled (widget, "remote.pause", FALSE);
   gtk_widget_action_set_enabled (widget, "remote.play", FALSE);
-  gtk_widget_action_set_enabled (widget, "remote.play-pause", FALSE);
   gtk_widget_action_set_enabled (widget, "remote.previous", FALSE);
   gtk_widget_action_set_enabled (widget, "remote.seek", FALSE);
   gtk_widget_action_set_enabled (widget, "remote.stop", FALSE);
@@ -131,9 +130,6 @@ valent_mpris_remote_update_flags (ValentMprisRemote *self)
                                  (flags & VALENT_MEDIA_ACTION_PAUSE) != 0);
   gtk_widget_action_set_enabled (widget, "remote.play",
                                  (flags & VALENT_MEDIA_ACTION_PLAY) != 0);
-  gtk_widget_action_set_enabled (widget, "remote.play-pause",
-                                 (flags & (VALENT_MEDIA_ACTION_PLAY |
-                                           VALENT_MEDIA_ACTION_PAUSE)) != 0);
   gtk_widget_action_set_enabled (widget, "remote.previous",
                                  (flags & VALENT_MEDIA_ACTION_PREVIOUS) != 0);
   gtk_widget_action_set_enabled (widget, "remote.seek",
@@ -270,6 +266,8 @@ valent_mpris_remote_update_state (ValentMprisRemote *self)
 
   if (state == VALENT_MEDIA_STATE_PLAYING)
     {
+      gtk_actionable_set_action_name (GTK_ACTIONABLE (self->play_pause_button),
+                                      "remote.pause");
       gtk_image_set_from_icon_name (GTK_IMAGE (child),
                                     "media-playback-pause-symbolic");
       gtk_widget_set_tooltip_text (GTK_WIDGET (self->play_pause_button),
@@ -280,6 +278,8 @@ valent_mpris_remote_update_state (ValentMprisRemote *self)
     }
   else
     {
+      gtk_actionable_set_action_name (GTK_ACTIONABLE (self->play_pause_button),
+                                      "remote.play");
       gtk_image_set_from_icon_name (GTK_IMAGE (child),
                                     "media-playback-start-symbolic");
       gtk_widget_set_tooltip_text (GTK_WIDGET (self->play_pause_button),
@@ -445,9 +445,6 @@ remote_player_action (GtkWidget  *widget,
 
   else if (g_str_equal (action_name, "remote.play"))
     valent_media_player_play (self->player);
-
-  else if (g_str_equal (action_name, "remote.play-pause"))
-    valent_media_player_play_pause (self->player);
 
   else if (g_str_equal (action_name, "remote.previous"))
     valent_media_player_previous (self->player);
@@ -620,7 +617,6 @@ valent_mpris_remote_class_init (ValentMprisRemoteClass *klass)
   gtk_widget_class_install_action (widget_class, "remote.next", NULL, remote_player_action);
   gtk_widget_class_install_action (widget_class, "remote.pause", NULL, remote_player_action);
   gtk_widget_class_install_action (widget_class, "remote.play", NULL, remote_player_action);
-  gtk_widget_class_install_action (widget_class, "remote.play-pause", NULL, remote_player_action);
   gtk_widget_class_install_action (widget_class, "remote.previous", NULL, remote_player_action);
   gtk_widget_class_install_action (widget_class, "remote.repeat", NULL, remote_player_action);
   gtk_widget_class_install_action (widget_class, "remote.seek", "d", remote_player_action);

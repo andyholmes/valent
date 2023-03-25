@@ -339,10 +339,6 @@ test_mpris_impl_player (MPRISImplFixture *fixture,
   g_assert_true (fixture->state);
   fixture->state = FALSE;
 
-  valent_media_player_play_pause (player);
-  g_assert_true (fixture->state);
-  fixture->state = FALSE;
-
   valent_media_player_pause (player);
   g_assert_true (fixture->state);
   fixture->state = FALSE;

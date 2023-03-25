@@ -238,7 +238,7 @@ valent_mpris_plugin_handle_action (ValentMprisPlugin *self,
     valent_media_player_play (player);
 
   else if (strcmp (action, "PlayPause") == 0)
-    valent_media_player_play_pause (player);
+    valent_mpris_play_pause (player);
 
   else if (strcmp (action, "Previous") == 0)
     valent_media_player_previous (player);
