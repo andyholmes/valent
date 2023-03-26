@@ -31,13 +31,6 @@
         "--talk-name=org.mpris.MediaPlayer2.*"
     ],
     "add-extensions" : {
-        "ca.andyholmes.Valent.Help": {
-            "version": "master",
-            "directory": "share/help",
-            "locale-subset": true,
-            "no-autodownload": true,
-            "autodelete" : true
-        },
         "ca.andyholmes.Valent.Plugin" : {
             "version" : "master",
             "directory" : "extensions",
@@ -217,8 +210,7 @@
                 "--buildtype=release"
             ],
             "post-install" : [
-                "install -d /app/extensions",
-                "install -d /app/share/help"
+                "install -d /app/extensions"
             ],
             "sources" : [
                 {
