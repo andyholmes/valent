@@ -201,6 +201,7 @@ page_preferences_action (GtkWidget  *widget,
                                         "default-width",  allocation.width,
                                         "default-height", allocation.height,
                                         "device",         self->device,
+                                        "modal",          FALSE,
                                         "transient-for",  window,
                                         NULL);
 
