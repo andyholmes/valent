@@ -323,6 +323,7 @@ preferences_action (GtkWidget  *widget,
       self->preferences = g_object_new (VALENT_TYPE_PREFERENCES_WINDOW,
                                         "default-width",  allocation.width,
                                         "default-height", allocation.height,
+                                        "modal",          FALSE,
                                         "transient-for",  self,
                                         NULL);
 
