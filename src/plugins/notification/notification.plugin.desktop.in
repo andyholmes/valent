@@ -11,6 +11,7 @@ Embedded=valent_notification_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
+X-DevicePluginCategory=Network;RemoteAccess;
 X-DevicePluginIncoming=kdeconnect.notification;kdeconnect.notification.request
 X-DevicePluginOutgoing=kdeconnect.notification;kdeconnect.notification.action;kdeconnect.notification.reply;kdeconnect.notification.request
 X-DevicePluginSettings=ca.andyholmes.Valent.Plugin.notification

@@ -15,20 +15,18 @@
 
 struct _ValentTelephonyPreferences
 {
-  ValentDevicePreferencesPage  parent_instance;
+  ValentDevicePreferencesGroup  parent_instance;
 
   /* template */
-  AdwPreferencesGroup         *ringing_group;
-  AdwComboRow                 *ringing_volume;
-  GtkSwitch                   *ringing_pause;
+  AdwComboRow                  *ringing_volume;
+  GtkSwitch                    *ringing_pause;
 
-  AdwPreferencesGroup         *talking_group;
-  AdwComboRow                 *talking_volume;
-  GtkSwitch                   *talking_pause;
-  GtkSwitch                   *talking_microphone;
+  AdwComboRow                  *talking_volume;
+  GtkSwitch                    *talking_pause;
+  GtkSwitch                    *talking_microphone;
 };
 
-G_DEFINE_FINAL_TYPE (ValentTelephonyPreferences, valent_telephony_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
+G_DEFINE_FINAL_TYPE (ValentTelephonyPreferences, valent_telephony_preferences, VALENT_TYPE_DEVICE_PREFERENCES_GROUP)
 
 
 /* Mapping functions for converting our [-1...100] volume range to a boolean,
@@ -134,39 +132,31 @@ static void
 valent_telephony_preferences_constructed (GObject *object)
 {
   ValentTelephonyPreferences *self = VALENT_TELEPHONY_PREFERENCES (object);
-  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
   GSettings *settings;
 
-  /* Setup GSettings */
-  settings = valent_device_preferences_page_get_settings (page);
-
-  /* Incoming Calls */
+  settings = valent_device_preferences_group_get_settings (group);
   g_settings_bind (settings,            "ringing-pause",
                    self->ringing_pause, "active",
                    G_SETTINGS_BIND_DEFAULT);
-
   g_settings_bind_with_mapping (settings,             "ringing-volume",
                                 self->ringing_volume, "selected",
                                 G_SETTINGS_BIND_DEFAULT,
                                 get_volume,
                                 set_volume,
                                 NULL, NULL);
-
-  /* Ongoing Calls */
   g_settings_bind_with_mapping (settings,                 "talking-microphone",
                                 self->talking_microphone, "active",
                                 G_SETTINGS_BIND_DEFAULT,
                                 get_mute_volume_boolean,
                                 set_mute_volume_boolean,
                                 NULL, NULL);
-
   g_settings_bind_with_mapping (settings,             "talking-volume",
                                 self->talking_volume, "selected",
                                 G_SETTINGS_BIND_DEFAULT,
                                 get_volume,
                                 set_volume,
                                 NULL, NULL);
-
   g_settings_bind (settings,            "talking-pause",
                    self->talking_pause, "active",
                    G_SETTINGS_BIND_DEFAULT);
@@ -194,10 +184,8 @@ valent_telephony_preferences_class_init (ValentTelephonyPreferencesClass *klass)
   object_class->dispose = valent_telephony_preferences_dispose;
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/telephony/valent-telephony-preferences.ui");
-  gtk_widget_class_bind_template_child (widget_class, ValentTelephonyPreferences, ringing_group);
   gtk_widget_class_bind_template_child (widget_class, ValentTelephonyPreferences, ringing_volume);
   gtk_widget_class_bind_template_child (widget_class, ValentTelephonyPreferences, ringing_pause);
-  gtk_widget_class_bind_template_child (widget_class, ValentTelephonyPreferences, talking_group);
   gtk_widget_class_bind_template_child (widget_class, ValentTelephonyPreferences, talking_volume);
   gtk_widget_class_bind_template_child (widget_class, ValentTelephonyPreferences, talking_pause);
   gtk_widget_class_bind_template_child (widget_class, ValentTelephonyPreferences, talking_microphone);

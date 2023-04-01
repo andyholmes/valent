@@ -11,6 +11,7 @@ Embedded=valent_telephony_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
+X-DevicePluginCategory=Network;Telephony;
 X-DevicePluginIncoming=kdeconnect.telephony
 X-DevicePluginOutgoing=kdeconnect.telephony.request_mute
 X-DevicePluginSettings=ca.andyholmes.Valent.Plugin.telephony

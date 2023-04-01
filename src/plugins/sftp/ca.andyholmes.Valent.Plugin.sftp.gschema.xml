@@ -10,13 +10,9 @@
     </key>
     <key name="local-allow" type="b">
       <default>false</default>
-      <summary>Local Access</summary>
-      <description>Expose the local SSH service.</description>
     </key>
     <key name="local-port" type="u">
       <default>22</default>
-      <summary>Local Port</summary>
-      <description>Local SSH port.</description>
     </key>
   </schema>
 </schemalist>

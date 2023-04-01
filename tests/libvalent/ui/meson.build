@@ -10,7 +10,7 @@ libvalent_ui_tests = [
   'test-application',
   'test-application-plugin',
   'test-device-page',
-  'test-device-preferences-page',
+  'test-device-preferences-group',
   'test-device-preferences-window',
   'test-preferences-page',
   'test-preferences-window',

@@ -928,7 +928,6 @@ valent_notification_plugin_enable (ValentDevicePlugin *plugin)
 
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
 
-  /* Setup GSettings */
   self->cancellable = g_cancellable_new ();
 
   g_action_map_add_action_entries (G_ACTION_MAP (plugin),

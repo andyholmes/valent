@@ -4,13 +4,14 @@
 [Plugin]
 Module=systemvolume
 Name=System Volume
-Description=Control the system volume
+Description=Monitor volume levels and microphones
 Icon=valent-systemvolume-plugin-symbolic
 Builtin=true
 Embedded=valent_systemvolume_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
+X-DevicePluginCategory=AudioVideo;Mixer;
 X-DevicePluginIncoming=kdeconnect.systemvolume.request
 X-DevicePluginOutgoing=kdeconnect.systemvolume
 X-DevicePluginSettings=ca.andyholmes.Valent.Plugin.systemvolume

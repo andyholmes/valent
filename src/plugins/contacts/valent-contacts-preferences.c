@@ -15,24 +15,23 @@
 
 struct _ValentContactsPreferences
 {
-  ValentDevicePreferencesPage  parent_instance;
+  ValentDevicePreferencesGroup  parent_instance;
 
-  GHashTable                  *local_stores;
+  GHashTable                   *local_stores;
 
   /* template */
-  AdwExpanderRow              *export_row;
-  GtkListBox                  *export_list;
-  GtkSwitch                   *remote_sync;
-  GtkSwitch                   *remote_import;
+  AdwExpanderRow               *local_sync;
+  GtkListBox                   *local_list;
+  GtkSwitch                    *remote_sync;
 };
 
-G_DEFINE_FINAL_TYPE (ValentContactsPreferences, valent_contacts_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
+G_DEFINE_FINAL_TYPE (ValentContactsPreferences, valent_contacts_preferences, VALENT_TYPE_DEVICE_PREFERENCES_GROUP)
 
 
 static void
-on_export_row (GtkListBox                  *box,
-               GtkListBoxRow               *row,
-               ValentDevicePreferencesPage *page)
+on_local_sync (GtkListBox                   *box,
+               GtkListBoxRow                *row,
+               ValentDevicePreferencesGroup *group)
 {
   GSettings *settings;
   g_autofree char *local_uid = NULL;
@@ -40,9 +39,9 @@ on_export_row (GtkListBox                  *box,
 
   g_assert (GTK_IS_LIST_BOX (box));
   g_assert (GTK_IS_LIST_BOX_ROW (row));
-  g_assert (VALENT_IS_DEVICE_PREFERENCES_PAGE (page));
+  g_assert (VALENT_IS_DEVICE_PREFERENCES_GROUP (group));
 
-  settings = valent_device_preferences_page_get_settings (page);
+  settings = valent_device_preferences_group_get_settings (group);
   local_uid = g_settings_get_string (settings, "local-uid");
   uid = gtk_widget_get_name (GTK_WIDGET (row));
 
@@ -58,7 +57,7 @@ static void
 on_store_selected (AdwActionRow              *row,
                    ValentContactsPreferences *self)
 {
-  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
   GSettings *settings;
   GHashTableIter iter;
   gpointer store, store_row;
@@ -66,7 +65,7 @@ on_store_selected (AdwActionRow              *row,
   g_assert (ADW_IS_ACTION_ROW (row));
   g_assert (VALENT_IS_CONTACTS_PREFERENCES (self));
 
-  settings = valent_device_preferences_page_get_settings (page);
+  settings = valent_device_preferences_group_get_settings (group);
 
   g_hash_table_iter_init (&iter, self->local_stores);
 
@@ -91,7 +90,7 @@ valent_contacts_preferences_create_row_func (gpointer item,
                                              gpointer user_data)
 {
   ValentContactsPreferences *self = VALENT_CONTACTS_PREFERENCES (user_data);
-  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
   ValentContactStore *store = VALENT_CONTACT_STORE (item);
   ValentContext *context = NULL;
   const char *device_id = NULL;
@@ -106,7 +105,7 @@ valent_contacts_preferences_create_row_func (gpointer item,
   g_assert (VALENT_IS_CONTACTS_PREFERENCES (self));
 
   /* FIXME: select an icon name for the addressbook type */
-  context = valent_device_preferences_page_get_context (page);
+  context = valent_device_preferencs_group_get_context (group);
   device_id = valent_context_get_id (context);
   uid = valent_contact_store_get_uid (store);
 
@@ -128,7 +127,7 @@ valent_contacts_preferences_create_row_func (gpointer item,
                            self, 0);
 
   /* Check */
-  settings = valent_device_preferences_page_get_settings (page);
+  settings = valent_device_preferences_group_get_settings (group);
   local_uid = g_settings_get_string (settings, "local-uid");
   check = g_object_new (GTK_TYPE_IMAGE,
                         "icon-name", "object-select-symbolic",
@@ -178,25 +177,20 @@ static void
 valent_contacts_preferences_constructed (GObject *object)
 {
   ValentContactsPreferences *self = VALENT_CONTACTS_PREFERENCES (object);
-  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
   GSettings *settings;
   ValentContacts *contacts;
 
-  /* Setup GSettings */
-  settings = valent_device_preferences_page_get_settings (page);
-
+  settings = valent_device_preferences_group_get_settings (group);
   g_settings_bind (settings,          "remote-sync",
                    self->remote_sync, "active",
                    G_SETTINGS_BIND_DEFAULT);
-  g_settings_bind (settings,            "remote-import",
-                   self->remote_import, "active",
-                   G_SETTINGS_BIND_DEFAULT);
   g_settings_bind (settings,         "local-sync",
-                   self->export_row, "enable-expansion",
+                   self->local_sync, "enable-expansion",
                    G_SETTINGS_BIND_DEFAULT);
 
   contacts = valent_contacts_get_default ();
-  gtk_list_box_bind_model (self->export_list,
+  gtk_list_box_bind_model (self->local_list,
                            G_LIST_MODEL (contacts),
                            valent_contacts_preferences_create_row_func,
                            self, NULL);
@@ -235,11 +229,10 @@ valent_contacts_preferences_class_init (ValentContactsPreferencesClass *klass)
   object_class->finalize = valent_contacts_preferences_finalize;
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/contacts/valent-contacts-preferences.ui");
-  gtk_widget_class_bind_template_child (widget_class, ValentContactsPreferences, export_row);
+  gtk_widget_class_bind_template_child (widget_class, ValentContactsPreferences, local_sync);
   gtk_widget_class_bind_template_child (widget_class, ValentContactsPreferences, remote_sync);
-  gtk_widget_class_bind_template_child (widget_class, ValentContactsPreferences, remote_import);
 
-  gtk_widget_class_bind_template_callback (widget_class, on_export_row);
+  gtk_widget_class_bind_template_callback (widget_class, on_local_sync);
 }
 
 static void
@@ -247,7 +240,7 @@ valent_contacts_preferences_init (ValentContactsPreferences *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
 
-  self->export_list = _adw_expander_row_get_list (self->export_row);
+  self->local_list = _adw_expander_row_get_list (self->local_sync);
   self->local_stores = g_hash_table_new (NULL, NULL);
 }
 

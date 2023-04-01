@@ -3,14 +3,15 @@
 
 [Plugin]
 Module=share
-Name=Share
-Description=Share files, links and text
+Name=Sharing
+Description=Direct file, link and text sharing
 Icon=valent-share-plugin-symbolic
 Builtin=true
 Embedded=valent_share_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
+X-DevicePluginCategory=Utility;Other;
 X-DevicePluginIncoming=kdeconnect.share.request;kdeconnect.share.request.update
 X-DevicePluginOutgoing=kdeconnect.share.request;kdeconnect.share.request.update
 X-DevicePluginSettings=ca.andyholmes.Valent.Plugin.share

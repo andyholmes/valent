@@ -5,6 +5,12 @@
 
 <gresources>
   <gresource prefix="/ca/andyholmes/Valent/icons">
+    <file preprocess="xml-stripblanks" alias="scalable/actions/valent-help-symbolic.svg">data/icons/hicolor/scalable/actions/valent-help-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/actions/valent-other-symbolic.svg">data/icons/hicolor/scalable/actions/valent-other-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/actions/valent-plugins-symbolic.svg">data/icons/hicolor/scalable/actions/valent-plugins-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/actions/valent-status-symbolic.svg">data/icons/hicolor/scalable/actions/valent-status-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/actions/valent-sync-symbolic.svg">data/icons/hicolor/scalable/actions/valent-sync-symbolic.svg</file>
+
     <!-- Device Icons -->
     <file preprocess="xml-stripblanks" alias="scalable/devices/computer-symbolic.svg">data/icons/hicolor/scalable/devices/computer-symbolic.svg</file>
     <file preprocess="xml-stripblanks" alias="scalable/devices/laptop-symbolic.svg">data/icons/hicolor/scalable/devices/laptop-symbolic.svg</file>

@@ -6,7 +6,7 @@
 
 
 static void
-test_device_preferences_page_basic (void)
+test_device_preferencs_group_basic (void)
 {
   PeasEngine *engine;
   PeasPluginInfo *info;
@@ -18,7 +18,7 @@ test_device_preferences_page_basic (void)
   info = peas_engine_get_plugin_info (engine, "mock");
   prefs = peas_engine_create_extension (engine,
                                         info,
-                                        VALENT_TYPE_DEVICE_PREFERENCES_PAGE,
+                                        VALENT_TYPE_DEVICE_PREFERENCES_GROUP,
                                         NULL);
   g_object_ref_sink (prefs);
 
@@ -39,8 +39,8 @@ main (int   argc,
 {
   valent_test_ui_init (&argc, &argv, NULL);
 
-  g_test_add_func ("/libvalent/ui/device-preferences-page/basic",
-                   test_device_preferences_page_basic);
+  g_test_add_func ("/libvalent/ui/device-preferences-group/basic",
+                   test_device_preferencs_group_basic);
 
   return g_test_run ();
 }

@@ -65,7 +65,7 @@ G_BEGIN_DECLS
 #include "ui/valent-application.h"
 #include "ui/valent-application-plugin.h"
 #include "ui/valent-device-gadget.h"
-#include "ui/valent-device-preferences-page.h"
+#include "ui/valent-device-preferences-group.h"
 #include "ui/valent-preferences-page.h"
 #include "ui/valent-ui-utils.h"
 

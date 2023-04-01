@@ -498,7 +498,7 @@ valent_type_ensure (void)
   g_type_ensure (VALENT_TYPE_APPLICATION_PLUGIN);
 
   g_type_ensure (VALENT_TYPE_DEVICE_GADGET);
-  g_type_ensure (VALENT_TYPE_DEVICE_PREFERENCES_PAGE);
+  g_type_ensure (VALENT_TYPE_DEVICE_PREFERENCES_GROUP);
   g_type_ensure (VALENT_TYPE_PREFERENCES_PAGE);
 }
 

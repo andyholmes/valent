@@ -9,6 +9,6 @@ G_BEGIN_DECLS
 
 #define VALENT_TYPE_TELEPHONY_PREFERENCES (valent_telephony_preferences_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentTelephonyPreferences, valent_telephony_preferences, VALENT, TELEPHONY_PREFERENCES, ValentDevicePreferencesPage)
+G_DECLARE_FINAL_TYPE (ValentTelephonyPreferences, valent_telephony_preferences, VALENT, TELEPHONY_PREFERENCES, ValentDevicePreferencesGroup)
 
 G_END_DECLS

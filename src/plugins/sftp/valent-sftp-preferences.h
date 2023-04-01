@@ -9,6 +9,6 @@ G_BEGIN_DECLS
 
 #define VALENT_TYPE_SFTP_PREFERENCES (valent_sftp_preferences_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentSftpPreferences, valent_sftp_preferences, VALENT, SFTP_PREFERENCES, ValentDevicePreferencesPage)
+G_DECLARE_FINAL_TYPE (ValentSftpPreferences, valent_sftp_preferences, VALENT, SFTP_PREFERENCES, ValentDevicePreferencesGroup)
 
 G_END_DECLS

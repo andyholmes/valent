@@ -3,14 +3,15 @@
 
 [Plugin]
 Module=connectivity_report
-Name=Connectivity Report
-Description=Sync network connectivity status
+Name=Connectivity
+Description=Monitor mobile connectivity status
 Icon=valent-connectivity_report-plugin-symbolic
 Builtin=true
 Embedded=valent_connectivity_report_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
+X-DevicePluginCategory=System;Monitor;
 X-DevicePluginIncoming=kdeconnect.connectivity_report;kdeconnect.connectivity_report.request
 X-DevicePluginOutgoing=kdeconnect.connectivity_report;kdeconnect.connectivity_report.request
 X-DevicePluginSettings=ca.andyholmes.Valent.Plugin.connectivity_report

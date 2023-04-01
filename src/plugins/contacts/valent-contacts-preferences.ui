@@ -4,51 +4,24 @@
 <!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <interface domain="valent">
-  <template class="ValentContactsPreferences" parent="ValentDevicePreferencesPage">
-    <property name="title" translatable="yes">Contacts</property>
-    <property name="icon-name">valent-contacts-plugin-symbolic</property>
+  <template class="ValentContactsPreferences" parent="ValentDevicePreferencesGroup">
     <child>
-      <object class="AdwPreferencesGroup" id="import_group">
+      <object class="AdwActionRow">
         <property name="title" translatable="yes">Remote Contacts</property>
-        <property name="description" translatable="yes">Control how remote contacts are used.</property>
-        <child>
-          <object class="AdwActionRow">
-            <property name="title" translatable="yes">Sync Contacts</property>
-            <property name="subtitle" translatable="yes">Download contacts from remote device.</property>
-            <property name="activatable-widget">remote_sync</property>
-            <child type="suffix">
-              <object class="GtkSwitch" id="remote_sync">
-                <property name="valign">center</property>
-              </object>
-            </child>
-          </object>
-        </child>
-        <child>
-          <object class="AdwActionRow">
-            <property name="title" translatable="yes">Import Contacts</property>
-            <property name="subtitle" translatable="yes">Allow other applications to use the remote contacts.</property>
-            <property name="activatable-widget">remote_import</property>
-            <property name="sensitive" bind-source="remote_sync" bind-property="active" bind-flags="sync-create"/>
-            <child type="suffix">
-              <object class="GtkSwitch" id="remote_import">
-                <property name="valign">center</property>
-              </object>
-            </child>
+        <property name="subtitle" translatable="yes">Import contacts from the remote device</property>
+        <property name="activatable-widget">remote_sync</property>
+        <child type="suffix">
+          <object class="GtkSwitch" id="remote_sync">
+            <property name="valign">center</property>
           </object>
         </child>
       </object>
     </child>
     <child>
-      <object class="AdwPreferencesGroup">
+      <object class="AdwExpanderRow" id="local_sync">
         <property name="title" translatable="yes">Local Contacts</property>
-        <property name="description" translatable="yes">Control how local contacts are used.</property>
-        <child>
-          <object class="AdwExpanderRow" id="export_row">
-            <property name="title" translatable="yes">Sync Contacts</property>
-            <property name="subtitle" translatable="yes">Upload contacts to remote device.</property>
-            <property name="show_enable_switch">True</property>
-          </object>
-        </child>
+        <property name="subtitle" translatable="yes">Share contacts with the remote device</property>
+        <property name="show-enable-switch">1</property>
       </object>
     </child>
   </template>

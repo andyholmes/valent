@@ -43,32 +43,6 @@ test_device_preference_window_basic (ValentTestFixture *fixture,
     g_main_context_iteration (NULL, FALSE);
 }
 
-static void
-test_device_preference_window_navigation (ValentTestFixture *fixture,
-                                          gconstpointer      user_data)
-{
-  GtkWindow *window;
-
-  window = g_object_new (VALENT_TYPE_DEVICE_PREFERENCES_WINDOW,
-                         "device", fixture->device,
-                         NULL);
-  g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
-
-  gtk_window_present (window);
-  valent_test_await_pending ();
-
-  /* Main -> Plugin */
-  gtk_widget_activate_action (GTK_WIDGET (window), "win.page", "s", "mock");
-
-  /* Plugin -> Main */
-  gtk_widget_activate_action (GTK_WIDGET (window), "win.previous", NULL);
-
-  /* Main -> Close Window */
-  gtk_widget_activate_action (GTK_WIDGET (window), "win.previous", NULL);
-
-  g_assert_null (window);
-}
-
 int
 main (int   argc,
       char *argv[])
@@ -81,12 +55,6 @@ main (int   argc,
               ValentTestFixture, path,
               valent_test_fixture_init,
               test_device_preference_window_basic,
-              valent_test_fixture_clear);
-
-  g_test_add ("/libvalent/ui/device-preferences-window/navigation",
-              ValentTestFixture, path,
-              valent_test_fixture_init,
-              test_device_preference_window_navigation,
               valent_test_fixture_clear);
 
   return g_test_run ();

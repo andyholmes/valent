@@ -18,20 +18,16 @@
 
 struct _ValentRuncommandPreferences
 {
-  ValentDevicePreferencesPage  parent_instance;
+  ValentDevicePreferencesGroup  parent_instance;
 
-  GtkWindow                   *command_dialog;
+  GtkWindow                    *command_dialog;
 
   /* template */
-  AdwPreferencesGroup         *command_group;
-  GtkListBox                  *command_list;
-  GtkWidget                   *command_add;
-
-  AdwPreferencesGroup         *restrictions_group;
-  GtkSwitch                   *isolate_subprocesses;
+  GtkListBox                   *command_list;
+  GtkWidget                    *command_add;
 };
 
-G_DEFINE_FINAL_TYPE (ValentRuncommandPreferences, valent_runcommand_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
+G_DEFINE_FINAL_TYPE (ValentRuncommandPreferences, valent_runcommand_preferences, VALENT_TYPE_DEVICE_PREFERENCES_GROUP)
 
 
 static void edit_command      (ValentRuncommandPreferences *self,
@@ -115,7 +111,7 @@ static void
 remove_command (ValentRuncommandPreferences *self,
                 const char                  *uuid)
 {
-  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
   GSettings *settings;
   g_autoptr (GVariant) commands = NULL;
   GVariantDict dict;
@@ -123,7 +119,7 @@ remove_command (ValentRuncommandPreferences *self,
 
   g_assert (VALENT_IS_RUNCOMMAND_PREFERENCES (self));
 
-  settings = valent_device_preferences_page_get_settings (page);
+  settings = valent_device_preferences_group_get_settings (group);
   commands = g_settings_get_value (settings, "commands");
 
   g_variant_dict_init (&dict, commands);
@@ -139,7 +135,7 @@ save_command (ValentRuncommandPreferences *self,
               const char                  *name,
               const char                  *command)
 {
-  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
   GSettings *settings;
   g_autoptr (GVariant) commands = NULL;
   GVariantDict dict;
@@ -148,7 +144,7 @@ save_command (ValentRuncommandPreferences *self,
 
   g_assert (VALENT_IS_RUNCOMMAND_PREFERENCES (self));
 
-  settings = valent_device_preferences_page_get_settings (page);
+  settings = valent_device_preferences_group_get_settings (group);
   commands = g_settings_get_value (settings, "commands");
 
   item = g_variant_new_parsed ("{'name': <%s>, 'command': <%s>}",
@@ -281,7 +277,7 @@ add_command_row (ValentRuncommandPreferences *self,
 static void
 populate_commands (ValentRuncommandPreferences *self)
 {
-  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
   GtkWidget *child;
   GSettings *settings;
   g_autoptr (GVariant) commands = NULL;
@@ -294,7 +290,7 @@ populate_commands (ValentRuncommandPreferences *self)
   while ((child = gtk_widget_get_first_child (GTK_WIDGET (self->command_list))))
     gtk_list_box_remove (self->command_list, child);
 
-  settings = valent_device_preferences_page_get_settings (page);
+  settings = valent_device_preferences_group_get_settings (group);
   commands = g_settings_get_value (settings, "commands");
 
   g_variant_iter_init (&iter, commands);
@@ -328,107 +324,24 @@ sort_commands (GtkListBoxRow *row1,
 }
 
 /*
- * Options
- */
-static void
-on_isolate_subprocesses_response (GtkDialog                   *dialog,
-                                  int                          response_id,
-                                  ValentRuncommandPreferences *self)
-{
-  if (response_id == GTK_RESPONSE_ACCEPT)
-    {
-      gtk_switch_set_state (self->isolate_subprocesses, FALSE);
-      gtk_switch_set_active (self->isolate_subprocesses, FALSE);
-    }
-  else
-    {
-      gtk_switch_set_state (self->isolate_subprocesses, TRUE);
-      gtk_switch_set_active (self->isolate_subprocesses, TRUE);
-    }
-
-  gtk_window_destroy (GTK_WINDOW (dialog));
-}
-
-static gboolean
-on_isolate_subprocesses_changed (GtkSwitch                   *sw,
-                                 gboolean                     state,
-                                 ValentRuncommandPreferences *self)
-{
-  GtkRoot *root;
-  GtkDialog *dialog;
-  GtkWidget *button;
-
-  if (state == TRUE)
-    return FALSE;
-
-  root = gtk_widget_get_root (GTK_WIDGET (self));
-  dialog = g_object_new (GTK_TYPE_MESSAGE_DIALOG,
-                         "text",           _("Run Unrestricted?"),
-                         "secondary-text", _("Commands will be run on the host "
-                                             "system without restriction."),
-                         "message-type",   GTK_MESSAGE_WARNING,
-                         "modal",          TRUE,
-                         "transient-for",  root,
-                         NULL);
-
-  gtk_dialog_add_button (dialog, _("Cancel"), GTK_RESPONSE_CANCEL);
-  button = gtk_button_new_with_label (_("I Understand"));
-  gtk_widget_add_css_class (button, "destructive-action");
-  gtk_dialog_add_action_widget (dialog, button, GTK_RESPONSE_ACCEPT);
-
-  g_signal_connect (dialog,
-                    "response",
-                    G_CALLBACK (on_isolate_subprocesses_response),
-                    self);
-
-  gtk_window_present_with_time (GTK_WINDOW (dialog), GDK_CURRENT_TIME);
-
-  return TRUE;
-}
-
-
-/*
  * GObject
  */
 static void
 valent_runcommand_preferences_constructed (GObject *object)
 {
   ValentRuncommandPreferences *self = VALENT_RUNCOMMAND_PREFERENCES (object);
-  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
   GSettings *settings;
 
-  /* Setup GSettings */
-  settings = valent_device_preferences_page_get_settings (page);
-
-  g_signal_connect (settings,
-                    "changed::commands",
-                    G_CALLBACK (on_commands_changed),
-                    self);
+  settings = valent_device_preferences_group_get_settings (group);
+  g_signal_connect_object (settings,
+                           "changed::commands",
+                           G_CALLBACK (on_commands_changed),
+                           self, 0);
 
   /* Populate list */
   gtk_list_box_set_sort_func (self->command_list, sort_commands, self, NULL);
   populate_commands (self);
-
-  /* Options */
-  if (!valent_runcommand_can_spawn_host ())
-    {
-      gtk_widget_set_sensitive (GTK_WIDGET (self->isolate_subprocesses), FALSE);
-      gtk_switch_set_active (self->isolate_subprocesses, TRUE);
-    }
-  else if (!xdp_portal_running_under_flatpak ())
-    {
-      gtk_widget_set_sensitive (GTK_WIDGET (self->isolate_subprocesses), FALSE);
-      gtk_switch_set_active (self->isolate_subprocesses, FALSE);
-    }
-  else
-    {
-      gtk_widget_set_sensitive (GTK_WIDGET (self->isolate_subprocesses), TRUE);
-      g_settings_bind (settings,
-                       "isolate-subprocesses",
-                       self->isolate_subprocesses,
-                       "active",
-                       G_SETTINGS_BIND_DEFAULT);
-    }
 
   G_OBJECT_CLASS (valent_runcommand_preferences_parent_class)->constructed (object);
 }
@@ -464,14 +377,9 @@ valent_runcommand_preferences_class_init (ValentRuncommandPreferencesClass *klas
   object_class->finalize = valent_runcommand_preferences_finalize;
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/runcommand/valent-runcommand-preferences.ui");
-  gtk_widget_class_bind_template_child (widget_class, ValentRuncommandPreferences, command_group);
   gtk_widget_class_bind_template_child (widget_class, ValentRuncommandPreferences, command_list);
   gtk_widget_class_bind_template_child (widget_class, ValentRuncommandPreferences, command_add);
-  gtk_widget_class_bind_template_child (widget_class, ValentRuncommandPreferences, restrictions_group);
-  gtk_widget_class_bind_template_child (widget_class, ValentRuncommandPreferences, isolate_subprocesses);
-
   gtk_widget_class_bind_template_callback (widget_class, on_add_command);
-  gtk_widget_class_bind_template_callback (widget_class, on_isolate_subprocesses_changed);
 }
 
 static void

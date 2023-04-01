@@ -4,41 +4,27 @@
 <!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <interface domain="valent">
-  <template class="ValentConnectivityReportPreferences" parent="ValentDevicePreferencesPage">
-    <property name="title" translatable="yes">Connectivity Report</property>
-    <property name="icon-name">valent-connectivity_report-plugin-symbolic</property>
+  <template class="ValentConnectivityReportPreferences" parent="ValentDevicePreferencesGroup">
     <child>
-      <object class="AdwPreferencesGroup" id="local_group">
+      <object class="AdwActionRow" id="share_state_row">
         <property name="title" translatable="yes">Local Connectivity</property>
-        <property name="description" translatable="yes">How the local connectivity state is handled.</property>
-        <child>
-          <object class="AdwActionRow" id="share_state_row">
-            <property name="title" translatable="yes">Share State</property>
-            <property name="subtitle" translatable="yes">Send connectivity reports</property>
-            <property name="activatable-widget">share_state</property>
-            <child type="suffix">
-              <object class="GtkSwitch" id="share_state">
-                <property name="valign">center</property>
-              </object>
-            </child>
+        <property name="subtitle" translatable="yes">Send updates to the remote device</property>
+        <property name="activatable-widget">share_state</property>
+        <child type="suffix">
+          <object class="GtkSwitch" id="share_state">
+            <property name="valign">center</property>
           </object>
         </child>
       </object>
     </child>
     <child>
-      <object class="AdwPreferencesGroup" id="remote_group">
+      <object class="AdwActionRow" id="offline_notification_row">
         <property name="title" translatable="yes">Remote Connectivity</property>
-        <property name="description" translatable="yes">How the remote connectivity state is handled.</property>
-        <child>
-          <object class="AdwActionRow" id="offline_notification_row">
-            <property name="title" translatable="yes">Offline Notification</property>
-            <property name="subtitle" translatable="yes">Show a notification when there is no connectivity</property>
-            <property name="activatable-widget">offline_notification</property>
-            <child type="suffix">
-              <object class="GtkSwitch" id="offline_notification">
-                <property name="valign">center</property>
-              </object>
-            </child>
+        <property name="subtitle" translatable="yes">Notify if the remote device loses connectivity</property>
+        <property name="activatable-widget">offline_notification</property>
+        <child type="suffix">
+          <object class="GtkSwitch" id="offline_notification">
+            <property name="valign">center</property>
           </object>
         </child>
       </object>

@@ -4,35 +4,27 @@
 <!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <interface domain="valent">
-  <template class="ValentClipboardPreferences" parent="ValentDevicePreferencesPage">
-    <property name="title" translatable="yes">Clipboard</property>
-    <property name="icon-name">valent-clipboard-plugin-symbolic</property>
+  <template class="ValentClipboardPreferences" parent="ValentDevicePreferencesGroup">
     <child>
-      <object class="AdwPreferencesGroup" id="autosync_group">
-        <property name="title" translatable="yes">Clipboard Sync</property>
-        <property name="description" translatable="yes">Control how clipboard content is synced between devices.</property>
-        <child>
-          <object class="AdwActionRow">
-            <property name="title" translatable="yes">Remote Clipboard Changes</property>
-            <property name="subtitle" translatable="yes">Copy to the local clipboard</property>
-            <property name="activatable-widget">sync_pull</property>
-            <child type="suffix">
-              <object class="GtkSwitch" id="sync_pull">
-                <property name="valign">center</property>
-              </object>
-            </child>
+      <object class="AdwActionRow">
+        <property name="title" translatable="yes">Remote Clipboard</property>
+        <property name="subtitle" translatable="yes">Copy changes to the local clipboard</property>
+        <property name="activatable-widget">sync_pull</property>
+        <child type="suffix">
+          <object class="GtkSwitch" id="sync_pull">
+            <property name="valign">center</property>
           </object>
         </child>
-        <child>
-          <object class="AdwActionRow">
-            <property name="title" translatable="yes">Local Clipboard Changes</property>
-            <property name="subtitle" translatable="yes">Copy to the remote clipboard</property>
-            <property name="activatable-widget">sync_push</property>
-            <child type="suffix">
-              <object class="GtkSwitch" id="sync_push">
-                <property name="valign">center</property>
-              </object>
-            </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwActionRow">
+        <property name="title" translatable="yes">Local Clipboard</property>
+        <property name="subtitle" translatable="yes">Report changes to the remote device</property>
+        <property name="activatable-widget">sync_push</property>
+        <child type="suffix">
+          <object class="GtkSwitch" id="sync_push">
+            <property name="valign">center</property>
           </object>
         </child>
       </object>

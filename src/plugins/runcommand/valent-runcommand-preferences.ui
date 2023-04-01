@@ -4,72 +4,43 @@
 <!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <interface domain="valent">
-  <template class="ValentRuncommandPreferences" parent="ValentDevicePreferencesPage">
-    <property name="title" translatable="yes">Commands</property>
-    <property name="icon-name">valent-runcommand-plugin-symbolic</property>
+  <template class="ValentRuncommandPreferences" parent="ValentDevicePreferencesGroup">
     <child>
-      <object class="AdwPreferencesGroup" id="command_group">
-        <property name="title" translatable="yes">Commands</property>
-        <property name="description" translatable="yes">Define commands that can be executed by the remote device.</property>
+      <object class="GtkFrame">
         <child>
-          <object class="GtkFrame">
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
             <child>
-              <object class="GtkBox">
-                <property name="orientation">vertical</property>
+              <object class="GtkListBox" id="command_list">
+                <property name="show-separators">1</property>
+                <property name="selection-mode">none</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkListBox">
+                <property name="activate-on-single-click">1</property>
+                <property name="show-separators">1</property>
+                <property name="selection-mode">none</property>
+                <signal name="row-activated" handler="on_add_command" object="ValentRuncommandPreferences" swapped="no"/>
                 <child>
-                  <object class="GtkListBox" id="command_list">
-                    <property name="show-separators">1</property>
-                    <property name="selection-mode">none</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkListBox">
-                    <property name="activate-on-single-click">1</property>
-                    <property name="show-separators">1</property>
-                    <property name="selection-mode">none</property>
-                    <signal name="row-activated" handler="on_add_command" object="ValentRuncommandPreferences" swapped="no"/>
+                  <object class="GtkListBoxRow" id="command_add">
+                    <property name="activatable">1</property>
+                    <property name="selectable">0</property>
+                    <accessibility>
+                      <relation name="labelled-by">command_add_label</relation>
+                    </accessibility>
                     <child>
-                      <object class="GtkListBoxRow" id="command_add">
-                        <property name="activatable">1</property>
-                        <property name="selectable">0</property>
-                        <accessibility>
-                          <relation name="labelled-by">command_add_label</relation>
-                        </accessibility>
-                        <child>
-                          <object class="GtkLabel" id="command_add_label">
-                            <property name="label" translatable="yes">Add Command…</property>
-                            <property name="halign">center</property>
-                            <property name="hexpand">1</property>
-                            <property name="margin-top">12</property>
-                            <property name="margin-bottom">12</property>
-                            <property name="valign">center</property>
-                          </object>
-                        </child>
+                      <object class="GtkLabel" id="command_add_label">
+                        <property name="label" translatable="yes">Add Command…</property>
+                        <property name="halign">center</property>
+                        <property name="hexpand">1</property>
+                        <property name="margin-top">12</property>
+                        <property name="margin-bottom">12</property>
+                        <property name="valign">center</property>
                       </object>
                     </child>
                   </object>
                 </child>
-              </object>
-            </child>
-          </object>
-        </child>
-      </object>
-    </child>
-    <child>
-      <object class="AdwPreferencesGroup" id="restrictions_group">
-        <property name="title" translatable="yes">Restrictions</property>
-        <child>
-          <object class="AdwActionRow">
-            <property name="title">Isolate Subprocesses</property>
-            <property name="subtitle">Execute commands in a sandbox</property>
-            <property name="activatable-widget">isolate_subprocesses</property>
-            <child type="suffix">
-              <object class="GtkSwitch" id="isolate_subprocesses">
-                <property name="valign">center</property>
-                <signal name="state-set"
-                        handler="on_isolate_subprocesses_changed"
-                        object="ValentRuncommandPreferences"
-                        swapped="no"/>
               </object>
             </child>
           </object>

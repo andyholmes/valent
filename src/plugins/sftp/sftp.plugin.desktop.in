@@ -3,14 +3,15 @@
 
 [Plugin]
 Module=sftp
-Name=SFTP
-Description=Browse files and directories
+Name=Files
+Description=Share files and directories with SFTP
 Icon=valent-sftp-plugin-symbolic
 Builtin=true
 Embedded=valent_sftp_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
+X-DevicePluginCategory=Network;FileTransfer;
 X-DevicePluginIncoming=kdeconnect.sftp;kdeconnect.sftp.request
 X-DevicePluginOutgoing=kdeconnect.sftp;kdeconnect.sftp.request
 X-DevicePluginSettings=ca.andyholmes.Valent.Plugin.sftp

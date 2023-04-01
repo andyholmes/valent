@@ -17,12 +17,12 @@
  * An abstract base class for plugin preferences.
  *
  * #ValentPreferencesPage is a base class for plugins that want to provide a
- * preferences page. Unlike [class@Valent.DevicePreferencesPage] the page should
+ * preferences page. Unlike [class@Valent.DevicePreferencesGroup] the page should
  * configure all of the plugin's extension implementations, with the exception
  * of [class@Valent.DevicePlugin].
  *
  * Implementations of [class@Valent.DevicePlugin] should instead implement
- * [class@Valent.DevicePreferencesPage], which will allow plugins to store
+ * [class@Valent.DevicePreferencesGroup], which will allow plugins to store
  * per-devices settings.
  *
  * Since: 1.0

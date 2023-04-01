@@ -15,18 +15,16 @@
 
 struct _ValentBatteryPreferences
 {
-  ValentDevicePreferencesPage  parent_instance;
+  ValentDevicePreferencesGroup  parent_instance;
 
   /* template */
-  GtkSwitch                   *share_state;
-
-  AdwExpanderRow              *full_notification;
-  GtkAdjustment               *full_notification_level;
-  AdwExpanderRow              *low_notification;
-  GtkAdjustment               *low_notification_level;
+  AdwExpanderRow               *full_notification;
+  GtkAdjustment                *full_notification_level;
+  AdwExpanderRow               *low_notification;
+  GtkAdjustment                *low_notification_level;
 };
 
-G_DEFINE_FINAL_TYPE (ValentBatteryPreferences, valent_battery_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
+G_DEFINE_FINAL_TYPE (ValentBatteryPreferences, valent_battery_preferences, VALENT_TYPE_DEVICE_PREFERENCES_GROUP)
 
 
 /*
@@ -36,23 +34,16 @@ static void
 valent_battery_preferences_constructed (GObject *object)
 {
   ValentBatteryPreferences *self = VALENT_BATTERY_PREFERENCES (object);
-  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
   GSettings *settings;
 
-  /* Setup GSettings */
-  settings = valent_device_preferences_page_get_settings (page);
-
-  g_settings_bind (settings,          "share-state",
-                   self->share_state, "active",
-                   G_SETTINGS_BIND_DEFAULT);
-
+  settings = valent_device_preferences_group_get_settings (group);
   g_settings_bind (settings,                "full-notification",
                    self->full_notification, "enable-expansion",
                    G_SETTINGS_BIND_DEFAULT);
   g_settings_bind (settings,                      "full-notification-level",
                    self->full_notification_level, "value",
                    G_SETTINGS_BIND_DEFAULT);
-
   g_settings_bind (settings,               "low-notification",
                    self->low_notification, "enable-expansion",
                    G_SETTINGS_BIND_DEFAULT);
@@ -83,7 +74,6 @@ valent_battery_preferences_class_init (ValentBatteryPreferencesClass *klass)
   object_class->dispose = valent_battery_preferences_dispose;
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/battery/valent-battery-preferences.ui");
-  gtk_widget_class_bind_template_child (widget_class, ValentBatteryPreferences, share_state);
   gtk_widget_class_bind_template_child (widget_class, ValentBatteryPreferences, full_notification);
   gtk_widget_class_bind_template_child (widget_class, ValentBatteryPreferences, full_notification_level);
   gtk_widget_class_bind_template_child (widget_class, ValentBatteryPreferences, low_notification);

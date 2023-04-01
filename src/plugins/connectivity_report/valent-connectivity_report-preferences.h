@@ -9,6 +9,6 @@ G_BEGIN_DECLS
 
 #define VALENT_TYPE_CONNECTIVITY_REPORT_PREFERENCES (valent_connectivity_report_preferences_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentConnectivityReportPreferences, valent_connectivity_report_preferences, VALENT, CONNECTIVITY_REPORT_PREFERENCES, ValentDevicePreferencesPage)
+G_DECLARE_FINAL_TYPE (ValentConnectivityReportPreferences, valent_connectivity_report_preferences, VALENT, CONNECTIVITY_REPORT_PREFERENCES, ValentDevicePreferencesGroup)
 
 G_END_DECLS
