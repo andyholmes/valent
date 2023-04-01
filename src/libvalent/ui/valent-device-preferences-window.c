@@ -27,7 +27,6 @@ struct _ValentDevicePreferencesWindow
   AdwPreferencesPage   *main_page;
   AdwPreferencesGroup  *plugin_group;
   GtkListBox           *plugin_list;
-  AdwPreferencesGroup  *unpair_group;
 };
 
 G_DEFINE_FINAL_TYPE (ValentDevicePreferencesWindow, valent_device_preferences_window, ADW_TYPE_PREFERENCES_WINDOW)
@@ -208,19 +207,6 @@ on_plugins_changed (ValentDevice                  *device,
     }
 }
 
-static gboolean
-device_state_transform_to (GBinding     *binding,
-                           const GValue *from_value,
-                           GValue       *to_value,
-                           gpointer      user_data)
-{
-  ValentDeviceState state = g_value_get_flags (from_value);
-
-  g_value_set_boolean (to_value, (state & VALENT_DEVICE_STATE_PAIRED) != 0);
-
-  return TRUE;
-}
-
 /*
  * GActions
  */
@@ -268,11 +254,6 @@ valent_device_preferences_window_constructed (GObject *object)
   g_object_bind_property (self->device, "name",
                           self,         "title",
                           G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE);
-  g_object_bind_property_full (self->device,       "state",
-                               self->unpair_group, "visible",
-                               G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE,
-                               device_state_transform_to, NULL,
-                               NULL, NULL);
 
   gtk_widget_insert_action_group (GTK_WIDGET (self),
                                   "device",
@@ -355,7 +336,6 @@ valent_device_preferences_window_class_init (ValentDevicePreferencesWindowClass 
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesWindow, main_page);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesWindow, plugin_group);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesWindow, plugin_list);
-  gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesWindow, unpair_group);
 
   gtk_widget_class_install_action (widget_class, "win.page", "s", page_action);
   gtk_widget_class_install_action (widget_class, "win.previous", NULL, previous_action);
