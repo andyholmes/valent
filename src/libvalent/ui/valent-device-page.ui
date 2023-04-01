@@ -21,11 +21,13 @@
           </object>
         </child>
         <child type="end">
-          <object class="GtkButton" id="preferences_button">
-            <property name="action-name">panel.preferences</property>
-            <property name="icon-name">applications-system-symbolic</property>
-            <property name="tooltip-text" translatable="yes">Preferences</property>
+          <object class="GtkMenuButton">
             <property name="valign">center</property>
+            <property name="menu-model">secondary_menu</property>
+            <property name="icon-name">view-more-symbolic</property>
+            <accessibility>
+              <property name="label" translatable="yes">Device Menu</property>
+            </accessibility>
           </object>
         </child>
       </object>
@@ -249,4 +251,24 @@
       <class name="background"/>
     </style>
   </template>
+  <menu id="secondary_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">_Preferences</attribute>
+        <attribute name="action">page.preferences</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">P_air</attribute>
+        <attribute name="action">page.pair</attribute>
+        <attribute name="hidden-when">action-disabled</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_Unpair</attribute>
+        <attribute name="action">page.unpair</attribute>
+        <attribute name="hidden-when">action-disabled</attribute>
+      </item>
+    </section>
+  </menu>
 </interface>

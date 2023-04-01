@@ -153,14 +153,17 @@ on_state_changed (ValentDevice     *device,
   g_assert (VALENT_IS_DEVICE_PAGE (self));
 
   state = valent_device_get_state (self->device);
-  connected = (state & VALENT_DEVICE_STATE_CONNECTED);
-  paired = (state & VALENT_DEVICE_STATE_PAIRED);
-  pair_incoming = (state & VALENT_DEVICE_STATE_PAIR_INCOMING);
-  pair_outgoing = (state & VALENT_DEVICE_STATE_PAIR_OUTGOING);
+  connected = (state & VALENT_DEVICE_STATE_CONNECTED) != 0;
+  paired = (state & VALENT_DEVICE_STATE_PAIRED) != 0;
+  pair_incoming = (state & VALENT_DEVICE_STATE_PAIR_INCOMING) != 0;
+  pair_outgoing = (state & VALENT_DEVICE_STATE_PAIR_OUTGOING) != 0;
 
   /* Ensure the proper controls are displayed */
   gtk_widget_set_visible (self->connected_group, connected);
   gtk_widget_set_visible (self->pair_group, !paired);
+
+  gtk_widget_action_set_enabled (GTK_WIDGET (self), "page.pair", !paired);
+  gtk_widget_action_set_enabled (GTK_WIDGET (self), "page.unpair", paired);
 
   if (paired)
     return;
@@ -180,9 +183,9 @@ on_state_changed (ValentDevice     *device,
 }
 
 static void
-preferences_action (GtkWidget  *widget,
-                    const char *action_name,
-                    GVariant   *parameter)
+page_preferences_action (GtkWidget  *widget,
+                         const char *action_name,
+                         GVariant   *parameter)
 {
   ValentDevicePage *self = VALENT_DEVICE_PAGE (widget);
 
@@ -206,6 +209,30 @@ preferences_action (GtkWidget  *widget,
     }
 
   gtk_window_present (self->preferences);
+}
+
+static void
+page_pair_action (GtkWidget  *widget,
+                  const char *action_name,
+                  GVariant   *parameter)
+{
+  ValentDevicePage *self = VALENT_DEVICE_PAGE (widget);
+
+  g_assert (VALENT_IS_DEVICE (self->device));
+
+  g_action_group_activate_action (G_ACTION_GROUP (self->device), "pair", NULL);
+}
+
+static void
+page_unpair_action (GtkWidget  *widget,
+                    const char *action_name,
+                    GVariant   *parameter)
+{
+  ValentDevicePage *self = VALENT_DEVICE_PAGE (widget);
+
+  g_assert (VALENT_IS_DEVICE (self->device));
+
+  g_action_group_activate_action (G_ACTION_GROUP (self->device), "unpair", NULL);
 }
 
 /*
@@ -321,7 +348,9 @@ valent_device_page_class_init (ValentDevicePageClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePage, connected_group);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePage, menu_actions);
 
-  gtk_widget_class_install_action (widget_class, "panel.preferences", NULL, preferences_action);
+  gtk_widget_class_install_action (widget_class, "page.preferences", NULL, page_preferences_action);
+  gtk_widget_class_install_action (widget_class, "page.pair", NULL, page_pair_action);
+  gtk_widget_class_install_action (widget_class, "page.unpair", NULL, page_unpair_action);
 
   /**
    * ValentDevicePage:device:
