@@ -17,6 +17,6 @@ valent_telephony_plugin_register_types (PeasObjectModule *module)
                                               VALENT_TYPE_DEVICE_PLUGIN,
                                               VALENT_TYPE_TELEPHONY_PLUGIN);
   peas_object_module_register_extension_type (module,
-                                              VALENT_TYPE_DEVICE_PREFERENCES_PAGE,
+                                              VALENT_TYPE_DEVICE_PREFERENCES_GROUP,
                                               VALENT_TYPE_TELEPHONY_PREFERENCES);
 }

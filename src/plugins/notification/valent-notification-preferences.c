@@ -15,19 +15,19 @@
 
 struct _ValentNotificationPreferences
 {
-  ValentDevicePreferencesPage  parent_instance;
+  ValentDevicePreferencesGroup  parent_instance;
 
   /* template */
-  AdwPreferencesGroup         *forward_group;
-  GtkSwitch                   *forward_notifications;
-  GtkSwitch                   *forward_when_active;
+  AdwExpanderRow               *forward_notifications;
+  GtkSwitch                    *forward_when_active;
 
-  AdwPreferencesGroup         *application_group;
-  GtkListBox                  *application_list;
-  GHashTable                  *application_rows;
+  GtkWindow                    *application_dialog;
+  AdwActionRow                 *application_row;
+  GtkListBox                   *application_list;
+  GHashTable                   *application_rows;
 };
 
-G_DEFINE_FINAL_TYPE (ValentNotificationPreferences, valent_notification_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
+G_DEFINE_FINAL_TYPE (ValentNotificationPreferences, valent_notification_preferences, VALENT_TYPE_DEVICE_PREFERENCES_GROUP)
 
 
 static int
@@ -47,6 +47,16 @@ application_list_sort (GtkListBoxRow *row1,
  * Template Callbacks
  */
 static void
+on_application_row_activated (AdwActionRow                  *row,
+                              ValentNotificationPreferences *self)
+{
+  g_assert (ADW_IS_ACTION_ROW (row));
+  g_assert (VALENT_IS_NOTIFICATION_PREFERENCES (self));
+
+  gtk_window_present (self->application_dialog);
+}
+
+static void
 on_row_activated (GtkWidget                     *widget,
                   ValentNotificationPreferences *self)
 {
@@ -61,7 +71,7 @@ on_switch_toggled (GtkSwitch                     *sw,
                    GParamSpec                    *pspec,
                    ValentNotificationPreferences *self)
 {
-  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
   GSettings *settings;
   GHashTableIter iter;
   gpointer row, row_switch;
@@ -84,7 +94,7 @@ on_switch_toggled (GtkSwitch                     *sw,
     }
 
   forward_deny = g_variant_builder_end (&builder);
-  settings = valent_device_preferences_page_get_settings (page);
+  settings = valent_device_preferences_group_get_settings (group);
   g_settings_set_value (settings, "forward-deny", forward_deny);
 }
 
@@ -143,7 +153,7 @@ add_application (ValentNotificationPreferences *self,
 static void
 populate_applications (ValentNotificationPreferences *self)
 {
-  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
   GSettings *settings;
   GVariant *known;
   g_auto (GStrv) deny = NULL;
@@ -151,7 +161,7 @@ populate_applications (ValentNotificationPreferences *self)
   const char *key;
   GVariant *value;
 
-  settings = valent_device_preferences_page_get_settings (page);
+  settings = valent_device_preferences_group_get_settings (group);
   deny = g_settings_get_strv (settings, "forward-deny");
 
   /* Query the known applications */
@@ -172,21 +182,21 @@ reset_action (GtkWidget  *widget,
               const char *action,
               GVariant   *parameter)
 {
-  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (widget);
-  ValentNotificationPreferences *self = VALENT_NOTIFICATION_PREFERENCES (page);
+  ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (widget);
+  ValentNotificationPreferences *self = VALENT_NOTIFICATION_PREFERENCES (group);
   GSettings *settings;
   GHashTableIter iter;
   gpointer row_switch;
 
   g_assert (VALENT_IS_NOTIFICATION_PREFERENCES (self));
-  g_assert (VALENT_IS_DEVICE_PREFERENCES_PAGE (self));
+  g_assert (VALENT_IS_DEVICE_PREFERENCES_GROUP (self));
 
   g_hash_table_iter_init (&iter, self->application_rows);
 
   while (g_hash_table_iter_next (&iter, NULL, &row_switch))
     gtk_switch_set_active (GTK_SWITCH (row_switch), TRUE);
 
-  settings = valent_device_preferences_page_get_settings (page);
+  settings = valent_device_preferences_group_get_settings (group);
   g_settings_reset (settings, "applications");
 }
 
@@ -198,21 +208,17 @@ static void
 valent_notification_preferences_constructed (GObject *object)
 {
   ValentNotificationPreferences *self = VALENT_NOTIFICATION_PREFERENCES (object);
-  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
   GSettings *settings;
 
-  /* Setup GSettings */
-  settings = valent_device_preferences_page_get_settings (page);
-
+  settings = valent_device_preferences_group_get_settings (group);
   g_settings_bind (settings,                    "forward-notifications",
-                   self->forward_notifications, "active",
+                   self->forward_notifications, "enable-expansion",
                    G_SETTINGS_BIND_DEFAULT);
-
   g_settings_bind (settings,                  "forward-when-active",
                    self->forward_when_active, "active",
-                   G_SETTINGS_BIND_DEFAULT);
+                   G_SETTINGS_BIND_INVERT_BOOLEAN);
 
-  /* Applications */
   gtk_list_box_set_sort_func (self->application_list,
                               application_list_sort,
                               self, NULL);
@@ -252,11 +258,12 @@ valent_notification_preferences_class_init (ValentNotificationPreferencesClass *
   object_class->finalize = valent_notification_preferences_finalize;
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/notification/valent-notification-preferences.ui");
-  gtk_widget_class_bind_template_child (widget_class, ValentNotificationPreferences, forward_group);
   gtk_widget_class_bind_template_child (widget_class, ValentNotificationPreferences, forward_notifications);
   gtk_widget_class_bind_template_child (widget_class, ValentNotificationPreferences, forward_when_active);
-  gtk_widget_class_bind_template_child (widget_class, ValentNotificationPreferences, application_group);
+  gtk_widget_class_bind_template_child (widget_class, ValentNotificationPreferences, application_dialog);
   gtk_widget_class_bind_template_child (widget_class, ValentNotificationPreferences, application_list);
+  gtk_widget_class_bind_template_child (widget_class, ValentNotificationPreferences, application_row);
+  gtk_widget_class_bind_template_callback (widget_class, on_application_row_activated);
   gtk_widget_class_install_action (widget_class, "preferences.reset", NULL, reset_action);
 }
 

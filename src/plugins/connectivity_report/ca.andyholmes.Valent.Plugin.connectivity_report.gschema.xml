@@ -7,13 +7,9 @@
   <schema id="ca.andyholmes.Valent.Plugin.connectivity_report">
     <key name="share-state" type="b">
       <default>true</default>
-      <summary>Share State</summary>
-      <description>Send connectivity reports</description>
     </key>
     <key name="offline-notification" type="b">
       <default>false</default>
-      <summary>Offline Notification</summary>
-      <description>Show a notification when there is no connectivity</description>
     </key>
   </schema>
 </schemalist>

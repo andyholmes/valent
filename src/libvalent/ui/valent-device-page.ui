@@ -16,8 +16,10 @@
             <property name="action-name">win.previous</property>
             <property name="icon-name">go-previous-symbolic</property>
             <property name="receives-default">1</property>
-            <property name="tooltip-text" translatable="yes">Previous</property>
             <property name="valign">center</property>
+            <accessibility>
+              <property name="label" translatable="yes">Previous</property>
+            </accessibility>
           </object>
         </child>
         <child type="end">

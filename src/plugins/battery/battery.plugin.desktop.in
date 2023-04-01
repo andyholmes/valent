@@ -4,13 +4,14 @@
 [Plugin]
 Module=battery
 Name=Battery
-Description=Sync battery statistics
+Description=Monitor battery level and charging state
 Icon=valent-battery-plugin-symbolic
 Builtin=true
 Embedded=valent_battery_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
+X-DevicePluginCategory=System;Monitor;
 X-DevicePluginIncoming=kdeconnect.battery;kdeconnect.battery.request
 X-DevicePluginOutgoing=kdeconnect.battery;kdeconnect.battery.request
 X-DevicePluginSettings=ca.andyholmes.Valent.Plugin.battery

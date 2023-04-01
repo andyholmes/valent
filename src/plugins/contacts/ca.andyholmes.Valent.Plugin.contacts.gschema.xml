@@ -8,9 +8,6 @@
     <key name="remote-sync" type="b">
       <default>true</default>
     </key>
-    <key name="remote-import" type="b">
-      <default>false</default>
-    </key>
     <key name="local-sync" type="b">
       <default>false</default>
     </key>

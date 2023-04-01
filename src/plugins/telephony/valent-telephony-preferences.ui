@@ -4,13 +4,12 @@
 <!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <interface domain="valent">
-  <template class="ValentTelephonyPreferences" parent="ValentDevicePreferencesPage">
-    <property name="title" translatable="yes">Telephony</property>
-    <property name="icon-name">valent-telephony-plugin-symbolic</property>
+  <template class="ValentTelephonyPreferences" parent="ValentDevicePreferencesGroup">
+    <!-- Incoming Calls -->
     <child>
-      <object class="AdwPreferencesGroup" id="ringing_group">
+      <object class="AdwExpanderRow" id="ringing_row">
         <property name="title" translatable="yes">Incoming Calls</property>
-        <property name="description" translatable="yes">What to do when the phone rings.</property>
+        <property name="subtitle" translatable="yes">What to do when the phone rings</property>
         <child>
           <object class="AdwComboRow" id="ringing_volume">
             <property name="title" translatable="yes">Volume</property>
@@ -33,10 +32,12 @@
         </child>
       </object>
     </child>
+
+    <!-- Ongoing Calls -->
     <child>
-      <object class="AdwPreferencesGroup" id="talking_group">
+      <object class="AdwExpanderRow" id="talking_row">
         <property name="title" translatable="yes">Ongoing Calls</property>
-        <property name="description" translatable="yes">What to do when the phone is answered.</property>
+        <property name="subtitle" translatable="yes">What to do when the phone is answered</property>
         <child>
           <object class="AdwComboRow" id="talking_volume">
             <property name="title" translatable="yes">Volume</property>

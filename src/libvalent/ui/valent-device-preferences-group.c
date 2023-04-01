@@ -11,16 +11,16 @@
 #include <libvalent-core.h>
 #include <libvalent-device.h>
 
-#include "valent-device-preferences-page.h"
+#include "valent-device-preferences-group.h"
 
 
 /**
- * ValentDevicePreferencesPage:
+ * ValentDevicePreferencesGroup:
  *
  * An abstract base class for device plugin preferences.
  *
- * #ValentDevicePreferencesPage is an base class for [class@Valent.DevicePlugin]
- * implementations that want to provide a preferences page.
+ * #ValentDevicePreferencesGroup is a base class for [class@Valent.DevicePlugin]
+ * implementations that want to provide a group of preferences.
  *
  * Since: 1.0
  */
@@ -30,9 +30,9 @@ typedef struct
   ValentContext  *context;
   PeasPluginInfo *plugin_info;
   GSettings      *settings;
-} ValentDevicePreferencesPagePrivate;
+} ValentDevicePreferencesGroupPrivate;
 
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentDevicePreferencesPage, valent_device_preferences_page, ADW_TYPE_PREFERENCES_PAGE)
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentDevicePreferencesGroup, valent_device_preferencs_group, ADW_TYPE_PREFERENCES_GROUP)
 
 enum {
   PROP_0,
@@ -44,43 +44,35 @@ enum {
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
-/**
- * ValentDevicePreferencesPageClass:
- *
- * The virtual function table for #ValentDevicePreferencesPage.
- *
- * Since: 1.0
- */
-
 
 /*
  * GObject
  */
 static void
-valent_device_preferences_page_finalize (GObject *object)
+valent_device_preferencs_group_finalize (GObject *object)
 {
-  ValentDevicePreferencesPage *self = VALENT_DEVICE_PREFERENCES_PAGE (object);
-  ValentDevicePreferencesPagePrivate *priv = valent_device_preferences_page_get_instance_private (self);
+  ValentDevicePreferencesGroup *self = VALENT_DEVICE_PREFERENCES_GROUP (object);
+  ValentDevicePreferencesGroupPrivate *priv = valent_device_preferencs_group_get_instance_private (self);
 
   g_clear_object (&priv->context);
   g_clear_object (&priv->settings);
 
-  G_OBJECT_CLASS (valent_device_preferences_page_parent_class)->finalize (object);
+  G_OBJECT_CLASS (valent_device_preferencs_group_parent_class)->finalize (object);
 }
 
 static void
-valent_device_preferences_page_get_property (GObject    *object,
+valent_device_preferencs_group_get_property (GObject    *object,
                                              guint       prop_id,
                                              GValue     *value,
                                              GParamSpec *pspec)
 {
-  ValentDevicePreferencesPage *self = VALENT_DEVICE_PREFERENCES_PAGE (object);
-  ValentDevicePreferencesPagePrivate *priv = valent_device_preferences_page_get_instance_private (self);
+  ValentDevicePreferencesGroup *self = VALENT_DEVICE_PREFERENCES_GROUP (object);
+  ValentDevicePreferencesGroupPrivate *priv = valent_device_preferencs_group_get_instance_private (self);
 
   switch (prop_id)
     {
     case PROP_CONTEXT:
-      g_value_set_object (value, valent_device_preferences_page_get_context (self));
+      g_value_set_object (value, valent_device_preferencs_group_get_context (self));
       break;
 
     case PROP_PLUGIN_INFO:
@@ -88,7 +80,7 @@ valent_device_preferences_page_get_property (GObject    *object,
       break;
 
     case PROP_SETTINGS:
-      g_value_set_object (value, valent_device_preferences_page_get_settings (self));
+      g_value_set_object (value, valent_device_preferences_group_get_settings (self));
       break;
 
     default:
@@ -97,13 +89,13 @@ valent_device_preferences_page_get_property (GObject    *object,
 }
 
 static void
-valent_device_preferences_page_set_property (GObject      *object,
+valent_device_preferencs_group_set_property (GObject      *object,
                                              guint         prop_id,
                                              const GValue *value,
                                              GParamSpec   *pspec)
 {
-  ValentDevicePreferencesPage *self = VALENT_DEVICE_PREFERENCES_PAGE (object);
-  ValentDevicePreferencesPagePrivate *priv = valent_device_preferences_page_get_instance_private (self);
+  ValentDevicePreferencesGroup *self = VALENT_DEVICE_PREFERENCES_GROUP (object);
+  ValentDevicePreferencesGroupPrivate *priv = valent_device_preferencs_group_get_instance_private (self);
 
   switch (prop_id)
     {
@@ -121,16 +113,16 @@ valent_device_preferences_page_set_property (GObject      *object,
 }
 
 static void
-valent_device_preferences_page_class_init (ValentDevicePreferencesPageClass *klass)
+valent_device_preferencs_group_class_init (ValentDevicePreferencesGroupClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  object_class->finalize = valent_device_preferences_page_finalize;
-  object_class->get_property = valent_device_preferences_page_get_property;
-  object_class->set_property = valent_device_preferences_page_set_property;
+  object_class->finalize = valent_device_preferencs_group_finalize;
+  object_class->get_property = valent_device_preferencs_group_get_property;
+  object_class->set_property = valent_device_preferencs_group_set_property;
 
   /**
-   * ValentDevicePreferencesPage:context: (getter get_context)
+   * ValentDevicePreferencesGroup:context: (getter get_context)
    *
    * The [class@Valent.Context] for the [class@Valent.DevicePlugin].
    *
@@ -145,7 +137,7 @@ valent_device_preferences_page_class_init (ValentDevicePreferencesPageClass *kla
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentDevicePreferencesPage:plugin-info:
+   * ValentDevicePreferencesGroup:plugin-info:
    *
    * The [struct@Peas.PluginInfo] describing this plugin.
    *
@@ -160,7 +152,7 @@ valent_device_preferences_page_class_init (ValentDevicePreferencesPageClass *kla
                          G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentDevicePreferencesPage:settings: (getter get_settings)
+   * ValentDevicePreferencesGroup:settings: (getter get_settings)
    *
    * The [class@Gio.Settings] for the [class@Valent.DevicePlugin].
    *
@@ -177,13 +169,13 @@ valent_device_preferences_page_class_init (ValentDevicePreferencesPageClass *kla
 }
 
 static void
-valent_device_preferences_page_init (ValentDevicePreferencesPage *self)
+valent_device_preferencs_group_init (ValentDevicePreferencesGroup *self)
 {
 }
 
 /**
- * valent_device_preferences_page_get_context:
- * @page: a #ValentDevicePreferencesPage
+ * valent_device_preferencs_group_get_context:
+ * @page: a #ValentDevicePreferencesGroup
  *
  * Get the [class@Valent.Context] for the [class@Valent.DevicePlugin].
  *
@@ -192,9 +184,11 @@ valent_device_preferences_page_init (ValentDevicePreferencesPage *self)
  * Since: 1.0
  */
 ValentContext *
-valent_device_preferences_page_get_context (ValentDevicePreferencesPage *page)
+valent_device_preferencs_group_get_context (ValentDevicePreferencesGroup *group)
 {
-  ValentDevicePreferencesPagePrivate *priv = valent_device_preferences_page_get_instance_private (page);
+  ValentDevicePreferencesGroupPrivate *priv = valent_device_preferencs_group_get_instance_private (group);
+
+  g_return_val_if_fail (VALENT_IS_DEVICE_PREFERENCES_GROUP (group), NULL);
 
   if (priv->context == NULL)
     {
@@ -208,8 +202,8 @@ valent_device_preferences_page_get_context (ValentDevicePreferencesPage *page)
 }
 
 /**
- * valent_device_preferences_page_get_settings:
- * @page: a #ValentDevicePreferencesPage
+ * valent_device_preferences_group_get_settings:
+ * @page: a #ValentDevicePreferencesGroup
  *
  * Get the [class@Gio.Settings] for the [class@Valent.DevicePlugin].
  *
@@ -218,16 +212,17 @@ valent_device_preferences_page_get_context (ValentDevicePreferencesPage *page)
  * Since: 1.0
  */
 GSettings *
-valent_device_preferences_page_get_settings (ValentDevicePreferencesPage *page)
+valent_device_preferences_group_get_settings (ValentDevicePreferencesGroup *group)
 {
-  ValentDevicePreferencesPagePrivate *priv = valent_device_preferences_page_get_instance_private (page);
+  ValentDevicePreferencesGroupPrivate *priv = valent_device_preferencs_group_get_instance_private (group);
 
-  /* Setup GSettings */
+  g_return_val_if_fail (VALENT_IS_DEVICE_PREFERENCES_GROUP (group), NULL);
+
   if (priv->settings == NULL)
     {
       ValentContext *context = NULL;
 
-      context = valent_device_preferences_page_get_context (page);
+      context = valent_device_preferencs_group_get_context (group);
       priv->settings = valent_context_get_plugin_settings (context,
                                                            priv->plugin_info,
                                                            "X-DevicePluginSettings");

@@ -9,6 +9,6 @@ G_BEGIN_DECLS
 
 #define VALENT_TYPE_CONTACTS_PREFERENCES (valent_contacts_preferences_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentContactsPreferences, valent_contacts_preferences, VALENT, CONTACTS_PREFERENCES, ValentDevicePreferencesPage)
+G_DECLARE_FINAL_TYPE (ValentContactsPreferences, valent_contacts_preferences, VALENT, CONTACTS_PREFERENCES, ValentDevicePreferencesGroup)
 
 G_END_DECLS

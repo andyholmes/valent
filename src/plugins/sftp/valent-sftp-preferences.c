@@ -15,15 +15,15 @@
 
 struct _ValentSftpPreferences
 {
-  ValentDevicePreferencesPage  parent_instance;
+  ValentDevicePreferencesGroup  parent_instance;
 
   /* template */
-  GtkSwitch                   *auto_mount;
-  AdwExpanderRow              *local_allow;
-  GtkAdjustment               *local_port;
+  GtkSwitch                    *auto_mount;
+  AdwExpanderRow               *local_allow;
+  GtkAdjustment                *local_port;
 };
 
-G_DEFINE_FINAL_TYPE (ValentSftpPreferences, valent_sftp_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
+G_DEFINE_FINAL_TYPE (ValentSftpPreferences, valent_sftp_preferences, VALENT_TYPE_DEVICE_PREFERENCES_GROUP)
 
 
 static void
@@ -45,7 +45,6 @@ on_toggle_row (GtkListBox    *box,
   g_object_set (toggle, "active", !active, NULL);
 }
 
-
 /*
  * GObject
  */
@@ -53,20 +52,16 @@ static void
 valent_sftp_preferences_constructed (GObject *object)
 {
   ValentSftpPreferences *self = VALENT_SFTP_PREFERENCES (object);
-  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
   GSettings *settings;
 
-  /* Setup GSettings */
-  settings = valent_device_preferences_page_get_settings (page);
-
+  settings = valent_device_preferences_group_get_settings (group);
   g_settings_bind (settings,         "auto-mount",
                    self->auto_mount, "active",
                    G_SETTINGS_BIND_DEFAULT);
-
   g_settings_bind (settings,          "local-allow",
                    self->local_allow, "enable-expansion",
                    G_SETTINGS_BIND_DEFAULT);
-
   g_settings_bind (settings,         "local-port",
                    self->local_port, "value",
                    G_SETTINGS_BIND_DEFAULT);

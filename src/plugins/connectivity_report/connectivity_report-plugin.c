@@ -21,6 +21,6 @@ valent_connectivity_report_plugin_register_types (PeasObjectModule *module)
                                               VALENT_TYPE_DEVICE_GADGET,
                                               VALENT_TYPE_CONNECTIVITY_REPORT_GADGET);
   peas_object_module_register_extension_type (module,
-                                              VALENT_TYPE_DEVICE_PREFERENCES_PAGE,
+                                              VALENT_TYPE_DEVICE_PREFERENCES_GROUP,
                                               VALENT_TYPE_CONNECTIVITY_REPORT_PREFERENCES);
 }

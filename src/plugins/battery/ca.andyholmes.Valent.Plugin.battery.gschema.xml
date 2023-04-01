@@ -7,30 +7,20 @@
   <schema id="ca.andyholmes.Valent.Plugin.battery">
     <key name="share-state" type="b">
       <default>true</default>
-      <summary>Share State</summary>
-      <description>Send updates of the battery status</description>
     </key>
     <key name="full-notification" type="b">
       <default>false</default>
-      <summary>Full Battery Notification</summary>
-      <description>Show a notification when the battery is full</description>
     </key>
     <key name="full-notification-level" type="d">
       <default>100.0</default>
       <range min="0.0" max="100.0"/>
-      <summary>Full Battery Level</summary>
-      <description>The level to consider the battery full</description>
     </key>
     <key name="low-notification" type="b">
       <default>true</default>
-      <summary>Low Battery Notification</summary>
-      <description>Show a notification when the battery is low</description>
     </key>
     <key name="low-notification-level" type="d">
       <default>20.0</default>
       <range min="0.0" max="100.0"/>
-      <summary>Low Battery Level</summary>
-      <description>The level to consider the battery low</description>
     </key>
   </schema>
 </schemalist>

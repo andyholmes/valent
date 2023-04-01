@@ -16,7 +16,7 @@ test_share_plugin_preferences (void)
   info = peas_engine_get_plugin_info (engine, "share");
   prefs = peas_engine_create_extension (engine,
                                         info,
-                                        VALENT_TYPE_DEVICE_PREFERENCES_PAGE,
+                                        VALENT_TYPE_DEVICE_PREFERENCES_GROUP,
                                         NULL);
   g_object_ref_sink (prefs);
   g_object_unref (prefs);
@@ -36,7 +36,7 @@ test_share_plugin_download_folder (void)
   info = peas_engine_get_plugin_info (engine, "share");
   prefs = peas_engine_create_extension (engine,
                                         info,
-                                        VALENT_TYPE_DEVICE_PREFERENCES_PAGE,
+                                        VALENT_TYPE_DEVICE_PREFERENCES_GROUP,
                                         NULL);
   g_object_ref_sink (prefs);
   valent_test_await_pending ();

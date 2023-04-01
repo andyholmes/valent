@@ -15,7 +15,7 @@
 
 struct _ValentConnectivityReportPreferences
 {
-  ValentDevicePreferencesPage  parent_instance;
+  ValentDevicePreferencesGroup  parent_instance;
 
   /* template */
   AdwActionRow                *share_state_row;
@@ -25,7 +25,7 @@ struct _ValentConnectivityReportPreferences
   GtkSwitch                   *offline_notification;
 };
 
-G_DEFINE_FINAL_TYPE (ValentConnectivityReportPreferences, valent_connectivity_report_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
+G_DEFINE_FINAL_TYPE (ValentConnectivityReportPreferences, valent_connectivity_report_preferences, VALENT_TYPE_DEVICE_PREFERENCES_GROUP)
 
 
 /*
@@ -35,12 +35,10 @@ static void
 valent_connectivity_report_preferences_constructed (GObject *object)
 {
   ValentConnectivityReportPreferences *self = VALENT_CONNECTIVITY_REPORT_PREFERENCES (object);
-  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
   GSettings *settings;
 
-  /* Setup GSettings */
-  settings = valent_device_preferences_page_get_settings (page);
-
+  settings = valent_device_preferences_group_get_settings (group);
   g_settings_bind (settings,          "share-state",
                    self->share_state, "active",
                    G_SETTINGS_BIND_DEFAULT);

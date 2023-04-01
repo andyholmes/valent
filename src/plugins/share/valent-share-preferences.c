@@ -15,14 +15,13 @@
 
 struct _ValentSharePreferences
 {
-  ValentDevicePreferencesPage  parent_instance;
+  ValentDevicePreferencesGroup  parent_instance;
 
   /* template */
-  AdwPreferencesGroup         *download_group;
-  GtkLabel                    *download_folder_label;
+  GtkLabel                     *download_folder_label;
 };
 
-G_DEFINE_FINAL_TYPE (ValentSharePreferences, valent_share_preferences, VALENT_TYPE_DEVICE_PREFERENCES_PAGE)
+G_DEFINE_FINAL_TYPE (ValentSharePreferences, valent_share_preferences, VALENT_TYPE_DEVICE_PREFERENCES_GROUP)
 
 
 /*
@@ -49,11 +48,11 @@ on_download_folder_changed (GValue   *value,
 static void
 on_download_folder_response (GtkNativeDialog             *dialog,
                              int                          response_id,
-                             ValentDevicePreferencesPage *page)
+                             ValentDevicePreferencesGroup *group)
 {
   g_autoptr (GFile) file = NULL;
 
-  g_assert (VALENT_IS_DEVICE_PREFERENCES_PAGE (page));
+  g_assert (VALENT_IS_DEVICE_PREFERENCES_GROUP (group));
 
   if (response_id == GTK_RESPONSE_ACCEPT)
     {
@@ -62,7 +61,7 @@ on_download_folder_response (GtkNativeDialog             *dialog,
 
       file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
       path = g_file_peek_path (file);
-      settings = valent_device_preferences_page_get_settings (page);
+      settings = valent_device_preferences_group_get_settings (group);
       g_settings_set_string (settings, "download-folder", path);
     }
 
@@ -78,7 +77,7 @@ select_download_folder_action (GtkWidget  *widget,
                                GVariant   *parameter)
 {
   ValentSharePreferences *self = VALENT_SHARE_PREFERENCES (widget);
-  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
   GSettings *settings;
   GtkNativeDialog *dialog;
   g_autofree char *path = NULL;
@@ -94,7 +93,7 @@ select_download_folder_action (GtkWidget  *widget,
                          "transient-for", gtk_widget_get_root (widget),
                          NULL);
 
-  settings = valent_device_preferences_page_get_settings (page);
+  settings = valent_device_preferences_group_get_settings (group);
   path = g_settings_get_string (settings, "download-folder");
 
   if (strlen (path) > 0)
@@ -106,10 +105,10 @@ select_download_folder_action (GtkWidget  *widget,
                                            file, NULL);
     }
 
-  g_signal_connect (dialog,
-                    "response",
-                    G_CALLBACK (on_download_folder_response),
-                    self);
+  g_signal_connect_object (dialog,
+                           "response",
+                           G_CALLBACK (on_download_folder_response),
+                           self, 0);
 
   gtk_native_dialog_show (dialog);
 }
@@ -121,13 +120,11 @@ static void
 valent_share_preferences_constructed (GObject *object)
 {
   ValentSharePreferences *self = VALENT_SHARE_PREFERENCES (object);
-  ValentDevicePreferencesPage *page = VALENT_DEVICE_PREFERENCES_PAGE (self);
+  ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
   g_autofree char *download_folder = NULL;
   GSettings *settings;
 
-  /* Setup GSettings */
-  settings = valent_device_preferences_page_get_settings (page);
-
+  settings = valent_device_preferences_group_get_settings (group);
   download_folder = g_settings_get_string (settings, "download-folder");
 
   if (download_folder == NULL || *download_folder == '\0')
@@ -169,7 +166,6 @@ valent_share_preferences_class_init (ValentSharePreferencesClass *klass)
   object_class->dispose = valent_share_preferences_dispose;
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/share/valent-share-preferences.ui");
-  gtk_widget_class_bind_template_child (widget_class, ValentSharePreferences, download_group);
   gtk_widget_class_bind_template_child (widget_class, ValentSharePreferences, download_folder_label);
   gtk_widget_class_install_action (widget_class, "preferences.select-download-folder", NULL, select_download_folder_action);
 }

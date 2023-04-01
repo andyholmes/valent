@@ -16,7 +16,7 @@ test_telephony_plugin_preferences (void)
   info = peas_engine_get_plugin_info (engine, "telephony");
   prefs = peas_engine_create_extension (engine,
                                         info,
-                                        VALENT_TYPE_DEVICE_PREFERENCES_PAGE,
+                                        VALENT_TYPE_DEVICE_PREFERENCES_GROUP,
                                         NULL);
   g_object_ref_sink (prefs);
   g_object_unref (prefs);
