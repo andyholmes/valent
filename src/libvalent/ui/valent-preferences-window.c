@@ -261,92 +261,6 @@ on_unload_plugin (PeasEngine              *engine,
 }
 
 /*
- * HACK: The view switcher controls don't scale well with arbitrary numbers of
- *       plugins, so attempt to hide it and replace the functionality with a
- *       "previous" button.
- */
-static AdwHeaderBar *
-find_header_bar (GtkWidget *widget)
-{
-  GtkWidget *child;
-
-  if (ADW_IS_HEADER_BAR (widget))
-    return ADW_HEADER_BAR (widget);
-
-  child = gtk_widget_get_first_child (widget);
-
-  while (child && !ADW_IS_HEADER_BAR (child))
-    {
-      AdwHeaderBar *headerbar;
-
-      if ((headerbar = find_header_bar (child)))
-        return headerbar;
-
-      child = gtk_widget_get_next_sibling (child);
-    }
-
-  return ADW_HEADER_BAR (child);
-}
-
-static gboolean
-hide_view_switcher_bar (GtkWidget *widget)
-{
-  GtkWidget *child = NULL;
-
-  if (ADW_IS_VIEW_SWITCHER_BAR (widget))
-    {
-      gtk_widget_set_visible (widget, FALSE);
-      return TRUE;
-    }
-
-  for (child = gtk_widget_get_first_child (widget);
-       child != NULL;
-       child = gtk_widget_get_next_sibling (child))
-    {
-      if (hide_view_switcher_bar (child))
-        return TRUE;
-    }
-
-  return FALSE;
-}
-
-/**
- * valent_preferences_window_modify:
- * @window: a #AdwPreferencesWindow
- *
- * Try to modify a [class@Adw.PreferencesWindow] to hide the bottom view
- * switcher for cases where the number of pages exceeds the number that can be
- * reasonably handled.
- *
- * Returns: %TRUE if successful, or %FALSE if not
- */
-gboolean
-valent_preferences_window_modify (AdwPreferencesWindow *window)
-{
-  AdwHeaderBar *headerbar = NULL;
-  GtkWidget *button;
-
-  g_assert (ADW_IS_PREFERENCES_WINDOW (window));
-
-  /* Add a "previous" button to the headerbar */
-  if ((headerbar = find_header_bar (GTK_WIDGET (window))) == NULL)
-    return FALSE;
-
-  button = g_object_new (GTK_TYPE_BUTTON,
-                         "action-name",  "win.previous",
-                         "icon-name",    "go-previous-symbolic",
-                         "tooltip-text", _("Previous"),
-                         NULL);
-  adw_header_bar_pack_start (headerbar, button);
-
-  /* Attempt to find and hide the AdwViewSwitcherBar */
-  if (!hide_view_switcher_bar (GTK_WIDGET (window)))
-    return FALSE;
-
-  return TRUE;
-}
-
-/*
  * GActions
  */
 static void
@@ -361,22 +275,6 @@ page_action (GtkWidget  *widget,
   adw_preferences_window_set_visible_page_name (window, module);
 }
 
-static void
-previous_action (GtkWidget  *widget,
-                 const char *action_name,
-                 GVariant   *parameter)
-{
-  AdwPreferencesWindow *window = ADW_PREFERENCES_WINDOW (widget);
-  const char *page_name;
-
-  page_name = adw_preferences_window_get_visible_page_name (window);
-
-  if (g_strcmp0 (page_name, "main") == 0)
-    gtk_window_destroy (GTK_WINDOW (window));
-  else
-    adw_preferences_window_set_visible_page_name (window, "main");
-}
-
 /*
  * GObject
  */
@@ -387,10 +285,6 @@ valent_preferences_window_constructed (GObject *object)
   g_autofree char *name = NULL;
   PeasEngine *engine = valent_get_plugin_engine ();
   const GList *plugins = NULL;
-
-  /* Modify the dialog */
-  if (!valent_preferences_window_modify (ADW_PREFERENCES_WINDOW (self)))
-    g_warning ("Failed to modify AdwPreferencesWindow");
 
   /* Application Settings */
   self->settings = g_settings_new ("ca.andyholmes.Valent");
@@ -471,7 +365,6 @@ valent_preferences_window_class_init (ValentPreferencesWindowClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, on_name_apply);
 
   gtk_widget_class_install_action (widget_class, "win.page", "s", page_action);
-  gtk_widget_class_install_action (widget_class, "win.previous", NULL, previous_action);
 
   /* ... */
   extensions[EXTEN_APPLICATION_PLUGIN] =
