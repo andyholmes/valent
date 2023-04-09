@@ -58,7 +58,7 @@ on_action_state_changed (GActionGroup        *action_group,
   if (!g_variant_lookup (value, "icon-name", "&s", &icon_name))
     icon_name = "battery-missing-symbolic";
 
-  if (percentage == 100)
+  if (percentage >= 100.0)
     {
       /* TRANSLATORS: When the battery level is 100% */
       label = g_strdup (_("Fully Charged"));

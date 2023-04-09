@@ -464,7 +464,7 @@ valent_mpris_device_update_volume (ValentMprisDevice *player,
 {
   g_assert (VALENT_IS_MPRIS_DEVICE (player));
 
-  if (player->volume == volume)
+  if (G_APPROX_VALUE (player->volume, volume / 100.0, 0.01))
     return;
 
   player->volume = CLAMP ((volume / 100.0), 0.0, 1.0);

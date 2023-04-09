@@ -148,7 +148,7 @@ presenter_pointer_action (GSimpleAction *action,
 
   g_variant_get (parameter, "(ddu)", &dx, &dy, &mask);
 
-  if (dx != 0.0 || dy != 0.0)
+  if (!G_APPROX_VALUE (dx, 0.0, 0.01) || !G_APPROX_VALUE (dy, 0.0, 0.01))
     valent_presenter_plugin_send_motion (self, dx, dy);
 
   if (mask != 0)

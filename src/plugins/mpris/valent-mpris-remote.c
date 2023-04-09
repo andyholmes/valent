@@ -418,7 +418,7 @@ on_volume_changed (GtkScaleButton    *button,
   if (self->player == NULL)
     return;
 
-  if (valent_media_player_get_volume (self->player) != value)
+  if (!G_APPROX_VALUE (valent_media_player_get_volume (self->player), value, 0.01))
     valent_media_player_set_volume (self->player, value);
 }
 

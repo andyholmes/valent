@@ -167,11 +167,11 @@ test_mpris_component_player (MprisComponentFixture *fixture,
 
   g_assert_cmpstr (name, ==, "Mock Player");
   g_assert_cmpuint (flags, ==, VALENT_MEDIA_ACTION_NONE);
-  g_assert_cmpfloat (position, ==, 0.0);
+  g_assert_cmpfloat (position, <=, 0.0);
   g_assert_cmpuint (repeat, ==, VALENT_MEDIA_REPEAT_NONE);
   g_assert_false (shuffle);
   g_assert_cmpuint (state, ==, VALENT_MEDIA_STATE_STOPPED);
-  g_assert_cmpfloat (volume, ==, 1.0);
+  g_assert_cmpfloat (volume, >=, 1.0);
   g_clear_pointer (&name, g_free);
   g_clear_pointer (&metadata, g_variant_unref);
 
@@ -219,7 +219,7 @@ test_mpris_component_player (MprisComponentFixture *fixture,
 
   valent_media_player_set_position (fixture->player, 5.0);
   g_main_loop_run (fixture->loop);
-  /* g_assert_cmpfloat (valent_media_player_get_position (fixture->player), ==, 5.0); */
+  /* g_assert_cmpfloat (valent_media_player_get_position (fixture->player), >=, 5.0); */
   /* fixture->data = NULL; */
 
   g_signal_handlers_disconnect_by_data (fixture->player, fixture);

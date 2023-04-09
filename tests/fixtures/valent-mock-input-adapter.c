@@ -46,7 +46,7 @@ valent_mock_input_adapter_pointer_axis (ValentInputAdapter *adapter,
 
   g_assert (VALENT_IS_INPUT_ADAPTER (adapter));
   g_assert (VALENT_IS_MOCK_INPUT_ADAPTER (adapter));
-  g_assert (dx != 0.0 || dy != 0.0);
+  g_assert (!G_APPROX_VALUE (dx, 0.0, 0.01) || !G_APPROX_VALUE (dy, 0.0, 0.01));
 
   event = g_strdup_printf ("POINTER AXIS %.1f %.1f", dx, dy);
   valent_test_event_push (event);
@@ -75,7 +75,7 @@ valent_mock_input_adapter_pointer_motion (ValentInputAdapter *adapter,
 
   g_assert (VALENT_IS_INPUT_ADAPTER (adapter));
   g_assert (VALENT_IS_MOCK_INPUT_ADAPTER (adapter));
-  g_assert (dx != 0 || dy != 0);
+  g_assert (!G_APPROX_VALUE (dx, 0.0, 0.01) || !G_APPROX_VALUE (dy, 0.0, 0.01));
 
   event = g_strdup_printf ("POINTER MOTION %.1f %.1f", dx, dy);
   valent_test_event_push (event);

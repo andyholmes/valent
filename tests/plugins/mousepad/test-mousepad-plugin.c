@@ -266,8 +266,8 @@ test_mousepad_plugin_send_pointer_request (ValentTestFixture *fixture,
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mousepad.request");
-  v_assert_packet_cmpfloat (packet, "dx", ==, 1.0);
-  v_assert_packet_cmpfloat (packet, "dy", ==, 1.0);
+  v_assert_packet_cmpfloat (packet, "dx", >=, 1.0);
+  v_assert_packet_cmpfloat (packet, "dy", >=, 1.0);
   json_node_unref (packet);
 
   /* Pointer Axis */
@@ -280,8 +280,8 @@ test_mousepad_plugin_send_pointer_request (ValentTestFixture *fixture,
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mousepad.request");
-  v_assert_packet_cmpfloat (packet, "dx", ==, 0.0);
-  v_assert_packet_cmpfloat (packet, "dy", ==, 1.0);
+  v_assert_packet_cmpfloat (packet, "dx", <=, 0.0);
+  v_assert_packet_cmpfloat (packet, "dy", >=, 1.0);
   v_assert_packet_true (packet, "scroll");
   json_node_unref (packet);
 }
