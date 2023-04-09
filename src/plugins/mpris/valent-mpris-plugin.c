@@ -23,7 +23,7 @@ struct _ValentMprisPlugin
   ValentDevicePlugin  parent_instance;
 
   ValentMedia        *media;
-  gboolean            media_watch : 1;
+  unsigned int        media_watch : 1;
   GtkWindow          *remote;
 
   GListModel         *players;
