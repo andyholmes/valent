@@ -48,11 +48,8 @@ test_preferences_window_navigation (void)
   /* Main -> Plugin */
   gtk_widget_activate_action (GTK_WIDGET (window), "win.page", "s", "mock");
 
-  /* Plugin -> Previous */
-  gtk_widget_activate_action (GTK_WIDGET (window), "win.previous", NULL);
-
-  /* Main -> Previous (Close Preferences) */
-  gtk_widget_activate_action (GTK_WIDGET (window), "win.previous", NULL);
+  /* Close */
+  gtk_widget_activate_action (GTK_WIDGET (window), "window.close", NULL);
 
   g_assert_null (window);
 }

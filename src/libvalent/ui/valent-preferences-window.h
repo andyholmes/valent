@@ -14,6 +14,4 @@ G_BEGIN_DECLS
 _VALENT_EXTERN
 G_DECLARE_FINAL_TYPE (ValentPreferencesWindow, valent_preferences_window, VALENT, PREFERENCES_WINDOW, AdwPreferencesWindow)
 
-gboolean   valent_preferences_window_modify (AdwPreferencesWindow *window);
-
 G_END_DECLS
