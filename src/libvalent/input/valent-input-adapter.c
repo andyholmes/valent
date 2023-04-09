@@ -221,7 +221,7 @@ valent_input_adapter_pointer_axis (ValentInputAdapter *adapter,
   g_return_if_fail (VALENT_IS_INPUT_ADAPTER (adapter));
 
   /* Silently ignore 0-delta motion */
-  if G_UNLIKELY (dx == 0.0 && dy == 0.0)
+  if G_UNLIKELY (G_APPROX_VALUE (dx, 0.0, 0.01) && G_APPROX_VALUE (dy, 0.0, 0.01))
     VALENT_EXIT;
 
   VALENT_INPUT_ADAPTER_GET_CLASS (adapter)->pointer_axis (adapter, dx, dy);
@@ -277,7 +277,7 @@ valent_input_adapter_pointer_motion (ValentInputAdapter *adapter,
   g_return_if_fail (VALENT_IS_INPUT_ADAPTER (adapter));
 
   /* Silently ignore 0-delta motion */
-  if G_UNLIKELY (dx == 0.0 && dy == 0.0)
+  if G_UNLIKELY (G_APPROX_VALUE (dx, 0.0, 0.01) && G_APPROX_VALUE (dy, 0.0, 0.01))
     VALENT_EXIT;
 
   VALENT_INPUT_ADAPTER_GET_CLASS (adapter)->pointer_motion (adapter, dx, dy);

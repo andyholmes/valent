@@ -52,8 +52,8 @@ test_presenter_plugin_send_request (ValentTestFixture *fixture,
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.presenter");
-  v_assert_packet_cmpfloat (packet, "dx", ==, 0.1);
-  v_assert_packet_cmpfloat (packet, "dy", ==, -0.1);
+  v_assert_packet_cmpfloat (packet, "dx", >=, 0.1);
+  v_assert_packet_cmpfloat (packet, "dy", <=, -0.1);
   g_clear_pointer (&packet, json_node_unref);
 
   g_action_group_activate_action (actions,

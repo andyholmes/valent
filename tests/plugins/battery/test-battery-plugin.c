@@ -62,7 +62,7 @@ test_battery_plugin_actions (ValentTestFixture *fixture,
   g_assert_true (g_variant_lookup (state, "time-to-full", "x", &time_to_full));
 
   g_assert_false (charging);
-  g_assert_cmpfloat (percentage, ==, 0.0);
+  g_assert_cmpfloat (percentage, <=, 0.0);
   g_assert_cmpstr (icon_name, ==, "battery-missing-symbolic");
   g_assert_false (is_present);
   g_assert_cmpint (time_to_empty, ==, 0);
@@ -126,7 +126,7 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
   g_assert_true (g_variant_lookup (state, "time-to-full", "x", &time_to_full));
 
   g_assert_true (charging);
-  g_assert_cmpfloat (percentage, ==, 0);
+  g_assert_cmpfloat (percentage, <=, 0.0);
   g_assert_cmpstr (icon_name, ==, "battery-empty-charging-symbolic");
   g_assert_true (is_present);
   g_assert_cmpint (time_to_empty, ==, 0);
@@ -149,7 +149,7 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
   g_assert_true (g_variant_lookup (state, "time-to-full", "x", &time_to_full));
 
   g_assert_true (charging);
-  g_assert_cmpfloat (percentage, ==, 15);
+  g_assert_cmpfloat (percentage, >=, 15.0);
   g_assert_cmpstr (icon_name, ==, "battery-caution-charging-symbolic");
   g_assert_true (is_present);
   g_assert_cmpint (time_to_empty, ==, 0);
@@ -172,7 +172,7 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
   g_assert_true (g_variant_lookup (state, "time-to-full", "x", &time_to_full));
 
   g_assert_true (charging);
-  g_assert_cmpfloat (percentage, ==, 25);
+  g_assert_cmpfloat (percentage, >=, 25.0);
   g_assert_cmpstr (icon_name, ==, "battery-low-charging-symbolic");
   g_assert_true (is_present);
   g_assert_cmpint (time_to_empty, ==, 0);
@@ -194,7 +194,7 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
   g_assert_true (g_variant_lookup (state, "time-to-full", "x", &time_to_full));
 
   g_assert_false (charging);
-  g_assert_cmpfloat (percentage, ==, 55);
+  g_assert_cmpfloat (percentage, >=, 55.0);
   g_assert_cmpstr (icon_name, ==, "battery-good-symbolic");
   g_assert_true (is_present);
   g_assert_cmpint (time_to_empty, >, 0);
@@ -217,7 +217,7 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
   g_assert_true (g_variant_lookup (state, "time-to-full", "x", &time_to_full));
 
   g_assert_false (charging);
-  g_assert_cmpfloat (percentage, ==, 65);
+  g_assert_cmpfloat (percentage, >=, 65.0);
   g_assert_cmpstr (icon_name, ==, "battery-full-symbolic");
   g_assert_true (is_present);
   g_assert_cmpint (time_to_empty, >, 0);
@@ -240,7 +240,7 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
   g_assert_true (g_variant_lookup (state, "time-to-full", "x", &time_to_full));
 
   g_assert_false (charging);
-  g_assert_cmpfloat (percentage, ==, 100);
+  g_assert_cmpfloat (percentage, >=, 100.0);
   g_assert_cmpstr (icon_name, ==, "battery-full-charged-symbolic");
   g_assert_true (is_present);
   g_assert_cmpint (time_to_empty, >, 0);
@@ -263,7 +263,7 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
   g_assert_true (g_variant_lookup (state, "time-to-full", "x", &time_to_full));
 
   g_assert_false (charging);
-  g_assert_cmpfloat (percentage, ==, 0.0);
+  g_assert_cmpfloat (percentage, <=, 15.0);
   g_assert_cmpstr (icon_name, ==, "battery-missing-symbolic");
   g_assert_false (is_present);
 

@@ -308,7 +308,7 @@ valent_transfer_set_progress (ValentTransfer *transfer,
   g_return_if_fail (progress >= 0.0 && progress <= 1.0);
 
   valent_object_lock (VALENT_OBJECT (transfer));
-  if (priv->progress != progress)
+  if (!G_APPROX_VALUE (priv->progress, progress, 0.01))
     {
       priv->progress = progress;
       valent_object_notify_by_pspec (VALENT_OBJECT (transfer),

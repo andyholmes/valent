@@ -194,7 +194,7 @@ calculate_delta (ValentMousepadRemote *self,
   dr = sqrt (pow (dx, 2) + pow (dy, 2));
   v = dr / dt;
 
-  if (self->last_v != 0.0)
+  if (!G_APPROX_VALUE (self->last_v, 0.0, 0.01))
     self->last_v = (v + self->last_v) / 2;
   else
     self->last_v = v;

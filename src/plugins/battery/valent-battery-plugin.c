@@ -147,25 +147,25 @@ valent_battery_plugin_get_icon_name (ValentBatteryPlugin *self)
   if (!self->is_present)
     return "battery-missing-symbolic";
 
-  if (self->percentage == 100)
+  if (self->percentage >= 100.0)
     return "battery-full-charged-symbolic";
 
-  if (self->percentage < 5)
+  if (self->percentage < 5.0)
     return self->charging
       ? "battery-empty-charging-symbolic"
       : "battery-empty-symbolic";
 
-  if (self->percentage < 20)
+  if (self->percentage < 20.0)
     return self->charging
       ? "battery-caution-charging-symbolic"
       : "battery-caution-symbolic";
 
-  if (self->percentage < 30)
+  if (self->percentage < 30.0)
     return self->charging
       ? "battery-low-charging-symbolic"
       : "battery-low-symbolic";
 
-  if (self->percentage < 60)
+  if (self->percentage < 60.0)
     return self->charging
       ? "battery-good-charging-symbolic"
       : "battery-good-symbolic";
@@ -267,7 +267,7 @@ valent_battery_plugin_update_notification (ValentBatteryPlugin *self,
   full = g_settings_get_double (settings, "full-notification-level");
   low = g_settings_get_double (settings, "low-notification-level");
 
-  if (self->percentage == full)
+  if (self->percentage >= full)
     {
       if (!g_settings_get_boolean (settings, "full-notification"))
         return;
@@ -339,7 +339,8 @@ valent_battery_plugin_handle_battery (ValentBatteryPlugin *self,
     threshold_event = 0;
 
   /* We get a lot of battery updates, so check if something changed */
-  if (self->charging == is_charging && self->percentage == current_charge)
+  if (self->charging == is_charging &&
+      G_APPROX_VALUE (self->percentage, current_charge, 0.1))
     return;
 
   /* If `current_charge` is `-1`, either there is no battery or statistics are

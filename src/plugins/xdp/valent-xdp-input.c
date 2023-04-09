@@ -257,7 +257,7 @@ valent_xdp_input_pointer_axis (ValentInputAdapter *adapter,
 
   g_assert (VALENT_IS_INPUT_ADAPTER (adapter));
   g_assert (VALENT_IS_XDP_INPUT (self));
-  g_assert (dx != 0.0 || dy != 0.0);
+  g_assert (!G_APPROX_VALUE (dx, 0.0, 0.01) || !G_APPROX_VALUE (dy, 0.0, 0.01));
 
   if G_UNLIKELY (!ensure_session (self))
     return;

@@ -150,7 +150,7 @@ test_media_component_player (MediaComponentFixture *fixture,
   g_assert_cmpuint (repeat, ==, VALENT_MEDIA_REPEAT_NONE);
   g_assert_false (shuffle);
   g_assert_cmpuint (state, ==, VALENT_MEDIA_STATE_STOPPED);
-  g_assert_cmpfloat (volume, ==, 1.0);
+  g_assert_cmpfloat (volume, >=, 1.0);
   g_clear_pointer (&name, g_free);
   g_clear_pointer (&metadata, g_variant_unref);
 

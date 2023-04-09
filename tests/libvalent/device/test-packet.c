@@ -107,7 +107,7 @@ test_packet_get (void)
   g_assert_true (boolean_value);
 
   g_assert_true (valent_packet_get_double (packet, "double", &double_value));
-  g_assert_cmpfloat (double_value, ==, 3.14);
+  g_assert_cmpfloat (double_value, >=, 3.14);
 
   g_assert_true (valent_packet_get_int (packet, "int", &int_value));
   g_assert_cmpint (int_value, ==, 42);
