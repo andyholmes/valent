@@ -27,7 +27,7 @@ struct _ValentDevicePreferencesGroupClass
 };
 
 VALENT_AVAILABLE_IN_1_0
-ValentContext * valent_device_preferencs_group_get_context  (ValentDevicePreferencesGroup *group);
+ValentContext * valent_device_preferencs_group_get_context   (ValentDevicePreferencesGroup *group);
 VALENT_AVAILABLE_IN_1_0
 GSettings     * valent_device_preferences_group_get_settings (ValentDevicePreferencesGroup *group);
 

@@ -175,7 +175,7 @@ valent_device_preferencs_group_init (ValentDevicePreferencesGroup *self)
 
 /**
  * valent_device_preferencs_group_get_context:
- * @page: a #ValentDevicePreferencesGroup
+ * @group: a #ValentDevicePreferencesGroup
  *
  * Get the [class@Valent.Context] for the [class@Valent.DevicePlugin].
  *
@@ -203,7 +203,7 @@ valent_device_preferencs_group_get_context (ValentDevicePreferencesGroup *group)
 
 /**
  * valent_device_preferences_group_get_settings:
- * @page: a #ValentDevicePreferencesGroup
+ * @group: a #ValentDevicePreferencesGroup
  *
  * Get the [class@Gio.Settings] for the [class@Valent.DevicePlugin].
  *
