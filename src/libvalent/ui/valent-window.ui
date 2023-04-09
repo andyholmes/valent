@@ -57,7 +57,15 @@
                   </object>
                 </child>
                 <child>
+                  <object class="GtkProgressBar" id="progress_bar">
+                    <style>
+                      <class name="osd"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
                   <object class="AdwPreferencesPage">
+                    <property name="vexpand">1</property>
                     <child>
                       <object class="AdwPreferencesGroup">
                         <property name="title" translatable="yes">Devices</property>

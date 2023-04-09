@@ -25,11 +25,13 @@ struct _ValentWindow
   AdwApplicationWindow  parent_instance;
   ValentDeviceManager  *manager;
 
+  AdwAnimation         *scan;
+  AdwAnimation         *fade;
+
   /* template */
   GtkStack             *stack;
+  GtkProgressBar       *progress_bar;
   GtkListBox           *device_list;
-  unsigned int          refresh_id;
-
   GtkWindow            *preferences;
 };
 
@@ -109,6 +111,60 @@ valent_get_debug_info (void)
 }
 
 /*
+ * AdwAnimation Callbacks
+ */
+static gboolean
+refresh_cb (gpointer data)
+{
+  g_assert (VALENT_IS_DEVICE_MANAGER (data));
+
+  valent_device_manager_refresh (VALENT_DEVICE_MANAGER (data));
+
+  return G_SOURCE_CONTINUE;
+}
+
+static void
+on_animation_state_changed (AdwAnimation *animation,
+                            GParamSpec   *pspec,
+                            ValentWindow *self)
+{
+  AdwAnimationState state = adw_animation_get_state (animation);
+  static unsigned int refresh_id = 0;
+
+  g_clear_handle_id (&refresh_id, g_source_remove);
+
+  switch (state)
+    {
+    case ADW_ANIMATION_PLAYING:
+      if (self->scan == animation)
+        {
+          valent_device_manager_refresh (self->manager);
+          refresh_id = g_timeout_add_seconds_full (G_PRIORITY_DEFAULT,
+                                                   2,
+                                                   refresh_cb,
+                                                   g_object_ref (self->manager),
+                                                   g_object_unref);
+          gtk_widget_action_set_enabled (GTK_WIDGET (self), "win.refresh", FALSE);
+        }
+      break;
+
+    case ADW_ANIMATION_FINISHED:
+      if (self->scan == animation)
+        {
+          adw_animation_play (self->fade);
+          gtk_widget_action_set_enabled (GTK_WIDGET (self), "win.refresh", TRUE);
+        }
+      break;
+
+    default:
+      gtk_progress_bar_set_fraction (self->progress_bar, 0.0);
+      gtk_widget_set_opacity (GTK_WIDGET (self->progress_bar), 1.0);
+      gtk_widget_action_set_enabled (GTK_WIDGET (self), "win.refresh", TRUE);
+      break;
+    }
+}
+
+/*
  * ValentDevice Callbacks
  */
 static void
@@ -175,6 +231,10 @@ valent_window_create_row_func (gpointer item,
 
   g_assert (VALENT_IS_WINDOW (self));
   g_assert (VALENT_IS_DEVICE (item));
+
+  /* A device was added, so stop the refresh */
+  if (self->scan != NULL)
+    adw_animation_skip (self->scan);
 
   device_id = valent_device_get_id (device);
   name = valent_device_get_name (device);
@@ -346,16 +406,6 @@ previous_action (GtkWidget  *widget,
   gtk_stack_set_visible_child_name (self->stack, "main");
 }
 
-static gboolean
-refresh_cb (gpointer data)
-{
-  ValentWindow *self = VALENT_WINDOW (data);
-
-  self->refresh_id = 0;
-
-  return G_SOURCE_REMOVE;
-}
-
 static void
 refresh_action (GtkWidget  *widget,
                 const char *action_name,
@@ -365,11 +415,45 @@ refresh_action (GtkWidget  *widget,
 
   g_assert (VALENT_IS_WINDOW (self));
 
-  if (self->refresh_id > 0)
-    return;
+  if (!adw_get_enable_animations (widget))
+    {
+      valent_device_manager_refresh (self->manager);
+      return;
+    }
 
-  valent_device_manager_refresh (self->manager);
-  self->refresh_id = g_timeout_add_seconds (5, refresh_cb, self);
+  if (self->scan == NULL && self->fade == NULL)
+    {
+      AdwAnimationTarget *target = NULL;
+
+      target = adw_property_animation_target_new (G_OBJECT (self->progress_bar),
+                                                  "fraction");
+      self->scan = adw_timed_animation_new (widget,
+                                            0.0, 1.0,
+                                            5000,
+                                            g_steal_pointer (&target));
+      g_signal_connect_object (self->scan,
+                               "notify::state",
+                               G_CALLBACK (on_animation_state_changed),
+                               self, 0);
+
+      target = adw_property_animation_target_new (G_OBJECT (self->progress_bar),
+                                                  "opacity");
+      self->fade = adw_timed_animation_new (widget,
+                                            1.0, 0.0,
+                                            500,
+                                            g_steal_pointer (&target));
+      g_signal_connect_object (self->fade,
+                               "notify::state",
+                               G_CALLBACK (on_animation_state_changed),
+                               self, 0);
+    }
+  else
+    {
+      adw_animation_reset (self->fade);
+      adw_animation_reset (self->scan);
+    }
+
+  adw_animation_play (self->scan);
 }
 
 /*
@@ -395,9 +479,15 @@ valent_window_dispose (GObject *object)
 {
   ValentWindow *self = VALENT_WINDOW (object);
 
-  g_clear_pointer (&self->preferences, gtk_window_destroy);
-  g_clear_handle_id (&self->refresh_id, g_source_remove);
+  if (self->scan != NULL)
+    adw_animation_reset (self->scan);
+  g_clear_object (&self->scan);
 
+  if (self->fade != NULL)
+    adw_animation_reset (self->fade);
+  g_clear_object (&self->fade);
+
+  g_clear_pointer (&self->preferences, gtk_window_destroy);
   gtk_widget_dispose_template (GTK_WIDGET (object), VALENT_TYPE_WINDOW);
 
   G_OBJECT_CLASS (valent_window_parent_class)->dispose (object);
@@ -466,6 +556,7 @@ valent_window_class_init (ValentWindowClass *klass)
 
   gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-window.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentWindow, stack);
+  gtk_widget_class_bind_template_child (widget_class, ValentWindow, progress_bar);
   gtk_widget_class_bind_template_child (widget_class, ValentWindow, device_list);
 
   gtk_widget_class_install_action (widget_class, "win.about", NULL, about_action);
