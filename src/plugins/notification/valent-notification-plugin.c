@@ -23,7 +23,9 @@ struct _ValentNotificationPlugin
   ValentDevicePlugin   parent_instance;
 
   GCancellable        *cancellable;
+  GHashTable          *remote;
 
+  /* widgets */
   ValentNotifications *notifications;
   ValentSession       *session;
   GHashTable          *dialogs;
@@ -488,30 +490,41 @@ static void
 valent_notification_plugin_handle_notification (ValentNotificationPlugin *self,
                                                 JsonNode                 *packet)
 {
+  const char *id;
+
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
+
+  if (!valent_packet_get_string (packet, "id", &id))
+    {
+      g_debug ("%s(): expected \"id\" field holding a string",
+               G_STRFUNC);
+      return;
+    }
 
   /* A report that a remote notification has been dismissed */
   if (valent_packet_check_field (packet, "isCancel"))
     {
-      const char *id;
-
-      if (!valent_packet_get_string (packet, "id", &id))
-        {
-          g_debug ("%s(): expected \"id\" field holding a string",
-                   G_STRFUNC);
-          return;
-        }
-
+      g_hash_table_remove (self->remote, id);
       valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self), id);
       return;
     }
 
-  /* A notification that should only be shown once */
-  if (valent_packet_check_field (packet, "onlyOnce"))
-    VALENT_TODO ("Handle 'onlyOnce' field");
+  /* A notification that should only be shown once, already existed on the
+   * device, and is already in the cache. This typically means the device just
+   * re-connected and is re-sending known notifications. */
+  if (valent_packet_check_field (packet, "onlyOnce") &&
+      valent_packet_check_field (packet, "silent") &&
+      g_hash_table_contains (self->remote, id))
+    {
+      VALENT_NOTE ("skipping existing notification: %s", id);
+      return;
+    }
 
-  /* A notification with an icon payload */
+  g_hash_table_replace (self->remote,
+                        g_strdup (id),
+                        json_node_ref (packet));
+
   if (valent_packet_has_payload (packet))
     {
       valent_notification_plugin_download_icon (self,
@@ -520,8 +533,6 @@ valent_notification_plugin_handle_notification (ValentNotificationPlugin *self,
                                                 (GAsyncReadyCallback)valent_notification_plugin_download_icon_cb,
                                                 json_node_ref (packet));
     }
-
-  /* A notification without an icon payload */
   else
     {
       valent_notification_plugin_show_notification (self, packet, NULL);
@@ -929,6 +940,10 @@ valent_notification_plugin_enable (ValentDevicePlugin *plugin)
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
 
   self->cancellable = g_cancellable_new ();
+  self->remote = g_hash_table_new_full (g_str_hash,
+                                        g_str_equal,
+                                        g_free,
+                                        (GDestroyNotify)json_node_unref);
 
   g_action_map_add_action_entries (G_ACTION_MAP (plugin),
                                    actions,
@@ -965,6 +980,7 @@ valent_notification_plugin_disable (ValentDevicePlugin *plugin)
   if (self->notifications)
     g_signal_handlers_disconnect_by_data (self->notifications, self);
 
+  g_clear_pointer (&self->remote, g_hash_table_unref);
   g_cancellable_cancel (self->cancellable);
   g_clear_object (&self->cancellable);
 }
