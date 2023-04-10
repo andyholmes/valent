@@ -23,10 +23,12 @@ struct _ValentNotificationPlugin
   ValentDevicePlugin   parent_instance;
 
   GCancellable        *cancellable;
-
   ValentNotifications *notifications;
   ValentSession       *session;
+
+  GHashTable          *cache;
   GHashTable          *dialogs;
+  unsigned int         notifications_watch : 1;
 };
 
 G_DEFINE_FINAL_TYPE (ValentNotificationPlugin, valent_notification_plugin, VALENT_TYPE_DEVICE_PLUGIN)
@@ -63,7 +65,6 @@ on_notification_added (ValentNotifications      *listener,
                        ValentNotificationPlugin *self)
 {
   GSettings *settings;
-  ValentDevice *device;
   const char *application;
   g_auto (GStrv) deny = NULL;
 
@@ -86,14 +87,6 @@ on_notification_added (ValentNotifications      *listener,
   if (application && g_strv_contains ((const char * const *)deny, application))
     return;
 
-  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
-
-  if ((valent_device_get_state (device) & VALENT_DEVICE_STATE_CONNECTED) == 0)
-    {
-      VALENT_TODO ("Cache notifications for later sending?");
-      return;
-    }
-
   valent_notification_plugin_send_notification (self,
                                                 valent_notification_get_id (notification),
                                                 valent_notification_get_application (notification),
@@ -103,24 +96,44 @@ on_notification_added (ValentNotifications      *listener,
 }
 
 static void
-on_notification_removed (ValentNotifications      *listener,
+on_notification_removed (ValentNotifications      *notifications,
                          const char               *id,
                          ValentNotificationPlugin *self)
 {
-  ValentDevice *device;
-
-  g_assert (VALENT_IS_NOTIFICATIONS (listener));
+  g_assert (VALENT_IS_NOTIFICATIONS (notifications));
   g_assert (id != NULL);
 
-  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
-
-  if ((valent_device_get_state (device) & VALENT_DEVICE_STATE_CONNECTED) == 0)
-    {
-      VALENT_TODO ("Cache notifications for later removal?");
-      return;
-    }
-
   valent_notification_plugin_close_notification (self, id);
+}
+
+static void
+valent_notification_plugin_watch_notifications (ValentNotificationPlugin *self,
+                                                gboolean                  watch)
+{
+  ValentNotifications *notifications = valent_notifications_get_default ();
+
+  g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
+
+  if (self->notifications_watch == watch)
+    return;
+
+  if (watch)
+    {
+      g_signal_connect_object (notifications,
+                               "notification-added",
+                               G_CALLBACK (on_notification_added),
+                               self, 0);
+      g_signal_connect_object (notifications,
+                               "notification-removed",
+                               G_CALLBACK (on_notification_removed),
+                               self, 0);
+      self->notifications_watch = TRUE;
+    }
+  else
+    {
+      g_signal_handlers_disconnect_by_data (notifications, self);
+      self->notifications_watch = FALSE;
+    }
 }
 
 /*
@@ -488,30 +501,41 @@ static void
 valent_notification_plugin_handle_notification (ValentNotificationPlugin *self,
                                                 JsonNode                 *packet)
 {
+  const char *id;
+
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
+
+  if (!valent_packet_get_string (packet, "id", &id))
+    {
+      g_debug ("%s(): expected \"id\" field holding a string",
+               G_STRFUNC);
+      return;
+    }
 
   /* A report that a remote notification has been dismissed */
   if (valent_packet_check_field (packet, "isCancel"))
     {
-      const char *id;
-
-      if (!valent_packet_get_string (packet, "id", &id))
-        {
-          g_debug ("%s(): expected \"id\" field holding a string",
-                   G_STRFUNC);
-          return;
-        }
-
+      g_hash_table_remove (self->cache, id);
       valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self), id);
       return;
     }
 
-  /* A notification that should only be shown once */
-  if (valent_packet_check_field (packet, "onlyOnce"))
-    VALENT_TODO ("Handle 'onlyOnce' field");
+  /* A notification that should only be shown once, already existed on the
+   * device, and is already in the cache. This typically means the device just
+   * re-connected and is re-sending known notifications. */
+  if (valent_packet_check_field (packet, "onlyOnce") &&
+      valent_packet_check_field (packet, "silent") &&
+      g_hash_table_contains (self->cache, id))
+    {
+      VALENT_NOTE ("skipping existing notification: %s", id);
+      return;
+    }
 
-  /* A notification with an icon payload */
+  g_hash_table_replace (self->cache,
+                        g_strdup (id),
+                        json_node_ref (packet));
+
   if (valent_packet_has_payload (packet))
     {
       valent_notification_plugin_download_icon (self,
@@ -520,8 +544,6 @@ valent_notification_plugin_handle_notification (ValentNotificationPlugin *self,
                                                 (GAsyncReadyCallback)valent_notification_plugin_download_icon_cb,
                                                 json_node_ref (packet));
     }
-
-  /* A notification without an icon payload */
   else
     {
       valent_notification_plugin_show_notification (self, packet, NULL);
@@ -929,24 +951,18 @@ valent_notification_plugin_enable (ValentDevicePlugin *plugin)
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
 
   self->cancellable = g_cancellable_new ();
+  self->notifications = valent_notifications_get_default();
+  self->session = valent_session_get_default ();
 
   g_action_map_add_action_entries (G_ACTION_MAP (plugin),
                                    actions,
                                    G_N_ELEMENTS (actions),
                                    plugin);
 
-  /* Watch for new local notifications */
-  self->session = valent_session_get_default ();
-  self->notifications = valent_notifications_get_default();
-  g_signal_connect (self->notifications,
-                    "notification-added",
-                    G_CALLBACK (on_notification_added),
-                    self);
-  g_signal_connect (self->notifications,
-                    "notification-removed",
-                    G_CALLBACK (on_notification_removed),
-                    self);
-
+  self->cache = g_hash_table_new_full (g_str_hash,
+                                       g_str_equal,
+                                       g_free,
+                                       (GDestroyNotify)json_node_unref);
   self->dialogs = g_hash_table_new_full (valent_notification_hash,
                                          valent_notification_equal,
                                          g_object_unref,
@@ -959,12 +975,13 @@ valent_notification_plugin_disable (ValentDevicePlugin *plugin)
   ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (plugin);
 
   /* Close any open reply dialogs */
+  g_clear_pointer (&self->cache, g_hash_table_unref);
   g_clear_pointer (&self->dialogs, g_hash_table_unref);
 
-  /* Stop watching for local notifications and cancel pending transfers */
-  if (self->notifications)
-    g_signal_handlers_disconnect_by_data (self->notifications, self);
+  /* We're about to be disposed, so stop watching for notifications */
+  valent_notification_plugin_watch_notifications (self, FALSE);
 
+  /* Cancel any pending operations */
   g_cancellable_cancel (self->cancellable);
   g_clear_object (&self->cancellable);
 }
@@ -984,18 +1001,20 @@ valent_notification_plugin_update_state (ValentDevicePlugin *plugin,
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
   valent_device_plugin_toggle_actions (plugin, available);
+  valent_notification_plugin_watch_notifications (self, available);
 
   /* Request Notifications */
   if (available)
-    valent_notification_plugin_request_notifications (self);
+    {
+      valent_notification_plugin_request_notifications (self);
+      VALENT_TODO ("send active notifications");
+    }
 
   /* Update Reply Dialogs */
   g_hash_table_iter_init (&iter, self->dialogs);
 
   while (g_hash_table_iter_next (&iter, NULL, (void **)&dialog))
     valent_notification_dialog_update_state (dialog, available);
-
-  /* TODO: send active notifications */
 }
 
 static void
