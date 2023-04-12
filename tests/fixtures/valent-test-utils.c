@@ -259,6 +259,15 @@ valent_test_mock_settings (const char *domain)
   return g_settings_new_with_path ("ca.andyholmes.Valent.Plugin", path);
 }
 
+static void
+valent_test_await_signal_cb (gpointer data)
+{
+  gboolean *done = data;
+
+  if (done != NULL)
+    *done = TRUE;
+}
+
 /**
  * valent_test_await_adapter:
  * @component: (type Valent.Component): a #ValentComponent
@@ -281,6 +290,47 @@ valent_test_await_adapter (gpointer component)
     continue;
 
   return ret;
+}
+
+/**
+ * valent_test_await_boolean:
+ * @done: a pointer to a `gboolean`
+ *
+ * Wait for @done to be set to %TRUE, while iterating the main context.
+ *
+ * This is useful for iterating the main context until an asynchronous operation
+ * completes, rather than running a loop.
+ */
+void
+valent_test_await_boolean (gboolean *done)
+{
+  while (done != NULL && *done != TRUE)
+    g_main_context_iteration (NULL, FALSE);
+}
+
+/**
+ * valent_test_await_signal:
+ * @object: (type GObject.Object): a `GObject`
+ * @signal_name: a signal to wait for
+ *
+ * Wait for @object to emit @signal_name, while iterating the main context.
+ */
+void
+valent_test_await_signal (gpointer    object,
+                          const char *signal_name)
+{
+  gboolean done = FALSE;
+  gulong handler_id = 0;
+
+  handler_id = g_signal_connect_swapped (G_OBJECT (object),
+                                         signal_name,
+                                         G_CALLBACK (valent_test_await_signal_cb),
+                                         &done);
+
+  while (!done)
+    g_main_context_iteration (NULL, FALSE);
+
+  g_clear_signal_handler (&handler_id, G_OBJECT (object));
 }
 
 /**
