@@ -14,7 +14,6 @@
 
 #include "valent-mpris-device.h"
 #include "valent-mpris-plugin.h"
-#include "valent-mpris-remote.h"
 #include "valent-mpris-utils.h"
 
 
@@ -24,7 +23,6 @@ struct _ValentMprisPlugin
 
   ValentMedia        *media;
   unsigned int        media_watch : 1;
-  GtkWindow          *remote;
 
   GListModel         *players;
   GHashTable         *transfers;
@@ -222,21 +220,40 @@ on_players_changed (ValentMedia       *media,
                     unsigned int       added,
                     ValentMprisPlugin *self)
 {
+  gboolean changed = FALSE;
+
   if (removed > 0)
-    g_hash_table_remove_all (self->pending);
+    {
+      changed = TRUE;
+      g_hash_table_remove_all (self->pending);
+    }
 
   for (unsigned int i = 0; i < added; i++)
     {
       g_autoptr (ValentMediaPlayer) player = NULL;
 
       player = g_list_model_get_item (G_LIST_MODEL (media), position + i);
+
+      /* Here, and below when building the player list, all `ValentMprisDevice`
+       * players are being skipped. An advanced option could control whether
+       * `!g_list_store_find (self->players, player, NULL)` passes, enabling a
+       * device to act as a hub for other devices. */
+      if (VALENT_IS_MPRIS_DEVICE (player))
+        continue;
+
+      changed = TRUE;
       g_signal_connect_object (player,
                                "notify",
                                G_CALLBACK (on_player_changed),
                                self, 0);
+
+      VALENT_NOTE ("tracking %s (%s)",
+                   G_OBJECT_TYPE_NAME (player),
+                   valent_media_player_get_name (player));
     }
 
-  valent_mpris_plugin_send_player_list (self);
+  if (changed)
+    valent_mpris_plugin_send_player_list (self);
 }
 
 static void
@@ -508,6 +525,10 @@ valent_mpris_plugin_send_player_list (ValentMprisPlugin *self)
       const char *name;
 
       player = g_list_model_get_item (G_LIST_MODEL (self->media), i);
+
+      if (VALENT_IS_MPRIS_DEVICE (player))
+        continue;
+
       name = valent_media_player_get_name (player);
 
       if (name != NULL)
@@ -775,43 +796,6 @@ valent_mpris_plugin_handle_mpris (ValentMprisPlugin *self,
     valent_mpris_plugin_handle_player_update (self, packet);
 }
 
-/*
- * GActions
- */
-static void
-mpris_remote_action (GSimpleAction *action,
-                     GVariant      *parameter,
-                     gpointer       user_data)
-{
-  ValentMprisPlugin *self = VALENT_MPRIS_PLUGIN (user_data);
-
-  g_assert (VALENT_IS_MPRIS_PLUGIN (self));
-  /* g_assert (gtk_is_initialized ()); */
-
-  if (self->remote == NULL)
-    {
-      ValentDevice *device;
-
-      device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
-      self->remote = g_object_new (VALENT_TYPE_MPRIS_REMOTE,
-                                   "device",  device,
-                                   "players", self->players,
-                                   NULL);
-      g_object_add_weak_pointer (G_OBJECT (self->remote),
-                                 (gpointer) &self->remote);
-    }
-
-  gtk_window_present (self->remote);
-}
-
-
-static const GActionEntry actions[] = {
-    {"remote", mpris_remote_action,  NULL, NULL, NULL}
-};
-
-static const ValentMenuEntry items[] = {
-    {N_("Media Remote"), "device.mpris.remote", "valent-mpris-plugin"}
-};
 
 /*
  * ValentDevicePlugin
@@ -822,27 +806,12 @@ valent_mpris_plugin_enable (ValentDevicePlugin *plugin)
   ValentMprisPlugin *self = VALENT_MPRIS_PLUGIN (plugin);
 
   self->media = valent_media_get_default ();
-
-  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
-                                   actions,
-                                   G_N_ELEMENTS (actions),
-                                   plugin);
-  valent_device_plugin_add_menu_entries (plugin,
-                                         items,
-                                         G_N_ELEMENTS (items));
 }
 
 static void
 valent_mpris_plugin_disable (ValentDevicePlugin *plugin)
 {
   ValentMprisPlugin *self = VALENT_MPRIS_PLUGIN (plugin);
-
-  /* Destroy the presentation remote if necessary */
-  g_clear_pointer (&self->remote, gtk_window_destroy);
-
-  valent_device_plugin_remove_menu_entries (plugin,
-                                            items,
-                                            G_N_ELEMENTS (items));
 
   valent_mpris_plugin_watch_media (self, FALSE);
   self->media = NULL;

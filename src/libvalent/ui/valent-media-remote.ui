@@ -4,7 +4,7 @@
 <!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <interface domain="valent">
-  <template class="ValentMprisRemote" parent="AdwWindow">
+  <template class="ValentMediaRemote" parent="AdwWindow">
     <property name="title" translatable="yes">Media Remote</property>
     <property name="width-request">360</property>
     <property name="height-request">294</property>
@@ -48,7 +48,7 @@
                         <property name="hexpand">1</property>
                         <signal name="notify::selected-item"
                                 handler="on_selected_item"
-                                object="ValentMprisRemote"
+                                object="ValentMediaRemote"
                                 swapped="no"/>
                         <layout>
                           <property name="column">0</property>
@@ -61,7 +61,7 @@
                     <!-- Album Art -->
                     <child>
                       <object class="GtkImage" id="media_art">
-                        <property name="icon-name">valent-mpris-albumart</property>
+                        <property name="icon-name">valent-media-albumart</property>
                         <property name="overflow">hidden</property>
                         <property name="pixel-size">256</property>
                         <property name="halign">center</property>
@@ -137,7 +137,7 @@
                             </property>
                             <signal name="change-value"
                                     handler="on_change_value"
-                                    object="ValentMprisRemote"
+                                    object="ValentMediaRemote"
                                     swapped="no"/>
                             <layout>
                               <property name="column">0</property>
@@ -348,7 +348,7 @@
                         </property>
                         <signal name="value-changed"
                                 handler="on_volume_changed"
-                                object="ValentMprisRemote"
+                                object="ValentMediaRemote"
                                 swapped="no"/>
                         <layout>
                           <property name="column">3</property>

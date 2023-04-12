@@ -1,24 +1,25 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-#define G_LOG_DOMAIN "valent-mpris-remote"
+#define G_LOG_DOMAIN "valent-media-remote"
 
 #include "config.h"
 
 #include <adwaita.h>
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
-#include <valent.h>
+#include <libvalent-core.h>
+#include <libvalent-media.h>
 
-#include "valent-mpris-remote.h"
-#include "valent-mpris-utils.h"
+#include "valent-media-remote.h"
+#include "valent-ui-utils.h"
+#include "valent-ui-utils-private.h"
 
 
-struct _ValentMprisRemote
+struct _ValentMediaRemote
 {
   AdwWindow          parent_instance;
 
-  ValentDevice      *device;
   GListModel        *players;
   ValentMediaPlayer *player;
   unsigned int       timer_id;
@@ -38,11 +39,10 @@ struct _ValentMprisRemote
   GtkVolumeButton   *volume_button;
 };
 
-G_DEFINE_FINAL_TYPE (ValentMprisRemote, valent_mpris_remote, ADW_TYPE_WINDOW)
+G_DEFINE_FINAL_TYPE (ValentMediaRemote, valent_media_remote, ADW_TYPE_WINDOW)
 
 enum {
   PROP_0,
-  PROP_DEVICE,
   PROP_PLAYERS,
   PROP_SHUFFLE,
   N_PROPERTIES
@@ -60,23 +60,23 @@ get_player_name (ValentMediaPlayer *player)
 }
 
 static gboolean
-valent_mpris_remote_timer_tick (gpointer data)
+valent_media_remote_timer_tick (gpointer data)
 {
-  ValentMprisRemote *self = VALENT_MPRIS_REMOTE (data);
+  ValentMediaRemote *self = VALENT_MEDIA_REMOTE (data);
   g_autofree char *length = NULL;
   g_autofree char *current = NULL;
   double value = 0.0;
   double upper = 0.0;
 
-  g_assert (VALENT_IS_MPRIS_REMOTE (self));
+  g_assert (VALENT_IS_MEDIA_REMOTE (self));
 
   value = gtk_adjustment_get_value (self->media_position_adjustment);
   upper = gtk_adjustment_get_upper (self->media_position_adjustment);
 
-  current = valent_mpris_time_to_string (value * 1000L, TOTEM_TIME_FLAG_NONE);
+  current = valent_media_time_to_string (value * 1000L, TOTEM_TIME_FLAG_NONE);
   gtk_label_set_label (self->media_position_current, current);
 
-  length = valent_mpris_time_to_string (upper * 1000L, TOTEM_TIME_FLAG_NONE);
+  length = valent_media_time_to_string (upper * 1000L, TOTEM_TIME_FLAG_NONE);
   gtk_label_set_label (self->media_position_length, length);
 
   gtk_adjustment_set_value (self->media_position_adjustment, value + 1.0);
@@ -88,11 +88,11 @@ valent_mpris_remote_timer_tick (gpointer data)
  * Interface
  */
 static void
-valent_mpris_remote_clear (ValentMprisRemote *self)
+valent_media_remote_clear (ValentMediaRemote *self)
 {
   GtkWidget *widget = GTK_WIDGET (self);
 
-  gtk_image_set_from_icon_name (self->media_art, "valent-mpris-albumart");
+  gtk_image_set_from_icon_name (self->media_art, "valent-media-albumart");
 
   gtk_label_set_label (self->media_artist, "");
   gtk_label_set_label (self->media_title, "");
@@ -112,15 +112,15 @@ valent_mpris_remote_clear (ValentMprisRemote *self)
 }
 
 static void
-valent_mpris_remote_update_flags (ValentMprisRemote *self)
+valent_media_remote_update_flags (ValentMediaRemote *self)
 {
   GtkWidget *widget = GTK_WIDGET (self);
   ValentMediaActions flags = VALENT_MEDIA_ACTION_NONE;
 
-  g_assert (VALENT_IS_MPRIS_REMOTE (self));
+  g_assert (VALENT_IS_MEDIA_REMOTE (self));
 
   if (self->player == NULL)
-    return valent_mpris_remote_clear (self);
+    return valent_media_remote_clear (self);
 
   flags = valent_media_player_get_flags (self->player);
 
@@ -139,25 +139,25 @@ valent_mpris_remote_update_flags (ValentMprisRemote *self)
 }
 
 static void
-valent_mpris_remote_update_position (ValentMprisRemote *self)
+valent_media_remote_update_position (ValentMediaRemote *self)
 {
   double position = 0.0;
   g_autofree char *position_str = NULL;
 
-  g_assert (VALENT_IS_MPRIS_REMOTE (self));
+  g_assert (VALENT_IS_MEDIA_REMOTE (self));
 
   if (self->player == NULL)
-    return valent_mpris_remote_clear (self);
+    return valent_media_remote_clear (self);
 
   position = valent_media_player_get_position (self->player);
   gtk_adjustment_set_value (self->media_position_adjustment, position);
 
-  position_str = valent_mpris_time_to_string (position * 1000L, TOTEM_TIME_FLAG_NONE);
+  position_str = valent_media_time_to_string (position * 1000L, TOTEM_TIME_FLAG_NONE);
   gtk_label_set_label (self->media_position_current, position_str);
 }
 
 static void
-valent_mpris_remote_update_metadata (ValentMprisRemote *self)
+valent_media_remote_update_metadata (ValentMediaRemote *self)
 {
   g_autoptr (GVariant) metadata = NULL;
   g_autofree const char **artists = NULL;
@@ -168,10 +168,10 @@ valent_mpris_remote_update_metadata (ValentMprisRemote *self)
   gint64 length_us = 0;
   double length = -1.0;
 
-  g_assert (VALENT_IS_MPRIS_REMOTE (self));
+  g_assert (VALENT_IS_MEDIA_REMOTE (self));
 
   if (self->player == NULL)
-    return valent_mpris_remote_clear (self);
+    return valent_media_remote_clear (self);
 
   metadata = valent_media_player_get_metadata (self->player);
 
@@ -207,7 +207,7 @@ valent_mpris_remote_update_metadata (ValentMprisRemote *self)
     }
   else
     {
-      gtk_image_set_from_icon_name (self->media_art, "valent-mpris-albumart");
+      gtk_image_set_from_icon_name (self->media_art, "valent-media-albumart");
     }
 
   /* Convert microseconds to seconds */
@@ -215,18 +215,18 @@ valent_mpris_remote_update_metadata (ValentMprisRemote *self)
     length = length_us / G_TIME_SPAN_SECOND;
 
   gtk_adjustment_set_upper (self->media_position_adjustment, length);
-  length_str = valent_mpris_time_to_string (length * 1000L, TOTEM_TIME_FLAG_NONE);
+  length_str = valent_media_time_to_string (length * 1000L, TOTEM_TIME_FLAG_NONE);
   gtk_label_set_label (self->media_position_length, length_str);
 
-  valent_mpris_remote_update_position (self);
+  valent_media_remote_update_position (self);
 }
 
 static void
-valent_mpris_remote_update_repeat (ValentMprisRemote *self)
+valent_media_remote_update_repeat (ValentMediaRemote *self)
 {
   ValentMediaRepeat repeat = VALENT_MEDIA_REPEAT_NONE;
 
-  g_assert (VALENT_IS_MPRIS_REMOTE (self));
+  g_assert (VALENT_IS_MEDIA_REMOTE (self));
 
   if (self->player != NULL)
      repeat = valent_media_player_get_repeat (self->player);
@@ -251,15 +251,15 @@ valent_mpris_remote_update_repeat (ValentMprisRemote *self)
 }
 
 static void
-valent_mpris_remote_update_state (ValentMprisRemote *self)
+valent_media_remote_update_state (ValentMediaRemote *self)
 {
   GtkWidget *child;
   ValentMediaState state;
 
-  g_assert (VALENT_IS_MPRIS_REMOTE (self));
+  g_assert (VALENT_IS_MEDIA_REMOTE (self));
 
   if (self->player == NULL)
-    return valent_mpris_remote_clear (self);
+    return valent_media_remote_clear (self);
 
   child = gtk_button_get_child (self->play_pause_button);
   state = valent_media_player_get_state (self->player);
@@ -274,7 +274,7 @@ valent_mpris_remote_update_state (ValentMprisRemote *self)
                                    _("Pause"));
 
       if (self->timer_id == 0)
-        self->timer_id = g_timeout_add_seconds (1, valent_mpris_remote_timer_tick, self);
+        self->timer_id = g_timeout_add_seconds (1, valent_media_remote_timer_tick, self);
     }
   else
     {
@@ -295,23 +295,23 @@ valent_mpris_remote_update_state (ValentMprisRemote *self)
       g_object_thaw_notify (G_OBJECT (self->media_position_adjustment));
     }
 
-  valent_mpris_remote_update_metadata (self);
+  valent_media_remote_update_metadata (self);
 }
 
 static void
-valent_mpris_remote_update_shuffle (ValentMprisRemote *self)
+valent_media_remote_update_shuffle (ValentMediaRemote *self)
 {
-  g_assert (VALENT_IS_MPRIS_REMOTE (self));
+  g_assert (VALENT_IS_MEDIA_REMOTE (self));
 
   g_object_notify_by_pspec (G_OBJECT (self), properties [PROP_SHUFFLE]);
 }
 
 static void
-valent_mpris_remote_update_volume (ValentMprisRemote *self)
+valent_media_remote_update_volume (ValentMediaRemote *self)
 {
   double volume = 0.0;
 
-  g_assert (VALENT_IS_MPRIS_REMOTE (self));
+  g_assert (VALENT_IS_MEDIA_REMOTE (self));
 
   if (self->player == NULL)
     return;
@@ -323,11 +323,11 @@ valent_mpris_remote_update_volume (ValentMprisRemote *self)
 static void
 on_selected_item (GObject           *object,
                   GParamSpec        *pspec,
-                  ValentMprisRemote *self)
+                  ValentMediaRemote *self)
 {
   ValentMediaPlayer *player;
 
-  g_assert (VALENT_IS_MPRIS_REMOTE (self));
+  g_assert (VALENT_IS_MEDIA_REMOTE (self));
 
   if (self->player != NULL)
     {
@@ -342,57 +342,57 @@ on_selected_item (GObject           *object,
     {
       g_signal_connect_object (self->player,
                                "notify::flags",
-                               G_CALLBACK (valent_mpris_remote_update_flags),
+                               G_CALLBACK (valent_media_remote_update_flags),
                                self, G_CONNECT_SWAPPED);
       g_signal_connect_object (self->player,
                                "notify::metadata",
-                               G_CALLBACK (valent_mpris_remote_update_metadata),
+                               G_CALLBACK (valent_media_remote_update_metadata),
                                self, G_CONNECT_SWAPPED);
       g_signal_connect_object (self->player,
                                "notify::position",
-                               G_CALLBACK (valent_mpris_remote_update_position),
+                               G_CALLBACK (valent_media_remote_update_position),
                                self, G_CONNECT_SWAPPED);
       g_signal_connect_object (self->player,
                                "notify::repeat",
-                               G_CALLBACK (valent_mpris_remote_update_repeat),
+                               G_CALLBACK (valent_media_remote_update_repeat),
                                self, G_CONNECT_SWAPPED);
       g_signal_connect_object (self->player,
                                "notify::shuffle",
-                               G_CALLBACK (valent_mpris_remote_update_shuffle),
+                               G_CALLBACK (valent_media_remote_update_shuffle),
                                self, G_CONNECT_SWAPPED);
       g_signal_connect_object (self->player,
                                "notify::state",
-                               G_CALLBACK (valent_mpris_remote_update_state),
+                               G_CALLBACK (valent_media_remote_update_state),
                                self, G_CONNECT_SWAPPED);
       g_signal_connect_object (self->player,
                                "notify::volume",
-                               G_CALLBACK (valent_mpris_remote_update_volume),
+                               G_CALLBACK (valent_media_remote_update_volume),
                                self, G_CONNECT_SWAPPED);
     }
   else
     {
-      valent_mpris_remote_clear (self);
+      valent_media_remote_clear (self);
       return;
     }
 
-  valent_mpris_remote_update_flags (self);
-  valent_mpris_remote_update_metadata (self);
-  valent_mpris_remote_update_position (self);
-  valent_mpris_remote_update_repeat (self);
-  valent_mpris_remote_update_shuffle (self);
-  valent_mpris_remote_update_state (self);
-  valent_mpris_remote_update_volume (self);
+  valent_media_remote_update_flags (self);
+  valent_media_remote_update_metadata (self);
+  valent_media_remote_update_position (self);
+  valent_media_remote_update_repeat (self);
+  valent_media_remote_update_shuffle (self);
+  valent_media_remote_update_state (self);
+  valent_media_remote_update_volume (self);
 }
 
 static gboolean
 on_change_value (GtkRange          *range,
                  GtkScrollType      scroll,
                  double             value,
-                 ValentMprisRemote *self)
+                 ValentMediaRemote *self)
 {
   double lower, upper, page_size;
 
-  g_assert (VALENT_IS_MPRIS_REMOTE (self));
+  g_assert (VALENT_IS_MEDIA_REMOTE (self));
 
   if (self->player == NULL)
     return GDK_EVENT_STOP;
@@ -411,9 +411,9 @@ on_change_value (GtkRange          *range,
 static void
 on_volume_changed (GtkScaleButton    *button,
                    double             value,
-                   ValentMprisRemote *self)
+                   ValentMediaRemote *self)
 {
-  g_assert (VALENT_IS_MPRIS_REMOTE (self));
+  g_assert (VALENT_IS_MEDIA_REMOTE (self));
 
   if (self->player == NULL)
     return;
@@ -430,9 +430,9 @@ remote_player_action (GtkWidget  *widget,
                       const char *action_name,
                       GVariant   *parameter)
 {
-  ValentMprisRemote *self = VALENT_MPRIS_REMOTE (widget);
+  ValentMediaRemote *self = VALENT_MEDIA_REMOTE (widget);
 
-  g_assert (VALENT_IS_MPRIS_REMOTE (self));
+  g_assert (VALENT_IS_MEDIA_REMOTE (self));
 
   if (self->player == NULL || action_name == NULL)
     return;
@@ -474,15 +474,11 @@ remote_player_action (GtkWidget  *widget,
  * GObject
  */
 static void
-valent_mpris_remote_constructed (GObject *object)
+valent_media_remote_constructed (GObject *object)
 {
-  ValentMprisRemote *self = VALENT_MPRIS_REMOTE (object);
+  ValentMediaRemote *self = VALENT_MEDIA_REMOTE (object);
   g_autoptr (GtkExpression) expression = NULL;
   GtkWidget *child;
-
-  gtk_widget_insert_action_group (GTK_WIDGET (self),
-                                  "device",
-                                  G_ACTION_GROUP (self->device));
 
   expression = gtk_cclosure_expression_new (G_TYPE_STRING, NULL,
                                             0, NULL,
@@ -507,13 +503,13 @@ valent_mpris_remote_constructed (GObject *object)
                                          });
     }
 
-  G_OBJECT_CLASS (valent_mpris_remote_parent_class)->constructed (object);
+  G_OBJECT_CLASS (valent_media_remote_parent_class)->constructed (object);
 }
 
 static void
-valent_mpris_remote_dispose (GObject *object)
+valent_media_remote_dispose (GObject *object)
 {
-  ValentMprisRemote *self = VALENT_MPRIS_REMOTE (object);
+  ValentMediaRemote *self = VALENT_MEDIA_REMOTE (object);
 
   g_clear_handle_id (&self->timer_id, g_source_remove);
 
@@ -523,25 +519,23 @@ valent_mpris_remote_dispose (GObject *object)
       g_clear_object (&self->player);
     }
 
-  gtk_widget_dispose_template (GTK_WIDGET (object), VALENT_TYPE_MPRIS_REMOTE);
+  g_clear_object (&self->players);
 
-  G_OBJECT_CLASS (valent_mpris_remote_parent_class)->dispose (object);
+  gtk_widget_dispose_template (GTK_WIDGET (object), VALENT_TYPE_MEDIA_REMOTE);
+
+  G_OBJECT_CLASS (valent_media_remote_parent_class)->dispose (object);
 }
 
 static void
-valent_mpris_remote_get_property (GObject    *object,
+valent_media_remote_get_property (GObject    *object,
                                   guint       prop_id,
                                   GValue     *value,
                                   GParamSpec *pspec)
 {
-  ValentMprisRemote *self = VALENT_MPRIS_REMOTE (object);
+  ValentMediaRemote *self = VALENT_MEDIA_REMOTE (object);
 
   switch (prop_id)
     {
-    case PROP_DEVICE:
-      g_value_set_object (value, self->device);
-      break;
-
     case PROP_PLAYERS:
       g_value_set_object (value, self->players);
       break;
@@ -559,19 +553,15 @@ valent_mpris_remote_get_property (GObject    *object,
 }
 
 static void
-valent_mpris_remote_set_property (GObject      *object,
+valent_media_remote_set_property (GObject      *object,
                                   guint         prop_id,
                                   const GValue *value,
                                   GParamSpec   *pspec)
 {
-  ValentMprisRemote *self = VALENT_MPRIS_REMOTE (object);
+  ValentMediaRemote *self = VALENT_MEDIA_REMOTE (object);
 
   switch (prop_id)
     {
-    case PROP_DEVICE:
-      self->device = g_value_get_object (value);
-      break;
-
     case PROP_PLAYERS:
       self->players = g_value_dup_object (value);
       break;
@@ -587,29 +577,29 @@ valent_mpris_remote_set_property (GObject      *object,
 }
 
 static void
-valent_mpris_remote_class_init (ValentMprisRemoteClass *klass)
+valent_media_remote_class_init (ValentMediaRemoteClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
-  object_class->constructed = valent_mpris_remote_constructed;
-  object_class->dispose = valent_mpris_remote_dispose;
-  object_class->get_property = valent_mpris_remote_get_property;
-  object_class->set_property = valent_mpris_remote_set_property;
+  object_class->constructed = valent_media_remote_constructed;
+  object_class->dispose = valent_media_remote_dispose;
+  object_class->get_property = valent_media_remote_get_property;
+  object_class->set_property = valent_media_remote_set_property;
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/mpris/valent-mpris-remote.ui");
-  gtk_widget_class_bind_template_child (widget_class, ValentMprisRemote, media_player);
-  gtk_widget_class_bind_template_child (widget_class, ValentMprisRemote, media_art);
-  gtk_widget_class_bind_template_child (widget_class, ValentMprisRemote, media_title);
-  gtk_widget_class_bind_template_child (widget_class, ValentMprisRemote, media_artist);
-  gtk_widget_class_bind_template_child (widget_class, ValentMprisRemote, media_album);
-  gtk_widget_class_bind_template_child (widget_class, ValentMprisRemote, media_position);
-  gtk_widget_class_bind_template_child (widget_class, ValentMprisRemote, media_position_adjustment);
-  gtk_widget_class_bind_template_child (widget_class, ValentMprisRemote, media_position_current);
-  gtk_widget_class_bind_template_child (widget_class, ValentMprisRemote, media_position_length);
-  gtk_widget_class_bind_template_child (widget_class, ValentMprisRemote, play_pause_button);
-  gtk_widget_class_bind_template_child (widget_class, ValentMprisRemote, repeat_image);
-  gtk_widget_class_bind_template_child (widget_class, ValentMprisRemote, volume_button);
+  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-media-remote.ui");
+  gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, media_player);
+  gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, media_art);
+  gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, media_title);
+  gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, media_artist);
+  gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, media_album);
+  gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, media_position);
+  gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, media_position_adjustment);
+  gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, media_position_current);
+  gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, media_position_length);
+  gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, play_pause_button);
+  gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, repeat_image);
+  gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, volume_button);
   gtk_widget_class_bind_template_callback (widget_class, on_selected_item);
   gtk_widget_class_bind_template_callback (widget_class, on_change_value);
   gtk_widget_class_bind_template_callback (widget_class, on_volume_changed);
@@ -621,14 +611,6 @@ valent_mpris_remote_class_init (ValentMprisRemoteClass *klass)
   gtk_widget_class_install_action (widget_class, "remote.repeat", NULL, remote_player_action);
   gtk_widget_class_install_action (widget_class, "remote.seek", "d", remote_player_action);
   gtk_widget_class_install_action (widget_class, "remote.stop", NULL, remote_player_action);
-
-  properties [PROP_DEVICE] =
-    g_param_spec_object ("device", NULL, NULL,
-                         VALENT_TYPE_DEVICE,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
 
   properties [PROP_PLAYERS] =
     g_param_spec_object ("players", NULL, NULL,
@@ -651,7 +633,7 @@ valent_mpris_remote_class_init (ValentMprisRemoteClass *klass)
 }
 
 static void
-valent_mpris_remote_init (ValentMprisRemote *self)
+valent_media_remote_init (ValentMediaRemote *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
 }

@@ -21,9 +21,11 @@ libvalent_ui_private_headers = [
   'valent-application-credits.h',
   'valent-device-page.h',
   'valent-device-preferences-window.h',
+  'valent-media-remote.h',
   'valent-menu-list.h',
   'valent-menu-stack.h',
   'valent-preferences-window.h',
+  'valent-ui-utils-private.h',
   'valent-window.h',
 ]
 
@@ -40,10 +42,12 @@ libvalent_ui_public_sources = [
   'valent-device-page.c',
   'valent-device-preferences-group.c',
   'valent-device-preferences-window.c',
+  'valent-media-remote.c',
   'valent-menu-list.c',
   'valent-menu-stack.c',
   'valent-preferences-page.c',
   'valent-preferences-window.c',
+  'valent-time-helpers.c',
   'valent-ui-utils.c',
   'valent-window.c',
 ]

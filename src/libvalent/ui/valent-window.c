@@ -11,11 +11,13 @@
 #include <libportal/portal.h>
 #include <libvalent-core.h>
 #include <libvalent-device.h>
+#include <libvalent-media.h>
 
 #include "valent-version-vcs.h"
 
 #include "valent-application-credits.h"
 #include "valent-device-page.h"
+#include "valent-media-remote.h"
 #include "valent-preferences-window.h"
 #include "valent-window.h"
 
@@ -33,6 +35,7 @@ struct _ValentWindow
   GtkProgressBar       *progress_bar;
   GtkListBox           *device_list;
   GtkWindow            *preferences;
+  GtkWindow            *media_remote;
 };
 
 G_DEFINE_FINAL_TYPE (ValentWindow, valent_window, ADW_TYPE_APPLICATION_WINDOW)
@@ -346,6 +349,27 @@ about_action (GtkWidget  *widget,
 }
 
 static void
+media_remote_action (GtkWidget  *widget,
+                     const char *action_name,
+                     GVariant   *parameter)
+{
+  ValentWindow *self = VALENT_WINDOW (widget);
+
+  g_assert (VALENT_IS_WINDOW (self));
+
+  if (self->media_remote == NULL)
+    {
+      self->media_remote = g_object_new (VALENT_TYPE_MEDIA_REMOTE,
+                                         "players", valent_media_get_default (),
+                                         NULL);
+      g_object_add_weak_pointer (G_OBJECT (self->media_remote),
+                                 (gpointer) &self->media_remote);
+    }
+
+  gtk_window_present (self->media_remote);
+}
+
+static void
 page_action (GtkWidget  *widget,
              const char *action_name,
              GVariant   *parameter)
@@ -560,6 +584,7 @@ valent_window_class_init (ValentWindowClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentWindow, device_list);
 
   gtk_widget_class_install_action (widget_class, "win.about", NULL, about_action);
+  gtk_widget_class_install_action (widget_class, "win.media-remote", NULL, media_remote_action);
   gtk_widget_class_install_action (widget_class, "win.page", "s", page_action);
   gtk_widget_class_install_action (widget_class, "win.preferences", NULL, preferences_action);
   gtk_widget_class_install_action (widget_class, "win.previous", NULL, previous_action);

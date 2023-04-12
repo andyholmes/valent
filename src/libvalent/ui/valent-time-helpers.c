@@ -32,13 +32,13 @@
 #include <glib/gi18n.h>
 #include <libintl.h>
 
-#include "valent-mpris-utils.h"
+#include "valent-ui-utils-private.h"
 
 
 /* FIXME: Remove
  * See https://gitlab.freedesktop.org/gstreamer/gstreamer/issues/26 */
 char *
-valent_mpris_time_to_string (gint64        msecs,
+valent_media_time_to_string (gint64        msecs,
                              TotemTimeFlag flags)
 {
   gint64 _time;

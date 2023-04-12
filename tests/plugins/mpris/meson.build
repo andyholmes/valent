@@ -11,7 +11,6 @@ plugin_mpris_tests = [
   'test-mpris-component',
   'test-mpris-impl',
   'test-mpris-plugin',
-  'test-mpris-remote',
 ]
 
 foreach test : plugin_mpris_tests

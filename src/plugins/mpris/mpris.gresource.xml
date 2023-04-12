@@ -6,32 +6,8 @@
 <gresources>
   <gresource prefix="/plugins/mpris">
     <file>mpris.plugin</file>
-    <file preprocess="xml-stripblanks">valent-mpris-remote.ui</file>
   </gresource>
   <gresource prefix="/ca/andyholmes/Valent/icons">
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-playback-pause-symbolic.svg">data/media-playback-pause-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-playback-start-symbolic.svg">data/media-playback-start-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-playback-stop-symbolic.svg">data/media-playback-stop-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-playlist-consecutive-symbolic.svg">data/media-playlist-consecutive-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-playlist-repeat-song-symbolic.svg">data/media-playlist-repeat-song-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-playlist-repeat-symbolic.svg">data/media-playlist-repeat-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-seek-backward-10-symbolic-rtl.svg">data/media-seek-backward-10-symbolic-rtl.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-seek-backward-10-symbolic.svg">data/media-seek-backward-10-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-seek-backward-30-symbolic-rtl.svg">data/media-seek-backward-30-symbolic-rtl.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-seek-backward-30-symbolic.svg">data/media-seek-backward-30-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-seek-backward-symbolic-rtl.svg">data/media-seek-backward-symbolic-rtl.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-seek-backward-symbolic.svg">data/media-seek-backward-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-seek-forward-10-symbolic-rtl.svg">data/media-seek-forward-10-symbolic-rtl.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-seek-forward-10-symbolic.svg">data/media-seek-forward-10-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-seek-forward-30-symbolic-rtl.svg">data/media-seek-forward-30-symbolic-rtl.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-seek-forward-30-symbolic.svg">data/media-seek-forward-30-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-seek-forward-symbolic-rtl.svg">data/media-seek-forward-symbolic-rtl.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-seek-forward-symbolic.svg">data/media-seek-forward-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-skip-backward-symbolic-rtl.svg">data/media-skip-backward-symbolic-rtl.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-skip-backward-symbolic.svg">data/media-skip-backward-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-skip-forward-symbolic-rtl.svg">data/media-skip-forward-symbolic-rtl.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-skip-forward-symbolic.svg">data/media-skip-forward-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/apps/valent-mpris-albumart.svg">data/valent-mpris-albumart.svg</file>
     <file preprocess="xml-stripblanks" alias="scalable/apps/valent-mpris-plugin-symbolic.svg">data/valent-mpris-plugin-symbolic.svg</file>
   </gresource>
 </gresources>

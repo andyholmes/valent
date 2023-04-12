@@ -33,6 +33,7 @@ struct _ValentMedia
   ValentComponent  parent_instance;
 
   GPtrArray       *adapters;
+  GListModel      *exports;
   GPtrArray       *players;
   GPtrArray       *paused;
 };
@@ -56,7 +57,7 @@ on_items_changed (GListModel   *list,
 
   VALENT_ENTRY;
 
-  g_assert (VALENT_IS_MEDIA_ADAPTER (list));
+  g_assert (G_IS_LIST_MODEL (list));
   g_assert (VALENT_IS_MEDIA (self));
 
   /* Translate the adapter position */
@@ -80,6 +81,10 @@ on_items_changed (GListModel   *list,
       player = g_ptr_array_steal_index (self->players, real_position);
       g_signal_handlers_disconnect_by_data (player, self);
       g_ptr_array_remove (self->paused, player);
+
+      VALENT_NOTE ("removed %s (%s)",
+                   G_OBJECT_TYPE_NAME (player),
+                   valent_media_player_get_name (player));
     }
 
   for (unsigned int i = 0; i < added; i++)
@@ -88,6 +93,10 @@ on_items_changed (GListModel   *list,
 
       player = g_list_model_get_item (list, position + i);
       g_ptr_array_insert (self->players, real_position + i, player);
+
+      VALENT_NOTE ("added %s (%s)",
+                   G_OBJECT_TYPE_NAME (player),
+                   valent_media_player_get_name (player));
     }
 
   g_list_model_items_changed (G_LIST_MODEL (self), real_position, removed, added);
@@ -193,10 +202,21 @@ valent_media_unbind_extension (ValentComponent *component,
  * GObject
  */
 static void
+valent_media_dispose (GObject *object)
+{
+  ValentMedia *self = VALENT_MEDIA (object);
+
+  g_list_store_remove_all (G_LIST_STORE (self->exports));
+
+  G_OBJECT_CLASS (valent_media_parent_class)->dispose (object);
+}
+
+static void
 valent_media_finalize (GObject *object)
 {
   ValentMedia *self = VALENT_MEDIA (object);
 
+  g_clear_object (&self->exports);
   g_clear_pointer (&self->adapters, g_ptr_array_unref);
   g_clear_pointer (&self->players, g_ptr_array_unref);
   g_clear_pointer (&self->paused, g_ptr_array_unref);
@@ -210,6 +230,7 @@ valent_media_class_init (ValentMediaClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentComponentClass *component_class = VALENT_COMPONENT_CLASS (klass);
 
+  object_class->dispose = valent_media_dispose;
   object_class->finalize = valent_media_finalize;
 
   component_class->bind_extension = valent_media_bind_extension;
@@ -220,8 +241,15 @@ static void
 valent_media_init (ValentMedia *self)
 {
   self->adapters = g_ptr_array_new_with_free_func (g_object_unref);
+  self->exports = G_LIST_MODEL (g_list_store_new (VALENT_TYPE_MEDIA_PLAYER));
   self->players = g_ptr_array_new_with_free_func (g_object_unref);
   self->paused = g_ptr_array_new ();
+
+  g_ptr_array_add (self->adapters, g_object_ref (self->exports));
+  g_signal_connect_object (self->exports,
+                           "items-changed",
+                           G_CALLBACK (on_items_changed),
+                           self, 0);
 }
 
 /**
@@ -269,13 +297,19 @@ valent_media_export_player (ValentMedia       *media,
   g_return_if_fail (VALENT_IS_MEDIA (media));
   g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
 
-  for (unsigned int i = 0; i < media->adapters->len; i++)
+  if (g_list_store_find (G_LIST_STORE (media->exports), player, NULL))
+    g_return_if_reached ();
+
+  // Starting at index `1` skips the exports GListModel
+  for (unsigned int i = 1; i < media->adapters->len; i++)
     {
       ValentMediaAdapter *adapter = NULL;
 
       adapter = g_ptr_array_index (media->adapters, i);
       valent_media_adapter_export_player (adapter, player);
     }
+
+  g_list_store_append (G_LIST_STORE (media->exports), player);
 
   VALENT_EXIT;
 }
@@ -293,18 +327,26 @@ void
 valent_media_unexport_player (ValentMedia       *media,
                               ValentMediaPlayer *player)
 {
+  unsigned int position = 0;
+
   VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_MEDIA (media));
   g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
 
-  for (unsigned int i = 0; i < media->adapters->len; i++)
+  if (!g_list_store_find (G_LIST_STORE (media->exports), player, &position))
+    g_return_if_reached ();
+
+  // Starting at index `1` skips the exports GListModel
+  for (unsigned int i = 1; i < media->adapters->len; i++)
     {
       ValentMediaAdapter *adapter = NULL;
 
       adapter = g_ptr_array_index (media->adapters, i);
       valent_media_adapter_unexport_player (adapter, player);
     }
+
+  g_list_store_remove (G_LIST_STORE (media->exports), position);
 
   VALENT_EXIT;
 }
