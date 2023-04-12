@@ -4,35 +4,28 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
-#include "valent-mpris-remote.h"
+#include "valent-media-remote.h"
 #include "valent-mock-media-player.h"
 
 
 static void
-test_mpris_remote (ValentTestFixture *fixture,
-                   gconstpointer      user_data)
+test_media_remote (void)
 {
   GtkWindow *remote = NULL;
-  ValentDevice *device = NULL;
   GListStore *list = NULL;
   g_autoptr (ValentMediaPlayer) player = NULL;
   g_autoptr (GListStore) players = NULL;
 
   list = g_list_store_new (VALENT_TYPE_MEDIA_PLAYER);
-  remote = g_object_new (VALENT_TYPE_MPRIS_REMOTE,
-                         "device",  fixture->device,
+  remote = g_object_new (VALENT_TYPE_MEDIA_REMOTE,
                          "players", list,
                          NULL);
 
-
   /* Properties */
   g_object_get (remote,
-                "device",  &device,
                 "players", &players,
                 NULL);
-  g_assert_true (fixture->device == device);
   g_assert_true (list == players);
-  g_clear_object (&device);
   g_clear_object (&players);
 
   /* Show the window */
@@ -74,15 +67,10 @@ int
 main (int   argc,
       char *argv[])
 {
-  const char *path = "plugin-mpris.json";
-
   valent_test_ui_init (&argc, &argv, NULL);
 
-  g_test_add ("/plugins/mpris/remote",
-              ValentTestFixture, path,
-              valent_test_fixture_init,
-              test_mpris_remote,
-              valent_test_fixture_clear);
+  g_test_add_func ("/libvalent/ui/media-remote",
+                   test_media_remote);
 
   return g_test_run ();
 }

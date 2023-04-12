@@ -11,9 +11,12 @@ src/libvalent/ui/valent-device-page.c
 src/libvalent/ui/valent-device-page.ui
 src/libvalent/ui/valent-device-preferences-window.c
 src/libvalent/ui/valent-device-preferences-window.ui
+src/libvalent/ui/valent-media-remote.c
+src/libvalent/ui/valent-media-remote.ui
 src/libvalent/ui/valent-menu-list.c
 src/libvalent/ui/valent-preferences-window.c
 src/libvalent/ui/valent-preferences-window.ui
+src/libvalent/ui/valent-time-helpers.c
 src/libvalent/ui/valent-window.c
 src/libvalent/ui/valent-window.ui
 src/main.c
@@ -50,9 +53,6 @@ src/plugins/mousepad/valent-mousepad-remote.c
 src/plugins/mousepad/valent-mousepad-remote.ui
 src/plugins/mpris/mpris.plugin.desktop.in
 src/plugins/mpris/valent-mpris-plugin.c
-src/plugins/mpris/valent-mpris-remote.c
-src/plugins/mpris/valent-mpris-remote.ui
-src/plugins/mpris/valent-time-helpers.c
 src/plugins/notification/notification.plugin.desktop.in
 src/plugins/notification/valent-notification-dialog.c
 src/plugins/notification/valent-notification-dialog.ui
