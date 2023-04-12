@@ -449,7 +449,7 @@ test_mpris_plugin_handle_player (ValentTestFixture *fixture,
   g_assert_no_error (error);
 
   /* Wait a tick for the metadata to update */
-  valent_test_wait (1);
+  valent_test_await_signal (fixture->data, "notify::metadata");
 
   metadata = valent_media_player_get_metadata (fixture->data);
   g_assert_true (g_variant_lookup (metadata, "xesam:artist", "^a&s", &artist));

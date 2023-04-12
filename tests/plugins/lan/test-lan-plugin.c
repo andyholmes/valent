@@ -194,28 +194,6 @@ await_incoming_connection (LanBackendFixture *fixture)
                                   fixture);
 }
 
-static gboolean
-on_timeout_cb (gpointer data)
-{
-  gboolean *done = data;
-
-  if (*done == FALSE)
-    *done = TRUE;
-
-  return G_SOURCE_REMOVE;
-}
-
-static void
-await_timeout (unsigned int interval)
-{
-  gboolean done = FALSE;
-
-  g_timeout_add (interval, on_timeout_cb, &done);
-
-  while (!done)
-    g_main_context_iteration (NULL, FALSE);
-}
-
 static void
 g_socket_client_connect_to_host_cb (GSocketClient      *client,
                                     GAsyncResult       *result,
@@ -450,7 +428,7 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
       /* In this test case we are neglecting to send our identity packet, so
        * we expect the test service to close the connection after 1000ms */
       if (g_strcmp0 (user_data, TEST_IDENTITY_TIMEOUT) == 0)
-        await_timeout (1100);
+        valent_test_wait (1100);
     }
 
   identity = json_object_get_member (json_node_get_object (fixture->packets),
@@ -468,7 +446,7 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
       /* In this test case we are neglecting to negotiate a TLS connection, so
        * we expect the test service to close the connection after 1000ms */
       if (g_strcmp0 (user_data, TEST_TLS_AUTH_TIMEOUT) == 0)
-        await_timeout (1100);
+        valent_test_wait (1100);
     }
 
   tls_stream = valent_lan_encrypt_server_connection (connection,

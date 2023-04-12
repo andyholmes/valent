@@ -10,30 +10,33 @@
 
 G_BEGIN_DECLS
 
-static gboolean done = FALSE;
 
 static void
 valent_test_sms_store_new_cb (ValentSmsStore *store,
                               GAsyncResult   *result,
-                              gpointer        user_data)
+                              gboolean       *done)
 {
   g_autoptr (GError) error = NULL;
 
   valent_sms_store_add_messages_finish (store, result, &error);
   g_assert_no_error (error);
-  done = TRUE;
+
+  if (done != NULL)
+    *done = TRUE;
 }
 
 static void
 valent_test_contact_store_new_cb (ValentContactStore *store,
                                   GAsyncResult       *result,
-                                  gpointer            user_data)
+                                  gboolean           *done)
 {
   g_autoptr (GError) error = NULL;
 
   valent_contact_store_add_contacts_finish (store, result, &error);
   g_assert_no_error (error);
-  done = TRUE;
+
+  if (done != NULL)
+    *done = TRUE;
 }
 
 /**
@@ -120,6 +123,7 @@ valent_test_contact_store_new (void)
 {
   g_autoptr (ValentContactStore) store = NULL;
   g_autoptr (GSList) contacts = NULL;
+  gboolean done = FALSE;
 
   store = valent_contacts_ensure_store (valent_contacts_get_default (),
                                         "test-device",
@@ -133,11 +137,8 @@ valent_test_contact_store_new (void)
                                      contacts,
                                      NULL,
                                      (GAsyncReadyCallback)valent_test_contact_store_new_cb,
-                                     NULL);
-
-  while (!done)
-    g_main_context_iteration (NULL, FALSE);
-  done = FALSE;
+                                     &done);
+  valent_test_await_boolean (&done);
 
   return g_steal_pointer (&store);
 }
@@ -207,13 +208,10 @@ valent_test_sms_get_messages (void)
 static inline ValentSmsStore *
 valent_test_sms_store_new (void)
 {
-  g_autoptr (GMainLoop) loop = NULL;
-
   g_autoptr (ValentContext) context = NULL;
   g_autoptr (ValentSmsStore) store = NULL;
   g_autoptr (GPtrArray) messages = NULL;
-
-  loop = g_main_loop_new (NULL, FALSE);
+  gboolean done = FALSE;
 
   /* Prepare Store */
   context = g_object_new (VALENT_TYPE_CONTEXT,
@@ -228,11 +226,8 @@ valent_test_sms_store_new (void)
                                  messages,
                                  NULL,
                                  (GAsyncReadyCallback)valent_test_sms_store_new_cb,
-                                 loop);
-
-  while (!done)
-    g_main_context_iteration (NULL, FALSE);
-  done = FALSE;
+                                 &done);
+  valent_test_await_boolean (&done);
 
   return g_steal_pointer (&store);
 }

@@ -106,9 +106,7 @@ test_manager_new (void)
   valent_device_manager_new (NULL,
                              (GAsyncReadyCallback)manager_new_cb,
                              &done);
-
-  while (!done)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_boolean (&done);
 }
 
 static void
