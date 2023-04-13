@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2023-04-11 20:25-0700\n"
+"POT-Creation-Date: 2023-04-12 23:01-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -46,7 +46,7 @@ msgstr ""
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
 #: data/ca.andyholmes.Valent.desktop.in.in:3
 #: src/libvalent/ui/valent-preferences-window.ui:12
-#: src/libvalent/ui/valent-window.c:331 src/libvalent/ui/valent-window.ui:39
+#: src/libvalent/ui/valent-window.c:330 src/libvalent/ui/valent-window.ui:39
 msgid "Valent"
 msgstr ""
 
@@ -128,7 +128,7 @@ msgid "Unavailable"
 msgstr ""
 
 #: src/libvalent/ui/valent-device-page.ui:21
-#: src/libvalent/ui/valent-media-remote.ui:186
+#: src/libvalent/ui/valent-media-remote.ui:233
 #: src/libvalent/ui/valent-menu-list.c:523
 #: src/plugins/presenter/valent-presenter-remote.ui:126
 msgid "Previous"
@@ -147,7 +147,7 @@ msgid "Request Pairing"
 msgstr ""
 
 #: src/libvalent/ui/valent-device-page.ui:229
-#: src/libvalent/ui/valent-window.c:192
+#: src/libvalent/ui/valent-window.c:191
 msgid "Disconnected"
 msgstr ""
 
@@ -188,12 +188,32 @@ msgstr ""
 msgid "No Plugins"
 msgstr ""
 
-#: src/libvalent/ui/valent-media-remote.c:274
+#: src/libvalent/ui/valent-media-remote.c:250
+#: src/libvalent/ui/valent-media-remote.c:252
+#: src/libvalent/ui/valent-media-remote.ui:404
+#: src/libvalent/ui/valent-media-remote.ui:419
+msgid "Enable Repeat"
+msgstr ""
+
+#: src/libvalent/ui/valent-media-remote.c:260
+#: src/libvalent/ui/valent-media-remote.c:262
+msgid "Repeat All"
+msgstr ""
+
+#: src/libvalent/ui/valent-media-remote.c:270
+#: src/libvalent/ui/valent-media-remote.c:272
+msgid "Repeat One"
+msgstr ""
+
+#: src/libvalent/ui/valent-media-remote.c:299
+#: src/libvalent/ui/valent-media-remote.c:301
 msgid "Pause"
 msgstr ""
 
-#: src/libvalent/ui/valent-media-remote.c:286
-#: src/libvalent/ui/valent-media-remote.ui:237
+#: src/libvalent/ui/valent-media-remote.c:314
+#: src/libvalent/ui/valent-media-remote.c:316
+#: src/libvalent/ui/valent-media-remote.ui:270
+#: src/libvalent/ui/valent-media-remote.ui:285
 msgid "Play"
 msgstr ""
 
@@ -202,24 +222,35 @@ msgstr ""
 msgid "Media Remote"
 msgstr ""
 
-#: src/libvalent/ui/valent-media-remote.ui:211
+#: src/libvalent/ui/valent-media-remote.ui:213
+#: src/plugins/telephony/valent-telephony-preferences.ui:15
+#: src/plugins/telephony/valent-telephony-preferences.ui:43
+msgid "Volume"
+msgstr ""
+
+#: src/libvalent/ui/valent-media-remote.ui:243
+#: src/libvalent/ui/valent-media-remote.ui:260
 msgid "Seek Back"
 msgstr ""
 
-#: src/libvalent/ui/valent-media-remote.ui:262
+#: src/libvalent/ui/valent-media-remote.ui:295
+#: src/libvalent/ui/valent-media-remote.ui:312
 msgid "Seek Forward"
 msgstr ""
 
-#: src/libvalent/ui/valent-media-remote.ui:288
+#: src/libvalent/ui/valent-media-remote.ui:322
+#: src/libvalent/ui/valent-media-remote.ui:337
 #: src/plugins/presenter/valent-presenter-remote.ui:151
 msgid "Next"
 msgstr ""
 
-#: src/libvalent/ui/valent-media-remote.ui:314
-msgid "Repeat"
+#: src/libvalent/ui/valent-media-remote.ui:347
+#: src/libvalent/ui/valent-media-remote.ui:361
+msgid "Options"
 msgstr ""
 
-#: src/libvalent/ui/valent-media-remote.ui:361
+#: src/libvalent/ui/valent-media-remote.ui:428
+#: src/libvalent/ui/valent-media-remote.ui:443
 msgid "Shuffle"
 msgstr ""
 
@@ -377,19 +408,19 @@ msgctxt "short time format"
 msgid "%d:%02d"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:187
+#: src/libvalent/ui/valent-window.c:186
 msgid "Unpaired"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:197
+#: src/libvalent/ui/valent-window.c:196
 msgid "Connected"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:340
+#: src/libvalent/ui/valent-window.c:339
 msgid "translator-credits"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:345
+#: src/libvalent/ui/valent-window.c:344
 msgid "Sponsors"
 msgstr ""
 
@@ -1226,11 +1257,6 @@ msgstr ""
 
 #: src/plugins/telephony/valent-telephony-preferences.ui:12
 msgid "What to do when the phone rings"
-msgstr ""
-
-#: src/plugins/telephony/valent-telephony-preferences.ui:15
-#: src/plugins/telephony/valent-telephony-preferences.ui:43
-msgid "Volume"
 msgstr ""
 
 #: src/plugins/telephony/valent-telephony-preferences.ui:24
