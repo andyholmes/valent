@@ -35,7 +35,6 @@ struct _ValentWindow
   GtkProgressBar       *progress_bar;
   GtkListBox           *device_list;
   GtkWindow            *preferences;
-  GtkWindow            *media_remote;
 };
 
 G_DEFINE_FINAL_TYPE (ValentWindow, valent_window, ADW_TYPE_APPLICATION_WINDOW)
@@ -353,20 +352,18 @@ media_remote_action (GtkWidget  *widget,
                      const char *action_name,
                      GVariant   *parameter)
 {
-  ValentWindow *self = VALENT_WINDOW (widget);
+  static GtkWindow *media_remote = NULL;
 
-  g_assert (VALENT_IS_WINDOW (self));
-
-  if (self->media_remote == NULL)
+  if (media_remote == NULL)
     {
-      self->media_remote = g_object_new (VALENT_TYPE_MEDIA_REMOTE,
-                                         "players", valent_media_get_default (),
-                                         NULL);
-      g_object_add_weak_pointer (G_OBJECT (self->media_remote),
-                                 (gpointer) &self->media_remote);
+      media_remote = g_object_new (VALENT_TYPE_MEDIA_REMOTE,
+                                   "players", valent_media_get_default (),
+                                   NULL);
+      g_object_add_weak_pointer (G_OBJECT (media_remote),
+                                 (gpointer) &media_remote);
     }
 
-  gtk_window_present (self->media_remote);
+  gtk_window_present (media_remote);
 }
 
 static void
