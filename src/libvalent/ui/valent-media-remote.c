@@ -15,6 +15,10 @@
 #include "valent-ui-utils.h"
 #include "valent-ui-utils-private.h"
 
+/* Time (ms) to delay the seek command when moving the position slider. Minimal
+ * testing indicates values in the 50-100ms work well. */
+#define MEDIA_SEEK_DELAY (75)
+
 
 struct _ValentMediaRemote
 {
@@ -23,6 +27,7 @@ struct _ValentMediaRemote
   GListModel        *players;
   ValentMediaPlayer *player;
   unsigned int       timer_id;
+  unsigned int       seek_id;
 
   /* template */
   GtkDropDown       *media_player;
@@ -357,6 +362,7 @@ on_selected_item (GObject           *object,
 
   if (self->player != NULL)
     {
+      g_clear_handle_id (&self->seek_id, g_source_remove);
       g_clear_handle_id (&self->timer_id, g_source_remove);
       g_signal_handlers_disconnect_by_data (self->player, self);
       g_clear_object (&self->player);
@@ -411,6 +417,30 @@ on_selected_item (GObject           *object,
 }
 
 static gboolean
+on_change_value_cb (gpointer data)
+{
+  ValentMediaRemote *self = VALENT_MEDIA_REMOTE (data);
+  double lower, upper, value, page_size;
+
+  g_assert (VALENT_IS_MEDIA_REMOTE (self));
+
+  self->seek_id = 0;
+
+  if (self->player == NULL)
+    return G_SOURCE_REMOVE;
+
+  lower = gtk_adjustment_get_lower (self->media_position_adjustment);
+  upper = gtk_adjustment_get_upper (self->media_position_adjustment);
+  value = gtk_adjustment_get_value (self->media_position_adjustment);
+  page_size = gtk_adjustment_get_page_size (self->media_position_adjustment);
+  value = CLAMP (value, lower, (upper - page_size));
+
+  valent_media_player_set_position (self->player, value);
+
+  return G_SOURCE_REMOVE;
+}
+
+static gboolean
 on_change_value (GtkRange          *range,
                  GtkScrollType      scroll,
                  double             value,
@@ -423,12 +453,14 @@ on_change_value (GtkRange          *range,
   if (self->player == NULL)
     return GDK_EVENT_STOP;
 
+  g_clear_handle_id (&self->seek_id, g_source_remove);
+  self->seek_id = g_timeout_add (MEDIA_SEEK_DELAY, on_change_value_cb, self);
+
   lower = gtk_adjustment_get_lower (self->media_position_adjustment);
   upper = gtk_adjustment_get_upper (self->media_position_adjustment);
   page_size = gtk_adjustment_get_page_size (self->media_position_adjustment);
   value = CLAMP (value, lower, (upper - page_size));
 
-  valent_media_player_set_position (self->player, value);
   gtk_adjustment_set_value (self->media_position_adjustment, value);
 
   return GDK_EVENT_STOP;
@@ -537,6 +569,7 @@ valent_media_remote_dispose (GObject *object)
 {
   ValentMediaRemote *self = VALENT_MEDIA_REMOTE (object);
 
+  g_clear_handle_id (&self->seek_id, g_source_remove);
   g_clear_handle_id (&self->timer_id, g_source_remove);
 
   if (self->player != NULL)
