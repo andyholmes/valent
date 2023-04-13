@@ -24,7 +24,7 @@ struct _ValentMprisPlugin
   ValentMedia        *media;
   unsigned int        media_watch : 1;
 
-  GListModel         *players;
+  GPtrArray          *players;
   GHashTable         *transfers;
 
   GHashTable         *pending;
@@ -41,19 +41,19 @@ static void valent_mpris_plugin_send_player_list    (ValentMprisPlugin *self);
 
 
 static gpointer
-valent_mpris_plugin_get_player (GListModel *players,
-                                const char *name)
+_valent_media_lookup_player (ValentMedia *media,
+                             const char  *name)
 {
   unsigned int n_players = 0;
 
-  g_assert (G_IS_LIST_MODEL (players));
+  g_assert (VALENT_IS_MEDIA (media));
   g_assert (name != NULL && *name != '\0');
 
-  n_players = g_list_model_get_n_items (players);
+  n_players = g_list_model_get_n_items (G_LIST_MODEL (media));
 
   for (unsigned int i = 0; i < n_players; i++)
     {
-      g_autoptr (ValentMediaPlayer) player = g_list_model_get_item (players, i);
+      g_autoptr (ValentMediaPlayer) player = g_list_model_get_item (G_LIST_MODEL (media), i);
 
       if (g_strcmp0 (valent_media_player_get_name (player), name) == 0)
         return player;
@@ -236,7 +236,7 @@ on_players_changed (ValentMedia       *media,
 
       /* Here, and below when building the player list, all `ValentMprisDevice`
        * players are being skipped. An advanced option could control whether
-       * `!g_list_store_find (self->players, player, NULL)` passes, enabling a
+       * `!g_ptr_array_find (self->players, player, NULL)` passes, enabling a
        * device to act as a hub for other devices. */
       if (VALENT_IS_MPRIS_DEVICE (player))
         continue;
@@ -308,7 +308,7 @@ valent_mpris_plugin_handle_mpris_request (ValentMprisPlugin *self,
 
   /* Start by checking for a player */
   if (valent_packet_get_string (packet, "player", &name))
-    player = valent_mpris_plugin_get_player (G_LIST_MODEL (self->media), name);
+    player = _valent_media_lookup_player (self->media, name);
 
   if (player == NULL || valent_packet_check_field (packet, "requestPlayerList"))
     {
@@ -602,6 +602,34 @@ valent_mpris_plugin_watch_media (ValentMprisPlugin *self,
  * Remote Players
  */
 static void
+_valent_mpris_device_free (gpointer player)
+{
+  valent_media_unexport_player (valent_media_get_default (), player);
+  g_object_unref (player);
+}
+
+static gboolean
+valent_mpris_plugin_find_player (ValentMprisPlugin  *self,
+                                 const char         *name,
+                                 ValentMediaPlayer **player)
+{
+  g_assert (VALENT_IS_MPRIS_PLUGIN (self));
+  g_assert (name != NULL && *name != '\0');
+
+  for (unsigned int i = 0, len = self->players->len; i < len; i++)
+    {
+      *player = g_ptr_array_index (self->players, i);
+
+      if (g_strcmp0 (valent_media_player_get_name (*player), name) == 0)
+        return TRUE;
+
+      *player = NULL;
+    }
+
+  return FALSE;
+}
+
+static void
 valent_mpris_plugin_request_player_list (ValentMprisPlugin *self)
 {
   g_autoptr (JsonBuilder) builder = NULL;
@@ -623,7 +651,7 @@ receive_art_cb (ValentTransfer    *transfer,
   g_autoptr (JsonNode) packet = NULL;
   g_autoptr (GFile) file = NULL;
   g_autoptr (GError) error = NULL;
-  ValentMprisDevice *player = NULL;
+  ValentMediaPlayer *player = NULL;
   const char *name;
 
   if (!valent_transfer_execute_finish (transfer, result, &error))
@@ -640,8 +668,8 @@ receive_art_cb (ValentTransfer    *transfer,
                 NULL);
 
   if (valent_packet_get_string (packet, "player", &name) &&
-      (player = valent_mpris_plugin_get_player (self->players, name)) != NULL)
-    valent_mpris_device_update_art (player, file);
+      valent_mpris_plugin_find_player (self, name, &player))
+    valent_mpris_device_update_art (VALENT_MPRIS_DEVICE (player), file);
 }
 
 static void
@@ -714,16 +742,13 @@ valent_mpris_plugin_handle_player_list (ValentMprisPlugin *self,
     remote_names[i] = json_array_get_string_element (player_list, i);
 
   /* Remove old players */
-  n_local = g_list_model_get_n_items (self->players);
+  n_local = self->players->len;
   local_names = g_new0 (const char *, n_local + 1);
 
   for (unsigned int i = n_local; i-- > 0;)
     {
-      g_autoptr (ValentMediaPlayer) export = NULL;
-      const char *name = NULL;
-
-      export = g_list_model_get_item (self->players, i);
-      name = valent_media_player_get_name (export);
+      ValentMediaPlayer *export = g_ptr_array_index (self->players, i);
+      const char *name = valent_media_player_get_name (export);
 
       if (g_strv_contains (remote_names, name))
         {
@@ -731,8 +756,7 @@ valent_mpris_plugin_handle_player_list (ValentMprisPlugin *self,
           continue;
         }
 
-      valent_media_unexport_player (self->media, export);
-      g_list_store_remove (G_LIST_STORE (self->players), i);
+      g_ptr_array_remove_index (self->players, i);
     }
 
   /* Add new players */
@@ -748,9 +772,10 @@ valent_mpris_plugin_handle_player_list (ValentMprisPlugin *self,
 
       player = valent_mpris_device_new (device);
       valent_mpris_device_update_name (player, name);
-      g_list_store_append (G_LIST_STORE (self->players), player);
 
+      g_ptr_array_add (self->players, g_object_ref (player));
       valent_media_export_player (self->media, VALENT_MEDIA_PLAYER (player));
+
       valent_mpris_plugin_request_update (self, name);
     }
 #endif /* __clang_analyzer__ */
@@ -760,12 +785,12 @@ static void
 valent_mpris_plugin_handle_player_update (ValentMprisPlugin *self,
                                           JsonNode          *packet)
 {
-  ValentMprisDevice *player;
+  ValentMediaPlayer *player = NULL;
   const char *name;
 
   /* Get the remote */
   if (!valent_packet_get_string (packet, "player", &name) ||
-      (player = valent_mpris_plugin_get_player (self->players, name)) == NULL)
+      !valent_mpris_plugin_find_player (self, name, &player))
     {
       valent_mpris_plugin_request_player_list (self);
       return;
@@ -777,7 +802,7 @@ valent_mpris_plugin_handle_player_update (ValentMprisPlugin *self,
       return;
     }
 
-  valent_mpris_device_handle_packet (player, packet);
+  valent_mpris_device_handle_packet (VALENT_MPRIS_DEVICE (player), packet);
 }
 
 static void
@@ -838,7 +863,7 @@ valent_mpris_plugin_update_state (ValentDevicePlugin *plugin,
   else
     {
       valent_mpris_plugin_watch_media (self, FALSE);
-      g_list_store_remove_all (G_LIST_STORE (self->players));
+      g_ptr_array_remove_range (self->players, 0, self->players->len);
     }
 }
 
@@ -872,7 +897,7 @@ valent_mpris_plugin_finalize (GObject *object)
   ValentMprisPlugin *self = VALENT_MPRIS_PLUGIN (object);
 
   g_clear_pointer (&self->pending, g_hash_table_unref);
-  g_clear_object (&self->players);
+  g_clear_pointer (&self->players, g_ptr_array_unref);
   g_clear_pointer (&self->transfers, g_hash_table_unref);
 
   G_OBJECT_CLASS (valent_mpris_plugin_parent_class)->finalize (object);
@@ -895,7 +920,7 @@ valent_mpris_plugin_class_init (ValentMprisPluginClass *klass)
 static void
 valent_mpris_plugin_init (ValentMprisPlugin *self)
 {
-  self->players = G_LIST_MODEL (g_list_store_new (VALENT_TYPE_MEDIA_PLAYER));
+  self->players = g_ptr_array_new_with_free_func (_valent_mpris_device_free);
   self->transfers = g_hash_table_new_full (g_str_hash,
                                            g_str_equal,
                                            g_free,
