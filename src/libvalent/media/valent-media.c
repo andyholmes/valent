@@ -297,8 +297,14 @@ valent_media_export_player (ValentMedia       *media,
   g_return_if_fail (VALENT_IS_MEDIA (media));
   g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
 
-  if (g_list_store_find (G_LIST_STORE (media->exports), player, NULL))
-    g_return_if_reached ();
+  if (g_ptr_array_find (media->players, player, NULL))
+    {
+      g_critical ("%s(): known player %s (%s)",
+                  G_STRFUNC,
+                  G_OBJECT_TYPE_NAME (player),
+                  valent_media_player_get_name (player));
+      return;
+    }
 
   // Starting at index `1` skips the exports GListModel
   for (unsigned int i = 1; i < media->adapters->len; i++)
@@ -335,7 +341,13 @@ valent_media_unexport_player (ValentMedia       *media,
   g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
 
   if (!g_list_store_find (G_LIST_STORE (media->exports), player, &position))
-    g_return_if_reached ();
+    {
+      g_critical ("%s(): unknown player %s (%s)",
+                  G_STRFUNC,
+                  G_OBJECT_TYPE_NAME (player),
+                  valent_media_player_get_name (player));
+      return;
+    }
 
   // Starting at index `1` skips the exports GListModel
   for (unsigned int i = 1; i < media->adapters->len; i++)
