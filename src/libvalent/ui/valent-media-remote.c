@@ -26,6 +26,7 @@ struct _ValentMediaRemote
 
   /* template */
   GtkDropDown       *media_player;
+  GtkStack          *media_art_stack;
   GtkImage          *media_art;
   GtkLabel          *media_title;
   GtkLabel          *media_artist;
@@ -52,7 +53,7 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 
 static char *
-get_player_name (ValentMediaPlayer *player)
+dup_player_name (ValentMediaPlayer *player)
 {
   g_assert (VALENT_IS_MEDIA_PLAYER (player));
 
@@ -94,6 +95,7 @@ valent_media_remote_clear (ValentMediaRemote *self)
 
   gtk_image_set_from_icon_name (self->media_art, "valent-media-albumart");
 
+  gtk_stack_set_visible_child_name (self->media_art_stack, "fallback");
   gtk_label_set_label (self->media_artist, "");
   gtk_label_set_label (self->media_title, "");
   gtk_label_set_label (self->media_album, "");
@@ -160,6 +162,7 @@ static void
 valent_media_remote_update_metadata (ValentMediaRemote *self)
 {
   g_autoptr (GVariant) metadata = NULL;
+  g_autoptr (GIcon) icon = NULL;
   g_autofree const char **artists = NULL;
   g_autofree char *length_str = NULL;
   const char *title;
@@ -200,15 +203,17 @@ valent_media_remote_update_metadata (ValentMediaRemote *self)
 
   if (g_variant_lookup (metadata, "mpris:artUrl", "&s", &art_url))
     {
-      g_autoptr (GIcon) icon = NULL;
+      g_autoptr (GFile) file = NULL;
 
-      icon = g_icon_new_for_string (art_url, NULL);
-      gtk_image_set_from_gicon (self->media_art, icon);
+      file = g_file_new_for_uri (art_url);
+
+      if (g_file_query_exists (file, NULL))
+        icon = g_file_icon_new (file);
     }
-  else
-    {
-      gtk_image_set_from_icon_name (self->media_art, "valent-media-albumart");
-    }
+
+  gtk_image_set_from_gicon (self->media_art, icon);
+  gtk_stack_set_visible_child_name (self->media_art_stack,
+                                    icon != NULL ? "art" : "fallback");
 
   /* Convert microseconds to seconds */
   if (g_variant_lookup (metadata, "mpris:length", "x", &length_us))
@@ -236,16 +241,31 @@ valent_media_remote_update_repeat (ValentMediaRemote *self)
     case VALENT_MEDIA_REPEAT_NONE:
       gtk_image_set_from_icon_name (self->repeat_image,
                                     "media-playlist-consecutive-symbolic");
+      gtk_widget_set_tooltip_text (GTK_WIDGET (self->repeat_image),
+                                   _("Enable Repeat"));
+      gtk_accessible_update_property (GTK_ACCESSIBLE (self->repeat_image),
+                                      GTK_ACCESSIBLE_PROPERTY_LABEL, _("Enable Repeat"),
+                                      -1);
       break;
 
     case VALENT_MEDIA_REPEAT_ALL:
       gtk_image_set_from_icon_name (self->repeat_image,
                                     "media-playlist-repeat-symbolic");
+      gtk_widget_set_tooltip_text (GTK_WIDGET (self->repeat_image),
+                                   _("Repeat All"));
+      gtk_accessible_update_property (GTK_ACCESSIBLE (self->repeat_image),
+                                      GTK_ACCESSIBLE_PROPERTY_LABEL, _("Repeat All"),
+                                      -1);
       break;
 
     case VALENT_MEDIA_REPEAT_ONE:
       gtk_image_set_from_icon_name (self->repeat_image,
                                     "media-playlist-repeat-song-symbolic");
+      gtk_widget_set_tooltip_text (GTK_WIDGET (self->repeat_image),
+                                   _("Repeat One"));
+      gtk_accessible_update_property (GTK_ACCESSIBLE (self->repeat_image),
+                                      GTK_ACCESSIBLE_PROPERTY_LABEL, _("Repeat One"),
+                                      -1);
       break;
     }
 }
@@ -272,6 +292,9 @@ valent_media_remote_update_state (ValentMediaRemote *self)
                                     "media-playback-pause-symbolic");
       gtk_widget_set_tooltip_text (GTK_WIDGET (self->play_pause_button),
                                    _("Pause"));
+      gtk_accessible_update_property (GTK_ACCESSIBLE (self->play_pause_button),
+                                      GTK_ACCESSIBLE_PROPERTY_LABEL, _("Pause"),
+                                      -1);
 
       if (self->timer_id == 0)
         self->timer_id = g_timeout_add_seconds (1, valent_media_remote_timer_tick, self);
@@ -284,6 +307,9 @@ valent_media_remote_update_state (ValentMediaRemote *self)
                                     "media-playback-start-symbolic");
       gtk_widget_set_tooltip_text (GTK_WIDGET (self->play_pause_button),
                                    _("Play"));
+      gtk_accessible_update_property (GTK_ACCESSIBLE (self->play_pause_button),
+                                      GTK_ACCESSIBLE_PROPERTY_LABEL, _("Play"),
+                                      -1);
       g_clear_handle_id (&self->timer_id, g_source_remove);
     }
 
@@ -482,7 +508,7 @@ valent_media_remote_constructed (GObject *object)
 
   expression = gtk_cclosure_expression_new (G_TYPE_STRING, NULL,
                                             0, NULL,
-                                            G_CALLBACK (get_player_name),
+                                            G_CALLBACK (dup_player_name),
                                             NULL, NULL);
 
   gtk_drop_down_set_expression (self->media_player, expression);
@@ -497,7 +523,7 @@ valent_media_remote_constructed (GObject *object)
 
       gtk_widget_set_css_classes (child, (const char *[]){
                                             "circular",
-                                            "image-button",
+                                            "flat",
                                             "toggle",
                                             NULL
                                          });
@@ -589,6 +615,7 @@ valent_media_remote_class_init (ValentMediaRemoteClass *klass)
 
   gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-media-remote.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, media_player);
+  gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, media_art_stack);
   gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, media_art);
   gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, media_title);
   gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, media_artist);
