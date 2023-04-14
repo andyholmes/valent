@@ -14,16 +14,6 @@
 
 G_BEGIN_DECLS
 
-/*
- * GMenu Helpers
- */
-typedef struct
-{
-  char *label;
-  char *action;
-  char *icon_name;
-} ValentMenuEntry;
-
 #define VALENT_TYPE_DEVICE_PLUGIN (valent_device_plugin_get_type ())
 
 VALENT_AVAILABLE_IN_1_0
@@ -79,17 +69,14 @@ void            valent_device_plugin_toggle_actions      (ValentDevicePlugin    
 
 /* TODO: GMenuModel XML */
 VALENT_AVAILABLE_IN_1_0
-void           valent_device_plugin_add_menu_entries    (ValentDevicePlugin    *plugin,
-                                                         const ValentMenuEntry *entries,
-                                                         int                    n_entries);
+void            valent_device_plugin_set_menu_action     (ValentDevicePlugin    *plugin,
+                                                          const char            *action,
+                                                          const char            *label,
+                                                          const char            *icon_name);
 VALENT_AVAILABLE_IN_1_0
-void           valent_device_plugin_remove_menu_entries (ValentDevicePlugin    *plugin,
-                                                         const ValentMenuEntry *entries,
-                                                         int                    n_entries);
-VALENT_AVAILABLE_IN_1_0
-void            valent_device_plugin_replace_menu_item  (ValentDevicePlugin    *plugin,
-                                                         GMenuItem             *item,
-                                                         const char            *attribute);
+void            valent_device_plugin_set_menu_item       (ValentDevicePlugin    *plugin,
+                                                          const char            *action,
+                                                          GMenuItem             *item);
 
 /* Miscellaneous Helpers */
 VALENT_AVAILABLE_IN_1_0

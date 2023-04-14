@@ -132,10 +132,6 @@ static const GActionEntry actions[] = {
     {"state", NULL,        NULL, "true", state_action}
 };
 
-static const ValentMenuEntry items[] = {
-    {"Packet Action", "device.mock.transfer", "dialog-information-symbolic"}
-};
-
 /*
  * ValentDevicePlugin
  */
@@ -148,9 +144,10 @@ valent_mock_device_plugin_enable (ValentDevicePlugin *plugin)
                                    actions,
                                    G_N_ELEMENTS (actions),
                                    plugin);
-  valent_device_plugin_add_menu_entries (plugin,
-                                         items,
-                                         G_N_ELEMENTS (items));
+  valent_device_plugin_set_menu_action (plugin,
+                                        "device.mock.transfer",
+                                        "Packet Action",
+                                        "dialog-information-symbolic");
 }
 
 static void
@@ -158,9 +155,7 @@ valent_mock_device_plugin_disable (ValentDevicePlugin *plugin)
 {
   g_assert (VALENT_IS_MOCK_DEVICE_PLUGIN (plugin));
 
-  valent_device_plugin_remove_menu_entries (plugin,
-                                            items,
-                                            G_N_ELEMENTS (items));
+  valent_device_plugin_set_menu_item (plugin, "device.mock.transfer", NULL);
 }
 
 static void

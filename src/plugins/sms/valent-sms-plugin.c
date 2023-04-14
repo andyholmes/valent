@@ -438,10 +438,6 @@ static const GActionEntry actions[] = {
     {"messaging", messaging_action, NULL, NULL, NULL}
 };
 
-static const ValentMenuEntry items[] = {
-    {N_("Messaging"), "device.sms.messaging", "sms-symbolic"}
-};
-
 /*
  * ValentDevicePlugin
  */
@@ -463,16 +459,14 @@ valent_sms_plugin_enable (ValentDevicePlugin *plugin)
                               "parent", context,
                               NULL);
 
-  /* Register GActions */
   g_action_map_add_action_entries (G_ACTION_MAP (plugin),
                                    actions,
                                    G_N_ELEMENTS (actions),
                                    plugin);
-
-  /* Register GMenu items */
-  valent_device_plugin_add_menu_entries (plugin,
-                                         items,
-                                         G_N_ELEMENTS (items));
+  valent_device_plugin_set_menu_action (plugin,
+                                        "device.sms.messaging",
+                                        _("Messaging"),
+                                        "sms-symbolic");
 }
 
 static void
@@ -486,9 +480,7 @@ valent_sms_plugin_disable (ValentDevicePlugin *plugin)
   g_clear_pointer (&self->window, gtk_window_destroy);
   g_clear_object (&self->store);
 
-  valent_device_plugin_remove_menu_entries (plugin,
-                                            items,
-                                            G_N_ELEMENTS (items));
+  valent_device_plugin_set_menu_item (plugin, "device.sms.messaging", NULL);
 }
 
 static void
