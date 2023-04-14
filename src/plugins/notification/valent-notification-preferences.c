@@ -117,10 +117,10 @@ add_application (ValentNotificationPreferences *self,
                       "activatable", TRUE,
                       "title",       title,
                       NULL);
-  g_signal_connect (G_OBJECT (row),
-                    "activated",
-                    G_CALLBACK (on_row_activated),
-                    self);
+  g_signal_connect_object (G_OBJECT (row),
+                           "activated",
+                           G_CALLBACK (on_row_activated),
+                           self, 0);
 
   /* App icon */
   if ((iconv = g_variant_lookup_value (app, "icon", NULL)) != NULL)
@@ -140,10 +140,10 @@ add_application (ValentNotificationPreferences *self,
                      "active", enabled,
                      "valign", GTK_ALIGN_CENTER,
                      NULL);
-  g_signal_connect (G_OBJECT (sw),
-                    "notify::active",
-                    G_CALLBACK (on_switch_toggled),
-                    self);
+  g_signal_connect_object (G_OBJECT (sw),
+                           "notify::active",
+                           G_CALLBACK (on_switch_toggled),
+                           self, 0);
   adw_action_row_add_suffix (ADW_ACTION_ROW (row), sw);
 
   g_hash_table_insert (self->application_rows, row, sw);
