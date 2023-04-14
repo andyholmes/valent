@@ -22,7 +22,7 @@
  *
  * An abstract base class for device plugins.
  *
- * #ValentDevicePlugin is a base class for plugins that operate in the scope of
+ * `ValentDevicePlugin` is a base class for plugins that operate in the scope of
  * a single device. This usually means communicating with other devices, however
  * plugins aren't required to be packet based and may offer connectionless
  * functionality.
@@ -43,7 +43,7 @@
  *
  * ## Plugin Actions
  *
- * #ValentDevicePlugin implements the [iface@Gio.ActionGroup] and
+ * `ValentDevicePlugin` implements the [iface@Gio.ActionGroup] and
  * [iface@Gio.ActionMap] interfaces, providing a simple way for plugins to
  * expose functions and states. Each [iface@Gio.Action] added to the action map
  * will be included in the device action group with the plugin's module name as
@@ -125,7 +125,7 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
  * @handle_packet: the virtual function pointer for valent_device_plugin_handle_packet()
  * @update_state: the virtual function pointer for valent_device_plugin_update_state()
  *
- * The virtual function table for #ValentDevicePlugin.
+ * The virtual function table for `ValentDevicePlugin`.
  */
 
 
@@ -549,7 +549,7 @@ valent_device_plugin_init (ValentDevicePlugin *self)
 
 /**
  * valent_device_plugin_get_context: (get-property context)
- * @plugin: a #ValentDevicePlugin
+ * @plugin: a `ValentDevicePlugin`
  *
  * Get the settings for this plugin.
  *
@@ -579,7 +579,7 @@ valent_device_plugin_get_context (ValentDevicePlugin *plugin)
 
 /**
  * valent_device_plugin_get_device: (get-property device)
- * @plugin: a #ValentDevicePlugin
+ * @plugin: a `ValentDevicePlugin`
  *
  * Get the device this plugin is bound to.
  *
@@ -599,7 +599,7 @@ valent_device_plugin_get_device (ValentDevicePlugin *plugin)
 
 /**
  * valent_device_plugin_get_settings: (get-property settings)
- * @plugin: a #ValentDevicePlugin
+ * @plugin: a `ValentDevicePlugin`
  *
  * Get the settings for this plugin.
  *
@@ -626,7 +626,7 @@ valent_device_plugin_get_settings (ValentDevicePlugin *plugin)
 
 /**
  * valent_device_plugin_queue_packet:
- * @plugin: a #ValentDevicePlugin
+ * @plugin: a `ValentDevicePlugin`
  * @packet: a KDE Connect packet
  *
  * Queue a KDE Connect packet to be sent to the device this plugin is bound to.
@@ -650,7 +650,7 @@ valent_device_plugin_queue_packet (ValentDevicePlugin *plugin,
 
 /**
  * valent_device_plugin_show_notification:
- * @plugin: a #ValentDevicePlugin
+ * @plugin: a `ValentDevicePlugin`
  * @id: an id for the notification
  * @notification: a #GNotification
  *
@@ -689,7 +689,7 @@ valent_device_plugin_show_notification (ValentDevicePlugin *plugin,
 
 /**
  * valent_device_plugin_hide_notification:
- * @plugin: a #ValentDevicePlugin
+ * @plugin: a `ValentDevicePlugin`
  * @id: an id for the notification
  *
  * A convenience for withdrawing a notification.
@@ -722,7 +722,7 @@ valent_device_plugin_hide_notification (ValentDevicePlugin *plugin,
 
 /**
  * valent_device_plugin_toggle_actions:
- * @plugin: a #ValentDevicePlugin
+ * @plugin: a `ValentDevicePlugin`
  * @enabled: boolean
  *
  * Enable or disable all actions.
@@ -750,7 +750,7 @@ valent_device_plugin_toggle_actions (ValentDevicePlugin *plugin,
 
 /**
  * valent_device_plugin_enable: (virtual enable)
- * @plugin: a #ValentDevicePlugin
+ * @plugin: a `ValentDevicePlugin`
  *
  * Enable the plugin.
  *
@@ -777,7 +777,7 @@ valent_device_plugin_enable (ValentDevicePlugin *plugin)
 
 /**
  * valent_device_plugin_disable: (virtual disable)
- * @plugin: a #ValentDevicePlugin
+ * @plugin: a `ValentDevicePlugin`
  *
  * Disable the plugin.
  *
@@ -804,7 +804,7 @@ valent_device_plugin_disable (ValentDevicePlugin *plugin)
 
 /**
  * valent_device_plugin_handle_packet: (virtual handle_packet)
- * @plugin: a #ValentDevicePlugin
+ * @plugin: a `ValentDevicePlugin`
  * @type: a KDE Connect packet type
  * @packet: a KDE Connect packet
  *
@@ -836,7 +836,7 @@ valent_device_plugin_handle_packet (ValentDevicePlugin *plugin,
 
 /**
  * valent_device_plugin_update_state: (virtual update_state)
- * @plugin: a #ValentDevicePlugin
+ * @plugin: a `ValentDevicePlugin`
  * @state: a #ValentDeviceState
  *
  * Update the plugin based on the new state of the device.
@@ -863,62 +863,22 @@ valent_device_plugin_update_state (ValentDevicePlugin *plugin,
   VALENT_EXIT;
 }
 
-/**
- * valent_device_plugin_add_menu_entries:
- * @plugin: a #ValentDevicePlugin
- * @entries: (array length=n_entries) (element-type Valent.MenuEntry): a pointer
- *           to the first item in an array of #ValentMenuEntry structs
- * @n_entries: the length of @entries, or -1 if @entries is %NULL-terminated
- *
- * A convenience function for creating multiple [class@Gio.MenuItem] instances
- * and adding them to the device [class@Gio.MenuModel]. Each item is
- * constructed as per one [struct@Valent.MenuEntry].
- *
- * Since: 1.0
- */
-void
-valent_device_plugin_add_menu_entries (ValentDevicePlugin    *plugin,
-                                       const ValentMenuEntry *entries,
-                                       int                    n_entries)
-{
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
-  GMenu *menu;
-
-  g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
-  g_return_if_fail (entries != NULL || n_entries == 0);
-
-  menu = G_MENU (valent_device_get_menu (priv->device));
-
-  for (int i = 0; i < n_entries; i++)
-    {
-      g_autoptr (GMenuItem) item = NULL;
-      g_autoptr (GIcon) icon = NULL;
-
-      icon = g_themed_icon_new (entries[i].icon_name);
-      item = g_menu_item_new(entries[i].label, entries[i].action);
-      g_menu_item_set_icon (item, icon);
-      g_menu_item_set_attribute (item, "hidden-when", "s", "action-disabled");
-      g_menu_append_item (menu, item);
-    }
-}
-
 static int
-_g_menu_find_action (GMenu      *menu,
+_g_menu_find_action (GMenuModel *menu,
                      const char *action)
 {
-  GMenuModel *model = G_MENU_MODEL (menu);
   int i, n_items;
 
-  g_assert (G_IS_MENU (menu));
+  g_assert (G_IS_MENU_MODEL (menu));
   g_assert (action != NULL);
 
-  n_items = g_menu_model_get_n_items (model);
+  n_items = g_menu_model_get_n_items (menu);
 
   for (i = 0; i < n_items; i++)
     {
       g_autofree char *item_str = NULL;
 
-      g_menu_model_get_item_attribute (model, i, "action", "s", &item_str);
+      g_menu_model_get_item_attribute (menu, i, "action", "s", &item_str);
 
       if (g_strcmp0 (item_str, action) == 0)
         return i;
@@ -928,116 +888,85 @@ _g_menu_find_action (GMenu      *menu,
 }
 
 /**
- * valent_device_plugin_remove_menu_entries:
- * @plugin: a #ValentDevicePlugin
- * @entries: (array length=n_entries) (element-type Valent.MenuEntry): a pointer
- *           to the first item in an array of #ValentMenuEntry structs
- * @n_entries: the length of @entries, or -1 if @entries is %NULL-terminated
+ * valent_device_plugin_set_menu_action:
+ * @plugin: a `ValentDevicePlugin`
+ * @action: a `GAction` name
+ * @label: (nullable): a label for the action
+ * @icon_name: (nullable): an icon for the action
  *
- * A counterpart to [method@Valent.DevicePlugin.add_menu_entries].
+ * Set or remove a device menu action by [iface@Gio.Action] name.
+ *
+ * If @label and @icon are %NULL, @action will be removed from the menu.
  *
  * Since: 1.0
  */
 void
-valent_device_plugin_remove_menu_entries (ValentDevicePlugin    *plugin,
-                                          const ValentMenuEntry *entries,
-                                          int                    n_entries)
+valent_device_plugin_set_menu_action (ValentDevicePlugin *plugin,
+                                      const char         *action,
+                                      const char         *label,
+                                      const char         *icon_name)
 {
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
-  GMenu *menu;
+  g_autoptr (GMenuItem) item = NULL;
 
   g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
-  g_return_if_fail (entries != NULL || n_entries == 0);
+  g_return_if_fail (action != NULL && *action != '\0');
+  g_return_if_fail ((label == NULL && icon_name == NULL) ||
+                    (label != NULL && *label != '\0'));
 
-  menu = G_MENU (valent_device_get_menu (priv->device));
-
-  for (int i = 0; i < n_entries; i++)
+  if (label != NULL)
     {
-      int index = _g_menu_find_action (menu, entries[i].action);
+      g_autoptr (GIcon) icon = NULL;
 
-      if (index > -1)
-        g_menu_remove (menu, index);
-    }
-}
+      if (icon_name != NULL)
+        icon = g_themed_icon_new (icon_name);
 
-static int
-valent_device_plugin_find_menu_item (ValentDevicePlugin *plugin,
-                                     const char         *attribute,
-                                     const GVariant     *value)
-{
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
-  GMenuModel *model;
-  int i, n_items;
-
-  g_return_val_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin), -1);
-  g_return_val_if_fail (attribute != NULL, -1);
-  g_return_val_if_fail (value != NULL, -1);
-
-  model = valent_device_get_menu (priv->device);
-
-  n_items = g_menu_model_get_n_items (model);
-
-  for (i = 0; i < n_items; i++)
-    {
-      g_autoptr (GVariant) ivar = NULL;
-
-      ivar = g_menu_model_get_item_attribute_value (model, i, attribute, NULL);
-
-      if (ivar == NULL)
-        continue;
-
-      if (g_variant_equal (value, ivar))
-        return i;
+      item = g_menu_item_new (label, action);
+      g_menu_item_set_icon (item, icon);
+      g_menu_item_set_attribute (item, "hidden-when", "s", "action-disabled");
     }
 
-  return -1;
+  valent_device_plugin_set_menu_item (plugin, action, item);
 }
 
 /**
- * valent_device_plugin_replace_menu_item:
- * @plugin: a #ValentDevicePlugin
- * @item: a #GMenuItem
- * @attribute: an attribute name to match
+ * valent_device_plugin_set_menu_item:
+ * @plugin: a `ValentDevicePlugin`
+ * @action: a `GAction` name
+ * @item: (nullable): a `GMenuItem`
  *
- * Replace an item in the top-level of the device [class@Gio.MenuModel] with
- * @item.
+ * Set or remove a device [class@Gio.MenuItem] by [iface@Gio.Action] name.
  *
- * If the devices menu does not contain a top-level item with the same action
- * name as @item, the item will be appended instead.
+ * If @item is %NULL, @action will be removed from the menu.
  *
  * Since: 1.0
  */
 void
-valent_device_plugin_replace_menu_item (ValentDevicePlugin *plugin,
-                                        GMenuItem          *item,
-                                        const char         *attribute)
+valent_device_plugin_set_menu_item (ValentDevicePlugin *plugin,
+                                    const char         *action,
+                                    GMenuItem          *item)
 {
   ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
-  g_autoptr (GVariant) value = NULL;
-  GMenu *menu;
-  int position = -1;
+  GMenuModel *menu;
+  int index_ = -1;
 
   g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
-  g_return_if_fail (G_IS_MENU_ITEM (item));
+  g_return_if_fail (action != NULL && *action != '\0');
+  g_return_if_fail (item == NULL || G_IS_MENU_ITEM (item));
 
-  menu = G_MENU (valent_device_get_menu (priv->device));
-  value = g_menu_item_get_attribute_value (item, attribute, NULL);
+  menu = valent_device_get_menu (priv->device);
+  index_ = _g_menu_find_action (menu, action);
 
-  if (value != NULL)
+  if (index_ > -1)
+    g_menu_remove (G_MENU (menu), index_);
+
+  if (item != NULL)
     {
-      position = valent_device_plugin_find_menu_item (plugin, attribute, value);
-
-      if (position > -1)
-        g_menu_remove (menu, position);
+      if (index_ > -1)
+        g_menu_insert_item (G_MENU (menu), index_, item);
+      else
+        g_menu_append_item (G_MENU (menu), item);
     }
-
-  if (position > -1)
-    g_menu_insert_item (menu, position, item);
-  else
-    g_menu_append_item (menu, item);
 }
-
-// TODO move to libvalent-notification
 
 /**
  * valent_notification_set_device_action:

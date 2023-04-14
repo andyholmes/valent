@@ -55,10 +55,6 @@ static const GActionEntry actions[] = {
     {"ring", ring_action, NULL, NULL, NULL}
 };
 
-static const ValentMenuEntry items[] = {
-    {N_("Ring"), "device.findmyphone.ring", "phonelink-ring-symbolic"}
-};
-
 /*
  * ValentDevicePlugin
  */
@@ -73,9 +69,10 @@ valent_findmyphone_plugin_enable (ValentDevicePlugin *plugin)
                                    actions,
                                    G_N_ELEMENTS (actions),
                                    plugin);
-  valent_device_plugin_add_menu_entries (plugin,
-                                         items,
-                                         G_N_ELEMENTS (items));
+  valent_device_plugin_set_menu_action (plugin,
+                                        "device.findmyphone.ring",
+                                        _("Ring"),
+                                        "phonelink-ring-symbolic");
 
   /* Acquire the ringer singleton and ensure the ValentSession component is
    * prepared. */
@@ -94,9 +91,7 @@ valent_findmyphone_plugin_disable (ValentDevicePlugin *plugin)
   g_clear_pointer (&self->ringer, valent_findmyphone_ringer_release);
   self->session = NULL;
 
-  valent_device_plugin_remove_menu_entries (plugin,
-                                            items,
-                                            G_N_ELEMENTS (items));
+  valent_device_plugin_set_menu_item (plugin, "device.findmyphone.ring", NULL);
 }
 
 static void

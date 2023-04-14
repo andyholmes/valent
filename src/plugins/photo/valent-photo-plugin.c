@@ -133,10 +133,6 @@ static const GActionEntry actions[] = {
     {"request", photo_request_action, NULL, NULL, NULL}
 };
 
-static const ValentMenuEntry items[] = {
-    {N_("Take Photo"), "device.photo.request", "camera-photo-symbolic"}
-};
-
 /*
  * ValentDevicePlugin
  */
@@ -149,9 +145,10 @@ valent_photo_plugin_enable (ValentDevicePlugin *plugin)
                                    actions,
                                    G_N_ELEMENTS (actions),
                                    plugin);
-  valent_device_plugin_add_menu_entries (plugin,
-                                         items,
-                                         G_N_ELEMENTS (items));
+  valent_device_plugin_set_menu_action (plugin,
+                                        "device.photo.request",
+                                        _("Take Photo"),
+                                        "camera-photo-symbolic");
 }
 
 static void
@@ -159,9 +156,7 @@ valent_photo_plugin_disable (ValentDevicePlugin *plugin)
 {
   g_assert (VALENT_IS_PHOTO_PLUGIN (plugin));
 
-  valent_device_plugin_remove_menu_entries (plugin,
-                                            items,
-                                            G_N_ELEMENTS (items));
+  valent_device_plugin_set_menu_item (plugin, "device.photo.request", NULL);
 }
 
 static void

@@ -512,10 +512,6 @@ static const GActionEntry actions[] = {
   {"event",  mousepad_event_action,  "a{sv}", NULL, NULL}
 };
 
-static const ValentMenuEntry items[] = {
-    {N_("Remote Input"), "device.mousepad.remote", "input-keyboard-symbolic"}
-};
-
 /*
  * ValentDevicePlugin
  */
@@ -526,9 +522,10 @@ valent_mousepad_plugin_enable (ValentDevicePlugin *plugin)
                                    actions,
                                    G_N_ELEMENTS (actions),
                                    plugin);
-  valent_device_plugin_add_menu_entries (plugin,
-                                         items,
-                                         G_N_ELEMENTS (items));
+  valent_device_plugin_set_menu_action (plugin,
+                                        "device.mousepad.remote",
+                                        _("Remote Input"),
+                                        "input-keyboard-symbolic");
 }
 
 static void
@@ -541,9 +538,7 @@ valent_mousepad_plugin_disable (ValentDevicePlugin *plugin)
   /* Destroy the input remote if necessary */
   g_clear_pointer (&self->remote, gtk_window_destroy);
 
-  valent_device_plugin_remove_menu_entries (plugin,
-                                            items,
-                                            G_N_ELEMENTS (items));
+  valent_device_plugin_set_menu_item (plugin, "device.mousepad.remote", NULL);
 }
 
 static void

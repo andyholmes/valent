@@ -587,10 +587,6 @@ static const GActionEntry actions[] = {
     {"browse", mount_action, NULL, NULL, NULL}
 };
 
-static const ValentMenuEntry items[] = {
-    {N_("Browse Files"), "device.sftp.browse", "folder-remote-symbolic"}
-};
-
 
 /*
  * ValentDevicePlugin
@@ -606,9 +602,10 @@ valent_sftp_plugin_enable (ValentDevicePlugin *plugin)
                                    actions,
                                    G_N_ELEMENTS (actions),
                                    plugin);
-  valent_device_plugin_add_menu_entries (plugin,
-                                         items,
-                                         G_N_ELEMENTS (items));
+  valent_device_plugin_set_menu_action (plugin,
+                                        "device.sftp.browse",
+                                        _("Browse Files"),
+                                        "folder-remote-symbolic");
 
   /* Watch the volume monitor */
   self->monitor = g_volume_monitor_get ();
@@ -634,9 +631,7 @@ valent_sftp_plugin_disable (ValentDevicePlugin *plugin)
   g_clear_object (&self->monitor);
   g_clear_pointer (&self->session, sftp_session_end);
 
-  valent_device_plugin_remove_menu_entries (plugin,
-                                            items,
-                                            G_N_ELEMENTS (items));
+  valent_device_plugin_set_menu_item (plugin, "device.sftp.browse", NULL);
 }
 
 static void

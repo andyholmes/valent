@@ -29,10 +29,6 @@ static const GActionEntry actions[] = {
     {"action", packetless_action, NULL, NULL, NULL}
 };
 
-static const ValentMenuEntry items[] = {
-    {"Packetless Action", "device.packetless.action", "dialog-information-symbolic"}
-};
-
 /*
  * ValentDevicePlugin
  */
@@ -45,9 +41,10 @@ valent_packetless_plugin_enable (ValentDevicePlugin *plugin)
                                    actions,
                                    G_N_ELEMENTS (actions),
                                    plugin);
-  valent_device_plugin_add_menu_entries (plugin,
-                                         items,
-                                         G_N_ELEMENTS (items));
+  valent_device_plugin_set_menu_action (plugin,
+                                        "device.packetless.action",
+                                        "Packetless Action",
+                                        "dialog-information-symbolic");
 }
 
 static void
@@ -55,9 +52,7 @@ valent_packetless_plugin_disable (ValentDevicePlugin *plugin)
 {
   g_assert (VALENT_IS_PACKETLESS_PLUGIN (plugin));
 
-  valent_device_plugin_remove_menu_entries (plugin,
-                                            items,
-                                            G_N_ELEMENTS (items));
+  valent_device_plugin_set_menu_item (plugin, "device.packetless.action", NULL);
 }
 
 /*

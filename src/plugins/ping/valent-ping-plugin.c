@@ -91,10 +91,6 @@ static const GActionEntry actions[] = {
     {"message", ping_action, "s",  NULL, NULL}
 };
 
-static const ValentMenuEntry items[] = {
-    {N_("Ping"), "device.ping.ping", "dialog-information-symbolic"}
-};
-
 /**
  * ValentDevicePlugin
  */
@@ -105,17 +101,16 @@ valent_ping_plugin_enable (ValentDevicePlugin *plugin)
                                    actions,
                                    G_N_ELEMENTS (actions),
                                    plugin);
-  valent_device_plugin_add_menu_entries (plugin,
-                                         items,
-                                         G_N_ELEMENTS (items));
+  valent_device_plugin_set_menu_action (plugin,
+                                        "device.ping.ping",
+                                        _("Ping"),
+                                        "dialog-information-symbolic");
 }
 
 static void
 valent_ping_plugin_disable (ValentDevicePlugin *plugin)
 {
-  valent_device_plugin_remove_menu_entries (plugin,
-                                            items,
-                                            G_N_ELEMENTS (items));
+  valent_device_plugin_set_menu_item (plugin, "device.ping.ping", NULL);
 }
 
 static void

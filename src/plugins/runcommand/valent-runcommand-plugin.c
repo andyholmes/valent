@@ -321,14 +321,18 @@ valent_runcommand_plugin_handle_command_list (ValentRuncommandPlugin *self,
   g_autoptr (GMenuItem) cmd_item = NULL;
   g_autoptr (GIcon) cmd_icon = NULL;
   g_autoptr (GMenu) cmd_menu = NULL;
+  GAction *commands;
 
   g_assert (VALENT_IS_RUNCOMMAND_PLUGIN (self));
   g_assert (command_list != NULL);
 
   cmd_menu = g_menu_new ();
-  cmd_item = g_menu_item_new_submenu (_("Run Command"), G_MENU_MODEL (cmd_menu));
+
   cmd_icon = g_themed_icon_new ("system-run-symbolic");
+  cmd_item = g_menu_item_new (_("Run Command"), "device.runcommand.commands");
   g_menu_item_set_icon (cmd_item, cmd_icon);
+  g_menu_item_set_attribute (cmd_item, "hidden-when", "s", "action-disabled");
+  g_menu_item_set_submenu (cmd_item, G_MENU_MODEL (cmd_menu));
 
   /* Iterate the commands */
   json_object_iter_init (&iter, command_list);
@@ -351,9 +355,12 @@ valent_runcommand_plugin_handle_command_list (ValentRuncommandPlugin *self,
       g_menu_append_item (cmd_menu, item);
     }
 
-  valent_device_plugin_replace_menu_item (VALENT_DEVICE_PLUGIN (self),
-                                          cmd_item,
-                                          "icon");
+  commands = g_action_map_lookup_action (G_ACTION_MAP (self), "commands");
+  g_simple_action_set_enabled (G_SIMPLE_ACTION (commands),
+                               json_object_get_size (command_list) > 0);
+  valent_device_plugin_set_menu_item (VALENT_DEVICE_PLUGIN (self),
+                                      "device.runcommand.commands",
+                                      cmd_item);
 }
 
 static void
@@ -386,9 +393,17 @@ valent_runcommand_plugin_handle_runcommand (ValentRuncommandPlugin *self,
  * GActions
  */
 static void
-runcommand_action (GSimpleAction *action,
-                   GVariant      *parameter,
-                   gpointer       user_data)
+runcommand_commands_action (GSimpleAction *action,
+                            GVariant      *parameter,
+                            gpointer       user_data)
+{
+  // Mock action
+}
+
+static void
+runcommand_execute_action (GSimpleAction *action,
+                           GVariant      *parameter,
+                           gpointer       user_data)
 {
   ValentRuncommandPlugin *self = VALENT_RUNCOMMAND_PLUGIN (user_data);
   const char *key;
@@ -400,7 +415,8 @@ runcommand_action (GSimpleAction *action,
 }
 
 static const GActionEntry actions[] = {
-    {"execute", runcommand_action, "s", NULL, NULL}
+    {"commands", runcommand_commands_action, NULL, NULL, NULL}, // "as"
+    {"execute",  runcommand_execute_action,   "s", NULL, NULL}
 };
 
 /**

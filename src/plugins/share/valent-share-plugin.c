@@ -908,10 +908,6 @@ static GActionEntry actions[] = {
     {"view",    share_view_action,    "s",  NULL, NULL}
 };
 
-static const ValentMenuEntry items[] = {
-    {N_("Send Files"), "device.share.chooser", "document-send-symbolic"}
-};
-
 /*
  * Packet Handlers
  */
@@ -1144,9 +1140,10 @@ valent_share_plugin_enable (ValentDevicePlugin *plugin)
                                    actions,
                                    G_N_ELEMENTS (actions),
                                    plugin);
-  valent_device_plugin_add_menu_entries (plugin,
-                                         items,
-                                         G_N_ELEMENTS (items));
+  valent_device_plugin_set_menu_action (plugin,
+                                        "device.share.chooser",
+                                        _("Send Files"),
+                                        "document-send-symbolic");
 }
 
 static void
@@ -1174,9 +1171,7 @@ valent_share_plugin_disable (ValentDevicePlugin *plugin)
   g_ptr_array_foreach (self->windows, (void *)gtk_window_destroy, NULL);
   g_ptr_array_remove_range (self->windows, 0, self->windows->len);
 
-  valent_device_plugin_remove_menu_entries (plugin,
-                                            items,
-                                            G_N_ELEMENTS (items));
+  valent_device_plugin_set_menu_item (plugin, "device.share.chooser", NULL);
 }
 
 static void
