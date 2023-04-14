@@ -31,6 +31,8 @@ struct _ValentLanChannelService
   guint16               port;
   char                 *broadcast_address;
   GSocketService       *listener;
+  GMainLoop            *loop4;
+  GMainLoop            *loop6;
   GSocket              *udp_socket4;
   GSocket              *udp_socket6;
   GHashTable           *channels;
@@ -286,6 +288,8 @@ valent_lan_channel_service_tcp_setup (ValentLanChannelService  *self,
                                       GCancellable             *cancellable,
                                       GError                  **error)
 {
+  g_autoptr (GCancellable) destroy = NULL;
+
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
   g_assert (error == NULL || *error == NULL);
@@ -294,9 +298,10 @@ valent_lan_channel_service_tcp_setup (ValentLanChannelService  *self,
     return FALSE;
 
   valent_object_lock (VALENT_OBJECT (self));
+  destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
 
   /* Pass the service as the callback data for the "run" signal, while the
-   * listener holds a reference to the cancellable for this "start" sequence.
+   * listener holds a reference to the object cancellable.
    */
   self->listener = g_threaded_socket_service_new (10);
   g_signal_connect_object (self->listener,
@@ -307,7 +312,7 @@ valent_lan_channel_service_tcp_setup (ValentLanChannelService  *self,
 
   if (!g_socket_listener_add_inet_port (G_SOCKET_LISTENER (self->listener),
                                         self->port,
-                                        G_OBJECT (cancellable),
+                                        G_OBJECT (destroy),
                                         error))
     {
       g_socket_service_stop (self->listener);
@@ -488,29 +493,77 @@ on_incoming_broadcast (ValentLanChannelService  *self,
   return TRUE;
 }
 
-static void
-socket_read_task (GTask        *task,
-                  gpointer      source_object,
-                  gpointer      task_data,
-                  GCancellable *cancellable)
+static gboolean
+valent_lan_channel_service_socket_recv (GSocket      *socket,
+                                        GIOCondition  condition,
+                                        gpointer      user_data)
 {
-  ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (source_object);
-  GSocket *socket = G_SOCKET (task_data);
+  ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (user_data);
+  g_autoptr (GCancellable) cancellable = NULL;
   g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
-  g_assert (G_IS_SOCKET (socket));
 
-  while (g_socket_condition_wait (socket, G_IO_IN, cancellable, &error))
+  cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
+
+  if (!on_incoming_broadcast (self, socket, cancellable, &error))
     {
-      if (!on_incoming_broadcast (self, socket, cancellable, &error))
-        break;
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("%s(): %s", G_STRFUNC, error->message);
+
+      return G_SOURCE_REMOVE;
     }
 
-  if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-    g_warning ("%s(): %s", G_STRFUNC, error->message);
+  return G_SOURCE_CONTINUE;
+}
+
+static gboolean
+valent_lan_channel_service_socket_send (GSocket      *socket,
+                                        GIOCondition  condition,
+                                        gpointer      user_data)
+{
+  GTask *task = G_TASK (user_data);
+  GSocketAddress *address = g_task_get_source_object (task);
+  GBytes *bytes = g_task_get_task_data (task);
+  gssize written;
+  g_autoptr (GError) error = NULL;
+
+  g_assert (G_IS_SOCKET (socket));
+  g_assert (condition == G_IO_OUT);
+
+  written = g_socket_send_to (socket,
+                              address,
+                              g_bytes_get_data (bytes, NULL),
+                              g_bytes_get_size (bytes),
+                              NULL,
+                              &error);
+
+  /* We only check for real errors, not partial writes */
+  if (written == -1)
+    g_warning ("%s(): failed to identify to \"%s\": %s",
+               G_STRFUNC,
+               "FIXME",
+               error->message);
 
   g_task_return_boolean (task, TRUE);
+
+  return G_SOURCE_REMOVE;
+}
+
+static gpointer
+valent_lan_channel_service_socket_worker (gpointer data)
+{
+  g_autoptr (GMainLoop) loop = (GMainLoop *)data;
+  GMainContext *context = g_main_loop_get_context (loop);
+
+  g_assert (loop != NULL);
+  g_assert (context != NULL);
+
+  g_main_context_push_thread_default (context);
+  g_main_loop_run (loop);
+  g_main_context_pop_thread_default (context);
+
+  return NULL;
 }
 
 /**
@@ -531,16 +584,13 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
 {
   g_autoptr (GSocket) socket4 = NULL;
   g_autoptr (GSocket) socket6 = NULL;
+  g_autoptr (GCancellable) destroy = NULL;
   guint16 port = VALENT_LAN_PROTOCOL_PORT;
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
 
   valent_object_lock (VALENT_OBJECT (self));
-  if (self->udp_socket6 || self->udp_socket4)
-    {
-      valent_object_unlock (VALENT_OBJECT (self));
-      return TRUE;
-    }
+  destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
   port = self->port;
   valent_object_unlock (VALENT_OBJECT (self));
 
@@ -554,7 +604,10 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
     {
       g_autoptr (GInetAddress) inet_address = NULL;
       g_autoptr (GSocketAddress) address = NULL;
-      g_autoptr (GTask) task = NULL;
+      g_autoptr (GMainContext) context = NULL;
+      g_autoptr (GMainLoop) loop = NULL;
+      g_autoptr (GSource) source = NULL;
+      g_autoptr (GThread) thread = NULL;
 
       /* Bind the port */
       inet_address = g_inet_address_new_any (G_SOCKET_FAMILY_IPV6);
@@ -565,13 +618,27 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
       else
         return FALSE;
 
-      /* Watch the socket for incoming identity packets */
-      task = g_task_new (self, cancellable, NULL, NULL);
-      g_task_set_source_tag (task, valent_lan_channel_service_udp_setup);
-      g_task_set_task_data (task, g_object_ref (socket6), g_object_unref);
-      g_task_run_in_thread (task, socket_read_task);
+      /* Create a thread with a GMainContext to manage the socket */
+      context = g_main_context_new ();
+      loop = g_main_loop_new (context, FALSE);
+      thread = g_thread_try_new ("valent-lan-channel-service",
+                                 valent_lan_channel_service_socket_worker,
+                                 g_main_loop_ref (loop),
+                                 error);
+
+      if (thread == NULL)
+        return FALSE;
+
+      /* Watch for incoming broadcasts */
+      source = g_socket_create_source (socket6, G_IO_IN, destroy);
+      g_source_set_callback (source,
+                             G_SOURCE_FUNC (valent_lan_channel_service_socket_recv),
+                             g_object_ref (self),
+                             g_object_unref);
+      g_source_attach (source, context);
 
       valent_object_lock (VALENT_OBJECT (self));
+      self->loop6 = g_main_loop_ref (loop);
       self->udp_socket6 = g_object_ref (socket6);
       valent_object_unlock (VALENT_OBJECT (self));
 
@@ -590,7 +657,10 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
     {
       g_autoptr (GInetAddress) inet_address = NULL;
       g_autoptr (GSocketAddress) address = NULL;
-      g_autoptr (GTask) task = NULL;
+      g_autoptr (GMainContext) context = NULL;
+      g_autoptr (GMainLoop) loop = NULL;
+      g_autoptr (GSource) source = NULL;
+      g_autoptr (GThread) thread = NULL;
 
       /* Bind the port */
       inet_address = g_inet_address_new_any (G_SOCKET_FAMILY_IPV4);
@@ -601,13 +671,27 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
       else
         return FALSE;
 
-      /* Watch the socket for incoming identity packets */
-      task = g_task_new (self, cancellable, NULL, NULL);
-      g_task_set_source_tag (task, valent_lan_channel_service_udp_setup);
-      g_task_set_task_data (task, g_object_ref (socket4), g_object_unref);
-      g_task_run_in_thread (task, socket_read_task);
+      /* Create a thread with a GMainContext to manage the socket */
+      context = g_main_context_new ();
+      loop = g_main_loop_new (context, FALSE);
+      thread = g_thread_try_new ("valent-lan-channel-service",
+                                 valent_lan_channel_service_socket_worker,
+                                 g_main_loop_ref (loop),
+                                 error);
+
+      if (thread == NULL)
+        return FALSE;
+
+      /* Watch for incoming broadcasts */
+      source = g_socket_create_source (socket4, G_IO_IN, destroy);
+      g_source_set_callback (source,
+                             G_SOURCE_FUNC (valent_lan_channel_service_socket_recv),
+                             g_object_ref (self),
+                             g_object_unref);
+      g_source_attach (source, context);
 
       valent_object_lock (VALENT_OBJECT (self));
+      self->loop4 = g_main_loop_ref (loop);
       self->udp_socket4 = g_object_ref (socket4);
       valent_object_unlock (VALENT_OBJECT (self));
     }
@@ -686,7 +770,6 @@ valent_lan_channel_service_identify (ValentChannelService *service,
   g_autoptr (GSocketAddress) address = NULL;
   g_autoptr (JsonNode) identity = NULL;
   g_autofree char *identity_json = NULL;
-  glong identity_len;
   const char *hostname = self->broadcast_address;
   guint16 port = self->port;
 
@@ -721,48 +804,45 @@ valent_lan_channel_service_identify (ValentChannelService *service,
   /* Serialize the identity */
   identity = valent_channel_service_ref_identity (service);
   identity_json = valent_packet_serialize (identity);
-  identity_len = strlen (identity_json);
 
   /* IPv6 */
-  if (self->udp_socket6 != NULL)
+  if (self->loop6 != NULL)
     {
-      gssize written;
-      g_autoptr (GError) error = NULL;
+      g_autoptr (GSource) source = NULL;
+      g_autoptr (GTask) task = NULL;
 
-      written = g_socket_send_to (self->udp_socket6,
-                                  address,
-                                  identity_json,
-                                  identity_len,
-                                  NULL,
-                                  &error);
+      task = g_task_new (address, NULL, NULL, NULL);
+      g_task_set_source_tag (task, valent_lan_channel_service_identify);
+      g_task_set_task_data (task,
+                            g_bytes_new (identity_json, strlen (identity_json)),
+                            (GDestroyNotify)g_bytes_unref);
 
-      /* We only check for real errors, not partial writes */
-      if (written == -1)
-        g_warning ("%s(): failed to identify to \"%s\": %s",
-                   G_STRFUNC,
-                   target,
-                   error->message);
+      source = g_socket_create_source (self->udp_socket6, G_IO_OUT, NULL);
+      g_source_set_callback (source,
+                             G_SOURCE_FUNC (valent_lan_channel_service_socket_send),
+                             g_steal_pointer (&task),
+                             g_object_unref);
+      g_source_attach (source, g_main_loop_get_context (self->loop6));
     }
 
   /* IPv4 */
-  if (self->udp_socket4 != NULL)
+  if (self->loop4 != NULL)
     {
-      gssize written;
-      g_autoptr (GError) error = NULL;
+      g_autoptr (GSource) source = NULL;
+      g_autoptr (GTask) task = NULL;
 
-      written = g_socket_send_to (self->udp_socket4,
-                                  address,
-                                  identity_json,
-                                  identity_len,
-                                  NULL,
-                                  &error);
+      task = g_task_new (address, NULL, NULL, NULL);
+      g_task_set_source_tag (task, valent_lan_channel_service_identify);
+      g_task_set_task_data (task,
+                            g_bytes_new (identity_json, strlen (identity_json)),
+                            (GDestroyNotify)g_bytes_unref);
 
-      /* We only check for real errors, not partial writes */
-      if (written == -1)
-        g_warning ("%s(): failed to identify to \"%s\": %s",
-                   G_STRFUNC,
-                   target,
-                   error->message);
+      source = g_socket_create_source (self->udp_socket4, G_IO_OUT, NULL);
+      g_source_set_callback (source,
+                             G_SOURCE_FUNC (valent_lan_channel_service_socket_send),
+                             g_steal_pointer (&task),
+                             g_object_unref);
+      g_source_attach (source, g_main_loop_get_context (self->loop4));
     }
 }
 
@@ -874,6 +954,14 @@ valent_lan_channel_service_dispose (GObject *object)
       g_socket_listener_close (G_SOCKET_LISTENER (self->listener));
       g_clear_object (&self->listener);
     }
+
+  if (self->loop4 != NULL)
+    g_main_loop_quit (self->loop4);
+  g_clear_pointer (&self->loop4, g_main_loop_unref);
+
+  if (self->loop6 != NULL)
+    g_main_loop_quit (self->loop6);
+  g_clear_pointer (&self->loop6, g_main_loop_unref);
 
   g_clear_object (&self->udp_socket4);
   g_clear_object (&self->udp_socket6);
