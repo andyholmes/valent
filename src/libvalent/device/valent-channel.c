@@ -54,8 +54,7 @@ typedef struct
 
   /* Packet Buffer */
   GDataInputStream *input_buffer;
-  GQueue            output_buffer;
-  unsigned int      output_pending : 1;
+  GMainLoop        *output_buffer;
 } ValentChannelPrivate;
 
 G_DEFINE_TYPE_WITH_PRIVATE (ValentChannel, valent_channel, VALENT_TYPE_OBJECT)
@@ -245,20 +244,6 @@ valent_channel_real_store_data (ValentChannel *channel,
 /*
  * ValentChannel
  */
-static inline void
-valent_channel_write_cancel (gpointer data)
-{
-  g_autoptr (GTask) task = G_TASK (data);
-
-  if (!g_task_get_completed (task))
-    {
-      g_task_return_new_error (task,
-                               G_IO_ERROR,
-                               G_IO_ERROR_CONNECTION_CLOSED,
-                               "Channel is closed");
-    }
-}
-
 static inline gboolean
 valent_channel_return_error_if_closed (ValentChannel *self,
                                        GTask         *task)
@@ -271,7 +256,9 @@ valent_channel_return_error_if_closed (ValentChannel *self,
   valent_object_lock (VALENT_OBJECT (self));
   if (priv->base_stream == NULL || g_io_stream_is_closed (priv->base_stream))
     {
-      g_queue_clear_full (&priv->output_buffer, valent_channel_write_cancel);
+      if (priv->output_buffer != NULL)
+        g_main_loop_quit (priv->output_buffer);
+      g_clear_pointer (&priv->output_buffer, g_main_loop_unref);
       g_clear_object (&priv->input_buffer);
       valent_object_unlock (VALENT_OBJECT (self));
 
@@ -285,6 +272,26 @@ valent_channel_return_error_if_closed (ValentChannel *self,
   return FALSE;
 }
 
+static gpointer
+valent_channel_write_packet_worker (gpointer data)
+{
+  g_autoptr (GMainLoop) loop = (GMainLoop *)data;
+  GMainContext *context = g_main_loop_get_context (loop);
+
+  /* The loop quits when the channel is closed, then the context is drained to
+   * ensure all tasks return. */
+  g_main_context_push_thread_default (context);
+
+  g_main_loop_run (loop);
+
+  while (g_main_context_pending (context))
+    g_main_context_iteration (NULL, FALSE);
+
+  g_main_context_pop_thread_default (context);
+
+  return NULL;
+}
+
 static void
 valent_channel_set_base_stream (ValentChannel *self,
                                 GIOStream     *base_stream)
@@ -295,7 +302,9 @@ valent_channel_set_base_stream (ValentChannel *self,
 
   if (base_stream != NULL)
     {
+      g_autoptr (GMainContext) context = NULL;
       GInputStream *input_stream;
+      GThread *thread;
 
       valent_object_lock (VALENT_OBJECT (self));
       input_stream = g_io_stream_get_input_stream (base_stream);
@@ -305,7 +314,13 @@ valent_channel_set_base_stream (ValentChannel *self,
                                          "base-stream",       input_stream,
                                          "close-base-stream", FALSE,
                                          NULL);
-      g_queue_init (&priv->output_buffer);
+
+      context = g_main_context_new ();
+      priv->output_buffer = g_main_loop_new (context, FALSE);
+      thread = g_thread_new ("valent-channel",
+                             valent_channel_write_packet_worker,
+                             g_main_loop_ref (priv->output_buffer));
+      g_clear_pointer (&thread, g_thread_unref);
       valent_object_unlock (VALENT_OBJECT (self));
     }
 }
@@ -321,7 +336,7 @@ valent_channel_finalize (GObject *object)
   ValentChannelPrivate *priv = valent_channel_get_instance_private (self);
 
   valent_object_lock (VALENT_OBJECT (self));
-  g_queue_clear (&priv->output_buffer);
+  g_clear_pointer (&priv->output_buffer, g_main_loop_unref);
   g_clear_object (&priv->input_buffer);
   g_clear_object (&priv->base_stream);
   g_clear_pointer (&priv->identity, json_node_unref);
@@ -593,7 +608,10 @@ valent_channel_close (ValentChannel  *channel,
   if (priv->base_stream != NULL && !g_io_stream_is_closed (priv->base_stream))
     {
       ret = g_io_stream_close (priv->base_stream, cancellable, error);
-      g_queue_clear_full (&priv->output_buffer, valent_channel_write_cancel);
+
+      if (priv->output_buffer != NULL)
+        g_main_loop_quit (priv->output_buffer);
+      g_clear_pointer (&priv->output_buffer, g_main_loop_unref);
       g_clear_object (&priv->input_buffer);
     }
   valent_object_unlock (VALENT_OBJECT (channel));
@@ -781,50 +799,35 @@ valent_channel_read_packet_finish (ValentChannel  *channel,
   VALENT_RETURN (ret);
 }
 
-static void
-valent_channel_flush_task (GTask        *task,
-                           gpointer      source_object,
-                           gpointer      task_data,
-                           GCancellable *cancellable)
+static gboolean
+valent_channel_write_packet_func (gpointer data)
 {
-  ValentChannel *self = VALENT_CHANNEL (source_object);
+  GTask *task = G_TASK (data);
+  ValentChannel *self = g_task_get_source_object (task);
   ValentChannelPrivate *priv = valent_channel_get_instance_private (self);
   g_autoptr (GOutputStream) stream = NULL;
+  JsonNode *packet = NULL;
+  GCancellable *cancellable = NULL;
+  GError *error = NULL;
+
+  g_assert (G_IS_TASK (task));
+  g_assert (VALENT_IS_CHANNEL (self));
 
   if (valent_channel_return_error_if_closed (self, task))
-      return;
+    return G_SOURCE_REMOVE;
 
   stream = g_object_ref (g_io_stream_get_output_stream (priv->base_stream));
   valent_object_unlock (VALENT_OBJECT (self));
 
-  while (TRUE)
-    {
-      g_autoptr (GTask) next = NULL;
-      JsonNode *packet = NULL;
-      GCancellable *cancel = NULL;
-      GError *error = NULL;
+  packet = g_task_get_task_data (task);
+  cancellable = g_task_get_cancellable (task);
 
-      /* Hold the lock to avoid dropping packets. */
-      if (valent_channel_return_error_if_closed (self, task))
-        return;
+  if (valent_packet_to_stream (stream, packet, cancellable, &error))
+    g_task_return_boolean (task, TRUE);
+  else
+    g_task_return_error (task, error);
 
-      next = g_queue_pop_head (&priv->output_buffer);
-      priv->output_pending = (next != NULL);
-      valent_object_unlock (VALENT_OBJECT (self));
-
-      if (next == NULL)
-        break;
-
-      packet = g_task_get_task_data (next);
-      cancel = g_task_get_cancellable (next);
-
-      if (valent_packet_to_stream (stream, packet, cancel, &error))
-        g_task_return_boolean (next, TRUE);
-      else
-        g_task_return_error (next, error);
-    }
-
-  g_task_return_boolean (task, TRUE);
+  return G_SOURCE_REMOVE;
 }
 
 /**
@@ -869,18 +872,12 @@ valent_channel_write_packet (ValentChannel       *channel,
   if (valent_channel_return_error_if_closed (channel, task))
     VALENT_EXIT;
 
-  g_queue_push_tail (&priv->output_buffer, g_steal_pointer (&task));
+  g_main_context_invoke_full (g_main_loop_get_context (priv->output_buffer),
+                              g_task_get_priority (task),
+                              valent_channel_write_packet_func,
+                              g_object_ref (task),
+                              g_object_unref);
 
-  if (priv->output_pending == FALSE)
-    {
-      g_autoptr (GTask) operation = NULL;
-
-      priv->output_pending = TRUE;
-
-      operation = g_task_new (channel, NULL, NULL, NULL);
-      g_task_set_source_tag (operation, valent_channel_flush_task);
-      g_task_run_in_thread (operation, valent_channel_flush_task);
-    }
   valent_object_unlock (VALENT_OBJECT (channel));
 
   VALENT_EXIT;
