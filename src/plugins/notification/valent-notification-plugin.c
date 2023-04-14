@@ -139,6 +139,26 @@ valent_notification_plugin_watch_notifications (ValentNotificationPlugin *self,
 /*
  * Icon Transfers
  */
+typedef struct
+{
+  GRecMutex     mutex;
+  ValentDevice *device;
+  JsonNode     *packet;
+} IconTransferData;
+
+static void
+icon_transfer_data_free (gpointer data)
+{
+  IconTransferData *transfer = (IconTransferData *)data;
+
+  g_rec_mutex_lock (&transfer->mutex);
+  g_clear_object (&transfer->device);
+  g_clear_pointer (&transfer->packet, json_node_unref);
+  g_rec_mutex_unlock (&transfer->mutex);
+  g_rec_mutex_clear (&transfer->mutex);
+  g_clear_pointer (&transfer, g_free);
+}
+
 static GFile *
 valent_notification_plugin_get_icon_file (ValentNotificationPlugin *self,
                                           JsonNode                 *packet)
@@ -173,22 +193,28 @@ download_icon_task (GTask        *task,
                     GCancellable *cancellable)
 {
   ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (source_object);
-  JsonNode *packet = task_data;
+  IconTransferData *transfer = (IconTransferData *)task_data;
+  g_autoptr (ValentDevice) device = NULL;
+  g_autoptr (JsonNode) packet = NULL;
   g_autoptr (GFile) file = NULL;
   GError *error = NULL;
 
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
-  g_assert (VALENT_IS_PACKET (packet));
+  g_assert (transfer != NULL);
 
   if (g_task_return_error_if_cancelled (task))
     return;
+
+  g_rec_mutex_lock (&transfer->mutex);
+  device = g_steal_pointer (&transfer->device);
+  packet = g_steal_pointer (&transfer->packet);
+  g_rec_mutex_unlock (&transfer->mutex);
 
   file = valent_notification_plugin_get_icon_file (self, packet);
 
   /* Check if we've already downloaded this icon */
   if (!g_file_query_exists (file, cancellable))
     {
-      ValentDevice *device;
       g_autoptr (GIOStream) source = NULL;
       g_autoptr (GFileOutputStream) target = NULL;
       g_autoptr (GFile) cache_dir = NULL;
@@ -207,8 +233,6 @@ download_icon_task (GTask        *task,
         }
 
       /* Get the device channel */
-      device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
-
       if ((channel = valent_device_ref_channel (device)) == NULL)
         {
           return g_task_return_new_error (task,
@@ -283,17 +307,24 @@ valent_notification_plugin_download_icon (ValentNotificationPlugin *self,
                                           GAsyncReadyCallback       callback,
                                           gpointer                  user_data)
 {
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (self);
   g_autoptr (GTask) task = NULL;
+  IconTransferData *transfer = NULL;
 
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
+  transfer = g_new0 (IconTransferData, 1);
+  g_rec_mutex_init (&transfer->mutex);
+  g_rec_mutex_lock (&transfer->mutex);
+  transfer->device = g_object_ref (valent_device_plugin_get_device (plugin));
+  transfer->packet = json_node_ref (packet);
+  g_rec_mutex_unlock (&transfer->mutex);
+
   task = g_task_new (self, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_notification_plugin_download_icon);
-  g_task_set_task_data (task,
-                        json_node_ref (packet),
-                        (GDestroyNotify)json_node_unref);
+  g_task_set_task_data (task, transfer, icon_transfer_data_free);
   g_task_run_in_thread (task, download_icon_task);
 }
 
