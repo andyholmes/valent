@@ -47,6 +47,7 @@ valent_menu_list_add_row (ValentMenuList *self,
   g_autoptr (GVariant) action_target = NULL;
   g_autoptr (GVariant) vicon = NULL;
   g_autoptr (GIcon) gicon = NULL;
+  unsigned int position = index;
 
   /* Row Label */
   if (!g_menu_model_get_item_attribute (self->model, index,
@@ -108,9 +109,9 @@ valent_menu_list_add_row (ValentMenuList *self,
 
   /* Account for "Go Previous" item */
   if (self->parent != NULL)
-    index += 1;
+    position++;
 
-  gtk_list_box_insert (GTK_LIST_BOX (self->list), GTK_WIDGET (row), index);
+  gtk_list_box_insert (GTK_LIST_BOX (self->list), GTK_WIDGET (row), position);
 
   /* NOTE: this must be done after the row is added to the list, otherwise it
    *       may be in a "realized" state and fail an assertion check.
