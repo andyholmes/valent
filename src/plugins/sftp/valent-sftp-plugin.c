@@ -609,14 +609,14 @@ valent_sftp_plugin_enable (ValentDevicePlugin *plugin)
 
   /* Watch the volume monitor */
   self->monitor = g_volume_monitor_get ();
-  g_signal_connect (self->monitor,
-                    "mount-added",
-                    G_CALLBACK (on_mount_added),
-                    self);
-  g_signal_connect (self->monitor,
-                    "mount-removed",
-                    G_CALLBACK (on_mount_removed),
-                    self);
+  g_signal_connect_object (self->monitor,
+                           "mount-added",
+                           G_CALLBACK (on_mount_added),
+                           self, 0);
+  g_signal_connect_object (self->monitor,
+                           "mount-removed",
+                           G_CALLBACK (on_mount_removed),
+                           self, 0);
 }
 
 static void

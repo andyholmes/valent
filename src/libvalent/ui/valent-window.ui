@@ -41,17 +41,25 @@
                     </property>
                     <child type="start">
                       <object class="GtkButton">
-                        <property name="tooltip-text" translatable="yes">Refresh</property>
-                        <property name="valign">center</property>
                         <property name="action-name">win.refresh</property>
                         <property name="icon-name">view-refresh-symbolic</property>
+                        <property name="tooltip-text" translatable="yes">Refresh</property>
+                        <property name="valign">center</property>
+                        <accessibility>
+                          <property name="label" translatable="yes">Refresh</property>
+                        </accessibility>
                       </object>
                     </child>
                     <child type="end">
                       <object class="GtkMenuButton">
-                        <property name="valign">center</property>
-                        <property name="menu-model">primary_menu</property>
                         <property name="icon-name">open-menu-symbolic</property>
+                        <property name="menu-model">primary_menu</property>
+                        <property name="primary">1</property>
+                        <property name="tooltip-text" translatable="yes">Main Menu</property>
+                        <property name="valign">center</property>
+                        <accessibility>
+                          <property name="label" translatable="yes">Main Menu</property>
+                        </accessibility>
                       </object>
                     </child>
                   </object>
