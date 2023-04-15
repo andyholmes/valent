@@ -58,10 +58,10 @@ valent_menu_list_item_activate (GtkListBoxRow *row)
 
 static void
 on_key_pressed (GtkEventControllerKey *controller,
-                 unsigned int           keyval,
-                 unsigned int           keycode,
-                 GdkModifierType        state,
-                 ValentMenuList        *self)
+                unsigned int           keyval,
+                unsigned int           keycode,
+                GdkModifierType        state,
+                ValentMenuList        *self)
 {
   GtkWidget *row = NULL;
   static unsigned int activate_keyvals[] = {
@@ -250,8 +250,6 @@ valent_menu_list_add_submenu (ValentMenuList *self,
   ValentMenuList *submenu;
   GtkListBoxRow *row;
   GtkWidget *arrow;
-  const char *title = NULL;
-  GtkGesture *gesture;
   GtkEventController *controller;
   unsigned int position = index_;
 
@@ -278,8 +276,7 @@ valent_menu_list_add_submenu (ValentMenuList *self,
   g_object_set_data (G_OBJECT (row), "valent-submenu-item", submenu);
 
   stack = gtk_widget_get_ancestor (GTK_WIDGET (self), GTK_TYPE_STACK);
-  title = adw_preferences_row_get_title (ADW_PREFERENCES_ROW (row));
-  gtk_stack_add_titled (GTK_STACK (stack), GTK_WIDGET (submenu), title, title);
+  gtk_stack_add_child (GTK_STACK (stack), GTK_WIDGET (submenu));
 
   g_signal_connect_object (row,
                            "destroy",
@@ -288,30 +285,29 @@ valent_menu_list_add_submenu (ValentMenuList *self,
 
   /* Side-step GtkListBox to catch row activation; it will not be emitted if
    * this row has an action set (and it should).  */
-  gesture = gtk_gesture_click_new ();
-  gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (gesture),
-                                              GTK_PHASE_BUBBLE);
-  gtk_gesture_single_set_touch_only (GTK_GESTURE_SINGLE (gesture),
-                                     FALSE);
-  gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (gesture),
-                                 GDK_BUTTON_PRIMARY);
-  g_signal_connect_object (gesture,
+  controller = g_object_new (GTK_TYPE_GESTURE_CLICK,
+                             "button",            GDK_BUTTON_PRIMARY,
+                             "propagation-phase", GTK_PHASE_BUBBLE,
+                             "touch-only",        FALSE,
+                             NULL);
+  g_signal_connect_object (controller,
                            "pressed",
                            G_CALLBACK (on_gesture_pressed),
                            self, 0);
-  g_signal_connect_object (gesture,
+  g_signal_connect_object (controller,
                            "released",
                            G_CALLBACK (on_gesture_released),
                            self, 0);
-  gtk_widget_add_controller (GTK_WIDGET (row), GTK_EVENT_CONTROLLER (gesture));
+  gtk_widget_add_controller (GTK_WIDGET (row), g_steal_pointer (&controller));
 
-  controller = gtk_event_controller_key_new ();
-  gtk_event_controller_set_propagation_phase (controller, GTK_PHASE_BUBBLE);
+  controller = g_object_new (GTK_TYPE_EVENT_CONTROLLER_KEY,
+                             "propagation-phase", GTK_PHASE_BUBBLE,
+                             NULL);
   g_signal_connect_object (controller,
                            "key-pressed",
                            G_CALLBACK (on_key_pressed),
                            self, 0);
-  gtk_widget_add_controller (GTK_WIDGET (row), controller);
+  gtk_widget_add_controller (GTK_WIDGET (row), g_steal_pointer (&controller));
 }
 
 static void
@@ -627,7 +623,7 @@ valent_menu_list_set_submenu_of (ValentMenuList *self,
                                  ValentMenuList *parent)
 {
   GtkWidget *row;
-  GtkWidget *grid;
+  GtkWidget *box;
   GtkWidget *icon;
   GtkWidget *label;
 
@@ -637,32 +633,27 @@ valent_menu_list_set_submenu_of (ValentMenuList *self,
   if (!g_set_object (&self->parent, parent) || parent == NULL)
     return;
 
-  /* stack = gtk_widget_get_ancestor (GTK_WIDGET (parent), GTK_TYPE_STACK); */
-  /* page = gtk_stack_get_page (GTK_STACK (stack), GTK_WIDGET (parent)); */
-  /* title = gtk_stack_page_get_title (page); */
-
   row = g_object_new (GTK_TYPE_LIST_BOX_ROW,
-                      "action-name",    "menu.submenu",
                       "action-target",  g_variant_new_string ("main"),
+                      "action-name",    "menu.submenu",
                       "height-request", 56,
                       "selectable",     FALSE,
                       NULL);
+  gtk_widget_add_css_class (row, "accent");
 
-  grid = g_object_new (GTK_TYPE_GRID,
-                       "column-spacing", 12,
-                       "margin-start",   20,
-                       "margin-end",     20,
-                       "margin-bottom",   8,
-                       "margin-top",      8,
-                       NULL);
-  gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (row), GTK_WIDGET (grid));
+  box = g_object_new (GTK_TYPE_CENTER_BOX,
+                      "margin-start",  12,
+                      "margin-end",    12,
+                      "margin-bottom", 8,
+                      "margin-top",    8,
+                      NULL);
+  gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (row), GTK_WIDGET (box));
 
   icon = g_object_new (GTK_TYPE_IMAGE,
                        "icon-name", "go-previous-symbolic",
                        "icon-size", GTK_ICON_SIZE_NORMAL,
                        NULL);
-  gtk_widget_add_css_class (icon, "dim-label");
-  gtk_grid_attach (GTK_GRID (grid), icon, 0, 0, 1, 1);
+  gtk_center_box_set_start_widget (GTK_CENTER_BOX (box), icon);
 
   label = g_object_new (GTK_TYPE_LABEL,
                         "label",   _("Previous"),
@@ -671,7 +662,7 @@ valent_menu_list_set_submenu_of (ValentMenuList *self,
                         "valign",  GTK_ALIGN_CENTER,
                         "vexpand", TRUE,
                         NULL);
-  gtk_grid_attach (GTK_GRID (grid), label, 1, 0, 1, 1);
+  gtk_center_box_set_center_widget (GTK_CENTER_BOX (box), label);
   gtk_list_box_insert (GTK_LIST_BOX (self->list), GTK_WIDGET (row), 0);
 }
 
