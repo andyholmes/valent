@@ -5,6 +5,7 @@
 
 #include "config.h"
 
+#include <adwaita.h>
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
 #include <libvalent-core.h>
@@ -16,9 +17,11 @@ struct _ValentMenuList
 {
   GtkWidget       parent_instance;
 
-  GtkWidget      *list;
   GMenuModel     *model;
   ValentMenuList *parent;
+
+  GtkWidget      *list;
+  GtkWidget      *active_row;
 };
 
 G_DEFINE_FINAL_TYPE (ValentMenuList, valent_menu_list, GTK_TYPE_WIDGET)
@@ -34,89 +37,157 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 
 static void
+valent_menu_list_item_activate (GtkListBoxRow *row)
+{
+  GtkWidget *stack = NULL;
+  GtkWidget *submenu = NULL;
+
+  g_assert (GTK_IS_LIST_BOX_ROW (row));
+
+  submenu = g_object_get_data (G_OBJECT (row), "valent-submenu-item");
+
+  if (submenu != NULL)
+    stack = gtk_widget_get_ancestor (GTK_WIDGET (submenu), GTK_TYPE_STACK);
+
+  if (stack != NULL)
+    gtk_stack_set_visible_child (GTK_STACK (stack), submenu);
+}
+
+static void
+on_key_pressed (GtkEventControllerKey *controller,
+                 unsigned int           keyval,
+                 unsigned int           keycode,
+                 GdkModifierType        state,
+                 ValentMenuList        *self)
+{
+  GtkWidget *row = NULL;
+  static unsigned int activate_keyvals[] = {
+    GDK_KEY_space,
+    GDK_KEY_KP_Space,
+    GDK_KEY_Return,
+    GDK_KEY_ISO_Enter,
+    GDK_KEY_KP_Enter,
+  };
+
+  g_assert (VALENT_IS_MENU_LIST (self));
+
+  for (unsigned int i = 0; i < G_N_ELEMENTS (activate_keyvals); i++)
+    {
+      if (activate_keyvals[i] != keyval)
+        continue;
+
+      row = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (controller));
+      valent_menu_list_item_activate (GTK_LIST_BOX_ROW (row));
+      self->active_row = NULL;
+
+      break;
+    }
+}
+
+static void
+on_gesture_pressed (GtkGestureClick *gesture,
+                    unsigned int     n_press,
+                    double           x,
+                    double           y,
+                    ValentMenuList  *self)
+{
+  GtkWidget *row = NULL;
+
+  g_assert (VALENT_IS_MENU_LIST (self));
+
+  row = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (gesture));
+
+  if (gtk_widget_is_sensitive (row))
+    self->active_row = row;
+  else
+    self->active_row = NULL;
+}
+
+static void
+on_gesture_released (GtkGestureClick *gesture,
+                     unsigned int     n_press,
+                     double           x,
+                     double           y,
+                     ValentMenuList  *self)
+{
+  GtkWidget *row = NULL;
+
+  g_assert (VALENT_IS_MENU_LIST (self));
+
+  row = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (gesture));
+
+  if (self->active_row == row)
+    valent_menu_list_item_activate (GTK_LIST_BOX_ROW (row));
+
+  self->active_row = NULL;
+}
+
+static void
 valent_menu_list_add_row (ValentMenuList *self,
-                          int             index)
+                          int             index_)
 {
   GtkWidget *row;
-  GtkGrid *row_grid;
   GtkWidget *row_icon;
-  GtkWidget *row_label;
   g_autofree char *hidden_when = NULL;
   g_autofree char *label = NULL;
   g_autofree char *action_name = NULL;
   g_autoptr (GVariant) action_target = NULL;
   g_autoptr (GVariant) vicon = NULL;
   g_autoptr (GIcon) gicon = NULL;
-  unsigned int position = index;
+  unsigned int position = index_;
+
+  /* Offset for "Previous" item */
+  if (self->parent != NULL)
+    position++;
 
   /* Row Label */
-  if (!g_menu_model_get_item_attribute (self->model, index,
+  if (!g_menu_model_get_item_attribute (self->model, index_,
                                         "label", "s", &label))
     {
-      g_warning ("%s: menu item without label at %d", G_STRFUNC, index);
+      g_warning ("%s: menu item without label at %d", G_STRFUNC, index_);
       return;
     }
 
   /* GAction */
-  if (g_menu_model_get_item_attribute (self->model, index,
+  if (g_menu_model_get_item_attribute (self->model, index_,
                                        "action", "s", &action_name))
     {
       action_target = g_menu_model_get_item_attribute_value (self->model,
-                                                             index,
+                                                             index_,
                                                              "target",
                                                              NULL);
     }
 
   /* Icon */
   vicon = g_menu_model_get_item_attribute_value (self->model,
-                                                 index,
+                                                 index_,
                                                  "icon",
                                                  NULL);
 
   if (vicon != NULL)
     gicon = g_icon_deserialize (vicon);
 
-  row = g_object_new (GTK_TYPE_LIST_BOX_ROW,
-                      "action-name",    action_name,
+  row = g_object_new (ADW_TYPE_ACTION_ROW,
                       "action-target",  action_target,
-                      "height_request", 56,
+                      "action-name",    action_name,
+                      "activatable",    TRUE,
                       "selectable",     FALSE,
+                      "title",          label,
+                      "height-request", 56,
                       NULL);
-
-  row_grid = g_object_new (GTK_TYPE_GRID,
-                           "column-spacing", 12,
-                           "margin-start",   20,
-                           "margin-end",     20,
-                           "margin-bottom",   8,
-                           "margin-top",      8,
-                           NULL);
-  gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (row), GTK_WIDGET (row_grid));
 
   row_icon = g_object_new (GTK_TYPE_IMAGE,
                            "gicon",     gicon,
                            "icon-size", GTK_ICON_SIZE_NORMAL,
                            NULL);
-  gtk_grid_attach (row_grid, row_icon, 0, 0, 1, 1);
-
-  row_label = g_object_new (GTK_TYPE_LABEL,
-                            "label",   label,
-                            "halign",  GTK_ALIGN_START,
-                            "hexpand", TRUE,
-                            "valign",  GTK_ALIGN_CENTER,
-                            "vexpand", TRUE,
-                            NULL);
-  gtk_grid_attach (row_grid, row_label, 1, 0, 1, 1);
-
-  /* Account for "Go Previous" item */
-  if (self->parent != NULL)
-    position++;
+  adw_action_row_add_prefix (ADW_ACTION_ROW (row), row_icon);
 
   gtk_list_box_insert (GTK_LIST_BOX (self->list), GTK_WIDGET (row), position);
 
   /* NOTE: this must be done after the row is added to the list, otherwise it
    *       may be in a "realized" state and fail an assertion check.
    */
-  if (g_menu_model_get_item_attribute (self->model, index,
+  if (g_menu_model_get_item_attribute (self->model, index_,
                                        "hidden-when", "s", &hidden_when))
     {
       if (g_strcmp0 (hidden_when, "action-disabled") == 0)
@@ -128,45 +199,51 @@ valent_menu_list_add_row (ValentMenuList *self,
 
 static void
 valent_menu_list_add_section (ValentMenuList *self,
-                              int             index,
+                              int             index_,
                               GMenuModel     *model)
 {
   ValentMenuList *section;
+  unsigned int position = index_;
 
   g_assert (VALENT_IS_MENU_LIST (self));
   g_assert (G_IS_MENU_MODEL (model));
 
+  /* Offset for "Previous" item */
+  if (self->parent != NULL)
+    position++;
+
   section = valent_menu_list_new (model);
-  gtk_list_box_insert (GTK_LIST_BOX (self->list), GTK_WIDGET (section), index);
+  gtk_list_box_insert (GTK_LIST_BOX (self->list), GTK_WIDGET (section), position);
 }
 
 static void
 valent_menu_list_add_submenu (ValentMenuList *self,
-                              int             index,
+                              int             index_,
                               GMenuModel     *model)
 {
   GtkWidget *stack;
   ValentMenuList *submenu;
   GtkListBoxRow *row;
-  GtkWidget *grid;
   GtkWidget *arrow;
-  g_autofree char *label = NULL;
-  g_autofree char *action_detail = NULL;
+  const char *title = NULL;
+  GtkGesture *gesture;
+  GtkEventController *controller;
+  unsigned int position = index_;
 
   g_assert (VALENT_IS_MENU_LIST (self));
   g_assert (G_IS_MENU_MODEL (model));
 
-  /* Amend the row */
-  row = gtk_list_box_get_row_at_index (GTK_LIST_BOX (self->list), index);
-  g_menu_model_get_item_attribute (self->model, index, "label", "s", &label);
+  /* Offset for "Previous" item */
+  if (self->parent != NULL)
+    position++;
 
-  action_detail = g_strdup_printf ("menu.submenu::%s", label);
-  gtk_actionable_set_detailed_action_name (GTK_ACTIONABLE (row), action_detail);
+  row = gtk_list_box_get_row_at_index (GTK_LIST_BOX (self->list), position);
+  g_return_if_fail (ADW_IS_ACTION_ROW (row));
 
-  grid = gtk_list_box_row_get_child (row);
+  /* Add an arrow the the row */
   arrow = gtk_image_new_from_icon_name ("go-next-symbolic");
   gtk_widget_add_css_class (arrow, "dim-label");
-  gtk_grid_attach (GTK_GRID (grid), arrow, 2, 0, 1, 1);
+  adw_action_row_add_suffix (ADW_ACTION_ROW (row), arrow);
 
   /* Add the submenu */
   submenu = g_object_new (VALENT_TYPE_MENU_LIST,
@@ -174,29 +251,59 @@ valent_menu_list_add_submenu (ValentMenuList *self,
                           "submenu-of", self,
                           NULL);
   stack = gtk_widget_get_ancestor (GTK_WIDGET (self), GTK_TYPE_STACK);
-  gtk_stack_add_titled (GTK_STACK (stack), GTK_WIDGET (submenu), label, label);
+  title = adw_preferences_row_get_title (ADW_PREFERENCES_ROW (row));
+  gtk_stack_add_titled (GTK_STACK (stack), GTK_WIDGET (submenu), title, title);
+  g_object_set_data (G_OBJECT (row), "valent-submenu-item", submenu);
+
+  /* Side-step GtkListBox to catch row activation; it will not be emitted if
+   * this row has an action set (and it should).  */
+  gesture = gtk_gesture_click_new ();
+  gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (gesture),
+                                              GTK_PHASE_BUBBLE);
+  gtk_gesture_single_set_touch_only (GTK_GESTURE_SINGLE (gesture),
+                                     FALSE);
+  gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (gesture),
+                                 GDK_BUTTON_PRIMARY);
+  g_signal_connect_object (gesture,
+                           "pressed",
+                           G_CALLBACK (on_gesture_pressed),
+                           self, 0);
+  g_signal_connect_object (gesture,
+                           "released",
+                           G_CALLBACK (on_gesture_released),
+                           self, 0);
+  gtk_widget_add_controller (GTK_WIDGET (row), GTK_EVENT_CONTROLLER (gesture));
+
+  controller = gtk_event_controller_key_new ();
+  g_signal_connect_object (controller,
+                           "key-pressed",
+                           G_CALLBACK (on_key_pressed),
+                           self, 0);
+  gtk_widget_add_controller (GTK_WIDGET (row), controller);
 }
 
 static void
 valent_menu_list_add (ValentMenuList *self,
-                      int             index)
+                      int             index_)
 {
   g_autoptr (GMenuLinkIter) iter = NULL;
   const char *link_name;
   GMenuModel *link_value;
 
-  valent_menu_list_add_row (self, index);
+  g_assert (VALENT_IS_MENU_LIST (self));
+
+  valent_menu_list_add_row (self, index_);
 
   //
-  iter = g_menu_model_iterate_item_links (self->model, index);
+  iter = g_menu_model_iterate_item_links (self->model, index_);
 
   while (g_menu_link_iter_get_next (iter, &link_name, &link_value))
     {
       if (g_strcmp0 (link_name, G_MENU_LINK_SECTION) == 0)
-        valent_menu_list_add_section (self, index, link_value);
+        valent_menu_list_add_section (self, index_, link_value);
 
       else if (g_strcmp0 (link_name, G_MENU_LINK_SUBMENU) == 0)
-        valent_menu_list_add_submenu (self, index, link_value);
+        valent_menu_list_add_submenu (self, index_, link_value);
 
       g_clear_object (&link_value);
     }
@@ -204,13 +311,18 @@ valent_menu_list_add (ValentMenuList *self,
 
 static void
 valent_menu_list_remove (ValentMenuList *self,
-                         int             index)
+                         int             index_)
 {
   GtkListBoxRow *row = NULL;
+  unsigned int position = index_;
 
   g_assert (VALENT_IS_MENU_LIST (self));
 
-  row = gtk_list_box_get_row_at_index (GTK_LIST_BOX (self->list), index);
+  /* Offset for "Previous" item */
+  if (self->parent != NULL)
+    position++;
+
+  row = gtk_list_box_get_row_at_index (GTK_LIST_BOX (self->list), position);
 
   if (row != NULL)
     gtk_list_box_remove (GTK_LIST_BOX (self->list), GTK_WIDGET (row));
@@ -500,7 +612,7 @@ valent_menu_list_set_submenu_of (ValentMenuList *self,
   row = g_object_new (GTK_TYPE_LIST_BOX_ROW,
                       "action-name",    "menu.submenu",
                       "action-target",  g_variant_new_string ("main"),
-                      "height_request", 56,
+                      "height-request", 56,
                       "selectable",     FALSE,
                       NULL);
 
