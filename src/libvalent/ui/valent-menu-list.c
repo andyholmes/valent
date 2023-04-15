@@ -36,6 +36,9 @@ enum {
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 
+/*
+ * GMenuModel Submenu Callbacks
+ */
 static void
 valent_menu_list_item_activate (GtkListBoxRow *row)
 {
@@ -122,6 +125,28 @@ on_gesture_released (GtkGestureClick *gesture,
   self->active_row = NULL;
 }
 
+static void
+on_submenu_removed (GtkListBoxRow  *row,
+                    ValentMenuList *self)
+{
+  GtkWidget *stack;
+  GtkWidget *submenu;
+
+  submenu = g_object_get_data (G_OBJECT (row), "valent-submenu-item");
+  g_return_if_fail (GTK_IS_WIDGET (submenu));
+
+  stack = gtk_widget_get_ancestor (submenu, GTK_TYPE_STACK);
+  g_return_if_fail (GTK_IS_WIDGET (stack));
+
+  if (gtk_stack_get_visible_child (GTK_STACK (stack)) == submenu)
+    gtk_stack_set_visible_child_name (GTK_STACK (stack), "main");
+
+  gtk_stack_remove (GTK_STACK (stack), submenu);
+}
+
+/*
+ * GMenuModel Callbacks
+ */
 static void
 valent_menu_list_add_row (ValentMenuList *self,
                           int             index_)
@@ -245,15 +270,21 @@ valent_menu_list_add_submenu (ValentMenuList *self,
   gtk_widget_add_css_class (arrow, "dim-label");
   adw_action_row_add_suffix (ADW_ACTION_ROW (row), arrow);
 
-  /* Add the submenu */
+  /* Add a submenu to the stack, tied to the lifetime of the row */
   submenu = g_object_new (VALENT_TYPE_MENU_LIST,
                           "menu-model", model,
                           "submenu-of", self,
                           NULL);
+  g_object_set_data (G_OBJECT (row), "valent-submenu-item", submenu);
+
   stack = gtk_widget_get_ancestor (GTK_WIDGET (self), GTK_TYPE_STACK);
   title = adw_preferences_row_get_title (ADW_PREFERENCES_ROW (row));
   gtk_stack_add_titled (GTK_STACK (stack), GTK_WIDGET (submenu), title, title);
-  g_object_set_data (G_OBJECT (row), "valent-submenu-item", submenu);
+
+  g_signal_connect_object (row,
+                           "destroy",
+                           G_CALLBACK (on_submenu_removed),
+                           self, 0);
 
   /* Side-step GtkListBox to catch row activation; it will not be emitted if
    * this row has an action set (and it should).  */
@@ -275,6 +306,7 @@ valent_menu_list_add_submenu (ValentMenuList *self,
   gtk_widget_add_controller (GTK_WIDGET (row), GTK_EVENT_CONTROLLER (gesture));
 
   controller = gtk_event_controller_key_new ();
+  gtk_event_controller_set_propagation_phase (controller, GTK_PHASE_BUBBLE);
   g_signal_connect_object (controller,
                            "key-pressed",
                            G_CALLBACK (on_key_pressed),
