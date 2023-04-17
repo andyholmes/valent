@@ -349,7 +349,7 @@ valent_test_await_pending (void)
 }
 
 static gboolean
-valent_test_wait_cb (gpointer data)
+valent_test_await_timeout_cb (gpointer data)
 {
   gboolean *done = data;
 
@@ -360,17 +360,17 @@ valent_test_wait_cb (gpointer data)
 }
 
 /**
- * valent_test_wait:
+ * valent_test_await_timeout:
  * @duration: the time to wait, in milliseconds
  *
  * Iterate the default main context for @duration.
  */
 void
-valent_test_wait (unsigned int duration)
+valent_test_await_timeout (unsigned int duration)
 {
   gboolean done = FALSE;
 
-  g_timeout_add (duration, valent_test_wait_cb, &done);
+  g_timeout_add (duration, valent_test_await_timeout_cb, &done);
 
   while (!done)
     g_main_context_iteration (NULL, FALSE);

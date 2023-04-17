@@ -13,6 +13,7 @@ libvalent_ui_tests = [
   'test-device-preferences-group',
   'test-device-preferences-window',
   'test-media-remote',
+  'test-menu-stack',
   'test-preferences-page',
   'test-preferences-window',
   'test-window',

@@ -85,12 +85,12 @@ test_session_component_self (SessionComponentFixture *fixture,
 
   /* Compare session & adapter */
   g_object_get (fixture->session,
-                "active",      &session_active,
-                "locked",      &session_locked,
+                "active", &session_active,
+                "locked", &session_locked,
                 NULL);
   g_object_get (fixture->adapter,
-                "active",      &adapter_active,
-                "locked",      &adapter_locked,
+                "active", &adapter_active,
+                "locked", &adapter_locked,
                 NULL);
   g_assert_true (session_active == adapter_active);
   g_assert_true (session_locked == adapter_locked);
@@ -105,10 +105,13 @@ test_session_component_self (SessionComponentFixture *fixture,
                     "notify",
                     G_CALLBACK (on_notify),
                     &emitter);
-  valent_session_set_locked (fixture->session, !session_locked);
+  g_object_set (fixture->session,
+                "locked", !session_locked,
+                NULL);
 
-  g_assert_true (valent_session_get_locked (fixture->session));
   g_assert_true (fixture->session == emitter);
+  g_assert_true (valent_session_get_locked (fixture->session));
+  g_assert_true (valent_session_adapter_get_locked (fixture->adapter));
 }
 
 int

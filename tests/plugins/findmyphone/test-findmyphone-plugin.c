@@ -27,7 +27,7 @@ test_findmyphone_plugin_handle_request (ValentTestFixture *fixture,
 
   /* Start ringing */
   valent_test_fixture_handle_packet (fixture, packet);
-  valent_test_wait (1);
+  valent_test_await_timeout (1);
 
   /* Stop ringing */
   valent_test_fixture_handle_packet (fixture, packet);

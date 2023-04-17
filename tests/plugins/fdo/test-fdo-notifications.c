@@ -204,7 +204,7 @@ test_fdo_notifications_source (FdoNotificationsFixture *fixture,
    * NOTE: this is longer than most tests due to the chained async functions
    *       being called in ValentFdoNotifications.
    */
-  valent_test_wait (1000);
+  valent_test_await_timeout (1000);
 
   g_signal_connect (fixture->notifications,
                     "notification-added",

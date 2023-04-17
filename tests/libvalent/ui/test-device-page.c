@@ -12,17 +12,17 @@ test_device_page_basic (ValentTestFixture *fixture,
                         gconstpointer      user_data)
 {
   GtkWindow *window;
-  GtkWidget *panel;
+  GtkWidget *page;
   ValentDevice *device = NULL;
   PeasEngine *engine;
 
-  panel = g_object_new (VALENT_TYPE_DEVICE_PAGE,
-                        "device", fixture->device,
-                        NULL);
-  g_assert_true (VALENT_IS_DEVICE_PAGE (panel));
+  page = g_object_new (VALENT_TYPE_DEVICE_PAGE,
+                       "device", fixture->device,
+                       NULL);
+  g_assert_true (VALENT_IS_DEVICE_PAGE (page));
 
   window = g_object_new (ADW_TYPE_WINDOW,
-                         "content", panel,
+                         "content", page,
                          NULL);
   g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
 
@@ -30,11 +30,16 @@ test_device_page_basic (ValentTestFixture *fixture,
   valent_test_await_pending ();
 
   /* Properties */
-  g_object_get (panel,
+  g_object_get (page,
                 "device", &device,
                 NULL);
   g_assert_true (fixture->device == device);
   g_clear_object (&device);
+
+  /* GActions (activate, since state can't be checked) */
+  gtk_widget_activate_action (page, "page.unpair", NULL);
+  gtk_widget_activate_action (page, "page.preferences", NULL);
+  gtk_widget_activate_action (page, "page.pair", NULL);
 
   /* Unload the plugin */
   engine = valent_get_plugin_engine ();
@@ -52,26 +57,23 @@ test_device_page_dialogs (ValentTestFixture *fixture,
                           gconstpointer      user_data)
 {
   GtkWindow *window;
-  GtkWidget *panel;
+  GtkWidget *page;
 
-  panel = g_object_new (VALENT_TYPE_DEVICE_PAGE,
-                        "device", fixture->device,
-                        NULL);
-  g_assert_true (VALENT_IS_DEVICE_PAGE (panel));
+  page = g_object_new (VALENT_TYPE_DEVICE_PAGE,
+                       "device", fixture->device,
+                       NULL);
+  g_assert_true (VALENT_IS_DEVICE_PAGE (page));
 
   window = g_object_new (ADW_TYPE_WINDOW,
-                         "content", panel,
+                         "content", page,
                          NULL);
   g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
 
   gtk_window_present (window);
   valent_test_await_pending ();
 
-  /* Preferences can be opened and closed */
-  gtk_widget_activate_action (panel, "panel.preferences", NULL);
-
-  /* Closing the window closes the preferences */
-  gtk_widget_activate_action (panel, "panel.preferences", NULL);
+  /* Preferences can be opened, and closed when the window closes */
+  gtk_widget_activate_action (page, "page.preferences", NULL);
 
   gtk_window_destroy (window);
 

@@ -428,7 +428,7 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
       /* In this test case we are neglecting to send our identity packet, so
        * we expect the test service to close the connection after 1000ms */
       if (g_strcmp0 (user_data, TEST_IDENTITY_TIMEOUT) == 0)
-        valent_test_wait (1100);
+        valent_test_await_timeout (1100);
     }
 
   identity = json_object_get_member (json_node_get_object (fixture->packets),
@@ -446,7 +446,7 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
       /* In this test case we are neglecting to negotiate a TLS connection, so
        * we expect the test service to close the connection after 1000ms */
       if (g_strcmp0 (user_data, TEST_TLS_AUTH_TIMEOUT) == 0)
-        valent_test_wait (1100);
+        valent_test_await_timeout (1100);
     }
 
   tls_stream = valent_lan_encrypt_server_connection (connection,
