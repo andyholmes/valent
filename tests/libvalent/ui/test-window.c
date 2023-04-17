@@ -40,6 +40,7 @@ test_window_basic (TestWindowFixture *fixture,
                          NULL);
   g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
 
+  /* Wait for the window to be presented */
   gtk_window_present (window);
   valent_test_await_pending ();
 
@@ -50,6 +51,37 @@ test_window_basic (TestWindowFixture *fixture,
   g_assert_true (fixture->manager == manager);
   g_clear_object (&manager);
 
+  gtk_window_destroy (window);
+
+  while (window != NULL)
+    g_main_context_iteration (NULL, FALSE);
+}
+
+static void
+test_window_device_management (TestWindowFixture *fixture,
+                               gconstpointer      user_data)
+{
+  g_autoptr (ValentDevice) device = NULL;
+  GtkWindow *window;
+
+  window = g_object_new (VALENT_TYPE_WINDOW,
+                         "device-manager", fixture->manager,
+                         NULL);
+  g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
+
+  /* Wait for the window to be presented, then wait for the mock device */
+  gtk_window_present (window);
+  valent_test_await_pending ();
+
+  /* Managed devices are added to the window */
+  gtk_widget_activate_action (GTK_WIDGET (window), "win.refresh", NULL);
+  valent_test_await_pending ();
+
+  /* The interface updates with device state changes */
+  device = g_list_model_get_item (G_LIST_MODEL (fixture->manager), 0);
+  valent_device_set_paired (device, TRUE);
+
+  /* Destroy with an active device */
   gtk_window_destroy (window);
 
   while (window != NULL)
@@ -150,6 +182,12 @@ main (int argc,
               TestWindowFixture, NULL,
               test_window_set_up,
               test_window_basic,
+              test_window_tear_down);
+
+  g_test_add ("/libvalent/ui/window/device-management",
+              TestWindowFixture, NULL,
+              test_window_set_up,
+              test_window_device_management,
               test_window_tear_down);
 
   g_test_add ("/libvalent/ui/window/navigation",

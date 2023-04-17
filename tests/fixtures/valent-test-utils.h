@@ -32,7 +32,7 @@ void             valent_test_await_boolean (gboolean         *done);
 void             valent_test_await_pending (void);
 void             valent_test_await_signal  (gpointer          object,
                                             const char       *signal_name);
-void             valent_test_wait          (unsigned int      duration);
+void             valent_test_await_timeout (unsigned int      duration);
 JsonNode       * valent_test_load_json     (const char       *path);
 GSettings      * valent_test_mock_settings (const char       *domain);
 ValentChannel ** valent_test_channel_pair  (JsonNode         *identity,

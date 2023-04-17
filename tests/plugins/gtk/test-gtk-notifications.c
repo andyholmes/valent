@@ -150,7 +150,7 @@ test_gtk_notifications_source (GtkNotificationsFixture *fixture,
    * NOTE: this is longer than most tests due to the chained async functions
    *       being called in ValentGtkNotifications.
    */
-  valent_test_wait (1000);
+  valent_test_await_timeout (1000);
 
   g_signal_connect (fixture->notifications,
                     "notification-added",

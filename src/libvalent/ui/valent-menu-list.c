@@ -36,9 +36,6 @@ enum {
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 
-/*
- * GMenuModel Submenu Callbacks
- */
 static void
 valent_menu_list_item_activate (GtkListBoxRow *row)
 {
@@ -130,16 +127,24 @@ on_submenu_removed (GtkListBoxRow  *row,
                     ValentMenuList *self)
 {
   GtkWidget *stack;
+  GtkWidget *main;
   GtkWidget *submenu;
+
+  g_assert (GTK_IS_WIDGET (row));
+  g_assert (VALENT_MENU_LIST (self));
 
   submenu = g_object_get_data (G_OBJECT (row), "valent-submenu-item");
   g_return_if_fail (GTK_IS_WIDGET (submenu));
 
-  stack = gtk_widget_get_ancestor (submenu, GTK_TYPE_STACK);
-  g_return_if_fail (GTK_IS_WIDGET (stack));
+  /* If the parent is being destroyed, the stack or page may not exist */
+  if ((stack = gtk_widget_get_ancestor (submenu, GTK_TYPE_STACK)) == NULL)
+    return;
+
+  if ((main = gtk_stack_get_child_by_name (GTK_STACK (stack), "main")) == NULL)
+    return;
 
   if (gtk_stack_get_visible_child (GTK_STACK (stack)) == submenu)
-    gtk_stack_set_visible_child_name (GTK_STACK (stack), "main");
+    gtk_stack_set_visible_child (GTK_STACK (stack), main);
 
   gtk_stack_remove (GTK_STACK (stack), submenu);
 }

@@ -200,20 +200,25 @@ on_device_changed (ValentDevice *device,
 
 static void
 on_row_destroy (GtkWidget *row,
-                GtkWidget *panel)
+                GtkWidget *page)
 {
   GtkWidget *stack = NULL;
+  GtkWidget *main = NULL;
 
   g_assert (GTK_IS_WIDGET (row));
-  g_assert (GTK_IS_WIDGET (panel));
+  g_assert (GTK_IS_WIDGET (page));
 
-  if ((stack = gtk_widget_get_ancestor (panel, GTK_TYPE_STACK)) != NULL)
-    {
-      if (gtk_stack_get_visible_child (GTK_STACK (stack)) == panel)
-        gtk_stack_set_visible_child_name (GTK_STACK (stack), "main");
+  /* If the parent is being destroyed, the stack or page may not exist */
+  if ((stack = gtk_widget_get_ancestor (page, GTK_TYPE_STACK)) == NULL)
+    return;
 
-      gtk_stack_remove (GTK_STACK (stack), panel);
-    }
+  if ((main = gtk_stack_get_child_by_name (GTK_STACK (stack), "main")) == NULL)
+    return;
+
+  if (gtk_stack_get_visible_child (GTK_STACK (stack)) == page)
+    gtk_stack_set_visible_child (GTK_STACK (stack), main);
+
+  gtk_stack_remove (GTK_STACK (stack), page);
 }
 
 static GtkWidget *
@@ -224,8 +229,8 @@ valent_window_create_row_func (gpointer item,
   ValentDevice *device = VALENT_DEVICE (item);
   const char *device_id;
   const char *name;
-  GtkStackPage *page;
-  GtkWidget *panel;
+  GtkStackPage *stack_page;
+  GtkWidget *page;
   GtkWidget *row;
   GtkWidget *box;
   GtkWidget *status;
@@ -259,7 +264,6 @@ valent_window_create_row_func (gpointer item,
   gtk_widget_add_css_class (arrow, "dim-label");
   gtk_box_append (GTK_BOX (box), arrow);
 
-  /* Bind to device */
   g_object_bind_property (device, "name",
                           row,    "title",
                           G_BINDING_SYNC_CREATE);
@@ -273,21 +277,23 @@ valent_window_create_row_func (gpointer item,
                            status, 0);
   on_device_changed (device, NULL, status);
 
-  /* Panel */
-  panel = g_object_new (VALENT_TYPE_DEVICE_PAGE,
-                        "device", device,
-                        NULL);
-  page = gtk_stack_add_titled (self->stack, panel, device_id, name);
-  g_object_bind_property (device, "name",
-                          page,   "title",
+  /* Page */
+  page = g_object_new (VALENT_TYPE_DEVICE_PAGE,
+                       "device", device,
+                       NULL);
+
+  stack_page = gtk_stack_add_titled (self->stack, page, device_id, name);
+  g_object_bind_property (device,     "name",
+                          stack_page, "title",
                           G_BINDING_SYNC_CREATE);
-  g_object_bind_property (device, "icon-name",
-                          page,   "icon-name",
+  g_object_bind_property (device,     "icon-name",
+                          stack_page, "icon-name",
                           G_BINDING_SYNC_CREATE);
+
   g_signal_connect_object (row,
                            "destroy",
                            G_CALLBACK (on_row_destroy),
-                           panel, 0);
+                           page, 0);
 
   return g_steal_pointer (&row);
 }

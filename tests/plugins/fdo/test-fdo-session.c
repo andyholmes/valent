@@ -94,7 +94,7 @@ test_fdo_session_adapter (FdoSessionFixture *fixture,
   /* Wait a bit longer for the D-Bus calls to resolve
    * NOTE: this is longer than most tests due to the chained async functions
    */
-  valent_test_wait (1000);
+  valent_test_await_timeout (1000);
 
   g_signal_connect (fixture->session,
                     "notify",

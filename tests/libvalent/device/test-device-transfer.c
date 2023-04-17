@@ -58,7 +58,7 @@ test_device_transfer (ValentTestFixture *fixture,
   g_assert_no_error (error);
 
   /* Ensure the download task has time to set the file mtime */
-  valent_test_wait (1);
+  valent_test_await_timeout (1);
 
   dest_dir = valent_get_user_directory (G_USER_DIRECTORY_DOWNLOAD);
   dest = valent_get_user_file (dest_dir, "image.png", FALSE);
