@@ -61,27 +61,32 @@ static char *statements[N_STATEMENTS] = { NULL, };
  */
 typedef struct
 {
-  ValentSmsStore *store;
+  GRecMutex       mutex;
+  GWeakRef        store;
   ValentMessage  *message;
   guint           signal_id;
 } ChangeEmission;
-
 
 static gboolean
 emit_change_main (gpointer data)
 {
   ChangeEmission *emission = data;
+  g_autoptr (ValentSmsStore) store = NULL;
 
   g_assert (emission != NULL);
-  g_assert (VALENT_IS_SMS_STORE (emission->store));
-  g_assert (emission->message == NULL || VALENT_IS_MESSAGE (emission->message));
 
-  g_signal_emit (G_OBJECT (emission->store),
-                 emission->signal_id, 0,
-                 emission->message);
+  g_rec_mutex_lock (&emission->mutex);
+  if ((store = g_weak_ref_get (&emission->store)) != NULL)
+    {
+      g_signal_emit (G_OBJECT (store),
+                     emission->signal_id, 0,
+                     emission->message);
+    }
 
-  g_clear_object (&emission->store);
+  g_weak_ref_clear (&emission->store);
   g_clear_object (&emission->message);
+  g_rec_mutex_unlock (&emission->mutex);
+  g_rec_mutex_clear (&emission->mutex);
   g_clear_pointer (&emission, g_free);
 
   return G_SOURCE_REMOVE;
@@ -1451,11 +1456,17 @@ valent_sms_store_message_added (ValentSmsStore *store,
     }
 
   emission = g_new0 (ChangeEmission, 1);
-  emission->store = g_object_ref (store);
+  g_rec_mutex_init (&emission->mutex);
+  g_rec_mutex_lock (&emission->mutex);
+  g_weak_ref_init (&emission->store, store);
   emission->message = g_object_ref (message);
   emission->signal_id = signals [MESSAGE_ADDED];
+  g_rec_mutex_unlock (&emission->mutex);
 
-  g_timeout_add (0, emit_change_main, emission);
+  g_idle_add_full (G_PRIORITY_DEFAULT,
+                   emit_change_main,
+                   g_steal_pointer (&emission),
+                   NULL);
 }
 
 /**
@@ -1486,11 +1497,17 @@ valent_sms_store_message_removed (ValentSmsStore *store,
     }
 
   emission = g_new0 (ChangeEmission, 1);
-  emission->store = g_object_ref (store);
+  g_rec_mutex_init (&emission->mutex);
+  g_rec_mutex_lock (&emission->mutex);
+  g_weak_ref_init (&emission->store, store);
   emission->message = g_object_ref (message);
   emission->signal_id = signals [MESSAGE_REMOVED];
+  g_rec_mutex_unlock (&emission->mutex);
 
-  g_timeout_add (0, emit_change_main, emission);
+  g_idle_add_full (G_PRIORITY_DEFAULT,
+                   emit_change_main,
+                   g_steal_pointer (&emission),
+                   NULL);
 }
 
 /**
@@ -1521,10 +1538,16 @@ valent_sms_store_message_changed (ValentSmsStore *store,
     }
 
   emission = g_new0 (ChangeEmission, 1);
-  emission->store = g_object_ref (store);
+  g_rec_mutex_init (&emission->mutex);
+  g_rec_mutex_lock (&emission->mutex);
+  g_weak_ref_init (&emission->store, store);
   emission->message = g_object_ref (message);
   emission->signal_id = signals [MESSAGE_CHANGED];
+  g_rec_mutex_unlock (&emission->mutex);
 
-  g_timeout_add (0, emit_change_main, emission);
+  g_idle_add_full (G_PRIORITY_DEFAULT,
+                   emit_change_main,
+                   g_steal_pointer (&emission),
+                   NULL);
 }
 

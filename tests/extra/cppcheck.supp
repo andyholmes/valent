@@ -14,8 +14,8 @@ leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:885
 leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:888
 
 # src/plugins/sms/
-memleak:src/plugins/sms/valent-sms-store.c:809
-memleak:src/plugins/sms/valent-sms-store.c:859
+memleak:src/plugins/sms/valent-sms-store.c:814
+memleak:src/plugins/sms/valent-sms-store.c:864
 leakNoVarFunctionCall:src/plugins/sms/valent-sms-conversation.c:583
 leakNoVarFunctionCall:src/plugins/sms/valent-sms-conversation.c:588
 
