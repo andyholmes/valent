@@ -13,7 +13,6 @@
 
 #include "valent-device-preferences-group.h"
 #include "valent-device-preferences-window.h"
-#include "valent-preferences-window.h"
 
 
 struct _ValentDevicePreferencesWindow

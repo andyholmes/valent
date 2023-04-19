@@ -48,6 +48,7 @@ libvalent_ui_public_sources = [
   'valent-preferences-page.c',
   'valent-preferences-window.c',
   'valent-time-helpers.c',
+  'valent-ui-main.c',
   'valent-ui-utils.c',
   'valent-window.c',
 ]

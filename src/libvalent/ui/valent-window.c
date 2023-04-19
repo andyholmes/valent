@@ -17,7 +17,6 @@
 
 #include "valent-application-credits.h"
 #include "valent-device-page.h"
-#include "valent-media-remote.h"
 #include "valent-preferences-window.h"
 #include "valent-window.h"
 
@@ -354,25 +353,6 @@ about_action (GtkWidget  *widget,
 }
 
 static void
-media_remote_action (GtkWidget  *widget,
-                     const char *action_name,
-                     GVariant   *parameter)
-{
-  static GtkWindow *media_remote = NULL;
-
-  if (media_remote == NULL)
-    {
-      media_remote = g_object_new (VALENT_TYPE_MEDIA_REMOTE,
-                                   "players", valent_media_get_default (),
-                                   NULL);
-      g_object_add_weak_pointer (G_OBJECT (media_remote),
-                                 (gpointer) &media_remote);
-    }
-
-  gtk_window_present (media_remote);
-}
-
-static void
 page_action (GtkWidget  *widget,
              const char *action_name,
              GVariant   *parameter)
@@ -573,7 +553,6 @@ valent_window_class_init (ValentWindowClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
-  g_autoptr (GtkCssProvider) theme = NULL;
 
   object_class->constructed = valent_window_constructed;
   object_class->dispose = valent_window_dispose;
@@ -587,7 +566,6 @@ valent_window_class_init (ValentWindowClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentWindow, device_list);
 
   gtk_widget_class_install_action (widget_class, "win.about", NULL, about_action);
-  gtk_widget_class_install_action (widget_class, "win.media-remote", NULL, media_remote_action);
   gtk_widget_class_install_action (widget_class, "win.page", "s", page_action);
   gtk_widget_class_install_action (widget_class, "win.preferences", NULL, preferences_action);
   gtk_widget_class_install_action (widget_class, "win.previous", NULL, previous_action);
@@ -607,13 +585,6 @@ valent_window_class_init (ValentWindowClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
-
-  /* Custom CSS */
-  theme = gtk_css_provider_new ();
-  gtk_css_provider_load_from_resource (theme, "/ca/andyholmes/Valent/ui/style.css");
-  gtk_style_context_add_provider_for_display (gdk_display_get_default (),
-                                              GTK_STYLE_PROVIDER (theme),
-                                              GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 }
 
 static void

@@ -542,14 +542,6 @@ valent_type_ensure (void)
   g_type_ensure (VALENT_TYPE_NOTIFICATION);
   g_type_ensure (VALENT_TYPE_SESSION);
   g_type_ensure (VALENT_TYPE_SESSION_ADAPTER);
-
-  /* UI */
-  g_type_ensure (VALENT_TYPE_APPLICATION);
-  g_type_ensure (VALENT_TYPE_APPLICATION_PLUGIN);
-
-  g_type_ensure (VALENT_TYPE_DEVICE_GADGET);
-  g_type_ensure (VALENT_TYPE_DEVICE_PREFERENCES_GROUP);
-  g_type_ensure (VALENT_TYPE_PREFERENCES_PAGE);
 }
 
 /**
@@ -619,8 +611,7 @@ valent_test_ui_init (int    *argcp,
 
   gtk_disable_setlocale ();
   setlocale (LC_ALL, "en_US.UTF-8");
-  gtk_init ();
-  adw_init ();
+  valent_ui_init ();
 
   /* NOTE: Set manually since GDK_DEBUG=default-settings doesn't work for us */
   g_object_set (gtk_settings_get_default (),

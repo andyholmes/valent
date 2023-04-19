@@ -12,6 +12,8 @@
 G_BEGIN_DECLS
 
 VALENT_AVAILABLE_IN_1_0
-char * valent_string_to_markup (const char *text);
+char     * valent_string_to_markup (const char *text);
+VALENT_AVAILABLE_IN_1_0
+gboolean   valent_ui_init          (void);
 
 G_END_DECLS

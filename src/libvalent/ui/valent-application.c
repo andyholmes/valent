@@ -13,6 +13,7 @@
 #include "valent-application.h"
 #include "valent-application-plugin.h"
 #include "valent-component-private.h"
+#include "valent-ui-utils.h"
 #include "valent-window.h"
 
 
@@ -361,7 +362,7 @@ valent_application_startup (GApplication *application)
   G_APPLICATION_CLASS (valent_application_parent_class)->startup (application);
 
   g_application_hold (application);
-  adw_init ();
+  valent_ui_init ();
 
   /* Service Actions */
   g_action_map_add_action_entries (G_ACTION_MAP (application),

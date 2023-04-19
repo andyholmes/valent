@@ -111,7 +111,7 @@
     <section>
       <item>
         <attribute name="label" translatable="yes">Media Remote</attribute>
-        <attribute name="action">win.media-remote</attribute>
+        <attribute name="action">app.media-remote</attribute>
       </item>
     </section>
     <section>
