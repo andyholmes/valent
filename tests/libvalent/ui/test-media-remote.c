@@ -4,8 +4,9 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
-#include "valent-media-remote.h"
 #include "valent-mock-media-player.h"
+
+#define VALENT_TYPE_TEST_SUBJECT (g_type_from_name ("ValentMediaRemote"))
 
 
 static void
@@ -17,7 +18,7 @@ test_media_remote (void)
   g_autoptr (GListStore) players = NULL;
 
   list = g_list_store_new (VALENT_TYPE_MEDIA_PLAYER);
-  remote = g_object_new (VALENT_TYPE_MEDIA_REMOTE,
+  remote = g_object_new (VALENT_TYPE_TEST_SUBJECT,
                          "players", list,
                          NULL);
 

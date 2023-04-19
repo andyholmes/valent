@@ -4,8 +4,7 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
-#include "valent-device-page.h"
-
+#define VALENT_TYPE_TEST_SUBJECT (g_type_from_name ("ValentDevicePage"))
 
 
 static void
@@ -24,10 +23,10 @@ test_device_menu_basic (ValentTestFixture *fixture,
   device_menu = valent_device_get_menu (fixture->device);
   icon = g_themed_icon_new ("dialog-information-symbolic");
 
-  page = g_object_new (VALENT_TYPE_DEVICE_PAGE,
+  page = g_object_new (VALENT_TYPE_TEST_SUBJECT,
                        "device", fixture->device,
                        NULL);
-  g_assert_true (VALENT_IS_DEVICE_PAGE (page));
+  g_assert_nonnull (page);
 
   window = g_object_new (ADW_TYPE_WINDOW,
                          "content", page,

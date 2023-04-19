@@ -11,7 +11,6 @@ G_BEGIN_DECLS
 
 #define VALENT_TYPE_DEVICE_PREFERENCES_WINDOW (valent_device_preferences_window_get_type())
 
-_VALENT_EXTERN
 G_DECLARE_FINAL_TYPE (ValentDevicePreferencesWindow, valent_device_preferences_window, VALENT, DEVICE_PREFERENCES_WINDOW, AdwPreferencesWindow)
 
 G_END_DECLS

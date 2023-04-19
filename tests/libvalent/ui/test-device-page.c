@@ -4,7 +4,7 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
-#include "valent-device-page.h"
+#define VALENT_TYPE_TEST_SUBJECT (g_type_from_name ("ValentDevicePage"))
 
 
 static void
@@ -16,10 +16,10 @@ test_device_page_basic (ValentTestFixture *fixture,
   ValentDevice *device = NULL;
   PeasEngine *engine;
 
-  page = g_object_new (VALENT_TYPE_DEVICE_PAGE,
+  page = g_object_new (VALENT_TYPE_TEST_SUBJECT,
                        "device", fixture->device,
                        NULL);
-  g_assert_true (VALENT_IS_DEVICE_PAGE (page));
+  g_assert_nonnull (page);
 
   window = g_object_new (ADW_TYPE_WINDOW,
                          "content", page,
@@ -59,10 +59,10 @@ test_device_page_dialogs (ValentTestFixture *fixture,
   GtkWindow *window;
   GtkWidget *page;
 
-  page = g_object_new (VALENT_TYPE_DEVICE_PAGE,
+  page = g_object_new (VALENT_TYPE_TEST_SUBJECT,
                        "device", fixture->device,
                        NULL);
-  g_assert_true (VALENT_IS_DEVICE_PAGE (page));
+  g_assert_nonnull (page);
 
   window = g_object_new (ADW_TYPE_WINDOW,
                          "content", page,

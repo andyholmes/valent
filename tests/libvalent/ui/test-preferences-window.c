@@ -4,7 +4,7 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
-#include "valent-preferences-window.h"
+#define VALENT_TYPE_TEST_SUBJECT (g_type_from_name ("ValentPreferencesWindow"))
 
 
 static void
@@ -14,7 +14,7 @@ test_preferences_window_basic (void)
   PeasEngine *engine;
   PeasPluginInfo *info;
 
-  window = g_object_new (VALENT_TYPE_PREFERENCES_WINDOW,
+  window = g_object_new (VALENT_TYPE_TEST_SUBJECT,
                         NULL);
   g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
 
@@ -38,7 +38,7 @@ test_preferences_window_navigation (void)
 {
   GtkWindow *window;
 
-  window = g_object_new (VALENT_TYPE_PREFERENCES_WINDOW,
+  window = g_object_new (VALENT_TYPE_TEST_SUBJECT,
                         NULL);
   g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
 
@@ -59,7 +59,7 @@ test_preferences_window_rename (void)
 {
   GtkWindow *window;
 
-  window = g_object_new (VALENT_TYPE_PREFERENCES_WINDOW,
+  window = g_object_new (VALENT_TYPE_TEST_SUBJECT,
                         NULL);
   g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
 

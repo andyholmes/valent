@@ -4,7 +4,7 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
-#include "valent-device-preferences-window.h"
+#define VALENT_TYPE_TEST_SUBJECT (g_type_from_name ("ValentDevicePreferencesWindow"))
 
 
 static void
@@ -16,7 +16,7 @@ test_device_preference_window_basic (ValentTestFixture *fixture,
   PeasEngine *engine;
   PeasPluginInfo *info;
 
-  window = g_object_new (VALENT_TYPE_DEVICE_PREFERENCES_WINDOW,
+  window = g_object_new (VALENT_TYPE_TEST_SUBJECT,
                          "device", fixture->device,
                          NULL);
   g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);

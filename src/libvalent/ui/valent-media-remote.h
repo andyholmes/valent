@@ -11,7 +11,6 @@ G_BEGIN_DECLS
 
 #define VALENT_TYPE_MEDIA_REMOTE (valent_media_remote_get_type())
 
-_VALENT_EXTERN
 G_DECLARE_FINAL_TYPE (ValentMediaRemote, valent_media_remote, VALENT, MEDIA_REMOTE, AdwWindow)
 
 G_END_DECLS

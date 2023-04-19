@@ -5,6 +5,7 @@
 
 #include "config.h"
 
+#include <gtk/gtk.h>
 #include <pango/pango.h>
 #include <libvalent-core.h>
 

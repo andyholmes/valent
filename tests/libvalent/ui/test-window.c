@@ -4,8 +4,7 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
-#include "valent-window.h"
-
+#define VALENT_TYPE_TEST_SUBJECT (g_type_from_name ("ValentWindow"))
 
 typedef struct
 {
@@ -35,7 +34,7 @@ test_window_basic (TestWindowFixture *fixture,
   g_autoptr (ValentDeviceManager) manager = NULL;
   GtkWindow *window;
 
-  window = g_object_new (VALENT_TYPE_WINDOW,
+  window = g_object_new (VALENT_TYPE_TEST_SUBJECT,
                          "device-manager", fixture->manager,
                          NULL);
   g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
@@ -64,7 +63,7 @@ test_window_device_management (TestWindowFixture *fixture,
   g_autoptr (ValentDevice) device = NULL;
   GtkWindow *window;
 
-  window = g_object_new (VALENT_TYPE_WINDOW,
+  window = g_object_new (VALENT_TYPE_TEST_SUBJECT,
                          "device-manager", fixture->manager,
                          NULL);
   g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
@@ -95,7 +94,7 @@ test_window_navigation (TestWindowFixture *fixture,
   GtkWindow *window;
   g_autoptr (ValentDevice) device = NULL;
 
-  window = g_object_new (VALENT_TYPE_WINDOW,
+  window = g_object_new (VALENT_TYPE_TEST_SUBJECT,
                          "device-manager", fixture->manager,
                          NULL);
   g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
@@ -131,10 +130,10 @@ test_window_dialogs (TestWindowFixture *fixture,
   GtkWindow *window;
 
   /* Preferences */
-  window = g_object_new (VALENT_TYPE_WINDOW,
+  window = g_object_new (VALENT_TYPE_TEST_SUBJECT,
                          "device-manager", fixture->manager,
                          NULL);
-  g_assert_true (VALENT_IS_WINDOW (window));
+  g_assert_nonnull (window);
 
   gtk_window_present (window);
   valent_test_await_pending ();
@@ -154,7 +153,7 @@ test_window_dialogs (TestWindowFixture *fixture,
   // FIXME: throws warning for uninstalled icon
 
   /* About */
-  window = g_object_new (VALENT_TYPE_WINDOW,
+  window = g_object_new (VALENT_TYPE_TEST_SUBJECT,
                          "device-manager", fixture->manager,
                          NULL);
   g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
