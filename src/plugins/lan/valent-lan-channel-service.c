@@ -335,29 +335,144 @@ valent_lan_channel_service_tcp_setup (ValentLanChannelService  *self,
  * 2) Write our identity packet
  * 3) Negotiate TLS encryption (as the TLS Server)
  */
-static gboolean
-on_incoming_broadcast (ValentLanChannelService  *self,
-                       GSocket                  *socket,
-                       GCancellable             *cancellable,
-                       GError                  **error)
+typedef struct
 {
-  ValentChannelService *service = VALENT_CHANNEL_SERVICE (self);
-  gssize read = 0;
-  char buffer[IDENTITY_BUFFER_MAX + 1] = { 0, };
-  g_autoptr (GSocketAddress) s_addr = NULL;
-  GInetAddress *i_addr = NULL;
-  g_autofree char *host = NULL;
-  g_autoptr (ValentChannel) channel = NULL;
-  gint64 port = VALENT_LAN_PROTOCOL_PORT;
-  g_autoptr (JsonNode) identity = NULL;
-  g_autoptr (JsonNode) peer_identity = NULL;
-  const char *device_id;
-  g_autofree char *local_id = NULL;
+  GRecMutex       lock;
+  GSocketAddress *address;
+  JsonNode       *identity;
+} BroadcastData;
+
+static void
+broadcast_data_free (gpointer data)
+{
+  BroadcastData *broadcast = (BroadcastData *)data;
+
+  g_rec_mutex_lock (&broadcast->lock);
+  g_clear_object (&broadcast->address);
+  g_clear_pointer (&broadcast->identity, json_node_unref);
+  g_rec_mutex_unlock (&broadcast->lock);
+  g_rec_mutex_clear (&broadcast->lock);
+  g_clear_pointer (&broadcast, g_free);
+}
+
+static void
+incoming_broadcast_task (GTask        *task,
+                         gpointer      source_object,
+                         gpointer      task_data,
+                         GCancellable *cancellable)
+{
+  ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (source_object);
+  ValentChannelService *service = VALENT_CHANNEL_SERVICE (source_object);
   g_autoptr (GSocketClient) client = NULL;
+  BroadcastData *broadcast = (BroadcastData *)task_data;
+  JsonNode *peer_identity = NULL;
   g_autoptr (GSocketConnection) connection = NULL;
+  GSocketAddress *address = NULL;
+  GInetAddress *addr = NULL;
+  g_autoptr (JsonNode) identity = NULL;
+  g_autoptr (ValentChannel) channel = NULL;
+  g_autofree char *host = NULL;
+  gint64 port = VALENT_LAN_PROTOCOL_PORT;
   GOutputStream *output_stream;
   g_autoptr (GTlsCertificate) certificate = NULL;
   g_autoptr (GIOStream) tls_stream = NULL;
+  g_autoptr (GError) error = NULL;
+
+  g_assert (VALENT_IS_CHANNEL_SERVICE (self));
+  g_assert (broadcast != NULL);
+
+  g_rec_mutex_lock (&broadcast->lock);
+  address = broadcast->address;
+  peer_identity = broadcast->identity;
+  g_rec_mutex_unlock (&broadcast->lock);
+
+  addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (address));
+  host = g_inet_address_to_string (addr);
+  valent_packet_get_int (peer_identity, "tcpPort", &port);
+
+  /* Open a TCP connection to the UDP sender and defined port.
+   *
+   * Disable the system proxy:
+   *   - https://bugs.kde.org/show_bug.cgi?id=376187
+   *   - https://github.com/andyholmes/gnome-shell-extension-gsconnect/issues/125
+   */
+  client = g_object_new (G_TYPE_SOCKET_CLIENT,
+                         "enable-proxy", FALSE,
+                         NULL);
+  connection = g_socket_client_connect (client,
+                                        G_SOCKET_CONNECTABLE (address),
+                                        cancellable,
+                                        &error);
+
+  if (connection == NULL)
+    {
+      g_debug ("%s(): connecting to (%s:%"G_GINT64_FORMAT"): %s",
+               G_STRFUNC, host, port, error->message);
+      return g_task_return_error (task, g_steal_pointer (&error));
+    }
+
+  /* Write the local identity. Once we do this, both peers will have the ability
+   * to authenticate or reject TLS certificates.
+   */
+  identity = valent_channel_service_ref_identity (service);
+  output_stream = g_io_stream_get_output_stream (G_IO_STREAM (connection));
+
+  if (!valent_packet_to_stream (output_stream, identity, cancellable, &error))
+    {
+      g_debug ("%s(): sending identity to (%s:%"G_GINT64_FORMAT"): %s",
+               G_STRFUNC, host, port, error->message);
+      return g_task_return_error (task, g_steal_pointer (&error));
+    }
+
+  /* NOTE: We're the server when opening outgoing connections */
+  valent_object_lock (VALENT_OBJECT (self));
+  certificate = g_object_ref (self->certificate);
+  valent_object_unlock (VALENT_OBJECT (self));
+
+  tls_stream = valent_lan_encrypt_server_connection (connection,
+                                                     certificate,
+                                                     cancellable,
+                                                     &error);
+
+  if (tls_stream == NULL)
+    {
+      g_debug ("%s(): authenticating (%s:%"G_GINT64_FORMAT"): %s",
+               G_STRFUNC, host, port, error->message);
+      return g_task_return_error (task, g_steal_pointer (&error));
+    }
+
+  if (!valent_packet_get_string (peer_identity, "deviceId", &device_id) ||
+      !valent_lan_channel_service_verify_channel (self, device_id, tls_stream))
+    return g_task_return_boolean (task, TRUE);
+
+  channel = g_object_new (VALENT_TYPE_LAN_CHANNEL,
+                          "base-stream",   tls_stream,
+                          "host",          host,
+                          "port",          port,
+                          "identity",      identity,
+                          "peer-identity", peer_identity,
+                          NULL);
+
+  valent_channel_service_channel (service, channel);
+  g_task_return_boolean (task, TRUE);
+}
+
+static gboolean
+on_incoming_broadcast (ValentChannelService  *service,
+                       GSocket               *socket,
+                       GCancellable          *cancellable,
+                       GError               **error)
+{
+  gssize read = 0;
+  char buffer[IDENTITY_BUFFER_MAX + 1] = { 0, };
+  g_autoptr (GSocketAddress) address = NULL;
+  GInetAddress *addr = NULL;
+  gint64 port = VALENT_LAN_PROTOCOL_PORT;
+  g_autoptr (JsonNode) peer_identity = NULL;
+  const char *device_id;
+  g_autofree char *local_id = NULL;
+  g_autoptr (GTask) task = NULL;
+  BroadcastData *broadcast = NULL;
   g_autoptr (GError) warning = NULL;
 
   g_assert (VALENT_IS_CHANNEL_SERVICE (service));
@@ -367,11 +482,14 @@ on_incoming_broadcast (ValentLanChannelService  *self,
 
   /* Read the message data and extract the remote address */
   read = g_socket_receive_from (socket,
-                                &s_addr,
+                                &address,
                                 buffer,
                                 IDENTITY_BUFFER_MAX,
                                 cancellable,
                                 error);
+
+  if (read == -1)
+    return FALSE;
 
   if (read == 0)
     {
@@ -379,10 +497,6 @@ on_incoming_broadcast (ValentLanChannelService  *self,
                            G_IO_ERROR,
                            G_IO_ERROR_CLOSED,
                            "Socket is closed");
-      return FALSE;
-    }
-  else if (read == -1)
-    {
       return FALSE;
     }
 
@@ -408,9 +522,8 @@ on_incoming_broadcast (ValentLanChannelService  *self,
   if (g_strcmp0 (device_id, local_id) == 0)
     return TRUE;
 
-  /* Get the remote host and port */
-  i_addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (s_addr));
-  host = g_inet_address_to_string (i_addr);
+  /* Get the remote address and port */
+  addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (address));
 
   if (!valent_packet_get_int (peer_identity, "tcpPort", &port) ||
       (port < VALENT_LAN_PROTOCOL_PORT_MIN || port > VALENT_LAN_PROTOCOL_PORT_MAX))
@@ -422,73 +535,20 @@ on_incoming_broadcast (ValentLanChannelService  *self,
       return TRUE;
     }
 
-  VALENT_JSON (peer_identity, host);
+  VALENT_JSON (peer_identity, device_id);
 
-  /* Open a TCP connection to the UDP sender and defined port. Disable any use
-   * of the system proxy.
-   *
-   * https://bugs.kde.org/show_bug.cgi?id=376187
-   * https://github.com/andyholmes/gnome-shell-extension-gsconnect/issues/125
-   */
-  client = g_object_new (G_TYPE_SOCKET_CLIENT,
-                         "enable-proxy", FALSE,
-                         NULL);
-  connection = g_socket_client_connect_to_host (client,
-                                                host,
-                                                port,
-                                                cancellable,
-                                                &warning);
+  /* Defer the remaining work to another thread */
+  broadcast = g_new0 (BroadcastData, 1);
+  g_rec_mutex_init (&broadcast->lock);
+  g_rec_mutex_lock (&broadcast->lock);
+  broadcast->address = g_inet_socket_address_new (addr, port);
+  broadcast->identity = json_node_ref (peer_identity);
+  g_rec_mutex_unlock (&broadcast->lock);
 
-  if (connection == NULL)
-    {
-      g_debug ("%s(): connecting to (%s:%"G_GINT64_FORMAT"): %s",
-               G_STRFUNC, host, port, warning->message);
-      return TRUE;
-    }
-
-  /* Write the local identity. Once we do this, both peers will have the ability
-   * to authenticate or reject TLS certificates.
-   */
-  identity = valent_channel_service_ref_identity (service);
-  output_stream = g_io_stream_get_output_stream (G_IO_STREAM (connection));
-
-  if (!valent_packet_to_stream (output_stream, identity, cancellable, &warning))
-    {
-      g_debug ("%s(): sending identity to (%s:%"G_GINT64_FORMAT"): %s",
-               G_STRFUNC, host, port, warning->message);
-      return TRUE;
-    }
-
-  /* NOTE: We're the server when opening outgoing connections */
-  valent_object_lock (VALENT_OBJECT (self));
-  certificate = g_object_ref (self->certificate);
-  valent_object_unlock (VALENT_OBJECT (self));
-
-  tls_stream = valent_lan_encrypt_server_connection (connection,
-                                                     certificate,
-                                                     cancellable,
-                                                     &warning);
-
-  if (tls_stream == NULL)
-    {
-      g_debug ("%s(): authenticating (%s:%"G_GINT64_FORMAT"): %s",
-               G_STRFUNC, host, port, warning->message);
-      return TRUE;
-    }
-
-  if (!valent_lan_channel_service_verify_channel (self, device_id, tls_stream))
-    return TRUE;
-
-  /* Create new channel */
-  channel = g_object_new (VALENT_TYPE_LAN_CHANNEL,
-                          "base-stream",   tls_stream,
-                          "host",          host,
-                          "port",          port,
-                          "identity",      identity,
-                          "peer-identity", peer_identity,
-                          NULL);
-
-  valent_channel_service_channel (service, channel);
+  task = g_task_new (service, cancellable, NULL, NULL);
+  g_task_set_source_tag (task, on_incoming_broadcast);
+  g_task_set_task_data (task, g_steal_pointer (&broadcast), broadcast_data_free);
+  g_task_run_in_thread (task, incoming_broadcast_task);
 
   return TRUE;
 }
@@ -498,15 +558,15 @@ valent_lan_channel_service_socket_recv (GSocket      *socket,
                                         GIOCondition  condition,
                                         gpointer      user_data)
 {
-  ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (user_data);
+  ValentChannelService *service = VALENT_CHANNEL_SERVICE (user_data);
   g_autoptr (GCancellable) cancellable = NULL;
   g_autoptr (GError) error = NULL;
 
-  g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
+  g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (service));
 
-  cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
+  cancellable = valent_object_ref_cancellable (VALENT_OBJECT (service));
 
-  if (!on_incoming_broadcast (self, socket, cancellable, &error))
+  if (!on_incoming_broadcast (service, socket, cancellable, &error))
     {
       if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
         g_warning ("%s(): %s", G_STRFUNC, error->message);
