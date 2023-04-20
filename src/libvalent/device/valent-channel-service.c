@@ -73,8 +73,35 @@ enum {
 };
 
 static guint signals[N_SIGNALS] = { 0, };
-static GRecMutex channel_lock;
 
+
+typedef struct
+{
+  GRecMutex      lock;
+  GWeakRef       service;
+  ValentChannel *channel;
+} ChannelEmission;
+
+static gboolean
+valent_channel_service_channel_main (gpointer data)
+{
+  ChannelEmission *emission = data;
+  g_autoptr (ValentChannelService) service = NULL;
+
+  g_assert (VALENT_IS_MAIN_THREAD ());
+
+  g_rec_mutex_lock (&emission->lock);
+  if ((service = g_weak_ref_get (&emission->service)) != NULL)
+    valent_channel_service_channel (service, emission->channel);
+
+  g_weak_ref_clear (&emission->service);
+  g_clear_object (&emission->channel);
+  g_rec_mutex_unlock (&emission->lock);
+  g_rec_mutex_clear (&emission->lock);
+  g_clear_pointer (&emission, g_free);
+
+  return G_SOURCE_REMOVE;
+}
 
 /*
  * Identity Packet Helpers
@@ -209,35 +236,6 @@ collect_capabilities (PeasPluginInfo *info,
       for (unsigned int i = 0; capabilities[i] != NULL; i++)
         g_hash_table_add (outgoing, g_steal_pointer (&capabilities[i]));
     }
-}
-
-/*
- * ValentChannelService::channel Helper
- */
-typedef struct
-{
-  GWeakRef       service;
-  ValentChannel *channel;
-} ChannelEmission;
-
-static gboolean
-valent_channel_service_channel_main (gpointer data)
-{
-  ChannelEmission *emission = data;
-  g_autoptr (ValentChannelService) service = NULL;
-
-  g_rec_mutex_lock (&channel_lock);
-
-  if ((service = g_weak_ref_get (&emission->service)) != NULL)
-    valent_channel_service_channel (service, emission->channel);
-
-  g_weak_ref_clear (&emission->service);
-  g_clear_object (&emission->channel);
-  g_clear_pointer (&emission, g_free);
-
-  g_rec_mutex_unlock (&channel_lock);
-
-  return G_SOURCE_REMOVE;
 }
 
 /* LCOV_EXCL_START */
@@ -760,11 +758,12 @@ valent_channel_service_channel (ValentChannelService *service,
       return;
     }
 
-  g_rec_mutex_lock (&channel_lock);
   emission = g_new0 (ChannelEmission, 1);
+  g_rec_mutex_init (&emission->lock);
+  g_rec_mutex_lock (&emission->lock);
   g_weak_ref_init (&emission->service, service);
   emission->channel = g_object_ref (channel);
-  g_rec_mutex_unlock (&channel_lock);
+  g_rec_mutex_unlock (&emission->lock);
 
   g_timeout_add (0, valent_channel_service_channel_main, emission);
 }
