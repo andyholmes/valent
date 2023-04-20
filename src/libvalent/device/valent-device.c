@@ -1204,25 +1204,20 @@ valent_device_send_packet_cb (ValentChannel *channel,
 {
   g_autoptr (GTask) task = G_TASK (user_data);
   ValentDevice *device = g_task_get_source_object (task);
-  GError *error = NULL;
+  g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_DEVICE (device));
 
-  if (!valent_channel_write_packet_finish (channel, result, &error))
-    {
-      VALENT_NOTE ("%s: %s", device->name, error->message);
+  if (valent_channel_write_packet_finish (channel, result, &error))
+    return g_task_return_boolean (task, TRUE);
 
-      g_task_return_error (task, error);
+  VALENT_NOTE ("%s: %s", device->name, error->message);
+  g_task_return_error (task, g_steal_pointer (&error));
 
-      valent_object_lock (VALENT_OBJECT (device));
-      if (device->channel == channel)
-        valent_device_set_channel (device, NULL);
-      valent_object_unlock (VALENT_OBJECT (device));
-    }
-  else
-    {
-      g_task_return_boolean (task, TRUE);
-    }
+  valent_object_lock (VALENT_OBJECT (device));
+  if (device->channel == channel)
+    valent_device_set_channel (device, NULL);
+  valent_object_unlock (VALENT_OBJECT (device));
 }
 
 /**
