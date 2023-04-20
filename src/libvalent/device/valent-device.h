@@ -59,9 +59,6 @@ GStrv               valent_device_get_plugins        (ValentDevice         *devi
 VALENT_AVAILABLE_IN_1_0
 ValentDeviceState   valent_device_get_state          (ValentDevice         *device);
 VALENT_AVAILABLE_IN_1_0
-void                valent_device_queue_packet       (ValentDevice         *device,
-                                                      JsonNode             *packet);
-VALENT_AVAILABLE_IN_1_0
 void                valent_device_send_packet        (ValentDevice         *device,
                                                       JsonNode             *packet,
                                                       GCancellable         *cancellable,
