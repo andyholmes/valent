@@ -59,13 +59,9 @@ static void           valent_device_manager_remove_device (ValentDeviceManager *
 static ValentDevice * valent_device_manager_ensure_device (ValentDeviceManager *manager,
                                                            JsonNode            *identity);
 
-static void   g_initable_iface_init       (GInitableIface      *iface);
-static void   g_async_initable_iface_init (GAsyncInitableIface *iface);
 static void   g_list_model_iface_init     (GListModelInterface *iface);
 
 G_DEFINE_FINAL_TYPE_WITH_CODE (ValentDeviceManager, valent_device_manager, VALENT_TYPE_OBJECT,
-                               G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, g_initable_iface_init)
-                               G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init)
                                G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
 enum {
@@ -75,6 +71,8 @@ enum {
 };
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+
+static ValentDeviceManager *default_manager = NULL;
 
 
 /*
@@ -661,95 +659,32 @@ valent_device_manager_save_state (ValentDeviceManager *self)
 }
 
 /*
- * GInitable
+ * GObject
  */
-static gboolean
-valent_device_manager_initable_init (GInitable     *initable,
-                                     GCancellable  *cancellable,
-                                     GError       **error)
+static void
+valent_device_manager_constructed (GObject *object)
 {
-  ValentDeviceManager *self = VALENT_DEVICE_MANAGER (initable);
+  ValentDeviceManager *self = VALENT_DEVICE_MANAGER (object);
+  g_autoptr (GError) error = NULL;
   const char *path = NULL;
 
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
 
   /* Generate certificate */
   path = valent_context_get_config_path (self->context);
-  self->certificate = valent_certificate_new_sync (path, error);
 
-  if (self->certificate == NULL)
-    return FALSE;
+  if ((self->certificate = valent_certificate_new_sync (path, &error)) != NULL)
+    self->id = valent_certificate_get_common_name (self->certificate);
 
-  self->id = valent_certificate_get_common_name (self->certificate);
+  if (self->id == NULL)
+    {
+      self->id = g_uuid_string_random ();
+      g_warning ("%s(): %s", G_STRFUNC, error->message);
+    }
 
-  return TRUE;
+  G_OBJECT_CLASS (valent_device_manager_parent_class)->constructed (object);
 }
 
-static void
-g_initable_iface_init (GInitableIface *iface)
-{
-  iface->init = valent_device_manager_initable_init;
-}
-
-/*
- * GAsyncInitable
- */
-static void
-valent_certificate_new_cb (GObject      *object,
-                           GAsyncResult *result,
-                           gpointer      user_data)
-{
-  g_autoptr (GTask) task = G_TASK (user_data);
-  ValentDeviceManager *self = g_task_get_source_object (task);
-  GError *error = NULL;
-
-  self->certificate = valent_certificate_new_finish (result, &error);
-
-  if (error != NULL)
-    return g_task_return_error (task, error);
-
-  self->id = valent_certificate_get_common_name (self->certificate);
-  g_task_return_boolean (task, TRUE);
-}
-
-static void
-valent_device_manager_init_async (GAsyncInitable      *initable,
-                                  int                  io_priority,
-                                  GCancellable        *cancellable,
-                                  GAsyncReadyCallback  callback,
-                                  gpointer             user_data)
-{
-  ValentDeviceManager *self = VALENT_DEVICE_MANAGER (initable);
-  g_autoptr (GTask) task = NULL;
-  g_autoptr (GCancellable) destroy = NULL;
-  const char *path = NULL;
-
-  g_assert (VALENT_IS_DEVICE_MANAGER (self));
-
-  /* Cancel initialization if the object is destroyed */
-  destroy = valent_object_attach_cancellable (VALENT_OBJECT (initable),
-                                              cancellable);
-
-  task = g_task_new (initable, destroy, callback, user_data);
-  g_task_set_priority (task, io_priority);
-  g_task_set_source_tag (task, valent_device_manager_init_async);
-
-  path = valent_context_get_config_path (self->context);
-  valent_certificate_new (path,
-                          destroy,
-                          valent_certificate_new_cb,
-                          g_steal_pointer (&task));
-}
-
-static void
-g_async_initable_iface_init (GAsyncInitableIface *iface)
-{
-  iface->init_async = valent_device_manager_init_async;
-}
-
-/*
- * GObject
- */
 static void
 valent_device_manager_dispose (GObject *object)
 {
@@ -822,6 +757,7 @@ valent_device_manager_class_init (ValentDeviceManagerClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
+  object_class->constructed = valent_device_manager_constructed;
   object_class->dispose = valent_device_manager_dispose;
   object_class->finalize = valent_device_manager_finalize;
   object_class->get_property = valent_device_manager_get_property;
@@ -856,94 +792,27 @@ valent_device_manager_init (ValentDeviceManager *self)
 }
 
 /**
- * valent_device_manager_new_sync:
- * @cancellable: (nullable): a #GCancellable
- * @error: (nullable): a #GError
+ * valent_device_manager_get_default:
  *
- * Create a new #ValentDeviceManager.
+ * Get the default [class@Valent.DeviceManager].
  *
- * Returns: (transfer full) (nullable): a #ValentDeviceManager
+ * Returns: (transfer none) (not nullable): a #ValentDeviceManager
  *
  * Since: 1.0
  */
 ValentDeviceManager *
-valent_device_manager_new_sync (GCancellable  *cancellable,
-                                GError       **error)
+valent_device_manager_get_default (void)
 {
-  GInitable *manager;
+  if (default_manager == NULL)
+    {
+      default_manager = g_object_new (VALENT_TYPE_DEVICE_MANAGER,
+                                      NULL);
 
-  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
-  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+      g_object_add_weak_pointer (G_OBJECT (default_manager),
+                                 (gpointer)&default_manager);
+    }
 
-  manager = g_initable_new (VALENT_TYPE_DEVICE_MANAGER,
-                            cancellable,
-                            error,
-                            NULL);
-
-  if (manager == NULL)
-    return NULL;
-
-  return VALENT_DEVICE_MANAGER (manager);
-}
-
-/**
- * valent_device_manager_new:
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
- * @user_data: (closure): user supplied data
- *
- * Asynchronously create a new #ValentDeviceManager.
- *
- * When the manager is ready @callback will be invoked and you can use
- * [ctor@Valent.DeviceManager.new_finish] to get the result.
- *
- * Since: 1.0
- */
-void
-valent_device_manager_new (GCancellable        *cancellable,
-                           GAsyncReadyCallback  callback,
-                           gpointer             user_data)
-{
-  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-
-  g_async_initable_new_async (VALENT_TYPE_DEVICE_MANAGER,
-                              G_PRIORITY_DEFAULT,
-                              cancellable,
-                              callback,
-                              user_data,
-                              NULL);
-}
-
-/**
- * valent_device_manager_new_finish:
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
- *
- * Finish an operation started by [func@Valent.DeviceManager.new].
- *
- * Returns: (transfer full) (nullable): a #ValentDeviceManager
- *
- * Since: 1.0
- */
-ValentDeviceManager *
-valent_device_manager_new_finish (GAsyncResult  *result,
-                                  GError       **error)
-{
-  g_autoptr (GObject) source_object = NULL;
-  GObject *manager;
-
-  g_return_val_if_fail (G_IS_ASYNC_RESULT (result), NULL);
-  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
-
-  source_object = g_async_result_get_source_object (result);
-  manager = g_async_initable_new_finish (G_ASYNC_INITABLE (source_object),
-                                         result,
-                                         error);
-
-  if (manager == NULL)
-    return NULL;
-
-  return VALENT_DEVICE_MANAGER (manager);
+  return default_manager;
 }
 
 /**

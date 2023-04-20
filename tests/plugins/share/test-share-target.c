@@ -25,7 +25,7 @@ application_fixture_set_up (ApplicationPluginFixture *fixture,
 
   fixture->application = g_application_new ("ca.andyholmes.Valent.Tests",
                                             G_APPLICATION_FLAGS_NONE);
-  fixture->manager = valent_device_manager_new_sync (NULL, NULL);
+  fixture->manager = valent_device_manager_get_default ();
   fixture->extension = peas_engine_create_extension (engine,
                                                      plugin_info,
                                                      VALENT_TYPE_APPLICATION_PLUGIN,
