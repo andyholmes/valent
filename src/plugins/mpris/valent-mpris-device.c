@@ -100,7 +100,7 @@ valent_mpris_device_set_position (ValentMediaPlayer *player,
   json_builder_add_int_value (builder, position * 1000L);
   packet = valent_packet_end (&builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_send_packet (self->device, packet, NULL, NULL, NULL);
 }
 
 static ValentMediaRepeat
@@ -129,7 +129,7 @@ valent_mpris_device_set_repeat (ValentMediaPlayer *player,
   json_builder_add_string_value (builder, loop_status);
   packet = valent_packet_end (&builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_send_packet (self->device, packet, NULL, NULL, NULL);
 }
 
 static gboolean
@@ -155,7 +155,7 @@ valent_mpris_device_set_shuffle (ValentMediaPlayer *player,
   json_builder_add_boolean_value (builder, shuffle);
   packet = valent_packet_end (&builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_send_packet (self->device, packet, NULL, NULL, NULL);
 }
 
 static ValentMediaState
@@ -189,7 +189,7 @@ valent_mpris_device_set_volume (ValentMediaPlayer *player,
   json_builder_add_int_value (builder, floor (volume * 100));
   packet = valent_packet_end (&builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_send_packet (self->device, packet, NULL, NULL, NULL);
 }
 
 static void
@@ -206,7 +206,7 @@ valent_mpris_device_next (ValentMediaPlayer *player)
   json_builder_add_string_value (builder, "Next");
   packet = valent_packet_end (&builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_send_packet (self->device, packet, NULL, NULL, NULL);
 }
 
 static void
@@ -223,7 +223,7 @@ valent_mpris_device_pause (ValentMediaPlayer *player)
   json_builder_add_string_value (builder, "Pause");
   packet = valent_packet_end (&builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_send_packet (self->device, packet, NULL, NULL, NULL);
 }
 
 static void
@@ -240,7 +240,7 @@ valent_mpris_device_play (ValentMediaPlayer *player)
   json_builder_add_string_value (builder, "Play");
   packet = valent_packet_end (&builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_send_packet (self->device, packet, NULL, NULL, NULL);
 }
 
 #if 0
@@ -258,7 +258,7 @@ valent_mpris_device_play_pause (ValentMediaPlayer *player)
   json_builder_add_string_value (builder, "PlayPause");
   packet = valent_packet_end (&builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_send_packet (self->device, packet, NULL, NULL, NULL);
 }
 #endif
 
@@ -276,7 +276,7 @@ valent_mpris_device_previous (ValentMediaPlayer *player)
   json_builder_add_string_value (builder, "Previous");
   packet = valent_packet_end (&builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_send_packet (self->device, packet, NULL, NULL, NULL);
 }
 
 static void
@@ -295,7 +295,7 @@ valent_mpris_device_seek (ValentMediaPlayer *player,
   json_builder_add_int_value (builder, offset * G_TIME_SPAN_SECOND);
   packet = valent_packet_end (&builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_send_packet (self->device, packet, NULL, NULL, NULL);
 }
 
 static void
@@ -312,7 +312,7 @@ valent_mpris_device_stop (ValentMediaPlayer *player)
   json_builder_add_string_value (builder, "Stop");
   packet = valent_packet_end (&builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_send_packet (self->device, packet, NULL, NULL, NULL);
 }
 
 static void
@@ -353,7 +353,7 @@ valent_mpris_device_request_album_art (ValentMprisDevice *self,
   json_builder_add_string_value (builder, url);
   packet = valent_packet_end (&builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_send_packet (self->device, packet, NULL, NULL, NULL);
 }
 
 /*

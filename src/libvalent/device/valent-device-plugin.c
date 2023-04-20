@@ -361,6 +361,24 @@ valent_device_plugin_real_update_state (ValentDevicePlugin *plugin,
 }
 /* LCOV_EXCL_STOP */
 
+static void
+valent_device_send_packet_cb (ValentDevice *device,
+                              GAsyncResult *result,
+                              gpointer      user_data)
+{
+  g_autoptr (GError) error = NULL;
+
+  if (!valent_device_send_packet_finish (device, result, &error))
+    {
+      if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_PERMISSION_DENIED))
+        g_critical ("%s(): %s", G_STRFUNC, error->message);
+      else if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_NOT_CONNECTED))
+        g_warning ("%s(): %s", G_STRFUNC, error->message);
+      else if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_debug ("%s(): %s", G_STRFUNC, error->message);
+    }
+}
+
 /*
  * GObject
  */
@@ -641,11 +659,17 @@ valent_device_plugin_queue_packet (ValentDevicePlugin *plugin,
                                    JsonNode           *packet)
 {
   ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
+  g_autoptr (GCancellable) destroy = NULL;
 
   g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
   g_return_if_fail (VALENT_IS_PACKET (packet));
 
-  valent_device_queue_packet (priv->device, packet);
+  destroy = valent_object_ref_cancellable (VALENT_OBJECT (plugin));
+  valent_device_send_packet (priv->device,
+                             packet,
+                             destroy,
+                             (GAsyncReadyCallback)valent_device_send_packet_cb,
+                             NULL);
 }
 
 /**

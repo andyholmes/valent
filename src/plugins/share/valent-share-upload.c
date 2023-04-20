@@ -62,7 +62,7 @@ valent_share_upload_update (ValentShareUpload *self)
   json_builder_add_int_value (builder, self->payload_size);
   packet = valent_packet_end (&builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_send_packet (self->device, packet, NULL, NULL, NULL);
 }
 
 static inline void

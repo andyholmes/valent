@@ -165,7 +165,7 @@ on_key_pressed (GtkEventControllerKey *controller,
   json_builder_add_boolean_value (builder, TRUE);
 
   packet = valent_packet_end (&builder);
-  valent_device_queue_packet (self->device, packet);
+  valent_device_send_packet (self->device, packet, NULL, NULL, NULL);
 
   return TRUE;
 }
@@ -401,7 +401,7 @@ valent_mousepad_remote_pointer_axis (ValentMousepadRemote *self,
   json_builder_add_boolean_value (builder, TRUE);
   packet = valent_packet_end (&builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_send_packet (self->device, packet, NULL, NULL, NULL);
 }
 
 static void
@@ -448,7 +448,7 @@ valent_mousepad_remote_pointer_button (ValentMousepadRemote *self,
     }
 
   if (packet != NULL)
-    valent_device_queue_packet (self->device, packet);
+    valent_device_send_packet (self->device, packet, NULL, NULL, NULL);
 }
 
 static void
@@ -466,7 +466,7 @@ valent_mousepad_remote_pointer_motion (ValentMousepadRemote *self,
   json_builder_add_double_value (builder, dy);
   packet = valent_packet_end (&builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_send_packet (self->device, packet, NULL, NULL, NULL);
 }
 
 static void
@@ -480,7 +480,7 @@ valent_mousepad_remote_pointer_press (ValentMousepadRemote *self)
   json_builder_add_boolean_value (builder, TRUE);
   packet = valent_packet_end (&builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_send_packet (self->device, packet, NULL, NULL, NULL);
 }
 
 #if 0
@@ -495,7 +495,7 @@ valent_mousepad_remote_pointer_release (ValentMousepadRemote *self)
   json_builder_add_boolean_value (builder, TRUE);
   packet = valent_packet_end (&builder);
 
-  valent_device_queue_packet (self->device, packet);
+  valent_device_send_packet (self->device, packet, NULL, NULL, NULL);
 }
 #endif
 

@@ -663,7 +663,7 @@ valent_notification_upload_execute_cb (GObject      *object,
                     "device", &device,
                     "packet", &packet,
                     NULL);
-      valent_device_queue_packet (device, packet);
+      valent_device_send_packet (device, packet, NULL, NULL, NULL);
     }
 }
 
