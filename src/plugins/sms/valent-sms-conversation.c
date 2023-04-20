@@ -586,7 +586,7 @@ valent_sms_conversation_send_message (ValentSmsConversation *self)
   g_signal_emit (G_OBJECT (self), signals [SEND_MESSAGE], 0, message, &sent);
 
   if (sent)
-    VALENT_TODO ("Add pending message to conversation");
+    VALENT_NOTE ("TODO: Add pending message to conversation");
   else
     g_warning ("%s(): failed sending message \"%s\"", G_STRFUNC, text);
 

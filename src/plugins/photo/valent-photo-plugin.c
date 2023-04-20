@@ -38,7 +38,7 @@ valent_transfer_execute_cb (ValentTransfer     *transfer,
 
   if (valent_transfer_execute_finish (transfer, result, &error))
     {
-      VALENT_TODO ("GSetting to open on completion");
+      VALENT_NOTE ("TODO: GSetting to open on completion");
     }
   else if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
     {
@@ -109,7 +109,7 @@ valent_photo_plugin_handle_photo_request (ValentPhotoPlugin *self,
   g_assert (VALENT_IS_PHOTO_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
 
-  VALENT_TODO ("A request for a photo");
+  VALENT_NOTE ("TODO: A request for a photo");
 }
 
 /*
