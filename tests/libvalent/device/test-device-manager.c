@@ -45,7 +45,7 @@ manager_fixture_set_up (ManagerFixture *fixture,
 
   /* Init the manager */
   fixture->loop = g_main_loop_new (NULL, FALSE);
-  fixture->manager = valent_device_manager_new_sync (NULL, NULL);
+  fixture->manager = valent_device_manager_get_default ();
 }
 
 static void
@@ -80,33 +80,6 @@ on_devices_changed (GListModel     *list,
     {
       fixture->device = NULL;
     }
-}
-
-static void
-manager_new_cb (GObject      *object,
-                GAsyncResult *result,
-                gboolean     *done)
-{
-  g_autoptr (ValentDeviceManager) manager = NULL;
-  g_autoptr (GError) error = NULL;
-
-  manager = valent_device_manager_new_finish (result, &error);
-  g_assert_no_error (error);
-  g_assert_true (VALENT_IS_DEVICE_MANAGER (manager));
-
-  if (done != NULL)
-    *done = TRUE;
-}
-
-static void
-test_manager_new (void)
-{
-  gboolean done = FALSE;
-
-  valent_device_manager_new (NULL,
-                             (GAsyncReadyCallback)manager_new_cb,
-                             &done);
-  valent_test_await_boolean (&done);
 }
 
 static void
@@ -339,8 +312,6 @@ main (int   argc,
       char *argv[])
 {
   valent_test_init (&argc, &argv, NULL);
-
-  g_test_add_func ("/libvalent/device/manager/new", test_manager_new);
 
   g_test_add ("/libvalent/device/device-manager/basic",
               ManagerFixture, NULL,

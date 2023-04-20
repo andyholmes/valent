@@ -415,7 +415,7 @@ valent_application_dbus_register (GApplication     *application,
   if (!klass->dbus_register (application, connection, object_path, error))
     return FALSE;
 
-  self->manager = valent_device_manager_new_sync (NULL, error);
+  self->manager = valent_device_manager_get_default ();
 
   if (self->manager == NULL)
     return FALSE;
