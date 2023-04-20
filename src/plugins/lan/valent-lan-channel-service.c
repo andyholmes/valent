@@ -569,7 +569,11 @@ valent_lan_channel_service_socket_recv (GSocket      *socket,
   g_autoptr (GCancellable) cancellable = NULL;
   g_autoptr (GError) error = NULL;
 
-  g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (service));
+  g_assert (G_IS_SOCKET (socket));
+  g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (user_data));
+
+  if (condition != G_IO_IN)
+    return G_SOURCE_REMOVE;
 
   cancellable = valent_object_ref_cancellable (VALENT_OBJECT (service));
 
@@ -597,6 +601,7 @@ valent_lan_channel_service_socket_send (GSocket      *socket,
 
   g_assert (G_IS_SOCKET (socket));
   g_assert (condition == G_IO_OUT);
+  g_assert (G_IS_TASK (user_data));
 
   written = g_socket_send_to (socket,
                               address,
