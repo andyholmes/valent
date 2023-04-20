@@ -41,8 +41,8 @@ void   valent_debug_clear (void);
  * write to the log and pass events to sysprof, if it's available. If %FALSE,
  * these macros will be compiled out.
  *
- * The macros include %VALENT_ENTRY, %VALENT_EXIT, %VALENT_RETURN, %VALENT_GOTO
- * and %VALENT_PROBE.
+ * The macros include %VALENT_ENTRY, %VALENT_EXIT, %VALENT_RETURN, %VALENT_GOTO,
+ * %VALENT_NOTE and %VALENT_PROBE.
  *
  * Since: 1.0
  */
@@ -93,6 +93,16 @@ void   valent_debug_clear (void);
  */
 
 /**
+ * VALENT_NOTE: (skip)
+ * @fmt: the message format (a la `printf()`)
+ * @...: the message parameters
+ *
+ * Logs a formatted message at %VALENT_LOG_LEVEL_TRACE.
+ *
+ * Since: 1.0
+ */
+
+/**
  * VALENT_PROBE: (skip)
  *
  * Appends to the tracing log that a line of code was reached.
@@ -136,6 +146,9 @@ void valent_trace_mark (const char *strfunc,
             G_STRFUNC, __LINE__);                                           \
       goto _l;                                                              \
    } G_STMT_END
+# define VALENT_NOTE(fmt, ...)                                              \
+   g_log(G_LOG_DOMAIN, VALENT_LOG_LEVEL_TRACE, " NOTE: %s():%d: " fmt,      \
+         G_STRFUNC, __LINE__, ##__VA_ARGS__)
 # define VALENT_PROBE                                                       \
    g_log(G_LOG_DOMAIN, VALENT_LOG_LEVEL_TRACE, "PROBE: %s():%d",            \
          G_STRFUNC, __LINE__)
@@ -144,6 +157,7 @@ void valent_trace_mark (const char *strfunc,
 # define VALENT_EXIT                G_STMT_START { return;    } G_STMT_END
 # define VALENT_RETURN(_r)          G_STMT_START { return _r; } G_STMT_END
 # define VALENT_GOTO(_l)            G_STMT_START { goto _l;   } G_STMT_END
+# define VALENT_NOTE(fmt, ...)      G_STMT_START {            } G_STMT_END
 # define VALENT_PROBE               G_STMT_START {            } G_STMT_END
 #endif
 
@@ -157,8 +171,7 @@ void valent_trace_mark (const char *strfunc,
  * only appropriate during development. If %FALSE, these macros will be compiled
  * out.
  *
- * The macros include %VALENT_NOTE, %VALENT_TODO, %VALENT_FIXME and
- * %VALENT_JSON.
+ * The macros include %VALENT_JSON.
  */
 #ifndef VALENT_ENABLE_DEBUG
 # define VALENT_ENABLE_DEBUG @VALENT_ENABLE_DEBUG@
@@ -166,36 +179,6 @@ void valent_trace_mark (const char *strfunc,
 #if VALENT_ENABLE_DEBUG != 1
 # undef VALENT_ENABLE_DEBUG
 #endif
-
-/**
- * VALENT_NOTE: (skip)
- * @fmt: the message format (a la `printf()`)
- * @...: the message parameters
- *
- * Logs a formatted message at %G_LOG_LEVEL_DEBUG.
- *
- * Since: 1.0
- */
-
-/**
- * VALENT_TODO: (skip)
- * @fmt: the message format (a la `printf()`)
- * @...: the message parameters
- *
- * Appends to the log that incomplete code has been reached.
- *
- * Since: 1.0
- */
-
-/**
- * VALENT_FIXME: (skip)
- * @fmt: the message format (a la `printf()`)
- * @...: the message parameters
- *
- * Appends to the log that unstable code has been reached.
- *
- * Since: 1.0
- */
 
 /**
  * VALENT_JSON: (skip)
@@ -210,15 +193,6 @@ void valent_trace_mark (const char *strfunc,
 
 
 #ifdef VALENT_ENABLE_DEBUG
-# define VALENT_NOTE(fmt, ...)                                              \
-   g_log(G_LOG_DOMAIN, G_LOG_LEVEL_DEBUG, " NOTE: %s():%d: " fmt,           \
-         G_STRFUNC, __LINE__, ##__VA_ARGS__)
-# define VALENT_TODO(fmt, ...)                                              \
-   g_log(G_LOG_DOMAIN, G_LOG_LEVEL_INFO, " TODO: %s():%d: " fmt,            \
-         G_STRFUNC, __LINE__, ##__VA_ARGS__)
-# define VALENT_FIXME(fmt, ...)                                             \
-   g_log(G_LOG_DOMAIN, G_LOG_LEVEL_WARNING, "FIXME: %s():%d: " fmt,         \
-         G_STRFUNC, __LINE__, ##__VA_ARGS__)
 # define VALENT_JSON(_node, _ctx)                                           \
    G_STMT_START {                                                           \
      char *__json_str = json_to_string (_node, TRUE);                       \
@@ -227,9 +201,6 @@ void valent_trace_mark (const char *strfunc,
      g_free(__json_str);                                                    \
    } G_STMT_END
 #else
-# define VALENT_NOTE(fmt, ...)         G_STMT_START {          } G_STMT_END
-# define VALENT_TODO(fmt, ...)         G_STMT_START {          } G_STMT_END
-# define VALENT_FIXME(fmt, ...)        G_STMT_START {          } G_STMT_END
 # define VALENT_JSON(_node, _ctx)      G_STMT_START {          } G_STMT_END
 #endif
 

@@ -588,7 +588,7 @@ valent_notification_plugin_handle_notification_action (ValentNotificationPlugin 
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
 
-  VALENT_TODO ("kdeconnect.notification.action");
+  VALENT_NOTE ("TODO: kdeconnect.notification.action");
 }
 
 static void
@@ -598,7 +598,7 @@ valent_notification_plugin_handle_notification_reply (ValentNotificationPlugin *
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
 
-  VALENT_TODO ("kdeconnect.notification.reply");
+  VALENT_NOTE ("TODO: kdeconnect.notification.reply");
 }
 
 static void
@@ -608,7 +608,7 @@ valent_notification_plugin_handle_notification_request (ValentNotificationPlugin
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
 
-  VALENT_TODO ("kdeconnect.notification.request");
+  VALENT_NOTE ("TODO: kdeconnect.notification.request");
 }
 
 static void
@@ -1038,7 +1038,7 @@ valent_notification_plugin_update_state (ValentDevicePlugin *plugin,
   if (available)
     {
       valent_notification_plugin_request_notifications (self);
-      VALENT_TODO ("send active notifications");
+      VALENT_NOTE ("TODO: send active notifications");
     }
 
   /* Update Reply Dialogs */
