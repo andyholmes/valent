@@ -105,7 +105,7 @@ valent_contacts_preferences_create_row_func (gpointer item,
   g_assert (VALENT_IS_CONTACTS_PREFERENCES (self));
 
   /* FIXME: select an icon name for the addressbook type */
-  context = valent_device_preferencs_group_get_context (group);
+  context = valent_device_preferences_group_get_context (group);
   device_id = valent_context_get_id (context);
   uid = valent_contact_store_get_uid (store);
 

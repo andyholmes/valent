@@ -13,10 +13,10 @@
 
 G_BEGIN_DECLS
 
-#define VALENT_TYPE_DEVICE_PREFERENCES_GROUP (valent_device_preferencs_group_get_type ())
+#define VALENT_TYPE_DEVICE_PREFERENCES_GROUP (valent_device_preferences_group_get_type ())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_DERIVABLE_TYPE (ValentDevicePreferencesGroup, valent_device_preferencs_group, VALENT, DEVICE_PREFERENCES_GROUP, AdwPreferencesGroup)
+G_DECLARE_DERIVABLE_TYPE (ValentDevicePreferencesGroup, valent_device_preferences_group, VALENT, DEVICE_PREFERENCES_GROUP, AdwPreferencesGroup)
 
 struct _ValentDevicePreferencesGroupClass
 {
@@ -27,7 +27,7 @@ struct _ValentDevicePreferencesGroupClass
 };
 
 VALENT_AVAILABLE_IN_1_0
-ValentContext * valent_device_preferencs_group_get_context   (ValentDevicePreferencesGroup *group);
+ValentContext * valent_device_preferences_group_get_context   (ValentDevicePreferencesGroup *group);
 VALENT_AVAILABLE_IN_1_0
 GSettings     * valent_device_preferences_group_get_settings (ValentDevicePreferencesGroup *group);
 

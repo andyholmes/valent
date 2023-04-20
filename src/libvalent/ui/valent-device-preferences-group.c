@@ -32,7 +32,7 @@ typedef struct
   GSettings      *settings;
 } ValentDevicePreferencesGroupPrivate;
 
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentDevicePreferencesGroup, valent_device_preferencs_group, ADW_TYPE_PREFERENCES_GROUP)
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentDevicePreferencesGroup, valent_device_preferences_group, ADW_TYPE_PREFERENCES_GROUP)
 
 enum {
   PROP_0,
@@ -49,30 +49,30 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
  * GObject
  */
 static void
-valent_device_preferencs_group_finalize (GObject *object)
+valent_device_preferences_group_finalize (GObject *object)
 {
   ValentDevicePreferencesGroup *self = VALENT_DEVICE_PREFERENCES_GROUP (object);
-  ValentDevicePreferencesGroupPrivate *priv = valent_device_preferencs_group_get_instance_private (self);
+  ValentDevicePreferencesGroupPrivate *priv = valent_device_preferences_group_get_instance_private (self);
 
   g_clear_object (&priv->context);
   g_clear_object (&priv->settings);
 
-  G_OBJECT_CLASS (valent_device_preferencs_group_parent_class)->finalize (object);
+  G_OBJECT_CLASS (valent_device_preferences_group_parent_class)->finalize (object);
 }
 
 static void
-valent_device_preferencs_group_get_property (GObject    *object,
-                                             guint       prop_id,
-                                             GValue     *value,
-                                             GParamSpec *pspec)
+valent_device_preferences_group_get_property (GObject    *object,
+                                              guint       prop_id,
+                                              GValue     *value,
+                                              GParamSpec *pspec)
 {
   ValentDevicePreferencesGroup *self = VALENT_DEVICE_PREFERENCES_GROUP (object);
-  ValentDevicePreferencesGroupPrivate *priv = valent_device_preferencs_group_get_instance_private (self);
+  ValentDevicePreferencesGroupPrivate *priv = valent_device_preferences_group_get_instance_private (self);
 
   switch (prop_id)
     {
     case PROP_CONTEXT:
-      g_value_set_object (value, valent_device_preferencs_group_get_context (self));
+      g_value_set_object (value, valent_device_preferences_group_get_context (self));
       break;
 
     case PROP_PLUGIN_INFO:
@@ -89,13 +89,13 @@ valent_device_preferencs_group_get_property (GObject    *object,
 }
 
 static void
-valent_device_preferencs_group_set_property (GObject      *object,
-                                             guint         prop_id,
-                                             const GValue *value,
-                                             GParamSpec   *pspec)
+valent_device_preferences_group_set_property (GObject      *object,
+                                              guint         prop_id,
+                                              const GValue *value,
+                                              GParamSpec   *pspec)
 {
   ValentDevicePreferencesGroup *self = VALENT_DEVICE_PREFERENCES_GROUP (object);
-  ValentDevicePreferencesGroupPrivate *priv = valent_device_preferencs_group_get_instance_private (self);
+  ValentDevicePreferencesGroupPrivate *priv = valent_device_preferences_group_get_instance_private (self);
 
   switch (prop_id)
     {
@@ -113,13 +113,13 @@ valent_device_preferencs_group_set_property (GObject      *object,
 }
 
 static void
-valent_device_preferencs_group_class_init (ValentDevicePreferencesGroupClass *klass)
+valent_device_preferences_group_class_init (ValentDevicePreferencesGroupClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  object_class->finalize = valent_device_preferencs_group_finalize;
-  object_class->get_property = valent_device_preferencs_group_get_property;
-  object_class->set_property = valent_device_preferencs_group_set_property;
+  object_class->finalize = valent_device_preferences_group_finalize;
+  object_class->get_property = valent_device_preferences_group_get_property;
+  object_class->set_property = valent_device_preferences_group_set_property;
 
   /**
    * ValentDevicePreferencesGroup:context: (getter get_context)
@@ -169,12 +169,12 @@ valent_device_preferencs_group_class_init (ValentDevicePreferencesGroupClass *kl
 }
 
 static void
-valent_device_preferencs_group_init (ValentDevicePreferencesGroup *self)
+valent_device_preferences_group_init (ValentDevicePreferencesGroup *self)
 {
 }
 
 /**
- * valent_device_preferencs_group_get_context:
+ * valent_device_preferences_group_get_context:
  * @group: a #ValentDevicePreferencesGroup
  *
  * Get the [class@Valent.Context] for the [class@Valent.DevicePlugin].
@@ -184,9 +184,9 @@ valent_device_preferencs_group_init (ValentDevicePreferencesGroup *self)
  * Since: 1.0
  */
 ValentContext *
-valent_device_preferencs_group_get_context (ValentDevicePreferencesGroup *group)
+valent_device_preferences_group_get_context (ValentDevicePreferencesGroup *group)
 {
-  ValentDevicePreferencesGroupPrivate *priv = valent_device_preferencs_group_get_instance_private (group);
+  ValentDevicePreferencesGroupPrivate *priv = valent_device_preferences_group_get_instance_private (group);
 
   g_return_val_if_fail (VALENT_IS_DEVICE_PREFERENCES_GROUP (group), NULL);
 
@@ -214,7 +214,7 @@ valent_device_preferencs_group_get_context (ValentDevicePreferencesGroup *group)
 GSettings *
 valent_device_preferences_group_get_settings (ValentDevicePreferencesGroup *group)
 {
-  ValentDevicePreferencesGroupPrivate *priv = valent_device_preferencs_group_get_instance_private (group);
+  ValentDevicePreferencesGroupPrivate *priv = valent_device_preferences_group_get_instance_private (group);
 
   g_return_val_if_fail (VALENT_IS_DEVICE_PREFERENCES_GROUP (group), NULL);
 
@@ -222,7 +222,7 @@ valent_device_preferences_group_get_settings (ValentDevicePreferencesGroup *grou
     {
       ValentContext *context = NULL;
 
-      context = valent_device_preferencs_group_get_context (group);
+      context = valent_device_preferences_group_get_context (group);
       priv->settings = valent_context_get_plugin_settings (context,
                                                            priv->plugin_info,
                                                            "X-DevicePluginSettings");
