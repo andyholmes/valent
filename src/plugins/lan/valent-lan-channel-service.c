@@ -88,7 +88,7 @@ on_channel_destroyed (ValentLanChannelService *self,
 /**
  * valent_lan_channel_service_verify_channel:
  * @self: a #ValentLanChannelService
- * @device_id: a device ID
+ * @identity: a KDE Connect identity packet
  * @connection: a #GTlsConnection
  *
  * Verify an encrypted TLS connection.
@@ -103,17 +103,25 @@ on_channel_destroyed (ValentLanChannelService *self,
  */
 static gboolean
 valent_lan_channel_service_verify_channel (ValentLanChannelService *self,
-                                           const char              *device_id,
+                                           JsonNode                *identity,
                                            GIOStream               *connection)
 {
   ValentLanChannel *channel = NULL;
   g_autoptr (GTlsCertificate) certificate = NULL;
   g_autoptr (GTlsCertificate) peer_certificate = NULL;
   const char *peer_certificate_cn = NULL;
+  const char *device_id = NULL;
 
   g_assert (VALENT_IS_CHANNEL_SERVICE (self));
-  g_assert (device_id != NULL && *device_id != '\0');
+  g_assert (VALENT_IS_PACKET (identity));;
   g_assert (G_IS_TLS_CONNECTION (connection));
+
+  if (!valent_packet_get_string (identity, "deviceId", &device_id))
+    {
+      g_debug ("%s(): expected \"deviceId\" field holding a string",
+               G_STRFUNC);
+      return FALSE;
+    }
 
   g_object_get (connection, "peer-certificate", &peer_certificate, NULL);
   peer_certificate_cn = valent_certificate_get_common_name (peer_certificate);
@@ -250,7 +258,7 @@ on_incoming_connection (ValentChannelService   *service,
 
   g_cancellable_disconnect (cancellable, cancellable_id);
 
-  if (!valent_lan_channel_service_verify_channel (self, device_id, tls_stream))
+  if (!valent_lan_channel_service_verify_channel (self, peer_identity, tls_stream))
     return TRUE;
 
   /* Get the host from the connection */
@@ -441,8 +449,7 @@ incoming_broadcast_task (GTask        *task,
       return g_task_return_error (task, g_steal_pointer (&error));
     }
 
-  if (!valent_packet_get_string (peer_identity, "deviceId", &device_id) ||
-      !valent_lan_channel_service_verify_channel (self, device_id, tls_stream))
+  if (!valent_lan_channel_service_verify_channel (self, peer_identity, tls_stream))
     return g_task_return_boolean (task, TRUE);
 
   channel = g_object_new (VALENT_TYPE_LAN_CHANNEL,
