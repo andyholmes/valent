@@ -9,7 +9,6 @@
 typedef struct
 {
   GApplication        *application;
-  ValentDeviceManager *manager;
   PeasExtension       *extension;
 } ApplicationPluginFixture;
 
@@ -25,12 +24,10 @@ application_fixture_set_up (ApplicationPluginFixture *fixture,
 
   fixture->application = g_application_new ("ca.andyholmes.Valent.Tests",
                                             G_APPLICATION_FLAGS_NONE);
-  fixture->manager = valent_device_manager_get_default ();
   fixture->extension = peas_engine_create_extension (engine,
                                                      plugin_info,
                                                      VALENT_TYPE_APPLICATION_PLUGIN,
-                                                     "application",    fixture->application,
-                                                     "device-manager", fixture->manager,
+                                                     "application", fixture->application,
                                                      NULL);
 }
 
@@ -39,7 +36,6 @@ application_fixture_tear_down (ApplicationPluginFixture *fixture,
                                gconstpointer             user_data)
 {
   v_await_finalize_object (fixture->extension);
-  v_await_finalize_object (fixture->manager);
   v_await_finalize_object (fixture->application);
 }
 
@@ -49,26 +45,20 @@ test_application_plugin_basic (ApplicationPluginFixture *fixture,
 {
   ValentApplicationPlugin *plugin = VALENT_APPLICATION_PLUGIN (fixture->extension);
   g_autoptr (GApplication) application = NULL;
-  g_autoptr (ValentDeviceManager) manager = NULL;
   PeasPluginInfo *plugin_info = NULL;
 
   /* Test properties */
   g_object_get (fixture->extension,
                 "application",    &application,
-                "device-manager", &manager,
                 "plugin-info",    &plugin_info,
                 NULL);
 
   g_assert_true (G_IS_APPLICATION (application));
-  g_assert_true (VALENT_IS_DEVICE_MANAGER (manager));
   g_assert_nonnull (plugin_info);
   g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
 
   application = valent_application_plugin_get_application (plugin);
   g_assert_true (G_IS_APPLICATION (application));
-
-  manager = valent_application_plugin_get_device_manager (plugin);
-  g_assert_true (VALENT_IS_DEVICE_MANAGER (manager));
 }
 
 int

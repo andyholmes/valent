@@ -9,6 +9,7 @@ libvalent_core_generated_sources = []
 
 # Headers
 libvalent_core_public_headers = [
+  'valent-application-plugin.h',
   'valent-certificate.h',
   'valent-component.h',
   'valent-context.h',
@@ -33,6 +34,7 @@ install_headers(libvalent_core_public_headers,
 
 # Sources
 libvalent_core_public_sources = [
+  'valent-application-plugin.c',
   'valent-certificate.c',
   'valent-component.c',
   'valent-context.c',

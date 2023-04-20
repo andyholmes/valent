@@ -19,7 +19,6 @@
 #include <libvalent-notifications.h>
 #include <libvalent-session.h>
 
-#include "valent-application-plugin.h"
 #include "valent-preferences-page.h"
 #include "valent-preferences-window.h"
 

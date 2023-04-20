@@ -66,7 +66,6 @@ valent_share_target_open (ValentApplicationPlugin  *plugin,
                           const char               *hint)
 {
   ValentShareTarget *self = VALENT_SHARE_TARGET (plugin);
-  ValentDeviceManager *manager = NULL;
   g_autoptr (GListStore) list = NULL;
   GtkWindow *window = NULL;
 
@@ -80,10 +79,7 @@ valent_share_target_open (ValentApplicationPlugin  *plugin,
   for (int i = 0; i < n_files; i++)
     g_list_store_append (list, files[i]);
 
-  manager = valent_application_plugin_get_device_manager (plugin);
-
   window = g_object_new (VALENT_TYPE_SHARE_TARGET_CHOOSER,
-                         "device-manager", manager,
                          "files",          list,
                          NULL);
 

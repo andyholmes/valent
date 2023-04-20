@@ -29,7 +29,6 @@ G_DEFINE_FINAL_TYPE (ValentShareTargetChooser, valent_share_target_chooser, GTK_
 
 enum {
   PROP_0,
-  PROP_DEVICE_MANAGER,
   PROP_FILES,
   N_PROPERTIES
 };
@@ -273,9 +272,9 @@ valent_share_target_chooser_constructed (GObject *object)
 {
   ValentShareTargetChooser *self = VALENT_SHARE_TARGET_CHOOSER (object);
 
-  g_assert (VALENT_IS_DEVICE_MANAGER (self->manager));
   g_assert (G_IS_LIST_MODEL (self->files));
 
+  self->manager = valent_device_manager_get_default ();
   g_signal_connect_object (self->manager,
                            "items-changed",
                            G_CALLBACK (on_items_changed),
@@ -308,7 +307,7 @@ valent_share_target_chooser_dispose (GObject *object)
   if (self->manager != NULL)
     {
       g_signal_handlers_disconnect_by_data (self->manager, self);
-      g_clear_object (&self->manager);
+      self->manager = NULL;
     }
 
   gtk_widget_dispose_template (GTK_WIDGET (object),
@@ -337,10 +336,6 @@ valent_share_target_chooser_get_property (GObject    *object,
 
   switch (prop_id)
     {
-    case PROP_DEVICE_MANAGER:
-      g_value_set_object (value, self->manager);
-      break;
-
     case PROP_FILES:
       g_value_set_object (value, self->files);
       break;
@@ -360,10 +355,6 @@ valent_share_target_chooser_set_property (GObject      *object,
 
   switch (prop_id)
     {
-    case PROP_DEVICE_MANAGER:
-      self->manager = g_value_dup_object (value);
-      break;
-
     case PROP_FILES:
       self->files = g_value_dup_object (value);
       break;
@@ -393,19 +384,6 @@ valent_share_target_chooser_class_init (ValentShareTargetChooserClass *klass)
   gtk_widget_class_install_action (widget_class, "chooser.cancel", NULL, chooser_cancel_action);
   gtk_widget_class_install_action (widget_class, "chooser.open", NULL, chooser_open_action);
   gtk_widget_class_install_action (widget_class, "chooser.share", NULL, chooser_share_action);
-
-  /**
-   * ValentShareTargetChooser:device-manager:
-   *
-   * The [class@Valent.DeviceManager] that the window represents.
-   */
-  properties [PROP_DEVICE_MANAGER] =
-    g_param_spec_object ("device-manager", NULL, NULL,
-                         VALENT_TYPE_DEVICE_MANAGER,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
 
   /**
    * ValentShareTargetChooser:files:

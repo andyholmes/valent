@@ -16,7 +16,6 @@ test_share_target_chooser (void)
   ValentChannelService *service = NULL;
   g_autoptr (ValentDeviceManager) manager = NULL;
   g_autoptr (GListStore) files = NULL;
-  g_autoptr (ValentDeviceManager) manager_out = NULL;
   g_autoptr (GListStore) files_out = NULL;
   g_autoptr (GFile) file = NULL;
 
@@ -26,16 +25,13 @@ test_share_target_chooser (void)
 
   manager = valent_device_manager_get_default ();
   window = g_object_new (VALENT_TYPE_SHARE_TARGET_CHOOSER,
-                         "device-manager", manager,
                          "files",          files,
                          NULL);
   g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
 
   g_object_get (window,
-                "device-manager", &manager_out,
                 "files",          &files_out,
                 NULL);
-  g_assert_true (manager == manager_out);
   g_assert_true (files == files_out);
 
   /* Wait for the window to open */

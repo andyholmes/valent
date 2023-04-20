@@ -30,7 +30,6 @@ application_fixture_set_up (ApplicationPluginFixture *fixture,
                                                      plugin_info,
                                                      VALENT_TYPE_APPLICATION_PLUGIN,
                                                      "application",    fixture->application,
-                                                     "device-manager", fixture->manager,
                                                      NULL);
 }
 
@@ -49,26 +48,20 @@ test_share_target (ApplicationPluginFixture *fixture,
 {
   ValentApplicationPlugin *plugin = VALENT_APPLICATION_PLUGIN (fixture->extension);
   g_autoptr (GApplication) application = NULL;
-  g_autoptr (ValentDeviceManager) manager = NULL;
   PeasPluginInfo *plugin_info = NULL;
 
   /* Test properties */
   g_object_get (fixture->extension,
                 "application",    &application,
-                "device-manager", &manager,
                 "plugin-info",    &plugin_info,
                 NULL);
 
   g_assert_true (G_IS_APPLICATION (application));
-  g_assert_true (VALENT_IS_DEVICE_MANAGER (manager));
   g_assert_nonnull (plugin_info);
   g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
 
   application = valent_application_plugin_get_application (plugin);
   g_assert_true (G_IS_APPLICATION (application));
-
-  manager = valent_application_plugin_get_device_manager (plugin);
-  g_assert_true (VALENT_IS_DEVICE_MANAGER (manager));
 }
 
 int

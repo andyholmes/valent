@@ -514,7 +514,9 @@ valent_type_ensure (void)
   g_type_ensure (VALENT_TYPE_OBJECT);
   g_type_ensure (VALENT_TYPE_COMPONENT);
   g_type_ensure (VALENT_TYPE_TRANSFER);
+  g_type_ensure (VALENT_TYPE_APPLICATION_PLUGIN);
 
+  /* Device */
   g_type_ensure (VALENT_TYPE_CHANNEL);
   g_type_ensure (VALENT_TYPE_CHANNEL_SERVICE);
   g_type_ensure (VALENT_TYPE_DEVICE);
