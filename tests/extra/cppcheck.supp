@@ -41,3 +41,7 @@ memleak:tests/plugins/fdo/test-fdo-notifications.c:164
 leakNoVarFunctionCall:tests/plugins/gtk/test-gtk-notifications.c:115
 leakNoVarFunctionCall:tests/plugins/gtk/test-gtk-notifications.c:117
 leakNoVarFunctionCall:tests/plugins/gtk/test-gtk-notifications.c:119
+
+# tests/plugins/lan/
+memleak:src/plugins/lan/valent-lan-channel-service.c:542
+
