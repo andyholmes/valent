@@ -8,7 +8,6 @@
 #include <gio/gio.h>
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
-#include <libvalent-device.h>
 
 #include "valent-application-plugin.h"
 
@@ -42,7 +41,6 @@ typedef struct
 {
   PeasPluginInfo      *plugin_info;
   GApplication        *application;
-  ValentDeviceManager *manager;
 } ValentApplicationPluginPrivate;
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentApplicationPlugin, valent_application_plugin, VALENT_TYPE_OBJECT)
@@ -61,7 +59,6 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentApplicationPlugin, valent_application
 enum {
   PROP_0,
   PROP_APPLICATION,
-  PROP_DEVICE_MANAGER,
   PROP_PLUGIN_INFO,
   N_PROPERTIES
 };
@@ -134,10 +131,6 @@ valent_application_plugin_get_property (GObject    *object,
       g_value_set_object (value, priv->application);
       break;
 
-    case PROP_DEVICE_MANAGER:
-      g_value_set_object (value, priv->manager);
-      break;
-
     case PROP_PLUGIN_INFO:
       g_value_set_boxed (value, priv->plugin_info);
       break;
@@ -160,10 +153,6 @@ valent_application_plugin_set_property (GObject      *object,
     {
     case PROP_APPLICATION:
       priv->application = g_value_get_object (value);
-      break;
-
-    case PROP_DEVICE_MANAGER:
-      priv->manager = g_value_get_object (value);
       break;
 
     case PROP_PLUGIN_INFO:
@@ -199,21 +188,6 @@ valent_application_plugin_class_init (ValentApplicationPluginClass *klass)
   properties [PROP_APPLICATION] =
     g_param_spec_object ("application", NULL, NULL,
                          G_TYPE_APPLICATION,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentApplicationPlugin:device-manager: (getter get_device_manager):
-   *
-   * The [class@Valent.DeviceManager] this plugin is bound to.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_DEVICE_MANAGER] =
-    g_param_spec_object ("device-manager", NULL, NULL,
-                         VALENT_TYPE_DEVICE_MANAGER,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -260,26 +234,6 @@ valent_application_plugin_get_application (ValentApplicationPlugin *plugin)
   g_return_val_if_fail (VALENT_IS_APPLICATION_PLUGIN (plugin), NULL);
 
   return priv->application;
-}
-
-/**
- * valent_application_plugin_get_device_manager: (get-property device-manager)
- * @plugin: a #ValentApplicationPlugin
- *
- * Get the [class@Valent.DeviceManager] of the application.
- *
- * Returns: (transfer none): a #ValentDeviceManager
- *
- * Since: 1.0
- */
-ValentDeviceManager *
-valent_application_plugin_get_device_manager (ValentApplicationPlugin *plugin)
-{
-  ValentApplicationPluginPrivate *priv = valent_application_plugin_get_instance_private (plugin);
-
-  g_return_val_if_fail (VALENT_IS_APPLICATION_PLUGIN (plugin), NULL);
-
-  return priv->manager;
 }
 
 /**

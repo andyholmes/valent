@@ -7,7 +7,7 @@
 # error "Only <valent.h> can be included directly."
 #endif
 
-#include "../device/valent-device-manager.h"
+#include "valent-object.h"
 
 G_BEGIN_DECLS
 
@@ -37,8 +37,6 @@ struct _ValentApplicationPluginClass
 
 VALENT_AVAILABLE_IN_1_0
 GApplication        * valent_application_plugin_get_application    (ValentApplicationPlugin  *plugin);
-VALENT_AVAILABLE_IN_1_0
-ValentDeviceManager * valent_application_plugin_get_device_manager (ValentApplicationPlugin  *plugin);
 VALENT_AVAILABLE_IN_1_0
 void                  valent_application_plugin_disable            (ValentApplicationPlugin  *plugin);
 VALENT_AVAILABLE_IN_1_0

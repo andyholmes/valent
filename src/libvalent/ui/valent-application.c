@@ -66,7 +66,6 @@ valent_application_enable_plugin (ValentApplication *self,
                                                     plugin->info,
                                                     VALENT_TYPE_APPLICATION_PLUGIN,
                                                     "application",    self,
-                                                    "device-manager", self->manager,
                                                     NULL);
   g_return_if_fail (PEAS_IS_EXTENSION (plugin->extension));
 

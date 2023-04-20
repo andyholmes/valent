@@ -11,7 +11,6 @@
 #include <libvalent-media.h>
 
 #include "valent-application.h"
-#include "valent-application-plugin.h"
 
 #include "valent-device-gadget.h"
 #include "valent-device-page.h"
@@ -83,7 +82,6 @@ static void
 valent_ui_init_types (void)
 {
   g_type_ensure (VALENT_TYPE_APPLICATION);
-  g_type_ensure (VALENT_TYPE_APPLICATION_PLUGIN);
 
   g_type_ensure (VALENT_TYPE_DEVICE_GADGET);
   g_type_ensure (VALENT_TYPE_DEVICE_PAGE);
