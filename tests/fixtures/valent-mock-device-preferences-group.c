@@ -15,19 +15,19 @@ struct _ValentMockDevicePreferencesGroup
   ValentDevicePreferencesGroup  parent_instance;
 };
 
-G_DEFINE_FINAL_TYPE (ValentMockDevicePreferencesGroup, valent_mock_device_preferencs_group, VALENT_TYPE_DEVICE_PREFERENCES_GROUP)
+G_DEFINE_FINAL_TYPE (ValentMockDevicePreferencesGroup, valent_mock_device_preferences_group, VALENT_TYPE_DEVICE_PREFERENCES_GROUP)
 
 
 /*
  * GObject
  */
 static void
-valent_mock_device_preferencs_group_class_init (ValentMockDevicePreferencesGroupClass *klass)
+valent_mock_device_preferences_group_class_init (ValentMockDevicePreferencesGroupClass *klass)
 {
 }
 
 static void
-valent_mock_device_preferencs_group_init (ValentMockDevicePreferencesGroup *self)
+valent_mock_device_preferences_group_init (ValentMockDevicePreferencesGroup *self)
 {
 }
 

@@ -7,8 +7,8 @@
 
 G_BEGIN_DECLS
 
-#define VALENT_TYPE_MOCK_DEVICE_PREFERENCES_GROUP (valent_mock_device_preferencs_group_get_type())
+#define VALENT_TYPE_MOCK_DEVICE_PREFERENCES_GROUP (valent_mock_device_preferences_group_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentMockDevicePreferencesGroup, valent_mock_device_preferencs_group, VALENT, MOCK_DEVICE_PREFERENCES_GROUP, ValentDevicePreferencesGroup)
+G_DECLARE_FINAL_TYPE (ValentMockDevicePreferencesGroup, valent_mock_device_preferences_group, VALENT, MOCK_DEVICE_PREFERENCES_GROUP, ValentDevicePreferencesGroup)
 
 G_END_DECLS

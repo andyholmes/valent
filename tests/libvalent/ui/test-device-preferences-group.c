@@ -6,7 +6,7 @@
 
 
 static void
-test_device_preferencs_group_basic (void)
+test_device_preferences_group_basic (void)
 {
   PeasEngine *engine;
   PeasPluginInfo *info;
@@ -40,7 +40,7 @@ main (int   argc,
   valent_test_ui_init (&argc, &argv, NULL);
 
   g_test_add_func ("/libvalent/ui/device-preferences-group/basic",
-                   test_device_preferencs_group_basic);
+                   test_device_preferences_group_basic);
 
   return g_test_run ();
 }
