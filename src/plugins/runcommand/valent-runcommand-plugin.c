@@ -121,17 +121,9 @@ launcher_execute (ValentRuncommandPlugin  *self,
 
   command_line = g_string_new ("");
 
-  /* When running in a Flatpak, run the command on the host if requested */
-  if (xdp_portal_running_under_flatpak () &&
-      valent_runcommand_can_spawn_host ())
-    {
-      GSettings *settings;
-
-      settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
-
-      if (!g_settings_get_boolean (settings, "isolate-subprocesses"))
-        g_string_append (command_line, "flatpak-spawn --host ");
-    }
+  /* When running in a Flatpak, run the command on the host */
+  if (xdp_portal_running_under_flatpak () && valent_runcommand_can_spawn_host ())
+    g_string_append (command_line, "flatpak-spawn --host ");
 
   /* Quote the command for the subshell */
   quoted = g_shell_quote (command);
