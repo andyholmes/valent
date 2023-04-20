@@ -628,11 +628,15 @@ valent_lan_channel_service_socket_worker (gpointer data)
   g_autoptr (GMainLoop) loop = (GMainLoop *)data;
   GMainContext *context = g_main_loop_get_context (loop);
 
-  g_assert (loop != NULL);
-  g_assert (context != NULL);
-
+  /* The loop quits when the channel is closed, then the context is drained to
+   * ensure all tasks return. */
   g_main_context_push_thread_default (context);
+
   g_main_loop_run (loop);
+
+  while (g_main_context_pending (context))
+    g_main_context_iteration (NULL, FALSE);
+
   g_main_context_pop_thread_default (context);
 
   return NULL;
