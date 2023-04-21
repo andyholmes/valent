@@ -343,26 +343,6 @@ valent_lan_channel_service_tcp_setup (ValentLanChannelService  *self,
  * 2) Write our identity packet
  * 3) Negotiate TLS encryption (as the TLS Server)
  */
-typedef struct
-{
-  GRecMutex       lock;
-  GSocketAddress *address;
-  JsonNode       *identity;
-} BroadcastData;
-
-static void
-broadcast_data_free (gpointer data)
-{
-  BroadcastData *broadcast = (BroadcastData *)data;
-
-  g_rec_mutex_lock (&broadcast->lock);
-  g_clear_object (&broadcast->address);
-  g_clear_pointer (&broadcast->identity, json_node_unref);
-  g_rec_mutex_unlock (&broadcast->lock);
-  g_rec_mutex_clear (&broadcast->lock);
-  g_clear_pointer (&broadcast, g_free);
-}
-
 static void
 incoming_broadcast_task (GTask        *task,
                          gpointer      source_object,
@@ -371,11 +351,10 @@ incoming_broadcast_task (GTask        *task,
 {
   ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (source_object);
   ValentChannelService *service = VALENT_CHANNEL_SERVICE (source_object);
-  g_autoptr (GSocketClient) client = NULL;
-  BroadcastData *broadcast = (BroadcastData *)task_data;
+  GSocketAddress *address = G_SOCKET_ADDRESS (task_data);
   JsonNode *peer_identity = NULL;
+  g_autoptr (GSocketClient) client = NULL;
   g_autoptr (GSocketConnection) connection = NULL;
-  GSocketAddress *address = NULL;
   GInetAddress *addr = NULL;
   g_autoptr (JsonNode) identity = NULL;
   g_autoptr (ValentChannel) channel = NULL;
@@ -387,15 +366,11 @@ incoming_broadcast_task (GTask        *task,
   g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_CHANNEL_SERVICE (self));
-  g_assert (broadcast != NULL);
-
-  g_rec_mutex_lock (&broadcast->lock);
-  address = broadcast->address;
-  peer_identity = broadcast->identity;
-  g_rec_mutex_unlock (&broadcast->lock);
+  g_assert (G_IS_SOCKET_ADDRESS (address));
 
   addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (address));
   host = g_inet_address_to_string (addr);
+  peer_identity = g_object_get_data (G_OBJECT (address), "valent-lan-broadcast");
   valent_packet_get_int (peer_identity, "tcpPort", &port);
 
   /* Open a TCP connection to the UDP sender and defined port.
@@ -472,14 +447,14 @@ on_incoming_broadcast (ValentChannelService  *service,
 {
   gssize read = 0;
   char buffer[IDENTITY_BUFFER_MAX + 1] = { 0, };
-  g_autoptr (GSocketAddress) address = NULL;
+  g_autoptr (GSocketAddress) incoming = NULL;
+  g_autoptr (GSocketAddress) outgoing = NULL;
   GInetAddress *addr = NULL;
   gint64 port = VALENT_LAN_PROTOCOL_PORT;
   g_autoptr (JsonNode) peer_identity = NULL;
   const char *device_id;
   g_autofree char *local_id = NULL;
   g_autoptr (GTask) task = NULL;
-  BroadcastData *broadcast = NULL;
   g_autoptr (GError) warning = NULL;
 
   g_assert (VALENT_IS_CHANNEL_SERVICE (service));
@@ -489,7 +464,7 @@ on_incoming_broadcast (ValentChannelService  *service,
 
   /* Read the message data and extract the remote address */
   read = g_socket_receive_from (socket,
-                                &address,
+                                &incoming,
                                 buffer,
                                 IDENTITY_BUFFER_MAX,
                                 cancellable,
@@ -530,7 +505,7 @@ on_incoming_broadcast (ValentChannelService  *service,
     return TRUE;
 
   /* Get the remote address and port */
-  addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (address));
+  addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (incoming));
 
   if (!valent_packet_get_int (peer_identity, "tcpPort", &port) ||
       (port < VALENT_LAN_PROTOCOL_PORT_MIN || port > VALENT_LAN_PROTOCOL_PORT_MAX))
@@ -545,16 +520,15 @@ on_incoming_broadcast (ValentChannelService  *service,
   VALENT_JSON (peer_identity, device_id);
 
   /* Defer the remaining work to another thread */
-  broadcast = g_new0 (BroadcastData, 1);
-  g_rec_mutex_init (&broadcast->lock);
-  g_rec_mutex_lock (&broadcast->lock);
-  broadcast->address = g_inet_socket_address_new (addr, port);
-  broadcast->identity = json_node_ref (peer_identity);
-  g_rec_mutex_unlock (&broadcast->lock);
+  outgoing = g_inet_socket_address_new (addr, port);
+  g_object_set_data_full (G_OBJECT (outgoing),
+                          "valent-lan-broadcast",
+                          json_node_ref (peer_identity),
+                          (GDestroyNotify)json_node_unref);
 
   task = g_task_new (service, cancellable, NULL, NULL);
   g_task_set_source_tag (task, on_incoming_broadcast);
-  g_task_set_task_data (task, g_steal_pointer (&broadcast), broadcast_data_free);
+  g_task_set_task_data (task, g_steal_pointer (&outgoing), g_object_unref);
   g_task_run_in_thread (task, incoming_broadcast_task);
 
   return TRUE;
@@ -593,16 +567,18 @@ valent_lan_channel_service_socket_send (GSocket      *socket,
                                         GIOCondition  condition,
                                         gpointer      user_data)
 {
-  GTask *task = G_TASK (user_data);
-  GSocketAddress *address = g_task_get_source_object (task);
-  GBytes *bytes = g_task_get_task_data (task);
+  GSocketAddress *address = G_SOCKET_ADDRESS (user_data);
+  GBytes *bytes = NULL;
   gssize written;
   g_autoptr (GError) error = NULL;
 
   g_assert (G_IS_SOCKET (socket));
-  g_assert (condition == G_IO_OUT);
-  g_assert (G_IS_TASK (user_data));
+  g_assert (G_IS_SOCKET_ADDRESS (address));
 
+  if (condition != G_IO_OUT)
+    return G_SOURCE_REMOVE;
+
+  bytes = g_object_get_data (G_OBJECT (address), "valent-lan-broadcast");
   written = g_socket_send_to (socket,
                               address,
                               g_bytes_get_data (bytes, NULL),
@@ -616,8 +592,6 @@ valent_lan_channel_service_socket_send (GSocket      *socket,
                G_STRFUNC,
                "FIXME",
                error->message);
-
-  g_task_return_boolean (task, TRUE);
 
   return G_SOURCE_REMOVE;
 }
@@ -881,22 +855,20 @@ valent_lan_channel_service_identify (ValentChannelService *service,
   identity = valent_channel_service_ref_identity (service);
   identity_json = valent_packet_serialize (identity);
 
+  g_object_set_data_full (G_OBJECT (address),
+                          "valent-lan-broadcast",
+                          g_bytes_new (identity_json, strlen (identity_json)),
+                          (GDestroyNotify)g_bytes_unref);
+
   /* IPv6 */
   if (self->loop6 != NULL)
     {
       g_autoptr (GSource) source = NULL;
-      g_autoptr (GTask) task = NULL;
-
-      task = g_task_new (address, NULL, NULL, NULL);
-      g_task_set_source_tag (task, valent_lan_channel_service_identify);
-      g_task_set_task_data (task,
-                            g_bytes_new (identity_json, strlen (identity_json)),
-                            (GDestroyNotify)g_bytes_unref);
 
       source = g_socket_create_source (self->udp_socket6, G_IO_OUT, NULL);
       g_source_set_callback (source,
                              G_SOURCE_FUNC (valent_lan_channel_service_socket_send),
-                             g_steal_pointer (&task),
+                             g_object_ref (address),
                              g_object_unref);
       g_source_attach (source, g_main_loop_get_context (self->loop6));
     }
@@ -905,18 +877,11 @@ valent_lan_channel_service_identify (ValentChannelService *service,
   if (self->loop4 != NULL)
     {
       g_autoptr (GSource) source = NULL;
-      g_autoptr (GTask) task = NULL;
-
-      task = g_task_new (address, NULL, NULL, NULL);
-      g_task_set_source_tag (task, valent_lan_channel_service_identify);
-      g_task_set_task_data (task,
-                            g_bytes_new (identity_json, strlen (identity_json)),
-                            (GDestroyNotify)g_bytes_unref);
 
       source = g_socket_create_source (self->udp_socket4, G_IO_OUT, NULL);
       g_source_set_callback (source,
                              G_SOURCE_FUNC (valent_lan_channel_service_socket_send),
-                             g_steal_pointer (&task),
+                             g_object_ref (address),
                              g_object_unref);
       g_source_attach (source, g_main_loop_get_context (self->loop4));
     }
