@@ -380,7 +380,7 @@ valent_application_startup (GApplication *application)
 
   /* Load plugins and start the device manager */
   valent_application_load_plugins (self);
-  valent_device_manager_start (self->manager);
+  valent_application_plugin_startup (VALENT_APPLICATION_PLUGIN (self->manager));
 }
 
 static void
@@ -391,7 +391,7 @@ valent_application_shutdown (GApplication *application)
   g_assert (VALENT_IS_APPLICATION (application));
 
   g_clear_pointer (&self->window, gtk_window_destroy);
-  valent_device_manager_stop (self->manager);
+  valent_application_plugin_shutdown (VALENT_APPLICATION_PLUGIN (self->manager));
   valent_application_unload_plugins (self);
   g_clear_object (&self->settings);
 
@@ -414,13 +414,10 @@ valent_application_dbus_register (GApplication     *application,
     return FALSE;
 
   self->manager = valent_device_manager_get_default ();
-
-  if (self->manager == NULL)
-    return FALSE;
-
-  valent_device_manager_export (self->manager, connection, object_path);
-
-  return TRUE;
+  return valent_application_plugin_dbus_register (VALENT_APPLICATION_PLUGIN (self->manager),
+                                                  connection,
+                                                  object_path,
+                                                  error);
 }
 
 static void
@@ -435,7 +432,9 @@ valent_application_dbus_unregister (GApplication    *application,
 
   if (self->manager != NULL)
     {
-      valent_device_manager_unexport (self->manager);
+      valent_application_plugin_dbus_unregister (VALENT_APPLICATION_PLUGIN (self->manager),
+                                                 connection,
+                                                 object_path);
       g_clear_object (&self->manager);
     }
 

@@ -52,7 +52,7 @@ static void
 manager_fixture_tear_down (ManagerFixture *fixture,
                            gconstpointer   user_data)
 {
-  valent_device_manager_stop (fixture->manager);
+  valent_application_plugin_shutdown (VALENT_APPLICATION_PLUGIN (fixture->manager));
 
   while (valent_mock_channel_service_get_instance () != NULL)
     g_main_context_iteration (NULL, FALSE);
@@ -107,7 +107,7 @@ test_manager_management (ManagerFixture *fixture,
                     fixture);
 
   /* Wait for the manager to start */
-  valent_device_manager_start (fixture->manager);
+  valent_application_plugin_startup (VALENT_APPLICATION_PLUGIN (fixture->manager));
 
   while (fixture->device == NULL)
     g_main_context_iteration (NULL, FALSE);
@@ -194,14 +194,17 @@ test_manager_dbus (ManagerFixture *fixture,
                     fixture);
 
   /* Wait for the manager to start */
-  valent_device_manager_start (fixture->manager);
+  valent_application_plugin_startup (VALENT_APPLICATION_PLUGIN (fixture->manager));
 
   while (fixture->device == NULL)
     g_main_context_iteration (NULL, FALSE);
 
   /* Exports current devices */
   connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
-  valent_device_manager_export (fixture->manager, connection, TEST_OBJECT_PATH);
+  valent_application_plugin_dbus_register (VALENT_APPLICATION_PLUGIN (fixture->manager),
+                                           connection,
+                                           TEST_OBJECT_PATH,
+                                           NULL);
 
   unique_name = g_dbus_connection_get_unique_name (connection);
   g_dbus_object_manager_client_new (connection,
@@ -258,7 +261,9 @@ test_manager_dbus (ManagerFixture *fixture,
                     G_CALLBACK (on_object_removed),
                     fixture);
 
-  valent_device_manager_unexport (fixture->manager);
+  valent_application_plugin_dbus_unregister (VALENT_APPLICATION_PLUGIN (fixture->manager),
+                                             connection,
+                                             TEST_OBJECT_PATH);
   g_main_loop_run (fixture->loop);
 }
 
@@ -271,7 +276,7 @@ test_manager_dispose (ManagerFixture *fixture,
   g_autoptr (GSettings) settings = NULL;
 
   /* Startup */
-  valent_device_manager_start (fixture->manager);
+  valent_application_plugin_startup (VALENT_APPLICATION_PLUGIN (fixture->manager));
 
   while ((service = valent_mock_channel_service_get_instance ()) == NULL)
     g_main_context_iteration (NULL, FALSE);
@@ -301,7 +306,7 @@ test_manager_dispose (ManagerFixture *fixture,
     g_main_context_iteration (NULL, FALSE);
 
   /* Shutdown */
-  valent_device_manager_stop (fixture->manager);
+  valent_application_plugin_shutdown (VALENT_APPLICATION_PLUGIN (fixture->manager));
 
   while ((service = valent_mock_channel_service_get_instance ()) != NULL)
     g_main_context_iteration (NULL, FALSE);

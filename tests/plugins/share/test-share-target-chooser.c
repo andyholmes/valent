@@ -39,7 +39,7 @@ test_share_target_chooser (void)
   valent_test_await_pending ();
 
   /* Wait for the manager to start */
-  valent_device_manager_start (manager);
+  valent_application_plugin_startup (VALENT_APPLICATION_PLUGIN (manager));
 
   while ((service = valent_mock_channel_service_get_instance ()) == NULL)
     g_main_context_iteration (NULL, FALSE);
@@ -48,7 +48,7 @@ test_share_target_chooser (void)
   valent_device_manager_refresh (manager);
   valent_test_await_pending ();
 
-  valent_device_manager_stop (manager);
+  valent_application_plugin_shutdown (VALENT_APPLICATION_PLUGIN (manager));
   valent_test_await_pending ();
 
   /* Wait for the window to close */
