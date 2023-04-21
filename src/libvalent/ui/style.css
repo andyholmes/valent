@@ -6,3 +6,11 @@
   border-bottom: 0;
 }
 
+
+/*
+ * ValentMediaRemote
+ */
+window.media-remote .content {
+  background: @card_shade_color;
+}
+

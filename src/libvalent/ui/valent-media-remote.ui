@@ -10,11 +10,17 @@
     <property name="height-request">294</property>
     <property name="default-width">360</property>
     <property name="default-height">648</property>
+    <style>
+      <class name="media-remote"/>
+    </style>
     <property name="content">
       <object class="GtkWindowHandle">
         <child>
           <object class="GtkBox">
             <property name="orientation">vertical</property>
+            <style>
+              <class name="content"/>
+            </style>
 
             <!-- Player -->
             <child>
@@ -234,7 +240,6 @@
                                 </accessibility>
                                 <style>
                                   <class name="circular"/>
-                                  <class name="flat"/>
                                 </style>
                               </object>
                             </child>
@@ -274,7 +279,7 @@
                                 <property name="child">
                                   <object class="GtkImage">
                                     <property name="icon-name">media-playback-start-symbolic</property>
-                                    <property name="pixel-size">16</property>
+                                    <property name="pixel-size">32</property>
                                     <property name="margin-bottom">16</property>
                                     <property name="margin-end">16</property>
                                     <property name="margin-start">16</property>
@@ -338,7 +343,6 @@
                                 </accessibility>
                                 <style>
                                   <class name="circular"/>
-                                  <class name="flat"/>
                                 </style>
                               </object>
                             </child>
