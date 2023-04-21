@@ -256,9 +256,8 @@ valent_contacts_get_default (void)
   if (default_contacts == NULL)
     {
       default_contacts = g_object_new (VALENT_TYPE_CONTACTS,
-                                       "plugin-domain",   "contacts",
-                                       "plugin-priority", "ContactsAdapterPriority",
-                                       "plugin-type",     VALENT_TYPE_CONTACTS_ADAPTER,
+                                       "plugin-domain", "contacts",
+                                       "plugin-type",   VALENT_TYPE_CONTACTS_ADAPTER,
                                        NULL);
 
       g_object_add_weak_pointer (G_OBJECT (default_contacts),

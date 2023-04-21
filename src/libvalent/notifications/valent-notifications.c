@@ -313,9 +313,8 @@ valent_notifications_get_default (void)
   if (default_listener == NULL)
     {
       default_listener = g_object_new (VALENT_TYPE_NOTIFICATIONS,
-                                       "plugin-domain",   "notifications",
-                                       "plugin-priority", "NotificationsAdapterPriority",
-                                       "plugin-type",     VALENT_TYPE_NOTIFICATIONS_ADAPTER,
+                                       "plugin-domain", "notifications",
+                                       "plugin-type",   VALENT_TYPE_NOTIFICATIONS_ADAPTER,
                                        NULL);
 
       g_object_add_weak_pointer (G_OBJECT (default_listener),

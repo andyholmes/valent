@@ -267,9 +267,8 @@ valent_media_get_default (void)
   if (default_media == NULL)
     {
       default_media = g_object_new (VALENT_TYPE_MEDIA,
-                                    "plugin-domain",   "media",
-                                    "plugin-priority", "MediaAdapterPriority",
-                                    "plugin-type",     VALENT_TYPE_MEDIA_ADAPTER,
+                                    "plugin-domain", "media",
+                                    "plugin-type",   VALENT_TYPE_MEDIA_ADAPTER,
                                     NULL);
 
       g_object_add_weak_pointer (G_OBJECT (default_media),

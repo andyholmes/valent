@@ -242,9 +242,8 @@ valent_session_get_default (void)
   if (default_adapter == NULL)
     {
       default_adapter = g_object_new (VALENT_TYPE_SESSION,
-                                      "plugin-domain",   "session",
-                                      "plugin-priority", "SessionAdapterPriority",
-                                      "plugin-type",     VALENT_TYPE_SESSION_ADAPTER,
+                                      "plugin-domain", "session",
+                                      "plugin-type",   VALENT_TYPE_SESSION_ADAPTER,
                                       NULL);
 
       g_object_add_weak_pointer (G_OBJECT (default_adapter),

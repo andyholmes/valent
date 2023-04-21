@@ -328,9 +328,8 @@ valent_mixer_get_default (void)
   if (default_mixer == NULL)
     {
       default_mixer = g_object_new (VALENT_TYPE_MIXER,
-                                    "plugin-domain",   "mixer",
-                                    "plugin-priority", "MixerAdapterPriority",
-                                    "plugin-type",     VALENT_TYPE_MIXER_ADAPTER,
+                                    "plugin-domain", "mixer",
+                                    "plugin-type",   VALENT_TYPE_MIXER_ADAPTER,
                                     NULL);
 
       g_object_add_weak_pointer (G_OBJECT (default_mixer),
