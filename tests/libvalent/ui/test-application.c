@@ -35,7 +35,6 @@ test_application_basic (void)
 static gboolean
 actions_timeout_cb (gpointer data)
 {
-  GtkApplication *application = GTK_APPLICATION (data);
   GActionGroup *actions = G_ACTION_GROUP (data);
   GVariantBuilder builder;
   GVariant *target;
@@ -43,22 +42,16 @@ actions_timeout_cb (gpointer data)
   switch (stage++)
     {
     case 0:
-      target = g_variant_new_string ("main");
-      g_action_group_activate_action (actions, "window", target);
-      g_assert_nonnull (gtk_application_get_active_window (application));
-      return G_SOURCE_CONTINUE;
-
-    case 1:
       g_action_group_activate_action (actions, "refresh", NULL);
       return G_SOURCE_CONTINUE;
 
-    case 2:
+    case 1:
       g_variant_builder_init (&builder, G_VARIANT_TYPE ("av"));
       target = g_variant_new ("(ssav)", "mock-device", "mock.echo", &builder);
       g_action_group_activate_action (actions, "device", target);
       return G_SOURCE_CONTINUE;
 
-    case 3:
+    case 2:
       g_action_group_activate_action (actions, "quit", NULL);
       return G_SOURCE_REMOVE;
 

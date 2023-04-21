@@ -8,6 +8,7 @@
 #include <adwaita.h>
 #include <gtk/gtk.h>
 #include <libvalent-core.h>
+#include <libvalent-device.h>
 #include <libvalent-media.h>
 
 #include "valent-application.h"
@@ -25,12 +26,39 @@
 #include "valent-ui-utils.h"
 
 
+static GtkWindow *main_window = NULL;
 static GtkWindow *media_remote = NULL;
 
 
 /*
  * GActions
  */
+static void
+main_window_action (GSimpleAction *action,
+                    GVariant      *parameter,
+                    gpointer       user_data)
+{
+  if (main_window == NULL)
+    {
+      GApplication *application = g_application_get_default ();
+      ValentDeviceManager *manager = valent_device_manager_get_default ();
+
+      main_window = g_object_new (VALENT_TYPE_WINDOW,
+                                  "application",    application,
+                                  "default-width",  600,
+                                  "default-height", 480,
+                                  "device-manager", manager,
+                                  NULL);
+      g_object_add_weak_pointer (G_OBJECT (main_window),
+                                 (gpointer) &main_window);
+    }
+
+  gtk_window_present_with_time (main_window, GDK_CURRENT_TIME);
+  gtk_widget_activate_action_variant (GTK_WIDGET (main_window),
+                                      "win.page",
+                                      parameter);
+}
+
 static void
 media_remote_action (GSimpleAction *action,
                      GVariant      *parameter,
@@ -54,6 +82,7 @@ valent_ui_init_actions (void)
   GApplication *application = g_application_get_default ();
   static const GActionEntry actions[] = {
     { "media-remote", media_remote_action, NULL, NULL, NULL },
+    { "window",       main_window_action,  "s",  NULL, NULL },
   };
 
   if (application != NULL)
