@@ -52,7 +52,6 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentComponent, valent_component, VALENT_T
 enum {
   PROP_0,
   PROP_PLUGIN_DOMAIN,
-  PROP_PLUGIN_PRIORITY,
   PROP_PLUGIN_TYPE,
   N_PROPERTIES
 };
@@ -373,6 +372,17 @@ valent_component_constructed (GObject *object)
 
   priv->context = valent_context_new (NULL, priv->plugin_domain, NULL);
 
+  /* Infer the priority key */
+  if (g_type_name (priv->plugin_type) != NULL)
+    {
+      const char *type_name = g_type_name (priv->plugin_type);
+
+      if (g_str_has_prefix (type_name, "Valent"))
+        priv->plugin_priority = g_strdup_printf ("X-%sPriority", &type_name[6]);
+      else
+        priv->plugin_priority = g_strdup_printf ("X-%sPriority", type_name);
+    }
+
   /* Setup PeasEngine */
   plugins = peas_engine_get_plugin_list (priv->engine);
 
@@ -439,10 +449,6 @@ valent_component_get_property (GObject    *object,
       g_value_set_string (value, priv->plugin_domain);
       break;
 
-    case PROP_PLUGIN_PRIORITY:
-      g_value_set_string (value, priv->plugin_priority);
-      break;
-
     case PROP_PLUGIN_TYPE:
       g_value_set_gtype (value, priv->plugin_type);
       break;
@@ -465,10 +471,6 @@ valent_component_set_property (GObject      *object,
     {
     case PROP_PLUGIN_DOMAIN:
       priv->plugin_domain = g_value_dup_string (value);
-      break;
-
-    case PROP_PLUGIN_PRIORITY:
-      priv->plugin_priority = g_value_dup_string (value);
       break;
 
     case PROP_PLUGIN_TYPE:
@@ -507,24 +509,6 @@ valent_component_class_init (ValentComponentClass *klass)
    */
   properties [PROP_PLUGIN_DOMAIN] =
     g_param_spec_string ("plugin-domain", NULL, NULL,
-                         NULL,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentComponent:plugin-priority:
-   *
-   * The priority key for the component.
-   *
-   * This is the name of a key in the `.plugin` file used to determine the
-   * preferred implementation.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_PLUGIN_PRIORITY] =
-    g_param_spec_string ("plugin-priority", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |

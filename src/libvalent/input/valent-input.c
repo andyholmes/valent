@@ -88,9 +88,8 @@ valent_input_get_default (void)
   if (default_input == NULL)
     {
       default_input = g_object_new (VALENT_TYPE_INPUT,
-                                    "plugin-domain",   "input",
-                                    "plugin-priority", "InputAdapterPriority",
-                                    "plugin-type",     VALENT_TYPE_INPUT_ADAPTER,
+                                    "plugin-domain", "input",
+                                    "plugin-type",   VALENT_TYPE_INPUT_ADAPTER,
                                     NULL);
 
       g_object_add_weak_pointer (G_OBJECT (default_input),
