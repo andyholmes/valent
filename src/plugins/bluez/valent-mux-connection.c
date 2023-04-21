@@ -26,7 +26,7 @@ struct _ValentMuxConnection
   GIOStream     *base_stream;
   GInputStream  *input_stream;
   GOutputStream *output_stream;
-  guint16        buffer_size;
+  uint16_t       buffer_size;
   GCancellable  *cancellable;
 
   unsigned int   protocol_version;
@@ -51,7 +51,7 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 /*
  * UUID Helpers from Linux
  */
-static const guint8 si[16] = {0,2,4,6,9,11,14,16,19,21,24,26,28,30,32,34};
+static const uint8_t si[16] = {0,2,4,6,9,11,14,16,19,21,24,26,28,30,32,34};
 
 /**
  * MessageType:
@@ -99,14 +99,14 @@ typedef struct
   GIOStream *stream;
 
   /* Input Buffer */
-  guint8    *buf;
-  gsize      len;
-  gsize      pos;
-  gsize      end;
+  uint8_t   *buf;
+  size_t     len;
+  size_t     pos;
+  size_t     end;
 
   /* I/O State */
-  guint16    read_free;
-  guint16    write_free;
+  uint16_t   read_free;
+  uint16_t   write_free;
 } ChannelState;
 
 static ChannelState *
@@ -259,9 +259,9 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC (ChannelState, channel_state_unref)
  * Pack a multiplex header into @hdr.
  */
 static inline void
-pack_header (guint8      *hdr,
+pack_header (uint8_t     *hdr,
              MessageType  type,
-             guint16      size,
+             uint16_t     size,
              const char  *uuid)
 {
   int hi, lo;
@@ -289,16 +289,16 @@ pack_header (guint8      *hdr,
  * Unpack the multiplex header @hdr into @type, @size and @uuid.
  */
 static inline void
-unpack_header (guint8      *hdr,
+unpack_header (uint8_t     *hdr,
                MessageType *type,
-               guint16     *size,
+               uint16_t    *size,
                char        *uuid)
 {
   if G_LIKELY (type != NULL)
     *type = hdr[0];
 
   if G_LIKELY (size != NULL)
-    *size = (guint16)hdr[1] << 8 | hdr[2];
+    *size = (uint16_t)hdr[1] << 8 | hdr[2];
 
   if G_LIKELY (uuid != NULL)
     g_snprintf (uuid, 37,
@@ -316,13 +316,13 @@ unpack_header (guint8      *hdr,
 static inline gboolean
 recv_header (ValentMuxConnection  *self,
              MessageType          *type,
-             guint16              *size,
+             uint16_t             *size,
              char                 *uuid,
              GCancellable         *cancellable,
              GError              **error)
 {
-  guint8 hdr[HEADER_SIZE];
-  gsize bytes_read;
+  uint8_t hdr[HEADER_SIZE];
+  size_t bytes_read;
   gboolean ret;
 
   ret = g_input_stream_read_all (self->input_stream,
@@ -349,7 +349,7 @@ recv_protocol_version (ValentMuxConnection  *self,
                        GError              **error)
 {
   gboolean ret;
-  guint16 min_version, max_version;
+  uint16_t min_version, max_version;
 
   ret = g_input_stream_read_all (self->input_stream,
                                  &min_version,
@@ -437,7 +437,7 @@ recv_read (ValentMuxConnection  *self,
            GError              **error)
 {
   g_autoptr (ChannelState) state = NULL;
-  guint16 size_request;
+  uint16_t size_request;
   gboolean ret;
 
   ret = g_input_stream_read_all (self->input_stream,
@@ -468,12 +468,12 @@ recv_read (ValentMuxConnection  *self,
 static inline gboolean
 recv_write (ValentMuxConnection  *self,
             const char           *uuid,
-            guint16               size,
+            uint16_t              size,
             GCancellable         *cancellable,
             GError              **error)
 {
   g_autoptr (ChannelState) state = NULL;
-  gsize buf_used;
+  size_t buf_used;
   gboolean ret;
 
   /* Ensure this channel exists */
@@ -537,7 +537,7 @@ valent_mux_connection_receive_loop (gpointer data)
 {
   g_autoptr (ValentMuxConnection) self = VALENT_MUX_CONNECTION (data);
   MessageType type;
-  guint16 size;
+  uint16_t size;
   char uuid[37] = { 0, };
   g_autoptr (GError) error = NULL;
 
@@ -591,7 +591,7 @@ send_protocol_version (ValentMuxConnection  *self,
                        GCancellable         *cancellable,
                        GError              **error)
 {
-  guint8 message[HEADER_SIZE + 4] = { 0, };
+  uint8_t message[HEADER_SIZE + 4] = { 0, };
 
   /* Pack the versions big-endian */
   pack_header (message, MESSAGE_PROTOCOL_VERSION, 4, PRIMARY_UUID);
@@ -614,7 +614,7 @@ send_open_channel (ValentMuxConnection  *self,
                    GCancellable         *cancellable,
                    GError              **error)
 {
-  guint8 message[HEADER_SIZE] = { 0, };
+  uint8_t message[HEADER_SIZE] = { 0, };
 
   pack_header (message, MESSAGE_OPEN_CHANNEL, 0, uuid);
 
@@ -632,7 +632,7 @@ send_close_channel (ValentMuxConnection  *self,
                     GCancellable         *cancellable,
                     GError              **error)
 {
-  guint8 message[HEADER_SIZE] = { 0, };
+  uint8_t message[HEADER_SIZE] = { 0, };
 
   pack_header (message, MESSAGE_CLOSE_CHANNEL, 0, uuid);
 
@@ -647,11 +647,11 @@ send_close_channel (ValentMuxConnection  *self,
 static inline gboolean
 send_read (ValentMuxConnection  *self,
            const char           *uuid,
-           guint16               size_request,
+           uint16_t              size_request,
            GCancellable         *cancellable,
            GError              **error)
 {
-  guint8 message[HEADER_SIZE + 2] = { 0, };
+  uint8_t message[HEADER_SIZE + 2] = { 0, };
 
   /* Pack the message */
   pack_header (message, MESSAGE_READ, 2, uuid);
@@ -670,12 +670,12 @@ send_read (ValentMuxConnection  *self,
 static inline gboolean
 send_write (ValentMuxConnection  *self,
             const char           *uuid,
-            guint16               size,
+            uint16_t              size,
             const void           *buffer,
             GCancellable         *cancellable,
             GError              **error)
 {
-  guint8 hdr[HEADER_SIZE] = { 0, };
+  uint8_t hdr[HEADER_SIZE] = { 0, };
   gboolean ret;
 
   /* Pack the header */
@@ -710,7 +710,7 @@ protocol_handshake (ValentMuxConnection  *self,
                     GError              **error)
 {
   MessageType type;
-  guint16 size;
+  uint16_t size;
 
   /* Send our protocol min/max */
   if (!send_protocol_version (self, cancellable, error))
@@ -1248,13 +1248,13 @@ gssize
 valent_mux_connection_read (ValentMuxConnection  *connection,
                             const char           *uuid,
                             void                 *buffer,
-                            gsize                 count,
+                            size_t                count,
                             GCancellable         *cancellable,
                             GError              **error)
 {
   g_autoptr (ChannelState) state = NULL;
   gssize read;
-  gsize n_used;
+  size_t n_used;
 
   g_assert (VALENT_IS_MUX_CONNECTION (connection));
   g_assert (g_uuid_string_is_valid (uuid));
@@ -1336,7 +1336,7 @@ gssize
 valent_mux_connection_write (ValentMuxConnection  *connection,
                              const char           *uuid,
                              const void           *buffer,
-                             gsize                 count,
+                             size_t                count,
                              GCancellable         *cancellable,
                              GError              **error)
 {

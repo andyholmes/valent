@@ -99,7 +99,7 @@ void          valent_packet_init             (JsonBuilder   **builder,
 VALENT_AVAILABLE_IN_1_0
 JsonNode    * valent_packet_end              (JsonBuilder   **builder);
 VALENT_AVAILABLE_IN_1_0
-gint64        valent_packet_get_id           (JsonNode       *packet);
+int64_t       valent_packet_get_id           (JsonNode       *packet);
 VALENT_AVAILABLE_IN_1_0
 const char  * valent_packet_get_type         (JsonNode       *packet);
 VALENT_AVAILABLE_IN_1_0
@@ -140,7 +140,7 @@ gboolean      valent_packet_get_double       (JsonNode       *packet,
 VALENT_AVAILABLE_IN_1_0
 gboolean      valent_packet_get_int          (JsonNode       *packet,
                                               const char     *field,
-                                              gint64         *value);
+                                              int64_t        *value);
 VALENT_AVAILABLE_IN_1_0
 gboolean      valent_packet_get_string       (JsonNode       *packet,
                                               const char     *field,

@@ -18,9 +18,9 @@ test_device_transfer (ValentTestFixture *fixture,
   g_autoptr (GFileInfo) dest_info = NULL;
   const char *dest_dir = NULL;
   JsonNode *packet = NULL;
-  guint64 src_btime_s, src_mtime_s, dest_mtime_s;
-  guint32 src_btime_us, src_mtime_us, dest_mtime_us;
-  guint64 src_btime, src_mtime, dest_mtime;
+  uint64_t src_btime_s, src_mtime_s, dest_mtime_s;
+  uint32_t src_btime_us, src_mtime_us, dest_mtime_us;
+  uint64_t src_btime, src_mtime, dest_mtime;
   goffset src_size, dest_size;
   GError *error = NULL;
 

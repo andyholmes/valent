@@ -33,7 +33,7 @@ struct _ValentXdpInput
   GSettings          *settings;
 
   XdpSession         *session;
-  gint64              session_expiry;
+  int64_t             session_expiry;
   guint               session_expiry_id;
   gboolean            session_starting;
   gboolean            started;

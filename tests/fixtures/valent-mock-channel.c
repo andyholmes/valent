@@ -22,7 +22,7 @@ struct _ValentMockChannel
   ValentChannel  parent_instance;
 
   char          *host;
-  guint16        port;
+  uint16_t       port;
 };
 
 G_DEFINE_FINAL_TYPE (ValentMockChannel, valent_mock_channel, VALENT_TYPE_CHANNEL)
@@ -123,7 +123,7 @@ valent_mock_channel_upload (ValentChannel  *channel,
 
   /* Payload Info */
   info = json_object_new();
-  json_object_set_int_member (info, "fd", (gint64)sv[1]);
+  json_object_set_int_member (info, "fd", (int64_t)sv[1]);
   valent_packet_set_payload_info (packet, info);
 
   if ((socket = g_socket_new_from_fd (sv[0], error)) == NULL)

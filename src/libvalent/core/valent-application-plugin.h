@@ -28,11 +28,11 @@ struct _ValentApplicationPluginClass
                                           GApplicationCommandLine  *command_line);
   gboolean            (*dbus_register)   (ValentApplicationPlugin  *plugin,
                                           GDBusConnection          *connection,
-                                          const gchar              *object_path,
+                                          const char               *object_path,
                                           GError                  **error);
   void                (*dbus_unregister) (ValentApplicationPlugin  *plugin,
                                           GDBusConnection          *connection,
-                                          const gchar              *object_path);
+                                          const char               *object_path);
   gboolean            (*open)            (ValentApplicationPlugin  *plugin,
                                           GFile                   **files,
                                           int                       n_files,
@@ -58,12 +58,12 @@ int            valent_application_plugin_command_line    (ValentApplicationPlugi
 VALENT_AVAILABLE_IN_1_0
 gboolean       valent_application_plugin_dbus_register   (ValentApplicationPlugin  *plugin,
                                                           GDBusConnection          *connection,
-                                                          const gchar              *object_path,
+                                                          const char               *object_path,
                                                           GError                  **error);
 VALENT_AVAILABLE_IN_1_0
 void           valent_application_plugin_dbus_unregister (ValentApplicationPlugin  *plugin,
                                                           GDBusConnection          *connection,
-                                                          const gchar              *object_path);
+                                                          const char               *object_path);
 VALENT_AVAILABLE_IN_1_0
 gboolean       valent_application_plugin_open            (ValentApplicationPlugin  *plugin,
                                                           GFile                   **files,

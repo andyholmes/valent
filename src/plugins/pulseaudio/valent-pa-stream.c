@@ -106,7 +106,7 @@ valent_pa_stream_set_level (ValentMixerStream *stream,
   percent = (double)level / (double)100;
   volume = floor (percent * (double)self->vol_max);
 
-  gvc_mixer_stream_set_volume (self->stream, (guint32)volume);
+  gvc_mixer_stream_set_volume (self->stream, (uint32_t)volume);
   gvc_mixer_stream_push_volume (self->stream);
   g_object_notify (G_OBJECT (stream), "level");
 }

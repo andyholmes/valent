@@ -129,7 +129,7 @@ test_sms_store (void)
   g_autoptr (ValentSmsStore) store = NULL;
   g_autoptr (GPtrArray) messages = NULL;
   g_autoptr (GListModel) summary = NULL;
-  gint64 thread_date;
+  int64_t thread_date;
 
   loop = g_main_loop_new (NULL, FALSE);
 

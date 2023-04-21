@@ -29,7 +29,7 @@ struct _ValentNotification
   char                  *title;
   char                  *body;
   GIcon                 *icon;
-  gint64                 time;
+  int64_t                time;
   char                  *default_action;
   GVariant              *default_action_target;
   GPtrArray             *buttons;
@@ -634,7 +634,7 @@ valent_notification_set_priority (ValentNotification    *notification,
  *
  * Since: 1.0
  */
-gint64
+int64_t
 valent_notification_get_time (ValentNotification *notification)
 {
   g_return_val_if_fail (VALENT_IS_NOTIFICATION (notification), 0);
@@ -653,7 +653,7 @@ valent_notification_get_time (ValentNotification *notification)
  */
 void
 valent_notification_set_time (ValentNotification *notification,
-                              gint64              time)
+                              int64_t             time)
 {
   g_return_if_fail (VALENT_IS_NOTIFICATION (notification));
 
@@ -940,7 +940,7 @@ valent_notification_deserialize (GVariant *variant)
   if (g_variant_lookup (props, "buttons", "@aa{sv}", &buttons))
     {
       GVariantIter iter;
-      gsize n_buttons;
+      size_t n_buttons;
       GVariant *button;
 
       n_buttons = g_variant_iter_init (&iter, buttons);

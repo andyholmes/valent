@@ -59,15 +59,15 @@ typedef enum
 G_DECLARE_FINAL_TYPE (ValentMessage, valent_message, VALENT, MESSAGE, GObject)
 
 ValentMessageBox   valent_message_get_box       (ValentMessage *message);
-gint64             valent_message_get_date      (ValentMessage *message);
-gint64             valent_message_get_id        (ValentMessage *message);
+int64_t            valent_message_get_date      (ValentMessage *message);
+int64_t            valent_message_get_id        (ValentMessage *message);
 GVariant         * valent_message_get_metadata  (ValentMessage *message);
 gboolean           valent_message_get_read      (ValentMessage *message);
 void               valent_message_set_read      (ValentMessage *message,
                                                  gboolean       read);
 const char       * valent_message_get_sender    (ValentMessage *message);
 const char       * valent_message_get_text      (ValentMessage *message);
-gint64             valent_message_get_thread_id (ValentMessage *message);
+int64_t            valent_message_get_thread_id (ValentMessage *message);
 void               valent_message_update        (ValentMessage *message,
                                                  ValentMessage *update);
 

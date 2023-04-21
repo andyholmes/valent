@@ -10,7 +10,7 @@
 G_BEGIN_DECLS
 
 void   valent_sms_store_get_thread_items  (ValentSmsStore      *store,
-                                           gint64               thread_id,
+                                           int64_t              thread_id,
                                            GCancellable        *cancellable,
                                            GAsyncReadyCallback  callback,
                                            gpointer             user_data);
@@ -20,13 +20,13 @@ void   valent_sms_store_get_thread_items  (ValentSmsStore      *store,
  * MESSAGE_TABLE_SQL:
  *
  * @box: (type Valent.MessageBox):
- * @date: (type gint64): a UNIX epoch timestamp (ms)
- * @id: (type gint64): a message ID, unique to at least @thread_id
+ * @date: (type int64_t): a UNIX epoch timestamp (ms)
+ * @id: (type int64_t): a message ID, unique to at least @thread_id
  * @metadata: (type GLib.Variant): additional serialized #GVariant data
  * @read: (type gboolean): the viewed status
  * @sender: (type utf8): the sender address
  * @text: (type utf8): the message content
- * @thread_id: (type gint64): a group ID
+ * @thread_id: (type int64_t): a group ID
  *
  * The SQL query used to create the `message` table, which holds records of
  * abstract messages. The most commonly searched properties are fields, while

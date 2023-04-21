@@ -22,7 +22,7 @@ void            valent_message_row_set_contact   (ValentMessageRow *row,
 ValentMessage * valent_message_row_get_message   (ValentMessageRow *row);
 void            valent_message_row_set_message   (ValentMessageRow *row,
                                                   ValentMessage    *message);
-gint64          valent_message_row_get_thread_id (ValentMessageRow *row);
+int64_t         valent_message_row_get_thread_id (ValentMessageRow *row);
 void            valent_message_row_update        (ValentMessageRow *row);
 
 G_END_DECLS

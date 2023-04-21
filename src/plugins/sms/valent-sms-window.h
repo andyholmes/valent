@@ -33,7 +33,7 @@ void                 valent_sms_window_set_active_address (ValentSmsWindow    *w
 void                 valent_sms_window_set_active_message (ValentSmsWindow    *window,
                                                            ValentMessage      *message);
 void                 valent_sms_window_set_active_thread  (ValentSmsWindow    *window,
-                                                           gint64              thread_id);
+                                                           int64_t             thread_id);
 
 void                 valent_sms_window_reset_search       (ValentSmsWindow    *window);
 

@@ -38,10 +38,10 @@
 /* FIXME: Remove
  * See https://gitlab.freedesktop.org/gstreamer/gstreamer/issues/26 */
 char *
-valent_media_time_to_string (gint64        msecs,
+valent_media_time_to_string (int64_t       msecs,
                              TotemTimeFlag flags)
 {
-  gint64 _time;
+  int64_t _time;
   int msec, sec, min, hour;
 
   if (msecs < 0) {
@@ -64,7 +64,7 @@ valent_media_time_to_string (gint64        msecs,
       time_f = ceil (time_f);
     else
       time_f = round (time_f);
-    _time = (gint64) time_f;
+    _time = (int64_t) time_f;
   }
 
   sec = _time % 60;

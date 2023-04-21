@@ -391,7 +391,7 @@ valent_mpris_device_update_metadata (ValentMprisDevice *player,
 
 static void
 valent_mpris_device_update_position (ValentMprisDevice *player,
-                                     gint64             position)
+                                     int64_t            position)
 {
   g_assert (VALENT_IS_MPRIS_DEVICE (player));
 
@@ -460,7 +460,7 @@ valent_mpris_device_update_state (ValentMprisDevice *player,
 
 static void
 valent_mpris_device_update_volume (ValentMprisDevice *player,
-                                   gint64             volume)
+                                   int64_t            volume)
 {
   g_assert (VALENT_IS_MPRIS_DEVICE (player));
 
@@ -610,11 +610,11 @@ valent_mpris_device_handle_packet (ValentMprisDevice  *player,
   ValentMediaActions flags = VALENT_MEDIA_ACTION_NONE;
   GVariantDict metadata;
   const char *artist, *title, *album;
-  gint64 length, position;
+  int64_t length, position;
   const char *loop_status = NULL;
   gboolean shuffle = FALSE;
   gboolean is_playing;
-  gint64 volume;
+  int64_t volume;
 
   /* Flags (available actions) */
   if (valent_packet_check_field (packet, "canGoNext"))

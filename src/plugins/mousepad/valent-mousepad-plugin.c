@@ -81,7 +81,7 @@ valent_mousepad_plugin_handle_mousepad_request (ValentMousepadPlugin *self,
 {
   JsonObject *body;
   const char *key;
-  gint64 keycode;
+  int64_t keycode;
 
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
@@ -214,7 +214,7 @@ valent_mousepad_plugin_handle_mousepad_echo (ValentMousepadPlugin *self,
   JsonObject *body;
   GdkModifierType mask = 0;
   const char *key;
-  gint64 keycode;
+  int64_t keycode;
 
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));

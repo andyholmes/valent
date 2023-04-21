@@ -38,7 +38,7 @@ test_sms_message_thread (void)
   g_autoptr (GListModel) thread = NULL;
   g_autoptr (ValentMessage) message = NULL;
   g_autoptr (ValentSmsStore) store_out = NULL;
-  gint64 id_out;
+  int64_t id_out;
 
   loop = g_main_loop_new (NULL, FALSE);
   store = valent_test_sms_store_new ();

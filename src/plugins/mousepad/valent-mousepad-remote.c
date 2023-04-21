@@ -26,7 +26,7 @@ struct _ValentMousepadRemote
 
   /* Pointer State */
   unsigned int        claimed : 1;
-  guint32             last_t;
+  uint32_t             last_t;
   double              last_v;
   double              last_x;
   double              last_y;
@@ -72,7 +72,7 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 static void
 get_last_update_time (GtkGesture       *gesture,
                       GdkEventSequence *sequence,
-                      guint32          *time)
+                      uint32_t          *time)
 {
   GdkEvent *event = NULL;
 
@@ -185,7 +185,7 @@ static inline gboolean
 calculate_delta (ValentMousepadRemote *self,
                  double                dx,
                  double                dy,
-                 guint32               dt,
+                 uint32_t               dt,
                  double               *cx,
                  double               *cy)
 {
@@ -242,7 +242,7 @@ on_single_begin (GtkGestureDrag       *gesture,
 {
   GdkEventSequence *sequence;
   unsigned int button = 0;
-  guint32 time = 0;
+  uint32_t time = 0;
   int delay;
 
   /* No drags or longpresses with these buttons */
@@ -272,7 +272,7 @@ on_single_update (GtkGesture           *gesture,
                   GdkEventSequence     *sequence,
                   ValentMousepadRemote *self)
 {
-  guint32 time = 0;
+  uint32_t time = 0;
   double x, y;
   double dx, dy, dt;
   double cx, cy;

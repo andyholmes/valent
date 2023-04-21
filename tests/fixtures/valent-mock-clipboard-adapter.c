@@ -17,7 +17,7 @@ struct _ValentMockClipboardAdapter
 
   GBytes                 *content;
   GStrv                   mimetypes;
-  gint64                  timestamp;
+  int64_t                 timestamp;
 };
 
 G_DEFINE_FINAL_TYPE (ValentMockClipboardAdapter, valent_mock_clipboard_adapter, VALENT_TYPE_CLIPBOARD_ADAPTER)
@@ -36,7 +36,7 @@ valent_mock_clipboard_adapter_get_mimetypes (ValentClipboardAdapter *adapter)
   return g_strdupv (self->mimetypes);
 }
 
-static gint64
+static int64_t
 valent_mock_clipboard_adapter_get_timestamp (ValentClipboardAdapter *adapter)
 {
   ValentMockClipboardAdapter *self = VALENT_MOCK_CLIPBOARD_ADAPTER (adapter);

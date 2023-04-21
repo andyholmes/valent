@@ -20,7 +20,7 @@ struct _ValentLanChannel
 
   char            *verification_key;
   char            *host;
-  guint16          port;
+  uint16_t         port;
 };
 
 G_DEFINE_FINAL_TYPE (ValentLanChannel, valent_lan_channel, VALENT_TYPE_CHANNEL)
@@ -89,7 +89,7 @@ valent_lan_channel_download (ValentChannel  *channel,
 {
   ValentLanChannel *self = VALENT_LAN_CHANNEL (channel);
   JsonObject *info;
-  gint64 port;
+  int64_t port;
   goffset size;
   g_autoptr (GSocketClient) client = NULL;
   g_autoptr (GSocketConnection) connection = NULL;
@@ -126,7 +126,7 @@ valent_lan_channel_download (ValentChannel  *channel,
                          NULL);
   connection = g_socket_client_connect_to_host (client,
                                                 host,
-                                                (guint16)port,
+                                                (uint16_t)port,
                                                 cancellable,
                                                 error);
 
@@ -161,7 +161,7 @@ valent_lan_channel_upload (ValentChannel  *channel,
   JsonObject *info;
   g_autoptr (GSocketListener) listener = NULL;
   g_autoptr (GSocketConnection) connection = NULL;
-  guint16 port = VALENT_LAN_TRANSFER_PORT_MIN;
+  uint16_t port = VALENT_LAN_TRANSFER_PORT_MIN;
   g_autoptr (GTlsCertificate) certificate = NULL;
   g_autoptr (GTlsCertificate) peer_certificate = NULL;
   g_autoptr (GIOStream) tls_stream = NULL;
@@ -185,7 +185,7 @@ valent_lan_channel_upload (ValentChannel  *channel,
 
   /* Set the payload information */
   info = json_object_new();
-  json_object_set_int_member (info, "port", (gint64)port);
+  json_object_set_int_member (info, "port", (int64_t)port);
   valent_packet_set_payload_info (packet, info);
 
   /* Notify the device and accept the incoming connection */
@@ -476,10 +476,10 @@ valent_lan_channel_dup_host (ValentLanChannel *self)
  *
  * Returns: the remote host port
  */
-guint16
+uint16_t
 valent_lan_channel_get_port (ValentLanChannel *self)
 {
-  guint16 ret;
+  uint16_t ret;
 
   g_return_val_if_fail (VALENT_IS_LAN_CHANNEL (self), 0);
 

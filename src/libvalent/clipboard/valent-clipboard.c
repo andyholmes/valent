@@ -104,7 +104,7 @@ valent_clipboard_adapter_read_text_cb (ValentClipboardAdapter *adapter,
   g_autoptr (GError) error = NULL;
   g_autoptr (GBytes) bytes = NULL;
   const char *data = NULL;
-  gsize size;
+  size_t size;
 
   g_assert (VALENT_IS_CLIPBOARD_ADAPTER (adapter));
   g_assert (g_task_is_valid (result, adapter));
@@ -263,10 +263,10 @@ valent_clipboard_get_mimetypes (ValentClipboard *clipboard)
  *
  * Since: 1.0
  */
-gint64
+int64_t
 valent_clipboard_get_timestamp (ValentClipboard *clipboard)
 {
-  gint64 ret = 0;
+  int64_t ret = 0;
 
   VALENT_ENTRY;
 

@@ -313,7 +313,7 @@ valent_systemvolume_plugin_handle_sink_change (ValentSystemvolumePlugin *self,
 {
   StreamState *state;
   const char *name;
-  gint64 volume;
+  int64_t volume;
   gboolean muted;
   gboolean enabled;
 

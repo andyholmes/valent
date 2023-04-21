@@ -100,7 +100,7 @@ test_notifications_component_notification (NotificationsComponentFixture *fixtur
   g_autofree char *title = NULL;
   g_autofree char *body = NULL;
   GNotificationPriority priority;
-  gint64 time, time_out;
+  int64_t time, time_out;
 
   g_signal_connect (fixture->adapter,
                     "notification-added",

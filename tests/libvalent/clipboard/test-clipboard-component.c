@@ -129,7 +129,7 @@ test_clipboard_component_adapter (ClipboardComponentFixture *fixture,
   g_autoptr (GBytes) bytes = NULL;
   g_autofree char *text = NULL;
   g_auto (GStrv) mimetypes = NULL;
-  gint64 timestamp = 0;
+  int64_t timestamp = 0;
 
   /* Adapter Properties */
   g_object_get (fixture->adapter,
@@ -195,7 +195,7 @@ test_clipboard_component_self (ClipboardComponentFixture *fixture,
   g_autoptr (GBytes) bytes = NULL;
   g_autofree char *text = NULL;
   g_auto (GStrv) mimetypes = NULL;
-  gint64 timestamp = 0;
+  int64_t timestamp = 0;
 
   /* Data can be written */
   text = g_uuid_string_random ();

@@ -13,8 +13,8 @@ test_sms_date_label (void)
 {
   GtkWidget *window;
   GtkWidget *label;
-  gint64 date = 123456789;
-  gint64 date_out;
+  int64_t date = 123456789;
+  int64_t date_out;
   unsigned int mode = 1;
   unsigned int mode_out;
 

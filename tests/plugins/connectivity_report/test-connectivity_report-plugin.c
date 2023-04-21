@@ -88,7 +88,7 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   GVariant *signal_info;
   const char *icon_name;
   const char *network_type;
-  gint64 signal_strength;
+  int64_t signal_strength;
 
   /* Setup GSettings */
   g_settings_set_boolean (fixture->settings, "offline-notification", TRUE);
@@ -294,7 +294,7 @@ test_connectivity_report_plugin_handle_request (ValentTestFixture *fixture,
   JsonObject *signal_node;
   JsonObject *signal_meta;
   const char *network_type;
-  gint64 signal_strength;
+  int64_t signal_strength;
 
   connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL);
 

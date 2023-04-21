@@ -20,7 +20,7 @@ struct _ValentMessageThread
   GObject         parent_instance;
 
   ValentSmsStore *store;
-  gint64          id;
+  int64_t         id;
   GCancellable   *cancellable;
   GSequence      *items;
 
@@ -51,7 +51,7 @@ valent_message_thread_lookup_func (gconstpointer a,
                                    gconstpointer b,
                                    gpointer      user_data)
 {
-  gint *id = user_data;
+  int64_t *id = user_data;
 
   return valent_message_get_id ((ValentMessage *)a) == *id ? 0 : 1;
 }
@@ -61,8 +61,8 @@ valent_message_thread_sort_func (gconstpointer a,
                                  gconstpointer b,
                                  gpointer      user_data)
 {
-  gint64 date1 = valent_message_get_date ((ValentMessage *)a);
-  gint64 date2 = valent_message_get_date ((ValentMessage *)b);
+  int64_t date1 = valent_message_get_date ((ValentMessage *)a);
+  int64_t date2 = valent_message_get_date ((ValentMessage *)b);
 
   return (date1 < date2) ? -1 : (date1 > date2);
 }
@@ -91,7 +91,7 @@ on_message_removed (ValentSmsStore      *store,
 {
   GSequenceIter *it;
   unsigned int position;
-  gint64 id;
+  int64_t id;
 
   if (self->id != valent_message_get_thread_id (message))
     return;
@@ -376,7 +376,7 @@ valent_message_thread_init (ValentMessageThread *self)
  */
 GListModel *
 valent_message_thread_new (ValentSmsStore *store,
-                           gint64          id)
+                           int64_t         id)
 {
   g_return_val_if_fail (VALENT_IS_SMS_STORE (store), NULL);
   g_return_val_if_fail (id >= 0, NULL);
@@ -395,7 +395,7 @@ valent_message_thread_new (ValentSmsStore *store,
  *
  * Returns: an ID
  */
-gint64
+int64_t
 valent_message_thread_get_id (ValentMessageThread *thread)
 {
   g_return_val_if_fail (VALENT_IS_MESSAGE_THREAD (thread), 0);
@@ -412,7 +412,7 @@ valent_message_thread_get_id (ValentMessageThread *thread)
  */
 void
 valent_message_thread_set_id (ValentMessageThread *thread,
-                              gint64               id)
+                              int64_t              id)
 {
   g_return_if_fail (VALENT_IS_MESSAGE_THREAD (thread));
   g_return_if_fail (id >= 0);

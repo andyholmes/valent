@@ -278,7 +278,7 @@ valent_message_row_set_contact (ValentMessageRow *row,
  *
  * Returns: a thread id
  */
-gint64
+int64_t
 valent_message_row_get_thread_id (ValentMessageRow *row)
 {
   g_return_val_if_fail (VALENT_IS_MESSAGE_ROW (row), 0);
@@ -354,7 +354,7 @@ valent_message_row_update (ValentMessageRow *row)
   gboolean read;
   const char *body;
   const char *name;
-  gint64 date;
+  int64_t date;
   g_autofree char *body_label = NULL;
   g_autofree char *name_label = NULL;
 

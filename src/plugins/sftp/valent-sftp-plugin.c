@@ -60,10 +60,10 @@ get_device_host (ValentSftpPlugin *self)
  */
 typedef struct _ValentSftpSession
 {
-  char    *host;
-  guint16  port;
-  char    *username;
-  char    *password;
+  char     *host;
+  uint16_t  port;
+  char     *username;
+  char     *password;
 
   char    *uri;
   GMount  *mount;
@@ -76,7 +76,7 @@ sftp_session_new (ValentSftpPlugin *self,
 {
   ValentSftpSession *session;
   g_autofree char *host = NULL;
-  gint64 port;
+  int64_t port;
   const char *password;
   const char *username;
 
@@ -99,7 +99,7 @@ sftp_session_new (ValentSftpPlugin *self,
   // Create a session struct
   session = g_new0 (ValentSftpSession, 1);
   session->host = g_steal_pointer (&host);
-  session->port = (guint16)port;
+  session->port = (uint16_t)port;
 
   if (valent_packet_get_string (packet, "user", &username))
     session->username = g_strdup (username);
@@ -303,7 +303,7 @@ remove_host_key (const char *host)
 {
   g_assert (host != NULL);
 
-  for (guint16 port = 1739; port <= 1764; port++)
+  for (uint16_t port = 1739; port <= 1764; port++)
     {
       g_autoptr (GSubprocess) proc = NULL;
       g_autofree char *match = NULL;
@@ -516,7 +516,7 @@ valent_sftp_plugin_handle_request (ValentSftpPlugin *self,
 
   if (g_settings_get_boolean (settings, "local-allow"))
     {
-      guint16 local_port;
+      uint16_t local_port;
 
       json_builder_set_member_name (builder, "user");
       json_builder_add_string_value (builder, g_get_user_name ());

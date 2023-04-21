@@ -386,7 +386,7 @@ test_mpris_plugin_handle_player (ValentTestFixture *fixture,
   const char **artist;
   const char *title;
   const char *album;
-  gint64 length;
+  int64_t length;
 
   /* Watch for exported player */
   connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);

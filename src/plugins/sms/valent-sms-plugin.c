@@ -29,9 +29,9 @@ static ValentMessage * valent_sms_plugin_deserialize_message   (ValentSmsPlugin 
 static void            valent_sms_plugin_request               (ValentSmsPlugin *self,
                                                                 ValentMessage   *message);
 static void            valent_sms_plugin_request_conversation  (ValentSmsPlugin *self,
-                                                                gint64           thread_id,
-                                                                gint64           start_date,
-                                                                gint64           max_results);
+                                                                int64_t          thread_id,
+                                                                int64_t          start_date,
+                                                                int64_t          max_results);
 static void            valent_sms_plugin_request_conversations (ValentSmsPlugin *self);
 
 G_DEFINE_FINAL_TYPE (ValentSmsPlugin, valent_sms_plugin, VALENT_TYPE_DEVICE_PLUGIN)
@@ -52,11 +52,11 @@ G_DEFINE_FINAL_TYPE (ValentSmsPlugin, valent_sms_plugin, VALENT_TYPE_DEVICE_PLUG
  *
  * Returns: a unique ID
  */
-static inline gint64
-message_hash (gint64      message_id,
+static inline int64_t
+message_hash (int64_t     message_id,
               const char *message_text)
 {
-  guint32 hash = 5381;
+  uint32_t hash = 5381;
 
   if G_UNLIKELY (message_text == NULL)
     message_text = "";
@@ -65,7 +65,7 @@ message_hash (gint64      message_id,
   for (unsigned int i = 0; message_text[i]; i++)
     hash = ((hash << 5L) + hash) + message_text[i]; /* hash * 33 + c */
 
-  return (((guint64) message_id) << 32) | hash;
+  return (((uint64_t) message_id) << 32) | hash;
 }
 
 static ValentMessage *
@@ -78,15 +78,15 @@ valent_sms_plugin_deserialize_message (ValentSmsPlugin *self,
   GVariantDict dict;
 
   ValentMessageBox box;
-  gint64 date;
-  gint64 id;
+  int64_t date;
+  int64_t id;
   GVariant *metadata;
-  gint64 read;
+  int64_t read;
   const char *sender = NULL;
   const char *text = NULL;
-  gint64 thread_id;
+  int64_t thread_id;
   ValentMessageFlags event = VALENT_MESSAGE_FLAGS_UNKNOWN;
-  gint64 sub_id = -1;
+  int64_t sub_id = -1;
 
   g_assert (VALENT_IS_SMS_PLUGIN (self));
   g_assert (JSON_NODE_HOLDS_OBJECT (node));
@@ -177,7 +177,7 @@ static gboolean
 messages_is_thread (JsonArray *messages)
 {
   JsonObject *message;
-  gint64 first, second;
+  int64_t first, second;
 
   /* TODO: A thread with a single message can't be distinguished from
    *       a summary with a single thread; in fact both could be true.
@@ -253,9 +253,9 @@ valent_sms_plugin_handle_messages (ValentSmsPlugin *self,
   for (unsigned int i = 0; i < n_messages; i++)
     {
       JsonObject *message;
-      gint64 thread_id;
-      gint64 thread_date;
-      gint64 cache_date;
+      int64_t thread_id;
+      int64_t thread_date;
+      int64_t cache_date;
 
       message = json_array_get_object_element (messages, i);
       thread_id = json_object_get_int_member (message, "thread_id");
@@ -271,9 +271,9 @@ valent_sms_plugin_handle_messages (ValentSmsPlugin *self,
 
 static void
 valent_sms_plugin_request_conversation (ValentSmsPlugin *self,
-                                        gint64           thread_id,
-                                        gint64           start_date,
-                                        gint64           max_results)
+                                        int64_t          thread_id,
+                                        int64_t          start_date,
+                                        int64_t          max_results)
 {
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;

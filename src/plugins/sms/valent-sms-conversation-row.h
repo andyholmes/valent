@@ -22,8 +22,8 @@ int             valent_sms_conversation_row_collate       (ValentSmsConversation
 EContact      * valent_sms_conversation_row_get_contact   (ValentSmsConversationRow *row);
 void            valent_sms_conversation_row_set_contact   (ValentSmsConversationRow *row,
                                                            EContact                 *contact);
-gint64          valent_sms_conversation_row_get_date      (ValentSmsConversationRow *row);
-gint64          valent_sms_conversation_row_get_id        (ValentSmsConversationRow *row);
+int64_t         valent_sms_conversation_row_get_date      (ValentSmsConversationRow *row);
+int64_t         valent_sms_conversation_row_get_id        (ValentSmsConversationRow *row);
 ValentMessage * valent_sms_conversation_row_get_message   (ValentSmsConversationRow *row);
 void            valent_sms_conversation_row_set_message   (ValentSmsConversationRow *row,
                                                            ValentMessage            *message);

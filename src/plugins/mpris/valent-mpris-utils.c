@@ -74,7 +74,7 @@ static inline GDBusNodeInfo *
 valent_mpris_get_info (void)
 {
   static GDBusNodeInfo *mpris_info = NULL;
-  static gsize guard = 0;
+  static size_t guard = 0;
 
   if (g_once_init_enter (&guard))
     {

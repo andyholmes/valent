@@ -25,7 +25,7 @@ typedef enum {
   TOTEM_TIME_FLAG_MSECS      = (1 << 3),
 } TotemTimeFlag;
 
-char * valent_media_time_to_string (gint64        msecs,
+char * valent_media_time_to_string (int64_t       msecs,
                                     TotemTimeFlag flags);
 
 G_END_DECLS

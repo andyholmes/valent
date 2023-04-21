@@ -36,8 +36,8 @@ static void
 set_device_properties (GDBusConnection *connection,
                        gboolean         is_present,
                        double           percentage,
-                       guint32          state,
-                       guint32          warning_level)
+                       uint32_t          state,
+                       uint32_t          warning_level)
 {
   GVariantDict dict;
 

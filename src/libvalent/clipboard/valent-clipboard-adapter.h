@@ -22,7 +22,7 @@ struct _ValentClipboardAdapterClass
 
   /* virtual functions */
   GStrv               (*get_mimetypes)      (ValentClipboardAdapter  *adapter);
-  gint64              (*get_timestamp)      (ValentClipboardAdapter  *adapter);
+  int64_t             (*get_timestamp)      (ValentClipboardAdapter  *adapter);
   void                (*read_bytes)         (ValentClipboardAdapter  *adapter,
                                              const char              *mimetype,
                                              GCancellable            *cancellable,
@@ -53,7 +53,7 @@ void       valent_clipboard_adapter_changed            (ValentClipboardAdapter  
 VALENT_AVAILABLE_IN_1_0
 GStrv      valent_clipboard_adapter_get_mimetypes      (ValentClipboardAdapter  *adapter);
 VALENT_AVAILABLE_IN_1_0
-gint64     valent_clipboard_adapter_get_timestamp      (ValentClipboardAdapter  *adapter);
+int64_t    valent_clipboard_adapter_get_timestamp      (ValentClipboardAdapter  *adapter);
 VALENT_AVAILABLE_IN_1_0
 void       valent_clipboard_adapter_read_bytes         (ValentClipboardAdapter  *adapter,
                                                         const char              *mimetype,

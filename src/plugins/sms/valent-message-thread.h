@@ -15,11 +15,11 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (ValentMessageThread, valent_message_thread, VALENT, MESSAGE_THREAD, GObject)
 
 GListModel     * valent_message_thread_new       (ValentSmsStore      *store,
-                                                  gint64               id);
+                                                  int64_t              id);
 
 ValentSmsStore * valent_message_thread_get_store (ValentMessageThread *thread);
-gint64           valent_message_thread_get_id    (ValentMessageThread *thread);
+int64_t          valent_message_thread_get_id    (ValentMessageThread *thread);
 void             valent_message_thread_set_id    (ValentMessageThread *thread,
-                                                  gint64               id);
+                                                  int64_t              id);
 
 G_END_DECLS

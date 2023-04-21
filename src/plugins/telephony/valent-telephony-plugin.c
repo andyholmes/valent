@@ -217,7 +217,7 @@ valent_telephony_plugin_get_event_icon (JsonNode   *packet,
       GdkPixbuf *pixbuf = NULL;
       g_autoptr (GError) error = NULL;
       g_autofree guchar *data = NULL;
-      gsize dlen;
+      size_t dlen;
 
       data = g_base64_decode (phone_thumbnail, &dlen);
       loader = gdk_pixbuf_loader_new();

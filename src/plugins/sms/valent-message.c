@@ -16,13 +16,13 @@ struct _ValentMessage
   GObject           parent_instance;
 
   ValentMessageBox  box;
-  gint64            date;
-  gint64            id;
+  int64_t           date;
+  int64_t           id;
   GVariant         *metadata;
   unsigned int      read : 1;
   char             *sender;
   char             *text;
-  gint64            thread_id;
+  int64_t           thread_id;
 };
 
 G_DEFINE_FINAL_TYPE (ValentMessage, valent_message, G_TYPE_OBJECT)
@@ -302,7 +302,7 @@ valent_message_get_box (ValentMessage *message)
  *
  * Returns: the message timestamp
  */
-gint64
+int64_t
 valent_message_get_date (ValentMessage *message)
 {
   g_return_val_if_fail (VALENT_IS_MESSAGE (message), 0);
@@ -318,7 +318,7 @@ valent_message_get_date (ValentMessage *message)
  *
  * Returns: the message ID
  */
-gint64
+int64_t
 valent_message_get_id (ValentMessage *message)
 {
   g_return_val_if_fail (VALENT_IS_MESSAGE (message), 0);
@@ -418,7 +418,7 @@ valent_message_get_text (ValentMessage *message)
  *
  * Returns: the thread ID
  */
-gint64
+int64_t
 valent_message_get_thread_id (ValentMessage *message)
 {
   g_return_val_if_fail (VALENT_IS_MESSAGE (message), 0);

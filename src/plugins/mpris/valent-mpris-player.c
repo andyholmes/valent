@@ -107,7 +107,7 @@ on_player_properties_changed (GDBusProxy        *proxy,
            * is, we might as well update the internal representation. */
           if (g_str_equal (player_properties[i].dbus, "Position"))
             {
-              gint64 position_us = 0;
+              int64_t position_us = 0;
 
               g_variant_dict_lookup (&dict, "Position", "x", &position_us);
               self->position = position_us / G_TIME_SPAN_SECOND;
@@ -136,7 +136,7 @@ on_player_signal (GDBusProxy        *proxy,
 
   if (strcmp (signal_name, "Seeked") == 0)
     {
-      gint64 position_us = 0;
+      int64_t position_us = 0;
 
       /* Convert microseconds to seconds */
       g_variant_get (parameters, "(x)", &position_us);
@@ -289,7 +289,7 @@ valent_mpris_player_set_position (ValentMediaPlayer *player,
                                   double             position)
 {
   ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (player);
-  gint64 position_us = (gint64)position * G_TIME_SPAN_SECOND;
+  int64_t position_us = (int64_t)position * G_TIME_SPAN_SECOND;
 
   /* Convert seconds to microseconds */
   g_dbus_proxy_call (self->player,
@@ -508,7 +508,7 @@ valent_mpris_player_seek (ValentMediaPlayer *player,
   /* Convert seconds to microseconds */
   g_dbus_proxy_call (self->player,
                      "Seek",
-                     g_variant_new ("(x)", (gint64)offset * G_TIME_SPAN_SECOND),
+                     g_variant_new ("(x)", (int64_t)offset * G_TIME_SPAN_SECOND),
                      G_DBUS_CALL_FLAGS_NONE,
                      -1,
                      NULL,

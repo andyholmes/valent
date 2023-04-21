@@ -44,10 +44,10 @@ VALENT_AVAILABLE_IN_1_0
 void                    valent_notification_set_priority           (ValentNotification    *notification,
                                                                     GNotificationPriority  priority);
 VALENT_AVAILABLE_IN_1_0
-gint64                  valent_notification_get_time               (ValentNotification    *notification);
+int64_t                 valent_notification_get_time               (ValentNotification    *notification);
 VALENT_AVAILABLE_IN_1_0
 void                    valent_notification_set_time               (ValentNotification    *notification,
-                                                                    gint64                 time);
+                                                                    int64_t                time);
 VALENT_AVAILABLE_IN_1_0
 const char            * valent_notification_get_title              (ValentNotification    *notification);
 VALENT_AVAILABLE_IN_1_0

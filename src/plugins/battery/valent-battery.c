@@ -6,6 +6,7 @@
 #include "config.h"
 
 #include <math.h>
+#include <stdint.h>
 
 #include <gio/gio.h>
 
@@ -83,7 +84,7 @@ enum {
  * values expected by KDE Connect.
  */
 static inline gboolean
-translate_state (guint32 state)
+translate_state (uint32_t state)
 {
   switch (state)
     {
@@ -103,7 +104,7 @@ translate_state (guint32 state)
 }
 
 static inline unsigned int
-translate_warning_level (guint32 warning_level)
+translate_warning_level (uint32_t warning_level)
 {
   switch (warning_level)
     {
@@ -148,7 +149,7 @@ valent_battery_load_properties (ValentBattery *self)
 
   if ((value = g_dbus_proxy_get_cached_property (self->proxy, "State")) != NULL)
     {
-      guint32 state = g_variant_get_uint32 (value);
+      uint32_t state = g_variant_get_uint32 (value);
 
       self->is_charging = translate_state (state);
       g_clear_pointer (&value, g_variant_unref);
@@ -156,7 +157,7 @@ valent_battery_load_properties (ValentBattery *self)
 
   if ((value = g_dbus_proxy_get_cached_property (self->proxy, "WarningLevel")) != NULL)
     {
-      guint32 warning_level = g_variant_get_uint32 (value);
+      uint32_t warning_level = g_variant_get_uint32 (value);
 
       self->threshold_event = translate_warning_level (warning_level);
       g_clear_pointer (&value, g_variant_unref);
@@ -172,8 +173,8 @@ on_properties_changed (GDBusProxy    *proxy,
   gboolean changed = FALSE;
   gboolean is_present;
   double percentage;
-  guint32 state;
-  guint32 warning_level;
+  uint32_t state;
+  uint32_t warning_level;
 
   g_assert (VALENT_IS_BATTERY (self));
 

@@ -24,7 +24,7 @@ GFile      * valent_get_user_file      (const char     *dirname,
                                         const char     *basename,
                                         gboolean        unique);
 VALENT_AVAILABLE_IN_1_0
-gint64       valent_timestamp_ms       (void);
+int64_t      valent_timestamp_ms       (void);
 
 G_END_DECLS
 

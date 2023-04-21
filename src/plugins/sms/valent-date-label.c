@@ -17,7 +17,7 @@ struct _ValentDateLabel
   GtkWidget     parent_instance;
 
   GtkWidget    *label;
-  gint64        date;
+  int64_t       date;
   unsigned int  mode;
 };
 
@@ -53,7 +53,7 @@ static unsigned int label_source = 0;
  * Returns: (transfer full): a new string
  */
 static char *
-valent_date_label_string (gint64 timestamp)
+valent_date_label_string (int64_t timestamp)
 {
   g_autoptr (GDateTime) dt = NULL;
   g_autoptr (GDateTime) now = NULL;
@@ -118,7 +118,7 @@ valent_date_label_string (gint64 timestamp)
  * Returns: (transfer full): a new string
  */
 static char *
-valent_date_label_string_short (gint64 timestamp)
+valent_date_label_string_short (int64_t timestamp)
 {
   g_autoptr (GDateTime) dt = NULL;
   g_autoptr (GDateTime) now = NULL;
@@ -303,7 +303,7 @@ valent_date_label_init (ValentDateLabel *self)
  * Returns: (transfer full): a #GtkWidget
  */
 GtkWidget *
-valent_date_label_new (gint64 date)
+valent_date_label_new (int64_t date)
 {
   return g_object_new (VALENT_TYPE_DATE_LABEL,
                        "date", date,
@@ -318,7 +318,7 @@ valent_date_label_new (gint64 date)
  *
  * Returns: the timestamp
  */
-gint64
+int64_t
 valent_date_label_get_date (ValentDateLabel *label)
 {
   g_return_val_if_fail (VALENT_IS_DATE_LABEL (label), 0);
@@ -335,7 +335,7 @@ valent_date_label_get_date (ValentDateLabel *label)
  */
 void
 valent_date_label_set_date (ValentDateLabel *label,
-                            gint64           date)
+                            int64_t          date)
 {
   g_return_if_fail (VALENT_IS_DATE_LABEL (label));
 
@@ -355,7 +355,7 @@ valent_date_label_set_date (ValentDateLabel *label,
  *
  * Returns: the display mode
  */
-guint
+unsigned int
 valent_date_label_get_mode (ValentDateLabel *label)
 {
   g_return_val_if_fail (VALENT_IS_DATE_LABEL (label), 0);

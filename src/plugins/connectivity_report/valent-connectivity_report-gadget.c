@@ -60,7 +60,7 @@ on_action_state_changed (GActionGroup                   *action_group,
       GtkWidget *icon;
       const char *signal_icon;
       const char *network_type;
-      gint64 signal_strength;
+      int64_t signal_strength;
 
       box = g_object_new (GTK_TYPE_BOX,
                           "spacing", 6,
