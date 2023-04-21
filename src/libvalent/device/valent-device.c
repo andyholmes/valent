@@ -292,7 +292,7 @@ valent_device_enable_plugin (ValentDevice *device,
                                                     "context", plugin->context,
                                                     "device",  plugin->parent,
                                                     NULL);
-  g_return_if_fail (PEAS_IS_EXTENSION (plugin->extension));
+  g_return_if_fail (G_IS_OBJECT (plugin->extension));
 
   /* Register packet handlers */
   incoming = peas_plugin_info_get_external_data (plugin->info,
@@ -361,7 +361,7 @@ valent_device_disable_plugin (ValentDevice *device,
 
   g_assert (VALENT_IS_DEVICE (device));
   g_assert (plugin != NULL);
-  g_return_if_fail (PEAS_IS_EXTENSION (plugin->extension));
+  g_return_if_fail (G_IS_OBJECT (plugin->extension));
 
   /* Unregister actions */
   g_signal_handlers_disconnect_by_data (plugin->extension, plugin);

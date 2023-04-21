@@ -10,7 +10,7 @@ test_contacts_plugin_preferences (void)
 {
   PeasEngine *engine;
   PeasPluginInfo *info;
-  PeasExtension *prefs;
+  GObject *prefs;
 
   engine = valent_get_plugin_engine ();
   info = peas_engine_get_plugin_info (engine, "contacts");

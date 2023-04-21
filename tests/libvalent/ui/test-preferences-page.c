@@ -10,7 +10,7 @@ test_preferences_page_basic (void)
 {
   PeasEngine *engine;
   PeasPluginInfo *info;
-  PeasExtension *prefs;
+  GObject *prefs;
   PeasPluginInfo *plugin_info = NULL;
 
   engine = valent_get_plugin_engine ();

@@ -10,7 +10,7 @@ test_device_preferences_group_basic (void)
 {
   PeasEngine *engine;
   PeasPluginInfo *info;
-  PeasExtension *prefs;
+  GObject *prefs;
   PeasPluginInfo *plugin_info = NULL;
   g_autoptr (GSettings) settings = NULL;
 

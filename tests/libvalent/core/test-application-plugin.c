@@ -8,8 +8,8 @@
 
 typedef struct
 {
-  GApplication        *application;
-  PeasExtension       *extension;
+  GApplication *application;
+  GObject      *extension;
 } ApplicationPluginFixture;
 
 static void

@@ -132,7 +132,7 @@ g_list_model_iface_init (GListModelInterface *iface)
  */
 static void
 valent_contacts_bind_extension (ValentComponent *component,
-                                PeasExtension   *extension)
+                                GObject         *extension)
 {
   ValentContacts *self = VALENT_CONTACTS (component);
   GListModel *list = G_LIST_MODEL (extension);
@@ -155,7 +155,7 @@ valent_contacts_bind_extension (ValentComponent *component,
 
 static void
 valent_contacts_unbind_extension (ValentComponent *component,
-                                  PeasExtension   *extension)
+                                  GObject         *extension)
 {
   ValentContacts *self = VALENT_CONTACTS (component);
   GListModel *list = G_LIST_MODEL (extension);

@@ -88,7 +88,7 @@ valent_device_page_add_plugin (ValentDevicePage *self,
   /* Gadgets (eg. HeaderBar widgets) */
   if (peas_engine_provides_extension (engine, info, VALENT_TYPE_DEVICE_GADGET))
     {
-      PeasExtension *gadget;
+      GObject *gadget;
 
       gadget = peas_engine_create_extension (engine,
                                              info,

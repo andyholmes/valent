@@ -8,8 +8,8 @@
 
 typedef struct
 {
-  ValentDevice  *device;
-  PeasExtension *extension;
+  ValentDevice *device;
+  GObject      *extension;
 } DevicePluginFixture;
 
 static void

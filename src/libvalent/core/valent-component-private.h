@@ -11,7 +11,7 @@
 G_BEGIN_DECLS
 
 _VALENT_EXTERN
-PeasExtension * valent_component_get_preferred (ValentComponent *self);
+GObject * valent_component_get_preferred (ValentComponent *self);
 
 
 /*< private >
@@ -30,7 +30,7 @@ typedef struct
   gpointer        parent;
   ValentContext  *context;
   PeasPluginInfo *info;
-  PeasExtension  *extension;
+  GObject        *extension;
   GCancellable   *cancellable;
 
   /*< private >*/

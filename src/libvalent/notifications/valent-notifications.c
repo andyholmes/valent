@@ -185,7 +185,7 @@ on_notification_removed (ValentNotificationsAdapter *adapter,
  */
 static void
 valent_notifications_bind_extension (ValentComponent *component,
-                                     PeasExtension   *extension)
+                                     GObject         *extension)
 {
   ValentNotifications *self = VALENT_NOTIFICATIONS (component);
   ValentNotificationsAdapter *adapter = VALENT_NOTIFICATIONS_ADAPTER (extension);
@@ -210,7 +210,7 @@ valent_notifications_bind_extension (ValentComponent *component,
 
 static void
 valent_notifications_unbind_extension (ValentComponent *component,
-                                       PeasExtension   *extension)
+                                       GObject         *extension)
 {
   ValentNotifications *self = VALENT_NOTIFICATIONS (component);
   ValentNotificationsAdapter *adapter = VALENT_NOTIFICATIONS_ADAPTER (extension);

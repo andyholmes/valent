@@ -216,7 +216,7 @@ on_load_plugin (PeasEngine              *engine,
                                       info,
                                       VALENT_TYPE_PREFERENCES_PAGE))
     {
-      PeasExtension *page;
+      GObject *page;
       GtkWidget *button;
 
       button = g_object_new (GTK_TYPE_BUTTON,

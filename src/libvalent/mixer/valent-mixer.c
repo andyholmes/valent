@@ -122,7 +122,7 @@ on_items_changed (GListModel   *list,
  */
 static void
 valent_mixer_bind_preferred (ValentComponent *component,
-                             PeasExtension   *extension)
+                             GObject         *extension)
 {
   ValentMixer *self = VALENT_MIXER (component);
   ValentMixerAdapter *adapter = VALENT_MIXER_ADAPTER (extension);
