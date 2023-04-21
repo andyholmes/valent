@@ -21,36 +21,58 @@ struct _ValentApplicationPluginClass
   ValentObjectClass   parent_class;
 
   /* virtual functions */
-  void                (*disable)      (ValentApplicationPlugin  *plugin);
-  void                (*enable)       (ValentApplicationPlugin  *plugin);
-  gboolean            (*activate)     (ValentApplicationPlugin  *plugin);
-  int                 (*command_line) (ValentApplicationPlugin  *plugin,
-                                       GApplicationCommandLine  *command_line);
-  gboolean            (*open)         (ValentApplicationPlugin  *plugin,
-                                       GFile                   **files,
-                                       int                       n_files,
-                                       const char               *hint);
+  void                (*disable)         (ValentApplicationPlugin  *plugin);
+  void                (*enable)          (ValentApplicationPlugin  *plugin);
+  gboolean            (*activate)        (ValentApplicationPlugin  *plugin);
+  int                 (*command_line)    (ValentApplicationPlugin  *plugin,
+                                          GApplicationCommandLine  *command_line);
+  gboolean            (*dbus_register)   (ValentApplicationPlugin  *plugin,
+                                          GDBusConnection          *connection,
+                                          const gchar              *object_path,
+                                          GError                  **error);
+  void                (*dbus_unregister) (ValentApplicationPlugin  *plugin,
+                                          GDBusConnection          *connection,
+                                          const gchar              *object_path);
+  gboolean            (*open)            (ValentApplicationPlugin  *plugin,
+                                          GFile                   **files,
+                                          int                       n_files,
+                                          const char               *hint);
+  void                (*shutdown)        (ValentApplicationPlugin  *plugin);
+  void                (*startup)         (ValentApplicationPlugin  *plugin);
 
   /*< private >*/
   gpointer            padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0
-GApplication        * valent_application_plugin_get_application    (ValentApplicationPlugin  *plugin);
+GApplication * valent_application_plugin_get_application (ValentApplicationPlugin  *plugin);
 VALENT_AVAILABLE_IN_1_0
-void                  valent_application_plugin_disable            (ValentApplicationPlugin  *plugin);
+void           valent_application_plugin_disable         (ValentApplicationPlugin  *plugin);
 VALENT_AVAILABLE_IN_1_0
-void                  valent_application_plugin_enable             (ValentApplicationPlugin  *plugin);
+void           valent_application_plugin_enable          (ValentApplicationPlugin  *plugin);
 VALENT_AVAILABLE_IN_1_0
-gboolean              valent_application_plugin_activate           (ValentApplicationPlugin  *plugin);
+gboolean       valent_application_plugin_activate        (ValentApplicationPlugin  *plugin);
 VALENT_AVAILABLE_IN_1_0
-int                   valent_application_plugin_command_line       (ValentApplicationPlugin  *plugin,
-                                                                    GApplicationCommandLine  *command_line);
+int            valent_application_plugin_command_line    (ValentApplicationPlugin  *plugin,
+                                                          GApplicationCommandLine  *command_line);
 VALENT_AVAILABLE_IN_1_0
-gboolean              valent_application_plugin_open               (ValentApplicationPlugin  *plugin,
-                                                                    GFile                   **files,
-                                                                    int                       n_files,
-                                                                    const char               *hint);
+gboolean       valent_application_plugin_dbus_register   (ValentApplicationPlugin  *plugin,
+                                                          GDBusConnection          *connection,
+                                                          const gchar              *object_path,
+                                                          GError                  **error);
+VALENT_AVAILABLE_IN_1_0
+void           valent_application_plugin_dbus_unregister (ValentApplicationPlugin  *plugin,
+                                                          GDBusConnection          *connection,
+                                                          const gchar              *object_path);
+VALENT_AVAILABLE_IN_1_0
+gboolean       valent_application_plugin_open            (ValentApplicationPlugin  *plugin,
+                                                          GFile                   **files,
+                                                          int                       n_files,
+                                                          const char               *hint);
+VALENT_AVAILABLE_IN_1_0
+void           valent_application_plugin_shutdown        (ValentApplicationPlugin  *plugin);
+VALENT_AVAILABLE_IN_1_0
+void           valent_application_plugin_startup         (ValentApplicationPlugin  *plugin);
 
 G_END_DECLS
 
