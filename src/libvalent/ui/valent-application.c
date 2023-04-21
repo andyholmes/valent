@@ -11,7 +11,6 @@
 #include <libvalent-device.h>
 
 #include "valent-application.h"
-#include "valent-application-plugin.h"
 #include "valent-component-private.h"
 #include "valent-ui-utils.h"
 #include "valent-window.h"
