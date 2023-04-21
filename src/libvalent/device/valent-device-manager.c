@@ -35,7 +35,7 @@
 
 struct _ValentDeviceManager
 {
-  ValentObject              parent_instance;
+  ValentApplicationPlugin   parent_instance;
 
   GCancellable             *cancellable;
   ValentContext            *context;
@@ -61,7 +61,7 @@ static ValentDevice * valent_device_manager_ensure_device (ValentDeviceManager *
 
 static void   g_list_model_iface_init     (GListModelInterface *iface);
 
-G_DEFINE_FINAL_TYPE_WITH_CODE (ValentDeviceManager, valent_device_manager, VALENT_TYPE_OBJECT,
+G_DEFINE_FINAL_TYPE_WITH_CODE (ValentDeviceManager, valent_device_manager, VALENT_TYPE_APPLICATION_PLUGIN,
                                G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
 enum {
@@ -659,6 +659,141 @@ valent_device_manager_save_state (ValentDeviceManager *self)
 }
 
 /*
+ * ValentApplicationPlugin
+ */
+static gboolean
+valent_device_manager_dbus_register (ValentApplicationPlugin  *plugin,
+                                     GDBusConnection          *connection,
+                                     const char               *object_path,
+                                     GError                  **error)
+{
+  ValentDeviceManager *self = VALENT_DEVICE_MANAGER (plugin);
+
+  g_assert (VALENT_IS_DEVICE_MANAGER (self));
+  g_assert (G_IS_DBUS_CONNECTION (connection));
+  g_assert (g_variant_is_object_path (object_path));
+
+  if (self->dbus != NULL)
+    return TRUE;
+
+  self->dbus = g_dbus_object_manager_server_new (object_path);
+  g_dbus_object_manager_server_set_connection (self->dbus, connection);
+
+  for (unsigned int i = 0, len = self->devices->len; i < len; i++)
+    {
+      ValentDevice *device = g_ptr_array_index (self->devices, i);
+
+      valent_device_manager_export_device (self, device);
+    }
+
+  return TRUE;
+}
+
+static void
+valent_device_manager_dbus_unregister (ValentApplicationPlugin *plugin,
+                                       GDBusConnection         *connection,
+                                       const char              *object_path)
+{
+  ValentDeviceManager *self = VALENT_DEVICE_MANAGER (plugin);
+
+  g_assert (VALENT_IS_DEVICE_MANAGER (self));
+  g_assert (connection == NULL || G_IS_DBUS_CONNECTION (connection));
+  g_assert (object_path == NULL || g_variant_is_object_path (object_path));
+
+  if (self->dbus == NULL)
+    return;
+
+  for (unsigned int i = 0, len = self->devices->len; i < len; i++)
+    {
+      ValentDevice *device = g_ptr_array_index (self->devices, i);
+
+      valent_device_manager_unexport_device (self, device);
+    }
+
+  g_dbus_object_manager_server_set_connection (self->dbus, NULL);
+  g_clear_object (&self->dbus);
+}
+
+static void
+valent_device_manager_shutdown (ValentApplicationPlugin *plugin)
+{
+  ValentDeviceManager *self = VALENT_DEVICE_MANAGER (plugin);
+  PeasEngine *engine = NULL;
+  unsigned int n_devices = 0;
+
+  g_assert (VALENT_IS_DEVICE_MANAGER (self));
+
+  /* We're already stopped */
+  if (self->cancellable == NULL)
+    return;
+
+  /* Cancel any running operations */
+  g_cancellable_cancel (self->cancellable);
+  g_clear_object (&self->cancellable);
+
+  /* Stop and remove services */
+  engine = valent_get_plugin_engine ();
+  g_signal_handlers_disconnect_by_data (engine, self);
+  g_hash_table_remove_all (self->plugins);
+
+  /* Remove any devices */
+  n_devices = self->devices->len;
+
+  for (unsigned int i = 0; i < n_devices; i++)
+    {
+      ValentDevice *device = g_ptr_array_index (self->devices, i);
+      g_signal_handlers_disconnect_by_data (device, self);
+    }
+
+  g_ptr_array_remove_range (self->devices, 0, n_devices);
+  g_list_model_items_changed (G_LIST_MODEL (self), 0, n_devices, 0);
+
+  valent_device_manager_save_state (self);
+}
+
+static void
+valent_device_manager_startup (ValentApplicationPlugin *plugin)
+{
+  ValentDeviceManager *self = VALENT_DEVICE_MANAGER (plugin);
+
+  PeasEngine *engine = NULL;
+  const GList *plugins = NULL;
+
+  g_assert (VALENT_IS_DEVICE_MANAGER (self));
+
+  /* We're already started */
+  if (self->cancellable != NULL)
+    return;;
+
+  self->cancellable = g_cancellable_new ();
+
+  /* Load devices */
+  valent_device_manager_load_state (self);
+
+  /* Setup services */
+  engine = valent_get_plugin_engine ();
+  plugins = peas_engine_get_plugin_list (engine);
+
+  for (const GList *iter = plugins; iter; iter = iter->next)
+    {
+      if (peas_plugin_info_is_loaded (iter->data))
+        on_load_service (engine, iter->data, self);
+    }
+
+  g_signal_connect_object (engine,
+                           "load-plugin",
+                           G_CALLBACK (on_load_service),
+                           self,
+                           G_CONNECT_AFTER);
+
+  g_signal_connect_object (engine,
+                           "unload-plugin",
+                           G_CALLBACK (on_unload_service),
+                           self,
+                           0);
+}
+
+/*
  * GObject
  */
 static void
@@ -690,8 +825,10 @@ valent_device_manager_dispose (GObject *object)
 {
   ValentDeviceManager *self = VALENT_DEVICE_MANAGER (object);
 
-  valent_device_manager_stop (self);
-  valent_device_manager_unexport (self);
+  valent_device_manager_shutdown (VALENT_APPLICATION_PLUGIN (self));
+  valent_device_manager_dbus_unregister (VALENT_APPLICATION_PLUGIN (self),
+                                         NULL,
+                                         NULL);
 
   G_OBJECT_CLASS (valent_device_manager_parent_class)->dispose (object);
 }
@@ -756,12 +893,18 @@ static void
 valent_device_manager_class_init (ValentDeviceManagerClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentApplicationPluginClass *plugin_class = VALENT_APPLICATION_PLUGIN_CLASS (klass);
 
   object_class->constructed = valent_device_manager_constructed;
   object_class->dispose = valent_device_manager_dispose;
   object_class->finalize = valent_device_manager_finalize;
   object_class->get_property = valent_device_manager_get_property;
   object_class->set_property = valent_device_manager_set_property;
+
+  plugin_class->dbus_register = valent_device_manager_dbus_register;
+  plugin_class->dbus_unregister = valent_device_manager_dbus_unregister;
+  plugin_class->shutdown = valent_device_manager_shutdown;
+  plugin_class->startup = valent_device_manager_startup;
 
   /**
    * ValentDeviceManager:name: (getter get_name) (setter set_name)
@@ -884,200 +1027,6 @@ valent_device_manager_refresh (ValentDeviceManager *manager)
       valent_channel_service_identify (VALENT_CHANNEL_SERVICE (plugin->extension),
                                        NULL);
     }
-
-  VALENT_EXIT;
-}
-
-/**
- * valent_device_manager_start:
- * @manager: a #ValentDeviceManager
- *
- * Start managing devices.
- *
- * Calling this method causes @manager to load all [class@Valent.ChannelService]
- * implementations known to the [class@Peas.Engine], allowing new connections to
- * be opened.
- *
- * In a typical [class@Gio.Application], this should be called in the
- * [vfunc@Gio.Application.startup] override, after chaining up.
- *
- * Since: 1.0
- */
-void
-valent_device_manager_start (ValentDeviceManager *manager)
-{
-  PeasEngine *engine = NULL;
-  const GList *plugins = NULL;
-
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_DEVICE_MANAGER (manager));
-
-  /* We're already started */
-  if (manager->cancellable != NULL)
-    VALENT_EXIT;
-
-  manager->cancellable = g_cancellable_new ();
-
-  /* Load devices */
-  valent_device_manager_load_state (manager);
-
-  /* Setup services */
-  engine = valent_get_plugin_engine ();
-  plugins = peas_engine_get_plugin_list (engine);
-
-  for (const GList *iter = plugins; iter; iter = iter->next)
-    {
-      if (peas_plugin_info_is_loaded (iter->data))
-        on_load_service (engine, iter->data, manager);
-    }
-
-  g_signal_connect_object (engine,
-                           "load-plugin",
-                           G_CALLBACK (on_load_service),
-                           manager,
-                           G_CONNECT_AFTER);
-
-  g_signal_connect_object (engine,
-                           "unload-plugin",
-                           G_CALLBACK (on_unload_service),
-                           manager,
-                           0);
-
-  VALENT_EXIT;
-}
-
-/**
- * valent_device_manager_stop:
- * @manager: a #ValentDeviceManager
- *
- * Stop managing devices.
- *
- * Calling this method causes @manager to unload all
- * [class@Valent.ChannelService] implementations, preventing any new connections
- * from being opened.
- *
- * In a typical [class@Gio.Application], this should be called in the
- * [vfunc@Gio.Application.shutdown] override, before chaining up.
- *
- * Since: 1.0
- */
-void
-valent_device_manager_stop (ValentDeviceManager *manager)
-{
-  PeasEngine *engine = NULL;
-  unsigned int n_devices = 0;
-
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_DEVICE_MANAGER (manager));
-
-  /* We're already stopped */
-  if (manager->cancellable == NULL)
-    VALENT_EXIT;
-
-  /* Cancel any running operations */
-  g_cancellable_cancel (manager->cancellable);
-  g_clear_object (&manager->cancellable);
-
-  /* Stop and remove services */
-  engine = valent_get_plugin_engine ();
-  g_signal_handlers_disconnect_by_data (engine, manager);
-  g_hash_table_remove_all (manager->plugins);
-
-  /* Remove any devices */
-  n_devices = manager->devices->len;
-
-  for (unsigned int i = 0; i < n_devices; i++)
-    {
-      ValentDevice *device = g_ptr_array_index (manager->devices, i);
-      g_signal_handlers_disconnect_by_data (device, manager);
-    }
-
-  g_ptr_array_remove_range (manager->devices, 0, n_devices);
-  g_list_model_items_changed (G_LIST_MODEL (manager), 0, n_devices, 0);
-
-  valent_device_manager_save_state (manager);
-
-  VALENT_EXIT;
-}
-
-/**
- * valent_device_manager_export:
- * @manager: a #ValentDeviceManager
- * @connection: a #GDBusConnection
- * @object_path: a D-Bus object path
- *
- * Export the manager on D-Bus.
- *
- * Calling this method exports @manager and all managed [class@Valent.Device]
- * objects on @connection at @object_path.
- *
- * In a typical [class@Gio.Application], this should be called in the
- * [vfunc@Gio.Application.dbus_register] override, after chaining up.
- *
- * Since: 1.0
- */
-void
-valent_device_manager_export (ValentDeviceManager *manager,
-                              GDBusConnection     *connection,
-                              const char          *object_path)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_DEVICE_MANAGER (manager));
-  g_return_if_fail (G_IS_DBUS_CONNECTION (connection));
-  g_return_if_fail (g_variant_is_object_path (object_path));
-
-  if (manager->dbus != NULL)
-    VALENT_EXIT;
-
-  manager->dbus = g_dbus_object_manager_server_new (object_path);
-  g_dbus_object_manager_server_set_connection (manager->dbus, connection);
-
-  for (unsigned int i = 0, len = manager->devices->len; i < len; i++)
-    {
-      ValentDevice *device = g_ptr_array_index (manager->devices, i);
-
-      valent_device_manager_export_device (manager, device);
-    }
-
-  VALENT_EXIT;
-}
-
-/**
- * valent_device_manager_unexport:
- * @manager: a #ValentDeviceManager
- *
- * Unexport the manager from D-Bus.
- *
- * Calling this method unexports @manager from D-Bus, including all managed
- * [class@Valent.Device].
- *
- * In a typical [class@Gio.Application], this should be called in the
- * [vfunc@Gio.Application.dbus_unregister] override, before chaining up.
- *
- * Since: 1.0
- */
-void
-valent_device_manager_unexport (ValentDeviceManager *manager)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_DEVICE_MANAGER (manager));
-
-  if (manager->dbus == NULL)
-    VALENT_EXIT;
-
-  for (unsigned int i = 0, len = manager->devices->len; i < len; i++)
-    {
-      ValentDevice *device = g_ptr_array_index (manager->devices, i);
-
-      valent_device_manager_unexport_device (manager, device);
-    }
-
-  g_dbus_object_manager_server_set_connection (manager->dbus, NULL);
-  g_clear_object (&manager->dbus);
 
   VALENT_EXIT;
 }

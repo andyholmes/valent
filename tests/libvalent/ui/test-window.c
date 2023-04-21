@@ -16,14 +16,14 @@ test_window_set_up (TestWindowFixture *fixture,
                     gconstpointer      user_data)
 {
   fixture->manager = valent_device_manager_get_default ();
-  valent_device_manager_start (fixture->manager);
+  valent_application_plugin_startup (VALENT_APPLICATION_PLUGIN (fixture->manager));
 }
 
 static void
 test_window_tear_down (TestWindowFixture *fixture,
                        gconstpointer      user_data)
 {
-  valent_device_manager_stop (fixture->manager);
+  valent_application_plugin_shutdown (VALENT_APPLICATION_PLUGIN (fixture->manager));
   v_assert_finalize_object (fixture->manager);
 }
 

@@ -7,14 +7,14 @@
 # error "Only <valent.h> can be included directly."
 #endif
 
-#include "valent-device.h"
+#include "valent-application-plugin.h"
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_DEVICE_MANAGER (valent_device_manager_get_type())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_FINAL_TYPE (ValentDeviceManager, valent_device_manager, VALENT, DEVICE_MANAGER, ValentObject)
+G_DECLARE_FINAL_TYPE (ValentDeviceManager, valent_device_manager, VALENT, DEVICE_MANAGER, ValentApplicationPlugin)
 
 VALENT_AVAILABLE_IN_1_0
 ValentDeviceManager * valent_device_manager_get_default (void);
@@ -28,16 +28,6 @@ VALENT_AVAILABLE_IN_1_0
 void                  valent_device_manager_set_name    (ValentDeviceManager  *manager,
                                                          const char           *name);
 VALENT_AVAILABLE_IN_1_0
-void                  valent_device_manager_export      (ValentDeviceManager  *manager,
-                                                         GDBusConnection      *connection,
-                                                         const char           *object_path);
-VALENT_AVAILABLE_IN_1_0
-void                  valent_device_manager_unexport    (ValentDeviceManager  *manager);
-VALENT_AVAILABLE_IN_1_0
 void                  valent_device_manager_refresh     (ValentDeviceManager  *manager);
-VALENT_AVAILABLE_IN_1_0
-void                  valent_device_manager_start       (ValentDeviceManager  *manager);
-VALENT_AVAILABLE_IN_1_0
-void                  valent_device_manager_stop        (ValentDeviceManager  *manager);
 
 G_END_DECLS
