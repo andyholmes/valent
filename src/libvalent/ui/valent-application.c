@@ -226,27 +226,27 @@ device_action (GSimpleAction *action,
                GVariant      *parameter,
                gpointer       user_data)
 {
-  ValentApplication *self = VALENT_APPLICATION (user_data);
+  ValentDeviceManager *manager = valent_device_manager_get_default ();
   unsigned int n_devices = 0;
   const char *device_id;
   const char *name;
   g_autoptr (GVariantIter) targetv = NULL;
   g_autoptr (GVariant) target = NULL;
 
-  g_assert (VALENT_IS_APPLICATION (self));
+  g_assert (VALENT_IS_DEVICE_MANAGER (manager));
 
   /* Device ID, action name, array holding optional action parameter */
   g_variant_get (parameter, "(&s&sav)", &device_id, &name, &targetv);
   g_variant_iter_next (targetv, "v", &target);
 
   /* Forward the activation */
-  n_devices = g_list_model_get_n_items (G_LIST_MODEL (self->manager));
+  n_devices = g_list_model_get_n_items (G_LIST_MODEL (manager));
 
   for (unsigned int i = 0; i < n_devices; i++)
     {
       g_autoptr (ValentDevice) device = NULL;
 
-      device = g_list_model_get_item (G_LIST_MODEL (self->manager), i);
+      device = g_list_model_get_item (G_LIST_MODEL (manager), i);
 
       if (g_strcmp0 (device_id, valent_device_get_id (device)) == 0)
         {
