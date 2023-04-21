@@ -34,7 +34,6 @@ struct _ValentApplication
   ValentDeviceManager *manager;
   GHashTable          *plugins;
   ValentContext       *plugins_context;
-  GtkWindow           *window;
 };
 
 G_DEFINE_FINAL_TYPE (ValentApplication, valent_application, GTK_TYPE_APPLICATION)
@@ -195,30 +194,6 @@ valent_application_unload_plugins (ValentApplication *self)
   g_clear_object (&self->plugins_context);
 }
 
-static void
-valent_application_present_window (ValentApplication *self,
-                                   const char        *startup_id)
-{
-  g_assert (VALENT_IS_APPLICATION (self));
-
-  if (self->window == NULL)
-    {
-      self->window = g_object_new (VALENT_TYPE_WINDOW,
-                                   "application",    self,
-                                   "default-width",  600,
-                                   "default-height", 480,
-                                   "device-manager", self->manager,
-                                   NULL);
-      g_object_add_weak_pointer (G_OBJECT (self->window),
-                                 (gpointer) &self->window);
-    }
-
-  if (startup_id != NULL)
-    gtk_window_set_startup_id (self->window, startup_id);
-
-  gtk_window_present_with_time (self->window, GDK_CURRENT_TIME);
-}
-
 /*
  * GActions
  */
@@ -234,24 +209,8 @@ quit_action (GSimpleAction *action,
   g_application_quit (application);
 }
 
-static void
-window_action (GSimpleAction *action,
-               GVariant      *parameter,
-               gpointer       user_data)
-{
-  ValentApplication *self = VALENT_APPLICATION (user_data);
-
-  g_assert (VALENT_IS_APPLICATION (self));
-
-  valent_application_present_window (self, NULL);
-  gtk_widget_activate_action_variant (GTK_WIDGET (self->window),
-                                      "win.page",
-                                      parameter);
-}
-
 static const GActionEntry app_actions[] = {
   { "quit",   quit_action,   NULL, NULL, NULL },
-  { "window", window_action, "s",  NULL, NULL },
 };
 
 
@@ -280,7 +239,9 @@ valent_application_activate (GApplication *application)
     }
 
   /* If no plugin takes ownership of the activation, present the main window */
-  valent_application_present_window (self, NULL);
+  g_action_group_activate_action (G_ACTION_GROUP (self),
+                                  "window",
+                                  g_variant_new_string ("main"));
 }
 
 static void
@@ -354,7 +315,6 @@ valent_application_shutdown (GApplication *application)
 
   g_assert (VALENT_IS_APPLICATION (application));
 
-  g_clear_pointer (&self->window, gtk_window_destroy);
   valent_application_plugin_shutdown (VALENT_APPLICATION_PLUGIN (self->manager));
   valent_application_unload_plugins (self);
   g_clear_object (&self->settings);
