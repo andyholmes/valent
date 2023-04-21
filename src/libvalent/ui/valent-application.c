@@ -223,41 +223,6 @@ valent_application_present_window (ValentApplication *self,
  * GActions
  */
 static void
-device_action (GSimpleAction *action,
-               GVariant      *parameter,
-               gpointer       user_data)
-{
-  ValentDeviceManager *manager = valent_device_manager_get_default ();
-  unsigned int n_devices = 0;
-  const char *device_id;
-  const char *name;
-  g_autoptr (GVariantIter) targetv = NULL;
-  g_autoptr (GVariant) target = NULL;
-
-  g_assert (VALENT_IS_DEVICE_MANAGER (manager));
-
-  /* Device ID, action name, array holding optional action parameter */
-  g_variant_get (parameter, "(&s&sav)", &device_id, &name, &targetv);
-  g_variant_iter_next (targetv, "v", &target);
-
-  /* Forward the activation */
-  n_devices = g_list_model_get_n_items (G_LIST_MODEL (manager));
-
-  for (unsigned int i = 0; i < n_devices; i++)
-    {
-      g_autoptr (ValentDevice) device = NULL;
-
-      device = g_list_model_get_item (G_LIST_MODEL (manager), i);
-
-      if (g_strcmp0 (device_id, valent_device_get_id (device)) == 0)
-        {
-          g_action_group_activate_action (G_ACTION_GROUP (device), name, target);
-          break;
-        }
-    }
-}
-
-static void
 quit_action (GSimpleAction *action,
              GVariant      *parameter,
              gpointer       user_data)
@@ -284,10 +249,9 @@ window_action (GSimpleAction *action,
                                       parameter);
 }
 
-static const GActionEntry actions[] = {
-  { "device",  device_action,      "(ssav)", NULL, NULL },
-  { "quit",    quit_action,        NULL,     NULL, NULL },
-  { "window",  window_action,      "s",      NULL, NULL },
+static const GActionEntry app_actions[] = {
+  { "quit",   quit_action,   NULL, NULL, NULL },
+  { "window", window_action, "s",  NULL, NULL },
 };
 
 
@@ -366,8 +330,8 @@ valent_application_startup (GApplication *application)
 
   /* Service Actions */
   g_action_map_add_action_entries (G_ACTION_MAP (application),
-                                   actions,
-                                   G_N_ELEMENTS (actions),
+                                   app_actions,
+                                   G_N_ELEMENTS (app_actions),
                                    application);
 
   /* Device Name */

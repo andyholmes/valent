@@ -659,6 +659,42 @@ valent_device_manager_save_state (ValentDeviceManager *self)
 }
 
 /*
+ * GActions
+ */
+static void
+device_action (GSimpleAction *action,
+               GVariant      *parameter,
+               gpointer       user_data)
+{
+  ValentDeviceManager *manager = valent_device_manager_get_default ();
+  const char *device_id;
+  const char *name;
+  g_autoptr (GVariantIter) targetv = NULL;
+  g_autoptr (GVariant) target = NULL;
+
+  g_assert (VALENT_IS_DEVICE_MANAGER (manager));
+
+  /* (<Valent.Device:id>, <Gio.Action:name>, [<GLib.Variant>]) */
+  g_variant_get (parameter, "(&s&sav)", &device_id, &name, &targetv);
+  g_variant_iter_next (targetv, "v", &target);
+
+  for (unsigned int i = 0, len = manager->devices->len; i < len; i++)
+    {
+      ValentDevice *device = g_ptr_array_index (manager->devices, i);
+
+      if (g_strcmp0 (device_id, valent_device_get_id (device)) == 0)
+        {
+          g_action_group_activate_action (G_ACTION_GROUP (device), name, target);
+          break;
+        }
+    }
+}
+
+static const GActionEntry app_actions[] = {
+  { "device",  device_action, "(ssav)", NULL, NULL },
+};
+
+/*
  * ValentApplicationPlugin
  */
 static gboolean
@@ -749,6 +785,20 @@ valent_device_manager_shutdown (ValentApplicationPlugin *plugin)
   g_list_model_items_changed (G_LIST_MODEL (self), 0, n_devices, 0);
 
   valent_device_manager_save_state (self);
+
+  /* Remove actions from the `app` group, if available */
+  if (self == default_manager)
+    {
+      GApplication *application = g_application_get_default ();
+
+      if (application != NULL)
+        {
+          for (unsigned int i = 0; i < G_N_ELEMENTS (app_actions); i++)
+            g_action_map_remove_action (G_ACTION_MAP (application),
+                                        app_actions[i].name);
+
+        }
+    }
 }
 
 static void
@@ -791,6 +841,20 @@ valent_device_manager_startup (ValentApplicationPlugin *plugin)
                            G_CALLBACK (on_unload_service),
                            self,
                            0);
+
+  /* Add actions to the `app` group, if available */
+  if (self == default_manager)
+    {
+      GApplication *application = g_application_get_default ();
+
+      if (application != NULL)
+        {
+          g_action_map_add_action_entries (G_ACTION_MAP (application),
+                                           app_actions,
+                                           G_N_ELEMENTS (app_actions),
+                                           application);
+        }
+    }
 }
 
 /*
