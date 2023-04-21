@@ -115,11 +115,11 @@ void   valent_debug_clear (void);
 
 _VALENT_EXTERN
 void valent_trace_mark (const char *strfunc,
-                        gint64      begin_time_usec,
-                        gint64      end_time_usec);
+                        int64_t     begin_time_usec,
+                        int64_t     end_time_usec);
 
 # define VALENT_ENTRY                                                       \
-   gint64 __trace_begin_time = g_get_monotonic_time ();                     \
+   int64_t __trace_begin_time = g_get_monotonic_time ();                    \
    g_log(G_LOG_DOMAIN, VALENT_LOG_LEVEL_TRACE, "ENTRY: %s():%d",            \
          G_STRFUNC, __LINE__)
 # define VALENT_EXIT                                                        \

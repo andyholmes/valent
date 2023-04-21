@@ -36,7 +36,7 @@
 typedef struct
 {
   PeasPluginInfo *plugin_info;
-  gint64          timestamp;
+  int64_t         timestamp;
 } ValentClipboardAdapterPrivate;
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentClipboardAdapter, valent_clipboard_adapter, VALENT_TYPE_OBJECT)
@@ -82,7 +82,7 @@ valent_clipboard_adapter_real_get_mimetypes (ValentClipboardAdapter *adapter)
   return NULL;
 }
 
-static gint64
+static int64_t
 valent_clipboard_adapter_real_get_timestamp (ValentClipboardAdapter *adapter)
 {
   ValentClipboardAdapterPrivate *priv = valent_clipboard_adapter_get_instance_private (adapter);
@@ -298,10 +298,10 @@ valent_clipboard_adapter_changed (ValentClipboardAdapter *adapter)
  *
  * Since: 1.0
  */
-gint64
+int64_t
 valent_clipboard_adapter_get_timestamp (ValentClipboardAdapter *adapter)
 {
-  gint64 ret;
+  int64_t ret;
 
   VALENT_ENTRY;
 

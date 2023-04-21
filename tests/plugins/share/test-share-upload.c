@@ -59,9 +59,9 @@ test_share_upload_single (ValentTestFixture *fixture,
   g_autoptr (GFile) file = NULL;
   g_autoptr (GFileInfo) info = NULL;
   const char *file_name;
-  guint32 file_btime_us, file_mtime_us;
-  guint64 file_btime_s, file_mtime_s;
-  guint64 file_btime, file_mtime;
+  uint32_t file_btime_us, file_mtime_us;
+  uint64_t file_btime_s, file_mtime_s;
+  uint64_t file_btime, file_mtime;
   goffset file_size;
   JsonNode *packet = NULL;
   GError *error = NULL;

@@ -32,13 +32,13 @@ unsigned int          valent_mux_connection_get_protocol_version (ValentMuxConne
 gssize                valent_mux_connection_read                 (ValentMuxConnection  *connection,
                                                                   const char           *uuid,
                                                                   void                 *buffer,
-                                                                  gsize                 count,
+                                                                  size_t                count,
                                                                   GCancellable         *cancellable,
                                                                   GError              **error);
 gssize                valent_mux_connection_write                (ValentMuxConnection  *connection,
                                                                   const char           *uuid,
                                                                   const void           *buffer,
-                                                                  gsize                 count,
+                                                                  size_t                count,
                                                                   GCancellable         *cancellable,
                                                                   GError              **error);
 gboolean              valent_mux_connection_close_channel        (ValentMuxConnection  *connection,

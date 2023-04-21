@@ -37,7 +37,7 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 static gssize
 valent_mux_input_stream_read (GInputStream  *stream,
                               void          *buffer,
-                              gsize          count,
+                              size_t         count,
                               GCancellable  *cancellable,
                               GError       **error)
 {

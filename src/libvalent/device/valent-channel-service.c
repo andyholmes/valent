@@ -111,11 +111,11 @@ static char *chassis = NULL;
 static void
 init_chassis_type (void)
 {
-  static gsize guard;
+  static size_t guard;
   g_autoptr (GDBusConnection) connection = NULL;
   g_autoptr (GVariant) reply = NULL;
   g_autofree char *str = NULL;
-  guint64 type;
+  uint64_t type;
 
   if (!g_once_init_enter (&guard))
     return;

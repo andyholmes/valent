@@ -35,8 +35,8 @@ struct _ValentSmsConversation
   GtkAdjustment      *vadjustment;
 
   /* Thread Resources */
-  gint64              loaded_id;
-  gint64              thread_id;
+  int64_t             loaded_id;
+  int64_t             thread_id;
   ValentSmsStore     *message_store;
   GListModel         *thread;
   unsigned int        position_upper;
@@ -137,7 +137,7 @@ message_list_header_func (GtkListBoxRow *row,
   ValentSmsConversation *self = VALENT_SMS_CONVERSATION (user_data);
   ValentSmsConversationRow *mrow = VALENT_SMS_CONVERSATION_ROW (row);
   ValentSmsConversationRow *brow = VALENT_SMS_CONVERSATION_ROW (before);
-  gint64 row_date, before_date;
+  int64_t row_date, before_date;
   gboolean row_incoming, before_incoming;
 
   g_assert (GTK_IS_LIST_BOX_ROW (row));
@@ -264,7 +264,7 @@ valent_sms_conversation_insert_message (ValentSmsConversation *self,
  */
 static void
 valent_sms_conversation_remove_message (ValentSmsConversation *conversation,
-                                        gint64                 message_id)
+                                        int64_t                message_id)
 {
   GtkWidget *child;
 
@@ -828,7 +828,7 @@ valent_sms_conversation_new (ValentContactStore *contacts,
  *
  * Returns: the thread ID
  */
-gint64
+int64_t
 valent_sms_conversation_get_thread_id (ValentSmsConversation *conversation)
 {
   g_return_val_if_fail (VALENT_IS_SMS_CONVERSATION (conversation), 0);
@@ -845,7 +845,7 @@ valent_sms_conversation_get_thread_id (ValentSmsConversation *conversation)
  */
 void
 valent_sms_conversation_set_thread_id (ValentSmsConversation *conversation,
-                                       gint64                 thread_id)
+                                       int64_t                thread_id)
 {
   GtkWidget *parent = GTK_WIDGET (conversation->message_list);
   GtkWidget *child;
@@ -959,7 +959,7 @@ valent_sms_conversation_get_subtitle (ValentSmsConversation *conversation)
  */
 void
 valent_sms_conversation_scroll_to_date (ValentSmsConversation *conversation,
-                                        gint64                 date)
+                                        int64_t                date)
 {
   GtkWidget *row;
   ValentMessage *message;
@@ -1014,7 +1014,7 @@ void
 valent_sms_conversation_scroll_to_message (ValentSmsConversation *conversation,
                                            ValentMessage         *message)
 {
-  gint64 date;
+  int64_t date;
 
   g_return_if_fail (VALENT_IS_SMS_CONVERSATION (conversation));
   g_return_if_fail (VALENT_IS_MESSAGE (message));

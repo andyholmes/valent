@@ -18,14 +18,14 @@ G_DECLARE_FINAL_TYPE (ValentSmsConversation, valent_sms_conversation, VALENT, SM
 GtkWidget  * valent_sms_conversation_new               (ValentContactStore    *contacts,
                                                         ValentSmsStore        *messages);
 
-gint64       valent_sms_conversation_get_thread_id     (ValentSmsConversation *conversation);
+int64_t      valent_sms_conversation_get_thread_id     (ValentSmsConversation *conversation);
 void         valent_sms_conversation_set_thread_id     (ValentSmsConversation *conversation,
-                                                        gint64                 thread_id);
+                                                        int64_t                thread_id);
 const char * valent_sms_conversation_get_title         (ValentSmsConversation *conversation);
 const char * valent_sms_conversation_get_subtitle      (ValentSmsConversation *conversation);
 
 void         valent_sms_conversation_scroll_to_date    (ValentSmsConversation *conversation,
-                                                        gint64                 date);
+                                                        int64_t                date);
 void         valent_sms_conversation_scroll_to_message (ValentSmsConversation *conversation,
                                                         ValentMessage         *message);
 

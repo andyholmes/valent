@@ -20,8 +20,8 @@ struct _ValentClipboardPlugin
   gulong              changed_id;
 
   char               *remote_text;
-  gint64              remote_timestamp;
-  gint64              local_timestamp;
+  int64_t             remote_timestamp;
+  int64_t             local_timestamp;
   unsigned int        auto_push : 1;
   unsigned int        auto_pull : 1;
 };
@@ -55,7 +55,7 @@ valent_clipboard_plugin_clipboard (ValentClipboardPlugin *self,
 static void
 valent_clipboard_plugin_clipboard_connect (ValentClipboardPlugin *self,
                                            const char            *content,
-                                           gint64                 timestamp)
+                                           int64_t                timestamp)
 {
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
@@ -270,7 +270,7 @@ static void
 valent_clipboard_plugin_handle_clipboard_connect (ValentClipboardPlugin *self,
                                                   JsonNode              *packet)
 {
-  gint64 timestamp;
+  int64_t timestamp;
   const char *content;
   g_autoptr (GCancellable) destroy = NULL;
 

@@ -53,7 +53,7 @@ static GtkIconTheme *
 _gtk_icon_theme_get_default (void)
 {
   static GtkIconTheme *icon_theme = NULL;
-  gsize guard = 0;
+  size_t guard = 0;
 
   if (g_once_init_enter (&guard))
     {
@@ -163,7 +163,7 @@ valent_notification_upload_get_icon_bytes (GIcon         *icon,
   GdkPixbuf *pixbuf = NULL;
   g_autoptr (GError) warn = NULL;
   char *data;
-  gsize size;
+  size_t size;
 
   g_assert (G_IS_ICON (icon));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
@@ -265,8 +265,8 @@ valent_notification_upload_execute_task (GTask        *task,
   g_autoptr (GBytes) bytes = NULL;
   g_autoptr (GIOStream) target = NULL;
   g_autofree char *payload_hash = NULL;
-  const guint8 *payload_data = NULL;
-  gsize payload_size = 0;
+  const uint8_t *payload_data = NULL;
+  size_t payload_size = 0;
   gboolean ret = FALSE;
   GError *error = NULL;
 

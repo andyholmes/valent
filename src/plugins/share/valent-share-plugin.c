@@ -919,7 +919,7 @@ valent_share_plugin_handle_file (ValentSharePlugin *self,
   ValentDevice *device;
   const char *filename;
   g_autoptr (GFile) file = NULL;
-  gint64 number_of_files = 0;
+  int64_t number_of_files = 0;
 
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));

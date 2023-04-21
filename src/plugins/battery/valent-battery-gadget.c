@@ -65,8 +65,8 @@ on_action_state_changed (GActionGroup        *action_group,
     }
   else
     {
-      gint64 total_seconds = 0;
-      gint64 total_minutes;
+      int64_t total_seconds = 0;
+      int64_t total_minutes;
       int minutes;
       int hours;
 

@@ -35,7 +35,7 @@ struct _ValentShareDownload
   GPtrArray      *items;
 
   unsigned int    position;
-  gint64          number_of_files;
+  int64_t         number_of_files;
   goffset         payload_size;
 };
 
@@ -116,8 +116,8 @@ valent_share_download_timeout (gpointer data)
                                G_IO_ERROR,
                                G_IO_ERROR_PARTIAL_INPUT,
                                "Failed to receive %u of %u files",
-                               (guint)self->number_of_files - self->position,
-                               (guint)self->number_of_files);
+                               (unsigned int)self->number_of_files - self->position,
+                               (unsigned int)self->number_of_files);
     }
 
   return G_SOURCE_REMOVE;
@@ -324,7 +324,7 @@ valent_share_download_add_file (ValentShareDownload *download,
 {
   g_autoptr (ValentTransfer) item = NULL;
   unsigned int position, added;
-  gint64 number_of_files;
+  int64_t number_of_files;
   goffset total_payload_size;
 
   g_return_if_fail (VALENT_IS_SHARE_DOWNLOAD (download));

@@ -23,7 +23,7 @@ _e_contact_get_icon (EContact *contact)
   GLoadableIcon *icon = NULL;
   g_autoptr (EContactPhoto) photo = NULL;
   const guchar *data;
-  gsize len;
+  size_t len;
   const char *uri;
 
   g_assert (E_IS_CONTACT (contact));
@@ -276,7 +276,7 @@ char *
 valent_phone_number_normalize (const char *number)
 {
   g_autofree char *normalized = NULL;
-  gsize i, len;
+  size_t i, len;
   const char *s = number;
 
   g_return_val_if_fail (number != NULL, NULL);
@@ -311,7 +311,7 @@ static inline gboolean
 valent_phone_number_compare_normalized (const char *number1,
                                         const char *number2)
 {
-  gsize number1_len, number2_len;
+  size_t number1_len, number2_len;
 
   g_assert (number1 != NULL);
   g_assert (number2 != NULL);
@@ -343,7 +343,7 @@ valent_phone_number_equal (const char *number1,
 {
   g_autofree char *normalized1 = NULL;
   g_autofree char *normalized2 = NULL;
-  gsize num1_len, num2_len;
+  size_t num1_len, num2_len;
 
   g_return_val_if_fail (number1 != NULL, FALSE);
   g_return_val_if_fail (number2 != NULL, FALSE);

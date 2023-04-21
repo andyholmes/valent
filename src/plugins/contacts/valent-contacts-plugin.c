@@ -175,7 +175,7 @@ valent_contact_store_query_uids_cb (ValentContactStore   *store,
   for (const GSList *iter = contacts; iter; iter = iter->next)
     {
       const char *uid;
-      gint64 timestamp = 0;
+      int64_t timestamp = 0;
 
       uid = e_contact_get_const (iter->data, E_CONTACT_UID);
       json_builder_set_member_name (builder, uid);
@@ -241,7 +241,7 @@ valent_contact_plugin_handle_response_uids_timestamps (ValentContactsPlugin *sel
 
   while (json_object_iter_next (&iter, &uid, &node))
     {
-      gint64 timestamp = 0;
+      int64_t timestamp = 0;
 
       // skip the "uids" array
       if G_UNLIKELY (g_str_equal ("uids", uid))

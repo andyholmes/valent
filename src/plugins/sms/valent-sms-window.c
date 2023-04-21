@@ -397,7 +397,7 @@ contact_search_list_filter (ValentContactRow *row,
   return FALSE;
 }
 
-static gint
+static int
 contact_search_list_sort (GtkListBoxRow   *row1,
                           GtkListBoxRow   *row2,
                           ValentSmsWindow *self)
@@ -535,7 +535,7 @@ conversation_list_populate (ValentSmsWindow *window)
 
 static GtkWidget *
 valent_sms_window_ensure_conversation (ValentSmsWindow *window,
-                                       gint64           thread_id)
+                                       int64_t          thread_id)
 {
   GtkWidget *conversation;
   g_autofree char *page_name = NULL;
@@ -572,7 +572,7 @@ on_conversation_activated (GtkListBox      *box,
                            ValentSmsWindow *self)
 {
   ValentMessageRow *summary;
-  gint64 thread_id;
+  int64_t thread_id;
 
   /* Deselect */
   if (row == NULL)
@@ -954,7 +954,7 @@ valent_sms_window_set_active_message (ValentSmsWindow *window,
 {
   GtkWidget *widget;
   ValentSmsConversation *conversation;
-  gint64 thread_id;
+  int64_t thread_id;
 
   g_return_if_fail (VALENT_IS_SMS_WINDOW (window));
 
@@ -978,7 +978,7 @@ valent_sms_window_set_active_message (ValentSmsWindow *window,
  */
 void
 valent_sms_window_set_active_thread (ValentSmsWindow *window,
-                                     gint64           thread_id)
+                                     int64_t          thread_id)
 {
   GtkWidget *conversation;
   const char *title;

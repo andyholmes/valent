@@ -23,7 +23,7 @@ gboolean
 valent_runcommand_can_spawn_host (void)
 {
   static gboolean host = TRUE;
-  static gsize guard = 0;
+  static size_t guard = 0;
 
   if (g_once_init_enter (&guard))
     {

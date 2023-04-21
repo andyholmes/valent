@@ -37,7 +37,7 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 static gssize
 valent_mux_output_stream_write (GOutputStream  *stream,
                                 const void     *buffer,
-                                gsize           count,
+                                size_t          count,
                                 GCancellable   *cancellable,
                                 GError        **error)
 {

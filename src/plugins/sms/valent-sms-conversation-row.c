@@ -303,7 +303,7 @@ valent_sms_conversation_row_set_contact (ValentSmsConversationRow *row,
  *
  * Returns: a UNIX epoch timestamp
  */
-gint64
+int64_t
 valent_sms_conversation_row_get_date (ValentSmsConversationRow *row)
 {
   g_return_val_if_fail (VALENT_IS_SMS_CONVERSATION_ROW (row), 0);
@@ -322,7 +322,7 @@ valent_sms_conversation_row_get_date (ValentSmsConversationRow *row)
  *
  * Returns: a message id
  */
-gint64
+int64_t
 valent_sms_conversation_row_get_id (ValentSmsConversationRow *row)
 {
   g_return_val_if_fail (VALENT_IS_SMS_CONVERSATION_ROW (row), 0);

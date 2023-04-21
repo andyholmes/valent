@@ -59,10 +59,10 @@ valent_device_transfer_update_packet (JsonNode  *packet,
                                       GFileInfo *info)
 {
   JsonObject *body;
-  guint64 btime_s, mtime_s;
-  guint32 btime_us, mtime_us;
-  guint64 creation_time;
-  guint64 last_modified;
+  uint64_t btime_s, mtime_s;
+  uint32_t btime_us, mtime_us;
+  uint64_t creation_time;
+  uint64_t last_modified;
   goffset payload_size;
 
   g_assert (VALENT_IS_PACKET (packet));
@@ -101,8 +101,8 @@ valent_device_transfer_execute_task (GTask        *task,
   g_autoptr (GOutputStream) target = NULL;
   gboolean is_download = FALSE;
   gssize transferred;
-  gint64 last_modified = 0;
-  gint64 creation_time = 0;
+  int64_t last_modified = 0;
+  int64_t creation_time = 0;
   goffset payload_size;
   GError *error = NULL;
 

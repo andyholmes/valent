@@ -131,7 +131,7 @@ valent_packet_end (JsonBuilder **builder)
  *
  * Since: 1.0
  */
-gint64
+int64_t
 valent_packet_get_id (JsonNode *packet)
 {
   JsonObject *root;
@@ -321,7 +321,7 @@ valent_packet_set_payload_full (JsonNode   *packet,
   root = json_node_get_object (packet);
 
   json_object_set_object_member (root, "payloadTransferInfo", info);
-  json_object_set_int_member (root, "payloadSize", (gint64)size);
+  json_object_set_int_member (root, "payloadSize", (int64_t)size);
 }
 
 /**
@@ -421,7 +421,7 @@ valent_packet_set_payload_size (JsonNode *packet,
 
   root = json_node_get_object (packet);
 
-  json_object_set_int_member (root, "payloadSize", (gint64)size);
+  json_object_set_int_member (root, "payloadSize", (int64_t)size);
 }
 
 /**
@@ -575,7 +575,7 @@ valent_packet_get_double (JsonNode   *packet,
 gboolean
 valent_packet_get_int (JsonNode   *packet,
                        const char *field,
-                       gint64     *value)
+                       int64_t    *value)
 {
   JsonObject *root, *body;
   JsonNode *node;
@@ -1013,8 +1013,8 @@ valent_packet_to_stream (GOutputStream  *stream,
   g_autoptr (JsonGenerator) generator = NULL;
   JsonObject *root;
   g_autofree char *packet_str = NULL;
-  gsize packet_len;
-  gsize n_written;
+  size_t packet_len;
+  size_t n_written;
 
   g_return_val_if_fail (G_IS_OUTPUT_STREAM (stream), FALSE);
   g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);

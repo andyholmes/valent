@@ -19,7 +19,7 @@ test_sms_conversation (void)
   g_autoptr (ValentSmsStore) messages = NULL;
   g_autoptr (ValentContactStore) contacts_out = NULL;
   g_autoptr (ValentSmsStore) messages_out = NULL;
-  gint64 thread_id, thread_id_out;
+  int64_t thread_id, thread_id_out;
 
   loop = g_main_loop_new (NULL, FALSE);
   contacts = valent_test_contact_store_new ();

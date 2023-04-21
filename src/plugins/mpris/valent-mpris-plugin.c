@@ -295,14 +295,14 @@ valent_mpris_plugin_handle_mpris_request (ValentMprisPlugin *self,
   const char *name;
   const char *action;
   const char *url;
-  gint64 offset_us;
-  gint64 position;
+  int64_t offset_us;
+  int64_t position;
   gboolean request_now_playing;
   gboolean request_volume;
   const char *loop_status;
   ValentMediaRepeat repeat;
   gboolean shuffle;
-  gint64 volume;
+  int64_t volume;
 
   g_assert (VALENT_IS_MPRIS_PLUGIN (self));
 
@@ -431,7 +431,7 @@ valent_mpris_plugin_send_player_info (ValentMprisPlugin *self,
       if ((metadata = valent_media_player_get_metadata (player)) != NULL)
         {
           g_autofree const char **artists = NULL;
-          gint64 length_us;
+          int64_t length_us;
           const char *art_url;
           const char *album;
 
@@ -490,7 +490,7 @@ valent_mpris_plugin_send_player_info (ValentMprisPlugin *self,
   /* Volume Level */
   if (request_volume)
     {
-      gint64 level;
+      int64_t level;
 
       level = floor (valent_media_player_get_volume (player) * 100);
       json_builder_set_member_name (builder, "volume");

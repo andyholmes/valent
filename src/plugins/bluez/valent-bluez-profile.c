@@ -173,7 +173,7 @@ valent_bluez_profile_method_call (GDBusConnection       *connection,
   if (g_strcmp0 (method_name, "NewConnection") == 0)
     {
       const char *device;
-      gint32 fd_idx;
+      int32_t fd_idx;
       GDBusMessage *message;
       GUnixFDList *fd_list;
       int fd;

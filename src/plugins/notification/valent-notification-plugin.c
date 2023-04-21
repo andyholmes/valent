@@ -407,7 +407,7 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
     {
       g_autoptr (ValentNotification) incoming = NULL;
       const char *time_str = NULL;
-      gint64 time = 0;
+      int64_t time = 0;
       GVariant *target;
 
       if (valent_packet_get_string (packet, "time", &time_str))

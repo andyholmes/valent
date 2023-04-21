@@ -21,7 +21,7 @@ ValentClipboard * valent_clipboard_get_default        (void);
 VALENT_AVAILABLE_IN_1_0
 GStrv             valent_clipboard_get_mimetypes      (ValentClipboard      *clipboard);
 VALENT_AVAILABLE_IN_1_0
-gint64            valent_clipboard_get_timestamp      (ValentClipboard      *clipboard);
+int64_t           valent_clipboard_get_timestamp      (ValentClipboard      *clipboard);
 VALENT_AVAILABLE_IN_1_0
 void              valent_clipboard_read_bytes         (ValentClipboard      *clipboard,
                                                        const char           *mimetype,

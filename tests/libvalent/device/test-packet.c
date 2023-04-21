@@ -51,7 +51,7 @@ test_packet_builder (void)
 {
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
-  gint64 id;
+  int64_t id;
   const char *type;
   JsonObject *body;
 
@@ -76,7 +76,7 @@ test_packet_get (void)
   g_autoptr (JsonNode) packet = NULL;
   gboolean boolean_value = FALSE;
   double double_value = 0.0;
-  gint64 int_value = 0;
+  int64_t int_value = 0;
   const char *string_value;
   JsonArray *array_value;
   JsonObject *object_value;
@@ -131,7 +131,7 @@ test_packet_payloads (void)
 {
   JsonNode *packet;
   JsonObject *payload_info;
-  gint64 payload_size;
+  int64_t payload_size;
   GError *error = NULL;
 
   /* Field methods */

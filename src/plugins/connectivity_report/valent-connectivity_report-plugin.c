@@ -234,7 +234,7 @@ valent_connectivity_report_plugin_handle_connectivity_report (ValentConnectivity
       GVariantBuilder signal_builder;
       JsonObject *signal_obj;
       const char *network_type;
-      gint64 signal_strength;
+      int64_t signal_strength;
       const char *icon_name;
 
       if G_UNLIKELY (json_node_get_value_type (signal_node) != JSON_TYPE_OBJECT)

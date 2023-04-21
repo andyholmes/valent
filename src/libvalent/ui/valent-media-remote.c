@@ -173,7 +173,7 @@ valent_media_remote_update_metadata (ValentMediaRemote *self)
   const char *title;
   const char *album;
   const char *art_url;
-  gint64 length_us = 0;
+  int64_t length_us = 0;
   double length = -1.0;
 
   g_assert (VALENT_IS_MEDIA_REMOTE (self));

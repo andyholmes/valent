@@ -28,7 +28,7 @@ struct _ValentLanChannelService
   gboolean              network_available;
 
   /* Service */
-  guint16               port;
+  uint16_t              port;
   char                 *broadcast_address;
   GSocketService       *listener;
   GMainLoop            *loop4;
@@ -359,7 +359,7 @@ incoming_broadcast_task (GTask        *task,
   g_autoptr (JsonNode) identity = NULL;
   g_autoptr (ValentChannel) channel = NULL;
   g_autofree char *host = NULL;
-  gint64 port = VALENT_LAN_PROTOCOL_PORT;
+  int64_t port = VALENT_LAN_PROTOCOL_PORT;
   GOutputStream *output_stream;
   g_autoptr (GTlsCertificate) certificate = NULL;
   g_autoptr (GIOStream) tls_stream = NULL;
@@ -450,7 +450,7 @@ on_incoming_broadcast (ValentChannelService  *service,
   g_autoptr (GSocketAddress) incoming = NULL;
   g_autoptr (GSocketAddress) outgoing = NULL;
   GInetAddress *addr = NULL;
-  gint64 port = VALENT_LAN_PROTOCOL_PORT;
+  int64_t port = VALENT_LAN_PROTOCOL_PORT;
   g_autoptr (JsonNode) peer_identity = NULL;
   const char *device_id;
   g_autofree char *local_id = NULL;
@@ -635,7 +635,7 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
   g_autoptr (GSocket) socket4 = NULL;
   g_autoptr (GSocket) socket6 = NULL;
   g_autoptr (GCancellable) destroy = NULL;
-  guint16 port = VALENT_LAN_PROTOCOL_PORT;
+  uint16_t port = VALENT_LAN_PROTOCOL_PORT;
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
 
@@ -821,7 +821,7 @@ valent_lan_channel_service_identify (ValentChannelService *service,
   g_autoptr (JsonNode) identity = NULL;
   g_autofree char *identity_json = NULL;
   const char *hostname = self->broadcast_address;
-  guint16 port = self->port;
+  uint16_t port = self->port;
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
 

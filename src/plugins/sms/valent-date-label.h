@@ -11,18 +11,17 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (ValentDateLabel, valent_date_label, VALENT, DATE_LABEL, GtkWidget)
 
-GtkWidget * valent_date_label_new      (gint64           date);
+GtkWidget    * valent_date_label_new      (int64_t          date);
 
-gint64      valent_date_label_get_date (ValentDateLabel *label);
-void        valent_date_label_set_date (ValentDateLabel *label,
-                                        gint64           date);
-guint       valent_date_label_get_mode (ValentDateLabel *label);
-void        valent_date_label_set_mode (ValentDateLabel *label,
-                                        guint            mode);
-void        valent_date_label_update   (ValentDateLabel *label);
+int64_t        valent_date_label_get_date (ValentDateLabel *label);
+void           valent_date_label_set_date (ValentDateLabel *label,
+                                           int64_t          date);
+unsigned int   valent_date_label_get_mode (ValentDateLabel *label);
+void           valent_date_label_set_mode (ValentDateLabel *label,
+                                           unsigned int     mode);
+void           valent_date_label_update   (ValentDateLabel *label);
 
-
-char      * valent_date_label_long     (gint64           date);
-char      * valent_date_label_short    (gint64           date);
+char         * valent_date_label_long     (int64_t          date);
+char         * valent_date_label_short    (int64_t          date);
 
 G_END_DECLS

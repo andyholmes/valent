@@ -642,7 +642,7 @@ test_lan_service_channel (LanBackendFixture *fixture,
   char *host;
   g_autoptr (GTlsCertificate) certificate = NULL;
   g_autoptr (GTlsCertificate) peer_certificate = NULL;
-  guint16 port;
+  uint16_t port;
   g_autoptr (GFile) file = NULL;
 
   g_async_initable_init_async (G_ASYNC_INITABLE (fixture->service),

@@ -32,11 +32,11 @@ struct _ValentBatteryPlugin
   const char         *icon_name;
   gboolean            is_present;
   double              percentage;
-  gint64              time_to_full;
-  gint64              time_to_empty;
-  gint64              charge_rate;
-  gint64              discharge_rate;
-  gint64              timestamp;
+  int64_t             time_to_full;
+  int64_t             time_to_empty;
+  int64_t             charge_rate;
+  int64_t             discharge_rate;
+  int64_t             timestamp;
 };
 
 static const char * valent_battery_plugin_get_icon_name (ValentBatteryPlugin *self);
@@ -177,12 +177,12 @@ valent_battery_plugin_get_icon_name (ValentBatteryPlugin *self)
 
 static void
 valent_battery_plugin_update_estimate (ValentBatteryPlugin *self,
-                                       gint64               current_charge,
+                                       int64_t              current_charge,
                                        gboolean             is_charging)
 {
-  gint64 rate;
+  int64_t rate;
   double percentage;
-  gint64 timestamp;
+  int64_t timestamp;
 
   g_return_if_fail (current_charge >= 0);
 
@@ -195,8 +195,8 @@ valent_battery_plugin_update_estimate (ValentBatteryPlugin *self,
   if (self->is_present)
     {
       double percentage_delta;
-      gint64 timestamp_delta;
-      gint64 new_rate;
+      int64_t timestamp_delta;
+      int64_t new_rate;
 
       percentage_delta = ABS (percentage - self->percentage);
       timestamp_delta = timestamp - self->timestamp;
@@ -290,7 +290,7 @@ valent_battery_plugin_update_notification (ValentBatteryPlugin *self,
   /* Battery is now low */
   else if (self->percentage <= low || threshold_event == 1)
     {
-      gint64 total_minutes;
+      int64_t total_minutes;
       int minutes;
       int hours;
 
@@ -323,8 +323,8 @@ valent_battery_plugin_handle_battery (ValentBatteryPlugin *self,
                                       JsonNode            *packet)
 {
   gboolean is_charging;
-  gint64 current_charge;
-  gint64 threshold_event;
+  int64_t current_charge;
+  int64_t threshold_event;
 
   g_assert (VALENT_IS_BATTERY_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));

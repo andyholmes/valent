@@ -76,12 +76,12 @@ component_plugin_free (gpointer data)
 }
 
 
-static gint64
+static int64_t
 _peas_plugin_info_get_priority (PeasPluginInfo *info,
                                 const char     *key)
 {
   const char *priority_str = NULL;
-  gint64 priority = 0;
+  int64_t priority = 0;
 
   if (info != NULL && key != NULL)
     priority_str = peas_plugin_info_get_external_data (info, key);
@@ -100,7 +100,7 @@ valent_component_update_preferred (ValentComponent *self)
   PeasPluginInfo *info;
   ValentPlugin *plugin;
   GObject *extension = NULL;
-  gint64 extension_priority = 0;
+  int64_t extension_priority = 0;
 
   g_assert (VALENT_IS_COMPONENT (self));
 
@@ -108,7 +108,7 @@ valent_component_update_preferred (ValentComponent *self)
 
   while (g_hash_table_iter_next (&iter, (void **)&info, (void **)&plugin))
     {
-      gint64 priority;
+      int64_t priority;
 
       if (plugin->extension == NULL)
         continue;

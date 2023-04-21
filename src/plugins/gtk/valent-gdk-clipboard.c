@@ -18,7 +18,7 @@ struct _ValentGdkClipboard
   ValentClipboardAdapter  parent_instance;
 
   GdkClipboard           *clipboard;
-  gint64                  timestamp;
+  int64_t                 timestamp;
 };
 
 G_DEFINE_FINAL_TYPE (ValentGdkClipboard, valent_gdk_clipboard, VALENT_TYPE_CLIPBOARD_ADAPTER)
@@ -140,7 +140,7 @@ valent_gdk_clipboard_get_mimetypes (ValentClipboardAdapter *adapter)
   return g_strdupv ((char **)mimetypes);
 }
 
-static gint64
+static int64_t
 valent_gdk_clipboard_get_timestamp (ValentClipboardAdapter *adapter)
 {
   ValentGdkClipboard *self = VALENT_GDK_CLIPBOARD (adapter);

@@ -167,7 +167,7 @@ player_method_call (GDBusConnection       *connection,
     }
   else if (strcmp (method_name, "Seek") == 0)
     {
-      gint64 offset_us;
+      int64_t offset_us;
 
       /* Convert microseconds to seconds */
       g_variant_get (parameters, "(x)", &offset_us);
@@ -175,7 +175,7 @@ player_method_call (GDBusConnection       *connection,
     }
   else if (strcmp (method_name, "SetPosition") == 0)
     {
-      gint64 position_us;
+      int64_t position_us;
 
       /* Convert microseconds to seconds */
       g_variant_get (parameters, "(&ox)", NULL, &position_us);
@@ -430,7 +430,7 @@ valent_mpris_impl_set_value (ValentMPRISImpl *self,
 
 static void
 valent_mpris_impl_propagate_seeked (ValentMPRISImpl *self,
-                                    gint64           position)
+                                    int64_t          position)
 {
   g_autoptr (GError) error = NULL;
   gboolean ret;

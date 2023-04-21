@@ -59,8 +59,9 @@ use `ghcr.io/andyholmes/valent-toolbox` as the build environment.
 This project generally follows the [GNOME C Coding Style][gnome-coding-style],
 with GNU-style indentation.
 
-* Don't use GLib typedefs like `gchar` or `guint`, unless they have some benefit
-  like `gint64`.
+* Avoid GLib `typedef`s like `gchar` and `gint64`. Exceptions can be seen in the
+  existing code, where the existing API can not be broken. For compatibility
+  guarantees, see the static assertions in [`glib-init.c`][glib-init].
 
 * Function-like macros have a single space between the symbol name and the first
   parenthesis, just like regular functions.
@@ -68,16 +69,16 @@ with GNU-style indentation.
 * Use `g_return_if_fail ()` or `g_return_val_if_fail ()` in public functions and
   `g_assert ()` in private functions.
 
+* Use `g_clear_pointer ()` and `g_clear_object ()` to free struct fields,
+  `g_clear_handle_id ()` and `g_clear_signal_handler ()` to disconnect closures,
+  and other macros that reset pointers to freed memory.
+
 * Use `g_autoptr ()`, `g_autofree` and other cleanup macros to automatically
   free scoped memory.
 
 * Use `g_steal_pointer ()` for explicit ownership transfer.
 
-* Use `g_clear_pointer ()` and `g_clear_object ()` to free struct fields.
-
-* Use `g_clear_handle_id ()` and `g_clear_signal_handler ()` to disconnect
-  closures by ID.
-
+[glib-init]: https://gitlab.gnome.org/GNOME/glib/blob/main/glib/glib-init.c
 
 ### Documentation & Introspection
 

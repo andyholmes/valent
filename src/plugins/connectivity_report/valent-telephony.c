@@ -374,11 +374,11 @@ valent_telephony_serialize_modem (GDBusProxy *proxy)
   g_autoptr (JsonBuilder) builder = NULL;
   GVariant *value;
   unsigned int access_technologies;
-  guint32 signal_quality;
+  uint32_t signal_quality;
   gboolean signal_recent;
-  gint32 state;
+  int32_t state;
   const char *telephony_type;
-  gint64 signal_strength = -1;
+  int64_t signal_strength = -1;
 
   g_assert (G_IS_DBUS_PROXY (proxy));
 
@@ -399,7 +399,7 @@ valent_telephony_serialize_modem (GDBusProxy *proxy)
   telephony_type = get_telephony_type_string (access_technologies);
 
   if (state >= MM_MODEM_STATE_ENABLED)
-    signal_strength = (gint64)(signal_quality / 20);
+    signal_strength = (int64_t)(signal_quality / 20);
 
   /* Serialize to a JsonNode */
   builder = json_builder_new ();

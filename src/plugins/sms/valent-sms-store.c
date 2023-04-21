@@ -14,8 +14,8 @@
 #include "valent-sms-store.h"
 #include "valent-sms-store-private.h"
 
-/* Ensure that sqlite3_int64 is the same size as gint64 */
-G_STATIC_ASSERT (sizeof (sqlite3_int64) == sizeof (gint64));
+/* Ensure that sqlite3_int64 is the same size as int64_t */
+G_STATIC_ASSERT (sizeof (sqlite3_int64) == sizeof (int64_t));
 
 struct _ValentSmsStore
 {
@@ -220,13 +220,13 @@ valent_sms_store_set_message_step (sqlite3_stmt   *stmt,
 {
   int rc;
   ValentMessageBox box;
-  gint64 date;
-  gint64 id;
+  int64_t date;
+  int64_t id;
   GVariant *metadata;
   gboolean read;
   const char *sender;
   const char *text;
-  gint64 thread_id;
+  int64_t thread_id;
   g_autofree char *metadata_str = NULL;
 
   /* Extract the message data */
@@ -525,7 +525,7 @@ remove_message_task (GTask        *task,
                      GCancellable *cancellable)
 {
   ValentSmsStore *self = VALENT_SMS_STORE (source_object);
-  gint64 *message_id = task_data;
+  int64_t *message_id = task_data;
   sqlite3_stmt *stmt = self->stmts[STMT_REMOVE_MESSAGE];
   int rc;
 
@@ -556,7 +556,7 @@ remove_thread_task (GTask        *task,
                       GCancellable *cancellable)
 {
   ValentSmsStore *self = VALENT_SMS_STORE (source_object);
-  gint64 *thread_id = task_data;
+  int64_t *thread_id = task_data;
   sqlite3_stmt *stmt = self->stmts[STMT_REMOVE_THREAD];
   int rc;
 
@@ -626,7 +626,7 @@ get_message_task (GTask        *task,
                   GCancellable *cancellable)
 {
   ValentSmsStore *self = VALENT_SMS_STORE (source_object);
-  gint64 *message_id = task_data;
+  int64_t *message_id = task_data;
   sqlite3_stmt *stmt = self->stmts[STMT_GET_MESSAGE];
   g_autoptr (ValentMessage) message = NULL;
   GError *error = NULL;
@@ -704,9 +704,9 @@ get_thread_date_task (GTask        *task,
                       GCancellable *cancellable)
 {
   ValentSmsStore *self = VALENT_SMS_STORE (source_object);
-  gint64 *thread_id = task_data;
+  int64_t *thread_id = task_data;
   sqlite3_stmt *stmt = self->stmts[STMT_GET_THREAD_DATE];
-  gint64 date = 0;
+  int64_t date = 0;
   int rc;
 
   if (g_task_return_error_if_cancelled (task))
@@ -742,7 +742,7 @@ get_thread_items_task (GTask        *task,
                        GCancellable *cancellable)
 {
   ValentSmsStore *self = VALENT_SMS_STORE (source_object);
-  gint64 *thread_id = task_data;
+  int64_t *thread_id = task_data;
   sqlite3_stmt *stmt = self->stmts[STMT_GET_THREAD_ITEMS];
   g_autoptr (GPtrArray) messages = NULL;
   int rc;
@@ -1109,17 +1109,17 @@ valent_sms_store_add_messages_finish (ValentSmsStore  *store,
  */
 void
 valent_sms_store_remove_message (ValentSmsStore      *store,
-                                 gint64               message_id,
+                                 int64_t              message_id,
                                  GCancellable        *cancellable,
                                  GAsyncReadyCallback  callback,
                                  gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
-  gint64 *task_data;
+  int64_t *task_data;
 
   g_return_if_fail (VALENT_IS_SMS_STORE (store));
 
-  task_data = g_new0 (gint64, 1);
+  task_data = g_new0 (int64_t, 1);
   *task_data = message_id;
 
   task = g_task_new (store, cancellable, callback, user_data);
@@ -1162,18 +1162,18 @@ valent_sms_store_remove_message_finish (ValentSmsStore  *store,
  */
 void
 valent_sms_store_remove_thread (ValentSmsStore      *store,
-                                gint64               thread_id,
+                                int64_t              thread_id,
                                 GCancellable        *cancellable,
                                 GAsyncReadyCallback  callback,
                                 gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
-  gint64 *task_data;
+  int64_t *task_data;
 
   g_return_if_fail (VALENT_IS_SMS_STORE (store));
   g_return_if_fail (thread_id >= 0);
 
-  task_data = g_new0 (gint64, 1);
+  task_data = g_new0 (int64_t, 1);
   *task_data = thread_id;
 
   task = g_task_new (store, cancellable, callback, user_data);
@@ -1272,18 +1272,18 @@ valent_sms_store_find_messages_finish (ValentSmsStore  *store,
  */
 void
 valent_sms_store_get_message (ValentSmsStore      *store,
-                              gint64               message_id,
+                              int64_t              message_id,
                               GCancellable        *cancellable,
                               GAsyncReadyCallback  callback,
                               gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
-  gint64 *task_data;
+  int64_t *task_data;
 
   g_return_if_fail (VALENT_IS_SMS_STORE (store));
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  task_data = g_new (gint64, 1);
+  task_data = g_new (int64_t, 1);
   *task_data = message_id;
 
   task = g_task_new (store, cancellable, callback, user_data);
@@ -1354,7 +1354,7 @@ valent_sms_store_get_summary (ValentSmsStore *store)
  */
 GListModel *
 valent_sms_store_get_thread (ValentSmsStore *store,
-                             gint64          thread_id)
+                             int64_t         thread_id)
 {
   g_return_val_if_fail (VALENT_IS_SMS_STORE (store), 0);
   g_return_val_if_fail (thread_id > 0, 0);
@@ -1371,13 +1371,13 @@ valent_sms_store_get_thread (ValentSmsStore *store,
  *
  * Returns: a UNIX epoch timestamp.
  */
-gint64
+int64_t
 valent_sms_store_get_thread_date (ValentSmsStore *store,
-                                  gint64          thread_id)
+                                  int64_t         thread_id)
 {
   g_autoptr (GTask) task = NULL;
   g_autoptr (GError) error = NULL;
-  gint64 date = 0;
+  int64_t date = 0;
 
   g_return_val_if_fail (VALENT_IS_SMS_STORE (store), 0);
   g_return_val_if_fail (thread_id >= 0, 0);
@@ -1408,18 +1408,18 @@ valent_sms_store_get_thread_date (ValentSmsStore *store,
  */
 void
 valent_sms_store_get_thread_items (ValentSmsStore      *store,
-                                   gint64               thread_id,
+                                   int64_t              thread_id,
                                    GCancellable        *cancellable,
                                    GAsyncReadyCallback  callback,
                                    gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
-  gint64 *task_data;
+  int64_t *task_data;
 
   g_return_if_fail (VALENT_IS_SMS_STORE (store));
   g_return_if_fail (thread_id >= 0);
 
-  task_data = g_new0 (gint64, 1);
+  task_data = g_new0 (int64_t, 1);
   *task_data = thread_id;
 
   task = g_task_new (store, cancellable, callback, user_data);

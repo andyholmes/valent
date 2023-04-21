@@ -30,7 +30,7 @@ gboolean         valent_sms_store_add_messages_finish   (ValentSmsStore       *s
                                                          GAsyncResult         *result,
                                                          GError              **error);
 void             valent_sms_store_remove_message        (ValentSmsStore       *store,
-                                                         gint64                message_id,
+                                                         int64_t               message_id,
                                                          GCancellable         *cancellable,
                                                          GAsyncReadyCallback   callback,
                                                          gpointer              user_data);
@@ -38,7 +38,7 @@ gboolean         valent_sms_store_remove_message_finish (ValentSmsStore       *s
                                                          GAsyncResult         *result,
                                                          GError              **error);
 void             valent_sms_store_remove_thread         (ValentSmsStore       *store,
-                                                         gint64                thread_id,
+                                                         int64_t               thread_id,
                                                          GCancellable         *cancellable,
                                                          GAsyncReadyCallback   callback,
                                                          gpointer              user_data);
@@ -54,7 +54,7 @@ GPtrArray      * valent_sms_store_find_messages_finish  (ValentSmsStore       *s
                                                          GAsyncResult         *result,
                                                          GError              **error);
 void             valent_sms_store_get_message           (ValentSmsStore       *store,
-                                                         gint64                message_id,
+                                                         int64_t               message_id,
                                                          GCancellable         *cancellable,
                                                          GAsyncReadyCallback   callback,
                                                          gpointer              user_data);
@@ -63,9 +63,9 @@ ValentMessage  * valent_sms_store_get_message_finish    (ValentSmsStore       *s
                                                          GError              **error);
 GListModel     * valent_sms_store_get_summary           (ValentSmsStore       *store);
 GListModel     * valent_sms_store_get_thread            (ValentSmsStore       *store,
-                                                         gint64                thread_id);
-gint64           valent_sms_store_get_thread_date       (ValentSmsStore       *store,
-                                                         gint64                thread_id);
+                                                         int64_t               thread_id);
+int64_t          valent_sms_store_get_thread_date       (ValentSmsStore       *store,
+                                                         int64_t               thread_id);
 void             valent_sms_store_message_added         (ValentSmsStore       *store,
                                                          ValentMessage        *message);
 void             valent_sms_store_message_removed       (ValentSmsStore       *store,

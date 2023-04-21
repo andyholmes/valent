@@ -74,13 +74,13 @@ static GIcon *
 _g_icon_new_for_variant (GVariant *image_data)
 {
   GdkPixbuf *pixbuf;
-  gint32 width, height, rowstride;
+  int32_t width, height, rowstride;
   gboolean has_alpha;
-  gint32 bits_per_sample, n_channels;
+  int32_t bits_per_sample, n_channels;
   g_autoptr (GVariant) data_variant = NULL;
   guchar *data = NULL;
-  gsize data_len = 0;
-  gsize expected_len = 0;
+  size_t data_len = 0;
+  size_t expected_len = 0;
 
   g_variant_get (image_data, "(iiibii@ay)",
                  &width,
@@ -122,7 +122,7 @@ static void
 _notification_closed (ValentNotificationsAdapter *adapter,
                       GVariant                   *parameters)
 {
-  guint32 id, reason;
+  uint32_t id, reason;
   g_autofree char *id_str = NULL;
 
   g_variant_get (parameters, "(uu)", &id, &reason);
@@ -139,13 +139,13 @@ _notify (ValentNotificationsAdapter *adapter,
   g_autoptr (GIcon) icon = NULL;
 
   const char *app_name;
-  guint32 replaces_id;
+  uint32_t replaces_id;
   const char *app_icon;
   const char *summary;
   const char *body;
   g_autoptr (GVariant) actions = NULL;
   g_autoptr (GVariant) hints = NULL;
-  gint32 expire_timeout;
+  int32_t expire_timeout;
 
   g_autofree char *replaces_id_str = NULL;
   g_autoptr (GVariant) image_data = NULL;

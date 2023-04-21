@@ -198,7 +198,7 @@ valent_get_user_file (const char *dirname,
  *
  * Since: 1.0
  */
-gint64
+int64_t
 valent_timestamp_ms (void)
 {
 #ifdef HAVE_CLOCK_GETTIME

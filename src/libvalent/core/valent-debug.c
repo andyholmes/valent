@@ -63,8 +63,8 @@ valent_trace_log (const char     *log_domain,
 
 void
 valent_trace_mark (const char *strfunc,
-                   gint64      begin_time_usec,
-                   gint64      end_time_usec)
+                   int64_t     begin_time_usec,
+                   int64_t     end_time_usec)
 {
 #ifdef HAVE_SYSPROF
   G_LOCK (sysprof_mutex);
@@ -145,7 +145,7 @@ valent_log_handler (const char     *log_domain,
                     const char     *message,
                     gpointer        user_data)
 {
-  gint64 now;
+  int64_t now;
   struct tm tt;
   time_t t;
   char ftime[32];

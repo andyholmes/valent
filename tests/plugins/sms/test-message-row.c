@@ -22,14 +22,14 @@ test_sms_message_row (void)
   g_autoptr (ValentMessage) message = NULL;
   g_autoptr (ValentMessage) message_out = NULL;
   ValentMessageBox box = VALENT_MESSAGE_BOX_OUTBOX;
-  gint64 date = 123456789;
-  gint64 id = 987654321;
+  int64_t date = 123456789;
+  int64_t id = 987654321;
   GVariant *metadata = g_variant_new_parsed ("{'event': <1>}");
   gboolean read = TRUE;
   const char *sender = "1-234-567-8910";
   const char *text = "Test Message";
-  gint64 thread_id = 987321654;
-  gint64 thread_id_out;
+  int64_t thread_id = 987321654;
+  int64_t thread_id_out;
 
   contact = valent_test_contact1 ();
 

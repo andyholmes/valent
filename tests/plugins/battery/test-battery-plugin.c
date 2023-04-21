@@ -44,8 +44,8 @@ test_battery_plugin_actions (ValentTestFixture *fixture,
   double percentage;
   const char *icon_name;
   gboolean is_present;
-  gint64 time_to_empty = 0;
-  gint64 time_to_full = 0;
+  int64_t time_to_empty = 0;
+  int64_t time_to_full = 0;
 
   /* Get the stateful actions */
   g_assert_true (g_action_group_has_action (actions, "battery.state"));
@@ -105,8 +105,8 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
   double percentage;
   const char *icon_name;
   gboolean is_present;
-  gint64 time_to_empty;
-  gint64 time_to_full;
+  int64_t time_to_empty;
+  int64_t time_to_full;
 
   /* Battery is in the default state so the action should be disabled */
   g_assert_false (g_action_group_get_action_enabled (actions, "battery.state"));
