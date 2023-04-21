@@ -20,9 +20,6 @@ VALENT_AVAILABLE_IN_1_0
 ValentDeviceManager * valent_device_manager_get_default (void);
 
 VALENT_AVAILABLE_IN_1_0
-ValentDeviceManager * valent_device_manager_new_sync    (GCancellable         *cancellable,
-                                                         GError              **error);
-VALENT_AVAILABLE_IN_1_0
 const char          * valent_device_manager_get_name    (ValentDeviceManager  *manager);
 VALENT_AVAILABLE_IN_1_0
 void                  valent_device_manager_set_name    (ValentDeviceManager  *manager,
