@@ -156,6 +156,7 @@ valent_application_load_plugins (ValentApplication *self)
                                          NULL,
                                          NULL,
                                          application_plugin_free);
+  self->plugins_context = valent_context_new (NULL, "application", NULL);
 
   engine = valent_get_plugin_engine ();
   plugins = peas_engine_get_plugin_list (engine);
@@ -191,6 +192,7 @@ valent_application_unload_plugins (ValentApplication *self)
 
   g_hash_table_remove_all (self->plugins);
   g_clear_pointer (&self->plugins, g_hash_table_unref);
+  g_clear_object (&self->plugins_context);
 }
 
 static void
@@ -377,7 +379,6 @@ valent_application_startup (GApplication *application)
   valent_device_manager_set_name (self->manager, name);
 
   /* Load plugins and start the device manager */
-  self->plugins_context = valent_context_new (NULL, "application", NULL);
   valent_application_load_plugins (self);
   valent_device_manager_start (self->manager);
 }
@@ -392,7 +393,6 @@ valent_application_shutdown (GApplication *application)
   g_clear_pointer (&self->window, gtk_window_destroy);
   valent_device_manager_stop (self->manager);
   valent_application_unload_plugins (self);
-  g_clear_object (&self->plugins_context);
   g_clear_object (&self->settings);
 
   G_APPLICATION_CLASS (valent_application_parent_class)->shutdown (application);
