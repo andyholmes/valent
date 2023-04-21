@@ -11,7 +11,7 @@ test_battery_plugin_gadget (ValentTestFixture *fixture,
                             gconstpointer      user_data)
 {
   PeasEngine *engine;
-  PeasExtension *gadget;
+  GObject *gadget;
   PeasPluginInfo *info;
   ValentDevice *device;
   JsonNode *packet;

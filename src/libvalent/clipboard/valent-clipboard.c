@@ -139,7 +139,7 @@ on_clipboard_adapter_changed (ValentClipboardAdapter *clipboard,
  */
 static void
 valent_clipboard_bind_preferred (ValentComponent *component,
-                                 PeasExtension   *extension)
+                                 GObject         *extension)
 {
   ValentClipboard *self = VALENT_CLIPBOARD (component);
   ValentClipboardAdapter *adapter = VALENT_CLIPBOARD_ADAPTER (extension);

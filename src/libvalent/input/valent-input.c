@@ -45,7 +45,7 @@ static ValentInput *default_input = NULL;
  */
 static void
 valent_input_bind_preferred (ValentComponent *component,
-                             PeasExtension   *extension)
+                             GObject         *extension)
 {
   ValentInput *self = VALENT_INPUT (component);
   ValentInputAdapter *adapter = VALENT_INPUT_ADAPTER (extension);

@@ -343,7 +343,7 @@ valent_device_manager_enable_plugin (ValentDeviceManager *self,
                                                     "id",      self->id,
                                                     "name",    self->name,
                                                     NULL);
-  g_return_if_fail (PEAS_IS_EXTENSION (plugin->extension));
+  g_return_if_fail (G_IS_OBJECT (plugin->extension));
 
   g_object_bind_property (self,              "name",
                           plugin->extension, "name",
@@ -378,7 +378,7 @@ valent_device_manager_disable_plugin (ValentDeviceManager *self,
 {
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
   g_assert (plugin != NULL);
-  g_return_if_fail (PEAS_IS_EXTENSION (plugin->extension));
+  g_return_if_fail (G_IS_OBJECT (plugin->extension));
 
   if (plugin->extension != NULL)
     {

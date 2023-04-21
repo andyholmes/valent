@@ -10,7 +10,7 @@ typedef struct
 {
   GApplication        *application;
   ValentDeviceManager *manager;
-  PeasExtension       *extension;
+  GObject             *extension;
 } ApplicationPluginFixture;
 
 static void

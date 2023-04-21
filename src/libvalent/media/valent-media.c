@@ -150,7 +150,7 @@ g_list_model_iface_init (GListModelInterface *iface)
  */
 static void
 valent_media_bind_extension (ValentComponent *component,
-                             PeasExtension   *extension)
+                             GObject         *extension)
 {
   ValentMedia *self = VALENT_MEDIA (component);
   GListModel *list = G_LIST_MODEL (extension);
@@ -173,7 +173,7 @@ valent_media_bind_extension (ValentComponent *component,
 
 static void
 valent_media_unbind_extension (ValentComponent *component,
-                               PeasExtension   *extension)
+                               GObject         *extension)
 {
   ValentMedia *self = VALENT_MEDIA (component);
   GListModel *list = G_LIST_MODEL (extension);

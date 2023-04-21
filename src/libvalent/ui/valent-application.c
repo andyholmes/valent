@@ -63,9 +63,9 @@ valent_application_enable_plugin (ValentApplication *self,
   plugin->extension = peas_engine_create_extension (valent_get_plugin_engine (),
                                                     plugin->info,
                                                     VALENT_TYPE_APPLICATION_PLUGIN,
-                                                    "application",    self,
+                                                    "application", self,
                                                     NULL);
-  g_return_if_fail (PEAS_IS_EXTENSION (plugin->extension));
+  g_return_if_fail (G_IS_OBJECT (plugin->extension));
 
   valent_application_plugin_enable (VALENT_APPLICATION_PLUGIN (plugin->extension));
 }

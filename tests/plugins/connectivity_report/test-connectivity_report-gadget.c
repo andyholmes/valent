@@ -11,7 +11,7 @@ test_connectivity_report_plugin_gadget (ValentTestFixture *fixture,
                             gconstpointer      user_data)
 {
   PeasEngine *engine;
-  PeasExtension *gadget;
+  GObject *gadget;
   PeasPluginInfo *plugin_info;
   ValentDevice *device;
   JsonNode *packet;

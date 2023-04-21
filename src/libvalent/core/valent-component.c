@@ -35,7 +35,7 @@ typedef struct
   char          *plugin_priority;
   GType          plugin_type;
   GHashTable    *plugins;
-  PeasExtension *preferred;
+  GObject       *preferred;
 } ValentComponentPrivate;
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentComponent, valent_component, VALENT_TYPE_OBJECT);
@@ -100,7 +100,7 @@ valent_component_update_preferred (ValentComponent *self)
   GHashTableIter iter;
   PeasPluginInfo *info;
   ValentPlugin *plugin;
-  PeasExtension *extension = NULL;
+  GObject *extension = NULL;
   gint64 extension_priority = 0;
 
   g_assert (VALENT_IS_COMPONENT (self));
@@ -170,7 +170,7 @@ valent_component_enable_plugin (ValentComponent *self,
                                                     plugin->info,
                                                     priv->plugin_type,
                                                     NULL);
-  g_return_if_fail (PEAS_IS_EXTENSION (plugin->extension));
+  g_return_if_fail (G_IS_OBJECT (plugin->extension));
 
   VALENT_COMPONENT_GET_CLASS (self)->bind_extension (self, plugin->extension);
   valent_component_update_preferred (self);
@@ -219,7 +219,7 @@ valent_component_disable_plugin (ValentComponent *self,
                                  ValentPlugin    *plugin)
 {
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
-  g_autoptr (PeasExtension) extension = NULL;
+  g_autoptr (GObject) extension = NULL;
 
   g_assert (VALENT_IS_COMPONENT (self));
   g_assert (plugin != NULL);
@@ -230,7 +230,7 @@ valent_component_disable_plugin (ValentComponent *self,
 
   /* Steal the object and reset the preferred adapter */
   extension = g_steal_pointer (&plugin->extension);
-  g_return_if_fail (PEAS_IS_EXTENSION (extension));
+  g_return_if_fail (G_IS_OBJECT (extension));
 
   if (priv->preferred == extension)
     valent_component_update_preferred (self);
@@ -314,26 +314,26 @@ on_unload_plugin (PeasEngine      *engine,
 /* LCOV_EXCL_START */
 static void
 valent_component_real_bind_preferred (ValentComponent *component,
-                                      PeasExtension   *extension)
+                                      GObject         *extension)
 {
   g_assert (VALENT_IS_COMPONENT (component));
-  g_assert (PEAS_IS_EXTENSION (extension));
+  g_assert (G_IS_OBJECT (extension));
 }
 
 static void
 valent_component_real_bind_extension (ValentComponent *component,
-                                      PeasExtension   *extension)
+                                      GObject         *extension)
 {
   g_assert (VALENT_IS_COMPONENT (component));
-  g_assert (PEAS_IS_EXTENSION (extension));
+  g_assert (G_IS_OBJECT (extension));
 }
 
 static void
 valent_component_real_unbind_extension (ValentComponent *component,
-                                        PeasExtension   *extension)
+                                        GObject         *extension)
 {
   g_assert (VALENT_IS_COMPONENT (component));
-  g_assert (PEAS_IS_EXTENSION (extension));
+  g_assert (G_IS_OBJECT (extension));
 }
 /* LCOV_EXCL_STOP */
 
@@ -346,9 +346,9 @@ valent_component_real_unbind_extension (ValentComponent *component,
  * The default value for extensions is `0`; the lower the value the higher the
  * priority.
  *
- * Returns: (transfer none) (nullable): a #PeasExtension
+ * Returns: (transfer none) (nullable): a `GObject`
  */
-PeasExtension *
+GObject *
 valent_component_get_preferred (ValentComponent *self)
 {
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);

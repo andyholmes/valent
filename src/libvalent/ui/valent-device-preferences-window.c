@@ -143,7 +143,7 @@ valent_device_preferences_window_add_plugin (ValentDevicePreferencesWindow *self
                                       info,
                                       VALENT_TYPE_DEVICE_PREFERENCES_GROUP))
     {
-      PeasExtension *group;
+      GObject *group;
       const char *category;
 
       group = peas_engine_create_extension (engine,

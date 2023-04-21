@@ -86,7 +86,7 @@ on_locked_changed (ValentSessionAdapter *adapter,
  */
 static void
 valent_session_bind_preferred (ValentComponent *component,
-                               PeasExtension   *extension)
+                               GObject         *extension)
 {
   ValentSession *self = VALENT_SESSION (component);
   ValentSessionAdapter *adapter = VALENT_SESSION_ADAPTER (extension);
