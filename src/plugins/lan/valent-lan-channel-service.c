@@ -310,7 +310,7 @@ valent_lan_channel_service_tcp_setup (ValentLanChannelService  *self,
   /* Pass the service as the callback data for the "run" signal, while the
    * listener holds a reference to the object cancellable.
    */
-  self->listener = g_threaded_socket_service_new (10);
+  self->listener = g_threaded_socket_service_new (g_get_num_processors ());
   g_signal_connect_object (self->listener,
                            "run",
                            G_CALLBACK (on_incoming_connection),
