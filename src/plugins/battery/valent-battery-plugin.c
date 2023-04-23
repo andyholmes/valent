@@ -433,7 +433,6 @@ valent_battery_plugin_update_state (ValentDevicePlugin *plugin,
     {
       valent_battery_plugin_update_gaction (self);
       valent_battery_plugin_watch_battery (self, TRUE);
-      valent_battery_plugin_send_state (self);
       valent_battery_plugin_request_state (self);
     }
   else
