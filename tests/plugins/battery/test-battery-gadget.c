@@ -16,6 +16,7 @@ test_battery_plugin_gadget (ValentTestFixture *fixture,
   ValentDevice *device;
   JsonNode *packet;
 
+  VALENT_TEST_CHECK ("Plugin can be constructed");
   engine = valent_get_plugin_engine ();
   info = peas_engine_get_plugin_info (engine, "battery");
   gadget = peas_engine_create_extension (engine,
@@ -25,33 +26,22 @@ test_battery_plugin_gadget (ValentTestFixture *fixture,
                                          NULL);
   g_object_ref_sink (gadget);
 
-  /* Properties */
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (gadget,
                 "device", &device,
                 NULL);
   g_assert_true (fixture->device == device);
   g_object_unref (device);
 
-  /* Expect connect packets */
+  VALENT_TEST_CHECK ("Plugin requests the battery state on connect");
   valent_test_fixture_connect (fixture, TRUE);
-
-  // NOTE: `ValentBattery` starts with is-present=false so there is no
-  //       expectation of a connect-time packet here.
-#if 0
-  packet = valent_test_fixture_expect_packet (fixture);
-  v_assert_packet_type (packet, "kdeconnect.battery");
-  v_assert_packet_cmpint (packet, "currentCharge", ==, 0);
-  v_assert_packet_false (packet, "isCharging");
-  v_assert_packet_cmpint (packet, "thresholdEvent", ==, 0);
-  json_node_unref (packet);
-#endif
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.battery.request");
   v_assert_packet_true (packet, "request");
   json_node_unref (packet);
 
-  /* Switch up the state */
+  VALENT_TEST_CHECK ("Gadget handles various battery states");
   packet = valent_test_fixture_lookup_packet (fixture, "missing-battery");
 
   for (unsigned int level = 0; level <= 100; level += 10)

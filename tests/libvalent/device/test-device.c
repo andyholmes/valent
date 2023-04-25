@@ -124,6 +124,17 @@ endpoint_expect_packet_echo (DeviceFixture *fixture,
   v_assert_packet_cmpstr (echo, "foo", ==, "bar");
 }
 
+static void
+endpoint_send_packet (DeviceFixture *fixture,
+                      JsonNode      *packet)
+{
+  g_assert (fixture != NULL);
+  g_assert (VALENT_IS_PACKET (packet));
+
+  valent_channel_write_packet (fixture->endpoint, packet, NULL, NULL, NULL);
+  valent_test_await_signal (fixture->device, "notify::state");
+}
+
 
 /*
  * First test constructing a device before using the fixture
@@ -242,19 +253,19 @@ test_device_pairing (DeviceFixture *fixture,
   /* Send Pair (Request), Receive Unpair (Reject) */
   g_action_group_activate_action (actions, "pair", NULL);
   endpoint_expect_packet_pair (fixture, TRUE);
-  valent_device_handle_packet (fixture->device, unpair);
+  endpoint_send_packet (fixture, unpair);
   g_assert_false (valent_device_get_paired (fixture->device));
 
 
   /* Send Pair (Request), Receive Pair (Accept) */
   g_action_group_activate_action (actions, "pair", NULL);
   endpoint_expect_packet_pair (fixture, TRUE);
-  valent_device_handle_packet (fixture->device, pair);
+  endpoint_send_packet (fixture, pair);
   g_assert_true (valent_device_get_paired (fixture->device));
 
 
   /* Receive Pair (Request), Auto-confirm Pair */
-  valent_device_handle_packet (fixture->device, pair);
+  endpoint_send_packet (fixture, pair);
   endpoint_expect_packet_pair (fixture, TRUE);
   g_assert_true (valent_device_get_paired (fixture->device));
 
@@ -263,7 +274,7 @@ test_device_pairing (DeviceFixture *fixture,
 
 
   /* Receive Pair (Request), Send Unpair (Reject) */
-  valent_device_handle_packet (fixture->device, pair);
+  endpoint_send_packet (fixture, pair);
   g_assert_false (valent_device_get_paired (fixture->device));
 
   g_action_group_activate_action (actions, "unpair", NULL);
@@ -272,7 +283,7 @@ test_device_pairing (DeviceFixture *fixture,
 
 
   /* Receive Pair (Request), Send Pair (Accept), Send Unpair */
-  valent_device_handle_packet (fixture->device, pair);
+  endpoint_send_packet (fixture, pair);
   g_assert_false (valent_device_get_paired (fixture->device));
 
   g_action_group_activate_action (actions, "pair", NULL);

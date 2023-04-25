@@ -18,11 +18,11 @@ test_sms_date_label (void)
   unsigned int mode = 1;
   unsigned int mode_out;
 
-  /* Construction */
+  VALENT_TEST_CHECK ("Widget can be constructed");
   label = valent_date_label_new (date);
   g_object_set (G_OBJECT (label), "mode", mode, NULL);
 
-  /* Properties */
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (label,
                 "date", &date_out,
                 "mode", &mode_out,
@@ -31,7 +31,7 @@ test_sms_date_label (void)
   g_assert_cmpint (date, ==, date_out);
   g_assert_cmpuint (mode, ==, mode_out);
 
-  /* Display */
+  VALENT_TEST_CHECK ("Widget can be realized");
   window = gtk_window_new ();
   gtk_window_set_child (GTK_WINDOW (window), label);
 

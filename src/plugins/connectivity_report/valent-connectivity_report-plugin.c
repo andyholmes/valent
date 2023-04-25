@@ -398,7 +398,6 @@ valent_connectivity_report_plugin_update_state (ValentDevicePlugin *plugin,
   if (available)
     {
       valent_connectivity_report_plugin_watch_telephony (self, TRUE);
-      valent_connectivity_report_plugin_send_state (self);
       valent_connectivity_report_plugin_request_state (self);
     }
   else

@@ -45,10 +45,10 @@ test_sms_conversation_row (void)
                           "thread-id", thread_id,
                           NULL);
 
-  /* Construction */
+  VALENT_TEST_CHECK ("Widget can be constructed");
   row = valent_sms_conversation_row_new (message, contact);
 
-  /* Properties */
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   contact_out = valent_sms_conversation_row_get_contact (VALENT_SMS_CONVERSATION_ROW (row));
   message_out = valent_sms_conversation_row_get_message (VALENT_SMS_CONVERSATION_ROW (row));
   date_out = valent_sms_conversation_row_get_date (VALENT_SMS_CONVERSATION_ROW (row));
@@ -69,7 +69,7 @@ test_sms_conversation_row (void)
   g_assert_true (message == message_out);
   g_assert_cmpint (date, ==, date_out);
 
-  /* Display */
+  VALENT_TEST_CHECK ("Widget can be realized");
   list = gtk_list_box_new ();
   gtk_list_box_append (GTK_LIST_BOX (list), row);
 
@@ -78,6 +78,7 @@ test_sms_conversation_row (void)
 
   gtk_window_present (GTK_WINDOW (window));
 
+  VALENT_TEST_CHECK ("Avatar visibility can be controlled");
   valent_sms_conversation_row_show_avatar (VALENT_SMS_CONVERSATION_ROW (row),
                                            TRUE);
   valent_sms_conversation_row_show_avatar (VALENT_SMS_CONVERSATION_ROW (row),

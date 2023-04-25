@@ -44,10 +44,10 @@ test_sms_message_row (void)
                           "thread-id", thread_id,
                           NULL);
 
-  /* Construction */
+  VALENT_TEST_CHECK ("Widget can be constructed");
   row = valent_message_row_new (message, contact);
 
-  /* Properties */
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   contact_out = valent_message_row_get_contact (VALENT_MESSAGE_ROW (row));
   message_out = valent_message_row_get_message (VALENT_MESSAGE_ROW (row));
   thread_id_out = valent_message_row_get_thread_id (VALENT_MESSAGE_ROW (row));
@@ -66,7 +66,7 @@ test_sms_message_row (void)
   g_assert_true (message == message_out);
   g_assert_cmpint (thread_id, ==, thread_id_out);
 
-  /* Display */
+  VALENT_TEST_CHECK ("Widget can be realized");
   list = gtk_list_box_new ();
   gtk_list_box_append (GTK_LIST_BOX (list), row);
 

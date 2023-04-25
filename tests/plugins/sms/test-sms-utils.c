@@ -46,11 +46,13 @@ test_sms_avatar_from_contact (void)
                          "size", 32,
                          NULL);
 
+  VALENT_TEST_CHECK ("Function `valent_sms_avatar_from_contact()` populate an "
+                     "`AdwAvatar` from an `EContact`.");
   valent_sms_avatar_from_contact (ADW_AVATAR (avatar), contact);
   paintable = adw_avatar_get_custom_image (ADW_AVATAR (avatar));
   g_assert_true (GDK_IS_PAINTABLE (paintable));
 
-  /* Display */
+  VALENT_TEST_CHECK ("The resulting `AdwAvatar` can be realized.");
   window = gtk_window_new ();
   gtk_window_set_child (GTK_WINDOW (window), avatar);
 
@@ -86,6 +88,8 @@ test_sms_contact_from_phone (void)
   store = valent_test_contact_store_new ();
 
   /* Contacts can be queried by telephone number (Contact #2) */
+  VALENT_TEST_CHECK ("Function `valent_sms_contact_from_phone()` can query "
+                     "`EContact`s by phone number.");
   valent_sms_contact_from_phone (store,
                                  "+1-234-567-8912",
                                  NULL,
@@ -101,7 +105,9 @@ test_sms_phone_number (void)
   char *normalized;
   gboolean ret;
 
-  /* Normalize & Compare */
+  VALENT_TEST_CHECK ("Functions `valent_phone_number_normalize()` and "
+                     "`valent_phone_number_equal()` can handle a variety of "
+                     "phone number formats");
   for (unsigned int i = 0; i < G_N_ELEMENTS (numbers); i++)
     {
       gboolean equal;
@@ -118,7 +124,8 @@ test_sms_phone_number (void)
         }
     }
 
-  /* Test Contact */
+  VALENT_TEST_CHECK ("Function `valent_phone_number_of_contact()` checks if a "
+                     "contact is listed as having a phone number");
   contact = e_contact_new_from_vcard_with_uid (phone_vcard, "test-contact");
   normalized = valent_phone_number_normalize ("123-456-7890");
 

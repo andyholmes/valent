@@ -12,8 +12,18 @@ test_presenter_plugin_basic (ValentTestFixture *fixture,
 {
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
 
-  g_assert_true (g_action_group_has_action (actions, "presenter.remote"));
+  VALENT_TEST_CHECK ("Plugin has expected actions");
   g_assert_true (g_action_group_has_action (actions, "presenter.pointer"));
+  g_assert_true (g_action_group_has_action (actions, "presenter.remote"));
+
+  valent_test_fixture_connect (fixture, TRUE);
+
+  VALENT_TEST_CHECK ("Plugin action `presenter.pointer` is enabled when connected");
+  g_assert_true (g_action_group_get_action_enabled (actions, "presenter.pointer"));
+
+  VALENT_TEST_CHECK ("Plugin action `presenter.remote` is enabled when connected, "
+                     "but disabled when a display is not available");
+  g_assert_false (g_action_group_get_action_enabled (actions, "presenter.remote"));
 }
 
 static void
@@ -24,11 +34,12 @@ test_presenter_plugin_handle_request (ValentTestFixture *fixture,
 
   valent_test_fixture_connect (fixture, TRUE);
 
-  /* Expect the multiplier of the motion deltas to be reasonable */
+  VALENT_TEST_CHECK ("Plugin handles requests with negative motion deltas");
   packet = valent_test_fixture_lookup_packet (fixture, "presenter-motion1");
   valent_test_fixture_handle_packet (fixture, packet);
   valent_test_event_cmpstr ("POINTER MOTION -100.0 -100.0");
 
+  VALENT_TEST_CHECK ("Plugin handles requests with positive motion deltas");
   packet = valent_test_fixture_lookup_packet (fixture, "presenter-motion2");
   valent_test_fixture_handle_packet (fixture, packet);
   valent_test_event_cmpstr ("POINTER MOTION 100.0 100.0");
@@ -46,6 +57,7 @@ test_presenter_plugin_send_request (ValentTestFixture *fixture,
   g_assert_false (g_action_group_get_action_enabled (actions, "presenter.remote"));
   g_assert_true (g_action_group_get_action_enabled (actions, "presenter.pointer"));
 
+  VALENT_TEST_CHECK ("Plugin action `presenter.pointer` sends motion deltas");
   g_action_group_activate_action (actions,
                                   "presenter.pointer",
                                   g_variant_new ("(ddu)", 0.1, -0.1, 0));
@@ -56,6 +68,7 @@ test_presenter_plugin_send_request (ValentTestFixture *fixture,
   v_assert_packet_cmpfloat (packet, "dy", <=, -0.1);
   g_clear_pointer (&packet, json_node_unref);
 
+  VALENT_TEST_CHECK ("Plugin action `presenter.pointer` sends stop request");
   g_action_group_activate_action (actions,
                                   "presenter.pointer",
                                   g_variant_new ("(ddu)", 0.0, 0.0, 1));

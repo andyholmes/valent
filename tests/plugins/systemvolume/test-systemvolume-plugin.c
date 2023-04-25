@@ -64,9 +64,9 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
 
   valent_mixer_adapter_stream_added (info->adapter, info->sink1);
 
+  VALENT_TEST_CHECK ("Plugin sends the sink list on connect");
   valent_test_fixture_connect (fixture, TRUE);
 
-  /* Expect list of sinks upon connection */
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.systemvolume");
   v_assert_packet_field (packet, "sinkList");
@@ -76,7 +76,7 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   g_assert_cmpstr (json_object_get_string_member (sink_info, "name"), ==, "test_sink1");
   json_node_unref (packet);
 
-  /* Request the sink list */
+  VALENT_TEST_CHECK ("Plugin sends the sink list when requested");
   packet = valent_test_fixture_lookup_packet (fixture, "request-sinks");
   valent_test_fixture_handle_packet (fixture, packet);
 
@@ -89,7 +89,7 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   g_assert_cmpstr (json_object_get_string_member (sink_info, "name"), ==, "test_sink1");
   json_node_unref (packet);
 
-  /* Expect confirmation of a request to change the mute state */
+  VALENT_TEST_CHECK ("Plugin responds to a request to mute a stream");
   packet = valent_test_fixture_lookup_packet (fixture, "request-mute");
   valent_test_fixture_handle_packet (fixture, packet);
   g_assert_true (valent_mixer_stream_get_muted (info->sink1));
@@ -100,7 +100,7 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   v_assert_packet_true (packet, "muted");
   json_node_unref (packet);
 
-  /* Expect notification of changes to the muted state */
+  VALENT_TEST_CHECK ("Plugin sends an update when a stream is muted or unmuted");
   valent_mixer_stream_set_muted (info->sink1, FALSE);
 
   packet = valent_test_fixture_expect_packet (fixture);
@@ -109,7 +109,7 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   v_assert_packet_false (packet, "muted");
   json_node_unref (packet);
 
-  /* Expect confirmation of a request to change the volume level */
+  VALENT_TEST_CHECK ("Plugin responds to a request to change the volume of a stream");
   packet = valent_test_fixture_lookup_packet (fixture, "request-volume");
   valent_test_fixture_handle_packet (fixture, packet);
   g_assert_cmpint (valent_mixer_stream_get_level (info->sink1), ==, 50);
@@ -120,7 +120,7 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   v_assert_packet_cmpint (packet, "volume", ==, 50);
   json_node_unref (packet);
 
-  /* Expect notification of changes to the volume level */
+  VALENT_TEST_CHECK ("Plugin sends an update when a stream's volume is changed");
   valent_mixer_stream_set_level (info->sink1, 100);
 
   packet = valent_test_fixture_expect_packet (fixture);
@@ -129,7 +129,7 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   v_assert_packet_cmpint (packet, "volume", ==, 100);
   json_node_unref (packet);
 
-  /* Expect notification of added streams */
+  VALENT_TEST_CHECK ("Plugin sends the sink list when a stream is added");
   valent_mixer_adapter_stream_added (info->adapter, info->sink2);
 
   packet = valent_test_fixture_expect_packet (fixture);
@@ -143,7 +143,7 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   g_assert_cmpstr (json_object_get_string_member (sink_info, "name"), ==, "test_sink2");
   json_node_unref (packet);
 
-  /* Expect confirmation of a request to change the default stream */
+  VALENT_TEST_CHECK ("Plugin handles a request to change the default stream");
   packet = valent_test_fixture_lookup_packet (fixture, "request-enabled2");
   valent_test_fixture_handle_packet (fixture, packet);
   g_assert_true (valent_mixer_adapter_get_default_output (info->adapter) == info->sink2);
@@ -159,6 +159,7 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   g_assert_cmpstr (json_object_get_string_member (sink_info, "name"), ==, "test_sink2");
   json_node_unref (packet);
 
+  VALENT_TEST_CHECK ("Plugin handles a request to change the default stream");
   packet = valent_test_fixture_lookup_packet (fixture, "request-enabled1");
   valent_test_fixture_handle_packet (fixture, packet);
   g_assert_true (valent_mixer_adapter_get_default_output (info->adapter) == info->sink1);
@@ -174,7 +175,7 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   g_assert_cmpstr (json_object_get_string_member (sink_info, "name"), ==, "test_sink2");
   json_node_unref (packet);
 
-  /* Expect notification of removed streams */
+  VALENT_TEST_CHECK ("Plugin sends the sink list when a stream is removed");
   valent_mixer_adapter_stream_removed (info->adapter, info->sink2);
 
   packet = valent_test_fixture_expect_packet (fixture);
@@ -186,7 +187,7 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   g_assert_cmpstr (json_object_get_string_member (sink_info, "name"), ==, "test_sink1");
   json_node_unref (packet);
 
-  /* Expect to be corrected for an invalid stream request */
+  VALENT_TEST_CHECK ("Plugin sends the sink list when a stream is missing");
   packet = valent_test_fixture_lookup_packet (fixture, "request-enabled2");
   valent_test_fixture_handle_packet (fixture, packet);
 

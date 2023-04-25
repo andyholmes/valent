@@ -30,6 +30,7 @@ test_sms_message (void)
   g_autofree char *text2 = NULL;
   int64_t thread_id2;
 
+  VALENT_TEST_CHECK ("Object can be constructed");
   message = g_object_new (VALENT_TYPE_MESSAGE,
                           "box",       box,
                           "date",      date,
@@ -41,6 +42,7 @@ test_sms_message (void)
                           "thread-id", thread_id,
                           NULL);
 
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (message,
                 "box",       &box2,
                 "date",      &date2,

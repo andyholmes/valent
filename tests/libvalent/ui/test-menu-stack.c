@@ -72,11 +72,8 @@ test_device_menu_basic (ValentTestFixture *fixture,
   /*                        "Test Menu", */
   /*                        G_MENU_MODEL (menu)); */
 
-  /* Properties */
   gtk_window_destroy (window);
-
-  while (window != NULL)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_nullptr (&window);
 }
 
 int

@@ -25,11 +25,11 @@ test_findmyphone_plugin_handle_request (ValentTestFixture *fixture,
 
   packet = valent_test_fixture_lookup_packet (fixture, "ring-request");
 
-  /* Start ringing */
+  VALENT_TEST_CHECK ("Plugin handles a request to start ringing");
   valent_test_fixture_handle_packet (fixture, packet);
   valent_test_await_timeout (1);
 
-  /* Stop ringing */
+  VALENT_TEST_CHECK ("Plugin handles a request to stop ringing");
   valent_test_fixture_handle_packet (fixture, packet);
 }
 
@@ -42,8 +42,13 @@ test_findmyphone_plugin_send_request (ValentTestFixture *fixture,
 
   valent_test_fixture_connect (fixture, TRUE);
 
+  VALENT_TEST_CHECK ("Plugin has expected actions");
+  g_assert_true (g_action_group_has_action (actions, "findmyphone.ring"));
+
+  VALENT_TEST_CHECK ("Plugin action `findmyphone.ring` is enabled when connected");
   g_assert_true (g_action_group_get_action_enabled (actions, "findmyphone.ring"));
 
+  VALENT_TEST_CHECK ("Plugin action `findmyphone.ring` sends a request when activated");
   g_action_group_activate_action (actions, "findmyphone.ring", NULL);
 
   packet = valent_test_fixture_expect_packet (fixture);

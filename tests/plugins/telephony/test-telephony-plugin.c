@@ -68,7 +68,13 @@ test_telephony_plugin_basic (ValentTestFixture *fixture,
 {
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
 
+  VALENT_TEST_CHECK ("Plugin has expected actions");
   g_assert_true (g_action_group_has_action (actions, "telephony.mute-call"));
+
+  valent_test_fixture_connect (fixture, TRUE);
+
+  VALENT_TEST_CHECK ("Plugin action `telephony.mute-call` is enabled when connected");
+  g_assert_true (g_action_group_get_action_enabled (actions, "telephony.mute-call"));
 }
 
 static void
@@ -80,7 +86,7 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
 
   valent_test_fixture_connect (fixture, TRUE);
 
-  /* Receive an unanswered call event-chain */
+  VALENT_TEST_CHECK ("Plugin handles a `ringing` event");
   packet = valent_test_fixture_lookup_packet (fixture, "ringing");
   valent_test_fixture_handle_packet (fixture, packet);
 
@@ -91,6 +97,7 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   g_assert_cmpuint (valent_mixer_stream_get_level (info->headphones), ==, 100);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->headphones), ==, FALSE);
 
+  VALENT_TEST_CHECK ("Plugin handles a `isCancel` event, following a `ringing` event");
   packet = valent_test_fixture_lookup_packet (fixture, "ringing-cancel");
   valent_test_fixture_handle_packet (fixture, packet);
 
@@ -109,6 +116,7 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
    * 4. Phone is hung-up; speakers are raised to 100% and unmuted,
    *                      microphone is unmuted
    */
+  VALENT_TEST_CHECK ("Plugin handles a `ringing` event");
   packet = valent_test_fixture_lookup_packet (fixture, "ringing");
   valent_test_fixture_handle_packet (fixture, packet);
 
@@ -119,6 +127,7 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   g_assert_cmpuint (valent_mixer_stream_get_level (info->headphones), ==, 100);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->headphones), ==, FALSE);
 
+  VALENT_TEST_CHECK ("Plugin handles a `talking` event, following a `ringing` event");
   packet = valent_test_fixture_lookup_packet (fixture, "talking");
   valent_test_fixture_handle_packet (fixture, packet);
 
@@ -129,6 +138,7 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   g_assert_cmpuint (valent_mixer_stream_get_level (info->headphones), ==, 100);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->headphones), ==, FALSE);
 
+  VALENT_TEST_CHECK ("Plugin handles a `isCancel` event, following a `talking` event");
   packet = valent_test_fixture_lookup_packet (fixture, "talking-cancel");
   valent_test_fixture_handle_packet (fixture, packet);
 
@@ -149,6 +159,7 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
    * 4. Phone is hung-up; speakers & headphones remain in their current state,
    *                      microphone is unmuted
    */
+  VALENT_TEST_CHECK ("Plugin handles a `ringing` event");
   packet = valent_test_fixture_lookup_packet (fixture, "ringing");
   valent_test_fixture_handle_packet (fixture, packet);
 
@@ -160,6 +171,7 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->headphones), ==, FALSE);
   valent_mixer_adapter_set_default_output (info->adapter, info->headphones);
 
+  VALENT_TEST_CHECK ("Plugin handles a `talking` event, following a `ringing` event");
   packet = valent_test_fixture_lookup_packet (fixture, "talking");
   valent_test_fixture_handle_packet (fixture, packet);
 
@@ -170,6 +182,7 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   g_assert_cmpuint (valent_mixer_stream_get_level (info->headphones), ==, 100);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->headphones), ==, FALSE);
 
+  VALENT_TEST_CHECK ("Plugin handles a `isCancel` event, following a `talking` event");
   packet = valent_test_fixture_lookup_packet (fixture, "talking-cancel");
   valent_test_fixture_handle_packet (fixture, packet);
 
@@ -190,11 +203,11 @@ test_telephony_plugin_mute_call (ValentTestFixture *fixture,
 
   valent_test_fixture_connect (fixture, TRUE);
 
-  /* Receive a ringing event */
+  VALENT_TEST_CHECK ("Plugin handles a `ringing` event");
   packet = valent_test_fixture_lookup_packet (fixture, "ringing");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  /* Mute the call */
+  VALENT_TEST_CHECK ("Plugin action `telephony.mute-call` sends a request to stop ringing");
   g_action_group_activate_action (actions, "telephony.mute-call", NULL);
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.telephony.request_mute");

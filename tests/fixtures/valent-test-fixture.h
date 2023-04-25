@@ -15,7 +15,6 @@ G_BEGIN_DECLS
 
 typedef struct
 {
-  GMainLoop      *loop;
   JsonNode       *packets;
   ValentDevice   *device;
   GSettings      *settings;
@@ -38,14 +37,11 @@ void                valent_test_fixture_clear         (ValentTestFixture  *fixtu
                                                        gconstpointer      user_data);
 void                valent_test_fixture_connect       (ValentTestFixture  *fixture,
                                                        gboolean            connected);
-void                valent_test_fixture_run           (ValentTestFixture  *fixture);
-void                valent_test_fixture_quit          (ValentTestFixture  *fixture);
 gpointer            valent_test_fixture_get_data      (ValentTestFixture  *fixture);
 void                valent_test_fixture_set_data      (ValentTestFixture  *fixture,
                                                        gpointer            data,
                                                        GDestroyNotify      data_free);
 ValentDevice      * valent_test_fixture_get_device    (ValentTestFixture  *fixture);
-GSettings         * valent_test_fixture_get_settings  (ValentTestFixture  *fixture);
 
 JsonNode          * valent_test_fixture_expect_packet (ValentTestFixture  *fixture);
 void                valent_test_fixture_handle_packet (ValentTestFixture  *fixture,

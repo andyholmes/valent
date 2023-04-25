@@ -16,6 +16,7 @@ test_lock_plugin_gadget (ValentTestFixture *fixture,
   ValentDevice *device;
   JsonNode *packet;
 
+  VALENT_TEST_CHECK ("Plugin can be constructed");
   engine = valent_get_plugin_engine ();
   info = peas_engine_get_plugin_info (engine, "lock");
   gadget = peas_engine_create_extension (engine,
@@ -25,14 +26,14 @@ test_lock_plugin_gadget (ValentTestFixture *fixture,
                                          NULL);
   g_object_ref_sink (gadget);
 
-  /* Properties */
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (gadget,
                 "device", &device,
                 NULL);
   g_assert_true (fixture->device == device);
   g_object_unref (device);
 
-  /* Expect connect packets */
+  VALENT_TEST_CHECK ("Plugin requests the locked state on connect");
   valent_test_fixture_connect (fixture, TRUE);
 
   packet = valent_test_fixture_expect_packet (fixture);
@@ -40,10 +41,11 @@ test_lock_plugin_gadget (ValentTestFixture *fixture,
   v_assert_packet_true (packet, "requestLocked");
   json_node_unref (packet);
 
-  /* Switch up the state */
+  VALENT_TEST_CHECK ("Gadget handles the locked state being changed to TRUE");
   packet = valent_test_fixture_lookup_packet (fixture, "is-locked");
   valent_test_fixture_handle_packet (fixture, packet);
 
+  VALENT_TEST_CHECK ("Gadget handles the locked state being changed to TRUE");
   packet = valent_test_fixture_lookup_packet (fixture, "is-unlocked");
   valent_test_fixture_handle_packet (fixture, packet);
 

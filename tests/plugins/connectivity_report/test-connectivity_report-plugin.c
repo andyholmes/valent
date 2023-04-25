@@ -48,14 +48,17 @@ test_connectivity_report_plugin_actions (ValentTestFixture *fixture,
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   g_autoptr (GVariant) state = NULL;
 
-  /* Get the stateful actions */
+  VALENT_TEST_CHECK ("Plugin has expected actions");
   g_assert_true (g_action_group_has_action (actions, "connectivity_report.state"));
 
-  /* Local */
+  VALENT_TEST_CHECK ("Plugin action `connectivity_report.state` is enabled");
   g_assert_false (g_action_group_get_action_enabled (actions, "connectivity_report.state"));
-  state = g_action_group_get_action_state (actions, "connectivity_report.state");
 
+  VALENT_TEST_CHECK ("Plugin action `connectivity_report.state` has expected signature");
+  state = g_action_group_get_action_state (actions, "connectivity_report.state");
   g_assert_true (g_variant_is_of_type (state, G_VARIANT_TYPE_VARDICT));
+
+  VALENT_TEST_CHECK ("Plugin action `connectivity_report.state` has expected value");
   g_assert_cmpuint (g_variant_n_children (state), ==, 0);
 }
 
@@ -65,12 +68,8 @@ test_connectivity_report_plugin_connect (ValentTestFixture *fixture,
 {
   JsonNode *packet;
 
+  VALENT_TEST_CHECK ("Plugin requests the connectivity status on connect");
   valent_test_fixture_connect (fixture, TRUE);
-
-  packet = valent_test_fixture_expect_packet (fixture);
-  v_assert_packet_type (packet, "kdeconnect.connectivity_report");
-  v_assert_packet_field (packet, "signalStrengths");
-  json_node_unref (packet);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.connectivity_report.request");
@@ -96,7 +95,7 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   /* Modem is in the default state so the action should be disabled */
   g_assert_false (g_action_group_get_action_enabled (actions, "connectivity_report.state"));
 
-  /* No Signal Source */
+  VALENT_TEST_CHECK ("Plugin handles the \"modemless\" state");
   packet = valent_test_fixture_lookup_packet (fixture, "modemless-report");
   valent_test_fixture_handle_packet (fixture, packet);
 
@@ -109,7 +108,7 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   g_clear_pointer (&signal_strengths, g_variant_unref);
   g_clear_pointer (&state, g_variant_unref);
 
-  /* Offline Signal Source */
+  VALENT_TEST_CHECK ("Plugin handles the \"offline\" state");
   packet = valent_test_fixture_lookup_packet (fixture, "offline-report");
   valent_test_fixture_handle_packet (fixture, packet);
 
@@ -131,7 +130,7 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   g_clear_pointer (&signal_strengths, g_variant_unref);
   g_clear_pointer (&state, g_variant_unref);
 
-  /* Caution ConnectivityReport */
+  VALENT_TEST_CHECK ("Plugin handles the \"none\" state");
   packet = valent_test_fixture_lookup_packet (fixture, "none-report");
   valent_test_fixture_handle_packet (fixture, packet);
 
@@ -153,7 +152,7 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   g_clear_pointer (&signal_strengths, g_variant_unref);
   g_clear_pointer (&state, g_variant_unref);
 
-  /* Weak Signal Strength */
+  VALENT_TEST_CHECK ("Plugin handles the \"weak\" state");
   packet = valent_test_fixture_lookup_packet (fixture, "weak-report");
   valent_test_fixture_handle_packet (fixture, packet);
 
@@ -175,7 +174,7 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   g_clear_pointer (&signal_strengths, g_variant_unref);
   g_clear_pointer (&state, g_variant_unref);
 
-  /* OK Signal Strength */
+  VALENT_TEST_CHECK ("Plugin handles the \"ok\" state");
   packet = valent_test_fixture_lookup_packet (fixture, "ok-report");
   valent_test_fixture_handle_packet (fixture, packet);
 
@@ -197,7 +196,7 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   g_clear_pointer (&signal_strengths, g_variant_unref);
   g_clear_pointer (&state, g_variant_unref);
 
-  /* Good Signal Strength */
+  VALENT_TEST_CHECK ("Plugin handles the \"good\" state");
   packet = valent_test_fixture_lookup_packet (fixture, "good-report");
   valent_test_fixture_handle_packet (fixture, packet);
 
@@ -218,7 +217,7 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   g_clear_pointer (&signal_strengths, g_variant_unref);
   g_clear_pointer (&state, g_variant_unref);
 
-  /* Excellent Signal Strength */
+  VALENT_TEST_CHECK ("Plugin handles the \"excellent\" state");
   packet = valent_test_fixture_lookup_packet (fixture, "excellent-report");
   valent_test_fixture_handle_packet (fixture, packet);
 
@@ -240,7 +239,7 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   g_clear_pointer (&signal_strengths, g_variant_unref);
   g_clear_pointer (&state, g_variant_unref);
 
-  /* Perfect Signal Strength */
+  VALENT_TEST_CHECK ("Plugin handles other states");
   packet = valent_test_fixture_lookup_packet (fixture, "extra1-report");
   valent_test_fixture_handle_packet (fixture, packet);
 
@@ -262,7 +261,7 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   g_clear_pointer (&signal_strengths, g_variant_unref);
   g_clear_pointer (&state, g_variant_unref);
 
-  /* Perfect (2) Signal Strength */
+  VALENT_TEST_CHECK ("Plugin handles other states");
   packet = valent_test_fixture_lookup_packet (fixture, "extra2-report");
   valent_test_fixture_handle_packet (fixture, packet);
 
@@ -298,21 +297,14 @@ test_connectivity_report_plugin_handle_request (ValentTestFixture *fixture,
 
   connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL);
 
-  /* Expect connect packets */
+  VALENT_TEST_CHECK ("Plugin requests the connectivity status on connect");
   valent_test_fixture_connect (fixture, TRUE);
-
-  packet = valent_test_fixture_expect_packet (fixture);
-  v_assert_packet_type (packet, "kdeconnect.connectivity_report");
-  v_assert_packet_field (packet, "signalStrengths");
-  valent_packet_get_object (packet, "signalStrengths", &signal_node);
-  g_assert_cmpuint (json_object_get_size (signal_node), ==, 0);
-  json_node_unref (packet);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.connectivity_report.request");
   json_node_unref (packet);
 
-  /* Respond to a request */
+  VALENT_TEST_CHECK ("Plugin sends a connectivity update when requested");
   packet = valent_test_fixture_lookup_packet (fixture, "request-state");
   valent_test_fixture_handle_packet (fixture, packet);
 
@@ -324,7 +316,7 @@ test_connectivity_report_plugin_handle_request (ValentTestFixture *fixture,
 
   json_node_unref (packet);
 
-  /* Modem should be offline */
+  VALENT_TEST_CHECK ("Plugin sends an update when a modem is added");
   dbusmock_modemmanager (connection, "AddModem", 0);
 
   packet = valent_test_fixture_expect_packet (fixture);
@@ -341,7 +333,7 @@ test_connectivity_report_plugin_handle_request (ValentTestFixture *fixture,
 
   json_node_unref (packet);
 
-  /* Modem should be online */
+  VALENT_TEST_CHECK ("Plugin sends an update when a modem comes online");
   dbusmock_modemmanager (connection, "SetModemOnline", 0);
 
   packet = valent_test_fixture_expect_packet (fixture);
@@ -358,7 +350,7 @@ test_connectivity_report_plugin_handle_request (ValentTestFixture *fixture,
 
   json_node_unref (packet);
 
-  /* Modem should be offline */
+  VALENT_TEST_CHECK ("Plugin sends an update when a modem goes offline");
   dbusmock_modemmanager (connection, "SetModemOffline", 0);
 
   packet = valent_test_fixture_expect_packet (fixture);
@@ -375,7 +367,7 @@ test_connectivity_report_plugin_handle_request (ValentTestFixture *fixture,
 
   json_node_unref (packet);
 
-  /* Modem should be removed */
+  VALENT_TEST_CHECK ("Plugin sends an update when a modem is removed");
   dbusmock_modemmanager (connection, "RemoveModem", 0);
 
   packet = valent_test_fixture_expect_packet (fixture);

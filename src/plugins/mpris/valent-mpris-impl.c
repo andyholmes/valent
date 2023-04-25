@@ -49,20 +49,6 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 /*
  * org.mpris.MediaPlayer2
  */
-static void
-application_method_call (GDBusConnection       *connection,
-                         const char            *sender,
-                         const char            *object_path,
-                         const char            *interface_name,
-                         const char            *method_name,
-                         GVariant              *parameters,
-                         GDBusMethodInvocation *invocation,
-                         gpointer               user_data)
-{
-  /* Silently ignore method calls */
-  g_dbus_method_invocation_return_value (invocation, NULL);
-}
-
 static GVariant *
 application_get_property (GDBusConnection  *connection,
                           const char       *sender,
@@ -112,6 +98,7 @@ application_get_property (GDBusConnection  *connection,
   return NULL;
 }
 
+/* LCOV_EXCL_START */
 static gboolean
 application_set_property (GDBusConnection  *connection,
                           const char       *sender,
@@ -126,6 +113,20 @@ application_set_property (GDBusConnection  *connection,
   return TRUE;
 }
 
+static void
+application_method_call (GDBusConnection       *connection,
+                         const char            *sender,
+                         const char            *object_path,
+                         const char            *interface_name,
+                         const char            *method_name,
+                         GVariant              *parameters,
+                         GDBusMethodInvocation *invocation,
+                         gpointer               user_data)
+{
+  /* Silently ignore method calls */
+  g_dbus_method_invocation_return_value (invocation, NULL);
+}
+/* LCOV_EXCL_STOP */
 
 /*
  * org.mpris.MediaPlayer2.Player

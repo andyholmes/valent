@@ -12,7 +12,13 @@ test_sftp_plugin_basic (ValentTestFixture *fixture,
 {
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
 
+  VALENT_TEST_CHECK ("Plugin has expected actions");
   g_assert_true (g_action_group_has_action (actions, "sftp.browse"));
+
+  valent_test_fixture_connect (fixture, TRUE);
+
+  VALENT_TEST_CHECK ("Plugin action `sftp.browse` is enabled when connected");
+  g_assert_true (g_action_group_get_action_enabled (actions, "sftp.browse"));
 }
 
 static void
@@ -26,22 +32,22 @@ test_sftp_plugin_send_request (ValentTestFixture *fixture,
 
   g_assert_true (g_action_group_get_action_enabled (actions, "sftp.browse"));
 
-  /* Request to mount the endpoint */
+  VALENT_TEST_CHECK ("Plugin action `sftp.browse` sends a request for an SFTP session");
   g_action_group_activate_action (actions, "sftp.browse", NULL);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.sftp.request");
   json_node_unref (packet);
 
-  /* Send an error to the device */
+  VALENT_TEST_CHECK ("Plugin handles an error in response to a request");
   packet = valent_test_fixture_lookup_packet (fixture, "sftp-error");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  /* Send an request to mount to the device */
+  VALENT_TEST_CHECK ("Plugin handles a request for an SFTP session");
   packet = valent_test_fixture_lookup_packet (fixture, "sftp-request");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  /* Expect an error response */
+  VALENT_TEST_CHECK ("Plugin sends an error in response to a request");
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.sftp");
   v_assert_packet_cmpstr (packet, "errorMessage", ==, "Permission denied");

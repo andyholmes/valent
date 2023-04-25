@@ -65,7 +65,6 @@ valent_test_fixture_init (ValentTestFixture *fixture,
 
   g_assert (path != NULL && *path != '\0');
 
-  fixture->loop = g_main_loop_new (NULL, FALSE);
   fixture->packets = valent_test_load_json (path);
 
   /* Init device */
@@ -113,7 +112,6 @@ void
 valent_test_fixture_clear (ValentTestFixture *fixture,
                            gconstpointer      user_data)
 {
-  g_clear_pointer (&fixture->loop, g_main_loop_unref);
   g_clear_pointer (&fixture->packets, json_node_unref);
   g_clear_object (&fixture->device);
   g_clear_object (&fixture->settings);
@@ -239,34 +237,6 @@ valent_test_fixture_get_device (ValentTestFixture *fixture)
   g_assert (fixture != NULL);
 
   return fixture->device;
-}
-
-/**
- * valent_test_fixture_run:
- * @fixture: a #ValentTestFixture
- *
- * Start the #GMainLoop for @fixture.
- */
-void
-valent_test_fixture_run (ValentTestFixture *fixture)
-{
-  g_assert (fixture != NULL);
-
-  g_main_loop_run (fixture->loop);
-}
-
-/**
- * valent_test_fixture_quit:
- * @fixture: a #ValentTestFixture
- *
- * Stop the #GMainLoop for @fixture.
- */
-void
-valent_test_fixture_quit (ValentTestFixture *fixture)
-{
-  g_assert (fixture != NULL);
-
-  g_main_loop_quit (fixture->loop);
 }
 
 /**

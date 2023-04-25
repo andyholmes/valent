@@ -13,7 +13,6 @@ typedef struct
 {
   ValentSession   *session;
   GDBusConnection *connection;
-  GMainLoop       *loop;
 } FdoSessionFixture;
 
 static void
@@ -27,7 +26,6 @@ fdo_session_fixture_set_up (FdoSessionFixture *fixture,
   g_settings_set_boolean (settings, "enabled", FALSE);
 
   fixture->connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL);
-  fixture->loop = g_main_loop_new (NULL, FALSE);
   fixture->session = valent_session_get_default ();
 }
 
@@ -36,7 +34,6 @@ fdo_session_fixture_tear_down (FdoSessionFixture *fixture,
                                gconstpointer      user_data)
 {
   g_clear_object (&fixture->connection);
-  g_clear_pointer (&fixture->loop, g_main_loop_unref);
   v_assert_finalize_object (fixture->session);
 }
 
@@ -80,14 +77,6 @@ dbusmock_update_property (FdoSessionFixture *fixture,
 }
 
 static void
-on_session_changed (ValentSession     *session,
-                    GParamSpec        *pspec,
-                    FdoSessionFixture *fixture)
-{
-  g_main_loop_quit (fixture->loop);
-}
-
-static void
 test_fdo_session_adapter (FdoSessionFixture *fixture,
                           gconstpointer      user_data)
 {
@@ -96,19 +85,18 @@ test_fdo_session_adapter (FdoSessionFixture *fixture,
    */
   valent_test_await_timeout (1000);
 
-  g_signal_connect (fixture->session,
-                    "notify",
-                    G_CALLBACK (on_session_changed),
-                    fixture);
-
+  VALENT_TEST_CHECK ("Adapter starts with the `active` property to TRUE");
   g_assert_true (valent_session_get_active (fixture->session));
+
+  VALENT_TEST_CHECK ("Adapter updates the `active` property to FALSE");
   dbusmock_update_property (fixture, "Active", FALSE);
-  g_main_loop_run (fixture->loop);
+  valent_test_await_signal (fixture->session, "notify");
   g_assert_false (valent_session_get_active (fixture->session));
 
+  VALENT_TEST_CHECK ("Adapter updates the `active` property to TRUE");
   g_assert_false (valent_session_get_locked (fixture->session));
   valent_session_set_locked (fixture->session, TRUE);
-  g_main_loop_run (fixture->loop);
+  valent_test_await_signal (fixture->session, "notify");
   g_assert_true (valent_session_get_locked (fixture->session));
 
   g_signal_handlers_disconnect_by_data (fixture->session, fixture);

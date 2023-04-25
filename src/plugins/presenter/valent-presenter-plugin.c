@@ -192,7 +192,7 @@ valent_presenter_plugin_disable (ValentDevicePlugin *plugin)
   /* Destroy the presentation remote if necessary */
   g_clear_pointer (&self->remote, gtk_window_destroy);
 
-  valent_device_plugin_set_menu_item (plugin,"device.presenter.remote", NULL);
+  valent_device_plugin_set_menu_item (plugin, "device.presenter.remote", NULL);
 }
 
 static void

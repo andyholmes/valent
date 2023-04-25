@@ -43,7 +43,7 @@ test_window_basic (TestWindowFixture *fixture,
   gtk_window_present (window);
   valent_test_await_pending ();
 
-  /* Properties */
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (window,
                 "device-manager", &manager,
                 NULL);
@@ -51,9 +51,7 @@ test_window_basic (TestWindowFixture *fixture,
   g_clear_object (&manager);
 
   gtk_window_destroy (window);
-
-  while (window != NULL)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_nullptr (&window);
 }
 
 static void
@@ -82,9 +80,7 @@ test_window_device_management (TestWindowFixture *fixture,
 
   /* Destroy with an active device */
   gtk_window_destroy (window);
-
-  while (window != NULL)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_nullptr (&window);
 }
 
 VALENT_NO_ASAN static void
@@ -118,9 +114,7 @@ test_window_navigation (TestWindowFixture *fixture,
   valent_test_await_pending ();
 
   gtk_window_destroy (window);
-
-  while (window != NULL)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_nullptr (&window);
 }
 
 static void
@@ -165,9 +159,7 @@ test_window_dialogs (TestWindowFixture *fixture,
   valent_test_await_pending ();
 
   gtk_window_destroy (window);
-
-  while (window != NULL)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_nullptr (&window);
 #endif
 }
 

@@ -28,9 +28,7 @@ test_preferences_window_basic (void)
   peas_engine_load_plugin (engine, info);
 
   gtk_window_destroy (window);
-
-  while (window != NULL)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_nullptr (&window);
 }
 
 static void
@@ -71,9 +69,7 @@ test_preferences_window_rename (void)
   valent_test_await_pending ();
 
   gtk_window_destroy (window);
-
-  while (window != NULL)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_nullptr (&window);
 }
 
 int

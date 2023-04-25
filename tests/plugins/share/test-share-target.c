@@ -50,7 +50,7 @@ test_share_target (ApplicationPluginFixture *fixture,
   g_autoptr (GApplication) application = NULL;
   PeasPluginInfo *plugin_info = NULL;
 
-  /* Test properties */
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (fixture->extension,
                 "application",    &application,
                 "plugin-info",    &plugin_info,

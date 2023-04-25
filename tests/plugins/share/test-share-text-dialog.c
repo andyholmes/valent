@@ -15,6 +15,7 @@ test_share_text_dialog (void)
   GtkWindow *window = NULL;
   g_autofree char *text_out = NULL;
 
+  VALENT_TEST_CHECK ("Window can be constructed");
   window = g_object_new (VALENT_TYPE_SHARE_TEXT_DIALOG,
                          "text", TEST_TEXT,
                          NULL);
@@ -23,17 +24,15 @@ test_share_text_dialog (void)
   gtk_window_present (window);
   valent_test_await_pending ();
 
-  /* Properties */
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (window,
                 "text", &text_out,
                 NULL);
   g_assert_cmpstr (text_out, ==, TEST_TEXT);
 
-  /* Destroy */
+  VALENT_TEST_CHECK ("Content can be ignored");
   gtk_window_destroy (window);
-
-  while (window != NULL)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_nullptr (&window);
 }
 
 static void
@@ -41,6 +40,7 @@ test_share_text_dialog_copy (void)
 {
   GtkWindow *window = NULL;
 
+  VALENT_TEST_CHECK ("Window can be constructed");
   window = g_object_new (VALENT_TYPE_SHARE_TEXT_DIALOG,
                          "text", TEST_TEXT,
                          NULL);
@@ -49,11 +49,9 @@ test_share_text_dialog_copy (void)
   gtk_window_present (window);
   valent_test_await_pending ();
 
-  /* Copy to clipboard */
+  VALENT_TEST_CHECK ("Content can be copied to the clipboard");
   adw_message_dialog_response (ADW_MESSAGE_DIALOG (window), "copy");
-
-  while (window != NULL)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_nullptr (&window);
 }
 
 static void
@@ -61,6 +59,7 @@ test_share_text_dialog_save (void)
 {
   GtkWindow *window = NULL;
 
+  VALENT_TEST_CHECK ("Window can be constructed");
   window = g_object_new (VALENT_TYPE_SHARE_TEXT_DIALOG,
                          "text", TEST_TEXT,
                          NULL);
@@ -70,16 +69,14 @@ test_share_text_dialog_save (void)
   valent_test_await_pending ();
 
 #if !(VALENT_HAVE_ASAN)
-  /* Save to file */
+  VALENT_TEST_CHECK ("Content can be saved to file");
   adw_message_dialog_response (ADW_MESSAGE_DIALOG (window), "save");
   valent_test_await_pending ();
 #endif // !(VALENT_HAVE_ASAN)
 
   /* The dialog gets no response, so destroy manually */
   gtk_window_destroy (window);
-
-  while (window != NULL)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_nullptr (&window);
 }
 
 int

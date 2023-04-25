@@ -675,7 +675,7 @@ test_lan_service_channel (LanBackendFixture *fixture,
                     fixture);
   g_main_loop_run (fixture->loop);
 
-  /* Properties */
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (fixture->channel,
                 "certificate", &certificate,
                 "host",        &host,
@@ -716,7 +716,7 @@ test_lan_service_channel (LanBackendFixture *fixture,
   g_assert_nonnull (endpoint_verification);
   g_assert_cmpstr (channel_verification, ==, endpoint_verification);
 
-  /* Transfers */
+  VALENT_TEST_CHECK ("Channel can transfer payloads");
   file = g_file_new_for_uri ("resource:///tests/image.png");
   packet = json_object_get_member (json_node_get_object (fixture->packets),
                                    "transfer");

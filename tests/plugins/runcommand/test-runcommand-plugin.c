@@ -12,7 +12,13 @@ test_runcommand_plugin_basic (ValentTestFixture *fixture,
 {
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
 
+  VALENT_TEST_CHECK ("Plugin has expected actions");
   g_assert_true (g_action_group_has_action (actions, "runcommand.execute"));
+
+  valent_test_fixture_connect (fixture, TRUE);
+
+  VALENT_TEST_CHECK ("Plugin action `runcommand.execute` is enabled when connected");
+  g_assert_true (g_action_group_get_action_enabled (actions, "runcommand.execute"));
 }
 
 static void
@@ -26,16 +32,17 @@ test_runcommand_plugin_handle_request (ValentTestFixture *fixture,
 
   g_assert_true (g_action_group_get_action_enabled (actions, "runcommand.execute"));
 
+  VALENT_TEST_CHECK ("Plugin sends the command list on connect");
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.runcommand");
   v_assert_packet_field (packet, "commandList");
   json_node_unref (packet);
 
-  /* Receive the command list */
+  VALENT_TEST_CHECK ("Plugin handles the command list");
   packet = valent_test_fixture_lookup_packet (fixture, "command-list");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  /* Execute one of the commands */
+  VALENT_TEST_CHECK ("Plugin action `runcommand.execute` sends a request to run a command");
   g_action_group_activate_action (actions,
                                   "runcommand.execute",
                                   g_variant_new_string ("command1"));
@@ -54,6 +61,7 @@ test_runcommand_plugin_send_request (ValentTestFixture *fixture,
   GVariant *command, *commands;
   JsonNode *packet;
 
+  VALENT_TEST_CHECK ("Plugin sends the command list on connect");
   valent_test_fixture_connect (fixture, TRUE);
 
   packet = valent_test_fixture_expect_packet (fixture);
@@ -61,10 +69,10 @@ test_runcommand_plugin_send_request (ValentTestFixture *fixture,
   v_assert_packet_field (packet, "commandList");
   json_node_unref (packet);
 
-  /* Add a command to the command list */
+  VALENT_TEST_CHECK ("Plugin sends the command list when updated");
   g_variant_dict_init (&dict, NULL);
   g_variant_dict_insert (&dict, "name", "s", "Test Command");
-  g_variant_dict_insert (&dict, "command", "s", "ls");
+  g_variant_dict_insert (&dict, "command", "s", "true");
   command = g_variant_dict_end (&dict);
 
   g_variant_dict_init (&dict, NULL);
@@ -79,7 +87,7 @@ test_runcommand_plugin_send_request (ValentTestFixture *fixture,
   v_assert_packet_field (packet, "commandList");
   json_node_unref (packet);
 
-  /* Request the command list manually */
+  VALENT_TEST_CHECK ("Plugin sends the command list when requested");
   packet = valent_test_fixture_lookup_packet (fixture, "command-list-request");
   valent_test_fixture_handle_packet (fixture, packet);
 
@@ -88,7 +96,7 @@ test_runcommand_plugin_send_request (ValentTestFixture *fixture,
   v_assert_packet_field (packet, "commandList");
   json_node_unref (packet);
 
-  /* Request command execution */
+  VALENT_TEST_CHECK ("Plugin handles a request to run a command");
   packet = valent_test_fixture_lookup_packet (fixture, "command-execute");
   valent_test_fixture_handle_packet (fixture, packet);
 }

@@ -172,7 +172,7 @@ test_contacts_component_adapter (ContactsComponentFixture *fixture,
 {
   PeasPluginInfo *plugin_info;
 
-  /* Properties */
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (fixture->adapter,
                 "plugin-info", &plugin_info,
                 NULL);
@@ -213,7 +213,7 @@ test_contacts_component_store (ContactsComponentFixture *fixture,
   EContact *contact = NULL;
   g_autoslist (EContact) contacts = NULL;
 
-  /* Properties */
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (fixture->store,
                 "name",   &name,
                 "path",   &path,

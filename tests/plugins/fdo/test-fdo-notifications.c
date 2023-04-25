@@ -11,30 +11,24 @@ typedef struct
 {
   ValentNotifications *notifications;
   GDBusConnection     *connection;
-  GMainLoop           *loop;
 
-  ValentNotification  *notification;
-  char                *notification_id;
   unsigned int         notification_nid;
 } FdoNotificationsFixture;
 
 static void
-on_notification_added (ValentNotifications     *notifications,
-                       ValentNotification      *notification,
-                       FdoNotificationsFixture *fixture)
+on_notification_added (ValentNotifications *notifications,
+                       ValentNotification  *notification,
+                       ValentNotification  **notification_out)
 {
-  g_set_object (&fixture->notification, notification);
-  g_main_loop_quit (fixture->loop);
+  *notification_out = g_object_ref (notification);
 }
 
 static void
-on_notification_removed (ValentNotifications     *notifications,
-                         const char              *id,
-                         FdoNotificationsFixture *fixture)
+on_notification_removed (ValentNotifications  *notifications,
+                         const char           *id,
+                         char                **notification_id)
 {
-  g_clear_pointer (&fixture->notification_id, g_free);
-  fixture->notification_id = g_strdup (id);
-  g_main_loop_quit (fixture->loop);
+  *notification_id = g_strdup (id);
 }
 
 static void
@@ -48,7 +42,6 @@ fdo_notifications_fixture_set_up (FdoNotificationsFixture *fixture,
   g_settings_set_boolean (settings, "enabled", FALSE);
 
   fixture->connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
-  fixture->loop = g_main_loop_new (NULL, FALSE);
   fixture->notifications = valent_notifications_get_default ();
 }
 
@@ -57,9 +50,6 @@ fdo_notifications_fixture_tear_down (FdoNotificationsFixture *fixture,
                                      gconstpointer            user_data)
 {
   g_clear_object (&fixture->connection);
-  g_clear_pointer (&fixture->loop, g_main_loop_unref);
-  g_clear_pointer (&fixture->notification_id, g_free);
-  v_assert_finalize_object (fixture->notification);
   v_assert_finalize_object (fixture->notifications);
 }
 
@@ -192,8 +182,10 @@ static void
 test_fdo_notifications_source (FdoNotificationsFixture *fixture,
                                gconstpointer            user_data)
 {
+  g_autoptr (ValentNotification) notification = NULL;
   g_autoptr (GIcon) cmp_icon = NULL;
   g_autoptr (GIcon) icon = NULL;
+  g_autofree char *notification_id = NULL;
   g_autofree char *id = NULL;
   g_autofree char *application = NULL;
   g_autofree char *title = NULL;
@@ -205,24 +197,23 @@ test_fdo_notifications_source (FdoNotificationsFixture *fixture,
    *       being called in ValentFdoNotifications.
    */
   valent_test_await_timeout (1000);
-
   g_signal_connect (fixture->notifications,
                     "notification-added",
                     G_CALLBACK (on_notification_added),
-                    fixture);
+                    &notification);
   g_signal_connect (fixture->notifications,
                     "notification-removed",
                     G_CALLBACK (on_notification_removed),
-                    fixture);
+                    &notification_id);
 
-  /* Add notification */
+  VALENT_TEST_CHECK ("Adapter adds notifications");
   send_notification (fixture, FALSE);
-  g_main_loop_run (fixture->loop);
-  g_assert_true (VALENT_IS_NOTIFICATION (fixture->notification));
+  valent_test_await_pointer (&notification);
+  g_assert_true (VALENT_IS_NOTIFICATION (notification));
 
-  /* Test Notification */
+  VALENT_TEST_CHECK ("Notifications have the expected content");
   cmp_icon = g_themed_icon_new ("dialog-information-symbolic");
-  g_object_get (fixture->notification,
+  g_object_get (notification,
                 "id",          &id,
                 "application", &application,
                 "title",       &title,
@@ -236,17 +227,21 @@ test_fdo_notifications_source (FdoNotificationsFixture *fixture,
   g_assert_cmpstr (body, ==, "Test Body");
   g_assert_true (g_icon_equal (icon, cmp_icon));
   g_assert_cmpuint (priority, ==, G_NOTIFICATION_PRIORITY_URGENT);
+  g_clear_object (&notification);
 
-  /* Remove Notification */
+  VALENT_TEST_CHECK ("Adapter removes notifications");
   close_notification (fixture);
-  g_main_loop_run (fixture->loop);
-  g_assert_cmpstr (id, ==, fixture->notification_id);
+  valent_test_await_pointer (&notification_id);
+  g_assert_cmpstr (id, ==, notification_id);
+  g_clear_pointer (&notification_id, g_free);
 
-  /* Add notification (with pixbuf) */
+  VALENT_TEST_CHECK ("Adapter adds notifications with pixbuf icons");
   send_notification (fixture, TRUE);
-  g_main_loop_run (fixture->loop);
+  valent_test_await_pointer (&notification);
+  g_clear_object (&notification);
 
-  g_signal_handlers_disconnect_by_data (fixture->notifications, fixture);
+  g_signal_handlers_disconnect_by_data (fixture->notifications, notification);
+  g_signal_handlers_disconnect_by_data (fixture->notifications, notification_id);
 }
 
 int

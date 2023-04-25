@@ -24,11 +24,29 @@ test_notification_plugin_basic (ValentTestFixture *fixture,
 {
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
 
+  VALENT_TEST_CHECK ("Plugin has expected actions");
   g_assert_true (g_action_group_has_action (actions, "notification.action"));
   g_assert_true (g_action_group_has_action (actions, "notification.cancel"));
   g_assert_true (g_action_group_has_action (actions, "notification.close"));
   g_assert_true (g_action_group_has_action (actions, "notification.reply"));
   g_assert_true (g_action_group_has_action (actions, "notification.send"));
+
+  valent_test_fixture_connect (fixture, TRUE);
+
+  VALENT_TEST_CHECK ("Plugin action `notification.action` is enabled when connected");
+  g_assert_true (g_action_group_get_action_enabled (actions, "notification.action"));
+
+  VALENT_TEST_CHECK ("Plugin action `notification.cancel` is enabled when connected");
+  g_assert_true (g_action_group_get_action_enabled (actions, "notification.cancel"));
+
+  VALENT_TEST_CHECK ("Plugin action `notification.close` is enabled when connected");
+  g_assert_true (g_action_group_get_action_enabled (actions, "notification.close"));
+
+  VALENT_TEST_CHECK ("Plugin action `notification.reply` is enabled when connected");
+  g_assert_true (g_action_group_get_action_enabled (actions, "notification.reply"));
+
+  VALENT_TEST_CHECK ("Plugin action `notification.send` is enabled when connected");
+  g_assert_true (g_action_group_get_action_enabled (actions, "notification.send"));
 }
 
 static void
@@ -39,7 +57,7 @@ test_notification_plugin_handle_notification (ValentTestFixture *fixture,
   g_autoptr (GError) error = NULL;
   g_autoptr (GFile) file = NULL;
 
-  /* Expect notification request */
+  VALENT_TEST_CHECK ("Plugin requests the existing notifications on connect");
   valent_test_fixture_connect (fixture, TRUE);
 
   packet = valent_test_fixture_expect_packet (fixture);
@@ -47,11 +65,11 @@ test_notification_plugin_handle_notification (ValentTestFixture *fixture,
   v_assert_packet_true (packet, "request");
   json_node_unref (packet);
 
-  /* Receive a simple notification */
+  VALENT_TEST_CHECK ("Plugin handles a simple notification");
   packet = valent_test_fixture_lookup_packet (fixture, "notification-simple");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  /* Receive a notification with an icon */
+  VALENT_TEST_CHECK ("Plugin handles a notification with an icon");
   file = g_file_new_for_uri ("resource:///tests/image.png");
   packet = valent_test_fixture_lookup_packet (fixture, "notification-icon");
   valent_test_fixture_upload (fixture, packet, file, &error);
@@ -61,11 +79,11 @@ test_notification_plugin_handle_notification (ValentTestFixture *fixture,
   //        ostensibly implies ValentDevicePlugin is not thread-safe
   valent_test_await_timeout (1000);
 
-  /* Receive a notification with actions */
+  VALENT_TEST_CHECK ("Plugin handles a notification with actions");
   packet = valent_test_fixture_lookup_packet (fixture, "notification-actions");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  /* Receive a repliable notification */
+  VALENT_TEST_CHECK ("Plugin handles a repliable notification");
   packet = valent_test_fixture_lookup_packet (fixture, "notification-repliable");
   valent_test_fixture_handle_packet (fixture, packet);
 }
@@ -81,10 +99,10 @@ test_notification_plugin_send_notification (ValentTestFixture *fixture,
   g_autoptr (GIcon) icon = NULL;
   GError *error = NULL;
 
-  /* Send when active */
+  /* TODO: Send when active */
   g_settings_set_boolean (fixture->settings, "forward-when-active", TRUE);
 
-  /* Expect notification request */
+  VALENT_TEST_CHECK ("Plugin requests the existing notifications on connect");
   valent_test_fixture_connect (fixture, TRUE);
 
   packet = valent_test_fixture_expect_packet (fixture);
@@ -92,7 +110,7 @@ test_notification_plugin_send_notification (ValentTestFixture *fixture,
   v_assert_packet_true (packet, "request");
   json_node_unref (packet);
 
-  /* Send an empty notification */
+  VALENT_TEST_CHECK ("Plugin forwards simple notifications");
   notification = valent_notification_new (NULL);
   valent_notifications_adapter_notification_added (adapter, notification);
 
@@ -105,7 +123,7 @@ test_notification_plugin_send_notification (ValentTestFixture *fixture,
   v_assert_packet_field (packet, "ticker");
   json_node_unref (packet);
 
-  /* Send a standard notification */
+  VALENT_TEST_CHECK ("Plugin forwards standard notifications");
   valent_notification_set_id (notification, "test-id");
   valent_notification_set_application (notification, "Test Application");
   valent_notification_set_title (notification, "Test Title");
@@ -121,7 +139,7 @@ test_notification_plugin_send_notification (ValentTestFixture *fixture,
   v_assert_packet_cmpstr (packet, "ticker", ==, "Test Title: Test Body");
   json_node_unref (packet);
 
-  /* Send a notification with a themed icon */
+  VALENT_TEST_CHECK ("Plugin forwards notifications with themed icons");
   icon = g_themed_icon_new ("dialog-information-symbolic");
   valent_notification_set_icon (notification, icon);
   valent_notifications_adapter_notification_added (adapter, notification);
@@ -142,7 +160,7 @@ test_notification_plugin_send_notification (ValentTestFixture *fixture,
     }
   json_node_unref (packet);
 
-  /* Send a notification with a file icon */
+  VALENT_TEST_CHECK ("Plugin forwards notifications with file icons");
   file = g_file_new_for_uri ("resource:///tests/image.png");
   icon = g_file_icon_new (file);
   valent_notification_set_icon (notification, icon);
@@ -162,7 +180,7 @@ test_notification_plugin_send_notification (ValentTestFixture *fixture,
   valent_test_fixture_download (fixture, packet, NULL);
   json_node_unref (packet);
 
-  /* Send a notification with a bytes icon */
+  VALENT_TEST_CHECK ("Plugin forwards notifications with bytes icons");
   file = g_file_new_for_uri ("resource:///tests/image.png");
   bytes = g_file_load_bytes (file, NULL, NULL, NULL);
   icon = g_bytes_icon_new (bytes);
@@ -181,7 +199,7 @@ test_notification_plugin_send_notification (ValentTestFixture *fixture,
   valent_test_fixture_download (fixture, packet, NULL);
   json_node_unref (packet);
 
-  /* Remove Notification */
+  VALENT_TEST_CHECK ("Plugin forwards notification removals");
   valent_notifications_adapter_notification_removed (adapter, "test-id");
 
   packet = valent_test_fixture_expect_packet (fixture);
@@ -200,7 +218,7 @@ test_notification_plugin_actions (ValentTestFixture *fixture,
   g_autoptr (ValentNotification) notification = NULL;
   GError *error = NULL;
 
-  /* Expect notification request */
+  VALENT_TEST_CHECK ("Plugin requests the existing notifications on connect");
   valent_test_fixture_connect (fixture, TRUE);
 
   packet = valent_test_fixture_expect_packet (fixture);
@@ -208,7 +226,7 @@ test_notification_plugin_actions (ValentTestFixture *fixture,
   v_assert_packet_true (packet, "request");
   json_node_unref (packet);
 
-  /* Send a notification with a themed icon */
+  VALENT_TEST_CHECK ("Plugin action `notification.send` forwards notifications");
   icon = g_themed_icon_new ("dialog-information-symbolic");
   notification = g_object_new (VALENT_TYPE_NOTIFICATION,
                                "id",          "test-id",
@@ -236,7 +254,7 @@ test_notification_plugin_actions (ValentTestFixture *fixture,
     }
   json_node_unref (packet);
 
-  /* Send an activation for a notification action */
+  VALENT_TEST_CHECK ("Plugin action `notification.action` forwards activations");
   g_action_group_activate_action (actions,
                                   "notification.action",
                                   g_variant_new ("(ss)",
@@ -249,7 +267,7 @@ test_notification_plugin_actions (ValentTestFixture *fixture,
   v_assert_packet_cmpstr (packet, "action", ==, "Test Action");
   json_node_unref (packet);
 
-  /* Send cancellation of a local notification */
+  VALENT_TEST_CHECK ("Plugin action `notification.cancel` forwards notification removals");
   g_action_group_activate_action (actions,
                                   "notification.cancel",
                                   g_variant_new_string ("test-id"));
@@ -260,7 +278,7 @@ test_notification_plugin_actions (ValentTestFixture *fixture,
   v_assert_packet_true (packet, "isCancel");
   json_node_unref (packet);
 
-  /* Request closing a remote notification */
+  VALENT_TEST_CHECK ("Plugin action `notification.cancel` sends a request to close a notification");
   g_action_group_activate_action (actions,
                                   "notification.close",
                                   g_variant_new_string ("test-id"));
@@ -270,7 +288,7 @@ test_notification_plugin_actions (ValentTestFixture *fixture,
   v_assert_packet_cmpstr (packet, "cancel", ==, "test-id");
   json_node_unref (packet);
 
-  /* Send a reply for a repliable notification */
+  VALENT_TEST_CHECK ("Plugin action `notification.reply` sends a reply to a notification");
   g_action_group_activate_action (actions,
                                   "notification.reply",
                                   g_variant_new ("(ssv)",

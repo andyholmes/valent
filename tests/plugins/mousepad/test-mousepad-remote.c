@@ -15,21 +15,23 @@ test_mousepad_remote (ValentTestFixture *fixture,
   GtkWindow *remote;
   ValentDevice *device;
 
+  VALENT_TEST_CHECK ("Remote can be constructed");
   remote = g_object_new (VALENT_TYPE_MOUSEPAD_REMOTE,
                          "device", fixture->device,
                          NULL);
 
-  /* Properties */
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (remote,
                 "device", &device,
                 NULL);
   g_assert_true (fixture->device == device);
   g_object_unref (device);
 
-  /* Exercise a few methods */
+  VALENT_TEST_CHECK ("Remote `echo_key()` functions correctly");
   valent_mousepad_remote_echo_key (VALENT_MOUSEPAD_REMOTE (remote), "a", 0);
   valent_mousepad_remote_echo_key (VALENT_MOUSEPAD_REMOTE (remote), "a", GDK_CONTROL_MASK);
 
+  VALENT_TEST_CHECK ("Remote `echo_special()` functions correctly");
   valent_mousepad_remote_echo_special (VALENT_MOUSEPAD_REMOTE (remote), GDK_KEY_Linefeed, 0);
   valent_mousepad_remote_echo_special (VALENT_MOUSEPAD_REMOTE (remote), GDK_KEY_BackSpace, 0);
   valent_mousepad_remote_echo_special (VALENT_MOUSEPAD_REMOTE (remote), GDK_KEY_Home, 0);

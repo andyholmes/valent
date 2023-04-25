@@ -120,7 +120,7 @@ test_mixer_component_adapter (MixerComponentFixture *fixture,
                     G_CALLBACK (on_adapter_changed),
                     fixture);
 
-  /* Properties */
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (fixture->adapter,
                 "default-input",  &default_input,
                 "default-output", &default_output,

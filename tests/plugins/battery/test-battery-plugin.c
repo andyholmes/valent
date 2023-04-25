@@ -47,13 +47,19 @@ test_battery_plugin_actions (ValentTestFixture *fixture,
   int64_t time_to_empty = 0;
   int64_t time_to_full = 0;
 
-  /* Get the stateful actions */
+  VALENT_TEST_CHECK ("Plugin has expected actions");
   g_assert_true (g_action_group_has_action (actions, "battery.state"));
 
-  /* Local */
+  valent_test_fixture_connect (fixture, TRUE);
+
+  VALENT_TEST_CHECK ("Plugin action `battery.state` is enabled when connected, "
+                     "but only if reported as present.");
   g_assert_false (g_action_group_get_action_enabled (actions, "battery.state"));
+
   state = g_action_group_get_action_state (actions, "battery.state");
 
+  VALENT_TEST_CHECK ("Plugin action `battery.state` has expected signature");
+  g_assert_true (g_variant_is_of_type (state, G_VARIANT_TYPE_VARDICT));
   g_assert_true (g_variant_lookup (state, "charging", "b", &charging));
   g_assert_true (g_variant_lookup (state, "percentage", "d", &percentage));
   g_assert_true (g_variant_lookup (state, "icon-name", "&s", &icon_name));
@@ -61,6 +67,7 @@ test_battery_plugin_actions (ValentTestFixture *fixture,
   g_assert_true (g_variant_lookup (state, "time-to-empty", "x", &time_to_empty));
   g_assert_true (g_variant_lookup (state, "time-to-full", "x", &time_to_full));
 
+  VALENT_TEST_CHECK ("Plugin action `battery.state` has expected value");
   g_assert_false (charging);
   g_assert_cmpfloat (percentage, <=, 0.0);
   g_assert_cmpstr (icon_name, ==, "battery-missing-symbolic");
@@ -75,18 +82,8 @@ test_battery_plugin_connect (ValentTestFixture *fixture,
 {
   JsonNode *packet;
 
+  VALENT_TEST_CHECK ("Plugin requests the battery state on connect");
   valent_test_fixture_connect (fixture, TRUE);
-
-  // NOTE: `ValentBattery` starts with is-present=false so there is no
-  //       expectation of a connect-time packet here.
-#if 0
-  packet = valent_test_fixture_expect_packet (fixture);
-  v_assert_packet_type (packet, "kdeconnect.battery");
-  v_assert_packet_cmpint (packet, "currentCharge", ==, 0);
-  v_assert_packet_false (packet, "isCharging");
-  v_assert_packet_cmpint (packet, "thresholdEvent", ==, 0);
-  json_node_unref (packet);
-#endif
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.battery.request");
@@ -108,14 +105,18 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
   int64_t time_to_empty;
   int64_t time_to_full;
 
-  /* Battery is in the default state so the action should be disabled */
+  VALENT_TEST_CHECK ("Plugin action `battery.state` starts disabled");
   g_assert_false (g_action_group_get_action_enabled (actions, "battery.state"));
 
-  /* Empty Battery */
+  VALENT_TEST_CHECK ("Plugin handles \"empty\" battery update");
   packet = valent_test_fixture_lookup_packet (fixture, "empty-battery");
   valent_test_fixture_handle_packet (fixture, packet);
 
+  VALENT_TEST_CHECK ("Plugin action `battery.state` is enabled if a status "
+                     "packet is received");
   g_assert_true (g_action_group_get_action_enabled (actions, "battery.state"));
+
+  VALENT_TEST_CHECK ("Plugin updates `battery.state` action to expected value");
   state = g_action_group_get_action_state (actions, "battery.state");
 
   g_assert_true (g_variant_lookup (state, "charging", "b", &charging));
@@ -134,11 +135,11 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
 
   g_clear_pointer (&state, g_variant_unref);
 
-  /* Caution Battery */
+  VALENT_TEST_CHECK ("Plugin handles \"caution\" battery update");
   packet = valent_test_fixture_lookup_packet (fixture, "caution-battery");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  g_assert_true (g_action_group_get_action_enabled (actions, "battery.state"));
+  VALENT_TEST_CHECK ("Plugin updates `battery.state` action to expected value");
   state = g_action_group_get_action_state (actions, "battery.state");
 
   g_assert_true (g_variant_lookup (state, "charging", "b", &charging));
@@ -157,11 +158,11 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
 
   g_clear_pointer (&state, g_variant_unref);
 
-  /* Low Battery */
+  VALENT_TEST_CHECK ("Plugin handles \"low\" battery update");
   packet = valent_test_fixture_lookup_packet (fixture, "low-battery");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  g_assert_true (g_action_group_get_action_enabled (actions, "battery.state"));
+  VALENT_TEST_CHECK ("Plugin updates `battery.state` action to expected value");
   state = g_action_group_get_action_state (actions, "battery.state");
 
   g_assert_true (g_variant_lookup (state, "charging", "b", &charging));
@@ -180,10 +181,11 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
 
   g_clear_pointer (&state, g_variant_unref);
 
-  /* Good Battery */
+  VALENT_TEST_CHECK ("Plugin handles \"empty\" battery update");
   packet = valent_test_fixture_lookup_packet (fixture, "good-battery");
   valent_test_fixture_handle_packet (fixture, packet);
 
+  VALENT_TEST_CHECK ("Plugin updates `battery.state` action to expected value");
   state = g_action_group_get_action_state (actions, "battery.state");
 
   g_assert_true (g_variant_lookup (state, "charging", "b", &charging));
@@ -202,11 +204,11 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
 
   g_clear_pointer (&state, g_variant_unref);
 
-  /* Full Battery */
+  VALENT_TEST_CHECK ("Plugin handles \"full\" battery update");
   packet = valent_test_fixture_lookup_packet (fixture, "full-battery");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  g_assert_true (g_action_group_get_action_enabled (actions, "battery.state"));
+  VALENT_TEST_CHECK ("Plugin updates `battery.state` action to expected value");
   state = g_action_group_get_action_state (actions, "battery.state");
 
   g_assert_true (g_variant_lookup (state, "charging", "b", &charging));
@@ -225,11 +227,11 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
 
   g_clear_pointer (&state, g_variant_unref);
 
-  /* Full Battery */
+  VALENT_TEST_CHECK ("Plugin handles \"charged\" battery update");
   packet = valent_test_fixture_lookup_packet (fixture, "charged-battery");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  g_assert_true (g_action_group_get_action_enabled (actions, "battery.state"));
+  VALENT_TEST_CHECK ("Plugin updates `battery.state` action to expected value");
   state = g_action_group_get_action_state (actions, "battery.state");
 
   g_assert_true (g_variant_lookup (state, "charging", "b", &charging));
@@ -248,11 +250,11 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
 
   g_clear_pointer (&state, g_variant_unref);
 
-  /* Missing Battery */
+  VALENT_TEST_CHECK ("Plugin handles \"missing\" battery update");
   packet = valent_test_fixture_lookup_packet (fixture, "missing-battery");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  g_assert_false (g_action_group_get_action_enabled (actions, "battery.state"));
+  VALENT_TEST_CHECK ("Plugin updates `battery.state` action to expected value");
   state = g_action_group_get_action_state (actions, "battery.state");
 
   g_assert_true (g_variant_lookup (state, "charging", "b", &charging));
@@ -279,26 +281,15 @@ test_battery_plugin_handle_request (ValentTestFixture *fixture,
 
   connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL);
 
-  /* Expect connect packets */
+  VALENT_TEST_CHECK ("Plugin requests the battery state on connect");
   valent_test_fixture_connect (fixture, TRUE);
-
-  // NOTE: `ValentBattery` starts with is-present=false so there is no
-  //       expectation of a connect-time packet here.
-#if 0
-  packet = valent_test_fixture_expect_packet (fixture);
-  v_assert_packet_type (packet, "kdeconnect.battery");
-  v_assert_packet_cmpint (packet, "currentCharge", ==, 0);
-  v_assert_packet_false (packet, "isCharging");
-  v_assert_packet_cmpint (packet, "thresholdEvent", ==, 0);
-  json_node_unref (packet);
-#endif
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.battery.request");
   v_assert_packet_true (packet, "request");
   json_node_unref (packet);
 
-  /* Expect updates */
+  VALENT_TEST_CHECK ("Plugin sends battery level updates");
   upower_set_battery (connection, "Percentage", g_variant_new_double (42.0));
 
   packet = valent_test_fixture_expect_packet (fixture);
@@ -308,6 +299,7 @@ test_battery_plugin_handle_request (ValentTestFixture *fixture,
   v_assert_packet_cmpint (packet, "thresholdEvent", ==, 0);
   json_node_unref (packet);
 
+  VALENT_TEST_CHECK ("Plugin sends battery charging updates");
   upower_set_battery (connection, "State", g_variant_new_uint32 (1));
 
   packet = valent_test_fixture_expect_packet (fixture);
@@ -317,6 +309,7 @@ test_battery_plugin_handle_request (ValentTestFixture *fixture,
   v_assert_packet_cmpint (packet, "thresholdEvent", ==, 0);
   json_node_unref (packet);
 
+  VALENT_TEST_CHECK ("Plugin sends battery threshold updates");
   upower_set_battery (connection, "WarningLevel", g_variant_new_uint32 (3));
 
   packet = valent_test_fixture_expect_packet (fixture);
@@ -327,6 +320,7 @@ test_battery_plugin_handle_request (ValentTestFixture *fixture,
   json_node_unref (packet);
 
   /* Respond to a request */
+  VALENT_TEST_CHECK ("Plugin sends battery updates when requested");
   packet = valent_test_fixture_lookup_packet (fixture, "request-state");
   valent_test_fixture_handle_packet (fixture, packet);
 

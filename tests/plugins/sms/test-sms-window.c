@@ -22,7 +22,7 @@ test_sms_window (void)
   contacts = valent_test_contact_store_new ();
   messages = valent_test_sms_store_new ();
 
-  /* Construction */
+  VALENT_TEST_CHECK ("Window can be constructed");
   window = g_object_new (VALENT_TYPE_SMS_WINDOW,
                          "contact-store", contacts,
                          "message-store", messages,
@@ -32,7 +32,7 @@ test_sms_window (void)
   gtk_window_present (GTK_WINDOW (window));
   valent_test_await_pending ();
 
-  /* Properties */
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   contacts_out = valent_sms_window_get_contact_store (window);
   messages_out = valent_sms_window_get_message_store (window);
 
@@ -47,41 +47,42 @@ test_sms_window (void)
   g_assert_true (contacts == contacts_out);
   g_assert_true (messages == messages_out);
 
-  /* Activate win.new */
+  VALENT_TEST_CHECK ("Window action `win.new` starts a conversation");
   g_action_group_activate_action (G_ACTION_GROUP (window),
                                   "new",
                                   NULL);
   valent_test_await_pending ();
 
+  VALENT_TEST_CHECK ("Window method `search_contacts()` can search by name");
   valent_sms_window_search_contacts (window, "num");
   valent_test_await_pending ();
 
+  VALENT_TEST_CHECK ("Window method `search_contacts()` can search by number");
   valent_sms_window_search_contacts (window, "123");
   valent_test_await_pending ();
 
-  /* Activate win.previous */
+  VALENT_TEST_CHECK ("Window action `win.previous` closes a conversation");
   g_action_group_activate_action (G_ACTION_GROUP (window),
                                   "previous",
                                   NULL);
   valent_test_await_pending ();
 
-  /* Activate win.search */
+  VALENT_TEST_CHECK ("Window action `win.search` opens the search page");
   g_action_group_activate_action (G_ACTION_GROUP (window),
                                   "search",
                                   NULL);
   valent_test_await_pending ();
 
+  VALENT_TEST_CHECK ("Window method `search_messages()` can search by word");
   valent_sms_window_search_messages (window, "Thread");
   valent_test_await_pending ();
 
-  /* Show conversation */
+  VALENT_TEST_CHECK ("Window method `set_active_thread()` can open a conversation");
   valent_sms_window_set_active_thread (window, 1);
   valent_test_await_pending ();
 
   gtk_window_destroy (GTK_WINDOW (window));
-
-  while (window != NULL)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_nullptr (&window);
 }
 
 int

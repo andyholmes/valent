@@ -12,6 +12,7 @@ test_clipboard_plugin_preferences (void)
   PeasPluginInfo *info;
   GObject *prefs;
 
+  VALENT_TEST_CHECK ("Plugin can be constructed");
   engine = valent_get_plugin_engine ();
   info = peas_engine_get_plugin_info (engine, "clipboard");
   prefs = peas_engine_create_extension (engine,

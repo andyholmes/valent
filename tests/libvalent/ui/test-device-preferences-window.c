@@ -24,7 +24,7 @@ test_device_preference_window_basic (ValentTestFixture *fixture,
   gtk_window_present (window);
   valent_test_await_pending ();
 
-  /* Properties */
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (window,
                 "device", &device,
                 NULL);
@@ -38,9 +38,7 @@ test_device_preference_window_basic (ValentTestFixture *fixture,
   peas_engine_load_plugin (engine, info);
 
   gtk_window_destroy (window);
-
-  while (window != NULL)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_nullptr (&window);
 }
 
 int

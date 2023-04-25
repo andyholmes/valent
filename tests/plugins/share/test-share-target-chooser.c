@@ -23,6 +23,8 @@ test_share_target_chooser (void)
   files = g_list_store_new (G_TYPE_FILE);
   g_list_store_append (files, file);
 
+
+  VALENT_TEST_CHECK ("Window can be constructed");
   manager = valent_device_manager_get_default ();
   window = g_object_new (VALENT_TYPE_SHARE_TARGET_CHOOSER,
                          "files",          files,
@@ -34,20 +36,20 @@ test_share_target_chooser (void)
                 NULL);
   g_assert_true (files == files_out);
 
-  /* Wait for the window to open */
+  VALENT_TEST_CHECK ("Window can be realized");
   gtk_window_present (window);
   valent_test_await_pending ();
 
-  /* Wait for the manager to start */
+  VALENT_TEST_CHECK ("Window adds devices");
   valent_application_plugin_startup (VALENT_APPLICATION_PLUGIN (manager));
 
   while ((service = valent_mock_channel_service_get_instance ()) == NULL)
     g_main_context_iteration (NULL, FALSE);
 
-  /* ... */
   valent_device_manager_refresh (manager);
   valent_test_await_pending ();
 
+  VALENT_TEST_CHECK ("Window removes devices");
   valent_application_plugin_shutdown (VALENT_APPLICATION_PLUGIN (manager));
   valent_test_await_pending ();
 

@@ -147,7 +147,7 @@ test_gdk_clipboard (GdkClipboardFixture *fixture,
                                   "text/plain;charset=utf-8"));
   g_clear_pointer (&mimetypes, g_strfreev);
 
-  /* Text can be written */
+  VALENT_TEST_CHECK ("Adapter handles text written to the clipboard");
   text = g_uuid_string_random ();
   valent_clipboard_write_text (fixture->clipboard,
                                text,
@@ -156,7 +156,7 @@ test_gdk_clipboard (GdkClipboardFixture *fixture,
                                fixture);
   g_main_loop_run (fixture->loop);
 
-  /* Text can be read */
+  VALENT_TEST_CHECK ("Adapter handles text read from the clipboard");
   valent_clipboard_read_text (fixture->clipboard,
                               NULL,
                               (GAsyncReadyCallback)valent_clipboard_read_text_cb,
@@ -167,23 +167,22 @@ test_gdk_clipboard (GdkClipboardFixture *fixture,
   g_clear_pointer (&fixture->data, g_free);
   g_clear_pointer (&text, g_free);
 
-  /* Timestamp is updated */
+  VALENT_TEST_CHECK ("Adapter updates the content timestamp");
   timestamp = valent_clipboard_get_timestamp (fixture->clipboard);
   g_assert_cmpint (timestamp, !=, 0);
 
-  /* Mimetypes are updated */
+  VALENT_TEST_CHECK ("Adapter updates the content mime-types");
   mimetypes = valent_clipboard_get_mimetypes (fixture->clipboard);
   g_assert_nonnull (mimetypes);
   g_assert_true (g_strv_contains ((const char * const *)mimetypes,
                                   "text/plain;charset=utf-8"));
   g_clear_pointer (&mimetypes, g_strfreev);
 
-  /* Signals propagate from GdkClipboard */
+  VALENT_TEST_CHECK ("Adapter emits `ValentClipboardAdapter::changed`");
   g_signal_connect (fixture->clipboard,
                     "changed",
                     G_CALLBACK (on_changed),
                     fixture);
-
   display = gdk_display_get_default ();
   clipboard = gdk_display_get_clipboard (display);
 
