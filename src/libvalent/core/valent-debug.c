@@ -246,7 +246,7 @@ valent_debug_clear (void)
   if (log_channel != NULL)
     {
       g_clear_pointer (&log_channel, g_io_channel_unref);
-      g_log_set_default_handler (valent_log_handler, NULL);
+      g_log_set_default_handler (g_log_default_handler, NULL);
     }
   G_UNLOCK (log_mutex);
 
