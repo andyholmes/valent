@@ -22,10 +22,10 @@ test_sms_contact_row (void)
   bytes = g_resources_lookup_data ("/tests/contact.vcf", 0, NULL);
   contact = e_contact_new_from_vcard (g_bytes_get_data (bytes, NULL));
 
-  /* Construction */
+  VALENT_TEST_CHECK ("Widget can be constructed");
   row = valent_contact_row_new (contact);
 
-  /* Properties */
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_set (row,
                 "contact-name",    "Test Contact",
                 "contact-address", "123-456-7890",
@@ -41,7 +41,7 @@ test_sms_contact_row (void)
   g_assert_cmpstr (contact_name, ==, "Test Contact");
   g_assert_cmpstr (contact_addr, ==, "123-456-7890");
 
-  /* Display */
+  VALENT_TEST_CHECK ("Widget can be realized");
   list = gtk_list_box_new ();
   gtk_list_box_append (GTK_LIST_BOX (list), row);
 
@@ -63,7 +63,7 @@ test_sms_contact_list (void)
   contact = e_contact_new_from_vcard_with_uid (g_bytes_get_data (bytes, NULL),
                                                "4077i252298cf8ded4bfe");
 
-  /* Display */
+  VALENT_TEST_CHECK ("Row header function works correctly");
   list = gtk_list_box_new ();
   gtk_list_box_set_header_func (GTK_LIST_BOX (list),
                                 valent_contact_row_header_func,

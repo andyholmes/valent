@@ -12,13 +12,16 @@ test_runcommand_dialog (void)
 {
   g_autoptr (ValentRuncommandEditor) dialog = NULL;
 
+  VALENT_TEST_CHECK ("Window can be constructed");
   dialog = g_object_new (VALENT_TYPE_RUNCOMMAND_EDITOR, NULL);
   gtk_window_present (GTK_WINDOW (dialog));
 
+  VALENT_TEST_CHECK ("Window properties start empty");
   g_assert_cmpstr (valent_runcommand_editor_get_command (dialog), ==, "");
   g_assert_cmpstr (valent_runcommand_editor_get_name (dialog), ==, "");
   g_assert_cmpstr (valent_runcommand_editor_get_uuid (dialog), ==, "");
 
+  VALENT_TEST_CHECK ("Window properties can be set");
   valent_runcommand_editor_set_command (dialog, "command");
   valent_runcommand_editor_set_name (dialog, "name");
   valent_runcommand_editor_set_uuid (dialog, "uuid");
@@ -27,6 +30,7 @@ test_runcommand_dialog (void)
   g_assert_cmpstr (valent_runcommand_editor_get_name (dialog), ==, "name");
   g_assert_cmpstr (valent_runcommand_editor_get_uuid (dialog), ==, "uuid");
 
+  VALENT_TEST_CHECK ("Window properties can be cleared");
   valent_runcommand_editor_clear (dialog);
 
   g_assert_cmpstr (valent_runcommand_editor_get_command (dialog), ==, "");

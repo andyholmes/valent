@@ -36,8 +36,8 @@ static void
 set_device_properties (GDBusConnection *connection,
                        gboolean         is_present,
                        double           percentage,
-                       uint32_t          state,
-                       uint32_t          warning_level)
+                       uint32_t         state,
+                       uint32_t         warning_level)
 {
   GVariantDict dict;
 
@@ -66,112 +66,103 @@ set_device_properties (GDBusConnection *connection,
 static void
 test_battery_proxy (void)
 {
-  g_autoptr (GMainLoop) loop = NULL;
   g_autoptr (ValentBattery) battery = NULL;
   g_autoptr (GDBusConnection) connection = NULL;
 
   /* Setup the battery */
-  loop = g_main_loop_new (NULL, FALSE);
   battery = valent_battery_get_default ();
   connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL);
 
-  g_signal_connect_swapped (battery,
-                            "changed",
-                            G_CALLBACK (g_main_loop_quit),
-                            loop);
-
-  /* Initial State */
+  VALENT_TEST_CHECK ("Initial state is missing");
   g_assert_cmpint (valent_battery_current_charge (battery), ==, 0);
   g_assert_false (valent_battery_is_charging (battery));
   g_assert_false (valent_battery_is_present (battery));
   g_assert_cmpuint (valent_battery_threshold_event (battery), ==, 0);
 
   // NOTE: ValentBattery emits ::changed once when it initializes properties
-  g_main_loop_run (loop);
+  valent_test_await_signal (battery, "changed");
 
-  /* Initial Properties */
+  VALENT_TEST_CHECK ("Initial property state is empty");
   g_assert_cmpint (valent_battery_current_charge (battery), ==, 0);
   g_assert_false (valent_battery_is_charging (battery));
   g_assert_true (valent_battery_is_present (battery));
   g_assert_cmpuint (valent_battery_threshold_event (battery), ==, 0);
 
-  /* Percentage */
+  VALENT_TEST_CHECK ("The `current-charge` property updates with UPower");
   set_device_properties (connection, TRUE, 42.0, 0, 0);
-  g_main_loop_run (loop);
+  valent_test_await_signal (battery, "changed");
   g_assert_cmpint (valent_battery_current_charge (battery), ==, 42);
 
   set_device_properties (connection, TRUE, 0.0, 0, 0);
-  g_main_loop_run (loop);
+  valent_test_await_signal (battery, "changed");
   g_assert_cmpint (valent_battery_current_charge (battery), ==, 0);
 
 
-  /* Check device states correspend to correct `isCharging` values */
+  VALENT_TEST_CHECK ("UPower states are translated to `isCharging` values");
   set_device_properties (connection, TRUE, 0.0, UPOWER_STATE_CHARGING, 0);
-  g_main_loop_run (loop);
+  valent_test_await_signal (battery, "changed");
   g_assert_true (valent_battery_is_charging (battery));
 
   set_device_properties (connection, TRUE, 0.0, UPOWER_STATE_DISCHARGING, 0);
-  g_main_loop_run (loop);
+  valent_test_await_signal (battery, "changed");
   g_assert_false (valent_battery_is_charging (battery));
 
   set_device_properties (connection, TRUE, 0.0, UPOWER_STATE_PENDING_CHARGE, 0);
-  g_main_loop_run (loop);
+  valent_test_await_signal (battery, "changed");
   g_assert_true (valent_battery_is_charging (battery));
 
   set_device_properties (connection, TRUE, 0.0, UPOWER_STATE_PENDING_DISCHARGE, 0);
-  g_main_loop_run (loop);
+  valent_test_await_signal (battery, "changed");
   g_assert_false (valent_battery_is_charging (battery));
 
   set_device_properties (connection, TRUE, 0.0, UPOWER_STATE_FULLY_CHARGED, 0);
-  g_main_loop_run (loop);
+  valent_test_await_signal (battery, "changed");
   g_assert_true (valent_battery_is_charging (battery));
 
   set_device_properties (connection, TRUE, 0.0, UPOWER_STATE_EMPTY, 0);
-  g_main_loop_run (loop);
+  valent_test_await_signal (battery, "changed");
   g_assert_false (valent_battery_is_charging (battery));
 
 
-  /* Check warning levels correspond to correct `thresholdEvent` values */
+  VALENT_TEST_CHECK ("UPower warning levels are translated to `thresholdEvent` values");
   set_device_properties (connection, TRUE, 0.0, 0, UPOWER_LEVEL_LOW);
-  g_main_loop_run (loop);
+  valent_test_await_signal (battery, "changed");
   g_assert_cmpuint (valent_battery_threshold_event (battery), ==, 1);
 
   set_device_properties (connection, TRUE, 0.0, 0, UPOWER_LEVEL_NONE);
-  g_main_loop_run (loop);
+  valent_test_await_signal (battery, "changed");
   g_assert_cmpuint (valent_battery_threshold_event (battery), ==, 0);
 
   set_device_properties (connection, TRUE, 0.0, 0, UPOWER_LEVEL_CRITICAL);
-  g_main_loop_run (loop);
+  valent_test_await_signal (battery, "changed");
   g_assert_cmpuint (valent_battery_threshold_event (battery), ==, 1);
 
   set_device_properties (connection, TRUE, 0.0, 0, UPOWER_LEVEL_NONE);
-  g_main_loop_run (loop);
+  valent_test_await_signal (battery, "changed");
   g_assert_cmpuint (valent_battery_threshold_event (battery), ==, 0);
 
   set_device_properties (connection, TRUE, 0.0, 0, UPOWER_LEVEL_ACTION);
-  g_main_loop_run (loop);
+  valent_test_await_signal (battery, "changed");
   g_assert_cmpuint (valent_battery_threshold_event (battery), ==, 1);
 
 
-  /* Check battery insertion/removal is handled */
+  VALENT_TEST_CHECK ("Battery is missing when UPower `IsPresent` is FALSE");
   set_device_properties (connection, FALSE, 0.0, 0, 0);
-  g_main_loop_run (loop);
+  valent_test_await_signal (battery, "changed");
 
   g_assert_cmpint (valent_battery_current_charge (battery), ==, 0);
   g_assert_false (valent_battery_is_charging (battery));
   g_assert_false (valent_battery_is_present (battery));
   g_assert_cmpuint (valent_battery_threshold_event (battery), ==, 0);
 
+  VALENT_TEST_CHECK ("Battery is present when UPower `IsPresent` is TRUE");
   set_device_properties (connection, TRUE, 0.0, 0, 0);
-  g_main_loop_run (loop);
+  valent_test_await_signal (battery, "changed");
 
   g_assert_cmpint (valent_battery_current_charge (battery), ==, 0);
   g_assert_false (valent_battery_is_charging (battery));
   g_assert_true (valent_battery_is_present (battery));
   g_assert_cmpuint (valent_battery_threshold_event (battery), ==, 0);
-
-
-  g_signal_handlers_disconnect_by_data (battery, loop);
 }
 
 int

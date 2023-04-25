@@ -68,7 +68,7 @@ test_notifications_component_adapter (NotificationsComponentFixture *fixture,
                     G_CALLBACK (on_notification_removed),
                     fixture);
 
-  /* Properties */
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (fixture->adapter,
                 "plugin-info", &info,
                 NULL);

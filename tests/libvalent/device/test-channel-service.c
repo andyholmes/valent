@@ -333,7 +333,7 @@ test_channel_service_channel (ChannelServiceFixture *fixture,
   g_object_add_weak_pointer (G_OBJECT (fixture->endpoint),
                              (gpointer)&fixture->endpoint);
 
-  /* Properties */
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (fixture->channel,
                 "base-stream",   &base_stream_out,
                 "identity",      &identity_out,

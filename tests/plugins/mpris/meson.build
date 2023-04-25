@@ -8,8 +8,7 @@ plugin_mpris_test_deps = [
 ]
 
 plugin_mpris_tests = [
-  'test-mpris-component',
-  'test-mpris-impl',
+  'test-mpris-adapter',
   'test-mpris-plugin',
 ]
 

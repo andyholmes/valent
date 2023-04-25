@@ -26,6 +26,7 @@ test_notification_dialog (void)
                                NULL);
   reply_id = g_uuid_string_random ();
 
+  VALENT_TEST_CHECK ("Window can be constructed");
   dialog = g_object_new (VALENT_TYPE_NOTIFICATION_DIALOG,
                          "notification",   notification,
                          "reply-id",       reply_id,
@@ -34,6 +35,7 @@ test_notification_dialog (void)
   valent_notification_dialog_update_state (dialog, TRUE);
   gtk_window_present (GTK_WINDOW (dialog));
 
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (dialog,
                 "notification", &notification_out,
                 "reply-id",     &reply_id_out,
@@ -49,6 +51,7 @@ test_notification_dialog (void)
   valent_notification_dialog_set_reply_id (dialog, NULL);
   g_assert_null (valent_notification_dialog_get_reply_id (dialog));
 
+  VALENT_TEST_CHECK ("Dialog method `update_state()` functions correctly");
   valent_notification_dialog_update_state (dialog, FALSE);
 
   g_object_unref (dialog);

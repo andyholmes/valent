@@ -30,6 +30,8 @@ void             valent_test_event_free    (GDestroyNotify    free_func);
 gpointer         valent_test_await_adapter (gpointer          component);
 void             valent_test_await_boolean (gboolean         *done);
 void             valent_test_await_pending (void);
+void             valent_test_await_pointer (gpointer         *result);
+void             valent_test_await_nullptr (gpointer         *result);
 void             valent_test_await_signal  (gpointer          object,
                                             const char       *signal_name);
 void             valent_test_await_timeout (unsigned int      duration);
@@ -45,13 +47,52 @@ gboolean         valent_test_upload        (ValentChannel    *channel,
                                             GFile            *file,
                                             GError          **error);
 
+#define valent_test_await_boolean(ptr)        \
+  G_STMT_START {                              \
+    while (ptr != NULL && *ptr != TRUE)       \
+      g_main_context_iteration (NULL, FALSE); \
+                                              \
+    if (ptr != NULL)                          \
+      *ptr = FALSE;                           \
+  } G_STMT_END
+
+#define valent_test_await_pending()                \
+  G_STMT_START {                                   \
+    while (g_main_context_iteration (NULL, FALSE)) \
+      continue;                                    \
+  } G_STMT_END
+
+#define valent_test_await_pointer(ptr)             \
+  G_STMT_START {                                   \
+    while (ptr != NULL && *ptr == NULL)            \
+      g_main_context_iteration (NULL, FALSE);      \
+  } G_STMT_END
+
+#define valent_test_await_nullptr(ptr)             \
+  G_STMT_START {                                   \
+    while (ptr != NULL && *ptr != NULL)            \
+      g_main_context_iteration (NULL, FALSE);      \
+  } G_STMT_END
+
+
 #define valent_test_event_cmpstr(str)       \
   G_STMT_START {                            \
     char *event = valent_test_event_pop (); \
-    g_assert_cmpstr (event, ==, str);        \
+    g_assert_cmpstr (event, ==, str);       \
     g_free (event);                         \
   } G_STMT_END
 
+/*
+ * VALENT_TEST_CHECK: (skip)
+ * @message: format string
+ * @...: parameters to insert into the format string
+ *
+ * Print a message for the current test.
+ */
+#define VALENT_TEST_CHECK(message, ...)       \
+        (g_test_message ("\n[%s]: "message,  \
+                         g_test_get_path (), \
+                         ##__VA_ARGS__))     \
 
 /**
  * VALENT_NO_ASAN:

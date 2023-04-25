@@ -23,13 +23,13 @@ test_mousepad_plugin_handle_echo (ValentTestFixture *fixture,
 
   valent_test_fixture_connect (fixture, TRUE);
 
-  /* Expect remote state */
+  VALENT_TEST_CHECK ("Plugin sends the keyboard state on connect");
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mousepad.keyboardstate");
   v_assert_packet_true (packet, "state");
   json_node_unref (packet);
 
-  /* Mock Echo */
+  VALENT_TEST_CHECK ("Plugin handles an even echo when received");
   packet = valent_test_fixture_lookup_packet (fixture, "echo");
   valent_test_fixture_handle_packet (fixture, packet);
 }
@@ -42,7 +42,7 @@ test_mousepad_plugin_handle_request (ValentTestFixture *fixture,
 
   valent_test_fixture_connect (fixture, TRUE);
 
-  /* Expect remote state */
+  VALENT_TEST_CHECK ("Plugin sends the keyboard state on connect");
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mousepad.keyboardstate");
   v_assert_packet_true (packet, "state");
@@ -54,20 +54,20 @@ test_mousepad_plugin_handle_request (ValentTestFixture *fixture,
 
   valent_test_event_cmpstr ("POINTER MOTION 1.0 1.0");
 
-  /* Pointer Scroll */
+  VALENT_TEST_CHECK ("Plugin handles a request to scroll the pointer");
   packet = valent_test_fixture_lookup_packet (fixture, "pointer-axis");
   valent_test_fixture_handle_packet (fixture, packet);
 
   valent_test_event_cmpstr ("POINTER AXIS 0.0 1.0");
 
-  /* Single Click */
+  VALENT_TEST_CHECK ("Plugin handles a request to perform a single click");
   packet = valent_test_fixture_lookup_packet (fixture, "pointer-singleclick");
   valent_test_fixture_handle_packet (fixture, packet);
 
   valent_test_event_cmpstr ("POINTER BUTTON 1 1");
   valent_test_event_cmpstr ("POINTER BUTTON 1 0");
 
-  /* Double Click */
+  VALENT_TEST_CHECK ("Plugin handles a request to perform a double click");
   packet = valent_test_fixture_lookup_packet (fixture, "pointer-doubleclick");
   valent_test_fixture_handle_packet (fixture, packet);
 
@@ -76,40 +76,40 @@ test_mousepad_plugin_handle_request (ValentTestFixture *fixture,
   valent_test_event_cmpstr ("POINTER BUTTON 1 1");
   valent_test_event_cmpstr ("POINTER BUTTON 1 0");
 
-  /* Middle Click */
+  VALENT_TEST_CHECK ("Plugin handles a request to perform a middle click");
   packet = valent_test_fixture_lookup_packet (fixture, "pointer-middleclick");
   valent_test_fixture_handle_packet (fixture, packet);
 
   valent_test_event_cmpstr ("POINTER BUTTON 2 1");
   valent_test_event_cmpstr ("POINTER BUTTON 2 0");
 
-  /* Right Click */
+  VALENT_TEST_CHECK ("Plugin handles a request to perform a right click");
   packet = valent_test_fixture_lookup_packet (fixture, "pointer-rightclick");
   valent_test_fixture_handle_packet (fixture, packet);
 
   valent_test_event_cmpstr ("POINTER BUTTON 3 1");
   valent_test_event_cmpstr ("POINTER BUTTON 3 0");
 
-  /* Click */
+  VALENT_TEST_CHECK ("Plugin handles a request to perform a single hold");
   packet = valent_test_fixture_lookup_packet (fixture, "pointer-singlehold");
   valent_test_fixture_handle_packet (fixture, packet);
 
   valent_test_event_cmpstr ("POINTER BUTTON 1 1");
 
-  /* Click */
+  VALENT_TEST_CHECK ("Plugin handles a request to perform a single release");
   packet = valent_test_fixture_lookup_packet (fixture, "pointer-singlerelease");
   valent_test_fixture_handle_packet (fixture, packet);
 
   valent_test_event_cmpstr ("POINTER BUTTON 1 0");
 
-  /* Keypress */
+  VALENT_TEST_CHECK ("Plugin handles a request to press-release a keysym");
   packet = valent_test_fixture_lookup_packet (fixture, "keyboard-keysym");
   valent_test_fixture_handle_packet (fixture, packet);
 
   valent_test_event_cmpstr ("KEYSYM 97 1");
   valent_test_event_cmpstr ("KEYSYM 97 0");
 
-  /* Keypress (Modifiers) */
+  VALENT_TEST_CHECK ("Plugin handles a request to press-release a keysym with modifiers");
   packet = valent_test_fixture_lookup_packet (fixture, "keyboard-keysym-mask");
   valent_test_fixture_handle_packet (fixture, packet);
 
@@ -124,14 +124,14 @@ test_mousepad_plugin_handle_request (ValentTestFixture *fixture,
   valent_test_event_cmpstr ("KEYSYM 65505 0");
   valent_test_event_cmpstr ("KEYSYM 65515 0");
 
-  /* Keypress (Special) */
+  VALENT_TEST_CHECK ("Plugin handles a request to press-release a special key");
   packet = valent_test_fixture_lookup_packet (fixture, "keyboard-keysym-special");
   valent_test_fixture_handle_packet (fixture, packet);
 
   valent_test_event_cmpstr ("KEYSYM 65361 1");
   valent_test_event_cmpstr ("KEYSYM 65361 0");
 
-  /* Keypress (String) */
+  VALENT_TEST_CHECK ("Plugin handles a request to press-release a series of keysyms");
   packet = valent_test_fixture_lookup_packet (fixture, "keyboard-keysym-string");
   valent_test_fixture_handle_packet (fixture, packet);
 
@@ -155,24 +155,23 @@ test_mousepad_plugin_send_keyboard_request (ValentTestFixture *fixture,
 
   valent_test_fixture_connect (fixture, TRUE);
 
-  /* Expect remote state */
+  VALENT_TEST_CHECK ("Plugin sends the keyboard state on connect");
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mousepad.keyboardstate");
   v_assert_packet_true (packet, "state");
   json_node_unref (packet);
 
-  /* Receive endpoint keyboard state */
+  VALENT_TEST_CHECK ("Plugin handles the keyboard state");
   packet = valent_test_fixture_lookup_packet (fixture, "keyboardstate-true");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  /* Check event action */
+  VALENT_TEST_CHECK ("Plugin action `mousepad.event` is enabled");
   g_assert_true (g_action_group_get_action_enabled (actions, "mousepad.event"));
 
-  /* Send unicode keysym */
+  VALENT_TEST_CHECK ("Plugin action `mousepad.event` sends ASCII with modifiers");
   unsigned int keysym, mask;
   gunichar *w;
 
-  /* Send keysym with modifiers */
   keysym = 'a';
   mask = GDK_ALT_MASK | GDK_CONTROL_MASK | GDK_SHIFT_MASK | GDK_SUPER_MASK;
 
@@ -191,7 +190,7 @@ test_mousepad_plugin_send_keyboard_request (ValentTestFixture *fixture,
   v_assert_packet_true (packet, "super");
   json_node_unref (packet);
 
-  /* Send unicode keysym */
+  VALENT_TEST_CHECK ("Plugin action `mousepad.event` sends unicode keysyms");
   w = g_utf8_to_ucs4 ("🐱", -1, NULL, NULL, NULL);
   keysym = gdk_unicode_to_keyval (*w);
   mask = 0;
@@ -212,7 +211,8 @@ test_mousepad_plugin_send_keyboard_request (ValentTestFixture *fixture,
   v_assert_packet_no_field (packet, "super");
   json_node_unref (packet);
 
-  /* Send special key (aka non-printable ASCII) */
+  VALENT_TEST_CHECK ("Plugin action `mousepad.event` sends special keys "
+                     "(aka non-printable ASCII");
   // TODO iterate special keys
   keysym = GDK_KEY_F12;
   mask = 0;
@@ -241,23 +241,25 @@ test_mousepad_plugin_send_pointer_request (ValentTestFixture *fixture,
   JsonNode *packet;
   GVariantDict dict;
 
+  VALENT_TEST_CHECK ("Plugin sends the keyboard state on connect");
   valent_test_fixture_connect (fixture, TRUE);
 
-  /* Expect remote state */
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mousepad.keyboardstate");
   v_assert_packet_true (packet, "state");
   json_node_unref (packet);
 
+  VALENT_TEST_CHECK ("Plugin action `mousepad.event` is disabled when `keyboardstate` is `false`");
   g_assert_false (g_action_group_get_action_enabled (actions, "mousepad.event"));
 
-  /* Receive endpoint keyboard state */
+  VALENT_TEST_CHECK ("Plugin handles the keyboard state");
   packet = valent_test_fixture_lookup_packet (fixture, "keyboardstate-true");
   valent_test_fixture_handle_packet (fixture, packet);
 
+  VALENT_TEST_CHECK ("Plugin action `mousepad.event` is enabled when `keyboardstate` is `true`");
   g_assert_true (g_action_group_get_action_enabled (actions, "mousepad.event"));
 
-  /* Pointer Motion */
+  VALENT_TEST_CHECK ("Plugin action `mousepad.event` moves the pointer");
   g_variant_dict_init (&dict, NULL);
   g_variant_dict_insert (&dict, "dx", "d", 1.0);
   g_variant_dict_insert (&dict, "dy", "d", 1.0);
@@ -270,7 +272,7 @@ test_mousepad_plugin_send_pointer_request (ValentTestFixture *fixture,
   v_assert_packet_cmpfloat (packet, "dy", >=, 1.0);
   json_node_unref (packet);
 
-  /* Pointer Axis */
+  VALENT_TEST_CHECK ("Plugin action `mousepad.event` moves the pointer axis");
   g_variant_dict_init (&dict, NULL);
   g_variant_dict_insert (&dict, "dx", "d", 0.0);
   g_variant_dict_insert (&dict, "dy", "d", 1.0);
@@ -302,7 +304,7 @@ test_mousepad_plugin_fuzz (ValentTestFixture *fixture,
   valent_test_fixture_connect (fixture, TRUE);
   g_test_log_set_fatal_handler (valent_test_mute_fuzzing, NULL);
 
-  /* Expect remote state */
+  VALENT_TEST_CHECK ("Plugin sends the keyboard state on connect");
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mousepad.keyboardstate");
   v_assert_packet_true (packet, "state");

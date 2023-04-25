@@ -156,7 +156,7 @@ test_sms_store (void)
                     G_CALLBACK (on_message_removed),
                     NULL);
 
-  /* Add messages */
+  VALENT_TEST_CHECK ("Store can have messages added");
   valent_sms_store_add_messages (store,
                                  messages,
                                  NULL,
@@ -165,7 +165,7 @@ test_sms_store (void)
   g_main_loop_run (loop);
   g_assert_cmpint (n_added, ==, 3);
 
-  /* Update a message */
+  VALENT_TEST_CHECK ("Store can have messages updated");
   valent_sms_store_add_message (store,
                                 g_ptr_array_index (messages, 2),
                                 NULL,
@@ -174,14 +174,14 @@ test_sms_store (void)
   g_main_loop_run (loop);
   g_assert_cmpint (n_changed, ==, 1);
 
-  /* Thread Date */
+  VALENT_TEST_CHECK ("Store method `get_thread_date()` works");
   thread_date = valent_sms_store_get_thread_date (store, 1);
   g_assert_cmpint (thread_date, ==, 2);
 
   thread_date = valent_sms_store_get_thread_date (store, 2);
   g_assert_cmpint (thread_date, ==, 3);
 
-  /* Find Messages (expect 2 results) */
+  VALENT_TEST_CHECK ("Store can have messages searched");
   valent_sms_store_find_messages (store,
                                   "Message 1",
                                   NULL,
@@ -189,7 +189,7 @@ test_sms_store (void)
                                   loop);
   g_main_loop_run (loop);
 
-  /* Get Message (expect 1 result) */
+  VALENT_TEST_CHECK ("Store can retrieve messages by ID");
   valent_sms_store_get_message (store,
                                 1,
                                 NULL,
@@ -197,7 +197,7 @@ test_sms_store (void)
                                 loop);
   g_main_loop_run (loop);
 
-  /* Get thread (expect 2 items) */
+  VALENT_TEST_CHECK ("Store can retrieve threads by ID");
   summary = valent_sms_store_get_thread (store, 1);
   signal_id = g_signal_connect (summary,
                                 "items-changed",
@@ -207,7 +207,7 @@ test_sms_store (void)
   g_clear_signal_handler (&signal_id, summary);
   g_clear_object (&summary);
 
-  /* Get summary (expect 2 items) */
+  VALENT_TEST_CHECK ("Store can retrieve a list of threads");
   summary = valent_sms_store_get_summary (store);
   signal_id = g_signal_connect (summary,
                                 "items-changed",
@@ -216,7 +216,7 @@ test_sms_store (void)
   g_main_loop_run (loop);
   g_clear_signal_handler (&signal_id, summary);
 
-  /* Remove a thread (expect 2 signals) */
+  VALENT_TEST_CHECK ("Store can have threads removed");
   valent_sms_store_remove_thread (store,
                                   1,
                                   NULL,
@@ -225,7 +225,7 @@ test_sms_store (void)
   g_main_loop_run (loop);
   g_assert_cmpint (n_removed, ==, 2);
 
-  /* Remove a message from a thread (expect 1 signal) */
+  VALENT_TEST_CHECK ("Store can have messages removed");
   valent_sms_store_remove_message (store,
                                    3,
                                    NULL,

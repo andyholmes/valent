@@ -12,7 +12,13 @@ test_photo_plugin_basic (ValentTestFixture *fixture,
 {
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
 
+  VALENT_TEST_CHECK ("Plugin has expected actions");
   g_assert_true (g_action_group_has_action (actions, "photo.request"));
+
+  valent_test_fixture_connect (fixture, TRUE);
+
+  VALENT_TEST_CHECK ("Plugin action `photo.request` is enabled when connected");
+  g_assert_true (g_action_group_get_action_enabled (actions, "photo.request"));
 }
 
 static void
@@ -28,14 +34,14 @@ test_photo_plugin_send_request (ValentTestFixture *fixture,
 
   g_assert_true (g_action_group_get_action_enabled (actions, "photo.request"));
 
-  /* Request a photo from the endpoint */
+  VALENT_TEST_CHECK ("Plugin action `photo.request` sends a request for a photo");
   g_action_group_activate_action (actions, "photo.request", NULL);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.photo.request");
   json_node_unref (packet);
 
-  /* Upload a photo to the device */
+  VALENT_TEST_CHECK ("Plugin handles a transfer in response to a request");
   file = g_file_new_for_uri ("resource:///tests/image.png");
   packet = valent_test_fixture_lookup_packet (fixture, "photo-transfer");
   valent_test_fixture_upload (fixture, packet, file, &error);

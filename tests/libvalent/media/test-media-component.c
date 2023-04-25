@@ -79,7 +79,7 @@ test_media_component_adapter (MediaComponentFixture *fixture,
 {
   PeasPluginInfo *plugin_info;
 
-  /* Properties */
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (fixture->adapter,
                 "plugin-info", &plugin_info,
                 NULL);

@@ -14,23 +14,28 @@ test_sms_plugin_basic (ValentTestFixture *fixture,
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *packet;
 
+  VALENT_TEST_CHECK ("Plugin has expected actions");
+  g_assert_true (g_action_group_has_action (actions, "sms.fetch"));
+  g_assert_true (g_action_group_has_action (actions, "sms.messaging"));
+
   valent_test_fixture_connect (fixture, TRUE);
 
-  /* Expect request (thread digest) */
+  VALENT_TEST_CHECK ("Plugin actions are enabled when connected");
+  g_assert_true (g_action_group_get_action_enabled (actions, "sms.fetch"));
+  g_assert_true (g_action_group_get_action_enabled (actions, "sms.messaging"));
+
+  VALENT_TEST_CHECK ("Plugin sends the thread list on connect");
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.sms.request_conversations");
   json_node_unref (packet);
 
-  g_assert_true (g_action_group_has_action (actions, "sms.messaging"));
-  g_assert_true (g_action_group_has_action (actions, "sms.fetch"));
-
-  /* Expect request (thread digest) */
+  VALENT_TEST_CHECK ("Plugin action `sms.fetch` sends a request for the thread list");
   g_action_group_activate_action (actions, "sms.fetch", NULL);
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.sms.request_conversations");
   json_node_unref (packet);
 
-  /* Open window */
+  VALENT_TEST_CHECK ("Plugin action `sms.messaging` opens the messaging window");
   g_action_group_activate_action (actions, "sms.messaging", NULL);
 }
 
@@ -42,29 +47,32 @@ test_sms_plugin_handle_request (ValentTestFixture *fixture,
 
   valent_test_fixture_connect (fixture, TRUE);
 
-  /* Expect request (thread digest), then respond */
+  VALENT_TEST_CHECK ("Plugin sends the thread list on connect");
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.sms.request_conversations");
   json_node_unref (packet);
 
+  VALENT_TEST_CHECK ("Plugin handles the thread list");
   packet = valent_test_fixture_lookup_packet (fixture, "thread-digest");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  /* Expect request (thread 1), then respond */
+  VALENT_TEST_CHECK ("Plugin responds the thread list, requesting a thread (1)");
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.sms.request_conversation");
   v_assert_packet_cmpint (packet, "threadID", ==, 1);
   json_node_unref (packet);
 
+  VALENT_TEST_CHECK ("Plugin handles the requested thread (1)");
   packet = valent_test_fixture_lookup_packet (fixture, "thread-1");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  /* Expect request (thread 2), then respond */
+  VALENT_TEST_CHECK ("Plugin responds the thread list, requesting a thread (2)");
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.sms.request_conversation");
   v_assert_packet_cmpint (packet, "threadID", ==, 2);
   json_node_unref (packet);
 
+  VALENT_TEST_CHECK ("Plugin handles the requested thread (2)");
   packet = valent_test_fixture_lookup_packet (fixture, "thread-2");
   valent_test_fixture_handle_packet (fixture, packet);
 }

@@ -26,14 +26,14 @@ test_sms_conversation (void)
   messages = valent_test_sms_store_new ();
   thread_id = 1;
 
-  /* Construction */
+  VALENT_TEST_CHECK ("Widget can be constructed");
   conversation = g_object_new (VALENT_TYPE_SMS_CONVERSATION,
                                "contact-store", contacts,
                                "message-store", messages,
                                "thread-id",     thread_id,
                                NULL);
 
-  /* Display */
+  VALENT_TEST_CHECK ("Widget can be realized");
   window = g_object_new (GTK_TYPE_WINDOW,
                          "child",          conversation,
                          "default-height", 480,
@@ -44,7 +44,7 @@ test_sms_conversation (void)
   gtk_window_present (GTK_WINDOW (window));
   valent_test_await_pending ();
 
-  /* Properties */
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (conversation,
                 "contact-store", &contacts_out,
                 "message-store", &messages_out,
@@ -56,9 +56,7 @@ test_sms_conversation (void)
   g_assert_cmpint (thread_id, ==, valent_sms_conversation_get_thread_id (VALENT_SMS_CONVERSATION (conversation)));
 
   gtk_window_destroy (GTK_WINDOW (window));
-
-  while (window != NULL)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_nullptr (&window);
 }
 
 int

@@ -12,6 +12,7 @@ test_lock_plugin_basic (ValentTestFixture *fixture,
 {
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
 
+  VALENT_TEST_CHECK ("Plugin actions are available");
   g_assert_true (g_action_group_has_action (actions, "lock.state"));
 }
 
@@ -23,7 +24,7 @@ test_lock_plugin_handle_request (ValentTestFixture *fixture,
 
   valent_test_fixture_connect (fixture, TRUE);
 
-  /* Receive the remote locked state (requested on connect) */
+  VALENT_TEST_CHECK ("Plugin requests locked state on connect");
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.lock.request");
   v_assert_packet_true (packet, "requestLocked");
@@ -32,7 +33,7 @@ test_lock_plugin_handle_request (ValentTestFixture *fixture,
   packet = valent_test_fixture_lookup_packet (fixture, "is-locked");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  /* Receive a request for the local locked state */
+  VALENT_TEST_CHECK ("Plugin sends lock state when requested");
   packet = valent_test_fixture_lookup_packet (fixture, "request-locked");
   valent_test_fixture_handle_packet (fixture, packet);
 
@@ -41,13 +42,22 @@ test_lock_plugin_handle_request (ValentTestFixture *fixture,
   v_assert_packet_false (packet, "isLocked");
   json_node_unref (packet);
 
-  /* Receive a lock (message) */
+  VALENT_TEST_CHECK ("Plugin handles request to change locked state to TRUE");
   packet = valent_test_fixture_lookup_packet (fixture, "set-locked");
   valent_test_fixture_handle_packet (fixture, packet);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.lock");
   v_assert_packet_true (packet, "isLocked");
+  json_node_unref (packet);
+
+  VALENT_TEST_CHECK ("Plugin handles request to change locked state to FALSE");
+  packet = valent_test_fixture_lookup_packet (fixture, "set-unlocked");
+  valent_test_fixture_handle_packet (fixture, packet);
+
+  packet = valent_test_fixture_expect_packet (fixture);
+  v_assert_packet_type (packet, "kdeconnect.lock");
+  v_assert_packet_false (packet, "isLocked");
   json_node_unref (packet);
 }
 
@@ -60,7 +70,7 @@ test_lock_plugin_send_request (ValentTestFixture *fixture,
 
   valent_test_fixture_connect (fixture, TRUE);
 
-  /* expect connect packet */
+  VALENT_TEST_CHECK ("Plugin requests locked state on connect");
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.lock.request");
   v_assert_packet_true (packet, "requestLocked");
@@ -69,7 +79,7 @@ test_lock_plugin_send_request (ValentTestFixture *fixture,
   packet = valent_test_fixture_lookup_packet (fixture, "is-unlocked");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  /* lock the endpoint */
+  VALENT_TEST_CHECK ("Plugin sends request to change the locked state to TRUE");
   g_assert_true (g_action_group_get_action_enabled (actions, "lock.state"));
   g_action_group_change_action_state (actions, "lock.state",
                                       g_variant_new_boolean (TRUE));
@@ -82,7 +92,7 @@ test_lock_plugin_send_request (ValentTestFixture *fixture,
   packet = valent_test_fixture_lookup_packet (fixture, "is-locked");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  /* lock the endpoint (message) */
+  VALENT_TEST_CHECK ("Plugin sends request to change the locked state to FALSE");
   g_assert_true (g_action_group_get_action_enabled (actions, "lock.state"));
   g_action_group_change_action_state (actions, "lock.state",
                                       g_variant_new_boolean (FALSE));

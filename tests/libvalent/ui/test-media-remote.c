@@ -22,7 +22,7 @@ test_media_remote (void)
                          "players", list,
                          NULL);
 
-  /* Properties */
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (remote,
                 "players", &players,
                 NULL);

@@ -298,13 +298,65 @@ valent_test_await_adapter (gpointer component)
  *
  * Wait for @done to be set to %TRUE, while iterating the main context.
  *
+ * This function will reset @done to %FALSE, before returning.
+ *
  * This is useful for iterating the main context until an asynchronous operation
  * completes, rather than running a loop.
  */
 void
-valent_test_await_boolean (gboolean *done)
+(valent_test_await_boolean) (gboolean *done)
 {
   while (done != NULL && *done != TRUE)
+    g_main_context_iteration (NULL, FALSE);
+
+  if (done != NULL)
+    *done = FALSE;
+}
+
+/**
+ * valent_test_await_pending:
+ *
+ * Wait for any pending sources to dispatch.
+ *
+ * This is useful for iterating the main context until known operations complete
+ * that can't be introspected by tasks (i.e. internal asynchronous operations).
+ */
+void
+(valent_test_await_pending) (void)
+{
+  while (g_main_context_iteration (NULL, FALSE))
+    continue;
+}
+
+/**
+ * valent_test_await_pointer:
+ * @result: a pointer to a `gpointer` (i.e. `void **`)
+ *
+ * Wait for @ptr to be changed from %NULL, while iterating the main context.
+ *
+ * This is useful for iterating the main context until an asynchronous operation
+ * completes, rather than running a loop.
+ */
+void
+(valent_test_await_pointer) (gpointer *result)
+{
+  while (result != NULL && *result == NULL)
+    g_main_context_iteration (NULL, FALSE);
+}
+
+/**
+ * valent_test_await_null_pointer:
+ * @result: a pointer to a `gpointer` (i.e. `void **`)
+ *
+ * Wait for @ptr to be changed to %NULL, while iterating the main context.
+ *
+ * This is useful for iterating the main context until an asynchronous operation
+ * completes, rather than running a loop.
+ */
+void
+(valent_test_await_nullptr) (gpointer *result)
+{
+  while (result != NULL && *result != NULL)
     g_main_context_iteration (NULL, FALSE);
 }
 
@@ -326,26 +378,8 @@ valent_test_await_signal (gpointer    object,
                                          signal_name,
                                          G_CALLBACK (valent_test_await_signal_cb),
                                          &done);
-
-  while (!done)
-    g_main_context_iteration (NULL, FALSE);
-
+  valent_test_await_boolean (&done);
   g_clear_signal_handler (&handler_id, G_OBJECT (object));
-}
-
-/**
- * valent_test_await_pending:
- *
- * Wait for any pending sources to dispatch.
- *
- * This is useful for iterating the main context until known operations complete
- * that can't be introspected by tasks (i.e. internal asynchronous operations).
- */
-void
-valent_test_await_pending (void)
-{
-  while (g_main_context_iteration (NULL, FALSE))
-    continue;
 }
 
 static gboolean

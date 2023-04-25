@@ -34,6 +34,7 @@ test_share_plugin_basic (ValentTestFixture *fixture,
 {
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
 
+  VALENT_TEST_CHECK ("Plugin has expected actions");
   g_assert_true (g_action_group_has_action (actions, "share.chooser"));
   g_assert_true (g_action_group_has_action (actions, "share.cancel"));
   g_assert_true (g_action_group_has_action (actions, "share.open"));
@@ -41,6 +42,17 @@ test_share_plugin_basic (ValentTestFixture *fixture,
   g_assert_true (g_action_group_has_action (actions, "share.uri"));
   g_assert_true (g_action_group_has_action (actions, "share.uris"));
   g_assert_true (g_action_group_has_action (actions, "share.view"));
+
+  valent_test_fixture_connect (fixture, TRUE);
+
+  VALENT_TEST_CHECK ("Plugin actions are enabled when connected");
+  g_assert_true (g_action_group_get_action_enabled (actions, "share.chooser"));
+  g_assert_true (g_action_group_get_action_enabled (actions, "share.cancel"));
+  g_assert_true (g_action_group_get_action_enabled (actions, "share.open"));
+  g_assert_true (g_action_group_get_action_enabled (actions, "share.text"));
+  g_assert_true (g_action_group_get_action_enabled (actions, "share.uri"));
+  g_assert_true (g_action_group_get_action_enabled (actions, "share.uris"));
+  g_assert_true (g_action_group_get_action_enabled (actions, "share.view"));
 }
 
 static void
@@ -54,26 +66,26 @@ test_share_plugin_handle_request (ValentTestFixture *fixture,
   valent_test_fixture_connect (fixture, TRUE);
   file = g_file_new_for_uri ("resource:///tests/image.png");
 
-  /* Receive a file */
+  VALENT_TEST_CHECK ("Plugin handles receiving a file");
   packet = valent_test_fixture_lookup_packet (fixture, "share-file");
   valent_test_fixture_upload (fixture, packet, file, &error);
   g_assert_no_error (error);
 
-  /* Receive a file (Legacy) */
+  VALENT_TEST_CHECK ("Plugin handles receiving a file (legacy)");
   packet = valent_test_fixture_lookup_packet (fixture, "share-file-legacy");
   valent_test_fixture_upload (fixture, packet, file, &error);
   g_assert_no_error (error);
 
-  /* Receive a file (Open) */
+  VALENT_TEST_CHECK ("Plugin handles receiving a file, then opening it");
   packet = valent_test_fixture_lookup_packet (fixture, "share-file-open");
   valent_test_fixture_upload (fixture, packet, file, &error);
   g_assert_no_error (error);
 
-  /* Receive text */
+  VALENT_TEST_CHECK ("Plugin handles receiving text");
   packet = valent_test_fixture_lookup_packet (fixture, "share-text");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  /* Receive a URL */
+  VALENT_TEST_CHECK ("Plugin handles receiving a URL, then opening it");
   packet = valent_test_fixture_lookup_packet (fixture, "share-url");
   valent_test_fixture_handle_packet (fixture, packet);
   valent_test_await_pending ();
@@ -94,7 +106,7 @@ test_share_plugin_open (ValentTestFixture *fixture,
 
   g_assert_true (g_action_group_get_action_enabled (actions, "share.open"));
 
-  /* Expect bogus URIs to be rejected */
+  VALENT_TEST_CHECK ("Plugin action `share.open` rejects invalid URIs");
   if (g_test_subprocess ())
     {
       g_action_group_activate_action (actions,
@@ -105,7 +117,7 @@ test_share_plugin_open (ValentTestFixture *fixture,
   g_test_trap_subprocess (NULL, 0, 0);
   g_test_trap_assert_failed ();
 
-  /* Open a URL */
+  VALENT_TEST_CHECK ("Plugin action `share.open` sends a request to open a URI");
   g_action_group_activate_action (actions,
                                   "share.open",
                                   g_variant_new_string ("tel:5552368"));
@@ -115,7 +127,7 @@ test_share_plugin_open (ValentTestFixture *fixture,
   v_assert_packet_cmpstr (packet, "url", ==, "tel:5552368");
   json_node_unref (packet);
 
-  /* Open a file */
+  VALENT_TEST_CHECK ("Plugin action `share.open` sends a request to open a file");
   file = g_file_new_for_uri (test_files[0]);
   info = g_file_query_info (file,
                             G_FILE_ATTRIBUTE_STANDARD_SIZE,
@@ -155,7 +167,7 @@ test_share_plugin_text (ValentTestFixture *fixture,
 
   g_assert_true (g_action_group_get_action_enabled (actions, "share.text"));
 
-  /* Share text */
+  VALENT_TEST_CHECK ("Plugin action `share.text` sends a request to share text");
   text = g_uuid_string_random ();
   g_action_group_activate_action (actions,
                                   "share.text",
@@ -182,7 +194,7 @@ test_share_plugin_uri (ValentTestFixture *fixture,
 
   g_assert_true (g_action_group_get_action_enabled (actions, "share.uri"));
 
-  /* Expect bogus URIs to be rejected */
+  VALENT_TEST_CHECK ("Plugin action `share.uri` rejects invalid URIs");
   if (g_test_subprocess ())
     {
       g_action_group_activate_action (actions,
@@ -193,7 +205,7 @@ test_share_plugin_uri (ValentTestFixture *fixture,
   g_test_trap_subprocess (NULL, 0, 0);
   g_test_trap_assert_failed ();
 
-  /* Share a URL */
+  VALENT_TEST_CHECK ("Plugin action `share.uri` sends a request to share a URI");
   g_action_group_activate_action (actions,
                                   "share.uri",
                                   g_variant_new_string ("https://gnome.org"));
@@ -203,7 +215,7 @@ test_share_plugin_uri (ValentTestFixture *fixture,
   v_assert_packet_cmpstr (packet, "url", ==, "https://gnome.org");
   json_node_unref (packet);
 
-  /* Expect file URIs to be converted to uploads */
+  VALENT_TEST_CHECK ("Plugin action `share.uri` converts file URIs to uploads");
   file = g_file_new_for_uri (test_files[0]);
   info = g_file_query_info (file,
                             G_FILE_ATTRIBUTE_STANDARD_SIZE,
@@ -248,11 +260,12 @@ test_share_plugin_uris (ValentTestFixture *fixture,
 
   g_assert_true (g_action_group_get_action_enabled (actions, "share.uris"));
 
+  VALENT_TEST_CHECK ("Plugin action `share.uris` sends multiple requests");
   g_action_group_activate_action (actions,
                                   "share.uris",
                                   g_variant_new_strv (test_uris, n_test_uris));
 
-  /* Expect URIs to be sent as URLs */
+  VALENT_TEST_CHECK ("Plugin action `share.uris` requests to share URIs as URLs");
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.share.request");
   v_assert_packet_cmpstr (packet, "url", ==, "mailto:contact@andyholmes.ca");
@@ -269,6 +282,7 @@ test_share_plugin_uris (ValentTestFixture *fixture,
   json_node_unref (packet);
 
   /* Expect File URIs to be converted to uploads */
+  VALENT_TEST_CHECK ("Plugin action `share.uris` converts file URIs to uploads");
   for (unsigned int i = 0; i < 4; i++)
     {
       packet = valent_test_fixture_expect_packet (fixture);

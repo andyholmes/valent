@@ -14,11 +14,12 @@ test_presenter_remote (ValentTestFixture *fixture,
   GtkWindow *remote = NULL;
   ValentDevice *device = NULL;
 
+  VALENT_TEST_CHECK ("Plugin can be constructed");
   remote = g_object_new (VALENT_TYPE_PRESENTER_REMOTE,
                          "device", fixture->device,
                          NULL);
 
-  /* Properties */
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (remote,
                 "device", &device,
                 NULL);
