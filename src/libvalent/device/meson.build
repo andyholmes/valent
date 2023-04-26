@@ -34,6 +34,7 @@ install_headers(libvalent_device_public_headers,
 
 # Sources
 libvalent_device_public_sources = [
+  'libvalent-device.c',
   'valent-channel.c',
   'valent-channel-service.c',
   'valent-device.c',
@@ -56,6 +57,15 @@ libvalent_device_enums = gnome.mkenums_simple('valent-device-enums',
 )
 libvalent_device_generated_sources += [libvalent_device_enums[0]]
 libvalent_device_generated_headers += [libvalent_device_enums[1]]
+
+
+# GResources
+libvalent_device_resources = gnome.compile_resources('libvalent-device-resources',
+                                                     'libvalent-device.gresource.xml',
+  c_name: 'valent_device',
+)
+libvalent_device_generated_sources += libvalent_device_resources
+libvalent_device_generated_headers += [libvalent_device_resources[1]]
 
 
 # Dependencies

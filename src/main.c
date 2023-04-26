@@ -40,7 +40,7 @@ main (int   argc,
       char *argv[])
 {
   int ret;
-  g_autoptr (ValentApplication) service = NULL;
+  g_autoptr (GApplication) service = NULL;
 
   /* Set up gettext translations */
   bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);

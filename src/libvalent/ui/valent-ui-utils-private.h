@@ -4,6 +4,7 @@
 #pragma once
 
 #include <glib.h>
+#include <gtk/gtk.h>
 
 G_BEGIN_DECLS
 
@@ -25,7 +26,8 @@ typedef enum {
   TOTEM_TIME_FLAG_MSECS      = (1 << 3),
 } TotemTimeFlag;
 
-char * valent_media_time_to_string (int64_t       msecs,
-                                    TotemTimeFlag flags);
+char * valent_media_time_to_string          (int64_t        msecs,
+                                             TotemTimeFlag  flags);
+void   valent_ui_insert_application_actions (GtkWidget     *widget);
 
 G_END_DECLS

@@ -881,6 +881,14 @@ valent_device_manager_constructed (GObject *object)
       g_warning ("%s(): %s", G_STRFUNC, error->message);
     }
 
+  /* ... */
+  if (default_manager == NULL)
+    {
+      default_manager = self;
+      g_object_add_weak_pointer (G_OBJECT (default_manager),
+                                 (gpointer)&default_manager);
+    }
+
   G_OBJECT_CLASS (valent_device_manager_parent_class)->constructed (object);
 }
 
@@ -1011,13 +1019,7 @@ ValentDeviceManager *
 valent_device_manager_get_default (void)
 {
   if (default_manager == NULL)
-    {
-      default_manager = g_object_new (VALENT_TYPE_DEVICE_MANAGER,
-                                      NULL);
-
-      g_object_add_weak_pointer (G_OBJECT (default_manager),
-                                 (gpointer)&default_manager);
-    }
+    return g_object_new (VALENT_TYPE_DEVICE_MANAGER, NULL);
 
   return default_manager;
 }

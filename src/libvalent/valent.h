@@ -10,6 +10,7 @@ G_BEGIN_DECLS
 #define VALENT_INSIDE
 
 // libvalent-core
+#include "core/valent-application.h"
 #include "core/valent-application-plugin.h"
 #include "core/valent-certificate.h"
 #include "core/valent-component.h"
@@ -63,7 +64,6 @@ G_BEGIN_DECLS
 #include "device/valent-packet.h"
 
 // libvalent-ui
-#include "ui/valent-application.h"
 #include "ui/valent-device-gadget.h"
 #include "ui/valent-device-preferences-group.h"
 #include "ui/valent-preferences-page.h"
