@@ -49,6 +49,35 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 /*
  * org.mpris.MediaPlayer2
  */
+static void
+application_method_call (GDBusConnection       *connection,
+                         const char            *sender,
+                         const char            *object_path,
+                         const char            *interface_name,
+                         const char            *method_name,
+                         GVariant              *parameters,
+                         GDBusMethodInvocation *invocation,
+                         gpointer               user_data)
+{
+  g_assert (VALENT_IS_MPRIS_IMPL (user_data));
+  g_assert (method_name != NULL);
+
+  if (g_str_equal (method_name, "Raise"))
+    {
+      GApplication *application = g_application_get_default ();
+
+      if (application != NULL)
+        {
+          g_action_group_activate_action (G_ACTION_GROUP (application),
+                                          "media-remote",
+                                          NULL);
+        }
+    }
+
+  /* Silently ignore method calls */
+  g_dbus_method_invocation_return_value (invocation, NULL);
+}
+
 static GVariant *
 application_get_property (GDBusConnection  *connection,
                           const char       *sender,
@@ -67,18 +96,21 @@ application_get_property (GDBusConnection  *connection,
   if ((value = g_hash_table_lookup (self->cache, property_name)) != NULL)
     return g_variant_ref_sink (value);
 
-  if (strcmp (property_name, "Identity") == 0)
+  if (g_str_equal (property_name, "Identity"))
     value = g_variant_new_string (valent_media_player_get_name (self->player));
-  else if (strcmp (property_name, "CanQuit") == 0 ||
-           strcmp (property_name, "CanRaise") == 0 ||
-           strcmp (property_name, "CanSetFullscreen") == 0 ||
-           strcmp (property_name, "Fullscreen") == 0 ||
-           strcmp (property_name, "HasTrackList") == 0)
+  else if (g_str_equal (property_name, "CanQuit"))
     value = g_variant_new_boolean (FALSE);
-  else if (strcmp (property_name, "DesktopEntry") == 0)
+  else if (g_str_equal (property_name, "CanRaise"))
+    value = g_variant_new_boolean (TRUE);
+  else if (g_str_equal (property_name, "CanSetFullscreen"))
+    value = g_variant_new_boolean (FALSE);
+  else if (g_str_equal (property_name, "DesktopEntry"))
     value = g_variant_new_string (APPLICATION_ID".desktop");
-  else if (strcmp (property_name, "SupportedMimeTypes") == 0 ||
-           strcmp (property_name, "SupportedUriSchemes") == 0)
+  else if (g_str_equal (property_name, "Fullscreen") ||
+           g_str_equal (property_name, "HasTrackList"))
+    value = g_variant_new_boolean (FALSE);
+  else if (g_str_equal (property_name, "SupportedMimeTypes") ||
+           g_str_equal (property_name, "SupportedUriSchemes"))
     value = g_variant_new_strv (NULL, 0);
 
   if (value != NULL)
@@ -112,20 +144,6 @@ application_set_property (GDBusConnection  *connection,
   /* Silently ignore property setters */
   return TRUE;
 }
-
-static void
-application_method_call (GDBusConnection       *connection,
-                         const char            *sender,
-                         const char            *object_path,
-                         const char            *interface_name,
-                         const char            *method_name,
-                         GVariant              *parameters,
-                         GDBusMethodInvocation *invocation,
-                         gpointer               user_data)
-{
-  /* Silently ignore method calls */
-  g_dbus_method_invocation_return_value (invocation, NULL);
-}
 /* LCOV_EXCL_STOP */
 
 /*
@@ -146,27 +164,27 @@ player_method_call (GDBusConnection       *connection,
   g_assert (VALENT_IS_MPRIS_IMPL (self));
   g_assert (method_name != NULL);
 
-  if (strcmp (method_name, "Next") == 0)
+  if (g_str_equal (method_name, "Next"))
     {
       valent_media_player_next (self->player);
     }
-  else if (strcmp (method_name, "Pause") == 0)
+  else if (g_str_equal (method_name, "Pause"))
     {
       valent_media_player_pause (self->player);
     }
-  else if (strcmp (method_name, "Play") == 0)
+  else if (g_str_equal (method_name, "Play"))
     {
       valent_media_player_play (self->player);
     }
-  else if (strcmp (method_name, "PlayPause") == 0)
+  else if (g_str_equal (method_name, "PlayPause"))
     {
       valent_mpris_play_pause (self->player);
     }
-  else if (strcmp (method_name, "Previous") == 0)
+  else if (g_str_equal (method_name, "Previous"))
     {
       valent_media_player_previous (self->player);
     }
-  else if (strcmp (method_name, "Seek") == 0)
+  else if (g_str_equal (method_name, "Seek"))
     {
       int64_t offset_us;
 
@@ -174,7 +192,7 @@ player_method_call (GDBusConnection       *connection,
       g_variant_get (parameters, "(x)", &offset_us);
       valent_media_player_seek (self->player, offset_us / G_TIME_SPAN_SECOND);
     }
-  else if (strcmp (method_name, "SetPosition") == 0)
+  else if (g_str_equal (method_name, "SetPosition"))
     {
       int64_t position_us;
 
@@ -182,11 +200,11 @@ player_method_call (GDBusConnection       *connection,
       g_variant_get (parameters, "(&ox)", NULL, &position_us);
       valent_media_player_set_position (self->player, position_us / G_TIME_SPAN_SECOND);
     }
-  else if (strcmp (method_name, "Stop") == 0)
+  else if (g_str_equal (method_name, "Stop"))
     {
       valent_media_player_stop (self->player);
     }
-  else if (strcmp (method_name, "OpenUri") == 0)
+  else if (g_str_equal (method_name, "OpenUri"))
     {
       /* Silently ignore method calls */
     }
@@ -224,7 +242,7 @@ player_get_property (GDBusConnection  *connection,
     return g_variant_ref (value);
 
   /* The `Position` is not cached, because `PropertiesChanged` is not emitted */
-  if (strcmp (property_name, "Position") == 0)
+  if (g_str_equal (property_name, "Position"))
     {
       double position = valent_media_player_get_position (self->player);
 
@@ -236,61 +254,61 @@ player_get_property (GDBusConnection  *connection,
   if (*property_name == 'C')
     flags = valent_media_player_get_flags (self->player);
 
-  if (strcmp (property_name, "CanControl") == 0)
+  if (g_str_equal (property_name, "CanControl"))
     {
       value = g_variant_new_boolean (flags != 0);
     }
-  else if (strcmp (property_name, "CanGoNext") == 0)
+  else if (g_str_equal (property_name, "CanGoNext"))
     {
       value = g_variant_new_boolean ((flags & VALENT_MEDIA_ACTION_NEXT) != 0);
     }
-  else if (strcmp (property_name, "CanGoPrevious") == 0)
+  else if (g_str_equal (property_name, "CanGoPrevious"))
     {
       value = g_variant_new_boolean ((flags & VALENT_MEDIA_ACTION_PREVIOUS) != 0);
     }
-  else if (strcmp (property_name, "CanPlay") == 0)
+  else if (g_str_equal (property_name, "CanPlay"))
     {
       value = g_variant_new_boolean ((flags & VALENT_MEDIA_ACTION_PLAY) != 0);
     }
-  else if (strcmp (property_name, "CanPause") == 0)
+  else if (g_str_equal (property_name, "CanPause"))
     {
       value = g_variant_new_boolean ((flags & VALENT_MEDIA_ACTION_PAUSE) != 0);
     }
-  else if (strcmp (property_name, "CanSeek") == 0)
+  else if (g_str_equal (property_name, "CanSeek"))
     {
       value = g_variant_new_boolean ((flags & VALENT_MEDIA_ACTION_SEEK) != 0);
     }
-  else if (strcmp (property_name, "Metadata") == 0)
+  else if (g_str_equal (property_name, "Metadata"))
     {
       value = valent_media_player_get_metadata (self->player);
     }
-  else if (strcmp (property_name, "LoopStatus") == 0)
+  else if (g_str_equal (property_name, "LoopStatus"))
     {
       ValentMediaRepeat repeat = valent_media_player_get_repeat (self->player);
 
       value = g_variant_new_string (valent_mpris_repeat_to_string (repeat));
     }
-  else if (strcmp (property_name, "Shuffle") == 0)
+  else if (g_str_equal (property_name, "Shuffle"))
     {
       gboolean shuffle = valent_media_player_get_shuffle (self->player);
 
       value = g_variant_new_boolean (shuffle);
     }
-  else if (strcmp (property_name, "PlaybackStatus") == 0)
+  else if (g_str_equal (property_name, "PlaybackStatus"))
     {
       ValentMediaState state = valent_media_player_get_state (self->player);
 
       value = g_variant_new_string (valent_mpris_state_to_string (state));
     }
-  else if (strcmp (property_name, "Volume") == 0)
+  else if (g_str_equal (property_name, "Volume"))
     {
       double volume = valent_media_player_get_volume (self->player);
 
       value = g_variant_new_double (volume);
     }
-  else if (strcmp (property_name, "Rate") == 0 ||
-           strcmp (property_name, "MaximumRate") == 0 ||
-           strcmp (property_name, "MinimumRate") == 0)
+  else if (g_str_equal (property_name, "Rate") ||
+           g_str_equal (property_name, "MaximumRate") ||
+           g_str_equal (property_name, "MinimumRate"))
     {
       value = g_variant_new_double (1.0);
     }
@@ -328,7 +346,7 @@ player_set_property (GDBusConnection  *connection,
   g_assert (VALENT_IS_MPRIS_IMPL (self));
   g_assert (property_name != NULL);
 
-  if (strcmp (property_name, "LoopStatus") == 0)
+  if (g_str_equal (property_name, "LoopStatus"))
     {
       const char *loop_status = g_variant_get_string (value, NULL);
       ValentMediaRepeat repeat = valent_mpris_repeat_from_string (loop_status);
@@ -337,7 +355,7 @@ player_set_property (GDBusConnection  *connection,
       return TRUE;
     }
 
-  if (strcmp (property_name, "Shuffle") == 0)
+  if (g_str_equal (property_name, "Shuffle"))
     {
       gboolean shuffle = g_variant_get_boolean (value);
 
@@ -345,7 +363,7 @@ player_set_property (GDBusConnection  *connection,
       return TRUE;
     }
 
-  if (strcmp (property_name, "Volume") == 0)
+  if (g_str_equal (property_name, "Volume"))
     {
       double volume = g_variant_get_double (value);
 
@@ -459,7 +477,7 @@ valent_mpris_impl_propagate_notify (ValentMediaPlayer *player,
   const char *name = g_param_spec_get_name (pspec);
   GVariant *value = NULL;
 
-  if (strcmp (name, "flags") == 0)
+  if (g_str_equal (name, "flags"))
     {
       ValentMediaActions flags = valent_media_player_get_flags (self->player);
 
@@ -476,13 +494,13 @@ valent_mpris_impl_propagate_notify (ValentMediaPlayer *player,
       value = g_variant_new_boolean ((flags & VALENT_MEDIA_ACTION_SEEK) != 0);
       valent_mpris_impl_set_value (self, "CanSeek", value);
     }
-  else if (strcmp (name, "metadata") == 0)
+  else if (g_str_equal (name, "metadata"))
     {
       value = valent_media_player_get_metadata (self->player);
       valent_mpris_impl_set_value (self, "Metadata", value);
       g_variant_unref (value);
     }
-  else if (strcmp (name, "name") == 0)
+  else if (g_str_equal (name, "name"))
     {
       const char *identity = valent_media_player_get_name (self->player);
 
@@ -491,7 +509,7 @@ valent_mpris_impl_propagate_notify (ValentMediaPlayer *player,
                             g_strdup ("Identity"),
                             g_variant_ref_sink (value));
     }
-  else if (strcmp (name, "position") == 0)
+  else if (g_str_equal (name, "position"))
     {
       double position = valent_media_player_get_position (self->player);
 
@@ -504,28 +522,28 @@ valent_mpris_impl_propagate_notify (ValentMediaPlayer *player,
       /* Convert seconds to microseconds */
       valent_mpris_impl_propagate_seeked (self, position * G_TIME_SPAN_SECOND);
     }
-  else if (strcmp (name, "repeat") == 0)
+  else if (g_str_equal (name, "repeat"))
     {
       ValentMediaRepeat repeat = valent_media_player_get_repeat (self->player);
 
       value = g_variant_new_string (valent_mpris_repeat_to_string (repeat));
       valent_mpris_impl_set_value (self, "LoopStatus", value);
     }
-  else if (strcmp (name, "shuffle") == 0)
+  else if (g_str_equal (name, "shuffle"))
     {
       gboolean shuffle = valent_media_player_get_shuffle (self->player);
 
       value = g_variant_new_boolean (shuffle);
       valent_mpris_impl_set_value (self, "Shuffle", value);
     }
-  else if (strcmp (name, "state") == 0)
+  else if (g_str_equal (name, "state"))
     {
       ValentMediaState state = valent_media_player_get_state (self->player);
 
       value = g_variant_new_string (valent_mpris_state_to_string (state));
       valent_mpris_impl_set_value (self, "PlaybackStatus", value);
     }
-  else if (strcmp (name, "volume") == 0)
+  else if (g_str_equal (name, "volume"))
     {
       double volume = valent_media_player_get_volume (self->player);
 
