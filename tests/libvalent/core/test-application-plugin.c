@@ -22,6 +22,7 @@ application_fixture_set_up (ApplicationPluginFixture *fixture,
   engine = valent_get_plugin_engine ();
   plugin_info = peas_engine_get_plugin_info (engine, "mock");
 
+  VALENT_TEST_CHECK ("Plugin can be constructed");
   fixture->application = g_application_new ("ca.andyholmes.Valent.Tests",
                                             G_APPLICATION_FLAGS_NONE);
   fixture->extension = peas_engine_create_extension (engine,
@@ -47,7 +48,7 @@ test_application_plugin_basic (ApplicationPluginFixture *fixture,
   g_autoptr (GApplication) application = NULL;
   PeasPluginInfo *plugin_info = NULL;
 
-  /* Test properties */
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (fixture->extension,
                 "application",    &application,
                 "plugin-info",    &plugin_info,
@@ -67,7 +68,7 @@ main (int   argc,
 {
   valent_test_init (&argc, &argv, NULL);
 
-  g_test_add ("/libvalent/ui/application-plugin/basic",
+  g_test_add ("/libvalent/core/application-plugin/basic",
               ApplicationPluginFixture, NULL,
               application_fixture_set_up,
               test_application_plugin_basic,
