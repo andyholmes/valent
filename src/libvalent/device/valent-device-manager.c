@@ -39,6 +39,7 @@ struct _ValentDeviceManager
 
   GCancellable             *cancellable;
   ValentContext            *context;
+  GSettings                *settings;
   GTlsCertificate          *certificate;
   const char               *id;
   char                     *name;
@@ -785,6 +786,7 @@ valent_device_manager_shutdown (ValentApplicationPlugin *plugin)
   g_list_model_items_changed (G_LIST_MODEL (self), 0, n_devices, 0);
 
   valent_device_manager_save_state (self);
+  g_clear_object (&self->settings);
 
   /* Remove actions from the `app` group, if available */
   if (self == default_manager)
@@ -813,11 +815,14 @@ valent_device_manager_startup (ValentApplicationPlugin *plugin)
 
   /* We're already started */
   if (self->cancellable != NULL)
-    return;;
+    return;
 
+  /* Setup Manager */
   self->cancellable = g_cancellable_new ();
-
-  /* Load devices */
+  self->settings = g_settings_new ("ca.andyholmes.Valent");
+  g_settings_bind (self->settings, "name",
+                   self,           "name",
+                   G_SETTINGS_BIND_DEFAULT);
   valent_device_manager_load_state (self);
 
   /* Setup services */
