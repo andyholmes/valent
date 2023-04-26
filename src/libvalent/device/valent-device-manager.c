@@ -807,9 +807,9 @@ static void
 valent_device_manager_startup (ValentApplicationPlugin *plugin)
 {
   ValentDeviceManager *self = VALENT_DEVICE_MANAGER (plugin);
-
   PeasEngine *engine = NULL;
   const GList *plugins = NULL;
+  g_autofree char *name = NULL;
 
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
 
@@ -823,6 +823,8 @@ valent_device_manager_startup (ValentApplicationPlugin *plugin)
   g_settings_bind (self->settings, "name",
                    self,           "name",
                    G_SETTINGS_BIND_DEFAULT);
+  name = g_settings_get_string (self->settings, "name");
+  valent_device_manager_set_name (self, name);
   valent_device_manager_load_state (self);
 
   /* Setup services */
