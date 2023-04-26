@@ -182,6 +182,9 @@ on_load_plugin (PeasEngine              *engine,
   g_assert (info != NULL);
   g_assert (VALENT_IS_PREFERENCES_WINDOW (self));
 
+  if (peas_plugin_info_is_hidden (info))
+    return;
+
   engine = valent_get_plugin_engine ();
   module = peas_plugin_info_get_module_name (info);
   title = peas_plugin_info_get_name (info);

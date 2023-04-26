@@ -7,6 +7,7 @@
 
 G_BEGIN_DECLS
 
+#include "valent-application.h"
 #include "valent-application-plugin.h"
 #include "valent-certificate.h"
 #include "valent-component.h"

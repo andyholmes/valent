@@ -20,7 +20,7 @@ basic_timeout_cb (gpointer data)
 static void
 test_application_basic (void)
 {
-  g_autoptr (ValentApplication) service = NULL;
+  g_autoptr (GApplication) service = NULL;
   int ret = 0;
 
   service = _valent_application_new ();
@@ -63,7 +63,7 @@ actions_timeout_cb (gpointer data)
 static void
 test_application_actions (void)
 {
-  g_autoptr (ValentApplication) service = NULL;
+  g_autoptr (GApplication) service = NULL;
   int ret = 0;
 
   service = _valent_application_new ();
@@ -115,7 +115,7 @@ plugins_timeout_cb (gpointer data)
 static void
 test_application_plugins (void)
 {
-  g_autoptr (ValentApplication) service = NULL;
+  g_autoptr (GApplication) service = NULL;
   int ret = 0;
 
   service = _valent_application_new ();
@@ -132,17 +132,17 @@ int
 main (int   argc,
       char *argv[])
 {
-  valent_test_ui_init (&argc, &argv, NULL);
+  valent_test_init (&argc, &argv, NULL);
 
   g_set_application_name ("Valent");
 
-  g_test_add_func ("/libvalent/ui/application/basic",
+  g_test_add_func ("/libvalent/core/application/basic",
                    test_application_basic);
 
-  g_test_add_func ("/libvalent/ui/application/actions",
+  g_test_add_func ("/libvalent/core/application/actions",
                    test_application_actions);
 
-  g_test_add_func ("/libvalent/ui/application/plugins",
+  g_test_add_func ("/libvalent/core/application/plugins",
                    test_application_plugins);
 
   return g_test_run ();

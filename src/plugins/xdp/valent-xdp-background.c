@@ -30,16 +30,19 @@ G_DEFINE_FINAL_TYPE (ValentXdpBackground, valent_xdp_background, VALENT_TYPE_APP
 static gboolean
 valent_xdp_background_is_active (ValentXdpBackground *self)
 {
-  GApplication *application = NULL;
-  GtkWindow *window = NULL;
+  GListModel *windows = NULL;
+  unsigned int n_windows = 0;
 
-  application = g_application_get_default ();
+  windows = gtk_window_get_toplevels ();
+  n_windows = g_list_model_get_n_items (windows);
 
-  if (GTK_IS_APPLICATION (application))
-    window = gtk_application_get_active_window (GTK_APPLICATION (application));
+  for (unsigned int i = 0; i < n_windows; i++)
+    {
+      g_autoptr (GtkWindow) window = g_list_model_get_item (windows, i);
 
-  if (GTK_IS_WINDOW (window))
-    return gtk_window_is_active (window);
+      if (gtk_window_is_active (window))
+        return TRUE;
+    }
 
   return FALSE;
 }
@@ -92,20 +95,50 @@ valent_xdp_background_request (ValentXdpBackground *self)
 }
 
 static void
-on_active_window_changed (GtkApplication      *application,
-                          GParamSpec          *pspec,
-                          ValentXdpBackground *self)
+on_window_is_active (GtkWindow           *window,
+                     GParamSpec          *pspec,
+                     ValentXdpBackground *self)
 {
-  GtkWindow *window = NULL;
+  GListModel *windows = NULL;
+  unsigned int n_windows = 0;
 
-  g_assert (VALENT_IS_XDP_BACKGROUND (self));
+  if (!gtk_window_is_active (window))
+    return;
 
-  window = gtk_application_get_active_window (application);
+  windows = gtk_window_get_toplevels ();
+  n_windows = g_list_model_get_n_items (windows);
 
-  if (GTK_IS_WINDOW (window) && gtk_window_is_active (window))
+  for (unsigned int i = 0; i < n_windows; i++)
     {
-      valent_xdp_background_request (self);
-      g_clear_signal_handler (&self->active_id, application);
+      g_autoptr (GtkWindow) item = g_list_model_get_item (windows, i);
+
+      g_signal_handlers_disconnect_by_data (item, self);
+    }
+
+  g_clear_signal_handler (&self->active_id, windows);
+  valent_xdp_background_request (self);
+}
+
+static void
+on_windows_changed (GListModel          *list,
+                    unsigned int         position,
+                    unsigned int         removed,
+                    unsigned int         added,
+                    ValentXdpBackground *self)
+{
+  for (unsigned int i = 0; i < added; i++)
+    {
+      g_autoptr (GtkWindow) window = g_list_model_get_item (list, position + i);
+
+      // If the new window is active, we can bail now
+      on_window_is_active (window, NULL, self);
+      if (self->active_id == 0)
+        return;
+
+      g_signal_connect_object (window,
+                               "notify::is-active",
+                               G_CALLBACK (on_window_is_active),
+                               self, 0);
     }
 }
 
@@ -126,10 +159,13 @@ on_autostart_changed (GSettings           *settings,
    * request until that changes. */
   if (!valent_xdp_background_is_active (self))
     {
-      self->active_id = g_signal_connect_object (g_application_get_default (),
-                                                 "notify::active-window",
-                                                 G_CALLBACK (on_active_window_changed),
+      GListModel *windows = gtk_window_get_toplevels ();
+
+      self->active_id = g_signal_connect_object (windows,
+                                                 "items-changed",
+                                                 G_CALLBACK (on_windows_changed),
                                                  self, 0);
+      on_windows_changed (windows, 0, 0, g_list_model_get_n_items (windows), self);
       return;
     }
 

@@ -417,7 +417,6 @@ messaging_action (GSimpleAction *action,
                                             valent_device_get_name (device));
 
       self->window = g_object_new (VALENT_TYPE_SMS_WINDOW,
-                                   "application",   g_application_get_default (),
                                    "contact-store", store,
                                    "message-store", self->store,
                                    NULL);
@@ -539,7 +538,6 @@ valent_sms_plugin_class_init (ValentSmsPluginClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
-  g_autoptr (GtkCssProvider) theme = NULL;
 
   object_class->finalize = valent_sms_plugin_finalize;
 
@@ -547,12 +545,6 @@ valent_sms_plugin_class_init (ValentSmsPluginClass *klass)
   plugin_class->disable = valent_sms_plugin_disable;
   plugin_class->handle_packet = valent_sms_plugin_handle_packet;
   plugin_class->update_state = valent_sms_plugin_update_state;
-
-  theme = gtk_css_provider_new ();
-  gtk_css_provider_load_from_resource (theme, "/plugins/sms/sms.css");
-  gtk_style_context_add_provider_for_display (gdk_display_get_default (),
-                                              GTK_STYLE_PROVIDER (theme),
-                                              GTK_STYLE_PROVIDER_PRIORITY_USER);
 }
 
 static void

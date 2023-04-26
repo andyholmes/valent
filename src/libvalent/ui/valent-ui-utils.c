@@ -10,6 +10,7 @@
 #include <libvalent-core.h>
 
 #include "valent-ui-utils.h"
+#include "valent-ui-utils-private.h"
 
 
 // Andy Holmes
@@ -109,5 +110,24 @@ valent_string_to_markup (const char *text)
     }
 
   return g_steal_pointer (&result);
+}
+
+/*< private >
+ * valent_ui_insert_application_actions:
+ * @widget: a `GtkWidget`
+ *
+ * Insert the default `GApplication` as the action group `app` in @widget.
+ */
+void
+valent_ui_insert_application_actions (GtkWidget *widget)
+{
+  GApplication *application = g_application_get_default ();
+
+  if G_UNLIKELY (application == NULL)
+    return;
+
+  /* NOTE: the application must be registered before listing its actions */
+  if (g_application_get_is_registered (application))
+    gtk_widget_insert_action_group (widget, "app", G_ACTION_GROUP (application));
 }
 

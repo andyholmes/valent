@@ -728,6 +728,7 @@ valent_sms_window_class_init (ValentSmsWindowClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+  g_autoptr (GtkCssProvider) theme = NULL;
 
   object_class->constructed = valent_sms_window_constructed;
   object_class->dispose = valent_sms_window_dispose;
@@ -809,6 +810,13 @@ valent_sms_window_class_init (ValentSmsWindowClass *klass)
                   0,
                   g_signal_accumulator_first_wins, NULL, NULL,
                   G_TYPE_BOOLEAN, 1, VALENT_TYPE_MESSAGE);
+
+  /* Custom CSS */
+  theme = gtk_css_provider_new ();
+  gtk_css_provider_load_from_resource (theme, "/plugins/sms/sms.css");
+  gtk_style_context_add_provider_for_display (gdk_display_get_default (),
+                                              GTK_STYLE_PROVIDER (theme),
+                                              GTK_STYLE_PROVIDER_PRIORITY_USER);
 }
 
 static void

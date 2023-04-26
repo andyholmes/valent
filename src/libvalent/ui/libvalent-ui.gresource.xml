@@ -4,6 +4,9 @@
 <!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <gresources>
+  <gresource prefix="/plugins/libvalent-ui">
+    <file>libvalent-ui.plugin</file>
+  </gresource>
   <gresource prefix="/ca/andyholmes/Valent/icons">
     <file preprocess="xml-stripblanks" alias="scalable/actions/valent-help-symbolic.svg">data/icons/hicolor/scalable/ui/valent-help-symbolic.svg</file>
     <file preprocess="xml-stripblanks" alias="scalable/actions/valent-media-albumart.svg">data/icons/hicolor/scalable/ui/valent-media-albumart.svg</file>

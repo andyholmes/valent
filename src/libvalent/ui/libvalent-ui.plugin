@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
+
+[Plugin]
+Module=libvalent-ui
+Name=Adwaita
+Description=Default user interface
+Icon=ca.andyholmes.Valent-symbolic
+Builtin=true
+Embedded=libvalent_ui_register_types
+Website=https://github.com/andyholmes/valent
+Help=https://github.com/andyholmes/valent
+Hidden=true

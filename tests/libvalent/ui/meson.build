@@ -7,7 +7,6 @@ libvalent_ui_test_deps = [
 ]
 
 libvalent_ui_tests = [
-  'test-application',
   'test-device-page',
   'test-device-preferences-group',
   'test-device-preferences-window',

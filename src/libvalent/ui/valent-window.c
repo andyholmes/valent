@@ -18,6 +18,7 @@
 #include "valent-application-credits.h"
 #include "valent-device-page.h"
 #include "valent-preferences-window.h"
+#include "valent-ui-utils-private.h"
 #include "valent-window.h"
 
 
@@ -473,6 +474,7 @@ valent_window_constructed (GObject *object)
 
   g_assert (self->manager != NULL);
 
+  valent_ui_insert_application_actions (GTK_WIDGET (self));
   gtk_list_box_bind_model (self->device_list,
                            G_LIST_MODEL (self->manager),
                            valent_window_create_row_func,

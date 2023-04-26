@@ -5,15 +5,13 @@
 
 #include "config.h"
 
-#include <adwaita.h>
-#include <gtk/gtk.h>
-#include <libvalent-core.h>
-#include <libvalent-device.h>
+#include <gio/gio.h>
 
 #include "valent-application.h"
+#include "valent-application-plugin.h"
 #include "valent-component-private.h"
-#include "valent-ui-utils.h"
-#include "valent-window.h"
+#include "valent-debug.h"
+#include "valent-global.h"
 
 
 /**
@@ -28,15 +26,13 @@
 
 struct _ValentApplication
 {
-  GtkApplication       parent_instance;
+  GApplication   parent_instance;
 
-  GSettings           *settings;
-  ValentDeviceManager *manager;
-  GHashTable          *plugins;
-  ValentContext       *plugins_context;
+  GHashTable    *plugins;
+  ValentContext *plugins_context;
 };
 
-G_DEFINE_FINAL_TYPE (ValentApplication, valent_application, GTK_TYPE_APPLICATION)
+G_DEFINE_FINAL_TYPE (ValentApplication, valent_application, G_TYPE_APPLICATION)
 
 
 /*
@@ -107,7 +103,6 @@ on_load_plugin (PeasEngine        *engine,
   g_assert (info != NULL);
   g_assert (VALENT_IS_APPLICATION (self));
 
-  /* We're only interested in one GType */
   if (!peas_engine_provides_extension (engine, info, VALENT_TYPE_APPLICATION_PLUGIN))
     return;
 
@@ -132,7 +127,6 @@ on_unload_plugin (PeasEngine        *engine,
   g_assert (info != NULL);
   g_assert (VALENT_IS_APPLICATION (self));
 
-  /* We're only interested in one GType */
   if (!peas_engine_provides_extension (engine, info, VALENT_TYPE_APPLICATION_PLUGIN))
     return;
 
@@ -141,15 +135,198 @@ on_unload_plugin (PeasEngine        *engine,
 
 
 /*
- * ValentApplication
+ * GActions
  */
 static void
-valent_application_load_plugins (ValentApplication *self)
+quit_action (GSimpleAction *action,
+             GVariant      *parameter,
+             gpointer       user_data)
 {
-  PeasEngine *engine = NULL;
-  const GList *plugins = NULL;
+  GApplication *application = G_APPLICATION (user_data);
+
+  g_assert (G_IS_APPLICATION (application));
+
+  g_application_quit (application);
+}
+
+static const GActionEntry app_actions[] = {
+  { "quit", quit_action, NULL, NULL, NULL },
+};
+
+
+/*
+ * GApplication
+ */
+static void
+valent_application_activate (GApplication *application)
+{
+  ValentApplication *self = VALENT_APPLICATION (application);
+  GHashTableIter iter;
+  ValentPlugin *plugin;
 
   g_assert (VALENT_IS_APPLICATION (self));
+
+  g_hash_table_iter_init (&iter, self->plugins);
+
+  while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
+    {
+      if (plugin->extension == NULL)
+        continue;
+
+      if (valent_application_plugin_activate (VALENT_APPLICATION_PLUGIN (plugin->extension)))
+        return;
+    }
+
+  g_debug ("%s(): unhandled activation", G_STRFUNC);
+}
+
+static void
+valent_application_open (GApplication  *application,
+                         GFile        **files,
+                         int            n_files,
+                         const char    *hint)
+{
+  ValentApplication *self = VALENT_APPLICATION (application);
+  GHashTableIter iter;
+  ValentPlugin *plugin;
+
+  g_assert (VALENT_IS_APPLICATION (self));
+
+  g_hash_table_iter_init (&iter, self->plugins);
+
+  while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
+    {
+      if (plugin->extension == NULL)
+        continue;
+
+      if (valent_application_plugin_open (VALENT_APPLICATION_PLUGIN (plugin->extension),
+                                          files,
+                                          n_files,
+                                          hint))
+        return;
+    }
+
+  /* If no plugin takes ownership of the files, print a warning. */
+  g_warning ("%s(): %i unhandled files", G_STRFUNC, n_files);
+}
+
+static void
+valent_application_startup (GApplication *application)
+{
+  ValentApplication *self = VALENT_APPLICATION (application);
+  GHashTableIter iter;
+  ValentPlugin *plugin;
+
+  g_assert (VALENT_IS_APPLICATION (application));
+
+  /* Chain-up first */
+  G_APPLICATION_CLASS (valent_application_parent_class)->startup (application);
+  g_application_hold (application);
+
+  g_action_map_add_action_entries (G_ACTION_MAP (application),
+                                   app_actions,
+                                   G_N_ELEMENTS (app_actions),
+                                   application);
+
+  g_hash_table_iter_init (&iter, self->plugins);
+
+  while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
+    {
+      if (plugin->extension == NULL)
+        continue;
+
+      valent_application_plugin_startup (VALENT_APPLICATION_PLUGIN (plugin->extension));
+    }
+}
+
+static void
+valent_application_shutdown (GApplication *application)
+{
+  ValentApplication *self = VALENT_APPLICATION (application);
+  GHashTableIter iter;
+  ValentPlugin *plugin;
+
+  g_hash_table_iter_init (&iter, self->plugins);
+
+  while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
+    {
+      if (plugin->extension == NULL)
+        continue;
+
+      valent_application_plugin_shutdown (VALENT_APPLICATION_PLUGIN (plugin->extension));
+    }
+
+  G_APPLICATION_CLASS (valent_application_parent_class)->shutdown (application);
+}
+
+static gboolean
+valent_application_dbus_register (GApplication     *application,
+                                  GDBusConnection  *connection,
+                                  const char       *object_path,
+                                  GError          **error)
+{
+  ValentApplication *self = VALENT_APPLICATION (application);
+  GApplicationClass *klass = G_APPLICATION_CLASS (valent_application_parent_class);
+  GHashTableIter iter;
+  ValentPlugin *plugin;
+
+  /* Chain-up first */
+  if (!klass->dbus_register (application, connection, object_path, error))
+    return FALSE;
+
+  g_hash_table_iter_init (&iter, self->plugins);
+
+  while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
+    {
+      if (plugin->extension == NULL)
+        continue;
+
+      if (!valent_application_plugin_dbus_register (VALENT_APPLICATION_PLUGIN (plugin->extension),
+                                                    connection,
+                                                    object_path,
+                                                    error))
+        return FALSE;
+    }
+
+  return TRUE;
+}
+
+static void
+valent_application_dbus_unregister (GApplication    *application,
+                                    GDBusConnection *connection,
+                                    const char      *object_path)
+{
+  ValentApplication *self = VALENT_APPLICATION (application);
+  GApplicationClass *klass = G_APPLICATION_CLASS (valent_application_parent_class);
+  GHashTableIter iter;
+  ValentPlugin *plugin;
+
+  g_hash_table_iter_init (&iter, self->plugins);
+
+  while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
+    {
+      if (plugin->extension == NULL)
+        continue;
+
+      valent_application_plugin_dbus_unregister (VALENT_APPLICATION_PLUGIN (plugin->extension),
+                                                 connection,
+                                                 object_path);
+    }
+
+  /* Chain-up last */
+  klass->dbus_unregister (application, connection, object_path);
+}
+
+
+/*
+ * GObject
+ */
+static void
+valent_application_constructed (GObject *object)
+{
+  ValentApplication *self = VALENT_APPLICATION (object);
+  PeasEngine *engine = NULL;
+  const GList *plugins = NULL;
 
   self->plugins = g_hash_table_new_full (NULL,
                                          NULL,
@@ -177,14 +354,15 @@ valent_application_load_plugins (ValentApplication *self)
                            G_CALLBACK (on_unload_plugin),
                            self,
                            0);
+
+  G_OBJECT_CLASS (valent_application_parent_class)->constructed (object);
 }
 
 static void
-valent_application_unload_plugins (ValentApplication *self)
+valent_application_dispose (GObject *object)
 {
+  ValentApplication *self = VALENT_APPLICATION (object);
   PeasEngine *engine = NULL;
-
-  g_assert (VALENT_IS_APPLICATION (self));
 
   engine = valent_get_plugin_engine ();
   g_signal_handlers_disconnect_by_data (engine, self);
@@ -192,188 +370,18 @@ valent_application_unload_plugins (ValentApplication *self)
   g_hash_table_remove_all (self->plugins);
   g_clear_pointer (&self->plugins, g_hash_table_unref);
   g_clear_object (&self->plugins_context);
+
+  G_OBJECT_CLASS (valent_application_parent_class)->dispose (object);
 }
 
-/*
- * GActions
- */
-static void
-quit_action (GSimpleAction *action,
-             GVariant      *parameter,
-             gpointer       user_data)
-{
-  GApplication *application = G_APPLICATION (user_data);
-
-  g_assert (G_IS_APPLICATION (application));
-
-  g_application_quit (application);
-}
-
-static const GActionEntry app_actions[] = {
-  { "quit",   quit_action,   NULL, NULL, NULL },
-};
-
-
-/*
- * GApplication
- */
-static void
-valent_application_activate (GApplication *application)
-{
-  ValentApplication *self = VALENT_APPLICATION (application);
-  GHashTableIter iter;
-  ValentPlugin *plugin;
-
-  g_assert (VALENT_IS_APPLICATION (self));
-
-  /* Run the plugin handlers */
-  g_hash_table_iter_init (&iter, self->plugins);
-
-  while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
-    {
-      if (plugin->extension == NULL)
-        continue;
-
-      if (valent_application_plugin_activate (VALENT_APPLICATION_PLUGIN (plugin->extension)))
-        return;
-    }
-
-  /* If no plugin takes ownership of the activation, present the main window */
-  g_action_group_activate_action (G_ACTION_GROUP (self),
-                                  "window",
-                                  g_variant_new_string ("main"));
-}
-
-static void
-valent_application_open (GApplication  *application,
-                         GFile        **files,
-                         int            n_files,
-                         const char    *hint)
-{
-  ValentApplication *self = VALENT_APPLICATION (application);
-  GHashTableIter iter;
-  ValentPlugin *plugin;
-
-  g_assert (VALENT_IS_APPLICATION (self));
-
-  /* Run the plugin handlers */
-  g_hash_table_iter_init (&iter, self->plugins);
-
-  while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
-    {
-      if (plugin->extension == NULL)
-        continue;
-
-      if (valent_application_plugin_open (VALENT_APPLICATION_PLUGIN (plugin->extension),
-                                          files,
-                                          n_files,
-                                          hint))
-        return;
-    }
-
-  /* If no plugin takes ownership of the files, print a warning. */
-  g_warning ("%s(): %i unhandled files", G_STRFUNC, n_files);
-}
-
-static void
-valent_application_startup (GApplication *application)
-{
-  ValentApplication *self = VALENT_APPLICATION (application);
-  g_autofree char *name = NULL;
-
-  g_assert (VALENT_IS_APPLICATION (application));
-
-  /* Chain-up first */
-  G_APPLICATION_CLASS (valent_application_parent_class)->startup (application);
-
-  g_application_hold (application);
-  valent_ui_init ();
-
-  /* Service Actions */
-  g_action_map_add_action_entries (G_ACTION_MAP (application),
-                                   app_actions,
-                                   G_N_ELEMENTS (app_actions),
-                                   application);
-
-  /* Device Name */
-  self->settings = g_settings_new ("ca.andyholmes.Valent");
-  g_settings_bind (self->settings, "name",
-                   self->manager,  "name",
-                   G_SETTINGS_BIND_DEFAULT);
-  name = g_settings_get_string (self->settings, "name");
-  valent_device_manager_set_name (self->manager, name);
-
-  /* Load plugins and start the device manager */
-  valent_application_load_plugins (self);
-  valent_application_plugin_startup (VALENT_APPLICATION_PLUGIN (self->manager));
-}
-
-static void
-valent_application_shutdown (GApplication *application)
-{
-  ValentApplication *self = VALENT_APPLICATION (application);
-
-  g_assert (VALENT_IS_APPLICATION (application));
-
-  valent_application_plugin_shutdown (VALENT_APPLICATION_PLUGIN (self->manager));
-  valent_application_unload_plugins (self);
-  g_clear_object (&self->settings);
-
-  G_APPLICATION_CLASS (valent_application_parent_class)->shutdown (application);
-}
-
-static gboolean
-valent_application_dbus_register (GApplication     *application,
-                                  GDBusConnection  *connection,
-                                  const char       *object_path,
-                                  GError          **error)
-{
-  ValentApplication *self = VALENT_APPLICATION (application);
-  GApplicationClass *klass = G_APPLICATION_CLASS (valent_application_parent_class);
-
-  g_assert (VALENT_IS_APPLICATION (self));
-
-  /* Chain-up first */
-  if (!klass->dbus_register (application, connection, object_path, error))
-    return FALSE;
-
-  self->manager = valent_device_manager_get_default ();
-  return valent_application_plugin_dbus_register (VALENT_APPLICATION_PLUGIN (self->manager),
-                                                  connection,
-                                                  object_path,
-                                                  error);
-}
-
-static void
-valent_application_dbus_unregister (GApplication    *application,
-                                    GDBusConnection *connection,
-                                    const char      *object_path)
-{
-  ValentApplication *self = VALENT_APPLICATION (application);
-  GApplicationClass *klass = G_APPLICATION_CLASS (valent_application_parent_class);
-
-  g_assert (VALENT_IS_APPLICATION (self));
-
-  if (self->manager != NULL)
-    {
-      valent_application_plugin_dbus_unregister (VALENT_APPLICATION_PLUGIN (self->manager),
-                                                 connection,
-                                                 object_path);
-      g_clear_object (&self->manager);
-    }
-
-  /* Chain-up last */
-  klass->dbus_unregister (application, connection, object_path);
-}
-
-
-/*
- * GObject
- */
 static void
 valent_application_class_init (ValentApplicationClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GApplicationClass *application_class = G_APPLICATION_CLASS (klass);
+
+  object_class->constructed = valent_application_constructed;
+  object_class->dispose = valent_application_dispose;
 
   application_class->activate = valent_application_activate;
   application_class->startup = valent_application_startup;
@@ -388,7 +396,7 @@ valent_application_init (ValentApplication *self)
 {
 }
 
-ValentApplication *
+GApplication *
 _valent_application_new (void)
 {
   return g_object_new (VALENT_TYPE_APPLICATION,
