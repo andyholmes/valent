@@ -41,7 +41,7 @@ static int
 valent_mock_application_plugin_command_line (ValentApplicationPlugin *plugin,
                                              GApplicationCommandLine *command_line)
 {
-  g_assert (VALENT_IS_APPLICATION_PLUGIN (plugin));
+  g_assert (VALENT_IS_MOCK_APPLICATION_PLUGIN (plugin));
   g_assert (G_IS_APPLICATION_COMMAND_LINE (command_line));
 
   return 0;
@@ -58,6 +58,42 @@ valent_mock_application_plugin_open (ValentApplicationPlugin  *plugin,
   return TRUE;
 }
 
+static gboolean
+valent_mock_application_plugin_dbus_register (ValentApplicationPlugin  *plugin,
+                                              GDBusConnection          *connection,
+                                              const char               *object_path,
+                                              GError                  **error)
+{
+  g_assert (VALENT_IS_MOCK_APPLICATION_PLUGIN (plugin));
+  g_assert (G_IS_DBUS_CONNECTION (connection));
+  g_assert (g_variant_is_object_path (object_path));
+  g_assert (error == NULL || *error == NULL);
+
+  return TRUE;
+}
+
+static void
+valent_mock_application_plugin_dbus_unregister (ValentApplicationPlugin *plugin,
+                                                GDBusConnection         *connection,
+                                                const char              *object_path)
+{
+  g_assert (VALENT_IS_MOCK_APPLICATION_PLUGIN (plugin));
+  g_assert (G_IS_DBUS_CONNECTION (connection));
+  g_assert (g_variant_is_object_path (object_path));
+}
+
+static void
+valent_mock_application_plugin_shutdown (ValentApplicationPlugin *plugin)
+{
+  g_assert (VALENT_IS_MOCK_APPLICATION_PLUGIN (plugin));
+}
+
+static void
+valent_mock_application_plugin_startup (ValentApplicationPlugin *plugin)
+{
+  g_assert (VALENT_IS_MOCK_APPLICATION_PLUGIN (plugin));
+}
+
 /*
  * GObject
  */
@@ -70,7 +106,11 @@ valent_mock_application_plugin_class_init (ValentMockApplicationPluginClass *kla
   plugin_class->disable = valent_mock_application_plugin_disable;
   plugin_class->activate = valent_mock_application_plugin_activate;
   plugin_class->command_line = valent_mock_application_plugin_command_line;
+  plugin_class->dbus_register = valent_mock_application_plugin_dbus_register;
+  plugin_class->dbus_unregister = valent_mock_application_plugin_dbus_unregister;
   plugin_class->open = valent_mock_application_plugin_open;
+  plugin_class->shutdown = valent_mock_application_plugin_shutdown;
+  plugin_class->startup = valent_mock_application_plugin_startup;
 }
 
 static void
