@@ -504,7 +504,7 @@ valent_device_manager_lookup (ValentDeviceManager *manager,
     {
       ValentDevice *device = g_ptr_array_index (manager->devices, i);
 
-      if (strcmp (id, valent_device_get_id (device)) == 0)
+      if (g_str_equal (id, valent_device_get_id (device)))
         return device;
     }
 

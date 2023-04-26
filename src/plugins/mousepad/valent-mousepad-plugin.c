@@ -573,15 +573,15 @@ valent_mousepad_plugin_handle_packet (ValentDevicePlugin *plugin,
   g_assert (VALENT_IS_PACKET (packet));
 
   /* A request to simulate input */
-  if (strcmp (type, "kdeconnect.mousepad.request") == 0)
+  if (g_str_equal (type, "kdeconnect.mousepad.request"))
     valent_mousepad_plugin_handle_mousepad_request (self, packet);
 
   /* A confirmation of input we requested */
-  else if (strcmp (type, "kdeconnect.mousepad.echo") == 0)
+  else if (g_str_equal (type, "kdeconnect.mousepad.echo"))
     valent_mousepad_plugin_handle_mousepad_echo (self, packet);
 
   /* The remote keyboard is ready/not ready for input */
-  else if (strcmp (type, "kdeconnect.mousepad.keyboardstate") == 0)
+  else if (g_str_equal (type, "kdeconnect.mousepad.keyboardstate"))
     valent_mousepad_plugin_handle_mousepad_keyboardstate (self, packet);
 
   else

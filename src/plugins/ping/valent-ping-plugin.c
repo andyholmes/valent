@@ -138,7 +138,7 @@ valent_ping_plugin_handle_packet (ValentDevicePlugin *plugin,
   g_assert (type != NULL);
   g_assert (VALENT_IS_PACKET (packet));
 
-  if (strcmp (type, "kdeconnect.ping") == 0)
+  if (g_str_equal (type, "kdeconnect.ping"))
     valent_ping_plugin_handle_ping (self, packet);
   else
     g_assert_not_reached ();

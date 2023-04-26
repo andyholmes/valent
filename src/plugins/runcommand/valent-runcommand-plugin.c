@@ -488,11 +488,11 @@ valent_runcommand_plugin_handle_packet (ValentDevicePlugin *plugin,
   g_assert (VALENT_IS_PACKET (packet));
 
   /* A request for the local command list or local execution */
-  if (strcmp (type, "kdeconnect.runcommand.request") == 0)
+  if (g_str_equal (type, "kdeconnect.runcommand.request"))
     valent_runcommand_plugin_handle_runcommand_request (self, packet);
 
   /* A response to a request for the remote command list */
-  else if (strcmp (type, "kdeconnect.runcommand") == 0)
+  else if (g_str_equal (type, "kdeconnect.runcommand"))
     valent_runcommand_plugin_handle_runcommand (self, packet);
 
   else

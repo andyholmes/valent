@@ -1589,7 +1589,7 @@ valent_device_handle_packet (ValentDevice *device,
 
   type = valent_packet_get_type (packet);
 
-  if G_UNLIKELY (strcmp (type, "kdeconnect.pair") == 0)
+  if G_UNLIKELY (g_str_equal (type, "kdeconnect.pair"))
     {
       valent_device_handle_pair (device, packet);
     }

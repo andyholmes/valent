@@ -114,28 +114,28 @@ valent_connectivity_report_plugin_send_state (ValentConnectivityReportPlugin *se
 static const char *
 get_network_type_icon (const char *network_type)
 {
-  if (strcmp (network_type, "GSM") == 0 ||
-      strcmp (network_type, "CDMA") == 0 ||
-      strcmp (network_type, "iDEN") == 0)
+  if (g_str_equal (network_type, "GSM") ||
+      g_str_equal (network_type, "CDMA") ||
+      g_str_equal (network_type, "iDEN"))
     return "network-cellular-2g-symbolic";
 
-  if (strcmp (network_type, "UMTS") == 0 ||
-      strcmp (network_type, "CDMA2000") == 0)
+  if (g_str_equal (network_type, "UMTS") ||
+      g_str_equal (network_type, "CDMA2000"))
     return "network-cellular-3g-symbolic";
 
-  if (strcmp (network_type, "EDGE") == 0)
+  if (g_str_equal (network_type, "EDGE"))
     return "network-cellular-edge-symbolic";
 
-  if (strcmp (network_type, "GPRS") == 0)
+  if (g_str_equal (network_type, "GPRS"))
     return "network-cellular-gprs-symbolic";
 
-  if (strcmp (network_type, "HSPA") == 0)
+  if (g_str_equal (network_type, "HSPA"))
     return "network-cellular-hspa-symbolic";
 
-  if (strcmp (network_type, "LTE") == 0)
+  if (g_str_equal (network_type, "LTE"))
     return "network-cellular-4g-symbolic";
 
-  if (strcmp (network_type, "5G") == 0)
+  if (g_str_equal (network_type, "5G"))
     return "network-cellular-5g-symbolic";
 
   return "network-cellular-symbolic";
@@ -419,11 +419,11 @@ valent_connectivity_report_plugin_handle_packet (ValentDevicePlugin *plugin,
   g_assert (VALENT_IS_PACKET (packet));
 
   /* A remote connectivity report */
-  if (strcmp (type, "kdeconnect.connectivity_report") == 0)
+  if (g_str_equal (type, "kdeconnect.connectivity_report"))
     valent_connectivity_report_plugin_handle_connectivity_report (self, packet);
 
   /* A request for a local connectivity report */
-  else if (strcmp (type, "kdeconnect.connectivity_report.request") == 0)
+  else if (g_str_equal (type, "kdeconnect.connectivity_report.request"))
     valent_connectivity_report_plugin_handle_connectivity_report_request (self, packet);
 
   else

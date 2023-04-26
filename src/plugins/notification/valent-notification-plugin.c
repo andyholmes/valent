@@ -1059,16 +1059,16 @@ valent_notification_plugin_handle_packet (ValentDevicePlugin *plugin,
   g_assert (type != NULL);
   g_assert (VALENT_IS_PACKET (packet));
 
-  if (strcmp (type, "kdeconnect.notification") == 0)
+  if (g_str_equal (type, "kdeconnect.notification"))
     valent_notification_plugin_handle_notification (self, packet);
 
-  else if (strcmp (type, "kdeconnect.notification.action") == 0)
+  else if (g_str_equal (type, "kdeconnect.notification.action"))
     valent_notification_plugin_handle_notification_action (self, packet);
 
-  else if (strcmp (type, "kdeconnect.notification.reply") == 0)
+  else if (g_str_equal (type, "kdeconnect.notification.reply"))
     valent_notification_plugin_handle_notification_reply (self, packet);
 
-  else if (strcmp (type, "kdeconnect.notification.request") == 0)
+  else if (g_str_equal (type, "kdeconnect.notification.request"))
     valent_notification_plugin_handle_notification_request (self, packet);
 
   else

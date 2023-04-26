@@ -320,9 +320,9 @@ valent_phone_number_compare_normalized (const char *number1,
   number2_len = strlen (number2);
 
   if (number1_len > number2_len)
-    return strcmp (number1 + number1_len - number2_len, number2) == 0;
+    return g_str_equal (number1 + number1_len - number2_len, number2);
   else
-    return strcmp (number2 + number2_len - number1_len, number1) == 0;
+    return g_str_equal (number2 + number2_len - number1_len, number1);
 }
 
 /**
@@ -355,9 +355,9 @@ valent_phone_number_equal (const char *number1,
   num2_len = strlen (normalized2);
 
   if (num1_len > num2_len)
-    return strcmp (normalized1 + num1_len - num2_len, normalized2) == 0;
+    return g_str_equal (normalized1 + num1_len - num2_len, normalized2);
   else
-    return strcmp (normalized2 + num2_len - num1_len, normalized1) == 0;
+    return g_str_equal (normalized2 + num2_len - num1_len, normalized1);
 }
 
 /**

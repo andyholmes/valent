@@ -184,9 +184,9 @@ valent_mock_device_plugin_handle_packet (ValentDevicePlugin *plugin,
   g_assert (type != NULL);
   g_assert (VALENT_IS_PACKET (packet));
 
-  if (strcmp (type, "kdeconnect.mock.echo") == 0)
+  if (g_str_equal (type, "kdeconnect.mock.echo"))
     valent_mock_device_plugin_handle_echo (self, packet);
-  else if (strcmp (type, "kdeconnect.mock.transfer") == 0)
+  else if (g_str_equal (type, "kdeconnect.mock.transfer"))
     valent_mock_device_plugin_handle_transfer (self, packet);
   else
     g_assert_not_reached ();

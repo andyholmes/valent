@@ -87,8 +87,8 @@ valent_test_fixture_init (ValentTestFixture *fixture,
       ValentContext *context = NULL;
       g_autoptr (ValentContext) plugin_context = NULL;
 
-      if (strcmp (module_name, "mock") == 0 ||
-          strcmp (module_name, "packetless") == 0)
+      if (g_str_equal (module_name, "mock") ||
+          g_str_equal (module_name, "packetless"))
         continue;
 
       context = valent_device_get_context (fixture->device);

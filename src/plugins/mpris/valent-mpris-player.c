@@ -134,7 +134,7 @@ on_player_signal (GDBusProxy        *proxy,
   g_assert (VALENT_IS_MPRIS_PLAYER (player));
   g_assert (signal_name != NULL);
 
-  if (strcmp (signal_name, "Seeked") == 0)
+  if (g_str_equal (signal_name, "Seeked"))
     {
       int64_t position_us = 0;
 

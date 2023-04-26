@@ -412,7 +412,7 @@ valent_telephony_plugin_handle_packet (ValentDevicePlugin *plugin,
   g_assert (type != NULL);
   g_assert (VALENT_IS_PACKET (packet));
 
-  if (strcmp (type, "kdeconnect.telephony") == 0)
+  if (g_str_equal (type, "kdeconnect.telephony"))
     valent_telephony_plugin_handle_telephony (self, packet);
   else
     g_assert_not_reached ();
