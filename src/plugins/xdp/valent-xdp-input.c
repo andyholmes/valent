@@ -29,91 +29,49 @@ struct _ValentXdpInput
 {
   ValentInputAdapter  parent_instance;
 
-  GCancellable       *cancellable;
-  GSettings          *settings;
-
   XdpSession         *session;
-  int64_t             session_expiry;
-  guint               session_expiry_id;
-  gboolean            session_starting;
-  gboolean            started;
+  uint8_t             session_state : 2;
 };
 
 G_DEFINE_FINAL_TYPE (ValentXdpInput, valent_xdp_input, VALENT_TYPE_INPUT_ADAPTER)
+
+enum {
+  SESSION_STATE_CLOSED,
+  SESSION_STATE_STARTING = (1 << 0),
+  SESSION_STATE_ACTIVE  =  (1 << 1),
+};
 
 
 /*
  * Portal Callbacks
  */
 static void
-session_update (ValentXdpInput *self)
-{
-  g_autoptr (GDateTime) now = NULL;
-  unsigned int timeout = 0;
-
-  now = g_date_time_new_now_local ();
-  timeout = g_settings_get_uint (self->settings, "xdp-session-timeout");
-  self->session_expiry = g_date_time_to_unix (now) + timeout;
-}
-
-static void
 on_session_closed (XdpSession *session,
                    gpointer    user_data)
 {
   ValentXdpInput *self = VALENT_XDP_INPUT (user_data);
 
-  /* Mark the session as inactive */
-  self->started = FALSE;
-  g_clear_handle_id (&self->session_expiry_id, g_source_remove);
   g_clear_object (&self->session);
-}
-
-static gboolean
-on_session_expired (gpointer user_data)
-{
-  ValentXdpInput *self = VALENT_XDP_INPUT (user_data);
-  g_autoptr (GDateTime) now = NULL;
-  int remainder;
-
-  /* If the session has been used recently, schedule a new expiry */
-  now = g_date_time_new_now_local ();
-  remainder = self->session_expiry - g_date_time_to_unix (now);
-
-  if (remainder > 0)
-    {
-      self->session_expiry_id = g_timeout_add_seconds_full (G_PRIORITY_DEFAULT,
-                                                            remainder,
-                                                            on_session_expired,
-                                                            g_object_ref (self),
-                                                            g_object_unref);
-
-      return G_SOURCE_REMOVE;
-    }
-
-  /* Otherwise if there's an active session, close it */
-  if (self->session != NULL)
-    xdp_session_close (self->session);
-
-  // Reset the GSource Id
-  self->session_expiry_id = 0;
-
-  return G_SOURCE_REMOVE;
+  self->session_state = SESSION_STATE_CLOSED;
 }
 
 static void
-on_session_started (XdpSession   *session,
-                    GAsyncResult *res,
-                    gpointer      user_data)
+xdp_session_start_cb (XdpSession     *session,
+                      GAsyncResult   *result,
+                      ValentXdpInput *self)
 {
-  ValentXdpInput *self = VALENT_XDP_INPUT (user_data);
   g_autoptr (GError) error = NULL;
-  unsigned int timeout;
 
-  if (!xdp_session_start_finish (session, res, &error))
+  g_assert (XDP_IS_SESSION (session));
+  g_assert (G_IS_ASYNC_RESULT (result));
+
+  if (!xdp_session_start_finish (session, result, &error))
     {
+      if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
       g_warning ("%s(): %s", G_STRFUNC, error->message);
-      g_clear_object (&self->session);
-      self->session_starting = FALSE;
+      self->session_state = SESSION_STATE_CLOSED;
 
       return;
     }
@@ -122,85 +80,76 @@ on_session_started (XdpSession   *session,
       !(xdp_session_get_devices (session) & XDP_DEVICE_KEYBOARD))
     {
       g_warning ("%s(): failed to get input device", G_STRFUNC);
-      g_clear_object (&self->session);
-      self->session_starting = FALSE;
+      self->session_state = SESSION_STATE_CLOSED;
 
       return;
     }
 
-  /* Set a timeout */
-  timeout = g_settings_get_uint (self->settings, "xdp-session-timeout");
-
-  if (timeout > 0)
-    {
-      self->session_expiry_id = g_timeout_add_seconds_full (G_PRIORITY_DEFAULT,
-                                                            timeout,
-                                                            on_session_expired,
-                                                            g_object_ref (self),
-                                                            g_object_unref);
-      session_update (self);
-    }
-
-  self->session_starting = FALSE;
-  self->started = TRUE;
+  self->session = g_object_ref (session);
+  self->session_state = SESSION_STATE_ACTIVE;
 }
 
 static void
-on_session_created (XdpPortal    *portal,
-                    GAsyncResult *result,
-                    gpointer      user_data)
+xdp_portal_create_remote_desktop_session_cb (XdpPortal      *portal,
+                                             GAsyncResult   *result,
+                                             ValentXdpInput *self)
 {
-  ValentXdpInput *self = VALENT_XDP_INPUT (user_data);
+  g_autoptr (XdpSession) session = NULL;
   g_autoptr (XdpParent) parent = NULL;
   g_autoptr (GError) error = NULL;
 
-  self->session = xdp_portal_create_remote_desktop_session_finish (portal,
-                                                                   result,
-                                                                   &error);
+  g_assert (XDP_IS_PORTAL (portal));
+  g_assert (G_IS_TASK (result));
 
-  if (self->session == NULL)
+  session = xdp_portal_create_remote_desktop_session_finish (portal,
+                                                             result,
+                                                             &error);
+
+  if (session == NULL)
     {
+      if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
       g_warning ("%s(): %s", G_STRFUNC, error->message);
-      self->session_starting = FALSE;
+      self->session_state = SESSION_STATE_CLOSED;
 
       return;
     }
 
-  g_signal_connect_object (self->session,
+  g_signal_connect_object (session,
                            "closed",
                            G_CALLBACK (on_session_closed),
                            self, 0);
 
   parent = valent_xdp_get_parent (NULL);
-  xdp_session_start (self->session,
+  xdp_session_start (session,
                      parent,
-                     self->cancellable,
-                     (GAsyncReadyCallback)on_session_started,
+                     g_task_get_cancellable (G_TASK (result)),
+                     (GAsyncReadyCallback)xdp_session_start_cb,
                      self);
 }
 
 static gboolean
 ensure_session (ValentXdpInput *self)
 {
-  if G_LIKELY (self->started)
-    {
-      session_update (self);
-      return TRUE;
-    }
+  g_autoptr (GCancellable) destroy = NULL;
 
-  if (self->session_starting)
+  if G_LIKELY (self->session_state == SESSION_STATE_ACTIVE)
+    return TRUE;
+
+  if G_LIKELY (self->session_state == SESSION_STATE_STARTING)
     return FALSE;
 
-  /* Try to acquire a new session */
-  self->session_starting = TRUE;
+  self->session_state = SESSION_STATE_STARTING;
+  destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
   xdp_portal_create_remote_desktop_session (valent_xdp_get_default (),
                                             (XDP_DEVICE_KEYBOARD |
                                              XDP_DEVICE_POINTER),
                                             XDP_OUTPUT_MONITOR,
                                             XDP_REMOTE_DESKTOP_FLAG_NONE,
                                             XDP_CURSOR_MODE_HIDDEN,
-                                            self->cancellable,
-                                            (GAsyncReadyCallback)on_session_created,
+                                            destroy,
+                                            (GAsyncReadyCallback)xdp_portal_create_remote_desktop_session_cb,
                                             self);
 
   return FALSE;
@@ -330,8 +279,6 @@ valent_xdp_input_dispose (GObject *object)
 {
   ValentXdpInput *self = VALENT_XDP_INPUT (object);
 
-  g_cancellable_cancel (self->cancellable);
-
   if (self->session != NULL)
     xdp_session_close (self->session);
 
@@ -343,8 +290,6 @@ valent_xdp_input_finalize (GObject *object)
 {
   ValentXdpInput *self = VALENT_XDP_INPUT (object);
 
-  g_clear_object (&self->cancellable);
-  g_clear_object (&self->settings);
   g_clear_object (&self->session);
 
   G_OBJECT_CLASS (valent_xdp_input_parent_class)->finalize (object);
@@ -368,7 +313,5 @@ valent_xdp_input_class_init (ValentXdpInputClass *klass)
 static void
 valent_xdp_input_init (ValentXdpInput *self)
 {
-  self->cancellable = g_cancellable_new ();
-  self->settings = g_settings_new ("ca.andyholmes.Valent.Plugin.xdp");
 }
 

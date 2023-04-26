@@ -39,11 +39,6 @@ plugin_xdp_resources = gnome.compile_resources('xdp-resources',
 )
 plugin_xdp_sources += plugin_xdp_resources
 
-# Settings
-install_data('ca.andyholmes.Valent.Plugin.xdp.gschema.xml',
-  install_dir: schemadir
-)
-
 # Static Build
 plugin_xdp = static_library('plugin-xdp',
                             plugin_xdp_sources,
