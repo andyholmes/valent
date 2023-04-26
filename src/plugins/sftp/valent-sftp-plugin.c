@@ -673,10 +673,10 @@ valent_sftp_plugin_handle_packet (ValentDevicePlugin *plugin,
   g_assert (type != NULL);
   g_assert (VALENT_IS_PACKET (packet));
 
-  if (strcmp (type, "kdeconnect.sftp") == 0)
+  if (g_str_equal (type, "kdeconnect.sftp"))
     valent_sftp_plugin_handle_sftp (self, packet);
 
-  else if (strcmp (type, "kdeconnect.sftp.request") == 0)
+  else if (g_str_equal (type, "kdeconnect.sftp.request"))
     valent_sftp_plugin_handle_request (self, packet);
 
   else

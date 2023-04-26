@@ -131,13 +131,13 @@ valent_mpris_repeat_from_string (const char *loop_status)
 {
   g_return_val_if_fail (loop_status != NULL, VALENT_MEDIA_REPEAT_NONE);
 
-  if (strcmp (loop_status, "None") == 0)
+  if (g_str_equal (loop_status, "None"))
     return VALENT_MEDIA_REPEAT_NONE;
 
-  if (strcmp (loop_status, "Playlist") == 0)
+  if (g_str_equal (loop_status, "Playlist"))
     return VALENT_MEDIA_REPEAT_ALL;
 
-  if (strcmp (loop_status, "Track") == 0)
+  if (g_str_equal (loop_status, "Track"))
     return VALENT_MEDIA_REPEAT_ONE;
 
   return VALENT_MEDIA_REPEAT_NONE;
@@ -181,13 +181,13 @@ valent_mpris_state_from_string (const char *playback_status)
 {
   g_return_val_if_fail (playback_status != NULL, VALENT_MEDIA_STATE_STOPPED);
 
-  if (strcmp (playback_status, "Stopped") == 0)
+  if (g_str_equal (playback_status, "Stopped"))
     return VALENT_MEDIA_STATE_STOPPED;
 
-  if (strcmp (playback_status, "Playing") == 0)
+  if (g_str_equal (playback_status, "Playing"))
     return VALENT_MEDIA_STATE_PLAYING;
 
-  if (strcmp (playback_status, "Paused") == 0)
+  if (g_str_equal (playback_status, "Paused"))
     return VALENT_MEDIA_STATE_PAUSED;
 
   return VALENT_MEDIA_STATE_STOPPED;

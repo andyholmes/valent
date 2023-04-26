@@ -222,7 +222,7 @@ valent_presenter_plugin_handle_packet (ValentDevicePlugin *plugin,
   g_assert (type != NULL);
   g_assert (VALENT_IS_PACKET (packet));
 
-  if (strcmp (type, "kdeconnect.presenter") == 0)
+  if (g_str_equal (type, "kdeconnect.presenter"))
     valent_presenter_plugin_handle_presenter (self, packet);
   else
     g_assert_not_reached ();

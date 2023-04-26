@@ -443,19 +443,19 @@ valent_contacts_plugin_handle_packet (ValentDevicePlugin *plugin,
   g_assert (VALENT_IS_PACKET (packet));
 
   /* A response to a request for a listing of contacts */
-  if (strcmp (type, "kdeconnect.contacts.response_uids_timestamps") == 0)
+  if (g_str_equal (type, "kdeconnect.contacts.response_uids_timestamps"))
     valent_contact_plugin_handle_response_uids_timestamps (self, packet);
 
   /* A response to a request for contacts */
-  else if (strcmp (type, "kdeconnect.contacts.response_vcards") == 0)
+  else if (g_str_equal (type, "kdeconnect.contacts.response_vcards"))
     valent_contact_plugin_handle_response_vcards (self, packet);
 
   /* A request for a listing of contacts */
-  else if (strcmp (type, "kdeconnect.contacts.request_all_uids_timestamps") == 0)
+  else if (g_str_equal (type, "kdeconnect.contacts.request_all_uids_timestamps"))
     valent_contact_plugin_handle_request_all_uids_timestamps (self, packet);
 
   /* A request for contacts */
-  else if (strcmp (type, "kdeconnect.contacts.request_vcards_by_uid") == 0)
+  else if (g_str_equal (type, "kdeconnect.contacts.request_vcards_by_uid"))
     valent_contact_plugin_handle_request_vcards_by_uid (self, packet);
 
   else

@@ -265,22 +265,22 @@ valent_mpris_plugin_handle_action (ValentMprisPlugin *self,
   g_assert (VALENT_IS_MEDIA_PLAYER (player));
   g_assert (action && *action);
 
-  if (strcmp (action, "Next") == 0)
+  if (g_str_equal (action, "Next"))
     valent_media_player_next (player);
 
-  else if (strcmp (action, "Pause") == 0)
+  else if (g_str_equal (action, "Pause"))
     valent_media_player_pause (player);
 
-  else if (strcmp (action, "Play") == 0)
+  else if (g_str_equal (action, "Play"))
     valent_media_player_play (player);
 
-  else if (strcmp (action, "PlayPause") == 0)
+  else if (g_str_equal (action, "PlayPause"))
     valent_mpris_play_pause (player);
 
-  else if (strcmp (action, "Previous") == 0)
+  else if (g_str_equal (action, "Previous"))
     valent_media_player_previous (player);
 
-  else if (strcmp (action, "Stop") == 0)
+  else if (g_str_equal (action, "Stop"))
     valent_media_player_stop (player);
 
   else
@@ -878,10 +878,10 @@ valent_mpris_plugin_handle_packet (ValentDevicePlugin *plugin,
   g_assert (type != NULL);
   g_assert (VALENT_IS_PACKET (packet));
 
-  if (strcmp (type, "kdeconnect.mpris") == 0)
+  if (g_str_equal (type, "kdeconnect.mpris"))
     valent_mpris_plugin_handle_mpris (self, packet);
 
-  else if (strcmp (type, "kdeconnect.mpris.request") == 0)
+  else if (g_str_equal (type, "kdeconnect.mpris.request"))
     valent_mpris_plugin_handle_mpris_request (self, packet);
 
   else

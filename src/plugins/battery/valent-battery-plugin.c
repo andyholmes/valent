@@ -454,11 +454,11 @@ valent_battery_plugin_handle_packet (ValentDevicePlugin *plugin,
   g_assert (VALENT_IS_PACKET (packet));
 
   /* The remote battery state changed */
-  if (strcmp (type, "kdeconnect.battery") == 0)
+  if (g_str_equal (type, "kdeconnect.battery"))
     valent_battery_plugin_handle_battery (self, packet);
 
   /* A request for the local battery state */
-  else if (strcmp (type, "kdeconnect.battery.request") == 0)
+  else if (g_str_equal (type, "kdeconnect.battery.request"))
     valent_battery_plugin_handle_battery_request (self, packet);
 
   else

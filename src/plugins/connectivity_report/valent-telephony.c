@@ -147,11 +147,11 @@ on_properties_changed (GDBusProxy      *proxy,
 
   while (g_variant_iter_loop (&iter, "{sv}", &property, &value))
     {
-      if (strcmp (property, "AccessTechnologies") == 0)
+      if (g_str_equal (property, "AccessTechnologies"))
         changed = TRUE;
-      else if (strcmp (property, "SignalQuality") == 0)
+      else if (g_str_equal (property, "SignalQuality"))
         changed = TRUE;
-      else if (strcmp (property, "State") == 0)
+      else if (g_str_equal (property, "State"))
         changed = TRUE;
     }
 
