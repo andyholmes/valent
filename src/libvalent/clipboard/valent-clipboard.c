@@ -52,7 +52,6 @@ static const char * const text_mimetypes[] = {
   "STRING",
   "TEXT",
   "COMPOUND_TEXT",
-  NULL,
 };
 
 
