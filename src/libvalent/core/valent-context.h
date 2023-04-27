@@ -37,8 +37,6 @@ VALENT_AVAILABLE_IN_1_0
 GFile         * valent_context_get_config_file        (ValentContext  *context,
                                                        const char     *filename);
 VALENT_AVAILABLE_IN_1_0
-const char    * valent_context_get_config_path        (ValentContext  *context);
-VALENT_AVAILABLE_IN_1_0
 GFile         * valent_context_get_data_file          (ValentContext  *context,
                                                        const char     *filename);
 VALENT_AVAILABLE_IN_1_0

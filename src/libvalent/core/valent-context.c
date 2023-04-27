@@ -315,27 +315,6 @@ valent_context_new (ValentContext *parent,
 }
 
 /**
- * valent_context_get_config_path:
- * @context: a #ValentContext
- *
- * Get the path to the config directory.
- *
- * Returns: (transfer none): a directory path
- *
- * Since: 1.0
- */
-const char *
-valent_context_get_config_path (ValentContext *context)
-{
-  ValentContextPrivate *priv = valent_context_get_instance_private (context);
-
-  g_return_val_if_fail (VALENT_IS_CONTEXT (context), NULL);
-  g_return_val_if_fail (ensure_directory (priv->config), NULL);
-
-  return g_file_peek_path (priv->config);
-}
-
-/**
  * valent_context_get_domain: (get-property domain)
  * @context: a #ValentContext
  *
