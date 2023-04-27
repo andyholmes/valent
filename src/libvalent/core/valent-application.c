@@ -38,18 +38,6 @@ G_DEFINE_FINAL_TYPE (ValentApplication, valent_application, G_TYPE_APPLICATION)
 /*
  * PeasEngine
  */
-static void
-application_plugin_free (gpointer data)
-{
-  ValentPlugin *plugin = data;
-
-  /* We guarantee calling valent_application_plugin_disable() */
-  if (plugin->extension != NULL)
-    valent_application_plugin_disable (VALENT_APPLICATION_PLUGIN (plugin->extension));
-
-  g_clear_pointer (&plugin, valent_plugin_free);
-}
-
 static inline void
 valent_application_enable_plugin (ValentApplication *self,
                                   ValentPlugin      *plugin)
@@ -62,8 +50,6 @@ valent_application_enable_plugin (ValentApplication *self,
                                                     "application", self,
                                                     NULL);
   g_return_if_fail (G_IS_OBJECT (plugin->extension));
-
-  valent_application_plugin_enable (VALENT_APPLICATION_PLUGIN (plugin->extension));
 }
 
 static inline void
@@ -72,12 +58,7 @@ valent_application_disable_plugin (ValentApplication *self,
 {
   g_assert (VALENT_IS_APPLICATION (self));
 
-  /* We guarantee calling valent_application_plugin_disable() */
-  if (plugin->extension != NULL)
-    {
-      valent_application_plugin_disable (VALENT_APPLICATION_PLUGIN (plugin->extension));
-      g_clear_object (&plugin->extension);
-    }
+  g_clear_object (&plugin->extension);
 }
 
 static void
@@ -328,10 +309,7 @@ valent_application_constructed (GObject *object)
   PeasEngine *engine = NULL;
   const GList *plugins = NULL;
 
-  self->plugins = g_hash_table_new_full (NULL,
-                                         NULL,
-                                         NULL,
-                                         application_plugin_free);
+  self->plugins = g_hash_table_new_full (NULL, NULL, NULL, valent_plugin_free);
   self->plugins_context = valent_context_new (NULL, "application", NULL);
 
   engine = valent_get_plugin_engine ();

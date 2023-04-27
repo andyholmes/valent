@@ -43,22 +43,6 @@ on_destroy (GtkWindow         *window,
 /*
  * ValentApplicationPlugin
  */
-static void
-valent_share_target_enable (ValentApplicationPlugin *plugin)
-{
-  g_assert (VALENT_IS_SHARE_TARGET (plugin));
-}
-
-static void
-valent_share_target_disable (ValentApplicationPlugin *plugin)
-{
-  ValentShareTarget *self = VALENT_SHARE_TARGET (plugin);
-
-  g_assert (VALENT_IS_SHARE_TARGET (plugin));
-
-  g_ptr_array_remove_range (self->windows, 0, self->windows->len);
-}
-
 static gboolean
 valent_share_target_open (ValentApplicationPlugin  *plugin,
                           GFile                   **files,
@@ -115,8 +99,6 @@ valent_share_target_class_init (ValentShareTargetClass *klass)
 
   object_class->dispose = valent_share_target_dispose;
 
-  plugin_class->enable = valent_share_target_enable;
-  plugin_class->disable = valent_share_target_disable;
   plugin_class->open = valent_share_target_open;
 }
 

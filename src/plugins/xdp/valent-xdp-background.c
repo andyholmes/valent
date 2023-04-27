@@ -19,7 +19,6 @@ struct _ValentXdpBackground
   ValentApplicationPlugin  parent;
 
   GSettings               *settings;
-  GCancellable            *cancellable;
   unsigned int             autostart : 1;
   unsigned long            active_id;
 };
@@ -69,6 +68,7 @@ valent_xdp_background_request (ValentXdpBackground *self)
 {
   g_autoptr (GPtrArray) commandline = NULL;
   g_autoptr (XdpParent) parent = NULL;
+  g_autoptr (GCancellable) destroy = NULL;
   XdpBackgroundFlags flags = XDP_BACKGROUND_FLAG_NONE;
 
   g_assert (VALENT_IS_XDP_BACKGROUND (self));
@@ -84,12 +84,13 @@ valent_xdp_background_request (ValentXdpBackground *self)
       flags |= XDP_BACKGROUND_FLAG_AUTOSTART;
     }
 
+  destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
   xdp_portal_request_background (valent_xdp_get_default (),
                                  parent,
                                  _("Valent wants to run as a service"),
                                  commandline,
                                  flags,
-                                 self->cancellable,
+                                 destroy,
                                  xdp_portal_request_background_cb,
                                  NULL);
 }
@@ -173,14 +174,12 @@ on_autostart_changed (GSettings           *settings,
 }
 
 /*
- * ValentApplicationPlugin
+ * GObject
  */
 static void
-valent_xdp_background_enable (ValentApplicationPlugin *plugin)
+valent_xdp_background_constructed (GObject *object)
 {
-  ValentXdpBackground *self = VALENT_XDP_BACKGROUND (plugin);
-
-  self->cancellable = g_cancellable_new ();
+  ValentXdpBackground *self = VALENT_XDP_BACKGROUND (object);
 
   self->settings = g_settings_new ("ca.andyholmes.Valent.Plugin.xdp");
   g_signal_connect (self->settings,
@@ -189,16 +188,16 @@ valent_xdp_background_enable (ValentApplicationPlugin *plugin)
                     self);
 
   on_autostart_changed (self->settings, "autostart", self);
+
+  G_OBJECT_CLASS (valent_xdp_background_parent_class)->constructed (object);
 }
 
 static void
-valent_xdp_background_disable (ValentApplicationPlugin *plugin)
+valent_xdp_background_dispose (GObject *object)
 {
-  ValentXdpBackground *self = VALENT_XDP_BACKGROUND (plugin);
+  ValentXdpBackground *self = VALENT_XDP_BACKGROUND (object);
 
   g_clear_signal_handler (&self->active_id, g_application_get_default ());
-  g_cancellable_cancel (self->cancellable);
-  g_clear_object (&self->cancellable);
   g_clear_object (&self->settings);
 
   /* If the extension is being disabled during application shutdown, the main
@@ -209,18 +208,17 @@ valent_xdp_background_disable (ValentApplicationPlugin *plugin)
       self->autostart = FALSE;
       valent_xdp_background_request (self);
     }
+
+  G_OBJECT_CLASS (valent_xdp_background_parent_class)->dispose (object);
 }
 
-/*
- * GObject
- */
 static void
 valent_xdp_background_class_init (ValentXdpBackgroundClass *klass)
 {
-  ValentApplicationPluginClass *plugin_class = VALENT_APPLICATION_PLUGIN_CLASS (klass);
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  plugin_class->enable = valent_xdp_background_enable;
-  plugin_class->disable = valent_xdp_background_disable;
+  object_class->constructed = valent_xdp_background_constructed;
+  object_class->dispose = valent_xdp_background_dispose;
 }
 
 static void
