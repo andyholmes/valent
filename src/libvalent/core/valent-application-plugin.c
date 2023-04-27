@@ -47,8 +47,6 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentApplicationPlugin, valent_application
 
 /**
  * ValentApplicationPluginClass:
- * @enable: the virtual function pointer for valent_application_plugin_enable()
- * @disable: the virtual function pointer for valent_application_plugin_disable()
  * @activate: the virtual function pointer for valent_application_plugin_activate()
  * @command_line: the virtual function pointer for valent_application_plugin_command_line()
  * @open: the virtual function pointer for valent_application_plugin_open()

@@ -441,48 +441,6 @@ static const GActionEntry actions[] = {
  * ValentDevicePlugin
  */
 static void
-valent_sms_plugin_enable (ValentDevicePlugin *plugin)
-{
-  ValentSmsPlugin *self = VALENT_SMS_PLUGIN (plugin);
-  ValentDevice *device;
-  ValentContext *context = NULL;
-
-  g_assert (VALENT_IS_SMS_PLUGIN (plugin));
-
-  /* Load SMS Store */
-  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
-  context = valent_device_get_context (device);
-  self->store = g_object_new (VALENT_TYPE_SMS_STORE,
-                              "domain", "plugin",
-                              "id",     "sms",
-                              "parent", context,
-                              NULL);
-
-  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
-                                   actions,
-                                   G_N_ELEMENTS (actions),
-                                   plugin);
-  valent_device_plugin_set_menu_action (plugin,
-                                        "device.sms.messaging",
-                                        _("Messaging"),
-                                        "sms-symbolic");
-}
-
-static void
-valent_sms_plugin_disable (ValentDevicePlugin *plugin)
-{
-  ValentSmsPlugin *self = VALENT_SMS_PLUGIN (plugin);
-
-  g_assert (VALENT_IS_SMS_PLUGIN (plugin));
-
-  /* Close message window and drop SMS Store */
-  g_clear_pointer (&self->window, gtk_window_destroy);
-  g_clear_object (&self->store);
-
-  valent_device_plugin_set_menu_item (plugin, "device.sms.messaging", NULL);
-}
-
-static void
 valent_sms_plugin_update_state (ValentDevicePlugin *plugin,
                                 ValentDeviceState   state)
 {
@@ -522,6 +480,52 @@ valent_sms_plugin_handle_packet (ValentDevicePlugin *plugin,
  * GObject
  */
 static void
+valent_sms_plugin_constructed (GObject *object)
+{
+  ValentSmsPlugin *self = VALENT_SMS_PLUGIN (object);
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
+  ValentDevice *device;
+  ValentContext *context = NULL;
+
+  /* Load SMS Store */
+  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  context = valent_device_get_context (device);
+  self->store = g_object_new (VALENT_TYPE_SMS_STORE,
+                              "domain", "plugin",
+                              "id",     "sms",
+                              "parent", context,
+                              NULL);
+
+  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   plugin);
+  valent_device_plugin_set_menu_action (plugin,
+                                        "device.sms.messaging",
+                                        _("Messaging"),
+                                        "sms-symbolic");
+
+  G_OBJECT_CLASS (valent_sms_plugin_parent_class)->constructed (object);
+}
+
+static void
+valent_sms_plugin_dispose (GObject *object)
+{
+  ValentSmsPlugin *self = VALENT_SMS_PLUGIN (object);
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
+
+  g_assert (VALENT_IS_SMS_PLUGIN (plugin));
+
+  /* Close message window and drop SMS Store */
+  g_clear_pointer (&self->window, gtk_window_destroy);
+  g_clear_object (&self->store);
+
+  valent_device_plugin_set_menu_item (plugin, "device.sms.messaging", NULL);
+
+  G_OBJECT_CLASS (valent_sms_plugin_parent_class)->dispose (object);
+}
+
+static void
 valent_sms_plugin_finalize (GObject *object)
 {
   ValentSmsPlugin *self = VALENT_SMS_PLUGIN (object);
@@ -541,8 +545,8 @@ valent_sms_plugin_class_init (ValentSmsPluginClass *klass)
 
   object_class->finalize = valent_sms_plugin_finalize;
 
-  plugin_class->enable = valent_sms_plugin_enable;
-  plugin_class->disable = valent_sms_plugin_disable;
+  object_class->constructed = valent_sms_plugin_constructed;
+  object_class->dispose = valent_sms_plugin_dispose;
   plugin_class->handle_packet = valent_sms_plugin_handle_packet;
   plugin_class->update_state = valent_sms_plugin_update_state;
 }

@@ -91,28 +91,9 @@ static const GActionEntry actions[] = {
     {"message", ping_action, "s",  NULL, NULL}
 };
 
-/**
+/*
  * ValentDevicePlugin
  */
-static void
-valent_ping_plugin_enable (ValentDevicePlugin *plugin)
-{
-  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
-                                   actions,
-                                   G_N_ELEMENTS (actions),
-                                   plugin);
-  valent_device_plugin_set_menu_action (plugin,
-                                        "device.ping.ping",
-                                        _("Ping"),
-                                        "dialog-information-symbolic");
-}
-
-static void
-valent_ping_plugin_disable (ValentDevicePlugin *plugin)
-{
-  valent_device_plugin_set_menu_item (plugin, "device.ping.ping", NULL);
-}
-
 static void
 valent_ping_plugin_update_state (ValentDevicePlugin *plugin,
                                  ValentDeviceState   state)
@@ -148,12 +129,41 @@ valent_ping_plugin_handle_packet (ValentDevicePlugin *plugin,
  * GObject
  */
 static void
+valent_ping_plugin_constructed (GObject *object)
+{
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
+
+  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   plugin);
+  valent_device_plugin_set_menu_action (plugin,
+                                        "device.ping.ping",
+                                        _("Ping"),
+                                        "dialog-information-symbolic");
+
+  G_OBJECT_CLASS (valent_ping_plugin_parent_class)->constructed (object);
+}
+
+static void
+valent_ping_plugin_dispose (GObject *object)
+{
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
+
+  valent_device_plugin_set_menu_item (plugin, "device.ping.ping", NULL);
+
+  G_OBJECT_CLASS (valent_ping_plugin_parent_class)->dispose (object);
+}
+
+static void
 valent_ping_plugin_class_init (ValentPingPluginClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
-  plugin_class->enable = valent_ping_plugin_enable;
-  plugin_class->disable = valent_ping_plugin_disable;
+  object_class->constructed = valent_ping_plugin_constructed;
+  object_class->dispose = valent_ping_plugin_dispose;
+
   plugin_class->handle_packet = valent_ping_plugin_handle_packet;
   plugin_class->update_state = valent_ping_plugin_update_state;
 }

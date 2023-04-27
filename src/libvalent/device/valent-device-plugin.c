@@ -120,8 +120,6 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 /**
  * ValentDevicePluginClass:
- * @enable: the virtual function pointer for valent_device_plugin_enable()
- * @disable: the virtual function pointer for valent_device_plugin_disable()
  * @handle_packet: the virtual function pointer for valent_device_plugin_handle_packet()
  * @update_state: the virtual function pointer for valent_device_plugin_update_state()
  *
@@ -328,18 +326,6 @@ g_action_map_iface_init (GActionMapInterface *iface)
 
 /* LCOV_EXCL_START */
 static void
-valent_device_plugin_real_disable (ValentDevicePlugin *plugin)
-{
-  g_assert (VALENT_IS_DEVICE_PLUGIN (plugin));
-}
-
-static void
-valent_device_plugin_real_enable (ValentDevicePlugin *plugin)
-{
-  g_assert (VALENT_IS_DEVICE_PLUGIN (plugin));
-}
-
-static void
 valent_device_plugin_real_handle_packet (ValentDevicePlugin *plugin,
                                          const char         *type,
                                          JsonNode           *packet)
@@ -400,8 +386,6 @@ valent_device_plugin_dispose (GObject *object)
       g_hash_table_iter_remove (&iter);
     }
 
-  g_clear_object (&priv->settings);
-
   G_OBJECT_CLASS (valent_device_plugin_parent_class)->dispose (object);
 }
 
@@ -411,8 +395,10 @@ valent_device_plugin_finalize (GObject *object)
   ValentDevicePlugin *self = VALENT_DEVICE_PLUGIN (object);
   ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (self);
 
+  g_clear_weak_pointer (&priv->device);
   g_clear_pointer (&priv->actions, g_hash_table_unref);
   g_clear_object (&priv->context);
+  g_clear_object (&priv->settings);
 
   G_OBJECT_CLASS (valent_device_plugin_parent_class)->finalize (object);
 }
@@ -466,6 +452,7 @@ valent_device_plugin_set_property (GObject      *object,
 
     case PROP_DEVICE:
       priv->device = g_value_get_object (value);
+      g_object_add_weak_pointer (G_OBJECT (priv->device), (gpointer *)&priv->device);
       break;
 
     case PROP_PLUGIN_INFO:
@@ -487,8 +474,6 @@ valent_device_plugin_class_init (ValentDevicePluginClass *klass)
   object_class->get_property = valent_device_plugin_get_property;
   object_class->set_property = valent_device_plugin_set_property;
 
-  klass->disable = valent_device_plugin_real_disable;
-  klass->enable = valent_device_plugin_real_enable;
   klass->handle_packet = valent_device_plugin_real_handle_packet;
   klass->update_state = valent_device_plugin_real_update_state;
 
@@ -773,60 +758,6 @@ valent_device_plugin_toggle_actions (ValentDevicePlugin *plugin,
 }
 
 /**
- * valent_device_plugin_enable: (virtual enable)
- * @plugin: a `ValentDevicePlugin`
- *
- * Enable the plugin.
- *
- * This function is called when the plugin is enabled by the user and should
- * prepare any persistent resources it may need. Usually this means registering
- * actions, preparing the plugin settings and other data sources.
- *
- * It is guaranteed that [method@Valent.DevicePlugin.disable] will be called if
- * this function has been called.
- *
- * Since: 1.0
- */
-void
-valent_device_plugin_enable (ValentDevicePlugin *plugin)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
-
-  VALENT_DEVICE_PLUGIN_GET_CLASS (plugin)->enable (plugin);
-
-  VALENT_EXIT;
-}
-
-/**
- * valent_device_plugin_disable: (virtual disable)
- * @plugin: a `ValentDevicePlugin`
- *
- * Disable the plugin.
- *
- * This function is called when the plugin is disabled by the user and should
- * clean up any resources prepared in [method@Valent.DevicePlugin.enable] or
- * [method@Valent.DevicePlugin.update_state].
- *
- * It is guaranteed that this function will be called if
- * [method@Valent.DevicePlugin.enable] has been called.
- *
- * Since: 1.0
- */
-void
-valent_device_plugin_disable (ValentDevicePlugin *plugin)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
-
-  VALENT_DEVICE_PLUGIN_GET_CLASS (plugin)->disable (plugin);
-
-  VALENT_EXIT;
-}
-
-/**
  * valent_device_plugin_handle_packet: (virtual handle_packet)
  * @plugin: a `ValentDevicePlugin`
  * @type: a KDE Connect packet type
@@ -976,6 +907,10 @@ valent_device_plugin_set_menu_item (ValentDevicePlugin *plugin,
   g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
   g_return_if_fail (action != NULL && *action != '\0');
   g_return_if_fail (item == NULL || G_IS_MENU_ITEM (item));
+
+  /* NOTE: this method may be called by plugins in their `dispose()` */
+  if (priv->device == NULL)
+    return;
 
   menu = valent_device_get_menu (priv->device);
   index_ = _g_menu_find_action (menu, action);

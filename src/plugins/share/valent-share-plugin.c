@@ -1132,49 +1132,6 @@ valent_share_plugin_handle_url (ValentSharePlugin *self,
  * ValentDevicePlugin
  */
 static void
-valent_share_plugin_enable (ValentDevicePlugin *plugin)
-{
-  g_assert (VALENT_IS_SHARE_PLUGIN (plugin));
-
-  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
-                                   actions,
-                                   G_N_ELEMENTS (actions),
-                                   plugin);
-  valent_device_plugin_set_menu_action (plugin,
-                                        "device.share.chooser",
-                                        _("Send Files"),
-                                        "document-send-symbolic");
-}
-
-static void
-valent_share_plugin_disable (ValentDevicePlugin *plugin)
-{
-  ValentSharePlugin *self = VALENT_SHARE_PLUGIN (plugin);
-  GHashTableIter iter;
-  ValentTransfer *transfer;
-
-  g_assert (VALENT_IS_SHARE_PLUGIN (self));
-
-  /* Cancel active transfers */
-  g_hash_table_iter_init (&iter, self->transfers);
-
-  while (g_hash_table_iter_next (&iter, NULL, (void **)&transfer))
-    {
-      valent_transfer_cancel (transfer);
-      g_hash_table_iter_remove (&iter);
-    }
-
-  g_clear_object (&self->download);
-  g_clear_object (&self->upload);
-
-  /* Close open windows */
-  g_ptr_array_foreach (self->windows, (void *)gtk_window_destroy, NULL);
-  g_ptr_array_remove_range (self->windows, 0, self->windows->len);
-
-  valent_device_plugin_set_menu_item (plugin, "device.share.chooser", NULL);
-}
-
-static void
 valent_share_plugin_update_state (ValentDevicePlugin *plugin,
                                   ValentDeviceState   state)
 {
@@ -1247,6 +1204,48 @@ valent_share_plugin_handle_packet (ValentDevicePlugin *plugin,
  * GObject
  */
 static void
+valent_share_plugin_constructed (GObject *object)
+{
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
+
+  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   plugin);
+  valent_device_plugin_set_menu_action (plugin,
+                                        "device.share.chooser",
+                                        _("Send Files"),
+                                        "document-send-symbolic");
+}
+
+static void
+valent_share_plugin_dispose (GObject *object)
+{
+  ValentSharePlugin *self = VALENT_SHARE_PLUGIN (object);
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
+  GHashTableIter iter;
+  ValentTransfer *transfer;
+
+  /* Cancel active transfers */
+  g_hash_table_iter_init (&iter, self->transfers);
+
+  while (g_hash_table_iter_next (&iter, NULL, (void **)&transfer))
+    {
+      valent_transfer_cancel (transfer);
+      g_hash_table_iter_remove (&iter);
+    }
+
+  g_clear_object (&self->download);
+  g_clear_object (&self->upload);
+
+  /* Close open windows */
+  g_ptr_array_foreach (self->windows, (void *)gtk_window_destroy, NULL);
+  g_ptr_array_remove_range (self->windows, 0, self->windows->len);
+
+  valent_device_plugin_set_menu_item (plugin, "device.share.chooser", NULL);
+}
+
+static void
 valent_share_plugin_finalize (GObject *object)
 {
   ValentSharePlugin *self = VALENT_SHARE_PLUGIN (object);
@@ -1263,10 +1262,10 @@ valent_share_plugin_class_init (ValentSharePluginClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
+  object_class->constructed = valent_share_plugin_constructed;
+  object_class->dispose = valent_share_plugin_dispose;
   object_class->finalize = valent_share_plugin_finalize;
 
-  plugin_class->enable = valent_share_plugin_enable;
-  plugin_class->disable = valent_share_plugin_disable;
   plugin_class->handle_packet = valent_share_plugin_handle_packet;
   plugin_class->update_state = valent_share_plugin_update_state;
 }

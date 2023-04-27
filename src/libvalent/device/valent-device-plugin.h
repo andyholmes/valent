@@ -24,8 +24,6 @@ struct _ValentDevicePluginClass
   ValentObjectClass   parent_class;
 
   /* virtual functions */
-  void                (*disable)       (ValentDevicePlugin *plugin);
-  void                (*enable)        (ValentDevicePlugin *plugin);
   void                (*handle_packet) (ValentDevicePlugin *plugin,
                                         const char         *type,
                                         JsonNode           *packet);
@@ -36,10 +34,6 @@ struct _ValentDevicePluginClass
   gpointer            padding[8];
 };
 
-VALENT_AVAILABLE_IN_1_0
-void            valent_device_plugin_disable             (ValentDevicePlugin    *plugin);
-VALENT_AVAILABLE_IN_1_0
-void            valent_device_plugin_enable              (ValentDevicePlugin    *plugin);
 VALENT_AVAILABLE_IN_1_0
 void            valent_device_plugin_handle_packet       (ValentDevicePlugin    *plugin,
                                                           const char            *type,

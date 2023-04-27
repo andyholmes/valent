@@ -353,67 +353,6 @@ static const GActionEntry actions[] = {
  * ValentDevicePlugin
  */
 static void
-valent_contacts_plugin_enable (ValentDevicePlugin *plugin)
-{
-  ValentContactsPlugin *self = VALENT_CONTACTS_PLUGIN (plugin);
-  ValentContacts *contacts = valent_contacts_get_default ();
-  ValentContactStore *store = NULL;
-  g_autofree char *local_uid = NULL;
-  ValentDevice *device;
-  GSettings *settings;
-
-  g_assert (VALENT_IS_CONTACTS_PLUGIN (self));
-
-  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
-                                   actions,
-                                   G_N_ELEMENTS (actions),
-                                   plugin);
-
-  /* Prepare Addressbooks */
-  self->cancellable = g_cancellable_new ();
-  device = valent_device_plugin_get_device (plugin);
-  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
-
-  store = valent_contacts_ensure_store (valent_contacts_get_default (),
-                                        valent_device_get_id (device),
-                                        valent_device_get_name (device));
-  g_set_object (&self->remote_store, store);
-
-  /* Local address book, shared with remote device */
-  local_uid = g_settings_get_string (settings, "local-uid");
-
-  if (*local_uid != '\0')
-    {
-      unsigned int n_stores = g_list_model_get_n_items (G_LIST_MODEL (contacts));
-
-      for (unsigned int i = 0; i < n_stores; i++)
-        {
-          g_autoptr (ValentContactStore) local = NULL;
-
-          local = g_list_model_get_item (G_LIST_MODEL (contacts), i);
-
-          if (g_strcmp0 (valent_contact_store_get_uid (local), local_uid) != 0)
-            continue;
-
-          g_set_object (&self->local_store, local);
-          break;
-        }
-    }
-}
-
-static void
-valent_contacts_plugin_disable (ValentDevicePlugin *plugin)
-{
-  ValentContactsPlugin *self = VALENT_CONTACTS_PLUGIN (plugin);
-
-  /* Cancel any pending operations and drop the address books */
-  g_cancellable_cancel (self->cancellable);
-  g_clear_object (&self->cancellable);
-  g_clear_object (&self->remote_store);
-  g_clear_object (&self->local_store);
-}
-
-static void
 valent_contacts_plugin_update_state (ValentDevicePlugin *plugin,
                                      ValentDeviceState   state)
 {
@@ -466,12 +405,78 @@ valent_contacts_plugin_handle_packet (ValentDevicePlugin *plugin,
  * GObject
  */
 static void
+valent_contacts_plugin_constructed (GObject *object)
+{
+  ValentContactsPlugin *self = VALENT_CONTACTS_PLUGIN (object);
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
+  ValentContacts *contacts = valent_contacts_get_default ();
+  ValentContactStore *store = NULL;
+  g_autofree char *local_uid = NULL;
+  ValentDevice *device;
+  GSettings *settings;
+
+  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   plugin);
+
+  /* Prepare Addressbooks */
+  self->cancellable = g_cancellable_new ();
+  device = valent_device_plugin_get_device (plugin);
+  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+
+  store = valent_contacts_ensure_store (valent_contacts_get_default (),
+                                        valent_device_get_id (device),
+                                        valent_device_get_name (device));
+  g_set_object (&self->remote_store, store);
+
+  /* Local address book, shared with remote device */
+  local_uid = g_settings_get_string (settings, "local-uid");
+
+  if (*local_uid != '\0')
+    {
+      unsigned int n_stores = g_list_model_get_n_items (G_LIST_MODEL (contacts));
+
+      for (unsigned int i = 0; i < n_stores; i++)
+        {
+          g_autoptr (ValentContactStore) local = NULL;
+
+          local = g_list_model_get_item (G_LIST_MODEL (contacts), i);
+
+          if (g_strcmp0 (valent_contact_store_get_uid (local), local_uid) != 0)
+            continue;
+
+          g_set_object (&self->local_store, local);
+          break;
+        }
+    }
+
+  G_OBJECT_CLASS (valent_contacts_plugin_parent_class)->constructed (object);
+}
+
+static void
+valent_contacts_plugin_dispose (GObject *object)
+{
+  ValentContactsPlugin *self = VALENT_CONTACTS_PLUGIN (object);
+
+  /* Cancel any pending operations and drop the address books */
+  g_cancellable_cancel (self->cancellable);
+  g_clear_object (&self->cancellable);
+  g_clear_object (&self->remote_store);
+  g_clear_object (&self->local_store);
+
+  G_OBJECT_CLASS (valent_contacts_plugin_parent_class)->dispose (object);
+}
+
+static void
 valent_contacts_plugin_class_init (ValentContactsPluginClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
-  plugin_class->enable = valent_contacts_plugin_enable;
-  plugin_class->disable = valent_contacts_plugin_disable;
+  object_class->constructed = valent_contacts_plugin_constructed;
+  object_class->dispose = valent_contacts_plugin_dispose;
+
   plugin_class->handle_packet = valent_contacts_plugin_handle_packet;
   plugin_class->update_state = valent_contacts_plugin_update_state;
 }

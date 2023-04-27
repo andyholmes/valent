@@ -393,31 +393,6 @@ static const GActionEntry actions[] = {
  * ValentDevicePlugin
  */
 static void
-valent_battery_plugin_enable (ValentDevicePlugin *plugin)
-{
-  ValentBatteryPlugin *self = VALENT_BATTERY_PLUGIN (plugin);
-
-  g_assert (VALENT_IS_BATTERY_PLUGIN (self));
-
-  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
-                                   actions,
-                                   G_N_ELEMENTS (actions),
-                                   plugin);
-  valent_battery_plugin_update_gaction (self);
-}
-
-static void
-valent_battery_plugin_disable (ValentDevicePlugin *plugin)
-{
-  ValentBatteryPlugin *self = VALENT_BATTERY_PLUGIN (plugin);
-
-  g_assert (VALENT_IS_BATTERY_PLUGIN (self));
-
-  /* We're about to be disposed, so stop watching the battery for changes */
-  valent_battery_plugin_watch_battery (self, FALSE);
-}
-
-static void
 valent_battery_plugin_update_state (ValentDevicePlugin *plugin,
                                     ValentDeviceState   state)
 {
@@ -469,12 +444,38 @@ valent_battery_plugin_handle_packet (ValentDevicePlugin *plugin,
  * GObject
  */
 static void
+valent_battery_plugin_constructed (GObject *object)
+{
+  ValentBatteryPlugin *self = VALENT_BATTERY_PLUGIN (object);
+
+  g_action_map_add_action_entries (G_ACTION_MAP (object),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   object);
+  valent_battery_plugin_update_gaction (self);
+
+  G_OBJECT_CLASS (valent_battery_plugin_parent_class)->constructed (object);
+}
+
+static void
+valent_battery_plugin_dispose (GObject *object)
+{
+  ValentBatteryPlugin *self = VALENT_BATTERY_PLUGIN (object);
+
+  valent_battery_plugin_watch_battery (self, FALSE);
+
+  G_OBJECT_CLASS (valent_battery_plugin_parent_class)->dispose (object);
+}
+
+static void
 valent_battery_plugin_class_init (ValentBatteryPluginClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
-  plugin_class->enable = valent_battery_plugin_enable;
-  plugin_class->disable = valent_battery_plugin_disable;
+  object_class->constructed = valent_battery_plugin_constructed;
+  object_class->dispose = valent_battery_plugin_dispose;
+
   plugin_class->handle_packet = valent_battery_plugin_handle_packet;
   plugin_class->update_state = valent_battery_plugin_update_state;
 }

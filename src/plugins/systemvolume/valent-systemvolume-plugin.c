@@ -365,27 +365,6 @@ valent_systemvolume_plugin_handle_request (ValentSystemvolumePlugin *self,
  * ValentDevicePlugin
  */
 static void
-valent_systemvolume_plugin_enable (ValentDevicePlugin *plugin)
-{
-  ValentSystemvolumePlugin *self = VALENT_SYSTEMVOLUME_PLUGIN (plugin);
-
-  g_assert (VALENT_IS_SYSTEMVOLUME_PLUGIN (self));
-
-  self->states = g_ptr_array_new_with_free_func (stream_state_free);
-}
-
-static void
-valent_systemvolume_plugin_disable (ValentDevicePlugin *plugin)
-{
-  ValentSystemvolumePlugin *self = VALENT_SYSTEMVOLUME_PLUGIN (plugin);
-
-  g_assert (VALENT_IS_SYSTEMVOLUME_PLUGIN (self));
-
-  valent_systemvolume_plugin_watch_mixer (self, FALSE);
-  g_clear_pointer (&self->states, g_ptr_array_unref);
-}
-
-static void
 valent_systemvolume_plugin_update_state (ValentDevicePlugin *plugin,
                                          ValentDeviceState   state)
 {
@@ -425,12 +404,35 @@ valent_systemvolume_plugin_handle_packet (ValentDevicePlugin *plugin,
  * GObject
  */
 static void
+valent_systemvolume_plugin_constructed (GObject *object)
+{
+  ValentSystemvolumePlugin *self = VALENT_SYSTEMVOLUME_PLUGIN (object);
+
+  self->states = g_ptr_array_new_with_free_func (stream_state_free);
+
+  G_OBJECT_CLASS (valent_systemvolume_plugin_parent_class)->constructed (object);
+}
+
+static void
+valent_systemvolume_plugin_dispose (GObject *object)
+{
+  ValentSystemvolumePlugin *self = VALENT_SYSTEMVOLUME_PLUGIN (object);
+
+  valent_systemvolume_plugin_watch_mixer (self, FALSE);
+  g_clear_pointer (&self->states, g_ptr_array_unref);
+
+  G_OBJECT_CLASS (valent_systemvolume_plugin_parent_class)->dispose (object);
+}
+
+static void
 valent_systemvolume_plugin_class_init (ValentSystemvolumePluginClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
-  plugin_class->enable = valent_systemvolume_plugin_enable;
-  plugin_class->disable = valent_systemvolume_plugin_disable;
+  object_class->constructed = valent_systemvolume_plugin_constructed;
+  object_class->dispose = valent_systemvolume_plugin_dispose;
+
   plugin_class->handle_packet = valent_systemvolume_plugin_handle_packet;
   plugin_class->update_state = valent_systemvolume_plugin_update_state;
 }

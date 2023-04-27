@@ -127,8 +127,6 @@ test_device_plugin_actions (DevicePluginFixture *fixture,
   GVariant *state = NULL;
   gboolean emitted = FALSE;
 
-  valent_device_plugin_enable (VALENT_DEVICE_PLUGIN (fixture->extension));
-
   g_signal_connect (fixture->extension,
                     "action-added",
                     G_CALLBACK (on_action_added),
