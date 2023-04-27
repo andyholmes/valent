@@ -136,6 +136,21 @@ valent_application_plugin_real_startup (ValentApplicationPlugin *plugin)
 }
 /* LCOV_EXCL_STOP */
 
+static void
+valent_application_plugin_set_application (ValentApplicationPlugin *self,
+                                           GApplication            *application)
+{
+  ValentApplicationPluginPrivate *priv = valent_application_plugin_get_instance_private (self);
+
+  g_assert (VALENT_IS_APPLICATION_PLUGIN (self));
+
+  if (priv->application == application)
+    return;
+
+  priv->application = application;
+  g_object_add_weak_pointer (G_OBJECT (priv->application),
+                             (gpointer *)&priv->application);
+}
 
 /*
  * GObject
@@ -164,6 +179,17 @@ valent_application_plugin_dispose (GObject *object)
     }
 
   G_OBJECT_CLASS (valent_application_plugin_parent_class)->dispose (object);
+}
+
+static void
+valent_application_plugin_finalize (GObject *object)
+{
+  ValentApplicationPlugin *self = VALENT_APPLICATION_PLUGIN (object);
+  ValentApplicationPluginPrivate *priv = valent_application_plugin_get_instance_private (self);
+
+  g_clear_weak_pointer (&priv->application);
+
+  G_OBJECT_CLASS (valent_application_plugin_parent_class)->finalize (object);
 }
 
 static void
@@ -202,7 +228,7 @@ valent_application_plugin_set_property (GObject      *object,
   switch (prop_id)
     {
     case PROP_APPLICATION:
-      priv->application = g_value_get_object (value);
+      valent_application_plugin_set_application (self, g_value_get_object (value));
       break;
 
     case PROP_PLUGIN_INFO:
@@ -220,6 +246,7 @@ valent_application_plugin_class_init (ValentApplicationPluginClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
   object_class->dispose = valent_application_plugin_dispose;
+  object_class->finalize = valent_application_plugin_finalize;
   object_class->get_property = valent_application_plugin_get_property;
   object_class->set_property = valent_application_plugin_set_property;
 
