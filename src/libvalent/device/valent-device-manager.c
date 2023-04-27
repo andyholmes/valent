@@ -871,13 +871,15 @@ static void
 valent_device_manager_constructed (GObject *object)
 {
   ValentDeviceManager *self = VALENT_DEVICE_MANAGER (object);
+  g_autoptr (GFile) file = NULL;
   g_autoptr (GError) error = NULL;
   const char *path = NULL;
 
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
 
   /* Generate certificate */
-  path = valent_context_get_config_path (self->context);
+  file = valent_context_get_config_file (self->context, ".");
+  path = g_file_peek_path (file);
 
   if ((self->certificate = valent_certificate_new_sync (path, &error)) != NULL)
     self->id = valent_certificate_get_common_name (self->certificate);
