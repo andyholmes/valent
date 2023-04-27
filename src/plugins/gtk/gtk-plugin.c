@@ -15,7 +15,7 @@ G_MODULE_EXPORT void
 valent_gtk_plugin_register_types (PeasObjectModule *module)
 {
   /* These extensions inherently rely on GTK being initialized */
-  if (gtk_init_check ())
+  if (gtk_is_initialized ())
     {
       peas_object_module_register_extension_type (module,
                                                   VALENT_TYPE_CLIPBOARD_ADAPTER,

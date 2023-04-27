@@ -42,17 +42,19 @@ main (int   argc,
   int ret;
   g_autoptr (GApplication) service = NULL;
 
-  /* Set up gettext translations */
+  /* Initialize Translations */
   bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
   bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
   textdomain (GETTEXT_PACKAGE);
 
-  /* Setup plugins */
+  /* Initialize Valent */
+  valent_debug_init ();
   valent_plugin_init ();
 
-  /* Start the service */
-  valent_debug_init ();
+  if (g_getenv ("VALENT_HEADLESS") != NULL || !valent_ui_init ())
+    g_debug ("Valent running in headless mode");
 
+  /* Run and cleanup, before returning */
   g_set_application_name ("Valent");
   service = _valent_application_new ();
   ret = g_application_run (G_APPLICATION (service), argc, argv);
