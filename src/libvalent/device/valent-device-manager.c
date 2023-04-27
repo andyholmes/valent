@@ -734,8 +734,8 @@ valent_device_manager_dbus_unregister (ValentApplicationPlugin *plugin,
   ValentDeviceManager *self = VALENT_DEVICE_MANAGER (plugin);
 
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
-  g_assert (connection == NULL || G_IS_DBUS_CONNECTION (connection));
-  g_assert (object_path == NULL || g_variant_is_object_path (object_path));
+  g_assert (G_IS_DBUS_CONNECTION (connection));
+  g_assert (g_variant_is_object_path (object_path));
 
   if (self->dbus == NULL)
     return;
@@ -900,19 +900,6 @@ valent_device_manager_constructed (GObject *object)
 }
 
 static void
-valent_device_manager_dispose (GObject *object)
-{
-  ValentDeviceManager *self = VALENT_DEVICE_MANAGER (object);
-
-  valent_device_manager_shutdown (VALENT_APPLICATION_PLUGIN (self));
-  valent_device_manager_dbus_unregister (VALENT_APPLICATION_PLUGIN (self),
-                                         NULL,
-                                         NULL);
-
-  G_OBJECT_CLASS (valent_device_manager_parent_class)->dispose (object);
-}
-
-static void
 valent_device_manager_finalize (GObject *object)
 {
   ValentDeviceManager *self = VALENT_DEVICE_MANAGER (object);
@@ -975,7 +962,6 @@ valent_device_manager_class_init (ValentDeviceManagerClass *klass)
   ValentApplicationPluginClass *plugin_class = VALENT_APPLICATION_PLUGIN_CLASS (klass);
 
   object_class->constructed = valent_device_manager_constructed;
-  object_class->dispose = valent_device_manager_dispose;
   object_class->finalize = valent_device_manager_finalize;
   object_class->get_property = valent_device_manager_get_property;
   object_class->set_property = valent_device_manager_set_property;
