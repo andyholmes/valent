@@ -14,7 +14,7 @@
 G_MODULE_EXPORT void
 libvalent_ui_register_types (PeasObjectModule *module)
 {
-  if (gtk_init_check ())
+  if (gtk_is_initialized ())
     {
       peas_object_module_register_extension_type (module,
                                                   VALENT_TYPE_APPLICATION_PLUGIN,
