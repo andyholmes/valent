@@ -133,8 +133,8 @@
                 {
                     "type" : "git",
                     "url" : "https://gitlab.gnome.org/GNOME/evolution-data-server.git",
-                    "commit" : "15f367ad7ceb952d545a095b754e4866cbeff39d",
-                    "tag" : "3.48.0",
+                    "commit" : "fc0a280168a5ec8aaeae7f9e34c46f10914c7c84",
+                    "tag" : "3.48.1",
                     "x-checker-data" : {
                         "type" : "anitya",
                         "project-id" : 10935,
