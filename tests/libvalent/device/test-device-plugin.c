@@ -69,48 +69,9 @@ on_activate (GSimpleAction *action,
 }
 
 static void
-on_action_added (GActionGroup *action_group,
-                 const char   *action_name,
-                 gboolean     *emitted)
+on_action_signal (gboolean *emitted)
 {
-  g_assert_cmpstr (action_name, ==, "action");
-
-  if (emitted)
-    *emitted = TRUE;
-}
-
-static void
-on_action_enabled_changed (GActionGroup *action_group,
-                           const char   *action_name,
-                           gboolean      enabled,
-                           gboolean     *emitted)
-{
-  g_assert_cmpstr (action_name, ==, "action");
-
-  if (emitted)
-    *emitted = TRUE;
-}
-
-static void
-on_action_removed (GActionGroup *action_group,
-                   const char   *action_name,
-                   gboolean     *emitted)
-{
-  g_assert_cmpstr (action_name, ==, "action");
-
-  if (emitted)
-    *emitted = TRUE;
-}
-
-static void
-on_action_state_changed (GActionGroup *action_group,
-                         const char   *action_name,
-                         GVariant     *value,
-                         gboolean     *emitted)
-{
-  g_assert_cmpstr (action_name, ==, "state");
-
-  if (emitted)
+  if (emitted != NULL)
     *emitted = TRUE;
 }
 
@@ -127,24 +88,7 @@ test_device_plugin_actions (DevicePluginFixture *fixture,
   GVariant *state = NULL;
   gboolean emitted = FALSE;
 
-  g_signal_connect (fixture->extension,
-                    "action-added",
-                    G_CALLBACK (on_action_added),
-                    &emitted);
-  g_signal_connect (fixture->extension,
-                    "action-enabled-changed",
-                    G_CALLBACK (on_action_enabled_changed),
-                    &emitted);
-  g_signal_connect (fixture->extension,
-                    "action-removed",
-                    G_CALLBACK (on_action_removed),
-                    &emitted);
-  g_signal_connect (fixture->extension,
-                    "action-state-changed",
-                    G_CALLBACK (on_action_state_changed),
-                    &emitted);
-
-  /* Query */
+  VALENT_TEST_CHECK ("Actions can be queried");
   has_action = g_action_group_query_action (G_ACTION_GROUP (fixture->extension),
                                             "state",
                                             &enabled,
@@ -160,35 +104,41 @@ test_device_plugin_actions (DevicePluginFixture *fixture,
   g_assert_true (g_variant_get_boolean (state));
   g_clear_pointer (&state, g_variant_unref);
 
-  /* Change State */
+  /* Signals */
+  g_object_connect (G_OBJECT (fixture->extension),
+                    "swapped-signal::action-added",           on_action_signal, &emitted,
+                    "swapped-signal::action-enabled-changed", on_action_signal, &emitted,
+                    "swapped-signal::action-removed",         on_action_signal, &emitted,
+                    "swapped-signal::action-state-changed",   on_action_signal, &emitted,
+                    NULL);
+
+  VALENT_TEST_CHECK ("Stateful actions can be changed");
   g_action_group_change_action_state (G_ACTION_GROUP (fixture->extension),
                                       "state",
                                       g_variant_new_boolean (FALSE));
-  g_assert_true (emitted);
-  emitted = FALSE;
+  valent_test_await_boolean (&emitted);
 
+  VALENT_TEST_CHECK ("Stateful actions can be read");
   state = g_action_group_get_action_state (G_ACTION_GROUP (fixture->extension),
                                            "state");
   g_assert_false (g_variant_get_boolean (state));
   g_clear_pointer (&state, g_variant_unref);
 
-  /* Add */
+  VALENT_TEST_CHECK ("Actions can be added");
   action = g_simple_action_new ("action", G_VARIANT_TYPE_BOOLEAN);
   g_action_map_add_action (G_ACTION_MAP (fixture->extension),
                            G_ACTION (action));
-  g_assert_true (emitted);
-  emitted = FALSE;
+  valent_test_await_boolean (&emitted);
 
-  /* Enable/Disable */
+  VALENT_TEST_CHECK ("Actions can be disabled");
   g_simple_action_set_enabled (action, FALSE);
-  g_assert_true (emitted);
-  emitted = FALSE;
+  valent_test_await_boolean (&emitted);
 
+  VALENT_TEST_CHECK ("Actions can be enabled");
   g_simple_action_set_enabled (action, TRUE);
-  g_assert_true (emitted);
-  emitted = FALSE;
+  valent_test_await_boolean (&emitted);
 
-  /* Activate */
+  VALENT_TEST_CHECK ("Actions can be activated");
   g_signal_connect (action,
                     "activate",
                     G_CALLBACK (on_activate),
@@ -196,13 +146,11 @@ test_device_plugin_actions (DevicePluginFixture *fixture,
   g_action_group_activate_action (G_ACTION_GROUP (fixture->extension),
                                   "action",
                                   g_variant_new_boolean (TRUE));
-  g_assert_true (emitted);
-  emitted = FALSE;
+  valent_test_await_boolean (&emitted);
 
-  /* Remove */
+  VALENT_TEST_CHECK ("Actions can be removed");
   g_action_map_remove_action (G_ACTION_MAP (fixture->extension), "action");
-  g_assert_true (emitted);
-  emitted = FALSE;
+  valent_test_await_boolean (&emitted);
 
   g_signal_handlers_disconnect_by_data (fixture->extension, &emitted);
 }
