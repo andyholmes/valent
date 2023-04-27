@@ -21,8 +21,6 @@ struct _ValentApplicationPluginClass
   ValentObjectClass   parent_class;
 
   /* virtual functions */
-  void                (*disable)         (ValentApplicationPlugin  *plugin);
-  void                (*enable)          (ValentApplicationPlugin  *plugin);
   gboolean            (*activate)        (ValentApplicationPlugin  *plugin);
   int                 (*command_line)    (ValentApplicationPlugin  *plugin,
                                           GApplicationCommandLine  *command_line);
@@ -46,10 +44,6 @@ struct _ValentApplicationPluginClass
 
 VALENT_AVAILABLE_IN_1_0
 GApplication * valent_application_plugin_get_application (ValentApplicationPlugin  *plugin);
-VALENT_AVAILABLE_IN_1_0
-void           valent_application_plugin_disable         (ValentApplicationPlugin  *plugin);
-VALENT_AVAILABLE_IN_1_0
-void           valent_application_plugin_enable          (ValentApplicationPlugin  *plugin);
 VALENT_AVAILABLE_IN_1_0
 gboolean       valent_application_plugin_activate        (ValentApplicationPlugin  *plugin);
 VALENT_AVAILABLE_IN_1_0

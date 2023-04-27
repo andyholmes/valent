@@ -17,18 +17,6 @@ G_DEFINE_FINAL_TYPE (ValentMockApplicationPlugin, valent_mock_application_plugin
 /*
  * ValentApplicationPlugin
  */
-static void
-valent_mock_application_plugin_enable (ValentApplicationPlugin *plugin)
-{
-  g_assert (VALENT_IS_MOCK_APPLICATION_PLUGIN (plugin));
-}
-
-static void
-valent_mock_application_plugin_disable (ValentApplicationPlugin *plugin)
-{
-  g_assert (VALENT_IS_MOCK_APPLICATION_PLUGIN (plugin));
-}
-
 static gboolean
 valent_mock_application_plugin_activate (ValentApplicationPlugin *plugin)
 {
@@ -102,8 +90,6 @@ valent_mock_application_plugin_class_init (ValentMockApplicationPluginClass *kla
 {
   ValentApplicationPluginClass *plugin_class = VALENT_APPLICATION_PLUGIN_CLASS (klass);
 
-  plugin_class->enable = valent_mock_application_plugin_enable;
-  plugin_class->disable = valent_mock_application_plugin_disable;
   plugin_class->activate = valent_mock_application_plugin_activate;
   plugin_class->command_line = valent_mock_application_plugin_command_line;
   plugin_class->dbus_register = valent_mock_application_plugin_dbus_register;

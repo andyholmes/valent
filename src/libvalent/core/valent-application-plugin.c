@@ -67,18 +67,6 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 
 /* LCOV_EXCL_START */
-static void
-valent_application_plugin_real_disable (ValentApplicationPlugin *plugin)
-{
-  g_assert (VALENT_IS_APPLICATION_PLUGIN (plugin));
-}
-
-static void
-valent_application_plugin_real_enable (ValentApplicationPlugin *plugin)
-{
-  g_assert (VALENT_IS_APPLICATION_PLUGIN (plugin));
-}
-
 static gboolean
 valent_application_plugin_real_activate (ValentApplicationPlugin *plugin)
 {
@@ -208,8 +196,6 @@ valent_application_plugin_class_init (ValentApplicationPluginClass *klass)
   object_class->get_property = valent_application_plugin_get_property;
   object_class->set_property = valent_application_plugin_set_property;
 
-  klass->disable = valent_application_plugin_real_disable;
-  klass->enable = valent_application_plugin_real_enable;
   klass->activate = valent_application_plugin_real_activate;
   klass->command_line = valent_application_plugin_real_command_line;
   klass->dbus_register = valent_application_plugin_real_dbus_register;
@@ -274,52 +260,6 @@ valent_application_plugin_get_application (ValentApplicationPlugin *plugin)
   g_return_val_if_fail (VALENT_IS_APPLICATION_PLUGIN (plugin), NULL);
 
   return priv->application;
-}
-
-/**
- * valent_application_plugin_enable: (virtual enable)
- * @plugin: a #ValentApplicationPlugin
- *
- * Enable the plugin.
- *
- * Implementations should override this method to prepare anything the plugin
- * needs to perform its function.
- *
- * Since: 1.0
- */
-void
-valent_application_plugin_enable (ValentApplicationPlugin *plugin)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_APPLICATION_PLUGIN (plugin));
-
-  VALENT_APPLICATION_PLUGIN_GET_CLASS (plugin)->enable (plugin);
-
-  VALENT_EXIT;
-}
-
-/**
- * valent_application_plugin_disable: (virtual disable)
- * @plugin: a #ValentApplicationPlugin
- *
- * Disable the plugin.
- *
- * Implementations should override this method to cleanup any resources that
- * were allocated in [method@Valent.ApplicationPlugin.enable].
- *
- * Since: 1.0
- */
-void
-valent_application_plugin_disable (ValentApplicationPlugin *plugin)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_APPLICATION_PLUGIN (plugin));
-
-  VALENT_APPLICATION_PLUGIN_GET_CLASS (plugin)->disable (plugin);
-
-  VALENT_EXIT;
 }
 
 /**
