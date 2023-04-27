@@ -39,8 +39,8 @@
 
 typedef struct
 {
-  PeasPluginInfo      *plugin_info;
-  GApplication        *application;
+  PeasPluginInfo *plugin_info;
+  GApplication   *application;
 } ValentApplicationPluginPrivate;
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentApplicationPlugin, valent_application_plugin, VALENT_TYPE_OBJECT)
@@ -141,6 +141,32 @@ valent_application_plugin_real_startup (ValentApplicationPlugin *plugin)
  * GObject
  */
 static void
+valent_application_plugin_dispose (GObject *object)
+{
+  ValentApplicationPlugin *self = VALENT_APPLICATION_PLUGIN (object);
+  GApplication *application = NULL;
+
+  /* Ensure shutdown is performed when the instance is not a plugin */
+  if ((application = valent_application_plugin_get_application (self)) == NULL &&
+      (application = g_application_get_default ()) != NULL)
+    {
+      valent_application_plugin_shutdown (self);
+
+      if (g_application_get_is_registered (application))
+        {
+          GDBusConnection *connection = NULL;
+          const char *object_path = NULL;
+
+          connection = g_application_get_dbus_connection (application);
+          object_path = g_application_get_dbus_object_path (application);
+          valent_application_plugin_dbus_unregister (self, connection, object_path);
+        }
+    }
+
+  G_OBJECT_CLASS (valent_application_plugin_parent_class)->dispose (object);
+}
+
+static void
 valent_application_plugin_get_property (GObject    *object,
                                         guint       prop_id,
                                         GValue     *value,
@@ -193,6 +219,7 @@ valent_application_plugin_class_init (ValentApplicationPluginClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
+  object_class->dispose = valent_application_plugin_dispose;
   object_class->get_property = valent_application_plugin_get_property;
   object_class->set_property = valent_application_plugin_set_property;
 
