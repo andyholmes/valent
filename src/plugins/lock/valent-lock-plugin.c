@@ -147,32 +147,6 @@ static const GActionEntry actions[] = {
  * ValentDevicePlugin
  */
 static void
-valent_lock_plugin_enable (ValentDevicePlugin *plugin)
-{
-  ValentLockPlugin *self = VALENT_LOCK_PLUGIN (plugin);
-
-  g_assert (VALENT_IS_LOCK_PLUGIN (self));
-
-  self->session = valent_session_get_default ();
-
-  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
-                                   actions,
-                                   G_N_ELEMENTS (actions),
-                                   plugin);
-}
-
-static void
-valent_lock_plugin_disable (ValentDevicePlugin *plugin)
-{
-  ValentLockPlugin *self = VALENT_LOCK_PLUGIN (plugin);
-
-  g_assert (VALENT_IS_LOCK_PLUGIN (self));
-
-  /* We're about to dispose, so stop watching the session */
-  g_clear_signal_handler (&self->session_changed_id, self->session);
-}
-
-static void
 valent_lock_plugin_update_state (ValentDevicePlugin *plugin,
                                  ValentDeviceState   state)
 {
@@ -230,12 +204,40 @@ valent_lock_plugin_handle_packet (ValentDevicePlugin *plugin,
  * GObject
  */
 static void
+valent_lock_plugin_constructed (GObject *object)
+{
+  ValentLockPlugin *self = VALENT_LOCK_PLUGIN (object);
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
+
+  self->session = valent_session_get_default ();
+
+  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   plugin);
+
+  G_OBJECT_CLASS (valent_lock_plugin_parent_class)->constructed (object);
+}
+
+static void
+valent_lock_plugin_dispose (GObject *object)
+{
+  ValentLockPlugin *self = VALENT_LOCK_PLUGIN (object);
+
+  g_clear_signal_handler (&self->session_changed_id, self->session);
+
+  G_OBJECT_CLASS (valent_lock_plugin_parent_class)->dispose (object);
+}
+
+static void
 valent_lock_plugin_class_init (ValentLockPluginClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
-  plugin_class->enable = valent_lock_plugin_enable;
-  plugin_class->disable = valent_lock_plugin_disable;
+  object_class->constructed = valent_lock_plugin_constructed;
+  object_class->dispose = valent_lock_plugin_dispose;
+
   plugin_class->handle_packet = valent_lock_plugin_handle_packet;
   plugin_class->update_state = valent_lock_plugin_update_state;
 }

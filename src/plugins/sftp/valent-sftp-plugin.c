@@ -592,49 +592,6 @@ static const GActionEntry actions[] = {
  * ValentDevicePlugin
  */
 static void
-valent_sftp_plugin_enable (ValentDevicePlugin *plugin)
-{
-  ValentSftpPlugin *self = VALENT_SFTP_PLUGIN (plugin);
-
-  g_assert (VALENT_IS_SFTP_PLUGIN (self));
-
-  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
-                                   actions,
-                                   G_N_ELEMENTS (actions),
-                                   plugin);
-  valent_device_plugin_set_menu_action (plugin,
-                                        "device.sftp.browse",
-                                        _("Browse Files"),
-                                        "folder-remote-symbolic");
-
-  /* Watch the volume monitor */
-  self->monitor = g_volume_monitor_get ();
-  g_signal_connect_object (self->monitor,
-                           "mount-added",
-                           G_CALLBACK (on_mount_added),
-                           self, 0);
-  g_signal_connect_object (self->monitor,
-                           "mount-removed",
-                           G_CALLBACK (on_mount_removed),
-                           self, 0);
-}
-
-static void
-valent_sftp_plugin_disable (ValentDevicePlugin *plugin)
-{
-  ValentSftpPlugin *self = VALENT_SFTP_PLUGIN (plugin);
-
-  g_assert (VALENT_IS_SFTP_PLUGIN (self));
-
-  /* Stop watching the volume monitor and unmount any current session */
-  g_signal_handlers_disconnect_by_data (self->monitor, self);
-  g_clear_object (&self->monitor);
-  g_clear_pointer (&self->session, sftp_session_end);
-
-  valent_device_plugin_set_menu_item (plugin, "device.sftp.browse", NULL);
-}
-
-static void
 valent_sftp_plugin_update_state (ValentDevicePlugin *plugin,
                                  ValentDeviceState   state)
 {
@@ -687,11 +644,49 @@ valent_sftp_plugin_handle_packet (ValentDevicePlugin *plugin,
  * GObject
  */
 static void
+valent_sftp_plugin_constructed (GObject *object)
+{
+  ValentSftpPlugin *self = VALENT_SFTP_PLUGIN (object);
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
+
+  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   plugin);
+  valent_device_plugin_set_menu_action (plugin,
+                                        "device.sftp.browse",
+                                        _("Browse Files"),
+                                        "folder-remote-symbolic");
+
+  /* Watch the volume monitor */
+  self->monitor = g_volume_monitor_get ();
+  g_signal_connect_object (self->monitor,
+                           "mount-added",
+                           G_CALLBACK (on_mount_added),
+                           self, 0);
+  g_signal_connect_object (self->monitor,
+                           "mount-removed",
+                           G_CALLBACK (on_mount_removed),
+                           self, 0);
+
+  G_OBJECT_CLASS (valent_sftp_plugin_parent_class)->constructed (object);
+}
+
+static void
 valent_sftp_plugin_dispose (GObject *object)
 {
   ValentSftpPlugin *self = VALENT_SFTP_PLUGIN (object);
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
 
-  g_clear_pointer (&self->session, sftp_session_free);
+  /* Stop watching the volume monitor and unmount any current session */
+  if (self->monitor != NULL)
+    {
+      g_signal_handlers_disconnect_by_data (self->monitor, self);
+      g_clear_object (&self->monitor);
+    }
+  g_clear_pointer (&self->session, sftp_session_end);
+
+  valent_device_plugin_set_menu_item (plugin, "device.sftp.browse", NULL);
 
   G_OBJECT_CLASS (valent_sftp_plugin_parent_class)->dispose (object);
 }
@@ -702,10 +697,9 @@ valent_sftp_plugin_class_init (ValentSftpPluginClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
+  object_class->constructed = valent_sftp_plugin_constructed;
   object_class->dispose = valent_sftp_plugin_dispose;
 
-  plugin_class->enable = valent_sftp_plugin_enable;
-  plugin_class->disable = valent_sftp_plugin_disable;
   plugin_class->handle_packet = valent_sftp_plugin_handle_packet;
   plugin_class->update_state = valent_sftp_plugin_update_state;
 }

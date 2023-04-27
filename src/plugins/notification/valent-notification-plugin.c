@@ -975,49 +975,6 @@ static const GActionEntry actions[] = {
  * ValentDevicePlugin
  */
 static void
-valent_notification_plugin_enable (ValentDevicePlugin *plugin)
-{
-  ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (plugin);
-
-  g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
-
-  self->cancellable = g_cancellable_new ();
-  self->notifications = valent_notifications_get_default();
-  self->session = valent_session_get_default ();
-
-  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
-                                   actions,
-                                   G_N_ELEMENTS (actions),
-                                   plugin);
-
-  self->cache = g_hash_table_new_full (g_str_hash,
-                                       g_str_equal,
-                                       g_free,
-                                       (GDestroyNotify)json_node_unref);
-  self->dialogs = g_hash_table_new_full (valent_notification_hash,
-                                         valent_notification_equal,
-                                         g_object_unref,
-                                         (GDestroyNotify)gtk_window_destroy);
-}
-
-static void
-valent_notification_plugin_disable (ValentDevicePlugin *plugin)
-{
-  ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (plugin);
-
-  /* Close any open reply dialogs */
-  g_clear_pointer (&self->cache, g_hash_table_unref);
-  g_clear_pointer (&self->dialogs, g_hash_table_unref);
-
-  /* We're about to be disposed, so stop watching for notifications */
-  valent_notification_plugin_watch_notifications (self, FALSE);
-
-  /* Cancel any pending operations */
-  g_cancellable_cancel (self->cancellable);
-  g_clear_object (&self->cancellable);
-}
-
-static void
 valent_notification_plugin_update_state (ValentDevicePlugin *plugin,
                                          ValentDeviceState   state)
 {
@@ -1079,12 +1036,59 @@ valent_notification_plugin_handle_packet (ValentDevicePlugin *plugin,
  * GObject
  */
 static void
+valent_notification_plugin_constructed (GObject *object)
+{
+  ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (object);
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
+
+  self->cancellable = g_cancellable_new ();
+  self->notifications = valent_notifications_get_default();
+  self->session = valent_session_get_default ();
+
+  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   plugin);
+
+  self->cache = g_hash_table_new_full (g_str_hash,
+                                       g_str_equal,
+                                       g_free,
+                                       (GDestroyNotify)json_node_unref);
+  self->dialogs = g_hash_table_new_full (valent_notification_hash,
+                                         valent_notification_equal,
+                                         g_object_unref,
+                                         (GDestroyNotify)gtk_window_destroy);
+
+  G_OBJECT_CLASS (valent_notification_plugin_parent_class)->constructed (object);
+}
+
+static void
+valent_notification_plugin_dispose (GObject *object)
+{
+  ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (object);
+
+  valent_notification_plugin_watch_notifications (self, FALSE);
+
+  /* Close any open reply dialogs */
+  g_clear_pointer (&self->cache, g_hash_table_unref);
+  g_clear_pointer (&self->dialogs, g_hash_table_unref);
+
+  /* Cancel any pending operations */
+  g_cancellable_cancel (self->cancellable);
+  g_clear_object (&self->cancellable);
+
+  G_OBJECT_CLASS (valent_notification_plugin_parent_class)->dispose (object);
+}
+
+static void
 valent_notification_plugin_class_init (ValentNotificationPluginClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
-  plugin_class->enable = valent_notification_plugin_enable;
-  plugin_class->disable = valent_notification_plugin_disable;
+  object_class->constructed = valent_notification_plugin_constructed;
+  object_class->dispose = valent_notification_plugin_dispose;
+
   plugin_class->handle_packet = valent_notification_plugin_handle_packet;
   plugin_class->update_state = valent_notification_plugin_update_state;
 }

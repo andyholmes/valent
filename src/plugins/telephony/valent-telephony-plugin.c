@@ -358,27 +358,6 @@ static const GActionEntry actions[] = {
  * ValentDevicePlugin
  */
 static void
-valent_telephony_plugin_enable (ValentDevicePlugin *plugin)
-{
-  g_assert (VALENT_IS_TELEPHONY_PLUGIN (plugin));
-
-  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
-                                   actions,
-                                   G_N_ELEMENTS (actions),
-                                   plugin);
-}
-
-static void
-valent_telephony_plugin_disable (ValentDevicePlugin *plugin)
-{
-  ValentTelephonyPlugin *self = VALENT_TELEPHONY_PLUGIN (plugin);
-
-  /* We're about to be disposed, so clear the stored states */
-  g_clear_pointer (&self->prev_output, stream_state_free);
-  g_clear_pointer (&self->prev_input, stream_state_free);
-}
-
-static void
 valent_telephony_plugin_update_state (ValentDevicePlugin *plugin,
                                       ValentDeviceState   state)
 {
@@ -422,12 +401,38 @@ valent_telephony_plugin_handle_packet (ValentDevicePlugin *plugin,
  * GObject
  */
 static void
+valent_telephony_plugin_constructed (GObject *object)
+{
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
+
+  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   plugin);
+
+  G_OBJECT_CLASS (valent_telephony_plugin_parent_class)->constructed (object);
+}
+
+static void
+valent_telephony_plugin_dispose (GObject *object)
+{
+  ValentTelephonyPlugin *self = VALENT_TELEPHONY_PLUGIN (object);
+
+  g_clear_pointer (&self->prev_output, stream_state_free);
+  g_clear_pointer (&self->prev_input, stream_state_free);
+
+  G_OBJECT_CLASS (valent_telephony_plugin_parent_class)->dispose (object);
+}
+
+static void
 valent_telephony_plugin_class_init (ValentTelephonyPluginClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
-  plugin_class->enable = valent_telephony_plugin_enable;
-  plugin_class->disable = valent_telephony_plugin_disable;
+  object_class->constructed = valent_telephony_plugin_constructed;
+  object_class->dispose = valent_telephony_plugin_dispose;
+
   plugin_class->handle_packet = valent_telephony_plugin_handle_packet;
   plugin_class->update_state = valent_telephony_plugin_update_state;
 }

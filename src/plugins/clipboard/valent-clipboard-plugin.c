@@ -358,46 +358,6 @@ static const GActionEntry actions[] = {
  * ValentDevicePlugin
  */
 static void
-valent_clipboard_plugin_enable (ValentDevicePlugin *plugin)
-{
-  ValentClipboardPlugin *self = VALENT_CLIPBOARD_PLUGIN (plugin);
-  GSettings *settings = NULL;
-
-  g_assert (VALENT_IS_CLIPBOARD_PLUGIN (self));
-
-  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
-                                   actions,
-                                   G_N_ELEMENTS (actions),
-                                   plugin);
-
-  settings = valent_device_plugin_get_settings (plugin);
-  self->auto_pull = g_settings_get_boolean (settings, "auto-pull");
-  g_signal_connect_object (settings,
-                           "changed::auto-pull",
-                           G_CALLBACK (on_auto_pull_changed),
-                           self, 0);
-
-  self->auto_push = g_settings_get_boolean (settings, "auto-push");
-  g_signal_connect_object (settings,
-                           "changed::auto-push",
-                           G_CALLBACK (on_auto_push_changed),
-                           self, 0);
-
-  /* Ensure the ValentClipboard component is loaded */
-  if (self->clipboard == NULL)
-    self->clipboard = valent_clipboard_get_default ();
-}
-
-static void
-valent_clipboard_plugin_disable (ValentDevicePlugin *plugin)
-{
-  ValentClipboardPlugin *self = VALENT_CLIPBOARD_PLUGIN (plugin);
-
-  /* We're about to be disposed, so stop watching the clipboard for changes */
-  g_clear_signal_handler (&self->changed_id, self->clipboard);
-}
-
-static void
 valent_clipboard_plugin_update_state (ValentDevicePlugin *plugin,
                                       ValentDeviceState   state)
 {
@@ -462,6 +422,48 @@ valent_clipboard_plugin_handle_packet (ValentDevicePlugin *plugin,
  * GObject
  */
 static void
+valent_clipboard_plugin_constructed (GObject *object)
+{
+  ValentClipboardPlugin *self = VALENT_CLIPBOARD_PLUGIN (object);
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
+  GSettings *settings = NULL;
+
+  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   plugin);
+
+  settings = valent_device_plugin_get_settings (plugin);
+  self->auto_pull = g_settings_get_boolean (settings, "auto-pull");
+  g_signal_connect_object (settings,
+                           "changed::auto-pull",
+                           G_CALLBACK (on_auto_pull_changed),
+                           self, 0);
+
+  self->auto_push = g_settings_get_boolean (settings, "auto-push");
+  g_signal_connect_object (settings,
+                           "changed::auto-push",
+                           G_CALLBACK (on_auto_push_changed),
+                           self, 0);
+
+  /* Ensure the ValentClipboard component is loaded */
+  if (self->clipboard == NULL)
+    self->clipboard = valent_clipboard_get_default ();
+
+  G_OBJECT_CLASS (valent_clipboard_plugin_parent_class)->constructed (object);
+}
+
+static void
+valent_clipboard_plugin_dispose (GObject *object)
+{
+  ValentClipboardPlugin *self = VALENT_CLIPBOARD_PLUGIN (object);
+
+  g_clear_signal_handler (&self->changed_id, self->clipboard);
+
+  G_OBJECT_CLASS (valent_clipboard_plugin_parent_class)->dispose (object);
+}
+
+static void
 valent_clipboard_plugin_finalize (GObject *object)
 {
   ValentClipboardPlugin *self = VALENT_CLIPBOARD_PLUGIN (object);
@@ -477,10 +479,10 @@ valent_clipboard_plugin_class_init (ValentClipboardPluginClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
+  object_class->constructed = valent_clipboard_plugin_constructed;
+  object_class->dispose = valent_clipboard_plugin_dispose;
   object_class->finalize = valent_clipboard_plugin_finalize;
 
-  plugin_class->enable = valent_clipboard_plugin_enable;
-  plugin_class->disable = valent_clipboard_plugin_disable;
   plugin_class->handle_packet = valent_clipboard_plugin_handle_packet;
   plugin_class->update_state = valent_clipboard_plugin_update_state;
 }

@@ -59,42 +59,6 @@ static const GActionEntry actions[] = {
  * ValentDevicePlugin
  */
 static void
-valent_findmyphone_plugin_enable (ValentDevicePlugin *plugin)
-{
-  ValentFindmyphonePlugin *self = VALENT_FINDMYPHONE_PLUGIN (plugin);
-
-  g_assert (VALENT_IS_FINDMYPHONE_PLUGIN (self));
-
-  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
-                                   actions,
-                                   G_N_ELEMENTS (actions),
-                                   plugin);
-  valent_device_plugin_set_menu_action (plugin,
-                                        "device.findmyphone.ring",
-                                        _("Ring"),
-                                        "phonelink-ring-symbolic");
-
-  /* Acquire the ringer singleton and ensure the ValentSession component is
-   * prepared. */
-  self->ringer = valent_findmyphone_ringer_acquire ();
-  self->session = valent_session_get_default ();
-}
-
-static void
-valent_findmyphone_plugin_disable (ValentDevicePlugin *plugin)
-{
-  ValentFindmyphonePlugin *self = VALENT_FINDMYPHONE_PLUGIN (plugin);
-
-  g_assert (VALENT_IS_FINDMYPHONE_PLUGIN (self));
-
-  /* Release the ringer singleton */
-  g_clear_pointer (&self->ringer, valent_findmyphone_ringer_release);
-  self->session = NULL;
-
-  valent_device_plugin_set_menu_item (plugin, "device.findmyphone.ring", NULL);
-}
-
-static void
 valent_findmyphone_plugin_update_state (ValentDevicePlugin *plugin,
                                         ValentDeviceState   state)
 {
@@ -134,12 +98,52 @@ valent_findmyphone_plugin_handle_packet (ValentDevicePlugin *plugin,
  * GObject
  */
 static void
+valent_findmyphone_plugin_constructed (GObject *object)
+{
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
+  ValentFindmyphonePlugin *self = VALENT_FINDMYPHONE_PLUGIN (object);
+
+  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   plugin);
+  valent_device_plugin_set_menu_action (plugin,
+                                        "device.findmyphone.ring",
+                                        _("Ring"),
+                                        "phonelink-ring-symbolic");
+
+  /* Acquire the ringer singleton and ensure the ValentSession component is
+   * prepared. */
+  self->ringer = valent_findmyphone_ringer_acquire ();
+  self->session = valent_session_get_default ();
+
+  G_OBJECT_CLASS (valent_findmyphone_plugin_parent_class)->constructed (object);
+}
+
+static void
+valent_findmyphone_plugin_dispose (GObject *object)
+{
+  ValentFindmyphonePlugin *self = VALENT_FINDMYPHONE_PLUGIN (object);
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
+
+  /* Release the ringer singleton */
+  g_clear_pointer (&self->ringer, valent_findmyphone_ringer_release);
+  self->session = NULL;
+
+  valent_device_plugin_set_menu_item (plugin, "device.findmyphone.ring", NULL);
+
+  G_OBJECT_CLASS (valent_findmyphone_plugin_parent_class)->dispose (object);
+}
+
+static void
 valent_findmyphone_plugin_class_init (ValentFindmyphonePluginClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
-  plugin_class->enable = valent_findmyphone_plugin_enable;
-  plugin_class->disable = valent_findmyphone_plugin_disable;
+  object_class->constructed = valent_findmyphone_plugin_constructed;
+  object_class->dispose = valent_findmyphone_plugin_dispose;
+
   plugin_class->handle_packet = valent_findmyphone_plugin_handle_packet;
   plugin_class->update_state = valent_findmyphone_plugin_update_state;
 }

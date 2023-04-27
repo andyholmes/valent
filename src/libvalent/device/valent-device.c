@@ -195,13 +195,9 @@ device_plugin_free (gpointer data)
 {
   ValentPlugin *plugin = data;
 
-  /* We guarantee calling valent_device_plugin_disable() and `::action-removed`
-   * needs to be emitted before the plugin is freed. */
+  /* `::action-removed` needs to be emitted before the plugin is freed */
   if (plugin->extension != NULL)
-    {
-      valent_device_plugin_disable (VALENT_DEVICE_PLUGIN (plugin->extension));
-      g_clear_object (&plugin->extension);
-    }
+    valent_object_destroy (VALENT_OBJECT (plugin->extension));
 
   g_clear_pointer (&plugin, valent_plugin_free);
 }
@@ -347,7 +343,6 @@ valent_device_enable_plugin (ValentDevice *device,
                     plugin);
 
   /* Bootstrap the newly instantiated plugin */
-  valent_device_plugin_enable (VALENT_DEVICE_PLUGIN (plugin->extension));
   valent_device_plugin_update_state (VALENT_DEVICE_PLUGIN (plugin->extension),
                                      valent_device_get_state (device));
 }
@@ -397,8 +392,8 @@ valent_device_disable_plugin (ValentDevice *device,
         }
     }
 
-  /* Invoke the plugin vfunc */
-  valent_device_plugin_disable (VALENT_DEVICE_PLUGIN (plugin->extension));
+  /* `::action-removed` needs to be emitted before the plugin is freed */
+  valent_object_destroy (VALENT_OBJECT (plugin->extension));
   g_clear_object (&plugin->extension);
 }
 

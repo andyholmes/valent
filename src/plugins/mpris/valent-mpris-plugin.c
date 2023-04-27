@@ -826,23 +826,6 @@ valent_mpris_plugin_handle_mpris (ValentMprisPlugin *self,
  * ValentDevicePlugin
  */
 static void
-valent_mpris_plugin_enable (ValentDevicePlugin *plugin)
-{
-  ValentMprisPlugin *self = VALENT_MPRIS_PLUGIN (plugin);
-
-  self->media = valent_media_get_default ();
-}
-
-static void
-valent_mpris_plugin_disable (ValentDevicePlugin *plugin)
-{
-  ValentMprisPlugin *self = VALENT_MPRIS_PLUGIN (plugin);
-
-  valent_mpris_plugin_watch_media (self, FALSE);
-  self->media = NULL;
-}
-
-static void
 valent_mpris_plugin_update_state (ValentDevicePlugin *plugin,
                                   ValentDeviceState   state)
 {
@@ -892,6 +875,27 @@ valent_mpris_plugin_handle_packet (ValentDevicePlugin *plugin,
  * GObject
  */
 static void
+valent_mpris_plugin_constructed (GObject *object)
+{
+  ValentMprisPlugin *self = VALENT_MPRIS_PLUGIN (object);
+
+  self->media = valent_media_get_default ();
+
+  G_OBJECT_CLASS (valent_mpris_plugin_parent_class)->constructed (object);
+}
+
+static void
+valent_mpris_plugin_dispose (GObject *object)
+{
+  ValentMprisPlugin *self = VALENT_MPRIS_PLUGIN (object);
+
+  valent_mpris_plugin_watch_media (self, FALSE);
+  self->media = NULL;
+
+  G_OBJECT_CLASS (valent_mpris_plugin_parent_class)->dispose (object);
+}
+
+static void
 valent_mpris_plugin_finalize (GObject *object)
 {
   ValentMprisPlugin *self = VALENT_MPRIS_PLUGIN (object);
@@ -909,10 +913,10 @@ valent_mpris_plugin_class_init (ValentMprisPluginClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
+  object_class->constructed = valent_mpris_plugin_constructed;
+  object_class->dispose = valent_mpris_plugin_dispose;
   object_class->finalize = valent_mpris_plugin_finalize;
 
-  plugin_class->enable = valent_mpris_plugin_enable;
-  plugin_class->disable = valent_mpris_plugin_disable;
   plugin_class->handle_packet = valent_mpris_plugin_handle_packet;
   plugin_class->update_state = valent_mpris_plugin_update_state;
 }

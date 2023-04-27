@@ -415,28 +415,6 @@ static const GActionEntry actions[] = {
  * ValentDevicePlugin
  */
 static void
-valent_runcommand_plugin_enable (ValentDevicePlugin *plugin)
-{
-  g_assert (VALENT_IS_RUNCOMMAND_PLUGIN (plugin));
-
-  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
-                                   actions,
-                                   G_N_ELEMENTS (actions),
-                                   plugin);
-}
-
-static void
-valent_runcommand_plugin_disable (ValentDevicePlugin *plugin)
-{
-  ValentRuncommandPlugin *self = VALENT_RUNCOMMAND_PLUGIN (plugin);
-  GSettings *settings;
-
-  /* Stop watching for command changes */
-  settings = valent_device_plugin_get_settings (plugin);
-  g_clear_signal_handler (&self->commands_changed_id, settings);
-}
-
-static void
 valent_runcommand_plugin_update_state (ValentDevicePlugin *plugin,
                                        ValentDeviceState   state)
 {
@@ -503,6 +481,33 @@ valent_runcommand_plugin_handle_packet (ValentDevicePlugin *plugin,
  * GObject
  */
 static void
+valent_runcommand_plugin_constructed (GObject *object)
+{
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
+
+  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   plugin);
+
+  G_OBJECT_CLASS (valent_runcommand_plugin_parent_class)->constructed (object);
+}
+
+static void
+valent_runcommand_plugin_dispose (GObject *object)
+{
+  ValentRuncommandPlugin *self = VALENT_RUNCOMMAND_PLUGIN (object);
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
+  GSettings *settings;
+
+  /* Stop watching for command changes */
+  settings = valent_device_plugin_get_settings (plugin);
+  g_clear_signal_handler (&self->commands_changed_id, settings);
+
+  G_OBJECT_CLASS (valent_runcommand_plugin_parent_class)->dispose (object);
+}
+
+static void
 valent_runcommand_plugin_finalize (GObject *object)
 {
   ValentRuncommandPlugin *self = VALENT_RUNCOMMAND_PLUGIN (object);
@@ -519,10 +524,10 @@ valent_runcommand_plugin_class_init (ValentRuncommandPluginClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
+  object_class->constructed = valent_runcommand_plugin_constructed;
+  object_class->dispose = valent_runcommand_plugin_dispose;
   object_class->finalize = valent_runcommand_plugin_finalize;
 
-  plugin_class->enable = valent_runcommand_plugin_enable;
-  plugin_class->disable = valent_runcommand_plugin_disable;
   plugin_class->handle_packet = valent_runcommand_plugin_handle_packet;
   plugin_class->update_state = valent_runcommand_plugin_update_state;
 }

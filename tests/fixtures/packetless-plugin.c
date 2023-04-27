@@ -30,12 +30,12 @@ static const GActionEntry actions[] = {
 };
 
 /*
- * ValentDevicePlugin
+ * GObject
  */
 static void
-valent_packetless_plugin_enable (ValentDevicePlugin *plugin)
+valent_packetless_plugin_constructed (GObject *object)
 {
-  g_assert (VALENT_IS_PACKETLESS_PLUGIN (plugin));
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
 
   g_action_map_add_action_entries (G_ACTION_MAP (plugin),
                                    actions,
@@ -45,19 +45,20 @@ valent_packetless_plugin_enable (ValentDevicePlugin *plugin)
                                         "device.packetless.action",
                                         "Packetless Action",
                                         "dialog-information-symbolic");
+
+  G_OBJECT_CLASS (valent_packetless_plugin_parent_class)->constructed (object);
 }
 
 static void
-valent_packetless_plugin_disable (ValentDevicePlugin *plugin)
+valent_packetless_plugin_dispose (GObject *object)
 {
-  g_assert (VALENT_IS_PACKETLESS_PLUGIN (plugin));
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
 
   valent_device_plugin_set_menu_item (plugin, "device.packetless.action", NULL);
+
+  G_OBJECT_CLASS (valent_packetless_plugin_parent_class)->dispose (object);
 }
 
-/*
- * GObject
- */
 static void
 valent_packetless_plugin_class_finalize (ValentPacketlessPluginClass *klass)
 {
@@ -66,10 +67,10 @@ valent_packetless_plugin_class_finalize (ValentPacketlessPluginClass *klass)
 static void
 valent_packetless_plugin_class_init (ValentPacketlessPluginClass *klass)
 {
-  ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  plugin_class->enable = valent_packetless_plugin_enable;
-  plugin_class->disable = valent_packetless_plugin_disable;
+  object_class->constructed = valent_packetless_plugin_constructed;
+  object_class->dispose = valent_packetless_plugin_dispose;
 }
 
 static void
