@@ -14,6 +14,7 @@ G_BEGIN_DECLS
 #include "valent-context.h"
 #include "valent-core-enums.h"
 #include "valent-debug.h"
+#include "valent-extension.h"
 #include "valent-global.h"
 #include "valent-macros.h"
 #include "valent-object.h"

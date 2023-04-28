@@ -14,6 +14,7 @@ libvalent_core_public_headers = [
   'valent-certificate.h',
   'valent-component.h',
   'valent-context.h',
+  'valent-extension.h',
   'valent-global.h',
   'valent-macros.h',
   'valent-object.h',
@@ -25,6 +26,7 @@ libvalent_core_private_headers = [
 ]
 
 libvalent_core_enum_headers = [
+  'valent-extension.h',
   'valent-transfer.h',
 ]
 
@@ -40,6 +42,7 @@ libvalent_core_public_sources = [
   'valent-certificate.c',
   'valent-component.c',
   'valent-context.c',
+  'valent-extension.c',
   'valent-debug.c',
   'valent-global.c',
   'valent-object.c',
