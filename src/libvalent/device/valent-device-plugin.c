@@ -92,31 +92,10 @@
 
 typedef struct
 {
-  ValentDevice   *device;
-  PeasPluginInfo *plugin_info;
-  GHashTable     *actions;
-  ValentContext  *context;
-  GSettings      *settings;
+  gpointer  reserved[1];
 } ValentDevicePluginPrivate;
 
-static void   g_action_group_iface_init (GActionGroupInterface *iface);
-static void   g_action_map_iface_init   (GActionMapInterface   *iface);
-
-G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentDevicePlugin, valent_device_plugin, VALENT_TYPE_OBJECT,
-                                  G_ADD_PRIVATE (ValentDevicePlugin)
-                                  G_IMPLEMENT_INTERFACE (G_TYPE_ACTION_GROUP, g_action_group_iface_init)
-                                  G_IMPLEMENT_INTERFACE (G_TYPE_ACTION_MAP, g_action_map_iface_init))
-
-enum {
-  PROP_0,
-  PROP_CONTEXT,
-  PROP_DEVICE,
-  PROP_PLUGIN_INFO,
-  PROP_SETTINGS,
-  N_PROPERTIES
-};
-
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+G_DEFINE_ABSTRACT_TYPE (ValentDevicePlugin, valent_device_plugin, VALENT_TYPE_EXTENSION)
 
 /**
  * ValentDevicePluginClass:
@@ -126,203 +105,6 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
  * The virtual function table for `ValentDevicePlugin`.
  */
 
-
-/*
- * GActionGroup
- */
-static void
-valent_device_plugin_activate_action (GActionGroup *action_group,
-                                      const char   *action_name,
-                                      GVariant     *parameter)
-{
-  ValentDevicePlugin *self = VALENT_DEVICE_PLUGIN (action_group);
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (self);
-  GAction *action;
-
-  if ((action = g_hash_table_lookup (priv->actions, action_name)) != NULL)
-    g_action_activate (action, parameter);
-}
-
-static void
-valent_device_plugin_change_action_state (GActionGroup *action_group,
-                                          const char   *action_name,
-                                          GVariant     *value)
-{
-  ValentDevicePlugin *self = VALENT_DEVICE_PLUGIN (action_group);
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (self);
-  GAction *action;
-
-  if ((action = g_hash_table_lookup (priv->actions, action_name)) != NULL)
-    g_action_change_state (action, value);
-}
-
-static char **
-valent_device_plugin_list_actions (GActionGroup *action_group)
-{
-  ValentDevicePlugin *self = VALENT_DEVICE_PLUGIN (action_group);
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (self);
-  g_auto (GStrv) actions = NULL;
-  GHashTableIter iter;
-  gpointer key;
-  unsigned int i = 0;
-
-  actions = g_new0 (char *, g_hash_table_size (priv->actions) + 1);
-
-  g_hash_table_iter_init (&iter, priv->actions);
-
-  while (g_hash_table_iter_next (&iter, &key, NULL))
-    actions[i++] = g_strdup (key);
-
-  return g_steal_pointer (&actions);
-}
-
-static gboolean
-valent_device_plugin_query_action (GActionGroup        *action_group,
-                                   const char          *action_name,
-                                   gboolean            *enabled,
-                                   const GVariantType **parameter_type,
-                                   const GVariantType **state_type,
-                                   GVariant           **state_hint,
-                                   GVariant           **state)
-{
-  ValentDevicePlugin *self = VALENT_DEVICE_PLUGIN (action_group);
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (self);
-  GAction *action;
-
-  if ((action = g_hash_table_lookup (priv->actions, action_name)) == NULL)
-    return FALSE;
-
-  if (enabled)
-    *enabled = g_action_get_enabled (action);
-
-  if (parameter_type)
-    *parameter_type = g_action_get_parameter_type (action);
-
-  if (state_type)
-    *state_type = g_action_get_state_type (action);
-
-  if (state_hint)
-    *state_hint = g_action_get_state_hint (action);
-
-  if (state)
-    *state = g_action_get_state (action);
-
-  return TRUE;
-}
-
-static void
-g_action_group_iface_init (GActionGroupInterface *iface)
-{
-  iface->activate_action = valent_device_plugin_activate_action;
-  iface->change_action_state = valent_device_plugin_change_action_state;
-  iface->list_actions = valent_device_plugin_list_actions;
-  iface->query_action = valent_device_plugin_query_action;
-}
-
-/*
- * GActionMap
- */
-static void
-on_action_enabled_changed (GAction      *action,
-                           GParamSpec   *pspec,
-                           GActionGroup *action_group)
-{
-  g_action_group_action_enabled_changed (action_group,
-                                         g_action_get_name (action),
-                                         g_action_get_enabled (action));
-}
-
-static void
-on_action_state_changed (GAction      *action,
-                         GParamSpec   *pspec,
-                         GActionGroup *action_group)
-{
-  g_autoptr (GVariant) value = NULL;
-
-  value = g_action_get_state (action);
-  g_action_group_action_state_changed (action_group,
-                                       g_action_get_name (action),
-                                       value);
-}
-
-static void
-valent_device_plugin_disconnect_action (ValentDevicePlugin *self,
-                                        GAction            *action)
-{
-  g_signal_handlers_disconnect_by_func (action, on_action_enabled_changed, self);
-  g_signal_handlers_disconnect_by_func (action, on_action_state_changed, self);
-}
-
-static GAction *
-valent_device_plugin_lookup_action (GActionMap *action_map,
-                                    const char *action_name)
-{
-  ValentDevicePlugin *self = VALENT_DEVICE_PLUGIN (action_map);
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (self);
-
-  return g_hash_table_lookup (priv->actions, action_name);
-}
-
-static void
-valent_device_plugin_add_action (GActionMap *action_map,
-                                 GAction    *action)
-{
-  ValentDevicePlugin *self = VALENT_DEVICE_PLUGIN (action_map);
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (self);
-  const char *action_name;
-  GAction *replacing;
-
-  action_name = g_action_get_name (action);
-
-  if ((replacing = g_hash_table_lookup (priv->actions, action_name)) == action)
-    return;
-
-  if (replacing != NULL)
-    {
-      g_action_group_action_removed (G_ACTION_GROUP (action_map), action_name);
-      valent_device_plugin_disconnect_action (self, replacing);
-    }
-
-  g_signal_connect (action,
-                    "notify::enabled",
-                    G_CALLBACK (on_action_enabled_changed),
-                    action_map);
-
-  if (g_action_get_state_type (action) != NULL)
-    g_signal_connect (action,
-                      "notify::state",
-                      G_CALLBACK (on_action_state_changed),
-                      action_map);
-
-  g_hash_table_replace (priv->actions,
-                        g_strdup (action_name),
-                        g_object_ref (action));
-  g_action_group_action_added (G_ACTION_GROUP (action_map), action_name);
-}
-
-static void
-valent_device_plugin_remove_action (GActionMap *action_map,
-                                    const char *action_name)
-{
-  ValentDevicePlugin *self = VALENT_DEVICE_PLUGIN (action_map);
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (self);
-  GAction *action;
-
-  if ((action = g_hash_table_lookup (priv->actions, action_name)) != NULL)
-    {
-      g_action_group_action_removed (G_ACTION_GROUP (action_map), action_name);
-      valent_device_plugin_disconnect_action (self, action);
-      g_hash_table_remove (priv->actions, action_name);
-    }
-}
-
-static void
-g_action_map_iface_init (GActionMapInterface *iface)
-{
-  iface->add_action = valent_device_plugin_add_action;
-  iface->lookup_action = valent_device_plugin_lookup_action;
-  iface->remove_action = valent_device_plugin_remove_action;
-}
 
 /* LCOV_EXCL_START */
 static void
@@ -369,262 +151,15 @@ valent_device_send_packet_cb (ValentDevice *device,
  * GObject
  */
 static void
-valent_device_plugin_dispose (GObject *object)
-{
-  ValentDevicePlugin *self = VALENT_DEVICE_PLUGIN (object);
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (self);
-  GHashTableIter iter;
-  const char *action_name;
-  GAction *action;
-
-  g_hash_table_iter_init (&iter, priv->actions);
-
-  while (g_hash_table_iter_next (&iter, (void **)&action_name, (void **)&action))
-    {
-      g_action_group_action_removed (G_ACTION_GROUP (self), action_name);
-      valent_device_plugin_disconnect_action (self, action);
-      g_hash_table_iter_remove (&iter);
-    }
-
-  G_OBJECT_CLASS (valent_device_plugin_parent_class)->dispose (object);
-}
-
-static void
-valent_device_plugin_finalize (GObject *object)
-{
-  ValentDevicePlugin *self = VALENT_DEVICE_PLUGIN (object);
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (self);
-
-  g_clear_weak_pointer (&priv->device);
-  g_clear_pointer (&priv->actions, g_hash_table_unref);
-  g_clear_object (&priv->context);
-  g_clear_object (&priv->settings);
-
-  G_OBJECT_CLASS (valent_device_plugin_parent_class)->finalize (object);
-}
-
-static void
-valent_device_plugin_get_property (GObject    *object,
-                                   guint       prop_id,
-                                   GValue     *value,
-                                   GParamSpec *pspec)
-{
-  ValentDevicePlugin *self = VALENT_DEVICE_PLUGIN (object);
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (self);
-
-  switch (prop_id)
-    {
-    case PROP_CONTEXT:
-      g_value_set_object (value, valent_device_plugin_get_context (self));
-      break;
-
-    case PROP_DEVICE:
-      g_value_set_object (value, priv->device);
-      break;
-
-    case PROP_PLUGIN_INFO:
-      g_value_set_boxed (value, priv->plugin_info);
-      break;
-
-    case PROP_SETTINGS:
-      g_value_set_object (value, valent_device_plugin_get_settings (self));
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_device_plugin_set_property (GObject      *object,
-                                   guint         prop_id,
-                                   const GValue *value,
-                                   GParamSpec   *pspec)
-{
-  ValentDevicePlugin *self = VALENT_DEVICE_PLUGIN (object);
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (self);
-
-  switch (prop_id)
-    {
-    case PROP_CONTEXT:
-      priv->context = g_value_dup_object (value);
-      break;
-
-    case PROP_DEVICE:
-      priv->device = g_value_get_object (value);
-      g_object_add_weak_pointer (G_OBJECT (priv->device), (gpointer *)&priv->device);
-      break;
-
-    case PROP_PLUGIN_INFO:
-      priv->plugin_info = g_value_get_boxed (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_device_plugin_class_init (ValentDevicePluginClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
-
-  object_class->dispose = valent_device_plugin_dispose;
-  object_class->finalize = valent_device_plugin_finalize;
-  object_class->get_property = valent_device_plugin_get_property;
-  object_class->set_property = valent_device_plugin_set_property;
-
   klass->handle_packet = valent_device_plugin_real_handle_packet;
   klass->update_state = valent_device_plugin_real_update_state;
-
-  /**
-   * ValentDevicePlugin:context: (getter get_context)
-   *
-   * The [class@Valent.Device] this plugin is bound to.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_CONTEXT] =
-    g_param_spec_object ("context", NULL, NULL,
-                         VALENT_TYPE_CONTEXT,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentDevicePlugin:device: (getter get_device)
-   *
-   * The [class@Valent.Device] this plugin is bound to.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_DEVICE] =
-    g_param_spec_object ("device", NULL, NULL,
-                         VALENT_TYPE_DEVICE,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentDevicePlugin:plugin-info:
-   *
-   * The [struct@Peas.PluginInfo] describing this plugin.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_PLUGIN_INFO] =
-    g_param_spec_boxed ("plugin-info", NULL, NULL,
-                        PEAS_TYPE_PLUGIN_INFO,
-                        (G_PARAM_READWRITE |
-                         G_PARAM_CONSTRUCT_ONLY |
-                         G_PARAM_EXPLICIT_NOTIFY |
-                         G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentDevicePlugin:settings: (getter get_settings)
-   *
-   * The [class@Gio.Settings] for this plugin.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_SETTINGS] =
-    g_param_spec_object ("settings", NULL, NULL,
-                         G_TYPE_SETTINGS,
-                         (G_PARAM_READABLE |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
-
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 }
 
 static void
 valent_device_plugin_init (ValentDevicePlugin *self)
 {
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (self);
-
-  priv->actions = g_hash_table_new_full (g_str_hash,
-                                         g_str_equal,
-                                         g_free,
-                                         g_object_unref);
-}
-
-/**
- * valent_device_plugin_get_context: (get-property context)
- * @plugin: a `ValentDevicePlugin`
- *
- * Get the settings for this plugin.
- *
- * Returns: (transfer none) (nullable): a #ValentContext
- *
- * Since: 1.0
- */
-ValentContext *
-valent_device_plugin_get_context (ValentDevicePlugin *plugin)
-{
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
-
-  g_return_val_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin), NULL);
-
-  if (priv->context == NULL)
-    {
-      ValentContext *context = NULL;
-      const char *module_name = NULL;
-
-      context = valent_device_get_context (priv->device);
-      module_name = peas_plugin_info_get_module_name (priv->plugin_info);
-      priv->context = valent_context_new (context, "plugin", module_name);
-    }
-
-  return priv->context;
-}
-
-/**
- * valent_device_plugin_get_device: (get-property device)
- * @plugin: a `ValentDevicePlugin`
- *
- * Get the device this plugin is bound to.
- *
- * Returns: (transfer none): a #ValentDevice
- *
- * Since: 1.0
- */
-ValentDevice *
-valent_device_plugin_get_device (ValentDevicePlugin *plugin)
-{
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
-
-  g_return_val_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin), NULL);
-
-  return priv->device;
-}
-
-/**
- * valent_device_plugin_get_settings: (get-property settings)
- * @plugin: a `ValentDevicePlugin`
- *
- * Get the settings for this plugin.
- *
- * Returns: (transfer none) (nullable): a `GSettings`
- *
- * Since: 1.0
- */
-GSettings *
-valent_device_plugin_get_settings (ValentDevicePlugin *plugin)
-{
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
-
-  g_return_val_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin), NULL);
-
-  if (priv->settings == NULL)
-    {
-      priv->settings = valent_context_get_plugin_settings (priv->context,
-                                                           priv->plugin_info,
-                                                           PLUGIN_SETTINGS_KEY);
-    }
-
-  return priv->settings;
 }
 
 /**
@@ -634,7 +169,7 @@ valent_device_plugin_get_settings (ValentDevicePlugin *plugin)
  *
  * Queue a KDE Connect packet to be sent to the device this plugin is bound to.
  *
- * For notification of success call [method@Valent.DevicePlugin.get_device] and
+ * For notification of success call [method@Valent.Extension.get_object] and
  * then [method@Valent.Device.send_packet].
  *
  * Since: 1.0
@@ -643,14 +178,17 @@ void
 valent_device_plugin_queue_packet (ValentDevicePlugin *plugin,
                                    JsonNode           *packet)
 {
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
+  ValentDevice *device = NULL;
   g_autoptr (GCancellable) destroy = NULL;
 
   g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
   g_return_if_fail (VALENT_IS_PACKET (packet));
 
+  if ((device = valent_extension_get_object (VALENT_EXTENSION (plugin))) == NULL)
+    return;
+
   destroy = valent_object_ref_cancellable (VALENT_OBJECT (plugin));
-  valent_device_send_packet (priv->device,
+  valent_device_send_packet (device,
                              packet,
                              destroy,
                              (GAsyncReadyCallback)valent_device_send_packet_cb,
@@ -678,8 +216,9 @@ valent_device_plugin_show_notification (ValentDevicePlugin *plugin,
                                         const char         *id,
                                         GNotification      *notification)
 {
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
   GApplication *application = g_application_get_default ();
+  g_autoptr (ValentDevice) device = NULL;
+  PeasPluginInfo *plugin_info = NULL;
   g_autofree char *notification_id = NULL;
 
   g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
@@ -689,11 +228,16 @@ valent_device_plugin_show_notification (ValentDevicePlugin *plugin,
   if G_UNLIKELY (application == NULL)
     return;
 
+  g_object_get (plugin,
+                "object",      &device,
+                "plugin-info", &plugin_info,
+                NULL);
   notification_id = g_strdup_printf ("%s::%s::%s",
-                                     valent_device_get_id (priv->device),
-                                     peas_plugin_info_get_module_name (priv->plugin_info),
+                                     valent_device_get_id (device),
+                                     peas_plugin_info_get_module_name (plugin_info),
                                      id);
   g_application_send_notification (application, notification_id, notification);
+  g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
 }
 
 /**
@@ -712,8 +256,9 @@ void
 valent_device_plugin_hide_notification (ValentDevicePlugin *plugin,
                                         const char         *id)
 {
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
   GApplication *application = g_application_get_default ();
+  g_autoptr (ValentDevice) device = NULL;
+  PeasPluginInfo *plugin_info = NULL;
   g_autofree char *notification_id = NULL;
 
   g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
@@ -722,39 +267,16 @@ valent_device_plugin_hide_notification (ValentDevicePlugin *plugin,
   if G_UNLIKELY (application == NULL)
     return;
 
+  g_object_get (plugin,
+                "object",      &device,
+                "plugin-info", &plugin_info,
+                NULL);
   notification_id = g_strdup_printf ("%s::%s::%s",
-                                     valent_device_get_id (priv->device),
-                                     peas_plugin_info_get_module_name (priv->plugin_info),
+                                     valent_device_get_id (device),
+                                     peas_plugin_info_get_module_name (plugin_info),
                                      id);
   g_application_withdraw_notification (application, notification_id);
-}
-
-/**
- * valent_device_plugin_toggle_actions:
- * @plugin: a `ValentDevicePlugin`
- * @enabled: boolean
- *
- * Enable or disable all actions.
- *
- * Set the [property@Gio.Action:enabled] property of the actions for @plugin to
- * @enabled.
- *
- * Since: 1.0
- */
-void
-valent_device_plugin_toggle_actions (ValentDevicePlugin *plugin,
-                                     gboolean            enabled)
-{
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
-  GHashTableIter iter;
-  GSimpleAction *action;
-
-  g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
-
-  g_hash_table_iter_init (&iter, priv->actions);
-
-  while (g_hash_table_iter_next (&iter, NULL, (void **)&action))
-    g_simple_action_set_enabled (action, enabled);
+  g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
 }
 
 /**
@@ -900,7 +422,7 @@ valent_device_plugin_set_menu_item (ValentDevicePlugin *plugin,
                                     const char         *action,
                                     GMenuItem          *item)
 {
-  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
+  ValentDevice *device = NULL;
   GMenuModel *menu;
   int index_ = -1;
 
@@ -909,10 +431,10 @@ valent_device_plugin_set_menu_item (ValentDevicePlugin *plugin,
   g_return_if_fail (item == NULL || G_IS_MENU_ITEM (item));
 
   /* NOTE: this method may be called by plugins in their `dispose()` */
-  if (priv->device == NULL)
+  if ((device = valent_extension_get_object (VALENT_EXTENSION (plugin))) == NULL)
     return;
 
-  menu = valent_device_get_menu (priv->device);
+  menu = valent_device_get_menu (device);
   index_ = _g_menu_find_action (menu, action);
 
   if (index_ > -1)

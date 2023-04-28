@@ -72,7 +72,7 @@ on_notification_added (ValentNotifications      *listener,
   g_assert (VALENT_IS_NOTIFICATION (notification));
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
 
-  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+  settings = valent_extension_get_settings (VALENT_EXTENSION (self));
 
   if (!g_settings_get_boolean (settings, "forward-notifications"))
     return;
@@ -173,7 +173,7 @@ valent_notification_plugin_get_icon_file (ValentNotificationPlugin *self,
     {
       ValentContext *context = NULL;
 
-      context = valent_device_plugin_get_context (VALENT_DEVICE_PLUGIN (self));
+      context = valent_extension_get_context (VALENT_EXTENSION (self));
       file = valent_context_get_cache_file (context, payload_hash);
     }
   else
@@ -307,7 +307,7 @@ valent_notification_plugin_download_icon (ValentNotificationPlugin *self,
                                           GAsyncReadyCallback       callback,
                                           gpointer                  user_data)
 {
-  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (self);
+  ValentExtension *extension = VALENT_EXTENSION (self);
   g_autoptr (GTask) task = NULL;
   IconTransferData *transfer = NULL;
 
@@ -318,7 +318,7 @@ valent_notification_plugin_download_icon (ValentNotificationPlugin *self,
   transfer = g_new0 (IconTransferData, 1);
   g_rec_mutex_init (&transfer->mutex);
   g_rec_mutex_lock (&transfer->mutex);
-  transfer->device = g_object_ref (valent_device_plugin_get_device (plugin));
+  transfer->device = g_object_ref (valent_extension_get_object (extension));
   transfer->packet = json_node_ref (packet);
   g_rec_mutex_unlock (&transfer->mutex);
 
@@ -397,7 +397,7 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
       return;
     }
 
-  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  device = valent_extension_get_object (VALENT_EXTENSION (self));
 
   /* Start building the GNotification */
   notification = g_notification_new (title);
@@ -681,7 +681,7 @@ valent_notification_plugin_send_notification_with_icon (ValentNotificationPlugin
       ValentDevice *device;
       g_autoptr (ValentTransfer) transfer = NULL;
 
-      device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+      device = valent_extension_get_object (VALENT_EXTENSION (self));
       transfer = valent_notification_upload_new (device, packet, icon);
       valent_transfer_execute (transfer,
                                NULL,
@@ -901,7 +901,7 @@ notification_reply_action (GSimpleAction *action,
                                g_object_ref (notification),
                                g_object_ref (dialog));
 
-          device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+          device = valent_extension_get_object (VALENT_EXTENSION (self));
           state = valent_device_get_state (device);
           available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
                       (state & VALENT_DEVICE_STATE_PAIRED) != 0;
@@ -988,7 +988,7 @@ valent_notification_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  valent_device_plugin_toggle_actions (plugin, available);
+  valent_extension_toggle_actions (VALENT_EXTENSION (plugin), available);
   valent_notification_plugin_watch_notifications (self, available);
 
   /* Request Notifications */

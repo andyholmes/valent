@@ -170,14 +170,14 @@ valent_lock_plugin_update_state (ValentDevicePlugin *plugin,
                                      G_CONNECT_SWAPPED);
         }
 
-      valent_device_plugin_toggle_actions (plugin, available);
+      valent_extension_toggle_actions (VALENT_EXTENSION (plugin), available);
       valent_lock_plugin_update_actions (self);
       valent_lock_plugin_request_state (self);
     }
   else
     {
       g_clear_signal_handler (&self->session_changed_id, self->session);
-      valent_device_plugin_toggle_actions (plugin, available);
+      valent_extension_toggle_actions (VALENT_EXTENSION (plugin), available);
     }
 }
 

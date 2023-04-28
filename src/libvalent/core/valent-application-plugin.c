@@ -6,10 +6,10 @@
 #include "config.h"
 
 #include <gio/gio.h>
-#include <libpeas/peas.h>
-#include <libvalent-core.h>
 
 #include "valent-application-plugin.h"
+#include "valent-debug.h"
+#include "valent-extension.h"
 
 
 /**
@@ -39,29 +39,23 @@
 
 typedef struct
 {
-  PeasPluginInfo *plugin_info;
-  GApplication   *application;
+  gpointer  reserved[1];
 } ValentApplicationPluginPrivate;
 
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentApplicationPlugin, valent_application_plugin, VALENT_TYPE_OBJECT)
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentApplicationPlugin, valent_application_plugin, VALENT_TYPE_EXTENSION)
 
 /**
  * ValentApplicationPluginClass:
  * @activate: the virtual function pointer for valent_application_plugin_activate()
  * @command_line: the virtual function pointer for valent_application_plugin_command_line()
+ * @dbus_register: the virtual function pointer for valent_application_plugin_dbus_register()
+ * @dbus_unregister: the virtual function pointer for valent_application_plugin_dbus_unregister()
  * @open: the virtual function pointer for valent_application_plugin_open()
+ * @shutdown: the virtual function pointer for valent_application_plugin_shutdown()
+ * @startup: the virtual function pointer for valent_application_plugin_startup()
  *
  * The virtual function table for #ValentApplicationPlugin.
  */
-
-enum {
-  PROP_0,
-  PROP_APPLICATION,
-  PROP_PLUGIN_INFO,
-  N_PROPERTIES
-};
-
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 
 /* LCOV_EXCL_START */
@@ -134,93 +128,12 @@ valent_application_plugin_real_startup (ValentApplicationPlugin *plugin)
 }
 /* LCOV_EXCL_STOP */
 
-static void
-valent_application_plugin_set_application (ValentApplicationPlugin *self,
-                                           GApplication            *application)
-{
-  ValentApplicationPluginPrivate *priv = valent_application_plugin_get_instance_private (self);
-
-  g_assert (VALENT_IS_APPLICATION_PLUGIN (self));
-
-  if (priv->application == application)
-    return;
-
-  priv->application = application;
-  g_object_add_weak_pointer (G_OBJECT (priv->application),
-                             (gpointer *)&priv->application);
-}
-
 /*
  * GObject
  */
 static void
-valent_application_plugin_finalize (GObject *object)
-{
-  ValentApplicationPlugin *self = VALENT_APPLICATION_PLUGIN (object);
-  ValentApplicationPluginPrivate *priv = valent_application_plugin_get_instance_private (self);
-
-  g_clear_weak_pointer (&priv->application);
-
-  G_OBJECT_CLASS (valent_application_plugin_parent_class)->finalize (object);
-}
-
-static void
-valent_application_plugin_get_property (GObject    *object,
-                                        guint       prop_id,
-                                        GValue     *value,
-                                        GParamSpec *pspec)
-{
-  ValentApplicationPlugin *self = VALENT_APPLICATION_PLUGIN (object);
-  ValentApplicationPluginPrivate *priv = valent_application_plugin_get_instance_private (self);
-
-  switch (prop_id)
-    {
-    case PROP_APPLICATION:
-      g_value_set_object (value, priv->application);
-      break;
-
-    case PROP_PLUGIN_INFO:
-      g_value_set_boxed (value, priv->plugin_info);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_application_plugin_set_property (GObject      *object,
-                                        guint         prop_id,
-                                        const GValue *value,
-                                        GParamSpec   *pspec)
-{
-  ValentApplicationPlugin *self = VALENT_APPLICATION_PLUGIN (object);
-  ValentApplicationPluginPrivate *priv = valent_application_plugin_get_instance_private (self);
-
-  switch (prop_id)
-    {
-    case PROP_APPLICATION:
-      valent_application_plugin_set_application (self, g_value_get_object (value));
-      break;
-
-    case PROP_PLUGIN_INFO:
-      priv->plugin_info = g_value_get_boxed (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_application_plugin_class_init (ValentApplicationPluginClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
-
-  object_class->finalize = valent_application_plugin_finalize;
-  object_class->get_property = valent_application_plugin_get_property;
-  object_class->set_property = valent_application_plugin_set_property;
-
   klass->activate = valent_application_plugin_real_activate;
   klass->command_line = valent_application_plugin_real_command_line;
   klass->dbus_register = valent_application_plugin_real_dbus_register;
@@ -228,63 +141,11 @@ valent_application_plugin_class_init (ValentApplicationPluginClass *klass)
   klass->open = valent_application_plugin_real_open;
   klass->shutdown = valent_application_plugin_real_shutdown;
   klass->startup = valent_application_plugin_real_startup;
-
-  /**
-   * ValentApplicationPlugin:application: (getter get_application):
-   *
-   * The [class@Gio.Application] this plugin is bound to.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_APPLICATION] =
-    g_param_spec_object ("application", NULL, NULL,
-                         G_TYPE_APPLICATION,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentApplicationPlugin:plugin-info:
-   *
-   * The [struct@Peas.PluginInfo] describing this plugin.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_PLUGIN_INFO] =
-    g_param_spec_boxed ("plugin-info", NULL, NULL,
-                        PEAS_TYPE_PLUGIN_INFO,
-                        (G_PARAM_READWRITE |
-                         G_PARAM_CONSTRUCT_ONLY |
-                         G_PARAM_EXPLICIT_NOTIFY |
-                         G_PARAM_STATIC_STRINGS));
-
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 }
 
 static void
 valent_application_plugin_init (ValentApplicationPlugin *adapter)
 {
-}
-
-/**
- * valent_application_plugin_get_application: (get-property application)
- * @plugin: a #ValentApplicationPlugin
- *
- * Get the application this plugin is bound to.
- *
- * Returns: (transfer none): a #GApplication
- *
- * Since: 1.0
- */
-GApplication *
-valent_application_plugin_get_application (ValentApplicationPlugin *plugin)
-{
-  ValentApplicationPluginPrivate *priv = valent_application_plugin_get_instance_private (plugin);
-
-  g_return_val_if_fail (VALENT_IS_APPLICATION_PLUGIN (plugin), NULL);
-
-  return priv->application;
 }
 
 /**

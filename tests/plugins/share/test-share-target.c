@@ -29,7 +29,7 @@ application_fixture_set_up (ApplicationPluginFixture *fixture,
   fixture->extension = peas_engine_create_extension (engine,
                                                      plugin_info,
                                                      VALENT_TYPE_APPLICATION_PLUGIN,
-                                                     "application",    fixture->application,
+                                                     "object", fixture->application,
                                                      NULL);
 }
 
@@ -52,15 +52,15 @@ test_share_target (ApplicationPluginFixture *fixture,
 
   VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (fixture->extension,
-                "application",    &application,
-                "plugin-info",    &plugin_info,
+                "object",      &application,
+                "plugin-info", &plugin_info,
                 NULL);
 
   g_assert_true (G_IS_APPLICATION (application));
   g_assert_nonnull (plugin_info);
   g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
 
-  application = valent_application_plugin_get_application (plugin);
+  application = valent_extension_get_object (VALENT_EXTENSION (plugin));
   g_assert_true (G_IS_APPLICATION (application));
 }
 

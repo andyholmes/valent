@@ -6,7 +6,6 @@
 #include "config.h"
 
 #include <gio/gio.h>
-#include <libpeas/peas.h>
 #include <libvalent-core.h>
 
 #include "valent-session-adapter.h"
@@ -35,10 +34,11 @@
 
 typedef struct
 {
-  PeasPluginInfo *plugin_info;
+  uint8_t  active : 1;
+  uint8_t  locked : 1;
 } ValentSessionAdapterPrivate;
 
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentSessionAdapter, valent_session_adapter, VALENT_TYPE_OBJECT)
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentSessionAdapter, valent_session_adapter, VALENT_TYPE_EXTENSION)
 
 /**
  * ValentSessionAdapterClass:
@@ -53,7 +53,6 @@ enum {
   PROP_0,
   PROP_ACTIVE,
   PROP_LOCKED,
-  PROP_PLUGIN_INFO,
   N_PROPERTIES
 };
 
@@ -64,19 +63,36 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 static gboolean
 valent_session_adapter_real_get_active (ValentSessionAdapter *adapter)
 {
-  return FALSE;
+  ValentSessionAdapterPrivate *priv = valent_session_adapter_get_instance_private (adapter);
+
+  g_assert (VALENT_IS_SESSION_ADAPTER (adapter));
+
+  return priv->active;
 }
 
 static gboolean
 valent_session_adapter_real_get_locked (ValentSessionAdapter *adapter)
 {
-  return FALSE;
+  ValentSessionAdapterPrivate *priv = valent_session_adapter_get_instance_private (adapter);
+
+  g_assert (VALENT_IS_SESSION_ADAPTER (adapter));
+
+  return priv->locked;
 }
 
 static void
 valent_session_adapter_real_set_locked (ValentSessionAdapter *adapter,
                                         gboolean              state)
 {
+  ValentSessionAdapterPrivate *priv = valent_session_adapter_get_instance_private (adapter);
+
+  g_assert (VALENT_IS_SESSION_ADAPTER (adapter));
+
+  if (priv->active == !!state)
+    return;
+
+  priv->locked = !!state;
+  g_object_notify_by_pspec (G_OBJECT (adapter), properties [PROP_LOCKED]);
 }
 /* LCOV_EXCL_STOP */
 
@@ -90,7 +106,6 @@ valent_session_adapter_get_property (GObject    *object,
                                      GParamSpec *pspec)
 {
   ValentSessionAdapter *self = VALENT_SESSION_ADAPTER (object);
-  ValentSessionAdapterPrivate *priv = valent_session_adapter_get_instance_private (self);
 
   switch (prop_id)
     {
@@ -100,10 +115,6 @@ valent_session_adapter_get_property (GObject    *object,
 
     case PROP_LOCKED:
       g_value_set_boolean (value, valent_session_adapter_get_locked (self));
-      break;
-
-    case PROP_PLUGIN_INFO:
-      g_value_set_boxed (value, priv->plugin_info);
       break;
 
     default:
@@ -118,16 +129,11 @@ valent_session_adapter_set_property (GObject      *object,
                                      GParamSpec   *pspec)
 {
   ValentSessionAdapter *self = VALENT_SESSION_ADAPTER (object);
-  ValentSessionAdapterPrivate *priv = valent_session_adapter_get_instance_private (self);
 
   switch (prop_id)
     {
     case PROP_LOCKED:
       valent_session_adapter_set_locked (self, g_value_get_boolean (value));
-      break;
-
-    case PROP_PLUGIN_INFO:
-      priv->plugin_info = g_value_get_boxed (value);
       break;
 
     default:
@@ -174,21 +180,6 @@ valent_session_adapter_class_init (ValentSessionAdapterClass *klass)
                           (G_PARAM_READWRITE |
                            G_PARAM_EXPLICIT_NOTIFY |
                            G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentSessionAdapter:plugin-info:
-   *
-   * The [struct@Peas.PluginInfo] describing this adapter.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_PLUGIN_INFO] =
-    g_param_spec_boxed ("plugin-info", NULL, NULL,
-                        PEAS_TYPE_PLUGIN_INFO,
-                        (G_PARAM_READWRITE |
-                         G_PARAM_CONSTRUCT_ONLY |
-                         G_PARAM_EXPLICIT_NOTIFY |
-                         G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 }

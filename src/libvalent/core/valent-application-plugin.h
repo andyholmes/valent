@@ -7,43 +7,41 @@
 # error "Only <valent.h> can be included directly."
 #endif
 
-#include "valent-object.h"
+#include "valent-extension.h"
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_APPLICATION_PLUGIN (valent_application_plugin_get_type ())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_DERIVABLE_TYPE (ValentApplicationPlugin, valent_application_plugin, VALENT, APPLICATION_PLUGIN, ValentObject)
+G_DECLARE_DERIVABLE_TYPE (ValentApplicationPlugin, valent_application_plugin, VALENT, APPLICATION_PLUGIN, ValentExtension)
 
 struct _ValentApplicationPluginClass
 {
-  ValentObjectClass   parent_class;
+  ValentExtensionClass   parent_class;
 
   /* virtual functions */
-  gboolean            (*activate)        (ValentApplicationPlugin  *plugin);
-  int                 (*command_line)    (ValentApplicationPlugin  *plugin,
-                                          GApplicationCommandLine  *command_line);
-  gboolean            (*dbus_register)   (ValentApplicationPlugin  *plugin,
-                                          GDBusConnection          *connection,
-                                          const char               *object_path,
-                                          GError                  **error);
-  void                (*dbus_unregister) (ValentApplicationPlugin  *plugin,
-                                          GDBusConnection          *connection,
-                                          const char               *object_path);
-  gboolean            (*open)            (ValentApplicationPlugin  *plugin,
-                                          GFile                   **files,
-                                          int                       n_files,
-                                          const char               *hint);
-  void                (*shutdown)        (ValentApplicationPlugin  *plugin);
-  void                (*startup)         (ValentApplicationPlugin  *plugin);
+  gboolean               (*activate)        (ValentApplicationPlugin  *plugin);
+  int                    (*command_line)    (ValentApplicationPlugin  *plugin,
+                                             GApplicationCommandLine  *command_line);
+  gboolean               (*dbus_register)   (ValentApplicationPlugin  *plugin,
+                                             GDBusConnection          *connection,
+                                             const char               *object_path,
+                                             GError                  **error);
+  void                   (*dbus_unregister) (ValentApplicationPlugin  *plugin,
+                                             GDBusConnection          *connection,
+                                             const char               *object_path);
+  gboolean               (*open)            (ValentApplicationPlugin  *plugin,
+                                             GFile                   **files,
+                                             int                       n_files,
+                                             const char               *hint);
+  void                   (*shutdown)        (ValentApplicationPlugin  *plugin);
+  void                   (*startup)         (ValentApplicationPlugin  *plugin);
 
   /*< private >*/
-  gpointer            padding[8];
+  gpointer               padding[8];
 };
 
-VALENT_AVAILABLE_IN_1_0
-GApplication * valent_application_plugin_get_application (ValentApplicationPlugin  *plugin);
 VALENT_AVAILABLE_IN_1_0
 gboolean       valent_application_plugin_activate        (ValentApplicationPlugin  *plugin);
 VALENT_AVAILABLE_IN_1_0

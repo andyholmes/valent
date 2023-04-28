@@ -168,6 +168,7 @@ valent_component_enable_plugin (ValentComponent *self,
   plugin->extension = peas_engine_create_extension (priv->engine,
                                                     plugin->info,
                                                     priv->plugin_type,
+                                                    "object", self,
                                                     NULL);
   g_return_if_fail (G_IS_OBJECT (plugin->extension));
 

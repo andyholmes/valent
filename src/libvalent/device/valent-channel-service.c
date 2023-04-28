@@ -6,6 +6,7 @@
 #include "config.h"
 
 #include <gio/gio.h>
+#include <json-glib/json-glib.h>
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
 
@@ -36,15 +37,13 @@
 
 typedef struct
 {
-  PeasPluginInfo *plugin_info;
-
   ValentContext  *context;
   char           *id;
   JsonNode       *identity;
   char           *name;
 } ValentChannelServicePrivate;
 
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentChannelService, valent_channel_service, VALENT_TYPE_OBJECT);
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentChannelService, valent_channel_service, VALENT_TYPE_EXTENSION);
 
 /**
  * ValentChannelServiceClass:
@@ -61,7 +60,6 @@ enum {
   PROP_ID,
   PROP_IDENTITY,
   PROP_NAME,
-  PROP_PLUGIN_INFO,
   N_PROPERTIES
 };
 
@@ -340,13 +338,16 @@ valent_channel_service_constructed (GObject *object)
   /* Ensure we have a data manager */
   if (priv->context == NULL)
     {
+      PeasPluginInfo *plugin_info = NULL;
       const char *id = NULL;
 
-      id = peas_plugin_info_get_module_name (priv->plugin_info);
+      g_object_get (object, "plugin-info", &plugin_info, NULL);
+      id = peas_plugin_info_get_module_name (plugin_info);
       priv->context = g_object_new (VALENT_TYPE_CONTEXT,
                                     "domain", "network",
                                     "id",     id,
                                     NULL);
+      g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
     }
 
   valent_channel_service_build_identity (self);
@@ -395,10 +396,6 @@ valent_channel_service_get_property (GObject    *object,
       g_value_set_string (value, priv->name);
       break;
 
-    case PROP_PLUGIN_INFO:
-      g_value_set_boxed (value, priv->plugin_info);
-      break;
-
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -425,10 +422,6 @@ valent_channel_service_set_property (GObject      *object,
 
     case PROP_NAME:
       valent_channel_service_set_name (self, g_value_get_string (value));
-      break;
-
-    case PROP_PLUGIN_INFO:
-      priv->plugin_info = g_value_get_boxed (value);
       break;
 
     default:
@@ -526,21 +519,6 @@ valent_channel_service_class_init (ValentChannelServiceClass *klass)
                           G_PARAM_CONSTRUCT |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentChannelService:plugin-info:
-   *
-   * The [struct@Peas.PluginInfo] describing this channel service.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_PLUGIN_INFO] =
-    g_param_spec_boxed ("plugin-info", NULL, NULL,
-                        PEAS_TYPE_PLUGIN_INFO,
-                        (G_PARAM_READWRITE |
-                         G_PARAM_CONSTRUCT_ONLY |
-                         G_PARAM_EXPLICIT_NOTIFY |
-                         G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 

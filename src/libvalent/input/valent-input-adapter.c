@@ -6,7 +6,6 @@
 #include "config.h"
 
 #include <gio/gio.h>
-#include <libpeas/peas.h>
 #include <libvalent-core.h>
 
 #include "valent-input-adapter.h"
@@ -35,10 +34,10 @@
 
 typedef struct
 {
-  PeasPluginInfo *plugin_info;
+  uint8_t  active : 1;
 } ValentInputAdapterPrivate;
 
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentInputAdapter, valent_input_adapter, VALENT_TYPE_OBJECT)
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentInputAdapter, valent_input_adapter, VALENT_TYPE_EXTENSION)
 
 /**
  * ValentInputAdapterClass:
@@ -49,14 +48,6 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentInputAdapter, valent_input_adapter, V
  *
  * The virtual function table for #ValentInputAdapter.
  */
-
-enum {
-  PROP_0,
-  PROP_PLUGIN_INFO,
-  N_PROPERTIES
-};
-
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 
 /* LCOV_EXCL_START */
@@ -93,74 +84,12 @@ valent_input_adapter_real_pointer_motion (ValentInputAdapter *adapter,
  * GObject
  */
 static void
-valent_input_adapter_get_property (GObject    *object,
-                                   guint       prop_id,
-                                   GValue     *value,
-                                   GParamSpec *pspec)
-{
-  ValentInputAdapter *self = VALENT_INPUT_ADAPTER (object);
-  ValentInputAdapterPrivate *priv = valent_input_adapter_get_instance_private (self);
-
-  switch (prop_id)
-    {
-    case PROP_PLUGIN_INFO:
-      g_value_set_boxed (value, priv->plugin_info);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_input_adapter_set_property (GObject      *object,
-                                   guint         prop_id,
-                                   const GValue *value,
-                                   GParamSpec   *pspec)
-{
-  ValentInputAdapter *self = VALENT_INPUT_ADAPTER (object);
-  ValentInputAdapterPrivate *priv = valent_input_adapter_get_instance_private (self);
-
-  switch (prop_id)
-    {
-    case PROP_PLUGIN_INFO:
-      priv->plugin_info = g_value_get_boxed (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_input_adapter_class_init (ValentInputAdapterClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
-
-  object_class->get_property = valent_input_adapter_get_property;
-  object_class->set_property = valent_input_adapter_set_property;
-
   klass->keyboard_keysym = valent_input_adapter_real_keyboard_keysym;
   klass->pointer_axis = valent_input_adapter_real_pointer_axis;
   klass->pointer_button = valent_input_adapter_real_pointer_button;
   klass->pointer_motion = valent_input_adapter_real_pointer_motion;
-
-  /**
-   * ValentInputAdapter:plugin-info:
-   *
-   * The [struct@Peas.PluginInfo] describing this adapter.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_PLUGIN_INFO] =
-    g_param_spec_boxed ("plugin-info", NULL, NULL,
-                        PEAS_TYPE_PLUGIN_INFO,
-                        (G_PARAM_READWRITE |
-                         G_PARAM_CONSTRUCT_ONLY |
-                         G_PARAM_EXPLICIT_NOTIFY |
-                         G_PARAM_STATIC_STRINGS));
-
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 }
 
 static void

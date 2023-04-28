@@ -74,7 +74,7 @@ valent_findmyphone_plugin_update_state (ValentDevicePlugin *plugin,
   if (!available && valent_findmyphone_ringer_is_owner (self->ringer, self))
     valent_findmyphone_ringer_hide (self->ringer);
 
-  valent_device_plugin_toggle_actions (plugin, available);
+  valent_extension_toggle_actions (VALENT_EXTENSION (plugin), available);
 }
 
 static void

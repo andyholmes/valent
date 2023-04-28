@@ -34,10 +34,10 @@
 
 typedef struct
 {
-  PeasPluginInfo *plugin_info;
+  GPtrArray *notifications;
 } ValentNotificationsAdapterPrivate;
 
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentNotificationsAdapter, valent_notifications_adapter, VALENT_TYPE_OBJECT)
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentNotificationsAdapter, valent_notifications_adapter, VALENT_TYPE_EXTENSION)
 
 /**
  * ValentNotificationsAdapterClass:
@@ -48,14 +48,6 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentNotificationsAdapter, valent_notifica
  *
  * The virtual function table for #ValentNotificationsAdapter.
  */
-
-enum {
-  PROP_0,
-  PROP_PLUGIN_INFO,
-  N_PROPERTIES
-};
-
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 enum {
   NOTIFICATION_ADDED,
@@ -84,72 +76,10 @@ valent_notifications_adapter_real_remove_notification (ValentNotificationsAdapte
  * GObject
  */
 static void
-valent_notifications_adapter_get_property (GObject    *object,
-                                         guint       prop_id,
-                                         GValue     *value,
-                                         GParamSpec *pspec)
-{
-  ValentNotificationsAdapter *self = VALENT_NOTIFICATIONS_ADAPTER (object);
-  ValentNotificationsAdapterPrivate *priv = valent_notifications_adapter_get_instance_private (self);
-
-  switch (prop_id)
-    {
-    case PROP_PLUGIN_INFO:
-      g_value_set_boxed (value, priv->plugin_info);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_notifications_adapter_set_property (GObject      *object,
-                                         guint         prop_id,
-                                         const GValue *value,
-                                         GParamSpec   *pspec)
-{
-  ValentNotificationsAdapter *self = VALENT_NOTIFICATIONS_ADAPTER (object);
-  ValentNotificationsAdapterPrivate *priv = valent_notifications_adapter_get_instance_private (self);
-
-  switch (prop_id)
-    {
-    case PROP_PLUGIN_INFO:
-      priv->plugin_info = g_value_get_boxed (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_notifications_adapter_class_init (ValentNotificationsAdapterClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
-
-  object_class->get_property = valent_notifications_adapter_get_property;
-  object_class->set_property = valent_notifications_adapter_set_property;
-
   klass->add_notification = valent_notifications_adapter_real_add_notification;
   klass->remove_notification = valent_notifications_adapter_real_remove_notification;
-
-  /**
-   * ValentNotificationsAdapter:plugin-info:
-   *
-   * The [struct@Peas.PluginInfo] describing this adapter.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_PLUGIN_INFO] =
-    g_param_spec_boxed ("plugin-info", NULL, NULL,
-                        PEAS_TYPE_PLUGIN_INFO,
-                        (G_PARAM_READWRITE |
-                         G_PARAM_CONSTRUCT_ONLY |
-                         G_PARAM_EXPLICIT_NOTIFY |
-                         G_PARAM_STATIC_STRINGS));
-
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 
   /**
    * ValentNotificationsAdapter::notification-added:

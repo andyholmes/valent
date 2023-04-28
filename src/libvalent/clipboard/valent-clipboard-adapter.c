@@ -6,7 +6,6 @@
 #include "config.h"
 
 #include <gio/gio.h>
-#include <libpeas/peas.h>
 #include <libvalent-core.h>
 
 #include "valent-clipboard-adapter.h"
@@ -35,11 +34,10 @@
 
 typedef struct
 {
-  PeasPluginInfo *plugin_info;
-  int64_t         timestamp;
+  int64_t  timestamp;
 } ValentClipboardAdapterPrivate;
 
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentClipboardAdapter, valent_clipboard_adapter, VALENT_TYPE_OBJECT)
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentClipboardAdapter, valent_clipboard_adapter, VALENT_TYPE_EXTENSION)
 
 /**
  * ValentClipboardAdapterClass:
@@ -53,14 +51,6 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentClipboardAdapter, valent_clipboard_ad
  *
  * The virtual function table for #ValentClipboardAdapter.
  */
-
-enum {
-  PROP_0,
-  PROP_PLUGIN_INFO,
-  N_PROPERTIES
-};
-
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 enum {
   CHANGED,
@@ -166,53 +156,8 @@ valent_clipboard_adapter_real_changed (ValentClipboardAdapter *adapter)
  * GObject
  */
 static void
-valent_clipboard_adapter_get_property (GObject    *object,
-                                       guint       prop_id,
-                                       GValue     *value,
-                                       GParamSpec *pspec)
-{
-  ValentClipboardAdapter *self = VALENT_CLIPBOARD_ADAPTER (object);
-  ValentClipboardAdapterPrivate *priv = valent_clipboard_adapter_get_instance_private (self);
-
-  switch (prop_id)
-    {
-    case PROP_PLUGIN_INFO:
-      g_value_set_boxed (value, priv->plugin_info);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_clipboard_adapter_set_property (GObject      *object,
-                                       guint         prop_id,
-                                       const GValue *value,
-                                       GParamSpec   *pspec)
-{
-  ValentClipboardAdapter *self = VALENT_CLIPBOARD_ADAPTER (object);
-  ValentClipboardAdapterPrivate *priv = valent_clipboard_adapter_get_instance_private (self);
-
-  switch (prop_id)
-    {
-    case PROP_PLUGIN_INFO:
-      priv->plugin_info = g_value_get_boxed (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_clipboard_adapter_class_init (ValentClipboardAdapterClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
-
-  object_class->get_property = valent_clipboard_adapter_get_property;
-  object_class->set_property = valent_clipboard_adapter_set_property;
-
   klass->changed = valent_clipboard_adapter_real_changed;
   klass->get_mimetypes = valent_clipboard_adapter_real_get_mimetypes;
   klass->get_timestamp = valent_clipboard_adapter_real_get_timestamp;
@@ -220,23 +165,6 @@ valent_clipboard_adapter_class_init (ValentClipboardAdapterClass *klass)
   klass->read_bytes_finish = valent_clipboard_adapter_real_read_bytes_finish;
   klass->write_bytes = valent_clipboard_adapter_real_write_bytes;
   klass->write_bytes_finish = valent_clipboard_adapter_real_write_bytes_finish;
-
-  /**
-   * ValentClipboardAdapter:plugin-info:
-   *
-   * The [struct@Peas.PluginInfo] describing this adapter.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_PLUGIN_INFO] =
-    g_param_spec_boxed ("plugin-info", NULL, NULL,
-                        PEAS_TYPE_PLUGIN_INFO,
-                        (G_PARAM_READWRITE |
-                         G_PARAM_CONSTRUCT_ONLY |
-                         G_PARAM_EXPLICIT_NOTIFY |
-                         G_PARAM_STATIC_STRINGS));
-
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 
   /**
    * ValentClipboardAdapter::changed:

@@ -123,7 +123,7 @@ presenter_remote_action (GSimpleAction *action,
     {
       ValentDevice *device;
 
-      device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+      device = valent_extension_get_object (VALENT_EXTENSION (self));
       self->remote = g_object_new (VALENT_TYPE_PRESENTER_REMOTE,
                                    "device", device,
                                    NULL);

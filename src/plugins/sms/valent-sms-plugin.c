@@ -411,7 +411,7 @@ messaging_action (GSimpleAction *action,
     {
       ValentContactStore *store;
 
-      device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+      device = valent_extension_get_object (VALENT_EXTENSION (self));
       store = valent_contacts_ensure_store (valent_contacts_get_default (),
                                             valent_device_get_id (device),
                                             valent_device_get_name (device));
@@ -452,7 +452,7 @@ valent_sms_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  valent_device_plugin_toggle_actions (plugin, available);
+  valent_extension_toggle_actions (VALENT_EXTENSION (plugin), available);
 
   /* Request summary of messages */
   if (available)
@@ -488,7 +488,7 @@ valent_sms_plugin_constructed (GObject *object)
   ValentContext *context = NULL;
 
   /* Load SMS Store */
-  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  device = valent_extension_get_object (VALENT_EXTENSION (self));
   context = valent_device_get_context (device);
   self->store = g_object_new (VALENT_TYPE_SMS_STORE,
                               "domain", "plugin",

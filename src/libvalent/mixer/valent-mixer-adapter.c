@@ -5,7 +5,7 @@
 
 #include "config.h"
 
-#include <libpeas/peas.h>
+#include <gio/gio.h>
 #include <libvalent-core.h>
 
 #include "valent-mixer.h"
@@ -36,14 +36,12 @@
 
 typedef struct
 {
-  PeasPluginInfo *plugin_info;
-
-  GPtrArray      *streams;
+  GPtrArray *streams;
 } ValentMixerAdapterPrivate;
 
 static void   g_list_model_iface_init (GListModelInterface *iface);
 
-G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentMixerAdapter, valent_mixer_adapter, VALENT_TYPE_OBJECT,
+G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentMixerAdapter, valent_mixer_adapter, VALENT_TYPE_EXTENSION,
                                   G_ADD_PRIVATE (ValentMixerAdapter)
                                   G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
@@ -62,7 +60,6 @@ enum {
   PROP_0,
   PROP_DEFAULT_INPUT,
   PROP_DEFAULT_OUTPUT,
-  PROP_PLUGIN_INFO,
   N_PROPERTIES
 };
 
@@ -167,7 +164,6 @@ valent_mixer_adapter_get_property (GObject    *object,
                                    GParamSpec *pspec)
 {
   ValentMixerAdapter *self = VALENT_MIXER_ADAPTER (object);
-  ValentMixerAdapterPrivate *priv = valent_mixer_adapter_get_instance_private (self);
 
   switch (prop_id)
     {
@@ -177,10 +173,6 @@ valent_mixer_adapter_get_property (GObject    *object,
 
     case PROP_DEFAULT_OUTPUT:
       g_value_set_object (value, valent_mixer_adapter_get_default_output (self));
-      break;
-
-    case PROP_PLUGIN_INFO:
-      g_value_set_boxed (value, priv->plugin_info);
       break;
 
     default:
@@ -195,7 +187,6 @@ valent_mixer_adapter_set_property (GObject      *object,
                                    GParamSpec   *pspec)
 {
   ValentMixerAdapter *self = VALENT_MIXER_ADAPTER (object);
-  ValentMixerAdapterPrivate *priv = valent_mixer_adapter_get_instance_private (self);
 
   switch (prop_id)
     {
@@ -205,10 +196,6 @@ valent_mixer_adapter_set_property (GObject      *object,
 
     case PROP_DEFAULT_OUTPUT:
       valent_mixer_adapter_set_default_output (self, g_value_get_object (value));
-      break;
-
-    case PROP_PLUGIN_INFO:
-      priv->plugin_info = g_value_get_boxed (value);
       break;
 
     default:
@@ -263,21 +250,6 @@ valent_mixer_adapter_class_init (ValentMixerAdapterClass *klass)
                          (G_PARAM_READWRITE |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentMixerAdapter:plugin-info:
-   *
-   * The [struct@Peas.PluginInfo] describing this adapter.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_PLUGIN_INFO] =
-    g_param_spec_boxed ("plugin-info", NULL, NULL,
-                        PEAS_TYPE_PLUGIN_INFO,
-                        (G_PARAM_READWRITE |
-                         G_PARAM_CONSTRUCT_ONLY |
-                         G_PARAM_EXPLICIT_NOTIFY |
-                         G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 }
