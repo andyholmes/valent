@@ -11,6 +11,7 @@
 #include "valent-component.h"
 #include "valent-component-private.h"
 #include "valent-debug.h"
+#include "valent-extension.h"
 #include "valent-global.h"
 #include "valent-object.h"
 
@@ -101,6 +102,7 @@ valent_component_update_preferred (ValentComponent *self)
   ValentPlugin *plugin;
   GObject *extension = NULL;
   int64_t extension_priority = 0;
+  ValentPluginState extension_state = VALENT_PLUGIN_STATE_ACTIVE;
 
   g_assert (VALENT_IS_COMPONENT (self));
 
@@ -108,17 +110,22 @@ valent_component_update_preferred (ValentComponent *self)
 
   while (g_hash_table_iter_next (&iter, (void **)&info, (void **)&plugin))
     {
+      ValentPluginState state;
       int64_t priority;
 
       if (plugin->extension == NULL)
         continue;
 
       priority = _peas_plugin_info_get_priority (info, priv->plugin_priority);
+      state = valent_extension_plugin_state_check (VALENT_EXTENSION (plugin->extension), NULL);
 
-      if (extension == NULL || priority < extension_priority)
+      if (extension == NULL ||
+          priority < extension_priority ||
+          state < extension_state)
         {
           extension = plugin->extension;
           extension_priority = priority;
+          extension_state = state;
         }
     }
 
@@ -133,6 +140,25 @@ valent_component_update_preferred (ValentComponent *self)
 /*
  * GSettings Handlers
  */
+static void
+on_plugin_state_changed (ValentExtension *extension,
+                         GParamSpec      *pspec,
+                         ValentComponent *self)
+{
+  ValentPluginState state = VALENT_PLUGIN_STATE_ACTIVE;
+  g_autoptr (GError) error = NULL;
+
+  g_assert (VALENT_IS_EXTENSION (extension));
+  g_assert (VALENT_IS_COMPONENT (self));
+
+  state = valent_extension_plugin_state_check (extension, &error);
+
+  if (state == VALENT_PLUGIN_STATE_ERROR)
+    g_warning ("%s(): %s", G_OBJECT_TYPE_NAME (extension), error->message);
+
+  valent_component_update_preferred (self);
+}
+
 static void
 g_async_initable_init_async_cb (GObject      *object,
                                 GAsyncResult *result,
@@ -174,6 +200,12 @@ valent_component_enable_plugin (ValentComponent *self,
 
   VALENT_COMPONENT_GET_CLASS (self)->bind_extension (self, plugin->extension);
   valent_component_update_preferred (self);
+
+  /* If the extension state changes, update the preferred adapter */
+  g_signal_connect_object (plugin->extension,
+                           "notify::plugin-state",
+                           G_CALLBACK (on_plugin_state_changed),
+                           self, 0);
 
   /* If the extension requires initialization, use a chained cancellable in case
    * the plugin is unloaded or the component is destroyed. */

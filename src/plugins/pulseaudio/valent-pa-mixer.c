@@ -206,26 +206,40 @@ on_state_changed (GvcMixerControl      *control,
                   GvcMixerControlState  state,
                   ValentPaMixer        *self)
 {
+  g_autoptr (GError) error = NULL;
+
   g_assert (VALENT_IS_PA_MIXER (self));
 
   switch (state)
     {
     case GVC_STATE_CLOSED:
-      VALENT_NOTE ("%s: Closed", G_OBJECT_TYPE_NAME (self));
+      valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
+                                             VALENT_PLUGIN_STATE_INACTIVE,
+                                             error);
       valent_pa_mixer_unload (self);
       break;
 
     case GVC_STATE_READY:
-      VALENT_NOTE ("%s: Ready", G_OBJECT_TYPE_NAME (self));
+      valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
+                                             VALENT_PLUGIN_STATE_ACTIVE,
+                                             error);
       valent_pa_mixer_load (self);
       break;
 
     case GVC_STATE_CONNECTING:
-      VALENT_NOTE ("%s: Connecting", G_OBJECT_TYPE_NAME (self));
+      valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
+                                             VALENT_PLUGIN_STATE_INACTIVE,
+                                             error);
       break;
 
     case GVC_STATE_FAILED:
-      g_warning ("%s: Failed", G_OBJECT_TYPE_NAME (self));
+      g_set_error_literal (&error,
+                           G_IO_ERROR,
+                           G_IO_ERROR_FAILED,
+                           "failed to connect to PulseAudio server");
+      valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
+                                             VALENT_PLUGIN_STATE_ERROR,
+                                             error);
       valent_pa_mixer_unload (self);
       break;
     }

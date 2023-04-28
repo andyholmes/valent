@@ -120,7 +120,12 @@ new_session_cb (GObject      *object,
   self->proxy = g_dbus_proxy_new_for_bus_finish (result, &error);
 
   if (self->proxy == NULL)
-    return g_task_return_error (task, g_steal_pointer (&error));
+    {
+      valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
+                                             VALENT_PLUGIN_STATE_ERROR,
+                                             error);
+      return g_task_return_error (task, g_steal_pointer (&error));
+    }
 
   /* Preload properties */
   active = g_dbus_proxy_get_cached_property (self->proxy, "Active");
@@ -144,6 +149,11 @@ new_session_cb (GObject      *object,
                            G_CALLBACK (on_signal),
                            self, 0);
 
+
+  /* Report the adapter as active */
+  valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
+                                         VALENT_PLUGIN_STATE_ACTIVE,
+                                         NULL);
   g_task_return_boolean (task, TRUE);
 }
 
@@ -153,6 +163,7 @@ get_display_cb (GDBusConnection *connection,
                 gpointer         user_data)
 {
   g_autoptr (GTask) task = G_TASK (user_data);
+  ValentFdoSession *self = g_task_get_source_object (task);
   g_autoptr (GError) error = NULL;
   g_autoptr (GVariant) reply = NULL;
   g_autoptr (GVariant) value = NULL;
@@ -163,7 +174,12 @@ get_display_cb (GDBusConnection *connection,
   reply = g_dbus_connection_call_finish (connection, result, &error);
 
   if (reply == NULL)
-    return g_task_return_error (task, g_steal_pointer (&error));
+    {
+      valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
+                                             VALENT_PLUGIN_STATE_ERROR,
+                                             error);
+      return g_task_return_error (task, g_steal_pointer (&error));
+    }
 
   g_variant_get (reply, "(v)", &value);
   g_variant_get (value, "(&s&o)", &session_id, &object_path);
@@ -184,6 +200,7 @@ get_user_cb (GDBusConnection *connection,
              gpointer         user_data)
 {
   g_autoptr (GTask) task = G_TASK (user_data);
+  ValentFdoSession *self = g_task_get_source_object (task);
   g_autoptr (GError) error = NULL;
   g_autoptr (GVariant) reply = NULL;
   const char *object_path;
@@ -193,7 +210,12 @@ get_user_cb (GDBusConnection *connection,
   reply = g_dbus_connection_call_finish (connection, result, &error);
 
   if (reply == NULL)
-    return g_task_return_error (task, g_steal_pointer (&error));
+    {
+      valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
+                                             VALENT_PLUGIN_STATE_ERROR,
+                                             error);
+      return g_task_return_error (task, g_steal_pointer (&error));
+    }
 
   g_variant_get (reply, "(&o)", &object_path);
   g_dbus_connection_call (connection,
@@ -229,6 +251,11 @@ valent_fdo_notifications_init_async (GAsyncInitable             *initable,
 
   g_assert (VALENT_IS_FDO_SESSION (initable));
 
+  /* Cede the primary position until complete */
+  valent_extension_plugin_state_changed (VALENT_EXTENSION (initable),
+                                         VALENT_PLUGIN_STATE_INACTIVE,
+                                         NULL);
+
   /* Cancel initialization if the object is destroyed */
   destroy = valent_object_attach_cancellable (VALENT_OBJECT (initable),
                                               cancellable);
@@ -241,7 +268,12 @@ valent_fdo_notifications_init_async (GAsyncInitable             *initable,
   connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, destroy, &error);
 
   if (connection == NULL)
-    return g_task_return_error (task, g_steal_pointer (&error));
+    {
+      valent_extension_plugin_state_changed (VALENT_EXTENSION (initable),
+                                             VALENT_PLUGIN_STATE_ERROR,
+                                             error);
+      return g_task_return_error (task, g_steal_pointer (&error));
+    }
 
   /* Check for logind */
   g_dbus_connection_call (connection,

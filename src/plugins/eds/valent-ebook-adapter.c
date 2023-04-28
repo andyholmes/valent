@@ -112,12 +112,17 @@ e_source_registry_new_cb (GObject      *object,
   g_autoptr (GTask) task = G_TASK (user_data);
   g_autolist (ESource) sources = NULL;
   ValentEBookAdapter *self = g_task_get_source_object (task);
-  GError *error = NULL;
+  g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_EBOOK_ADAPTER (self));
 
   if ((self->registry = e_source_registry_new_finish (result, &error)) == NULL)
-    return g_task_return_error (task, error);
+    {
+      valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
+                                             VALENT_PLUGIN_STATE_ERROR,
+                                             error);
+      return g_task_return_error (task, g_steal_pointer (&error));
+    }
 
   /* Load existing address books */
   sources = e_source_registry_list_sources (self->registry,
@@ -135,6 +140,10 @@ e_source_registry_new_cb (GObject      *object,
                            G_CALLBACK (on_source_removed),
                            self, 0);
 
+  /* Report the adapter as active */
+  valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
+                                         VALENT_PLUGIN_STATE_ACTIVE,
+                                         NULL);
   g_task_return_boolean (task, TRUE);
 }
 
@@ -150,6 +159,11 @@ valent_ebook_adapter_init_async (GAsyncInitable        *initable,
 
   g_assert (VALENT_IS_EBOOK_ADAPTER (initable));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  /* Cede the primary position until complete */
+  valent_extension_plugin_state_changed (VALENT_EXTENSION (initable),
+                                         VALENT_PLUGIN_STATE_INACTIVE,
+                                         NULL);
 
   /* Cancel initialization if the object is destroyed */
   destroy = valent_object_attach_cancellable (VALENT_OBJECT (initable),

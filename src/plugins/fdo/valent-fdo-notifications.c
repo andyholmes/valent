@@ -288,6 +288,10 @@ on_name_appeared (GDBusConnection *connection,
                                             on_notification_closed,
                                             self, NULL);
     }
+
+  valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
+                                         VALENT_PLUGIN_STATE_ACTIVE,
+                                         NULL);
 }
 
 static void
@@ -304,6 +308,10 @@ on_name_vanished (GDBusConnection *connection,
       g_dbus_connection_signal_unsubscribe (self->session, self->closed_id);
       self->closed_id = 0;
     }
+
+  valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
+                                         VALENT_PLUGIN_STATE_INACTIVE,
+                                         NULL);
 }
 
 static void
@@ -320,11 +328,27 @@ become_monitor_cb (GDBusConnection *connection,
 
   if (reply == NULL)
     {
+      valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
+                                             VALENT_PLUGIN_STATE_ERROR,
+                                             error);
       g_clear_object (&self->monitor);
       g_dbus_error_strip_remote_error (error);
       return g_task_return_error (task, g_steal_pointer (&error));
     }
 
+  /* Watch the true name owner */
+  self->name_owner_id = g_bus_watch_name (G_BUS_TYPE_SESSION,
+                                          "org.freedesktop.Notifications",
+                                          G_BUS_NAME_WATCHER_FLAGS_NONE,
+                                          on_name_appeared,
+                                          on_name_vanished,
+                                          self, NULL);
+
+
+  /* Report the adapter as active */
+  valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
+                                         VALENT_PLUGIN_STATE_ACTIVE,
+                                         NULL);
   g_task_return_boolean (task, TRUE);
 }
 
@@ -342,6 +366,9 @@ new_for_address_cb (GObject      *object,
 
   if (self->monitor == NULL)
     {
+      valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
+                                             VALENT_PLUGIN_STATE_ERROR,
+                                             error);
       g_dbus_error_strip_remote_error (error);
       return g_task_return_error (task, g_steal_pointer (&error));
     }
@@ -357,6 +384,9 @@ new_for_address_cb (GObject      *object,
 
   if (self->monitor_id == 0)
     {
+      valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
+                                             VALENT_PLUGIN_STATE_ERROR,
+                                             error);
       g_clear_object (&self->monitor);
       g_dbus_error_strip_remote_error (error);
       return g_task_return_error (task, g_steal_pointer (&error));
@@ -375,14 +405,6 @@ new_for_address_cb (GObject      *object,
                           cancellable,
                           (GAsyncReadyCallback)become_monitor_cb,
                           g_steal_pointer (&task));
-
-  /* Watch the true name owner */
-  self->name_owner_id = g_bus_watch_name (G_BUS_TYPE_SESSION,
-                                          "org.freedesktop.Notifications",
-                                          G_BUS_NAME_WATCHER_FLAGS_NONE,
-                                          on_name_appeared,
-                                          on_name_vanished,
-                                          self, NULL);
 }
 
 
@@ -403,6 +425,11 @@ valent_fdo_notifications_init_async (GAsyncInitable             *initable,
 
   g_assert (VALENT_IS_FDO_NOTIFICATIONS (initable));
 
+  /* Cede the primary position until complete */
+  valent_extension_plugin_state_changed (VALENT_EXTENSION (initable),
+                                         VALENT_PLUGIN_STATE_INACTIVE,
+                                         NULL);
+
   /* Cancel initialization if the object is destroyed */
   destroy = valent_object_attach_cancellable (VALENT_OBJECT (initable),
                                               cancellable);
@@ -417,7 +444,12 @@ valent_fdo_notifications_init_async (GAsyncInitable             *initable,
                                              &error);
 
   if (address == NULL)
-    return g_task_return_error (task, g_steal_pointer (&error));
+    {
+      valent_extension_plugin_state_changed (VALENT_EXTENSION (initable),
+                                             VALENT_PLUGIN_STATE_ERROR,
+                                             error);
+      return g_task_return_error (task, g_steal_pointer (&error));
+    }
 
   /* Get a dedicated connection for monitoring */
   g_dbus_connection_new_for_address (address,
