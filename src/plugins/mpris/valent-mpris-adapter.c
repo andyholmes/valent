@@ -214,7 +214,7 @@ list_names_cb (GDBusConnection *connection,
 
   self = g_task_get_source_object (task);
 
-  /* If we succeed, add any currently exported players */
+  /* If successful, add any currently exported players */
   reply = g_dbus_connection_call_finish (connection, result, NULL);
 
   if (reply != NULL)
@@ -250,7 +250,7 @@ list_names_cb (GDBusConnection *connection,
   if (g_task_return_error_if_cancelled (task))
     return;
 
-  /* Watch for new and removed MPRIS Players */
+  /* Regardless of the result of `ListNames()`, the connection is valid */
   self->name_owner_changed_id =
     g_dbus_connection_signal_subscribe (connection,
                                         "org.freedesktop.DBus",
@@ -262,6 +262,11 @@ list_names_cb (GDBusConnection *connection,
                                         on_name_owner_changed,
                                         self, NULL);
 
+
+  /* Report the adapter as active */
+  valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
+                                         VALENT_PLUGIN_STATE_ACTIVE,
+                                         NULL);
   g_task_return_boolean (task, TRUE);
 }
 
@@ -279,6 +284,11 @@ valent_mpris_adapter_init_async (GAsyncInitable      *initable,
 
   g_assert (VALENT_IS_MPRIS_ADAPTER (self));
 
+  /* Cede the primary position until complete */
+  valent_extension_plugin_state_changed (VALENT_EXTENSION (initable),
+                                         VALENT_PLUGIN_STATE_INACTIVE,
+                                         NULL);
+
   /* Cancel initialization if the object is destroyed */
   destroy = valent_object_attach_cancellable (VALENT_OBJECT (initable),
                                               cancellable);
@@ -292,7 +302,12 @@ valent_mpris_adapter_init_async (GAsyncInitable      *initable,
                                      &error);
 
   if (self->connection == NULL)
-    return g_task_return_error (task, g_steal_pointer (&error));
+    {
+      valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
+                                             VALENT_PLUGIN_STATE_ERROR,
+                                             error);
+      return g_task_return_error (task, g_steal_pointer (&error));
+    }
 
   g_dbus_connection_call (self->connection,
                           "org.freedesktop.DBus",

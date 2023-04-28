@@ -85,12 +85,22 @@ xdp_portal_session_monitor_start_cb (GObject      *object,
   g_assert (VALENT_IS_XDP_SESSION (self));
 
   if (!xdp_portal_session_monitor_start_finish (portal, result, &error))
-    return g_task_return_error (task, g_steal_pointer (&error));
+    {
+      valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
+                                             VALENT_PLUGIN_STATE_ERROR,
+                                             error);
+      return g_task_return_error (task, g_steal_pointer (&error));
+    }
 
   g_signal_connect_object (portal,
                            "session-state-changed",
                            G_CALLBACK (on_session_state_changed),
                            self, 0);
+
+  /* Report the adapter as active */
+  valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
+                                         VALENT_PLUGIN_STATE_ACTIVE,
+                                         NULL);
   g_task_return_boolean (task, TRUE);
 }
 
@@ -106,6 +116,11 @@ valent_xdp_session_init_async (GAsyncInitable      *initable,
   g_autoptr (XdpParent) parent = NULL;
 
   g_assert (VALENT_IS_XDP_SESSION (initable));
+
+  /* Cede the primary position until complete */
+  valent_extension_plugin_state_changed (VALENT_EXTENSION (initable),
+                                         VALENT_PLUGIN_STATE_INACTIVE,
+                                         NULL);
 
   /* Cancel initialization if the object is destroyed */
   destroy = valent_object_attach_cancellable (VALENT_OBJECT (initable),
@@ -160,7 +175,5 @@ valent_xdp_session_class_init (ValentXdpSessionClass *klass)
 static void
 valent_xdp_session_init (ValentXdpSession *self)
 {
-  self->active = TRUE;
-  self->locked = FALSE;
 }
 

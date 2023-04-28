@@ -264,7 +264,6 @@ valent_gdk_clipboard_constructed (GObject *object)
   ValentGdkClipboard *self = VALENT_GDK_CLIPBOARD (object);
   GdkDisplay *display;
 
-  /* Connect to the clipboard */
   if ((display = gdk_display_get_default ()) != NULL)
     {
       self->clipboard = gdk_display_get_clipboard (display);
@@ -272,6 +271,12 @@ valent_gdk_clipboard_constructed (GObject *object)
                                "changed",
                                G_CALLBACK (on_changed),
                                self, 0);
+    }
+  else
+    {
+      valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
+                                             VALENT_PLUGIN_STATE_INACTIVE,
+                                             NULL);
     }
 
   G_OBJECT_CLASS (valent_gdk_clipboard_parent_class)->constructed (object);
