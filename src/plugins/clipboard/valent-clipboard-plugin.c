@@ -91,7 +91,7 @@ valent_clipboard_read_text_cb (ValentClipboard       *clipboard,
   if (error != NULL)
     {
       if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_warning ("%s(): %s", G_STRFUNC, error->message);
+        g_debug ("%s(): %s", G_STRFUNC, error->message);
 
       return;
     }
@@ -162,7 +162,7 @@ on_auto_pull_changed (GSettings             *settings,
   if (!self->auto_pull)
     return;
 
-  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  device = valent_extension_get_object (VALENT_EXTENSION (self));
   state = valent_device_get_state (device);
 
   if ((state & VALENT_DEVICE_STATE_CONNECTED) != 0 ||
@@ -194,7 +194,7 @@ on_auto_push_changed (GSettings             *settings,
   if (!self->auto_push)
     return;
 
-  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  device = valent_extension_get_object (VALENT_EXTENSION (self));
   state = valent_device_get_state (device);
 
   if ((state & VALENT_DEVICE_STATE_CONNECTED) != 0 ||
@@ -214,6 +214,7 @@ on_clipboard_changed (ValentClipboard       *clipboard,
                       ValentClipboardPlugin *self)
 {
   g_autoptr (GCancellable) destroy = NULL;
+
   g_assert (VALENT_IS_CLIPBOARD (clipboard));
   g_assert (VALENT_IS_CLIPBOARD_PLUGIN (self));
 
@@ -369,7 +370,7 @@ valent_clipboard_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  valent_device_plugin_toggle_actions (plugin, available);
+  valent_extension_toggle_actions (VALENT_EXTENSION (plugin), available);
 
   if (available)
     {
@@ -433,7 +434,7 @@ valent_clipboard_plugin_constructed (GObject *object)
                                    G_N_ELEMENTS (actions),
                                    plugin);
 
-  settings = valent_device_plugin_get_settings (plugin);
+  settings = valent_extension_get_settings (VALENT_EXTENSION (plugin));
   self->auto_pull = g_settings_get_boolean (settings, "auto-pull");
   g_signal_connect_object (settings,
                            "changed::auto-pull",

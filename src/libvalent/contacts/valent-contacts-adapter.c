@@ -6,7 +6,6 @@
 #include "config.h"
 
 #include <gio/gio.h>
-#include <libpeas/peas.h>
 #include <libvalent-core.h>
 
 #include "valent-contact-store.h"
@@ -36,13 +35,12 @@
 
 typedef struct
 {
-  PeasPluginInfo *plugin_info;
   GPtrArray      *stores;
 } ValentContactsAdapterPrivate;
 
 static void   g_list_model_iface_init (GListModelInterface *iface);
 
-G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentContactsAdapter, valent_contacts_adapter, VALENT_TYPE_OBJECT,
+G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentContactsAdapter, valent_contacts_adapter, VALENT_TYPE_EXTENSION,
                                   G_ADD_PRIVATE (ValentContactsAdapter)
                                   G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
@@ -51,14 +49,6 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentContactsAdapter, valent_contacts_adapter
  *
  * The virtual function table for #ValentContactsAdapter.
  */
-
-enum {
-  PROP_0,
-  PROP_PLUGIN_INFO,
-  N_PROPERTIES
-};
-
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 
 /*
@@ -119,70 +109,11 @@ valent_contacts_adapter_finalize (GObject *object)
 }
 
 static void
-valent_contacts_adapter_get_property (GObject    *object,
-                                      guint       prop_id,
-                                      GValue     *value,
-                                      GParamSpec *pspec)
-{
-  ValentContactsAdapter *self = VALENT_CONTACTS_ADAPTER (object);
-  ValentContactsAdapterPrivate *priv = valent_contacts_adapter_get_instance_private (self);
-
-  switch (prop_id)
-    {
-    case PROP_PLUGIN_INFO:
-      g_value_set_boxed (value, priv->plugin_info);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_contacts_adapter_set_property (GObject      *object,
-                                      guint         prop_id,
-                                      const GValue *value,
-                                      GParamSpec   *pspec)
-{
-  ValentContactsAdapter *self = VALENT_CONTACTS_ADAPTER (object);
-  ValentContactsAdapterPrivate *priv = valent_contacts_adapter_get_instance_private (self);
-
-  switch (prop_id)
-    {
-    case PROP_PLUGIN_INFO:
-      priv->plugin_info = g_value_get_boxed (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_contacts_adapter_class_init (ValentContactsAdapterClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
   object_class->finalize = valent_contacts_adapter_finalize;
-  object_class->get_property = valent_contacts_adapter_get_property;
-  object_class->set_property = valent_contacts_adapter_set_property;
-
-  /**
-   * ValentContactsAdapter:plugin-info:
-   *
-   * The [struct@Peas.PluginInfo] describing this adapter.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_PLUGIN_INFO] =
-    g_param_spec_boxed ("plugin-info", NULL, NULL,
-                        PEAS_TYPE_PLUGIN_INFO,
-                        (G_PARAM_READWRITE |
-                         G_PARAM_CONSTRUCT_ONLY |
-                         G_PARAM_EXPLICIT_NOTIFY |
-                         G_PARAM_STATIC_STRINGS));
-
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 }
 
 static void

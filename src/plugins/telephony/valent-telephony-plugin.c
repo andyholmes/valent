@@ -153,7 +153,7 @@ valent_telephony_plugin_update_media_state (ValentTelephonyPlugin *self,
   g_assert (VALENT_IS_TELEPHONY_PLUGIN (self));
   g_assert (event != NULL && *event != '\0');
 
-  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+  settings = valent_extension_get_settings (VALENT_EXTENSION (self));
 
   /* Retrieve the user preference for this event */
   if (g_str_equal (event, "ringing"))
@@ -284,7 +284,7 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
    * events from the same sender supersede previous events, and replace the
    * older notifications.
    */
-  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  device = valent_extension_get_object (VALENT_EXTENSION (self));
 
   /* This is a cancelled event */
   if (valent_packet_check_field (packet, "isCancel"))
@@ -377,7 +377,7 @@ valent_telephony_plugin_update_state (ValentDevicePlugin *plugin,
       g_clear_pointer (&self->prev_input, stream_state_free);
     }
 
-  valent_device_plugin_toggle_actions (plugin, available);
+  valent_extension_toggle_actions (VALENT_EXTENSION (plugin), available);
 }
 
 static void

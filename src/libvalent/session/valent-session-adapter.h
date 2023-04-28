@@ -7,27 +7,27 @@
 # error "Only <valent.h> can be included directly."
 #endif
 
-#include "../core/valent-object.h"
+#include "../core/valent-extension.h"
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_SESSION_ADAPTER (valent_session_adapter_get_type())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_DERIVABLE_TYPE (ValentSessionAdapter, valent_session_adapter, VALENT, SESSION_ADAPTER, ValentObject)
+G_DECLARE_DERIVABLE_TYPE (ValentSessionAdapter, valent_session_adapter, VALENT, SESSION_ADAPTER, ValentExtension)
 
 struct _ValentSessionAdapterClass
 {
-  ValentObjectClass   parent_class;
+  ValentExtensionClass   parent_class;
 
   /* virtual functions */
-  gboolean            (*get_active) (ValentSessionAdapter *adapter);
-  gboolean            (*get_locked) (ValentSessionAdapter *adapter);
-  void                (*set_locked) (ValentSessionAdapter *adapter,
-                                     gboolean              state);
+  gboolean               (*get_active) (ValentSessionAdapter *adapter);
+  gboolean               (*get_locked) (ValentSessionAdapter *adapter);
+  void                   (*set_locked) (ValentSessionAdapter *adapter,
+                                        gboolean              state);
 
   /*< private >*/
-  gpointer            padding[8];
+  gpointer               padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0

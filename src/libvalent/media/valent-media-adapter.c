@@ -5,7 +5,6 @@
 
 #include "config.h"
 
-#include <libpeas/peas.h>
 #include <libvalent-core.h>
 
 #include "valent-media-player.h"
@@ -35,13 +34,12 @@
 
 typedef struct
 {
-  PeasPluginInfo *plugin_info;
   GPtrArray      *players;
 } ValentMediaAdapterPrivate;
 
 static void   g_list_model_iface_init (GListModelInterface *iface);
 
-G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentMediaAdapter, valent_media_adapter, VALENT_TYPE_OBJECT,
+G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentMediaAdapter, valent_media_adapter, VALENT_TYPE_EXTENSION,
                                   G_ADD_PRIVATE (ValentMediaAdapter)
                                   G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
@@ -52,14 +50,6 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentMediaAdapter, valent_media_adapter, VALE
  *
  * The virtual function table for #ValentMediaAdapter.
  */
-
-enum {
-  PROP_0,
-  PROP_PLUGIN_INFO,
-  N_PROPERTIES
-};
-
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 
 /*
@@ -138,73 +128,14 @@ valent_media_adapter_finalize (GObject *object)
 }
 
 static void
-valent_media_adapter_get_property (GObject    *object,
-                                   guint       prop_id,
-                                   GValue     *value,
-                                   GParamSpec *pspec)
-{
-  ValentMediaAdapter *self = VALENT_MEDIA_ADAPTER (object);
-  ValentMediaAdapterPrivate *priv = valent_media_adapter_get_instance_private (self);
-
-  switch (prop_id)
-    {
-    case PROP_PLUGIN_INFO:
-      g_value_set_boxed (value, priv->plugin_info);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_media_adapter_set_property (GObject      *object,
-                                   guint         prop_id,
-                                   const GValue *value,
-                                   GParamSpec   *pspec)
-{
-  ValentMediaAdapter *self = VALENT_MEDIA_ADAPTER (object);
-  ValentMediaAdapterPrivate *priv = valent_media_adapter_get_instance_private (self);
-
-  switch (prop_id)
-    {
-    case PROP_PLUGIN_INFO:
-      priv->plugin_info = g_value_get_boxed (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
 valent_media_adapter_class_init (ValentMediaAdapterClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
   object_class->finalize = valent_media_adapter_finalize;
-  object_class->get_property = valent_media_adapter_get_property;
-  object_class->set_property = valent_media_adapter_set_property;
 
   klass->export_player = valent_media_adapter_real_export_player;
   klass->unexport_player = valent_media_adapter_real_unexport_player;
-
-  /**
-   * ValentMediaAdapter:plugin-info:
-   *
-   * The [struct@Peas.PluginInfo] describing this adapter.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_PLUGIN_INFO] =
-    g_param_spec_boxed ("plugin-info", NULL, NULL,
-                        PEAS_TYPE_PLUGIN_INFO,
-                        (G_PARAM_READWRITE |
-                         G_PARAM_CONSTRUCT_ONLY |
-                         G_PARAM_EXPLICIT_NOTIFY |
-                         G_PARAM_STATIC_STRINGS));
-
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 }
 
 static void

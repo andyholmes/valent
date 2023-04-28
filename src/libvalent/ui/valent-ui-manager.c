@@ -94,7 +94,7 @@ valent_ui_manager_activate (ValentApplicationPlugin *plugin)
 
   g_assert (VALENT_IS_UI_MANAGER (plugin));
 
-  application = valent_application_plugin_get_application (plugin);
+  application = valent_extension_get_object (VALENT_EXTENSION (plugin));
   g_action_group_activate_action (G_ACTION_GROUP (application),
                                   "window",
                                   g_variant_new_string ("main"));
@@ -110,7 +110,7 @@ valent_ui_manager_shutdown (ValentApplicationPlugin *plugin)
 
   g_assert (VALENT_IS_UI_MANAGER (plugin));
 
-  application = valent_application_plugin_get_application (plugin);
+  application = valent_extension_get_object (VALENT_EXTENSION (plugin));
 
   for (unsigned int i = 0; i < G_N_ELEMENTS (app_actions); i++)
     g_action_map_remove_action (G_ACTION_MAP (application), app_actions[i].name);
@@ -128,7 +128,7 @@ valent_ui_manager_startup (ValentApplicationPlugin *plugin)
 
   valent_ui_init ();
 
-  application = valent_application_plugin_get_application (plugin);
+  application = valent_extension_get_object (VALENT_EXTENSION (plugin));
   g_action_map_add_action_entries (G_ACTION_MAP (application),
                                    app_actions,
                                    G_N_ELEMENTS (app_actions),

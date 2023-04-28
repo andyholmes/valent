@@ -37,7 +37,7 @@ valent_ping_plugin_handle_ping (ValentPingPlugin *self,
     message = _("Ping!");
 
   /* Show a notification */
-  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  device = valent_extension_get_object (VALENT_EXTENSION (self));
   notification = g_notification_new (valent_device_get_name (device));
   g_notification_set_body (notification, message);
   valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),
@@ -105,7 +105,7 @@ valent_ping_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  valent_device_plugin_toggle_actions (plugin, available);
+  valent_extension_toggle_actions (VALENT_EXTENSION (plugin), available);
 }
 
 static void

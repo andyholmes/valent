@@ -48,7 +48,7 @@ valent_transfer_execute_cb (ValentTransfer     *transfer,
       g_autofree char *filename = NULL;
       ValentDevice *device;
 
-      device = valent_device_plugin_get_device (plugin);
+      device = valent_extension_get_object (VALENT_EXTENSION (plugin));
       filename = g_file_get_basename (file);
       icon = g_themed_icon_new ("dialog-error-symbolic");
       body = g_strdup_printf (_("Failed to receive “%s” from %s"),
@@ -89,7 +89,7 @@ valent_photo_plugin_handle_photo (ValentPhotoPlugin *self,
       return;
     }
 
-  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  device = valent_extension_get_object (VALENT_EXTENSION (self));
   cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
   directory = valent_get_user_directory (G_USER_DIRECTORY_PICTURES);
   file = valent_get_user_file (directory, filename, TRUE);
@@ -147,7 +147,7 @@ valent_photo_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  valent_device_plugin_toggle_actions (plugin, available);
+  valent_extension_toggle_actions (VALENT_EXTENSION (plugin), available);
 }
 
 static void

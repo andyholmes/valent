@@ -286,7 +286,7 @@ valent_device_enable_plugin (ValentDevice *device,
                                                     plugin->info,
                                                     VALENT_TYPE_DEVICE_PLUGIN,
                                                     "context", plugin->context,
-                                                    "device",  plugin->parent,
+                                                    "object",  plugin->parent,
                                                     NULL);
   g_return_if_fail (G_IS_OBJECT (plugin->extension));
 

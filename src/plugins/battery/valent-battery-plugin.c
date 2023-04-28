@@ -116,7 +116,7 @@ valent_battery_plugin_send_state (ValentBatteryPlugin *self)
   if (valent_battery_current_charge (self->battery) <= 0)
     return;
 
-  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+  settings = valent_extension_get_settings (VALENT_EXTENSION (self));
 
   if (!g_settings_get_boolean (settings, "share-state"))
     return;
@@ -260,9 +260,9 @@ valent_battery_plugin_update_notification (ValentBatteryPlugin *self,
 
   g_assert (VALENT_IS_BATTERY_PLUGIN (self));
 
-  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  device = valent_extension_get_object (VALENT_EXTENSION (self));
   device_name = valent_device_get_name (device);
-  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+  settings = valent_extension_get_settings (VALENT_EXTENSION (self));
 
   full = g_settings_get_double (settings, "full-notification-level");
   low = g_settings_get_double (settings, "low-notification-level");
@@ -412,7 +412,7 @@ valent_battery_plugin_update_state (ValentDevicePlugin *plugin,
     }
   else
     {
-      valent_device_plugin_toggle_actions (plugin, available);
+      valent_extension_toggle_actions (VALENT_EXTENSION (plugin), available);
       valent_battery_plugin_watch_battery (self, FALSE);
     }
 }

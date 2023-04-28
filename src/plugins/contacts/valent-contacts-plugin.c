@@ -96,7 +96,7 @@ valent_contact_plugin_handle_request_vcards_by_uid (ValentContactsPlugin *self,
 
 #ifndef __clang_analyzer__
   /* Bail if exporting is disabled */
-  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+  settings = valent_extension_get_settings (VALENT_EXTENSION (self));
 
   if (self->local_store == NULL || !g_settings_get_boolean (settings, "local-sync"))
     return;
@@ -201,7 +201,7 @@ valent_contact_plugin_handle_request_all_uids_timestamps (ValentContactsPlugin *
   g_assert (VALENT_IS_CONTACTS_PLUGIN (self));
 
   /* Bail if exporting is disabled */
-  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+  settings = valent_extension_get_settings (VALENT_EXTENSION (self));
 
   if (self->local_store == NULL || !g_settings_get_boolean (settings, "local-sync"))
     return;
@@ -364,7 +364,7 @@ valent_contacts_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  valent_device_plugin_toggle_actions (plugin, available);
+  valent_extension_toggle_actions (VALENT_EXTENSION (plugin), available);
 
   if (available)
     valent_contacts_plugin_request_all_uids_timestamps (self);
@@ -422,8 +422,8 @@ valent_contacts_plugin_constructed (GObject *object)
 
   /* Prepare Addressbooks */
   self->cancellable = g_cancellable_new ();
-  device = valent_device_plugin_get_device (plugin);
-  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+  device = valent_extension_get_object (VALENT_EXTENSION (plugin));
+  settings = valent_extension_get_settings (VALENT_EXTENSION (self));
 
   store = valent_contacts_ensure_store (valent_contacts_get_default (),
                                         valent_device_get_id (device),

@@ -60,7 +60,7 @@ launcher_init (ValentRuncommandPlugin *self)
 
   self->launcher = g_subprocess_launcher_new (flags);
 
-  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  device = valent_extension_get_object (VALENT_EXTENSION (self));
   g_subprocess_launcher_setenv (self->launcher,
                                 "VALENT_DEVICE_ID",
                                 valent_device_get_id (device),
@@ -164,7 +164,7 @@ on_commands_changed (GSettings              *settings,
   g_assert (key != NULL);
   g_assert (VALENT_IS_RUNCOMMAND_PLUGIN (self));
 
-  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  device = valent_extension_get_object (VALENT_EXTENSION (self));
   state = valent_device_get_state (device);
 
   if ((state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
@@ -185,7 +185,7 @@ valent_runcommand_plugin_execute_local_command (ValentRuncommandPlugin *self,
   g_return_if_fail (key != NULL);
 
   /* Lookup the command by UUID */
-  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+  settings = valent_extension_get_settings (VALENT_EXTENSION (self));
   commands = g_settings_get_value (settings, "commands");
 
   if (!g_variant_lookup (commands, key, "@a{sv}", &command))
@@ -222,7 +222,7 @@ valent_runcommand_plugin_send_command_list (ValentRuncommandPlugin *self)
 
   g_assert (VALENT_IS_RUNCOMMAND_PLUGIN (self));
 
-  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+  settings = valent_extension_get_settings (VALENT_EXTENSION (self));
   commands = g_settings_get_value (settings, "commands");
 
   /* The `commandList` dictionary is sent as a string of serialized JSON */
@@ -427,9 +427,9 @@ valent_runcommand_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  valent_device_plugin_toggle_actions (plugin, available);
+  valent_extension_toggle_actions (VALENT_EXTENSION (plugin), available);
 
-  settings = valent_device_plugin_get_settings (plugin);
+  settings = valent_extension_get_settings (VALENT_EXTENSION (plugin));
 
   if (available)
     {
@@ -501,7 +501,7 @@ valent_runcommand_plugin_dispose (GObject *object)
   GSettings *settings;
 
   /* Stop watching for command changes */
-  settings = valent_device_plugin_get_settings (plugin);
+  settings = valent_extension_get_settings (VALENT_EXTENSION (plugin));
   g_clear_signal_handler (&self->commands_changed_id, settings);
 
   G_OBJECT_CLASS (valent_runcommand_plugin_parent_class)->dispose (object);

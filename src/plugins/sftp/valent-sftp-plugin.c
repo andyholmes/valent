@@ -36,7 +36,7 @@ get_device_host (ValentSftpPlugin *self)
 
   /* The plugin doesn't know ValentChannel derivations, so we have to check for
    * a "host" property to ensure it's IP-based */
-  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  device = valent_extension_get_object (VALENT_EXTENSION (self));
   channel = valent_device_ref_channel (device);
 
   if G_LIKELY (channel != NULL)
@@ -442,7 +442,7 @@ handle_sftp_error (ValentSftpPlugin *self,
 
   body = valent_packet_get_body (packet);
 
-  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  device = valent_extension_get_object (VALENT_EXTENSION (self));
   device_name = valent_device_get_name (device);
 
   error_icon = g_themed_icon_new ("dialog-error-symbolic");
@@ -511,7 +511,7 @@ valent_sftp_plugin_handle_request (ValentSftpPlugin *self,
   if (!valent_packet_check_field (packet, "startBrowsing"))
     return;
 
-  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+  settings = valent_extension_get_settings (VALENT_EXTENSION (self));
   valent_packet_init (&builder, "kdeconnect.sftp");
 
   if (g_settings_get_boolean (settings, "local-allow"))
@@ -603,7 +603,7 @@ valent_sftp_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  valent_device_plugin_toggle_actions (plugin, available);
+  valent_extension_toggle_actions (VALENT_EXTENSION (plugin), available);
 
   /* GMounts */
   if (available)
@@ -612,7 +612,7 @@ valent_sftp_plugin_update_state (ValentDevicePlugin *plugin,
 
       sftp_session_find (self);
 
-      settings = valent_device_plugin_get_settings (plugin);
+      settings = valent_extension_get_settings (VALENT_EXTENSION (plugin));
 
       if (g_settings_get_boolean (settings, "auto-mount"))
         valent_sftp_plugin_sftp_request (self);

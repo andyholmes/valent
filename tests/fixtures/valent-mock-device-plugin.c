@@ -85,7 +85,7 @@ valent_mock_device_plugin_handle_transfer (ValentMockDevicePlugin *self,
       return;
     }
 
-  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  device = valent_extension_get_object (VALENT_EXTENSION (self));
   cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
   directory = valent_get_user_directory (G_USER_DIRECTORY_DOWNLOAD);
   file = valent_get_user_file (directory, filename, TRUE);
@@ -147,7 +147,7 @@ valent_mock_device_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  valent_device_plugin_toggle_actions (plugin, available);
+  valent_extension_toggle_actions (VALENT_EXTENSION (plugin), available);
 }
 
 static void

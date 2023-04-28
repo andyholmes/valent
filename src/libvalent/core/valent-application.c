@@ -47,7 +47,7 @@ valent_application_enable_plugin (ValentApplication *self,
   plugin->extension = peas_engine_create_extension (valent_get_plugin_engine (),
                                                     plugin->info,
                                                     VALENT_TYPE_APPLICATION_PLUGIN,
-                                                    "application", self,
+                                                    "object", self,
                                                     NULL);
   g_return_if_fail (G_IS_OBJECT (plugin->extension));
 }

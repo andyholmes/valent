@@ -44,7 +44,7 @@ valent_share_plugin_create_download_file (ValentSharePlugin *self,
 
   /* Check for a configured download directory, returning a fallback if
    * necessary, but don't save the fallback as though it were configured. */
-  settings = valent_device_plugin_get_settings (VALENT_DEVICE_PLUGIN (self));
+  settings = valent_extension_get_settings (VALENT_EXTENSION (self));
   download_folder = g_settings_get_string (settings, "download-folder");
 
   if (download_folder == NULL || *download_folder == '\0')
@@ -420,7 +420,7 @@ valent_share_plugin_open_file (ValentSharePlugin *self,
    * `numberOfFiles` field and consider a concurrent multi-file transfer as
    * incomplete.
    */
-  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  device = valent_extension_get_object (VALENT_EXTENSION (self));
   transfer = valent_device_transfer_new (device, packet, file);
   g_hash_table_insert (self->transfers,
                        valent_transfer_dup_id (transfer),
@@ -575,7 +575,7 @@ valent_share_plugin_upload_file (ValentSharePlugin *self,
     {
       ValentDevice *device;
 
-      device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+      device = valent_extension_get_object (VALENT_EXTENSION (self));
 
       self->upload = valent_share_upload_new (device);
       g_hash_table_replace (self->transfers,
@@ -604,7 +604,7 @@ valent_share_plugin_upload_files (ValentSharePlugin *self,
     {
       ValentDevice *device;
 
-      device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+      device = valent_extension_get_object (VALENT_EXTENSION (self));
 
       self->upload = valent_share_upload_new (device);
       g_hash_table_replace (self->transfers,
@@ -953,7 +953,7 @@ valent_share_plugin_handle_file (ValentSharePlugin *self,
                                   valent_packet_get_payload_size (packet));
     }
 
-  device = valent_device_plugin_get_device (VALENT_DEVICE_PLUGIN (self));
+  device = valent_extension_get_object (VALENT_EXTENSION (self));
   file = valent_share_plugin_create_download_file (self, filename, TRUE);
 
   /* If the packet includes a request to open the file when the transfer
@@ -1068,14 +1068,14 @@ static void
 valent_share_plugin_handle_text (ValentSharePlugin *self,
                                  const char        *text)
 {
-  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (self);
+  ValentExtension *extension = VALENT_EXTENSION (self);
   const char *name = NULL;
   GtkWindow *window;
 
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
   g_assert (text != NULL);
 
-  name = valent_device_get_name (valent_device_plugin_get_device (plugin));
+  name = valent_device_get_name (valent_extension_get_object (extension));
 
   if (!gtk_is_initialized ())
     {
@@ -1162,7 +1162,7 @@ valent_share_plugin_update_state (ValentDevicePlugin *plugin,
       g_clear_object (&self->upload);
     }
 
-  valent_device_plugin_toggle_actions (plugin, available);
+  valent_extension_toggle_actions (VALENT_EXTENSION (plugin), available);
 }
 
 static void

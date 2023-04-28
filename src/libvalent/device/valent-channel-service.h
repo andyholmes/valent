@@ -7,6 +7,7 @@
 # error "Only <valent.h> can be included directly."
 #endif
 
+#include "../core/valent-extension.h"
 #include "valent-channel.h"
 
 G_BEGIN_DECLS
@@ -14,23 +15,23 @@ G_BEGIN_DECLS
 #define VALENT_TYPE_CHANNEL_SERVICE (valent_channel_service_get_type())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_DERIVABLE_TYPE (ValentChannelService, valent_channel_service, VALENT, CHANNEL_SERVICE, ValentObject)
+G_DECLARE_DERIVABLE_TYPE (ValentChannelService, valent_channel_service, VALENT, CHANNEL_SERVICE, ValentExtension)
 
 struct _ValentChannelServiceClass
 {
-  ValentObjectClass   parent_class;
+  ValentExtensionClass   parent_class;
 
   /* virtual functions */
-  void                (*build_identity) (ValentChannelService  *service);
-  void                (*identify)       (ValentChannelService  *service,
-                                         const char            *target);
+  void                   (*build_identity) (ValentChannelService  *service);
+  void                   (*identify)       (ValentChannelService  *service,
+                                            const char            *target);
 
   /* signals */
-  void                (*channel)        (ValentChannelService  *service,
-                                         ValentChannel         *channel);
+  void                   (*channel)        (ValentChannelService  *service,
+                                            ValentChannel         *channel);
 
   /*< private >*/
-  gpointer            padding[8];
+  gpointer               padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0
