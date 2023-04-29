@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
+
+<gresources>
+  <gresource prefix="/plugins/gnome">
+    <file>gnome.plugin</file>
+  </gresource>
+  <gresource prefix="/ca/andyholmes/Valent/icons">
+    <file alias="scalable/apps/valent-gnome-plugin-symbolic.svg">data/valent-gnome-plugin-symbolic.svg</file>
+  </gresource>
+</gresources>
+

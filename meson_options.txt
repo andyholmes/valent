@@ -116,6 +116,12 @@ option('plugin_findmyphone',
         value: true,
 )
 
+option('plugin_gnome',
+  description: 'Enable GNOME support',
+         type: 'boolean',
+        value: true,
+)
+
 option('plugin_gtk',
   description: 'Enable Extra GTK support',
          type: 'boolean',

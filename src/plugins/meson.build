@@ -16,6 +16,7 @@ plugins = [
   'eds',
   'fdo',
   'findmyphone',
+  'gnome',
   'gtk',
   'lan',
   'lock',
