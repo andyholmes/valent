@@ -94,11 +94,16 @@ valent_session_bind_preferred (ValentComponent *component,
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_SESSION (self));
-  g_assert (VALENT_IS_SESSION_ADAPTER (adapter));
+  g_assert (adapter == NULL || VALENT_IS_SESSION_ADAPTER (adapter));
 
   if (self->default_adapter != NULL)
     {
-      g_signal_handlers_disconnect_by_data (self->default_adapter, self);
+      g_signal_handlers_disconnect_by_func (self->default_adapter,
+                                            self,
+                                            on_active_changed);
+      g_signal_handlers_disconnect_by_func (self->default_adapter,
+                                            self,
+                                            on_locked_changed);
       self->default_adapter = NULL;
     }
 

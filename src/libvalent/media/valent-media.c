@@ -79,7 +79,6 @@ on_items_changed (GListModel   *list,
       g_autoptr (ValentMediaPlayer) player = NULL;
 
       player = g_ptr_array_steal_index (self->players, real_position);
-      g_signal_handlers_disconnect_by_data (player, self);
       g_ptr_array_remove (self->paused, player);
 
       VALENT_NOTE ("removed %s (%s)",

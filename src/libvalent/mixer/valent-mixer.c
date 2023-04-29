@@ -136,7 +136,9 @@ valent_mixer_bind_preferred (ValentComponent *component,
     {
       GListModel *list = G_LIST_MODEL (self->default_adapter);
 
-      g_signal_handlers_disconnect_by_data (self->default_adapter, self);
+      g_signal_handlers_disconnect_by_func (self->default_adapter,
+                                            self,
+                                            on_items_changed);
       on_items_changed (list, 0, g_list_model_get_n_items (list), 0, self);
       self->default_adapter = NULL;
     }
