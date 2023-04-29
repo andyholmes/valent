@@ -102,7 +102,8 @@ valent_component_update_preferred (ValentComponent *self)
   ValentPlugin *plugin;
   GObject *extension = NULL;
   int64_t extension_priority = 0;
-  ValentPluginState extension_state = VALENT_PLUGIN_STATE_ACTIVE;
+
+  VALENT_ENTRY;
 
   g_assert (VALENT_IS_COMPONENT (self));
 
@@ -116,24 +117,29 @@ valent_component_update_preferred (ValentComponent *self)
       if (plugin->extension == NULL)
         continue;
 
-      priority = _peas_plugin_info_get_priority (info, priv->plugin_priority);
       state = valent_extension_plugin_state_check (VALENT_EXTENSION (plugin->extension), NULL);
 
-      if (extension == NULL ||
-          priority < extension_priority ||
-          state < extension_state)
+      if (state != VALENT_PLUGIN_STATE_ACTIVE)
+        continue;
+
+      priority = _peas_plugin_info_get_priority (info, priv->plugin_priority);
+
+      if (extension == NULL || priority < extension_priority)
         {
           extension = plugin->extension;
           extension_priority = priority;
-          extension_state = state;
         }
     }
 
   if (priv->preferred != extension)
     {
+      VALENT_NOTE ("%s(): %s: %s", G_STRFUNC, G_OBJECT_TYPE_NAME (self),
+                   extension ? G_OBJECT_TYPE_NAME (extension) : "No Adapter");
       priv->preferred = extension;
       VALENT_COMPONENT_GET_CLASS (self)->bind_preferred (self, priv->preferred);
     }
+
+  VALENT_EXIT;
 }
 
 
@@ -349,7 +355,7 @@ valent_component_real_bind_preferred (ValentComponent *component,
                                       GObject         *extension)
 {
   g_assert (VALENT_IS_COMPONENT (component));
-  g_assert (G_IS_OBJECT (extension));
+  g_assert (extension == NULL || G_IS_OBJECT (extension));
 }
 
 static void

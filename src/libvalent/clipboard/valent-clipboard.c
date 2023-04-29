@@ -150,7 +150,9 @@ valent_clipboard_bind_preferred (ValentComponent *component,
 
   if (self->default_adapter != NULL)
     {
-      g_signal_handlers_disconnect_by_data (self->default_adapter, self);
+      g_signal_handlers_disconnect_by_func (self->default_adapter,
+                                            self,
+                                            on_clipboard_adapter_changed);
       self->default_adapter = NULL;
     }
 
