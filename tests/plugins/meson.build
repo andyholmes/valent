@@ -13,6 +13,7 @@ plugin_tests = [
   'connectivity_report',
   'contacts',
   'findmyphone',
+  'gnome',
   'lock',
   'mousepad',
   'mpris',
