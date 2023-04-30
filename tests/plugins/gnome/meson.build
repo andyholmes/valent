@@ -2,7 +2,11 @@
 # SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 mock_gnome_clipboard = find_program('mock_gnome_clipboard.py')
-installed_tests_wrappers += [mock_gnome_clipboard]
+mock_mutter_input = find_program('mock_mutter_input.py')
+installed_tests_wrappers += [mock_gnome_clipboard, mock_mutter_input]
+install_data(['remotedesktop.py', 'screencast.py'],
+  install_dir: installed_tests_execdir,
+)
 
 # Dependencies
 plugin_gnome_test_deps = [
@@ -12,6 +16,7 @@ plugin_gnome_test_deps = [
 
 plugin_gnome_tests = {
   'test-gnome-clipboard': mock_gnome_clipboard,
+  'test-mutter-input': mock_mutter_input,
 }
 
 foreach test, test_wrapper : plugin_gnome_tests

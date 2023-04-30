@@ -11,5 +11,6 @@ Embedded=valent_gnome_plugin_register_types
 Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
-X-ClipboardAdapterPriority=40
+X-ClipboardAdapterPriority=25
+X-InputAdapterPriority=25
 
