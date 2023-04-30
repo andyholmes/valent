@@ -15,13 +15,15 @@ clipboard_plugin_fixture_tear_down (ValentTestFixture *fixture,
 }
 
 static void
-get_text_cb (ValentClipboard *clipboard,
-             GAsyncResult    *result,
-             gpointer        *text)
+valent_clipboard_read_text_cb (ValentClipboard *clipboard,
+                               GAsyncResult    *result,
+                               gpointer        *text)
 {
   GError *error = NULL;
 
-  *text = valent_clipboard_read_text_finish (clipboard, result, &error);
+  if (text != NULL)
+    *text = valent_clipboard_read_text_finish (clipboard, result, &error);
+
   g_assert_no_error (error);
 }
 
@@ -31,8 +33,10 @@ test_clipboard_plugin_connect (ValentTestFixture *fixture,
 {
   JsonNode *packet;
 
-  VALENT_TEST_CHECK ("Plugin sends clipboard content at connect time");
+  g_settings_set_boolean (fixture->settings, "auto-pull", TRUE);
   g_settings_set_boolean (fixture->settings, "auto-push", TRUE);
+
+  VALENT_TEST_CHECK ("Plugin sends clipboard content at connect time");
   valent_test_fixture_connect (fixture, TRUE);
 
   packet = valent_test_fixture_expect_packet (fixture);
@@ -47,6 +51,27 @@ test_clipboard_plugin_handle_content (ValentTestFixture *fixture,
   JsonNode *packet;
 
   g_settings_set_boolean (fixture->settings, "auto-pull", TRUE);
+  g_settings_set_boolean (fixture->settings, "auto-push", TRUE);
+
+  VALENT_TEST_CHECK ("Plugin sends clipboard content at connect time");
+  valent_test_fixture_connect (fixture, TRUE);
+
+  packet = valent_test_fixture_expect_packet (fixture);
+  v_assert_packet_type (packet, "kdeconnect.clipboard.connect");
+  json_node_unref (packet);
+
+  VALENT_TEST_CHECK ("Plugin copies connect-time content to the local clipboard");
+  packet = valent_test_fixture_lookup_packet (fixture, "clipboard-connect");
+  valent_test_fixture_handle_packet (fixture, packet);
+
+  valent_clipboard_read_text (valent_clipboard_get_default (),
+                              NULL,
+                              (GAsyncReadyCallback)valent_clipboard_read_text_cb,
+                              &fixture->data);
+  valent_test_await_pointer (&fixture->data);
+
+  g_assert_cmpstr (fixture->data, ==, "clipboard-connect");
+  g_clear_pointer (&fixture->data, g_free);
 
   VALENT_TEST_CHECK ("Plugin copies remote content to the local clipboard");
   packet = valent_test_fixture_lookup_packet (fixture, "clipboard-content");
@@ -54,27 +79,14 @@ test_clipboard_plugin_handle_content (ValentTestFixture *fixture,
 
   valent_clipboard_read_text (valent_clipboard_get_default (),
                               NULL,
-                              (GAsyncReadyCallback)get_text_cb,
+                              (GAsyncReadyCallback)valent_clipboard_read_text_cb,
                               &fixture->data);
   valent_test_await_pointer (&fixture->data);
 
   g_assert_cmpstr (fixture->data, ==, "clipboard-content");
   g_clear_pointer (&fixture->data, g_free);
 
-  /* Copies connect-time content */
-  packet = valent_test_fixture_lookup_packet (fixture, "clipboard-connect");
-  valent_test_fixture_handle_packet (fixture, packet);
-
-  valent_clipboard_read_text (valent_clipboard_get_default (),
-                              NULL,
-                              (GAsyncReadyCallback)get_text_cb,
-                              &fixture->data);
-  valent_test_await_pointer (&fixture->data);
-
-  g_assert_cmpstr (fixture->data, ==, "clipboard-connect");
-  g_clear_pointer (&fixture->data, g_free);
-
-  /* Ignores connect-time content that is outdated */
+  VALENT_TEST_CHECK ("Plugin ignores connect-time content that is outdated");
   packet = valent_test_fixture_lookup_packet (fixture, "clipboard-connect");
   json_object_set_int_member (valent_packet_get_body (packet), "timestamp", 0);
   json_object_set_string_member (valent_packet_get_body (packet), "content", "old");
@@ -82,11 +94,11 @@ test_clipboard_plugin_handle_content (ValentTestFixture *fixture,
 
   valent_clipboard_read_text (valent_clipboard_get_default (),
                               NULL,
-                              (GAsyncReadyCallback)get_text_cb,
+                              (GAsyncReadyCallback)valent_clipboard_read_text_cb,
                               &fixture->data);
   valent_test_await_pointer (&fixture->data);
 
-  g_assert_cmpstr (fixture->data, ==, "clipboard-connect");
+  g_assert_cmpstr (fixture->data, ==, "clipboard-content");
   g_clear_pointer (&fixture->data, g_free);
 }
 
@@ -96,6 +108,7 @@ test_clipboard_plugin_send_content (ValentTestFixture *fixture,
 {
   JsonNode *packet;
 
+  g_settings_set_boolean (fixture->settings, "auto-pull", TRUE);
   g_settings_set_boolean (fixture->settings, "auto-push", TRUE);
 
   VALENT_TEST_CHECK ("Plugin sends clipboard content at connect time");
@@ -125,7 +138,7 @@ test_clipboard_plugin_actions (ValentTestFixture *fixture,
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *packet;
 
-  /* Reset the plugin settings */
+  /* NOTE: no connect-time packets with `auto-push` disabled */
   g_settings_set_boolean (fixture->settings, "auto-push", FALSE);
   g_settings_set_boolean (fixture->settings, "auto-pull", FALSE);
 
@@ -145,7 +158,7 @@ test_clipboard_plugin_actions (ValentTestFixture *fixture,
   g_action_group_activate_action (actions, "clipboard.pull", NULL);
   valent_clipboard_read_text (valent_clipboard_get_default (),
                               NULL,
-                              (GAsyncReadyCallback)get_text_cb,
+                              (GAsyncReadyCallback)valent_clipboard_read_text_cb,
                               &fixture->data);
   valent_test_await_pointer (&fixture->data);
 
