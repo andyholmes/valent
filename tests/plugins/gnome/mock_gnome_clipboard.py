@@ -26,14 +26,14 @@ class ClipboardTestFixture(dbusmock.DBusTestCase):
         cls.dbus_con = cls.get_dbus(system_bus=False)
 
     def setUp(self) -> None:
-        self.p_mock = self.spawn_server('org.gnome.Shell.Extensions.Valent.Clipboard',
+        self.p_mock = self.spawn_server('org.gnome.Shell',
                                         '/org/gnome/Shell/Extensions/Valent/Clipboard',
                                         'org.gnome.Shell.Extensions.Valent.Clipboard',
                                         system_bus=False,
                                         stdout=subprocess.PIPE)
 
         # Get a proxy for the notification object's Mock interface
-        mock = dbus.Interface(self.dbus_con.get_object('org.gnome.Shell.Extensions.Valent.Clipboard',
+        mock = dbus.Interface(self.dbus_con.get_object('org.gnome.Shell',
                                                        '/org/gnome/Shell/Extensions/Valent/Clipboard'),
                               dbusmock.MOCK_IFACE)
 

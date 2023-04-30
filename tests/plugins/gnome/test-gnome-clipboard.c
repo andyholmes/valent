@@ -8,6 +8,10 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
+#define CLIPBOARD_NAME "org.gnome.Shell"
+#define CLIPBOARD_PATH "/org/gnome/Shell/Extensions/Valent/Clipboard"
+#define CLIPBOARD_IFACE "org.gnome.Shell.Extensions.Valent.Clipboard"
+
 
 typedef struct
 {
@@ -116,9 +120,9 @@ get_bytes (GnomeClipboardFixture  *fixture,
            char                  **text)
 {
   g_dbus_connection_call (fixture->connection,
-                          "org.gnome.Shell.Extensions.Valent.Clipboard",
-                          "/org/gnome/Shell/Extensions/Valent/Clipboard",
-                          "org.gnome.Shell.Extensions.Valent.Clipboard",
+                          CLIPBOARD_NAME,
+                          CLIPBOARD_PATH,
+                          CLIPBOARD_IFACE,
                           "GetBytes",
                           g_variant_new ("(s)", "text/plain;charset=utf-8"),
                           NULL,
@@ -152,9 +156,9 @@ set_bytes (GnomeClipboardFixture *fixture,
                                        strlen (text),
                                        sizeof (char));
   g_dbus_connection_call (fixture->connection,
-                          "org.gnome.Shell.Extensions.Valent.Clipboard",
-                          "/org/gnome/Shell/Extensions/Valent/Clipboard",
-                          "org.gnome.Shell.Extensions.Valent.Clipboard",
+                          CLIPBOARD_NAME,
+                          CLIPBOARD_PATH,
+                          CLIPBOARD_IFACE,
                           "SetBytes",
                           g_variant_new ("(s@ay)", "text/plain;charset=utf-8",
                                          content),
