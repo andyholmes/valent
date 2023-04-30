@@ -12,11 +12,9 @@
 
 #include "valent-gnome-clipboard.h"
 
-#define REMOTE_DESKTOP_NAME "org.gnome.Mutter.RemoteDesktop"
-#define REMOTE_DESKTOP_PATH "/org/gnome/Mutter/RemoteDesktop"
-#define REMOTE_DESKTOP_SESSION "org.gnome.Mutter.RemoteDesktop.Session"
-
-#define CLIPBOARD_MAXSIZE (16 * 1024)
+#define CLIPBOARD_NAME "org.gnome.Shell"
+#define CLIPBOARD_PATH "/org/gnome/Shell/Extensions/Valent/Clipboard"
+#define CLIPBOARD_IFACE "org.gnome.Shell.Extensions.Valent.Clipboard"
 
 
 struct _ValentGnomeClipboard
@@ -25,10 +23,8 @@ struct _ValentGnomeClipboard
 
   GDBusProxy             *proxy;
 
-  GBytes                 *content;
   GVariant               *mimetypes;
   int64_t                 timestamp;
-  uint8_t                 is_owner : 2;
 };
 
 static void   g_async_initable_iface_init (GAsyncInitableIface *iface);
@@ -36,12 +32,6 @@ static void   g_async_initable_iface_init (GAsyncInitableIface *iface);
 G_DEFINE_FINAL_TYPE_WITH_CODE (ValentGnomeClipboard, valent_gnome_clipboard, VALENT_TYPE_CLIPBOARD_ADAPTER,
                                G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init));
 
-
-enum {
-  OWNER_REMOTE,
-  OWNER_LOCAL   = (1 << 0),
-  OWNER_PENDING = (1 << 1),
-};
 
 /*
  * org.gnome.Mutter.RemoteDesktop.Session Callbacks
@@ -53,34 +43,23 @@ on_g_signal (GDBusProxy           *proxy,
              GVariant             *parameters,
              ValentGnomeClipboard *self)
 {
+  g_autoptr (GVariant) metadata = NULL;
+  g_autoptr (GVariant) mimetypes = NULL;
+
   g_assert (VALENT_IS_GNOME_CLIPBOARD (self));
   g_assert (sender_name != NULL && *sender_name != '\0');
 
   if (!g_str_equal (signal_name, "Changed"))
     return;
 
-  if (self->is_owner == OWNER_REMOTE || self->is_owner == OWNER_LOCAL)
-    {
-      g_autoptr (GVariant) metadata = NULL;
-      g_autoptr (GVariant) mimetypes = NULL;
+  g_clear_pointer (&self->mimetypes, g_variant_unref);
+  metadata = g_variant_get_child_value (parameters, 0);
 
-      g_clear_pointer (&self->content, g_bytes_unref);
-      g_clear_pointer (&self->mimetypes, g_variant_unref);
+  if (g_variant_lookup (metadata, "mimetypes", "@as", &mimetypes))
+    self->mimetypes = g_variant_ref_sink (g_steal_pointer (&mimetypes));
 
-      metadata = g_variant_get_child_value (parameters, 0);
-
-      if (g_variant_lookup (metadata, "mimetypes", "@as", &mimetypes))
-        self->mimetypes = g_variant_ref_sink (g_steal_pointer (&mimetypes));
-
-      if (!g_variant_lookup (metadata, "timestamp", "x", &self->timestamp))
-        self->timestamp = valent_timestamp_ms ();
-
-      self->is_owner = OWNER_REMOTE;
-    }
-  else if (self->is_owner == OWNER_PENDING)
-    {
-      self->is_owner = OWNER_LOCAL;
-    }
+  if (!g_variant_lookup (metadata, "timestamp", "x", &self->timestamp))
+    self->timestamp = valent_timestamp_ms ();
 
   valent_clipboard_adapter_changed (VALENT_CLIPBOARD_ADAPTER (self));
 }
@@ -169,15 +148,10 @@ valent_gnome_clipboard_read_bytes (ValentClipboardAdapter *adapter,
   g_assert (VALENT_IS_GNOME_CLIPBOARD (self));
   g_assert (mimetype != NULL && *mimetype != '\0');
 
-  if (self->content == NULL && self->mimetypes == NULL)
-    return g_task_report_new_error (adapter, callback, user_data, callback,
-                                    G_IO_ERROR,
-                                    G_IO_ERROR_NOT_SUPPORTED,
-                                    "Clipboard empty");
+  if (self->mimetypes != NULL)
+    mimetypes = g_variant_get_strv (self->mimetypes, NULL);
 
-  mimetypes = g_variant_get_strv (self->mimetypes, NULL);
-
-  if (!g_strv_contains (mimetypes, mimetype))
+  if (mimetypes != NULL && !g_strv_contains (mimetypes, mimetype))
     return g_task_report_new_error (adapter, callback, user_data, callback,
                                     G_IO_ERROR,
                                     G_IO_ERROR_NOT_SUPPORTED,
@@ -186,11 +160,6 @@ valent_gnome_clipboard_read_bytes (ValentClipboardAdapter *adapter,
 
   task = g_task_new (adapter, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_gnome_clipboard_read_bytes);
-
-  if (self->content != NULL && self->is_owner != OWNER_REMOTE)
-    return g_task_return_pointer (task,
-                                  g_bytes_ref (self->content),
-                                  (GDestroyNotify)g_bytes_unref);
 
   g_dbus_proxy_call (self->proxy,
                      "GetBytes",
@@ -219,12 +188,6 @@ valent_gnome_clipboard_write_bytes (ValentClipboardAdapter *adapter,
 
   task = g_task_new (adapter, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_gnome_clipboard_write_bytes);
-
-  g_clear_pointer (&self->content, g_bytes_unref);
-  g_clear_pointer (&self->mimetypes, g_variant_unref);
-  self->content = g_bytes_ref (bytes);
-  self->mimetypes = g_variant_new_strv (VALENT_STRV_INIT (mimetype), -1);
-  g_variant_ref_sink (self->mimetypes);
 
   content = g_variant_new_fixed_array (G_VARIANT_TYPE_BYTE,
                                        g_bytes_get_data (bytes, NULL),
@@ -326,9 +289,9 @@ valent_gnome_clipboard_init_async (GAsyncInitable      *initable,
   g_dbus_proxy_new_for_bus (G_BUS_TYPE_SESSION,
                             G_DBUS_PROXY_FLAGS_NONE,
                             NULL,
-                            "org.gnome.Shell.Extensions.Valent.Clipboard",
-                            "/org/gnome/Shell/Extensions/Valent/Clipboard",
-                            "org.gnome.Shell.Extensions.Valent.Clipboard",
+                            CLIPBOARD_NAME,
+                            CLIPBOARD_PATH,
+                            CLIPBOARD_IFACE,
                             destroy,
                             (GAsyncReadyCallback)g_dbus_proxy_new_for_bus_cb,
                             g_steal_pointer (&task));
@@ -356,8 +319,6 @@ valent_gnome_clipboard_dispose (GObject *object)
       g_clear_object (&self->proxy);
     }
 
-  self->is_owner = OWNER_REMOTE;
-  g_clear_pointer (&self->content, g_bytes_unref);
   g_clear_pointer (&self->mimetypes, g_variant_unref);
 
   G_OBJECT_CLASS (valent_gnome_clipboard_parent_class)->dispose (object);
