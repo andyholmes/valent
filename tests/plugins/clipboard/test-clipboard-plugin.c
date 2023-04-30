@@ -166,11 +166,16 @@ test_clipboard_plugin_actions (ValentTestFixture *fixture,
   g_clear_pointer (&fixture->data, g_free);
 
   VALENT_TEST_CHECK ("Plugin action `clipboard.push` sends content to the device");
+  valent_clipboard_write_text (valent_clipboard_get_default (),
+                               "push-content",
+                               NULL,
+                               NULL,
+                               NULL);
   g_action_group_activate_action (actions, "clipboard.push", NULL);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.clipboard");
-  v_assert_packet_cmpstr (packet, "content", ==, "clipboard-content");
+  v_assert_packet_cmpstr (packet, "content", ==, "push-content");
   json_node_unref (packet);
 }
 
