@@ -73,29 +73,34 @@ valent_get_plugin_engine (void)
 {
   if (default_engine == NULL)
     {
-      g_autoptr (GError) error = NULL;
+      const char *loaders_env = NULL;
       const GList *plugins = NULL;
 
       default_engine = peas_engine_get_default ();
       g_object_add_weak_pointer (G_OBJECT (default_engine),
                                  (gpointer)&default_engine);
 
-      /* Ensure we have the minimum required typelibs for Python plugins */
-      if (g_irepository_require (NULL, "Gio",  "2.0", 0, &error) &&
-          g_irepository_require (NULL, "GLib", "2.0", 0, &error) &&
-          g_irepository_require (NULL, "Json", "1.0", 0, &error) &&
-          g_irepository_require (NULL, "Peas", "1.0", 0, &error) &&
-          g_irepository_require (NULL, "Gdk",  "4.0", 0, &error) &&
-          g_irepository_require (NULL, "Gtk",  "4.0", 0, &error) &&
-          g_irepository_require (NULL, "Valent", VALENT_API_VERSION, 0, &error))
-        peas_engine_enable_loader (default_engine, "python3");
-      else
-        g_message ("Disabling Python3 plugins: %s", error->message);
+      /* Optional Loaders */
+      loaders_env = g_getenv ("VALENT_PLUGIN_LOADERS");
 
-      /* Built-in Plugins */
+      if (loaders_env != NULL && *loaders_env != '\0')
+        {
+          g_auto (GStrv) loaders = NULL;
+          g_autoptr (GError) error = NULL;
+
+          loaders = g_strsplit (loaders_env, ",", -1);
+
+          if (g_strv_contains ((const char * const *)loaders, "python3") &&
+              g_irepository_require (NULL, "Valent", VALENT_API_VERSION, 0, &error))
+            peas_engine_enable_loader (default_engine, "python3");
+
+          if (error != NULL)
+            g_warning ("Disabling Python3 plugins: %s", error->message);
+        }
+
+      /* Default Paths */
       peas_engine_add_search_path (default_engine, "resource:///plugins", NULL);
 
-      /* Flatpak Extensions */
       if (xdp_portal_running_under_flatpak ())
         {
           g_autofree char *flatpak_dir = NULL;
@@ -105,7 +110,7 @@ valent_get_plugin_engine (void)
           peas_engine_prepend_search_path (default_engine, flatpak_dir, NULL);
         }
 
-      /* Load built-in plugins and Flatpak extensions automatically */
+      /* Load plugins in the default paths automatically */
       plugins = peas_engine_get_plugin_list (default_engine);
 
       for (const GList *iter = plugins; iter; iter = iter->next)
