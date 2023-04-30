@@ -24,7 +24,6 @@ struct _ValentClipboardPlugin
   int64_t             local_timestamp;
   unsigned int        auto_push : 1;
   unsigned int        auto_pull : 1;
-  unsigned int        is_owner : 1;
 };
 
 G_DEFINE_FINAL_TYPE (ValentClipboardPlugin, valent_clipboard_plugin, VALENT_TYPE_DEVICE_PLUGIN)
@@ -97,7 +96,8 @@ valent_clipboard_read_text_cb (ValentClipboard       *clipboard,
       return;
     }
 
-  if (text == NULL)
+  /* Skip if the local clipboard is empty, or already synced with the device */
+  if (text == NULL || g_strcmp0 (self->remote_text, text) == 0)
     return;
 
   self->local_timestamp = valent_clipboard_get_timestamp (clipboard);
@@ -170,7 +170,6 @@ on_auto_pull_changed (GSettings             *settings,
       (state & VALENT_DEVICE_STATE_PAIRED) != 0)
     return;
 
-  self->is_owner = TRUE;
   destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
   valent_clipboard_write_text (self->clipboard,
                                self->remote_text,
@@ -222,12 +221,6 @@ on_clipboard_changed (ValentClipboard       *clipboard,
 
   self->local_timestamp = valent_clipboard_get_timestamp (clipboard);
 
-  if (self->is_owner)
-    {
-      self->is_owner = FALSE;
-      return;
-    }
-
   if (!self->auto_push)
     return;
 
@@ -267,7 +260,6 @@ valent_clipboard_plugin_handle_clipboard (ValentClipboardPlugin *self,
   if (!self->auto_pull)
     return;
 
-  self->is_owner = TRUE;
   destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
   valent_clipboard_write_text (self->clipboard,
                                self->remote_text,
@@ -313,7 +305,6 @@ valent_clipboard_plugin_handle_clipboard_connect (ValentClipboardPlugin *self,
   if (!self->auto_pull)
     return;
 
-  self->is_owner = TRUE;
   destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
   valent_clipboard_write_text (self->clipboard,
                                self->remote_text,
@@ -341,7 +332,6 @@ clipboard_pull_action (GSimpleAction *action,
       return;
     }
 
-  self->is_owner = TRUE;
   destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
   valent_clipboard_write_text (self->clipboard,
                                self->remote_text,
