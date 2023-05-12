@@ -70,8 +70,8 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
  * GListModel
  */
 static gpointer
-valent_media_get_item (GListModel   *list,
-                       unsigned int  position)
+valent_mixer_adapter_get_item (GListModel   *list,
+                               unsigned int  position)
 {
   ValentMixerAdapter *self = VALENT_MIXER_ADAPTER (list);
   ValentMixerAdapterPrivate *priv = valent_mixer_adapter_get_instance_private (self);
@@ -85,13 +85,13 @@ valent_media_get_item (GListModel   *list,
 }
 
 static GType
-valent_media_get_item_type (GListModel *list)
+valent_mixer_adapter_get_item_type (GListModel *list)
 {
   return VALENT_TYPE_MIXER_STREAM;
 }
 
 static unsigned int
-valent_media_get_n_items (GListModel *list)
+valent_mixer_adapter_get_n_items (GListModel *list)
 {
   ValentMixerAdapter *self = VALENT_MIXER_ADAPTER (list);
   ValentMixerAdapterPrivate *priv = valent_mixer_adapter_get_instance_private (self);
@@ -104,9 +104,9 @@ valent_media_get_n_items (GListModel *list)
 static void
 g_list_model_iface_init (GListModelInterface *iface)
 {
-  iface->get_item = valent_media_get_item;
-  iface->get_item_type = valent_media_get_item_type;
-  iface->get_n_items = valent_media_get_n_items;
+  iface->get_item = valent_mixer_adapter_get_item;
+  iface->get_item_type = valent_mixer_adapter_get_item_type;
+  iface->get_n_items = valent_mixer_adapter_get_n_items;
 }
 
 /* LCOV_EXCL_START */
