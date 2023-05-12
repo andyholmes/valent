@@ -169,7 +169,8 @@ test_mousepad_plugin_send_keyboard_request (ValentTestFixture *fixture,
   g_assert_true (g_action_group_get_action_enabled (actions, "mousepad.event"));
 
   VALENT_TEST_CHECK ("Plugin action `mousepad.event` sends ASCII with modifiers");
-  unsigned int keysym, mask;
+  uint32_t keysym;
+  unsigned int mask;
   gunichar *w;
 
   keysym = 'a';

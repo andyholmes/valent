@@ -53,7 +53,7 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentInputAdapter, valent_input_adapter, V
 /* LCOV_EXCL_START */
 static void
 valent_input_adapter_real_keyboard_keysym (ValentInputAdapter *adapter,
-                                           unsigned int        keysym,
+                                           uint32_t            keysym,
                                            gboolean            state)
 {
 }
@@ -109,7 +109,7 @@ valent_input_adapter_init (ValentInputAdapter *adapter)
  */
 void
 valent_input_adapter_keyboard_keysym (ValentInputAdapter *adapter,
-                                      unsigned int        keysym,
+                                      uint32_t            keysym,
                                       gboolean            state)
 {
   VALENT_ENTRY;

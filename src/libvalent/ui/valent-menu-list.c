@@ -61,7 +61,7 @@ on_key_pressed (GtkEventControllerKey *controller,
                 ValentMenuList        *self)
 {
   GtkWidget *row = NULL;
-  static unsigned int activate_keyvals[] = {
+  static uint32_t activate_keyvals[] = {
     GDK_KEY_space,
     GDK_KEY_KP_Space,
     GDK_KEY_Return,

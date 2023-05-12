@@ -94,7 +94,7 @@ on_key_pressed (GtkEventControllerKey *controller,
                 ValentMousepadRemote  *self)
 {
   GdkEvent *event;
-  unsigned int special_key;
+  uint32_t special_key;
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
@@ -667,7 +667,7 @@ valent_mousepad_remote_echo_key (ValentMousepadRemote *dialog,
  */
 void
 valent_mousepad_remote_echo_special (ValentMousepadRemote *dialog,
-                                     unsigned int          keyval,
+                                     uint32_t              keyval,
                                      GdkModifierType       mask)
 {
   GtkTextBuffer *buffer;

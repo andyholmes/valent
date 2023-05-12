@@ -16,10 +16,10 @@ G_BEGIN_DECLS
  *
  * Returns: a GDK keyval
  */
-static inline unsigned int
-valent_mousepad_keycode_to_keyval (unsigned int keycode)
+static inline uint32_t
+valent_mousepad_keycode_to_keyval (uint32_t  keycode)
 {
-  static const unsigned int keymap[] = {
+  static const uint32_t     keymap[] = {
     0,                   // 0 (Invalid)
     GDK_KEY_BackSpace,   // 1
     GDK_KEY_Tab,         // 2
@@ -70,8 +70,8 @@ valent_mousepad_keycode_to_keyval (unsigned int keycode)
  *
  * Returns: a special key code
  */
-static inline unsigned int
-valent_mousepad_keyval_to_keycode (unsigned int keyval)
+static inline uint32_t
+valent_mousepad_keyval_to_keycode (uint32_t keyval)
 {
   switch (keyval)
     {
