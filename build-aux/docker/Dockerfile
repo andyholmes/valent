@@ -18,6 +18,7 @@ RUN dnf install -y --enablerepo=fedora-debuginfo,updates-debuginfo \
         libadwaita-devel              libadwaita-debuginfo \
         libpeas-devel                 libpeas-debuginfo \
         libportal-devel               libportal-debuginfo \
+        pipewire-devel                pipewire-debuginfo \
         pulseaudio-libs-devel         pulseaudio-libs-debuginfo \
         sqlite-devel                  sqlite-debuginfo && \
     dnf clean all && rm -rf /var/cache/dnf
