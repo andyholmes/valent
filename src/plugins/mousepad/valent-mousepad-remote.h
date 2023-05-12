@@ -16,7 +16,7 @@ void   valent_mousepad_remote_echo_key     (ValentMousepadRemote *remote,
                                             const char           *key,
                                             GdkModifierType       mask);
 void   valent_mousepad_remote_echo_special (ValentMousepadRemote *remote,
-                                            unsigned int          keyval,
+                                            uint32_t              keyval,
                                             GdkModifierType       mask);
 
 G_END_DECLS

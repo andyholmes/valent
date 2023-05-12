@@ -22,7 +22,7 @@ struct _ValentInputAdapterClass
 
   /* virtual functions */
   void                   (*keyboard_keysym) (ValentInputAdapter *adapter,
-                                             unsigned int        keysym,
+                                             uint32_t            keysym,
                                              gboolean            state);
   void                   (*pointer_axis)    (ValentInputAdapter *adapter,
                                              double              dx,
@@ -40,7 +40,7 @@ struct _ValentInputAdapterClass
 
 VALENT_AVAILABLE_IN_1_0
 void   valent_input_adapter_keyboard_keysym (ValentInputAdapter *adapter,
-                                             unsigned int        keysym,
+                                             uint32_t            keysym,
                                              gboolean            state);
 VALENT_AVAILABLE_IN_1_0
 void   valent_input_adapter_pointer_axis    (ValentInputAdapter *adapter,

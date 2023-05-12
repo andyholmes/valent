@@ -312,7 +312,7 @@ valent_mutter_input_close (ValentMutterInput *self)
  */
 static void
 valent_mutter_input_keyboard_keysym (ValentInputAdapter *adapter,
-                                     unsigned int        keysym,
+                                     uint32_t            keysym,
                                      gboolean            state)
 {
   ValentMutterInput *self = VALENT_MUTTER_INPUT (adapter);

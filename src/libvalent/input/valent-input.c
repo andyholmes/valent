@@ -111,7 +111,7 @@ valent_input_get_default (void)
  */
 void
 valent_input_keyboard_keysym (ValentInput  *input,
-                              unsigned int  keysym,
+                              uint32_t      keysym,
                               gboolean      state)
 {
   VALENT_ENTRY;

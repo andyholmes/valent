@@ -25,7 +25,7 @@ G_DEFINE_FINAL_TYPE (ValentMockInputAdapter, valent_mock_input_adapter, VALENT_T
  */
 static void
 valent_mock_input_adapter_keyboard_keysym (ValentInputAdapter *adapter,
-                                           unsigned int        keysym,
+                                           uint32_t            keysym,
                                            gboolean            state)
 {
   char *event;

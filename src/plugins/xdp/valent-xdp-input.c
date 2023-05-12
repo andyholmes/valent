@@ -212,7 +212,7 @@ ensure_session (ValentXdpInput *self)
  */
 static void
 valent_xdp_input_keyboard_keysym (ValentInputAdapter *adapter,
-                                  unsigned int        keysym,
+                                  uint32_t            keysym,
                                   gboolean            state)
 {
   ValentXdpInput *self = VALENT_XDP_INPUT (adapter);

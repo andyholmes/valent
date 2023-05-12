@@ -118,7 +118,7 @@ valent_mousepad_plugin_handle_mousepad_request (ValentMousepadPlugin *self,
 
       while ((codepoint = g_utf8_get_char (next)) != 0)
         {
-          unsigned int keysym;
+          uint32_t keysym;
 
           keysym = gdk_unicode_to_keyval (codepoint);
           valent_input_keyboard_keysym (self->input, keysym, TRUE);
@@ -138,7 +138,7 @@ valent_mousepad_plugin_handle_mousepad_request (ValentMousepadPlugin *self,
   else if (valent_packet_get_int (packet, "specialKey", &keycode))
     {
       GdkModifierType mask;
-      unsigned int keyval;
+      uint32_t keyval;
 
       if ((keyval = valent_mousepad_keycode_to_keyval (keycode)) == 0)
         {
@@ -232,7 +232,7 @@ valent_mousepad_plugin_handle_mousepad_echo (ValentMousepadPlugin *self,
   /* Backspace is effectively a printable character */
   if (valent_packet_get_int (packet, "specialKey", &keycode))
     {
-      unsigned int keyval;
+      uint32_t keyval;
 
       /* Ensure key is in range or we'll choke */
       if ((keyval = valent_mousepad_keycode_to_keyval (keycode)) != 0)
@@ -282,12 +282,12 @@ valent_mousepad_plugin_handle_mousepad_keyboardstate (ValentMousepadPlugin *self
  */
 static void
 valent_mousepad_plugin_mousepad_request_keyboard (ValentMousepadPlugin *self,
-                                                  unsigned int          keyval,
+                                                  uint32_t              keyval,
                                                   GdkModifierType       mask)
 {
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
-  unsigned int special_key = 0;
+  uint32_t special_key = 0;
 
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
 
@@ -479,7 +479,7 @@ mousepad_event_action (GSimpleAction *action,
   ValentMousepadPlugin *self = VALENT_MOUSEPAD_PLUGIN (user_data);
   GVariantDict dict;
   double dx, dy;
-  unsigned int keysym;
+  uint32_t keysym;
 
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
   g_return_if_fail (self->remote_state);

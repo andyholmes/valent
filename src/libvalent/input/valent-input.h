@@ -21,7 +21,7 @@ ValentInput * valent_input_get_default     (void);
 
 VALENT_AVAILABLE_IN_1_0
 void          valent_input_keyboard_keysym (ValentInput  *input,
-                                            unsigned int  keysym,
+                                            uint32_t      keysym,
                                             gboolean      state);
 VALENT_AVAILABLE_IN_1_0
 void          valent_input_pointer_axis    (ValentInput  *input,
