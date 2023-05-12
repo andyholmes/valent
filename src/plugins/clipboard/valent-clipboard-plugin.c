@@ -17,13 +17,13 @@ struct _ValentClipboardPlugin
   ValentDevicePlugin  parent_instance;
 
   ValentClipboard    *clipboard;
-  gulong              changed_id;
+  unsigned long       changed_id;
 
   char               *remote_text;
   int64_t             remote_timestamp;
   int64_t             local_timestamp;
-  unsigned int        auto_push : 1;
   unsigned int        auto_pull : 1;
+  unsigned int        auto_push : 1;
 };
 
 G_DEFINE_FINAL_TYPE (ValentClipboardPlugin, valent_clipboard_plugin, VALENT_TYPE_DEVICE_PLUGIN)
@@ -100,7 +100,6 @@ valent_clipboard_read_text_cb (ValentClipboard       *clipboard,
   if (text == NULL || g_strcmp0 (self->remote_text, text) == 0)
     return;
 
-  self->local_timestamp = valent_clipboard_get_timestamp (clipboard);
   valent_clipboard_plugin_clipboard (self, text);
 }
 
@@ -128,7 +127,6 @@ valent_clipboard_read_text_connect_cb (ValentClipboard       *clipboard,
   if (text == NULL)
     return;
 
-  self->local_timestamp = valent_clipboard_get_timestamp (clipboard);
   valent_clipboard_plugin_clipboard_connect (self, text, self->local_timestamp);
 }
 
@@ -454,9 +452,8 @@ valent_clipboard_plugin_constructed (GObject *object)
                            G_CALLBACK (on_auto_push_changed),
                            self, 0);
 
-  /* Ensure the ValentClipboard component is loaded */
-  if (self->clipboard == NULL)
-    self->clipboard = valent_clipboard_get_default ();
+  self->clipboard = valent_clipboard_get_default ();
+  self->local_timestamp = valent_clipboard_get_timestamp (self->clipboard);
 
   G_OBJECT_CLASS (valent_clipboard_plugin_parent_class)->constructed (object);
 }
