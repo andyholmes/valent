@@ -129,9 +129,16 @@ on_stream_changed (GvcMixerControl *control,
                    unsigned int     stream_id,
                    ValentPaMixer   *self)
 {
-  ValentMixerStream *stream;
+  ValentMixerStream *stream = NULL;
+
+  g_assert (GVC_IS_MIXER_CONTROL (control));
+  g_assert (VALENT_IS_PA_MIXER (self));
 
   stream = g_hash_table_lookup (self->streams, GUINT_TO_POINTER (stream_id));
+
+  if (stream == NULL)
+    return;
+
   g_object_notify (G_OBJECT (stream), "level");
 }
 
@@ -198,7 +205,11 @@ valent_pa_mixer_unload (ValentPaMixer *self)
       g_hash_table_iter_remove (&iter);
     }
 
-  g_signal_handlers_disconnect_by_data (self->control, self);
+  g_signal_handlers_disconnect_by_func (self->control, on_default_sink_changed, self);
+  g_signal_handlers_disconnect_by_func (self->control, on_default_source_changed, self);
+  g_signal_handlers_disconnect_by_func (self->control, on_stream_added, self);
+  g_signal_handlers_disconnect_by_func (self->control, on_stream_removed, self);
+  g_signal_handlers_disconnect_by_func (self->control, on_stream_changed, self);
 }
 
 static void
@@ -298,10 +309,10 @@ valent_pa_mixer_constructed (GObject *object)
 
   self->vol_max = gvc_mixer_control_get_vol_max_norm (self->control);
 
-  g_signal_connect (self->control,
-                    "state-changed",
-                    G_CALLBACK (on_state_changed),
-                    self);
+  g_signal_connect_object (self->control,
+                           "state-changed",
+                           G_CALLBACK (on_state_changed),
+                           self, 0);
   gvc_mixer_control_open (self->control);
 
   G_OBJECT_CLASS (valent_pa_mixer_parent_class)->constructed (object);
@@ -312,7 +323,6 @@ valent_pa_mixer_dispose (GObject *object)
 {
   ValentPaMixer *self = VALENT_PA_MIXER (object);
 
-  /* Close the mixer */
   g_signal_handlers_disconnect_by_data (self->control, self);
   gvc_mixer_control_close (self->control);
   g_hash_table_remove_all (self->streams);
