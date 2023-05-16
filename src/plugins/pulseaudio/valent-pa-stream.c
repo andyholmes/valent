@@ -202,10 +202,10 @@ valent_pa_stream_constructed (GObject *object)
 
   g_assert (self->stream != NULL);
 
-  g_signal_connect (self->stream,
-                    "notify::port",
-                    G_CALLBACK (on_port_changed),
-                    self);
+  g_signal_connect_object (self->stream,
+                           "notify::port",
+                           G_CALLBACK (on_port_changed),
+                           self, 0);
   on_port_changed (self->stream, NULL, self);
 
   G_OBJECT_CLASS (valent_pa_stream_parent_class)->constructed (object);
