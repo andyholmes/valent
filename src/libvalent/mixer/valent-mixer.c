@@ -139,6 +139,12 @@ valent_mixer_bind_preferred (ValentComponent *component,
       g_signal_handlers_disconnect_by_func (self->default_adapter,
                                             self,
                                             on_items_changed);
+      g_signal_handlers_disconnect_by_func (self->default_adapter,
+                                            self,
+                                            on_default_input_changed);
+      g_signal_handlers_disconnect_by_func (self->default_adapter,
+                                            self,
+                                            on_default_output_changed);
       on_items_changed (list, 0, g_list_model_get_n_items (list), 0, self);
       self->default_adapter = NULL;
     }
@@ -160,6 +166,8 @@ valent_mixer_bind_preferred (ValentComponent *component,
                                G_CALLBACK (on_items_changed),
                                self, 0);
       on_items_changed (list, 0, 0, g_list_model_get_n_items (list), self);
+      g_object_notify (G_OBJECT (self), "default-input");
+      g_object_notify (G_OBJECT (self), "default-output");
       self->default_adapter = adapter;
     }
 
