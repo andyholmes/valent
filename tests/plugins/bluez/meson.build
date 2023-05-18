@@ -27,6 +27,7 @@ foreach test, test_wrapper : plugin_bluez_tests
              link_whole: [libvalent_test, plugin_bluez],
                 install: get_option('installed_tests'),
             install_dir: installed_tests_execdir,
+         export_dynamic: true,
   )
 
   test(test, test_wrapper,

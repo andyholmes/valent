@@ -31,6 +31,7 @@ foreach test, test_wrapper : plugin_connectivity_report_tests
              link_whole: [libvalent_test, plugin_connectivity_report],
                 install: get_option('installed_tests'),
             install_dir: installed_tests_execdir,
+         export_dynamic: true,
   )
 
   test(test, test_wrapper,

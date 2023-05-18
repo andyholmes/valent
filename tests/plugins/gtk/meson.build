@@ -28,6 +28,7 @@ foreach test, test_wrapper : plugin_gtk_tests
              link_whole: [libvalent_test, plugin_gtk],
                 install: get_option('installed_tests'),
             install_dir: installed_tests_execdir,
+         export_dynamic: true,
   )
 
   if not test_wrapper.found()

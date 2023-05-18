@@ -24,6 +24,7 @@ foreach test : plugin_findmyphone_tests
              link_whole: [libvalent_test, plugin_findmyphone],
                 install: get_option('installed_tests'),
             install_dir: installed_tests_execdir,
+         export_dynamic: true,
   )
 
   test(test, test_program,

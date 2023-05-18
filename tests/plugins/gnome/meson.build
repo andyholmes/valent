@@ -32,6 +32,7 @@ foreach test, test_wrapper : plugin_gnome_tests
              link_whole: [libvalent_test, plugin_gnome],
                 install: get_option('installed_tests'),
             install_dir: installed_tests_execdir,
+         export_dynamic: true,
   )
 
   if not test_wrapper.found()

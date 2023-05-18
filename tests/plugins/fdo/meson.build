@@ -29,6 +29,7 @@ foreach test, test_wrapper : plugin_fdo_tests
              link_whole: [libvalent_test, plugin_fdo],
                 install: get_option('installed_tests'),
             install_dir: installed_tests_execdir,
+         export_dynamic: true,
   )
 
   test(test, test_wrapper,
