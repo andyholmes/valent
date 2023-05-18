@@ -30,6 +30,7 @@ foreach test : plugin_sms_tests
              link_whole: [libvalent_test, plugin_sms],
                 install: get_option('installed_tests'),
             install_dir: installed_tests_execdir,
+         export_dynamic: true,
   )
 
   test(test, test_program,

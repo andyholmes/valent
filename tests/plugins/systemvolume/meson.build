@@ -20,6 +20,7 @@ foreach test : plugin_systemvolume_tests
              link_whole: [libvalent_test, plugin_systemvolume],
                 install: get_option('installed_tests'),
             install_dir: installed_tests_execdir,
+         export_dynamic: true,
   )
 
   test(test, test_program,

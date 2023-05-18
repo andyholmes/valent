@@ -26,6 +26,7 @@ foreach test : plugin_runcommand_tests
              link_whole: [libvalent_test, plugin_share],
                 install: get_option('installed_tests'),
             install_dir: installed_tests_execdir,
+         export_dynamic: true,
   )
 
   test(test, test_program,
