@@ -51,6 +51,7 @@ typedef struct
   GIOStream        *base_stream;
   JsonNode         *identity;
   JsonNode         *peer_identity;
+  uint8_t           trusted : 1;
 
   /* Packet Buffer */
   GDataInputStream *input_buffer;
@@ -61,6 +62,8 @@ G_DEFINE_TYPE_WITH_PRIVATE (ValentChannel, valent_channel, VALENT_TYPE_OBJECT)
 
 /**
  * ValentChannelClass:
+ * @get_trusted: the virtual function pointer for valent_channel_get_trusted()
+ * @set_trusted: the virtual function pointer for valent_channel_set_trusted()
  * @get_verification_key: the virtual function pointer for valent_channel_get_verification_key()
  * @download: the virtual function pointer for valent_channel_download()
  * @upload: the virtual function pointer for valent_channel_upload()
@@ -74,6 +77,7 @@ enum {
   PROP_BASE_STREAM,
   PROP_IDENTITY,
   PROP_PEER_IDENTITY,
+  PROP_TRUSTED,
   N_PROPERTIES
 };
 
@@ -81,6 +85,39 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 
 /* LCOV_EXCL_START */
+static gboolean
+valent_channel_real_get_trusted (ValentChannel *channel)
+{
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+  gboolean ret = FALSE;
+
+  g_assert (VALENT_IS_CHANNEL (channel));
+
+  valent_object_lock (VALENT_OBJECT (channel));
+  ret = priv->trusted;
+  valent_object_unlock (VALENT_OBJECT (channel));
+
+  return ret;
+}
+
+static void
+valent_channel_real_set_trusted (ValentChannel *channel,
+                                 gboolean       trusted)
+{
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+
+  g_assert (VALENT_IS_CHANNEL (channel));
+
+  valent_object_lock (VALENT_OBJECT (channel));
+  if (priv->trusted != trusted)
+    {
+      priv->trusted = trusted;
+      valent_object_notify_by_pspec (VALENT_OBJECT (channel),
+                                     properties [PROP_TRUSTED]);
+    }
+  valent_object_unlock (VALENT_OBJECT (channel));
+}
+
 static const char *
 valent_channel_real_get_verification_key (ValentChannel *channel)
 {
@@ -369,6 +406,10 @@ valent_channel_get_property (GObject    *object,
       g_value_set_boxed (value, priv->peer_identity);
       break;
 
+    case PROP_TRUSTED:
+      g_value_set_boolean (value, valent_channel_get_trusted (self));
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -397,6 +438,10 @@ valent_channel_set_property (GObject      *object,
       priv->peer_identity = g_value_dup_boxed (value);
       break;
 
+    case PROP_TRUSTED:
+      valent_channel_set_trusted (self, g_value_get_boolean (value));
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -411,6 +456,8 @@ valent_channel_class_init (ValentChannelClass *klass)
   object_class->get_property = valent_channel_get_property;
   object_class->set_property = valent_channel_set_property;
 
+  klass->get_trusted = valent_channel_real_get_trusted;
+  klass->set_trusted = valent_channel_real_set_trusted;
   klass->get_verification_key = valent_channel_real_get_verification_key;
   klass->download = valent_channel_real_download;
   klass->download_async = valent_channel_real_download_async;
@@ -478,6 +525,27 @@ valent_channel_class_init (ValentChannelClass *klass)
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_EXPLICIT_NOTIFY |
                          G_PARAM_STATIC_STRINGS));
+
+  /**
+   * ValentChannel:trusted: (getter get_trusted) (setter set_trusted)
+   *
+   * Whether the channel is trusted.
+   *
+   * In the case of TLS connection, for example, this would be %TRUE if the peer
+   * authenticated with a known certificate or %FALSE until the certificate is
+   * accepted as being from the peer.
+   *
+   * Implementations should watch this property to store persistent state about
+   * the channel's trust.
+   *
+   * Since: 1.0
+   */
+  properties [PROP_TRUSTED] =
+    g_param_spec_boolean ("trusted", NULL, NULL,
+                          FALSE,
+                          (G_PARAM_READWRITE |
+                           G_PARAM_EXPLICIT_NOTIFY |
+                           G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 }
@@ -551,6 +619,64 @@ valent_channel_get_peer_identity (ValentChannel *channel)
   g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
 
   return priv->peer_identity;
+}
+
+/**
+ * valent_channel_get_trusted: (virtual get_trusted) (get-property trusted)
+ * @channel: a #ValentChannel
+ *
+ * Get whether the channel is trusted.
+ *
+ * Implementations should should return %TRUE if the channel has successfully
+ * completed pairing or established trust by some other means, otherwise %FALSE.
+ *
+ * The default implementation of [method@Valent.Channel.get_trusted] and
+ * [method@Valent.Channel.set_trusted] is a standard property.
+ *
+ * Returns: %TRUE if trusted, or %FALSE if not
+ *
+ * Since: 1.0
+ */
+gboolean
+valent_channel_get_trusted (ValentChannel *channel)
+{
+  gboolean ret = FALSE;
+
+  VALENT_ENTRY;
+
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), FALSE);
+
+  ret = VALENT_CHANNEL_GET_CLASS (channel)->get_trusted (channel);
+
+  VALENT_RETURN (ret);
+}
+
+/**
+ * valent_channel_set_trusted: (virtual set_trusted) (set-property trusted)
+ * @channel: a #ValentChannel
+ * @trusted: whether the channel is trusted
+ *
+ * Set whether the channel is trusted.
+ *
+ * Implementations should should store their state based on @trusted. Th
+ *
+ * The default implementation of [method@Valent.Channel.get_trusted] and
+ * [method@Valent.Channel.set_trusted] is a straightforward boolean property
+ * with change notification.
+ *
+ * Since: 1.0
+ */
+void
+valent_channel_set_trusted (ValentChannel *channel,
+                            gboolean       trusted)
+{
+  VALENT_ENTRY;
+
+  g_return_if_fail (VALENT_IS_CHANNEL (channel));
+
+  VALENT_CHANNEL_GET_CLASS (channel)->set_trusted (channel, trusted);
+
+  VALENT_EXIT;
 }
 
 /**

@@ -23,6 +23,9 @@ struct _ValentChannelClass
   ValentObjectClass   parent_class;
 
   /* virtual functions */
+  gboolean            (*get_trusted)          (ValentChannel        *channel);
+  void                (*set_trusted)          (ValentChannel        *channel,
+                                               gboolean              trusted);
   const char        * (*get_verification_key) (ValentChannel        *channel);
   GIOStream         * (*download)             (ValentChannel        *channel,
                                                JsonNode             *packet,
@@ -62,6 +65,11 @@ VALENT_AVAILABLE_IN_1_0
 JsonNode   * valent_channel_get_identity         (ValentChannel        *channel);
 VALENT_AVAILABLE_IN_1_0
 JsonNode   * valent_channel_get_peer_identity    (ValentChannel        *channel);
+VALENT_AVAILABLE_IN_1_0
+gboolean     valent_channel_get_trusted          (ValentChannel        *channel);
+VALENT_AVAILABLE_IN_1_0
+void         valent_channel_set_trusted          (ValentChannel        *channel,
+                                                  gboolean              trusted);
 VALENT_AVAILABLE_IN_1_0
 const char * valent_channel_get_verification_key (ValentChannel        *channel);
 VALENT_AVAILABLE_IN_1_0
