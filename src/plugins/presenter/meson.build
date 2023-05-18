@@ -33,11 +33,11 @@ plugin_presenter_sources += plugin_presenter_resources
 # Static Build
 plugin_presenter = static_library('plugin-presenter',
                                   plugin_presenter_sources,
-  include_directories: plugin_presenter_include_directories,
-         dependencies: plugin_presenter_deps,
-               c_args: plugins_c_args + release_args,
+    include_directories: plugin_presenter_include_directories,
+           dependencies: plugin_presenter_deps,
+                 c_args: plugins_c_args + release_args,
+  gnu_symbol_visibility: 'hidden',
 )
 
-#plugins_link_args += ['-Wl,--undefined=valent_presenter_plugin_register_types']
 plugins_static += [plugin_presenter]
 

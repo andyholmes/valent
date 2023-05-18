@@ -38,11 +38,11 @@ install_data('ca.andyholmes.Valent.Plugin.contacts.gschema.xml',
 # Static Build
 plugin_contacts = static_library('plugin-contacts',
                                  plugin_contacts_sources,
-  include_directories: plugin_contacts_include_directories,
-         dependencies: plugin_contacts_deps,
-               c_args: plugins_c_args + release_args,
+    include_directories: plugin_contacts_include_directories,
+           dependencies: plugin_contacts_deps,
+                 c_args: plugins_c_args + release_args,
+  gnu_symbol_visibility: 'hidden',
 )
 
-#plugins_link_args += ['-Wl,--undefined=valent_contacts_plugin_register_types']
 plugins_static += [plugin_contacts]
 

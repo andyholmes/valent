@@ -11,7 +11,7 @@
 #include "valent-ui-manager.h"
 
 
-G_MODULE_EXPORT void
+_VALENT_EXTERN void
 libvalent_ui_register_types (PeasObjectModule *module)
 {
   if (gtk_is_initialized ())

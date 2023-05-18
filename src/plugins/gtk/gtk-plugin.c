@@ -11,7 +11,7 @@
 #include "valent-gtk-notifications.h"
 
 
-G_MODULE_EXPORT void
+_VALENT_EXTERN void
 valent_gtk_plugin_register_types (PeasObjectModule *module)
 {
   /* These extensions inherently rely on GTK being initialized */

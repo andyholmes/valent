@@ -39,12 +39,12 @@ install_data('ca.andyholmes.Valent.Plugin.battery.gschema.xml',
 
 # Static Build
 plugin_battery = static_library('plugin-battery',
-                                 plugin_battery_sources,
-  include_directories: plugin_battery_include_directories,
-         dependencies: plugin_battery_deps,
-               c_args: plugins_c_args + release_args,
+                                plugin_battery_sources,
+    include_directories: plugin_battery_include_directories,
+           dependencies: plugin_battery_deps,
+                 c_args: plugins_c_args + release_args,
+  gnu_symbol_visibility: 'hidden',
 )
 
-#plugins_link_args += ['-Wl,--undefined=valent_battery_plugin_register_types']
 plugins_static += [plugin_battery]
 

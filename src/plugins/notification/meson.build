@@ -40,11 +40,11 @@ install_data('ca.andyholmes.Valent.Plugin.notification.gschema.xml',
 # Static Build
 plugin_notification = static_library('plugin-notification',
                                      plugin_notification_sources,
-  include_directories: plugin_notification_include_directories,
-         dependencies: plugin_notification_deps,
-               c_args: plugins_c_args + release_args,
+    include_directories: plugin_notification_include_directories,
+           dependencies: plugin_notification_deps,
+                 c_args: plugins_c_args + release_args,
+  gnu_symbol_visibility: 'hidden',
 )
 
-#plugins_link_args += ['-Wl,--undefined=valent_notification_plugin_register_types']
 plugins_static += [plugin_notification]
 

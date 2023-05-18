@@ -40,11 +40,11 @@ plugin_photo_sources += plugin_photo_resources
 # Static Build
 plugin_photo = static_library('plugin-photo',
                               plugin_photo_sources,
-  include_directories: plugin_photo_include_directories,
-         dependencies: plugin_photo_deps,
-               c_args: plugins_c_args + release_args,
+    include_directories: plugin_photo_include_directories,
+           dependencies: plugin_photo_deps,
+                 c_args: plugins_c_args + release_args,
+  gnu_symbol_visibility: 'hidden',
 )
 
-#plugins_link_args += ['-Wl,--undefined=valent_photo_plugin_register_types']
 plugins_static += [plugin_photo]
 

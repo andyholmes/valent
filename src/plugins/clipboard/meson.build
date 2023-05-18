@@ -38,11 +38,11 @@ install_data('ca.andyholmes.Valent.Plugin.clipboard.gschema.xml',
 # Static Build
 plugin_clipboard = static_library('plugin-clipboard',
                                   plugin_clipboard_sources,
-  include_directories: plugin_clipboard_include_directories,
-         dependencies: plugin_clipboard_deps,
-               c_args: plugins_c_args + release_args,
+    include_directories: plugin_clipboard_include_directories,
+           dependencies: plugin_clipboard_deps,
+                 c_args: plugins_c_args + release_args,
+  gnu_symbol_visibility: 'hidden',
 )
 
-#plugins_link_args += ['-Wl,--undefined=valent_clipboard_plugin_register_types']
 plugins_static += [plugin_clipboard]
 

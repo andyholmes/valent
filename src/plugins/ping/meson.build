@@ -32,11 +32,11 @@ plugin_ping_sources += plugin_ping_resources
 # Static Build
 plugin_ping = static_library('plugin-ping',
                              plugin_ping_sources,
-  include_directories: plugin_ping_include_directories,
-         dependencies: plugin_ping_deps,
-               c_args: plugins_c_args + release_args,
+    include_directories: plugin_ping_include_directories,
+           dependencies: plugin_ping_deps,
+                 c_args: plugins_c_args + release_args,
+  gnu_symbol_visibility: 'hidden',
 )
 
-#plugins_link_args += ['-Wl,--undefined=valent_ping_plugin_register_types']
 plugins_static += [plugin_ping]
 

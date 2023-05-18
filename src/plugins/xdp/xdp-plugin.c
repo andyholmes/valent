@@ -13,7 +13,7 @@
 #include "valent-xdp-session.h"
 
 
-G_MODULE_EXPORT void
+_VALENT_EXTERN void
 valent_xdp_plugin_register_types (PeasObjectModule *module)
 {
   /* This extension only makes sense in a graphical environment. */

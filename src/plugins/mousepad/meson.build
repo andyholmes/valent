@@ -33,11 +33,11 @@ plugin_mousepad_sources += plugin_mousepad_resources
 # Static Build
 plugin_mousepad = static_library('plugin-mousepad',
                                  plugin_mousepad_sources,
-  include_directories: plugin_mousepad_include_directories,
-         dependencies: plugin_mousepad_deps,
-               c_args: plugins_c_args + release_args,
+    include_directories: plugin_mousepad_include_directories,
+           dependencies: plugin_mousepad_deps,
+                 c_args: plugins_c_args + release_args,
+  gnu_symbol_visibility: 'hidden',
 )
 
-#plugins_link_args += ['-Wl,--undefined=valent_mousepad_plugin_register_types']
 plugins_static += [plugin_mousepad]
 

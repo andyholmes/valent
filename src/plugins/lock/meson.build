@@ -33,11 +33,11 @@ plugin_lock_sources += plugin_lock_resources
 # Static Build
 plugin_lock = static_library('plugin-lock',
                              plugin_lock_sources,
-  include_directories: plugin_lock_include_directories,
-         dependencies: plugin_lock_deps,
-               c_args: plugins_c_args + release_args,
+    include_directories: plugin_lock_include_directories,
+           dependencies: plugin_lock_deps,
+                 c_args: plugins_c_args + release_args,
+  gnu_symbol_visibility: 'hidden',
 )
 
-#plugins_link_args += ['-Wl,--undefined=valent_lock_plugin_register_types']
 plugins_static += [plugin_lock]
 

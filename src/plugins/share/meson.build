@@ -43,11 +43,11 @@ install_data('ca.andyholmes.Valent.Plugin.share.gschema.xml',
 # Static Build
 plugin_share = static_library('plugin-share',
                               plugin_share_sources,
-  include_directories: plugin_share_include_directories,
-         dependencies: plugin_share_deps,
-               c_args: plugins_c_args + release_args,
+    include_directories: plugin_share_include_directories,
+           dependencies: plugin_share_deps,
+                 c_args: plugins_c_args + release_args,
+  gnu_symbol_visibility: 'hidden',
 )
 
-#plugins_link_args += ['-Wl,--undefined=valent_share_plugin_register_types']
 plugins_static += [plugin_share]
 
