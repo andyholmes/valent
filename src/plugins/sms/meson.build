@@ -45,11 +45,11 @@ plugin_sms_sources += plugin_sms_resources
 # Static Build
 plugin_sms = static_library('plugin-sms',
                             plugin_sms_sources,
-  include_directories: plugin_sms_include_directories,
-         dependencies: plugin_sms_deps,
-               c_args: plugins_c_args + release_args,
+    include_directories: plugin_sms_include_directories,
+           dependencies: plugin_sms_deps,
+                 c_args: plugins_c_args + release_args,
+  gnu_symbol_visibility: 'hidden',
 )
 
-#plugins_link_args += ['-Wl,--undefined=valent_sms_plugin_register_types']
 plugins_static += [plugin_sms]
 

@@ -10,7 +10,7 @@
 #include "valent-lock-plugin.h"
 
 
-G_MODULE_EXPORT void
+_VALENT_EXTERN void
 valent_lock_plugin_register_types (PeasObjectModule *module)
 {
   peas_object_module_register_extension_type (module,

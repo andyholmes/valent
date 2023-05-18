@@ -37,11 +37,11 @@ install_data('ca.andyholmes.Valent.Plugin.systemvolume.gschema.xml',
 # Static Build
 plugin_systemvolume = static_library('plugin-systemvolume',
                                      plugin_systemvolume_sources,
-  include_directories: plugin_systemvolume_include_directories,
-         dependencies: plugin_systemvolume_deps,
-               c_args: plugins_c_args + release_args,
+    include_directories: plugin_systemvolume_include_directories,
+           dependencies: plugin_systemvolume_deps,
+                 c_args: plugins_c_args + release_args,
+  gnu_symbol_visibility: 'hidden',
 )
 
-#plugins_link_args += ['-Wl,--undefined=valent_systemvolume_plugin_register_types']
 plugins_static += [plugin_systemvolume]
 

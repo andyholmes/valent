@@ -10,7 +10,7 @@
 #include "valent-clipboard-preferences.h"
 
 
-G_MODULE_EXPORT void
+_VALENT_EXTERN void
 valent_clipboard_plugin_register_types (PeasObjectModule *module)
 {
   peas_object_module_register_extension_type (module,

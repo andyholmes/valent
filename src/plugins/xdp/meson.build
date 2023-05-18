@@ -47,11 +47,11 @@ install_data('ca.andyholmes.Valent.Plugin.xdp.gschema.xml',
 # Static Build
 plugin_xdp = static_library('plugin-xdp',
                             plugin_xdp_sources,
-  include_directories: plugin_xdp_include_directories,
-         dependencies: plugin_xdp_deps,
-               c_args: plugins_c_args + release_args,
+    include_directories: plugin_xdp_include_directories,
+           dependencies: plugin_xdp_deps,
+                 c_args: plugins_c_args + release_args,
+  gnu_symbol_visibility: 'hidden',
 )
 
-#plugins_link_args += ['-Wl,--undefined=valent_xdp_plugin_register_types']
 plugins_static += [plugin_xdp]
 

@@ -35,11 +35,11 @@ plugin_gtk_sources += plugin_gtk_resources
 # Static Build
 plugin_gtk = static_library('plugin-gtk',
                             plugin_gtk_sources,
-  include_directories: plugin_gtk_include_directories,
-         dependencies: plugin_gtk_deps,
-               c_args: plugins_c_args + release_args,
+    include_directories: plugin_gtk_include_directories,
+           dependencies: plugin_gtk_deps,
+                 c_args: plugins_c_args + release_args,
+  gnu_symbol_visibility: 'hidden',
 )
 
-#plugins_link_args += ['-Wl,--undefined=valent_gtk_plugin_register_types']
 plugins_static += [plugin_gtk]
 

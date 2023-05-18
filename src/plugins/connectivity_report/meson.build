@@ -40,12 +40,12 @@ install_data('ca.andyholmes.Valent.Plugin.connectivity_report.gschema.xml',
 # Static Build
 plugin_connectivity_report = static_library('plugin-connectivity_report',
                                             plugin_connectivity_report_sources,
-  include_directories: plugin_connectivity_report_include_directories,
-         dependencies: plugin_connectivity_report_deps,
-               c_args: plugins_c_args + release_args,
+    include_directories: plugin_connectivity_report_include_directories,
+           dependencies: plugin_connectivity_report_deps,
+                 c_args: plugins_c_args + release_args,
+  gnu_symbol_visibility: 'hidden',
 )
 
-#plugins_link_args += ['-Wl,--undefined=valent_connectivity_report_plugin_register_types']
 plugins_static += [plugin_connectivity_report]
 
 

@@ -42,11 +42,11 @@ plugin_fdo_sources += plugin_fdo_resources
 # Static Build
 plugin_fdo = static_library('plugin-fdo',
                             plugin_fdo_sources,
-  include_directories: plugin_fdo_include_directories,
-         dependencies: plugin_fdo_deps,
-               c_args: plugins_c_args + release_args,
+    include_directories: plugin_fdo_include_directories,
+           dependencies: plugin_fdo_deps,
+                 c_args: plugins_c_args + release_args,
+  gnu_symbol_visibility: 'hidden',
 )
 
-#plugins_link_args += ['-Wl,--undefined=valent_fdo_plugin_register_types']
 plugins_static += [plugin_fdo]
 

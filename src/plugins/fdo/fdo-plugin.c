@@ -10,7 +10,7 @@
 #include "valent-fdo-session.h"
 
 
-G_MODULE_EXPORT void
+_VALENT_EXTERN void
 valent_fdo_plugin_register_types (PeasObjectModule *module)
 {
   /* Although notifications typically only make sense in a graphical

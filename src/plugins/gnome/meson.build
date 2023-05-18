@@ -33,11 +33,11 @@ plugin_gnome_sources += plugin_gnome_resources
 # Static Build
 plugin_gnome = static_library('plugin-gnome',
                               plugin_gnome_sources,
-  include_directories: plugin_gnome_include_directories,
-         dependencies: plugin_gnome_deps,
-               c_args: plugins_c_args + release_args,
+    include_directories: plugin_gnome_include_directories,
+           dependencies: plugin_gnome_deps,
+                 c_args: plugins_c_args + release_args,
+  gnu_symbol_visibility: 'hidden',
 )
 
-#plugins_link_args += ['-Wl,--undefined=valent_gnome_plugin_register_types']
 plugins_static += [plugin_gnome]
 

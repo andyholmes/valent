@@ -116,10 +116,6 @@ if get_option('optimization') in ['2', '3', 's']
   endif
 endif
 
-if get_option('default_library') != 'static'
-  project_c_args += ['-fvisibility=hidden']
-endif
-
 add_project_arguments(cc.get_supported_arguments(project_c_args),
   language: 'c',
 )

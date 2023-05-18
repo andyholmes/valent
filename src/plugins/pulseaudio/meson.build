@@ -49,11 +49,11 @@ plugin_pulseaudio_sources += plugin_pulseaudio_resources
 # Static Build
 plugin_pulseaudio = static_library('plugin-pulseaudio',
                                    plugin_pulseaudio_sources,
-  include_directories: plugin_pulseaudio_include_directories,
-         dependencies: plugin_pulseaudio_deps,
-               c_args: plugins_c_args + release_args,
+    include_directories: plugin_pulseaudio_include_directories,
+           dependencies: plugin_pulseaudio_deps,
+                 c_args: plugins_c_args + release_args,
+  gnu_symbol_visibility: 'hidden',
 )
 
-#plugins_link_args += ['-Wl,--undefined=valent_pulseaudio_plugin_register_types']
 plugins_static += [plugin_pulseaudio]
 

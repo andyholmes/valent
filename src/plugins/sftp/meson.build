@@ -38,11 +38,11 @@ install_data('ca.andyholmes.Valent.Plugin.sftp.gschema.xml',
 # Static Build
 plugin_sftp = static_library('plugin-sftp',
                              plugin_sftp_sources,
-  include_directories: plugin_sftp_include_directories,
-         dependencies: plugin_sftp_deps,
-               c_args: plugins_c_args + release_args,
+    include_directories: plugin_sftp_include_directories,
+           dependencies: plugin_sftp_deps,
+                 c_args: plugins_c_args + release_args,
+  gnu_symbol_visibility: 'hidden',
 )
 
-#plugins_link_args += ['-Wl,--undefined=valent_sftp_plugin_register_types']
 plugins_static += [plugin_sftp]
 
