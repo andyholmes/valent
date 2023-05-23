@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/schema#",
     "title": "kdeconnect.mpris.request",
-    "description": "This packet is a request for player information or control.",
+    "description": "This packet is used to request the status of remote media players, issue commands, and request the transfer of album art payloads.",
     "examples": [
         {
             "id": 0,
@@ -25,6 +25,14 @@
             "body": {
                 "player": "Test Player",
                 "action": "Play"
+            }
+        },
+        {
+            "id": 0,
+            "type": "kdeconnect.mpris.request",
+            "body": {
+                "player": "Test Player",
+                "albumArtUrl": "file:///path/to/image.png"
             }
         }
     ],

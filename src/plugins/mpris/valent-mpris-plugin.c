@@ -537,7 +537,7 @@ valent_mpris_plugin_send_player_list (ValentMprisPlugin *self)
 
   json_builder_end_array (builder);
 
-  /* Album Art */
+  /* Indicate that the remote device may send us album art payloads */
   json_builder_set_member_name (builder, "supportAlbumArtPayload");
   json_builder_add_boolean_value (builder, TRUE);
 
