@@ -1,8 +1,18 @@
 {
     "$schema": "http://json-schema.org/schema#",
     "title": "kdeconnect.mpris",
-    "description": "This packet is an MPRIS player update.",
+    "description": "This packet is used to expose media players to a remote device and transfer album art.",
     "examples": [
+        {
+            "id": 0,
+            "type": "kdeconnect.mpris",
+            "body": {
+                "playerList": [
+                    "Test Player"
+                ],
+                "supportAlbumArtPayload": true
+            }
+        },
         {
             "id": 0,
             "type": "kdeconnect.mpris",
@@ -28,18 +38,13 @@
             "id": 0,
             "type": "kdeconnect.mpris",
             "body": {
-                "playerList": [
-                    "Test Player"
-                ]
-            }
-        },
-        {
-            "id": 0,
-            "type": "kdeconnect.mpris",
-            "body": {
                 "player": "Test Player",
                 "albumArtUrl": "file:///path/to/image.png",
                 "transferringAlbumArt": true
+            },
+            "payloadSize": 882,
+            "payloadTransferInfo": {
+                "port": 1739
             }
         }
     ],
@@ -142,6 +147,10 @@
                     "minimum": 0,
                     "maximum": 100,
                     "description": "Current player volume (%)."
+                },
+                "supportAlbumArtPayload": {
+                    "type": "boolean",
+                    "description": "Indicates this device supports receiving album art payloads. This field should be set when responding with a list of players."
                 },
                 "transferringAlbumArt": {
                     "type": "boolean",
