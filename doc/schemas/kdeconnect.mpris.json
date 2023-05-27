@@ -150,7 +150,7 @@
                 },
                 "supportAlbumArtPayload": {
                     "type": "boolean",
-                    "description": "Indicates this device supports receiving album art payloads. This field should be set when responding with a list of players."
+                    "description": "Indicates this device supports album art payloads. This field should be set when responding with a list of players."
                 },
                 "transferringAlbumArt": {
                     "type": "boolean",
