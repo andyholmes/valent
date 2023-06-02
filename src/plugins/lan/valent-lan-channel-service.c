@@ -29,6 +29,7 @@ struct _ValentLanChannelService
 
   /* Service */
   uint16_t              port;
+  uint16_t              tcp_port;
   char                 *broadcast_address;
   GSocketService       *listener;
   GMainLoop            *udp_context;
@@ -296,6 +297,7 @@ valent_lan_channel_service_tcp_setup (ValentLanChannelService  *self,
                                       GError                  **error)
 {
   g_autoptr (GCancellable) destroy = NULL;
+  uint16_t tcp_port_max;
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
@@ -306,6 +308,9 @@ valent_lan_channel_service_tcp_setup (ValentLanChannelService  *self,
 
   valent_object_lock (VALENT_OBJECT (self));
   destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
+  self->tcp_port = self->port;
+  tcp_port_max = self->tcp_port + (VALENT_LAN_PROTOCOL_PORT_MAX -
+                                   VALENT_LAN_PROTOCOL_PORT_MIN);
 
   /* Pass the service as the callback data for the "run" signal, while the
    * listener holds a reference to the object cancellable.
@@ -317,14 +322,21 @@ valent_lan_channel_service_tcp_setup (ValentLanChannelService  *self,
                            self,
                            G_CONNECT_SWAPPED);
 
-  if (!g_socket_listener_add_inet_port (G_SOCKET_LISTENER (self->listener),
-                                        self->port,
-                                        G_OBJECT (destroy),
-                                        error))
+  while (!g_socket_listener_add_inet_port (G_SOCKET_LISTENER (self->listener),
+                                           self->tcp_port,
+                                           G_OBJECT (destroy),
+                                           error))
     {
-      g_socket_service_stop (self->listener);
-      g_socket_listener_close (G_SOCKET_LISTENER (self->listener));
-      g_clear_object (&self->listener);
+      if (self->tcp_port >= tcp_port_max)
+        {
+          g_socket_service_stop (self->listener);
+          g_socket_listener_close (G_SOCKET_LISTENER (self->listener));
+          g_clear_object (&self->listener);
+          break;
+        }
+
+      g_clear_error (error);
+      self->tcp_port++;
     }
 
   valent_object_unlock (VALENT_OBJECT (self));
@@ -768,7 +780,7 @@ valent_lan_channel_service_build_identity (ValentChannelService *service)
       JsonObject *body;
 
       body = valent_packet_get_body (identity);
-      json_object_set_int_member (body, "tcpPort", self->port);
+      json_object_set_int_member (body, "tcpPort", self->tcp_port);
     }
 }
 
