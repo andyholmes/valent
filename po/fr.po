@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2023-04-12 23:01-0700\n"
+"POT-Creation-Date: 2023-06-03 12:35-0700\n"
 "PO-Revision-Date: 2023-03-04 17:28+0100\n"
 "Last-Translator: Valérie Roux <vxlerieuwu@unixgirl.xyz>\n"
 "Language-Team: French <vxlerieuwu@unixgirl.xyz>\n"
@@ -29,7 +29,7 @@ msgid "Whether the device is paired"
 msgstr "Si l'appareil est lié"
 
 #: data/gsettings/ca.andyholmes.Valent.gschema.xml:10
-#: src/plugins/runcommand/valent-runcommand-editor.ui:44
+#: src/plugins/runcommand/valent-runcommand-editor.ui:39
 msgid "Name"
 msgstr "Nom"
 
@@ -48,7 +48,7 @@ msgstr "Si l'extension est activée ou non"
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
 #: data/ca.andyholmes.Valent.desktop.in.in:3
 #: src/libvalent/ui/valent-preferences-window.ui:12
-#: src/libvalent/ui/valent-window.c:330 src/libvalent/ui/valent-window.ui:39
+#: src/libvalent/ui/valent-window.c:336 src/libvalent/ui/valent-window.ui:39
 msgid "Valent"
 msgstr "Valent"
 
@@ -115,17 +115,17 @@ msgstr "Liez et connectez vos appareils"
 msgid "Andy Holmes"
 msgstr "Andy Holmes"
 
-#: src/libvalent/device/valent-device.c:517
+#: src/libvalent/device/valent-device.c:512
 #, c-format
 msgid "Pairing request from %s"
 msgstr "Demande de liaison de %s"
 
-#: src/libvalent/device/valent-device.c:528
+#: src/libvalent/device/valent-device.c:523
 #: src/libvalent/ui/valent-device-page.ui:143
 msgid "Reject"
 msgstr "Refuser"
 
-#: src/libvalent/device/valent-device.c:534
+#: src/libvalent/device/valent-device.c:529
 #: src/libvalent/ui/valent-device-page.ui:156
 msgid "Accept"
 msgstr "Accepter"
@@ -136,8 +136,8 @@ msgid "Unavailable"
 msgstr "Indisponible"
 
 #: src/libvalent/ui/valent-device-page.ui:21
-#: src/libvalent/ui/valent-media-remote.ui:233
-#: src/libvalent/ui/valent-menu-list.c:523
+#: src/libvalent/ui/valent-media-remote.ui:239
+#: src/libvalent/ui/valent-menu-list.c:664
 #: src/plugins/presenter/valent-presenter-remote.ui:126
 msgid "Previous"
 msgstr "Précédent"
@@ -201,8 +201,8 @@ msgstr "Pas d'extensions"
 
 #: src/libvalent/ui/valent-media-remote.c:250
 #: src/libvalent/ui/valent-media-remote.c:252
-#: src/libvalent/ui/valent-media-remote.ui:404
-#: src/libvalent/ui/valent-media-remote.ui:419
+#: src/libvalent/ui/valent-media-remote.ui:408
+#: src/libvalent/ui/valent-media-remote.ui:423
 #, fuzzy
 msgid "Enable Repeat"
 msgstr "Répéter"
@@ -226,91 +226,91 @@ msgstr "Pause"
 
 #: src/libvalent/ui/valent-media-remote.c:314
 #: src/libvalent/ui/valent-media-remote.c:316
-#: src/libvalent/ui/valent-media-remote.ui:270
-#: src/libvalent/ui/valent-media-remote.ui:285
+#: src/libvalent/ui/valent-media-remote.ui:275
+#: src/libvalent/ui/valent-media-remote.ui:290
 msgid "Play"
 msgstr "Jouer"
 
 #: src/libvalent/ui/valent-media-remote.ui:8
-#: src/libvalent/ui/valent-window.ui:105
+#: src/libvalent/ui/valent-window.ui:113
 msgid "Media Remote"
 msgstr "Télécommande média"
 
-#: src/libvalent/ui/valent-media-remote.ui:213
+#: src/libvalent/ui/valent-media-remote.ui:219
 #: src/plugins/telephony/valent-telephony-preferences.ui:15
 #: src/plugins/telephony/valent-telephony-preferences.ui:43
 msgid "Volume"
 msgstr "Volume"
 
-#: src/libvalent/ui/valent-media-remote.ui:243
-#: src/libvalent/ui/valent-media-remote.ui:260
+#: src/libvalent/ui/valent-media-remote.ui:248
+#: src/libvalent/ui/valent-media-remote.ui:265
 msgid "Seek Back"
 msgstr "Reculer d'un pas"
 
-#: src/libvalent/ui/valent-media-remote.ui:295
-#: src/libvalent/ui/valent-media-remote.ui:312
+#: src/libvalent/ui/valent-media-remote.ui:300
+#: src/libvalent/ui/valent-media-remote.ui:317
 msgid "Seek Forward"
 msgstr "Avancer d'un pas"
 
-#: src/libvalent/ui/valent-media-remote.ui:322
-#: src/libvalent/ui/valent-media-remote.ui:337
+#: src/libvalent/ui/valent-media-remote.ui:327
+#: src/libvalent/ui/valent-media-remote.ui:342
 #: src/plugins/presenter/valent-presenter-remote.ui:151
 msgid "Next"
 msgstr "Suivant"
 
-#: src/libvalent/ui/valent-media-remote.ui:347
-#: src/libvalent/ui/valent-media-remote.ui:361
+#: src/libvalent/ui/valent-media-remote.ui:351
+#: src/libvalent/ui/valent-media-remote.ui:365
 #, fuzzy
 msgid "Options"
 msgstr "Applications"
 
-#: src/libvalent/ui/valent-media-remote.ui:428
-#: src/libvalent/ui/valent-media-remote.ui:443
+#: src/libvalent/ui/valent-media-remote.ui:432
+#: src/libvalent/ui/valent-media-remote.ui:447
 msgid "Shuffle"
 msgstr "Aléatoire"
 
-#: src/libvalent/ui/valent-menu-list.c:383
+#: src/libvalent/ui/valent-menu-list.c:529
 msgid "No Actions"
 msgstr "Aucune action"
 
-#: src/libvalent/ui/valent-preferences-window.c:373
+#: src/libvalent/ui/valent-preferences-window.c:375
 msgid "Global"
 msgstr "Global"
 
-#: src/libvalent/ui/valent-preferences-window.c:380
+#: src/libvalent/ui/valent-preferences-window.c:382
 msgid "Device Connections"
 msgstr "Connexions"
 
-#: src/libvalent/ui/valent-preferences-window.c:387
+#: src/libvalent/ui/valent-preferences-window.c:389
 #: src/plugins/clipboard/clipboard.plugin.desktop.in:7
 msgid "Clipboard"
 msgstr "Presse-papiers"
 
-#: src/libvalent/ui/valent-preferences-window.c:394
+#: src/libvalent/ui/valent-preferences-window.c:396
 #: src/plugins/contacts/contacts.plugin.desktop.in:7
 #: src/plugins/sms/valent-contact-row.c:253
 msgid "Contacts"
 msgstr "Contacts"
 
-#: src/libvalent/ui/valent-preferences-window.c:401
+#: src/libvalent/ui/valent-preferences-window.c:403
 msgid "Mouse and Keyboard"
 msgstr "Souris et clavier"
 
-#: src/libvalent/ui/valent-preferences-window.c:408
+#: src/libvalent/ui/valent-preferences-window.c:410
 msgid "Media Players"
 msgstr "Lecteurs média"
 
-#: src/libvalent/ui/valent-preferences-window.c:415
+#: src/libvalent/ui/valent-preferences-window.c:417
 msgid "Volume Control"
 msgstr "Contrôle du volume"
 
-#: src/libvalent/ui/valent-preferences-window.c:422
+#: src/libvalent/ui/valent-preferences-window.c:424
 #: src/plugins/notification/notification.plugin.desktop.in:7
 #: src/plugins/notification/valent-notification-preferences.ui:63
 msgid "Notifications"
 msgstr "Notifications"
 
-#: src/libvalent/ui/valent-preferences-window.c:429
+#: src/libvalent/ui/valent-preferences-window.c:431
 msgid "Session Manager"
 msgstr "Gestion de session"
 
@@ -431,37 +431,42 @@ msgstr "Non associé"
 msgid "Connected"
 msgstr "Connecté"
 
-#: src/libvalent/ui/valent-window.c:339
+#: src/libvalent/ui/valent-window.c:345
 msgid "translator-credits"
 msgstr "Valérie Roux <vxlerieuwu@unixgirl.xyz>"
 
-#: src/libvalent/ui/valent-window.c:344
+#: src/libvalent/ui/valent-window.c:350
 msgid "Sponsors"
 msgstr "Sponsors"
 
-#: src/libvalent/ui/valent-window.ui:44
+#: src/libvalent/ui/valent-window.ui:46 src/libvalent/ui/valent-window.ui:49
 msgid "Refresh"
 msgstr "Rafraîchir"
 
-#: src/libvalent/ui/valent-window.ui:71
+#: src/libvalent/ui/valent-window.ui:58 src/libvalent/ui/valent-window.ui:61
+#, fuzzy
+msgid "Main Menu"
+msgstr "Nom de l'appareil"
+
+#: src/libvalent/ui/valent-window.ui:79
 #: src/plugins/share/valent-share-target-chooser.ui:68
 msgid "Devices"
 msgstr "Appareils"
 
-#: src/libvalent/ui/valent-window.ui:79
+#: src/libvalent/ui/valent-window.ui:87
 msgid "Searching for devices…"
 msgstr "Recherche d'appareils"
 
-#: src/libvalent/ui/valent-window.ui:111
+#: src/libvalent/ui/valent-window.ui:119
 msgid "Preferences"
 msgstr "Paramètres"
 
-#: src/libvalent/ui/valent-window.ui:115
+#: src/libvalent/ui/valent-window.ui:123
 #: src/plugins/sms/valent-sms-window.ui:350
 msgid "About Valent"
 msgstr "À propos de Valent"
 
-#: src/libvalent/ui/valent-window.ui:121
+#: src/libvalent/ui/valent-window.ui:129
 msgid "Quit"
 msgstr "Quitter"
 
@@ -671,7 +676,7 @@ msgstr "Trouver mon téléphone"
 msgid "Find a device by making it ring"
 msgstr "Trouver un appareil en le faisant sonner"
 
-#: src/plugins/findmyphone/valent-findmyphone-plugin.c:59
+#: src/plugins/findmyphone/valent-findmyphone-plugin.c:112
 msgid "Ring"
 msgstr "Sonner"
 
@@ -712,7 +717,7 @@ msgstr "Tapis de souris"
 msgid "Control the mouse and keyboard"
 msgstr "Contrôler la souris et le clavier"
 
-#: src/plugins/mousepad/valent-mousepad-plugin.c:516
+#: src/plugins/mousepad/valent-mousepad-plugin.c:579
 msgid "Remote Input"
 msgstr "Entrée distante"
 
@@ -768,21 +773,25 @@ msgstr "Synchroniser les notifications"
 msgid "Notification"
 msgstr "Notification"
 
-#: src/plugins/notification/valent-notification-dialog.ui:15
-#: src/plugins/presenter/valent-presenter-remote.c:91
-#: src/plugins/runcommand/valent-runcommand-editor.ui:12
-#: src/plugins/share/valent-share-plugin.c:140
-#: src/plugins/share/valent-share-plugin.c:263
-#: src/plugins/share/valent-share-plugin.c:365
-#: src/plugins/share/valent-share-plugin.c:505
-#: src/plugins/share/valent-share-plugin.c:669
-#: src/plugins/share/valent-share-preferences.c:91
-msgid "Cancel"
+#: src/plugins/notification/valent-notification-dialog.ui:19
+#: src/plugins/runcommand/valent-runcommand-editor.ui:17
+#: src/plugins/share/valent-share-target-chooser.ui:22
+msgid "_Cancel"
 msgstr "Annuler"
 
-#: src/plugins/notification/valent-notification-dialog.ui:20
-msgid "Send"
-msgstr "Envoyer"
+#: src/plugins/notification/valent-notification-dialog.ui:26
+msgid "_Reply"
+msgstr ""
+
+#: src/plugins/notification/valent-notification-dialog.ui:150
+#: src/plugins/share/valent-share-text-dialog.ui:53
+msgid "Close"
+msgstr "Fermer"
+
+#: src/plugins/notification/valent-notification-dialog.ui:151
+#, fuzzy
+msgid "Close the notification"
+msgstr "Notifications d'appel et de SMS"
 
 #: src/plugins/notification/valent-notification-preferences.ui:10
 #, fuzzy
@@ -842,12 +851,12 @@ msgstr "Échec de récéption de “%s” depuis %s"
 msgid "Transfer Failed"
 msgstr "Échec du transfert"
 
-#: src/plugins/photo/valent-photo-plugin.c:137
+#: src/plugins/photo/valent-photo-plugin.c:188
 msgid "Take Photo"
 msgstr "Prendre une photo"
 
 #: src/plugins/ping/ping.plugin.desktop.in:7
-#: src/plugins/ping/valent-ping-plugin.c:95
+#: src/plugins/ping/valent-ping-plugin.c:142
 msgid "Ping"
 msgstr "Ping"
 
@@ -867,18 +876,18 @@ msgstr "Présentations"
 msgid "Control presentations"
 msgstr "Contrôle des présentations"
 
-#: src/plugins/presenter/valent-presenter-plugin.c:164
+#: src/plugins/presenter/valent-presenter-plugin.c:215
 #: src/plugins/presenter/valent-presenter-remote.ui:8
 msgid "Presentation Remote"
 msgstr "Télécommande des présentations"
 
-#: src/plugins/presenter/valent-presenter-remote.c:89
+#: src/plugins/presenter/valent-presenter-remote.c:91
 msgid "Select Presentation"
 msgstr "Sélectionner la présentation"
 
-#: src/plugins/presenter/valent-presenter-remote.c:90
+#: src/plugins/presenter/valent-presenter-remote.c:92
 #: src/plugins/presenter/valent-presenter-remote.ui:86
-#: src/plugins/share/valent-share-preferences.c:90
+#: src/plugins/share/valent-share-preferences.c:94
 msgid "Open"
 msgstr "Ouvrir"
 
@@ -886,7 +895,7 @@ msgstr "Ouvrir"
 msgid "Presentations"
 msgstr "Présentations"
 
-#: src/plugins/presenter/valent-presenter-remote.c:108
+#: src/plugins/presenter/valent-presenter-remote.c:107
 msgid "All Files"
 msgstr "Tous les fichiers"
 
@@ -919,30 +928,47 @@ msgid "Execute commands remotely"
 msgstr "Exécuter des commandes à distance"
 
 #: src/plugins/runcommand/valent-runcommand-editor.ui:8
-#: src/plugins/runcommand/valent-runcommand-preferences.c:256
-msgid "Edit"
-msgstr "Modifier"
+#: src/plugins/runcommand/valent-runcommand-preferences.c:84
+#, fuzzy
+msgid "Edit Command"
+msgstr "Commandes"
 
-#: src/plugins/runcommand/valent-runcommand-editor.ui:17
-#: src/plugins/share/valent-share-text-dialog.ui:54
-msgid "Save"
+#: src/plugins/runcommand/valent-runcommand-editor.ui:24
+#, fuzzy
+msgid "_Save"
 msgstr "Enregistrer"
 
-#: src/plugins/runcommand/valent-runcommand-editor.ui:70
+#: src/plugins/runcommand/valent-runcommand-editor.ui:48
 msgid "Command Line"
 msgstr "Ligne de commande"
 
-#: src/plugins/runcommand/valent-runcommand-plugin.c:329
-msgid "Run Command"
-msgstr "Exécuter la commande"
+#: src/plugins/runcommand/valent-runcommand-editor.ui:63
+msgid "Remove the command"
+msgstr ""
 
-#: src/plugins/runcommand/valent-runcommand-preferences.c:266
+#: src/plugins/runcommand/valent-runcommand-editor.ui:69
 msgid "Remove"
 msgstr "Supprimer"
 
-#: src/plugins/runcommand/valent-runcommand-preferences.ui:34
-msgid "Add Command…"
+#: src/plugins/runcommand/valent-runcommand-plugin.c:317
+msgid "Run Command"
+msgstr "Exécuter la commande"
+
+#: src/plugins/runcommand/valent-runcommand-preferences.ui:14
+#, fuzzy
+msgid "Add a command"
 msgstr "Ajouter une commande..."
+
+#: src/plugins/runcommand/valent-runcommand-preferences.ui:24
+#, fuzzy
+msgid "Local Commands"
+msgstr "Commandes"
+
+#: src/plugins/runcommand/valent-runcommand-preferences.ui:25
+#, fuzzy
+msgid "Commands that can be executed by remote devices"
+msgstr ""
+"Définir les commandes qui peuvent être exécutées par l'appareil distant."
 
 #: src/plugins/sftp/sftp.plugin.desktop.in:7
 #, fuzzy
@@ -963,7 +989,7 @@ msgstr "Accueil"
 msgid "Permission denied"
 msgstr "Permission non accordée"
 
-#: src/plugins/sftp/valent-sftp-plugin.c:591
+#: src/plugins/sftp/valent-sftp-plugin.c:658
 msgid "Browse Files"
 msgstr "Parcourir les fichiers"
 
@@ -1028,6 +1054,13 @@ msgid_plural "Received %2$d files from %1$s"
 msgstr[0] "Fichier reçu de %1$s"
 msgstr[1] "%2$d fichiers reçu de %1$s"
 
+#: src/plugins/share/valent-share-plugin.c:140
+#: src/plugins/share/valent-share-plugin.c:263
+#: src/plugins/share/valent-share-plugin.c:365
+#: src/plugins/share/valent-share-plugin.c:505
+msgid "Cancel"
+msgstr "Annuler"
+
 #: src/plugins/share/valent-share-plugin.c:158
 msgid "Open Folder"
 msgstr "Ouvrir le dossier"
@@ -1073,20 +1106,20 @@ msgid_plural "Sent %2$d files to %1$s"
 msgstr[0] "Un fichier envoyé vers %1$s"
 msgstr[1] "%2$d fichiers envoyés vers %1$s"
 
-#: src/plugins/share/valent-share-plugin.c:667
+#: src/plugins/share/valent-share-plugin.c:673
 #: src/plugins/share/valent-share-target-chooser.ui:8
 msgid "Share Files"
 msgstr "Partager des fichiers"
 
-#: src/plugins/share/valent-share-plugin.c:668
+#: src/plugins/share/valent-share-plugin.c:674
 msgid "Share"
 msgstr "Partager"
 
-#: src/plugins/share/valent-share-plugin.c:912
+#: src/plugins/share/valent-share-plugin.c:1221
 msgid "Send Files"
 msgstr "Envoyer des fichiers"
 
-#: src/plugins/share/valent-share-preferences.c:89
+#: src/plugins/share/valent-share-preferences.c:93
 msgid "Select download folder"
 msgstr "Sélectionner le dossier de téléchargement"
 
@@ -1097,10 +1130,6 @@ msgstr "Dossier de téléchargement"
 #: src/plugins/share/valent-share-preferences.ui:11
 msgid "Where received files are stored"
 msgstr "Où les fichiers entrants sont stockés"
-
-#: src/plugins/share/valent-share-target-chooser.ui:22
-msgid "_Cancel"
-msgstr "Annuler"
 
 #: src/plugins/share/valent-share-target-chooser.ui:29
 msgid "_Share"
@@ -1118,14 +1147,15 @@ msgstr "Recherche..."
 msgid "Always use this device"
 msgstr "Toujours utiliser cet appareil"
 
+#: src/plugins/share/valent-share-text-dialog.c:98
+#: src/plugins/share/valent-share-text-dialog.ui:54
+msgid "Save"
+msgstr "Enregistrer"
+
 #: src/plugins/share/valent-share-text-dialog.ui:8
 #: src/plugins/share/valent-share-text-dialog.ui:15
 msgid "Shared Text"
 msgstr "Texte partagé"
-
-#: src/plugins/share/valent-share-text-dialog.ui:53
-msgid "Close"
-msgstr "Fermer"
 
 #: src/plugins/share/valent-share-text-dialog.ui:55
 msgid "Copy"
@@ -1173,7 +1203,7 @@ msgstr[1] "%d mins"
 
 #: src/plugins/sms/valent-sms-conversation.c:904
 #: src/plugins/sms/valent-sms-window.c:602
-#: src/plugins/sms/valent-sms-window.c:914
+#: src/plugins/sms/valent-sms-window.c:922
 msgid "New Conversation"
 msgstr "Nouvelle conversation"
 
@@ -1192,7 +1222,7 @@ msgstr "Envoyer le message"
 msgid "Type a message"
 msgstr "Entrez un message"
 
-#: src/plugins/sms/valent-sms-plugin.c:442
+#: src/plugins/sms/valent-sms-plugin.c:505
 msgid "Messaging"
 msgstr "Messagerie"
 
@@ -1206,7 +1236,7 @@ msgid "Send to %s"
 msgstr "Envoyer à %s"
 
 #: src/plugins/sms/valent-sms-window.c:629
-#: src/plugins/sms/valent-sms-window.c:936
+#: src/plugins/sms/valent-sms-window.c:944
 msgid "Search Messages"
 msgstr "Chercher un message"
 
@@ -1330,7 +1360,7 @@ msgstr "Rien"
 msgid "Lower"
 msgstr "Baisser"
 
-#: src/plugins/xdp/valent-xdp-background.c:86
+#: src/plugins/xdp/valent-xdp-background.c:90
 msgid "Valent wants to run as a service"
 msgstr "Valent veut s'exécuter en tant que service"
 
@@ -1341,6 +1371,12 @@ msgstr "Portails"
 #: src/plugins/xdp/xdp.plugin.desktop.in:8
 msgid "Integration with desktop portals"
 msgstr "Intégration avec les portails de bureau"
+
+#~ msgid "Send"
+#~ msgstr "Envoyer"
+
+#~ msgid "Edit"
+#~ msgstr "Modifier"
 
 #~ msgid "Device"
 #~ msgstr "Appareil"
@@ -1444,10 +1480,6 @@ msgstr "Intégration avec les portails de bureau"
 
 #~ msgid "I Understand"
 #~ msgstr "Je comprends"
-
-#~ msgid "Define commands that can be executed by the remote device."
-#~ msgstr ""
-#~ "Définir les commandes qui peuvent être exécutées par l'appareil distant."
 
 #~ msgid "Restrictions"
 #~ msgstr "Restrictions"
