@@ -8,9 +8,9 @@
 #include <gio/gio.h>
 #include <libvalent-core.h>
 
+#include "../core/valent-component-private.h"
 #include "valent-channel.h"
 #include "valent-channel-service.h"
-#include "valent-component-private.h"
 #include "valent-device.h"
 #include "valent-device-impl.h"
 #include "valent-device-manager.h"

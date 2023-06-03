@@ -7,7 +7,7 @@
 # error "Only <valent.h> can be included directly."
 #endif
 
-#include "valent-application-plugin.h"
+#include "../core/valent-application-plugin.h"
 
 G_BEGIN_DECLS
 
