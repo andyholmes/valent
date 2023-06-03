@@ -624,20 +624,25 @@ valent_share_plugin_upload_files (ValentSharePlugin *self,
  * GActions
  */
 static void
-share_response (GtkNativeDialog *dialog,
-                int              response_id,
-                gpointer         user_data)
+gtk_file_dialog_open_multiple_cb (GtkFileDialog     *dialog,
+                                  GAsyncResult      *result,
+                                  ValentSharePlugin *self)
 {
-  ValentSharePlugin *self = VALENT_SHARE_PLUGIN (user_data);
   g_autoptr (GListModel) files = NULL;
+  g_autoptr (GError) error = NULL;
 
-  if (response_id == GTK_RESPONSE_ACCEPT)
+  files = gtk_file_dialog_open_multiple_finish (dialog, result, &error);
+
+  if (files == NULL)
     {
-      files = gtk_file_chooser_get_files (GTK_FILE_CHOOSER (dialog));
-      valent_share_plugin_upload_files (self, files);
+      if (!g_error_matches (error, GTK_DIALOG_ERROR, GTK_DIALOG_ERROR_CANCELLED) &&
+          !g_error_matches (error, GTK_DIALOG_ERROR, GTK_DIALOG_ERROR_DISMISSED))
+        g_warning ("%s(): %s", G_STRFUNC, error->message);
+
+      return;
     }
 
-  gtk_native_dialog_destroy (dialog);
+  valent_share_plugin_upload_files (self, files);
 }
 
 /**
@@ -653,7 +658,8 @@ share_chooser_action (GSimpleAction *action,
                       gpointer       user_data)
 {
   ValentSharePlugin *self = VALENT_SHARE_PLUGIN (user_data);
-  GtkNativeDialog *dialog;
+  g_autoptr (GCancellable) destroy = NULL;
+  GtkFileDialog *dialog;
 
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
 
@@ -663,20 +669,18 @@ share_chooser_action (GSimpleAction *action,
       return;
     }
 
-  dialog = g_object_new (GTK_TYPE_FILE_CHOOSER_NATIVE,
+  dialog = g_object_new (GTK_TYPE_FILE_DIALOG,
                          "title",           _("Share Files"),
                          "accept-label",    _("Share"),
-                         "cancel-label",    _("Cancel"),
                          "select-multiple", TRUE,
-                         "action",          GTK_FILE_CHOOSER_ACTION_OPEN,
                          NULL);
 
-  g_signal_connect (dialog,
-                    "response",
-                    G_CALLBACK (share_response),
-                    self);
-
-  gtk_native_dialog_show (dialog);
+  destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
+  gtk_file_dialog_open_multiple (dialog,
+                                 NULL,
+                                 destroy,
+                                 (GAsyncReadyCallback)gtk_file_dialog_open_multiple_cb,
+                                 self);
 }
 
 /**

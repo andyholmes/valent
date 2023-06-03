@@ -44,30 +44,33 @@ g_file_replace_contents_cb (GFile        *file,
 }
 
 static void
-save_response (GtkNativeDialog       *dialog,
-               int                    response_id,
-               ValentShareTextDialog *self)
+gtk_file_dialog_save_cb (GtkFileDialog         *dialog,
+                         GAsyncResult          *result,
+                         ValentShareTextDialog *self)
 {
-  if (response_id == GTK_RESPONSE_ACCEPT)
+  g_autoptr (GBytes) bytes = NULL;
+  g_autoptr (GFile) file = NULL;
+  g_autoptr (GError) error = NULL;
+
+  if ((file = gtk_file_dialog_save_finish (dialog, result, &error)) == NULL)
     {
-      g_autoptr (GBytes) bytes = NULL;
-      g_autoptr (GFile) file = NULL;
+      if (!g_error_matches (error, GTK_DIALOG_ERROR, GTK_DIALOG_ERROR_CANCELLED) &&
+          !g_error_matches (error, GTK_DIALOG_ERROR, GTK_DIALOG_ERROR_DISMISSED))
+        g_warning ("%s(): %s", G_STRFUNC, error->message);
 
-      bytes = g_bytes_new (self->text, strlen (self->text));
-      file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
-
-      g_file_replace_contents_bytes_async (file,
-                                           bytes,
-                                           NULL,
-                                           FALSE,
-                                           G_FILE_CREATE_REPLACE_DESTINATION,
-                                           NULL,
-                                           (GAsyncReadyCallback)g_file_replace_contents_cb,
-                                           NULL);
-      gtk_window_destroy (GTK_WINDOW (self));
+      return;
     }
 
-  gtk_native_dialog_destroy (dialog);
+  bytes = g_bytes_new (self->text, strlen (self->text));
+  g_file_replace_contents_bytes_async (file,
+                                       bytes,
+                                       NULL,
+                                       FALSE,
+                                       G_FILE_CREATE_REPLACE_DESTINATION,
+                                       NULL,
+                                       (GAsyncReadyCallback)g_file_replace_contents_cb,
+                                       NULL);
+  gtk_window_destroy (GTK_WINDOW (self));
 }
 
 /*
@@ -89,18 +92,17 @@ valent_share_text_dialog_response (AdwMessageDialog *dialog,
     }
   else if (g_strcmp0 (response, "save") == 0)
     {
-      GtkNativeDialog *chooser = NULL;
+      g_autoptr (GtkFileDialog) chooser = NULL;
 
-      chooser = g_object_new (GTK_TYPE_FILE_CHOOSER_NATIVE,
-                              "action",          GTK_FILE_CHOOSER_ACTION_SAVE,
-                              "transient-for",   dialog,
-                              "modal",           TRUE,
+      chooser = g_object_new (GTK_TYPE_FILE_DIALOG,
+                              "accept-label", _("Save"),
+                              "modal",        TRUE,
                               NULL);
-      g_signal_connect_object (chooser,
-                               "response",
-                               G_CALLBACK (save_response),
-                               dialog, 0);
-      gtk_native_dialog_show (chooser);
+      gtk_file_dialog_save (chooser,
+                            GTK_WINDOW (dialog),
+                            NULL,
+                            (GAsyncReadyCallback)gtk_file_dialog_save_cb,
+                            self);
     }
   else if (g_strcmp0 (response, "close") == 0)
     {
