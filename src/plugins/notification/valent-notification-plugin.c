@@ -814,40 +814,6 @@ notification_close_action (GSimpleAction *action,
 }
 
 static void
-on_notification_reply (ValentNotificationDialog *dialog,
-                       int                       response_id,
-                       ValentNotificationPlugin *self)
-{
-  ValentNotification *notification = NULL;
-  g_autofree char *reply = NULL;
-  const char *reply_id;
-
-  g_assert (VALENT_IS_NOTIFICATION_DIALOG (dialog));
-  g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
-
-  notification = valent_notification_dialog_get_notification (dialog);
-  reply = valent_notification_dialog_get_reply (dialog);
-  reply_id = valent_notification_dialog_get_reply_id (dialog);
-
-  if (response_id == GTK_RESPONSE_OK && *reply != '\0')
-    {
-      g_autoptr (JsonBuilder) builder = NULL;
-      g_autoptr (JsonNode) packet = NULL;
-
-      valent_packet_init (&builder, "kdeconnect.notification.reply");
-      json_builder_set_member_name (builder, "requestReplyId");
-      json_builder_add_string_value (builder, reply_id);
-      json_builder_set_member_name (builder, "message");
-      json_builder_add_string_value (builder, reply);
-      packet = valent_packet_end (&builder);
-
-      valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
-    }
-
-  g_hash_table_remove (self->dialogs, notification);
-}
-
-static void
 notification_reply_action (GSimpleAction *action,
                            GVariant      *parameter,
                            gpointer       user_data)
@@ -885,27 +851,16 @@ notification_reply_action (GSimpleAction *action,
       if ((dialog = g_hash_table_lookup (self->dialogs, notification)) == NULL)
         {
           ValentDevice *device;
-          ValentDeviceState state;
-          gboolean available;
-
-          dialog = g_object_new (VALENT_TYPE_NOTIFICATION_DIALOG,
-                                 "notification",   notification,
-                                 "reply-id",       reply_id,
-                                 "use-header-bar", TRUE,
-                                 NULL);
-          g_signal_connect (dialog,
-                            "response",
-                            G_CALLBACK (on_notification_reply),
-                            self);
-          g_hash_table_insert (self->dialogs,
-                               g_object_ref (notification),
-                               g_object_ref (dialog));
 
           device = valent_extension_get_object (VALENT_EXTENSION (self));
-          state = valent_device_get_state (device);
-          available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
-                      (state & VALENT_DEVICE_STATE_PAIRED) != 0;
-          valent_notification_dialog_update_state (dialog, available);
+          dialog = g_object_new (VALENT_TYPE_NOTIFICATION_DIALOG,
+                                 "device",       device,
+                                 "notification", notification,
+                                 "reply-id",     reply_id,
+                                 NULL);
+          g_hash_table_insert (self->dialogs,
+                               g_object_ref (notification),
+                               g_object_ref_sink (dialog));
         }
 
       gtk_window_present (GTK_WINDOW (dialog));
@@ -979,8 +934,6 @@ valent_notification_plugin_update_state (ValentDevicePlugin *plugin,
                                          ValentDeviceState   state)
 {
   ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (plugin);
-  GHashTableIter iter;
-  ValentNotificationDialog *dialog;
   gboolean available;
 
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
@@ -997,12 +950,6 @@ valent_notification_plugin_update_state (ValentDevicePlugin *plugin,
       valent_notification_plugin_request_notifications (self);
       VALENT_NOTE ("TODO: send active notifications");
     }
-
-  /* Update Reply Dialogs */
-  g_hash_table_iter_init (&iter, self->dialogs);
-
-  while (g_hash_table_iter_next (&iter, NULL, (void **)&dialog))
-    valent_notification_dialog_update_state (dialog, available);
 }
 
 static void
