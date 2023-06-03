@@ -339,6 +339,7 @@ valent_lan_channel_service_tcp_setup (ValentLanChannelService  *self,
       self->tcp_port++;
     }
 
+  valent_channel_service_build_identity (VALENT_CHANNEL_SERVICE (self));
   valent_object_unlock (VALENT_OBJECT (self));
 
   return G_IS_SOCKET_SERVICE (self->listener);
