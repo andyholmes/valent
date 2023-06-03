@@ -515,6 +515,8 @@ on_incoming_broadcast (ValentChannelService  *service,
   if (g_strcmp0 (device_id, local_id) == 0)
     return TRUE;
 
+  VALENT_JSON (peer_identity, device_id);
+
   /* Get the remote address and port */
   addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (incoming));
 
@@ -527,8 +529,6 @@ on_incoming_broadcast (ValentChannelService  *service,
                VALENT_LAN_PROTOCOL_PORT_MAX);
       return TRUE;
     }
-
-  VALENT_JSON (peer_identity, device_id);
 
   /* Defer the remaining work to another thread */
   outgoing = g_inet_socket_address_new (addr, port);
