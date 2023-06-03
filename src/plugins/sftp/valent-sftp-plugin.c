@@ -199,7 +199,7 @@ sftp_session_find (ValentSftpPlugin *self)
             self->session = g_new0 (ValentSftpSession, 1);
 
           g_set_object (&self->session->mount, iter->data);
-          valent_set_string (&self->session->uri, uri);
+          g_set_str (&self->session->uri, uri);
 
           return TRUE;
         }

@@ -720,6 +720,6 @@ valent_mpris_device_update_name (ValentMprisDevice *player,
   g_return_if_fail (VALENT_IS_MPRIS_DEVICE (player));
   g_return_if_fail (name != NULL);
 
-  if (valent_set_string (&player->name, name))
+  if (g_set_str (&player->name, name))
     g_object_notify (G_OBJECT (player), "name");
 }

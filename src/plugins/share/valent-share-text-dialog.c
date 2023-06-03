@@ -254,7 +254,7 @@ valent_share_text_dialog_set_text (ValentShareTextDialog *dialog,
 {
   g_assert (VALENT_IS_SHARE_TEXT_DIALOG (dialog));
 
-  if (valent_set_string (&dialog->text, text))
+  if (g_set_str (&dialog->text, text))
     {
       g_autofree char *markup = NULL;
 

@@ -1053,7 +1053,7 @@ valent_device_manager_set_name (ValentDeviceManager *manager,
   g_return_if_fail (VALENT_IS_DEVICE_MANAGER (manager));
   g_return_if_fail (name != NULL && *name != '\0');
 
-  if (valent_set_string (&manager->name, name))
+  if (g_set_str (&manager->name, name))
     g_object_notify_by_pspec (G_OBJECT (manager), properties [PROP_NAME]);
 }
 

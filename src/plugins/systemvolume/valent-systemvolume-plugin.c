@@ -89,7 +89,7 @@ on_stream_changed (ValentMixerStream        *stream,
    * update the state and send the whole list */
   description = valent_mixer_stream_get_description (stream);
 
-  if (valent_set_string (&state->description, description))
+  if (g_set_str (&state->description, description))
     {
       valent_systemvolume_plugin_send_sinklist (self);
       return;
