@@ -50,26 +50,27 @@ static const char *mimetypes[] = {
  * GtkWidget
  */
 static void
-presenter_open_response (GtkNativeDialog *dialog,
-                         int              response_id,
-                         gpointer         user_data)
+gtk_file_dialog_open_cb (GtkFileDialog         *dialog,
+                         GAsyncResult          *result,
+                         ValentPresenterRemote *self)
 {
-  ValentPresenterRemote *self = VALENT_PRESENTER_REMOTE (user_data);
+  g_autoptr (GFile) file = NULL;
+  g_autoptr (GError) error = NULL;
+  char *uri = NULL;
 
-  if (response_id == GTK_RESPONSE_ACCEPT)
+  if ((file = gtk_file_dialog_open_finish (dialog, result, &error)) == NULL)
     {
-      g_autoptr (GFile) file = NULL;
-      g_autofree char *uri = NULL;
+      if (!g_error_matches (error, GTK_DIALOG_ERROR, GTK_DIALOG_ERROR_CANCELLED) &&
+          !g_error_matches (error, GTK_DIALOG_ERROR, GTK_DIALOG_ERROR_DISMISSED))
+        g_warning ("%s(): %s", G_STRFUNC, error->message);
 
-      file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
-      uri = g_file_get_uri (file);
-
-      g_action_group_activate_action (G_ACTION_GROUP (self->device),
-                                      "share.open",
-                                      g_variant_new_string (uri));
+      return;
     }
 
-  gtk_native_dialog_destroy (dialog);
+  uri = g_file_get_uri (file);
+  g_action_group_activate_action (G_ACTION_GROUP (self->device),
+                                  "share.open",
+                                  g_variant_new_take_string (uri));
 }
 
 static void
@@ -78,43 +79,44 @@ presenter_open_action (GtkWidget  *widget,
                        GVariant   *parameter)
 {
   ValentPresenterRemote *self = VALENT_PRESENTER_REMOTE (widget);
-  GtkNativeDialog *dialog;
+  g_autoptr (GtkFileDialog) dialog = NULL;
+  g_autoptr (GListStore) filters = NULL;
   g_autoptr (GtkFileFilter) presentations_filter = NULL;
   g_autoptr (GtkFileFilter) all_filter = NULL;
 
   g_assert (VALENT_IS_PRESENTER_REMOTE (self));
 
   /* Select single files */
-  dialog = g_object_new (GTK_TYPE_FILE_CHOOSER_NATIVE,
-                         "title",           _("Select Presentation"),
-                         "accept-label",    _("Open"),
-                         "cancel-label",    _("Cancel"),
-                         "action",          GTK_FILE_CHOOSER_ACTION_OPEN,
-                         "select-multiple", FALSE,
-                         "modal",           TRUE,
-                         "transient-for",   self,
+  dialog = g_object_new (GTK_TYPE_FILE_DIALOG,
+                         "title",        _("Select Presentation"),
+                         "accept-label", _("Open"),
+                         "modal",        TRUE,
                          NULL);
 
   /* Filter presentation files */
+  filters = g_list_store_new (GTK_TYPE_FILE_FILTER);
+
   presentations_filter = gtk_file_filter_new ();
   gtk_file_filter_set_name (presentations_filter, _("Presentations"));
 
   for (unsigned int i = 0; mimetypes[i] != NULL; i++)
     gtk_file_filter_add_mime_type (presentations_filter, mimetypes[i]);
 
-  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), presentations_filter);
-
+  /* Allow any files */
   all_filter = gtk_file_filter_new ();
   gtk_file_filter_set_name (all_filter, _("All Files"));
   gtk_file_filter_add_pattern (all_filter, "*");
-  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), all_filter);
 
-  g_signal_connect (dialog,
-                    "response",
-                    G_CALLBACK (presenter_open_response),
-                    self);
+  filters = g_list_store_new (GTK_TYPE_FILE_FILTER);
+  g_list_store_append (filters, all_filter);
+  g_list_store_append (filters, presentations_filter);
+  gtk_file_dialog_set_filters (dialog, G_LIST_MODEL (filters));
 
-  gtk_native_dialog_show (dialog);
+  gtk_file_dialog_open (dialog,
+                        GTK_WINDOW (self),
+                        NULL,
+                        (GAsyncReadyCallback)gtk_file_dialog_open_cb,
+                        self);
 }
 
 /*
