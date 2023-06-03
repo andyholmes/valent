@@ -676,7 +676,9 @@ valent_channel_service_build_identity (ValentChannelService *service)
 
   g_return_if_fail (VALENT_IS_CHANNEL_SERVICE (service));
 
+  valent_object_lock (VALENT_OBJECT (service));
   VALENT_CHANNEL_SERVICE_GET_CLASS (service)->build_identity (service);
+  valent_object_unlock (VALENT_OBJECT (service));
 
   VALENT_EXIT;
 }
