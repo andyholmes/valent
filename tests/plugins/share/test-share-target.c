@@ -24,7 +24,7 @@ application_fixture_set_up (ApplicationPluginFixture *fixture,
   plugin_info = peas_engine_get_plugin_info (engine, "share");
 
   fixture->application = g_application_new ("ca.andyholmes.Valent.Tests",
-                                            G_APPLICATION_FLAGS_NONE);
+                                            G_APPLICATION_DEFAULT_FLAGS);
   fixture->manager = valent_device_manager_get_default ();
   fixture->extension = peas_engine_create_extension (engine,
                                                      plugin_info,

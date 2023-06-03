@@ -90,9 +90,9 @@ project_c_args = [
   '-Wno-unused-parameter',
 
   # These should be kept in sync (eg. GTK 4.10 requires GLib 2.72)
-  '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_72',
-  '-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_72',
-  '-DGDK_VERSION_MIN_REQUIRED=GDK_VERSION_4_8',
+  '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_76',
+  '-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_76',
+  '-DGDK_VERSION_MIN_REQUIRED=GDK_VERSION_4_10',
 ]
 project_link_args = [
   '-Wl,-z,relro',
@@ -174,8 +174,8 @@ configure_file(
 #
 # Dependencies
 #
-gio_version = '>= 2.72.0'
-gtk_version = '>= 4.8.0'
+glib_version = '>= 2.76.0'
+gtk_version = '>= 4.10.0'
 gnutls_version = '>= 3.1.3'
 json_glib_version = '>= 1.6.0'
 libpeas_version = '>= 1.22.0'
@@ -185,8 +185,8 @@ libadwaita_version = '>= 1.2.0'
 libportal_version = ['>= 0.5', '<= 0.6']
 
 libm_dep = cc.find_library('m', required: true)
-gio_dep = dependency('gio-2.0', version: gio_version)
-gio_unix_dep = dependency('gio-unix-2.0', version: gio_version)
+gio_dep = dependency('gio-2.0', version: glib_version)
+gio_unix_dep = dependency('gio-unix-2.0', version: glib_version)
 gnutls_dep = dependency('gnutls', version: gnutls_version)
 json_glib_dep = dependency('json-glib-1.0', version: json_glib_version)
 libpeas_dep = dependency('libpeas-1.0', version: libpeas_version)
