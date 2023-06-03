@@ -50,7 +50,8 @@ valent_sms_conversation_row_activate_link (GtkLabel   *label,
                                            gpointer    user_data)
 {
   GtkWidget *widget = GTK_WIDGET (label);
-  GtkWidget *toplevel = GTK_WIDGET (gtk_widget_get_root (widget));
+  GtkWindow *toplevel = GTK_WINDOW (gtk_widget_get_root (widget));
+  g_autoptr (GtkUriLauncher) launcher = NULL;
   g_autofree char *url = NULL;
 
   /* Only handle links that need to be amended with a scheme */
@@ -61,7 +62,8 @@ valent_sms_conversation_row_activate_link (GtkLabel   *label,
     return FALSE;
 
   url = g_strdup_printf ("https://%s", uri);
-  gtk_show_uri (GTK_WINDOW (toplevel), url, GDK_CURRENT_TIME);
+  launcher = gtk_uri_launcher_new (url);
+  gtk_uri_launcher_launch (launcher, toplevel, NULL, NULL, NULL);
 
   return TRUE;
 }

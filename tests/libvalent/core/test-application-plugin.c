@@ -24,7 +24,7 @@ application_fixture_set_up (ApplicationPluginFixture *fixture,
 
   VALENT_TEST_CHECK ("Plugin can be constructed");
   fixture->application = g_application_new ("ca.andyholmes.Valent.Tests",
-                                            G_APPLICATION_FLAGS_NONE);
+                                            G_APPLICATION_DEFAULT_FLAGS);
   fixture->extension = peas_engine_create_extension (engine,
                                                      plugin_info,
                                                      VALENT_TYPE_APPLICATION_PLUGIN,

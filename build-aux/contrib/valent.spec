@@ -1,7 +1,7 @@
 %global tarball_version %%(echo %{version} | tr '~' '.')
 
-%global glib2_version >= 2.72.0
-%global gtk4_version >= 4.8.0
+%global glib2_version >= 2.76.0
+%global gtk4_version >= 4.10.0
 %global json_glib_version >= 1.6.0
 %global libpeas_version >= 1.22.0
 %global libeds_version >= 3.34.0
@@ -115,7 +115,7 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/*.desktop
 %{_libexecdir}/installed-tests/libvalent-1/
 
 %changelog
-* Thu Mar 23 2023 Andy Holmes <andrew.g.r.holmes@gmail.com> - 1.0.0~alpha
+* Fri Jun 2 2023 Andy Holmes <andrew.g.r.holmes@gmail.com> - 1.0.0~alpha
 
 - Initial packaging
 
