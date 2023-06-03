@@ -46,26 +46,31 @@ on_download_folder_changed (GValue   *value,
 }
 
 static void
-on_download_folder_response (GtkNativeDialog             *dialog,
-                             int                          response_id,
-                             ValentDevicePreferencesGroup *group)
+gtk_file_dialog_select_folder_cb (GtkFileDialog                *dialog,
+                                  GAsyncResult                 *result,
+                                  ValentDevicePreferencesGroup *group)
 {
   g_autoptr (GFile) file = NULL;
+  g_autoptr (GError) error = NULL;
+  GSettings *settings;
+  const char *path;
 
   g_assert (VALENT_IS_DEVICE_PREFERENCES_GROUP (group));
 
-  if (response_id == GTK_RESPONSE_ACCEPT)
-    {
-      GSettings *settings;
-      const char *path;
+  file = gtk_file_dialog_select_folder_finish (dialog, result, &error);
 
-      file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
-      path = g_file_peek_path (file);
-      settings = valent_device_preferences_group_get_settings (group);
-      g_settings_set_string (settings, "download-folder", path);
+  if (file == NULL)
+    {
+      if (!g_error_matches (error, GTK_DIALOG_ERROR, GTK_DIALOG_ERROR_CANCELLED) &&
+          !g_error_matches (error, GTK_DIALOG_ERROR, GTK_DIALOG_ERROR_DISMISSED))
+        g_warning ("%s(): %s", G_STRFUNC, error->message);
+
+      return;
     }
 
-  gtk_native_dialog_destroy (dialog);
+  path = g_file_peek_path (file);
+  settings = valent_device_preferences_group_get_settings (group);
+  g_settings_set_string (settings, "download-folder", path);
 }
 
 /*
@@ -78,19 +83,16 @@ select_download_folder_action (GtkWidget  *widget,
 {
   ValentSharePreferences *self = VALENT_SHARE_PREFERENCES (widget);
   ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
+  g_autoptr (GtkFileDialog) dialog = NULL;
   GSettings *settings;
-  GtkNativeDialog *dialog;
   g_autofree char *path = NULL;
 
   g_assert (VALENT_IS_SHARE_PREFERENCES (self));
 
-  dialog = g_object_new (GTK_TYPE_FILE_CHOOSER_NATIVE,
-                         "action",        GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
-                         "title",         _("Select download folder"),
-                         "accept-label",  _("Open"),
-                         "cancel-label",  _("Cancel"),
-                         "modal",         TRUE,
-                         "transient-for", gtk_widget_get_root (widget),
+  dialog = g_object_new (GTK_TYPE_FILE_DIALOG,
+                         "title",        _("Select download folder"),
+                         "accept-label", _("Open"),
+                         "modal",        TRUE,
                          NULL);
 
   settings = valent_device_preferences_group_get_settings (group);
@@ -101,16 +103,14 @@ select_download_folder_action (GtkWidget  *widget,
       g_autoptr (GFile) file = NULL;
 
       file = g_file_new_for_path (path);
-      gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog),
-                                           file, NULL);
+      gtk_file_dialog_set_initial_folder (dialog, file);
     }
 
-  g_signal_connect_object (dialog,
-                           "response",
-                           G_CALLBACK (on_download_folder_response),
-                           self, 0);
-
-  gtk_native_dialog_show (dialog);
+  gtk_file_dialog_select_folder (dialog,
+                                 GTK_WINDOW (gtk_widget_get_root (widget)),
+                                 NULL,
+                                 (GAsyncReadyCallback)gtk_file_dialog_select_folder_cb,
+                                 self);
 }
 
 /*
