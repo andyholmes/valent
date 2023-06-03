@@ -35,33 +35,6 @@ G_BEGIN_DECLS
  */
 #define VALENT_STRV_INIT(...) ((const char * const[]) { __VA_ARGS__, NULL})
 
-/**
- * valent_set_string: (skip)
- * @ptr: a pointer to a string
- * @str: the string to set
- *
- * Set a string.
- *
- * Returns: %TRUE if changed, or %FALSE otherwise
- */
-static inline gboolean
-valent_set_string (char       **ptr,
-                   const char  *str)
-{
-  char *copy;
-
-  g_assert (ptr != NULL);
-
-  if (*ptr == str || (*ptr && str && strcmp (*ptr, str) == 0))
-    return FALSE;
-
-  copy = g_strdup (str);
-  g_free (*ptr);
-  *ptr = copy;
-
-  return TRUE;
-}
-
 G_END_DECLS
 
 #endif /* __GI_SCANNER__ */

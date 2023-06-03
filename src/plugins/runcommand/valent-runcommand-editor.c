@@ -193,7 +193,7 @@ valent_runcommand_editor_set_uuid (ValentRuncommandEditor *editor,
   if (uuid == NULL)
     uuid = "";
 
-  valent_set_string (&editor->uuid, uuid);
+  g_set_str (&editor->uuid, uuid);
 }
 
 /**

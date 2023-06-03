@@ -290,7 +290,7 @@ valent_notification_dialog_set_reply_id (ValentNotificationDialog *dialog,
 {
   g_return_if_fail (VALENT_IS_NOTIFICATION_DIALOG (dialog));
 
-  if (!valent_set_string (&dialog->reply_id, reply_id))
+  if (!g_set_str (&dialog->reply_id, reply_id))
     return;
 
   if (reply_id == NULL || *reply_id == '\0')

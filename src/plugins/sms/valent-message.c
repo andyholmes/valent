@@ -471,10 +471,10 @@ valent_message_update (ValentMessage *message,
       g_object_notify_by_pspec (G_OBJECT (message), properties [PROP_READ]);
     }
 
-  if (valent_set_string (&message->sender, update->sender))
+  if (g_set_str (&message->sender, update->sender))
     g_object_notify_by_pspec (G_OBJECT (message), properties [PROP_SENDER]);
 
-  if (valent_set_string (&message->text, update->text))
+  if (g_set_str (&message->text, update->text))
     g_object_notify_by_pspec (G_OBJECT (message), properties [PROP_TEXT]);
 
   g_object_thaw_notify (G_OBJECT (message));

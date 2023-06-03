@@ -52,7 +52,7 @@ valent_share_plugin_create_download_file (ValentSharePlugin *self,
       const char *user_download = NULL;
 
       user_download = valent_get_user_directory (G_USER_DIRECTORY_DOWNLOAD);
-      valent_set_string (&download_folder, user_download);
+      g_set_str (&download_folder, user_download);
     }
 
   if (g_mkdir_with_parents (download_folder, 0700) == -1)
