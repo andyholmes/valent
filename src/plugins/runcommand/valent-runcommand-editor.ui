@@ -4,95 +4,81 @@
 <!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <interface domain="valent">
-  <template class="ValentRuncommandEditor" parent="GtkDialog">
-    <property name="title" translatable="yes">Edit</property>
-    <property name="hide-on-close">1</property>
-    <child type="action">
-      <object class="GtkButton" id="cancel_button">
-        <property name="label" translatable="yes">Cancel</property>
+  <template class="ValentRuncommandEditor" parent="GtkWindow">
+    <property name="title" translatable="yes">Edit Command</property>
+    <property name="width-request">360</property>
+    <property name="height-request">294</property>
+    <property name="titlebar">
+      <object class="GtkHeaderBar">
+        <property name="show-title-buttons">0</property>
+        <child type="start">
+          <object class="GtkButton">
+            <property name="action-name">editor.cancel</property>
+            <property name="label" translatable="yes">_Cancel</property>
+            <property name="use-underline">1</property>
+         </object>
+        </child>
+        <child type="end">
+          <object class="GtkButton" id="save_button">
+            <property name="action-name">editor.save</property>
+            <property name="label" translatable="yes">_Save</property>
+            <property name="use-underline">1</property>
+            <style>
+              <class name="suggested-action"/>
+            </style>
+         </object>
+        </child>
       </object>
-    </child>
-    <child type="action">
-      <object class="GtkButton" id="save_button">
-        <property name="label" translatable="yes">Save</property>
-        <property name="sensitive">0</property>
-      </object>
-    </child>
-    <action-widgets>
-      <action-widget response="cancel">cancel_button</action-widget>
-      <action-widget response="accept" default="true">save_button</action-widget>
-    </action-widgets>
-    <child internal-child="content_area">
-      <object class="GtkBox">
-        <property name="orientation">vertical</property>
-        <property name="spacing">2</property>
+    </property>
+    <property name="child">
+      <object class="AdwPreferencesPage">
         <child>
-          <object class="GtkGrid">
-            <property name="valign">start</property>
-            <property name="margin-start">12</property>
-            <property name="margin-end">12</property>
-            <property name="margin-top">8</property>
-            <property name="margin-bottom">8</property>
-            <property name="hexpand">1</property>
+          <object class="AdwPreferencesGroup">
+            <child>
+              <object class="AdwEntryRow" id="name_entry">
+                <property name="title" translatable="yes">Name</property>
+                <signal name="changed"
+                        handler="on_entry_changed"
+                        object="ValentRuncommandEditor"
+                        swapped="no"/>
+              </object>
+            </child>
+            <child>
+              <object class="AdwEntryRow" id="argv_entry">
+                <property name="title" translatable="yes">Command Line</property>
+                <signal name="changed"
+                        handler="on_entry_changed"
+                        object="ValentRuncommandEditor"
+                        swapped="no"/>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwPreferencesGroup" id="remove_group">
+            <property name="valign">end</property>
             <property name="vexpand">1</property>
-            <property name="row-spacing">6</property>
-            <property name="column-spacing">12</property>
             <child>
-              <object class="GtkLabel">
-                <property name="halign">end</property>
-                <property name="xalign">1</property>
-                <property name="label" translatable="yes">Name</property>
-                <layout>
-                  <property name="column">0</property>
-                  <property name="row">0</property>
-                </layout>
-                <style>
-                  <class name="dim-label"/>
-                </style>
-              </object>
-            </child>
-            <child>
-              <object class="GtkEntry" id="name_entry">
-                <property name="activates-default">1</property>
-                <property name="valign">center</property>
-                <property name="hexpand">1</property>
-                <signal name="changed" handler="on_entry_changed" object="ValentRuncommandEditor" swapped="no"/>
-                <layout>
-                  <property name="column">1</property>
-                  <property name="row">0</property>
-                </layout>
-              </object>
-            </child>
-            <child>
-              <object class="GtkLabel">
-                <property name="halign">end</property>
-                <property name="xalign">1</property>
-                <property name="label" translatable="yes">Command Line</property>
-                <layout>
-                  <property name="column">0</property>
-                  <property name="row">1</property>
-                </layout>
-                <style>
-                  <class name="dim-label"/>
-                </style>
-              </object>
-            </child>
-            <child>
-              <object class="GtkEntry" id="command_entry">
-                <property name="activates-default">1</property>
-                <property name="valign">center</property>
-                <property name="hexpand">1</property>
-                <signal name="changed" handler="on_entry_changed" object="ValentRuncommandEditor" swapped="no"/>
-                <layout>
-                  <property name="column">1</property>
-                  <property name="row">1</property>
-                </layout>
+              <object class="AdwActionRow">
+                <property name="title" translatable="yes">Remove the command</property>
+                <property name="activatable">0</property>
+                <property name="selectable">0</property>
+                <child type="suffix">
+                  <object class="GtkButton">
+                    <property name="action-name">editor.remove</property>
+                    <property name="label" translatable="yes">Remove</property>
+                    <property name="valign">center</property>
+                    <style>
+                      <class name="destructive-action"/>
+                    </style>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
         </child>
       </object>
-    </child>
+    </property>
   </template>
 </interface>
 
