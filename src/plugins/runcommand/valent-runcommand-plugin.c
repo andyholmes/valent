@@ -105,31 +105,35 @@ launcher_watch (GSubprocess  *subprocess,
 
 static gboolean
 launcher_execute (ValentRuncommandPlugin  *self,
-                  const char              *command,
+                  GVariant                *command,
                   GError                 **error)
 {
   g_autoptr (GSubprocess) subprocess = NULL;
-  g_autoptr (GString) command_line = NULL;
-  g_autofree char *quoted = NULL;
+  g_autoptr (GString) args = NULL;
   g_auto (GStrv) argv = NULL;
+  g_autofree char *command_quoted = NULL;
+  const char *command_args = "";
 
   g_assert (VALENT_IS_RUNCOMMAND_PLUGIN (self));
-  g_assert (command != NULL && *command != '\0');
+  g_assert (command != NULL && g_variant_is_of_type (command, G_VARIANT_TYPE_VARDICT));
   g_assert (error == NULL || *error == NULL);
 
   launcher_init (self);
 
-  command_line = g_string_new ("");
+  args = g_string_new ("");
+  g_variant_lookup (command, "command", "&s", &command_args);
 
-  /* When running in a Flatpak, run the command on the host */
-  if (xdp_portal_running_under_flatpak () && valent_runcommand_can_spawn_host ())
-    g_string_append (command_line, "flatpak-spawn --host ");
 
-  /* Quote the command for the subshell */
-  quoted = g_shell_quote (command);
-  g_string_append_printf (command_line, "sh -c %s", quoted);
+  /* When running in a Flatpak, run the command on the host if possible */
+  if (xdp_portal_running_under_flatpak () &&
+      valent_runcommand_can_spawn_host ())
+    g_string_append (args, "flatpak-spawn --host ");
 
-  if (!g_shell_parse_argv (command_line->str, NULL, &argv, error))
+  /* Quote the arguments for the shell */
+  command_quoted = g_shell_quote (command_args);
+  g_string_append_printf (args, "sh -c %s", command_quoted);
+
+  if (!g_shell_parse_argv (args->str, NULL, &argv, error))
     return FALSE;
 
   subprocess = g_subprocess_launcher_spawnv (self->launcher,
@@ -179,7 +183,7 @@ valent_runcommand_plugin_execute_local_command (ValentRuncommandPlugin *self,
   GSettings *settings;
   g_autoptr (GVariant) commands = NULL;
   g_autoptr (GVariant) command = NULL;
-  const char *command_str;
+  g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_RUNCOMMAND_PLUGIN (self));
   g_return_if_fail (key != NULL);
@@ -191,19 +195,8 @@ valent_runcommand_plugin_execute_local_command (ValentRuncommandPlugin *self,
   if (!g_variant_lookup (commands, key, "@a{sv}", &command))
     return valent_runcommand_plugin_send_command_list (self);
 
-  /* Lookup the command line */
-  if (g_variant_lookup (command, "command", "&s", &command_str))
-    {
-      g_autoptr (GError) error = NULL;
-
-      if (!launcher_execute (self, command_str, &error))
-        {
-          g_warning ("%s(): spawning \"%s\": %s",
-                     G_STRFUNC,
-                     command_str,
-                     error->message);
-        }
-    }
+  if (!launcher_execute (self, command, &error))
+    g_warning ("%s(): %s", G_STRFUNC, error->message);
 }
 
 static void
@@ -436,10 +429,10 @@ valent_runcommand_plugin_update_state (ValentDevicePlugin *plugin,
       if (self->commands_changed_id == 0)
         {
           self->commands_changed_id =
-            g_signal_connect (settings,
-                              "changed::commands",
-                              G_CALLBACK (on_commands_changed),
-                              self);
+            g_signal_connect_object (settings,
+                                     "changed::commands",
+                                     G_CALLBACK (on_commands_changed),
+                                     self, 0);
         }
 
       valent_runcommand_plugin_send_command_list (self);

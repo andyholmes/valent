@@ -5,6 +5,7 @@
 
 #include "config.h"
 
+#include <adwaita.h>
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
 #include <gio/gio.h>
@@ -16,37 +17,128 @@
 
 struct _ValentRuncommandEditor
 {
-  GtkDialog  parent_instance;
+  GtkWindow    parent_instance;
 
-  char      *uuid;
+  char        *uuid;
+  GVariant    *command;
 
   /* template */
-  GtkButton *cancel_button;
-  GtkButton *save_button;
-  GtkEntry  *command_entry;
-  GtkEntry  *name_entry;
+  GtkWidget   *save_button;
+  AdwEntryRow *argv_entry;
+  AdwEntryRow *name_entry;
+  GtkWidget   *remove_group;
 };
 
-G_DEFINE_TYPE (ValentRuncommandEditor, valent_runcommand_editor, GTK_TYPE_DIALOG)
+G_DEFINE_TYPE (ValentRuncommandEditor, valent_runcommand_editor, GTK_TYPE_WINDOW)
+
+enum {
+  PROP_0,
+  PROP_COMMAND,
+  PROP_UUID,
+  N_PROPERTIES
+};
+
+static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 
-/*
- * GtkDialog
- */
 static void
-on_entry_changed (GtkEntry               *entry,
+on_entry_changed (AdwEntryRow            *entry,
                   ValentRuncommandEditor *self)
 {
-  const char *command;
-  const char *name;
+  const char *argv_text;
+  const char *name_text;
 
-  command = valent_runcommand_editor_get_command (self);
-  name = valent_runcommand_editor_get_name (self);
+  g_assert (entry == NULL || ADW_IS_ENTRY_ROW (entry));
+  g_assert (VALENT_IS_RUNCOMMAND_EDITOR (self));
 
-  if ((name != NULL && *name != '\0') && (command != NULL && *command != '\0'))
-    gtk_widget_set_sensitive (GTK_WIDGET (self->save_button), TRUE);
+  argv_text = gtk_editable_get_text (GTK_EDITABLE (self->argv_entry));
+  name_text = gtk_editable_get_text (GTK_EDITABLE (self->name_entry));
+
+  if (argv_text != NULL && *argv_text != '\0' &&
+      name_text != NULL && *name_text != '\0')
+    gtk_widget_action_set_enabled (GTK_WIDGET (self), "editor.save", TRUE);
   else
-    gtk_widget_set_sensitive (GTK_WIDGET (self->save_button), FALSE);
+    gtk_widget_action_set_enabled (GTK_WIDGET (self), "editor.save", FALSE);
+}
+
+static void
+valent_runcommand_editor_sync (ValentRuncommandEditor *self)
+{
+  const char *name_text = "";
+  const char *argv_text = "";
+
+  g_assert (VALENT_IS_RUNCOMMAND_EDITOR (self));
+
+  /* Parse command */
+  if (self->command != NULL)
+    {
+      g_variant_lookup (self->command, "name", "&s", &name_text);
+      g_variant_lookup (self->command, "command", "&s", &argv_text);
+    }
+
+  /* Update editor content */
+  gtk_editable_set_text (GTK_EDITABLE (self->name_entry), name_text);
+  gtk_editable_set_text (GTK_EDITABLE (self->argv_entry), argv_text);
+  gtk_widget_set_visible (self->remove_group, self->command != NULL);
+  on_entry_changed (NULL, self);
+}
+
+/*
+ * GAction
+ */
+static void
+editor_cancel_action (GtkWidget  *widget,
+                      const char *action_name,
+                      GVariant   *parameter)
+{
+  ValentRuncommandEditor *self = VALENT_RUNCOMMAND_EDITOR (widget);
+
+  valent_runcommand_editor_sync (self);
+  g_object_notify_by_pspec (G_OBJECT (widget), properties [PROP_COMMAND]);
+}
+
+static void
+editor_remove_action (GtkWidget  *widget,
+                      const char *action_name,
+                      GVariant   *parameter)
+{
+  ValentRuncommandEditor *self = VALENT_RUNCOMMAND_EDITOR (widget);
+
+  gtk_editable_set_text (GTK_EDITABLE (self->name_entry), "");
+  gtk_editable_set_text (GTK_EDITABLE (self->argv_entry), "");
+
+  g_clear_pointer (&self->command, g_variant_unref);
+  g_object_notify_by_pspec (G_OBJECT (widget), properties [PROP_COMMAND]);
+}
+
+static void
+editor_save_action (GtkWidget  *widget,
+                    const char *action_name,
+                    GVariant   *parameter)
+{
+  ValentRuncommandEditor *self = VALENT_RUNCOMMAND_EDITOR (widget);
+  GVariant *command = NULL;
+  const char *name_text = NULL;
+  const char *argv_text = NULL;
+
+  g_assert (VALENT_IS_RUNCOMMAND_EDITOR (self));
+
+  name_text = gtk_editable_get_text (GTK_EDITABLE (self->name_entry));
+  argv_text = gtk_editable_get_text (GTK_EDITABLE (self->argv_entry));
+
+  g_return_if_fail (argv_text != NULL && *argv_text != '\0' &&
+                    name_text != NULL && *name_text != '\0');
+
+  command = g_variant_new_parsed ("{"
+                                    "'name': <%s>, "
+                                    "'command': <%s>"
+                                  "}",
+                                  name_text,
+                                  argv_text);
+
+  g_clear_pointer (&self->command, g_variant_unref);
+  self->command = g_variant_ref_sink (command);
+  g_object_notify_by_pspec (G_OBJECT (widget), properties [PROP_COMMAND]);
 }
 
 /*
@@ -67,9 +159,56 @@ valent_runcommand_editor_finalize (GObject *object)
 {
   ValentRuncommandEditor *self = VALENT_RUNCOMMAND_EDITOR (object);
 
+  g_clear_pointer (&self->command, g_variant_unref);
   g_clear_pointer (&self->uuid, g_free);
 
   G_OBJECT_CLASS (valent_runcommand_editor_parent_class)->finalize (object);
+}
+
+static void
+valent_runcommand_editor_get_property (GObject    *object,
+                                       guint       prop_id,
+                                       GValue     *value,
+                                       GParamSpec *pspec)
+{
+  ValentRuncommandEditor *self = VALENT_RUNCOMMAND_EDITOR (object);
+
+  switch (prop_id)
+    {
+    case PROP_COMMAND:
+      g_value_set_variant (value, self->command);
+      break;
+
+    case PROP_UUID:
+      g_value_set_string (value, self->uuid);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
+static void
+valent_runcommand_editor_set_property (GObject      *object,
+                                       guint         prop_id,
+                                       const GValue *value,
+                                       GParamSpec   *pspec)
+{
+  ValentRuncommandEditor *self = VALENT_RUNCOMMAND_EDITOR (object);
+
+  switch (prop_id)
+    {
+    case PROP_COMMAND:
+      valent_runcommand_editor_set_command (self, g_value_get_variant (value));
+      break;
+
+    case PROP_UUID:
+      valent_runcommand_editor_set_uuid (self, g_value_get_string (value));
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
 }
 
 static void
@@ -80,85 +219,96 @@ valent_runcommand_editor_class_init (ValentRuncommandEditorClass *klass)
 
   object_class->dispose = valent_runcommand_editor_dispose;
   object_class->finalize = valent_runcommand_editor_finalize;
+  object_class->get_property = valent_runcommand_editor_get_property;
+  object_class->set_property = valent_runcommand_editor_set_property;
+
+  /**
+   * ValentRuncommandEditor:command: (getter get_command) (setter set_command)
+   *
+   * The command the editor is operating on.
+   *
+   * Since: 1.0
+   */
+  properties [PROP_COMMAND] =
+    g_param_spec_variant ("command", NULL, NULL,
+                          G_VARIANT_TYPE_VARDICT,
+                          NULL,
+                         (G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT |
+                          G_PARAM_EXPLICIT_NOTIFY |
+                          G_PARAM_STATIC_STRINGS));
+
+  /**
+   * ValentRuncommandEditor:uuid: (getter get_uuid) (setter set_uuid)
+   *
+   * The uuid the editor is operating on.
+   *
+   * Since: 1.0
+   */
+  properties [PROP_UUID] =
+    g_param_spec_string ("uuid", NULL, NULL,
+                         "",
+                         (G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT |
+                          G_PARAM_EXPLICIT_NOTIFY |
+                          G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/runcommand/valent-runcommand-editor.ui");
-  gtk_widget_class_bind_template_child (widget_class, ValentRuncommandEditor, cancel_button);
   gtk_widget_class_bind_template_child (widget_class, ValentRuncommandEditor, save_button);
-  gtk_widget_class_bind_template_child (widget_class, ValentRuncommandEditor, command_entry);
+  gtk_widget_class_bind_template_child (widget_class, ValentRuncommandEditor, argv_entry);
   gtk_widget_class_bind_template_child (widget_class, ValentRuncommandEditor, name_entry);
+  gtk_widget_class_bind_template_child (widget_class, ValentRuncommandEditor, remove_group);
   gtk_widget_class_bind_template_callback (widget_class, on_entry_changed);
+
+  gtk_widget_class_install_action (widget_class, "editor.cancel", NULL, editor_cancel_action);
+  gtk_widget_class_install_action (widget_class, "editor.remove", NULL, editor_remove_action);
+  gtk_widget_class_install_action (widget_class, "editor.save", NULL, editor_save_action);
 }
 
 static void
 valent_runcommand_editor_init (ValentRuncommandEditor *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
-
-  self->uuid = g_strdup ("");
 }
 
 /**
  * valent_runcommand_editor_get_command:
  * @editor: a #ValentRuncommandEditor
  *
- * Get the command-line entry text for @editor
+ * Get the command the editor is operating on.
  *
- * Returns: (not nullable) (transfer none): the command-line
+ * Returns: (transfer none) (nullable): the command
  */
-const char *
+GVariant *
 valent_runcommand_editor_get_command (ValentRuncommandEditor *editor)
 {
   g_return_val_if_fail (VALENT_IS_RUNCOMMAND_EDITOR (editor), NULL);
 
-  return gtk_editable_get_text (GTK_EDITABLE (editor->command_entry));
+  return editor->command;
 }
 
 /**
  * valent_runcommand_editor_set_command:
  * @editor: a #ValentRuncommandEditor
- * @command: a command-line
+ * @command: a command entry
  *
- * Set the command-line entry text for @editor to @command.
+ * Set the command for the editor to operate on.
  */
 void
 valent_runcommand_editor_set_command (ValentRuncommandEditor *editor,
-                                      const char             *command)
+                                      GVariant               *command)
 {
   g_return_if_fail (VALENT_IS_RUNCOMMAND_EDITOR (editor));
+  g_return_if_fail (command == NULL || g_variant_is_of_type (command, G_VARIANT_TYPE_VARDICT));
 
-  gtk_editable_set_text (GTK_EDITABLE (editor->command_entry), command);
-}
+  /* Update the property */
+  g_clear_pointer (&editor->command, g_variant_unref);
+  editor->command = command ? g_variant_ref_sink (command) : NULL;
+  g_object_notify_by_pspec (G_OBJECT (editor), properties [PROP_COMMAND]);
 
-/**
- * valent_runcommand_editor_get_name:
- * @editor: a #ValentRuncommandEditor
- *
- * Get the command name entry text for @editor
- *
- * Returns: (not nullable) (transfer none): the command name
- */
-const char *
-valent_runcommand_editor_get_name (ValentRuncommandEditor *editor)
-{
-  g_return_val_if_fail (VALENT_IS_RUNCOMMAND_EDITOR (editor), NULL);
-
-  return gtk_editable_get_text (GTK_EDITABLE (editor->name_entry));
-}
-
-/**
- * valent_runcommand_editor_set_name:
- * @editor: a #ValentRuncommandEditor
- * @name: a command name
- *
- * Set the command name entry text for @editor to @command.
- */
-void
-valent_runcommand_editor_set_name (ValentRuncommandEditor *editor,
-                                   const char             *name)
-{
-  g_return_if_fail (VALENT_IS_RUNCOMMAND_EDITOR (editor));
-
-  gtk_editable_set_text (GTK_EDITABLE (editor->name_entry), name);
+  valent_runcommand_editor_sync (editor);
 }
 
 /**
@@ -189,26 +339,9 @@ valent_runcommand_editor_set_uuid (ValentRuncommandEditor *editor,
                                    const char             *uuid)
 {
   g_return_if_fail (VALENT_IS_RUNCOMMAND_EDITOR (editor));
+  g_return_if_fail (uuid != NULL);
 
-  if (uuid == NULL)
-    uuid = "";
-
-  g_set_str (&editor->uuid, uuid);
-}
-
-/**
- * valent_runcommand_editor_clear:
- * @editor: a #ValentRuncommandEditor
- *
- * Clear the name, command and UUID of @editor.
- */
-void
-valent_runcommand_editor_clear (ValentRuncommandEditor *editor)
-{
-  g_return_if_fail (VALENT_IS_RUNCOMMAND_EDITOR (editor));
-
-  valent_runcommand_editor_set_uuid (editor, "");
-  gtk_editable_set_text (GTK_EDITABLE (editor->name_entry), "");
-  gtk_editable_set_text (GTK_EDITABLE (editor->command_entry), "");
+  if (g_set_str (&editor->uuid, uuid))
+    g_object_notify_by_pspec (G_OBJECT (editor), properties [PROP_UUID]);
 }
 
