@@ -4,140 +4,222 @@
 <!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <interface domain="valent">
-  <template class="ValentNotificationDialog" parent="GtkDialog">
-    <property name="default-width">320</property>
+  <template class="ValentNotificationDialog" parent="GtkWindow">
+    <property name="default-width">360</property>
     <property name="default-height">294</property>
-    <property name="width-request">320</property>
+    <property name="width-request">360</property>
     <property name="height-request">294</property>
     <property name="title" translatable="yes">Notification</property>
-    <child type="action">
-      <object class="GtkButton" id="cancel_button">
-        <property name="label" translatable="yes">Cancel</property>
+    <property name="titlebar">
+      <object class="GtkHeaderBar">
+        <property name="show-title-buttons">0</property>
+        <child type="start">
+          <object class="GtkButton" id="cancel_button">
+            <property name="action-name">dialog.cancel</property>
+            <property name="label" translatable="yes">_Cancel</property>
+            <property name="use-underline">1</property>
+         </object>
+        </child>
+        <child type="end">
+          <object class="GtkButton" id="reply_button">
+            <property name="action-name">notification.reply</property>
+            <property name="label" translatable="yes">_Reply</property>
+            <property name="use-underline">1</property>
+            <accessibility>
+              <property name="description">Reply to the notification</property>
+            </accessibility>
+            <style>
+              <class name="suggested-action"/>
+            </style>
+         </object>
+        </child>
       </object>
-    </child>
-    <child type="action">
-      <object class="GtkButton" id="send_button">
-        <property name="label" translatable="yes">Send</property>
-      </object>
-    </child>
-    <action-widgets>
-      <action-widget response="cancel">cancel_button</action-widget>
-      <action-widget response="ok" default="true">send_button</action-widget>
-    </action-widgets>
-    <child internal-child="content_area">
-      <object class="GtkBox">
-        <property name="margin-top">12</property>
-        <property name="margin-bottom">12</property>
-        <property name="margin-start">12</property>
-        <property name="margin-end">12</property>
-        <property name="orientation">vertical</property>
-        <property name="spacing">12</property>
+    </property>
+    <property name="child">
+      <object class="AdwClamp">
         <child>
-          <object class="GtkFrame">
-            <property name="valign">start</property>
-            <property name="vexpand">0</property>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+
+            <!-- Mock Notification -->
             <child>
-              <object class="GtkBox">
-                <property name="orientation">vertical</property>
+              <object class="GtkFrame">
+                <property name="accessible-role">presentation</property>
+                <property name="margin-top">12</property>
+                <property name="margin-bottom">12</property>
+                <property name="margin-start">12</property>
+                <property name="margin-end">12</property>
+                <property name="valign">start</property>
+                <style>
+                  <class name="osd"/>
+                </style>
                 <child>
-                  <object class="GtkGrid">
-                    <property name="column-spacing">12</property>
-                    <property name="row-spacing">6</property>
-                    <property name="margin-top">12</property>
-                    <property name="margin-bottom">12</property>
-                    <property name="margin-start">12</property>
-                    <property name="margin-end">12</property>
+                  <object class="GtkGrid" id="notification_grid">
+                    <property name="accessible-role">group</property>
+                    <accessibility>
+                      <relation name="labelled-by">title_label</relation>
+                      <relation name="described-by">body_label</relation>
+                    </accessibility>
+                    <style>
+                      <class name="notification"/>
+                    </style>
                     <child>
-                      <object class="GtkImage" id="icon_image">
-                        <property name="halign">start</property>
-                        <property name="valign">start</property>
-                        <property name="icon-name">phonelink-symbolic</property>
-                        <property name="pixel-size">32</property>
+                      <object class="GtkGrid" id="notification_content">
+                        <property name="accessible-role">presentation</property>
+                        <property name="column-spacing">6</property>
+                        <property name="row-spacing">6</property>
+                        <property name="margin-top">18</property>
+                        <property name="margin-bottom">18</property>
+                        <property name="margin-start">18</property>
+                        <property name="margin-end">18</property>
                         <layout>
                           <property name="column">0</property>
                           <property name="row">0</property>
-                          <property name="row-span">2</property>
                         </layout>
+                        <child>
+                          <object class="GtkImage" id="icon_image">
+                            <property name="margin-end">6</property>
+                            <property name="halign">start</property>
+                            <property name="valign">start</property>
+                            <property name="icon-name">dialog-information-symbolic</property>
+                            <property name="pixel-size">32</property>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">0</property>
+                              <property name="row-span">2</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="title_label">
+                            <property name="halign">start</property>
+                            <property name="label">No Title</property>
+                            <attributes>
+                              <attribute name="weight" value="bold"/>
+                            </attributes>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">0</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="time_label">
+                            <property name="halign">start</property>
+                            <property name="hexpand">1</property>
+                            <property name="valign">end</property>
+                            <layout>
+                              <property name="column">2</property>
+                              <property name="row">0</property>
+                            </layout>
+                            <style>
+                              <class name="caption"/>
+                              <class name="dim-label"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="body_label">
+                            <property name="hexpand">1</property>
+                            <property name="use-markup">1</property>
+                            <property name="wrap">1</property>
+                            <property name="wrap-mode">word-char</property>
+                            <property name="xalign">0</property>
+                            <property name="yalign">0</property>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">1</property>
+                              <property name="column-span">2</property>
+                            </layout>
+                          </object>
+                        </child>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkLabel" id="title_label">
-                        <property name="halign">start</property>
-                        <property name="hexpand">1</property>
-                        <property name="label">No Title</property>
-                        <attributes>
-                          <attribute name="weight" value="bold"/>
-                        </attributes>
+                      <object class="GtkButton" id="close_button">
+                        <property name="action-name">notification.close</property>
+                        <property name="child">
+                          <object class="GtkImage">
+                            <property name="icon-name">window-close-symbolic</property>
+                            <property name="pixel-size">16</property>
+                          </object>
+                        </property>
+                        <property name="valign">start</property>
+                        <property name="visible">0</property>
+                        <accessibility>
+                          <property name="label" translatable="yes">Close</property>
+                          <property name="description" translatable="yes">Close the notification</property>
+                        </accessibility>
                         <layout>
                           <property name="column">1</property>
                           <property name="row">0</property>
                         </layout>
+                        <style>
+                          <class name="circular"/>
+                        </style>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkLabel" id="body_label">
+                      <object class="GtkBox" id="notification_buttons">
+                        <property name="accessible-role">group</property>
                         <property name="hexpand">1</property>
-                        <property name="use-markup">1</property>
-                        <property name="wrap">1</property>
-                        <property name="wrap-mode">word-char</property>
-                        <property name="xalign">0</property>
-                        <property name="yalign">0</property>
+                        <property name="homogeneous">1</property>
                         <layout>
-                          <property name="column">1</property>
+                          <property name="column">0</property>
+                          <property name="column-span">2</property>
                           <property name="row">1</property>
                         </layout>
+                        <style>
+                          <class name="linked"/>
+                          <class name="notification-buttons"/>
+                        </style>
+                        <child>
+                          <object class="GtkButton" id="button1">
+                            <property name="visible">0</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="button2">
+                            <property name="visible">0</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="button3">
+                            <property name="visible">0</property>
+                          </object>
+                        </child>
                       </object>
                     </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkBox" id="notification_buttons">
-                    <property name="hexpand">1</property>
-                    <property name="homogeneous">1</property>
-                    <property name="visible">0</property>
-                    <child>
-                      <object class="GtkButton" id="button1">
-                        <property name="visible">0</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkButton" id="button2">
-                        <property name="visible">0</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkButton" id="button3">
-                        <property name="visible">0</property>
-                      </object>
-                    </child>
-                    <style>
-                      <class name="linked"/>
-                      <class name="notification-buttons"/>
-                    </style>
                   </object>
                 </child>
               </object>
             </child>
-            <style>
-              <class name="notification"/>
-            </style>
-          </object>
-        </child>
-        <child>
-          <object class="GtkFrame" id="reply_frame">
-            <property name="visible">0</property>
+
+            <!-- Reply Entry -->
             <child>
-              <object class="GtkScrolledWindow">
-                <property name="hscrollbar-policy">never</property>
+              <object class="GtkBox">
+                <style>
+                  <class name="message-area"/>
+                </style>
                 <child>
-                  <object class="GtkTextView" id="reply_entry">
-                    <property name="hexpand">1</property>
-                    <property name="vexpand">1</property>
-                    <property name="top-margin">6</property>
-                    <property name="bottom-margin">6</property>
-                    <property name="left-margin">6</property>
-                    <property name="right-margin">6</property>
-                    <property name="wrap-mode">word-char</property>
+                  <object class="GtkFrame" id="reply_frame">
+                    <property name="visible">0</property>
+                    <child>
+                      <object class="GtkScrolledWindow">
+                        <property name="hscrollbar-policy">never</property>
+                        <child>
+                          <object class="GtkTextView" id="reply_entry">
+                            <property name="hexpand">1</property>
+                            <property name="vexpand">1</property>
+                            <property name="top-margin">6</property>
+                            <property name="bottom-margin">6</property>
+                            <property name="left-margin">6</property>
+                            <property name="right-margin">6</property>
+                            <property name="wrap-mode">word-char</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>
@@ -145,6 +227,9 @@
           </object>
         </child>
       </object>
-    </child>
+    </property>
+    <style>
+      <class name="messagedialog"/>
+    </style>
   </template>
 </interface>
