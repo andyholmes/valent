@@ -45,13 +45,6 @@ enum {
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
-enum {
-  CHANGED,
-  N_SIGNALS
-};
-
-static guint signals[N_SIGNALS] = { 0, };
-
 static ValentSession *default_adapter = NULL;
 
 
@@ -208,23 +201,6 @@ valent_session_class_init (ValentSessionClass *klass)
                            G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
-
-  /**
-   * ValentSession::changed:
-   * @session: a #ValentSession
-   *
-   * Emitted when the state of the primary [class@Valent.SessionAdapter]
-   * changes.
-   *
-   * Since: 1.0
-   */
-  signals [CHANGED] =
-    g_signal_new ("changed",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_FIRST,
-                  0,
-                  NULL, NULL, NULL,
-                  G_TYPE_NONE, 0);
 }
 
 static void
