@@ -235,7 +235,7 @@ list_names_cb (GDBusConnection *connection,
 
           /* This is the D-Bus name we export on */
           if G_UNLIKELY (g_str_has_prefix (name, VALENT_MPRIS_DBUS_NAME))
-            return;
+            continue;
 
           g_async_initable_new_async (VALENT_TYPE_MPRIS_PLAYER,
                                       G_PRIORITY_DEFAULT,
