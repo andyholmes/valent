@@ -44,7 +44,7 @@ struct _ValentExtensionClass
 VALENT_AVAILABLE_IN_1_0
 ValentContext     * valent_extension_get_context          (ValentExtension    *extension);
 VALENT_AVAILABLE_IN_1_0
-GObject           * valent_extension_get_object           (ValentExtension    *extension);
+gpointer            valent_extension_get_object           (ValentExtension    *extension);
 VALENT_AVAILABLE_IN_1_0
 GSettings         * valent_extension_get_settings         (ValentExtension    *extension);
 VALENT_AVAILABLE_IN_1_0
@@ -57,9 +57,6 @@ void                valent_extension_plugin_state_changed (ValentExtension    *e
 VALENT_AVAILABLE_IN_1_0
 void                valent_extension_toggle_actions       (ValentExtension    *extension,
                                                            gboolean            enabled);
-
-/* Convenience Macros */
-#define valent_extension_get_object(e) ((void *)valent_extension_get_object (e))
 
 G_END_DECLS
 

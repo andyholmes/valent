@@ -557,8 +557,8 @@ valent_extension_get_context (ValentExtension *extension)
  *
  * Since: 1.0
  */
-GObject *
-(valent_extension_get_object) (ValentExtension *extension)
+gpointer
+valent_extension_get_object (ValentExtension *extension)
 {
   ValentExtensionPrivate *priv = valent_extension_get_instance_private (extension);
 
@@ -658,7 +658,7 @@ valent_extension_plugin_state_changed (ValentExtension   *extension,
   if (state == VALENT_PLUGIN_STATE_ERROR && error != NULL)
     priv->plugin_error = g_error_copy (error);
 
-  if (priv->plugin_state != state || error != NULL)
+  if (priv->plugin_state != state || priv->plugin_error != NULL)
     {
       priv->plugin_state = state;
       valent_object_notify_by_pspec (VALENT_OBJECT (extension),
