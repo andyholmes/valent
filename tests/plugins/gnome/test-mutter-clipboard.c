@@ -8,20 +8,20 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
-#define CLIPBOARD_NAME "org.gnome.Shell"
-#define CLIPBOARD_PATH "/org/gnome/Shell/Extensions/Valent/Clipboard"
-#define CLIPBOARD_IFACE "org.gnome.Shell.Extensions.Valent.Clipboard"
+#define CLIPBOARD_NAME "org.gnome.Mutter.RemoteDesktop"
+#define CLIPBOARD_PATH "/org/gnome/Mutter/RemoteDesktop"
+#define CLIPBOARD_IFACE "org.gnome.Mutter.RemoteDesktop"
 
 
 typedef struct
 {
   ValentClipboard *clipboard;
   GDBusConnection *connection;
-} GnomeClipboardFixture;
+} MutterClipboardFixture;
 
 static void
-gnome_clipboard_fixture_set_up (GnomeClipboardFixture *fixture,
-                                gconstpointer          user_data)
+mutter_clipboard_fixture_set_up (MutterClipboardFixture *fixture,
+                                 gconstpointer           user_data)
 {
   g_autoptr (GSettings) settings = NULL;
 
@@ -34,8 +34,8 @@ gnome_clipboard_fixture_set_up (GnomeClipboardFixture *fixture,
 }
 
 static void
-gnome_clipboard_fixture_tear_down (GnomeClipboardFixture *fixture,
-                                   gconstpointer          user_data)
+mutter_clipboard_fixture_tear_down (MutterClipboardFixture *fixture,
+                                    gconstpointer           user_data)
 {
   g_clear_object (&fixture->connection);
   v_assert_finalize_object (fixture->clipboard);
@@ -115,9 +115,9 @@ get_bytes_cb (GDBusConnection  *connection,
     *text = g_strndup (data, data_len);
 }
 
-static void
-get_bytes (GnomeClipboardFixture  *fixture,
-           char                  **text)
+static inline void
+get_bytes (MutterClipboardFixture  *fixture,
+           char                   **text)
 {
   g_dbus_connection_call (fixture->connection,
                           CLIPBOARD_NAME,
@@ -134,9 +134,9 @@ get_bytes (GnomeClipboardFixture  *fixture,
 }
 
 static void
-set_bytes_cb (GDBusConnection       *connection,
-              GAsyncResult          *result,
-              GnomeClipboardFixture *fixture)
+set_bytes_cb (GDBusConnection        *connection,
+              GAsyncResult           *result,
+              MutterClipboardFixture *fixture)
 {
   g_autoptr (GVariant) reply = NULL;
   g_autoptr (GError) error = NULL;
@@ -145,9 +145,9 @@ set_bytes_cb (GDBusConnection       *connection,
   g_assert_no_error (error);
 }
 
-static void
-set_bytes (GnomeClipboardFixture *fixture,
-           const char            *text)
+static inline void
+set_bytes (MutterClipboardFixture *fixture,
+           const char             *text)
 {
   GVariant *content = NULL;
 
@@ -171,8 +171,8 @@ set_bytes (GnomeClipboardFixture *fixture,
 }
 
 static void
-test_gnome_clipboard_adapter (GnomeClipboardFixture *fixture,
-                              gconstpointer          user_data)
+test_mutter_clipboard_adapter (MutterClipboardFixture *fixture,
+                               gconstpointer           user_data)
 {
   g_autoptr (GBytes) bytes = NULL;
   g_autoptr (GBytes) bytes_read = NULL;
@@ -183,7 +183,7 @@ test_gnome_clipboard_adapter (GnomeClipboardFixture *fixture,
 
   /* Wait a bit longer for initialization to finish
    * NOTE: this is longer than most tests due to the chained async functions
-   *       being called in ValentGnomeClipboard.
+   *       being called in ValentMutterClipboard.
    */
   valent_test_await_timeout (1000);
 
@@ -267,10 +267,10 @@ main (int   argc,
   valent_test_init (&argc, &argv, NULL);
 
   g_test_add ("/plugins/gnome/clipboard",
-              GnomeClipboardFixture, NULL,
-              gnome_clipboard_fixture_set_up,
-              test_gnome_clipboard_adapter,
-              gnome_clipboard_fixture_tear_down);
+              MutterClipboardFixture, NULL,
+              mutter_clipboard_fixture_set_up,
+              test_mutter_clipboard_adapter,
+              mutter_clipboard_fixture_tear_down);
 
   return g_test_run ();
 }

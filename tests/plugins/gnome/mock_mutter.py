@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 
-"""This module provides a test fixture for the ValentGtkNotifications plugin."""
+"""This module provides a test fixture for the GNOME plugin."""
 
 # pylint: disable=import-error,invalid-name,line-too-long,missing-function-docstring
 
@@ -14,11 +14,13 @@ import sys
 import unittest
 
 import dbusmock # type: ignore
-import dbus # type: ignore
 
 
-class ClipboardTestFixture(dbusmock.DBusTestCase):
-    """A test fixture for the ValentGnomeClipboard plugin."""
+TEMPLATE_DIR = os.path.dirname(os.path.realpath(__file__))
+
+
+class MutterTestFixture(dbusmock.DBusTestCase):
+    """A test fixture for the GNOME plugin."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -26,29 +28,25 @@ class ClipboardTestFixture(dbusmock.DBusTestCase):
         cls.dbus_con = cls.get_dbus(system_bus=False)
 
     def setUp(self) -> None:
-        self.p_mock = self.spawn_server('org.gnome.Shell',
-                                        '/org/gnome/Shell/Extensions/Valent/Clipboard',
-                                        'org.gnome.Shell.Extensions.Valent.Clipboard',
-                                        system_bus=False,
-                                        stdout=subprocess.PIPE)
+        (self.p_mock, self.obj_remotedesktop) = self.spawn_server_template(
+            f'{TEMPLATE_DIR}/remotedesktop.py', {
+            },
+            stdout=subprocess.PIPE)
 
-        # Get a proxy for the notification object's Mock interface
-        mock = dbus.Interface(self.dbus_con.get_object('org.gnome.Shell',
-                                                       '/org/gnome/Shell/Extensions/Valent/Clipboard'),
-                              dbusmock.MOCK_IFACE)
-
-        mock.AddMethods('org.gnome.Shell.Extensions.Valent.Clipboard', [
-            ('GetBytes', 's',   'ay', 'ret = self.content'),
-            ('SetBytes', 'say', '',   'self.content = args[1]; '
-                                      'self.mimetypes = [args[0]]; '
-                                      'self.EmitSignal("", "Changed", "a{sv}", [{ \'timestamp\': 0, \'mimetypes\': self.mimetypes }])'),
-        ])
+        (self.p_mock_screencast, self.obj_screencast) = self.spawn_server_template(
+            f'{TEMPLATE_DIR}/screencast.py', {
+            },
+            stdout=subprocess.PIPE)
 
         # Set output to non-blocking
         flags = fcntl.fcntl(self.p_mock.stdout, fcntl.F_GETFL)
         fcntl.fcntl(self.p_mock.stdout, fcntl.F_SETFL, flags | os.O_NONBLOCK)
 
     def tearDown(self) -> None:
+        self.p_mock_screencast.stdout.close()
+        self.p_mock_screencast.terminate()
+        self.p_mock_screencast.wait()
+
         self.p_mock.stdout.close()
         self.p_mock.terminate()
         self.p_mock.wait()
