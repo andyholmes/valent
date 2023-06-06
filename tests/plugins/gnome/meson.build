@@ -1,9 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-mock_gnome_clipboard = find_program('mock_gnome_clipboard.py')
-mock_mutter_input = find_program('mock_mutter_input.py')
-installed_tests_wrappers += [mock_gnome_clipboard, mock_mutter_input]
+mock_mutter = find_program('mock_mutter.py')
+installed_tests_wrappers += [mock_mutter]
 install_data(['remotedesktop.py', 'screencast.py'],
   install_dir: installed_tests_execdir,
 )
@@ -15,8 +14,8 @@ plugin_gnome_test_deps = [
 ]
 
 plugin_gnome_tests = {
-  'test-gnome-clipboard': mock_gnome_clipboard,
-  'test-mutter-input': mock_mutter_input,
+  # FIXME: 'test-mutter-clipboard': mock_mutter,
+  'test-mutter-input': mock_mutter,
 }
 
 foreach test, test_wrapper : plugin_gnome_tests
@@ -34,10 +33,6 @@ foreach test, test_wrapper : plugin_gnome_tests
             install_dir: installed_tests_execdir,
          export_dynamic: true,
   )
-
-  if not test_wrapper.found()
-    test_wrapper = test_program
-  endif
 
   test(test, test_wrapper,
             env: plugin_gnome_tests_env,

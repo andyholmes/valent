@@ -9,7 +9,7 @@ plugin_gnome_deps = [
 # Sources
 plugin_gnome_sources = files([
   'gnome-plugin.c',
-  'valent-gnome-clipboard.c',
+  'valent-mutter-clipboard.c',
   'valent-mutter-input.c',
 ])
 
