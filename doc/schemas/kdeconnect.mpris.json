@@ -124,7 +124,7 @@
                 },
                 "nowPlaying": {
                     "type": "string",
-                    "description": "An inclusive string of the format 'Artist - Title'."
+                    "description": "⚠️ Deprecated: An inclusive string of the format 'Artist - Title'."
                 },
                 "artist": {
                     "type": "string",

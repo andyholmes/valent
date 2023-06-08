@@ -4,7 +4,7 @@
 
 
 """This script generates documentation for the KDE Connect protocol in Markdown
-format from JSON Schemas, which is then passed to ``g-docgen``.
+format from JSON Schemas, which is then passed to ``gi-docgen``.
 """
 
 
@@ -61,6 +61,11 @@ An ordered collection of values.
 A mapping collection of string keys to values.
 
 {MD_HEADER * 3} Symbols
+
+* ⚠️ **Deprecated**
+
+    Packets missing these fields may be ignored or result in undefined
+    behaviour.
 
 * 🔒 **Required**
 
