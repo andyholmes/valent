@@ -387,11 +387,9 @@ valent_mpris_plugin_send_player_info (ValentMprisPlugin *self,
       double position;
       gboolean shuffle;
       const char *loop_status = "None";
-
       g_autoptr (GVariant) metadata = NULL;
       g_autofree char *artist = NULL;
       const char *title = NULL;
-      g_autofree char *now_playing = NULL;
 
       /* Player State */
       flags = valent_media_player_get_flags (player);
@@ -470,21 +468,6 @@ valent_mpris_plugin_send_player_info (ValentMprisPlugin *self,
               json_builder_add_string_value (builder, art_url);
             }
         }
-
-      /*
-       * A composite string only used by kdeconnect-android
-       */
-      if (artist != NULL && title != NULL)
-        now_playing = g_strdup_printf ("%s - %s", artist, title);
-      else if (artist != NULL)
-        now_playing = g_strdup (artist);
-      else if (title != NULL)
-        now_playing = g_strdup (title);
-      else
-        now_playing = g_strdup (_("Unknown"));
-
-      json_builder_set_member_name (builder, "nowPlaying");
-      json_builder_add_string_value (builder, now_playing);
     }
 
   /* Volume Level */
