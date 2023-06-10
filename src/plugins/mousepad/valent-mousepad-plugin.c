@@ -12,20 +12,20 @@
 #include <json-glib/json-glib.h>
 #include <valent.h>
 
-#include "valent-mousepad-remote.h"
+#include "valent-mousepad-device.h"
 #include "valent-mousepad-keydef.h"
 #include "valent-mousepad-plugin.h"
 
 
 struct _ValentMousepadPlugin
 {
-  ValentDevicePlugin  parent_instance;
+  ValentDevicePlugin    parent_instance;
 
-  ValentInput        *input;
-  GtkWindow          *remote;
+  ValentInput          *input;
+  ValentMousepadDevice *controller;
 
-  unsigned int        local_state : 1;
-  unsigned int        remote_state : 1;
+  unsigned int          local_state : 1;
+  unsigned int          remote_state : 1;
 };
 
 static void   valent_mousepad_plugin_send_echo (ValentMousepadPlugin *self,
@@ -211,43 +211,10 @@ static void
 valent_mousepad_plugin_handle_mousepad_echo (ValentMousepadPlugin *self,
                                              JsonNode             *packet)
 {
-  JsonObject *body;
-  GdkModifierType mask = 0;
-  const char *key;
-  int64_t keycode;
-
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
 
-  /* There's no input dialog open, so we weren't expecting any echo */
-  if G_UNLIKELY (self->remote == NULL)
-    {
-      g_debug ("Unexpected echo");
-      return;
-    }
-
-  body = valent_packet_get_body (packet);
-  mask = event_to_mask (body);
-
-  /* Backspace is effectively a printable character */
-  if (valent_packet_get_int (packet, "specialKey", &keycode))
-    {
-      uint32_t keyval;
-
-      /* Ensure key is in range or we'll choke */
-      if ((keyval = valent_mousepad_keycode_to_keyval (keycode)) != 0)
-        valent_mousepad_remote_echo_special (VALENT_MOUSEPAD_REMOTE (self->remote),
-                                             keyval,
-                                             mask);
-    }
-
-  /* A printable character */
-  else if (valent_packet_get_string (packet, "key", &key))
-    {
-      valent_mousepad_remote_echo_key (VALENT_MOUSEPAD_REMOTE (self->remote),
-                                       key,
-                                       mask);
-    }
+  VALENT_NOTE ("Not implemented");
 }
 
 static void
@@ -274,6 +241,25 @@ valent_mousepad_plugin_handle_mousepad_keyboardstate (ValentMousepadPlugin *self
       self->remote_state = state;
       action = g_action_map_lookup_action (G_ACTION_MAP (self), "event");
       g_simple_action_set_enabled (G_SIMPLE_ACTION (action), self->remote_state);
+
+      if (self->remote_state && self->controller == NULL)
+        {
+          ValentDevice *device = NULL;
+
+          device = valent_extension_get_object (VALENT_EXTENSION (self));
+          self->controller = g_object_new (VALENT_TYPE_MOUSEPAD_DEVICE,
+                                           "device", device,
+                                           "object", device,
+                                           NULL);
+          valent_input_export_adapter (self->input,
+                                       VALENT_INPUT_ADAPTER (self->controller));
+        }
+      else if (!self->remote_state && self->controller != NULL)
+        {
+          valent_input_unexport_adapter (self->input,
+                                         VALENT_INPUT_ADAPTER (self->controller));
+          g_clear_object (&self->controller);
+        }
     }
 }
 
@@ -437,38 +423,9 @@ valent_mousepad_plugin_toggle_actions (ValentMousepadPlugin *self,
 
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
 
-  action = g_action_map_lookup_action (G_ACTION_MAP (self), "remote");
-  g_simple_action_set_enabled (G_SIMPLE_ACTION (action),
-                               available && gtk_is_initialized ());
-
   action = g_action_map_lookup_action (G_ACTION_MAP (self), "event");
   g_simple_action_set_enabled (G_SIMPLE_ACTION (action),
                                available && self->remote_state);
-}
-
-static void
-mousepad_remote_action (GSimpleAction *action,
-                        GVariant      *parameter,
-                        gpointer       user_data)
-{
-  ValentMousepadPlugin *self = VALENT_MOUSEPAD_PLUGIN (user_data);
-
-  g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
-  g_assert (gtk_is_initialized ());
-
-  if (self->remote == NULL)
-    {
-      ValentDevice *device;
-
-      device = valent_extension_get_object (VALENT_EXTENSION (self));
-      self->remote = g_object_new (VALENT_TYPE_MOUSEPAD_REMOTE,
-                                   "device", device,
-                                   NULL);
-      g_object_add_weak_pointer (G_OBJECT (self->remote),
-                                 (gpointer) &self->remote);
-    }
-
-  gtk_window_present (self->remote);
 }
 
 static void
@@ -508,7 +465,6 @@ mousepad_event_action (GSimpleAction *action,
 }
 
 static const GActionEntry actions[] = {
-  {"remote", mousepad_remote_action, NULL,    NULL, NULL},
   {"event",  mousepad_event_action,  "a{sv}", NULL, NULL}
 };
 
@@ -531,6 +487,13 @@ valent_mousepad_plugin_update_state (ValentDevicePlugin *plugin,
     valent_mousepad_plugin_mousepad_keyboardstate (self);
   else
     self->remote_state = FALSE;
+
+  if (!self->remote_state && self->controller != NULL)
+    {
+      valent_input_unexport_adapter (self->input,
+                                     VALENT_INPUT_ADAPTER (self->controller));
+      g_clear_object (&self->controller);
+    }
 
   valent_mousepad_plugin_toggle_actions (self, available);
 }
@@ -574,10 +537,6 @@ valent_mousepad_plugin_constructed (GObject *object)
                                    actions,
                                    G_N_ELEMENTS (actions),
                                    plugin);
-  valent_device_plugin_set_menu_action (plugin,
-                                        "device.mousepad.remote",
-                                        _("Remote Input"),
-                                        "input-keyboard-symbolic");
 
   G_OBJECT_CLASS (valent_mousepad_plugin_parent_class)->constructed (object);
 }
@@ -586,12 +545,13 @@ static void
 valent_mousepad_plugin_dispose (GObject *object)
 {
   ValentMousepadPlugin *self = VALENT_MOUSEPAD_PLUGIN (object);
-  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
 
-  /* Destroy the input remote if necessary */
-  g_clear_pointer (&self->remote, gtk_window_destroy);
-
-  valent_device_plugin_set_menu_item (plugin, "device.mousepad.remote", NULL);
+  if (self->controller != NULL)
+    {
+      valent_input_unexport_adapter (valent_input_get_default (),
+                                     VALENT_INPUT_ADAPTER (self->controller));
+      g_clear_object (&self->controller);
+    }
 
   G_OBJECT_CLASS (valent_mousepad_plugin_parent_class)->dispose (object);
 }
