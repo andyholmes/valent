@@ -178,9 +178,7 @@ read_download_cb (ValentChannel         *endpoint,
                                  NULL,
                                  (GAsyncReadyCallback)valent_channel_download_cb,
                                  &stream);
-
-  while (stream == NULL)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_pointer (&stream);
 
   /* We expect to be able to transfer the full payload */
   target = g_memory_output_stream_new_resizable ();

@@ -61,11 +61,7 @@ test_notification_dialog (void)
 
   VALENT_TEST_CHECK ("Operation can be cancelled");
   gtk_widget_activate_action (GTK_WIDGET (dialog), "dialog.cancel", NULL);
-
-  while (!destroyed)
-    g_main_context_iteration (NULL, FALSE);
-
-  g_assert_true (destroyed);
+  valent_test_await_boolean (&destroyed);
 }
 
 int

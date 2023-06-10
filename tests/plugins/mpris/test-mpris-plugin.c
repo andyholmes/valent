@@ -388,8 +388,7 @@ test_mpris_plugin_handle_player (ValentTestFixture *fixture,
   json_node_unref (packet);
 
   VALENT_TEST_CHECK ("Plugin exports listed players");
-  while (fixture->data == NULL)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_pointer (&fixture->data);
 
   VALENT_TEST_CHECK ("Plugin handles Stopped state");
   packet = valent_test_fixture_lookup_packet (fixture, "player-quiescent");

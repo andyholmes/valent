@@ -107,8 +107,7 @@ test_object_construct_thread (void)
   object = g_thread_join (thread);
   cancellable = valent_object_ref_cancellable (object);
 
-  while (!destroyed)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_boolean (&destroyed);
 
   g_assert_true (g_cancellable_is_cancelled (cancellable));
 }
@@ -144,8 +143,7 @@ test_object_dispose_thread (void)
                          (GThreadFunc)dispose_thread_func,
                          g_steal_pointer (&object));
 
-  while (!destroyed)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_boolean (&destroyed);
 
   g_assert_null (g_thread_join (thread));
   g_assert_true (g_cancellable_is_cancelled (cancellable));
@@ -186,8 +184,7 @@ test_object_destroy_thread (void)
                          (GThreadFunc)destroy_thread_func,
                          g_steal_pointer (&object));
 
-  while (!destroyed)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_boolean (&destroyed);
 
   g_assert_null (g_thread_join (thread));
   g_assert_true (g_cancellable_is_cancelled (cancellable));
@@ -219,8 +216,7 @@ test_object_notify_thread (void)
                          (GThreadFunc)notify_thread_func,
                          object);
 
-  while (!notified)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_boolean (&notified);
 
   g_assert_null (g_thread_join (thread));
 }

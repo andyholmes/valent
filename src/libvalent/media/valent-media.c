@@ -301,7 +301,7 @@ valent_media_export_player (ValentMedia       *media,
                   G_STRFUNC,
                   G_OBJECT_TYPE_NAME (player),
                   valent_media_player_get_name (player));
-      return;
+      VALENT_EXIT;
     }
 
   // Starting at index `1` skips the exports GListModel
@@ -344,7 +344,7 @@ valent_media_unexport_player (ValentMedia       *media,
                   G_STRFUNC,
                   G_OBJECT_TYPE_NAME (player),
                   valent_media_player_get_name (player));
-      return;
+      VALENT_EXIT;
     }
 
   // Starting at index `1` skips the exports GListModel

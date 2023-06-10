@@ -108,9 +108,7 @@ test_manager_management (ManagerFixture *fixture,
 
   /* Wait for the manager to start */
   valent_application_plugin_startup (VALENT_APPLICATION_PLUGIN (fixture->manager));
-
-  while (fixture->device == NULL)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_pointer (&fixture->device);
 
   /* Adds devices from the cache when started */
   n_devices = g_list_model_get_n_items (G_LIST_MODEL (fixture->manager));
@@ -195,9 +193,7 @@ test_manager_dbus (ManagerFixture *fixture,
 
   /* Wait for the manager to start */
   valent_application_plugin_startup (VALENT_APPLICATION_PLUGIN (fixture->manager));
-
-  while (fixture->device == NULL)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_pointer (&fixture->device);
 
   /* Exports current devices */
   connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);

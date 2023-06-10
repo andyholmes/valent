@@ -401,9 +401,7 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
                                        NULL,
                                        (GAsyncReadyCallback)on_incoming_broadcast,
                                        &peer_identity);
-
-  while (peer_identity == NULL)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_pointer (&peer_identity);
 
   /* The test service identity has been received and now we will respond by
    * opening a TCP connection to it. */
@@ -416,9 +414,7 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
                                          NULL,
                                          (GAsyncReadyCallback)g_socket_client_connect_to_host_cb,
                                          &connection);
-
-  while (connection == NULL)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_pointer (&connection);
 
   /* We opened a TCP connection in response to the incoming UDP broadcast so the
    * test service now expects us to write our identity packet.
@@ -495,9 +491,7 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
                                              NULL,
                                              (GAsyncReadyCallback)g_socket_client_connect_to_host_cb,
                                              &bad_connection);
-
-      while (bad_connection == NULL)
-        g_main_context_iteration (NULL, FALSE);
+      valent_test_await_pointer (&bad_connection);
 
       output_stream = g_io_stream_get_output_stream (G_IO_STREAM (bad_connection));
       valent_packet_to_stream (output_stream, identity, NULL, &error);
