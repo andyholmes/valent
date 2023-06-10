@@ -8,18 +8,60 @@
 G_BEGIN_DECLS
 
 /**
+ * valent_mousepad_keysym_is_modifier:
+ * @keysym: a keysym
+ *
+ * Check if @keysym is a known keyboard modifier (e.g. Shift).
+ *
+ * Returns: %TRUE, or %FALSE if not a modifier
+ */
+static inline gboolean
+valent_mousepad_keysym_is_modifier (uint32_t keysym)
+{
+  switch (keysym)
+    {
+    /* Supported */
+    case GDK_KEY_Control_L:
+    case GDK_KEY_Control_R:
+    case GDK_KEY_Alt_L:
+    case GDK_KEY_Alt_R:
+    case GDK_KEY_Shift_L:
+    case GDK_KEY_Shift_R:
+    case GDK_KEY_Super_L:
+    case GDK_KEY_Super_R:
+
+    /* Unsupported */
+    case GDK_KEY_Overlay1_Enable:
+    case GDK_KEY_Overlay2_Enable:
+    case GDK_KEY_Caps_Lock:
+    case GDK_KEY_Shift_Lock:
+    case GDK_KEY_Meta_L:
+    case GDK_KEY_Meta_R:
+    case GDK_KEY_Hyper_L:
+    case GDK_KEY_Hyper_R:
+    case GDK_KEY_Mode_switch:
+    case GDK_KEY_ISO_Level3_Shift:
+    case GDK_KEY_ISO_Level3_Latch:
+    case GDK_KEY_ISO_Level5_Shift:
+    case GDK_KEY_ISO_Level5_Latch:
+      return TRUE;
+    default:
+      return FALSE;
+    }
+}
+
+/**
  * valent_mousepad_keycode_to_keyval:
  * @keycode: a special keycode
  *
- * Convert @keycode from a KDE Connect special key to a GDK keyval. Returns `0`
- * if @keycode is not a special key.
+ * Convert @keycode from a KDE Connect special key to a GDK keyval.
  *
- * Returns: a GDK keyval
+ * Returns: a GDK keyval, or `0` if not found
  */
 static inline uint32_t
 valent_mousepad_keycode_to_keyval (uint32_t  keycode)
 {
-  static const uint32_t     keymap[] = {
+  static const uint32_t keymap[] = {
     0,                   // 0 (Invalid)
     GDK_KEY_BackSpace,   // 1
     GDK_KEY_Tab,         // 2
@@ -37,10 +79,10 @@ valent_mousepad_keycode_to_keyval (uint32_t  keycode)
     GDK_KEY_Escape,      // 14
     GDK_KEY_Sys_Req,     // 15
     GDK_KEY_Scroll_Lock, // 16
-    0,                   // 17
-    0,                   // 18
-    0,                   // 19
-    0,                   // 20
+    0,                   // 17 (Reserved)
+    0,                   // 18 (Reserved)
+    0,                   // 19 (Reserved)
+    0,                   // 20 (Reserved)
     GDK_KEY_F1,          // 21
     GDK_KEY_F2,          // 22
     GDK_KEY_F3,          // 23
@@ -55,7 +97,7 @@ valent_mousepad_keycode_to_keyval (uint32_t  keycode)
     GDK_KEY_F12,         // 32
   };
 
-  if (keycode > 32)
+  if (keycode >= G_N_ELEMENTS (keymap))
     return 0;
 
   return keymap[keycode];
@@ -65,10 +107,9 @@ valent_mousepad_keycode_to_keyval (uint32_t  keycode)
  * valent_mousepad_keyval_to_keycode:
  * @keyval: a key value
  *
- * Convert @keyval from a GDK keyval to a special key for KDE Connect. Returns
- * `0` if not a special key.
+ * Convert @keyval from a GDK keyval to a special key for KDE Connect.
  *
- * Returns: a special key code
+ * Returns: a special key code, or `0` if not found
  */
 static inline uint32_t
 valent_mousepad_keyval_to_keycode (uint32_t keyval)
@@ -79,41 +120,51 @@ valent_mousepad_keyval_to_keycode (uint32_t keyval)
       return 1;
 
     case GDK_KEY_Tab:
-    case GDK_KEY_ISO_Left_Tab:
+    case GDK_KEY_KP_Tab:
       return 2;
 
     case GDK_KEY_Linefeed:
       return 3;
 
     case GDK_KEY_Left:
+    case GDK_KEY_KP_Left:
       return 4;
 
     case GDK_KEY_Up:
+    case GDK_KEY_KP_Up:
       return 5;
 
     case GDK_KEY_Right:
+    case GDK_KEY_KP_Right:
       return 6;
 
     case GDK_KEY_Down:
+    case GDK_KEY_KP_Down:
       return 7;
 
     case GDK_KEY_Page_Up:
+    case GDK_KEY_KP_Page_Up:
       return 8;
 
     case GDK_KEY_Page_Down:
+    case GDK_KEY_KP_Page_Down:
       return 9;
 
     case GDK_KEY_Home:
+    case GDK_KEY_KP_Home:
       return 10;
 
     case GDK_KEY_End:
+    case GDK_KEY_KP_End:
       return 11;
 
     case GDK_KEY_Return:
     case GDK_KEY_KP_Enter:
+    case GDK_KEY_ISO_Enter:
       return 12;
 
     case GDK_KEY_Delete:
+    case GDK_KEY_KP_Delete:
       return 13;
 
     case GDK_KEY_Escape:
