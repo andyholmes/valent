@@ -7,8 +7,10 @@
 #include <gtk/gtk.h>
 #include <libvalent-core.h>
 #include <libvalent-device.h>
+#include <libvalent-input.h>
 #include <libvalent-media.h>
 
+#include "valent-input-remote.h"
 #include "valent-media-remote.h"
 #include "valent-ui-manager.h"
 #include "valent-ui-utils.h"
@@ -20,6 +22,7 @@ struct _ValentUIManager
   ValentApplicationPlugin  parent_instance;
 
   GtkWindow               *main_window;
+  GtkWindow               *input_remote;
   GtkWindow               *media_remote;
 };
 
@@ -58,6 +61,27 @@ main_window_action (GSimpleAction *action,
 }
 
 static void
+input_remote_action (GSimpleAction *action,
+                     GVariant      *parameter,
+                     gpointer       user_data)
+{
+  ValentUIManager *self = VALENT_UI_MANAGER (user_data);
+
+  g_assert (VALENT_IS_UI_MANAGER (self));
+
+  if (self->input_remote == NULL)
+    {
+      self->input_remote = g_object_new (VALENT_TYPE_INPUT_REMOTE,
+                                         "adapters", valent_input_get_default (),
+                                         NULL);
+      g_object_add_weak_pointer (G_OBJECT (self->input_remote),
+                                 (gpointer)&self->input_remote);
+    }
+
+  gtk_window_present_with_time (self->input_remote, GDK_CURRENT_TIME);
+}
+
+static void
 media_remote_action (GSimpleAction *action,
                      GVariant      *parameter,
                      gpointer       user_data)
@@ -79,6 +103,7 @@ media_remote_action (GSimpleAction *action,
 }
 
 static const GActionEntry app_actions[] = {
+  { "input-remote", input_remote_action, NULL, NULL, NULL },
   { "media-remote", media_remote_action, NULL, NULL, NULL },
   { "window",       main_window_action,  "s",  NULL, NULL },
 };

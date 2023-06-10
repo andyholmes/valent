@@ -110,6 +110,10 @@
   <menu id="primary_menu">
     <section>
       <item>
+        <attribute name="label" translatable="yes">Input Remote</attribute>
+        <attribute name="action">app.input-remote</attribute>
+      </item>
+      <item>
         <attribute name="label" translatable="yes">Media Remote</attribute>
         <attribute name="action">app.media-remote</attribute>
       </item>
