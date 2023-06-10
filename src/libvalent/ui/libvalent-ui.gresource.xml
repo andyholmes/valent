@@ -59,6 +59,7 @@
     <file>style.css</file>
     <file preprocess="xml-stripblanks">valent-device-page.ui</file>
     <file preprocess="xml-stripblanks">valent-device-preferences-window.ui</file>
+    <file preprocess="xml-stripblanks">valent-input-remote.ui</file>
     <file preprocess="xml-stripblanks">valent-media-remote.ui</file>
     <file preprocess="xml-stripblanks">valent-preferences-window.ui</file>
     <file preprocess="xml-stripblanks">valent-window.ui</file>
