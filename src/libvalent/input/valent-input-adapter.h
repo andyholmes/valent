@@ -35,7 +35,7 @@ struct _ValentInputAdapterClass
                                              double              dy);
 
   /*< private >*/
-  gpointer            padding[8];
+  gpointer               padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0

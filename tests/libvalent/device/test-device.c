@@ -92,9 +92,7 @@ endpoint_expect_packet_pair (DeviceFixture *fixture,
                               NULL,
                               (GAsyncReadyCallback)endpoint_expect_packet_cb,
                               &packet);
-
-  while (packet == NULL)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_pointer (&packet);
 
   v_assert_packet_type (packet, "kdeconnect.pair");
   v_assert_packet_field (packet, "pair");
@@ -115,9 +113,7 @@ endpoint_expect_packet_echo (DeviceFixture *fixture,
                               NULL,
                               (GAsyncReadyCallback)endpoint_expect_packet_cb,
                               &echo);
-
-  while (echo == NULL)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_pointer (&echo);
 
   v_assert_packet_type (echo, "kdeconnect.mock.echo");
   v_assert_packet_field (echo, "foo");
@@ -452,9 +448,7 @@ test_device_actions (DeviceFixture *fixture,
                               NULL,
                               (GAsyncReadyCallback)endpoint_expect_packet_cb,
                               &packet);
-
-  while (packet == NULL)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_await_pointer (&packet);
 
   v_assert_packet_type (packet, "kdeconnect.mock.echo");
 
