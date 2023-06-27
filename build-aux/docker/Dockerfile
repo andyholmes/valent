@@ -7,6 +7,7 @@ RUN dnf install -y --enablerepo=fedora-debuginfo,updates-debuginfo \
         --setopt=install_weak_deps=False \
         glibc-langpack-en glibc-locale-source gi-docgen graphviz itstool rsync \
         yelp-tools \
+        avahi-gobject-devel           avahi-gobject-debuginfo \
         evolution-data-server-devel   evolution-data-server-debuginfo \
         glib2-devel                   glib2-debuginfo \
         gnutls-devel                  gnutls-debuginfo \
