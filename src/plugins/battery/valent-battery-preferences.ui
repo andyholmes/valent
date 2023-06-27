@@ -9,10 +9,12 @@
       <object class="AdwExpanderRow" id="full_notification">
         <property name="title" translatable="yes">Full Battery Notification</property>
         <property name="subtitle" translatable="yes">Notify when the remote battery is full</property>
+        <property name="selectable">0</property>
         <property name="show-enable-switch">1</property>
         <child>
           <object class="AdwActionRow">
             <property name="title" translatable="yes">Level Threshold</property>
+            <property name="selectable">0</property>
             <child type="suffix">
               <object class="GtkSpinButton">
                 <property name="valign">center</property>
@@ -33,10 +35,12 @@
       <object class="AdwExpanderRow" id="low_notification">
         <property name="title" translatable="yes">Low Battery Notification</property>
         <property name="subtitle" translatable="yes">Notify when the remote battery is low</property>
+        <property name="selectable">0</property>
         <property name="show-enable-switch">1</property>
         <child>
           <object class="AdwActionRow">
             <property name="title" translatable="yes">Level Threshold</property>
+            <property name="selectable">0</property>
             <child type="suffix">
               <object class="GtkSpinButton">
                 <property name="valign">center</property>

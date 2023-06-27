@@ -75,6 +75,7 @@ valent_runcommand_preferences_populate (ValentRuncommandPreferences *self)
                               "title",         name,
                               "subtitle",      command,
                               "activatable",   TRUE,
+                              "selectable",    FALSE,
                               "action-target", g_variant_new_string (uuid),
                               "action-name",   "runcommand.edit",
                               NULL);

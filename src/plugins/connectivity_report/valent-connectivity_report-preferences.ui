@@ -8,6 +8,7 @@
     <child>
       <object class="AdwActionRow" id="share_state_row">
         <property name="title" translatable="yes">Local Connectivity</property>
+        <property name="selectable">0</property>
         <property name="subtitle" translatable="yes">Send updates to the remote device</property>
         <property name="activatable-widget">share_state</property>
         <child type="suffix">
@@ -21,6 +22,7 @@
       <object class="AdwActionRow" id="offline_notification_row">
         <property name="title" translatable="yes">Remote Connectivity</property>
         <property name="subtitle" translatable="yes">Notify if the remote device loses connectivity</property>
+        <property name="selectable">0</property>
         <property name="activatable-widget">offline_notification</property>
         <child type="suffix">
           <object class="GtkSwitch" id="offline_notification">

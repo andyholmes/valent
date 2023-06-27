@@ -10,6 +10,7 @@
         <property name="title" translatable="yes">Download directory</property>
         <property name="subtitle" translatable="yes">Where received files are stored</property>
         <property name="activatable">1</property>
+        <property name="selectable">0</property>
         <property name="action-name">preferences.select-download-folder</property>
         <child type="suffix">
           <object class="GtkBox">

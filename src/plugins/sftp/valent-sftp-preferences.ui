@@ -9,6 +9,7 @@
       <object class="AdwActionRow">
         <property name="title" translatable="yes">Automatically Mount</property>
         <property name="subtitle" translatable="yes">Mount shared folders when the device connects</property>
+        <property name="selectable">0</property>
         <property name="activatable-widget">auto_mount</property>
         <child type="suffix">
           <object class="GtkSwitch" id="auto_mount">
@@ -21,10 +22,12 @@
       <object class="AdwExpanderRow" id="local_allow">
         <property name="title" translatable="yes">Local Files</property>
         <property name="subtitle" translatable="yes">Share local files and directories</property>
+        <property name="selectable">0</property>
         <property name="show-enable-switch">1</property>
         <child>
           <object class="AdwActionRow">
             <property name="title" translatable="yes">Port</property>
+            <property name="selectable">0</property>
             <child type="suffix">
               <object class="GtkSpinButton">
                 <property name="numeric">1</property>

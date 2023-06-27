@@ -9,6 +9,7 @@
       <object class="AdwActionRow">
         <property name="title" translatable="yes">Remote Contacts</property>
         <property name="subtitle" translatable="yes">Import contacts from the remote device</property>
+        <property name="selectable">0</property>
         <property name="activatable-widget">remote_sync</property>
         <child type="suffix">
           <object class="GtkSwitch" id="remote_sync">
@@ -21,6 +22,7 @@
       <object class="AdwExpanderRow" id="local_sync">
         <property name="title" translatable="yes">Local Contacts</property>
         <property name="subtitle" translatable="yes">Share contacts with the remote device</property>
+        <property name="selectable">0</property>
         <property name="show-enable-switch">1</property>
       </object>
     </child>

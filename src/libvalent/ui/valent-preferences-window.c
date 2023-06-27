@@ -141,7 +141,8 @@ plugin_row_add_extensions (AdwExpanderRow *plugin_row,
         continue;
 
       row = g_object_new (ADW_TYPE_ACTION_ROW,
-                          "title", extension.title,
+                          "title",      extension.title,
+                          "selectable", FALSE,
                           NULL);
       adw_expander_row_add_row (ADW_EXPANDER_ROW (plugin_row), row);
 
@@ -203,9 +204,10 @@ on_load_plugin (PeasEngine              *engine,
       peas_engine_provides_extension (engine, info, VALENT_TYPE_PREFERENCES_PAGE))
     {
       row = g_object_new (ADW_TYPE_EXPANDER_ROW,
-                          "icon-name", icon_name,
-                          "title",     title,
-                          "subtitle",  subtitle,
+                          "icon-name",  icon_name,
+                          "title",      title,
+                          "subtitle",   subtitle,
+                          "selectable", FALSE,
                           NULL);
 
       plugin_row_add_extensions (ADW_EXPANDER_ROW (row), info);

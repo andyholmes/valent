@@ -23,6 +23,7 @@
       <object class="AdwExpanderRow" id="command_list_row">
         <property name="title" translatable="yes">Local Commands</property>
         <property name="subtitle" translatable="yes">Commands that can be executed by remote devices</property>
+        <property name="selectable">0</property>
       </object>
     </child>
   </template>

@@ -10,9 +10,11 @@
       <object class="AdwExpanderRow" id="ringing_row">
         <property name="title" translatable="yes">Incoming Calls</property>
         <property name="subtitle" translatable="yes">What to do when the phone rings</property>
+        <property name="selectable">0</property>
         <child>
           <object class="AdwComboRow" id="ringing_volume">
             <property name="title" translatable="yes">Volume</property>
+            <property name="selectable">0</property>
             <property name="model">volume-model</property>
             <property name="expression">
               <lookup name="string" type="GtkStringObject"/>
@@ -22,6 +24,7 @@
         <child>
           <object class="AdwActionRow">
             <property name="title" translatable="yes">Pause Media</property>
+            <property name="selectable">0</property>
             <property name="activatable-widget">ringing_pause</property>
             <child type="suffix">
               <object class="GtkSwitch" id="ringing_pause">
@@ -38,9 +41,11 @@
       <object class="AdwExpanderRow" id="talking_row">
         <property name="title" translatable="yes">Ongoing Calls</property>
         <property name="subtitle" translatable="yes">What to do when the phone is answered</property>
+        <property name="selectable">0</property>
         <child>
           <object class="AdwComboRow" id="talking_volume">
             <property name="title" translatable="yes">Volume</property>
+            <property name="selectable">0</property>
             <property name="model">volume-model</property>
             <property name="expression">
               <lookup name="string" type="GtkStringObject"/>
@@ -50,6 +55,7 @@
         <child>
           <object class="AdwActionRow">
             <property name="title" translatable="yes">Mute Microphone</property>
+            <property name="selectable">0</property>
             <property name="activatable-widget">talking_microphone</property>
             <child type="suffix">
               <object class="GtkSwitch" id="talking_microphone">
@@ -61,6 +67,7 @@
         <child>
           <object class="AdwActionRow">
             <property name="title" translatable="yes">Pause Media</property>
+            <property name="selectable">0</property>
             <property name="activatable-widget">talking_pause</property>
             <child type="suffix">
               <object class="GtkSwitch" id="talking_pause">
