@@ -116,6 +116,10 @@ if get_option('optimization') in ['2', '3', 's']
   endif
 endif
 
+if get_option('profile') == 'devel'
+  project_c_args += ['-Wno-error=deprecated-declarations']
+endif
+
 add_project_arguments(cc.get_supported_arguments(project_c_args),
   language: 'c',
 )
