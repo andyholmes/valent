@@ -115,6 +115,7 @@ add_application (ValentNotificationPreferences *self,
 
   row = g_object_new (ADW_TYPE_ACTION_ROW,
                       "activatable", TRUE,
+                      "selectable",  TRUE,
                       "title",       title,
                       NULL);
   g_signal_connect_object (G_OBJECT (row),

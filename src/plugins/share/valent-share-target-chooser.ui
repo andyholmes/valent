@@ -84,6 +84,7 @@
                             <child type="placeholder">
                               <object class="AdwActionRow">
                                 <property name="title" translatable="yes">Searching…</property>
+                                <property name="selectable">0</property>
                                 <child type="prefix">
                                   <object class="GtkSpinner">
                                     <property name="spinning">1</property>

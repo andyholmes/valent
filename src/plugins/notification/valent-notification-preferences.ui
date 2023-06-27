@@ -9,11 +9,13 @@
       <object class="AdwExpanderRow" id="forward_notifications">
         <property name="title" translatable="yes">Local Notifications</property>
         <property name="subtitle" translatable="yes">Forward notifications to the remote device</property>
+        <property name="selectable">0</property>
         <property name="show-enable-switch">1</property>
         <child>
           <object class="AdwActionRow">
             <property name="title" translatable="yes">Intelligent Sync</property>
             <property name="subtitle" translatable="yes">Notifications follow the active device</property>
+            <property name="selectable">0</property>
             <property name="activatable-widget">forward_when_active</property>
             <child type="suffix">
               <object class="GtkSwitch" id="forward_when_active">
@@ -27,6 +29,7 @@
           <object class="AdwActionRow" id="application_row">
             <property name="title" translatable="yes">Filter by Application</property>
             <property name="activatable">1</property>
+            <property name="selectable">0</property>
             <signal name="activated"
                     handler="on_application_row_activated"
                     object="ValentNotificationPreferences"

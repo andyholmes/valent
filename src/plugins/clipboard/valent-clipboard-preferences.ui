@@ -9,6 +9,7 @@
       <object class="AdwActionRow">
         <property name="title" translatable="yes">Remote Clipboard</property>
         <property name="subtitle" translatable="yes">Copy changes to the local clipboard</property>
+        <property name="selectable">0</property>
         <property name="activatable-widget">sync_pull</property>
         <child type="suffix">
           <object class="GtkSwitch" id="sync_pull">
@@ -21,6 +22,7 @@
       <object class="AdwActionRow">
         <property name="title" translatable="yes">Local Clipboard</property>
         <property name="subtitle" translatable="yes">Report changes to the remote device</property>
+        <property name="selectable">0</property>
         <property name="activatable-widget">sync_push</property>
         <child type="suffix">
           <object class="GtkSwitch" id="sync_push">

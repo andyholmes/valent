@@ -112,9 +112,10 @@ valent_device_preferences_window_add_plugin (ValentDevicePreferencesWindow *self
 
   /* Plugin Row */
   plugin->row = g_object_new (ADW_TYPE_ACTION_ROW,
-                              "icon-name", icon_name,
-                              "title",     title,
-                              "subtitle",  subtitle,
+                              "icon-name",  icon_name,
+                              "title",      title,
+                              "subtitle",   subtitle,
+                              "selectable", FALSE,
                               NULL);
 
   sw = g_object_new (GTK_TYPE_SWITCH,
