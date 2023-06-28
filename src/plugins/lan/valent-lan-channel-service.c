@@ -7,7 +7,6 @@
 
 #include <gio/gio.h>
 #include <gio/gunixinputstream.h>
-#include <libpeas/peas.h>
 #include <valent.h>
 
 #include "valent-lan-channel.h"
@@ -452,11 +451,13 @@ incoming_broadcast_task (GTask        *task,
 }
 
 static gboolean
-on_incoming_broadcast (ValentChannelService  *service,
-                       GSocket               *socket,
-                       GCancellable          *cancellable,
-                       GError               **error)
+valent_lan_channel_service_socket_recv (GSocket      *socket,
+                                        GIOCondition  condition,
+                                        gpointer      user_data)
 {
+  ValentChannelService *service = VALENT_CHANNEL_SERVICE (user_data);
+  g_autoptr (GCancellable) cancellable = NULL;
+  g_autoptr (GError) error = NULL;
   gssize read = 0;
   char buffer[IDENTITY_BUFFER_MAX + 1] = { 0, };
   g_autoptr (GSocketAddress) incoming = NULL;
@@ -469,10 +470,13 @@ on_incoming_broadcast (ValentChannelService  *service,
   g_autoptr (GTask) task = NULL;
   g_autoptr (GError) warning = NULL;
 
-  g_assert (VALENT_IS_CHANNEL_SERVICE (service));
   g_assert (G_IS_SOCKET (socket));
-  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-  g_assert (error == NULL || *error == NULL);
+  g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (user_data));
+
+  if (condition != G_IO_IN)
+    return G_SOURCE_REMOVE;
+
+  cancellable = valent_object_ref_cancellable (VALENT_OBJECT (service));
 
   /* Read the message data and extract the remote address */
   read = g_socket_receive_from (socket,
@@ -480,18 +484,20 @@ on_incoming_broadcast (ValentChannelService  *service,
                                 buffer,
                                 IDENTITY_BUFFER_MAX,
                                 cancellable,
-                                error);
+                                &error);
 
   if (read == -1)
-    return FALSE;
+    {
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("%s(): %s", G_STRFUNC, error->message);
+
+      return G_SOURCE_REMOVE;
+    }
 
   if (read == 0)
     {
-      g_set_error_literal (error,
-                           G_IO_ERROR,
-                           G_IO_ERROR_CLOSED,
-                           "Socket is closed");
-      return FALSE;
+      g_warning ("%s(): Socket is closed", G_STRFUNC);
+      return G_SOURCE_REMOVE;
     }
 
   /* Validate the message as a KDE Connect packet */
@@ -500,7 +506,7 @@ on_incoming_broadcast (ValentChannelService  *service,
       g_warning ("%s(): failed to parse peer-identity: %s",
                  G_STRFUNC,
                  warning->message);
-      return TRUE;
+      return G_SOURCE_CONTINUE;
     }
 
   /* Ignore broadcasts without a deviceId or from ourselves */
@@ -508,13 +514,13 @@ on_incoming_broadcast (ValentChannelService  *service,
     {
       g_debug ("%s(): expected \"deviceId\" field holding a string",
                G_STRFUNC);
-      return TRUE;
+      return G_SOURCE_CONTINUE;
     }
 
   local_id = valent_channel_service_dup_id (service);
 
   if (g_strcmp0 (device_id, local_id) == 0)
-    return TRUE;
+    return G_SOURCE_CONTINUE;
 
   VALENT_JSON (peer_identity, device_id);
 
@@ -528,7 +534,7 @@ on_incoming_broadcast (ValentChannelService  *service,
                G_STRFUNC,
                VALENT_LAN_PROTOCOL_PORT_MIN,
                VALENT_LAN_PROTOCOL_PORT_MAX);
-      return TRUE;
+      return G_SOURCE_CONTINUE;
     }
 
   /* Defer the remaining work to another thread */
@@ -539,37 +545,9 @@ on_incoming_broadcast (ValentChannelService  *service,
                           (GDestroyNotify)json_node_unref);
 
   task = g_task_new (service, cancellable, NULL, NULL);
-  g_task_set_source_tag (task, on_incoming_broadcast);
+  g_task_set_source_tag (task, valent_lan_channel_service_socket_recv);
   g_task_set_task_data (task, g_steal_pointer (&outgoing), g_object_unref);
   g_task_run_in_thread (task, incoming_broadcast_task);
-
-  return TRUE;
-}
-
-static gboolean
-valent_lan_channel_service_socket_recv (GSocket      *socket,
-                                        GIOCondition  condition,
-                                        gpointer      user_data)
-{
-  ValentChannelService *service = VALENT_CHANNEL_SERVICE (user_data);
-  g_autoptr (GCancellable) cancellable = NULL;
-  g_autoptr (GError) error = NULL;
-
-  g_assert (G_IS_SOCKET (socket));
-  g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (user_data));
-
-  if (condition != G_IO_IN)
-    return G_SOURCE_REMOVE;
-
-  cancellable = valent_object_ref_cancellable (VALENT_OBJECT (service));
-
-  if (!on_incoming_broadcast (service, socket, cancellable, &error))
-    {
-      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_warning ("%s(): %s", G_STRFUNC, error->message);
-
-      return G_SOURCE_REMOVE;
-    }
 
   return G_SOURCE_CONTINUE;
 }
@@ -600,12 +578,62 @@ valent_lan_channel_service_socket_send (GSocket      *socket,
 
   /* We only check for real errors, not partial writes */
   if (written == -1)
-    g_warning ("%s(): failed to identify to \"%s\": %s",
-               G_STRFUNC,
-               "FIXME",
-               error->message);
+    g_warning ("%s(): failed to identify: %s", G_STRFUNC, error->message);
 
   return G_SOURCE_REMOVE;
+}
+
+static void
+valent_lan_channel_service_socket_queue (ValentLanChannelService *self,
+                                         GSocketAddress          *address)
+{
+  g_autoptr (JsonNode) identity = NULL;
+  g_autofree char *identity_json = NULL;
+  GSocketFamily family = G_SOCKET_FAMILY_INVALID;
+
+  g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
+  g_assert (G_IS_SOCKET_ADDRESS (address));
+
+  /* Ignore errant socket addresses */
+  family = g_socket_address_get_family (address);
+
+  if (family != G_SOCKET_FAMILY_IPV4 && family != G_SOCKET_FAMILY_IPV6)
+    g_return_if_reached ();
+
+  /* Serialize the identity */
+  identity = valent_channel_service_ref_identity (VALENT_CHANNEL_SERVICE (self));
+  identity_json = valent_packet_serialize (identity);
+  g_object_set_data_full (G_OBJECT (address),
+                          "valent-lan-broadcast",
+                          g_bytes_new (identity_json, strlen (identity_json)),
+                          (GDestroyNotify)g_bytes_unref);
+
+  valent_object_lock (VALENT_OBJECT (self));
+  if ((self->udp_socket6 != NULL && family == G_SOCKET_FAMILY_IPV6) ||
+      (self->udp_socket6 != NULL && g_socket_speaks_ipv4 (self->udp_socket6)))
+    {
+      g_autoptr (GSource) source = NULL;
+
+      source = g_socket_create_source (self->udp_socket6, G_IO_OUT, NULL);
+      g_source_set_callback (source,
+                             G_SOURCE_FUNC (valent_lan_channel_service_socket_send),
+                             g_object_ref (address),
+                             g_object_unref);
+      g_source_attach (source, g_main_loop_get_context (self->udp_context));
+    }
+
+  if (self->udp_socket4 != NULL && family == G_SOCKET_FAMILY_IPV4)
+    {
+      g_autoptr (GSource) source = NULL;
+
+      source = g_socket_create_source (self->udp_socket4, G_IO_OUT, NULL);
+      g_source_set_callback (source,
+                             G_SOURCE_FUNC (valent_lan_channel_service_socket_send),
+                             g_object_ref (address),
+                             g_object_unref);
+      g_source_attach (source, g_main_loop_get_context (self->udp_context));
+    }
+  valent_object_unlock (VALENT_OBJECT (self));
 }
 
 static gpointer
@@ -652,6 +680,8 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
   g_autoptr (GCancellable) destroy = NULL;
   uint16_t port = VALENT_LAN_PROTOCOL_PORT;
 
+  VALENT_ENTRY;
+
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
 
   valent_object_lock (VALENT_OBJECT (self));
@@ -671,14 +701,14 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
   if (thread == NULL)
     {
       g_main_loop_unref (loop);
-      return FALSE;
+      VALENT_RETURN (FALSE);
     }
 
   valent_object_lock (VALENT_OBJECT (self));
   self->udp_context = g_main_loop_ref (loop);
   valent_object_unlock (VALENT_OBJECT (self));
 
-  /* first try to create an IPv6 socket */
+  /* Prefer dual IPv4/IPv6 socket */
   socket6 = g_socket_new (G_SOCKET_FAMILY_IPV6,
                           G_SOCKET_TYPE_DATAGRAM,
                           G_SOCKET_PROTOCOL_UDP,
@@ -693,8 +723,8 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
       inet_address = g_inet_address_new_any (G_SOCKET_FAMILY_IPV6);
       address = g_inet_socket_address_new (inet_address, port);
 
-      if (!g_socket_bind (socket6, address, TRUE, error))
-        return FALSE;
+      if (!g_socket_bind (socket6, address, TRUE, NULL))
+        VALENT_GOTO (ipv4);
 
       g_socket_set_broadcast (socket6, TRUE);
 
@@ -712,10 +742,10 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
 
       /* If this socket also speaks IPv4 then we are done. */
       if (g_socket_speaks_ipv4 (socket6))
-        return TRUE;
+        VALENT_RETURN (TRUE);
     }
 
-  /* We need an IPv4 socket, either instead or in addition to our IPv6 */
+ipv4:
   socket4 = g_socket_new (G_SOCKET_FAMILY_IPV4,
                           G_SOCKET_TYPE_DATAGRAM,
                           G_SOCKET_PROTOCOL_UDP,
@@ -731,7 +761,7 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
       address = g_inet_socket_address_new (inet_address, port);
 
       if (!g_socket_bind (socket4, address, TRUE, error))
-        return FALSE;
+        VALENT_RETURN (FALSE);
 
       g_socket_set_broadcast (socket4, TRUE);
 
@@ -816,12 +846,7 @@ valent_lan_channel_service_identify (ValentChannelService *service,
                                      const char           *target)
 {
   ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (service);
-  g_autoptr (GSocketConnectable) naddr = NULL;
   g_autoptr (GSocketAddress) address = NULL;
-  g_autoptr (JsonNode) identity = NULL;
-  g_autofree char *identity_json = NULL;
-  const char *hostname = self->broadcast_address;
-  uint16_t port = self->port;
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
 
@@ -830,6 +855,9 @@ valent_lan_channel_service_identify (ValentChannelService *service,
 
   if (target != NULL)
     {
+      g_autoptr (GSocketConnectable) naddr = NULL;
+      const char *hostname = NULL;
+      uint16_t port = 0;
       g_autoptr (GError) error = NULL;
 
       naddr = g_network_address_parse (target,
@@ -847,44 +875,14 @@ valent_lan_channel_service_identify (ValentChannelService *service,
 
       hostname = g_network_address_get_hostname (G_NETWORK_ADDRESS (naddr));
       port = g_network_address_get_port (G_NETWORK_ADDRESS (naddr));
+      address = g_inet_socket_address_new_from_string (hostname, port);
     }
 
-  address = g_inet_socket_address_new_from_string (hostname, port);
+  if (address == NULL)
+    address = g_inet_socket_address_new_from_string (self->broadcast_address,
+                                                     self->port);
 
-  /* Serialize the identity */
-  identity = valent_channel_service_ref_identity (service);
-  identity_json = valent_packet_serialize (identity);
-
-  g_object_set_data_full (G_OBJECT (address),
-                          "valent-lan-broadcast",
-                          g_bytes_new (identity_json, strlen (identity_json)),
-                          (GDestroyNotify)g_bytes_unref);
-
-  /* IPv6 */
-  if (self->udp_socket6 != NULL)
-    {
-      g_autoptr (GSource) source = NULL;
-
-      source = g_socket_create_source (self->udp_socket6, G_IO_OUT, NULL);
-      g_source_set_callback (source,
-                             G_SOURCE_FUNC (valent_lan_channel_service_socket_send),
-                             g_object_ref (address),
-                             g_object_unref);
-      g_source_attach (source, g_main_loop_get_context (self->udp_context));
-    }
-
-  /* IPv4 */
-  if (self->udp_socket4 != NULL)
-    {
-      g_autoptr (GSource) source = NULL;
-
-      source = g_socket_create_source (self->udp_socket4, G_IO_OUT, NULL);
-      g_source_set_callback (source,
-                             G_SOURCE_FUNC (valent_lan_channel_service_socket_send),
-                             g_object_ref (address),
-                             g_object_unref);
-      g_source_attach (source, g_main_loop_get_context (self->udp_context));
-    }
+  valent_lan_channel_service_socket_queue (self, address);
 }
 
 static void
@@ -899,13 +897,10 @@ valent_lan_channel_service_init_task (GTask        *task,
   if (g_task_return_error_if_cancelled (task))
     return;
 
-  /* TCP Listener */
-  if (!valent_lan_channel_service_tcp_setup (self, cancellable, &error))
+  if (!valent_lan_channel_service_tcp_setup (self, cancellable, &error) ||
+      !valent_lan_channel_service_udp_setup (self, cancellable, &error))
     return g_task_return_error (task, g_steal_pointer (&error));
 
-  /* UDP Socket(s) */
-  if (!valent_lan_channel_service_udp_setup (self, cancellable, &error))
-    return g_task_return_error (task, g_steal_pointer (&error));
 
   g_task_return_boolean (task, TRUE);
 }
@@ -989,19 +984,20 @@ valent_lan_channel_service_dispose (GObject *object)
   g_signal_handlers_disconnect_by_data (self->monitor, self);
 
   valent_object_lock (VALENT_OBJECT (self));
+  if (self->udp_context != NULL)
+    {
+      g_clear_object (&self->udp_socket4);
+      g_clear_object (&self->udp_socket6);
+      g_main_loop_quit (self->udp_context);
+      g_clear_pointer (&self->udp_context, g_main_loop_unref);
+    }
+
   if (self->listener != NULL)
     {
       g_socket_service_stop (G_SOCKET_SERVICE (self->listener));
       g_socket_listener_close (G_SOCKET_LISTENER (self->listener));
       g_clear_object (&self->listener);
     }
-
-  if (self->udp_context != NULL)
-    g_main_loop_quit (self->udp_context);
-  g_clear_pointer (&self->udp_context, g_main_loop_unref);
-
-  g_clear_object (&self->udp_socket4);
-  g_clear_object (&self->udp_socket6);
   valent_object_unlock (VALENT_OBJECT (self));
 
   G_OBJECT_CLASS (valent_lan_channel_service_parent_class)->dispose (object);
