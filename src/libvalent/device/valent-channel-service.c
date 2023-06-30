@@ -37,7 +37,6 @@
 
 typedef struct
 {
-  ValentContext  *context;
   char           *id;
   JsonNode       *identity;
   char           *name;
@@ -56,7 +55,6 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentChannelService, valent_channel_servic
 
 enum {
   PROP_0,
-  PROP_CONTEXT,
   PROP_ID,
   PROP_IDENTITY,
   PROP_NAME,
@@ -333,22 +331,6 @@ static void
 valent_channel_service_constructed (GObject *object)
 {
   ValentChannelService *self = VALENT_CHANNEL_SERVICE (object);
-  ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (self);
-
-  /* Ensure we have a data manager */
-  if (priv->context == NULL)
-    {
-      PeasPluginInfo *plugin_info = NULL;
-      const char *id = NULL;
-
-      g_object_get (object, "plugin-info", &plugin_info, NULL);
-      id = peas_plugin_info_get_module_name (plugin_info);
-      priv->context = g_object_new (VALENT_TYPE_CONTEXT,
-                                    "domain", "network",
-                                    "id",     id,
-                                    NULL);
-      g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
-    }
 
   valent_channel_service_build_identity (self);
 
@@ -361,7 +343,6 @@ valent_channel_service_finalize (GObject *object)
   ValentChannelService *self = VALENT_CHANNEL_SERVICE (object);
   ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (self);
 
-  g_clear_object (&priv->context);
   g_clear_pointer (&priv->id, g_free);
   g_clear_pointer (&priv->identity, json_node_unref);
   g_clear_pointer (&priv->name, g_free);
@@ -380,10 +361,6 @@ valent_channel_service_get_property (GObject    *object,
 
   switch (prop_id)
     {
-    case PROP_CONTEXT:
-      g_value_set_object (value, priv->context);
-      break;
-
     case PROP_ID:
       g_value_set_string (value, priv->id);
       break;
@@ -412,10 +389,6 @@ valent_channel_service_set_property (GObject      *object,
 
   switch (prop_id)
     {
-    case PROP_CONTEXT:
-      priv->context = g_value_dup_object (value);
-      break;
-
     case PROP_ID:
       priv->id = g_value_dup_string (value);
       break;
@@ -442,21 +415,6 @@ valent_channel_service_class_init (ValentChannelServiceClass *klass)
 
   service_class->build_identity = valent_channel_service_real_build_identity;
   service_class->identify = valent_channel_service_real_identify;
-
-  /**
-   * ValentChannelService:context:
-   *
-   * The data context.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_CONTEXT] =
-    g_param_spec_object ("context", NULL, NULL,
-                         VALENT_TYPE_CONTEXT,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
 
   /**
    * ValentChannelService:id: (getter dup_id)
