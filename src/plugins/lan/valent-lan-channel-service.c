@@ -683,11 +683,8 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
-
-  valent_object_lock (VALENT_OBJECT (self));
-  destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
-  port = self->port;
-  valent_object_unlock (VALENT_OBJECT (self));
+  g_assert (cancellable == NULL || G_CANCELLABLE (cancellable));
+  g_assert (error == NULL || *error == NULL);
 
   /* Create a thread with a GMainContext to manage traffic */
   context = g_main_context_new ();
@@ -697,15 +694,16 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
                              g_main_loop_ref (loop),
                              error);
 
-  /* On failure, drop the reference passed to the thread */
   if (thread == NULL)
     {
       g_main_loop_unref (loop);
       VALENT_RETURN (FALSE);
     }
 
+  /* Prepare socket(s) for UDP-based discovery */
   valent_object_lock (VALENT_OBJECT (self));
-  self->udp_context = g_main_loop_ref (loop);
+  destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
+  port = self->port;
   valent_object_unlock (VALENT_OBJECT (self));
 
   /* Prefer dual IPv4/IPv6 socket */
@@ -724,13 +722,12 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
       address = g_inet_socket_address_new (inet_address, port);
 
       if (!g_socket_bind (socket6, address, TRUE, NULL))
-        VALENT_GOTO (ipv4);
+        {
+          g_clear_object (&socket6);
+          VALENT_GOTO (ipv4);
+        }
 
       g_socket_set_broadcast (socket6, TRUE);
-
-      valent_object_lock (VALENT_OBJECT (self));
-      self->udp_socket6 = g_object_ref (socket6);
-      valent_object_unlock (VALENT_OBJECT (self));
 
       /* Watch for incoming broadcasts */
       source = g_socket_create_source (socket6, G_IO_IN, destroy);
@@ -742,7 +739,7 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
 
       /* If this socket also speaks IPv4 then we are done. */
       if (g_socket_speaks_ipv4 (socket6))
-        VALENT_RETURN (TRUE);
+        VALENT_GOTO (check);
     }
 
 ipv4:
@@ -761,13 +758,12 @@ ipv4:
       address = g_inet_socket_address_new (inet_address, port);
 
       if (!g_socket_bind (socket4, address, TRUE, error))
-        VALENT_RETURN (FALSE);
+        {
+          g_clear_object (&socket4);
+          VALENT_GOTO (check);
+        }
 
       g_socket_set_broadcast (socket4, TRUE);
-
-      valent_object_lock (VALENT_OBJECT (self));
-      self->udp_socket4 = g_object_ref (socket4);
-      valent_object_unlock (VALENT_OBJECT (self));
 
       /* Watch for incoming broadcasts */
       source = g_socket_create_source (socket4, G_IO_IN, destroy);
@@ -778,12 +774,19 @@ ipv4:
       g_source_attach (source, context);
     }
 
-  if (self->udp_socket4 == NULL && self->udp_socket6 == NULL)
-    return FALSE;
+check:
+  if (socket4 == NULL && socket6 == NULL)
+    VALENT_RETURN (FALSE);
+  else
+    g_clear_error (error);
 
-  g_clear_error (error);
+  valent_object_lock (VALENT_OBJECT (self));
+  self->udp_context = g_main_loop_ref (loop);
+  self->udp_socket4 = g_steal_pointer (&socket4);
+  self->udp_socket6 = g_steal_pointer (&socket6);
+  valent_object_unlock (VALENT_OBJECT (self));
 
-  return TRUE;
+  VALENT_RETURN (TRUE);
 }
 
 
