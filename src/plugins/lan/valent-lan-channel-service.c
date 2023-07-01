@@ -588,7 +588,8 @@ valent_lan_channel_service_socket_queue (ValentLanChannelService *self,
                                          GSocketAddress          *address)
 {
   g_autoptr (JsonNode) identity = NULL;
-  g_autofree char *identity_json = NULL;
+  g_autoptr (GBytes) identity_bytes = NULL;
+  char *identity_json = NULL;
   GSocketFamily family = G_SOCKET_FAMILY_INVALID;
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
@@ -603,9 +604,10 @@ valent_lan_channel_service_socket_queue (ValentLanChannelService *self,
   /* Serialize the identity */
   identity = valent_channel_service_ref_identity (VALENT_CHANNEL_SERVICE (self));
   identity_json = valent_packet_serialize (identity);
+  identity_bytes = g_bytes_new_take (identity_json, strlen (identity_json));
   g_object_set_data_full (G_OBJECT (address),
                           "valent-lan-broadcast",
-                          g_bytes_new (identity_json, strlen (identity_json)),
+                          g_bytes_ref (identity_bytes),
                           (GDestroyNotify)g_bytes_unref);
 
   valent_object_lock (VALENT_OBJECT (self));
