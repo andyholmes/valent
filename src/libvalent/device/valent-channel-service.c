@@ -102,97 +102,91 @@ valent_channel_service_channel_main (gpointer data)
 /*
  * Identity Packet Helpers
  */
-static char *chassis = NULL;
-
-static void
-init_chassis_type (void)
-{
-  static size_t guard;
-  g_autoptr (GDBusConnection) connection = NULL;
-  g_autoptr (GVariant) reply = NULL;
-  g_autofree char *str = NULL;
-  uint64_t type;
-
-  if (!g_once_init_enter (&guard))
-    return;
-
-  /* Prefer org.freedesktop.hostname1 */
-  connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL);
-
-  if (connection != NULL)
-    reply = g_dbus_connection_call_sync (connection,
-                                         "org.freedesktop.hostname1",
-                                         "/org/freedesktop/hostname1",
-                                         "org.freedesktop.DBus.Properties",
-                                         "Get",
-                                         g_variant_new ("(ss)",
-                                                        "org.freedesktop.hostname1",
-                                                        "Chassis"),
-                                         G_VARIANT_TYPE ("(v)"),
-                                         G_DBUS_CALL_FLAGS_NONE,
-                                         -1,
-                                         NULL,
-                                         NULL);
-
-  if (reply != NULL)
-    {
-      g_autoptr (GVariant) value = NULL;
-
-      g_variant_get (reply, "(v)", &value);
-      g_variant_get (value, "s", &str);
-
-      if (g_str_equal (str, "handset"))
-        chassis = "phone";
-      else
-        chassis = g_steal_pointer (&str);
-
-      VALENT_GOTO (out);
-    }
-
-  /* Fallback to DMI. See the SMBIOS Specification 3.0 section 7.4.1:
-   * https://www.dmtf.org/sites/default/files/standards/documents/DSP0134_3.0.0.pdf
-   */
-  if (!g_file_get_contents ("/sys/class/dmi/id/chassis_type", &str, NULL, NULL) ||
-      !g_ascii_string_to_unsigned (str, 10, 0, G_MAXUINT64, &type, NULL))
-    type = 0x3;
-
-  switch (type)
-    {
-    case 0x3: /* Desktop */
-    case 0x4: /* Low Profile Desktop */
-    case 0x6: /* Mini Tower */
-    case 0x7: /* Tower */
-      chassis = "desktop";
-      break;
-
-    case 0x8: /* Portable */
-    case 0x9: /* Laptop */
-    case 0xA: /* Notebook */
-    case 0xE: /* Sub Notebook */
-      chassis = "laptop";
-      break;
-
-    case 0xB: /* Hand Held */
-      chassis = "phone";
-      break;
-
-    case 0x1E: /* Tablet */
-      chassis = "tablet";
-      break;
-
-    default:
-      chassis = "desktop";
-    }
-
-  out:
-    g_once_init_leave (&guard, 1);
-}
-
 static const char *
 get_chassis_type (void)
 {
-  if G_UNLIKELY (chassis == NULL)
-    init_chassis_type ();
+  static size_t guard = 0;
+  static char *chassis = NULL;
+
+  if (g_once_init_enter (&guard))
+    {
+      g_autoptr (GDBusConnection) connection = NULL;
+      g_autoptr (GVariant) reply = NULL;
+      g_autofree char *str = NULL;
+      uint64_t type;
+
+      connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL);
+
+      if (connection == NULL)
+        VALENT_GOTO (dmi_fallback);
+
+      reply = g_dbus_connection_call_sync (connection,
+                                           "org.freedesktop.hostname1",
+                                           "/org/freedesktop/hostname1",
+                                           "org.freedesktop.DBus.Properties",
+                                           "Get",
+                                           g_variant_new ("(ss)",
+                                                          "org.freedesktop.hostname1",
+                                                          "Chassis"),
+                                           G_VARIANT_TYPE ("(v)"),
+                                           G_DBUS_CALL_FLAGS_NONE,
+                                           -1,
+                                           NULL,
+                                           NULL);
+
+      if (reply != NULL)
+        {
+          g_autoptr (GVariant) value = NULL;
+
+          g_variant_get (reply, "(v)", &value);
+          g_variant_get (value, "s", &chassis);
+
+          /* NOTE: "phone" is the KDE Connect deviceType */
+          if (g_str_equal (chassis, "handset"))
+            g_set_str (&chassis, "phone");
+
+          VALENT_GOTO (leave);
+        }
+
+    /* Fallback to DMI. See the SMBIOS Specification 3.0 section 7.4.1:
+     * https://www.dmtf.org/sites/default/files/standards/documents/DSP0134_3.0.0.pdf
+     */
+    dmi_fallback:
+      if (!g_file_get_contents ("/sys/class/dmi/id/chassis_type", &str, NULL, NULL) ||
+          !g_ascii_string_to_unsigned (str, 10, 0, G_MAXUINT64, &type, NULL))
+        type = 0x3;
+
+      switch (type)
+        {
+        case 0x3: /* Desktop */
+        case 0x4: /* Low Profile Desktop */
+        case 0x6: /* Mini Tower */
+        case 0x7: /* Tower */
+          g_set_str (&chassis, "desktop");
+          break;
+
+        case 0x8: /* Portable */
+        case 0x9: /* Laptop */
+        case 0xA: /* Notebook */
+        case 0xE: /* Sub Notebook */
+          g_set_str (&chassis, "laptop");
+          break;
+
+        case 0xB: /* Hand Held */
+          g_set_str (&chassis, "phone");
+          break;
+
+        case 0x1E: /* Tablet */
+          g_set_str (&chassis, "tablet");
+          break;
+
+        default:
+          g_set_str (&chassis, "desktop");
+        }
+
+    leave:
+      g_once_init_leave (&guard, TRUE);
+    }
 
   return chassis;
 }
