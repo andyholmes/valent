@@ -296,6 +296,8 @@ valent_lan_channel_service_tcp_setup (ValentLanChannelService  *self,
                                       GError                  **error)
 {
   g_autoptr (GCancellable) destroy = NULL;
+  g_autoptr (GSocketService) listener = NULL;
+  uint16_t tcp_port = VALENT_LAN_PROTOCOL_PORT;
   uint16_t tcp_port_max;
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
@@ -305,43 +307,50 @@ valent_lan_channel_service_tcp_setup (ValentLanChannelService  *self,
   if (g_cancellable_set_error_if_cancelled (cancellable, error))
     return FALSE;
 
+  /* The effective port range is actually relative to the construct-time
+   *  `port`property, for running in test environments.
+   */
   valent_object_lock (VALENT_OBJECT (self));
-  destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
-  self->tcp_port = self->port;
-  tcp_port_max = self->tcp_port + (VALENT_LAN_PROTOCOL_PORT_MAX -
-                                   VALENT_LAN_PROTOCOL_PORT_MIN);
+  tcp_port = self->port;
+  tcp_port_max = tcp_port + (VALENT_LAN_PROTOCOL_PORT_MAX -
+                             VALENT_LAN_PROTOCOL_PORT_MIN);
+  valent_object_unlock (VALENT_OBJECT (self));
 
   /* Pass the service as the callback data for the "run" signal, while the
    * listener holds a reference to the object cancellable.
    */
-  self->listener = g_threaded_socket_service_new (g_get_num_processors ());
-  g_signal_connect_object (self->listener,
+  destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
+  listener = g_threaded_socket_service_new (g_get_num_processors ());
+  g_signal_connect_object (listener,
                            "run",
                            G_CALLBACK (on_incoming_connection),
                            self,
                            G_CONNECT_SWAPPED);
 
-  while (!g_socket_listener_add_inet_port (G_SOCKET_LISTENER (self->listener),
-                                           self->tcp_port,
+  while (!g_socket_listener_add_inet_port (G_SOCKET_LISTENER (listener),
+                                           tcp_port,
                                            G_OBJECT (destroy),
                                            error))
     {
-      if (self->tcp_port >= tcp_port_max)
+      if (tcp_port >= tcp_port_max)
         {
-          g_socket_service_stop (self->listener);
-          g_socket_listener_close (G_SOCKET_LISTENER (self->listener));
-          g_clear_object (&self->listener);
-          break;
+          g_socket_service_stop (listener);
+          g_socket_listener_close (G_SOCKET_LISTENER (listener));
+
+          return FALSE;
         }
 
       g_clear_error (error);
-      self->tcp_port++;
+      tcp_port++;
     }
 
+  valent_object_lock (VALENT_OBJECT (self));
+  self->tcp_port = tcp_port;
+  self->listener = g_object_ref (listener);
   valent_channel_service_build_identity (VALENT_CHANNEL_SERVICE (self));
   valent_object_unlock (VALENT_OBJECT (self));
 
-  return G_IS_SOCKET_SERVICE (self->listener);
+  return TRUE;
 }
 
 /*
