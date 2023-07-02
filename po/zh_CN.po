@@ -1,0 +1,1316 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the valent package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: valent\n"
+"Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
+"POT-Creation-Date: 2023-06-03 12:35-0700\n"
+"PO-Revision-Date: 2023-07-02 12:29+0800\n"
+"Last-Translator: sky96111 <sky96111@outlook.com>\n"
+"Language-Team: Chinese Simplified\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 3.3.1\n"
+
+#: data/gsettings/ca.andyholmes.Valent.Device.gschema.xml:10
+msgid "Paired"
+msgstr "配对"
+
+#: data/gsettings/ca.andyholmes.Valent.Device.gschema.xml:11
+msgid "Whether the device is paired"
+msgstr "设备是否已配对"
+
+#: data/gsettings/ca.andyholmes.Valent.gschema.xml:10
+#: src/plugins/runcommand/valent-runcommand-editor.ui:39
+msgid "Name"
+msgstr "名称"
+
+#: data/gsettings/ca.andyholmes.Valent.gschema.xml:11
+msgid "The display name for the local device."
+msgstr "本地设备的显示名称。"
+
+#: data/gsettings/ca.andyholmes.Valent.Plugin.gschema.xml:10
+msgid "Plugin State"
+msgstr "插件状态"
+
+#: data/gsettings/ca.andyholmes.Valent.Plugin.gschema.xml:11
+msgid "Whether the plugin is enabled or not."
+msgstr "该插件是否被启用。"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
+#: data/ca.andyholmes.Valent.desktop.in.in:3
+#: src/libvalent/ui/valent-preferences-window.ui:12
+#: src/libvalent/ui/valent-window.c:336 src/libvalent/ui/valent-window.ui:39
+msgid "Valent"
+msgstr "Valent"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:12
+#: data/ca.andyholmes.Valent.desktop.in.in:4
+msgid "Connect, control and sync devices"
+msgstr "连接、控制和同步设备"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:15
+msgid ""
+"Securely connect your devices to open files and links where you need them, "
+"get notifications when you need them, stay in control of your media and more."
+msgstr ""
+"安全地连接你的设备，在你需要的地方打开文件和链接，在你需要的时候获得通知，保"
+"持对你的媒体的控制等等。"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:19
+msgid "Features:"
+msgstr "特性："
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:23
+msgid "Sync contacts, notifications and clipboard content"
+msgstr "同步联系人、通知和剪贴板内容"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:24
+msgid "Control media players and volume"
+msgstr "控制媒体播放器和音量"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:25
+msgid "Share files, links and text"
+msgstr "分享文件、链接和文本"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:26
+msgid "Virtual touchpad and keyboard"
+msgstr "虚拟触摸板和键盘"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:27
+msgid "Call and text notification"
+msgstr "呼叫和短信通知"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:28
+msgid "Execute custom commands"
+msgstr "执行自定义命令"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:29
+msgid "More…"
+msgstr "更多…"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:31
+msgid ""
+"Valent is an implementation of the KDE Connect protocol, built on GNOME "
+"platform libraries."
+msgstr "Valent是KDE Connect协议的一个实现，使用GNOME库建立。"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:39
+msgid "Pair and connect your devices"
+msgstr "配对和连接你的设备"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:56
+msgid "Andy Holmes"
+msgstr "Andy Holmes"
+
+#: src/libvalent/device/valent-device.c:512
+#, c-format
+msgid "Pairing request from %s"
+msgstr "来自 %s 的配对请求"
+
+#: src/libvalent/device/valent-device.c:523
+#: src/libvalent/ui/valent-device-page.ui:143
+msgid "Reject"
+msgstr "拒绝"
+
+#: src/libvalent/device/valent-device.c:529
+#: src/libvalent/ui/valent-device-page.ui:156
+msgid "Accept"
+msgstr "接受"
+
+#: src/libvalent/ui/valent-device-page.c:175
+#: src/libvalent/ui/valent-device-page.ui:113
+msgid "Unavailable"
+msgstr "不可用"
+
+#: src/libvalent/ui/valent-device-page.ui:21
+#: src/libvalent/ui/valent-media-remote.ui:239
+#: src/libvalent/ui/valent-menu-list.c:664
+#: src/plugins/presenter/valent-presenter-remote.ui:126
+msgid "Previous"
+msgstr "上一页"
+
+#: src/libvalent/ui/valent-device-page.ui:31
+msgid "Device Menu"
+msgstr "设备菜单"
+
+#: src/libvalent/ui/valent-device-page.ui:105
+msgid "Verification Key"
+msgstr "验证密钥"
+
+#: src/libvalent/ui/valent-device-page.ui:134
+msgid "Request Pairing"
+msgstr "请求配对"
+
+#: src/libvalent/ui/valent-device-page.ui:229
+#: src/libvalent/ui/valent-window.c:191
+msgid "Disconnected"
+msgstr "断开连接"
+
+#: src/libvalent/ui/valent-device-page.ui:259
+msgid "_Preferences"
+msgstr "_Preferences"
+
+#: src/libvalent/ui/valent-device-page.ui:265
+msgid "P_air"
+msgstr "P_air"
+
+#: src/libvalent/ui/valent-device-page.ui:270
+msgid "_Unpair"
+msgstr "_Unpair"
+
+#: src/libvalent/ui/valent-device-preferences-window.ui:15
+msgid "Status"
+msgstr "状态"
+
+#: src/libvalent/ui/valent-device-preferences-window.ui:25
+msgid "Sync"
+msgstr "同步"
+
+#: src/libvalent/ui/valent-device-preferences-window.ui:35
+#: src/plugins/sms/valent-contact-row.c:207
+#: src/plugins/sms/valent-contact-row.c:326
+#: src/plugins/sms/valent-contact-row.c:455
+msgid "Other"
+msgstr "其他"
+
+#: src/libvalent/ui/valent-device-preferences-window.ui:45
+#: src/libvalent/ui/valent-device-preferences-window.ui:50
+msgid "Plugins"
+msgstr "插件"
+
+#: src/libvalent/ui/valent-device-preferences-window.ui:58
+#: src/libvalent/ui/valent-preferences-window.ui:39
+msgid "No Plugins"
+msgstr "无插件"
+
+#: src/libvalent/ui/valent-media-remote.c:250
+#: src/libvalent/ui/valent-media-remote.c:252
+#: src/libvalent/ui/valent-media-remote.ui:408
+#: src/libvalent/ui/valent-media-remote.ui:423
+msgid "Enable Repeat"
+msgstr "启用重复"
+
+#: src/libvalent/ui/valent-media-remote.c:260
+#: src/libvalent/ui/valent-media-remote.c:262
+msgid "Repeat All"
+msgstr "重复全部"
+
+#: src/libvalent/ui/valent-media-remote.c:270
+#: src/libvalent/ui/valent-media-remote.c:272
+msgid "Repeat One"
+msgstr "重复一个"
+
+#: src/libvalent/ui/valent-media-remote.c:299
+#: src/libvalent/ui/valent-media-remote.c:301
+msgid "Pause"
+msgstr "暂停"
+
+#: src/libvalent/ui/valent-media-remote.c:314
+#: src/libvalent/ui/valent-media-remote.c:316
+#: src/libvalent/ui/valent-media-remote.ui:275
+#: src/libvalent/ui/valent-media-remote.ui:290
+msgid "Play"
+msgstr "播放"
+
+#: src/libvalent/ui/valent-media-remote.ui:8
+#: src/libvalent/ui/valent-window.ui:113
+msgid "Media Remote"
+msgstr "远程媒体"
+
+#: src/libvalent/ui/valent-media-remote.ui:219
+#: src/plugins/telephony/valent-telephony-preferences.ui:15
+#: src/plugins/telephony/valent-telephony-preferences.ui:43
+msgid "Volume"
+msgstr "音量"
+
+#: src/libvalent/ui/valent-media-remote.ui:248
+#: src/libvalent/ui/valent-media-remote.ui:265
+#, fuzzy
+msgid "Seek Back"
+msgstr "寻回"
+
+#: src/libvalent/ui/valent-media-remote.ui:300
+#: src/libvalent/ui/valent-media-remote.ui:317
+#, fuzzy
+msgid "Seek Forward"
+msgstr "向前看"
+
+#: src/libvalent/ui/valent-media-remote.ui:327
+#: src/libvalent/ui/valent-media-remote.ui:342
+#: src/plugins/presenter/valent-presenter-remote.ui:151
+msgid "Next"
+msgstr "下一曲"
+
+#: src/libvalent/ui/valent-media-remote.ui:351
+#: src/libvalent/ui/valent-media-remote.ui:365
+msgid "Options"
+msgstr "选项"
+
+#: src/libvalent/ui/valent-media-remote.ui:432
+#: src/libvalent/ui/valent-media-remote.ui:447
+msgid "Shuffle"
+msgstr "随机"
+
+#: src/libvalent/ui/valent-menu-list.c:529
+msgid "No Actions"
+msgstr "无动作"
+
+#: src/libvalent/ui/valent-preferences-window.c:375
+msgid "Global"
+msgstr "全局"
+
+#: src/libvalent/ui/valent-preferences-window.c:382
+msgid "Device Connections"
+msgstr "设备连接"
+
+#: src/libvalent/ui/valent-preferences-window.c:389
+#: src/plugins/clipboard/clipboard.plugin.desktop.in:7
+msgid "Clipboard"
+msgstr "剪切板"
+
+#: src/libvalent/ui/valent-preferences-window.c:396
+#: src/plugins/contacts/contacts.plugin.desktop.in:7
+#: src/plugins/sms/valent-contact-row.c:253
+msgid "Contacts"
+msgstr "联系人"
+
+#: src/libvalent/ui/valent-preferences-window.c:403
+msgid "Mouse and Keyboard"
+msgstr "鼠标和键盘"
+
+#: src/libvalent/ui/valent-preferences-window.c:410
+msgid "Media Players"
+msgstr "媒体播放器"
+
+#: src/libvalent/ui/valent-preferences-window.c:417
+msgid "Volume Control"
+msgstr "音量控制"
+
+#: src/libvalent/ui/valent-preferences-window.c:424
+#: src/plugins/notification/notification.plugin.desktop.in:7
+#: src/plugins/notification/valent-notification-preferences.ui:63
+msgid "Notifications"
+msgstr "通知"
+
+#: src/libvalent/ui/valent-preferences-window.c:431
+msgid "Session Manager"
+msgstr "会话管理"
+
+#: src/libvalent/ui/valent-preferences-window.ui:19
+msgid "Device Name"
+msgstr "设备名称"
+
+#: src/libvalent/ui/valent-preferences-window.ui:31
+msgid "Desktop Integration"
+msgstr "充满电池的通知"
+
+#. translators: Unknown time
+#: src/libvalent/ui/valent-time-helpers.c:49
+msgid "--:--"
+msgstr "--:--"
+
+#. hour:minutes:seconds
+#. Translators: This is a time format, like "9:05:02" for 9
+#. * hours, 5 minutes, and 2 seconds. You may change ":" to
+#. * the separator that your locale uses or use "%Id" instead
+#. * of "%d" if your locale uses localized digits.
+#.
+#: src/libvalent/ui/valent-time-helpers.c:85
+#, c-format
+msgctxt "long time format"
+msgid "%d:%02d:%02d"
+msgstr "%d:%02d:%02d"
+
+#. hour:minutes:seconds.msecs
+#. Translators: This is a time format, like "9:05:02.050" for 9
+#. * hours, 5 minutes, 2 seconds and 50 milliseconds. You may change ":" to
+#. * the separator that your locale uses or use "%Id" instead
+#. * of "%d" if your locale uses localized digits.
+#.
+#: src/libvalent/ui/valent-time-helpers.c:93
+#, c-format
+msgctxt "long time format"
+msgid "%d:%02d:%02d.%03d"
+msgstr "%d:%02d:%02d.%03d"
+
+#. -hour:minutes:seconds
+#. Translators: This is a time format, like "-9:05:02" for 9
+#. * hours, 5 minutes, and 2 seconds playback remaining. You may
+#. * change ":" to the separator that your locale uses or use
+#. * "%Id" instead of "%d" if your locale uses localized digits.
+#.
+#: src/libvalent/ui/valent-time-helpers.c:103
+#, c-format
+msgctxt "long time format"
+msgid "-%d:%02d:%02d"
+msgstr "-%d:%02d:%02d"
+
+#. -hour:minutes:seconds.msecs
+#. Translators: This is a time format, like "-9:05:02.050" for 9
+#. * hours, 5 minutes, 2 seconds and 50 milliseconds playback remaining. You may
+#. * change ":" to the separator that your locale uses or use
+#. * "%Id" instead of "%d" if your locale uses localized digits.
+#.
+#: src/libvalent/ui/valent-time-helpers.c:111
+#, c-format
+msgctxt "long time format"
+msgid "-%d:%02d:%02d.%03d"
+msgstr "-%d:%02d:%02d.%03d"
+
+#. -minutes:seconds
+#. Translators: This is a time format, like "-5:02" for 5
+#. * minutes and 2 seconds playback remaining. You may change
+#. * ":" to the separator that your locale uses or use "%Id"
+#. * instead of "%d" if your locale uses localized digits.
+#.
+#: src/libvalent/ui/valent-time-helpers.c:124
+#, c-format
+msgctxt "short time format"
+msgid "-%d:%02d"
+msgstr "-%d:%02d"
+
+#. -minutes:seconds.msec
+#. Translators: This is a time format, like "-5:02.050" for 5
+#. * minutes 2 seconds and 50 milliseconds playback remaining. You may change
+#. * ":" to the separator that your locale uses or use "%Id"
+#. * instead of "%d" if your locale uses localized digits.
+#.
+#: src/libvalent/ui/valent-time-helpers.c:132
+#, c-format
+msgctxt "short time format"
+msgid "-%d:%02d.%03d"
+msgstr "-%d:%02d.%03d"
+
+#. minutes:seconds.msec
+#. Translators: This is a time format, like "5:02" for 5
+#. * minutes 2 seconds and 50 milliseconds. You may change ":" to the
+#. * separator that your locale uses or use "%Id" instead of
+#. * "%d" if your locale uses localized digits.
+#.
+#: src/libvalent/ui/valent-time-helpers.c:143
+#, c-format
+msgctxt "short time format"
+msgid "%d:%02d.%03d"
+msgstr "%d:%02d.%03d"
+
+#. minutes:seconds
+#. Translators: This is a time format, like "5:02" for 5
+#. * minutes and 2 seconds. You may change ":" to the
+#. * separator that your locale uses or use "%Id" instead of
+#. * "%d" if your locale uses localized digits.
+#.
+#: src/libvalent/ui/valent-time-helpers.c:152
+#, c-format
+msgctxt "short time format"
+msgid "%d:%02d"
+msgstr "%d:%02d"
+
+#: src/libvalent/ui/valent-window.c:186
+msgid "Unpaired"
+msgstr "未配对"
+
+#: src/libvalent/ui/valent-window.c:196
+msgid "Connected"
+msgstr "已连接"
+
+#: src/libvalent/ui/valent-window.c:345
+msgid "translator-credits"
+msgstr "translator-credits"
+
+#: src/libvalent/ui/valent-window.c:350
+msgid "Sponsors"
+msgstr "赞助商"
+
+#: src/libvalent/ui/valent-window.ui:46 src/libvalent/ui/valent-window.ui:49
+msgid "Refresh"
+msgstr "刷新"
+
+#: src/libvalent/ui/valent-window.ui:58 src/libvalent/ui/valent-window.ui:61
+msgid "Main Menu"
+msgstr "主菜单"
+
+#: src/libvalent/ui/valent-window.ui:79
+#: src/plugins/share/valent-share-target-chooser.ui:68
+msgid "Devices"
+msgstr "设备"
+
+#: src/libvalent/ui/valent-window.ui:87
+msgid "Searching for devices…"
+msgstr "正在搜索设备…"
+
+#: src/libvalent/ui/valent-window.ui:119
+msgid "Preferences"
+msgstr "首选项"
+
+#: src/libvalent/ui/valent-window.ui:123
+#: src/plugins/sms/valent-sms-window.ui:350
+msgid "About Valent"
+msgstr "关于"
+
+#: src/libvalent/ui/valent-window.ui:129
+msgid "Quit"
+msgstr "退出"
+
+#: src/plugins/battery/battery.plugin.desktop.in:7
+msgid "Battery"
+msgstr "电池"
+
+#: src/plugins/battery/battery.plugin.desktop.in:8
+msgid "Monitor battery level and charging state"
+msgstr "监测电池水平和充电状态"
+
+#. TRANSLATORS: When the battery level is 100%
+#: src/plugins/battery/valent-battery-gadget.c:64
+msgid "Fully Charged"
+msgstr "充电完成"
+
+#. TRANSLATORS: This is <percentage> (Estimating…)
+#: src/plugins/battery/valent-battery-gadget.c:88
+#, fuzzy, c-format
+msgid "%g%% (Estimating…)"
+msgstr "%g%% (Estimating…)"
+
+#. TRANSLATORS: This is <percentage> (<hours>:<minutes> Until Full)
+#: src/plugins/battery/valent-battery-gadget.c:93
+#, fuzzy, c-format
+msgid "%g%% (%d∶%02d Until Full)"
+msgstr "%g%% (%d∶%02d Until Full)"
+
+#. TRANSLATORS: This is <percentage> (<hours>:<minutes> Remaining)
+#: src/plugins/battery/valent-battery-gadget.c:99
+#: src/plugins/battery/valent-battery-plugin.c:307
+#, fuzzy, c-format
+msgid "%g%% (%d∶%02d Remaining)"
+msgstr "%g%% (%d∶%02d Until Full)"
+
+#. TRANSLATORS: This is <device name>: Fully Charged
+#: src/plugins/battery/valent-battery-plugin.c:276
+#, c-format
+msgid "%s: Fully Charged"
+msgstr "%s: 充电完成"
+
+#. TRANSLATORS: When the battery level is at maximum
+#: src/plugins/battery/valent-battery-plugin.c:278
+msgid "Battery Fully Charged"
+msgstr "电池完全充电"
+
+#. TRANSLATORS: This is <device name>: Battery Low
+#: src/plugins/battery/valent-battery-plugin.c:305
+#, c-format
+msgid "%s: Battery Low"
+msgstr "%s: 电量低"
+
+#: src/plugins/battery/valent-battery-preferences.ui:10
+msgid "Full Battery Notification"
+msgstr "充满电池的通知"
+
+#: src/plugins/battery/valent-battery-preferences.ui:11
+msgid "Notify when the remote battery is full"
+msgstr "遥控器电池充满时通知"
+
+#: src/plugins/battery/valent-battery-preferences.ui:15
+#: src/plugins/battery/valent-battery-preferences.ui:39
+msgid "Level Threshold"
+msgstr "级别阈值"
+
+#: src/plugins/battery/valent-battery-preferences.ui:34
+msgid "Low Battery Notification"
+msgstr "低电池通知"
+
+#: src/plugins/battery/valent-battery-preferences.ui:35
+msgid "Notify when the remote battery is low"
+msgstr "遥控器电池电量不足时通知"
+
+#: src/plugins/clipboard/clipboard.plugin.desktop.in:8
+msgid "Sync the clipboard between devices"
+msgstr "在设备间同步剪贴板"
+
+#: src/plugins/clipboard/valent-clipboard-preferences.ui:10
+msgid "Remote Clipboard"
+msgstr "远程剪贴板"
+
+#: src/plugins/clipboard/valent-clipboard-preferences.ui:11
+msgid "Copy changes to the local clipboard"
+msgstr "将变化复制到本地剪贴板上"
+
+#: src/plugins/clipboard/valent-clipboard-preferences.ui:22
+msgid "Local Clipboard"
+msgstr "本地剪贴板"
+
+#: src/plugins/clipboard/valent-clipboard-preferences.ui:23
+msgid "Report changes to the remote device"
+msgstr "向远程设备报告变化"
+
+#: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:7
+msgid "Connectivity"
+msgstr "连接性"
+
+#: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:8
+msgid "Monitor mobile connectivity status"
+msgstr "监测移动连接状态"
+
+#. TRANSLATORS: When the mobile network signal is available
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:173
+msgid "Mobile Network"
+msgstr "移动网络"
+
+#. TRANSLATORS: The mobile network signal strength (e.g. "Signal Strength (25%)")
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:175
+#, c-format
+msgid "Signal Strength %f%%"
+msgstr "信号强度 %f%%"
+
+#. TRANSLATORS: When no mobile service is available
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:181
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:188
+msgid "No Service"
+msgstr "无服务"
+
+#. TRANSLATORS: When no mobile network signal is available
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:183
+msgid "No mobile network service"
+msgstr "无移动网络服务"
+
+#. TRANSLATORS: When the device is missing a SIM card
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:190
+msgid "No SIM"
+msgstr "无SIM卡"
+
+#. TRANSLATORS: The connectivity notification title (e.g. "PinePhone: No Service")
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:321
+#, c-format
+msgid "%s: %s"
+msgstr "%s: %s"
+
+#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:10
+msgid "Local Connectivity"
+msgstr "本地连接"
+
+#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:11
+msgid "Send updates to the remote device"
+msgstr "向远程设备发送更新信息"
+
+#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:22
+msgid "Remote Connectivity"
+msgstr "远程连接"
+
+#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:23
+msgid "Notify if the remote device loses connectivity"
+msgstr "如果远程设备失去连接，则通知"
+
+#: src/plugins/contacts/contacts.plugin.desktop.in:8
+msgid "Sync contacts between devices"
+msgstr "在设备间同步联系人"
+
+#: src/plugins/contacts/valent-contacts-preferences.ui:10
+msgid "Remote Contacts"
+msgstr "远程联系"
+
+#: src/plugins/contacts/valent-contacts-preferences.ui:11
+msgid "Import contacts from the remote device"
+msgstr "从远程设备导入联系人"
+
+#: src/plugins/contacts/valent-contacts-preferences.ui:22
+msgid "Local Contacts"
+msgstr "本地联系人"
+
+#: src/plugins/contacts/valent-contacts-preferences.ui:23
+msgid "Share contacts with the remote device"
+msgstr "与远程设备共享联系人"
+
+#: src/plugins/eds/eds.plugin.desktop.in:7
+msgid "Evolution Data Server"
+msgstr "Evolution 数据服务器"
+
+#: src/plugins/eds/eds.plugin.desktop.in:8
+msgid "Integration with Evolution Data Server"
+msgstr "与Evolution数据服务器集成"
+
+#: src/plugins/fdo/fdo.plugin.desktop.in:7
+msgid "freedesktop.org"
+msgstr "freedesktop.org"
+
+#: src/plugins/fdo/fdo.plugin.desktop.in:8
+msgid "Freedesktop.org Based Modules"
+msgstr "基于Freedesktop.org的模块"
+
+#: src/plugins/findmyphone/findmyphone.plugin.desktop.in:7
+msgid "Find My Phone"
+msgstr "查找我的手机"
+
+#: src/plugins/findmyphone/findmyphone.plugin.desktop.in:8
+msgid "Find a device by making it ring"
+msgstr "通过使其响铃来查找设备"
+
+#: src/plugins/findmyphone/valent-findmyphone-plugin.c:112
+msgid "Ring"
+msgstr "响铃"
+
+#: src/plugins/findmyphone/valent-findmyphone-ringer.c:191
+msgid "Found"
+msgstr "已发现"
+
+#: src/plugins/gtk/gtk.plugin.desktop.in:7
+msgid "GTK"
+msgstr "GTK"
+
+#: src/plugins/gtk/gtk.plugin.desktop.in:8
+msgid "Integration with GTK4"
+msgstr "GTK4集成"
+
+#: src/plugins/lan/lan.plugin.desktop.in:7
+msgid "LAN"
+msgstr "局域网"
+
+#: src/plugins/lan/lan.plugin.desktop.in:8
+msgid "Connect devices over LAN"
+msgstr "通过局域网连接设备"
+
+#: src/plugins/lock/lock.plugin.desktop.in:7
+#: src/plugins/lock/valent-lock-gadget.c:54
+msgid "Lock"
+msgstr "锁定"
+
+#: src/plugins/lock/lock.plugin.desktop.in:8
+msgid "Lock and unlock"
+msgstr "锁定与解锁"
+
+#: src/plugins/mousepad/mousepad.plugin.desktop.in:7
+msgid "Mousepad"
+msgstr "触控板"
+
+#: src/plugins/mousepad/mousepad.plugin.desktop.in:8
+msgid "Control the mouse and keyboard"
+msgstr "控制鼠标和键盘"
+
+#: src/plugins/mousepad/valent-mousepad-plugin.c:579
+msgid "Remote Input"
+msgstr "远程输入"
+
+#: src/plugins/mousepad/valent-mousepad-remote.ui:8
+msgid "Input Remote"
+msgstr "输入远程"
+
+#: src/plugins/mousepad/valent-mousepad-remote.ui:142
+msgid "Drag one finger to move"
+msgstr "拖动一个手指来移动"
+
+#: src/plugins/mousepad/valent-mousepad-remote.ui:151
+msgid "Drag two fingers to scroll"
+msgstr "拖动两个手指来滚动"
+
+#: src/plugins/mousepad/valent-mousepad-remote.ui:160
+msgid "Tap one finger to click"
+msgstr "用一根手指轻点一下"
+
+#: src/plugins/mousepad/valent-mousepad-remote.ui:170
+msgid "Tap two fingers to right click"
+msgstr "轻点两根手指进行右击"
+
+#: src/plugins/mousepad/valent-mousepad-remote.ui:179
+msgid "Tap three fingers to middle click"
+msgstr "用三根手指敲击中指"
+
+#: src/plugins/mousepad/valent-mousepad-remote.ui:188
+msgid "Hold one finger to grab"
+msgstr "握住一个手指抓住"
+
+#: src/plugins/mousepad/valent-mousepad-remote.ui:198
+msgid "Tap one finger to ungrab"
+msgstr "轻点一个手指就能解开"
+
+#: src/plugins/mpris/mpris.plugin.desktop.in:7
+msgid "MPRIS"
+msgstr "MPRIS"
+
+#: src/plugins/mpris/mpris.plugin.desktop.in:8
+msgid "Share control of MPRISv2 players"
+msgstr "将控制权共享给MPRISv2播放器"
+
+#: src/plugins/mpris/valent-mpris-plugin.c:484
+msgid "Unknown"
+msgstr "未知"
+
+#: src/plugins/notification/notification.plugin.desktop.in:8
+msgid "Sync notifications"
+msgstr "同步通知"
+
+#: src/plugins/notification/valent-notification-dialog.ui:12
+msgid "Notification"
+msgstr "通知"
+
+#: src/plugins/notification/valent-notification-dialog.ui:19
+#: src/plugins/runcommand/valent-runcommand-editor.ui:17
+#: src/plugins/share/valent-share-target-chooser.ui:22
+msgid "_Cancel"
+msgstr "_Cancel"
+
+#: src/plugins/notification/valent-notification-dialog.ui:26
+msgid "_Reply"
+msgstr "_Reply"
+
+#: src/plugins/notification/valent-notification-dialog.ui:150
+#: src/plugins/share/valent-share-text-dialog.ui:53
+msgid "Close"
+msgstr "关闭"
+
+#: src/plugins/notification/valent-notification-dialog.ui:151
+msgid "Close the notification"
+msgstr "关闭通知"
+
+#: src/plugins/notification/valent-notification-preferences.ui:10
+msgid "Local Notifications"
+msgstr "本地通知"
+
+#: src/plugins/notification/valent-notification-preferences.ui:11
+msgid "Forward notifications to the remote device"
+msgstr "转发通知到远程设备"
+
+#: src/plugins/notification/valent-notification-preferences.ui:15
+msgid "Intelligent Sync"
+msgstr "智能同步"
+
+#: src/plugins/notification/valent-notification-preferences.ui:16
+msgid "Notifications follow the active device"
+msgstr "通知跟随活动设备"
+
+#: src/plugins/notification/valent-notification-preferences.ui:28
+msgid "Filter by Application"
+msgstr "按应用过滤"
+
+#: src/plugins/notification/valent-notification-preferences.ui:64
+msgid "Applications"
+msgstr "应用"
+
+#: src/plugins/notification/valent-notification-preferences.ui:85
+msgid "Search"
+msgstr "搜索"
+
+#: src/plugins/notification/valent-notification-preferences.ui:132
+msgid "No Applications"
+msgstr "无应用"
+
+#: src/plugins/photo/photo.plugin.desktop.in:7
+msgid "Photo"
+msgstr "照片"
+
+#: src/plugins/photo/photo.plugin.desktop.in:8
+msgid "Take a photo with the remote device"
+msgstr "用远程设备拍摄照片"
+
+#: src/plugins/photo/valent-photo-plugin.c:54
+#, c-format
+msgid "Failed to receive “%s” from %s"
+msgstr "未能从 %s 接收 \"%s\""
+
+#: src/plugins/photo/valent-photo-plugin.c:58
+#: src/plugins/share/valent-share-plugin.c:124
+#: src/plugins/share/valent-share-plugin.c:250
+#: src/plugins/share/valent-share-plugin.c:352
+#: src/plugins/share/valent-share-plugin.c:489
+msgid "Transfer Failed"
+msgstr "传送失败"
+
+#: src/plugins/photo/valent-photo-plugin.c:188
+msgid "Take Photo"
+msgstr "拍照"
+
+#: src/plugins/ping/ping.plugin.desktop.in:7
+#: src/plugins/ping/valent-ping-plugin.c:142
+msgid "Ping"
+msgstr "Ping"
+
+#: src/plugins/ping/ping.plugin.desktop.in:8
+msgid "Send and receive pings"
+msgstr "发送和接收PING"
+
+#: src/plugins/ping/valent-ping-plugin.c:37
+msgid "Ping!"
+msgstr "Ping!"
+
+#: src/plugins/presenter/presenter.plugin.desktop.in:7
+msgid "Presenter"
+msgstr "幻灯片演示"
+
+#: src/plugins/presenter/presenter.plugin.desktop.in:8
+msgid "Control presentations"
+msgstr "控制演示"
+
+#: src/plugins/presenter/valent-presenter-plugin.c:215
+#: src/plugins/presenter/valent-presenter-remote.ui:8
+msgid "Presentation Remote"
+msgstr "远程演示"
+
+#: src/plugins/presenter/valent-presenter-remote.c:91
+msgid "Select Presentation"
+msgstr "选择演示"
+
+#: src/plugins/presenter/valent-presenter-remote.c:92
+#: src/plugins/presenter/valent-presenter-remote.ui:86
+#: src/plugins/share/valent-share-preferences.c:94
+msgid "Open"
+msgstr "打开"
+
+#: src/plugins/presenter/valent-presenter-remote.c:100
+msgid "Presentations"
+msgstr "演示"
+
+#: src/plugins/presenter/valent-presenter-remote.c:107
+msgid "All Files"
+msgstr "所有文件"
+
+#: src/plugins/presenter/valent-presenter-remote.ui:69
+msgid "Start"
+msgstr "开始"
+
+#: src/plugins/presenter/valent-presenter-remote.ui:105
+msgid "Stop"
+msgstr "停止"
+
+#: src/plugins/presenter/valent-presenter-remote.ui:174
+msgid "Pointer"
+msgstr "指针"
+
+#: src/plugins/pulseaudio/pulseaudio.plugin.desktop.in:7
+msgid "PulseAudio"
+msgstr "PulseAudio"
+
+#: src/plugins/pulseaudio/pulseaudio.plugin.desktop.in:8
+msgid "Integration with PulseAudio"
+msgstr "与PulseAudio集成"
+
+#: src/plugins/runcommand/runcommand.plugin.desktop.in:7
+msgid "Commands"
+msgstr "命令"
+
+#: src/plugins/runcommand/runcommand.plugin.desktop.in:8
+msgid "Execute commands remotely"
+msgstr "远程执行命令"
+
+#: src/plugins/runcommand/valent-runcommand-editor.ui:8
+#: src/plugins/runcommand/valent-runcommand-preferences.c:84
+msgid "Edit Command"
+msgstr "编辑命令"
+
+#: src/plugins/runcommand/valent-runcommand-editor.ui:24
+msgid "_Save"
+msgstr "_Save"
+
+#: src/plugins/runcommand/valent-runcommand-editor.ui:48
+msgid "Command Line"
+msgstr "命令行"
+
+#: src/plugins/runcommand/valent-runcommand-editor.ui:63
+msgid "Remove the command"
+msgstr "移除命令"
+
+#: src/plugins/runcommand/valent-runcommand-editor.ui:69
+msgid "Remove"
+msgstr "移除"
+
+#: src/plugins/runcommand/valent-runcommand-plugin.c:317
+msgid "Run Command"
+msgstr "运行命令"
+
+#: src/plugins/runcommand/valent-runcommand-preferences.ui:14
+msgid "Add a command"
+msgstr "添加一个命令"
+
+#: src/plugins/runcommand/valent-runcommand-preferences.ui:24
+msgid "Local Commands"
+msgstr "本地命令"
+
+#: src/plugins/runcommand/valent-runcommand-preferences.ui:25
+msgid "Commands that can be executed by remote devices"
+msgstr "可由远程设备执行的命令"
+
+#: src/plugins/sftp/sftp.plugin.desktop.in:7
+msgid "Files"
+msgstr "文件"
+
+#: src/plugins/sftp/sftp.plugin.desktop.in:8
+msgid "Share files and directories with SFTP"
+msgstr "用SFTP共享文件和目录"
+
+#: src/plugins/sftp/valent-sftp-plugin.c:535
+#: src/plugins/sms/valent-contact-row.c:323
+msgid "Home"
+msgstr "首页"
+
+#: src/plugins/sftp/valent-sftp-plugin.c:541
+msgid "Permission denied"
+msgstr "权限被拒绝"
+
+#: src/plugins/sftp/valent-sftp-plugin.c:658
+msgid "Browse Files"
+msgstr "浏览文件"
+
+#: src/plugins/sftp/valent-sftp-preferences.ui:10
+msgid "Automatically Mount"
+msgstr "自动安装"
+
+#: src/plugins/sftp/valent-sftp-preferences.ui:11
+msgid "Mount shared folders when the device connects"
+msgstr "设备连接时挂载共享文件夹"
+
+#: src/plugins/sftp/valent-sftp-preferences.ui:22
+msgid "Local Files"
+msgstr "本地文件"
+
+#: src/plugins/sftp/valent-sftp-preferences.ui:23
+msgid "Share local files and directories"
+msgstr "共享本地文件和目录"
+
+#: src/plugins/sftp/valent-sftp-preferences.ui:27
+msgid "Port"
+msgstr "端口"
+
+#: src/plugins/share/share.plugin.desktop.in:7
+msgid "Sharing"
+msgstr "共享"
+
+#: src/plugins/share/share.plugin.desktop.in:8
+msgid "Direct file, link and text sharing"
+msgstr "直接分享文件、链接和文本"
+
+#: src/plugins/share/valent-share-plugin.c:106
+#: src/plugins/share/valent-share-plugin.c:471
+msgid "Transferring Files"
+msgstr "传输文件"
+
+#: src/plugins/share/valent-share-plugin.c:107
+#: src/plugins/share/valent-share-plugin.c:125
+#, c-format
+msgid "Receiving one file from %1$s"
+msgid_plural "Receiving %2$d files from %1$s"
+msgstr[0] "正在从 %1$s 接收 %2$d 个文件"
+
+#: src/plugins/share/valent-share-plugin.c:115
+#: src/plugins/share/valent-share-plugin.c:346
+#: src/plugins/share/valent-share-plugin.c:480
+msgid "Transfer Complete"
+msgstr "传输完成"
+
+#: src/plugins/share/valent-share-plugin.c:116
+#, c-format
+msgid "Received one file from %1$s"
+msgid_plural "Received %2$d files from %1$s"
+msgstr[0] "收到 %1$s 的 %2$d 个文件"
+
+#: src/plugins/share/valent-share-plugin.c:140
+#: src/plugins/share/valent-share-plugin.c:263
+#: src/plugins/share/valent-share-plugin.c:365
+#: src/plugins/share/valent-share-plugin.c:505
+msgid "Cancel"
+msgstr "取消"
+
+#: src/plugins/share/valent-share-plugin.c:158
+msgid "Open Folder"
+msgstr "打开文件夹"
+
+#: src/plugins/share/valent-share-plugin.c:169
+msgid "Open File"
+msgstr "打开文件"
+
+#: src/plugins/share/valent-share-plugin.c:240
+#: src/plugins/share/valent-share-plugin.c:340
+msgid "Transferring File"
+msgstr "传输文件"
+
+#: src/plugins/share/valent-share-plugin.c:241
+#: src/plugins/share/valent-share-plugin.c:251
+#, c-format
+msgid "Opening “%s” from %s"
+msgstr "从 %s 打开 \"%s\""
+
+#: src/plugins/share/valent-share-plugin.c:341
+#: src/plugins/share/valent-share-plugin.c:353
+#, c-format
+msgid "Opening “%s” on %s"
+msgstr "在 %s 上打开 \"%s\""
+
+#: src/plugins/share/valent-share-plugin.c:347
+#, c-format
+msgid "Opened “%s” on %s"
+msgstr "已在 %s 上打开 \"%s\""
+
+#: src/plugins/share/valent-share-plugin.c:472
+#: src/plugins/share/valent-share-plugin.c:490
+#, c-format
+msgid "Sending one file to %1$s"
+msgid_plural "Sending %2$d files to %1$s"
+msgstr[0] "发送 %2$d 文件到 %1$s"
+
+#: src/plugins/share/valent-share-plugin.c:481
+#, c-format
+msgid "Sent one file to %1$s"
+msgid_plural "Sent %2$d files to %1$s"
+msgstr[0] "已发送 %2$d 文件到 %1$s"
+
+#: src/plugins/share/valent-share-plugin.c:673
+#: src/plugins/share/valent-share-target-chooser.ui:8
+msgid "Share Files"
+msgstr "共享文件"
+
+#: src/plugins/share/valent-share-plugin.c:674
+msgid "Share"
+msgstr "共享"
+
+#: src/plugins/share/valent-share-plugin.c:1221
+msgid "Send Files"
+msgstr "共享文件"
+
+#: src/plugins/share/valent-share-preferences.c:93
+msgid "Select download folder"
+msgstr "选择下载文件夹"
+
+#: src/plugins/share/valent-share-preferences.ui:10
+msgid "Download directory"
+msgstr "下载目录"
+
+#: src/plugins/share/valent-share-preferences.ui:11
+msgid "Where received files are stored"
+msgstr "收到的文件存放在哪里"
+
+#: src/plugins/share/valent-share-target-chooser.ui:29
+msgid "_Share"
+msgstr "_Share"
+
+#: src/plugins/share/valent-share-target-chooser.ui:58
+msgid "Choose a device to share the selected files with."
+msgstr "选择一个设备来分享所选文件。"
+
+#: src/plugins/share/valent-share-target-chooser.ui:86
+msgid "Searching…"
+msgstr "搜索..."
+
+#: src/plugins/share/valent-share-target-chooser.ui:127
+msgid "Always use this device"
+msgstr "始终使用这个装置"
+
+#: src/plugins/share/valent-share-text-dialog.c:98
+#: src/plugins/share/valent-share-text-dialog.ui:54
+msgid "Save"
+msgstr "保存"
+
+#: src/plugins/share/valent-share-text-dialog.ui:8
+#: src/plugins/share/valent-share-text-dialog.ui:15
+msgid "Shared Text"
+msgstr "共享文本"
+
+#: src/plugins/share/valent-share-text-dialog.ui:55
+msgid "Copy"
+msgstr "复制"
+
+#: src/plugins/sms/sms.plugin.desktop.in:7
+msgid "SMS"
+msgstr "短信"
+
+#: src/plugins/sms/sms.plugin.desktop.in:8
+msgid "Send and receive SMS messages"
+msgstr "发送和接收短信"
+
+#: src/plugins/sms/valent-contact-row.c:317
+msgid "Work"
+msgstr "工作"
+
+#: src/plugins/sms/valent-contact-row.c:320
+msgid "Mobile"
+msgstr "手机"
+
+#: src/plugins/sms/valent-date-label.c:68
+#: src/plugins/sms/valent-date-label.c:133
+msgid "Just now"
+msgstr "刚刚"
+
+#: src/plugins/sms/valent-date-label.c:76
+#, c-format
+msgid "%d minute"
+msgid_plural "%d minutes"
+msgstr[0] "%d 分钟"
+
+#: src/plugins/sms/valent-date-label.c:93
+#, c-format
+msgid "Yesterday · %s"
+msgstr "昨天 · %s"
+
+#: src/plugins/sms/valent-date-label.c:141
+#, c-format
+msgid "%d min"
+msgid_plural "%d mins"
+msgstr[0] "%d 分钟"
+
+#: src/plugins/sms/valent-sms-conversation.c:904
+#: src/plugins/sms/valent-sms-window.c:602
+#: src/plugins/sms/valent-sms-window.c:922
+msgid "New Conversation"
+msgstr "新的对话"
+
+#: src/plugins/sms/valent-sms-conversation.c:921
+#, c-format
+msgid "%u other contact"
+msgid_plural "%u others"
+msgstr[0] "%u 其他联系人"
+
+#: src/plugins/sms/valent-sms-conversation.ui:66
+msgid "Send Message"
+msgstr "发送信息"
+
+#: src/plugins/sms/valent-sms-conversation.ui:67
+msgid "Type a message"
+msgstr "输入信息"
+
+#: src/plugins/sms/valent-sms-plugin.c:505
+msgid "Messaging"
+msgstr "发送信息"
+
+#: src/plugins/sms/valent-sms-window.c:186
+msgid "Conversations"
+msgstr "对话"
+
+#: src/plugins/sms/valent-sms-window.c:310
+#, c-format
+msgid "Send to %s"
+msgstr "发送给 %s"
+
+#: src/plugins/sms/valent-sms-window.c:629
+#: src/plugins/sms/valent-sms-window.c:944
+msgid "Search Messages"
+msgstr "搜索信息"
+
+#: src/plugins/sms/valent-sms-window.ui:11
+msgid "Messages"
+msgstr "信息"
+
+#: src/plugins/sms/valent-sms-window.ui:72
+msgid "No Conversations"
+msgstr "无对话"
+
+#: src/plugins/sms/valent-sms-window.ui:140
+msgid "Back"
+msgstr "返回"
+
+#: src/plugins/sms/valent-sms-window.ui:171
+msgid "No conversation selected"
+msgstr "无选择对话"
+
+#: src/plugins/sms/valent-sms-window.ui:181
+msgid "Select or start a conversation"
+msgstr "选择或开始一个对话"
+
+#: src/plugins/sms/valent-sms-window.ui:206
+msgid "Search messages…"
+msgstr "搜索信息..."
+
+#: src/plugins/sms/valent-sms-window.ui:233
+msgid "No results found"
+msgstr "没有发现任何结果"
+
+#: src/plugins/sms/valent-sms-window.ui:269
+msgid "Type a phone number or name"
+msgstr "输入电话号码或名字"
+
+#: src/plugins/sms/valent-sms-window.ui:296
+msgid "No contacts"
+msgstr "无联系人"
+
+#: src/plugins/sms/valent-sms-window.ui:330
+msgid "Search Messages…"
+msgstr "搜索信息..."
+
+#: src/plugins/sms/valent-sms-window.ui:334
+msgid "Change Address Book…"
+msgstr "更改通讯录..."
+
+#: src/plugins/sms/valent-sms-window.ui:340
+msgid "Keyboard Shortcuts"
+msgstr "键盘快捷键"
+
+#: src/plugins/sms/valent-sms-window.ui:345
+msgid "Help"
+msgstr "帮助"
+
+#: src/plugins/systemvolume/systemvolume.plugin.desktop.in:7
+msgid "System Volume"
+msgstr "系统音量"
+
+#: src/plugins/systemvolume/systemvolume.plugin.desktop.in:8
+msgid "Monitor volume levels and microphones"
+msgstr "监视器的音量水平和麦克风"
+
+#: src/plugins/telephony/telephony.plugin.desktop.in:7
+msgid "Telephony"
+msgstr "电话"
+
+#: src/plugins/telephony/telephony.plugin.desktop.in:8
+msgid "Be notified of incoming and ongoing calls"
+msgstr "得到来电和正在进行的呼叫的通知"
+
+#: src/plugins/telephony/valent-telephony-plugin.c:278
+msgid "Unknown Contact"
+msgstr "未知的联系人"
+
+#: src/plugins/telephony/valent-telephony-plugin.c:308
+msgid "Incoming call"
+msgstr "来电"
+
+#: src/plugins/telephony/valent-telephony-plugin.c:311
+#: src/plugins/telephony/valent-telephony-preferences.ui:79
+msgid "Mute"
+msgstr "静音"
+
+#: src/plugins/telephony/valent-telephony-plugin.c:319
+msgid "Ongoing call"
+msgstr "正在进行的呼叫"
+
+#: src/plugins/telephony/valent-telephony-preferences.ui:11
+msgid "Incoming Calls"
+msgstr "来电"
+
+#: src/plugins/telephony/valent-telephony-preferences.ui:12
+msgid "What to do when the phone rings"
+msgstr "当电话响起时"
+
+#: src/plugins/telephony/valent-telephony-preferences.ui:24
+#: src/plugins/telephony/valent-telephony-preferences.ui:63
+msgid "Pause Media"
+msgstr "暂停媒体"
+
+#: src/plugins/telephony/valent-telephony-preferences.ui:39
+msgid "Ongoing Calls"
+msgstr "正在进行呼叫"
+
+#: src/plugins/telephony/valent-telephony-preferences.ui:40
+msgid "What to do when the phone is answered"
+msgstr "电话被接听时该怎么做"
+
+#: src/plugins/telephony/valent-telephony-preferences.ui:52
+msgid "Mute Microphone"
+msgstr "静音麦克风"
+
+#: src/plugins/telephony/valent-telephony-preferences.ui:77
+msgid "Nothing"
+msgstr "无"
+
+#: src/plugins/telephony/valent-telephony-preferences.ui:78
+msgid "Lower"
+msgstr "降低"
+
+#: src/plugins/xdp/valent-xdp-background.c:90
+msgid "Valent wants to run as a service"
+msgstr "Valent 希望作为一项服务运行"
+
+#: src/plugins/xdp/xdp.plugin.desktop.in:7
+msgid "Portals"
+msgstr "桌面"
+
+#: src/plugins/xdp/xdp.plugin.desktop.in:8
+msgid "Integration with desktop portals"
+msgstr "与桌面集成"
