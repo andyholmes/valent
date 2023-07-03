@@ -40,7 +40,6 @@ struct _ValentBatteryPlugin
 };
 
 static const char * valent_battery_plugin_get_icon_name (ValentBatteryPlugin *self);
-static void         valent_battery_plugin_request_state (ValentBatteryPlugin *self);
 static void         valent_battery_plugin_send_state    (ValentBatteryPlugin *self);
 
 G_DEFINE_FINAL_TYPE (ValentBatteryPlugin, valent_battery_plugin, VALENT_TYPE_DEVICE_PLUGIN)
@@ -84,17 +83,6 @@ valent_battery_plugin_watch_battery (ValentBatteryPlugin *self,
       g_signal_handlers_disconnect_by_data (self->battery, self);
       self->battery_watch = FALSE;
     }
-}
-
-static void
-valent_battery_plugin_handle_battery_request (ValentBatteryPlugin *self,
-                                              JsonNode            *packet)
-{
-  g_assert (VALENT_IS_BATTERY_PLUGIN (self));
-  g_assert (VALENT_IS_PACKET (packet));
-
-  if (valent_packet_check_field (packet, "request"))
-    valent_battery_plugin_send_state (self);
 }
 
 static void
@@ -358,35 +346,19 @@ valent_battery_plugin_handle_battery (ValentBatteryPlugin *self,
   valent_battery_plugin_update_notification (self, threshold_event);
 }
 
-static void
-valent_battery_plugin_request_state (ValentBatteryPlugin *self)
-{
-  g_autoptr (JsonBuilder) builder = NULL;
-  g_autoptr (JsonNode) packet = NULL;
-
-  g_assert (VALENT_IS_BATTERY_PLUGIN (self));
-
-  valent_packet_init (&builder, "kdeconnect.battery.request");
-  json_builder_set_member_name (builder, "request");
-  json_builder_add_boolean_value (builder, TRUE);
-  packet = valent_packet_end (&builder);
-
-  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
-}
-
 /*
  * GActions
  */
 static void
-state_action (GSimpleAction *action,
-              GVariant      *parameter,
-              gpointer       user_data)
+battery_state_action (GSimpleAction *action,
+                      GVariant      *parameter,
+                      gpointer       user_data)
 {
   // No-op to make the state read-only
 }
 
 static const GActionEntry actions[] = {
-    {"state", NULL, NULL, "@a{sv} {}", state_action},
+    {"state",  NULL, NULL, "@a{sv} {}", battery_state_action},
 };
 
 /*
@@ -408,7 +380,6 @@ valent_battery_plugin_update_state (ValentDevicePlugin *plugin,
     {
       valent_battery_plugin_update_gaction (self);
       valent_battery_plugin_watch_battery (self, TRUE);
-      valent_battery_plugin_request_state (self);
     }
   else
     {
@@ -431,11 +402,6 @@ valent_battery_plugin_handle_packet (ValentDevicePlugin *plugin,
   /* The remote battery state changed */
   if (g_str_equal (type, "kdeconnect.battery"))
     valent_battery_plugin_handle_battery (self, packet);
-
-  /* A request for the local battery state */
-  else if (g_str_equal (type, "kdeconnect.battery.request"))
-    valent_battery_plugin_handle_battery_request (self, packet);
-
   else
     g_assert_not_reached ();
 }

@@ -64,8 +64,8 @@ A mapping collection of string keys to values.
 
 * ⚠️ **Deprecated**
 
-    Packets missing these fields may be ignored or result in undefined
-    behaviour.
+    Clients are free to ignore these packets and fields, and encouraged to stop
+    using them when possible.
 
 * 🔒 **Required**
 

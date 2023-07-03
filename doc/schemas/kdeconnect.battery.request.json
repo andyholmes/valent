@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/schema#",
     "title": "kdeconnect.battery.request",
-    "description": "This packet is sent to request a battery status update.",
+    "description": "⚠️ Deprecated: This packet is sent to request a battery status update.",
     "examples": [
         {
             "id": 0,
@@ -33,7 +33,7 @@
             "properties": {
                 "request": {
                     "type": "boolean",
-                    "description": "Whether to request a status update. It only makes sense for this to be `true`."
+                    "description": "⚠️ Deprecated: Whether to request a status update. It only makes sense for this to be `true`."
                 }
             }
         }

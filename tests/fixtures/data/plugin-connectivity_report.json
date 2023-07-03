@@ -8,12 +8,10 @@
       "protocolVersion": 7,
       "deviceType": "phone",
       "incomingCapabilities": [
-        "kdeconnect.connectivity_report",
-        "kdeconnect.connectivity_report.request"
+        "kdeconnect.connectivity_report"
       ],
       "outgoingCapabilities": [
-        "kdeconnect.connectivity_report",
-        "kdeconnect.connectivity_report.request"
+        "kdeconnect.connectivity_report"
       ]
     }
   },
@@ -120,10 +118,5 @@
         }
       }
     }
-  },
-  "request-state": {
-    "id": 0,
-    "type": "kdeconnect.connectivity_report.request",
-    "body": {}
   }
 }

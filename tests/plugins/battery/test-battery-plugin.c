@@ -77,21 +77,6 @@ test_battery_plugin_actions (ValentTestFixture *fixture,
 }
 
 static void
-test_battery_plugin_connect (ValentTestFixture *fixture,
-                             gconstpointer      user_data)
-{
-  JsonNode *packet;
-
-  VALENT_TEST_CHECK ("Plugin requests the battery state on connect");
-  valent_test_fixture_connect (fixture, TRUE);
-
-  packet = valent_test_fixture_expect_packet (fixture);
-  v_assert_packet_type (packet, "kdeconnect.battery.request");
-  v_assert_packet_true (packet, "request");
-  json_node_unref (packet);
-}
-
-static void
 test_battery_plugin_handle_update (ValentTestFixture *fixture,
                                    gconstpointer      user_data)
 {
@@ -181,7 +166,7 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
 
   g_clear_pointer (&state, g_variant_unref);
 
-  VALENT_TEST_CHECK ("Plugin handles \"empty\" battery update");
+  VALENT_TEST_CHECK ("Plugin handles \"good\" battery update");
   packet = valent_test_fixture_lookup_packet (fixture, "good-battery");
   valent_test_fixture_handle_packet (fixture, packet);
 
@@ -273,21 +258,14 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
 }
 
 static void
-test_battery_plugin_handle_request (ValentTestFixture *fixture,
-                                    gconstpointer      user_data)
+test_battery_plugin_send_update (ValentTestFixture *fixture,
+                                 gconstpointer      user_data)
 {
   g_autoptr (GDBusConnection) connection = NULL;
   JsonNode *packet;
 
-  connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL);
-
-  VALENT_TEST_CHECK ("Plugin requests the battery state on connect");
   valent_test_fixture_connect (fixture, TRUE);
-
-  packet = valent_test_fixture_expect_packet (fixture);
-  v_assert_packet_type (packet, "kdeconnect.battery.request");
-  v_assert_packet_true (packet, "request");
-  json_node_unref (packet);
+  connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL);
 
   VALENT_TEST_CHECK ("Plugin sends battery level updates");
   upower_set_battery (connection, "Percentage", g_variant_new_double (42.0));
@@ -311,18 +289,6 @@ test_battery_plugin_handle_request (ValentTestFixture *fixture,
 
   VALENT_TEST_CHECK ("Plugin sends battery threshold updates");
   upower_set_battery (connection, "WarningLevel", g_variant_new_uint32 (3));
-
-  packet = valent_test_fixture_expect_packet (fixture);
-  v_assert_packet_type (packet, "kdeconnect.battery");
-  v_assert_packet_cmpint (packet, "currentCharge", ==, 42);
-  v_assert_packet_true (packet, "isCharging");
-  v_assert_packet_cmpint (packet, "thresholdEvent", ==, 1);
-  json_node_unref (packet);
-
-  /* Respond to a request */
-  VALENT_TEST_CHECK ("Plugin sends battery updates when requested");
-  packet = valent_test_fixture_lookup_packet (fixture, "request-state");
-  valent_test_fixture_handle_packet (fixture, packet);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.battery");
@@ -363,22 +329,16 @@ main (int   argc,
               test_battery_plugin_actions,
               valent_test_fixture_clear);
 
-  g_test_add ("/plugins/battery/connect",
-              ValentTestFixture, path,
-              valent_test_fixture_init,
-              test_battery_plugin_connect,
-              valent_test_fixture_clear);
-
   g_test_add ("/plugins/battery/handle-update",
               ValentTestFixture, path,
               valent_test_fixture_init,
               test_battery_plugin_handle_update,
               valent_test_fixture_clear);
 
-  g_test_add ("/plugins/battery/handle-request",
+  g_test_add ("/plugins/battery/send-update",
               ValentTestFixture, path,
               valent_test_fixture_init,
-              test_battery_plugin_handle_request,
+              test_battery_plugin_send_update,
               valent_test_fixture_clear);
 
   g_test_add ("/plugins/battery/fuzz",

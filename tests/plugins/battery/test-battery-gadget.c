@@ -33,13 +33,7 @@ test_battery_plugin_gadget (ValentTestFixture *fixture,
   g_assert_true (fixture->device == device);
   g_object_unref (device);
 
-  VALENT_TEST_CHECK ("Plugin requests the battery state on connect");
   valent_test_fixture_connect (fixture, TRUE);
-
-  packet = valent_test_fixture_expect_packet (fixture);
-  v_assert_packet_type (packet, "kdeconnect.battery.request");
-  v_assert_packet_true (packet, "request");
-  json_node_unref (packet);
 
   VALENT_TEST_CHECK ("Gadget handles various battery states");
   packet = valent_test_fixture_lookup_packet (fixture, "missing-battery");
