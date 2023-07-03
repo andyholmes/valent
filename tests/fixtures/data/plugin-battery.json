@@ -8,7 +8,6 @@
       "protocolVersion": 7,
       "deviceType": "phone",
       "incomingCapabilities": [
-        "kdeconnect.battery.request"
       ],
       "outgoingCapabilities": [
         "kdeconnect.battery"
@@ -76,13 +75,6 @@
       "currentCharge": 100,
       "isCharging": false,
       "thresholdEvent": 0
-    }
-  },
-  "request-state": {
-    "id": 0,
-    "type": "kdeconnect.battery.request",
-    "body": {
-        "request": true
     }
   }
 }

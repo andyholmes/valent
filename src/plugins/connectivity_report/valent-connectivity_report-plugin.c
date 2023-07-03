@@ -25,7 +25,6 @@ struct _ValentConnectivityReportPlugin
   unsigned int        telephony_watch : 1;
 };
 
-static void   valent_connectivity_report_plugin_request_state (ValentConnectivityReportPlugin *self);
 static void   valent_connectivity_report_plugin_send_state    (ValentConnectivityReportPlugin *self);
 
 G_DEFINE_FINAL_TYPE (ValentConnectivityReportPlugin, valent_connectivity_report_plugin, VALENT_TYPE_DEVICE_PLUGIN)
@@ -70,16 +69,6 @@ valent_connectivity_report_plugin_watch_telephony (ValentConnectivityReportPlugi
       g_signal_handlers_disconnect_by_data (self->telephony, self);
       self->telephony_watch = FALSE;
     }
-}
-
-static void
-valent_connectivity_report_plugin_handle_connectivity_report_request (ValentConnectivityReportPlugin *self,
-                                                                      JsonNode                       *packet)
-{
-  g_assert (VALENT_IS_CONNECTIVITY_REPORT_PLUGIN (self));
-  g_assert (VALENT_IS_PACKET (packet));
-
-  valent_connectivity_report_plugin_send_state (self);
 }
 
 static void
@@ -332,17 +321,6 @@ valent_connectivity_report_plugin_handle_connectivity_report (ValentConnectivity
     }
 }
 
-static void
-valent_connectivity_report_plugin_request_state (ValentConnectivityReportPlugin *self)
-{
-  g_autoptr (JsonNode) packet = NULL;
-
-  g_assert (VALENT_IS_CONNECTIVITY_REPORT_PLUGIN (self));
-
-  packet = valent_packet_new ("kdeconnect.connectivity_report.request");
-  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
-}
-
 /*
  * GActions
  */
@@ -376,7 +354,6 @@ valent_connectivity_report_plugin_update_state (ValentDevicePlugin *plugin,
   if (available)
     {
       valent_connectivity_report_plugin_watch_telephony (self, TRUE);
-      valent_connectivity_report_plugin_request_state (self);
     }
   else
     {
@@ -399,11 +376,6 @@ valent_connectivity_report_plugin_handle_packet (ValentDevicePlugin *plugin,
   /* A remote connectivity report */
   if (g_str_equal (type, "kdeconnect.connectivity_report"))
     valent_connectivity_report_plugin_handle_connectivity_report (self, packet);
-
-  /* A request for a local connectivity report */
-  else if (g_str_equal (type, "kdeconnect.connectivity_report.request"))
-    valent_connectivity_report_plugin_handle_connectivity_report_request (self, packet);
-
   else
     g_assert_not_reached ();
 }

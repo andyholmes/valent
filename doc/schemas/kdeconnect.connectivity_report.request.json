@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/schema#",
     "title": "kdeconnect.connectivity_report.request",
-    "description": "This packet is sent to request a connectivity report.",
+    "description": "⚠️ Deprecated: This packet is sent to request a connectivity report.",
     "examples": [
         {
             "id": 0,

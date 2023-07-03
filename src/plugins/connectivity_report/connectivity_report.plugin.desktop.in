@@ -12,7 +12,7 @@ Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
 X-DevicePluginCategory=System;Monitor;
-X-DevicePluginIncoming=kdeconnect.connectivity_report;kdeconnect.connectivity_report.request
-X-DevicePluginOutgoing=kdeconnect.connectivity_report;kdeconnect.connectivity_report.request
+X-DevicePluginIncoming=kdeconnect.connectivity_report
+X-DevicePluginOutgoing=kdeconnect.connectivity_report
 X-DevicePluginSettings=ca.andyholmes.Valent.Plugin.connectivity_report
 

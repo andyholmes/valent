@@ -12,7 +12,7 @@ Website=https://github.com/andyholmes/valent
 Help=https://github.com/andyholmes/valent
 Hidden=false
 X-DevicePluginCategory=System;Monitor;
-X-DevicePluginIncoming=kdeconnect.battery;kdeconnect.battery.request
-X-DevicePluginOutgoing=kdeconnect.battery;kdeconnect.battery.request
+X-DevicePluginIncoming=kdeconnect.battery
+X-DevicePluginOutgoing=kdeconnect.battery
 X-DevicePluginSettings=ca.andyholmes.Valent.Plugin.battery
 

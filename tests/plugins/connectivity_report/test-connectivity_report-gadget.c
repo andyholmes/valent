@@ -33,12 +33,7 @@ test_connectivity_report_plugin_gadget (ValentTestFixture *fixture,
   g_assert_true (fixture->device == device);
   g_object_unref (device);
 
-  VALENT_TEST_CHECK ("Plugin requests the connectivity status on connect");
   valent_test_fixture_connect (fixture, TRUE);
-
-  packet = valent_test_fixture_expect_packet (fixture);
-  v_assert_packet_type (packet, "kdeconnect.connectivity_report.request");
-  json_node_unref (packet);
 
   VALENT_TEST_CHECK ("Plugin handles the \"modemless\" state");
   packet = valent_test_fixture_lookup_packet (fixture, "modemless-report");
