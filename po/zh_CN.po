@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
 "POT-Creation-Date: 2023-06-03 12:35-0700\n"
-"PO-Revision-Date: 2023-07-02 17:24+0800\n"
+"PO-Revision-Date: 2023-07-03 19:05+0800\n"
 "Last-Translator: sky96111 <sky96111@outlook.com>\n"
 "Language-Team: Chinese Simplified\n"
 "Language: zh_CN\n"
@@ -33,7 +33,7 @@ msgstr "名称"
 
 #: data/gsettings/ca.andyholmes.Valent.gschema.xml:11
 msgid "The display name for the local device."
-msgstr "在本地设备中显示的名设备名。"
+msgstr "在其他本地设备中显示的名称。"
 
 #: data/gsettings/ca.andyholmes.Valent.Plugin.gschema.xml:10
 msgid "Plugin State"
@@ -60,8 +60,7 @@ msgid ""
 "Securely connect your devices to open files and links where you need them, "
 "get notifications when you need them, stay in control of your media and more."
 msgstr ""
-"安全地连接你的设备，在你需要的地方打开文件和链接，在你需要的时候获得通知，保"
-"持对你的媒体的控制等等。"
+"安全地连接你的设备，在你需要的地方打开文件和链接、候获得通知、控制媒体等。"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:19
 msgid "Features:"
@@ -222,7 +221,7 @@ msgstr "播放"
 #: src/libvalent/ui/valent-media-remote.ui:8
 #: src/libvalent/ui/valent-window.ui:113
 msgid "Media Remote"
-msgstr "远程媒体"
+msgstr "远程媒体控制"
 
 #: src/libvalent/ui/valent-media-remote.ui:219
 #: src/plugins/telephony/valent-telephony-preferences.ui:15
@@ -324,7 +323,7 @@ msgstr ""
 #, c-format
 msgctxt "long time format"
 msgid "%d:%02d:%02d"
-msgstr ""
+msgstr "%d:%02d:%02d"
 
 #. hour:minutes:seconds.msecs
 #. Translators: This is a time format, like "9:05:02.050" for 9
@@ -336,7 +335,7 @@ msgstr ""
 #, c-format
 msgctxt "long time format"
 msgid "%d:%02d:%02d.%03d"
-msgstr ""
+msgstr "%d:%02d:%02d.%03d"
 
 #. -hour:minutes:seconds
 #. Translators: This is a time format, like "-9:05:02" for 9
@@ -348,7 +347,7 @@ msgstr ""
 #, c-format
 msgctxt "long time format"
 msgid "-%d:%02d:%02d"
-msgstr ""
+msgstr "-%d:%02d:%02d"
 
 #. -hour:minutes:seconds.msecs
 #. Translators: This is a time format, like "-9:05:02.050" for 9
@@ -360,7 +359,7 @@ msgstr ""
 #, c-format
 msgctxt "long time format"
 msgid "-%d:%02d:%02d.%03d"
-msgstr ""
+msgstr "-%d:%02d:%02d.%03d"
 
 #. -minutes:seconds
 #. Translators: This is a time format, like "-5:02" for 5
@@ -372,7 +371,7 @@ msgstr ""
 #, c-format
 msgctxt "short time format"
 msgid "-%d:%02d"
-msgstr ""
+msgstr "-%d:%02d"
 
 #. -minutes:seconds.msec
 #. Translators: This is a time format, like "-5:02.050" for 5
@@ -384,7 +383,7 @@ msgstr ""
 #, c-format
 msgctxt "short time format"
 msgid "-%d:%02d.%03d"
-msgstr ""
+msgstr "-%d:%02d.%03d"
 
 #. minutes:seconds.msec
 #. Translators: This is a time format, like "5:02" for 5
@@ -396,7 +395,7 @@ msgstr ""
 #, c-format
 msgctxt "short time format"
 msgid "%d:%02d.%03d"
-msgstr ""
+msgstr "%d:%02d.%03d"
 
 #. minutes:seconds
 #. Translators: This is a time format, like "5:02" for 5
@@ -408,7 +407,7 @@ msgstr ""
 #, c-format
 msgctxt "short time format"
 msgid "%d:%02d"
-msgstr ""
+msgstr "%d:%02d"
 
 #: src/libvalent/ui/valent-window.c:186
 msgid "Unpaired"
@@ -420,7 +419,7 @@ msgstr "已连接"
 
 #: src/libvalent/ui/valent-window.c:345
 msgid "translator-credits"
-msgstr ""
+msgstr "sky96111"
 
 #: src/libvalent/ui/valent-window.c:350
 msgid "Sponsors"
@@ -473,20 +472,20 @@ msgstr "电量满"
 #: src/plugins/battery/valent-battery-gadget.c:88
 #, c-format
 msgid "%g%% (Estimating…)"
-msgstr "%g%% (预计…)"
+msgstr "%g%% (估测中...)"
 
 #. TRANSLATORS: This is <percentage> (<hours>:<minutes> Until Full)
 #: src/plugins/battery/valent-battery-gadget.c:93
 #, c-format
 msgid "%g%% (%d∶%02d Until Full)"
-msgstr "%g%% (%d∶%02d 充满)"
+msgstr "%g%% (充满还需 %d∶%02d)"
 
 #. TRANSLATORS: This is <percentage> (<hours>:<minutes> Remaining)
 #: src/plugins/battery/valent-battery-gadget.c:99
 #: src/plugins/battery/valent-battery-plugin.c:307
 #, c-format
 msgid "%g%% (%d∶%02d Remaining)"
-msgstr "%g%% (%d∶%02d 剩余)"
+msgstr "%g%% (剩余 %d∶%02d)"
 
 #. TRANSLATORS: This is <device name>: Fully Charged
 #: src/plugins/battery/valent-battery-plugin.c:276
@@ -511,7 +510,7 @@ msgstr "电量充满通知"
 
 #: src/plugins/battery/valent-battery-preferences.ui:11
 msgid "Notify when the remote battery is full"
-msgstr "远程设备电量充满通知"
+msgstr "远程设备电量充满时通知"
 
 #: src/plugins/battery/valent-battery-preferences.ui:15
 #: src/plugins/battery/valent-battery-preferences.ui:39
@@ -524,7 +523,7 @@ msgstr "低电量通知"
 
 #: src/plugins/battery/valent-battery-preferences.ui:35
 msgid "Notify when the remote battery is low"
-msgstr "远程设备电量不足通知"
+msgstr "远程设备电量不足时通知"
 
 #: src/plugins/clipboard/clipboard.plugin.desktop.in:8
 msgid "Sync the clipboard between devices"
@@ -544,11 +543,11 @@ msgstr "本地剪贴板"
 
 #: src/plugins/clipboard/valent-clipboard-preferences.ui:23
 msgid "Report changes to the remote device"
-msgstr "向远程设备报告剪切板变化"
+msgstr "向远程设备报告本地剪切板变化"
 
 #: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:7
 msgid "Connectivity"
-msgstr "信号"
+msgstr "连接性"
 
 #: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:8
 msgid "Monitor mobile connectivity status"
@@ -589,15 +588,15 @@ msgstr ""
 
 #: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:10
 msgid "Local Connectivity"
-msgstr "本机信号"
+msgstr "本机连接性"
 
 #: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:11
 msgid "Send updates to the remote device"
-msgstr "向远程设备发送更新信息"
+msgstr "向远程设备发送连接性更新信息"
 
 #: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:22
 msgid "Remote Connectivity"
-msgstr "远程信号"
+msgstr "远程设备连接性"
 
 #: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:23
 msgid "Notify if the remote device loses connectivity"
@@ -681,9 +680,8 @@ msgid "Lock and unlock"
 msgstr "锁定与解锁"
 
 #: src/plugins/mousepad/mousepad.plugin.desktop.in:7
-#, fuzzy
 msgid "Mousepad"
-msgstr "鼠标垫"
+msgstr "键鼠"
 
 #: src/plugins/mousepad/mousepad.plugin.desktop.in:8
 msgid "Control the mouse and keyboard"
@@ -1060,7 +1058,7 @@ msgstr "共享文件"
 
 #: src/plugins/share/valent-share-plugin.c:674
 msgid "Share"
-msgstr "共享"
+msgstr "发送"
 
 #: src/plugins/share/valent-share-plugin.c:1221
 msgid "Send Files"
@@ -1150,7 +1148,7 @@ msgstr[0] "%d 分钟"
 #: src/plugins/sms/valent-sms-window.c:602
 #: src/plugins/sms/valent-sms-window.c:922
 msgid "New Conversation"
-msgstr "新的对话"
+msgstr "新对话"
 
 #: src/plugins/sms/valent-sms-conversation.c:921
 #, c-format
@@ -1168,7 +1166,7 @@ msgstr "输入信息"
 
 #: src/plugins/sms/valent-sms-plugin.c:505
 msgid "Messaging"
-msgstr "正在发送信息"
+msgstr "短信"
 
 #: src/plugins/sms/valent-sms-window.c:186
 msgid "Conversations"
@@ -1182,7 +1180,7 @@ msgstr "发送给 %s"
 #: src/plugins/sms/valent-sms-window.c:629
 #: src/plugins/sms/valent-sms-window.c:944
 msgid "Search Messages"
-msgstr "搜索信息"
+msgstr "搜索"
 
 #: src/plugins/sms/valent-sms-window.ui:11
 msgid "Messages"
@@ -1214,7 +1212,7 @@ msgstr "无结果"
 
 #: src/plugins/sms/valent-sms-window.ui:269
 msgid "Type a phone number or name"
-msgstr "输入名字或电话号码"
+msgstr "输入姓名或电话号码"
 
 #: src/plugins/sms/valent-sms-window.ui:296
 msgid "No contacts"
@@ -1267,7 +1265,7 @@ msgstr "静音"
 
 #: src/plugins/telephony/valent-telephony-plugin.c:319
 msgid "Ongoing call"
-msgstr "正在进行呼叫"
+msgstr "通话中"
 
 #: src/plugins/telephony/valent-telephony-preferences.ui:11
 msgid "Incoming Calls"
@@ -1292,7 +1290,7 @@ msgstr "当电话接通时"
 
 #: src/plugins/telephony/valent-telephony-preferences.ui:52
 msgid "Mute Microphone"
-msgstr "静音麦克风"
+msgstr "麦克风静音"
 
 #: src/plugins/telephony/valent-telephony-preferences.ui:77
 msgid "Nothing"
@@ -1308,8 +1306,8 @@ msgstr "Valent 希望作为一项服务运行"
 
 #: src/plugins/xdp/xdp.plugin.desktop.in:7
 msgid "Portals"
-msgstr "桌面"
+msgstr "桌面环境"
 
 #: src/plugins/xdp/xdp.plugin.desktop.in:8
 msgid "Integration with desktop portals"
-msgstr "与桌面集成"
+msgstr "与桌面环境集成"
