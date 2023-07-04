@@ -17,6 +17,7 @@ plugin_gnome_include_directories = [include_directories('.')]
 
 # Resources
 plugin_gnome_info = i18n.merge_file(
+    args: plugins_po_args,
    input: 'gnome.plugin.desktop.in',
   output: 'gnome.plugin',
   po_dir: po_dir,

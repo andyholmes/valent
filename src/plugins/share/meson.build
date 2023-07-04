@@ -22,6 +22,7 @@ plugin_share_include_directories = [include_directories('.')]
 
 # Resources
 plugin_share_info = i18n.merge_file(
+    args: plugins_po_args,
    input: 'share.plugin.desktop.in',
   output: 'share.plugin',
   po_dir: po_dir,

@@ -6,6 +6,12 @@ plugins_c_args = []
 plugins_link_args = []
 plugins_static = []
 
+# NOTE: Pass to `i18n.merge_file()` for `.plugin` files
+plugins_po_args = [
+    '--keyword=Name',
+    '--keyword=Description'
+]
+
 # Peas Plugins
 plugins = [
   'battery',
