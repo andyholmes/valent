@@ -19,6 +19,7 @@ plugin_notification_include_directories = [include_directories('.')]
 
 # Resources
 plugin_notification_info = i18n.merge_file(
+    args: plugins_po_args,
    input: 'notification.plugin.desktop.in',
   output: 'notification.plugin',
   po_dir: po_dir,

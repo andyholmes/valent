@@ -33,6 +33,7 @@ plugin_pulseaudio_include_directories = [include_directories('.')]
 
 # Resources
 plugin_pulseaudio_info = i18n.merge_file(
+    args: plugins_po_args,
    input: 'pulseaudio.plugin.desktop.in',
   output: 'pulseaudio.plugin',
   po_dir: po_dir,

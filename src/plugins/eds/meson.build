@@ -20,6 +20,7 @@ plugin_eds_include_directories = include_directories('.')
 
 # Resources
 plugin_eds_info = i18n.merge_file(
+    args: plugins_po_args,
    input: 'eds.plugin.desktop.in',
   output: 'eds.plugin',
   po_dir: po_dir,

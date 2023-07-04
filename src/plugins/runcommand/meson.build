@@ -19,6 +19,7 @@ plugin_runcommand_include_directories = [include_directories('.')]
 
 # Resources
 plugin_runcommand_info = i18n.merge_file(
+    args: plugins_po_args,
    input: 'runcommand.plugin.desktop.in',
   output: 'runcommand.plugin',
   po_dir: po_dir,

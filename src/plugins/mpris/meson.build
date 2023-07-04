@@ -21,6 +21,7 @@ plugin_mpris_include_directories = [include_directories('.')]
 
 # Resources
 plugin_mpris_info = i18n.merge_file(
+    args: plugins_po_args,
    input: 'mpris.plugin.desktop.in',
   output: 'mpris.plugin',
   po_dir: po_dir,

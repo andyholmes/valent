@@ -17,6 +17,7 @@ plugin_mousepad_include_directories = [include_directories('.')]
 
 # Resources
 plugin_mousepad_info = i18n.merge_file(
+    args: plugins_po_args,
    input: 'mousepad.plugin.desktop.in',
   output: 'mousepad.plugin',
   po_dir: po_dir,

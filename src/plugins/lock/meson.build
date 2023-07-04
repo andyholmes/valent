@@ -17,6 +17,7 @@ plugin_lock_include_directories = [include_directories('.')]
 
 # Resources
 plugin_lock_info = i18n.merge_file(
+    args: plugins_po_args,
    input: 'lock.plugin.desktop.in',
   output: 'lock.plugin',
   po_dir: po_dir,
