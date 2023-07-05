@@ -3,9 +3,8 @@
 # SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 
-"""This module provides a test fixture for the ValentFdoSession plugin."""
+"""This module provides a test fixture for logind."""
 
-# pylint: disable=import-error,invalid-name,missing-function-docstring
 
 import fcntl
 import os
