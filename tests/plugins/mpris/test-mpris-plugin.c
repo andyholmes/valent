@@ -37,6 +37,16 @@ create_albumart_request (const char *art_url)
 }
 
 static void
+text_mpris_plugin_fixture_clear (ValentTestFixture *fixture,
+                                 gconstpointer      user_data)
+{
+  ValentMedia *media = valent_media_get_default ();
+
+  valent_test_fixture_clear (fixture, user_data);
+  v_await_finalize_object (media);
+}
+
+static void
 test_mpris_plugin_handle_request (ValentTestFixture *fixture,
                                   gconstpointer      user_data)
 {
@@ -553,13 +563,13 @@ main (int   argc,
               ValentTestFixture, path,
               valent_test_fixture_init,
               test_mpris_plugin_handle_request,
-              valent_test_fixture_clear);
+              text_mpris_plugin_fixture_clear);
 
   g_test_add ("/plugins/mpris/handle-player",
               ValentTestFixture, path,
               valent_test_fixture_init,
               test_mpris_plugin_handle_player,
-              valent_test_fixture_clear);
+              text_mpris_plugin_fixture_clear);
 
   g_test_add ("/plugins/mpris/fuzz",
               ValentTestFixture, path,

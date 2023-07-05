@@ -72,8 +72,8 @@ valent_mock_contacts_adapter_init_async (GAsyncInitable      *initable,
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   /* Cancel initialization if the object is destroyed */
-  destroy = valent_object_attach_cancellable (VALENT_OBJECT (initable),
-                                              cancellable);
+  destroy = valent_object_chain_cancellable (VALENT_OBJECT (initable),
+                                             cancellable);
 
   task = g_task_new (initable, destroy, callback, user_data);
   g_task_set_priority (task, io_priority);
