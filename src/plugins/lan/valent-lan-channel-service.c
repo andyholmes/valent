@@ -956,8 +956,8 @@ valent_lan_channel_service_init_async (GAsyncInitable      *initable,
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   /* Cancel initialization if the object is destroyed */
-  destroy = valent_object_attach_cancellable (VALENT_OBJECT (initable),
-                                              cancellable);
+  destroy = valent_object_chain_cancellable (VALENT_OBJECT (initable),
+                                             cancellable);
 
   self->network_available = g_network_monitor_get_network_available (self->monitor);
   g_signal_connect_object (self->monitor,
