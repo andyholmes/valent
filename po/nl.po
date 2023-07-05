@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2023-07-04 17:27-0700\n"
+"POT-Creation-Date: 2023-07-05 14:24-0700\n"
 "PO-Revision-Date: 2022-09-12 19:59+0200\n"
 "Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
 "Language-Team: Dutch\n"
@@ -302,8 +302,9 @@ msgid "No Actions"
 msgstr "Er zijn geen acties."
 
 #: src/libvalent/ui/valent-preferences-window.c:377
-msgid "Global"
-msgstr "Algemeen"
+#, fuzzy
+msgid "Application"
+msgstr "Toepassingen"
 
 #: src/libvalent/ui/valent-preferences-window.c:384
 msgid "Device Connections"
@@ -1360,6 +1361,9 @@ msgstr "Portalen"
 #: src/plugins/xdp/xdp.plugin.desktop.in:8
 msgid "Integration with desktop portals"
 msgstr "Integratie met bureaubladportalen"
+
+#~ msgid "Global"
+#~ msgstr "Algemeen"
 
 #, fuzzy
 #~ msgid "_Preferences"

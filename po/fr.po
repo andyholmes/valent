@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2023-07-04 17:27-0700\n"
+"POT-Creation-Date: 2023-07-05 14:24-0700\n"
 "PO-Revision-Date: 2023-03-04 17:28+0100\n"
 "Last-Translator: Valérie Roux <vxlerieuwu@unixgirl.xyz>\n"
 "Language-Team: French <vxlerieuwu@unixgirl.xyz>\n"
@@ -308,8 +308,9 @@ msgid "No Actions"
 msgstr "Aucune action"
 
 #: src/libvalent/ui/valent-preferences-window.c:377
-msgid "Global"
-msgstr "Global"
+#, fuzzy
+msgid "Application"
+msgstr "Applications"
 
 #: src/libvalent/ui/valent-preferences-window.c:384
 msgid "Device Connections"
@@ -1361,6 +1362,9 @@ msgstr "Portails"
 #: src/plugins/xdp/xdp.plugin.desktop.in:8
 msgid "Integration with desktop portals"
 msgstr "Intégration avec les portails de bureau"
+
+#~ msgid "Global"
+#~ msgstr "Global"
 
 #, fuzzy
 #~ msgid "_Preferences"
