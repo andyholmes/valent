@@ -697,27 +697,11 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
   g_assert (cancellable == NULL || G_CANCELLABLE (cancellable));
   g_assert (error == NULL || *error == NULL);
 
-  /* Create a thread with a GMainContext to manage traffic */
-  context = g_main_context_new ();
-  loop = g_main_loop_new (context, FALSE);
-  thread = g_thread_try_new ("valent-lan-channel-service",
-                             valent_lan_channel_service_socket_worker,
-                             g_main_loop_ref (loop),
-                             error);
-
-  if (thread == NULL)
-    {
-      g_main_loop_unref (loop);
-      VALENT_RETURN (FALSE);
-    }
-
   /* Prepare socket(s) for UDP-based discovery */
   valent_object_lock (VALENT_OBJECT (self));
-  destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
   port = self->port;
   valent_object_unlock (VALENT_OBJECT (self));
 
-  /* Prefer dual IPv4/IPv6 socket */
   socket6 = g_socket_new (G_SOCKET_FAMILY_IPV6,
                           G_SOCKET_TYPE_DATAGRAM,
                           G_SOCKET_PROTOCOL_UDP,
@@ -727,7 +711,6 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
     {
       g_autoptr (GInetAddress) inet_address = NULL;
       g_autoptr (GSocketAddress) address = NULL;
-      g_autoptr (GSource) source = NULL;
 
       inet_address = g_inet_address_new_any (G_SOCKET_FAMILY_IPV6);
       address = g_inet_socket_address_new (inet_address, port);
@@ -739,14 +722,6 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
         }
 
       g_socket_set_broadcast (socket6, TRUE);
-
-      /* Watch for incoming broadcasts */
-      source = g_socket_create_source (socket6, G_IO_IN, destroy);
-      g_source_set_callback (source,
-                             G_SOURCE_FUNC (valent_lan_channel_service_socket_recv),
-                             g_object_ref (self),
-                             g_object_unref);
-      g_source_attach (source, context);
 
       /* If this socket also speaks IPv4 then we are done. */
       if (g_socket_speaks_ipv4 (socket6))
@@ -763,7 +738,6 @@ ipv4:
     {
       g_autoptr (GInetAddress) inet_address = NULL;
       g_autoptr (GSocketAddress) address = NULL;
-      g_autoptr (GSource) source = NULL;
 
       inet_address = g_inet_address_new_any (G_SOCKET_FAMILY_IPV4);
       address = g_inet_socket_address_new (inet_address, port);
@@ -775,8 +749,35 @@ ipv4:
         }
 
       g_socket_set_broadcast (socket4, TRUE);
+    }
 
-      /* Watch for incoming broadcasts */
+check:
+  if (socket6 != NULL || socket4 != NULL)
+    g_clear_error (error);
+  else
+    VALENT_RETURN (FALSE);
+
+  /* Create a main context for UDP broadcasts */
+  destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
+  context = g_main_context_new ();
+  loop = g_main_loop_new (context, FALSE);
+
+  if (socket6 != NULL)
+    {
+      g_autoptr (GSource) source = NULL;
+
+      source = g_socket_create_source (socket6, G_IO_IN, destroy);
+      g_source_set_callback (source,
+                             G_SOURCE_FUNC (valent_lan_channel_service_socket_recv),
+                             g_object_ref (self),
+                             g_object_unref);
+      g_source_attach (source, context);
+    }
+
+  if (socket4 != NULL)
+    {
+      g_autoptr (GSource) source = NULL;
+
       source = g_socket_create_source (socket4, G_IO_IN, destroy);
       g_source_set_callback (source,
                              G_SOURCE_FUNC (valent_lan_channel_service_socket_recv),
@@ -785,17 +786,23 @@ ipv4:
       g_source_attach (source, context);
     }
 
-check:
-  if (socket4 == NULL && socket6 == NULL)
-    VALENT_RETURN (FALSE);
-  else
-    g_clear_error (error);
-
+  /* Set the thread-context variables, then create a thread for the context */
   valent_object_lock (VALENT_OBJECT (self));
   self->udp_context = g_main_loop_ref (loop);
   self->udp_socket4 = g_steal_pointer (&socket4);
   self->udp_socket6 = g_steal_pointer (&socket6);
   valent_object_unlock (VALENT_OBJECT (self));
+
+  thread = g_thread_try_new ("valent-lan-channel-service",
+                             valent_lan_channel_service_socket_worker,
+                             g_main_loop_ref (loop),
+                             error);
+
+  if (thread == NULL)
+    {
+      g_main_loop_unref (loop);
+      VALENT_RETURN (FALSE);
+    }
 
   VALENT_RETURN (TRUE);
 }
