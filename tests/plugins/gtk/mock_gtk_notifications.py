@@ -3,9 +3,8 @@
 # SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 
-"""This module provides a test fixture for the ValentGtkNotifications plugin."""
+"""This module provides a test fixture for GTK notifications."""
 
-# pylint: disable=import-error,invalid-name,missing-function-docstring
 
 import fcntl
 import os

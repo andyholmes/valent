@@ -3,9 +3,10 @@
 # SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 
-"""This module provides a test fixture for the GNOME plugin."""
+"""This module provides a test fixture for Mutter's D-Bus service."""
 
-# pylint: disable=import-error,invalid-name,line-too-long,missing-function-docstring
+# pylint: disable=line-too-long
+
 
 import fcntl
 import os

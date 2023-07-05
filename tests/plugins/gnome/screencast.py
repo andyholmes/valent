@@ -1,13 +1,15 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
+
 '''ScreenCast mock template
 
 This creates the expected methods and properties of Mutter's implementation of
 the screencast D-Bus service.
 '''
 
-# pylint: disable=import-error,invalid-name,line-too-long,missing-function-docstring,protected-access
+# pylint: disable=line-too-long,protected-access
+
 
 import dbus # type: ignore
 import dbusmock # type: ignore

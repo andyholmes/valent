@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
+
 '''ModeManager mock template
 
 This creates the expected methods and properties of the main
@@ -8,16 +9,8 @@ org.freedesktop.ModemManager1 object, but nothing else. The only property
 available to set in 'parameters' is 'Version'.
 '''
 
-# pylint: disable=import-error,invalid-name,missing-function-docstring,protected-access
+# pylint: disable=protected-access
 
-# This program is free software; you can redistribute it and/or modify it under
-# the terms of the GNU Lesser General Public License as published by the Free
-# Software Foundation; either version 3 of the License, or (at your option) any
-# later version.  See http://www.gnu.org/copyleft/lgpl.html for the full text
-# of the license.
-
-__author__ = 'Andy Holmes'
-__copyright__ = '(c) Andy Holmes'
 
 import dbus # type: ignore
 import dbusmock # type: ignore

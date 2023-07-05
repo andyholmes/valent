@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
+
 '''RemoteDesktop mock template
 
 This creates the expected methods and properties of Mutter's implementation of
@@ -10,7 +11,8 @@ The service itself is exported on org.gnome.Shell, because that's the well-known
 name Valent's plugins watch.
 '''
 
-# pylint: disable=import-error,invalid-name,line-too-long,missing-function-docstring,protected-access
+# pylint: disable=line-too-long,protected-access
+
 
 import io
 import os

@@ -3,9 +3,8 @@
 # SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 
-"""This module provides a test environment for the battery plugin."""
+"""This module provides a test fixture for UPower."""
 
-# pylint: disable=import-error,invalid-name,missing-function-docstring
 
 import fcntl
 import os
