@@ -346,9 +346,11 @@
         <attribute name="action">app.wiki</attribute>
         <attribute name="target">Help</attribute>
       </item>
+    </section>
+    <section>
       <item>
-        <attribute name="label" translatable="yes">About Valent</attribute>
-        <attribute name="action">app.about</attribute>
+        <attribute name="label" translatable="yes">Close</attribute>
+        <attribute name="action">window.close</attribute>
       </item>
     </section>
   </menu>
