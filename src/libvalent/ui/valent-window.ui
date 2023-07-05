@@ -21,6 +21,18 @@
             <property name="action">action(win.refresh)</property>
           </object>
         </child>
+        <child>
+          <object class="GtkShortcut">
+            <property name="trigger">&lt;Control&gt;w</property>
+            <property name="action">action(window.close)</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcut">
+            <property name="trigger">&lt;Control&gt;q</property>
+            <property name="action">action(app.quit)</property>
+          </object>
+        </child>
       </object>
     </child>
     <child>

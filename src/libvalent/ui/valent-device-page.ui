@@ -7,6 +7,23 @@
   <template class="ValentDevicePage" parent="GtkBox">
     <property name="orientation">vertical</property>
     <child>
+      <object class="GtkShortcutController">
+        <property name="scope">local</property>
+        <child>
+          <object class="GtkShortcut">
+            <property name="trigger">&lt;Control&gt;comma</property>
+            <property name="action">action(page.preferences)</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcut">
+            <property name="trigger">Escape</property>
+            <property name="action">action(win.previous)</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
       <object class="GtkHeaderBar">
         <property name="title-widget">
           <object class="AdwWindowTitle" id="title"/>
@@ -26,6 +43,7 @@
           <object class="GtkMenuButton">
             <property name="valign">center</property>
             <property name="menu-model">secondary_menu</property>
+            <property name="primary">1</property>
             <property name="icon-name">view-more-symbolic</property>
             <accessibility>
               <property name="label" translatable="yes">Device Menu</property>
@@ -256,18 +274,18 @@
   <menu id="secondary_menu">
     <section>
       <item>
-        <attribute name="label" translatable="yes">_Preferences</attribute>
+        <attribute name="label" translatable="yes">Preferences</attribute>
         <attribute name="action">page.preferences</attribute>
       </item>
     </section>
     <section>
       <item>
-        <attribute name="label" translatable="yes">P_air</attribute>
+        <attribute name="label" translatable="yes">Pair</attribute>
         <attribute name="action">page.pair</attribute>
         <attribute name="hidden-when">action-disabled</attribute>
       </item>
       <item>
-        <attribute name="label" translatable="yes">_Unpair</attribute>
+        <attribute name="label" translatable="yes">Unpair</attribute>
         <attribute name="action">page.unpair</attribute>
         <attribute name="hidden-when">action-disabled</attribute>
       </item>
