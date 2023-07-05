@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2023-07-04 17:27-0700\n"
+"POT-Creation-Date: 2023-07-05 14:24-0700\n"
 "PO-Revision-Date: 2023-07-03 19:05+0800\n"
 "Last-Translator: sky96111 <sky96111@outlook.com>\n"
 "Language-Team: Chinese Simplified\n"
@@ -296,8 +296,9 @@ msgid "No Actions"
 msgstr "无动作"
 
 #: src/libvalent/ui/valent-preferences-window.c:377
-msgid "Global"
-msgstr "全局"
+#, fuzzy
+msgid "Application"
+msgstr "应用"
 
 #: src/libvalent/ui/valent-preferences-window.c:384
 msgid "Device Connections"
@@ -1303,6 +1304,9 @@ msgstr "桌面环境"
 #: src/plugins/xdp/xdp.plugin.desktop.in:8
 msgid "Integration with desktop portals"
 msgstr "与桌面环境集成"
+
+#~ msgid "Global"
+#~ msgstr "全局"
 
 #~ msgid "Remote Input"
 #~ msgstr "远程输入"

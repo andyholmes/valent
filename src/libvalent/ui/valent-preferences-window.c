@@ -141,7 +141,7 @@ plugin_row_add_extensions (AdwExpanderRow *plugin_row,
         continue;
 
       row = g_object_new (ADW_TYPE_ACTION_ROW,
-                          "title",      extension.title,
+                          "title",      _(extension.title),
                           "selectable", FALSE,
                           NULL);
       adw_expander_row_add_row (ADW_EXPANDER_ROW (plugin_row), row);
@@ -374,7 +374,7 @@ valent_preferences_window_class_init (ValentPreferencesWindowClass *klass)
   extensions[EXTEN_APPLICATION_PLUGIN] =
     (ExtensionDescription){
       VALENT_TYPE_APPLICATION_PLUGIN,
-      N_("Global"),
+      N_("Application"),
       "application",
     };
 
