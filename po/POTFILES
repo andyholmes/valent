@@ -11,6 +11,8 @@ src/libvalent/ui/valent-device-page.c
 src/libvalent/ui/valent-device-page.ui
 src/libvalent/ui/valent-device-preferences-window.c
 src/libvalent/ui/valent-device-preferences-window.ui
+src/libvalent/ui/valent-input-remote.c
+src/libvalent/ui/valent-input-remote.ui
 src/libvalent/ui/valent-media-remote.c
 src/libvalent/ui/valent-media-remote.ui
 src/libvalent/ui/valent-menu-list.c
@@ -49,8 +51,6 @@ src/plugins/lock/lock.plugin.desktop.in
 src/plugins/lock/valent-lock-gadget.c
 src/plugins/mousepad/mousepad.plugin.desktop.in
 src/plugins/mousepad/valent-mousepad-plugin.c
-src/plugins/mousepad/valent-mousepad-remote.c
-src/plugins/mousepad/valent-mousepad-remote.ui
 src/plugins/mpris/mpris.plugin.desktop.in
 src/plugins/mpris/valent-mpris-plugin.c
 src/plugins/notification/notification.plugin.desktop.in
