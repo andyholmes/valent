@@ -80,17 +80,11 @@ class SessionTestFixture(dbusmock.DBusTestCase):
         self.p_mock.wait()
 
     def test_run(self) -> None:
-        try:
-            test = subprocess.run([os.environ.get('G_TEST_EXE', ''), '--tap'],
-                                  capture_output=True,
-                                  check=True,
-                                  encoding='utf-8')
-
-            sys.stdout.write(test.stdout)
-            sys.stderr.write(test.stderr)
-        except subprocess.SubprocessError as error:
-            # pylint: disable-next=no-member
-            self.fail(error.stdout) # type: ignore
+        subprocess.run([os.environ.get('G_TEST_EXE', ''), '--tap'],
+                       check=True,
+                       encoding='utf-8',
+                       stderr=sys.stderr,
+                       stdout=sys.stdout)
 
 
 if __name__ == '__main__':
