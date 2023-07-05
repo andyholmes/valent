@@ -31,27 +31,24 @@ struct _ValentObjectClass
 };
 
 VALENT_AVAILABLE_IN_1_0
-void           valent_object_lock               (ValentObject *object);
+void           valent_object_lock              (ValentObject *object);
 VALENT_AVAILABLE_IN_1_0
-void           valent_object_unlock             (ValentObject *object);
+void           valent_object_unlock            (ValentObject *object);
 VALENT_AVAILABLE_IN_1_0
-GCancellable * valent_object_ref_cancellable    (ValentObject *object);
+GCancellable * valent_object_ref_cancellable   (ValentObject *object);
 VALENT_AVAILABLE_IN_1_0
-GCancellable * valent_object_attach_cancellable (ValentObject *object,
-                                                 GCancellable *cancellable);
+GCancellable * valent_object_chain_cancellable (ValentObject *object,
+                                                GCancellable *cancellable);
 VALENT_AVAILABLE_IN_1_0
-GCancellable * valent_object_chain_cancellable  (ValentObject *object,
-                                                 GCancellable *cancellable);
+void           valent_object_destroy           (ValentObject *object);
 VALENT_AVAILABLE_IN_1_0
-void           valent_object_destroy            (ValentObject *object);
+gboolean       valent_object_in_destruction    (ValentObject *object);
 VALENT_AVAILABLE_IN_1_0
-gboolean       valent_object_in_destruction     (ValentObject *object);
+void           valent_object_notify            (ValentObject *object,
+                                                const char   *property_name);
 VALENT_AVAILABLE_IN_1_0
-void           valent_object_notify             (ValentObject *object,
-                                                 const char   *property_name);
-VALENT_AVAILABLE_IN_1_0
-void           valent_object_notify_by_pspec    (ValentObject *object,
-                                                 GParamSpec   *pspec);
+void           valent_object_notify_by_pspec   (ValentObject *object,
+                                                GParamSpec   *pspec);
 
 G_END_DECLS
 

@@ -290,8 +290,8 @@ valent_mpris_adapter_init_async (GAsyncInitable      *initable,
                                          NULL);
 
   /* Cancel initialization if the object is destroyed */
-  destroy = valent_object_attach_cancellable (VALENT_OBJECT (initable),
-                                              cancellable);
+  destroy = valent_object_chain_cancellable (VALENT_OBJECT (initable),
+                                             cancellable);
 
   task = g_task_new (initable, destroy, callback, user_data);
   g_task_set_priority (task, io_priority);
@@ -333,13 +333,14 @@ g_async_initable_iface_init (GAsyncInitableIface *iface)
  * ValentMediaAdapter
  */
 static void
-export_full_cb (ValentMPRISImpl    *impl,
-                GAsyncResult       *result,
-                ValentMPRISAdapter *self)
+valent_mpris_impl_export_full_cb (ValentMPRISImpl    *impl,
+                                  GAsyncResult       *result,
+                                  ValentMPRISAdapter *self)
 {
   g_autoptr (GError) error = NULL;
 
-  if (!valent_mpris_impl_export_finish (impl, result, &error))
+  if (!valent_mpris_impl_export_finish (impl, result, &error) &&
+      !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
     g_warning ("%s(): %s", G_STRFUNC, error->message);
 }
 
@@ -381,7 +382,7 @@ valent_mpris_adapter_export (ValentMediaAdapter *adapter,
       valent_mpris_impl_export_full (impl,
                                      bus_name,
                                      destroy,
-                                     (GAsyncReadyCallback)export_full_cb,
+                                     (GAsyncReadyCallback)valent_mpris_impl_export_full_cb,
                                      self);
     }
 }
