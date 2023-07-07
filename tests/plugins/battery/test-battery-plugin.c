@@ -39,6 +39,7 @@ test_battery_plugin_actions (ValentTestFixture *fixture,
                              gconstpointer      user_data)
 {
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
+  JsonNode *packet;
   g_autoptr (GVariant) state = NULL;
   gboolean charging;
   double percentage;
@@ -50,7 +51,15 @@ test_battery_plugin_actions (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin has expected actions");
   g_assert_true (g_action_group_has_action (actions, "battery.state"));
 
+  VALENT_TEST_CHECK ("Plugin sends battery status at connect");
   valent_test_fixture_connect (fixture, TRUE);
+
+  packet = valent_test_fixture_expect_packet (fixture);
+  v_assert_packet_type (packet, "kdeconnect.battery");
+  v_assert_packet_cmpint (packet, "currentCharge", ==, 100);
+  v_assert_packet_false (packet, "isCharging");
+  v_assert_packet_cmpint (packet, "thresholdEvent", ==, 0);
+  json_node_unref (packet);
 
   VALENT_TEST_CHECK ("Plugin action `battery.state` is enabled when connected, "
                      "but only if reported as present.");
@@ -92,6 +101,16 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
 
   VALENT_TEST_CHECK ("Plugin action `battery.state` starts disabled");
   g_assert_false (g_action_group_get_action_enabled (actions, "battery.state"));
+
+  VALENT_TEST_CHECK ("Plugin sends battery status at connect");
+  valent_test_fixture_connect (fixture, TRUE);
+
+  packet = valent_test_fixture_expect_packet (fixture);
+  v_assert_packet_type (packet, "kdeconnect.battery");
+  v_assert_packet_cmpint (packet, "currentCharge", ==, 100);
+  v_assert_packet_false (packet, "isCharging");
+  v_assert_packet_cmpint (packet, "thresholdEvent", ==, 0);
+  json_node_unref (packet);
 
   VALENT_TEST_CHECK ("Plugin handles \"empty\" battery update");
   packet = valent_test_fixture_lookup_packet (fixture, "empty-battery");
@@ -264,8 +283,17 @@ test_battery_plugin_send_update (ValentTestFixture *fixture,
   g_autoptr (GDBusConnection) connection = NULL;
   JsonNode *packet;
 
-  valent_test_fixture_connect (fixture, TRUE);
   connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL);
+
+  VALENT_TEST_CHECK ("Plugin sends battery status at connect");
+  valent_test_fixture_connect (fixture, TRUE);
+
+  packet = valent_test_fixture_expect_packet (fixture);
+  v_assert_packet_type (packet, "kdeconnect.battery");
+  v_assert_packet_cmpint (packet, "currentCharge", ==, 100);
+  v_assert_packet_false (packet, "isCharging");
+  v_assert_packet_cmpint (packet, "thresholdEvent", ==, 0);
+  json_node_unref (packet);
 
   VALENT_TEST_CHECK ("Plugin sends battery level updates");
   upower_set_battery (connection, "Percentage", g_variant_new_double (42.0));

@@ -83,7 +83,7 @@ test_battery_proxy (void)
   valent_test_await_signal (battery, "changed");
 
   VALENT_TEST_CHECK ("Initial property state is empty");
-  g_assert_cmpint (valent_battery_current_charge (battery), ==, 0);
+  g_assert_cmpint (valent_battery_current_charge (battery), ==, 100);
   g_assert_false (valent_battery_is_charging (battery));
   g_assert_true (valent_battery_is_present (battery));
   g_assert_cmpuint (valent_battery_threshold_event (battery), ==, 0);
