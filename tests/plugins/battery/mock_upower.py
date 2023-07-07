@@ -41,7 +41,10 @@ class UPowerTestFixture(dbusmock.DBusTestCase):
             '/org/freedesktop/UPower/devices/DisplayDevice',
             {
                 'IsPresent': dbus.Boolean(True, variant_level=1),
-                'Type': dbus.UInt32(2, variant_level=1)
+                'Percentage': dbus.Double(100.0, variant_level=1),
+                'State': dbus.UInt32(0, variant_level=1),
+                'Type': dbus.UInt32(2, variant_level=1),
+                'WarningLevel': dbus.UInt32(0, variant_level=1),
             })
 
     def tearDown(self) -> None:

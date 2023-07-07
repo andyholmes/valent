@@ -76,6 +76,7 @@ valent_battery_plugin_watch_battery (ValentBatteryPlugin *self,
                                "changed",
                                G_CALLBACK (on_battery_changed),
                                self, 0);
+      on_battery_changed (self->battery, self);
       self->battery_watch = TRUE;
     }
   else
