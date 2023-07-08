@@ -179,6 +179,7 @@ on_incoming_connection (ValentChannelService   *service,
   g_autoptr (GSocketAddress) s_addr = NULL;
   GInetAddress *i_addr = NULL;
   g_autofree char *host = NULL;
+  uint16_t port = VALENT_LAN_PROTOCOL_PORT;
   g_autoptr (JsonNode) identity = NULL;
   g_autoptr (JsonNode) peer_identity = NULL;
   const char *device_id;
@@ -236,6 +237,7 @@ on_incoming_connection (ValentChannelService   *service,
   /* NOTE: We're the client when accepting incoming connections */
   valent_object_lock (VALENT_OBJECT (self));
   certificate = g_object_ref (self->certificate);
+  port = self->port;
   valent_object_unlock (VALENT_OBJECT (self));
 
   tls_stream = valent_lan_encrypt_client_connection (connection,
@@ -270,7 +272,7 @@ on_incoming_connection (ValentChannelService   *service,
   channel = g_object_new (VALENT_TYPE_LAN_CHANNEL,
                           "base-stream",   tls_stream,
                           "host",          host,
-                          "port",          self->port,
+                          "port",          port,
                           "identity",      identity,
                           "peer-identity", peer_identity,
                           NULL);
