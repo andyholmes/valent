@@ -10,6 +10,7 @@
 #include <libpeas/peas.h>
 #include <libvalent-core.h>
 
+#include "valent-certificate.h"
 #include "valent-channel.h"
 #include "valent-channel-service.h"
 #include "valent-packet.h"
@@ -37,9 +38,10 @@
 
 typedef struct
 {
-  char           *id;
-  JsonNode       *identity;
-  char           *name;
+  GTlsCertificate *certificate;
+  const char      *id;
+  JsonNode        *identity;
+  char            *name;
 } ValentChannelServicePrivate;
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentChannelService, valent_channel_service, VALENT_TYPE_EXTENSION);
@@ -55,6 +57,7 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentChannelService, valent_channel_servic
 
 enum {
   PROP_0,
+  PROP_CERTIFICATE,
   PROP_ID,
   PROP_IDENTITY,
   PROP_NAME,
@@ -325,6 +328,20 @@ static void
 valent_channel_service_constructed (GObject *object)
 {
   ValentChannelService *self = VALENT_CHANNEL_SERVICE (object);
+  ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (self);
+
+  if (priv->certificate == NULL)
+    {
+      ValentContext *context = NULL;
+      g_autoptr (GFile) config = NULL;
+
+      context = valent_extension_get_context (VALENT_EXTENSION (self));
+      config = valent_context_get_config_file (context, ".");
+      priv->certificate = valent_certificate_new_sync (g_file_peek_path (config),
+                                                       NULL);
+    }
+
+  priv->id = valent_certificate_get_common_name (priv->certificate);
 
   valent_channel_service_build_identity (self);
 
@@ -337,7 +354,7 @@ valent_channel_service_finalize (GObject *object)
   ValentChannelService *self = VALENT_CHANNEL_SERVICE (object);
   ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (self);
 
-  g_clear_pointer (&priv->id, g_free);
+  g_clear_object (&priv->certificate);
   g_clear_pointer (&priv->identity, json_node_unref);
   g_clear_pointer (&priv->name, g_free);
 
@@ -355,6 +372,10 @@ valent_channel_service_get_property (GObject    *object,
 
   switch (prop_id)
     {
+    case PROP_CERTIFICATE:
+      g_value_take_object (value, valent_channel_service_ref_certificate (self));
+      break;
+
     case PROP_ID:
       g_value_set_string (value, priv->id);
       break;
@@ -383,8 +404,8 @@ valent_channel_service_set_property (GObject      *object,
 
   switch (prop_id)
     {
-    case PROP_ID:
-      priv->id = g_value_dup_string (value);
+    case PROP_CERTIFICATE:
+      priv->certificate = g_value_dup_object (value);
       break;
 
     case PROP_NAME:
@@ -411,6 +432,19 @@ valent_channel_service_class_init (ValentChannelServiceClass *klass)
   service_class->identify = valent_channel_service_real_identify;
 
   /**
+   * ValentChannelService:certificate: (getter ref_certificate)
+   *
+   * The TLS certificate the service uses to authenticate with other devices.
+   */
+  properties [PROP_CERTIFICATE] =
+    g_param_spec_object ("certificate", NULL, NULL,
+                         G_TYPE_TLS_CERTIFICATE,
+                         (G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT_ONLY |
+                          G_PARAM_EXPLICIT_NOTIFY |
+                          G_PARAM_STATIC_STRINGS));
+
+  /**
    * ValentChannelService:id: (getter dup_id)
    *
    * The local ID.
@@ -426,8 +460,7 @@ valent_channel_service_class_init (ValentChannelServiceClass *klass)
   properties [PROP_ID] =
     g_param_spec_string ("id", NULL, NULL,
                          NULL,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
+                         (G_PARAM_READABLE |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
@@ -502,6 +535,29 @@ valent_channel_service_class_init (ValentChannelServiceClass *klass)
 static void
 valent_channel_service_init (ValentChannelService *self)
 {
+}
+
+/**
+ * valent_channel_service_ref_certificate: (get-property certificate)
+ * @self: a `ValentChannelService`
+ *
+ * Get the TLS certificate for the service.
+ *
+ * Returns: (transfer full) (not nullable): the service TLS certificate
+ */
+GTlsCertificate *
+valent_channel_service_ref_certificate (ValentChannelService *service)
+{
+  ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (service);
+  GTlsCertificate *ret = NULL;
+
+  g_return_val_if_fail (VALENT_IS_CHANNEL_SERVICE (service), NULL);
+
+  valent_object_lock (VALENT_OBJECT (service));
+  ret = g_object_ref (priv->certificate);
+  valent_object_unlock (VALENT_OBJECT (service));
+
+  return g_steal_pointer (&ret);
 }
 
 /**

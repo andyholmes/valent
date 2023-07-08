@@ -86,11 +86,10 @@ lan_service_fixture_set_up (LanBackendFixture *fixture,
   context = valent_context_new (NULL, "network", "test-device");
   plugin_info = peas_engine_get_plugin_info (valent_get_plugin_engine (), "lan");
   fixture->service = g_object_new (VALENT_TYPE_LAN_CHANNEL_SERVICE,
-                                   "id",                "test-device",
-                                   "broadcast-address", "127.0.0.255",
-                                   "port",              SERVICE_PORT,
                                    "context",           context,
                                    "plugin-info",       plugin_info,
+                                   "broadcast-address", "127.0.0.255",
+                                   "port",              SERVICE_PORT,
                                    NULL);
 
   fixture->packets = valent_test_load_json ("plugin-lan.json");
