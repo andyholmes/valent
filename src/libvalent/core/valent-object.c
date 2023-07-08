@@ -6,8 +6,8 @@
 
 #include "config.h"
 
-#include "valent-object.h"
 #include "valent-macros.h"
+#include "valent-object.h"
 
 /**
  * ValentObject:
@@ -179,17 +179,21 @@ valent_object_dispose (GObject *object)
 }
 
 static void
+valent_object_constructed (GObject *object)
+{
+  if G_UNLIKELY (G_OBJECT_GET_CLASS (object)->dispose != valent_object_dispose)
+    g_error ("%s overrides GObject.Object.dispose() instead of "
+             "Valent.Object.destroy(), which is not thread safe",
+             G_OBJECT_TYPE_NAME (object));
+
+  G_OBJECT_CLASS (valent_object_parent_class)->constructed (object);
+}
+
+static void
 valent_object_finalize (GObject *object)
 {
   ValentObject *self = VALENT_OBJECT (object);
   ValentObjectPrivate *priv = valent_object_get_instance_private (self);
-
-  if (!VALENT_IS_MAIN_THREAD ())
-    {
-      g_critical ("%s: attempt to finalize off the main thread; leaking instead",
-                  G_OBJECT_TYPE_NAME (object));
-      return;
-    }
 
   g_clear_object (&priv->cancellable);
   g_rec_mutex_clear (&priv->mutex);
@@ -241,6 +245,7 @@ valent_object_class_init (ValentObjectClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
+  object_class->constructed = valent_object_constructed;
   object_class->dispose = valent_object_dispose;
   object_class->finalize = valent_object_finalize;
   object_class->get_property = valent_object_get_property;
@@ -273,9 +278,13 @@ valent_object_class_init (ValentObjectClass *klass)
    *
    * Emitted when the object is being destroyed.
    *
-   * This signal is emitted when the object enter disposal and always on the
-   * main thread. Note that you must still drop any references you hold to the
-   * object to avoid leaking memory.
+   * This signal is emitted when the object enters disposal and always on the
+   * main thread, with the object lock acquired. Note that you must still drop
+   * any references you hold to avoid leaking memory.
+   *
+   * If subclassing [class@Valent.Object], implementations must override
+   * [vfunc@Valent.Object.destroy] instead of [vfunc@GObject.Object.dispose]
+   * to ensure the instance is finalized on the main thread.
    *
    * Implementations that override [vfunc@Valent.Object.destroy] must chain-up.
    *
@@ -295,7 +304,7 @@ valent_object_class_init (ValentObjectClass *klass)
                               G_TYPE_FROM_CLASS (klass),
                               g_cclosure_marshal_VOID__VOIDv);
 
-  /* Setup finalizer in main thread to receive off-thread objects */
+  /* Setup the finalizer in main thread to receive off-thread objects */
   finalizer_source = g_source_new (&finalizer_source_funcs, sizeof (GSource));
   g_source_set_static_name (finalizer_source, "[valent-object-finalizer]");
   g_source_set_priority (finalizer_source, G_MAXINT);
