@@ -32,6 +32,19 @@ static const GActionEntry actions[] = {
 };
 
 /*
+ * ValentObject
+ */
+static void
+valent_packetless_plugin_destroy (ValentObject *object)
+{
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
+
+  valent_device_plugin_set_menu_item (plugin, "device.packetless.action", NULL);
+
+  VALENT_OBJECT_CLASS (valent_packetless_plugin_parent_class)->destroy (object);
+}
+
+/*
  * GObject
  */
 static void
@@ -52,16 +65,6 @@ valent_packetless_plugin_constructed (GObject *object)
 }
 
 static void
-valent_packetless_plugin_dispose (GObject *object)
-{
-  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
-
-  valent_device_plugin_set_menu_item (plugin, "device.packetless.action", NULL);
-
-  G_OBJECT_CLASS (valent_packetless_plugin_parent_class)->dispose (object);
-}
-
-static void
 valent_packetless_plugin_class_finalize (ValentPacketlessPluginClass *klass)
 {
 }
@@ -70,9 +73,11 @@ static void
 valent_packetless_plugin_class_init (ValentPacketlessPluginClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
 
   object_class->constructed = valent_packetless_plugin_constructed;
-  object_class->dispose = valent_packetless_plugin_dispose;
+
+  vobject_class->destroy = valent_packetless_plugin_destroy;
 }
 
 static void

@@ -25,8 +25,8 @@ struct _ValentLockPlugin
 
 G_DEFINE_FINAL_TYPE (ValentLockPlugin, valent_lock_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
-static void valent_lock_plugin_request_state (ValentLockPlugin *self);
-static void valent_lock_plugin_send_state    (ValentLockPlugin *self);
+static void   valent_lock_plugin_request_state (ValentLockPlugin *self);
+static void   valent_lock_plugin_send_state    (ValentLockPlugin *self);
 
 
 /*
@@ -201,6 +201,19 @@ valent_lock_plugin_handle_packet (ValentDevicePlugin *plugin,
 }
 
 /*
+ * ValentObject
+ */
+static void
+valent_lock_plugin_destroy (ValentObject *object)
+{
+  ValentLockPlugin *self = VALENT_LOCK_PLUGIN (object);
+
+  g_clear_signal_handler (&self->session_changed_id, self->session);
+
+  VALENT_OBJECT_CLASS (valent_lock_plugin_parent_class)->destroy (object);
+}
+
+/*
  * GObject
  */
 static void
@@ -220,23 +233,15 @@ valent_lock_plugin_constructed (GObject *object)
 }
 
 static void
-valent_lock_plugin_dispose (GObject *object)
-{
-  ValentLockPlugin *self = VALENT_LOCK_PLUGIN (object);
-
-  g_clear_signal_handler (&self->session_changed_id, self->session);
-
-  G_OBJECT_CLASS (valent_lock_plugin_parent_class)->dispose (object);
-}
-
-static void
 valent_lock_plugin_class_init (ValentLockPluginClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
   object_class->constructed = valent_lock_plugin_constructed;
-  object_class->dispose = valent_lock_plugin_dispose;
+
+  vobject_class->destroy = valent_lock_plugin_destroy;
 
   plugin_class->handle_packet = valent_lock_plugin_handle_packet;
   plugin_class->update_state = valent_lock_plugin_update_state;

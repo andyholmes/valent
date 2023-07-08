@@ -402,6 +402,23 @@ valent_contacts_plugin_handle_packet (ValentDevicePlugin *plugin,
 }
 
 /*
+ * ValentObject
+ */
+static void
+valent_contacts_plugin_destroy (ValentObject *object)
+{
+  ValentContactsPlugin *self = VALENT_CONTACTS_PLUGIN (object);
+
+  /* Cancel any pending operations and drop the address books */
+  g_cancellable_cancel (self->cancellable);
+  g_clear_object (&self->cancellable);
+  g_clear_object (&self->remote_store);
+  g_clear_object (&self->local_store);
+
+  VALENT_OBJECT_CLASS (valent_contacts_plugin_parent_class)->destroy (object);
+}
+
+/*
  * GObject
  */
 static void
@@ -455,27 +472,15 @@ valent_contacts_plugin_constructed (GObject *object)
 }
 
 static void
-valent_contacts_plugin_dispose (GObject *object)
-{
-  ValentContactsPlugin *self = VALENT_CONTACTS_PLUGIN (object);
-
-  /* Cancel any pending operations and drop the address books */
-  g_cancellable_cancel (self->cancellable);
-  g_clear_object (&self->cancellable);
-  g_clear_object (&self->remote_store);
-  g_clear_object (&self->local_store);
-
-  G_OBJECT_CLASS (valent_contacts_plugin_parent_class)->dispose (object);
-}
-
-static void
 valent_contacts_plugin_class_init (ValentContactsPluginClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
   object_class->constructed = valent_contacts_plugin_constructed;
-  object_class->dispose = valent_contacts_plugin_dispose;
+
+  vobject_class->destroy = valent_contacts_plugin_destroy;
 
   plugin_class->handle_packet = valent_contacts_plugin_handle_packet;
   plugin_class->update_state = valent_contacts_plugin_update_state;

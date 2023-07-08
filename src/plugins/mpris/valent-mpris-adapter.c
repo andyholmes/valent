@@ -420,10 +420,10 @@ valent_mpris_adapter_unexport (ValentMediaAdapter *adapter,
 }
 
 /*
- * GObject
+ * ValentObject
  */
 static void
-valent_mpris_adapter_dispose (GObject *object)
+valent_mpris_adapter_destroy (ValentObject *object)
 {
   ValentMPRISAdapter *self = VALENT_MPRIS_ADAPTER (object);
   GHashTableIter iter;
@@ -445,9 +445,12 @@ valent_mpris_adapter_dispose (GObject *object)
       g_hash_table_iter_remove (&iter);
     }
 
-  G_OBJECT_CLASS (valent_mpris_adapter_parent_class)->dispose (object);
+  VALENT_OBJECT_CLASS (valent_mpris_adapter_parent_class)->destroy (object);
 }
 
+/*
+ * GObject
+ */
 static void
 valent_mpris_adapter_finalize (GObject *object)
 {
@@ -464,10 +467,12 @@ static void
 valent_mpris_adapter_class_init (ValentMPRISAdapterClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentMediaAdapterClass *adapter_class = VALENT_MEDIA_ADAPTER_CLASS (klass);
 
-  object_class->dispose = valent_mpris_adapter_dispose;
   object_class->finalize = valent_mpris_adapter_finalize;
+
+  vobject_class->destroy = valent_mpris_adapter_destroy;
 
   adapter_class->export_player = valent_mpris_adapter_export;
   adapter_class->unexport_player = valent_mpris_adapter_unexport;

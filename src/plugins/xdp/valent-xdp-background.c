@@ -174,26 +174,10 @@ on_autostart_changed (GSettings           *settings,
 }
 
 /*
- * GObject
+ * ValentObject
  */
 static void
-valent_xdp_background_constructed (GObject *object)
-{
-  ValentXdpBackground *self = VALENT_XDP_BACKGROUND (object);
-
-  self->settings = g_settings_new ("ca.andyholmes.Valent.Plugin.xdp");
-  g_signal_connect (self->settings,
-                    "changed::autostart",
-                    G_CALLBACK (on_autostart_changed),
-                    self);
-
-  on_autostart_changed (self->settings, "autostart", self);
-
-  G_OBJECT_CLASS (valent_xdp_background_parent_class)->constructed (object);
-}
-
-static void
-valent_xdp_background_dispose (GObject *object)
+valent_xdp_background_destroy (ValentObject *object)
 {
   ValentXdpBackground *self = VALENT_XDP_BACKGROUND (object);
 
@@ -209,16 +193,37 @@ valent_xdp_background_dispose (GObject *object)
       valent_xdp_background_request (self);
     }
 
-  G_OBJECT_CLASS (valent_xdp_background_parent_class)->dispose (object);
+  VALENT_OBJECT_CLASS (valent_xdp_background_parent_class)->destroy (object);
+}
+
+/*
+ * GObject
+ */
+static void
+valent_xdp_background_constructed (GObject *object)
+{
+  ValentXdpBackground *self = VALENT_XDP_BACKGROUND (object);
+
+  self->settings = g_settings_new ("ca.andyholmes.Valent.Plugin.xdp");
+  g_signal_connect_object (self->settings,
+                           "changed::autostart",
+                           G_CALLBACK (on_autostart_changed),
+                           self, 0);
+
+  on_autostart_changed (self->settings, "autostart", self);
+
+  G_OBJECT_CLASS (valent_xdp_background_parent_class)->constructed (object);
 }
 
 static void
 valent_xdp_background_class_init (ValentXdpBackgroundClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
 
   object_class->constructed = valent_xdp_background_constructed;
-  object_class->dispose = valent_xdp_background_dispose;
+
+  vobject_class->destroy = valent_xdp_background_destroy;
 }
 
 static void

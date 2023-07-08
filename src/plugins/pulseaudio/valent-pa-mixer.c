@@ -300,6 +300,21 @@ valent_pa_mixer_set_default_output (ValentMixerAdapter *adapter,
 }
 
 /*
+ * ValentObject
+ */
+static void
+valent_pa_mixer_destroy (ValentObject *object)
+{
+  ValentPaMixer *self = VALENT_PA_MIXER (object);
+
+  g_signal_handlers_disconnect_by_data (self->control, self);
+  gvc_mixer_control_close (self->control);
+  g_hash_table_remove_all (self->streams);
+
+  VALENT_OBJECT_CLASS (valent_pa_mixer_parent_class)->destroy (object);
+}
+
+/*
  * GObject
  */
 static void
@@ -319,18 +334,6 @@ valent_pa_mixer_constructed (GObject *object)
 }
 
 static void
-valent_pa_mixer_dispose (GObject *object)
-{
-  ValentPaMixer *self = VALENT_PA_MIXER (object);
-
-  g_signal_handlers_disconnect_by_data (self->control, self);
-  gvc_mixer_control_close (self->control);
-  g_hash_table_remove_all (self->streams);
-
-  G_OBJECT_CLASS (valent_pa_mixer_parent_class)->dispose (object);
-}
-
-static void
 valent_pa_mixer_finalize (GObject *object)
 {
   ValentPaMixer *self = VALENT_PA_MIXER (object);
@@ -345,11 +348,13 @@ static void
 valent_pa_mixer_class_init (ValentPaMixerClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentMixerAdapterClass *adapter_class = VALENT_MIXER_ADAPTER_CLASS (klass);
 
   object_class->constructed = valent_pa_mixer_constructed;
-  object_class->dispose = valent_pa_mixer_dispose;
   object_class->finalize = valent_pa_mixer_finalize;
+
+  vobject_class->destroy = valent_pa_mixer_destroy;
 
   adapter_class->get_default_input = valent_pa_mixer_get_default_input;
   adapter_class->set_default_input = valent_pa_mixer_set_default_input;

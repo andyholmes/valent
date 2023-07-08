@@ -381,6 +381,19 @@ valent_connectivity_report_plugin_handle_packet (ValentDevicePlugin *plugin,
 }
 
 /*
+ * ValentObject
+ */
+static void
+valent_connectivity_report_plugin_destroy (ValentObject *object)
+{
+  ValentConnectivityReportPlugin *self = VALENT_CONNECTIVITY_REPORT_PLUGIN (object);
+
+  valent_connectivity_report_plugin_watch_telephony (self, FALSE);
+
+  VALENT_OBJECT_CLASS (valent_connectivity_report_plugin_parent_class)->destroy (object);
+}
+
+/*
  * GObject
  */
 static void
@@ -397,23 +410,15 @@ valent_connectivity_report_plugin_constructed (GObject *object)
 }
 
 static void
-valent_connectivity_report_plugin_dispose (GObject *object)
-{
-  ValentConnectivityReportPlugin *self = VALENT_CONNECTIVITY_REPORT_PLUGIN (object);
-
-  valent_connectivity_report_plugin_watch_telephony (self, FALSE);
-
-  G_OBJECT_CLASS (valent_connectivity_report_plugin_parent_class)->dispose (object);
-}
-
-static void
 valent_connectivity_report_plugin_class_init (ValentConnectivityReportPluginClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
   object_class->constructed = valent_connectivity_report_plugin_constructed;
-  object_class->dispose = valent_connectivity_report_plugin_dispose;
+
+  vobject_class->destroy = valent_connectivity_report_plugin_destroy;
 
   plugin_class->handle_packet = valent_connectivity_report_plugin_handle_packet;
   plugin_class->update_state = valent_connectivity_report_plugin_update_state;

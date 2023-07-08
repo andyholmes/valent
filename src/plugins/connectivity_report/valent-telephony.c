@@ -272,6 +272,20 @@ g_dbus_object_manager_client_new_for_bus_cb (GObject      *object,
 }
 
 /*
+ * ValentObject
+ */
+static void
+valent_telephony_destroy (ValentObject *object)
+{
+  ValentTelephony *self = VALENT_TELEPHONY (object);
+
+  g_signal_handlers_disconnect_by_data (self->manager, self);
+  g_clear_object (&self->manager);
+
+  VALENT_OBJECT_CLASS (valent_telephony_parent_class)->destroy (object);
+}
+
+/*
  * GObject
  */
 static void
@@ -292,17 +306,6 @@ valent_telephony_constructed (GObject *object)
 }
 
 static void
-valent_telephony_dispose (GObject *object)
-{
-  ValentTelephony *self = VALENT_TELEPHONY (object);
-
-  g_signal_handlers_disconnect_by_data (self->manager, self);
-  g_clear_object (&self->manager);
-
-  G_OBJECT_CLASS (valent_telephony_parent_class)->dispose (object);
-}
-
-static void
 valent_telephony_finalize (GObject *object)
 {
   ValentTelephony *self = VALENT_TELEPHONY (object);
@@ -316,10 +319,12 @@ static void
 valent_telephony_class_init (ValentTelephonyClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
 
   object_class->constructed = valent_telephony_constructed;
-  object_class->dispose = valent_telephony_dispose;
   object_class->finalize = valent_telephony_finalize;
+
+  vobject_class->destroy = valent_telephony_destroy;
 
   /**
    * ValentTelephony::changed:

@@ -334,10 +334,10 @@ g_async_initable_iface_init (GAsyncInitableIface *iface)
 }
 
 /*
- * GObject
+ * ValentObject
  */
 static void
-valent_gtk_notifications_dispose (GObject *object)
+valent_gtk_notifications_destroy (ValentObject *object)
 {
   ValentGtkNotifications *self = VALENT_GTK_NOTIFICATIONS (object);
 
@@ -355,9 +355,12 @@ valent_gtk_notifications_dispose (GObject *object)
 
   g_clear_object (&self->monitor);
 
-  G_OBJECT_CLASS (valent_gtk_notifications_parent_class)->dispose (object);
+  VALENT_OBJECT_CLASS (valent_gtk_notifications_parent_class)->destroy (object);
 }
 
+/*
+ * GObject
+ */
 static void
 valent_gtk_notifications_finalize (GObject *object)
 {
@@ -372,9 +375,11 @@ static void
 valent_gtk_notifications_class_init (ValentGtkNotificationsClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
 
-  object_class->dispose = valent_gtk_notifications_dispose;
   object_class->finalize = valent_gtk_notifications_finalize;
+
+  vobject_class->destroy = valent_gtk_notifications_destroy;
 }
 
 static void

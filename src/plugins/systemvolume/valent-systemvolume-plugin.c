@@ -401,6 +401,20 @@ valent_systemvolume_plugin_handle_packet (ValentDevicePlugin *plugin,
 }
 
 /*
+ * ValentObject
+ */
+static void
+valent_systemvolume_plugin_destroy (ValentObject *object)
+{
+  ValentSystemvolumePlugin *self = VALENT_SYSTEMVOLUME_PLUGIN (object);
+
+  valent_systemvolume_plugin_watch_mixer (self, FALSE);
+  g_clear_pointer (&self->states, g_ptr_array_unref);
+
+  VALENT_OBJECT_CLASS (valent_systemvolume_plugin_parent_class)->destroy (object);
+}
+
+/*
  * GObject
  */
 static void
@@ -414,24 +428,15 @@ valent_systemvolume_plugin_constructed (GObject *object)
 }
 
 static void
-valent_systemvolume_plugin_dispose (GObject *object)
-{
-  ValentSystemvolumePlugin *self = VALENT_SYSTEMVOLUME_PLUGIN (object);
-
-  valent_systemvolume_plugin_watch_mixer (self, FALSE);
-  g_clear_pointer (&self->states, g_ptr_array_unref);
-
-  G_OBJECT_CLASS (valent_systemvolume_plugin_parent_class)->dispose (object);
-}
-
-static void
 valent_systemvolume_plugin_class_init (ValentSystemvolumePluginClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
   object_class->constructed = valent_systemvolume_plugin_constructed;
-  object_class->dispose = valent_systemvolume_plugin_dispose;
+
+  vobject_class->destroy = valent_systemvolume_plugin_destroy;
 
   plugin_class->handle_packet = valent_systemvolume_plugin_handle_packet;
   plugin_class->update_state = valent_systemvolume_plugin_update_state;

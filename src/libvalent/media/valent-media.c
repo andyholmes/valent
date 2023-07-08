@@ -198,18 +198,21 @@ valent_media_unbind_extension (ValentComponent *component,
 }
 
 /*
- * GObject
+ * ValentObject
  */
 static void
-valent_media_dispose (GObject *object)
+valent_media_destroy (ValentObject *object)
 {
   ValentMedia *self = VALENT_MEDIA (object);
 
   g_list_store_remove_all (G_LIST_STORE (self->exports));
 
-  G_OBJECT_CLASS (valent_media_parent_class)->dispose (object);
+  VALENT_OBJECT_CLASS (valent_media_parent_class)->destroy (object);
 }
 
+/*
+ * GObject
+ */
 static void
 valent_media_finalize (GObject *object)
 {
@@ -227,10 +230,12 @@ static void
 valent_media_class_init (ValentMediaClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentComponentClass *component_class = VALENT_COMPONENT_CLASS (klass);
 
-  object_class->dispose = valent_media_dispose;
   object_class->finalize = valent_media_finalize;
+
+  vobject_class->destroy = valent_media_destroy;
 
   component_class->bind_extension = valent_media_bind_extension;
   component_class->unbind_extension = valent_media_unbind_extension;

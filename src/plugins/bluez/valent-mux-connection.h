@@ -9,7 +9,7 @@ G_BEGIN_DECLS
 
 #define VALENT_TYPE_MUX_CONNECTION (valent_mux_connection_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentMuxConnection, valent_mux_connection, VALENT, MUX_CONNECTION, GObject)
+G_DECLARE_FINAL_TYPE (ValentMuxConnection, valent_mux_connection, VALENT, MUX_CONNECTION, ValentObject)
 
 ValentMuxConnection * valent_mux_connection_new                  (GIOStream            *base_stream);
 ValentChannel       * valent_mux_connection_handshake            (ValentMuxConnection  *connection,

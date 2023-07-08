@@ -425,6 +425,19 @@ valent_clipboard_plugin_handle_packet (ValentDevicePlugin *plugin,
 }
 
 /*
+ * ValentObject
+ */
+static void
+valent_clipboard_plugin_destroy (ValentObject *object)
+{
+  ValentClipboardPlugin *self = VALENT_CLIPBOARD_PLUGIN (object);
+
+  g_clear_signal_handler (&self->changed_id, self->clipboard);
+
+  VALENT_OBJECT_CLASS (valent_clipboard_plugin_parent_class)->destroy (object);
+}
+
+/*
  * GObject
  */
 static void
@@ -459,16 +472,6 @@ valent_clipboard_plugin_constructed (GObject *object)
 }
 
 static void
-valent_clipboard_plugin_dispose (GObject *object)
-{
-  ValentClipboardPlugin *self = VALENT_CLIPBOARD_PLUGIN (object);
-
-  g_clear_signal_handler (&self->changed_id, self->clipboard);
-
-  G_OBJECT_CLASS (valent_clipboard_plugin_parent_class)->dispose (object);
-}
-
-static void
 valent_clipboard_plugin_finalize (GObject *object)
 {
   ValentClipboardPlugin *self = VALENT_CLIPBOARD_PLUGIN (object);
@@ -482,11 +485,13 @@ static void
 valent_clipboard_plugin_class_init (ValentClipboardPluginClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
   object_class->constructed = valent_clipboard_plugin_constructed;
-  object_class->dispose = valent_clipboard_plugin_dispose;
   object_class->finalize = valent_clipboard_plugin_finalize;
+
+  vobject_class->destroy = valent_clipboard_plugin_destroy;
 
   plugin_class->handle_packet = valent_clipboard_plugin_handle_packet;
   plugin_class->update_state = valent_clipboard_plugin_update_state;

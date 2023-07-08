@@ -993,18 +993,16 @@ g_async_initable_iface_init (GAsyncInitableIface *iface)
   iface->init_async = valent_lan_channel_service_init_async;
 }
 
-
 /*
- * GObject
+ * ValentObject
  */
 static void
-valent_lan_channel_service_dispose (GObject *object)
+valent_lan_channel_service_destroy (ValentObject *object)
 {
   ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (object);
 
   g_signal_handlers_disconnect_by_data (self->monitor, self);
 
-  valent_object_lock (VALENT_OBJECT (self));
   if (self->udp_context != NULL)
     {
       g_clear_object (&self->udp_socket4);
@@ -1019,11 +1017,13 @@ valent_lan_channel_service_dispose (GObject *object)
       g_socket_listener_close (G_SOCKET_LISTENER (self->listener));
       g_clear_object (&self->listener);
     }
-  valent_object_unlock (VALENT_OBJECT (self));
 
-  G_OBJECT_CLASS (valent_lan_channel_service_parent_class)->dispose (object);
+  VALENT_OBJECT_CLASS (valent_lan_channel_service_parent_class)->destroy (object);
 }
 
+/*
+ * GObject
+ */
 static void
 valent_lan_channel_service_finalize (GObject *object)
 {
@@ -1090,12 +1090,14 @@ static void
 valent_lan_channel_service_class_init (ValentLanChannelServiceClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentChannelServiceClass *service_class = VALENT_CHANNEL_SERVICE_CLASS (klass);
 
-  object_class->dispose = valent_lan_channel_service_dispose;
   object_class->finalize = valent_lan_channel_service_finalize;
   object_class->get_property = valent_lan_channel_service_get_property;
   object_class->set_property = valent_lan_channel_service_set_property;
+
+  vobject_class->destroy = valent_lan_channel_service_destroy;
 
   service_class->build_identity = valent_lan_channel_service_build_identity;
   service_class->channel = valent_lan_channel_service_channel;

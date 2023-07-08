@@ -477,6 +477,24 @@ valent_sms_plugin_handle_packet (ValentDevicePlugin *plugin,
 }
 
 /*
+ * ValentObject
+ */
+static void
+valent_sms_plugin_destroy (ValentObject *object)
+{
+  ValentSmsPlugin *self = VALENT_SMS_PLUGIN (object);
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
+
+  /* Close message window and drop SMS Store */
+  g_clear_pointer (&self->window, gtk_window_destroy);
+  g_clear_object (&self->store);
+
+  valent_device_plugin_set_menu_item (plugin, "device.sms.messaging", NULL);
+
+  VALENT_OBJECT_CLASS (valent_sms_plugin_parent_class)->destroy (object);
+}
+
+/*
  * GObject
  */
 static void
@@ -509,23 +527,6 @@ valent_sms_plugin_constructed (GObject *object)
 }
 
 static void
-valent_sms_plugin_dispose (GObject *object)
-{
-  ValentSmsPlugin *self = VALENT_SMS_PLUGIN (object);
-  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
-
-  g_assert (VALENT_IS_SMS_PLUGIN (plugin));
-
-  /* Close message window and drop SMS Store */
-  g_clear_pointer (&self->window, gtk_window_destroy);
-  g_clear_object (&self->store);
-
-  valent_device_plugin_set_menu_item (plugin, "device.sms.messaging", NULL);
-
-  G_OBJECT_CLASS (valent_sms_plugin_parent_class)->dispose (object);
-}
-
-static void
 valent_sms_plugin_finalize (GObject *object)
 {
   ValentSmsPlugin *self = VALENT_SMS_PLUGIN (object);
@@ -541,14 +542,16 @@ static void
 valent_sms_plugin_class_init (ValentSmsPluginClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
   object_class->finalize = valent_sms_plugin_finalize;
 
   object_class->constructed = valent_sms_plugin_constructed;
-  object_class->dispose = valent_sms_plugin_dispose;
   plugin_class->handle_packet = valent_sms_plugin_handle_packet;
   plugin_class->update_state = valent_sms_plugin_update_state;
+
+  vobject_class->destroy = valent_sms_plugin_destroy;
 }
 
 static void

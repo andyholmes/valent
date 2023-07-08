@@ -471,6 +471,23 @@ valent_runcommand_plugin_handle_packet (ValentDevicePlugin *plugin,
 }
 
 /*
+ * ValentObject
+ */
+static void
+valent_runcommand_plugin_destroy (ValentObject *object)
+{
+  ValentRuncommandPlugin *self = VALENT_RUNCOMMAND_PLUGIN (object);
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
+  GSettings *settings;
+
+  /* Stop watching for command changes */
+  settings = valent_extension_get_settings (VALENT_EXTENSION (plugin));
+  g_clear_signal_handler (&self->commands_changed_id, settings);
+
+  VALENT_OBJECT_CLASS (valent_runcommand_plugin_parent_class)->destroy (object);
+}
+
+/*
  * GObject
  */
 static void
@@ -484,20 +501,6 @@ valent_runcommand_plugin_constructed (GObject *object)
                                    plugin);
 
   G_OBJECT_CLASS (valent_runcommand_plugin_parent_class)->constructed (object);
-}
-
-static void
-valent_runcommand_plugin_dispose (GObject *object)
-{
-  ValentRuncommandPlugin *self = VALENT_RUNCOMMAND_PLUGIN (object);
-  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
-  GSettings *settings;
-
-  /* Stop watching for command changes */
-  settings = valent_extension_get_settings (VALENT_EXTENSION (plugin));
-  g_clear_signal_handler (&self->commands_changed_id, settings);
-
-  G_OBJECT_CLASS (valent_runcommand_plugin_parent_class)->dispose (object);
 }
 
 static void
@@ -515,11 +518,13 @@ static void
 valent_runcommand_plugin_class_init (ValentRuncommandPluginClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
   object_class->constructed = valent_runcommand_plugin_constructed;
-  object_class->dispose = valent_runcommand_plugin_dispose;
   object_class->finalize = valent_runcommand_plugin_finalize;
+
+  vobject_class->destroy = valent_runcommand_plugin_destroy;
 
   plugin_class->handle_packet = valent_runcommand_plugin_handle_packet;
   plugin_class->update_state = valent_runcommand_plugin_update_state;
