@@ -11,6 +11,7 @@ plugin_lan_sources = files([
   'lan-plugin.c',
   'valent-lan-channel-service.c',
   'valent-lan-channel.c',
+  'valent-lan-dnssd.c',
   'valent-lan-utils.c',
 ])
 
