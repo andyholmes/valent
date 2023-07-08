@@ -453,10 +453,10 @@ g_async_initable_iface_init (GAsyncInitableIface *iface)
 }
 
 /*
- * GObject
+ * ValentObject
  */
 static void
-valent_bluez_channel_service_dispose (GObject *object)
+valent_bluez_channel_service_destroy (ValentObject *object)
 {
   ValentBluezChannelService *self = VALENT_BLUEZ_CHANNEL_SERVICE (object);
 
@@ -472,9 +472,12 @@ valent_bluez_channel_service_dispose (GObject *object)
       valent_bluez_profile_unregister (self->profile);
     }
 
-  G_OBJECT_CLASS (valent_bluez_channel_service_parent_class)->dispose (object);
+  VALENT_OBJECT_CLASS (valent_bluez_channel_service_parent_class)->destroy (object);
 }
 
+/*
+ * GObject
+ */
 static void
 valent_bluez_channel_service_finalize (GObject *object)
 {
@@ -495,10 +498,12 @@ static void
 valent_bluez_channel_service_class_init (ValentBluezChannelServiceClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentChannelServiceClass *service_class = VALENT_CHANNEL_SERVICE_CLASS (klass);
 
-  object_class->dispose = valent_bluez_channel_service_dispose;
   object_class->finalize = valent_bluez_channel_service_finalize;
+
+  vobject_class->destroy = valent_bluez_channel_service_destroy;
 
   service_class->identify = valent_bluez_channel_service_identify;
 }

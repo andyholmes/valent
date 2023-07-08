@@ -1205,25 +1205,10 @@ valent_share_plugin_handle_packet (ValentDevicePlugin *plugin,
 }
 
 /*
- * GObject
+ * ValentObject
  */
 static void
-valent_share_plugin_constructed (GObject *object)
-{
-  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
-
-  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
-                                   actions,
-                                   G_N_ELEMENTS (actions),
-                                   plugin);
-  valent_device_plugin_set_menu_action (plugin,
-                                        "device.share.chooser",
-                                        _("Send Files"),
-                                        "document-send-symbolic");
-}
-
-static void
-valent_share_plugin_dispose (GObject *object)
+valent_share_plugin_destroy (ValentObject *object)
 {
   ValentSharePlugin *self = VALENT_SHARE_PLUGIN (object);
   ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
@@ -1247,6 +1232,28 @@ valent_share_plugin_dispose (GObject *object)
   g_ptr_array_remove_range (self->windows, 0, self->windows->len);
 
   valent_device_plugin_set_menu_item (plugin, "device.share.chooser", NULL);
+
+  VALENT_OBJECT_CLASS (valent_share_plugin_parent_class)->destroy (object);
+}
+
+/*
+ * GObject
+ */
+static void
+valent_share_plugin_constructed (GObject *object)
+{
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
+
+  g_action_map_add_action_entries (G_ACTION_MAP (plugin),
+                                   actions,
+                                   G_N_ELEMENTS (actions),
+                                   plugin);
+  valent_device_plugin_set_menu_action (plugin,
+                                        "device.share.chooser",
+                                        _("Send Files"),
+                                        "document-send-symbolic");
+
+  G_OBJECT_CLASS (valent_share_plugin_parent_class)->constructed (object);
 }
 
 static void
@@ -1264,11 +1271,13 @@ static void
 valent_share_plugin_class_init (ValentSharePluginClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
   object_class->constructed = valent_share_plugin_constructed;
-  object_class->dispose = valent_share_plugin_dispose;
   object_class->finalize = valent_share_plugin_finalize;
+
+  vobject_class->destroy = valent_share_plugin_destroy;
 
   plugin_class->handle_packet = valent_share_plugin_handle_packet;
   plugin_class->update_state = valent_share_plugin_update_state;

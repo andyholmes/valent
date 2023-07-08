@@ -341,10 +341,10 @@ g_async_initable_iface_init (GAsyncInitableIface *iface)
 }
 
 /*
- * GObject
+ * ValentObject
  */
 static void
-valent_ebook_store_dispose (GObject *object)
+valent_ebook_store_destroy (ValentObject *object)
 {
   ValentEBookStore *self = VALENT_EBOOK_STORE (object);
 
@@ -354,9 +354,12 @@ valent_ebook_store_dispose (GObject *object)
       g_clear_object (&self->view);
     }
 
-  G_OBJECT_CLASS (valent_ebook_store_parent_class)->dispose (object);
+  VALENT_OBJECT_CLASS (valent_ebook_store_parent_class)->destroy (object);
 }
 
+/*
+ * GObject
+ */
 static void
 valent_ebook_store_finalize (GObject *object)
 {
@@ -372,10 +375,12 @@ static void
 valent_ebook_store_class_init (ValentEBookStoreClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentContactStoreClass *store_class = VALENT_CONTACT_STORE_CLASS (klass);
 
-  object_class->dispose = valent_ebook_store_dispose;
   object_class->finalize = valent_ebook_store_finalize;
+
+  vobject_class->destroy = valent_ebook_store_destroy;
 
   store_class->add_contacts = valent_ebook_store_add_contacts;
   store_class->remove_contacts = valent_ebook_store_remove_contacts;

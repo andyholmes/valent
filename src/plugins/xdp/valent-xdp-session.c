@@ -146,10 +146,10 @@ g_async_initable_iface_init (GAsyncInitableIface *iface)
 }
 
 /*
- * GObject
+ * ValentObject
  */
 static void
-valent_xdp_session_dispose (GObject *object)
+valent_xdp_session_destroy (ValentObject *object)
 {
   ValentXdpSession *self = VALENT_XDP_SESSION (object);
   XdpPortal *portal = valent_xdp_get_default ();
@@ -157,16 +157,19 @@ valent_xdp_session_dispose (GObject *object)
   g_signal_handlers_disconnect_by_data (portal, self);
   xdp_portal_session_monitor_stop (portal);
 
-  G_OBJECT_CLASS (valent_xdp_session_parent_class)->dispose (object);
+  VALENT_OBJECT_CLASS (valent_xdp_session_parent_class)->destroy (object);
 }
 
+/*
+ * GObject
+ */
 static void
 valent_xdp_session_class_init (ValentXdpSessionClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentSessionAdapterClass *session_class = VALENT_SESSION_ADAPTER_CLASS (klass);
 
-  object_class->dispose = valent_xdp_session_dispose;
+  vobject_class->destroy = valent_xdp_session_destroy;
 
   session_class->get_active = valent_xdp_session_get_active;
   session_class->get_locked = valent_xdp_session_get_locked;

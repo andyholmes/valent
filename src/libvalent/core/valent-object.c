@@ -51,6 +51,36 @@ enum {
 static guint signals[N_SIGNALS] = { 0, };
 
 
+static GQueue finalizer_queue = G_QUEUE_INIT;
+static GMutex finalizer_mutex;
+static GSource *finalizer_source;
+
+static gboolean
+valent_object_finalizer_source_check (GSource *source)
+{
+  return finalizer_queue.length > 0;
+}
+
+static gboolean
+valent_object_finalizer_source_dispatch (GSource     *source,
+                                         GSourceFunc  callback,
+                                         gpointer     user_data)
+{
+  while (finalizer_queue.length)
+    {
+      g_autoptr (GObject) object = g_queue_pop_head (&finalizer_queue);
+      g_object_run_dispose (object);
+    }
+
+  return G_SOURCE_CONTINUE;
+}
+
+static GSourceFuncs finalizer_source_funcs = {
+  .check = valent_object_finalizer_source_check,
+  .dispatch = valent_object_finalizer_source_dispatch,
+};
+
+
 static inline void
 valent_object_private_lock (ValentObjectPrivate *priv)
 {
@@ -61,31 +91,6 @@ static inline void
 valent_object_private_unlock (ValentObjectPrivate *priv)
 {
   g_rec_mutex_unlock (&priv->mutex);
-}
-
-/*
- * Valent.Object::destroy
- */
-static gboolean
-valent_object_destroy_main (ValentObject *object)
-{
-  g_assert (VALENT_IS_MAIN_THREAD ());
-  g_assert (VALENT_IS_OBJECT (object));
-
-  valent_object_destroy (object);
-
-  return G_SOURCE_REMOVE;
-}
-
-static gboolean
-valent_object_dispose_main (ValentObject *object)
-{
-  g_assert (VALENT_IS_MAIN_THREAD ());
-  g_assert (VALENT_IS_OBJECT (object));
-
-  g_object_run_dispose (G_OBJECT (object));
-
-  return G_SOURCE_REMOVE;
 }
 
 /*
@@ -151,18 +156,15 @@ valent_object_dispose (GObject *object)
 
   if (!VALENT_IS_MAIN_THREAD ())
     {
-      /* We are not on the main thread and might lose our last reference count.
-       * Pass this object to the main thread for disposal. This usually only
-       * happens when an object was temporarily created/destroyed on a thread.
-       */
-      g_idle_add_full (G_PRIORITY_LOW + 1000,
-                       (GSourceFunc)valent_object_dispose_main,
-                       g_object_ref (self),
-                       g_object_unref);
+      g_mutex_lock (&finalizer_mutex);
+      g_queue_push_tail (&finalizer_queue, g_object_ref (self));
+      g_mutex_unlock (&finalizer_mutex);
+      g_main_context_wakeup (NULL);
       return;
     }
 
   g_assert (VALENT_IS_OBJECT (object));
+  g_assert (VALENT_IS_MAIN_THREAD ());
 
   valent_object_private_lock (priv);
   if (!priv->in_destruction)
@@ -292,6 +294,12 @@ valent_object_class_init (ValentObjectClass *klass)
   g_signal_set_va_marshaller (signals [DESTROY],
                               G_TYPE_FROM_CLASS (klass),
                               g_cclosure_marshal_VOID__VOIDv);
+
+  /* Setup finalizer in main thread to receive off-thread objects */
+  finalizer_source = g_source_new (&finalizer_source_funcs, sizeof (GSource));
+  g_source_set_static_name (finalizer_source, "[valent-object-finalizer]");
+  g_source_set_priority (finalizer_source, G_MAXINT);
+  g_source_attach (finalizer_source, NULL);
 }
 
 static void
@@ -456,10 +464,9 @@ valent_object_destroy (ValentObject *object)
     }
   else
     {
-      g_idle_add_full (G_PRIORITY_LOW + 1000,
-                       (GSourceFunc)valent_object_destroy_main,
-                       g_object_ref (object),
-                       g_object_unref);
+      g_mutex_lock (&finalizer_mutex);
+      g_queue_push_tail (&finalizer_queue, g_object_ref (object));
+      g_mutex_unlock (&finalizer_mutex);
     }
 
   valent_object_private_unlock (priv);

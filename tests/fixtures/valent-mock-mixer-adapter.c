@@ -86,14 +86,14 @@ valent_mock_mixer_adapter_set_default_output (ValentMixerAdapter *adapter,
  * GObject
  */
 static void
-valent_mock_mixer_adapter_dispose (GObject *object)
+valent_mock_mixer_adapter_finalize (GObject *object)
 {
   ValentMockMixerAdapter *self = VALENT_MOCK_MIXER_ADAPTER (object);
 
   g_clear_object (&self->default_input);
   g_clear_object (&self->default_output);
 
-  G_OBJECT_CLASS (valent_mock_mixer_adapter_parent_class)->dispose (object);
+  G_OBJECT_CLASS (valent_mock_mixer_adapter_parent_class)->finalize (object);
 }
 
 static void
@@ -102,7 +102,7 @@ valent_mock_mixer_adapter_class_init (ValentMockMixerAdapterClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentMixerAdapterClass *adapter_class = VALENT_MIXER_ADAPTER_CLASS (klass);
 
-  object_class->dispose = valent_mock_mixer_adapter_dispose;
+  object_class->finalize = valent_mock_mixer_adapter_finalize;
 
   adapter_class->get_default_input = valent_mock_mixer_adapter_get_default_input;
   adapter_class->set_default_input = valent_mock_mixer_adapter_set_default_input;

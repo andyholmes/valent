@@ -104,10 +104,10 @@ valent_mock_channel_service_identify (ValentChannelService *service,
 
 
 /*
- * GObject
+ * ValentObject
  */
 static void
-valent_mock_channel_service_dispose (GObject *object)
+valent_mock_channel_service_destroy (ValentObject *object)
 {
   ValentMockChannelService *self = VALENT_MOCK_CHANNEL_SERVICE (object);
 
@@ -129,16 +129,19 @@ valent_mock_channel_service_dispose (GObject *object)
 
   g_cancellable_cancel (self->cancellable);
 
-  G_OBJECT_CLASS (valent_mock_channel_service_parent_class)->dispose (object);
+  VALENT_OBJECT_CLASS (valent_mock_channel_service_parent_class)->destroy (object);
 }
 
+/*
+ * GObject
+ */
 static void
 valent_mock_channel_service_class_init (ValentMockChannelServiceClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentChannelServiceClass *service_class = VALENT_CHANNEL_SERVICE_CLASS (klass);
 
-  object_class->dispose = valent_mock_channel_service_dispose;
+  vobject_class->destroy = valent_mock_channel_service_destroy;
 
   service_class->identify = valent_mock_channel_service_identify;
 }

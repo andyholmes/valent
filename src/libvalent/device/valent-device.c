@@ -78,7 +78,7 @@ static void       valent_device_update_plugins  (ValentDevice   *device);
 static gboolean   valent_device_supports_plugin (ValentDevice   *device,
                                                  PeasPluginInfo *info);
 
-static void   g_action_group_iface_init     (GActionGroupInterface *iface);
+static void       g_action_group_iface_init     (GActionGroupInterface *iface);
 
 G_DEFINE_FINAL_TYPE_WITH_CODE (ValentDevice, valent_device, VALENT_TYPE_OBJECT,
                                G_IMPLEMENT_INTERFACE (G_TYPE_ACTION_GROUP, g_action_group_iface_init))
@@ -776,6 +776,27 @@ unpair_action (GSimpleAction *action,
 }
 
 /*
+ * ValentObject
+ */
+static void
+valent_device_destroy (ValentObject *object)
+{
+  ValentDevice *self = VALENT_DEVICE (object);
+
+  /* State */
+  valent_device_reset_pair (self);
+  valent_device_set_channel (self, NULL);
+
+  /* Plugins */
+  g_signal_handlers_disconnect_by_data (self->engine, self);
+  g_hash_table_remove_all (self->plugins);
+  g_hash_table_remove_all (self->actions);
+  g_hash_table_remove_all (self->handlers);
+
+  VALENT_OBJECT_CLASS (valent_device_parent_class)->destroy (object);
+}
+
+/*
  * GObject
  */
 static void
@@ -819,24 +840,6 @@ valent_device_constructed (GObject *object)
                            0);
 
   G_OBJECT_CLASS (valent_device_parent_class)->constructed (object);
-}
-
-static void
-valent_device_dispose (GObject *object)
-{
-  ValentDevice *self = VALENT_DEVICE (object);
-
-  /* State */
-  valent_device_reset_pair (self);
-  valent_device_set_channel (self, NULL);
-
-  /* Plugins */
-  g_signal_handlers_disconnect_by_data (self->engine, self);
-  g_hash_table_remove_all (self->plugins);
-  g_hash_table_remove_all (self->actions);
-  g_hash_table_remove_all (self->handlers);
-
-  G_OBJECT_CLASS (valent_device_parent_class)->dispose (object);
 }
 
 static void
@@ -961,12 +964,14 @@ static void
 valent_device_class_init (ValentDeviceClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
 
   object_class->constructed = valent_device_constructed;
-  object_class->dispose = valent_device_dispose;
   object_class->finalize = valent_device_finalize;
   object_class->get_property = valent_device_get_property;
   object_class->set_property = valent_device_set_property;
+
+  vobject_class->destroy = valent_device_destroy;
 
   /**
    * ValentDevice:context: (getter get_context)

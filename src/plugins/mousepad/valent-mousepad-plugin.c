@@ -526,6 +526,24 @@ valent_mousepad_plugin_handle_packet (ValentDevicePlugin *plugin,
 }
 
 /*
+ * ValentObject
+ */
+static void
+valent_mousepad_plugin_destroy (ValentObject *object)
+{
+  ValentMousepadPlugin *self = VALENT_MOUSEPAD_PLUGIN (object);
+
+  if (self->controller != NULL)
+    {
+      valent_input_unexport_adapter (valent_input_get_default (),
+                                     VALENT_INPUT_ADAPTER (self->controller));
+      g_clear_object (&self->controller);
+    }
+
+  VALENT_OBJECT_CLASS (valent_mousepad_plugin_parent_class)->destroy (object);
+}
+
+/*
  * GObject
  */
 static void
@@ -542,28 +560,15 @@ valent_mousepad_plugin_constructed (GObject *object)
 }
 
 static void
-valent_mousepad_plugin_dispose (GObject *object)
-{
-  ValentMousepadPlugin *self = VALENT_MOUSEPAD_PLUGIN (object);
-
-  if (self->controller != NULL)
-    {
-      valent_input_unexport_adapter (valent_input_get_default (),
-                                     VALENT_INPUT_ADAPTER (self->controller));
-      g_clear_object (&self->controller);
-    }
-
-  G_OBJECT_CLASS (valent_mousepad_plugin_parent_class)->dispose (object);
-}
-
-static void
 valent_mousepad_plugin_class_init (ValentMousepadPluginClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
   object_class->constructed = valent_mousepad_plugin_constructed;
-  object_class->dispose = valent_mousepad_plugin_dispose;
+
+  vobject_class->destroy = valent_mousepad_plugin_destroy;
 
   plugin_class->handle_packet = valent_mousepad_plugin_handle_packet;
   plugin_class->update_state = valent_mousepad_plugin_update_state;

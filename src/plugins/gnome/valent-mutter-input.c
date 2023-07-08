@@ -520,20 +520,22 @@ g_async_initable_iface_init (GAsyncInitableIface *iface)
   iface->init_async = valent_mutter_input_init_async;
 }
 
-
 /*
- * GObject
+ * ValentObject
  */
 static void
-valent_mutter_input_dispose (GObject *object)
+valent_mutter_input_destroy (ValentObject *object)
 {
   ValentMutterInput *self = VALENT_MUTTER_INPUT (object);
 
   valent_mutter_input_close (self);
 
-  G_OBJECT_CLASS (valent_mutter_input_parent_class)->dispose (object);
+  VALENT_OBJECT_CLASS (valent_mutter_input_parent_class)->destroy (object);
 }
 
+/*
+ * GObject
+ */
 static void
 valent_mutter_input_finalize (GObject *object)
 {
@@ -549,10 +551,12 @@ static void
 valent_mutter_input_class_init (ValentMutterInputClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentInputAdapterClass *adapter_class = VALENT_INPUT_ADAPTER_CLASS (klass);
 
-  object_class->dispose = valent_mutter_input_dispose;
   object_class->finalize = valent_mutter_input_finalize;
+
+  vobject_class->destroy = valent_mutter_input_destroy;
 
   adapter_class->keyboard_keysym = valent_mutter_input_keyboard_keysym;
   adapter_class->pointer_axis = valent_mutter_input_pointer_axis;

@@ -256,6 +256,23 @@ valent_gdk_clipboard_write_bytes (ValentClipboardAdapter *adapter,
 }
 
 /*
+ * ValentObject
+ */
+static void
+valent_gdk_clipboard_destroy (ValentObject *object)
+{
+  ValentGdkClipboard *self = VALENT_GDK_CLIPBOARD (object);
+
+  if (self->clipboard != NULL)
+    {
+      g_signal_handlers_disconnect_by_data (self->clipboard, self);
+      self->clipboard = NULL;
+    }
+
+  VALENT_OBJECT_CLASS (valent_gdk_clipboard_parent_class)->destroy (object);
+}
+
+/*
  * GObject
  */
 static void
@@ -283,27 +300,15 @@ valent_gdk_clipboard_constructed (GObject *object)
 }
 
 static void
-valent_gdk_clipboard_dispose (GObject *object)
-{
-  ValentGdkClipboard *self = VALENT_GDK_CLIPBOARD (object);
-
-  if (self->clipboard != NULL)
-    {
-      g_signal_handlers_disconnect_by_data (self->clipboard, self);
-      self->clipboard = NULL;
-    }
-
-  G_OBJECT_CLASS (valent_gdk_clipboard_parent_class)->dispose (object);
-}
-
-static void
 valent_gdk_clipboard_class_init (ValentGdkClipboardClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentClipboardAdapterClass *clipboard_class = VALENT_CLIPBOARD_ADAPTER_CLASS (klass);
 
   object_class->constructed = valent_gdk_clipboard_constructed;
-  object_class->dispose = valent_gdk_clipboard_dispose;
+
+  vobject_class->destroy = valent_gdk_clipboard_destroy;
 
   clipboard_class->get_mimetypes = valent_gdk_clipboard_get_mimetypes;
   clipboard_class->get_timestamp = valent_gdk_clipboard_get_timestamp;

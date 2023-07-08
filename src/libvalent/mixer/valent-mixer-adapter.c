@@ -144,19 +144,22 @@ valent_mixer_adapter_real_set_default_output (ValentMixerAdapter *adapter,
 /* LCOV_EXCL_STOP */
 
 /*
- * GObject
+ * ValentObject
  */
 static void
-valent_mixer_adapter_dispose (GObject *object)
+valent_mixer_adapter_destroy (ValentObject *object)
 {
   ValentMixerAdapter *self = VALENT_MIXER_ADAPTER (object);
   ValentMixerAdapterPrivate *priv = valent_mixer_adapter_get_instance_private (self);
 
   g_clear_pointer (&priv->streams, g_ptr_array_unref);
 
-  G_OBJECT_CLASS (valent_mixer_adapter_parent_class)->dispose (object);
+  VALENT_OBJECT_CLASS (valent_mixer_adapter_parent_class)->destroy (object);
 }
 
+/*
+ * GObject
+ */
 static void
 valent_mixer_adapter_get_property (GObject    *object,
                                    guint       prop_id,
@@ -207,10 +210,12 @@ static void
 valent_mixer_adapter_class_init (ValentMixerAdapterClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
 
-  object_class->dispose = valent_mixer_adapter_dispose;
   object_class->get_property = valent_mixer_adapter_get_property;
   object_class->set_property = valent_mixer_adapter_set_property;
+
+  vobject_class->destroy = valent_mixer_adapter_destroy;
 
   klass->get_default_input = valent_mixer_adapter_real_get_default_input;
   klass->set_default_input = valent_mixer_adapter_real_set_default_input;

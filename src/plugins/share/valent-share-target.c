@@ -79,25 +79,28 @@ valent_share_target_open (ValentApplicationPlugin  *plugin,
 }
 
 /*
- * GObject
+ * ValentObject
  */
 static void
-valent_share_target_dispose (GObject *object)
+valent_share_target_destroy (ValentObject *object)
 {
   ValentShareTarget *self = VALENT_SHARE_TARGET (object);
 
   g_clear_pointer (&self->windows, g_ptr_array_unref);
 
-  G_OBJECT_CLASS (valent_share_target_parent_class)->dispose (object);
+  VALENT_OBJECT_CLASS (valent_share_target_parent_class)->destroy (object);
 }
 
+/*
+ * GObject
+ */
 static void
 valent_share_target_class_init (ValentShareTargetClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentApplicationPluginClass *plugin_class = VALENT_APPLICATION_PLUGIN_CLASS (klass);
 
-  object_class->dispose = valent_share_target_dispose;
+  vobject_class->destroy = valent_share_target_destroy;
 
   plugin_class->open = valent_share_target_open;
 }

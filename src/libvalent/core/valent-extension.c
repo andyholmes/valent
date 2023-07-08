@@ -315,10 +315,10 @@ valent_extension_set_object (ValentExtension *self,
 }
 
 /*
- * GObject
+ * ValentObject
  */
 static void
-valent_extension_dispose (GObject *object)
+valent_extension_destroy (ValentObject *object)
 {
   ValentExtension *self = VALENT_EXTENSION (object);
   ValentExtensionPrivate *priv = valent_extension_get_instance_private (self);
@@ -337,9 +337,12 @@ valent_extension_dispose (GObject *object)
 
   valent_extension_plugin_state_changed (self, VALENT_PLUGIN_STATE_INACTIVE, NULL);
 
-  G_OBJECT_CLASS (valent_extension_parent_class)->dispose (object);
+  VALENT_OBJECT_CLASS (valent_extension_parent_class)->destroy (object);
 }
 
+/*
+ * GObject
+ */
 static void
 valent_extension_finalize (GObject *object)
 {
@@ -423,11 +426,13 @@ static void
 valent_extension_class_init (ValentExtensionClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
 
-  object_class->dispose = valent_extension_dispose;
   object_class->finalize = valent_extension_finalize;
   object_class->get_property = valent_extension_get_property;
   object_class->set_property = valent_extension_set_property;
+
+  vobject_class->destroy = valent_extension_destroy;
 
   /**
    * ValentExtension:context: (getter get_context)

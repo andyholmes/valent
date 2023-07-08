@@ -297,25 +297,28 @@ g_async_initable_iface_init (GAsyncInitableIface *iface)
 }
 
 /*
- * GObject
+ * ValentObject
  */
 static void
-valent_fdo_session_dispose (GObject *object)
+valent_fdo_session_destroy (ValentObject *object)
 {
   ValentFdoSession *self = VALENT_FDO_SESSION (object);
 
   g_clear_object (&self->proxy);
 
-  G_OBJECT_CLASS (valent_fdo_session_parent_class)->dispose (object);
+  VALENT_OBJECT_CLASS (valent_fdo_session_parent_class)->destroy (object);
 }
 
+/*
+ * GObject
+ */
 static void
 valent_fdo_session_class_init (ValentFdoSessionClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentSessionAdapterClass *session_class = VALENT_SESSION_ADAPTER_CLASS (klass);
 
-  object_class->dispose = valent_fdo_session_dispose;
+  vobject_class->destroy = valent_fdo_session_destroy;
 
   session_class->get_active = valent_fdo_session_get_active;
   session_class->get_locked = valent_fdo_session_get_locked;

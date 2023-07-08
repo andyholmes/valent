@@ -397,6 +397,22 @@ valent_component_get_preferred (ValentComponent *self)
 }
 
 /*
+ * ValentObject
+ */
+static void
+valent_component_destroy (ValentObject *object)
+{
+  ValentComponent *self = VALENT_COMPONENT (object);
+  ValentComponentPrivate *priv = valent_component_get_instance_private (self);
+
+  g_signal_handlers_disconnect_by_func (priv->engine, on_load_plugin, self);
+  g_signal_handlers_disconnect_by_func (priv->engine, on_unload_plugin, self);
+  g_hash_table_remove_all (priv->plugins);
+
+  VALENT_OBJECT_CLASS (valent_component_parent_class)->destroy (object);
+}
+
+/*
  * GObject
  */
 static void
@@ -444,19 +460,6 @@ valent_component_constructed (GObject *object)
                            0);
 
   G_OBJECT_CLASS (valent_component_parent_class)->constructed (object);
-}
-
-static void
-valent_component_dispose (GObject *object)
-{
-  ValentComponent *self = VALENT_COMPONENT (object);
-  ValentComponentPrivate *priv = valent_component_get_instance_private (self);
-
-  g_signal_handlers_disconnect_by_func (priv->engine, on_load_plugin, self);
-  g_signal_handlers_disconnect_by_func (priv->engine, on_unload_plugin, self);
-  g_hash_table_remove_all (priv->plugins);
-
-  G_OBJECT_CLASS (valent_component_parent_class)->dispose (object);
 }
 
 static void
@@ -525,12 +528,14 @@ static void
 valent_component_class_init (ValentComponentClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
 
   object_class->constructed = valent_component_constructed;
-  object_class->dispose = valent_component_dispose;
   object_class->finalize = valent_component_finalize;
   object_class->get_property = valent_component_get_property;
   object_class->set_property = valent_component_set_property;
+
+  vobject_class->destroy = valent_component_destroy;
 
   klass->bind_extension = valent_component_real_bind_extension;
   klass->unbind_extension = valent_component_real_unbind_extension;

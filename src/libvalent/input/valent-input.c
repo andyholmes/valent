@@ -160,18 +160,21 @@ valent_input_bind_preferred (ValentComponent *component,
 }
 
 /*
- * GObject
+ * ValentObject
  */
 static void
-valent_input_dispose (GObject *object)
+valent_input_destroy (ValentObject *object)
 {
   ValentInput *self = VALENT_INPUT (object);
 
   g_list_store_remove_all (G_LIST_STORE (self->exports));
 
-  G_OBJECT_CLASS (valent_input_parent_class)->dispose (object);
+  VALENT_OBJECT_CLASS (valent_input_parent_class)->destroy (object);
 }
 
+/*
+ * GObject
+ */
 static void
 valent_input_finalize (GObject *object)
 {
@@ -188,10 +191,12 @@ static void
 valent_input_class_init (ValentInputClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentComponentClass *component_class = VALENT_COMPONENT_CLASS (klass);
 
-  object_class->dispose = valent_input_dispose;
   object_class->finalize = valent_input_finalize;
+
+  vobject_class->destroy = valent_input_destroy;
 
   component_class->bind_preferred = valent_input_bind_preferred;
 }

@@ -496,10 +496,10 @@ valent_mousepad_device_pointer_release (ValentInputRemote *self)
 #endif
 
 /*
- * GObject
+ * ValentObject
  */
 static void
-valent_mousepad_device_dispose (GObject *object)
+valent_mousepad_device_destroy (ValentObject *object)
 {
   ValentMousepadDevice *self = VALENT_MOUSEPAD_DEVICE (object);
 
@@ -512,9 +512,12 @@ valent_mousepad_device_dispose (GObject *object)
   valent_mousepad_device_keyboard_reset (self);
   valent_mousepad_device_pointer_reset (self);
 
-  G_OBJECT_CLASS (valent_mousepad_device_parent_class)->dispose (object);
+  VALENT_OBJECT_CLASS (valent_mousepad_device_parent_class)->destroy (object);
 }
 
+/*
+ * GObject
+ */
 static void
 valent_mousepad_device_finalize (GObject *object)
 {
@@ -568,12 +571,13 @@ static void
 valent_mousepad_device_class_init (ValentMousepadDeviceClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentInputAdapterClass *input_class = VALENT_INPUT_ADAPTER_CLASS (klass);
-
-  object_class->dispose = valent_mousepad_device_dispose;
   object_class->finalize = valent_mousepad_device_finalize;
   object_class->get_property = valent_mousepad_device_get_property;
   object_class->set_property = valent_mousepad_device_set_property;
+
+  vobject_class->destroy = valent_mousepad_device_destroy;
 
   input_class->keyboard_keysym = valent_mousepad_device_keyboard_keysym;
   input_class->pointer_axis = valent_mousepad_device_pointer_axis;

@@ -863,6 +863,24 @@ valent_sms_store_close (ValentSmsStore *self)
   g_async_queue_push (self->queue, closure);
 }
 
+/*
+ * ValentObject
+ */
+static void
+valent_sms_store_destroy (ValentObject *object)
+{
+  ValentSmsStore *self = VALENT_SMS_STORE (object);
+
+  /* We will drop our reference to queue once we queue the closing task, then
+   * the task itself will end up holding the last reference. */
+  if (self->queue != NULL)
+    {
+      valent_sms_store_close (self);
+      g_clear_pointer (&self->queue, g_async_queue_unref);
+    }
+
+  VALENT_OBJECT_CLASS (valent_sms_store_parent_class)->destroy (object);
+}
 
 /*
  * GObject
@@ -876,22 +894,6 @@ valent_sms_store_constructed (GObject *object)
   G_OBJECT_CLASS (valent_sms_store_parent_class)->constructed (object);
 
   valent_sms_store_open (self);
-}
-
-static void
-valent_sms_store_dispose (GObject *object)
-{
-  ValentSmsStore *self = VALENT_SMS_STORE (object);
-
-  /* We will drop our reference to queue once we queue the closing task, then
-   * the task itself will end up holding the last reference. */
-  if (self->queue != NULL)
-    {
-      valent_sms_store_close (self);
-      g_clear_pointer (&self->queue, g_async_queue_unref);
-    }
-
-  G_OBJECT_CLASS (valent_sms_store_parent_class)->dispose (object);
 }
 
 static void
@@ -910,10 +912,12 @@ static void
 valent_sms_store_class_init (ValentSmsStoreClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
 
   object_class->constructed = valent_sms_store_constructed;
-  object_class->dispose = valent_sms_store_dispose;
   object_class->finalize = valent_sms_store_finalize;
+
+  vobject_class->destroy = valent_sms_store_destroy;
 
   /**
    * ValentSmsStore::message-added:

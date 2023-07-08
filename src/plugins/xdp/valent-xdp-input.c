@@ -323,10 +323,10 @@ valent_xdp_input_pointer_motion (ValentInputAdapter *adapter,
 
 
 /*
- * GObject
+ * ValentObject
  */
 static void
-valent_xdp_input_dispose (GObject *object)
+valent_xdp_input_destroy (ValentObject *object)
 {
   ValentXdpInput *self = VALENT_XDP_INPUT (object);
 
@@ -335,9 +335,12 @@ valent_xdp_input_dispose (GObject *object)
   if (self->session != NULL)
     xdp_session_close (self->session);
 
-  G_OBJECT_CLASS (valent_xdp_input_parent_class)->dispose (object);
+  VALENT_OBJECT_CLASS (valent_xdp_input_parent_class)->destroy (object);
 }
 
+/*
+ * GObject
+ */
 static void
 valent_xdp_input_finalize (GObject *object)
 {
@@ -354,10 +357,12 @@ static void
 valent_xdp_input_class_init (ValentXdpInputClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentInputAdapterClass *adapter_class = VALENT_INPUT_ADAPTER_CLASS (klass);
 
-  object_class->dispose = valent_xdp_input_dispose;
   object_class->finalize = valent_xdp_input_finalize;
+
+  vobject_class->destroy = valent_xdp_input_destroy;
 
   adapter_class->keyboard_keysym = valent_xdp_input_keyboard_keysym;
   adapter_class->pointer_axis = valent_xdp_input_pointer_axis;

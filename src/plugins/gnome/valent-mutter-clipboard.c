@@ -794,6 +794,22 @@ on_name_vanished (GDBusConnection       *connection,
                                          NULL);
 }
 
+/*
+ * ValentObject
+ */
+static void
+valent_mutter_clipboard_destroy (ValentObject *object)
+{
+  ValentMutterClipboard *self = VALENT_MUTTER_CLIPBOARD (object);
+
+  g_clear_handle_id (&self->watcher_id, g_bus_unwatch_name);
+  on_name_vanished (self->connection, REMOTE_DESKTOP_NAME, self);
+
+  g_clear_pointer (&self->content, g_bytes_unref);
+  g_clear_pointer (&self->mimetypes, g_variant_unref);
+
+  VALENT_OBJECT_CLASS (valent_mutter_clipboard_parent_class)->destroy (object);
+}
 
 /*
  * GObject
@@ -817,28 +833,17 @@ valent_mutter_clipboard_constructed (GObject *object)
 
   G_OBJECT_CLASS (valent_mutter_clipboard_parent_class)->constructed (object);
 }
-static void
-valent_mutter_clipboard_dispose (GObject *object)
-{
-  ValentMutterClipboard *self = VALENT_MUTTER_CLIPBOARD (object);
-
-  g_clear_handle_id (&self->watcher_id, g_bus_unwatch_name);
-  on_name_vanished (self->connection, REMOTE_DESKTOP_NAME, self);
-
-  g_clear_pointer (&self->content, g_bytes_unref);
-  g_clear_pointer (&self->mimetypes, g_variant_unref);
-
-  G_OBJECT_CLASS (valent_mutter_clipboard_parent_class)->dispose (object);
-}
 
 static void
 valent_mutter_clipboard_class_init (ValentMutterClipboardClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentClipboardAdapterClass *clipboard_class = VALENT_CLIPBOARD_ADAPTER_CLASS (klass);
 
   object_class->constructed = valent_mutter_clipboard_constructed;
-  object_class->dispose = valent_mutter_clipboard_dispose;
+
+  vobject_class->destroy = valent_mutter_clipboard_destroy;
 
   clipboard_class->get_mimetypes = valent_mutter_clipboard_get_mimetypes;
   clipboard_class->get_timestamp = valent_mutter_clipboard_get_timestamp;

@@ -185,19 +185,22 @@ g_async_initable_iface_init (GAsyncInitableIface *iface)
 }
 
 /*
- * GObject
+ * ValentObject
  */
 static void
-valent_ebook_adapter_dispose (GObject *object)
+valent_ebook_adapter_destroy (ValentObject *object)
 {
   ValentEBookAdapter *self = VALENT_EBOOK_ADAPTER (object);
 
   g_clear_object (&self->registry);
   g_hash_table_remove_all (self->stores);
 
-  G_OBJECT_CLASS (valent_ebook_adapter_parent_class)->dispose (object);
+  VALENT_OBJECT_CLASS (valent_ebook_adapter_parent_class)->destroy (object);
 }
 
+/*
+ * GObject
+ */
 static void
 valent_ebook_adapter_finalize (GObject *object)
 {
@@ -212,9 +215,11 @@ static void
 valent_ebook_adapter_class_init (ValentEBookAdapterClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
 
-  object_class->dispose = valent_ebook_adapter_dispose;
   object_class->finalize = valent_ebook_adapter_finalize;
+
+  vobject_class->destroy = valent_ebook_adapter_destroy;
 }
 
 static void
