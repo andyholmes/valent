@@ -12,7 +12,6 @@ G_BEGIN_DECLS
 // libvalent-core
 #include "core/valent-application.h"
 #include "core/valent-application-plugin.h"
-#include "core/valent-certificate.h"
 #include "core/valent-component.h"
 #include "core/valent-context.h"
 #include "core/valent-core-enums.h"
@@ -55,6 +54,7 @@ G_BEGIN_DECLS
 #include "session/valent-session-adapter.h"
 
 // libvalent-device
+#include "device/valent-certificate.h"
 #include "device/valent-channel.h"
 #include "device/valent-channel-service.h"
 #include "device/valent-device.h"

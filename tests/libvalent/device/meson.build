@@ -7,6 +7,7 @@ libvalent_device_test_deps = [
 ]
 
 libvalent_device_tests = [
+  'test-certificate',
   'test-channel-service',
   'test-device',
   'test-device-manager',
