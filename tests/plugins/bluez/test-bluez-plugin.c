@@ -46,7 +46,6 @@ bluez_service_fixture_set_up (BluezBackendFixture *fixture,
 
   plugin_info = peas_engine_get_plugin_info (valent_get_plugin_engine (), "bluez");
   fixture->service = g_object_new (VALENT_TYPE_BLUEZ_CHANNEL_SERVICE,
-                                   "id",          "test-device",
                                    "plugin-info", plugin_info,
                                    NULL);
 

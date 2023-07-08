@@ -45,7 +45,6 @@ G_DEFINE_FINAL_TYPE_WITH_CODE (ValentLanChannelService, valent_lan_channel_servi
 enum {
   PROP_0,
   PROP_BROADCAST_ADDRESS,
-  PROP_CERTIFICATE,
   PROP_PORT,
   N_PROPERTIES
 };
@@ -179,7 +178,7 @@ on_incoming_connection (ValentChannelService   *service,
   g_autoptr (GSocketAddress) s_addr = NULL;
   GInetAddress *i_addr = NULL;
   g_autofree char *host = NULL;
-  uint16_t port = VALENT_LAN_PROTOCOL_PORT;
+  int64_t port = VALENT_LAN_PROTOCOL_PORT;
   g_autoptr (JsonNode) identity = NULL;
   g_autoptr (JsonNode) peer_identity = NULL;
   const char *device_id;
@@ -235,11 +234,7 @@ on_incoming_connection (ValentChannelService   *service,
   VALENT_JSON (peer_identity, host);
 
   /* NOTE: We're the client when accepting incoming connections */
-  valent_object_lock (VALENT_OBJECT (self));
-  certificate = g_object_ref (self->certificate);
-  port = self->port;
-  valent_object_unlock (VALENT_OBJECT (self));
-
+  certificate = valent_channel_service_ref_certificate (service);
   tls_stream = valent_lan_encrypt_client_connection (connection,
                                                      certificate,
                                                      timeout,
@@ -266,13 +261,14 @@ on_incoming_connection (ValentChannelService   *service,
   s_addr = g_socket_connection_get_remote_address (connection, NULL);
   i_addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (s_addr));
   host = g_inet_address_to_string (i_addr);
+  valent_packet_get_int (peer_identity, "tcpPort", &port);
 
   /* Create the new channel */
   identity = valent_channel_service_ref_identity (service);
   channel = g_object_new (VALENT_TYPE_LAN_CHANNEL,
                           "base-stream",   tls_stream,
                           "host",          host,
-                          "port",          port,
+                          "port",          (uint16_t)port,
                           "identity",      identity,
                           "peer-identity", peer_identity,
                           NULL);
@@ -430,10 +426,7 @@ incoming_broadcast_task (GTask        *task,
     }
 
   /* NOTE: We're the server when opening outgoing connections */
-  valent_object_lock (VALENT_OBJECT (self));
-  certificate = g_object_ref (self->certificate);
-  valent_object_unlock (VALENT_OBJECT (self));
-
+  certificate = valent_channel_service_ref_certificate (service);
   tls_stream = valent_lan_encrypt_server_connection (connection,
                                                      certificate,
                                                      cancellable,
@@ -928,22 +921,6 @@ valent_lan_channel_service_init_task (GTask        *task,
   g_task_return_boolean (task, TRUE);
 }
 
-static void
-valent_certificate_new_cb (GObject      *object,
-                           GAsyncResult *result,
-                           gpointer      user_data)
-{
-  g_autoptr (GTask) task = G_TASK (user_data);
-  ValentLanChannelService *self = g_task_get_source_object (task);
-  GError *error = NULL;
-
-  valent_object_lock (VALENT_OBJECT (self));
-  self->certificate = valent_certificate_new_finish (result, &error);
-  valent_object_unlock (VALENT_OBJECT (self));
-
-  g_task_run_in_thread (task, valent_lan_channel_service_init_task);
-}
-
 /*
  * GAsyncInitable
  */
@@ -957,9 +934,6 @@ valent_lan_channel_service_init_async (GAsyncInitable      *initable,
   ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (initable);
   g_autoptr (GTask) task = NULL;
   g_autoptr (GCancellable) destroy = NULL;
-  g_autoptr (GFile) config_dir = NULL;
-  g_autoptr (ValentContext) context = NULL;
-  ValentContext *root_context = NULL;
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (initable));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
@@ -977,16 +951,7 @@ valent_lan_channel_service_init_async (GAsyncInitable      *initable,
   task = g_task_new (initable, destroy, callback, user_data);
   g_task_set_priority (task, io_priority);
   g_task_set_source_tag (task, valent_lan_channel_service_init_async);
-
-  // TODO: the certificate is in the root context
-  g_object_get (initable, "context", &context, NULL);
-  root_context = valent_context_get_root (context);
-  config_dir = valent_context_get_config_file (root_context, ".");
-
-  valent_certificate_new (g_file_peek_path (config_dir),
-                          destroy,
-                          valent_certificate_new_cb,
-                          g_steal_pointer (&task));
+  g_task_run_in_thread (task, valent_lan_channel_service_init_task);
 }
 
 static void
@@ -1031,7 +996,6 @@ valent_lan_channel_service_finalize (GObject *object)
 {
   ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (object);
 
-  g_clear_object (&self->certificate);
   g_clear_pointer (&self->broadcast_address, g_free);
   g_clear_pointer (&self->channels, g_hash_table_unref);
 
@@ -1050,10 +1014,6 @@ valent_lan_channel_service_get_property (GObject    *object,
     {
     case PROP_BROADCAST_ADDRESS:
       g_value_set_string (value, self->broadcast_address);
-      break;
-
-    case PROP_CERTIFICATE:
-      g_value_set_object (value, self->certificate);
       break;
 
     case PROP_PORT:
@@ -1117,18 +1077,6 @@ valent_lan_channel_service_class_init (ValentLanChannelServiceClass *klass)
                          VALENT_LAN_PROTOCOL_ADDR,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentLanChannelService:certificate:
-   *
-   * The TLS certificate the service uses to authenticate with other devices.
-   */
-  properties [PROP_CERTIFICATE] =
-    g_param_spec_object ("certificate", NULL, NULL,
-                         G_TYPE_TLS_CERTIFICATE,
-                         (G_PARAM_READABLE |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
