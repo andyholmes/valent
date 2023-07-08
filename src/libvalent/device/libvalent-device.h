@@ -5,6 +5,7 @@
 
 G_BEGIN_DECLS
 
+#include "valent-certificate.h"
 #include "valent-channel.h"
 #include "valent-channel-service.h"
 #include "valent-device.h"

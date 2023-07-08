@@ -9,6 +9,7 @@ libvalent_device_generated_sources = []
 
 # Headers
 libvalent_device_public_headers = [
+  'valent-certificate.h',
   'valent-channel.h',
   'valent-channel-service.h',
   'valent-device.h',
@@ -35,6 +36,7 @@ install_headers(libvalent_device_public_headers,
 # Sources
 libvalent_device_public_sources = [
   'libvalent-device.c',
+  'valent-certificate.c',
   'valent-channel.c',
   'valent-channel-service.c',
   'valent-device.c',

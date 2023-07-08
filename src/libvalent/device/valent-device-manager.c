@@ -9,6 +9,7 @@
 #include <libvalent-core.h>
 
 #include "../core/valent-component-private.h"
+#include "valent-certificate.h"
 #include "valent-channel.h"
 #include "valent-channel-service.h"
 #include "valent-device.h"

@@ -9,7 +9,6 @@ libvalent_core_test_deps = [
 libvalent_core_tests = [
   'test-application',
   'test-application-plugin',
-  'test-certificate',
   'test-context',
   'test-object',
   'test-utils',
