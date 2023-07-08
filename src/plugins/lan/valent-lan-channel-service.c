@@ -11,6 +11,7 @@
 
 #include "valent-lan-channel.h"
 #include "valent-lan-channel-service.h"
+#include "valent-lan-dnssd.h"
 #include "valent-lan-utils.h"
 
 #define IDENTITY_BUFFER_MAX  (8192)
@@ -30,6 +31,7 @@ struct _ValentLanChannelService
   uint16_t              port;
   uint16_t              tcp_port;
   char                 *broadcast_address;
+  GListModel           *dnssd;
   GSocketService       *listener;
   GMainLoop            *udp_context;
   GSocket              *udp_socket4;
@@ -662,6 +664,38 @@ valent_lan_channel_service_socket_worker (gpointer data)
   return NULL;
 }
 
+static void
+on_items_changed (GListModel              *list,
+                  unsigned int             position,
+                  unsigned int             removed,
+                  unsigned int             added,
+                  ValentLanChannelService *self)
+{
+  g_autofree char *service_id = NULL;
+
+  if (added == 0)
+    return;
+
+  service_id = valent_channel_service_dup_id (VALENT_CHANNEL_SERVICE (self));
+
+  for (unsigned int i = 0; i < added; i++)
+    {
+      g_autoptr (GSocketAddress) address = NULL;
+      const char *device_id = NULL;
+
+      address = g_list_model_get_item (list, position + i);
+      device_id = _g_socket_address_get_dnssd_name (address);
+
+      if (g_strcmp0 (service_id, device_id) == 0)
+        continue;
+
+      valent_object_lock (VALENT_OBJECT (self));
+      if (!g_hash_table_contains (self->channels, device_id))
+        valent_lan_channel_service_socket_queue (self, address);
+      valent_object_unlock (VALENT_OBJECT (self));
+    }
+}
+
 /**
  * valent_lan_channel_service_udp_setup:
  * @self: a #ValentLanChannelService
@@ -683,6 +717,7 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
   g_autoptr (GThread) thread = NULL;
   g_autoptr (GSocket) socket4 = NULL;
   g_autoptr (GSocket) socket6 = NULL;
+  g_autoptr (GListModel) services = NULL;
   g_autoptr (GCancellable) destroy = NULL;
   uint16_t port = VALENT_LAN_PROTOCOL_PORT;
 
@@ -718,9 +753,9 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
 
       g_socket_set_broadcast (socket6, TRUE);
 
-      /* If this socket also speaks IPv4 then we are done. */
+      /* If this socket also speaks IPv4, move on to DNS-SD */
       if (g_socket_speaks_ipv4 (socket6))
-        VALENT_GOTO (check);
+        VALENT_GOTO (dnssd);
     }
 
 ipv4:
@@ -752,10 +787,39 @@ check:
   else
     VALENT_RETURN (FALSE);
 
-  /* Create a main context for UDP broadcasts */
-  destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
+dnssd:
+  services = valent_lan_dnssd_new (NULL);
+  g_object_bind_property (self,     "identity",
+                          services, "identity",
+                          G_BINDING_SYNC_CREATE);
+  g_signal_connect_object (services,
+                           "items-changed",
+                           G_CALLBACK (on_items_changed),
+                           self, 0);
+
+  /* Create a thread-context for UDP broadcasts, and the DNS-SD service */
   context = g_main_context_new ();
   loop = g_main_loop_new (context, FALSE);
+  thread = g_thread_try_new ("valent-lan-channel-service",
+                             valent_lan_channel_service_socket_worker,
+                             g_main_loop_ref (loop),
+                             error);
+
+  if (thread == NULL)
+    {
+      g_main_loop_unref (loop);
+      VALENT_RETURN (FALSE);
+    }
+
+  /* Set the thread-context variables before attaching to the context */
+  valent_object_lock (VALENT_OBJECT (self));
+  self->dnssd = g_object_ref (services);
+  self->udp_context = g_main_loop_ref (loop);
+  self->udp_socket4 = socket4 ? g_object_ref (socket4) : NULL;
+  self->udp_socket6 = socket6 ? g_object_ref (socket6) : NULL;
+  valent_object_unlock (VALENT_OBJECT (self));
+
+  destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
 
   if (socket6 != NULL)
     {
@@ -781,23 +845,7 @@ check:
       g_source_attach (source, context);
     }
 
-  /* Set the thread-context variables, then create a thread for the context */
-  valent_object_lock (VALENT_OBJECT (self));
-  self->udp_context = g_main_loop_ref (loop);
-  self->udp_socket4 = g_steal_pointer (&socket4);
-  self->udp_socket6 = g_steal_pointer (&socket6);
-  valent_object_unlock (VALENT_OBJECT (self));
-
-  thread = g_thread_try_new ("valent-lan-channel-service",
-                             valent_lan_channel_service_socket_worker,
-                             g_main_loop_ref (loop),
-                             error);
-
-  if (thread == NULL)
-    {
-      g_main_loop_unref (loop);
-      VALENT_RETURN (FALSE);
-    }
+  valent_lan_dnssd_attach (VALENT_LAN_DNSSD (services), context);
 
   VALENT_RETURN (TRUE);
 }
@@ -917,7 +965,6 @@ valent_lan_channel_service_init_task (GTask        *task,
       !valent_lan_channel_service_udp_setup (self, cancellable, &error))
     return g_task_return_error (task, g_steal_pointer (&error));
 
-
   g_task_return_boolean (task, TRUE);
 }
 
@@ -972,6 +1019,12 @@ valent_lan_channel_service_destroy (ValentObject *object)
 
   if (self->udp_context != NULL)
     {
+      if (self->dnssd != NULL)
+        {
+          g_signal_handlers_disconnect_by_data (self->dnssd, self);
+          g_clear_object (&self->dnssd);
+        }
+
       g_clear_object (&self->udp_socket4);
       g_clear_object (&self->udp_socket6);
       g_main_loop_quit (self->udp_context);

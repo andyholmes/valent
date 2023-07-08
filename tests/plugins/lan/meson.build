@@ -1,17 +1,28 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
+mock_avahi = find_program('mock_avahi.py')
+installed_tests_wrappers += [mock_avahi]
+install_data(['avahi.py'],
+  install_dir: installed_tests_execdir,
+)
+
 # Dependencies
 plugin_lan_test_deps = [
   libvalent_test_dep,
   plugin_lan_deps,
 ]
 
-plugin_lan_tests = [
-  'test-lan-plugin',
-]
+plugin_lan_tests = {
+  'test-lan-plugin': mock_avahi,
+  'test-lan-dnssd': mock_avahi,
+}
 
-foreach test : plugin_lan_tests
+foreach test, test_wrapper : plugin_lan_tests
+  plugin_lan_tests_env = tests_env + [
+    'G_TEST_EXE=@0@'.format(join_paths(meson.current_build_dir(), test)),
+  ]
+
   test_program = executable(test, '@0@.c'.format(test),
                  c_args: test_c_args,
            dependencies: plugin_lan_test_deps,
@@ -23,9 +34,8 @@ foreach test : plugin_lan_tests
          export_dynamic: true,
   )
 
-  test(test, test_program,
-           args: ['--tap'],
-            env: tests_env,
+  test(test, test_wrapper,
+            env: plugin_lan_tests_env,
     is_parallel: false,
        protocol: 'tap',
           suite: ['plugins', 'lan'],
@@ -33,6 +43,7 @@ foreach test : plugin_lan_tests
 
   installed_tests_plan += [{
     'program': test_program,
+    'wrapper': test_wrapper,
   }]
 endforeach
 

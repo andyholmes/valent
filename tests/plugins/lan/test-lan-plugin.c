@@ -75,6 +75,7 @@ static void
 lan_service_fixture_set_up (LanBackendFixture *fixture,
                             gconstpointer      user_data)
 {
+  g_autofree char *device_id = NULL;
   g_autoptr (ValentContext) context = NULL;
   PeasPluginInfo *plugin_info;
   g_autofree char *path = NULL;
@@ -83,7 +84,8 @@ lan_service_fixture_set_up (LanBackendFixture *fixture,
 
   fixture->loop = g_main_loop_new (NULL, FALSE);
 
-  context = valent_context_new (NULL, "network", "test-device");
+  device_id = g_uuid_string_random ();
+  context = valent_context_new (NULL, "network", device_id);
   plugin_info = peas_engine_get_plugin_info (valent_get_plugin_engine (), "lan");
   fixture->service = g_object_new (VALENT_TYPE_LAN_CHANNEL_SERVICE,
                                    "context",           context,
