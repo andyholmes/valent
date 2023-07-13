@@ -30,6 +30,7 @@ plugins = [
   'mpris',
   'notification',
   'ping',
+  'pipewire',
   'presenter',
   'pulseaudio',
   'runcommand',
