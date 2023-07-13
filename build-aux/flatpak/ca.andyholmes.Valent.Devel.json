@@ -11,6 +11,7 @@
         "--env=PULSE_PROP_media.category=Manager",
         "--filesystem=xdg-download",
         "--filesystem=xdg-run/gvfsd",
+        "--filesystem=xdg-run/pipewire-0:ro",
         "--own-name=org.mpris.MediaPlayer2.Valent",
         "--share=ipc",
         "--share=network",
