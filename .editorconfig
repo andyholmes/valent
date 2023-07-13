@@ -14,10 +14,6 @@ indent_size = 2
 indent_style = space
 max_line_length = 80
 
-[*.{css, yml}]
-indent_size = 2
-indent_style = space
-
 [*.{js,py}]
 indent_size = 4
 indent_style = space
@@ -27,10 +23,10 @@ max_line_length = 80
 indent_size = 4
 indent_style = space
 
-[*.{css,ui,xml,xml.in,yml}]
+[*.{css,toml,ui,xml,xml.in,yml}]
 indent_size = 2
 indent_style = space
 
-[meson.build]
+[meson.build,meson_options.txt]
 indent_size = 2
 indent_style = space
