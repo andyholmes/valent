@@ -158,6 +158,12 @@ option('plugin_ping',
         value: true,
 )
 
+option('plugin_pipewire',
+  description: 'Enable Pipewire plugin',
+         type: 'boolean',
+        value: true,
+)
+
 option('plugin_presenter',
   description: 'Enable Presenter plugin',
          type: 'boolean',

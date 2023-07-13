@@ -22,6 +22,9 @@ leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:872
 # src/plugins/battery/
 memleak:src/plugins/battery/valent-battery-gadget.c
 
+# src/plugins/pipewire/
+memleak:src/plugins/pipewire/valent-pipewire-mixer.c:696
+
 # src/plugins/sms/
 memleak:src/plugins/sms/valent-sms-store.c:814
 memleak:src/plugins/sms/valent-sms-store.c:864

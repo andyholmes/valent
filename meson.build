@@ -93,6 +93,8 @@ project_c_args = [
   '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_76',
   '-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_76',
   '-DGDK_VERSION_MIN_REQUIRED=GDK_VERSION_4_10',
+
+  '-Wno-error=analyzer-va-arg-type-mismatch',
 ]
 project_link_args = [
   '-Wl,-z,relro',

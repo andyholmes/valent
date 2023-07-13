@@ -51,6 +51,7 @@ src/plugins/notification/valent-notification-dialog.ui
 src/plugins/notification/valent-notification-preferences.ui
 src/plugins/ping/ping.plugin.desktop.in
 src/plugins/ping/valent-ping-plugin.c
+src/plugins/pipewire/pipewire.plugin.desktop.in
 src/plugins/presenter/presenter.plugin.desktop.in
 src/plugins/presenter/valent-presenter-plugin.c
 src/plugins/presenter/valent-presenter-remote.c

@@ -9,6 +9,7 @@
         "--env=PULSE_PROP_media.category=Manager",
         "--filesystem=xdg-download",
         "--filesystem=xdg-run/gvfsd",
+        "--filesystem=xdg-run/pipewire-0:ro",
         "--own-name=org.mpris.MediaPlayer2.Valent",
         "--share=ipc",
         "--share=network",
@@ -195,6 +196,33 @@
                     "x-checker-data" : {
                         "type" : "anitya",
                         "project-id" : 230124,
+                        "stable-only" : true,
+                        "tag-template" : "$version"
+                    }
+                }
+            ]
+        },
+        {
+            "name" : "pipewire",
+            "buildsystem" : "meson",
+            "builddir" : true,
+            "config-opts" : [
+                "-Dgstreamer=disabled",
+                "-Dman=disabled",
+                "-Dsystemd=disabled",
+                "-Dudev=disabled",
+                "-Dudevrulesdir=disabled",
+                "-Dsession-managers=[]"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.freedesktop.org/pipewire/pipewire.git",
+                    "commit" : "9f7d60c1e84cc0481afc3f6ccf76e127567943a8",
+                    "tag" : "0.3.70",
+                    "x-checker-data" : {
+                        "type" : "anitya",
+                        "project-id" : 57357,
                         "stable-only" : true,
                         "tag-template" : "$version"
                     }

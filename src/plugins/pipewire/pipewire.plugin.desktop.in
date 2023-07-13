@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
+
+[Plugin]
+Module=pipewire
+Name=PipeWire
+Description=Integration with PipeWire
+Icon=valent-pipewire-plugin-symbolic
+Builtin=true
+Embedded=valent_pipewire_plugin_register_types
+Website=https://github.com/andyholmes/valent
+Help=https://github.com/andyholmes/valent
+Hidden=false
+X-MixerAdapterPriority=50
+
