@@ -33,43 +33,35 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 /*
  * ca.andyholmes.Valent.Device Interface
  */
-static const GDBusPropertyInfo iface_property_icon_name = {
-  -1,
-  "IconName",
-  "s",
-  G_DBUS_PROPERTY_INFO_FLAGS_READABLE,
-  NULL
-};
-
-static const GDBusPropertyInfo iface_property_id = {
-  -1,
-  "Id",
-  "s",
-  G_DBUS_PROPERTY_INFO_FLAGS_READABLE,
-  NULL
-};
-
-static const GDBusPropertyInfo iface_property_name = {
-  -1,
-  "Name",
-  "s",
-  G_DBUS_PROPERTY_INFO_FLAGS_READABLE,
-  NULL
-};
-
-static const GDBusPropertyInfo iface_property_state = {
-  -1,
-  "State",
-  "u",
-  G_DBUS_PROPERTY_INFO_FLAGS_READABLE,
-  NULL
-};
-
 static const GDBusPropertyInfo * const iface_properties[] = {
-  &iface_property_icon_name,
-  &iface_property_id,
-  &iface_property_name,
-  &iface_property_state,
+  &((const GDBusPropertyInfo){
+    -1,
+    "IconName",
+    "s",
+    G_DBUS_PROPERTY_INFO_FLAGS_READABLE,
+    NULL
+  }),
+  &((const GDBusPropertyInfo){
+    -1,
+    "Id",
+    "s",
+    G_DBUS_PROPERTY_INFO_FLAGS_READABLE,
+    NULL
+  }),
+  &((const GDBusPropertyInfo){
+    -1,
+    "Name",
+    "s",
+    G_DBUS_PROPERTY_INFO_FLAGS_READABLE,
+    NULL
+  }),
+  &((const GDBusPropertyInfo){
+    -1,
+    "State",
+    "u",
+    G_DBUS_PROPERTY_INFO_FLAGS_READABLE,
+    NULL
+  }),
   NULL,
 };
 
@@ -86,53 +78,6 @@ static const GDBusInterfaceInfo iface_info = {
 /*
  * Helper Functions
  */
-typedef struct
-{
-  const char              *name;
-  GType                    type;
-  const GDBusPropertyInfo *info;
-} PropertyMapping;
-
-static PropertyMapping property_map[] = {
-    { "state",     G_TYPE_UINT,    &iface_property_state },
-    { "name",      G_TYPE_STRING,  &iface_property_name },
-    { "icon-name", G_TYPE_STRING,  &iface_property_icon_name },
-    { "id",        G_TYPE_STRING,  &iface_property_id },
-};
-
-static inline GVariant *
-valent_device_impl_get_variant (ValentDeviceImpl *impl,
-                                const char       *name,
-                                GType             type)
-{
-  GValue value = G_VALUE_INIT;
-  GVariant *variant = NULL;
-
-  g_assert (VALENT_IS_DEVICE_IMPL (impl));
-  g_assert (name != NULL);
-
-  g_value_init (&value, type);
-  g_object_get_property (G_OBJECT (impl->device), name, &value);
-
-  switch (type)
-    {
-    case G_TYPE_UINT:
-      variant = g_variant_new_uint32 (g_value_get_uint (&value));
-      break;
-
-    case G_TYPE_STRING:
-      variant = g_variant_new_string (g_value_get_string (&value));
-      break;
-
-    default:
-      g_assert_not_reached ();
-    }
-
-  g_value_unset (&value);
-
-  return g_variant_ref_sink (variant);
-}
-
 static gboolean
 flush_idle (gpointer data)
 {
@@ -146,36 +91,40 @@ on_property_changed (GObject          *object,
                      GParamSpec       *pspec,
                      ValentDeviceImpl *self)
 {
-  g_autoptr (GVariant) value = NULL;
-  PropertyMapping *mapping = NULL;
+  GVariant *value = NULL;
   const char *name;
+
+  g_assert (VALENT_IS_DEVICE_IMPL (self));
 
   /* Retrieve the property */
   name = g_param_spec_get_name (pspec);
 
-  for (unsigned int i = 0; i < G_N_ELEMENTS (property_map); i++)
+  if (g_str_equal (name, "state"))
     {
-      mapping = &property_map[i];
-
-      if (g_str_equal (name, mapping->name))
-        break;
-
-      mapping = NULL;
+      name = "State";
+      value = g_variant_new_uint32 (valent_device_get_state (self->device));
+    }
+  else if (g_str_equal (name, "name"))
+    {
+      name = "Name";
+      value = g_variant_new_string (valent_device_get_name (self->device));
+    }
+  else if (g_str_equal (name, "icon-name"))
+    {
+      name = "IconName";
+      value = g_variant_new_string (valent_device_get_icon_name (self->device));
+    }
+  else if (g_str_equal (name, "id"))
+    {
+      name = "Id";
+      value = g_variant_new_string (valent_device_get_id (self->device));
     }
 
-  if (mapping == NULL)
-    return;
-
-  /* Update the cached value */
-  value = valent_device_impl_get_variant (self, mapping->name, mapping->type);
-
   g_hash_table_replace (self->cache,
-                        g_strdup (mapping->info->name),
+                        g_strdup (name),
                         g_variant_ref_sink (value));
-
-  /* Queue the change */
   g_hash_table_replace (self->pending,
-                        g_strdup (mapping->info->name),
+                        g_strdup (name),
                         g_variant_ref_sink (value));
 
   if (self->flush_id == 0)
@@ -352,18 +301,26 @@ static void
 valent_device_impl_constructed (GObject *object)
 {
   ValentDeviceImpl *self = VALENT_DEVICE_IMPL (object);
+  GVariant *value = NULL;
 
   g_assert (VALENT_IS_DEVICE (self->device));
 
-  /* Preload properties and watch for changes */
-  for (unsigned int i = 0; i < G_N_ELEMENTS (property_map); i++)
-    {
-      PropertyMapping mapping = property_map[i];
-      GVariant *value = NULL;
-
-      value = valent_device_impl_get_variant (self, mapping.name, mapping.type);
-      g_hash_table_insert (self->cache, g_strdup (mapping.info->name), value);
-    }
+  value = g_variant_new_string (valent_device_get_icon_name (self->device));
+  g_hash_table_insert (self->cache,
+                       g_strdup ("IconName"),
+                       g_variant_ref_sink (value));
+  value = g_variant_new_string (valent_device_get_id (self->device));
+  g_hash_table_insert (self->cache,
+                       g_strdup ("Id"),
+                       g_variant_ref_sink (value));
+  value = g_variant_new_string (valent_device_get_name (self->device));
+  g_hash_table_insert (self->cache,
+                       g_strdup ("Name"),
+                       g_variant_ref_sink (value));
+  value = g_variant_new_uint32 (valent_device_get_state (self->device));
+  g_hash_table_insert (self->cache,
+                       g_strdup ("State"),
+                       g_variant_ref_sink (value));
 
   g_signal_connect_object (self->device,
                            "notify",
