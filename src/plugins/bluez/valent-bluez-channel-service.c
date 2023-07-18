@@ -379,29 +379,29 @@ g_dbus_proxy_new_for_bus_cb (GObject      *object,
   if ((self->proxy = g_dbus_proxy_new_for_bus_finish (result, &error)) == NULL)
     return g_task_return_error (task, error);
 
-  g_signal_connect (self->proxy,
-                    "g-signal",
-                    G_CALLBACK (on_g_signal),
-                    self);
+  g_signal_connect_object (self->proxy,
+                           "g-signal",
+                           G_CALLBACK (on_g_signal),
+                           self, 0);
 
   /* Watch for bluez, but return if it's down currently */
-  g_signal_connect (self->proxy,
-                    "notify::g-name-owner",
-                    G_CALLBACK (on_name_owner_changed),
-                    self);
+  g_signal_connect_object (self->proxy,
+                           "notify::g-name-owner",
+                           G_CALLBACK (on_name_owner_changed),
+                           self, 0);
 
   if ((name_owner = g_dbus_proxy_get_name_owner (self->proxy)) == NULL)
     return g_task_return_boolean (task, TRUE);
 
   /* Make sure we're ready when the profile begins accepting connections */
-  g_signal_connect (self->profile,
-                    "connection-opened",
-                    G_CALLBACK (on_connection_opened),
-                    self);
-  g_signal_connect (self->profile,
-                    "connection-closed",
-                    G_CALLBACK (on_connection_closed),
-                    self);
+  g_signal_connect_object (self->profile,
+                           "connection-opened",
+                           G_CALLBACK (on_connection_opened),
+                           self, 0);
+  g_signal_connect_object (self->profile,
+                           "connection-closed",
+                           G_CALLBACK (on_connection_closed),
+                           self, 0);
 
   connection = g_dbus_proxy_get_connection (self->proxy);
   valent_bluez_profile_register (self->profile,
@@ -483,12 +483,9 @@ valent_bluez_channel_service_finalize (GObject *object)
 {
   ValentBluezChannelService *self = VALENT_BLUEZ_CHANNEL_SERVICE (object);
 
-  /* Bluez */
   g_clear_object (&self->proxy);
   g_clear_object (&self->profile);
   g_clear_pointer (&self->devices, g_hash_table_unref);
-
-  /* Muxers */
   g_clear_pointer (&self->muxers, g_hash_table_unref);
 
   G_OBJECT_CLASS (valent_bluez_channel_service_parent_class)->finalize (object);
