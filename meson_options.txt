@@ -21,12 +21,6 @@ option('vapi',
         value: true,
 )
 
-option('firewalld',
-  description: 'Install firewalld configuration file',
-         type: 'boolean',
-        value: false,
-)
-
 
 # Development
 option('profile',
