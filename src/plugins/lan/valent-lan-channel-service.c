@@ -22,8 +22,6 @@ struct _ValentLanChannelService
 {
   ValentChannelService  parent_instance;
 
-  GTlsCertificate      *certificate;
-
   GNetworkMonitor      *monitor;
   gboolean              network_available;
 
