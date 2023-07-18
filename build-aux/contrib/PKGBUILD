@@ -22,8 +22,7 @@ prepare() {
 
 build() {
   arch-meson $pkgname-$pkgver build \
-    --buildtype=release \
-    -Dfirewalld=true
+    --buildtype=release
   meson compile -C build
 }
 

@@ -18,7 +18,6 @@ License:        GPLv3+
 URL:            https://github.com/andyholmes/%{name}
 Source0:        %{url}/archive/v%{version}/%{name}-%{tarball_version}.tar.gz
 
-BuildRequires:  firewalld-filesystem
 BuildRequires:  gcc
 BuildRequires:  gettext
 BuildRequires:  meson
@@ -74,7 +73,7 @@ The %{name}-tests package contains precompiled unit tests for %{name}
 %autosetup -p1 -n %{name}-%{tarball_version}
 
 %build
-%meson --buildtype=release -Ddocumentation=true -Dfirewalld=true -Dtests=true -Dfuzz_tests=false
+%meson --buildtype=release -Ddocumentation=true -Dtests=true -Dfuzz_tests=false
 %meson_build
 
 %install
@@ -84,9 +83,6 @@ The %{name}-tests package contains precompiled unit tests for %{name}
 %check
 appstream-util validate-relax --nonet %{buildroot}%{_metainfodir}/*.xml
 desktop-file-validate %{buildroot}%{_datadir}/applications/*.desktop
-
-%post
-%firewalld_reload
 
 %files -f %{name}.lang
 %doc CHANGELOG.md README.md
@@ -98,7 +94,6 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/*.desktop
 %{_datadir}/icons/hicolor/scalable/apps/ca.andyholmes.Valent.svg
 %{_datadir}/icons/hicolor/symbolic/apps/ca.andyholmes.Valent-symbolic.svg
 %{_datadir}/metainfo/ca.andyholmes.Valent.metainfo.xml
-%{_prefix}/lib/firewalld/services/ca.andyholmes.Valent.xml
 %{_libdir}/girepository-1.0/
 %{_libdir}/libvalent-1.so*
 %{_sysconfdir}/xdg/autostart/ca.andyholmes.Valent-autostart.desktop
