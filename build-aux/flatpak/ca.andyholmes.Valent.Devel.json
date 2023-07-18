@@ -208,6 +208,7 @@
             "config-opts" : [
                 "--prefix=/app",
                 "--buildtype=debugoptimized",
+                "-Dplugin_bluez=true",
                 "-Dprofile=devel",
                 "-Dtests=true",
                 "-Dtracing=true"
