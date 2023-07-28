@@ -153,6 +153,7 @@ valent_media_bind_extension (ValentComponent *component,
 {
   ValentMedia *self = VALENT_MEDIA (component);
   GListModel *list = G_LIST_MODEL (extension);
+  unsigned int n_exports = 0;
 
   VALENT_ENTRY;
 
@@ -166,6 +167,17 @@ valent_media_bind_extension (ValentComponent *component,
                            G_CALLBACK (on_items_changed),
                            self,
                            0);
+
+  n_exports = g_list_model_get_n_items (G_LIST_MODEL (self->exports));
+
+  for (unsigned int i = 0; i < n_exports; i++)
+    {
+      g_autoptr (ValentMediaPlayer) player = NULL;
+
+      player = g_list_model_get_item (G_LIST_MODEL (self->exports), i);
+      valent_media_adapter_export_player (VALENT_MEDIA_ADAPTER (extension),
+                                          player);
+    }
 
   VALENT_EXIT;
 }
