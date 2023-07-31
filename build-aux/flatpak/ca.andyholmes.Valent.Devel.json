@@ -174,31 +174,6 @@
                 }
             ]
         },
-        {
-            "name" : "sysprof",
-            "buildsystem" : "meson",
-            "builddir" : true,
-            "config-opts" : [
-                "--buildtype=debugoptimized",
-                "--libdir=/app/lib",
-                "-Dgtk=false",
-                "-Dsysprofd=host"
-            ],
-            "cleanup" : [
-                "/bin/*",
-                "/libexec/sysprof",
-                "/share/appdata",
-                "/share/applications",
-                "/share/metainfo",
-                "/share/mime/packages"
-            ],
-            "sources" : [
-                {
-                    "type" : "git",
-                    "url" : "https://gitlab.gnome.org/GNOME/sysprof.git"
-                }
-            ]
-        },
         "ca.andyholmes.Valent.Tests.json",
         {
             "name" : "valent",
