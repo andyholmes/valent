@@ -530,10 +530,10 @@ valent_sms_conversation_load (ValentSmsConversation *self)
   self->loaded_id = self->thread_id;
   self->thread = valent_sms_store_get_thread (self->message_store,
                                               self->thread_id);
-  g_signal_connect (self->thread,
-                    "items-changed",
-                    G_CALLBACK (on_thread_items_changed),
-                    self);
+  g_signal_connect_object (self->thread,
+                           "items-changed",
+                           G_CALLBACK (on_thread_items_changed),
+                           self, 0);
 }
 
 static void

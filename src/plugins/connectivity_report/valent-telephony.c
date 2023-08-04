@@ -177,10 +177,10 @@ g_dbus_proxy_new_for_bus_cb (GObject      *object,
       return;
     }
 
-  g_signal_connect (proxy,
-                    "g-properties-changed",
-                    G_CALLBACK (on_properties_changed),
-                    self);
+  g_signal_connect_object (proxy,
+                           "g-properties-changed",
+                           G_CALLBACK (on_properties_changed),
+                           self, 0);
 
   object_path = g_dbus_proxy_get_object_path (proxy);
   g_hash_table_replace (self->modems,
@@ -260,15 +260,14 @@ g_dbus_object_manager_client_new_for_bus_cb (GObject      *object,
   for (const GList *iter = modems; iter; iter = iter->next)
     on_modem_added (self->manager, iter->data, self);
 
-  g_signal_connect (self->manager,
-                    "object-added",
-                    G_CALLBACK (on_modem_added),
-                    self);
-
-  g_signal_connect (self->manager,
-                    "object-removed",
-                    G_CALLBACK (on_modem_removed),
-                    self);
+  g_signal_connect_object (self->manager,
+                           "object-added",
+                           G_CALLBACK (on_modem_added),
+                           self, 0);
+  g_signal_connect_object (self->manager,
+                           "object-removed",
+                           G_CALLBACK (on_modem_removed),
+                           self, 0);
 }
 
 /*

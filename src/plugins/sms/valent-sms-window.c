@@ -555,10 +555,10 @@ valent_sms_window_ensure_conversation (ValentSmsWindow *window,
                               conversation, "contact-store",
                               G_BINDING_DEFAULT);
 
-      g_signal_connect (G_OBJECT (conversation),
-                        "send-message",
-                        G_CALLBACK (on_send_message),
-                        window);
+      g_signal_connect_object (conversation,
+                               "send-message",
+                               G_CALLBACK (on_send_message),
+                               window, 0);
 
       gtk_stack_add_named (window->content, conversation, page_name);
     }
