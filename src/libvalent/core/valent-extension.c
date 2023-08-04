@@ -254,16 +254,16 @@ valent_extension_add_action (GActionMap *action_map,
       valent_extension_disconnect_action (self, replacing);
     }
 
-  g_signal_connect (action,
-                    "notify::enabled",
-                    G_CALLBACK (on_action_enabled_changed),
-                    action_map);
+  g_signal_connect_object (action,
+                           "notify::enabled",
+                           G_CALLBACK (on_action_enabled_changed),
+                           action_map, 0);
 
   if (g_action_get_state_type (action) != NULL)
-    g_signal_connect (action,
-                      "notify::state",
-                      G_CALLBACK (on_action_state_changed),
-                      action_map);
+    g_signal_connect_object (action,
+                             "notify::state",
+                             G_CALLBACK (on_action_state_changed),
+                             action_map, 0);
 
   g_hash_table_replace (priv->actions,
                         g_strdup (action_name),

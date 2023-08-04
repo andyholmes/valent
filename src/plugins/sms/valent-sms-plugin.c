@@ -423,10 +423,10 @@ messaging_action (GSimpleAction *action,
       g_object_add_weak_pointer (G_OBJECT (self->window),
                                  (gpointer) &self->window);
 
-      g_signal_connect (self->window,
-                        "send-message",
-                        G_CALLBACK (on_send_message),
-                        self);
+      g_signal_connect_object (self->window,
+                               "send-message",
+                               G_CALLBACK (on_send_message),
+                               self, 0);
     }
 
   gtk_window_present_with_time (GTK_WINDOW (self->window), GDK_CURRENT_TIME);

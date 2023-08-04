@@ -578,14 +578,13 @@ valent_share_plugin_upload_file (ValentSharePlugin *self,
       device = valent_extension_get_object (VALENT_EXTENSION (self));
 
       self->upload = valent_share_upload_new (device);
+      g_signal_connect_object (self->upload,
+                               "items-changed",
+                               G_CALLBACK (valent_share_upload_files_added),
+                               self, 0);
       g_hash_table_replace (self->transfers,
                             valent_transfer_dup_id (self->upload),
                             g_object_ref (self->upload));
-
-      g_signal_connect (self->upload,
-                        "items-changed",
-                        G_CALLBACK (valent_share_upload_files_added),
-                        self);
     }
 
   valent_share_upload_add_file (VALENT_SHARE_UPLOAD (self->upload), file);
@@ -607,14 +606,13 @@ valent_share_plugin_upload_files (ValentSharePlugin *self,
       device = valent_extension_get_object (VALENT_EXTENSION (self));
 
       self->upload = valent_share_upload_new (device);
+      g_signal_connect_object (self->upload,
+                               "items-changed",
+                               G_CALLBACK (valent_share_upload_files_added),
+                               self, 0);
       g_hash_table_replace (self->transfers,
                             valent_transfer_dup_id (self->upload),
                             g_object_ref (self->upload));
-
-      g_signal_connect (self->upload,
-                        "items-changed",
-                        G_CALLBACK (valent_share_upload_files_added),
-                        self);
     }
 
   valent_share_upload_add_files (VALENT_SHARE_UPLOAD (self->upload), files);
