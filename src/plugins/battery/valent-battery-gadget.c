@@ -7,8 +7,8 @@
 
 #include <math.h>
 
-#include <gtk/gtk.h>
 #include <glib/gi18n.h>
+#include <gtk/gtk.h>
 #include <valent.h>
 
 #include "valent-battery-gadget.h"
@@ -180,10 +180,6 @@ valent_battery_gadget_init (ValentBatteryGadget *self)
   GtkWidget *box;
 
   /* Popover */
-  popover = g_object_new (GTK_TYPE_POPOVER,
-                          "autohide", TRUE,
-                          NULL);
-
   box = g_object_new (GTK_TYPE_BOX,
                       "margin-top",    6,
                       "margin-bottom", 6,
@@ -192,19 +188,23 @@ valent_battery_gadget_init (ValentBatteryGadget *self)
                       "orientation",   GTK_ORIENTATION_VERTICAL,
                       "spacing",       6,
                       NULL);
-  gtk_popover_set_child (GTK_POPOVER (popover), box);
 
   self->label = gtk_label_new (NULL);
   gtk_box_append (GTK_BOX (box), self->label);
 
   self->level_bar = g_object_new (GTK_TYPE_LEVEL_BAR,
-                                  "min-value",     0.0,
-                                  "max-value",     100.0,
-                                  "value",         42.0,
-                                  "width-request", 100,
+                                  "min-value",      0.0,
+                                  "max-value",      100.0,
+                                  "value",          42.0,
+                                  "width-request",  100,
                                   "height-request", 3,
                                   NULL);
   gtk_box_append (GTK_BOX (box), self->level_bar);
+
+  popover = g_object_new (GTK_TYPE_POPOVER,
+                          "autohide", TRUE,
+                          "child",    box,
+                          NULL);
 
   /* Button */
   self->button = g_object_new (GTK_TYPE_MENU_BUTTON,
@@ -212,6 +212,9 @@ valent_battery_gadget_init (ValentBatteryGadget *self)
                                "popover",   popover,
                                "has-frame", FALSE,
                                NULL);
+  gtk_accessible_update_property (GTK_ACCESSIBLE (self->button),
+                                  GTK_ACCESSIBLE_PROPERTY_LABEL, _("Battery"),
+                                  -1);
   gtk_widget_set_parent (self->button, GTK_WIDGET (self));
 }
 

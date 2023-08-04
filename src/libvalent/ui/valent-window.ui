@@ -5,6 +5,7 @@
 
 <interface domain="valent">
   <template class="ValentWindow" parent="AdwApplicationWindow">
+    <property name="title" translatable="yes">Valent</property>
     <property name="width-request">360</property>
     <child>
       <object class="GtkShortcutController">
@@ -48,17 +49,20 @@
                   <object class="GtkHeaderBar">
                     <property name="title-widget">
                       <object class="AdwWindowTitle">
-                        <property name="title" translatable="yes">Valent</property>
+                        <property name="title"
+                                  bind-source="ValentWindow"
+                                  bind-property="title"
+                                  bind-flags="sync-create"/>
                       </object>
                     </property>
                     <child type="start">
-                      <object class="GtkButton">
+                      <object class="GtkButton" id="refresh_button">
                         <property name="action-name">win.refresh</property>
                         <property name="icon-name">view-refresh-symbolic</property>
-                        <property name="tooltip-text" translatable="yes">Refresh</property>
                         <property name="valign">center</property>
                         <accessibility>
                           <property name="label" translatable="yes">Refresh</property>
+                          <property name="description" translatable="yes">Scan for new devices</property>
                         </accessibility>
                       </object>
                     </child>
@@ -67,7 +71,6 @@
                         <property name="icon-name">open-menu-symbolic</property>
                         <property name="menu-model">primary_menu</property>
                         <property name="primary">1</property>
-                        <property name="tooltip-text" translatable="yes">Main Menu</property>
                         <property name="valign">center</property>
                         <accessibility>
                           <property name="label" translatable="yes">Main Menu</property>
@@ -102,6 +105,10 @@
                                 </style>
                               </object>
                             </child>
+                            <accessibility>
+                              <property name="label" translatable="yes">Devices</property>
+                              <property name="description" translatable="yes">List of available and known devices</property>
+                            </accessibility>
                             <style>
                               <class name="boxed-list"/>
                               <class name="boxed-list-placeholder"/>

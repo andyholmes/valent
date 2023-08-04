@@ -11,7 +11,6 @@
 #include <libportal/portal.h>
 #include <libvalent-core.h>
 #include <libvalent-device.h>
-#include <libvalent-media.h>
 
 #include "valent-version-vcs.h"
 
@@ -276,6 +275,10 @@ valent_window_create_row_func (gpointer item,
                            G_CALLBACK (on_device_changed),
                            status, 0);
   on_device_changed (device, NULL, status);
+
+  gtk_accessible_update_relation (GTK_ACCESSIBLE (row),
+                                  GTK_ACCESSIBLE_RELATION_DESCRIBED_BY, status, NULL,
+                                  -1);
 
   /* Page */
   page = g_object_new (VALENT_TYPE_DEVICE_PAGE,
