@@ -28,10 +28,10 @@
                 </child>
                 <child type="center">
                   <object class="AdwWindowTitle">
-                  <property name="title"
-                            bind-source="ValentPresenterRemote"
-                            bind-property="title"
-                            bind-flags="sync-create"/>
+                    <property name="title"
+                              bind-source="ValentPresenterRemote"
+                              bind-property="title"
+                              bind-flags="sync-create"/>
                   </object>
                 </child>
                 <child type="end">
@@ -66,7 +66,6 @@
                     <!-- NOTE: the keysym is "GDK_KEY_F5" -->
                     <property name="action-name">device.mousepad.event</property>
                     <property name="action-target">{'keysym': &lt;uint32 65474&gt;}</property>
-                    <property name="tooltip-text" translatable="yes">Start</property>
                     <property name="hexpand">1</property>
                     <property name="child">
                       <object class="GtkImage">
@@ -78,12 +77,14 @@
                         <property name="margin-top">16</property>
                       </object>
                     </property>
+                    <accessibility>
+                      <property name="label" translatable="yes">Start</property>
+                    </accessibility>
                   </object>
                 </child>
                 <child>
                   <object class="GtkButton" id="open_button">
                     <property name="action-name">remote.open</property>
-                    <property name="tooltip-text" translatable="yes">Open</property>
                     <property name="hexpand">1</property>
                     <property name="child">
                       <object class="GtkImage">
@@ -95,6 +96,9 @@
                         <property name="margin-top">16</property>
                       </object>
                     </property>
+                    <accessibility>
+                      <property name="label" translatable="yes">Open</property>
+                    </accessibility>
                   </object>
                 </child>
                 <child>
@@ -102,7 +106,6 @@
                     <!-- NOTE: the keysym is "GDK_KEY_Escape" -->
                     <property name="action-name">device.mousepad.event</property>
                     <property name="action-target">{'keysym': &lt;uint32 65307&gt;}</property>
-                    <property name="tooltip-text" translatable="yes">Stop</property>
                     <property name="hexpand">1</property>
                     <property name="child">
                       <object class="GtkImage">
@@ -114,6 +117,9 @@
                         <property name="margin-top">16</property>
                       </object>
                     </property>
+                    <accessibility>
+                      <property name="label" translatable="yes">Stop</property>
+                    </accessibility>
                   </object>
                 </child>
               </object>
@@ -123,7 +129,6 @@
                 <!-- NOTE: the keysym is "GDK_KEY_Page_Up" -->
                 <property name="action-name">device.mousepad.event</property>
                 <property name="action-target">{'keysym': &lt;uint32 65365&gt;}</property>
-                <property name="tooltip-text" translatable="yes">Previous</property>
                 <property name="hexpand">1</property>
                 <property name="valign">end</property>
                 <property name="vexpand">1</property>
@@ -137,6 +142,9 @@
                     <property name="margin-top">16</property>
                   </object>
                 </property>
+                <accessibility>
+                  <property name="label" translatable="yes">Previous</property>
+                </accessibility>
                 <layout>
                   <property name="column">0</property>
                   <property name="row">2</property>
@@ -148,7 +156,6 @@
                 <!-- NOTE: the keysym is "GDK_KEY_Page_Down" -->
                 <property name="action-name">device.mousepad.event</property>
                 <property name="action-target">{'keysym': &lt;uint32 65366&gt;}</property>
-                <property name="tooltip-text" translatable="yes">Next</property>
                 <property name="hexpand">1</property>
                 <property name="valign">end</property>
                 <property name="vexpand">1</property>
@@ -162,6 +169,9 @@
                     <property name="margin-top">16</property>
                   </object>
                 </property>
+                <accessibility>
+                  <property name="label" translatable="yes">Next</property>
+                </accessibility>
                 <layout>
                   <property name="column">1</property>
                   <property name="row">2</property>
@@ -171,7 +181,6 @@
             <child>
               <object class="GtkButton" id="pointer_button">
                 <property name="action-name">remote.pointer</property>
-                <property name="tooltip-text" translatable="yes">Pointer</property>
                 <property name="hexpand">1</property>
                 <property name="child">
                   <object class="GtkImage">
@@ -183,6 +192,9 @@
                     <property name="margin-top">16</property>
                   </object>
                 </property>
+                <accessibility>
+                  <property name="label" translatable="yes">Pointer</property>
+                </accessibility>
                 <layout>
                   <property name="column">0</property>
                   <property name="column-span">2</property>

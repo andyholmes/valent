@@ -5,6 +5,7 @@
 
 #include "config.h"
 
+#include <glib/gi18n.h>
 #include <gtk/gtk.h>
 #include <valent.h>
 
@@ -101,16 +102,18 @@ on_action_state_changed (GActionGroup                   *action_group,
     gtk_menu_button_set_icon_name (GTK_MENU_BUTTON (self->button), icon_name);
 
   if (g_variant_lookup (value, "title", "&s", &title))
-    gtk_widget_set_tooltip_text (GTK_WIDGET (self->button), title);
+    gtk_accessible_update_property (GTK_ACCESSIBLE (self->button),
+                                    GTK_ACCESSIBLE_PROPERTY_LABEL, title,
+                                    -1);
 
   if (g_action_group_get_action_enabled (action_group, action_name))
     gtk_widget_set_visible (self->button, TRUE);
 }
 
 static void
-on_action_enabled_changed (GActionGroup        *action_group,
-                           const char          *action_name,
-                           gboolean             enabled,
+on_action_enabled_changed (GActionGroup                   *action_group,
+                           const char                     *action_name,
+                           gboolean                        enabled,
                            ValentConnectivityReportGadget *self)
 {
   g_autoptr (GVariant) state = NULL;
@@ -185,17 +188,20 @@ valent_connectivity_report_gadget_init (ValentConnectivityReportGadget *self)
                             "orientation",   GTK_ORIENTATION_VERTICAL,
                             "spacing",       6,
                             NULL);
-
   popover = g_object_new (GTK_TYPE_POPOVER,
                           "autohide", TRUE,
                           "child",    self->box,
                           NULL);
 
+  /* Button */
   self->button = g_object_new (GTK_TYPE_MENU_BUTTON,
                                "icon-name", "network-cellular-offline-symbolic",
                                "popover",   popover,
                                "has-frame", FALSE,
                                NULL);
+  gtk_accessible_update_property (GTK_ACCESSIBLE (self->button),
+                                  GTK_ACCESSIBLE_PROPERTY_LABEL, _("Mobile Network"),
+                                  -1);
   gtk_widget_set_parent (self->button, GTK_WIDGET (self));
 }
 

@@ -5,8 +5,8 @@
 
 #include "config.h"
 
-#include <gtk/gtk.h>
 #include <glib/gi18n.h>
+#include <gtk/gtk.h>
 #include <valent.h>
 
 #include "valent-lock-gadget.h"
@@ -47,12 +47,15 @@ valent_lock_gadget_class_init (ValentLockGadgetClass *klass)
 static void
 valent_lock_gadget_init (ValentLockGadget *self)
 {
+  /* Button */
   self->button = g_object_new (GTK_TYPE_TOGGLE_BUTTON,
-                               "action-name",  "device.lock.state",
-                               "icon-name",    "channel-secure-symbolic",
-                               "has-frame",    FALSE,
-                               "tooltip-text", _("Lock"),
+                               "action-name", "device.lock.state",
+                               "icon-name",   "channel-secure-symbolic",
+                               "has-frame",   FALSE,
                                NULL);
+  gtk_accessible_update_property (GTK_ACCESSIBLE (self->button),
+                                  GTK_ACCESSIBLE_PROPERTY_LABEL, _("Lock"),
+                                  -1);
   g_object_bind_property (self->button, "sensitive",
                           self->button, "visible",
                           G_BINDING_SYNC_CREATE);

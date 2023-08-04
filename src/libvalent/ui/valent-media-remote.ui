@@ -245,7 +245,6 @@
                             </child>
                             <child> <!-- HIDDEN -->
                               <object class="GtkButton" id="seek_back_button">
-                                <property name="tooltip-text" translatable="yes">Seek Back</property>
                                 <property name="action-name">remote.seek</property>
                                 <property name="action-target">-10.0</property>
                                 <property name="halign">center</property>
@@ -272,7 +271,6 @@
                             </child>
                             <child>
                               <object class="GtkButton" id="play_pause_button">
-                                <property name="tooltip-text" translatable="yes">Play</property>
                                 <property name="action-name">remote.play</property>
                                 <property name="halign">center</property>
                                 <property name="valign">center</property>
@@ -297,7 +295,6 @@
                             </child>
                             <child> <!-- HIDDEN -->
                               <object class="GtkButton" id="seek_forward_button">
-                                <property name="tooltip-text" translatable="yes">Seek Forward</property>
                                 <property name="action-name">remote.seek</property>
                                 <property name="action-target">10.0</property>
                                 <property name="halign">center</property>
@@ -324,7 +321,6 @@
                             </child>
                             <child>
                               <object class="GtkButton" id="next_button">
-                                <property name="tooltip-text" translatable="yes">Next</property>
                                 <property name="action-name">remote.next</property>
                                 <property name="halign">center</property>
                                 <property name="valign">center</property>
@@ -348,7 +344,6 @@
                             </child>
                             <child>
                               <object class="GtkToggleButton" id="playback_options_button">
-                                <property name="tooltip-text" translatable="yes">Options</property>
                                 <property name="halign">center</property>
                                 <property name="valign">center</property>
                                 <property name="child">
@@ -405,7 +400,6 @@
                                 </child>
                                 <child>
                                   <object class="GtkButton" id="repeat_button">
-                                    <property name="tooltip-text" translatable="yes">Enable Repeat</property>
                                     <property name="action-name">remote.repeat</property>
                                     <property name="halign">center</property>
                                     <property name="valign">center</property>
@@ -429,7 +423,6 @@
                                 </child>
                                 <child>
                                   <object class="GtkToggleButton" id="shuffle_button">
-                                    <property name="tooltip-text" translatable="yes">Shuffle</property>
                                     <property name="action-name">remote.shuffle</property>
                                     <property name="halign">center</property>
                                     <property name="valign">center</property>

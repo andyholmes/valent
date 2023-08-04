@@ -246,8 +246,6 @@ valent_media_remote_update_repeat (ValentMediaRemote *self)
     case VALENT_MEDIA_REPEAT_NONE:
       gtk_image_set_from_icon_name (self->repeat_image,
                                     "media-playlist-consecutive-symbolic");
-      gtk_widget_set_tooltip_text (GTK_WIDGET (self->repeat_image),
-                                   _("Enable Repeat"));
       gtk_accessible_update_property (GTK_ACCESSIBLE (self->repeat_image),
                                       GTK_ACCESSIBLE_PROPERTY_LABEL, _("Enable Repeat"),
                                       -1);
@@ -256,8 +254,6 @@ valent_media_remote_update_repeat (ValentMediaRemote *self)
     case VALENT_MEDIA_REPEAT_ALL:
       gtk_image_set_from_icon_name (self->repeat_image,
                                     "media-playlist-repeat-symbolic");
-      gtk_widget_set_tooltip_text (GTK_WIDGET (self->repeat_image),
-                                   _("Repeat All"));
       gtk_accessible_update_property (GTK_ACCESSIBLE (self->repeat_image),
                                       GTK_ACCESSIBLE_PROPERTY_LABEL, _("Repeat All"),
                                       -1);
@@ -266,8 +262,6 @@ valent_media_remote_update_repeat (ValentMediaRemote *self)
     case VALENT_MEDIA_REPEAT_ONE:
       gtk_image_set_from_icon_name (self->repeat_image,
                                     "media-playlist-repeat-song-symbolic");
-      gtk_widget_set_tooltip_text (GTK_WIDGET (self->repeat_image),
-                                   _("Repeat One"));
       gtk_accessible_update_property (GTK_ACCESSIBLE (self->repeat_image),
                                       GTK_ACCESSIBLE_PROPERTY_LABEL, _("Repeat One"),
                                       -1);
@@ -295,8 +289,6 @@ valent_media_remote_update_state (ValentMediaRemote *self)
                                       "remote.pause");
       gtk_image_set_from_icon_name (GTK_IMAGE (child),
                                     "media-playback-pause-symbolic");
-      gtk_widget_set_tooltip_text (GTK_WIDGET (self->play_pause_button),
-                                   _("Pause"));
       gtk_accessible_update_property (GTK_ACCESSIBLE (self->play_pause_button),
                                       GTK_ACCESSIBLE_PROPERTY_LABEL, _("Pause"),
                                       -1);
