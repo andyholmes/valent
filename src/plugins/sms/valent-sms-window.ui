@@ -91,6 +91,7 @@
                             <property name="icon-name">view-list-symbolic</property>
                             <property name="title" translatable="yes">No Conversations</property>
                             <style>
+                              <class name="compact"/>
                               <class name="dim-label"/>
                             </style>
                           </object>

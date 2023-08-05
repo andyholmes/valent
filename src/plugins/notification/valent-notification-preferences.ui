@@ -112,33 +112,11 @@
                               bind-property="enable-expansion"
                               bind-flags="sync-create"/>
                     <child type="placeholder">
-                      <object class="GtkBox">
-                        <property name="orientation">vertical</property>
-                        <property name="margin-top">12</property>
-                        <property name="margin-bottom">12</property>
-                        <property name="margin-start">12</property>
-                        <property name="margin-end">12</property>
-                        <property name="spacing">12</property>
-                        <property name="valign">center</property>
-                        <child>
-                          <object class="GtkImage">
-                            <property name="halign">center</property>
-                            <property name="hexpand">1</property>
-                            <property name="icon-name">preferences-system-notifications-symbolic</property>
-                            <property name="pixel-size">64</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkLabel">
-                            <property name="halign">center</property>
-                            <property name="hexpand">1</property>
-                            <property name="label" translatable="yes">No Applications</property>
-                            <attributes>
-                              <attribute name="weight" value="bold"/>
-                            </attributes>
-                          </object>
-                        </child>
+                      <object class="AdwStatusPage">
+                        <property name="icon-name">preferences-system-notifications-symbolic</property>
+                        <property name="title" translatable="yes">No Applications</property>
                         <style>
+                          <class name="compact"/>
                           <class name="dim-label"/>
                         </style>
                       </object>
