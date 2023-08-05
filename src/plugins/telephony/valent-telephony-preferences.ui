@@ -7,7 +7,7 @@
   <template class="ValentTelephonyPreferences" parent="ValentDevicePreferencesGroup">
     <!-- Incoming Calls -->
     <child>
-      <object class="AdwExpanderRow" id="ringing_row">
+      <object class="AdwExpanderRow">
         <property name="title" translatable="yes">Incoming Calls</property>
         <property name="subtitle" translatable="yes">What to do when the phone rings</property>
         <property name="selectable">0</property>
@@ -38,7 +38,7 @@
 
     <!-- Ongoing Calls -->
     <child>
-      <object class="AdwExpanderRow" id="talking_row">
+      <object class="AdwExpanderRow">
         <property name="title" translatable="yes">Ongoing Calls</property>
         <property name="subtitle" translatable="yes">What to do when the phone is answered</property>
         <property name="selectable">0</property>

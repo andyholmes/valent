@@ -47,14 +47,6 @@
                 <property name="orientation">vertical</property>
                 <child>
                   <object class="GtkHeaderBar">
-                    <property name="title-widget">
-                      <object class="AdwWindowTitle">
-                        <property name="title"
-                                  bind-source="ValentWindow"
-                                  bind-property="title"
-                                  bind-flags="sync-create"/>
-                      </object>
-                    </property>
                     <child type="start">
                       <object class="GtkButton" id="refresh_button">
                         <property name="action-name">win.refresh</property>

@@ -6,7 +6,7 @@
 <interface domain="valent">
   <template class="ValentConnectivityReportPreferences" parent="ValentDevicePreferencesGroup">
     <child>
-      <object class="AdwActionRow" id="share_state_row">
+      <object class="AdwActionRow">
         <property name="title" translatable="yes">Local Connectivity</property>
         <property name="selectable">0</property>
         <property name="subtitle" translatable="yes">Send updates to the remote device</property>
@@ -19,7 +19,7 @@
       </object>
     </child>
     <child>
-      <object class="AdwActionRow" id="offline_notification_row">
+      <object class="AdwActionRow">
         <property name="title" translatable="yes">Remote Connectivity</property>
         <property name="subtitle" translatable="yes">Notify if the remote device loses connectivity</property>
         <property name="selectable">0</property>

@@ -18,11 +18,8 @@ struct _ValentConnectivityReportPreferences
   ValentDevicePreferencesGroup  parent_instance;
 
   /* template */
-  AdwActionRow                *share_state_row;
-  GtkSwitch                   *share_state;
-
-  AdwActionRow                *offline_notification_row;
-  GtkSwitch                   *offline_notification;
+  GtkSwitch                    *share_state;
+  GtkSwitch                    *offline_notification;
 };
 
 G_DEFINE_FINAL_TYPE (ValentConnectivityReportPreferences, valent_connectivity_report_preferences, VALENT_TYPE_DEVICE_PREFERENCES_GROUP)
@@ -42,7 +39,6 @@ valent_connectivity_report_preferences_constructed (GObject *object)
   g_settings_bind (settings,          "share-state",
                    self->share_state, "active",
                    G_SETTINGS_BIND_DEFAULT);
-
   g_settings_bind (settings,                   "offline-notification",
                    self->offline_notification, "active",
                    G_SETTINGS_BIND_DEFAULT);
@@ -70,9 +66,7 @@ valent_connectivity_report_preferences_class_init (ValentConnectivityReportPrefe
   object_class->dispose = valent_connectivity_report_preferences_dispose;
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/connectivity_report/valent-connectivity_report-preferences.ui");
-  gtk_widget_class_bind_template_child (widget_class, ValentConnectivityReportPreferences, share_state_row);
   gtk_widget_class_bind_template_child (widget_class, ValentConnectivityReportPreferences, share_state);
-  gtk_widget_class_bind_template_child (widget_class, ValentConnectivityReportPreferences, offline_notification_row);
   gtk_widget_class_bind_template_child (widget_class, ValentConnectivityReportPreferences, offline_notification);
 }
 
