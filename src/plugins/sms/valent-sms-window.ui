@@ -87,29 +87,9 @@
                         <property name="vexpand">1</property>
                         <signal name="row-activated" handler="on_conversation_activated" swapped="no"/>
                         <child type="placeholder">
-                          <object class="GtkBox" id="conversation_list_placeholder">
-                            <property name="margin-top">18</property>
-                            <property name="margin-bottom">18</property>
-                            <property name="margin-start">18</property>
-                            <property name="margin-end">18</property>
-                            <property name="orientation">vertical</property>
-                            <property name="halign">center</property>
-                            <property name="valign">center</property>
-                            <child>
-                              <object class="GtkImage">
-                                <property name="pixel-size">96</property>
-                                <property name="icon-name">view-list-symbolic</property>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkLabel">
-                                <property name="margin-top">12</property>
-                                <property name="label" translatable="yes">No Conversations</property>
-                                <attributes>
-                                  <attribute name="scale" value="1.2"/>
-                                </attributes>
-                              </object>
-                            </child>
+                          <object class="AdwStatusPage" id="conversation_list_placeholder">
+                            <property name="icon-name">view-list-symbolic</property>
+                            <property name="title" translatable="yes">No Conversations</property>
                             <style>
                               <class name="dim-label"/>
                             </style>
@@ -192,35 +172,10 @@
                   <object class="GtkStackPage">
                     <property name="name">placeholder</property>
                     <property name="child">
-                      <object class="GtkBox">
-                        <property name="orientation">vertical</property>
-                        <property name="valign">center</property>
-                        <child>
-                          <object class="GtkImage">
-                            <property name="pixel-size">144</property>
-                            <property name="icon-name">sms-symbolic</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkLabel">
-                            <property name="valign">start</property>
-                            <property name="hexpand">1</property>
-                            <property name="label" translatable="yes">No conversation selected</property>
-                            <attributes>
-                              <attribute name="scale" value="1.2"/>
-                            </attributes>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkLabel">
-                            <property name="valign">start</property>
-                            <property name="vexpand">1</property>
-                            <property name="label" translatable="yes">Select or start a conversation</property>
-                            <attributes>
-                              <attribute name="scale" value="0.83"/>
-                            </attributes>
-                          </object>
-                        </child>
+                      <object class="AdwStatusPage">
+                        <property name="icon-name">sms-symbolic</property>
+                        <property name="title" translatable="yes">No conversation selected</property>
+                        <property name="description" translatable="yes">Select or start a conversation</property>
                         <style>
                           <class name="dim-label"/>
                         </style>
@@ -255,24 +210,9 @@
                                   <object class="GtkListBox" id="message_search_list">
                                     <signal name="row-activated" handler="on_message_selected" swapped="no"/>
                                     <child type="placeholder">
-                                      <object class="GtkBox">
-                                        <property name="orientation">vertical</property>
-                                        <property name="halign">center</property>
-                                        <property name="valign">center</property>
-                                        <child>
-                                          <object class="GtkImage">
-                                            <property name="pixel-size">144</property>
-                                            <property name="icon-name">edit-find-symbolic</property>
-                                          </object>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel">
-                                            <property name="label" translatable="yes">No results found</property>
-                                            <attributes>
-                                              <attribute name="scale" value="1.2"/>
-                                            </attributes>
-                                          </object>
-                                        </child>
+                                      <object class="AdwStatusPage">
+                                        <property name="icon-name">edit-find-symbolic</property>
+                                        <property name="title" translatable="yes">No results found</property>
                                         <style>
                                           <class name="dim-label"/>
                                         </style>
@@ -318,24 +258,9 @@
                                   <object class="GtkListBox" id="contact_search_list">
                                     <signal name="row-activated" handler="on_contact_selected" swapped="no"/>
                                     <child type="placeholder">
-                                      <object class="GtkBox">
-                                        <property name="orientation">vertical</property>
-                                        <property name="halign">center</property>
-                                        <property name="valign">center</property>
-                                        <child>
-                                          <object class="GtkImage">
-                                            <property name="pixel-size">144</property>
-                                            <property name="icon-name">avatar-default-symbolic</property>
-                                          </object>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel">
-                                            <property name="label" translatable="yes">No contacts</property>
-                                            <attributes>
-                                              <attribute name="scale" value="1.2"/>
-                                            </attributes>
-                                          </object>
-                                        </child>
+                                      <object class="AdwStatusPage">
+                                        <property name="icon-name">avatar-default-symbolic</property>
+                                        <property name="title" translatable="yes">No contacts</property>
                                         <style>
                                           <class name="dim-label"/>
                                         </style>
