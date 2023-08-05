@@ -590,11 +590,11 @@ on_conversation_activated (GtkListBox      *box,
  * GActions
  */
 static void
-new_action (GSimpleAction *action,
-            GVariant      *parameter,
-            gpointer       user_data)
+sms_new_action (GtkWidget  *widget,
+                const char *action_name,
+                GVariant   *parameter)
 {
-  ValentSmsWindow *self = VALENT_SMS_WINDOW (user_data);
+  ValentSmsWindow *self = VALENT_SMS_WINDOW (widget);
 
   g_assert (VALENT_IS_SMS_WINDOW (self));
 
@@ -606,23 +606,11 @@ new_action (GSimpleAction *action,
 }
 
 static void
-previous_action (GSimpleAction *action,
-                 GVariant      *parameter,
-                 gpointer       user_data)
+sms_search_action (GtkWidget  *widget,
+                   const char *action_name,
+                   GVariant   *parameter)
 {
-  ValentSmsWindow *self = VALENT_SMS_WINDOW (user_data);
-
-  g_assert (VALENT_IS_SMS_WINDOW (self));
-
-  adw_leaflet_navigate (self->content_box, ADW_NAVIGATION_DIRECTION_BACK);
-}
-
-static void
-search_action (GSimpleAction *action,
-               GVariant      *parameter,
-               gpointer       user_data)
-{
-  ValentSmsWindow *self = VALENT_SMS_WINDOW (user_data);
+  ValentSmsWindow *self = VALENT_SMS_WINDOW (widget);
 
   g_assert (VALENT_IS_SMS_WINDOW (self));
 
@@ -632,12 +620,17 @@ search_action (GSimpleAction *action,
   adw_leaflet_navigate (self->content_box, ADW_NAVIGATION_DIRECTION_FORWARD);
 }
 
-static const GActionEntry actions[] = {
-    {"new",      new_action,      NULL, NULL, NULL},
-    {"previous", previous_action, NULL, NULL, NULL},
-    {"search",   search_action,   NULL, NULL, NULL}
-};
+static void
+win_previous_action (GtkWidget  *widget,
+                     const char *action_name,
+                     GVariant   *parameter)
+{
+  ValentSmsWindow *self = VALENT_SMS_WINDOW (widget);
 
+  g_assert (VALENT_IS_SMS_WINDOW (self));
+
+  adw_leaflet_navigate (self->content_box, ADW_NAVIGATION_DIRECTION_BACK);
+}
 
 /*
  * GObject
@@ -764,6 +757,10 @@ valent_sms_window_class_init (ValentSmsWindowClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, on_contact_search_changed);
   gtk_widget_class_bind_template_callback (widget_class, on_contact_selected);
 
+  gtk_widget_class_install_action (widget_class, "sms.new", NULL, sms_new_action);
+  gtk_widget_class_install_action (widget_class, "sms.search", NULL, sms_search_action);
+  gtk_widget_class_install_action (widget_class, "win.previous", NULL, win_previous_action);
+
   /**
    * ValentSmsWindow:contact-store:
    *
@@ -823,11 +820,6 @@ static void
 valent_sms_window_init (ValentSmsWindow *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
-
-  /* Window Actions */
-  g_action_map_add_action_entries (G_ACTION_MAP (self),
-                                   actions, G_N_ELEMENTS (actions),
-                                   self);
 
   gtk_list_box_set_header_func (self->message_search_list,
                                 search_header_func,

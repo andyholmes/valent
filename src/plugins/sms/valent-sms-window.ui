@@ -10,6 +10,35 @@
     <property name="focus-widget">new_button</property>
     <property name="title" translatable="yes">Messages</property>
     <child>
+      <object class="GtkShortcutController">
+        <property name="scope">global</property>
+        <child>
+          <object class="GtkShortcut">
+            <property name="trigger">&lt;Control&gt;n</property>
+            <property name="action">action(sms.new)</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcut">
+            <property name="trigger">&lt;Control&gt;f</property>
+            <property name="action">action(sms.search)</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcut">
+            <property name="trigger">Escape</property>
+            <property name="action">action(win.previous)</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcut">
+            <property name="trigger">&lt;Control&gt;w</property>
+            <property name="action">action(window.close)</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
       <object class="AdwLeaflet" id="content_box">
         <property name="can-navigate-back">1</property>
         <property name="width-request">360</property>
@@ -24,17 +53,23 @@
                           bind-flags="sync-create"/>
                 <child type="start">
                   <object class="GtkButton" id="new_button">
-                    <property name="action-name">win.new</property>
+                    <property name="action-name">sms.new</property>
                     <property name="focus-on-click">0</property>
                     <property name="icon-name">list-add-symbolic</property>
+                    <accessibility>
+                      <property name="label" translatable="yes">New Conversation</property>
+                    </accessibility>
                   </object>
                 </child>
                 <child type="end">
                   <object class="GtkMenuButton" id="primary_menu">
-                    <property name="receives-default">1</property>
                     <property name="valign">center</property>
-                    <property name="menu-model">primary-menu</property>
                     <property name="icon-name">open-menu-symbolic</property>
+                    <property name="menu-model">primary-menu</property>
+                    <property name="primary">1</property>
+                    <accessibility>
+                      <property name="label" translatable="yes">Previous</property>
+                    </accessibility>
                   </object>
                 </child>
               </object>
@@ -137,12 +172,14 @@
                   <object class="GtkButton" id="back">
                     <property name="action-name">win.previous</property>
                     <property name="valign">center</property>
-                    <property name="tooltip-text" translatable="yes">Back</property>
                     <property name="icon-name">go-previous-symbolic</property>
                     <property name="visible"
                               bind-source="content_box"
                               bind-property="folded"
                               bind-flags="sync-create"/>
+                    <accessibility>
+                      <property name="label" translatable="yes">Previous</property>
+                    </accessibility>
                   </object>
                 </child>
               </object>
@@ -328,7 +365,7 @@
     <section>
       <item>
         <attribute name="label" translatable="yes">Search Messages…</attribute>
-        <attribute name="action">win.search</attribute>
+        <attribute name="action">sms.search</attribute>
       </item>
       <item>
         <attribute name="label" translatable="yes">Change Address Book…</attribute>
