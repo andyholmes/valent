@@ -1,93 +1,61 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg
-   xmlns:osb="http://www.openswatchbook.org/uri/2009/osb"
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   width="16"
-   viewBox="0 0 16 16"
-   version="1.1"
-   id="svg7384"
-   height="16">
-  <metadata
-     id="metadata90">
-    <rdf:RDF>
-      <cc:Work
-         rdf:about="">
-        <dc:format>image/svg+xml</dc:format>
-        <dc:type
-           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title>Gnome Symbolic Icon Theme</dc:title>
-      </cc:Work>
-    </rdf:RDF>
-  </metadata>
-  <title
-     id="title9167">Gnome Symbolic Icon Theme</title>
-  <defs
-     id="defs7386">
-    <linearGradient
-       osb:paint="solid"
-       id="linearGradient7212">
-      <stop
-         style="stop-color:#000000;stop-opacity:1;"
-         offset="0"
-         id="stop7214" />
-    </linearGradient>
-  </defs>
-  <g
-     transform="translate(-100.0004,-318)"
-     style="display:inline"
-     id="layer1" />
-  <g
-     transform="translate(-341.0006,49)"
-     style="display:inline"
-     id="layer9" />
-  <g
-     transform="translate(-341.0006,49)"
-     style="display:inline"
-     id="g7628" />
-  <g
-     transform="translate(-100.0004,-518)"
-     id="layer13" />
-  <g
-     transform="translate(-100.0004,-318)"
-     style="display:inline"
-     id="layer11" />
-  <g
-     transform="translate(-100.0004,-518)"
-     id="layer14" />
-  <g
-     transform="translate(-100.0004,-318)"
-     style="display:inline"
-     id="g6387">
-    <path
-       d="m 104,319 c -1.662,0 -3,1.338 -3,3 v 1 h 2 v -1 c 0,-0.554 0.446,-1 1,-1 h 8 c 0.554,0 1,0.446 1,1 v 6 c 0,0.554 -0.446,1 -1,1 h -3 v 2 h 3 c 1.662,0 3,-1.338 3,-3 v -6 c 0,-1.662 -1.338,-3 -3,-3 z m 5,13.02539 V 334 h 3 c 1,0 1,-1 1,-1 0,0 -0.0522,-0.84521 -4,-0.97461 z"
-       id="path4211"
-       style="fill:#2e3436;fill-opacity:1;stroke:none" />
-    <path
-       d="M 102.28125,324 C 101.57123,324 101,324.57123 101,325.28125 v 7.4375 c 0,0.71002 0.57123,1.28125 1.28125,1.28125 h 4.4375 C 107.42877,334 108,333.42877 108,332.71875 v -7.4375 C 108,324.57123 107.42877,324 106.71875,324 H 105 104 Z m 0.12891,1 H 103 c 0,0.554 0.446,1 1,1 h 1 c 0.554,0 1,-0.446 1,-1 h 0.58984 c 0.22771,0 0.41016,0.18245 0.41016,0.41016 v 6.16321 c 0,0.22771 -0.18245,0.41016 -0.41016,0.41016 h -4.17968 c -0.22771,0 -0.41016,-0.18245 -0.41016,-0.41016 v -6.16321 C 102,325.18245 102.18245,325 102.41016,325 Z"
-       id="rect4217"
-       style="opacity:1;vector-effect:none;fill:#2e3436;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:20;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;marker-start:none;marker-mid:none;marker-end:none;paint-order:normal" />
-  </g>
-  <g
-     transform="translate(-100.0004,-518)"
-     id="layer18" />
-  <g
-     transform="translate(-100.0004,-518)"
-     id="layer17" />
-  <g
-     transform="translate(-100.0004,-518)"
-     id="layer16" />
-  <g
-     transform="translate(-100.0004,-318)"
-     style="display:inline"
-     id="layer10" />
-  <g
-     transform="translate(-100.0004,-518)"
-     id="layer15" />
-  <g
-     transform="translate(-100.0004,-318)"
-     id="layer12" />
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="16px" viewBox="0 0 16 16" width="16px" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <filter id="a" height="100%" width="100%" x="0%" y="0%">
+        <feColorMatrix color-interpolation-filters="sRGB" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0"/>
+    </filter>
+    <clipPath id="b">
+        <path d="m 0 0 h 16 v 16 h -16 z m 0 0"/>
+    </clipPath>
+    <mask id="c">
+        <g filter="url(#a)">
+            <image height="152" transform="matrix(1 0 0 1 -168 -16)" width="192" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAACYCAYAAACyAeadAAAABmJLR0QA/wD/AP+gvaeTAAABRklEQVR4nO3TwQnDQBAEQcnIISj/AB2CPs7hOFhBV/0H5tPHAQAAAAAAAAAAAAAAAAAAAADwKufC5t7+gkm/6QOTroXNd/sLGPKZPgCTBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmAtGth82x/AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA7/IHL1QCqN/fjO8AAAAASUVORK5CYII="/>
+        </g>
+    </mask>
+    <radialGradient id="d" cx="-28.559336" cy="-433.736725" gradientTransform="matrix(4.136364 -0.00000036 0 1.090909 186.131836 571.167297)" gradientUnits="userSpaceOnUse" r="44">
+        <stop offset="0" stop-color="#ffffff"/>
+        <stop offset="1" stop-color="#ffffff" stop-opacity="0.094118"/>
+    </radialGradient>
+    <clipPath id="e">
+        <rect height="152" width="192"/>
+    </clipPath>
+    <clipPath id="f">
+        <rect height="16" width="16"/>
+    </clipPath>
+    <clipPath id="g">
+        <path d="m 0 0 h 16 v 16 h -16 z m 0 0"/>
+    </clipPath>
+    <mask id="h">
+        <g filter="url(#a)">
+            <image height="152" transform="matrix(1 0 0 1 -168 -16)" width="192" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAACYCAYAAACyAeadAAAABmJLR0QA/wD/AP+gvaeTAAABRklEQVR4nO3TsQkDQRAEwZd4haD8A1QI7yiH42APusofGKevCwAAAAAAAAAAAAAAAAAAAADgKK+FzXf7Cyb8pg+c4F7YfLa/gCHv6QMwSQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASLsXNs/2FwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcJY/NqwCqAKIzHgAAAAASUVORK5CYII="/>
+        </g>
+    </mask>
+    <clipPath id="i">
+        <rect height="152" width="192"/>
+    </clipPath>
+    <clipPath id="j">
+        <rect height="16" width="16"/>
+    </clipPath>
+    <g clip-path="url(#f)">
+        <g clip-path="url(#b)">
+            <g mask="url(#c)">
+                <g clip-path="url(#e)" transform="matrix(1 0 0 1 -168 -16)">
+                    <path d="m 25 30 h 94 c 2.210938 0 3 0.789062 3 3 v 62 c 0 2.210938 -0.789062 3 -3 3 h -94 c -2.210938 0 -3 -0.789062 -3 -3 v -62 c 0 -2.210938 0.789062 -3 3 -3 z m 0 0" fill="url(#d)"/>
+                </g>
+            </g>
+        </g>
+    </g>
+    <g clip-path="url(#j)">
+        <g clip-path="url(#g)">
+            <g mask="url(#h)">
+                <g clip-path="url(#i)" transform="matrix(1 0 0 1 -168 -16)">
+                    <path d="m 25 30 h 94 c 2.210938 0 3 0.789062 3 3 v 62 c 0 2.210938 -0.789062 3 -3 3 h -94 c -2.210938 0 -3 -0.789062 -3 -3 v -62 c 0 -2.210938 0.789062 -3 3 -3 z m 0 0" fill="url(#d)"/>
+                </g>
+            </g>
+        </g>
+    </g>
+    <path d="m 3 0 c -1.660156 0 -3 1.339844 -3 3 v 1 h 2 v -1 c 0 -0.554688 0.445312 -1 1 -1 h 10 c 0.554688 0 1 0.445312 1 1 v 7 c 0 0.554688 -0.445312 1 -1 1 h -5 v 2 h 5 c 1.660156 0 3 -1.339844 3 -3 v -7 c 0 -1.660156 -1.339844 -3 -3 -3 z m 5 14 v 2 h 5 c 0 -1.105469 -0.894531 -2 -2 -2 z m 0 0"/>
+    <g fill-rule="evenodd">
+        <path d="m 4 7.5 c 0 0.277344 -0.222656 0.5 -0.5 0.5 s -0.5 -0.222656 -0.5 -0.5 s 0.222656 -0.5 0.5 -0.5 s 0.5 0.222656 0.5 0.5 z m 0 0"/>
+        <path d="m 1.511719 5 c -0.839844 0 -1.511719 0.671875 -1.511719 1.511719 v 7.976562 c 0 0.839844 0.671875 1.511719 1.511719 1.511719 h 3.976562 c 0.839844 0 1.511719 -0.671875 1.511719 -1.511719 v -7.976562 c 0 -0.839844 -0.671875 -1.511719 -1.511719 -1.511719 z m 0.078125 1 h 3.816406 c 0.332031 0 0.59375 0.261719 0.59375 0.59375 v 6.8125 c 0 0.332031 -0.261719 0.59375 -0.59375 0.59375 h -3.8125 c -0.332031 0 -0.59375 -0.261719 -0.59375 -0.59375 v -6.8125 c 0 -0.332031 0.261719 -0.59375 0.59375 -0.59375 z m 0 0"/>
+    </g>
 </svg>
