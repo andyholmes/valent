@@ -7,10 +7,13 @@
 
 G_BEGIN_DECLS
 
-// static const char *valent_application_credits_designers[] = {
-//   "Andy Holmes",
-//   NULL
-// };
+static const char *valent_application_credits_artists[] = {
+  NULL
+};
+
+static const char *valent_application_credits_designers[] = {
+  NULL
+};
 
 static const char *valent_application_credits_developers[] = {
   "Andy Holmes",
