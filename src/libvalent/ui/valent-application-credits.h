@@ -8,6 +8,7 @@
 G_BEGIN_DECLS
 
 static const char *valent_application_credits_artists[] = {
+  "Diego Povliuk",
   NULL
 };
 
