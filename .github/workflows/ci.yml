@@ -276,20 +276,12 @@ jobs:
         with:
           submodules: true
 
-      - name: Setup GPG
-        id: gpg
-        uses: crazy-max/ghaction-import-gpg@v5
-        with:
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.GPG_PASSPHRASE }}
-
       - name: Build
         uses: andyholmes/flatter@main
         with:
           files: |
             build-aux/flatpak/ca.andyholmes.Valent.json
           cache-key: ''
-          gpg-sign: ${{ steps.gpg.outputs.fingerprint }}
           run-tests: true
           test-config-opts: |
             --buildtype=debugoptimized
@@ -312,19 +304,11 @@ jobs:
         with:
           submodules: true
 
-      - name: Setup GPG
-        id: gpg
-        uses: crazy-max/ghaction-import-gpg@v5
-        with:
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.GPG_PASSPHRASE }}
-
       - name: Build
         uses: andyholmes/flatter@main
         with:
           files: |
             build-aux/flatpak/ca.andyholmes.Valent.Devel.json
           cache-key: ''
-          gpg-sign: ${{ steps.gpg.outputs.fingerprint }}
           run-tests: true
           upload-bundles: true
