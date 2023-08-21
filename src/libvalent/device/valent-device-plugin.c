@@ -7,7 +7,7 @@
 
 #include <gio/gio.h>
 #include <json-glib/json-glib.h>
-#include <libpeas/peas.h>
+#include <libpeas.h>
 #include <libvalent-core.h>
 
 #include "valent-device.h"
@@ -217,7 +217,7 @@ valent_device_plugin_show_notification (ValentDevicePlugin *plugin,
 {
   GApplication *application = g_application_get_default ();
   g_autoptr (ValentDevice) device = NULL;
-  PeasPluginInfo *plugin_info = NULL;
+  g_autoptr (PeasPluginInfo) plugin_info = NULL;
   g_autofree char *notification_id = NULL;
 
   g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
@@ -236,7 +236,6 @@ valent_device_plugin_show_notification (ValentDevicePlugin *plugin,
                                      peas_plugin_info_get_module_name (plugin_info),
                                      id);
   g_application_send_notification (application, notification_id, notification);
-  g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
 }
 
 /**
@@ -257,7 +256,7 @@ valent_device_plugin_hide_notification (ValentDevicePlugin *plugin,
 {
   GApplication *application = g_application_get_default ();
   g_autoptr (ValentDevice) device = NULL;
-  PeasPluginInfo *plugin_info = NULL;
+  g_autoptr (PeasPluginInfo) plugin_info = NULL;
   g_autofree char *notification_id = NULL;
 
   g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
@@ -275,7 +274,6 @@ valent_device_plugin_hide_notification (ValentDevicePlugin *plugin,
                                      peas_plugin_info_get_module_name (plugin_info),
                                      id);
   g_application_withdraw_notification (application, notification_id);
-  g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
 }
 
 /**

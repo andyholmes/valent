@@ -8,7 +8,7 @@
 #include <time.h>
 
 #include <gio/gio.h>
-#include <libpeas/peas.h>
+#include <libpeas.h>
 #include <libportal/portal.h>
 
 #include "valent-global.h"
@@ -74,7 +74,7 @@ valent_get_plugin_engine (void)
   if (default_engine == NULL)
     {
       const char *loaders_env = NULL;
-      const GList *plugins = NULL;
+      unsigned int n_plugins = 0;
 
       default_engine = peas_engine_get_default ();
       g_object_add_weak_pointer (G_OBJECT (default_engine),
@@ -90,8 +90,7 @@ valent_get_plugin_engine (void)
 
           loaders = g_strsplit (loaders_env, ",", -1);
 
-          if (g_strv_contains ((const char * const *)loaders, "python3") &&
-              g_irepository_require (NULL, "Valent", VALENT_API_VERSION, 0, &error))
+          if (g_strv_contains ((const char * const *)loaders, "python3"))
             peas_engine_enable_loader (default_engine, "python3");
 
           if (error != NULL)
@@ -107,14 +106,19 @@ valent_get_plugin_engine (void)
 
           flatpak_dir = g_build_filename ("/app", "extensions", "lib",
                                           "valent", "plugins", NULL);
-          peas_engine_prepend_search_path (default_engine, flatpak_dir, NULL);
+          peas_engine_add_search_path (default_engine, flatpak_dir, NULL);
         }
 
       /* Load plugins in the default paths automatically */
-      plugins = peas_engine_get_plugin_list (default_engine);
+      n_plugins = g_list_model_get_n_items (G_LIST_MODEL (default_engine));
 
-      for (const GList *iter = plugins; iter; iter = iter->next)
-        peas_engine_load_plugin (default_engine, iter->data);
+      for (unsigned int i = 0; i < n_plugins; i++)
+        {
+          g_autoptr (PeasPluginInfo) info = NULL;
+
+          info = g_list_model_get_item (G_LIST_MODEL (default_engine), i);
+          peas_engine_load_plugin (default_engine, info);
+        }
     }
 
   return default_engine;

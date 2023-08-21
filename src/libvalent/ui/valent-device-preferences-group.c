@@ -55,6 +55,7 @@ valent_device_preferences_group_finalize (GObject *object)
   ValentDevicePreferencesGroupPrivate *priv = valent_device_preferences_group_get_instance_private (self);
 
   g_clear_object (&priv->context);
+  g_clear_object (&priv->plugin_info);
   g_clear_object (&priv->settings);
 
   G_OBJECT_CLASS (valent_device_preferences_group_parent_class)->finalize (object);
@@ -76,7 +77,7 @@ valent_device_preferences_group_get_property (GObject    *object,
       break;
 
     case PROP_PLUGIN_INFO:
-      g_value_set_boxed (value, priv->plugin_info);
+      g_value_set_object (value, priv->plugin_info);
       break;
 
     case PROP_SETTINGS:
@@ -104,7 +105,7 @@ valent_device_preferences_group_set_property (GObject      *object,
       break;
 
     case PROP_PLUGIN_INFO:
-      priv->plugin_info = g_value_get_boxed (value);
+      priv->plugin_info = g_value_dup_object (value);
       break;
 
     default:
@@ -139,17 +140,17 @@ valent_device_preferences_group_class_init (ValentDevicePreferencesGroupClass *k
   /**
    * ValentDevicePreferencesGroup:plugin-info:
    *
-   * The [struct@Peas.PluginInfo] describing this plugin.
+   * The [class@Peas.PluginInfo] describing this plugin.
    *
    * Since: 1.0
    */
   properties [PROP_PLUGIN_INFO] =
-    g_param_spec_boxed ("plugin-info", NULL, NULL,
-                        PEAS_TYPE_PLUGIN_INFO,
-                        (G_PARAM_READWRITE |
-                         G_PARAM_CONSTRUCT_ONLY |
-                         G_PARAM_EXPLICIT_NOTIFY |
-                         G_PARAM_STATIC_STRINGS));
+    g_param_spec_object ("plugin-info", NULL, NULL,
+                         PEAS_TYPE_PLUGIN_INFO,
+                         (G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT_ONLY |
+                          G_PARAM_EXPLICIT_NOTIFY |
+                          G_PARAM_STATIC_STRINGS));
 
   /**
    * ValentDevicePreferencesGroup:settings: (getter get_settings)

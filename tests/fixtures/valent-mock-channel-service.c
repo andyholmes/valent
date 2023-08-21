@@ -7,7 +7,7 @@
 
 #include <sys/socket.h>
 
-#include <libpeas/peas.h>
+#include <libpeas.h>
 #include <valent.h>
 #include <libvalent-test.h>
 

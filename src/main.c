@@ -15,13 +15,13 @@ valent_plugin_init (void)
   g_autofree char *xdg_plugin_dir = NULL;
 
   /* The package plugin directory, typically `$LIBDIR/valent/plugins`. */
-  peas_engine_prepend_search_path (engine, VALENT_PLUGINSDIR, NULL);
+  peas_engine_add_search_path (engine, VALENT_PLUGINSDIR, NULL);
 
   /* The user plugin directory as reported by XDG directories. If in a Flatpak,
    * this will be `~/.var/app/APPLICATION_ID/data/PACKAGE_NAME/plugins`. */
   xdg_plugin_dir = g_build_filename (g_get_user_data_dir (),
                                      PACKAGE_NAME, "plugins", NULL);
-  peas_engine_prepend_search_path (engine, xdg_plugin_dir, NULL);
+  peas_engine_add_search_path (engine, xdg_plugin_dir, NULL);
 
   /* The real user plugin directory, regardless of XDG environment variables.
    * This will always be `~/.local/share/PACKAGE_NAME/plugins`. */
@@ -31,7 +31,7 @@ valent_plugin_init (void)
 
       real_plugin_dir = g_build_filename (g_get_home_dir (), ".local", "share",
                                           PACKAGE_NAME, "plugins", NULL);
-      peas_engine_prepend_search_path (engine, real_plugin_dir, NULL);
+      peas_engine_add_search_path (engine, real_plugin_dir, NULL);
     }
 }
 

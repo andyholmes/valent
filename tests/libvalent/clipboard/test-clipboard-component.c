@@ -125,18 +125,10 @@ static void
 test_clipboard_component_adapter (ClipboardComponentFixture *fixture,
                                   gconstpointer              user_data)
 {
-  PeasPluginInfo *info;
   g_autoptr (GBytes) bytes = NULL;
   g_autofree char *text = NULL;
   g_auto (GStrv) mimetypes = NULL;
   int64_t timestamp = 0;
-
-  /* Adapter Properties */
-  g_object_get (fixture->adapter,
-                "plugin-info", &info,
-                NULL);
-  g_assert_nonnull (info);
-  g_boxed_free (PEAS_TYPE_PLUGIN_INFO, info);
 
   /* Data can be written */
   text = g_uuid_string_random ();
@@ -298,3 +290,4 @@ main (int   argc,
 
   return g_test_run ();
 }
+

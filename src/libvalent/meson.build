@@ -97,7 +97,7 @@ if get_option('introspection')
     'Json-1.0',
     'Adw-1',
     'EBook-1.2',
-    'Peas-1.0',
+    'Peas-2',
   ]
 
   libvalent_gir_sources = [
@@ -130,7 +130,7 @@ if get_option('introspection')
              'json-glib-1.0',
              'libadwaita-1',
              'libebook-1.2',
-             'libpeas-1.0',
+             'libpeas-2',
           ],
            install: true,
        install_dir: vapidir,

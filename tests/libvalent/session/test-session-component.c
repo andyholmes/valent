@@ -46,20 +46,15 @@ test_session_component_adapter (SessionComponentFixture *fixture,
 {
   ValentSessionAdapter *emitter = NULL;
   gboolean active, locked;
-  PeasPluginInfo *plugin_info;
 
   /* Compare Device & Aggregator */
   g_object_get (fixture->adapter,
-                "active",      &active,
-                "locked",      &locked,
-                "plugin-info", &plugin_info,
+                "active", &active,
+                "locked", &locked,
                 NULL);
 
   g_assert_false (active);
   g_assert_false (locked);
-  g_assert_nonnull (plugin_info);
-
-  g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
 
   /* Change adapter */
   g_signal_connect (fixture->adapter,

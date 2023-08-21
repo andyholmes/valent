@@ -11,7 +11,7 @@ test_device_preferences_group_basic (void)
   PeasEngine *engine;
   PeasPluginInfo *info;
   GObject *prefs;
-  PeasPluginInfo *plugin_info = NULL;
+  g_autoptr (PeasPluginInfo) plugin_info = NULL;
   g_autoptr (GSettings) settings = NULL;
 
   engine = valent_get_plugin_engine ();
@@ -27,7 +27,6 @@ test_device_preferences_group_basic (void)
                 "settings",    &settings,
                 NULL);
   g_assert_true (plugin_info == info);
-  g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
   g_assert_false (G_IS_SETTINGS (settings));
 
   g_object_unref (prefs);

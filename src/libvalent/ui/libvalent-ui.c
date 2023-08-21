@@ -5,7 +5,7 @@
 
 #include <gio/gio.h>
 #include <gtk/gtk.h>
-#include <libpeas/peas.h>
+#include <libpeas.h>
 #include <libvalent-core.h>
 
 #include "valent-ui-manager.h"

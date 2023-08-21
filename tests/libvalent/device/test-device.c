@@ -475,7 +475,7 @@ test_device_plugins (DeviceFixture *fixture,
 {
   PeasEngine *engine;
   GStrv device_plugins;
-  const GList *engine_plugins;
+  unsigned int n_plugins = 0;
 
   /* Plugins should be loaded */
   device_plugins = valent_device_get_plugins (fixture->device);
@@ -484,19 +484,29 @@ test_device_plugins (DeviceFixture *fixture,
 
   /* Unload & Load Plugins (Engine) */
   engine = valent_get_plugin_engine ();
-  engine_plugins = peas_engine_get_plugin_list (engine);
+  n_plugins = g_list_model_get_n_items (G_LIST_MODEL (engine));
 
   /* Unload Plugins */
-  for (const GList *iter = engine_plugins; iter; iter = iter->next)
-    peas_engine_unload_plugin (engine, iter->data);
+  for (unsigned int i = 0; i < n_plugins; i++)
+    {
+      g_autoptr (PeasPluginInfo) info = NULL;
+
+      info = g_list_model_get_item (G_LIST_MODEL (engine), i);
+      peas_engine_unload_plugin (engine, info);
+    }
 
   device_plugins = valent_device_get_plugins (fixture->device);
   g_assert_cmpuint (g_strv_length (device_plugins), ==, 0);
   g_clear_pointer (&device_plugins, g_strfreev);
 
   /* Load Plugins */
-  for (const GList *iter = engine_plugins; iter; iter = iter->next)
-    peas_engine_load_plugin (engine, iter->data);
+  for (unsigned int i = 0; i < n_plugins; i++)
+    {
+      g_autoptr (PeasPluginInfo) info = NULL;
+
+      info = g_list_model_get_item (G_LIST_MODEL (engine), i);
+      peas_engine_load_plugin (engine, info);
+    }
 
   device_plugins = valent_device_get_plugins (fixture->device);
   g_assert_cmpuint (g_strv_length (device_plugins), >, 0);

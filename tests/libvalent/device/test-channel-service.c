@@ -254,7 +254,6 @@ test_channel_service_basic (void)
   g_autofree char *id_out = NULL;
   g_autoptr (JsonNode) identity_out = NULL;
   g_autofree char *name_out = NULL;
-  PeasPluginInfo *plugin_info_out;
 
   /* ValentChannelService */
   plugin_info = peas_engine_get_plugin_info (valent_get_plugin_engine (), "mock");
@@ -266,19 +265,16 @@ test_channel_service_basic (void)
                           NULL);
 
   g_object_get (service,
-                "context",     &context_out,
-                "id",          &id_out,
-                "identity",    &identity_out,
-                "name",        &name_out,
-                "plugin-info", &plugin_info_out,
+                "context",  &context_out,
+                "id",       &id_out,
+                "identity", &identity_out,
+                "name",     &name_out,
                 NULL);
 
   g_assert_true (context_out == context);
   g_assert_nonnull (id_out);
   g_assert_true (VALENT_IS_PACKET (identity_out));
   g_assert_cmpstr (name_out, ==, "Mock Service");
-  g_assert_true (plugin_info_out == plugin_info);
-  g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info_out);
 
   g_clear_pointer (&id_out, g_free);
   id_out = valent_channel_service_dup_id (service);

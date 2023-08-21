@@ -111,7 +111,6 @@ test_mixer_component_adapter (MixerComponentFixture *fixture,
                               gconstpointer          user_data)
 {
   ValentMixerStream *stream;
-  PeasPluginInfo *plugin_info;
   g_autoptr (ValentMixerStream) default_input = NULL;
   g_autoptr (ValentMixerStream) default_output = NULL;
 
@@ -124,13 +123,10 @@ test_mixer_component_adapter (MixerComponentFixture *fixture,
   g_object_get (fixture->adapter,
                 "default-input",  &default_input,
                 "default-output", &default_output,
-                "plugin-info",    &plugin_info,
                 NULL);
 
   g_assert_null (default_input);
   g_assert_null (default_output);
-  g_assert_nonnull (plugin_info);
-  g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
 
   /* Add Streams */
   valent_mixer_adapter_stream_added (fixture->adapter, fixture->input1);

@@ -4,7 +4,7 @@
 #include "config.h"
 
 #include <gtk/gtk.h>
-#include <libpeas/peas.h>
+#include <libpeas.h>
 #include <valent.h>
 
 #include "valent-gdk-clipboard.h"
