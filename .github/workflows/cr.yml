@@ -5,11 +5,9 @@ on:
     branches: [main]
     paths:
       - 'build-aux/docker/Dockerfile'
-      - 'build-aux/docker/Dockerfile.toolbox'
   pull_request:
     paths:
       - 'build-aux/docker/Dockerfile'
-      - 'build-aux/docker/Dockerfile.toolbox'
   schedule:
     # Once a week to keep dependencies up to date
     - cron: 0 0 * * 0
@@ -24,32 +22,18 @@ env:
   PASSWORD: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  build:
-    name: Docker
+  container:
+    name: Container
     runs-on: ubuntu-latest
     permissions:
       packages: write
-
-    strategy:
-      matrix:
-        label:
-          - CI
-          - Toolbox
-        include:
-          - label: CI
-            file: ./build-aux/docker/Dockerfile
-            image: ghcr.io/${{ github.repository }}
-          - label: Toolbox
-            file: ./build-aux/docker/Dockerfile.toolbox
-            image: ghcr.io/${{ github.repository }}-toolbox
-      fail-fast: false
 
     steps:
       - name: Metadata
         id: metadata
         uses: docker/metadata-action@v4
         with:
-          images: ${{ matrix.image }}
+          images: ghcr.io/${{ github.repository }}
           tags: |
             # set latest tag for main branch
             type=raw,value=latest,enable={{is_default_branch}}
@@ -66,7 +50,7 @@ jobs:
       - name: Build
         uses: docker/build-push-action@v4
         with:
-          file: ${{ matrix.file }}
+          file: ./build-aux/docker/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
