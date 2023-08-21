@@ -50,8 +50,7 @@ including coding style, documentation and introspection, with an emphasis on
 automated testing.
 
 If developing with GNOME Builder, select the `ca.andyholmes.Valent.Devel.json`
-build configuration. If your distribution supports `toolbox`, you can pull and
-use `ghcr.io/andyholmes/valent-toolbox` as the build environment.
+build configuration.
 
 
 ### Coding Style
