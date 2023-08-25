@@ -111,7 +111,7 @@ valent_findmyphone_ringer_new (void)
   if (ringer->playbin != NULL)
     {
       g_object_set (ringer->playbin,
-                    "uri", "resource:///plugins/findmyphone/ring.oga",
+                    "uri", "resource:///plugins/findmyphone/alert.oga",
                     NULL);
     }
 

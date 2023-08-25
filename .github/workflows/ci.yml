@@ -19,7 +19,7 @@ jobs:
         uses: codespell-project/actions-codespell@master
         with:
           ignore_words_list: doubleclick,inout,onlyonce,sav
-          skip: ./tests/fixtures/data,./subprojects,./*.po
+          skip: ./LICENSES,./po,./subprojects,./tests/fixtures/data
 
   commitlint:
     name: Commitlint
