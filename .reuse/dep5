@@ -1,6 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 
-Files: *.desktop *.service *.json *.po *.pot
+Files: *.desktop.in.in *.service *.json *.po *.pot
 Copyright: Andy Holmes <andrew.g.r.holmes@gmail.com>
 License: GPL-3.0-or-later
 
