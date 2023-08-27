@@ -113,7 +113,7 @@
         },
         {
             "title": "MPRIS Plugin",
-            "description": "The MRIS plugin allows sharing control of media players.",
+            "description": "The MPRIS plugin allows sharing control of media players.",
             "packets": [
                 "kdeconnect.mpris",
                 "kdeconnect.mpris.request"
@@ -193,7 +193,7 @@
         },
         {
             "title": "SFTP Plugin",
-            "description": "The SFTP plugin enables secure filesharing with SFTP.",
+            "description": "The SFTP plugin enables secure file sharing with SFTP.",
             "packets": [
                 "kdeconnect.sftp",
                 "kdeconnect.sftp.request"

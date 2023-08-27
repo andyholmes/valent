@@ -282,11 +282,9 @@ valent_object_class_init (ValentObjectClass *klass)
    * main thread, with the object lock acquired. Note that you must still drop
    * any references you hold to avoid leaking memory.
    *
-   * If subclassing [class@Valent.Object], implementations must override
-   * [vfunc@Valent.Object.destroy] instead of [vfunc@GObject.Object.dispose]
-   * to ensure the instance is finalized on the main thread.
-   *
-   * Implementations that override [vfunc@Valent.Object.destroy] must chain-up.
+   * Implementations must override [vfunc@Valent.Object.destroy] instead of
+   * [vfunc@GObject.Object.dispose] to ensure the instance is finalized on the
+   * main thread.
    *
    * Since: 1.0
    */

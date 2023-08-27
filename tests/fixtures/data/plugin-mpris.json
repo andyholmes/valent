@@ -17,14 +17,14 @@
       ]
     }
   },
-  "request-playerlist": {
+  "request-player-list": {
     "id": 0,
     "type": "kdeconnect.mpris.request",
     "body": {
       "requestPlayerList": true
     }
   },
-  "request-nowplaying": {
+  "request-now-playing": {
     "id": 0,
     "type": "kdeconnect.mpris.request",
     "body": {

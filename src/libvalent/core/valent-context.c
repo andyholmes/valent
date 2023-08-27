@@ -82,23 +82,23 @@ remove_directory (GFile         *file,
                   GCancellable  *cancellable,
                   GError       **error)
 {
-  g_autoptr (GFileEnumerator) fenum = NULL;
+  g_autoptr (GFileEnumerator) iter = NULL;
 
   g_assert (G_IS_FILE (file));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
   g_assert (error == NULL || *error == NULL);
 
-  fenum = g_file_enumerate_children (file,
-                                     G_FILE_ATTRIBUTE_STANDARD_NAME,
-                                     G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS,
-                                     cancellable,
-                                     NULL);
+  iter = g_file_enumerate_children (file,
+                                    G_FILE_ATTRIBUTE_STANDARD_NAME,
+                                    G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS,
+                                    cancellable,
+                                    NULL);
 
-  while (fenum != NULL)
+  while (iter != NULL)
     {
       GFile *child;
 
-      if (!g_file_enumerator_iterate (fenum, NULL, &child, cancellable, error))
+      if (!g_file_enumerator_iterate (iter, NULL, &child, cancellable, error))
         return FALSE;
 
       if (child == NULL)

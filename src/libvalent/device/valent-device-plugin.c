@@ -24,8 +24,7 @@
  *
  * `ValentDevicePlugin` is a base class for plugins that operate in the scope of
  * a single device. This usually means communicating with other devices, however
- * plugins aren't required to be packet based and may offer connectionless
- * functionality.
+ * plugins aren't required to be packet based.
  *
  * ## Plugin Requirements
  *

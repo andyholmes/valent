@@ -68,7 +68,7 @@ with GNU-style indentation.
 * Use `g_return_if_fail ()` or `g_return_val_if_fail ()` in public functions and
   `g_assert ()` in private functions.
 
-* Use `g_clear_pointer ()` and `g_clear_object ()` to free struct fields,
+* Use `g_clear_pointer ()` and `g_clear_object ()` to free `struct` fields,
   `g_clear_handle_id ()` and `g_clear_signal_handler ()` to disconnect closures,
   and other macros that reset pointers to freed memory.
 

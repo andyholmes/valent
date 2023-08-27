@@ -167,7 +167,7 @@ static gboolean
 sftp_session_find (ValentSftpPlugin *self)
 {
   g_autofree char *host = NULL;
-  g_autofree char *host_patt = NULL;
+  g_autofree char *host_pattern = NULL;
   g_autoptr (GRegex) regex = NULL;
   g_autolist (GMount) mounts = NULL;
 
@@ -178,8 +178,8 @@ sftp_session_find (ValentSftpPlugin *self)
     return FALSE;
 
   // TODO: is this reasonable?
-  host_patt = g_strdup_printf ("sftp://(%s):([22-65535])", host);
-  regex = g_regex_new (host_patt, G_REGEX_OPTIMIZE, 0, NULL);
+  host_pattern = g_strdup_printf ("sftp://(%s):([22-65535])", host);
+  regex = g_regex_new (host_pattern, G_REGEX_OPTIMIZE, 0, NULL);
 
   /* Search through each mount in the volume monitor... */
   mounts = g_volume_monitor_get_mounts (self->monitor);
@@ -342,7 +342,7 @@ mount_cb (GFile            *file,
     return;
 
   /* On failure, we're particularly interested in host key failures so that
-   * we can remove those from the ssh-agent. These are reported by gvfs as
+   * we can remove those from the ssh-agent. These are reported by GVfs as
    * G_IO_ERROR_FAILED with a localized string, so we just assume. */
   if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_FAILED))
     {
@@ -356,9 +356,9 @@ mount_cb (GFile            *file,
 }
 
 static void
-sshadd_cb (GSubprocess      *proc,
-           GAsyncResult     *result,
-           ValentSftpPlugin *self)
+ssh_add_cb (GSubprocess      *proc,
+            GAsyncResult     *result,
+            ValentSftpPlugin *self)
 {
   ValentSftpSession *session = self->session;
   g_autoptr (GError) error = NULL;
@@ -418,7 +418,7 @@ sftp_session_begin (ValentSftpPlugin  *self,
 
   g_subprocess_wait_check_async (proc,
                                  NULL,
-                                 (GAsyncReadyCallback)sshadd_cb,
+                                 (GAsyncReadyCallback)ssh_add_cb,
                                  self);
 }
 

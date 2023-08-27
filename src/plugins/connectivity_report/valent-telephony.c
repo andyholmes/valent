@@ -135,7 +135,7 @@ get_telephony_type_string (unsigned int flags)
 static void
 on_properties_changed (GDBusProxy      *proxy,
                        GVariant        *changed_properties,
-                       GStrv            invaliated,
+                       GStrv            invalidated,
                        ValentTelephony *self)
 {
   GVariantIter iter;

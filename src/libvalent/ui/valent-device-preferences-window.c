@@ -180,8 +180,8 @@ valent_device_preferences_window_add_plugin (ValentDevicePreferencesWindow *self
 }
 
 static int
-strvsort (gconstpointer a,
-          gconstpointer b)
+plugin_sort (gconstpointer a,
+             gconstpointer b)
 {
   const char *a_ = *(char **)a;
   const char *b_ = *(char **)b;
@@ -199,7 +199,7 @@ on_plugins_changed (ValentDevice                  *device,
   const char *module;
 
   plugins = valent_device_get_plugins (device);
-  qsort (plugins, g_strv_length (plugins), sizeof (char *), strvsort);
+  qsort (plugins, g_strv_length (plugins), sizeof (char *), plugin_sort);
 
   /* Remove */
   g_hash_table_iter_init (&iter, self->plugins);

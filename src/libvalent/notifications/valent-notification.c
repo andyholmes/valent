@@ -878,8 +878,8 @@ valent_notification_serialize (ValentNotification *notification)
  * valent_notification_deserialize:
  * @variant: a #GVariant
  *
- * Deserializes @variant into a #ValentNotification. Since #ValentNotificaton is
- * effectively a super-set of #GNotification, @variant may be a serialized
+ * Deserializes @variant into a #ValentNotification. Since #ValentNotification
+ * is effectively a super-set of #GNotification, @variant may be a serialized
  * #GNotification or #ValentNotification.
  *
  * Returns: (transfer full) (nullable): a #ValentNotification

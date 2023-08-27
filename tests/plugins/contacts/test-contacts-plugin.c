@@ -80,7 +80,7 @@ test_contacts_plugin_request_contacts (ValentTestFixture *fixture,
   packet = valent_test_fixture_lookup_packet (fixture, "response-uids-timestamps");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  VALENT_TEST_CHECK ("Plugin reponds to a list of UIDs with a request for vCard data");
+  VALENT_TEST_CHECK ("Plugin responds to a list of UIDs with a request for vCard data");
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.contacts.request_vcards_by_uid");
   json_node_unref (packet);

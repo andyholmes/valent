@@ -91,7 +91,7 @@
                                 "description": "The message ID."
                             },
                             "addresses": {
-                                "description": "A list of partipating contacts. If the message is incoming, the first `Address` will be the sender. If the message is outgoing, every `Address` will be a recipient.",
+                                "description": "A list of participating contacts. If the message is incoming, the first `Address` will be the sender. If the message is outgoing, every `Address` will be a recipient.",
                                 "type": "array",
                                 "items": {
                                     "title": "Address",
