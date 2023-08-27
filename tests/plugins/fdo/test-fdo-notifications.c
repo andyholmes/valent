@@ -114,7 +114,7 @@ send_notification (FdoNotificationsFixture *fixture,
     {
       g_autoptr (GdkPixbuf) pixbuf = NULL;
       int width, height, rowstride, bits_per_sample, n_channels;
-      guchar *pixels;
+      unsigned char *pixels;
       size_t pixels_len;
       gboolean has_alpha;
       GVariant *value;

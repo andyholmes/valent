@@ -78,7 +78,7 @@ _g_icon_new_for_variant (GVariant *image_data)
   gboolean has_alpha;
   int32_t bits_per_sample, n_channels;
   g_autoptr (GVariant) data_variant = NULL;
-  guchar *data = NULL;
+  unsigned char *data = NULL;
   size_t data_len = 0;
   size_t expected_len = 0;
 
@@ -150,7 +150,7 @@ _notify (ValentNotificationsAdapter *adapter,
   g_autofree char *replaces_id_str = NULL;
   g_autoptr (GVariant) image_data = NULL;
   const char *image_path;
-  guchar urgency;
+  unsigned char urgency;
 
   /* Extract what we need from the parameters */
   g_variant_get (parameters, "(&su&s&s&s@as@a{sv}i)",
