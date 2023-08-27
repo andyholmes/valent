@@ -1,0 +1,131 @@
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileCopyrightText: No rights reserved
+
+#
+# Valent
+#
+valent
+andyholmes
+kdeconnect
+
+addressbook
+albumart
+basepath
+esource
+gschema
+gschemas
+keysym
+keysyms
+libvalent
+phonelink
+privkey
+pubkey
+repliable
+screencast
+touchpad
+touchpads
+unexport
+unexported
+unexports
+unmuted
+unpair
+unpairing
+
+# variant formats
+ssav
+iiibiiay
+
+# src/plugins/bluez
+muxed
+muxer
+muxes
+muxers
+muxing
+demux
+demuxing
+
+# src/plugins/connectivity_report
+CDMA
+hspa
+
+# src/plugins/contacts
+uids
+vcard
+vcards
+
+# src/plugins/findmyphone
+findmyphone
+playbin
+playbus
+
+# src/plugins/mousepad
+singleclick
+doubleclick
+middleclick
+rightclick
+singlehold
+singlerelease
+keyboardstate
+longpress
+
+# src/plugins/mpris
+mpris
+albumart
+fullscreen
+seeked
+xesam
+
+# src/plugins/runcommand
+runcommand
+
+# src/plugins/systemvolume
+systemvolume
+sinklist
+
+# tests/fixtures
+argcp
+argvp
+cmpfloat
+cmpint
+cmpstr
+cmpuint
+modemless
+packetless
+spoofer
+
+# TODO
+naddr
+atarget
+saddress
+aprotocol
+sprotocol
+notificationv
+targetv
+vicon
+vobject
+
+# ...
+cmplen
+getcpu
+
+# Names
+asan
+msan
+tsan
+ubsan
+
+adwaita
+alsa
+avahi
+bluez
+dbusmock
+lcov
+libportal
+logind
+modemmanager
+flatpak
+freedesktop
+pipewire
+pulseaudio
+sysprof
+upower
