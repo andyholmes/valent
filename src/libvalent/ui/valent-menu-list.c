@@ -61,7 +61,7 @@ on_key_pressed (GtkEventControllerKey *controller,
                 ValentMenuList        *self)
 {
   GtkWidget *row = NULL;
-  static uint32_t activate_keyvals[] = {
+  static uint32_t activate_keys[] = {
     GDK_KEY_space,
     GDK_KEY_KP_Space,
     GDK_KEY_Return,
@@ -71,9 +71,9 @@ on_key_pressed (GtkEventControllerKey *controller,
 
   g_assert (VALENT_IS_MENU_LIST (self));
 
-  for (unsigned int i = 0; i < G_N_ELEMENTS (activate_keyvals); i++)
+  for (unsigned int i = 0; i < G_N_ELEMENTS (activate_keys); i++)
     {
-      if (activate_keyvals[i] != keyval)
+      if (activate_keys[i] != keyval)
         continue;
 
       row = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (controller));

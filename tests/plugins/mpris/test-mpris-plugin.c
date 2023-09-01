@@ -85,7 +85,7 @@ test_mpris_plugin_handle_request (ValentTestFixture *fixture,
   json_node_unref (packet);
 
   VALENT_TEST_CHECK ("Plugin sends the list of players when requested");
-  packet = valent_test_fixture_lookup_packet (fixture, "request-nowplaying");
+  packet = valent_test_fixture_lookup_packet (fixture, "request-now-playing");
   valent_test_fixture_handle_packet (fixture, packet);
 
   VALENT_TEST_CHECK ("Plugin sends players with the expected properties");

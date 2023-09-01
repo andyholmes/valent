@@ -682,7 +682,6 @@ test_lan_service_channel (LanBackendFixture *fixture,
   /* FIXME: the call to `g_object_get()` for "peer-certificate" must come after
    *        and must be a separate call. If not, this will segfault, but only on
    *        Clang with ASan not enabled. */
-  // TODO: valgrind
   g_object_get (fixture->channel,
                 "peer-certificate", &peer_certificate,
                 NULL);

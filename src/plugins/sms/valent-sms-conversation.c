@@ -135,8 +135,8 @@ message_list_header_func (GtkListBoxRow *row,
                           gpointer       user_data)
 {
   ValentSmsConversation *self = VALENT_SMS_CONVERSATION (user_data);
-  ValentSmsConversationRow *mrow = VALENT_SMS_CONVERSATION_ROW (row);
-  ValentSmsConversationRow *brow = VALENT_SMS_CONVERSATION_ROW (before);
+  ValentSmsConversationRow *c_row = VALENT_SMS_CONVERSATION_ROW (row);
+  ValentSmsConversationRow *b_row = VALENT_SMS_CONVERSATION_ROW (before);
   int64_t row_date, before_date;
   gboolean row_incoming, before_incoming;
 
@@ -147,20 +147,20 @@ message_list_header_func (GtkListBoxRow *row,
   if G_UNLIKELY (row == self->pending)
     return;
 
-  row_incoming = valent_sms_conversation_row_is_incoming (mrow);
+  row_incoming = valent_sms_conversation_row_is_incoming (c_row);
 
   /* If this is the first row and it's incoming, show the avatar */
   if (before == NULL)
     {
       if (row_incoming)
-        valent_sms_conversation_row_show_avatar (mrow, TRUE);
+        valent_sms_conversation_row_show_avatar (c_row, TRUE);
       return;
     }
 
   /* Date header */
-  before_incoming = valent_sms_conversation_row_is_incoming (brow);
-  before_date = valent_sms_conversation_row_get_date (brow);
-  row_date = valent_sms_conversation_row_get_date (mrow);
+  before_incoming = valent_sms_conversation_row_is_incoming (b_row);
+  before_date = valent_sms_conversation_row_get_date (b_row);
+  row_date = valent_sms_conversation_row_get_date (c_row);
 
   /* If it's been more than an hour between messages, show a date label */
   if (row_date - before_date > G_TIME_SPAN_HOUR / 1000)
@@ -176,16 +176,16 @@ message_list_header_func (GtkListBoxRow *row,
 
           /* If the row's message is incoming, show the avatar also */
           if (row_incoming)
-            valent_sms_conversation_row_show_avatar (mrow, row_incoming);
+            valent_sms_conversation_row_show_avatar (c_row, row_incoming);
         }
     }
   else if (row_incoming)
     {
-      valent_sms_conversation_row_show_avatar (mrow, TRUE);
+      valent_sms_conversation_row_show_avatar (c_row, TRUE);
 
       /* If the previous row was incoming, hide its avatar */
       if (before_incoming)
-        valent_sms_conversation_row_show_avatar (mrow, FALSE);
+        valent_sms_conversation_row_show_avatar (c_row, FALSE);
     }
 }
 

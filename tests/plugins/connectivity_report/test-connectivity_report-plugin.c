@@ -392,7 +392,6 @@ main (int   argc,
               test_connectivity_report_plugin_send_update,
               valent_test_fixture_clear);
 
-// TODO: fuzzing times out with the only undeprecated packet
 #if 0
   g_test_add ("/plugins/connectivity_report/fuzz",
               ValentTestFixture, path,
