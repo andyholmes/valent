@@ -22,7 +22,7 @@ _e_contact_get_icon (EContact *contact)
 {
   GLoadableIcon *icon = NULL;
   g_autoptr (EContactPhoto) photo = NULL;
-  const guchar *data;
+  const unsigned char *data;
   size_t len;
   const char *uri;
 
