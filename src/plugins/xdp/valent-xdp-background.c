@@ -66,7 +66,7 @@ xdp_portal_request_background_cb (GObject      *object,
 static void
 valent_xdp_background_request (ValentXdpBackground *self)
 {
-  g_autoptr (GPtrArray) commandline = NULL;
+  g_autoptr (GPtrArray) command_line = NULL;
   g_autoptr (XdpParent) parent = NULL;
   g_autoptr (GCancellable) destroy = NULL;
   XdpBackgroundFlags flags = XDP_BACKGROUND_FLAG_NONE;
@@ -77,9 +77,9 @@ valent_xdp_background_request (ValentXdpBackground *self)
 
   if (self->autostart)
     {
-      commandline = g_ptr_array_new_with_free_func (g_free);
-      g_ptr_array_add (commandline, g_strdup ("valent"));
-      g_ptr_array_add (commandline, g_strdup ("--gapplication-service"));
+      command_line = g_ptr_array_new_with_free_func (g_free);
+      g_ptr_array_add (command_line, g_strdup ("valent"));
+      g_ptr_array_add (command_line, g_strdup ("--gapplication-service"));
 
       flags |= XDP_BACKGROUND_FLAG_AUTOSTART;
     }
@@ -88,7 +88,7 @@ valent_xdp_background_request (ValentXdpBackground *self)
   xdp_portal_request_background (valent_xdp_get_default (),
                                  parent,
                                  _("Valent wants to run as a service"),
-                                 commandline,
+                                 command_line,
                                  flags,
                                  destroy,
                                  xdp_portal_request_background_cb,

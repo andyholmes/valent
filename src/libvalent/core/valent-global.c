@@ -60,7 +60,7 @@ valent_get_main_thread (void)
  * Get the global #PeasEngine.
  *
  * The first call to this function initializes the #PeasEngine and adds
- * `resource:///plugins` to the search path, where emebedded plugins should be
+ * `resource:///plugins` to the search path, where embedded plugins should be
  * registered. If running in a Flatpak, `/app/extensions/lib/valent/plugins`
  * will also be added to the search path for Flatpak extensions.
  *

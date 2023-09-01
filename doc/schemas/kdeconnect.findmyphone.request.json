@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/schema#",
     "title": "kdeconnect.findmyphone.request",
-    "description": "This packet is a request for a device to accounce its location. By convention, sending a second packet cancels the request.",
+    "description": "This packet is a request for a device to announce its location. By convention, sending a second packet cancels the request.",
     "examples": [
         {
             "id": 0,

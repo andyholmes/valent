@@ -304,8 +304,7 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
    *
    * The metadata of the active media item.
    *
-   * The content of the vardict should be in the same format as the MPRISv2
-   * standard.
+   * The content of the variant should be in the same format as MPRISv2.
    *
    * Implementations should emit [signal@GObject.Object::notify] when they
    * change the internal representation of this property.

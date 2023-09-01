@@ -241,7 +241,7 @@ valent_channel_service_real_build_identity (ValentChannelService *service)
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (GHashTable) incoming = NULL;
   g_autoptr (GHashTable) outgoing = NULL;
-  GHashTableIter iiter, oiter;
+  GHashTableIter in_iter, out_iter;
   const char *capability = NULL;
 
   g_assert (VALENT_IS_CHANNEL_SERVICE (service));
@@ -283,9 +283,9 @@ valent_channel_service_real_build_identity (ValentChannelService *service)
   json_builder_set_member_name (builder, "incomingCapabilities");
   json_builder_begin_array (builder);
 
-  g_hash_table_iter_init (&iiter, incoming);
+  g_hash_table_iter_init (&in_iter, incoming);
 
-  while (g_hash_table_iter_next (&iiter, (void **)&capability, NULL))
+  while (g_hash_table_iter_next (&in_iter, (void **)&capability, NULL))
     json_builder_add_string_value (builder, capability);
 
   json_builder_end_array (builder);
@@ -294,9 +294,9 @@ valent_channel_service_real_build_identity (ValentChannelService *service)
   json_builder_set_member_name (builder, "outgoingCapabilities");
   json_builder_begin_array (builder);
 
-  g_hash_table_iter_init (&oiter, outgoing);
+  g_hash_table_iter_init (&out_iter, outgoing);
 
-  while (g_hash_table_iter_next (&oiter, (void **)&capability, NULL))
+  while (g_hash_table_iter_next (&out_iter, (void **)&capability, NULL))
     json_builder_add_string_value (builder, capability);
 
   json_builder_end_array (builder);

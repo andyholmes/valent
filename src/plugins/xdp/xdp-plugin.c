@@ -24,9 +24,7 @@ valent_xdp_plugin_register_types (PeasObjectModule *module)
                                                   VALENT_TYPE_XDP_INPUT);
     }
 
-  /* These extensions only makes sense in a sandboxed environment, where the
-   * XDG autostart entry isn't installed in the standard location and logind is
-   * not available. */
+  /* These extensions only makes sense in a sandbox environment. */
   if (xdp_portal_running_under_sandbox ())
     {
       peas_object_module_register_extension_type (module,

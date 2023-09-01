@@ -841,7 +841,7 @@ on_name_appeared (GDBusConnection *connection,
                                         weak_ref_free);
 
 
-  /* If the initial state is "running" call `EntryGoupNew()` and
+  /* If the initial state is "running" call `EntryGroupNew()` and
    * `ServiceBrowserPrepare()`, otherwise wait for a `StateChanged` emission.
    */
   if (self->server_state == _AVAHI_SERVER_RUNNING)
