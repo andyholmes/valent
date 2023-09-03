@@ -6,16 +6,10 @@
 <interface domain="valent">
   <template class="ValentSftpPreferences" parent="ValentDevicePreferencesGroup">
     <child>
-      <object class="AdwActionRow">
+      <object class="AdwSwitchRow" id="auto_mount">
         <property name="title" translatable="yes">Automatically Mount</property>
         <property name="subtitle" translatable="yes">Mount shared folders when the device connects</property>
         <property name="selectable">0</property>
-        <property name="activatable-widget">auto_mount</property>
-        <child type="suffix">
-          <object class="GtkSwitch" id="auto_mount">
-            <property name="valign">center</property>
-          </object>
-        </child>
       </object>
     </child>
     <child>
@@ -25,22 +19,16 @@
         <property name="selectable">0</property>
         <property name="show-enable-switch">1</property>
         <child>
-          <object class="AdwActionRow">
+          <object class="AdwSpinRow">
             <property name="title" translatable="yes">Port</property>
             <property name="selectable">0</property>
-            <child type="suffix">
-              <object class="GtkSpinButton">
-                <property name="numeric">1</property>
-                <property name="valign">center</property>
-                <property name="adjustment">
-                  <object class="GtkAdjustment" id="local_port">
-                    <property name="lower">0</property>
-                    <property name="upper">65535</property>
-                    <property name="step-increment">1</property>
-                  </object>
-                </property>
+            <property name="adjustment">
+              <object class="GtkAdjustment" id="local_port">
+                <property name="lower">0</property>
+                <property name="upper">65535</property>
+                <property name="step-increment">1</property>
               </object>
-            </child>
+            </property>
           </object>
         </child>
       </object>

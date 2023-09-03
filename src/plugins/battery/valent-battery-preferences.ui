@@ -12,21 +12,15 @@
         <property name="selectable">0</property>
         <property name="show-enable-switch">1</property>
         <child>
-          <object class="AdwActionRow">
+          <object class="AdwSpinRow">
             <property name="title" translatable="yes">Level Threshold</property>
-            <property name="selectable">0</property>
-            <child type="suffix">
-              <object class="GtkSpinButton">
-                <property name="valign">center</property>
-                <property name="adjustment">
-                  <object class="GtkAdjustment" id="full_notification_level">
-                    <property name="lower">1</property>
-                    <property name="upper">100</property>
-                    <property name="step-increment">1</property>
-                  </object>
-                </property>
+            <property name="adjustment">
+              <object class="GtkAdjustment" id="full_notification_level">
+                <property name="lower">1</property>
+                <property name="upper">100</property>
+                <property name="step-increment">1</property>
               </object>
-            </child>
+            </property>
           </object>
         </child>
       </object>
@@ -38,21 +32,15 @@
         <property name="selectable">0</property>
         <property name="show-enable-switch">1</property>
         <child>
-          <object class="AdwActionRow">
+          <object class="AdwSpinRow">
             <property name="title" translatable="yes">Level Threshold</property>
-            <property name="selectable">0</property>
-            <child type="suffix">
-              <object class="GtkSpinButton">
-                <property name="valign">center</property>
-                <property name="adjustment">
-                  <object class="GtkAdjustment" id="low_notification_level">
-                    <property name="lower">1</property>
-                    <property name="upper">100</property>
-                    <property name="step-increment">1</property>
-                  </object>
-                </property>
+            <property name="adjustment">
+              <object class="GtkAdjustment" id="low_notification_level">
+                <property name="lower">1</property>
+                <property name="upper">100</property>
+                <property name="step-increment">1</property>
               </object>
-            </child>
+            </property>
           </object>
         </child>
       </object>

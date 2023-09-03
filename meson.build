@@ -185,7 +185,7 @@ json_glib_version = '>= 1.6.0'
 libpeas_version = '>= 1.99.0'
 eds_version = '>= 3.34'
 sqlite_version = '>= 3.24.0'
-libadwaita_version = '>= 1.2.0'
+libadwaita_version = '>= 1.4'
 libportal_version = ['>= 0.5', '<= 0.6']
 
 libm_dep = cc.find_library('m', required: true)

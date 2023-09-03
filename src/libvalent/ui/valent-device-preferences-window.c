@@ -96,7 +96,6 @@ valent_device_preferences_window_add_plugin (ValentDevicePreferencesWindow *self
   const char *title;
   const char *subtitle;
   const char *icon_name;
-  GtkWidget *sw;
 
   g_assert (VALENT_IS_DEVICE_PREFERENCES_WINDOW (self));
   g_assert (module != NULL && *module != '\0');
@@ -111,19 +110,13 @@ valent_device_preferences_window_add_plugin (ValentDevicePreferencesWindow *self
   icon_name = peas_plugin_info_get_icon_name (info);
 
   /* Plugin Row */
-  plugin->row = g_object_new (ADW_TYPE_ACTION_ROW,
-                              "icon-name",  icon_name,
+  plugin->row = g_object_new (ADW_TYPE_SWITCH_ROW,
                               "title",      title,
                               "subtitle",   subtitle,
                               "selectable", FALSE,
                               NULL);
-
-  sw = g_object_new (GTK_TYPE_SWITCH,
-                     "active",  TRUE,
-                     "valign",  GTK_ALIGN_CENTER,
-                     NULL);
-  adw_action_row_add_suffix (ADW_ACTION_ROW (plugin->row), sw);
-  adw_action_row_set_activatable_widget (ADW_ACTION_ROW (plugin->row), sw);
+  adw_action_row_add_prefix (ADW_ACTION_ROW (plugin->row),
+                             gtk_image_new_from_icon_name (icon_name));
   gtk_list_box_insert (self->plugin_list, plugin->row, -1);
 
   /* Plugin Toggle */
@@ -131,9 +124,11 @@ valent_device_preferences_window_add_plugin (ValentDevicePreferencesWindow *self
   plugin_context = valent_context_get_plugin_context (context, info);
   settings = valent_context_create_settings (plugin_context,
                                              "ca.andyholmes.Valent.Plugin");
-  g_settings_bind (settings, "enabled",
-                   sw,       "active",
+  g_settings_bind (settings,    "enabled",
+                   plugin->row, "active",
                    G_SETTINGS_BIND_DEFAULT);
+  adw_switch_row_set_active (ADW_SWITCH_ROW (plugin->row),
+                             g_settings_get_boolean (settings, "enabled"));
   g_object_set_data_full (G_OBJECT (plugin->row),
                           "valent-plugin-settings",
                           g_steal_pointer (&settings),
