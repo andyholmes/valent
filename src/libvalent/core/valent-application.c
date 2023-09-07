@@ -307,18 +307,22 @@ valent_application_constructed (GObject *object)
 {
   ValentApplication *self = VALENT_APPLICATION (object);
   PeasEngine *engine = NULL;
-  const GList *plugins = NULL;
+  unsigned int n_plugins = 0;
 
   self->plugins = g_hash_table_new_full (NULL, NULL, NULL, valent_plugin_free);
   self->plugins_context = valent_context_new (NULL, "application", NULL);
 
   engine = valent_get_plugin_engine ();
-  plugins = peas_engine_get_plugin_list (engine);
+  n_plugins = g_list_model_get_n_items (G_LIST_MODEL (engine));
 
-  for (const GList *iter = plugins; iter; iter = iter->next)
+  for (unsigned int i = 0; i < n_plugins; i++)
     {
-      if (peas_plugin_info_is_loaded (iter->data))
-        on_load_plugin (engine, iter->data, self);
+      g_autoptr (PeasPluginInfo) info = NULL;
+
+      info = g_list_model_get_item (G_LIST_MODEL (engine), i);
+
+      if (peas_plugin_info_is_loaded (info))
+        on_load_plugin (engine, info, self);
     }
 
   g_signal_connect_object (engine,

@@ -6,7 +6,7 @@
 #include "config.h"
 
 #include <gio/gio.h>
-#include <libpeas/peas.h>
+#include <libpeas.h>
 
 #include "valent-component.h"
 #include "valent-component-private.h"
@@ -420,7 +420,7 @@ valent_component_constructed (GObject *object)
 {
   ValentComponent *self = VALENT_COMPONENT (object);
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
-  const GList *plugins = NULL;
+  unsigned int n_plugins = 0;
 
   g_assert (priv->plugin_domain != NULL);
   g_assert (priv->plugin_type != G_TYPE_NONE);
@@ -439,12 +439,16 @@ valent_component_constructed (GObject *object)
     }
 
   /* Setup PeasEngine */
-  plugins = peas_engine_get_plugin_list (priv->engine);
+  n_plugins = g_list_model_get_n_items (G_LIST_MODEL (priv->engine));
 
-  for (const GList *iter = plugins; iter; iter = iter->next)
+  for (unsigned int i = 0; i < n_plugins; i++)
     {
-      if (peas_plugin_info_is_loaded (iter->data))
-        on_load_plugin (priv->engine, iter->data, self);
+      g_autoptr (PeasPluginInfo) info = NULL;
+
+      info = g_list_model_get_item (G_LIST_MODEL (priv->engine), i);
+
+      if (peas_plugin_info_is_loaded (info))
+        on_load_plugin (priv->engine, info, self);
     }
 
   g_signal_connect_object (priv->engine,

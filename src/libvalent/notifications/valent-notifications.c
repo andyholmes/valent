@@ -7,7 +7,7 @@
 
 #include <gio/gio.h>
 #include <gio/gdesktopappinfo.h>
-#include <libpeas/peas.h>
+#include <libpeas.h>
 #include <libvalent-core.h>
 
 #include "valent-notification.h"

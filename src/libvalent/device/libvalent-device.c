@@ -4,7 +4,7 @@
 #include "config.h"
 
 #include <gio/gio.h>
-#include <libpeas/peas.h>
+#include <libpeas.h>
 
 #include "valent-device-manager.h"
 

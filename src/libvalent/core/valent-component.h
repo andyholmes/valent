@@ -8,7 +8,7 @@
 #endif
 
 #include <gio/gio.h>
-#include <libpeas/peas.h>
+#include <libpeas.h>
 
 #include "valent-object.h"
 

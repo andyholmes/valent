@@ -151,29 +151,26 @@
             "buildsystem" : "meson",
             "builddir" : true,
             "cleanup" : [
-                "/bin/*",
-                "/lib/peas-demo",
-                "/lib/libpeas-gtk*",
-                "/share/icons"
+                "/bin/*"
             ],
             "config-opts" : [
-                "-Dpython3=true",
+                "-Dgjs=false",
+                "-Dlua51=false",
+                "-Dpython3=false",
                 "-Dintrospection=true",
-                "-Ddemos=false",
-                "-Dglade_catalog=false",
-                "-Dwidgetry=false"
+                "-Dvapi=true"
             ],
             "sources" : [
                 {
                     "type" : "git",
                     "url" : "https://gitlab.gnome.org/GNOME/libpeas.git",
-                    "commit" : "7f245fa5158204621c3469756a951b68a651c4fe",
-                    "tag" : "libpeas-1.36.0",
+                    "commit" : "f564079d0f88583414ae4f07248e0fc864abd234",
+                    "tag" : "1.99.1",
                     "x-checker-data" : {
                         "type" : "anitya",
                         "project-id" : 6871,
                         "stable-only" : true,
-                        "tag-template" : "libpeas-$version"
+                        "tag-template" : "$version"
                     }
                 }
             ]

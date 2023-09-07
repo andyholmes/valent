@@ -182,7 +182,7 @@ glib_version = '>= 2.76.0'
 gtk_version = '>= 4.10.0'
 gnutls_version = '>= 3.1.3'
 json_glib_version = '>= 1.6.0'
-libpeas_version = '>= 1.22.0'
+libpeas_version = '>= 1.99.0'
 eds_version = '>= 3.34'
 sqlite_version = '>= 3.24.0'
 libadwaita_version = '>= 1.2.0'
@@ -193,7 +193,7 @@ gio_dep = dependency('gio-2.0', version: glib_version)
 gio_unix_dep = dependency('gio-unix-2.0', version: glib_version)
 gnutls_dep = dependency('gnutls', version: gnutls_version)
 json_glib_dep = dependency('json-glib-1.0', version: json_glib_version)
-libpeas_dep = dependency('libpeas-1.0', version: libpeas_version)
+libpeas_dep = dependency('libpeas-2', version: libpeas_version)
 sqlite_dep = dependency('sqlite3', version: sqlite_version)
 
 libportal_dep = dependency('libportal-gtk4',

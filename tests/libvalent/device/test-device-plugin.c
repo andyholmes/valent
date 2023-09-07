@@ -45,18 +45,13 @@ test_device_plugin_basic (DevicePluginFixture *fixture,
                           gconstpointer        user_data)
 {
   g_autoptr (ValentDevice) device = NULL;
-  PeasPluginInfo *plugin_info = NULL;
 
   /* Test properties */
   g_object_get (fixture->extension,
-                "object",      &device,
-                "plugin-info", &plugin_info,
+                "object", &device,
                 NULL);
 
   g_assert_true (VALENT_IS_DEVICE (device));
-  g_assert_nonnull (plugin_info);
-
-  g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
 }
 
 static void

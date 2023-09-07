@@ -804,7 +804,7 @@ valent_device_constructed (GObject *object)
 {
   ValentDevice *self = VALENT_DEVICE (object);
   g_autofree char *path = NULL;
-  const GList *plugins = NULL;
+  unsigned int n_plugins = 0;
 
   /* We must at least have a device ID */
   g_assert (self->id != NULL);
@@ -819,12 +819,16 @@ valent_device_constructed (GObject *object)
   self->paired = g_settings_get_boolean (self->settings, "paired");
 
   /* Load plugins and watch for changes */
-  plugins = peas_engine_get_plugin_list (self->engine);
+  n_plugins = g_list_model_get_n_items (G_LIST_MODEL (self->engine));
 
-  for (const GList *iter = plugins; iter; iter = iter->next)
+  for (unsigned int i = 0; i < n_plugins; i++)
     {
-      if (peas_plugin_info_is_loaded (iter->data))
-        on_load_plugin (self->engine, iter->data, self);
+      g_autoptr (PeasPluginInfo) info = NULL;
+
+      info = g_list_model_get_item (G_LIST_MODEL (self->engine), i);
+
+      if (peas_plugin_info_is_loaded (info))
+        on_load_plugin (self->engine, info, self);
     }
 
   g_signal_connect_object (self->engine,
@@ -1634,18 +1638,22 @@ valent_device_handle_packet (ValentDevice *device,
 static void
 valent_device_reload_plugins (ValentDevice *device)
 {
-  const GList *plugins = NULL;
+  unsigned int n_plugins = 0;
 
   g_assert (VALENT_IS_DEVICE (device));
 
-  plugins = peas_engine_get_plugin_list (device->engine);
+  n_plugins = g_list_model_get_n_items (G_LIST_MODEL (device->engine));
 
-  for (const GList *iter = plugins; iter; iter = iter->next)
+  for (unsigned int i = 0; i < n_plugins; i++)
     {
-      if (valent_device_supports_plugin (device, iter->data))
-        on_load_plugin (device->engine, iter->data, device);
+      g_autoptr (PeasPluginInfo) info = NULL;
+
+      info = g_list_model_get_item (G_LIST_MODEL (device->engine), i);
+
+      if (valent_device_supports_plugin (device, info))
+        on_load_plugin (device->engine, info, device);
       else
-        on_unload_plugin (device->engine, iter->data, device);
+        on_unload_plugin (device->engine, info, device);
     }
 }
 
