@@ -41,7 +41,7 @@ jobs:
 
       - name: Login
         if: ${{ github.event_name != 'pull_request' }}
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ env.USERNAME }}
