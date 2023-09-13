@@ -31,7 +31,7 @@ jobs:
     steps:
       - name: Metadata
         id: metadata
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
@@ -41,14 +41,14 @@ jobs:
 
       - name: Login
         if: ${{ github.event_name != 'pull_request' }}
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ env.USERNAME }}
           password: ${{ env.PASSWORD }}
 
       - name: Build
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           file: ./build-aux/docker/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
