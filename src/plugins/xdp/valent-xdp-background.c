@@ -26,26 +26,6 @@ struct _ValentXdpBackground
 G_DEFINE_FINAL_TYPE (ValentXdpBackground, valent_xdp_background, VALENT_TYPE_APPLICATION_PLUGIN)
 
 
-static gboolean
-valent_xdp_background_is_active (ValentXdpBackground *self)
-{
-  GListModel *windows = NULL;
-  unsigned int n_windows = 0;
-
-  windows = gtk_window_get_toplevels ();
-  n_windows = g_list_model_get_n_items (windows);
-
-  for (unsigned int i = 0; i < n_windows; i++)
-    {
-      g_autoptr (GtkWindow) window = g_list_model_get_item (windows, i);
-
-      if (gtk_window_is_active (window))
-        return TRUE;
-    }
-
-  return FALSE;
-}
-
 static void
 xdp_portal_request_background_cb (GObject      *object,
                                   GAsyncResult *result,
@@ -73,8 +53,6 @@ valent_xdp_background_request (ValentXdpBackground *self)
 
   g_assert (VALENT_IS_XDP_BACKGROUND (self));
 
-  parent = valent_xdp_get_parent (NULL);
-
   if (self->autostart)
     {
       command_line = g_ptr_array_new_with_free_func (g_free);
@@ -84,6 +62,7 @@ valent_xdp_background_request (ValentXdpBackground *self)
       flags |= XDP_BACKGROUND_FLAG_AUTOSTART;
     }
 
+  parent = valent_xdp_get_parent ();
   destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
   xdp_portal_request_background (valent_xdp_get_default (),
                                  parent,
@@ -113,7 +92,7 @@ on_window_is_active (GtkWindow           *window,
     {
       g_autoptr (GtkWindow) item = g_list_model_get_item (windows, i);
 
-      g_signal_handlers_disconnect_by_data (item, self);
+      g_signal_handlers_disconnect_by_func (item, on_window_is_active, self);
     }
 
   g_clear_signal_handler (&self->active_id, windows);
@@ -158,7 +137,7 @@ on_autostart_changed (GSettings           *settings,
 
   /* If there is no window or Valent is not the focused application, defer the
    * request until that changes. */
-  if (!valent_xdp_background_is_active (self))
+  if (!valent_xdp_has_parent ())
     {
       GListModel *windows = gtk_window_get_toplevels ();
 
@@ -180,14 +159,15 @@ static void
 valent_xdp_background_destroy (ValentObject *object)
 {
   ValentXdpBackground *self = VALENT_XDP_BACKGROUND (object);
+  GListModel *windows = gtk_window_get_toplevels ();
 
-  g_clear_signal_handler (&self->active_id, g_application_get_default ());
+  g_clear_signal_handler (&self->active_id, windows);
   g_clear_object (&self->settings);
 
   /* If the extension is being disabled during application shutdown, the main
    * window is already closed and this will be skipped. If the user has disabled
    * the extension, then the window must be active and it will succeed */
-  if (valent_xdp_background_is_active (self))
+  if (valent_xdp_has_parent ())
     {
       self->autostart = FALSE;
       valent_xdp_background_request (self);

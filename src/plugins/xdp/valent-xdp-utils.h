@@ -8,6 +8,7 @@
 G_BEGIN_DECLS
 
 XdpPortal * valent_xdp_get_default (void);
-XdpParent * valent_xdp_get_parent  (GApplication *application);
+XdpParent * valent_xdp_get_parent  (void);
+gboolean    valent_xdp_has_parent  (void);
 
 G_END_DECLS
