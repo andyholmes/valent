@@ -130,7 +130,7 @@ valent_xdp_session_init_async (GAsyncInitable      *initable,
   g_task_set_priority (task, io_priority);
   g_task_set_source_tag (task, valent_xdp_session_init_async);
 
-  parent = valent_xdp_get_parent (NULL);
+  parent = valent_xdp_get_parent ();
   xdp_portal_session_monitor_start (valent_xdp_get_default (),
                                     parent,
                                     XDP_SESSION_MONITOR_FLAG_NONE,

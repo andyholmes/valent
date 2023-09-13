@@ -27,9 +27,11 @@ valent_xdp_plugin_register_types (PeasObjectModule *module)
   /* These extensions only makes sense in a sandbox environment. */
   if (xdp_portal_running_under_sandbox ())
     {
+#ifdef HAVE_LIBPORTAL_GTK4
       peas_object_module_register_extension_type (module,
                                                   VALENT_TYPE_APPLICATION_PLUGIN,
                                                   VALENT_TYPE_XDP_BACKGROUND);
+#endif /* HAVE_LIBPORTAL_GTK4 */
 
       peas_object_module_register_extension_type (module,
                                                   VALENT_TYPE_SESSION_ADAPTER,

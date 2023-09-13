@@ -171,7 +171,7 @@ on_session_created (XdpPortal    *portal,
                            G_CALLBACK (on_session_closed),
                            self, 0);
 
-  parent = valent_xdp_get_parent (NULL);
+  parent = valent_xdp_get_parent ();
   xdp_session_start (self->session,
                      parent,
                      self->cancellable,
