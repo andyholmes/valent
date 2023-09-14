@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2023-07-05 14:24-0700\n"
+"POT-Creation-Date: 2023-09-13 22:06-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -46,7 +46,7 @@ msgstr ""
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
 #: data/ca.andyholmes.Valent.desktop.in.in:3
 #: src/libvalent/ui/valent-preferences-window.ui:12
-#: src/libvalent/ui/valent-window.c:336 src/libvalent/ui/valent-window.ui:51
+#: src/libvalent/ui/valent-window.c:339 src/libvalent/ui/valent-window.ui:8
 msgid "Valent"
 msgstr ""
 
@@ -130,7 +130,9 @@ msgstr ""
 #: src/libvalent/ui/valent-device-page.ui:38
 #: src/libvalent/ui/valent-media-remote.ui:239
 #: src/libvalent/ui/valent-menu-list.c:664
-#: src/plugins/presenter/valent-presenter-remote.ui:126
+#: src/plugins/presenter/valent-presenter-remote.ui:146
+#: src/plugins/sms/valent-sms-window.ui:71
+#: src/plugins/sms/valent-sms-window.ui:162
 msgid "Previous"
 msgstr ""
 
@@ -147,12 +149,12 @@ msgid "Request Pairing"
 msgstr ""
 
 #: src/libvalent/ui/valent-device-page.ui:247
-#: src/libvalent/ui/valent-window.c:191
+#: src/libvalent/ui/valent-window.c:190
 msgid "Disconnected"
 msgstr ""
 
 #: src/libvalent/ui/valent-device-page.ui:277
-#: src/libvalent/ui/valent-window.ui:135
+#: src/libvalent/ui/valent-window.ui:134
 msgid "Preferences"
 msgstr ""
 
@@ -190,7 +192,7 @@ msgid "No Plugins"
 msgstr ""
 
 #: src/libvalent/ui/valent-input-remote.ui:8
-#: src/libvalent/ui/valent-window.ui:125
+#: src/libvalent/ui/valent-window.ui:124
 msgid "Input Remote"
 msgstr ""
 
@@ -219,40 +221,34 @@ msgid "Hold one finger to grab"
 msgstr ""
 
 #: src/libvalent/ui/valent-input-remote.ui:209
-msgid "Tap one finger to ungrab"
+msgid "Tap one finger to release"
 msgstr ""
 
 #: src/libvalent/ui/valent-media-remote.c:250
-#: src/libvalent/ui/valent-media-remote.c:252
-#: src/libvalent/ui/valent-media-remote.ui:408
-#: src/libvalent/ui/valent-media-remote.ui:423
+#: src/libvalent/ui/valent-media-remote.ui:417
 msgid "Enable Repeat"
 msgstr ""
 
-#: src/libvalent/ui/valent-media-remote.c:260
-#: src/libvalent/ui/valent-media-remote.c:262
+#: src/libvalent/ui/valent-media-remote.c:258
 msgid "Repeat All"
 msgstr ""
 
-#: src/libvalent/ui/valent-media-remote.c:270
-#: src/libvalent/ui/valent-media-remote.c:272
+#: src/libvalent/ui/valent-media-remote.c:266
 msgid "Repeat One"
 msgstr ""
 
-#: src/libvalent/ui/valent-media-remote.c:299
-#: src/libvalent/ui/valent-media-remote.c:301
+#: src/libvalent/ui/valent-media-remote.c:293
 msgid "Pause"
 msgstr ""
 
-#: src/libvalent/ui/valent-media-remote.c:314
-#: src/libvalent/ui/valent-media-remote.c:316
-#: src/libvalent/ui/valent-media-remote.ui:275
-#: src/libvalent/ui/valent-media-remote.ui:290
+#: src/libvalent/ui/valent-media-remote.c:306
+#: src/libvalent/ui/valent-media-remote.c:308
+#: src/libvalent/ui/valent-media-remote.ui:288
 msgid "Play"
 msgstr ""
 
 #: src/libvalent/ui/valent-media-remote.ui:8
-#: src/libvalent/ui/valent-window.ui:129
+#: src/libvalent/ui/valent-window.ui:128
 msgid "Media Remote"
 msgstr ""
 
@@ -262,29 +258,24 @@ msgstr ""
 msgid "Volume"
 msgstr ""
 
-#: src/libvalent/ui/valent-media-remote.ui:248
-#: src/libvalent/ui/valent-media-remote.ui:265
+#: src/libvalent/ui/valent-media-remote.ui:264
 msgid "Seek Back"
 msgstr ""
 
-#: src/libvalent/ui/valent-media-remote.ui:300
-#: src/libvalent/ui/valent-media-remote.ui:317
+#: src/libvalent/ui/valent-media-remote.ui:314
 msgid "Seek Forward"
 msgstr ""
 
-#: src/libvalent/ui/valent-media-remote.ui:327
-#: src/libvalent/ui/valent-media-remote.ui:342
-#: src/plugins/presenter/valent-presenter-remote.ui:151
+#: src/libvalent/ui/valent-media-remote.ui:338
+#: src/plugins/presenter/valent-presenter-remote.ui:173
 msgid "Next"
 msgstr ""
 
-#: src/libvalent/ui/valent-media-remote.ui:351
-#: src/libvalent/ui/valent-media-remote.ui:365
+#: src/libvalent/ui/valent-media-remote.ui:360
 msgid "Options"
 msgstr ""
 
-#: src/libvalent/ui/valent-media-remote.ui:432
-#: src/libvalent/ui/valent-media-remote.ui:447
+#: src/libvalent/ui/valent-media-remote.ui:440
 msgid "Shuffle"
 msgstr ""
 
@@ -442,48 +433,57 @@ msgctxt "short time format"
 msgid "%d:%02d"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:186
+#: src/libvalent/ui/valent-window.c:185
 msgid "Unpaired"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:196
+#: src/libvalent/ui/valent-window.c:195
 msgid "Connected"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:345
+#: src/libvalent/ui/valent-window.c:350
 msgid "translator-credits"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:350
+#: src/libvalent/ui/valent-window.c:355
 msgid "Sponsors"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:58 src/libvalent/ui/valent-window.ui:61
+#: src/libvalent/ui/valent-window.ui:56
 msgid "Refresh"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:70 src/libvalent/ui/valent-window.ui:73
+#: src/libvalent/ui/valent-window.ui:57
+msgid "Scan for new devices"
+msgstr ""
+
+#: src/libvalent/ui/valent-window.ui:68
 msgid "Main Menu"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:91
+#: src/libvalent/ui/valent-window.ui:86 src/libvalent/ui/valent-window.ui:101
 #: src/plugins/share/valent-share-target-chooser.ui:68
 msgid "Devices"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:99
+#: src/libvalent/ui/valent-window.ui:94
 msgid "Searching for devices…"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:139
+#: src/libvalent/ui/valent-window.ui:102
+msgid "List of available and known devices"
+msgstr ""
+
+#: src/libvalent/ui/valent-window.ui:138
 msgid "About Valent"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:145
+#: src/libvalent/ui/valent-window.ui:144
 msgid "Quit"
 msgstr ""
 
 #: src/plugins/battery/battery.plugin.desktop.in:7
+#: src/plugins/battery/valent-battery-gadget.c:216
 msgid "Battery"
 msgstr ""
 
@@ -510,24 +510,24 @@ msgstr ""
 
 #. TRANSLATORS: This is <percentage> (<hours>:<minutes> Remaining)
 #: src/plugins/battery/valent-battery-gadget.c:99
-#: src/plugins/battery/valent-battery-plugin.c:295
+#: src/plugins/battery/valent-battery-plugin.c:296
 #, c-format
 msgid "%g%% (%d∶%02d Remaining)"
 msgstr ""
 
 #. TRANSLATORS: This is <device name>: Fully Charged
-#: src/plugins/battery/valent-battery-plugin.c:264
+#: src/plugins/battery/valent-battery-plugin.c:265
 #, c-format
 msgid "%s: Fully Charged"
 msgstr ""
 
 #. TRANSLATORS: When the battery level is at maximum
-#: src/plugins/battery/valent-battery-plugin.c:266
+#: src/plugins/battery/valent-battery-plugin.c:267
 msgid "Battery Fully Charged"
 msgstr ""
 
 #. TRANSLATORS: This is <device name>: Battery Low
-#: src/plugins/battery/valent-battery-plugin.c:293
+#: src/plugins/battery/valent-battery-plugin.c:294
 #, c-format
 msgid "%s: Battery Low"
 msgstr ""
@@ -582,6 +582,7 @@ msgid "Monitor mobile connectivity status"
 msgstr ""
 
 #. TRANSLATORS: When the mobile network signal is available
+#: src/plugins/connectivity_report/valent-connectivity_report-gadget.c:203
 #: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:162
 msgid "Mobile Network"
 msgstr ""
@@ -674,7 +675,7 @@ msgstr ""
 msgid "Find a device by making it ring"
 msgstr ""
 
-#: src/plugins/findmyphone/valent-findmyphone-plugin.c:112
+#: src/plugins/findmyphone/valent-findmyphone-plugin.c:130
 msgid "Ring"
 msgstr ""
 
@@ -699,7 +700,7 @@ msgid "Connect devices over LAN"
 msgstr ""
 
 #: src/plugins/lock/lock.plugin.desktop.in:7
-#: src/plugins/lock/valent-lock-gadget.c:54
+#: src/plugins/lock/valent-lock-gadget.c:57
 msgid "Lock"
 msgstr ""
 
@@ -743,7 +744,7 @@ msgstr ""
 
 #: src/plugins/notification/valent-notification-dialog.ui:150
 #: src/plugins/share/valent-share-text-dialog.ui:53
-#: src/plugins/sms/valent-sms-window.ui:352
+#: src/plugins/sms/valent-sms-window.ui:315
 msgid "Close"
 msgstr ""
 
@@ -779,37 +780,12 @@ msgstr ""
 msgid "Search"
 msgstr ""
 
-#: src/plugins/notification/valent-notification-preferences.ui:135
+#: src/plugins/notification/valent-notification-preferences.ui:117
 msgid "No Applications"
 msgstr ""
 
-#: src/plugins/photo/photo.plugin.desktop.in:7
-msgid "Photo"
-msgstr ""
-
-#: src/plugins/photo/photo.plugin.desktop.in:8
-msgid "Take a photo with the remote device"
-msgstr ""
-
-#: src/plugins/photo/valent-photo-plugin.c:54
-#, c-format
-msgid "Failed to receive “%s” from %s"
-msgstr ""
-
-#: src/plugins/photo/valent-photo-plugin.c:58
-#: src/plugins/share/valent-share-plugin.c:124
-#: src/plugins/share/valent-share-plugin.c:250
-#: src/plugins/share/valent-share-plugin.c:352
-#: src/plugins/share/valent-share-plugin.c:489
-msgid "Transfer Failed"
-msgstr ""
-
-#: src/plugins/photo/valent-photo-plugin.c:188
-msgid "Take Photo"
-msgstr ""
-
 #: src/plugins/ping/ping.plugin.desktop.in:7
-#: src/plugins/ping/valent-ping-plugin.c:142
+#: src/plugins/ping/valent-ping-plugin.c:155
 msgid "Ping"
 msgstr ""
 
@@ -829,7 +805,7 @@ msgstr ""
 msgid "Control presentations"
 msgstr ""
 
-#: src/plugins/presenter/valent-presenter-plugin.c:215
+#: src/plugins/presenter/valent-presenter-plugin.c:232
 #: src/plugins/presenter/valent-presenter-remote.ui:8
 msgid "Presentation Remote"
 msgstr ""
@@ -839,7 +815,7 @@ msgid "Select Presentation"
 msgstr ""
 
 #: src/plugins/presenter/valent-presenter-remote.c:92
-#: src/plugins/presenter/valent-presenter-remote.ui:86
+#: src/plugins/presenter/valent-presenter-remote.ui:100
 #: src/plugins/share/valent-share-preferences.c:94
 msgid "Open"
 msgstr ""
@@ -852,15 +828,15 @@ msgstr ""
 msgid "All Files"
 msgstr ""
 
-#: src/plugins/presenter/valent-presenter-remote.ui:69
+#: src/plugins/presenter/valent-presenter-remote.ui:81
 msgid "Start"
 msgstr ""
 
-#: src/plugins/presenter/valent-presenter-remote.ui:105
+#: src/plugins/presenter/valent-presenter-remote.ui:121
 msgid "Stop"
 msgstr ""
 
-#: src/plugins/presenter/valent-presenter-remote.ui:174
+#: src/plugins/presenter/valent-presenter-remote.ui:196
 msgid "Pointer"
 msgstr ""
 
@@ -934,7 +910,7 @@ msgstr ""
 msgid "Permission denied"
 msgstr ""
 
-#: src/plugins/sftp/valent-sftp-plugin.c:658
+#: src/plugins/sftp/valent-sftp-plugin.c:680
 msgid "Browse Files"
 msgstr ""
 
@@ -992,6 +968,13 @@ msgid_plural "Received %2$d files from %1$s"
 msgstr[0] ""
 msgstr[1] ""
 
+#: src/plugins/share/valent-share-plugin.c:124
+#: src/plugins/share/valent-share-plugin.c:250
+#: src/plugins/share/valent-share-plugin.c:352
+#: src/plugins/share/valent-share-plugin.c:489
+msgid "Transfer Failed"
+msgstr ""
+
 #: src/plugins/share/valent-share-plugin.c:140
 #: src/plugins/share/valent-share-plugin.c:263
 #: src/plugins/share/valent-share-plugin.c:365
@@ -1044,16 +1027,16 @@ msgid_plural "Sent %2$d files to %1$s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/plugins/share/valent-share-plugin.c:673
+#: src/plugins/share/valent-share-plugin.c:671
 #: src/plugins/share/valent-share-target-chooser.ui:8
 msgid "Share Files"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:674
+#: src/plugins/share/valent-share-plugin.c:672
 msgid "Share"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:1221
+#: src/plugins/share/valent-share-plugin.c:1251
 msgid "Send Files"
 msgstr ""
 
@@ -1141,7 +1124,8 @@ msgstr[1] ""
 
 #: src/plugins/sms/valent-sms-conversation.c:904
 #: src/plugins/sms/valent-sms-window.c:602
-#: src/plugins/sms/valent-sms-window.c:922
+#: src/plugins/sms/valent-sms-window.c:914
+#: src/plugins/sms/valent-sms-window.ui:60
 msgid "New Conversation"
 msgstr ""
 
@@ -1160,7 +1144,7 @@ msgstr ""
 msgid "Type a message"
 msgstr ""
 
-#: src/plugins/sms/valent-sms-plugin.c:505
+#: src/plugins/sms/valent-sms-plugin.c:523
 msgid "Messaging"
 msgstr ""
 
@@ -1173,8 +1157,8 @@ msgstr ""
 msgid "Send to %s"
 msgstr ""
 
-#: src/plugins/sms/valent-sms-window.c:629
-#: src/plugins/sms/valent-sms-window.c:944
+#: src/plugins/sms/valent-sms-window.c:617
+#: src/plugins/sms/valent-sms-window.c:936
 msgid "Search Messages"
 msgstr ""
 
@@ -1182,51 +1166,47 @@ msgstr ""
 msgid "Messages"
 msgstr ""
 
-#: src/plugins/sms/valent-sms-window.ui:72
+#: src/plugins/sms/valent-sms-window.ui:92
 msgid "No Conversations"
 msgstr ""
 
-#: src/plugins/sms/valent-sms-window.ui:140
-msgid "Back"
-msgstr ""
-
-#: src/plugins/sms/valent-sms-window.ui:171
+#: src/plugins/sms/valent-sms-window.ui:178
 msgid "No conversation selected"
 msgstr ""
 
-#: src/plugins/sms/valent-sms-window.ui:181
+#: src/plugins/sms/valent-sms-window.ui:179
 msgid "Select or start a conversation"
 msgstr ""
 
-#: src/plugins/sms/valent-sms-window.ui:206
+#: src/plugins/sms/valent-sms-window.ui:199
 msgid "Search messages…"
 msgstr ""
 
-#: src/plugins/sms/valent-sms-window.ui:233
+#: src/plugins/sms/valent-sms-window.ui:216
 msgid "No results found"
 msgstr ""
 
-#: src/plugins/sms/valent-sms-window.ui:269
+#: src/plugins/sms/valent-sms-window.ui:247
 msgid "Type a phone number or name"
 msgstr ""
 
-#: src/plugins/sms/valent-sms-window.ui:296
+#: src/plugins/sms/valent-sms-window.ui:264
 msgid "No contacts"
 msgstr ""
 
-#: src/plugins/sms/valent-sms-window.ui:330
+#: src/plugins/sms/valent-sms-window.ui:293
 msgid "Search Messages…"
 msgstr ""
 
-#: src/plugins/sms/valent-sms-window.ui:334
+#: src/plugins/sms/valent-sms-window.ui:297
 msgid "Change Address Book…"
 msgstr ""
 
-#: src/plugins/sms/valent-sms-window.ui:340
+#: src/plugins/sms/valent-sms-window.ui:303
 msgid "Keyboard Shortcuts"
 msgstr ""
 
-#: src/plugins/sms/valent-sms-window.ui:345
+#: src/plugins/sms/valent-sms-window.ui:308
 msgid "Help"
 msgstr ""
 
@@ -1296,7 +1276,7 @@ msgstr ""
 msgid "Lower"
 msgstr ""
 
-#: src/plugins/xdp/valent-xdp-background.c:90
+#: src/plugins/xdp/valent-xdp-background.c:69
 msgid "Valent wants to run as a service"
 msgstr ""
 

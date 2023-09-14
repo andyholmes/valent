@@ -18,7 +18,6 @@ plugin_tests = [
   'mousepad',
   'mpris',
   'notification',
-  'photo',
   'ping',
   'presenter',
   'runcommand',
