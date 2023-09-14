@@ -58,8 +58,6 @@ src/plugins/notification/valent-notification-dialog.c
 src/plugins/notification/valent-notification-dialog.ui
 src/plugins/notification/valent-notification-preferences.c
 src/plugins/notification/valent-notification-preferences.ui
-src/plugins/photo/photo.plugin.desktop.in
-src/plugins/photo/valent-photo-plugin.c
 src/plugins/ping/ping.plugin.desktop.in
 src/plugins/ping/valent-ping-plugin.c
 src/plugins/presenter/presenter.plugin.desktop.in

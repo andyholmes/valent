@@ -42,8 +42,6 @@
     <file preprocess="json-stripblanks">kdeconnect.notification.reply.json</file>
     <file preprocess="json-stripblanks">kdeconnect.notification.request.json</file>
     <file preprocess="json-stripblanks">kdeconnect.pair.json</file>
-    <file preprocess="json-stripblanks">kdeconnect.photo.json</file>
-    <file preprocess="json-stripblanks">kdeconnect.photo.request.json</file>
     <file preprocess="json-stripblanks">kdeconnect.ping.json</file>
     <file preprocess="json-stripblanks">kdeconnect.presenter.json</file>
     <file preprocess="json-stripblanks">kdeconnect.runcommand.json</file>
@@ -80,7 +78,6 @@
     <file preprocess="json-stripblanks" alias="plugin-mousepad.json">data/plugin-mousepad.json</file>
     <file preprocess="json-stripblanks" alias="plugin-mpris.json">data/plugin-mpris.json</file>
     <file preprocess="json-stripblanks" alias="plugin-notification.json">data/plugin-notification.json</file>
-    <file preprocess="json-stripblanks" alias="plugin-photo.json">data/plugin-photo.json</file>
     <file preprocess="json-stripblanks" alias="plugin-ping.json">data/plugin-ping.json</file>
     <file preprocess="json-stripblanks" alias="plugin-presenter.json">data/plugin-presenter.json</file>
     <file preprocess="json-stripblanks" alias="plugin-runcommand.json">data/plugin-runcommand.json</file>

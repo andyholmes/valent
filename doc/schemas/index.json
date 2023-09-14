@@ -142,18 +142,6 @@
             ]
         },
         {
-            "title": "Photo Plugin",
-            "description": "The Photo plugin allows requesting a device to take a photo and then transferred the result.",
-            "packets": [
-                "kdeconnect.photo",
-                "kdeconnect.photo.request"
-            ],
-            "references": [
-                "https://invent.kde.org/network/kdeconnect-kde/tree/master/plugins/photo",
-                "https://invent.kde.org/network/kdeconnect-android/tree/master/src/org/kde/kdeconnect/Plugins/PhotoPlugin"
-            ]
-        },
-        {
             "title": "Ping Plugin",
             "description": "The Ping plugin allows sending and receiving simple 'pings', with an optional message. Usually these are displayed as notifications.",
             "packets": [

@@ -29,7 +29,6 @@ plugins = [
   'mousepad',
   'mpris',
   'notification',
-  'photo',
   'ping',
   'presenter',
   'pulseaudio',

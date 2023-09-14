@@ -32,8 +32,6 @@ BuildRequires:  pkgconfig(libpeas-1.0) %{libpeas_version}
 BuildRequires:  pkgconfig(libportal) %{libportal_version}
 BuildRequires:  pkgconfig(sqlite3) %{sqlite_version}
 BuildRequires:  pkgconfig(gstreamer-1.0)
-# TODO: For `photo` plugin
-BuildRequires:  pkgconfig(gstreamer-video-1.0)
 # For `pulseaudio` plugin
 BuildRequires:  pkgconfig(libpulse)
 BuildRequires:  pkgconfig(libpulse-mainloop-glib)
