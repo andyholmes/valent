@@ -160,7 +160,6 @@
             "buildsystem" : "meson",
             "builddir" : true,
             "config-opts" : [
-                "-Dbackends=gtk4",
                 "-Ddocs=false",
                 "-Dintrospection=false",
                 "-Dvapi=false"
@@ -169,8 +168,8 @@
                 {
                     "type" : "git",
                     "url" : "https://github.com/flatpak/libportal.git",
-                    "commit" : "13df0b887a7eb7b0f9b14069561a41f62e813155",
-                    "tag" : "0.6"
+                    "commit" : "e9ed3a50cdde321eaf42361212480a66eb94a57a",
+                    "tag" : "0.7.1"
                 }
             ]
         },
