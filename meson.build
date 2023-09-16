@@ -186,7 +186,7 @@ libpeas_version = '>= 1.22.0'
 eds_version = '>= 3.34'
 sqlite_version = '>= 3.24.0'
 libadwaita_version = '>= 1.2.0'
-libportal_version = ['>= 0.5', '<= 0.6']
+libportal_version = ['>= 0.6', '<= 0.7.1']
 
 libm_dep = cc.find_library('m', required: true)
 gio_dep = dependency('gio-2.0', version: glib_version)
@@ -206,7 +206,6 @@ if not libportal_dep.found()
             version: libportal_version,
            fallback: ['libportal', 'libportal_dep'],
     default_options: [
-      'backends=gtk4',
       'docs=false',
       'introspection=false',
       'vapi=false',

@@ -7,7 +7,7 @@
 %global libeds_version >= 3.34.0
 %global sqlite_version >= 3.24.0
 %global libadwaita_version >= 1.2.0
-%global libportal_version >= 0.5, pkgconfig(libportal) <= 0.6
+%global libportal_version >= 0.6, pkgconfig(libportal) <= 0.7.1
 
 Name:           valent
 Version:        1.0.0~alpha
