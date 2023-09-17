@@ -31,7 +31,6 @@
 
 typedef struct
 {
-  GMainLoop            *loop;
   JsonNode             *packets;
 
   ValentChannelService *service;
@@ -43,6 +42,7 @@ typedef struct
   GSocket              *socket;
 
   gpointer              data;
+  gboolean              state;
 } LanBackendFixture;
 
 static GSocket *
@@ -82,8 +82,6 @@ lan_service_fixture_set_up (LanBackendFixture *fixture,
   JsonNode *identity;
   GError *error = NULL;
 
-  fixture->loop = g_main_loop_new (NULL, FALSE);
-
   device_id = g_uuid_string_random ();
   context = valent_context_new (NULL, "network", device_id);
   plugin_info = peas_engine_get_plugin_info (valent_get_plugin_engine (), "lan");
@@ -114,7 +112,6 @@ static void
 lan_service_fixture_tear_down (LanBackendFixture *fixture,
                                gconstpointer      user_data)
 {
-  g_clear_pointer (&fixture->loop, g_main_loop_unref);
   g_clear_pointer (&fixture->packets, json_node_unref);
 
   v_await_finalize_object (fixture->service);
@@ -275,14 +272,10 @@ g_async_initable_init_async_cb (GAsyncInitable    *initable,
                                 GAsyncResult      *result,
                                 LanBackendFixture *fixture)
 {
-  gboolean ret;
   GError *error = NULL;
 
-  ret = g_async_initable_init_finish (initable, result, &error);
+  fixture->state = g_async_initable_init_finish (initable, result, &error);
   g_assert_no_error (error);
-  g_assert_true (ret);
-
-  g_main_loop_quit (fixture->loop);
 }
 
 static void
@@ -291,7 +284,6 @@ on_channel (ValentChannelService *service,
             LanBackendFixture    *fixture)
 {
   fixture->channel = g_object_ref (channel);
-  g_main_loop_quit (fixture->loop);
 }
 
 static void
@@ -308,7 +300,7 @@ test_lan_service_incoming_broadcast (LanBackendFixture *fixture,
                                NULL,
                                (GAsyncReadyCallback)g_async_initable_init_async_cb,
                                fixture);
-  g_main_loop_run (fixture->loop);
+  valent_test_await_boolean (&fixture->state);
 
   /* Listen for an incoming TCP connection */
   await_incoming_connection (fixture);
@@ -331,7 +323,7 @@ test_lan_service_incoming_broadcast (LanBackendFixture *fixture,
                     "channel",
                     G_CALLBACK (on_channel),
                     fixture);
-  g_main_loop_run (fixture->loop);
+  valent_test_await_pointer (&fixture->channel);
 
   g_signal_handlers_disconnect_by_data (fixture->service, fixture);
   valent_object_destroy (VALENT_OBJECT (fixture->service));
@@ -390,7 +382,7 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
                                NULL,
                                (GAsyncReadyCallback)g_async_initable_init_async_cb,
                                fixture);
-  g_main_loop_run (fixture->loop);
+  valent_test_await_boolean (&fixture->state);
 
   /* Send a UDP broadcast directly to the mock endpoint. When the identity
    * packet is received, the mock endpoint will respond by opening a TCP
@@ -474,7 +466,7 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
                     "channel",
                     G_CALLBACK (on_channel),
                     fixture);
-  g_main_loop_run (fixture->loop);
+  valent_test_await_pointer (&fixture->channel);
 
   /* In this test case we are trying to connect with the same device ID and a
    * different certificate, so we expect the service to reject the connection.
@@ -648,7 +640,7 @@ test_lan_service_channel (LanBackendFixture *fixture,
                                NULL,
                                (GAsyncReadyCallback)g_async_initable_init_async_cb,
                                fixture);
-  g_main_loop_run (fixture->loop);
+  valent_test_await_boolean (&fixture->state);
 
   /* Listen for an incoming TCP connection */
   await_incoming_connection (fixture);
@@ -671,7 +663,7 @@ test_lan_service_channel (LanBackendFixture *fixture,
                     "channel",
                     G_CALLBACK (on_channel),
                     fixture);
-  g_main_loop_run (fixture->loop);
+  valent_test_await_pointer (&fixture->channel);
 
   VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (fixture->channel,
