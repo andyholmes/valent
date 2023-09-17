@@ -676,6 +676,42 @@ valent_device_handle_identity (ValentDevice *device,
   VALENT_EXIT;
 }
 
+static void
+valent_device_handle_packet (ValentDevice *device,
+                             JsonNode     *packet)
+{
+  GPtrArray *handlers = NULL;
+  const char *type;
+
+  g_assert (VALENT_IS_DEVICE (device));
+  g_assert (VALENT_IS_PACKET (packet));
+
+  VALENT_JSON (packet, device->name);
+
+  type = valent_packet_get_type (packet);
+
+  if G_UNLIKELY (strcmp (type, "kdeconnect.pair") == 0)
+    {
+      valent_device_handle_pair (device, packet);
+    }
+  else if G_UNLIKELY (!device->paired)
+    {
+      valent_device_send_pair (device, FALSE);
+    }
+  else if ((handlers = g_hash_table_lookup (device->handlers, type)) != NULL)
+    {
+      for (unsigned int i = 0, len = handlers->len; i < len; i++)
+        {
+          ValentDevicePlugin *handler = g_ptr_array_index (handlers, i);
+
+          valent_device_plugin_handle_packet (handler, type, packet);
+        }
+    }
+  else
+    {
+      VALENT_NOTE ("%s: Unsupported packet \"%s\"", device->name, type);
+    }
+}
 
 /*
  * ValentEngine callbacks
@@ -1569,57 +1605,6 @@ valent_device_get_state (ValentDevice *device)
   valent_object_unlock (VALENT_OBJECT (device));
 
   return state;
-}
-
-/**
- * valent_device_handle_packet:
- * @device: a #ValentDevice
- * @packet: a KDE Connect packet
- *
- * Handle a packet from the remote device.
- *
- * Pairing packets are handled by the device and the only packets accepted if
- * the device is unpaired. Any other packets received from an unpaired device
- * are ignored and a request to unpair will be sent to the remote device.
- *
- * Any other packets received from a paired device will be routed to each plugin
- * claiming to support it.
- */
-void
-valent_device_handle_packet (ValentDevice *device,
-                             JsonNode     *packet)
-{
-  GPtrArray *handlers = NULL;
-  const char *type;
-
-  g_assert (VALENT_IS_DEVICE (device));
-  g_assert (VALENT_IS_PACKET (packet));
-
-  VALENT_JSON (packet, device->name);
-
-  type = valent_packet_get_type (packet);
-
-  if G_UNLIKELY (g_str_equal (type, "kdeconnect.pair"))
-    {
-      valent_device_handle_pair (device, packet);
-    }
-  else if G_UNLIKELY (!device->paired)
-    {
-      valent_device_send_pair (device, FALSE);
-    }
-  else if ((handlers = g_hash_table_lookup (device->handlers, type)) != NULL)
-    {
-      for (unsigned int i = 0, len = handlers->len; i < len; i++)
-        {
-          ValentDevicePlugin *handler = g_ptr_array_index (handlers, i);
-
-          valent_device_plugin_handle_packet (handler, type, packet);
-        }
-    }
-  else
-    {
-      VALENT_NOTE ("%s: Unsupported packet \"%s\"", device->name, type);
-    }
 }
 
 /*< private >

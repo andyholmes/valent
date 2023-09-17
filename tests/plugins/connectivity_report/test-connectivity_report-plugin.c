@@ -74,6 +74,11 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   const char *icon_name;
   const char *network_type;
   int64_t signal_strength;
+  gboolean watch = FALSE;
+
+  valent_test_watch_signal (actions,
+                            "action-state-changed::connectivity_report.state",
+                            &watch);
 
   /* Setup GSettings */
   g_settings_set_boolean (fixture->settings, "offline-notification", TRUE);
@@ -81,14 +86,19 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   /* Modem is in the default state so the action should be disabled */
   g_assert_false (g_action_group_get_action_enabled (actions, "connectivity_report.state"));
 
+  VALENT_TEST_CHECK ("Plugin doesn't send connectivity status at connect "
+                     "without a modem");
+  valent_test_fixture_connect (fixture, TRUE);
+
   VALENT_TEST_CHECK ("Plugin handles the \"modemless\" state");
   packet = valent_test_fixture_lookup_packet (fixture, "modemless-report");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   g_assert_false (g_action_group_get_action_enabled (actions, "connectivity_report.state"));
   state = g_action_group_get_action_state (actions, "connectivity_report.state");
 
-  g_variant_lookup (state, "signal-strengths", "@a{sv}", &signal_strengths);
+  g_assert_true (g_variant_lookup (state, "signal-strengths", "@a{sv}", &signal_strengths));
   g_assert_cmpuint (g_variant_n_children (signal_strengths), ==, 0);
 
   g_clear_pointer (&signal_strengths, g_variant_unref);
@@ -97,6 +107,7 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin handles the \"offline\" state");
   packet = valent_test_fixture_lookup_packet (fixture, "offline-report");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   g_assert_true (g_action_group_get_action_enabled (actions, "connectivity_report.state"));
   state = g_action_group_get_action_state (actions, "connectivity_report.state");
@@ -119,6 +130,7 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin handles the \"none\" state");
   packet = valent_test_fixture_lookup_packet (fixture, "none-report");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   g_assert_true (g_action_group_get_action_enabled (actions, "connectivity_report.state"));
   state = g_action_group_get_action_state (actions, "connectivity_report.state");
@@ -141,6 +153,7 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin handles the \"weak\" state");
   packet = valent_test_fixture_lookup_packet (fixture, "weak-report");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   g_assert_true (g_action_group_get_action_enabled (actions, "connectivity_report.state"));
   state = g_action_group_get_action_state (actions, "connectivity_report.state");
@@ -163,6 +176,7 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin handles the \"ok\" state");
   packet = valent_test_fixture_lookup_packet (fixture, "ok-report");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   g_assert_true (g_action_group_get_action_enabled (actions, "connectivity_report.state"));
   state = g_action_group_get_action_state (actions, "connectivity_report.state");
@@ -185,6 +199,7 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin handles the \"good\" state");
   packet = valent_test_fixture_lookup_packet (fixture, "good-report");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   state = g_action_group_get_action_state (actions, "connectivity_report.state");
 
@@ -206,6 +221,7 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin handles the \"excellent\" state");
   packet = valent_test_fixture_lookup_packet (fixture, "excellent-report");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   g_assert_true (g_action_group_get_action_enabled (actions, "connectivity_report.state"));
   state = g_action_group_get_action_state (actions, "connectivity_report.state");
@@ -228,6 +244,7 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin handles other states");
   packet = valent_test_fixture_lookup_packet (fixture, "extra1-report");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   g_assert_true (g_action_group_get_action_enabled (actions, "connectivity_report.state"));
   state = g_action_group_get_action_state (actions, "connectivity_report.state");
@@ -250,6 +267,7 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin handles other states");
   packet = valent_test_fixture_lookup_packet (fixture, "extra2-report");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   g_assert_true (g_action_group_get_action_enabled (actions, "connectivity_report.state"));
   state = g_action_group_get_action_state (actions, "connectivity_report.state");
@@ -268,6 +286,8 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   g_clear_pointer (&signal_info, g_variant_unref);
   g_clear_pointer (&signal_strengths, g_variant_unref);
   g_clear_pointer (&state, g_variant_unref);
+
+  valent_test_watch_clear (actions, &watch);
 }
 
 static void

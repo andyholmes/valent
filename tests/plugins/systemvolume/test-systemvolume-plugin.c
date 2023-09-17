@@ -61,8 +61,14 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   JsonNode *packet;
   JsonArray *sink_list;
   JsonObject *sink_info;
+  gboolean watch = FALSE;
+  gboolean watch_level = FALSE;
+  gboolean watch_muted = FALSE;
 
   valent_mixer_adapter_stream_added (info->adapter, info->sink1);
+  valent_test_watch_signal (info->adapter, "notify::default-output", &watch);
+  valent_test_watch_signal (info->sink1, "notify::level", &watch_level);
+  valent_test_watch_signal (info->sink1, "notify::muted", &watch_muted);
 
   VALENT_TEST_CHECK ("Plugin sends the sink list on connect");
   valent_test_fixture_connect (fixture, TRUE);
@@ -92,6 +98,8 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin responds to a request to mute a stream");
   packet = valent_test_fixture_lookup_packet (fixture, "request-mute");
   valent_test_fixture_handle_packet (fixture, packet);
+
+  valent_test_await_boolean (&watch_muted);
   g_assert_true (valent_mixer_stream_get_muted (info->sink1));
 
   packet = valent_test_fixture_expect_packet (fixture);
@@ -112,6 +120,8 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin responds to a request to change the volume of a stream");
   packet = valent_test_fixture_lookup_packet (fixture, "request-volume");
   valent_test_fixture_handle_packet (fixture, packet);
+
+  valent_test_await_boolean (&watch_level);
   g_assert_cmpint (valent_mixer_stream_get_level (info->sink1), ==, 50);
 
   packet = valent_test_fixture_expect_packet (fixture);
@@ -143,9 +153,11 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   g_assert_cmpstr (json_object_get_string_member (sink_info, "name"), ==, "test_sink2");
   json_node_unref (packet);
 
-  VALENT_TEST_CHECK ("Plugin handles a request to change the default stream");
+  VALENT_TEST_CHECK ("Plugin handles a request to change the default output");
   packet = valent_test_fixture_lookup_packet (fixture, "request-enabled2");
   valent_test_fixture_handle_packet (fixture, packet);
+
+  valent_test_await_boolean (&watch);
   g_assert_true (valent_mixer_adapter_get_default_output (info->adapter) == info->sink2);
 
   packet = valent_test_fixture_expect_packet (fixture);
@@ -159,9 +171,11 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   g_assert_cmpstr (json_object_get_string_member (sink_info, "name"), ==, "test_sink2");
   json_node_unref (packet);
 
-  VALENT_TEST_CHECK ("Plugin handles a request to change the default stream");
+  VALENT_TEST_CHECK ("Plugin handles a request to change the default output");
   packet = valent_test_fixture_lookup_packet (fixture, "request-enabled1");
   valent_test_fixture_handle_packet (fixture, packet);
+
+  valent_test_await_boolean (&watch);
   g_assert_true (valent_mixer_adapter_get_default_output (info->adapter) == info->sink1);
 
   packet = valent_test_fixture_expect_packet (fixture);
@@ -199,6 +213,10 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   sink_info = json_array_get_object_element (sink_list, 0);
   g_assert_cmpstr (json_object_get_string_member (sink_info, "name"), ==, "test_sink1");
   json_node_unref (packet);
+
+  valent_test_watch_clear (info->adapter, &watch);
+  valent_test_watch_clear (info->sink1, &watch_level);
+  valent_test_watch_clear (info->sink1, &watch_muted);
 }
 
 int

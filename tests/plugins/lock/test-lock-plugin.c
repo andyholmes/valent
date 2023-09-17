@@ -67,10 +67,15 @@ test_lock_plugin_send_request (ValentTestFixture *fixture,
 {
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *packet;
+  gboolean watch = FALSE;
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_watch_signal (actions,
+                            "action-state-changed::lock.state",
+                            &watch);
 
   VALENT_TEST_CHECK ("Plugin requests locked state on connect");
+  valent_test_fixture_connect (fixture, TRUE);
+
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.lock.request");
   v_assert_packet_true (packet, "requestLocked");
@@ -91,6 +96,7 @@ test_lock_plugin_send_request (ValentTestFixture *fixture,
 
   packet = valent_test_fixture_lookup_packet (fixture, "is-locked");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   VALENT_TEST_CHECK ("Plugin sends request to change the locked state to FALSE");
   g_assert_true (g_action_group_get_action_enabled (actions, "lock.state"));
@@ -101,6 +107,8 @@ test_lock_plugin_send_request (ValentTestFixture *fixture,
   v_assert_packet_type (packet, "kdeconnect.lock.request");
   v_assert_packet_false (packet, "setLocked");
   json_node_unref (packet);
+
+  valent_test_watch_clear (actions, &watch);
 }
 
 static const char *schemas[] = {
