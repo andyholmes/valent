@@ -8,7 +8,6 @@
 
 typedef struct
 {
-  GMainLoop     *loop;
   ValentDevice  *device;
   ValentChannel *channel;
   ValentChannel *endpoint;
@@ -42,7 +41,6 @@ device_fixture_set_up (DeviceFixture *fixture,
   g_autofree ValentChannel **channels = NULL;
   JsonNode *identity;
 
-  fixture->loop = g_main_loop_new (NULL, FALSE);
   fixture->packets = valent_test_load_json ("core.json");
 
   /* Init device */
@@ -65,7 +63,6 @@ device_fixture_tear_down (DeviceFixture *fixture,
   v_await_finalize_object (fixture->channel);
 
   g_clear_pointer (&fixture->packets, json_node_unref);
-  g_clear_pointer (&fixture->loop, g_main_loop_unref);
 }
 
 /*
@@ -540,42 +537,45 @@ test_handle_packet (DeviceFixture *fixture,
 }
 
 static void
-send_available_cb (ValentDevice  *device,
-                   GAsyncResult  *result,
-                   DeviceFixture *fixture)
+send_available_cb (ValentDevice *device,
+                   GAsyncResult *result,
+                   gboolean     *done)
 {
   g_autoptr (GError) error = NULL;
 
   valent_device_send_packet_finish (device, result, &error);
   g_assert_no_error (error);
 
-  g_main_loop_quit (fixture->loop);
+  if (done != NULL)
+    *done = TRUE;
 }
 
 static void
-send_disconnected_cb (ValentDevice  *device,
-                      GAsyncResult  *result,
-                      DeviceFixture *fixture)
+send_disconnected_cb (ValentDevice *device,
+                      GAsyncResult *result,
+                      gboolean     *done)
 {
   g_autoptr (GError) error = NULL;
 
   valent_device_send_packet_finish (device, result, &error);
   g_assert_error (error, G_IO_ERROR, G_IO_ERROR_NOT_CONNECTED);
 
-  g_main_loop_quit (fixture->loop);
+  if (done != NULL)
+    *done = TRUE;
 }
 
 static void
-send_unpaired_cb (ValentDevice  *device,
-                  GAsyncResult  *result,
-                  DeviceFixture *fixture)
+send_unpaired_cb (ValentDevice *device,
+                  GAsyncResult *result,
+                  gboolean     *done)
 {
   g_autoptr (GError) error = NULL;
 
   valent_device_send_packet_finish (device, result, &error);
   g_assert_error (error, G_IO_ERROR, G_IO_ERROR_PERMISSION_DENIED);
 
-  g_main_loop_quit (fixture->loop);
+  if (done != NULL)
+    *done = TRUE;
 }
 
 static void
@@ -583,6 +583,7 @@ test_send_packet (DeviceFixture *fixture,
                   gconstpointer  user_data)
 {
   JsonNode *pair = get_packet (fixture, "pair");
+  gboolean done = FALSE;
 
   /* Disconnected & Paired */
   g_assert_false (valent_device_get_connected (fixture->device));
@@ -594,8 +595,8 @@ test_send_packet (DeviceFixture *fixture,
                              pair,
                              NULL,
                              (GAsyncReadyCallback)send_disconnected_cb,
-                             fixture);
-  g_main_loop_run (fixture->loop);
+                             &done);
+  valent_test_await_boolean (&done);
 
   /* Connected & Paired */
   valent_device_set_channel (fixture->device, fixture->channel);
@@ -608,8 +609,8 @@ test_send_packet (DeviceFixture *fixture,
                              pair,
                              NULL,
                              (GAsyncReadyCallback)send_available_cb,
-                             fixture);
-  g_main_loop_run (fixture->loop);
+                             &done);
+  valent_test_await_boolean (&done);
   endpoint_expect_packet_pair (fixture, TRUE);
 
   /* Connected & Unpaired */
@@ -623,8 +624,8 @@ test_send_packet (DeviceFixture *fixture,
                              pair,
                              NULL,
                              (GAsyncReadyCallback)send_unpaired_cb,
-                             fixture);
-  g_main_loop_run (fixture->loop);
+                             &done);
+  valent_test_await_boolean (&done);
 
   /* Cleanup */
   valent_device_set_channel (fixture->device, NULL);

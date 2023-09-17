@@ -12,7 +12,6 @@
 
 typedef struct
 {
-  GMainLoop  *loop;
   JsonNode   *packets;
   GListModel *dnssd;
 
@@ -26,7 +25,6 @@ lan_dnssd_fixture_set_up (LanDNSSDFixture *fixture,
 {
   JsonNode *identity;
 
-  fixture->loop = g_main_loop_new (NULL, FALSE);
   fixture->packets = valent_test_load_json ("plugin-lan.json");
 
   identity = json_object_get_member (json_node_get_object (fixture->packets),
@@ -44,7 +42,6 @@ lan_dnssd_fixture_tear_down (LanDNSSDFixture *fixture,
 {
   v_await_finalize_object (fixture->dnssd);
 
-  g_clear_pointer (&fixture->loop, g_main_loop_unref);
   g_clear_pointer (&fixture->packets, json_node_unref);
   g_clear_pointer (&fixture->data, g_ptr_array_unref);
 }

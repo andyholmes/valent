@@ -14,7 +14,6 @@
 
 typedef struct
 {
-  GMainLoop            *loop;
   ValentDeviceManager  *manager;
   ValentChannelService *service;
   ValentDevice         *device;
@@ -43,8 +42,6 @@ manager_fixture_set_up (ManagerFixture *fixture,
   state_path = g_build_filename (cache_path, "devices.json", NULL);
   g_file_set_contents (state_path, state_json, -1, NULL);
 
-  /* Init the manager */
-  fixture->loop = g_main_loop_new (NULL, FALSE);
   fixture->manager = valent_device_manager_get_default ();
 }
 
@@ -58,7 +55,6 @@ manager_fixture_tear_down (ManagerFixture *fixture,
     g_main_context_iteration (NULL, FALSE);
 
   v_await_finalize_object (fixture->manager);
-  g_clear_pointer (&fixture->loop, g_main_loop_unref);
 }
 
 static void
@@ -88,7 +84,7 @@ test_manager_basic (ManagerFixture *fixture,
 {
   g_autofree char *name = NULL;
 
-  /* Test properties */
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (fixture->manager,
                 "name", &name,
                 NULL);
@@ -110,66 +106,38 @@ test_manager_management (ManagerFixture *fixture,
   valent_application_plugin_startup (VALENT_APPLICATION_PLUGIN (fixture->manager));
   valent_test_await_pointer (&fixture->device);
 
-  /* Adds devices from the cache when started */
+  VALENT_TEST_CHECK ("Manager adds devices from the cache when started");
   n_devices = g_list_model_get_n_items (G_LIST_MODEL (fixture->manager));
   g_assert_cmpuint (n_devices, ==, 1);
 
-  /* Removes unpaired devices that disconnect */
+  VALENT_TEST_CHECK ("Manager removes unpaired devices when they disconnect");
   g_object_notify (G_OBJECT (fixture->device), "state");
   g_assert_false (VALENT_IS_DEVICE (fixture->device));
 
   n_devices = g_list_model_get_n_items (G_LIST_MODEL (fixture->manager));
   g_assert_cmpuint (n_devices, ==, 0);
 
-  /* Adds devices from channels */
+  VALENT_TEST_CHECK ("Manager adds devices from new channels");
   valent_device_manager_refresh (fixture->manager);
   g_assert_true (VALENT_IS_DEVICE (fixture->device));
 
   n_devices = g_list_model_get_n_items (G_LIST_MODEL (fixture->manager));
   g_assert_cmpuint (n_devices, ==, 1);
 
-  /* Retains paired devices that disconnect */
+  VALENT_TEST_CHECK ("Manager retains paired devices when they disconnect");
   g_object_notify (G_OBJECT (fixture->device), "state");
   g_assert_true (VALENT_IS_DEVICE (fixture->device));
 }
 
 static void
-manager_finish (GObject        *object,
-                GAsyncResult   *result,
-                ManagerFixture *fixture)
+manager_finish (GObject             *object,
+                GAsyncResult        *result,
+                GDBusObjectManager **manager)
 {
   GError *error = NULL;
 
-  fixture->data = g_dbus_object_manager_client_new_finish (result, &error);
+  *manager = g_dbus_object_manager_client_new_finish (result, &error);
   g_assert_no_error (error);
-
-  g_main_loop_quit (fixture->loop);
-}
-
-static void
-on_action_added (GActionGroup   *group,
-                 char           *name,
-                 ManagerFixture *fixture)
-{
-  g_main_loop_quit (fixture->loop);
-}
-
-static void
-on_properties_changed (GDBusProxy     *proxy,
-                       GVariant       *changed_properties,
-                       GStrv           invalidated_properties,
-                       ManagerFixture *fixture)
-{
-  fixture->data = proxy;
-  g_main_loop_quit (fixture->loop);
-}
-
-static void
-on_object_removed (GDBusObjectManager *manager,
-                   GDBusObject        *object,
-                   ManagerFixture     *fixture)
-{
-  g_main_loop_quit (fixture->loop);
 }
 
 static void
@@ -195,7 +163,7 @@ test_manager_dbus (ManagerFixture *fixture,
   valent_application_plugin_startup (VALENT_APPLICATION_PLUGIN (fixture->manager));
   valent_test_await_pointer (&fixture->device);
 
-  /* Exports current devices */
+  VALENT_TEST_CHECK ("Manager can be exported on D-Bus");
   connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
   valent_application_plugin_dbus_register (VALENT_APPLICATION_PLUGIN (fixture->manager),
                                            connection,
@@ -210,11 +178,10 @@ test_manager_dbus (ManagerFixture *fixture,
                                     NULL, NULL, NULL,
                                     NULL,
                                     (GAsyncReadyCallback)manager_finish,
-                                    fixture);
-  g_main_loop_run (fixture->loop);
-  manager = g_steal_pointer (&fixture->data);
+                                    &manager);
+  valent_test_await_pointer (&manager);
 
-  /* Exports devices */
+  VALENT_TEST_CHECK ("Manager exports devices on D-Bus");
   objects = g_dbus_object_manager_get_objects (manager);
   g_assert_cmpuint (g_list_length (objects), ==, 1);
 
@@ -222,45 +189,28 @@ test_manager_dbus (ManagerFixture *fixture,
   interface = g_dbus_object_get_interface (objects->data, DEVICE_INTERFACE);
   g_assert_nonnull (interface);
 
-  g_signal_connect (interface,
-                    "g-properties-changed",
-                    G_CALLBACK (on_properties_changed),
-                    fixture);
-
   g_object_notify (G_OBJECT (fixture->device), "icon-name");
-  g_main_loop_run (fixture->loop);
+  valent_test_await_signal (interface, "g-properties-changed");
 
-  g_assert_true (fixture->data == interface);
-  fixture->data = NULL;
-
-  /* Exports Actions */
+  VALENT_TEST_CHECK ("Manager exports action group on D-Bus");
   actions = g_dbus_action_group_get (connection, unique_name, object_path);
 
-  g_signal_connect (actions,
-                    "action-added",
-                    G_CALLBACK (on_action_added),
-                    fixture);
   action_names = g_action_group_list_actions (G_ACTION_GROUP (actions));
   g_clear_pointer (&action_names, g_strfreev);
-  g_main_loop_run (fixture->loop);
+  valent_test_await_signal (actions, "action-added");
 
   action_names = g_action_group_list_actions (G_ACTION_GROUP (actions));
   g_assert_cmpuint (g_strv_length (action_names), >, 0);
   g_clear_pointer (&action_names, g_strfreev);
 
-  /* Exports Menus */
+  VALENT_TEST_CHECK ("Manager exports menu model on D-Bus");
   menu = g_dbus_menu_model_get (connection, unique_name, object_path);
 
-  /* Unexports devices */
-  g_signal_connect (manager,
-                    "object-removed",
-                    G_CALLBACK (on_object_removed),
-                    fixture);
-
+  VALENT_TEST_CHECK ("Manager unexports devices from D-Bus");
   valent_application_plugin_dbus_unregister (VALENT_APPLICATION_PLUGIN (fixture->manager),
                                              connection,
                                              TEST_OBJECT_PATH);
-  g_main_loop_run (fixture->loop);
+  valent_test_await_signal (manager, "object-removed");
 }
 
 static void
@@ -271,37 +221,39 @@ test_manager_dispose (ManagerFixture *fixture,
   ValentChannelService *service = NULL;
   g_autoptr (GSettings) settings = NULL;
 
-  /* Startup */
+  VALENT_TEST_CHECK ("Manager starts up with the application");
   valent_application_plugin_startup (VALENT_APPLICATION_PLUGIN (fixture->manager));
 
   while ((service = valent_mock_channel_service_get_instance ()) == NULL)
     g_main_context_iteration (NULL, FALSE);
 
-  /* Disable & Enabled channel service */
+  VALENT_TEST_CHECK ("Manager stops channel services when a plugin is disabled");
   settings = valent_test_mock_settings ("network");
   g_settings_set_boolean (settings, "enabled", FALSE);
 
   while ((service = valent_mock_channel_service_get_instance ()) != NULL)
     g_main_context_iteration (NULL, FALSE);
 
+  VALENT_TEST_CHECK ("Manager starts channel services when a plugin is enabled");
   g_settings_set_boolean (settings, "enabled", TRUE);
 
   while ((service = valent_mock_channel_service_get_instance ()) == NULL)
     g_main_context_iteration (NULL, FALSE);
 
-  /* Unload/Load plugin */
+  VALENT_TEST_CHECK ("Manager stops channel services when a plugin is unloaded");
   engine = valent_get_plugin_engine ();
   peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "mock"));
 
   while ((service = valent_mock_channel_service_get_instance ()) != NULL)
     g_main_context_iteration (NULL, FALSE);
 
+  VALENT_TEST_CHECK ("Manager starts channel services when a plugin is loaded");
   peas_engine_load_plugin (engine, peas_engine_get_plugin_info (engine, "mock"));
 
   while ((service = valent_mock_channel_service_get_instance ()) == NULL)
     g_main_context_iteration (NULL, FALSE);
 
-  /* Shutdown */
+  VALENT_TEST_CHECK ("Manager shuts down with the application");
   valent_application_plugin_shutdown (VALENT_APPLICATION_PLUGIN (fixture->manager));
 
   while ((service = valent_mock_channel_service_get_instance ()) != NULL)
