@@ -190,10 +190,12 @@ valent_test_event_free (GDestroyNotify free_func)
 gpointer
 valent_test_event_pop (void)
 {
-  if (events == NULL)
-    return NULL;
+  gpointer event = NULL;
 
-  return g_queue_pop_head (events);
+  while (events == NULL || (event = g_queue_pop_head (events)) == NULL)
+    g_main_context_iteration (NULL, FALSE);
+
+  return event;
 }
 
 /**
@@ -380,6 +382,44 @@ valent_test_await_signal (gpointer    object,
                                          &done);
   valent_test_await_boolean (&done);
   g_clear_signal_handler (&handler_id, G_OBJECT (object));
+}
+
+/**
+ * valent_test_watch_signal:
+ * @object: (type GObject.Object): a `GObject`
+ * @signal_name: a signal to wait for
+ * @watch: a pointer to a `gboolean`
+ *
+ * Watch for @object to emit @signal_name, then set @watch to %TRUE.
+ *
+ * Call [func@Valent.test_await_boolean] to wait for the emission, and
+ * [func@Valent.test_unwatch_signal] to remove all signals for @watch.
+ */
+void
+valent_test_watch_signal (gpointer    object,
+                          const char *signal_name,
+                          gboolean   *watch)
+{
+  g_signal_connect_swapped (object,
+                            signal_name,
+                            G_CALLBACK (valent_test_await_signal_cb),
+                            watch);
+}
+
+/**
+ * valent_test_watch_clear:
+ * @object: (type GObject.Object): a `GObject`
+ * @watch: a pointer to a `gboolean`
+ *
+ * Remove all signal handlers on @object for @watch.
+ */
+void
+valent_test_watch_clear (gpointer  object,
+                         gboolean *watch)
+{
+  g_signal_handlers_disconnect_by_func (object,
+                                        valent_test_await_signal_cb,
+                                        watch);
 }
 
 static gboolean
