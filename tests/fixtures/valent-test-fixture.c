@@ -299,6 +299,20 @@ valent_test_fixture_expect_packet (ValentTestFixture *fixture)
   return g_steal_pointer (&packet);
 }
 
+static void
+valent_channel_write_packet_cb (GObject      *object,
+                                GAsyncResult *result,
+                                gpointer      user_data)
+{
+  gboolean *done = (gboolean *)user_data;
+  GError *error = NULL;
+
+  valent_channel_write_packet_finish (VALENT_CHANNEL (object), result, &error);
+  g_assert_no_error (error);
+
+  *done = TRUE;
+}
+
 /**
  * valent_test_fixture_handle_packet:
  * @fixture: a #ValentTestFixture
@@ -310,10 +324,17 @@ void
 valent_test_fixture_handle_packet (ValentTestFixture *fixture,
                                    JsonNode          *packet)
 {
+  gboolean done = FALSE;
+
   g_assert (fixture != NULL);
   g_assert (VALENT_IS_PACKET (packet));
 
-  valent_device_handle_packet (fixture->device, packet);
+  valent_channel_write_packet (fixture->endpoint,
+                               packet,
+                               NULL,
+                               valent_channel_write_packet_cb,
+                               &done);
+  valent_test_await_boolean (&done);
 }
 
 /**

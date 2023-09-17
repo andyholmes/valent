@@ -21,9 +21,9 @@ test_mousepad_plugin_handle_echo (ValentTestFixture *fixture,
 {
   JsonNode *packet;
 
+  VALENT_TEST_CHECK ("Plugin sends the keyboard state on connect");
   valent_test_fixture_connect (fixture, TRUE);
 
-  VALENT_TEST_CHECK ("Plugin sends the keyboard state on connect");
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mousepad.keyboardstate");
   v_assert_packet_true (packet, "state");
@@ -40,9 +40,9 @@ test_mousepad_plugin_handle_request (ValentTestFixture *fixture,
 {
   JsonNode *packet;
 
+  VALENT_TEST_CHECK ("Plugin sends the keyboard state on connect");
   valent_test_fixture_connect (fixture, TRUE);
 
-  VALENT_TEST_CHECK ("Plugin sends the keyboard state on connect");
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mousepad.keyboardstate");
   v_assert_packet_true (packet, "state");
@@ -152,18 +152,27 @@ test_mousepad_plugin_send_keyboard_request (ValentTestFixture *fixture,
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *packet;
   GVariantDict dict;
+  gboolean watch = FALSE;
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_watch_signal (actions,
+                            "action-enabled-changed::mousepad.event",
+                            &watch);
 
   VALENT_TEST_CHECK ("Plugin sends the keyboard state on connect");
+  valent_test_fixture_connect (fixture, TRUE);
+
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mousepad.keyboardstate");
   v_assert_packet_true (packet, "state");
   json_node_unref (packet);
 
+  VALENT_TEST_CHECK ("Plugin action `mousepad.event` is disabled when `keyboardstate` is `false`");
+  g_assert_false (g_action_group_get_action_enabled (actions, "mousepad.event"));
+
   VALENT_TEST_CHECK ("Plugin handles the keyboard state");
   packet = valent_test_fixture_lookup_packet (fixture, "keyboardstate-true");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   VALENT_TEST_CHECK ("Plugin action `mousepad.event` is enabled");
   g_assert_true (g_action_group_get_action_enabled (actions, "mousepad.event"));
@@ -232,6 +241,8 @@ test_mousepad_plugin_send_keyboard_request (ValentTestFixture *fixture,
   v_assert_packet_no_field (packet, "shift");
   v_assert_packet_no_field (packet, "super");
   json_node_unref (packet);
+
+  valent_test_watch_clear (actions, &watch);
 }
 
 static void
@@ -241,6 +252,11 @@ test_mousepad_plugin_send_pointer_request (ValentTestFixture *fixture,
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *packet;
   GVariantDict dict;
+  gboolean watch = FALSE;
+
+  valent_test_watch_signal (actions,
+                            "action-enabled-changed::mousepad.event",
+                            &watch);
 
   VALENT_TEST_CHECK ("Plugin sends the keyboard state on connect");
   valent_test_fixture_connect (fixture, TRUE);
@@ -256,6 +272,7 @@ test_mousepad_plugin_send_pointer_request (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin handles the keyboard state");
   packet = valent_test_fixture_lookup_packet (fixture, "keyboardstate-true");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   VALENT_TEST_CHECK ("Plugin action `mousepad.event` is enabled when `keyboardstate` is `true`");
   g_assert_true (g_action_group_get_action_enabled (actions, "mousepad.event"));
@@ -287,6 +304,8 @@ test_mousepad_plugin_send_pointer_request (ValentTestFixture *fixture,
   v_assert_packet_cmpfloat (packet, "dy", >=, 1.0);
   v_assert_packet_true (packet, "scroll");
   json_node_unref (packet);
+
+  valent_test_watch_clear (actions, &watch);
 }
 
 static const char *schemas[] = {

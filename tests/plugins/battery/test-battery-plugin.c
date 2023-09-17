@@ -98,6 +98,11 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
   gboolean is_present;
   int64_t time_to_empty;
   int64_t time_to_full;
+  gboolean watch = FALSE;
+
+  valent_test_watch_signal (actions,
+                            "action-state-changed::battery.state",
+                            &watch);
 
   VALENT_TEST_CHECK ("Plugin action `battery.state` starts disabled");
   g_assert_false (g_action_group_get_action_enabled (actions, "battery.state"));
@@ -115,6 +120,7 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin handles \"empty\" battery update");
   packet = valent_test_fixture_lookup_packet (fixture, "empty-battery");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   VALENT_TEST_CHECK ("Plugin action `battery.state` is enabled if a status "
                      "packet is received");
@@ -142,6 +148,7 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin handles \"caution\" battery update");
   packet = valent_test_fixture_lookup_packet (fixture, "caution-battery");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   VALENT_TEST_CHECK ("Plugin updates `battery.state` action to expected value");
   state = g_action_group_get_action_state (actions, "battery.state");
@@ -165,6 +172,7 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin handles \"low\" battery update");
   packet = valent_test_fixture_lookup_packet (fixture, "low-battery");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   VALENT_TEST_CHECK ("Plugin updates `battery.state` action to expected value");
   state = g_action_group_get_action_state (actions, "battery.state");
@@ -188,6 +196,7 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin handles \"good\" battery update");
   packet = valent_test_fixture_lookup_packet (fixture, "good-battery");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   VALENT_TEST_CHECK ("Plugin updates `battery.state` action to expected value");
   state = g_action_group_get_action_state (actions, "battery.state");
@@ -211,6 +220,7 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin handles \"full\" battery update");
   packet = valent_test_fixture_lookup_packet (fixture, "full-battery");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   VALENT_TEST_CHECK ("Plugin updates `battery.state` action to expected value");
   state = g_action_group_get_action_state (actions, "battery.state");
@@ -234,6 +244,7 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin handles \"charged\" battery update");
   packet = valent_test_fixture_lookup_packet (fixture, "charged-battery");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   VALENT_TEST_CHECK ("Plugin updates `battery.state` action to expected value");
   state = g_action_group_get_action_state (actions, "battery.state");
@@ -257,6 +268,7 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin handles \"missing\" battery update");
   packet = valent_test_fixture_lookup_packet (fixture, "missing-battery");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   VALENT_TEST_CHECK ("Plugin updates `battery.state` action to expected value");
   state = g_action_group_get_action_state (actions, "battery.state");
@@ -274,6 +286,8 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
   g_assert_false (is_present);
 
   g_clear_pointer (&state, g_variant_unref);
+
+  valent_test_watch_clear (actions, &watch);
 }
 
 static void

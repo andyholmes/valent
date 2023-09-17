@@ -83,12 +83,17 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
 {
   MixerInfo *info = fixture->data;
   JsonNode *packet;
+  gboolean watch = FALSE;
+
+  valent_test_watch_signal (info->speakers, "notify", &watch);
+  valent_test_watch_signal (info->microphone, "notify", &watch);
 
   valent_test_fixture_connect (fixture, TRUE);
 
   VALENT_TEST_CHECK ("Plugin handles a `ringing` event");
   packet = valent_test_fixture_lookup_packet (fixture, "ringing");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   g_assert_cmpuint (valent_mixer_stream_get_level (info->speakers), ==, 15);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->speakers), ==, FALSE);
@@ -100,6 +105,7 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin handles a `isCancel` event, following a `ringing` event");
   packet = valent_test_fixture_lookup_packet (fixture, "ringing-cancel");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   g_assert_cmpuint (valent_mixer_stream_get_level (info->speakers), ==, 100);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->speakers), ==, FALSE);
@@ -119,6 +125,7 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin handles a `ringing` event");
   packet = valent_test_fixture_lookup_packet (fixture, "ringing");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   g_assert_cmpuint (valent_mixer_stream_get_level (info->speakers), ==, 15);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->speakers), ==, FALSE);
@@ -130,6 +137,7 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin handles a `talking` event, following a `ringing` event");
   packet = valent_test_fixture_lookup_packet (fixture, "talking");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   g_assert_cmpuint (valent_mixer_stream_get_level (info->speakers), ==, 15);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->speakers), ==, TRUE);
@@ -141,6 +149,7 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin handles a `isCancel` event, following a `talking` event");
   packet = valent_test_fixture_lookup_packet (fixture, "talking-cancel");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   g_assert_cmpuint (valent_mixer_stream_get_level (info->speakers), ==, 100);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->speakers), ==, FALSE);
@@ -162,6 +171,7 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin handles a `ringing` event");
   packet = valent_test_fixture_lookup_packet (fixture, "ringing");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   g_assert_cmpuint (valent_mixer_stream_get_level (info->speakers), ==, 15);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->speakers), ==, FALSE);
@@ -174,6 +184,7 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin handles a `talking` event, following a `ringing` event");
   packet = valent_test_fixture_lookup_packet (fixture, "talking");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   g_assert_cmpuint (valent_mixer_stream_get_level (info->speakers), ==, 15);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->speakers), ==, FALSE);
@@ -185,6 +196,7 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin handles a `isCancel` event, following a `talking` event");
   packet = valent_test_fixture_lookup_packet (fixture, "talking-cancel");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   g_assert_cmpuint (valent_mixer_stream_get_level (info->speakers), ==, 15);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->speakers), ==, FALSE);
@@ -192,6 +204,9 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->microphone), ==, FALSE);
   g_assert_cmpuint (valent_mixer_stream_get_level (info->headphones), ==, 100);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->headphones), ==, FALSE);
+
+  valent_test_watch_clear (info->speakers, &watch);
+  valent_test_watch_clear (info->microphone, &watch);
 }
 
 static void

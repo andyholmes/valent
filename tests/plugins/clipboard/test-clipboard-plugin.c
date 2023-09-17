@@ -42,6 +42,9 @@ test_clipboard_plugin_handle_content (ValentTestFixture *fixture,
 {
   JsonNode *packet;
   char *content = NULL;
+  gboolean watch = FALSE;
+
+  valent_test_watch_signal (valent_clipboard_get_default (), "changed", &watch);
 
   g_settings_set_boolean (fixture->settings, "auto-pull", TRUE);
   g_settings_set_boolean (fixture->settings, "auto-push", TRUE);
@@ -56,6 +59,7 @@ test_clipboard_plugin_handle_content (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin copies connect-time content to the local clipboard");
   packet = valent_test_fixture_lookup_packet (fixture, "clipboard-connect");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   valent_clipboard_read_text (valent_clipboard_get_default (),
                               NULL,
@@ -69,6 +73,7 @@ test_clipboard_plugin_handle_content (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin copies remote content to the local clipboard");
   packet = valent_test_fixture_lookup_packet (fixture, "clipboard-content");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
 
   valent_clipboard_read_text (valent_clipboard_get_default (),
                               NULL,
@@ -84,6 +89,7 @@ test_clipboard_plugin_handle_content (ValentTestFixture *fixture,
   json_object_set_int_member (valent_packet_get_body (packet), "timestamp", 0);
   json_object_set_string_member (valent_packet_get_body (packet), "content", "old");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_pending ();
 
   valent_clipboard_read_text (valent_clipboard_get_default (),
                               NULL,
@@ -93,6 +99,8 @@ test_clipboard_plugin_handle_content (ValentTestFixture *fixture,
 
   g_assert_cmpstr (content, ==, "clipboard-content");
   g_clear_pointer (&content, g_free);
+
+  valent_test_watch_clear (valent_clipboard_get_default (), &watch);
 }
 
 static void
@@ -148,6 +156,7 @@ test_clipboard_plugin_actions (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin action `clipboard.pull` copies content to the clipboard");
   packet = valent_test_fixture_lookup_packet (fixture, "clipboard-content");
   valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_pending ();
 
   g_action_group_activate_action (actions, "clipboard.pull", NULL);
   valent_clipboard_read_text (valent_clipboard_get_default (),
