@@ -15,7 +15,7 @@ dependencies = [
   "GObject-2.0",
   "Gtk-4.0",
   "Json-1.0",
-  "Peas-1.0",
+  "Peas-2",
   "EBook-1.2",
 ]
 devhelp = true
@@ -37,7 +37,7 @@ search_index = true
   description = "A library for reading and parsing JSON"
   docs_url = "https://gnome.pages.gitlab.gnome.org/json-glib/"
 
-  [dependencies."Peas-1.0"]
+  [dependencies."Peas-2"]
   name = "Peas"
   description = "A GObject-based plugin engine"
   docs_url = "https://gnome.pages.gitlab.gnome.org/libpeas/libpeas-1.0/"

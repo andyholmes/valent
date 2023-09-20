@@ -57,8 +57,6 @@ static void
 test_notifications_component_adapter (NotificationsComponentFixture *fixture,
                                       gconstpointer                  user_data)
 {
-  PeasPluginInfo *info;
-
   g_signal_connect (fixture->adapter,
                     "notification-added",
                     G_CALLBACK (on_notification_added),
@@ -67,13 +65,6 @@ test_notifications_component_adapter (NotificationsComponentFixture *fixture,
                     "notification-removed",
                     G_CALLBACK (on_notification_removed),
                     fixture);
-
-  VALENT_TEST_CHECK ("GObject properties function correctly");
-  g_object_get (fixture->adapter,
-                "plugin-info", &info,
-                NULL);
-  g_assert_nonnull (info);
-  g_boxed_free (PEAS_TYPE_PLUGIN_INFO, info);
 
   /* Signals */
   valent_notifications_adapter_notification_added (fixture->adapter, fixture->notification);

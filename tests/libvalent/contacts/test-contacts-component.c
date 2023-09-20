@@ -170,15 +170,6 @@ static void
 test_contacts_component_adapter (ContactsComponentFixture *fixture,
                                  gconstpointer             user_data)
 {
-  PeasPluginInfo *plugin_info;
-
-  VALENT_TEST_CHECK ("GObject properties function correctly");
-  g_object_get (fixture->adapter,
-                "plugin-info", &plugin_info,
-                NULL);
-  g_assert_cmpstr (peas_plugin_info_get_module_name (plugin_info), ==, "mock");
-  g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
-
   /* Signals */
   g_signal_connect (fixture->adapter,
                     "items-changed",

@@ -3,7 +3,7 @@
 
 #include "config.h"
 
-#include <libpeas/peas.h>
+#include <libpeas.h>
 #include <valent.h>
 
 #include "valent-telephony-plugin.h"

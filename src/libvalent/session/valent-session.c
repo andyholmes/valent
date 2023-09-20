@@ -6,7 +6,7 @@
 #include "config.h"
 
 #include <gio/gio.h>
-#include <libpeas/peas.h>
+#include <libpeas.h>
 #include <libvalent-core.h>
 
 #include "valent-session.h"

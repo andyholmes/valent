@@ -809,8 +809,8 @@ valent_device_manager_startup (ValentApplicationPlugin *plugin)
 {
   ValentDeviceManager *self = VALENT_DEVICE_MANAGER (plugin);
   PeasEngine *engine = NULL;
-  const GList *plugins = NULL;
   g_autofree char *name = NULL;
+  unsigned int n_plugins = 0;
 
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
 
@@ -830,12 +830,16 @@ valent_device_manager_startup (ValentApplicationPlugin *plugin)
 
   /* Setup services */
   engine = valent_get_plugin_engine ();
-  plugins = peas_engine_get_plugin_list (engine);
+  n_plugins = g_list_model_get_n_items (G_LIST_MODEL (engine));
 
-  for (const GList *iter = plugins; iter; iter = iter->next)
+  for (unsigned int i = 0; i < n_plugins; i++)
     {
-      if (peas_plugin_info_is_loaded (iter->data))
-        on_load_service (engine, iter->data, self);
+      g_autoptr (PeasPluginInfo) info = NULL;
+
+      info = g_list_model_get_item (G_LIST_MODEL (engine), i);
+
+      if (peas_plugin_info_is_loaded (info))
+        on_load_service (engine, info, self);
     }
 
   g_signal_connect_object (engine,
