@@ -26,14 +26,12 @@ struct _ValentDevicePage
   GtkWindow         *preferences;
 
   /* template */
-  GtkWidget         *stack;
+  GtkStack          *stack;
 
-  GtkWidget         *pair_group;
   GtkWidget         *pair_request;
-  GtkWidget         *pair_spinner;
+  GtkSpinner        *pair_spinner;
   GtkWidget         *verification_key;
 
-  GtkWidget         *connected_group;
   GtkWidget         *gadgets;
   ValentMenuStack   *menu_actions;
 };
@@ -142,9 +140,7 @@ on_state_changed (ValentDevice     *device,
                   ValentDevicePage *self)
 {
   ValentDeviceState state = VALENT_DEVICE_STATE_NONE;
-  g_autoptr (ValentChannel) channel = NULL;
-  const char *verification_key = NULL;
-  gboolean connected, paired, pair_incoming, pair_outgoing;
+  gboolean connected, paired;
 
   g_assert (VALENT_IS_DEVICE (device));
   g_assert (VALENT_IS_DEVICE_PAGE (self));
@@ -152,31 +148,43 @@ on_state_changed (ValentDevice     *device,
   state = valent_device_get_state (self->device);
   connected = (state & VALENT_DEVICE_STATE_CONNECTED) != 0;
   paired = (state & VALENT_DEVICE_STATE_PAIRED) != 0;
-  pair_incoming = (state & VALENT_DEVICE_STATE_PAIR_INCOMING) != 0;
-  pair_outgoing = (state & VALENT_DEVICE_STATE_PAIR_OUTGOING) != 0;
 
   /* Ensure the proper controls are displayed */
-  gtk_widget_set_visible (self->connected_group, connected);
-  gtk_widget_set_visible (self->pair_group, !paired);
-
   gtk_widget_action_set_enabled (GTK_WIDGET (self), "page.pair", !paired);
   gtk_widget_action_set_enabled (GTK_WIDGET (self), "page.unpair", paired);
 
-  if (paired)
-    return;
+  if (!connected)
+    {
+      gtk_stack_set_visible_child_name (self->stack, "disconnected");
+    }
+  else if (!paired)
+    {
+      g_autoptr (ValentChannel) channel = NULL;
+      const char *verification_key = NULL;
+      gboolean pair_incoming, pair_outgoing;
 
-  /* Get the channel verification key */
-  if ((channel = valent_device_ref_channel (self->device)) != NULL)
-    verification_key = valent_channel_get_verification_key (channel);
+      /* Get the channel verification key */
+      if ((channel = valent_device_ref_channel (self->device)) != NULL)
+        verification_key = valent_channel_get_verification_key (channel);
+      else
+        verification_key = _("Unavailable");
+
+      gtk_label_set_text (GTK_LABEL (self->verification_key), verification_key);
+
+      /* Adjust the actions */
+      pair_incoming = (state & VALENT_DEVICE_STATE_PAIR_INCOMING) != 0;
+      pair_outgoing = (state & VALENT_DEVICE_STATE_PAIR_OUTGOING) != 0;
+
+      gtk_widget_set_visible (self->pair_request, !pair_incoming);
+      gtk_widget_set_sensitive (self->pair_request, !pair_outgoing);
+      gtk_spinner_set_spinning (self->pair_spinner, pair_outgoing);
+
+      gtk_stack_set_visible_child_name (self->stack, "pairing");
+    }
   else
-    verification_key = _("Unavailable");
-
-  gtk_label_set_text (GTK_LABEL (self->verification_key), verification_key);
-
-  /* Adjust the actions */
-  gtk_widget_set_visible (self->pair_spinner, pair_outgoing);
-  gtk_widget_set_visible (self->pair_request, !pair_incoming);
-  gtk_widget_set_sensitive (self->pair_request, !pair_outgoing);
+    {
+      gtk_stack_set_visible_child_name (self->stack, "connected");
+    }
 }
 
 static void
@@ -341,11 +349,9 @@ valent_device_page_class_init (ValentDevicePageClass *klass)
   gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-device-page.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePage, gadgets);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePage, stack);
-  gtk_widget_class_bind_template_child (widget_class, ValentDevicePage, pair_group);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePage, pair_request);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePage, pair_spinner);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePage, verification_key);
-  gtk_widget_class_bind_template_child (widget_class, ValentDevicePage, connected_group);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePage, menu_actions);
 
   gtk_widget_class_install_action (widget_class, "page.preferences", NULL, page_preferences_action);
