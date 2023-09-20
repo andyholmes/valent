@@ -37,16 +37,15 @@
       </object>
     </child>
     <child>
-      <object class="GtkStack" id="stack">
-        <property name="transition-type">over-left-right</property>
+      <object class="AdwNavigationView" id="view">
         <child>
-          <object class="GtkStackPage">
-            <property name="name">main</property>
+          <object class="AdwNavigationPage">
+            <property name="tag">main</property>
+            <property name="title" translatable="yes">Valent</property>
             <property name="child">
-              <object class="GtkBox">
-                <property name="orientation">vertical</property>
-                <child>
-                  <object class="GtkHeaderBar">
+              <object class="AdwToolbarView">
+                <child type="top">
+                  <object class="AdwHeaderBar">
                     <child type="start">
                       <object class="GtkButton" id="refresh_button">
                         <property name="action-name">win.refresh</property>
@@ -71,14 +70,14 @@
                     </child>
                   </object>
                 </child>
-                <child>
+                <child type="top">
                   <object class="GtkProgressBar" id="progress_bar">
                     <style>
                       <class name="osd"/>
                     </style>
                   </object>
                 </child>
-                <child>
+                <property name="content">
                   <object class="AdwPreferencesPage">
                     <property name="vexpand">1</property>
                     <child>
@@ -110,7 +109,7 @@
                       </object>
                     </child>
                   </object>
-                </child>
+                </property>
               </object>
             </property>
           </object>

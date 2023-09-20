@@ -21,29 +21,29 @@
 
 struct _ValentSmsWindow
 {
-  AdwApplicationWindow  parent_instance;
+  AdwApplicationWindow    parent_instance;
 
-  ValentContactStore   *contact_store;
-  ValentSmsStore       *message_store;
+  ValentContactStore     *contact_store;
+  ValentSmsStore         *message_store;
 
   /* template */
-  AdwLeaflet           *content_box;
-  AdwHeaderBar         *content_header;
-  AdwHeaderBar         *sidebar_header;
+  AdwNavigationSplitView *content_box;
+  AdwHeaderBar           *content_header;
+  AdwHeaderBar           *sidebar_header;
 
-  GtkLabel             *content_title;
-  GtkBox               *content_layout;
-  GtkListBox           *conversation_list;
-  GtkStack             *content;
+  AdwNavigationPage      *content_page;
+  GtkBox                 *content_layout;
+  GtkListBox             *conversation_list;
+  GtkStack               *content;
 
-  GtkWidget            *message_search;
-  GtkWidget            *message_search_entry;
-  GtkListBox           *message_search_list;
+  GtkWidget              *message_search;
+  GtkWidget              *message_search_entry;
+  GtkListBox             *message_search_list;
 
-  GtkWidget            *contact_search;
-  GtkWidget            *contact_search_entry;
-  GtkListBox           *contact_search_list;
-  GtkWidget            *placeholder_contact;
+  GtkWidget              *contact_search;
+  GtkWidget              *contact_search_entry;
+  GtkListBox             *contact_search_list;
+  GtkWidget              *placeholder_contact;
 };
 
 G_DEFINE_FINAL_TYPE (ValentSmsWindow, valent_sms_window, ADW_TYPE_APPLICATION_WINDOW)
@@ -582,7 +582,7 @@ on_conversation_activated (GtkListBox      *box,
   thread_id = valent_message_row_get_thread_id (summary);
 
   valent_sms_window_set_active_thread (self, thread_id);
-  adw_leaflet_navigate (self->content_box, ADW_NAVIGATION_DIRECTION_FORWARD);
+  adw_navigation_split_view_set_show_content (self->content_box, TRUE);
 }
 
 
@@ -599,10 +599,10 @@ sms_new_action (GtkWidget  *widget,
   g_assert (VALENT_IS_SMS_WINDOW (self));
 
   gtk_list_box_select_row (self->conversation_list, NULL);
-  gtk_label_set_label (self->content_title, _("New Conversation"));
+  adw_navigation_page_set_title (self->content_page, _("New Conversation"));
   gtk_stack_set_visible_child_name (self->content, "contacts");
   gtk_widget_grab_focus (self->contact_search_entry);
-  adw_leaflet_navigate (self->content_box, ADW_NAVIGATION_DIRECTION_FORWARD);
+  adw_navigation_split_view_set_show_content (self->content_box, TRUE);
 }
 
 static void
@@ -614,22 +614,10 @@ sms_search_action (GtkWidget  *widget,
 
   g_assert (VALENT_IS_SMS_WINDOW (self));
 
-  gtk_label_set_label (self->content_title, _("Search Messages"));
+  adw_navigation_page_set_title (self->content_page, _("Search Messages"));
   gtk_stack_set_visible_child_name (self->content, "search");
   gtk_widget_grab_focus (self->message_search_entry);
-  adw_leaflet_navigate (self->content_box, ADW_NAVIGATION_DIRECTION_FORWARD);
-}
-
-static void
-win_previous_action (GtkWidget  *widget,
-                     const char *action_name,
-                     GVariant   *parameter)
-{
-  ValentSmsWindow *self = VALENT_SMS_WINDOW (widget);
-
-  g_assert (VALENT_IS_SMS_WINDOW (self));
-
-  adw_leaflet_navigate (self->content_box, ADW_NAVIGATION_DIRECTION_BACK);
+  adw_navigation_split_view_set_show_content (self->content_box, TRUE);
 }
 
 /*
@@ -731,16 +719,14 @@ valent_sms_window_class_init (ValentSmsWindowClass *klass)
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/sms/valent-sms-window.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentSmsWindow, content_box);
-  gtk_widget_class_bind_template_child (widget_class, ValentSmsWindow, content_header);
   gtk_widget_class_bind_template_child (widget_class, ValentSmsWindow, sidebar_header);
 
-  gtk_widget_class_bind_template_child (widget_class, ValentSmsWindow, content_title);
+  gtk_widget_class_bind_template_child (widget_class, ValentSmsWindow, content_page);
+  gtk_widget_class_bind_template_child (widget_class, ValentSmsWindow, content_header);
   gtk_widget_class_bind_template_child (widget_class, ValentSmsWindow, content_layout);
-
 
   gtk_widget_class_bind_template_child (widget_class, ValentSmsWindow, conversation_list);
   gtk_widget_class_bind_template_child (widget_class, ValentSmsWindow, content);
-
   gtk_widget_class_bind_template_callback (widget_class, on_conversation_activated);
 
   /* Message Search */
@@ -759,7 +745,6 @@ valent_sms_window_class_init (ValentSmsWindowClass *klass)
 
   gtk_widget_class_install_action (widget_class, "sms.new", NULL, sms_new_action);
   gtk_widget_class_install_action (widget_class, "sms.search", NULL, sms_search_action);
-  gtk_widget_class_install_action (widget_class, "win.previous", NULL, win_previous_action);
 
   /**
    * ValentSmsWindow:contact-store:
@@ -911,10 +896,10 @@ valent_sms_window_search_contacts (ValentSmsWindow *window,
 
   gtk_list_box_select_row (window->conversation_list, NULL);
 
-  gtk_label_set_label (window->content_title, _("New Conversation"));
+  adw_navigation_page_set_title (window->content_page, _("New Conversation"));
   gtk_stack_set_visible_child_name (window->content, "contacts");
   gtk_widget_grab_focus (window->contact_search_entry);
-  adw_leaflet_navigate (window->content_box, ADW_NAVIGATION_DIRECTION_FORWARD);
+  adw_navigation_split_view_set_show_content (window->content_box, TRUE);
 
   gtk_editable_set_text (GTK_EDITABLE (window->contact_search_entry), query);
 }
@@ -933,10 +918,10 @@ valent_sms_window_search_messages (ValentSmsWindow *window,
   g_return_if_fail (VALENT_IS_SMS_WINDOW (window));
   g_return_if_fail (query != NULL);
 
-  gtk_label_set_label (window->content_title, _("Search Messages"));
+  adw_navigation_page_set_title (window->content_page, _("Search Messages"));
   gtk_stack_set_visible_child_name (window->content, "search");
   gtk_widget_grab_focus (window->message_search_entry);
-  adw_leaflet_navigate (window->content_box, ADW_NAVIGATION_DIRECTION_FORWARD);
+  adw_navigation_split_view_set_show_content (window->content_box, TRUE);
 
   gtk_editable_set_text (GTK_EDITABLE (window->message_search_entry), query);
 }
@@ -991,7 +976,7 @@ valent_sms_window_set_active_thread (ValentSmsWindow *window,
 
   /* Set the header title */
   title = valent_sms_conversation_get_title (VALENT_SMS_CONVERSATION (conversation));
-  gtk_label_set_label (window->content_title, title);
+  adw_navigation_page_set_title (window->content_page, title);
 
   /* Switch to conversation widget */
   gtk_stack_set_visible_child (window->content, conversation);

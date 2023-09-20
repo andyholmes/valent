@@ -19,27 +19,26 @@
 
 struct _ValentDevicePage
 {
-  GtkBox           parent_instance;
+  AdwNavigationPage  parent_instance;
 
-  ValentDevice    *device;
-  GHashTable      *plugins;
-  GtkWindow       *preferences;
+  ValentDevice      *device;
+  GHashTable        *plugins;
+  GtkWindow         *preferences;
 
   /* template */
-  AdwWindowTitle  *title;
-  GtkWidget       *stack;
+  GtkWidget         *stack;
 
-  GtkWidget       *pair_group;
-  GtkWidget       *pair_request;
-  GtkWidget       *pair_spinner;
-  GtkWidget       *verification_key;
+  GtkWidget         *pair_group;
+  GtkWidget         *pair_request;
+  GtkWidget         *pair_spinner;
+  GtkWidget         *verification_key;
 
-  GtkWidget       *connected_group;
-  GtkWidget       *gadgets;
-  ValentMenuStack *menu_actions;
+  GtkWidget         *connected_group;
+  GtkWidget         *gadgets;
+  ValentMenuStack   *menu_actions;
 };
 
-G_DEFINE_FINAL_TYPE (ValentDevicePage, valent_device_page, GTK_TYPE_BOX)
+G_DEFINE_FINAL_TYPE (ValentDevicePage, valent_device_page, ADW_TYPE_NAVIGATION_PAGE)
 
 enum {
   PROP_0,
@@ -119,8 +118,6 @@ on_plugins_changed (ValentDevice     *device,
   const char *module;
 
   plugins = valent_device_get_plugins (device);
-
-  /* Remove */
   g_hash_table_iter_init (&iter, self->plugins);
 
   while (g_hash_table_iter_next (&iter, (void **)&module, NULL))
@@ -245,8 +242,11 @@ valent_device_page_constructed (GObject *object)
   ValentDevicePage *self = VALENT_DEVICE_PAGE (object);
   GMenuModel *menu;
 
+  g_object_bind_property (self->device, "id",
+                          self,         "tag",
+                          G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE);
   g_object_bind_property (self->device, "name",
-                          self->title,  "title",
+                          self,         "title",
                           G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE);
 
   /* Actions & Menu */
@@ -339,7 +339,6 @@ valent_device_page_class_init (ValentDevicePageClass *klass)
 
   /* template */
   gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-device-page.ui");
-  gtk_widget_class_bind_template_child (widget_class, ValentDevicePage, title);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePage, gadgets);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePage, stack);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePage, pair_group);
@@ -382,22 +381,5 @@ valent_device_page_init (ValentDevicePage *self)
                                          g_str_equal,
                                          g_free,
                                          plugin_data_free);
-}
-
-/**
- * valent_device_page_close_preferences:
- * @panel: a #ValentDevicePage
- *
- * Close the preferences page.
- *
- * This is called by [class@Valent.Window] when the `win.page` action is
- * activated, to ensure the new page is not blocked by a modal window.
- */
-void
-valent_device_page_close_preferences (ValentDevicePage *panel)
-{
-  g_assert (VALENT_IS_DEVICE_PAGE (panel));
-
-  g_clear_pointer (&panel->preferences, gtk_window_destroy);
 }
 

@@ -135,32 +135,25 @@ plugin_row_add_extensions (AdwExpanderRow *plugin_row,
       g_autoptr (ValentContext) domain = NULL;
       g_autoptr (ValentContext) context = NULL;
       g_autoptr (GSettings) settings = NULL;
-      GtkWidget *sw;
 
       if (!peas_engine_provides_extension (engine, info, extension.gtype))
         continue;
 
-      row = g_object_new (ADW_TYPE_ACTION_ROW,
+      row = g_object_new (ADW_TYPE_SWITCH_ROW,
                           "title",      _(extension.title),
                           "selectable", FALSE,
                           NULL);
       adw_expander_row_add_row (ADW_EXPANDER_ROW (plugin_row), row);
-
-      sw = g_object_new (GTK_TYPE_SWITCH,
-                         "active",  TRUE,
-                         "valign",  GTK_ALIGN_CENTER,
-                         NULL);
-      adw_action_row_add_suffix (ADW_ACTION_ROW (row), sw);
-      adw_action_row_set_activatable_widget (ADW_ACTION_ROW (row), sw);
 
       domain = valent_context_new (NULL, extension.domain, NULL);
       context = valent_context_get_plugin_context (domain, info);
       settings = valent_context_create_settings (context,
                                                  "ca.andyholmes.Valent.Plugin");
       g_settings_bind (settings, "enabled",
-                       sw,       "active",
+                       row,      "active",
                        G_SETTINGS_BIND_DEFAULT);
-
+      adw_switch_row_set_active (ADW_SWITCH_ROW (row),
+                                 g_settings_get_boolean (settings, "enabled"));
       g_object_set_data_full (G_OBJECT (row),
                               "plugin-settings",
                               g_steal_pointer (&settings),

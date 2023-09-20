@@ -3,16 +3,12 @@
 
 #pragma once
 
-#include <gtk/gtk.h>
-
-#include "../core/valent-object.h"
+#include <adwaita.h>
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_DEVICE_PAGE (valent_device_page_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentDevicePage, valent_device_page, VALENT, DEVICE_PAGE, GtkBox)
-
-void   valent_device_page_close_preferences (ValentDevicePage *panel);
+G_DECLARE_FINAL_TYPE (ValentDevicePage, valent_device_page, VALENT, DEVICE_PAGE, AdwNavigationPage)
 
 G_END_DECLS
