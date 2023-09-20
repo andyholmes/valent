@@ -14,3 +14,12 @@ window.media-remote .content {
   background: @card_shade_color;
 }
 
+
+/*
+ * ValentPluginRow
+ */
+.plugin-row button.link {
+  min-height: 0px;
+  padding: 0px;
+}
+

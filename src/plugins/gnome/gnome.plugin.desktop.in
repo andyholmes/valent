@@ -8,9 +8,11 @@ Description=Integration with GNOME
 Icon=valent-gnome-plugin-symbolic
 Builtin=true
 Embedded=valent_gnome_plugin_register_types
-Website=https://github.com/andyholmes/valent
-Help=https://github.com/andyholmes/valent
-Hidden=false
+Authors=Andy Holmes;
+Copyright=Copyright © Andy Holmes
+Version=1.0.0.alpha
+Website=https://valent.andyholmes.ca
+Help=https://valent.andyholmes.ca/help
 X-ClipboardAdapterPriority=25
 X-InputAdapterPriority=25
 
