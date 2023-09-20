@@ -24,6 +24,20 @@ RUN dnf install -y --enablerepo=fedora-debuginfo,updates-debuginfo \
         sqlite-devel                  sqlite-debuginfo && \
     dnf clean all && rm -rf /var/cache/dnf
 
+# Build libpeas-2, until it's available in Fedora
+RUN git clone https://gitlab.gnome.org/GNOME/libpeas.git \
+              --branch main \
+              --single-branch && \
+    cd libpeas && \
+    meson setup --prefix=/usr \
+                -Dgjs=false \
+                -Dlua51=false \
+                -Dpython3=false \
+                -Dintrospection=true \
+                -Dvapi=true \
+                _build && \
+    meson install -C _build
+
 # Build libwalbottle from source, since it's not available in most repositories
 RUN git clone https://gitlab.com/walbottle/walbottle.git \
               --branch main \
