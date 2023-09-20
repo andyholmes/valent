@@ -8,7 +8,9 @@ Description=Integration with Evolution Data Server
 Icon=valent-eds-plugin-symbolic
 Builtin=true
 Embedded=valent_eds_plugin_register_types
-Website=https://github.com/andyholmes/valent
-Help=https://github.com/andyholmes/valent
-Hidden=false
+Authors=Andy Holmes;
+Copyright=Copyright © Andy Holmes
+Version=1.0.0.alpha
+Website=https://valent.andyholmes.ca
+Help=https://valent.andyholmes.ca/help
 

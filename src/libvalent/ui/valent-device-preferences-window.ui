@@ -61,6 +61,9 @@
                     </style>
                   </object>
                 </child>
+                <accessibility>
+                  <property name="label" translatable="yes">Plugins</property>
+                </accessibility>
                 <style>
                   <class name="boxed-list"/>
                   <class name="boxed-list-placeholder"/>

@@ -8,6 +8,3 @@ Description=A mock C plugin that doesn't handle packets
 Icon=dialog-information-symbolic
 Builtin=true
 Embedded=valent_packetless_plugin_register_types
-Hidden=false
-X-Permissions=mixer
-

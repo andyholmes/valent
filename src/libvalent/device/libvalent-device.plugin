@@ -8,6 +8,4 @@ Description=Support for device management
 Icon=ca.andyholmes.Valent-symbolic
 Builtin=true
 Embedded=libvalent_device_register_types
-Website=https://github.com/andyholmes/valent
-Help=https://github.com/andyholmes/valent
 Hidden=true

@@ -8,6 +8,4 @@ Description=Default user interface
 Icon=ca.andyholmes.Valent-symbolic
 Builtin=true
 Embedded=libvalent_ui_register_types
-Website=https://github.com/andyholmes/valent
-Help=https://github.com/andyholmes/valent
 Hidden=true
