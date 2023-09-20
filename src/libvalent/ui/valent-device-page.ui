@@ -39,16 +39,31 @@
             <property name="hexpand">1</property>
             <property name="vexpand">1</property>
 
-            <!-- Main Page -->
+            <!-- Disconnected -->
             <child>
               <object class="GtkStackPage">
-                <property name="name">menu</property>
+                <property name="name">disconnected</property>
+                <property name="child">
+                  <object class="AdwStatusPage">
+                    <property name="icon-name">phonelink-off-symbolic</property>
+                    <property name="title" translatable="yes">Disconnected</property>
+                    <property name="description" translatable="yes">This device is currently unavailable</property>
+                  </object>
+                </property>
+              </object>
+            </child>
+
+            <!-- Pairing -->
+            <child>
+              <object class="GtkStackPage">
+                <property name="name">pairing</property>
                 <property name="child">
                   <object class="GtkScrolledWindow">
                     <property name="hscrollbar-policy">never</property>
                     <property name="propagate-natural-height">1</property>
                     <child>
                       <object class="AdwClamp">
+                        <property name="maximum-size">360</property>
                         <child>
                           <object class="GtkBox">
                             <property name="orientation">vertical</property>
@@ -56,186 +71,164 @@
                             <property name="margin-end">12</property>
                             <property name="margin-start">12</property>
                             <property name="margin-top">24</property>
+                            <property name="spacing">32</property>
+                            <property name="valign">center</property>
 
-                            <!-- Pairing Group -->
                             <child>
-                              <object class="GtkBox" id="pair_group">
+                              <object class="GtkImage">
+                                <property name="accessible-role">presentation</property>
+                                <property name="icon-name">phonelink-symbolic</property>
+                                <property name="pixel-size">128</property>
+                                <style>
+                                  <class name="dim-label"/>
+                                </style>
+                              </object>
+                            </child>
+
+                            <child>
+                              <object class="GtkBox" id="verification_box">
                                 <property name="orientation">vertical</property>
-                                <property name="spacing">32</property>
-                                <property name="vexpand">1</property>
+                                <property name="spacing">12</property>
                                 <child>
-                                  <object class="GtkBox">
-                                    <property name="orientation">vertical</property>
-                                    <property name="valign">center</property>
-                                    <property name="vexpand">1</property>
-                                    <child>
-                                      <object class="GtkImage">
-                                        <property name="icon-name">phonelink-symbolic</property>
-                                        <property name="pixel-size">128</property>
-                                        <property name="visible"
-                                                  bind-source="pair_spinner"
-                                                  bind-property="visible"
-                                                  bind-flags="sync-create|invert-boolean"/>
-                                        <style>
-                                          <class name="dim-label"/>
-                                        </style>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkSpinner" id="pair_spinner">
-                                        <property name="spinning">1</property>
-                                        <property name="height-request">64</property>
-                                        <property name="width-request">64</property>
-                                        <property name="margin-top">32</property>
-                                        <property name="margin-bottom">32</property>
-                                        <property name="visible">0</property>
-                                      </object>
-                                    </child>
+                                  <object class="GtkLabel" id="verification_title">
+                                    <property name="label" translatable="yes">Verification Key</property>
+                                    <style>
+                                      <class name="title-4"/>
+                                    </style>
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkBox">
-                                    <property name="orientation">vertical</property>
-                                    <property name="spacing">12</property>
-                                    <property name="valign">center</property>
-                                    <property name="vexpand">1</property>
-                                    <child>
-                                      <object class="GtkLabel">
-                                        <property name="label" translatable="yes">Verification Key</property>
-                                        <attributes>
-                                          <attribute name="weight" value="bold"/>
-                                        </attributes>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkLabel" id="verification_key">
-                                        <property name="label" translatable="yes">Unavailable</property>
-                                        <property name="selectable">1</property>
-                                        <property name="wrap">1</property>
-                                        <property name="wrap-mode">word-char</property>
-                                        <attributes>
-                                          <attribute name="family" value="monospace"/>
-                                        </attributes>
-                                        <style>
-                                          <class name="osd"/>
-                                          <class name="toolbar"/>
-                                        </style>
-                                      </object>
-                                    </child>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkBox">
-                                    <property name="homogeneous">1</property>
-                                    <property name="spacing">12</property>
-                                    <child>
-                                      <object class="GtkButton" id="pair_request">
-                                        <property name="label" translatable="yes">Request Pairing</property>
-                                        <property name="action-name">device.pair</property>
-                                        <style>
-                                          <class name="suggested-action"/>
-                                        </style>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkButton">
-                                        <property name="label" translatable="yes">Reject</property>
-                                        <property name="action-name">device.unpair</property>
-                                        <property name="visible"
-                                                  bind-source="pair_request"
-                                                  bind-property="visible"
-                                                  bind-flags="sync-create|invert-boolean"/>
-                                        <style>
-                                          <class name="destructive-action"/>
-                                        </style>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkButton">
-                                        <property name="label" translatable="yes">Accept</property>
-                                        <property name="action-name">device.pair</property>
-                                        <property name="visible"
-                                                  bind-source="pair_request"
-                                                  bind-property="visible"
-                                                  bind-flags="sync-create|invert-boolean"/>
-                                        <style>
-                                          <class name="suggested-action"/>
-                                        </style>
-                                      </object>
-                                    </child>
+                                  <object class="GtkLabel" id="verification_key">
+                                    <property name="label" translatable="yes">Unavailable</property>
+                                    <property name="selectable">1</property>
+                                    <property name="wrap">1</property>
+                                    <property name="wrap-mode">char</property>
+                                    <accessibility>
+                                      <relation name="labelled-by">verification_title</relation>
+                                    </accessibility>
+                                    <attributes>
+                                      <attribute name="family" value="monospace"/>
+                                    </attributes>
+                                    <style>
+                                      <class name="osd"/>
+                                      <class name="toolbar"/>
+                                    </style>
                                   </object>
                                 </child>
                               </object>
                             </child>
 
-                            <!-- Actions Group -->
                             <child>
-                              <object class="GtkBox">
-                                <property name="orientation">vertical</property>
-                                <property name="visible"
-                                          bind-source="pair_group"
-                                          bind-property="visible"
-                                          bind-flags="sync-create|invert-boolean"/>
+                              <object class="GtkBox" id="pair_box">
+                                <property name="homogeneous">1</property>
+                                <property name="spacing">12</property>
                                 <child>
-                                  <object class="GtkBox" id="connected_group">
-                                    <property name="orientation">vertical</property>
-                                    <property name="spacing">18</property>
-                                    <child>
-                                      <object class="GtkFrame">
-                                        <property name="valign">start</property>
-                                        <child>
-                                          <object class="GtkBox" id="gadgets">
-                                            <property name="halign">start</property>
-                                            <property name="margin-top">6</property>
-                                            <property name="margin-bottom">6</property>
-                                            <property name="margin-start">6</property>
-                                            <property name="margin-end">6</property>
-                                            <property name="spacing">6</property>
+                                  <object class="GtkButton" id="pair_request">
+                                    <property name="action-name">device.pair</property>
+                                    <property name="halign">center</property>
+                                    <property name="child">
+                                      <object class="GtkCenterBox">
+                                        <child type="start">
+                                          <object class="GtkSpinner" id="pair_spinner">
+                                            <property name="spinning">0</property>
                                           </object>
                                         </child>
-                                        <style>
-                                          <class name="content-view"/>
-                                        </style>
+                                        <child type="center">
+                                          <object class="GtkLabel" id="pair_request_label">
+                                            <property name="label" translatable="yes">Request Pairing</property>
+                                            <property name="margin-start">12</property>
+                                            <property name="margin-end">12</property>
+                                          </object>
+                                        </child>
                                       </object>
-                                    </child>
-                                    <child>
-                                      <object class="ValentMenuStack" id="menu_actions">
-                                        <property name="name">menu</property>
-                                      </object>
-                                    </child>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkBox">
-                                    <property name="orientation">vertical</property>
-                                    <property name="halign">center</property>
-                                    <property name="hexpand">1</property>
-                                    <property name="valign">center</property>
-                                    <property name="vexpand">1</property>
-                                    <property name="spacing">24</property>
-                                    <property name="visible"
-                                              bind-source="connected_group"
-                                              bind-property="visible"
-                                              bind-flags="sync-create|invert-boolean"/>
-                                    <child>
-                                      <object class="GtkImage">
-                                        <property name="icon-name">phonelink-off-symbolic</property>
-                                        <property name="pixel-size">128</property>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkLabel">
-                                        <property name="label" translatable="yes">Disconnected</property>
-                                        <attributes>
-                                          <attribute name="scale" value="1.2"/>
-                                        </attributes>
-                                      </object>
-                                    </child>
+                                    </property>
+                                    <accessibility>
+                                      <relation name="labelled-by">pair_request_label</relation>
+                                    </accessibility>
                                     <style>
-                                      <class name="dim-label"/>
+                                      <class name="suggested-action"/>
+                                      <class name="pill"/>
                                     </style>
                                   </object>
                                 </child>
+                                <child>
+                                  <object class="GtkButton">
+                                    <property name="label" translatable="yes">Reject</property>
+                                    <property name="action-name">device.unpair</property>
+                                    <property name="visible"
+                                              bind-source="pair_request"
+                                              bind-property="visible"
+                                              bind-flags="sync-create|invert-boolean"/>
+                                    <style>
+                                      <class name="destructive-action"/>
+                                      <class name="pill"/>
+                                    </style>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkButton">
+                                    <property name="label" translatable="yes">Accept</property>
+                                    <property name="action-name">device.pair</property>
+                                    <property name="visible"
+                                              bind-source="pair_request"
+                                              bind-property="visible"
+                                              bind-flags="sync-create|invert-boolean"/>
+                                    <style>
+                                      <class name="suggested-action"/>
+                                      <class name="pill"/>
+                                    </style>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+
+            <!-- Connected -->
+            <child>
+              <object class="GtkStackPage">
+                <property name="name">connected</property>
+                <property name="child">
+                  <object class="GtkScrolledWindow">
+                    <property name="hscrollbar-policy">never</property>
+                    <property name="propagate-natural-height">1</property>
+                    <child>
+                      <object class="AdwClamp">
+                        <child>
+                          <object class="GtkBox" id="connected_group">
+                            <property name="orientation">vertical</property>
+                            <property name="margin-bottom">24</property>
+                            <property name="margin-end">12</property>
+                            <property name="margin-start">12</property>
+                            <property name="margin-top">24</property>
+                            <property name="spacing">18</property>
+                            <child>
+                              <object class="GtkFrame">
+                                <property name="valign">start</property>
+                                <child>
+                                  <object class="GtkBox" id="gadgets">
+                                    <property name="halign">start</property>
+                                    <property name="margin-top">6</property>
+                                    <property name="margin-bottom">6</property>
+                                    <property name="margin-start">6</property>
+                                    <property name="margin-end">6</property>
+                                    <property name="spacing">6</property>
+                                  </object>
+                                </child>
+                                <style>
+                                  <class name="content-view"/>
+                                </style>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="ValentMenuStack" id="menu_actions">
+                                <property name="name">menu</property>
                               </object>
                             </child>
                           </object>
