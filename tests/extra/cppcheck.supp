@@ -1,33 +1,39 @@
 # SPDX-License-Identifier: CC0-1.0
 # SPDX-FileCopyrightText: No rights reserved
 
+# src/libvalent/device/
+memleak:src/libvalent/device/valent-channel.c:325
+
 # src/libvalent/notifications/
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:88
 leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:89
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:838
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:842
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:846
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:850
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:861
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:866
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:885
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:888
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:90
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:821
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:825
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:829
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:833
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:844
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:849
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:868
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:872
 
 # src/plugins/sms/
 memleak:src/plugins/sms/valent-sms-store.c:814
 memleak:src/plugins/sms/valent-sms-store.c:864
-leakNoVarFunctionCall:src/plugins/sms/valent-sms-conversation.c:583
-leakNoVarFunctionCall:src/plugins/sms/valent-sms-conversation.c:588
+leakNoVarFunctionCall:src/plugins/sms/valent-sms-conversation.c:568
+leakNoVarFunctionCall:src/plugins/sms/valent-sms-conversation.c:573
 
 # tests/plugins/connectivity_report/
+leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:258
+leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:260
+leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:262
+leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:264
 leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:268
-leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:270
-leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:272
-leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:274
-leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:278
-leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:287
-leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:289
-leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:291
+leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:277
+leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:279
+leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:281
+
+# tests/plugins/gnome/
+leakNoVarFunctionCall:src/plugins/gnome/valent-mutter-input.c:174
 
 # tests/plugins/bluez/
 memleak:tests/plugins/bluez/test-bluez-plugin.c:183
