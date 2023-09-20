@@ -27,7 +27,41 @@
               <object class="GtkHeaderBar">
                 <child type="title">
                   <object class="GtkDropDown" id="media_player">
+                    <binding name="model">
+                      <lookup name="players">ValentMediaRemote</lookup>
+                    </binding>
                     <property name="hexpand">1</property>
+                    <property name="factory">
+                      <object class="GtkBuilderListItemFactory">
+                        <property name="bytes"><![CDATA[
+                          <?xml version="1.0" encoding="UTF-8"?>
+                          <interface>
+                            <template class="GtkListItem">
+                              <property name="child">
+                                <object class="GtkBox">
+                                  <property name="spacing">6</property>
+                                  <child>
+                                    <object class="GtkImage">
+                                      <property name="icon-name">valent-media-albumart</property>
+                                      <property name="pixel-size">16</property>
+                                    </object>
+                                  </child>
+                                  <child>
+                                    <object class="GtkLabel">
+                                      <binding name="label">
+                                        <lookup name="name" type="ValentMediaPlayer">
+                                          <lookup name="item">GtkListItem</lookup>
+                                        </lookup>
+                                      </binding>
+                                    </object>
+                                  </child>
+                                </object>
+                              </property>
+                            </template>
+                          </interface>
+                     ]]></property>
+                      </object>
+                    </property>
                     <signal name="notify::selected-item"
                             handler="on_selected_item"
                             object="ValentMediaRemote"
