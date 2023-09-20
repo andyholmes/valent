@@ -288,7 +288,7 @@ valent_preferences_window_constructed (GObject *object)
   ValentPreferencesWindow *self = VALENT_PREFERENCES_WINDOW (object);
   g_autofree char *name = NULL;
   PeasEngine *engine = valent_get_plugin_engine ();
-  const GList *plugins = NULL;
+  unsigned int n_plugins = 0;
 
   /* Application Settings */
   self->settings = g_settings_new ("ca.andyholmes.Valent");
@@ -300,12 +300,16 @@ valent_preferences_window_constructed (GObject *object)
   gtk_editable_set_text (GTK_EDITABLE (self->name_entry), name);
 
   /* Application Plugins */
-  plugins = peas_engine_get_plugin_list (engine);
+  n_plugins = g_list_model_get_n_items (G_LIST_MODEL (engine));
 
-  for (const GList *iter = plugins; iter; iter = iter->next)
+  for (unsigned int i = 0; i < n_plugins; i++)
     {
-      if (peas_plugin_info_is_loaded (iter->data))
-        on_load_plugin (engine, iter->data, self);
+      g_autoptr (PeasPluginInfo) info = NULL;
+
+      info = g_list_model_get_item (G_LIST_MODEL (engine), i);
+
+      if (peas_plugin_info_is_loaded (info))
+        on_load_plugin (engine, info, self);
     }
 
   g_signal_connect_object (engine,

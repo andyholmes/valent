@@ -34,16 +34,6 @@ static void
 test_input_component_adapter (InputComponentFixture *fixture,
                               gconstpointer          user_data)
 {
-  PeasPluginInfo *plugin_info;
-
-  VALENT_TEST_CHECK ("GObject properties function correctly");
-  g_object_get (fixture->adapter,
-                "plugin-info", &plugin_info,
-                NULL);
-
-  g_assert_nonnull (plugin_info);
-  g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
-
   /* Pointer Motion (relative) */
   valent_input_adapter_pointer_motion (fixture->adapter, 1.0, 1.0);
   valent_test_event_cmpstr ("POINTER MOTION 1.0 1.0");

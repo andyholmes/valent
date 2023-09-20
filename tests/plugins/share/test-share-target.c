@@ -48,17 +48,12 @@ test_share_target (ApplicationPluginFixture *fixture,
 {
   ValentApplicationPlugin *plugin = VALENT_APPLICATION_PLUGIN (fixture->extension);
   g_autoptr (GApplication) application = NULL;
-  PeasPluginInfo *plugin_info = NULL;
 
   VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (fixture->extension,
-                "object",      &application,
-                "plugin-info", &plugin_info,
+                "object", &application,
                 NULL);
-
   g_assert_true (G_IS_APPLICATION (application));
-  g_assert_nonnull (plugin_info);
-  g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
 
   application = valent_extension_get_object (VALENT_EXTENSION (plugin));
   g_assert_true (G_IS_APPLICATION (application));

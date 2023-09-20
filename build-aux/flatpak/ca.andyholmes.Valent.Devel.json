@@ -135,23 +135,19 @@
             "buildsystem" : "meson",
             "builddir" : true,
             "cleanup" : [
-                "/bin/*",
-                "/lib/peas-demo",
-                "/lib/libpeas-gtk*",
-                "/share/icons"
+                "/bin/*"
             ],
             "config-opts" : [
-                "-Dpython3=true",
+                "-Dlua51=false",
+                "-Dpython3=false",
                 "-Dintrospection=true",
-                "-Ddemos=false",
-                "-Dglade_catalog=false",
-                "-Dwidgetry=false"
+                "-Dvapi=true"
             ],
             "sources" : [
                 {
                     "type" : "git",
                     "url" : "https://gitlab.gnome.org/GNOME/libpeas.git",
-                    "branch" : "1.36"
+                    "branch" : "main"
                 }
             ]
         },

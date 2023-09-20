@@ -55,7 +55,8 @@ valent_get_debug_info (void)
   const char *desktop = NULL;
   const char *session = NULL;
   const char *environment = NULL;
-  const GList *plugins = NULL;
+  PeasEngine *engine = NULL;
+  unsigned int n_plugins = 0;
 
   os_name = g_get_os_info (G_OS_INFO_KEY_PRETTY_NAME);
   desktop = g_getenv ("XDG_CURRENT_DESKTOP");
@@ -91,15 +92,21 @@ valent_get_debug_info (void)
   json_builder_end_object (builder);
 
   /* Plugins */
-  plugins = peas_engine_get_plugin_list (valent_get_plugin_engine ());
-
   json_builder_set_member_name (builder, "plugins");
   json_builder_begin_object (builder);
 
-  for (const GList *iter = plugins; iter != NULL; iter = iter->next)
+  engine = valent_get_plugin_engine ();
+  n_plugins = g_list_model_get_n_items (G_LIST_MODEL (engine));
+
+  for (unsigned int i = 0; i < n_plugins; i++)
     {
-      const char *name = peas_plugin_info_get_module_name (iter->data);
-      gboolean loaded = peas_plugin_info_is_loaded (iter->data);
+      g_autoptr (PeasPluginInfo) info = NULL;
+      const char *name = NULL;
+      gboolean loaded = FALSE;
+
+      info = g_list_model_get_item (G_LIST_MODEL (engine), i);
+      name = peas_plugin_info_get_module_name (info);
+      loaded = peas_plugin_info_is_loaded (info);
 
       json_builder_set_member_name (builder, name);
       json_builder_add_boolean_value (builder, loaded);

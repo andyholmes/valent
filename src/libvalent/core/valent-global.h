@@ -7,7 +7,7 @@
 # error "Only <valent.h> can be included directly."
 #endif
 
-#include <libpeas/peas.h>
+#include <libpeas.h>
 
 #include "valent-version.h"
 

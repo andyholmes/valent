@@ -56,6 +56,17 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
  * GObject
  */
 static void
+valent_preferences_page_finalize (GObject *object)
+{
+  ValentPreferencesPage *self = VALENT_PREFERENCES_PAGE (object);
+  ValentPreferencesPagePrivate *priv = valent_preferences_page_get_instance_private (self);
+
+  g_clear_object (&priv->plugin_info);
+
+  G_OBJECT_CLASS (valent_preferences_page_parent_class)->finalize (object);
+}
+
+static void
 valent_preferences_page_get_property (GObject    *object,
                                       guint       prop_id,
                                       GValue     *value,
@@ -67,7 +78,7 @@ valent_preferences_page_get_property (GObject    *object,
   switch (prop_id)
     {
     case PROP_PLUGIN_INFO:
-      g_value_set_boxed (value, priv->plugin_info);
+      g_value_set_object (value, priv->plugin_info);
       break;
 
     default:
@@ -87,7 +98,7 @@ valent_preferences_page_set_property (GObject      *object,
   switch (prop_id)
     {
     case PROP_PLUGIN_INFO:
-      priv->plugin_info = g_value_get_boxed (value);
+      priv->plugin_info = g_value_dup_object (value);
       break;
 
     default:
@@ -100,23 +111,24 @@ valent_preferences_page_class_init (ValentPreferencesPageClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
+  object_class->finalize = valent_preferences_page_finalize;
   object_class->get_property = valent_preferences_page_get_property;
   object_class->set_property = valent_preferences_page_set_property;
 
   /**
    * ValentPreferencesPage:plugin-info:
    *
-   * The [struct@Peas.PluginInfo] describing the plugin this page configures.
+   * The [class@Peas.PluginInfo] describing the plugin this page configures.
    *
    * Since: 1.0
    */
   properties [PROP_PLUGIN_INFO] =
-    g_param_spec_boxed ("plugin-info", NULL, NULL,
-                        PEAS_TYPE_PLUGIN_INFO,
-                        (G_PARAM_READWRITE |
-                         G_PARAM_CONSTRUCT_ONLY |
-                         G_PARAM_EXPLICIT_NOTIFY |
-                         G_PARAM_STATIC_STRINGS));
+    g_param_spec_object ("plugin-info", NULL, NULL,
+                         PEAS_TYPE_PLUGIN_INFO,
+                         (G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT_ONLY |
+                          G_PARAM_EXPLICIT_NOTIFY |
+                          G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 }

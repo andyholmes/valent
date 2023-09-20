@@ -62,7 +62,7 @@ valent_plugin_new (gpointer        parent,
 
   plugin = g_new0 (ValentPlugin, 1);
   plugin->parent = parent;
-  plugin->info = info;
+  plugin->info = g_object_ref (info);
   plugin->context = valent_context_get_plugin_context (parent_context, info);
   plugin->settings = valent_context_create_settings (plugin->context,
                                                      VALENT_PLUGIN_SCHEMA);
@@ -108,7 +108,7 @@ valent_plugin_free (gpointer data)
   g_signal_handlers_disconnect_by_data (plugin->settings, plugin);
 
   plugin->parent = NULL;
-  plugin->info = NULL;
+  g_clear_object (&plugin->info);
   g_clear_object (&plugin->cancellable);
   g_clear_object (&plugin->context);
   g_clear_object (&plugin->extension);

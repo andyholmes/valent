@@ -11,7 +11,7 @@ test_preferences_page_basic (void)
   PeasEngine *engine;
   PeasPluginInfo *info;
   GObject *prefs;
-  PeasPluginInfo *plugin_info = NULL;
+  g_autoptr (PeasPluginInfo) plugin_info = NULL;
 
   engine = valent_get_plugin_engine ();
   info = peas_engine_get_plugin_info (engine, "mock");
@@ -25,7 +25,6 @@ test_preferences_page_basic (void)
                 "plugin-info", &plugin_info,
                 NULL);
   g_assert_true (plugin_info == info);
-  g_boxed_free (PEAS_TYPE_PLUGIN_INFO, plugin_info);
 
   g_object_unref (prefs);
 }

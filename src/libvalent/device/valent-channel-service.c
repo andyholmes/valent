@@ -7,7 +7,7 @@
 
 #include <gio/gio.h>
 #include <json-glib/json-glib.h>
-#include <libpeas/peas.h>
+#include <libpeas.h>
 #include <libvalent-core.h>
 
 #include "valent-certificate.h"
@@ -237,23 +237,29 @@ valent_channel_service_real_build_identity (ValentChannelService *service)
 {
   ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (service);
   PeasEngine *engine;
-  const GList *plugins = NULL;
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (GHashTable) incoming = NULL;
   g_autoptr (GHashTable) outgoing = NULL;
   GHashTableIter in_iter, out_iter;
   const char *capability = NULL;
+  unsigned int n_plugins = 0;
 
   g_assert (VALENT_IS_CHANNEL_SERVICE (service));
 
   /* Filter the supported plugins and collect their capabilities */
-  engine = valent_get_plugin_engine ();
-  plugins = peas_engine_get_plugin_list (engine);
   incoming = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
   outgoing = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
 
-  for (const GList *iter = plugins; iter; iter = iter->next)
-    collect_capabilities (iter->data, incoming, outgoing);
+  engine = valent_get_plugin_engine ();
+  n_plugins = g_list_model_get_n_items (G_LIST_MODEL (engine));
+
+  for (unsigned int i = 0; i < n_plugins; i++)
+    {
+      g_autoptr (PeasPluginInfo) info = NULL;
+
+      info = g_list_model_get_item (G_LIST_MODEL (engine), i);
+      collect_capabilities (info, incoming, outgoing);
+    }
 
   /* Build the identity packet */
   builder = json_builder_new ();
