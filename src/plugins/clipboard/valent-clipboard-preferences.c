@@ -18,8 +18,8 @@ struct _ValentClipboardPreferences
   ValentDevicePreferencesGroup  parent_instance;
 
   /* template */
-  GtkSwitch                   *sync_pull;
-  GtkSwitch                   *sync_push;
+  GtkSwitch                    *sync_pull;
+  GtkSwitch                    *sync_push;
 };
 
 G_DEFINE_FINAL_TYPE (ValentClipboardPreferences, valent_clipboard_preferences, VALENT_TYPE_DEVICE_PREFERENCES_GROUP)
@@ -39,7 +39,6 @@ valent_clipboard_preferences_constructed (GObject *object)
   g_settings_bind (settings,        "auto-pull",
                    self->sync_pull, "active",
                    G_SETTINGS_BIND_DEFAULT);
-
   g_settings_bind (settings,        "auto-push",
                    self->sync_push, "active",
                    G_SETTINGS_BIND_DEFAULT);

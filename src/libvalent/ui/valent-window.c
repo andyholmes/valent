@@ -30,7 +30,7 @@ struct _ValentWindow
   AdwAnimation         *fade;
 
   /* template */
-  GtkStack             *stack;
+  AdwNavigationView    *view;
   GtkProgressBar       *progress_bar;
   GtkListBox           *device_list;
   GtkWindow            *preferences;
@@ -204,29 +204,6 @@ on_device_changed (ValentDevice *device,
     }
 }
 
-static void
-on_row_destroy (GtkWidget *row,
-                GtkWidget *page)
-{
-  GtkWidget *stack = NULL;
-  GtkWidget *main = NULL;
-
-  g_assert (GTK_IS_WIDGET (row));
-  g_assert (GTK_IS_WIDGET (page));
-
-  /* If the parent is being destroyed, the stack or page may not exist */
-  if ((stack = gtk_widget_get_ancestor (page, GTK_TYPE_STACK)) == NULL)
-    return;
-
-  if ((main = gtk_stack_get_child_by_name (GTK_STACK (stack), "main")) == NULL)
-    return;
-
-  if (gtk_stack_get_visible_child (GTK_STACK (stack)) == page)
-    gtk_stack_set_visible_child (GTK_STACK (stack), main);
-
-  gtk_stack_remove (GTK_STACK (stack), page);
-}
-
 static GtkWidget *
 valent_window_create_row_func (gpointer item,
                                gpointer user_data)
@@ -234,9 +211,7 @@ valent_window_create_row_func (gpointer item,
   ValentWindow *self = VALENT_WINDOW (user_data);
   ValentDevice *device = VALENT_DEVICE (item);
   const char *device_id;
-  const char *name;
-  GtkStackPage *stack_page;
-  GtkWidget *page;
+  const char *icon_name;
   GtkWidget *row;
   GtkWidget *box;
   GtkWidget *status;
@@ -250,7 +225,7 @@ valent_window_create_row_func (gpointer item,
     adw_animation_skip (self->scan);
 
   device_id = valent_device_get_id (device);
-  name = valent_device_get_name (device);
+  icon_name = valent_device_get_icon_name (device);
 
   /* Row */
   row = g_object_new (ADW_TYPE_ACTION_ROW,
@@ -259,6 +234,8 @@ valent_window_create_row_func (gpointer item,
                       "activatable",   TRUE,
                       "selectable",    FALSE,
                       NULL);
+  adw_action_row_add_prefix (ADW_ACTION_ROW (row),
+                             gtk_image_new_from_icon_name (icon_name));
 
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 12);
   adw_action_row_add_suffix (ADW_ACTION_ROW (row), box);
@@ -273,9 +250,6 @@ valent_window_create_row_func (gpointer item,
   g_object_bind_property (device, "name",
                           row,    "title",
                           G_BINDING_SYNC_CREATE);
-  g_object_bind_property (device, "icon-name",
-                          row,    "icon-name",
-                          G_BINDING_SYNC_CREATE);
 
   g_signal_connect_object (device,
                            "notify::state",
@@ -287,40 +261,7 @@ valent_window_create_row_func (gpointer item,
                                   GTK_ACCESSIBLE_RELATION_DESCRIBED_BY, status, NULL,
                                   -1);
 
-  /* Page */
-  page = g_object_new (VALENT_TYPE_DEVICE_PAGE,
-                       "device", device,
-                       NULL);
-
-  stack_page = gtk_stack_add_titled (self->stack, page, device_id, name);
-  g_object_bind_property (device,     "name",
-                          stack_page, "title",
-                          G_BINDING_SYNC_CREATE);
-  g_object_bind_property (device,     "icon-name",
-                          stack_page, "icon-name",
-                          G_BINDING_SYNC_CREATE);
-
-  g_signal_connect_object (row,
-                           "destroy",
-                           G_CALLBACK (on_row_destroy),
-                           page, 0);
-
-  return g_steal_pointer (&row);
-}
-
-static void
-valent_window_close_preferences (ValentWindow *self)
-{
-  GtkWidget *visible_child;
-
-  g_assert (VALENT_IS_WINDOW (self));
-
-  visible_child = gtk_stack_get_visible_child (self->stack);
-
-  if (VALENT_IS_DEVICE_PAGE (visible_child))
-    valent_device_page_close_preferences (VALENT_DEVICE_PAGE (visible_child));
-
-  g_clear_pointer (&self->preferences, gtk_window_destroy);
+  return row;
 }
 
 /*
@@ -371,19 +312,38 @@ page_action (GtkWidget  *widget,
              GVariant   *parameter)
 {
   ValentWindow *self = VALENT_WINDOW (widget);
-  const char *name;
-  GtkWidget *page;
+  unsigned int n_devices = 0;
+  const char *tag;
 
   g_assert (VALENT_IS_WINDOW (self));
 
-  name = g_variant_get_string (parameter, NULL);
-  page = gtk_stack_get_child_by_name (self->stack, name);
+  tag = g_variant_get_string (parameter, NULL);
 
-  if (page == NULL)
-    page = gtk_stack_get_child_by_name (self->stack, "main");
+  if (*tag == '\0' || g_strcmp0 (tag, "main") == 0)
+    {
+      adw_navigation_view_pop (self->view);
+      return;
+    }
 
-  valent_window_close_preferences (self);
-  gtk_stack_set_visible_child (self->stack, page);
+  g_clear_pointer (&self->preferences, gtk_window_destroy);
+
+  n_devices = g_list_model_get_n_items (G_LIST_MODEL (self->manager));
+  for (unsigned int i = 0; i < n_devices; i++)
+    {
+      g_autoptr (ValentDevice) device = NULL;
+      AdwNavigationPage *page;
+
+      device = g_list_model_get_item (G_LIST_MODEL (self->manager), i);
+
+      if (g_strcmp0 (valent_device_get_id (device), tag) == 0)
+        {
+          page = g_object_new (VALENT_TYPE_DEVICE_PAGE,
+                               "device", device,
+                               NULL);
+          adw_navigation_view_push (self->view, page);
+          break;
+        }
+    }
 }
 
 static void
@@ -415,18 +375,6 @@ preferences_action (GtkWidget  *widget,
 }
 
 static void
-previous_action (GtkWidget  *widget,
-                 const char *action_name,
-                 GVariant   *parameter)
-{
-  ValentWindow *self = VALENT_WINDOW (widget);
-
-  g_assert (VALENT_IS_WINDOW (self));
-
-  gtk_stack_set_visible_child_name (self->stack, "main");
-}
-
-static void
 refresh_action (GtkWidget  *widget,
                 const char *action_name,
                 GVariant   *parameter)
@@ -447,10 +395,7 @@ refresh_action (GtkWidget  *widget,
 
       target = adw_property_animation_target_new (G_OBJECT (self->progress_bar),
                                                   "fraction");
-      self->scan = adw_timed_animation_new (widget,
-                                            0.0, 1.0,
-                                            5000,
-                                            g_steal_pointer (&target));
+      self->scan = adw_timed_animation_new (widget, 0.0, 1.0, 5000, target);
       g_signal_connect_object (self->scan,
                                "notify::state",
                                G_CALLBACK (on_animation_state_changed),
@@ -458,10 +403,7 @@ refresh_action (GtkWidget  *widget,
 
       target = adw_property_animation_target_new (G_OBJECT (self->progress_bar),
                                                   "opacity");
-      self->fade = adw_timed_animation_new (widget,
-                                            1.0, 0.0,
-                                            500,
-                                            g_steal_pointer (&target));
+      self->fade = adw_timed_animation_new (widget, 1.0, 0.0, 500, target);
       g_signal_connect_object (self->fade,
                                "notify::state",
                                G_CALLBACK (on_animation_state_changed),
@@ -575,14 +517,13 @@ valent_window_class_init (ValentWindowClass *klass)
   object_class->set_property = valent_window_set_property;
 
   gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-window.ui");
-  gtk_widget_class_bind_template_child (widget_class, ValentWindow, stack);
+  gtk_widget_class_bind_template_child (widget_class, ValentWindow, view);
   gtk_widget_class_bind_template_child (widget_class, ValentWindow, progress_bar);
   gtk_widget_class_bind_template_child (widget_class, ValentWindow, device_list);
 
   gtk_widget_class_install_action (widget_class, "win.about", NULL, about_action);
   gtk_widget_class_install_action (widget_class, "win.page", "s", page_action);
   gtk_widget_class_install_action (widget_class, "win.preferences", NULL, preferences_action);
-  gtk_widget_class_install_action (widget_class, "win.previous", NULL, previous_action);
   gtk_widget_class_install_action (widget_class, "win.refresh", NULL, refresh_action);
 
   /**

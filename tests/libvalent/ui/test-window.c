@@ -104,7 +104,7 @@ test_window_navigation (TestWindowFixture *fixture,
 
   /* Main -> Device -> Main */
   gtk_widget_activate_action (GTK_WIDGET (window), "win.page", "s", "mock-device");
-  gtk_widget_activate_action (GTK_WIDGET (window), "win.previous", NULL);
+  gtk_widget_activate_action (GTK_WIDGET (window), "win.page", "s", "main");
 
   /* Main -> Device -> Remove Device */
   gtk_widget_activate_action (GTK_WIDGET (window), "win.page", "s", "mock-device");

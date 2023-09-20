@@ -22,15 +22,9 @@
           </object>
         </child>
         <child>
-          <object class="AdwActionRow">
+          <object class="AdwSwitchRow" id="ringing_pause">
             <property name="title" translatable="yes">Pause Media</property>
             <property name="selectable">0</property>
-            <property name="activatable-widget">ringing_pause</property>
-            <child type="suffix">
-              <object class="GtkSwitch" id="ringing_pause">
-                <property name="valign">center</property>
-              </object>
-            </child>
           </object>
         </child>
       </object>
@@ -53,27 +47,15 @@
           </object>
         </child>
         <child>
-          <object class="AdwActionRow">
+          <object class="AdwSwitchRow" id="talking_microphone">
             <property name="title" translatable="yes">Mute Microphone</property>
             <property name="selectable">0</property>
-            <property name="activatable-widget">talking_microphone</property>
-            <child type="suffix">
-              <object class="GtkSwitch" id="talking_microphone">
-                <property name="valign">center</property>
-              </object>
-            </child>
           </object>
         </child>
         <child>
-          <object class="AdwActionRow">
+          <object class="AdwSwitchRow" id="talking_pause">
             <property name="title" translatable="yes">Pause Media</property>
             <property name="selectable">0</property>
-            <property name="activatable-widget">talking_pause</property>
-            <child type="suffix">
-              <object class="GtkSwitch" id="talking_pause">
-                <property name="valign">center</property>
-              </object>
-            </child>
           </object>
         </child>
       </object>
