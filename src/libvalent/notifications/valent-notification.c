@@ -868,7 +868,8 @@ valent_notification_serialize (ValentNotification *notification)
                                  valent_notification_serialize_button (button));
         }
 
-      g_variant_builder_add (&builder, "{sv}", "buttons", g_variant_builder_end (&actions_builder));
+      g_variant_builder_add (&builder, "{sv}", "buttons",
+                             g_variant_builder_end (&actions_builder));
     }
 
   return g_variant_builder_end (&builder);
