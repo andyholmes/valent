@@ -58,14 +58,6 @@ enum {
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 
-static char *
-dup_player_name (ValentMediaPlayer *player)
-{
-  g_assert (VALENT_IS_MEDIA_PLAYER (player));
-
-  return g_strdup (valent_media_player_get_name (player));
-}
-
 static gboolean
 valent_media_remote_timer_tick (gpointer data)
 {
@@ -525,39 +517,6 @@ remote_player_action (GtkWidget  *widget,
  * GObject
  */
 static void
-valent_media_remote_constructed (GObject *object)
-{
-  ValentMediaRemote *self = VALENT_MEDIA_REMOTE (object);
-  g_autoptr (GtkExpression) expression = NULL;
-  GtkWidget *child;
-
-  expression = gtk_cclosure_expression_new (G_TYPE_STRING, NULL,
-                                            0, NULL,
-                                            G_CALLBACK (dup_player_name),
-                                            NULL, NULL);
-
-  gtk_drop_down_set_expression (self->media_player, expression);
-  gtk_drop_down_set_model (self->media_player, self->players);
-
-  for (child = gtk_widget_get_first_child (GTK_WIDGET (self->volume_button));
-       child != NULL;
-       child = gtk_widget_get_next_sibling (child))
-    {
-      if (!GTK_IS_TOGGLE_BUTTON (child))
-        continue;
-
-      gtk_widget_set_css_classes (child, (const char *[]){
-                                            "circular",
-                                            "flat",
-                                            "toggle",
-                                            NULL
-                                         });
-    }
-
-  G_OBJECT_CLASS (valent_media_remote_parent_class)->constructed (object);
-}
-
-static void
 valent_media_remote_dispose (GObject *object)
 {
   ValentMediaRemote *self = VALENT_MEDIA_REMOTE (object);
@@ -634,7 +593,6 @@ valent_media_remote_class_init (ValentMediaRemoteClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
-  object_class->constructed = valent_media_remote_constructed;
   object_class->dispose = valent_media_remote_dispose;
   object_class->get_property = valent_media_remote_get_property;
   object_class->set_property = valent_media_remote_set_property;
@@ -671,7 +629,6 @@ valent_media_remote_class_init (ValentMediaRemoteClass *klass)
                          G_TYPE_LIST_MODEL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
   properties [PROP_SHUFFLE] =
@@ -689,6 +646,22 @@ valent_media_remote_class_init (ValentMediaRemoteClass *klass)
 static void
 valent_media_remote_init (ValentMediaRemote *self)
 {
-  gtk_widget_init_template (GTK_WIDGET (self));
-}
+  GtkWidget *child;
 
+  gtk_widget_init_template (GTK_WIDGET (self));
+
+  for (child = gtk_widget_get_first_child (GTK_WIDGET (self->volume_button));
+       child != NULL;
+       child = gtk_widget_get_next_sibling (child))
+    {
+      if (!GTK_IS_TOGGLE_BUTTON (child))
+        continue;
+
+      gtk_widget_set_css_classes (child, (const char *[]){
+                                            "circular",
+                                            "flat",
+                                            "toggle",
+                                            NULL
+                                         });
+    }
+}
