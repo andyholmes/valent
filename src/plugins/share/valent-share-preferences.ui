@@ -27,6 +27,7 @@
             </child>
             <child>
               <object class="GtkImage">
+                <property name="accessible-role">presentation</property>
                 <property name="icon-name">folder-symbolic</property>
                 <property name="valign">center</property>
               </object>

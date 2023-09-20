@@ -214,6 +214,7 @@ valent_window_create_row_func (gpointer item,
   const char *icon_name;
   GtkWidget *row;
   GtkWidget *box;
+  GtkWidget *icon;
   GtkWidget *status;
   GtkWidget *arrow;
 
@@ -234,8 +235,12 @@ valent_window_create_row_func (gpointer item,
                       "activatable",   TRUE,
                       "selectable",    FALSE,
                       NULL);
-  adw_action_row_add_prefix (ADW_ACTION_ROW (row),
-                             gtk_image_new_from_icon_name (icon_name));
+
+  icon = g_object_new (GTK_TYPE_IMAGE,
+                       "accessible-role", GTK_ACCESSIBLE_ROLE_PRESENTATION,
+                       "icon-name",       icon_name,
+                       NULL);
+  adw_action_row_add_prefix (ADW_ACTION_ROW (row), icon);
 
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 12);
   adw_action_row_add_suffix (ADW_ACTION_ROW (row), box);
@@ -243,8 +248,11 @@ valent_window_create_row_func (gpointer item,
   status = g_object_new (GTK_TYPE_LABEL, NULL);
   gtk_box_append (GTK_BOX (box), status);
 
-  arrow = gtk_image_new_from_icon_name ("go-next-symbolic");
-  gtk_widget_add_css_class (arrow, "dim-label");
+  arrow = g_object_new (GTK_TYPE_IMAGE,
+                        "accessible-role", GTK_ACCESSIBLE_ROLE_PRESENTATION,
+                        "css-classes",     VALENT_STRV_INIT ("dim-label"),
+                        "icon-name",       "go-next-symbolic",
+                        NULL);
   gtk_box_append (GTK_BOX (box), arrow);
 
   g_object_bind_property (device, "name",

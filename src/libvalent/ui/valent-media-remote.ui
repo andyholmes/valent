@@ -73,6 +73,7 @@
                                 <property name="name">fallback</property>
                                 <property name="child">
                                   <object class="GtkImage">
+                                    <property name="accessible-role">presentation</property>
                                     <property name="icon-name">valent-media-albumart</property>
                                     <property name="overflow">hidden</property>
                                     <property name="pixel-size">128</property>
@@ -86,6 +87,7 @@
                                 <property name="name">art</property>
                                 <property name="child">
                                   <object class="GtkImage" id="media_art">
+                                    <property name="accessible-role">presentation</property>
                                     <property name="icon-name">valent-media-albumart</property>
                                     <property name="overflow">hidden</property>
                                     <property name="pixel-size">256</property>
@@ -227,6 +229,7 @@
                                 <property name="valign">center</property>
                                 <property name="child">
                                   <object class="GtkImage">
+                                    <property name="accessible-role">presentation</property>
                                     <property name="icon-name">media-skip-backward-symbolic</property>
                                     <property name="pixel-size">16</property>
                                     <property name="margin-bottom">8</property>
@@ -252,6 +255,7 @@
                                 <property name="visible">0</property>
                                 <property name="child">
                                   <object class="GtkImage">
+                                    <property name="accessible-role">presentation</property>
                                     <property name="icon-name">media-seek-backward-10-symbolic</property>
                                     <property name="pixel-size">16</property>
                                     <property name="margin-bottom">8</property>
@@ -276,6 +280,7 @@
                                 <property name="valign">center</property>
                                 <property name="child">
                                   <object class="GtkImage">
+                                    <property name="accessible-role">presentation</property>
                                     <property name="icon-name">media-playback-start-symbolic</property>
                                     <property name="pixel-size">32</property>
                                     <property name="margin-bottom">16</property>
@@ -302,6 +307,7 @@
                                 <property name="visible">0</property>
                                 <property name="child">
                                   <object class="GtkImage">
+                                    <property name="accessible-role">presentation</property>
                                     <property name="icon-name">media-seek-forward-10-symbolic</property>
                                     <property name="pixel-size">16</property>
                                     <property name="margin-bottom">8</property>
@@ -326,6 +332,7 @@
                                 <property name="valign">center</property>
                                 <property name="child">
                                   <object class="GtkImage">
+                                    <property name="accessible-role">presentation</property>
                                     <property name="icon-name">media-skip-forward-symbolic</property>
                                     <property name="pixel-size">16</property>
                                     <property name="margin-bottom">8</property>
@@ -348,6 +355,7 @@
                                 <property name="valign">center</property>
                                 <property name="child">
                                   <object class="GtkImage">
+                                    <property name="accessible-role">presentation</property>
                                     <property name="icon-name">playback-options-symbolic</property>
                                     <property name="pixel-size">16</property>
                                     <property name="margin-bottom">8</property>
@@ -405,6 +413,7 @@
                                     <property name="valign">center</property>
                                     <property name="child">
                                       <object class="GtkImage" id="repeat_image">
+                                        <property name="accessible-role">presentation</property>
                                         <property name="icon-name">media-playlist-consecutive-symbolic</property>
                                         <property name="pixel-size">16</property>
                                         <property name="margin-bottom">8</property>
@@ -428,6 +437,7 @@
                                     <property name="valign">center</property>
                                     <property name="child">
                                       <object class="GtkImage">
+                                        <property name="accessible-role">presentation</property>
                                         <property name="icon-name">media-playlist-shuffle-symbolic</property>
                                         <property name="pixel-size">16</property>
                                         <property name="margin-bottom">8</property>

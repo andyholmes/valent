@@ -41,6 +41,7 @@ struct _ValentMediaRemote
   GtkLabel          *media_position_current;
   GtkLabel          *media_position_length;
   GtkButton         *play_pause_button;
+  GtkImage          *repeat_button;
   GtkImage          *repeat_image;
   GtkVolumeButton   *volume_button;
 };
@@ -246,7 +247,7 @@ valent_media_remote_update_repeat (ValentMediaRemote *self)
     case VALENT_MEDIA_REPEAT_NONE:
       gtk_image_set_from_icon_name (self->repeat_image,
                                     "media-playlist-consecutive-symbolic");
-      gtk_accessible_update_property (GTK_ACCESSIBLE (self->repeat_image),
+      gtk_accessible_update_property (GTK_ACCESSIBLE (self->repeat_button),
                                       GTK_ACCESSIBLE_PROPERTY_LABEL, _("Enable Repeat"),
                                       -1);
       break;
@@ -254,7 +255,7 @@ valent_media_remote_update_repeat (ValentMediaRemote *self)
     case VALENT_MEDIA_REPEAT_ALL:
       gtk_image_set_from_icon_name (self->repeat_image,
                                     "media-playlist-repeat-symbolic");
-      gtk_accessible_update_property (GTK_ACCESSIBLE (self->repeat_image),
+      gtk_accessible_update_property (GTK_ACCESSIBLE (self->repeat_button),
                                       GTK_ACCESSIBLE_PROPERTY_LABEL, _("Repeat All"),
                                       -1);
       break;
@@ -262,7 +263,7 @@ valent_media_remote_update_repeat (ValentMediaRemote *self)
     case VALENT_MEDIA_REPEAT_ONE:
       gtk_image_set_from_icon_name (self->repeat_image,
                                     "media-playlist-repeat-song-symbolic");
-      gtk_accessible_update_property (GTK_ACCESSIBLE (self->repeat_image),
+      gtk_accessible_update_property (GTK_ACCESSIBLE (self->repeat_button),
                                       GTK_ACCESSIBLE_PROPERTY_LABEL, _("Repeat One"),
                                       -1);
       break;
@@ -650,6 +651,7 @@ valent_media_remote_class_init (ValentMediaRemoteClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, media_position_current);
   gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, media_position_length);
   gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, play_pause_button);
+  gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, repeat_button);
   gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, repeat_image);
   gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, volume_button);
   gtk_widget_class_bind_template_callback (widget_class, on_selected_item);
