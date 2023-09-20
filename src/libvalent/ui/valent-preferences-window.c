@@ -196,12 +196,18 @@ on_load_plugin (PeasEngine              *engine,
       peas_engine_provides_extension (engine, info, VALENT_TYPE_SESSION_ADAPTER) ||
       peas_engine_provides_extension (engine, info, VALENT_TYPE_PREFERENCES_PAGE))
     {
+      GtkWidget *icon;
+
       row = g_object_new (ADW_TYPE_EXPANDER_ROW,
-                          "icon-name",  icon_name,
                           "title",      title,
                           "subtitle",   subtitle,
                           "selectable", FALSE,
                           NULL);
+      icon = g_object_new (GTK_TYPE_IMAGE,
+                           "accessible-role", GTK_ACCESSIBLE_ROLE_PRESENTATION,
+                           "icon-name",       icon_name,
+                           NULL);
+      adw_expander_row_add_prefix (ADW_EXPANDER_ROW (row), icon);
 
       plugin_row_add_extensions (ADW_EXPANDER_ROW (row), info);
 

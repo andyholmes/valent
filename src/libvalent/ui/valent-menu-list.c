@@ -207,8 +207,9 @@ valent_menu_list_add_row (ValentMenuList *self,
                       NULL);
 
   row_icon = g_object_new (GTK_TYPE_IMAGE,
-                           "gicon",     gicon,
-                           "icon-size", GTK_ICON_SIZE_NORMAL,
+                           "accessible-role", GTK_ACCESSIBLE_ROLE_PRESENTATION,
+                           "gicon",           gicon,
+                           "icon-size",       GTK_ICON_SIZE_NORMAL,
                            NULL);
   adw_action_row_add_prefix (ADW_ACTION_ROW (row), row_icon);
 
