@@ -12,6 +12,7 @@
 #include "valent-device-page.h"
 #include "valent-device-preferences-group.h"
 #include "valent-device-preferences-window.h"
+#include "valent-input-remote.h"
 #include "valent-media-remote.h"
 #include "valent-menu-list.h"
 #include "valent-menu-stack.h"
@@ -45,6 +46,7 @@ valent_ui_init_types (void)
   g_type_ensure (VALENT_TYPE_DEVICE_PAGE);
   g_type_ensure (VALENT_TYPE_DEVICE_PREFERENCES_GROUP);
   g_type_ensure (VALENT_TYPE_DEVICE_PREFERENCES_WINDOW);
+  g_type_ensure (VALENT_TYPE_INPUT_REMOTE);
   g_type_ensure (VALENT_TYPE_MEDIA_REMOTE);
   g_type_ensure (VALENT_TYPE_MENU_LIST);
   g_type_ensure (VALENT_TYPE_MENU_STACK);
