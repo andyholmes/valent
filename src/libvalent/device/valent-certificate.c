@@ -132,7 +132,7 @@ valent_certificate_generate (const char  *cert_path,
     }
 
   /* Sign and export the certificate */
-  if ((rc = gnutls_x509_crt_sign (crt, crt, privkey)) != GNUTLS_E_SUCCESS ||
+  if ((rc = gnutls_x509_crt_sign2 (crt, crt, privkey, GNUTLS_DIG_SHA256, 0)) != GNUTLS_E_SUCCESS ||
       (rc = gnutls_x509_crt_export2 (crt, GNUTLS_X509_FMT_PEM, &out)) != GNUTLS_E_SUCCESS)
     {
       g_set_error (error,
