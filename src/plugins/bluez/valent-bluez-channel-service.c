@@ -325,6 +325,35 @@ on_name_owner_changed (GDBusProxy                *proxy,
  * ValentChannelService
  */
 static void
+valent_bluez_channel_service_build_identity (ValentChannelService *service)
+{
+  ValentChannelServiceClass *klass;
+  g_autoptr (JsonNode) identity = NULL;
+
+  g_assert (VALENT_IS_BLUEZ_CHANNEL_SERVICE (service));
+
+  /* Chain-up */
+  klass = VALENT_CHANNEL_SERVICE_CLASS (valent_bluez_channel_service_parent_class);
+  klass->build_identity (service);
+
+  /* Set the certificate on the packet */
+  identity = valent_channel_service_ref_identity (service);
+
+  if (identity != NULL)
+    {
+      g_autoptr (GTlsCertificate) certificate = NULL;
+      g_autofree char *certificate_pem = NULL;
+      JsonObject *body;
+
+      certificate = valent_channel_service_ref_certificate (service);
+      g_object_get (certificate, "certificate-pem", &certificate_pem, NULL);
+
+      body = valent_packet_get_body (identity);
+      json_object_set_string_member (body, "certificate", certificate_pem);
+    }
+}
+
+static void
 valent_bluez_channel_service_identify (ValentChannelService *service,
                                        const char           *target)
 {
@@ -502,6 +531,7 @@ valent_bluez_channel_service_class_init (ValentBluezChannelServiceClass *klass)
 
   vobject_class->destroy = valent_bluez_channel_service_destroy;
 
+  service_class->build_identity = valent_bluez_channel_service_build_identity;
   service_class->identify = valent_bluez_channel_service_identify;
 }
 
