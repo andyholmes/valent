@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2023-09-13 22:06-0700\n"
+"POT-Creation-Date: 2023-09-29 20:31-0700\n"
 "PO-Revision-Date: 2023-07-03 19:05+0800\n"
 "Last-Translator: sky96111 <sky96111@outlook.com>\n"
 "Language-Team: Chinese Simplified\n"
@@ -46,7 +46,8 @@ msgstr "插件是否已启用。"
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
 #: data/ca.andyholmes.Valent.desktop.in.in:3
 #: src/libvalent/ui/valent-preferences-window.ui:12
-#: src/libvalent/ui/valent-window.c:339 src/libvalent/ui/valent-window.ui:8
+#: src/libvalent/ui/valent-window.c:295 src/libvalent/ui/valent-window.ui:8
+#: src/libvalent/ui/valent-window.ui:44
 msgid "Valent"
 msgstr ""
 
@@ -114,57 +115,52 @@ msgid "Pairing request from %s"
 msgstr "来自 %s 的配对请求"
 
 #: src/libvalent/device/valent-device.c:523
-#: src/libvalent/ui/valent-device-page.ui:161
+#: src/libvalent/ui/valent-device-page.ui:156
 msgid "Reject"
 msgstr "拒绝"
 
 #: src/libvalent/device/valent-device.c:529
-#: src/libvalent/ui/valent-device-page.ui:174
+#: src/libvalent/ui/valent-device-page.ui:170
 msgid "Accept"
 msgstr "接受"
 
-#: src/libvalent/ui/valent-device-page.c:175
-#: src/libvalent/ui/valent-device-page.ui:131
+#: src/libvalent/ui/valent-device-page.c:170
+#: src/libvalent/ui/valent-device-page.ui:102
 msgid "Unavailable"
 msgstr "不可用"
 
-#: src/libvalent/ui/valent-device-page.ui:38
-#: src/libvalent/ui/valent-media-remote.ui:239
-#: src/libvalent/ui/valent-menu-list.c:664
-#: src/plugins/presenter/valent-presenter-remote.ui:146
-#: src/plugins/sms/valent-sms-window.ui:71
-#: src/plugins/sms/valent-sms-window.ui:162
-msgid "Previous"
-msgstr "上一首"
-
-#: src/libvalent/ui/valent-device-page.ui:49
+#: src/libvalent/ui/valent-device-page.ui:30
 msgid "Device Menu"
 msgstr "设备菜单"
 
-#: src/libvalent/ui/valent-device-page.ui:123
-msgid "Verification Key"
-msgstr "验证密钥"
-
-#: src/libvalent/ui/valent-device-page.ui:152
-msgid "Request Pairing"
-msgstr "请求配对"
-
-#: src/libvalent/ui/valent-device-page.ui:247
-#: src/libvalent/ui/valent-window.c:190
+#: src/libvalent/ui/valent-device-page.ui:49
+#: src/libvalent/ui/valent-window.c:197
 msgid "Disconnected"
 msgstr "已断开连接"
 
-#: src/libvalent/ui/valent-device-page.ui:277
-#: src/libvalent/ui/valent-window.ui:134
+#: src/libvalent/ui/valent-device-page.ui:50
+msgid "This device is currently unavailable"
+msgstr ""
+
+#: src/libvalent/ui/valent-device-page.ui:94
+msgid "Verification Key"
+msgstr "验证密钥"
+
+#: src/libvalent/ui/valent-device-page.ui:138
+msgid "Request Pairing"
+msgstr "请求配对"
+
+#: src/libvalent/ui/valent-device-page.ui:250
+#: src/libvalent/ui/valent-window.ui:133
 msgid "Preferences"
 msgstr "首选项"
 
-#: src/libvalent/ui/valent-device-page.ui:283
+#: src/libvalent/ui/valent-device-page.ui:256
 #, fuzzy
 msgid "Pair"
 msgstr "已配对"
 
-#: src/libvalent/ui/valent-device-page.ui:288
+#: src/libvalent/ui/valent-device-page.ui:261
 #, fuzzy
 msgid "Unpair"
 msgstr "未配对"
@@ -186,6 +182,7 @@ msgstr "其他"
 
 #: src/libvalent/ui/valent-device-preferences-window.ui:45
 #: src/libvalent/ui/valent-device-preferences-window.ui:50
+#: src/libvalent/ui/valent-device-preferences-window.ui:65
 msgid "Plugins"
 msgstr "插件"
 
@@ -195,7 +192,7 @@ msgid "No Plugins"
 msgstr "无插件"
 
 #: src/libvalent/ui/valent-input-remote.ui:8
-#: src/libvalent/ui/valent-window.ui:124
+#: src/libvalent/ui/valent-window.ui:123
 msgid "Input Remote"
 msgstr "远程输入"
 
@@ -228,104 +225,109 @@ msgstr "单指按住以拖动"
 msgid "Tap one finger to release"
 msgstr "再单指轻触以松开"
 
-#: src/libvalent/ui/valent-media-remote.c:250
-#: src/libvalent/ui/valent-media-remote.ui:417
+#: src/libvalent/ui/valent-media-remote.c:243
+#: src/libvalent/ui/valent-media-remote.ui:460
 msgid "Enable Repeat"
 msgstr "启用循环"
 
-#: src/libvalent/ui/valent-media-remote.c:258
+#: src/libvalent/ui/valent-media-remote.c:251
 msgid "Repeat All"
 msgstr "全部循环"
 
-#: src/libvalent/ui/valent-media-remote.c:266
+#: src/libvalent/ui/valent-media-remote.c:259
 msgid "Repeat One"
 msgstr "单曲循环"
 
-#: src/libvalent/ui/valent-media-remote.c:293
+#: src/libvalent/ui/valent-media-remote.c:286
 msgid "Pause"
 msgstr "暂停"
 
-#: src/libvalent/ui/valent-media-remote.c:306
-#: src/libvalent/ui/valent-media-remote.c:308
-#: src/libvalent/ui/valent-media-remote.ui:288
+#: src/libvalent/ui/valent-media-remote.c:299
+#: src/libvalent/ui/valent-media-remote.c:301
+#: src/libvalent/ui/valent-media-remote.ui:327
 msgid "Play"
 msgstr "播放"
 
 #: src/libvalent/ui/valent-media-remote.ui:8
-#: src/libvalent/ui/valent-window.ui:128
+#: src/libvalent/ui/valent-window.ui:127
 msgid "Media Remote"
 msgstr "远程媒体控制"
 
-#: src/libvalent/ui/valent-media-remote.ui:219
+#: src/libvalent/ui/valent-media-remote.ui:255
 #: src/plugins/telephony/valent-telephony-preferences.ui:16
-#: src/plugins/telephony/valent-telephony-preferences.ui:47
+#: src/plugins/telephony/valent-telephony-preferences.ui:41
 msgid "Volume"
 msgstr "音量"
 
-#: src/libvalent/ui/valent-media-remote.ui:264
+#: src/libvalent/ui/valent-media-remote.ui:276
+#: src/libvalent/ui/valent-menu-list.c:665
+#: src/plugins/presenter/valent-presenter-remote.ui:146
+msgid "Previous"
+msgstr "上一首"
+
+#: src/libvalent/ui/valent-media-remote.ui:302
 msgid "Seek Back"
 msgstr "向后找"
 
-#: src/libvalent/ui/valent-media-remote.ui:314
+#: src/libvalent/ui/valent-media-remote.ui:354
 msgid "Seek Forward"
 msgstr "向前找"
 
-#: src/libvalent/ui/valent-media-remote.ui:338
+#: src/libvalent/ui/valent-media-remote.ui:379
 #: src/plugins/presenter/valent-presenter-remote.ui:173
 msgid "Next"
 msgstr "下一首"
 
-#: src/libvalent/ui/valent-media-remote.ui:360
+#: src/libvalent/ui/valent-media-remote.ui:402
 msgid "Options"
 msgstr "选项"
 
-#: src/libvalent/ui/valent-media-remote.ui:440
+#: src/libvalent/ui/valent-media-remote.ui:484
 msgid "Shuffle"
 msgstr "随机"
 
-#: src/libvalent/ui/valent-menu-list.c:529
+#: src/libvalent/ui/valent-menu-list.c:530
 msgid "No Actions"
 msgstr "无动作"
 
-#: src/libvalent/ui/valent-preferences-window.c:377
+#: src/libvalent/ui/valent-preferences-window.c:380
 #, fuzzy
 msgid "Application"
 msgstr "应用"
 
-#: src/libvalent/ui/valent-preferences-window.c:384
+#: src/libvalent/ui/valent-preferences-window.c:387
 msgid "Device Connections"
 msgstr "设备连接"
 
-#: src/libvalent/ui/valent-preferences-window.c:391
+#: src/libvalent/ui/valent-preferences-window.c:394
 #: src/plugins/clipboard/clipboard.plugin.desktop.in:7
 msgid "Clipboard"
 msgstr "剪切板"
 
-#: src/libvalent/ui/valent-preferences-window.c:398
+#: src/libvalent/ui/valent-preferences-window.c:401
 #: src/plugins/contacts/contacts.plugin.desktop.in:7
 #: src/plugins/sms/valent-contact-row.c:253
 msgid "Contacts"
 msgstr "联系人"
 
-#: src/libvalent/ui/valent-preferences-window.c:405
+#: src/libvalent/ui/valent-preferences-window.c:408
 msgid "Mouse and Keyboard"
 msgstr "鼠标和键盘"
 
-#: src/libvalent/ui/valent-preferences-window.c:412
+#: src/libvalent/ui/valent-preferences-window.c:415
 msgid "Media Players"
 msgstr "媒体播放器"
 
-#: src/libvalent/ui/valent-preferences-window.c:419
+#: src/libvalent/ui/valent-preferences-window.c:422
 msgid "Volume Control"
 msgstr "音量控制"
 
-#: src/libvalent/ui/valent-preferences-window.c:426
+#: src/libvalent/ui/valent-preferences-window.c:429
 #: src/plugins/notification/notification.plugin.desktop.in:7
-#: src/plugins/notification/valent-notification-preferences.ui:66
 msgid "Notifications"
 msgstr "通知"
 
-#: src/libvalent/ui/valent-preferences-window.c:433
+#: src/libvalent/ui/valent-preferences-window.c:436
 msgid "Session Manager"
 msgstr "会话管理"
 
@@ -438,53 +440,53 @@ msgctxt "short time format"
 msgid "%d:%02d"
 msgstr "%d:%02d"
 
-#: src/libvalent/ui/valent-window.c:185
+#: src/libvalent/ui/valent-window.c:192
 msgid "Unpaired"
 msgstr "未配对"
 
-#: src/libvalent/ui/valent-window.c:195
+#: src/libvalent/ui/valent-window.c:202
 msgid "Connected"
 msgstr "已连接"
 
-#: src/libvalent/ui/valent-window.c:350
+#: src/libvalent/ui/valent-window.c:306
 msgid "translator-credits"
 msgstr "sky96111"
 
-#: src/libvalent/ui/valent-window.c:355
+#: src/libvalent/ui/valent-window.c:311
 msgid "Sponsors"
 msgstr "赞助者"
 
-#: src/libvalent/ui/valent-window.ui:56
+#: src/libvalent/ui/valent-window.ui:55
 msgid "Refresh"
 msgstr "刷新"
 
-#: src/libvalent/ui/valent-window.ui:57
+#: src/libvalent/ui/valent-window.ui:56
 #, fuzzy
 msgid "Scan for new devices"
 msgstr "正在搜索设备…"
 
-#: src/libvalent/ui/valent-window.ui:68
+#: src/libvalent/ui/valent-window.ui:67 src/plugins/sms/valent-sms-window.ui:73
 msgid "Main Menu"
 msgstr "主菜单"
 
-#: src/libvalent/ui/valent-window.ui:86 src/libvalent/ui/valent-window.ui:101
+#: src/libvalent/ui/valent-window.ui:85 src/libvalent/ui/valent-window.ui:100
 #: src/plugins/share/valent-share-target-chooser.ui:68
 msgid "Devices"
 msgstr "设备"
 
-#: src/libvalent/ui/valent-window.ui:94
+#: src/libvalent/ui/valent-window.ui:93
 msgid "Searching for devices…"
 msgstr "正在搜索设备…"
 
-#: src/libvalent/ui/valent-window.ui:102
+#: src/libvalent/ui/valent-window.ui:101
 msgid "List of available and known devices"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:138
+#: src/libvalent/ui/valent-window.ui:137
 msgid "About Valent"
 msgstr "关于"
 
-#: src/libvalent/ui/valent-window.ui:144
+#: src/libvalent/ui/valent-window.ui:143
 msgid "Quit"
 msgstr "退出"
 
@@ -547,15 +549,15 @@ msgid "Notify when the remote battery is full"
 msgstr "远程设备电量充满时通知"
 
 #: src/plugins/battery/valent-battery-preferences.ui:16
-#: src/plugins/battery/valent-battery-preferences.ui:42
+#: src/plugins/battery/valent-battery-preferences.ui:36
 msgid "Level Threshold"
 msgstr "提醒阈值"
 
-#: src/plugins/battery/valent-battery-preferences.ui:36
+#: src/plugins/battery/valent-battery-preferences.ui:30
 msgid "Low Battery Notification"
 msgstr "低电量通知"
 
-#: src/plugins/battery/valent-battery-preferences.ui:37
+#: src/plugins/battery/valent-battery-preferences.ui:31
 msgid "Notify when the remote battery is low"
 msgstr "远程设备电量不足时通知"
 
@@ -571,11 +573,11 @@ msgstr "远程剪贴板"
 msgid "Copy changes to the local clipboard"
 msgstr "将远程设备剪切板变化同步到本地"
 
-#: src/plugins/clipboard/valent-clipboard-preferences.ui:23
+#: src/plugins/clipboard/valent-clipboard-preferences.ui:17
 msgid "Local Clipboard"
 msgstr "本地剪贴板"
 
-#: src/plugins/clipboard/valent-clipboard-preferences.ui:24
+#: src/plugins/clipboard/valent-clipboard-preferences.ui:18
 msgid "Report changes to the remote device"
 msgstr "向远程设备报告本地剪切板变化"
 
@@ -625,15 +627,15 @@ msgstr ""
 msgid "Local Connectivity"
 msgstr "本机连接性"
 
-#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:12
+#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:11
 msgid "Send updates to the remote device"
 msgstr "向远程设备发送连接性更新信息"
 
-#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:23
+#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:17
 msgid "Remote Connectivity"
 msgstr "远程设备连接性"
 
-#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:24
+#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:18
 msgid "Notify if the remote device loses connectivity"
 msgstr "远程设备失去连接时发出通知"
 
@@ -649,11 +651,11 @@ msgstr "远程联系人"
 msgid "Import contacts from the remote device"
 msgstr "从远程设备导入联系人"
 
-#: src/plugins/contacts/valent-contacts-preferences.ui:23
+#: src/plugins/contacts/valent-contacts-preferences.ui:17
 msgid "Local Contacts"
 msgstr "本地联系人"
 
-#: src/plugins/contacts/valent-contacts-preferences.ui:24
+#: src/plugins/contacts/valent-contacts-preferences.ui:18
 msgid "Share contacts with the remote device"
 msgstr "与远程设备共享联系人"
 
@@ -750,7 +752,7 @@ msgstr ""
 
 #: src/plugins/notification/valent-notification-dialog.ui:150
 #: src/plugins/share/valent-share-text-dialog.ui:53
-#: src/plugins/sms/valent-sms-window.ui:315
+#: src/plugins/sms/valent-sms-window.ui:272
 msgid "Close"
 msgstr "关闭"
 
@@ -774,19 +776,24 @@ msgstr "智能同步"
 msgid "Notifications follow the active device"
 msgstr "通知跟随活动的设备"
 
-#: src/plugins/notification/valent-notification-preferences.ui:30
+#: src/plugins/notification/valent-notification-preferences.ui:23
 msgid "Filter by Application"
 msgstr "按应用过滤"
 
-#: src/plugins/notification/valent-notification-preferences.ui:67
-msgid "Applications"
-msgstr "应用"
+#: src/plugins/notification/valent-notification-preferences.ui:90
+#, fuzzy
+msgid "Filter applications"
+msgstr "按应用过滤"
 
-#: src/plugins/notification/valent-notification-preferences.ui:88
+#: src/plugins/notification/valent-notification-preferences.ui:116
 msgid "Search"
 msgstr "搜索"
 
-#: src/plugins/notification/valent-notification-preferences.ui:117
+#: src/plugins/notification/valent-notification-preferences.ui:129
+msgid "Reset"
+msgstr ""
+
+#: src/plugins/notification/valent-notification-preferences.ui:144
 msgid "No Applications"
 msgstr "无应用"
 
@@ -928,15 +935,15 @@ msgstr "自动挂载"
 msgid "Mount shared folders when the device connects"
 msgstr "设备连接时挂载共享文件夹"
 
-#: src/plugins/sftp/valent-sftp-preferences.ui:23
+#: src/plugins/sftp/valent-sftp-preferences.ui:17
 msgid "Local Files"
 msgstr "本地文件"
 
-#: src/plugins/sftp/valent-sftp-preferences.ui:24
+#: src/plugins/sftp/valent-sftp-preferences.ui:18
 msgid "Share local files and directories"
 msgstr "共享本地文件和目录"
 
-#: src/plugins/sftp/valent-sftp-preferences.ui:29
+#: src/plugins/sftp/valent-sftp-preferences.ui:23
 msgid "Port"
 msgstr "端口"
 
@@ -1124,8 +1131,8 @@ msgstr[0] "%d 分钟"
 
 #: src/plugins/sms/valent-sms-conversation.c:904
 #: src/plugins/sms/valent-sms-window.c:602
-#: src/plugins/sms/valent-sms-window.c:914
-#: src/plugins/sms/valent-sms-window.ui:60
+#: src/plugins/sms/valent-sms-window.c:899
+#: src/plugins/sms/valent-sms-window.ui:62
 msgid "New Conversation"
 msgstr "新对话"
 
@@ -1157,55 +1164,61 @@ msgid "Send to %s"
 msgstr "发送给 %s"
 
 #: src/plugins/sms/valent-sms-window.c:617
-#: src/plugins/sms/valent-sms-window.c:936
+#: src/plugins/sms/valent-sms-window.c:921
 msgid "Search Messages"
 msgstr "搜索"
 
-#: src/plugins/sms/valent-sms-window.ui:11
+#: src/plugins/sms/valent-sms-window.ui:13
+#: src/plugins/sms/valent-sms-window.ui:51
 msgid "Messages"
 msgstr "信息"
 
-#: src/plugins/sms/valent-sms-window.ui:92
+#: src/plugins/sms/valent-sms-window.ui:93
 msgid "No Conversations"
 msgstr "无对话"
 
-#: src/plugins/sms/valent-sms-window.ui:178
+#: src/plugins/sms/valent-sms-window.ui:116
+#, fuzzy
+msgid "Conversation"
+msgstr "对话"
+
+#: src/plugins/sms/valent-sms-window.ui:133
 msgid "No conversation selected"
 msgstr "无选择对话"
 
-#: src/plugins/sms/valent-sms-window.ui:179
+#: src/plugins/sms/valent-sms-window.ui:134
 msgid "Select or start a conversation"
 msgstr "选择或开始一个对话"
 
-#: src/plugins/sms/valent-sms-window.ui:199
+#: src/plugins/sms/valent-sms-window.ui:154
 msgid "Search messages…"
 msgstr "搜索信息..."
 
-#: src/plugins/sms/valent-sms-window.ui:216
+#: src/plugins/sms/valent-sms-window.ui:171
 msgid "No results found"
 msgstr "无结果"
 
-#: src/plugins/sms/valent-sms-window.ui:247
+#: src/plugins/sms/valent-sms-window.ui:202
 msgid "Type a phone number or name"
 msgstr "输入姓名或电话号码"
 
-#: src/plugins/sms/valent-sms-window.ui:264
+#: src/plugins/sms/valent-sms-window.ui:219
 msgid "No contacts"
 msgstr "无联系人"
 
-#: src/plugins/sms/valent-sms-window.ui:293
+#: src/plugins/sms/valent-sms-window.ui:250
 msgid "Search Messages…"
 msgstr "搜索信息..."
 
-#: src/plugins/sms/valent-sms-window.ui:297
+#: src/plugins/sms/valent-sms-window.ui:254
 msgid "Change Address Book…"
 msgstr "更改通讯录..."
 
-#: src/plugins/sms/valent-sms-window.ui:303
+#: src/plugins/sms/valent-sms-window.ui:260
 msgid "Keyboard Shortcuts"
 msgstr "键盘快捷键"
 
-#: src/plugins/sms/valent-sms-window.ui:308
+#: src/plugins/sms/valent-sms-window.ui:265
 msgid "Help"
 msgstr "帮助"
 
@@ -1234,7 +1247,7 @@ msgid "Incoming call"
 msgstr "来电"
 
 #: src/plugins/telephony/valent-telephony-plugin.c:311
-#: src/plugins/telephony/valent-telephony-preferences.ui:86
+#: src/plugins/telephony/valent-telephony-preferences.ui:68
 msgid "Mute"
 msgstr "静音"
 
@@ -1251,31 +1264,36 @@ msgid "What to do when the phone rings"
 msgstr "当电话响起时"
 
 #: src/plugins/telephony/valent-telephony-preferences.ui:26
-#: src/plugins/telephony/valent-telephony-preferences.ui:69
+#: src/plugins/telephony/valent-telephony-preferences.ui:57
 msgid "Pause Media"
 msgstr "暂停媒体"
 
-#: src/plugins/telephony/valent-telephony-preferences.ui:42
+#: src/plugins/telephony/valent-telephony-preferences.ui:36
 msgid "Ongoing Calls"
 msgstr "正在进行呼叫"
 
-#: src/plugins/telephony/valent-telephony-preferences.ui:43
+#: src/plugins/telephony/valent-telephony-preferences.ui:37
 msgid "What to do when the phone is answered"
 msgstr "当电话接通时"
 
-#: src/plugins/telephony/valent-telephony-preferences.ui:57
+#: src/plugins/telephony/valent-telephony-preferences.ui:51
 msgid "Mute Microphone"
 msgstr "麦克风静音"
 
-#: src/plugins/telephony/valent-telephony-preferences.ui:84
+#: src/plugins/telephony/valent-telephony-preferences.ui:66
 msgid "Nothing"
 msgstr "无"
 
-#: src/plugins/telephony/valent-telephony-preferences.ui:85
+#: src/plugins/telephony/valent-telephony-preferences.ui:67
 msgid "Lower"
 msgstr "降低"
 
-#: src/plugins/xdp/valent-xdp-background.c:69
+#: src/plugins/xdp/valent-xdp-background.c:49
+#, fuzzy
+msgid "Syncing Devices"
+msgstr "设备"
+
+#: src/plugins/xdp/valent-xdp-background.c:79
 msgid "Valent wants to run as a service"
 msgstr "Valent 希望作为一项服务运行"
 
@@ -1286,3 +1304,6 @@ msgstr "桌面环境"
 #: src/plugins/xdp/xdp.plugin.desktop.in:8
 msgid "Integration with desktop portals"
 msgstr "与桌面环境集成"
+
+#~ msgid "Applications"
+#~ msgstr "应用"

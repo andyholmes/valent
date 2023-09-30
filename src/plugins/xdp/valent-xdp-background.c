@@ -37,10 +37,20 @@ xdp_portal_request_background_cb (GObject      *object,
   g_assert (XDP_IS_PORTAL (portal));
 
   if (!xdp_portal_request_background_finish (portal, result, &error))
-    g_debug ("ValentXdpPlugin: permission denied");
-
-  if (error != NULL)
-    g_warning ("ValentXdpPlugin: %s", error->message);
+    {
+      if (error != NULL)
+        g_warning ("ValentXdpPlugin: %s", error->message);
+      else
+        g_debug ("ValentXdpPlugin: permission denied");
+    }
+  else
+    {
+      xdp_portal_set_background_status (portal,
+                                        _("Syncing Devices"),
+                                        g_task_get_cancellable (G_TASK (result)),
+                                        NULL,
+                                        NULL);
+    }
 }
 
 static void
