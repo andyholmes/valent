@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2023-09-13 22:06-0700\n"
+"POT-Creation-Date: 2023-09-29 20:31-0700\n"
 "PO-Revision-Date: 2022-09-12 19:59+0200\n"
 "Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
 "Language-Team: Dutch\n"
@@ -45,7 +45,8 @@ msgstr "Of de plug-in is ingeschakeld."
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
 #: data/ca.andyholmes.Valent.desktop.in.in:3
 #: src/libvalent/ui/valent-preferences-window.ui:12
-#: src/libvalent/ui/valent-window.c:339 src/libvalent/ui/valent-window.ui:8
+#: src/libvalent/ui/valent-window.c:295 src/libvalent/ui/valent-window.ui:8
+#: src/libvalent/ui/valent-window.ui:44
 msgid "Valent"
 msgstr "Valent"
 
@@ -116,58 +117,53 @@ msgid "Pairing request from %s"
 msgstr "Koppelverzoek van %s"
 
 #: src/libvalent/device/valent-device.c:523
-#: src/libvalent/ui/valent-device-page.ui:161
+#: src/libvalent/ui/valent-device-page.ui:156
 msgid "Reject"
 msgstr "Afwijzen"
 
 #: src/libvalent/device/valent-device.c:529
-#: src/libvalent/ui/valent-device-page.ui:174
+#: src/libvalent/ui/valent-device-page.ui:170
 msgid "Accept"
 msgstr "Goedkeuren"
 
-#: src/libvalent/ui/valent-device-page.c:175
-#: src/libvalent/ui/valent-device-page.ui:131
+#: src/libvalent/ui/valent-device-page.c:170
+#: src/libvalent/ui/valent-device-page.ui:102
 msgid "Unavailable"
 msgstr "Niet beschikbaar"
 
-#: src/libvalent/ui/valent-device-page.ui:38
-#: src/libvalent/ui/valent-media-remote.ui:239
-#: src/libvalent/ui/valent-menu-list.c:664
-#: src/plugins/presenter/valent-presenter-remote.ui:146
-#: src/plugins/sms/valent-sms-window.ui:71
-#: src/plugins/sms/valent-sms-window.ui:162
-msgid "Previous"
-msgstr "Vorige"
-
-#: src/libvalent/ui/valent-device-page.ui:49
+#: src/libvalent/ui/valent-device-page.ui:30
 #, fuzzy
 msgid "Device Menu"
 msgstr "Apparaatnaam"
 
-#: src/libvalent/ui/valent-device-page.ui:123
-msgid "Verification Key"
-msgstr "Verificatiesleutel"
-
-#: src/libvalent/ui/valent-device-page.ui:152
-msgid "Request Pairing"
-msgstr "Koppelverzoek versturen"
-
-#: src/libvalent/ui/valent-device-page.ui:247
-#: src/libvalent/ui/valent-window.c:190
+#: src/libvalent/ui/valent-device-page.ui:49
+#: src/libvalent/ui/valent-window.c:197
 msgid "Disconnected"
 msgstr "Niet verbonden"
 
-#: src/libvalent/ui/valent-device-page.ui:277
-#: src/libvalent/ui/valent-window.ui:134
+#: src/libvalent/ui/valent-device-page.ui:50
+msgid "This device is currently unavailable"
+msgstr ""
+
+#: src/libvalent/ui/valent-device-page.ui:94
+msgid "Verification Key"
+msgstr "Verificatiesleutel"
+
+#: src/libvalent/ui/valent-device-page.ui:138
+msgid "Request Pairing"
+msgstr "Koppelverzoek versturen"
+
+#: src/libvalent/ui/valent-device-page.ui:250
+#: src/libvalent/ui/valent-window.ui:133
 msgid "Preferences"
 msgstr "Voorkeuren"
 
-#: src/libvalent/ui/valent-device-page.ui:283
+#: src/libvalent/ui/valent-device-page.ui:256
 #, fuzzy
 msgid "Pair"
 msgstr "Gekoppeld"
 
-#: src/libvalent/ui/valent-device-page.ui:288
+#: src/libvalent/ui/valent-device-page.ui:261
 #, fuzzy
 msgid "Unpair"
 msgstr "Niet gekoppeld"
@@ -189,6 +185,7 @@ msgstr "Overig"
 
 #: src/libvalent/ui/valent-device-preferences-window.ui:45
 #: src/libvalent/ui/valent-device-preferences-window.ui:50
+#: src/libvalent/ui/valent-device-preferences-window.ui:65
 msgid "Plugins"
 msgstr "Plug-ins"
 
@@ -198,7 +195,7 @@ msgid "No Plugins"
 msgstr "Er zijn geen plug-ins."
 
 #: src/libvalent/ui/valent-input-remote.ui:8
-#: src/libvalent/ui/valent-window.ui:124
+#: src/libvalent/ui/valent-window.ui:123
 msgid "Input Remote"
 msgstr "Afstandsbediening"
 
@@ -231,107 +228,112 @@ msgstr "Houd met één vinger ingedrukt om te verslepen"
 msgid "Tap one finger to release"
 msgstr "Tik met één vinger om te stoppen met verslepen"
 
-#: src/libvalent/ui/valent-media-remote.c:250
-#: src/libvalent/ui/valent-media-remote.ui:417
+#: src/libvalent/ui/valent-media-remote.c:243
+#: src/libvalent/ui/valent-media-remote.ui:460
 msgid "Enable Repeat"
 msgstr ""
 
-#: src/libvalent/ui/valent-media-remote.c:258
+#: src/libvalent/ui/valent-media-remote.c:251
 msgid "Repeat All"
 msgstr ""
 
-#: src/libvalent/ui/valent-media-remote.c:266
+#: src/libvalent/ui/valent-media-remote.c:259
 msgid "Repeat One"
 msgstr ""
 
-#: src/libvalent/ui/valent-media-remote.c:293
+#: src/libvalent/ui/valent-media-remote.c:286
 #, fuzzy
 msgid "Pause"
 msgstr "Media onderbreken"
 
-#: src/libvalent/ui/valent-media-remote.c:306
-#: src/libvalent/ui/valent-media-remote.c:308
-#: src/libvalent/ui/valent-media-remote.ui:288
+#: src/libvalent/ui/valent-media-remote.c:299
+#: src/libvalent/ui/valent-media-remote.c:301
+#: src/libvalent/ui/valent-media-remote.ui:327
 msgid "Play"
 msgstr ""
 
 #: src/libvalent/ui/valent-media-remote.ui:8
-#: src/libvalent/ui/valent-window.ui:128
+#: src/libvalent/ui/valent-window.ui:127
 msgid "Media Remote"
 msgstr ""
 
-#: src/libvalent/ui/valent-media-remote.ui:219
+#: src/libvalent/ui/valent-media-remote.ui:255
 #: src/plugins/telephony/valent-telephony-preferences.ui:16
-#: src/plugins/telephony/valent-telephony-preferences.ui:47
+#: src/plugins/telephony/valent-telephony-preferences.ui:41
 msgid "Volume"
 msgstr "Volume"
 
-#: src/libvalent/ui/valent-media-remote.ui:264
+#: src/libvalent/ui/valent-media-remote.ui:276
+#: src/libvalent/ui/valent-menu-list.c:665
+#: src/plugins/presenter/valent-presenter-remote.ui:146
+msgid "Previous"
+msgstr "Vorige"
+
+#: src/libvalent/ui/valent-media-remote.ui:302
 #, fuzzy
 msgid "Seek Back"
 msgstr "Terug"
 
-#: src/libvalent/ui/valent-media-remote.ui:314
+#: src/libvalent/ui/valent-media-remote.ui:354
 msgid "Seek Forward"
 msgstr ""
 
-#: src/libvalent/ui/valent-media-remote.ui:338
+#: src/libvalent/ui/valent-media-remote.ui:379
 #: src/plugins/presenter/valent-presenter-remote.ui:173
 msgid "Next"
 msgstr "Volgende"
 
-#: src/libvalent/ui/valent-media-remote.ui:360
+#: src/libvalent/ui/valent-media-remote.ui:402
 #, fuzzy
 msgid "Options"
 msgstr "Toepassingen"
 
-#: src/libvalent/ui/valent-media-remote.ui:440
+#: src/libvalent/ui/valent-media-remote.ui:484
 msgid "Shuffle"
 msgstr ""
 
-#: src/libvalent/ui/valent-menu-list.c:529
+#: src/libvalent/ui/valent-menu-list.c:530
 msgid "No Actions"
 msgstr "Er zijn geen acties."
 
-#: src/libvalent/ui/valent-preferences-window.c:377
+#: src/libvalent/ui/valent-preferences-window.c:380
 #, fuzzy
 msgid "Application"
 msgstr "Toepassingen"
 
-#: src/libvalent/ui/valent-preferences-window.c:384
+#: src/libvalent/ui/valent-preferences-window.c:387
 msgid "Device Connections"
 msgstr "Verbonden apparaten"
 
-#: src/libvalent/ui/valent-preferences-window.c:391
+#: src/libvalent/ui/valent-preferences-window.c:394
 #: src/plugins/clipboard/clipboard.plugin.desktop.in:7
 msgid "Clipboard"
 msgstr "Klembord"
 
-#: src/libvalent/ui/valent-preferences-window.c:398
+#: src/libvalent/ui/valent-preferences-window.c:401
 #: src/plugins/contacts/contacts.plugin.desktop.in:7
 #: src/plugins/sms/valent-contact-row.c:253
 msgid "Contacts"
 msgstr "Contactpersonen"
 
-#: src/libvalent/ui/valent-preferences-window.c:405
+#: src/libvalent/ui/valent-preferences-window.c:408
 msgid "Mouse and Keyboard"
 msgstr "Muis en toetsenbord"
 
-#: src/libvalent/ui/valent-preferences-window.c:412
+#: src/libvalent/ui/valent-preferences-window.c:415
 msgid "Media Players"
 msgstr "Mediaspelers"
 
-#: src/libvalent/ui/valent-preferences-window.c:419
+#: src/libvalent/ui/valent-preferences-window.c:422
 msgid "Volume Control"
 msgstr "Volumeregeling"
 
-#: src/libvalent/ui/valent-preferences-window.c:426
+#: src/libvalent/ui/valent-preferences-window.c:429
 #: src/plugins/notification/notification.plugin.desktop.in:7
-#: src/plugins/notification/valent-notification-preferences.ui:66
 msgid "Notifications"
 msgstr "Meldingen"
 
-#: src/libvalent/ui/valent-preferences-window.c:433
+#: src/libvalent/ui/valent-preferences-window.c:436
 msgid "Session Manager"
 msgstr "Sessiebeheer"
 
@@ -444,54 +446,54 @@ msgctxt "short time format"
 msgid "%d:%02d"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.c:185
+#: src/libvalent/ui/valent-window.c:192
 msgid "Unpaired"
 msgstr "Niet gekoppeld"
 
-#: src/libvalent/ui/valent-window.c:195
+#: src/libvalent/ui/valent-window.c:202
 msgid "Connected"
 msgstr "Verbonden"
 
-#: src/libvalent/ui/valent-window.c:350
+#: src/libvalent/ui/valent-window.c:306
 msgid "translator-credits"
 msgstr "Heimen Stoffels <vistausss@fastmail.com>"
 
-#: src/libvalent/ui/valent-window.c:355
+#: src/libvalent/ui/valent-window.c:311
 msgid "Sponsors"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:56
+#: src/libvalent/ui/valent-window.ui:55
 msgid "Refresh"
 msgstr "Herladen"
 
-#: src/libvalent/ui/valent-window.ui:57
+#: src/libvalent/ui/valent-window.ui:56
 #, fuzzy
 msgid "Scan for new devices"
 msgstr "Bezig met zoeken naar apparaten…"
 
-#: src/libvalent/ui/valent-window.ui:68
+#: src/libvalent/ui/valent-window.ui:67 src/plugins/sms/valent-sms-window.ui:73
 #, fuzzy
 msgid "Main Menu"
 msgstr "Apparaatnaam"
 
-#: src/libvalent/ui/valent-window.ui:86 src/libvalent/ui/valent-window.ui:101
+#: src/libvalent/ui/valent-window.ui:85 src/libvalent/ui/valent-window.ui:100
 #: src/plugins/share/valent-share-target-chooser.ui:68
 msgid "Devices"
 msgstr "Apparaten"
 
-#: src/libvalent/ui/valent-window.ui:94
+#: src/libvalent/ui/valent-window.ui:93
 msgid "Searching for devices…"
 msgstr "Bezig met zoeken naar apparaten…"
 
-#: src/libvalent/ui/valent-window.ui:102
+#: src/libvalent/ui/valent-window.ui:101
 msgid "List of available and known devices"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:138
+#: src/libvalent/ui/valent-window.ui:137
 msgid "About Valent"
 msgstr "Over Valent"
 
-#: src/libvalent/ui/valent-window.ui:144
+#: src/libvalent/ui/valent-window.ui:143
 msgid "Quit"
 msgstr "Afsluiten"
 
@@ -555,15 +557,15 @@ msgid "Notify when the remote battery is full"
 msgstr "Toon een melding als de accu volledig is opgeladen"
 
 #: src/plugins/battery/valent-battery-preferences.ui:16
-#: src/plugins/battery/valent-battery-preferences.ui:42
+#: src/plugins/battery/valent-battery-preferences.ui:36
 msgid "Level Threshold"
 msgstr ""
 
-#: src/plugins/battery/valent-battery-preferences.ui:36
+#: src/plugins/battery/valent-battery-preferences.ui:30
 msgid "Low Battery Notification"
 msgstr "Laag accuniveau"
 
-#: src/plugins/battery/valent-battery-preferences.ui:37
+#: src/plugins/battery/valent-battery-preferences.ui:31
 #, fuzzy
 msgid "Notify when the remote battery is low"
 msgstr "Toon een melding als de accu bijna leeg is."
@@ -585,12 +587,12 @@ msgstr "Externe klembordwijzigingen"
 msgid "Copy changes to the local clipboard"
 msgstr "Kopiëren naar lokaal klembord"
 
-#: src/plugins/clipboard/valent-clipboard-preferences.ui:23
+#: src/plugins/clipboard/valent-clipboard-preferences.ui:17
 #, fuzzy
 msgid "Local Clipboard"
 msgstr "Lokale klembordwijzigingen"
 
-#: src/plugins/clipboard/valent-clipboard-preferences.ui:24
+#: src/plugins/clipboard/valent-clipboard-preferences.ui:18
 #, fuzzy
 msgid "Report changes to the remote device"
 msgstr "Maak een foto met het externe apparaat"
@@ -643,16 +645,16 @@ msgstr "%s: %s"
 msgid "Local Connectivity"
 msgstr "Lokale verbinding"
 
-#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:12
+#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:11
 #, fuzzy
 msgid "Send updates to the remote device"
 msgstr "Maak een foto met het externe apparaat"
 
-#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:23
+#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:17
 msgid "Remote Connectivity"
 msgstr "Externe verbinding"
 
-#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:24
+#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:18
 msgid "Notify if the remote device loses connectivity"
 msgstr ""
 
@@ -670,11 +672,11 @@ msgstr "Externe contactpersonen"
 msgid "Import contacts from the remote device"
 msgstr "Haal de lijst met contactpersonen van het externe apparaat op."
 
-#: src/plugins/contacts/valent-contacts-preferences.ui:23
+#: src/plugins/contacts/valent-contacts-preferences.ui:17
 msgid "Local Contacts"
 msgstr "Lokale contactpersonen"
 
-#: src/plugins/contacts/valent-contacts-preferences.ui:24
+#: src/plugins/contacts/valent-contacts-preferences.ui:18
 #, fuzzy
 msgid "Share contacts with the remote device"
 msgstr "Maak een foto met het externe apparaat"
@@ -772,7 +774,7 @@ msgstr ""
 
 #: src/plugins/notification/valent-notification-dialog.ui:150
 #: src/plugins/share/valent-share-text-dialog.ui:53
-#: src/plugins/sms/valent-sms-window.ui:315
+#: src/plugins/sms/valent-sms-window.ui:272
 msgid "Close"
 msgstr ""
 
@@ -800,21 +802,26 @@ msgstr ""
 msgid "Notifications follow the active device"
 msgstr "Toon een melding als de verbinding verbroken is."
 
-#: src/plugins/notification/valent-notification-preferences.ui:30
+#: src/plugins/notification/valent-notification-preferences.ui:23
 #, fuzzy
 msgid "Filter by Application"
 msgstr "Geen toepassingen"
 
-#: src/plugins/notification/valent-notification-preferences.ui:67
-msgid "Applications"
-msgstr "Toepassingen"
+#: src/plugins/notification/valent-notification-preferences.ui:90
+#, fuzzy
+msgid "Filter applications"
+msgstr "Geen toepassingen"
 
-#: src/plugins/notification/valent-notification-preferences.ui:88
+#: src/plugins/notification/valent-notification-preferences.ui:116
 #, fuzzy
 msgid "Search"
 msgstr "Bezig met zoeken naar apparaten…"
 
-#: src/plugins/notification/valent-notification-preferences.ui:117
+#: src/plugins/notification/valent-notification-preferences.ui:129
+msgid "Reset"
+msgstr ""
+
+#: src/plugins/notification/valent-notification-preferences.ui:144
 msgid "No Applications"
 msgstr "Geen toepassingen"
 
@@ -968,17 +975,17 @@ msgstr ""
 "Probeer het bestandssysteem automatisch aan te koppelen zodra het apparaat "
 "verbonden is."
 
-#: src/plugins/sftp/valent-sftp-preferences.ui:23
+#: src/plugins/sftp/valent-sftp-preferences.ui:17
 #, fuzzy
 msgid "Local Files"
 msgstr "Lokaal bestandssysteem"
 
-#: src/plugins/sftp/valent-sftp-preferences.ui:24
+#: src/plugins/sftp/valent-sftp-preferences.ui:18
 #, fuzzy
 msgid "Share local files and directories"
 msgstr "Mappen en bestanden verkennen"
 
-#: src/plugins/sftp/valent-sftp-preferences.ui:29
+#: src/plugins/sftp/valent-sftp-preferences.ui:23
 msgid "Port"
 msgstr "Poort"
 
@@ -1177,8 +1184,8 @@ msgstr[1] "%d min."
 
 #: src/plugins/sms/valent-sms-conversation.c:904
 #: src/plugins/sms/valent-sms-window.c:602
-#: src/plugins/sms/valent-sms-window.c:914
-#: src/plugins/sms/valent-sms-window.ui:60
+#: src/plugins/sms/valent-sms-window.c:899
+#: src/plugins/sms/valent-sms-window.ui:62
 msgid "New Conversation"
 msgstr "Nieuw gesprek"
 
@@ -1211,55 +1218,61 @@ msgid "Send to %s"
 msgstr "Versturen naar %s"
 
 #: src/plugins/sms/valent-sms-window.c:617
-#: src/plugins/sms/valent-sms-window.c:936
+#: src/plugins/sms/valent-sms-window.c:921
 msgid "Search Messages"
 msgstr "Berichten doorzoeken"
 
-#: src/plugins/sms/valent-sms-window.ui:11
+#: src/plugins/sms/valent-sms-window.ui:13
+#: src/plugins/sms/valent-sms-window.ui:51
 msgid "Messages"
 msgstr "Berichten"
 
-#: src/plugins/sms/valent-sms-window.ui:92
+#: src/plugins/sms/valent-sms-window.ui:93
 msgid "No Conversations"
 msgstr "Er zijn geen gesprekken"
 
-#: src/plugins/sms/valent-sms-window.ui:178
+#: src/plugins/sms/valent-sms-window.ui:116
+#, fuzzy
+msgid "Conversation"
+msgstr "Gesprekken"
+
+#: src/plugins/sms/valent-sms-window.ui:133
 msgid "No conversation selected"
 msgstr "Er is geen gesprek gekozen"
 
-#: src/plugins/sms/valent-sms-window.ui:179
+#: src/plugins/sms/valent-sms-window.ui:134
 msgid "Select or start a conversation"
 msgstr "Kies of begin een gesprek"
 
-#: src/plugins/sms/valent-sms-window.ui:199
+#: src/plugins/sms/valent-sms-window.ui:154
 msgid "Search messages…"
 msgstr "Berichten doorzoeken…"
 
-#: src/plugins/sms/valent-sms-window.ui:216
+#: src/plugins/sms/valent-sms-window.ui:171
 msgid "No results found"
 msgstr "Er zijn geen zoekresultaten"
 
-#: src/plugins/sms/valent-sms-window.ui:247
+#: src/plugins/sms/valent-sms-window.ui:202
 msgid "Type a phone number or name"
 msgstr "Voer een naam of telefoonnummer in"
 
-#: src/plugins/sms/valent-sms-window.ui:264
+#: src/plugins/sms/valent-sms-window.ui:219
 msgid "No contacts"
 msgstr "Er zijn geen contactpersonen"
 
-#: src/plugins/sms/valent-sms-window.ui:293
+#: src/plugins/sms/valent-sms-window.ui:250
 msgid "Search Messages…"
 msgstr "Berichten doorzoeken…"
 
-#: src/plugins/sms/valent-sms-window.ui:297
+#: src/plugins/sms/valent-sms-window.ui:254
 msgid "Change Address Book…"
 msgstr "Adresboek wijzigen…"
 
-#: src/plugins/sms/valent-sms-window.ui:303
+#: src/plugins/sms/valent-sms-window.ui:260
 msgid "Keyboard Shortcuts"
 msgstr "Sneltoetsen"
 
-#: src/plugins/sms/valent-sms-window.ui:308
+#: src/plugins/sms/valent-sms-window.ui:265
 msgid "Help"
 msgstr "Hulp"
 
@@ -1288,7 +1301,7 @@ msgid "Incoming call"
 msgstr "Inkomende oproep"
 
 #: src/plugins/telephony/valent-telephony-plugin.c:311
-#: src/plugins/telephony/valent-telephony-preferences.ui:86
+#: src/plugins/telephony/valent-telephony-preferences.ui:68
 msgid "Mute"
 msgstr "Dempen"
 
@@ -1306,33 +1319,38 @@ msgid "What to do when the phone rings"
 msgstr "Welke actie er dient te worden genomen als de telefoon overgaat."
 
 #: src/plugins/telephony/valent-telephony-preferences.ui:26
-#: src/plugins/telephony/valent-telephony-preferences.ui:69
+#: src/plugins/telephony/valent-telephony-preferences.ui:57
 msgid "Pause Media"
 msgstr "Media onderbreken"
 
-#: src/plugins/telephony/valent-telephony-preferences.ui:42
+#: src/plugins/telephony/valent-telephony-preferences.ui:36
 msgid "Ongoing Calls"
 msgstr "Actieve gesprekken"
 
-#: src/plugins/telephony/valent-telephony-preferences.ui:43
+#: src/plugins/telephony/valent-telephony-preferences.ui:37
 #, fuzzy
 msgid "What to do when the phone is answered"
 msgstr ""
 "Welke actie er dient te worden genomen als de telefoon wordt beantwoord."
 
-#: src/plugins/telephony/valent-telephony-preferences.ui:57
+#: src/plugins/telephony/valent-telephony-preferences.ui:51
 msgid "Mute Microphone"
 msgstr "Microfoon dempen"
 
-#: src/plugins/telephony/valent-telephony-preferences.ui:84
+#: src/plugins/telephony/valent-telephony-preferences.ui:66
 msgid "Nothing"
 msgstr "Niets doen"
 
-#: src/plugins/telephony/valent-telephony-preferences.ui:85
+#: src/plugins/telephony/valent-telephony-preferences.ui:67
 msgid "Lower"
 msgstr "Verlagen"
 
-#: src/plugins/xdp/valent-xdp-background.c:69
+#: src/plugins/xdp/valent-xdp-background.c:49
+#, fuzzy
+msgid "Syncing Devices"
+msgstr "Apparaten"
+
+#: src/plugins/xdp/valent-xdp-background.c:79
 msgid "Valent wants to run as a service"
 msgstr "Valent wil worden uitgevoerd als achtergronddienst"
 
@@ -1343,3 +1361,6 @@ msgstr "Portalen"
 #: src/plugins/xdp/xdp.plugin.desktop.in:8
 msgid "Integration with desktop portals"
 msgstr "Integratie met bureaubladportalen"
+
+#~ msgid "Applications"
+#~ msgstr "Toepassingen"
