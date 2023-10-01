@@ -34,8 +34,6 @@ on_destroy (GtkWindow         *window,
   if (self->windows == NULL)
     return;
 
-  g_ptr_array_find (self->windows, window, &index);
-
   if (g_ptr_array_find (self->windows, window, &index))
     g_ptr_array_steal_index (self->windows, index);
 }
