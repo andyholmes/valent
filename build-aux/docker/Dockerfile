@@ -3,7 +3,9 @@
 
 FROM ghcr.io/andyholmes/actuary:latest
 
-RUN dnf install -y --enablerepo=fedora-debuginfo,updates-debuginfo \
+RUN dnf install -y \
+        --enablerepo=fedora-debuginfo,updates-debuginfo \
+        --disablerepo=updates-testing,updates-testing-debuginfo \
         --setopt=install_weak_deps=False \
         glibc-langpack-en glibc-locale-source gi-docgen graphviz itstool rsync \
         yelp-tools \
