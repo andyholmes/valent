@@ -165,9 +165,13 @@ valent_lan_handshake_peer (GTlsConnection  *connection,
   peer_id = valent_certificate_get_common_name (peer_certificate);
 
   /* If the certificate can not be found, assume that's because the device is
-   * unpaired and the certificate will be verified with user interaction */
+   * unpaired and the certificate will be verified with user interaction
+   *
+   * TODO: this should be handled by centralized manager object
+   */
   file = g_file_new_build_filename (g_get_user_config_dir(), PACKAGE_NAME,
-                                    peer_id, "certificate.pem",
+                                    "device", peer_id,
+                                    "certificate.pem",
                                     NULL);
 
   if (!g_file_query_exists (file, NULL))
