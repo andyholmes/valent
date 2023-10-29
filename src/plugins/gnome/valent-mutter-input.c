@@ -118,41 +118,11 @@ on_g_signal (GDBusProxy        *proxy,
 }
 
 static void
-remote_desktop_start_screencast_cb (GDBusConnection   *connection,
-                                    GAsyncResult      *result,
-                                    ValentMutterInput *self)
-{
-  g_autoptr (GVariant) reply = NULL;
-  g_autoptr (GError) error = NULL;
-
-  g_assert (G_IS_DBUS_CONNECTION (connection));
-  g_assert (G_IS_TASK (result));
-
-  if ((reply = g_dbus_connection_call_finish (connection, result, &error)) == NULL)
-    {
-      if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        return;
-
-      g_warning ("%s(): %s", G_STRFUNC, error->message);
-
-      g_clear_object (&self->session);
-      self->session_state = SESSION_STATE_CLOSED;
-      return;
-    }
-
-  self->session_state = SESSION_STATE_ACTIVE;
-}
-
-static void
 remote_desktop_start_session_cb (GDBusProxy        *proxy,
                                  GAsyncResult      *result,
                                  ValentMutterInput *self)
 {
   g_autoptr (GVariant) reply = NULL;
-  GDBusConnection *connection = NULL;
-  GVariantBuilder options;
-  g_autoptr (GVariant) session_id = NULL;
-  GCancellable *destroy = NULL;
   g_autoptr (GError) error = NULL;
 
   g_assert (G_IS_DBUS_PROXY (proxy));
@@ -168,27 +138,7 @@ remote_desktop_start_session_cb (GDBusProxy        *proxy,
       return;
     }
 
-  session_id = g_dbus_proxy_get_cached_property (self->session, "SessionId");
-  g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
-  g_variant_builder_add (&options, "{sv}", "disable-animations",
-                         g_variant_new_boolean (FALSE));
-  g_variant_builder_add (&options, "{sv}", "remote-desktop-session-id",
-                         session_id);
-
-  connection = g_dbus_proxy_get_connection (self->session);
-  destroy = g_task_get_cancellable (G_TASK (result));
-  g_dbus_connection_call (connection,
-                          "org.gnome.Mutter.ScreenCast",
-                          "/org/gnome/Mutter/ScreenCast",
-                          "org.gnome.Mutter.ScreenCast",
-                          "CreateSession",
-                          g_variant_new ("(a{sv})", &options),
-                          NULL,
-                          G_DBUS_CALL_FLAGS_NONE,
-                          -1,
-                          destroy,
-                          (GAsyncReadyCallback)remote_desktop_start_screencast_cb,
-                          self);
+  self->session_state = SESSION_STATE_ACTIVE;
 }
 
 static void
