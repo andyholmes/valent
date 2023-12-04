@@ -12,6 +12,6 @@ Authors=Andy Holmes;
 Copyright=Copyright © Andy Holmes
 Version=1.0.0.alpha
 Website=https://valent.andyholmes.ca
-Help=https://valent.andyholmes.ca/help
+Help=help:valent/plugin-pulseaudio
 X-MixerAdapterPriority=100
 

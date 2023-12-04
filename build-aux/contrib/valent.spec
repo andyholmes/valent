@@ -20,7 +20,9 @@ Source0:        %{url}/archive/v%{version}/%{name}-%{tarball_version}.tar.gz
 
 BuildRequires:  gcc
 BuildRequires:  gettext
+BuildRequires:  itstool
 BuildRequires:  meson
+BuildRequires:  yelp-tools
 BuildRequires:  pkgconfig(gio-2.0) %{glib2_version}
 BuildRequires:  pkgconfig(gio-unix-2.0) %{glib2_version}
 BuildRequires:  pkgconfig(gnutls)
@@ -71,12 +73,12 @@ The %{name}-tests package contains precompiled unit tests for %{name}
 %autosetup -p1 -n %{name}-%{tarball_version}
 
 %build
-%meson --buildtype=release -Ddocumentation=true -Dtests=true -Dfuzz_tests=false
+%meson --buildtype=release -Ddocumentation=true -Dhelp=true -Dtests=true -Dfuzz_tests=false
 %meson_build
 
 %install
 %meson_install
-%find_lang %{name}
+%find_lang %{name} --with-gnome
 
 %check
 appstream-util validate-relax --nonet %{buildroot}%{_metainfodir}/*.xml

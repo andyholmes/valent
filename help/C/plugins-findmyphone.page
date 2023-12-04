@@ -1,0 +1,34 @@
+<page xmlns="http://projectmallard.org/1.0/" version="1.1"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="topic" style="topic"
+      id="plugin-findmyphone">
+
+  <info>
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+    <credit type="author">
+      <name>Andy Holmes</name>
+      <email>andrew.g.r.holmes@gmail.com</email>
+    </credit>
+
+    <link type="guide" xref="plugins#device"/>
+    <keywords>find, locate, phone, ring</keywords>
+
+    <title type="text">Find My Phone Plugin</title>
+    <desc>Find a device by making it ring.</desc>
+  </info>
+
+  <title>Find My Phone Plugin</title>
+  <p>
+    The Find My Phone plugin can help you to find a device by making it ring.
+  </p>
+
+  <list>
+    <title>Features</title>
+    <item>
+      <p>Activate ringer on remote devices.</p>
+    </item>
+    <item>
+      <p>Help locate the local device when requested.</p>
+    </item>
+  </list>
+</page>

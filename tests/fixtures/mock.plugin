@@ -12,7 +12,7 @@ Authors=Andy Holmes;
 Copyright=Copyright © Andy Holmes
 Version=1.0.0.alpha
 Website=https://valent.andyholmes.ca
-Help=https://valent.andyholmes.ca/help
+Help=help:valent/plugin-mock
 X-DevicePluginIncoming=kdeconnect.mock.echo;kdeconnect.mock.transfer
 X-DevicePluginOutgoing=kdeconnect.mock.echo;kdeconnect.mock.transfer
 # The mock plugins should be lowest priority

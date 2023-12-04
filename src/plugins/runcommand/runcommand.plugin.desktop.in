@@ -4,7 +4,7 @@
 [Plugin]
 Module=runcommand
 Name=Commands
-Description=Execute commands remotely
+Description=Execute commands on remote devices
 Icon=valent-runcommand-plugin-symbolic
 Builtin=true
 Embedded=valent_runcommand_plugin_register_types
@@ -12,7 +12,7 @@ Authors=Andy Holmes;
 Copyright=Copyright © Andy Holmes
 Version=1.0.0.alpha
 Website=https://valent.andyholmes.ca
-Help=https://valent.andyholmes.ca/help
+Help=help:valent/plugin-runcommand
 X-DevicePluginCategory=Utility;
 X-DevicePluginIncoming=kdeconnect.runcommand;kdeconnect.runcommand.request
 X-DevicePluginOutgoing=kdeconnect.runcommand;kdeconnect.runcommand.request

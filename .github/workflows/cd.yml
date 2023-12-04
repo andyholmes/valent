@@ -26,12 +26,22 @@ jobs:
           suite: test
           setup-args: |
             -Ddocumentation=true
+            -Dhelp=true
             -Dtests=true
           test-coverage: true
           lcov-include: '${{ github.workspace }}/src/*'
           lcov-exclude: '*/tests/* */subprojects/*'
 
-      - name: Report
+      - name: Generate Assets
+        env:
+          WORKSPACE: ${{ github.workspace }}
+        run: |
+          mkdir -p _help
+          yelp-build html -o ${WORKSPACE}/_help \
+                          -x ${WORKSPACE}/help/valent-html.xsl \
+                          ${WORKSPACE}/help/C/
+
+      - name: Coverage (coveralls.io)
         continue-on-error: true
         uses: coverallsapp/github-action@master
         with:
@@ -52,6 +62,14 @@ jobs:
         with:
           folder: _build/doc/sdk/valent
           target-folder: documentation
+          single-commit: true
+
+      - name: Help
+        continue-on-error: true
+        uses: JamesIves/github-pages-deploy-action@releases/v4
+        with:
+          folder: _help
+          target-folder: help
           single-commit: true
 
   flatpak:
