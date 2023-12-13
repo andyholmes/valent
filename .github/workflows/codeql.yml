@@ -30,7 +30,7 @@ jobs:
           submodules: true
 
       - name: Initialize
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3
         with:
           languages: cpp
 
@@ -41,4 +41,4 @@ jobs:
           meson compile -C _build
 
       - name: Analyze
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3
