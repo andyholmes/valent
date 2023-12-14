@@ -104,7 +104,7 @@ jobs:
 
       - name: Upload
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Documentation
           path: _build/doc/sdk/valent
@@ -150,7 +150,7 @@ jobs:
 
       - name: Report
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Static Analysis (${{ matrix.suite }})
           path: _build/meson-logs
@@ -206,14 +206,14 @@ jobs:
 
       - name: Test Report
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Tests (${{ matrix.compiler }}, ${{ matrix.suite }})
           path: ${{ steps.test.outputs.log }}
 
       - name: Coverage (html)
         if: ${{ matrix.compiler == 'gcc' && matrix.suite == 'test' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Tests (coverage)
           path: ${{ steps.test.outputs.coverage-html }}
@@ -257,7 +257,7 @@ jobs:
 
       - name: Test Report
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Tests (Installed)
           path: _build/meson-logs
