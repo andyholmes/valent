@@ -202,7 +202,6 @@ jobs:
           test-args: ${{ matrix.test-args }}
           test-coverage: ${{ matrix.compiler == 'gcc' && matrix.suite == 'test' }}
           lcov-include: '${{ github.workspace }}/src/*'
-          lcov-exclude: '*/tests/* */subprojects/*'
 
       - name: Test Report
         if: ${{ failure() }}
