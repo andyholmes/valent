@@ -23,6 +23,27 @@ struct _ValentMockClipboardAdapter
 G_DEFINE_FINAL_TYPE (ValentMockClipboardAdapter, valent_mock_clipboard_adapter, VALENT_TYPE_CLIPBOARD_ADAPTER)
 
 
+static gboolean
+task_source_cb (gpointer data)
+{
+  GTask *task = G_TASK (data);
+  ValentMockClipboardAdapter *self = g_task_get_source_object (task);
+  GBytes *bytes = g_task_get_task_data (task);
+  const char *mimetype = g_object_get_data (G_OBJECT (task), "mock-mimetype");
+
+  g_clear_pointer (&self->content, g_bytes_unref);
+  g_clear_pointer (&self->mimetypes, g_strfreev);
+
+  self->content = g_bytes_ref (bytes);
+  self->mimetypes = g_strdupv ((char *[]){(char *)mimetype, NULL});
+  self->timestamp = valent_timestamp_ms ();
+
+  valent_clipboard_adapter_changed (VALENT_CLIPBOARD_ADAPTER (self));
+  g_task_return_boolean (task, TRUE);
+
+  return G_SOURCE_REMOVE;
+}
+
 /*
  * ValentClipboardAdapter
  */
@@ -87,27 +108,22 @@ valent_mock_clipboard_adapter_write_bytes (ValentClipboardAdapter *adapter,
 {
   ValentMockClipboardAdapter *self = VALENT_MOCK_CLIPBOARD_ADAPTER (adapter);
   g_autoptr (GTask) task = NULL;
+  g_autoptr (GSource) source = NULL;
 
   g_assert (VALENT_IS_MOCK_CLIPBOARD_ADAPTER (self));
   g_assert (bytes == NULL || (mimetype != NULL && *mimetype != '\0'));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   task = g_task_new (self, cancellable, callback, user_data);
+  g_task_set_task_data (task, g_bytes_ref (bytes), (GDestroyNotify)g_bytes_unref);
+  g_object_set_data_full (G_OBJECT (task), "mock-mimetype", g_strdup (mimetype), g_free);
   g_task_set_source_tag (task, valent_mock_clipboard_adapter_write_bytes);
 
   if (g_bytes_equal (self->content, bytes))
     return g_task_return_boolean (task, TRUE);
 
-  g_clear_pointer (&self->content, g_bytes_unref);
-  g_clear_pointer (&self->mimetypes, g_strfreev);
-
-  self->content = g_bytes_ref (bytes);
-  self->mimetypes = g_strdupv ((char *[]){(char *)mimetype, NULL});
-  self->timestamp = valent_timestamp_ms ();
-
-  valent_clipboard_adapter_changed (adapter);
-
-  g_task_return_boolean (task, TRUE);
+  source = g_idle_source_new ();
+  g_task_attach_source(task, source, task_source_cb);
 }
 
 /*

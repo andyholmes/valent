@@ -139,6 +139,9 @@ test_clipboard_plugin_actions (ValentTestFixture *fixture,
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *packet;
   char *content = NULL;
+  gboolean watch = FALSE;
+
+  valent_test_watch_signal (valent_clipboard_get_default (), "changed", &watch);
 
   /* NOTE: no connect-time packets with `auto-push` disabled */
   g_settings_set_boolean (fixture->settings, "auto-push", FALSE);
@@ -156,9 +159,11 @@ test_clipboard_plugin_actions (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin action `clipboard.pull` copies content to the clipboard");
   packet = valent_test_fixture_lookup_packet (fixture, "clipboard-content");
   valent_test_fixture_handle_packet (fixture, packet);
-  valent_test_await_pending ();
+  valent_test_await_timeout (1);
 
   g_action_group_activate_action (actions, "clipboard.pull", NULL);
+  valent_test_await_boolean (&watch);
+
   valent_clipboard_read_text (valent_clipboard_get_default (),
                               NULL,
                               (GAsyncReadyCallback)valent_clipboard_read_text_cb,
@@ -174,8 +179,9 @@ test_clipboard_plugin_actions (ValentTestFixture *fixture,
                                NULL,
                                NULL,
                                NULL);
-  g_action_group_activate_action (actions, "clipboard.push", NULL);
+  valent_test_await_boolean (&watch);
 
+  g_action_group_activate_action (actions, "clipboard.push", NULL);
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.clipboard");
   v_assert_packet_cmpstr (packet, "content", ==, "push-content");
