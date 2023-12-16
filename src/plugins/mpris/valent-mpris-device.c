@@ -580,11 +580,11 @@ valent_mpris_device_init (ValentMprisDevice *self)
 
 /**
  * valent_mpris_device_new:
- * @device: a #ValentDevice
+ * @device: a `ValentDevice`
  *
- * Get the #ValentMprisDevice instance.
+ * Get the `ValentMprisDevice` instance.
  *
- * Returns: (transfer full) (nullable): a #ValentMprisDevice
+ * Returns: (transfer full) (nullable): a `ValentMprisDevice`
  */
 ValentMprisDevice *
 valent_mpris_device_new (ValentDevice *device)
@@ -596,7 +596,7 @@ valent_mpris_device_new (ValentDevice *device)
 
 /**
  * valent_media_player_update_packet:
- * @player: a #ValentMprisDevice
+ * @player: a `ValentMprisDevice`
  * @packet: a KDE Connect packet
  *
  * A convenience method for updating the internal state of the player from a
@@ -681,8 +681,8 @@ valent_mpris_device_handle_packet (ValentMprisDevice  *player,
 
 /**
  * valent_mpris_device_update_art:
- * @player: a #ValentMprisDevice
- * @file: a #GFile
+ * @player: a `ValentMprisDevice`
+ * @file: a `GFile`
  *
  * Update the `mpris:artUrl` metadata field from @file.
  */
@@ -708,7 +708,7 @@ valent_mpris_device_update_art (ValentMprisDevice *player,
 
 /**
  * valent_media_player_update_name:
- * @player: a #ValentMprisDevice
+ * @player: a `ValentMprisDevice`
  * @name: a name
  *
  * Set the user-visible name of the player to @identity.

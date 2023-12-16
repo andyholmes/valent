@@ -20,7 +20,7 @@
  *
  * A class for managing address books.
  *
- * #ValentContacts is an address book manager, intended for use by
+ * `ValentContacts` is an address book manager, intended for use by
  * [class@Valent.DevicePlugin] implementations.
  *
  * Plugins can implement [class@Valent.ContactsAdapter] to provide an interface
@@ -246,7 +246,7 @@ valent_contacts_init (ValentContacts *self)
  *
  * Get the default [class@Valent.Contacts].
  *
- * Returns: (transfer none) (not nullable): a #ValentContacts
+ * Returns: (transfer none) (not nullable): a `ValentContacts`
  *
  * Since: 1.0
  */
@@ -269,11 +269,11 @@ valent_contacts_get_default (void)
 
 /**
  * valent_contacts_ensure_store:
- * @contacts: a #ValentContacts
+ * @contacts: a `ValentContacts`
  * @uid: a unique id
  * @name: a display name
  *
- * Get a #ValentContactStore for @uid.
+ * Get a `ValentContactStore` for @uid.
  *
  * If the contact store does not exist, one will be created using the default
  * adapter and passed @name and @description. If no adapter is available, a new

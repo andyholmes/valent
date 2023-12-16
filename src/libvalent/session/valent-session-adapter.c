@@ -16,7 +16,7 @@
  *
  * An abstract base class for session managers.
  *
- * #ValentSessionAdapter is a base class for plugins that provide an interface
+ * `ValentSessionAdapter` is a base class for plugins that provide an interface
  * to the desktop session manager. This usually means monitoring the idle state,
  * locking and unlocking the session.
  *
@@ -46,7 +46,7 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentSessionAdapter, valent_session_adapte
  * @get_locked: the virtual function pointer for valent_session_adapter_get_locked()
  * @set_locked: the virtual function pointer for valent_session_adapter_set_locked()
  *
- * The virtual function table for #ValentSessionAdapter.
+ * The virtual function table for `ValentSessionAdapter`.
  */
 
 enum {
@@ -191,7 +191,7 @@ valent_session_adapter_init (ValentSessionAdapter *adapter)
 
 /**
  * valent_session_adapter_get_active: (virtual get_active) (get-property active)
- * @adapter: a #ValentSessionAdapter
+ * @adapter: a `ValentSessionAdapter`
  *
  * Get whether the session is active.
  *
@@ -215,7 +215,7 @@ valent_session_adapter_get_active (ValentSessionAdapter *adapter)
 
 /**
  * valent_session_adapter_get_locked: (virtual get_locked) (get-property locked)
- * @adapter: a #ValentSessionAdapter
+ * @adapter: a `ValentSessionAdapter`
  *
  * Get whether the session is locked.
  *
@@ -239,7 +239,7 @@ valent_session_adapter_get_locked (ValentSessionAdapter *adapter)
 
 /**
  * valent_session_adapter_set_locked: (virtual set_locked) (set-property locked)
- * @adapter: a #ValentSessionAdapter
+ * @adapter: a `ValentSessionAdapter`
  * @state: %TRUE to lock, %FALSE to unlock
  *
  * Set whether the session is locked.

@@ -17,7 +17,7 @@
  *
  * An abstract base class for application plugins.
  *
- * #ValentApplicationPlugin is a base class for plugins that operate in the
+ * `ValentApplicationPlugin` is a base class for plugins that operate in the
  * scope of the application. This usually means integrating the application with
  * the host environment (eg. XDG Autostart).
  *
@@ -54,7 +54,7 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentApplicationPlugin, valent_application
  * @shutdown: the virtual function pointer for valent_application_plugin_shutdown()
  * @startup: the virtual function pointer for valent_application_plugin_startup()
  *
- * The virtual function table for #ValentApplicationPlugin.
+ * The virtual function table for `ValentApplicationPlugin`.
  */
 
 
@@ -150,7 +150,7 @@ valent_application_plugin_init (ValentApplicationPlugin *adapter)
 
 /**
  * valent_application_plugin_activate: (virtual activate)
- * @plugin: a #ValentApplicationPlugin
+ * @plugin: a `ValentApplicationPlugin`
  *
  * Handle activation of the application.
  *
@@ -178,8 +178,8 @@ valent_application_plugin_activate (ValentApplicationPlugin *plugin)
 
 /**
  * valent_application_plugin_command_line: (virtual command_line)
- * @plugin: a #ValentApplicationPlugin
- * @command_line: a #GApplicationCommandLine
+ * @plugin: a `ValentApplicationPlugin`
+ * @command_line: a `GApplicationCommandLine`
  *
  * Handle the given command-line options.
  *
@@ -210,7 +210,7 @@ valent_application_plugin_command_line (ValentApplicationPlugin *plugin,
 
 /**
  * valent_application_plugin_dbus_register: (virtual dbus_register)
- * @plugin: a #ValentApplicationPlugin
+ * @plugin: a `ValentApplicationPlugin`
  * @connection: a `Gio.DBusCOnnection`
  * @object_path: a D-Bus object path
  * @error: (nullable): a `GError`
@@ -253,7 +253,7 @@ valent_application_plugin_dbus_register (ValentApplicationPlugin  *plugin,
 
 /**
  * valent_application_plugin_dbus_unregister: (virtual dbus_unregister)
- * @plugin: a #ValentApplicationPlugin
+ * @plugin: a `ValentApplicationPlugin`
  * @connection: a `Gio.DBusCOnnection`
  * @object_path: a D
  *
@@ -284,8 +284,8 @@ valent_application_plugin_dbus_unregister (ValentApplicationPlugin  *plugin,
 
 /**
  * valent_application_plugin_open: (virtual open)
- * @plugin: a #ValentApplicationPlugin
- * @files: (array length=n_files): an array of #GFiles to open
+ * @plugin: a `ValentApplicationPlugin`
+ * @files: (array length=n_files): an array of `GFiles` to open
  * @n_files: the length of the @files array
  * @hint: (not nullable): a hint (or "")
  *
@@ -324,7 +324,7 @@ valent_application_plugin_open (ValentApplicationPlugin  *plugin,
 
 /**
  * valent_application_plugin_shutdown: (virtual shutdown)
- * @plugin: a #ValentApplicationPlugin
+ * @plugin: a `ValentApplicationPlugin`
  *
  * Handle the shutdown phase of the application.
  *
@@ -347,7 +347,7 @@ valent_application_plugin_shutdown (ValentApplicationPlugin *plugin)
 
 /**
  * valent_application_plugin_startup: (virtual startup)
- * @plugin: a #ValentApplicationPlugin
+ * @plugin: a `ValentApplicationPlugin`
  *
  * Handle the startup phase of the application.
  *

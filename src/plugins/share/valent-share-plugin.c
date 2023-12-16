@@ -648,7 +648,7 @@ gtk_file_dialog_open_multiple_cb (GtkFileDialog     *dialog,
  * @parameter: %NULL
  *
  * The default share action opens the platform-specific dialog for selecting
- * files, typically a #GtkFileChooserDialog.
+ * files, typically a `GtkFileChooserDialog`.
  */
 static void
 share_chooser_action (GSimpleAction *action,
@@ -857,7 +857,7 @@ share_uri_action (GSimpleAction *action,
  * @uris: a list of URIs
  *
  * This action is a convenience for sending multiple URIs, as with the
- * `ValentSharePlugin|share.uri` #GAction.
+ * `ValentSharePlugin|share.uri` `GAction`.
  */
 static void
 share_uris_action (GSimpleAction *action,

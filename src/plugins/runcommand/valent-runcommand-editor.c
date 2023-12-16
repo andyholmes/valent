@@ -275,7 +275,7 @@ valent_runcommand_editor_init (ValentRuncommandEditor *self)
 
 /**
  * valent_runcommand_editor_get_command:
- * @editor: a #ValentRuncommandEditor
+ * @editor: a `ValentRuncommandEditor`
  *
  * Get the command the editor is operating on.
  *
@@ -291,7 +291,7 @@ valent_runcommand_editor_get_command (ValentRuncommandEditor *editor)
 
 /**
  * valent_runcommand_editor_set_command:
- * @editor: a #ValentRuncommandEditor
+ * @editor: a `ValentRuncommandEditor`
  * @command: a command entry
  *
  * Set the command for the editor to operate on.
@@ -313,7 +313,7 @@ valent_runcommand_editor_set_command (ValentRuncommandEditor *editor,
 
 /**
  * valent_runcommand_editor_get_uuid:
- * @editor: a #ValentRuncommandEditor
+ * @editor: a `ValentRuncommandEditor`
  *
  * Get the UUID of the command for @editor
  *
@@ -329,7 +329,7 @@ valent_runcommand_editor_get_uuid (ValentRuncommandEditor *editor)
 
 /**
  * valent_runcommand_editor_set_uuid:
- * @editor: a #ValentRuncommandEditor
+ * @editor: a `ValentRuncommandEditor`
  * @uuid: a command UUID
  *
  * Set the UUID of the command for @editor to @uuid.

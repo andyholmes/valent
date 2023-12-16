@@ -620,11 +620,11 @@ valent_mousepad_device_init (ValentMousepadDevice *self)
 
 /**
  * valent_mousepad_device_new:
- * @device: a #ValentDevice
+ * @device: a `ValentDevice`
  *
- * Get the #ValentMousepadDevice instance.
+ * Get the `ValentMousepadDevice` instance.
  *
- * Returns: (transfer full) (nullable): a #ValentMousepadDevice
+ * Returns: (transfer full) (nullable): a `ValentMousepadDevice`
  */
 ValentMousepadDevice *
 valent_mousepad_device_new (ValentDevice *device)
@@ -636,7 +636,7 @@ valent_mousepad_device_new (ValentDevice *device)
 
 /**
  * valent_media_player_update_packet:
- * @player: a #ValentMousepadDevice
+ * @player: a `ValentMousepadDevice`
  * @packet: a KDE Connect packet
  *
  * A convenience method for updating the internal state of the player from a

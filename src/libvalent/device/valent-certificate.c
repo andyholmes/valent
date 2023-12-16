@@ -27,7 +27,7 @@
  * @cert_path: (type filename): file path to the certificate
  * @key_path: (type filename): file path to the private key
  * @common_name: common name for the certificate
- * @error: (nullable): a #GError
+ * @error: (nullable): a `GError`
  *
  * Generate a private key and certificate for @common_name, saving them at
  * @key_path and @cert_path respectively.
@@ -178,8 +178,8 @@ valent_certificate_new_task (GTask        *task,
 /**
  * valent_certificate_new:
  * @path: (type filename): a directory path
- * @cancellable: (nullable): #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @cancellable: (nullable): `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * Get a TLS certificate and private key pair.
@@ -214,15 +214,15 @@ valent_certificate_new (const char          *path,
 
 /**
  * valent_certificate_new_finish:
- * @result: a #GAsyncResult provided to callback
- * @error: (nullable): a #GError
+ * @result: a `GAsyncResult` provided to callback
+ * @error: (nullable): a `GError`
  *
  * Finish an operation started by [func@Valent.certificate_new].
  *
  * If either generating or loading the certificate failed, %NULL will be
  * returned with @error set.
  *
- * Returns: (transfer full) (nullable): a #GTlsCertificate
+ * Returns: (transfer full) (nullable): a `GTlsCertificate`
  *
  * Since: 1.0
  */
@@ -238,7 +238,7 @@ valent_certificate_new_finish (GAsyncResult  *result,
 /**
  * valent_certificate_new_sync:
  * @path: (type filename): a directory path
- * @error: (nullable): a #GError
+ * @error: (nullable): a `GError`
  *
  * Get a TLS certificate and private key pair.
  *
@@ -252,7 +252,7 @@ valent_certificate_new_finish (GAsyncResult  *result,
  * If either generating or loading the certificate fails, %NULL will be returned
  * with @error set.
  *
- * Returns: (transfer full) (nullable): a #GTlsCertificate
+ * Returns: (transfer full) (nullable): a `GTlsCertificate`
  *
  * Since: 1.0
  */
@@ -285,7 +285,7 @@ valent_certificate_new_sync (const char  *path,
 
 /**
  * valent_certificate_get_common_name:
- * @certificate: a #GTlsCertificate
+ * @certificate: a `GTlsCertificate`
  *
  * Get the common name from @certificate, which by convention in KDE Connect is
  * the single source of truth for a device's ID.
@@ -347,7 +347,7 @@ valent_certificate_get_common_name (GTlsCertificate *certificate)
 
 /**
  * valent_certificate_get_fingerprint:
- * @certificate: a #GTlsCertificate
+ * @certificate: a `GTlsCertificate`
  *
  * Get a SHA256 fingerprint hash of @certificate.
  *
@@ -399,7 +399,7 @@ valent_certificate_get_fingerprint (GTlsCertificate *certificate)
 
 /**
  * valent_certificate_get_public_key:
- * @certificate: a #GTlsCertificate
+ * @certificate: a `GTlsCertificate`
  *
  * Get the public key of @certificate.
  *

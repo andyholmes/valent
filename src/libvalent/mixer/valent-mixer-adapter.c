@@ -17,7 +17,7 @@
  *
  * An abstract base class for audio mixers.
  *
- * #ValentMixerAdapter is a base class for plugins that provide an interface to
+ * `ValentMixerAdapter` is a base class for plugins that provide an interface to
  * audio mixers and volume control. This usually means monitoring the available
  * input and output streams, changing properties on those streams, and selecting
  * which are the active input and output.
@@ -53,7 +53,7 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentMixerAdapter, valent_mixer_adapter, VALE
  * @get_default_output: the virtual function pointer for valent_mixer_adapter_get_default_output()
  * @set_default_output: the virtual function pointer for valent_mixer_adapter_set_default_output()
  *
- * The virtual function table for #ValentMixerAdapter.
+ * The virtual function table for `ValentMixerAdapter`.
  */
 
 enum {
@@ -269,8 +269,8 @@ valent_mixer_adapter_init (ValentMixerAdapter *self)
 
 /**
  * valent_mixer_adapter_stream_added:
- * @adapter: a #ValentMixerAdapter
- * @stream: a #ValentMixerStream
+ * @adapter: a `ValentMixerAdapter`
+ * @stream: a `ValentMixerStream`
  *
  * Called when @stream has been added to the mixer.
  *
@@ -297,8 +297,8 @@ valent_mixer_adapter_stream_added (ValentMixerAdapter *adapter,
 
 /**
  * valent_mixer_adapter_stream_removed:
- * @adapter: a #ValentMixerAdapter
- * @stream: a #ValentMixerStream
+ * @adapter: a `ValentMixerAdapter`
+ * @stream: a `ValentMixerStream`
  *
  * Called when @stream has been removed from the mixer.
  *
@@ -328,11 +328,11 @@ valent_mixer_adapter_stream_removed (ValentMixerAdapter *adapter,
 
 /**
  * valent_mixer_adapter_get_default_input: (get-property default-input) (virtual get_default_input)
- * @adapter: a #ValentMixerAdapter
+ * @adapter: a `ValentMixerAdapter`
  *
  * Get the default input stream for @adapter.
  *
- * Returns: (transfer none): a #ValentMixerStream
+ * Returns: (transfer none): a `ValentMixerStream`
  *
  * Since: 1.0
  */
@@ -352,8 +352,8 @@ valent_mixer_adapter_get_default_input (ValentMixerAdapter *adapter)
 
 /**
  * valent_mixer_adapter_set_default_input: (set-property default-input) (virtual set_default_input)
- * @adapter: a #ValentMixerAdapter
- * @stream: a #ValentMixerStream
+ * @adapter: a `ValentMixerAdapter`
+ * @stream: a `ValentMixerStream`
  *
  * Set the default input stream for @adapter to @stream.
  *
@@ -375,11 +375,11 @@ valent_mixer_adapter_set_default_input (ValentMixerAdapter *adapter,
 
 /**
  * valent_mixer_adapter_get_default_output: (get-property default-output) (virtual get_default_output)
- * @adapter: a #ValentMixerAdapter
+ * @adapter: a `ValentMixerAdapter`
  *
  * Get the default output stream for @adapter.
  *
- * Returns: (transfer none): a #ValentMixerStream
+ * Returns: (transfer none): a `ValentMixerStream`
  *
  * Since: 1.0
  */
@@ -399,8 +399,8 @@ valent_mixer_adapter_get_default_output (ValentMixerAdapter *adapter)
 
 /**
  * valent_mixer_adapter_set_default_output: (set-property default-output) (virtual set_default_output)
- * @adapter: a #ValentMixerAdapter
- * @stream: a #ValentMixerStream
+ * @adapter: a `ValentMixerAdapter`
+ * @stream: a `ValentMixerStream`
  *
  * Set the default output stream for @adapter to @stream.
  *

@@ -16,7 +16,7 @@
  *
  * An abstract base class for notification servers.
  *
- * #ValentNotificationsAdapter is a base class for notification servers. This
+ * `ValentNotificationsAdapter` is a base class for notification servers. This
  * usually means monitoring a D-Bus service for notifications being sent and
  * withdrawn.
  *
@@ -43,10 +43,10 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentNotificationsAdapter, valent_notifica
  * ValentNotificationsAdapterClass:
  * @add_notification: the virtual function pointer for valent_notifications_adapter_add_notification()
  * @remove_notification: the virtual function pointer for valent_notifications_adapter_remove_notification()
- * @notification_added: the class closure for #ValentNotificationsAdapter::notification-added signal
- * @notification_removed: the class closure for #ValentNotificationsAdapter::notification-removed signal
+ * @notification_added: the class closure for `ValentNotificationsAdapter`::notification-added signal
+ * @notification_removed: the class closure for `ValentNotificationsAdapter`::notification-removed signal
  *
- * The virtual function table for #ValentNotificationsAdapter.
+ * The virtual function table for `ValentNotificationsAdapter`.
  */
 
 enum {
@@ -83,8 +83,8 @@ valent_notifications_adapter_class_init (ValentNotificationsAdapterClass *klass)
 
   /**
    * ValentNotificationsAdapter::notification-added:
-   * @adapter: a #ValentNotificationsAdapter
-   * @notification: a #ValentNotification
+   * @adapter: a `ValentNotificationsAdapter`
+   * @notification: a `ValentNotification`
    *
    * Emitted when a [class@Valent.Notification] is added to @adapter.
    *
@@ -107,8 +107,8 @@ valent_notifications_adapter_class_init (ValentNotificationsAdapterClass *klass)
 
   /**
    * ValentNotificationsAdapter::notification-removed:
-   * @adapter: a #ValentNotificationsAdapter
-   * @notification: a #ValentNotification
+   * @adapter: a `ValentNotificationsAdapter`
+   * @notification: a `ValentNotification`
    *
    * Emitted when a [class@Valent.Notification] is removed from @adapter.
    *
@@ -137,8 +137,8 @@ valent_notifications_adapter_init (ValentNotificationsAdapter *adapter)
 
 /**
  * valent_notifications_adapter_notification_added:
- * @adapter: a #ValentNotificationsAdapter
- * @notification: a #ValentNotification
+ * @adapter: a `ValentNotificationsAdapter`
+ * @notification: a `ValentNotification`
  *
  * Emit [signal@Valent.NotificationsAdapter::notification-added] on @adapter.
  *
@@ -158,7 +158,7 @@ valent_notifications_adapter_notification_added (ValentNotificationsAdapter *ada
 
 /**
  * valent_notifications_adapter_notification_removed:
- * @adapter: a #ValentNotificationsAdapter
+ * @adapter: a `ValentNotificationsAdapter`
  * @id: a notification id
  *
  * Emit [signal@Valent.NotificationsAdapter::notification-removed] on @adapter.
@@ -179,8 +179,8 @@ valent_notifications_adapter_notification_removed (ValentNotificationsAdapter *a
 
 /**
  * valent_notifications_adapter_add_notification: (virtual add_notification)
- * @adapter: a #ValentNotificationsAdapter
- * @notification: a #ValentNotification
+ * @adapter: a `ValentNotificationsAdapter`
+ * @notification: a `ValentNotification`
  *
  * Send @notification to the @adapter.
  *
@@ -203,7 +203,7 @@ valent_notifications_adapter_add_notification (ValentNotificationsAdapter *adapt
 
 /**
  * valent_notifications_adapter_remove_notification: (virtual remove_notification)
- * @adapter: a #ValentNotificationsAdapter
+ * @adapter: a `ValentNotificationsAdapter`
  * @id: a notification id
  *
  * Withdraw @id from @adapter.

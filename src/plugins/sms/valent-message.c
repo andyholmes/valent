@@ -164,7 +164,7 @@ valent_message_class_init (ValentMessageClass *klass)
   /**
    * ValentMessage:box:
    *
-   * The #ValentMessageBox of the message.
+   * The `ValentMessageBox` of the message.
    */
   properties [PROP_BOX] =
     g_param_spec_uint ("box", NULL, NULL,
@@ -280,11 +280,11 @@ valent_message_init (ValentMessage *message)
 
 /**
  * valent_message_get_box:
- * @message: a #ValentMessage
+ * @message: a `ValentMessage`
  *
- * Get the #ValentMessageBox of @message.
+ * Get the `ValentMessageBox` of @message.
  *
- * Returns: a #ValentMessageBox
+ * Returns: a `ValentMessageBox`
  */
 ValentMessageBox
 valent_message_get_box (ValentMessage *message)
@@ -296,7 +296,7 @@ valent_message_get_box (ValentMessage *message)
 
 /**
  * valent_message_get_date:
- * @message: a #ValentMessage
+ * @message: a `ValentMessage`
  *
  * Get the timestamp for @message.
  *
@@ -312,7 +312,7 @@ valent_message_get_date (ValentMessage *message)
 
 /**
  * valent_message_get_id:
- * @message: a #ValentMessage
+ * @message: a `ValentMessage`
  *
  * Get the unique ID for @message.
  *
@@ -328,9 +328,9 @@ valent_message_get_id (ValentMessage *message)
 
 /**
  * valent_message_get_metadata:
- * @message: a #ValentMessage
+ * @message: a `ValentMessage`
  *
- * Get the #GVariant dictionary of metadata.
+ * Get the `GVariant` dictionary of metadata.
  *
  * Returns: (transfer none) (nullable): the metadata
  */
@@ -344,7 +344,7 @@ valent_message_get_metadata (ValentMessage *message)
 
 /**
  * valent_message_get_read:
- * @message: a #ValentMessage
+ * @message: a `ValentMessage`
  *
  * Get the read status of @message.
  *
@@ -360,7 +360,7 @@ valent_message_get_read (ValentMessage *message)
 
 /**
  * valent_message_set_read:
- * @message: a #ValentMessage
+ * @message: a `ValentMessage`
  * @read: whether the message is read
  *
  * Set the read status of @message to @read.
@@ -380,7 +380,7 @@ valent_message_set_read (ValentMessage *message,
 
 /**
  * valent_message_get_sender:
- * @message: a #ValentMessage
+ * @message: a `ValentMessage`
  *
  * Get the sender of @message.
  *
@@ -396,7 +396,7 @@ valent_message_get_sender (ValentMessage *message)
 
 /**
  * valent_message_get_text:
- * @message: a #ValentMessage
+ * @message: a `ValentMessage`
  *
  * Get the text content of @message.
  *
@@ -412,7 +412,7 @@ valent_message_get_text (ValentMessage *message)
 
 /**
  * valent_message_get_thread_id:
- * @message: a #ValentMessage
+ * @message: a `ValentMessage`
  *
  * Get the thread ID @message belongs to.
  *
@@ -428,10 +428,10 @@ valent_message_get_thread_id (ValentMessage *message)
 
 /**
  * valent_message_update:
- * @message: a #ValentMessage
- * @update: (transfer full): a #ValentMessage
+ * @message: a `ValentMessage`
+ * @update: (transfer full): a `ValentMessage`
  *
- * Update @message with data from @update. The #ValentMessage:id property
+ * Update @message with data from @update. The `ValentMessage`:id property
  * must match on both objects.
  *
  * This function consumes @update and all its memory, so it should not be used

@@ -17,7 +17,7 @@
  *
  * An implementation of [class@Valent.ContactStore].
  *
- * #ValentContactCache is a simple implementation of [class@Valent.ContactStore]
+ * `ValentContactCache` is a simple implementation of [class@Valent.ContactStore]
  * for local contact store, used as a fallback when Evolution Data Server is not
  * available.
  *

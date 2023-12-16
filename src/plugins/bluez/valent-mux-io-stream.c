@@ -223,12 +223,12 @@ valent_mux_io_stream_init (ValentMuxIOStream *self)
 
 /**
  * valent_mux_io_stream_new:
- * @muxer: a #ValentMuxConnection
+ * @muxer: a `ValentMuxConnection`
  * @uuid: a UUID
  *
- * Creates a new #ValentMuxIOStream for @uuid, muxed by @muxer.
+ * Creates a new `ValentMuxIOStream` for @uuid, muxed by @muxer.
  *
- * Returns: (transfer full): a new #ValentMuxIOStream
+ * Returns: (transfer full): a new `ValentMuxIOStream`
  */
 GIOStream *
 valent_mux_io_stream_new (ValentMuxConnection *muxer,
@@ -245,7 +245,7 @@ valent_mux_io_stream_new (ValentMuxConnection *muxer,
 
 /**
  * valent_mux_io_stream_get_uuid:
- * @stream: a #ValentMuxIOStream
+ * @stream: a `ValentMuxIOStream`
  *
  * Get the UUID for @stream.
  *

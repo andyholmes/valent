@@ -120,7 +120,7 @@ valent_message_row_class_init (ValentMessageRowClass *klass)
   /**
    * ValentMessageRow:contact
    *
-   * The #EContact that sent this message.
+   * The `EContact` that sent this message.
    */
   properties [PROP_CONTACT] =
     g_param_spec_object ("contact", NULL, NULL,
@@ -213,12 +213,12 @@ valent_message_row_init (ValentMessageRow *self)
 
 /**
  * valent_message_row_new:
- * @message: (nullable): a #ValentMessage
- * @contact: (nullable): a #EContact
+ * @message: (nullable): a `ValentMessage`
+ * @contact: (nullable): a `EContact`
  *
  * Create a new message row for @contact and @message.
  *
- * Returns: a #ValentMessageRow
+ * Returns: a `ValentMessageRow`
  */
 GtkWidget *
 valent_message_row_new (ValentMessage *message,
@@ -232,11 +232,11 @@ valent_message_row_new (ValentMessage *message,
 
 /**
  * valent_message_row_get_contact:
- * @row: a #ValentMessageRow
+ * @row: a `ValentMessageRow`
  *
  * Get the contact.
  *
- * Returns: (transfer none) (nullable): a #ValentContact
+ * Returns: (transfer none) (nullable): a `ValentContact`
  */
 EContact *
 valent_message_row_get_contact (ValentMessageRow *row)
@@ -248,8 +248,8 @@ valent_message_row_get_contact (ValentMessageRow *row)
 
 /**
  * valent_message_row_set_contact:
- * @row: a #ValentMessageRow
- * @contact: a #ValentContact
+ * @row: a `ValentMessageRow`
+ * @contact: a `ValentContact`
  *
  * Set or update the contact.
  */
@@ -272,7 +272,7 @@ valent_message_row_set_contact (ValentMessageRow *row,
 
 /**
  * valent_message_row_get_thread_id:
- * @row: a #ValentMessageRow
+ * @row: a `ValentMessageRow`
  *
  * Get the thread_id of the message.
  *
@@ -291,11 +291,11 @@ valent_message_row_get_thread_id (ValentMessageRow *row)
 
 /**
  * valent_message_row_get_message:
- * @row: a #ValentMessageRow
+ * @row: a `ValentMessageRow`
  *
  * Get the message.
  *
- * Returns: (transfer none): a #ValentMessage
+ * Returns: (transfer none): a `ValentMessage`
  */
 ValentMessage *
 valent_message_row_get_message (ValentMessageRow *row)
@@ -307,8 +307,8 @@ valent_message_row_get_message (ValentMessageRow *row)
 
 /**
  * valent_message_row_set_message:
- * @row: a #ValentMessageRow
- * @message: a #ValentMessage
+ * @row: a `ValentMessageRow`
+ * @message: a `ValentMessage`
  *
  * Set or update the message.
  */
@@ -343,10 +343,10 @@ valent_message_row_set_message (ValentMessageRow *row,
 
 /**
  * valent_message_row_update:
- * @row: a #ValentMessageRow
+ * @row: a `ValentMessageRow`
  *
- * Update the conversation row with data from #ValentMessageRow:contact
- * and #ValentMessageRow:message properties.
+ * Update the conversation row with data from `ValentMessageRow`:contact
+ * and `ValentMessageRow`:message properties.
  */
 void
 valent_message_row_update (ValentMessageRow *row)

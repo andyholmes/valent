@@ -685,11 +685,11 @@ valent_mpris_impl_init (ValentMPRISImpl *self)
 
 /**
  * valent_mpris_impl_new:
- * @player: a #ValentMediaPlayer
+ * @player: a `ValentMediaPlayer`
  *
- * Get the #ValentMPRISImpl instance.
+ * Get the `ValentMPRISImpl` instance.
  *
- * Returns: (transfer full) (nullable): a #ValentMPRISImpl
+ * Returns: (transfer full) (nullable): a `ValentMPRISImpl`
  */
 ValentMPRISImpl *
 valent_mpris_impl_new (ValentMediaPlayer *player)
@@ -703,8 +703,8 @@ valent_mpris_impl_new (ValentMediaPlayer *player)
 
 /**
  * valent_media_player_impl_export:
- * @impl: a #ValentMPRISImpl
- * @connection: a #GDBusConnection
+ * @impl: a `ValentMPRISImpl`
+ * @connection: a `GDBusConnection`
  * @error:
  *
  * Impl @impl on @connection.
@@ -800,10 +800,10 @@ valent_mpris_impl_export_full_cb (GObject      *object,
 
 /**
  * valent_mpris_impl_export_full:
- * @impl: a #ValentMPRISImpl
+ * @impl: a `ValentMPRISImpl`
  * @bus_name: the well-known name to own
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @cancellable: (nullable): a `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * Impl the test media player on the session bus.
@@ -848,9 +848,9 @@ valent_mpris_impl_export_full (ValentMPRISImpl     *impl,
 
 /**
  * valent_mpris_impl_export_finish:
- * @impl: a #ValentMPRISImpl
- * @cancellable: (nullable): a #GCancellable
- * @error: (nullable): a #GError
+ * @impl: a `ValentMPRISImpl`
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
  *
  * Finish an operation started by valent_mpris_impl_export_full().
  *
@@ -870,7 +870,7 @@ valent_mpris_impl_export_finish (ValentMPRISImpl  *impl,
 
 /**
  * valent_mpris_player_impl_unexport:
- * @impl: a #ValentMPRISImpl
+ * @impl: a `ValentMPRISImpl`
  *
  * Unexport the player.
  */

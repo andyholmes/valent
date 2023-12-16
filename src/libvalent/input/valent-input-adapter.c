@@ -16,7 +16,7 @@
  *
  * An abstract base class for virtual input devices.
  *
- * #ValentInputAdapter is a base class for plugins that provide an interface to
+ * `ValentInputAdapter` is a base class for plugins that provide an interface to
  * the pointer and keyboard. This usually means simulating pointer and keyboard
  * events on the host system.
  *
@@ -46,7 +46,7 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentInputAdapter, valent_input_adapter, V
  * @pointer_button: the virtual function pointer for valent_input_adapter_pointer_button()
  * @pointer_motion: the virtual function pointer for valent_input_adapter_pointer_motion()
  *
- * The virtual function table for #ValentInputAdapter.
+ * The virtual function table for `ValentInputAdapter`.
  */
 
 
@@ -99,7 +99,7 @@ valent_input_adapter_init (ValentInputAdapter *adapter)
 
 /**
  * valent_input_adapter_keyboard_keysym:
- * @adapter: a #ValentInputAdapter
+ * @adapter: a `ValentInputAdapter`
  * @keysym: a keysym
  * @state: %TRUE to press, or %FALSE to release
  *
@@ -129,7 +129,7 @@ valent_input_adapter_keyboard_keysym (ValentInputAdapter *adapter,
 
 /**
  * valent_input_adapter_pointer_axis:
- * @adapter: a #ValentInputAdapter
+ * @adapter: a `ValentInputAdapter`
  * @dx: movement on x-axis
  * @dy: movement on y-axis
  *
@@ -160,7 +160,7 @@ valent_input_adapter_pointer_axis (ValentInputAdapter *adapter,
 
 /**
  * valent_input_adapter_pointer_button:
- * @adapter: a #ValentInputAdapter
+ * @adapter: a `ValentInputAdapter`
  * @button: a button number
  * @state: %TRUE to press, or %FALSE to release
  *
@@ -186,7 +186,7 @@ valent_input_adapter_pointer_button (ValentInputAdapter *adapter,
 
 /**
  * valent_input_adapter_pointer_motion:
- * @adapter: a #ValentInputAdapter
+ * @adapter: a `ValentInputAdapter`
  * @dx: movement on x-axis
  * @dy: movement on y-axis
  *

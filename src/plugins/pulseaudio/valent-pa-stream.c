@@ -243,7 +243,7 @@ valent_pa_stream_class_init (ValentPaStreamClass *klass)
   /**
    * ValentPaStream:base-stream:
    *
-   * The #GvcMixerStream this stream wraps.
+   * The `GvcMixerStream` this stream wraps.
    */
   properties [PROP_BASE_STREAM] =
     g_param_spec_object ("base-stream", NULL, NULL,

@@ -75,20 +75,20 @@ typedef enum
  * ChannelState:
  * @uuid: the channel UUID
  * @mutex: a lock for changes to the state
- * @stream: a #GIOStream
+ * @stream: a `GIOStream`
  * @buf: an input buffer
  * @len: size of the input buffer
  * @pos: data start
  * @end: data end
  * @read_free: free space in the input buffer
- * @read_cond: a #GCond triggered when data can be read
+ * @read_cond: a `GCond` triggered when data can be read
  * @write_free: amount of bytes that can be written
- * @write_cond: a #GCond triggered when data can be written
+ * @write_cond: a `GCond` triggered when data can be written
  *
  * A thread-safe info struct to track the state of a multiplex channel.
  *
- * Each virtual multiplex channel is tracked by the real #ValentMuxConnection as
- * a #ChannelState.
+ * Each virtual multiplex channel is tracked by the real `ValentMuxConnection` as
+ * a `ChannelState`.
  */
 typedef struct
 {
@@ -251,7 +251,7 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC (ChannelState, channel_state_unref)
 /**
  * pack_header:
  * @hdr: (out): a 19-byte buffer
- * @type: a #MessageType type
+ * @type: a `MessageType` type
  * @size: size of the message data
  * @uuid: channel UUID
  *
@@ -279,7 +279,7 @@ pack_header (uint8_t     *hdr,
 /**
  * unpack_header:
  * @hdr: a 19-byte buffer
- * @type: (out): a #MessageType type
+ * @type: (out): a `MessageType` type
  * @size: (out): size of the message data
  * @uuid: (out): a 37-byte buffer
  *
@@ -850,7 +850,7 @@ valent_mux_connection_class_init (ValentMuxConnectionClass *klass)
   /**
    * ValentMuxConnection:base-stream:
    *
-   * The "base-stream" property is the #GIOStream being wrapped.
+   * The "base-stream" property is the `GIOStream` being wrapped.
    */
   properties [PROP_BASE_STREAM] =
     g_param_spec_object ("base-stream", NULL, NULL,
@@ -895,9 +895,9 @@ valent_mux_connection_init (ValentMuxConnection *self)
  * valent_mux_connection_new:
  * @base_stream: (not nullable): The base stream to wrap
  *
- * Construct a new #ValentMuxConnection for @base_stream.
+ * Construct a new `ValentMuxConnection` for @base_stream.
  *
- * Returns: (transfer full): a #ValentMuxConnection
+ * Returns: (transfer full): a `ValentMuxConnection`
  */
 ValentMuxConnection *
 valent_mux_connection_new (GIOStream *base_stream)
@@ -910,16 +910,16 @@ valent_mux_connection_new (GIOStream *base_stream)
 
 /**
  * valent_mux_connection_handshake:
- * @connection: a #ValentMuxConnection
- * @identity: a #JsonNode
- * @cancellable: (nullable): a #GCancellable
- * @error: (nullable): a #GError
+ * @connection: a `ValentMuxConnection`
+ * @identity: a `JsonNode`
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
  *
  * Attempt to negotiate a multiplex channel on @connection. This is a two-part
  * process involving negotiating the protocol version (currently only version 1)
  * and exchanging identity packets.
  *
- * Returns: (transfer full): a #ValentChannel
+ * Returns: (transfer full): a `ValentChannel`
  */
 ValentChannel *
 valent_mux_connection_handshake (ValentMuxConnection  *connection,
@@ -1024,9 +1024,9 @@ valent_mux_connection_handshake_task (GTask        *task,
 
 /**
  * valent_mux_connection_handshake_async:
- * @connection: a #ValentMuxConnection
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @connection: a `ValentMuxConnection`
+ * @cancellable: (nullable): a `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * This is the asynchronous version of valent_mux_connection_handshake().
@@ -1054,13 +1054,13 @@ valent_mux_connection_handshake_async (ValentMuxConnection *connection,
 
 /**
  * valent_mux_connection_handshake_finish:
- * @connection: a #ValentMuxConnection
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
+ * @connection: a `ValentMuxConnection`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
  *
  * Finishes an operation started by valent_mux_connection_handshake_async().
  *
- * Returns: (transfer full): a #ValentChannel
+ * Returns: (transfer full): a `ValentChannel`
  */
 ValentChannel *
 valent_mux_connection_handshake_finish (ValentMuxConnection  *connection,
@@ -1076,14 +1076,14 @@ valent_mux_connection_handshake_finish (ValentMuxConnection  *connection,
 
 /**
  * valent_mux_connection_accept_channel:
- * @connection: a #ValentMuxConnection
+ * @connection: a `ValentMuxConnection`
  * @uuid: a channel UUID
- * @cancellable: (nullable): a #GCancellable
- * @error: (nullable): a #GError
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
  *
  * Blocks waiting for a channel to be opened for @uuid.
  *
- * Returns: (transfer full): a #GIOStream
+ * Returns: (transfer full): a `GIOStream`
  */
 GIOStream *
 valent_mux_connection_accept_channel (ValentMuxConnection  *connection,
@@ -1118,9 +1118,9 @@ valent_mux_connection_accept_channel (ValentMuxConnection  *connection,
 
 /**
  * valent_mux_connection_close:
- * @connection: a #ValentMuxConnection
- * @cancellable: (nullable): a #GCancellable
- * @error: (nullable): a #GError
+ * @connection: a `ValentMuxConnection`
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
  *
  * Close the multiplex connection.
  *
@@ -1141,10 +1141,10 @@ valent_mux_connection_close (ValentMuxConnection  *connection,
 
 /**
  * valent_mux_connection_close_channel:
- * @connection: a #ValentMuxConnection
+ * @connection: a `ValentMuxConnection`
  * @uuid: a channel UUID
- * @cancellable: (nullable): a #GCancellable
- * @error: (nullable): a #GError
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
  *
  * Get the multiplex protocol version used by @connection.
  *
@@ -1174,14 +1174,14 @@ valent_mux_connection_close_channel (ValentMuxConnection  *connection,
 
 /**
  * valent_mux_connection_open_channel:
- * @connection: a #ValentMuxConnection
+ * @connection: a `ValentMuxConnection`
  * @uuid: a channel UUID
- * @cancellable: (nullable): a #GCancellable
- * @error: (nullable): a #GError
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
  *
  * Attempt to open a muxed channel for @uuid.
  *
- * Returns: (transfer full): a #GIOStream
+ * Returns: (transfer full): a `GIOStream`
  */
 GIOStream *
 valent_mux_connection_open_channel (ValentMuxConnection  *connection,
@@ -1229,17 +1229,17 @@ valent_mux_connection_open_channel (ValentMuxConnection  *connection,
 
 /**
  * valent_mux_connection_read:
- * @connection: a #ValentMuxConnection
+ * @connection: a `ValentMuxConnection`
  * @uuid: a channel UUID
  * @buffer: a buffer to read data into
  * @count: the number of bytes that will be read from the stream
- * @cancellable: (nullable): a #GCancellable
- * @error: (nullable): a #GError
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
  *
  * Tries to read count bytes from the channel @uuid into the buffer starting at
  * @buffer. Will block during this read.
  *
- * This is used by #ValentMuxInputStream to implement g_input_stream_read().
+ * This is used by `ValentMuxInputStream` to implement g_input_stream_read().
  *
  * Returns: number of bytes read, or -1 on error, or 0 on end of file
  */
@@ -1317,17 +1317,17 @@ valent_mux_connection_read (ValentMuxConnection  *connection,
 
 /**
  * valent_mux_connection_write:
- * @connection: a #ValentMuxConnection
+ * @connection: a `ValentMuxConnection`
  * @uuid: a channel UUID
  * @buffer: data to write
  * @count: size of the write
- * @cancellable: (nullable): a #GCancellable
- * @error: (nullable): a #GError
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
  *
  * Tries to write @count bytes from @buffer into the stream for @uuid. Will
  * block during the operation.
  *
- * This is used by #ValentMuxOutputStream to implement g_output_stream_write().
+ * This is used by `ValentMuxOutputStream` to implement g_output_stream_write().
  *
  * Returns: number of bytes written, or -1 with @error set
  */

@@ -14,7 +14,7 @@
 
 /* < private >
  * valent_lan_configure_socket:
- * @connection: a #GSocketConnection
+ * @connection: a `GSocketConnection`
  *
  * Configure TCP socket options as they are set in kdeconnect-kde.
  *
@@ -58,7 +58,7 @@ valent_lan_configure_socket (GSocketConnection *connection)
 
 /*
  * The KDE Connect protocol follows a trust-on-first-use approach to TLS, so we
- * use a dummy callback for #GTlsConnection::accept-certificate that always
+ * use a dummy callback for `GTlsConnection`::accept-certificate that always
  * returns %TRUE.
  */
 static gboolean
@@ -91,10 +91,10 @@ valent_lan_accept_certificate (GTlsConnection  *connection,
 
 /* < private >
  * valent_lan_handshake_certificate:
- * @connection: a #GTlsConnection
- * @trusted: a #GTlsCertificate
- * @cancellable: (nullable): a #GCancellable
- * @error: (nullable): a #GError
+ * @connection: a `GTlsConnection`
+ * @trusted: a `GTlsCertificate`
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
  *
  * Authenticate a connection for a known peer.
  *
@@ -131,9 +131,9 @@ valent_lan_handshake_certificate (GTlsConnection   *connection,
 
 /* < private >
  * valent_lan_handshake_peer:
- * @connection: a #GTlsConnection
- * @cancellable: (nullable): a #GCancellable
- * @error: (nullable): a #GError
+ * @connection: a `GTlsConnection`
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
  *
  * Authenticate a connection for an unknown peer.
  *
@@ -199,10 +199,10 @@ valent_lan_handshake_peer (GTlsConnection  *connection,
 
 /**
  * valent_lan_encrypt_client_connection:
- * @connection: a #GSocketConnection
- * @certificate: a #GTlsCertificate
- * @cancellable: (nullable): a #GCancellable
- * @error: (nullable): a #GError
+ * @connection: a `GSocketConnection`
+ * @certificate: a `GTlsCertificate`
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
  *
  * Authenticate and encrypt a client connection.
  *
@@ -213,7 +213,7 @@ valent_lan_handshake_peer (GTlsConnection  *connection,
  * device ID to check for a trusted certificate. For auxiliary connections
  * created from an existing channel, use [func@Valent.lan_encrypt_client].
  *
- * Returns: (transfer full) (nullable): a TLS encrypted #GIOStream
+ * Returns: (transfer full) (nullable): a TLS encrypted `GIOStream`
  */
 GIOStream *
 valent_lan_encrypt_client_connection (GSocketConnection  *connection,
@@ -259,18 +259,18 @@ valent_lan_encrypt_client_connection (GSocketConnection  *connection,
 
 /**
  * valent_lan_encrypt_client:
- * @connection: a #GSocketConnection
- * @certificate: a #GTlsCertificate
- * @peer_certificate: a #GTlsCertificate
- * @cancellable: (nullable): a #GCancellable
- * @error: (nullable): a #GError
+ * @connection: a `GSocketConnection`
+ * @certificate: a `GTlsCertificate`
+ * @peer_certificate: a `GTlsCertificate`
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
  *
  * Authenticate and encrypt an auxiliary client connection.
  *
  * This function sets the standard KDE Connect socket options on @connection,
  * wraps it in a [class@Gio.TlsConnection] and returns the result.
  *
- * Returns: (transfer full) (nullable): a TLS encrypted #GIOStream
+ * Returns: (transfer full) (nullable): a TLS encrypted `GIOStream`
  */
 GIOStream *
 valent_lan_encrypt_client (GSocketConnection  *connection,
@@ -331,10 +331,10 @@ valent_lan_encrypt_client (GSocketConnection  *connection,
 
 /**
  * valent_lan_encrypt_server_connection:
- * @connection: a #GSocketConnection
- * @certificate: a #GTlsConnection
- * @cancellable: (nullable): a #GCancellable
- * @error: (nullable): a #GError
+ * @connection: a `GSocketConnection`
+ * @certificate: a `GTlsConnection`
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
  *
  * Authenticate and encrypt a server connection.
  *
@@ -345,7 +345,7 @@ valent_lan_encrypt_client (GSocketConnection  *connection,
  * device ID to check for a trusted certificate. For auxiliary connections
  * created from an existing channel, use [func@Valent.lan_encrypt_server].
  *
- * Returns: (transfer full) (nullable): a TLS encrypted #GIOStream
+ * Returns: (transfer full) (nullable): a TLS encrypted `GIOStream`
  */
 GIOStream *
 valent_lan_encrypt_server_connection (GSocketConnection  *connection,
@@ -387,18 +387,18 @@ valent_lan_encrypt_server_connection (GSocketConnection  *connection,
 
 /**
  * valent_lan_encrypt_server:
- * @connection: a #GSocketConnection
- * @certificate: a #GTlsCertificate
- * @peer_certificate: a #GTlsCertificate
- * @cancellable: (nullable): a #GCancellable
- * @error: (nullable): a #GError
+ * @connection: a `GSocketConnection`
+ * @certificate: a `GTlsCertificate`
+ * @peer_certificate: a `GTlsCertificate`
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
  *
  * Authenticate and encrypt an auxiliary server connection.
  *
  * This function sets the standard KDE Connect socket options on @connection,
  * wraps it in a [class@Gio.TlsConnection] and returns the result.
  *
- * Returns: (transfer full) (nullable): a TLS encrypted #GIOStream
+ * Returns: (transfer full) (nullable): a TLS encrypted `GIOStream`
  */
 GIOStream *
 valent_lan_encrypt_server (GSocketConnection  *connection,

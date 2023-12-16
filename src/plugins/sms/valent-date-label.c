@@ -298,9 +298,9 @@ valent_date_label_init (ValentDateLabel *self)
  * valent_date_label_new:
  * @date: a UNIX epoch timestamp
  *
- * Create a new #ValentDateLabel for @timestamp.
+ * Create a new `ValentDateLabel` for @timestamp.
  *
- * Returns: (transfer full): a #GtkWidget
+ * Returns: (transfer full): a `GtkWidget`
  */
 GtkWidget *
 valent_date_label_new (int64_t date)
@@ -312,7 +312,7 @@ valent_date_label_new (int64_t date)
 
 /**
  * valent_date_label_get_date:
- * @label: a #ValentDateLabel
+ * @label: a `ValentDateLabel`
  *
  * Get the UNIX epoch timestamp (ms) for @label.
  *
@@ -328,7 +328,7 @@ valent_date_label_get_date (ValentDateLabel *label)
 
 /**
  * valent_date_label_set_date:
- * @label: a #ValentDateLabel
+ * @label: a `ValentDateLabel`
  * @date: a UNIX epoch timestamp
  *
  * Set the timestamp for @label to @date.
@@ -349,7 +349,7 @@ valent_date_label_set_date (ValentDateLabel *label,
 
 /**
  * valent_date_label_get_mode:
- * @label: a #ValentDateLabel
+ * @label: a `ValentDateLabel`
  *
  * Get the display mode @label.
  *
@@ -365,7 +365,7 @@ valent_date_label_get_mode (ValentDateLabel *label)
 
 /**
  * valent_date_label_set_mode:
- * @label: a #ValentDateLabel
+ * @label: a `ValentDateLabel`
  * @mode: a mode
  *
  * Set the mode of @label to @mode. Currently the options are `0` and `1`.
@@ -386,7 +386,7 @@ valent_date_label_set_mode (ValentDateLabel *label,
 
 /**
  * valent_date_label_update:
- * @label: a #ValentDateLabel
+ * @label: a `ValentDateLabel`
  *
  * Update the displayed text of @label.
  */

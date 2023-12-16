@@ -19,7 +19,7 @@
  *
  * The primary application class of Valent.
  *
- * #ValentApplication is the primary application class for Valent.
+ * `ValentApplication` is the primary application class for Valent.
  *
  * Since: 1.0
  */

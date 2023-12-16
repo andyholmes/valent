@@ -16,8 +16,8 @@
  *
  * A class for multi-file uploads.
  *
- * #ValentShareUpload is a class that supports multi-file uploads for
- * #ValentSharePlugin.
+ * `ValentShareUpload` is a class that supports multi-file uploads for
+ * `ValentSharePlugin`.
  */
 
 struct _ValentShareUpload
@@ -302,11 +302,11 @@ valent_share_upload_init (ValentShareUpload *self)
 
 /**
  * valent_share_upload_new:
- * @device: a #ValentDevice
+ * @device: a `ValentDevice`
  *
- * Create a new #ValentShareUpload.
+ * Create a new `ValentShareUpload`.
  *
- * Returns: (transfer full): a new #ValentShareUpload
+ * Returns: (transfer full): a new `ValentShareUpload`
  */
 ValentTransfer *
 valent_share_upload_new (ValentDevice *device)
@@ -425,8 +425,8 @@ valent_share_upload_add_files_task (GTask        *task,
 
 /**
  * valent_share_upload_add_file:
- * @group: a #ValentShareUpload
- * @file: a #GFile
+ * @group: a `ValentShareUpload`
+ * @file: a `GFile`
  *
  * Add @file to the transfer operation.
  */
@@ -457,8 +457,8 @@ valent_share_upload_add_file (ValentShareUpload *upload,
 
 /**
  * valent_share_upload_add_files:
- * @group: a #ValentShareUpload
- * @files: a #GListModel
+ * @group: a `ValentShareUpload`
+ * @files: a `GListModel`
  *
  * Add @files to the transfer operation.
  *

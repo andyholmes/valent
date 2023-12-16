@@ -15,7 +15,7 @@
  *
  * A class representing a notification.
  *
- * #ValentNotification is a derivable, generic class for a notification.
+ * `ValentNotification` is a derivable, generic class for a notification.
  *
  * Since: 1.0
  */
@@ -379,13 +379,13 @@ valent_notification_class_init (ValentNotificationClass *klass)
  * valent_notification_new:
  * @title: (nullable): a notification title
  *
- * Create a new #ValentNotification.
+ * Create a new `ValentNotification`.
  *
  * A notification without a title (or primary text) is not strictly possible,
  * but this is allowed during construction for the case where it is more
  * convenient to set it later.
  *
- * Returns: (transfer full): a #ValentNotification
+ * Returns: (transfer full): a `ValentNotification`
  *
  * Since: 1.0
  */
@@ -402,7 +402,7 @@ valent_notification_new (const char *title)
 
 /**
  * valent_notification_set_action:
- * @notification: a #ValentNotification
+ * @notification: a `ValentNotification`
  * @action: a detailed action
  *
  * Sets the default notification action.
@@ -433,7 +433,7 @@ valent_notification_set_action (ValentNotification *notification,
 
 /**
  * valent_notification_get_application: (get-property application)
- * @notification: a #ValentNotification
+ * @notification: a `ValentNotification`
  *
  * Get the notifying application.
  *
@@ -451,7 +451,7 @@ valent_notification_get_application (ValentNotification *notification)
 
 /**
  * valent_notification_set_application: (set-property application)
- * @notification: a #ValentNotification
+ * @notification: a `ValentNotification`
  * @application: (nullable): the notifying application
  *
  * Set the notifying application.
@@ -470,7 +470,7 @@ valent_notification_set_application (ValentNotification *notification,
 
 /**
  * valent_notification_get_body: (get-property body)
- * @notification: a #ValentNotification
+ * @notification: a `ValentNotification`
  *
  * Get the notification body.
  *
@@ -488,7 +488,7 @@ valent_notification_get_body (ValentNotification *notification)
 
 /**
  * valent_notification_set_body: (set-property body)
- * @notification: a #ValentNotification
+ * @notification: a `ValentNotification`
  * @body: (nullable): a notification body
  *
  * Set the notification body.
@@ -507,11 +507,11 @@ valent_notification_set_body (ValentNotification *notification,
 
 /**
  * valent_notification_get_icon: (set-property icon)
- * @notification: a #ValentNotification
+ * @notification: a `ValentNotification`
  *
  * Get the notification icon.
  *
- * Returns: (transfer none) (nullable): a #GIcon
+ * Returns: (transfer none) (nullable): a `GIcon`
  *
  * Since: 1.0
  */
@@ -525,8 +525,8 @@ valent_notification_get_icon (ValentNotification *notification)
 
 /**
  * valent_notification_set_icon: (set-property icon)
- * @notification: a #ValentNotification
- * @icon: (nullable): a #GIcon
+ * @notification: a `ValentNotification`
+ * @icon: (nullable): a `GIcon`
  *
  * Set the notification icon.
  *
@@ -548,7 +548,7 @@ valent_notification_set_icon (ValentNotification *notification,
 
 /**
  * valent_notification_get_id: (get-property id)
- * @notification: a #ValentNotification
+ * @notification: a `ValentNotification`
  *
  * Get the notification ID.
  *
@@ -566,7 +566,7 @@ valent_notification_get_id (ValentNotification *notification)
 
 /**
  * valent_notification_set_id: (set-property id)
- * @notification: a #ValentNotification
+ * @notification: a `ValentNotification`
  * @id: (not nullable): a unique ID
  *
  * Set the notification ID.
@@ -586,11 +586,11 @@ valent_notification_set_id (ValentNotification *notification,
 
 /**
  * valent_notification_get_priority:
- * @notification: a #ValentNotification
+ * @notification: a `ValentNotification`
  *
  * Get the notification priority.
  *
- * Returns: a #GNotificationPriority
+ * Returns: a `GNotificationPriority`
  *
  * Since: 1.0
  */
@@ -604,8 +604,8 @@ valent_notification_get_priority (ValentNotification *notification)
 
 /**
  * valent_notification_set_priority:
- * @notification: a #ValentNotification
- * @priority: a #GNotificationPriority
+ * @notification: a `ValentNotification`
+ * @priority: a `GNotificationPriority`
  *
  * Set the notification priority.
  *
@@ -626,7 +626,7 @@ valent_notification_set_priority (ValentNotification    *notification,
 
 /**
  * valent_notification_get_time: (get-property time)
- * @notification: a #ValentNotification
+ * @notification: a `ValentNotification`
  *
  * Get the notification time.
  *
@@ -644,7 +644,7 @@ valent_notification_get_time (ValentNotification *notification)
 
 /**
  * valent_notification_set_time: (set-property time)
- * @notification: a #ValentNotification
+ * @notification: a `ValentNotification`
  * @time: a UNIX epoch timestamp (ms)
  *
  * Set the notification time.
@@ -666,7 +666,7 @@ valent_notification_set_time (ValentNotification *notification,
 
 /**
  * valent_notification_get_title: (get-property title)
- * @notification: a #ValentNotification
+ * @notification: a `ValentNotification`
  *
  * Get the notification title.
  *
@@ -684,7 +684,7 @@ valent_notification_get_title (ValentNotification *notification)
 
 /**
  * valent_notification_set_title: (set-property title)
- * @notification: a #ValentNotification
+ * @notification: a `ValentNotification`
  * @title: (not nullable): a notification title
  *
  * Set the notification title.
@@ -704,7 +704,7 @@ valent_notification_set_title (ValentNotification *notification,
 
 /**
  * valent_notification_add_button_with_target:
- * @notification: a #ValentNotification
+ * @notification: a `ValentNotification`
  * @label: a button label
  * @action: an action name
  * @target: (nullable): an action target
@@ -738,7 +738,7 @@ valent_notification_add_button_with_target (ValentNotification *notification,
 
 /**
  * valent_notification_add_button:
- * @notification: a #ValentNotification
+ * @notification: a `ValentNotification`
  * @label: a button label
  * @action: an action name
  *
@@ -771,9 +771,9 @@ valent_notification_add_button (ValentNotification *notification,
 
 /**
  * valent_notification_set_action_and_target:
- * @notification: a #ValentNotification
+ * @notification: a `ValentNotification`
  * @action: an action name
- * @target: (nullable): a #GVariant to use as @action's parameter
+ * @target: (nullable): a `GVariant` to use as @action's parameter
  *
  * Set the default notification action.
  *
@@ -799,11 +799,11 @@ valent_notification_set_action_and_target (ValentNotification *notification,
 
 /**
  * valent_notification_serialize:
- * @notification: a #ValentNotification
+ * @notification: a `ValentNotification`
  *
  * Serialize the notification into a variant of type `a{sv}`.
  *
- * Returns: (nullable): a floating #GVariant
+ * Returns: (nullable): a floating `GVariant`
  *
  * Since: 1.0
  */
@@ -877,13 +877,13 @@ valent_notification_serialize (ValentNotification *notification)
 
 /**
  * valent_notification_deserialize:
- * @variant: a #GVariant
+ * @variant: a `GVariant`
  *
- * Deserializes @variant into a #ValentNotification. Since #ValentNotification
- * is effectively a super-set of #GNotification, @variant may be a serialized
- * #GNotification or #ValentNotification.
+ * Deserializes @variant into a `ValentNotification`. Since `ValentNotification`
+ * is effectively a super-set of `GNotification`, @variant may be a serialized
+ * `GNotification` or `ValentNotification`.
  *
- * Returns: (transfer full) (nullable): a #ValentNotification
+ * Returns: (transfer full) (nullable): a `ValentNotification`
  *
  * Since: 1.0
  */
@@ -969,7 +969,7 @@ valent_notification_deserialize (GVariant *variant)
 
 /**
  * valent_notification_hash:
- * @notification: (type Valent.Notification): a #ValentNotification
+ * @notification: (type Valent.Notification): a `ValentNotification`
  *
  * Converts a notification to a hash value, using g_str_hash() on the ID.
  *
@@ -987,8 +987,8 @@ valent_notification_hash (gconstpointer notification)
 
 /**
  * valent_notification_equal:
- * @notification1: (type Valent.Notification): a #ValentNotification
- * @notification2: (type Valent.Notification): a #ValentNotification
+ * @notification1: (type Valent.Notification): a `ValentNotification`
+ * @notification2: (type Valent.Notification): a `ValentNotification`
  *
  * Compare two notifications for equality by ID.
  *

@@ -17,7 +17,7 @@
  *
  * A base class for media players.
  *
- * A #ValentMediaPlayer is a base class for plugins to providing an interface to
+ * A `ValentMediaPlayer` is a base class for plugins to providing an interface to
  * media players via [class@Valent.MediaAdapter].
  *
  * Since: 1.0
@@ -33,18 +33,18 @@ G_DEFINE_TYPE (ValentMediaPlayer, valent_media_player, VALENT_TYPE_OBJECT)
  * @previous: the virtual function pointer for valent_media_player_previous()
  * @seek: the virtual function pointer for valent_media_player_seek()
  * @stop: the virtual function pointer for valent_media_player_stop()
- * @get_flags: Getter for the #ValentMediaPlayer:flags property.
- * @get_metadata: Getter for the #ValentMediaPlayer:metadata property.
- * @get_name: Getter for the #ValentMediaPlayer:name property.
- * @get_position: Getter for the #ValentMediaPlayer:position property.
- * @set_position: Setter for the #ValentMediaPlayer:position property.
- * @get_repeat: Getter for the #ValentMediaPlayer:repeat property.
- * @set_repeat: Setter for the #ValentMediaPlayer:repeat property.
- * @get_state: Getter for the #ValentMediaPlayer:state property.
- * @get_volume: Getter for the #ValentMediaPlayer:volume property.
- * @set_volume: Setter for the #ValentMediaPlayer:volume property.
+ * @get_flags: Getter for the `ValentMediaPlayer`:flags property.
+ * @get_metadata: Getter for the `ValentMediaPlayer`:metadata property.
+ * @get_name: Getter for the `ValentMediaPlayer`:name property.
+ * @get_position: Getter for the `ValentMediaPlayer`:position property.
+ * @set_position: Setter for the `ValentMediaPlayer`:position property.
+ * @get_repeat: Getter for the `ValentMediaPlayer`:repeat property.
+ * @set_repeat: Setter for the `ValentMediaPlayer`:repeat property.
+ * @get_state: Getter for the `ValentMediaPlayer`:state property.
+ * @get_volume: Getter for the `ValentMediaPlayer`:volume property.
+ * @set_volume: Setter for the `ValentMediaPlayer`:volume property.
  *
- * Virtual table for #ValentMediaPlayer
+ * Virtual table for `ValentMediaPlayer`
  */
 
 enum {
@@ -448,11 +448,11 @@ valent_media_player_init (ValentMediaPlayer *self)
 
 /**
  * valent_media_player_get_flags: (virtual get_flags) (get-property flags)
- * @player: a #ValentMediaPlayer
+ * @player: a `ValentMediaPlayer`
  *
  * Get flags describing the available actions of @player.
  *
- * Returns: a bitmask of #ValentMediaActions
+ * Returns: a bitmask of `ValentMediaActions`
  *
  * Since: 1.0
  */
@@ -472,7 +472,7 @@ valent_media_player_get_flags (ValentMediaPlayer *player)
 
 /**
  * valent_media_player_get_metadata: (virtual get_metadata) (get-property metadata)
- * @player: a #ValentMediaPlayer
+ * @player: a `ValentMediaPlayer`
  *
  * Get the metadata of the active media items.
  *
@@ -480,7 +480,7 @@ valent_media_player_get_flags (ValentMediaPlayer *player)
  * Other fields generally supported by KDE Connect clients include
  * `mpris:artUrl`, `xesam:artist`, `xesam:album` and `xesam:title`.
  *
- * Returns: (transfer full): a #GVariant of type `a{sv}`
+ * Returns: (transfer full): a `GVariant` of type `a{sv}`
  *
  * Since: 1.0
  */
@@ -503,7 +503,7 @@ valent_media_player_get_metadata (ValentMediaPlayer *player)
 
 /**
  * valent_media_player_get_name: (virtual get_name) (get-property name)
- * @player: a #ValentMediaPlayer
+ * @player: a `ValentMediaPlayer`
  *
  * Get the display name of the @player.
  *
@@ -527,7 +527,7 @@ valent_media_player_get_name (ValentMediaPlayer *player)
 
 /**
  * valent_media_player_get_position: (virtual get_position) (get-property position)
- * @player: a #ValentMediaPlayer
+ * @player: a `ValentMediaPlayer`
  *
  * Get the current position in seconds.
  *
@@ -551,7 +551,7 @@ valent_media_player_get_position (ValentMediaPlayer *player)
 
 /**
  * valent_media_player_set_position: (virtual set_position) (set-property position)
- * @player: a #ValentMediaPlayer
+ * @player: a `ValentMediaPlayer`
  * @position: position in seconds
  *
  * Set the current position in seconds.
@@ -574,11 +574,11 @@ valent_media_player_set_position (ValentMediaPlayer *player,
 
 /**
  * valent_media_player_get_repeat: (virtual get_repeat) (get-property repeat)
- * @player: a #ValentMediaPlayer
+ * @player: a `ValentMediaPlayer`
  *
  * Get the repeat mode for @player.
  *
- * Returns: #ValentMediaRepeat
+ * Returns: `ValentMediaRepeat`
  *
  * Since: 1.0
  */
@@ -598,8 +598,8 @@ valent_media_player_get_repeat (ValentMediaPlayer *player)
 
 /**
  * valent_media_player_set_repeat: (virtual set_repeat) (set-property repeat)
- * @player: a #ValentMediaPlayer
- * @repeat: a #ValentMediaRepeat
+ * @player: a `ValentMediaPlayer`
+ * @repeat: a `ValentMediaRepeat`
  *
  * Set the repeat mode of @player to @repeat.
  *
@@ -620,7 +620,7 @@ valent_media_player_set_repeat (ValentMediaPlayer *player,
 
 /**
  * valent_media_player_get_shuffle: (virtual get_shuffle) (get-property shuffle)
- * @player: a #ValentMediaPlayer
+ * @player: a `ValentMediaPlayer`
  *
  * Get whether playback order is shuffled.
  *
@@ -644,7 +644,7 @@ valent_media_player_get_shuffle (ValentMediaPlayer *player)
 
 /**
  * valent_media_player_set_shuffle: (virtual set_shuffle) (set-property shuffle)
- * @player: a #ValentMediaPlayer
+ * @player: a `ValentMediaPlayer`
  * @shuffle: shuffle state
  *
  * Set whether playback order is shuffled.
@@ -666,11 +666,11 @@ valent_media_player_set_shuffle (ValentMediaPlayer *player,
 
 /**
  * valent_media_player_get_state: (virtual get_state) (get-property state)
- * @player: a #ValentMediaPlayer
+ * @player: a `ValentMediaPlayer`
  *
  * Get the playback state for @player.
  *
- * Returns: #ValentMediaState
+ * Returns: `ValentMediaState`
  *
  * Since: 1.0
  */
@@ -690,7 +690,7 @@ valent_media_player_get_state (ValentMediaPlayer *player)
 
 /**
  * valent_media_player_get_volume: (virtual get_volume) (get-property volume)
- * @player: a #ValentMediaPlayer
+ * @player: a `ValentMediaPlayer`
  *
  * Get the volume level.
  *
@@ -714,7 +714,7 @@ valent_media_player_get_volume (ValentMediaPlayer *player)
 
 /**
  * valent_media_player_set_volume: (virtual set_volume) (set-property volume)
- * @player: a #ValentMediaPlayer
+ * @player: a `ValentMediaPlayer`
  * @volume: volume level
  *
  * Set the volume level of @player.
@@ -736,7 +736,7 @@ valent_media_player_set_volume (ValentMediaPlayer *player,
 
 /**
  * valent_media_player_next: (virtual next)
- * @player: a #ValentMediaPlayer
+ * @player: a `ValentMediaPlayer`
  *
  * Skip to the next media item.
  *
@@ -762,7 +762,7 @@ valent_media_player_next (ValentMediaPlayer *player)
 
 /**
  * valent_media_player_pause: (virtual pause)
- * @player: a #ValentMediaPlayer
+ * @player: a `ValentMediaPlayer`
  *
  * Pauses playback.
  *
@@ -789,7 +789,7 @@ valent_media_player_pause (ValentMediaPlayer *player)
 
 /**
  * valent_media_player_play: (virtual play)
- * @player: a #ValentMediaPlayer
+ * @player: a `ValentMediaPlayer`
  *
  * Start playback.
  *
@@ -815,7 +815,7 @@ valent_media_player_play (ValentMediaPlayer *player)
 
 /**
  * valent_media_player_previous: (virtual previous)
- * @player: a #ValentMediaPlayer
+ * @player: a `ValentMediaPlayer`
  *
  * Skip to the previous media item.
  *
@@ -841,7 +841,7 @@ valent_media_player_previous (ValentMediaPlayer *player)
 
 /**
  * valent_media_player_seek: (virtual seek)
- * @player: a #ValentMediaPlayer
+ * @player: a `ValentMediaPlayer`
  * @offset: number of seconds to seek forward
  *
  * Seek in the current media item by @offset seconds.
@@ -871,7 +871,7 @@ valent_media_player_seek (ValentMediaPlayer *player,
 
 /**
  * valent_media_player_stop: (virtual stop)
- * @player: a #ValentMediaPlayer
+ * @player: a `ValentMediaPlayer`
  *
  * Stop playback.
  *

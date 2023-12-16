@@ -23,7 +23,7 @@ void   valent_debug_clear (void);
 /**
  * VALENT_LOG_LEVEL_TRACE: (skip)
  *
- * The #GLogLevelFlags log level for trace messages in Valent.
+ * The [flags@Glib.GLogLevelFlags] log level for trace messages in Valent.
  *
  * Since: 1.0
  */
@@ -182,7 +182,7 @@ void valent_trace_mark (const char *strfunc,
 
 /**
  * VALENT_JSON: (skip)
- * @_node: a #JsonNode
+ * @_node: a `JsonNode`
  * @_ctx: (type utf8): a prefix for context
  *
  * Logs @_node as pretty-printed JSON at %G_LOG_LEVEL_DEBUG, prefixed with

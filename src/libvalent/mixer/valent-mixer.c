@@ -19,7 +19,7 @@
  *
  * A class for monitoring and controlling the system volume.
  *
- * #ValentMixer is an abstraction of volume mixers, intended for use by
+ * `ValentMixer` is an abstraction of volume mixers, intended for use by
  * [class@Valent.DevicePlugin] implementations.
  *
  * Plugins can implement [class@Valent.MixerAdapter] to provide an interface to
@@ -328,7 +328,7 @@ valent_mixer_init (ValentMixer *self)
  *
  * Get the default [class@Valent.Mixer].
  *
- * Returns: (transfer none) (not nullable): a #ValentMixer
+ * Returns: (transfer none) (not nullable): a `ValentMixer`
  *
  * Since: 1.0
  */
@@ -351,11 +351,11 @@ valent_mixer_get_default (void)
 
 /**
  * valent_mixer_get_default_input: (get-property default-input)
- * @mixer: a #ValentMixer
+ * @mixer: a `ValentMixer`
  *
  * Get the default input stream for the primary [class@Valent.MixerAdapter].
  *
- * Returns: (transfer none) (nullable): a #ValentMixerStream
+ * Returns: (transfer none) (nullable): a `ValentMixerStream`
  *
  * Since: 1.0
  */
@@ -376,8 +376,8 @@ valent_mixer_get_default_input (ValentMixer *mixer)
 
 /**
  * valent_mixer_set_default_input: (set-property default-input)
- * @mixer: a #ValentMixer
- * @stream: a #ValentMixerStream
+ * @mixer: a `ValentMixer`
+ * @stream: a `ValentMixerStream`
  *
  * Set the default input stream for the primary [class@Valent.MixerAdapter].
  *
@@ -400,11 +400,11 @@ valent_mixer_set_default_input (ValentMixer       *mixer,
 
 /**
  * valent_mixer_get_default_output: (get-property default-output)
- * @mixer: a #ValentMixer
+ * @mixer: a `ValentMixer`
  *
  * Get the default output stream for the primary [class@Valent.MixerAdapter].
  *
- * Returns: (transfer none) (nullable): a #ValentMixerStream
+ * Returns: (transfer none) (nullable): a `ValentMixerStream`
  *
  * Since: 1.0
  */
@@ -425,8 +425,8 @@ valent_mixer_get_default_output (ValentMixer *mixer)
 
 /**
  * valent_mixer_set_default_output: (set-property default-output)
- * @mixer: a #ValentMixer
- * @stream: a #ValentMixerStream
+ * @mixer: a `ValentMixer`
+ * @stream: a `ValentMixerStream`
  *
  * Set the default output stream for the primary [class@Valent.MixerAdapter].
  *

@@ -313,7 +313,7 @@ valent_mock_media_player_init (ValentMockMediaPlayer *self)
 
 /**
  * valent_mock_media_player_update_art:
- * @self: a #ValentMockMediaPlayer
+ * @self: a `ValentMockMediaPlayer`
  * @url: a URI
  *
  * Update the track metadata with album art at @uri.
@@ -338,8 +338,8 @@ valent_mock_media_player_update_art (ValentMockMediaPlayer *self,
 
 /**
  * valent_mock_media_player_update_flags:
- * @self: a #ValentMockMediaPlayer
- * @flags: a #ValentMediaActions
+ * @self: a `ValentMockMediaPlayer`
+ * @flags: a `ValentMediaActions`
  *
  * Update the track metadata with album art at @uri.
  *

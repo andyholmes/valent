@@ -87,9 +87,9 @@ valent_findmyphone_ringer_free (gpointer data)
 /**
  * valent_findmyphone_ringer_new:
  *
- * Create a new #ValentFindmyphoneRinger.
+ * Create a new `ValentFindmyphoneRinger`.
  *
- * Returns: (transfer full): a #ValentFindmyphoneRinger
+ * Returns: (transfer full): a `ValentFindmyphoneRinger`
  */
 ValentFindmyphoneRinger *
 valent_findmyphone_ringer_new (void)
@@ -120,7 +120,7 @@ valent_findmyphone_ringer_new (void)
 
 /**
  * valent_findmyphone_ringer_start:
- * @ringer: a #ValentFindmyphoneRinger
+ * @ringer: a `ValentFindmyphoneRinger`
  *
  * Enable the ringing state of @ringer.
  */
@@ -143,7 +143,7 @@ valent_findmyphone_ringer_start (ValentFindmyphoneRinger *ringer)
 
 /**
  * valent_findmyphone_ringer_stop:
- * @ringer: a #ValentFindmyphoneRinger
+ * @ringer: a `ValentFindmyphoneRinger`
  *
  * Disable the ringing state of @ringer.
  */
@@ -162,7 +162,7 @@ valent_findmyphone_ringer_stop (ValentFindmyphoneRinger *ringer)
 
 /**
  * valent_findmyphone_ringer_show:
- * @ringer: a #ValentFindmyphoneRinger
+ * @ringer: a `ValentFindmyphoneRinger`
  *
  * Enable the ringing state of @ringer and show a dialog.
  */
@@ -226,7 +226,7 @@ valent_findmyphone_ringer_show (ValentFindmyphoneRinger *ringer)
 
 /**
  * valent_findmyphone_ringer_hide:
- * @ringer: a #ValentFindmyphoneRinger
+ * @ringer: a `ValentFindmyphoneRinger`
  *
  * Disable the ringing state of @ringer and hide the dialog.
  */
@@ -244,9 +244,9 @@ valent_findmyphone_ringer_hide (ValentFindmyphoneRinger *ringer)
 /**
  * valent_findmyphone_ringer_acquire:
  *
- * Acquire a reference on the default #ValentFindmyphoneRinger.
+ * Acquire a reference on the default `ValentFindmyphoneRinger`.
  *
- * Returns: (transfer full): a #ValentFindmyphoneRinger
+ * Returns: (transfer full): a `ValentFindmyphoneRinger`
  */
 ValentFindmyphoneRinger *
 valent_findmyphone_ringer_acquire (void)
@@ -262,9 +262,9 @@ valent_findmyphone_ringer_acquire (void)
 
 /**
  * valent_findmyphone_ringer_release:
- * @data: (type Valent.FindmyphoneRinger): a #ValentFindmyphoneRinger
+ * @data: (type Valent.FindmyphoneRinger): a `ValentFindmyphoneRinger`
  *
- * Release a reference on the default #ValentFindmyphoneRinger.
+ * Release a reference on the default `ValentFindmyphoneRinger`.
  */
 void
 valent_findmyphone_ringer_release (gpointer data)
@@ -278,8 +278,8 @@ valent_findmyphone_ringer_release (gpointer data)
 
 /**
  * valent_findmyphone_ringer_toggle:
- * @ringer: a #ValentFindmyphoneRinger
- * @owner: (type GObject.Object): a #GObject
+ * @ringer: a `ValentFindmyphoneRinger`
+ * @owner: (type GObject.Object): a `GObject`
  *
  * Toggle the ringing state of @ringer.
  */
@@ -303,8 +303,8 @@ valent_findmyphone_ringer_toggle (ValentFindmyphoneRinger *ringer,
 
 /**
  * valent_findmyphone_ringer_is_owner:
- * @ringer: a #ValentFindmyphoneRinger
- * @owner: (type GObject.Object): a #GObject
+ * @ringer: a `ValentFindmyphoneRinger`
+ * @owner: (type GObject.Object): a `GObject`
  *
  * Check if @owner is responsible for the current state of @ringer.
  *

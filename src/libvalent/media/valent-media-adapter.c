@@ -16,7 +16,7 @@
  *
  * An abstract base class for media player adapters.
  *
- * #ValentMediaAdapter is a base class for plugins that provide an interface to
+ * `ValentMediaAdapter` is a base class for plugins that provide an interface to
  * manage media players. This usually means monitoring and querying instances of
  * [class@Valent.MediaPlayer].
  *
@@ -48,7 +48,7 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentMediaAdapter, valent_media_adapter, VALE
  * @export_player: the virtual function pointer for valent_media_adapter_export()
  * @unexport_player: the virtual function pointer for valent_media_adapter_unexport()
  *
- * The virtual function table for #ValentMediaAdapter.
+ * The virtual function table for `ValentMediaAdapter`.
  */
 
 
@@ -148,8 +148,8 @@ valent_media_adapter_init (ValentMediaAdapter *self)
 
 /**
  * valent_media_adapter_player_added:
- * @adapter: a #ValentMediaAdapter
- * @player: a #ValentMediaPlayer
+ * @adapter: a `ValentMediaAdapter`
+ * @player: a `ValentMediaPlayer`
  *
  * Called when @player has been added to @adapter.
  *
@@ -176,8 +176,8 @@ valent_media_adapter_player_added (ValentMediaAdapter *adapter,
 
 /**
  * valent_media_adapter_player_removed:
- * @adapter: a #ValentMediaAdapter
- * @player: a #ValentMediaPlayer
+ * @adapter: a `ValentMediaAdapter`
+ * @player: a `ValentMediaPlayer`
  *
  * Called when @player has been removed from @adapter.
  *
@@ -212,8 +212,8 @@ valent_media_adapter_player_removed (ValentMediaAdapter *adapter,
 
 /**
  * valent_media_adapter_export_player: (virtual export_player)
- * @adapter: an #ValentMediaAdapter
- * @player: a #ValentMediaPlayer
+ * @adapter: an `ValentMediaAdapter`
+ * @player: a `ValentMediaPlayer`
  *
  * Export @player on @adapter.
  *
@@ -241,8 +241,8 @@ valent_media_adapter_export_player (ValentMediaAdapter *adapter,
 
 /**
  * valent_media_adapter_unexport_player: (virtual unexport_player)
- * @adapter: an #ValentMediaAdapter
- * @player: a #ValentMediaPlayer
+ * @adapter: an `ValentMediaAdapter`
+ * @player: a `ValentMediaPlayer`
  *
  * Unexport @player from @adapter.
  *

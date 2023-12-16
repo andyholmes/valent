@@ -17,7 +17,7 @@
  *
  * An abstract base class for address book providers.
  *
- * #ValentContactsAdapter is a base class for plugins that provide an
+ * `ValentContactsAdapter` is a base class for plugins that provide an
  * interface to manage address books. This usually means monitoring and
  * querying [class@Valent.ContactStore] instances.
  *
@@ -47,7 +47,7 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentContactsAdapter, valent_contacts_adapter
 /**
  * ValentContactsAdapterClass:
  *
- * The virtual function table for #ValentContactsAdapter.
+ * The virtual function table for `ValentContactsAdapter`.
  */
 
 
@@ -126,8 +126,8 @@ valent_contacts_adapter_init (ValentContactsAdapter *adapter)
 
 /**
  * valent_contacts_adapter_store_added:
- * @adapter: a #ValentContactsAdapter
- * @store: a #ValentContactStore
+ * @adapter: a `ValentContactsAdapter`
+ * @store: a `ValentContactStore`
  *
  * Called when @store has been added to @adapter.
  *
@@ -154,8 +154,8 @@ valent_contacts_adapter_store_added (ValentContactsAdapter *adapter,
 
 /**
  * valent_contacts_adapter_store_removed:
- * @adapter: a #ValentContactsAdapter
- * @store: a #ValentContactStore
+ * @adapter: a `ValentContactsAdapter`
+ * @store: a `ValentContactStore`
  *
  * Called when @store has been removed from @adapter.
  *

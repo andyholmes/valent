@@ -181,7 +181,7 @@ valent_packet_get_type (JsonNode *packet)
  *
  * Convenience function for getting the packet body of a KDE Connect packet.
  *
- * Returns: (transfer none) (nullable): a #JsonObject
+ * Returns: (transfer none) (nullable): a `JsonObject`
  *
  * Since: 1.0
  */
@@ -242,7 +242,7 @@ valent_packet_has_payload (JsonNode *packet)
  * valent_packet_get_payload_full:
  * @packet: a KDE Connect packet
  * @size: (out) (nullable): the payload size
- * @error: (nullable): a #GError
+ * @error: (nullable): a `GError`
  *
  * A convenience for retrieving the `payloadTransferInfo` and `payloadSize`
  * fields from @packet.
@@ -251,7 +251,7 @@ valent_packet_has_payload (JsonNode *packet)
  * returned with @error set. See valent_packet_has_payload() for validation
  * criteria.
  *
- * Returns: (transfer none) (nullable): a #JsonObject
+ * Returns: (transfer none) (nullable): a `JsonObject`
  *
  * Since: 1.0
  */
@@ -301,7 +301,7 @@ valent_packet_get_payload_full (JsonNode  *packet,
 /**
  * valent_packet_set_payload_full:
  * @packet: a KDE Connect packet
- * @info: (transfer full): a #JsonObject
+ * @info: (transfer full): a `JsonObject`
  * @size: the payload size in bytes
  *
  * A convenience method for setting the `payloadTransferInfo` and `payloadSize`
@@ -330,7 +330,7 @@ valent_packet_set_payload_full (JsonNode   *packet,
  *
  * A convenience for retrieve the 'payloadTransferInfo` field from @packet.
  *
- * Returns: (transfer none) (nullable): a #JsonObject
+ * Returns: (transfer none) (nullable): a `JsonObject`
  *
  * Since: 1.0
  */
@@ -353,7 +353,7 @@ valent_packet_get_payload_info (JsonNode *packet)
 /**
  * valent_packet_set_payload_info:
  * @packet: a KDE Connect packet
- * @info: (transfer full): a #JsonObject
+ * @info: (transfer full): a `JsonObject`
  *
  * A convenience method for setting the `payloadTransferInfo` field on @packet.
  *
@@ -655,11 +655,11 @@ valent_packet_get_string (JsonNode    *packet,
  * valent_packet_get_array:
  * @packet: a KDE Connect packet
  * @field: (not nullable): field name
- * @value: (out) (nullable): a #JsonArray
+ * @value: (out) (nullable): a `JsonArray`
  *
  * Lookup @field in the body of @packet and assign it to @value.
  *
- * If @field is not found or it is not a #JsonArray, %FALSE will be returned and
+ * If @field is not found or it is not a `JsonArray`, %FALSE will be returned and
  * @value will not be set.
  *
  * Returns: %TRUE, or %FALSE on failure
@@ -699,11 +699,11 @@ valent_packet_get_array (JsonNode    *packet,
  * valent_packet_get_object:
  * @packet: a KDE Connect packet
  * @field: (not nullable): field name
- * @value: (out) (nullable): a #JsonObject
+ * @value: (out) (nullable): a `JsonObject`
  *
  * Lookup @field in the body of @packet and assign it to @value.
  *
- * If @field is not found or it is not a #JsonObject, %FALSE will be returned
+ * If @field is not found or it is not a `JsonObject`, %FALSE will be returned
  * and @value will not be set.
  *
  * Returns: %TRUE, or %FALSE on failure
@@ -747,7 +747,7 @@ valent_packet_get_object (JsonNode    *packet,
  * Lookup @field in the body of @packet and return a newly allocated list of
  * strings.
  *
- * If @field is not found, it is not a #JsonArray or any of its elements are not
+ * If @field is not found, it is not a `JsonArray` or any of its elements are not
  * strings, %NULL will be returned.
  *
  * Returns: (transfer full) (nullable) (array zero-terminated=1): a list of strings
@@ -801,7 +801,7 @@ valent_packet_dup_strv (JsonNode   *packet,
 /**
  * valent_packet_validate:
  * @packet: (nullable): a KDE Connect packet
- * @error: (nullable): a #GError
+ * @error: (nullable): a `GError`
  *
  * Check if @packet is a well-formed KDE Connect packet.
  *
@@ -901,10 +901,10 @@ valent_packet_validate (JsonNode  *packet,
 
 /**
  * valent_packet_from_stream:
- * @stream: a #GInputStream
+ * @stream: a `GInputStream`
  * @max_len: the maximum number bytes to read, or `-1` for no limit
- * @cancellable: (nullable): a #GCancellable
- * @error: (nullable): a #GError
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
  *
  * Read a KDE Connect packet from an input stream.
  *
@@ -993,10 +993,10 @@ valent_packet_from_stream (GInputStream  *stream,
 
 /**
  * valent_packet_to_stream:
- * @stream: a #GOutputStream
+ * @stream: a `GOutputStream`
  * @packet: a KDE Connect packet
- * @cancellable: (nullable): a #GCancellable
- * @error: (nullable): a #GError
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
  *
  * A convenience function for writing a packet to a connection.
  *
@@ -1088,7 +1088,7 @@ valent_packet_serialize (JsonNode *packet)
 /**
  * valent_packet_deserialize:
  * @json: a complete KDE Connect packet
- * @error: (nullable): a #GError
+ * @error: (nullable): a `GError`
  *
  * Convenience function that deserializes a KDE Connect packet from a string
  * with basic validation. If @str is empty, this function will return %NULL.

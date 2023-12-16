@@ -400,11 +400,11 @@ valent_lan_channel_init (ValentLanChannel *self)
 
 /**
  * valent_lan_channel_ref_certificate:
- * @self: a #ValentLanChannel
+ * @self: a `ValentLanChannel`
  *
  * Get the TLS certificate.
  *
- * Returns: (transfer full) (nullable): a #GTlsCertificate
+ * Returns: (transfer full) (nullable): a `GTlsCertificate`
  */
 GTlsCertificate *
 valent_lan_channel_ref_certificate (ValentLanChannel *self)
@@ -424,11 +424,11 @@ valent_lan_channel_ref_certificate (ValentLanChannel *self)
 
 /**
  * valent_lan_channel_ref_peer_certificate:
- * @self: a #ValentLanChannel
+ * @self: a `ValentLanChannel`
  *
  * Get the peer TLS certificate.
  *
- * Returns: (transfer full) (nullable): a #GTlsCertificate
+ * Returns: (transfer full) (nullable): a `GTlsCertificate`
  */
 GTlsCertificate *
 valent_lan_channel_ref_peer_certificate (ValentLanChannel *self)
@@ -448,7 +448,7 @@ valent_lan_channel_ref_peer_certificate (ValentLanChannel *self)
 
 /**
  * valent_lan_channel_dup_host:
- * @self: a #ValentLanChannel
+ * @self: a `ValentLanChannel`
  *
  * Get the host address.
  *
@@ -470,7 +470,7 @@ valent_lan_channel_dup_host (ValentLanChannel *self)
 
 /**
  * valent_lan_channel_get_port:
- * @self: a #ValentLanChannel
+ * @self: a `ValentLanChannel`
  *
  * Get the host port.
  *

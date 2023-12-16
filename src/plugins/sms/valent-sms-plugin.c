@@ -167,7 +167,7 @@ valent_sms_plugin_deserialize_message (ValentSmsPlugin *self,
 
 /**
  * messages_is_thread:
- * @messages: a #JsonArray
+ * @messages: a `JsonArray`
  *
  * Check if @messages is a thread of messages, or a summary of threads.
  *

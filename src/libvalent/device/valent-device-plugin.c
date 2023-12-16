@@ -198,7 +198,7 @@ valent_device_plugin_queue_packet (ValentDevicePlugin *plugin,
  * valent_device_plugin_show_notification:
  * @plugin: a `ValentDevicePlugin`
  * @id: an id for the notification
- * @notification: a #GNotification
+ * @notification: a `GNotification`
  *
  * A convenience for showing a local notification.
  *
@@ -311,7 +311,7 @@ valent_device_plugin_handle_packet (ValentDevicePlugin *plugin,
 /**
  * valent_device_plugin_update_state: (virtual update_state)
  * @plugin: a `ValentDevicePlugin`
- * @state: a #ValentDeviceState
+ * @state: a `ValentDeviceState`
  *
  * Update the plugin based on the new state of the device.
  *
@@ -448,8 +448,8 @@ valent_device_plugin_set_menu_item (ValentDevicePlugin *plugin,
 
 /**
  * valent_notification_set_device_action:
- * @notification: a #GNotification
- * @device: a #ValentDevice
+ * @notification: a `GNotification`
+ * @device: a `ValentDevice`
  * @action: the device action name
  * @target: (nullable): the action target
  *
@@ -486,8 +486,8 @@ valent_notification_set_device_action (GNotification *notification,
 
 /**
  * valent_notification_add_device_button:
- * @notification: a #GNotification
- * @device: a #ValentDevice
+ * @notification: a `GNotification`
+ * @device: a `ValentDevice`
  * @label: the button label
  * @action: the device action name
  * @target: (nullable): the action target

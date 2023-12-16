@@ -54,9 +54,9 @@ get_device_host (ValentSftpPlugin *self)
  * @port: Port
  * @username: Username (deprecated)
  * @password: Password (deprecated)
- * @mount: A #GMount for the session
+ * @mount: A `GMount` for the session
  *
- * #ValentSftpSession is a simple representation of a SFTP session.
+ * `ValentSftpSession` is a simple representation of a SFTP session.
  */
 typedef struct _ValentSftpSession
 {
@@ -259,7 +259,7 @@ on_mount_removed (GVolumeMonitor   *volume_monitor,
  * avoid password authentication if possible.
  *
  * All host keys are accepted since we connect to known hosts as communicated
- * over the TLS encrypted #ValentLanChannel.
+ * over the TLS encrypted `ValentLanChannel`.
  */
 static void
 ask_password_cb (GMountOperation   *op,

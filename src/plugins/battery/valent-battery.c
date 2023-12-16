@@ -314,9 +314,9 @@ valent_battery_class_init (ValentBatteryClass *klass)
 
   /**
    * ValentBattery::changed:
-   * @self: a #ValentBattery
+   * @self: a `ValentBattery`
    *
-   * #ValentBattery::changed is emitted whenever a relevant property changes.
+   * `ValentBattery`::changed is emitted whenever a relevant property changes.
    */
   signals [CHANGED] =
     g_signal_new ("changed",
@@ -350,9 +350,9 @@ valent_battery_init (ValentBattery *self)
 /**
  * valent_battery_get_default:
  *
- * Get the default #ValentBattery.
+ * Get the default `ValentBattery`.
  *
- * Returns: (transfer none): The default #ValentBattery
+ * Returns: (transfer none): The default `ValentBattery`
  */
 ValentBattery *
 valent_battery_get_default (void)
@@ -370,7 +370,7 @@ valent_battery_get_default (void)
 
 /**
  * valent_battery_current_charge:
- * @battery: a #ValentBattery
+ * @battery: a `ValentBattery`
  *
  * Get the charge level of @battery.
  *
@@ -392,7 +392,7 @@ valent_battery_current_charge (ValentBattery *battery)
 
 /**
  * valent_battery_is_charging:
- * @battery: a #ValentBattery
+ * @battery: a `ValentBattery`
  *
  * Get whether the battery is charging.
  *
@@ -411,7 +411,7 @@ valent_battery_is_charging (ValentBattery *battery)
 
 /**
  * valent_battery_is_present:
- * @battery: a #ValentBattery
+ * @battery: a `ValentBattery`
  *
  * Get whether the battery is present.
  *
@@ -427,7 +427,7 @@ valent_battery_is_present (ValentBattery *battery)
 
 /**
  * valent_battery_is_charging:
- * @battery: a #ValentBattery
+ * @battery: a `ValentBattery`
  *
  * Get whether the battery is charging.
  *

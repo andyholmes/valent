@@ -16,7 +16,7 @@
  *
  * An abstract base class for plugin preferences.
  *
- * #ValentPreferencesPage is a base class for plugins that want to provide a
+ * `ValentPreferencesPage` is a base class for plugins that want to provide a
  * preferences page. Unlike [class@Valent.DevicePreferencesGroup] the page should
  * configure all of the plugin's extension implementations, with the exception
  * of [class@Valent.DevicePlugin].
@@ -46,7 +46,7 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 /**
  * ValentPreferencesPageClass:
  *
- * The virtual function table for #ValentPreferencesPage.
+ * The virtual function table for `ValentPreferencesPage`.
  *
  * Since: 1.0
  */

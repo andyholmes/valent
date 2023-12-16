@@ -21,7 +21,7 @@
  *
  * An abstract base class for components.
  *
- * #ValentComponent is a base class for session and system components, such as
+ * `ValentComponent` is a base class for session and system components, such as
  * the clipboard or volume control. Each component is typically used in a
  * singleton pattern, backed by one or more extensions.
  *
@@ -47,7 +47,7 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentComponent, valent_component, VALENT_T
  * @bind_extension: the virtual function pointer for bind_extension()
  * @unbind_extension: the virtual function pointer for unbind_extension()
  *
- * The virtual function table for #ValentComponent.
+ * The virtual function table for `ValentComponent`.
  */
 
 enum {
@@ -377,7 +377,7 @@ valent_component_real_unbind_extension (ValentComponent *component,
 
 /*< private >
  * valent_component_get_preferred:
- * @self: a #ValentComponent
+ * @self: a `ValentComponent`
  *
  * Get the extension with the highest priority for @self.
  *

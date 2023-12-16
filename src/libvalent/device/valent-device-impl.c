@@ -433,11 +433,11 @@ valent_device_impl_init (ValentDeviceImpl *self)
 
 /**
  * valent_device_impl_new:
- * @device: a #ValentDevice
+ * @device: a `ValentDevice`
  *
- * Create a new #ValentDeviceImpl.
+ * Create a new `ValentDeviceImpl`.
  *
- * Returns: (transfer full): a #GDBusInterfaceSkeleton
+ * Returns: (transfer full): a `GDBusInterfaceSkeleton`
  */
 GDBusInterfaceSkeleton *
 valent_device_impl_new (ValentDevice *device)

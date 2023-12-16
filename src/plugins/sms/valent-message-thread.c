@@ -345,7 +345,7 @@ valent_message_thread_class_init (ValentMessageThreadClass *klass)
   /**
    * ValentMessageThread:message-store:
    *
-   * The #ValentSmsStore providing #ValentMessage objects for the thread.
+   * The `ValentSmsStore` providing `ValentMessage` objects for the thread.
    */
   properties [PROP_STORE] =
     g_param_spec_object ("store", NULL, NULL,
@@ -370,9 +370,9 @@ valent_message_thread_init (ValentMessageThread *self)
  * @store: a @ValentSmsStore
  * @id: a thread ID
  *
- * Create a new #ValentMessageThread.
+ * Create a new `ValentMessageThread`.
  *
- * Returns: (transfer full): a #GListModel
+ * Returns: (transfer full): a `GListModel`
  */
 GListModel *
 valent_message_thread_new (ValentSmsStore *store,
@@ -389,7 +389,7 @@ valent_message_thread_new (ValentSmsStore *store,
 
 /**
  * valent_message_thread_get_id:
- * @thread: a #ValentMessageThread
+ * @thread: a `ValentMessageThread`
  *
  * Get the thread ID for @thread.
  *
@@ -405,7 +405,7 @@ valent_message_thread_get_id (ValentMessageThread *thread)
 
 /**
  * valent_message_thread_set_id:
- * @thread: a #ValentMessageThread
+ * @thread: a `ValentMessageThread`
  * @id: a thread ID
  *
  * Set the thread ID for @thread to @id.
@@ -433,11 +433,11 @@ valent_message_thread_set_id (ValentMessageThread *thread,
 
 /**
  * valent_message_thread_get_db:
- * @thread: a #ValentMessageThread
+ * @thread: a `ValentMessageThread`
  *
  * Get the thread ID for @thread.
  *
- * Returns: a #ValentSmsStore
+ * Returns: a `ValentSmsStore`
  */
 ValentSmsStore *
 valent_message_thread_get_store (ValentMessageThread *thread)
