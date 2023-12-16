@@ -251,8 +251,7 @@ valent_clipboard_plugin_handle_clipboard (ValentClipboardPlugin *self,
 
   /* The remote clipboard content is cached, for manual control over syncing,
    * because there is no packet type for requesting it on-demand. */
-  g_clear_pointer (&self->remote_text, g_free);
-  self->remote_text = g_strdup (content);
+  g_set_str (&self->remote_text, content);
   self->remote_timestamp = valent_timestamp_ms ();
 
   if (!self->auto_pull)
