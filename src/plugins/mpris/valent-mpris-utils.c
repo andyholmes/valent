@@ -91,9 +91,9 @@ valent_mpris_get_info (void)
 /**
  * valent_mpris_get_application_iface:
  *
- * Get a #GDBusInterfaceInfo for the `org.mpris.MediaPlayer2` interface.
+ * Get a `GDBusInterfaceInfo` for the `org.mpris.MediaPlayer2` interface.
  *
- * Returns: (transfer none): a #GDBusInterfaceInfo
+ * Returns: (transfer none): a `GDBusInterfaceInfo`
  */
 GDBusInterfaceInfo *
 valent_mpris_get_application_iface (void)
@@ -106,9 +106,9 @@ valent_mpris_get_application_iface (void)
 /**
  * valent_mpris_get_player_iface:
  *
- * Get a #GDBusInterfaceInfo for the `org.mpris.MediaPlayer2.Player` interface.
+ * Get a `GDBusInterfaceInfo` for the `org.mpris.MediaPlayer2.Player` interface.
  *
- * Returns: (transfer none): a #GDBusInterfaceInfo
+ * Returns: (transfer none): a `GDBusInterfaceInfo`
  */
 GDBusInterfaceInfo *
 valent_mpris_get_player_iface (void)
@@ -122,7 +122,7 @@ valent_mpris_get_player_iface (void)
  * valent_mpris_repeat_from_string:
  * @loop_status: repeat mode to translate
  *
- * Translate an MPRIS `LoopStatus` string to a #ValentMediaRepeat.
+ * Translate an MPRIS `LoopStatus` string to a `ValentMediaRepeat`.
  *
  * Returns: (transfer none): a repeat mode
  */
@@ -147,7 +147,7 @@ valent_mpris_repeat_from_string (const char *loop_status)
  * valent_mpris_repeat_to_string:
  * @repeat: repeat mode to translate
  *
- * Translate a #ValentMediaRepeat enum to an MPRIS `LoopStatus` string.
+ * Translate a `ValentMediaRepeat` enum to an MPRIS `LoopStatus` string.
  *
  * Returns: (transfer none): a status string
  */
@@ -172,7 +172,7 @@ valent_mpris_repeat_to_string (ValentMediaRepeat repeat)
  * valent_mpris_state_from_string:
  * @playback_status: playback mode to translate
  *
- * Translate an MPRIS `PlaybackStatus` string to a #ValentMediaState.
+ * Translate an MPRIS `PlaybackStatus` string to a `ValentMediaState`.
  *
  * Returns: (transfer none): a playback state
  */
@@ -197,7 +197,7 @@ valent_mpris_state_from_string (const char *playback_status)
  * valent_mpris_state_to_string:
  * @state: playback mode to translate
  *
- * Translate a #ValentMediaState enum to an MPRIS `PlaybackStatus` string.
+ * Translate a `ValentMediaState` enum to an MPRIS `PlaybackStatus` string.
  *
  * Returns: (transfer none): a status string
  */

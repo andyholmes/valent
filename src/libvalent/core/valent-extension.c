@@ -529,7 +529,7 @@ valent_extension_init (ValentExtension *self)
  *
  * Get the settings for this plugin.
  *
- * Returns: (transfer none) (nullable): a #ValentContext
+ * Returns: (transfer none) (nullable): a `ValentContext`
  *
  * Since: 1.0
  */

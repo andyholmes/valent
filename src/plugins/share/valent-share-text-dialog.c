@@ -227,7 +227,7 @@ valent_share_text_dialog_init (ValentShareTextDialog *self)
 
 /**
  * valent_share_text_dialog_get_text:
- * @dialog: a #ValentShareTextDialog
+ * @dialog: a `ValentShareTextDialog`
  *
  * Get the text content shared by the remote [class@Valent.Device].
  *
@@ -243,7 +243,7 @@ valent_share_text_dialog_get_text (ValentShareTextDialog *dialog)
 
 /**
  * valent_share_text_dialog_set_text:
- * @self: a #ValentShareTextDialog
+ * @self: a `ValentShareTextDialog`
  * @text: (nullable): text content
  *
  * Set the text content shared by the remote [class@Valent.Device].

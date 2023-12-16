@@ -19,7 +19,7 @@
  *
  * A class for monitoring and controlling media players.
  *
- * #ValentMedia is an aggregator of media players, intended for use by
+ * `ValentMedia` is an aggregator of media players, intended for use by
  * [class@Valent.DevicePlugin] implementations.
  *
  * Plugins can implement [class@Valent.MediaAdapter] to provide an
@@ -273,7 +273,7 @@ valent_media_init (ValentMedia *self)
  *
  * Get the default [class@Valent.Media].
  *
- * Returns: (transfer none) (not nullable): a #ValentMedia
+ * Returns: (transfer none) (not nullable): a `ValentMedia`
  *
  * Since: 1.0
  */
@@ -296,8 +296,8 @@ valent_media_get_default (void)
 
 /**
  * valent_media_export_player:
- * @media: a #ValentMedia
- * @player: a #ValentMediaPlayer
+ * @media: a `ValentMedia`
+ * @player: a `ValentMediaPlayer`
  *
  * Export @player on all adapters that support it.
  *
@@ -337,8 +337,8 @@ valent_media_export_player (ValentMedia       *media,
 
 /**
  * valent_media_unexport_player:
- * @media: a #ValentMedia
- * @player: a #ValentMediaPlayer
+ * @media: a `ValentMedia`
+ * @player: a `ValentMediaPlayer`
  *
  * Unexport @player from all adapters that support it.
  *
@@ -380,7 +380,7 @@ valent_media_unexport_player (ValentMedia       *media,
 
 /**
  * valent_media_pause:
- * @media: a #ValentMedia
+ * @media: a `ValentMedia`
  *
  * Pause any playing media players. Any player whose playback status is changed
  * will be tracked so that playback may be resumed with valent_media_play().
@@ -412,7 +412,7 @@ valent_media_pause (ValentMedia *media)
 
 /**
  * valent_media_unpause:
- * @media: a #ValentMedia
+ * @media: a `ValentMedia`
  *
  * Unpause any media players we previously paused.
  *

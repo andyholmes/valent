@@ -20,7 +20,7 @@
  *
  * A class for device file transfers.
  *
- * #ValentDeviceTransfer is an implementation of [class@Valent.Transfer] for the
+ * `ValentDeviceTransfer` is an implementation of [class@Valent.Transfer] for the
  * common case of transferring a file between devices.
  *
  * The direction of the transfer is automatically detected from the content of
@@ -446,13 +446,13 @@ valent_device_transfer_init (ValentDeviceTransfer *self)
 
 /**
  * valent_device_transfer_new:
- * @device: a #ValentDevice
+ * @device: a `ValentDevice`
  * @packet: a KDE Connect packet
- * @file: a #GFile
+ * @file: a `GFile`
  *
  * A convenience for creating a simple file transfer.
  *
- * Returns: (transfer full) (nullable): a #ValentDeviceTransfer
+ * Returns: (transfer full) (nullable): a `ValentDeviceTransfer`
  *
  * Since: 1.0
  */
@@ -474,11 +474,11 @@ valent_device_transfer_new (ValentDevice *device,
 
 /**
  * valent_device_transfer_ref_device: (get-property device)
- * @transfer: a #ValentDeviceTransfer
+ * @transfer: a `ValentDeviceTransfer`
  *
  * Get the [class@Valent.Device].
  *
- * Returns: (transfer full) (nullable): a #ValentDevice
+ * Returns: (transfer full) (nullable): a `ValentDevice`
  *
  * Since: 1.0
  */
@@ -499,11 +499,11 @@ valent_device_transfer_ref_device (ValentDeviceTransfer *transfer)
 
 /**
  * valent_device_transfer_ref_file: (get-property file)
- * @transfer: a #ValentDeviceTransfer
+ * @transfer: a `ValentDeviceTransfer`
  *
  * Get the local [iface@Gio.File].
  *
- * Returns: (transfer full) (nullable): a #GFile
+ * Returns: (transfer full) (nullable): a `GFile`
  *
  * Since: 1.0
  */
@@ -524,7 +524,7 @@ valent_device_transfer_ref_file (ValentDeviceTransfer *transfer)
 
 /**
  * valent_device_transfer_ref_packet: (get-property packet)
- * @transfer: a #ValentDeviceTransfer
+ * @transfer: a `ValentDeviceTransfer`
  *
  * Get the KDE Connect packet.
  *

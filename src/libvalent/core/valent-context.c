@@ -19,7 +19,7 @@
  *
  * A class representing a abstract data context.
  *
- * #ValentContext is an abstraction of a data context, with a loose hierarchy
+ * `ValentContext` is an abstraction of a data context, with a loose hierarchy
  * expressed as a virtual path (e.g. `device/0123456789abcdef/plugin/battery`).
  * It can be used to coordinate persistent data of various types by mapping onto
  * existing hierarchies like [class@Gio.Settings] (i.e. relocatable schemas),
@@ -47,7 +47,7 @@ G_DEFINE_TYPE_WITH_PRIVATE (ValentContext, valent_context, VALENT_TYPE_OBJECT)
 /**
  * ValentContextClass:
  *
- * The virtual function table for #ValentContext.
+ * The virtual function table for `ValentContext`.
  */
 
 enum {
@@ -288,7 +288,7 @@ valent_context_init (ValentContext *self)
  * @domain: (nullable): a domain
  * @id: (nullable): a unique identifier
  *
- * Create a new #ValentContext.
+ * Create a new `ValentContext`.
  *
  * If given, @parent will be taken into consideration when building paths.
  *
@@ -298,7 +298,7 @@ valent_context_init (ValentContext *self)
  * If given, @id should be an identifier that is at least unique to @domain,
  * even if @domain is %NULL.
  *
- * Returns: (transfer full): a new #ValentContext.
+ * Returns: (transfer full): a new `ValentContext`.
  *
  * Since: 1.0
  */
@@ -316,7 +316,7 @@ valent_context_new (ValentContext *parent,
 
 /**
  * valent_context_get_domain: (get-property domain)
- * @context: a #ValentContext
+ * @context: a `ValentContext`
  *
  * Get the context domain.
  *
@@ -336,7 +336,7 @@ valent_context_get_domain (ValentContext *context)
 
 /**
  * valent_context_get_id: (get-property id)
- * @context: a #ValentContext
+ * @context: a `ValentContext`
  *
  * Get the context ID.
  *
@@ -356,11 +356,11 @@ valent_context_get_id (ValentContext *context)
 
 /**
  * valent_context_get_parent: (get-property parent)
- * @context: a #ValentContext
+ * @context: a `ValentContext`
  *
  * Get the parent context.
  *
- * Returns: (transfer none) (nullable): a #ValentContext
+ * Returns: (transfer none) (nullable): a `ValentContext`
  */
 ValentContext *
 valent_context_get_parent (ValentContext *context)
@@ -374,7 +374,7 @@ valent_context_get_parent (ValentContext *context)
 
 /**
  * valent_context_get_path:
- * @context: a #ValentContext
+ * @context: a `ValentContext`
  *
  * Get the virtual path.
  *
@@ -394,7 +394,7 @@ valent_context_get_path (ValentContext *context)
 
 /**
  * valent_context_clear_cache:
- * @context: a #ValentContext
+ * @context: a `ValentContext`
  *
  * Clear cache data.
  *
@@ -417,7 +417,7 @@ valent_context_clear_cache (ValentContext *context)
 
 /**
  * valent_context_clear:
- * @context: a #ValentContext
+ * @context: a `ValentContext`
  *
  * Clear cache and configuration data.
  *
@@ -450,7 +450,7 @@ valent_context_clear (ValentContext *context)
 
 /**
  * valent_context_get_cache_file:
- * @context: a #ValentContext
+ * @context: a `ValentContext`
  * @filename: (type filename): a filename
  *
  * Create a new cache file.
@@ -458,7 +458,7 @@ valent_context_clear (ValentContext *context)
  * This method creates a new [iface@Gio.File] for @filename in the cache
  * directory.
  *
- * Returns: (transfer full) (nullable): a new #GFile
+ * Returns: (transfer full) (nullable): a new `GFile`
  *
  * Since: 1.0
  */
@@ -477,7 +477,7 @@ valent_context_get_cache_file (ValentContext *context,
 
 /**
  * valent_context_get_config_file:
- * @context: a #ValentContext
+ * @context: a `ValentContext`
  * @filename: (type filename): a filename
  *
  * Create a new config file.
@@ -485,7 +485,7 @@ valent_context_get_cache_file (ValentContext *context,
  * This method creates a new [iface@Gio.File] for @filename in the config
  * directory.
  *
- * Returns: (transfer full) (nullable): a new #GFile
+ * Returns: (transfer full) (nullable): a new `GFile`
  *
  * Since: 1.0
  */
@@ -504,7 +504,7 @@ valent_context_get_config_file (ValentContext *context,
 
 /**
  * valent_context_get_data_file:
- * @context: a #ValentContext
+ * @context: a `ValentContext`
  * @filename: (type filename): a filename
  *
  * Create a new data file.
@@ -512,7 +512,7 @@ valent_context_get_config_file (ValentContext *context,
  * This method creates a new [iface@Gio.File] for @filename in the data
  * directory.
  *
- * Returns: (transfer full) (nullable): a new #GFile
+ * Returns: (transfer full) (nullable): a new `GFile`
  *
  * Since: 1.0
  */
@@ -531,10 +531,10 @@ valent_context_get_data_file (ValentContext *context,
 
 /**
  * valent_context_get_plugin_context:
- * @context: a #ValentContext
- * @plugin_info: a #PeasPluginInfo
+ * @context: a `ValentContext`
+ * @plugin_info: a `PeasPluginInfo`
  *
- * Create a new #ValentContext for a plugin.
+ * Create a new `ValentContext` for a plugin.
  *
  * If given, @domain should be an identifier describing the scope of the
  * contexts that will share it.
@@ -542,7 +542,7 @@ valent_context_get_data_file (ValentContext *context,
  * If given, @id should be an identifier that is at least unique to @domain,
  * even if @domain is %NULL.
  *
- * Returns: (transfer full): a new #ValentContext.
+ * Returns: (transfer full): a new `ValentContext`.
  *
  * Since: 1.0
  */
@@ -562,8 +562,8 @@ valent_context_get_plugin_context (ValentContext  *context,
 
 /**
  * valent_context_get_plugin_settings:
- * @context: a #ValentContext
- * @plugin_info: a #PeasPluginInfo
+ * @context: a `ValentContext`
+ * @plugin_info: a `PeasPluginInfo`
  * @plugin_key: an external data key
  *
  * Create a [class@Gio.Settings] object for a plugin.
@@ -670,7 +670,7 @@ valent_context_get_root (ValentContext *context)
 
 /**
  * valent_context_create_settings:
- * @context: a #ValentContext
+ * @context: a `ValentContext`
  * @schema_id: a `GSettings` schema ID
  *
  * Create a [class@Gio.Settings] object.

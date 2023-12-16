@@ -97,7 +97,7 @@ valent_menu_stack_class_init (ValentMenuStackClass *klass)
   /**
    * ValentMenuStack:model:
    *
-   * The #GMenuModel for this #ValentMenuStack.
+   * The `GMenuModel` for this `ValentMenuStack`.
    */
   properties [PROP_MENU_MODEL] =
     g_param_spec_object ("menu-model", NULL, NULL,
@@ -122,11 +122,11 @@ valent_menu_stack_init (ValentMenuStack *self)
 
 /**
  * valent_menu_stack_new:
- * @menu_model: (nullable): a #GMenuModel
+ * @menu_model: (nullable): a `GMenuModel`
  *
- * Create a new #ValentMenuStack.
+ * Create a new `ValentMenuStack`.
  *
- * Returns: a #GtkWidget
+ * Returns: a `GtkWidget`
  */
 GtkWidget *
 valent_menu_stack_new (GMenuModel *menu_model)
@@ -138,11 +138,11 @@ valent_menu_stack_new (GMenuModel *menu_model)
 
 /**
  * valent_menu_stack_get_model:
- * @stack: a #ValentMenuStack
+ * @stack: a `ValentMenuStack`
  *
- * Get the #GMenuModel for @stack.
+ * Get the `GMenuModel` for @stack.
  *
- * Returns: (transfer none) (nullable): a #GMenuModel
+ * Returns: (transfer none) (nullable): a `GMenuModel`
  */
 GMenuModel *
 valent_menu_stack_get_menu_model (ValentMenuStack *stack)
@@ -157,10 +157,10 @@ valent_menu_stack_get_menu_model (ValentMenuStack *stack)
 
 /**
  * valent_menu_stack_set_model:
- * @stack: a #ValentMenuStack
- * @menu_model: (nullable): a #GMenuModel
+ * @stack: a `ValentMenuStack`
+ * @menu_model: (nullable): a `GMenuModel`
  *
- * Set the #GMenuModel for @stack to @menu_model.
+ * Set the `GMenuModel` for @stack to @menu_model.
  */
 void
 valent_menu_stack_set_menu_model (ValentMenuStack *stack,

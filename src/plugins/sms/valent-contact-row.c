@@ -120,7 +120,7 @@ valent_contact_row_class_init (ValentContactRowClass *klass)
   /**
    * ValentContactRow:contact
    *
-   * The #EContact for this row.
+   * The `EContact` for this row.
    */
   properties [PROP_CONTACT] =
     g_param_spec_object ("contact", NULL, NULL,
@@ -149,7 +149,7 @@ valent_contact_row_class_init (ValentContactRowClass *klass)
    * ValentContactRow:contact-name
    *
    * The contact name displayed in the row, by default the full name of
-   * #ValentContactRow:contact.
+   * `ValentContactRow`:contact.
    */
   properties [PROP_CONTACT_NAME] =
     g_param_spec_string ("contact-name", NULL, NULL,
@@ -218,15 +218,15 @@ valent_contact_row_init (ValentContactRow *self)
 
 /**
  * valent_contact_row_header_func:
- * @row: a #GtkListBoxRow
- * @before: (nullable): a #GtkListBoxRow
+ * @row: a `GtkListBoxRow`
+ * @before: (nullable): a `GtkListBoxRow`
  * @user_data: (closure): user supplied data
  *
- * A #GtkListBoxHeaderFunc for #ValentContactRow widgets that takes care of
+ * A `GtkListBoxHeaderFunc` for `ValentContactRow` widgets that takes care of
  * hiding or showing the avatar and name depending on whether the row is
  * grouped with other rows for the same contact.
  *
- * For example, if @before is not a #ValentContactRow or for a different #EContact
+ * For example, if @before is not a `ValentContactRow` or for a different `EContact`
  * the avatar and name will be shown, otherwise it's considered a secondary row.
  */
 void
@@ -280,10 +280,10 @@ valent_contact_row_header_func (GtkListBoxRow *row,
 
 /**
  * valent_list_add_contact:
- * @list: a #GtkListBox
- * @contact: an #EContact
+ * @list: a `GtkListBox`
+ * @contact: an `EContact`
  *
- * A convenience for adding a #ValentContactRow to @list for each @contact
+ * A convenience for adding a `ValentContactRow` to @list for each @contact
  * number.
  */
 void
@@ -334,11 +334,11 @@ valent_list_add_contact (GtkListBox *list,
 
 /**
  * valent_contact_row_new:
- * @contact: an #EContact
+ * @contact: an `EContact`
  *
- * Create a new #ValentContactRow for @contact.
+ * Create a new `ValentContactRow` for @contact.
  *
- * Returns: (transfer full): a new #ValentContactRow
+ * Returns: (transfer full): a new `ValentContactRow`
  */
 GtkWidget *
 valent_contact_row_new (EContact *contact)
@@ -350,7 +350,7 @@ valent_contact_row_new (EContact *contact)
 
 /**
  * valent_contact_row_set_compact:
- * @row: a #ValentContactRow
+ * @row: a `ValentContactRow`
  * @compact: %TRUE or %FALSE
  *
  * Set whether @row should display the name and avatar (%FALSE) or not (%TRUE).
@@ -378,11 +378,11 @@ valent_contact_row_set_compact (ValentContactRow *row,
 
 /**
  * valent_contact_row_get_contact:
- * @row: a #ValentContactRow
+ * @row: a `ValentContactRow`
  *
- * Get the #EContact for @row.
+ * Get the `EContact` for @row.
  *
- * Returns: (transfer none): a #EContact
+ * Returns: (transfer none): a `EContact`
  */
 EContact *
 valent_contact_row_get_contact (ValentContactRow *row)
@@ -394,10 +394,10 @@ valent_contact_row_get_contact (ValentContactRow *row)
 
 /**
  * valent_contact_row_set_contact:
- * @row: a #ValentContactRow
- * @contact: a #ValentContact
+ * @row: a `ValentContactRow`
+ * @contact: a `ValentContact`
  *
- * Set the #ValentContact for @row.
+ * Set the `ValentContact` for @row.
  */
 void
 valent_contact_row_set_contact (ValentContactRow *row,
@@ -424,7 +424,7 @@ valent_contact_row_set_contact (ValentContactRow *row,
 
 /**
  * valent_contact_row_get_contact_address:
- * @row: a #ValentContactRow
+ * @row: a `ValentContactRow`
  *
  * Get the contact address displayed in @row.
  *
@@ -440,7 +440,7 @@ valent_contact_row_get_contact_address (ValentContactRow *row)
 
 /**
  * valent_contact_row_set_contact_address:
- * @row: a #ValentContactRow
+ * @row: a `ValentContactRow`
  * @address: a phone number or other address
  *
  * Set the contact address displayed in @row.
@@ -457,7 +457,7 @@ valent_contact_row_set_contact_address (ValentContactRow *row,
 
 /**
  * valent_contact_row_get_contact_name:
- * @row: a #ValentContactRow
+ * @row: a `ValentContactRow`
  *
  * Get the contact name displayed in @row.
  *
@@ -473,7 +473,7 @@ valent_contact_row_get_contact_name (ValentContactRow *row)
 
 /**
  * valent_contact_row_set_contact_name:
- * @row: a #ValentContactRow
+ * @row: a `ValentContactRow`
  * @name: a contact name
  *
  * Set the contact name displayed in @row.

@@ -695,12 +695,12 @@ valent_notification_plugin_send_notification_with_icon (ValentNotificationPlugin
 
 /**
  * valent_notification_plugin_send_notification:
- * @self: a #ValentNotificationPlugin
+ * @self: a `ValentNotificationPlugin`
  * @id: the notification id
  * @appName: (nullable): the notifying application
  * @title: (nullable): the notification title
  * @body: (nullable): the notification body
- * @icon: (nullable): a #GIcon
+ * @icon: (nullable): a `GIcon`
  *
  * Send a notification to the remote device.
  */

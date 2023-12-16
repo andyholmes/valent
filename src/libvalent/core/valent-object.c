@@ -14,13 +14,13 @@
  *
  * A base class for objects.
  *
- * #ValentObject is a specialized #GObject class, based on GNOME Builder's
+ * `ValentObject` is a specialized `GObject` class, based on GNOME Builder's
  * `IdeObject`. It provides a simple base class with helpers for working in
  * threads.
  *
- * Instances have a #GRecMutex and a #GCancellable that is created on demand by
+ * Instances have a `GRecMutex` and a `GCancellable` that is created on demand by
  * valent_object_ref_cancellable() is called. When the object is destroyed, the
- * #GCancellable::cancel signal is emitted.
+ * `GCancellable`::cancel signal is emitted.
  *
  * Since: 1.0
  */
@@ -258,7 +258,7 @@ valent_object_class_init (ValentObjectClass *klass)
    *
    * The object [class@Gio.Cancellable].
    *
-   * A #GCancellable that can be used by operations that should be cancelled
+   * A `GCancellable` that can be used by operations that should be cancelled
    * when the object is destroyed (i.e. enters disposal).
    *
    * Since: 1.0
@@ -319,7 +319,7 @@ valent_object_init (ValentObject *self)
 
 /**
  * valent_object_lock:
- * @object: a #ValentObject
+ * @object: a `ValentObject`
  *
  * Acquire a lock on @object.
  *
@@ -339,7 +339,7 @@ valent_object_lock (ValentObject *object)
 
 /**
  * valent_object_unlock:
- * @object: a #ValentObject
+ * @object: a `ValentObject`
  *
  * Release a lock on @object.
  *
@@ -359,11 +359,11 @@ valent_object_unlock (ValentObject *object)
 
 /**
  * valent_object_ref_cancellable:
- * @object: a #ValentObject
+ * @object: a `ValentObject`
  *
  * Get a [class@Gio.Cancellable] for the object.
  *
- * Returns: (transfer full) (not nullable): @object's #GCancellable
+ * Returns: (transfer full) (not nullable): @object's `GCancellable`
  *
  * Since: 1.0
  */
@@ -386,8 +386,8 @@ valent_object_ref_cancellable (ValentObject *object)
 
 /**
  * valent_object_chain_cancellable:
- * @object: a #ValentObject
- * @cancellable: (nullable): a #GCancellable
+ * @object: a `ValentObject`
+ * @cancellable: (nullable): a `GCancellable`
  *
  * Chain a cancellable to the object's cancellable.
  *
@@ -401,7 +401,7 @@ valent_object_ref_cancellable (ValentObject *object)
  * asynchronous operation, to ensure it is cancelled if @cancellable is
  * triggered or @object is destroyed.
  *
- * Returns: (transfer full) (not nullable): a #GCancellable
+ * Returns: (transfer full) (not nullable): a `GCancellable`
  *
  * Since: 1.0
  */
@@ -439,7 +439,7 @@ valent_object_chain_cancellable (ValentObject *object,
 
 /**
  * valent_object_destroy:
- * @object: a #ValentObject
+ * @object: a `ValentObject`
  *
  * Destroy the object.
  *
@@ -482,7 +482,7 @@ valent_object_destroy (ValentObject *object)
 
 /**
  * valent_object_in_destruction:
- * @object: a #ValentObject
+ * @object: a `ValentObject`
  *
  * Get whether the object is destroyed or in destruction.
  *
@@ -507,7 +507,7 @@ valent_object_in_destruction (ValentObject *object)
 
 /**
  * valent_object_notify:
- * @object: a #ValentObject
+ * @object: a `ValentObject`
  * @property_name: a property name
  *
  * Emit [signal@GObject.Object::notify] on @object, on the main thread.
@@ -547,8 +547,8 @@ valent_object_notify (ValentObject *object,
 
 /**
  * valent_object_notify_by_pspec:
- * @object: a #ValentObject
- * @pspec: a #GParamSpec
+ * @object: a `ValentObject`
+ * @pspec: a `GParamSpec`
  *
  * Emit [signal@GObject.Object::notify] on @object, on the main thread.
  *

@@ -14,12 +14,12 @@ static ESourceRegistry *default_registry = NULL;
 
 /**
  * valent_eds_get_registry:
- * @cancellable: (nullable): a #GCancellable
- * @error: (nullable): a #GError
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
  *
- * Get the global #ESourceRegistry object.
+ * Get the global `ESourceRegistry` object.
  *
- * Returns: (transfer none): the #ESourceRegistry
+ * Returns: (transfer none): the `ESourceRegistry`
  */
 ESourceRegistry *
 valent_eds_get_registry (GCancellable  *cancellable,
@@ -40,16 +40,16 @@ valent_eds_get_registry (GCancellable  *cancellable,
 
 /**
  * valent_eds_register_source:
- * @source: an #ESource
- * @cancellable: (nullable): a #GCancellable
- * @error: (nullable): a #GError
+ * @source: an `ESource`
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
  *
- * Register @scratch with the #ESourceRegistry. If a source with the same UID as
+ * Register @scratch with the `ESourceRegistry`. If a source with the same UID as
  * @scratch is already registered, that source will be returned. If the registry
  * is unavailable or registration fails a new reference of @scratch will be
  * returned.
  *
- * Returns: (transfer full): an #ESource
+ * Returns: (transfer full): an `ESource`
  */
 ESource *
 valent_eds_register_source (ESource       *scratch,

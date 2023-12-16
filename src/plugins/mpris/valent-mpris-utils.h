@@ -17,15 +17,14 @@ G_BEGIN_DECLS
 /**
  * VALENT_MPRIS_APPLICATION_INFO:
  *
- * A #GDBusInterfaceInfo describing the `org.mpris.MediaPlayer2` interface.
+ * A [type@Gio.DBusInterfaceInfo] for `org.mpris.MediaPlayer2`.
  */
 #define VALENT_MPRIS_APPLICATION_INFO (valent_mpris_get_application_iface())
 
 /**
  * VALENT_MPRIS_PLAYER_INFO:
  *
- * A #GDBusInterfaceInfo describing the `org.mpris.MediaPlayer2.Player`
- * interface.
+ * A [type@Gio.DBusInterfaceInfo] for `org.mpris.MediaPlayer2.Player`.
  */
 #define VALENT_MPRIS_PLAYER_INFO (valent_mpris_get_player_iface())
 

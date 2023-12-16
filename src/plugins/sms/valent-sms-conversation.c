@@ -191,14 +191,14 @@ message_list_header_func (GtkListBoxRow *row,
 
 /**
  * valent_sms_conversation_insert_message:
- * @conversation: a #ValentSmsConversation
- * @message: a #ValentMessage
+ * @conversation: a `ValentSmsConversation`
+ * @message: a `ValentMessage`
  * @position: position to insert the widget
  *
  * Create a new message row for @message and insert it into the message list at
  * @position.
  *
- * Returns: (transfer none): a #GtkWidget
+ * Returns: (transfer none): a `GtkWidget`
  */
 static GtkWidget *
 valent_sms_conversation_insert_message (ValentSmsConversation *self,
@@ -257,8 +257,8 @@ valent_sms_conversation_insert_message (ValentSmsConversation *self,
 #if 0
 /**
  * valent_conversation_remove_message:
- * @conversation: a #ValentSmsConversation
- * @message: a #ValentMessage
+ * @conversation: a `ValentSmsConversation`
+ * @message: a `ValentMessage`
  *
  * Remove a message from the conversation.
  */
@@ -727,7 +727,7 @@ valent_sms_conversation_class_init (ValentSmsConversationClass *klass)
   /**
    * ValentSmsConversation:contact-store:
    *
-   * The #ValentContactStore providing #EContact objects for the conversation.
+   * The `ValentContactStore` providing `EContact` objects for the conversation.
    */
   properties [PROP_CONTACT_STORE] =
     g_param_spec_object ("contact-store", NULL, NULL,
@@ -740,7 +740,7 @@ valent_sms_conversation_class_init (ValentSmsConversationClass *klass)
   /**
    * ValentSmsConversation:message-store:
    *
-   * The #ValentSmsStore providing #ValentMessage objects for the
+   * The `ValentSmsStore` providing `ValentMessage` objects for the
    * conversation.
    */
   properties [PROP_MESSAGE_STORE] =
@@ -769,10 +769,10 @@ valent_sms_conversation_class_init (ValentSmsConversationClass *klass)
 
   /**
    * ValentSmsConversation::send-message:
-   * @conversation: a #ValentSmsConversation
+   * @conversation: a `ValentSmsConversation`
    * @message: a message
    *
-   * The #ValentSmsConversation::send-message signal is emitted when a user is
+   * The `ValentSmsConversation`::send-message signal is emitted when a user is
    * sending an outgoing message.
    *
    * The signal handler should return a boolean indicating success, although
@@ -822,7 +822,7 @@ valent_sms_conversation_new (ValentContactStore *contacts,
 
 /**
  * valent_sms_conversation_get_thread_id:
- * @conversation: a #ValentSmsConversation
+ * @conversation: a `ValentSmsConversation`
  *
  * Get the thread ID for @conversation.
  *
@@ -838,7 +838,7 @@ valent_sms_conversation_get_thread_id (ValentSmsConversation *conversation)
 
 /**
  * valent_sms_conversation_set_thread_id:
- * @conversation: a #ValentSmsConversation
+ * @conversation: a `ValentSmsConversation`
  * @thread_id: a thread ID
  *
  * Set the thread ID for @conversation.
@@ -876,7 +876,7 @@ valent_sms_conversation_set_thread_id (ValentSmsConversation *conversation,
 
 /**
  * valent_sms_conversation_get_title:
- * @conversation: a #ValentSmsConversation
+ * @conversation: a `ValentSmsConversation`
  *
  * Get the title of the conversation, usually the contact name.
  *
@@ -931,7 +931,7 @@ valent_sms_conversation_get_title (ValentSmsConversation *conversation)
 
 /**
  * valent_sms_conversation_get_subtitle:
- * @conversation: a #ValentSmsConversation
+ * @conversation: a `ValentSmsConversation`
  *
  * Get the subtitle of the conversation. If the conversation has one recipient
  * this will be its address (eg. phone number), otherwise it will be a string
@@ -952,7 +952,7 @@ valent_sms_conversation_get_subtitle (ValentSmsConversation *conversation)
 
 /**
  * valent_sms_conversation_scroll_to_date:
- * @conversation: a #ValentSmsConversation
+ * @conversation: a `ValentSmsConversation`
  * @date: a UNIX epoch timestamp
  *
  * Scroll to the message closest to @date.
@@ -1004,8 +1004,8 @@ valent_sms_conversation_scroll_to_date (ValentSmsConversation *conversation,
 
 /**
  * valent_sms_conversation_scroll_to_message:
- * @conversation: a #ValentSmsConversation
- * @message: a #ValentMessage
+ * @conversation: a `ValentSmsConversation`
+ * @message: a `ValentMessage`
  *
  * A convenience for calling valent_message_get_date() and then
  * valent_sms_conversation_scroll_to_date().

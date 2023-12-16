@@ -20,7 +20,7 @@
  *
  * A class for sending and receiving notifications.
  *
- * #ValentNotifications is an aggregator of notifications, intended for use by
+ * `ValentNotifications` is an aggregator of notifications, intended for use by
  * [class@Valent.DevicePlugin] implementations.
  *
  * Plugins can implement [class@Valent.NotificationsAdapter] to provide an
@@ -249,8 +249,8 @@ valent_notifications_class_init (ValentNotificationsClass *klass)
 
   /**
    * ValentNotifications::notification-added:
-   * @notifications: a #ValentNotifications
-   * @notification: a #ValentNotification
+   * @notifications: a `ValentNotifications`
+   * @notification: a `ValentNotification`
    *
    * Emitted when a notification is added to a
    * [class@Valent.NotificationsAdapter].
@@ -271,7 +271,7 @@ valent_notifications_class_init (ValentNotificationsClass *klass)
 
   /**
    * ValentNotifications::notification-removed:
-   * @notifications: a #ValentNotifications
+   * @notifications: a `ValentNotifications`
    * @id: a notification id
    *
    * Emitted when a notification is removed from a
@@ -303,7 +303,7 @@ valent_notifications_init (ValentNotifications *self)
  *
  * Get the default [class@Valent.Notifications].
  *
- * Returns: (transfer none) (not nullable): a #ValentNotifications
+ * Returns: (transfer none) (not nullable): a `ValentNotifications`
  *
  * Since: 1.0
  */
@@ -326,11 +326,11 @@ valent_notifications_get_default (void)
 
 /**
  * valent_notifications_get_applications:
- * @notifications: (nullable): a #ValentNotifications
+ * @notifications: (nullable): a `ValentNotifications`
  *
  * Get a dictionary of applications that are known to send notifications.
  *
- * Returns: (transfer none): a #GVariant
+ * Returns: (transfer none): a `GVariant`
  *
  * Since: 1.0
  */

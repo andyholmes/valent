@@ -139,7 +139,7 @@ download_task (GTask        *task,
  * @message: the message to process
  * @user_data: the log domain to match against
  *
- * A #GTestLogFatalFunc for quieting fatal logging during fuzzing tests. This
+ * A `GTestLogFatalFunc` for quieting fatal logging during fuzzing tests. This
  * includes messages:
  *
  * - @log_domain is `Json`
@@ -219,7 +219,7 @@ valent_test_event_push (gpointer event)
  *
  * A simple convenience to load the JSON at @path.
  *
- * Returns: (transfer full): a #JsonNode
+ * Returns: (transfer full): a `JsonNode`
  */
 JsonNode *
 valent_test_load_json (const char *path)
@@ -243,7 +243,7 @@ valent_test_load_json (const char *path)
 /**
  * valent_test_mock_settings:
  * @context: a context path
- * @module_name: a #PeasPluginInfo module name
+ * @module_name: a `PeasPluginInfo` module name
  *
  * A convenience function to create a `GSettings` object for component domain.
  *
@@ -272,7 +272,7 @@ valent_test_await_signal_cb (gpointer data)
 
 /**
  * valent_test_await_adapter:
- * @component: (type Valent.Component): a #ValentComponent
+ * @component: (type Valent.Component): a `ValentComponent`
  *
  * Wait for a [class@Valent.Component] adapter to load and return it.
  *
@@ -452,13 +452,13 @@ valent_test_await_timeout (unsigned int duration)
 
 /**
  * valent_test_channel_pair:
- * @identity: a #JsonNode
- * @peer_identity: (nullable): a #JsonNode
+ * @identity: a `JsonNode`
+ * @peer_identity: (nullable): a `JsonNode`
  *
  * Create a pair of connected channels with @identity representing the local
  * device and @peer_identity representing the endpoint device.
  *
- * Returns: (array length=2) (element-type Valent.Channel): a pair of #ValentChannel
+ * Returns: (array length=2) (element-type Valent.Channel): a pair of `ValentChannel`
  */
 ValentChannel **
 valent_test_channel_pair (JsonNode *identity,
@@ -507,9 +507,9 @@ valent_test_channel_pair (JsonNode *identity,
 
 /**
  * valent_test_download:
- * @channel: a #ValentChannel
- * @packet: a #JsonNode
- * @error: (nullable): a #GError
+ * @channel: a `ValentChannel`
+ * @packet: a `JsonNode`
+ * @error: (nullable): a `GError`
  *
  * Simulate downloading the payload described by @packet using @channel.
  *
@@ -541,10 +541,10 @@ valent_test_download (ValentChannel  *channel,
 
 /**
  * valent_test_upload:
- * @channel: a #ValentChannel
- * @packet: a #JsonNode
- * @file: a #GFile
- * @error: (nullable): a #GError
+ * @channel: a `ValentChannel`
+ * @packet: a `JsonNode`
+ * @file: a `GFile`
+ * @error: (nullable): a `GError`
  *
  * Simulate uploading @file to the endpoint of @channel.
  */

@@ -26,7 +26,7 @@
  *
  * A class for discovering and managing devices.
  *
- * #ValentDeviceManager manages the available [class@Valent.Device] objects,
+ * `ValentDeviceManager` manages the available [class@Valent.Device] objects,
  * connecting them when [signal@Valent.ChannelService::channel] is emitted by an
  * enabled implementation, exporting them on D-Bus and removing them when they
  * become unavailable.
@@ -1011,7 +1011,7 @@ valent_device_manager_init (ValentDeviceManager *self)
  *
  * Get the default [class@Valent.DeviceManager].
  *
- * Returns: (transfer none) (not nullable): a #ValentDeviceManager
+ * Returns: (transfer none) (not nullable): a `ValentDeviceManager`
  *
  * Since: 1.0
  */
@@ -1026,7 +1026,7 @@ valent_device_manager_get_default (void)
 
 /**
  * valent_device_manager_get_name: (get-property name)
- * @manager: a #ValentDeviceManager
+ * @manager: a `ValentDeviceManager`
  *
  * Get the display name of the local device.
  *
@@ -1044,7 +1044,7 @@ valent_device_manager_get_name (ValentDeviceManager *manager)
 
 /**
  * valent_device_manager_set_name: (set-property name)
- * @manager: a #ValentDeviceManager
+ * @manager: a `ValentDeviceManager`
  * @name: (not nullable): a display name
  *
  * Set the display name of the local device to @name.
@@ -1064,7 +1064,7 @@ valent_device_manager_set_name (ValentDeviceManager *manager,
 
 /**
  * valent_device_manager_refresh:
- * @manager: a #ValentDeviceManager
+ * @manager: a `ValentDeviceManager`
  *
  * Refresh the available devices.
  *

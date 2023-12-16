@@ -36,7 +36,7 @@
  * Device functionality is limited to pairing and sending packets, while other
  * functionality is delegated to [class@Valent.DevicePlugin] extensions.
  *
- * #ValentDevice implements the [iface@Gio.ActionGroup] interface, acting as an
+ * `ValentDevice` implements the [iface@Gio.ActionGroup] interface, acting as an
  * aggregate action group for plugins. Plugin actions are automatically included
  * in the device action group with the plugin module name as a prefix
  * (eg. `share.files`).
@@ -1123,7 +1123,7 @@ valent_device_class_init (ValentDeviceClass *klass)
  *
  * Create a new device for @id.
  *
- * Returns: (transfer full) (nullable): a new #ValentDevice
+ * Returns: (transfer full) (nullable): a new `ValentDevice`
  *
  * Since: 1.0
  */
@@ -1140,11 +1140,11 @@ valent_device_new (const char *id)
 /*< private >
  * valent_device_new_full:
  * @identity: a KDE Connect identity packet
- * @context: (nullable): a #ValentContext
+ * @context: (nullable): a `ValentContext`
  *
  * Create a new device for @identity.
  *
- * Returns: (transfer full) (nullable): a new #ValentDevice
+ * Returns: (transfer full) (nullable): a new `ValentDevice`
  */
 ValentDevice *
 valent_device_new_full (JsonNode      *identity,
@@ -1195,10 +1195,10 @@ valent_device_send_packet_cb (ValentChannel *channel,
 
 /**
  * valent_device_send_packet:
- * @device: a #ValentDevice
+ * @device: a `ValentDevice`
  * @packet: a KDE Connect packet
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @cancellable: (nullable): a `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * Send a KDE Connect packet to the device.
@@ -1264,9 +1264,9 @@ valent_device_send_packet (ValentDevice        *device,
 
 /**
  * valent_device_send_packet_finish:
- * @device: a #ValentDevice
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
+ * @device: a `ValentDevice`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
  *
  * Finish an operation started by [method@Valent.Device.send_packet].
  *
@@ -1288,11 +1288,11 @@ valent_device_send_packet_finish (ValentDevice  *device,
 
 /**
  * valent_device_ref_channel:
- * @device: a #ValentDevice
+ * @device: a `ValentDevice`
  *
  * Get the active channel.
  *
- * Returns: (transfer full) (nullable): a #ValentChannel, or %NULL if disconnected
+ * Returns: (transfer full) (nullable): a `ValentChannel`, or %NULL if disconnected
  *
  * Since: 1.0
  */
@@ -1351,8 +1351,8 @@ read_packet_cb (ValentChannel *channel,
 
 /**
  * valent_device_set_channel:
- * @device: A #ValentDevice
- * @channel: (nullable): A #ValentChannel
+ * @device: A `ValentDevice`
+ * @channel: (nullable): A `ValentChannel`
  *
  * Sets the active channel.
  *
@@ -1413,11 +1413,11 @@ valent_device_set_channel (ValentDevice  *device,
 
 /**
  * valent_device_get_context: (get-property context)
- * @device: a #ValentDevice
+ * @device: a `ValentDevice`
  *
  * Get the data context.
  *
- * Returns: (transfer full): a #ValentContext
+ * Returns: (transfer full): a `ValentContext`
  *
  * Since: 1.0
  */
@@ -1431,7 +1431,7 @@ valent_device_get_context (ValentDevice *device)
 
 /**
  * valent_device_get_icon_name: (get-property icon-name)
- * @device: a #ValentDevice
+ * @device: a `ValentDevice`
  *
  * Get the symbolic icon name.
  *
@@ -1449,7 +1449,7 @@ valent_device_get_icon_name (ValentDevice *device)
 
 /**
  * valent_device_get_id: (get-property id)
- * @device: a #ValentDevice
+ * @device: a `ValentDevice`
  *
  * Get the unique ID.
  *
@@ -1468,14 +1468,14 @@ valent_device_get_id (ValentDevice *device)
 
 /**
  * valent_device_get_menu:
- * @device: a #ValentDevice
+ * @device: a `ValentDevice`
  *
  * Get the [class@Gio.MenuModel] of the device.
  *
  * Plugins may add items and submenus to this when they want to expose actions
  * with presentation details like a label or icon.
  *
- * Returns: (transfer none): a #GMenuModel
+ * Returns: (transfer none): a `GMenuModel`
  *
  * Since: 1.0
  */
@@ -1489,7 +1489,7 @@ valent_device_get_menu (ValentDevice *device)
 
 /**
  * valent_device_get_name:
- * @device: a #ValentDevice
+ * @device: a `ValentDevice`
  *
  * Get the display name of the device.
  *
@@ -1507,7 +1507,7 @@ valent_device_get_name (ValentDevice *device)
 
 /**
  * valent_device_set_paired:
- * @device: a #ValentDevice
+ * @device: a `ValentDevice`
  * @paired: %TRUE if paired, %FALSE if unpaired
  *
  * Set the paired state of the device.
@@ -1549,7 +1549,7 @@ valent_device_set_paired (ValentDevice *device,
 
 /**
  * valent_device_get_plugins: (get-property plugins)
- * @device: a #ValentDevice
+ * @device: a `ValentDevice`
  *
  * Get a list of the loaded plugins.
  *
@@ -1577,11 +1577,11 @@ valent_device_get_plugins (ValentDevice *device)
 
 /**
  * valent_device_get_state: (get-property state)
- * @device: a #ValentDevice
+ * @device: a `ValentDevice`
  *
  * Get the state of the device.
  *
- * Returns: #ValentDeviceState flags describing the state of the device
+ * Returns: `ValentDeviceState` flags describing the state of the device
  *
  * Since: 1.0
  */
@@ -1613,7 +1613,7 @@ valent_device_get_state (ValentDevice *device)
 
 /*< private >
  * valent_device_reload_plugins:
- * @device: a #ValentDevice
+ * @device: a `ValentDevice`
  *
  * Reload all plugins.
  *
@@ -1644,7 +1644,7 @@ valent_device_reload_plugins (ValentDevice *device)
 
 /*< private >
  * valent_device_update_plugins:
- * @device: a #ValentDevice
+ * @device: a `ValentDevice`
  *
  * Update all plugins.
  *
@@ -1675,8 +1675,8 @@ valent_device_update_plugins (ValentDevice *device)
 
 /*< private >
  * valent_device_supports_plugin:
- * @device: a #ValentDevice
- * @info: a #PeasPluginInfo
+ * @device: a `ValentDevice`
+ * @info: a `PeasPluginInfo`
  *
  * Check if @device supports the plugin described by @info.
  *

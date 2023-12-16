@@ -178,7 +178,7 @@ valent_bluez_channel_class_init (ValentBluezChannelClass *klass)
   /**
    * ValentBluezChannel:muxer:
    *
-   * The #ValentMuxConnection responsible for muxing and demuxing data.
+   * The `ValentMuxConnection` responsible for muxing and demuxing data.
    */
   properties [PROP_MUXER] =
     g_param_spec_object ("muxer", NULL, NULL,

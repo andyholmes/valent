@@ -56,10 +56,10 @@ static const char interface_xml[] =
 
 /**
  * valent_bluez_profile_new_connection:
- * @profile: a #ValentBluezProfile
+ * @profile: a `ValentBluezProfile`
  * @object_path: a DBus object path
  * @fd: a UNIX file descriptor
- * @fd_properties: a #GVariant
+ * @fd_properties: a `GVariant`
  *
  * This method gets called when a new service level connection has been made and
  * authorized.
@@ -95,7 +95,7 @@ valent_bluez_profile_new_connection (ValentBluezProfile *profile,
 
 /**
  * valent_bluez_profile_request_disconnection:
- * @profile: a #ValentBluezProfile
+ * @profile: a `ValentBluezProfile`
  * @object_path: a DBus object path
  *
  * This method gets called when a profile gets disconnected.
@@ -120,7 +120,7 @@ valent_bluez_profile_request_disconnection (ValentBluezProfile *profile,
 
 /**
  * valent_bluez_profile_release:
- * @profile: a #ValentBluezProfile
+ * @profile: a `ValentBluezProfile`
  *
  * This method gets called when the service daemon unregisters the profile.
  * A profile can use it to do cleanup tasks. There is no need to unregister
@@ -260,12 +260,12 @@ valent_bluez_profile_class_init (ValentBluezProfileClass *klass) {
 
   /**
    * ValentBluezProfile::connection-opened:
-   * @profile: a #ValentBluezProfile
-   * @connection: a #GSocketConnection
+   * @profile: a `ValentBluezProfile`
+   * @connection: a `GSocketConnection`
    * @device: DBus object path of the device
    *
-   * The #ValentBluezProfile::connection-opened signal is emitted when a Bluez
-   * socket for @device has been successfully wrapped in a #GSocketConnection
+   * The `ValentBluezProfile`::connection-opened signal is emitted when a Bluez
+   * socket for @device has been successfully wrapped in a `GSocketConnection`
    * and is ready for protocol negotiation.
    */
   signals [CONNECTION_OPENED] =
@@ -278,10 +278,10 @@ valent_bluez_profile_class_init (ValentBluezProfileClass *klass) {
 
   /**
    * ValentBluezProfile::connection-closed:
-   * @profile: a #ValentBluezProfile
+   * @profile: a `ValentBluezProfile`
    * @device: DBus object path of the device
    *
-   * The #ValentBluezProfile::connection-closed signal is emitted when a Bluez
+   * The `ValentBluezProfile`::connection-closed signal is emitted when a Bluez
    * socket for @device has been closed and should be cleaned up.
    */
   signals [CONNECTION_CLOSED] =
@@ -347,10 +347,10 @@ profile_manager_register_profile_cb (GDBusConnection *connection,
 
 /**
  * valent_bluez_profile_register:
- * @profile: a #ValentBluezProfile
- * @connection: a #GDBusConnection
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @profile: a `ValentBluezProfile`
+ * @connection: a `GDBusConnection`
+ * @cancellable: (nullable): a `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * Export the bluez profile for Valent on @connection and register it with the
@@ -410,9 +410,9 @@ valent_bluez_profile_register (ValentBluezProfile  *profile,
 
 /**
  * valent_bluez_profile_register_finish:
- * @profile: a #ValentBluezProfile
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
+ * @profile: a `ValentBluezProfile`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
  *
  * Finish an operation started with valent_bluez_profile_register().
  *
@@ -433,7 +433,7 @@ valent_bluez_profile_register_finish (ValentBluezProfile  *profile,
 
 /**
  * valent_bluez_profile_unregister:
- * @profile: a #ValentBluezProfile
+ * @profile: a `ValentBluezProfile`
  *
  * Unexport the bluez profile for Valent from the system bus.
  */

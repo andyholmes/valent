@@ -21,7 +21,7 @@
  *
  * An abstract base class for connection backends.
  *
- * #ValentChannelService is a base class for plugins that implement an interface
+ * `ValentChannelService` is a base class for plugins that implement an interface
  * to negotiate connections with other devices.
  *
  * ## Implementation Notes
@@ -50,9 +50,9 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentChannelService, valent_channel_servic
  * ValentChannelServiceClass:
  * @build_identity: the virtual function pointer for valent_channel_service_build_identity()
  * @identify: the virtual function pointer for valent_channel_service_identify()
- * @channel: the class closure for #ValentChannelService::channel
+ * @channel: the class closure for `ValentChannelService`::channel
  *
- * The virtual function table for #ValentChannelService.
+ * The virtual function table for `ValentChannelService`.
  */
 
 enum {
@@ -196,9 +196,9 @@ get_chassis_type (void)
 
 /**
  * collect_capabilities:
- * @info: a #PeasPluginInfo
- * @incoming: a #GHashTable
- * @outgoing: a #GHashTable
+ * @info: a `PeasPluginInfo`
+ * @incoming: a `GHashTable`
+ * @outgoing: a `GHashTable`
  *
  * Collect the capabilities from @info and add them to @incoming and @outgoing,
  * using g_hash_table_add() to coalesce duplicates.
@@ -515,8 +515,8 @@ valent_channel_service_class_init (ValentChannelServiceClass *klass)
 
   /**
    * ValentChannelService::channel:
-   * @service: a #ValentChannelService
-   * @channel: a #ValentChannel
+   * @service: a `ValentChannelService`
+   * @channel: a `ValentChannel`
    *
    * Emitted when a new channel has been negotiated.
    *
@@ -568,7 +568,7 @@ valent_channel_service_ref_certificate (ValentChannelService *service)
 
 /**
  * valent_channel_service_dup_id: (get-property id)
- * @service: a #ValentChannelService
+ * @service: a `ValentChannelService`
  *
  * Get the local ID.
  *
@@ -593,7 +593,7 @@ valent_channel_service_dup_id (ValentChannelService *service)
 
 /**
  * valent_channel_service_ref_identity: (get-property identity)
- * @service: a #ValentChannelService
+ * @service: a `ValentChannelService`
  *
  * Get the local identity packet.
  *
@@ -618,7 +618,7 @@ valent_channel_service_ref_identity (ValentChannelService *service)
 
 /**
  * valent_channel_service_get_name: (get-property name)
- * @service: a #ValentChannelService
+ * @service: a `ValentChannelService`
  *
  * Get the local display name.
  *
@@ -638,7 +638,7 @@ valent_channel_service_get_name (ValentChannelService *service)
 
 /**
  * valent_channel_service_set_name: (set-property name)
- * @service: a #ValentChannelService
+ * @service: a `ValentChannelService`
  * @name: (not nullable): a display name
  *
  * Set the local display name.
@@ -670,7 +670,7 @@ valent_channel_service_set_name (ValentChannelService *service,
 
 /**
  * valent_channel_service_build_identity: (virtual build_identity)
- * @service: a #ValentChannelService
+ * @service: a `ValentChannelService`
  *
  * Rebuild the local KDE Connect identity packet.
  *
@@ -699,7 +699,7 @@ valent_channel_service_build_identity (ValentChannelService *service)
 
 /**
  * valent_channel_service_identify: (virtual identify)
- * @service: a #ValentChannelService
+ * @service: a `ValentChannelService`
  * @target: (nullable): a target string
  *
  * Identify the host device to the network.
@@ -727,8 +727,8 @@ valent_channel_service_identify (ValentChannelService *service,
 
 /**
  * valent_channel_service_channel:
- * @service: a #ValentChannelService
- * @channel: a #ValentChannel
+ * @service: a `ValentChannelService`
+ * @channel: a `ValentChannel`
  *
  * Emit [signal@Valent.ChannelService::channel] on @service.
  *

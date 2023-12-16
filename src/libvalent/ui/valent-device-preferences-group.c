@@ -19,7 +19,7 @@
  *
  * An abstract base class for device plugin preferences.
  *
- * #ValentDevicePreferencesGroup is a base class for [class@Valent.DevicePlugin]
+ * `ValentDevicePreferencesGroup` is a base class for [class@Valent.DevicePlugin]
  * implementations that want to provide a group of preferences.
  *
  * Since: 1.0
@@ -176,11 +176,11 @@ valent_device_preferences_group_init (ValentDevicePreferencesGroup *self)
 
 /**
  * valent_device_preferences_group_get_context:
- * @group: a #ValentDevicePreferencesGroup
+ * @group: a `ValentDevicePreferencesGroup`
  *
  * Get the [class@Valent.Context] for the [class@Valent.DevicePlugin].
  *
- * Returns: (transfer none) (nullable): a #ValentContext
+ * Returns: (transfer none) (nullable): a `ValentContext`
  *
  * Since: 1.0
  */
@@ -204,7 +204,7 @@ valent_device_preferences_group_get_context (ValentDevicePreferencesGroup *group
 
 /**
  * valent_device_preferences_group_get_settings:
- * @group: a #ValentDevicePreferencesGroup
+ * @group: a `ValentDevicePreferencesGroup`
  *
  * Get the [class@Gio.Settings] for the [class@Valent.DevicePlugin].
  *

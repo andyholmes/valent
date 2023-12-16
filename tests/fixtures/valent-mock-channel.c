@@ -227,7 +227,7 @@ valent_mock_channel_class_init (ValentMockChannelClass *klass)
    * The remote host address for the channel.
    *
    * This property only exists for tests that require a channel with a `host`
-   * property. The underlying connection is actually a #GUnixConnection.
+   * property. The underlying connection is actually a `GUnixConnection`.
    */
   properties [PROP_HOST] =
     g_param_spec_string ("host", NULL, NULL,
@@ -243,7 +243,7 @@ valent_mock_channel_class_init (ValentMockChannelClass *klass)
    * The remote host port for the channel.
    *
    * This property only exists for tests that require a channel with a `port`
-   * property. The underlying connection is actually a #GUnixConnection.
+   * property. The underlying connection is actually a `GUnixConnection`.
    */
   properties [PROP_PORT] =
     g_param_spec_uint ("port", NULL, NULL,

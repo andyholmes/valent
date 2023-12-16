@@ -16,7 +16,7 @@
  *
  * An abstract base class for address books.
  *
- * #ValentContactStore is a base class to provide an interface to an address
+ * `ValentContactStore` is a base class to provide an interface to an address
  * book. This usually means adding, removing and querying contacts.
  *
  * Since: 1.0
@@ -35,10 +35,10 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentContactStore, valent_contact_store, V
  * @get_contact: the virtual function pointer for valent_contact_store_get_contact()
  * @remove_contact: the virtual function pointer for valent_contact_store_remove_contact()
  * @query: the virtual function pointer for valent_contact_store_query()
- * @contact_added: the class closure for #ValentContactStore::contact-added
- * @contact_removed: the class closure for #ValentContactStore::contact-removed
+ * @contact_added: the class closure for `ValentContactStore`::contact-added
+ * @contact_removed: the class closure for `ValentContactStore`::contact-removed
  *
- * The virtual function table for #ValentContactStore.
+ * The virtual function table for `ValentContactStore`.
  */
 
 
@@ -323,8 +323,8 @@ valent_contact_store_class_init (ValentContactStoreClass *klass)
 
   /**
    * ValentContactStore::contact-added:
-   * @store: a #ValentContactStore
-   * @contact: a #EContact
+   * @store: a `ValentContactStore`
+   * @contact: a `EContact`
    *
    * Emitted when an [class@EBookContacts.Contact] is added to @store.
    *
@@ -346,7 +346,7 @@ valent_contact_store_class_init (ValentContactStoreClass *klass)
 
   /**
    * ValentContactStore::contact-removed:
-   * @store: a #ValentContactStore
+   * @store: a `ValentContactStore`
    * @uid: the UID of the removed contact
    *
    * Emitted when an [class@EBookContacts.Contact] is removed from @store.
@@ -375,8 +375,8 @@ valent_contact_store_init (ValentContactStore *store)
 
 /**
  * valent_contact_store_contact_added:
- * @store: a #ValentContactStore
- * @contact: the #EContact
+ * @store: a `ValentContactStore`
+ * @contact: the `EContact`
  *
  * Emits [signal@Valent.ContactStore::contact-added] signal on @store.
  *
@@ -412,7 +412,7 @@ valent_contact_store_contact_added (ValentContactStore *store,
 
 /**
  * valent_contact_store_contact_removed:
- * @store: a #ValentContactStore
+ * @store: a `ValentContactStore`
  * @uid: the UID of @contact
  *
  * Emits [signal@Valent.ContactStore::contact-removed] on @store.
@@ -449,7 +449,7 @@ valent_contact_store_contact_removed (ValentContactStore *store,
 
 /**
  * valent_contact_store_get_name: (get-property name)
- * @store: a #ValentContactStore
+ * @store: a `ValentContactStore`
  *
  * Get the display name of @store.
  *
@@ -469,7 +469,7 @@ valent_contact_store_get_name (ValentContactStore *store)
 
 /**
  * valent_contact_store_set_name: (set-property name)
- * @store: a #ValentContactStore
+ * @store: a `ValentContactStore`
  * @name: a display name
  *
  * Set the display name of @store to @name.
@@ -491,11 +491,11 @@ valent_contact_store_set_name (ValentContactStore *store,
 
 /**
  * valent_contact_store_get_source: (get-property source)
- * @store: a #ValentContactStore
+ * @store: a `ValentContactStore`
  *
- * Get the #ESource backing @store.
+ * Get the `ESource` backing @store.
  *
- * Returns: (transfer none) (not nullable): an #ESource
+ * Returns: (transfer none) (not nullable): an `ESource`
  *
  * Since: 1.0
  */
@@ -511,7 +511,7 @@ valent_contact_store_get_source (ValentContactStore *store)
 
 /**
  * valent_contact_store_get_uid: (get-property uid)
- * @store: a #ValentContactStore
+ * @store: a `ValentContactStore`
  *
  * Get the UID of @store.
  *
@@ -531,10 +531,10 @@ valent_contact_store_get_uid (ValentContactStore *store)
 
 /**
  * valent_contact_store_add_contact:
- * @store: a #ValentContactStore
- * @contact: a #EContact
- * @cancellable: (nullable): #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @store: a `ValentContactStore`
+ * @contact: a `EContact`
+ * @cancellable: (nullable): `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * A convenience wrapper around [method@Valent.ContactStore.add_contacts] for
@@ -571,10 +571,10 @@ valent_contact_store_add_contact (ValentContactStore  *store,
 
 /**
  * valent_contact_store_add_contacts: (virtual add_contacts)
- * @store: a #ValentContactStore
- * @contacts: (element-type EContact): a #GSList
- * @cancellable: (nullable): #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @store: a `ValentContactStore`
+ * @contacts: (element-type EContact): a `GSList`
+ * @cancellable: (nullable): `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * Add @contacts to @store.
@@ -607,9 +607,9 @@ valent_contact_store_add_contacts (ValentContactStore  *store,
 
 /**
  * valent_contact_store_add_contacts_finish:
- * @store: a #ValentContactStore
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
+ * @store: a `ValentContactStore`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
  *
  * Finish an operation started by [method@Valent.ContactStore.add_contact] or
  * [method@Valent.ContactStore.add_contacts].
@@ -638,10 +638,10 @@ valent_contact_store_add_contacts_finish (ValentContactStore  *store,
 
 /**
  * valent_contact_store_remove_contact:
- * @store: a #ValentContactStore
+ * @store: a `ValentContactStore`
  * @uid: a contact UID
- * @cancellable: (nullable): #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @cancellable: (nullable): `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * Remove contact @uid from @store.
@@ -680,10 +680,10 @@ valent_contact_store_remove_contact (ValentContactStore  *store,
 
 /**
  * valent_contact_store_remove_contacts: (virtual remove_contacts)
- * @store: a #ValentContactStore
- * @uids: (element-type utf8): a #GSList of contact UIDs
- * @cancellable: (nullable): #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @store: a `ValentContactStore`
+ * @uids: (element-type utf8): a `GSList` of contact UIDs
+ * @cancellable: (nullable): `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * Remove contact @uid from @store.
@@ -716,9 +716,9 @@ valent_contact_store_remove_contacts (ValentContactStore  *store,
 
 /**
  * valent_contact_store_remove_contacts_finish:
- * @store: a #ValentContactStore
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
+ * @store: a `ValentContactStore`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
  *
  * Finish an operation started by [method@Valent.ContactStore.remove_contact] or
  * [method@Valent.ContactStore.remove_contacts].
@@ -747,10 +747,10 @@ valent_contact_store_remove_contacts_finish (ValentContactStore  *store,
 
 /**
  * valent_contact_store_query: (virtual query)
- * @store: a #ValentContactStore
+ * @store: a `ValentContactStore`
  * @query: a search expression
- * @cancellable: (nullable): #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @cancellable: (nullable): `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * Query @store for contacts matching @query.
@@ -783,13 +783,13 @@ valent_contact_store_query (ValentContactStore  *store,
 
 /**
  * valent_contact_store_query_finish:
- * @store: a #ValentContactStore
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
+ * @store: a `ValentContactStore`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
  *
  * Finish an operation started by [method@Valent.ContactStore.query].
  *
- * Returns: (transfer full) (element-type EContact): a #GSList
+ * Returns: (transfer full) (element-type EContact): a `GSList`
  *
  * Since: 1.0
  */
@@ -813,10 +813,10 @@ valent_contact_store_query_finish (ValentContactStore  *store,
 
 /**
  * valent_contact_store_get_contact: (virtual get_contact)
- * @store: a #ValentContactStore
+ * @store: a `ValentContactStore`
  * @uid: a contact UID
- * @cancellable: (nullable): #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @cancellable: (nullable): `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * Get a contact by UID.
@@ -849,13 +849,13 @@ valent_contact_store_get_contact (ValentContactStore  *store,
 
 /**
  * valent_contact_store_get_contact_finish:
- * @store: a #ValentContactStore
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
+ * @store: a `ValentContactStore`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
  *
  * Finish an operation started by valent_contact_store_get_contact().
  *
- * Returns: (transfer full) (nullable): a #EContact
+ * Returns: (transfer full) (nullable): a `EContact`
  *
  * Since: 1.0
  */
@@ -879,10 +879,10 @@ valent_contact_store_get_contact_finish (ValentContactStore  *store,
 
 /**
  * valent_contact_store_get_contacts:
- * @store: a #ValentContactStore
+ * @store: a `ValentContactStore`
  * @uids: a list of UIDs
- * @cancellable: (nullable): #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @cancellable: (nullable): `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * A convenience wrapper around [method@Valent.ContactStore.query] for searching

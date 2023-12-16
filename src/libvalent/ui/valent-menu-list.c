@@ -485,7 +485,7 @@ valent_menu_list_class_init (ValentMenuListClass *klass)
   /**
    * ValentMenuList:menu-model:
    *
-   * The "model" property holds the #GMenuModel used to build this list.
+   * The "model" property holds the `GMenuModel` used to build this list.
    */
   properties [PROP_MENU_MODEL] =
     g_param_spec_object ("menu-model", NULL, NULL,
@@ -497,7 +497,7 @@ valent_menu_list_class_init (ValentMenuListClass *klass)
   /**
    * ValentMenuList:submenu-of:
    *
-   * The parent #ValentMenuList this is a submenu for.
+   * The parent `ValentMenuList` this is a submenu for.
    */
   properties [PROP_SUBMENU_OF] =
     g_param_spec_object ("submenu-of", NULL, NULL,
@@ -537,11 +537,11 @@ valent_menu_list_init (ValentMenuList *self)
 
 /**
  * valent_menu_list_new:
- * @model: (nullable): a #GMenuModel
+ * @model: (nullable): a `GMenuModel`
  *
- * Create a new #ValentMenuList.
+ * Create a new `ValentMenuList`.
  *
- * Returns: (transfer full): a #ValentMenuList
+ * Returns: (transfer full): a `ValentMenuList`
  */
 ValentMenuList *
 valent_menu_list_new (GMenuModel *model)
@@ -553,11 +553,11 @@ valent_menu_list_new (GMenuModel *model)
 
 /**
  * valent_menu_list_get_menu_model:
- * @self: a #ValentMenuList
+ * @self: a `ValentMenuList`
  *
- * Get the #GMenuModel for @self.
+ * Get the `GMenuModel` for @self.
  *
- * Returns: (transfer none): a #GMenuModel
+ * Returns: (transfer none): a `GMenuModel`
  */
 GMenuModel *
 valent_menu_list_get_menu_model (ValentMenuList *self)
@@ -569,10 +569,10 @@ valent_menu_list_get_menu_model (ValentMenuList *self)
 
 /**
  * valent_menu_list_set_menu_model:
- * @self: a #ValentMenuList
- * @model: (nullable): a #GMenuModel
+ * @self: a `ValentMenuList`
+ * @model: (nullable): a `GMenuModel`
  *
- * Set the #GMenuModel for @self.
+ * Set the `GMenuModel` for @self.
  */
 void
 valent_menu_list_set_menu_model (ValentMenuList *list,
@@ -603,11 +603,11 @@ valent_menu_list_set_menu_model (ValentMenuList *list,
 
 /**
  * valent_menu_list_get_submenu_of:
- * @self: a #ValentMenuList
+ * @self: a `ValentMenuList`
  *
- * Get the parent #ValentMenuList.
+ * Get the parent `ValentMenuList`.
  *
- * Returns: (transfer none) (nullable): a #ValentMenuList
+ * Returns: (transfer none) (nullable): a `ValentMenuList`
  */
 ValentMenuList *
 valent_menu_list_get_submenu_of (ValentMenuList *self)
@@ -619,10 +619,10 @@ valent_menu_list_get_submenu_of (ValentMenuList *self)
 
 /**
  * valent_menu_list_set_submenu_of:
- * @self: a #ValentMenuList
- * @parent: (nullable): a #GMenuModel
+ * @self: a `ValentMenuList`
+ * @parent: (nullable): a `GMenuModel`
  *
- * Set the #GMenuModel for @self.
+ * Set the `GMenuModel` for @self.
  */
 void
 valent_menu_list_set_submenu_of (ValentMenuList *self,

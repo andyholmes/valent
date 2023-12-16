@@ -16,7 +16,7 @@
  *
  * An abstract base class for clipboard selections.
  *
- * #ValentClipboardAdapter is a base class for plugins that provide an interface
+ * `ValentClipboardAdapter` is a base class for plugins that provide an interface
  * to the desktop clipboard. This usually means reading and writing content,
  * including notification of content changes.
  *
@@ -41,7 +41,7 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentClipboardAdapter, valent_clipboard_ad
 
 /**
  * ValentClipboardAdapterClass:
- * @changed: class closure for #ValentClipboardAdapter::changed signal
+ * @changed: class closure for `ValentClipboardAdapter`::changed signal
  * @get_mimetypes: the virtual function pointer for valent_clipboard_adapter_get_mimetypes()
  * @get_timestamp: the virtual function pointer for valent_clipboard_adapter_get_timestamp()
  * @read_bytes: the virtual function pointer for valent_clipboard_adapter_read_bytes()
@@ -49,7 +49,7 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentClipboardAdapter, valent_clipboard_ad
  * @write_bytes: the virtual function pointer for valent_clipboard_adapter_write_bytes()
  * @write_bytes_finish: the virtual function pointer for valent_clipboard_adapter_write_bytes_finish()
  *
- * The virtual function table for #ValentClipboardAdapter.
+ * The virtual function table for `ValentClipboardAdapter`.
  */
 
 enum {
@@ -168,7 +168,7 @@ valent_clipboard_adapter_class_init (ValentClipboardAdapterClass *klass)
 
   /**
    * ValentClipboardAdapter::changed:
-   * @adapter: a #ValentClipboardAdapter
+   * @adapter: a `ValentClipboardAdapter`
    *
    * Emitted when the content of @adapter changes.
    *
@@ -193,7 +193,7 @@ valent_clipboard_adapter_init (ValentClipboardAdapter *adapter)
 
 /**
  * valent_clipboard_adapter_changed: (virtual changed)
- * @adapter: a #ValentClipboardAdapter
+ * @adapter: a `ValentClipboardAdapter`
  *
  * Emits [signal@Valent.ClipboardAdapter::changed] signal on @adapter.
  *
@@ -215,7 +215,7 @@ valent_clipboard_adapter_changed (ValentClipboardAdapter *adapter)
 
 /**
  * valent_clipboard_adapter_get_timestamp: (virtual get_timestamp)
- * @adapter: a #ValentClipboardAdapter
+ * @adapter: a `ValentClipboardAdapter`
  *
  * Get the timestamp of the current clipboard content.
  *
@@ -242,7 +242,7 @@ valent_clipboard_adapter_get_timestamp (ValentClipboardAdapter *adapter)
 
 /**
  * valent_clipboard_adapter_get_mimetypes: (virtual get_mimetypes)
- * @adapter: a #ValentClipboardAdapter
+ * @adapter: a `ValentClipboardAdapter`
  *
  * Get the mime-types of the current clipboard content.
  *
@@ -267,10 +267,10 @@ valent_clipboard_adapter_get_mimetypes (ValentClipboardAdapter *adapter)
 
 /**
  * valent_clipboard_adapter_read_bytes: (virtual read_bytes)
- * @adapter: a #ValentClipboardAdapter
+ * @adapter: a `ValentClipboardAdapter`
  * @mimetype: a mime-type
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @cancellable: (nullable): a `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * Get the content of @adapter.
@@ -302,13 +302,13 @@ valent_clipboard_adapter_read_bytes (ValentClipboardAdapter *adapter,
 
 /**
  * valent_clipboard_adapter_read_bytes_finish: (virtual read_bytes_finish)
- * @adapter: a #ValentClipboardAdapter
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
+ * @adapter: a `ValentClipboardAdapter`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
  *
  * Finish an operation started by [method@Valent.ClipboardAdapter.read_bytes].
  *
- * Returns: (transfer full) (nullable): a #GBytes, or %NULL with @error set
+ * Returns: (transfer full) (nullable): a `GBytes`, or %NULL with @error set
  *
  * Since: 1.0
  */
@@ -334,11 +334,11 @@ valent_clipboard_adapter_read_bytes_finish (ValentClipboardAdapter  *adapter,
 
 /**
  * valent_clipboard_adapter_write_bytes: (virtual write_bytes)
- * @adapter: a #ValentClipboardAdapter
+ * @adapter: a `ValentClipboardAdapter`
  * @mimetype: (nullable): a mime-type, or %NULL if @bytes is %NULL
- * @bytes: (nullable): a #GBytes, or %NULL if @mimetype is %NULL
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @bytes: (nullable): a `GBytes`, or %NULL if @mimetype is %NULL
+ * @cancellable: (nullable): a `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * Set the content of the clipboard.
@@ -373,9 +373,9 @@ valent_clipboard_adapter_write_bytes (ValentClipboardAdapter *adapter,
 
 /**
  * valent_clipboard_adapter_write_bytes_finish: (virtual write_bytes_finish)
- * @adapter: a #ValentClipboardAdapter
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
+ * @adapter: a `ValentClipboardAdapter`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
  *
  * Finish an operation started by [method@Valent.ClipboardAdapter.write_bytes].
  *

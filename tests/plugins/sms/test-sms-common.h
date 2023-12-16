@@ -44,7 +44,7 @@ valent_test_contact_store_new_cb (ValentContactStore *store,
  *
  * Get test contact #1.
  *
- * Returns: (transfer none): a #EContact
+ * Returns: (transfer none): a `EContact`
  */
 static inline EContact *
 valent_test_contact1 (void)
@@ -68,7 +68,7 @@ valent_test_contact1 (void)
  *
  * Get test contact #2.
  *
- * Returns: (transfer none): a #EContact
+ * Returns: (transfer none): a `EContact`
  */
 static inline EContact *
 valent_test_contact2 (void)
@@ -92,7 +92,7 @@ valent_test_contact2 (void)
  *
  * Get test contact #3.
  *
- * Returns: (transfer none): a #EContact
+ * Returns: (transfer none): a `EContact`
  */
 static inline EContact *
 valent_test_contact3 (void)
@@ -114,9 +114,9 @@ valent_test_contact3 (void)
 /**
  * valent_test_contact_store_new:
  *
- * Create a new #ValentContactStore for testing.
+ * Create a new `ValentContactStore` for testing.
  *
- * Returns: (transfer full): a #ValentContactStore
+ * Returns: (transfer full): a `ValentContactStore`
  */
 static inline ValentContactStore *
 valent_test_contact_store_new (void)
@@ -201,9 +201,9 @@ valent_test_sms_get_messages (void)
 /**
  * valent_test_sms_store_new:
  *
- * Create a new #ValentSmsStore for testing.
+ * Create a new `ValentSmsStore` for testing.
  *
- * Returns: (transfer full): a #ValentSmsStore
+ * Returns: (transfer full): a `ValentSmsStore`
  */
 static inline ValentSmsStore *
 valent_test_sms_store_new (void)

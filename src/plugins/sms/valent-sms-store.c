@@ -921,8 +921,8 @@ valent_sms_store_class_init (ValentSmsStoreClass *klass)
 
   /**
    * ValentSmsStore::message-added:
-   * @store: a #ValentSmsStore
-   * @message: a #ValentMessage
+   * @store: a `ValentSmsStore`
+   * @message: a `ValentMessage`
    *
    * ValentSmsStore::message-added is emitted when a new message is added to
    * @store.
@@ -941,8 +941,8 @@ valent_sms_store_class_init (ValentSmsStoreClass *klass)
 
   /**
    * ValentSmsStore::message-changed:
-   * @store: a #ValentSmsStore
-   * @message: a #ValentMessage
+   * @store: a `ValentSmsStore`
+   * @message: a `ValentMessage`
    *
    * ValentSmsStore::message-changed is emitted when a message is updated in
    * @store.
@@ -961,8 +961,8 @@ valent_sms_store_class_init (ValentSmsStoreClass *klass)
 
   /**
    * ValentSmsStore::message-removed:
-   * @store: a #ValentSmsStore
-   * @message: a #ValentMessage
+   * @store: a `ValentSmsStore`
+   * @message: a `ValentMessage`
    *
    * ValentSmsStore::message-removed is emitted when a message is removed from
    * @store.
@@ -999,9 +999,9 @@ valent_sms_store_init (ValentSmsStore *self)
 
 /**
  * valent_sms_store_new:
- * @parent: a #ValentContext
+ * @parent: a `ValentContext`
  *
- * Create a new #ValentSmsStore.
+ * Create a new `ValentSmsStore`.
  *
  * Returns: (transfer full): a new sms store
  */
@@ -1017,10 +1017,10 @@ valent_sms_store_new (ValentContext *parent)
 
 /**
  * valent_sms_store_add_message:
- * @store: a #ValentSmsStore
- * @message: a #ValentMessage
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @store: a `ValentSmsStore`
+ * @message: a `ValentMessage`
+ * @cancellable: (nullable): a `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * Add @message to @store.
@@ -1051,10 +1051,10 @@ valent_sms_store_add_message (ValentSmsStore      *store,
 
 /**
  * valent_sms_store_add_messages:
- * @store: a #ValentSmsStore
- * @messages: (element-type Valent.Message): a #ValentMessage
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @store: a `ValentSmsStore`
+ * @messages: (element-type Valent.Message): a `ValentMessage`
+ * @cancellable: (nullable): a `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * Add @messages to @store.
@@ -1081,9 +1081,9 @@ valent_sms_store_add_messages (ValentSmsStore      *store,
 
 /**
  * valent_sms_store_add_messages_finish:
- * @store: a #ValentSmsStore
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
+ * @store: a `ValentSmsStore`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
  *
  * Finish an operation started by valent_sms_store_add_messages().
  *
@@ -1103,10 +1103,10 @@ valent_sms_store_add_messages_finish (ValentSmsStore  *store,
 
 /**
  * valent_sms_store_remove_message:
- * @store: a #ValentSmsStore
+ * @store: a `ValentSmsStore`
  * @message_id: a message ID
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @cancellable: (nullable): a `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * Remove the message with @message_id from @thread_id.
@@ -1134,9 +1134,9 @@ valent_sms_store_remove_message (ValentSmsStore      *store,
 
 /**
  * valent_sms_store_remove_message_finish:
- * @store: a #ValentSmsStore
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
+ * @store: a `ValentSmsStore`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
  *
  * Finish an operation started by valent_sms_store_remove_message().
  *
@@ -1156,10 +1156,10 @@ valent_sms_store_remove_message_finish (ValentSmsStore  *store,
 
 /**
  * valent_sms_store_remove_thread:
- * @store: a #ValentSmsStore
+ * @store: a `ValentSmsStore`
  * @thread_id: a thread ID
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @cancellable: (nullable): a `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * Remove @thread_id and all it's messages from @store.
@@ -1188,9 +1188,9 @@ valent_sms_store_remove_thread (ValentSmsStore      *store,
 
 /**
  * valent_sms_store_remove_thread_finish:
- * @store: a #ValentSmsStore
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
+ * @store: a `ValentSmsStore`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
  *
  * Finish an operation started by valent_sms_store_remove_thread().
  *
@@ -1210,10 +1210,10 @@ valent_sms_store_remove_thread_finish (ValentSmsStore  *store,
 
 /**
  * valent_sms_store_find_messages:
- * @store: a #ValentSmsStore
+ * @store: a `ValentSmsStore`
  * @query: a string to search for
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @cancellable: (nullable): a `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * Search through all the messages in @store and return the most recent message
@@ -1242,13 +1242,13 @@ valent_sms_store_find_messages (ValentSmsStore      *store,
 
 /**
  * valent_sms_store_find_messages_finish:
- * @store: a #ValentSmsStore
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
+ * @store: a `ValentSmsStore`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
  *
  * Finish an operation started by valent_sms_store_find_messages().
  *
- * Returns: (transfer container) (element-type Valent.Message): an #GPtrArray
+ * Returns: (transfer container) (element-type Valent.Message): an `GPtrArray`
  */
 GPtrArray *
 valent_sms_store_find_messages_finish (ValentSmsStore  *store,
@@ -1264,15 +1264,15 @@ valent_sms_store_find_messages_finish (ValentSmsStore  *store,
 
 /**
  * valent_sms_store_get_message:
- * @store: a #ValentSmsStore
+ * @store: a `ValentSmsStore`
  * @message_id: a message ID
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @cancellable: (nullable): a `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
- * Get the #ValentMessage with @message_id or %NULL if not found.
+ * Get the `ValentMessage` with @message_id or %NULL if not found.
  *
- * Returns: (transfer none) (nullable): a #ValentMessage
+ * Returns: (transfer none) (nullable): a `ValentMessage`
  */
 void
 valent_sms_store_get_message (ValentSmsStore      *store,
@@ -1298,13 +1298,13 @@ valent_sms_store_get_message (ValentSmsStore      *store,
 
 /**
  * valent_sms_store_get_message_finish:
- * @store: a #ValentSmsStore
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
+ * @store: a `ValentSmsStore`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
  *
  * Finish an operation started by valent_sms_store_get_message().
  *
- * Returns: (transfer full) (nullable): a #ValentMessage
+ * Returns: (transfer full) (nullable): a `ValentMessage`
  */
 ValentMessage *
 valent_sms_store_get_message_finish (ValentSmsStore  *store,
@@ -1320,11 +1320,11 @@ valent_sms_store_get_message_finish (ValentSmsStore  *store,
 
 /**
  * valent_sms_store_get_summary:
- * @store: a #ValentSmsStore
+ * @store: a `ValentSmsStore`
  *
- * Get the latest message of each thread as a #GListModel.
+ * Get the latest message of each thread as a `GListModel`.
  *
- * Returns: (transfer full) (nullable): a #GListModel
+ * Returns: (transfer full) (nullable): a `GListModel`
  */
 GListModel *
 valent_sms_store_get_summary (ValentSmsStore *store)
@@ -1349,12 +1349,12 @@ valent_sms_store_get_summary (ValentSmsStore *store)
 
 /**
  * valent_sms_store_get_thread:
- * @store: a #ValentSmsStore
+ * @store: a `ValentSmsStore`
  * @thread_id: a message id
  *
- * Get the thread with @thread_id as a #GListModel.
+ * Get the thread with @thread_id as a `GListModel`.
  *
- * Returns: (transfer full): a #GListModel
+ * Returns: (transfer full): a `GListModel`
  */
 GListModel *
 valent_sms_store_get_thread (ValentSmsStore *store,
@@ -1368,7 +1368,7 @@ valent_sms_store_get_thread (ValentSmsStore *store,
 
 /**
  * valent_sms_store_get_thread_date:
- * @store: a #ValentSmsStore
+ * @store: a `ValentSmsStore`
  * @thread_id: a thread ID
  *
  * Get the date of the last message in @thread_id.
@@ -1404,10 +1404,10 @@ valent_sms_store_get_thread_date (ValentSmsStore *store,
 
 /**
  * valent_sms_store_get_thread_items:
- * @store: a #ValentSmsStore
+ * @store: a `ValentSmsStore`
  * @thread_id: a thread ID
  *
- * Get the #ValentMessage in @thread_id at @position, when sorted by date in
+ * Get the `ValentMessage` in @thread_id at @position, when sorted by date in
  * ascending order.
  */
 void
@@ -1434,13 +1434,13 @@ valent_sms_store_get_thread_items (ValentSmsStore      *store,
 
 /**
  * valent_sms_store_message_added:
- * @store: a #ValentSmsStore
- * @message: a #ValentMessage
+ * @store: a `ValentSmsStore`
+ * @message: a `ValentMessage`
  *
- * Emits the #ValentSmsStore::message-added signal on @store.
+ * Emits the `ValentSmsStore`::message-added signal on @store.
  *
  * This function should only be called by classes implementing
- * #ValentSmsStore. It has to be called after the internal representation
+ * `ValentSmsStore`. It has to be called after the internal representation
  * of @store has been updated, because handlers connected to this signal
  * might query the new state of the provider.
  */
@@ -1475,13 +1475,13 @@ valent_sms_store_message_added (ValentSmsStore *store,
 
 /**
  * valent_sms_store_message_removed:
- * @store: a #ValentSmsStore
- * @message: a #ValentMessage
+ * @store: a `ValentSmsStore`
+ * @message: a `ValentMessage`
  *
- * Emits the #ValentSmsStore::message-removed signal on @store.
+ * Emits the `ValentSmsStore`::message-removed signal on @store.
  *
  * This function should only be called by classes implementing
- * #ValentSmsStore. It has to be called after the internal representation
+ * `ValentSmsStore`. It has to be called after the internal representation
  * of @store has been updated, because handlers connected to this signal
  * might query the new state of the provider.
  */
@@ -1516,13 +1516,13 @@ valent_sms_store_message_removed (ValentSmsStore *store,
 
 /**
  * valent_sms_store_message_changed:
- * @store: a #ValentSmsStore
- * @message: a #ValentMessage
+ * @store: a `ValentSmsStore`
+ * @message: a `ValentMessage`
  *
- * Emits the #ValentSmsStore::message-changed signal on @store.
+ * Emits the `ValentSmsStore`::message-changed signal on @store.
  *
  * This function should only be called by classes implementing
- * #ValentSmsStore. It has to be called after the internal representation
+ * `ValentSmsStore`. It has to be called after the internal representation
  * of @store has been updated, because handlers connected to this signal
  * might query the new state of the provider.
  */

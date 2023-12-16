@@ -160,9 +160,9 @@ valent_mock_channel_service_init (ValentMockChannelService *self)
 /**
  * valent_mock_channel_service_get_instance:
  *
- * Get the #ValentMockChannelService instance.
+ * Get the `ValentMockChannelService` instance.
  *
- * Returns: (transfer none) (nullable): a #ValentChannelService
+ * Returns: (transfer none) (nullable): a `ValentChannelService`
  */
 ValentChannelService *
 valent_mock_channel_service_get_instance (void)
@@ -173,9 +173,9 @@ valent_mock_channel_service_get_instance (void)
 /**
  * valent_mock_channel_service_get_channel:
  *
- * Get the local #ValentChannel.
+ * Get the local `ValentChannel`.
  *
- * Returns: (transfer none) (nullable): a #ValentChannel
+ * Returns: (transfer none) (nullable): a `ValentChannel`
  */
 ValentChannel *
 valent_mock_channel_service_get_channel (void)
@@ -189,9 +189,9 @@ valent_mock_channel_service_get_channel (void)
 /**
  * valent_mock_channel_service_get_endpoint:
  *
- * Get the endpoint #ValentChannel.
+ * Get the endpoint `ValentChannel`.
  *
- * Returns: (transfer none) (nullable): a #ValentChannel
+ * Returns: (transfer none) (nullable): a `ValentChannel`
  */
 ValentChannel *
 valent_mock_channel_service_get_endpoint (void)

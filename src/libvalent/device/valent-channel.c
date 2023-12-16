@@ -20,7 +20,7 @@
  *
  * A base class for device connections.
  *
- * #ValentChannel is a base class for the primary communication channel in
+ * `ValentChannel` is a base class for the primary communication channel in
  * Valent. It is effectively an abstraction layer around a [class@Gio.IOStream].
  *
  * ## Packet Exchange
@@ -66,7 +66,7 @@ G_DEFINE_TYPE_WITH_PRIVATE (ValentChannel, valent_channel, VALENT_TYPE_OBJECT)
  * @upload: the virtual function pointer for valent_channel_upload()
  * @store_data: the virtual function pointer for valent_channel_store_data()
  *
- * The virtual function table for #ValentChannel.
+ * The virtual function table for `ValentChannel`.
  */
 
 enum {
@@ -489,7 +489,7 @@ valent_channel_init (ValentChannel *self)
 
 /**
  * valent_channel_ref_base_stream: (get-property base-stream)
- * @channel: a #ValentChannel
+ * @channel: a `ValentChannel`
  *
  * Get the base [class@Gio.IOStream].
  *
@@ -515,7 +515,7 @@ valent_channel_ref_base_stream (ValentChannel *channel)
 
 /**
  * valent_channel_get_identity: (get-property identity)
- * @channel: A #ValentChannel
+ * @channel: A `ValentChannel`
  *
  * Get the local identity packet.
  *
@@ -535,7 +535,7 @@ valent_channel_get_identity (ValentChannel *channel)
 
 /**
  * valent_channel_get_peer_identity: (get-property peer-identity)
- * @channel: A #ValentChannel
+ * @channel: A `ValentChannel`
  *
  * Get the peer identity packet.
  *
@@ -555,7 +555,7 @@ valent_channel_get_peer_identity (ValentChannel *channel)
 
 /**
  * valent_channel_get_verification_key: (virtual get_verification_key)
- * @channel: a #ValentChannel
+ * @channel: a `ValentChannel`
  *
  * Get a verification key for the connection.
  *
@@ -582,9 +582,9 @@ valent_channel_get_verification_key (ValentChannel *channel)
 
 /**
  * valent_channel_close:
- * @channel: a #ValentChannel
- * @cancellable: (nullable): a #GCancellable
- * @error: (nullable): a #GError
+ * @channel: a `ValentChannel`
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
  *
  * Close the channel.
  *
@@ -639,9 +639,9 @@ valent_channel_close_task (GTask        *task,
 
 /**
  * valent_channel_close_async:
- * @channel: a #ValentChannel
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @channel: a `ValentChannel`
+ * @cancellable: (nullable): a `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * Close the channel asynchronously.
@@ -672,9 +672,9 @@ valent_channel_close_async (ValentChannel       *channel,
 
 /**
  * valent_channel_close_finish:
- * @channel: a #ValentChannel
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
+ * @channel: a `ValentChannel`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
  *
  * Finish an operation started by [method@Valent.Channel.close_async].
  *
@@ -738,9 +738,9 @@ valent_channel_read_packet_task (GTask        *task,
 
 /**
  * valent_channel_read_packet:
- * @channel: a #ValentChannel
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @channel: a `ValentChannel`
+ * @cancellable: (nullable): a `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * Read the next KDE Connect packet from @channel.
@@ -771,9 +771,9 @@ valent_channel_read_packet (ValentChannel       *channel,
 
 /**
  * valent_channel_read_packet_finish:
- * @channel: a #ValentChannel
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
+ * @channel: a `ValentChannel`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
  *
  * Finish an operation started by [method@Valent.Channel.read_packet].
  *
@@ -832,10 +832,10 @@ valent_channel_write_packet_func (gpointer data)
 
 /**
  * valent_channel_write_packet:
- * @channel: a #ValentChannel
+ * @channel: a `ValentChannel`
  * @packet: a KDE Connect packet
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @cancellable: (nullable): a `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * Send a packet over the channel.
@@ -885,9 +885,9 @@ valent_channel_write_packet (ValentChannel       *channel,
 
 /**
  * valent_channel_write_packet_finish:
- * @channel: a #ValentChannel
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
+ * @channel: a `ValentChannel`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
  *
  * Finish an operation started by [method@Valent.Channel.write_packet].
  *
@@ -915,8 +915,8 @@ valent_channel_write_packet_finish (ValentChannel  *channel,
 
 /**
  * valent_channel_store_data: (virtual store_data)
- * @channel: a #ValentChannel
- * @context: a #ValentContext
+ * @channel: a `ValentChannel`
+ * @context: a `ValentContext`
  *
  * Store channel metadata.
  *
@@ -944,10 +944,10 @@ valent_channel_store_data (ValentChannel *channel,
 
 /**
  * valent_channel_download: (virtual download)
- * @channel: a #ValentChannel
+ * @channel: a `ValentChannel`
  * @packet: a KDE Connect packet
- * @cancellable: (nullable): a #GCancellable
- * @error: (nullable): a #GError
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
  *
  * Open an auxiliary connection, usually to download data.
  *
@@ -959,7 +959,7 @@ valent_channel_store_data (ValentChannel *channel,
  * `payloadTransferInfo` dictionary on the same host as the channel. When the
  * connection is accepted the caller can perform operations on it as required.
  *
- * Returns: (transfer full) (nullable): a #GIOStream
+ * Returns: (transfer full) (nullable): a `GIOStream`
  *
  * Since: 1.0
  */
@@ -988,10 +988,10 @@ valent_channel_download (ValentChannel  *channel,
 
 /**
  * valent_channel_download_async: (virtual download_async)
- * @channel: a #ValentChannel
+ * @channel: a `ValentChannel`
  * @packet: a KDE Connect packet
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @cancellable: (nullable): a `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * Open an auxiliary connection, usually to download data.
@@ -1028,13 +1028,13 @@ valent_channel_download_async (ValentChannel       *channel,
 
 /**
  * valent_channel_download_finish: (virtual download_finish)
- * @channel: a #ValentChannel
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
+ * @channel: a `ValentChannel`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
  *
  * Finish an operation started with [method@Valent.Channel.download_async].
  *
- * Returns: (transfer full) (nullable): a #GIOStream
+ * Returns: (transfer full) (nullable): a `GIOStream`
  *
  * Since: 1.0
  */
@@ -1060,10 +1060,10 @@ valent_channel_download_finish (ValentChannel  *channel,
 
 /**
  * valent_channel_upload: (virtual upload)
- * @channel: a #ValentChannel
+ * @channel: a `ValentChannel`
  * @packet: a KDE Connect packet
- * @cancellable: (nullable): a #GCancellable
- * @error: (nullable): a #GError
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
  *
  * Accept an auxiliary connection, usually to upload data.
  *
@@ -1076,7 +1076,7 @@ valent_channel_download_finish (ValentChannel  *channel,
  * send the packet with that port in the `payloadTransferInfo` dictionary. When
  * a connection is accepted the caller can perform operations on it as required.
  *
- * Returns: (transfer full) (nullable): a #GIOStream
+ * Returns: (transfer full) (nullable): a `GIOStream`
  *
  * Since: 1.0
  */
@@ -1105,10 +1105,10 @@ valent_channel_upload (ValentChannel  *channel,
 
 /**
  * valent_channel_upload_async: (virtual upload_async)
- * @channel: a #ValentChannel
+ * @channel: a `ValentChannel`
  * @packet: a KDE Connect packet
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @cancellable: (nullable): a `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * Accept an auxiliary connection, usually to upload data.
@@ -1145,13 +1145,13 @@ valent_channel_upload_async (ValentChannel       *channel,
 
 /**
  * valent_channel_upload_finish: (virtual upload_finish)
- * @channel: a #ValentChannel
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
+ * @channel: a `ValentChannel`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
  *
  * Finish an operation started with [method@Valent.Channel.upload_async].
  *
- * Returns: (transfer full) (nullable): a #GIOStream
+ * Returns: (transfer full) (nullable): a `GIOStream`
  *
  * Since: 1.0
  */

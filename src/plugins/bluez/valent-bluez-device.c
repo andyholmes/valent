@@ -255,14 +255,14 @@ valent_bluez_device_init (ValentBluezDevice *device)
 
 /**
  * valent_bluez_device_new:
- * @connection: a #GDBusConnection
+ * @connection: a `GDBusConnection`
  * @object_path: An object path
- * @props: a #GVariant
+ * @props: a `GVariant`
  *
- * Create a new #ValentBluezDevice on @connection for @object_path. If @properties
+ * Create a new `ValentBluezDevice` on @connection for @object_path. If @properties
  * is not %NULL, the returned proxy will be populated.
  *
- * Returns: (transfer full): a new #ValentBluezDevice
+ * Returns: (transfer full): a new `ValentBluezDevice`
  */
 ValentBluezDevice *
 valent_bluez_device_new (GDBusConnection  *connection,
@@ -325,7 +325,7 @@ valent_bluez_device_connect_cb (GDBusConnection   *connection,
 
 /**
  * valent_bluez_device_connect:
- * @device: A #ValentBluezDevice
+ * @device: A `ValentBluezDevice`
  *
  * Attempt to connect @device.
  */
@@ -350,7 +350,7 @@ valent_bluez_device_connect (ValentBluezDevice *device)
 
 /**
  * valent_bluez_device_is_supported:
- * @device: a #ValentBluezDevice
+ * @device: a `ValentBluezDevice`
  *
  * Returns %TRUE if @device is paired and the list of service UUIDs includes the
  * KDE Connect bluetooth UUID.

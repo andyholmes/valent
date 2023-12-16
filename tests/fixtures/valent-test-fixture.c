@@ -17,7 +17,7 @@
  *
  * A test fixture for Valent.
  *
- * #ValentTestFixture is a fixture for tests that require a
+ * `ValentTestFixture` is a fixture for tests that require a
  * [class@Valent.Device] with a channel pair.
  */
 G_DEFINE_BOXED_TYPE (ValentTestFixture, valent_test_fixture,
@@ -48,7 +48,7 @@ valent_test_fixture_free (gpointer data)
 
 /**
  * valent_test_fixture_init:
- * @fixture: a #ValentTestFixture
+ * @fixture: a `ValentTestFixture`
  * @user_data: a file path
  *
  * A fixture setup function.
@@ -103,7 +103,7 @@ valent_test_fixture_init (ValentTestFixture *fixture,
 
 /**
  * valent_test_fixture_clear:
- * @fixture: a #ValentTestFixture
+ * @fixture: a `ValentTestFixture`
  * @user_data: a file path
  *
  * A fixture tear-down function.
@@ -138,9 +138,9 @@ valent_test_fixture_clear (ValentTestFixture *fixture,
  * valent_test_fixture_new:
  * @path: a file path
  *
- * Create a new #ValentTestFixture for the JSON test data at @path.
+ * Create a new `ValentTestFixture` for the JSON test data at @path.
  *
- * Returns: (transfer full): a new #ValentTestFixture
+ * Returns: (transfer full): a new `ValentTestFixture`
  */
 ValentTestFixture *
 valent_test_fixture_new (const char *path)
@@ -157,11 +157,11 @@ valent_test_fixture_new (const char *path)
 
 /**
  * valent_test_fixture_ref:
- * @fixture: a #ValentTestFixture
+ * @fixture: a `ValentTestFixture`
  *
  * Acquire a new reference of @fixture.
  *
- * Returns: (transfer full): a #ValentTestFixture
+ * Returns: (transfer full): a `ValentTestFixture`
  */
 ValentTestFixture *
 valent_test_fixture_ref (ValentTestFixture *fixture)
@@ -173,7 +173,7 @@ valent_test_fixture_ref (ValentTestFixture *fixture)
 
 /**
  * valent_test_fixture_unref:
- * @fixture: a #ValentTestFixture
+ * @fixture: a `ValentTestFixture`
  *
  * Release a reference on @fixture.
  */
@@ -187,7 +187,7 @@ valent_test_fixture_unref (ValentTestFixture *fixture)
 
 /**
  * valent_test_fixture_get_data:
- * @fixture: a #ValentTestFixture
+ * @fixture: a `ValentTestFixture`
  *
  * Get the arbitrary data for @fixture.
  *
@@ -203,9 +203,9 @@ valent_test_fixture_get_data (ValentTestFixture *fixture)
 
 /**
  * valent_test_fixture_set_data:
- * @fixture: a #ValentTestFixture
+ * @fixture: a `ValentTestFixture`
  * @data: arbitrary data pointer
- * @data_free: a #GDestroyNotify
+ * @data_free: a `GDestroyNotify`
  *
  * Set the arbitrary data for @fixture.
  */
@@ -225,11 +225,11 @@ valent_test_fixture_set_data (ValentTestFixture *fixture,
 
 /**
  * valent_test_fixture_get_device:
- * @fixture: a #ValentTestFixture
+ * @fixture: a `ValentTestFixture`
  *
- * Get the #ValentDevice.
+ * Get the `ValentDevice`.
  *
- * Returns: (transfer none): a #ValentDevice
+ * Returns: (transfer none): a `ValentDevice`
  */
 ValentDevice *
 valent_test_fixture_get_device (ValentTestFixture *fixture)
@@ -241,10 +241,10 @@ valent_test_fixture_get_device (ValentTestFixture *fixture)
 
 /**
  * valent_test_fixture_connect:
- * @fixture: a #ValentTestFixture
+ * @fixture: a `ValentTestFixture`
  * @connected: whether to connect the device
  *
- * Get the connected state of the #ValentDevice.
+ * Get the connected state of the `ValentDevice`.
  */
 void
 valent_test_fixture_connect (ValentTestFixture *fixture,
@@ -257,12 +257,12 @@ valent_test_fixture_connect (ValentTestFixture *fixture,
 
 /**
  * valent_test_fixture_lookup_packet:
- * @fixture: a #ValentTestFixture
+ * @fixture: a `ValentTestFixture`
  * @name: a name
  *
  * Lookup the test packet @name.
  *
- * Returns: (transfer none): a #JsonNode
+ * Returns: (transfer none): a `JsonNode`
  */
 JsonNode *
 valent_test_fixture_lookup_packet (ValentTestFixture *fixture,
@@ -276,12 +276,12 @@ valent_test_fixture_lookup_packet (ValentTestFixture *fixture,
 
 /**
  * valent_test_fixture_expect_packet:
- * @fixture: a #ValentTestFixture
+ * @fixture: a `ValentTestFixture`
  *
  * Iterate the main context until a packet is received from the mock
- * #ValentDevice.
+ * `ValentDevice`.
  *
- * Returns: (transfer full): a #JsonNode
+ * Returns: (transfer full): a `JsonNode`
  */
 JsonNode *
 valent_test_fixture_expect_packet (ValentTestFixture *fixture)
@@ -315,10 +315,10 @@ valent_channel_write_packet_cb (GObject      *object,
 
 /**
  * valent_test_fixture_handle_packet:
- * @fixture: a #ValentTestFixture
- * @packet: a #JsonNode
+ * @fixture: a `ValentTestFixture`
+ * @packet: a `JsonNode`
  *
- * Simulate sending @packet to the #ValentDevice for @fixture.
+ * Simulate sending @packet to the `ValentDevice` for @fixture.
  */
 void
 valent_test_fixture_handle_packet (ValentTestFixture *fixture,
@@ -339,11 +339,11 @@ valent_test_fixture_handle_packet (ValentTestFixture *fixture,
 
 /**
  * valent_test_fixture_download:
- * @fixture: a #ValentTestFixture
- * @packet: a #JsonNode
- * @error: (nullable): a #GError
+ * @fixture: a `ValentTestFixture`
+ * @packet: a `JsonNode`
+ * @error: (nullable): a `GError`
  *
- * Simulate downloading the transfer described by @packet from the #ValentDevice
+ * Simulate downloading the transfer described by @packet from the `ValentDevice`
  * for @fixture.
  *
  * Returns: %TRUE if successful
@@ -361,12 +361,12 @@ valent_test_fixture_download (ValentTestFixture  *fixture,
 
 /**
  * valent_test_fixture_upload:
- * @fixture: a #ValentTestFixture
- * @packet: a #JsonNode
- * @file: a #GFile
- * @error: (nullable): a #GError
+ * @fixture: a `ValentTestFixture`
+ * @packet: a `JsonNode`
+ * @file: a `GFile`
+ * @error: (nullable): a `GError`
  *
- * Simulate uploading @file to the #ValentDevice for @fixture.
+ * Simulate uploading @file to the `ValentDevice` for @fixture.
  */
 gboolean
 valent_test_fixture_upload (ValentTestFixture  *fixture,
@@ -384,11 +384,11 @@ valent_test_fixture_upload (ValentTestFixture  *fixture,
 
 /**
  * valent_test_fixture_schema_fuzz:
- * @fixture: a #ValentTestFixture
+ * @fixture: a `ValentTestFixture`
  * @path: (type filename): path to a JSON Schema
  *
  * Generate test vectors for the JSON Schema at @path and pass them to the
- * #ValentDevice for @fixture.
+ * `ValentDevice` for @fixture.
  */
 void
 valent_test_fixture_schema_fuzz (ValentTestFixture *fixture,

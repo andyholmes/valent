@@ -371,11 +371,11 @@ valent_notification_dialog_init (ValentNotificationDialog *self)
 
 /**
  * valent_notification_dialog_get_notification:
- * @dialog: a #ValentNotificationDialog
+ * @dialog: a `ValentNotificationDialog`
  *
  * Get the notification.
  *
- * Returns: (transfer none): a #ValentNotification
+ * Returns: (transfer none): a `ValentNotification`
  */
 ValentNotification *
 valent_notification_dialog_get_notification (ValentNotificationDialog *dialog)
@@ -387,7 +387,7 @@ valent_notification_dialog_get_notification (ValentNotificationDialog *dialog)
 
 /**
  * valent_notification_dialog_get_reply_id: (get-property reply-id)
- * @dialog: a #ValentNotificationDialog
+ * @dialog: a `ValentNotificationDialog`
  *
  * Get the notification reply ID.
  *
@@ -403,7 +403,7 @@ valent_notification_dialog_get_reply_id (ValentNotificationDialog *dialog)
 
 /**
  * valent_notification_dialog_set_reply_id: (set-property reply-id)
- * @dialog: a #ValentNotificationDialog
+ * @dialog: a `ValentNotificationDialog`
  * @reply_id: (nullable): a notification reply ID
  *
  * Set the notification reply ID.

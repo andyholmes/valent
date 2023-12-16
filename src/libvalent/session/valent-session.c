@@ -18,7 +18,7 @@
  *
  * A class for monitoring the session state.
  *
- * #ValentSession is an abstraction of session managers, intended for use by
+ * `ValentSession` is an abstraction of session managers, intended for use by
  * [class@Valent.DevicePlugin] implementations.
  *
  * Plugins can implement [class@Valent.SessionAdapter] to provide an interface
@@ -213,7 +213,7 @@ valent_session_init (ValentSession *self)
  *
  * Get the default [class@Valent.Session].
  *
- * Returns: (transfer none) (nullable): a #ValentSession
+ * Returns: (transfer none) (nullable): a `ValentSession`
  *
  * Since: 1.0
  */
@@ -236,7 +236,7 @@ valent_session_get_default (void)
 
 /**
  * valent_session_get_active: (get-property active)
- * @session: a #ValentSession
+ * @session: a `ValentSession`
  *
  * Get the active state of the primary [class@Valent.SessionAdapter].
  *
@@ -261,7 +261,7 @@ valent_session_get_active (ValentSession *session)
 
 /**
  * valent_session_get_locked: (get-property locked)
- * @session: a #ValentSession
+ * @session: a `ValentSession`
  *
  * Get the locked state of the primary [class@Valent.SessionAdapter].
  *
@@ -286,7 +286,7 @@ valent_session_get_locked (ValentSession *session)
 
 /**
  * valent_session_set_locked: (set-property locked)
- * @session: a #ValentSession
+ * @session: a `ValentSession`
  * @state: %TRUE to lock, or %FALSE to unlock
  *
  * Set the locked state of the primary [class@Valent.SessionAdapter].

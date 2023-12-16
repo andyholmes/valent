@@ -16,7 +16,7 @@
  *
  * A base class for mixer streams.
  *
- * #ValentMixerStream is a base class for mixer streams, intended for use by
+ * `ValentMixerStream` is a base class for mixer streams, intended for use by
  * implementations of [class@Valent.MixerAdapter].
  *
  * Since: 1.0
@@ -54,7 +54,7 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
  * @get_muted: the virtual function pointer for valent_mixer_stream_get_muted()
  * @set_muted: the virtual function pointer for valent_mixer_stream_set_muted()
  *
- * The virtual function table for #ValentMixerStream.
+ * The virtual function table for `ValentMixerStream`.
  */
 
 /* LCOV_EXCL_START */
@@ -323,7 +323,7 @@ valent_mixer_stream_init (ValentMixerStream *stream)
 
 /**
  * valent_mixer_stream_get_name: (get-property name) (virtual get_name)
- * @stream: a #ValentMixerStream
+ * @stream: a `ValentMixerStream`
  *
  * Get the unique name of @stream.
  *
@@ -347,7 +347,7 @@ valent_mixer_stream_get_name (ValentMixerStream *stream)
 
 /**
  * valent_mixer_stream_get_description: (get-property description) (virtual get_description)
- * @stream: a #ValentMixerStream
+ * @stream: a `ValentMixerStream`
  *
  * Get the human-readable label of @stream.
  *
@@ -371,11 +371,11 @@ valent_mixer_stream_get_description (ValentMixerStream *stream)
 
 /**
  * valent_mixer_stream_get_direction: (get-property direction) (virtual get_direction)
- * @stream: a #ValentMixerStream
+ * @stream: a `ValentMixerStream`
  *
  * Get the port direction of @stream.
  *
- * Returns: the #ValentMixerDirection of @stream
+ * Returns: the `ValentMixerDirection` of @stream
  *
  * Since: 1.0
  */
@@ -391,7 +391,7 @@ valent_mixer_stream_get_direction (ValentMixerStream *stream)
 
 /**
  * valent_mixer_stream_get_level: (get-property level) (virtual get_level)
- * @stream: a #ValentMixerStream
+ * @stream: a `ValentMixerStream`
  *
  * Get the level of @stream (eg. speaker volume, microphone sensitivity).
  *
@@ -418,7 +418,7 @@ valent_mixer_stream_get_level (ValentMixerStream *stream)
 
 /**
  * valent_mixer_stream_set_level: (set-property level) (virtual set_level)
- * @stream: a #ValentMixerStream
+ * @stream: a `ValentMixerStream`
  * @level: a volume level between `0` and `100`
  *
  * Set the level of @stream (eg. speaker volume, microphone sensitivity).
@@ -444,7 +444,7 @@ valent_mixer_stream_set_level (ValentMixerStream *stream,
 
 /**
  * valent_mixer_stream_get_muted: (get-property muted) (virtual get_muted)
- * @stream: a #ValentMixerStream
+ * @stream: a `ValentMixerStream`
  *
  * Get the muted state of @stream.
  *
@@ -471,7 +471,7 @@ valent_mixer_stream_get_muted (ValentMixerStream *stream)
 
 /**
  * valent_mixer_stream_set_muted: (set-property muted) (virtual set_muted)
- * @stream: a #ValentMixerStream
+ * @stream: a `ValentMixerStream`
  * @state: whether the stream should be muted
  *
  * Set the muted state of @stream.

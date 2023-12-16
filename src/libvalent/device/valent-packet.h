@@ -43,7 +43,7 @@ GQuark   valent_packet_error_quark (void);
 
 /**
  * valent_packet_is_valid:
- * @packet: (nullable): a #JsonNode
+ * @packet: (nullable): a `JsonNode`
  *
  * Check if @packet is a well-formed KDE Connect packet. This can be used in
  * g_return_if_fail() checks.

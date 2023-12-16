@@ -23,8 +23,8 @@
  *
  * A class for multi-file downloads.
  *
- * #ValentShareDownload is a class that supports multi-file downloads for
- * #ValentSharePlugin.
+ * `ValentShareDownload` is a class that supports multi-file downloads for
+ * `ValentSharePlugin`.
  */
 
 struct _ValentShareDownload
@@ -293,11 +293,11 @@ valent_share_download_init (ValentShareDownload *self)
 
 /**
  * valent_share_download_new:
- * @device: a #ValentDevice
+ * @device: a `ValentDevice`
  *
- * Create a new #ValentShareDownload.
+ * Create a new `ValentShareDownload`.
  *
- * Returns: (transfer full): a new #ValentShareDownload
+ * Returns: (transfer full): a new `ValentShareDownload`
  */
 ValentTransfer *
 valent_share_download_new (ValentDevice *device)
@@ -311,8 +311,8 @@ valent_share_download_new (ValentDevice *device)
 
 /**
  * valent_share_download_add_file:
- * @group: a #ValentShareDownload
- * @file: a #GFile
+ * @group: a `ValentShareDownload`
+ * @file: a `GFile`
  * @packet: a KDE Connect packet
  *
  * Add @file to the transfer operation.
@@ -353,7 +353,7 @@ valent_share_download_add_file (ValentShareDownload *download,
 
 /**
  * valent_share_download_update:
- * @download: a #ValentShareDownload
+ * @download: a `ValentShareDownload`
  * @packet: a KDE Connect packet
  *
  * Update the number of files and total payload size for @download.

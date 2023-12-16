@@ -189,7 +189,7 @@ gboolean         valent_test_upload        (ValentChannel    *channel,
 
 /**
  * v_assert_finalize_object:
- * @object: (type GObject.Object): a #GObject
+ * @object: (type GObject.Object): a `GObject`
  *
  * Assert that @object is non-%NULL, then release one reference to it with
  * g_object_unref() and assert that it has been finalized (i.e. that there
@@ -216,7 +216,7 @@ gboolean         valent_test_upload        (ValentChannel    *channel,
 
 /**
  * v_await_finalize_object:
- * @object: (type GObject.Object): a #GObject
+ * @object: (type GObject.Object): a `GObject`
  *
  * Assert that @object is non-%NULL, then iterate the main context until its
  * reference count reaches `1`. Then release one reference to it with
@@ -240,7 +240,7 @@ static inline void
 
 /**
  * v_assert_packet_type:
- * @p: a #JsonNode
+ * @p: a `JsonNode`
  * @t: a KDE Connect packet type
  *
  * Check the body object of @p for the member @m.
@@ -256,7 +256,7 @@ static inline void
 
 /**
  * v_assert_packet_field:
- * @p: a #JsonNode
+ * @p: a `JsonNode`
  * @m: a member name
  *
  * Assert the body object of @p has the member @m.
@@ -271,7 +271,7 @@ static inline void
 
 /**
  * v_assert_packet_no_field:
- * @p: a #JsonNode
+ * @p: a `JsonNode`
  * @m: a member name
  *
  * Assert the body object of @p does not have the member @m.
@@ -286,7 +286,7 @@ static inline void
 
 /**
  * v_assert_packet_true:
- * @p: a #JsonNode
+ * @p: a `JsonNode`
  * @m: a member name
  *
  * Check the body object of @p for the member @m.
@@ -304,7 +304,7 @@ static inline void
 
 /**
  * v_assert_packet_false:
- * @p: a #JsonNode
+ * @p: a `JsonNode`
  * @m: a member name
  *
  * Check the body object of @p for the member @m.
@@ -322,7 +322,7 @@ static inline void
 
 /**
  * v_assert_packet_cmpfloat:
- * @p: a #JsonNode
+ * @p: a `JsonNode`
  * @m: a member name
  * @cmp: comparison operator
  * @num: expected value
@@ -344,7 +344,7 @@ static inline void
 
 /**
  * v_assert_packet_cmpint:
- * @p: a #JsonNode
+ * @p: a `JsonNode`
  * @m: a member name
  * @cmp: comparison operator
  * @num: expected value
@@ -366,7 +366,7 @@ static inline void
 
 /**
  * v_assert_packet_cmpstr:
- * @p: a #JsonNode
+ * @p: a `JsonNode`
  * @m: a member name
  * @cmp: comparison operator
  * @str: expected value

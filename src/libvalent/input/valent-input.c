@@ -18,7 +18,7 @@
  *
  * A class for controlling pointer and keyboard devices.
  *
- * #ValentInput is an abstraction of virtual input devices, intended for use by
+ * `ValentInput` is an abstraction of virtual input devices, intended for use by
  * [class@Valent.DevicePlugin] implementations.
  *
  * Plugins can implement [class@Valent.InputAdapter] to provide an interface to
@@ -220,7 +220,7 @@ valent_input_init (ValentInput *self)
  *
  * Get the default [class@Valent.Input].
  *
- * Returns: (transfer none) (not nullable): a #ValentInput
+ * Returns: (transfer none) (not nullable): a `ValentInput`
  *
  * Since: 1.0
  */
@@ -243,8 +243,8 @@ valent_input_get_default (void)
 
 /**
  * valent_input_export_adapter:
- * @input: a #ValentInput
- * @adapter: a #ValentInputAdapter
+ * @input: a `ValentInput`
+ * @adapter: a `ValentInputAdapter`
  *
  * Export @adapter on all adapters that support it.
  *
@@ -266,8 +266,8 @@ valent_input_export_adapter (ValentInput        *input,
 
 /**
  * valent_input_unexport_adapter:
- * @input: a #ValentInput
- * @adapter: a #ValentInputAdapter
+ * @input: a `ValentInput`
+ * @adapter: a `ValentInputAdapter`
  *
  * Unexport @adapter from all adapters that support it.
  *
@@ -299,7 +299,7 @@ valent_input_unexport_adapter (ValentInput        *input,
 
 /**
  * valent_input_keyboard_keysym:
- * @input: a #ValentInput
+ * @input: a `ValentInput`
  * @keysym: a keysym
  * @state: %TRUE to press, or %FALSE to release
  *
@@ -324,7 +324,7 @@ valent_input_keyboard_keysym (ValentInput  *input,
 
 /**
  * valent_input_pointer_axis:
- * @input: a #ValentInput
+ * @input: a `ValentInput`
  * @dx: movement on x-axis
  * @dy: movement on y-axis
  *
@@ -350,7 +350,7 @@ valent_input_pointer_axis (ValentInput *input,
 
 /**
  * valent_input_pointer_button:
- * @input: a #ValentInput
+ * @input: a `ValentInput`
  * @button: a button
  * @state: %TRUE to press, or %FALSE to release
  *
@@ -375,7 +375,7 @@ valent_input_pointer_button (ValentInput  *input,
 
 /**
  * valent_input_pointer_motion:
- * @input: a #ValentInput
+ * @input: a `ValentInput`
  * @dx: position on x-axis
  * @dy: position on y-axis
  *

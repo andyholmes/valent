@@ -17,7 +17,7 @@
  *
  * An abstract base class for device plugin gadgets.
  *
- * #ValentDeviceGadget is an base class for [class@Valent.DevicePlugin]
+ * `ValentDeviceGadget` is an base class for [class@Valent.DevicePlugin]
  * implementations that want to provide a small widget to display or control a
  * simple state (e.g. battery level).
  *

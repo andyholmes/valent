@@ -22,7 +22,7 @@ void   valent_sms_store_get_thread_items  (ValentSmsStore      *store,
  * @box: (type Valent.MessageBox):
  * @date: (type int64_t): a UNIX epoch timestamp (ms)
  * @id: (type int64_t): a message ID, unique to at least @thread_id
- * @metadata: (type GLib.Variant): additional serialized #GVariant data
+ * @metadata: (type GLib.Variant): additional serialized `GVariant` data
  * @read: (type gboolean): the viewed status
  * @sender: (type utf8): the sender address
  * @text: (type utf8): the message content
@@ -30,14 +30,14 @@ void   valent_sms_store_get_thread_items  (ValentSmsStore      *store,
  *
  * The SQL query used to create the `message` table, which holds records of
  * abstract messages. The most commonly searched properties are fields, while
- * additional data is stored as serialized #GVariant data in metadata.
+ * additional data is stored as serialized `GVariant` data in metadata.
  *
  * In general, messages are organized in groups by @thread_id and sorted by
  * @date in ascending order. Each database entry is meant to map perfectly to
- * #ValentMessage, such that the column IDs match the property IDs and the
+ * `ValentMessage`, such that the column IDs match the property IDs and the
  * column values are equivalent or safe to cast.
  *
- * Additional data is found in the @metadata #GVariant dictionary.
+ * Additional data is found in the @metadata `GVariant` dictionary.
  */
 #define MESSAGE_TABLE_SQL              \
 "CREATE TABLE IF NOT EXISTS message (" \

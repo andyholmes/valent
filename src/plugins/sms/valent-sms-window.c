@@ -749,7 +749,7 @@ valent_sms_window_class_init (ValentSmsWindowClass *klass)
   /**
    * ValentSmsWindow:contact-store:
    *
-   * The #ValentContactStore providing contacts for the window.
+   * The `ValentContactStore` providing contacts for the window.
    */
   properties [PROP_CONTACT_STORE] =
     g_param_spec_object ("contact-store", NULL, NULL,
@@ -762,7 +762,7 @@ valent_sms_window_class_init (ValentSmsWindowClass *klass)
   /**
    * ValentSmsWindow:message-store:
    *
-   * The #ValentSmsStore providing messages for the window.
+   * The `ValentSmsStore` providing messages for the window.
    */
   properties [PROP_MESSAGE_STORE] =
     g_param_spec_object ("message-store", NULL, NULL,
@@ -776,11 +776,11 @@ valent_sms_window_class_init (ValentSmsWindowClass *klass)
 
   /**
    * ValentSmsWindow::send-message:
-   * @window: a #ValentSmsWindow
-   * @message: a #ValentMessage
+   * @window: a `ValentSmsWindow`
+   * @message: a `ValentMessage`
    *
-   * The #ValentSmsWindow::send-message signal is emitted when a child
-   * #ValentSmsConversation emits #ValentSmsConversation::send-message.
+   * The `ValentSmsWindow`::send-message signal is emitted when a child
+   * `ValentSmsConversation` emits `ValentSmsConversation`::send-message.
    *
    * The signal handler should return a boolean indicating success, although
    * this only indicates the request was sent to the device.
@@ -829,11 +829,11 @@ valent_sms_window_init (ValentSmsWindow *self)
 
 /**
  * valent_sms_window_get_contact_store:
- * @window: a #ValentSmsWindow
+ * @window: a `ValentSmsWindow`
  *
- * Get the #ValentContactStore providing contacts for @window.
+ * Get the `ValentContactStore` providing contacts for @window.
  *
- * Returns: (transfer none) (nullable): a #ValentContactStore
+ * Returns: (transfer none) (nullable): a `ValentContactStore`
  */
 ValentContactStore *
 valent_sms_window_get_contact_store (ValentSmsWindow *window)
@@ -845,10 +845,10 @@ valent_sms_window_get_contact_store (ValentSmsWindow *window)
 
 /**
  * valent_sms_window_set_contact_store:
- * @window: a #ValentSmsWindow
- * @store: a #ValentContactStore
+ * @window: a `ValentSmsWindow`
+ * @store: a `ValentContactStore`
  *
- * Set the #ValentContactStore providing contacts for @window.
+ * Set the `ValentContactStore` providing contacts for @window.
  */
 void
 valent_sms_window_set_contact_store (ValentSmsWindow    *window,
@@ -866,11 +866,11 @@ valent_sms_window_set_contact_store (ValentSmsWindow    *window,
 
 /**
  * valent_sms_window_get_sms_store:
- * @window: a #ValentSmsWindow
+ * @window: a `ValentSmsWindow`
  *
- * Get the #ValentSmsStore providing messages for @window.
+ * Get the `ValentSmsStore` providing messages for @window.
  *
- * Returns: (transfer none) (nullable): a #ValentSmsStore
+ * Returns: (transfer none) (nullable): a `ValentSmsStore`
  */
 ValentSmsStore *
 valent_sms_window_get_message_store (ValentSmsWindow *window)
@@ -882,7 +882,7 @@ valent_sms_window_get_message_store (ValentSmsWindow *window)
 
 /**
  * valent_sms_window_search_contacts:
- * @window: a #ValentSmsWindow
+ * @window: a `ValentSmsWindow`
  * @query: query string
  *
  * Switch the contact view and search for @query.
@@ -906,7 +906,7 @@ valent_sms_window_search_contacts (ValentSmsWindow *window,
 
 /**
  * valent_sms_window_search_messages:
- * @window: a #ValentSmsWindow
+ * @window: a `ValentSmsWindow`
  * @query: query string
  *
  * Switch the search view and search for @query.
@@ -928,8 +928,8 @@ valent_sms_window_search_messages (ValentSmsWindow *window,
 
 /**
  * valent_sms_window_set_active_message:
- * @window: a #ValentSmsWindow
- * @message: a #valentMessage
+ * @window: a `ValentSmsWindow`
+ * @message: a `ValentMessage`
  *
  * Set the active conversation to the thread of @message scroll to @message.
  */
@@ -956,7 +956,7 @@ valent_sms_window_set_active_message (ValentSmsWindow *window,
 
 /**
  * valent_sms_window_set_active_thread:
- * @window: a #ValentSmsWindow
+ * @window: a `ValentSmsWindow`
  * @thread_id: a thread id
  *
  * Set the active conversation

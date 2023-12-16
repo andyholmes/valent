@@ -85,9 +85,9 @@ on_channel_destroyed (ValentLanChannelService *self,
 
 /**
  * valent_lan_channel_service_verify_channel:
- * @self: a #ValentLanChannelService
+ * @self: a `ValentLanChannelService`
  * @identity: a KDE Connect identity packet
- * @connection: a #GTlsConnection
+ * @connection: a `GTlsConnection`
  *
  * Verify an encrypted TLS connection.
  *
@@ -280,8 +280,8 @@ on_incoming_connection (ValentChannelService   *service,
 
 /**
  * valent_lan_channel_service_tcp_setup:
- * @self: a #ValentLanChannelService
- * @error: (nullable): a #GError
+ * @self: a `ValentLanChannelService`
+ * @error: (nullable): a `GError`
  *
  * A wrapper around g_socket_listener_add_inet_port() that can be called
  * multiple times.
@@ -696,9 +696,9 @@ on_items_changed (GListModel              *list,
 
 /**
  * valent_lan_channel_service_udp_setup:
- * @self: a #ValentLanChannelService
- * @cancellable: (nullable): a #GCancellable
- * @error: (nullable): a #GError
+ * @self: a `ValentLanChannelService`
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
  *
  * An analog to valent_lan_channel_service_tcp_setup() that prepares UDP sockets
  * for IPv4 and IPv6, including streams for reading.

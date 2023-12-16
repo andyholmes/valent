@@ -20,8 +20,8 @@
  *
  * A class for notification icon uploads.
  *
- * #ValentNotificationUpload is a class that abstracts uploading notifications
- * with icon payloads for #ValentNotificationPlugin.
+ * `ValentNotificationUpload` is a class that abstracts uploading notifications
+ * with icon payloads for `ValentNotificationPlugin`.
  */
 
 struct _ValentNotificationUpload
@@ -486,13 +486,13 @@ valent_notification_upload_init (ValentNotificationUpload *self)
 
 /**
  * valent_notification_upload_new:
- * @device: a #ValentDevice
+ * @device: a `ValentDevice`
  * @packet: a KDE Connect packet
- * @icon: a #GIcon
+ * @icon: a `GIcon`
  *
- * Create a new #ValentNotificationUpload for @packet and @icon.
+ * Create a new `ValentNotificationUpload` for @packet and @icon.
  *
- * Returns: (transfer full): a #ValentNotificationUpload
+ * Returns: (transfer full): a `ValentNotificationUpload`
  */
 ValentTransfer *
 valent_notification_upload_new (ValentDevice *device,

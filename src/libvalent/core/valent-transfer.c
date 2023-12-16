@@ -19,7 +19,7 @@
  *
  * An abstract base class for data transfers.
  *
- * #ValentTransfer is a generic class for transfers.
+ * `ValentTransfer` is a generic class for transfers.
  *
  * Since: 1.0
  */
@@ -236,7 +236,7 @@ valent_transfer_init (ValentTransfer *self)
 
 /**
  * valent_transfer_dup_id: (get-property id)
- * @transfer: a #ValentTransfer
+ * @transfer: a `ValentTransfer`
  *
  * Get the transfer ID.
  *
@@ -263,7 +263,7 @@ valent_transfer_dup_id (ValentTransfer *transfer)
 
 /**
  * valent_transfer_get_progress: (get-property progress)
- * @transfer: a #ValentTransfer
+ * @transfer: a `ValentTransfer`
  *
  * Get the transfer progress.
  *
@@ -288,7 +288,7 @@ valent_transfer_get_progress (ValentTransfer *transfer)
 
 /**
  * valent_transfer_set_progress: (set-property progress)
- * @transfer: a #ValentTransfer
+ * @transfer: a `ValentTransfer`
  * @progress: a number from `0.0` to `1.0`
  *
  * Set the transfer progress.
@@ -319,11 +319,11 @@ valent_transfer_set_progress (ValentTransfer *transfer,
 
 /**
  * valent_transfer_get_state: (get-property state)
- * @transfer: a #ValentTransfer
+ * @transfer: a `ValentTransfer`
  *
  * Get the transfer state.
  *
- * Returns: a #ValentTransferState
+ * Returns: a `ValentTransferState`
  *
  * Since: 1.0
  */
@@ -382,9 +382,9 @@ valent_transfer_execute_cb (GObject      *object,
 
 /**
  * valent_transfer_execute: (virtual execute)
- * @transfer: a #ValentTransfer
- * @cancellable: (nullable): a #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @transfer: a `ValentTransfer`
+ * @cancellable: (nullable): a `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * Start the transfer operation.
@@ -445,9 +445,9 @@ valent_transfer_execute (ValentTransfer      *transfer,
 
 /**
  * valent_transfer_execute_finish: (virtual execute_finish)
- * @transfer: a #ValentTransfer
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
+ * @transfer: a `ValentTransfer`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
  *
  * Finish an operation started by [method@Valent.Transfer.execute].
  *
@@ -477,7 +477,7 @@ valent_transfer_execute_finish (ValentTransfer  *transfer,
 
 /**
  * valent_transfer_cancel:
- * @transfer: a #ValentTransfer
+ * @transfer: a `ValentTransfer`
  *
  * Cancel the transfer operation.
  *
@@ -503,8 +503,8 @@ valent_transfer_cancel (ValentTransfer *transfer)
 
 /**
  * valent_transfer_check_status:
- * @transfer: a #ValentTransfer
- * @error: (nullable): a #GError
+ * @transfer: a `ValentTransfer`
+ * @error: (nullable): a `GError`
  *
  * Check the transfer status.
  *

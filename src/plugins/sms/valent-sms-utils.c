@@ -112,10 +112,10 @@ _e_contact_get_paintable (EContact  *contact,
 
 /**
  * valent_sms_avatar_from_contact:
- * @avatar: a #AdwAvatar
- * @contact: a #EContact
+ * @avatar: a `AdwAvatar`
+ * @contact: a `EContact`
  *
- * Set the #GdkPaintable for @avatar from @contact.
+ * Set the `GdkPaintable` for @avatar from @contact.
  */
 void
 valent_sms_avatar_from_contact (AdwAvatar *avatar,
@@ -189,10 +189,10 @@ valent_sms_contact_from_phone_cb (ValentContactStore *store,
 
 /**
  * valent_sms_contact_from_phone:
- * @store: a #ValentContactStore
+ * @store: a `ValentContactStore`
  * @phone: a phone number
- * @cancellable: (nullable): #GCancellable
- * @callback: (scope async): a #GAsyncReadyCallback
+ * @cancellable: (nullable): `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: (closure): user supplied data
  *
  * A convenience wrapper around [method@Valent.ContactStore.query] for finding a
@@ -242,13 +242,13 @@ valent_sms_contact_from_phone (ValentContactStore  *store,
 
 /**
  * valent_sms_contact_from_phone_finish:
- * @store: a #ValentContactStore
- * @result: a #GAsyncResult
- * @error: (nullable): a #GError
+ * @store: a `ValentContactStore`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
  *
  * Finish an operation started by valent_sms_contact_from_phone().
  *
- * Returns: (transfer full): an #EContact
+ * Returns: (transfer full): an `EContact`
  */
 EContact *
 valent_sms_contact_from_phone_finish (ValentContactStore  *store,
@@ -362,7 +362,7 @@ valent_phone_number_equal (const char *number1,
 
 /**
  * valent_phone_number_of_contact:
- * @contact: an #EContact
+ * @contact: an `EContact`
  * @number: a normalized phone number
  *
  * Check if @contact has @number as one of it's phone numbers.

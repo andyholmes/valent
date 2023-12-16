@@ -42,9 +42,9 @@ valent_xdp_get_active_window (void)
 /**
  * valent_xdp_get_default:
  *
- * Get the default #XdpPortal object for Valent.
+ * Get the default [class@Xdp.Portal] object for Valent.
  *
- * Returns: (transfer none): a #XdpPortal
+ * Returns: (transfer none): a `XdpPortal`
  */
 XdpPortal *
 valent_xdp_get_default (void)

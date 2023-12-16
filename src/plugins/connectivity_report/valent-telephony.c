@@ -17,7 +17,7 @@
  *
  * A class for controlling pointer and keyboard devices.
  *
- * #ValentTelephony is an abstraction of telephony support, intended for use by
+ * `ValentTelephony` is an abstraction of telephony support, intended for use by
  * [class@Valent.DevicePlugin] implementations.
  */
 
@@ -327,9 +327,9 @@ valent_telephony_class_init (ValentTelephonyClass *klass)
 
   /**
    * ValentTelephony::changed:
-   * @self: a #ValentTelephony
+   * @self: a `ValentTelephony`
    *
-   * #ValentTelephony::changed is emitted whenever a relevant property changes.
+   * `ValentTelephony`::changed is emitted whenever a relevant property changes.
    */
   signals [CHANGED] =
     g_signal_new ("changed",
@@ -354,7 +354,7 @@ valent_telephony_init (ValentTelephony *self)
  *
  * Get the default [class@Valent.Network].
  *
- * Returns: (transfer none) (not nullable): a #ValentTelephony
+ * Returns: (transfer none) (not nullable): a `ValentTelephony`
  *
  * Since: 1.0
  */
@@ -419,11 +419,11 @@ valent_telephony_serialize_modem (GDBusProxy *proxy)
 
 /**
  * valent_telephony_get_signal_strengths:
- * @telephony: a #ValentTelephony
+ * @telephony: a `ValentTelephony`
  *
  * Get a serialized dictionary of the known modems' status.
  *
- * Returns: (transfer full) (nullable): a #JsonNode
+ * Returns: (transfer full) (nullable): a `JsonNode`
  *
  * Since: 1.0
  */

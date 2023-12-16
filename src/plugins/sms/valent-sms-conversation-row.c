@@ -150,7 +150,7 @@ valent_sms_conversation_row_class_init (ValentSmsConversationRowClass *klass)
   /**
    * ValentSmsConversationRow:contact
    *
-   * The #EContact that sent this message.
+   * The `EContact` that sent this message.
    */
   properties [PROP_CONTACT] =
     g_param_spec_object ("contact", NULL, NULL,
@@ -240,12 +240,12 @@ valent_sms_conversation_row_init (ValentSmsConversationRow *self)
 
 /**
  * valent_sms_conversation_row_new:
- * @message: a #ValentMessage
- * @contact: a #EContact
+ * @message: a `ValentMessage`
+ * @contact: a `EContact`
  *
  * Create a new conversation message for @contact and @message.
  *
- * Returns: (transfer full): a #ValentSmsConversationRow
+ * Returns: (transfer full): a `ValentSmsConversationRow`
  */
 GtkWidget *
 valent_sms_conversation_row_new (ValentMessage *message,
@@ -259,11 +259,11 @@ valent_sms_conversation_row_new (ValentMessage *message,
 
 /**
  * valent_sms_conversation_row_get_contact:
- * @row: a #ValentSmsConversationRow
+ * @row: a `ValentSmsConversationRow`
  *
  * Get the contact.
  *
- * Returns: (transfer none) (nullable): a #ValentContact
+ * Returns: (transfer none) (nullable): a `ValentContact`
  */
 EContact *
 valent_sms_conversation_row_get_contact (ValentSmsConversationRow *row)
@@ -275,8 +275,8 @@ valent_sms_conversation_row_get_contact (ValentSmsConversationRow *row)
 
 /**
  * valent_sms_conversation_row_set_contact:
- * @row: a #ValentSmsConversationRow
- * @contact: a #ValentContact
+ * @row: a `ValentSmsConversationRow`
+ * @contact: a `ValentContact`
  *
  * Set or update the contact.
  */
@@ -299,7 +299,7 @@ valent_sms_conversation_row_set_contact (ValentSmsConversationRow *row,
 
 /**
  * valent_sms_conversation_row_get_date:
- * @row: a #ValentSmsConversationRow
+ * @row: a `ValentSmsConversationRow`
  *
  * Get the timestamp of the message.
  *
@@ -318,7 +318,7 @@ valent_sms_conversation_row_get_date (ValentSmsConversationRow *row)
 
 /**
  * valent_sms_conversation_row_get_id:
- * @row: a #ValentSmsConversationRow
+ * @row: a `ValentSmsConversationRow`
  *
  * Get the ID of the message.
  *
@@ -337,11 +337,11 @@ valent_sms_conversation_row_get_id (ValentSmsConversationRow *row)
 
 /**
  * valent_sms_conversation_row_get_message:
- * @row: a #ValentSmsConversationRow
+ * @row: a `ValentSmsConversationRow`
  *
  * Get the message.
  *
- * Returns: (transfer none): a #ValentMessage
+ * Returns: (transfer none): a `ValentMessage`
  */
 ValentMessage *
 valent_sms_conversation_row_get_message (ValentSmsConversationRow *row)
@@ -353,8 +353,8 @@ valent_sms_conversation_row_get_message (ValentSmsConversationRow *row)
 
 /**
  * valent_sms_conversation_row_set_message:
- * @row: a #ValentSmsConversationRow
- * @message: a #ValentMessage
+ * @row: a `ValentSmsConversationRow`
+ * @message: a `ValentMessage`
  *
  * Set or update the message.
  */
@@ -389,9 +389,9 @@ valent_sms_conversation_row_set_message (ValentSmsConversationRow *row,
 
 /**
  * valent_sms_conversation_row_is_incoming:
- * @row: a #ValentSmsConversationRow
+ * @row: a `ValentSmsConversationRow`
  *
- * Update @row based on the current values of #ValentSmsConversation:message.
+ * Update @row based on the current values of `ValentSmsConversation`:message.
  */
 gboolean
 valent_sms_conversation_row_is_incoming (ValentSmsConversationRow *row)
@@ -406,7 +406,7 @@ valent_sms_conversation_row_is_incoming (ValentSmsConversationRow *row)
 
 /**
  * valent_sms_conversation_row_show_avatar:
- * @row: a #ValentSmsConversationRow
+ * @row: a `ValentSmsConversationRow`
  * @visible: Whether to show the avatar
  *
  * Show or hide the contact avatar for @row, updating the margins accordingly.
@@ -436,9 +436,9 @@ valent_sms_conversation_row_show_avatar (ValentSmsConversationRow *row,
 
 /**
  * valent_sms_conversation_row_update:
- * @row: a #ValentSmsConversationRow
+ * @row: a `ValentSmsConversationRow`
  *
- * Update @row based on the current values of #ValentSmsConversation:message.
+ * Update @row based on the current values of `ValentSmsConversation`:message.
  */
 void
 valent_sms_conversation_row_update (ValentSmsConversationRow *row)

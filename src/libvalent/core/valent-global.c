@@ -44,7 +44,7 @@ valent_init_ctor (void)
  * Use the macro `VALENT_IS_MAIN_THREAD()` to determine whether or not the code
  * is currently running on the main thread.
  *
- * Returns: (transfer none): a #GThread
+ * Returns: (transfer none): a `GThread`
  *
  * Since: 1.0
  */
@@ -57,14 +57,14 @@ valent_get_main_thread (void)
 /**
  * valent_get_plugin_engine:
  *
- * Get the global #PeasEngine.
+ * Get the global `PeasEngine`.
  *
- * The first call to this function initializes the #PeasEngine and adds
+ * The first call to this function initializes the `PeasEngine` and adds
  * `resource:///plugins` to the search path, where embedded plugins should be
  * registered. If running in a Flatpak, `/app/extensions/lib/valent/plugins`
  * will also be added to the search path for Flatpak extensions.
  *
- * Returns: (transfer none): a #PeasEngine
+ * Returns: (transfer none): a `PeasEngine`
  *
  * Since: 1.0
  */
@@ -126,7 +126,7 @@ valent_get_plugin_engine (void)
 
 /**
  * valent_get_user_directory:
- * @directory: a #GUserDirectory
+ * @directory: a `GUserDirectory`
  *
  * Returns the full path of a special directory using its logical id.
  *
@@ -167,7 +167,7 @@ valent_get_user_directory (GUserDirectory directory)
  * @basename exists in @dirname, the resulting file's name will have a
  * parenthesized number appended to it (e.g. `image.png (2)`).
  *
- * Returns: (transfer full): a #GFile
+ * Returns: (transfer full): a `GFile`
  *
  * Since: 1.0
  */

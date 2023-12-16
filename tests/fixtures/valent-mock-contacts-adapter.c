@@ -15,7 +15,7 @@
 /**
  * ValentMockContactsAdapter:
  *
- * #ValentMockContactsAdapter is a mock contact store adapter for testing
+ * `ValentMockContactsAdapter` is a mock contact store adapter for testing
  * purposes. It loads with a single contact store, with a single contact.
  *
  * The store UID and name are `mock-store' and `Mock Store`, respectively. The
