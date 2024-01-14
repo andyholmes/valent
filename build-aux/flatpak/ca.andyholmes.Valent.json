@@ -1,10 +1,10 @@
 {
-    "app-id" : "ca.andyholmes.Valent",
-    "runtime" : "org.gnome.Platform",
-    "runtime-version" : "45",
-    "sdk" : "org.gnome.Sdk",
-    "command" : "valent",
-    "finish-args" : [
+    "app-id": "ca.andyholmes.Valent",
+    "runtime": "org.gnome.Platform",
+    "runtime-version": "45",
+    "sdk": "org.gnome.Sdk",
+    "command": "valent",
+    "finish-args": [
         "--device=dri",
         "--env=PULSE_PROP_media.category=Manager",
         "--filesystem=xdg-download",
@@ -32,51 +32,51 @@
         "--talk-name=org.gtk.vfs.*",
         "--talk-name=org.mpris.MediaPlayer2.*"
     ],
-    "add-extensions" : {
-        "ca.andyholmes.Valent.Plugin" : {
-            "version" : "master",
-            "directory" : "extensions",
-            "add-ld-path" : "lib",
-            "merge-dirs" : "lib/valent/plugins",
-            "subdirectories" : true,
-            "no-autodownload" : true,
-            "autodelete" : true
+    "add-extensions": {
+        "ca.andyholmes.Valent.Plugin": {
+            "version": "master",
+            "directory": "extensions",
+            "add-ld-path": "lib",
+            "merge-dirs": "lib/valent/plugins",
+            "subdirectories": true,
+            "no-autodownload": true,
+            "autodelete": true
         }
     },
-    "cleanup" : [
+    "cleanup": [
         "/libexec",
         "/man",
         "/share/man",
         "*.la",
         "*.a"
     ],
-    "modules" : [
+    "modules": [
         {
-            "name" : "intltool",
-            "cleanup" : [
+            "name": "intltool",
+            "cleanup": [
                 "*"
             ],
-            "sources" : [
+            "sources": [
                 {
-                    "type" : "archive",
-                    "url" : "https://launchpad.net/intltool/trunk/0.51.0/+download/intltool-0.51.0.tar.gz",
-                    "sha256" : "67c74d94196b153b774ab9f89b2fa6c6ba79352407037c8c14d5aeb334e959cd",
-                    "x-checker-data" : {
-                        "type" : "anitya",
-                        "project-id" : 1385,
-                        "stable-only" : true,
-                        "url-template" : "https://launchpad.net/intltool/trunk/$version/+download/intltool-$version.tar.gz"
+                    "type": "archive",
+                    "url": "https://launchpad.net/intltool/trunk/0.51.0/+download/intltool-0.51.0.tar.gz",
+                    "sha256": "67c74d94196b153b774ab9f89b2fa6c6ba79352407037c8c14d5aeb334e959cd",
+                    "x-checker-data": {
+                        "type": "anitya",
+                        "project-id": 1385,
+                        "stable-only": true,
+                        "url-template": "https://launchpad.net/intltool/trunk/$version/+download/intltool-$version.tar.gz"
                     }
                 }
             ]
         },
         {
-            "name" : "libical",
-            "buildsystem" : "cmake-ninja",
-            "cleanup" : [
+            "name": "libical",
+            "buildsystem": "cmake-ninja",
+            "cleanup": [
                 "/lib/cmake"
             ],
-            "config-opts" : [
+            "config-opts": [
                 "-DCMAKE_INSTALL_LIBDIR:PATH=/app/lib",
                 "-DBUILD_SHARED_LIBS:BOOL=ON",
                 "-DGOBJECT_INTROSPECTION:BOOL=ON",
@@ -84,25 +84,25 @@
                 "-DICAL_GLIB_VAPI:BOOL=ON",
                 "-DICAL_GLIB:BOOL=ON"
             ],
-            "sources" : [
+            "sources": [
                 {
-                    "type" : "git",
-                    "url" : "https://github.com/libical/libical.git",
-                    "commit" : "105cebc60084bd986d4e7904eadb56f5b587aa27",
-                    "tag" : "v3.0.17",
-                    "x-checker-data" : {
-                        "type" : "anitya",
-                        "project-id" : 1637,
-                        "stable-only" : true,
-                        "tag-template" : "v$version"
+                    "type": "git",
+                    "url": "https://github.com/libical/libical.git",
+                    "commit": "105cebc60084bd986d4e7904eadb56f5b587aa27",
+                    "tag": "v3.0.17",
+                    "x-checker-data": {
+                        "type": "anitya",
+                        "project-id": 1637,
+                        "stable-only": true,
+                        "tag-template": "v$version"
                     }
                 }
             ]
         },
         {
-            "name" : "evolution-data-server",
-            "buildsystem" : "cmake-ninja",
-            "cleanup" : [
+            "name": "evolution-data-server",
+            "buildsystem": "cmake-ninja",
+            "cleanup": [
                 "/etc",
                 "/lib/cmake",
                 "/lib/evolution-data-server/*-backends",
@@ -112,7 +112,7 @@
                 "/share/GConf",
                 "/systemd"
             ],
-            "config-opts" : [
+            "config-opts": [
                 "-DCMAKE_BUILD_TYPE=Release",
                 "-DENABLE_DOT_LOCKING=OFF",
                 "-DENABLE_CANBERRA=OFF",
@@ -133,90 +133,90 @@
                 "-DWITH_SYSTEMDUSERUNITDIR=OFF",
                 "-DWITH_DBUS_SERVICE_DIR=OFF"
             ],
-            "sources" : [
+            "sources": [
                 {
-                    "type" : "git",
-                    "url" : "https://gitlab.gnome.org/GNOME/evolution-data-server.git",
-                    "commit" : "8141944c16eecc772aeb2ac41ab98a74de5f90cd",
-                    "tag" : "3.50.2",
-                    "x-checker-data" : {
-                        "type" : "anitya",
-                        "project-id" : 10935,
-                        "stable-only" : true,
-                        "tag-template" : "$version"
+                    "type": "git",
+                    "url": "https://gitlab.gnome.org/GNOME/evolution-data-server.git",
+                    "commit": "18a7c4b1295438ec8852f3dc72135baedbf1778e",
+                    "tag": "3.50.3",
+                    "x-checker-data": {
+                        "type": "anitya",
+                        "project-id": 10935,
+                        "stable-only": true,
+                        "tag-template": "$version"
                     }
                 }
             ]
         },
         {
-            "name" : "libpeas",
-            "buildsystem" : "meson",
-            "builddir" : true,
-            "cleanup" : [
+            "name": "libpeas",
+            "buildsystem": "meson",
+            "builddir": true,
+            "cleanup": [
                 "/bin/*"
             ],
-            "config-opts" : [
+            "config-opts": [
                 "-Dgjs=false",
                 "-Dlua51=false",
                 "-Dpython3=false",
                 "-Dintrospection=true",
                 "-Dvapi=true"
             ],
-            "sources" : [
+            "sources": [
                 {
-                    "type" : "git",
-                    "url" : "https://gitlab.gnome.org/GNOME/libpeas.git",
-                    "commit" : "0733118ae8e7148a1de63616611c7b0fc092eced",
-                    "tag" : "2.0.0",
-                    "x-checker-data" : {
-                        "type" : "anitya",
-                        "project-id" : 6871,
-                        "stable-only" : true,
-                        "tag-template" : "$version"
+                    "type": "git",
+                    "url": "https://gitlab.gnome.org/GNOME/libpeas.git",
+                    "commit": "63bc9ecb185865024f05c43f1084f50b2240844a",
+                    "tag": "2.0.1",
+                    "x-checker-data": {
+                        "type": "anitya",
+                        "project-id": 6871,
+                        "stable-only": true,
+                        "tag-template": "$version"
                     }
                 }
             ]
         },
         {
-            "name" : "libportal",
-            "buildsystem" : "meson",
-            "builddir" : true,
-            "config-opts" : [
+            "name": "libportal",
+            "buildsystem": "meson",
+            "builddir": true,
+            "config-opts": [
                 "-Ddocs=false",
                 "-Dintrospection=false",
                 "-Dvapi=false"
             ],
-            "sources" : [
+            "sources": [
                 {
-                    "type" : "git",
-                    "url" : "https://github.com/flatpak/libportal.git",
-                    "commit" : "e9ed3a50cdde321eaf42361212480a66eb94a57a",
-                    "tag" : "0.7.1",
-                    "x-checker-data" : {
-                        "type" : "anitya",
-                        "project-id" : 230124,
-                        "stable-only" : true,
-                        "tag-template" : "$version"
+                    "type": "git",
+                    "url": "https://github.com/flatpak/libportal.git",
+                    "commit": "e9ed3a50cdde321eaf42361212480a66eb94a57a",
+                    "tag": "0.7.1",
+                    "x-checker-data": {
+                        "type": "anitya",
+                        "project-id": 230124,
+                        "stable-only": true,
+                        "tag-template": "$version"
                     }
                 }
             ]
         },
         {
-            "name" : "valent",
-            "buildsystem" : "meson",
-            "builddir" : true,
-            "config-opts" : [
+            "name": "valent",
+            "buildsystem": "meson",
+            "builddir": true,
+            "config-opts": [
                 "--prefix=/app",
                 "--buildtype=release"
             ],
-            "post-install" : [
+            "post-install": [
                 "install -d /app/extensions"
             ],
-            "sources" : [
+            "sources": [
                 {
-                    "type" : "git",
-                    "url" : "https://github.com/andyholmes/valent.git",
-                    "branch" : "main"
+                    "type": "git",
+                    "url": "https://github.com/andyholmes/valent.git",
+                    "branch": "main"
                 }
             ]
         }
