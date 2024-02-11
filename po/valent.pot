@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2024-04-09 22:12-0700\n"
+"POT-Creation-Date: 2024-04-14 00:27-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,19 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: data/ca.andyholmes.Valent.desktop.in.in:3
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
+#: src/libvalent/ui/valent-preferences-dialog.ui:11
+#: src/libvalent/ui/valent-window.c:295 src/libvalent/ui/valent-window.ui:8
+#: src/libvalent/ui/valent-window.ui:45
+msgid "Valent"
+msgstr ""
+
+#: data/ca.andyholmes.Valent.desktop.in.in:4
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:12
+msgid "Connect, control and sync devices"
+msgstr ""
 
 #: data/gsettings/ca.andyholmes.Valent.Device.gschema.xml:10
 msgid "Paired"
@@ -41,19 +54,6 @@ msgstr ""
 
 #: data/gsettings/ca.andyholmes.Valent.Plugin.gschema.xml:11
 msgid "Whether the plugin is enabled or not."
-msgstr ""
-
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
-#: data/ca.andyholmes.Valent.desktop.in.in:3
-#: src/libvalent/ui/valent-preferences-dialog.ui:11
-#: src/libvalent/ui/valent-window.c:295 src/libvalent/ui/valent-window.ui:8
-#: src/libvalent/ui/valent-window.ui:45
-msgid "Valent"
-msgstr ""
-
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:12
-#: data/ca.andyholmes.Valent.desktop.in.in:4
-msgid "Connect, control and sync devices"
 msgstr ""
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:15
@@ -162,7 +162,7 @@ msgid "Request Pairing"
 msgstr ""
 
 #: src/libvalent/ui/valent-device-page.ui:250
-#: src/libvalent/ui/valent-window.ui:134
+#: src/libvalent/ui/valent-window.ui:139
 msgid "Preferences"
 msgstr ""
 
@@ -298,6 +298,18 @@ msgstr ""
 msgid "No Actions"
 msgstr ""
 
+#: src/libvalent/ui/valent-plugin-row.ui:79
+msgid "Authors"
+msgstr ""
+
+#: src/libvalent/ui/valent-plugin-row.ui:112
+msgid "Version"
+msgstr ""
+
+#: src/libvalent/ui/valent-plugin-row.ui:143
+msgid "Website"
+msgstr ""
+
 #: src/libvalent/ui/valent-preferences-dialog.c:380
 msgid "Application"
 msgstr ""
@@ -347,7 +359,7 @@ msgid "Desktop Integration"
 msgstr ""
 
 #. translators: Unknown time
-#: src/libvalent/ui/valent-time-helpers.c:49
+#: src/libvalent/ui/valent-time-helpers.c:51
 msgid "--:--"
 msgstr ""
 
@@ -357,7 +369,7 @@ msgstr ""
 #. * the separator that your locale uses or use "%Id" instead
 #. * of "%d" if your locale uses localized digits.
 #.
-#: src/libvalent/ui/valent-time-helpers.c:85
+#: src/libvalent/ui/valent-time-helpers.c:87
 #, c-format
 msgctxt "long time format"
 msgid "%d:%02d:%02d"
@@ -369,7 +381,7 @@ msgstr ""
 #. * the separator that your locale uses or use "%Id" instead
 #. * of "%d" if your locale uses localized digits.
 #.
-#: src/libvalent/ui/valent-time-helpers.c:93
+#: src/libvalent/ui/valent-time-helpers.c:95
 #, c-format
 msgctxt "long time format"
 msgid "%d:%02d:%02d.%03d"
@@ -381,7 +393,7 @@ msgstr ""
 #. * change ":" to the separator that your locale uses or use
 #. * "%Id" instead of "%d" if your locale uses localized digits.
 #.
-#: src/libvalent/ui/valent-time-helpers.c:103
+#: src/libvalent/ui/valent-time-helpers.c:105
 #, c-format
 msgctxt "long time format"
 msgid "-%d:%02d:%02d"
@@ -393,7 +405,7 @@ msgstr ""
 #. * change ":" to the separator that your locale uses or use
 #. * "%Id" instead of "%d" if your locale uses localized digits.
 #.
-#: src/libvalent/ui/valent-time-helpers.c:111
+#: src/libvalent/ui/valent-time-helpers.c:113
 #, c-format
 msgctxt "long time format"
 msgid "-%d:%02d:%02d.%03d"
@@ -405,7 +417,7 @@ msgstr ""
 #. * ":" to the separator that your locale uses or use "%Id"
 #. * instead of "%d" if your locale uses localized digits.
 #.
-#: src/libvalent/ui/valent-time-helpers.c:124
+#: src/libvalent/ui/valent-time-helpers.c:126
 #, c-format
 msgctxt "short time format"
 msgid "-%d:%02d"
@@ -417,7 +429,7 @@ msgstr ""
 #. * ":" to the separator that your locale uses or use "%Id"
 #. * instead of "%d" if your locale uses localized digits.
 #.
-#: src/libvalent/ui/valent-time-helpers.c:132
+#: src/libvalent/ui/valent-time-helpers.c:134
 #, c-format
 msgctxt "short time format"
 msgid "-%d:%02d.%03d"
@@ -429,7 +441,7 @@ msgstr ""
 #. * separator that your locale uses or use "%Id" instead of
 #. * "%d" if your locale uses localized digits.
 #.
-#: src/libvalent/ui/valent-time-helpers.c:143
+#: src/libvalent/ui/valent-time-helpers.c:145
 #, c-format
 msgctxt "short time format"
 msgid "%d:%02d.%03d"
@@ -441,7 +453,7 @@ msgstr ""
 #. * separator that your locale uses or use "%Id" instead of
 #. * "%d" if your locale uses localized digits.
 #.
-#: src/libvalent/ui/valent-time-helpers.c:152
+#: src/libvalent/ui/valent-time-helpers.c:154
 #, c-format
 msgctxt "short time format"
 msgid "%d:%02d"
@@ -476,7 +488,8 @@ msgid "Main Menu"
 msgstr ""
 
 #: src/libvalent/ui/valent-window.ui:86 src/libvalent/ui/valent-window.ui:101
-#: src/plugins/share/valent-share-target-chooser.ui:68
+#: src/plugins/share/valent-share-dialog.ui:161
+#: src/plugins/share/valent-share-dialog.ui:178
 msgid "Devices"
 msgstr ""
 
@@ -488,11 +501,15 @@ msgstr ""
 msgid "List of available and known devices"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:138
+#: src/libvalent/ui/valent-window.ui:132
+msgid "Share…"
+msgstr ""
+
+#: src/libvalent/ui/valent-window.ui:143
 msgid "About Valent"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:144
+#: src/libvalent/ui/valent-window.ui:149
 msgid "Quit"
 msgstr ""
 
@@ -565,6 +582,14 @@ msgstr ""
 
 #: src/plugins/battery/valent-battery-preferences.ui:31
 msgid "Notify when the remote battery is low"
+msgstr ""
+
+#: src/plugins/bluez/bluez.plugin.desktop.in:7
+msgid "Bluez"
+msgstr ""
+
+#: src/plugins/bluez/bluez.plugin.desktop.in:8
+msgid "Connect devices over Bluetooth"
 msgstr ""
 
 #: src/plugins/clipboard/clipboard.plugin.desktop.in:8
@@ -697,6 +722,14 @@ msgstr ""
 msgid "Found"
 msgstr ""
 
+#: src/plugins/gnome/gnome.plugin.desktop.in:7
+msgid "GNOME"
+msgstr ""
+
+#: src/plugins/gnome/gnome.plugin.desktop.in:8
+msgid "Integration with GNOME"
+msgstr ""
+
 #: src/plugins/gtk/gtk.plugin.desktop.in:7
 msgid "GTK"
 msgstr ""
@@ -748,7 +781,6 @@ msgstr ""
 
 #: src/plugins/notification/valent-notification-dialog.ui:19
 #: src/plugins/runcommand/valent-runcommand-editor.ui:17
-#: src/plugins/share/valent-share-target-chooser.ui:22
 msgid "_Cancel"
 msgstr ""
 
@@ -960,6 +992,63 @@ msgstr ""
 msgid "Direct file, link and text sharing"
 msgstr ""
 
+#: src/plugins/share/valent-share-dialog.c:108
+#, c-format
+msgid "Size: %s"
+msgstr ""
+
+#: src/plugins/share/valent-share-dialog.c:122
+#, c-format
+msgid "Total size: %s"
+msgstr ""
+
+#: src/plugins/share/valent-share-dialog.c:253
+#, c-format
+msgid "%u files and links"
+msgstr ""
+
+#: src/plugins/share/valent-share-dialog.c:255
+#, c-format
+msgid "%u files"
+msgstr ""
+
+#: src/plugins/share/valent-share-dialog.c:257
+#, c-format
+msgid "%u links"
+msgstr ""
+
+#: src/plugins/share/valent-share-dialog.ui:8
+#: src/plugins/share/valent-share-dialog.ui:29
+#: src/plugins/share/valent-share-dialog.ui:40
+#: src/plugins/share/valent-share-dialog.ui:112
+#: src/plugins/share/valent-share-plugin.c:672
+msgid "Share"
+msgstr ""
+
+#: src/plugins/share/valent-share-dialog.ui:41
+msgid "Select files, enter a link or paste text"
+msgstr ""
+
+#: src/plugins/share/valent-share-dialog.ui:50
+msgid "Pick Files"
+msgstr ""
+
+#: src/plugins/share/valent-share-dialog.ui:75
+msgid "Enter URL"
+msgstr ""
+
+#: src/plugins/share/valent-share-dialog.ui:165
+msgid "Share with multiple devices"
+msgstr ""
+
+#: src/plugins/share/valent-share-dialog.ui:192
+msgid "Searching…"
+msgstr ""
+
+#: src/plugins/share/valent-share-dialog.ui:215
+msgid "_Share"
+msgstr ""
+
 #: src/plugins/share/valent-share-plugin.c:106
 #: src/plugins/share/valent-share-plugin.c:471
 msgid "Transferring Files"
@@ -1046,15 +1135,10 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: src/plugins/share/valent-share-plugin.c:671
-#: src/plugins/share/valent-share-target-chooser.ui:8
 msgid "Share Files"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:672
-msgid "Share"
-msgstr ""
-
-#: src/plugins/share/valent-share-plugin.c:1251
+#: src/plugins/share/valent-share-plugin.c:1250
 msgid "Send Files"
 msgstr ""
 
@@ -1068,22 +1152,6 @@ msgstr ""
 
 #: src/plugins/share/valent-share-preferences.ui:11
 msgid "Where received files are stored"
-msgstr ""
-
-#: src/plugins/share/valent-share-target-chooser.ui:29
-msgid "_Share"
-msgstr ""
-
-#: src/plugins/share/valent-share-target-chooser.ui:58
-msgid "Choose a device to share the selected files with."
-msgstr ""
-
-#: src/plugins/share/valent-share-target-chooser.ui:86
-msgid "Searching…"
-msgstr ""
-
-#: src/plugins/share/valent-share-target-chooser.ui:128
-msgid "Always use this device"
 msgstr ""
 
 #: src/plugins/share/valent-share-text-dialog.c:98

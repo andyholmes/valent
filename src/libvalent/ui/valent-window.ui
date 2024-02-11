@@ -128,6 +128,11 @@
         <attribute name="label" translatable="yes">Media Remote</attribute>
         <attribute name="action">app.media-remote</attribute>
       </item>
+      <item>
+        <attribute name="label" translatable="yes">Share…</attribute>
+        <attribute name="action">app.share-dialog</attribute>
+        <attribute name="hidden-when">action-disabled</attribute>
+      </item>
     </section>
     <section>
       <item>
