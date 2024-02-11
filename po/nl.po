@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2024-04-09 22:12-0700\n"
+"POT-Creation-Date: 2024-04-14 00:27-0700\n"
 "PO-Revision-Date: 2022-09-12 19:59+0200\n"
 "Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
 "Language-Team: Dutch\n"
@@ -16,6 +16,19 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.1.1\n"
+
+#: data/ca.andyholmes.Valent.desktop.in.in:3
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
+#: src/libvalent/ui/valent-preferences-dialog.ui:11
+#: src/libvalent/ui/valent-window.c:295 src/libvalent/ui/valent-window.ui:8
+#: src/libvalent/ui/valent-window.ui:45
+msgid "Valent"
+msgstr "Valent"
+
+#: data/ca.andyholmes.Valent.desktop.in.in:4
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:12
+msgid "Connect, control and sync devices"
+msgstr "Verbind met, beheer en synchroniseer tussen apparaten"
 
 #: data/gsettings/ca.andyholmes.Valent.Device.gschema.xml:10
 msgid "Paired"
@@ -41,19 +54,6 @@ msgstr "Plug-instatus"
 #: data/gsettings/ca.andyholmes.Valent.Plugin.gschema.xml:11
 msgid "Whether the plugin is enabled or not."
 msgstr "Of de plug-in is ingeschakeld."
-
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
-#: data/ca.andyholmes.Valent.desktop.in.in:3
-#: src/libvalent/ui/valent-preferences-dialog.ui:11
-#: src/libvalent/ui/valent-window.c:295 src/libvalent/ui/valent-window.ui:8
-#: src/libvalent/ui/valent-window.ui:45
-msgid "Valent"
-msgstr "Valent"
-
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:12
-#: data/ca.andyholmes.Valent.desktop.in.in:4
-msgid "Connect, control and sync devices"
-msgstr "Verbind met, beheer en synchroniseer tussen apparaten"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:15
 msgid ""
@@ -168,7 +168,7 @@ msgid "Request Pairing"
 msgstr "Koppelverzoek versturen"
 
 #: src/libvalent/ui/valent-device-page.ui:250
-#: src/libvalent/ui/valent-window.ui:134
+#: src/libvalent/ui/valent-window.ui:139
 msgid "Preferences"
 msgstr "Voorkeuren"
 
@@ -310,6 +310,18 @@ msgstr ""
 msgid "No Actions"
 msgstr "Er zijn geen acties."
 
+#: src/libvalent/ui/valent-plugin-row.ui:79
+msgid "Authors"
+msgstr ""
+
+#: src/libvalent/ui/valent-plugin-row.ui:112
+msgid "Version"
+msgstr ""
+
+#: src/libvalent/ui/valent-plugin-row.ui:143
+msgid "Website"
+msgstr ""
+
 #: src/libvalent/ui/valent-preferences-dialog.c:380
 #, fuzzy
 msgid "Application"
@@ -360,7 +372,7 @@ msgid "Desktop Integration"
 msgstr "Bureaubladintegratie"
 
 #. translators: Unknown time
-#: src/libvalent/ui/valent-time-helpers.c:49
+#: src/libvalent/ui/valent-time-helpers.c:51
 msgid "--:--"
 msgstr ""
 
@@ -370,7 +382,7 @@ msgstr ""
 #. * the separator that your locale uses or use "%Id" instead
 #. * of "%d" if your locale uses localized digits.
 #.
-#: src/libvalent/ui/valent-time-helpers.c:85
+#: src/libvalent/ui/valent-time-helpers.c:87
 #, c-format
 msgctxt "long time format"
 msgid "%d:%02d:%02d"
@@ -382,7 +394,7 @@ msgstr ""
 #. * the separator that your locale uses or use "%Id" instead
 #. * of "%d" if your locale uses localized digits.
 #.
-#: src/libvalent/ui/valent-time-helpers.c:93
+#: src/libvalent/ui/valent-time-helpers.c:95
 #, c-format
 msgctxt "long time format"
 msgid "%d:%02d:%02d.%03d"
@@ -394,7 +406,7 @@ msgstr ""
 #. * change ":" to the separator that your locale uses or use
 #. * "%Id" instead of "%d" if your locale uses localized digits.
 #.
-#: src/libvalent/ui/valent-time-helpers.c:103
+#: src/libvalent/ui/valent-time-helpers.c:105
 #, c-format
 msgctxt "long time format"
 msgid "-%d:%02d:%02d"
@@ -406,7 +418,7 @@ msgstr ""
 #. * change ":" to the separator that your locale uses or use
 #. * "%Id" instead of "%d" if your locale uses localized digits.
 #.
-#: src/libvalent/ui/valent-time-helpers.c:111
+#: src/libvalent/ui/valent-time-helpers.c:113
 #, c-format
 msgctxt "long time format"
 msgid "-%d:%02d:%02d.%03d"
@@ -418,7 +430,7 @@ msgstr ""
 #. * ":" to the separator that your locale uses or use "%Id"
 #. * instead of "%d" if your locale uses localized digits.
 #.
-#: src/libvalent/ui/valent-time-helpers.c:124
+#: src/libvalent/ui/valent-time-helpers.c:126
 #, c-format
 msgctxt "short time format"
 msgid "-%d:%02d"
@@ -430,7 +442,7 @@ msgstr ""
 #. * ":" to the separator that your locale uses or use "%Id"
 #. * instead of "%d" if your locale uses localized digits.
 #.
-#: src/libvalent/ui/valent-time-helpers.c:132
+#: src/libvalent/ui/valent-time-helpers.c:134
 #, c-format
 msgctxt "short time format"
 msgid "-%d:%02d.%03d"
@@ -442,7 +454,7 @@ msgstr ""
 #. * separator that your locale uses or use "%Id" instead of
 #. * "%d" if your locale uses localized digits.
 #.
-#: src/libvalent/ui/valent-time-helpers.c:143
+#: src/libvalent/ui/valent-time-helpers.c:145
 #, c-format
 msgctxt "short time format"
 msgid "%d:%02d.%03d"
@@ -454,7 +466,7 @@ msgstr ""
 #. * separator that your locale uses or use "%Id" instead of
 #. * "%d" if your locale uses localized digits.
 #.
-#: src/libvalent/ui/valent-time-helpers.c:152
+#: src/libvalent/ui/valent-time-helpers.c:154
 #, c-format
 msgctxt "short time format"
 msgid "%d:%02d"
@@ -491,7 +503,8 @@ msgid "Main Menu"
 msgstr "Apparaatnaam"
 
 #: src/libvalent/ui/valent-window.ui:86 src/libvalent/ui/valent-window.ui:101
-#: src/plugins/share/valent-share-target-chooser.ui:68
+#: src/plugins/share/valent-share-dialog.ui:161
+#: src/plugins/share/valent-share-dialog.ui:178
 msgid "Devices"
 msgstr "Apparaten"
 
@@ -503,11 +516,16 @@ msgstr "Bezig met zoeken naar apparaten…"
 msgid "List of available and known devices"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:138
+#: src/libvalent/ui/valent-window.ui:132
+#, fuzzy
+msgid "Share…"
+msgstr "Delen"
+
+#: src/libvalent/ui/valent-window.ui:143
 msgid "About Valent"
 msgstr "Over Valent"
 
-#: src/libvalent/ui/valent-window.ui:144
+#: src/libvalent/ui/valent-window.ui:149
 msgid "Quit"
 msgstr "Afsluiten"
 
@@ -583,6 +601,15 @@ msgstr "Laag accuniveau"
 #, fuzzy
 msgid "Notify when the remote battery is low"
 msgstr "Toon een melding als de accu bijna leeg is."
+
+#: src/plugins/bluez/bluez.plugin.desktop.in:7
+msgid "Bluez"
+msgstr ""
+
+#: src/plugins/bluez/bluez.plugin.desktop.in:8
+#, fuzzy
+msgid "Connect devices over Bluetooth"
+msgstr "Verbind met apparaten via lan"
 
 #: src/plugins/clipboard/clipboard.plugin.desktop.in:8
 #, fuzzy
@@ -727,6 +754,15 @@ msgstr "Bellen"
 msgid "Found"
 msgstr "Gevonden"
 
+#: src/plugins/gnome/gnome.plugin.desktop.in:7
+msgid "GNOME"
+msgstr ""
+
+#: src/plugins/gnome/gnome.plugin.desktop.in:8
+#, fuzzy
+msgid "Integration with GNOME"
+msgstr "Integratie met GTK4"
+
 #: src/plugins/gtk/gtk.plugin.desktop.in:7
 msgid "GTK"
 msgstr "GTK"
@@ -778,7 +814,6 @@ msgstr "Melding"
 
 #: src/plugins/notification/valent-notification-dialog.ui:19
 #: src/plugins/runcommand/valent-runcommand-editor.ui:17
-#: src/plugins/share/valent-share-target-chooser.ui:22
 msgid "_Cancel"
 msgstr "_Annuleren"
 
@@ -1013,6 +1048,68 @@ msgstr "Delen"
 msgid "Direct file, link and text sharing"
 msgstr "Deel bestanden, links en tekst"
 
+#: src/plugins/share/valent-share-dialog.c:108
+#, c-format
+msgid "Size: %s"
+msgstr ""
+
+#: src/plugins/share/valent-share-dialog.c:122
+#, c-format
+msgid "Total size: %s"
+msgstr ""
+
+#: src/plugins/share/valent-share-dialog.c:253
+#, c-format
+msgid "%u files and links"
+msgstr ""
+
+#: src/plugins/share/valent-share-dialog.c:255
+#, fuzzy, c-format
+msgid "%u files"
+msgstr "Alle bestanden"
+
+#: src/plugins/share/valent-share-dialog.c:257
+#, c-format
+msgid "%u links"
+msgstr ""
+
+#: src/plugins/share/valent-share-dialog.ui:8
+#: src/plugins/share/valent-share-dialog.ui:29
+#: src/plugins/share/valent-share-dialog.ui:40
+#: src/plugins/share/valent-share-dialog.ui:112
+#: src/plugins/share/valent-share-plugin.c:672
+msgid "Share"
+msgstr "Delen"
+
+#: src/plugins/share/valent-share-dialog.ui:41
+#, fuzzy
+msgid "Select files, enter a link or paste text"
+msgstr "Deel bestanden, links en tekst"
+
+#: src/plugins/share/valent-share-dialog.ui:50
+#, fuzzy
+msgid "Pick Files"
+msgstr "Lokaal bestandssysteem"
+
+#: src/plugins/share/valent-share-dialog.ui:75
+msgid "Enter URL"
+msgstr ""
+
+#: src/plugins/share/valent-share-dialog.ui:165
+#, fuzzy
+msgid "Share with multiple devices"
+msgstr "Maak een foto met het externe apparaat"
+
+#: src/plugins/share/valent-share-dialog.ui:192
+#, fuzzy
+msgid "Searching…"
+msgstr "Bezig met zoeken naar apparaten…"
+
+#: src/plugins/share/valent-share-dialog.ui:215
+#, fuzzy
+msgid "_Share"
+msgstr "Delen"
+
 #: src/plugins/share/valent-share-plugin.c:106
 #: src/plugins/share/valent-share-plugin.c:471
 msgid "Transferring Files"
@@ -1099,15 +1196,10 @@ msgstr[0] "Eén bestand verstuurd naar %1$s"
 msgstr[1] "%2$d bestanden verstuurd naar %1$s"
 
 #: src/plugins/share/valent-share-plugin.c:671
-#: src/plugins/share/valent-share-target-chooser.ui:8
 msgid "Share Files"
 msgstr "Bestanden delen"
 
-#: src/plugins/share/valent-share-plugin.c:672
-msgid "Share"
-msgstr "Delen"
-
-#: src/plugins/share/valent-share-plugin.c:1251
+#: src/plugins/share/valent-share-plugin.c:1250
 msgid "Send Files"
 msgstr "Bestanden versturen"
 
@@ -1122,24 +1214,6 @@ msgstr "Downloadmap"
 #: src/plugins/share/valent-share-preferences.ui:11
 msgid "Where received files are stored"
 msgstr "Waar ontvangen bestanden dienen te worden opgeslagen"
-
-#: src/plugins/share/valent-share-target-chooser.ui:29
-#, fuzzy
-msgid "_Share"
-msgstr "Delen"
-
-#: src/plugins/share/valent-share-target-chooser.ui:58
-msgid "Choose a device to share the selected files with."
-msgstr ""
-
-#: src/plugins/share/valent-share-target-chooser.ui:86
-#, fuzzy
-msgid "Searching…"
-msgstr "Bezig met zoeken naar apparaten…"
-
-#: src/plugins/share/valent-share-target-chooser.ui:128
-msgid "Always use this device"
-msgstr ""
 
 #: src/plugins/share/valent-share-text-dialog.c:98
 #: src/plugins/share/valent-share-text-dialog.ui:54

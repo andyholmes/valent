@@ -65,10 +65,13 @@ src/plugins/sftp/sftp.plugin.desktop.in
 src/plugins/sftp/valent-sftp-plugin.c
 src/plugins/sftp/valent-sftp-preferences.ui
 src/plugins/share/share.plugin.desktop.in
+src/plugins/share/valent-share-dialog.c
+src/plugins/share/valent-share-dialog.ui
+src/plugins/share/valent-share-dialog-row.c
+src/plugins/share/valent-share-dialog-row.ui
 src/plugins/share/valent-share-plugin.c
 src/plugins/share/valent-share-preferences.c
 src/plugins/share/valent-share-preferences.ui
-src/plugins/share/valent-share-target-chooser.ui
 src/plugins/share/valent-share-text-dialog.c
 src/plugins/share/valent-share-text-dialog.ui
 src/plugins/sms/sms.plugin.desktop.in

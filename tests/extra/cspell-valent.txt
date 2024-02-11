@@ -35,6 +35,9 @@ unpairing
 ssav
 iiibiiay
 
+# CSS classes
+lowres
+
 # src/plugins/bluez
 muxed
 muxer

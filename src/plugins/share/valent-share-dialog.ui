@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
+
+<interface domain="valent">
+  <template class="ValentShareDialog" parent="AdwWindow">
+    <property name="title" translatable="yes">Share</property>
+    <property name="default-width">360</property>
+    <property name="default-height">500</property>
+    <property name="width-request">360</property>
+    <property name="height-request">294</property>
+    <child>
+      <object class="GtkShortcutController">
+        <property name="scope">local</property>
+        <child>
+          <object class="GtkShortcut">
+            <property name="trigger">&lt;Control&gt;w</property>
+            <property name="action">action(window.close)</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwNavigationView" id="view">
+        <child>
+          <object class="AdwNavigationPage">
+            <property name="tag">main</property>
+            <property name="title" translatable="yes">Share</property>
+            <property name="child">
+              <object class="AdwToolbarView">
+                <child type="top">
+                  <object class="AdwHeaderBar">
+                    <property name="show-title">0</property>
+                  </object>
+                </child>
+                <property name="content">
+                  <object class="AdwStatusPage">
+                    <property name="icon-name">share-symbolic</property>
+                    <property name="title" translatable="yes">Share</property>
+                    <property name="description" translatable="yes">Select files, enter a link or paste text</property>
+                    <property name="child">
+                      <object class="AdwClamp">
+                        <property name="child">
+                          <object class="GtkListBox">
+                            <property name="accessible-role">group</property>
+                            <property name="selection-mode">none</property>
+                            <child>
+                              <object class="AdwActionRow">
+                                <property name="title" translatable="yes">Pick Files</property>
+                                <property name="action-name">chooser.select-files</property>
+                                <property name="activatable">1</property>
+                                <property name="selectable">0</property>
+                                <child type="prefix">
+                                  <object class="GtkImage">
+                                    <property name="accessible-role">presentation</property>
+                                    <property name="icon-name">share-file-symbolic</property>
+                                    <property name="valign">center</property>
+                                  </object>
+                                </child>
+                                <child type="suffix">
+                                  <object class="GtkImage">
+                                    <property name="accessible-role">presentation</property>
+                                    <property name="icon-name">go-next-symbolic</property>
+                                    <property name="valign">center</property>
+                                    <style>
+                                      <class name="dim-label"/>
+                                    </style>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="AdwEntryRow" id="uri_entry">
+                                <property name="title" translatable="yes">Enter URL</property>
+                                <property name="activatable">1</property>
+                                <property name="selectable">0</property>
+                                <property name="input-purpose">url</property>
+                                <signal name="entry-activated"
+                                        handler="on_uri_activated"
+                                        object="ValentShareDialog"
+                                        swapped="no"/>
+                                <signal name="changed"
+                                        handler="on_uri_changed"
+                                        object="ValentShareDialog"
+                                        swapped="no"/>
+                                <child type="prefix">
+                                  <object class="GtkImage">
+                                    <property name="accessible-role">presentation</property>
+                                    <property name="icon-name">share-link-symbolic</property>
+                                    <property name="valign">center</property>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                            <style>
+                              <class name="boxed-list"/>
+                            </style>
+                          </object>
+                        </property>
+                      </object>
+                    </property>
+                  </object>
+                </property>
+              </object>
+            </property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwNavigationPage">
+            <property name="tag">device</property>
+            <property name="title" translatable="yes">Share</property>
+            <property name="child">
+              <object class="AdwToolbarView">
+                <property name="reveal-bottom-bars"
+                          bind-source="ValentShareDialog"
+                          bind-property="selection-mode"
+                          bind-flags="sync-create"/>
+                <child type="top">
+                  <object class="AdwHeaderBar"/>
+                </child>
+                <property name="content">
+                  <object class="AdwPreferencesPage">
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="AdwActionRow" id="single_row">
+                            <property name="selectable">0</property>
+                            <property name="title-lines">1</property>
+                            <child type="prefix">
+                              <object class="GtkImage" id="single_icon">
+                                <property name="accessible-role">presentation</property>
+                                <property name="icon-name">share-symbolic</property>
+                                <property name="valign">center</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwExpanderRow" id="multiple_row">
+                            <property name="selectable">0</property>
+                            <property name="title-lines">1</property>
+                            <property name="visible"
+                                      bind-source="single_row"
+                                      bind-property="visible"
+                                      bind-flags="bidirectional|invert-boolean|sync-create"/>
+                            <child type="prefix">
+                              <object class="GtkImage" id="multiple_icon">
+                                <property name="accessible-role">presentation</property>
+                                <property name="icon-name">share-symbolic</property>
+                                <property name="valign">center</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <property name="title" translatable="yes">Devices</property>
+                        <child type="header-suffix">
+                          <object class="GtkToggleButton">
+                            <property name="icon-name">selection-mode-symbolic</property>
+                            <property name="tooltip-text" translatable="yes">Share with multiple devices</property>
+                            <property name="active"
+                                      bind-source="ValentShareDialog"
+                                      bind-property="selection-mode"
+                                      bind-flags="bidirectional|sync-create"/>
+                            <style>
+                              <class name="flat"/>
+                            </style>
+                         </object>
+                        </child>
+                        <child>
+                          <object class="GtkListBox" id="device_list">
+                            <accessibility>
+                              <property name="label" translatable="yes">Devices</property>
+                            </accessibility>
+                            <property name="activate-on-single-click">1</property>
+                            <property name="selection-mode">none</property>
+                            <signal name="row-activated"
+                                    handler="on_device_activated"
+                                    object="ValentShareDialog"
+                                    swapped="no"/>
+                            <style>
+                              <class name="boxed-list"/>
+                              <class name="boxed-list-placeholder"/>
+                            </style>
+                            <child type="placeholder">
+                              <object class="AdwActionRow">
+                                <property name="title" translatable="yes">Searching…</property>
+                                <property name="selectable">0</property>
+                                <child type="prefix">
+                                  <object class="GtkSpinner">
+                                    <property name="spinning">1</property>
+                                  </object>
+                                </child>
+                                <style>
+                                  <class name="dim-label"/>
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+                <child type="bottom">
+                  <object class="GtkActionBar">
+                    <child type="end">
+                      <object class="GtkButton">
+                        <property name="action-name">chooser.share</property>
+                        <property name="label" translatable="yes">_Share</property>
+                        <property name="use-underline">1</property>
+                        <style>
+                          <class name="suggested-action"/>
+                        </style>
+                     </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>
