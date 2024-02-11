@@ -44,6 +44,7 @@ main_window_action (GSimpleAction *action,
   if (self->main_window == NULL)
     {
       ValentDeviceManager *devices = valent_device_manager_get_default ();
+      GApplication *application = valent_extension_get_object (VALENT_EXTENSION (self));
 
       self->main_window = g_object_new (VALENT_TYPE_WINDOW,
                                         "default-width",  600,
@@ -52,6 +53,10 @@ main_window_action (GSimpleAction *action,
                                         NULL);
       g_object_add_weak_pointer (G_OBJECT (self->main_window),
                                  (gpointer)&self->main_window);
+
+      gtk_widget_insert_action_group (GTK_WIDGET (self->main_window),
+                                      "app",
+                                      G_ACTION_GROUP (application));
     }
 
   gtk_window_present_with_time (self->main_window, GDK_CURRENT_TIME);
@@ -93,8 +98,8 @@ media_remote_action (GSimpleAction *action,
   if (self->media_remote == NULL)
     {
       self->media_remote = g_object_new (VALENT_TYPE_MEDIA_REMOTE,
-                                   "players", valent_media_get_default (),
-                                   NULL);
+                                         "players", valent_media_get_default (),
+                                         NULL);
       g_object_add_weak_pointer (G_OBJECT (self->media_remote),
                                  (gpointer)&self->media_remote);
     }
@@ -151,8 +156,6 @@ valent_ui_manager_startup (ValentApplicationPlugin *plugin)
 
   g_assert (VALENT_IS_UI_MANAGER (plugin));
 
-  valent_ui_init ();
-
   application = valent_extension_get_object (VALENT_EXTENSION (plugin));
   g_action_map_add_action_entries (G_ACTION_MAP (application),
                                    app_actions,
@@ -177,5 +180,6 @@ valent_ui_manager_class_init (ValentUIManagerClass *klass)
 static void
 valent_ui_manager_init (ValentUIManager *self)
 {
+  valent_ui_init ();
 }
 
