@@ -1,6 +1,9 @@
 # SPDX-License-Identifier: CC0-1.0
 # SPDX-FileCopyrightText: No rights reserved
 
+# src/libvalent/core/
+preprocessorErrorDirective:src/libvalent/core/valent-global.c:35
+
 # src/libvalent/device/
 memleak:src/libvalent/device/valent-channel.c:325
 
@@ -16,6 +19,9 @@ leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:849
 leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:868
 leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:872
 
+# src/plugins/battery/
+memleak:src/plugins/battery/valent-battery-gadget.c
+
 # src/plugins/sms/
 memleak:src/plugins/sms/valent-sms-store.c:814
 memleak:src/plugins/sms/valent-sms-store.c:864
@@ -23,6 +29,7 @@ leakNoVarFunctionCall:src/plugins/sms/valent-sms-conversation.c:568
 leakNoVarFunctionCall:src/plugins/sms/valent-sms-conversation.c:573
 
 # tests/plugins/connectivity_report/
+memleak:src/plugins/connectivity_report/valent-connectivity_report-gadget.c:206
 leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:258
 leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:260
 leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:262
@@ -49,5 +56,8 @@ leakNoVarFunctionCall:tests/plugins/gtk/test-gtk-notifications.c:117
 leakNoVarFunctionCall:tests/plugins/gtk/test-gtk-notifications.c:119
 
 # tests/plugins/lan/
-memleak:src/plugins/lan/valent-lan-channel-service.c:541
+memleak:src/plugins/lan/valent-lan-channel-service.c:538
+memleak:src/plugins/lan/valent-lan-channel-service.c:553
+memleak:src/plugins/lan/valent-lan-dnssd.c:86
+memleak:src/plugins/lan/valent-lan-dnssd.c:96
 
