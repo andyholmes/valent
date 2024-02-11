@@ -137,8 +137,8 @@
                 {
                     "type" : "git",
                     "url" : "https://gitlab.gnome.org/GNOME/evolution-data-server.git",
-                    "commit" : "8141944c16eecc772aeb2ac41ab98a74de5f90cd",
-                    "tag" : "3.50.2",
+                    "commit" : "175c44679ee95830adcbd095d2e77995fef3b114",
+                    "tag" : "3.50.4",
                     "x-checker-data" : {
                         "type" : "anitya",
                         "project-id" : 10935,
@@ -166,8 +166,8 @@
                 {
                     "type" : "git",
                     "url" : "https://gitlab.gnome.org/GNOME/libpeas.git",
-                    "commit" : "0733118ae8e7148a1de63616611c7b0fc092eced",
-                    "tag" : "2.0.0",
+                    "commit" : "63bc9ecb185865024f05c43f1084f50b2240844a",
+                    "tag" : "2.0.1",
                     "x-checker-data" : {
                         "type" : "anitya",
                         "project-id" : 6871,
