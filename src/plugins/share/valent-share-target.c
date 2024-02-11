@@ -7,8 +7,8 @@
 #include <gtk/gtk.h>
 #include <valent.h>
 
+#include "valent-share-dialog.h"
 #include "valent-share-target.h"
-#include "valent-share-target-chooser.h"
 
 
 struct _ValentShareTarget
@@ -48,7 +48,7 @@ valent_share_target_open (ValentApplicationPlugin  *plugin,
                           const char               *hint)
 {
   ValentShareTarget *self = VALENT_SHARE_TARGET (plugin);
-  g_autoptr (GListStore) list = NULL;
+  g_autoptr (GListStore) files_list = NULL;
   GtkWindow *window = NULL;
 
   g_assert (VALENT_IS_SHARE_TARGET (plugin));
@@ -56,13 +56,11 @@ valent_share_target_open (ValentApplicationPlugin  *plugin,
   g_assert (n_files > 0);
   g_assert (hint != NULL);
 
-  list = g_list_store_new (G_TYPE_FILE);
+  files_list = g_list_store_new (G_TYPE_FILE);
+  g_list_store_splice (files_list, 0, 0, (gpointer *)files, n_files);
 
-  for (int i = 0; i < n_files; i++)
-    g_list_store_append (list, files[i]);
-
-  window = g_object_new (VALENT_TYPE_SHARE_TARGET_CHOOSER,
-                         "files",          list,
+  window = g_object_new (VALENT_TYPE_SHARE_DIALOG,
+                         "files", files_list,
                          NULL);
 
   g_signal_connect_object (G_OBJECT (window),

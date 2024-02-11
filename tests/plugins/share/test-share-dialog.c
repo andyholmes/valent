@@ -6,11 +6,11 @@
 
 #include "valent-mock-channel.h"
 #include "valent-mock-channel-service.h"
-#include "valent-share-target-chooser.h"
+#include "valent-share-dialog.h"
 
 
 static void
-test_share_target_chooser (void)
+test_share_dialog (void)
 {
   GtkWindow *window = NULL;
   ValentChannelService *service = NULL;
@@ -26,13 +26,13 @@ test_share_target_chooser (void)
 
   VALENT_TEST_CHECK ("Window can be constructed");
   manager = valent_device_manager_get_default ();
-  window = g_object_new (VALENT_TYPE_SHARE_TARGET_CHOOSER,
-                         "files",          files,
+  window = g_object_new (VALENT_TYPE_SHARE_DIALOG,
+                         "files", files,
                          NULL);
   g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
 
   g_object_get (window,
-                "files",          &files_out,
+                "files", &files_out,
                 NULL);
   g_assert_true (files == files_out);
 
@@ -64,8 +64,8 @@ main (int   argc,
 {
   valent_test_ui_init (&argc, &argv, NULL);
 
-  g_test_add_func ("/plugins/share/target-chooser",
-                   test_share_target_chooser);
+  g_test_add_func ("/plugins/share/dialog",
+                   test_share_dialog);
 
   return g_test_run ();
 }
