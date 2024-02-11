@@ -239,6 +239,7 @@ on_incoming_connection (ValentChannelService   *service,
                                                      certificate,
                                                      timeout,
                                                      &warning);
+  g_cancellable_disconnect (cancellable, cancellable_id);
 
   if (tls_stream == NULL)
     {
@@ -247,12 +248,8 @@ on_incoming_connection (ValentChannelService   *service,
       else if (!g_cancellable_is_cancelled (cancellable))
         g_warning ("%s(): timed out waiting for authentication", G_STRFUNC);
 
-      g_cancellable_disconnect (cancellable, cancellable_id);
-
       return TRUE;
     }
-
-  g_cancellable_disconnect (cancellable, cancellable_id);
 
   if (!valent_lan_channel_service_verify_channel (self, peer_identity, tls_stream))
     return TRUE;
