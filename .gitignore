@@ -1,6 +1,7 @@
 *~
 _build*
 .flatpak-builder
+build-dir
 
 # meson wraps
 subprojects/libportal

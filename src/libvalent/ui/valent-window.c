@@ -16,7 +16,7 @@
 
 #include "valent-application-credits.h"
 #include "valent-device-page.h"
-#include "valent-preferences-window.h"
+#include "valent-preferences-dialog.h"
 #include "valent-ui-utils-private.h"
 #include "valent-window.h"
 
@@ -281,7 +281,7 @@ about_action (GtkWidget  *widget,
               GVariant   *parameter)
 {
   GtkWindow *window = GTK_WINDOW (widget);
-  GtkWindow *dialog = NULL;
+  AdwDialog *dialog = NULL;
   g_autoptr (JsonNode) debug_json = NULL;
   g_autofree char *debug_info = NULL;
 
@@ -290,7 +290,7 @@ about_action (GtkWidget  *widget,
   debug_json = valent_get_debug_info ();
   debug_info = json_to_string (debug_json, TRUE);
 
-  dialog = g_object_new (ADW_TYPE_ABOUT_WINDOW,
+  dialog = g_object_new (ADW_TYPE_ABOUT_DIALOG,
                          "application-icon",    APPLICATION_ID,
                          "application-name",    _("Valent"),
                          "copyright",           "© Andy Holmes",
@@ -302,16 +302,15 @@ about_action (GtkWidget  *widget,
                          "designers",           valent_application_credits_designers,
                          "developers",          valent_application_credits_developers,
                          "documenters",         valent_application_credits_documenters,
-                         "transient-for",       window,
                          "translator-credits",  _("translator-credits"),
                          "version",             PACKAGE_VERSION,
                          "website",             PACKAGE_URL,
                          NULL);
-  adw_about_window_add_acknowledgement_section (ADW_ABOUT_WINDOW (dialog),
+  adw_about_dialog_add_acknowledgement_section (ADW_ABOUT_DIALOG (dialog),
                                                 _("Sponsors"),
                                                 valent_application_credits_sponsors);
 
-  gtk_window_present (dialog);
+  adw_dialog_present (dialog, GTK_WIDGET (window));
 }
 
 static void
@@ -368,18 +367,14 @@ preferences_action (GtkWidget  *widget,
       GtkAllocation allocation;
 
       gtk_widget_get_allocation (widget, &allocation);
-      self->preferences = g_object_new (VALENT_TYPE_PREFERENCES_WINDOW,
-                                        "default-width",  allocation.width,
-                                        "default-height", allocation.height,
-                                        "modal",          FALSE,
-                                        "transient-for",  self,
+      self->preferences = g_object_new (VALENT_TYPE_PREFERENCES_DIALOG,
                                         NULL);
 
       g_object_add_weak_pointer (G_OBJECT (self->preferences),
                                  (gpointer)&self->preferences);
     }
 
-  gtk_window_present (self->preferences);
+  adw_dialog_present (ADW_DIALOG (self->preferences), GTK_WIDGET (self));
 }
 
 static void
