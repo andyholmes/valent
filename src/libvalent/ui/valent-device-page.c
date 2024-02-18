@@ -197,7 +197,6 @@ page_preferences_action (GtkWidget  *widget,
 
   if (self->preferences == NULL)
     {
-      GtkAllocation allocation;
 
       gtk_widget_get_allocation (widget, &allocation);
 
