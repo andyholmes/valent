@@ -193,8 +193,7 @@ page_preferences_action (GtkWidget  *widget,
                          GVariant   *parameter)
 {
   ValentDevicePage *self = VALENT_DEVICE_PAGE (widget);
-  GtkRoot *window;
-  window = gtk_widget_get_root (widget);
+  GtkRoot *window = gtk_widget_get_root (widget);
 
   if (self->preferences == NULL)
     {
