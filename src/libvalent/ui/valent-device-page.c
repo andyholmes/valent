@@ -198,7 +198,6 @@ page_preferences_action (GtkWidget  *widget,
   if (self->preferences == NULL)
     {
 
-      gtk_widget_get_allocation (widget, &allocation);
 
       self->preferences = g_object_new (VALENT_TYPE_DEVICE_PREFERENCES_DIALOG,
                                         "device",         self->device,
