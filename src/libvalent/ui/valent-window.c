@@ -364,9 +364,6 @@ preferences_action (GtkWidget  *widget,
 
   if (self->preferences == NULL)
     {
-      GtkAllocation allocation;
-
-      gtk_widget_get_allocation (widget, &allocation);
       self->preferences = g_object_new (VALENT_TYPE_PREFERENCES_DIALOG, NULL);
       g_object_add_weak_pointer (G_OBJECT (self->preferences),
                                  (gpointer)&self->preferences);
