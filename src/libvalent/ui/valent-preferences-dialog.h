@@ -9,8 +9,8 @@
 
 G_BEGIN_DECLS
 
-#define VALENT_TYPE_PREFERENCES_WINDOW (valent_preferences_window_get_type())
+#define VALENT_TYPE_PREFERENCES_DIALOG (valent_preferences_dialog_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentPreferencesWindow, valent_preferences_window, VALENT, PREFERENCES_WINDOW, AdwPreferencesWindow)
+G_DECLARE_FINAL_TYPE (ValentPreferencesDialog, valent_preferences_dialog, VALENT, PREFERENCES_DIALOG, AdwPreferencesDialog)
 
 G_END_DECLS

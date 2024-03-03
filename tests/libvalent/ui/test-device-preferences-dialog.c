@@ -4,28 +4,28 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
-#define VALENT_TYPE_TEST_SUBJECT (g_type_from_name ("ValentDevicePreferencesWindow"))
+#define VALENT_TYPE_TEST_SUBJECT (g_type_from_name ("ValentDevicePreferencesDialog"))
 
 
 static void
-test_device_preference_window_basic (ValentTestFixture *fixture,
+test_device_preference_dialog_basic (ValentTestFixture *fixture,
                                      gconstpointer      user_data)
 {
-  GtkWindow *window;
+  AdwDialog *dialog;
   ValentDevice *device;
   PeasEngine *engine;
   PeasPluginInfo *info;
 
-  window = g_object_new (VALENT_TYPE_TEST_SUBJECT,
+  dialog = g_object_new (VALENT_TYPE_TEST_SUBJECT,
                          "device", fixture->device,
                          NULL);
-  g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
+  g_object_add_weak_pointer (G_OBJECT (dialog), (gpointer)&dialog);
 
-  gtk_window_present (window);
+  adw_dialog_present (dialog, NULL);
   valent_test_await_pending ();
 
   VALENT_TEST_CHECK ("GObject properties function correctly");
-  g_object_get (window,
+  g_object_get (dialog,
                 "device", &device,
                 NULL);
   g_assert_true (fixture->device == device);
@@ -37,8 +37,8 @@ test_device_preference_window_basic (ValentTestFixture *fixture,
   peas_engine_unload_plugin (engine, info);
   peas_engine_load_plugin (engine, info);
 
-  gtk_window_destroy (window);
-  valent_test_await_nullptr (&window);
+  adw_dialog_force_close (dialog);
+  valent_test_await_nullptr (&dialog);
 }
 
 int
@@ -49,10 +49,10 @@ main (int   argc,
 
   valent_test_ui_init (&argc, &argv, NULL);
 
-  g_test_add ("/libvalent/ui/device-preferences-window/basic",
+  g_test_add ("/libvalent/ui/device-preferences-dialog/basic",
               ValentTestFixture, path,
               valent_test_fixture_init,
-              test_device_preference_window_basic,
+              test_device_preference_dialog_basic,
               valent_test_fixture_clear);
 
   return g_test_run ();

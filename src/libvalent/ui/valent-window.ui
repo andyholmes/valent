@@ -7,6 +7,7 @@
   <template class="ValentWindow" parent="AdwApplicationWindow">
     <property name="title" translatable="yes">Valent</property>
     <property name="width-request">360</property>
+    <property name="height-request">294</property>
     <child>
       <object class="GtkShortcutController">
         <property name="scope">global</property>

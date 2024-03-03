@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-#define G_LOG_DOMAIN "valent-device-preferences-window"
+#define G_LOG_DOMAIN "valent-device-preferences-dialog"
 
 #include "config.h"
 
@@ -12,13 +12,13 @@
 #include <libvalent-device.h>
 
 #include "valent-device-preferences-group.h"
-#include "valent-device-preferences-window.h"
+#include "valent-device-preferences-dialog.h"
 #include "valent-plugin-row.h"
 
 
-struct _ValentDevicePreferencesWindow
+struct _ValentDevicePreferencesDialog
 {
-  AdwPreferencesWindow  parent_instance;
+  AdwPreferencesDialog  parent_instance;
 
   ValentDevice         *device;
   GHashTable           *plugins;
@@ -32,7 +32,7 @@ struct _ValentDevicePreferencesWindow
   GtkListBox           *plugin_list;
 };
 
-G_DEFINE_FINAL_TYPE (ValentDevicePreferencesWindow, valent_device_preferences_window, ADW_TYPE_PREFERENCES_WINDOW)
+G_DEFINE_FINAL_TYPE (ValentDevicePreferencesDialog, valent_device_preferences_dialog, ADW_TYPE_PREFERENCES_DIALOG)
 
 enum {
   PROP_0,
@@ -61,7 +61,7 @@ plugin_list_sort (GtkListBoxRow *row1,
  */
 typedef struct
 {
-  AdwPreferencesWindow *window;
+  AdwPreferencesDialog *window;
   AdwPreferencesPage   *page;
   AdwPreferencesGroup  *group;
   GtkWidget            *row;
@@ -71,9 +71,9 @@ static void
 plugin_data_free (gpointer data)
 {
   PluginData *plugin = (PluginData *)data;
-  ValentDevicePreferencesWindow *self = VALENT_DEVICE_PREFERENCES_WINDOW (plugin->window);
+  ValentDevicePreferencesDialog *self = VALENT_DEVICE_PREFERENCES_DIALOG (plugin->window);
 
-  g_assert (VALENT_IS_DEVICE_PREFERENCES_WINDOW (self));
+  g_assert (VALENT_IS_DEVICE_PREFERENCES_DIALOG (self));
 
   if (plugin->page != NULL && plugin->group != NULL)
     adw_preferences_page_remove (plugin->page, plugin->group);
@@ -85,7 +85,7 @@ plugin_data_free (gpointer data)
 }
 
 static void
-valent_device_preferences_window_add_plugin (ValentDevicePreferencesWindow *self,
+valent_device_preferences_dialog_add_plugin (ValentDevicePreferencesDialog *self,
                                              const char                    *module)
 {
   ValentContext *context = NULL;
@@ -96,13 +96,13 @@ valent_device_preferences_window_add_plugin (ValentDevicePreferencesWindow *self
   const char *title;
   const char *subtitle;
 
-  g_assert (VALENT_IS_DEVICE_PREFERENCES_WINDOW (self));
+  g_assert (VALENT_IS_DEVICE_PREFERENCES_DIALOG (self));
   g_assert (module != NULL && *module != '\0');
 
   engine = valent_get_plugin_engine ();
   info = peas_engine_get_plugin_info (engine, module);
   plugin = g_new0 (PluginData, 1);
-  plugin->window = ADW_PREFERENCES_WINDOW (self);
+  plugin->window = ADW_PREFERENCES_DIALOG (self);
 
   title = peas_plugin_info_get_name (info);
   subtitle = peas_plugin_info_get_description (info);
@@ -171,7 +171,7 @@ plugin_sort (gconstpointer a,
 static void
 on_plugins_changed (ValentDevice                  *device,
                     GParamSpec                    *pspec,
-                    ValentDevicePreferencesWindow *self)
+                    ValentDevicePreferencesDialog *self)
 {
   g_auto (GStrv) plugins = NULL;
   GHashTableIter iter;
@@ -192,7 +192,7 @@ on_plugins_changed (ValentDevice                  *device,
   for (unsigned int i = 0; plugins[i] != NULL; i++)
     {
       if (!g_hash_table_contains (self->plugins, plugins[i]))
-        valent_device_preferences_window_add_plugin (self, plugins[i]);
+        valent_device_preferences_dialog_add_plugin (self, plugins[i]);
     }
 }
 
@@ -200,9 +200,9 @@ on_plugins_changed (ValentDevice                  *device,
  * GObject
  */
 static void
-valent_device_preferences_window_constructed (GObject *object)
+valent_device_preferences_dialog_constructed (GObject *object)
 {
-  ValentDevicePreferencesWindow *self = VALENT_DEVICE_PREFERENCES_WINDOW (object);
+  ValentDevicePreferencesDialog *self = VALENT_DEVICE_PREFERENCES_DIALOG (object);
 
   /* Device */
   g_object_bind_property (self->device, "name",
@@ -220,30 +220,30 @@ valent_device_preferences_window_constructed (GObject *object)
                            self, 0);
   on_plugins_changed (self->device, NULL, self);
 
-  G_OBJECT_CLASS (valent_device_preferences_window_parent_class)->constructed (object);
+  G_OBJECT_CLASS (valent_device_preferences_dialog_parent_class)->constructed (object);
 }
 
 static void
-valent_device_preferences_window_dispose (GObject *object)
+valent_device_preferences_dialog_dispose (GObject *object)
 {
-  ValentDevicePreferencesWindow *self = VALENT_DEVICE_PREFERENCES_WINDOW (object);
+  ValentDevicePreferencesDialog *self = VALENT_DEVICE_PREFERENCES_DIALOG (object);
 
   g_clear_object (&self->device);
   g_clear_pointer (&self->plugins, g_hash_table_unref);
 
   gtk_widget_dispose_template (GTK_WIDGET (object),
-                               VALENT_TYPE_DEVICE_PREFERENCES_WINDOW);
+                               VALENT_TYPE_DEVICE_PREFERENCES_DIALOG);
 
-  G_OBJECT_CLASS (valent_device_preferences_window_parent_class)->dispose (object);
+  G_OBJECT_CLASS (valent_device_preferences_dialog_parent_class)->dispose (object);
 }
 
 static void
-valent_device_preferences_window_get_property (GObject    *object,
+valent_device_preferences_dialog_get_property (GObject    *object,
                                                guint       prop_id,
                                                GValue     *value,
                                                GParamSpec *pspec)
 {
-  ValentDevicePreferencesWindow *self = VALENT_DEVICE_PREFERENCES_WINDOW (object);
+  ValentDevicePreferencesDialog *self = VALENT_DEVICE_PREFERENCES_DIALOG (object);
 
   switch (prop_id)
     {
@@ -257,12 +257,12 @@ valent_device_preferences_window_get_property (GObject    *object,
 }
 
 static void
-valent_device_preferences_window_set_property (GObject      *object,
+valent_device_preferences_dialog_set_property (GObject      *object,
                                                guint         prop_id,
                                                const GValue *value,
                                                GParamSpec   *pspec)
 {
-  ValentDevicePreferencesWindow *self = VALENT_DEVICE_PREFERENCES_WINDOW (object);
+  ValentDevicePreferencesDialog *self = VALENT_DEVICE_PREFERENCES_DIALOG (object);
 
   switch (prop_id)
     {
@@ -276,26 +276,26 @@ valent_device_preferences_window_set_property (GObject      *object,
 }
 
 static void
-valent_device_preferences_window_class_init (ValentDevicePreferencesWindowClass *klass)
+valent_device_preferences_dialog_class_init (ValentDevicePreferencesDialogClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
-  object_class->constructed = valent_device_preferences_window_constructed;
-  object_class->dispose = valent_device_preferences_window_dispose;
-  object_class->get_property = valent_device_preferences_window_get_property;
-  object_class->set_property = valent_device_preferences_window_set_property;
+  object_class->constructed = valent_device_preferences_dialog_constructed;
+  object_class->dispose = valent_device_preferences_dialog_dispose;
+  object_class->get_property = valent_device_preferences_dialog_get_property;
+  object_class->set_property = valent_device_preferences_dialog_set_property;
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-device-preferences-window.ui");
-  gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesWindow, status_page);
-  gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesWindow, sync_page);
-  gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesWindow, other_page);
-  gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesWindow, plugin_page);
-  gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesWindow, plugin_group);
-  gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesWindow, plugin_list);
+  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-device-preferences-dialog.ui");
+  gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesDialog, status_page);
+  gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesDialog, sync_page);
+  gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesDialog, other_page);
+  gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesDialog, plugin_page);
+  gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesDialog, plugin_group);
+  gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesDialog, plugin_list);
 
   /**
-   * ValentDevicePreferencesWindow:device:
+   * ValentDevicePreferencesDialog:device:
    *
    * The device this panel controls and represents.
    */
@@ -311,7 +311,7 @@ valent_device_preferences_window_class_init (ValentDevicePreferencesWindowClass 
 }
 
 static void
-valent_device_preferences_window_init (ValentDevicePreferencesWindow *self)
+valent_device_preferences_dialog_init (ValentDevicePreferencesDialog *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
 

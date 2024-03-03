@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
+
+<interface domain="valent">
+  <template class="ValentDevicePreferencesDialog" parent="AdwPreferencesDialog">
+    <!-- Status Category -->
+    <child>
+      <object class="AdwPreferencesPage" id="status_page">
+        <property name="name">status</property>
+        <property name="title" translatable="yes">Status</property>
+        <property name="icon-name">valent-status-symbolic</property>
+        <property name="vexpand">1</property>
+      </object>
+    </child>
+
+    <!-- Sync Category -->
+    <child>
+      <object class="AdwPreferencesPage" id="sync_page">
+        <property name="name">sync</property>
+        <property name="title" translatable="yes">Sync</property>
+        <property name="icon-name">valent-sync-symbolic</property>
+        <property name="vexpand">1</property>
+      </object>
+    </child>
+
+    <!-- Other Category -->
+    <child>
+      <object class="AdwPreferencesPage" id="other_page">
+        <property name="name">other</property>
+        <property name="title" translatable="yes">Other</property>
+        <property name="icon-name">valent-other-symbolic</property>
+        <property name="vexpand">1</property>
+      </object>
+    </child>
+
+    <!-- Plugins -->
+    <child>
+      <object class="AdwPreferencesPage" id="plugin_page">
+        <property name="name">plugins</property>
+        <property name="title" translatable="yes">Plugins</property>
+        <property name="icon-name">valent-plugins-symbolic</property>
+        <property name="vexpand">1</property>
+        <child>
+          <object class="AdwPreferencesGroup" id="plugin_group">
+            <property name="title" translatable="yes">Plugins</property>
+            <child>
+              <object class="GtkListBox" id="plugin_list">
+                <property name="hexpand">1</property>
+                <property name="selection-mode">none</property>
+                <child type="placeholder">
+                  <object class="GtkLabel">
+                    <property name="height-request">56</property>
+                    <property name="label" translatable="yes">No Plugins</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                  </object>
+                </child>
+                <accessibility>
+                  <property name="label" translatable="yes">Plugins</property>
+                </accessibility>
+                <style>
+                  <class name="boxed-list"/>
+                  <class name="boxed-list-placeholder"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>
