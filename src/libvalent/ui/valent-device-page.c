@@ -12,7 +12,7 @@
 
 #include "valent-device-gadget.h"
 #include "valent-device-page.h"
-#include "valent-device-preferences-window.h"
+#include "valent-device-preferences-dialog.h"
 #include "valent-menu-list.h"
 #include "valent-menu-stack.h"
 
@@ -23,7 +23,7 @@ struct _ValentDevicePage
 
   ValentDevice      *device;
   GHashTable        *plugins;
-  GtkWindow         *preferences;
+  AdwDialog         *preferences;
 
   /* template */
   GtkStack          *stack;
@@ -193,28 +193,21 @@ page_preferences_action (GtkWidget  *widget,
                          GVariant   *parameter)
 {
   ValentDevicePage *self = VALENT_DEVICE_PAGE (widget);
+  GtkRoot *window = gtk_widget_get_root (widget);
 
   if (self->preferences == NULL)
     {
-      GtkAllocation allocation;
-      GtkRoot *window;
 
-      gtk_widget_get_allocation (widget, &allocation);
-      window = gtk_widget_get_root (widget);
 
-      self->preferences = g_object_new (VALENT_TYPE_DEVICE_PREFERENCES_WINDOW,
-                                        "default-width",  allocation.width,
-                                        "default-height", allocation.height,
+      self->preferences = g_object_new (VALENT_TYPE_DEVICE_PREFERENCES_DIALOG,
                                         "device",         self->device,
-                                        "modal",          FALSE,
-                                        "transient-for",  window,
                                         NULL);
 
       g_object_add_weak_pointer (G_OBJECT (self->preferences),
                                  (gpointer)&self->preferences);
     }
 
-  gtk_window_present (self->preferences);
+  adw_dialog_present (ADW_DIALOG (self->preferences), GTK_WIDGET (window));
 }
 
 static void
@@ -289,7 +282,6 @@ valent_device_page_dispose (GObject *object)
 
   g_clear_object (&self->device);
   g_clear_pointer (&self->plugins, g_hash_table_unref);
-  g_clear_pointer (&self->preferences, gtk_window_destroy);
 
   gtk_widget_dispose_template (GTK_WIDGET (object), VALENT_TYPE_DEVICE_PAGE);
 

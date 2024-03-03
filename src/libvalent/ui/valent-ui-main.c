@@ -11,13 +11,13 @@
 #include "valent-device-gadget.h"
 #include "valent-device-page.h"
 #include "valent-device-preferences-group.h"
-#include "valent-device-preferences-window.h"
+#include "valent-device-preferences-dialog.h"
 #include "valent-input-remote.h"
 #include "valent-media-remote.h"
 #include "valent-menu-list.h"
 #include "valent-menu-stack.h"
 #include "valent-preferences-page.h"
-#include "valent-preferences-window.h"
+#include "valent-preferences-dialog.h"
 #include "valent-ui-manager.h"
 #include "valent-ui-utils.h"
 #include "valent-window.h"
@@ -45,13 +45,13 @@ valent_ui_init_types (void)
   g_type_ensure (VALENT_TYPE_DEVICE_GADGET);
   g_type_ensure (VALENT_TYPE_DEVICE_PAGE);
   g_type_ensure (VALENT_TYPE_DEVICE_PREFERENCES_GROUP);
-  g_type_ensure (VALENT_TYPE_DEVICE_PREFERENCES_WINDOW);
+  g_type_ensure (VALENT_TYPE_DEVICE_PREFERENCES_DIALOG);
   g_type_ensure (VALENT_TYPE_INPUT_REMOTE);
   g_type_ensure (VALENT_TYPE_MEDIA_REMOTE);
   g_type_ensure (VALENT_TYPE_MENU_LIST);
   g_type_ensure (VALENT_TYPE_MENU_STACK);
   g_type_ensure (VALENT_TYPE_PREFERENCES_PAGE);
-  g_type_ensure (VALENT_TYPE_PREFERENCES_WINDOW);
+  g_type_ensure (VALENT_TYPE_PREFERENCES_DIALOG);
   g_type_ensure (VALENT_TYPE_UI_MANAGER);
   g_type_ensure (VALENT_TYPE_WINDOW);
 }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-#define G_LOG_DOMAIN "valent-preferences-window"
+#define G_LOG_DOMAIN "valent-preferences-dialog"
 
 #include "config.h"
 
@@ -20,12 +20,12 @@
 #include <libvalent-session.h>
 
 #include "valent-preferences-page.h"
-#include "valent-preferences-window.h"
+#include "valent-preferences-dialog.h"
 
 
-struct _ValentPreferencesWindow
+struct _ValentPreferencesDialog
 {
-  AdwPreferencesWindow  parent_instance;
+  AdwPreferencesDialog  parent_instance;
 
   GSettings            *settings;
   GHashTable           *pages;
@@ -41,7 +41,7 @@ struct _ValentPreferencesWindow
   GtkListBox           *plugin_list;
 };
 
-G_DEFINE_FINAL_TYPE (ValentPreferencesWindow, valent_preferences_window, ADW_TYPE_PREFERENCES_WINDOW)
+G_DEFINE_FINAL_TYPE (ValentPreferencesDialog, valent_preferences_dialog, ADW_TYPE_PREFERENCES_DIALOG)
 
 
 typedef struct
@@ -85,12 +85,12 @@ plugin_list_sort (GtkListBoxRow *row1,
  */
 static void
 on_name_apply (GtkEditable             *editable,
-               ValentPreferencesWindow *self)
+               ValentPreferencesDialog *self)
 {
   const char *name = NULL;
 
   g_assert (GTK_IS_EDITABLE (editable));
-  g_assert (VALENT_IS_PREFERENCES_WINDOW (self));
+  g_assert (VALENT_IS_PREFERENCES_DIALOG (self));
 
   name = gtk_editable_get_text (editable);
 
@@ -103,14 +103,14 @@ on_name_apply (GtkEditable             *editable,
 static void
 on_settings_changed (GSettings               *settings,
                      const char              *key,
-                     ValentPreferencesWindow *self)
+                     ValentPreferencesDialog *self)
 {
   const char *text = NULL;
   g_autofree char *name = NULL;
 
   g_assert (G_IS_SETTINGS (settings));
   g_assert (key != NULL && *key != '\0');
-  g_assert (VALENT_IS_PREFERENCES_WINDOW (self));
+  g_assert (VALENT_IS_PREFERENCES_DIALOG (self));
 
   name = g_settings_get_string (self->settings, "name");
   text = gtk_editable_get_text (GTK_EDITABLE (self->name_entry));
@@ -164,7 +164,7 @@ plugin_row_add_extensions (AdwExpanderRow *plugin_row,
 static void
 on_load_plugin (PeasEngine              *engine,
                 PeasPluginInfo          *info,
-                ValentPreferencesWindow *self)
+                ValentPreferencesDialog *self)
 {
   GtkWidget *row = NULL;
   const char *module;
@@ -174,7 +174,7 @@ on_load_plugin (PeasEngine              *engine,
 
   g_assert (PEAS_IS_ENGINE (engine));
   g_assert (info != NULL);
-  g_assert (VALENT_IS_PREFERENCES_WINDOW (self));
+  g_assert (VALENT_IS_PREFERENCES_DIALOG (self));
 
   if (peas_plugin_info_is_hidden (info))
     return;
@@ -242,7 +242,7 @@ on_load_plugin (PeasEngine              *engine,
                                            "icon-name", icon_name,
                                            "title",     title,
                                            NULL);
-      adw_preferences_window_add (ADW_PREFERENCES_WINDOW (self),
+      adw_preferences_dialog_add (ADW_PREFERENCES_DIALOG (self),
                                   ADW_PREFERENCES_PAGE (page));
       g_hash_table_insert (self->pages, info, g_object_ref (page));
     }
@@ -251,13 +251,13 @@ on_load_plugin (PeasEngine              *engine,
 static void
 on_unload_plugin (PeasEngine              *engine,
                   PeasPluginInfo          *info,
-                  ValentPreferencesWindow *self)
+                  ValentPreferencesDialog *self)
 {
   g_autoptr (AdwPreferencesPage) page = NULL;
   g_autoptr (GtkWidget) row = NULL;
 
   if (g_hash_table_steal_extended (self->pages, info, NULL, (void **)&page))
-    adw_preferences_window_remove (ADW_PREFERENCES_WINDOW (self), page);
+    adw_preferences_dialog_remove (ADW_PREFERENCES_DIALOG (self), page);
 
   if (g_hash_table_steal_extended (self->rows, info, NULL, (void **)&row))
     gtk_list_box_remove (self->plugin_list, row);
@@ -271,20 +271,20 @@ page_action (GtkWidget  *widget,
              const char *action_name,
              GVariant   *parameter)
 {
-  AdwPreferencesWindow *window = ADW_PREFERENCES_WINDOW (widget);
+  AdwPreferencesDialog *window = ADW_PREFERENCES_DIALOG (widget);
   const char *module;
 
   module = g_variant_get_string (parameter, NULL);
-  adw_preferences_window_set_visible_page_name (window, module);
+  adw_preferences_dialog_set_visible_page_name (window, module);
 }
 
 /*
  * GObject
  */
 static void
-valent_preferences_window_constructed (GObject *object)
+valent_preferences_dialog_constructed (GObject *object)
 {
-  ValentPreferencesWindow *self = VALENT_PREFERENCES_WINDOW (object);
+  ValentPreferencesDialog *self = VALENT_PREFERENCES_DIALOG (object);
   g_autofree char *name = NULL;
   PeasEngine *engine = valent_get_plugin_engine ();
   unsigned int n_plugins = 0;
@@ -323,51 +323,51 @@ valent_preferences_window_constructed (GObject *object)
                            self,
                            0);
 
-  G_OBJECT_CLASS (valent_preferences_window_parent_class)->constructed (object);
+  G_OBJECT_CLASS (valent_preferences_dialog_parent_class)->constructed (object);
 }
 
 static void
-valent_preferences_window_dispose (GObject *object)
+valent_preferences_dialog_dispose (GObject *object)
 {
-  ValentPreferencesWindow *self = VALENT_PREFERENCES_WINDOW (object);
+  ValentPreferencesDialog *self = VALENT_PREFERENCES_DIALOG (object);
 
   g_signal_handlers_disconnect_by_data (valent_get_plugin_engine (), self);
   g_clear_object (&self->settings);
 
   gtk_widget_dispose_template (GTK_WIDGET (object),
-                               VALENT_TYPE_PREFERENCES_WINDOW);
+                               VALENT_TYPE_PREFERENCES_DIALOG);
 
-  G_OBJECT_CLASS (valent_preferences_window_parent_class)->dispose (object);
+  G_OBJECT_CLASS (valent_preferences_dialog_parent_class)->dispose (object);
 }
 
 static void
-valent_preferences_window_finalize (GObject *object)
+valent_preferences_dialog_finalize (GObject *object)
 {
-  ValentPreferencesWindow *self = VALENT_PREFERENCES_WINDOW (object);
+  ValentPreferencesDialog *self = VALENT_PREFERENCES_DIALOG (object);
 
   g_clear_pointer (&self->pages, g_hash_table_unref);
   g_clear_pointer (&self->rows, g_hash_table_unref);
 
-  G_OBJECT_CLASS (valent_preferences_window_parent_class)->finalize (object);
+  G_OBJECT_CLASS (valent_preferences_dialog_parent_class)->finalize (object);
 }
 
 static void
-valent_preferences_window_class_init (ValentPreferencesWindowClass *klass)
+valent_preferences_dialog_class_init (ValentPreferencesDialogClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
-  object_class->constructed = valent_preferences_window_constructed;
-  object_class->dispose = valent_preferences_window_dispose;
-  object_class->finalize = valent_preferences_window_finalize;
+  object_class->constructed = valent_preferences_dialog_constructed;
+  object_class->dispose = valent_preferences_dialog_dispose;
+  object_class->finalize = valent_preferences_dialog_finalize;
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-preferences-window.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-preferences-dialog.ui");
 
-  gtk_widget_class_bind_template_child (widget_class, ValentPreferencesWindow, general_group);
-  gtk_widget_class_bind_template_child (widget_class, ValentPreferencesWindow, main_page);
-  gtk_widget_class_bind_template_child (widget_class, ValentPreferencesWindow, plugin_group);
-  gtk_widget_class_bind_template_child (widget_class, ValentPreferencesWindow, plugin_list);
-  gtk_widget_class_bind_template_child (widget_class, ValentPreferencesWindow, name_entry);
+  gtk_widget_class_bind_template_child (widget_class, ValentPreferencesDialog, general_group);
+  gtk_widget_class_bind_template_child (widget_class, ValentPreferencesDialog, main_page);
+  gtk_widget_class_bind_template_child (widget_class, ValentPreferencesDialog, plugin_group);
+  gtk_widget_class_bind_template_child (widget_class, ValentPreferencesDialog, plugin_list);
+  gtk_widget_class_bind_template_child (widget_class, ValentPreferencesDialog, name_entry);
 
   gtk_widget_class_bind_template_callback (widget_class, on_name_apply);
 
@@ -439,7 +439,7 @@ valent_preferences_window_class_init (ValentPreferencesWindowClass *klass)
 }
 
 static void
-valent_preferences_window_init (ValentPreferencesWindow *self)
+valent_preferences_dialog_init (ValentPreferencesDialog *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
 
