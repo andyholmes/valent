@@ -4,21 +4,21 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
-#define VALENT_TYPE_TEST_SUBJECT (g_type_from_name ("ValentPreferencesWindow"))
+#define VALENT_TYPE_TEST_SUBJECT (g_type_from_name ("ValentPreferencesDialog"))
 
 
 static void
-test_preferences_window_basic (void)
+test_preferences_dialog_basic (void)
 {
-  GtkWindow *window;
+  AdwDialog *dialog;
   PeasEngine *engine;
   PeasPluginInfo *info;
 
-  window = g_object_new (VALENT_TYPE_TEST_SUBJECT,
+  dialog = g_object_new (VALENT_TYPE_TEST_SUBJECT,
                         NULL);
-  g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
+  g_object_add_weak_pointer (G_OBJECT (dialog), (gpointer)&dialog);
 
-  gtk_window_present (window);
+  adw_dialog_present (dialog, NULL);
   valent_test_await_pending ();
 
   /* Unload/Load the plugin */
@@ -27,49 +27,49 @@ test_preferences_window_basic (void)
   peas_engine_unload_plugin (engine, info);
   peas_engine_load_plugin (engine, info);
 
-  gtk_window_destroy (window);
-  valent_test_await_nullptr (&window);
+  adw_dialog_force_close (dialog);
+  valent_test_await_nullptr (&dialog);
 }
 
 static void
-test_preferences_window_navigation (void)
+test_preferences_dialog_navigation (void)
 {
-  GtkWindow *window;
+  AdwDialog *dialog;
 
-  window = g_object_new (VALENT_TYPE_TEST_SUBJECT,
+  dialog = g_object_new (VALENT_TYPE_TEST_SUBJECT,
                         NULL);
-  g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
+  g_object_add_weak_pointer (G_OBJECT (dialog), (gpointer)&dialog);
 
-  gtk_window_present (window);
+  adw_dialog_present (dialog, NULL);
   valent_test_await_pending ();
 
   /* Main -> Plugin */
-  gtk_widget_activate_action (GTK_WIDGET (window), "win.page", "s", "mock");
+  gtk_widget_activate_action (GTK_WIDGET (dialog), "win.page", "s", "mock");
 
   /* Close */
-  gtk_widget_activate_action (GTK_WIDGET (window), "window.close", NULL);
+  gtk_widget_activate_action (GTK_WIDGET (dialog), "dialog.close", NULL);
 
-  g_assert_null (window);
+  g_assert_null (dialog);
 }
 
 static void
-test_preferences_window_rename (void)
+test_preferences_dialog_rename (void)
 {
-  GtkWindow *window;
+  AdwDialog *dialog;
 
-  window = g_object_new (VALENT_TYPE_TEST_SUBJECT,
+  dialog = g_object_new (VALENT_TYPE_TEST_SUBJECT,
                         NULL);
-  g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
+  g_object_add_weak_pointer (G_OBJECT (dialog), (gpointer)&dialog);
 
-  gtk_window_present (window);
+  adw_dialog_present (dialog, NULL);
   valent_test_await_pending ();
 
   /* Rename Dialog */
-  gtk_widget_activate_action (GTK_WIDGET (window), "win.rename", NULL);
+  gtk_widget_activate_action (GTK_WIDGET (dialog), "win.rename", NULL);
   valent_test_await_pending ();
 
-  gtk_window_destroy (window);
-  valent_test_await_nullptr (&window);
+  adw_dialog_force_close (dialog);
+  valent_test_await_nullptr (&dialog);
 }
 
 int
@@ -78,14 +78,14 @@ main (int   argc,
 {
   valent_test_ui_init (&argc, &argv, NULL);
 
-  g_test_add_func ("/libvalent/ui/preferences-window",
-                   test_preferences_window_basic);
+  g_test_add_func ("/libvalent/ui/preferences-dialog",
+                   test_preferences_dialog_basic);
 
-  g_test_add_func ("/libvalent/ui/preferences-window/navigation",
-                   test_preferences_window_navigation);
+  g_test_add_func ("/libvalent/ui/preferences-dialog/navigation",
+                   test_preferences_dialog_navigation);
 
-  g_test_add_func ("/libvalent/ui/preferences-window/rename",
-                   test_preferences_window_rename);
+  g_test_add_func ("/libvalent/ui/preferences-dialog/rename",
+                   test_preferences_dialog_rename);
 
   return g_test_run ();
 }
