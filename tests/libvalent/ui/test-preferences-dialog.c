@@ -47,7 +47,7 @@ test_preferences_dialog_navigation (void)
   gtk_widget_activate_action (GTK_WIDGET (dialog), "win.page", "s", "mock");
 
   /* Close */
-  gtk_widget_activate_action (GTK_WIDGET (dialog), "dialog.close", NULL);
+  adw_dialog_close (ADW_DIALOG (dialog));
 
   g_assert_null (dialog);
 }
