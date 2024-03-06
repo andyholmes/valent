@@ -33,7 +33,7 @@ struct _ValentWindow
   AdwNavigationView    *view;
   GtkProgressBar       *progress_bar;
   GtkListBox           *device_list;
-  GtkWindow            *preferences;
+  AdwDialog            *preferences;
 };
 
 G_DEFINE_FINAL_TYPE (ValentWindow, valent_window, ADW_TYPE_APPLICATION_WINDOW)
@@ -332,6 +332,9 @@ page_action (GtkWidget  *widget,
       return;
     }
 
+
+  g_clear_pointer (&self->preferences, adw_dialog_force_close);
+
   n_devices = g_list_model_get_n_items (G_LIST_MODEL (self->manager));
   for (unsigned int i = 0; i < n_devices; i++)
     {
@@ -445,7 +448,7 @@ valent_window_dispose (GObject *object)
     adw_animation_reset (self->fade);
   g_clear_object (&self->fade);
 
-  g_clear_pointer (&self->preferences, gtk_window_destroy);
+  g_clear_pointer (&self->preferences, adw_dialog_force_close);
   gtk_widget_dispose_template (GTK_WIDGET (object), VALENT_TYPE_WINDOW);
 
   G_OBJECT_CLASS (valent_window_parent_class)->dispose (object);
