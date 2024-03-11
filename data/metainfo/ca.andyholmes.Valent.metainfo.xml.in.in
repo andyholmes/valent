@@ -34,10 +34,27 @@
     </p>
   </description>
 
+  <releases>
+    <release version="1.0.0.alpha.45" date="2024-03-10" type="development">
+      <url>https://github.com/andyholmes/valent/releases/tag/v1.0.0.alpha.45</url>
+      <description>
+        <p>Initial release.</p>
+      </description>
+    </release>
+  </releases>
+
   <screenshots>
     <screenshot type="default">
-      <caption>Pair and connect your devices</caption>
-      <image width="652" height="532">https://raw.githubusercontent.com/andyholmes/valent/main/data/metainfo/01-devices.png</image>
+      <caption>Connect to devices on your network</caption>
+      <image width="722" height="602">https://raw.githubusercontent.com/andyholmes/valent/main/data/metainfo/01-devices.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Securely pair devices</caption>
+      <image width="722" height="602">https://raw.githubusercontent.com/andyholmes/valent/main/data/metainfo/02-pairing.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Monitor and control remote devices</caption>
+      <image width="722" height="602">https://raw.githubusercontent.com/andyholmes/valent/main/data/metainfo/03-actions.png</image>
     </screenshot>
   </screenshots>
 
