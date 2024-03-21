@@ -566,7 +566,7 @@ valent_component_class_init (ValentComponentClass *klass)
   /**
    * ValentComponent:plugin-type:
    *
-   * The extension point [alias@GLib.Type].
+   * The extension point [alias@GObject.Type].
    *
    * Since: 1.0
    */
