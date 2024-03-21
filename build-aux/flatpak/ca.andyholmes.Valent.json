@@ -1,7 +1,7 @@
 {
     "app-id" : "ca.andyholmes.Valent",
     "runtime" : "org.gnome.Platform",
-    "runtime-version" : "46beta",
+    "runtime-version" : "46",
     "sdk" : "org.gnome.Sdk",
     "command" : "valent",
     "finish-args" : [
