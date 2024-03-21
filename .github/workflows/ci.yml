@@ -70,7 +70,7 @@ jobs:
 
       - name: Mypy
         if: ${{ always() }}
-        uses: tsuyoshicho/action-mypy@v3
+        uses: tsuyoshicho/action-mypy@v4
         with:
           reporter: github-pr-review
           fail_on_error: true
