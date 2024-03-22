@@ -204,5 +204,40 @@ void valent_trace_mark (const char *strfunc,
 # define VALENT_JSON(_node, _ctx)      G_STMT_START {          } G_STMT_END
 #endif
 
+/**
+ * V_GNUC_BEGIN_IGNORE_INFINITE_LOOP: (skip)
+ *
+ * Tells gcc (if it is a new enough version) to temporarily stop emitting
+ * warnings when functions employ an infinite loop. This is useful for functions
+ * that do so intentionally, such as [func@GLib.error].
+ *
+ * Since: 1.0
+ */
+
+/**
+ * V_GNUC_END_IGNORE_INFINITE_LOOP: (skip)
+ *
+ * Undoes the effect of [func@Valent.V_GNUC_BEGIN_IGNORE_INFINITE_LOOP], telling gcc
+ * to begin outputting warnings again (assuming those warnings had been enabled
+ * to begin with).
+ *
+ * Since: 1.0
+ */
+
+#if G_GNUC_CHECK_VERSION(14, 0)
+  #define V_GNUC_BEGIN_IGNORE_INFINITE_LOOP                          \
+    G_STMT_START {                                                   \
+      _Pragma("GCC diagnostic push")                                 \
+      _Pragma("GCC diagnostic ignored \"-Wanalyzer-infinite-loop\"") \
+    } G_STMT_END
+  #define V_GNUC_END_IGNORE_INFINITE_LOOP                            \
+    G_STMT_START {                                                   \
+      _Pragma("GCC diagnostic pop")                                  \
+    } G_STMT_END
+#else
+  #define V_GNUC_BEGIN_IGNORE_INFINITE_LOOP G_STMT_START { } G_STMT_END
+  #define V_GNUC_END_IGNORE_INFINITE_LOOP   G_STMT_START { } G_STMT_END
+#endif
+
 G_END_DECLS
 
