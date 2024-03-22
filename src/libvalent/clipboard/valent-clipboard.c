@@ -484,7 +484,7 @@ valent_clipboard_read_text (ValentClipboard     *clipboard,
 
   if (mimetypes != NULL)
     {
-      for (unsigned int i = 0; i < G_N_ELEMENTS (text_mimetypes); i++)
+      for (size_t i = 0; i < G_N_ELEMENTS (text_mimetypes); i++)
         {
           const char *text_mimetype = text_mimetypes[i];
 

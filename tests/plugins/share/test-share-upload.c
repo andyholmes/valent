@@ -15,7 +15,6 @@ static const char * const test_files[] = {
     "resource:///tests/contact2.vcf",
     "resource:///tests/contact3.vcf",
 };
-static guint n_test_files = G_N_ELEMENTS (test_files);
 
 
 static void
@@ -48,7 +47,7 @@ on_items_changed (GListModel        *model,
   g_assert_true (item_type  == VALENT_TYPE_TRANSFER);
   g_assert_true (n_items == added);
 
-  g_assert_cmpint (added, ==, n_test_files);
+  g_assert_cmpint (added, ==, G_N_ELEMENTS (test_files));
 }
 
 static void
@@ -141,7 +140,7 @@ test_share_upload_multiple (ValentTestFixture *fixture,
   files = g_list_store_new (G_TYPE_FILE);
   transfer = valent_share_upload_new (fixture->device);
 
-  for (unsigned int i = 0; i < n_test_files; i++)
+  for (size_t i = 0; i < G_N_ELEMENTS (test_files); i++)
     {
       g_autoptr (GFile) file = NULL;
       g_autoptr (GFileInfo) info = NULL;
@@ -176,18 +175,18 @@ test_share_upload_multiple (ValentTestFixture *fixture,
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.share.request.update");
-  v_assert_packet_cmpint (packet, "numberOfFiles", ==, n_test_files);
+  v_assert_packet_cmpint (packet, "numberOfFiles", ==, G_N_ELEMENTS (test_files));
   v_assert_packet_cmpint (packet, "totalPayloadSize", ==, total_size);
   json_node_unref (packet);
 
-  for (unsigned int i = 0; i < n_test_files; i++)
+  for (size_t i = 0; i < G_N_ELEMENTS (test_files); i++)
     {
       packet = valent_test_fixture_expect_packet (fixture);
       v_assert_packet_type (packet, "kdeconnect.share.request");
       v_assert_packet_cmpstr (packet, "filename", ==, file_name[i]);
       v_assert_packet_field (packet, "creationTime");
       v_assert_packet_field (packet, "lastModified");
-      v_assert_packet_cmpint (packet, "numberOfFiles", ==, n_test_files);
+      v_assert_packet_cmpint (packet, "numberOfFiles", ==, G_N_ELEMENTS (test_files));
       v_assert_packet_cmpint (packet, "totalPayloadSize", ==, total_size);
 
       g_assert_cmpint (valent_packet_get_payload_size (packet), ==, file_size[i]);

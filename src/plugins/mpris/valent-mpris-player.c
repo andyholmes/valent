@@ -99,7 +99,7 @@ on_player_properties_changed (GDBusProxy        *proxy,
   g_object_freeze_notify (G_OBJECT (self));
   g_variant_dict_init (&dict, changed_properties);
 
-  for (unsigned int i = 0; i < G_N_ELEMENTS (player_properties); i++)
+  for (size_t i = 0; i < G_N_ELEMENTS (player_properties); i++)
     {
       if (g_variant_dict_contains (&dict, player_properties[i].dbus))
         {

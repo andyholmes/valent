@@ -108,7 +108,7 @@ test_sms_phone_number (void)
   VALENT_TEST_CHECK ("Functions `valent_phone_number_normalize()` and "
                      "`valent_phone_number_equal()` can handle a variety of "
                      "phone number formats");
-  for (unsigned int i = 0; i < G_N_ELEMENTS (numbers); i++)
+  for (size_t i = 0; i < G_N_ELEMENTS (numbers); i++)
     {
       gboolean equal;
 
