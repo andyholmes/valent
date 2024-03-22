@@ -6,6 +6,7 @@
 
 #include "config.h"
 
+#include "valent-debug.h"
 #include "valent-macros.h"
 #include "valent-object.h"
 
@@ -182,9 +183,13 @@ static void
 valent_object_constructed (GObject *object)
 {
   if G_UNLIKELY (G_OBJECT_GET_CLASS (object)->dispose != valent_object_dispose)
-    g_error ("%s overrides GObject.Object.dispose() instead of "
-             "Valent.Object.destroy(), which is not thread safe",
-             G_OBJECT_TYPE_NAME (object));
+    {
+      V_GNUC_BEGIN_IGNORE_INFINITE_LOOP;
+      g_error ("%s overrides GObject.Object.dispose() instead of "
+               "Valent.Object.destroy(), which is not thread safe",
+               G_OBJECT_TYPE_NAME (object));
+      V_GNUC_END_IGNORE_INFINITE_LOOP;
+    }
 
   G_OBJECT_CLASS (valent_object_parent_class)->constructed (object);
 }
