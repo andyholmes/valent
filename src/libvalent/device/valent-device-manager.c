@@ -796,7 +796,7 @@ valent_device_manager_shutdown (ValentApplicationPlugin *plugin)
 
       if (application != NULL)
         {
-          for (unsigned int i = 0; i < G_N_ELEMENTS (app_actions); i++)
+          for (size_t i = 0; i < G_N_ELEMENTS (app_actions); i++)
             g_action_map_remove_action (G_ACTION_MAP (application),
                                         app_actions[i].name);
 

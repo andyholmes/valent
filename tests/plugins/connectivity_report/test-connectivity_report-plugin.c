@@ -381,7 +381,7 @@ test_connectivity_report_plugin_fuzz (ValentTestFixture *fixture,
   valent_test_fixture_connect (fixture, TRUE);
   g_test_log_set_fatal_handler (valent_test_mute_fuzzing, NULL);
 
-  for (unsigned int s = 0; s < G_N_ELEMENTS (schemas); s++)
+  for (size_t s = 0; s < G_N_ELEMENTS (schemas); s++)
     valent_test_fixture_schema_fuzz (fixture, schemas[s]);
 }
 #endif

@@ -71,7 +71,7 @@ on_key_pressed (GtkEventControllerKey *controller,
 
   g_assert (VALENT_IS_MENU_LIST (self));
 
-  for (unsigned int i = 0; i < G_N_ELEMENTS (activate_keys); i++)
+  for (size_t i = 0; i < G_N_ELEMENTS (activate_keys); i++)
     {
       if (activate_keys[i] != keyval)
         continue;

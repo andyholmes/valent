@@ -25,7 +25,7 @@ static const char * const test_uris[] = {
   "resource:///tests/contact2.vcf",
   "resource:///tests/contact3.vcf",
 };
-static guint n_test_uris = G_N_ELEMENTS (test_uris);
+static size_t n_test_uris = G_N_ELEMENTS (test_uris);
 
 
 static void
@@ -323,7 +323,7 @@ test_share_plugin_fuzz (ValentTestFixture *fixture,
   valent_test_fixture_connect (fixture, TRUE);
   g_test_log_set_fatal_handler (valent_test_mute_fuzzing, NULL);
 
-  for (unsigned int s = 0; s < G_N_ELEMENTS (schemas); s++)
+  for (size_t s = 0; s < G_N_ELEMENTS (schemas); s++)
     valent_test_fixture_schema_fuzz (fixture, schemas[s]);
 }
 

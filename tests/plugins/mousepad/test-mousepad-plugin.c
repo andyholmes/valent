@@ -330,7 +330,7 @@ test_mousepad_plugin_fuzz (ValentTestFixture *fixture,
   v_assert_packet_true (packet, "state");
   json_node_unref (packet);
 
-  for (unsigned int s = 0; s < G_N_ELEMENTS (schemas); s++)
+  for (size_t s = 0; s < G_N_ELEMENTS (schemas); s++)
     valent_test_fixture_schema_fuzz (fixture, schemas[s]);
 }
 

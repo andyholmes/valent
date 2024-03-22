@@ -142,7 +142,7 @@ valent_ui_manager_shutdown (ValentApplicationPlugin *plugin)
 
   application = valent_extension_get_object (VALENT_EXTENSION (plugin));
 
-  for (unsigned int i = 0; i < G_N_ELEMENTS (app_actions); i++)
+  for (size_t i = 0; i < G_N_ELEMENTS (app_actions); i++)
     g_action_map_remove_action (G_ACTION_MAP (application), app_actions[i].name);
 
   g_clear_pointer (&self->media_remote, gtk_window_destroy);
