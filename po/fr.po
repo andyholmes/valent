@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2023-09-29 20:31-0700\n"
+"POT-Creation-Date: 2023-09-30 20:16-0700\n"
 "PO-Revision-Date: 2023-03-04 17:28+0100\n"
 "Last-Translator: Valérie Roux <vxlerieuwu@unixgirl.xyz>\n"
 "Language-Team: French <vxlerieuwu@unixgirl.xyz>\n"
@@ -483,7 +483,8 @@ msgid "Main Menu"
 msgstr "Nom de l'appareil"
 
 #: src/libvalent/ui/valent-window.ui:85 src/libvalent/ui/valent-window.ui:100
-#: src/plugins/share/valent-share-target-chooser.ui:68
+#: src/plugins/share/valent-share-dialog.ui:161
+#: src/plugins/share/valent-share-dialog.ui:178
 msgid "Devices"
 msgstr "Appareils"
 
@@ -770,7 +771,6 @@ msgstr "Notification"
 
 #: src/plugins/notification/valent-notification-dialog.ui:19
 #: src/plugins/runcommand/valent-runcommand-editor.ui:17
-#: src/plugins/share/valent-share-target-chooser.ui:22
 msgid "_Cancel"
 msgstr "Annuler"
 
@@ -1090,11 +1090,14 @@ msgstr[0] "Un fichier envoyé vers %1$s"
 msgstr[1] "%2$d fichiers envoyés vers %1$s"
 
 #: src/plugins/share/valent-share-plugin.c:671
-#: src/plugins/share/valent-share-target-chooser.ui:8
 msgid "Share Files"
 msgstr "Partager des fichiers"
 
 #: src/plugins/share/valent-share-plugin.c:672
+#: src/plugins/share/valent-share-dialog.ui:8
+#: src/plugins/share/valent-share-dialog.ui:29
+#: src/plugins/share/valent-share-dialog.ui:40
+#: src/plugins/share/valent-share-dialog.ui:112
 msgid "Share"
 msgstr "Partager"
 
@@ -1114,21 +1117,52 @@ msgstr "Dossier de téléchargement"
 msgid "Where received files are stored"
 msgstr "Où les fichiers entrants sont stockés"
 
-#: src/plugins/share/valent-share-target-chooser.ui:29
-msgid "_Share"
-msgstr "Partager"
+#: src/plugins/share/valent-share-dialog.c:261
+#, c-format
+msgid "Size: %s"
+msgstr ""
 
-#: src/plugins/share/valent-share-target-chooser.ui:58
-msgid "Choose a device to share the selected files with."
-msgstr "Choisissez un appareil auquel partager les fichiers seléctionnés."
+#: src/plugins/share/valent-share-dialog.c:294
+#, c-format
+msgid "%u files and links"
+msgstr ""
 
-#: src/plugins/share/valent-share-target-chooser.ui:86
+#: src/plugins/share/valent-share-dialog.c:305
+#, fuzzy, c-format
+msgid "%u files"
+msgstr "Tous les fichiers"
+
+#: src/plugins/share/valent-share-dialog.c:315
+#, c-format
+msgid "%u links"
+msgstr ""
+
+#: src/plugins/share/valent-share-dialog.ui:41
+#, fuzzy
+msgid "Select files, enter a link or paste text"
+msgstr "Partagez des fichiers, des liens et du texte"
+
+#: src/plugins/share/valent-share-dialog.ui:50
+#, fuzzy
+msgid "Pick Files"
+msgstr "Système de fichiers local"
+
+#: src/plugins/share/valent-share-dialog.ui:75
+msgid "Enter URL"
+msgstr ""
+
+#: src/plugins/share/valent-share-dialog.ui:165
+#, fuzzy
+msgid "Share with multiple devices"
+msgstr "Prendre une photo avec l'appareil distant"
+
+#: src/plugins/share/valent-share-dialog.ui:192
 msgid "Searching…"
 msgstr "Recherche..."
 
-#: src/plugins/share/valent-share-target-chooser.ui:128
-msgid "Always use this device"
-msgstr "Toujours utiliser cet appareil"
+#: src/plugins/share/valent-share-dialog.ui:215
+msgid "_Share"
+msgstr "Partager"
 
 #: src/plugins/share/valent-share-text-dialog.c:98
 #: src/plugins/share/valent-share-text-dialog.ui:54
@@ -1362,6 +1396,12 @@ msgstr "Portails"
 #: src/plugins/xdp/xdp.plugin.desktop.in:8
 msgid "Integration with desktop portals"
 msgstr "Intégration avec les portails de bureau"
+
+#~ msgid "Always use this device"
+#~ msgstr "Toujours utiliser cet appareil"
+
+#~ msgid "Choose a device to share the selected files with."
+#~ msgstr "Choisissez un appareil auquel partager les fichiers seléctionnés."
 
 #~ msgid "Applications"
 #~ msgstr "Applications"

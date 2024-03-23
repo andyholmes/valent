@@ -9,11 +9,12 @@ plugin_share_deps = [
 # Sources
 plugin_share_sources = files([
   'share-plugin.c',
+  'valent-share-dialog.c',
+  'valent-share-dialog-row.c',
   'valent-share-download.c',
   'valent-share-plugin.c',
   'valent-share-preferences.c',
   'valent-share-target.c',
-  'valent-share-target-chooser.c',
   'valent-share-text-dialog.c',
   'valent-share-upload.c',
 ])

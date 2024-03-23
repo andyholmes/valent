@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2023-09-29 20:31-0700\n"
+"POT-Creation-Date: 2023-09-30 20:16-0700\n"
 "PO-Revision-Date: 2022-03-28 11:21-0700\n"
 "Last-Translator: Andy Holmes <andrew.g.r.holmes@gmail.com>\n"
 "Language-Team: English <andrew.g.r.holmes@gmail.com>\n"
@@ -464,7 +464,8 @@ msgid "Main Menu"
 msgstr ""
 
 #: src/libvalent/ui/valent-window.ui:85 src/libvalent/ui/valent-window.ui:100
-#: src/plugins/share/valent-share-target-chooser.ui:68
+#: src/plugins/share/valent-share-dialog.ui:161
+#: src/plugins/share/valent-share-dialog.ui:178
 msgid "Devices"
 msgstr ""
 
@@ -736,7 +737,6 @@ msgstr ""
 
 #: src/plugins/notification/valent-notification-dialog.ui:19
 #: src/plugins/runcommand/valent-runcommand-editor.ui:17
-#: src/plugins/share/valent-share-target-chooser.ui:22
 msgid "_Cancel"
 msgstr ""
 
@@ -1034,11 +1034,14 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: src/plugins/share/valent-share-plugin.c:671
-#: src/plugins/share/valent-share-target-chooser.ui:8
 msgid "Share Files"
 msgstr ""
 
 #: src/plugins/share/valent-share-plugin.c:672
+#: src/plugins/share/valent-share-dialog.ui:8
+#: src/plugins/share/valent-share-dialog.ui:29
+#: src/plugins/share/valent-share-dialog.ui:40
+#: src/plugins/share/valent-share-dialog.ui:112
 msgid "Share"
 msgstr ""
 
@@ -1058,20 +1061,48 @@ msgstr ""
 msgid "Where received files are stored"
 msgstr ""
 
-#: src/plugins/share/valent-share-target-chooser.ui:29
-msgid "_Share"
+#: src/plugins/share/valent-share-dialog.c:261
+#, c-format
+msgid "Size: %s"
 msgstr ""
 
-#: src/plugins/share/valent-share-target-chooser.ui:58
-msgid "Choose a device to share the selected files with."
+#: src/plugins/share/valent-share-dialog.c:294
+#, c-format
+msgid "%u files and links"
 msgstr ""
 
-#: src/plugins/share/valent-share-target-chooser.ui:86
+#: src/plugins/share/valent-share-dialog.c:305
+#, c-format
+msgid "%u files"
+msgstr ""
+
+#: src/plugins/share/valent-share-dialog.c:315
+#, c-format
+msgid "%u links"
+msgstr ""
+
+#: src/plugins/share/valent-share-dialog.ui:41
+msgid "Select files, enter a link or paste text"
+msgstr ""
+
+#: src/plugins/share/valent-share-dialog.ui:50
+msgid "Pick Files"
+msgstr ""
+
+#: src/plugins/share/valent-share-dialog.ui:75
+msgid "Enter URL"
+msgstr ""
+
+#: src/plugins/share/valent-share-dialog.ui:165
+msgid "Share with multiple devices"
+msgstr ""
+
+#: src/plugins/share/valent-share-dialog.ui:192
 msgid "Searching…"
 msgstr ""
 
-#: src/plugins/share/valent-share-target-chooser.ui:128
-msgid "Always use this device"
+#: src/plugins/share/valent-share-dialog.ui:215
+msgid "_Share"
 msgstr ""
 
 #: src/plugins/share/valent-share-text-dialog.c:98
