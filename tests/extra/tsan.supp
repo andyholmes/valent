@@ -9,9 +9,6 @@
 #mutex:valent_device_get_type_once
 mutex:valent_extension_get_type_once
 
-# src/plugins/sms/valent-sms-store.c
-race:valent_sms_store_thread
-
 # src/plugins/sms/valent-sms-window.c
 race:_dl_deallocate_tls
 

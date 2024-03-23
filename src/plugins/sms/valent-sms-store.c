@@ -21,7 +21,7 @@ struct _ValentSmsStore
 {
   ValentContext    parent_instance;
 
-  GAsyncQueue     *queue;
+  GMainLoop       *queue;
   sqlite3         *connection;
   char            *path;
   sqlite3_stmt    *stmts[9];
@@ -92,84 +92,133 @@ emit_change_main (gpointer data)
   return G_SOURCE_REMOVE;
 }
 
-
 /*
- * sqlite Threading Helpers
+ * ValentTaskQueue
  */
-enum {
-  TASK_DEFAULT,
-  TASK_CRITICAL,
-  TASK_TERMINAL,
-};
-
 typedef struct
 {
+  GRecMutex        lock;
   GTask           *task;
   GTaskThreadFunc  task_func;
-  unsigned int     task_mode;
-} TaskClosure;
+} ValentTaskClosure;
 
-static void
-task_closure_free (gpointer data)
+static gboolean
+valent_task_closure_func (gpointer data)
 {
-  g_autofree TaskClosure *closure = data;
+  ValentTaskClosure *closure = (ValentTaskClosure *)data;
 
-  g_clear_object (&closure->task);
-  g_clear_pointer (&closure, g_free);
-}
+  g_assert (closure != NULL);
 
-static void
-task_closure_cancel (gpointer data)
-{
-  g_autofree TaskClosure *closure = data;
-
-  if (G_IS_TASK (closure->task) && !g_task_get_completed (closure->task))
+  g_rec_mutex_lock (&closure->lock);
+  if (!g_task_get_completed (closure->task))
     {
-      g_task_return_new_error (closure->task,
-                               G_IO_ERROR,
-                               G_IO_ERROR_CANCELLED,
-                               "Operation cancelled");
+      closure->task_func (closure->task,
+                          g_task_get_source_object (closure->task),
+                          g_task_get_task_data (closure->task),
+                          g_task_get_cancellable (closure->task));
     }
+  g_rec_mutex_unlock (&closure->lock);
 
-  g_clear_pointer (&closure, task_closure_free);
+  return G_SOURCE_REMOVE;
 }
 
 static gpointer
-valent_sms_store_thread (gpointer data)
+valent_task_queue_func (gpointer data)
 {
-  g_autoptr (GAsyncQueue) tasks = data;
-  TaskClosure *closure = NULL;
+  g_autoptr (GMainLoop) loop = (GMainLoop *)data;
+  GMainContext *context = g_main_loop_get_context (loop);
 
-  while ((closure = g_async_queue_pop (tasks)))
-    {
-      unsigned int mode = closure->task_mode;
+  g_assert (loop != NULL);
 
-      if (G_IS_TASK (closure->task) && !g_task_get_completed (closure->task))
-        {
-          closure->task_func (closure->task,
-                              g_task_get_source_object (closure->task),
-                              g_task_get_task_data (closure->task),
-                              g_task_get_cancellable (closure->task));
+  g_main_context_push_thread_default (context);
 
-          if (mode == TASK_CRITICAL && g_task_had_error (closure->task))
-            mode = TASK_TERMINAL;
-        }
+  g_main_loop_run (loop);
 
-      g_clear_pointer (&closure, task_closure_free);
+  /* When the loop quits, drain the context to ensure all tasks return. */
+  while (g_main_context_pending (context))
+    g_main_context_iteration (NULL, FALSE);
 
-      if (mode == TASK_TERMINAL)
-        break;
-    }
-
-  /* Cancel any queued tasks */
-  g_async_queue_lock (tasks);
-
-  while ((closure = g_async_queue_try_pop_unlocked (tasks)) != NULL)
-    g_clear_pointer (&closure, task_closure_cancel);
-
-  g_async_queue_unlock (tasks);
+  g_main_context_pop_thread_default (context);
 
   return NULL;
+}
+
+static void
+valent_task_closure_free (gpointer data)
+{
+  ValentTaskClosure *closure = (ValentTaskClosure *)data;
+
+  g_assert (closure != NULL);
+
+  g_rec_mutex_lock (&closure->lock);
+  g_clear_object (&closure->task);
+  closure->task_func = NULL;
+  g_rec_mutex_unlock (&closure->lock);
+  g_rec_mutex_clear (&closure->lock);
+  g_clear_pointer (&closure, g_free);
+}
+
+static GMainLoop *
+valent_task_queue_new (GThreadFunc   worker_func,
+                       GError      **error)
+{
+  g_autoptr (GThread) thread = NULL;
+  g_autoptr (GMainContext) context = NULL;
+  g_autoptr (GMainLoop) queue = NULL;
+
+  g_assert (error == NULL || *error == NULL);
+
+  if (worker_func == NULL)
+    worker_func = valent_task_queue_func;
+
+  /* Spawn the worker thread, passing in a reference to the queue */
+  context = g_main_context_new ();
+  queue = g_main_loop_new (context, FALSE);
+  thread = g_thread_try_new ("valent-task-queue",
+                             worker_func,
+                             g_main_loop_ref (queue),
+                             error);
+
+  /* On failure drop the reference passed to the thread and return %NULL */
+  if (thread == NULL)
+    {
+      g_main_loop_unref (queue);
+      return NULL;
+    }
+
+  return g_steal_pointer (&queue);
+}
+
+static void
+valent_task_queue_push (GMainLoop       *queue,
+                        GTask           *task,
+                        GTaskThreadFunc  task_func)
+{
+  ValentTaskClosure *closure = NULL;
+
+  g_assert (G_IS_TASK (task));
+
+  if G_UNLIKELY (queue == NULL)
+    {
+      g_task_return_new_error (task,
+                               G_IO_ERROR,
+                               G_IO_ERROR_CLOSED,
+                               "Store is closed");
+      return;
+    }
+
+  closure = g_new0 (ValentTaskClosure, 1);
+  g_rec_mutex_init (&closure->lock);
+  g_rec_mutex_lock (&closure->lock);
+  closure->task = g_object_ref (task);
+  closure->task_func = task_func;
+  g_rec_mutex_unlock (&closure->lock);
+
+  g_main_context_invoke_full (g_main_loop_get_context (queue),
+                              g_task_get_priority (task),
+                              valent_task_closure_func,
+                              g_steal_pointer (&closure),
+                              valent_task_closure_free);
 }
 
 /*
@@ -551,9 +600,9 @@ remove_message_task (GTask        *task,
 
 static void
 remove_thread_task (GTask        *task,
-                      gpointer      source_object,
-                      gpointer      task_data,
-                      GCancellable *cancellable)
+                    gpointer      source_object,
+                    gpointer      task_data,
+                    GCancellable *cancellable)
 {
   ValentSmsStore *self = VALENT_SMS_STORE (source_object);
   int64_t *thread_id = task_data;
@@ -790,77 +839,47 @@ get_thread_items_task (GTask        *task,
 /*
  * Private
  */
-static inline void
-valent_sms_store_push (ValentSmsStore  *self,
-                       GTask           *task,
-                       GTaskThreadFunc  task_func)
-{
-  TaskClosure *closure = NULL;
-
-  if G_UNLIKELY (self->queue == NULL)
-    {
-      g_task_return_new_error (task,
-                               G_IO_ERROR,
-                               G_IO_ERROR_CLOSED,
-                               "Store is closed");
-      return;
-    }
-
-  closure = g_new0 (TaskClosure, 1);
-  closure->task = g_object_ref (task);
-  closure->task_func = task_func;
-  closure->task_mode = TASK_DEFAULT;
-  g_async_queue_push (self->queue, closure);
-}
-
 static void
 valent_sms_store_open (ValentSmsStore *self)
 {
-  g_autoptr (GThread) thread = NULL;
-  g_autoptr (GError) error = NULL;
-  g_autoptr (GTask) task = NULL;
   g_autoptr (GFile) file = NULL;
-
-  file = valent_context_get_cache_file (VALENT_CONTEXT (self), "sms.db");
-  self->path = g_file_get_path (file);
-
-  task = g_task_new (self, NULL, NULL, NULL);
-  g_task_set_source_tag (task, valent_sms_store_open);
-  g_task_set_task_data (task, g_strdup (self->path), g_free);
-  valent_sms_store_push (self, task, valent_sms_store_open_task);
-
-  /* Spawn the worker thread, passing in a reference to the queue */
-  thread = g_thread_try_new ("valent-task-queue",
-                             valent_sms_store_thread,
-                             g_async_queue_ref (self->queue),
-                             &error);
+  g_autoptr (GTask) task = NULL;
+  g_autoptr (GError) error = NULL;
 
   /* On failure drop the reference passed to the thread, then clear the last
    * reference so the open task is cancelled and new tasks are rejected */
-  if (error != NULL)
+  self->queue = valent_task_queue_new (NULL, &error);
+
+  if (self->queue == NULL)
     {
       g_critical ("%s: Failed to spawn worker thread: %s",
                   G_OBJECT_TYPE_NAME (self),
                   error->message);
-      g_async_queue_unref (self->queue);
-      g_clear_pointer (&self->queue, g_async_queue_unref);
+      g_clear_pointer (&self->queue, g_main_loop_unref);
+      return;
     }
+
+  file = valent_context_get_cache_file (VALENT_CONTEXT (self), "sms.db");
+  task = g_task_new (self, NULL, NULL, NULL);
+  g_task_set_source_tag (task, valent_sms_store_open);
+  g_task_set_task_data (task, g_file_get_path (file), g_free);
+  valent_task_queue_push (self->queue, task, valent_sms_store_open_task);
 }
 
 static void
 valent_sms_store_close (ValentSmsStore *self)
 {
   g_autoptr (GTask) task = NULL;
-  TaskClosure *closure = NULL;
+  g_autoptr (GMainLoop) queue = NULL;
+
+  queue = g_steal_pointer (&self->queue);
 
   task = g_task_new (self, NULL, NULL, NULL);
   g_task_set_source_tag (task, valent_sms_store_close);
-
-  closure = g_new0 (TaskClosure, 1);
-  closure->task = g_object_ref (task);
-  closure->task_func = valent_sms_store_close_task;
-  closure->task_mode = TASK_TERMINAL;
-  g_async_queue_push (self->queue, closure);
+  g_task_set_task_data (task,
+                        g_main_loop_ref (queue),
+                        (GDestroyNotify)g_main_loop_unref);
+  valent_task_queue_push (queue, task, valent_sms_store_close_task);
 }
 
 /*
@@ -876,7 +895,7 @@ valent_sms_store_destroy (ValentObject *object)
   if (self->queue != NULL)
     {
       valent_sms_store_close (self);
-      g_clear_pointer (&self->queue, g_async_queue_unref);
+      g_clear_pointer (&self->queue, g_main_loop_unref);
     }
 
   VALENT_OBJECT_CLASS (valent_sms_store_parent_class)->destroy (object);
@@ -901,7 +920,6 @@ valent_sms_store_finalize (GObject *object)
 {
   ValentSmsStore *self = VALENT_SMS_STORE (object);
 
-  g_clear_pointer (&self->queue, g_async_queue_unref);
   g_clear_pointer (&self->path, g_free);
   g_clear_weak_pointer (&self->summary);
 
@@ -994,7 +1012,6 @@ valent_sms_store_class_init (ValentSmsStoreClass *klass)
 static void
 valent_sms_store_init (ValentSmsStore *self)
 {
-  self->queue = g_async_queue_new_full (task_closure_cancel);
 }
 
 /**
@@ -1046,7 +1063,7 @@ valent_sms_store_add_message (ValentSmsStore      *store,
   g_task_set_task_data (task,
                         g_steal_pointer (&messages),
                         (GDestroyNotify)g_ptr_array_unref);
-  valent_sms_store_push (store, task, add_messages_task);
+  valent_task_queue_push (store->queue, task, add_messages_task);
 }
 
 /**
@@ -1076,7 +1093,7 @@ valent_sms_store_add_messages (ValentSmsStore      *store,
   g_task_set_task_data (task,
                         g_ptr_array_ref (messages),
                         (GDestroyNotify)g_ptr_array_unref);
-  valent_sms_store_push (store, task, add_messages_task);
+  valent_task_queue_push (store->queue, task, add_messages_task);
 }
 
 /**
@@ -1129,7 +1146,7 @@ valent_sms_store_remove_message (ValentSmsStore      *store,
   task = g_task_new (store, cancellable, callback, user_data);
   g_task_set_task_data (task, task_data, g_free);
   g_task_set_source_tag (task, valent_sms_store_remove_message);
-  valent_sms_store_push (store, task, remove_message_task);
+  valent_task_queue_push (store->queue, task, remove_message_task);
 }
 
 /**
@@ -1183,7 +1200,7 @@ valent_sms_store_remove_thread (ValentSmsStore      *store,
   task = g_task_new (store, cancellable, callback, user_data);
   g_task_set_task_data (task, task_data, g_free);
   g_task_set_source_tag (task, valent_sms_store_remove_thread);
-  valent_sms_store_push (store, task, remove_thread_task);
+  valent_task_queue_push (store->queue, task, remove_thread_task);
 }
 
 /**
@@ -1237,7 +1254,7 @@ valent_sms_store_find_messages (ValentSmsStore      *store,
   task = g_task_new (store, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_sms_store_find_messages);
   g_task_set_task_data (task, g_strdup (query), g_free);
-  valent_sms_store_push (store, task, find_messages_task);
+  valent_task_queue_push (store->queue, task, find_messages_task);
 }
 
 /**
@@ -1293,7 +1310,7 @@ valent_sms_store_get_message (ValentSmsStore      *store,
   task = g_task_new (store, cancellable, callback, user_data);
   g_task_set_task_data (task, task_data, g_free);
   g_task_set_source_tag (task, valent_sms_store_get_message);
-  valent_sms_store_push (store, task, get_message_task);
+  valent_task_queue_push (store->queue, task, get_message_task);
 }
 
 /**
@@ -1342,7 +1359,7 @@ valent_sms_store_get_summary (ValentSmsStore *store)
 
   task = g_task_new (store, NULL, (GAsyncReadyCallback)get_summary_cb, NULL);
   g_task_set_source_tag (task, valent_sms_store_get_summary);
-  valent_sms_store_push (store, task, get_summary_task);
+  valent_task_queue_push (store->queue, task, get_summary_task);
 
   return G_LIST_MODEL (store->summary);
 }
@@ -1389,7 +1406,7 @@ valent_sms_store_get_thread_date (ValentSmsStore *store,
   task = g_task_new (store, NULL, NULL, NULL);
   g_task_set_source_tag (task, valent_sms_store_get_thread_date);
   g_task_set_task_data (task, &thread_id, NULL);
-  valent_sms_store_push (store, task, get_thread_date_task);
+  valent_task_queue_push (store->queue, task, get_thread_date_task);
 
   while (!g_task_get_completed (task))
     g_main_context_iteration (NULL, FALSE);
@@ -1429,7 +1446,7 @@ valent_sms_store_get_thread_items (ValentSmsStore      *store,
   task = g_task_new (store, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_sms_store_get_thread_items);
   g_task_set_task_data (task, task_data, g_free);
-  valent_sms_store_push (store, task, get_thread_items_task);
+  valent_task_queue_push (store->queue, task, get_thread_items_task);
 }
 
 /**
