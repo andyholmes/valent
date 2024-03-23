@@ -1,0 +1,102 @@
+<page xmlns="http://projectmallard.org/1.0/" version="1.1"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="topic" style="topic"
+      id="plugin-share">
+
+  <info>
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+    <credit type="author">
+      <name>Andy Holmes</name>
+      <email>andrew.g.r.holmes@gmail.com</email>
+    </credit>
+
+    <link type="guide" xref="plugins#device"/>
+    <keywords>share, sharing, file, link, text, url</keywords>
+
+    <title type="text">Share Plugin</title>
+    <desc>Direct file, link and text sharing.</desc>
+  </info>
+
+  <title>Share Plugin</title>
+  <p>
+    The Share plugin allows devices to directly share files, links and text.
+  </p>
+
+  <list>
+    <title>Features</title>
+    <item>
+      <p>Upload files to paired devices.</p>
+    </item>
+    <item>
+      <p>Open links on other devices.</p>
+    </item>
+    <item>
+      <p>Share text with embedded markup.</p>
+    </item>
+  </list>
+
+  <div>
+    <title>Requirements</title>
+    <p>
+      To report local battery statistics to a remote device, <app>Valent</app>
+      needs a battery to be reported by UPower. Consult the documentation for
+      your distribution if your battery is missing.
+    </p>
+  </div>
+
+  <section id="preferences">
+    <info>
+      <link type="guide" xref="index#common-tasks"/>
+      <keywords>share, file, files, link, url, text</keywords>
+
+      <title type="text">Direct Sharing</title>
+      <desc>Configure direct sharing of files, links and text.</desc>
+    </info>
+
+    <title>Direct Sharing</title>
+    <p>
+      The <link xref="plugin-share"/> can be used to share files, links and text
+      directly between devices. This guide will teach you how to configure where
+      received files are saved.
+    </p>
+
+    <links type="section"/>
+
+    <section id="received-files">
+      <title>Received Files</title>
+      <p>
+        To configure direct sharing, start by opening the main window and
+        selecting a device.
+      </p>
+
+      <steps>
+        <item>
+          <p>
+            Open the main window and select the device.
+          </p>
+        </item>
+        <item>
+          <p>
+            Open the
+            <media style="button" its:translate="no" type="image" src="figures/view-more-symbolic.svg">
+              <gui style="menu" its:translate="yes">Device Menu</gui>
+            </media>
+            menu and select <gui style="menuitem">Preferences</gui>.
+          </p>
+        </item>
+        <item>
+          <p>
+            Select <gui style="tab">Other</gui> in the view switcher, then
+            activate the <gui style="button">Download directory</gui> row.
+          </p>
+        </item>
+        <item>
+          <p>
+            Use the <gui>File Chooser</gui> dialog to navigate to a directory,
+            then press <gui style="button">Open</gui>.
+          </p>
+        </item>
+      </steps>
+    </section>
+  </section>
+</page>

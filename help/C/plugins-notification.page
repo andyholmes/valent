@@ -1,0 +1,152 @@
+<page xmlns="http://projectmallard.org/1.0/" version="1.1"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="topic" style="topic"
+      id="plugin-notification">
+
+  <info>
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+    <credit type="author">
+      <name>Andy Holmes</name>
+      <email>andrew.g.r.holmes@gmail.com</email>
+    </credit>
+
+    <link type="guide" xref="plugins#device"/>
+    <keywords>notification, notifications, sync</keywords>
+
+    <title type="text">Notification Plugin</title>
+    <desc>Sync notifications between devices.</desc>
+  </info>
+
+  <title>Notification Plugin</title>
+  <p>
+    The notification plugin allows devices to sync notifications between
+    devices, including
+    icons, actions, and quick reply messages.
+    battery, such as the level and charging state.
+  </p>
+
+  <list>
+    <title>Features</title>
+    <item>
+      <p>Common features including icons, actions and quick reply messages.</p>
+    </item>
+    <item>
+      <p>Intelligent sync, forwards notifications to the active device.</p>
+    </item>
+    <item>
+      <p>Filter outgoing notifications.</p>
+    </item>
+  </list>
+
+  <div>
+    <title>Requirements</title>
+    <p>
+      To share local notifications with a remote device, <app>Valent</app> needs
+      access to the D-Bus session connection. Consult the documentation for
+      your distribution if notifications aren't being synced.
+    </p>
+  </div>
+
+  <section id="preferences">
+    <info>
+      <link type="guide" xref="index#common-tasks"/>
+      <keywords>notification, notifications, sync</keywords>
+
+      <title type="text">Notification Forwarding</title>
+      <desc>Configure notification sync.</desc>
+    </info>
+
+    <title>Notification Forwarding</title>
+    <p>
+      This guide will teach you how to control notification forwarding and
+      filtering by application.
+    </p>
+
+    <links type="section"/>
+
+    <section id="intelligent-sync">
+      <title>Intelligent Sync</title>
+      <p>
+        Notifications can be configured to sync in a more intelligent way, by
+        using the session state as a hint to which device is presently in use.
+      </p>
+
+      <steps>
+        <item>
+          <p>
+            Open the main window and select a device.
+          </p>
+        </item>
+        <item>
+          <p>
+            Open the
+            <media style="button" its:translate="no" type="image" src="figures/view-more-symbolic.svg">
+              <gui style="menu" its:translate="yes">Device Menu</gui>
+            </media>
+            menu and select <gui style="menuitem">Preferences</gui>.
+          </p>
+        </item>
+        <item>
+          <p>
+            Select <gui style="tab">Sync</gui> in the view switcher, then
+            expand the <gui style="button">Local Notifications</gui> row.
+          </p>
+        </item>
+        <item>
+          <p>
+            Toggle the switch on the <gui style="button">Intelligent Sync</gui>
+            row.
+          </p>
+        </item>
+        <item>
+          <p>
+            When enabled, local notifications will only be forwarded if the
+            local session is inactive, and only to remote devices that are
+            active.
+          </p>
+          <note style="important">
+            <p>
+              Connected devices are considered active by default.
+            </p>
+          </note>
+        </item>
+      </steps>
+    </section>
+
+    <section id="filter-applications">
+      <title>Filter Applications</title>
+      <p>
+        Notifications can be filtered by application, to avoid excessive
+        disturbances or leaking sensitive data.
+      </p>
+
+      <steps>
+        <item>
+          <p>
+            Open the main window and select a device.
+          </p>
+        </item>
+        <item>
+          <p>
+            Open the
+            <media style="button" its:translate="no" type="image" src="figures/view-more-symbolic.svg">
+              <gui style="menu" its:translate="yes">Device Menu</gui>
+            </media>
+            menu and select <gui style="menuitem">Preferences</gui>.
+          </p>
+        </item>
+        <item>
+          <p>
+            Select <gui style="tab">Sync</gui> in the view switcher, then
+            expand the <gui style="button">Local Notifications</gui> row.
+          </p>
+        </item>
+        <item>
+          <p>
+            Activate the <gui style="button">Filter by Application</gui> row.
+          </p>
+        </item>
+      </steps>
+    </section>
+  </section>
+</page>

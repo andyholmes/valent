@@ -1,0 +1,51 @@
+<page xmlns="http://projectmallard.org/1.0/" version="1.1"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="topic" style="topic"
+      id="plugin-mousepad">
+
+  <info>
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+    <credit type="author">
+      <name>Andy Holmes</name>
+      <email>andrew.g.r.holmes@gmail.com</email>
+    </credit>
+
+    <link type="guide" xref="plugins#device"/>
+    <keywords>input, keyboard, mouse, mousepad, remote, touchpad</keywords>
+
+    <title type="text">Mousepad Plugin</title>
+    <desc>Control the mouse and keyboard.</desc>
+  </info>
+
+  <title>Mousepad Plugin</title>
+  <p>
+    The Mousepad plugin allows controlling the mouse and keyboard of another
+    device remotely.
+  </p>
+
+  <links type="section"/>
+
+  <list>
+    <title>Features</title>
+    <item>
+      <p>
+        Send mouse and keyboard events to remote devices.
+      </p>
+    </item>
+    <item>
+      <p>
+        Receive events from remote devices and emulate mouse and keyboard input.
+      </p>
+    </item>
+  </list>
+
+  <div>
+    <title>Requirements</title>
+    <p>
+      To allow other devices to control the mouse and keyboard an interface
+      such as the Remote Desktop portal must be available. Consult the
+      documentation for your distribution for information about supported
+      interfaces.
+    </p>
+  </div>
+</page>

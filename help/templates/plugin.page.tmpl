@@ -1,0 +1,62 @@
+<page xmlns="http://projectmallard.org/1.0/" version="1.1"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="topic" style="problem"
+      id="{{ID}}">
+  <info>
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+    <credit type="author copyright">
+      <name>{{NAME}}</name>
+      <email>{{EMAIL}}</email>
+      <years>{{YEAR}}</years>
+    </credit>
+
+    <!-- plugins#device, plugins#application -->
+    <link type="guide" xref="plugins#device"/>
+
+    <!-- OPTIONAL
+    <keywords>keywords, separated, by, commas</keywords>
+    <link type="seealso" xref="internal-reference"/>
+    <link type="seealso" href="https://valent.andyholmes.ca">
+      <title>External Reference</title>
+    </link>
+    -->
+
+    <title type="text">{{TITLE}}</title>
+    <desc>{{DESCRIPTION}}</desc>
+  </info>
+
+  <title>{{TITLE}}</title>
+  <p>
+    {{LONG_DESCRIPTION}}
+  </p>
+
+  <list>
+    <title>Features</title>
+    <item>
+      <p>A short description of a feature or use case, ending in a period.</p>
+    </item>
+    <item>
+      <p>Descriptions that represent use cases should xref to a guide.</p>
+    </item>
+  </list>
+
+  <!-- OPTIONAL
+  <div>
+    <title>Requirements</title>
+    <p>
+      A relatively short description of the plugin's external requirements,
+      that should generally only include things out of Valent's control. For
+      example, a battery plugin may have a paragraph like below:
+    </p>
+    <p>
+      To report local battery statistics to a remote device, <app>Valent</app>
+      needs a battery to be reported by UPower. Consult the documentation for
+      your distribution if your battery is missing.
+    </p>
+    <p>
+      Requirements should NOT include any usage instructions, but instead link
+      to proper guides or alternative help (e.g. distribution forums).
+    </p>
+  </div>
+  -->
+</page>

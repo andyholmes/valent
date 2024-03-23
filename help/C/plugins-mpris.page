@@ -1,0 +1,45 @@
+<page xmlns="http://projectmallard.org/1.0/" version="1.1"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="topic" style="problem"
+      id="plugin-mpris">
+
+  <info>
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+    <credit type="author copyright">
+      <name>Andy Holmes</name>
+      <email>andrew.g.r.holmes@gmail.com</email>
+    </credit>
+
+    <link type="guide" xref="plugins#device"/>
+    <keywords>mpris, media, player, remote</keywords>
+
+    <title type="text">MPRIS Plugin</title>
+    <desc>Share control of media players.</desc>
+  </info>
+
+  <title>MPRIS Plugin</title>
+  <p>
+    The MPRIS plugin allows devices to share control of media players, including
+    track information and album art.
+  </p>
+
+  <list>
+    <title>Features</title>
+    <item>
+      <p>
+        Simple remote for controlling remote media players.
+      </p>
+    </item>
+    <item>
+      <p>
+        Share control of local media players with other devices.
+      </p>
+    </item>
+    <item>
+      <p>
+        Integrate remote media players with the local desktop, allowing control
+        from media notifications and other interfaces.
+      </p>
+    </item>
+  </list>
+</page>

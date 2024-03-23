@@ -1,0 +1,63 @@
+<page xmlns="http://projectmallard.org/1.0/" version="1.1"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="topic" style="task"
+      id="device-name">
+
+  <info>
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+    <credit type="author">
+      <name>Andy Holmes</name>
+      <email>andrew.g.r.holmes@gmail.com</email>
+    </credit>
+
+    <link type="guide" xref="index#getting-started"/>
+
+    <title type="text">Change the device name</title>
+    <desc>How to set the device name.</desc>
+  </info>
+
+  <title>Change the device name</title>
+  <p>
+    The device name is what other devices will see when connecting or pairing
+    with your device. This name will be appear in the device list in the
+    Android app an other <app>KDE Connect</app> clients.
+  </p>
+
+  <steps>
+    <item>
+      <p>
+        Open the main window.
+      </p>
+    </item>
+    <item>
+      <p>
+        Open the
+        <media style="button" its:translate="no" type="image" src="figures/open-menu-symbolic.svg">
+          <gui style="menu" its:translate="yes">Main Menu</gui>
+        </media>
+        menu and select <gui style="menuitem">Preferences</gui>.
+      </p>
+    </item>
+    <item>
+      <p>
+        Select the <gui style="input">Device Name</gui> entry.
+      </p>
+    </item>
+    <item>
+      <p>
+        Choose a new name for the device and press <key>Enter</key> or click the
+        <media style="button" its:translate="no" type="image" src="figures/entry-apply-symbolic.svg">
+          <gui style="button" its:translate="yes">Apply</gui>
+        </media>
+        button.
+      </p>
+    </item>
+  </steps>
+
+  <note style="tip">
+    <p>
+      It may take time for other devices to display the new name.
+    </p>
+  </note>
+</page>
+

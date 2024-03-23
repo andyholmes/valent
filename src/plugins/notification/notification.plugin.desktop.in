@@ -4,7 +4,7 @@
 [Plugin]
 Module=notification
 Name=Notifications
-Description=Sync notifications
+Description=Sync notifications between devices
 Icon=valent-notification-plugin-symbolic
 Builtin=true
 Embedded=valent_notification_plugin_register_types
@@ -12,7 +12,7 @@ Authors=Andy Holmes;
 Copyright=Copyright © Andy Holmes
 Version=1.0.0.alpha.45
 Website=https://valent.andyholmes.ca
-Help=https://valent.andyholmes.ca/help
+Help=help:valent/plugin-notification
 X-DevicePluginCategory=Network;RemoteAccess;
 X-DevicePluginIncoming=kdeconnect.notification;kdeconnect.notification.request
 X-DevicePluginOutgoing=kdeconnect.notification;kdeconnect.notification.action;kdeconnect.notification.reply;kdeconnect.notification.request

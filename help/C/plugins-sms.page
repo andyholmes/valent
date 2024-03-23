@@ -1,0 +1,44 @@
+<page xmlns="http://projectmallard.org/1.0/" version="1.1"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="topic" style="topic"
+      id="plugin-sms">
+
+  <info>
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+    <credit type="author">
+      <name>Andy Holmes</name>
+      <email>andrew.g.r.holmes@gmail.com</email>
+    </credit>
+
+    <link type="guide" xref="plugins#device"/>
+    <keywords>sms, message, messaging, mms, text</keywords>
+
+    <title type="text">SMS Plugin</title>
+    <desc>Send and receive SMS messages.</desc>
+  </info>
+
+  <title>SMS Plugin</title>
+  <p>
+    The SMS plugin allows sending, receiving and searching messages on a
+    remote device.
+  </p>
+
+  <list>
+    <title>Features</title>
+    <item>
+      <p>Messaging window with history and search.</p>
+    </item>
+    <item>
+      <p>Send and receive text and media attachments.</p>
+    </item>
+  </list>
+
+  <div>
+    <title>Requirements</title>
+    <p>
+      To use SMS messaging, the remote device must have an active account
+      with a service provider. <app>Valent</app> does not support sending or
+      receiving messages with online services.
+    </p>
+  </div>
+</page>

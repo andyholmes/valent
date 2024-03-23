@@ -9,6 +9,10 @@ Files: .github .gitignore .gitmodules build-aux/* CHANGELOG.md CONTRIBUTING.md
 Copyright: No rights reserved
 License: CC0-1.0
 
+Files: help/*.page help/*.tmpl help/*/legal.xml
+Copyright: 2022 Andy Holmes <andrew.g.r.holmes@gmail.com>
+License: CC-BY-SA-4.0
+
 Files: src/plugins/findmyphone/data/alert.oga
 Source: https://gitlab.freedesktop.org/xdg/xdg-sound-theme/blob/master/stereo/suspend-error.oga
 Comment: Created by Richard Hughes

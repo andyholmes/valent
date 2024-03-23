@@ -1,0 +1,44 @@
+<page xmlns="http://projectmallard.org/1.0/" version="1.1"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="topic" style="topic"
+      id="plugin-systemvolume">
+
+  <info>
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+    <credit type="author">
+      <name>Andy Holmes</name>
+      <email>andrew.g.r.holmes@gmail.com</email>
+    </credit>
+
+    <link type="guide" xref="plugins#device"/>
+    <keywords>volume, level, microphone, pipewire, pulseaudio</keywords>
+
+    <title type="text">System Volume Plugin</title>
+    <desc>Monitor volume levels and mircphones.</desc>
+  </info>
+
+  <title>System Volume Plugin</title>
+  <p>
+    The System Volume plugin allows devices to monitor and control the volume
+    on remote devices.
+  </p>
+
+  <list>
+    <title>Features</title>
+    <item>
+      <p>Monitor remote volume level and microphones.</p>
+    </item>
+    <item>
+      <p>Change audio output device.</p>
+    </item>
+  </list>
+
+  <div>
+    <title>Requirements</title>
+    <p>
+      To report local volume and audio devices to a remote device, the system
+      must support <app>PulseAudio</app> or <app>PipeWire</app>. Consult the
+      documentation for your distribution if your volume is not reported.
+    </p>
+  </div>
+</page>

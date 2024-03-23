@@ -1,0 +1,92 @@
+<page xmlns="http://projectmallard.org/1.0/" version="1.1"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="topic" style="topic"
+      id="plugin-lock">
+
+  <info>
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+    <credit type="author">
+      <name>Andy Holmes</name>
+      <email>andrew.g.r.holmes@gmail.com</email>
+    </credit>
+
+    <link type="guide" xref="plugins#device"/>
+    <keywords>lock, unlock, session</keywords>
+
+    <title type="text">Lock Plugin</title>
+    <desc>Monitor session activity and lock state.</desc>
+  </info>
+
+  <title>Lock Plugin</title>
+  <p>
+    The Lock plugin allows devices to be locked and unlocked remotely.
+  </p>
+
+  <links type="section"/>
+
+  <list>
+    <title>Features</title>
+    <item>
+      <p>Monitor session activity and lock state.</p>
+    </item>
+    <item>
+      <p>Lock and unlock a remote device.</p>
+    </item>
+  </list>
+
+  <div>
+    <title>Requirements</title>
+    <p>
+      To report the session state to a remote device, <app>Valent</app> needs a
+      session supporting <sys>logind</sys>. Consult the documentation for help.
+    </p>
+  </div>
+
+  <section id="status">
+    <info>
+      <link type="guide" xref="index#status-guides"/>
+
+      <title type="text">Lock or unlock a device</title>
+      <desc>How to check and control the device lock.</desc>
+    </info>
+
+    <title>Lock or unlock a device</title>
+    <p>
+      This guide will teach you how to check if a remote device is locked, and
+      how to lock or unlock it.
+    </p>
+
+    <links type="section"/>
+
+    <section id="lock-state">
+      <title>Lock State</title>
+
+      <steps>
+        <item>
+          <p>
+            Open the main window and select a device.
+          </p>
+        </item>
+        <item>
+          <p>
+            Look for the
+            <media style="button" its:translate="no" type="image" src="figures/channel-secure-symbolic.svg">
+              <gui style="button" its:translate="yes">Lock</gui>
+            </media> button near the top of the
+            <link xref="introduction#device-page"/>. If the button is missing,
+            the device may not support this feature.
+          </p>
+        </item>
+        <item>
+          <p>
+            Toggle the
+            <media style="button" its:translate="no" type="image" src="figures/channel-secure-symbolic.svg">
+              <gui style="button" its:translate="yes">Lock</gui>
+            </media>
+            button to lock or unlock the remote device.
+          </p>
+        </item>
+      </steps>
+    </section>
+  </section>
+</page>

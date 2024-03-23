@@ -1,0 +1,113 @@
+<page xmlns="http://projectmallard.org/1.0/" version="1.1"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="topic" style="topic"
+      id="plugin-clipboard">
+
+  <info>
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+    <credit type="author">
+      <name>Andy Holmes</name>
+      <email>andrew.g.r.holmes@gmail.com</email>
+    </credit>
+
+    <link type="guide" xref="plugins#device"/>
+    <keywords>clipboard, copy, paste, sync</keywords>
+
+    <title type="text">Clipboard Plugin</title>
+    <desc>Sync the clipboard between devices.</desc>
+  </info>
+
+  <title>Clipboard Plugin</title>
+  <p>
+    The Clipboard plugin allows devices to sync clipboard content, allowing
+    copy and paste to work across devices.
+  </p>
+
+  <list>
+    <title>Features</title>
+    <item>
+      <p>Paste text copied on another device.</p>
+    </item>
+    <item>
+      <p>Configure sync direction for each device.</p>
+    </item>
+  </list>
+
+  <div>
+    <title>Requirements</title>
+    <p>
+      To access the clipboard used by other applications, <app>Valent</app>
+      must be running in GNOME Shell or an X11 desktop. Other desktop
+      environments may provide an adapter to support clipboard access.
+    </p>
+  </div>
+
+  <section id="preferences">
+    <info>
+      <link type="guide" xref="index#common-tasks"/>
+
+      <title type="text">Sync clipboard content</title>
+      <desc>Configure how clipboard content is synced.</desc>
+    </info>
+
+    <title>Sync clipboard content</title>
+    <p>
+      The <link xref="plugin-clipboard"/> can be used to sync the clipboard
+      between devices. This guide will teach you how to control the source and
+      direction the content will be synced in.
+    </p>
+
+    <note style="warning">
+      <p>
+        When enabled, clipboard content will be synced without any consideration
+        of security implications. This includes passwords and any other
+        sensitive content.
+      </p>
+    </note>
+
+    <links type="section"/>
+
+    <section id="sync">
+      <title>Clipboard Sync</title>
+      <p>
+        To configure clipboard sync, start by opening the main window and
+        selecting a device.
+      </p>
+
+      <steps>
+        <item>
+          <p>
+            Open the main window and select a device.
+          </p>
+        </item>
+        <item>
+          <p>
+            Open the
+            <media style="button" its:translate="no" type="image" src="figures/view-more-symbolic.svg">
+              <gui style="menu" its:translate="yes">Device Menu</gui>
+            </media>
+            menu and select <gui style="menuitem">Preferences</gui>.
+          </p>
+        </item>
+        <item>
+          <p>
+            Select <gui style="tab">Sync</gui> in the view switcher and
+            navigate to the <gui>Clipboard</gui> preferences.
+          </p>
+        </item>
+        <item>
+          <p>
+            To sync content from the remote device to the local clipboard,
+            toggle the <gui>Remote Clipboard</gui> switch. When enabled, content
+            in the remote clipboard can be pasted from the local clipboard.
+          </p>
+          <p>
+            To sync content from local clipboard to the remote device, toggle
+            the <gui>Local Clipboard</gui> switch. When enabled, content will be
+            sent to the remote device when copied.
+          </p>
+        </item>
+      </steps>
+    </section>
+  </section>
+</page>
