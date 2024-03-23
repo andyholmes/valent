@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
+
+<gresources>
+  <gresource prefix="/plugins/pipewire">
+    <file>pipewire.plugin</file>
+  </gresource>
+  <gresource prefix="/ca/andyholmes/Valent/icons">
+    <file preprocess="xml-stripblanks" alias="scalable/apps/valent-pipewire-plugin-symbolic.svg">data/valent-pipewire-plugin-symbolic.svg</file>
+  </gresource>
+</gresources>
+
