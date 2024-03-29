@@ -32,7 +32,7 @@ jobs:
           fetch-depth: 0
 
       - name: Lint
-        uses: wagoid/commitlint-github-action@v5
+        uses: wagoid/commitlint-github-action@v6
 
   reuse:
     name: REUSE Compliance
