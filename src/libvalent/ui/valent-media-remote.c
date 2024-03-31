@@ -91,7 +91,7 @@ valent_media_remote_clear (ValentMediaRemote *self)
 {
   GtkWidget *widget = GTK_WIDGET (self);
 
-  gtk_image_set_from_icon_name (self->media_art, "valent-media-albumart");
+  gtk_image_set_from_icon_name (self->media_art, "valent-media-albumart-symbolic");
 
   gtk_stack_set_visible_child_name (self->media_art_stack, "fallback");
   gtk_label_set_label (self->media_artist, "");
