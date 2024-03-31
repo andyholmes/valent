@@ -42,7 +42,7 @@
                                   <property name="spacing">6</property>
                                   <child>
                                     <object class="GtkImage">
-                                      <property name="icon-name">valent-media-albumart</property>
+                                      <property name="icon-name">valent-media-albumart-symbolic</property>
                                       <property name="pixel-size">16</property>
                                     </object>
                                   </child>
@@ -108,7 +108,7 @@
                                 <property name="child">
                                   <object class="GtkImage">
                                     <property name="accessible-role">presentation</property>
-                                    <property name="icon-name">valent-media-albumart</property>
+                                    <property name="icon-name">valent-media-albumart-symbolic</property>
                                     <property name="overflow">hidden</property>
                                     <property name="pixel-size">128</property>
                                     <property name="opacity">0.25</property>
@@ -122,7 +122,7 @@
                                 <property name="child">
                                   <object class="GtkImage" id="media_art">
                                     <property name="accessible-role">presentation</property>
-                                    <property name="icon-name">valent-media-albumart</property>
+                                    <property name="icon-name">valent-media-albumart-symbolic</property>
                                     <property name="overflow">hidden</property>
                                     <property name="pixel-size">256</property>
                                   </object>
