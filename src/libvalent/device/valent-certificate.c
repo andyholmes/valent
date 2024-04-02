@@ -12,7 +12,7 @@
 #include <gnutls/abstract.h>
 #include <gnutls/x509.h>
 
-#include "libvalent-core.h"
+#include <libvalent-core.h>
 #include "valent-certificate.h"
 
 #define DEFAULT_EXPIRATION (60L*60L*24L*10L*365L)
