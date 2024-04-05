@@ -14,6 +14,7 @@
 
 #include <libvalent-core.h>
 #include "valent-certificate.h"
+#include "valent-device.h"
 
 #define DEFAULT_EXPIRATION (60L*60L*24L*10L*365L)
 #define DEFAULT_KEY_SIZE   4096
@@ -247,7 +248,7 @@ valent_certificate_new_finish (GAsyncResult  *result,
  *
  * If either one doesn't exist, a new certificate and private key pair will be
  * generated. The common name will be set to a string returned by
- * [func@GLib.uuid_string_random].
+ * [func@Valent.Device.generate_id].
  *
  * If either generating or loading the certificate fails, %NULL will be returned
  * with @error set.
@@ -274,7 +275,7 @@ valent_certificate_new_sync (const char  *path,
     {
       g_autofree char *cn = NULL;
 
-      cn = g_uuid_string_random ();
+      cn = valent_device_generate_id ();
 
       if (!valent_certificate_generate (cert_path, key_path, cn, error))
         return FALSE;

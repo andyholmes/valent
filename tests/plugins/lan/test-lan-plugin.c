@@ -82,7 +82,7 @@ lan_service_fixture_set_up (LanBackendFixture *fixture,
   JsonNode *identity;
   GError *error = NULL;
 
-  device_id = g_uuid_string_random ();
+  device_id = valent_device_generate_id ();
   context = valent_context_new (NULL, "network", device_id);
   plugin_info = peas_engine_get_plugin_info (valent_get_plugin_engine (), "lan");
   fixture->service = g_object_new (VALENT_TYPE_LAN_CHANNEL_SERVICE,

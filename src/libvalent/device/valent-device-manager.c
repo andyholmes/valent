@@ -891,7 +891,7 @@ valent_device_manager_constructed (GObject *object)
 
   if (self->id == NULL)
     {
-      self->id = g_uuid_string_random ();
+      self->id = valent_device_generate_id ();
       g_warning ("%s(): %s", G_STRFUNC, error->message);
     }
 
