@@ -1611,6 +1611,33 @@ valent_device_get_state (ValentDevice *device)
   return state;
 }
 
+/**
+ * valent_device_generate_id:
+ *
+ * Generate a new KDE Connect device ID.
+ *
+ * A compliant device ID is a UUIDv4 string with hyphens (`-`) replaced with
+ * underscores (`_`), although for backward compatibility strings of any length
+ * and content are accepted.
+ *
+ * Returns: (transfer full): a new KDE Connect device ID
+ *
+ * Since: 1.0
+ */
+char *
+valent_device_generate_id (void)
+{
+  char *id = g_uuid_string_random ();
+
+  for (uint_fast8_t i = 0; id[i] != '\0'; i++)
+    {
+      if G_UNLIKELY (id[i] == '-')
+        id[i] = '_';
+    }
+
+  return g_steal_pointer (&id);
+}
+
 /*< private >
  * valent_device_reload_plugins:
  * @device: a `ValentDevice`
