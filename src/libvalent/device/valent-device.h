@@ -70,6 +70,8 @@ gboolean            valent_device_send_packet_finish (ValentDevice         *devi
                                                       GError              **error);
 VALENT_AVAILABLE_IN_1_0
 char              * valent_device_generate_id        (void);
+VALENT_AVAILABLE_IN_1_0
+gboolean            valent_device_validate_id        (const char           *id);
 
 G_END_DECLS
 

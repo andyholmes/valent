@@ -1616,9 +1616,7 @@ valent_device_get_state (ValentDevice *device)
  *
  * Generate a new KDE Connect device ID.
  *
- * A compliant device ID is a UUIDv4 string with hyphens (`-`) replaced with
- * underscores (`_`), although for backward compatibility strings of any length
- * and content are accepted.
+ * See [func@Valent.Device.validate_id] for a description of valid device ID.
  *
  * Returns: (transfer full): a new KDE Connect device ID
  *
@@ -1636,6 +1634,38 @@ valent_device_generate_id (void)
     }
 
   return g_steal_pointer (&id);
+}
+
+/**
+ * valent_device_validate_id:
+ * @id: a KDE Connect device ID
+ *
+ * Validate a KDE Connect device ID.
+ *
+ * A compliant device ID is a UUIDv4 string with hyphens (`-`) replaced with
+ * underscores (`_`), although for backward compatibility strings of any length
+ * and content are accepted.
+ *
+ * Returns: %TRUE if valid, or %FALSE
+ *
+ * Since: 1.0
+ */
+gboolean
+valent_device_validate_id (const char *id)
+{
+  static GRegex *id_pattern = NULL;
+  size_t guard = FALSE;
+
+  if (g_once_init_enter (&guard))
+    {
+      id_pattern = g_regex_new ("^[a-fA-F0-9]{8}_[a-fA-F0-9]{4}_[a-fA-F0-9]{4}_[a-fA-F0-9]{4}_[a-fA-F0-9]{12}$",
+                                G_REGEX_OPTIMIZE,
+                                G_REGEX_MATCH_DEFAULT,
+                                NULL);
+      g_once_init_leave (&guard, TRUE);
+    }
+
+  return g_regex_match (id_pattern, id, G_REGEX_MATCH_DEFAULT, NULL);
 }
 
 /*< private >
