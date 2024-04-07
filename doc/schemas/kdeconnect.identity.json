@@ -53,8 +53,9 @@
                     "pattern": "^[a-fA-F0-9]{8}_[a-fA-F0-9]{4}_[a-fA-F0-9]{4}_[a-fA-F0-9]{4}_[a-fA-F0-9]{12}|.*$"
                 },
                 "deviceName": {
-                    "description": "A human-readable label for the device.",
-                    "type": "string"
+                    "description": "A human-readable label for the device. Must be 1-32 characters in length and can't contain any of the following punctuation marks `\"',;:.!?()[]<>`. When displayed to the user for pairing or other privileged interactions, it should always be displayed within quotes.",
+                    "type": "string",
+                    "pattern": "^[^\"',;:.!?()\\[\\]<>]{1,32}$"
                 },
                 "deviceType": {
                     "description": "A device type string. Since the `incomingCapabilities` and `outgoingCapabilities` fields describe the functionality of a device, the `deviceType` field is typically only used to select an icon.",
