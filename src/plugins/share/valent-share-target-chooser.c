@@ -73,6 +73,7 @@ valent_share_target_chooser_create_row (gpointer item,
   ValentShareTargetChooser *self = VALENT_SHARE_TARGET_CHOOSER (user_data);
   ValentDevice *device = VALENT_DEVICE (item);
   GtkWidget *row;
+  GtkWidget *icon;
 
   g_assert (VALENT_IS_DEVICE (device));
 
@@ -80,12 +81,16 @@ valent_share_target_chooser_create_row (gpointer item,
                       "activatable",  TRUE,
                       "selectable",   FALSE,
                       NULL);
+  icon = g_object_new (GTK_TYPE_IMAGE,
+                       "icon-size", GTK_ICON_SIZE_NORMAL,
+                       NULL);
+  adw_action_row_add_prefix (ADW_ACTION_ROW (row), icon);
 
   g_object_bind_property (self->device_list, "activate-on-single-click",
                           row,               "selectable",
                           G_BINDING_INVERT_BOOLEAN | G_BINDING_SYNC_CREATE);
   g_object_bind_property (device, "icon-name",
-                          row,    "icon-name",
+                          icon,   "icon-name",
                           G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE);
   g_object_bind_property (device, "name",
                           row,    "title",
