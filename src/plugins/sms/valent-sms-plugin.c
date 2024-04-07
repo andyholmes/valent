@@ -186,7 +186,9 @@ valent_sms_plugin_handle_thread (ValentSmsPlugin *self,
 
       message_node = json_array_get_element (messages, i);
       message = valent_sms_plugin_deserialize_message (self, message_node);
-      g_ptr_array_add (results, message);
+
+      if (message != NULL)
+        g_ptr_array_add (results, g_steal_pointer (&message));
     }
 
   valent_sms_store_add_messages (self->store, results, NULL, NULL, NULL);
