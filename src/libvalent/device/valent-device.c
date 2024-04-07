@@ -1668,6 +1668,37 @@ valent_device_validate_id (const char *id)
   return g_regex_match (id_pattern, id, G_REGEX_MATCH_DEFAULT, NULL);
 }
 
+/**
+ * valent_device_validate_name:
+ * @name: a KDE Connect device name
+ *
+ * Validate a KDE Connect device name.
+ *
+ * A compliant device name is 1 to 32 characters in length and must not contain
+ * the characters `"',;:.!?()[]<>`.
+ *
+ * Returns: %TRUE if valid, or %FALSE
+ *
+ * Since: 1.0
+ */
+gboolean
+valent_device_validate_name (const char *name)
+{
+  static GRegex *name_pattern = NULL;
+  size_t guard = FALSE;
+
+  if (g_once_init_enter (&guard))
+    {
+      name_pattern = g_regex_new ("^[^\"',;:.!?()\\[\\]<>]{1,32}$",
+                                  G_REGEX_OPTIMIZE,
+                                  G_REGEX_MATCH_DEFAULT,
+                                  NULL);
+      g_once_init_leave (&guard, TRUE);
+    }
+
+  return g_regex_match (name_pattern, name, G_REGEX_MATCH_DEFAULT, NULL);
+}
+
 /*< private >
  * valent_device_reload_plugins:
  * @device: a `ValentDevice`

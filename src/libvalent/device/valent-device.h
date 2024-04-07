@@ -72,6 +72,8 @@ VALENT_AVAILABLE_IN_1_0
 char              * valent_device_generate_id        (void);
 VALENT_AVAILABLE_IN_1_0
 gboolean            valent_device_validate_id        (const char           *id);
+VALENT_AVAILABLE_IN_1_0
+gboolean            valent_device_validate_name      (const char           *name);
 
 G_END_DECLS
 
