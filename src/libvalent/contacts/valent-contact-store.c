@@ -530,7 +530,7 @@ valent_contact_store_get_uid (ValentContactStore *store)
 }
 
 /**
- * valent_contact_store_add_contact:
+ * valent_contact_store_add_contact: (finish-func add_contacts_finish)
  * @store: a `ValentContactStore`
  * @contact: a `EContact`
  * @cancellable: (nullable): `GCancellable`
@@ -570,7 +570,7 @@ valent_contact_store_add_contact (ValentContactStore  *store,
 }
 
 /**
- * valent_contact_store_add_contacts: (virtual add_contacts)
+ * valent_contact_store_add_contacts: (virtual add_contacts) (finish-func add_contacts_finish)
  * @store: a `ValentContactStore`
  * @contacts: (element-type EContact): a `GSList`
  * @cancellable: (nullable): `GCancellable`
@@ -637,7 +637,7 @@ valent_contact_store_add_contacts_finish (ValentContactStore  *store,
 }
 
 /**
- * valent_contact_store_remove_contact:
+ * valent_contact_store_remove_contact: (finish-func remove_contacts_finish)
  * @store: a `ValentContactStore`
  * @uid: a contact UID
  * @cancellable: (nullable): `GCancellable`
@@ -679,7 +679,7 @@ valent_contact_store_remove_contact (ValentContactStore  *store,
 }
 
 /**
- * valent_contact_store_remove_contacts: (virtual remove_contacts)
+ * valent_contact_store_remove_contacts: (virtual remove_contacts) (finish-func remove_contacts_finish)
  * @store: a `ValentContactStore`
  * @uids: (element-type utf8): a `GSList` of contact UIDs
  * @cancellable: (nullable): `GCancellable`
@@ -746,7 +746,7 @@ valent_contact_store_remove_contacts_finish (ValentContactStore  *store,
 }
 
 /**
- * valent_contact_store_query: (virtual query)
+ * valent_contact_store_query: (virtual query) (finish-func query_finish)
  * @store: a `ValentContactStore`
  * @query: a search expression
  * @cancellable: (nullable): `GCancellable`
@@ -812,7 +812,7 @@ valent_contact_store_query_finish (ValentContactStore  *store,
 }
 
 /**
- * valent_contact_store_get_contact: (virtual get_contact)
+ * valent_contact_store_get_contact: (virtual get_contact) (finish-func get_contact_finish)
  * @store: a `ValentContactStore`
  * @uid: a contact UID
  * @cancellable: (nullable): `GCancellable`
@@ -878,7 +878,7 @@ valent_contact_store_get_contact_finish (ValentContactStore  *store,
 }
 
 /**
- * valent_contact_store_get_contacts:
+ * valent_contact_store_get_contacts: (finish-func get_contacts_finish)
  * @store: a `ValentContactStore`
  * @uids: a list of UIDs
  * @cancellable: (nullable): `GCancellable`
