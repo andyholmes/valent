@@ -21,7 +21,7 @@
       ]
     }
   },
-  "thread-digest": {
+  "connect-time-1": {
     "id": 0,
     "type": "kdeconnect.sms.messages",
     "body": {
@@ -40,14 +40,23 @@
           "_id" : 2,
           "sub_id" : 1,
           "event" : 1
-        },
+        }
+      ],
+      "version": 2
+    }
+  },
+  "connect-time-2": {
+    "id": 0,
+    "type": "kdeconnect.sms.messages",
+    "body": {
+      "messages": [
         {
           "addresses" : [
             {
               "address" : "+1-234-567-8914"
             }
           ],
-          "body" : "Message one",
+          "body" : "Thread 2, Message 1",
           "date" : 3,
           "type" : 2,
           "read" : 1,

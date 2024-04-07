@@ -165,36 +165,6 @@ valent_sms_plugin_deserialize_message (ValentSmsPlugin *self,
                        NULL);
 }
 
-/**
- * messages_is_thread:
- * @messages: a `JsonArray`
- *
- * Check if @messages is a thread of messages, or a summary of threads.
- *
- * Returns: %TRUE if @messages is a conversation thread
- */
-static gboolean
-messages_is_thread (JsonArray *messages)
-{
-  JsonObject *message;
-  int64_t first, second;
-
-  /* TODO: A thread with a single message can't be distinguished from
-   *       a summary with a single thread; in fact both could be true.
-   *       If we assume the latter is true exclusively, we will get
-   *       caught in a loop requesting the full thread. */
-  if (json_array_get_length (messages) < 2)
-    return TRUE;
-
-  message = json_array_get_object_element (messages, 0);
-  first = json_object_get_int_member (message, "thread_id");
-
-  message = json_array_get_object_element (messages, 1);
-  second = json_object_get_int_member (message, "thread_id");
-
-  return first == second;
-}
-
 static void
 valent_sms_plugin_handle_thread (ValentSmsPlugin *self,
                                  JsonArray       *messages)
@@ -237,27 +207,29 @@ valent_sms_plugin_handle_messages (ValentSmsPlugin *self,
   messages = json_object_get_array_member (body, "messages");
   n_messages = json_array_get_length (messages);
 
-  /* This would typically mean "all threads have been deleted", but it's more
-   * reasonable to assume this was the result of an error. */
+  /* It's not clear if this could ever happen, or what it would imply if it did,
+   * so log a debug message and bail.
+   */
   if (n_messages == 0)
-    return;
-
-  /* If this is a thread of messages we'll add them to the store */
-  if (messages_is_thread (messages))
     {
-      valent_sms_plugin_handle_thread (self, messages);
+      g_debug ("%s(): expected \"messages\" field holding an array of objects",
+               G_STRFUNC);
       return;
     }
 
-  /* If this is a summary of threads we'll request each new thread */
-  for (unsigned int i = 0; i < n_messages; i++)
+  /* If there is more than one message then this is either a response to a
+   * request for a thread, or an old client sending a summary of threads. If we
+   * assume the latter it may cause a multi-device infinite-loop.
+   */
+  if (n_messages == 1)
     {
       JsonObject *message;
       int64_t thread_id;
       int64_t thread_date;
       int64_t cache_date;
 
-      message = json_array_get_object_element (messages, i);
+      // TODO: handle missing or invalid fields
+      message = json_array_get_object_element (messages, 0);
       thread_id = json_object_get_int_member (message, "thread_id");
       thread_date = json_object_get_int_member (message, "date");
 
@@ -267,6 +239,11 @@ valent_sms_plugin_handle_messages (ValentSmsPlugin *self,
       if (cache_date < thread_date)
         valent_sms_plugin_request_conversation (self, thread_id, cache_date, 0);
     }
+
+  /* Store what we've received after the request is queued, otherwise having the
+   * latest message we may request nothing.
+   */
+  valent_sms_plugin_handle_thread (self, messages);
 }
 
 static void

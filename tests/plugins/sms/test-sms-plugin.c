@@ -24,7 +24,7 @@ test_sms_plugin_basic (ValentTestFixture *fixture,
   g_assert_true (g_action_group_get_action_enabled (actions, "sms.fetch"));
   g_assert_true (g_action_group_get_action_enabled (actions, "sms.messaging"));
 
-  VALENT_TEST_CHECK ("Plugin sends the thread list on connect");
+  VALENT_TEST_CHECK ("Plugin requests the threads on connect");
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.sms.request_conversations");
   json_node_unref (packet);
@@ -47,16 +47,16 @@ test_sms_plugin_handle_request (ValentTestFixture *fixture,
 
   valent_test_fixture_connect (fixture, TRUE);
 
-  VALENT_TEST_CHECK ("Plugin sends the thread list on connect");
+  VALENT_TEST_CHECK ("Plugin requests the threads on connect");
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.sms.request_conversations");
   json_node_unref (packet);
 
-  VALENT_TEST_CHECK ("Plugin handles the thread list");
-  packet = valent_test_fixture_lookup_packet (fixture, "thread-digest");
+  VALENT_TEST_CHECK ("Plugin handles the latest thread message (1)");
+  packet = valent_test_fixture_lookup_packet (fixture, "connect-time-1");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  VALENT_TEST_CHECK ("Plugin responds the thread list, requesting a thread (1)");
+  VALENT_TEST_CHECK ("Plugin requests the thread (1)");
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.sms.request_conversation");
   v_assert_packet_cmpint (packet, "threadID", ==, 1);
@@ -66,7 +66,11 @@ test_sms_plugin_handle_request (ValentTestFixture *fixture,
   packet = valent_test_fixture_lookup_packet (fixture, "thread-1");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  VALENT_TEST_CHECK ("Plugin responds the thread list, requesting a thread (2)");
+  VALENT_TEST_CHECK ("Plugin handles the latest thread message (2)");
+  packet = valent_test_fixture_lookup_packet (fixture, "connect-time-2");
+  valent_test_fixture_handle_packet (fixture, packet);
+
+  VALENT_TEST_CHECK ("Plugin requests the thread (2)");
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.sms.request_conversation");
   v_assert_packet_cmpint (packet, "threadID", ==, 2);
