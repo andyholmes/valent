@@ -7,6 +7,7 @@
     "finish-args" : [
         "--allow=devel",
         "--device=dri",
+        "--env=G_ENABLE_DIAGNOSTIC=1",
         "--env=PULSE_PROP_media.category=Manager",
         "--filesystem=xdg-download",
         "--filesystem=xdg-run/gvfsd",
