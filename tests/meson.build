@@ -13,6 +13,7 @@ tests_env = [
   'MALLOC_CHECK_=3',
   # https://docs.gtk.org/glib/running.html
   'G_DEBUG=gc-friendly',
+  'G_ENABLE_DIAGNOSTIC=1',
   'G_SLICE=always-malloc',
   # https://docs.gtk.org/gio/overview.html
   'GIO_USE_VFS=local',
