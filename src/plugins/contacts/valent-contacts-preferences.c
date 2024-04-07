@@ -96,7 +96,7 @@ valent_contacts_preferences_create_row_func (gpointer item,
   const char *device_id = NULL;
   GSettings *settings;
   GtkWidget *row;
-  GtkWidget *check;
+  GtkWidget *image;
   const char *icon_name;
   const char *uid;
   g_autofree char *local_uid = NULL;
@@ -117,9 +117,13 @@ valent_contacts_preferences_create_row_func (gpointer item,
   /* Row */
   row = g_object_new (ADW_TYPE_ACTION_ROW,
                       "activatable", TRUE,
-                      "icon-name",   icon_name,
                       "title",       valent_contact_store_get_name (store),
                       NULL);
+  image = g_object_new (GTK_TYPE_IMAGE,
+                        "icon-name", icon_name,
+                        "icon-size", GTK_ICON_SIZE_NORMAL,
+                        NULL);
+  adw_action_row_add_prefix (ADW_ACTION_ROW (row), image);
 
   g_signal_connect_object (G_OBJECT (row),
                            "activated",
@@ -129,13 +133,13 @@ valent_contacts_preferences_create_row_func (gpointer item,
   /* Check */
   settings = valent_device_preferences_group_get_settings (group);
   local_uid = g_settings_get_string (settings, "local-uid");
-  check = g_object_new (GTK_TYPE_IMAGE,
+  image = g_object_new (GTK_TYPE_IMAGE,
                         "icon-name", "object-select-symbolic",
                         "icon-size", GTK_ICON_SIZE_NORMAL,
                         "visible",   (g_strcmp0 (local_uid, uid) == 0),
                         NULL);
-  adw_action_row_add_suffix (ADW_ACTION_ROW (row), check);
-  g_object_set_data (G_OBJECT (row), "select", check);
+  adw_action_row_add_suffix (ADW_ACTION_ROW (row), image);
+  g_object_set_data (G_OBJECT (row), "select", image);
 
   g_object_bind_property (store, "name",
                           row,   "title",
