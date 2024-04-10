@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2023-09-29 20:31-0700\n"
+"POT-Creation-Date: 2024-04-09 22:12-0700\n"
 "PO-Revision-Date: 2023-03-04 17:28+0100\n"
 "Last-Translator: Valérie Roux <vxlerieuwu@unixgirl.xyz>\n"
 "Language-Team: French <vxlerieuwu@unixgirl.xyz>\n"
@@ -47,9 +47,9 @@ msgstr "Si l'extension est activée ou non"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
 #: data/ca.andyholmes.Valent.desktop.in.in:3
-#: src/libvalent/ui/valent-preferences-window.ui:12
+#: src/libvalent/ui/valent-preferences-dialog.ui:11
 #: src/libvalent/ui/valent-window.c:295 src/libvalent/ui/valent-window.ui:8
-#: src/libvalent/ui/valent-window.ui:44
+#: src/libvalent/ui/valent-window.ui:45
 msgid "Valent"
 msgstr "Valent"
 
@@ -108,11 +108,25 @@ msgstr ""
 "Valent est une implémentation du protocole KDE Connect, utilisant les "
 "librairies GNOME."
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:39
-msgid "Pair and connect your devices"
-msgstr "Liez et connectez vos appareils"
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:41
+msgid "Initial release."
+msgstr ""
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:48
+#, fuzzy
+msgid "Connect to devices on your network"
+msgstr "Connecter des appareils LAN"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:52
+msgid "Securely pair devices"
+msgstr ""
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:56
+#, fuzzy
+msgid "Monitor and control remote devices"
+msgstr "Liez et connectez vos appareils"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:73
 msgid "Andy Holmes"
 msgstr "Andy Holmes"
 
@@ -159,7 +173,7 @@ msgid "Request Pairing"
 msgstr "Demande de liaison"
 
 #: src/libvalent/ui/valent-device-page.ui:250
-#: src/libvalent/ui/valent-window.ui:133
+#: src/libvalent/ui/valent-window.ui:134
 msgid "Preferences"
 msgstr "Paramètres"
 
@@ -173,34 +187,34 @@ msgstr "Lié"
 msgid "Unpair"
 msgstr "Non associé"
 
-#: src/libvalent/ui/valent-device-preferences-window.ui:15
+#: src/libvalent/ui/valent-device-preferences-dialog.ui:12
 msgid "Status"
 msgstr ""
 
-#: src/libvalent/ui/valent-device-preferences-window.ui:25
+#: src/libvalent/ui/valent-device-preferences-dialog.ui:22
 msgid "Sync"
 msgstr ""
 
-#: src/libvalent/ui/valent-device-preferences-window.ui:35
+#: src/libvalent/ui/valent-device-preferences-dialog.ui:32
 #: src/plugins/sms/valent-contact-row.c:207
 #: src/plugins/sms/valent-contact-row.c:326
 #: src/plugins/sms/valent-contact-row.c:455
 msgid "Other"
 msgstr "Autres"
 
-#: src/libvalent/ui/valent-device-preferences-window.ui:45
-#: src/libvalent/ui/valent-device-preferences-window.ui:50
-#: src/libvalent/ui/valent-device-preferences-window.ui:65
+#: src/libvalent/ui/valent-device-preferences-dialog.ui:42
+#: src/libvalent/ui/valent-device-preferences-dialog.ui:47
+#: src/libvalent/ui/valent-device-preferences-dialog.ui:62
 msgid "Plugins"
 msgstr "Extensions"
 
-#: src/libvalent/ui/valent-device-preferences-window.ui:58
-#: src/libvalent/ui/valent-preferences-window.ui:39
+#: src/libvalent/ui/valent-device-preferences-dialog.ui:55
+#: src/libvalent/ui/valent-preferences-dialog.ui:38
 msgid "No Plugins"
 msgstr "Pas d'extensions"
 
 #: src/libvalent/ui/valent-input-remote.ui:8
-#: src/libvalent/ui/valent-window.ui:123
+#: src/libvalent/ui/valent-window.ui:124
 msgid "Input Remote"
 msgstr "Télécommande"
 
@@ -260,7 +274,7 @@ msgid "Play"
 msgstr "Jouer"
 
 #: src/libvalent/ui/valent-media-remote.ui:8
-#: src/libvalent/ui/valent-window.ui:127
+#: src/libvalent/ui/valent-window.ui:128
 msgid "Media Remote"
 msgstr "Télécommande média"
 
@@ -302,52 +316,52 @@ msgstr "Aléatoire"
 msgid "No Actions"
 msgstr "Aucune action"
 
-#: src/libvalent/ui/valent-preferences-window.c:380
+#: src/libvalent/ui/valent-preferences-dialog.c:380
 #, fuzzy
 msgid "Application"
 msgstr "Applications"
 
-#: src/libvalent/ui/valent-preferences-window.c:387
+#: src/libvalent/ui/valent-preferences-dialog.c:387
 msgid "Device Connections"
 msgstr "Connexions"
 
-#: src/libvalent/ui/valent-preferences-window.c:394
+#: src/libvalent/ui/valent-preferences-dialog.c:394
 #: src/plugins/clipboard/clipboard.plugin.desktop.in:7
 msgid "Clipboard"
 msgstr "Presse-papiers"
 
-#: src/libvalent/ui/valent-preferences-window.c:401
+#: src/libvalent/ui/valent-preferences-dialog.c:401
 #: src/plugins/contacts/contacts.plugin.desktop.in:7
 #: src/plugins/sms/valent-contact-row.c:253
 msgid "Contacts"
 msgstr "Contacts"
 
-#: src/libvalent/ui/valent-preferences-window.c:408
+#: src/libvalent/ui/valent-preferences-dialog.c:408
 msgid "Mouse and Keyboard"
 msgstr "Souris et clavier"
 
-#: src/libvalent/ui/valent-preferences-window.c:415
+#: src/libvalent/ui/valent-preferences-dialog.c:415
 msgid "Media Players"
 msgstr "Lecteurs média"
 
-#: src/libvalent/ui/valent-preferences-window.c:422
+#: src/libvalent/ui/valent-preferences-dialog.c:422
 msgid "Volume Control"
 msgstr "Contrôle du volume"
 
-#: src/libvalent/ui/valent-preferences-window.c:429
+#: src/libvalent/ui/valent-preferences-dialog.c:429
 #: src/plugins/notification/notification.plugin.desktop.in:7
 msgid "Notifications"
 msgstr "Notifications"
 
-#: src/libvalent/ui/valent-preferences-window.c:436
+#: src/libvalent/ui/valent-preferences-dialog.c:436
 msgid "Session Manager"
 msgstr "Gestion de session"
 
-#: src/libvalent/ui/valent-preferences-window.ui:19
+#: src/libvalent/ui/valent-preferences-dialog.ui:18
 msgid "Device Name"
 msgstr "Nom de l'appareil"
 
-#: src/libvalent/ui/valent-preferences-window.ui:31
+#: src/libvalent/ui/valent-preferences-dialog.ui:30
 msgid "Desktop Integration"
 msgstr "Intégration bureau"
 
@@ -460,46 +474,46 @@ msgstr "Non associé"
 msgid "Connected"
 msgstr "Connecté"
 
-#: src/libvalent/ui/valent-window.c:306
+#: src/libvalent/ui/valent-window.c:305
 msgid "translator-credits"
 msgstr "Valérie Roux <vxlerieuwu@unixgirl.xyz>"
 
-#: src/libvalent/ui/valent-window.c:311
+#: src/libvalent/ui/valent-window.c:310
 msgid "Sponsors"
 msgstr "Sponsors"
 
-#: src/libvalent/ui/valent-window.ui:55
+#: src/libvalent/ui/valent-window.ui:56
 msgid "Refresh"
 msgstr "Rafraîchir"
 
-#: src/libvalent/ui/valent-window.ui:56
+#: src/libvalent/ui/valent-window.ui:57
 #, fuzzy
 msgid "Scan for new devices"
 msgstr "Recherche d'appareils"
 
-#: src/libvalent/ui/valent-window.ui:67 src/plugins/sms/valent-sms-window.ui:73
+#: src/libvalent/ui/valent-window.ui:68 src/plugins/sms/valent-sms-window.ui:73
 #, fuzzy
 msgid "Main Menu"
 msgstr "Nom de l'appareil"
 
-#: src/libvalent/ui/valent-window.ui:85 src/libvalent/ui/valent-window.ui:100
+#: src/libvalent/ui/valent-window.ui:86 src/libvalent/ui/valent-window.ui:101
 #: src/plugins/share/valent-share-target-chooser.ui:68
 msgid "Devices"
 msgstr "Appareils"
 
-#: src/libvalent/ui/valent-window.ui:93
+#: src/libvalent/ui/valent-window.ui:94
 msgid "Searching for devices…"
 msgstr "Recherche d'appareils"
 
-#: src/libvalent/ui/valent-window.ui:101
+#: src/libvalent/ui/valent-window.ui:102
 msgid "List of available and known devices"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:137
+#: src/libvalent/ui/valent-window.ui:138
 msgid "About Valent"
 msgstr "À propos de Valent"
 
-#: src/libvalent/ui/valent-window.ui:143
+#: src/libvalent/ui/valent-window.ui:144
 msgid "Quit"
 msgstr "Quitter"
 
@@ -1206,7 +1220,7 @@ msgstr "Envoyer le message"
 msgid "Type a message"
 msgstr "Entrez un message"
 
-#: src/plugins/sms/valent-sms-plugin.c:523
+#: src/plugins/sms/valent-sms-plugin.c:502
 msgid "Messaging"
 msgstr "Messagerie"
 
