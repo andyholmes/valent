@@ -1,0 +1,92 @@
+<page xmlns="http://projectmallard.org/1.0/" version="1.1"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="topic" style="topic"
+      id="plugin-connectivity_report">
+
+  <info>
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+    <credit type="author">
+      <name>Andy Holmes</name>
+      <email>andrew.g.r.holmes@gmail.com</email>
+    </credit>
+
+    <link type="guide" xref="plugins#device"/>
+    <keywords>connectivity, mobile, network, signal</keywords>
+
+    <title type="text">Connectivity Plugin</title>
+    <desc>Monitor mobile connectivity status.</desc>
+  </info>
+
+  <title>Connectivity Plugin</title>
+  <p>
+    The connectivity plugin allows devices to exchange information about the
+    connection strength and status of mobile networks.
+  </p>
+
+  <list>
+    <title>Features</title>
+    <item>
+      <p>Monitor remote battery level and charging state.</p>
+    </item>
+    <item>
+      <p>Configurable notifications for low battery and full charge.</p>
+    </item>
+    <item>
+      <p>Share local battery level and charging status.</p>
+    </item>
+  </list>
+
+  <div>
+    <title>Requirements</title>
+    <p>
+      To report local battery statistics to a remote device, <app>Valent</app>
+      needs a battery to be reported by UPower. Consult the documentation for
+      your distribution if your battery is missing.
+    </p>
+  </div>
+
+  <section id="preferences">
+    <info>
+      <link type="guide" xref="index#status-guides"/>
+
+      <title type="text">Monitor mobile connectivity</title>
+      <desc>Configure status notifications.</desc>
+    </info>
+
+    <title>Monitor mobile connectivity</title>
+    <p>
+      The <link xref="plugin-connectivity_report"/> monitors the signal strength
+      and status of mobile connectivity. This guide will teach you how to
+      configure when notifications are shown for the connection status.
+    </p>
+
+    <links type="section"/>
+
+    <section id="status">
+      <title>Connectivity Notification</title>
+
+      <steps>
+        <item>
+          <p>
+            Open the main window and select a device.
+          </p>
+        </item>
+        <item>
+          <p>
+            Open the
+            <media style="button" its:translate="no" type="image" src="figures/view-more-symbolic.svg">
+              <gui style="menu" its:translate="yes">Device Menu</gui>
+            </media>
+            menu and select <gui style="menuitem">Preferences</gui>.
+          </p>
+        </item>
+        <item>
+          <p>
+            Select <gui style="tab">Status</gui> in the view switcher, then
+            toggle the <gui style="button">Remote Connectivity</gui> row.
+          </p>
+        </item>
+      </steps>
+    </section>
+  </section>
+</page>

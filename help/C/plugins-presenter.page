@@ -1,0 +1,85 @@
+<page xmlns="http://projectmallard.org/1.0/" version="1.1"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="topic" style="topic"
+      id="plugin-presenter">
+
+  <info>
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+    <credit type="author">
+      <name>Andy Holmes</name>
+      <email>andrew.g.r.holmes@gmail.com</email>
+    </credit>
+
+    <link type="guide" xref="plugins#device"/>
+    <keywords>battery, level, charge, statistics</keywords>
+
+    <title type="text">Presenter Plugin</title>
+    <desc>Control presentations.</desc>
+  </info>
+
+  <title>Presenter Plugin</title>
+  <p>
+    The Presenter plugin allows controlling a presentation slideshow with a
+    simple remote.
+  </p>
+
+  <links type="section"/>
+
+  <list>
+    <title>Features</title>
+    <item>
+      <p>Upload and open presentations on remote devices.</p>
+    </item>
+    <item>
+      <p>Control presentations on remote devices.</p>
+    </item>
+  </list>
+
+  <div>
+    <title>Requirements</title>
+    <p>
+      To upload and open presentations on a remote device, the
+      <link xref="plugin-share"/> must be enabled.
+    </p>
+  </div>
+
+  <section id="remote">
+    <info>
+      <link type="guide" xref="index#tools"/>
+
+      <title type="text">Presentation Remote</title>
+      <desc>Share and control presentations.</desc>
+    </info>
+
+    <title>Presentation Remote</title>
+    <p>
+      To control a presentation, start by opening the main window and
+      selecting a device.
+    </p>
+
+    <steps>
+      <item>
+        <p>
+          Open the main window and select a device.
+        </p>
+      </item>
+      <item>
+        <p>
+          Activate the <gui style="button">Presentation Remote</gui> row.
+        </p>
+      </item>
+      <item>
+        <p>
+          Use the remote to control standard presentation software on other
+          devices running a <app>KDE Connect</app> client.
+        </p>
+        <note style="tip">
+          <p>
+            The <gui style="button">Upload</gui> button can be used to open a
+            presentation on a remote device and start controlling it.
+          </p>
+        </note>
+      </item>
+    </steps>
+  </section>
+</page>

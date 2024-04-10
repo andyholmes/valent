@@ -12,4 +12,4 @@ Authors=Andy Holmes;
 Copyright=Copyright © Andy Holmes
 Version=1.0.0.alpha.45
 Website=https://valent.andyholmes.ca
-Help=https://valent.andyholmes.ca/help
+Help=help:valent/adapter-bluez

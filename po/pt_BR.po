@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2024-04-09 22:12-0700\n"
+"POT-Creation-Date: 2024-04-09 22:39-0700\n"
 "PO-Revision-Date: 2023-10-29 00:44-0300\n"
 "Last-Translator: Victor L. Pavan <victorpavan001@gmail.com>\n"
 "Language-Team: Brazilian Portuguese <victorpavan001@gmail.com>\n"
@@ -49,7 +49,7 @@ msgstr "Se o plugin está habilitado ou não"
 #: data/ca.andyholmes.Valent.desktop.in.in:3
 #: src/libvalent/ui/valent-preferences-dialog.ui:11
 #: src/libvalent/ui/valent-window.c:295 src/libvalent/ui/valent-window.ui:8
-#: src/libvalent/ui/valent-window.ui:45
+#: src/libvalent/ui/valent-window.ui:51
 msgid "Valent"
 msgstr "Valent"
 
@@ -172,7 +172,7 @@ msgid "Request Pairing"
 msgstr "Requisitar Pareamento"
 
 #: src/libvalent/ui/valent-device-page.ui:250
-#: src/libvalent/ui/valent-window.ui:134
+#: src/libvalent/ui/valent-window.ui:140
 msgid "Preferences"
 msgstr "Preferências"
 
@@ -211,7 +211,7 @@ msgid "No Plugins"
 msgstr "Sem Plugins"
 
 #: src/libvalent/ui/valent-input-remote.ui:8
-#: src/libvalent/ui/valent-window.ui:124
+#: src/libvalent/ui/valent-window.ui:130
 msgid "Input Remote"
 msgstr "Entrada Remota"
 
@@ -267,7 +267,7 @@ msgid "Play"
 msgstr "Reproduzir"
 
 #: src/libvalent/ui/valent-media-remote.ui:8
-#: src/libvalent/ui/valent-window.ui:128
+#: src/libvalent/ui/valent-window.ui:134
 msgid "Media Remote"
 msgstr "Mídia Remota"
 
@@ -473,36 +473,41 @@ msgstr "Victor L. Pavan <victorpavan001@gmail.com>"
 msgid "Sponsors"
 msgstr "Patrocinadores"
 
-#: src/libvalent/ui/valent-window.ui:56
+#: src/libvalent/ui/valent-window.ui:62
 msgid "Refresh"
 msgstr "Atualizar"
 
-#: src/libvalent/ui/valent-window.ui:57
+#: src/libvalent/ui/valent-window.ui:63
 msgid "Scan for new devices"
 msgstr "Procurar dispositivos"
 
-#: src/libvalent/ui/valent-window.ui:68 src/plugins/sms/valent-sms-window.ui:73
+#: src/libvalent/ui/valent-window.ui:74 src/plugins/sms/valent-sms-window.ui:73
 msgid "Main Menu"
 msgstr "Menu Principal"
 
-#: src/libvalent/ui/valent-window.ui:86 src/libvalent/ui/valent-window.ui:101
+#: src/libvalent/ui/valent-window.ui:92 src/libvalent/ui/valent-window.ui:107
 #: src/plugins/share/valent-share-target-chooser.ui:68
 msgid "Devices"
 msgstr "Dispositivos"
 
-#: src/libvalent/ui/valent-window.ui:94
+#: src/libvalent/ui/valent-window.ui:100
 msgid "Searching for devices…"
 msgstr "Procurando dispositivos..."
 
-#: src/libvalent/ui/valent-window.ui:102
+#: src/libvalent/ui/valent-window.ui:108
 msgid "List of available and known devices"
 msgstr "Lista de dispositivos disponiveis ou lembrados"
 
-#: src/libvalent/ui/valent-window.ui:138
+#: src/libvalent/ui/valent-window.ui:144
+#: src/plugins/sms/valent-sms-window.ui:265
+msgid "Help"
+msgstr "Ajuda"
+
+#: src/libvalent/ui/valent-window.ui:148
 msgid "About Valent"
 msgstr "Sobre o Valent"
 
-#: src/libvalent/ui/valent-window.ui:144
+#: src/libvalent/ui/valent-window.ui:154
 msgid "Quit"
 msgstr "Sair"
 
@@ -729,8 +734,9 @@ msgid "Lock"
 msgstr "Bloquear"
 
 #: src/plugins/lock/lock.plugin.desktop.in:8
-msgid "Lock and unlock"
-msgstr "Bloquear e desbloquear"
+#, fuzzy
+msgid "Monitor session activity and lock state"
+msgstr "Monitore o status da rede móvel"
 
 #: src/plugins/mousepad/mousepad.plugin.desktop.in:7
 msgid "Mousepad"
@@ -745,12 +751,14 @@ msgid "MPRIS"
 msgstr "MPRIS"
 
 #: src/plugins/mpris/mpris.plugin.desktop.in:8
-msgid "Share control of MPRISv2 players"
+#, fuzzy
+msgid "Share control of media players"
 msgstr "Compartilhe o controle de tocadores MPRISv2"
 
 #: src/plugins/notification/notification.plugin.desktop.in:8
-msgid "Sync notifications"
-msgstr "Sincronizar notificações"
+#, fuzzy
+msgid "Sync notifications between devices"
+msgstr "Sincronizar contatos entre os dispositivos"
 
 #: src/plugins/notification/valent-notification-dialog.ui:12
 msgid "Notification"
@@ -881,7 +889,8 @@ msgid "Commands"
 msgstr "Comandos"
 
 #: src/plugins/runcommand/runcommand.plugin.desktop.in:8
-msgid "Execute commands remotely"
+#, fuzzy
+msgid "Execute commands on remote devices"
 msgstr "Executar comandos remotamente"
 
 #: src/plugins/runcommand/valent-runcommand-editor.ui:8
@@ -1239,10 +1248,6 @@ msgstr "Trocar Lista de Contatos"
 msgid "Keyboard Shortcuts"
 msgstr "Atalhos do Teclado"
 
-#: src/plugins/sms/valent-sms-window.ui:265
-msgid "Help"
-msgstr "Ajuda"
-
 #: src/plugins/systemvolume/systemvolume.plugin.desktop.in:7
 msgid "System Volume"
 msgstr "Volume do Sistema"
@@ -1324,3 +1329,9 @@ msgstr "Portais"
 #: src/plugins/xdp/xdp.plugin.desktop.in:8
 msgid "Integration with desktop portals"
 msgstr "Integração com portais da área de trabalho"
+
+#~ msgid "Lock and unlock"
+#~ msgstr "Bloquear e desbloquear"
+
+#~ msgid "Sync notifications"
+#~ msgstr "Sincronizar notificações"
