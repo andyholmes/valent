@@ -17,10 +17,10 @@ name Valent's plugins watch.
 import io
 import os
 
-import dbus # type: ignore
-import dbusmock # type: ignore
-from dbusmock import MOCK_IFACE # type: ignore
-from gi.repository import GLib # type: ignore
+import dbus
+import dbusmock
+from dbusmock import MOCK_IFACE
+from gi.repository import GLib
 
 
 BUS_NAME = 'org.gnome.Mutter.RemoteDesktop'

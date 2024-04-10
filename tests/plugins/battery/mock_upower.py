@@ -12,8 +12,8 @@ import subprocess
 import sys
 import unittest
 
-import dbus # type: ignore
-import dbusmock # type: ignore
+import dbus
+import dbusmock
 
 
 class UPowerTestFixture(dbusmock.DBusTestCase):

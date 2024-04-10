@@ -9,8 +9,8 @@ ServiceBrowser interfaces, and the main interface methods they require.
 
 # pylint: disable=line-too-long,protected-access
 
-import dbus # type: ignore
-import dbusmock # type: ignore
+import dbus
+import dbusmock
 from dbusmock import MOCK_IFACE
 
 

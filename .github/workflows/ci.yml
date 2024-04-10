@@ -68,13 +68,6 @@ jobs:
           glob_pattern: "**/*.py"
           pylint_rc: tests/extra/setup.cfg
 
-      - name: Mypy
-        if: ${{ always() }}
-        uses: tsuyoshicho/action-mypy@v3
-        with:
-          reporter: github-pr-review
-          fail_on_error: true
-
       - name: ShellCheck
         if: ${{ always() }}
         uses: reviewdog/action-shellcheck@v1
