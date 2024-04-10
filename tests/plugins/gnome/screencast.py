@@ -11,9 +11,9 @@ the screencast D-Bus service.
 # pylint: disable=line-too-long,protected-access
 
 
-import dbus # type: ignore
-import dbusmock # type: ignore
-from dbusmock import MOCK_IFACE # type: ignore
+import dbus
+import dbusmock
+from dbusmock import MOCK_IFACE
 
 
 BUS_NAME = 'org.gnome.Mutter.ScreenCast'

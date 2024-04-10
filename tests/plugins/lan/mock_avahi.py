@@ -12,7 +12,7 @@ import subprocess
 import sys
 import unittest
 
-import dbusmock # type: ignore
+import dbusmock
 
 
 TEMPLATE_DIR = os.path.dirname(os.path.realpath(__file__))

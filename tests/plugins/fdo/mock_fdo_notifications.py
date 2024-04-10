@@ -12,7 +12,7 @@ import subprocess
 import sys
 import unittest
 
-import dbusmock # type: ignore
+import dbusmock
 
 
 class NotificationTestFixture(dbusmock.DBusTestCase):

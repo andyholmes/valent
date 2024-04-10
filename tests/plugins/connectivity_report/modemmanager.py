@@ -12,9 +12,9 @@ available to set in 'parameters' is 'Version'.
 # pylint: disable=protected-access
 
 
-import dbus # type: ignore
-import dbusmock # type: ignore
-from dbusmock import MOCK_IFACE # type: ignore
+import dbus
+import dbusmock
+from dbusmock import MOCK_IFACE
 
 
 BUS_NAME = 'org.freedesktop.ModemManager1'

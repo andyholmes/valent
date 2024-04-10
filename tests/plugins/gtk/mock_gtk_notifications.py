@@ -12,8 +12,8 @@ import subprocess
 import sys
 import unittest
 
-import dbusmock # type: ignore
-import dbus # type: ignore
+import dbusmock
+import dbus
 
 
 class NotificationsTestFixture(dbusmock.DBusTestCase):
