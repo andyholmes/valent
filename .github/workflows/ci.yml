@@ -47,6 +47,20 @@ jobs:
         with:
           args: lint
 
+  translations:
+    name: Translations
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check
+        run: |
+          ./tests/extra/potfiles-check.sh
+
   pre-test:
     name: Pre-Tests
     runs-on: ubuntu-latest
