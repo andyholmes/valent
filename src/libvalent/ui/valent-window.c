@@ -6,7 +6,7 @@
 #include "config.h"
 
 #include <adwaita.h>
-#include <glib/gi18n.h>
+#include <glib/gi18n-lib.h>
 #include <gtk/gtk.h>
 #include <libportal/portal.h>
 #include <libvalent-core.h>

@@ -5,7 +5,7 @@
 
 #include "config.h"
 
-#include <glib/gi18n.h>
+#include <glib/gi18n-lib.h>
 #include <adwaita.h>
 #include <gtk/gtk.h>
 #include <pango/pango.h>
