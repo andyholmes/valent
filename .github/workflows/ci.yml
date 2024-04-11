@@ -7,19 +7,15 @@ permissions:
   contents: read
 
 jobs:
-  codespell:
-    name: Codespell
+  cspell:
+    name: CSpell
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Spell Check
-        uses: codespell-project/actions-codespell@master
-        with:
-          ignore_words_list: doubleclick,inout,onlyonce,sav
-          skip: ./LICENSES,./po,./subprojects,./tests/fixtures/data
+        uses: streetsidesoftware/cspell-action@v6
 
   commitlint:
     name: Commitlint

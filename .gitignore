@@ -1,5 +1,6 @@
 *~
 _build*
+.cspellcache
 .flatpak-builder
 
 # meson wraps

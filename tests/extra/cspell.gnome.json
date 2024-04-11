@@ -1,0 +1,181 @@
+{
+    "id": "gnome",
+    "name": "GNOME Platform",
+    "description": "GNOME Platform keywords and symbols.",
+    "readonly": true,
+    "words": [
+        "Gettext",
+        "gettext",
+        "dgettext",
+        "dcgettext",
+        "ngettext",
+        "dngettext",
+        "dcngettext",
+        "pgettext",
+        "bindtextdomain",
+        "bind_textdomain_codeset",
+        "textdomain",
+
+        "GObject",
+        "gapplication",
+        "initable",
+        "keyval",
+        "klass",
+        "strv",
+
+        "gboolean",
+        "gpointer",
+        "gconstpointer",
+        "gssize",
+        "goffset",
+        "gintptr",
+        "guintptr",
+        "gunichar",
+        "GStrv",
+
+        "gchar",
+        "guchar",
+        "gint",
+        "guint",
+        "gshort",
+        "gushort",
+        "glong",
+        "gulong",
+        "gint8",
+        "guint8",
+        "gint16",
+        "guint16",
+        "gint32",
+        "guint32",
+        "gint64",
+        "guint64",
+        "gfloat",
+        "gdouble",
+        "gsize",
+
+        "GType",
+        "gaction",
+        "gicon",
+        "ginitable",
+        "gasyncinitable",
+        "gvariant",
+
+        "GPtrArray",
+        "pdata",
+
+        "Pango",
+
+        "Gtk",
+        "activatable",
+        "paintable",
+        "pixbuf",
+        "rowstride",
+
+        "GtkCssProvider",
+        "scrolledwindow",
+
+        "GtkWidget",
+        "halign",
+        "valign",
+        "hexpand",
+        "vexpand",
+
+        "GtkWindow",
+        "fullscreened",
+
+        "GtkLabel",
+        "ellipsize",
+        "xalign",
+        "yalign",
+
+        "GtkPopover",
+        "autohide",
+
+        "GtkScrollable",
+        "hadjustment",
+        "vadjustment",
+        "hscroll-policy",
+        "vscroll-policy",
+        "hscrollbar-policy",
+        "vscrollbar-policy",
+
+        "GtkStack",
+        "crossfade",
+        "hhomogeneous",
+        "vhomogeneous"
+    ],
+    "ignorePaths": [],
+    "ignoreRegExpList": [
+        "meson-interpolation"
+    ],
+    "patterns": [
+        {
+            "name": "meson-interpolation",
+            "pattern": "/@\\w+@/g"
+        }
+    ],
+    "overrides": [
+        {
+            "languageId": "c",
+            "filename": "**/{*.c,*.h,*.h.in}"
+        },
+        {
+            "languageId": "xml",
+            "filename": "**/{*.doap,*.ui,*.xml,*.xml.*}"
+        }
+    ],
+    "languageSettings": [
+        {
+            "languageId": "c",
+            "locale": "*",
+            "dictionaries": ["cpp"],
+            "ignoreRegExpList": [
+                "c-enums",
+                "glib-symbols",
+                "gtk-symbols",
+                "adw-symbols",
+                "gvariant-signature",
+                "preprocessor-directive"
+            ],
+            "patterns": [
+                {
+                    "name": "c-enums",
+                    "pattern": "/\\b[A-Z0-9]+(_[A-Z0-9]+)+\\b/g"
+                },
+                {
+                    "name": "glib-symbols",
+                    "pattern": "/(\\bg_\\w+)/gi"
+                },
+                {
+                    "name": "gtk-symbols",
+                    "pattern": "/(\\bgtk_\\w+)/gi"
+                },
+                {
+                    "name": "adw-symbols",
+                    "pattern": "/(\\badw_\\w+)/gi"
+                },
+                {
+                    "name": "gvariant-signature",
+                    "pattern": "/\\bg_variant_(get|new|type) \\([^)]+\\)/gi"
+                },
+                {
+                    "name": "preprocessor-directive",
+                    "pattern": "/# *(include|define|if|endif).*/"
+                }
+            ]
+        },
+        {
+            "languageId": "xml",
+            "locale": "*",
+            "ignoreRegExpList": [
+                "xml-tag"
+            ],
+            "patterns": [
+                {
+                    "name": "xml-tag",
+                    "pattern": "/<[^>]*>/g"
+                }
+            ]
+        }
+    ]
+}
