@@ -1,0 +1,92 @@
+{
+    "version": "0.2",
+    "cache": {
+        "cacheLocation": "./.cspellcache",
+        "cacheStrategy": "content",
+        "useCache": true
+    },
+    "useGitignore": true,
+    "language": "en_US",
+    "import": [
+        "./tests/extra/cspell.gnome.json"
+    ],
+    "dictionaries": ["en-US", "valent"],
+    "dictionaryDefinitions": [
+        {
+            "name": "valent",
+            "path": "./tests/extra/cspell-valent.txt"
+        }
+    ],
+    "words": [],
+    "ignorePaths": [
+        ".gitignore",
+        ".github/workflows/**",
+        "build-aux/**",
+        "doc/sdk/**",
+        "LICENSES/**",
+        "po/**",
+        "subprojects/**",
+        "tests/extra/**",
+        "tests/fixtures/data/**",
+        "cspell.json",
+        "*.gresource.xml",
+        "*.oga",
+        "*.py",
+        "*.svg",
+        "*.toml",
+        "**/meson.build",
+        "meson_options.txt"
+    ],
+    "ignoreRegExpList": [
+        "cli-option",
+        "noun-abbreviation",
+        "noun-library",
+        "noun-proper"
+    ],
+    "patterns": [
+        {
+            "name": "cli-option",
+            "pattern": "/--(\\w+)/gi"
+        },
+        {
+            "name": "presentation-mimetype",
+            "pattern": "/application/vnd\\..*/g"
+        },
+        {
+            "name": "markdown-block-code",
+            "pattern": "/```[\\s\\S]*?```(?=\\n|$)/gi"
+        },
+        {
+            "name": "markdown-inline-code",
+            "pattern": "/`[^`]*`/gi"
+        },
+        {
+            "name": "noun-library",
+            "pattern": "/\\b(lib[a-z]+)\\b/g"
+        },
+        {
+            "name": "noun-abbreviation",
+            "pattern": "/\\b([A-Z]+)\\b/g"
+        },
+        {
+            "name": "noun-proper",
+            "pattern": "/(?:\\s*\\b([A-Z][a-z]+)\\b)+/g"
+        }
+    ],
+    "languageSettings": [
+        {
+            "languageId": "c",
+            "dictionaries": ["cpp", "gnome"],
+            "ignoreRegExpList": [
+                "presentation-mimetype"
+            ]
+        },
+        {
+            "languageId": "markdown",
+            "ignoreRegExpList": [
+                "markdown-block-code",
+                "markdown-inline-code"
+            ]
+        }
+    ]
+}
