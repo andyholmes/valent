@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileCopyrightText: No rights reserved
+
+data/ca.andyholmes.Valent-autostart.desktop.in.in
+src/plugins/battery/ca.andyholmes.Valent.Plugin.battery.gschema.xml
+src/plugins/clipboard/ca.andyholmes.Valent.Plugin.clipboard.gschema.xml
+src/plugins/contacts/ca.andyholmes.Valent.Plugin.contacts.gschema.xml
+src/plugins/mousepad/ca.andyholmes.Valent.Plugin.mousepad.gschema.xml
+src/plugins/mpris/ca.andyholmes.Valent.Plugin.mpris.gschema.xml
+src/plugins/notification/ca.andyholmes.Valent.Plugin.notification.gschema.xml
+src/plugins/runcommand/ca.andyholmes.Valent.Plugin.runcommand.gschema.xml
+src/plugins/sftp/ca.andyholmes.Valent.Plugin.sftp.gschema.xml
+src/plugins/share/ca.andyholmes.Valent.Plugin.share.gschema.xml
+src/plugins/sms/ca.andyholmes.Valent.Plugin.sms.gschema.xml
+src/plugins/systemvolume/ca.andyholmes.Valent.Plugin.systemvolume.gschema.xml
+src/plugins/telephony/ca.andyholmes.Valent.Plugin.telephony.gschema.xml
+
