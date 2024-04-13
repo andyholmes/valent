@@ -1,6 +1,6 @@
 {
     "title": "Protocol Reference",
-    "description": "This reference is generated from JSON Schemas used in the testing and development of Valent.\n\nThis document should not be interpreted as a formal specification of the KDE Connect protocol.",
+    "description": "This reference is generated from JSON Schemas used in the testing and development of Valent. For any other use, please see the upstream version of the [KDE Connect protocol](https://invent.kde.org/network/kdeconnect-meta/blob/master/protocol.md) instead.",
     "sections": [
         {
             "title": "Core Protocol",

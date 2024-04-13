@@ -56,7 +56,7 @@
                     ]
                 },
                 "contactName": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "description": "The contact name associated with the event."
                 },
                 "messageBody": {
@@ -64,7 +64,7 @@
                     "description": "The message text associated with the event."
                 },
                 "phoneNumber": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "description": "The phone number associated with the event."
                 },
                 "phoneThumbnail": {
