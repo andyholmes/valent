@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifier: GPL-3.0-or-later
-# SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
+
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileCopyrightText: No rights reserved
 
 
 """This script generates documentation for the KDE Connect protocol in Markdown
-format from JSON Schemas, which is then passed to ``gi-docgen``.
+format from JSON Schemas.
 """
 
 
@@ -59,6 +60,10 @@ An ordered collection of values.
 {MD_HEADER * 4} `Object`
 
 A mapping collection of string keys to values.
+
+{MD_HEADER * 4} `Null`
+
+The intentional absence of any object value.
 
 {MD_HEADER * 3} Symbols
 
@@ -126,8 +131,8 @@ def md_pattern(schema: dict) -> str:
 
     return f'`/{pattern}/`'
 
-def md_type(schema: dict) -> str:
-    """Return a JSON Schema ``type`` formatted for markdown."""
+def md_type_link(schema: dict, schema_type: str):
+    """Return a JSON Schema ``type`` link, formatted for markdown."""
 
     type_names = {
         'boolean': 'Boolean',
@@ -135,9 +140,10 @@ def md_type(schema: dict) -> str:
         'string': 'String',
         'array': 'Array',
         'object': 'Object',
+        'null': 'Null',
     }
 
-    type_name = type_names.get(schema['type'], schema['type'])
+    type_name = type_names.get(schema_type, schema_type)
     type_slug = md_slug(type_name)
     type_link = f'[**`{type_name}`**](#{type_slug})'
 
@@ -151,6 +157,16 @@ def md_type(schema: dict) -> str:
             type_link = f'{type_link} of {item_link}'
 
     return type_link
+
+def md_type(schema: dict) -> str:
+    """Return a JSON Schema ``type`` formatted for markdown."""
+
+    schema_types = schema['type']
+    if isinstance(schema_types, list):
+        type_links = [md_type_link(schema, s) for s in schema_types]
+        return '|'.join(type_links)
+
+    return md_type_link(schema, schema_types)
 
 
 #
