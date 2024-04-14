@@ -610,16 +610,11 @@ valent_mpris_player_init_async (GAsyncInitable      *initable,
 {
   ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (initable);
   g_autoptr (GTask) task = NULL;
-  g_autoptr (GCancellable) destroy = NULL;
 
   g_assert (VALENT_IS_MPRIS_PLAYER (self));
   g_return_if_fail (self->bus_name != NULL);
 
-  /* Cancel initialization if the object is destroyed */
-  destroy = valent_object_chain_cancellable (VALENT_OBJECT (initable),
-                                             cancellable);
-
-  task = g_task_new (initable, destroy, callback, user_data);
+  task = g_task_new (initable, cancellable, callback, user_data);
   g_task_set_priority (task, io_priority);
   g_task_set_source_tag (task, valent_mpris_player_init_async);
 
@@ -629,7 +624,7 @@ valent_mpris_player_init_async (GAsyncInitable      *initable,
                             self->bus_name,
                             "/org/mpris/MediaPlayer2",
                             "org.mpris.MediaPlayer2",
-                            destroy,
+                            cancellable,
                             valent_mpris_player_init_application_cb,
                             g_steal_pointer (&task));
 }
