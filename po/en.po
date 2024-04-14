@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2024-04-09 22:12-0700\n"
+"POT-Creation-Date: 2024-04-09 22:39-0700\n"
 "PO-Revision-Date: 2022-03-28 11:21-0700\n"
 "Last-Translator: Andy Holmes <andrew.g.r.holmes@gmail.com>\n"
 "Language-Team: English <andrew.g.r.holmes@gmail.com>\n"
@@ -47,7 +47,7 @@ msgstr ""
 #: data/ca.andyholmes.Valent.desktop.in.in:3
 #: src/libvalent/ui/valent-preferences-dialog.ui:11
 #: src/libvalent/ui/valent-window.c:295 src/libvalent/ui/valent-window.ui:8
-#: src/libvalent/ui/valent-window.ui:45
+#: src/libvalent/ui/valent-window.ui:51
 msgid "Valent"
 msgstr ""
 
@@ -162,7 +162,7 @@ msgid "Request Pairing"
 msgstr ""
 
 #: src/libvalent/ui/valent-device-page.ui:250
-#: src/libvalent/ui/valent-window.ui:134
+#: src/libvalent/ui/valent-window.ui:140
 msgid "Preferences"
 msgstr ""
 
@@ -201,7 +201,7 @@ msgid "No Plugins"
 msgstr ""
 
 #: src/libvalent/ui/valent-input-remote.ui:8
-#: src/libvalent/ui/valent-window.ui:124
+#: src/libvalent/ui/valent-window.ui:130
 msgid "Input Remote"
 msgstr ""
 
@@ -257,7 +257,7 @@ msgid "Play"
 msgstr ""
 
 #: src/libvalent/ui/valent-media-remote.ui:8
-#: src/libvalent/ui/valent-window.ui:128
+#: src/libvalent/ui/valent-window.ui:134
 msgid "Media Remote"
 msgstr ""
 
@@ -463,36 +463,41 @@ msgstr ""
 msgid "Sponsors"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:56
+#: src/libvalent/ui/valent-window.ui:62
 msgid "Refresh"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:57
+#: src/libvalent/ui/valent-window.ui:63
 msgid "Scan for new devices"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:68 src/plugins/sms/valent-sms-window.ui:73
+#: src/libvalent/ui/valent-window.ui:74 src/plugins/sms/valent-sms-window.ui:73
 msgid "Main Menu"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:86 src/libvalent/ui/valent-window.ui:101
+#: src/libvalent/ui/valent-window.ui:92 src/libvalent/ui/valent-window.ui:107
 #: src/plugins/share/valent-share-target-chooser.ui:68
 msgid "Devices"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:94
+#: src/libvalent/ui/valent-window.ui:100
 msgid "Searching for devices…"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:102
+#: src/libvalent/ui/valent-window.ui:108
 msgid "List of available and known devices"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:138
+#: src/libvalent/ui/valent-window.ui:144
+#: src/plugins/sms/valent-sms-window.ui:265
+msgid "Help"
+msgstr ""
+
+#: src/libvalent/ui/valent-window.ui:148
 msgid "About Valent"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:144
+#: src/libvalent/ui/valent-window.ui:154
 msgid "Quit"
 msgstr ""
 
@@ -719,7 +724,7 @@ msgid "Lock"
 msgstr ""
 
 #: src/plugins/lock/lock.plugin.desktop.in:8
-msgid "Lock and unlock"
+msgid "Monitor session activity and lock state"
 msgstr ""
 
 #: src/plugins/mousepad/mousepad.plugin.desktop.in:7
@@ -735,11 +740,11 @@ msgid "MPRIS"
 msgstr ""
 
 #: src/plugins/mpris/mpris.plugin.desktop.in:8
-msgid "Share control of MPRISv2 players"
+msgid "Share control of media players"
 msgstr ""
 
 #: src/plugins/notification/notification.plugin.desktop.in:8
-msgid "Sync notifications"
+msgid "Sync notifications between devices"
 msgstr ""
 
 #: src/plugins/notification/valent-notification-dialog.ui:12
@@ -871,7 +876,7 @@ msgid "Commands"
 msgstr ""
 
 #: src/plugins/runcommand/runcommand.plugin.desktop.in:8
-msgid "Execute commands remotely"
+msgid "Execute commands on remote devices"
 msgstr ""
 
 #: src/plugins/runcommand/valent-runcommand-editor.ui:8
@@ -1227,10 +1232,6 @@ msgstr ""
 
 #: src/plugins/sms/valent-sms-window.ui:260
 msgid "Keyboard Shortcuts"
-msgstr ""
-
-#: src/plugins/sms/valent-sms-window.ui:265
-msgid "Help"
 msgstr ""
 
 #: src/plugins/systemvolume/systemvolume.plugin.desktop.in:7

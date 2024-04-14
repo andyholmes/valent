@@ -38,9 +38,13 @@ This project does not yet use a translation service like Weblate or Crowdin. You
 should also expect translatable strings to change frequently until the project
 is more mature.
 
-To contribute a translation, open a pull request which adds your locale to the
-[`LINGUAS`][linguas] file and your translated `.po` file to the [`po/`][po_dir]
-directory.
+To contribute a translation of the application, open a pull request that adds
+your locale to [`po/LINGUAS`][linguas] and your translated `.po` file to
+`po/<locale>.po`.
+
+To contribute a translation of the user help, open a pull request that adds your
+locale to [`help/LINGUAS`][help-linguas] and your translated `.po` file to
+`help/<locale>/<locale>.po`.
 
 
 ## Contributing Code
@@ -121,6 +125,7 @@ already distributed under an acceptable open source license.
 [conventional-commits]: https://www.conventionalcommits.org
 [features]: https://github.com/andyholmes/valent/discussions/new?category=feature-request
 [issues]: https://github.com/andyholmes/valent/issues/new
+[help-linguas]: https://github.com/andyholmes/valent/blob/main/help/LINGUAS
 [linguas]: https://github.com/andyholmes/valent/blob/main/po/LINGUAS
 [po_dir]: https://github.com/andyholmes/valent/tree/main/po
 [gnome-coding-style]: https://developer.gnome.org/documentation/guidelines/programming/coding-style.html

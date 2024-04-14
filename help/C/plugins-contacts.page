@@ -1,0 +1,47 @@
+<page xmlns="http://projectmallard.org/1.0/" version="1.1"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="topic" style="topic"
+      id="plugin-contacts">
+
+  <info>
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+    <credit type="author">
+      <name>Andy Holmes</name>
+      <email>andrew.g.r.holmes@gmail.com</email>
+    </credit>
+
+    <link type="guide" xref="plugins#device"/>
+    <keywords>contacts, addressbook</keywords>
+
+    <title type="text">Contacts Plugin</title>
+    <desc>Sync contacts between devices.</desc>
+  </info>
+
+  <title>Contacts Plugin</title>
+  <p>
+    The contacts plugin allows devices to exchange contacts and sync address
+    books.
+  </p>
+
+  <list>
+    <title>Features</title>
+    <item>
+      <p>Sync contacts and expose them to other applications.</p>
+    </item>
+    <item>
+      <p>Configure sync direction for each device.</p>
+    </item>
+    <item>
+      <p>Configure which address book to sync for each device.</p>
+    </item>
+  </list>
+
+  <div>
+    <title>Requirements</title>
+    <p>
+      To access contacts and share them with other applications, a source like
+      <app>Evolution Data Server</app> must be available. Other sources may
+      provide an adapter to support contact sharing.
+    </p>
+  </div>
+</page>

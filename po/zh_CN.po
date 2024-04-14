@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2024-04-09 22:12-0700\n"
+"POT-Creation-Date: 2024-04-09 22:39-0700\n"
 "PO-Revision-Date: 2023-07-03 19:05+0800\n"
 "Last-Translator: sky96111 <sky96111@outlook.com>\n"
 "Language-Team: Chinese Simplified\n"
@@ -47,7 +47,7 @@ msgstr "插件是否已启用。"
 #: data/ca.andyholmes.Valent.desktop.in.in:3
 #: src/libvalent/ui/valent-preferences-dialog.ui:11
 #: src/libvalent/ui/valent-window.c:295 src/libvalent/ui/valent-window.ui:8
-#: src/libvalent/ui/valent-window.ui:45
+#: src/libvalent/ui/valent-window.ui:51
 msgid "Valent"
 msgstr ""
 
@@ -165,7 +165,7 @@ msgid "Request Pairing"
 msgstr "请求配对"
 
 #: src/libvalent/ui/valent-device-page.ui:250
-#: src/libvalent/ui/valent-window.ui:134
+#: src/libvalent/ui/valent-window.ui:140
 msgid "Preferences"
 msgstr "首选项"
 
@@ -206,7 +206,7 @@ msgid "No Plugins"
 msgstr "无插件"
 
 #: src/libvalent/ui/valent-input-remote.ui:8
-#: src/libvalent/ui/valent-window.ui:124
+#: src/libvalent/ui/valent-window.ui:130
 msgid "Input Remote"
 msgstr "远程输入"
 
@@ -263,7 +263,7 @@ msgid "Play"
 msgstr "播放"
 
 #: src/libvalent/ui/valent-media-remote.ui:8
-#: src/libvalent/ui/valent-window.ui:128
+#: src/libvalent/ui/valent-window.ui:134
 msgid "Media Remote"
 msgstr "远程媒体控制"
 
@@ -470,37 +470,42 @@ msgstr "sky96111"
 msgid "Sponsors"
 msgstr "赞助者"
 
-#: src/libvalent/ui/valent-window.ui:56
+#: src/libvalent/ui/valent-window.ui:62
 msgid "Refresh"
 msgstr "刷新"
 
-#: src/libvalent/ui/valent-window.ui:57
+#: src/libvalent/ui/valent-window.ui:63
 #, fuzzy
 msgid "Scan for new devices"
 msgstr "正在搜索设备…"
 
-#: src/libvalent/ui/valent-window.ui:68 src/plugins/sms/valent-sms-window.ui:73
+#: src/libvalent/ui/valent-window.ui:74 src/plugins/sms/valent-sms-window.ui:73
 msgid "Main Menu"
 msgstr "主菜单"
 
-#: src/libvalent/ui/valent-window.ui:86 src/libvalent/ui/valent-window.ui:101
+#: src/libvalent/ui/valent-window.ui:92 src/libvalent/ui/valent-window.ui:107
 #: src/plugins/share/valent-share-target-chooser.ui:68
 msgid "Devices"
 msgstr "设备"
 
-#: src/libvalent/ui/valent-window.ui:94
+#: src/libvalent/ui/valent-window.ui:100
 msgid "Searching for devices…"
 msgstr "正在搜索设备…"
 
-#: src/libvalent/ui/valent-window.ui:102
+#: src/libvalent/ui/valent-window.ui:108
 msgid "List of available and known devices"
 msgstr ""
 
-#: src/libvalent/ui/valent-window.ui:138
+#: src/libvalent/ui/valent-window.ui:144
+#: src/plugins/sms/valent-sms-window.ui:265
+msgid "Help"
+msgstr "帮助"
+
+#: src/libvalent/ui/valent-window.ui:148
 msgid "About Valent"
 msgstr "关于"
 
-#: src/libvalent/ui/valent-window.ui:144
+#: src/libvalent/ui/valent-window.ui:154
 msgid "Quit"
 msgstr "退出"
 
@@ -727,8 +732,9 @@ msgid "Lock"
 msgstr "锁定"
 
 #: src/plugins/lock/lock.plugin.desktop.in:8
-msgid "Lock and unlock"
-msgstr "锁定与解锁"
+#, fuzzy
+msgid "Monitor session activity and lock state"
+msgstr "监测手机信号状态"
 
 #: src/plugins/mousepad/mousepad.plugin.desktop.in:7
 msgid "Mousepad"
@@ -743,12 +749,14 @@ msgid "MPRIS"
 msgstr "MPRIS"
 
 #: src/plugins/mpris/mpris.plugin.desktop.in:8
-msgid "Share control of MPRISv2 players"
+#, fuzzy
+msgid "Share control of media players"
 msgstr "共享 MPRISv2 播放器的控制权"
 
 #: src/plugins/notification/notification.plugin.desktop.in:8
-msgid "Sync notifications"
-msgstr "同步通知"
+#, fuzzy
+msgid "Sync notifications between devices"
+msgstr "在设备间同步联系人"
 
 #: src/plugins/notification/valent-notification-dialog.ui:12
 msgid "Notification"
@@ -880,7 +888,8 @@ msgid "Commands"
 msgstr "命令"
 
 #: src/plugins/runcommand/runcommand.plugin.desktop.in:8
-msgid "Execute commands remotely"
+#, fuzzy
+msgid "Execute commands on remote devices"
 msgstr "远程设备执行命令"
 
 #: src/plugins/runcommand/valent-runcommand-editor.ui:8
@@ -1232,10 +1241,6 @@ msgstr "更改通讯录..."
 msgid "Keyboard Shortcuts"
 msgstr "键盘快捷键"
 
-#: src/plugins/sms/valent-sms-window.ui:265
-msgid "Help"
-msgstr "帮助"
-
 #: src/plugins/systemvolume/systemvolume.plugin.desktop.in:7
 msgid "System Volume"
 msgstr "系统音量"
@@ -1318,6 +1323,12 @@ msgstr "桌面环境"
 #: src/plugins/xdp/xdp.plugin.desktop.in:8
 msgid "Integration with desktop portals"
 msgstr "与桌面环境集成"
+
+#~ msgid "Lock and unlock"
+#~ msgstr "锁定与解锁"
+
+#~ msgid "Sync notifications"
+#~ msgstr "同步通知"
 
 #~ msgid "Applications"
 #~ msgstr "应用"
