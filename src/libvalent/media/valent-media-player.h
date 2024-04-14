@@ -122,15 +122,15 @@ GVariant           * valent_media_player_get_metadata (ValentMediaPlayer *player
 VALENT_AVAILABLE_IN_1_0
 const char         * valent_media_player_get_name     (ValentMediaPlayer *player);
 VALENT_AVAILABLE_IN_1_0
-ValentMediaRepeat    valent_media_player_get_repeat   (ValentMediaPlayer *player);
-VALENT_AVAILABLE_IN_1_0
-void                 valent_media_player_set_repeat   (ValentMediaPlayer *player,
-                                                       ValentMediaRepeat  repeat);
-VALENT_AVAILABLE_IN_1_0
 double               valent_media_player_get_position (ValentMediaPlayer *player);
 VALENT_AVAILABLE_IN_1_0
 void                 valent_media_player_set_position (ValentMediaPlayer *player,
                                                        double             position);
+VALENT_AVAILABLE_IN_1_0
+ValentMediaRepeat    valent_media_player_get_repeat   (ValentMediaPlayer *player);
+VALENT_AVAILABLE_IN_1_0
+void                 valent_media_player_set_repeat   (ValentMediaPlayer *player,
+                                                       ValentMediaRepeat  repeat);
 VALENT_AVAILABLE_IN_1_0
 gboolean             valent_media_player_get_shuffle  (ValentMediaPlayer *player);
 VALENT_AVAILABLE_IN_1_0
