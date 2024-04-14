@@ -59,7 +59,7 @@ main_window_action (GSimpleAction *action,
                                       G_ACTION_GROUP (application));
     }
 
-  gtk_window_present_with_time (self->main_window, GDK_CURRENT_TIME);
+  gtk_window_present (self->main_window);
   gtk_widget_activate_action_variant (GTK_WIDGET (self->main_window),
                                       "win.page",
                                       parameter);
@@ -83,7 +83,7 @@ input_remote_action (GSimpleAction *action,
                                  (gpointer)&self->input_remote);
     }
 
-  gtk_window_present_with_time (self->input_remote, GDK_CURRENT_TIME);
+  gtk_window_present (self->input_remote);
 }
 
 static void
@@ -104,7 +104,7 @@ media_remote_action (GSimpleAction *action,
                                  (gpointer)&self->media_remote);
     }
 
-  gtk_window_present_with_time (self->media_remote, GDK_CURRENT_TIME);
+  gtk_window_present (self->media_remote);
 }
 
 static const GActionEntry app_actions[] = {

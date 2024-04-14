@@ -1115,7 +1115,7 @@ valent_share_plugin_handle_text (ValentSharePlugin *self,
                              G_CONNECT_SWAPPED);
       g_ptr_array_add (self->windows, window);
 
-      gtk_window_present_with_time (window, GDK_CURRENT_TIME);
+      gtk_window_present (window);
     }
 }
 

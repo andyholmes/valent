@@ -408,7 +408,7 @@ messaging_action (GSimpleAction *action,
                                self, 0);
     }
 
-  gtk_window_present_with_time (GTK_WINDOW (self->window), GDK_CURRENT_TIME);
+  gtk_window_present (GTK_WINDOW (self->window));
 }
 
 static const GActionEntry actions[] = {
