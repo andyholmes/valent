@@ -221,7 +221,7 @@ valent_findmyphone_ringer_show (ValentFindmyphoneRinger *ringer)
                             ringer->dialog);
 
   /* Show the dialog */
-  gtk_window_present_with_time (ringer->dialog, GDK_CURRENT_TIME);
+  gtk_window_present (ringer->dialog);
 }
 
 /**

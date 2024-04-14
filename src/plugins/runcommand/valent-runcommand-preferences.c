@@ -213,7 +213,7 @@ runcommand_edit_action (GtkWidget  *widget,
                            G_CALLBACK (on_command_changed),
                            self, 0);
 
-  gtk_window_present_with_time (self->editor, GDK_CURRENT_TIME);
+  gtk_window_present (self->editor);
 }
 
 static void
