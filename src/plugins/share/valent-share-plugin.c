@@ -670,7 +670,6 @@ share_chooser_action (GSimpleAction *action,
   dialog = g_object_new (GTK_TYPE_FILE_DIALOG,
                          "title",           _("Share Files"),
                          "accept-label",    _("Share"),
-                         "select-multiple", TRUE,
                          NULL);
 
   destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
