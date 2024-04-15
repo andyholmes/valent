@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2024-04-14 00:27-0700\n"
+"POT-Creation-Date: 2024-04-14 20:34-0700\n"
 "PO-Revision-Date: 2023-07-03 19:05+0800\n"
 "Last-Translator: sky96111 <sky96111@outlook.com>\n"
 "Language-Team: Chinese Simplified\n"
@@ -858,6 +858,14 @@ msgstr "发送和接收 PING"
 #: src/plugins/ping/valent-ping-plugin.c:37
 msgid "Ping!"
 msgstr "Ping！"
+
+#: src/plugins/pipewire/pipewire.plugin.desktop.in:7
+msgid "PipeWire"
+msgstr ""
+
+#: src/plugins/pipewire/pipewire.plugin.desktop.in:8
+msgid "Integration with PipeWire"
+msgstr "与 PipeWire 集成"
 
 #: src/plugins/presenter/presenter.plugin.desktop.in:7
 msgid "Presenter"

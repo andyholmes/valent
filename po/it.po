@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2024-04-14 00:27-0700\n"
+"POT-Creation-Date: 2024-04-14 20:34-0700\n"
 "PO-Revision-Date: 2024-03-21 03:05+0100\n"
 "Last-Translator: Gianni Lerro <glerro@pm.me>\n"
 "Language-Team: Italian <>\n"
@@ -856,6 +856,15 @@ msgstr "Invia e ricevi ping"
 #: src/plugins/ping/valent-ping-plugin.c:37
 msgid "Ping!"
 msgstr "Ping!"
+
+#: src/plugins/pipewire/pipewire.plugin.desktop.in:7
+msgid "PipeWire"
+msgstr ""
+
+#: src/plugins/pipewire/pipewire.plugin.desktop.in:8
+#, fuzzy
+msgid "Integration with PipeWire"
+msgstr "Integrazione con PulseAudio"
 
 #: src/plugins/presenter/presenter.plugin.desktop.in:7
 msgid "Presenter"
