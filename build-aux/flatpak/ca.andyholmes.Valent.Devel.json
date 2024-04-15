@@ -171,6 +171,26 @@
                 }
             ]
         },
+        {
+            "name" : "pipewire",
+            "buildsystem" : "meson",
+            "builddir" : true,
+            "config-opts" : [
+                "-Dgstreamer=disabled",
+                "-Dman=disabled",
+                "-Dsystemd=disabled",
+                "-Dudev=disabled",
+                "-Dudevrulesdir=disabled",
+                "-Dsession-managers=[]"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.freedesktop.org/pipewire/pipewire.git",
+                    "branch" : "master"
+                }
+            ]
+        },
         "ca.andyholmes.Valent.Tests.json",
         {
             "name" : "valent",
