@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 # pipewire (Pipewire)
-libpipewire_dep = dependency('libpipewire-0.3', version: '>= 0.3')
+libpipewire_dep = dependency('libpipewire-0.3', version: '>= 1.0.0')
 
 # Dependencies
 plugin_pipewire_deps = [
