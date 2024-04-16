@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/schema#",
     "title": "kdeconnect.telephony",
-    "description": "This packet is a telephony event, such as the phone ringing.",
+    "description": "This packet is a telephony event, such as the phone ringing.\n\nNote that both the `sms` event type and the `messageBody` field are deprecated in favor of the SMS plugin.",
     "examples": [
         {
             "id": 0,
@@ -9,7 +9,6 @@
             "body": {
                 "event": "talking",
                 "contactName": "John Smith",
-                "messageBody": "A text message",
                 "phoneNumber": "555-555-5555",
                 "phoneThumbnail": "<base64 encoded JPEG>"
             }
@@ -22,6 +21,17 @@
                 "contactName": "John Smith",
                 "phoneNumber": "555-555-5555",
                 "isCancel": true
+            }
+        },
+        {
+            "id": 0,
+            "type": "kdeconnect.telephony",
+            "body": {
+                "event": "sms",
+                "contactName": "John Smith",
+                "messageBody": "A text message",
+                "phoneNumber": "555-555-5555",
+                "phoneThumbnail": "<base64 encoded JPEG>"
             }
         }
     ],
@@ -42,8 +52,7 @@
         "body": {
             "type": "object",
             "required": [
-                "event",
-                "phoneNumber"
+                "event"
             ],
             "properties": {
                 "event": {
@@ -56,15 +65,15 @@
                     ]
                 },
                 "contactName": {
-                    "type": ["string", "null"],
+                    "type": "string",
                     "description": "The contact name associated with the event."
                 },
                 "messageBody": {
                     "type": "string",
-                    "description": "The message text associated with the event."
+                    "description": "⚠️ Deprecated: The message text associated with the event."
                 },
                 "phoneNumber": {
-                    "type": ["string", "null"],
+                    "type": "string",
                     "description": "The phone number associated with the event."
                 },
                 "phoneThumbnail": {
@@ -79,3 +88,4 @@
         }
     }
 }
+

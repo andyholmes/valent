@@ -63,7 +63,8 @@ A mapping collection of string keys to values.
 
 {MD_HEADER * 4} `Null`
 
-The intentional absence of any object value.
+The intentional absence of any object value. Note that this type is currently
+unused in the protocol and reserved for future use.
 
 {MD_HEADER * 3} Symbols
 
