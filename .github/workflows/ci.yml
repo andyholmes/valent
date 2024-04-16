@@ -213,19 +213,12 @@ jobs:
           name: Tests (${{ matrix.compiler }}, ${{ matrix.suite }})
           path: ${{ steps.test.outputs.log }}
 
-      - name: Coverage (html)
+      - name: Coverage Report
         if: ${{ matrix.compiler == 'gcc' && matrix.suite == 'test' }}
         uses: actions/upload-artifact@v4
         with:
           name: Tests (coverage)
           path: ${{ steps.test.outputs.coverage-html }}
-
-      - name: Coverage (coveralls.io)
-        if: ${{ matrix.compiler == 'gcc' && matrix.suite == 'test' }}
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: ${{ steps.test.outputs.coverage }}
 
   installed-tests:
     name: Tests (Installed)
