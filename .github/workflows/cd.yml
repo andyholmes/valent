@@ -30,14 +30,7 @@ jobs:
           test-coverage: true
           lcov-include: '${{ github.workspace }}/src/*'
 
-      - name: Report
-        continue-on-error: true
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: ${{ steps.test.outputs.coverage }}
-
-      - name: Coverage
+      - name: Coverage Report
         continue-on-error: true
         uses: JamesIves/github-pages-deploy-action@releases/v4
         with:
