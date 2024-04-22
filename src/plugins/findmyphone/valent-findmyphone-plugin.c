@@ -19,7 +19,6 @@ struct _ValentFindmyphonePlugin
   ValentDevicePlugin       parent_instance;
 
   ValentFindmyphoneRinger *ringer;
-  ValentSession           *session;
 };
 
 G_DEFINE_FINAL_TYPE (ValentFindmyphonePlugin, valent_findmyphone_plugin, VALENT_TYPE_DEVICE_PLUGIN)
@@ -30,7 +29,6 @@ valent_findmyphone_plugin_handle_findmyphone_request (ValentFindmyphonePlugin *s
 {
   g_assert (VALENT_IS_FINDMYPHONE_PLUGIN (self));
 
-  valent_session_set_locked (self->session, FALSE);
   valent_findmyphone_ringer_toggle (self->ringer, self);
 }
 
@@ -103,10 +101,7 @@ valent_findmyphone_plugin_destroy (ValentObject *object)
   ValentFindmyphonePlugin *self = VALENT_FINDMYPHONE_PLUGIN (object);
   ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
 
-  /* Release the ringer singleton */
   g_clear_pointer (&self->ringer, valent_findmyphone_ringer_release);
-  self->session = NULL;
-
   valent_device_plugin_set_menu_item (plugin, "device.findmyphone.ring", NULL);
 
   VALENT_OBJECT_CLASS (valent_findmyphone_plugin_parent_class)->destroy (object);
@@ -129,11 +124,7 @@ valent_findmyphone_plugin_constructed (GObject *object)
                                         "device.findmyphone.ring",
                                         _("Ring"),
                                         "phonelink-ring-symbolic");
-
-  /* Acquire the ringer singleton and ensure the ValentSession component is
-   * prepared. */
   self->ringer = valent_findmyphone_ringer_acquire ();
-  self->session = valent_session_get_default ();
 
   G_OBJECT_CLASS (valent_findmyphone_plugin_parent_class)->constructed (object);
 }
