@@ -48,69 +48,69 @@ on_player_state_changed (ValentMPRISAdapter *self,
   if (g_hash_table_size (self->exports) == 0)
     return;
 
-  /* There is at least one export, but @player may be %NULL */
+  /* @player may be %NULL if the active export was just removed */
   if (player == NULL)
     {
       GHashTableIter iter;
 
       g_hash_table_iter_init (&iter, self->exports);
-      g_hash_table_iter_next (&iter, (void **)&player, (void **)&export);
+      g_hash_table_iter_next (&iter, (void **)&player, NULL);
+    }
+
+  g_assert (VALENT_IS_MEDIA_PLAYER (player));
+
+  /* The policy is to favour the player that most recently started playing.
+   *
+   * If a player just started playing it will replace any active export, under
+   * the assumption that it is now the focus of attention.
+   *
+   * If it was stopped or paused, another that is currently playing may become
+   * the active export, but may not replace an existing player.
+   */
+  if (valent_media_player_get_state (player) == VALENT_MEDIA_STATE_PLAYING)
+    {
+      export = g_hash_table_lookup (self->exports, player);
+    }
+  else if (self->active_export != NULL)
+    {
+      export = self->active_export;
     }
   else
     {
-      export = g_hash_table_lookup (self->exports, player);
-
-      /* Bail: it wasn't the exported player that stopped */
-      if (self->active_export && self->active_export != export)
-        return;
-    }
-
-  /* If the player has stopped, look for another one that is active */
-  if (valent_media_player_get_state (player) != VALENT_MEDIA_STATE_PLAYING)
-    {
       GHashTableIter iter;
-      gpointer key, value;
 
       g_hash_table_iter_init (&iter, self->exports);
-
-      while (g_hash_table_iter_next (&iter, &key, &value))
+      while (g_hash_table_iter_next (&iter, (void **)&player, (void **)&export))
         {
-          if (valent_media_player_get_state (key) != VALENT_MEDIA_STATE_PLAYING)
-            continue;
-
-          player = key;
-          export = value;
-          break;
+          if (valent_media_player_get_state (player) == VALENT_MEDIA_STATE_PLAYING)
+            break;
         }
     }
 
   g_assert (VALENT_IS_MPRIS_IMPL (export));
 
-  /* Unexport any current player and replace it with the active player */
   if (self->active_export != export)
     {
       g_autoptr (GError) error = NULL;
 
       g_clear_pointer (&self->active_export, valent_mpris_impl_unexport);
 
-      if (valent_mpris_impl_export (export, self->connection, &error))
-        {
-          self->active_export = export;
-
-          g_object_freeze_notify (G_OBJECT (player));
-          g_object_notify (G_OBJECT (player), "flags");
-          g_object_notify (G_OBJECT (player), "metadata");
-          g_object_notify (G_OBJECT (player), "name");
-          g_object_notify (G_OBJECT (player), "repeat");
-          g_object_notify (G_OBJECT (player), "shuffle");
-          g_object_notify (G_OBJECT (player), "state");
-          g_object_notify (G_OBJECT (player), "volume");
-          g_object_thaw_notify (G_OBJECT (player));
-        }
-      else
+      if (!valent_mpris_impl_export (export, self->connection, &error))
         {
           g_warning ("%s(): %s", G_STRFUNC, error->message);
+          return;
         }
+
+      self->active_export = export;
+      g_object_freeze_notify (G_OBJECT (player));
+      g_object_notify (G_OBJECT (player), "flags");
+      g_object_notify (G_OBJECT (player), "metadata");
+      g_object_notify (G_OBJECT (player), "name");
+      g_object_notify (G_OBJECT (player), "repeat");
+      g_object_notify (G_OBJECT (player), "shuffle");
+      g_object_notify (G_OBJECT (player), "state");
+      g_object_notify (G_OBJECT (player), "volume");
+      g_object_thaw_notify (G_OBJECT (player));
     }
 }
 
