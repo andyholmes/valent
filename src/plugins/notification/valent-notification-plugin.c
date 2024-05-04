@@ -814,6 +814,17 @@ notification_close_action (GSimpleAction *action,
 }
 
 static void
+on_dialog_destroyed (ValentNotificationDialog *dialog,
+                     GHashTable               *dialogs)
+{
+  ValentNotification *notification = NULL;
+
+  notification = valent_notification_dialog_get_notification (dialog);
+  if (notification != NULL)
+    g_hash_table_remove (dialogs, notification);
+}
+
+static void
 notification_reply_action (GSimpleAction *action,
                            GVariant      *parameter,
                            gpointer       user_data)
@@ -837,8 +848,8 @@ notification_reply_action (GSimpleAction *action,
   /* If the message is empty, we're being asked to show the dialog */
   if (message == NULL || *message == '\0')
     {
-      g_autoptr (ValentNotificationDialog) dialog = NULL;
       g_autoptr (ValentNotification) notification = NULL;
+      ValentNotificationDialog *dialog = NULL;
 
       if (!gtk_is_initialized ())
         {
@@ -858,9 +869,15 @@ notification_reply_action (GSimpleAction *action,
                                  "notification", notification,
                                  "reply-id",     reply_id,
                                  NULL);
-          g_hash_table_insert (self->dialogs,
-                               g_object_ref (notification),
-                               g_object_ref_sink (dialog));
+          g_signal_connect_data (dialog,
+                                 "destroy",
+                                 G_CALLBACK (on_dialog_destroyed),
+                                 g_hash_table_ref (self->dialogs),
+                                 (void *)g_hash_table_unref,
+                                 G_CONNECT_DEFAULT);
+          g_hash_table_replace (self->dialogs,
+                                g_object_ref (notification),
+                                dialog);
         }
 
       gtk_window_present (GTK_WINDOW (dialog));
@@ -989,9 +1006,13 @@ valent_notification_plugin_destroy (ValentObject *object)
 
   valent_notification_plugin_watch_notifications (self, FALSE);
 
-  /* Close any open reply dialogs */
+  /* Clear the cache and close any open reply dialogs */
   g_clear_pointer (&self->cache, g_hash_table_unref);
-  g_clear_pointer (&self->dialogs, g_hash_table_unref);
+  if (self->dialogs != NULL)
+    {
+      g_hash_table_remove_all (self->dialogs);
+      g_clear_pointer (&self->dialogs, g_hash_table_unref);
+    }
 
   /* Cancel any pending operations */
   g_cancellable_cancel (self->cancellable);
