@@ -19,7 +19,6 @@ struct _ValentTelephonyPlugin
 
   gpointer           prev_input;
   gpointer           prev_output;
-  gboolean           prev_paused;
 };
 
 G_DEFINE_FINAL_TYPE (ValentTelephonyPlugin, valent_telephony_plugin, VALENT_TYPE_DEVICE_PLUGIN)
@@ -128,15 +127,6 @@ valent_telephony_plugin_restore_media_state (ValentTelephonyPlugin *self)
 
   g_clear_pointer (&self->prev_output, stream_state_restore);
   g_clear_pointer (&self->prev_input, stream_state_restore);
-
-  if (self->prev_paused)
-    {
-      ValentMedia *media;
-
-      media = valent_media_get_default ();
-      valent_media_unpause (media);
-      self->prev_paused = FALSE;
-    }
 }
 
 static void
@@ -190,16 +180,6 @@ valent_telephony_plugin_update_media_state (ValentTelephonyPlugin *self,
         self->prev_input = stream_state_new (stream, input_level);
       else
         stream_state_update (self->prev_input, stream, input_level);
-    }
-
-  /* Media Players */
-  if (pause)
-    {
-      ValentMedia *media;
-
-      media = valent_media_get_default ();
-      valent_media_pause (media);
-      self->prev_paused = TRUE;
     }
 }
 
@@ -381,7 +361,6 @@ valent_telephony_plugin_update_state (ValentDevicePlugin *plugin,
     {
       g_clear_pointer (&self->prev_output, stream_state_free);
       g_clear_pointer (&self->prev_input, stream_state_free);
-      self->prev_paused = FALSE;
     }
 
   valent_extension_toggle_actions (VALENT_EXTENSION (plugin), available);

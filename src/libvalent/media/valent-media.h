@@ -27,10 +27,6 @@ void          valent_media_export_player   (ValentMedia       *media,
 VALENT_AVAILABLE_IN_1_0
 void          valent_media_unexport_player (ValentMedia       *media,
                                             ValentMediaPlayer *player);
-VALENT_AVAILABLE_IN_1_0
-void          valent_media_pause           (ValentMedia       *media);
-VALENT_AVAILABLE_IN_1_0
-void          valent_media_unpause         (ValentMedia       *media);
 
 G_END_DECLS
 
