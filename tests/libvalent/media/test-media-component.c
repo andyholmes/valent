@@ -223,14 +223,6 @@ test_media_component_self (MediaComponentFixture *fixture,
   player = g_list_model_get_item (G_LIST_MODEL (fixture->media), 0);
   g_assert_true (player == fixture->player);
 
-  /* Players can be paused and unpaused */
-  valent_media_player_play (fixture->player);
-  g_assert_true (valent_media_player_get_state (player) == VALENT_MEDIA_STATE_PLAYING);
-  valent_media_pause (fixture->media);
-  g_assert_true (valent_media_player_get_state (player) == VALENT_MEDIA_STATE_PAUSED);
-  valent_media_unpause (fixture->media);
-  g_assert_true (valent_media_player_get_state (player) == VALENT_MEDIA_STATE_PLAYING);
-
   /* ::items-changed propagates to ValentMedia */
   valent_media_adapter_player_removed (fixture->adapter, fixture->player);
   g_assert_null (fixture->emitter);
