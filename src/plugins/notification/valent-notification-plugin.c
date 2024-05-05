@@ -351,12 +351,10 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
   ValentDevice *device;
   g_autoptr (GNotification) notification = NULL;
   g_autoptr (GIcon) icon = NULL;
-  g_auto (GStrv) ticker_strv = NULL;
   const char *id;
   const char *app_name = NULL;
   const char *title = NULL;
   const char *text = NULL;
-  const char *ticker;
   const char *reply_id;
   JsonArray *actions;
 
@@ -364,7 +362,7 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
   if (G_IS_ICON (gicon))
     icon = g_object_ref (gicon);
 
-  /* Ensure we have a notification id */
+  /* Ensure we have a notification id, appName and title */
   if (!valent_packet_get_string (packet, "id", &id))
     {
       g_debug ("%s(): expected \"id\" field holding a string",
@@ -372,7 +370,6 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
       return;
     }
 
-  /* This should never be absent, but we check anyways */
   if (!valent_packet_get_string (packet, "appName", &app_name))
     {
       g_debug ("%s(): expected \"appName\" field holding a string",
@@ -380,27 +377,26 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
       return;
     }
 
-  /* If `title` or `text` are missing, try to compose them from `ticker` */
-  if ((!valent_packet_get_string (packet, "title", &title) ||
-       !valent_packet_get_string (packet, "text", &text)) &&
-      valent_packet_get_string (packet, "ticker", &ticker))
+  if (!valent_packet_get_string (packet, "title", &title))
     {
-      ticker_strv = g_strsplit (ticker, ": ", 2);
-      title = ticker_strv[0];
-      text = ticker_strv[1];
-    }
-
-  if (title == NULL || text == NULL)
-    {
-      g_debug ("%s(): expected either title and text, or ticker",
+      g_debug ("%s(): expected \"title\" field holding a string",
                G_STRFUNC);
       return;
     }
 
+  if (!valent_packet_get_string (packet, "text", &text))
+    {
+      if (g_strcmp0 (app_name, title) != 0)
+        {
+          text = title;
+          title = app_name;
+        }
+    }
+
   device = valent_extension_get_object (VALENT_EXTENSION (self));
 
-  /* Start building the GNotification */
   notification = g_notification_new (title);
+  g_notification_set_body (notification, text);
 
   /* Repliable Notification */
   if (valent_packet_get_string (packet, "requestReplyId", &reply_id))
@@ -432,6 +428,9 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
                                              target);
     }
 
+  if (icon != NULL)
+    g_notification_set_icon (notification, icon);
+
   /* Notification Actions */
   if (valent_packet_get_array (packet, "actions", &actions))
     {
@@ -458,44 +457,6 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
                                                  target);
         }
     }
-
-  /* Special cases.
-   *
-   * In some cases, usually on Android, a notification "type" can be inferred
-   * from the ID string or the appName is duplicated as the title.
-   */
-  if (g_strrstr (id, "MissedCall") != NULL)
-    {
-      g_notification_set_title (notification, title);
-      g_notification_set_body (notification, text);
-
-      if (icon == NULL)
-        icon = g_themed_icon_new ("call-missed-symbolic");
-    }
-  else if (g_strrstr (id, "sms") != NULL)
-    {
-      g_notification_set_title (notification, title);
-      g_notification_set_body (notification, text);
-
-      if (icon == NULL)
-        icon = g_themed_icon_new ("sms-symbolic");
-    }
-  else if (g_strcmp0 (app_name, title) == 0)
-    {
-      g_notification_set_title (notification, title);
-      g_notification_set_body (notification, text);
-    }
-  else
-    {
-      g_autofree char *ticker_body = NULL;
-
-      ticker_body = g_strdup_printf ("%s: %s", title, text);
-      g_notification_set_title (notification, app_name);
-      g_notification_set_body (notification, ticker_body);
-    }
-
-  if (icon != NULL)
-    g_notification_set_icon (notification, icon);
 
   valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),
                                           id,
