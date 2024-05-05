@@ -249,7 +249,6 @@ static void
 valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
                                           JsonNode              *packet)
 {
-  ValentDevice *device;
   const char *event;
   const char *sender;
   g_autoptr (GNotification) notification = NULL;
@@ -284,7 +283,6 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
    * events from the same sender supersede previous events, and replace the
    * older notifications.
    */
-  device = valent_extension_get_object (VALENT_EXTENSION (self));
 
   /* This is a cancelled event */
   if (valent_packet_check_field (packet, "isCancel"))
@@ -305,7 +303,10 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
 
   if (g_str_equal (event, "ringing"))
     {
+      ValentDevice *device = NULL;
+
       g_notification_set_body (notification, _("Incoming call"));
+      device = valent_extension_get_object (VALENT_EXTENSION (self));
       valent_notification_add_device_button (notification,
                                              device,
                                              _("Mute"),
