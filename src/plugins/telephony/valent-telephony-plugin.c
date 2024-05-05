@@ -280,7 +280,10 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
    */
   if (!valent_packet_get_string (packet, "contactName", &sender) &&
       !valent_packet_get_string (packet, "phoneNumber", &sender))
-    sender = _("Unknown Contact");
+    {
+      /* TRANSLATORS: An unknown caller, with no name or phone number */
+      sender = C_("contact identity", "Unknown");
+    }
 
   /* This is a cancelled event */
   if (valent_packet_check_field (packet, "isCancel"))
@@ -305,6 +308,7 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
     {
       ValentDevice *device = NULL;
 
+      /* TRANSLATORS: The phone is ringing */
       g_notification_set_body (notification, _("Incoming call"));
       device = valent_extension_get_object (VALENT_EXTENSION (self));
       valent_notification_add_device_button (notification,
@@ -317,6 +321,7 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
     }
   else if (g_str_equal (event, "talking"))
     {
+      /* TRANSLATORS: The phone has been answered */
       g_notification_set_body (notification, _("Ongoing call"));
     }
 
@@ -376,6 +381,7 @@ valent_telephony_plugin_update_state (ValentDevicePlugin *plugin,
     {
       g_clear_pointer (&self->prev_output, stream_state_free);
       g_clear_pointer (&self->prev_input, stream_state_free);
+      self->prev_paused = FALSE;
     }
 
   valent_extension_toggle_actions (VALENT_EXTENSION (plugin), available);
