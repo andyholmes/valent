@@ -271,18 +271,16 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
       return;
     }
 
-  /* Sender*/
+  /* Ensure there is a string representing the sender, so it can be used as the
+   * notification ID to handle interleaved events from multiple senders.
+   *
+   * Because we only support voice events (i.e. `ringing` and `talking`), we
+   * can be certain that subsequent events from the same sender supersede
+   * previous events, and replace the older notifications.
+   */
   if (!valent_packet_get_string (packet, "contactName", &sender) &&
       !valent_packet_get_string (packet, "phoneNumber", &sender))
     sender = _("Unknown Contact");
-
-  /* The sender is injected into the notification ID, since it's possible an
-   * event could occur for multiple callers concurrently.
-   *
-   * Because we only support voice events, we can be certain that subsequent
-   * events from the same sender supersede previous events, and replace the
-   * older notifications.
-   */
 
   /* This is a cancelled event */
   if (valent_packet_check_field (packet, "isCancel"))
@@ -296,7 +294,9 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
   /* Adjust volume/pause media */
   valent_telephony_plugin_update_media_state (self, event);
 
-  /* Notify user */
+  /* The notification plugin handles SMS/MMS and missed call notifications,
+   * while the telephony plugin must handle incoming and ongoing calls.
+   */
   notification = g_notification_new (sender);
   icon = valent_telephony_plugin_get_event_icon (packet, event);
   g_notification_set_icon (notification, icon);
