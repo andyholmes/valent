@@ -398,36 +398,6 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
   notification = g_notification_new (title);
   g_notification_set_body (notification, text);
 
-  /* Repliable Notification */
-  if (valent_packet_get_string (packet, "requestReplyId", &reply_id))
-    {
-      g_autoptr (ValentNotification) incoming = NULL;
-      const char *time_str = NULL;
-      int64_t time = 0;
-      GVariant *target;
-
-      if (valent_packet_get_string (packet, "time", &time_str))
-        time = g_ascii_strtoll (time_str, NULL, 10);
-
-      incoming = g_object_new (VALENT_TYPE_NOTIFICATION,
-                               "id",          id,
-                               "application", app_name,
-                               "icon",        icon,
-                               "title",       title,
-                               "body",        text,
-                               "time",        time,
-                               NULL);
-      target = g_variant_new ("(ssv)",
-                              reply_id,
-                              "",
-                              valent_notification_serialize (incoming));
-
-      valent_notification_set_device_action (notification,
-                                             device,
-                                             "notification.reply",
-                                             target);
-    }
-
   if (icon != NULL)
     g_notification_set_icon (notification, icon);
 
@@ -456,6 +426,36 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
                                                  "notification.action",
                                                  target);
         }
+    }
+
+  /* Repliable Notification */
+  if (valent_packet_get_string (packet, "requestReplyId", &reply_id))
+    {
+      g_autoptr (ValentNotification) incoming = NULL;
+      const char *time_str = NULL;
+      int64_t time = 0;
+      GVariant *target;
+
+      if (valent_packet_get_string (packet, "time", &time_str))
+        time = g_ascii_strtoll (time_str, NULL, 10);
+
+      incoming = g_object_new (VALENT_TYPE_NOTIFICATION,
+                               "id",          id,
+                               "application", app_name,
+                               "icon",        icon,
+                               "title",       title,
+                               "body",        text,
+                               "time",        time,
+                               NULL);
+      target = g_variant_new ("(ssv)",
+                              reply_id,
+                              "",
+                              valent_notification_serialize (incoming));
+
+      valent_notification_set_device_action (notification,
+                                             device,
+                                             "notification.reply",
+                                             target);
     }
 
   valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),
