@@ -12,132 +12,241 @@
 
 #include "valent-telephony-plugin.h"
 
-
-struct _ValentTelephonyPlugin
-{
-  ValentDevicePlugin  parent_instance;
-
-  gpointer           prev_input;
-  gpointer           prev_output;
-};
-
-G_DEFINE_FINAL_TYPE (ValentTelephonyPlugin, valent_telephony_plugin, VALENT_TYPE_DEVICE_PLUGIN)
-
-
 /*
- * StreamState Helpers
+ * MediaState Helpers
  */
 typedef struct
 {
-  GWeakRef      stream;
-
-  unsigned int  current_level;
-  unsigned int  current_muted : 1;
-  unsigned int  original_level;
-  unsigned int  original_muted : 1;
+  ValentMixerStream *stream;
+  unsigned int       current_level;
+  unsigned int       current_muted : 1;
+  unsigned int       original_level;
+  unsigned int       original_muted : 1;
 } StreamState;
 
+static void
+on_stream_changed (StreamState *state)
+{
+  g_signal_handlers_disconnect_by_data (valent_mixer_get_default (), state);
+  g_clear_object (&state->stream);
+}
+
 static StreamState *
-stream_state_new (ValentMixerStream *stream,
-                  int                level)
+stream_state_new (ValentMixerStream *stream)
 {
   StreamState *state;
+  ValentMixerDirection direction;
 
   state = g_new0 (StreamState, 1);
-  g_weak_ref_init (&state->stream, stream);
+  state->stream = g_object_ref (stream);
   state->original_level = valent_mixer_stream_get_level (stream);
   state->original_muted = valent_mixer_stream_get_muted (stream);
+  state->current_level = state->original_level;
+  state->current_muted = state->original_muted;
 
-  if (level == 0)
-    {
-      state->current_level = valent_mixer_stream_get_level (stream);
-      state->current_muted = TRUE;
-
-      valent_mixer_stream_set_muted (stream, TRUE);
-    }
-  else if (level > 0)
-    {
-      state->current_level = level;
-      state->current_muted = valent_mixer_stream_get_muted (stream);
-
-      valent_mixer_stream_set_level (stream, level);
-    }
+  direction = valent_mixer_stream_get_direction (stream);
+  g_signal_connect_data (valent_mixer_get_default (),
+                         direction == VALENT_MIXER_INPUT
+                           ? "notify::default-input"
+                           : "notify::default-output",
+                         G_CALLBACK (on_stream_changed),
+                         state, NULL,
+                         G_CONNECT_SWAPPED);
 
   return state;
 }
 
 static void
-stream_state_update (StreamState       *state,
-                     ValentMixerStream *stream,
-                     int                level)
+stream_state_free (gpointer data)
 {
-  g_autoptr (ValentMixerStream) current_stream = NULL;
+  StreamState *state = data;
 
-  /* If the active stream has changed, bail instead of guessing what to do */
-  if ((current_stream = g_weak_ref_get (&state->stream)) != stream)
+  if (state->stream != NULL)
     {
-      g_weak_ref_set (&state->stream, NULL);
-      return;
+      g_signal_handlers_disconnect_by_data (valent_mixer_get_default (), state);
+      g_clear_object (&state->stream);
     }
-
-  if (level == 0)
-    {
-      state->current_muted = TRUE;
-      valent_mixer_stream_set_muted (stream, TRUE);
-    }
-  else if (level > 0)
-    {
-      state->current_level = level;
-      valent_mixer_stream_set_level (stream, level);
-    }
+  g_free (state);
 }
 
 static inline void
 stream_state_restore (gpointer data)
 {
   StreamState *state = data;
-  g_autoptr (ValentMixerStream) stream = NULL;
 
-  if ((stream = g_weak_ref_get (&state->stream)) != NULL)
+  if (state->stream != NULL)
     {
-      if (valent_mixer_stream_get_level (stream) == state->current_level)
-        valent_mixer_stream_set_level (stream, state->original_level);
+      if (valent_mixer_stream_get_level (state->stream) == state->current_level)
+        valent_mixer_stream_set_level (state->stream, state->original_level);
 
-      if (valent_mixer_stream_get_muted (stream) == state->current_muted)
-        valent_mixer_stream_set_muted (stream, state->original_muted);
+      if (valent_mixer_stream_get_muted (state->stream) == state->current_muted)
+        valent_mixer_stream_set_muted (state->stream, state->original_muted);
     }
-
-  g_weak_ref_clear (&state->stream);
-  g_clear_pointer (&state, g_free);
-}
-
-static inline void
-stream_state_free (gpointer data)
-{
-  StreamState *state = data;
-
-  g_weak_ref_clear (&state->stream);
-  g_clear_pointer (&state, g_free);
+  stream_state_free (state);
 }
 
 static void
-valent_telephony_plugin_restore_media_state (ValentTelephonyPlugin *self)
+stream_state_update (StreamState *state,
+                     int          level)
 {
-  g_assert (VALENT_IS_TELEPHONY_PLUGIN (self));
+  if (state->stream == NULL)
+    return;
 
-  g_clear_pointer (&self->prev_output, stream_state_restore);
-  g_clear_pointer (&self->prev_input, stream_state_restore);
+  if (level == 0)
+    {
+      state->current_muted = TRUE;
+      valent_mixer_stream_set_muted (state->stream, TRUE);
+    }
+  else if (level > 0)
+    {
+      state->current_level = level;
+      valent_mixer_stream_set_level (state->stream, level);
+    }
 }
+
+typedef struct
+{
+  GPtrArray *players;
+  StreamState *speakers;
+  StreamState *microphone;
+} MediaState;
+
+static void
+on_player_changed (ValentMediaPlayer *player,
+                   GParamSpec        *pspec,
+                   GPtrArray         *players)
+{
+  /* The paused state may be deferred, but any other state stops tracking */
+  if (valent_media_player_get_state (player) != VALENT_MEDIA_STATE_PAUSED)
+    {
+      g_signal_handlers_disconnect_by_data (player, players);
+      g_ptr_array_remove (players, player);
+    }
+}
+
+static MediaState *
+media_state_new (void)
+{
+  MediaState *state;
+
+  state = g_new0 (MediaState, 1);
+  state->players = g_ptr_array_new ();
+
+  return state;
+}
+
+static inline void
+media_state_free (gpointer data)
+{
+  MediaState *state = data;
+
+  g_signal_handlers_disconnect_by_data (valent_mixer_get_default (), state);
+  g_clear_pointer (&state->players, g_ptr_array_unref);
+  g_clear_pointer (&state->microphone, g_free);
+  g_clear_pointer (&state->speakers, g_free);
+  g_free (state);
+}
+
+static inline void
+media_state_restore (gpointer data)
+{
+  MediaState *state = data;
+
+  g_ptr_array_foreach (state->players, (void *)valent_media_player_play, NULL);
+  g_clear_pointer (&state->players, g_ptr_array_unref);
+  g_clear_pointer (&state->speakers, stream_state_restore);
+  g_clear_pointer (&state->microphone, stream_state_restore);
+  g_free (state);
+}
+
+static void
+media_state_pause_players (MediaState *state)
+{
+  ValentMedia *media = valent_media_get_default ();
+  unsigned int n_players = 0;
+
+  n_players = g_list_model_get_n_items (G_LIST_MODEL (media));
+  for (unsigned int i = 0; i < n_players; i++)
+    {
+      g_autoptr (ValentMediaPlayer) player = NULL;
+
+      player = g_list_model_get_item (G_LIST_MODEL (media), i);
+
+      /* Skip players already being tracked */
+      if (g_ptr_array_find (state->players, player, NULL))
+        continue;
+
+      if (valent_media_player_get_state (player) != VALENT_MEDIA_STATE_PLAYING)
+        continue;
+
+      valent_media_player_pause (player);
+      g_ptr_array_add (state->players, player);
+
+      /* Stop tracking a player if its state changes or it's destroyed */
+      g_signal_connect_data (player,
+                             "notify::state",
+                             G_CALLBACK (on_player_changed),
+                             g_ptr_array_ref (state->players),
+                             (void *)g_ptr_array_unref,
+                             G_CONNECT_DEFAULT);
+      g_signal_connect_data (player,
+                             "destroy",
+                             G_CALLBACK (g_ptr_array_remove),
+                             g_ptr_array_ref (state->players),
+                             (void *)g_ptr_array_unref,
+                             G_CONNECT_SWAPPED);
+    }
+}
+
+static void
+media_state_update (MediaState *state,
+                    int         output_level,
+                    int         input_level,
+                    gboolean    pause)
+{
+  ValentMixer *mixer = valent_mixer_get_default ();
+  ValentMixerStream *stream = NULL;
+
+  stream = valent_mixer_get_default_output (mixer);
+  if (stream != NULL && output_level >= 0)
+    {
+      if (state->speakers == NULL)
+        state->speakers = stream_state_new (stream);
+      stream_state_update (state->speakers, output_level);
+    }
+
+  stream = valent_mixer_get_default_input (mixer);
+  if (stream != NULL && input_level >= 0)
+    {
+      if (state->microphone == NULL)
+        state->microphone = stream_state_new (stream);
+      stream_state_update (state->microphone, input_level);
+    }
+
+  if (pause)
+    media_state_pause_players (state);
+}
+
+/*
+ * Plugin
+ */
+struct _ValentTelephonyPlugin
+{
+  ValentDevicePlugin  parent_instance;
+
+  MediaState         *media_state;
+};
+
+G_DEFINE_FINAL_TYPE (ValentTelephonyPlugin, valent_telephony_plugin, VALENT_TYPE_DEVICE_PLUGIN)
+
 
 static void
 valent_telephony_plugin_update_media_state (ValentTelephonyPlugin *self,
                                             const char            *event)
 {
-  GSettings *settings;
-  ValentMixer *mixer;
-  ValentMixerStream *stream;
-  int output_level;
-  int input_level;
+  GSettings *settings = NULL;
+  int output_level = -1;
+  int input_level = -1;
   gboolean pause = FALSE;
 
   g_assert (VALENT_IS_TELEPHONY_PLUGIN (self));
@@ -163,24 +272,9 @@ valent_telephony_plugin_update_media_state (ValentTelephonyPlugin *self,
       g_return_if_reached ();
     }
 
-  /* Speakers & Microphone */
-  mixer = valent_mixer_get_default ();
-
-  if ((stream = valent_mixer_get_default_output (mixer)) != NULL)
-    {
-      if (self->prev_output == NULL)
-        self->prev_output = stream_state_new (stream, output_level);
-      else
-        stream_state_update (self->prev_output, stream, output_level);
-    }
-
-  if ((stream = valent_mixer_get_default_input (mixer)) != NULL)
-    {
-      if (self->prev_input == NULL)
-        self->prev_input = stream_state_new (stream, input_level);
-      else
-        stream_state_update (self->prev_input, stream, input_level);
-    }
+  if (self->media_state == NULL)
+    self->media_state = media_state_new ();
+  media_state_update (self->media_state, output_level, input_level, pause);
 }
 
 static GIcon *
@@ -268,7 +362,7 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
   /* This is a cancelled event */
   if (valent_packet_check_field (packet, "isCancel"))
     {
-      valent_telephony_plugin_restore_media_state (self);
+      g_clear_pointer (&self->media_state, media_state_restore);
       valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self),
                                               sender);
       return;
@@ -355,13 +449,10 @@ valent_telephony_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  /* Clear the stream state, but don't restore it as there may still be an
+  /* Clear the media state, but don't restore it as there may still be an
    * event in progress. */
   if (!available)
-    {
-      g_clear_pointer (&self->prev_output, stream_state_free);
-      g_clear_pointer (&self->prev_input, stream_state_free);
-    }
+    g_clear_pointer (&self->media_state, media_state_free);
 
   valent_extension_toggle_actions (VALENT_EXTENSION (plugin), available);
 }
@@ -391,8 +482,7 @@ valent_telephony_plugin_destroy (ValentObject *object)
 {
   ValentTelephonyPlugin *self = VALENT_TELEPHONY_PLUGIN (object);
 
-  g_clear_pointer (&self->prev_output, stream_state_free);
-  g_clear_pointer (&self->prev_input, stream_state_free);
+  g_clear_pointer (&self->media_state, media_state_free);
 
   VALENT_OBJECT_CLASS (valent_telephony_plugin_parent_class)->destroy (object);
 }
