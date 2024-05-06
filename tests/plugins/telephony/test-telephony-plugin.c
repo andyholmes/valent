@@ -5,12 +5,17 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
+#include "valent-mock-media-player.h"
+
 typedef struct
 {
   ValentMixerAdapter *adapter;
   ValentMixerStream  *speakers;
   ValentMixerStream  *headphones;
   ValentMixerStream  *microphone;
+  ValentMedia        *media;
+  ValentMediaPlayer  *player1;
+  ValentMediaPlayer  *player2;
 } MixerInfo;
 
 static void
@@ -18,12 +23,15 @@ mixer_info_free (gpointer data)
 {
   MixerInfo *info = data;
 
-  /* NOTE: we need to finalize the mixer singleton between tests */
+  /* NOTE: we need to finalize the singletons between tests */
   v_assert_finalize_object (valent_mixer_get_default ());
+  v_assert_finalize_object (valent_media_get_default ());
 
   g_clear_object (&info->speakers);
   g_clear_object (&info->headphones);
   g_clear_object (&info->microphone);
+  g_clear_object (&info->player1);
+  g_clear_object (&info->player2);
   g_free (info);
 }
 
@@ -55,11 +63,15 @@ telephony_plugin_fixture_set_up (ValentTestFixture *fixture,
                                    "direction",   VALENT_MIXER_INPUT,
                                    "level",       100,
                                    NULL);
+  info->player1 = g_object_new (VALENT_TYPE_MOCK_MEDIA_PLAYER, NULL);
+  info->player2 = g_object_new (VALENT_TYPE_MOCK_MEDIA_PLAYER, NULL);
   valent_test_fixture_set_data (fixture, info, mixer_info_free);
 
   valent_mixer_adapter_stream_added (info->adapter, info->speakers);
   valent_mixer_adapter_stream_added (info->adapter, info->microphone);
   valent_mixer_adapter_stream_added (info->adapter, info->headphones);
+  valent_media_export_player (valent_media_get_default (), info->player1);
+  valent_media_export_player (valent_media_get_default (), info->player2);
 }
 
 static void
@@ -85,11 +97,18 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   JsonNode *packet;
   gboolean watch = FALSE;
 
+  valent_media_player_play (info->player1);
   valent_test_watch_signal (info->speakers, "notify", &watch);
   valent_test_watch_signal (info->microphone, "notify", &watch);
-
   valent_test_fixture_connect (fixture, TRUE);
 
+  /* Receive an unanswered call event-chain. What we expect is:
+   *
+   * 1. Phone rings
+   *    i. speaker volume is lowered to %15
+   * 2. Phone is unanswered
+   *    i. speakers are raised to 100%
+   */
   VALENT_TEST_CHECK ("Plugin handles a `ringing` event");
   packet = valent_test_fixture_lookup_packet (fixture, "ringing");
   valent_test_fixture_handle_packet (fixture, packet);
@@ -101,6 +120,8 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->microphone), ==, FALSE);
   g_assert_cmpuint (valent_mixer_stream_get_level (info->headphones), ==, 100);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->headphones), ==, FALSE);
+  g_assert_cmpuint (valent_media_player_get_state (info->player1), ==, VALENT_MEDIA_STATE_PLAYING);
+  g_assert_cmpuint (valent_media_player_get_state (info->player2), ==, VALENT_MEDIA_STATE_STOPPED);
 
   VALENT_TEST_CHECK ("Plugin handles a `isCancel` event, following a `ringing` event");
   packet = valent_test_fixture_lookup_packet (fixture, "ringing-cancel");
@@ -113,14 +134,21 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->microphone), ==, FALSE);
   g_assert_cmpuint (valent_mixer_stream_get_level (info->headphones), ==, 100);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->headphones), ==, FALSE);
+  g_assert_cmpuint (valent_media_player_get_state (info->player1), ==, VALENT_MEDIA_STATE_PLAYING);
+  g_assert_cmpuint (valent_media_player_get_state (info->player2), ==, VALENT_MEDIA_STATE_STOPPED);
 
   /* Receive an answered call event-chain. What we expect is:
    *
-   * 1. Phone rings; speaker volume is lowered to %15
-   * 3. Phone is answered; speakers are muted,
-   *                       microphone is muted
-   * 4. Phone is hung-up; speakers are raised to 100% and unmuted,
-   *                      microphone is unmuted
+   * 1. Phone rings
+   *    i. speaker volume is lowered to %15
+   * 2. Phone is answered
+   *    i. speakers are muted
+   *    ii. microphone is muted
+   *    iii. media is paused
+   * 3. Phone is hung-up
+   *    i. speakers are raised to 100% and unmuted
+   *    ii. microphone is unmuted
+   *    iii. media is unpaused
    */
   VALENT_TEST_CHECK ("Plugin handles a `ringing` event");
   packet = valent_test_fixture_lookup_packet (fixture, "ringing");
@@ -133,6 +161,8 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->microphone), ==, FALSE);
   g_assert_cmpuint (valent_mixer_stream_get_level (info->headphones), ==, 100);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->headphones), ==, FALSE);
+  g_assert_cmpuint (valent_media_player_get_state (info->player1), ==, VALENT_MEDIA_STATE_PLAYING);
+  g_assert_cmpuint (valent_media_player_get_state (info->player2), ==, VALENT_MEDIA_STATE_STOPPED);
 
   VALENT_TEST_CHECK ("Plugin handles a `talking` event, following a `ringing` event");
   packet = valent_test_fixture_lookup_packet (fixture, "talking");
@@ -145,6 +175,8 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->microphone), ==, TRUE);
   g_assert_cmpuint (valent_mixer_stream_get_level (info->headphones), ==, 100);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->headphones), ==, FALSE);
+  g_assert_cmpuint (valent_media_player_get_state (info->player1), ==, VALENT_MEDIA_STATE_PAUSED);
+  g_assert_cmpuint (valent_media_player_get_state (info->player2), ==, VALENT_MEDIA_STATE_STOPPED);
 
   VALENT_TEST_CHECK ("Plugin handles a `isCancel` event, following a `talking` event");
   packet = valent_test_fixture_lookup_packet (fixture, "talking-cancel");
@@ -157,16 +189,39 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->microphone), ==, FALSE);
   g_assert_cmpuint (valent_mixer_stream_get_level (info->headphones), ==, 100);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->headphones), ==, FALSE);
+  g_assert_cmpuint (valent_media_player_get_state (info->player1), ==, VALENT_MEDIA_STATE_PLAYING);
+  g_assert_cmpuint (valent_media_player_get_state (info->player2), ==, VALENT_MEDIA_STATE_STOPPED);
+
+  valent_test_watch_clear (info->speakers, &watch);
+  valent_test_watch_clear (info->microphone, &watch);
+}
+
+static void
+test_telephony_plugin_handle_mixer (ValentTestFixture *fixture,
+                                    gconstpointer      user_data)
+{
+  MixerInfo *info = fixture->data;
+  JsonNode *packet;
+  gboolean watch = FALSE;
+
+  valent_media_player_play (info->player1);
+  valent_test_watch_signal (info->speakers, "notify", &watch);
+  valent_test_watch_signal (info->microphone, "notify", &watch);
+  valent_test_fixture_connect (fixture, TRUE);
 
   /* Receive an answered call event-chain. In this case, emulate inserting
    * headphones after the phone started ringing. Thus what we expect is:
    *
-   * 1. Phone rings; speaker volume is lowered to %15
-   * 2. Headphones are plugged in
-   * 3. Phone is answered; speakers & headphones remain in their current state,
-   *                       microphone is muted
-   * 4. Phone is hung-up; speakers & headphones remain in their current state,
-   *                      microphone is unmuted
+   * 1. Phone rings
+   *    i. speaker volume is lowered to %15
+   * 2. Phone is answered
+   *    i. speakers remain unchanged
+   *    ii. microphone is muted
+   *    iii. media is paused
+   * 3. Phone is hung-up
+   *    i. speakers remain unchanged
+   *    ii. microphone is unmuted
+   *    iii. media is unpaused
    */
   VALENT_TEST_CHECK ("Plugin handles a `ringing` event");
   packet = valent_test_fixture_lookup_packet (fixture, "ringing");
@@ -179,9 +234,13 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->microphone), ==, FALSE);
   g_assert_cmpuint (valent_mixer_stream_get_level (info->headphones), ==, 100);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->headphones), ==, FALSE);
+  g_assert_cmpuint (valent_media_player_get_state (info->player1), ==, VALENT_MEDIA_STATE_PLAYING);
+  g_assert_cmpuint (valent_media_player_get_state (info->player2), ==, VALENT_MEDIA_STATE_STOPPED);
+
+  /* User inserts headphones */
   valent_mixer_adapter_set_default_output (info->adapter, info->headphones);
 
-  VALENT_TEST_CHECK ("Plugin handles a `talking` event, following a `ringing` event");
+  VALENT_TEST_CHECK ("Plugin handles an audio change between a `ringing` and `talking` event");
   packet = valent_test_fixture_lookup_packet (fixture, "talking");
   valent_test_fixture_handle_packet (fixture, packet);
   valent_test_await_boolean (&watch);
@@ -192,6 +251,8 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->microphone), ==, TRUE);
   g_assert_cmpuint (valent_mixer_stream_get_level (info->headphones), ==, 100);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->headphones), ==, FALSE);
+  g_assert_cmpuint (valent_media_player_get_state (info->player1), ==, VALENT_MEDIA_STATE_PAUSED);
+  g_assert_cmpuint (valent_media_player_get_state (info->player2), ==, VALENT_MEDIA_STATE_STOPPED);
 
   VALENT_TEST_CHECK ("Plugin handles a `isCancel` event, following a `talking` event");
   packet = valent_test_fixture_lookup_packet (fixture, "talking-cancel");
@@ -204,6 +265,84 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->microphone), ==, FALSE);
   g_assert_cmpuint (valent_mixer_stream_get_level (info->headphones), ==, 100);
   g_assert_cmpuint (valent_mixer_stream_get_muted (info->headphones), ==, FALSE);
+  g_assert_cmpuint (valent_media_player_get_state (info->player1), ==, VALENT_MEDIA_STATE_PLAYING);
+  g_assert_cmpuint (valent_media_player_get_state (info->player2), ==, VALENT_MEDIA_STATE_STOPPED);
+
+  valent_test_watch_clear (info->speakers, &watch);
+  valent_test_watch_clear (info->microphone, &watch);
+}
+
+static void
+test_telephony_plugin_handle_media (ValentTestFixture *fixture,
+                                    gconstpointer      user_data)
+{
+  MixerInfo *info = fixture->data;
+  JsonNode *packet;
+  gboolean watch = FALSE;
+
+  valent_media_player_play (info->player1);
+  valent_test_watch_signal (info->speakers, "notify", &watch);
+  valent_test_watch_signal (info->microphone, "notify", &watch);
+  valent_test_fixture_connect (fixture, TRUE);
+
+  /* Receive an answered call event-chain. In this case, emulate stopping a
+   * paused player after the phone is answered. Thus what we expect is:
+   *
+   * 1. Phone rings
+   *    i. speaker volume is lowered to %15
+   * 2. Phone is answered
+   *    i. speakers are muted
+   *    ii. microphone is muted
+   *    iii. media is paused
+   * 3. Phone is hung-up
+   *    i. speakers are raised to 100% and unmuted
+   *    ii. microphone is unmuted
+   *    iii. media is stopped
+   */
+  VALENT_TEST_CHECK ("Plugin handles a `ringing` event");
+  packet = valent_test_fixture_lookup_packet (fixture, "ringing");
+  valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
+
+  g_assert_cmpuint (valent_mixer_stream_get_level (info->speakers), ==, 15);
+  g_assert_cmpuint (valent_mixer_stream_get_muted (info->speakers), ==, FALSE);
+  g_assert_cmpuint (valent_mixer_stream_get_level (info->microphone), ==, 100);
+  g_assert_cmpuint (valent_mixer_stream_get_muted (info->microphone), ==, FALSE);
+  g_assert_cmpuint (valent_mixer_stream_get_level (info->headphones), ==, 100);
+  g_assert_cmpuint (valent_mixer_stream_get_muted (info->headphones), ==, FALSE);
+  g_assert_cmpuint (valent_media_player_get_state (info->player1), ==, VALENT_MEDIA_STATE_PLAYING);
+  g_assert_cmpuint (valent_media_player_get_state (info->player2), ==, VALENT_MEDIA_STATE_STOPPED);
+
+  VALENT_TEST_CHECK ("Plugin handles a `talking` event, following a `ringing` event");
+  packet = valent_test_fixture_lookup_packet (fixture, "talking");
+  valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
+
+  g_assert_cmpuint (valent_mixer_stream_get_level (info->speakers), ==, 15);
+  g_assert_cmpuint (valent_mixer_stream_get_muted (info->speakers), ==, TRUE);
+  g_assert_cmpuint (valent_mixer_stream_get_level (info->microphone), ==, 100);
+  g_assert_cmpuint (valent_mixer_stream_get_muted (info->microphone), ==, TRUE);
+  g_assert_cmpuint (valent_mixer_stream_get_level (info->headphones), ==, 100);
+  g_assert_cmpuint (valent_mixer_stream_get_muted (info->headphones), ==, FALSE);
+  g_assert_cmpuint (valent_media_player_get_state (info->player1), ==, VALENT_MEDIA_STATE_PAUSED);
+  g_assert_cmpuint (valent_media_player_get_state (info->player2), ==, VALENT_MEDIA_STATE_STOPPED);
+
+  /* User stops player */
+  valent_media_player_stop (info->player1);
+
+  VALENT_TEST_CHECK ("Plugin handles a `isCancel` event, following a `talking` event");
+  packet = valent_test_fixture_lookup_packet (fixture, "talking-cancel");
+  valent_test_fixture_handle_packet (fixture, packet);
+  valent_test_await_boolean (&watch);
+
+  g_assert_cmpuint (valent_mixer_stream_get_level (info->speakers), ==, 100);
+  g_assert_cmpuint (valent_mixer_stream_get_muted (info->speakers), ==, FALSE);
+  g_assert_cmpuint (valent_mixer_stream_get_level (info->microphone), ==, 100);
+  g_assert_cmpuint (valent_mixer_stream_get_muted (info->microphone), ==, FALSE);
+  g_assert_cmpuint (valent_mixer_stream_get_level (info->headphones), ==, 100);
+  g_assert_cmpuint (valent_mixer_stream_get_muted (info->headphones), ==, FALSE);
+  g_assert_cmpuint (valent_media_player_get_state (info->player1), ==, VALENT_MEDIA_STATE_STOPPED);
+  g_assert_cmpuint (valent_media_player_get_state (info->player2), ==, VALENT_MEDIA_STATE_STOPPED);
 
   valent_test_watch_clear (info->speakers, &watch);
   valent_test_watch_clear (info->microphone, &watch);
@@ -268,6 +407,18 @@ main (int   argc,
               ValentTestFixture, path,
               telephony_plugin_fixture_set_up,
               test_telephony_plugin_handle_event,
+              valent_test_fixture_clear);
+
+  g_test_add ("/plugins/telephony/handle-mixer",
+              ValentTestFixture, path,
+              telephony_plugin_fixture_set_up,
+              test_telephony_plugin_handle_mixer,
+              valent_test_fixture_clear);
+
+  g_test_add ("/plugins/telephony/handle-media",
+              ValentTestFixture, path,
+              telephony_plugin_fixture_set_up,
+              test_telephony_plugin_handle_media,
               valent_test_fixture_clear);
 
   g_test_add ("/plugins/telephony/mute-call",
