@@ -509,7 +509,7 @@ valent_device_notify_pair (ValentDevice *device)
       g_autofree char *title = NULL;
       const char *body;
 
-      title = g_strdup_printf (_("Pairing request from %s"), device->name);
+      title = g_strdup_printf (_("Pairing request from “%s”"), device->name);
       notification = g_notification_new (title);
 
       if ((body = valent_channel_get_verification_key (device->channel)) != NULL)

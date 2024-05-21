@@ -28,6 +28,7 @@ struct _ValentDevicePage
   /* template */
   GtkStack          *stack;
 
+  AdwStatusPage     *pair_page;
   GtkWidget         *pair_request;
   GtkSpinner        *pair_spinner;
   GtkWidget         *verification_key;
@@ -160,8 +161,14 @@ on_state_changed (ValentDevice     *device,
   else if (!paired)
     {
       g_autoptr (ValentChannel) channel = NULL;
+      g_autofree char *description = NULL;
       const char *verification_key = NULL;
       gboolean pair_incoming, pair_outgoing;
+
+      description = g_strdup_printf (_("Please confirm the verification key "
+                                       "below matches the one on “%s”"),
+                                     valent_device_get_name (self->device));
+      adw_status_page_set_description (self->pair_page, description);
 
       /* Get the channel verification key */
       if ((channel = valent_device_ref_channel (self->device)) != NULL)
@@ -342,6 +349,7 @@ valent_device_page_class_init (ValentDevicePageClass *klass)
   gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-device-page.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePage, gadgets);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePage, stack);
+  gtk_widget_class_bind_template_child (widget_class, ValentDevicePage, pair_page);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePage, pair_request);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePage, pair_spinner);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePage, verification_key);

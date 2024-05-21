@@ -58,63 +58,25 @@
               <object class="GtkStackPage">
                 <property name="name">pairing</property>
                 <property name="child">
-                  <object class="GtkScrolledWindow">
-                    <property name="hscrollbar-policy">never</property>
-                    <property name="propagate-natural-height">1</property>
-                    <child>
+                  <object class="AdwStatusPage" id="pair_page">
+                    <property name="icon-name">phonelink-symbolic</property>
+                    <property name="child">
                       <object class="AdwClamp">
-                        <property name="maximum-size">360</property>
-                        <child>
+                        <property name="max-width">480</property>
+                        <property name="child">
                           <object class="GtkBox">
                             <property name="orientation">vertical</property>
-                            <property name="margin-bottom">24</property>
-                            <property name="margin-end">12</property>
-                            <property name="margin-start">12</property>
-                            <property name="margin-top">24</property>
                             <property name="spacing">32</property>
-                            <property name="valign">center</property>
-
                             <child>
-                              <object class="GtkImage">
-                                <property name="accessible-role">presentation</property>
-                                <property name="icon-name">phonelink-symbolic</property>
-                                <property name="pixel-size">128</property>
-                                <style>
-                                  <class name="dim-label"/>
-                                </style>
-                              </object>
-                            </child>
-
-                            <child>
-                              <object class="GtkBox" id="verification_box">
-                                <property name="orientation">vertical</property>
-                                <property name="spacing">12</property>
-                                <child>
-                                  <object class="GtkLabel" id="verification_title">
-                                    <property name="label" translatable="yes">Verification Key</property>
-                                    <style>
-                                      <class name="title-4"/>
-                                    </style>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkLabel" id="verification_key">
-                                    <property name="label" translatable="yes">Unavailable</property>
-                                    <property name="selectable">1</property>
-                                    <property name="wrap">1</property>
-                                    <property name="wrap-mode">char</property>
-                                    <accessibility>
-                                      <relation name="labelled-by">verification_title</relation>
-                                    </accessibility>
-                                    <attributes>
-                                      <attribute name="family" value="monospace"/>
-                                    </attributes>
-                                    <style>
-                                      <class name="osd"/>
-                                      <class name="toolbar"/>
-                                    </style>
-                                  </object>
-                                </child>
+                              <object class="GtkLabel" id="verification_key">
+                                <property name="label" translatable="yes">Unavailable</property>
+                                <accessibility>
+                                  <property name="description" translatable="yes">verification key</property>
+                                </accessibility>
+                                <attributes>
+                                  <attribute name="family" value="monospace"/>
+                                  <attribute name="scale" value="2.0"/>
+                                </attributes>
                               </object>
                             </child>
 
@@ -182,9 +144,9 @@
                               </object>
                             </child>
                           </object>
-                        </child>
+                        </property>
                       </object>
-                    </child>
+                    </property>
                   </object>
                 </property>
               </object>
