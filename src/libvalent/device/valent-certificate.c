@@ -353,58 +353,6 @@ valent_certificate_get_common_name (GTlsCertificate *certificate)
 }
 
 /**
- * valent_certificate_get_fingerprint:
- * @certificate: a `GTlsCertificate`
- *
- * Get a SHA256 fingerprint hash of @certificate.
- *
- * Returns: (transfer none): a SHA256 hash
- *
- * Since: 1.0
- */
-const char *
-valent_certificate_get_fingerprint (GTlsCertificate *certificate)
-{
-  g_autoptr (GByteArray) certificate_der = NULL;
-  g_autoptr (GChecksum) checksum = NULL;
-  const char *check;
-  const char *fingerprint;
-  char buf[SHA256_STR_LEN] = { 0, };
-  unsigned int i = 0;
-  unsigned int o = 0;
-
-  g_return_val_if_fail (G_IS_TLS_CERTIFICATE (certificate), NULL);
-
-  fingerprint = g_object_get_data (G_OBJECT (certificate),
-                                   "valent-certificate-fp");
-
-  if G_LIKELY (fingerprint != NULL)
-    return fingerprint;
-
-  g_object_get (certificate, "certificate", &certificate_der, NULL);
-  checksum = g_checksum_new (G_CHECKSUM_SHA256);
-  g_checksum_update (checksum, certificate_der->data, certificate_der->len);
-
-  check = g_checksum_get_string (checksum);
-
-  while (i < SHA256_HEX_LEN)
-    {
-      buf[o++] = check[i++];
-      buf[o++] = check[i++];
-      buf[o++] = ':';
-    }
-  buf[SHA256_STR_LEN - 1] = '\0';
-
-  /* Intern the hash as private data */
-  g_object_set_data_full (G_OBJECT (certificate),
-                          "valent-certificate-fp",
-                          g_strdup (buf),
-                          g_free);
-
-  return g_object_get_data (G_OBJECT (certificate), "valent-certificate-fp");
-}
-
-/**
  * valent_certificate_get_public_key:
  * @certificate: a `GTlsCertificate`
  *

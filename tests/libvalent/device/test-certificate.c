@@ -41,7 +41,6 @@ test_certificate_properties (void)
   g_autoptr (GTlsCertificate) certificate = NULL;
   g_autofree char *path = NULL;
   const char *common_name = NULL;
-  const char *fingerprint = NULL;
   GByteArray *public_key = NULL;
 
   path = g_dir_make_tmp ("XXXXXX.valent", NULL);
@@ -51,9 +50,6 @@ test_certificate_properties (void)
 
   common_name = valent_certificate_get_common_name (certificate);
   g_assert_true (common_name != NULL && *common_name != '\0');
-
-  fingerprint = valent_certificate_get_fingerprint (certificate);
-  g_assert_true (fingerprint != NULL && *fingerprint != '\0');
 
   public_key = valent_certificate_get_public_key (certificate);
   g_assert_true (public_key != NULL);

@@ -27,8 +27,6 @@ GTlsCertificate * valent_certificate_new_sync        (const char             *pa
 VALENT_AVAILABLE_IN_1_0
 const char      * valent_certificate_get_common_name (GTlsCertificate  *certificate);
 VALENT_AVAILABLE_IN_1_0
-const char      * valent_certificate_get_fingerprint (GTlsCertificate  *certificate);
-VALENT_AVAILABLE_IN_1_0
 GByteArray      * valent_certificate_get_public_key  (GTlsCertificate  *certificate);
 
 G_END_DECLS
