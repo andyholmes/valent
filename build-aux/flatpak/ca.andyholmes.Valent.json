@@ -218,8 +218,8 @@
                 {
                     "type" : "git",
                     "url" : "https://gitlab.freedesktop.org/pipewire/pipewire.git",
-                    "commit" : "1b8b683a6d7ee9f1c5dcef3fce5f93069f1357c4",
-                    "tag" : "1.0.6",
+                    "commit" : "e37a1e25fc09567b000182cca831bbde82fea176",
+                    "tag" : "1.1.81",
                     "x-checker-data" : {
                         "type" : "anitya",
                         "project-id" : 57357,
