@@ -216,11 +216,6 @@
     </section>
     <section>
       <item>
-        <attribute name="label" translatable="yes">Pair</attribute>
-        <attribute name="action">page.pair</attribute>
-        <attribute name="hidden-when">action-disabled</attribute>
-      </item>
-      <item>
         <attribute name="label" translatable="yes">Unpair</attribute>
         <attribute name="action">page.unpair</attribute>
         <attribute name="hidden-when">action-disabled</attribute>
