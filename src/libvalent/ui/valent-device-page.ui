@@ -60,6 +60,7 @@
                 <property name="child">
                   <object class="AdwStatusPage" id="pair_page">
                     <property name="icon-name">phonelink-symbolic</property>
+                    <property name="title" translatable="yes">Unpaired</property>
                     <property name="child">
                       <object class="AdwClamp">
                         <property name="maximum-size">480</property>

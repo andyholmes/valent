@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2024-05-21 15:45-0700\n"
+"POT-Creation-Date: 2024-05-21 16:22-0700\n"
 "PO-Revision-Date: 2024-03-21 03:05+0100\n"
 "Last-Translator: Gianni Lerro <glerro@pm.me>\n"
 "Language-Team: Italian <>\n"
@@ -164,6 +164,11 @@ msgstr "Disconnesso"
 #: src/libvalent/ui/valent-device-page.ui:50
 msgid "This device is currently unavailable"
 msgstr "Questo dispositivo non è attualmente disponibile"
+
+#: src/libvalent/ui/valent-device-page.ui:63
+#: src/libvalent/ui/valent-window.c:192
+msgid "Unpaired"
+msgstr "Non accoppiato"
 
 #: src/libvalent/ui/valent-device-page.ui:75
 #, fuzzy
@@ -471,10 +476,6 @@ msgstr "%d:%02d.%03d"
 msgctxt "short time format"
 msgid "%d:%02d"
 msgstr "%d:%02d"
-
-#: src/libvalent/ui/valent-window.c:192
-msgid "Unpaired"
-msgstr "Non accoppiato"
 
 #: src/libvalent/ui/valent-window.c:202
 msgid "Connected"
