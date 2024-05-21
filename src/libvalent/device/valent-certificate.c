@@ -134,8 +134,12 @@ valent_certificate_generate (const char  *cert_path,
       VALENT_GOTO (out);
     }
 
-  /* Sign and export the certificate */
-  if ((rc = gnutls_x509_crt_sign2 (crt, crt, privkey, GNUTLS_DIG_SHA256, 0)) != GNUTLS_E_SUCCESS ||
+  /* Signature
+   *
+   * The signature is a 512-bit SHA512 with ECDSA. This is `EVP_sha512` in
+   * OpenSSL and `GNUTLS_DIG_SHA512` in GnuTLS.
+   */
+  if ((rc = gnutls_x509_crt_sign2 (crt, crt, privkey, GNUTLS_DIG_SHA512, 0)) != GNUTLS_E_SUCCESS ||
       (rc = gnutls_x509_crt_export2 (crt, GNUTLS_X509_FMT_PEM, &out)) != GNUTLS_E_SUCCESS)
     {
       g_set_error (error,
