@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2024-05-21 15:45-0700\n"
+"POT-Creation-Date: 2024-05-21 16:22-0700\n"
 "PO-Revision-Date: 2022-03-28 11:21-0700\n"
 "Last-Translator: Andy Holmes <andrew.g.r.holmes@gmail.com>\n"
 "Language-Team: English <andrew.g.r.holmes@gmail.com>\n"
@@ -156,6 +156,11 @@ msgstr ""
 
 #: src/libvalent/ui/valent-device-page.ui:50
 msgid "This device is currently unavailable"
+msgstr ""
+
+#: src/libvalent/ui/valent-device-page.ui:63
+#: src/libvalent/ui/valent-window.c:192
+msgid "Unpaired"
 msgstr ""
 
 #: src/libvalent/ui/valent-device-page.ui:75
@@ -462,10 +467,6 @@ msgstr ""
 #, c-format
 msgctxt "short time format"
 msgid "%d:%02d"
-msgstr ""
-
-#: src/libvalent/ui/valent-window.c:192
-msgid "Unpaired"
 msgstr ""
 
 #: src/libvalent/ui/valent-window.c:202
