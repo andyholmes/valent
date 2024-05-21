@@ -17,7 +17,6 @@
 #include "valent-device.h"
 
 #define DEFAULT_EXPIRATION (60L*60L*24L*10L*365L)
-#define DEFAULT_KEY_SIZE   4096
 
 #define SHA256_HEX_LEN 64
 #define SHA256_STR_LEN 96
@@ -56,11 +55,14 @@ valent_certificate_generate (const char  *cert_path,
 
   /*
    * Private Key
+   *
+   * The private key is a 256-bit ECC key. This is `NID_X9_62_prime256v1` in
+   * OpenSSL and `GNUTLS_ECC_CURVE_SECP256R1` in GnuTLS.
    */
   if ((rc = gnutls_x509_privkey_init (&privkey)) != GNUTLS_E_SUCCESS ||
       (rc = gnutls_x509_privkey_generate (privkey,
-                                          GNUTLS_PK_RSA,
-                                          DEFAULT_KEY_SIZE,
+                                          GNUTLS_PK_ECDSA,
+                                          GNUTLS_CURVE_TO_BITS (GNUTLS_ECC_CURVE_SECP256R1),
                                           0)) != GNUTLS_E_SUCCESS ||
       (rc = gnutls_x509_privkey_export2 (privkey,
                                          GNUTLS_X509_FMT_PEM,
