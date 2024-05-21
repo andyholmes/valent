@@ -75,7 +75,7 @@ valent_lan_channel_get_verification_key (ValentChannel *channel)
           g_checksum_update (checksum, pubkey->data, pubkey->len);
         }
 
-      self->verification_key = g_strdup (g_checksum_get_string (checksum));
+      self->verification_key = g_strndup (g_checksum_get_string (checksum), 8);
     }
 
   return self->verification_key;

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2024-04-14 20:34-0700\n"
+"POT-Creation-Date: 2024-05-21 15:45-0700\n"
 "PO-Revision-Date: 2023-10-29 00:44-0300\n"
 "Last-Translator: Victor L. Pavan <victorpavan001@gmail.com>\n"
 "Language-Team: Brazilian Portuguese <victorpavan001@gmail.com>\n"
@@ -131,22 +131,27 @@ msgid "Andy Holmes"
 msgstr "Andy Holmes"
 
 #: src/libvalent/device/valent-device.c:512
-#, c-format
-msgid "Pairing request from %s"
+#, fuzzy, c-format
+msgid "Pairing request from “%s”"
 msgstr "Requisição de pareamento de %s"
 
 #: src/libvalent/device/valent-device.c:523
-#: src/libvalent/ui/valent-device-page.ui:156
+#: src/libvalent/ui/valent-device-page.ui:119
 msgid "Reject"
 msgstr "Rejeitar"
 
 #: src/libvalent/device/valent-device.c:529
-#: src/libvalent/ui/valent-device-page.ui:170
+#: src/libvalent/ui/valent-device-page.ui:133
 msgid "Accept"
 msgstr "Aceitar"
 
-#: src/libvalent/ui/valent-device-page.c:170
-#: src/libvalent/ui/valent-device-page.ui:102
+#: src/libvalent/ui/valent-device-page.c:168
+#, c-format
+msgid "Please confirm the verification key below matches the one on “%s”"
+msgstr ""
+
+#: src/libvalent/ui/valent-device-page.c:177
+#: src/libvalent/ui/valent-device-page.ui:73
 msgid "Unavailable"
 msgstr "Indisponível"
 
@@ -163,24 +168,25 @@ msgstr "Desconectado"
 msgid "This device is currently unavailable"
 msgstr "Este dispositivo está atualmente indisponível"
 
-#: src/libvalent/ui/valent-device-page.ui:94
-msgid "Verification Key"
+#: src/libvalent/ui/valent-device-page.ui:75
+#, fuzzy
+msgid "verification key"
 msgstr "Chave de Verificação"
 
-#: src/libvalent/ui/valent-device-page.ui:138
+#: src/libvalent/ui/valent-device-page.ui:101
 msgid "Request Pairing"
 msgstr "Requisitar Pareamento"
 
-#: src/libvalent/ui/valent-device-page.ui:250
+#: src/libvalent/ui/valent-device-page.ui:213
 #: src/libvalent/ui/valent-window.ui:139
 msgid "Preferences"
 msgstr "Preferências"
 
-#: src/libvalent/ui/valent-device-page.ui:256
+#: src/libvalent/ui/valent-device-page.ui:219
 msgid "Pair"
 msgstr "Parear"
 
-#: src/libvalent/ui/valent-device-page.ui:261
+#: src/libvalent/ui/valent-device-page.ui:224
 msgid "Unpair"
 msgstr "Desparear"
 
@@ -726,7 +732,7 @@ msgstr "Encontrar meu telefone"
 msgid "Find a device by making it ring"
 msgstr "Toque o dispositivo para encontrá-lo"
 
-#: src/plugins/findmyphone/valent-findmyphone-plugin.c:130
+#: src/plugins/findmyphone/valent-findmyphone-plugin.c:125
 msgid "Ring"
 msgstr "Tocar"
 
@@ -1342,20 +1348,25 @@ msgstr "Telefonia"
 msgid "Be notified of incoming and ongoing calls"
 msgstr "Seja notificado de ligações enviadas e recebidas"
 
-#: src/plugins/telephony/valent-telephony-plugin.c:278
-msgid "Unknown Contact"
+#. TRANSLATORS: An unknown caller, with no name or phone number
+#: src/plugins/telephony/valent-telephony-plugin.c:359
+#, fuzzy
+msgctxt "contact identity"
+msgid "Unknown"
 msgstr "Contato Desconhecido"
 
-#: src/plugins/telephony/valent-telephony-plugin.c:308
+#. TRANSLATORS: The phone is ringing
+#: src/plugins/telephony/valent-telephony-plugin.c:386
 msgid "Incoming call"
 msgstr "Chamada Recebida"
 
-#: src/plugins/telephony/valent-telephony-plugin.c:311
+#: src/plugins/telephony/valent-telephony-plugin.c:390
 #: src/plugins/telephony/valent-telephony-preferences.ui:68
 msgid "Mute"
 msgstr "Mudo"
 
-#: src/plugins/telephony/valent-telephony-plugin.c:319
+#. TRANSLATORS: The phone has been answered
+#: src/plugins/telephony/valent-telephony-plugin.c:399
 msgid "Ongoing call"
 msgstr "Chamada em Andamento"
 
