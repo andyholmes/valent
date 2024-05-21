@@ -62,7 +62,7 @@
                     <property name="icon-name">phonelink-symbolic</property>
                     <property name="child">
                       <object class="AdwClamp">
-                        <property name="max-width">480</property>
+                        <property name="maximum-size">480</property>
                         <property name="child">
                           <object class="GtkBox">
                             <property name="orientation">vertical</property>
