@@ -6,6 +6,7 @@ plugin_sms_deps = [
   libvalent_dep,
 
   sqlite_dep,
+  dependency('tracker-sparql-3.0'),
 ]
 
 # Sources

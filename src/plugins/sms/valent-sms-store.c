@@ -6,6 +6,7 @@
 #include "config.h"
 
 #include <gio/gio.h>
+#include <libtracker-sparql/tracker-sparql.h>
 #include <valent.h>
 #include <sqlite3.h>
 
@@ -25,6 +26,8 @@ struct _ValentSmsStore
   sqlite3         *connection;
   char            *path;
   sqlite3_stmt    *stmts[9];
+
+  TrackerSparqlConnection *tconn;
 
   GListStore      *summary;
 };
