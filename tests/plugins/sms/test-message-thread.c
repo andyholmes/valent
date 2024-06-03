@@ -6,38 +6,32 @@
 #include <libvalent-test.h>
 
 #include "test-sms-common.h"
-#include "valent-message-thread.h"
-#include "valent-sms-store.h"
+#include "valent-message-store.h"
+#include "valent-message-thread-private.h"
 
 
 static void
 test_sms_message_thread (void)
 {
-  g_autoptr (ValentSmsStore) store = NULL;
+  g_autoptr (ValentMessagesAdapter) store = NULL;
   g_autoptr (GListModel) thread = NULL;
   g_autoptr (ValentMessage) message = NULL;
-  g_autoptr (ValentSmsStore) store_out = NULL;
-  int64_t id_out;
+  g_autoptr (ValentMessagesAdapter) store_out = NULL;
+  g_autofree char *iri_out = NULL;
 
-  store = valent_test_sms_store_new ();
+  store = valent_test_message_store_new ();
 
   VALENT_TEST_CHECK ("Thread can be constructed");
-  thread = valent_sms_store_get_thread (store, 1);
-  valent_test_await_signal (thread, "items-changed");
+  thread = g_list_model_get_item (G_LIST_MODE (store), 0);
+  valent_test_await_signal (store, "items-changed");
 
   VALENT_TEST_CHECK ("GObject properties function correctly");
-  id_out = valent_message_thread_get_id (VALENT_MESSAGE_THREAD (thread));
-  store_out = valent_message_thread_get_store (VALENT_MESSAGE_THREAD (thread));
-
-  g_assert_cmpint (id_out, ==, 1);
-  g_assert_true (store_out == store);
-
   g_object_get (thread,
-                "id",    &id_out,
+                "iri",   &iri_out,
                 "store", &store_out,
                 NULL);
 
-  g_assert_cmpint (id_out, ==, 1);
+  g_assert_cmpstr (iri_out, ==, "");
   g_assert_true (store_out == store);
 
   VALENT_TEST_CHECK ("Thread loads message asynchronously");
@@ -53,7 +47,7 @@ test_sms_message_thread (void)
   g_assert_cmpuint (g_list_model_get_n_items (thread), ==, 2);
 
   /* Remove a message and wait for GListModel::items-changed */
-  /* valent_sms_store_remove_message (store, 1, NULL, NULL, NULL); */
+  /* valent_messages_adapter_remove_message (store, 1, NULL, NULL, NULL); */
   /* valent_test_await_signal (thread, "items-changed"); */
 }
 

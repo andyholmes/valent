@@ -16,9 +16,8 @@ plugin_sms_tests = [
   'test-sms-conversation',
   'test-sms-conversation-row',
   'test-sms-plugin',
-  'test-sms-store',
-  'test-sms-utils',
-  'test-sms-window',
+  'test-message-utils',
+  'test-messages-window',
 ]
 
 foreach test : plugin_sms_tests

@@ -1,0 +1,289 @@
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix nie: <http://tracker.api.gnome.org/ontology/v3/nie#> .
+@prefix nrl: <http://tracker.api.gnome.org/ontology/v3/nrl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+nie: a nrl:Namespace, nrl:Ontology ;
+	nrl:prefix "nie" ;
+	nrl:lastModified "2018-08-25T11:00:00Z" .
+
+nie:DataObject a rdfs:Class ;
+	rdfs:label "Data Object" ;
+	rdfs:comment "A unit of data that is created, annotated and processed on the user desktop. It represents a native structure the user works with. The usage of the term 'native'	is important. It means that a DataObject can be directly mapped to a data structure maintained by a native application.	This may be a file, a set of files or a part of a file. The granularity depends on the user. This class is not intended to be instantiated by itself. Use more specific subclasses." ;
+	rdfs:subClassOf rdfs:Resource .
+
+nie:DataSource a rdfs:Class ;
+	rdfs:label "Data Source" ;
+	rdfs:comment "A superclass for all entities from which DataObjects can be extracted. Each entity represents a native application or some other system that manages information that may be of interest to the user of the Semantic Desktop. Subclasses may include FileSystems, Mailboxes, Calendars, websites etc. The exact choice of subclasses and their properties is considered application-specific. Each data extraction application is supposed to provide it's own DataSource ontology. Such an ontology should contain supported data source types coupled with properties necessary for the application to gain access to the data sources. (paths, urls, passwords etc...)";
+	rdfs:subClassOf rdfs:Resource .
+
+nie:InformationElement a rdfs:Class ;
+	rdfs:label "Information Element" ;
+	rdfs:comment "A unit of content the user works with. This is a superclass for all interpretations of a DataObject." ;
+	rdfs:subClassOf rdfs:Resource .
+
+nie:title a rdf:Property ;
+	rdfs:label "Title" ;
+	rdfs:comment "The title of the document" ;
+	rdfs:subPropertyOf dc:title ;
+	nrl:maxCardinality 1 ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range xsd:string ;
+	nrl:fulltextIndexed true ;
+	nrl:weight 10 .
+
+nie:url a rdf:Property ;
+	a nrl:InverseFunctionalProperty ;
+	rdfs:label "URL" ;
+	rdfs:comment "URL pointing at the location of the resource. In cases where creating a simple file:// or http:// URL for a file is difficult (e.g. for files inside compressed archives) the applications are encouraged to use conventions defined by Apache Commons VFS Project at http://jakarta.apache.org/  commons/ vfs/ filesystems.html." ;
+	nrl:maxCardinality 1 ;
+	rdfs:domain nie:DataObject ;
+	rdfs:range xsd:string ;
+	nrl:indexed true .
+
+nie:informationElementDate a rdf:Property ;
+	rdfs:comment "A point or period of time associated with an event in the lifecycle of an Information Element. A common superproperty for all date-related properties of InformationElements in the NIE Framework" ;
+	rdfs:subPropertyOf dc:date ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range xsd:dateTime .
+
+nie:contentLastModified a rdf:Property ;
+	rdfs:comment "The date of the last modification of the original content (not its corresponding DataObject or local copy). Compare with nie:lastModified" ;
+	rdfs:subPropertyOf nie:informationElementDate ;
+	nrl:maxCardinality 1 ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range xsd:dateTime .
+
+nie:subject a rdf:Property ;
+	rdfs:label "Subject" ;
+	rdfs:comment "The subject or topic of the document" ;
+	rdfs:subPropertyOf dc:subject ;
+	nrl:maxCardinality 1 ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range xsd:string ;
+	nrl:fulltextIndexed true ;
+	nrl:weight 5 .
+
+nie:mimeType a rdf:Property ;
+	rdfs:label "Mime Type" ;
+	rdfs:comment "File Mime Type" ;
+	nrl:maxCardinality 1 ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range xsd:string ;
+	nrl:indexed true .
+
+nie:byteSize a rdf:Property ;
+	rdfs:label "Size" ;
+	rdfs:comment "File size in bytes" ;
+	nrl:maxCardinality 1 ;
+	rdfs:domain nie:DataObject ;
+	rdfs:range xsd:integer .
+
+nie:language a rdf:Property ;
+	rdfs:label "Language" ;
+	rdfs:comment "Language the InformationElement is expressed in. Users are encouraged to use the two-letter code specified in the RFC 3066" ;
+	nrl:maxCardinality 1 ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range xsd:string .
+
+nie:plainTextContent a rdf:Property ;
+	rdfs:label "Plain-text content" ;
+	rdfs:comment "Plain-text representation of the content of a InformationElement with all markup removed. The main purpose of this property is full-text indexing and search. Its exact content is considered application-specific. The user can make no assumptions about what is and what is not contained within. Applications should use more specific properties wherever possible.";
+	nrl:maxCardinality 1 ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range xsd:string ;
+	nrl:fulltextIndexed true ;
+	nrl:weight 2 .
+
+nie:legal a rdf:Property ;
+	rdfs:comment "A common superproperty for all properties that point at legal information about an Information Element";
+	rdfs:subPropertyOf dc:rights ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range xsd:string .
+
+nie:relatedTo a rdf:Property ;
+	rdfs:comment "A common superproperty for all relations between a piece of content and other pieces of data (which may be interpreted as other pieces of content).";
+	rdfs:subPropertyOf dc:relation ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range nie:DataObject .
+
+nie:generator a rdf:Property ;
+	rdfs:comment "Software used to 'generate' the contents. E.g. a word processor name" ;
+	nrl:maxCardinality 1 ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range xsd:string .
+
+nie:description a rdf:Property ;
+	rdfs:comment "A textual description of the resource. This property may be used for any metadata fields that provide some meta-information or comment about a resource in the form of a passage of text. This property is not to be confused with nie:plainTextContent. Use more specific subproperties wherever possible" ;
+	rdfs:subPropertyOf dc:description ;
+	nrl:maxCardinality 1 ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range xsd:string ;
+	nrl:fulltextIndexed true ;
+	nrl:weight 3 .
+
+# Bug in nepomuk specification. Taking domain from superproperty
+nie:disclaimer a rdf:Property ;
+	rdfs:comment "A disclaimer" ;
+	rdfs:subPropertyOf nie:legal ;
+	nrl:maxCardinality 1 ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range xsd:string .
+
+nie:dataSource a rdf:Property ;
+	rdfs:comment "Marks the provenance of a DataObject, what source does a data object come from" ;
+	rdfs:subPropertyOf dc:source ;
+	rdfs:domain nie:DataObject ;
+	rdfs:range nie:DataSource .
+
+# Bug in nepomuk specification. Taking domain from superproperty
+nie:depends a rdf:Property ;
+	rdfs:comment "Dependency relation. A piece of content depends on another piece of data in order to be properly understood/used/interpreted" ;
+	rdfs:subPropertyOf nie:relatedTo ;
+	nrl:maxCardinality 1 ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range nie:DataObject .
+
+nie:links a rdf:Property ;
+	rdfs:subPropertyOf nie:relatedTo ;
+	rdfs:comment "A linking relation. A piece of content links/mentions a piece of data";
+	nrl:maxCardinality 1 ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range nie:DataObject .
+
+# Bug in nepomuk specification. Taking domain from superproperty
+nie:copyright a rdf:Property ;
+	rdfs:comment "Content copyright" ;
+	rdfs:subPropertyOf dc:rights , nie:legal ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range xsd:string .
+
+nie:comment a rdf:Property ;
+	rdfs:comment "A user comment about an InformationElement" ;
+	nrl:maxCardinality 1 ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range xsd:string ;
+	nrl:fulltextIndexed true ;
+	nrl:weight 2 .
+
+nie:interpretedAs a rdf:Property ;
+	rdfs:comment "Links the DataObject with the InformationElement it is interpreted as" ;
+	rdfs:domain nie:DataObject ;
+	rdfs:range nie:InformationElement ;
+	nrl:indexed true .
+
+nie:isStoredAs a rdf:Property ;
+	rdfs:comment "Links the information element with the DataObject it is stored in" ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range nie:DataObject ;
+	nrl:indexed true .
+
+nie:version a rdf:Property ;
+	rdfs:comment "The current version of the given data object. Exact semantics is unspecified at this level. Use more specific subproperties if needed" ;
+	nrl:maxCardinality 1 ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range xsd:string .
+
+nie:contentCreated a rdf:Property ;
+	rdfs:comment "The date of the content creation. This may not necessarily be equal to the date when the DataObject (i.e. the physical representation) itself was created. Compare with nie:created property" ;
+	rdfs:subPropertyOf nie:informationElementDate ;
+	nrl:maxCardinality 1 ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range xsd:dateTime .
+
+# Addition to nepomuk
+nie:contentAccessed a rdf:Property ;
+	rdfs:subPropertyOf nie:informationElementDate ;
+	nrl:maxCardinality 1 ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range xsd:dateTime .
+
+nie:lastRefreshed a rdf:Property ;
+	rdfs:comment "Date when information about this data object was retrieved (for the first time) or last refreshed from the data source. This property is important for metadata extraction applications that don't receive any notifications of changes in the data source and have to poll it regularly. This may lead to information becoming out of date. In these cases this property may be used to determine the age of data, which is an important element of it's dependability" ;
+	rdfs:subPropertyOf dc:date ;
+	nrl:maxCardinality 1 ;
+	rdfs:domain nie:DataObject ;
+	rdfs:range xsd:dateTime .
+
+# Bug in nepomuk specification. Taking domain from superproperty
+nie:license a rdf:Property ;
+	rdfs:comment "Terms and intellectual property rights licensing conditions.";
+	rdfs:subPropertyOf dc:rights , nie:legal ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range xsd:string .
+
+nie:created a rdf:Property ;
+	rdfs:comment "Date of creation of the DataObject. Note that this date refers to the creation of the DataObject itself (i.e. the physical representation). Compare with nie:contentCreated" ;
+	nrl:maxCardinality 1 ;
+	rdfs:domain nie:DataObject ;
+	rdfs:range xsd:dateTime .
+
+nie:identifier a rdf:Property ;
+	rdfs:comment "An unambiguous reference to the InformationElement within a given context. Recommended best practice is to identify the resource by means of a string conforming to a formal identification system" ;
+	rdfs:subPropertyOf dc:identifier ;
+	nrl:maxCardinality 1 ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range xsd:string .
+
+nie:keyword a rdf:Property ;
+	rdfs:comment "Adapted DublinCore: The topic of the content of the resource, as keyword. No sentences here. Recommended best practice is to select a value from a controlled vocabulary or formal classification scheme" ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range xsd:string ;
+	nrl:fulltextIndexed true ;
+	nrl:weight 5 .
+
+nie:hasLogicalPart a rdf:Property ;
+	rdfs:comment "Generic property used to express 'logical' containment relationships between InformationElements. NIE extensions are encouraged to provide more specific subproperties of this one. It is advisable for actual instances of InformationElement to use those specific subproperties. Note the difference between 'physical' containment (hasPart) and logical containment (hasLogicalPart)" ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range nie:InformationElement .
+
+nie:hasPart a rdf:Property ;
+	rdfs:comment "Generic property used to express 'physical' containment relationships between DataObjects. NIE extensions are encouraged to provide more specific subproperties of this one. It is advisable for actual instances of DataObjects to use those specific subproperties. Note to the developers: Please be aware of the distinction between containment relation and provenance. The hasPart relation models physical containment, an InformationElement (a nmo:Message) can have a 'physical' part (an nfo:Attachment). Also, please note the difference between physical containment (hasPart) and logical containment (hasLogicalPart) the former has more strict meaning. They may occur independently of each other" ;
+	rdfs:subPropertyOf nie:relatedTo ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range nie:DataObject .
+
+nie:isPartOf a rdf:Property ;
+	rdfs:comment "Generic property used to express containment relationships between DataObjects. NIE extensions are encouraged to provide more specific subproperties of this one. It is advisable for actual instances of DataObjects to use those specific subproperties. Note to the developers: Please be aware of the distinction between containment relation and provenance. The isPartOf relation models physical containment, a nie:DataObject (e.g. an nfo:Attachment) is a 'physical' part of an nie:InformationElement (a nmo:Message). Also, please note the difference between physical containment (isPartOf) and logical containment (isLogicalPartOf) the former has more strict meaning. They may occur independently of each other" ;
+	rdfs:domain nie:DataObject ;
+	rdfs:range nie:InformationElement .
+
+# Bug in nepomuk specification. Taking domain from superproperty
+nie:licenseType a rdf:Property ;
+	rdfs:comment "The type of the license. Possible values for this field may include 'GPL', 'BSD', 'Creative Commons' etc." ;
+	rdfs:subPropertyOf nie:legal ;
+	nrl:maxCardinality 1 ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range xsd:string .
+
+nie:characterSet a rdf:Property ;
+	rdfs:comment "Characterset in which the content of the InformationElement was created. Example: ISO-8859-1, UTF-8. One of the registered character sets at http://www.iana.org/assignments/character-sets. This characterSet is used to interpret any textual parts of the content. If more than one characterSet is used within one data object, use more specific properties" ;
+	nrl:maxCardinality 1 ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range xsd:string .
+
+nie:isLogicalPartOf a rdf:Property ;
+	rdfs:comment "Generic property used to express 'logical' containment relationships between DataObjects. NIE extensions are encouraged to provide more specific subproperties of this one. It is advisable for actual instances of InformationElement to use those specific subproperties. Note the difference between 'physical' containment (isPartOf) and logical containment (isLogicalPartOf)" ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range nie:InformationElement .
+
+nie:contentSize a rdf:Property ;
+	rdfs:comment "The size of the content. This property can be used whenever the size of the content of an InformationElement differs from the size of the DataObject. (e.g. because of compression, encoding, encryption or any other representation issues). The contentSize in expressed in bytes" ;
+	nrl:maxCardinality 1 ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range xsd:integer .
+
+nie:rootElementOf a rdf:Property ;
+	rdfs:comment "DataObjects extracted from a single data source are organized into a containment tree. This property links the root of that tree with the datasource it has been extracted from" ;
+	nrl:maxCardinality 1 ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range nie:DataSource .
+
+# Addition to nepomuk
+nie:usageCounter a rdf:Property ;
+	nrl:maxCardinality 1 ;
+	rdfs:domain nie:InformationElement ;
+	rdfs:range xsd:integer ;
+	nrl:weight 3 .

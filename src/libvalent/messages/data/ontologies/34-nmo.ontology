@@ -1,0 +1,94 @@
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix nco: <http://tracker.api.gnome.org/ontology/v3/nco#> .
+@prefix nfo: <http://tracker.api.gnome.org/ontology/v3/nfo#> .
+@prefix nie: <http://tracker.api.gnome.org/ontology/v3/nie#> .
+@prefix nmo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#> .
+@prefix nrl: <http://tracker.api.gnome.org/ontology/v3/nrl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix tracker: <http://tracker.api.gnome.org/ontology/v3/tracker#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+#
+# OSCAF NMO Ontology (subset)
+#
+# See: http://www.semanticdesktop.org/ontologies/2007/03/22/nmo
+#
+nmo: a nrl:Namespace, nrl:Ontology ;
+    nrl:prefix "nmo" ;
+    nrl:lastModified "2011-05-11T18:08:45.656Z" .
+
+nmo:Message a rdfs:Class ;
+    rdfs:comment "A message. Could be an email, instant messanging message, SMS message etc." ;
+    rdfs:subClassOf nfo:TextDocument ;
+    nrl:domainIndex nie:contentCreated ;
+    nrl:notify true .
+
+nmo:isRead a rdf:Property ;
+    rdfs:comment "Indicates if the message has been acknowledged as read." ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nmo:Message ;
+    rdfs:range xsd:boolean .
+
+nmo:messageId a rdf:Property ;
+    rdfs:comment "An identifier of a message. This property has been inspired by the message-id property defined in RFC 2822, Sec. 3.6.4. It should be used for all kinds of identifiers used by various messaging applications to connect multiple messages into conversations. For email messageids, values are according to RFC2822/sec 3.6.4 and the literal value in RDF must include the brackets." ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nmo:Message ;
+    rdfs:range xsd:string ;
+    rdfs:subPropertyOf nie:identifier .
+
+nmo:messageFrom a rdf:Property ;
+    rdfs:comment "The sender of the message" ;
+    rdfs:domain nmo:Message ;
+    rdfs:range nco:ContactMedium ;
+    nrl:maxCardinality 1 .
+
+nmo:messageRecipient a rdf:Property ;
+    rdfs:comment "A common superproperty for all properties that link a message with its recipients. Please don't use this property directly." ;
+    rdfs:domain nmo:Message ;
+    rdfs:label "recipient" ;
+    rdfs:range nco:ContactMedium .
+
+nmo:primaryMessageRecipient a rdf:Property ;
+    rdfs:comment "The primary intended recipient of a message." ;
+    rdfs:domain nmo:Message ;
+    rdfs:label "primaryRecipient" ;
+    rdfs:range nco:ContactMedium ;
+    rdfs:subPropertyOf nmo:messageRecipient .
+
+nmo:messageSender a rdf:Property ;
+    rdfs:comment "The person or agent submitting the message to the network, if other from the one given with the nmo:from property. Defined in RFC 822 sec. 4.4.2" ;
+    rdfs:domain nmo:Message ;
+    rdfs:label "sender" ;
+    rdfs:range nco:ContactMedium ;
+    rdfs:subPropertyOf nmo:messageRecipient ;
+    nrl:maxCardinality 1 .
+
+nmo:plainTextMessageContent a rdf:Property ;
+    rdfs:comment "Plain text representation of the body of the message. For multipart messages, all parts are concatenated into the value of this property. Attachments, whose mimeTypes are different from text/plain or message/rfc822 are considered separate DataObjects and are therefore not included in the value of this property." ;
+    rdfs:domain nmo:Message ;
+    rdfs:range xsd:string ;
+    nrl:fulltextIndexed true ;
+    rdfs:subPropertyOf nie:plainTextContent .
+
+nmo:receivedDate a rdf:Property ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nmo:Message ;
+    rdfs:subPropertyOf dc:date ;
+    nrl:indexed true ;
+    rdfs:range xsd:dateTime .
+
+nmo:sentDate a rdf:Property ;
+    rdfs:comment "Date when this message was sent." ;
+    nrl:indexed true ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nmo:Message ;
+    rdfs:subPropertyOf dc:date ;
+    rdfs:range xsd:dateTime .
+
+nmo:hasAttachment a rdf:Property ;
+    rdfs:comment "Links a message with files that were sent as attachments." ;
+    rdfs:domain nmo:Message ;
+    rdfs:range nfo:Attachment ;
+    rdfs:subPropertyOf nie:hasPart .
+

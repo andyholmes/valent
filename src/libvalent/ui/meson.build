@@ -9,11 +9,15 @@ libvalent_ui_generated_sources = []
 
 # Headers
 libvalent_ui_public_headers = [
-  'valent-ui-utils.h',
 ]
 
 libvalent_ui_private_headers = [
   'valent-application-credits.h',
+  'valent-contact-page.h',
+  'valent-contact-row.h',
+  'valent-conversation-page.h',
+  'valent-conversation-row.h',
+  'valent-date-label.h',
   'valent-device-page.h',
   'valent-device-preferences-dialog.h',
   'valent-device-preferences-group.h',
@@ -31,10 +35,14 @@ libvalent_ui_private_headers = [
   'valent-media-remote.h',
   'valent-menu-list.h',
   'valent-menu-stack.h',
+  'valent-message-row.h',
+  'valent-messages-window.h',
   'valent-notification-dialog.h',
   'valent-plugin-row.h',
   'valent-preferences-dialog.h',
   'valent-presenter-remote.h',
+  'valent-share-dialog.h',
+  'valent-share-dialog-row.h',
   'valent-ui-manager.h',
   'valent-ui-utils-private.h',
   'valent-window.h',
@@ -48,6 +56,11 @@ install_headers(libvalent_ui_public_headers,
 # Sources
 libvalent_ui_public_sources = [
   'libvalent-ui.c',
+  'valent-contact-page.c',
+  'valent-contact-row.c',
+  'valent-conversation-page.c',
+  'valent-conversation-row.c',
+  'valent-date-label.c',
   'valent-device-page.c',
   'valent-device-preferences-group.c',
   'valent-device-preferences-dialog.c',
@@ -65,6 +78,8 @@ libvalent_ui_public_sources = [
   'valent-media-remote.c',
   'valent-menu-list.c',
   'valent-menu-stack.c',
+  'valent-message-row.c',
+  'valent-messages-window.c',
   'valent-notification-dialog.c',
   'valent-plugin-row.c',
   'valent-preferences-dialog.c',
@@ -75,6 +90,8 @@ libvalent_ui_public_sources = [
   'valent-ui-main.c',
   'valent-ui-manager.c',
   'valent-ui-utils.c',
+  'valent-ui-utils-contacts.c',
+  'valent-ui-utils-messages.c',
   'valent-window.c',
 ]
 

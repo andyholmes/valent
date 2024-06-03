@@ -12,7 +12,6 @@
 #include <libvalent-input.h>
 
 #include "valent-input-remote.h"
-#include "valent-ui-utils.h"
 #include "valent-ui-utils-private.h"
 
 #define CAPTURE_THRESHOLD_MS 50

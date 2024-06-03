@@ -6,26 +6,26 @@
 #include <libvalent-test.h>
 
 #include "test-sms-common.h"
-#include "valent-sms-window.h"
+#include "valent-messages-window.h"
 
 
 static void
 test_sms_window (void)
 {
-  g_autoptr (ValentSmsStore) messages = NULL;
+  g_autoptr (ValentMessagesAdapter) messages = NULL;
   g_autoptr (ValentContactStore) contacts = NULL;
-  g_autoptr (ValentSmsStore) messages_out = NULL;
+  g_autoptr (ValentMessagesAdapter) messages_out = NULL;
   g_autoptr (ValentContactStore) contacts_out = NULL;
-  ValentSmsWindow *window;
+  ValentMessagesWindow *window;
 
   /* Prepare Stores */
   contacts = valent_test_contact_store_new ();
-  messages = valent_test_sms_store_new ();
+  messages = valent_test_message_store_new ();
 
   VALENT_TEST_CHECK ("Window can be constructed");
-  window = g_object_new (VALENT_TYPE_SMS_WINDOW,
+  window = g_object_new (VALENT_TYPE_MESSAGES_WINDOW,
                          "contact-store", contacts,
-                         "message-store", messages,
+                         "messages", messages,
                          NULL);
   g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
 
@@ -41,7 +41,7 @@ test_sms_window (void)
 
   g_object_get (window,
                 "contact-store", &contacts_out,
-                "message-store", &messages_out,
+                "messages", &messages_out,
                 NULL);
 
   g_assert_true (contacts == contacts_out);
@@ -78,7 +78,7 @@ test_sms_window (void)
   valent_test_await_pending ();
 
   VALENT_TEST_CHECK ("Window method `set_active_thread()` can open a conversation");
-  valent_sms_window_set_active_thread (window, 1);
+  valent_sms_window_set_active_thread (window, "" /* 1 */);
   valent_test_await_pending ();
 
   gtk_window_destroy (GTK_WINDOW (window));

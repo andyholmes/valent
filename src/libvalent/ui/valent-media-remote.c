@@ -12,7 +12,6 @@
 #include <libvalent-media.h>
 
 #include "valent-media-remote.h"
-#include "valent-ui-utils.h"
 #include "valent-ui-utils-private.h"
 
 /* Time (ms) to delay the seek command when moving the position slider. Minimal

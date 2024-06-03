@@ -1,0 +1,144 @@
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix nfo: <http://tracker.api.gnome.org/ontology/v3/nfo#> .
+@prefix nie: <http://tracker.api.gnome.org/ontology/v3/nie#> .
+@prefix nrl: <http://tracker.api.gnome.org/ontology/v3/nrl#> .
+@prefix nco: <http://tracker.api.gnome.org/ontology/v3/nco#> .
+@prefix nmo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+@prefix vmo: <http://valent.andyholmes.ca/ontology/v1/vmo#> .
+
+#
+# Extensions to OSCAF NMO
+#
+# These are extensions to the base OSCAF NMO ontology, which lacks classes
+# and properties for telephony. Some of the terms here are derived from Tracker
+# extensions to NMO, which reportedly involved Nokia and/or Maemo.
+#
+# See: https://gitlab.gnome.org/GNOME/tinysparql/blob/3d541fb5/src/ontologies/nepomuk/34-nmo.ontology
+#
+vmo: a nrl:Namespace, nrl:Ontology ;
+    nrl:prefix "vmo" ;
+    nrl:lastModified "2024-07-10T16:35:00Z" .
+
+# Thread
+vmo:CommunicationChannel a rdfs:Class ;
+    rdfs:label "Communication Channel" ;
+    rdfs:comment "A communication channel. The container for all messages between participants of a specific group or in a persistent channel." ;
+    rdfs:subClassOf nie:InformationElement .
+
+vmo:communicationChannelId a rdf:Property ;
+    rdfs:comment "Identifier assigned by the system that composed the thread." ;
+    rdfs:domain vmo:CommunicationChannel ;
+    rdfs:range xsd:integer ;
+    nrl:maxCardinality 1 .
+
+vmo:hasParticipant a rdf:Property ;
+    rdfs:label "Participants" ;
+    rdfs:comment "The participants in a conversation. This is a list of the contact mediums of each nmo:messageRecipient." ;
+    rdfs:domain vmo:CommunicationChannel ;
+    rdfs:range nco:ContactMedium ;
+    nrl:indexed true .
+
+# PhoneMessageBox
+#
+# This is inspired by the nmo:PhoneMessageFolder class, but based on the
+# principle that folders for phone messaging systems are abstractions of state
+# and thus exclusive.
+#
+# Included are pre-defined boxes based on those used by Android, and returned
+# in the "type" field of a KDE Connect message object.
+#
+# See: https://developer.android.com/reference/android/provider/Telephony.TextBasedSmsColumns.html
+#
+vmo:PhoneMessageBox a rdfs:Class ;
+    rdfs:label "Phone Message Box" ;
+    rdfs:comment "Ontology for representing a phone message box. These behave more like states than folders, with a limited set expressing states like Inbox and Outbox representing received and sending." ;
+    rdfs:subClassOf nie:InformationElement .
+
+vmo:phoneMessageBoxId a rdf:Property ;
+    rdfs:label "folder id" ;
+    rdfs:comment "Id assigned to the folder for sync purpouses" ;
+    rdfs:domain vmo:PhoneMessageBox ;
+    rdfs:range xsd:integer ;
+    nrl:maxCardinality 1 .
+
+vmo:android-message-type-all a vmo:PhoneMessageBox ;
+    nie:title "All" ;
+    vmo:phoneMessageBoxId 0 .
+
+vmo:android-message-type-inbox a vmo:PhoneMessageBox ;
+    nie:title "Inbox" ;
+    vmo:phoneMessageBoxId 1 .
+
+vmo:android-message-type-sent a vmo:PhoneMessageBox ;
+    nie:title "Sent" ;
+    vmo:phoneMessageBoxId 2 .
+
+vmo:android-message-type-drafts a vmo:PhoneMessageBox ;
+    nie:title "Drafts" ;
+    vmo:phoneMessageBoxId 3 .
+
+vmo:android-message-type-outbox a vmo:PhoneMessageBox ;
+    nie:title "Outbox" ;
+    vmo:phoneMessageBoxId 4 .
+
+vmo:android-message-type-failed a vmo:PhoneMessageBox ;
+    nie:title "Failed" ;
+    vmo:phoneMessageBoxId 5 .
+
+vmo:android-message-type-queued a vmo:PhoneMessageBox ;
+    nie:title "Queued" ;
+    vmo:phoneMessageBoxId 6 .
+
+# PhoneMessage
+vmo:PhoneMessage a rdfs:Class ;
+    rdfs:label "Phone Message" ;
+    rdfs:comment "Ontology for representing a phone message, such as SMS, MMS or RCS." ;
+    rdfs:subClassOf nmo:Message ;
+    nrl:notify true .
+
+vmo:phoneMessageBox a rdf:Property ;
+    rdfs:label "Phone Message Box" ;
+    rdfs:comment "" ;
+    rdfs:domain vmo:PhoneMessage ;
+    rdfs:range vmo:PhoneMessageBox ;
+    nrl:indexed true ;
+    nrl:maxCardinality 1 .
+
+vmo:phoneMessageId a rdf:Property ;
+    rdfs:label "Phone Message ID" ;
+    rdfs:comment "Identifier assigned by the system that received the phone message. This is guaranteed to be unique in a given vmo:CommunicationChannel" ;
+    rdfs:domain vmo:PhoneMessage ;
+    rdfs:range xsd:integer ;
+    nrl:indexed true ;
+    nrl:maxCardinality 1 .
+
+vmo:communicationChannel a rdf:Property ;
+    rdfs:comment "Connects this message to a communication channel. Every message must only be in a single channel." ;
+    rdfs:domain nmo:Message ;
+    rdfs:range vmo:CommunicationChannel ;
+    nrl:indexed true ;
+    nrl:maxCardinality 1 .
+
+# These don't have obvious mappings to NMO, but are ostensibly required by
+# KDE Connect clients (except maybe `event`).
+vmo:subscriptionId a rdf:Property ;
+    rdfs:comment "The subscription ID used to send or receive the message. A value of -1 is taken to be the default, while any other number is implementation defined (e.g. SIM card slot, carrier code, etc)." ;
+    rdfs:domain vmo:PhoneMessage ;
+    rdfs:range xsd:integer ;
+    nrl:maxCardinality 1 .
+
+# FIXME: suggest extension?
+vmo:default-contact-medium-me a nco:ContactMedium .
+
+# FIXME: this should be avoidable, if we could get thumbnails from GVfs
+vmo:encoded_thumbnail a rdf:Property ;
+    rdfs:label "Encoded Thumbnail" ;
+    rdfs:comment "A base64 encoded preview of the attachment." ;
+    rdfs:domain nfo:Attachment ;
+    rdfs:range xsd:string ;
+    nrl:maxCardinality 1 .
+

@@ -1,0 +1,50 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
+
+# Inputs: iri
+# Outputs: message, box, date, messageId, read, recipients, sender, subscriptionId, text, threadId
+#          attachment, encoded_thumbnail, fileUri
+SELECT
+  ?message
+  ?box
+  ?date
+  ?messageId
+  ?read
+  (GROUP_CONCAT(?recipient; separator=",") AS ?recipients)
+  ?sender
+  ?subscriptionId
+  ?text
+  ?threadId
+  ?attachment
+  ?encoded_thumbnail
+  ?fileUri
+WHERE {
+  BIND(IRI(xsd:string(~iri)) AS ?message)
+  ?message rdf:type vmo:PhoneMessage ;
+           dc:date ?date ;
+           vmo:phoneMessageBox ?phoneMessageBox ;
+           vmo:phoneMessageId ?messageId ;
+           nmo:isRead ?read ;
+           vmo:communicationChannel ?communicationChannel ;
+           vmo:subscriptionId ?subscriptionId .
+  ?communicationChannel vmo:communicationChannelId ?threadId .
+  ?phoneMessageBox vmo:phoneMessageBoxId ?box .
+  OPTIONAL {
+    ?message nmo:hasAttachment ?attachment .
+    OPTIONAL { ?attachment rdf:type nfo:Attachment }
+    OPTIONAL { ?attachment vmo:encoded_thumbnail ?encoded_thumbnail }
+    OPTIONAL { ?attachment nie:url ?fileUri }
+  }
+  OPTIONAL {
+    ?message nmo:messageSender ?contactMedium .
+    OPTIONAL { ?contactMedium (nco:phoneNumber|nco:emailAddress) ?sender }
+  }
+  OPTIONAL {
+    ?message nmo:primaryMessageRecipient ?contactMedium .
+    OPTIONAL { ?contactMedium (nco:phoneNumber|nco:emailAddress) ?recipient }
+  }
+  OPTIONAL {
+    ?message nmo:plainTextMessageContent ?text
+  }
+}
+GROUP BY ?message ?attachment

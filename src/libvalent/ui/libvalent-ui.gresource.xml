@@ -15,7 +15,7 @@
     <file preprocess="xml-stripblanks" alias="scalable/actions/valent-status-symbolic.svg">data/icons/hicolor/scalable/ui/valent-status-symbolic.svg</file>
     <file preprocess="xml-stripblanks" alias="scalable/actions/valent-sync-symbolic.svg">data/icons/hicolor/scalable/ui/valent-sync-symbolic.svg</file>
 
-    <!-- Action Icons -->
+    <!-- Media Icons -->
     <file preprocess="xml-stripblanks" alias="scalable/actions/media-playback-pause-symbolic.svg">data/icons/hicolor/scalable/actions/media-playback-pause-symbolic.svg</file>
     <file preprocess="xml-stripblanks" alias="scalable/actions/media-playback-start-symbolic.svg">data/icons/hicolor/scalable/actions/media-playback-start-symbolic.svg</file>
     <file preprocess="xml-stripblanks" alias="scalable/actions/media-playback-stop-symbolic.svg">data/icons/hicolor/scalable/actions/media-playback-stop-symbolic.svg</file>
@@ -40,6 +40,12 @@
     <file preprocess="xml-stripblanks" alias="scalable/actions/media-skip-forward-symbolic.svg">data/icons/hicolor/scalable/actions/media-skip-forward-symbolic.svg</file>
     <file preprocess="xml-stripblanks" alias="scalable/actions/playback-options-symbolic.svg">data/icons/hicolor/scalable/actions/playback-options-symbolic.svg</file>
 
+    <!-- Messages Icons -->
+    <file preprocess="xml-stripblanks" alias="scalable/actions/message-attachment-symbolic.svg">data/icons/hicolor/scalable/actions/message-attachment-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/actions/message-send-symbolic.svg">data/icons/hicolor/scalable/actions/message-send-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/message-empty-symbolic.svg">data/icons/hicolor/scalable/status/message-empty-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/status/message-group-symbolic.svg">data/icons/hicolor/scalable/status/message-group-symbolic.svg</file>
+
     <!-- Device Icons -->
     <file preprocess="xml-stripblanks" alias="scalable/devices/computer-symbolic.svg">data/icons/hicolor/scalable/devices/computer-symbolic.svg</file>
     <file preprocess="xml-stripblanks" alias="scalable/devices/laptop-symbolic.svg">data/icons/hicolor/scalable/devices/laptop-symbolic.svg</file>
@@ -57,6 +63,10 @@
   </gresource>
   <gresource prefix="/ca/andyholmes/Valent/ui">
     <file>style.css</file>
+    <file preprocess="xml-stripblanks">valent-contact-page.ui</file>
+    <file preprocess="xml-stripblanks">valent-contact-row.ui</file>
+    <file preprocess="xml-stripblanks">valent-conversation-page.ui</file>
+    <file preprocess="xml-stripblanks">valent-conversation-row.ui</file>
     <file preprocess="xml-stripblanks">valent-device-page.ui</file>
     <file preprocess="xml-stripblanks">valent-device-preferences-dialog.ui</file>
     <file preprocess="xml-stripblanks">valent-device-preferences-battery.ui</file>
@@ -71,6 +81,8 @@
     <file preprocess="xml-stripblanks">valent-device-preferences-telephony.ui</file>
     <file preprocess="xml-stripblanks">valent-input-remote.ui</file>
     <file preprocess="xml-stripblanks">valent-media-remote.ui</file>
+    <file preprocess="xml-stripblanks">valent-message-row.ui</file>
+    <file preprocess="xml-stripblanks">valent-messages-window.ui</file>
     <file preprocess="xml-stripblanks">valent-notification-dialog.ui</file>
     <file preprocess="xml-stripblanks">valent-plugin-row.ui</file>
     <file preprocess="xml-stripblanks">valent-preferences-dialog.ui</file>

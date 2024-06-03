@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
+
+<interface domain="valent">
+  <template class="ValentMessageRow" parent="GtkListBoxRow">
+    <property name="child">
+      <object class="GtkGrid">
+        <property name="column-spacing">12</property>
+        <property name="row-spacing">3</property>
+
+        <!-- Avatar -->
+        <child>
+          <object class="AdwAvatar" id="avatar">
+            <property name="halign">start</property>
+            <property name="valign">center</property>
+            <property name="size">32</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">0</property>
+              <property name="row-span">2</property>
+            </layout>
+          </object>
+        </child>
+
+        <!-- Title & Date -->
+        <child>
+          <object class="GtkLabel" id="title_label">
+            <property name="halign">start</property>
+            <property name="hexpand">1</property>
+            <property name="valign">start</property>
+            <property name="vexpand">1</property>
+            <property name="xalign">0.0</property>
+            <property name="ellipsize">end</property>
+            <style>
+              <class name="title"/>
+            </style>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+
+        <child>
+          <object class="ValentDateLabel" id="date_label">
+            <property name="accessible-role">time</property>
+            <property name="mode">adaptive-short</property>
+            <property name="halign">end</property>
+            <property name="valign">start</property>
+            <property name="vexpand">1</property>
+            <style>
+              <class name="dim-label"/>
+            </style>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+
+        <!-- Subtitle -->
+        <child>
+          <object class="GtkLabel" id="subtitle_label">
+            <property name="halign">start</property>
+            <property name="hexpand">1</property>
+            <property name="valign">end</property>
+            <property name="vexpand">1</property>
+            <property name="ellipsize">end</property>
+            <property name="single-line-mode">1</property>
+            <property name="xalign">0.0</property>
+            <style>
+              <class name="subtitle"/>
+            </style>
+            <layout>
+              <property name="column">1</property>
+              <property name="column-span">2</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </property>
+    <style>
+      <class name="valent-message-row"/>
+    </style>
+  </template>
+</interface>
+

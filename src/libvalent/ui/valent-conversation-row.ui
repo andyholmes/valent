@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
+
+<interface domain="valent">
+  <template class="ValentConversationRow" parent="GtkListBoxRow">
+    <property name="activatable">0</property>
+    <property name="child">
+      <object class="GtkGrid" id="layout">
+        <property name="column-spacing">12</property>
+        <property name="row-spacing">6</property>
+
+        <!-- Avatar -->
+        <child>
+          <object class="GtkBox">
+            <property name="width-request"
+                      bind-source="avatar"
+                      bind-property="size"
+                      bind-flags="sync-create"/>
+            <property name="halign">center</property>
+            <property name="valign">end</property>
+            <child>
+              <object class="AdwAvatar" id="avatar">
+                <property name="size">36</property>
+              </object>
+            </child>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">0</property>
+              <property name="row-span">3</property>
+            </layout>
+          </object>
+        </child>
+
+        <!-- Sender -->
+        <child>
+          <object class="GtkLabel" id="sender_label">
+            <property name="ellipsize">end</property>
+            <property name="margin-end">3</property>
+            <property name="margin-start">3</property>
+            <property name="margin-top">3</property>
+            <property name="valign">start</property>
+            <property name="xalign"
+                      bind-source="date_label"
+                      bind-property="xalign"
+                      bind-flags="sync-create"/>
+            <property name="visible">0</property>
+            <style>
+              <class name="caption-heading"/>
+            </style>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+
+        <!-- Attachments -->
+        <child>
+          <object class="GtkListBox" id="attachment_list">
+            <property name="halign">start</property>
+            <property name="visible">0</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">1</property>
+            </layout>
+            <style>
+             <class name="attachment-list"/>
+            </style>
+          </object>
+        </child>
+
+        <!-- Summary & Body -->
+        <child>
+          <object class="GtkBox" id="message_bubble">
+            <property name="orientation">vertical</property>
+            <property name="spacing">6</property>
+            <property name="halign"
+                      bind-source="ValentConversationRow"
+                      bind-property="halign"
+                      bind-flags="sync-create"/>
+            <child>
+              <object class="GtkGestureClick">
+                <property name="button">3</property>
+                <signal name="pressed"
+                        handler="on_menu_popup"
+                        object="ValentConversationRow"
+                        swapped="no"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="summary_label">
+                <property name="visible">0</property>
+                <property name="wrap">1</property>
+                <property name="wrap-mode">word-char</property>
+                <property name="xalign"
+                          bind-source="date_label"
+                          bind-property="xalign"
+                          bind-flags="sync-create"/>
+                <style>
+                 <class name="heading"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="body_label">
+                <property name="use-markup">1</property>
+                <property name="visible">0</property>
+                <property name="wrap">1</property>
+                <property name="wrap-mode">word-char</property>
+                <!-- <property name="selectable">1</property> -->
+                <property name="xalign"
+                          bind-source="date_label"
+                          bind-property="xalign"
+                          bind-flags="sync-create"/>
+                <signal name="activate-link"
+                        handler="on_activate_link"
+                        object="ValentConversationRow"
+                        swapped="no"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkPopoverMenu" id="context_menu">
+                <property name="menu-model">context_model</property>
+              </object>
+            </child>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">2</property>
+            </layout>
+            <style>
+             <class name="message-bubble"/>
+            </style>
+          </object>
+        </child>
+
+        <!-- Message footer -->
+        <child>
+          <object class="ValentDateLabel" id="date_label">
+            <property name="accessible-role">time</property>
+            <property name="mode">time</property>
+            <property name="margin-start">6</property>
+            <property name="margin-end">6</property>
+            <property name="visible">1</property>
+            <binding name="date">
+              <lookup name="date" type="ValentMessage">
+                <lookup name="message">ValentConversationRow</lookup>
+              </lookup>
+            </binding>
+            <layout>
+              <property name="column">1</property>
+              <property name="column-span">1</property>
+              <property name="row">3</property>
+            </layout>
+            <style>
+              <class name="dim-label"/>
+              <class name="message-footer"/>
+            </style>
+          </object>
+        </child>
+      </object>
+    </property>
+    <style>
+      <class name="valent-conversation-row"/>
+    </style>
+  </template>
+  <menu id="context_model">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Copy text</attribute>
+        <attribute name="action">clipboard.copy</attribute>
+      </item>
+    </section>
+  </menu>
+</interface>
+

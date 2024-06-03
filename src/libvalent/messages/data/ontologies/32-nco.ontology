@@ -1,0 +1,700 @@
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix nao: <http://tracker.api.gnome.org/ontology/v3/nao#> .
+@prefix nco: <http://tracker.api.gnome.org/ontology/v3/nco#> .
+@prefix nie: <http://tracker.api.gnome.org/ontology/v3/nie#> .
+@prefix nrl: <http://tracker.api.gnome.org/ontology/v3/nrl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix tracker: <http://tracker.api.gnome.org/ontology/v3/tracker#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+nco: a nrl:Namespace, nrl:Ontology ;
+    nrl:prefix "nco" ;
+    nrl:lastModified "2016-02-28T21:30:00Z" .
+
+nco:Role a rdfs:Class ;
+    rdfs:label "Role" ;
+    rdfs:comment "A role played by a contact. Contacts that denote people, can have many roles (e.g. see the hasAffiliation property and Affiliation class). Contacts that denote Organizations or other Agents usually have one role.  Each role can introduce additional contact media." ;
+    rdfs:subClassOf rdfs:Resource .
+
+nco:Affiliation a rdfs:Class ;
+    rdfs:label "Affiliation" ;
+    rdfs:comment "Aggregates three properties defined in RFC2426. Originally all three were attached directly to a person. One person could have only one title and one role within one organization. This class is intended to lift this limitation." ;
+    rdfs:subClassOf nco:Role .
+
+nco:Contact a rdfs:Class ;
+    rdfs:label "Contact" ;
+    rdfs:comment "A Contact. A piece of data that can provide means to identify or communicate with an entity." ;
+    rdfs:subClassOf nie:InformationElement , nco:Role .
+
+nco:ContactGroup a rdfs:Class ;
+    rdfs:label "ContactGroup" ;
+    rdfs:comment "A group of Contacts. Could be used to express a group in an addressbook or on a contact list of an IM application. One contact can belong to many groups." ;
+    rdfs:subClassOf nie:InformationElement ;
+    nrl:notify true .
+
+nco:ContactList a rdfs:Class ;
+    rdfs:label "ContactList" ;
+    rdfs:comment "A contact list, this class represents an addressbook or a contact list of an IM application. Contacts inside a contact list can belong to contact groups." ;
+    rdfs:subClassOf nie:InformationElement ;
+    nrl:notify true .
+
+# Maybe a bug? Shouldnt it be a subclass of nie:InformationElement?
+nco:ContactMedium a rdfs:Class ;
+    rdfs:label "ContactMedium" ;
+    rdfs:comment "A superclass for all contact media - ways to contact an entity represented by a Contact instance. Some of the subclasses of this class (the various kinds of telephone numbers and postal addresses) have been inspired by the values of the TYPE parameter of ADR and TEL properties defined in RFC 2426 sec. 3.2.1. and 3.3.1 respectively. Each value is represented by an appropriate subclass with two major exceptions TYPE=home and TYPE=work. They are to be expressed by the roles these contact media are attached to i.e. contact media with TYPE=home parameter are to be attached to the default role (nco:Contact or nco:PersonContact), whereas media with TYPE=work parameter should be attached to nco:Affiliation or nco:OrganizationContact." ;
+    rdfs:subClassOf rdfs:Resource .
+
+nco:EmailAddress a rdfs:Class ;
+    rdfs:label "EmailAddress" ;
+    rdfs:comment "An email address. The recommended best practice is to use mailto: uris for instances of this class." ;
+    rdfs:subClassOf nco:ContactMedium .
+
+nco:IMAddress a rdfs:Class ;
+    rdfs:label "IM Address" ;
+    rdfs:comment "An instant messaging address such as xmpp:foo@bar.com." ;
+    nrl:notify true ;
+    rdfs:subClassOf nco:ContactMedium .
+
+nco:IMAccount a rdfs:Class ;
+    rdfs:label "IMAccount" ;
+    rdfs:comment "An account in an Instant Messaging system. This refers to IM accounts of the user 'me'." ;
+    nrl:notify true ;
+    rdfs:subClassOf nie:InformationElement .
+
+nco:OrganizationContact a rdfs:Class ;
+    rdfs:label "OrganizationContact" ;
+    rdfs:comment "A Contact that denotes on Organization." ;
+    rdfs:subClassOf nco:Contact .
+
+nco:PersonContact a rdfs:Class ;
+    rdfs:label "PersonContact" ;
+    rdfs:comment "A Contact that denotes a Person. A person can have multiple Affiliations." ;
+    nrl:notify true ;
+    rdfs:subClassOf nco:Contact .
+
+nco:default-contact-me a nco:PersonContact.
+
+nco:PhoneNumber a rdfs:Class ;
+    rdfs:label "PhoneNumber" ;
+    rdfs:comment "A telephone number." ;
+    rdfs:subClassOf nco:ContactMedium .
+
+nco:PostalAddress a rdfs:Class ;
+    rdfs:label "PostalAddress" ;
+    rdfs:comment "A postal address. A class aggregating the various parts of a value for the 'ADR' property as defined in RFC 2426 Sec. 3.2.1." ;
+    rdfs:subClassOf nco:ContactMedium .
+
+nco:ModemNumber a rdfs:Class ;
+    rdfs:label "ModemNumber" ;
+    rdfs:comment "A modem phone number. Inspired by the (TYPE=modem) parameter of the TEL property as defined in RFC 2426 sec  3.3.1." ;
+    rdfs:subClassOf nco:PhoneNumber .
+
+nco:MessagingNumber a rdfs:Class ;
+    rdfs:label "MessagingNumber" ;
+    rdfs:comment "A number that can accept textual messages." ;
+    rdfs:subClassOf nco:PhoneNumber .
+
+nco:PagerNumber a rdfs:Class ;
+    rdfs:label "PagerNumber" ;
+    rdfs:comment "A pager phone number. Inspired by the (TYPE=pager) parameter of the TEL property as defined in RFC 2426 sec  3.3.1." ;
+    rdfs:subClassOf nco:MessagingNumber .
+
+nco:Gender a rdfs:Class ;
+    rdfs:label "Gender" ;
+    rdfs:comment "Gender. Instances of this class may include male and female." ;
+    rdfs:subClassOf rdfs:Resource .
+
+nco:gender-male a nco:Gender .
+nco:gender-female a nco:Gender .
+nco:gender-other a nco:Gender .
+
+nco:VoicePhoneNumber a rdfs:Class ;
+    rdfs:label "VoicePhoneNumber" ;
+    rdfs:comment "A telephone number with voice communication capabilities. Class inspired by the TYPE=voice parameter of the TEL property defined in RFC 2426 sec. 3.3.1" ;
+    rdfs:subClassOf nco:PhoneNumber .
+
+nco:VideoTelephoneNumber a rdfs:Class ;
+    rdfs:label "VideoTelephoneNumber" ;
+    rdfs:comment "A Video telephone number. A class inspired by the TYPE=video parameter of the TEL property defined in RFC 2426 sec. 3.3.1" ;
+    rdfs:subClassOf nco:VoicePhoneNumber .
+
+nco:IsdnNumber a rdfs:Class ;
+    rdfs:label "IsdnNumber" ;
+    rdfs:comment "An ISDN phone number. Inspired by the (TYPE=isdn) parameter of the TEL property as defined in RFC 2426 sec  3.3.1." ;
+    rdfs:subClassOf nco:VoicePhoneNumber .
+
+nco:ParcelDeliveryAddress a rdfs:Class ;
+    rdfs:label "ParcelDeliveryAddress" ;
+    rdfs:comment "Parcel Delivery Addresse. Class inspired by TYPE=parcel parameter of the ADR property defined in RFC 2426 sec. 3.2.1" ;
+    rdfs:subClassOf nco:PostalAddress .
+
+# Useless class.
+#nco:AudioIMAccount a rdfs:Class ;
+#    rdfs:label "AudioIMAccount" ;
+#    rdfs:comment "An account in an InstantMessaging system capable of real-time audio conversations." ;
+#    rdfs:subClassOf nco:IMAccount .
+
+nco:FaxNumber a rdfs:Class ;
+    rdfs:label "FaxNumber" ;
+    rdfs:comment "A fax number. Inspired by the (TYPE=fax) parameter of the TEL property as defined in RFC 2426 sec  3.3.1." ;
+    rdfs:subClassOf nco:PhoneNumber .
+
+nco:CarPhoneNumber a rdfs:Class ;
+    rdfs:label "CarPhoneNumber" ;
+    rdfs:comment "A car phone number. Inspired by the (TYPE=car) parameter of the TEL property as defined in RFC 2426 sec  3.3.1." ;
+    rdfs:subClassOf nco:VoicePhoneNumber .
+
+nco:ContactListDataObject a rdfs:Class ;
+    rdfs:label "ContactListDataObject" ;
+    rdfs:comment "An entity occuring on a contact list (usually interpreted as an nco:Contact)" ;
+    rdfs:subClassOf nie:DataObject .
+
+nco:PcsNumber a rdfs:Class ;
+    rdfs:label "PcsNumber" ;
+    rdfs:comment "Personal Communication Services Number. A class inspired by the TYPE=pcs parameter of the TEL property defined in RFC 2426 sec. 3.3.1" ;
+    rdfs:subClassOf nco:VoicePhoneNumber .
+
+nco:InternationalDeliveryAddress a rdfs:Class ;
+    rdfs:label "InternationalDeliveryAddress" ;
+    rdfs:comment "International Delivery Addresse. Class inspired by TYPE=intl parameter of the ADR property defined in RFC 2426 sec. 3.2.1" ;
+    rdfs:subClassOf nco:PostalAddress .
+
+#nco:VideoIMAccount a rdfs:Class ;
+#    rdfs:label "VideoIMAccount" ;
+#    rdfs:comment "An account in an instant messaging system capable of video conversations." ;
+#    rdfs:subClassOf nco:AudioIMAccount .
+
+nco:BbsNumber a rdfs:Class ;
+    rdfs:label "BbsNumber" ;
+    rdfs:comment "A Bulletin Board System (BBS) phone number. Inspired by the (TYPE=bbsl) parameter of the TEL property as defined in RFC 2426 sec  3.3.1." ;
+    rdfs:subClassOf nco:ModemNumber .
+
+nco:CellPhoneNumber a rdfs:Class ;
+    rdfs:label "CellPhoneNumber" ;
+    rdfs:comment "A cellular phone number. Inspired by the (TYPE=cell) parameter of the TEL property as defined in RFC 2426 sec  3.3.1. Usually a cellular phone can accept voice calls as well as textual messages (SMS), therefore this class has two superclasses." ;
+    rdfs:subClassOf nco:MessagingNumber , nco:VoicePhoneNumber .
+
+nco:DomesticDeliveryAddress a rdfs:Class ;
+    rdfs:label "DomesticDeliveryAddress" ;
+    rdfs:comment "Domestic Delivery Addresse. Class inspired by TYPE=dom parameter of the ADR property defined in RFC 2426 sec. 3.2.1" ;
+    rdfs:subClassOf nco:PostalAddress .
+
+nco:nameFamily a rdf:Property ;
+    rdfs:label "nameFamily" ;
+    rdfs:comment "The family name of an Object represented by this Contact. These applies to people that have more than one given name. The 'first' one is considered 'the' given name (see nameGiven) property. All additional ones are considered 'additional' names. The name inherited from parents is the 'family name'. e.g. For Dr. John Phil Paul Stevenson Jr. M.D. A.C.P. we have contact with: honorificPrefix: 'Dr.', nameGiven: 'John', nameAdditional: 'Phil', nameAdditional: 'Paul', nameFamily: 'Stevenson', honorificSuffix: 'Jr.', honorificSuffix: 'M.D.', honorificSuffix: 'A.C.P.'. These properties form an equivalent of the compound 'N' property as defined in RFC 2426 Sec. 3.1.2" ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:PersonContact ;
+    rdfs:range xsd:string ;
+    nrl:indexed true ;
+    nrl:fulltextIndexed true ;
+    nrl:weight 4 .
+
+nco:nameGiven a rdf:Property ;
+    rdfs:label "nameGiven" ;
+    rdfs:comment "The given name for the object represented by this Contact. See documentation for 'nameFamily' property for details." ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:PersonContact ;
+    rdfs:range xsd:string ;
+    nrl:fulltextIndexed true ;
+    nrl:weight 5 .
+
+nco:nameAdditional a rdf:Property ;
+    rdfs:label "nameAdditional" ;
+    rdfs:comment "Additional given name of an object represented by this contact. See documentation for 'nameFamily' property for details." ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:PersonContact ;
+    rdfs:range xsd:string ;
+    nrl:fulltextIndexed true ;
+    nrl:weight 5 .
+
+nco:fullname a rdf:Property ;
+    rdfs:label "fullname" ;
+    rdfs:comment "To specify the formatted text corresponding to the name of the object the Contact represents. An equivalent of the FN property as defined in RFC 2426 Sec. 3.1.1." ;
+    rdfs:subPropertyOf dc:title ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:Contact ;
+    rdfs:range xsd:string ;
+    nrl:fulltextIndexed true ;
+    nrl:weight 6 .
+
+nco:hasContactMedium a rdf:Property ;
+    rdfs:label "hasContactMedium" ;
+    rdfs:comment "A superProperty for all properties linking a Contact to an instance of a contact medium." ;
+    rdfs:domain nco:Role ;
+    rdfs:range nco:ContactMedium .
+
+# FIXME Range string or resource?
+nco:url a rdf:Property ;
+    rdfs:label "url" ;
+    rdfs:comment "A uniform resource locator associated with the given role of a Contact. Inspired by the 'URL' property defined in RFC 2426 Sec. 3.6.8." ;
+    rdfs:domain nco:Role ;
+    rdfs:range rdfs:Resource ;
+    nrl:weight 4 .
+
+nco:contributor a rdf:Property ;
+    rdfs:label "contributor" ;
+    rdfs:comment "An entity responsible for making contributions to the content of the InformationElement." ;
+    rdfs:subPropertyOf dc:contributor ;
+    rdfs:domain nie:InformationElement ;
+    rdfs:range nco:Contact .
+
+nco:creator a rdf:Property ;
+    rdfs:label "creator" ;
+    rdfs:comment "Creator of a data object, an entity primarily responsible for the creation of the content of the data object." ;
+    rdfs:subPropertyOf dc:creator , nco:contributor ;
+    rdfs:domain nie:InformationElement ;
+    rdfs:range nco:Contact ;
+    nrl:weight 4 .
+
+nco:region a rdf:Property ;
+    rdfs:label "region" ;
+    rdfs:comment "Region. Inspired by the fifth part of the value of the 'ADR' property as defined in RFC 2426, sec. 3.2.1" ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:PostalAddress ;
+    rdfs:range xsd:string ;
+    nrl:fulltextIndexed true ;
+    nrl:weight 3 .
+
+nco:key a rdf:Property ;
+    rdfs:label "key" ;
+    rdfs:comment "An encryption key attached to a contact. Inspired by the KEY property defined in RFC 2426 sec. 3.7.2" ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:Contact ;
+    rdfs:range nie:DataObject .
+
+nco:nameHonorificSuffix a rdf:Property ;
+    rdfs:label "nameHonorificSuffix" ;
+    rdfs:comment "A suffix for the name of the Object represented by the given object. See documentation for the 'nameFamily' for details." ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:PersonContact ;
+    rdfs:range xsd:string ;
+    nrl:weight 3 .
+
+nco:contactUID a rdf:Property ;
+    rdfs:label "contactUID" ;
+    rdfs:comment "A value that represents a globally unique  identifier corresponding to the individual or resource associated with the Contact. An equivalent of the 'UID' property defined in RFC 2426 Sec. 3.6.7" ;
+    rdfs:subPropertyOf nie:identifier ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:Contact ;
+    rdfs:range xsd:string ;
+    nrl:weight 5 .
+
+nco:contactLocalUID a rdf:Property;
+    rdfs:label "local contact UID";
+    rdfs:comment "Unique ID for the contact in the local storage" ;
+    nrl:maxCardinality 1;
+    rdfs:domain nco:Contact ;
+    rdfs:range xsd:string .
+
+nco:publisher a rdf:Property ;
+    rdfs:label "publisher" ;
+    rdfs:comment "An entity responsible for making the InformationElement available." ;
+    rdfs:subPropertyOf dc:publisher ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nie:InformationElement ;
+    rdfs:range nco:Contact ;
+    nrl:weight 2 .
+
+nco:country a rdf:Property ;
+    rdfs:label "country" ;
+    rdfs:comment "A part of an address specifying the country. Inspired by the seventh part of the value of the 'ADR' property as defined in RFC 2426, sec. 3.2.1" ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:PostalAddress ;
+    rdfs:range xsd:string ;
+    nrl:fulltextIndexed true ;
+    nrl:weight 3 .
+
+nco:nameHonorificPrefix a rdf:Property ;
+    rdfs:label "nameHonorificPrefix" ;
+    rdfs:comment "A prefix for the name of the object represented by this Contact. See documentation for the 'nameFamily' property for details." ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:PersonContact ;
+    rdfs:range xsd:string ;
+    nrl:weight 3 .
+
+nco:extendedAddress a rdf:Property ;
+    rdfs:label "extendedAddress" ;
+    rdfs:comment "An extended part of an address. This field might be used to express parts of an address that aren't include in the name of the Contact but also aren't part of the actual location. Usually the streed address and following fields are enough for a postal letter to arrive. Examples may include ('University of California Campus building 45', 'Sears Tower 34th floor' etc.) Inspired by the second part of the value of the 'ADR' property as defined in RFC 2426, sec. 3.2.1" ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:PostalAddress ;
+    rdfs:range xsd:string ;
+    nrl:fulltextIndexed true ;
+    nrl:weight 6 .
+
+nco:hasIMContact a rdf:Property ;
+    rdfs:label "hasIMAccount" ;
+    rdfs:comment "Indicates that this Instant Messaging account has the specified Instant Messaging address in the contact list." ;
+    rdfs:domain nco:IMAccount ;
+    rdfs:range nco:IMAddress .
+
+# FIXME Range geo:Point but we dont have that class
+nco:hasLocation a rdf:Property ;
+    rdfs:label "hasLocation" ;
+    rdfs:comment "Geographical location of the contact. Inspired by the 'GEO' property specified in RFC 2426 Sec. 3.4.2" ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:Contact ;
+    rdfs:range rdfs:Resource .
+
+nco:phoneNumber a rdf:Property ;
+    rdfs:label "phoneNumber" ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:PhoneNumber ;
+    rdfs:range xsd:string ;
+    nrl:indexed true ;
+    nrl:fulltextIndexed true ;
+    nrl:weight 5 .
+
+nco:nickname a rdf:Property ;
+    rdfs:label "nickname" ;
+    rdfs:comment "A nickname of the Object represented by this Contact. This is an equivalen of the 'NICKNAME' property as defined in RFC 2426 Sec. 3.1.3." ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:Contact ;
+    rdfs:range xsd:string ;
+    nrl:fulltextIndexed true ;
+    nrl:weight 5 .
+
+nco:containsContact a rdf:Property ;
+    rdfs:label "containsContact" ;
+    rdfs:comment "A property used to group contacts into contact groups. This property was NOT defined in the VCARD standard. See documentation for the 'ContactList' class for details" ;
+    rdfs:subPropertyOf nie:hasPart ;
+    rdfs:domain nco:ContactList ;
+    rdfs:range nco:ContactListDataObject .
+
+nco:department a rdf:Property ;
+    rdfs:label "department" ;
+    rdfs:comment "Department. The organizational unit within the organization." ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:Affiliation ;
+    rdfs:range xsd:string ;
+    nrl:fulltextIndexed true ;
+    nrl:weight 4 .
+
+# nco:imID a rdf:Property ;
+#     rdfs:label "imID" ;
+#     rdfs:comment "Identifier of the IM account. Examples of such identifier might include ICQ UINs, Jabber IDs, Skype names etc." ;
+#     rdfs:subPropertyOf nao:identifier ;
+#     nrl:maxCardinality 1 ;
+#     rdfs:domain nco:IMAddress ;
+#     rdfs:range xsd:string ;
+#     nrl:fulltextIndexed true ;
+#     nrl:weight 5 .
+
+nco:imAccountAddress a rdf:Property ;
+    a nrl:InverseFunctionalProperty ;
+    rdfs:label "imAccountAddress" ;
+    rdfs:comment "Instant Messaging address of this IM account. The user 'me' can send and receive messages from this IM address." ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:IMAccount ;
+    rdfs:range nco:IMAddress .
+
+# FIXME Range geo:Point but we dont have that class
+nco:addressLocation a rdf:Property ;
+    rdfs:label "addressLocation" ;
+    rdfs:comment "The geographical location of a postal address." ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:PostalAddress ;
+    rdfs:range rdfs:Resource ;
+    nrl:weight 3 .
+
+nco:note a rdf:Property ;
+    rdfs:label "note" ;
+    rdfs:comment "A note about the object represented by this Contact. An equivalent for the 'NOTE' property defined in RFC 2426 Sec. 3.6.2" ;
+    rdfs:domain nco:Contact ;
+    rdfs:range xsd:string ;
+    nrl:fulltextIndexed true ;
+    nrl:weight 4 .
+
+nco:representative a rdf:Property ;
+    rdfs:label "representative" ;
+    rdfs:comment "An object that represent an object represented by this Contact. Usually this property is used to link a Contact to an organization, to a contact to the representative of this organization the user directly interacts with. An equivalent for the 'AGENT' property defined in RFC 2426 Sec. 3.5.4" ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:Contact ;
+    rdfs:range nco:Contact .
+
+nco:streetAddress a rdf:Property ;
+    rdfs:label "streetAddress" ;
+    rdfs:comment "The streed address. Inspired by the third part of the value of the 'ADR' property as defined in RFC 2426, sec. 3.2.1" ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:PostalAddress ;
+    rdfs:range xsd:string ;
+    nrl:fulltextIndexed true ;
+    nrl:weight 6 .
+
+nco:hasPhoneNumber a rdf:Property ;
+    rdfs:label "hasPhoneNumber" ;
+    rdfs:comment "A number for telephony communication with the object represented by this Contact. An equivalent of the 'TEL' property defined in RFC 2426 Sec. 3.3.1" ;
+    rdfs:subPropertyOf nco:hasContactMedium ;
+    rdfs:domain nco:Role ;
+    rdfs:range nco:PhoneNumber .
+
+nco:photo a rdf:Property ;
+    rdfs:label "photo" ;
+    rdfs:comment "Photograph attached to a Contact. The DataObject refered to by this property is usually interpreted as an nfo:Image. Inspired by the PHOTO property defined in RFC 2426 sec. 3.1.4" ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:Contact ;
+    rdfs:range nie:InformationElement .
+
+# FIXME why range is not Image? Bug in Nepomuk?
+nco:logo a rdf:Property ;
+    rdfs:label "logo" ;
+    rdfs:comment "Logo of a company. Inspired by the LOGO property defined in RFC 2426 sec. 3.5.3" ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:OrganizationContact ;
+    rdfs:range nie:DataObject .
+
+# FIXME Same remarks as in url
+nco:websiteUrl a rdf:Property ;
+    rdfs:label "websiteUrl" ;
+    rdfs:comment "A url of a website." ;
+    rdfs:subPropertyOf nco:url ;
+    rdfs:domain nco:Role ;
+    rdfs:range rdfs:Resource ;
+    nrl:weight 5 .
+
+nco:birthDate a rdf:Property ;
+    rdfs:label "birthDate" ;
+    rdfs:comment "Birth date of the object represented by this Contact. An equivalent of the 'BDAY' property as defined in RFC 2426 Sec. 3.1.5." ;
+    rdfs:subPropertyOf dc:date ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:Contact ;
+    rdfs:range xsd:dateTime ;
+    nrl:weight 5 .
+
+nco:hasEmailAddress a rdf:Property ;
+    rdfs:label "hasEmailAddress" ;
+    rdfs:comment "An address for electronic mail communication with the object specified by this contact. An equivalent of the 'EMAIL' property as defined in RFC 2426 Sec. 3.3.1." ;
+    rdfs:subPropertyOf nco:hasContactMedium ;
+    rdfs:domain nco:Role ;
+    rdfs:range nco:EmailAddress ;
+    nrl:indexed true .
+
+nco:postalcode a rdf:Property ;
+    rdfs:label "postalcode" ;
+    rdfs:comment "Postal Code. Inspired by the sixth part of the value of the 'ADR' property as defined in RFC 2426, sec. 3.2.1" ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:PostalAddress ;
+    rdfs:range xsd:string ;
+    nrl:fulltextIndexed true ;
+    nrl:weight 6 .
+
+nco:org a rdf:Property ;
+    rdfs:label "org" ;
+    rdfs:comment "Name of an organization or a unit within an organization the object represented by a Contact is associated with. An equivalent of the 'ORG' property defined in RFC 2426 Sec. 3.5.5" ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:Affiliation ;
+    rdfs:range nco:OrganizationContact ;
+    nrl:weight 4 .
+
+nco:title a rdf:Property ;
+    rdfs:label "title" ;
+    rdfs:domain nco:Affiliation ;
+    rdfs:range xsd:string ;
+    nrl:fulltextIndexed true ;
+    nrl:weight 10 .
+
+nco:voiceMail a rdf:Property ;
+    rdfs:label "voiceMail" ;
+    rdfs:comment "Indicates if the given number accepts voice mail. (e.g. there is an answering machine). Inspired by TYPE=msg parameter of the TEL property defined in RFC 2426 sec. 3.3.1" ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:VoicePhoneNumber ;
+    rdfs:range xsd:boolean .
+
+nco:belongsToGroup a rdf:Property ;
+    rdfs:label "addressLocation" ;
+    rdfs:comment "Links a Contact with a ContactGroup it belongs to." ;
+    rdfs:domain nco:Contact ;
+    rdfs:range nco:ContactGroup .
+
+nco:contactGroupName a rdf:Property ;
+    rdfs:label "contactGroupName" ;
+    rdfs:comment "The name of the contact group. This property was NOT defined in the VCARD standard. See documentation of the 'ContactGroup' class for details" ;
+    rdfs:subPropertyOf dc:title ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:ContactGroup ;
+    rdfs:range xsd:string ;
+    nrl:fulltextIndexed true ;
+    nrl:weight 4 .
+
+nco:contactMediumComment a rdf:Property ;
+    rdfs:label "contactMediumComment" ;
+    rdfs:comment "A comment about the contact medium." ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:ContactMedium ;
+    rdfs:range xsd:string .
+
+# Same remarks as in url
+nco:foafUrl a rdf:Property ;
+    rdfs:label "foafUrl" ;
+    rdfs:comment "The URL of the FOAF file." ;
+    rdfs:subPropertyOf nco:url ;
+    rdfs:domain nco:Role ;
+    rdfs:range rdfs:Resource .
+
+nco:emailAddress a rdf:Property ;
+    a nrl:InverseFunctionalProperty ;
+    rdfs:label "emailAddress" ;
+    rdfs:comment "Email address" ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:EmailAddress ;
+    rdfs:range xsd:string ;
+    nrl:fulltextIndexed true ;
+    nrl:weight 4 .
+
+nco:locality a rdf:Property ;
+    rdfs:label "locality" ;
+    rdfs:comment "Locality or City. Inspired by the fourth part of the value of the 'ADR' property as defined in RFC 2426, sec. 3.2.1" ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:PostalAddress ;
+    rdfs:range xsd:string ;
+    nrl:fulltextIndexed true ;
+    nrl:weight 4 .
+
+nco:county a rdf:Property ;
+    rdfs:label "County" ;
+    rdfs:comment "Regional division between state and city. Not in RFC 2426 sec 3.2.1. Added for API compatibility" ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:PostalAddress ;
+    rdfs:range xsd:string ;
+    nrl:fulltextIndexed true ;
+    nrl:weight 2 .
+
+nco:district a rdf:Property ;
+    rdfs:label "District" ;
+    rdfs:comment "Local division inside a city. Not in RFC 2426 sec 3.2.1. Added for API compatibility" ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:PostalAddress ;
+    rdfs:range xsd:string ;
+    nrl:fulltextIndexed true ;
+    nrl:weight 2 .
+
+nco:sound a rdf:Property ;
+    rdfs:label "sound" ;
+    rdfs:comment "Sound clip attached to a Contact. The DataObject refered to by this property is usually interpreted as an nfo:Audio. Inspired by the SOUND property defined in RFC 2425 sec. 3.6.6." ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:Contact ;
+    rdfs:range nie:InformationElement .
+
+nco:imNickname a rdf:Property ;
+    rdfs:label "imNickname" ;
+    rdfs:comment "A nickname attached to a particular IM address." ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:IMAddress ;
+    rdfs:range xsd:string ;
+    nrl:fulltextIndexed true ;
+    nrl:weight 5 .
+
+nco:imAvatar a rdf:Property ;
+    rdfs:label "imAvatar" ;
+    rdfs:comment "A picture attached to a particular IM address.";
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:IMAddress ;
+    rdfs:range nie:DataObject .
+
+nco:hobby a rdf:Property ;
+    rdfs:label "hobby" ;
+    rdfs:comment "A hobby associated with a PersonContact. This property can be used to express hobbies and interests." ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:PersonContact ;
+    rdfs:range xsd:string ;
+    nrl:weight 2 .
+
+# Same remarks as in url
+nco:blogUrl a rdf:Property ;
+    rdfs:label "blogUrl" ;
+    rdfs:comment "A Blog url." ;
+    rdfs:subPropertyOf nco:url ;
+    rdfs:domain nco:Role ;
+    rdfs:range rdfs:Resource .
+
+nco:role a rdf:Property ;
+    rdfs:label "role" ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:Affiliation ;
+    rdfs:range xsd:string ;
+    nrl:fulltextIndexed true ;
+    nrl:weight 2 .
+
+nco:hasPostalAddress a rdf:Property ;
+    rdfs:label "hasPostalAddress" ;
+    rdfs:comment "The default Address for a Contact. An equivalent of the 'ADR' property as defined in RFC 2426 Sec. 3.2.1." ;
+    rdfs:subPropertyOf nco:hasContactMedium ;
+    rdfs:domain nco:Role ;
+    rdfs:range nco:PostalAddress ;
+    nrl:indexed true .
+
+nco:imAccountType a rdf:Property ;
+    rdfs:label "imAccountType" ;
+    rdfs:comment "Type of the IM account. This may be the name of the service that provides the IM functionality. Examples might include Jabber, ICQ, MSN etc" ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:IMAccount ;
+    rdfs:range xsd:string .
+
+nco:imProtocol a rdf:Property ;
+    rdfs:label "imProtocol" ;
+    rdfs:comment "Protocol of the account ('skype', 'gtalk', 'icq', ...)" ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:IMAddress ;
+    rdfs:range xsd:string .
+
+nco:pobox a rdf:Property ;
+    rdfs:label "pobox" ;
+    rdfs:comment "Post office box. This is the first part of the value of the 'ADR' property as defined in RFC 2426, sec. 3.2.1" ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:PostalAddress ;
+    rdfs:range xsd:string ;
+    nrl:fulltextIndexed true ;
+    nrl:weight 5 .
+
+nco:imStatusMessage a rdf:Property ;
+    rdfs:label "imStatusMessage" ;
+    rdfs:comment "A feature common in most IM systems. A message left by the user for all his/her contacts to see." ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:IMAddress ;
+    rdfs:range xsd:string .
+
+nco:imDisplayName a rdf:Property ;
+    rdfs:label "displayname";
+    rdfs:comment "The user-visible name of this account. This SHOULD be chosen by the user at account creation time. The account creation user interface is responsible for setting a reasonable default value in the user's locale; something like    'Jabber (bob@example.com)' would be sensible." ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:IMAccount ;
+    rdfs:range xsd:string .
+
+nco:imEnabled a rdf:Property ;
+    rdfs:label "enabled" ;
+    rdfs:comment "";
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:IMAccount ;
+    rdfs:range xsd:boolean .
+
+nco:gender a rdf:Property ;
+    rdfs:label "gender" ;
+    rdfs:comment "Gender of the given contact." ;
+    nrl:maxCardinality 1 ;
+    rdfs:domain nco:PersonContact ;
+    rdfs:range nco:Gender .
+
+nco:hasAffiliation a rdf:Property ;
+    rdfs:label "hasAffiliation" ;
+    rdfs:comment "Links a PersonContact with an Affiliation." ;
+    rdfs:domain nco:PersonContact ;
+    rdfs:range nco:Affiliation .
+
+#
+# IM related properties
+#
+nco:PresenceStatus a rdfs:Class ;
+    rdfs:label "Presence statuses";
+    rdfs:comment "Predefined set of status level instances" ;
+    rdfs:subClassOf rdfs:Resource .
+
+nco:presence-status-unset a nco:PresenceStatus .
+nco:presence-status-offline a nco:PresenceStatus .
+nco:presence-status-available a nco:PresenceStatus .
+nco:presence-status-away a nco:PresenceStatus .
+nco:presence-status-extended-away a nco:PresenceStatus .
+nco:presence-status-hidden a nco:PresenceStatus .
+nco:presence-status-busy a nco:PresenceStatus .
+nco:presence-status-unknown a nco:PresenceStatus .
+nco:presence-status-error a nco:PresenceStatus .
+

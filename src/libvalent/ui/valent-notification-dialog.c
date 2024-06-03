@@ -7,7 +7,9 @@
 
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
-#include <valent.h>
+
+#include <libvalent-device.h>
+#include "valent-ui-utils-private.h"
 
 #include "valent-notification-dialog.h"
 

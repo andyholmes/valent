@@ -15,7 +15,6 @@ test_sms_message (void)
   ValentMessageBox box = VALENT_MESSAGE_BOX_OUTBOX;
   int64_t date = 123456789;
   int64_t id = 987654321;
-  GVariant *metadata = g_variant_new_parsed ("{'event': <1>}");
   gboolean read = TRUE;
   const char *sender = "1-234-567-8910";
   const char *text = "Test Message";
@@ -24,7 +23,6 @@ test_sms_message (void)
   ValentMessageBox box2;
   int64_t date2;
   int64_t id2;
-  g_autoptr (GVariant) metadata2 = NULL;
   gboolean read2;
   g_autofree char *sender2 = NULL;
   g_autofree char *text2 = NULL;
@@ -35,7 +33,6 @@ test_sms_message (void)
                           "box",       box,
                           "date",      date,
                           "id",        id,
-                          "metadata",  metadata,
                           "read",      read,
                           "sender",    sender,
                           "text",      text,
@@ -47,7 +44,6 @@ test_sms_message (void)
                 "box",       &box2,
                 "date",      &date2,
                 "id",        &id2,
-                "metadata",  &metadata2,
                 "read",      &read2,
                 "sender",    &sender2,
                 "text",      &text2,
@@ -57,7 +53,6 @@ test_sms_message (void)
   g_assert_cmpuint (box, ==, box2);
   g_assert_cmpint (date, ==, date2);
   g_assert_cmpint (id, ==, id2);
-  g_assert_true (g_variant_equal (metadata, metadata2));
   g_assert_true (read == read2);
   g_assert_cmpstr (sender, ==, sender2);
   g_assert_cmpstr (text, ==, text2);

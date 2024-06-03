@@ -4,6 +4,7 @@
 #include "config.h"
 
 #include <glib/gi18n.h>
+#include <gtk/gtk.h>
 #include <libportal/portal.h>
 #include <valent.h>
 
@@ -51,7 +52,7 @@ main (int   argc,
   valent_debug_init ();
   valent_plugin_init ();
 
-  if (g_getenv ("VALENT_HEADLESS") != NULL || !valent_ui_init ())
+  if (g_getenv ("VALENT_HEADLESS") != NULL || !gtk_init_check ())
     g_debug ("Valent running in headless mode");
 
   /* Run and cleanup, before returning */

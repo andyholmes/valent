@@ -9,12 +9,14 @@
 #include <libvalent-device.h>
 #include <libvalent-input.h>
 #include <libvalent-media.h>
+#include <libvalent-messages.h>
 
 #include "valent-input-remote.h"
 #include "valent-media-remote.h"
+#include "valent-messages-window.h"
 #include "valent-share-dialog.h"
 #include "valent-ui-manager.h"
-#include "valent-ui-utils.h"
+#include "valent-ui-utils-private.h"
 #include "valent-window.h"
 
 
@@ -25,6 +27,7 @@ struct _ValentUIManager
   GtkWindow               *main_window;
   GtkWindow               *input_remote;
   GtkWindow               *media_remote;
+  GtkWindow               *messages_window;
   GPtrArray               *windows;
 };
 
@@ -110,6 +113,27 @@ media_remote_action (GSimpleAction *action,
 }
 
 static void
+messages_window_action (GSimpleAction *action,
+                        GVariant      *parameter,
+                        gpointer       user_data)
+{
+  ValentUIManager *self = VALENT_UI_MANAGER (user_data);
+
+  g_assert (VALENT_IS_UI_MANAGER (self));
+
+  if (self->messages_window == NULL)
+    {
+      self->messages_window = g_object_new (VALENT_TYPE_MESSAGES_WINDOW,
+                                            "messages", valent_messages_get_default (),
+                                            NULL);
+      g_object_add_weak_pointer (G_OBJECT (self->messages_window),
+                                 (gpointer)&self->messages_window);
+    }
+
+  gtk_window_present (self->messages_window);
+}
+
+static void
 on_destroy (GtkWindow       *window,
             ValentUIManager *self)
 {
@@ -161,10 +185,11 @@ share_dialog_action (GSimpleAction *action,
 }
 
 static const GActionEntry app_actions[] = {
-  { "input-remote", input_remote_action, NULL, NULL, NULL },
-  { "media-remote", media_remote_action, NULL, NULL, NULL },
-  { "share-dialog", share_dialog_action, NULL, NULL, NULL },
-  { "window",       main_window_action,  "s",  NULL, NULL },
+  { "input-remote",    input_remote_action,    NULL, NULL, NULL },
+  { "media-remote",    media_remote_action,    NULL, NULL, NULL },
+  { "messages-window", messages_window_action, NULL, NULL, NULL },
+  { "share-dialog",    share_dialog_action,    NULL, NULL, NULL },
+  { "window",          main_window_action,     "s",  NULL, NULL },
 };
 
 
@@ -272,12 +297,13 @@ valent_ui_manager_class_init (ValentUIManagerClass *klass)
   plugin_class->open = valent_ui_manager_open;
   plugin_class->shutdown = valent_ui_manager_shutdown;
   plugin_class->startup = valent_ui_manager_startup;
+
+  valent_ui_init ();
 }
 
 static void
 valent_ui_manager_init (ValentUIManager *self)
 {
-  valent_ui_init ();
   self->windows = g_ptr_array_new_with_free_func ((GDestroyNotify)gtk_window_destroy);
 }
 

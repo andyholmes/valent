@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
+
+<gresources>
+  <gresource prefix="/ca/andyholmes/Valent/ontologies">
+    <file alias="30-nie.ontology">data/ontologies/30-nie.ontology</file>
+    <file alias="32-nco.ontology">data/ontologies/32-nco.ontology</file>
+    <file alias="33-nfo.ontology">data/ontologies/33-nfo.ontology</file>
+    <file alias="34-nmo.ontology">data/ontologies/34-nmo.ontology</file>
+    <file alias="99-messages.ontology">data/ontologies/99-messages.ontology</file>
+  </gresource>
+  <gresource prefix="/ca/andyholmes/Valent/sparql">
+    <file alias="get-message.rq">data/sparql/get-message.rq</file>
+    <file alias="get-message-attachments.rq">data/sparql/get-message-attachments.rq</file>
+    <file alias="get-thread.rq">data/sparql/get-thread.rq</file>
+    <file alias="get-thread-attachments.rq">data/sparql/get-thread-attachments.rq</file>
+    <file alias="get-threads.rq">data/sparql/get-threads.rq</file>
+    <file alias="get-timestamp.rq">data/sparql/get-timestamp.rq</file>
+    <file alias="remove-message.rq">data/sparql/remove-message.rq</file>
+    <file alias="remove-thread.rq">data/sparql/remove-thread.rq</file>
+    <file alias="search-messages.rq">data/sparql/search-messages.rq</file>
+  </gresource>
+</gresources>
+
