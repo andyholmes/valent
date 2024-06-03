@@ -188,9 +188,9 @@ gnutls_version = '>= 3.1.3'
 json_glib_version = '>= 1.6.0'
 libpeas_version = '>= 2.0.0'
 eds_version = '>= 3.34'
-sqlite_version = '>= 3.24.0'
 libadwaita_version = '>= 1.5'
 libportal_version = ['>= 0.6', '<= 0.7.1']
+tinysparql_version = '>= 3.0'
 
 libm_dep = cc.find_library('m', required: true)
 gio_dep = dependency('gio-2.0', version: glib_version)
@@ -199,7 +199,7 @@ gdk_pixbuf_dep = dependency('gdk-pixbuf-2.0', version: gdk_pixbuf_version)
 gnutls_dep = dependency('gnutls', version: gnutls_version)
 json_glib_dep = dependency('json-glib-1.0', version: json_glib_version)
 libpeas_dep = dependency('libpeas-2', version: libpeas_version)
-sqlite_dep = dependency('sqlite3', version: sqlite_version)
+tinysparql_dep = dependency('tracker-sparql-3.0')
 
 libportal_dep = dependency('libportal-gtk4',
    version: libportal_version,

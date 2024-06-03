@@ -6,28 +6,7 @@
 #include <libvalent-test.h>
 
 #include "test-sms-common.h"
-#include "valent-sms-utils.h"
-
-
-struct
-{
-  const char *original;
-  const char *normalized;
-} numbers[] = {
-  {"754-3010",         "7543010"},     // Local
-  {"(541) 754-3010",   "5417543010"},  // Domestic
-  {"+1-541-754-3010",  "15417543010"}, // International
-  {"1-541-754-3010",   "15417543010"}, // International (US)
-  {"001-541-754-3010", "15417543010"}  // International (EU)
-};
-
-
-static const char phone_vcard[] =
- "BEGIN:VCARD\n"
- "VERSION:2.1\n"
- "FN:Test Contact\n"
- "TEL;CELL:123-456-7890\n"
- "END:VCARD\n";
+#include "valent-ui-utils-private.h"
 
 
 static void
@@ -68,7 +47,7 @@ dup_for_phone_cb (ValentContactStore *store,
   g_autoptr (EContact) contact = NULL;
   GError *error = NULL;
 
-  contact = valent_sms_contact_from_phone_finish (store, result, &error);
+  contact = valent_contact_store_lookup_contact_finish (store, result, &error);
   g_assert_no_error (error);
 
   g_assert_true (E_IS_CONTACT (contact));
@@ -88,50 +67,14 @@ test_sms_contact_from_phone (void)
   store = valent_test_contact_store_new ();
 
   /* Contacts can be queried by telephone number (Contact #2) */
-  VALENT_TEST_CHECK ("Function `valent_sms_contact_from_phone()` can query "
+  VALENT_TEST_CHECK ("Function `valent_contact_store_lookup_contact()` can query "
                      "`EContact`s by phone number.");
-  valent_sms_contact_from_phone (store,
-                                 "+1-234-567-8912",
-                                 NULL,
-                                 (GAsyncReadyCallback)dup_for_phone_cb,
-                                 loop);
+  valent_contact_store_lookup_contact (store,
+                                       "+1-234-567-8912",
+                                       NULL,
+                                       (GAsyncReadyCallback)dup_for_phone_cb,
+                                       loop);
   g_main_loop_run (loop);
-}
-
-static void
-test_sms_phone_number (void)
-{
-  g_autoptr (EContact) contact = NULL;
-  char *normalized;
-  gboolean ret;
-
-  VALENT_TEST_CHECK ("Functions `valent_phone_number_normalize()` and "
-                     "`valent_phone_number_equal()` can handle a variety of "
-                     "phone number formats");
-  for (size_t i = 0; i < G_N_ELEMENTS (numbers); i++)
-    {
-      gboolean equal;
-
-      normalized = valent_phone_number_normalize (numbers[i].original);
-      g_assert_cmpstr (normalized, ==, numbers[i].normalized);
-      g_free (normalized);
-
-      if (i > 0)
-        {
-          equal = valent_phone_number_equal (numbers[i - 1].original,
-                                             numbers[i].original);
-          g_assert_true (equal);
-        }
-    }
-
-  VALENT_TEST_CHECK ("Function `valent_phone_number_of_contact()` checks if a "
-                     "contact is listed as having a phone number");
-  contact = e_contact_new_from_vcard_with_uid (phone_vcard, "test-contact");
-  normalized = valent_phone_number_normalize ("123-456-7890");
-
-  ret = valent_phone_number_of_contact (contact, normalized);
-  g_assert_true (ret);
-  g_free (normalized);
 }
 
 int
@@ -145,9 +88,6 @@ main (int   argc,
 
   g_test_add_func ("/plugins/sms/contact-from-phone",
                    test_sms_contact_from_phone);
-
-  g_test_add_func ("/plugins/sms/phone-number",
-                   test_sms_phone_number);
 
   return g_test_run ();
 }

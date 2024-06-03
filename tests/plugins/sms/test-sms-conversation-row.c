@@ -6,11 +6,11 @@
 #include <libvalent-test.h>
 
 #include "valent-message.h"
-#include "valent-sms-conversation-row.h"
+#include "valent-conversation-row.h"
 
 
 static void
-test_sms_conversation_row (void)
+test_conversation_row (void)
 {
   GtkWidget *window, *list;
   GtkWidget *row;
@@ -46,18 +46,17 @@ test_sms_conversation_row (void)
                           NULL);
 
   VALENT_TEST_CHECK ("Widget can be constructed");
-  row = valent_sms_conversation_row_new (message, contact);
+  row = valent_conversation_row_new (message, contact);
 
   VALENT_TEST_CHECK ("GObject properties function correctly");
-  contact_out = valent_sms_conversation_row_get_contact (VALENT_SMS_CONVERSATION_ROW (row));
-  message_out = valent_sms_conversation_row_get_message (VALENT_SMS_CONVERSATION_ROW (row));
-  date_out = valent_sms_conversation_row_get_date (VALENT_SMS_CONVERSATION_ROW (row));
+  contact_out = valent_conversation_row_get_contact (VALENT_CONVERSATION_ROW (row));
+  message_out = valent_conversation_row_get_message (VALENT_CONVERSATION_ROW (row));
+  date_out = valent_conversation_row_get_date (VALENT_CONVERSATION_ROW (row));
 
   g_assert_true (contact == contact_out);
   g_assert_true (message == message_out);
   g_assert_cmpint (date, ==, date_out);
-  g_assert_cmpint (id, ==, valent_sms_conversation_row_get_id (VALENT_SMS_CONVERSATION_ROW (row)));
-  g_assert_false (valent_sms_conversation_row_is_incoming (VALENT_SMS_CONVERSATION_ROW (row)));
+  g_assert_false (valent_conversation_row_is_incoming (VALENT_CONVERSATION_ROW (row)));
 
   g_object_get (row,
                 "contact", &contact_out,
@@ -79,9 +78,9 @@ test_sms_conversation_row (void)
   gtk_window_present (GTK_WINDOW (window));
 
   VALENT_TEST_CHECK ("Avatar visibility can be controlled");
-  valent_sms_conversation_row_show_avatar (VALENT_SMS_CONVERSATION_ROW (row),
+  valent_conversation_row_show_avatar (VALENT_CONVERSATION_ROW (row),
                                            TRUE);
-  valent_sms_conversation_row_show_avatar (VALENT_SMS_CONVERSATION_ROW (row),
+  valent_conversation_row_show_avatar (VALENT_CONVERSATION_ROW (row),
                                            FALSE);
 
   gtk_window_destroy (GTK_WINDOW (window));
@@ -94,7 +93,7 @@ main (int   argc,
   valent_test_ui_init (&argc, &argv, NULL);
 
   g_test_add_func ("/plugins/sms/conversation-row",
-                   test_sms_conversation_row);
+                   test_conversation_row);
 
   return g_test_run ();
 }

@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
+
+# Inputs: iri
+# Outputs: attachment, encodedThumbnail, fileUri
+
+SELECT
+  ?attachment
+  ?encodedThumbnail
+  ?fileUri
+WHERE {
+  BIND(IRI(xsd:string(~iri)) AS ?thread)
+
+  ?message vmo:communicationChannel ?thread ;
+           nmo:hasAttachment ?attachment .
+
+  OPTIONAL { ?attachment rdf:type nfo:Attachment }
+  OPTIONAL { ?attachment vmo:encoded_thumbnail ?encodedThumbnail }
+  OPTIONAL { ?attachment nie:url ?fileUri }
+}

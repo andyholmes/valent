@@ -26,7 +26,7 @@ leak:gtk_accessible_value_alloc
 leak:gtk_at_context_create
 leak:gtk_test_at_context_new
 
-# TODO: these only seem to crop up in valent-sms-window.c
+# TODO: these only seem to crop up in valent-messages-window.c
 leak:libpango-1.0.so
 leak:libpangocairo-1.0.so
 

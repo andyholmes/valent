@@ -4,26 +4,13 @@
 # Dependencies
 plugin_sms_deps = [
   libvalent_dep,
-
-  sqlite_dep,
 ]
 
 # Sources
 plugin_sms_sources = files([
   'sms-plugin.c',
-  'valent-contact-row.c',
-  'valent-message.c',
-  'valent-message-attachment.c',
-  'valent-message-thread.c',
-  'valent-sms-conversation.c',
-  'valent-sms-conversation-row.c',
+  'valent-sms-device.c',
   'valent-sms-plugin.c',
-  'valent-sms-store.c',
-  'valent-sms-utils.c',
-  'valent-sms-window.c',
-
-  'valent-date-label.c',
-  'valent-message-row.c',
 ])
 
 plugin_sms_include_directories = [include_directories('.')]

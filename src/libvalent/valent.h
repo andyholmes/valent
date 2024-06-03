@@ -41,6 +41,12 @@ G_BEGIN_DECLS
 #include "media/valent-media-enums.h"
 #include "media/valent-media-player.h"
 
+#include "messages/valent-messages.h"
+#include "messages/valent-messages-adapter.h"
+#include "messages/valent-messages-enums.h"
+#include "messages/valent-message.h"
+#include "messages/valent-message-attachment.h"
+
 #include "mixer/valent-mixer.h"
 #include "mixer/valent-mixer-adapter.h"
 #include "mixer/valent-mixer-enums.h"
@@ -63,9 +69,6 @@ G_BEGIN_DECLS
 #include "device/valent-device-plugin.h"
 #include "device/valent-device-transfer.h"
 #include "device/valent-packet.h"
-
-// libvalent-ui
-#include "ui/valent-ui-utils.h"
 
 #undef VALENT_INSIDE
 

@@ -26,6 +26,7 @@ subdir('clipboard')
 subdir('contacts')
 subdir('input')
 subdir('media')
+subdir('messages')
 subdir('mixer')
 subdir('notifications')
 subdir('session')
@@ -81,6 +82,7 @@ pkgconfig.generate(
        'gtk4',
        'libadwaita-1',
        'libportal',
+       'tracker-sparql-3.0',
      ],
 )
 

@@ -6,30 +6,29 @@
 #include <libvalent-test.h>
 
 #include "test-sms-common.h"
-#include "valent-sms-conversation.h"
+#include "valent-conversation-page.h"
 
 
 static void
-test_sms_conversation (void)
+test_conversation_page (void)
 {
   GtkWidget *conversation;
   GtkWidget *window;
   g_autoptr (GMainLoop) loop = NULL;
   g_autoptr (ValentContactStore) contacts = NULL;
-  g_autoptr (ValentSmsStore) messages = NULL;
+  g_autoptr (ValentMessagesAdapter) messages = NULL;
   g_autoptr (ValentContactStore) contacts_out = NULL;
-  g_autoptr (ValentSmsStore) messages_out = NULL;
-  int64_t thread_id, thread_id_out;
+  g_autoptr (ValentMessagesAdapter) messages_out = NULL;
 
   loop = g_main_loop_new (NULL, FALSE);
   contacts = valent_test_contact_store_new ();
-  messages = valent_test_sms_store_new ();
+  messages = valent_test_message_store_new ();
   thread_id = 1;
 
   VALENT_TEST_CHECK ("Widget can be constructed");
-  conversation = g_object_new (VALENT_TYPE_SMS_CONVERSATION,
+  conversation = g_object_new (VALENT_TYPE_CONVERSATION_PAGE,
                                "contact-store", contacts,
-                               "message-store", messages,
+                               "messages", messages,
                                "thread-id",     thread_id,
                                NULL);
 
@@ -47,13 +46,10 @@ test_sms_conversation (void)
   VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (conversation,
                 "contact-store", &contacts_out,
-                "message-store", &messages_out,
-                "thread-id",     &thread_id_out,
+                "messages", &messages_out,
                 NULL);
   g_assert_true (contacts == contacts_out);
   g_assert_true (messages == messages_out);
-  g_assert_cmpint (thread_id, ==, thread_id_out);
-  g_assert_cmpint (thread_id, ==, valent_sms_conversation_get_thread_id (VALENT_SMS_CONVERSATION (conversation)));
 
   gtk_window_destroy (GTK_WINDOW (window));
   valent_test_await_nullptr (&window);
@@ -66,7 +62,7 @@ main (int   argc,
   valent_test_ui_init (&argc, &argv, NULL);
 
   g_test_add_func ("/plugins/sms/conversation",
-                   test_sms_conversation);
+                   test_conversation_page);
 
   return g_test_run ();
 }

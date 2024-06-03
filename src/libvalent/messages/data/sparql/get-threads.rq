@@ -1,0 +1,59 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
+
+# Inputs: None
+# Outputs: message, box, date, messageId, read, recipients, sender, subscriptionId, text, threadId
+#          communicationChannel,
+SELECT
+  ?message
+  ?box
+  ?date
+  ?messageId
+  ?read
+  (GROUP_CONCAT(?recipient; separator=",") AS ?recipients)
+  ?sender
+  ?subscriptionId
+  ?text
+  ?threadId
+  ?communicationChannel
+  (GROUP_CONCAT(?participant; separator=",") AS ?participants)
+WHERE {
+  {
+    SELECT ?communicationChannel (MAX(?date) AS ?latestDate)
+    WHERE {
+      ?message rdf:type vmo:PhoneMessage ;
+               vmo:communicationChannel ?communicationChannel ;
+               dc:date ?date .
+    }
+    GROUP BY ?communicationChannel
+  }
+  FILTER(?date = ?latestDate)
+  ?communicationChannel rdf:type vmo:CommunicationChannel ;
+           vmo:hasParticipant ?participant .
+
+  ?message rdf:type vmo:PhoneMessage ;
+           vmo:phoneMessageBox/vmo:phoneMessageBoxId ?box ;
+           dc:date ?date ;
+           vmo:phoneMessageId ?messageId ;
+           nmo:isRead ?read ;
+           vmo:subscriptionId ?subscriptionId ;
+           vmo:communicationChannel/vmo:communicationChannelId ?threadId .
+  # OPTIONAL {
+  #   ?message nmo:hasAttachment ?attachment .
+  #   OPTIONAL { ?attachment rdf:type nfo:Attachment }
+  #   OPTIONAL { ?attachment vmo:encoded_thumbnail ?encoded_thumbnail }
+  #   OPTIONAL { ?attachment nie:url ?fileUri }
+  # }
+  OPTIONAL {
+    ?message nmo:primaryMessageRecipient/(nco:phoneNumber|nco:emailAddress) ?recipient
+  }
+  OPTIONAL {
+    ?message nmo:messageSender/(nco:phoneNumber|nco:emailAddress) ?sender
+  }
+  OPTIONAL {
+    ?message nmo:plainTextMessageContent ?text
+  }
+}
+GROUP BY ?message
+ORDER BY DESC(?date)
+

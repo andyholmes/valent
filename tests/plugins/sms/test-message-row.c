@@ -24,7 +24,6 @@ test_sms_message_row (void)
   ValentMessageBox box = VALENT_MESSAGE_BOX_OUTBOX;
   int64_t date = 123456789;
   int64_t id = 987654321;
-  GVariant *metadata = g_variant_new_parsed ("{'event': <1>}");
   gboolean read = TRUE;
   const char *sender = "1-234-567-8910";
   const char *text = "Test Message";
@@ -37,7 +36,6 @@ test_sms_message_row (void)
                           "box",       box,
                           "date",      date,
                           "id",        id,
-                          "metadata",  metadata,
                           "read",      read,
                           "sender",    sender,
                           "text",      text,
@@ -50,11 +48,9 @@ test_sms_message_row (void)
   VALENT_TEST_CHECK ("GObject properties function correctly");
   contact_out = valent_message_row_get_contact (VALENT_MESSAGE_ROW (row));
   message_out = valent_message_row_get_message (VALENT_MESSAGE_ROW (row));
-  thread_id_out = valent_message_row_get_thread_id (VALENT_MESSAGE_ROW (row));
 
   g_assert_true (contact == contact_out);
   g_assert_true (message == message_out);
-  g_assert_cmpint (thread_id, ==, thread_id_out);
 
   g_object_get (row,
                 "contact",   &contact_out,

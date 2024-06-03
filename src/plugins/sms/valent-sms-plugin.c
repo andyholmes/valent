@@ -10,345 +10,20 @@
 #include <json-glib/json-glib.h>
 #include <valent.h>
 
-#include "valent-message.h"
+#include "valent-sms-device.h"
+
 #include "valent-sms-plugin.h"
-#include "valent-sms-store.h"
-#include "valent-sms-window.h"
 
 
 struct _ValentSmsPlugin
 {
-  ValentDevicePlugin  parent_instance;
+  ValentDevicePlugin     parent_instance;
 
-  ValentSmsStore    *store;
-  GtkWindow         *window;
-  GPtrArray         *requests;
+  ValentMessagesAdapter *store;
+  GCancellable          *cancellable;
 };
 
 G_DEFINE_FINAL_TYPE (ValentSmsPlugin, valent_sms_plugin, VALENT_TYPE_DEVICE_PLUGIN)
-
-static ValentMessage * valent_sms_plugin_deserialize_message   (ValentSmsPlugin *self,
-                                                                JsonNode        *node);
-static void            valent_sms_plugin_request               (ValentSmsPlugin *self,
-                                                                ValentMessage   *message);
-static void            valent_sms_plugin_request_conversation  (ValentSmsPlugin *self,
-                                                                int64_t          thread_id,
-                                                                int64_t          range_start_timestamp,
-                                                                int64_t          number_to_request);
-static void            valent_sms_plugin_request_conversations (ValentSmsPlugin *self);
-
-
-static ValentMessage *
-valent_sms_plugin_deserialize_message (ValentSmsPlugin *self,
-                                       JsonNode        *node)
-{
-  JsonObject *object;
-  JsonNode *addr_node;
-  GVariant *addresses;
-  JsonNode *attachments_node;
-  GVariantDict dict;
-
-  ValentMessageBox box;
-  int64_t date;
-  int64_t id;
-  GVariant *metadata;
-  int64_t read;
-  const char *sender = NULL;
-  const char *text = NULL;
-  int64_t thread_id;
-  ValentMessageFlags event = VALENT_MESSAGE_FLAGS_UNKNOWN;
-  int64_t sub_id = -1;
-
-  g_assert (VALENT_IS_SMS_PLUGIN (self));
-  g_assert (JSON_NODE_HOLDS_OBJECT (node));
-
-  object = json_node_get_object (node);
-
-  /* Check all the required fields exist */
-  if G_UNLIKELY (!json_object_has_member (object, "thread_id") ||
-                 !json_object_has_member (object, "_id") ||
-                 !json_object_has_member (object, "body") ||
-                 !json_object_has_member (object, "date") ||
-                 !json_object_has_member (object, "read") ||
-                 !json_object_has_member (object, "type") ||
-                 !json_object_has_member (object, "addresses"))
-    {
-      g_warning ("%s(): missing required message field", G_STRFUNC);
-      return NULL;
-    }
-
-  /* Basic fields */
-  box = json_object_get_int_member (object, "type");
-  date = json_object_get_int_member (object, "date");
-  id = json_object_get_int_member (object, "_id");
-  read = json_object_get_int_member (object, "read");
-  text = json_object_get_string_member (object, "body");
-  thread_id = json_object_get_int_member (object, "thread_id");
-
-  /* Addresses */
-  addr_node = json_object_get_member (object, "addresses");
-  addresses = json_gvariant_deserialize (addr_node, "aa{sv}", NULL);
-
-  /* If incoming, the first address will be the sender */
-  if (box == VALENT_MESSAGE_BOX_INBOX)
-    {
-      JsonObject *sender_obj;
-      JsonArray *addr_array;
-
-      addr_array = json_node_get_array (addr_node);
-
-      if (json_array_get_length (addr_array) > 0)
-        {
-          sender_obj = json_array_get_object_element (addr_array, 0);
-          sender = json_object_get_string_member (sender_obj, "address");
-        }
-      else
-        g_warning ("No address for message %"G_GINT64_FORMAT" in thread %"G_GINT64_FORMAT, id, thread_id);
-    }
-
-  /* TODO: The `event` and `sub_id` fields are currently not implemented */
-  if (json_object_has_member (object, "event"))
-    event = json_object_get_int_member (object, "event");
-
-  if (json_object_has_member (object, "sub_id"))
-    sub_id = json_object_get_int_member (object, "sub_id");
-
-  /* Build the metadata dictionary */
-  g_variant_dict_init (&dict, NULL);
-  g_variant_dict_insert_value (&dict, "addresses", addresses);
-
-  attachments_node = json_object_get_member (object, "attachments");
-  if (attachments_node != NULL)
-    {
-      GVariant *attachments;
-
-      attachments = json_gvariant_deserialize (attachments_node, "aa{sv}", NULL);
-      g_variant_dict_insert_value (&dict, "attachments", attachments);
-    }
-
-  g_variant_dict_insert (&dict, "event", "u", event);
-  g_variant_dict_insert (&dict, "sub_id", "i", sub_id);
-  metadata = g_variant_dict_end (&dict);
-
-  /* Build and return the message object */
-  return g_object_new (VALENT_TYPE_MESSAGE,
-                       "box",       box,
-                       "date",      date,
-                       "id",        id,
-                       "metadata",  metadata,
-                       "read",      read,
-                       "sender",    sender,
-                       "text",      text,
-                       "thread-id", thread_id,
-                       NULL);
-}
-
-static void
-valent_sms_plugin_handle_thread (ValentSmsPlugin *self,
-                                 JsonArray       *messages)
-{
-  g_autoptr (GPtrArray) results = NULL;
-  unsigned int n_messages;
-
-  g_assert (VALENT_IS_SMS_PLUGIN (self));
-  g_assert (messages != NULL);
-
-  /* Handle each message */
-  n_messages = json_array_get_length (messages);
-  results = g_ptr_array_new_with_free_func (g_object_unref);
-
-  for (unsigned int i = 0; i < n_messages; i++)
-    {
-      JsonNode *message_node;
-      ValentMessage *message;
-
-      message_node = json_array_get_element (messages, i);
-      message = valent_sms_plugin_deserialize_message (self, message_node);
-
-      if (message != NULL)
-        g_ptr_array_add (results, g_steal_pointer (&message));
-    }
-
-  valent_sms_store_add_messages (self->store, results, NULL, NULL, NULL);
-}
-
-typedef struct
-{
-  int64_t thread_id;
-  int64_t start_date;
-  int64_t end_date;
-  int64_t max_results;
-} RequestData;
-
-#define DEFAULT_MESSAGE_REQUEST (100)
-
-static gboolean
-find_message_request (gconstpointer a,
-                      gconstpointer b)
-{
-  return ((RequestData *)a)->thread_id == *((int64_t *)b);
-}
-
-static void
-find_message_range (JsonArray    *messages,
-                    int64_t      *out_thread_id,
-                    int64_t      *out_start_date,
-                    int64_t      *out_end_date)
-{
-  unsigned int n_messages;
-
-  g_assert (messages != NULL);
-  g_assert (out_thread_id && out_start_date && out_end_date);
-
-  *out_thread_id = 0;
-  *out_start_date = INT64_MAX;
-  *out_end_date = 0;
-
-  n_messages = json_array_get_length (messages);
-  for (unsigned int i = 0; i < n_messages; i++)
-    {
-      JsonObject *message = json_array_get_object_element (messages, i);
-      int64_t date = json_object_get_int_member (message, "date");
-
-      if (*out_thread_id == 0)
-        *out_thread_id = json_object_get_int_member (message, "thread_id");
-
-      if (*out_start_date > date)
-        *out_start_date = date;
-
-      if (*out_end_date < date)
-        *out_end_date = date;
-    }
-}
-
-static void
-valent_sms_plugin_handle_messages (ValentSmsPlugin *self,
-                                   JsonNode        *packet)
-{
-  JsonObject *body;
-  JsonArray *messages;
-  unsigned int n_messages;
-  RequestData *request = NULL;
-  int64_t thread_id;
-  int64_t start_date, end_date;
-  unsigned int index_ = 0;
-
-  VALENT_ENTRY;
-
-  g_assert (VALENT_IS_SMS_PLUGIN (self));
-  g_assert (VALENT_IS_PACKET (packet));
-
-  body = valent_packet_get_body (packet);
-  messages = json_object_get_array_member (body, "messages");
-  n_messages = json_array_get_length (messages);
-
-  /* It's not clear if this could ever happen, or what it would imply if it did,
-   * so log a debug message and bail.
-   */
-  if (n_messages == 0)
-    {
-      g_debug ("%s(): expected \"messages\" field holding an array of objects",
-               G_STRFUNC);
-      return;
-    }
-
-  /* Check if there is an active request for this thread */
-  find_message_range (messages, &thread_id, &start_date, &end_date);
-
-  if (g_ptr_array_find_with_equal_func (self->requests,
-                                        &thread_id,
-                                        find_message_request,
-                                        &index_))
-    {
-      request = g_ptr_array_index (self->requests, index_);
-
-      /* This is a response to our request */
-      if (request->end_date == end_date)
-        {
-          if (n_messages >= request->max_results &&
-              request->start_date < start_date)
-            {
-              request->end_date = start_date;
-              valent_sms_plugin_request_conversation (self,
-                                                      request->thread_id,
-                                                      request->end_date,
-                                                      request->max_results);
-            }
-          else
-            {
-              g_ptr_array_remove_index (self->requests, index_);
-            }
-        }
-    }
-  else if (n_messages == 1)
-    {
-      int64_t cache_date;
-
-      cache_date = valent_sms_store_get_thread_date (self->store, thread_id);
-      if (cache_date < end_date)
-        {
-          request = g_new (RequestData, 1);
-          request->thread_id = thread_id;
-          request->start_date = cache_date;
-          request->end_date = end_date;
-          request->max_results = DEFAULT_MESSAGE_REQUEST;
-
-          valent_sms_plugin_request_conversation (self,
-                                                  request->thread_id,
-                                                  request->end_date,
-                                                  request->max_results);
-          g_ptr_array_add (self->requests, g_steal_pointer (&request));
-        }
-    }
-
-  /* Store what we've received after the request is queued, otherwise having the
-   * latest message we may request nothing.
-   */
-  valent_sms_plugin_handle_thread (self, messages);
-
-  VALENT_EXIT;
-}
-
-/*< private >
- * @self: a `ValentSmsPlugin`
- * @range_start_timestamp: the timestamp of the newest message to request
- * @number_to_request: the maximum number of messages to return
- *
- * Send a request for messages starting at @range_start_timestamp in
- * oldest-to-newest order, for a maximum of @number_to_request.
- */
-static void
-valent_sms_plugin_request_conversation (ValentSmsPlugin *self,
-                                        int64_t          thread_id,
-                                        int64_t          range_start_timestamp,
-                                        int64_t          number_to_request)
-{
-  g_autoptr (JsonBuilder) builder = NULL;
-  g_autoptr (JsonNode) packet = NULL;
-
-  g_return_if_fail (VALENT_IS_SMS_PLUGIN (self));
-  g_return_if_fail (thread_id >= 0);
-
-  valent_packet_init (&builder, "kdeconnect.sms.request_conversation");
-  json_builder_set_member_name (builder, "threadID");
-  json_builder_add_int_value (builder, thread_id);
-
-  if (range_start_timestamp > 0)
-    {
-      json_builder_set_member_name (builder, "rangeStartTimestamp");
-      json_builder_add_int_value (builder, range_start_timestamp);
-    }
-
-  if (number_to_request > 0)
-    {
-      json_builder_set_member_name (builder, "numberToRequest");
-      json_builder_add_int_value (builder, number_to_request);
-    }
-
-  packet = valent_packet_end (&builder);
-
-  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
-}
 
 static void
 valent_sms_plugin_request_conversations (ValentSmsPlugin *self)
@@ -359,53 +34,6 @@ valent_sms_plugin_request_conversations (ValentSmsPlugin *self)
   g_return_if_fail (VALENT_IS_SMS_PLUGIN (self));
 
   valent_packet_init (&builder, "kdeconnect.sms.request_conversations");
-  packet = valent_packet_end (&builder);
-
-  valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
-}
-
-static void
-valent_sms_plugin_request (ValentSmsPlugin *self,
-                           ValentMessage   *message)
-{
-  g_autoptr (JsonBuilder) builder = NULL;
-  g_autoptr (JsonNode) packet = NULL;
-  GVariant *metadata;
-  g_autoptr (GVariant) addresses = NULL;
-  JsonNode *addresses_node = NULL;
-  int sub_id = -1;
-  const char *text;
-
-  g_return_if_fail (VALENT_IS_SMS_PLUGIN (self));
-  g_return_if_fail (VALENT_IS_MESSAGE (message));
-
-  // Get the data
-  if ((metadata = valent_message_get_metadata (message)) == NULL)
-    g_return_if_reached ();
-
-  if ((addresses = g_variant_lookup_value (metadata, "addresses", NULL)) == NULL)
-    g_return_if_reached ();
-
-  if (!g_variant_lookup (metadata, "sub_id", "i", &sub_id))
-      sub_id = -1;
-
-  // Build the packet
-  valent_packet_init (&builder, "kdeconnect.sms.request");
-
-  json_builder_set_member_name (builder, "version");
-  json_builder_add_int_value (builder, 2);
-
-  addresses_node = json_gvariant_serialize (addresses);
-  json_builder_set_member_name (builder, "addresses");
-  json_builder_add_value (builder, addresses_node);
-
-  text = valent_message_get_text (message);
-  json_builder_set_member_name (builder, "messageBody");
-  json_builder_add_string_value (builder, text);
-
-  json_builder_set_member_name (builder, "subID");
-  json_builder_add_int_value (builder, sub_id);
-
   packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
@@ -426,63 +54,8 @@ fetch_action (GSimpleAction *action,
   valent_sms_plugin_request_conversations (self);
 }
 
-static gboolean
-on_send_message (ValentSmsWindow *window,
-                 ValentMessage   *message,
-                 ValentSmsPlugin *self)
-{
-  g_assert (VALENT_IS_SMS_WINDOW (window));
-  g_assert (VALENT_IS_MESSAGE (message));
-
-  valent_sms_plugin_request (self, message);
-
-  return TRUE;
-}
-
-static void
-messaging_action (GSimpleAction *action,
-                  GVariant      *parameter,
-                  gpointer       user_data)
-{
-  ValentSmsPlugin *self = VALENT_SMS_PLUGIN (user_data);
-  ValentDevice *device;
-
-  g_assert (VALENT_IS_SMS_PLUGIN (self));
-
-  if (!gtk_is_initialized ())
-    {
-      g_warning ("%s: No display available", G_STRFUNC);
-      return;
-    }
-
-  if (self->window == NULL)
-    {
-      ValentContactStore *store;
-
-      device = valent_extension_get_object (VALENT_EXTENSION (self));
-      store = valent_contacts_ensure_store (valent_contacts_get_default (),
-                                            valent_device_get_id (device),
-                                            valent_device_get_name (device));
-
-      self->window = g_object_new (VALENT_TYPE_SMS_WINDOW,
-                                   "contact-store", store,
-                                   "message-store", self->store,
-                                   NULL);
-      g_object_add_weak_pointer (G_OBJECT (self->window),
-                                 (gpointer) &self->window);
-
-      g_signal_connect_object (self->window,
-                               "send-message",
-                               G_CALLBACK (on_send_message),
-                               self, 0);
-    }
-
-  gtk_window_present (GTK_WINDOW (self->window));
-}
-
 static const GActionEntry actions[] = {
-    {"fetch",     fetch_action,     NULL, NULL, NULL},
-    {"messaging", messaging_action, NULL, NULL, NULL}
+    {"fetch", fetch_action, NULL, NULL, NULL},
 };
 
 /*
@@ -504,9 +77,21 @@ valent_sms_plugin_update_state (ValentDevicePlugin *plugin,
 
   /* Request summary of messages */
   if (available)
-    valent_sms_plugin_request_conversations (self);
+    {
+      if (self->cancellable == NULL)
+        {
+          self->cancellable = g_cancellable_new ();
+          valent_sms_plugin_request_conversations (self);
+        }
+    }
   else
-    g_ptr_array_remove_range (self->requests, 0, self->requests->len);
+    {
+      if (self->cancellable != NULL)
+        {
+          g_cancellable_cancel (self->cancellable);
+          g_clear_object (&self->cancellable);
+        }
+    }
 }
 
 static void
@@ -521,7 +106,9 @@ valent_sms_plugin_handle_packet (ValentDevicePlugin *plugin,
   g_assert (VALENT_IS_PACKET (packet));
 
   if (g_str_equal (type, "kdeconnect.sms.messages"))
-    valent_sms_plugin_handle_messages (self, packet);
+    valent_sms_device_handle_messages (VALENT_SMS_DEVICE (self->store), packet);
+  else if (g_str_equal (type, "kdeconnect.sms.attachment_file"))
+    valent_sms_device_handle_attachment_file (VALENT_SMS_DEVICE (self->store), packet);
   else
     g_assert_not_reached ();
 }
@@ -533,13 +120,13 @@ static void
 valent_sms_plugin_destroy (ValentObject *object)
 {
   ValentSmsPlugin *self = VALENT_SMS_PLUGIN (object);
-  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
 
-  /* Close message window and drop SMS Store */
-  g_clear_pointer (&self->window, gtk_window_destroy);
-  g_clear_object (&self->store);
-
-  valent_device_plugin_set_menu_item (plugin, "device.sms.messaging", NULL);
+  if (self->store != NULL)
+    {
+      valent_messages_unexport_adapter (valent_messages_get_default (),
+                                        self->store);
+      g_clear_object (&self->store);
+    }
 
   VALENT_OBJECT_CLASS (valent_sms_plugin_parent_class)->destroy (object);
 }
@@ -552,17 +139,13 @@ valent_sms_plugin_constructed (GObject *object)
 {
   ValentSmsPlugin *self = VALENT_SMS_PLUGIN (object);
   ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
-  ValentDevice *device;
-  ValentContext *context = NULL;
+  ValentDevice *device = NULL;
 
-  /* Load SMS Store */
-  device = valent_extension_get_object (VALENT_EXTENSION (self));
-  context = valent_device_get_context (device);
-  self->store = g_object_new (VALENT_TYPE_SMS_STORE,
-                              "domain", "plugin",
-                              "id",     "sms",
-                              "parent", context,
-                              NULL);
+  G_OBJECT_CLASS (valent_sms_plugin_parent_class)->constructed (object);
+
+  device = valent_extension_get_object (VALENT_EXTENSION (plugin));
+  self->store = valent_sms_device_new (device);
+  valent_messages_export_adapter (valent_messages_get_default (), self->store);
 
   g_action_map_add_action_entries (G_ACTION_MAP (plugin),
                                    actions,
@@ -570,10 +153,8 @@ valent_sms_plugin_constructed (GObject *object)
                                    plugin);
   valent_device_plugin_set_menu_action (plugin,
                                         "device.sms.messaging",
-                                        _("Messaging"),
-                                        "sms-symbolic");
-
-  G_OBJECT_CLASS (valent_sms_plugin_parent_class)->constructed (object);
+                                        _("Messages"),
+                                        "valent-sms-plugin-symbolic");
 }
 
 static void
@@ -581,8 +162,6 @@ valent_sms_plugin_finalize (GObject *object)
 {
   ValentSmsPlugin *self = VALENT_SMS_PLUGIN (object);
 
-  g_clear_pointer (&self->window, gtk_window_destroy);
-  g_clear_pointer (&self->requests, g_ptr_array_unref);
   g_clear_object (&self->store);
 
   G_OBJECT_CLASS (valent_sms_plugin_parent_class)->finalize (object);
@@ -595,9 +174,9 @@ valent_sms_plugin_class_init (ValentSmsPluginClass *klass)
   ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
+  object_class->constructed = valent_sms_plugin_constructed;
   object_class->finalize = valent_sms_plugin_finalize;
 
-  object_class->constructed = valent_sms_plugin_constructed;
   plugin_class->handle_packet = valent_sms_plugin_handle_packet;
   plugin_class->update_state = valent_sms_plugin_update_state;
 
@@ -607,6 +186,5 @@ valent_sms_plugin_class_init (ValentSmsPluginClass *klass)
 static void
 valent_sms_plugin_init (ValentSmsPlugin *self)
 {
-  self->requests = g_ptr_array_new_with_free_func (g_free);
 }
 

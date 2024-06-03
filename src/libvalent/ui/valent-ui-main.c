@@ -26,7 +26,7 @@
 #include "valent-menu-stack.h"
 #include "valent-preferences-dialog.h"
 #include "valent-ui-manager.h"
-#include "valent-ui-utils.h"
+#include "valent-ui-utils-private.h"
 #include "valent-window.h"
 
 

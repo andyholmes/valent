@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
+
+<interface domain="valent">
+  <template class="ValentConversationPage" parent="AdwNavigationPage">
+    <property name="title" translatable="yes">Conversation</property>
+    <property name="width-request">360</property>
+    <property name="height-request">294</property>
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar">
+            <child type="end">
+              <object class="GtkMenuButton">
+                <property name="valign">center</property>
+                <property name="menu-model">secondary_menu</property>
+                <property name="primary">1</property>
+                <property name="icon-name">view-more-symbolic</property>
+                <accessibility>
+                  <property name="label" translatable="yes">Conversation Menu</property>
+                </accessibility>
+              </object>
+            </child>
+          </object>
+        </child>
+        <property name="content">
+          <object class="GtkScrolledWindow" id="scrolledwindow">
+            <property name="hexpand">1</property>
+            <property name="vexpand">1</property>
+            <property name="hscrollbar-policy">never</property>
+            <property name="propagate-natural-height">1</property>
+            <property name="vadjustment">
+              <object class="GtkAdjustment" id="vadjustment">
+                <signal name="notify::upper"
+                        handler="on_scroll_upper_changed"
+                        object="ValentConversationPage"
+                        swapped="yes"/>
+                <signal name="value-changed"
+                        handler="on_scroll_value_changed"
+                        object="ValentConversationPage"
+                        swapped="yes"/>
+              </object>
+            </property>
+            <property name="child">
+              <object class="GtkViewport">
+                <property name="scroll-to-focus">1</property>
+                <property name="child">
+                  <object class="AdwClamp">
+                    <property name="maximum-size">750</property>
+                    <property name="tightening-threshold">550</property>
+                    <property name="child">
+                      <object class="GtkListBox" id="message_list">
+                        <property name="valign">end</property>
+                        <property name="selection-mode">none</property>
+                        <property name="activate-on-single-click">0</property>
+                      </object>
+                    </property>
+                  </object>
+                </property>
+              </object>
+            </property>
+          </object>
+        </property>
+        <child type="bottom">
+          <object class="AdwClamp">
+            <property name="maximum-size">750</property>
+            <property name="tightening-threshold">550</property>
+            <property name="child">
+              <object class="GtkCenterBox">
+                <property name="orientation">horizontal</property>
+                <property name="start-widget">
+                  <object class="GtkButton">
+                    <property name="icon-name">message-attachment-symbolic</property>
+                    <property name="action-name">message.attachment</property>
+                    <property name="tooltip-text" translatable="yes">Attach Files</property>
+                    <property name="valign">center</property>
+                    <property name="margin-end">6</property>
+                    <style>
+                      <class name="flat"/>
+                    </style>
+                  </object>
+                </property>
+                <property name="center-widget">
+                  <object class="GtkEntry" id="message_entry">
+                    <property name="hexpand">1</property>
+                    <property name="placeholder-text" translatable="yes">Type a message</property>
+                    <signal name="activate" handler="on_entry_activated" swapped="no"/>
+                    <signal name="changed" handler="on_entry_changed" swapped="no"/>
+                  </object>
+                </property>
+                <property name="end-widget">
+                  <object class="GtkButton">
+                    <property name="icon-name">message-send-symbolic</property>
+                    <property name="action-name">message.send</property>
+                    <property name="tooltip-text" translatable="yes">Send Message</property>
+                    <property name="valign">center</property>
+                    <property name="margin-start">6</property>
+                    <style>
+                      <class name="circular"/>
+                      <class name="suggested-action"/>
+                    </style>
+                  </object>
+                </property>
+                <style>
+                  <class name="valent-conversation-toolbar"/>
+                </style>
+              </object>
+            </property>
+          </object>
+        </child>
+      </object>
+    </property>
+    <style>
+      <class name="valent-conversation-page"/>
+    </style>
+  </template>
+  <menu id="secondary_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Search Messages…</attribute>
+        <attribute name="action">conversation.search</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Details</attribute>
+        <attribute name="action">conversation.details</attribute>
+        <attribute name="hidden-when">action-disabled</attribute>
+      </item>
+    </section>
+  </menu>
+  <object class="AdwDialog" id="details_dialog">
+    <property name="title" translatable="yes">Details</property>
+    <property name="follows-content-size">1</property>
+    <property name="width-request">360</property>
+    <property name="child">
+      <!-- Details Page -->
+      <object class="AdwNavigationView" id="details_view">
+        <child>
+          <object class="AdwNavigationPage">
+            <property name="title" translatable="yes">Details</property>
+            <property name="tag">details</property>
+            <property name="child">
+              <object class="AdwToolbarView">
+                <child type="top">
+                  <object class="AdwHeaderBar"/>
+                </child>
+                <property name="content">
+                  <object class="AdwPreferencesPage">
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="AdwActionRow">
+                            <property name="title" translatable="yes">Media</property>
+                            <property name="activatable">1</property>
+                            <property name="action-name">navigation.push</property>
+                            <property name="action-target">'media'</property>
+                            <child type="prefix">
+                              <object class="GtkImage">
+                                <property name="icon-name">mail-attachment-symbolic</property>
+                                <property name="pixel-size">16</property>
+                              </object>
+                            </child>
+                            <child type="suffix">
+                              <object class="GtkImage">
+                                <property name="icon-name">go-next-symbolic</property>
+                                <property name="pixel-size">16</property>
+                                <style>
+                                  <class name="dim-label"/>
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <property name="title" translatable="yes">Contacts</property>
+                        <property name="header-suffix">
+                          <object class="GtkButton">
+                            <property name="child">
+                              <object class="AdwButtonContent">
+                                <property name="icon-name">list-add-symbolic</property>
+                                <property name="label" translatable="yes">Add people…</property>
+                              </object>
+                            </property>
+                            <signal name="clicked"
+                                    handler="on_add_participant"
+                                    object="ValentConversationPage"
+                                    swapped="no"/>
+                            <style>
+                              <class name="accent"/>
+                              <class name="flat"/>
+                            </style>
+                          </object>
+                        </property>
+                        <child>
+                          <object class="GtkListBox" id="participant_list">
+                            <property name="selection-mode">none</property>
+                            <property name="margin-top">18</property>
+                            <accessibility>
+                              <property name="label" translatable="yes">Contacts</property>
+                              <property name="description" translatable="yes">People in this conversation</property>
+                            </accessibility>
+                            <style>
+                              <class name="boxed-list"/>
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </property>
+            <style>
+              <class name="valent-conversation-details"/>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="AdwNavigationPage">
+            <property name="title" translatable="yes">Media</property>
+            <property name="tag">media</property>
+            <property name="child">
+              <object class="AdwToolbarView">
+                <child type="top">
+                  <object class="AdwHeaderBar"/>
+                </child>
+                <property name="content">
+                  <object class="AdwPreferencesPage">
+                    <child>
+                      <object class="AdwPreferencesGroup" id="attachment_group">
+                        <property name="title" translatable="yes">Attachments</property>
+                        <property name="description" translatable="yes">Files in this conversation</property>
+                        <child>
+                          <object class="GtkListBox" id="attachment_list">
+                            <property name="selection-mode">none</property>
+                            <property name="margin-top">18</property>
+                            <child type="placeholder">
+                              <object class="GtkLabel">
+                                <property name="height-request">52</property>
+                                <property name="label" translatable="yes">No attachments found</property>
+                                <style>
+                                  <class name="dim-label"/>
+                                </style>
+                              </object>
+                            </child>
+                            <accessibility>
+                              <relation name="labelled-by">attachment_group</relation>
+                              <relation name="described-by">attachment_group</relation>
+                            </accessibility>
+                            <style>
+                              <class name="boxed-list"/>
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </property>
+            <style>
+              <class name="valent-conversation-media"/>
+            </style>
+          </object>
+        </child>
+      </object>
+    </property>
+  </object>
+</interface>

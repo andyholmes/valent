@@ -23,18 +23,20 @@ test_sms_contact_row (void)
   contact = e_contact_new_from_vcard (g_bytes_get_data (bytes, NULL));
 
   VALENT_TEST_CHECK ("Widget can be constructed");
-  row = valent_contact_row_new (contact);
+  row = g_object_new (VALENT_TYPE_CONTACT_ROW,
+                      "contact", contact,
+                      NULL);
 
   VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_set (row,
-                "contact-name",    "Test Contact",
-                "contact-address", "123-456-7890",
+                "contact-name",   "Test Contact",
+                "contact-medium", "123-456-7890",
                 NULL);
 
   g_object_get (row,
-                "contact",         &contact_out,
-                "contact-name",    &contact_name,
-                "contact-address", &contact_addr,
+                "contact",        &contact_out,
+                "contact-name",   &contact_name,
+                "contact-medium", &contact_addr,
                 NULL);
 
   g_assert_true (contact == contact_out);

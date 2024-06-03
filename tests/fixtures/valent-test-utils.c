@@ -13,6 +13,7 @@
 #include "valent-component-private.h"
 #include "valent-contact-cache-private.h"
 #include "valent-mock-channel.h"
+
 #include "valent-test-utils.h"
 
 
@@ -689,7 +690,12 @@ valent_test_ui_init (int    *argcp,
 
   gtk_disable_setlocale ();
   setlocale (LC_ALL, "en_US.UTF-8");
-  valent_ui_init ();
+  gtk_init ();
+  adw_init ();
+
+  /* Load the libvalent-ui plugin to initializes it's types
+   */
+  valent_get_plugin_engine ();
 
   /* NOTE: Set manually since GDK_DEBUG=default-settings doesn't work for us */
   g_object_set (gtk_settings_get_default (),

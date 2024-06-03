@@ -19,8 +19,10 @@ test_sms_date_label (void)
   unsigned int mode_out;
 
   VALENT_TEST_CHECK ("Widget can be constructed");
-  label = valent_date_label_new (date);
-  g_object_set (G_OBJECT (label), "mode", mode, NULL);
+  label = g_object_new (VALENT_TYPE_DATE_LABEL,
+                        "date", date,
+                        "mode", mode,
+                        NULL);
 
   VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (label,

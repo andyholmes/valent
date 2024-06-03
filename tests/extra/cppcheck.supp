@@ -26,10 +26,8 @@ memleak:src/plugins/battery/valent-battery-gadget.c
 memleak:src/plugins/pipewire/valent-pipewire-mixer.c:698
 
 # src/plugins/sms/
-memleak:src/plugins/sms/valent-sms-store.c:814
-memleak:src/plugins/sms/valent-sms-store.c:864
-leakNoVarFunctionCall:src/plugins/sms/valent-sms-conversation.c:568
-leakNoVarFunctionCall:src/plugins/sms/valent-sms-conversation.c:573
+leakNoVarFunctionCall:src/plugins/sms/valent-conversation-page.c:568
+leakNoVarFunctionCall:src/plugins/sms/valent-conversation-page.c:573
 
 # tests/plugins/connectivity_report/
 memleak:src/plugins/connectivity_report/valent-connectivity_report-gadget.c:206

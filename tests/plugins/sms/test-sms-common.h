@@ -6,19 +6,19 @@
 #include <gio/gio.h>
 #include <valent.h>
 
-#include "valent-sms-store.h"
+#include "valent-message-store.h"
 
 G_BEGIN_DECLS
 
 
 static void
-valent_test_sms_store_new_cb (ValentSmsStore *store,
-                              GAsyncResult   *result,
-                              gboolean       *done)
+valent_test_message_store_new_cb (ValentMessagesAdapter *store,
+                                  GAsyncResult       *result,
+                                  gboolean           *done)
 {
   g_autoptr (GError) error = NULL;
 
-  valent_sms_store_add_messages_finish (store, result, &error);
+  valent_messages_adapter_add_messages_finish (store, result, &error);
   g_assert_no_error (error);
 
   if (done != NULL)
@@ -199,17 +199,17 @@ valent_test_sms_get_messages (void)
 }
 
 /**
- * valent_test_sms_store_new:
+ * valent_test_message_store_new:
  *
- * Create a new `ValentSmsStore` for testing.
+ * Create a new `ValentMessagesAdapter` for testing.
  *
- * Returns: (transfer full): a `ValentSmsStore`
+ * Returns: (transfer full): a `ValentMessagesAdapter`
  */
-static inline ValentSmsStore *
-valent_test_sms_store_new (void)
+static inline ValentMessagesAdapter *
+valent_test_message_store_new (void)
 {
   g_autoptr (ValentContext) context = NULL;
-  g_autoptr (ValentSmsStore) store = NULL;
+  g_autoptr (ValentMessagesAdapter) store = NULL;
   g_autoptr (GPtrArray) messages = NULL;
   gboolean done = FALSE;
 
@@ -218,15 +218,17 @@ valent_test_sms_store_new (void)
                           "domain", "device",
                           "id",     "test-device",
                           NULL);
-  store = valent_sms_store_new (context);
+  store = g_object_new (VALENT_TYPE_MESSAGES_ADAPTER,
+                        "parent", context,
+                        NULL);
   messages = valent_test_sms_get_messages ();
 
   /* Add Messages */
-  valent_sms_store_add_messages (store,
-                                 messages,
-                                 NULL,
-                                 (GAsyncReadyCallback)valent_test_sms_store_new_cb,
-                                 &done);
+  valent_messages_adapter_add_messages (store,
+                                     messages,
+                                     NULL,
+                                     (GAsyncReadyCallback)valent_test_message_store_new_cb,
+                                     &done);
   valent_test_await_boolean (&done);
 
   return g_steal_pointer (&store);

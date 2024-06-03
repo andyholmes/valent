@@ -9,7 +9,6 @@
 #include <pango/pango.h>
 #include <libvalent-core.h>
 
-#include "valent-ui-utils.h"
 #include "valent-ui-utils-private.h"
 
 

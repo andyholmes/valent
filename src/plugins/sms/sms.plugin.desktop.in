@@ -13,6 +13,6 @@ Copyright=Copyright © Andy Holmes
 Version=1.0.0.alpha.45
 Website=https://valent.andyholmes.ca
 Help=https://valent.andyholmes.ca/help
-X-DevicePluginIncoming=kdeconnect.sms.messages
-X-DevicePluginOutgoing=kdeconnect.sms.request;kdeconnect.sms.request_conversation;kdeconnect.sms.request_conversations
+X-DevicePluginIncoming=kdeconnect.sms.messages;kdeconnect.sms.attachment_file
+X-DevicePluginOutgoing=kdeconnect.sms.request;kdeconnect.sms.request_attachment;kdeconnect.sms.request_conversation;kdeconnect.sms.request_conversations
 

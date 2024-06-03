@@ -10,6 +10,15 @@
 
 
 /*
+ * ValentPluginRow
+ */
+.plugin-row button.link {
+  min-height: 0px;
+  padding: 0px;
+}
+
+
+/*
  * ValentMediaRemote
  */
 window.media-remote .content {
@@ -18,10 +27,124 @@ window.media-remote .content {
 
 
 /*
- * ValentPluginRow
+ * ValentMessagesWindow
  */
-.plugin-row button.link {
-  min-height: 0px;
+.valent-contact-row,
+.valent-message-row {
+  padding: 6px 8px;
+}
+
+.valent-contact-row .dim-label,
+.valent-message-row .dim-label {
+  font-size: smaller;
+}
+
+.valent-contact-row .subtitle,
+.valent-message-row .subtitle {
+  font-size: smaller;
+  opacity: 1.0;
+}
+
+.valent-message-row .unread {
+  font-weight: bold;
+}
+
+.valent-conversation-page,
+.valent-search-page,
+.valent-contact-page {
+  background-color: @view_bg_color;
+}
+
+/*
+ * Contacts
+ */
+.valent-contact-page list {
+  padding: 0px 6px;
+}
+
+.valent-contact-page .valent-contact-row {
+  border-radius: 6px;
+}
+
+.valent-contact-row {
+  padding: 6px 8px;
+}
+
+/*
+ * ValentConversationPage
+ */
+.valent-conversation-page .date-marker {
+  border-top: 1px solid @borders;
+  font-size: x-small;
+  font-weight: 550;
+  margin: 1em 1em 0.5em;
+  padding-top: 0.5em;
+}
+
+.valent-conversation-details .valent-contact-row {
+  padding: 1em 0.875em;
+}
+
+.valent-conversation-page .valent-conversation-toolbar {
+  padding: 6px;
+}
+
+/*
+ * ValentConversationRow
+ */
+.valent-conversation-row .message-bubble {
+  padding: 0.75em 1em;
+  border-radius: 1.5em;
+}
+
+.valent-conversation-row .message-bubble *:link {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.valent-conversation-row .message-footer {
+  font-size: x-small;
+}
+
+.valent-message-inbox {
+  padding: 6px 56px 6px 12px;
+}
+
+.valent-message-inbox .message-bubble {
+  color: @theme_fg_color;
+  background: alpha(@accent_color, 0.3);
+}
+
+.valent-message-outbox,
+.valent-message-sent {
+  padding: 6px 12px 6px 56px;
+}
+
+.valent-message-outbox .message-bubble,
+.valent-message-sent .message-bubble {
+  color: @sidebar_fg_color;
+  background-color: @sidebar_bg_color;
+}
+
+.valent-message-outbox .message-bubble *:link,
+.valent-message-sent .message-bubble *:link {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.valent-message-outbox .message-bubble {
+  opacity: 0.5;
+}
+
+/*
+ * ValentMessageAttachment
+ */
+.attachment-list row {
+  margin-bottom: 6px;
   padding: 0px;
+}
+
+.attachment-list image {
+  border-radius: inherit;
 }
 

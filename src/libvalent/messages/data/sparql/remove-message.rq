@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
+
+# Inputs: iri
+# Outputs: None
+DELETE
+WHERE {
+  BIND(IRI(xsd:string(~iri)) AS ?message)
+  ?message rdf:type vmo:PhoneMessage ;
+           ?messageProperty ?messageValue .
+  OPTIONAL { ?message ?messageProperty ?messageValue . }
+}
+
