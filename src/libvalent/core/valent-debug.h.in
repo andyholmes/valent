@@ -23,7 +23,7 @@ void   valent_debug_clear (void);
 /**
  * VALENT_LOG_LEVEL_TRACE: (skip)
  *
- * The [flags@Glib.GLogLevelFlags] log level for trace messages in Valent.
+ * The [flags@GLib.GLogLevelFlags] log level for trace messages in Valent.
  *
  * Since: 1.0
  */
