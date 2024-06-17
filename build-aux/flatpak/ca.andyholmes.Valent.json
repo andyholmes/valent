@@ -138,8 +138,8 @@
                 {
                     "type" : "git",
                     "url" : "https://gitlab.gnome.org/GNOME/evolution-data-server.git",
-                    "commit" : "4adc5ba23352c631e3dd826973b4bd04b907a1ae",
-                    "tag" : "3.52.1",
+                    "commit" : "8ff10613cd83f29b2f1c46d89c7aa6fe9c2cb091",
+                    "tag" : "3.52.2",
                     "x-checker-data" : {
                         "type" : "anitya",
                         "project-id" : 10935,
@@ -218,8 +218,8 @@
                 {
                     "type" : "git",
                     "url" : "https://gitlab.freedesktop.org/pipewire/pipewire.git",
-                    "commit" : "e37a1e25fc09567b000182cca831bbde82fea176",
-                    "tag" : "1.1.81",
+                    "commit" : "7eeb657d37bbe1044bb5cb93d4bb6854249d092a",
+                    "tag" : "1.1.82",
                     "x-checker-data" : {
                         "type" : "anitya",
                         "project-id" : 57357,
