@@ -188,7 +188,7 @@ get_chassis_type (void)
         }
 
     leave:
-      g_once_init_leave (&guard, TRUE);
+      g_once_init_leave (&guard, 1);
     }
 
   return chassis;

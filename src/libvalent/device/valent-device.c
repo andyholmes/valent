@@ -1662,7 +1662,7 @@ valent_device_validate_id (const char *id)
                                 G_REGEX_OPTIMIZE,
                                 G_REGEX_MATCH_DEFAULT,
                                 NULL);
-      g_once_init_leave (&guard, TRUE);
+      g_once_init_leave (&guard, 1);
     }
 
   return g_regex_match (id_pattern, id, G_REGEX_MATCH_DEFAULT, NULL);
@@ -1693,7 +1693,7 @@ valent_device_validate_name (const char *name)
                                   G_REGEX_OPTIMIZE,
                                   G_REGEX_MATCH_DEFAULT,
                                   NULL);
-      g_once_init_leave (&guard, TRUE);
+      g_once_init_leave (&guard, 1);
     }
 
   return g_regex_match (name_pattern, name, G_REGEX_MATCH_DEFAULT, NULL);
