@@ -22,6 +22,7 @@ struct _ValentSmsPlugin
 
   ValentSmsStore    *store;
   GtkWindow         *window;
+  GPtrArray         *requests;
 };
 
 G_DEFINE_FINAL_TYPE (ValentSmsPlugin, valent_sms_plugin, VALENT_TYPE_DEVICE_PLUGIN)
@@ -194,6 +195,55 @@ valent_sms_plugin_handle_thread (ValentSmsPlugin *self,
   valent_sms_store_add_messages (self->store, results, NULL, NULL, NULL);
 }
 
+typedef struct
+{
+  int64_t thread_id;
+  int64_t start_date;
+  int64_t end_date;
+  int64_t max_results;
+} RequestData;
+
+#define DEFAULT_MESSAGE_REQUEST (100)
+
+static gboolean
+find_message_request (gconstpointer a,
+                      gconstpointer b)
+{
+  return ((RequestData *)a)->thread_id == *((int64_t *)b);
+}
+
+static void
+find_message_range (JsonArray    *messages,
+                    int64_t      *out_thread_id,
+                    int64_t      *out_start_date,
+                    int64_t      *out_end_date)
+{
+  unsigned int n_messages;
+
+  g_assert (messages != NULL);
+  g_assert (out_thread_id && out_start_date && out_end_date);
+
+  *out_thread_id = 0;
+  *out_start_date = INT64_MAX;
+  *out_end_date = 0;
+
+  n_messages = json_array_get_length (messages);
+  for (unsigned int i = 0; i < n_messages; i++)
+    {
+      JsonObject *message = json_array_get_object_element (messages, i);
+      int64_t date = json_object_get_int_member (message, "date");
+
+      if (*out_thread_id == 0)
+        *out_thread_id = json_object_get_int_member (message, "thread_id");
+
+      if (*out_start_date > date)
+        *out_start_date = date;
+
+      if (*out_end_date < date)
+        *out_end_date = date;
+    }
+}
+
 static void
 valent_sms_plugin_handle_messages (ValentSmsPlugin *self,
                                    JsonNode        *packet)
@@ -201,6 +251,12 @@ valent_sms_plugin_handle_messages (ValentSmsPlugin *self,
   JsonObject *body;
   JsonArray *messages;
   unsigned int n_messages;
+  RequestData *request = NULL;
+  int64_t thread_id;
+  int64_t start_date, end_date;
+  unsigned int index_ = 0;
+
+  VALENT_ENTRY;
 
   g_assert (VALENT_IS_SMS_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
@@ -219,33 +275,61 @@ valent_sms_plugin_handle_messages (ValentSmsPlugin *self,
       return;
     }
 
-  /* If there is more than one message then this is either a response to a
-   * request for a thread, or an old client sending a summary of threads. If we
-   * assume the latter it may cause a multi-device infinite-loop.
-   */
-  if (n_messages == 1)
+  /* Check if there is an active request for this thread */
+  find_message_range (messages, &thread_id, &start_date, &end_date);
+
+  if (g_ptr_array_find_with_equal_func (self->requests,
+                                        &thread_id,
+                                        find_message_request,
+                                        &index_))
     {
-      JsonObject *message;
-      int64_t thread_id;
-      int64_t thread_date;
+      request = g_ptr_array_index (self->requests, index_);
+
+      /* This is a response to our request */
+      if (request->end_date == end_date)
+        {
+          if (n_messages >= request->max_results &&
+              request->start_date < start_date)
+            {
+              request->end_date = start_date;
+              valent_sms_plugin_request_conversation (self,
+                                                      request->thread_id,
+                                                      request->end_date,
+                                                      request->max_results);
+            }
+          else
+            {
+              g_ptr_array_remove_index (self->requests, index_);
+            }
+        }
+    }
+  else if (n_messages == 1)
+    {
       int64_t cache_date;
 
-      // TODO: handle missing or invalid fields
-      message = json_array_get_object_element (messages, 0);
-      thread_id = json_object_get_int_member (message, "thread_id");
-      thread_date = json_object_get_int_member (message, "date");
-
-      /* Get the last cached date and compare timestamps */
       cache_date = valent_sms_store_get_thread_date (self->store, thread_id);
+      if (cache_date < end_date)
+        {
+          request = g_new (RequestData, 1);
+          request->thread_id = thread_id;
+          request->start_date = cache_date;
+          request->end_date = end_date;
+          request->max_results = DEFAULT_MESSAGE_REQUEST;
 
-      if (cache_date < thread_date)
-        valent_sms_plugin_request_conversation (self, thread_id, cache_date, 0);
+          valent_sms_plugin_request_conversation (self,
+                                                  request->thread_id,
+                                                  request->end_date,
+                                                  request->max_results);
+          g_ptr_array_add (self->requests, g_steal_pointer (&request));
+        }
     }
 
   /* Store what we've received after the request is queued, otherwise having the
    * latest message we may request nothing.
    */
   valent_sms_plugin_handle_thread (self, messages);
+
+  VALENT_EXIT;
 }
 
 /*< private >
@@ -444,6 +528,8 @@ valent_sms_plugin_update_state (ValentDevicePlugin *plugin,
   /* Request summary of messages */
   if (available)
     valent_sms_plugin_request_conversations (self);
+  else
+    g_ptr_array_remove_range (self->requests, 0, self->requests->len);
 }
 
 static void
@@ -519,6 +605,7 @@ valent_sms_plugin_finalize (GObject *object)
   ValentSmsPlugin *self = VALENT_SMS_PLUGIN (object);
 
   g_clear_pointer (&self->window, gtk_window_destroy);
+  g_clear_pointer (&self->requests, g_ptr_array_unref);
   g_clear_object (&self->store);
 
   G_OBJECT_CLASS (valent_sms_plugin_parent_class)->finalize (object);
@@ -543,5 +630,6 @@ valent_sms_plugin_class_init (ValentSmsPluginClass *klass)
 static void
 valent_sms_plugin_init (ValentSmsPlugin *self)
 {
+  self->requests = g_ptr_array_new_with_free_func (g_free);
 }
 
