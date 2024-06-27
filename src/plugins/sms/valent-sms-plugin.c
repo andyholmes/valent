@@ -24,17 +24,17 @@ struct _ValentSmsPlugin
   GtkWindow         *window;
 };
 
+G_DEFINE_FINAL_TYPE (ValentSmsPlugin, valent_sms_plugin, VALENT_TYPE_DEVICE_PLUGIN)
+
 static ValentMessage * valent_sms_plugin_deserialize_message   (ValentSmsPlugin *self,
                                                                 JsonNode        *node);
 static void            valent_sms_plugin_request               (ValentSmsPlugin *self,
                                                                 ValentMessage   *message);
 static void            valent_sms_plugin_request_conversation  (ValentSmsPlugin *self,
                                                                 int64_t          thread_id,
-                                                                int64_t          start_date,
-                                                                int64_t          max_results);
+                                                                int64_t          range_start_timestamp,
+                                                                int64_t          number_to_request);
 static void            valent_sms_plugin_request_conversations (ValentSmsPlugin *self);
-
-G_DEFINE_FINAL_TYPE (ValentSmsPlugin, valent_sms_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
 /**
@@ -248,11 +248,19 @@ valent_sms_plugin_handle_messages (ValentSmsPlugin *self,
   valent_sms_plugin_handle_thread (self, messages);
 }
 
+/*< private >
+ * @self: a `ValentSmsPlugin`
+ * @range_start_timestamp: the timestamp of the newest message to request
+ * @number_to_request: the maximum number of messages to return
+ *
+ * Send a request for messages starting at @range_start_timestamp in
+ * oldest-to-newest order, for a maximum of @number_to_request.
+ */
 static void
 valent_sms_plugin_request_conversation (ValentSmsPlugin *self,
                                         int64_t          thread_id,
-                                        int64_t          start_date,
-                                        int64_t          max_results)
+                                        int64_t          range_start_timestamp,
+                                        int64_t          number_to_request)
 {
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
@@ -264,16 +272,16 @@ valent_sms_plugin_request_conversation (ValentSmsPlugin *self,
   json_builder_set_member_name (builder, "threadID");
   json_builder_add_int_value (builder, thread_id);
 
-  if (start_date > 0)
+  if (range_start_timestamp > 0)
     {
       json_builder_set_member_name (builder, "rangeStartTimestamp");
-      json_builder_add_int_value (builder, start_date);
+      json_builder_add_int_value (builder, range_start_timestamp);
     }
 
-  if (max_results > 0)
+  if (number_to_request > 0)
     {
       json_builder_set_member_name (builder, "numberToRequest");
-      json_builder_add_int_value (builder, max_results);
+      json_builder_add_int_value (builder, number_to_request);
     }
 
   packet = valent_packet_end (&builder);
@@ -510,8 +518,7 @@ valent_sms_plugin_finalize (GObject *object)
 {
   ValentSmsPlugin *self = VALENT_SMS_PLUGIN (object);
 
-  if (self->window)
-    g_clear_pointer (&self->window, gtk_window_destroy);
+  g_clear_pointer (&self->window, gtk_window_destroy);
   g_clear_object (&self->store);
 
   G_OBJECT_CLASS (valent_sms_plugin_parent_class)->finalize (object);
