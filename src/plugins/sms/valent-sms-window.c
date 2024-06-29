@@ -110,6 +110,11 @@ search_messages_cb (ValentSmsStore  *store,
   g_autoptr (GPtrArray) messages = NULL;
 
   messages = valent_sms_store_find_messages_finish (store, result, &error);
+  if (messages == NULL)
+    {
+      g_warning ("%s(): %s", G_STRFUNC, error->message);
+      return;
+    }
 
   for (unsigned int i = 0; i < messages->len; i++)
     {
