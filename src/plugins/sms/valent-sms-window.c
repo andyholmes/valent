@@ -77,9 +77,13 @@ phone_lookup_cb (ValentContactStore *store,
   g_autoptr (EContact) contact = NULL;
 
   contact = valent_sms_contact_from_phone_finish (store, result, &error);
-
   if (contact == NULL)
-      g_warning ("%s(): %s", G_STRFUNC, error->message);
+    {
+      if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("%s(): %s", G_STRFUNC, error->message);
+
+      return;
+    }
 
   valent_message_row_set_contact (row, contact);
 }
@@ -149,11 +153,22 @@ search_messages_cb (ValentSmsStore  *store,
             continue;
         }
 
-      valent_sms_contact_from_phone (window->contact_store,
-                                     address,
-                                     NULL,
-                                     (GAsyncReadyCallback)phone_lookup_cb,
-                                     row);
+      if (address != NULL && *address != '\0')
+        {
+          g_autoptr (GCancellable) cancellable = NULL;
+
+          cancellable = g_cancellable_new ();
+          g_signal_connect_object (row,
+                                   "destroy",
+                                   G_CALLBACK (g_cancellable_cancel),
+                                   cancellable,
+                                   G_CONNECT_SWAPPED);
+          valent_sms_contact_from_phone (window->contact_store,
+                                         address,
+                                         cancellable,
+                                         (GAsyncReadyCallback)phone_lookup_cb,
+                                         row);
+        }
     }
 }
 
