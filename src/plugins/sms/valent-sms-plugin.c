@@ -38,37 +38,6 @@ static void            valent_sms_plugin_request_conversation  (ValentSmsPlugin 
 static void            valent_sms_plugin_request_conversations (ValentSmsPlugin *self);
 
 
-/**
- * message_hash:
- * @message_id: a message ID
- * @message_text: (nullable): a message text
- *
- * Shift the lower 32-bits of @message_id to the upper 32-bits of a 64-bit
- * integer, then set the lower 32-bits to a djb2 hash of @message_text.
- *
- * This hack is necessary because kdeconnect-android pulls SMS and MMS from
- * separate tables so two messages (even in the same thread) may share an ID.
- * The timestamp would be an ideal alternative except that it can change,
- * possibly when moved between boxes (eg. outbox => sent).
- *
- * Returns: a unique ID
- */
-static inline int64_t
-message_hash (int64_t     message_id,
-              const char *message_text)
-{
-  uint32_t hash = 5381;
-
-  if G_UNLIKELY (message_text == NULL)
-    message_text = "";
-
-  // djb2
-  for (unsigned int i = 0; message_text[i]; i++)
-    hash = ((hash << 5L) + hash) + message_text[i]; /* hash * 33 + c */
-
-  return (((uint64_t) message_id) << 32) | hash;
-}
-
 static ValentMessage *
 valent_sms_plugin_deserialize_message (ValentSmsPlugin *self,
                                        JsonNode        *node)
@@ -143,9 +112,6 @@ valent_sms_plugin_deserialize_message (ValentSmsPlugin *self,
 
   if (json_object_has_member (object, "sub_id"))
     sub_id = json_object_get_int_member (object, "sub_id");
-
-  /* HACK: try to create a truly unique ID from a potentially non-unique ID */
-  id = message_hash (id, text);
 
   /* Build the metadata dictionary */
   g_variant_dict_init (&dict, NULL);
