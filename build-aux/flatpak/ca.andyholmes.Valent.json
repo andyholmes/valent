@@ -1,10 +1,10 @@
 {
-    "app-id" : "ca.andyholmes.Valent",
-    "runtime" : "org.gnome.Platform",
-    "runtime-version" : "46",
-    "sdk" : "org.gnome.Sdk",
-    "command" : "valent",
-    "finish-args" : [
+    "app-id": "ca.andyholmes.Valent",
+    "runtime": "org.gnome.Platform",
+    "runtime-version": "46",
+    "sdk": "org.gnome.Sdk",
+    "command": "valent",
+    "finish-args": [
         "--device=dri",
         "--env=PULSE_PROP_media.category=Manager",
         "--filesystem=xdg-download",
@@ -33,51 +33,51 @@
         "--talk-name=org.gtk.vfs.*",
         "--talk-name=org.mpris.MediaPlayer2.*"
     ],
-    "add-extensions" : {
-        "ca.andyholmes.Valent.Plugin" : {
-            "version" : "master",
-            "directory" : "extensions",
-            "add-ld-path" : "lib",
-            "merge-dirs" : "lib/valent/plugins",
-            "subdirectories" : true,
-            "no-autodownload" : true,
-            "autodelete" : true
+    "add-extensions": {
+        "ca.andyholmes.Valent.Plugin": {
+            "version": "master",
+            "directory": "extensions",
+            "add-ld-path": "lib",
+            "merge-dirs": "lib/valent/plugins",
+            "subdirectories": true,
+            "no-autodownload": true,
+            "autodelete": true
         }
     },
-    "cleanup" : [
+    "cleanup": [
         "/libexec",
         "/man",
         "/share/man",
         "*.la",
         "*.a"
     ],
-    "modules" : [
+    "modules": [
         {
-            "name" : "intltool",
-            "cleanup" : [
+            "name": "intltool",
+            "cleanup": [
                 "*"
             ],
-            "sources" : [
+            "sources": [
                 {
-                    "type" : "archive",
-                    "url" : "https://launchpad.net/intltool/trunk/0.51.0/+download/intltool-0.51.0.tar.gz",
-                    "sha256" : "67c74d94196b153b774ab9f89b2fa6c6ba79352407037c8c14d5aeb334e959cd",
-                    "x-checker-data" : {
-                        "type" : "anitya",
-                        "project-id" : 1385,
-                        "stable-only" : true,
-                        "url-template" : "https://launchpad.net/intltool/trunk/$version/+download/intltool-$version.tar.gz"
+                    "type": "archive",
+                    "url": "https://launchpad.net/intltool/trunk/0.51.0/+download/intltool-0.51.0.tar.gz",
+                    "sha256": "67c74d94196b153b774ab9f89b2fa6c6ba79352407037c8c14d5aeb334e959cd",
+                    "x-checker-data": {
+                        "type": "anitya",
+                        "project-id": 1385,
+                        "stable-only": true,
+                        "url-template": "https://launchpad.net/intltool/trunk/$version/+download/intltool-$version.tar.gz"
                     }
                 }
             ]
         },
         {
-            "name" : "libical",
-            "buildsystem" : "cmake-ninja",
-            "cleanup" : [
+            "name": "libical",
+            "buildsystem": "cmake-ninja",
+            "cleanup": [
                 "/lib/cmake"
             ],
-            "config-opts" : [
+            "config-opts": [
                 "-DCMAKE_INSTALL_LIBDIR:PATH=/app/lib",
                 "-DBUILD_SHARED_LIBS:BOOL=ON",
                 "-DGOBJECT_INTROSPECTION:BOOL=ON",
@@ -85,25 +85,25 @@
                 "-DICAL_GLIB_VAPI:BOOL=ON",
                 "-DICAL_GLIB:BOOL=ON"
             ],
-            "sources" : [
+            "sources": [
                 {
-                    "type" : "git",
-                    "url" : "https://github.com/libical/libical.git",
-                    "commit" : "1b28a846d2dca16e5d15a433c6011cc2483555bb",
-                    "tag" : "v3.0.18",
-                    "x-checker-data" : {
-                        "type" : "anitya",
-                        "project-id" : 1637,
-                        "stable-only" : true,
-                        "tag-template" : "v$version"
+                    "type": "git",
+                    "url": "https://github.com/libical/libical.git",
+                    "commit": "1b28a846d2dca16e5d15a433c6011cc2483555bb",
+                    "tag": "v3.0.18",
+                    "x-checker-data": {
+                        "type": "anitya",
+                        "project-id": 1637,
+                        "stable-only": true,
+                        "tag-template": "v$version"
                     }
                 }
             ]
         },
         {
-            "name" : "evolution-data-server",
-            "buildsystem" : "cmake-ninja",
-            "cleanup" : [
+            "name": "evolution-data-server",
+            "buildsystem": "cmake-ninja",
+            "cleanup": [
                 "/etc",
                 "/lib/cmake",
                 "/lib/evolution-data-server/*-backends",
@@ -113,7 +113,7 @@
                 "/share/GConf",
                 "/systemd"
             ],
-            "config-opts" : [
+            "config-opts": [
                 "-DCMAKE_BUILD_TYPE=Release",
                 "-DENABLE_DOT_LOCKING=OFF",
                 "-DENABLE_CANBERRA=OFF",
@@ -134,79 +134,79 @@
                 "-DWITH_SYSTEMDUSERUNITDIR=OFF",
                 "-DWITH_DBUS_SERVICE_DIR=OFF"
             ],
-            "sources" : [
+            "sources": [
                 {
-                    "type" : "git",
-                    "url" : "https://gitlab.gnome.org/GNOME/evolution-data-server.git",
-                    "commit" : "8ff10613cd83f29b2f1c46d89c7aa6fe9c2cb091",
-                    "tag" : "3.52.2",
-                    "x-checker-data" : {
-                        "type" : "anitya",
-                        "project-id" : 10935,
-                        "stable-only" : true,
-                        "tag-template" : "$version"
+                    "type": "git",
+                    "url": "https://gitlab.gnome.org/GNOME/evolution-data-server.git",
+                    "commit": "80c262f12cae9a8b6f4f3c2d3d399d434ca7a7f2",
+                    "tag": "3.52.3",
+                    "x-checker-data": {
+                        "type": "anitya",
+                        "project-id": 10935,
+                        "stable-only": true,
+                        "tag-template": "$version"
                     }
                 }
             ]
         },
         {
-            "name" : "libpeas",
-            "buildsystem" : "meson",
-            "builddir" : true,
-            "cleanup" : [
+            "name": "libpeas",
+            "buildsystem": "meson",
+            "builddir": true,
+            "cleanup": [
                 "/bin/*"
             ],
-            "config-opts" : [
+            "config-opts": [
                 "-Dgjs=false",
                 "-Dlua51=false",
                 "-Dpython3=false",
                 "-Dintrospection=true",
                 "-Dvapi=true"
             ],
-            "sources" : [
+            "sources": [
                 {
-                    "type" : "git",
-                    "url" : "https://gitlab.gnome.org/GNOME/libpeas.git",
-                    "commit" : "7a4c8b2d72c5c19860d5df0a9a8c07ad0d410be6",
-                    "tag" : "2.0.2",
-                    "x-checker-data" : {
-                        "type" : "anitya",
-                        "project-id" : 6871,
-                        "stable-only" : true,
-                        "tag-template" : "$version"
+                    "type": "git",
+                    "url": "https://gitlab.gnome.org/GNOME/libpeas.git",
+                    "commit": "7a4c8b2d72c5c19860d5df0a9a8c07ad0d410be6",
+                    "tag": "2.0.2",
+                    "x-checker-data": {
+                        "type": "anitya",
+                        "project-id": 6871,
+                        "stable-only": true,
+                        "tag-template": "$version"
                     }
                 }
             ]
         },
         {
-            "name" : "libportal",
-            "buildsystem" : "meson",
-            "builddir" : true,
-            "config-opts" : [
+            "name": "libportal",
+            "buildsystem": "meson",
+            "builddir": true,
+            "config-opts": [
                 "-Ddocs=false",
                 "-Dintrospection=false",
                 "-Dvapi=false"
             ],
-            "sources" : [
+            "sources": [
                 {
-                    "type" : "git",
-                    "url" : "https://github.com/flatpak/libportal.git",
-                    "commit" : "e9ed3a50cdde321eaf42361212480a66eb94a57a",
-                    "tag" : "0.7.1",
-                    "x-checker-data" : {
-                        "type" : "anitya",
-                        "project-id" : 230124,
-                        "stable-only" : true,
-                        "tag-template" : "$version"
+                    "type": "git",
+                    "url": "https://github.com/flatpak/libportal.git",
+                    "commit": "e9ed3a50cdde321eaf42361212480a66eb94a57a",
+                    "tag": "0.7.1",
+                    "x-checker-data": {
+                        "type": "anitya",
+                        "project-id": 230124,
+                        "stable-only": true,
+                        "tag-template": "$version"
                     }
                 }
             ]
         },
         {
-            "name" : "pipewire",
-            "buildsystem" : "meson",
-            "builddir" : true,
-            "config-opts" : [
+            "name": "pipewire",
+            "buildsystem": "meson",
+            "builddir": true,
+            "config-opts": [
                 "-Dgstreamer=disabled",
                 "-Dman=disabled",
                 "-Dsystemd=disabled",
@@ -214,37 +214,37 @@
                 "-Dudevrulesdir=disabled",
                 "-Dsession-managers=[]"
             ],
-            "sources" : [
+            "sources": [
                 {
-                    "type" : "git",
-                    "url" : "https://gitlab.freedesktop.org/pipewire/pipewire.git",
-                    "commit" : "7eeb657d37bbe1044bb5cb93d4bb6854249d092a",
-                    "tag" : "1.1.82",
-                    "x-checker-data" : {
-                        "type" : "anitya",
-                        "project-id" : 57357,
-                        "stable-only" : true,
-                        "tag-template" : "$version"
+                    "type": "git",
+                    "url": "https://gitlab.freedesktop.org/pipewire/pipewire.git",
+                    "commit": "7b4c0dd5ecb40e4d2c153699a85c51e1460361e1",
+                    "tag": "1.2.0",
+                    "x-checker-data": {
+                        "type": "anitya",
+                        "project-id": 57357,
+                        "stable-only": true,
+                        "tag-template": "$version"
                     }
                 }
             ]
         },
         {
-            "name" : "valent",
-            "buildsystem" : "meson",
-            "builddir" : true,
-            "config-opts" : [
+            "name": "valent",
+            "buildsystem": "meson",
+            "builddir": true,
+            "config-opts": [
                 "--prefix=/app",
                 "--buildtype=release"
             ],
-            "post-install" : [
+            "post-install": [
                 "install -d /app/extensions"
             ],
-            "sources" : [
+            "sources": [
                 {
-                    "type" : "git",
-                    "url" : "https://github.com/andyholmes/valent.git",
-                    "branch" : "main"
+                    "type": "git",
+                    "url": "https://github.com/andyholmes/valent.git",
+                    "branch": "main"
                 }
             ]
         }
