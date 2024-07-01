@@ -443,26 +443,13 @@ valent_sms_conversation_row_show_avatar (ValentSmsConversationRow *row,
 void
 valent_sms_conversation_row_update (ValentSmsConversationRow *row)
 {
+  const char *text;
+  g_autofree char *label = NULL;
+
   g_return_if_fail (VALENT_IS_SMS_CONVERSATION_ROW (row));
 
-  // text
   if (row->message == NULL)
-    row->incoming = FALSE;
-  else
-    row->incoming = valent_message_get_box (row->message) == VALENT_MESSAGE_BOX_INBOX;
-
-  gtk_widget_set_visible (row->avatar, row->incoming);
-
-  /* Message Body */
-  if (row->message != NULL)
-    {
-      const char *text;
-      g_autofree char *label = NULL;
-
-      text = valent_message_get_text (row->message);
-      label = valent_string_to_markup (text);
-      gtk_label_set_label (GTK_LABEL (row->text_label), label);
-    }
+    return;
 
   /* The row style consists of the alignment and the CSS
    *
@@ -473,6 +460,7 @@ valent_sms_conversation_row_update (ValentSmsConversationRow *row)
    *
    * The CSS classes determine the chat bubble style and color.
    */
+  row->incoming = valent_message_get_box (row->message) == VALENT_MESSAGE_BOX_INBOX;
   if (row->incoming)
     {
       gtk_widget_set_halign (row->grid, GTK_ALIGN_START);
@@ -482,6 +470,7 @@ valent_sms_conversation_row_update (ValentSmsConversationRow *row)
       gtk_widget_remove_css_class (row->bubble, "valent-sms-outgoing");
       gtk_widget_add_css_class (row->bubble, "valent-sms-incoming");
       gtk_widget_set_halign (GTK_WIDGET (row), GTK_ALIGN_START);
+      gtk_widget_set_visible (row->avatar, TRUE);
     }
   else
     {
@@ -492,6 +481,13 @@ valent_sms_conversation_row_update (ValentSmsConversationRow *row)
       gtk_widget_remove_css_class (row->bubble, "valent-sms-incoming");
       gtk_widget_add_css_class (row->bubble, "valent-sms-outgoing");
       gtk_widget_set_halign (GTK_WIDGET (row), GTK_ALIGN_END);
+      gtk_widget_set_visible (row->avatar, FALSE);
     }
+
+  /* Text content
+   */
+  text = valent_message_get_text (row->message);
+  label = valent_string_to_markup (text);
+  gtk_label_set_label (GTK_LABEL (row->text_label), label);
 }
 
