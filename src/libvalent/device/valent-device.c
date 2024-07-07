@@ -1199,7 +1199,7 @@ valent_device_send_packet_cb (ValentChannel *channel,
  * @packet: a KDE Connect packet
  * @cancellable: (nullable): a `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * Send a KDE Connect packet to the device.
  *

@@ -220,7 +220,7 @@ valent_contact_row_init (ValentContactRow *self)
  * valent_contact_row_header_func:
  * @row: a `GtkListBoxRow`
  * @before: (nullable): a `GtkListBoxRow`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * A `GtkListBoxHeaderFunc` for `ValentContactRow` widgets that takes care of
  * hiding or showing the avatar and name depending on whether the row is

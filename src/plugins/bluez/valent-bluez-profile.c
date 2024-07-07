@@ -351,7 +351,7 @@ profile_manager_register_profile_cb (GDBusConnection *connection,
  * @connection: a `GDBusConnection`
  * @cancellable: (nullable): a `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * Export the bluez profile for Valent on @connection and register it with the
  * profile manager (`org.bluez.ProfileManager1`).

@@ -271,7 +271,7 @@ valent_clipboard_adapter_get_mimetypes (ValentClipboardAdapter *adapter)
  * @mimetype: a mime-type
  * @cancellable: (nullable): a `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * Get the content of @adapter.
  *
@@ -339,7 +339,7 @@ valent_clipboard_adapter_read_bytes_finish (ValentClipboardAdapter  *adapter,
  * @bytes: (nullable): a `GBytes`, or %NULL if @mimetype is %NULL
  * @cancellable: (nullable): a `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * Set the content of the clipboard.
  *

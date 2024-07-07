@@ -193,7 +193,7 @@ valent_sms_contact_from_phone_cb (ValentContactStore *store,
  * @phone: a phone number
  * @cancellable: (nullable): `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * A convenience wrapper around [method@Valent.ContactStore.query] for finding a
  * contact by phone number.

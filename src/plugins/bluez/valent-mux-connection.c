@@ -1027,7 +1027,7 @@ valent_mux_connection_handshake_task (GTask        *task,
  * @connection: a `ValentMuxConnection`
  * @cancellable: (nullable): a `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * This is the asynchronous version of valent_mux_connection_handshake().
  */

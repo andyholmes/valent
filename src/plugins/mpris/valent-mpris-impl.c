@@ -804,7 +804,7 @@ valent_mpris_impl_export_full_cb (GObject      *object,
  * @bus_name: the well-known name to own
  * @cancellable: (nullable): a `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * Impl the test media player on the session bus.
  */
