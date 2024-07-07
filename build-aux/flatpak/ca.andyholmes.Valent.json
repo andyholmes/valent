@@ -83,7 +83,9 @@
                 "-DGOBJECT_INTROSPECTION:BOOL=ON",
                 "-DICAL_BUILD_DOCS:BOOL=OFF",
                 "-DICAL_GLIB_VAPI:BOOL=ON",
-                "-DICAL_GLIB:BOOL=ON"
+                "-DICAL_GLIB:BOOL=ON",
+                "-DLIBICAL_BUILD_EXAMPLES:BOOL=OFF",
+                "-DLIBICAL_BUILD_TESTING:BOOL=OFF"
             ],
             "sources" : [
                 {
