@@ -90,8 +90,8 @@ project_c_args = [
   '-Wno-unused-parameter',
 
   # These should be kept in sync (eg. GTK 4.10 requires GLib 2.72)
-  '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_76',
-  '-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_76',
+  '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_80',
+  '-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_80',
   '-DGDK_VERSION_MIN_REQUIRED=GDK_VERSION_4_10',
 
   '-Wno-error=analyzer-va-arg-type-mismatch',
