@@ -642,7 +642,7 @@ valent_channel_close_task (GTask        *task,
  * @channel: a `ValentChannel`
  * @cancellable: (nullable): a `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * Close the channel asynchronously.
  *
@@ -741,7 +741,7 @@ valent_channel_read_packet_task (GTask        *task,
  * @channel: a `ValentChannel`
  * @cancellable: (nullable): a `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * Read the next KDE Connect packet from @channel.
  *
@@ -836,7 +836,7 @@ valent_channel_write_packet_func (gpointer data)
  * @packet: a KDE Connect packet
  * @cancellable: (nullable): a `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * Send a packet over the channel.
  *
@@ -992,7 +992,7 @@ valent_channel_download (ValentChannel  *channel,
  * @packet: a KDE Connect packet
  * @cancellable: (nullable): a `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * Open an auxiliary connection, usually to download data.
  *
@@ -1109,7 +1109,7 @@ valent_channel_upload (ValentChannel  *channel,
  * @packet: a KDE Connect packet
  * @cancellable: (nullable): a `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * Accept an auxiliary connection, usually to upload data.
  *

@@ -535,7 +535,7 @@ valent_contact_store_get_uid (ValentContactStore *store)
  * @contact: a `EContact`
  * @cancellable: (nullable): `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * A convenience wrapper around [method@Valent.ContactStore.add_contacts] for
  * adding a single contact.
@@ -575,7 +575,7 @@ valent_contact_store_add_contact (ValentContactStore  *store,
  * @contacts: (element-type EContact): a `GSList`
  * @cancellable: (nullable): `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * Add @contacts to @store.
  *
@@ -642,7 +642,7 @@ valent_contact_store_add_contacts_finish (ValentContactStore  *store,
  * @uid: a contact UID
  * @cancellable: (nullable): `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * Remove contact @uid from @store.
  *
@@ -684,7 +684,7 @@ valent_contact_store_remove_contact (ValentContactStore  *store,
  * @uids: (element-type utf8): a `GSList` of contact UIDs
  * @cancellable: (nullable): `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * Remove contact @uid from @store.
  *
@@ -751,7 +751,7 @@ valent_contact_store_remove_contacts_finish (ValentContactStore  *store,
  * @query: a search expression
  * @cancellable: (nullable): `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * Query @store for contacts matching @query.
  *
@@ -817,7 +817,7 @@ valent_contact_store_query_finish (ValentContactStore  *store,
  * @uid: a contact UID
  * @cancellable: (nullable): `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * Get a contact by UID.
  *
@@ -883,7 +883,7 @@ valent_contact_store_get_contact_finish (ValentContactStore  *store,
  * @uids: a list of UIDs
  * @cancellable: (nullable): `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * A convenience wrapper around [method@Valent.ContactStore.query] for searching
  * contacts by UID.

@@ -385,7 +385,7 @@ valent_transfer_execute_cb (GObject      *object,
  * @transfer: a `ValentTransfer`
  * @cancellable: (nullable): a `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * Start the transfer operation.
  *

@@ -285,7 +285,7 @@ valent_clipboard_get_timestamp (ValentClipboard *clipboard)
  * @mimetype: a mime-type
  * @cancellable: (nullable): a `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * Get the content of the primary clipboard adapter.
  *
@@ -366,7 +366,7 @@ valent_clipboard_read_bytes_finish (ValentClipboard  *clipboard,
  * @bytes: (nullable): a `GBytes`, or %NULL if @mimetype is %NULL
  * @cancellable: (nullable): a `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * Set the content of the primary clipboard adapter.
  *
@@ -447,7 +447,7 @@ valent_clipboard_write_bytes_finish (ValentClipboard  *clipboard,
  * @clipboard: a `ValentClipboard`
  * @cancellable: (nullable): a `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * Get the text content of the primary clipboard adapter.
  *
@@ -550,7 +550,7 @@ valent_clipboard_read_text_finish (ValentClipboard  *clipboard,
  * @text: text content
  * @cancellable: (nullable): a `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * Set the text content of the primary clipboard adapter.
  *

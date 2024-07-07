@@ -187,7 +187,7 @@ valent_certificate_new_task (GTask        *task,
  * @path: (type filename): a directory path
  * @cancellable: (nullable): `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: (closure): user supplied data
+ * @user_data: user supplied data
  *
  * Get a TLS certificate and private key pair.
  *
