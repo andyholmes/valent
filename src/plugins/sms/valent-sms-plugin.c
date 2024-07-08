@@ -76,6 +76,7 @@ valent_sms_plugin_deserialize_message (ValentSmsPlugin *self,
   JsonObject *object;
   JsonNode *addr_node;
   GVariant *addresses;
+  JsonNode *attachments_node;
   GVariantDict dict;
 
   ValentMessageBox box;
@@ -149,6 +150,16 @@ valent_sms_plugin_deserialize_message (ValentSmsPlugin *self,
   /* Build the metadata dictionary */
   g_variant_dict_init (&dict, NULL);
   g_variant_dict_insert_value (&dict, "addresses", addresses);
+
+  attachments_node = json_object_get_member (object, "attachments");
+  if (attachments_node != NULL)
+    {
+      GVariant *attachments;
+
+      attachments = json_gvariant_deserialize (attachments_node, "aa{sv}", NULL);
+      g_variant_dict_insert_value (&dict, "attachments", attachments);
+    }
+
   g_variant_dict_insert (&dict, "event", "u", event);
   g_variant_dict_insert (&dict, "sub_id", "i", sub_id);
   metadata = g_variant_dict_end (&dict);
