@@ -25,8 +25,9 @@ struct _ValentSmsConversationRow
 
   GtkWidget     *grid;
   GtkWidget     *avatar;
-  GtkWidget     *bubble;
+  GtkWidget     *content;
   GtkWidget     *text_label;
+  GtkWidget     *attachments;
 };
 
 G_DEFINE_FINAL_TYPE (ValentSmsConversationRow, valent_sms_conversation_row, GTK_TYPE_LIST_BOX_ROW)
@@ -215,11 +216,22 @@ valent_sms_conversation_row_init (ValentSmsConversationRow *self)
                                NULL);
   gtk_grid_attach (GTK_GRID (self->grid), self->avatar, 0, 0, 1, 1);
 
-  /* Message Layout */
-  self->bubble = g_object_new (GTK_TYPE_GRID, NULL);
-  gtk_grid_attach (GTK_GRID (self->grid), self->bubble, 1, 0, 1, 1);
+  /* Content */
+  self->content = g_object_new (GTK_TYPE_GRID,
+                                "row-spacing", 6,
+                                NULL);
+  gtk_grid_attach (GTK_GRID (self->grid), self->content, 1, 0, 1, 1);
 
-  /* Message Text */
+  /* Attachments */
+  self->attachments = g_object_new (GTK_TYPE_BOX,
+                                    "halign",      GTK_ALIGN_START,
+                                    "orientation", GTK_ORIENTATION_VERTICAL,
+                                    "spacing",     6,
+                                    "visible", FALSE,
+                                    NULL);
+  gtk_grid_attach (GTK_GRID (self->content), self->attachments, 0, 0, 1, 1);
+
+  /* Text */
   self->text_label = g_object_new (GTK_TYPE_LABEL,
                                    "halign",     GTK_ALIGN_START,
                                    "use-markup", TRUE,
@@ -227,9 +239,10 @@ valent_sms_conversation_row_init (ValentSmsConversationRow *self)
                                    "wrap",       TRUE,
                                    "wrap-mode",  PANGO_WRAP_WORD_CHAR,
                                    "xalign",     0.0,
+                                   "visible", FALSE,
                                    NULL);
   gtk_widget_set_can_focus (self->text_label, FALSE);
-  gtk_grid_attach (GTK_GRID (self->bubble), self->text_label, 0, 0, 1, 1);
+  gtk_grid_attach (GTK_GRID (self->content), self->text_label, 0, 1, 1, 1);
 
   /* Catch activate-link to fixup URIs without a scheme */
   g_signal_connect (self->text_label,
@@ -422,13 +435,13 @@ valent_sms_conversation_row_show_avatar (ValentSmsConversationRow *row,
 
   if (visible)
     {
-      gtk_widget_set_margin_start (row->bubble, 6);
-      gtk_widget_set_margin_bottom (row->bubble, 6);
+      gtk_widget_set_margin_start (row->content, 6);
+      gtk_widget_set_margin_bottom (row->content, 6);
     }
   else
     {
-      gtk_widget_set_margin_start (row->bubble, 44);
-      gtk_widget_set_margin_bottom (row->bubble, 0);
+      gtk_widget_set_margin_start (row->content, 38);
+      gtk_widget_set_margin_bottom (row->content, 0);
     }
 
   gtk_widget_set_visible (row->avatar, visible);
@@ -443,10 +456,20 @@ valent_sms_conversation_row_show_avatar (ValentSmsConversationRow *row,
 void
 valent_sms_conversation_row_update (ValentSmsConversationRow *row)
 {
+  GtkWidget *child;
   const char *text;
-  g_autofree char *label = NULL;
+  GVariant *metadata = NULL;
+  g_autoptr (GVariant) attachments = NULL;
 
   g_return_if_fail (VALENT_IS_SMS_CONVERSATION_ROW (row));
+
+  /* Reset the row
+   */
+  while ((child = gtk_widget_get_first_child (row->attachments)) != NULL)
+    gtk_box_remove (GTK_BOX (row->attachments), child);
+
+  gtk_widget_set_visible (row->attachments, FALSE);
+  gtk_widget_set_visible (row->text_label, FALSE);
 
   if (row->message == NULL)
     return;
@@ -467,8 +490,8 @@ valent_sms_conversation_row_update (ValentSmsConversationRow *row)
       gtk_widget_set_margin_end (row->grid, 44);
       gtk_widget_set_margin_start (row->grid, 6);
 
-      gtk_widget_remove_css_class (row->bubble, "valent-sms-outgoing");
-      gtk_widget_add_css_class (row->bubble, "valent-sms-incoming");
+      gtk_widget_remove_css_class (row->text_label, "valent-sms-outgoing");
+      gtk_widget_add_css_class (row->text_label, "valent-sms-incoming");
       gtk_widget_set_halign (GTK_WIDGET (row), GTK_ALIGN_START);
       gtk_widget_set_visible (row->avatar, TRUE);
     }
@@ -478,16 +501,66 @@ valent_sms_conversation_row_update (ValentSmsConversationRow *row)
       gtk_widget_set_margin_end (row->grid, 6);
       gtk_widget_set_margin_start (row->grid, 88);
 
-      gtk_widget_remove_css_class (row->bubble, "valent-sms-incoming");
-      gtk_widget_add_css_class (row->bubble, "valent-sms-outgoing");
+      gtk_widget_remove_css_class (row->text_label, "valent-sms-incoming");
+      gtk_widget_add_css_class (row->text_label, "valent-sms-outgoing");
       gtk_widget_set_halign (GTK_WIDGET (row), GTK_ALIGN_END);
       gtk_widget_set_visible (row->avatar, FALSE);
+    }
+
+  /* Attachment previews
+   */
+  metadata = valent_message_get_metadata (row->message);
+  if (metadata && g_variant_lookup (metadata, "attachments", "@aa{sv}", &attachments))
+    {
+      GVariantIter iter;
+      GVariant *attachment = NULL;
+
+      g_variant_iter_init (&iter, attachments);
+      while (g_variant_iter_loop (&iter, "@a{sv}", &attachment))
+        {
+          GtkWidget *image;
+          g_autoptr (GBytes) bytes = NULL;
+          g_autoptr (GdkTexture) paintable = NULL;
+          const char *encoded_thumbnail = NULL;
+          const char *unique_identifier = NULL;
+          unsigned char *data;
+          size_t dlen;
+
+          if (!g_variant_lookup (attachment, "encoded_thumbnail", "&s", &encoded_thumbnail) ||
+              !g_variant_lookup (attachment, "unique_identifier", "&s", &unique_identifier) )
+            continue;
+
+          data = g_base64_decode (encoded_thumbnail, &dlen);
+          bytes = g_bytes_new_take (g_steal_pointer (&data), dlen);
+          paintable = gdk_texture_new_from_bytes (bytes, NULL);
+
+          image = g_object_new (GTK_TYPE_PICTURE,
+                                "paintable",      paintable,
+                                "content-fit",    GTK_CONTENT_FIT_CONTAIN,
+                                "tooltip-text",   unique_identifier,
+                                "height-request", 100,
+                                "width-request",  100,
+                                NULL);
+          gtk_widget_add_css_class (image, "card");
+          gtk_box_append (GTK_BOX (row->attachments), image);
+          gtk_widget_set_visible (row->attachments, TRUE);
+        }
     }
 
   /* Text content
    */
   text = valent_message_get_text (row->message);
-  label = valent_string_to_markup (text);
-  gtk_label_set_label (GTK_LABEL (row->text_label), label);
+  if (text != NULL && *text != '\0')
+    {
+      g_autofree char *label = NULL;
+
+      label = valent_string_to_markup (text);
+      gtk_label_set_label (GTK_LABEL (row->text_label), label);
+      gtk_widget_set_visible (row->text_label, TRUE);
+    }
+  else
+    {
+      gtk_widget_set_visible (row->text_label, FALSE);
+    }
 }
 
