@@ -3,3 +3,7 @@ contact_links:
   - name: Feature Request
     about: Request a new feature or enhancement
     url: https://github.com/andyholmes/valent/discussions/new?category=feature-request
+
+  - name: Support & Troubleshooting
+    about: Request help connecting devices and troubleshooting
+    url: https://github.com/andyholmes/valent/discussions/new?category=help
