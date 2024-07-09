@@ -237,6 +237,7 @@
             "builddir" : true,
             "config-opts" : [
                 "--prefix=/app",
+                "--libdir=lib/",
                 "--buildtype=release"
             ],
             "post-install" : [
