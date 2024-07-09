@@ -83,6 +83,7 @@ project_c_args = [
   '-Wredundant-decls',
   '-Wshadow',
   '-Wstrict-prototypes',
+  '-Wswitch-enum',
   '-Wundef',
 
   '-Wno-discarded-array-qualifiers',
