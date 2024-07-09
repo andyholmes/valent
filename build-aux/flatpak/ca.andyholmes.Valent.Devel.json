@@ -200,6 +200,7 @@
             "builddir" : true,
             "config-opts" : [
                 "--prefix=/app",
+                "--libdir=lib/",
                 "--buildtype=debugoptimized",
                 "-Dprofile=devel",
                 "-Dtests=true",
