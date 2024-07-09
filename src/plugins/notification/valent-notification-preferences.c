@@ -231,15 +231,16 @@ applications_action (GtkWidget  *widget,
                      GVariant   *parameter)
 {
   ValentNotificationPreferences *self = VALENT_NOTIFICATION_PREFERENCES (widget);
-  GtkRoot *window = NULL;
+  GtkWidget *dialog = NULL;
 
   g_assert (VALENT_IS_NOTIFICATION_PREFERENCES (self));
 
-  if ((window = gtk_widget_get_root (widget)) == NULL)
-    return;
-
-  adw_preferences_window_push_subpage (ADW_PREFERENCES_WINDOW (window),
-                                       self->application_page);
+  dialog = gtk_widget_get_ancestor (widget, ADW_TYPE_PREFERENCES_DIALOG);
+  if (dialog != NULL)
+    {
+      adw_preferences_dialog_push_subpage (ADW_PREFERENCES_DIALOG (dialog),
+                                           self->application_page);
+    }
 }
 
 static void
