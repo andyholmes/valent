@@ -13,7 +13,6 @@
 
 #include "valent-share-plugin.h"
 #include "valent-share-download.h"
-#include "valent-share-text-dialog.h"
 #include "valent-share-upload.h"
 
 
@@ -24,8 +23,6 @@ struct _ValentSharePlugin
   GHashTable         *transfers;
   ValentTransfer     *upload;
   ValentTransfer     *download;
-
-  GPtrArray          *windows;
 };
 
 G_DEFINE_FINAL_TYPE (ValentSharePlugin, valent_share_plugin, VALENT_TYPE_DEVICE_PLUGIN)
@@ -708,6 +705,30 @@ share_cancel_action (GSimpleAction *action,
 }
 
 /**
+ * ValentSharePlugin|share.copy:
+ * @parameter: "s"
+ * @text: The text content
+ *
+ * This action allows copying shared text to the clipboard from a notification.
+ */
+static void
+share_copy_action (GSimpleAction *action,
+                   GVariant      *parameter,
+                   gpointer       user_data)
+{
+  const char *text;
+
+  g_assert (VALENT_IS_SHARE_PLUGIN (user_data));
+
+  text = g_variant_get_string (parameter, NULL);
+  valent_clipboard_write_text (valent_clipboard_get_default (),
+                               text,
+                               NULL,
+                               NULL,
+                               NULL);
+}
+
+/**
  * ValentSharePlugin|share.open:
  * @parameter: "s"
  * @uri: File URI to open
@@ -761,6 +782,102 @@ share_open_action (GSimpleAction *action,
 
       valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
     }
+}
+
+static void
+share_save_action_cb (GFile        *file,
+                      GAsyncResult *result,
+                      gpointer      user_data)
+{
+  ValentSharePlugin *self = VALENT_SHARE_PLUGIN (user_data);
+  g_autoptr (GNotification) notification = NULL;
+  g_autoptr (GIcon) icon = NULL;
+  g_autoptr (GFile) parent = NULL;
+  ValentDevice *device = NULL;
+  g_autofree char *title = NULL;
+  g_autofree char *dir_uri = NULL;
+  g_autofree char *file_uri = NULL;
+  g_autofree char *basename = NULL;
+  const char *name = NULL;
+  g_autoptr (GError) error = NULL;
+
+  g_assert (VALENT_IS_SHARE_PLUGIN (self));
+
+  if (!g_file_replace_contents_finish (file, result, NULL, &error))
+    {
+      g_warning ("Saving \"%s\": %s", g_file_peek_path (file), error->message);
+      return;
+    }
+
+  device = valent_extension_get_object (VALENT_EXTENSION (self));
+  name = valent_device_get_name (device);
+  parent = g_file_get_parent (file);
+  dir_uri = g_file_get_uri (parent);
+  file_uri = g_file_get_uri (file);
+  basename = g_file_get_basename (file);
+
+  title = g_strdup_printf (_("Text from “%s” saved to “%s”"), name, basename);
+  icon = g_themed_icon_new ("document-save-symbolic");
+
+  notification = g_notification_new (title);
+  g_notification_set_icon (notification, icon);
+  valent_notification_add_device_button (notification,
+                                         device,
+                                         _("Open Folder"),
+                                         "share.view",
+                                         g_variant_new_string (dir_uri));
+  valent_notification_add_device_button (notification,
+                                         device,
+                                         _("Open File"),
+                                         "share.view",
+                                         g_variant_new_string (file_uri));
+  valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),
+                                          file_uri,
+                                          notification);
+}
+
+/**
+ * ValentSharePlugin|share.save:
+ * @parameter: "s"
+ * @text: The text content
+ *
+ * This action allows saving shared text to file from a notification.
+ */
+static void
+share_save_action (GSimpleAction *action,
+                   GVariant      *parameter,
+                   gpointer       user_data)
+{
+  ValentSharePlugin *self = VALENT_SHARE_PLUGIN (user_data);
+  ValentDevice *device = NULL;
+  g_autoptr (GBytes) bytes = NULL;
+  g_autoptr (GDateTime) date = NULL;
+  g_autofree char *date_str = NULL;
+  g_autoptr (GFile) file = NULL;
+  g_autofree char *filename = NULL;
+  const char *name;
+  const char *text;
+
+  g_assert (VALENT_IS_SHARE_PLUGIN (self));
+
+  device = valent_extension_get_object (VALENT_EXTENSION (self));
+  name = valent_device_get_name (device);
+  text = g_variant_get_string (parameter, NULL);
+
+  bytes = g_bytes_new (text, strlen (text));
+  date = g_date_time_new_now_local ();
+  date_str = g_date_time_format (date, "%F %T");
+  filename = g_strdup_printf ("Text from %s (%s).txt", date_str, name);
+  file = valent_share_plugin_create_download_file (self, filename, TRUE);
+
+  g_file_replace_contents_bytes_async (file,
+                                       bytes,
+                                       NULL,
+                                       FALSE,
+                                       G_FILE_CREATE_REPLACE_DESTINATION,
+                                       NULL,
+                                       (GAsyncReadyCallback)share_save_action_cb,
+                                       NULL);
 }
 
 /**
@@ -902,11 +1019,13 @@ share_view_action (GSimpleAction *action,
 static GActionEntry actions[] = {
     {"chooser", share_chooser_action, NULL, NULL, NULL},
     {"cancel",  share_cancel_action,  "s",  NULL, NULL},
+    {"copy",    share_copy_action,    "s",  NULL, NULL},
     {"open",    share_open_action,    "s",  NULL, NULL},
+    {"save",    share_save_action,    "s",  NULL, NULL},
     {"text",    share_text_action,    "s",  NULL, NULL},
     {"uri",     share_uri_action,     "s",  NULL, NULL},
     {"uris",    share_uris_action,    "as", NULL, NULL},
-    {"view",    share_view_action,    "s",  NULL, NULL}
+    {"view",    share_view_action,    "s",  NULL, NULL},
 };
 
 /*
@@ -1055,68 +1174,40 @@ valent_share_plugin_handle_file_update (ValentSharePlugin *self,
 }
 
 static void
-valent_share_plugin_handle_text_cb (GFile        *file,
-                                    GAsyncResult *result,
-                                    gpointer      user_data)
-{
-  g_autoptr (GError) error = NULL;
-
-  if (!g_file_replace_contents_finish (file, result, NULL, &error))
-    g_warning ("Saving \"%s\": %s", g_file_peek_path (file), error->message);
-}
-
-static void
 valent_share_plugin_handle_text (ValentSharePlugin *self,
                                  const char        *text)
 {
   ValentExtension *extension = VALENT_EXTENSION (self);
+  ValentDevice *device = NULL;
+  g_autoptr (GNotification) notification = NULL;
+  g_autofree char *id = NULL;
+  g_autofree char *title = NULL;
   const char *name = NULL;
-  GtkWindow *window;
 
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
   g_assert (text != NULL);
 
-  name = valent_device_get_name (valent_extension_get_object (extension));
+  device = valent_extension_get_object (extension);
+  name = valent_device_get_name (device);
+  id = g_compute_checksum_for_string (G_CHECKSUM_MD5, text, -1);
+  title = g_strdup_printf (_("Shared by %s"), name);
 
-  if (!gtk_is_initialized ())
-    {
-      g_autoptr (GBytes) bytes = NULL;
-      g_autoptr (GDateTime) date = NULL;
-      g_autofree char *date_str = NULL;
-      g_autoptr (GFile) file = NULL;
-      g_autofree char *filename = NULL;
+  notification = g_notification_new (_("Text from %s"));
+  g_notification_set_body (notification, text);
+  valent_notification_add_device_button (notification,
+                                         device,
+                                         _("Save"),
+                                         "share.save",
+                                         g_variant_new_string (text));
+  valent_notification_add_device_button (notification,
+                                         device,
+                                         _("Copy"),
+                                         "share.copy",
+                                         g_variant_new_string (text));
 
-      bytes = g_bytes_new (text, strlen (text));
-      date = g_date_time_new_now_local ();
-      date_str = g_date_time_format (date, "%F %T");
-      filename = g_strdup_printf ("Text from %s (%s).txt", date_str, name);
-      file = valent_share_plugin_create_download_file (self, filename, TRUE);
-
-      g_file_replace_contents_bytes_async (file,
-                                           bytes,
-                                           NULL,
-                                           FALSE,
-                                           G_FILE_CREATE_REPLACE_DESTINATION,
-                                           NULL,
-                                           (GAsyncReadyCallback)valent_share_plugin_handle_text_cb,
-                                           NULL);
-    }
-  else
-    {
-      window = g_object_new (VALENT_TYPE_SHARE_TEXT_DIALOG,
-                             "body", name,
-                             "text", text,
-                             NULL);
-      g_signal_connect_data (window,
-                             "destroy",
-                             G_CALLBACK (g_ptr_array_remove),
-                             g_ptr_array_ref (self->windows),
-                             (void *)g_ptr_array_unref,
-                             G_CONNECT_SWAPPED);
-      g_ptr_array_add (self->windows, window);
-
-      gtk_window_present (window);
-    }
+  valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),
+                                          id,
+                                          notification);
 }
 
 static void
@@ -1224,10 +1315,6 @@ valent_share_plugin_destroy (ValentObject *object)
   g_clear_object (&self->download);
   g_clear_object (&self->upload);
 
-  /* Close open windows */
-  g_ptr_array_foreach (self->windows, (void *)gtk_window_destroy, NULL);
-  g_ptr_array_remove_range (self->windows, 0, self->windows->len);
-
   valent_device_plugin_set_menu_item (plugin, "device.share.chooser", NULL);
 
   VALENT_OBJECT_CLASS (valent_share_plugin_parent_class)->destroy (object);
@@ -1259,7 +1346,6 @@ valent_share_plugin_finalize (GObject *object)
   ValentSharePlugin *self = VALENT_SHARE_PLUGIN (object);
 
   g_clear_pointer (&self->transfers, g_hash_table_unref);
-  g_clear_pointer (&self->windows, g_ptr_array_unref);
 
   G_OBJECT_CLASS (valent_share_plugin_parent_class)->finalize (object);
 }
@@ -1287,6 +1373,5 @@ valent_share_plugin_init (ValentSharePlugin *self)
                                            g_str_equal,
                                            g_free,
                                            g_object_unref);
-  self->windows = g_ptr_array_new ();
 }
 

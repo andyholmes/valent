@@ -73,8 +73,6 @@ src/plugins/share/valent-share-dialog-row.ui
 src/plugins/share/valent-share-plugin.c
 src/plugins/share/valent-share-preferences.c
 src/plugins/share/valent-share-preferences.ui
-src/plugins/share/valent-share-text-dialog.c
-src/plugins/share/valent-share-text-dialog.ui
 src/plugins/sms/sms.plugin.desktop.in
 src/plugins/sms/valent-contact-row.c
 src/plugins/sms/valent-date-label.c

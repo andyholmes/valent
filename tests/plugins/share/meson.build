@@ -13,7 +13,6 @@ plugin_runcommand_tests = [
   'test-share-plugin',
   'test-share-preferences',
   'test-share-target',
-  'test-share-text-dialog',
   'test-share-upload',
 ]
 
