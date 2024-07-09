@@ -164,6 +164,8 @@ on_animation_state_changed (AdwAnimation *animation,
         }
       break;
 
+    case ADW_ANIMATION_IDLE:
+    case ADW_ANIMATION_PAUSED:
     default:
       gtk_progress_bar_set_fraction (self->progress_bar, 0.0);
       gtk_widget_set_opacity (GTK_WIDGET (self->progress_bar), 1.0);
