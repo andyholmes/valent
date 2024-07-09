@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2024-05-21 16:22-0700\n"
+"POT-Creation-Date: 2024-07-08 18:05-0700\n"
 "PO-Revision-Date: 2023-07-03 19:05+0800\n"
 "Last-Translator: sky96111 <sky96111@outlook.com>\n"
 "Language-Team: Chinese Simplified\n"
@@ -181,11 +181,6 @@ msgid "Preferences"
 msgstr "首选项"
 
 #: src/libvalent/ui/valent-device-page.ui:219
-#, fuzzy
-msgid "Pair"
-msgstr "已配对"
-
-#: src/libvalent/ui/valent-device-page.ui:224
 #, fuzzy
 msgid "Unpair"
 msgstr "未配对"
@@ -807,7 +802,6 @@ msgid "_Reply"
 msgstr ""
 
 #: src/plugins/notification/valent-notification-dialog.ui:150
-#: src/plugins/share/valent-share-text-dialog.ui:53
 #: src/plugins/sms/valent-sms-window.ui:272
 msgid "Close"
 msgstr "关闭"
@@ -1048,7 +1042,7 @@ msgstr ""
 #: src/plugins/share/valent-share-dialog.ui:29
 #: src/plugins/share/valent-share-dialog.ui:40
 #: src/plugins/share/valent-share-dialog.ui:112
-#: src/plugins/share/valent-share-plugin.c:672
+#: src/plugins/share/valent-share-plugin.c:669
 msgid "Share"
 msgstr "发送"
 
@@ -1079,92 +1073,117 @@ msgstr "搜索中..."
 msgid "_Share"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:106
-#: src/plugins/share/valent-share-plugin.c:471
+#: src/plugins/share/valent-share-plugin.c:103
+#: src/plugins/share/valent-share-plugin.c:468
 msgid "Transferring Files"
 msgstr "正在传输文件"
 
-#: src/plugins/share/valent-share-plugin.c:107
-#: src/plugins/share/valent-share-plugin.c:125
+#: src/plugins/share/valent-share-plugin.c:104
+#: src/plugins/share/valent-share-plugin.c:122
 #, c-format
 msgid "Receiving one file from %1$s"
 msgid_plural "Receiving %2$d files from %1$s"
 msgstr[0] "正在从 %1$s 接收 %2$d 个文件"
 
-#: src/plugins/share/valent-share-plugin.c:115
-#: src/plugins/share/valent-share-plugin.c:346
-#: src/plugins/share/valent-share-plugin.c:480
+#: src/plugins/share/valent-share-plugin.c:112
+#: src/plugins/share/valent-share-plugin.c:343
+#: src/plugins/share/valent-share-plugin.c:477
 msgid "Transfer Complete"
 msgstr "传输完成"
 
-#: src/plugins/share/valent-share-plugin.c:116
+#: src/plugins/share/valent-share-plugin.c:113
 #, c-format
 msgid "Received one file from %1$s"
 msgid_plural "Received %2$d files from %1$s"
 msgstr[0] "收到来自 %1$s 的 %2$d 个文件"
 
-#: src/plugins/share/valent-share-plugin.c:124
-#: src/plugins/share/valent-share-plugin.c:250
-#: src/plugins/share/valent-share-plugin.c:352
-#: src/plugins/share/valent-share-plugin.c:489
+#: src/plugins/share/valent-share-plugin.c:121
+#: src/plugins/share/valent-share-plugin.c:247
+#: src/plugins/share/valent-share-plugin.c:349
+#: src/plugins/share/valent-share-plugin.c:486
 msgid "Transfer Failed"
 msgstr "传输失败"
 
-#: src/plugins/share/valent-share-plugin.c:140
-#: src/plugins/share/valent-share-plugin.c:263
-#: src/plugins/share/valent-share-plugin.c:365
-#: src/plugins/share/valent-share-plugin.c:505
+#: src/plugins/share/valent-share-plugin.c:137
+#: src/plugins/share/valent-share-plugin.c:260
+#: src/plugins/share/valent-share-plugin.c:362
+#: src/plugins/share/valent-share-plugin.c:502
 msgid "Cancel"
 msgstr "取消"
 
-#: src/plugins/share/valent-share-plugin.c:158
+#: src/plugins/share/valent-share-plugin.c:155
+#: src/plugins/share/valent-share-plugin.c:827
 msgid "Open Folder"
 msgstr "打开文件夹"
 
-#: src/plugins/share/valent-share-plugin.c:169
+#: src/plugins/share/valent-share-plugin.c:166
+#: src/plugins/share/valent-share-plugin.c:832
 msgid "Open File"
 msgstr "打开文件"
 
-#: src/plugins/share/valent-share-plugin.c:240
-#: src/plugins/share/valent-share-plugin.c:340
+#: src/plugins/share/valent-share-plugin.c:237
+#: src/plugins/share/valent-share-plugin.c:337
 msgid "Transferring File"
 msgstr "正在传输文件"
 
-#: src/plugins/share/valent-share-plugin.c:241
-#: src/plugins/share/valent-share-plugin.c:251
-#, c-format
-msgid "Opening “%s” from %s"
+#: src/plugins/share/valent-share-plugin.c:238
+#: src/plugins/share/valent-share-plugin.c:248
+#, fuzzy, c-format
+msgid "Opening “%s” from “%s”"
 msgstr "从 %s 打开 \"%s\""
 
-#: src/plugins/share/valent-share-plugin.c:341
-#: src/plugins/share/valent-share-plugin.c:353
-#, c-format
-msgid "Opening “%s” on %s"
+#: src/plugins/share/valent-share-plugin.c:338
+#: src/plugins/share/valent-share-plugin.c:350
+#, fuzzy, c-format
+msgid "Opening “%s” on “%s”"
 msgstr "在 %s 上打开 \"%s\""
 
-#: src/plugins/share/valent-share-plugin.c:347
-#, c-format
-msgid "Opened “%s” on %s"
+#: src/plugins/share/valent-share-plugin.c:344
+#, fuzzy, c-format
+msgid "Opened “%s” on “%s”"
 msgstr "已在 %s 上打开 \"%s\""
 
-#: src/plugins/share/valent-share-plugin.c:472
-#: src/plugins/share/valent-share-plugin.c:490
+#: src/plugins/share/valent-share-plugin.c:469
+#: src/plugins/share/valent-share-plugin.c:487
 #, c-format
 msgid "Sending one file to %1$s"
 msgid_plural "Sending %2$d files to %1$s"
 msgstr[0] "发送 %2$d 个文件到 %1$s"
 
-#: src/plugins/share/valent-share-plugin.c:481
+#: src/plugins/share/valent-share-plugin.c:478
 #, c-format
 msgid "Sent one file to %1$s"
 msgid_plural "Sent %2$d files to %1$s"
 msgstr[0] "已发送 %2$d 文件到 %1$s"
 
-#: src/plugins/share/valent-share-plugin.c:671
+#: src/plugins/share/valent-share-plugin.c:668
 msgid "Share Files"
 msgstr "共享文件"
 
-#: src/plugins/share/valent-share-plugin.c:1250
+#: src/plugins/share/valent-share-plugin.c:820
+#, c-format
+msgid "Text from “%s” saved to “%s”"
+msgstr ""
+
+#: src/plugins/share/valent-share-plugin.c:1194
+#, fuzzy, c-format
+msgid "Shared by %s"
+msgstr "共享文本"
+
+#: src/plugins/share/valent-share-plugin.c:1196
+#, c-format
+msgid "Text from %s"
+msgstr ""
+
+#: src/plugins/share/valent-share-plugin.c:1200
+msgid "Save"
+msgstr "保存"
+
+#: src/plugins/share/valent-share-plugin.c:1205
+msgid "Copy"
+msgstr "复制"
+
+#: src/plugins/share/valent-share-plugin.c:1338
 msgid "Send Files"
 msgstr "发送文件"
 
@@ -1179,20 +1198,6 @@ msgstr "下载目录"
 #: src/plugins/share/valent-share-preferences.ui:11
 msgid "Where received files are stored"
 msgstr "收到的文件储存位置"
-
-#: src/plugins/share/valent-share-text-dialog.c:98
-#: src/plugins/share/valent-share-text-dialog.ui:54
-msgid "Save"
-msgstr "保存"
-
-#: src/plugins/share/valent-share-text-dialog.ui:8
-#: src/plugins/share/valent-share-text-dialog.ui:15
-msgid "Shared Text"
-msgstr "共享文本"
-
-#: src/plugins/share/valent-share-text-dialog.ui:55
-msgid "Copy"
-msgstr "复制"
 
 #: src/plugins/sms/sms.plugin.desktop.in:7
 msgid "SMS"
@@ -1233,8 +1238,8 @@ msgid_plural "%d mins"
 msgstr[0] "%d 分钟"
 
 #: src/plugins/sms/valent-sms-conversation.c:904
-#: src/plugins/sms/valent-sms-window.c:602
-#: src/plugins/sms/valent-sms-window.c:899
+#: src/plugins/sms/valent-sms-window.c:622
+#: src/plugins/sms/valent-sms-window.c:919
 #: src/plugins/sms/valent-sms-window.ui:62
 msgid "New Conversation"
 msgstr "新对话"
@@ -1253,21 +1258,21 @@ msgstr "发送信息"
 msgid "Type a message"
 msgstr "输入信息"
 
-#: src/plugins/sms/valent-sms-plugin.c:502
+#: src/plugins/sms/valent-sms-plugin.c:607
 msgid "Messaging"
 msgstr "短信"
 
-#: src/plugins/sms/valent-sms-window.c:186
+#: src/plugins/sms/valent-sms-window.c:206
 msgid "Conversations"
 msgstr "对话"
 
-#: src/plugins/sms/valent-sms-window.c:310
+#: src/plugins/sms/valent-sms-window.c:330
 #, c-format
 msgid "Send to %s"
 msgstr "发送给 %s"
 
-#: src/plugins/sms/valent-sms-window.c:617
-#: src/plugins/sms/valent-sms-window.c:921
+#: src/plugins/sms/valent-sms-window.c:637
+#: src/plugins/sms/valent-sms-window.c:941
 msgid "Search Messages"
 msgstr "搜索"
 
@@ -1412,6 +1417,10 @@ msgstr "桌面环境"
 #: src/plugins/xdp/xdp.plugin.desktop.in:8
 msgid "Integration with desktop portals"
 msgstr "与桌面环境集成"
+
+#, fuzzy
+#~ msgid "Pair"
+#~ msgstr "已配对"
 
 #~ msgid "Choose a device to share the selected files with."
 #~ msgstr "选择一个设备来分享所选文件。"
