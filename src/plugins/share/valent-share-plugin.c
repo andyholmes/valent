@@ -235,7 +235,7 @@ valent_share_download_open_notification (ValentSharePlugin *self,
     case VALENT_TRANSFER_STATE_ACTIVE:
       icon = g_themed_icon_new ("document-save-symbolic");
       title = _("Transferring File");
-      body = g_strdup_printf (_("Opening “%s” from %s"), filename, device_name);
+      body = g_strdup_printf (_("Opening “%s” from “%s”"), filename, device_name);
       break;
 
     case VALENT_TRANSFER_STATE_COMPLETE:
@@ -245,7 +245,7 @@ valent_share_download_open_notification (ValentSharePlugin *self,
     case VALENT_TRANSFER_STATE_FAILED:
       icon = g_themed_icon_new ("dialog-warning-symbolic");
       title = _("Transfer Failed");
-      body = g_strdup_printf (_("Opening “%s” from %s"), filename, device_name);
+      body = g_strdup_printf (_("Opening “%s” from “%s”"), filename, device_name);
       break;
     }
 
@@ -335,19 +335,19 @@ valent_share_upload_open_notification (ValentSharePlugin *self,
     case VALENT_TRANSFER_STATE_ACTIVE:
       icon = g_themed_icon_new ("document-send-symbolic");
       title = _("Transferring File");
-      body = g_strdup_printf (_("Opening “%s” on %s"), filename, device_name);
+      body = g_strdup_printf (_("Opening “%s” on “%s”"), filename, device_name);
       break;
 
     case VALENT_TRANSFER_STATE_COMPLETE:
       icon = g_themed_icon_new ("document-send-symbolic");
       title = _("Transfer Complete");
-      body = g_strdup_printf (_("Opened “%s” on %s"), filename, device_name);
+      body = g_strdup_printf (_("Opened “%s” on “%s”"), filename, device_name);
       break;
 
     case VALENT_TRANSFER_STATE_FAILED:
       icon = g_themed_icon_new ("dialog-warning-symbolic");
       title = _("Transfer Failed");
-      body = g_strdup_printf (_("Opening “%s” on %s"), filename, device_name);
+      body = g_strdup_printf (_("Opening “%s” on “%s”"), filename, device_name);
       break;
     }
 
