@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2024-05-21 16:22-0700\n"
+"POT-Creation-Date: 2024-07-08 18:05-0700\n"
 "PO-Revision-Date: 2023-10-29 00:44-0300\n"
 "Last-Translator: Victor L. Pavan <victorpavan001@gmail.com>\n"
 "Language-Team: Brazilian Portuguese <victorpavan001@gmail.com>\n"
@@ -188,10 +188,6 @@ msgid "Preferences"
 msgstr "Preferências"
 
 #: src/libvalent/ui/valent-device-page.ui:219
-msgid "Pair"
-msgstr "Parear"
-
-#: src/libvalent/ui/valent-device-page.ui:224
 msgid "Unpair"
 msgstr "Desparear"
 
@@ -809,7 +805,6 @@ msgid "_Reply"
 msgstr "_Responder"
 
 #: src/plugins/notification/valent-notification-dialog.ui:150
-#: src/plugins/share/valent-share-text-dialog.ui:53
 #: src/plugins/sms/valent-sms-window.ui:272
 msgid "Close"
 msgstr "Fechar"
@@ -1050,7 +1045,7 @@ msgstr ""
 #: src/plugins/share/valent-share-dialog.ui:29
 #: src/plugins/share/valent-share-dialog.ui:40
 #: src/plugins/share/valent-share-dialog.ui:112
-#: src/plugins/share/valent-share-plugin.c:672
+#: src/plugins/share/valent-share-plugin.c:669
 msgid "Share"
 msgstr "Compartilhar"
 
@@ -1081,96 +1076,121 @@ msgstr "Procurando..."
 msgid "_Share"
 msgstr "_Compartilhar"
 
-#: src/plugins/share/valent-share-plugin.c:106
-#: src/plugins/share/valent-share-plugin.c:471
+#: src/plugins/share/valent-share-plugin.c:103
+#: src/plugins/share/valent-share-plugin.c:468
 msgid "Transferring Files"
 msgstr "Transferindo Arquivos"
 
-#: src/plugins/share/valent-share-plugin.c:107
-#: src/plugins/share/valent-share-plugin.c:125
+#: src/plugins/share/valent-share-plugin.c:104
+#: src/plugins/share/valent-share-plugin.c:122
 #, c-format
 msgid "Receiving one file from %1$s"
 msgid_plural "Receiving %2$d files from %1$s"
 msgstr[0] "Recebendo arquivo de %1$s"
 msgstr[1] "Recebendo %2$d arquivos de %1$s"
 
-#: src/plugins/share/valent-share-plugin.c:115
-#: src/plugins/share/valent-share-plugin.c:346
-#: src/plugins/share/valent-share-plugin.c:480
+#: src/plugins/share/valent-share-plugin.c:112
+#: src/plugins/share/valent-share-plugin.c:343
+#: src/plugins/share/valent-share-plugin.c:477
 msgid "Transfer Complete"
 msgstr "Transferência Completa"
 
-#: src/plugins/share/valent-share-plugin.c:116
+#: src/plugins/share/valent-share-plugin.c:113
 #, c-format
 msgid "Received one file from %1$s"
 msgid_plural "Received %2$d files from %1$s"
 msgstr[0] "Arquivo recebido de %1$s"
 msgstr[1] "%2$d aquivos recebidos de %1$s"
 
-#: src/plugins/share/valent-share-plugin.c:124
-#: src/plugins/share/valent-share-plugin.c:250
-#: src/plugins/share/valent-share-plugin.c:352
-#: src/plugins/share/valent-share-plugin.c:489
+#: src/plugins/share/valent-share-plugin.c:121
+#: src/plugins/share/valent-share-plugin.c:247
+#: src/plugins/share/valent-share-plugin.c:349
+#: src/plugins/share/valent-share-plugin.c:486
 msgid "Transfer Failed"
 msgstr "Falha na Transferência"
 
-#: src/plugins/share/valent-share-plugin.c:140
-#: src/plugins/share/valent-share-plugin.c:263
-#: src/plugins/share/valent-share-plugin.c:365
-#: src/plugins/share/valent-share-plugin.c:505
+#: src/plugins/share/valent-share-plugin.c:137
+#: src/plugins/share/valent-share-plugin.c:260
+#: src/plugins/share/valent-share-plugin.c:362
+#: src/plugins/share/valent-share-plugin.c:502
 msgid "Cancel"
 msgstr "Cancelar"
 
-#: src/plugins/share/valent-share-plugin.c:158
+#: src/plugins/share/valent-share-plugin.c:155
+#: src/plugins/share/valent-share-plugin.c:827
 msgid "Open Folder"
 msgstr "Abrir Pasta"
 
-#: src/plugins/share/valent-share-plugin.c:169
+#: src/plugins/share/valent-share-plugin.c:166
+#: src/plugins/share/valent-share-plugin.c:832
 msgid "Open File"
 msgstr "Abrir Arquivo"
 
-#: src/plugins/share/valent-share-plugin.c:240
-#: src/plugins/share/valent-share-plugin.c:340
+#: src/plugins/share/valent-share-plugin.c:237
+#: src/plugins/share/valent-share-plugin.c:337
 msgid "Transferring File"
 msgstr "Transferindo Arquivo"
 
-#: src/plugins/share/valent-share-plugin.c:241
-#: src/plugins/share/valent-share-plugin.c:251
-#, c-format
-msgid "Opening “%s” from %s"
+#: src/plugins/share/valent-share-plugin.c:238
+#: src/plugins/share/valent-share-plugin.c:248
+#, fuzzy, c-format
+msgid "Opening “%s” from “%s”"
 msgstr "Abrindo “%s” de %s"
 
-#: src/plugins/share/valent-share-plugin.c:341
-#: src/plugins/share/valent-share-plugin.c:353
-#, c-format
-msgid "Opening “%s” on %s"
+#: src/plugins/share/valent-share-plugin.c:338
+#: src/plugins/share/valent-share-plugin.c:350
+#, fuzzy, c-format
+msgid "Opening “%s” on “%s”"
 msgstr "Abrindo “%s” em %s"
 
-#: src/plugins/share/valent-share-plugin.c:347
-#, c-format
-msgid "Opened “%s” on %s"
+#: src/plugins/share/valent-share-plugin.c:344
+#, fuzzy, c-format
+msgid "Opened “%s” on “%s”"
 msgstr "“%s” aberto em %s"
 
-#: src/plugins/share/valent-share-plugin.c:472
-#: src/plugins/share/valent-share-plugin.c:490
+#: src/plugins/share/valent-share-plugin.c:469
+#: src/plugins/share/valent-share-plugin.c:487
 #, c-format
 msgid "Sending one file to %1$s"
 msgid_plural "Sending %2$d files to %1$s"
 msgstr[0] "Enviando arquivo para %1$s"
 msgstr[1] "Enviando %2$d arquivos para %1$s"
 
-#: src/plugins/share/valent-share-plugin.c:481
+#: src/plugins/share/valent-share-plugin.c:478
 #, c-format
 msgid "Sent one file to %1$s"
 msgid_plural "Sent %2$d files to %1$s"
 msgstr[0] "Arquivo enviado para %1$s"
 msgstr[1] "%2$d arquivos enviados para %1$s"
 
-#: src/plugins/share/valent-share-plugin.c:671
+#: src/plugins/share/valent-share-plugin.c:668
 msgid "Share Files"
 msgstr "Arquivos Compartilhados"
 
-#: src/plugins/share/valent-share-plugin.c:1250
+#: src/plugins/share/valent-share-plugin.c:820
+#, c-format
+msgid "Text from “%s” saved to “%s”"
+msgstr ""
+
+#: src/plugins/share/valent-share-plugin.c:1194
+#, fuzzy, c-format
+msgid "Shared by %s"
+msgstr "Texto Compartilhado"
+
+#: src/plugins/share/valent-share-plugin.c:1196
+#, c-format
+msgid "Text from %s"
+msgstr ""
+
+#: src/plugins/share/valent-share-plugin.c:1200
+msgid "Save"
+msgstr "Salvar"
+
+#: src/plugins/share/valent-share-plugin.c:1205
+msgid "Copy"
+msgstr "Copiar"
+
+#: src/plugins/share/valent-share-plugin.c:1338
 msgid "Send Files"
 msgstr "Enviar Arquivos"
 
@@ -1185,20 +1205,6 @@ msgstr "Pasta de Download"
 #: src/plugins/share/valent-share-preferences.ui:11
 msgid "Where received files are stored"
 msgstr "Onde os arquivos recebidos são salvos"
-
-#: src/plugins/share/valent-share-text-dialog.c:98
-#: src/plugins/share/valent-share-text-dialog.ui:54
-msgid "Save"
-msgstr "Salvar"
-
-#: src/plugins/share/valent-share-text-dialog.ui:8
-#: src/plugins/share/valent-share-text-dialog.ui:15
-msgid "Shared Text"
-msgstr "Texto Compartilhado"
-
-#: src/plugins/share/valent-share-text-dialog.ui:55
-msgid "Copy"
-msgstr "Copiar"
 
 #: src/plugins/sms/sms.plugin.desktop.in:7
 msgid "SMS"
@@ -1241,8 +1247,8 @@ msgstr[0] "%d min"
 msgstr[1] "%d mins"
 
 #: src/plugins/sms/valent-sms-conversation.c:904
-#: src/plugins/sms/valent-sms-window.c:602
-#: src/plugins/sms/valent-sms-window.c:899
+#: src/plugins/sms/valent-sms-window.c:622
+#: src/plugins/sms/valent-sms-window.c:919
 #: src/plugins/sms/valent-sms-window.ui:62
 msgid "New Conversation"
 msgstr "Nova Conversa"
@@ -1262,21 +1268,21 @@ msgstr "Enviar Mensagem"
 msgid "Type a message"
 msgstr "Escreva uma mensagem"
 
-#: src/plugins/sms/valent-sms-plugin.c:502
+#: src/plugins/sms/valent-sms-plugin.c:607
 msgid "Messaging"
 msgstr "Mensagens"
 
-#: src/plugins/sms/valent-sms-window.c:186
+#: src/plugins/sms/valent-sms-window.c:206
 msgid "Conversations"
 msgstr "Conversas"
 
-#: src/plugins/sms/valent-sms-window.c:310
+#: src/plugins/sms/valent-sms-window.c:330
 #, c-format
 msgid "Send to %s"
 msgstr "Enviar para %s"
 
-#: src/plugins/sms/valent-sms-window.c:617
-#: src/plugins/sms/valent-sms-window.c:921
+#: src/plugins/sms/valent-sms-window.c:637
+#: src/plugins/sms/valent-sms-window.c:941
 msgid "Search Messages"
 msgstr "Procurar Mensagnes"
 
@@ -1419,6 +1425,9 @@ msgstr "Portais"
 #: src/plugins/xdp/xdp.plugin.desktop.in:8
 msgid "Integration with desktop portals"
 msgstr "Integração com portais da área de trabalho"
+
+#~ msgid "Pair"
+#~ msgstr "Parear"
 
 #~ msgid "Choose a device to share the selected files with."
 #~ msgstr "Escolha um dispositivo para compartilhar os arquivos."
