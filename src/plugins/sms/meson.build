@@ -13,6 +13,7 @@ plugin_sms_sources = files([
   'sms-plugin.c',
   'valent-contact-row.c',
   'valent-message.c',
+  'valent-message-attachment.c',
   'valent-message-thread.c',
   'valent-sms-conversation.c',
   'valent-sms-conversation-row.c',
