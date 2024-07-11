@@ -58,6 +58,7 @@ typedef enum
 
 G_DECLARE_FINAL_TYPE (ValentMessage, valent_message, VALENT, MESSAGE, GObject)
 
+GListModel       * valent_message_get_attachments (ValentMessage *message);
 ValentMessageBox   valent_message_get_box         (ValentMessage *message);
 int64_t            valent_message_get_date        (ValentMessage *message);
 int64_t            valent_message_get_id          (ValentMessage *message);

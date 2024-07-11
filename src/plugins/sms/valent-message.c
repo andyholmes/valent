@@ -9,12 +9,14 @@
 #include <valent.h>
 
 #include "valent-message.h"
+#include "valent-message-attachment.h"
 
 
 struct _ValentMessage
 {
   GObject           parent_instance;
 
+  GListModel       *attachments;
   ValentMessageBox  box;
   int64_t           date;
   int64_t           id;
@@ -30,6 +32,7 @@ G_DEFINE_FINAL_TYPE (ValentMessage, valent_message, G_TYPE_OBJECT)
 
 enum {
   PROP_0,
+  PROP_ATTACHMENTS,
   PROP_BOX,
   PROP_DATE,
   PROP_ID,
@@ -53,6 +56,7 @@ valent_message_finalize (GObject *object)
 {
   ValentMessage *self = VALENT_MESSAGE (object);
 
+  g_clear_object (&self->attachments);
   g_clear_pointer (&self->iri, g_free);
   g_clear_pointer (&self->sender, g_free);
   g_clear_pointer (&self->text, g_free);
@@ -71,6 +75,10 @@ valent_message_get_property (GObject    *object,
 
   switch (prop_id)
     {
+    case PROP_ATTACHMENTS:
+      g_value_set_object (value, valent_message_get_attachments (self));
+      break;
+
     case PROP_BOX:
       g_value_set_uint (value, self->box);
       break;
@@ -122,6 +130,11 @@ valent_message_set_property (GObject      *object,
 
   switch (prop_id)
     {
+    case PROP_ATTACHMENTS:
+      g_assert (self->attachments == NULL);
+      self->attachments = g_value_dup_object (value);
+      break;
+
     case PROP_BOX:
       self->box = g_value_get_uint (value);
       break;
@@ -172,6 +185,19 @@ valent_message_class_init (ValentMessageClass *klass)
   object_class->finalize = valent_message_finalize;
   object_class->get_property = valent_message_get_property;
   object_class->set_property = valent_message_set_property;
+
+  /**
+   * ValentMessage:attachments:
+   *
+   * The list of attachments.
+   */
+  properties [PROP_ATTACHMENTS] =
+    g_param_spec_object ("attachments", NULL, NULL,
+                         G_TYPE_LIST_MODEL,
+                         (G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT_ONLY |
+                          G_PARAM_EXPLICIT_NOTIFY |
+                          G_PARAM_STATIC_STRINGS));
 
   /**
    * ValentMessage:box:
@@ -301,6 +327,28 @@ valent_message_class_init (ValentMessageClass *klass)
 static void
 valent_message_init (ValentMessage *message)
 {
+}
+
+/**
+ * valent_message_get_attachments:
+ * @message: a `ValentMessage`
+ *
+ * Get the list of attachments.
+ *
+ * Returns: (transfer none) (not nullable): a `GListModel`
+ */
+GListModel *
+valent_message_get_attachments (ValentMessage *message)
+{
+  g_return_val_if_fail (VALENT_IS_MESSAGE (message), NULL);
+
+  if (message->attachments == NULL)
+    {
+      message->attachments =
+        G_LIST_MODEL (g_list_store_new (VALENT_TYPE_MESSAGE_ATTACHMENT));
+    }
+
+  return message->attachments;
 }
 
 /**
@@ -517,6 +565,9 @@ valent_message_update (ValentMessage *message,
 
   if (g_set_str (&message->text, update->text))
     g_object_notify_by_pspec (G_OBJECT (message), properties [PROP_TEXT]);
+
+  if (g_set_object (&message->attachments, update->attachments))
+    g_object_notify_by_pspec (G_OBJECT (message), properties [PROP_ATTACHMENTS]);
 
   g_object_thaw_notify (G_OBJECT (message));
   g_object_unref (update);
