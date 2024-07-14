@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2024-07-08 18:05-0700\n"
+"POT-Creation-Date: 2024-07-13 19:43-0700\n"
 "PO-Revision-Date: 2024-03-21 03:05+0100\n"
 "Last-Translator: Gianni Lerro <glerro@pm.me>\n"
 "Language-Team: Italian <>\n"
@@ -21,7 +21,7 @@ msgstr ""
 #: data/ca.andyholmes.Valent.desktop.in.in:3
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
 #: src/libvalent/ui/valent-preferences-dialog.ui:11
-#: src/libvalent/ui/valent-window.c:295 src/libvalent/ui/valent-window.ui:8
+#: src/libvalent/ui/valent-window.c:297 src/libvalent/ui/valent-window.ui:8
 #: src/libvalent/ui/valent-window.ui:45
 msgid "Valent"
 msgstr "Valent"
@@ -157,7 +157,7 @@ msgid "Device Menu"
 msgstr "Menù dispositivo"
 
 #: src/libvalent/ui/valent-device-page.ui:49
-#: src/libvalent/ui/valent-window.c:197
+#: src/libvalent/ui/valent-window.c:199
 msgid "Disconnected"
 msgstr "Disconnesso"
 
@@ -166,7 +166,7 @@ msgid "This device is currently unavailable"
 msgstr "Questo dispositivo non è attualmente disponibile"
 
 #: src/libvalent/ui/valent-device-page.ui:63
-#: src/libvalent/ui/valent-window.c:192
+#: src/libvalent/ui/valent-window.c:194
 msgid "Unpaired"
 msgstr "Non accoppiato"
 
@@ -473,15 +473,15 @@ msgctxt "short time format"
 msgid "%d:%02d"
 msgstr "%d:%02d"
 
-#: src/libvalent/ui/valent-window.c:202
+#: src/libvalent/ui/valent-window.c:204
 msgid "Connected"
 msgstr "Connesso"
 
-#: src/libvalent/ui/valent-window.c:305
+#: src/libvalent/ui/valent-window.c:307
 msgid "translator-credits"
 msgstr "crediti-traduttori"
 
-#: src/libvalent/ui/valent-window.c:310
+#: src/libvalent/ui/valent-window.c:312
 msgid "Sponsors"
 msgstr "Sponsor"
 
@@ -1114,12 +1114,12 @@ msgid "Cancel"
 msgstr "Annulla"
 
 #: src/plugins/share/valent-share-plugin.c:155
-#: src/plugins/share/valent-share-plugin.c:827
+#: src/plugins/share/valent-share-plugin.c:826
 msgid "Open Folder"
 msgstr "Apri cartella"
 
 #: src/plugins/share/valent-share-plugin.c:166
-#: src/plugins/share/valent-share-plugin.c:832
+#: src/plugins/share/valent-share-plugin.c:831
 msgid "Open File"
 msgstr "Apri file"
 
@@ -1164,30 +1164,34 @@ msgstr[1] "Inviati %2$d file a %1$s"
 msgid "Share Files"
 msgstr "Condivisione file"
 
-#: src/plugins/share/valent-share-plugin.c:820
+#: src/plugins/share/valent-share-plugin.c:819
 #, c-format
 msgid "Text from “%s” saved to “%s”"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:1194
-#, fuzzy, c-format
-msgid "Shared by %s"
-msgstr "Testo condiviso"
-
-#: src/plugins/share/valent-share-plugin.c:1196
+#. TRANSLATORS: this is a filename used for text shared by a device, where
+#. * the first "%s" is the date and the second "%s" is the device name, e.g.
+#. * "Text from 07-12-2024 10:00:46 PM (OnePlus 6)"
+#. *
+#: src/plugins/share/valent-share-plugin.c:874
 #, c-format
-msgid "Text from %s"
+msgid "Text from %s (%s).txt"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:1200
+#: src/plugins/share/valent-share-plugin.c:1197
+#, fuzzy, c-format
+msgid "Text from “%s”"
+msgstr "Richiesta di abbinamento da %s"
+
+#: src/plugins/share/valent-share-plugin.c:1203
 msgid "Save"
 msgstr "Salva"
 
-#: src/plugins/share/valent-share-plugin.c:1205
+#: src/plugins/share/valent-share-plugin.c:1208
 msgid "Copy"
 msgstr "Copia"
 
-#: src/plugins/share/valent-share-plugin.c:1338
+#: src/plugins/share/valent-share-plugin.c:1341
 msgid "Send Files"
 msgstr "Invia file"
 
@@ -1422,6 +1426,10 @@ msgstr "Portals"
 #: src/plugins/xdp/xdp.plugin.desktop.in:8
 msgid "Integration with desktop portals"
 msgstr "Integrazione con desktop portals"
+
+#, fuzzy, c-format
+#~ msgid "Shared by %s"
+#~ msgstr "Testo condiviso"
 
 #~ msgid "Pair"
 #~ msgstr "Accoppia"

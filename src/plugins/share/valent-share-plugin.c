@@ -867,7 +867,11 @@ share_save_action (GSimpleAction *action,
   bytes = g_bytes_new (text, strlen (text));
   date = g_date_time_new_now_local ();
   date_str = g_date_time_format (date, "%F %T");
-  filename = g_strdup_printf ("Text from %s (%s).txt", date_str, name);
+  /* TRANSLATORS: this is a filename used for text shared by a device, where
+   * the first "%s" is the date and the second "%s" is the device name, e.g.
+   * "Text from 07-12-2024 10:00:46 PM (OnePlus 6)"
+   * */
+  filename = g_strdup_printf (_("Text from %s (%s).txt"), date_str, name);
   file = valent_share_plugin_create_download_file (self, filename, TRUE);
 
   g_file_replace_contents_bytes_async (file,
@@ -1190,9 +1194,9 @@ valent_share_plugin_handle_text (ValentSharePlugin *self,
   device = valent_extension_get_object (extension);
   name = valent_device_get_name (device);
   id = g_compute_checksum_for_string (G_CHECKSUM_MD5, text, -1);
-  title = g_strdup_printf (_("Shared by %s"), name);
+  title = g_strdup_printf (_("Text from “%s”"), name);
 
-  notification = g_notification_new (_("Text from %s"));
+  notification = g_notification_new (title);
   g_notification_set_body (notification, text);
   valent_notification_add_device_button (notification,
                                          device,
