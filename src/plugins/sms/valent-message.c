@@ -23,6 +23,7 @@ struct _ValentMessage
   char             *sender;
   char             *text;
   int64_t           thread_id;
+  char             *iri;
 };
 
 G_DEFINE_FINAL_TYPE (ValentMessage, valent_message, G_TYPE_OBJECT)
@@ -32,6 +33,7 @@ enum {
   PROP_BOX,
   PROP_DATE,
   PROP_ID,
+  PROP_IRI,
   PROP_METADATA,
   PROP_READ,
   PROP_SENDER,
@@ -51,6 +53,7 @@ valent_message_finalize (GObject *object)
 {
   ValentMessage *self = VALENT_MESSAGE (object);
 
+  g_clear_pointer (&self->iri, g_free);
   g_clear_pointer (&self->sender, g_free);
   g_clear_pointer (&self->text, g_free);
   g_clear_pointer (&self->metadata, g_variant_unref);
@@ -78,6 +81,10 @@ valent_message_get_property (GObject    *object,
 
     case PROP_ID:
       g_value_set_int64 (value, self->id);
+      break;
+
+    case PROP_IRI:
+      g_value_set_string (value, self->iri);
       break;
 
     case PROP_METADATA:
@@ -125,6 +132,11 @@ valent_message_set_property (GObject      *object,
 
     case PROP_ID:
       self->id = g_value_get_int64 (value);
+      break;
+
+    case PROP_IRI:
+      g_assert (self->iri == NULL);
+      self->iri = g_value_dup_string (value);
       break;
 
     case PROP_METADATA:
@@ -202,6 +214,19 @@ valent_message_class_init (ValentMessageClass *klass)
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_EXPLICIT_NOTIFY |
                          G_PARAM_STATIC_STRINGS));
+
+  /**
+   * ValentMessage:iri:
+   *
+   * The iri of the message.
+   */
+  properties [PROP_IRI] =
+    g_param_spec_string ("iri", NULL, NULL,
+                         "",
+                         (G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT_ONLY |
+                          G_PARAM_EXPLICIT_NOTIFY |
+                          G_PARAM_STATIC_STRINGS));
 
   /**
    * ValentMessage:metadata:
@@ -324,6 +349,22 @@ valent_message_get_id (ValentMessage *message)
   g_return_val_if_fail (VALENT_IS_MESSAGE (message), 0);
 
   return message->id;
+}
+
+/**
+ * valent_message_get_iri:
+ * @message: a `ValentMessage`
+ *
+ * Get the IRI for @message.
+ *
+ * Returns: (transfer none) (nullable): the message IRI
+ */
+const char *
+valent_message_get_iri (ValentMessage *message)
+{
+  g_return_val_if_fail (VALENT_IS_MESSAGE (message), NULL);
+
+  return message->iri;
 }
 
 /**
