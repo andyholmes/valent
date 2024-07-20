@@ -93,6 +93,92 @@
             ]
         },
         {
+            "name": "libphonenumber",
+            "buildsystem": "cmake-ninja",
+            "subdir": "cpp",
+            "config-opts": [
+                "-DCMAKE_INSTALL_LIBDIR:PATH=/app/lib",
+                "-DUSE_BOOST=OFF",
+                "-DBUILD_TESTING=OFF",
+                "-DREGENERATE_METADATA=OFF",
+                "-DBUILD_STATIC_LIB=OFF",
+                "-DBUILD_GEOCODER=OFF",
+                "-DFETCHCONTENT_FULLY_DISCONNECTED=ON"
+            ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://github.com/google/libphonenumber/archive/refs/tags/v8.13.18.tar.gz",
+                    "sha256": "54578d748ce38eea8c3530e49c1adf09272ef4535ed32db2555ab39b0b8851c0"
+                }
+            ],
+            "cleanup": [
+                "/include",
+                "/lib/cmake"
+            ],
+            "modules": [
+                {
+                    "name": "abseil-cpp",
+                    "buildsystem": "cmake-ninja",
+                    "config-opts": [
+                        "-DCMAKE_BUILD_TYPE=Release",
+                        "-DCMAKE_CXX_STANDARD=17",
+                        "-DABSL_PROPAGATE_CXX_STD=ON",
+                        "-DCMAKE_POSITION_INDEPENDENT_CODE=ON"
+                    ],
+                    "sources": [
+                        {
+                            "type": "archive",
+                            "url": "https://github.com/abseil/abseil-cpp/archive/refs/tags/20230125.1.tar.gz",
+                            "sha256": "81311c17599b3712069ded20cca09a62ab0bf2a89dfa16993786c8782b7ed145"
+                        }
+                    ],
+                    "cleanup": [
+                        "/include",
+                        "/lib/*.a",
+                        "/lib/cmake",
+                        "/lib/pkgconfig"
+                    ]
+                },
+                {
+                    "name": "boost",
+                    "buildsystem": "simple",
+                    "sources": [
+                        {
+                            "type": "archive",
+                            "url": "https://github.com/boostorg/boost/releases/download/boost-1.85.0/boost-1.85.0-b2-nodocs.tar.xz",
+                            "sha256": "09f0628bded81d20b0145b30925d7d7492fd99583671586525d5d66d4c28266a"
+                        }
+                    ],
+                    "build-commands": [
+                        "./bootstrap.sh --prefix=${FLATPAK_DEST} --with-libraries=date_time,thread,system",
+                        "./b2 -j ${FLATPAK_BUILDER_N_JOBS} headers",
+                        "./b2 -j ${FLATPAK_BUILDER_N_JOBS} install"
+                    ]
+                },
+                {
+                    "name": "protobuf",
+                    "buildsystem": "autotools",
+                    "sources": [
+                        {
+                            "type": "archive",
+                            "url": "https://github.com/protocolbuffers/protobuf/archive/refs/tags/v21.12.tar.gz",
+                            "sha256": "22fdaf641b31655d4b2297f9981fa5203b2866f8332d3c6333f6b0107bb320de"
+                        }
+                    ],
+                    "cleanup": [
+                        "/bin",
+                        "/include",
+                        "/lib/*.a",
+                        "/lib/*.la",
+                        "/lib/libprotoc*",
+                        "/lib/libprotobuf-lite*",
+                        "/lib/pkgconfig"
+                    ]
+                }
+            ]
+        },
+        {
             "name" : "evolution-data-server",
             "buildsystem" : "cmake-ninja",
             "cleanup" : [
@@ -116,9 +202,12 @@
                 "-DENABLE_WEATHER=OFF",
                 "-DENABLE_OAUTH2_WEBKITGTK4=OFF",
                 "-DWITH_OPENLDAP=OFF",
+                "-DWITH_PHONENUMBER=ON",
                 "-DWITH_LIBDB=OFF",
                 "-DENABLE_INTROSPECTION=ON",
+                "-DENABLE_TESTS=OFF",
                 "-DENABLE_INSTALLED_TESTS=OFF",
+                "-DWITH_KRB5=OFF",
                 "-DENABLE_GTK_DOC=OFF",
                 "-DENABLE_EXAMPLES=OFF",
                 "-DWITH_SYSTEMDUSERUNITDIR=OFF",
