@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-project('valent', 'c',
+project('valent', 'c', 'cpp',
           license: 'GPL-3.0-or-later',
           version: '1.0.0.alpha.45',
     meson_version: '>= 0.59.0',
@@ -219,6 +219,7 @@ endif
 
 # libvalent-contacts
 libebook_dep = dependency('libebook-1.2', version: eds_version)
+libphonenumber_dep = cc.find_library('phonenumber', required: true)
 
 # libvalent-ui
 gtk_dep = dependency('gtk4', version: gtk_version)
