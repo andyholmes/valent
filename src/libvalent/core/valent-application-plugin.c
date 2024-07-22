@@ -28,8 +28,6 @@
  * handle activation, [vfunc@Valent.ApplicationPlugin.command_line] to handle
  * CLI options, or [vfunc@Valent.ApplicationPlugin.open] to handle files.
  *
- * For plugin preferences see [class@Valent.PreferencesPage].
- *
  * ## `.plugin` File
  *
  * Application plugins have no special fields in the `.plugin` file.

@@ -32,27 +32,6 @@ test_preferences_dialog_basic (void)
 }
 
 static void
-test_preferences_dialog_navigation (void)
-{
-  AdwDialog *dialog;
-
-  dialog = g_object_new (VALENT_TYPE_TEST_SUBJECT,
-                        NULL);
-  g_object_add_weak_pointer (G_OBJECT (dialog), (gpointer)&dialog);
-
-  adw_dialog_present (dialog, NULL);
-  valent_test_await_pending ();
-
-  /* Main -> Plugin */
-  gtk_widget_activate_action (GTK_WIDGET (dialog), "win.page", "s", "mock");
-
-  /* Close */
-  adw_dialog_close (ADW_DIALOG (dialog));
-
-  g_assert_null (dialog);
-}
-
-static void
 test_preferences_dialog_rename (void)
 {
   AdwDialog *dialog;
@@ -80,9 +59,6 @@ main (int   argc,
 
   g_test_add_func ("/libvalent/ui/preferences-dialog",
                    test_preferences_dialog_basic);
-
-  g_test_add_func ("/libvalent/ui/preferences-dialog/navigation",
-                   test_preferences_dialog_navigation);
 
   g_test_add_func ("/libvalent/ui/preferences-dialog/rename",
                    test_preferences_dialog_rename);
