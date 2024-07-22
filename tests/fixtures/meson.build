@@ -24,7 +24,6 @@ libvalent_test_private_headers = [
   'valent-mock-media-player.h',
   'valent-mock-mixer-adapter.h',
   'valent-mock-notifications-adapter.h',
-  'valent-mock-preferences-page.h',
   'valent-mock-session-adapter.h',
 ]
 
@@ -46,7 +45,6 @@ libvalent_test_public_sources = [
   'valent-mock-media-player.c',
   'valent-mock-mixer-adapter.c',
   'valent-mock-notifications-adapter.c',
-  'valent-mock-preferences-page.c',
   'valent-mock-session-adapter.c',
   'valent-test-fixture.c',
   'valent-test-utils.c',

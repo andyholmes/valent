@@ -11,7 +11,6 @@ libvalent_ui_generated_sources = []
 libvalent_ui_public_headers = [
   'valent-device-gadget.h',
   'valent-device-preferences-group.h',
-  'valent-preferences-page.h',
   'valent-ui-utils.h',
 ]
 
@@ -47,7 +46,6 @@ libvalent_ui_public_sources = [
   'valent-menu-list.c',
   'valent-menu-stack.c',
   'valent-plugin-row.c',
-  'valent-preferences-page.c',
   'valent-preferences-dialog.c',
   'valent-time-helpers.c',
   'valent-ui-main.c',

@@ -19,7 +19,6 @@
 #include <libvalent-notifications.h>
 #include <libvalent-session.h>
 
-#include "valent-preferences-page.h"
 #include "valent-preferences-dialog.h"
 
 
@@ -167,7 +166,6 @@ on_load_plugin (PeasEngine              *engine,
                 ValentPreferencesDialog *self)
 {
   GtkWidget *row = NULL;
-  const char *module;
   const char *title;
   const char *subtitle;
   const char *icon_name;
@@ -180,7 +178,6 @@ on_load_plugin (PeasEngine              *engine,
     return;
 
   engine = valent_get_plugin_engine ();
-  module = peas_plugin_info_get_module_name (info);
   title = peas_plugin_info_get_name (info);
   subtitle = peas_plugin_info_get_description (info);
   icon_name = peas_plugin_info_get_icon_name (info);
@@ -193,8 +190,7 @@ on_load_plugin (PeasEngine              *engine,
       peas_engine_provides_extension (engine, info, VALENT_TYPE_MEDIA_ADAPTER) ||
       peas_engine_provides_extension (engine, info, VALENT_TYPE_MIXER_ADAPTER) ||
       peas_engine_provides_extension (engine, info, VALENT_TYPE_NOTIFICATIONS_ADAPTER) ||
-      peas_engine_provides_extension (engine, info, VALENT_TYPE_SESSION_ADAPTER) ||
-      peas_engine_provides_extension (engine, info, VALENT_TYPE_PREFERENCES_PAGE))
+      peas_engine_provides_extension (engine, info, VALENT_TYPE_SESSION_ADAPTER))
     {
       GtkWidget *icon;
 
@@ -213,38 +209,6 @@ on_load_plugin (PeasEngine              *engine,
 
       gtk_list_box_insert (self->plugin_list, row, -1);
       g_hash_table_insert (self->rows, info, g_object_ref (row));
-    }
-
-  /* Preferences Page */
-  if (peas_engine_provides_extension (engine,
-                                      info,
-                                      VALENT_TYPE_PREFERENCES_PAGE))
-    {
-      GObject *page;
-      GtkWidget *button;
-
-      button = g_object_new (GTK_TYPE_BUTTON,
-                             "action-target", g_variant_new_string (module),
-                             "action-name",   "win.page",
-                             "icon-name",     "emblem-system-symbolic",
-                             "valign",        GTK_ALIGN_CENTER,
-                             NULL);
-#if ADW_CHECK_VERSION (1, 4, 0)
-      adw_expander_row_add_suffix (ADW_EXPANDER_ROW (row), button);
-#else
-      adw_expander_row_add_action (ADW_EXPANDER_ROW (row), button);
-#endif
-
-      page = peas_engine_create_extension (engine,
-                                           info,
-                                           VALENT_TYPE_PREFERENCES_PAGE,
-                                           "name",      module,
-                                           "icon-name", icon_name,
-                                           "title",     title,
-                                           NULL);
-      adw_preferences_dialog_add (ADW_PREFERENCES_DIALOG (self),
-                                  ADW_PREFERENCES_PAGE (page));
-      g_hash_table_insert (self->pages, info, g_object_ref (page));
     }
 }
 
