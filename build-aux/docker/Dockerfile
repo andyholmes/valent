@@ -19,11 +19,13 @@ RUN dnf install -y \
         json-glib-devel               json-glib-debuginfo \
         libadwaita-devel              libadwaita-debuginfo \
         libpeas-devel                 libpeas-debuginfo \
+        libphonenumber-devel          libphonenumber-debuginfo \
         libportal-devel               libportal-debuginfo \
         libportal-gtk4-devel          libportal-gtk4-debuginfo \
         pipewire-devel                pipewire-debuginfo \
         pulseaudio-libs-devel         pulseaudio-libs-debuginfo \
-        sqlite-devel                  sqlite-debuginfo && \
+        sqlite-devel                  sqlite-debuginfo \
+        tracker-devel                 tracker-debuginfo && \
     dnf clean all && rm -rf /var/cache/dnf
 
 # Build libwalbottle from source, since it's not available in most repositories
