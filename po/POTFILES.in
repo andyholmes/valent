@@ -21,7 +21,6 @@ src/libvalent/ui/valent-time-helpers.c
 src/libvalent/ui/valent-window.c
 src/libvalent/ui/valent-window.ui
 src/plugins/battery/battery.plugin.desktop.in
-src/plugins/battery/valent-battery-gadget.c
 src/plugins/battery/valent-battery-plugin.c
 src/plugins/battery/valent-battery-preferences.ui
 src/plugins/bluez/bluez.plugin.desktop.in
@@ -29,7 +28,6 @@ src/plugins/clipboard/clipboard.plugin.desktop.in
 src/plugins/clipboard/valent-clipboard-preferences.ui
 src/plugins/connectivity_report/ca.andyholmes.Valent.Plugin.connectivity_report.gschema.xml
 src/plugins/connectivity_report/connectivity_report.plugin.desktop.in
-src/plugins/connectivity_report/valent-connectivity_report-gadget.c
 src/plugins/connectivity_report/valent-connectivity_report-plugin.c
 src/plugins/connectivity_report/valent-connectivity_report-preferences.ui
 src/plugins/contacts/contacts.plugin.desktop.in
@@ -43,7 +41,6 @@ src/plugins/gnome/gnome.plugin.desktop.in
 src/plugins/gtk/gtk.plugin.desktop.in
 src/plugins/lan/lan.plugin.desktop.in
 src/plugins/lock/lock.plugin.desktop.in
-src/plugins/lock/valent-lock-gadget.c
 src/plugins/mousepad/mousepad.plugin.desktop.in
 src/plugins/mpris/mpris.plugin.desktop.in
 src/plugins/notification/notification.plugin.desktop.in

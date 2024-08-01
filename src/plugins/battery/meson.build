@@ -10,7 +10,6 @@ plugin_battery_deps = [
 plugin_battery_sources = files([
   'battery-plugin.c',
   'valent-battery.c',
-  'valent-battery-gadget.c',
   'valent-battery-plugin.c',
   'valent-battery-preferences.c',
 ])
