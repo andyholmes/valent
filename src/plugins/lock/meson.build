@@ -9,7 +9,6 @@ plugin_lock_deps = [
 # Sources
 plugin_lock_sources = files([
   'lock-plugin.c',
-  'valent-lock-gadget.c',
   'valent-lock-plugin.c',
 ])
 

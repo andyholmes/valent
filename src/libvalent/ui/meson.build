@@ -9,7 +9,6 @@ libvalent_ui_generated_sources = []
 
 # Headers
 libvalent_ui_public_headers = [
-  'valent-device-gadget.h',
   'valent-device-preferences-group.h',
   'valent-ui-utils.h',
 ]
@@ -37,7 +36,6 @@ install_headers(libvalent_ui_public_headers,
 # Sources
 libvalent_ui_public_sources = [
   'libvalent-ui.c',
-  'valent-device-gadget.c',
   'valent-device-page.c',
   'valent-device-preferences-group.c',
   'valent-device-preferences-dialog.c',

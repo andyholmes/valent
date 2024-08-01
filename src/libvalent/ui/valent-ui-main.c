@@ -8,7 +8,6 @@
 #include <adwaita.h>
 #include <gtk/gtk.h>
 
-#include "valent-device-gadget.h"
 #include "valent-device-page.h"
 #include "valent-device-preferences-group.h"
 #include "valent-device-preferences-dialog.h"
@@ -41,7 +40,6 @@ valent_ui_init_resources (void)
 static void
 valent_ui_init_types (void)
 {
-  g_type_ensure (VALENT_TYPE_DEVICE_GADGET);
   g_type_ensure (VALENT_TYPE_DEVICE_PAGE);
   g_type_ensure (VALENT_TYPE_DEVICE_PREFERENCES_GROUP);
   g_type_ensure (VALENT_TYPE_DEVICE_PREFERENCES_DIALOG);

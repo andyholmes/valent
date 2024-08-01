@@ -6,7 +6,6 @@
 #include <libpeas.h>
 #include <valent.h>
 
-#include "valent-lock-gadget.h"
 #include "valent-lock-plugin.h"
 
 
@@ -16,8 +15,5 @@ valent_lock_plugin_register_types (PeasObjectModule *module)
   peas_object_module_register_extension_type (module,
                                               VALENT_TYPE_DEVICE_PLUGIN,
                                               VALENT_TYPE_LOCK_PLUGIN);
-  peas_object_module_register_extension_type (module,
-                                              VALENT_TYPE_DEVICE_GADGET,
-                                              VALENT_TYPE_LOCK_GADGET);
 }
 
