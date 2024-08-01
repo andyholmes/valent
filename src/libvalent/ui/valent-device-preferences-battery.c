@@ -10,7 +10,7 @@
 #include <gtk/gtk.h>
 #include <valent.h>
 
-#include "valent-battery-preferences.h"
+#include "valent-device-preferences-battery.h"
 
 
 struct _ValentBatteryPreferences
@@ -73,7 +73,7 @@ valent_battery_preferences_class_init (ValentBatteryPreferencesClass *klass)
   object_class->constructed = valent_battery_preferences_constructed;
   object_class->dispose = valent_battery_preferences_dispose;
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/battery/valent-battery-preferences.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-device-preferences-battery.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentBatteryPreferences, full_notification);
   gtk_widget_class_bind_template_child (widget_class, ValentBatteryPreferences, full_notification_level);
   gtk_widget_class_bind_template_child (widget_class, ValentBatteryPreferences, low_notification);

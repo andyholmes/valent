@@ -43,7 +43,7 @@
         <property name="icon-name">valent-plugins-symbolic</property>
         <property name="vexpand">1</property>
         <child>
-          <object class="AdwPreferencesGroup" id="plugin_group">
+          <object class="AdwPreferencesGroup">
             <property name="title" translatable="yes">Plugins</property>
             <child>
               <object class="GtkListBox" id="plugin_list">

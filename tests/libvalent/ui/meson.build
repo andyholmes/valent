@@ -8,7 +8,6 @@ libvalent_ui_test_deps = [
 
 libvalent_ui_tests = [
   'test-device-page',
-  'test-device-preferences-group',
   'test-device-preferences-dialog',
   'test-input-remote',
   'test-media-remote',

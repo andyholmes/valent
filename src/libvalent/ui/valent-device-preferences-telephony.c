@@ -10,7 +10,7 @@
 #include <gtk/gtk.h>
 #include <valent.h>
 
-#include "valent-telephony-preferences.h"
+#include "valent-device-preferences-telephony.h"
 
 
 struct _ValentTelephonyPreferences
@@ -183,7 +183,7 @@ valent_telephony_preferences_class_init (ValentTelephonyPreferencesClass *klass)
   object_class->constructed = valent_telephony_preferences_constructed;
   object_class->dispose = valent_telephony_preferences_dispose;
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/telephony/valent-telephony-preferences.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-device-preferences-telephony.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentTelephonyPreferences, ringing_volume);
   gtk_widget_class_bind_template_child (widget_class, ValentTelephonyPreferences, ringing_pause);
   gtk_widget_class_bind_template_child (widget_class, ValentTelephonyPreferences, talking_volume);

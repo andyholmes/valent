@@ -13,7 +13,6 @@ plugin_battery_test_deps = [
 plugin_battery_tests = {
   'test-battery': mock_upower,
   'test-battery-plugin': mock_upower,
-  'test-battery-preferences': mock_upower,
 }
 
 foreach test, test_wrapper : plugin_battery_tests

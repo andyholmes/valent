@@ -9,7 +9,6 @@ plugin_clipboard_test_deps = [
 
 plugin_clipboard_tests = [
   'test-clipboard-plugin',
-  'test-clipboard-preferences',
 ]
 
 foreach test : plugin_clipboard_tests

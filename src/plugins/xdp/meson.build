@@ -4,12 +4,11 @@
 # Dependencies
 plugin_xdp_deps = [
   libvalent_dep,
-
-  gtk_dep,
   libportal_dep,
 ]
 
 if dependency('libportal-gtk4', required: false).found()
+  plugin_xdp_deps += [ dependency('gtk4', version: gtk_version) ]
   plugins_c_args += [ '-DHAVE_LIBPORTAL_GTK4' ]
 endif
 

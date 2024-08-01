@@ -10,7 +10,6 @@ plugin_contacts_deps = [
 plugin_contacts_sources = files([
   'contacts-plugin.c',
   'valent-contacts-plugin.c',
-  'valent-contacts-preferences.c',
 ])
 
 plugin_contacts_include_directories = [include_directories('.')]

@@ -4,6 +4,8 @@
 # Dependencies
 plugin_notification_deps = [
   libvalent_dep,
+  dependency('gtk4', version: gtk_version),
+  dependency('libadwaita-1', version: libadwaita_version),
 ]
 
 # Sources
@@ -11,7 +13,6 @@ plugin_notification_sources = files([
   'notification-plugin.c',
   'valent-notification-dialog.c',
   'valent-notification-plugin.c',
-  'valent-notification-preferences.c',
   'valent-notification-upload.c',
 ])
 

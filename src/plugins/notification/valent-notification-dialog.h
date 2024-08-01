@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <gtk/gtk.h>
 #include <valent.h>
 
 G_BEGIN_DECLS

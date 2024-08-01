@@ -10,7 +10,6 @@ plugin_clipboard_deps = [
 plugin_clipboard_sources = files([
   'clipboard-plugin.c',
   'valent-clipboard-plugin.c',
-  'valent-clipboard-preferences.c',
 ])
 
 plugin_clipboard_include_directories = [include_directories('.')]

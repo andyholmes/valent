@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <valent.h>
+#include "valent-device-preferences-group.h"
 
 G_BEGIN_DECLS
 

@@ -6,7 +6,6 @@
 <gresources>
   <gresource prefix="/plugins/sftp">
     <file>sftp.plugin</file>
-    <file preprocess="xml-stripblanks">valent-sftp-preferences.ui</file>
   </gresource>
   <gresource prefix="/ca/andyholmes/Valent/icons">
     <file preprocess="xml-stripblanks" alias="scalable/apps/valent-sftp-plugin-symbolic.svg">data/valent-sftp-plugin-symbolic.svg</file>

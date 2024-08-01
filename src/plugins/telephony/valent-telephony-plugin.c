@@ -5,6 +5,7 @@
 
 #include "config.h"
 
+#include <gdk-pixbuf/gdk-pixbuf.h>
 #include <glib/gi18n.h>
 #include <gio/gio.h>
 #include <json-glib/json-glib.h>

@@ -7,7 +7,6 @@
   <gresource prefix="/plugins/notification">
     <file>notification.plugin</file>
     <file preprocess="xml-stripblanks">valent-notification-dialog.ui</file>
-    <file preprocess="xml-stripblanks">valent-notification-preferences.ui</file>
   </gresource>
   <gresource prefix="/ca/andyholmes/Valent/icons">
     <file preprocess="xml-stripblanks" alias="scalable/apps/valent-notification-plugin-symbolic.svg">data/valent-notification-plugin-symbolic.svg</file>

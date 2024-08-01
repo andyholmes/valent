@@ -10,7 +10,6 @@ plugin_connectivity_report_deps = [
 plugin_connectivity_report_sources = files([
   'connectivity_report-plugin.c',
   'valent-connectivity_report-plugin.c',
-  'valent-connectivity_report-preferences.c',
   'valent-telephony.c',
 ])
 

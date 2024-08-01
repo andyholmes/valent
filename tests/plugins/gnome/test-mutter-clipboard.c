@@ -4,7 +4,6 @@
 #include <locale.h>
 
 #include <gio/gio.h>
-#include <gtk/gtk.h>
 #include <valent.h>
 #include <libvalent-test.h>
 

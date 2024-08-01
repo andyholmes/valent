@@ -221,10 +221,6 @@ endif
 libebook_dep = dependency('libebook-1.2', version: eds_version)
 libphonenumber_dep = cc.find_library('phonenumber', required: true)
 
-# libvalent-ui
-gtk_dep = dependency('gtk4', version: gtk_version)
-libadwaita_dep = dependency('libadwaita-1', version: libadwaita_version)
-
 # Debugging & Testing
 libsysprof_capture = dependency('sysprof-capture-4',
   required: false,

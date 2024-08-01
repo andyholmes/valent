@@ -10,7 +10,6 @@ plugin_notification_test_deps = [
 plugin_notification_tests = [
   'test-notification-dialog',
   'test-notification-plugin',
-  'test-notification-preferences',
 ]
 
 foreach test : plugin_notification_tests

@@ -13,7 +13,6 @@ Copyright=Copyright © Andy Holmes
 Version=1.0.0.alpha.45
 Website=https://valent.andyholmes.ca
 Help=https://valent.andyholmes.ca/help
-X-DevicePluginCategory=Network;RemoteAccess;
 X-DevicePluginIncoming=kdeconnect.clipboard;kdeconnect.clipboard.connect
 X-DevicePluginOutgoing=kdeconnect.clipboard;kdeconnect.clipboard.connect
 X-DevicePluginSettings=ca.andyholmes.Valent.Plugin.clipboard

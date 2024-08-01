@@ -8,7 +8,6 @@
 #include <glib/gi18n.h>
 #include <gdk/gdk.h>
 #include <gio/gio.h>
-#include <gtk/gtk.h>
 #include <json-glib/json-glib.h>
 #include <valent.h>
 

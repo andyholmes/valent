@@ -71,15 +71,15 @@ pkgconfig.generate(
       subdirs: [libvalent_header_subdir],
      requires: [
        'gio-2.0',
-       'gtk4',
        'json-glib-1.0',
-       'libadwaita-1',
        'libebook-1.2',
        'libpeas-2',
      ],
      requires_private: [
        'gio-unix-2.0',
        'gnutls',
+       'gtk4',
+       'libadwaita-1',
        'libportal',
      ],
 )
@@ -93,9 +93,7 @@ if get_option('introspection')
 
   libvalent_gir_includes = [
     'Gio-2.0',
-    'Gtk-4.0',
     'Json-1.0',
-    'Adw-1',
     'EBook-1.2',
     'Peas-2',
   ]
@@ -126,9 +124,7 @@ if get_option('introspection')
            sources: libvalent_gir[0],
           packages: [
              'gio-2.0',
-             'gtk4',
              'json-glib-1.0',
-             'libadwaita-1',
              'libebook-1.2',
              'libpeas-2',
           ],

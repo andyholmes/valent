@@ -6,7 +6,6 @@
 <gresources>
   <gresource prefix="/plugins/connectivity_report">
     <file>connectivity_report.plugin</file>
-    <file preprocess="xml-stripblanks">valent-connectivity_report-preferences.ui</file>
   </gresource>
   <gresource prefix="/ca/andyholmes/Valent/icons">
     <file preprocess="xml-stripblanks" alias="scalable/apps/valent-connectivity_report-plugin-symbolic.svg">data/valent-connectivity_report-plugin-symbolic.svg</file>
