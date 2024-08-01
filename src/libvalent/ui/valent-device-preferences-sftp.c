@@ -10,7 +10,7 @@
 #include <gtk/gtk.h>
 #include <valent.h>
 
-#include "valent-sftp-preferences.h"
+#include "valent-device-preferences-sftp.h"
 
 
 struct _ValentSftpPreferences
@@ -88,7 +88,7 @@ valent_sftp_preferences_class_init (ValentSftpPreferencesClass *klass)
   object_class->constructed = valent_sftp_preferences_constructed;
   object_class->dispose = valent_sftp_preferences_dispose;
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/sftp/valent-sftp-preferences.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-device-preferences-sftp.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentSftpPreferences, auto_mount);
   gtk_widget_class_bind_template_child (widget_class, ValentSftpPreferences, local_allow);
   gtk_widget_class_bind_template_child (widget_class, ValentSftpPreferences, local_port);

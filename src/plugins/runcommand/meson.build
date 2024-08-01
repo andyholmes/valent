@@ -10,8 +10,6 @@ plugin_runcommand_deps = [
 plugin_runcommand_sources = files([
   'runcommand-plugin.c',
   'valent-runcommand-plugin.c',
-  'valent-runcommand-preferences.c',
-  'valent-runcommand-editor.c',
   'valent-runcommand-utils.c',
 ])
 

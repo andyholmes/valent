@@ -12,7 +12,7 @@
 #include <json-glib/json-glib.h>
 #include <valent.h>
 
-#include "valent-runcommand-editor.h"
+#include "valent-device-preferences-commands-editor.h"
 
 
 struct _ValentRuncommandEditor
@@ -255,7 +255,7 @@ valent_runcommand_editor_class_init (ValentRuncommandEditorClass *klass)
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/runcommand/valent-runcommand-editor.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-device-preferences-commands-editor.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentRuncommandEditor, save_button);
   gtk_widget_class_bind_template_child (widget_class, ValentRuncommandEditor, argv_entry);
   gtk_widget_class_bind_template_child (widget_class, ValentRuncommandEditor, name_entry);

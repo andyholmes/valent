@@ -9,7 +9,6 @@ libvalent_ui_generated_sources = []
 
 # Headers
 libvalent_ui_public_headers = [
-  'valent-device-preferences-group.h',
   'valent-ui-utils.h',
 ]
 
@@ -17,6 +16,17 @@ libvalent_ui_private_headers = [
   'valent-application-credits.h',
   'valent-device-page.h',
   'valent-device-preferences-dialog.h',
+  'valent-device-preferences-group.h',
+  'valent-device-preferences-battery.h',
+  'valent-device-preferences-clipboard.h',
+  'valent-device-preferences-commands.h',
+  'valent-device-preferences-commands-editor.h',
+  'valent-device-preferences-connectivity.h',
+  'valent-device-preferences-contacts.h',
+  'valent-device-preferences-notification.h',
+  'valent-device-preferences-sftp.h',
+  'valent-device-preferences-share.h',
+  'valent-device-preferences-telephony.h',
   'valent-input-remote.h',
   'valent-media-remote.h',
   'valent-menu-list.h',
@@ -39,6 +49,16 @@ libvalent_ui_public_sources = [
   'valent-device-page.c',
   'valent-device-preferences-group.c',
   'valent-device-preferences-dialog.c',
+  'valent-device-preferences-battery.c',
+  'valent-device-preferences-clipboard.c',
+  'valent-device-preferences-commands.c',
+  'valent-device-preferences-commands-editor.c',
+  'valent-device-preferences-connectivity.c',
+  'valent-device-preferences-contacts.c',
+  'valent-device-preferences-notification.c',
+  'valent-device-preferences-sftp.c',
+  'valent-device-preferences-share.c',
+  'valent-device-preferences-telephony.c',
   'valent-input-remote.c',
   'valent-media-remote.c',
   'valent-menu-list.c',
@@ -66,8 +86,8 @@ libvalent_ui_generated_headers += [libvalent_ui_resources[1]]
 
 # Dependencies
 libvalent_deps += [
-  gtk_dep,
-  libadwaita_dep,
+  dependency('gtk4', version: gtk_version),
+  dependency('libadwaita-1', version: libadwaita_version),
 ]
 
 

@@ -13,7 +13,6 @@ Copyright=Copyright © Andy Holmes
 Version=1.0.0.alpha.45
 Website=https://valent.andyholmes.ca
 Help=https://valent.andyholmes.ca/help
-X-DevicePluginCategory=Network;RemoteAccess;
 X-DevicePluginIncoming=kdeconnect.notification;kdeconnect.notification.request
 X-DevicePluginOutgoing=kdeconnect.notification;kdeconnect.notification.action;kdeconnect.notification.reply;kdeconnect.notification.request
 X-DevicePluginSettings=ca.andyholmes.Valent.Plugin.notification

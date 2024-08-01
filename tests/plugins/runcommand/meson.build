@@ -8,9 +8,7 @@ plugin_runcommand_test_deps = [
 ]
 
 plugin_runcommand_tests = [
-  'test-runcommand-editor',
   'test-runcommand-plugin',
-  'test-runcommand-preferences',
 ]
 
 foreach test : plugin_runcommand_tests

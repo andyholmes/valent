@@ -9,7 +9,6 @@ plugin_sftp_test_deps = [
 
 plugin_sftp_tests = [
   'test-sftp-plugin',
-  'test-sftp-preferences',
 ]
 
 foreach test : plugin_sftp_tests

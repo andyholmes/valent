@@ -9,6 +9,15 @@
 #include <gtk/gtk.h>
 
 #include "valent-device-page.h"
+#include "valent-device-preferences-battery.h"
+#include "valent-device-preferences-clipboard.h"
+#include "valent-device-preferences-commands.h"
+#include "valent-device-preferences-connectivity.h"
+#include "valent-device-preferences-contacts.h"
+#include "valent-device-preferences-notification.h"
+#include "valent-device-preferences-sftp.h"
+#include "valent-device-preferences-share.h"
+#include "valent-device-preferences-telephony.h"
 #include "valent-device-preferences-group.h"
 #include "valent-device-preferences-dialog.h"
 #include "valent-input-remote.h"
@@ -43,6 +52,15 @@ valent_ui_init_types (void)
   g_type_ensure (VALENT_TYPE_DEVICE_PAGE);
   g_type_ensure (VALENT_TYPE_DEVICE_PREFERENCES_GROUP);
   g_type_ensure (VALENT_TYPE_DEVICE_PREFERENCES_DIALOG);
+  g_type_ensure (VALENT_TYPE_BATTERY_PREFERENCES);
+  g_type_ensure (VALENT_TYPE_CLIPBOARD_PREFERENCES);
+  g_type_ensure (VALENT_TYPE_RUNCOMMAND_PREFERENCES);
+  g_type_ensure (VALENT_TYPE_CONNECTIVITY_REPORT_PREFERENCES);
+  g_type_ensure (VALENT_TYPE_CONTACTS_PREFERENCES);
+  g_type_ensure (VALENT_TYPE_NOTIFICATION_PREFERENCES);
+  g_type_ensure (VALENT_TYPE_SFTP_PREFERENCES);
+  g_type_ensure (VALENT_TYPE_SHARE_PREFERENCES);
+  g_type_ensure (VALENT_TYPE_TELEPHONY_PREFERENCES);
   g_type_ensure (VALENT_TYPE_INPUT_REMOTE);
   g_type_ensure (VALENT_TYPE_MEDIA_REMOTE);
   g_type_ensure (VALENT_TYPE_MENU_LIST);

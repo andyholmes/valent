@@ -13,7 +13,6 @@ plugin_connectivity_report_test_deps = [
 
 plugin_connectivity_report_tests = {
   'test-connectivity_report-plugin': mock_modemmanager,
-  'test-connectivity_report-preferences': mock_modemmanager,
   'test-telephony': mock_modemmanager,
 }
 

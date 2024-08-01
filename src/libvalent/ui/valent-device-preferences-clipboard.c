@@ -10,7 +10,7 @@
 #include <gtk/gtk.h>
 #include <valent.h>
 
-#include "valent-clipboard-preferences.h"
+#include "valent-device-preferences-clipboard.h"
 
 
 struct _ValentClipboardPreferences
@@ -65,7 +65,7 @@ valent_clipboard_preferences_class_init (ValentClipboardPreferencesClass *klass)
   object_class->constructed = valent_clipboard_preferences_constructed;
   object_class->dispose = valent_clipboard_preferences_dispose;
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/clipboard/valent-clipboard-preferences.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-device-preferences-clipboard.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentClipboardPreferences, sync_pull);
   gtk_widget_class_bind_template_child (widget_class, ValentClipboardPreferences, sync_push);
 }

@@ -5,6 +5,8 @@
 
 #include "config.h"
 
+#include <math.h>
+
 #include <pipewire/pipewire.h>
 #include <pipewire/core.h>
 #include <pipewire/loop.h>

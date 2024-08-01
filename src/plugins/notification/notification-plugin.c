@@ -7,7 +7,6 @@
 #include <valent.h>
 
 #include "valent-notification-plugin.h"
-#include "valent-notification-preferences.h"
 
 
 _VALENT_EXTERN void
@@ -16,9 +15,5 @@ valent_notification_plugin_register_types (PeasObjectModule *module)
   peas_object_module_register_extension_type (module,
                                               VALENT_TYPE_DEVICE_PLUGIN,
                                               VALENT_TYPE_NOTIFICATION_PLUGIN);
-
-  peas_object_module_register_extension_type (module,
-                                              VALENT_TYPE_DEVICE_PREFERENCES_GROUP,
-                                              VALENT_TYPE_NOTIFICATION_PREFERENCES);
 }
 

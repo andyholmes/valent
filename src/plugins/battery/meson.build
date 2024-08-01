@@ -11,7 +11,6 @@ plugin_battery_sources = files([
   'battery-plugin.c',
   'valent-battery.c',
   'valent-battery-plugin.c',
-  'valent-battery-preferences.c',
 ])
 
 plugin_battery_include_directories = [include_directories('.')]

@@ -65,7 +65,6 @@ G_BEGIN_DECLS
 #include "device/valent-packet.h"
 
 // libvalent-ui
-#include "ui/valent-device-preferences-group.h"
 #include "ui/valent-ui-utils.h"
 
 #undef VALENT_INSIDE

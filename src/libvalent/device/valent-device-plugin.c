@@ -59,17 +59,9 @@
  * that define `X-DevicePluginOutgoing` in the `.plugin` file, should override
  * [vfunc@Valent.DevicePlugin.update_state].
  *
- * For device plugin preferences see [class@Valent.DevicePreferencesGroup].
- *
  * ## `.plugin` File
  *
  * Implementations may define the following extra fields in the `.plugin` file:
- *
- * - `X-DevicePluginCategory`
- *
- *     A list of categories separated by semi-colons, serving as a hint for
- *     organizational purposes. This should be in the form `Main;Additional;`,
- *     with values from the freedesktop.org Desktop Menu Specification.
  *
  * - `X-DevicePluginIncoming`
  *

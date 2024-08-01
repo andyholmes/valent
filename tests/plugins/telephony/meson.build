@@ -9,7 +9,6 @@ plugin_telephony_test_deps = [
 
 plugin_telephony_tests = [
   'test-telephony-plugin',
-  'test-telephony-preferences',
 ]
 
 foreach test : plugin_telephony_tests

@@ -9,7 +9,6 @@ plugin_contacts_test_deps = [
 
 plugin_contacts_tests = [
   'test-contacts-plugin',
-  'test-contacts-preferences',
 ]
 
 foreach test : plugin_contacts_tests

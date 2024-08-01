@@ -13,7 +13,6 @@ Copyright=Copyright © Andy Holmes
 Version=1.0.0.alpha.45
 Website=https://valent.andyholmes.ca
 Help=https://valent.andyholmes.ca/help
-X-DevicePluginCategory=Network;Telephony;
 X-DevicePluginIncoming=kdeconnect.telephony
 X-DevicePluginOutgoing=kdeconnect.telephony.request_mute
 X-DevicePluginSettings=ca.andyholmes.Valent.Plugin.telephony

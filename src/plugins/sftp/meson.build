@@ -10,7 +10,6 @@ plugin_sftp_deps = [
 plugin_sftp_sources = files([
   'sftp-plugin.c',
   'valent-sftp-plugin.c',
-  'valent-sftp-preferences.c',
 ])
 
 plugin_sftp_include_directories = [include_directories('.')]

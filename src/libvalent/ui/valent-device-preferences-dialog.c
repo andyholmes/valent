@@ -11,9 +11,19 @@
 #include <libvalent-core.h>
 #include <libvalent-device.h>
 
+#include "valent-device-preferences-battery.h"
+#include "valent-device-preferences-clipboard.h"
+#include "valent-device-preferences-commands.h"
+#include "valent-device-preferences-connectivity.h"
+#include "valent-device-preferences-contacts.h"
+#include "valent-device-preferences-notification.h"
+#include "valent-device-preferences-sftp.h"
+#include "valent-device-preferences-share.h"
+#include "valent-device-preferences-telephony.h"
 #include "valent-device-preferences-group.h"
-#include "valent-device-preferences-dialog.h"
 #include "valent-plugin-row.h"
+
+#include "valent-device-preferences-dialog.h"
 
 
 struct _ValentDevicePreferencesDialog
@@ -28,7 +38,6 @@ struct _ValentDevicePreferencesDialog
   AdwPreferencesPage   *sync_page;
   AdwPreferencesPage   *other_page;
   AdwPreferencesPage   *plugin_page;
-  AdwPreferencesGroup  *plugin_group;
   GtkListBox           *plugin_list;
 };
 
@@ -107,9 +116,11 @@ valent_device_preferences_dialog_add_plugin (ValentDevicePreferencesDialog *self
   title = peas_plugin_info_get_name (info);
   subtitle = peas_plugin_info_get_description (info);
 
-  /* Plugin Row */
+  /* Plugin Row
+   */
   context = valent_device_get_context (self->device);
   plugin_context = valent_context_get_plugin_context (context, info);
+
   plugin->row = g_object_new (VALENT_TYPE_PLUGIN_ROW,
                               "context",     plugin_context,
                               "plugin-info", info,
@@ -118,39 +129,85 @@ valent_device_preferences_dialog_add_plugin (ValentDevicePreferencesDialog *self
                               NULL);
   gtk_list_box_insert (self->plugin_list, plugin->row, -1);
 
-  /* Preferences Page */
-  if (peas_engine_provides_extension (engine,
-                                      info,
-                                      VALENT_TYPE_DEVICE_PREFERENCES_GROUP))
+  /* Preferences Page
+   */
+  struct
+  {
+    const char *name;
+    const char *category;
+    GType       type;
+  } preferences[] = {
     {
-      GObject *group;
-      const char *category;
+      .name = "battery",
+      .category = "status",
+      .type = VALENT_TYPE_BATTERY_PREFERENCES,
+    },
+    {
+      .name = "connectivity_report",
+      .category = "status",
+      .type = VALENT_TYPE_CONNECTIVITY_REPORT_PREFERENCES,
+    },
+    {
+      .name = "telephony",
+      .category = "status",
+      .type = VALENT_TYPE_TELEPHONY_PREFERENCES,
+    },
 
-      group = peas_engine_create_extension (engine,
-                                            info,
-                                            VALENT_TYPE_DEVICE_PREFERENCES_GROUP,
-                                            "context",     plugin_context,
-                                            "name",        module,
-                                            "title",       title,
-                                            "description", subtitle,
-                                            NULL);
+    {
+      .name = "clipboard",
+      .category = "sync",
+      .type = VALENT_TYPE_CLIPBOARD_PREFERENCES,
+    },
+    {
+      .name = "contacts",
+      .category = "sync",
+      .type = VALENT_TYPE_CONTACTS_PREFERENCES,
+    },
+    {
+      .name = "notification",
+      .category = "sync",
+      .type = VALENT_TYPE_NOTIFICATION_PREFERENCES,
+    },
+    {
+      .name = "sftp",
+      .category = "sync",
+      .type = VALENT_TYPE_SFTP_PREFERENCES,
+    },
 
-      g_return_if_fail (VALENT_IS_DEVICE_PREFERENCES_GROUP (group));
-      plugin->group = ADW_PREFERENCES_GROUP (group);
+    {
+      .name = "runcommand",
+      .category = "other",
+      .type = VALENT_TYPE_RUNCOMMAND_PREFERENCES,
+    },
+    {
+      .name = "share",
+      .category = "other",
+      .type = VALENT_TYPE_SHARE_PREFERENCES,
+    },
+  };
 
-      category = peas_plugin_info_get_external_data (info,
-                                                     "X-DevicePluginCategory");
+  for (size_t i = 0; i < G_N_ELEMENTS (preferences); i++)
+    {
+      if (g_str_equal (preferences[i].name, module))
+        {
+          plugin->group = g_object_new (preferences[i].type,
+                                        "context",     plugin_context,
+                                        "plugin-info", info,
+                                        "name",        module,
+                                        "title",       title,
+                                        "description", subtitle,
+                                        NULL);
 
-      if (g_strcmp0 (category, "Network;FileTransfer;") == 0 ||
-          g_strcmp0 (category, "Network;RemoteAccess;") == 0)
-        plugin->page = self->sync_page;
-      else if (g_strcmp0 (category, "System;Monitor;") == 0 ||
-          g_strcmp0 (category, "Network;Telephony;") == 0)
-        plugin->page = self->status_page;
-      else
-        plugin->page = self->other_page;
+          if (g_str_equal (preferences[i].category, "status"))
+            plugin->page = self->status_page;
+          else if (g_str_equal (preferences[i].category, "sync"))
+            plugin->page = self->sync_page;
+          else
+            plugin->page = self->other_page;
 
-      adw_preferences_page_add (plugin->page, plugin->group);
+          adw_preferences_page_add (plugin->page, plugin->group);
+          break;
+        }
     }
 
   g_hash_table_replace (self->plugins,
@@ -291,7 +348,6 @@ valent_device_preferences_dialog_class_init (ValentDevicePreferencesDialogClass 
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesDialog, sync_page);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesDialog, other_page);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesDialog, plugin_page);
-  gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesDialog, plugin_group);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesDialog, plugin_list);
 
   /**

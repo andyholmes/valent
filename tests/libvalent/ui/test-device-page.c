@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
+#include <adwaita.h>
+#include <gtk/gtk.h>
 #include <valent.h>
 #include <libvalent-test.h>
 

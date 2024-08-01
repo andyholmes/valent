@@ -13,18 +13,6 @@
 
 #include "valent-device-preferences-group.h"
 
-
-/**
- * ValentDevicePreferencesGroup:
- *
- * An abstract base class for device plugin preferences.
- *
- * `ValentDevicePreferencesGroup` is a base class for [class@Valent.DevicePlugin]
- * implementations that want to provide a group of preferences.
- *
- * Since: 1.0
- */
-
 typedef struct
 {
   ValentContext  *context;
@@ -126,8 +114,6 @@ valent_device_preferences_group_class_init (ValentDevicePreferencesGroupClass *k
    * ValentDevicePreferencesGroup:context: (getter get_context)
    *
    * The [class@Valent.Context] for the [class@Valent.DevicePlugin].
-   *
-   * Since: 1.0
    */
   properties [PROP_CONTEXT] =
     g_param_spec_object ("context", NULL, NULL,
@@ -141,8 +127,6 @@ valent_device_preferences_group_class_init (ValentDevicePreferencesGroupClass *k
    * ValentDevicePreferencesGroup:plugin-info:
    *
    * The [class@Peas.PluginInfo] describing this plugin.
-   *
-   * Since: 1.0
    */
   properties [PROP_PLUGIN_INFO] =
     g_param_spec_object ("plugin-info", NULL, NULL,
@@ -156,8 +140,6 @@ valent_device_preferences_group_class_init (ValentDevicePreferencesGroupClass *k
    * ValentDevicePreferencesGroup:settings: (getter get_settings)
    *
    * The [class@Gio.Settings] for the [class@Valent.DevicePlugin].
-   *
-   * Since: 1.0
    */
   properties [PROP_SETTINGS] =
     g_param_spec_object ("settings", NULL, NULL,
@@ -181,8 +163,6 @@ valent_device_preferences_group_init (ValentDevicePreferencesGroup *self)
  * Get the [class@Valent.Context] for the [class@Valent.DevicePlugin].
  *
  * Returns: (transfer none) (nullable): a `ValentContext`
- *
- * Since: 1.0
  */
 ValentContext *
 valent_device_preferences_group_get_context (ValentDevicePreferencesGroup *group)
@@ -209,8 +189,6 @@ valent_device_preferences_group_get_context (ValentDevicePreferencesGroup *group
  * Get the [class@Gio.Settings] for the [class@Valent.DevicePlugin].
  *
  * Returns: (transfer none) (nullable): a `GSettings`
- *
- * Since: 1.0
  */
 GSettings *
 valent_device_preferences_group_get_settings (ValentDevicePreferencesGroup *group)

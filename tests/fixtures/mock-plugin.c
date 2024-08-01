@@ -16,7 +16,6 @@
 #include "valent-mock-notifications-adapter.h"
 #include "valent-mock-session-adapter.h"
 #include "valent-mock-device-plugin.h"
-#include "valent-mock-device-preferences-group.h"
 
 
 _VALENT_EXTERN void
@@ -53,8 +52,5 @@ valent_mock_plugin_register_types (PeasObjectModule *module)
   peas_object_module_register_extension_type (module,
                                               VALENT_TYPE_DEVICE_PLUGIN,
                                               VALENT_TYPE_MOCK_DEVICE_PLUGIN);
-  peas_object_module_register_extension_type (module,
-                                              VALENT_TYPE_DEVICE_PREFERENCES_GROUP,
-                                              VALENT_TYPE_MOCK_DEVICE_PREFERENCES_GROUP);
 }
 

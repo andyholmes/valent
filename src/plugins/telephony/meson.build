@@ -11,7 +11,6 @@ plugin_telephony_deps = [
 plugin_telephony_sources = files([
   'telephony-plugin.c',
   'valent-telephony-plugin.c',
-  'valent-telephony-preferences.c',
 ])
 
 plugin_telephony_include_directories = [include_directories('.')]
