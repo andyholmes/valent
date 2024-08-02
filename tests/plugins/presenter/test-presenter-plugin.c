@@ -14,16 +14,11 @@ test_presenter_plugin_basic (ValentTestFixture *fixture,
 
   VALENT_TEST_CHECK ("Plugin has expected actions");
   g_assert_true (g_action_group_has_action (actions, "presenter.pointer"));
-  g_assert_true (g_action_group_has_action (actions, "presenter.remote"));
 
   valent_test_fixture_connect (fixture, TRUE);
 
   VALENT_TEST_CHECK ("Plugin action `presenter.pointer` is enabled when connected");
   g_assert_true (g_action_group_get_action_enabled (actions, "presenter.pointer"));
-
-  VALENT_TEST_CHECK ("Plugin action `presenter.remote` is enabled when connected, "
-                     "but disabled when a display is not available");
-  g_assert_false (g_action_group_get_action_enabled (actions, "presenter.remote"));
 }
 
 static void
@@ -55,7 +50,6 @@ test_presenter_plugin_send_request (ValentTestFixture *fixture,
   valent_test_fixture_connect (fixture, TRUE);
 
   g_assert_true (g_action_group_get_action_enabled (actions, "presenter.pointer"));
-  g_assert_false (g_action_group_get_action_enabled (actions, "presenter.remote"));
 
   VALENT_TEST_CHECK ("Plugin action `presenter.pointer` sends motion deltas");
   g_action_group_activate_action (actions,

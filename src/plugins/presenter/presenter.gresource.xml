@@ -6,7 +6,6 @@
 <gresources>
   <gresource prefix="/plugins/presenter">
     <file>presenter.plugin</file>
-    <file preprocess="xml-stripblanks">valent-presenter-remote.ui</file>
   </gresource>
   <gresource prefix="/ca/andyholmes/Valent/icons">
     <file preprocess="xml-stripblanks" alias="scalable/apps/valent-presenter-plugin-symbolic.svg">data/valent-presenter-plugin-symbolic.svg</file>

@@ -12,7 +12,6 @@ plugin_presenter_deps = [
 plugin_presenter_sources = files([
   'presenter-plugin.c',
   'valent-presenter-plugin.c',
-  'valent-presenter-remote.c',
 ])
 
 plugin_presenter_include_directories = [include_directories('.')]

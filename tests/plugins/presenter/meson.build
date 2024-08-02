@@ -9,7 +9,6 @@ plugin_presenter_test_deps = [
 
 plugin_presenter_tests = [
   'test-presenter-plugin',
-  'test-presenter-remote',
 ]
 
 foreach test : plugin_presenter_tests

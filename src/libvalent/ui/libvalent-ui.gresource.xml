@@ -73,6 +73,7 @@
     <file preprocess="xml-stripblanks">valent-media-remote.ui</file>
     <file preprocess="xml-stripblanks">valent-plugin-row.ui</file>
     <file preprocess="xml-stripblanks">valent-preferences-dialog.ui</file>
+    <file preprocess="xml-stripblanks">valent-presenter-remote.ui</file>
     <file preprocess="xml-stripblanks">valent-share-dialog.ui</file>
     <file preprocess="xml-stripblanks">valent-share-dialog-row.ui</file>
     <file preprocess="xml-stripblanks">valent-window.ui</file>
