@@ -6,7 +6,6 @@
 #include "config.h"
 
 #include <gio/gio.h>
-#include <gtk/gtk.h>
 #include <valent.h>
 
 #include "valent-mousepad-device.h"
@@ -21,7 +20,10 @@ struct _ValentMousepadDevice
   ValentInputAdapter  parent_instance;
 
   ValentDevice       *device;
+#if 0
+  // TODO: use libportal
   GtkSettings        *settings;
+#endif
 
   /* keyboard */
   GArray             *keyboard_keys;
@@ -264,6 +266,8 @@ valent_mousepad_device_pointer_longpress (gpointer data)
   return valent_mousepad_device_pointer_reset (self);
 }
 
+#if 0
+// TODO: use libportal
 static void
 on_pointer_settings_changed (GtkSettings          *settings,
                              GParamSpec           *pspec,
@@ -276,6 +280,7 @@ on_pointer_settings_changed (GtkSettings          *settings,
                 "gtk-long-press-time",   &self->long_press_time,
                 NULL);
 }
+#endif
 
 /*
  * ValentInputAdapter
@@ -446,11 +451,14 @@ valent_mousepad_device_destroy (ValentObject *object)
 {
   ValentMousepadDevice *self = VALENT_MOUSEPAD_DEVICE (object);
 
+#if 0
+// TODO: use libportal
   if (self->settings != NULL)
     {
       g_signal_handlers_disconnect_by_data (self->settings, self);
       self->settings = NULL;
     }
+#endif
 
   valent_mousepad_device_keyboard_reset (self);
   valent_mousepad_device_pointer_reset (self);
@@ -550,6 +558,8 @@ valent_mousepad_device_init (ValentMousepadDevice *self)
   self->double_click_time = DEFAULT_DOUBLE_CLICK_TIME;
   self->long_press_time = DEFAULT_LONG_PRESS_TIME;
 
+#if 0
+// TODO: use libportal
   if (gtk_is_initialized ())
     {
       self->settings = gtk_settings_get_default ();
@@ -559,6 +569,7 @@ valent_mousepad_device_init (ValentMousepadDevice *self)
                                self, 0);
       on_pointer_settings_changed (self->settings, NULL, self);
     }
+#endif
 }
 
 /**
