@@ -71,6 +71,7 @@
     <file preprocess="xml-stripblanks">valent-device-preferences-telephony.ui</file>
     <file preprocess="xml-stripblanks">valent-input-remote.ui</file>
     <file preprocess="xml-stripblanks">valent-media-remote.ui</file>
+    <file preprocess="xml-stripblanks">valent-notification-dialog.ui</file>
     <file preprocess="xml-stripblanks">valent-plugin-row.ui</file>
     <file preprocess="xml-stripblanks">valent-preferences-dialog.ui</file>
     <file preprocess="xml-stripblanks">valent-presenter-remote.ui</file>

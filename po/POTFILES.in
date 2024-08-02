@@ -26,6 +26,7 @@ src/libvalent/ui/valent-input-remote.ui
 src/libvalent/ui/valent-media-remote.c
 src/libvalent/ui/valent-media-remote.ui
 src/libvalent/ui/valent-menu-list.c
+src/libvalent/ui/valent-notification-dialog.ui
 src/libvalent/ui/valent-plugin-row.ui
 src/libvalent/ui/valent-preferences-dialog.c
 src/libvalent/ui/valent-preferences-dialog.ui
@@ -56,7 +57,6 @@ src/plugins/lock/lock.plugin.desktop.in
 src/plugins/mousepad/mousepad.plugin.desktop.in
 src/plugins/mpris/mpris.plugin.desktop.in
 src/plugins/notification/notification.plugin.desktop.in
-src/plugins/notification/valent-notification-dialog.ui
 src/plugins/ping/ping.plugin.desktop.in
 src/plugins/ping/valent-ping-plugin.c
 src/plugins/pipewire/pipewire.plugin.desktop.in
