@@ -5,37 +5,24 @@
 
 #include "config.h"
 
+#include <gio/gio.h>
 #include <glib/gi18n.h>
 #include <gst/gst.h>
-#include <gtk/gtk.h>
-#include <adwaita.h>
 
 #include "valent-findmyphone-ringer.h"
 
 
 struct _ValentFindmyphoneRinger
 {
-  GtkWindow    *dialog;
-  GstElement   *playbin;
-  unsigned int  source_id;
-  gpointer      owner;
+  GActionGroup  *actions;
+  GNotification *notification;
+  GstElement    *playbin;
+  unsigned int   source_id;
+  gpointer       owner;
 };
 
 static ValentFindmyphoneRinger *default_ringer = NULL;
 
-
-static gboolean
-gtk_window_destroy_idle (gpointer data)
-{
-  gtk_window_destroy (GTK_WINDOW (data));
-  return G_SOURCE_REMOVE;
-}
-
-static void
-on_motion_event (GtkWindow *dialog)
-{
-  g_idle_add (gtk_window_destroy_idle, dialog);
-}
 
 static gboolean
 ringer_source_func (GstBus     *bus,
@@ -68,12 +55,35 @@ ringer_source_func (GstBus     *bus,
   return G_SOURCE_CONTINUE;
 }
 
+static inline void
+app_ringer_action (GSimpleAction *action,
+                   GVariant      *parameters,
+                   gpointer       user_data)
+{
+  ValentFindmyphoneRinger *self = (ValentFindmyphoneRinger *)user_data;
+
+  g_assert (self != NULL);
+
+  valent_findmyphone_ringer_toggle (self, NULL);
+}
+
+static const GActionEntry app_actions[] = {
+  { "ringer", app_ringer_action, NULL, NULL, NULL },
+};
+
 static void
 valent_findmyphone_ringer_free (gpointer data)
 {
   ValentFindmyphoneRinger *ringer = data;
 
-  g_clear_pointer (&ringer->dialog, gtk_window_destroy);
+  if (ringer->notification != NULL)
+    {
+      GApplication *application = g_application_get_default ();
+
+      g_action_map_remove_action (G_ACTION_MAP (application), "ringer");
+      g_application_withdraw_notification (application, "findmyphone::ringer");
+      g_clear_object (&ringer->notification);
+    }
 
   if (ringer->playbin != NULL)
     {
@@ -94,22 +104,43 @@ valent_findmyphone_ringer_free (gpointer data)
 ValentFindmyphoneRinger *
 valent_findmyphone_ringer_new (void)
 {
+  GApplication *application = g_application_get_default ();
   ValentFindmyphoneRinger *ringer;
   g_autoptr (GError) error = NULL;
 
   ringer = g_rc_box_new0 (ValentFindmyphoneRinger);
 
+  /* Notification
+   */
+  if (application != NULL)
+    {
+      g_autoptr (GIcon) icon = NULL;
+
+      g_action_map_add_action_entries (G_ACTION_MAP (application),
+                                       app_actions,
+                                       G_N_ELEMENTS (app_actions),
+                                       ringer);
+      icon = g_icon_new_for_string ("phonelink-ring-symbolic", NULL);
+
+      ringer->notification = g_notification_new (_("Find My Device"));
+      g_notification_set_icon (ringer->notification, icon);
+      g_notification_set_priority (ringer->notification,
+                                   G_NOTIFICATION_PRIORITY_URGENT);
+      g_notification_set_default_action (ringer->notification, "app.ringer");
+    }
+
+  /* Playbin
+   */
   if (!gst_init_check (NULL, NULL, &error))
     {
       g_warning ("%s(): %s", G_STRFUNC, error->message);
       return ringer;
     }
 
-  /* Playbin */
   ringer->playbin = gst_element_factory_make ("playbin", "findmyphone-ringer");
-
   if (ringer->playbin != NULL)
     {
+      gst_object_ref_sink (ringer->playbin);
       g_object_set (ringer->playbin,
                     "uri", "resource:///plugins/findmyphone/alert.oga",
                     NULL);
@@ -169,59 +200,17 @@ valent_findmyphone_ringer_stop (ValentFindmyphoneRinger *ringer)
 void
 valent_findmyphone_ringer_show (ValentFindmyphoneRinger *ringer)
 {
-  GtkEventController *controller;
-  GtkWidget *label;
+  GApplication *application = g_application_get_default ();
 
   g_return_if_fail (ringer != NULL);
 
   valent_findmyphone_ringer_start (ringer);
-
-  if (!gtk_is_initialized () || ringer->dialog != NULL)
-    return;
-
-  /* Create the dialog */
-  ringer->dialog = g_object_new (GTK_TYPE_WINDOW,
-                                 "fullscreened", TRUE,
-                                 "maximized",    TRUE,
-                                 NULL);
-  g_object_add_weak_pointer (G_OBJECT (ringer->dialog),
-                             (gpointer)&ringer->dialog);
-
-  label = g_object_new (ADW_TYPE_STATUS_PAGE,
-                        "title",     _("Found"),
-                        "icon-name", "phonelink-ring-symbolic",
-                        NULL);
-  gtk_window_set_child (ringer->dialog, label);
-
-  g_signal_connect_swapped (ringer->dialog,
-                            "destroy",
-                            G_CALLBACK (valent_findmyphone_ringer_stop),
-                            ringer);
-
-  /* Close on keypress, pointer motion or click */
-  controller = gtk_event_controller_key_new ();
-  gtk_widget_add_controller (GTK_WIDGET (ringer->dialog), controller);
-  g_signal_connect_swapped (G_OBJECT (controller),
-                            "key-pressed",
-                            G_CALLBACK (gtk_window_destroy),
-                            ringer->dialog);
-
-  controller = gtk_event_controller_motion_new ();
-  gtk_widget_add_controller (GTK_WIDGET (ringer->dialog), controller);
-  g_signal_connect_swapped (G_OBJECT (controller),
-                            "motion",
-                            G_CALLBACK (on_motion_event),
-                            ringer->dialog);
-
-  controller = (GtkEventController *)gtk_gesture_click_new ();
-  gtk_widget_add_controller (GTK_WIDGET (ringer->dialog), controller);
-  g_signal_connect_swapped (G_OBJECT (controller),
-                            "pressed",
-                            G_CALLBACK (gtk_window_destroy),
-                            ringer->dialog);
-
-  /* Show the dialog */
-  gtk_window_present (ringer->dialog);
+  if (application != NULL)
+    {
+      g_application_send_notification (application,
+                                       "findmyphone::ringer",
+                                       ringer->notification);
+    }
 }
 
 /**
@@ -233,12 +222,14 @@ valent_findmyphone_ringer_show (ValentFindmyphoneRinger *ringer)
 void
 valent_findmyphone_ringer_hide (ValentFindmyphoneRinger *ringer)
 {
+  GApplication *application = g_application_get_default ();
+
   g_return_if_fail (ringer != NULL);
 
-  if (ringer->dialog != NULL)
-    g_clear_pointer (&ringer->dialog, gtk_window_destroy);
-  else
-    valent_findmyphone_ringer_stop (ringer);
+  if (ringer->notification != NULL)
+    g_application_withdraw_notification (application, "findmyphone::ringer");
+
+  valent_findmyphone_ringer_stop (ringer);
 }
 
 /**
@@ -289,7 +280,7 @@ valent_findmyphone_ringer_toggle (ValentFindmyphoneRinger *ringer,
 {
   g_return_if_fail (ringer != NULL);
 
-  if (ringer->dialog != NULL || ringer->source_id > 0)
+  if (ringer->source_id > 0)
     {
       valent_findmyphone_ringer_hide (ringer);
       ringer->owner = NULL;
