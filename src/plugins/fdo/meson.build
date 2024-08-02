@@ -1,13 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-# Require gdk-pixbuf for notifications
-gdk_pixbuf_dep = dependency('gdk-pixbuf-2.0', version: '>= 2.0', required: false)
-
-if not gdk_pixbuf_dep.found()
-  error('GDK-Pixbuf required for Freedesktop plugin')
-endif
-
 # Dependencies
 plugin_fdo_deps = [
   libvalent_dep,

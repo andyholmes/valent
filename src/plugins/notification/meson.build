@@ -6,6 +6,7 @@ plugin_notification_deps = [
   libvalent_dep,
   dependency('gtk4', version: gtk_version),
   dependency('libadwaita-1', version: libadwaita_version),
+  gdk_pixbuf_dep,
 ]
 
 # Sources
