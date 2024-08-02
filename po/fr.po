@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2024-07-13 19:43-0700\n"
+"POT-Creation-Date: 2024-08-02 14:42-0700\n"
 "PO-Revision-Date: 2023-03-04 17:28+0100\n"
 "Last-Translator: Valérie Roux <vxlerieuwu@unixgirl.xyz>\n"
 "Language-Team: French <vxlerieuwu@unixgirl.xyz>\n"
@@ -42,7 +42,7 @@ msgid "Whether the device is paired"
 msgstr "Si l'appareil est lié"
 
 #: data/gsettings/ca.andyholmes.Valent.gschema.xml:10
-#: src/plugins/runcommand/valent-runcommand-editor.ui:39
+#: src/libvalent/ui/valent-device-preferences-commands-editor.ui:39
 msgid "Name"
 msgstr "Nom"
 
@@ -145,15 +145,44 @@ msgstr "Refuser"
 msgid "Accept"
 msgstr "Accepter"
 
-#: src/libvalent/ui/valent-device-page.c:168
+#: src/libvalent/ui/valent-device-page.c:86
 #, c-format
 msgid "Please confirm the verification key below matches the one on “%s”"
 msgstr ""
 
-#: src/libvalent/ui/valent-device-page.c:177
+#: src/libvalent/ui/valent-device-page.c:95
 #: src/libvalent/ui/valent-device-page.ui:73
 msgid "Unavailable"
 msgstr "Indisponible"
+
+#. TRANSLATORS: When the battery level is 100%
+#.
+#: src/libvalent/ui/valent-device-page.c:153
+msgid "Fully Charged"
+msgstr "Batterie pleine"
+
+#. TRANSLATORS: This is <percentage> (Estimating…)
+#.
+#: src/libvalent/ui/valent-device-page.c:178
+#, c-format
+msgid "%g%% (Estimating…)"
+msgstr "%g%% (En train de calculer…)"
+
+#. TRANSLATORS: This is <percentage> (<hours>:<minutes> Until Full)
+#.
+#: src/libvalent/ui/valent-device-page.c:184
+#, c-format
+msgid "%g%% (%d∶%02d Until Full)"
+msgstr "%g%% (%d∶%02d jusqu'à charge complète)"
+
+#. TRANSLATORS: This is <percentage> (<hours>:<minutes> Remaining)
+#.
+#. TRANSLATORS: This is <percentage> (<hours>:<minutes> Remaining)
+#: src/libvalent/ui/valent-device-page.c:191
+#: src/plugins/battery/valent-battery-plugin.c:296
+#, c-format
+msgid "%g%% (%d∶%02d Remaining)"
+msgstr "%g%% (%d∶%02d restants)"
 
 #: src/libvalent/ui/valent-device-page.ui:30
 #, fuzzy
@@ -183,15 +212,153 @@ msgstr "Clé de vérification"
 msgid "Request Pairing"
 msgstr "Demande de liaison"
 
-#: src/libvalent/ui/valent-device-page.ui:213
+#: src/libvalent/ui/valent-device-page.ui:218
+#: src/plugins/battery/battery.plugin.desktop.in:7
+msgid "Battery"
+msgstr "Batterie"
+
+#. TRANSLATORS: When the mobile network signal is available
+#: src/libvalent/ui/valent-device-page.ui:244
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:162
+msgid "Mobile Network"
+msgstr "Réseau mobile"
+
+#: src/libvalent/ui/valent-device-page.ui:260
+#: src/plugins/lock/lock.plugin.desktop.in:7
+msgid "Lock"
+msgstr "Verrouiller"
+
+#: src/libvalent/ui/valent-device-page.ui:292
 #: src/libvalent/ui/valent-window.ui:139
 msgid "Preferences"
 msgstr "Paramètres"
 
-#: src/libvalent/ui/valent-device-page.ui:219
+#: src/libvalent/ui/valent-device-page.ui:298
 #, fuzzy
 msgid "Unpair"
 msgstr "Non associé"
+
+#: src/libvalent/ui/valent-device-preferences-battery.ui:10
+msgid "Full Battery Notification"
+msgstr "Notification de batterie pleine"
+
+#: src/libvalent/ui/valent-device-preferences-battery.ui:11
+#, fuzzy
+msgid "Notify when the remote battery is full"
+msgstr "Avertir lorsque la batterie est pleine"
+
+#: src/libvalent/ui/valent-device-preferences-battery.ui:16
+#: src/libvalent/ui/valent-device-preferences-battery.ui:36
+msgid "Level Threshold"
+msgstr ""
+
+#: src/libvalent/ui/valent-device-preferences-battery.ui:30
+msgid "Low Battery Notification"
+msgstr "Notification de batterie faible"
+
+#: src/libvalent/ui/valent-device-preferences-battery.ui:31
+#, fuzzy
+msgid "Notify when the remote battery is low"
+msgstr "Avertir lorsque la batterie est faible"
+
+#: src/libvalent/ui/valent-device-preferences-clipboard.ui:10
+#, fuzzy
+msgid "Remote Clipboard"
+msgstr "Changements distants du presse-papiers"
+
+#: src/libvalent/ui/valent-device-preferences-clipboard.ui:11
+#, fuzzy
+msgid "Copy changes to the local clipboard"
+msgstr "Copier vers le presse-papiers local"
+
+#: src/libvalent/ui/valent-device-preferences-clipboard.ui:17
+#, fuzzy
+msgid "Local Clipboard"
+msgstr "Changements locaux du presse-papiers"
+
+#: src/libvalent/ui/valent-device-preferences-clipboard.ui:18
+#, fuzzy
+msgid "Report changes to the remote device"
+msgstr "Prendre une photo avec l'appareil distant"
+
+#: src/libvalent/ui/valent-device-preferences-commands.c:85
+#: src/libvalent/ui/valent-device-preferences-commands-editor.ui:8
+#, fuzzy
+msgid "Edit Command"
+msgstr "Commandes"
+
+#: src/libvalent/ui/valent-device-preferences-commands-editor.ui:17
+#: src/libvalent/ui/valent-notification-dialog.ui:19
+msgid "_Cancel"
+msgstr "Annuler"
+
+#: src/libvalent/ui/valent-device-preferences-commands-editor.ui:24
+#, fuzzy
+msgid "_Save"
+msgstr "Enregistrer"
+
+#: src/libvalent/ui/valent-device-preferences-commands-editor.ui:48
+msgid "Command Line"
+msgstr "Ligne de commande"
+
+#: src/libvalent/ui/valent-device-preferences-commands-editor.ui:63
+msgid "Remove the command"
+msgstr ""
+
+#: src/libvalent/ui/valent-device-preferences-commands-editor.ui:69
+msgid "Remove"
+msgstr "Supprimer"
+
+#: src/libvalent/ui/valent-device-preferences-commands.ui:14
+#, fuzzy
+msgid "Add a command"
+msgstr "Ajouter une commande..."
+
+#: src/libvalent/ui/valent-device-preferences-commands.ui:24
+#, fuzzy
+msgid "Local Commands"
+msgstr "Commandes"
+
+#: src/libvalent/ui/valent-device-preferences-commands.ui:25
+#, fuzzy
+msgid "Commands that can be executed by remote devices"
+msgstr ""
+"Définir les commandes qui peuvent être exécutées par l'appareil distant."
+
+#: src/libvalent/ui/valent-device-preferences-connectivity.ui:10
+msgid "Local Connectivity"
+msgstr "Connectivité locale"
+
+#: src/libvalent/ui/valent-device-preferences-connectivity.ui:11
+#, fuzzy
+msgid "Send updates to the remote device"
+msgstr "Prendre une photo avec l'appareil distant"
+
+#: src/libvalent/ui/valent-device-preferences-connectivity.ui:17
+msgid "Remote Connectivity"
+msgstr "Connectivité distante"
+
+#: src/libvalent/ui/valent-device-preferences-connectivity.ui:18
+msgid "Notify if the remote device loses connectivity"
+msgstr ""
+
+#: src/libvalent/ui/valent-device-preferences-contacts.ui:10
+msgid "Remote Contacts"
+msgstr "Contacts distants"
+
+#: src/libvalent/ui/valent-device-preferences-contacts.ui:11
+#, fuzzy
+msgid "Import contacts from the remote device"
+msgstr "Télécharger les contacts de l'appareil distant"
+
+#: src/libvalent/ui/valent-device-preferences-contacts.ui:17
+msgid "Local Contacts"
+msgstr "Contacts locaux"
+
+#: src/libvalent/ui/valent-device-preferences-contacts.ui:18
+#, fuzzy
+msgid "Share contacts with the remote device"
+msgstr "Prendre une photo avec l'appareil distant"
 
 #: src/libvalent/ui/valent-device-preferences-dialog.ui:12
 msgid "Status"
@@ -218,6 +385,137 @@ msgstr "Extensions"
 #: src/libvalent/ui/valent-preferences-dialog.ui:38
 msgid "No Plugins"
 msgstr "Pas d'extensions"
+
+#: src/libvalent/ui/valent-device-preferences-notification.ui:10
+#, fuzzy
+msgid "Local Notifications"
+msgstr "Notifications"
+
+#: src/libvalent/ui/valent-device-preferences-notification.ui:11
+#, fuzzy
+msgid "Forward notifications to the remote device"
+msgstr "Téléverser les contacts vers l'appareil distant."
+
+#: src/libvalent/ui/valent-device-preferences-notification.ui:16
+msgid "Intelligent Sync"
+msgstr ""
+
+#: src/libvalent/ui/valent-device-preferences-notification.ui:17
+#, fuzzy
+msgid "Notifications follow the active device"
+msgstr "Envoyer les notifications lorsque la session est active."
+
+#: src/libvalent/ui/valent-device-preferences-notification.ui:23
+#, fuzzy
+msgid "Filter by Application"
+msgstr "Aucune application"
+
+#: src/libvalent/ui/valent-device-preferences-notification.ui:90
+#, fuzzy
+msgid "Filter applications"
+msgstr "Aucune application"
+
+#: src/libvalent/ui/valent-device-preferences-notification.ui:116
+#, fuzzy
+msgid "Search"
+msgstr "Recherche..."
+
+#: src/libvalent/ui/valent-device-preferences-notification.ui:129
+msgid "Reset"
+msgstr ""
+
+#: src/libvalent/ui/valent-device-preferences-notification.ui:144
+msgid "No Applications"
+msgstr "Aucune application"
+
+#: src/libvalent/ui/valent-device-preferences-sftp.ui:10
+msgid "Automatically Mount"
+msgstr "Montage automatique"
+
+#: src/libvalent/ui/valent-device-preferences-sftp.ui:11
+#, fuzzy
+msgid "Mount shared folders when the device connects"
+msgstr ""
+"Tenter de monter le système de fichiers distant lorsque l'appareil se "
+"connecte."
+
+#: src/libvalent/ui/valent-device-preferences-sftp.ui:17
+#, fuzzy
+msgid "Local Files"
+msgstr "Système de fichiers local"
+
+#: src/libvalent/ui/valent-device-preferences-sftp.ui:18
+#, fuzzy
+msgid "Share local files and directories"
+msgstr "Parcourir les fichiers et dossiers"
+
+#: src/libvalent/ui/valent-device-preferences-sftp.ui:23
+msgid "Port"
+msgstr "Port"
+
+#: src/libvalent/ui/valent-device-preferences-share.c:93
+msgid "Select download folder"
+msgstr "Sélectionner le dossier de téléchargement"
+
+#: src/libvalent/ui/valent-device-preferences-share.c:94
+#: src/libvalent/ui/valent-presenter-remote.c:92
+#: src/libvalent/ui/valent-presenter-remote.ui:100
+msgid "Open"
+msgstr "Ouvrir"
+
+#: src/libvalent/ui/valent-device-preferences-share.ui:10
+msgid "Download directory"
+msgstr "Dossier de téléchargement"
+
+#: src/libvalent/ui/valent-device-preferences-share.ui:11
+msgid "Where received files are stored"
+msgstr "Où les fichiers entrants sont stockés"
+
+#: src/libvalent/ui/valent-device-preferences-telephony.ui:11
+msgid "Incoming Calls"
+msgstr "Appels entrants"
+
+#: src/libvalent/ui/valent-device-preferences-telephony.ui:12
+#, fuzzy
+msgid "What to do when the phone rings"
+msgstr "Que faire lorsque le téléphone sonne."
+
+#: src/libvalent/ui/valent-device-preferences-telephony.ui:16
+#: src/libvalent/ui/valent-device-preferences-telephony.ui:41
+#: src/libvalent/ui/valent-media-remote.ui:255
+msgid "Volume"
+msgstr "Volume"
+
+#: src/libvalent/ui/valent-device-preferences-telephony.ui:26
+#: src/libvalent/ui/valent-device-preferences-telephony.ui:57
+msgid "Pause Media"
+msgstr "Mettre le média en pause"
+
+#: src/libvalent/ui/valent-device-preferences-telephony.ui:36
+msgid "Ongoing Calls"
+msgstr "Appels en cours"
+
+#: src/libvalent/ui/valent-device-preferences-telephony.ui:37
+#, fuzzy
+msgid "What to do when the phone is answered"
+msgstr "Que faire lorsque le téléphone est décroché."
+
+#: src/libvalent/ui/valent-device-preferences-telephony.ui:51
+msgid "Mute Microphone"
+msgstr "Mettre le microphone en sourdine"
+
+#: src/libvalent/ui/valent-device-preferences-telephony.ui:66
+msgid "Nothing"
+msgstr "Rien"
+
+#: src/libvalent/ui/valent-device-preferences-telephony.ui:67
+msgid "Lower"
+msgstr "Baisser"
+
+#: src/libvalent/ui/valent-device-preferences-telephony.ui:68
+#: src/plugins/telephony/valent-telephony-plugin.c:391
+msgid "Mute"
+msgstr "Sourdine"
 
 #: src/libvalent/ui/valent-input-remote.ui:8
 #: src/libvalent/ui/valent-window.ui:124
@@ -284,15 +582,9 @@ msgstr "Jouer"
 msgid "Media Remote"
 msgstr "Télécommande média"
 
-#: src/libvalent/ui/valent-media-remote.ui:255
-#: src/plugins/telephony/valent-telephony-preferences.ui:16
-#: src/plugins/telephony/valent-telephony-preferences.ui:41
-msgid "Volume"
-msgstr "Volume"
-
 #: src/libvalent/ui/valent-media-remote.ui:276
 #: src/libvalent/ui/valent-menu-list.c:665
-#: src/plugins/presenter/valent-presenter-remote.ui:146
+#: src/libvalent/ui/valent-presenter-remote.ui:146
 msgid "Previous"
 msgstr "Précédent"
 
@@ -305,7 +597,7 @@ msgid "Seek Forward"
 msgstr "Avancer d'un pas"
 
 #: src/libvalent/ui/valent-media-remote.ui:379
-#: src/plugins/presenter/valent-presenter-remote.ui:173
+#: src/libvalent/ui/valent-presenter-remote.ui:173
 msgid "Next"
 msgstr "Suivant"
 
@@ -322,6 +614,24 @@ msgstr "Aléatoire"
 msgid "No Actions"
 msgstr "Aucune action"
 
+#: src/libvalent/ui/valent-notification-dialog.ui:12
+msgid "Notification"
+msgstr "Notification"
+
+#: src/libvalent/ui/valent-notification-dialog.ui:26
+msgid "_Reply"
+msgstr ""
+
+#: src/libvalent/ui/valent-notification-dialog.ui:150
+#: src/plugins/sms/valent-sms-window.ui:272
+msgid "Close"
+msgstr "Fermer"
+
+#: src/libvalent/ui/valent-notification-dialog.ui:151
+#, fuzzy
+msgid "Close the notification"
+msgstr "Notifications d'appel et de SMS"
+
 #: src/libvalent/ui/valent-plugin-row.ui:79
 msgid "Authors"
 msgstr ""
@@ -334,44 +644,44 @@ msgstr ""
 msgid "Website"
 msgstr ""
 
-#: src/libvalent/ui/valent-preferences-dialog.c:380
+#: src/libvalent/ui/valent-preferences-dialog.c:344
 #, fuzzy
 msgid "Application"
 msgstr "Applications"
 
-#: src/libvalent/ui/valent-preferences-dialog.c:387
+#: src/libvalent/ui/valent-preferences-dialog.c:351
 msgid "Device Connections"
 msgstr "Connexions"
 
-#: src/libvalent/ui/valent-preferences-dialog.c:394
+#: src/libvalent/ui/valent-preferences-dialog.c:358
 #: src/plugins/clipboard/clipboard.plugin.desktop.in:7
 msgid "Clipboard"
 msgstr "Presse-papiers"
 
-#: src/libvalent/ui/valent-preferences-dialog.c:401
+#: src/libvalent/ui/valent-preferences-dialog.c:365
 #: src/plugins/contacts/contacts.plugin.desktop.in:7
 #: src/plugins/sms/valent-contact-row.c:253
 msgid "Contacts"
 msgstr "Contacts"
 
-#: src/libvalent/ui/valent-preferences-dialog.c:408
+#: src/libvalent/ui/valent-preferences-dialog.c:372
 msgid "Mouse and Keyboard"
 msgstr "Souris et clavier"
 
-#: src/libvalent/ui/valent-preferences-dialog.c:415
+#: src/libvalent/ui/valent-preferences-dialog.c:379
 msgid "Media Players"
 msgstr "Lecteurs média"
 
-#: src/libvalent/ui/valent-preferences-dialog.c:422
+#: src/libvalent/ui/valent-preferences-dialog.c:386
 msgid "Volume Control"
 msgstr "Contrôle du volume"
 
-#: src/libvalent/ui/valent-preferences-dialog.c:429
+#: src/libvalent/ui/valent-preferences-dialog.c:393
 #: src/plugins/notification/notification.plugin.desktop.in:7
 msgid "Notifications"
 msgstr "Notifications"
 
-#: src/libvalent/ui/valent-preferences-dialog.c:436
+#: src/libvalent/ui/valent-preferences-dialog.c:400
 msgid "Session Manager"
 msgstr "Gestion de session"
 
@@ -382,6 +692,99 @@ msgstr "Nom de l'appareil"
 #: src/libvalent/ui/valent-preferences-dialog.ui:30
 msgid "Desktop Integration"
 msgstr "Intégration bureau"
+
+#: src/libvalent/ui/valent-presenter-remote.c:91
+msgid "Select Presentation"
+msgstr "Sélectionner la présentation"
+
+#: src/libvalent/ui/valent-presenter-remote.c:100
+msgid "Presentations"
+msgstr "Présentations"
+
+#: src/libvalent/ui/valent-presenter-remote.c:107
+msgid "All Files"
+msgstr "Tous les fichiers"
+
+#: src/libvalent/ui/valent-presenter-remote.ui:8
+msgid "Presentation Remote"
+msgstr "Télécommande des présentations"
+
+#: src/libvalent/ui/valent-presenter-remote.ui:81
+msgid "Start"
+msgstr "Démarrer"
+
+#: src/libvalent/ui/valent-presenter-remote.ui:121
+msgid "Stop"
+msgstr "Arréter"
+
+#: src/libvalent/ui/valent-presenter-remote.ui:196
+msgid "Pointer"
+msgstr "Pointeur"
+
+#: src/libvalent/ui/valent-share-dialog.c:108
+#, c-format
+msgid "Size: %s"
+msgstr ""
+
+#: src/libvalent/ui/valent-share-dialog.c:122
+#, c-format
+msgid "Total size: %s"
+msgstr ""
+
+#: src/libvalent/ui/valent-share-dialog.c:253
+#, c-format
+msgid "%u files and links"
+msgstr ""
+
+#: src/libvalent/ui/valent-share-dialog.c:255
+#, fuzzy, c-format
+msgid "%u files"
+msgstr "Tous les fichiers"
+
+#: src/libvalent/ui/valent-share-dialog.c:257
+#, c-format
+msgid "%u links"
+msgstr ""
+
+#: src/libvalent/ui/valent-share-dialog.ui:8
+#: src/libvalent/ui/valent-share-dialog.ui:29
+#: src/libvalent/ui/valent-share-dialog.ui:40
+#: src/libvalent/ui/valent-share-dialog.ui:112
+msgid "Share"
+msgstr "Partager"
+
+#: src/libvalent/ui/valent-share-dialog.ui:41
+#, fuzzy
+msgid "Select files, enter a link or paste text"
+msgstr "Partagez des fichiers, des liens et du texte"
+
+#: src/libvalent/ui/valent-share-dialog.ui:50
+#, fuzzy
+msgid "Pick Files"
+msgstr "Système de fichiers local"
+
+#: src/libvalent/ui/valent-share-dialog.ui:75
+msgid "Enter URL"
+msgstr ""
+
+#: src/libvalent/ui/valent-share-dialog.ui:161
+#: src/libvalent/ui/valent-share-dialog.ui:178
+#: src/libvalent/ui/valent-window.ui:86 src/libvalent/ui/valent-window.ui:101
+msgid "Devices"
+msgstr "Appareils"
+
+#: src/libvalent/ui/valent-share-dialog.ui:165
+#, fuzzy
+msgid "Share with multiple devices"
+msgstr "Prendre une photo avec l'appareil distant"
+
+#: src/libvalent/ui/valent-share-dialog.ui:192
+msgid "Searching…"
+msgstr "Recherche..."
+
+#: src/libvalent/ui/valent-share-dialog.ui:215
+msgid "_Share"
+msgstr "Partager"
 
 #. translators: Unknown time
 #: src/libvalent/ui/valent-time-helpers.c:51
@@ -510,12 +913,6 @@ msgstr "Recherche d'appareils"
 msgid "Main Menu"
 msgstr "Nom de l'appareil"
 
-#: src/libvalent/ui/valent-window.ui:86 src/libvalent/ui/valent-window.ui:101
-#: src/plugins/share/valent-share-dialog.ui:161
-#: src/plugins/share/valent-share-dialog.ui:178
-msgid "Devices"
-msgstr "Appareils"
-
 #: src/libvalent/ui/valent-window.ui:94
 msgid "Searching for devices…"
 msgstr "Recherche d'appareils"
@@ -537,38 +934,9 @@ msgstr "À propos de Valent"
 msgid "Quit"
 msgstr "Quitter"
 
-#: src/plugins/battery/battery.plugin.desktop.in:7
-#: src/plugins/battery/valent-battery-gadget.c:216
-msgid "Battery"
-msgstr "Batterie"
-
 #: src/plugins/battery/battery.plugin.desktop.in:8
 msgid "Monitor battery level and charging state"
 msgstr ""
-
-#. TRANSLATORS: When the battery level is 100%
-#: src/plugins/battery/valent-battery-gadget.c:64
-msgid "Fully Charged"
-msgstr "Batterie pleine"
-
-#. TRANSLATORS: This is <percentage> (Estimating…)
-#: src/plugins/battery/valent-battery-gadget.c:88
-#, c-format
-msgid "%g%% (Estimating…)"
-msgstr "%g%% (En train de calculer…)"
-
-#. TRANSLATORS: This is <percentage> (<hours>:<minutes> Until Full)
-#: src/plugins/battery/valent-battery-gadget.c:93
-#, c-format
-msgid "%g%% (%d∶%02d Until Full)"
-msgstr "%g%% (%d∶%02d jusqu'à charge complète)"
-
-#. TRANSLATORS: This is <percentage> (<hours>:<minutes> Remaining)
-#: src/plugins/battery/valent-battery-gadget.c:99
-#: src/plugins/battery/valent-battery-plugin.c:296
-#, c-format
-msgid "%g%% (%d∶%02d Remaining)"
-msgstr "%g%% (%d∶%02d restants)"
 
 #. TRANSLATORS: This is <device name>: Fully Charged
 #: src/plugins/battery/valent-battery-plugin.c:265
@@ -587,29 +955,6 @@ msgstr "Batterie pleine"
 msgid "%s: Battery Low"
 msgstr "%s: Batterie faible"
 
-#: src/plugins/battery/valent-battery-preferences.ui:10
-msgid "Full Battery Notification"
-msgstr "Notification de batterie pleine"
-
-#: src/plugins/battery/valent-battery-preferences.ui:11
-#, fuzzy
-msgid "Notify when the remote battery is full"
-msgstr "Avertir lorsque la batterie est pleine"
-
-#: src/plugins/battery/valent-battery-preferences.ui:16
-#: src/plugins/battery/valent-battery-preferences.ui:36
-msgid "Level Threshold"
-msgstr ""
-
-#: src/plugins/battery/valent-battery-preferences.ui:30
-msgid "Low Battery Notification"
-msgstr "Notification de batterie faible"
-
-#: src/plugins/battery/valent-battery-preferences.ui:31
-#, fuzzy
-msgid "Notify when the remote battery is low"
-msgstr "Avertir lorsque la batterie est faible"
-
 #: src/plugins/bluez/bluez.plugin.desktop.in:7
 msgid "Bluez"
 msgstr ""
@@ -626,26 +971,6 @@ msgstr ""
 "Contrôler comment le contenu du presse-papiers est synchronisé entre "
 "appareils."
 
-#: src/plugins/clipboard/valent-clipboard-preferences.ui:10
-#, fuzzy
-msgid "Remote Clipboard"
-msgstr "Changements distants du presse-papiers"
-
-#: src/plugins/clipboard/valent-clipboard-preferences.ui:11
-#, fuzzy
-msgid "Copy changes to the local clipboard"
-msgstr "Copier vers le presse-papiers local"
-
-#: src/plugins/clipboard/valent-clipboard-preferences.ui:17
-#, fuzzy
-msgid "Local Clipboard"
-msgstr "Changements locaux du presse-papiers"
-
-#: src/plugins/clipboard/valent-clipboard-preferences.ui:18
-#, fuzzy
-msgid "Report changes to the remote device"
-msgstr "Prendre une photo avec l'appareil distant"
-
 #: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:7
 #, fuzzy
 msgid "Connectivity"
@@ -655,12 +980,6 @@ msgstr "Connectivité locale"
 #, fuzzy
 msgid "Monitor mobile connectivity status"
 msgstr "Synchroniser l'état du réseau"
-
-#. TRANSLATORS: When the mobile network signal is available
-#: src/plugins/connectivity_report/valent-connectivity_report-gadget.c:203
-#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:162
-msgid "Mobile Network"
-msgstr "Réseau mobile"
 
 #. TRANSLATORS: The mobile network signal strength (e.g. "Signal Strength (25%)")
 #: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:164
@@ -690,45 +1009,10 @@ msgstr "Pas de SIM"
 msgid "%s: %s"
 msgstr "%s: %s"
 
-#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:10
-msgid "Local Connectivity"
-msgstr "Connectivité locale"
-
-#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:11
-#, fuzzy
-msgid "Send updates to the remote device"
-msgstr "Prendre une photo avec l'appareil distant"
-
-#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:17
-msgid "Remote Connectivity"
-msgstr "Connectivité distante"
-
-#: src/plugins/connectivity_report/valent-connectivity_report-preferences.ui:18
-msgid "Notify if the remote device loses connectivity"
-msgstr ""
-
 #: src/plugins/contacts/contacts.plugin.desktop.in:8
 #, fuzzy
 msgid "Sync contacts between devices"
 msgstr "Téléverser les contacts vers l'appareil distant."
-
-#: src/plugins/contacts/valent-contacts-preferences.ui:10
-msgid "Remote Contacts"
-msgstr "Contacts distants"
-
-#: src/plugins/contacts/valent-contacts-preferences.ui:11
-#, fuzzy
-msgid "Import contacts from the remote device"
-msgstr "Télécharger les contacts de l'appareil distant"
-
-#: src/plugins/contacts/valent-contacts-preferences.ui:17
-msgid "Local Contacts"
-msgstr "Contacts locaux"
-
-#: src/plugins/contacts/valent-contacts-preferences.ui:18
-#, fuzzy
-msgid "Share contacts with the remote device"
-msgstr "Prendre une photo avec l'appareil distant"
 
 #: src/plugins/eds/eds.plugin.desktop.in:7
 msgid "Evolution Data Server"
@@ -758,9 +1042,10 @@ msgstr "Trouver un appareil en le faisant sonner"
 msgid "Ring"
 msgstr "Sonner"
 
-#: src/plugins/findmyphone/valent-findmyphone-ringer.c:191
-msgid "Found"
-msgstr "Trouvé"
+#: src/plugins/findmyphone/valent-findmyphone-ringer.c:125
+#, fuzzy
+msgid "Find My Device"
+msgstr "Trouver mon téléphone"
 
 #: src/plugins/gnome/gnome.plugin.desktop.in:7
 msgid "GNOME"
@@ -787,11 +1072,6 @@ msgstr "LAN"
 msgid "Connect devices over LAN"
 msgstr "Connecter des appareils LAN"
 
-#: src/plugins/lock/lock.plugin.desktop.in:7
-#: src/plugins/lock/valent-lock-gadget.c:57
-msgid "Lock"
-msgstr "Verrouiller"
-
 #: src/plugins/lock/lock.plugin.desktop.in:8
 msgid "Lock and unlock"
 msgstr "Verrouiller et déverrouiller"
@@ -815,71 +1095,6 @@ msgstr "Partager la gestion des lecteurs MPRISv2"
 #: src/plugins/notification/notification.plugin.desktop.in:8
 msgid "Sync notifications"
 msgstr "Synchroniser les notifications"
-
-#: src/plugins/notification/valent-notification-dialog.ui:12
-msgid "Notification"
-msgstr "Notification"
-
-#: src/plugins/notification/valent-notification-dialog.ui:19
-#: src/plugins/runcommand/valent-runcommand-editor.ui:17
-msgid "_Cancel"
-msgstr "Annuler"
-
-#: src/plugins/notification/valent-notification-dialog.ui:26
-msgid "_Reply"
-msgstr ""
-
-#: src/plugins/notification/valent-notification-dialog.ui:150
-#: src/plugins/sms/valent-sms-window.ui:272
-msgid "Close"
-msgstr "Fermer"
-
-#: src/plugins/notification/valent-notification-dialog.ui:151
-#, fuzzy
-msgid "Close the notification"
-msgstr "Notifications d'appel et de SMS"
-
-#: src/plugins/notification/valent-notification-preferences.ui:10
-#, fuzzy
-msgid "Local Notifications"
-msgstr "Notifications"
-
-#: src/plugins/notification/valent-notification-preferences.ui:11
-#, fuzzy
-msgid "Forward notifications to the remote device"
-msgstr "Téléverser les contacts vers l'appareil distant."
-
-#: src/plugins/notification/valent-notification-preferences.ui:16
-msgid "Intelligent Sync"
-msgstr ""
-
-#: src/plugins/notification/valent-notification-preferences.ui:17
-#, fuzzy
-msgid "Notifications follow the active device"
-msgstr "Envoyer les notifications lorsque la session est active."
-
-#: src/plugins/notification/valent-notification-preferences.ui:23
-#, fuzzy
-msgid "Filter by Application"
-msgstr "Aucune application"
-
-#: src/plugins/notification/valent-notification-preferences.ui:90
-#, fuzzy
-msgid "Filter applications"
-msgstr "Aucune application"
-
-#: src/plugins/notification/valent-notification-preferences.ui:116
-#, fuzzy
-msgid "Search"
-msgstr "Recherche..."
-
-#: src/plugins/notification/valent-notification-preferences.ui:129
-msgid "Reset"
-msgstr ""
-
-#: src/plugins/notification/valent-notification-preferences.ui:144
-msgid "No Applications"
-msgstr "Aucune application"
 
 #: src/plugins/ping/ping.plugin.desktop.in:7
 #: src/plugins/ping/valent-ping-plugin.c:155
@@ -911,41 +1126,6 @@ msgstr "Présentations"
 msgid "Control presentations"
 msgstr "Contrôle des présentations"
 
-#: src/plugins/presenter/valent-presenter-plugin.c:232
-#: src/plugins/presenter/valent-presenter-remote.ui:8
-msgid "Presentation Remote"
-msgstr "Télécommande des présentations"
-
-#: src/plugins/presenter/valent-presenter-remote.c:91
-msgid "Select Presentation"
-msgstr "Sélectionner la présentation"
-
-#: src/plugins/presenter/valent-presenter-remote.c:92
-#: src/plugins/presenter/valent-presenter-remote.ui:100
-#: src/plugins/share/valent-share-preferences.c:94
-msgid "Open"
-msgstr "Ouvrir"
-
-#: src/plugins/presenter/valent-presenter-remote.c:100
-msgid "Presentations"
-msgstr "Présentations"
-
-#: src/plugins/presenter/valent-presenter-remote.c:107
-msgid "All Files"
-msgstr "Tous les fichiers"
-
-#: src/plugins/presenter/valent-presenter-remote.ui:81
-msgid "Start"
-msgstr "Démarrer"
-
-#: src/plugins/presenter/valent-presenter-remote.ui:121
-msgid "Stop"
-msgstr "Arréter"
-
-#: src/plugins/presenter/valent-presenter-remote.ui:196
-msgid "Pointer"
-msgstr "Pointeur"
-
 #: src/plugins/pulseaudio/pulseaudio.plugin.desktop.in:7
 msgid "PulseAudio"
 msgstr "PulseAudio"
@@ -962,48 +1142,9 @@ msgstr "Commandes"
 msgid "Execute commands remotely"
 msgstr "Exécuter des commandes à distance"
 
-#: src/plugins/runcommand/valent-runcommand-editor.ui:8
-#: src/plugins/runcommand/valent-runcommand-preferences.c:85
-#, fuzzy
-msgid "Edit Command"
-msgstr "Commandes"
-
-#: src/plugins/runcommand/valent-runcommand-editor.ui:24
-#, fuzzy
-msgid "_Save"
-msgstr "Enregistrer"
-
-#: src/plugins/runcommand/valent-runcommand-editor.ui:48
-msgid "Command Line"
-msgstr "Ligne de commande"
-
-#: src/plugins/runcommand/valent-runcommand-editor.ui:63
-msgid "Remove the command"
-msgstr ""
-
-#: src/plugins/runcommand/valent-runcommand-editor.ui:69
-msgid "Remove"
-msgstr "Supprimer"
-
 #: src/plugins/runcommand/valent-runcommand-plugin.c:317
 msgid "Run Command"
 msgstr "Exécuter la commande"
-
-#: src/plugins/runcommand/valent-runcommand-preferences.ui:14
-#, fuzzy
-msgid "Add a command"
-msgstr "Ajouter une commande..."
-
-#: src/plugins/runcommand/valent-runcommand-preferences.ui:24
-#, fuzzy
-msgid "Local Commands"
-msgstr "Commandes"
-
-#: src/plugins/runcommand/valent-runcommand-preferences.ui:25
-#, fuzzy
-msgid "Commands that can be executed by remote devices"
-msgstr ""
-"Définir les commandes qui peuvent être exécutées par l'appareil distant."
 
 #: src/plugins/sftp/sftp.plugin.desktop.in:7
 #, fuzzy
@@ -1028,31 +1169,6 @@ msgstr "Permission non accordée"
 msgid "Browse Files"
 msgstr "Parcourir les fichiers"
 
-#: src/plugins/sftp/valent-sftp-preferences.ui:10
-msgid "Automatically Mount"
-msgstr "Montage automatique"
-
-#: src/plugins/sftp/valent-sftp-preferences.ui:11
-#, fuzzy
-msgid "Mount shared folders when the device connects"
-msgstr ""
-"Tenter de monter le système de fichiers distant lorsque l'appareil se "
-"connecte."
-
-#: src/plugins/sftp/valent-sftp-preferences.ui:17
-#, fuzzy
-msgid "Local Files"
-msgstr "Système de fichiers local"
-
-#: src/plugins/sftp/valent-sftp-preferences.ui:18
-#, fuzzy
-msgid "Share local files and directories"
-msgstr "Parcourir les fichiers et dossiers"
-
-#: src/plugins/sftp/valent-sftp-preferences.ui:23
-msgid "Port"
-msgstr "Port"
-
 #: src/plugins/share/share.plugin.desktop.in:7
 #, fuzzy
 msgid "Sharing"
@@ -1063,158 +1179,94 @@ msgstr "Partager"
 msgid "Direct file, link and text sharing"
 msgstr "Partagez des fichiers, des liens et du texte"
 
-#: src/plugins/share/valent-share-dialog.c:108
-#, c-format
-msgid "Size: %s"
-msgstr ""
-
-#: src/plugins/share/valent-share-dialog.c:122
-#, c-format
-msgid "Total size: %s"
-msgstr ""
-
-#: src/plugins/share/valent-share-dialog.c:253
-#, c-format
-msgid "%u files and links"
-msgstr ""
-
-#: src/plugins/share/valent-share-dialog.c:255
-#, fuzzy, c-format
-msgid "%u files"
-msgstr "Tous les fichiers"
-
-#: src/plugins/share/valent-share-dialog.c:257
-#, c-format
-msgid "%u links"
-msgstr ""
-
-#: src/plugins/share/valent-share-dialog.ui:8
-#: src/plugins/share/valent-share-dialog.ui:29
-#: src/plugins/share/valent-share-dialog.ui:40
-#: src/plugins/share/valent-share-dialog.ui:112
-#: src/plugins/share/valent-share-plugin.c:669
-msgid "Share"
-msgstr "Partager"
-
-#: src/plugins/share/valent-share-dialog.ui:41
-#, fuzzy
-msgid "Select files, enter a link or paste text"
-msgstr "Partagez des fichiers, des liens et du texte"
-
-#: src/plugins/share/valent-share-dialog.ui:50
-#, fuzzy
-msgid "Pick Files"
-msgstr "Système de fichiers local"
-
-#: src/plugins/share/valent-share-dialog.ui:75
-msgid "Enter URL"
-msgstr ""
-
-#: src/plugins/share/valent-share-dialog.ui:165
-#, fuzzy
-msgid "Share with multiple devices"
-msgstr "Prendre une photo avec l'appareil distant"
-
-#: src/plugins/share/valent-share-dialog.ui:192
-msgid "Searching…"
-msgstr "Recherche..."
-
-#: src/plugins/share/valent-share-dialog.ui:215
-msgid "_Share"
-msgstr "Partager"
-
-#: src/plugins/share/valent-share-plugin.c:103
-#: src/plugins/share/valent-share-plugin.c:468
+#: src/plugins/share/valent-share-plugin.c:102
+#: src/plugins/share/valent-share-plugin.c:467
 msgid "Transferring Files"
 msgstr "Transfert de fichiers en cours"
 
-#: src/plugins/share/valent-share-plugin.c:104
-#: src/plugins/share/valent-share-plugin.c:122
+#: src/plugins/share/valent-share-plugin.c:103
+#: src/plugins/share/valent-share-plugin.c:121
 #, c-format
 msgid "Receiving one file from %1$s"
 msgid_plural "Receiving %2$d files from %1$s"
 msgstr[0] "Un fichier de %1$s en cours de réception"
 msgstr[1] "%2$d fichiers en cours de récéption de %1$s"
 
-#: src/plugins/share/valent-share-plugin.c:112
-#: src/plugins/share/valent-share-plugin.c:343
-#: src/plugins/share/valent-share-plugin.c:477
+#: src/plugins/share/valent-share-plugin.c:111
+#: src/plugins/share/valent-share-plugin.c:342
+#: src/plugins/share/valent-share-plugin.c:476
 msgid "Transfer Complete"
 msgstr "Transfert terminé"
 
-#: src/plugins/share/valent-share-plugin.c:113
+#: src/plugins/share/valent-share-plugin.c:112
 #, c-format
 msgid "Received one file from %1$s"
 msgid_plural "Received %2$d files from %1$s"
 msgstr[0] "Fichier reçu de %1$s"
 msgstr[1] "%2$d fichiers reçu de %1$s"
 
-#: src/plugins/share/valent-share-plugin.c:121
-#: src/plugins/share/valent-share-plugin.c:247
-#: src/plugins/share/valent-share-plugin.c:349
-#: src/plugins/share/valent-share-plugin.c:486
+#: src/plugins/share/valent-share-plugin.c:120
+#: src/plugins/share/valent-share-plugin.c:246
+#: src/plugins/share/valent-share-plugin.c:348
+#: src/plugins/share/valent-share-plugin.c:485
 msgid "Transfer Failed"
 msgstr "Échec du transfert"
 
-#: src/plugins/share/valent-share-plugin.c:137
-#: src/plugins/share/valent-share-plugin.c:260
-#: src/plugins/share/valent-share-plugin.c:362
-#: src/plugins/share/valent-share-plugin.c:502
+#: src/plugins/share/valent-share-plugin.c:136
+#: src/plugins/share/valent-share-plugin.c:259
+#: src/plugins/share/valent-share-plugin.c:361
+#: src/plugins/share/valent-share-plugin.c:501
 msgid "Cancel"
 msgstr "Annuler"
 
-#: src/plugins/share/valent-share-plugin.c:155
-#: src/plugins/share/valent-share-plugin.c:826
+#: src/plugins/share/valent-share-plugin.c:154
+#: src/plugins/share/valent-share-plugin.c:738
 msgid "Open Folder"
 msgstr "Ouvrir le dossier"
 
-#: src/plugins/share/valent-share-plugin.c:166
-#: src/plugins/share/valent-share-plugin.c:831
+#: src/plugins/share/valent-share-plugin.c:165
+#: src/plugins/share/valent-share-plugin.c:743
 msgid "Open File"
 msgstr "Ouvrir le fichier"
 
-#: src/plugins/share/valent-share-plugin.c:237
-#: src/plugins/share/valent-share-plugin.c:337
+#: src/plugins/share/valent-share-plugin.c:236
+#: src/plugins/share/valent-share-plugin.c:336
 msgid "Transferring File"
 msgstr "Transfert du fichier en cours"
 
-#: src/plugins/share/valent-share-plugin.c:238
-#: src/plugins/share/valent-share-plugin.c:248
+#: src/plugins/share/valent-share-plugin.c:237
+#: src/plugins/share/valent-share-plugin.c:247
 #, fuzzy, c-format
 msgid "Opening “%s” from “%s”"
 msgstr "Ouverture de “%s” depuis %s"
 
-#: src/plugins/share/valent-share-plugin.c:338
-#: src/plugins/share/valent-share-plugin.c:350
+#: src/plugins/share/valent-share-plugin.c:337
+#: src/plugins/share/valent-share-plugin.c:349
 #, fuzzy, c-format
 msgid "Opening “%s” on “%s”"
 msgstr "Ouverture de “%s” sur %s"
 
-#: src/plugins/share/valent-share-plugin.c:344
+#: src/plugins/share/valent-share-plugin.c:343
 #, fuzzy, c-format
 msgid "Opened “%s” on “%s”"
 msgstr "“%s” ouvert sur %s"
 
-#: src/plugins/share/valent-share-plugin.c:469
-#: src/plugins/share/valent-share-plugin.c:487
+#: src/plugins/share/valent-share-plugin.c:468
+#: src/plugins/share/valent-share-plugin.c:486
 #, c-format
 msgid "Sending one file to %1$s"
 msgid_plural "Sending %2$d files to %1$s"
 msgstr[0] "Envoi d'un fichiers vers %1$s en cours"
 msgstr[1] "Envoi de %2$d fichiers vers %1$s en cours"
 
-#: src/plugins/share/valent-share-plugin.c:478
+#: src/plugins/share/valent-share-plugin.c:477
 #, c-format
 msgid "Sent one file to %1$s"
 msgid_plural "Sent %2$d files to %1$s"
 msgstr[0] "Un fichier envoyé vers %1$s"
 msgstr[1] "%2$d fichiers envoyés vers %1$s"
 
-#: src/plugins/share/valent-share-plugin.c:668
-msgid "Share Files"
-msgstr "Partager des fichiers"
-
-#: src/plugins/share/valent-share-plugin.c:819
+#: src/plugins/share/valent-share-plugin.c:731
 #, c-format
 msgid "Text from “%s” saved to “%s”"
 msgstr ""
@@ -1223,39 +1275,23 @@ msgstr ""
 #. * the first "%s" is the date and the second "%s" is the device name, e.g.
 #. * "Text from 07-12-2024 10:00:46 PM (OnePlus 6)"
 #. *
-#: src/plugins/share/valent-share-plugin.c:874
+#: src/plugins/share/valent-share-plugin.c:786
 #, c-format
 msgid "Text from %s (%s).txt"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:1197
+#: src/plugins/share/valent-share-plugin.c:1108
 #, fuzzy, c-format
 msgid "Text from “%s”"
 msgstr "Demande de liaison de %s"
 
-#: src/plugins/share/valent-share-plugin.c:1203
+#: src/plugins/share/valent-share-plugin.c:1114
 msgid "Save"
 msgstr "Enregistrer"
 
-#: src/plugins/share/valent-share-plugin.c:1208
+#: src/plugins/share/valent-share-plugin.c:1119
 msgid "Copy"
 msgstr "Copier"
-
-#: src/plugins/share/valent-share-plugin.c:1341
-msgid "Send Files"
-msgstr "Envoyer des fichiers"
-
-#: src/plugins/share/valent-share-preferences.c:93
-msgid "Select download folder"
-msgstr "Sélectionner le dossier de téléchargement"
-
-#: src/plugins/share/valent-share-preferences.ui:10
-msgid "Download directory"
-msgstr "Dossier de téléchargement"
-
-#: src/plugins/share/valent-share-preferences.ui:11
-msgid "Where received files are stored"
-msgstr "Où les fichiers entrants sont stockés"
 
 #: src/plugins/sms/sms.plugin.desktop.in:7
 msgid "SMS"
@@ -1408,68 +1444,28 @@ msgid "Be notified of incoming and ongoing calls"
 msgstr "Être notifié des appels entrants et en cours"
 
 #. TRANSLATORS: An unknown caller, with no name or phone number
-#: src/plugins/telephony/valent-telephony-plugin.c:359
+#: src/plugins/telephony/valent-telephony-plugin.c:360
 #, fuzzy
 msgctxt "contact identity"
 msgid "Unknown"
 msgstr "Contact inconnu"
 
 #. TRANSLATORS: The phone is ringing
-#: src/plugins/telephony/valent-telephony-plugin.c:386
+#: src/plugins/telephony/valent-telephony-plugin.c:387
 msgid "Incoming call"
 msgstr "Appel entrant"
 
-#: src/plugins/telephony/valent-telephony-plugin.c:390
-#: src/plugins/telephony/valent-telephony-preferences.ui:68
-msgid "Mute"
-msgstr "Sourdine"
-
 #. TRANSLATORS: The phone has been answered
-#: src/plugins/telephony/valent-telephony-plugin.c:399
+#: src/plugins/telephony/valent-telephony-plugin.c:400
 msgid "Ongoing call"
 msgstr "Appel en cours"
 
-#: src/plugins/telephony/valent-telephony-preferences.ui:11
-msgid "Incoming Calls"
-msgstr "Appels entrants"
-
-#: src/plugins/telephony/valent-telephony-preferences.ui:12
-#, fuzzy
-msgid "What to do when the phone rings"
-msgstr "Que faire lorsque le téléphone sonne."
-
-#: src/plugins/telephony/valent-telephony-preferences.ui:26
-#: src/plugins/telephony/valent-telephony-preferences.ui:57
-msgid "Pause Media"
-msgstr "Mettre le média en pause"
-
-#: src/plugins/telephony/valent-telephony-preferences.ui:36
-msgid "Ongoing Calls"
-msgstr "Appels en cours"
-
-#: src/plugins/telephony/valent-telephony-preferences.ui:37
-#, fuzzy
-msgid "What to do when the phone is answered"
-msgstr "Que faire lorsque le téléphone est décroché."
-
-#: src/plugins/telephony/valent-telephony-preferences.ui:51
-msgid "Mute Microphone"
-msgstr "Mettre le microphone en sourdine"
-
-#: src/plugins/telephony/valent-telephony-preferences.ui:66
-msgid "Nothing"
-msgstr "Rien"
-
-#: src/plugins/telephony/valent-telephony-preferences.ui:67
-msgid "Lower"
-msgstr "Baisser"
-
-#: src/plugins/xdp/valent-xdp-background.c:49
+#: src/plugins/xdp/valent-xdp-background.c:51
 #, fuzzy
 msgid "Syncing Devices"
 msgstr "Appareils"
 
-#: src/plugins/xdp/valent-xdp-background.c:79
+#: src/plugins/xdp/valent-xdp-background.c:81
 msgid "Valent wants to run as a service"
 msgstr "Valent veut s'exécuter en tant que service"
 
@@ -1480,6 +1476,15 @@ msgstr "Portails"
 #: src/plugins/xdp/xdp.plugin.desktop.in:8
 msgid "Integration with desktop portals"
 msgstr "Intégration avec les portails de bureau"
+
+#~ msgid "Found"
+#~ msgstr "Trouvé"
+
+#~ msgid "Share Files"
+#~ msgstr "Partager des fichiers"
+
+#~ msgid "Send Files"
+#~ msgstr "Envoyer des fichiers"
 
 #, fuzzy, c-format
 #~ msgid "Shared by %s"
