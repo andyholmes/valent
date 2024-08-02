@@ -13,11 +13,7 @@
 # define BTN_MIDDLE  0x112
 #endif /* __linux */
 
-#include <glib-object.h>
-#include <gdk/gdk.h>
-#ifdef GDK_WINDOWING_X11
-#  include <gdk/x11/gdkx.h>
-#endif /* GDK_WINDOWING_X11 */
+#include <gio/gio.h>
 #include <libportal/portal.h>
 #include <valent.h>
 
@@ -261,27 +257,6 @@ valent_xdp_input_pointer_axis (ValentInputAdapter *adapter,
 
   if G_UNLIKELY (!ensure_session (self))
     return;
-
-  /* On X11 we use discrete axis steps (eg. mouse wheel) because the absolute
-   * axis change doesn't seem to work
-   */
-  #ifdef GDK_WINDOWING_X11
-    if (GDK_IS_X11_DISPLAY (gdk_display_get_default ()))
-      {
-        g_debug ("[%s] X11: using discrete axis step", G_STRFUNC);
-
-        if (dy < 0.0)
-          xdp_session_pointer_axis_discrete (self->session,
-                                             XDP_AXIS_VERTICAL_SCROLL,
-                                             1);
-        else if (dy > 0.0)
-          xdp_session_pointer_axis_discrete (self->session,
-                                             XDP_AXIS_VERTICAL_SCROLL,
-                                             -1);
-
-        return;
-      }
-  #endif /* GDK_WINDOWING_X11 */
 
   xdp_session_pointer_axis (self->session, FALSE, dx, dy);
   xdp_session_pointer_axis (self->session, TRUE, 0.0, 0.0);

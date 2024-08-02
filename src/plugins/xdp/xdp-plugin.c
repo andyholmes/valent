@@ -3,7 +3,6 @@
 
 #include "config.h"
 
-#include <gtk/gtk.h>
 #include <libpeas.h>
 #include <libportal/portal.h>
 #ifdef HAVE_LIBPORTAL_GTK4
@@ -19,13 +18,9 @@
 _VALENT_EXTERN void
 valent_xdp_plugin_register_types (PeasObjectModule *module)
 {
-  /* This extension only makes sense in a graphical environment. */
-  if (gtk_is_initialized ())
-    {
-      peas_object_module_register_extension_type (module,
-                                                  VALENT_TYPE_INPUT_ADAPTER,
-                                                  VALENT_TYPE_XDP_INPUT);
-    }
+  peas_object_module_register_extension_type (module,
+                                              VALENT_TYPE_INPUT_ADAPTER,
+                                              VALENT_TYPE_XDP_INPUT);
 
   /* These extensions only makes sense in a sandbox environment. */
   if (xdp_portal_running_under_sandbox ())
@@ -35,7 +30,6 @@ valent_xdp_plugin_register_types (PeasObjectModule *module)
                                                   VALENT_TYPE_APPLICATION_PLUGIN,
                                                   VALENT_TYPE_XDP_BACKGROUND);
 #endif /* HAVE_LIBPORTAL_GTK4 */
-
       peas_object_module_register_extension_type (module,
                                                   VALENT_TYPE_SESSION_ADAPTER,
                                                   VALENT_TYPE_XDP_SESSION);
