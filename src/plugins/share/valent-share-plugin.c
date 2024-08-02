@@ -7,7 +7,6 @@
 
 #include <glib/gi18n.h>
 #include <gio/gio.h>
-#include <gtk/gtk.h>
 #include <json-glib/json-glib.h>
 #include <valent.h>
 
@@ -587,96 +586,9 @@ valent_share_plugin_upload_file (ValentSharePlugin *self,
   valent_share_upload_add_file (VALENT_SHARE_UPLOAD (self->upload), file);
 }
 
-static void
-valent_share_plugin_upload_files (ValentSharePlugin *self,
-                                  GListModel        *files)
-{
-  g_assert (VALENT_IS_SHARE_PLUGIN (self));
-  g_assert (G_IS_LIST_MODEL (files));
-  g_assert (g_list_model_get_item_type (files) == G_TYPE_FILE);
-
-  /* Create a new transfer, if necessary */
-  if (self->upload == NULL)
-    {
-      ValentDevice *device;
-
-      device = valent_extension_get_object (VALENT_EXTENSION (self));
-
-      self->upload = valent_share_upload_new (device);
-      g_signal_connect_object (self->upload,
-                               "items-changed",
-                               G_CALLBACK (valent_share_upload_files_added),
-                               self, 0);
-      g_hash_table_replace (self->transfers,
-                            valent_transfer_dup_id (self->upload),
-                            g_object_ref (self->upload));
-    }
-
-  valent_share_upload_add_files (VALENT_SHARE_UPLOAD (self->upload), files);
-}
-
 /*
  * GActions
  */
-static void
-gtk_file_dialog_open_multiple_cb (GtkFileDialog     *dialog,
-                                  GAsyncResult      *result,
-                                  ValentSharePlugin *self)
-{
-  g_autoptr (GListModel) files = NULL;
-  g_autoptr (GError) error = NULL;
-
-  files = gtk_file_dialog_open_multiple_finish (dialog, result, &error);
-
-  if (files == NULL)
-    {
-      if (!g_error_matches (error, GTK_DIALOG_ERROR, GTK_DIALOG_ERROR_CANCELLED) &&
-          !g_error_matches (error, GTK_DIALOG_ERROR, GTK_DIALOG_ERROR_DISMISSED))
-        g_warning ("%s(): %s", G_STRFUNC, error->message);
-
-      return;
-    }
-
-  valent_share_plugin_upload_files (self, files);
-}
-
-/**
- * ValentSharePlugin|share.chooser:
- * @parameter: %NULL
- *
- * The default share action opens the platform-specific dialog for selecting
- * files, typically a `GtkFileChooserDialog`.
- */
-static void
-share_chooser_action (GSimpleAction *action,
-                      GVariant      *parameter,
-                      gpointer       user_data)
-{
-  ValentSharePlugin *self = VALENT_SHARE_PLUGIN (user_data);
-  g_autoptr (GCancellable) destroy = NULL;
-  GtkFileDialog *dialog;
-
-  g_assert (VALENT_IS_SHARE_PLUGIN (self));
-
-  if (!gtk_is_initialized ())
-    {
-      g_warning ("%s: No display available", G_OBJECT_TYPE_NAME (self));
-      return;
-    }
-
-  dialog = g_object_new (GTK_TYPE_FILE_DIALOG,
-                         "title",           _("Share Files"),
-                         "accept-label",    _("Share"),
-                         NULL);
-
-  destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
-  gtk_file_dialog_open_multiple (dialog,
-                                 NULL,
-                                 destroy,
-                                 (GAsyncReadyCallback)gtk_file_dialog_open_multiple_cb,
-                                 self);
-}
-
 /**
  * ValentSharePlugin|share.cancel:
  * @parameter: "s"
@@ -1021,7 +933,6 @@ share_view_action (GSimpleAction *action,
 }
 
 static GActionEntry actions[] = {
-    {"chooser", share_chooser_action, NULL, NULL, NULL},
     {"cancel",  share_cancel_action,  "s",  NULL, NULL},
     {"copy",    share_copy_action,    "s",  NULL, NULL},
     {"open",    share_open_action,    "s",  NULL, NULL},
@@ -1303,7 +1214,6 @@ static void
 valent_share_plugin_destroy (ValentObject *object)
 {
   ValentSharePlugin *self = VALENT_SHARE_PLUGIN (object);
-  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
   GHashTableIter iter;
   ValentTransfer *transfer;
 
@@ -1318,8 +1228,6 @@ valent_share_plugin_destroy (ValentObject *object)
 
   g_clear_object (&self->download);
   g_clear_object (&self->upload);
-
-  valent_device_plugin_set_menu_item (plugin, "device.share.chooser", NULL);
 
   VALENT_OBJECT_CLASS (valent_share_plugin_parent_class)->destroy (object);
 }
@@ -1336,10 +1244,6 @@ valent_share_plugin_constructed (GObject *object)
                                    actions,
                                    G_N_ELEMENTS (actions),
                                    plugin);
-  valent_device_plugin_set_menu_action (plugin,
-                                        "device.share.chooser",
-                                        _("Send Files"),
-                                        "document-send-symbolic");
 
   G_OBJECT_CLASS (valent_share_plugin_parent_class)->constructed (object);
 }
