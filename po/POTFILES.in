@@ -29,6 +29,8 @@ src/libvalent/ui/valent-menu-list.c
 src/libvalent/ui/valent-plugin-row.ui
 src/libvalent/ui/valent-preferences-dialog.c
 src/libvalent/ui/valent-preferences-dialog.ui
+src/libvalent/ui/valent-presenter-remote.c
+src/libvalent/ui/valent-presenter-remote.ui
 src/libvalent/ui/valent-share-dialog.c
 src/libvalent/ui/valent-share-dialog.ui
 src/libvalent/ui/valent-time-helpers.c
@@ -60,8 +62,6 @@ src/plugins/ping/valent-ping-plugin.c
 src/plugins/pipewire/pipewire.plugin.desktop.in
 src/plugins/presenter/presenter.plugin.desktop.in
 src/plugins/presenter/valent-presenter-plugin.c
-src/plugins/presenter/valent-presenter-remote.c
-src/plugins/presenter/valent-presenter-remote.ui
 src/plugins/pulseaudio/pulseaudio.plugin.desktop.in
 src/plugins/runcommand/runcommand.plugin.desktop.in
 src/plugins/runcommand/valent-runcommand-plugin.c

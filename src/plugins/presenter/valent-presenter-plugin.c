@@ -7,7 +7,6 @@
 
 #include <glib/gi18n.h>
 #include <gio/gio.h>
-#include <gtk/gtk.h>
 #include <json-glib/json-glib.h>
 #include <valent.h>
 
@@ -101,37 +100,8 @@ valent_presenter_plugin_toggle_actions (ValentPresenterPlugin *self,
 
   g_assert (VALENT_IS_PRESENTER_PLUGIN (self));
 
-  action = g_action_map_lookup_action (G_ACTION_MAP (self), "remote");
-  g_simple_action_set_enabled (G_SIMPLE_ACTION (action),
-                               available && gtk_is_initialized ());
-
   action = g_action_map_lookup_action (G_ACTION_MAP (self), "pointer");
   g_simple_action_set_enabled (G_SIMPLE_ACTION (action), available);
-}
-
-static void
-presenter_remote_action (GSimpleAction *action,
-                         GVariant      *parameter,
-                         gpointer       user_data)
-{
-  ValentPresenterPlugin *self = VALENT_PRESENTER_PLUGIN (user_data);
-
-  g_assert (VALENT_IS_PRESENTER_PLUGIN (self));
-  g_assert (gtk_is_initialized ());
-
-  if (self->remote == NULL)
-    {
-      ValentDevice *device;
-
-      device = valent_extension_get_object (VALENT_EXTENSION (self));
-      self->remote = g_object_new (VALENT_TYPE_PRESENTER_REMOTE,
-                                   "device", device,
-                                   NULL);
-      g_object_add_weak_pointer (G_OBJECT (self->remote),
-                                 (gpointer) &self->remote);
-    }
-
-  gtk_window_present (self->remote);
 }
 
 static void
@@ -156,7 +126,6 @@ presenter_pointer_action (GSimpleAction *action,
 }
 
 static const GActionEntry actions[] = {
-    {"remote",  presenter_remote_action,  NULL,    NULL, NULL},
     {"pointer", presenter_pointer_action, "(ddu)", NULL, NULL}
 };
 
@@ -197,23 +166,6 @@ valent_presenter_plugin_handle_packet (ValentDevicePlugin *plugin,
 }
 
 /*
- * ValentObject
- */
-static void
-valent_presenter_plugin_destroy (ValentObject *object)
-{
-  ValentPresenterPlugin *self = VALENT_PRESENTER_PLUGIN (object);
-  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
-
-  /* Destroy the presentation remote if necessary */
-  g_clear_pointer (&self->remote, gtk_window_destroy);
-
-  valent_device_plugin_set_menu_item (plugin, "device.presenter.remote", NULL);
-
-  VALENT_OBJECT_CLASS (valent_presenter_plugin_parent_class)->destroy (object);
-}
-
-/*
  * GObject
  */
 static void
@@ -227,10 +179,6 @@ valent_presenter_plugin_constructed (GObject *object)
                                    actions,
                                    G_N_ELEMENTS (actions),
                                    plugin);
-  valent_device_plugin_set_menu_action (plugin,
-                                        "device.presenter.remote",
-                                        _("Presentation Remote"),
-                                        "valent-presenter-plugin");
 
   G_OBJECT_CLASS (valent_presenter_plugin_parent_class)->constructed (object);
 }
@@ -239,12 +187,9 @@ static void
 valent_presenter_plugin_class_init (ValentPresenterPluginClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
-  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
 
   object_class->constructed = valent_presenter_plugin_constructed;
-
-  vobject_class->destroy = valent_presenter_plugin_destroy;
 
   plugin_class->handle_packet = valent_presenter_plugin_handle_packet;
   plugin_class->update_state = valent_presenter_plugin_update_state;

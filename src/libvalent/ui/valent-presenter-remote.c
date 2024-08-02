@@ -193,7 +193,7 @@ valent_presenter_remote_class_init (ValentPresenterRemoteClass *klass)
   object_class->get_property = valent_presenter_remote_get_property;
   object_class->set_property = valent_presenter_remote_set_property;
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/presenter/valent-presenter-remote.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-presenter-remote.ui");
 
   gtk_widget_class_install_action (widget_class, "remote.open", NULL, presenter_open_action);
 
