@@ -5,13 +5,11 @@
 
 #include "config.h"
 
-#include <gtk/gtk.h>
 #include <libportal/portal.h>
 #include <gio/gio.h>
 #include <json-glib/json-glib.h>
 #include <valent.h>
 
-#include "valent-notification-dialog.h"
 #include "valent-notification-plugin.h"
 #include "valent-notification-upload.h"
 
@@ -27,7 +25,6 @@ struct _ValentNotificationPlugin
   ValentSession       *session;
 
   GHashTable          *cache;
-  GHashTable          *dialogs;
   unsigned int         notifications_watch : 1;
 };
 
@@ -775,17 +772,6 @@ notification_close_action (GSimpleAction *action,
 }
 
 static void
-on_dialog_destroyed (ValentNotificationDialog *dialog,
-                     GHashTable               *dialogs)
-{
-  ValentNotification *notification = NULL;
-
-  notification = valent_notification_dialog_get_notification (dialog);
-  if (notification != NULL)
-    g_hash_table_remove (dialogs, notification);
-}
-
-static void
 notification_reply_action (GSimpleAction *action,
                            GVariant      *parameter,
                            gpointer       user_data)
@@ -809,39 +795,7 @@ notification_reply_action (GSimpleAction *action,
   /* If the message is empty, we're being asked to show the dialog */
   if (message == NULL || *message == '\0')
     {
-      g_autoptr (ValentNotification) notification = NULL;
-      ValentNotificationDialog *dialog = NULL;
-
-      if (!gtk_is_initialized ())
-        {
-          g_warning ("%s: No display available", G_STRFUNC);
-          return;
-        }
-
-      notification = valent_notification_deserialize (notificationv);
-
-      if ((dialog = g_hash_table_lookup (self->dialogs, notification)) == NULL)
-        {
-          ValentDevice *device;
-
-          device = valent_extension_get_object (VALENT_EXTENSION (self));
-          dialog = g_object_new (VALENT_TYPE_NOTIFICATION_DIALOG,
-                                 "device",       device,
-                                 "notification", notification,
-                                 "reply-id",     reply_id,
-                                 NULL);
-          g_signal_connect_data (dialog,
-                                 "destroy",
-                                 G_CALLBACK (on_dialog_destroyed),
-                                 g_hash_table_ref (self->dialogs),
-                                 (void *)g_hash_table_unref,
-                                 G_CONNECT_DEFAULT);
-          g_hash_table_replace (self->dialogs,
-                                g_object_ref (notification),
-                                dialog);
-        }
-
-      gtk_window_present (GTK_WINDOW (dialog));
+      g_warning ("%s(): reply is empty", G_STRFUNC);
     }
   else
     {
@@ -967,15 +921,9 @@ valent_notification_plugin_destroy (ValentObject *object)
 
   valent_notification_plugin_watch_notifications (self, FALSE);
 
-  /* Clear the cache and close any open reply dialogs */
+  /* Clear the cache and cancel any pending operations
+   */
   g_clear_pointer (&self->cache, g_hash_table_unref);
-  if (self->dialogs != NULL)
-    {
-      g_hash_table_remove_all (self->dialogs);
-      g_clear_pointer (&self->dialogs, g_hash_table_unref);
-    }
-
-  /* Cancel any pending operations */
   g_cancellable_cancel (self->cancellable);
   g_clear_object (&self->cancellable);
 
@@ -1004,10 +952,6 @@ valent_notification_plugin_constructed (GObject *object)
                                        g_str_equal,
                                        g_free,
                                        (GDestroyNotify)json_node_unref);
-  self->dialogs = g_hash_table_new_full (valent_notification_hash,
-                                         valent_notification_equal,
-                                         g_object_unref,
-                                         (GDestroyNotify)gtk_window_destroy);
 
   G_OBJECT_CLASS (valent_notification_plugin_parent_class)->constructed (object);
 }
