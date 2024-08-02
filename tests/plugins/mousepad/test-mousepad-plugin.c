@@ -6,6 +6,7 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
+#include "valent-mousepad-keydef.h"
 
 static void
 mousepad_plugin_fixture_tear_down (ValentTestFixture *fixture,
@@ -183,7 +184,7 @@ test_mousepad_plugin_send_keyboard_request (ValentTestFixture *fixture,
   gunichar *w;
 
   keysym = 'a';
-  mask = GDK_ALT_MASK | GDK_CONTROL_MASK | GDK_SHIFT_MASK | GDK_SUPER_MASK;
+  mask = KEYMOD_KDE_MASK;
 
   g_variant_dict_init (&dict, NULL);
   g_variant_dict_insert (&dict, "keysym", "u", keysym);
@@ -202,7 +203,7 @@ test_mousepad_plugin_send_keyboard_request (ValentTestFixture *fixture,
 
   VALENT_TEST_CHECK ("Plugin action `mousepad.event` sends unicode keysyms");
   w = g_utf8_to_ucs4 ("🐱", -1, NULL, NULL, NULL);
-  keysym = gdk_unicode_to_keyval (*w);
+  keysym = valent_input_unicode_to_keysym (*w);
   mask = 0;
   g_free (w);
 
@@ -224,7 +225,7 @@ test_mousepad_plugin_send_keyboard_request (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin action `mousepad.event` sends special keys "
                      "(aka non-printable ASCII");
   // TODO iterate special keys
-  keysym = GDK_KEY_F12;
+  keysym = KEYSYM_F12;
   mask = 0;
 
   g_variant_dict_init (&dict, NULL);

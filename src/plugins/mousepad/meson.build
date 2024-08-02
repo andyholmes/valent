@@ -10,6 +10,7 @@ plugin_mousepad_deps = [
 plugin_mousepad_sources = files([
   'mousepad-plugin.c',
   'valent-mousepad-device.c',
+  'valent-mousepad-keydef.c',
   'valent-mousepad-plugin.c',
 ])
 

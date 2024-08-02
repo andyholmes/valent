@@ -3,219 +3,121 @@
 
 #pragma once
 
-#include <gdk/gdk.h>
+#include <stdint.h>
+
+#include <glib.h>
 
 G_BEGIN_DECLS
 
-/**
- * valent_mousepad_keysym_is_modifier:
- * @keysym: a keysym
+/*< private>
  *
- * Check if @keysym is a known keyboard modifier (e.g. Shift).
+ * These are the X11 keysyms that need to be translated to/from
+ * KDE Connect keycodes.
  *
- * Returns: %TRUE, or %FALSE if not a modifier
+ * See: https://cgit.freedesktop.org/xorg/proto/x11proto/plain/keysymdef.h
  */
-static inline gboolean
-valent_mousepad_keysym_is_modifier (uint32_t keysym)
-{
-  switch (keysym)
-    {
-    /* Supported */
-    case GDK_KEY_Control_L:
-    case GDK_KEY_Control_R:
-    case GDK_KEY_Alt_L:
-    case GDK_KEY_Alt_R:
-    case GDK_KEY_Shift_L:
-    case GDK_KEY_Shift_R:
-    case GDK_KEY_Super_L:
-    case GDK_KEY_Super_R:
+#define KEYSYM_ISO_Level3_Shift 0xfe03
+#define KEYSYM_ISO_Level3_Latch 0xfe04
+#define KEYSYM_ISO_Level5_Shift 0xfe11
+#define KEYSYM_ISO_Level5_Latch 0xfe12
+#define KEYSYM_ISO_Enter        0xfe34
+#define KEYSYM_Overlay1_Enable  0xfe78
+#define KEYSYM_Overlay2_Enable  0xfe79
+#define KEYSYM_BackSpace        0xff08
+#define KEYSYM_Tab              0xff09
+#define KEYSYM_Linefeed         0xff0a
+#define KEYSYM_Return           0xff0d
+#define KEYSYM_Scroll_Lock      0xff14
+#define KEYSYM_Sys_Req          0xff15
+#define KEYSYM_Escape           0xff1b
+#define KEYSYM_Home             0xff50
+#define KEYSYM_Left             0xff51
+#define KEYSYM_Up               0xff52
+#define KEYSYM_Right            0xff53
+#define KEYSYM_Down             0xff54
+#define KEYSYM_Page_Up          0xff55
+#define KEYSYM_Page_Down        0xff56
+#define KEYSYM_End              0xff57
+#define KEYSYM_Mode_switch      0xff7e
+#define KEYSYM_KP_Tab           0xff89
+#define KEYSYM_KP_Enter         0xff8d
+#define KEYSYM_KP_Home          0xff95
+#define KEYSYM_KP_Left          0xff96
+#define KEYSYM_KP_Up            0xff97
+#define KEYSYM_KP_Right         0xff98
+#define KEYSYM_KP_Down          0xff99
+#define KEYSYM_KP_Page_Up       0xff9a
+#define KEYSYM_KP_Page_Down     0xff9b
+#define KEYSYM_KP_End           0xff9c
+#define KEYSYM_KP_Delete        0xff9f
+#define KEYSYM_F1               0xffbe
+#define KEYSYM_F2               0xffbf
+#define KEYSYM_F3               0xffc0
+#define KEYSYM_F4               0xffc1
+#define KEYSYM_F5               0xffc2
+#define KEYSYM_F6               0xffc3
+#define KEYSYM_F7               0xffc4
+#define KEYSYM_F8               0xffc5
+#define KEYSYM_F9               0xffc6
+#define KEYSYM_F10              0xffc7
+#define KEYSYM_F11              0xffc8
+#define KEYSYM_F12              0xffc9
+#define KEYSYM_Shift_L          0xffe1
+#define KEYSYM_Shift_R          0xffe2
+#define KEYSYM_Control_L        0xffe3
+#define KEYSYM_Control_R        0xffe4
+#define KEYSYM_Caps_Lock        0xffe5
+#define KEYSYM_Shift_Lock       0xffe6
+#define KEYSYM_Meta_L           0xffe7
+#define KEYSYM_Meta_R           0xffe8
+#define KEYSYM_Alt_L            0xffe9
+#define KEYSYM_Alt_R            0xffea
+#define KEYSYM_Super_L          0xffeb
+#define KEYSYM_Super_R          0xffec
+#define KEYSYM_Hyper_L          0xffed
+#define KEYSYM_Hyper_R          0xffee
 
-    /* Unsupported */
-    case GDK_KEY_Overlay1_Enable:
-    case GDK_KEY_Overlay2_Enable:
-    case GDK_KEY_Caps_Lock:
-    case GDK_KEY_Shift_Lock:
-    case GDK_KEY_Meta_L:
-    case GDK_KEY_Meta_R:
-    case GDK_KEY_Hyper_L:
-    case GDK_KEY_Hyper_R:
-    case GDK_KEY_Mode_switch:
-    case GDK_KEY_ISO_Level3_Shift:
-    case GDK_KEY_ISO_Level3_Latch:
-    case GDK_KEY_ISO_Level5_Shift:
-    case GDK_KEY_ISO_Level5_Latch:
-      return TRUE;
-    default:
-      return FALSE;
-    }
-}
-
-/**
- * valent_mousepad_keycode_to_keyval:
- * @keycode: a special keycode
- *
- * Convert @keycode from a KDE Connect special key to a GDK keyval.
- *
- * Returns: a GDK keyval, or `0` if not found
- */
-static inline uint32_t
-valent_mousepad_keycode_to_keyval (uint32_t  keycode)
-{
-  static const uint32_t keymap[] = {
-    0,                   // 0 (Invalid)
-    GDK_KEY_BackSpace,   // 1
-    GDK_KEY_Tab,         // 2
-    GDK_KEY_Linefeed,    // 3
-    GDK_KEY_Left,        // 4
-    GDK_KEY_Up,          // 5
-    GDK_KEY_Right,       // 6
-    GDK_KEY_Down,        // 7
-    GDK_KEY_Page_Up,     // 8
-    GDK_KEY_Page_Down,   // 9
-    GDK_KEY_Home,        // 10
-    GDK_KEY_End,         // 11
-    GDK_KEY_Return,      // 12
-    GDK_KEY_Delete,      // 13
-    GDK_KEY_Escape,      // 14
-    GDK_KEY_Sys_Req,     // 15
-    GDK_KEY_Scroll_Lock, // 16
-    0,                   // 17 (Reserved)
-    0,                   // 18 (Reserved)
-    0,                   // 19 (Reserved)
-    0,                   // 20 (Reserved)
-    GDK_KEY_F1,          // 21
-    GDK_KEY_F2,          // 22
-    GDK_KEY_F3,          // 23
-    GDK_KEY_F4,          // 24
-    GDK_KEY_F5,          // 25
-    GDK_KEY_F6,          // 26
-    GDK_KEY_F7,          // 27
-    GDK_KEY_F8,          // 28
-    GDK_KEY_F9,          // 29
-    GDK_KEY_F10,         // 30
-    GDK_KEY_F11,         // 31
-    GDK_KEY_F12,         // 32
-  };
-
-  if (keycode >= G_N_ELEMENTS (keymap))
-    return 0;
-
-  return keymap[keycode];
-}
+#define KEYSYM_Delete           0xffff
 
 /**
- * valent_mousepad_keyval_to_keycode:
- * @keyval: a key value
+ * KeyModifierType:
+ * @KEYMOD_NONE_MASK: no modifiers set
+ * @KEYMOD_SHIFT_MASK: the Shift key.
+ * @KEYMOD_LOCK_MASK: a Lock key (CapsLock or ShiftLock).
+ * @KEYMOD_CONTROL_MASK: the Control key.
+ * @KEYMOD_META_MASK: the Meta modifier. Maps to Command on macOS.
+ * @KEYMOD_ALT_MASK: the Alt key.
+ * @KEYMOD_SUPER_MASK: the Super modifier.
+ * @KEYMOD_HYPER_MASK: the Hyper modifier.
+ * @KEYMOD_KDE_MASK: a mask for all modifiers supported by KDE Connect.
+ * @KEYMOD_ANY_MASK: a mask for all modifiers.
  *
- * Convert @keyval from a GDK keyval to a special key for KDE Connect.
- *
- * Returns: a special key code, or `0` if not found
+ * Mask flags for keyboard modifiers.
  */
-static inline uint32_t
-valent_mousepad_keyval_to_keycode (uint32_t keyval)
+typedef enum
 {
-  switch (keyval)
-    {
-    case GDK_KEY_BackSpace:
-      return 1;
+  KEYMOD_NONE_MASK    = 0,       // 0x00
+  KEYMOD_SHIFT_MASK   = 1 << 0,  // 0x01
+  KEYMOD_CONTROL_MASK = 1 << 1,  // 0x02
+  KEYMOD_LOCK_MASK    = 1 << 2,  // 0x04
+  KEYMOD_META_MASK    = 1 << 3,  // 0x08
+  KEYMOD_ALT_MASK     = 1 << 4,  // 0x10
+  KEYMOD_SUPER_MASK   = 1 << 5,  // 0x20
+  KEYMOD_HYPER_MASK   = 1 << 6,  // 0x40
 
-    case GDK_KEY_Tab:
-    case GDK_KEY_KP_Tab:
-      return 2;
+  KEYMOD_KDE_MASK     = 0x33,
+  KEYMOD_ANY_MASK     = 0x7f,
+} KeyModifierType;
 
-    case GDK_KEY_Linefeed:
-      return 3;
 
-    case GDK_KEY_Left:
-    case GDK_KEY_KP_Left:
-      return 4;
+gboolean   valent_input_keysym_to_modifier   (uint32_t         keysym,
+                                              gboolean         state,
+                                              KeyModifierType *out_modifier);
+uint32_t   valent_input_keysym_to_unicode    (uint32_t         keysym);
+uint32_t   valent_input_unicode_to_keysym    (uint32_t         wc);
 
-    case GDK_KEY_Up:
-    case GDK_KEY_KP_Up:
-      return 5;
-
-    case GDK_KEY_Right:
-    case GDK_KEY_KP_Right:
-      return 6;
-
-    case GDK_KEY_Down:
-    case GDK_KEY_KP_Down:
-      return 7;
-
-    case GDK_KEY_Page_Up:
-    case GDK_KEY_KP_Page_Up:
-      return 8;
-
-    case GDK_KEY_Page_Down:
-    case GDK_KEY_KP_Page_Down:
-      return 9;
-
-    case GDK_KEY_Home:
-    case GDK_KEY_KP_Home:
-      return 10;
-
-    case GDK_KEY_End:
-    case GDK_KEY_KP_End:
-      return 11;
-
-    case GDK_KEY_Return:
-    case GDK_KEY_KP_Enter:
-    case GDK_KEY_ISO_Enter:
-      return 12;
-
-    case GDK_KEY_Delete:
-    case GDK_KEY_KP_Delete:
-      return 13;
-
-    case GDK_KEY_Escape:
-      return 14;
-
-    case GDK_KEY_Sys_Req:
-      return 15;
-
-    case GDK_KEY_Scroll_Lock:
-      return 16;
-
-    case GDK_KEY_F1:
-      return 21;
-
-    case GDK_KEY_F2:
-      return 22;
-
-    case GDK_KEY_F3:
-      return 23;
-
-    case GDK_KEY_F4:
-      return 24;
-
-    case GDK_KEY_F5:
-      return 25;
-
-    case GDK_KEY_F6:
-      return 26;
-
-    case GDK_KEY_F7:
-      return 27;
-
-    case GDK_KEY_F8:
-      return 28;
-
-    case GDK_KEY_F9:
-      return 29;
-
-    case GDK_KEY_F10:
-      return 30;
-
-    case GDK_KEY_F11:
-      return 31;
-
-    case GDK_KEY_F12:
-      return 32;
-
-    default:
-      return 0;
-    }
-}
+uint32_t   valent_mousepad_keycode_to_keysym (uint32_t         keycode);
+uint32_t   valent_mousepad_keysym_to_keycode (uint32_t         keysym);
 
 G_END_DECLS
 
