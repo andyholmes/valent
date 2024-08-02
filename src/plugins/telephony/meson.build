@@ -5,6 +5,8 @@
 # Dependencies
 plugin_telephony_deps = [
   libvalent_dep,
+
+  gdk_pixbuf_dep,
 ]
 
 # Sources

@@ -182,6 +182,7 @@ configure_file(
 # Dependencies
 #
 glib_version = '>= 2.76.0'
+gdk_pixbuf_version = '>= 2.0'
 gtk_version = '>= 4.10.0'
 gnutls_version = '>= 3.1.3'
 json_glib_version = '>= 1.6.0'
@@ -194,6 +195,7 @@ libportal_version = ['>= 0.6', '<= 0.7.1']
 libm_dep = cc.find_library('m', required: true)
 gio_dep = dependency('gio-2.0', version: glib_version)
 gio_unix_dep = dependency('gio-unix-2.0', version: glib_version)
+gdk_pixbuf_dep = dependency('gdk-pixbuf-2.0', version: gdk_pixbuf_version)
 gnutls_dep = dependency('gnutls', version: gnutls_version)
 json_glib_dep = dependency('json-glib-1.0', version: json_glib_version)
 libpeas_dep = dependency('libpeas-2', version: libpeas_version)
