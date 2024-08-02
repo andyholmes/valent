@@ -25,6 +25,7 @@
         "doc/sdk/**",
         "LICENSES/**",
         "po/**",
+        "src/plugins/mousepad/valent-mousepad-keydef.*",
         "subprojects/**",
         "tests/extra/**",
         "tests/fixtures/data/**",
