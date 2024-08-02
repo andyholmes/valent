@@ -8,10 +8,8 @@ plugin_share_test_deps = [
 ]
 
 plugin_runcommand_tests = [
-  'test-share-dialog',
   'test-share-download',
   'test-share-plugin',
-  'test-share-target',
   'test-share-upload',
 ]
 

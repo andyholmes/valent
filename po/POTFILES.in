@@ -29,6 +29,8 @@ src/libvalent/ui/valent-menu-list.c
 src/libvalent/ui/valent-plugin-row.ui
 src/libvalent/ui/valent-preferences-dialog.c
 src/libvalent/ui/valent-preferences-dialog.ui
+src/libvalent/ui/valent-share-dialog.c
+src/libvalent/ui/valent-share-dialog.ui
 src/libvalent/ui/valent-time-helpers.c
 src/libvalent/ui/valent-window.c
 src/libvalent/ui/valent-window.ui
@@ -66,10 +68,6 @@ src/plugins/runcommand/valent-runcommand-plugin.c
 src/plugins/sftp/sftp.plugin.desktop.in
 src/plugins/sftp/valent-sftp-plugin.c
 src/plugins/share/share.plugin.desktop.in
-src/plugins/share/valent-share-dialog.c
-src/plugins/share/valent-share-dialog-row.c
-src/plugins/share/valent-share-dialog-row.ui
-src/plugins/share/valent-share-dialog.ui
 src/plugins/share/valent-share-plugin.c
 src/plugins/sms/sms.plugin.desktop.in
 src/plugins/sms/valent-contact-row.c

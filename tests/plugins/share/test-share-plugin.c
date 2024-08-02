@@ -35,7 +35,6 @@ test_share_plugin_basic (ValentTestFixture *fixture,
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
 
   VALENT_TEST_CHECK ("Plugin has expected actions");
-  g_assert_true (g_action_group_has_action (actions, "share.chooser"));
   g_assert_true (g_action_group_has_action (actions, "share.cancel"));
   g_assert_true (g_action_group_has_action (actions, "share.open"));
   g_assert_true (g_action_group_has_action (actions, "share.text"));
@@ -46,7 +45,6 @@ test_share_plugin_basic (ValentTestFixture *fixture,
   valent_test_fixture_connect (fixture, TRUE);
 
   VALENT_TEST_CHECK ("Plugin actions are enabled when connected");
-  g_assert_true (g_action_group_get_action_enabled (actions, "share.chooser"));
   g_assert_true (g_action_group_get_action_enabled (actions, "share.cancel"));
   g_assert_true (g_action_group_get_action_enabled (actions, "share.open"));
   g_assert_true (g_action_group_get_action_enabled (actions, "share.text"));

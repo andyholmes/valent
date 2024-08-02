@@ -65,6 +65,8 @@ libvalent_ui_public_sources = [
   'valent-menu-stack.c',
   'valent-plugin-row.c',
   'valent-preferences-dialog.c',
+  'valent-share-dialog.c',
+  'valent-share-dialog-row.c',
   'valent-time-helpers.c',
   'valent-ui-main.c',
   'valent-ui-manager.c',
