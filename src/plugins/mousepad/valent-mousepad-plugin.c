@@ -6,7 +6,6 @@
 #include "config.h"
 
 #include <glib/gi18n.h>
-#include <gdk/gdk.h>
 #include <gio/gio.h>
 #include <json-glib/json-glib.h>
 #include <valent.h>
@@ -33,22 +32,22 @@ static void   valent_mousepad_plugin_send_echo (ValentMousepadPlugin *self,
 G_DEFINE_FINAL_TYPE (ValentMousepadPlugin, valent_mousepad_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
-static GdkModifierType
+static KeyModifierType
 event_to_mask (JsonObject *body)
 {
-  GdkModifierType mask = 0;
+  KeyModifierType mask = 0;
 
   if (json_object_get_boolean_member_with_default (body, "alt", FALSE))
-    mask |= GDK_ALT_MASK;
+    mask |= KEYMOD_ALT_MASK;
 
   if (json_object_get_boolean_member_with_default (body, "ctrl", FALSE))
-    mask |= GDK_CONTROL_MASK;
+    mask |= KEYMOD_CONTROL_MASK;
 
   if (json_object_get_boolean_member_with_default (body, "shift", FALSE))
-    mask |= GDK_SHIFT_MASK;
+    mask |= KEYMOD_SHIFT_MASK;
 
   if (json_object_get_boolean_member_with_default (body, "super", FALSE))
-    mask |= GDK_SUPER_MASK;
+    mask |= KEYMOD_SUPER_MASK;
 
   return mask;
 }
@@ -58,17 +57,17 @@ keyboard_mask (ValentInput  *input,
                unsigned int  mask,
                gboolean      lock)
 {
-  if (mask & GDK_ALT_MASK)
-    valent_input_keyboard_keysym (input, GDK_KEY_Alt_L, lock);
+  if (mask & KEYMOD_ALT_MASK)
+    valent_input_keyboard_keysym (input, KEYSYM_Alt_L, lock);
 
-  if (mask & GDK_CONTROL_MASK)
-    valent_input_keyboard_keysym (input, GDK_KEY_Control_L, lock);
+  if (mask & KEYMOD_CONTROL_MASK)
+    valent_input_keyboard_keysym (input, KEYSYM_Control_L, lock);
 
-  if (mask & GDK_SHIFT_MASK)
-    valent_input_keyboard_keysym (input, GDK_KEY_Shift_L, lock);
+  if (mask & KEYMOD_SHIFT_MASK)
+    valent_input_keyboard_keysym (input, KEYSYM_Shift_L, lock);
 
-  if (mask & GDK_SUPER_MASK)
-    valent_input_keyboard_keysym (input, GDK_KEY_Super_L, lock);
+  if (mask & KEYMOD_SUPER_MASK)
+    valent_input_keyboard_keysym (input, KEYSYM_Super_L, lock);
 }
 
 /*
@@ -104,7 +103,7 @@ valent_mousepad_plugin_handle_mousepad_request (ValentMousepadPlugin *self,
   /* Keyboard Event */
   else if (valent_packet_get_string (packet, "key", &key))
     {
-      GdkModifierType mask;
+      KeyModifierType mask;
       const char *next;
       gunichar codepoint;
 
@@ -119,7 +118,7 @@ valent_mousepad_plugin_handle_mousepad_request (ValentMousepadPlugin *self,
         {
           uint32_t keysym;
 
-          keysym = gdk_unicode_to_keyval (codepoint);
+          keysym = valent_input_unicode_to_keysym (codepoint);
           valent_input_keyboard_keysym (self->input, keysym, TRUE);
           valent_input_keyboard_keysym (self->input, keysym, FALSE);
 
@@ -136,10 +135,10 @@ valent_mousepad_plugin_handle_mousepad_request (ValentMousepadPlugin *self,
     }
   else if (valent_packet_get_int (packet, "specialKey", &keycode))
     {
-      GdkModifierType mask;
-      uint32_t keyval;
+      KeyModifierType mask;
+      uint32_t keysym;
 
-      if ((keyval = valent_mousepad_keycode_to_keyval (keycode)) == 0)
+      if ((keysym = valent_mousepad_keycode_to_keysym (keycode)) == 0)
         {
           g_debug ("%s(): expected \"specialKey\" field holding a keycode",
                    G_STRFUNC);
@@ -151,8 +150,8 @@ valent_mousepad_plugin_handle_mousepad_request (ValentMousepadPlugin *self,
         keyboard_mask (self->input, mask, TRUE);
 
       /* Input each keysym */
-      valent_input_keyboard_keysym (self->input, keyval, TRUE);
-      valent_input_keyboard_keysym (self->input, keyval, FALSE);
+      valent_input_keyboard_keysym (self->input, keysym, TRUE);
+      valent_input_keyboard_keysym (self->input, keysym, FALSE);
 
       /* Unlock modifiers */
       if (mask != 0)
@@ -267,8 +266,8 @@ valent_mousepad_plugin_handle_mousepad_keyboardstate (ValentMousepadPlugin *self
  */
 static void
 valent_mousepad_plugin_mousepad_request_keyboard (ValentMousepadPlugin *self,
-                                                  uint32_t              keyval,
-                                                  GdkModifierType       mask)
+                                                  uint32_t              keysym,
+                                                  KeyModifierType       mask)
 {
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
@@ -278,7 +277,7 @@ valent_mousepad_plugin_mousepad_request_keyboard (ValentMousepadPlugin *self,
 
   valent_packet_init (&builder, "kdeconnect.mousepad.request");
 
-  if ((special_key = valent_mousepad_keyval_to_keycode (keyval)) != 0)
+  if ((special_key = valent_mousepad_keysym_to_keycode (keysym)) != 0)
     {
       json_builder_set_member_name (builder, "specialKey");
       json_builder_add_int_value (builder, special_key);
@@ -289,14 +288,12 @@ valent_mousepad_plugin_mousepad_request_keyboard (ValentMousepadPlugin *self,
       g_autofree char *key = NULL;
       gunichar wc;
 
-      wc = gdk_keyval_to_unicode (keyval);
+      wc = valent_input_keysym_to_unicode (keysym);
       key = g_ucs4_to_utf8 (&wc, 1, NULL, NULL, &error);
 
       if (key == NULL)
         {
-          g_warning ("Converting %s to string: %s",
-                     gdk_keyval_name (keyval),
-                     error->message);
+          g_warning ("Converting %u to string: %s", keysym, error->message);
           return;
         }
 
@@ -304,25 +301,25 @@ valent_mousepad_plugin_mousepad_request_keyboard (ValentMousepadPlugin *self,
       json_builder_add_string_value (builder, key);
     }
 
-  if (mask & GDK_ALT_MASK)
+  if (mask & KEYMOD_ALT_MASK)
     {
       json_builder_set_member_name (builder, "alt");
       json_builder_add_boolean_value (builder, TRUE);
     }
 
-  if (mask & GDK_CONTROL_MASK)
+  if (mask & KEYMOD_CONTROL_MASK)
     {
       json_builder_set_member_name (builder, "ctrl");
       json_builder_add_boolean_value (builder, TRUE);
     }
 
-  if (mask & GDK_SHIFT_MASK)
+  if (mask & KEYMOD_SHIFT_MASK)
     {
       json_builder_set_member_name (builder, "shift");
       json_builder_add_boolean_value (builder, TRUE);
     }
 
-  if (mask & GDK_SUPER_MASK)
+  if (mask & KEYMOD_SUPER_MASK)
     {
       json_builder_set_member_name (builder, "super");
       json_builder_add_boolean_value (builder, TRUE);
@@ -452,7 +449,7 @@ mousepad_event_action (GSimpleAction *action,
     }
   else if (g_variant_dict_lookup (&dict, "keysym", "u", &keysym))
     {
-      GdkModifierType mask = 0;
+      KeyModifierType mask = 0;
 
       g_variant_dict_lookup (&dict, "mask", "u", &mask);
       valent_mousepad_plugin_mousepad_request_keyboard (self, keysym, mask);

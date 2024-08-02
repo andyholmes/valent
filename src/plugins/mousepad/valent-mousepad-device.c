@@ -6,7 +6,6 @@
 #include "config.h"
 
 #include <gio/gio.h>
-#include <gdk/gdk.h>
 #include <gtk/gtk.h>
 #include <valent.h>
 
@@ -26,7 +25,7 @@ struct _ValentMousepadDevice
 
   /* keyboard */
   GArray             *keyboard_keys;
-  GdkModifierType     keyboard_modifiers;
+  KeyModifierType     keyboard_modifiers;
   unsigned int        keyboard_flush_id;
 
   /* pointer */
@@ -55,62 +54,6 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 /*
  * Keyboard
  */
-static inline gboolean
-valent_mousepad_device_update_modifiers (ValentMousepadDevice *self,
-                                         uint32_t              keysym,
-                                         gboolean              state)
-{
-  switch (keysym)
-    {
-    case GDK_KEY_Alt_L:
-    case GDK_KEY_Alt_R:
-      self->keyboard_modifiers = state
-        ? self->keyboard_modifiers | GDK_ALT_MASK
-        : self->keyboard_modifiers & ~GDK_ALT_MASK;
-      return TRUE;
-
-    case GDK_KEY_Control_L:
-    case GDK_KEY_Control_R:
-      self->keyboard_modifiers = state
-        ? self->keyboard_modifiers | GDK_CONTROL_MASK
-        : self->keyboard_modifiers & ~GDK_CONTROL_MASK;
-      return TRUE;
-
-    case GDK_KEY_Shift_L:
-    case GDK_KEY_Shift_R:
-      self->keyboard_modifiers = state
-        ? self->keyboard_modifiers | GDK_SHIFT_MASK
-        : self->keyboard_modifiers & ~GDK_SHIFT_MASK;
-      return TRUE;
-
-    case GDK_KEY_Super_L:
-    case GDK_KEY_Super_R:
-      self->keyboard_modifiers = state
-        ? self->keyboard_modifiers | GDK_SUPER_MASK
-        : self->keyboard_modifiers & ~GDK_SUPER_MASK;
-      return TRUE;
-
-    /* Return TRUE for known modifiers, even if unsupported */
-    case GDK_KEY_Overlay1_Enable:
-    case GDK_KEY_Overlay2_Enable:
-    case GDK_KEY_Caps_Lock:
-    case GDK_KEY_Shift_Lock:
-    case GDK_KEY_Meta_L:
-    case GDK_KEY_Meta_R:
-    case GDK_KEY_Hyper_L:
-    case GDK_KEY_Hyper_R:
-    case GDK_KEY_Mode_switch:
-    case GDK_KEY_ISO_Level3_Shift:
-    case GDK_KEY_ISO_Level3_Latch:
-    case GDK_KEY_ISO_Level5_Shift:
-    case GDK_KEY_ISO_Level5_Latch:
-      VALENT_NOTE ("skipping %s", gdk_keyval_name (keysym));
-      return TRUE;
-
-    default:
-      return FALSE;
-    }
-}
 
 static gboolean
 valent_mousepad_device_keyboard_flush (gpointer data)
@@ -132,7 +75,7 @@ valent_mousepad_device_keyboard_flush (gpointer data)
     {
       uint32_t *keysym = &g_array_index (self->keyboard_keys, uint32_t, n_handled);
 
-      if ((special_key = valent_mousepad_keyval_to_keycode (*keysym)) != 0)
+      if ((special_key = valent_mousepad_keysym_to_keycode (*keysym)) != 0)
         {
           /* If there are keys to be sent, they need to be sent first */
           if (key != NULL)
@@ -144,7 +87,7 @@ valent_mousepad_device_keyboard_flush (gpointer data)
         }
       else
         {
-          gunichar wc = gdk_keyval_to_unicode (*keysym);
+          gunichar wc = valent_input_keysym_to_unicode (*keysym);
 
           if (wc == 0)
             {
@@ -176,25 +119,25 @@ valent_mousepad_device_keyboard_flush (gpointer data)
     }
 
   /* Check our supported modifiers */
-  if ((self->keyboard_modifiers & GDK_ALT_MASK) != 0)
+  if ((self->keyboard_modifiers & KEYMOD_ALT_MASK) != 0)
     {
       json_builder_set_member_name (builder, "alt");
       json_builder_add_boolean_value (builder, TRUE);
     }
 
-  if ((self->keyboard_modifiers & GDK_CONTROL_MASK) != 0)
+  if ((self->keyboard_modifiers & KEYMOD_CONTROL_MASK) != 0)
     {
       json_builder_set_member_name (builder, "ctrl");
       json_builder_add_boolean_value (builder, TRUE);
     }
 
-  if ((self->keyboard_modifiers & GDK_SHIFT_MASK) != 0)
+  if ((self->keyboard_modifiers & KEYMOD_SHIFT_MASK) != 0)
     {
       json_builder_set_member_name (builder, "shift");
       json_builder_add_boolean_value (builder, TRUE);
     }
 
-  if ((self->keyboard_modifiers & GDK_SUPER_MASK) != 0)
+  if ((self->keyboard_modifiers & KEYMOD_SUPER_MASK) != 0)
     {
       json_builder_set_member_name (builder, "super");
       json_builder_add_boolean_value (builder, TRUE);
@@ -348,7 +291,7 @@ valent_mousepad_device_keyboard_keysym (ValentInputAdapter *adapter,
   g_return_if_fail (keysym != 0);
 
   /* Track modifiers, but don't send anything */
-  if (valent_mousepad_device_update_modifiers (self, keysym, state))
+  if (valent_input_keysym_to_modifier (keysym, state, &self->keyboard_modifiers))
     return;
 
   // TODO: the KDE Connect protocol doesn't support press and release states
@@ -360,7 +303,7 @@ valent_mousepad_device_keyboard_keysym (ValentInputAdapter *adapter,
   g_array_append_val (self->keyboard_keys, keysym);
 
   /* If there are modifiers set, the key should be sent immediately */
-  if ((self->keyboard_modifiers & GDK_MODIFIER_MASK) != 0)
+  if ((self->keyboard_modifiers & KEYMOD_ANY_MASK) != 0)
     {
       valent_mousepad_device_keyboard_flush (self);
       return;
