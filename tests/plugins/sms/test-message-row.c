@@ -79,7 +79,7 @@ main (int   argc,
 {
   valent_test_ui_init (&argc, &argv, NULL);
 
-  g_test_add_func ("/plugins/sms/message-row",
+  g_test_add_func ("/plugins/gnome/message-row",
                    test_sms_message_row);
 
   return g_test_run ();

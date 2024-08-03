@@ -972,6 +972,7 @@ valent_sms_device_new (ValentDevice *device)
                                 "plugin",
                                 "sms");
   return g_object_new (VALENT_TYPE_SMS_DEVICE,
+                       "object",  device,
                        "device",  device,
                        "context", context,
                        NULL);

@@ -16,8 +16,7 @@ test_sms_contact_row (void)
   g_autoptr (GBytes) bytes = NULL;
   g_autoptr (EContact) contact = NULL;
   g_autoptr (EContact) contact_out = NULL;
-  g_autofree char *contact_name = NULL;
-  g_autofree char *contact_addr = NULL;
+  g_autofree char *contact_medium = NULL;
 
   bytes = g_resources_lookup_data ("/tests/contact.vcf", 0, NULL);
   contact = e_contact_new_from_vcard (g_bytes_get_data (bytes, NULL));
@@ -29,19 +28,16 @@ test_sms_contact_row (void)
 
   VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_set (row,
-                "contact-name",   "Test Contact",
                 "contact-medium", "123-456-7890",
                 NULL);
 
   g_object_get (row,
                 "contact",        &contact_out,
-                "contact-name",   &contact_name,
-                "contact-medium", &contact_addr,
+                "contact-medium", &contact_medium,
                 NULL);
 
   g_assert_true (contact == contact_out);
-  g_assert_cmpstr (contact_name, ==, "Test Contact");
-  g_assert_cmpstr (contact_addr, ==, "123-456-7890");
+  g_assert_cmpstr (contact_medium, ==, "123-456-7890");
 
   VALENT_TEST_CHECK ("Widget can be realized");
   list = gtk_list_box_new ();

@@ -60,6 +60,9 @@ libvalent_test_generated_headers = [libvalent_test_resources[1]]
 # Dependencies
 libvalent_test_deps = [
   libvalent_dep,
+
+  dependency('gtk4', version: gtk_version),
+  dependency('libadwaita-1', version: libadwaita_version),
 ]
 
 if get_option('fuzz_tests') and libwalbottle_dep.found()

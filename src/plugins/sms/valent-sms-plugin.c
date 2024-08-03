@@ -151,10 +151,6 @@ valent_sms_plugin_constructed (GObject *object)
                                    actions,
                                    G_N_ELEMENTS (actions),
                                    plugin);
-  valent_device_plugin_set_menu_action (plugin,
-                                        "device.sms.messaging",
-                                        _("Messages"),
-                                        "valent-sms-plugin-symbolic");
 }
 
 static void

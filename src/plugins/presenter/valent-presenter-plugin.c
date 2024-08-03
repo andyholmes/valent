@@ -11,7 +11,6 @@
 #include <valent.h>
 
 #include "valent-presenter-plugin.h"
-#include "valent-presenter-remote.h"
 
 
 struct _ValentPresenterPlugin
@@ -19,7 +18,6 @@ struct _ValentPresenterPlugin
   ValentDevicePlugin  parent_instance;
 
   ValentInput        *input;
-  GtkWindow          *remote;
 };
 
 G_DEFINE_FINAL_TYPE (ValentPresenterPlugin, valent_presenter_plugin, VALENT_TYPE_DEVICE_PLUGIN)

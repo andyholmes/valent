@@ -83,10 +83,10 @@ main (int   argc,
 {
   valent_test_ui_init (&argc, &argv, NULL);
 
-  g_test_add_func ("/plugins/sms/avatar-from-contact",
+  g_test_add_func ("/plugins/gnome/avatar-from-contact",
                    test_sms_avatar_from_contact);
 
-  g_test_add_func ("/plugins/sms/contact-from-phone",
+  g_test_add_func ("/plugins/gnome/contact-from-phone",
                    test_sms_contact_from_phone);
 
   return g_test_run ();

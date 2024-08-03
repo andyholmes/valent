@@ -16,6 +16,26 @@ plugin_gnome_test_deps = [
 plugin_gnome_tests = {
   # FIXME: 'test-mutter-clipboard': mock_mutter,
   'test-mutter-input': mock_mutter,
+
+  'test-contact-page': disabler(),
+  'test-contact-row': disabler(),
+  'test-conversation-page': disabler(),
+  'test-conversation-row': disabler(),
+  'test-date-label': disabler(),
+  'test-device-page': disabler(),
+  'test-device-preferences-dialog': disabler(),
+  'test-input-remote': disabler(),
+  'test-media-remote': disabler(),
+  'test-menu-stack': disabler(),
+  'test-message-row': disabler(),
+  'test-messages-window': disabler(),
+  'test-notification-dialog': disabler(),
+  'test-preferences-dialog': disabler(),
+  'test-presenter-remote': disabler(),
+  'test-share-dialog': disabler(),
+  'test-ui-manager': disabler(),
+  'test-ui-utils': disabler(),
+  'test-window': disabler(),
 }
 
 foreach test, test_wrapper : plugin_gnome_tests
@@ -28,11 +48,27 @@ foreach test, test_wrapper : plugin_gnome_tests
            dependencies: plugin_gnome_test_deps,
     include_directories: plugin_gnome_include_directories,
               link_args: test_link_args,
-             link_whole: [libvalent_test, plugin_gnome],
+             link_whole: [
+               libvalent_test,
+               plugin_gnome,
+               plugin_battery,
+               plugin_clipboard,
+               plugin_runcommand,
+               plugin_connectivity_report,
+               plugin_contacts,
+               plugin_notification,
+               plugin_sftp,
+               plugin_share,
+               plugin_telephony,
+             ],
                 install: get_option('installed_tests'),
             install_dir: installed_tests_execdir,
          export_dynamic: true,
   )
+
+  if not test_wrapper.found()
+    test_wrapper = test_program
+  endif
 
   test(test, test_wrapper,
             env: plugin_gnome_tests_env,

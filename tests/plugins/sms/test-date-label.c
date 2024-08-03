@@ -47,7 +47,7 @@ main (int   argc,
 {
   valent_test_ui_init (&argc, &argv, NULL);
 
-  g_test_add_func ("/plugins/sms/date-label",
+  g_test_add_func ("/plugins/gnome/date-label",
                    test_sms_date_label);
 
   return g_test_run ();
