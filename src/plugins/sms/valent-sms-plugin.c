@@ -25,13 +25,19 @@ struct _ValentSmsPlugin
 
 G_DEFINE_FINAL_TYPE (ValentSmsPlugin, valent_sms_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
+/*
+ * GActions
+ */
 static void
-valent_sms_plugin_request_conversations (ValentSmsPlugin *self)
+sync_action (GSimpleAction *action,
+             GVariant      *parameter,
+             gpointer       user_data)
 {
+  ValentSmsPlugin *self = VALENT_SMS_PLUGIN (user_data);
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
-  g_return_if_fail (VALENT_IS_SMS_PLUGIN (self));
+  g_assert (VALENT_IS_SMS_PLUGIN (self));
 
   valent_packet_init (&builder, "kdeconnect.sms.request_conversations");
   packet = valent_packet_end (&builder);
@@ -39,23 +45,8 @@ valent_sms_plugin_request_conversations (ValentSmsPlugin *self)
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
 }
 
-/*
- * GActions
- */
-static void
-fetch_action (GSimpleAction *action,
-              GVariant      *parameter,
-              gpointer       user_data)
-{
-  ValentSmsPlugin *self = VALENT_SMS_PLUGIN (user_data);
-
-  g_assert (VALENT_IS_SMS_PLUGIN (self));
-
-  valent_sms_plugin_request_conversations (self);
-}
-
 static const GActionEntry actions[] = {
-    {"fetch", fetch_action, NULL, NULL, NULL},
+    {"sync", sync_action, NULL, NULL, NULL},
 };
 
 /*
@@ -81,7 +72,7 @@ valent_sms_plugin_update_state (ValentDevicePlugin *plugin,
       if (self->cancellable == NULL)
         {
           self->cancellable = g_cancellable_new ();
-          valent_sms_plugin_request_conversations (self);
+          g_action_group_activate_action (G_ACTION_GROUP (self), "sync", NULL);
         }
     }
   else
