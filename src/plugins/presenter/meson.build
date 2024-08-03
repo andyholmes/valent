@@ -4,8 +4,6 @@
 # Dependencies
 plugin_presenter_deps = [
   libvalent_dep,
-  dependency('gtk4', version: gtk_version),
-  dependency('libadwaita-1', version: libadwaita_version),
 ]
 
 # Sources

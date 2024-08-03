@@ -65,7 +65,7 @@ main (int   argc,
 {
   valent_test_init (&argc, &argv, NULL);
 
-  g_test_add_func ("/plugins/sms/message",
+  g_test_add_func ("/plugins/gnome/message",
                    test_sms_message);
 
   return g_test_run ();

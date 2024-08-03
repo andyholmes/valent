@@ -10,5 +10,4 @@ subdir('media')
 subdir('mixer')
 subdir('notifications')
 subdir('session')
-subdir('ui')
 

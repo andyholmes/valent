@@ -5,7 +5,7 @@
 
 srcdirs="src/libvalent src/plugins"
 datadirs="data src/plugins"
-uidirs="src/libvalent/ui src/plugins"
+uidirs="src/plugins"
 
 # find source files that contain gettext keywords
 # shellcheck disable=SC2086

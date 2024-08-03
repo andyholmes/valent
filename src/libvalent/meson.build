@@ -31,7 +31,6 @@ subdir('mixer')
 subdir('notifications')
 subdir('session')
 subdir('device')
-subdir('ui')
 
 
 #
@@ -79,8 +78,6 @@ pkgconfig.generate(
      requires_private: [
        'gio-unix-2.0',
        'gnutls',
-       'gtk4',
-       'libadwaita-1',
        'libportal',
        'tracker-sparql-3.0',
      ],

@@ -57,7 +57,7 @@ main (int   argc,
 {
   valent_test_init (&argc, &argv, NULL);
 
-  g_test_add_func ("/plugins/sms/message-thread",
+  g_test_add_func ("/plugins/gnome/message-thread",
                    test_sms_message_thread);
 
   return g_test_run ();

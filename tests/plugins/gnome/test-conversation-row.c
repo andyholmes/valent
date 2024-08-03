@@ -5,7 +5,7 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
-#include "valent-message.h"
+#include "valent-date-label.h"
 #include "valent-conversation-row.h"
 
 
@@ -25,7 +25,7 @@ test_conversation_row (void)
   int64_t date = 123456789;
   int64_t date_out;
   int64_t id = 987654321;
-  GVariant *metadata = g_variant_new_parsed ("{'event': <1>}");
+  GStrv recipients = NULL;
   gboolean read = TRUE;
   const char *sender = "1-234-567-8910";
   const char *text = "Test Message https://www.gnome.org";
@@ -35,14 +35,14 @@ test_conversation_row (void)
   contact = e_contact_new_from_vcard (g_bytes_get_data (bytes, NULL));
 
   message = g_object_new (VALENT_TYPE_MESSAGE,
-                          "box",       box,
-                          "date",      date,
-                          "id",        id,
-                          "metadata",  metadata,
-                          "read",      read,
-                          "sender",    sender,
-                          "text",      text,
-                          "thread-id", thread_id,
+                          "box",        box,
+                          "date",       date,
+                          "id",         id,
+                          "read",       read,
+                          "recipients", recipients,
+                          "sender",     sender,
+                          "text",       text,
+                          "thread-id",  thread_id,
                           NULL);
 
   VALENT_TEST_CHECK ("Widget can be constructed");
