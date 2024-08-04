@@ -114,12 +114,8 @@ libvalent_deps += [
   gnutls_dep,
   libpeas_dep,
   libportal_dep,
+  libsysprof_capture_dep,
 ]
-
-if get_option('tracing') and libsysprof_capture.found()
-  libvalent_c_args += ['-DHAVE_SYSPROF']
-  libvalent_deps += [libsysprof_capture]
-endif
 
 
 libvalent_include_directories += [include_directories('.')]

@@ -2,7 +2,6 @@
 // SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 #include <gio/gio.h>
-#include <gtk/gtk.h>
 #include <gst/gst.h>
 #include <valent.h>
 #include <libvalent-test.h>

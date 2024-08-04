@@ -61,14 +61,11 @@ libvalent_test_generated_headers = [libvalent_test_resources[1]]
 libvalent_test_deps = [
   libvalent_dep,
 
-  dependency('gtk4', version: gtk_version),
-  dependency('libadwaita-1', version: libadwaita_version),
+  # TODO: these should be optional depending on plugin tests
+  gtk_dep,
+  libadwaita_dep,
+  libwalbottle_dep,
 ]
-
-if get_option('fuzz_tests') and libwalbottle_dep.found()
-  libvalent_c_args += ['-DHAVE_WALBOTTLE']
-  libvalent_test_deps += [libwalbottle_dep]
-endif
 
 
 # Library Definitions

@@ -5,8 +5,8 @@
 #include <stdio.h>
 #include <sys/socket.h>
 
-#include <gtk/gtk.h>
 #include <adwaita.h>
+#include <gtk/gtk.h>
 #include <json-glib/json-glib.h>
 #include <valent.h>
 
@@ -613,6 +613,10 @@ valent_type_ensure (void)
   g_type_ensure (VALENT_TYPE_MEDIA);
   g_type_ensure (VALENT_TYPE_MEDIA_ADAPTER);
   g_type_ensure (VALENT_TYPE_MEDIA_PLAYER);
+  g_type_ensure (VALENT_TYPE_MESSAGES);
+  g_type_ensure (VALENT_TYPE_MESSAGES_ADAPTER);
+  g_type_ensure (VALENT_TYPE_MESSAGE);
+  g_type_ensure (VALENT_TYPE_MESSAGE_ATTACHMENT);
   g_type_ensure (VALENT_TYPE_MIXER);
   g_type_ensure (VALENT_TYPE_MIXER_ADAPTER);
   g_type_ensure (VALENT_TYPE_MIXER_STREAM);

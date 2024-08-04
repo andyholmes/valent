@@ -1,12 +1,15 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
+if not (gtk_dep.found() and libadwaita_dep.found())
+  error('GTK4 and Adwaita required for GNOME plugin')
+endif
+
 # Dependencies
 plugin_gnome_deps = [
   libvalent_dep,
-
-  dependency('gtk4', version: gtk_version),
-  dependency('libadwaita-1', version: libadwaita_version),
+  gtk_dep,
+  libadwaita_dep,
 ]
 
 # Sources

@@ -7,9 +7,10 @@
 
 #include <glib/gi18n.h>
 #include <libportal/portal.h>
-#ifdef HAVE_LIBPORTAL_GTK4
-#  include <libportal-gtk4/portal-gtk4.h>
-#endif
+#if defined(HAVE_GTK4) && defined(HAVE_LIBPORTAL_GTK4)
+#include <gtk/gtk.h>
+#include <libportal-gtk4/portal-gtk4.h>
+#endif /* HAVE_GTK4 && HAVE_LIBPORTAL_GTK4 */
 #include <valent.h>
 
 #include "valent-xdp-background.h"
@@ -86,7 +87,7 @@ valent_xdp_background_request (ValentXdpBackground *self)
                                  NULL);
 }
 
-#ifdef HAVE_LIBPORTAL_GTK4
+#if defined(HAVE_GTK4) && defined(HAVE_LIBPORTAL_GTK4)
 static void
 on_window_is_active (GtkWindow           *window,
                      GParamSpec          *pspec,
@@ -164,7 +165,7 @@ on_autostart_changed (GSettings           *settings,
 
   valent_xdp_background_request (self);
 }
-#endif /* HAVE_LIBPORTAL_GTK4 */
+#endif /* HAVE_GTK4 && HAVE_LIBPORTAL_GTK4 */
 
 /*
  * ValentObject
@@ -174,9 +175,9 @@ valent_xdp_background_destroy (ValentObject *object)
 {
   ValentXdpBackground *self = VALENT_XDP_BACKGROUND (object);
 
-#ifdef HAVE_LIBPORTAL_GTK4
+#if defined(HAVE_GTK4) && defined(HAVE_LIBPORTAL_GTK4)
   g_clear_signal_handler (&self->active_id, gtk_window_get_toplevels ());
-#endif /* HAVE_LIBPORTAL_GTK4 */
+#endif /* HAVE_GTK4 && HAVE_LIBPORTAL_GTK4 */
   g_clear_object (&self->settings);
 
   /* If the extension is being disabled during application shutdown, the main
@@ -201,13 +202,13 @@ valent_xdp_background_constructed (GObject *object)
 
   self->settings = g_settings_new ("ca.andyholmes.Valent.Plugin.xdp");
 
-#ifdef HAVE_LIBPORTAL_GTK4
+#if defined(HAVE_GTK4) && defined(HAVE_LIBPORTAL_GTK4)
   g_signal_connect_object (self->settings,
                            "changed::autostart",
                            G_CALLBACK (on_autostart_changed),
                            self, 0);
   on_autostart_changed (self->settings, "autostart", self);
-#endif /* HAVE_LIBPORTAL_GTK4 */
+#endif /* HAVE_GTK4 && HAVE_LIBPORTAL_GTK4 */
 
   G_OBJECT_CLASS (valent_xdp_background_parent_class)->constructed (object);
 }
