@@ -208,14 +208,14 @@ valent_conversation_row_class_init (ValentConversationRowClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, on_menu_popup);
 
   /**
-   * ValentCoversationRow|clipboard.copy:
+   * ValentConversationRow|clipboard.copy:
    *
    * Copies the message text to the clipboard.
    */
   gtk_widget_class_install_action (widget_class, "clipboard.copy", NULL, clipboard_copy_action);
 
   /**
-   * ValentCoversationRow|menu.popup:
+   * ValentConversationRow|menu.popup:
    *
    * Opens the context menu.
    */

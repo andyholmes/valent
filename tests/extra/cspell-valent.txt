@@ -12,6 +12,7 @@ addressbook
 albumart
 basepath
 esource
+gresource
 gschema
 gschemas
 keysym
@@ -22,6 +23,7 @@ privkey
 pubkey
 repliable
 screencast
+sparql
 touchpad
 touchpads
 unexport
@@ -97,12 +99,14 @@ packetless
 spoofer
 
 # TODO
+iriv
 naddr
 atarget
 saddress
 aprotocol
 sprotocol
 notificationv
+recipientv
 targetv
 vicon
 vobject
@@ -132,4 +136,5 @@ freedesktop
 pipewire
 pulseaudio
 sysprof
+tsparql
 upower
