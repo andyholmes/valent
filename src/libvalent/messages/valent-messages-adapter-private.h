@@ -6,7 +6,6 @@
 #include <tracker-sparql.h>
 
 #include "valent-message.h"
-#include "valent-message-thread-private.h"
 
 G_BEGIN_DECLS
 

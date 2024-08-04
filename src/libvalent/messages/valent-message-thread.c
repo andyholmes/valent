@@ -13,14 +13,14 @@
 #include "valent-messages.h"
 #include "valent-messages-adapter-private.h"
 
-#include "valent-message-thread-private.h"
+#include "valent-message-thread.h"
 
 #define GET_MESSAGE_RQ "/ca/andyholmes/Valent/sparql/get-message.rq"
 #define GET_THREAD_RQ  "/ca/andyholmes/Valent/sparql/get-thread.rq"
 
 struct _ValentMessageThread
 {
-  GObject                  parent_instance;
+  ValentObject             parent_instance;
 
   TrackerSparqlConnection *connection;
   char                    *iri;
@@ -31,9 +31,9 @@ struct _ValentMessageThread
   TrackerSparqlStatement  *get_message_stmt;
   TrackerSparqlStatement  *get_thread_stmt;
   GCancellable            *cancellable;
-  GSequence               *items;
 
-  /* cache */
+  /* list */
+  GSequence               *items;
   unsigned int             last_position;
   GSequenceIter           *last_iter;
   gboolean                 last_position_valid;
@@ -45,12 +45,11 @@ static void   valent_message_thread_load         (ValentMessageThread *self);
 static void   valent_message_thread_load_message (ValentMessageThread *self,
                                                   const char          *iri);
 
-G_DEFINE_FINAL_TYPE_WITH_CODE (ValentMessageThread, valent_message_thread, G_TYPE_OBJECT,
+G_DEFINE_FINAL_TYPE_WITH_CODE (ValentMessageThread, valent_message_thread, VALENT_TYPE_OBJECT,
                                G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
 typedef enum {
   PROP_CONNECTION = 1,
-  PROP_IRI,
   PROP_LATEST_MESSAGE,
   PROP_PARTICIPANTS,
 } ValentMessageThreadProperty;
@@ -104,8 +103,9 @@ valent_message_thread_lookup_func (gconstpointer a,
                                    gconstpointer b,
                                    gpointer      user_data)
 {
-  return g_utf8_collate (valent_message_get_iri ((ValentMessage *)a),
-                         (const char *)user_data);
+  g_autofree char *message_iri = valent_object_dup_iri ((ValentObject *)a);
+
+  return g_utf8_collate (message_iri, (const char *)user_data);
 }
 
 static void
@@ -373,7 +373,7 @@ valent_message_thread_load (ValentMessageThread *self)
   if (self->connection == NULL || self->cancellable != NULL)
     return;
 
-  self->cancellable = g_cancellable_new ();
+  self->cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
   task = g_task_new (self, self->cancellable, valent_message_thread_load_cb, NULL);
   g_task_set_source_tag (task, valent_message_thread_load);
   g_task_set_task_data (task,
@@ -471,6 +471,7 @@ valent_message_thread_constructed (GObject *object)
 
   G_OBJECT_CLASS (valent_message_thread_parent_class)->constructed (object);
 
+  g_object_get (VALENT_OBJECT (self), "iri", &self->iri, NULL);
   if (self->connection != NULL)
     {
       self->notifier = tracker_sparql_connection_create_notifier (self->connection);
@@ -483,14 +484,13 @@ valent_message_thread_constructed (GObject *object)
 }
 
 static void
-valent_message_thread_dispose (GObject *object)
+valent_message_thread_destroy (ValentObject *object)
 {
   ValentMessageThread *self = VALENT_MESSAGE_THREAD (object);
 
-  g_cancellable_cancel (self->cancellable);
-  g_signal_handlers_disconnect_by_data (self->connection, self);
+  g_signal_handlers_disconnect_by_func (self->notifier, on_notifier_event, self);
 
-  G_OBJECT_CLASS (valent_message_thread_parent_class)->dispose (object);
+  VALENT_OBJECT_CLASS (valent_message_thread_parent_class)->destroy (object);
 }
 
 static void
@@ -499,11 +499,14 @@ valent_message_thread_finalize (GObject *object)
   ValentMessageThread *self = VALENT_MESSAGE_THREAD (object);
 
   g_clear_object (&self->connection);
-  g_clear_object (&self->get_thread_stmt);
-  g_clear_pointer (&self->items, g_sequence_free);
   g_clear_object (&self->latest_message);
   g_clear_pointer (&self->participants, g_strfreev);
+  g_clear_pointer (&self->iri, g_free);
+  g_clear_object (&self->notifier);
+  g_clear_object (&self->get_message_stmt);
+  g_clear_object (&self->get_thread_stmt);
   g_clear_object (&self->cancellable);
+  g_clear_pointer (&self->items, g_sequence_free);
 
   G_OBJECT_CLASS (valent_message_thread_parent_class)->finalize (object);
 }
@@ -520,10 +523,6 @@ valent_message_thread_get_property (GObject    *object,
     {
     case PROP_CONNECTION:
       g_value_set_object (value, self->connection);
-      break;
-
-    case PROP_IRI:
-      g_value_set_string (value, self->iri);
       break;
 
     case PROP_LATEST_MESSAGE:
@@ -553,11 +552,6 @@ valent_message_thread_set_property (GObject      *object,
       self->connection = g_value_dup_object (value);
       break;
 
-    case PROP_IRI:
-      g_assert (self->iri == NULL);
-      self->iri = g_value_dup_string (value);
-      break;
-
     case PROP_LATEST_MESSAGE:
       g_assert (self->latest_message == NULL);
       self->latest_message = g_value_dup_object (value);
@@ -577,12 +571,14 @@ static void
 valent_message_thread_class_init (ValentMessageThreadClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
 
   object_class->constructed = valent_message_thread_constructed;
-  object_class->dispose = valent_message_thread_dispose;
   object_class->finalize = valent_message_thread_finalize;
   object_class->get_property = valent_message_thread_get_property;
   object_class->set_property = valent_message_thread_set_property;
+
+  vobject_class->destroy = valent_message_thread_destroy;
 
   /**
    * ValentMessageThread:connection:
@@ -592,19 +588,6 @@ valent_message_thread_class_init (ValentMessageThreadClass *klass)
   properties [PROP_CONNECTION] =
     g_param_spec_object ("connection", NULL, NULL,
                          TRACKER_TYPE_SPARQL_CONNECTION,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentMessageThread:iri:
-   *
-   * The IRI of the thread.
-   */
-  properties [PROP_IRI] =
-    g_param_spec_string ("iri", NULL, NULL,
-                         NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |

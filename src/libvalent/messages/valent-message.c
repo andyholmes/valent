@@ -14,7 +14,7 @@
 
 struct _ValentMessage
 {
-  GObject           parent_instance;
+  ValentObject      parent_instance;
 
   GListModel       *attachments;
   ValentMessageBox  box;
@@ -29,14 +29,13 @@ struct _ValentMessage
   char             *iri;
 };
 
-G_DEFINE_FINAL_TYPE (ValentMessage, valent_message, G_TYPE_OBJECT)
+G_DEFINE_FINAL_TYPE (ValentMessage, valent_message, VALENT_TYPE_OBJECT)
 
 typedef enum {
   PROP_ATTACHMENTS = 1,
   PROP_BOX,
   PROP_DATE,
   PROP_ID,
-  PROP_IRI,
   PROP_READ,
   PROP_RECIPIENTS,
   PROP_SENDER,
@@ -57,7 +56,6 @@ valent_message_finalize (GObject *object)
   ValentMessage *self = VALENT_MESSAGE (object);
 
   g_clear_object (&self->attachments);
-  g_clear_pointer (&self->iri, g_free);
   g_clear_pointer (&self->sender, g_free);
   g_clear_pointer (&self->recipients, g_strfreev);
   g_clear_pointer (&self->text, g_free);
@@ -89,10 +87,6 @@ valent_message_get_property (GObject    *object,
 
     case PROP_ID:
       g_value_set_int64 (value, self->id);
-      break;
-
-    case PROP_IRI:
-      g_value_set_string (value, self->iri);
       break;
 
     case PROP_READ:
@@ -148,10 +142,6 @@ valent_message_set_property (GObject      *object,
 
     case PROP_ID:
       self->id = g_value_get_int64 (value);
-      break;
-
-    case PROP_IRI:
-      self->iri = g_value_dup_string (value);
       break;
 
     case PROP_READ:
@@ -254,21 +244,6 @@ valent_message_class_init (ValentMessageClass *klass)
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_EXPLICIT_NOTIFY |
                          G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentMessage:iri: (getter get_iri)
-   *
-   * The iri of the message.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_IRI] =
-    g_param_spec_string ("iri", NULL, NULL,
-                         NULL,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
 
   /**
    * ValentMessage:read: (getter get_read)
@@ -450,24 +425,6 @@ valent_message_get_id (ValentMessage *message)
   g_return_val_if_fail (VALENT_IS_MESSAGE (message), 0);
 
   return message->id;
-}
-
-/**
- * valent_message_get_iri: (get-property iri)
- * @message: a `ValentMessage`
- *
- * Get the IRI for @message.
- *
- * Returns: (transfer none) (nullable): the message IRI
- *
- * Since: 1.0
- */
-const char *
-valent_message_get_iri (ValentMessage *message)
-{
-  g_return_val_if_fail (VALENT_IS_MESSAGE (message), NULL);
-
-  return message->iri;
 }
 
 /**

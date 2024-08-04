@@ -6,24 +6,23 @@
 #include "config.h"
 
 #include <gio/gio.h>
+#include <libvalent-core.h>
 
 #include "valent-message-attachment.h"
 
 
 struct _ValentMessageAttachment
 {
-  GObject  parent_instance;
+  ValentObject  parent_instance;
 
-  char    *iri;
-  GFile   *file;
-  GIcon   *preview;
+  GFile        *file;
+  GIcon        *preview;
 };
 
-G_DEFINE_FINAL_TYPE (ValentMessageAttachment, valent_message_attachment, G_TYPE_OBJECT)
+G_DEFINE_FINAL_TYPE (ValentMessageAttachment, valent_message_attachment, VALENT_TYPE_OBJECT)
 
 typedef enum {
   PROP_FILE = 1,
-  PROP_IRI,
   PROP_PREVIEW,
 } ValentMessageAttachmentProperty;
 
@@ -40,7 +39,6 @@ valent_message_attachment_finalize (GObject *object)
 
   g_clear_object (&self->file);
   g_clear_object (&self->preview);
-  g_clear_pointer (&self->iri, g_free);
 
   G_OBJECT_CLASS (valent_message_attachment_parent_class)->finalize (object);
 }
@@ -57,10 +55,6 @@ valent_message_attachment_get_property (GObject    *object,
     {
     case PROP_FILE:
       g_value_set_object (value, self->file);
-      break;
-
-    case PROP_IRI:
-      g_value_set_string (value, self->iri);
       break;
 
     case PROP_PREVIEW:
@@ -84,11 +78,6 @@ valent_message_attachment_set_property (GObject      *object,
     {
     case PROP_FILE:
       valent_message_attachment_set_file (self, g_value_get_object (value));
-      break;
-
-    case PROP_IRI:
-      g_assert (self->iri == NULL);
-      self->iri = g_value_dup_string (value);
       break;
 
     case PROP_PREVIEW:
@@ -124,21 +113,6 @@ valent_message_attachment_class_init (ValentMessageAttachmentClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentMessageAttachment:iri: (getter get_iri)
-   *
-   * A unique identifier for the attachment.
- *
- * Since: 1.0
-   */
-  properties [PROP_IRI] =
-    g_param_spec_string ("iri", NULL, NULL,
-                         NULL,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
-
-  /**
    * ValentMessageAttachment:preview: (getter get_preview) (setter set_preview)
    *
    * A thumbnail preview of the attachment.
@@ -161,22 +135,6 @@ valent_message_attachment_init (ValentMessageAttachment *self)
 }
 
 /**
- * valent_message_attachment_new:
- * @iri: (nullable): a unique identifier
- *
- * Returns: (transfer full): a new message attachment
- *
- * Since: 1.0
- */
-ValentMessageAttachment *
-valent_message_attachment_new (const char *iri)
-{
-  return g_object_new (VALENT_TYPE_MESSAGE_ATTACHMENT,
-                       "iri", iri,
-                       NULL);
-}
-
-/**
  * valent_message_attachment_get_file: (get-property file)
  * @attachment: a `ValentMessageAttachment`
  *
@@ -192,24 +150,6 @@ valent_message_attachment_get_file (ValentMessageAttachment *attachment)
   g_return_val_if_fail (VALENT_IS_MESSAGE_ATTACHMENT (attachment), NULL);
 
   return attachment->file;
-}
-
-/**
- * valent_message_attachment_get_iri: (get-property iri)
- * @attachment: a `ValentMessageAttachment`
- *
- * Get the unique identifier for @attachment.
- *
- * Returns: (transfer none) (nullable): the unique ID
- *
- * Since: 1.0
- */
-const char *
-valent_message_attachment_get_iri (ValentMessageAttachment *attachment)
-{
-  g_return_val_if_fail (VALENT_IS_MESSAGE_ATTACHMENT (attachment), NULL);
-
-  return attachment->iri;
 }
 
 /**

@@ -9,19 +9,15 @@
 
 #include <gio/gio.h>
 
-#include "../core/valent-version.h"
+#include "../core/valent-object.h"
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_MESSAGE_ATTACHMENT (valent_message_attachment_get_type())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_FINAL_TYPE (ValentMessageAttachment, valent_message_attachment, VALENT, MESSAGE_ATTACHMENT, GObject)
+G_DECLARE_FINAL_TYPE (ValentMessageAttachment, valent_message_attachment, VALENT, MESSAGE_ATTACHMENT, ValentObject)
 
-VALENT_AVAILABLE_IN_1_0
-ValentMessageAttachment * valent_message_attachment_new         (const char              *iri);
-VALENT_AVAILABLE_IN_1_0
-const char              * valent_message_attachment_get_iri     (ValentMessageAttachment *attachment);
 VALENT_AVAILABLE_IN_1_0
 GFile                   * valent_message_attachment_get_file    (ValentMessageAttachment *attachment);
 VALENT_AVAILABLE_IN_1_0
