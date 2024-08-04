@@ -168,7 +168,7 @@
                                 "type": "anitya",
                                 "project-id": 6845,
                                 "stable-only": true,
-                                "url-template": "https://github.com/boostorg/boost/archive/refs/tags/boost-$version.tar.gz"
+                                "url-template": "https://github.com/boostorg/boost/archive/refs/tags/boost-$version-b2-nodocs.tar.xz"
                             }
                         }
                     ],
@@ -245,8 +245,8 @@
                 {
                     "type" : "git",
                     "url" : "https://gitlab.gnome.org/GNOME/evolution-data-server.git",
-                    "commit" : "80c262f12cae9a8b6f4f3c2d3d399d434ca7a7f2",
-                    "tag" : "3.52.3",
+                    "commit" : "b212daab76a47862e071a3bb327123c36540022b",
+                    "tag" : "3.52.4",
                     "x-checker-data" : {
                         "type" : "anitya",
                         "project-id" : 10935,
@@ -325,8 +325,8 @@
                 {
                     "type" : "git",
                     "url" : "https://gitlab.freedesktop.org/pipewire/pipewire.git",
-                    "commit" : "f9689df37d1d14e006b7dcec239df403b3b28893",
-                    "tag" : "1.2.1",
+                    "commit" : "e224ccdcb7514bc7417f46c75d137fbee231e7fc",
+                    "tag" : "1.2.2",
                     "x-checker-data" : {
                         "type" : "anitya",
                         "project-id" : 57357,
