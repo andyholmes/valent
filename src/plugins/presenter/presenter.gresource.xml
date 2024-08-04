@@ -9,10 +9,6 @@
   </gresource>
   <gresource prefix="/ca/andyholmes/Valent/icons">
     <file preprocess="xml-stripblanks" alias="scalable/apps/valent-presenter-plugin-symbolic.svg">data/valent-presenter-plugin-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/apps/presenter-open-symbolic.svg">data/presenter-open-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/apps/presenter-pointer-symbolic.svg">data/presenter-pointer-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/apps/presenter-start-symbolic.svg">data/presenter-start-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/apps/presenter-stop-symbolic.svg">data/presenter-stop-symbolic.svg</file>
   </gresource>
 </gresources>
 

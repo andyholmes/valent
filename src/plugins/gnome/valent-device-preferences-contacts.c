@@ -232,7 +232,7 @@ valent_contacts_preferences_class_init (ValentContactsPreferencesClass *klass)
   object_class->dispose = valent_contacts_preferences_dispose;
   object_class->finalize = valent_contacts_preferences_finalize;
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-device-preferences-contacts.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-device-preferences-contacts.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentContactsPreferences, local_sync);
   gtk_widget_class_bind_template_child (widget_class, ValentContactsPreferences, remote_sync);
 

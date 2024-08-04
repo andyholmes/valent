@@ -342,7 +342,7 @@ valent_device_preferences_dialog_class_init (ValentDevicePreferencesDialogClass 
   object_class->get_property = valent_device_preferences_dialog_get_property;
   object_class->set_property = valent_device_preferences_dialog_set_property;
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-device-preferences-dialog.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-device-preferences-dialog.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesDialog, status_page);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesDialog, sync_page);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePreferencesDialog, other_page);

@@ -302,7 +302,7 @@ valent_notification_dialog_class_init (ValentNotificationDialogClass *klass)
   object_class->get_property = valent_notification_dialog_get_property;
   object_class->set_property = valent_notification_dialog_set_property;
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-notification-dialog.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-notification-dialog.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentNotificationDialog, cancel_button);
   gtk_widget_class_bind_template_child (widget_class, ValentNotificationDialog, reply_button);
   gtk_widget_class_bind_template_child (widget_class, ValentNotificationDialog, icon_image);

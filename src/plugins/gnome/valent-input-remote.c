@@ -487,7 +487,7 @@ valent_input_remote_class_init (ValentInputRemoteClass *klass)
   object_class->get_property = valent_input_remote_get_property;
   object_class->set_property = valent_input_remote_set_property;
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-input-remote.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-input-remote.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentInputRemote, input_adapter);
   gtk_widget_class_bind_template_child (widget_class, ValentInputRemote, editor);
   gtk_widget_class_bind_template_child (widget_class, ValentInputRemote, keyboard);

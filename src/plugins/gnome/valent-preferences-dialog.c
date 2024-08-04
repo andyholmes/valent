@@ -317,7 +317,7 @@ valent_preferences_dialog_class_init (ValentPreferencesDialogClass *klass)
   object_class->dispose = valent_preferences_dialog_dispose;
   object_class->finalize = valent_preferences_dialog_finalize;
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-preferences-dialog.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-preferences-dialog.ui");
 
   gtk_widget_class_bind_template_child (widget_class, ValentPreferencesDialog, general_group);
   gtk_widget_class_bind_template_child (widget_class, ValentPreferencesDialog, main_page);

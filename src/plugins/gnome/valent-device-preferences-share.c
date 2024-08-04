@@ -165,7 +165,7 @@ valent_share_preferences_class_init (ValentSharePreferencesClass *klass)
   object_class->constructed = valent_share_preferences_constructed;
   object_class->dispose = valent_share_preferences_dispose;
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-device-preferences-share.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-device-preferences-share.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentSharePreferences, download_folder_label);
   gtk_widget_class_install_action (widget_class, "preferences.select-download-folder", NULL, select_download_folder_action);
 }

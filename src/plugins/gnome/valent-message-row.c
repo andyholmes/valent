@@ -158,7 +158,7 @@ valent_message_row_class_init (ValentMessageRowClass *klass)
   object_class->get_property = valent_message_row_get_property;
   object_class->set_property = valent_message_row_set_property;
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-message-row.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-message-row.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentMessageRow, avatar);
   gtk_widget_class_bind_template_child (widget_class, ValentMessageRow, title_label);
   gtk_widget_class_bind_template_child (widget_class, ValentMessageRow, subtitle_label);

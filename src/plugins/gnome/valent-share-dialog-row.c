@@ -211,7 +211,7 @@ valent_share_dialog_row_class_init (ValentShareDialogRowClass *klass)
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-share-dialog-row.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-share-dialog-row.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentShareDialogRow, revealer);
   gtk_widget_class_bind_template_child (widget_class, ValentShareDialogRow, selected_button);
   gtk_widget_class_bind_template_child (widget_class, ValentShareDialogRow, icon_image);
