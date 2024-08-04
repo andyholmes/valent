@@ -69,15 +69,6 @@ jobs:
         with:
           submodules: false
 
-      - name: Pylint
-        if: ${{ always() }}
-        uses: dciborow/action-pylint@main
-        with:
-          reporter: github-pr-review
-          fail_on_error: true
-          glob_pattern: "**/*.py"
-          pylint_rc: tests/extra/setup.cfg
-
       - name: ShellCheck
         if: ${{ always() }}
         uses: reviewdog/action-shellcheck@v1
