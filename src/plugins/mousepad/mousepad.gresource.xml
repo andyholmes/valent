@@ -9,9 +9,6 @@
   </gresource>
   <gresource prefix="/ca/andyholmes/Valent/icons">
     <file preprocess="xml-stripblanks" alias="scalable/apps/valent-mousepad-plugin-symbolic.svg">data/valent-mousepad-plugin-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/devices/input-keyboard-symbolic.svg">data/input-keyboard-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/devices/input-mouse-symbolic.svg">data/input-mouse-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/devices/input-touchpad-symbolic.svg">data/input-touchpad-symbolic.svg</file>
   </gresource>
 </gresources>
 

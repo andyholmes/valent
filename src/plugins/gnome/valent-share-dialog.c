@@ -807,7 +807,7 @@ valent_share_dialog_class_init (ValentShareDialogClass *klass)
   object_class->get_property = valent_share_dialog_get_property;
   object_class->set_property = valent_share_dialog_set_property;
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-share-dialog.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-share-dialog.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentShareDialog, view);
   gtk_widget_class_bind_template_child (widget_class, ValentShareDialog, device_list);
   gtk_widget_class_bind_template_child (widget_class, ValentShareDialog, single_row);

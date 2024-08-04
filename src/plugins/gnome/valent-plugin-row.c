@@ -175,7 +175,7 @@ valent_plugin_row_class_init (ValentPluginRowClass *klass)
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-plugin-row.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-plugin-row.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentPluginRow, plugin_enabled);
   gtk_widget_class_bind_template_callback (widget_class, strv_to_str);
 }

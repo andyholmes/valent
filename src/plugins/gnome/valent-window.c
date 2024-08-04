@@ -515,7 +515,7 @@ valent_window_class_init (ValentWindowClass *klass)
   object_class->get_property = valent_window_get_property;
   object_class->set_property = valent_window_set_property;
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-window.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-window.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentWindow, view);
   gtk_widget_class_bind_template_child (widget_class, ValentWindow, progress_bar);
   gtk_widget_class_bind_template_child (widget_class, ValentWindow, device_list);

@@ -124,7 +124,7 @@ valent_contact_row_class_init (ValentContactRowClass *klass)
   object_class->get_property = valent_contact_row_get_property;
   object_class->set_property = valent_contact_row_set_property;
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-contact-row.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-contact-row.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentContactRow, avatar);
   gtk_widget_class_bind_template_child (widget_class, ValentContactRow, title_label);
   gtk_widget_class_bind_template_child (widget_class, ValentContactRow, subtitle_label);

@@ -65,7 +65,7 @@ valent_connectivity_report_preferences_class_init (ValentConnectivityReportPrefe
   object_class->constructed = valent_connectivity_report_preferences_constructed;
   object_class->dispose = valent_connectivity_report_preferences_dispose;
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-device-preferences-connectivity.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-device-preferences-connectivity.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentConnectivityReportPreferences, share_state);
   gtk_widget_class_bind_template_child (widget_class, ValentConnectivityReportPreferences, offline_notification);
 }

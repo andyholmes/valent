@@ -325,7 +325,7 @@ valent_runcommand_preferences_class_init (ValentRuncommandPreferencesClass *klas
   object_class->dispose = valent_runcommand_preferences_dispose;
   object_class->finalize = valent_runcommand_preferences_finalize;
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-device-preferences-commands.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-device-preferences-commands.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentRuncommandPreferences, command_list_row);
 
   gtk_widget_class_install_action (widget_class, "runcommand.add", NULL, runcommand_add_action);

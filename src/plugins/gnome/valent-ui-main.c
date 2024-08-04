@@ -37,7 +37,7 @@ valent_ui_init_resources (void)
   g_autoptr (GtkIconTheme) icon_theme = NULL;
 
   css_theme = gtk_css_provider_new ();
-  gtk_css_provider_load_from_resource (css_theme, "/ca/andyholmes/Valent/ui/style.css");
+  gtk_css_provider_load_from_resource (css_theme, "/plugins/gnome/style.css");
   gtk_style_context_add_provider_for_display (gdk_display_get_default (),
                                               GTK_STYLE_PROVIDER (css_theme),
                                               GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);

@@ -326,7 +326,7 @@ valent_notification_preferences_class_init (ValentNotificationPreferencesClass *
   object_class->dispose = valent_notification_preferences_dispose;
   object_class->finalize = valent_notification_preferences_finalize;
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-device-preferences-notification.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-device-preferences-notification.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentNotificationPreferences, forward_notifications);
   gtk_widget_class_bind_template_child (widget_class, ValentNotificationPreferences, forward_when_active);
   gtk_widget_class_bind_template_child (widget_class, ValentNotificationPreferences, application_page);

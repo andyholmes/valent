@@ -666,7 +666,7 @@ valent_messages_window_class_init (ValentMessagesWindowClass *klass)
   object_class->get_property = valent_messages_window_get_property;
   object_class->set_property = valent_messages_window_set_property;
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-messages-window.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-messages-window.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentMessagesWindow, main_view);
   gtk_widget_class_bind_template_child (widget_class, ValentMessagesWindow, sidebar_header);
   gtk_widget_class_bind_template_child (widget_class, ValentMessagesWindow, sidebar_list);

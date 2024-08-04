@@ -514,7 +514,7 @@ valent_device_page_class_init (ValentDevicePageClass *klass)
   object_class->set_property = valent_device_page_set_property;
 
   /* template */
-  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-device-page.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-device-page.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePage, gadgets);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePage, battery_status);
   gtk_widget_class_bind_template_child (widget_class, ValentDevicePage, battery_status_label);

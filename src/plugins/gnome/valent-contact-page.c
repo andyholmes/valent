@@ -282,7 +282,7 @@ valent_contact_page_class_init (ValentContactPageClass *klass)
   object_class->get_property = valent_contact_page_get_property;
   object_class->set_property = valent_contact_page_set_property;
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/ca/andyholmes/Valent/ui/valent-contact-page.ui");
+  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-contact-page.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentContactPage, search_entry);
   gtk_widget_class_bind_template_child (widget_class, ValentContactPage, contact_list);
   gtk_widget_class_bind_template_callback (widget_class, on_search_changed);
