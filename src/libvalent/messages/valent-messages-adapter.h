@@ -32,20 +32,20 @@ struct _ValentMessagesAdapterClass
 {
   ValentExtensionClass  parent_class;
 
-  void                   (*send_message)        (ValentMessagesAdapter  *adapter,
-                                                 ValentMessage          *message,
-                                                 GCancellable           *cancellable,
-                                                 GAsyncReadyCallback     callback,
-                                                 gpointer                user_data);
-  gboolean               (*send_message_finish) (ValentMessagesAdapter  *adapter,
-                                                 GAsyncResult           *result,
-                                                 GError                **error);
+  void                  (*send_message)        (ValentMessagesAdapter  *adapter,
+                                                ValentMessage          *message,
+                                                GCancellable           *cancellable,
+                                                GAsyncReadyCallback     callback,
+                                                gpointer                user_data);
+  gboolean              (*send_message_finish) (ValentMessagesAdapter  *adapter,
+                                                GAsyncResult           *result,
+                                                GError                **error);
 
   /* virtual functions */
-  void                  (*export_adapter)       (ValentMessagesAdapter  *adapter,
-                                                 ValentMessagesAdapter  *object);
-  void                  (*unexport_adapter)     (ValentMessagesAdapter  *adapter,
-                                                 ValentMessagesAdapter  *object);
+  void                  (*export_adapter)      (ValentMessagesAdapter  *adapter,
+                                                ValentMessagesAdapter  *object);
+  void                  (*unexport_adapter)    (ValentMessagesAdapter  *adapter,
+                                                ValentMessagesAdapter  *object);
 
   /*< private >*/
   gpointer              padding[8];
@@ -62,10 +62,10 @@ gboolean   valent_messages_adapter_send_message_finish (ValentMessagesAdapter  *
                                                         GAsyncResult           *result,
                                                         GError                **error);
 VALENT_AVAILABLE_IN_1_0
-void   valent_messages_adapter_export_adapter          (ValentMessagesAdapter  *adapter,
+void       valent_messages_adapter_export_adapter      (ValentMessagesAdapter  *adapter,
                                                         ValentMessagesAdapter  *object);
 VALENT_AVAILABLE_IN_1_0
-void   valent_messages_adapter_unexport_adapter        (ValentMessagesAdapter  *adapter,
+void       valent_messages_adapter_unexport_adapter    (ValentMessagesAdapter  *adapter,
                                                         ValentMessagesAdapter  *object);
 
 G_END_DECLS

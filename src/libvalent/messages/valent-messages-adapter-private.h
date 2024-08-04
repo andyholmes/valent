@@ -29,10 +29,8 @@ G_BEGIN_DECLS
 #define CURSOR_MESSAGE_ATTACHMENT_FILE    12
 
 
-ValentMessage * valent_message_from_sparql_cursor         (TrackerSparqlCursor    *cursor,
-                                                           ValentMessage          *current);
-void            valent_messages_adapter_get_messages_stmt (TrackerSparqlStatement *stmt,
-                                                           GTask                  *task);
+ValentMessage * valent_message_from_sparql_cursor (TrackerSparqlCursor *cursor,
+                                                   ValentMessage       *current);
 
 G_END_DECLS
 

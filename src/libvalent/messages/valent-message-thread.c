@@ -281,8 +281,7 @@ valent_message_thread_load_cb (GObject      *object,
                                gpointer      user_data)
 {
   ValentMessageThread *self = VALENT_MESSAGE_THREAD (object);
-  g_autoptr (GListModel) messages = NULL;
-  unsigned int n_messages = 0;
+  g_autoptr (GPtrArray) messages = NULL;
   g_autoptr (GError) error = NULL;
 
   messages = g_task_propagate_pointer (G_TASK (result), &error);
@@ -294,11 +293,73 @@ valent_message_thread_load_cb (GObject      *object,
       return;
     }
 
-  n_messages = g_list_model_get_n_items (messages);
-  for (unsigned int i = 0; i < n_messages; i++)
-    g_sequence_append (self->items, g_list_model_get_item (messages, i));
+  for (unsigned int i = 0; i < messages->len; i++)
+    g_sequence_append (self->items, g_object_ref (g_ptr_array_index (messages, i)));
 
-  g_list_model_items_changed (G_LIST_MODEL (self), 0, 0, n_messages);
+  g_list_model_items_changed (G_LIST_MODEL (self), 0, 0, messages->len);
+}
+
+static void
+cursor_get_messages_cb (TrackerSparqlCursor *cursor,
+                        GAsyncResult        *result,
+                        gpointer             user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  GPtrArray *messages = g_task_get_task_data (task);
+  GError *error = NULL;
+
+  if (tracker_sparql_cursor_next_finish (cursor, result, &error))
+    {
+      ValentMessage *current = NULL;
+      g_autoptr (ValentMessage) message = NULL;
+
+      if (messages->len > 0)
+        current = g_ptr_array_index (messages, messages->len - 1);
+
+      message = valent_message_from_sparql_cursor (cursor, current);
+      if (message != current)
+        g_ptr_array_add (messages, g_steal_pointer (&message));
+
+      tracker_sparql_cursor_next_async (cursor,
+                                        g_task_get_cancellable (task),
+                                        (GAsyncReadyCallback) cursor_get_messages_cb,
+                                        g_object_ref (task));
+    }
+  else if (error == NULL)
+    {
+      g_task_return_pointer (task,
+                             g_ptr_array_ref (messages),
+                             (GDestroyNotify)g_ptr_array_unref);
+      tracker_sparql_cursor_close (cursor);
+    }
+  else
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      tracker_sparql_cursor_close (cursor);
+    }
+}
+
+static void
+execute_get_messages_cb (TrackerSparqlStatement *stmt,
+                         GAsyncResult           *result,
+                         gpointer                user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  GCancellable *cancellable = g_task_get_cancellable (task);
+  g_autoptr (TrackerSparqlCursor) cursor = NULL;
+  GError *error = NULL;
+
+  cursor = tracker_sparql_statement_execute_finish (stmt, result, &error);
+  if (cursor == NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  tracker_sparql_cursor_next_async (cursor,
+                                    cancellable,
+                                    (GAsyncReadyCallback) cursor_get_messages_cb,
+                                    g_object_ref (task));
 }
 
 static void
@@ -315,6 +376,9 @@ valent_message_thread_load (ValentMessageThread *self)
   self->cancellable = g_cancellable_new ();
   task = g_task_new (self, self->cancellable, valent_message_thread_load_cb, NULL);
   g_task_set_source_tag (task, valent_message_thread_load);
+  g_task_set_task_data (task,
+                        g_ptr_array_new_with_free_func (g_object_unref),
+                        (GDestroyNotify)g_ptr_array_unref);
 
   if (self->get_thread_stmt == NULL)
     {
@@ -332,7 +396,10 @@ valent_message_thread_load (ValentMessageThread *self)
     }
 
   tracker_sparql_statement_bind_string (self->get_thread_stmt, "iri", self->iri);
-  valent_messages_adapter_get_messages_stmt (self->get_thread_stmt, task);
+  tracker_sparql_statement_execute_async (self->get_thread_stmt,
+                                          g_task_get_cancellable (task),
+                                          (GAsyncReadyCallback) execute_get_messages_cb,
+                                          g_object_ref (task));
 }
 
 /*
@@ -449,7 +516,7 @@ valent_message_thread_get_property (GObject    *object,
 {
   ValentMessageThread *self = VALENT_MESSAGE_THREAD (object);
 
-  switch (prop_id)
+  switch ((ValentMessageThreadProperty)prop_id)
     {
     case PROP_CONNECTION:
       g_value_set_object (value, self->connection);
@@ -480,7 +547,7 @@ valent_message_thread_set_property (GObject      *object,
 {
   ValentMessageThread *self = VALENT_MESSAGE_THREAD (object);
 
-  switch (prop_id)
+  switch ((ValentMessageThreadProperty)prop_id)
     {
     case PROP_CONNECTION:
       self->connection = g_value_dup_object (value);

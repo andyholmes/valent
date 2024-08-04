@@ -132,19 +132,6 @@ valent_messages_unbind_extension (ValentComponent *component,
 }
 
 /*
- * ValentObject
- */
-static void
-valent_messages_destroy (ValentObject *object)
-{
-  /* ValentMessages *self = VALENT_MESSAGES (object); */
-
-  /* g_list_store_remove_all (G_LIST_STORE (self->exports)); */
-
-  VALENT_OBJECT_CLASS (valent_messages_parent_class)->destroy (object);
-}
-
-/*
  * GObject
  */
 static void
@@ -161,12 +148,9 @@ static void
 valent_messages_class_init (ValentMessagesClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
-  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentComponentClass *component_class = VALENT_COMPONENT_CLASS (klass);
 
   object_class->finalize = valent_messages_finalize;
-
-  vobject_class->destroy = valent_messages_destroy;
 
   component_class->bind_extension = valent_messages_bind_extension;
   component_class->unbind_extension = valent_messages_unbind_extension;
@@ -196,7 +180,6 @@ valent_messages_get_default (void)
                                        "plugin-domain", "messages",
                                        "plugin-type",   VALENT_TYPE_MESSAGES_ADAPTER,
                                        NULL);
-
       g_object_add_weak_pointer (G_OBJECT (default_messages),
                                  (gpointer)&default_messages);
     }

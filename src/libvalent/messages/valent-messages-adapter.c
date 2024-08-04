@@ -162,87 +162,120 @@ g_list_model_iface_init (GListModelInterface *iface)
  * ValentMessagesAdapterPrivate
  *
  */
-static void
-cursor_get_messages_cb (TrackerSparqlCursor *cursor,
-                        GAsyncResult        *result,
-                        gpointer             user_data)
+ValentMessage *
+valent_message_from_sparql_cursor (TrackerSparqlCursor *cursor,
+                                   ValentMessage       *current)
 {
-  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
-  GListStore *messages = g_task_get_task_data (task);
-  g_autoptr (GError) error = NULL;
+  ValentMessage *ret = NULL;
+  int64_t message_id;
 
-  if (tracker_sparql_cursor_next_finish (cursor, result, &error))
+  g_assert (TRACKER_IS_SPARQL_CURSOR (cursor));
+  g_assert (current == NULL || VALENT_IS_MESSAGE (current));
+
+  message_id = tracker_sparql_cursor_get_integer (cursor, CURSOR_MESSAGE_ID);
+  if (current != NULL && valent_message_get_id (current) == message_id)
     {
-      g_autoptr (ValentMessage) current = NULL;
-      g_autoptr (ValentMessage) message = NULL;
-      unsigned int n_items = 0;
-
-      n_items = g_list_model_get_n_items (G_LIST_MODEL (messages));
-      if (n_items > 0)
-        current = g_list_model_get_item (G_LIST_MODEL (messages), n_items - 1);
-
-      message = valent_message_from_sparql_cursor (cursor, current);
-      if (message != current)
-        g_list_store_append (messages, message);
-
-      tracker_sparql_cursor_next_async (cursor,
-                                        g_task_get_cancellable (task),
-                                        (GAsyncReadyCallback) cursor_get_messages_cb,
-                                        g_object_ref (task));
-      return;
+      ret = g_object_ref (current);
     }
-
-  if (error != NULL)
-    g_task_return_error (task, g_steal_pointer (&error));
   else
-    g_task_return_pointer (task, g_object_ref (messages), g_object_unref);
-
-  tracker_sparql_cursor_close (cursor);
-}
-
-static void
-execute_get_messages_cb (TrackerSparqlStatement *stmt,
-                         GAsyncResult           *result,
-                         gpointer                user_data)
-{
-  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
-  GCancellable *cancellable = g_task_get_cancellable (task);
-  g_autoptr (TrackerSparqlCursor) cursor = NULL;
-  GError *error = NULL;
-
-  cursor = tracker_sparql_statement_execute_finish (stmt, result, &error);
-  if (cursor == NULL)
     {
-      g_task_return_error (task, g_steal_pointer (&error));
-      return;
+      const char *iri = tracker_sparql_cursor_get_string (cursor, CURSOR_MESSAGE_IRI, NULL);
+      g_autoptr (GListStore) attachments = NULL;
+      ValentMessageBox box = VALENT_MESSAGE_BOX_ALL;
+      int64_t date = 0;
+      g_autoptr (GDateTime) datetime = NULL;
+      gboolean read = FALSE;
+      const char *recipients = NULL;
+      g_auto (GStrv) recipientv = NULL;
+      const char *sender = NULL;
+      int64_t subscription_id = -1;
+      const char *text = NULL;
+      int64_t thread_id = -1;
+
+      attachments = g_list_store_new (VALENT_TYPE_MESSAGE_ATTACHMENT);
+      box = tracker_sparql_cursor_get_integer (cursor, CURSOR_MESSAGE_BOX);
+
+      datetime = tracker_sparql_cursor_get_datetime (cursor, CURSOR_MESSAGE_DATE);
+      if (datetime != NULL)
+        date = g_date_time_to_unix_usec (datetime) / 1000;
+
+      read = tracker_sparql_cursor_get_boolean (cursor, CURSOR_MESSAGE_READ);
+
+      recipients = tracker_sparql_cursor_get_string (cursor, CURSOR_MESSAGE_RECIPIENTS, NULL);
+      if (recipients != NULL)
+        recipientv = g_strsplit (recipients, ",", -1);
+
+      if (tracker_sparql_cursor_is_bound (cursor, CURSOR_MESSAGE_SENDER))
+        sender = tracker_sparql_cursor_get_string (cursor, CURSOR_MESSAGE_SENDER, NULL);
+
+      if (tracker_sparql_cursor_is_bound (cursor, CURSOR_MESSAGE_SUBSCRIPTION_ID))
+        subscription_id = tracker_sparql_cursor_get_integer (cursor, CURSOR_MESSAGE_SUBSCRIPTION_ID);
+
+      if (tracker_sparql_cursor_is_bound (cursor, CURSOR_MESSAGE_TEXT))
+        text = tracker_sparql_cursor_get_string (cursor, CURSOR_MESSAGE_TEXT, NULL);
+
+      thread_id = tracker_sparql_cursor_get_integer (cursor, CURSOR_MESSAGE_THREAD_ID);
+
+      ret = g_object_new (VALENT_TYPE_MESSAGE,
+                          "iri",             iri,
+                          "box",             box,
+                          "date",            date,
+                          "id",              message_id,
+                          "read",            read,
+                          "recipients",      recipientv,
+                          "sender",          sender,
+                          "subscription-id", subscription_id,
+                          "text",            text,
+                          "thread-id",       thread_id,
+                          "attachments",     attachments,
+                          NULL);
     }
 
-  tracker_sparql_cursor_next_async (cursor,
-                                    cancellable,
-                                    (GAsyncReadyCallback) cursor_get_messages_cb,
-                                    g_object_ref (task));
-}
+  /* Attachment
+   */
+  if (tracker_sparql_cursor_is_bound (cursor, CURSOR_MESSAGE_ATTACHMENT_IRI))
+    {
+      const char *iri = tracker_sparql_cursor_get_string (cursor, CURSOR_MESSAGE_ATTACHMENT_IRI, NULL);
+      GListModel *attachments = valent_message_get_attachments (ret);
+      g_autoptr (ValentMessageAttachment) attachment = NULL;
+      g_autoptr (GIcon) preview = NULL;
+      g_autoptr (GFile) file = NULL;
 
-/*< private >
- * valent_messages_adapter_get_messages_stmt:
- * @store:
- * @stmt:
- * @task:
- *
- * ...
- */
-void
-valent_messages_adapter_get_messages_stmt (TrackerSparqlStatement *stmt,
-                                        GTask                  *task)
-{
-  g_assert (TRACKER_IS_SPARQL_STATEMENT (stmt));
-  g_assert (G_IS_TASK (task));
+      if (tracker_sparql_cursor_is_bound (cursor, CURSOR_MESSAGE_ATTACHMENT_PREVIEW))
+        {
+          const char *base64_data;
 
-  g_task_set_task_data (task, g_list_store_new (VALENT_TYPE_MESSAGE), g_object_unref);
-  tracker_sparql_statement_execute_async (stmt,
-                                          g_task_get_cancellable (task),
-                                          (GAsyncReadyCallback) execute_get_messages_cb,
-                                          g_object_ref (task));
+          base64_data = tracker_sparql_cursor_get_string (cursor, CURSOR_MESSAGE_ATTACHMENT_PREVIEW, NULL);
+          if (base64_data != NULL)
+            {
+              g_autoptr (GBytes) bytes = NULL;
+              unsigned char *data;
+              size_t len;
+
+              data = g_base64_decode (base64_data, &len);
+              bytes = g_bytes_new_take (g_steal_pointer (&data), len);
+              preview = g_bytes_icon_new (bytes);
+            }
+        }
+
+      if (tracker_sparql_cursor_is_bound (cursor, CURSOR_MESSAGE_ATTACHMENT_FILE))
+        {
+          const char *file_uri;
+
+          file_uri = tracker_sparql_cursor_get_string (cursor, CURSOR_MESSAGE_ATTACHMENT_FILE, NULL);
+          if (file_uri != NULL)
+            file = g_file_new_for_uri (file_uri);
+        }
+
+      attachment = g_object_new (VALENT_TYPE_MESSAGE_ATTACHMENT,
+                                 "iri",     iri,
+                                 "preview", preview,
+                                 "file",    file,
+                                 NULL);
+      g_list_store_append (G_LIST_STORE (attachments), attachment);
+    }
+
+  return g_steal_pointer (&ret);
 }
 
 static ValentMessageThread *
@@ -593,132 +626,6 @@ valent_messages_adapter_init (ValentMessagesAdapter *self)
   ValentMessagesAdapterPrivate *priv = valent_messages_adapter_get_instance_private (self);
 
   priv->threads = g_ptr_array_new_with_free_func (g_object_unref);
-}
-
-/*< private >
- * valent_message_from_sparql_cursor:
- * @cursor: a `ValentMessagesAdapter`
- * @current: (nullable): the current message
- *
- * Get the [class@Valent.Message] at @cursor. If @message is equivalent to the
- * message at the cursor, the attachments will be iterated.
- *
- * Returns: (transfer full): a new message
- */
-ValentMessage *
-valent_message_from_sparql_cursor (TrackerSparqlCursor *cursor,
-                                   ValentMessage       *current)
-{
-  ValentMessage *ret = NULL;
-  int64_t message_id;
-
-  g_assert (TRACKER_IS_SPARQL_CURSOR (cursor));
-  g_assert (current == NULL || VALENT_IS_MESSAGE (current));
-
-  message_id = tracker_sparql_cursor_get_integer (cursor, CURSOR_MESSAGE_ID);
-  if (current != NULL && valent_message_get_id (current) == message_id)
-    {
-      ret = g_object_ref (current);
-    }
-  else
-    {
-      const char *iri = tracker_sparql_cursor_get_string (cursor, CURSOR_MESSAGE_IRI, NULL);
-      g_autoptr (GListStore) attachments = NULL;
-      ValentMessageBox box = VALENT_MESSAGE_BOX_ALL;
-      int64_t date = 0;
-      g_autoptr (GDateTime) datetime = NULL;
-      gboolean read = FALSE;
-      const char *recipients = NULL;
-      g_auto (GStrv) recipientv = NULL;
-      const char *sender = NULL;
-      int64_t subscription_id = -1;
-      const char *text = NULL;
-      int64_t thread_id = -1;
-
-      attachments = g_list_store_new (VALENT_TYPE_MESSAGE_ATTACHMENT);
-      box = tracker_sparql_cursor_get_integer (cursor, CURSOR_MESSAGE_BOX);
-
-      datetime = tracker_sparql_cursor_get_datetime (cursor, CURSOR_MESSAGE_DATE);
-      if (datetime != NULL)
-        date = g_date_time_to_unix_usec (datetime) / 1000;
-
-      read = tracker_sparql_cursor_get_boolean (cursor, CURSOR_MESSAGE_READ);
-
-      recipients = tracker_sparql_cursor_get_string (cursor, CURSOR_MESSAGE_RECIPIENTS, NULL);
-      if (recipients != NULL)
-        recipientv = g_strsplit (recipients, ",", -1);
-
-      if (tracker_sparql_cursor_is_bound (cursor, CURSOR_MESSAGE_SENDER))
-        sender = tracker_sparql_cursor_get_string (cursor, CURSOR_MESSAGE_SENDER, NULL);
-
-      if (tracker_sparql_cursor_is_bound (cursor, CURSOR_MESSAGE_SUBSCRIPTION_ID))
-        subscription_id = tracker_sparql_cursor_get_integer (cursor, CURSOR_MESSAGE_SUBSCRIPTION_ID);
-
-      if (tracker_sparql_cursor_is_bound (cursor, CURSOR_MESSAGE_TEXT))
-        text = tracker_sparql_cursor_get_string (cursor, CURSOR_MESSAGE_TEXT, NULL);
-
-      thread_id = tracker_sparql_cursor_get_integer (cursor, CURSOR_MESSAGE_THREAD_ID);
-
-      ret = g_object_new (VALENT_TYPE_MESSAGE,
-                          "iri",             iri,
-                          "box",             box,
-                          "date",            date,
-                          "id",              message_id,
-                          "read",            read,
-                          "recipients",      recipientv,
-                          "sender",          sender,
-                          "subscription-id", subscription_id,
-                          "text",            text,
-                          "thread-id",       thread_id,
-                          "attachments",     attachments,
-                          NULL);
-    }
-
-  /* Attachment
-   */
-  if (tracker_sparql_cursor_is_bound (cursor, CURSOR_MESSAGE_ATTACHMENT_IRI))
-    {
-      const char *iri = tracker_sparql_cursor_get_string (cursor, CURSOR_MESSAGE_ATTACHMENT_IRI, NULL);
-      GListModel *attachments = valent_message_get_attachments (ret);
-      g_autoptr (ValentMessageAttachment) attachment = NULL;
-      g_autoptr (GIcon) preview = NULL;
-      g_autoptr (GFile) file = NULL;
-
-      if (tracker_sparql_cursor_is_bound (cursor, CURSOR_MESSAGE_ATTACHMENT_PREVIEW))
-        {
-          const char *base64_data;
-
-          base64_data = tracker_sparql_cursor_get_string (cursor, CURSOR_MESSAGE_ATTACHMENT_PREVIEW, NULL);
-          if (base64_data != NULL)
-            {
-              g_autoptr (GBytes) bytes = NULL;
-              unsigned char *data;
-              size_t len;
-
-              data = g_base64_decode (base64_data, &len);
-              bytes = g_bytes_new_take (g_steal_pointer (&data), len);
-              preview = g_bytes_icon_new (bytes);
-            }
-        }
-
-      if (tracker_sparql_cursor_is_bound (cursor, CURSOR_MESSAGE_ATTACHMENT_FILE))
-        {
-          const char *file_uri;
-
-          file_uri = tracker_sparql_cursor_get_string (cursor, CURSOR_MESSAGE_ATTACHMENT_FILE, NULL);
-          if (file_uri != NULL)
-            file = g_file_new_for_uri (file_uri);
-        }
-
-      attachment = g_object_new (VALENT_TYPE_MESSAGE_ATTACHMENT,
-                                 "iri",     iri,
-                                 "preview", preview,
-                                 "file",    file,
-                                 NULL);
-      g_list_store_append (G_LIST_STORE (attachments), attachment);
-    }
-
-  return g_steal_pointer (&ret);
 }
 
 /**
