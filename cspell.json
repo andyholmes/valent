@@ -32,6 +32,7 @@
         "cspell.json",
         "*.gresource.xml",
         "*.oga",
+        "*.ontology",
         "*.py",
         "*.svg",
         "*.toml",
