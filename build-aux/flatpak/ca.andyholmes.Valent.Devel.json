@@ -1,10 +1,10 @@
 {
-    "app-id" : "ca.andyholmes.Valent.Devel",
-    "runtime" : "org.gnome.Platform",
-    "runtime-version" : "master",
-    "sdk" : "org.gnome.Sdk",
-    "command" : "valent",
-    "finish-args" : [
+    "app-id": "ca.andyholmes.Valent.Devel",
+    "runtime": "org.gnome.Platform",
+    "runtime-version": "master",
+    "sdk": "org.gnome.Sdk",
+    "command": "valent",
+    "finish-args": [
         "--allow=devel",
         "--device=dri",
         "--env=G_ENABLE_DIAGNOSTIC=1",
@@ -36,45 +36,45 @@
         "--talk-name=org.gtk.vfs.*",
         "--talk-name=org.mpris.MediaPlayer2.*"
     ],
-    "add-extensions" : {
-        "ca.andyholmes.Valent.Plugin" : {
-            "version" : "master",
-            "directory" : "extensions",
-            "add-ld-path" : "lib",
-            "merge-dirs" : "lib/valent/plugins",
-            "subdirectories" : true,
-            "no-autodownload" : true,
-            "autodelete" : true
+    "add-extensions": {
+        "ca.andyholmes.Valent.Plugin": {
+            "version": "master",
+            "directory": "extensions",
+            "add-ld-path": "lib",
+            "merge-dirs": "lib/valent/plugins",
+            "subdirectories": true,
+            "no-autodownload": true,
+            "autodelete": true
         }
     },
-    "cleanup" : [
+    "cleanup": [
         "/libexec",
         "/man",
         "/share/man",
         "*.la",
         "*.a"
     ],
-    "modules" : [
+    "modules": [
         {
-            "name" : "intltool",
-            "cleanup" : [
+            "name": "intltool",
+            "cleanup": [
                 "*"
             ],
-            "sources" : [
+            "sources": [
                 {
-                    "type" : "archive",
-                    "url" : "https://launchpad.net/intltool/trunk/0.51.0/+download/intltool-0.51.0.tar.gz",
-                    "sha256" : "67c74d94196b153b774ab9f89b2fa6c6ba79352407037c8c14d5aeb334e959cd"
+                    "type": "archive",
+                    "url": "https://launchpad.net/intltool/trunk/0.51.0/+download/intltool-0.51.0.tar.gz",
+                    "sha256": "67c74d94196b153b774ab9f89b2fa6c6ba79352407037c8c14d5aeb334e959cd"
                 }
             ]
         },
         {
-            "name" : "libical",
-            "buildsystem" : "cmake-ninja",
-            "cleanup" : [
+            "name": "libical",
+            "buildsystem": "cmake-ninja",
+            "cleanup": [
                 "/lib/cmake"
             ],
-            "config-opts" : [
+            "config-opts": [
                 "-DCMAKE_INSTALL_LIBDIR:PATH=/app/lib",
                 "-DBUILD_SHARED_LIBS:BOOL=ON",
                 "-DGOBJECT_INTROSPECTION:BOOL=ON",
@@ -84,11 +84,11 @@
                 "-DLIBICAL_BUILD_EXAMPLES:BOOL=OFF",
                 "-DLIBICAL_BUILD_TESTING:BOOL=OFF"
             ],
-            "sources" : [
+            "sources": [
                 {
-                    "type" : "git",
-                    "url" : "https://github.com/libical/libical.git",
-                    "branch" : "master"
+                    "type": "git",
+                    "url": "https://github.com/libical/libical.git",
+                    "branch": "master"
                 }
             ]
         },
@@ -179,9 +179,9 @@
             ]
         },
         {
-            "name" : "evolution-data-server",
-            "buildsystem" : "cmake-ninja",
-            "cleanup" : [
+            "name": "evolution-data-server",
+            "buildsystem": "cmake-ninja",
+            "cleanup": [
                 "/etc",
                 "/lib/cmake",
                 "/lib/evolution-data-server/*-backends",
@@ -191,7 +191,7 @@
                 "/share/GConf",
                 "/systemd"
             ],
-            "config-opts" : [
+            "config-opts": [
                 "-DCMAKE_BUILD_TYPE=Release",
                 "-DENABLE_DOT_LOCKING=OFF",
                 "-DENABLE_CANBERRA=OFF",
@@ -213,58 +213,58 @@
                 "-DWITH_SYSTEMDUSERUNITDIR=OFF",
                 "-DWITH_DBUS_SERVICE_DIR=OFF"
             ],
-            "sources" : [
+            "sources": [
                 {
-                    "type" : "git",
-                    "url" : "https://gitlab.gnome.org/GNOME/evolution-data-server.git",
-                    "branch" : "master"
+                    "type": "git",
+                    "url": "https://gitlab.gnome.org/GNOME/evolution-data-server.git",
+                    "branch": "master"
                 }
             ]
         },
         {
-            "name" : "libpeas",
-            "buildsystem" : "meson",
-            "builddir" : true,
-            "cleanup" : [
+            "name": "libpeas",
+            "buildsystem": "meson",
+            "builddir": true,
+            "cleanup": [
                 "/bin/*"
             ],
-            "config-opts" : [
+            "config-opts": [
                 "-Dlua51=false",
                 "-Dpython3=false",
                 "-Dintrospection=true",
                 "-Dvapi=true"
             ],
-            "sources" : [
+            "sources": [
                 {
-                    "type" : "git",
-                    "url" : "https://gitlab.gnome.org/GNOME/libpeas.git",
-                    "branch" : "main"
+                    "type": "git",
+                    "url": "https://gitlab.gnome.org/GNOME/libpeas.git",
+                    "branch": "main"
                 }
             ]
         },
         {
-            "name" : "libportal",
-            "buildsystem" : "meson",
-            "builddir" : true,
-            "config-opts" : [
+            "name": "libportal",
+            "buildsystem": "meson",
+            "builddir": true,
+            "config-opts": [
                 "-Ddocs=false",
                 "-Dintrospection=false",
                 "-Dvapi=false"
             ],
-            "sources" : [
+            "sources": [
                 {
-                    "type" : "git",
-                    "url" : "https://github.com/flatpak/libportal.git",
-                    "commit" : "e9ed3a50cdde321eaf42361212480a66eb94a57a",
-                    "tag" : "0.7.1"
+                    "type": "git",
+                    "url": "https://github.com/flatpak/libportal.git",
+                    "commit": "e9ed3a50cdde321eaf42361212480a66eb94a57a",
+                    "tag": "0.7.1"
                 }
             ]
         },
         {
-            "name" : "pipewire",
-            "buildsystem" : "meson",
-            "builddir" : true,
-            "config-opts" : [
+            "name": "pipewire",
+            "buildsystem": "meson",
+            "builddir": true,
+            "config-opts": [
                 "-Dgstreamer=disabled",
                 "-Dman=disabled",
                 "-Dsystemd=disabled",
@@ -272,20 +272,20 @@
                 "-Dudevrulesdir=disabled",
                 "-Dsession-managers=[]"
             ],
-            "sources" : [
+            "sources": [
                 {
-                    "type" : "git",
-                    "url" : "https://gitlab.freedesktop.org/pipewire/pipewire.git",
-                    "branch" : "master"
+                    "type": "git",
+                    "url": "https://gitlab.freedesktop.org/pipewire/pipewire.git",
+                    "branch": "master"
                 }
             ]
         },
         "ca.andyholmes.Valent.Tests.json",
         {
-            "name" : "valent",
-            "buildsystem" : "meson",
-            "builddir" : true,
-            "config-opts" : [
+            "name": "valent",
+            "buildsystem": "meson",
+            "builddir": true,
+            "config-opts": [
                 "--prefix=/app",
                 "--libdir=lib/",
                 "--buildtype=debugoptimized",
@@ -293,13 +293,13 @@
                 "-Dtests=true",
                 "-Dtracing=true"
             ],
-            "post-install" : [
+            "post-install": [
                 "install -d /app/extensions"
             ],
-            "sources" : [
+            "sources": [
                 {
-                    "type" : "dir",
-                    "path" : "../../"
+                    "type": "dir",
+                    "path": "../../"
                 }
             ]
         }
