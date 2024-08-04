@@ -4,7 +4,9 @@
 #include "config.h"
 
 #include <glib/gi18n.h>
+#ifdef HAVE_GTK4
 #include <gtk/gtk.h>
+#endif /* HAVE_GTK4 */
 #include <libportal/portal.h>
 #include <valent.h>
 
@@ -52,8 +54,10 @@ main (int   argc,
   valent_debug_init ();
   valent_plugin_init ();
 
+#ifdef HAVE_GTK4
   if (g_getenv ("VALENT_HEADLESS") != NULL || !gtk_init_check ())
     g_debug ("Valent running in headless mode");
+#endif /* HAVE_GTK4 */
 
   /* Run and cleanup, before returning */
   g_set_application_name ("Valent");

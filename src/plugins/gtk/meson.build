@@ -4,7 +4,7 @@
 # Dependencies
 plugin_gtk_deps = [
   libvalent_dep,
-  dependency('gtk4', version: gtk_version),
+  gtk_dep,
 ]
 
 # Sources

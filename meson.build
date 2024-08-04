@@ -90,10 +90,15 @@ project_c_args = [
   '-Wno-missing-field-initializers',
   '-Wno-unused-parameter',
 
-  # These should be kept in sync (eg. GTK 4.10 requires GLib 2.72)
+  # These should be kept in sync with GTK and libadwaita
   '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_80',
   '-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_80',
-  '-DGDK_VERSION_MIN_REQUIRED=GDK_VERSION_4_10',
+
+  # These are optional, but have minimum requirements if present
+  '-DGDK_VERSION_MIN_REQUIRED=GDK_VERSION_4_14',
+  '-DGDK_VERSION_MIN_REQUIRED=GDK_VERSION_4_14',
+  '-DADW_VERSION_MIN_REQUIRED=ADW_VERSION_1_5',
+  '-DADW_VERSION_MIN_REQUIRED=ADW_VERSION_1_5',
 
   '-Wno-error=analyzer-va-arg-type-mismatch',
 ]
@@ -133,6 +138,74 @@ add_project_link_arguments(cc.get_supported_link_arguments(project_link_args),
 
 
 #
+# Dependencies
+#
+glib_version = '>= 2.76.0'
+gdk_pixbuf_version = '>= 2.0'
+gtk_version = '>= 4.10.0'
+gnutls_version = '>= 3.1.3'
+json_glib_version = '>= 1.6.0'
+libpeas_version = '>= 2.0.0'
+eds_version = '>= 3.34'
+libadwaita_version = '>= 1.5'
+libportal_version = ['>= 0.6', '<= 0.7.1']
+tinysparql_version = '>= 3.0'
+
+libm_dep = cc.find_library('m', required: true)
+gio_dep = dependency('gio-2.0', version: glib_version)
+gio_unix_dep = dependency('gio-unix-2.0', version: glib_version)
+gdk_pixbuf_dep = dependency('gdk-pixbuf-2.0', version: gdk_pixbuf_version)
+gnutls_dep = dependency('gnutls', version: gnutls_version)
+json_glib_dep = dependency('json-glib-1.0', version: json_glib_version)
+libpeas_dep = dependency('libpeas-2', version: libpeas_version)
+tinysparql_dep = dependency('tracker-sparql-3.0', version: tinysparql_version)
+
+libportal_gtk4_dep = dependency('libportal-gtk4',
+   version: libportal_version,
+  required: false,
+)
+libportal_dep = libportal_gtk4_dep
+
+if not libportal_dep.found()
+  libportal_dep = dependency('libportal',
+            version: libportal_version,
+           fallback: ['libportal', 'libportal_dep'],
+    default_options: [
+      'docs=false',
+      'introspection=false',
+      'vapi=false',
+      'werror=false',
+    ],
+  )
+endif
+
+# libvalent-contacts
+libebook_dep = dependency('libebook-1.2', version: eds_version)
+libphonenumber_dep = cc.find_library('phonenumber', required: true)
+
+# Optional (depending on plugin)
+gtk_dep = dependency('gtk4',
+   version: gtk_version,
+  required: false,
+)
+libadwaita_dep = dependency('libadwaita-1',
+   version: libadwaita_version,
+  required: false,
+)
+
+# Debugging & Testing
+libsysprof_capture_dep = dependency('sysprof-capture-4',
+  required: false,
+    static: true,
+   version: '>= 3.38',
+)
+libwalbottle_dep = dependency('libwalbottle-0',
+  required: false,
+   version: '>= 0.3.0'
+)
+
+
+#
 # config.h
 #
 config_h = configuration_data()
@@ -158,6 +231,18 @@ foreach define, value : config_h_defines
   config_h.set_quoted(define, value)
 endforeach
 
+config_h_dependencies = {
+  'HAVE_GTK4':           gtk_dep,
+  'HAVE_ADWAITA':        libadwaita_dep,
+  'HAVE_LIBPORTAL_GTK4': libportal_gtk4_dep,
+  'HAVE_SYSPROF':        libsysprof_capture_dep,
+  'HAVE_WALBOTTLE':      libwalbottle_dep,
+}
+
+foreach define, dep : config_h_dependencies
+  config_h.set(define, dep.found())
+endforeach
+
 config_h_functions = {
   'HAVE_CLOCK_GETTIME': 'clock_gettime',
   'HAVE_LOCALTIME_R':   'localtime_r',
@@ -175,63 +260,6 @@ endif
 configure_file(
          output: 'config.h',
   configuration: config_h,
-)
-
-
-#
-# Dependencies
-#
-glib_version = '>= 2.76.0'
-gdk_pixbuf_version = '>= 2.0'
-gtk_version = '>= 4.10.0'
-gnutls_version = '>= 3.1.3'
-json_glib_version = '>= 1.6.0'
-libpeas_version = '>= 2.0.0'
-eds_version = '>= 3.34'
-libadwaita_version = '>= 1.5'
-libportal_version = ['>= 0.6', '<= 0.7.1']
-tinysparql_version = '>= 3.0'
-
-libm_dep = cc.find_library('m', required: true)
-gio_dep = dependency('gio-2.0', version: glib_version)
-gio_unix_dep = dependency('gio-unix-2.0', version: glib_version)
-gdk_pixbuf_dep = dependency('gdk-pixbuf-2.0', version: gdk_pixbuf_version)
-gnutls_dep = dependency('gnutls', version: gnutls_version)
-json_glib_dep = dependency('json-glib-1.0', version: json_glib_version)
-libpeas_dep = dependency('libpeas-2', version: libpeas_version)
-tinysparql_dep = dependency('tracker-sparql-3.0')
-
-libportal_dep = dependency('libportal-gtk4',
-   version: libportal_version,
-  required: false,
-)
-
-if not libportal_dep.found()
-  libportal_dep = dependency('libportal',
-            version: libportal_version,
-           fallback: ['libportal', 'libportal_dep'],
-    default_options: [
-      'docs=false',
-      'introspection=false',
-      'vapi=false',
-      'werror=false',
-    ],
-  )
-endif
-
-# libvalent-contacts
-libebook_dep = dependency('libebook-1.2', version: eds_version)
-libphonenumber_dep = cc.find_library('phonenumber', required: true)
-
-# Debugging & Testing
-libsysprof_capture = dependency('sysprof-capture-4',
-  required: false,
-    static: true,
-   version: '>= 3.38',
-)
-libwalbottle_dep = dependency('libwalbottle-0',
-  required: false,
-   version: '>= 0.3.0'
 )
 
 

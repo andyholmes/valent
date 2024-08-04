@@ -7,9 +7,12 @@
 
 #include <gio/gio.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
-#include <gtk/gtk.h>
 #include <json-glib/json-glib.h>
 #include <valent.h>
+
+#ifdef HAVE_GTK4
+#include <gtk/gtk.h>
+#endif /* HAVE_GTK4 */
 
 #include "valent-notification-upload.h"
 
@@ -47,9 +50,7 @@ enum {
 static GParamSpec *properties[N_PROPERTIES] = { 0, };
 
 
-/*
- * GIcon Helpers
- */
+#ifdef HAVE_GTK4
 static GtkIconTheme *
 _gtk_icon_theme_get_default (void)
 {
@@ -109,17 +110,16 @@ get_largest_icon_file (GIcon *icon)
   g_assert (G_IS_THEMED_ICON (icon));
 
   icon_theme = _gtk_icon_theme_get_default ();
-
   if (icon_theme == NULL)
     return NULL;
 
   names = g_themed_icon_get_names (G_THEMED_ICON (icon));
-
-  for (unsigned int i = 0; names[i]; i++)
+  for (size_t i = 0; names[i]; i++)
     {
       int size;
 
-      if ((size = _gtk_icon_theme_get_largest_icon (icon_theme, names[i])) == 0)
+      size = _gtk_icon_theme_get_largest_icon (icon_theme, names[i]);
+      if (size == 0)
         continue;
 
       info = gtk_icon_theme_lookup_icon (icon_theme,
@@ -136,6 +136,7 @@ get_largest_icon_file (GIcon *icon)
 
   return NULL;
 }
+#endif /* HAVE_GTK4 */
 
 static void
 on_size_prepared (GdkPixbufLoader *loader,
@@ -175,18 +176,24 @@ valent_notification_upload_get_icon_bytes (GIcon         *icon,
     {
       g_autoptr (GFile) file = NULL;
 
+#ifdef HAVE_GTK4
       file = get_largest_icon_file (icon);
-
       if (file == NULL)
         {
           g_set_error (error,
                        G_IO_ERROR,
                        G_IO_ERROR_FAILED,
                        "Failed to load themed icon");
-          return NULL;
         }
+#else
+      g_set_error (error,
+                   G_IO_ERROR,
+                   G_IO_ERROR_NOT_SUPPORTED,
+                   "GTK is not initialized");
+#endif /* HAVE_GTK4 */
 
-      bytes = g_file_load_bytes (file, cancellable, NULL, error);
+      if (file != NULL)
+        bytes = g_file_load_bytes (file, cancellable, NULL, error);
     }
   else if (G_IS_FILE_ICON (icon))
     {

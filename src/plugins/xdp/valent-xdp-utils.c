@@ -6,10 +6,10 @@
 #include "config.h"
 
 #include <libportal/portal.h>
-#ifdef HAVE_LIBPORTAL_GTK4
-# include <gtk/gtk.h>
-# include <libportal-gtk4/portal-gtk4.h>
-#endif /* HAVE_LIBPORTAL_GTK4 */
+#if defined(HAVE_GTK4) && defined(HAVE_LIBPORTAL_GTK4)
+#include <gtk/gtk.h>
+#include <libportal-gtk4/portal-gtk4.h>
+#endif /* HAVE_GTK4 && HAVE_LIBPORTAL_GTK4 */
 
 #include "valent-xdp-utils.h"
 
@@ -17,7 +17,7 @@
 static XdpPortal *default_portal = NULL;
 
 
-#ifdef HAVE_LIBPORTAL_GTK4
+#if defined(HAVE_GTK4) && defined(HAVE_LIBPORTAL_GTK4)
 static GtkWindow *
 valent_xdp_get_active_window (void)
 {
@@ -37,7 +37,7 @@ valent_xdp_get_active_window (void)
 
   return NULL;
 }
-#endif /* HAVE_LIBPORTAL_GTK4 */
+#endif /* HAVE_GTK4 */
 
 /**
  * valent_xdp_get_default:
@@ -68,14 +68,13 @@ valent_xdp_get_default (void)
 XdpParent *
 valent_xdp_get_parent (void)
 {
-#ifdef HAVE_LIBPORTAL_GTK4
+#if defined(HAVE_GTK4) && defined(HAVE_LIBPORTAL_GTK4)
   g_autoptr (GtkWindow) window = NULL;
 
   window = valent_xdp_get_active_window ();
-
   if (window != NULL)
     return xdp_parent_new_gtk (window);
-#endif /* HAVE_LIBPORTAL_GTK4 */
+#endif /* HAVE_GTK4 && HAVE_LIBPORTAL_GTK4 */
 
   return NULL;
 }
@@ -93,15 +92,6 @@ valent_xdp_get_parent (void)
 gboolean
 valent_xdp_has_parent (void)
 {
-#ifdef HAVE_LIBPORTAL_GTK4
-  g_autoptr (GtkWindow) window = NULL;
-
-  window = valent_xdp_get_active_window ();
-
-  if (window != NULL)
-    return TRUE;
-#endif /* HAVE_LIBPORTAL_GTK4 */
-
-  return FALSE;
+  return valent_xdp_get_parent () != NULL;
 }
 

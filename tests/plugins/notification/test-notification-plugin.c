@@ -2,7 +2,9 @@
 // SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 #include <gio/gio.h>
+#ifdef HAVE_GTK4
 #include <gtk/gtk.h>
+#endif /* HAVE_GTK4 */
 #include <valent.h>
 #include <libvalent-test.h>
 
@@ -330,8 +332,10 @@ main (int   argc,
 
   valent_test_init (&argc, &argv, NULL);
 
+#ifdef HAVE_GTK4
   if (!gtk_init_check ())
     g_test_message ("Skipping themed icon transfers");
+#endif /* HAVE_GTK4 */
 
   g_test_add ("/plugins/notification/basic",
               ValentTestFixture, path,
