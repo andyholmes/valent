@@ -9,7 +9,7 @@
 
 #include <gio/gio.h>
 
-#include "../core/valent-version.h"
+#include "../core/valent-object.h"
 
 G_BEGIN_DECLS
 
@@ -47,7 +47,7 @@ typedef enum
 #define VALENT_TYPE_MESSAGE (valent_message_get_type())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_FINAL_TYPE (ValentMessage, valent_message, VALENT, MESSAGE, GObject)
+G_DECLARE_FINAL_TYPE (ValentMessage, valent_message, VALENT, MESSAGE, ValentObject)
 
 VALENT_AVAILABLE_IN_1_0
 GListModel         * valent_message_get_attachments     (ValentMessage *message);
@@ -57,8 +57,6 @@ VALENT_AVAILABLE_IN_1_0
 int64_t              valent_message_get_date            (ValentMessage *message);
 VALENT_AVAILABLE_IN_1_0
 int64_t              valent_message_get_id              (ValentMessage *message);
-VALENT_AVAILABLE_IN_1_0
-const char         * valent_message_get_iri             (ValentMessage *message);
 VALENT_AVAILABLE_IN_1_0
 gboolean             valent_message_get_read            (ValentMessage *message);
 VALENT_AVAILABLE_IN_1_0

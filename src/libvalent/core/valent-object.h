@@ -37,6 +37,8 @@ void           valent_object_unlock            (ValentObject *object);
 VALENT_AVAILABLE_IN_1_0
 GCancellable * valent_object_ref_cancellable   (ValentObject *object);
 VALENT_AVAILABLE_IN_1_0
+char         * valent_object_dup_iri           (ValentObject *object);
+VALENT_AVAILABLE_IN_1_0
 GCancellable * valent_object_chain_cancellable (ValentObject *object,
                                                 GCancellable *cancellable);
 VALENT_AVAILABLE_IN_1_0

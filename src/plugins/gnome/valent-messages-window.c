@@ -376,9 +376,8 @@ sidebar_list_create (gpointer item,
     {
       g_autoptr (EContact) contact = NULL;
 
-      g_debug ("%s(): message \"%s\" has no addresses; using fallback contact",
-               G_STRFUNC,
-               valent_message_get_iri (message));
+      g_debug ("%s(): message has no addresses; using fallback contact",
+               G_STRFUNC);
 
       contact = e_contact_new ();
       e_contact_set (contact, E_CONTACT_FULL_NAME, _("Unknown"));

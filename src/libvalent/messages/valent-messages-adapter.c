@@ -11,7 +11,7 @@
 
 #include "valent-message.h"
 #include "valent-message-attachment.h"
-#include "valent-message-thread-private.h"
+#include "valent-message-thread.h"
 
 #include "valent-messages-adapter.h"
 #include "valent-messages-adapter-private.h"

@@ -17,7 +17,7 @@ libvalent_messages_public_headers = [
 
 libvalent_messages_private_headers = [
   'valent-messages-adapter-private.h',
-  'valent-message-thread-private.h',
+  'valent-message-thread.h',
 ]
 
 libvalent_messages_enum_headers = [
