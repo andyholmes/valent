@@ -16,7 +16,6 @@
 #include "valent-messages-adapter.h"
 #include "valent-messages-adapter-private.h"
 
-#define GET_MESSAGE_RQ     "/ca/andyholmes/Valent/sparql/get-message.rq"
 #define GET_THREAD_RQ      "/ca/andyholmes/Valent/sparql/get-thread.rq"
 #define GET_THREADS_RQ     "/ca/andyholmes/Valent/sparql/get-threads.rq"
 #define SEARCH_MESSAGES_RQ "/ca/andyholmes/Valent/sparql/search-messages.rq"
