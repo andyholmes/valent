@@ -373,9 +373,9 @@ valent_conversation_page_announce_message (ValentConversationPage *self,
   GListModel *attachments;
   unsigned int n_attachments = 0;
   EContact *contact = NULL;
-  const char *contact_medium;
-  const char *sender;
-  const char *text;
+  const char *contact_medium = NULL;
+  const char *sender = NULL;
+  const char *text = NULL;
 
   g_assert (VALENT_IS_CONVERSATION_PAGE (self));
   g_assert (VALENT_IS_MESSAGE (message));
