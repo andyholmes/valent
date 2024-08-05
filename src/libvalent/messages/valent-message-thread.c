@@ -29,6 +29,7 @@ struct _ValentMessageThread
   GStrv                    participants;
 
   TrackerNotifier         *notifier;
+  GRegex                  *iri_pattern;
   TrackerSparqlStatement  *get_message_stmt;
   TrackerSparqlStatement  *get_thread_stmt;
   GCancellable            *cancellable;
@@ -147,6 +148,13 @@ valent_message_thread_remove_message (ValentMessageThread *self,
     }
 }
 
+gboolean
+valent_message_thread_event_is_message (ValentMessageThread *self,
+                                        const char          *iri)
+{
+  return g_regex_match (self->iri_pattern, iri, G_REGEX_MATCH_DEFAULT, NULL);
+}
+
 static void
 on_notifier_event (TrackerNotifier     *notifier,
                    const char          *service,
@@ -164,7 +172,7 @@ on_notifier_event (TrackerNotifier     *notifier,
       TrackerNotifierEvent *event = g_ptr_array_index (events, i);
       const char *urn = tracker_notifier_event_get_urn (event);
 
-      if (!g_str_has_prefix (urn, self->iri))
+      if (!valent_message_thread_event_is_message (self, urn))
         continue;
 
       switch (tracker_notifier_event_get_event_type (event))
@@ -181,7 +189,7 @@ on_notifier_event (TrackerNotifier     *notifier,
 
         case TRACKER_NOTIFIER_EVENT_UPDATE:
           VALENT_NOTE ("UPDATE: %s", urn);
-          // on_message_updated (NULL, urn, self);
+          // valent_message_thread_update_message (self, urn);
           break;
 
         default:
@@ -490,12 +498,26 @@ valent_message_thread_constructed (GObject *object)
   g_object_get (VALENT_OBJECT (self), "iri", &self->iri, NULL);
   if (self->connection != NULL)
     {
+      g_autoptr (GString) iri_string = NULL;
+
       self->notifier = tracker_sparql_connection_create_notifier (self->connection);
       g_signal_connect_object (self->notifier,
                                "events",
                                G_CALLBACK (on_notifier_event),
                                self,
                                G_CONNECT_DEFAULT);
+
+      /* FIXME: this relies on IRIs use the pattern `/<thread-id>/<message-id>`,
+       *        which may not be universally applicable
+       */
+      iri_string = g_string_new (self->iri);
+      g_string_replace (iri_string, "/", "\\/", 0);
+      g_string_prepend_c (iri_string, '^');
+      g_string_append (iri_string, "\\/([^\\/]+)$");
+      self->iri_pattern = g_regex_new (iri_string->str,
+                                       G_REGEX_OPTIMIZE,
+                                       G_REGEX_MATCH_DEFAULT,
+                                       NULL);
     }
 }
 
@@ -521,6 +543,7 @@ valent_message_thread_finalize (GObject *object)
   g_clear_object (&self->notifier);
   g_clear_object (&self->get_message_stmt);
   g_clear_object (&self->get_thread_stmt);
+  g_clear_pointer (&self->iri_pattern, g_regex_unref);
   g_clear_object (&self->cancellable);
   g_clear_pointer (&self->items, g_sequence_free);
 
