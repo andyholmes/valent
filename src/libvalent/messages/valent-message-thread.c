@@ -16,8 +16,8 @@
 
 #include "valent-message-thread.h"
 
-#define GET_MESSAGE_RQ "/ca/andyholmes/Valent/sparql/get-message.rq"
-#define GET_THREAD_RQ  "/ca/andyholmes/Valent/sparql/get-thread.rq"
+#define GET_MESSAGE_RQ          "/ca/andyholmes/Valent/sparql/get-message.rq"
+#define GET_THREAD_MESSAGES_RQ  "/ca/andyholmes/Valent/sparql/get-thread-messages.rq"
 
 struct _ValentMessageThread
 {
@@ -31,7 +31,7 @@ struct _ValentMessageThread
   TrackerNotifier         *notifier;
   GRegex                  *iri_pattern;
   TrackerSparqlStatement  *get_message_stmt;
-  TrackerSparqlStatement  *get_thread_stmt;
+  TrackerSparqlStatement  *get_thread_messages_stmt;
   GCancellable            *cancellable;
 
   /* list */
@@ -405,23 +405,24 @@ valent_message_thread_load (ValentMessageThread *self)
                         g_ptr_array_new_with_free_func (g_object_unref),
                         (GDestroyNotify)g_ptr_array_unref);
 
-  if (self->get_thread_stmt == NULL)
+  if (self->get_thread_messages_stmt == NULL)
     {
-      self->get_thread_stmt =
+      self->get_thread_messages_stmt =
         tracker_sparql_connection_load_statement_from_gresource (self->connection,
-                                                                 GET_THREAD_RQ,
+                                                                 GET_THREAD_MESSAGES_RQ,
                                                                  self->cancellable,
                                                                  &error);
     }
 
-  if (self->get_thread_stmt == NULL)
+  if (self->get_thread_messages_stmt == NULL)
     {
       g_task_return_error (task, g_steal_pointer (&error));
       return;
     }
 
-  tracker_sparql_statement_bind_string (self->get_thread_stmt, "iri", self->iri);
-  tracker_sparql_statement_execute_async (self->get_thread_stmt,
+  tracker_sparql_statement_bind_string (self->get_thread_messages_stmt, "iri",
+                                        self->iri);
+  tracker_sparql_statement_execute_async (self->get_thread_messages_stmt,
                                           g_task_get_cancellable (task),
                                           (GAsyncReadyCallback) execute_get_messages_cb,
                                           g_object_ref (task));
@@ -542,7 +543,7 @@ valent_message_thread_finalize (GObject *object)
   g_clear_pointer (&self->iri, g_free);
   g_clear_object (&self->notifier);
   g_clear_object (&self->get_message_stmt);
-  g_clear_object (&self->get_thread_stmt);
+  g_clear_object (&self->get_thread_messages_stmt);
   g_clear_pointer (&self->iri_pattern, g_regex_unref);
   g_clear_object (&self->cancellable);
   g_clear_pointer (&self->items, g_sequence_free);
