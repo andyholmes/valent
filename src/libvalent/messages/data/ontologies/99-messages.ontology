@@ -27,7 +27,8 @@ vmo: a nrl:Namespace, nrl:Ontology ;
 vmo:CommunicationChannel a rdfs:Class ;
     rdfs:label "Communication Channel" ;
     rdfs:comment "A communication channel. The container for all messages between participants of a specific group or in a persistent channel." ;
-    rdfs:subClassOf nie:InformationElement .
+    rdfs:subClassOf nie:InformationElement ;
+    nrl:notify true .
 
 vmo:communicationChannelId a rdf:Property ;
     rdfs:comment "Identifier assigned by the system that composed the thread." ;
