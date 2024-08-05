@@ -344,6 +344,13 @@ sidebar_list_create (gpointer item,
   row = g_object_new (VALENT_TYPE_MESSAGE_ROW,
                       "message", message,
                       NULL);
+  g_object_bind_property (thread, "latest-message",
+                          row,    "message",
+                          G_BINDING_DEFAULT);
+  g_object_set_data_full (G_OBJECT (row),
+                          "valent-message-thread",
+                          g_object_ref (thread),
+                          g_object_unref);
 
   // TODO: participant-based avatar for sidebar rows
   box = valent_message_get_box (message);
