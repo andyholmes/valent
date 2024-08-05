@@ -46,10 +46,11 @@
 typedef struct
 {
   TrackerSparqlConnection *connection;
-  TrackerNotifier         *notifier;
   GPtrArray               *threads;
 
   TrackerSparqlStatement  *get_threads_stmt;
+  TrackerNotifier         *notifier;
+  GRegex                  *iri_pattern;
 } ValentMessagesAdapterPrivate;
 
 static void   g_list_model_iface_init (GListModelInterface *iface);
@@ -65,6 +66,57 @@ typedef enum
 
 static GParamSpec *properties[PROP_CONNECTION + 1] = { 0, };
 
+gboolean
+valent_messages_adapter_event_is_thread (ValentMessagesAdapter *self,
+                                         const char            *iri)
+{
+  ValentMessagesAdapterPrivate *priv = valent_messages_adapter_get_instance_private (self);
+
+  return g_regex_match (priv->iri_pattern, iri, G_REGEX_MATCH_DEFAULT, NULL);
+}
+
+static void
+on_notifier_event (TrackerNotifier       *notifier,
+                   const char            *service,
+                   const char            *graph,
+                   GPtrArray             *events,
+                   ValentMessagesAdapter *self)
+{
+  g_assert (VALENT_IS_MESSAGES_ADAPTER (self));
+
+  if (g_strcmp0 (VALENT_MESSAGES_GRAPH, graph) != 0)
+    return;
+
+  for (unsigned int i = 0; i < events->len; i++)
+    {
+      TrackerNotifierEvent *event = g_ptr_array_index (events, i);
+      const char *urn = tracker_notifier_event_get_urn (event);
+
+      if (!valent_messages_adapter_event_is_thread (self, urn))
+        continue;
+
+      switch (tracker_notifier_event_get_event_type (event))
+        {
+        case TRACKER_NOTIFIER_EVENT_CREATE:
+          VALENT_NOTE ("CREATE: %s", urn);
+          break;
+
+        case TRACKER_NOTIFIER_EVENT_DELETE:
+          VALENT_NOTE ("DELETE: %s", urn);
+          /* valent_message_thread_remove_message (self, urn); */
+          break;
+
+        case TRACKER_NOTIFIER_EVENT_UPDATE:
+          VALENT_NOTE ("UPDATE: %s", urn);
+          // on_message_updated (NULL, urn, self);
+          break;
+
+        default:
+          g_warn_if_reached ();
+        }
+    }
+}
+
 static gboolean
 valent_messages_adapter_open (ValentMessagesAdapter  *self,
                               GError                **error)
@@ -73,6 +125,7 @@ valent_messages_adapter_open (ValentMessagesAdapter  *self,
   ValentContext *context = NULL;
   g_autoptr (GFile) file = NULL;
   g_autoptr (GFile) ontology = NULL;
+  g_autoptr (GString) iri_string = NULL;
 
   context = valent_extension_get_context (VALENT_EXTENSION (self));
   file = valent_context_get_cache_file (context, "metadata");
@@ -88,12 +141,24 @@ valent_messages_adapter_open (ValentMessagesAdapter  *self,
   if (priv->connection == NULL)
     return FALSE;
 
-  /* priv->notifier = tracker_sparql_connection_create_notifier (priv->connection); */
-  /* g_signal_connect_object (priv->notifier, */
-  /*                          "events", */
-  /*                          G_CALLBACK (on_notifier_event), */
-  /*                          self, */
-  /*                          G_CONNECT_DEFAULT); */
+  /* FIXME: this relies on IRIs use the pattern `/<thread-id>/<message-id>`,
+   *        which may not be universally applicable
+   */
+  iri_string = g_string_new (valent_context_get_path (context));
+  g_string_replace (iri_string, "/", "\\/", 0);
+  g_string_prepend (iri_string, "^valent:\\/\\/");
+  g_string_append (iri_string, "\\/([^\\/]+)$");
+  priv->iri_pattern = g_regex_new (iri_string->str,
+                                   G_REGEX_OPTIMIZE,
+                                   G_REGEX_MATCH_DEFAULT,
+                                   NULL);
+
+  priv->notifier = tracker_sparql_connection_create_notifier (priv->connection);
+  g_signal_connect_object (priv->notifier,
+                           "events",
+                           G_CALLBACK (on_notifier_event),
+                           self,
+                           G_CONNECT_DEFAULT);
 
   return TRUE;
 }
@@ -502,6 +567,7 @@ valent_messages_adapter_destroy (ValentObject *object)
 
   g_clear_object (&priv->notifier);
   g_clear_object (&priv->get_threads_stmt);
+  g_clear_pointer (&priv->iri_pattern, g_regex_unref);
 
   if (priv->connection != NULL)
     {
