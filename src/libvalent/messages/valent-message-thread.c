@@ -9,6 +9,7 @@
 
 #include <gio/gio.h>
 #include <libvalent-core.h>
+#include <tracker-sparql.h>
 
 #include "valent-messages.h"
 #include "valent-messages-adapter-private.h"
@@ -74,6 +75,7 @@ valent_message_thread_load_message_cb (GObject      *object,
 {
   ValentMessageThread *self = VALENT_MESSAGE_THREAD (object);
   g_autoptr (ValentMessage) message = NULL;
+  int64_t latest_date = 0;
   GSequenceIter *it;
   unsigned int position;
   g_autoptr (GError) error = NULL;
@@ -90,11 +92,26 @@ valent_message_thread_load_message_cb (GObject      *object,
       return;
     }
 
+  if (self->latest_message != NULL)
+    latest_date = valent_message_get_date (self->latest_message);
+
+  if (valent_message_get_date (message) > latest_date)
+    {
+      g_set_object (&self->latest_message, message);
+      g_object_notify_by_pspec (G_OBJECT (self),
+                                properties[PROP_LATEST_MESSAGE]);
+    }
+
+  /* Bail if we haven't loaded the rest of the thread yet
+   */
+  if (self->cancellable == NULL)
+    return;
+
   it = g_sequence_insert_sorted (self->items,
                                  g_object_ref (message),
                                  valent_message_thread_sort_func, NULL);
-  position = g_sequence_iter_get_position (it);
 
+  position = g_sequence_iter_get_position (it);
   g_list_model_items_changed (G_LIST_MODEL (self), position, 0, 1);
 }
 
@@ -415,12 +432,11 @@ static unsigned int
 valent_message_thread_get_n_items (GListModel *model)
 {
   ValentMessageThread *self = VALENT_MESSAGE_THREAD (model);
-  unsigned int n_items = g_sequence_get_length (self->items);
 
-  if (n_items == 0)
+  if (self->cancellable == NULL)
     valent_message_thread_load (self);
 
-  return n_items;
+  return g_sequence_get_length (self->items);
 }
 
 static gpointer
