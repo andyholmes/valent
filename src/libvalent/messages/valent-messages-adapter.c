@@ -414,6 +414,7 @@ valent_messages_adapter_get_threads (ValentMessagesAdapter *self)
   g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_MESSAGES_ADAPTER (self));
+  g_return_if_fail (TRACKER_IS_SPARQL_CONNECTION (priv->connection));
 
   if (priv->get_threads_stmt == NULL)
     {
@@ -526,7 +527,7 @@ valent_messages_adapter_constructed (GObject *object)
   if (priv->connection == NULL)
     {
       if (!valent_messages_adapter_open (self, &error))
-        g_error ("%s(): %s", G_STRFUNC, error->message);
+        g_critical ("%s(): %s", G_STRFUNC, error->message);
     }
 
   valent_messages_adapter_get_threads (self);

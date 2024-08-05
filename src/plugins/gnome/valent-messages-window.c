@@ -5,6 +5,8 @@
 
 #include "config.h"
 
+#include <inttypes.h>
+
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
 #include <adwaita.h>

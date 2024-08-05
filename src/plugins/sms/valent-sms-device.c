@@ -39,7 +39,6 @@ static void   valent_sms_device_request_conversation  (ValentSmsDevice *self,
                                                        int64_t          thread_id,
                                                        int64_t          range_start_timestamp,
                                                        int64_t          number_to_request);
-static void   valent_sms_device_request_conversations (ValentSmsDevice *self);
 
 G_DEFINE_FINAL_TYPE (ValentSmsDevice, valent_sms_device, VALENT_TYPE_MESSAGES_ADAPTER)
 
@@ -675,6 +674,7 @@ valent_sms_device_request_conversation (ValentSmsDevice *self,
                              NULL);
 }
 
+#if 0
 static inline void
 valent_sms_device_request_conversations (ValentSmsDevice *self)
 {
@@ -692,6 +692,7 @@ valent_sms_device_request_conversations (ValentSmsDevice *self)
                              (GAsyncReadyCallback) valent_device_send_packet_cb,
                              NULL);
 }
+#endif
 
 /*
  * ValentMessagesAdapter
@@ -1000,6 +1001,8 @@ cursor_get_timestamp_cb (TrackerSparqlCursor *cursor,
     g_task_return_pointer (task, g_steal_pointer (&timestamp), g_free);
   else
     g_task_return_error (task, g_steal_pointer (&error));
+
+  g_free (timestamp);
 }
 
 static void

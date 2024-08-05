@@ -32,54 +32,6 @@ valent_test_contact1 (void)
   return contact;
 }
 
-/**
- * valent_test_contact2:
- *
- * Get test contact #2.
- *
- * Returns: (transfer none): a `EContact`
- */
-static inline EContact *
-valent_test_contact2 (void)
-{
-  static EContact *contact = NULL;
-
-  if G_UNLIKELY (contact == NULL)
-    {
-      g_autoptr (GBytes) bytes = NULL;
-
-      bytes = g_resources_lookup_data ("/tests/contact2.vcf", 0, NULL);
-      contact = e_contact_new_from_vcard_with_uid (g_bytes_get_data (bytes, NULL),
-                                                   "4077i252298cf8ded4bff");
-    }
-
-  return contact;
-}
-
-/**
- * valent_test_contact3:
- *
- * Get test contact #3.
- *
- * Returns: (transfer none): a `EContact`
- */
-static inline EContact *
-valent_test_contact3 (void)
-{
-  static EContact *contact = NULL;
-
-  if G_UNLIKELY (contact == NULL)
-    {
-      g_autoptr (GBytes) bytes = NULL;
-
-      bytes = g_resources_lookup_data ("/tests/contact3.vcf", 0, NULL);
-      contact = e_contact_new_from_vcard_with_uid (g_bytes_get_data (bytes, NULL),
-                                                   "4077i252298cf8ded4bfg");
-    }
-
-  return contact;
-}
-
 static void
 test_sms_message_row (void)
 {
