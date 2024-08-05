@@ -1,0 +1,52 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
+
+# Inputs: iri
+# Outputs: message, box, date, messageId, read, recipients, sender, subscriptionId, text, threadId
+#          communicationChannel,
+SELECT
+  ?message
+  ?box
+  ?date
+  ?messageId
+  ?read
+  (GROUP_CONCAT(?recipient; separator=",") AS ?recipients)
+  ?sender
+  ?subscriptionId
+  ?text
+  ?threadId
+  ?communicationChannel
+  (GROUP_CONCAT(?participant; separator=",") AS ?participants)
+WHERE {
+  {
+    SELECT ?communicationChannel (MAX(?date) AS ?latestDate)
+    WHERE {
+      BIND(IRI(xsd:string(~iri)) AS ?communicationChannel)
+      ?message vmo:communicationChannel ?communicationChannel ;
+               dc:date ?date .
+    }
+    GROUP BY ?communicationChannel
+  }
+  ?message rdf:type vmo:PhoneMessage ;
+           dc:date ?date ;
+           vmo:phoneMessageBox ?phoneMessageBox ;
+           vmo:phoneMessageId ?messageId ;
+           nmo:isRead ?read ;
+           vmo:communicationChannel ?communicationChannel ;
+           vmo:subscriptionId ?subscriptionId .
+  ?communicationChannel rdf:type vmo:CommunicationChannel ;
+                        vmo:communicationChannelId ?threadId ;
+                        vmo:hasParticipant ?participant .
+  ?phoneMessageBox vmo:phoneMessageBoxId ?box .
+  OPTIONAL {
+    ?message nmo:messageSender ?contactMedium .
+    OPTIONAL { ?contactMedium (nco:phoneNumber|nco:emailAddress) ?sender }
+  }
+  OPTIONAL {
+    ?message nmo:primaryMessageRecipient ?contactMedium .
+    OPTIONAL { ?contactMedium (nco:phoneNumber|nco:emailAddress) ?recipient }
+  }
+  OPTIONAL {
+    ?message nmo:plainTextMessageContent ?text
+  }
+}

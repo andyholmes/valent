@@ -14,6 +14,7 @@
   <gresource prefix="/ca/andyholmes/Valent/sparql">
     <file alias="get-message.rq">data/sparql/get-message.rq</file>
     <file alias="get-message-attachments.rq">data/sparql/get-message-attachments.rq</file>
+    <file alias="get-thread.rq">data/sparql/get-thread.rq</file>
     <file alias="get-thread-messages.rq">data/sparql/get-thread-messages.rq</file>
     <file alias="get-thread-attachments.rq">data/sparql/get-thread-attachments.rq</file>
     <file alias="get-threads.rq">data/sparql/get-threads.rq</file>

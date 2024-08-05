@@ -13,6 +13,7 @@
 #include "valent-message-attachment.h"
 #include "valent-message-thread.h"
 
+#include "valent-messages.h"
 #include "valent-messages-adapter.h"
 #include "valent-messages-adapter-private.h"
 
@@ -45,14 +46,23 @@
 typedef struct
 {
   TrackerSparqlConnection *connection;
-  GPtrArray               *threads;
-
-  TrackerSparqlStatement  *get_threads_stmt;
   TrackerNotifier         *notifier;
+  TrackerSparqlStatement  *get_thread_stmt;
+  TrackerSparqlStatement  *get_threads_stmt;
   GRegex                  *iri_pattern;
+  GCancellable            *cancellable;
+
+  /* list */
+  GSequence               *items;
+  unsigned int             last_position;
+  GSequenceIter           *last_iter;
+  gboolean                 last_position_valid;
 } ValentMessagesAdapterPrivate;
 
 static void   g_list_model_iface_init (GListModelInterface *iface);
+
+static void  valent_messages_adapter_load_thread (ValentMessagesAdapter *self,
+                                                  const char            *iri);
 
 G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentMessagesAdapter, valent_messages_adapter, VALENT_TYPE_EXTENSION,
                                   G_ADD_PRIVATE (ValentMessagesAdapter)
@@ -64,6 +74,89 @@ typedef enum
 } ValentMessagesAdapterProperty;
 
 static GParamSpec *properties[PROP_CONNECTION + 1] = { 0, };
+
+static inline int
+valent_messages_adapter_sort_func (gconstpointer a,
+                                   gconstpointer b,
+                                   gpointer      user_data)
+{
+  g_autoptr (ValentMessage) message1 = NULL;
+  g_autoptr (ValentMessage) message2 = NULL;
+  int64_t date1 = 0;
+  int64_t date2 = 0;
+
+  g_object_get ((GObject *)a, "latest-message", &message1, NULL);
+  date1 = valent_message_get_date (message1);
+  g_object_get ((GObject *)b, "latest-message", &message2, NULL);
+  date2 = valent_message_get_date (message2);
+
+  return (date1 > date2) ? -1 : (date1 < date2);
+}
+
+static void
+valent_messages_adapter_load_thread_cb (GObject      *object,
+                                        GAsyncResult *result,
+                                        gpointer      user_data)
+{
+  ValentMessagesAdapter *self = VALENT_MESSAGES_ADAPTER (object);
+  ValentMessagesAdapterPrivate *priv = valent_messages_adapter_get_instance_private (self);
+  g_autoptr (ValentMessageThread) thread = NULL;
+  GSequenceIter *it;
+  unsigned int position;
+  g_autoptr (GError) error = NULL;
+
+  thread = g_task_propagate_pointer (G_TASK (result), &error);
+  if (thread == NULL)
+    {
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        {
+          const char *urn = g_task_get_task_data (G_TASK (result));
+          g_warning ("%s(): %s: %s", G_STRFUNC, urn, error->message);
+        }
+
+      return;
+    }
+
+  it = g_sequence_insert_sorted (priv->items,
+                                 g_object_ref (thread),
+                                 valent_messages_adapter_sort_func,
+                                 NULL);
+  position = g_sequence_iter_get_position (it);
+  g_list_model_items_changed (G_LIST_MODEL (self), position, 0, 1);
+}
+
+static inline int
+valent_messages_adapter_lookup_func (gconstpointer a,
+                                     gconstpointer b,
+                                     gpointer      user_data)
+{
+  g_autofree char *iri = valent_object_dup_iri ((ValentObject *)a);
+
+  return g_utf8_collate (iri, (const char *)user_data);
+}
+
+static void
+valent_messages_adapter_remove_thread (ValentMessagesAdapter *self,
+                                       const char            *iri)
+{
+  ValentMessagesAdapterPrivate *priv = valent_messages_adapter_get_instance_private (self);
+  GSequenceIter *it;
+  unsigned int position;
+
+  g_assert (VALENT_IS_MESSAGE_THREAD (self));
+
+  it = g_sequence_lookup (priv->items,
+                          &iri,
+                          valent_messages_adapter_lookup_func,
+                          NULL);
+
+  if (it != NULL)
+    {
+      position = g_sequence_iter_get_position (it);
+      g_sequence_remove (it);
+      g_list_model_items_changed (G_LIST_MODEL (self), position, 1, 0);
+    }
+}
 
 gboolean
 valent_messages_adapter_event_is_thread (ValentMessagesAdapter *self,
@@ -98,16 +191,17 @@ on_notifier_event (TrackerNotifier       *notifier,
         {
         case TRACKER_NOTIFIER_EVENT_CREATE:
           VALENT_NOTE ("CREATE: %s", urn);
+          valent_messages_adapter_load_thread (self, urn);
           break;
 
         case TRACKER_NOTIFIER_EVENT_DELETE:
           VALENT_NOTE ("DELETE: %s", urn);
-          /* valent_message_thread_remove_message (self, urn); */
+          valent_messages_adapter_remove_thread (self, urn);
           break;
 
         case TRACKER_NOTIFIER_EVENT_UPDATE:
           VALENT_NOTE ("UPDATE: %s", urn);
-          // on_message_updated (NULL, urn, self);
+          // valent_message_adapter_update_thread (self, urn);
           break;
 
         default:
@@ -171,19 +265,36 @@ valent_messages_adapter_get_item (GListModel   *list,
 {
   ValentMessagesAdapter *self = VALENT_MESSAGES_ADAPTER (list);
   ValentMessagesAdapterPrivate *priv = valent_messages_adapter_get_instance_private (self);
-  ValentMessageThread *thread = NULL;
+  GSequenceIter *it = NULL;
   g_autofree char *iri = NULL;
   g_autoptr (ValentMessage) latest_message = NULL;
   g_auto (GStrv) participants = NULL;
 
   g_assert (VALENT_IS_MESSAGES_ADAPTER (self));
 
-  if G_UNLIKELY (position >= priv->threads->len)
+  if (priv->last_position_valid)
+    {
+      if (position < G_MAXUINT && priv->last_position == position + 1)
+        it = g_sequence_iter_prev (priv->last_iter);
+      else if (position > 0 && priv->last_position == position - 1)
+        it = g_sequence_iter_next (priv->last_iter);
+      else if (priv->last_position == position)
+        it = priv->last_iter;
+    }
+
+  if (it == NULL)
+    it = g_sequence_get_iter_at_pos (priv->items, position);
+
+  priv->last_iter = it;
+  priv->last_position = position;
+  priv->last_position_valid = TRUE;
+
+  if (g_sequence_iter_is_end (it))
     return NULL;
 
   // HACK: return a duplicate thread to avoid accruing memory
-  thread = g_ptr_array_index (priv->threads, position);
-  g_object_get (thread,
+  // return g_object_ref (g_sequence_get (it));
+  g_object_get (g_sequence_get (it),
                 "iri",            &iri,
                 "latest-message", &latest_message,
                 "participants",   &participants,
@@ -211,7 +322,7 @@ valent_messages_adapter_get_n_items (GListModel *list)
 
   g_assert (VALENT_IS_MESSAGES_ADAPTER (self));
 
-  return priv->threads->len;
+  return g_sequence_get_length (priv->items);
 }
 
 static void
@@ -429,18 +540,26 @@ cursor_get_threads_cb (TrackerSparqlCursor *cursor,
 
       thread = valent_message_thread_from_sparql_cursor (cursor);
       if (thread != NULL)
-        g_ptr_array_add (priv->threads, g_steal_pointer (&thread));
+        {
+          GSequenceIter *it;
+          unsigned int position;
+
+          it = g_sequence_insert_sorted (priv->items,
+                                         g_steal_pointer (&thread),
+                                         valent_messages_adapter_sort_func,
+                                         NULL);
+          position = g_sequence_iter_get_position (it);
+          g_list_model_items_changed (G_LIST_MODEL (self), position, 0, 1);
+        }
 
       tracker_sparql_cursor_next_async (cursor,
-                                        NULL, // priv->cancellable,
+                                        g_task_get_cancellable (G_TASK (result)),
                                         (GAsyncReadyCallback) cursor_get_threads_cb,
                                         g_object_ref (self));
     }
   else
     {
-      if (error == NULL)
-        g_list_model_items_changed (G_LIST_MODEL (self), 0, 0, priv->threads->len);
-      else if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+      if (error != NULL && !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
         g_warning ("%s(): %s", G_STRFUNC, error->message);
 
       tracker_sparql_cursor_close (cursor);
@@ -466,13 +585,13 @@ execute_get_threads_cb (TrackerSparqlStatement *stmt,
     }
 
   tracker_sparql_cursor_next_async (cursor,
-                                    NULL, // priv->cancellable,
+                                    g_task_get_cancellable (G_TASK (result)),
                                     (GAsyncReadyCallback) cursor_get_threads_cb,
                                     g_object_ref (self));
 }
 
 static void
-valent_messages_adapter_get_threads (ValentMessagesAdapter *self)
+valent_messages_adapter_load_threads (ValentMessagesAdapter *self)
 {
   ValentMessagesAdapterPrivate *priv = valent_messages_adapter_get_instance_private (self);
   g_autoptr (GError) error = NULL;
@@ -480,27 +599,124 @@ valent_messages_adapter_get_threads (ValentMessagesAdapter *self)
   g_assert (VALENT_IS_MESSAGES_ADAPTER (self));
   g_return_if_fail (TRACKER_IS_SPARQL_CONNECTION (priv->connection));
 
+  if (priv->cancellable != NULL)
+    return;
+
+  priv->cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
   if (priv->get_threads_stmt == NULL)
     {
       priv->get_threads_stmt =
         tracker_sparql_connection_load_statement_from_gresource (priv->connection,
                                                                  GET_THREADS_RQ,
-                                                                 NULL, // priv->cancellable,
+                                                                 priv->cancellable,
                                                                  &error);
     }
 
   if (priv->get_threads_stmt == NULL)
     {
-      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+      if (error != NULL && !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
         g_warning ("%s(): %s", G_STRFUNC, error->message);
 
       return;
     }
 
   tracker_sparql_statement_execute_async (priv->get_threads_stmt,
-                                          NULL, //priv->cancellable,
+                                          priv->cancellable,
                                           (GAsyncReadyCallback) execute_get_threads_cb,
                                           g_object_ref (self));
+}
+
+static void
+cursor_get_thread_cb (TrackerSparqlCursor *cursor,
+                      GAsyncResult        *result,
+                      gpointer             user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  g_autoptr (ValentMessageThread) thread = NULL;
+  GError *error = NULL;
+
+  if (tracker_sparql_cursor_next_finish (cursor, result, &error))
+    thread = valent_message_thread_from_sparql_cursor (cursor);
+
+  if (thread != NULL)
+    {
+      g_task_return_pointer (task, g_object_ref (thread), g_object_unref);
+    }
+  else
+    {
+      if (error == NULL)
+        {
+          g_set_error_literal (&error,
+                               G_IO_ERROR,
+                               G_IO_ERROR_NOT_FOUND,
+                               "Failed to find thread");
+        }
+
+      g_task_return_error (task, g_steal_pointer (&error));
+    }
+
+  tracker_sparql_cursor_close (cursor);
+}
+
+static void
+execute_get_thread_cb (TrackerSparqlStatement *stmt,
+                       GAsyncResult           *result,
+                       gpointer                user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  GCancellable *cancellable = g_task_get_cancellable (task);
+  g_autoptr (TrackerSparqlCursor) cursor = NULL;
+  GError *error = NULL;
+
+  cursor = tracker_sparql_statement_execute_finish (stmt, result, &error);
+  if (cursor == NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  tracker_sparql_cursor_next_async (cursor,
+                                    cancellable,
+                                    (GAsyncReadyCallback) cursor_get_thread_cb,
+                                    g_object_ref (task));
+}
+
+static void
+valent_messages_adapter_load_thread (ValentMessagesAdapter *self,
+                                     const char            *iri)
+{
+  ValentMessagesAdapterPrivate *priv = valent_messages_adapter_get_instance_private (self);
+  g_autoptr (GTask) task = NULL;
+  g_autoptr (GCancellable) cancellable = NULL;
+  GError *error = NULL;
+
+  g_assert (VALENT_IS_MESSAGES_ADAPTER (self));
+  g_return_if_fail (TRACKER_IS_SPARQL_CONNECTION (priv->connection));
+
+  cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
+  task = g_task_new (self, cancellable, valent_messages_adapter_load_thread_cb, NULL);
+  g_task_set_source_tag (task, valent_messages_adapter_load_thread);
+
+  if (priv->get_thread_stmt == NULL)
+    {
+      priv->get_thread_stmt =
+        tracker_sparql_connection_load_statement_from_gresource (priv->connection,
+                                                                 GET_THREAD_RQ,
+                                                                 cancellable,
+                                                                 &error);
+    }
+
+  if (priv->get_thread_stmt == NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  tracker_sparql_statement_bind_string (priv->get_thread_stmt, "iri", iri);
+  tracker_sparql_statement_execute_async (priv->get_thread_stmt,
+                                          cancellable,
+                                          (GAsyncReadyCallback) execute_get_thread_cb,
+                                          g_object_ref (task));
 }
 
 /*
@@ -565,8 +781,10 @@ valent_messages_adapter_destroy (ValentObject *object)
   ValentMessagesAdapterPrivate *priv = valent_messages_adapter_get_instance_private (self);
 
   g_clear_object (&priv->notifier);
+  g_clear_object (&priv->get_thread_stmt);
   g_clear_object (&priv->get_threads_stmt);
   g_clear_pointer (&priv->iri_pattern, g_regex_unref);
+  g_clear_object (&priv->cancellable);
 
   if (priv->connection != NULL)
     {
@@ -595,7 +813,7 @@ valent_messages_adapter_constructed (GObject *object)
         g_critical ("%s(): %s", G_STRFUNC, error->message);
     }
 
-  valent_messages_adapter_get_threads (self);
+  valent_messages_adapter_load_threads (self);
 }
 
 static void
@@ -604,9 +822,8 @@ valent_messages_adapter_finalize (GObject *object)
   ValentMessagesAdapter *self = VALENT_MESSAGES_ADAPTER (object);
   ValentMessagesAdapterPrivate *priv = valent_messages_adapter_get_instance_private (self);
 
-  g_clear_object (&priv->connection);
-  g_clear_object (&priv->notifier);
-  g_clear_pointer (&priv->threads, g_ptr_array_unref);
+  g_clear_object (&priv->cancellable);
+  g_clear_pointer (&priv->items, g_sequence_free);
 
   G_OBJECT_CLASS (valent_messages_adapter_parent_class)->finalize (object);
 }
@@ -691,7 +908,7 @@ valent_messages_adapter_init (ValentMessagesAdapter *self)
 {
   ValentMessagesAdapterPrivate *priv = valent_messages_adapter_get_instance_private (self);
 
-  priv->threads = g_ptr_array_new_with_free_func (g_object_unref);
+  priv->items = g_sequence_new (g_object_unref);
 }
 
 /**
