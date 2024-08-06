@@ -675,12 +675,6 @@ valent_conversation_page_send_message_cb (ValentMessagesAdapter *adapter,
       gtk_widget_add_css_class (self->message_entry, "error");
       gtk_widget_set_sensitive (self->message_entry, TRUE);
     }
-  else
-    {
-      return;
-    }
-
-  gtk_widget_set_sensitive (self->message_entry, TRUE);
 }
 
 /*< private >
@@ -738,7 +732,7 @@ valent_conversation_page_send_message (ValentConversationPage *self)
  */
 static ValentMessageAttachment *
 valent_message_attachment_from_sparql_cursor (TrackerSparqlCursor  *cursor,
-                                            GError              **error)
+                                              GError              **error)
 {
   const char *iri = NULL;
   g_autoptr (GIcon) preview = NULL;
