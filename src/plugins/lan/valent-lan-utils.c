@@ -12,50 +12,6 @@
 #include "valent-lan-utils.h"
 
 
-/* < private >
- * valent_lan_configure_socket:
- * @connection: a `GSocketConnection`
- *
- * Configure TCP socket options as they are set in kdeconnect-kde.
- *
- * Unlike kdeconnect-kde keepalive is not enabled if the required socket options
- * are not defined, otherwise connections may hang indefinitely.
- *
- * See: https://invent.kde.org/network/kdeconnect-kde/blob/master/core/backends/lan/lanlinkprovider.cpp
- */
-static inline void
-valent_lan_configure_socket (GSocketConnection *connection)
-{
-#if defined(TCP_KEEPIDLE) && defined(TCP_KEEPINTVL) && defined(TCP_KEEPCNT)
-  GSocket *socket;
-  GError *error = NULL;
-
-  g_assert (G_IS_TCP_CONNECTION (connection));
-
-  socket = g_socket_connection_get_socket (connection);
-  g_socket_set_keepalive (socket, TRUE);
-
-  if (!g_socket_set_option (socket, IPPROTO_TCP, TCP_KEEPIDLE, 10, &error))
-    {
-      g_warning ("%s(): TCP_KEEPIDLE: %s", G_STRFUNC, error->message);
-      g_clear_error (&error);
-    }
-
-  if (!g_socket_set_option (socket, IPPROTO_TCP, TCP_KEEPINTVL, 5, &error))
-    {
-      g_warning ("%s(): TCP_KEEPINTVL: %s", G_STRFUNC, error->message);
-      g_clear_error (&error);
-    }
-
-  if (!g_socket_set_option (socket, IPPROTO_TCP, TCP_KEEPCNT, 3, &error))
-    {
-      g_warning ("%s(): TCP_KEEPCNT: %s", G_STRFUNC, error->message);
-      g_clear_error (&error);
-    }
-#endif /* TCP_KEEPIDLE && TCP_KEEPINTVL && TCP_KEEPCNT */
-}
-
-
 /*
  * The KDE Connect protocol follows a trust-on-first-use approach to TLS, so we
  * use a dummy callback for `GTlsConnection`::accept-certificate that always
@@ -229,11 +185,10 @@ valent_lan_encrypt_client_connection (GSocketConnection  *connection,
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
   g_assert (error == NULL || *error == NULL);
 
-  valent_lan_configure_socket (connection);
-
-  /* We're the client when accepting incoming connections */
+  /* We're the client when accepting incoming connections
+   */
+  g_socket_set_keepalive (g_socket_connection_get_socket (connection), TRUE);
   address = g_socket_connection_get_remote_address (connection, error);
-
   if (address == NULL)
     return NULL;
 
@@ -288,9 +243,7 @@ valent_lan_encrypt_client (GSocketConnection  *connection,
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
   g_assert (error == NULL || *error == NULL);
 
-  /* TODO: Occasionally we are not passed a certificate. This could mean the
-   * parent connection is unauthorized, but more likely there is a logic error
-   * elsewhere where we're making a false assumption. */
+  // TODO: Occasionally we are not passed a certificate
   if G_UNLIKELY (!G_IS_TLS_CERTIFICATE (peer_certificate))
     {
       g_set_error (error,
@@ -300,14 +253,13 @@ valent_lan_encrypt_client (GSocketConnection  *connection,
       return NULL;
     }
 
-  valent_lan_configure_socket (connection);
-
+  /* We're the client when accepting auxiliary connections
+   */
+  g_socket_set_keepalive (g_socket_connection_get_socket (connection), TRUE);
   address = g_socket_connection_get_remote_address (connection, error);
-
   if (address == NULL)
     return NULL;
 
-  /* We're the client when opening auxiliary connections */
   tls_stream = g_tls_client_connection_new (G_IO_STREAM (connection),
                                             G_SOCKET_CONNECTABLE (address),
                                             error);
@@ -360,9 +312,9 @@ valent_lan_encrypt_server_connection (GSocketConnection  *connection,
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
   g_assert (error == NULL || *error == NULL);
 
-  valent_lan_configure_socket (connection);
-
-  /* We're the server when opening outgoing connections */
+  /* We're the server when opening outgoing connections
+   */
+  g_socket_set_keepalive (g_socket_connection_get_socket (connection), TRUE);
   tls_stream = g_tls_server_connection_new (G_IO_STREAM (connection),
                                             certificate,
                                             error);
@@ -415,9 +367,9 @@ valent_lan_encrypt_server (GSocketConnection  *connection,
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
   g_assert (error == NULL || *error == NULL);
 
-  valent_lan_configure_socket (connection);
-
-  /* We're the server when accepting auxiliary connections */
+  /* We're the server when accepting auxiliary connections
+   */
+  g_socket_set_keepalive (g_socket_connection_get_socket (connection), TRUE);
   tls_stream = g_tls_server_connection_new (G_IO_STREAM (connection),
                                             certificate,
                                             error);
