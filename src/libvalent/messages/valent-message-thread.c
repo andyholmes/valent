@@ -162,6 +162,8 @@ on_notifier_event (TrackerNotifier     *notifier,
                    GPtrArray           *events,
                    ValentMessageThread *self)
 {
+  const char *latest_urn = NULL;
+
   g_assert (VALENT_IS_MESSAGE_THREAD (self));
 
   if (g_strcmp0 (VALENT_MESSAGES_GRAPH, graph) != 0)
@@ -179,7 +181,17 @@ on_notifier_event (TrackerNotifier     *notifier,
         {
         case TRACKER_NOTIFIER_EVENT_CREATE:
           VALENT_NOTE ("CREATE: %s", urn);
-          valent_message_thread_load_message (self, urn);
+          // HACK: if the thread hasn't been loaded, assume newer messages sort
+          //       last and pick one to update the last-message.
+          if (self->cancellable == NULL)
+            {
+              if (latest_urn == NULL || g_utf8_collate (latest_urn, urn) < 0)
+                latest_urn = urn;
+            }
+          else
+            {
+              valent_message_thread_load_message (self, urn);
+            }
           break;
 
         case TRACKER_NOTIFIER_EVENT_DELETE:
@@ -196,6 +208,9 @@ on_notifier_event (TrackerNotifier     *notifier,
           g_warn_if_reached ();
         }
     }
+
+  if (latest_urn != NULL)
+    valent_message_thread_load_message (self, latest_urn);
 }
 
 static void
