@@ -28,8 +28,9 @@
  * An abstract base class for address book providers.
  *
  * `ValentMessagesAdapter` is a base class for plugins that provide an
- * interface to manage messaging (i.e. SMS/MMS). This usually means monitoring
- * and querying [class@Valent.MessagesAdapter] instances.
+ * interface to manage messaging (i.e. SMS/MMS). This usually means loading
+ * message history into the SPARQL database and (optionally) sending outgoing
+ * messages.
  *
  * ## `.plugin` File
  *
@@ -837,9 +838,9 @@ valent_messages_adapter_finalize (GObject *object)
 
 static void
 valent_messages_adapter_get_property (GObject    *object,
-                                   guint       prop_id,
-                                   GValue     *value,
-                                   GParamSpec *pspec)
+                                      guint       prop_id,
+                                      GValue     *value,
+                                      GParamSpec *pspec)
 {
   ValentMessagesAdapter *self = VALENT_MESSAGES_ADAPTER (object);
   ValentMessagesAdapterPrivate *priv = valent_messages_adapter_get_instance_private (self);
@@ -857,9 +858,9 @@ valent_messages_adapter_get_property (GObject    *object,
 
 static void
 valent_messages_adapter_set_property (GObject      *object,
-                                   guint         prop_id,
-                                   const GValue *value,
-                                   GParamSpec   *pspec)
+                                      guint         prop_id,
+                                      const GValue *value,
+                                      GParamSpec   *pspec)
 {
   ValentMessagesAdapter *self = VALENT_MESSAGES_ADAPTER (object);
   ValentMessagesAdapterPrivate *priv = valent_messages_adapter_get_instance_private (self);
