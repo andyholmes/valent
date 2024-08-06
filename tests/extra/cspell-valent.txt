@@ -107,6 +107,7 @@ aprotocol
 sprotocol
 notificationv
 recipientv
+participantv
 targetv
 vicon
 vobject

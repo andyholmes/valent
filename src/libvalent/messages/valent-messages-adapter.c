@@ -458,6 +458,8 @@ valent_message_thread_from_sparql_cursor (TrackerSparqlCursor *cursor)
 {
   ValentMessage *message = NULL;
   const char *iri = NULL;
+  const char *participants = NULL;
+  g_auto (GStrv) participantv = NULL;
   g_autoptr (GListStore) attachments = NULL;
   ValentMessageBox box = VALENT_MESSAGE_BOX_ALL;
   int64_t date = 0;
@@ -515,13 +517,18 @@ valent_message_thread_from_sparql_cursor (TrackerSparqlCursor *cursor)
 
   /* Attachment
    */
-  if (tracker_sparql_cursor_is_bound (cursor, CURSOR_MESSAGE_ATTACHMENT_IRI /* communicationChannel */))
-    iri = tracker_sparql_cursor_get_string (cursor, CURSOR_MESSAGE_ATTACHMENT_IRI, NULL);
+  if (tracker_sparql_cursor_is_bound (cursor, CURSOR_MESSAGE_THREAD_IRI))
+    iri = tracker_sparql_cursor_get_string (cursor, CURSOR_MESSAGE_THREAD_IRI, NULL);
+
+  participants = tracker_sparql_cursor_get_string (cursor, CURSOR_MESSAGE_THREAD_PARTICIPANTS, NULL);
+  if (participants != NULL)
+    participantv = g_strsplit (participants, ",", -1);
 
   return g_object_new (VALENT_TYPE_MESSAGE_THREAD,
                        "connection",     tracker_sparql_cursor_get_connection (cursor),
                        "iri",            iri,
                        "latest-message", message,
+                       "participants",   participantv,
                        NULL);
 }
 
