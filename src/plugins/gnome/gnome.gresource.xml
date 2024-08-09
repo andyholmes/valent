@@ -25,6 +25,7 @@
     <file preprocess="xml-stripblanks">valent-device-preferences-telephony.ui</file>
     <file preprocess="xml-stripblanks">valent-input-remote.ui</file>
     <file preprocess="xml-stripblanks">valent-media-remote.ui</file>
+    <file preprocess="xml-stripblanks">valent-media-window.ui</file>
     <file preprocess="xml-stripblanks">valent-message-row.ui</file>
     <file preprocess="xml-stripblanks">valent-messages-window.ui</file>
     <file preprocess="xml-stripblanks">valent-notification-dialog.ui</file>
@@ -108,7 +109,6 @@
     <file preprocess="xml-stripblanks" alias="scalable/actions/media-skip-backward-symbolic.svg">data/icons/hicolor/scalable/actions/media-skip-backward-symbolic.svg</file>
     <file preprocess="xml-stripblanks" alias="scalable/actions/media-skip-forward-symbolic-rtl.svg">data/icons/hicolor/scalable/actions/media-skip-forward-symbolic-rtl.svg</file>
     <file preprocess="xml-stripblanks" alias="scalable/actions/media-skip-forward-symbolic.svg">data/icons/hicolor/scalable/actions/media-skip-forward-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/playback-options-symbolic.svg">data/icons/hicolor/scalable/actions/playback-options-symbolic.svg</file>
 
     <!-- Messages Icons -->
     <file preprocess="xml-stripblanks" alias="scalable/actions/message-attachment-symbolic.svg">data/icons/hicolor/scalable/actions/message-attachment-symbolic.svg</file>

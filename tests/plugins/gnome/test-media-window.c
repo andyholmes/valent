@@ -7,7 +7,7 @@
 
 #include "valent-mock-media-player.h"
 
-#define VALENT_TYPE_TEST_SUBJECT (g_type_from_name ("ValentMediaRemote"))
+#define VALENT_TYPE_TEST_SUBJECT (g_type_from_name ("ValentMediaWindow"))
 
 
 static void
@@ -44,15 +44,12 @@ test_media_remote (void)
   gtk_widget_activate_action (GTK_WIDGET (remote), "remote.play", NULL);
   gtk_widget_activate_action (GTK_WIDGET (remote), "remote.pause", NULL);
   gtk_widget_activate_action (GTK_WIDGET (remote), "remote.play-pause", NULL);
-  gtk_widget_activate_action (GTK_WIDGET (remote), "remote.seek", "d", 1.0);
-  gtk_widget_activate_action (GTK_WIDGET (remote), "remote.seek", "d", -1.0);
   gtk_widget_activate_action (GTK_WIDGET (remote), "remote.next", NULL);
   gtk_widget_activate_action (GTK_WIDGET (remote), "remote.previous", NULL);
-  gtk_widget_activate_action (GTK_WIDGET (remote), "remote.stop", NULL);
 
-  gtk_widget_activate_action (GTK_WIDGET (remote), "remote.repeat", NULL);
-  gtk_widget_activate_action (GTK_WIDGET (remote), "remote.repeat", NULL);
-  gtk_widget_activate_action (GTK_WIDGET (remote), "remote.repeat", NULL);
+  gtk_widget_activate_action (GTK_WIDGET (remote), "remote.repeat", "s", "none");
+  gtk_widget_activate_action (GTK_WIDGET (remote), "remote.repeat", "s", "one");
+  gtk_widget_activate_action (GTK_WIDGET (remote), "remote.repeat", "s", "all");
 
   gtk_widget_activate_action (GTK_WIDGET (remote), "remote.shuffle", NULL);
   gtk_widget_activate_action (GTK_WIDGET (remote), "remote.shuffle", NULL);

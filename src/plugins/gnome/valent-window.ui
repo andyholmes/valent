@@ -126,7 +126,7 @@
       </item>
       <item>
         <attribute name="label" translatable="yes">Media Remote</attribute>
-        <attribute name="action">app.media-remote</attribute>
+        <attribute name="action">app.media-window</attribute>
       </item>
       <item>
         <attribute name="label" translatable="yes">Messages</attribute>

@@ -20,17 +20,16 @@
 
 struct _ValentMediaRemote
 {
-  AdwWindow          parent_instance;
+  AdwBreakpointBin   parent_instance;
 
-  GListModel        *players;
   ValentMediaPlayer *player;
+  ValentMediaRepeat  repeat;
   unsigned int       timer_id;
   unsigned int       seek_id;
 
   /* template */
-  GtkDropDown       *media_player;
   GtkStack          *media_art_stack;
-  GtkImage          *media_art;
+  GtkPicture        *media_art_image;
   GtkLabel          *media_title;
   GtkLabel          *media_artist;
   GtkLabel          *media_album;
@@ -39,44 +38,51 @@ struct _ValentMediaRemote
   GtkLabel          *media_position_current;
   GtkLabel          *media_position_length;
   GtkButton         *play_pause_button;
-  GtkImage          *repeat_button;
-  GtkImage          *repeat_image;
+  GtkMenuButton     *playback_options;
   GtkVolumeButton   *volume_button;
 };
 
-G_DEFINE_FINAL_TYPE (ValentMediaRemote, valent_media_remote, ADW_TYPE_WINDOW)
+G_DEFINE_FINAL_TYPE (ValentMediaRemote, valent_media_remote, ADW_TYPE_BREAKPOINT_BIN)
 
-enum {
-  PROP_0,
-  PROP_PLAYERS,
+typedef enum {
+  PROP_PLAYER = 1,
+  PROP_REPEAT,
   PROP_SHUFFLE,
-  N_PROPERTIES
-};
+} ValentMediaRemoteProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_SHUFFLE + 1] = { NULL, };
 
 
 static gboolean
 valent_media_remote_timer_tick (gpointer data)
 {
   ValentMediaRemote *self = VALENT_MEDIA_REMOTE (data);
-  g_autofree char *length = NULL;
-  g_autofree char *current = NULL;
-  double value = 0.0;
-  double upper = 0.0;
+  g_autofree char *length_str = NULL;
+  g_autofree char *position_str = NULL;
+  double length = 0.0;
+  double position = 0.0;
 
   g_assert (VALENT_IS_MEDIA_REMOTE (self));
 
-  value = gtk_adjustment_get_value (self->media_position_adjustment);
-  upper = gtk_adjustment_get_upper (self->media_position_adjustment);
+  position = gtk_adjustment_get_value (self->media_position_adjustment) + 1.0;
+  length = gtk_adjustment_get_upper (self->media_position_adjustment);
+  if (position <= length)
+    {
+      gtk_adjustment_set_value (self->media_position_adjustment, position);
+    }
+  else
+    {
+      position = -1.0;
+      length = -1.0;
+      gtk_adjustment_set_upper (self->media_position_adjustment, 1.0);
+      gtk_adjustment_set_value (self->media_position_adjustment, 1.0);
+    }
 
-  current = valent_media_time_to_string (value * 1000L, TOTEM_TIME_FLAG_NONE);
-  gtk_label_set_label (self->media_position_current, current);
+  position_str = valent_media_time_to_string (position * 1000L, TOTEM_TIME_FLAG_NONE);
+  gtk_label_set_label (self->media_position_current, position_str);
 
-  length = valent_media_time_to_string (upper * 1000L, TOTEM_TIME_FLAG_NONE);
-  gtk_label_set_label (self->media_position_length, length);
-
-  gtk_adjustment_set_value (self->media_position_adjustment, value + 1.0);
+  length_str = valent_media_time_to_string (length * 1000L, TOTEM_TIME_FLAG_NONE);
+  gtk_label_set_label (self->media_position_length, length_str);
 
   return G_SOURCE_CONTINUE;
 }
@@ -85,40 +91,13 @@ valent_media_remote_timer_tick (gpointer data)
  * Interface
  */
 static void
-valent_media_remote_clear (ValentMediaRemote *self)
-{
-  GtkWidget *widget = GTK_WIDGET (self);
-
-  gtk_image_set_from_icon_name (self->media_art, "valent-media-albumart-symbolic");
-
-  gtk_stack_set_visible_child_name (self->media_art_stack, "fallback");
-  gtk_label_set_label (self->media_artist, "");
-  gtk_label_set_label (self->media_title, "");
-  gtk_label_set_label (self->media_album, "");
-
-  gtk_adjustment_set_value (self->media_position_adjustment, 0.0);
-  gtk_adjustment_set_upper (self->media_position_adjustment, 0.0);
-  gtk_label_set_label (self->media_position_current, "");
-  gtk_label_set_label (self->media_position_length, "");
-
-  gtk_widget_action_set_enabled (widget, "remote.next", FALSE);
-  gtk_widget_action_set_enabled (widget, "remote.pause", FALSE);
-  gtk_widget_action_set_enabled (widget, "remote.play", FALSE);
-  gtk_widget_action_set_enabled (widget, "remote.previous", FALSE);
-  gtk_widget_action_set_enabled (widget, "remote.seek", FALSE);
-  gtk_widget_action_set_enabled (widget, "remote.stop", FALSE);
-}
-
-static void
 valent_media_remote_update_flags (ValentMediaRemote *self)
 {
   GtkWidget *widget = GTK_WIDGET (self);
   ValentMediaActions flags = VALENT_MEDIA_ACTION_NONE;
 
   g_assert (VALENT_IS_MEDIA_REMOTE (self));
-
-  if (self->player == NULL)
-    return valent_media_remote_clear (self);
+  g_assert (VALENT_IS_MEDIA_PLAYER (self->player));
 
   flags = valent_media_player_get_flags (self->player);
 
@@ -130,25 +109,30 @@ valent_media_remote_update_flags (ValentMediaRemote *self)
                                  (flags & VALENT_MEDIA_ACTION_PLAY) != 0);
   gtk_widget_action_set_enabled (widget, "remote.previous",
                                  (flags & VALENT_MEDIA_ACTION_PREVIOUS) != 0);
-  gtk_widget_action_set_enabled (widget, "remote.seek",
-                                 (flags & VALENT_MEDIA_ACTION_SEEK) != 0);
-  gtk_widget_action_set_enabled (widget, "remote.stop",
-                                 (flags & VALENT_MEDIA_ACTION_STOP) != 0);
 }
 
 static void
 valent_media_remote_update_position (ValentMediaRemote *self)
 {
+  double length = 0.0;
   double position = 0.0;
   g_autofree char *position_str = NULL;
 
   g_assert (VALENT_IS_MEDIA_REMOTE (self));
-
-  if (self->player == NULL)
-    return valent_media_remote_clear (self);
+  g_assert (VALENT_IS_MEDIA_PLAYER (self->player));
 
   position = valent_media_player_get_position (self->player);
-  gtk_adjustment_set_value (self->media_position_adjustment, position);
+  length = gtk_adjustment_get_upper (self->media_position_adjustment);
+  if (position <= length)
+    {
+      gtk_adjustment_set_value (self->media_position_adjustment, position);
+    }
+  else
+    {
+      position = -1.0;
+      gtk_adjustment_set_upper (self->media_position_adjustment, 1.0);
+      gtk_adjustment_set_value (self->media_position_adjustment, 1.0);
+    }
 
   position_str = valent_media_time_to_string (position * 1000L, TOTEM_TIME_FLAG_NONE);
   gtk_label_set_label (self->media_position_current, position_str);
@@ -158,7 +142,7 @@ static void
 valent_media_remote_update_metadata (ValentMediaRemote *self)
 {
   g_autoptr (GVariant) metadata = NULL;
-  g_autoptr (GIcon) icon = NULL;
+  g_autoptr (GFile) art_file = NULL;
   g_autofree const char **artists = NULL;
   g_autofree char *length_str = NULL;
   const char *title;
@@ -168,9 +152,7 @@ valent_media_remote_update_metadata (ValentMediaRemote *self)
   double length = -1.0;
 
   g_assert (VALENT_IS_MEDIA_REMOTE (self));
-
-  if (self->player == NULL)
-    return valent_media_remote_clear (self);
+  g_assert (VALENT_IS_MEDIA_PLAYER (self->player));
 
   metadata = valent_media_player_get_metadata (self->player);
 
@@ -198,18 +180,11 @@ valent_media_remote_update_metadata (ValentMediaRemote *self)
     gtk_label_set_label (self->media_title, "");
 
   if (g_variant_lookup (metadata, "mpris:artUrl", "&s", &art_url))
-    {
-      g_autoptr (GFile) file = NULL;
+    art_file = g_file_new_for_uri (art_url);
 
-      file = g_file_new_for_uri (art_url);
-
-      if (g_file_query_exists (file, NULL))
-        icon = g_file_icon_new (file);
-    }
-
-  gtk_image_set_from_gicon (self->media_art, icon);
+  gtk_picture_set_file (self->media_art_image, art_file);
   gtk_stack_set_visible_child_name (self->media_art_stack,
-                                    icon != NULL ? "art" : "fallback");
+                                    art_file != NULL ? "image" : "icon");
 
   /* Convert microseconds to seconds */
   if (g_variant_lookup (metadata, "mpris:length", "x", &length_us))
@@ -225,79 +200,46 @@ valent_media_remote_update_metadata (ValentMediaRemote *self)
 static void
 valent_media_remote_update_repeat (ValentMediaRemote *self)
 {
-  ValentMediaRepeat repeat = VALENT_MEDIA_REPEAT_NONE;
-
   g_assert (VALENT_IS_MEDIA_REMOTE (self));
 
-  if (self->player != NULL)
-     repeat = valent_media_player_get_repeat (self->player);
+  g_object_notify_by_pspec (G_OBJECT (self), properties [PROP_REPEAT]);
+}
 
-  switch (repeat)
-    {
-    case VALENT_MEDIA_REPEAT_NONE:
-      gtk_image_set_from_icon_name (self->repeat_image,
-                                    "media-playlist-consecutive-symbolic");
-      gtk_accessible_update_property (GTK_ACCESSIBLE (self->repeat_button),
-                                      GTK_ACCESSIBLE_PROPERTY_LABEL, _("Enable Repeat"),
-                                      -1);
-      break;
+static void
+valent_media_remote_update_shuffle (ValentMediaRemote *self)
+{
+  g_assert (VALENT_IS_MEDIA_REMOTE (self));
 
-    case VALENT_MEDIA_REPEAT_ALL:
-      gtk_image_set_from_icon_name (self->repeat_image,
-                                    "media-playlist-repeat-symbolic");
-      gtk_accessible_update_property (GTK_ACCESSIBLE (self->repeat_button),
-                                      GTK_ACCESSIBLE_PROPERTY_LABEL, _("Repeat All"),
-                                      -1);
-      break;
-
-    case VALENT_MEDIA_REPEAT_ONE:
-      gtk_image_set_from_icon_name (self->repeat_image,
-                                    "media-playlist-repeat-song-symbolic");
-      gtk_accessible_update_property (GTK_ACCESSIBLE (self->repeat_button),
-                                      GTK_ACCESSIBLE_PROPERTY_LABEL, _("Repeat One"),
-                                      -1);
-      break;
-    }
+  g_object_notify_by_pspec (G_OBJECT (self), properties [PROP_SHUFFLE]);
 }
 
 static void
 valent_media_remote_update_state (ValentMediaRemote *self)
 {
-  GtkWidget *child;
   ValentMediaState state;
 
   g_assert (VALENT_IS_MEDIA_REMOTE (self));
+  g_assert (VALENT_IS_MEDIA_PLAYER (self->player));
 
-  if (self->player == NULL)
-    return valent_media_remote_clear (self);
-
-  child = gtk_button_get_child (self->play_pause_button);
   state = valent_media_player_get_state (self->player);
-
   if (state == VALENT_MEDIA_STATE_PLAYING)
     {
-      gtk_actionable_set_action_name (GTK_ACTIONABLE (self->play_pause_button),
-                                      "remote.pause");
-      gtk_image_set_from_icon_name (GTK_IMAGE (child),
-                                    "media-playback-pause-symbolic");
-      gtk_accessible_update_property (GTK_ACCESSIBLE (self->play_pause_button),
-                                      GTK_ACCESSIBLE_PROPERTY_LABEL, _("Pause"),
-                                      -1);
+      g_object_set (self->play_pause_button,
+                    "action-name",  "remote.pause",
+                    "icon-name",    "media-playback-pause-symbolic",
+                    "tooltip-text", _("Pause"),
+                    NULL);
 
       if (self->timer_id == 0)
         self->timer_id = g_timeout_add_seconds (1, valent_media_remote_timer_tick, self);
     }
   else
     {
-      gtk_actionable_set_action_name (GTK_ACTIONABLE (self->play_pause_button),
-                                      "remote.play");
-      gtk_image_set_from_icon_name (GTK_IMAGE (child),
-                                    "media-playback-start-symbolic");
-      gtk_widget_set_tooltip_text (GTK_WIDGET (self->play_pause_button),
-                                   _("Play"));
-      gtk_accessible_update_property (GTK_ACCESSIBLE (self->play_pause_button),
-                                      GTK_ACCESSIBLE_PROPERTY_LABEL, _("Play"),
-                                      -1);
+      g_object_set (self->play_pause_button,
+                    "action-name",  "remote.play",
+                    "icon-name",    "media-playback-start-symbolic",
+                    "tooltip-text", _("Play"),
+                    NULL);
       g_clear_handle_id (&self->timer_id, g_source_remove);
     }
 
@@ -313,90 +255,40 @@ valent_media_remote_update_state (ValentMediaRemote *self)
 }
 
 static void
-valent_media_remote_update_shuffle (ValentMediaRemote *self)
-{
-  g_assert (VALENT_IS_MEDIA_REMOTE (self));
-
-  g_object_notify_by_pspec (G_OBJECT (self), properties [PROP_SHUFFLE]);
-}
-
-static void
 valent_media_remote_update_volume (ValentMediaRemote *self)
 {
   double volume = 0.0;
 
   g_assert (VALENT_IS_MEDIA_REMOTE (self));
 
-  if (self->player == NULL)
-    return;
-
   volume = valent_media_player_get_volume (self->player);
   gtk_scale_button_set_value (GTK_SCALE_BUTTON (self->volume_button), volume);
 }
 
 static void
-on_selected_item (GObject           *object,
-                  GParamSpec        *pspec,
-                  ValentMediaRemote *self)
+on_player_changed (ValentMediaPlayer *player,
+                   GParamSpec        *pspec,
+                   ValentMediaRemote *self)
 {
-  ValentMediaPlayer *player;
+  const char *name = g_param_spec_get_name (pspec);
 
-  g_assert (VALENT_IS_MEDIA_REMOTE (self));
+  if (self->player == NULL)
+    return;
 
-  if (self->player != NULL)
-    {
-      g_clear_handle_id (&self->seek_id, g_source_remove);
-      g_clear_handle_id (&self->timer_id, g_source_remove);
-      g_signal_handlers_disconnect_by_data (self->player, self);
-      g_clear_object (&self->player);
-    }
-
-  player = gtk_drop_down_get_selected_item (GTK_DROP_DOWN (object));
-
-  if (g_set_object (&self->player, player))
-    {
-      g_signal_connect_object (self->player,
-                               "notify::flags",
-                               G_CALLBACK (valent_media_remote_update_flags),
-                               self, G_CONNECT_SWAPPED);
-      g_signal_connect_object (self->player,
-                               "notify::metadata",
-                               G_CALLBACK (valent_media_remote_update_metadata),
-                               self, G_CONNECT_SWAPPED);
-      g_signal_connect_object (self->player,
-                               "notify::position",
-                               G_CALLBACK (valent_media_remote_update_position),
-                               self, G_CONNECT_SWAPPED);
-      g_signal_connect_object (self->player,
-                               "notify::repeat",
-                               G_CALLBACK (valent_media_remote_update_repeat),
-                               self, G_CONNECT_SWAPPED);
-      g_signal_connect_object (self->player,
-                               "notify::shuffle",
-                               G_CALLBACK (valent_media_remote_update_shuffle),
-                               self, G_CONNECT_SWAPPED);
-      g_signal_connect_object (self->player,
-                               "notify::state",
-                               G_CALLBACK (valent_media_remote_update_state),
-                               self, G_CONNECT_SWAPPED);
-      g_signal_connect_object (self->player,
-                               "notify::volume",
-                               G_CALLBACK (valent_media_remote_update_volume),
-                               self, G_CONNECT_SWAPPED);
-    }
-  else
-    {
-      valent_media_remote_clear (self);
-      return;
-    }
-
-  valent_media_remote_update_flags (self);
-  valent_media_remote_update_metadata (self);
-  valent_media_remote_update_position (self);
-  valent_media_remote_update_repeat (self);
-  valent_media_remote_update_shuffle (self);
-  valent_media_remote_update_state (self);
-  valent_media_remote_update_volume (self);
+  if (g_str_equal (name, "flags"))
+    valent_media_remote_update_flags (self);
+  else if (g_str_equal (name, "metadata"))
+    valent_media_remote_update_metadata (self);
+  else if (g_str_equal (name, "position"))
+    valent_media_remote_update_position (self);
+  else if (g_str_equal (name, "repeat"))
+    valent_media_remote_update_repeat (self);
+  else if (g_str_equal (name, "shuffle"))
+    valent_media_remote_update_shuffle (self);
+  else if (g_str_equal (name, "state"))
+    valent_media_remote_update_state (self);
+  else if (g_str_equal (name, "volume"))
+    valent_media_remote_update_volume (self);
 }
 
 static gboolean
@@ -489,26 +381,66 @@ remote_player_action (GtkWidget  *widget,
 
   else if (g_str_equal (action_name, "remote.previous"))
     valent_media_player_previous (self->player);
+}
 
-  else if (g_str_equal (action_name, "remote.repeat"))
+/*
+ * ValentMediaRemote
+ */
+static void
+valent_media_remote_set_player (ValentMediaRemote *self,
+                                ValentMediaPlayer *player)
+{
+  g_assert (VALENT_IS_MEDIA_REMOTE (self));
+  g_assert (player == NULL || VALENT_IS_MEDIA_PLAYER (player));
+
+  if (self->player == player)
+    return;
+
+  if (self->player != NULL)
     {
-      const char *icon_name = gtk_image_get_icon_name (self->repeat_image);
-
-      if (g_str_equal (icon_name, "media-playlist-consecutive-symbolic"))
-        valent_media_player_set_repeat (self->player, VALENT_MEDIA_REPEAT_ALL);
-
-      else if (g_str_equal (icon_name, "media-playlist-repeat-symbolic"))
-        valent_media_player_set_repeat (self->player, VALENT_MEDIA_REPEAT_ONE);
-
-      else if (g_str_equal (icon_name, "media-playlist-repeat-song-symbolic"))
-        valent_media_player_set_repeat (self->player, VALENT_MEDIA_REPEAT_NONE);
+      g_clear_handle_id (&self->seek_id, g_source_remove);
+      g_clear_handle_id (&self->timer_id, g_source_remove);
+      g_signal_handlers_disconnect_by_func (self->player, on_player_changed, self);
+      g_clear_object (&self->player);
     }
 
-  else if (g_str_equal (action_name, "remote.seek"))
-    valent_media_player_seek (self->player, g_variant_get_double (parameter));
+  if (player != NULL)
+    {
+      self->player = g_object_ref (player);
+      g_signal_connect_object (self->player,
+                               "notify",
+                               G_CALLBACK (on_player_changed),
+                               self,
+                               G_CONNECT_DEFAULT);
 
-  else if (g_str_equal (action_name, "remote.stop"))
-    valent_media_player_stop (self->player);
+      valent_media_remote_update_flags (self);
+      valent_media_remote_update_repeat (self);
+      valent_media_remote_update_shuffle (self);
+      valent_media_remote_update_state (self);
+      valent_media_remote_update_volume (self);
+      gtk_widget_set_sensitive (GTK_WIDGET (self->playback_options), TRUE);
+      gtk_widget_set_sensitive (GTK_WIDGET (self->volume_button), TRUE);
+    }
+  else
+    {
+      gtk_stack_set_visible_child_name (self->media_art_stack, "icon");
+      gtk_label_set_label (self->media_artist, "");
+      gtk_label_set_label (self->media_title, "");
+      gtk_label_set_label (self->media_album, "");
+
+      gtk_adjustment_set_value (self->media_position_adjustment, 0.0);
+      gtk_adjustment_set_upper (self->media_position_adjustment, 0.0);
+      gtk_label_set_label (self->media_position_current, "");
+      gtk_label_set_label (self->media_position_length, "");
+
+      gtk_widget_action_set_enabled (GTK_WIDGET (self), "remote.next", FALSE);
+      gtk_widget_action_set_enabled (GTK_WIDGET (self), "remote.pause", FALSE);
+      gtk_widget_action_set_enabled (GTK_WIDGET (self), "remote.play", FALSE);
+      gtk_widget_action_set_enabled (GTK_WIDGET (self), "remote.previous", FALSE);
+      gtk_widget_set_sensitive (GTK_WIDGET (self->playback_options), FALSE);
+      gtk_widget_set_sensitive (GTK_WIDGET (self->volume_button), FALSE);
+    }
+  g_object_notify_by_pspec (G_OBJECT (self), properties[PROP_PLAYER]);
 }
 
 /*
@@ -519,18 +451,13 @@ valent_media_remote_dispose (GObject *object)
 {
   ValentMediaRemote *self = VALENT_MEDIA_REMOTE (object);
 
-  g_clear_handle_id (&self->seek_id, g_source_remove);
-  g_clear_handle_id (&self->timer_id, g_source_remove);
-
   if (self->player != NULL)
     {
+      g_clear_handle_id (&self->seek_id, g_source_remove);
+      g_clear_handle_id (&self->timer_id, g_source_remove);
       g_signal_handlers_disconnect_by_data (self->player, self);
       g_clear_object (&self->player);
     }
-
-  g_clear_object (&self->players);
-
-  gtk_widget_dispose_template (GTK_WIDGET (object), VALENT_TYPE_MEDIA_REMOTE);
 
   G_OBJECT_CLASS (valent_media_remote_parent_class)->dispose (object);
 }
@@ -543,10 +470,17 @@ valent_media_remote_get_property (GObject    *object,
 {
   ValentMediaRemote *self = VALENT_MEDIA_REMOTE (object);
 
-  switch (prop_id)
+  switch ((ValentMediaRemoteProperty)prop_id)
     {
-    case PROP_PLAYERS:
-      g_value_set_object (value, self->players);
+    case PROP_PLAYER:
+      g_value_set_object (value, self->player);
+      break;
+
+    case PROP_REPEAT:
+      if (self->player != NULL)
+        g_value_set_enum (value, valent_media_player_get_repeat (self->player));
+      else
+        g_value_set_enum (value, VALENT_MEDIA_REPEAT_NONE);
       break;
 
     case PROP_SHUFFLE:
@@ -569,10 +503,15 @@ valent_media_remote_set_property (GObject      *object,
 {
   ValentMediaRemote *self = VALENT_MEDIA_REMOTE (object);
 
-  switch (prop_id)
+  switch ((ValentMediaRemoteProperty)prop_id)
     {
-    case PROP_PLAYERS:
-      self->players = g_value_dup_object (value);
+    case PROP_PLAYER:
+      valent_media_remote_set_player (self, g_value_get_object (value));
+      break;
+
+    case PROP_REPEAT:
+      if (self->player != NULL)
+        valent_media_player_set_repeat (self->player, g_value_get_enum (value));
       break;
 
     case PROP_SHUFFLE:
@@ -596,9 +535,8 @@ valent_media_remote_class_init (ValentMediaRemoteClass *klass)
   object_class->set_property = valent_media_remote_set_property;
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-media-remote.ui");
-  gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, media_player);
   gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, media_art_stack);
-  gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, media_art);
+  gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, media_art_image);
   gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, media_title);
   gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, media_artist);
   gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, media_album);
@@ -607,10 +545,8 @@ valent_media_remote_class_init (ValentMediaRemoteClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, media_position_current);
   gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, media_position_length);
   gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, play_pause_button);
-  gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, repeat_button);
-  gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, repeat_image);
+  gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, playback_options);
   gtk_widget_class_bind_template_child (widget_class, ValentMediaRemote, volume_button);
-  gtk_widget_class_bind_template_callback (widget_class, on_selected_item);
   gtk_widget_class_bind_template_callback (widget_class, on_change_value);
   gtk_widget_class_bind_template_callback (widget_class, on_volume_changed);
 
@@ -618,16 +554,21 @@ valent_media_remote_class_init (ValentMediaRemoteClass *klass)
   gtk_widget_class_install_action (widget_class, "remote.pause", NULL, remote_player_action);
   gtk_widget_class_install_action (widget_class, "remote.play", NULL, remote_player_action);
   gtk_widget_class_install_action (widget_class, "remote.previous", NULL, remote_player_action);
-  gtk_widget_class_install_action (widget_class, "remote.repeat", NULL, remote_player_action);
-  gtk_widget_class_install_action (widget_class, "remote.seek", "d", remote_player_action);
-  gtk_widget_class_install_action (widget_class, "remote.stop", NULL, remote_player_action);
 
-  properties [PROP_PLAYERS] =
-    g_param_spec_object ("players", NULL, NULL,
-                         G_TYPE_LIST_MODEL,
+  properties [PROP_PLAYER] =
+    g_param_spec_object ("player", NULL, NULL,
+                         VALENT_TYPE_MEDIA_PLAYER,
                          (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
+                          G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
+
+  properties [PROP_REPEAT] =
+    g_param_spec_enum ("repeat", NULL, NULL,
+                       VALENT_TYPE_MEDIA_REPEAT,
+                       VALENT_MEDIA_REPEAT_NONE,
+                       (G_PARAM_READWRITE |
+                        G_PARAM_EXPLICIT_NOTIFY |
+                        G_PARAM_STATIC_STRINGS));
 
   properties [PROP_SHUFFLE] =
     g_param_spec_boolean ("shuffle", NULL, NULL,
@@ -636,8 +577,9 @@ valent_media_remote_class_init (ValentMediaRemoteClass *klass)
                            G_PARAM_EXPLICIT_NOTIFY |
                            G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 
+  gtk_widget_class_install_property_action (widget_class, "remote.repeat", "repeat");
   gtk_widget_class_install_property_action (widget_class, "remote.shuffle", "shuffle");
 }
 
@@ -657,9 +599,9 @@ valent_media_remote_init (ValentMediaRemote *self)
 
       gtk_widget_set_css_classes (child, (const char *[]){
                                             "circular",
-                                            "flat",
                                             "toggle",
                                             NULL
                                          });
     }
 }
+

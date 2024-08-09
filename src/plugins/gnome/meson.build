@@ -38,6 +38,7 @@ plugin_gnome_sources = files([
   'valent-device-preferences-telephony.c',
   'valent-input-remote.c',
   'valent-media-remote.c',
+  'valent-media-window.c',
   'valent-menu-list.c',
   'valent-menu-stack.c',
   'valent-message-row.c',

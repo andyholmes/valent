@@ -21,10 +21,15 @@
 /*
  * ValentMediaRemote
  */
-window.media-remote .content {
+.valent-media-remote .valent-media-art {
   background: @card_shade_color;
 }
 
+.valent-media-art .fallback {
+  padding: 24px;
+  min-width: 48px;
+  min-height: 48px;
+}
 
 /*
  * ValentMessagesWindow

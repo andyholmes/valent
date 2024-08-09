@@ -7,8 +7,9 @@
 
 G_BEGIN_DECLS
 
-#define VALENT_TYPE_MEDIA_REMOTE (valent_media_remote_get_type())
+#define VALENT_TYPE_MEDIA_WINDOW (valent_media_window_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentMediaRemote, valent_media_remote, VALENT, MEDIA_REMOTE, AdwBreakpointBin)
+G_DECLARE_FINAL_TYPE (ValentMediaWindow, valent_media_window, VALENT, MEDIA_WINDOW, AdwWindow)
 
 G_END_DECLS
+
