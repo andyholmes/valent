@@ -8,7 +8,7 @@
 #include <valent.h>
 
 #include "valent-input-remote.h"
-#include "valent-media-remote.h"
+#include "valent-media-window.h"
 #include "valent-messages-window.h"
 #include "valent-share-dialog.h"
 #include "valent-ui-manager.h"
@@ -22,7 +22,7 @@ struct _ValentUIManager
 
   GtkWindow               *main_window;
   GtkWindow               *input_remote;
-  GtkWindow               *media_remote;
+  GtkWindow               *media_window;
   GtkWindow               *messages_window;
   GPtrArray               *windows;
 };
@@ -88,7 +88,7 @@ input_remote_action (GSimpleAction *action,
 }
 
 static void
-media_remote_action (GSimpleAction *action,
+media_window_action (GSimpleAction *action,
                      GVariant      *parameter,
                      gpointer       user_data)
 {
@@ -96,16 +96,16 @@ media_remote_action (GSimpleAction *action,
 
   g_assert (VALENT_IS_UI_MANAGER (self));
 
-  if (self->media_remote == NULL)
+  if (self->media_window == NULL)
     {
-      self->media_remote = g_object_new (VALENT_TYPE_MEDIA_REMOTE,
+      self->media_window = g_object_new (VALENT_TYPE_MEDIA_WINDOW,
                                          "players", valent_media_get_default (),
                                          NULL);
-      g_object_add_weak_pointer (G_OBJECT (self->media_remote),
-                                 (gpointer)&self->media_remote);
+      g_object_add_weak_pointer (G_OBJECT (self->media_window),
+                                 (gpointer)&self->media_window);
     }
 
-  gtk_window_present (self->media_remote);
+  gtk_window_present (self->media_window);
 }
 
 static void
@@ -182,7 +182,7 @@ share_dialog_action (GSimpleAction *action,
 
 static const GActionEntry app_actions[] = {
   { "input-remote",    input_remote_action,    NULL, NULL, NULL },
-  { "media-remote",    media_remote_action,    NULL, NULL, NULL },
+  { "media-window",    media_window_action,    NULL, NULL, NULL },
   { "messages-window", messages_window_action, NULL, NULL, NULL },
   { "share-dialog",    share_dialog_action,    NULL, NULL, NULL },
   { "window",          main_window_action,     "s",  NULL, NULL },
@@ -241,7 +241,7 @@ valent_ui_manager_shutdown (ValentApplicationPlugin *plugin)
   for (size_t i = 0; i < G_N_ELEMENTS (app_actions); i++)
     g_action_map_remove_action (G_ACTION_MAP (application), app_actions[i].name);
 
-  g_clear_pointer (&self->media_remote, gtk_window_destroy);
+  g_clear_pointer (&self->media_window, gtk_window_destroy);
   g_clear_pointer (&self->main_window, gtk_window_destroy);
 }
 

@@ -4,504 +4,304 @@
 <!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <interface domain="valent">
-  <template class="ValentMediaRemote" parent="AdwWindow">
-    <property name="title" translatable="yes">Media Remote</property>
+  <template class="ValentMediaRemote" parent="AdwBreakpointBin">
     <property name="width-request">360</property>
     <property name="height-request">294</property>
-    <property name="default-width">360</property>
-    <property name="default-height">648</property>
-    <style>
-      <class name="media-remote"/>
-    </style>
-    <property name="content">
-      <object class="GtkWindowHandle">
-        <child>
+    <child>
+      <object class="AdwBreakpoint">
+        <condition>min-height: 360px</condition>
+        <setter object="media_info" property="orientation">vertical</setter>
+        <setter object="media_title" property="xalign">0.5</setter>
+      </object>
+    </child>
+    <property name="child">
+      <object class="AdwClamp">
+        <property name="maximum-size">512</property>
+        <property name="vexpand">true</property>
+        <property name="valign">fill</property>
+        <property name="child">
           <object class="GtkBox">
             <property name="orientation">vertical</property>
-            <style>
-              <class name="content"/>
-            </style>
+            <property name="hexpand">1</property>
+            <property name="vexpand">1</property>
+            <property name="margin-top">16</property>
+            <property name="margin-start">16</property>
+            <property name="margin-end">16</property>
+            <property name="margin-bottom">16</property>
+            <property name="spacing">16</property>
 
-            <!-- Player -->
+            <!-- Now Playing -->
             <child>
-              <object class="GtkHeaderBar">
-                <child type="title">
-                  <object class="GtkDropDown" id="media_player">
-                    <binding name="model">
-                      <lookup name="players">ValentMediaRemote</lookup>
-                    </binding>
-                    <property name="hexpand">1</property>
-                    <property name="factory">
-                      <object class="GtkBuilderListItemFactory">
-                        <property name="bytes"><![CDATA[
-                          <?xml version="1.0" encoding="UTF-8"?>
-                          <interface>
-                            <template class="GtkListItem">
-                              <property name="child">
-                                <object class="GtkBox">
-                                  <property name="spacing">6</property>
-                                  <child>
-                                    <object class="GtkImage">
-                                      <property name="icon-name">valent-media-albumart-symbolic</property>
-                                      <property name="pixel-size">16</property>
-                                    </object>
-                                  </child>
-                                  <child>
-                                    <object class="GtkLabel">
-                                      <binding name="label">
-                                        <lookup name="name" type="ValentMediaPlayer">
-                                          <lookup name="item">GtkListItem</lookup>
-                                        </lookup>
-                                      </binding>
-                                    </object>
-                                  </child>
-                                </object>
-                              </property>
-                            </template>
-                          </interface>
-                     ]]></property>
+              <object class="GtkBox" id="media_info">
+                <property name="orientation">horizontal</property>
+                <property name="spacing">18</property>
+                <property name="vexpand">1</property>
+                <property name="valign">center</property>
+                <child>
+                  <object class="GtkStack" id="media_art_stack">
+                    <property name="height-request">96</property>
+                    <property name="width-request"
+                              bind-source="media_art_stack"
+                              bind-property="height-request"
+                              bind-flags="sync-create"/>
+                    <property name="halign">center</property>
+                    <property name="overflow">hidden</property>
+                    <property name="transition-type">crossfade</property>
+                    <child>
+                      <object class="GtkStackPage">
+                        <property name="name">icon</property>
+                        <property name="child">
+                          <object class="GtkPicture" id="media_art_icon">
+                            <property name="accessible-role">presentation</property>
+                            <property name="file">resource:///ca/andyholmes/Valent/icons/scalable/actions/valent-media-albumart-symbolic.svg</property>
+                            <property name="opacity">0.25</property>
+                            <style>
+                              <class name="fallback"/>
+                            </style>
+                          </object>
+                        </property>
                       </object>
-                    </property>
-                    <signal name="notify::selected-item"
-                            handler="on_selected_item"
-                            object="ValentMediaRemote"
-                            swapped="no"/>
+                    </child>
+                    <child>
+                      <object class="GtkStackPage">
+                        <property name="name">image</property>
+                        <property name="child">
+                          <object class="GtkPicture" id="media_art_image">
+                            <property name="accessible-role">presentation</property>
+                          </object>
+                         </property>
+                      </object>
+                    </child>
+                    <style>
+                      <class name="card"/>
+                      <class name="valent-media-art"/>
+                    </style>
                   </object>
                 </child>
-                <style>
-                  <class name="flat"/>
-                </style>
-              </object>
-            </child>
-            <child>
-              <object class="AdwClamp">
-                <property name="maximum-size">450</property>
-                <property name="vexpand">true</property>
-                <property name="valign">fill</property>
-                <property name="child">
-                  <object class="GtkBox">
+                <child>
+                  <object class="GtkBox" id="track_info">
                     <property name="orientation">vertical</property>
-                    <property name="hexpand">1</property>
-                    <property name="vexpand">1</property>
-                    <property name="margin-top">16</property>
-                    <property name="margin-start">16</property>
-                    <property name="margin-end">16</property>
-                    <property name="margin-bottom">16</property>
                     <property name="spacing">6</property>
-
-                    <!-- Now Playing -->
+                    <property name="valign">center</property>
                     <child>
-                      <object class="GtkBox" id="media_info">
-                        <property name="orientation">vertical</property>
-                        <property name="spacing">6</property>
-                        <property name="vexpand">1</property>
-                        <property name="valign">center</property>
-                        <child>
-                          <object class="GtkStack" id="media_art_stack">
-                            <property name="width-request">256</property>
-                            <property name="height-request">256</property>
-                            <property name="halign">center</property>
-                            <property name="margin-bottom">16</property>
-                            <child>
-                              <object class="GtkStackPage">
-                                <property name="name">fallback</property>
-                                <property name="child">
-                                  <object class="GtkImage">
-                                    <property name="accessible-role">presentation</property>
-                                    <property name="icon-name">valent-media-albumart-symbolic</property>
-                                    <property name="overflow">hidden</property>
-                                    <property name="pixel-size">128</property>
-                                    <property name="opacity">0.25</property>
-                                  </object>
-                                 </property>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkStackPage">
-                                <property name="name">art</property>
-                                <property name="child">
-                                  <object class="GtkImage" id="media_art">
-                                    <property name="accessible-role">presentation</property>
-                                    <property name="icon-name">valent-media-albumart-symbolic</property>
-                                    <property name="overflow">hidden</property>
-                                    <property name="pixel-size">256</property>
-                                  </object>
-                                 </property>
-                              </object>
-                            </child>
-                            <style>
-                              <class name="card"/>
-                            </style>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkLabel" id="media_title">
-                            <property name="ellipsize">end</property>
-                            <property name="tooltip-text"
-                                      bind-source="media_title"
-                                      bind-property="label"
-                                      bind-flags="sync-create"/>
-                            <style>
-                              <class name="title-2"/>
-                            </style>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkLabel" id="media_artist">
-                            <property name="ellipsize">end</property>
-                            <property name="tooltip-text"
-                                      bind-source="media_artist"
-                                      bind-property="label"
-                                      bind-flags="sync-create"/>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkLabel" id="media_album">
-                            <property name="ellipsize">end</property>
-                            <property name="tooltip-text"
-                                      bind-source="media_album"
-                                      bind-property="label"
-                                      bind-flags="sync-create"/>
-                          </object>
-                        </child>
+                      <object class="GtkLabel" id="media_title">
+                        <property name="ellipsize">end</property>
+                        <property name="tooltip-text"
+                                  bind-source="media_title"
+                                  bind-property="label"
+                                  bind-flags="sync-create"/>
+                        <property name="xalign">0.0</property>
+                        <style>
+                          <class name="title-4"/>
+                        </style>
                       </object>
                     </child>
-
-                    <!-- Track Position -->
                     <child>
-                      <object class="GtkGrid">
-                        <property name="valign">end</property>
-                        <property name="vexpand">1</property>
-                        <child>
-                          <object class="GtkScale" id="media_position">
-                            <property name="hexpand">1</property>
-                            <property name="orientation">horizontal</property>
-                            <property name="adjustment">
-                              <object class="GtkAdjustment" id="media_position_adjustment">
-                                <property name="lower">0.0</property>
-                                <property name="upper">100.0</property>
-                                <property name="step-increment">10.0</property>
-                                <property name="page-increment">30.0</property>
-                              </object>
-                            </property>
-                            <signal name="change-value"
-                                    handler="on_change_value"
-                                    object="ValentMediaRemote"
-                                    swapped="no"/>
-                            <layout>
-                              <property name="column">0</property>
-                              <property name="column-span">2</property>
-                              <property name="row">0</property>
-                            </layout>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkLabel" id="media_position_current">
-                            <property name="halign">start</property>
-                            <property name="hexpand">1</property>
-                            <property name="margin-start">12</property>
-                            <layout>
-                              <property name="column">0</property>
-                              <property name="row">1</property>
-                            </layout>
-                            <style>
-                              <class name="caption"/>
-                            </style>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkLabel" id="media_position_length">
-                            <property name="halign">end</property>
-                            <property name="hexpand">1</property>
-                            <property name="margin-end">12</property>
-                            <layout>
-                              <property name="column">1</property>
-                              <property name="row">1</property>
-                            </layout>
-                            <style>
-                              <class name="caption"/>
-                            </style>
-                          </object>
-                        </child>
+                      <object class="GtkLabel" id="media_artist">
+                        <property name="ellipsize">end</property>
+                        <property name="tooltip-text"
+                                  bind-source="media_artist"
+                                  bind-property="label"
+                                  bind-flags="sync-create"/>
+                        <property name="xalign"
+                                  bind-source="media_title"
+                                  bind-property="xalign"
+                                  bind-flags="sync-create"/>
                       </object>
                     </child>
-
-                    <!-- Action Bar -->
                     <child>
-                      <object class="GtkBox">
-                        <property name="orientation">vertical</property>
-
-                        <!-- Playback Controls -->
-                        <child>
-                          <object class="GtkBox">
-                            <property name="homogeneous">true</property>
-                            <child>
-                              <object class="GtkVolumeButton" id="volume_button">
-                                <property name="halign">center</property>
-                                <property name="valign">center</property>
-                                <property name="adjustment">
-                                  <object class="GtkAdjustment" id="volume_adjustment">
-                                    <property name="lower">0.0</property>
-                                    <property name="upper">1.0</property>
-                                    <property name="page-increment">0.08</property>
-                                    <property name="step-increment">0.02</property>
-                                  </object>
-                                </property>
-                                <signal name="value-changed"
-                                        handler="on_volume_changed"
-                                        object="ValentMediaRemote"
-                                        swapped="no"/>
-                                <accessibility>
-                                  <property name="label" translatable="yes">Volume</property>
-                                </accessibility>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkButton" id="previous_button">
-                                <property name="action-name">remote.previous</property>
-                                <property name="halign">center</property>
-                                <property name="valign">center</property>
-                                <property name="child">
-                                  <object class="GtkImage">
-                                    <property name="accessible-role">presentation</property>
-                                    <property name="icon-name">media-skip-backward-symbolic</property>
-                                    <property name="pixel-size">16</property>
-                                    <property name="margin-bottom">8</property>
-                                    <property name="margin-end">8</property>
-                                    <property name="margin-start">8</property>
-                                    <property name="margin-top">8</property>
-                                  </object>
-                                </property>
-                                <accessibility>
-                                  <property name="label" translatable="yes">Previous</property>
-                                </accessibility>
-                                <style>
-                                  <class name="circular"/>
-                                </style>
-                              </object>
-                            </child>
-                            <child> <!-- HIDDEN -->
-                              <object class="GtkButton" id="seek_back_button">
-                                <property name="action-name">remote.seek</property>
-                                <property name="action-target">-10.0</property>
-                                <property name="halign">center</property>
-                                <property name="valign">center</property>
-                                <property name="visible">0</property>
-                                <property name="child">
-                                  <object class="GtkImage">
-                                    <property name="accessible-role">presentation</property>
-                                    <property name="icon-name">media-seek-backward-10-symbolic</property>
-                                    <property name="pixel-size">16</property>
-                                    <property name="margin-bottom">8</property>
-                                    <property name="margin-end">8</property>
-                                    <property name="margin-start">8</property>
-                                    <property name="margin-top">8</property>
-                                  </object>
-                                </property>
-                                <accessibility>
-                                  <property name="label" translatable="yes">Seek Back</property>
-                                </accessibility>
-                                <style>
-                                  <class name="circular"/>
-                                  <class name="flat"/>
-                                </style>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkButton" id="play_pause_button">
-                                <property name="action-name">remote.play</property>
-                                <property name="halign">center</property>
-                                <property name="valign">center</property>
-                                <property name="child">
-                                  <object class="GtkImage">
-                                    <property name="accessible-role">presentation</property>
-                                    <property name="icon-name">media-playback-start-symbolic</property>
-                                    <property name="pixel-size">32</property>
-                                    <property name="margin-bottom">16</property>
-                                    <property name="margin-end">16</property>
-                                    <property name="margin-start">16</property>
-                                    <property name="margin-top">16</property>
-                                  </object>
-                                </property>
-                                <accessibility>
-                                  <property name="label" translatable="yes">Play</property>
-                                </accessibility>
-                                <style>
-                                  <class name="accent"/>
-                                  <class name="circular"/>
-                                </style>
-                              </object>
-                            </child>
-                            <child> <!-- HIDDEN -->
-                              <object class="GtkButton" id="seek_forward_button">
-                                <property name="action-name">remote.seek</property>
-                                <property name="action-target">10.0</property>
-                                <property name="halign">center</property>
-                                <property name="valign">center</property>
-                                <property name="visible">0</property>
-                                <property name="child">
-                                  <object class="GtkImage">
-                                    <property name="accessible-role">presentation</property>
-                                    <property name="icon-name">media-seek-forward-10-symbolic</property>
-                                    <property name="pixel-size">16</property>
-                                    <property name="margin-bottom">8</property>
-                                    <property name="margin-end">8</property>
-                                    <property name="margin-start">8</property>
-                                    <property name="margin-top">8</property>
-                                  </object>
-                                </property>
-                                <accessibility>
-                                  <property name="label" translatable="yes">Seek Forward</property>
-                                </accessibility>
-                                <style>
-                                  <class name="circular"/>
-                                  <class name="flat"/>
-                                </style>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkButton" id="next_button">
-                                <property name="action-name">remote.next</property>
-                                <property name="halign">center</property>
-                                <property name="valign">center</property>
-                                <property name="child">
-                                  <object class="GtkImage">
-                                    <property name="accessible-role">presentation</property>
-                                    <property name="icon-name">media-skip-forward-symbolic</property>
-                                    <property name="pixel-size">16</property>
-                                    <property name="margin-bottom">8</property>
-                                    <property name="margin-end">8</property>
-                                    <property name="margin-start">8</property>
-                                    <property name="margin-top">8</property>
-                                  </object>
-                                </property>
-                                <accessibility>
-                                  <property name="label" translatable="yes">Next</property>
-                                </accessibility>
-                                <style>
-                                  <class name="circular"/>
-                                </style>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkToggleButton" id="playback_options_button">
-                                <property name="halign">center</property>
-                                <property name="valign">center</property>
-                                <property name="child">
-                                  <object class="GtkImage">
-                                    <property name="accessible-role">presentation</property>
-                                    <property name="icon-name">playback-options-symbolic</property>
-                                    <property name="pixel-size">16</property>
-                                    <property name="margin-bottom">8</property>
-                                    <property name="margin-end">8</property>
-                                    <property name="margin-start">8</property>
-                                    <property name="margin-top">8</property>
-                                  </object>
-                                </property>
-                                <accessibility>
-                                  <property name="label" translatable="yes">Options</property>
-                                </accessibility>
-                                <style>
-                                  <class name="circular"/>
-                                  <class name="flat"/>
-                                </style>
-                              </object>
-                            </child>
-                          </object>
-                        </child>
-
-                        <!-- Playback Options -->
-                        <child>
-                          <object class="GtkRevealer" id="playback_options">
-                            <property name="height-request">48</property>
-                            <property name="reveal-child"
-                                      bind-source="playback_options_button"
-                                      bind-property="active"
-                                      bind-flags="sync-create"/>
-                            <property name="child">
-                              <object class="GtkBox">
-                                <property name="homogeneous">1</property>
-                                <property name="margin-top">6</property>
-                                <child>
-                                  <object class="GtkBox">
-                                    <property name="opacity">0.0</property>
-                                    <property name="sensitive">0</property>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkBox">
-                                    <property name="opacity">0.0</property>
-                                    <property name="sensitive">0</property>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkBox">
-                                    <property name="opacity">0.0</property>
-                                    <property name="sensitive">0</property>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkButton" id="repeat_button">
-                                    <property name="action-name">remote.repeat</property>
-                                    <property name="halign">center</property>
-                                    <property name="valign">center</property>
-                                    <property name="child">
-                                      <object class="GtkImage" id="repeat_image">
-                                        <property name="accessible-role">presentation</property>
-                                        <property name="icon-name">media-playlist-consecutive-symbolic</property>
-                                        <property name="pixel-size">16</property>
-                                        <property name="margin-bottom">8</property>
-                                        <property name="margin-end">8</property>
-                                        <property name="margin-start">8</property>
-                                        <property name="margin-top">8</property>
-                                      </object>
-                                    </property>
-                                    <accessibility>
-                                      <property name="label" translatable="yes">Enable Repeat</property>
-                                    </accessibility>
-                                    <style>
-                                      <class name="circular"/>
-                                    </style>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkToggleButton" id="shuffle_button">
-                                    <property name="action-name">remote.shuffle</property>
-                                    <property name="halign">center</property>
-                                    <property name="valign">center</property>
-                                    <property name="child">
-                                      <object class="GtkImage">
-                                        <property name="accessible-role">presentation</property>
-                                        <property name="icon-name">media-playlist-shuffle-symbolic</property>
-                                        <property name="pixel-size">16</property>
-                                        <property name="margin-bottom">8</property>
-                                        <property name="margin-end">8</property>
-                                        <property name="margin-start">8</property>
-                                        <property name="margin-top">8</property>
-                                      </object>
-                                    </property>
-                                    <accessibility>
-                                      <property name="label" translatable="yes">Shuffle</property>
-                                    </accessibility>
-                                    <style>
-                                      <class name="circular"/>
-                                    </style>
-                                  </object>
-                                </child>
-                              </object>
-                            </property>
-                          </object>
-                        </child>
+                      <object class="GtkLabel" id="media_album">
+                        <property name="ellipsize">end</property>
+                        <property name="tooltip-text"
+                                  bind-source="media_album"
+                                  bind-property="label"
+                                  bind-flags="sync-create"/>
+                        <property name="xalign"
+                                  bind-source="media_title"
+                                  bind-property="xalign"
+                                  bind-flags="sync-create"/>
                       </object>
                     </child>
                   </object>
-                </property>
+                </child>
+              </object>
+            </child>
+
+            <!-- Track Position -->
+            <child>
+              <object class="GtkGrid">
+                <property name="valign">end</property>
+                <property name="vexpand">1</property>
+                <child>
+                  <object class="GtkScale" id="media_position">
+                    <property name="hexpand">1</property>
+                    <property name="orientation">horizontal</property>
+                    <property name="adjustment">
+                      <object class="GtkAdjustment" id="media_position_adjustment">
+                        <property name="lower">0.0</property>
+                        <property name="upper">100.0</property>
+                        <property name="step-increment">10.0</property>
+                        <property name="page-increment">30.0</property>
+                      </object>
+                    </property>
+                    <signal name="change-value"
+                            handler="on_change_value"
+                            object="ValentMediaRemote"
+                            swapped="no"/>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="column-span">2</property>
+                      <property name="row">0</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="media_position_current">
+                    <property name="halign">start</property>
+                    <property name="hexpand">1</property>
+                    <property name="margin-start">12</property>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="row">1</property>
+                    </layout>
+                    <style>
+                      <class name="caption"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="media_position_length">
+                    <property name="halign">end</property>
+                    <property name="hexpand">1</property>
+                    <property name="margin-end">12</property>
+                    <layout>
+                      <property name="column">1</property>
+                      <property name="row">1</property>
+                    </layout>
+                    <style>
+                      <class name="caption"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+
+            <!-- Playback Controls -->
+            <child>
+              <object class="GtkBox">
+                <property name="halign">center</property>
+                <property name="hexpand">1</property>
+                <property name="valign">start</property>
+                <property name="vexpand">1</property>
+                <property name="spacing">24</property>
+                <child>
+                  <object class="GtkVolumeButton" id="volume_button">
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <property name="adjustment">
+                      <object class="GtkAdjustment" id="volume_adjustment">
+                        <property name="lower">0.0</property>
+                        <property name="upper">1.0</property>
+                        <property name="page-increment">0.08</property>
+                        <property name="step-increment">0.02</property>
+                      </object>
+                    </property>
+                    <signal name="value-changed"
+                            handler="on_volume_changed"
+                            object="ValentMediaRemote"
+                            swapped="no"/>
+                    <accessibility>
+                      <property name="label" translatable="yes">Volume</property>
+                    </accessibility>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="previous_button">
+                    <property name="action-name">remote.previous</property>
+                    <property name="icon-name">media-skip-backward-symbolic</property>
+                    <property name="tooltip-text" translatable="yes">Previous</property>
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <style>
+                      <class name="circular"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="play_pause_button">
+                    <property name="action-name">remote.play</property>
+                    <property name="icon-name">media-playback-start-symbolic</property>
+                    <property name="tooltip-text" translatable="yes">Play</property>
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <property name="width-request">48</property>
+                    <property name="height-request">48</property>
+                    <style>
+                      <class name="accent"/>
+                      <class name="circular"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="next_button">
+                    <property name="action-name">remote.next</property>
+                    <property name="icon-name">media-skip-forward-symbolic</property>
+                    <property name="tooltip-text" translatable="yes">Next</property>
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <style>
+                      <class name="circular"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkMenuButton" id="playback_options">
+                    <property name="icon-name">view-more-symbolic</property>
+                    <property name="menu-model">playback_menu</property>
+                    <property name="primary">1</property>
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <accessibility>
+                      <property name="label" translatable="yes">Playback Options</property>
+                    </accessibility>
+                    <style>
+                      <class name="circular"/>
+                    </style>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
-        </child>
+        </property>
       </object>
-
     </property>
+    <style>
+      <class name="valent-media-remote"/>
+    </style>
   </template>
+  <menu id="playback_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">_None</attribute>
+        <attribute name="action">remote.repeat</attribute>
+        <attribute name="target">none</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Repeat _One</attribute>
+        <attribute name="action">remote.repeat</attribute>
+        <attribute name="target">one</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Repeat _All</attribute>
+        <attribute name="action">remote.repeat</attribute>
+        <attribute name="target">all</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">_Shuffle</attribute>
+        <attribute name="action">remote.shuffle</attribute>
+      </item>
+    </section>
+  </menu>
 </interface>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
+
+<interface domain="valent">
+  <template class="ValentMediaWindow" parent="AdwWindow">
+    <property name="title" translatable="yes">Media Remote</property>
+    <property name="width-request">360</property>
+    <property name="height-request">294</property>
+    <property name="default-width">360</property>
+    <property name="default-height">648</property>
+    <property name="content">
+      <object class="GtkWindowHandle">
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+
+            <!-- Player -->
+            <child>
+              <object class="GtkHeaderBar">
+                <child type="title">
+                  <object class="GtkDropDown" id="media_player">
+                    <binding name="model">
+                      <lookup name="players">ValentMediaWindow</lookup>
+                    </binding>
+                    <property name="hexpand">1</property>
+                    <property name="factory">
+                      <object class="GtkBuilderListItemFactory">
+                        <property name="bytes"><![CDATA[
+                          <?xml version="1.0" encoding="UTF-8"?>
+                          <interface>
+                            <template class="GtkListItem">
+                              <property name="child">
+                                <object class="GtkBox">
+                                  <property name="spacing">6</property>
+                                  <child>
+                                    <object class="GtkImage">
+                                      <property name="icon-name">valent-media-albumart-symbolic</property>
+                                      <property name="pixel-size">16</property>
+                                    </object>
+                                  </child>
+                                  <child>
+                                    <object class="GtkLabel">
+                                      <binding name="label">
+                                        <lookup name="name" type="ValentMediaPlayer">
+                                          <lookup name="item">GtkListItem</lookup>
+                                        </lookup>
+                                      </binding>
+                                    </object>
+                                  </child>
+                                </object>
+                              </property>
+                            </template>
+                          </interface>
+                     ]]></property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <style>
+                  <class name="flat"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="ValentMediaRemote">
+                <binding name="player">
+                  <lookup name="selected-item">media_player</lookup>
+                </binding>
+              </object>
+            </child>
+            <style>
+              <class name="content"/>
+            </style>
+          </object>
+        </child>
+      </object>
+    </property>
+    <style>
+      <class name="valent-media-window"/>
+    </style>
+  </template>
+</interface>

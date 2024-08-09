@@ -25,7 +25,7 @@ plugin_gnome_tests = {
   'test-device-page': disabler(),
   'test-device-preferences-dialog': disabler(),
   'test-input-remote': disabler(),
-  'test-media-remote': disabler(),
+  'test-media-window': disabler(),
   'test-menu-stack': disabler(),
   'test-message-row': disabler(),
   'test-messages-window': disabler(),
