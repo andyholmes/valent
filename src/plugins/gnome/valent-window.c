@@ -11,12 +11,13 @@
 #include <libportal/portal.h>
 #include <valent.h>
 
-#include "valent-version-vcs.h"
-
 #include "valent-application-credits.h"
 #include "valent-device-page.h"
+#include "valent-device-row.h"
 #include "valent-preferences-dialog.h"
 #include "valent-ui-utils-private.h"
+#include "valent-version-vcs.h"
+
 #include "valent-window.h"
 
 
@@ -173,38 +174,6 @@ on_animation_state_changed (AdwAnimation *animation,
     }
 }
 
-/*
- * ValentDevice Callbacks
- */
-static void
-on_device_changed (ValentDevice *device,
-                   GParamSpec   *pspec,
-                   GtkWidget    *status)
-{
-  ValentDeviceState state;
-
-  g_assert (VALENT_IS_DEVICE (device));
-  g_assert (GTK_IS_LABEL (status));
-
-  state = valent_device_get_state (device);
-
-  if ((state & VALENT_DEVICE_STATE_PAIRED) == 0)
-    {
-      gtk_label_set_label (GTK_LABEL (status), _("Unpaired"));
-      gtk_widget_remove_css_class (status, "dim-label");
-    }
-  else if ((state & VALENT_DEVICE_STATE_CONNECTED) == 0)
-    {
-      gtk_label_set_label (GTK_LABEL (status), _("Disconnected"));
-      gtk_widget_add_css_class (status, "dim-label");
-    }
-  else
-    {
-      gtk_label_set_label (GTK_LABEL (status), _("Connected"));
-      gtk_widget_remove_css_class (status, "dim-label");
-    }
-}
-
 static GtkWidget *
 valent_window_create_row_func (gpointer item,
                                gpointer user_data)
@@ -212,12 +181,6 @@ valent_window_create_row_func (gpointer item,
   ValentWindow *self = VALENT_WINDOW (user_data);
   ValentDevice *device = VALENT_DEVICE (item);
   const char *device_id;
-  const char *icon_name;
-  GtkWidget *row;
-  GtkWidget *box;
-  GtkWidget *icon;
-  GtkWidget *status;
-  GtkWidget *arrow;
 
   g_assert (VALENT_IS_WINDOW (self));
   g_assert (VALENT_IS_DEVICE (item));
@@ -227,50 +190,13 @@ valent_window_create_row_func (gpointer item,
     adw_animation_skip (self->scan);
 
   device_id = valent_device_get_id (device);
-  icon_name = valent_device_get_icon_name (device);
-
-  /* Row */
-  row = g_object_new (ADW_TYPE_ACTION_ROW,
-                      "action-name",   "win.page",
-                      "action-target", g_variant_new_string (device_id),
-                      "activatable",   TRUE,
-                      "selectable",    FALSE,
-                      NULL);
-
-  icon = g_object_new (GTK_TYPE_IMAGE,
-                       "accessible-role", GTK_ACCESSIBLE_ROLE_PRESENTATION,
-                       "icon-name",       icon_name,
+  return g_object_new (VALENT_TYPE_DEVICE_ROW,
+                       "device",        device,
+                       "action-name",   "win.page",
+                       "action-target", g_variant_new_string (device_id),
+                       "activatable",   TRUE,
+                       "selectable",    FALSE,
                        NULL);
-  adw_action_row_add_prefix (ADW_ACTION_ROW (row), icon);
-
-  box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 12);
-  adw_action_row_add_suffix (ADW_ACTION_ROW (row), box);
-
-  status = g_object_new (GTK_TYPE_LABEL, NULL);
-  gtk_box_append (GTK_BOX (box), status);
-
-  arrow = g_object_new (GTK_TYPE_IMAGE,
-                        "accessible-role", GTK_ACCESSIBLE_ROLE_PRESENTATION,
-                        "css-classes",     VALENT_STRV_INIT ("dim-label"),
-                        "icon-name",       "go-next-symbolic",
-                        NULL);
-  gtk_box_append (GTK_BOX (box), arrow);
-
-  g_object_bind_property (device, "name",
-                          row,    "title",
-                          G_BINDING_SYNC_CREATE);
-
-  g_signal_connect_object (device,
-                           "notify::state",
-                           G_CALLBACK (on_device_changed),
-                           status, 0);
-  on_device_changed (device, NULL, status);
-
-  gtk_accessible_update_relation (GTK_ACCESSIBLE (row),
-                                  GTK_ACCESSIBLE_RELATION_DESCRIBED_BY, status, NULL,
-                                  -1);
-
-  return row;
 }
 
 /*

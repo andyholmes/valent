@@ -12,6 +12,7 @@
     <file preprocess="xml-stripblanks">valent-conversation-page.ui</file>
     <file preprocess="xml-stripblanks">valent-conversation-row.ui</file>
     <file preprocess="xml-stripblanks">valent-device-page.ui</file>
+    <file preprocess="xml-stripblanks">valent-device-row.ui</file>
     <file preprocess="xml-stripblanks">valent-device-preferences-dialog.ui</file>
     <file preprocess="xml-stripblanks">valent-device-preferences-battery.ui</file>
     <file preprocess="xml-stripblanks">valent-device-preferences-clipboard.ui</file>
@@ -33,7 +34,6 @@
     <file preprocess="xml-stripblanks">valent-preferences-dialog.ui</file>
     <file preprocess="xml-stripblanks">valent-presenter-remote.ui</file>
     <file preprocess="xml-stripblanks">valent-share-dialog.ui</file>
-    <file preprocess="xml-stripblanks">valent-share-dialog-row.ui</file>
     <file preprocess="xml-stripblanks">valent-window.ui</file>
   </gresource>
   <gresource prefix="/ca/andyholmes/Valent/icons">
