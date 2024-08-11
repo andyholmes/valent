@@ -5,13 +5,13 @@
 
 #include "config.h"
 
-#include <libportal/portal.h>
 #include <valent.h>
 
-#include "valent-mpris-adapter.h"
 #include "valent-mpris-impl.h"
 #include "valent-mpris-player.h"
 #include "valent-mpris-utils.h"
+
+#include "valent-mpris-adapter.h"
 
 
 struct _ValentMPRISAdapter
@@ -21,9 +21,6 @@ struct _ValentMPRISAdapter
   GDBusConnection    *connection;
   unsigned int        name_owner_changed_id;
   GHashTable         *players;
-
-  /* Exports */
-  ValentMPRISImpl    *active_export;
   GHashTable         *exports;
 };
 
@@ -35,84 +32,6 @@ G_DEFINE_FINAL_TYPE_WITH_CODE (ValentMPRISAdapter, valent_mpris_adapter, VALENT_
 
 static unsigned int n_exports = 0;
 
-static void
-on_player_state_changed (ValentMPRISAdapter *self,
-                         GParamSpec         *pspec,
-                         ValentMediaPlayer  *player)
-{
-  ValentMPRISImpl *export = NULL;
-
-  g_assert (VALENT_IS_MPRIS_ADAPTER (self));
-  g_assert (player == NULL || VALENT_IS_MEDIA_PLAYER (player));
-
-  if (g_hash_table_size (self->exports) == 0)
-    return;
-
-  /* @player may be %NULL if the active export was just removed */
-  if (player == NULL)
-    {
-      GHashTableIter iter;
-
-      g_hash_table_iter_init (&iter, self->exports);
-      g_hash_table_iter_next (&iter, (void **)&player, NULL);
-    }
-
-  g_assert (VALENT_IS_MEDIA_PLAYER (player));
-
-  /* The policy is to favour the player that most recently started playing.
-   *
-   * If a player just started playing it will replace any active export, under
-   * the assumption that it is now the focus of attention.
-   *
-   * If it was stopped or paused, another that is currently playing may become
-   * the active export, but may not replace an existing player.
-   */
-  if (valent_media_player_get_state (player) == VALENT_MEDIA_STATE_PLAYING)
-    {
-      export = g_hash_table_lookup (self->exports, player);
-    }
-  else if (self->active_export != NULL)
-    {
-      export = self->active_export;
-    }
-  else
-    {
-      GHashTableIter iter;
-
-      g_hash_table_iter_init (&iter, self->exports);
-      while (g_hash_table_iter_next (&iter, (void **)&player, (void **)&export))
-        {
-          if (valent_media_player_get_state (player) == VALENT_MEDIA_STATE_PLAYING)
-            break;
-        }
-    }
-
-  g_assert (VALENT_IS_MPRIS_IMPL (export));
-
-  if (self->active_export != export)
-    {
-      g_autoptr (GError) error = NULL;
-
-      g_clear_pointer (&self->active_export, valent_mpris_impl_unexport);
-
-      if (!valent_mpris_impl_export (export, self->connection, &error))
-        {
-          g_warning ("%s(): %s", G_STRFUNC, error->message);
-          return;
-        }
-
-      self->active_export = export;
-      g_object_freeze_notify (G_OBJECT (player));
-      g_object_notify (G_OBJECT (player), "flags");
-      g_object_notify (G_OBJECT (player), "metadata");
-      g_object_notify (G_OBJECT (player), "name");
-      g_object_notify (G_OBJECT (player), "repeat");
-      g_object_notify (G_OBJECT (player), "shuffle");
-      g_object_notify (G_OBJECT (player), "state");
-      g_object_notify (G_OBJECT (player), "volume");
-      g_object_thaw_notify (G_OBJECT (player));
-    }
-}
 
 static void
 g_async_initable_new_async_cb (GObject      *object,
@@ -350,41 +269,24 @@ valent_mpris_adapter_export (ValentMediaAdapter *adapter,
 {
   ValentMPRISAdapter *self = VALENT_MPRIS_ADAPTER (adapter);
   g_autoptr (ValentMPRISImpl) impl = NULL;
+  g_autoptr (GCancellable) destroy = NULL;
+  g_autofree char *bus_name = NULL;
 
   if (g_hash_table_contains (self->exports, player))
     return;
 
   impl = valent_mpris_impl_new (player);
-  g_hash_table_replace (self->exports, player, g_object_ref (impl));
+  g_hash_table_insert (self->exports, player, g_object_ref (impl));
 
-  /* If running in a sandbox, assume only one D-Bus name may be owned and watch
-   * the player to see if it should be prioritized for export */
-  if (xdp_portal_running_under_sandbox ())
-    {
-      g_signal_connect_object (player,
-                               "notify::state",
-                               G_CALLBACK (on_player_state_changed),
-                               self,
-                               G_CONNECT_SWAPPED);
-      on_player_state_changed (self, NULL, player);
-    }
-  else
-    {
-      g_autoptr (GCancellable) destroy = NULL;
-      g_autofree char *bus_name = NULL;
-
-      /* Cancel export if the object is destroyed */
-      destroy = valent_object_ref_cancellable (VALENT_OBJECT (adapter));
-
-      bus_name = g_strdup_printf ("%s.Player%u",
-                                  VALENT_MPRIS_DBUS_NAME,
-                                  n_exports++);
-      valent_mpris_impl_export_full (impl,
-                                     bus_name,
-                                     destroy,
-                                     (GAsyncReadyCallback)valent_mpris_impl_export_full_cb,
-                                     self);
-    }
+  bus_name = g_strdup_printf ("%s.Player%u",
+                              VALENT_MPRIS_DBUS_NAME,
+                              n_exports++);
+  destroy = valent_object_ref_cancellable (VALENT_OBJECT (adapter));
+  valent_mpris_impl_export_full (impl,
+                                 bus_name,
+                                 destroy,
+                                 (GAsyncReadyCallback)valent_mpris_impl_export_full_cb,
+                                 self);
 }
 
 static void
@@ -400,23 +302,8 @@ valent_mpris_adapter_unexport (ValentMediaAdapter *adapter,
   if (!g_hash_table_steal_extended (self->exports, player, NULL, (void **)&impl))
     return;
 
-  /* If running in a sandbox, stop watching the player and ensure export
-   * priority is relinquished */
-  if (xdp_portal_running_under_sandbox ())
-    {
-      g_signal_handlers_disconnect_by_data (impl, self);
-
-      if (self->active_export == impl)
-        {
-          g_clear_pointer (&self->active_export, valent_mpris_impl_unexport);
-          on_player_state_changed (self, NULL, NULL);
-        }
-    }
-  else
-    {
-      g_signal_handlers_disconnect_by_data (impl, self);
-      valent_mpris_impl_unexport (impl);
-    }
+  g_signal_handlers_disconnect_by_data (impl, self);
+  valent_mpris_impl_unexport (impl);
 }
 
 /*

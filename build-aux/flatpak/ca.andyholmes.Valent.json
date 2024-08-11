@@ -10,7 +10,7 @@
         "--filesystem=xdg-download",
         "--filesystem=xdg-run/gvfsd",
         "--filesystem=xdg-run/pipewire-0:ro",
-        "--own-name=org.mpris.MediaPlayer2.Valent",
+        "--own-name=org.mpris.MediaPlayer2.Valent.*",
         "--share=ipc",
         "--share=network",
         "--socket=fallback-x11",
