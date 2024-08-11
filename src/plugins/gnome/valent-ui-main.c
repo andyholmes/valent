@@ -9,6 +9,7 @@
 #include <gtk/gtk.h>
 
 #include "valent-device-page.h"
+#include "valent-device-row.h"
 #include "valent-device-preferences-battery.h"
 #include "valent-device-preferences-clipboard.h"
 #include "valent-device-preferences-commands.h"
@@ -51,6 +52,7 @@ static void
 valent_ui_init_types (void)
 {
   g_type_ensure (VALENT_TYPE_DEVICE_PAGE);
+  g_type_ensure (VALENT_TYPE_DEVICE_ROW);
   g_type_ensure (VALENT_TYPE_DEVICE_PREFERENCES_GROUP);
   g_type_ensure (VALENT_TYPE_DEVICE_PREFERENCES_DIALOG);
   g_type_ensure (VALENT_TYPE_BATTERY_PREFERENCES);

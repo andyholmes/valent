@@ -10,8 +10,9 @@
 #include <gtk/gtk.h>
 #include <valent.h>
 
+#include "valent-device-row.h"
+
 #include "valent-share-dialog.h"
-#include "valent-share-dialog-row.h"
 
 
 struct _ValentShareDialog
@@ -50,10 +51,10 @@ enum {
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
-static void   valent_share_dialog_set_files (ValentShareDialog    *self,
-                                             GListModel           *files);
-static void   valent_share_dialog_share     (ValentShareDialog    *self,
-                                             ValentShareDialogRow *row);
+static void   valent_share_dialog_set_files (ValentShareDialog *self,
+                                             GListModel        *files);
+static void   valent_share_dialog_share     (ValentShareDialog *self,
+                                             ValentDeviceRow   *row);
 
 
 /*
@@ -343,20 +344,20 @@ on_action_enabled_changed (GActionGroup *action_group,
 }
 
 static void
-on_device_activated (GtkListBox           *box,
-                     ValentShareDialogRow *row,
-                     ValentShareDialog    *self)
+on_device_activated (GtkListBox        *box,
+                     ValentDeviceRow   *row,
+                     ValentShareDialog *self)
 {
   g_assert (GTK_IS_LIST_BOX (box));
-  g_assert (VALENT_IS_SHARE_DIALOG_ROW (row));
+  g_assert (VALENT_IS_DEVICE_ROW (row));
   g_assert (VALENT_IS_SHARE_DIALOG (self));
 
   if (self->selection_mode)
     {
       gboolean selected;
 
-      selected = valent_share_dialog_row_get_selected (row);
-      valent_share_dialog_row_set_selected (row, !selected);
+      selected = valent_device_row_get_selected (row);
+      valent_device_row_set_selected (row, !selected);
     }
   else
     {
@@ -382,10 +383,10 @@ on_selected_changed (ValentShareDialog *self)
        child != NULL;
        child = gtk_widget_get_next_sibling (child))
     {
-      if (!VALENT_IS_SHARE_DIALOG_ROW (child))
+      if (!VALENT_IS_DEVICE_ROW (child))
         continue;
 
-      if (valent_share_dialog_row_get_selected (VALENT_SHARE_DIALOG_ROW (child)))
+      if (valent_device_row_get_selected (VALENT_DEVICE_ROW (child)))
         {
           enabled = TRUE;
           break;
@@ -405,7 +406,7 @@ valent_share_dialog_create_row (gpointer item,
 
   g_assert (VALENT_IS_DEVICE (device));
 
-  row = g_object_new (VALENT_TYPE_SHARE_DIALOG_ROW,
+  row = g_object_new (VALENT_TYPE_DEVICE_ROW,
                       "device",         device,
                       "selection-mode", self->selection_mode,
                       NULL);
@@ -596,13 +597,13 @@ chooser_share_action (GtkWidget  *widget,
        child != NULL;
        child = gtk_widget_get_next_sibling (child))
     {
-      if (!VALENT_IS_SHARE_DIALOG_ROW (child))
+      if (!VALENT_IS_DEVICE_ROW (child))
         continue;
 
-      if (!valent_share_dialog_row_get_selected (VALENT_SHARE_DIALOG_ROW (child)))
+      if (!valent_device_row_get_selected (VALENT_DEVICE_ROW (child)))
         continue;
 
-      valent_share_dialog_share (self, VALENT_SHARE_DIALOG_ROW (child));
+      valent_share_dialog_share (self, VALENT_DEVICE_ROW (child));
     }
 }
 
@@ -666,8 +667,8 @@ valent_share_dialog_set_selection_mode (ValentShareDialog *self,
 }
 
 static void
-valent_share_dialog_share (ValentShareDialog    *self,
-                           ValentShareDialogRow *row)
+valent_share_dialog_share (ValentShareDialog *self,
+                           ValentDeviceRow   *row)
 {
   ValentDevice *device = NULL;
   GVariantBuilder builder;
@@ -684,7 +685,7 @@ valent_share_dialog_share (ValentShareDialog    *self,
       g_variant_builder_add_value (&builder, uri);
     }
 
-  device = valent_share_dialog_row_get_device (row);
+  device = valent_device_row_get_device (row);
   g_action_group_activate_action (G_ACTION_GROUP (device),
                                   "share.uris",
                                   g_variant_builder_end (&builder));
