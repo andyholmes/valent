@@ -44,9 +44,12 @@ src/plugins/gnome/valent-device-preferences-sftp.ui
 src/plugins/gnome/valent-device-preferences-share.c
 src/plugins/gnome/valent-device-preferences-share.ui
 src/plugins/gnome/valent-device-preferences-telephony.ui
+src/plugins/gnome/valent-device-row.c
+src/plugins/gnome/valent-device-row.ui
 src/plugins/gnome/valent-input-remote.ui
 src/plugins/gnome/valent-media-remote.c
 src/plugins/gnome/valent-media-remote.ui
+src/plugins/gnome/valent-media-window.ui
 src/plugins/gnome/valent-menu-list.c
 src/plugins/gnome/valent-message-row.c
 src/plugins/gnome/valent-messages-window.c
