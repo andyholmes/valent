@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2024-08-04 16:17-0700\n"
+"POT-Creation-Date: 2024-08-17 15:05-0700\n"
 "PO-Revision-Date: 2024-03-21 03:05+0100\n"
 "Last-Translator: Gianni Lerro <glerro@pm.me>\n"
 "Language-Team: Italian <>\n"
@@ -21,7 +21,7 @@ msgstr ""
 #: data/ca.andyholmes.Valent.desktop.in.in:3
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
 #: src/plugins/gnome/valent-preferences-dialog.ui:11
-#: src/plugins/gnome/valent-window.c:296 src/plugins/gnome/valent-window.ui:8
+#: src/plugins/gnome/valent-window.c:222 src/plugins/gnome/valent-window.ui:8
 #: src/plugins/gnome/valent-window.ui:45
 msgid "Valent"
 msgstr "Valent"
@@ -144,6 +144,7 @@ msgstr "Accetta"
 
 #: src/plugins/battery/battery.plugin.desktop.in:7
 #: src/plugins/gnome/valent-device-page.ui:218
+#: src/plugins/gnome/valent-device-row.ui:124
 msgid "Battery"
 msgstr "Batteria"
 
@@ -173,6 +174,7 @@ msgstr "%s: Batteria scarica"
 #.
 #: src/plugins/battery/valent-battery-plugin.c:296
 #: src/plugins/gnome/valent-device-page.c:190
+#: src/plugins/gnome/valent-device-row.c:156
 #, c-format
 msgid "%g%% (%d∶%02d Remaining)"
 msgstr "%g%% (%d:%02d rimanenti)"
@@ -206,6 +208,7 @@ msgstr "Monitorare lo stato della connettività mobile"
 #. TRANSLATORS: When the mobile network signal is available
 #: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:162
 #: src/plugins/gnome/valent-device-page.ui:244
+#: src/plugins/gnome/valent-device-row.ui:116
 msgid "Mobile Network"
 msgstr "Rete mobile"
 
@@ -328,7 +331,7 @@ msgid "Other"
 msgstr "Altro"
 
 #: src/plugins/gnome/valent-conversation-page.c:405
-#: src/plugins/gnome/valent-messages-window.c:383
+#: src/plugins/gnome/valent-messages-window.c:392
 #, fuzzy
 msgid "Unknown"
 msgstr "Contatto sconosciuto"
@@ -351,22 +354,22 @@ msgid_plural "New message from %s, with %d attachments"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/plugins/gnome/valent-conversation-page.c:954
-#: src/plugins/gnome/valent-conversation-page.c:1101
+#: src/plugins/gnome/valent-conversation-page.c:948
+#: src/plugins/gnome/valent-conversation-page.c:1095
 #: src/plugins/gnome/valent-conversation-page.ui:77
 #, fuzzy
 msgid "Attach Files"
 msgstr "Tutti i file"
 
-#: src/plugins/gnome/valent-conversation-page.c:955
-#: src/plugins/gnome/valent-conversation-page.c:1102
+#: src/plugins/gnome/valent-conversation-page.c:949
+#: src/plugins/gnome/valent-conversation-page.c:1096
 #: src/plugins/gnome/valent-device-preferences-share.c:94
 #: src/plugins/gnome/valent-presenter-remote.c:92
 #: src/plugins/gnome/valent-presenter-remote.ui:100
 msgid "Open"
 msgstr "Apri"
 
-#: src/plugins/gnome/valent-conversation-page.c:1008
+#: src/plugins/gnome/valent-conversation-page.c:1002
 #: src/plugins/share/valent-share-plugin.c:1114
 msgid "Save"
 msgstr "Salva"
@@ -481,12 +484,14 @@ msgstr "Non disponibile"
 #. TRANSLATORS: When the battery level is 100%
 #.
 #: src/plugins/gnome/valent-device-page.c:152
+#: src/plugins/gnome/valent-device-row.c:118
 msgid "Fully Charged"
 msgstr "Completamente carico"
 
 #. TRANSLATORS: This is <percentage> (Estimating…)
 #.
 #: src/plugins/gnome/valent-device-page.c:177
+#: src/plugins/gnome/valent-device-row.c:143
 #, c-format
 msgid "%g%% (Estimating…)"
 msgstr "%g%% (stimando…)"
@@ -494,6 +499,7 @@ msgstr "%g%% (stimando…)"
 #. TRANSLATORS: This is <percentage> (<hours>:<minutes> Until Full)
 #.
 #: src/plugins/gnome/valent-device-page.c:183
+#: src/plugins/gnome/valent-device-row.c:149
 #, c-format
 msgid "%g%% (%d∶%02d Until Full)"
 msgstr "%g%% (%d:%02d fino al completamento)"
@@ -503,7 +509,7 @@ msgid "Device Menu"
 msgstr "Menù dispositivo"
 
 #: src/plugins/gnome/valent-device-page.ui:49
-#: src/plugins/gnome/valent-window.c:198
+#: src/plugins/gnome/valent-device-row.c:241
 msgid "Disconnected"
 msgstr "Disconnesso"
 
@@ -512,7 +518,7 @@ msgid "This device is currently unavailable"
 msgstr "Questo dispositivo non è attualmente disponibile"
 
 #: src/plugins/gnome/valent-device-page.ui:63
-#: src/plugins/gnome/valent-window.c:193
+#: src/plugins/gnome/valent-device-row.c:236
 msgid "Unpaired"
 msgstr "Non accoppiato"
 
@@ -744,7 +750,7 @@ msgstr "Cosa fare quando squilla il telefono"
 
 #: src/plugins/gnome/valent-device-preferences-telephony.ui:16
 #: src/plugins/gnome/valent-device-preferences-telephony.ui:41
-#: src/plugins/gnome/valent-media-remote.ui:255
+#: src/plugins/gnome/valent-media-remote.ui:214
 msgid "Volume"
 msgstr "Volume"
 
@@ -777,6 +783,10 @@ msgstr "Riduci"
 #: src/plugins/telephony/valent-telephony-plugin.c:391
 msgid "Mute"
 msgstr "Muto"
+
+#: src/plugins/gnome/valent-device-row.c:246
+msgid "Connected"
+msgstr "Connesso"
 
 #: src/plugins/gnome/valent-input-remote.ui:8
 #: src/plugins/gnome/valent-window.ui:124
@@ -811,60 +821,54 @@ msgstr "Tieni premuto con un dito per afferrare"
 msgid "Tap one finger to release"
 msgstr "Tocca con un dito per rilasciare"
 
-#: src/plugins/gnome/valent-media-remote.c:241
-#: src/plugins/gnome/valent-media-remote.ui:460
-msgid "Enable Repeat"
-msgstr "Abilita ripetizione"
-
-#: src/plugins/gnome/valent-media-remote.c:249
-msgid "Repeat All"
-msgstr "Ripeti tutto"
-
-#: src/plugins/gnome/valent-media-remote.c:257
-msgid "Repeat One"
-msgstr "Ripeti uno"
-
-#: src/plugins/gnome/valent-media-remote.c:284
+#: src/plugins/gnome/valent-media-remote.c:230
 msgid "Pause"
 msgstr "Pausa"
 
-#: src/plugins/gnome/valent-media-remote.c:297
-#: src/plugins/gnome/valent-media-remote.c:299
-#: src/plugins/gnome/valent-media-remote.ui:327
+#: src/plugins/gnome/valent-media-remote.c:241
+#: src/plugins/gnome/valent-media-remote.ui:234
 msgid "Play"
 msgstr "Riproduci"
 
-#: src/plugins/gnome/valent-media-remote.ui:8
-#: src/plugins/gnome/valent-window.ui:128
-msgid "Media Remote"
-msgstr "Telecomando multimediale"
-
-#: src/plugins/gnome/valent-media-remote.ui:276
+#: src/plugins/gnome/valent-media-remote.ui:222
 #: src/plugins/gnome/valent-menu-list.c:665
 #: src/plugins/gnome/valent-presenter-remote.ui:146
 msgid "Previous"
 msgstr "Precedente"
 
-#: src/plugins/gnome/valent-media-remote.ui:302
-msgid "Seek Back"
-msgstr "Scorri all'indietro"
-
-#: src/plugins/gnome/valent-media-remote.ui:354
-msgid "Seek Forward"
-msgstr "Scorri in avanti"
-
-#: src/plugins/gnome/valent-media-remote.ui:379
+#: src/plugins/gnome/valent-media-remote.ui:249
 #: src/plugins/gnome/valent-presenter-remote.ui:173
 msgid "Next"
 msgstr "Prossimo"
 
-#: src/plugins/gnome/valent-media-remote.ui:402
-msgid "Options"
+#: src/plugins/gnome/valent-media-remote.ui:265
+#, fuzzy
+msgid "Playback Options"
 msgstr "Opzioni"
 
-#: src/plugins/gnome/valent-media-remote.ui:484
-msgid "Shuffle"
+#: src/plugins/gnome/valent-media-remote.ui:285
+msgid "_None"
+msgstr ""
+
+#: src/plugins/gnome/valent-media-remote.ui:290
+#, fuzzy
+msgid "Repeat _One"
+msgstr "Ripeti uno"
+
+#: src/plugins/gnome/valent-media-remote.ui:295
+#, fuzzy
+msgid "Repeat _All"
+msgstr "Ripeti tutto"
+
+#: src/plugins/gnome/valent-media-remote.ui:302
+#, fuzzy
+msgid "_Shuffle"
 msgstr "Casuale"
+
+#: src/plugins/gnome/valent-media-window.ui:8
+#: src/plugins/gnome/valent-window.ui:128
+msgid "Media Remote"
+msgstr "Telecomando multimediale"
 
 #: src/plugins/gnome/valent-menu-list.c:530
 msgid "No Actions"
@@ -875,11 +879,11 @@ msgstr "Nessuna azione"
 msgid "You: %s"
 msgstr "%s: %s"
 
-#: src/plugins/gnome/valent-messages-window.c:177
+#: src/plugins/gnome/valent-messages-window.c:179
 msgid "Conversations"
 msgstr "Conversazioni"
 
-#: src/plugins/gnome/valent-messages-window.c:384
+#: src/plugins/gnome/valent-messages-window.c:393
 #, fuzzy
 msgid "Unknown sender"
 msgstr "Contatto sconosciuto"
@@ -1021,27 +1025,27 @@ msgstr "Ferma"
 msgid "Pointer"
 msgstr "Puntatore"
 
-#: src/plugins/gnome/valent-share-dialog.c:108
+#: src/plugins/gnome/valent-share-dialog.c:109
 #, c-format
 msgid "Size: %s"
 msgstr ""
 
-#: src/plugins/gnome/valent-share-dialog.c:122
+#: src/plugins/gnome/valent-share-dialog.c:123
 #, c-format
 msgid "Total size: %s"
 msgstr ""
 
-#: src/plugins/gnome/valent-share-dialog.c:253
+#: src/plugins/gnome/valent-share-dialog.c:254
 #, c-format
 msgid "%u files and links"
 msgstr ""
 
-#: src/plugins/gnome/valent-share-dialog.c:255
+#: src/plugins/gnome/valent-share-dialog.c:256
 #, fuzzy, c-format
 msgid "%u files"
 msgstr "Salva"
 
-#: src/plugins/gnome/valent-share-dialog.c:257
+#: src/plugins/gnome/valent-share-dialog.c:258
 #, c-format
 msgid "%u links"
 msgstr ""
@@ -1187,15 +1191,11 @@ msgctxt "short time format"
 msgid "%d:%02d"
 msgstr "%d:%02d"
 
-#: src/plugins/gnome/valent-window.c:203
-msgid "Connected"
-msgstr "Connesso"
-
-#: src/plugins/gnome/valent-window.c:306
+#: src/plugins/gnome/valent-window.c:232
 msgid "translator-credits"
 msgstr "crediti-traduttori"
 
-#: src/plugins/gnome/valent-window.c:311
+#: src/plugins/gnome/valent-window.c:237
 msgid "Sponsors"
 msgstr "Sponsor"
 
@@ -1508,6 +1508,15 @@ msgstr "Portals"
 #: src/plugins/xdp/xdp.plugin.desktop.in:8
 msgid "Integration with desktop portals"
 msgstr "Integrazione con desktop portals"
+
+#~ msgid "Enable Repeat"
+#~ msgstr "Abilita ripetizione"
+
+#~ msgid "Seek Back"
+#~ msgstr "Scorri all'indietro"
+
+#~ msgid "Seek Forward"
+#~ msgstr "Scorri in avanti"
 
 #, c-format
 #~ msgid "%u other contact"

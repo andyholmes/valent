@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2024-08-04 16:17-0700\n"
+"POT-Creation-Date: 2024-08-17 15:05-0700\n"
 "PO-Revision-Date: 2022-03-28 11:21-0700\n"
 "Last-Translator: Andy Holmes <andrew.g.r.holmes@gmail.com>\n"
 "Language-Team: English <andrew.g.r.holmes@gmail.com>\n"
@@ -21,7 +21,7 @@ msgstr ""
 #: data/ca.andyholmes.Valent.desktop.in.in:3
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
 #: src/plugins/gnome/valent-preferences-dialog.ui:11
-#: src/plugins/gnome/valent-window.c:296 src/plugins/gnome/valent-window.ui:8
+#: src/plugins/gnome/valent-window.c:222 src/plugins/gnome/valent-window.ui:8
 #: src/plugins/gnome/valent-window.ui:45
 msgid "Valent"
 msgstr ""
@@ -137,6 +137,7 @@ msgstr ""
 
 #: src/plugins/battery/battery.plugin.desktop.in:7
 #: src/plugins/gnome/valent-device-page.ui:218
+#: src/plugins/gnome/valent-device-row.ui:124
 msgid "Battery"
 msgstr ""
 
@@ -166,6 +167,7 @@ msgstr ""
 #.
 #: src/plugins/battery/valent-battery-plugin.c:296
 #: src/plugins/gnome/valent-device-page.c:190
+#: src/plugins/gnome/valent-device-row.c:156
 #, c-format
 msgid "%g%% (%d∶%02d Remaining)"
 msgstr ""
@@ -198,6 +200,7 @@ msgstr ""
 #. TRANSLATORS: When the mobile network signal is available
 #: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:162
 #: src/plugins/gnome/valent-device-page.ui:244
+#: src/plugins/gnome/valent-device-row.ui:116
 msgid "Mobile Network"
 msgstr ""
 
@@ -318,7 +321,7 @@ msgid "Other"
 msgstr ""
 
 #: src/plugins/gnome/valent-conversation-page.c:405
-#: src/plugins/gnome/valent-messages-window.c:383
+#: src/plugins/gnome/valent-messages-window.c:392
 msgid "Unknown"
 msgstr ""
 
@@ -340,21 +343,21 @@ msgid_plural "New message from %s, with %d attachments"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/plugins/gnome/valent-conversation-page.c:954
-#: src/plugins/gnome/valent-conversation-page.c:1101
+#: src/plugins/gnome/valent-conversation-page.c:948
+#: src/plugins/gnome/valent-conversation-page.c:1095
 #: src/plugins/gnome/valent-conversation-page.ui:77
 msgid "Attach Files"
 msgstr ""
 
-#: src/plugins/gnome/valent-conversation-page.c:955
-#: src/plugins/gnome/valent-conversation-page.c:1102
+#: src/plugins/gnome/valent-conversation-page.c:949
+#: src/plugins/gnome/valent-conversation-page.c:1096
 #: src/plugins/gnome/valent-device-preferences-share.c:94
 #: src/plugins/gnome/valent-presenter-remote.c:92
 #: src/plugins/gnome/valent-presenter-remote.ui:100
 msgid "Open"
 msgstr ""
 
-#: src/plugins/gnome/valent-conversation-page.c:1008
+#: src/plugins/gnome/valent-conversation-page.c:1002
 #: src/plugins/share/valent-share-plugin.c:1114
 msgid "Save"
 msgstr ""
@@ -463,12 +466,14 @@ msgstr ""
 #. TRANSLATORS: When the battery level is 100%
 #.
 #: src/plugins/gnome/valent-device-page.c:152
+#: src/plugins/gnome/valent-device-row.c:118
 msgid "Fully Charged"
 msgstr ""
 
 #. TRANSLATORS: This is <percentage> (Estimating…)
 #.
 #: src/plugins/gnome/valent-device-page.c:177
+#: src/plugins/gnome/valent-device-row.c:143
 #, c-format
 msgid "%g%% (Estimating…)"
 msgstr ""
@@ -476,6 +481,7 @@ msgstr ""
 #. TRANSLATORS: This is <percentage> (<hours>:<minutes> Until Full)
 #.
 #: src/plugins/gnome/valent-device-page.c:183
+#: src/plugins/gnome/valent-device-row.c:149
 #, c-format
 msgid "%g%% (%d∶%02d Until Full)"
 msgstr ""
@@ -485,7 +491,7 @@ msgid "Device Menu"
 msgstr ""
 
 #: src/plugins/gnome/valent-device-page.ui:49
-#: src/plugins/gnome/valent-window.c:198
+#: src/plugins/gnome/valent-device-row.c:241
 msgid "Disconnected"
 msgstr ""
 
@@ -494,7 +500,7 @@ msgid "This device is currently unavailable"
 msgstr ""
 
 #: src/plugins/gnome/valent-device-page.ui:63
-#: src/plugins/gnome/valent-window.c:193
+#: src/plugins/gnome/valent-device-row.c:236
 msgid "Unpaired"
 msgstr ""
 
@@ -725,7 +731,7 @@ msgstr ""
 
 #: src/plugins/gnome/valent-device-preferences-telephony.ui:16
 #: src/plugins/gnome/valent-device-preferences-telephony.ui:41
-#: src/plugins/gnome/valent-media-remote.ui:255
+#: src/plugins/gnome/valent-media-remote.ui:214
 msgid "Volume"
 msgstr ""
 
@@ -757,6 +763,10 @@ msgstr ""
 #: src/plugins/gnome/valent-device-preferences-telephony.ui:68
 #: src/plugins/telephony/valent-telephony-plugin.c:391
 msgid "Mute"
+msgstr ""
+
+#: src/plugins/gnome/valent-device-row.c:246
+msgid "Connected"
 msgstr ""
 
 #: src/plugins/gnome/valent-input-remote.ui:8
@@ -792,59 +802,49 @@ msgstr ""
 msgid "Tap one finger to release"
 msgstr ""
 
-#: src/plugins/gnome/valent-media-remote.c:241
-#: src/plugins/gnome/valent-media-remote.ui:460
-msgid "Enable Repeat"
-msgstr ""
-
-#: src/plugins/gnome/valent-media-remote.c:249
-msgid "Repeat All"
-msgstr ""
-
-#: src/plugins/gnome/valent-media-remote.c:257
-msgid "Repeat One"
-msgstr ""
-
-#: src/plugins/gnome/valent-media-remote.c:284
+#: src/plugins/gnome/valent-media-remote.c:230
 msgid "Pause"
 msgstr ""
 
-#: src/plugins/gnome/valent-media-remote.c:297
-#: src/plugins/gnome/valent-media-remote.c:299
-#: src/plugins/gnome/valent-media-remote.ui:327
+#: src/plugins/gnome/valent-media-remote.c:241
+#: src/plugins/gnome/valent-media-remote.ui:234
 msgid "Play"
 msgstr ""
 
-#: src/plugins/gnome/valent-media-remote.ui:8
-#: src/plugins/gnome/valent-window.ui:128
-msgid "Media Remote"
-msgstr ""
-
-#: src/plugins/gnome/valent-media-remote.ui:276
+#: src/plugins/gnome/valent-media-remote.ui:222
 #: src/plugins/gnome/valent-menu-list.c:665
 #: src/plugins/gnome/valent-presenter-remote.ui:146
 msgid "Previous"
 msgstr ""
 
-#: src/plugins/gnome/valent-media-remote.ui:302
-msgid "Seek Back"
-msgstr ""
-
-#: src/plugins/gnome/valent-media-remote.ui:354
-msgid "Seek Forward"
-msgstr ""
-
-#: src/plugins/gnome/valent-media-remote.ui:379
+#: src/plugins/gnome/valent-media-remote.ui:249
 #: src/plugins/gnome/valent-presenter-remote.ui:173
 msgid "Next"
 msgstr ""
 
-#: src/plugins/gnome/valent-media-remote.ui:402
-msgid "Options"
+#: src/plugins/gnome/valent-media-remote.ui:265
+msgid "Playback Options"
 msgstr ""
 
-#: src/plugins/gnome/valent-media-remote.ui:484
-msgid "Shuffle"
+#: src/plugins/gnome/valent-media-remote.ui:285
+msgid "_None"
+msgstr ""
+
+#: src/plugins/gnome/valent-media-remote.ui:290
+msgid "Repeat _One"
+msgstr ""
+
+#: src/plugins/gnome/valent-media-remote.ui:295
+msgid "Repeat _All"
+msgstr ""
+
+#: src/plugins/gnome/valent-media-remote.ui:302
+msgid "_Shuffle"
+msgstr ""
+
+#: src/plugins/gnome/valent-media-window.ui:8
+#: src/plugins/gnome/valent-window.ui:128
+msgid "Media Remote"
 msgstr ""
 
 #: src/plugins/gnome/valent-menu-list.c:530
@@ -856,11 +856,11 @@ msgstr ""
 msgid "You: %s"
 msgstr ""
 
-#: src/plugins/gnome/valent-messages-window.c:177
+#: src/plugins/gnome/valent-messages-window.c:179
 msgid "Conversations"
 msgstr ""
 
-#: src/plugins/gnome/valent-messages-window.c:384
+#: src/plugins/gnome/valent-messages-window.c:393
 msgid "Unknown sender"
 msgstr ""
 
@@ -1001,27 +1001,27 @@ msgstr ""
 msgid "Pointer"
 msgstr ""
 
-#: src/plugins/gnome/valent-share-dialog.c:108
+#: src/plugins/gnome/valent-share-dialog.c:109
 #, c-format
 msgid "Size: %s"
 msgstr ""
 
-#: src/plugins/gnome/valent-share-dialog.c:122
+#: src/plugins/gnome/valent-share-dialog.c:123
 #, c-format
 msgid "Total size: %s"
 msgstr ""
 
-#: src/plugins/gnome/valent-share-dialog.c:253
+#: src/plugins/gnome/valent-share-dialog.c:254
 #, c-format
 msgid "%u files and links"
 msgstr ""
 
-#: src/plugins/gnome/valent-share-dialog.c:255
+#: src/plugins/gnome/valent-share-dialog.c:256
 #, c-format
 msgid "%u files"
 msgstr ""
 
-#: src/plugins/gnome/valent-share-dialog.c:257
+#: src/plugins/gnome/valent-share-dialog.c:258
 #, c-format
 msgid "%u links"
 msgstr ""
@@ -1164,15 +1164,11 @@ msgctxt "short time format"
 msgid "%d:%02d"
 msgstr ""
 
-#: src/plugins/gnome/valent-window.c:203
-msgid "Connected"
-msgstr ""
-
-#: src/plugins/gnome/valent-window.c:306
+#: src/plugins/gnome/valent-window.c:232
 msgid "translator-credits"
 msgstr ""
 
-#: src/plugins/gnome/valent-window.c:311
+#: src/plugins/gnome/valent-window.c:237
 msgid "Sponsors"
 msgstr ""
 
