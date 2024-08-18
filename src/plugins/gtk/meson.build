@@ -19,7 +19,11 @@ plugin_gtk_include_directories = [include_directories('.')]
 # Resources
 plugin_gtk_info = i18n.merge_file(
     args: plugins_po_args,
-   input: 'gtk.plugin.desktop.in',
+   input: configure_file(
+            input: files('gtk.plugin.desktop.in'),
+           output: 'gtk.plugin.desktop',
+    configuration: plugins_conf,
+  ),
   output: 'gtk.plugin',
   po_dir: po_dir,
     type: 'desktop',

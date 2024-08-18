@@ -20,7 +20,11 @@ plugin_fdo_include_directories = [include_directories('.')]
 # Resources
 plugin_fdo_info = i18n.merge_file(
     args: plugins_po_args,
-   input: 'fdo.plugin.desktop.in',
+   input: configure_file(
+            input: files('fdo.plugin.desktop.in'),
+           output: 'fdo.plugin.desktop',
+    configuration: plugins_conf,
+  ),
   output: 'fdo.plugin',
   po_dir: po_dir,
     type: 'desktop',

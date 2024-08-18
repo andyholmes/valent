@@ -20,7 +20,11 @@ plugin_lan_include_directories = [include_directories('.')]
 # Resources
 plugin_lan_info = i18n.merge_file(
     args: plugins_po_args,
-   input: 'lan.plugin.desktop.in',
+   input: configure_file(
+            input: files('lan.plugin.desktop.in'),
+           output: 'lan.plugin.desktop',
+    configuration: plugins_conf,
+  ),
   output: 'lan.plugin',
   po_dir: po_dir,
     type: 'desktop',

@@ -24,7 +24,11 @@ plugin_bluez_include_directories = [include_directories('.')]
 # Resources
 plugin_bluez_info = i18n.merge_file(
     args: plugins_po_args,
-   input: 'bluez.plugin.desktop.in',
+   input: configure_file(
+            input: files('bluez.plugin.desktop.in'),
+           output: 'bluez.plugin.desktop',
+    configuration: plugins_conf,
+  ),
   output: 'bluez.plugin',
   po_dir: po_dir,
     type: 'desktop',

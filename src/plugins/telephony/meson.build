@@ -20,7 +20,11 @@ plugin_telephony_include_directories = [include_directories('.')]
 # Resources
 plugin_telephony_info = i18n.merge_file(
     args: plugins_po_args,
-   input: 'telephony.plugin.desktop.in',
+   input: configure_file(
+            input: files('telephony.plugin.desktop.in'),
+           output: 'telephony.plugin.desktop',
+    configuration: plugins_conf,
+  ),
   output: 'telephony.plugin',
   po_dir: po_dir,
     type: 'desktop',

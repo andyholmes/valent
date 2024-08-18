@@ -18,7 +18,11 @@ plugin_connectivity_report_include_directories = [include_directories('.')]
 # Resources
 plugin_connectivity_report_info = i18n.merge_file(
     args: plugins_po_args,
-   input: 'connectivity_report.plugin.desktop.in',
+   input: configure_file(
+            input: files('connectivity_report.plugin.desktop.in'),
+           output: 'connectivity_report.plugin.desktop',
+    configuration: plugins_conf,
+  ),
   output: 'connectivity_report.plugin',
   po_dir: po_dir,
     type: 'desktop',

@@ -17,7 +17,11 @@ plugin_presenter_include_directories = [include_directories('.')]
 # Resources
 plugin_presenter_info = i18n.merge_file(
     args: plugins_po_args,
-   input: 'presenter.plugin.desktop.in',
+   input: configure_file(
+            input: files('presenter.plugin.desktop.in'),
+           output: 'presenter.plugin.desktop',
+    configuration: plugins_conf,
+  ),
   output: 'presenter.plugin',
   po_dir: po_dir,
     type: 'desktop',

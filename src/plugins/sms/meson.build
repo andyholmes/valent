@@ -18,7 +18,11 @@ plugin_sms_include_directories = [include_directories('.')]
 # Resources
 plugin_sms_info = i18n.merge_file(
     args: plugins_po_args,
-   input: 'sms.plugin.desktop.in',
+   input: configure_file(
+            input: files('sms.plugin.desktop.in'),
+           output: 'sms.plugin.desktop',
+    configuration: plugins_conf,
+  ),
   output: 'sms.plugin',
   po_dir: po_dir,
     type: 'desktop',
