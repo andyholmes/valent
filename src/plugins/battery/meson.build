@@ -18,7 +18,11 @@ plugin_battery_include_directories = [include_directories('.')]
 # Resources
 plugin_battery_info = i18n.merge_file(
     args: plugins_po_args,
-   input: 'battery.plugin.desktop.in',
+   input: configure_file(
+            input: files('battery.plugin.desktop.in'),
+           output: 'battery.plugin.desktop',
+    configuration: plugins_conf,
+  ),
   output: 'battery.plugin',
   po_dir: po_dir,
     type: 'desktop',

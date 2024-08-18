@@ -22,7 +22,11 @@ plugin_pipewire_include_directories = [include_directories('.')]
 
 # Resources
 plugin_pipewire_info = i18n.merge_file(
-   input: 'pipewire.plugin.desktop.in',
+   input: configure_file(
+            input: files('pipewire.plugin.desktop.in'),
+           output: 'pipewire.plugin.desktop',
+    configuration: plugins_conf,
+  ),
   output: 'pipewire.plugin',
   po_dir: po_dir,
     type: 'desktop',

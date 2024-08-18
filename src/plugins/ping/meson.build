@@ -17,7 +17,11 @@ plugin_ping_include_directories = [include_directories('.')]
 # Resources
 plugin_ping_info = i18n.merge_file(
     args: plugins_po_args,
-   input: 'ping.plugin.desktop.in',
+   input: configure_file(
+            input: files('ping.plugin.desktop.in'),
+           output: 'ping.plugin.desktop',
+    configuration: plugins_conf,
+  ),
   output: 'ping.plugin',
   po_dir: po_dir,
     type: 'desktop',

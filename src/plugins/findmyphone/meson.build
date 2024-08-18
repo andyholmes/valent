@@ -27,7 +27,11 @@ plugin_findmyphone_include_directories = [include_directories('.')]
 # Resources
 plugin_findmyphone_info = i18n.merge_file(
     args: plugins_po_args,
-   input: 'findmyphone.plugin.desktop.in',
+   input: configure_file(
+            input: files('findmyphone.plugin.desktop.in'),
+           output: 'findmyphone.plugin.desktop',
+    configuration: plugins_conf,
+  ),
   output: 'findmyphone.plugin',
   po_dir: po_dir,
     type: 'desktop',

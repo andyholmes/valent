@@ -17,7 +17,11 @@ plugin_contacts_include_directories = [include_directories('.')]
 # Resources
 plugin_contacts_info = i18n.merge_file(
     args: plugins_po_args,
-   input: 'contacts.plugin.desktop.in',
+   input: configure_file(
+            input: files('contacts.plugin.desktop.in'),
+           output: 'contacts.plugin.desktop',
+    configuration: plugins_conf,
+  ),
   output: 'contacts.plugin',
   po_dir: po_dir,
     type: 'desktop',

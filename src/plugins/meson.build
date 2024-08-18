@@ -12,6 +12,12 @@ plugins_po_args = [
     '--keyword=Description'
 ]
 
+plugins_conf = configuration_data({
+  'PLUGINS_VERSION': meson.project_version(),
+  'PLUGINS_WEBSITE': 'https://valent.andyholmes.ca',
+  'PLUGINS_HELP': 'https://valent.andyholmes.ca/help',
+})
+
 # Peas Plugins
 plugins = [
   'battery',

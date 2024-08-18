@@ -17,7 +17,11 @@ plugin_clipboard_include_directories = [include_directories('.')]
 # Resources
 plugin_clipboard_info = i18n.merge_file(
     args: plugins_po_args,
-   input: 'clipboard.plugin.desktop.in',
+   input: configure_file(
+            input: files('clipboard.plugin.desktop.in'),
+           output: 'clipboard.plugin.desktop',
+    configuration: plugins_conf,
+  ),
   output: 'clipboard.plugin',
   po_dir: po_dir,
     type: 'desktop',

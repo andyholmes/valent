@@ -17,7 +17,11 @@ plugin_sftp_include_directories = [include_directories('.')]
 # Resources
 plugin_sftp_info = i18n.merge_file(
     args: plugins_po_args,
-   input: 'sftp.plugin.desktop.in',
+   input: configure_file(
+            input: files('sftp.plugin.desktop.in'),
+           output: 'sftp.plugin.desktop',
+    configuration: plugins_conf,
+  ),
   output: 'sftp.plugin',
   po_dir: po_dir,
     type: 'desktop',
