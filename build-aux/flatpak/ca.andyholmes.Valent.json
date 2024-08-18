@@ -162,7 +162,7 @@
                                 "type": "anitya",
                                 "project-id": 6845,
                                 "stable-only": true,
-                                "url-template": "https://github.com/boostorg/boost/archive/refs/tags/boost-$version-b2-nodocs.tar.xz"
+                                "url-template": "https://github.com/boostorg/boost/releases/download/boost-$version/boost-$version-b2-nodocs.tar.xz"
                             }
                         }
                     ],
