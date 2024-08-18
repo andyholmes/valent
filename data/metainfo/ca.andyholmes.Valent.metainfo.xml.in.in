@@ -35,6 +35,21 @@
   </description>
 
   <releases>
+    <release version="1.0.0.alpha.46" date="2024-08-17" type="development">
+      <url>https://github.com/andyholmes/valent/releases/tag/v1.0.0.alpha.46</url>
+      <description>
+        <ul>
+          <li>PipeWire support added</li>
+          <li>The user interface has been absorbed by the `gnome` plugin</li>
+          <li>The SMS plugin has been rewritten with TinySPARQL</li>
+          <li>The share dialog has been redesigned</li>
+          <li>The media dialog has been refactored, with some UI improvements</li>
+          <li>Port to libawaita-1.5</li>
+          <li>Updates to protocol implementation; certificates, device metadata, security</li>
+          <li>Translation updates</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.0.alpha.45" date="2024-03-10" type="development">
       <url>https://github.com/andyholmes/valent/releases/tag/v1.0.0.alpha.45</url>
       <description>
