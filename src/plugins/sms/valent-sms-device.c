@@ -8,7 +8,7 @@
 #include <inttypes.h>
 
 #include <gio/gio.h>
-#include <tracker-sparql.h>
+#include <libtracker-sparql/tracker-sparql.h>
 #include <valent.h>
 
 #include "valent-sms-device.h"
