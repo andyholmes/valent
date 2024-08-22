@@ -106,6 +106,15 @@ libvalent_core_generated_sources += [libvalent_core_enums[0]]
 libvalent_core_generated_headers += [libvalent_core_enums[1]]
 
 
+# GResources
+libvalent_core_resources = gnome.compile_resources('libvalent-core-resources',
+                                                   'libvalent-core.gresource.xml',
+  c_name: 'valent_core',
+)
+libvalent_core_generated_sources += libvalent_core_resources
+libvalent_core_generated_headers += [libvalent_core_resources[1]]
+
+
 # Dependencies
 libvalent_deps += [
   libm_dep,
