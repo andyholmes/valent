@@ -8,8 +8,8 @@
 #include "config.h"
 
 #include <gio/gio.h>
+#include <libtracker-sparql/tracker-sparql.h>
 #include <libvalent-core.h>
-#include <tracker-sparql.h>
 
 #include "valent-messages.h"
 #include "valent-messages-adapter-private.h"

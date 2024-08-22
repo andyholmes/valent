@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <tracker-sparql.h>
+#include <libtracker-sparql/tracker-sparql.h>
 
 #include "valent-message.h"
 
