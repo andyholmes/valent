@@ -229,6 +229,7 @@
                 "/bin/*"
             ],
             "config-opts": [
+                "-Dgjs=false",
                 "-Dlua51=false",
                 "-Dpython3=false",
                 "-Dintrospection=true",
