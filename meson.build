@@ -148,7 +148,7 @@ json_glib_version = '>= 1.6.0'
 libpeas_version = '>= 2.0.0'
 eds_version = '>= 3.34'
 libadwaita_version = '>= 1.5'
-libportal_version = ['>= 0.6', '<= 0.7.1']
+libportal_version = ['>= 0.7.1']
 tinysparql_version = '>= 3.0'
 
 libm_dep = cc.find_library('m', required: true)
@@ -244,13 +244,13 @@ foreach define, dep : config_h_dependencies
 endforeach
 
 config_h_functions = {
-  'HAVE_CLOCK_GETTIME': 'clock_gettime',
-  'HAVE_LOCALTIME_R':   'localtime_r',
-  'HAVE_SCHED_GETCPU':  'sched_getcpu',
+  'HAVE_CLOCK_GETTIME':       'clock_gettime',
+  'HAVE_LOCALTIME_R':         'localtime_r',
+  'HAVE_SCHED_GETCPU':        'sched_getcpu',
 }
 
 foreach define, function : config_h_functions
-  config_h.set(define, cc.has_function(function))
+  config_h.set(define, cc.has_function(function, dependencies: libportal_dep))
 endforeach
 
 if cc.has_argument('-fvisibility=hidden')
