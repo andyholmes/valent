@@ -29,8 +29,6 @@ struct _ValentXdpInput
   GSettings          *settings;
 
   XdpSession         *session;
-  int64_t             session_expiry;
-  guint               session_expiry_id;
   gboolean            session_starting;
   gboolean            started;
 };
@@ -42,58 +40,13 @@ G_DEFINE_FINAL_TYPE (ValentXdpInput, valent_xdp_input, VALENT_TYPE_INPUT_ADAPTER
  * Portal Callbacks
  */
 static void
-session_update (ValentXdpInput *self)
-{
-  g_autoptr (GDateTime) now = NULL;
-  unsigned int timeout = 0;
-
-  now = g_date_time_new_now_local ();
-  timeout = g_settings_get_uint (self->settings, "xdp-session-timeout");
-  self->session_expiry = g_date_time_to_unix (now) + timeout;
-}
-
-static void
 on_session_closed (XdpSession *session,
                    gpointer    user_data)
 {
   ValentXdpInput *self = VALENT_XDP_INPUT (user_data);
 
-  /* Mark the session as inactive */
   self->started = FALSE;
-  g_clear_handle_id (&self->session_expiry_id, g_source_remove);
   g_clear_object (&self->session);
-}
-
-static gboolean
-on_session_expired (gpointer user_data)
-{
-  ValentXdpInput *self = VALENT_XDP_INPUT (user_data);
-  g_autoptr (GDateTime) now = NULL;
-  int remainder;
-
-  /* If the session has been used recently, schedule a new expiry */
-  now = g_date_time_new_now_local ();
-  remainder = self->session_expiry - g_date_time_to_unix (now);
-
-  if (remainder > 0)
-    {
-      self->session_expiry_id = g_timeout_add_seconds_full (G_PRIORITY_DEFAULT,
-                                                            remainder,
-                                                            on_session_expired,
-                                                            g_object_ref (self),
-                                                            g_object_unref);
-
-      return G_SOURCE_REMOVE;
-    }
-
-  /* Otherwise if there's an active session, close it */
-  if (self->session != NULL)
-    xdp_session_close (self->session);
-
-  // Reset the GSource Id
-  self->session_expiry_id = 0;
-
-  return G_SOURCE_REMOVE;
 }
 
 static void
@@ -103,7 +56,6 @@ on_session_started (XdpSession   *session,
 {
   ValentXdpInput *self = VALENT_XDP_INPUT (user_data);
   g_autoptr (GError) error = NULL;
-  unsigned int timeout;
 
   if (!xdp_session_start_finish (session, res, &error))
     {
@@ -122,19 +74,6 @@ on_session_started (XdpSession   *session,
       self->session_starting = FALSE;
 
       return;
-    }
-
-  /* Set a timeout */
-  timeout = g_settings_get_uint (self->settings, "xdp-session-timeout");
-
-  if (timeout > 0)
-    {
-      self->session_expiry_id = g_timeout_add_seconds_full (G_PRIORITY_DEFAULT,
-                                                            timeout,
-                                                            on_session_expired,
-                                                            g_object_ref (self),
-                                                            g_object_unref);
-      session_update (self);
     }
 
   self->session_starting = FALSE;
@@ -179,10 +118,7 @@ static gboolean
 ensure_session (ValentXdpInput *self)
 {
   if G_LIKELY (self->started)
-    {
-      session_update (self);
-      return TRUE;
-    }
+    return TRUE;
 
   if (self->session_starting)
     return FALSE;
