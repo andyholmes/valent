@@ -103,8 +103,7 @@ project_c_args = [
   '-Wno-error=analyzer-va-arg-type-mismatch',
 ]
 project_link_args = [
-  '-Wl,-z,relro',
-  '-Wl,-z,now',
+  '-Wl,-z,relro', # Read-only segments after relocation
 ]
 
 if get_option('buildtype') != 'plain'
@@ -117,11 +116,22 @@ endif
 
 if get_option('optimization') in ['2', '3', 's']
   project_c_args += ['-DG_DISABLE_CAST_CHECKS']
-  project_link_args += ['-Wl,-Bsymbolic']
+  project_link_args += [
+    '-Wl,-Bsymbolic', # Symbol visibility
+    '-Wl,-z,now',     # Disable lazy binding (full RELRO)
+    '-flto',          # Link-time optimization
+    '-fno-plt',       # Avoid PLT for non-PIC code
+  ]
 
   if not get_option('tests')
     release_args += ['-DG_DISABLE_ASSERT']
   endif
+endif
+
+if get_option('b_sanitize') == 'none'
+  project_link_args += [
+    '-Wl,-z,defs', # Prevent underlinking
+  ]
 endif
 
 if get_option('profile') == 'devel'
