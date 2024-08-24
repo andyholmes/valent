@@ -8,5 +8,8 @@
     <key name="autostart" type="b">
       <default>true</default>
     </key>
+    <key name="session-token" type="s">
+      <default>''</default>
+    </key>
   </schema>
 </schemalist>

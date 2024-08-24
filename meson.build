@@ -247,6 +247,7 @@ config_h_functions = {
   'HAVE_CLOCK_GETTIME':       'clock_gettime',
   'HAVE_LOCALTIME_R':         'localtime_r',
   'HAVE_SCHED_GETCPU':        'sched_getcpu',
+  'HAVE_REMOTE_DESKTOP_FULL': 'xdp_portal_create_remote_desktop_session_full',
 }
 
 foreach define, function : config_h_functions
