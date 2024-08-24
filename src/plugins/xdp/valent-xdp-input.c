@@ -25,9 +25,7 @@ struct _ValentXdpInput
 {
   ValentInputAdapter  parent_instance;
 
-  GCancellable       *cancellable;
   GSettings          *settings;
-
   XdpSession         *session;
   gboolean            session_starting;
   gboolean            started;
@@ -40,13 +38,10 @@ G_DEFINE_FINAL_TYPE (ValentXdpInput, valent_xdp_input, VALENT_TYPE_INPUT_ADAPTER
  * Portal Callbacks
  */
 static void
-on_session_closed (XdpSession *session,
-                   gpointer    user_data)
+on_session_closed (ValentXdpInput *self)
 {
-  ValentXdpInput *self = VALENT_XDP_INPUT (user_data);
-
-  self->started = FALSE;
   g_clear_object (&self->session);
+  self->started = FALSE;
 }
 
 static void
@@ -57,27 +52,14 @@ on_session_started (XdpSession   *session,
   ValentXdpInput *self = VALENT_XDP_INPUT (user_data);
   g_autoptr (GError) error = NULL;
 
-  if (!xdp_session_start_finish (session, res, &error))
+  self->started = xdp_session_start_finish (session, res, &error);
+  if (!self->started)
     {
       g_warning ("%s(): %s", G_STRFUNC, error->message);
       g_clear_object (&self->session);
-      self->session_starting = FALSE;
-
-      return;
-    }
-
-  if (!(xdp_session_get_devices (session) & XDP_DEVICE_POINTER) ||
-      !(xdp_session_get_devices (session) & XDP_DEVICE_KEYBOARD))
-    {
-      g_warning ("%s(): failed to get input device", G_STRFUNC);
-      g_clear_object (&self->session);
-      self->session_starting = FALSE;
-
-      return;
     }
 
   self->session_starting = FALSE;
-  self->started = TRUE;
 }
 
 static void
@@ -97,19 +79,19 @@ on_session_created (XdpPortal    *portal,
     {
       g_warning ("%s(): %s", G_STRFUNC, error->message);
       self->session_starting = FALSE;
-
       return;
     }
 
   g_signal_connect_object (self->session,
                            "closed",
                            G_CALLBACK (on_session_closed),
-                           self, 0);
+                           self,
+                           G_CONNECT_SWAPPED);
 
   parent = valent_xdp_get_parent ();
   xdp_session_start (self->session,
                      parent,
-                     self->cancellable,
+                     g_task_get_cancellable (G_TASK (result)),
                      (GAsyncReadyCallback)on_session_started,
                      self);
 }
@@ -117,21 +99,23 @@ on_session_created (XdpPortal    *portal,
 static gboolean
 ensure_session (ValentXdpInput *self)
 {
+  g_autoptr (GCancellable) cancellable = NULL;
+
   if G_LIKELY (self->started)
     return TRUE;
 
   if (self->session_starting)
     return FALSE;
 
-  /* Try to acquire a new session */
   self->session_starting = TRUE;
+  cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
   xdp_portal_create_remote_desktop_session (valent_xdp_get_default (),
                                             (XDP_DEVICE_KEYBOARD |
                                              XDP_DEVICE_POINTER),
                                             XDP_OUTPUT_NONE,
                                             XDP_REMOTE_DESKTOP_FLAG_NONE,
                                             XDP_CURSOR_MODE_HIDDEN,
-                                            self->cancellable,
+                                            cancellable,
                                             (GAsyncReadyCallback)on_session_created,
                                             self);
 
@@ -241,8 +225,6 @@ valent_xdp_input_destroy (ValentObject *object)
 {
   ValentXdpInput *self = VALENT_XDP_INPUT (object);
 
-  g_cancellable_cancel (self->cancellable);
-
   if (self->session != NULL)
     xdp_session_close (self->session);
 
@@ -257,7 +239,6 @@ valent_xdp_input_finalize (GObject *object)
 {
   ValentXdpInput *self = VALENT_XDP_INPUT (object);
 
-  g_clear_object (&self->cancellable);
   g_clear_object (&self->settings);
   g_clear_object (&self->session);
 
@@ -284,7 +265,6 @@ valent_xdp_input_class_init (ValentXdpInputClass *klass)
 static void
 valent_xdp_input_init (ValentXdpInput *self)
 {
-  self->cancellable = g_cancellable_new ();
   self->settings = g_settings_new ("ca.andyholmes.Valent.Plugin.xdp");
 }
 
