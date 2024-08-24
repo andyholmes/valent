@@ -192,7 +192,7 @@ ensure_session (ValentXdpInput *self)
   xdp_portal_create_remote_desktop_session (valent_xdp_get_default (),
                                             (XDP_DEVICE_KEYBOARD |
                                              XDP_DEVICE_POINTER),
-                                            XDP_OUTPUT_MONITOR,
+                                            XDP_OUTPUT_NONE,
                                             XDP_REMOTE_DESKTOP_FLAG_NONE,
                                             XDP_CURSOR_MODE_HIDDEN,
                                             self->cancellable,
