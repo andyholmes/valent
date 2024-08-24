@@ -8,8 +8,5 @@
     <key name="autostart" type="b">
       <default>true</default>
     </key>
-    <key name="xdp-session-timeout" type="u">
-      <default>15</default>
-    </key>
   </schema>
 </schemalist>
