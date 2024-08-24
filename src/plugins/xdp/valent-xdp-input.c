@@ -59,6 +59,9 @@ on_session_started (XdpSession   *session,
       g_clear_object (&self->session);
     }
 
+  g_settings_set_string (self->settings,
+                         "session-token",
+                         xdp_session_get_restore_token (session));
   self->session_starting = FALSE;
 }
 
@@ -100,6 +103,7 @@ static gboolean
 ensure_session (ValentXdpInput *self)
 {
   g_autoptr (GCancellable) cancellable = NULL;
+  g_autofree char *restore_token = NULL;
 
   if G_LIKELY (self->started)
     return TRUE;
@@ -109,6 +113,23 @@ ensure_session (ValentXdpInput *self)
 
   self->session_starting = TRUE;
   cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
+  restore_token = g_settings_get_string (self->settings, "session-token");
+  if (!g_uuid_string_is_valid (restore_token))
+    g_clear_pointer (&restore_token, g_free);
+
+#ifdef HAVE_REMOTE_DESKTOP_FULL
+  xdp_portal_create_remote_desktop_session_full (valent_xdp_get_default (),
+                                                 (XDP_DEVICE_KEYBOARD |
+                                                   XDP_DEVICE_POINTER),
+                                                 XDP_OUTPUT_NONE,
+                                                 XDP_REMOTE_DESKTOP_FLAG_NONE,
+                                                 XDP_CURSOR_MODE_HIDDEN,
+                                                 XDP_PERSIST_MODE_PERSISTENT,
+                                                 restore_token,
+                                                 cancellable,
+                                                 (GAsyncReadyCallback)on_session_created,
+                                                 self);
+#else
   xdp_portal_create_remote_desktop_session (valent_xdp_get_default (),
                                             (XDP_DEVICE_KEYBOARD |
                                              XDP_DEVICE_POINTER),
@@ -118,6 +139,7 @@ ensure_session (ValentXdpInput *self)
                                             cancellable,
                                             (GAsyncReadyCallback)on_session_created,
                                             self);
+#endif
 
   return FALSE;
 }
