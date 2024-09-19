@@ -16,8 +16,6 @@ EContact   * valent_contact_row_get_contact        (ValentContactRow *row);
 void         valent_contact_row_set_contact        (ValentContactRow *row,
                                                     EContact         *contact);
 const char * valent_contact_row_get_contact_medium (ValentContactRow *row);
-void         valent_contact_row_set_contact_medium (ValentContactRow *row,
-                                                    const char       *medium);
 
 void         valent_list_add_contact               (GtkListBox       *list,
                                                     EContact         *contact);

@@ -33,9 +33,10 @@ G_DEFINE_FINAL_TYPE (ValentContactRow, valent_contact_row, GTK_TYPE_LIST_BOX_ROW
 typedef enum {
   PROP_CONTACT = 1,
   PROP_CONTACT_MEDIUM,
+  PROP_CONTACT_TYPE,
 } ValentContactRowProperty;
 
-static GParamSpec *properties[PROP_CONTACT_MEDIUM + 1] = { NULL, };
+static GParamSpec *properties[PROP_CONTACT_TYPE + 1] = { NULL, };
 
 static void
 valent_contact_row_set_compact (ValentContactRow *row,
@@ -83,7 +84,11 @@ valent_contact_row_get_property (GObject    *object,
       break;
 
     case PROP_CONTACT_MEDIUM:
-      g_value_set_string (value, valent_contact_row_get_contact_medium (self));
+      g_value_set_string (value, gtk_label_get_text (GTK_LABEL (self->subtitle_label)));
+      break;
+
+    case PROP_CONTACT_TYPE:
+      g_value_set_string (value, gtk_label_get_text (GTK_LABEL (self->type_label)));
       break;
 
     default:
@@ -106,7 +111,11 @@ valent_contact_row_set_property (GObject      *object,
       break;
 
     case PROP_CONTACT_MEDIUM:
-      valent_contact_row_set_contact_medium (self, g_value_get_string (value));
+      gtk_label_set_text (GTK_LABEL (self->subtitle_label), g_value_get_string (value));
+      break;
+
+    case PROP_CONTACT_TYPE:
+      gtk_label_set_text (GTK_LABEL (self->type_label), g_value_get_string (value));
       break;
 
     default:
@@ -130,11 +139,6 @@ valent_contact_row_class_init (ValentContactRowClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentContactRow, subtitle_label);
   gtk_widget_class_bind_template_child (widget_class, ValentContactRow, type_label);
 
-  /**
-   * ValentContactRow:contact
-   *
-   * The `EContact` for this row.
-   */
   properties [PROP_CONTACT] =
     g_param_spec_object ("contact", NULL, NULL,
                          E_TYPE_CONTACT,
@@ -142,20 +146,16 @@ valent_contact_row_class_init (ValentContactRowClass *klass)
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  /**
-   * ValentContactRow:contact-medium
-   *
-   * The phone number, e-mail or other medium format for the contact.
-   *
-   * Usually this will be a phone number, however SMS messages may originate
-   * from an SMS gateway service. In this case the medium may be in another
-   * format.
-   */
   properties [PROP_CONTACT_MEDIUM] =
     g_param_spec_string ("contact-medium", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
-                          G_PARAM_EXPLICIT_NOTIFY |
+                          G_PARAM_STATIC_STRINGS));
+
+  properties [PROP_CONTACT_TYPE] =
+    g_param_spec_string ("contact-type", NULL, NULL,
+                         NULL,
+                         (G_PARAM_READWRITE |
                           G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
@@ -290,7 +290,7 @@ valent_list_add_contact (GtkListBox *list,
       EVCardAttribute *attr = iter->data;
       ValentContactRow *row;
       g_autofree char *number = NULL;
-      const char *type = NULL;
+      const char *type_ = NULL;
 
       number = e_vcard_attribute_get_value (attr);
 
@@ -302,16 +302,16 @@ valent_list_add_contact (GtkListBox *list,
        * Justification being that Work is more important context than mobility,
        * while mobility is more relevant than Home if the number is personal. */
       if (e_vcard_attribute_has_type (attr, "WORK"))
-        type = _("Work");
+        type_ = _("Work");
       else if (e_vcard_attribute_has_type (attr, "CELL"))
-        type = _("Mobile");
+        type_ = _("Mobile");
       else if (e_vcard_attribute_has_type (attr, "HOME"))
-        type = _("Home");
+        type_ = _("Home");
       else
-        type = _("Other");
+        type_ = _("Other");
 
       gtk_label_set_label (GTK_LABEL (row->subtitle_label), number);
-      gtk_label_set_label (GTK_LABEL (row->type_label), type);
+      gtk_label_set_label (GTK_LABEL (row->type_label), type_);
 
       gtk_list_box_insert (list, GTK_WIDGET (row), -1);
     }
@@ -377,22 +377,5 @@ valent_contact_row_get_contact_medium (ValentContactRow *row)
   g_return_val_if_fail (VALENT_IS_CONTACT_ROW (row), NULL);
 
   return gtk_label_get_text (GTK_LABEL (row->subtitle_label));
-}
-
-/**
- * valent_contact_row_set_contact_medium:
- * @row: a `ValentContactRow`
- * @medium: a phone number or other medium
- *
- * Set the contact medium displayed in @row.
- */
-void
-valent_contact_row_set_contact_medium (ValentContactRow *row,
-                                       const char       *medium)
-{
-  g_return_if_fail (VALENT_IS_CONTACT_ROW (row));
-
-  gtk_label_set_text (GTK_LABEL (row->subtitle_label), medium);
-  gtk_label_set_text (GTK_LABEL (row->type_label), _("Other"));
 }
 

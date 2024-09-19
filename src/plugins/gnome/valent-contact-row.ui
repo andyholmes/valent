@@ -74,7 +74,6 @@
 
         <child>
           <object class="GtkLabel" id="type_label">
-            <property name="label" translatable="yes">Other</property>
             <property name="halign">end</property>
             <property name="valign">end</property>
             <property name="vexpand">1</property>
