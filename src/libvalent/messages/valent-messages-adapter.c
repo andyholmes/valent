@@ -144,7 +144,7 @@ valent_messages_adapter_remove_thread (ValentMessagesAdapter *self,
   GSequenceIter *it;
   unsigned int position;
 
-  g_assert (VALENT_IS_MESSAGE_THREAD (self));
+  g_assert (VALENT_IS_MESSAGES_ADAPTER (self));
 
   it = g_sequence_lookup (priv->items,
                           (char *)iri,
