@@ -24,6 +24,7 @@ plugin_gnome_tests = {
   'test-date-label': disabler(),
   'test-device-page': disabler(),
   'test-device-preferences-dialog': disabler(),
+  'test-gnome-application': disabler(),
   'test-input-remote': disabler(),
   'test-media-window': disabler(),
   'test-menu-stack': disabler(),
@@ -33,8 +34,6 @@ plugin_gnome_tests = {
   'test-preferences-dialog': disabler(),
   'test-presenter-remote': disabler(),
   'test-share-dialog': disabler(),
-  'test-ui-manager': disabler(),
-  'test-ui-utils': disabler(),
   'test-window': disabler(),
 }
 
