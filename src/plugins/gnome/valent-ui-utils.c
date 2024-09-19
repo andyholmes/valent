@@ -109,9 +109,9 @@ static GdkPaintable *
 _e_contact_get_paintable (EContact  *contact,
                           GError   **error)
 {
+  g_autoptr (EContactPhoto) photo = NULL;
   GdkPaintable *paintable = NULL;
   GdkTexture *texture = NULL;
-  g_autoptr (EContactPhoto) photo = NULL;
   const unsigned char *data;
   size_t len;
   const char *uri;
@@ -160,31 +160,12 @@ GdkPaintable *
 valent_contact_to_paintable (gpointer  user_data,
                              EContact *contact)
 {
-  if (contact == NULL)
-    return NULL;
+  GdkPaintable *paintable = NULL;
 
-  return _e_contact_get_paintable (contact, NULL);
-}
+  if (contact != NULL)
+    paintable = _e_contact_get_paintable (contact, NULL);
 
-/**
- * valent_sms_avatar_from_contact:
- * @avatar: a `AdwAvatar`
- * @contact: a `EContact`
- *
- * Set the `GdkPaintable` for @avatar from @contact.
- */
-void
-valent_sms_avatar_from_contact (AdwAvatar *avatar,
-                                EContact  *contact)
-{
-  GdkPaintable *paintable;
-
-  g_return_if_fail (ADW_IS_AVATAR (avatar));
-  g_return_if_fail (E_IS_CONTACT (contact));
-
-  paintable = _e_contact_get_paintable (contact, NULL);
-  adw_avatar_set_custom_image (avatar, paintable);
-  adw_avatar_set_show_initials (avatar, paintable != NULL);
+  return paintable ? g_object_ref (paintable) : NULL;
 }
 
 static void

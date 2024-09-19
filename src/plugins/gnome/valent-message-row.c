@@ -39,53 +39,43 @@ typedef enum {
 
 static GParamSpec *properties[PROP_MESSAGE + 1] = { NULL, };
 
+static char *
+_valent_message_get_excerpt (ValentMessageRow *self,
+                             ValentMessage    *message)
+{
+  const char *body = NULL;
+
+  if (message != NULL)
+    body = valent_message_get_text (message);
+
+  if (body != NULL && *body != '\0')
+    {
+      g_auto (GStrv) parts = g_strsplit (body, "\n", 2);
+
+      if (valent_message_get_box (message) == VALENT_MESSAGE_BOX_SENT)
+        return g_strdup_printf (_("You: %s"), parts[0]);
+
+      return g_strdup (parts[0]);
+    }
+
+  return g_strdup (body);
+}
+
 static void
 valent_message_row_sync (ValentMessageRow *row)
 {
-  gboolean read;
-  const char *body;
-  const char *name;
-  int64_t date;
-  g_autofree char *subtitle_label = NULL;
+  g_assert (VALENT_IS_MESSAGE_ROW (row));
 
-  g_return_if_fail (VALENT_IS_MESSAGE_ROW (row));
-
-  if (row->message == NULL)
-    return;
-
-  name = valent_message_get_sender (row->message);
-  if (row->contact != NULL)
-    {
-      name = e_contact_get_const (row->contact, E_CONTACT_FULL_NAME);
-      valent_sms_avatar_from_contact (ADW_AVATAR (row->avatar), row->contact);
-    }
-
-  date = valent_message_get_date (row->message);
-  valent_date_label_set_date (VALENT_DATE_LABEL (row->date_label), date);
-
-  body = valent_message_get_text (row->message);
-  if (body != NULL)
-    {
-      if (valent_message_get_box (row->message) == VALENT_MESSAGE_BOX_SENT)
-        subtitle_label = g_strdup_printf (_("You: %s"), body);
-      else
-        subtitle_label = g_strdup (body);
-    }
-
-  read = valent_message_get_read (row->message);
-  if (read)
-    {
-      gtk_widget_remove_css_class (row->title_label, "unread");
-      gtk_widget_remove_css_class (row->subtitle_label, "unread");
-    }
-  else
+  if (row->message != NULL && !valent_message_get_read (row->message))
     {
       gtk_widget_add_css_class (row->title_label, "unread");
       gtk_widget_add_css_class (row->subtitle_label, "unread");
     }
-
-  gtk_label_set_label (GTK_LABEL (row->title_label), name);
-  gtk_label_set_label (GTK_LABEL (row->subtitle_label), subtitle_label);
+  else
+    {
+      gtk_widget_remove_css_class (row->title_label, "unread");
+      gtk_widget_remove_css_class (row->subtitle_label, "unread");
+    }
 }
 
 /*
@@ -163,6 +153,8 @@ valent_message_row_class_init (ValentMessageRowClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentMessageRow, title_label);
   gtk_widget_class_bind_template_child (widget_class, ValentMessageRow, subtitle_label);
   gtk_widget_class_bind_template_child (widget_class, ValentMessageRow, date_label);
+  gtk_widget_class_bind_template_callback (widget_class, _valent_message_get_excerpt);
+  gtk_widget_class_bind_template_callback (widget_class, valent_contact_to_paintable);
 
   /**
    * ValentMessageRow:contact:
@@ -292,20 +284,23 @@ valent_message_row_set_message (ValentMessageRow *row,
 
   if (row->message != NULL)
     {
-      g_signal_handlers_disconnect_by_data (row->message, row);
+      g_signal_handlers_disconnect_by_func (row->message,
+                                            valent_message_row_sync,
+                                            row);
       g_clear_object (&row->message);
     }
 
-  if (g_set_object (&row->message, message))
+  if (message != NULL)
     {
+      row->message = g_object_ref (message);
       g_signal_connect_object (row->message,
-                               "notify",
+                               "notify::read",
                                G_CALLBACK (valent_message_row_sync),
                                row,
                                G_CONNECT_SWAPPED);
-
-      valent_message_row_sync (row);
-      g_object_notify_by_pspec (G_OBJECT (row), properties [PROP_MESSAGE]);
     }
+
+  valent_message_row_sync (row);
+  g_object_notify_by_pspec (G_OBJECT (row), properties [PROP_MESSAGE]);
 }
 

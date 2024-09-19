@@ -8,7 +8,6 @@
 #include <adwaita.h>
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
-#include <pango/pango.h>
 
 #include "valent-date-label.h"
 #include "valent-ui-utils-private.h"
@@ -39,15 +38,13 @@ struct _ValentConversationRow
 G_DEFINE_FINAL_TYPE (ValentConversationRow, valent_conversation_row, GTK_TYPE_LIST_BOX_ROW)
 
 
-enum {
-  PROP_0,
-  PROP_CONTACT,
+typedef enum {
+  PROP_CONTACT = 1,
   PROP_DATE,
   PROP_MESSAGE,
-  N_PROPERTIES
-};
+} ValentConversationRowProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_MESSAGE + 1] = { NULL, };
 
 
 /* LCOV_EXCL_START */
@@ -116,6 +113,146 @@ menu_popup_action (GtkWidget  *widget,
 }
 
 /*
+ * ValentConversationRow
+ */
+static GtkWidget *
+attachment_list_create (gpointer item,
+                         gpointer user_data)
+{
+  ValentMessageAttachment *attachment = VALENT_MESSAGE_ATTACHMENT (item);
+  GtkWidget *row;
+  GtkWidget *image;
+  GIcon *preview;
+  GFile *file;
+  g_autofree char *filename = NULL;
+
+  row = g_object_new (GTK_TYPE_LIST_BOX_ROW,
+                      "activatable", TRUE,
+                      "selectable",  FALSE,
+                      NULL);
+  gtk_widget_add_css_class (row, "card");
+
+  preview = valent_message_attachment_get_preview (attachment);
+  file = valent_message_attachment_get_file (attachment);
+  if (file != NULL)
+    filename = g_file_get_basename (file);
+
+  image = g_object_new (GTK_TYPE_IMAGE,
+                        "gicon",        preview,
+                        "pixel-size",   100,
+                        "overflow",     GTK_OVERFLOW_HIDDEN,
+                        "tooltip-text", filename,
+                        NULL);
+  gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (row), image);
+
+  return row;
+}
+
+static void
+valent_conversation_row_sync (ValentConversationRow *self)
+{
+  ValentMessageBox box;
+  const char *sender = NULL;
+  const char *body = NULL;
+  GListModel *attachments;
+
+  g_return_if_fail (VALENT_IS_CONVERSATION_ROW (self));
+
+  /* Reset the row
+   */
+  gtk_widget_set_visible (self->avatar, FALSE);
+  gtk_widget_set_visible (self->sender_label, FALSE);
+  gtk_widget_set_visible (self->attachment_list, FALSE);
+  gtk_widget_set_visible (self->summary_label, FALSE);
+  gtk_widget_set_visible (self->body_label, FALSE);
+  gtk_list_box_bind_model (GTK_LIST_BOX (self->attachment_list),
+                           NULL, NULL, NULL, NULL);
+  self->incoming = FALSE;
+
+  if (self->message == NULL)
+    return;
+
+  /* Sent/Received style
+   */
+  box = valent_message_get_box (self->message);
+  if (box == VALENT_MESSAGE_BOX_INBOX)
+    {
+      gtk_widget_add_css_class (GTK_WIDGET (self), "valent-message-inbox");
+      gtk_widget_remove_css_class (GTK_WIDGET (self), "valent-message-outbox");
+      gtk_widget_remove_css_class (GTK_WIDGET (self), "valent-message-sent");
+    }
+  else if (box == VALENT_MESSAGE_BOX_SENT)
+    {
+      gtk_widget_add_css_class (GTK_WIDGET (self), "valent-message-sent");
+      gtk_widget_remove_css_class (GTK_WIDGET (self), "valent-message-inbox");
+      gtk_widget_remove_css_class (GTK_WIDGET (self), "valent-message-outbox");
+    }
+  else if (box == VALENT_MESSAGE_BOX_OUTBOX)
+    {
+      gtk_widget_add_css_class (GTK_WIDGET (self), "valent-message-outbox");
+      gtk_widget_remove_css_class (GTK_WIDGET (self), "valent-message-inbox");
+      gtk_widget_remove_css_class (GTK_WIDGET (self), "valent-message-sent");
+    }
+
+  self->incoming = (box == VALENT_MESSAGE_BOX_INBOX);
+  if (self->incoming)
+    {
+      gtk_widget_set_halign (GTK_WIDGET (self), GTK_ALIGN_START);
+      gtk_widget_set_visible (self->avatar, TRUE);
+      g_object_set (self->date_label, "xalign", 0.0, NULL);
+    }
+  else
+    {
+      gtk_widget_set_halign (GTK_WIDGET (self), GTK_ALIGN_END);
+      g_object_set (self->date_label, "xalign", 1.0, NULL);
+    }
+
+  /* Attachments
+   */
+  attachments = valent_message_get_attachments (self->message);
+  gtk_list_box_bind_model (GTK_LIST_BOX (self->attachment_list),
+                           attachments,
+                           attachment_list_create,
+                           NULL, NULL);
+
+  if (attachments != NULL)
+    {
+      gtk_widget_set_visible (self->attachment_list,
+                              g_list_model_get_n_items (attachments) > 0);
+    }
+
+  /* Sender
+   */
+  if (self->incoming)
+    {
+      sender = valent_message_get_sender (self->message);
+      if (self->contact != NULL)
+        sender = e_contact_get_const (self->contact, E_CONTACT_FULL_NAME);
+    }
+
+  gtk_widget_set_visible (self->sender_label, FALSE /* self->incoming */);
+  gtk_label_set_label (GTK_LABEL (self->sender_label), sender);
+
+  /* Summary & Body (Message Bubble)
+   */
+  body = valent_message_get_text (self->message);
+  if (body != NULL && *body != '\0')
+    {
+      g_autofree char *markup = NULL;
+
+      markup = valent_string_to_markup (body);
+      gtk_label_set_label (GTK_LABEL (self->body_label), markup);
+      gtk_widget_set_visible (self->body_label, TRUE);
+    }
+
+  if (gtk_widget_get_visible (self->summary_label) ||
+      gtk_widget_get_visible (self->body_label))
+    gtk_widget_set_visible (self->message_bubble, TRUE);
+  else
+    gtk_widget_set_visible (self->message_bubble, FALSE);
+}
+
+/*
  * GObject
  */
 static void
@@ -142,7 +279,7 @@ valent_conversation_row_get_property (GObject    *object,
 {
   ValentConversationRow *self = VALENT_CONVERSATION_ROW (object);
 
-  switch (prop_id)
+  switch ((ValentConversationRowProperty)prop_id)
     {
     case PROP_CONTACT:
       g_value_set_object (value, self->contact);
@@ -169,7 +306,7 @@ valent_conversation_row_set_property (GObject      *object,
 {
   ValentConversationRow *self = VALENT_CONVERSATION_ROW (object);
 
-  switch (prop_id)
+  switch ((ValentConversationRowProperty)prop_id)
     {
     case PROP_CONTACT:
       valent_conversation_row_set_contact (self, g_value_get_object (value));
@@ -179,6 +316,7 @@ valent_conversation_row_set_property (GObject      *object,
       valent_conversation_row_set_message (self, g_value_get_object (value));
       break;
 
+    case PROP_DATE:
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -206,6 +344,7 @@ valent_conversation_row_class_init (ValentConversationRowClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentConversationRow, context_menu);
   gtk_widget_class_bind_template_callback (widget_class, on_activate_link);
   gtk_widget_class_bind_template_callback (widget_class, on_menu_popup);
+  gtk_widget_class_bind_template_callback (widget_class, valent_contact_to_paintable);
 
   /**
    * ValentConversationRow|clipboard.copy:
@@ -268,7 +407,7 @@ valent_conversation_row_class_init (ValentConversationRowClass *klass)
                            G_PARAM_EXPLICIT_NOTIFY |
                            G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 
   g_type_ensure (VALENT_TYPE_DATE_LABEL);
 }
@@ -328,14 +467,11 @@ valent_conversation_row_set_contact (ValentConversationRow *row,
   g_return_if_fail (VALENT_IS_CONVERSATION_ROW (row));
   g_return_if_fail (contact == NULL || E_IS_CONTACT (contact));
 
-  if (!g_set_object (&row->contact, contact))
-    return;
-
-  if (row->contact != NULL)
-    valent_sms_avatar_from_contact (ADW_AVATAR (row->avatar), contact);
-
-  valent_conversation_row_update (row);
-  g_object_notify_by_pspec (G_OBJECT (row), properties [PROP_CONTACT]);
+  if (g_set_object (&row->contact, contact))
+    {
+      valent_conversation_row_sync (row);
+      g_object_notify_by_pspec (G_OBJECT (row), properties [PROP_CONTACT]);
+    }
 }
 
 /**
@@ -401,12 +537,12 @@ valent_conversation_row_set_message (ValentConversationRow *row,
       row->message = g_object_ref (message);
       g_signal_connect_swapped (row->message,
                                 "notify",
-                                G_CALLBACK (valent_conversation_row_update),
+                                G_CALLBACK (valent_conversation_row_sync),
                                 row);
-
-      valent_conversation_row_update (row);
-      g_object_notify_by_pspec (G_OBJECT (row), properties [PROP_MESSAGE]);
     }
+
+  valent_conversation_row_sync (row);
+  g_object_notify_by_pspec (G_OBJECT (row), properties [PROP_MESSAGE]);
 }
 
 /**
@@ -440,150 +576,5 @@ valent_conversation_row_show_avatar (ValentConversationRow *row,
     return;
 
   gtk_widget_set_visible (row->avatar, visible);
-}
-
-static GtkWidget *
-attachment_list_create (gpointer item,
-                         gpointer user_data)
-{
-  ValentMessageAttachment *attachment = VALENT_MESSAGE_ATTACHMENT (item);
-  GtkWidget *row;
-  GtkWidget *image;
-  GIcon *preview;
-  GFile *file;
-  g_autofree char *filename = NULL;
-
-  row = g_object_new (GTK_TYPE_LIST_BOX_ROW,
-                      "activatable", TRUE,
-                      "selectable",  FALSE,
-                      NULL);
-  gtk_widget_add_css_class (row, "card");
-
-  preview = valent_message_attachment_get_preview (attachment);
-  file = valent_message_attachment_get_file (attachment);
-  if (file != NULL)
-    filename = g_file_get_basename (file);
-
-  image = g_object_new (GTK_TYPE_IMAGE,
-                        "gicon",        preview,
-                        "pixel-size",   100,
-                        "overflow",     GTK_OVERFLOW_HIDDEN,
-                        "tooltip-text", filename,
-                        NULL);
-  gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (row), image);
-
-  return row;
-}
-
-/**
- * valent_conversation_row_update:
- * @row: a `ValentConversationRow`
- *
- * Update @row based on the current contact and message.
- */
-void
-valent_conversation_row_update (ValentConversationRow *row)
-{
-  ValentMessageBox box;
-  const char *sender;
-  const char *text;
-  GListModel *attachments;
-
-  g_return_if_fail (VALENT_IS_CONVERSATION_ROW (row));
-
-  /* Reset the row
-   */
-  gtk_widget_set_visible (row->avatar, FALSE);
-  gtk_widget_set_visible (row->sender_label, FALSE);
-  gtk_widget_set_visible (row->attachment_list, FALSE);
-  gtk_widget_set_visible (row->summary_label, FALSE);
-  gtk_widget_set_visible (row->body_label, FALSE);
-  gtk_list_box_bind_model (GTK_LIST_BOX (row->attachment_list),
-                           NULL, NULL, NULL, NULL);
-  row->incoming = FALSE;
-
-  if (row->message == NULL)
-    return;
-
-  /* Sent/Received style
-   */
-  box = valent_message_get_box (row->message);
-  if (box == VALENT_MESSAGE_BOX_INBOX)
-    {
-      gtk_widget_add_css_class (GTK_WIDGET (row), "valent-message-inbox");
-      gtk_widget_remove_css_class (GTK_WIDGET (row), "valent-message-outbox");
-      gtk_widget_remove_css_class (GTK_WIDGET (row), "valent-message-sent");
-    }
-  else if (box == VALENT_MESSAGE_BOX_SENT)
-    {
-      gtk_widget_add_css_class (GTK_WIDGET (row), "valent-message-sent");
-      gtk_widget_remove_css_class (GTK_WIDGET (row), "valent-message-inbox");
-      gtk_widget_remove_css_class (GTK_WIDGET (row), "valent-message-outbox");
-    }
-  else if (box == VALENT_MESSAGE_BOX_OUTBOX)
-    {
-      gtk_widget_add_css_class (GTK_WIDGET (row), "valent-message-outbox");
-      gtk_widget_remove_css_class (GTK_WIDGET (row), "valent-message-inbox");
-      gtk_widget_remove_css_class (GTK_WIDGET (row), "valent-message-sent");
-    }
-
-  row->incoming = (box == VALENT_MESSAGE_BOX_INBOX);
-  if (row->incoming)
-    {
-      gtk_widget_set_halign (GTK_WIDGET (row), GTK_ALIGN_START);
-      gtk_widget_set_visible (row->avatar, TRUE);
-      g_object_set (row->date_label, "xalign", 0.0, NULL);
-    }
-  else
-    {
-      gtk_widget_set_halign (GTK_WIDGET (row), GTK_ALIGN_END);
-      g_object_set (row->date_label, "xalign", 1.0, NULL);
-    }
-
-  /* Attachments
-   */
-  attachments = valent_message_get_attachments (row->message);
-  gtk_list_box_bind_model (GTK_LIST_BOX (row->attachment_list),
-                           attachments,
-                           attachment_list_create,
-                           NULL, NULL);
-
-  if (attachments != NULL)
-    {
-      gtk_widget_set_visible (row->attachment_list,
-                              g_list_model_get_n_items (attachments) > 0);
-    }
-
-  /* Sender
-   */
-  sender = valent_message_get_sender (row->message);
-  if (row->contact != NULL)
-    sender = e_contact_get_const (row->contact, E_CONTACT_FULL_NAME);
-
-  gtk_label_set_label (GTK_LABEL (row->sender_label), sender);
-  if (row->incoming && (sender != NULL && *sender != '\0'))
-    gtk_widget_set_visible (row->sender_label, /* FALSE */ sender != NULL);
-
-  /* Body & Summary
-   */
-  text = valent_message_get_text (row->message);
-  if (text != NULL && *text != '\0')
-    {
-      g_autofree char *label = NULL;
-
-      label = valent_string_to_markup (text);
-      gtk_label_set_label (GTK_LABEL (row->body_label), label);
-      gtk_widget_set_visible (row->body_label, TRUE);
-    }
-  else
-    {
-      gtk_widget_set_visible (row->body_label, FALSE);
-    }
-
-  if (gtk_widget_get_visible (row->summary_label) ||
-      gtk_widget_get_visible (row->body_label))
-    gtk_widget_set_visible (row->message_bubble, TRUE);
-  else
-    gtk_widget_set_visible (row->message_bubble, FALSE);
 }
 
