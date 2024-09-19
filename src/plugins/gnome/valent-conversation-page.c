@@ -1225,11 +1225,11 @@ valent_conversation_page_set_property (GObject      *object,
   switch ((ValentConversationPageProperty)prop_id)
     {
     case PROP_CONTACT_STORE:
-      self->contact_store = g_value_dup_object (value);
+      g_set_object (&self->contact_store, g_value_get_object (value));
       break;
 
     case PROP_MESSAGES:
-      self->message_store = g_value_dup_object (value);
+      g_set_object (&self->message_store, g_value_get_object (value));
       break;
 
     case PROP_IRI:
@@ -1284,7 +1284,6 @@ valent_conversation_page_class_init (ValentConversationPageClass *klass)
                          VALENT_TYPE_CONTACT_STORE,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT |
-                          G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
   /**
@@ -1298,7 +1297,6 @@ valent_conversation_page_class_init (ValentConversationPageClass *klass)
                          VALENT_TYPE_MESSAGES_ADAPTER,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
   /**
@@ -1311,7 +1309,6 @@ valent_conversation_page_class_init (ValentConversationPageClass *klass)
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
@@ -1359,16 +1356,6 @@ valent_conversation_page_init (ValentConversationPage *self)
                                         NULL,
                                         g_object_unref,
                                         g_object_unref);
-}
-
-GtkWidget *
-valent_conversation_page_new (ValentContactStore *contacts,
-                              ValentMessagesAdapter *messages)
-{
-  return g_object_new (VALENT_TYPE_CONVERSATION_PAGE,
-                       "contact-store", contacts,
-                       "messages", messages,
-                       NULL);
 }
 
 /**
