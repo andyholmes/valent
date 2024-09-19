@@ -150,6 +150,9 @@
                                 </style>
                               </object>
                             </child>
+                            <accessibility>
+                              <property name="label" translatable="yes">Conversations</property>
+                            </accessibility>
                             <style>
                               <class name="navigation-sidebar"/>
                             </style>

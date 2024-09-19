@@ -99,7 +99,6 @@
                             </child>
                             <accessibility>
                               <property name="label" translatable="yes">Devices</property>
-                              <property name="description" translatable="yes">List of available and known devices</property>
                             </accessibility>
                             <style>
                               <class name="boxed-list"/>
