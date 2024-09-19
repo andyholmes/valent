@@ -121,9 +121,9 @@ valent_message_thread_lookup_func (gconstpointer a,
                                    gconstpointer b,
                                    gpointer      user_data)
 {
-  g_autofree char *message_iri = valent_object_dup_iri ((ValentObject *)a);
+  g_autofree char *iri = valent_object_dup_iri ((ValentObject *)a);
 
-  return g_utf8_collate (message_iri, (const char *)user_data);
+  return g_utf8_collate (iri, (const char *)b);
 }
 
 static void
@@ -136,7 +136,7 @@ valent_message_thread_remove_message (ValentMessageThread *self,
   g_assert (VALENT_IS_MESSAGE_THREAD (self));
 
   it = g_sequence_lookup (self->items,
-                          &iri,
+                          (char *)iri,
                           valent_message_thread_lookup_func,
                           NULL);
 

@@ -133,7 +133,7 @@ valent_messages_adapter_lookup_func (gconstpointer a,
 {
   g_autofree char *iri = valent_object_dup_iri ((ValentObject *)a);
 
-  return g_utf8_collate (iri, (const char *)user_data);
+  return g_utf8_collate (iri, (const char *)b);
 }
 
 static void
@@ -147,7 +147,7 @@ valent_messages_adapter_remove_thread (ValentMessagesAdapter *self,
   g_assert (VALENT_IS_MESSAGE_THREAD (self));
 
   it = g_sequence_lookup (priv->items,
-                          &iri,
+                          (char *)iri,
                           valent_messages_adapter_lookup_func,
                           NULL);
 
