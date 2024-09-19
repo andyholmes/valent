@@ -95,10 +95,9 @@ typedef const char * (*ValentLogLevelStrFunc) (GLogLevelFlags log_level);
 ValentLogLevelStrFunc  log_function = NULL;
 GIOChannel            *log_channel = NULL;
 
+// TODO: add environment variable
 static const char *ignored_domains[] =
 {
-  "GLib-Net",
-  "GLib",
   "Gvc",
   NULL
 };
