@@ -92,6 +92,8 @@ valent_xdp_get_parent (void)
 gboolean
 valent_xdp_has_parent (void)
 {
-  return valent_xdp_get_parent () != NULL;
+  g_autoptr (XdpParent) parent = valent_xdp_get_parent ();
+
+  return parent != NULL;
 }
 
