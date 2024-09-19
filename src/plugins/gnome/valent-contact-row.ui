@@ -22,6 +22,16 @@
             <child>
               <object class="AdwAvatar" id="avatar">
                 <property name="size">32</property>
+                <binding name="custom-image">
+                  <closure type="GdkPaintable" function="valent_contact_to_paintable">
+                    <lookup name="contact">ValentContactRow</lookup>
+                  </closure>
+                </binding>
+                <binding name="text">
+                  <lookup name="full-name">
+                    <lookup name="contact">ValentContactRow</lookup>
+                  </lookup>
+                </binding>
               </object>
             </child>
             <layout>
@@ -41,6 +51,11 @@
             <property name="vexpand">1</property>
             <property name="xalign">0.0</property>
             <property name="ellipsize">end</property>
+            <binding name="label">
+              <lookup name="full-name">
+                <lookup name="contact">ValentContactRow</lookup>
+              </lookup>
+            </binding>
             <style>
               <class name="title"/>
             </style>

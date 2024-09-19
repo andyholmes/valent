@@ -16,6 +16,16 @@
             <property name="halign">start</property>
             <property name="valign">center</property>
             <property name="size">32</property>
+            <binding name="custom-image">
+              <closure type="GdkPaintable" function="valent_contact_to_paintable">
+                <lookup name="contact">ValentMessageRow</lookup>
+              </closure>
+            </binding>
+            <binding name="text">
+              <lookup name="full-name">
+                <lookup name="contact">ValentMessageRow</lookup>
+              </lookup>
+            </binding>
             <layout>
               <property name="column">0</property>
               <property name="row">0</property>
@@ -33,6 +43,11 @@
             <property name="vexpand">1</property>
             <property name="xalign">0.0</property>
             <property name="ellipsize">end</property>
+            <binding name="label">
+              <lookup name="full-name" type="EContact">
+                <lookup name="contact">ValentMessageRow</lookup>
+              </lookup>
+            </binding>
             <style>
               <class name="title"/>
             </style>
@@ -50,6 +65,11 @@
             <property name="halign">end</property>
             <property name="valign">start</property>
             <property name="vexpand">1</property>
+            <binding name="date">
+              <lookup name="date" type="ValentMessage">
+                <lookup name="message">ValentMessageRow</lookup>
+              </lookup>
+            </binding>
             <style>
               <class name="dim-label"/>
             </style>
@@ -70,6 +90,11 @@
             <property name="ellipsize">end</property>
             <property name="single-line-mode">1</property>
             <property name="xalign">0.0</property>
+            <binding name="label">
+              <closure type="gchararray" function="_valent_message_get_excerpt">
+                <lookup name="message">ValentMessageRow</lookup>
+              </closure>
+            </binding>
             <style>
               <class name="subtitle"/>
             </style>

@@ -23,6 +23,20 @@
             <child>
               <object class="AdwAvatar" id="avatar">
                 <property name="size">36</property>
+                <binding name="custom-image">
+                  <closure type="GdkPaintable" function="valent_contact_to_paintable">
+                    <lookup name="contact">ValentConversationRow</lookup>
+                  </closure>
+                </binding>
+                <binding name="text">
+                  <lookup name="full-name">
+                    <lookup name="contact">ValentConversationRow</lookup>
+                  </lookup>
+                </binding>
+                <property name="tooltip-text"
+                          bind-source="avatar"
+                          bind-property="text"
+                          bind-flags="sync-create"/>
               </object>
             </child>
             <layout>
@@ -74,6 +88,7 @@
         <!-- Summary & Body -->
         <child>
           <object class="GtkBox" id="message_bubble">
+            <property name="accessible-role">group</property>
             <property name="orientation">vertical</property>
             <property name="spacing">6</property>
             <property name="halign"
@@ -142,7 +157,6 @@
             <property name="mode">time</property>
             <property name="margin-start">6</property>
             <property name="margin-end">6</property>
-            <property name="visible">1</property>
             <binding name="date">
               <lookup name="date" type="ValentMessage">
                 <lookup name="message">ValentConversationRow</lookup>

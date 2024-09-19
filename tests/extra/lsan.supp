@@ -10,6 +10,9 @@ leak:g_daemon_vfs_init
 # https://gitlab.gnome.org/GNOME/libadwaita/-/merge_requests/816
 leak:update_custom_image_snapshot
 
+# https://gitlab.gnome.org/GNOME/evolution-data-server/-/merge_requests/162
+leak:e_contact_get_property
+
 # Unconfirmed leak (valent-notifications-plugin)
 leak:gtk_media_file_extension_init
 

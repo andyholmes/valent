@@ -138,6 +138,7 @@ valent_contact_row_class_init (ValentContactRowClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentContactRow, title_label);
   gtk_widget_class_bind_template_child (widget_class, ValentContactRow, subtitle_label);
   gtk_widget_class_bind_template_child (widget_class, ValentContactRow, type_label);
+  gtk_widget_class_bind_template_callback (widget_class, valent_contact_to_paintable);
 
   properties [PROP_CONTACT] =
     g_param_spec_object ("contact", NULL, NULL,
@@ -344,22 +345,13 @@ void
 valent_contact_row_set_contact (ValentContactRow *row,
                                 EContact         *contact)
 {
-  const char *name = NULL;
-
   g_return_if_fail (VALENT_IS_CONTACT_ROW (row));
   g_return_if_fail (contact == NULL || E_IS_CONTACT (contact));
 
   if (!g_set_object (&row->contact, contact))
     return;
 
-  if (row->contact != NULL)
-    {
-      name = e_contact_get_const (contact, E_CONTACT_FULL_NAME);
-      valent_sms_avatar_from_contact (ADW_AVATAR (row->avatar), contact);
-    }
-
   valent_contact_row_set_compact (row, FALSE);
-  gtk_label_set_label (GTK_LABEL (row->title_label), name);
   g_object_notify_by_pspec (G_OBJECT (row), properties [PROP_CONTACT]);
 }
 
