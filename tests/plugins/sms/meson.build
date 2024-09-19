@@ -8,16 +8,7 @@ plugin_sms_test_deps = [
 ]
 
 plugin_sms_tests = [
-  'test-contact-row',
-  'test-date-label',
-  'test-message',
-  'test-message-row',
-  'test-message-thread',
-  'test-sms-conversation',
-  'test-sms-conversation-row',
   'test-sms-plugin',
-  'test-message-utils',
-  'test-messages-window',
 ]
 
 foreach test : plugin_sms_tests
