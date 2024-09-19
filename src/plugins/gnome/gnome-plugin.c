@@ -8,9 +8,9 @@
 #include <libpeas.h>
 #include <valent.h>
 
+#include "valent-gnome-application.h"
 #include "valent-mutter-clipboard.h"
 #include "valent-mutter-input.h"
-#include "valent-ui-manager.h"
 
 
 _VALENT_EXTERN void
@@ -26,6 +26,6 @@ valent_gnome_plugin_register_types (PeasObjectModule *module)
     {
       peas_object_module_register_extension_type (module,
                                                   VALENT_TYPE_APPLICATION_PLUGIN,
-                                                  VALENT_TYPE_UI_MANAGER);
+                                                  VALENT_TYPE_GNOME_APPLICATION);
     }
 }

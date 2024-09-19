@@ -26,36 +26,36 @@ typedef enum {
   TOTEM_TIME_FLAG_MSECS      = (1 << 3),
 } TotemTimeFlag;
 
-gboolean     valent_ui_init                               (void);
-char       * valent_string_to_markup                      (const char *text);
+gboolean       valent_ui_init                               (void);
+char         * valent_string_to_markup                      (const char *text);
 
-char       * valent_media_time_to_string                  (int64_t                 msecs,
-                                                           TotemTimeFlag           flags);
-void         valent_sms_avatar_from_contact               (AdwAvatar              *avatar,
-                                                           EContact               *contact);
-void         valent_contact_store_lookup_contact          (ValentContactStore     *store,
-                                                           const char             *number,
-                                                           GCancellable           *cancellable,
-                                                           GAsyncReadyCallback     callback,
-                                                           gpointer                user_data);
-EContact   * valent_contact_store_lookup_contact_finish   (ValentContactStore     *store,
-                                                           GAsyncResult           *result,
-                                                           GError                **error);
-void         valent_messages_adapter_lookup_thread        (ValentMessagesAdapter  *adapter,
-                                                           const char * const     *participants,
-                                                           GCancellable           *cancellable,
-                                                           GAsyncReadyCallback     callback,
-                                                           gpointer                user_data);
-GListModel * valent_messages_adapter_lookup_thread_finish (ValentMessagesAdapter  *adapter,
-                                                           GAsyncResult           *result,
-                                                           GError                **error);
-void         valent_messages_adapter_search               (ValentMessagesAdapter  *adapter,
-                                                           const char             *query,
-                                                           GCancellable           *cancellable,
-                                                           GAsyncReadyCallback     callback,
-                                                           gpointer                user_data);
-GListModel * valent_messages_adapter_search_finish        (ValentMessagesAdapter  *adapter,
-                                                           GAsyncResult           *result,
-                                                           GError                **error);
+char         * valent_media_time_to_string                  (int64_t                 msecs,
+                                                             TotemTimeFlag           flags);
+GdkPaintable * valent_contact_to_paintable                  (gpointer                user_data,
+                                                             EContact               *contact);
+void           valent_contact_store_lookup_contact          (ValentContactStore     *store,
+                                                             const char             *number,
+                                                             GCancellable           *cancellable,
+                                                             GAsyncReadyCallback     callback,
+                                                             gpointer                user_data);
+EContact     * valent_contact_store_lookup_contact_finish   (ValentContactStore     *store,
+                                                             GAsyncResult           *result,
+                                                             GError                **error);
+void           valent_messages_adapter_lookup_thread        (ValentMessagesAdapter  *adapter,
+                                                             const char * const     *participants,
+                                                             GCancellable           *cancellable,
+                                                             GAsyncReadyCallback     callback,
+                                                             gpointer                user_data);
+GListModel   * valent_messages_adapter_lookup_thread_finish (ValentMessagesAdapter  *adapter,
+                                                             GAsyncResult           *result,
+                                                             GError                **error);
+void           valent_messages_adapter_search               (ValentMessagesAdapter  *adapter,
+                                                             const char             *query,
+                                                             GCancellable           *cancellable,
+                                                             GAsyncReadyCallback     callback,
+                                                             gpointer                user_data);
+GListModel   * valent_messages_adapter_search_finish        (ValentMessagesAdapter  *adapter,
+                                                             GAsyncResult           *result,
+                                                             GError                **error);
 
 G_END_DECLS

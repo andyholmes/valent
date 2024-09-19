@@ -11,12 +11,13 @@
 #include "valent-media-window.h"
 #include "valent-messages-window.h"
 #include "valent-share-dialog.h"
-#include "valent-ui-manager.h"
 #include "valent-ui-utils-private.h"
 #include "valent-window.h"
 
+#include "valent-gnome-application.h"
 
-struct _ValentUIManager
+
+struct _ValentGNOMEApplication
 {
   ValentApplicationPlugin  parent_instance;
 
@@ -27,7 +28,7 @@ struct _ValentUIManager
   GPtrArray               *windows;
 };
 
-G_DEFINE_FINAL_TYPE (ValentUIManager, valent_ui_manager, VALENT_TYPE_APPLICATION_PLUGIN)
+G_DEFINE_FINAL_TYPE (ValentGNOMEApplication, valent_gnome_application, VALENT_TYPE_APPLICATION_PLUGIN)
 
 
 /*
@@ -38,9 +39,9 @@ main_window_action (GSimpleAction *action,
                     GVariant      *parameter,
                     gpointer       user_data)
 {
-  ValentUIManager *self = VALENT_UI_MANAGER (user_data);
+  ValentGNOMEApplication *self = VALENT_GNOME_APPLICATION (user_data);
 
-  g_assert (VALENT_IS_UI_MANAGER (self));
+  g_assert (VALENT_IS_GNOME_APPLICATION (self));
 
   if (self->main_window == NULL)
     {
@@ -71,9 +72,9 @@ input_remote_action (GSimpleAction *action,
                      GVariant      *parameter,
                      gpointer       user_data)
 {
-  ValentUIManager *self = VALENT_UI_MANAGER (user_data);
+  ValentGNOMEApplication *self = VALENT_GNOME_APPLICATION (user_data);
 
-  g_assert (VALENT_IS_UI_MANAGER (self));
+  g_assert (VALENT_IS_GNOME_APPLICATION (self));
 
   if (self->input_remote == NULL)
     {
@@ -92,9 +93,9 @@ media_window_action (GSimpleAction *action,
                      GVariant      *parameter,
                      gpointer       user_data)
 {
-  ValentUIManager *self = VALENT_UI_MANAGER (user_data);
+  ValentGNOMEApplication *self = VALENT_GNOME_APPLICATION (user_data);
 
-  g_assert (VALENT_IS_UI_MANAGER (self));
+  g_assert (VALENT_IS_GNOME_APPLICATION (self));
 
   if (self->media_window == NULL)
     {
@@ -113,9 +114,9 @@ messages_window_action (GSimpleAction *action,
                         GVariant      *parameter,
                         gpointer       user_data)
 {
-  ValentUIManager *self = VALENT_UI_MANAGER (user_data);
+  ValentGNOMEApplication *self = VALENT_GNOME_APPLICATION (user_data);
 
-  g_assert (VALENT_IS_UI_MANAGER (self));
+  g_assert (VALENT_IS_GNOME_APPLICATION (self));
 
   if (self->messages_window == NULL)
     {
@@ -131,12 +132,12 @@ messages_window_action (GSimpleAction *action,
 
 static void
 on_destroy (GtkWindow       *window,
-            ValentUIManager *self)
+            ValentGNOMEApplication *self)
 {
   unsigned int index;
 
   g_assert (GTK_IS_WINDOW (window));
-  g_assert (VALENT_IS_UI_MANAGER (self));
+  g_assert (VALENT_IS_GNOME_APPLICATION (self));
 
   /* The signal was emitted because we're disposing or being disabled */
   if (self->windows == NULL)
@@ -147,12 +148,12 @@ on_destroy (GtkWindow       *window,
 }
 
 static void
-valent_share_target_present (ValentUIManager *self,
+valent_share_target_present (ValentGNOMEApplication *self,
                              GListModel      *files)
 {
   GtkWindow *window = NULL;
 
-  g_assert (VALENT_IS_UI_MANAGER (self));
+  g_assert (VALENT_IS_GNOME_APPLICATION (self));
   g_assert (files == NULL || G_IS_LIST_MODEL (files));
 
   window = g_object_new (VALENT_TYPE_SHARE_DIALOG,
@@ -173,9 +174,9 @@ share_dialog_action (GSimpleAction *action,
                      GVariant      *parameters,
                      gpointer       user_data)
 {
-  ValentUIManager *self = VALENT_UI_MANAGER (user_data);
+  ValentGNOMEApplication *self = VALENT_GNOME_APPLICATION (user_data);
 
-  g_assert (VALENT_IS_UI_MANAGER (self));
+  g_assert (VALENT_IS_GNOME_APPLICATION (self));
 
   valent_share_target_present (self, NULL);
 }
@@ -193,11 +194,11 @@ static const GActionEntry app_actions[] = {
  * ValentApplicationPlugin
  */
 static gboolean
-valent_ui_manager_activate (ValentApplicationPlugin *plugin)
+valent_gnome_application_activate (ValentApplicationPlugin *plugin)
 {
   GApplication *application = NULL;
 
-  g_assert (VALENT_IS_UI_MANAGER (plugin));
+  g_assert (VALENT_IS_GNOME_APPLICATION (plugin));
 
   application = valent_extension_get_object (VALENT_EXTENSION (plugin));
   g_action_group_activate_action (G_ACTION_GROUP (application),
@@ -208,15 +209,15 @@ valent_ui_manager_activate (ValentApplicationPlugin *plugin)
 }
 
 static gboolean
-valent_ui_manager_open (ValentApplicationPlugin  *plugin,
+valent_gnome_application_open (ValentApplicationPlugin  *plugin,
                         GFile                   **files,
                         int                       n_files,
                         const char               *hint)
 {
-  ValentUIManager *self = VALENT_UI_MANAGER (plugin);
+  ValentGNOMEApplication *self = VALENT_GNOME_APPLICATION (plugin);
   g_autoptr (GListStore) files_list = NULL;
 
-  g_assert (VALENT_IS_UI_MANAGER (plugin));
+  g_assert (VALENT_IS_GNOME_APPLICATION (plugin));
   g_assert (files != NULL);
   g_assert (n_files > 0);
   g_assert (hint != NULL);
@@ -229,12 +230,12 @@ valent_ui_manager_open (ValentApplicationPlugin  *plugin,
 }
 
 static void
-valent_ui_manager_shutdown (ValentApplicationPlugin *plugin)
+valent_gnome_application_shutdown (ValentApplicationPlugin *plugin)
 {
-  ValentUIManager *self = VALENT_UI_MANAGER (plugin);
+  ValentGNOMEApplication *self = VALENT_GNOME_APPLICATION (plugin);
   GApplication *application = NULL;
 
-  g_assert (VALENT_IS_UI_MANAGER (plugin));
+  g_assert (VALENT_IS_GNOME_APPLICATION (plugin));
 
   application = valent_extension_get_object (VALENT_EXTENSION (plugin));
 
@@ -246,11 +247,11 @@ valent_ui_manager_shutdown (ValentApplicationPlugin *plugin)
 }
 
 static void
-valent_ui_manager_startup (ValentApplicationPlugin *plugin)
+valent_gnome_application_startup (ValentApplicationPlugin *plugin)
 {
   GApplication *application = NULL;
 
-  g_assert (VALENT_IS_UI_MANAGER (plugin));
+  g_assert (VALENT_IS_GNOME_APPLICATION (plugin));
 
   application = valent_extension_get_object (VALENT_EXTENSION (plugin));
   g_action_map_add_action_entries (G_ACTION_MAP (application),
@@ -263,9 +264,9 @@ valent_ui_manager_startup (ValentApplicationPlugin *plugin)
  * ValentObject
  */
 static void
-valent_ui_manager_destroy (ValentObject *object)
+valent_gnome_application_destroy (ValentObject *object)
 {
-  ValentUIManager *self = VALENT_UI_MANAGER (object);
+  ValentGNOMEApplication *self = VALENT_GNOME_APPLICATION (object);
   GApplication *application = NULL;
 
   application = valent_extension_get_object (VALENT_EXTENSION (self));
@@ -275,30 +276,30 @@ valent_ui_manager_destroy (ValentObject *object)
 
   g_clear_pointer (&self->windows, g_ptr_array_unref);
 
-  VALENT_OBJECT_CLASS (valent_ui_manager_parent_class)->destroy (object);
+  VALENT_OBJECT_CLASS (valent_gnome_application_parent_class)->destroy (object);
 }
 
 /*
  * GObject
  */
 static void
-valent_ui_manager_class_init (ValentUIManagerClass *klass)
+valent_gnome_application_class_init (ValentGNOMEApplicationClass *klass)
 {
   ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentApplicationPluginClass *plugin_class = VALENT_APPLICATION_PLUGIN_CLASS (klass);
 
-  vobject_class->destroy = valent_ui_manager_destroy;
+  vobject_class->destroy = valent_gnome_application_destroy;
 
-  plugin_class->activate = valent_ui_manager_activate;
-  plugin_class->open = valent_ui_manager_open;
-  plugin_class->shutdown = valent_ui_manager_shutdown;
-  plugin_class->startup = valent_ui_manager_startup;
+  plugin_class->activate = valent_gnome_application_activate;
+  plugin_class->open = valent_gnome_application_open;
+  plugin_class->shutdown = valent_gnome_application_shutdown;
+  plugin_class->startup = valent_gnome_application_startup;
 
   valent_ui_init ();
 }
 
 static void
-valent_ui_manager_init (ValentUIManager *self)
+valent_gnome_application_init (ValentGNOMEApplication *self)
 {
   self->windows = g_ptr_array_new_with_free_func ((GDestroyNotify)gtk_window_destroy);
 }

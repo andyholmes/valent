@@ -43,8 +43,8 @@ application_fixture_tear_down (ApplicationPluginFixture *fixture,
 }
 
 static void
-test_gnome_ui_manager (ApplicationPluginFixture *fixture,
-                       gconstpointer             user_data)
+test_gnome_application (ApplicationPluginFixture *fixture,
+                        gconstpointer             user_data)
 {
   ValentApplicationPlugin *plugin = VALENT_APPLICATION_PLUGIN (fixture->extension);
   g_autoptr (GApplication) application = NULL;
@@ -65,10 +65,10 @@ main (int   argc,
 {
   valent_test_ui_init (&argc, &argv, NULL);
 
-  g_test_add ("/plugins/gnome/ui-manager",
+  g_test_add ("/plugins/gnome/application",
               ApplicationPluginFixture, NULL,
               application_fixture_set_up,
-              test_gnome_ui_manager,
+              test_gnome_application,
               application_fixture_tear_down);
 
   return g_test_run ();

@@ -37,6 +37,7 @@ plugin_gnome_sources = files([
   'valent-device-preferences-sftp.c',
   'valent-device-preferences-share.c',
   'valent-device-preferences-telephony.c',
+  'valent-gnome-application.c',
   'valent-input-remote.c',
   'valent-media-remote.c',
   'valent-media-window.c',
@@ -51,10 +52,7 @@ plugin_gnome_sources = files([
   'valent-share-dialog.c',
   'valent-time-helpers.c',
   'valent-ui-main.c',
-  'valent-ui-manager.c',
   'valent-ui-utils.c',
-  'valent-ui-utils-contacts.c',
-  'valent-ui-utils-messages.c',
   'valent-window.c',
 ])
 
