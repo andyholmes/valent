@@ -263,7 +263,8 @@ valent_contact_page_set_property (GObject      *object,
   switch ((ValentContactPageProperty)prop_id)
     {
     case PROP_CONTACT_STORE:
-      valent_contact_page_set_contact_store (self, g_value_get_object (value));
+      if (g_set_object (&self->contact_store, g_value_get_object (value)))
+        valent_contact_page_refresh_contacts (self);
       break;
 
     default:
@@ -300,7 +301,6 @@ valent_contact_page_class_init (ValentContactPageClass *klass)
                          VALENT_TYPE_CONTACT_STORE,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT |
-                          G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
@@ -340,42 +340,5 @@ valent_contact_page_init (ValentContactPage *self)
                                 valent_contact_row_header_func,
                                 self,
                                 NULL);
-}
-
-/**
- * valent_contact_page_get_contact_store:
- * @window: a `ValentContactPage`
- *
- * Get the `ValentContactStore` providing contacts for @window.
- *
- * Returns: (transfer none) (nullable): a `ValentContactStore`
- */
-ValentContactStore *
-valent_contact_page_get_contact_store (ValentContactPage *window)
-{
-  g_return_val_if_fail (VALENT_IS_CONTACT_PAGE (window), NULL);
-
-  return window->contact_store;
-}
-
-/**
- * valent_contact_page_set_contact_store:
- * @window: a `ValentContactPage`
- * @store: a `ValentContactStore`
- *
- * Set the `ValentContactStore` providing contacts for @window.
- */
-void
-valent_contact_page_set_contact_store (ValentContactPage  *window,
-                                       ValentContactStore *store)
-{
-  g_return_if_fail (VALENT_IS_CONTACT_PAGE (window));
-  g_return_if_fail (store == NULL || VALENT_IS_CONTACT_STORE (store));
-
-  if (!g_set_object (&window->contact_store, store))
-    return;
-
-  valent_contact_page_refresh_contacts (window);
-  g_object_notify_by_pspec (G_OBJECT (window), properties[PROP_CONTACT_STORE]);
 }
 

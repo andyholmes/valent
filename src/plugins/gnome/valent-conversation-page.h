@@ -12,8 +12,6 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (ValentConversationPage, valent_conversation_page, VALENT, CONVERSATION_PAGE, AdwNavigationPage)
 
-GtkWidget  * valent_conversation_page_new               (ValentContactStore     *contacts,
-                                                         ValentMessagesAdapter     *messages);
 void         valent_conversation_page_add_participant   (ValentConversationPage *conversation,
                                                          EContact               *contact,
                                                          const char             *medium);
