@@ -20,6 +20,9 @@
                         handler="on_search_changed"
                         object="ValentContactPage"
                         swapped="no"/>
+                <accessibility>
+                  <relation name="controls">contact_list</relation>
+                </accessibility>
               </object>
             </property>
           </object>
@@ -47,6 +50,9 @@
                             <property name="title" translatable="yes">No contacts</property>
                           </object>
                         </child>
+                        <accessibility>
+                          <property name="label" translatable="yes">Contacts</property>
+                        </accessibility>
                       </object>
                     </property>
                   </object>
