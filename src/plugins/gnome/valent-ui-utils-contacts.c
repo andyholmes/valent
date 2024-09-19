@@ -12,56 +12,8 @@
 
 #include "valent-ui-utils-private.h"
 
-G_DEFINE_QUARK (VALENT_CONTACT_ICON, valent_contact_icon)
 G_DEFINE_QUARK (VALENT_CONTACT_PAINTABLE, valent_contact_paintable)
 
-
-static GLoadableIcon *
-_e_contact_get_icon (EContact *contact)
-{
-  GLoadableIcon *icon = NULL;
-  g_autoptr (EContactPhoto) photo = NULL;
-  const unsigned char *data;
-  size_t len;
-  const char *uri;
-
-  g_assert (E_IS_CONTACT (contact));
-
-  icon = g_object_get_qdata (G_OBJECT (contact), valent_contact_icon_quark ());
-
-  if (G_IS_LOADABLE_ICON (icon))
-    return icon;
-
-  if ((photo = e_contact_get (contact, E_CONTACT_PHOTO)) == NULL)
-    return NULL;
-
-  if (photo->type == E_CONTACT_PHOTO_TYPE_INLINED &&
-      (data = e_contact_photo_get_inlined (photo, &len)))
-    {
-      g_autoptr (GBytes) bytes = NULL;
-
-      bytes = g_bytes_new (data, len);
-      icon = G_LOADABLE_ICON (g_bytes_icon_new (bytes));
-    }
-  else if (photo->type == E_CONTACT_PHOTO_TYPE_URI &&
-           (uri = e_contact_photo_get_uri (photo)))
-    {
-      g_autoptr (GFile) file = NULL;
-
-      file = g_file_new_for_uri (uri);
-      icon = G_LOADABLE_ICON (g_file_icon_new (file));
-    }
-
-  if (G_IS_LOADABLE_ICON (icon))
-    {
-      g_object_set_qdata_full (G_OBJECT (contact),
-                               valent_contact_icon_quark (),
-                               icon,
-                               g_object_unref);
-    }
-
-  return icon;
-}
 
 static GdkPaintable *
 _e_contact_get_paintable (EContact  *contact,
@@ -70,9 +22,11 @@ _e_contact_get_paintable (EContact  *contact,
                           GError   **error)
 {
   GdkPaintable *paintable = NULL;
-  GLoadableIcon *icon = NULL;
-  g_autoptr (GInputStream) stream = NULL;
-  g_autoptr (GdkPixbuf) pixbuf = NULL;
+  GdkTexture *texture = NULL;
+  g_autoptr (EContactPhoto) photo = NULL;
+  const unsigned char *data;
+  size_t len;
+  const char *uri;
 
   g_assert (E_IS_CONTACT (contact));
   g_assert (size > 0);
@@ -84,31 +38,36 @@ _e_contact_get_paintable (EContact  *contact,
   if (GDK_IS_PAINTABLE (paintable))
     return paintable;
 
-  icon = _e_contact_get_icon (contact);
-  if (icon == NULL)
+  photo = e_contact_get (contact, E_CONTACT_PHOTO);
+  if (photo == NULL)
     return NULL;
 
-  stream = g_loadable_icon_load (icon, -1, NULL, NULL, error);
-  if (stream == NULL)
-    return NULL;
+  if (photo->type == E_CONTACT_PHOTO_TYPE_INLINED &&
+      (data = e_contact_photo_get_inlined (photo, &len)))
+    {
+      g_autoptr (GBytes) bytes = NULL;
 
-  pixbuf = gdk_pixbuf_new_from_stream_at_scale (stream,
-                                                size,
-                                                size,
-                                                TRUE,
-                                                NULL,
-                                                error);
+      bytes = g_bytes_new (data, len);
+      texture = gdk_texture_new_from_bytes (bytes, NULL);
+    }
+  else if (photo->type == E_CONTACT_PHOTO_TYPE_URI &&
+           (uri = e_contact_photo_get_uri (photo)))
+    {
+      g_autoptr (GFile) file = NULL;
 
-  if (pixbuf == NULL)
-    return NULL;
+      file = g_file_new_for_uri (uri);
+      texture = gdk_texture_new_from_file (file, NULL);
+    }
 
-  paintable = GDK_PAINTABLE (gdk_texture_new_for_pixbuf (pixbuf));
-  g_object_set_qdata_full (G_OBJECT (contact),
-                           valent_contact_paintable_quark (),
-                           paintable,
-                           g_object_unref);
+  if (GDK_IS_PAINTABLE (texture))
+    {
+      g_object_set_qdata_full (G_OBJECT (contact),
+                               valent_contact_paintable_quark (),
+                               texture, /* owned */
+                               g_object_unref);
+    }
 
-  return paintable;
+  return GDK_PAINTABLE (texture);
 }
 
 /**
