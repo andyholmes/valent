@@ -342,16 +342,6 @@ valent_contact_page_init (ValentContactPage *self)
                                 NULL);
 }
 
-GtkWidget *
-valent_contact_page_new (ValentContactStore *store)
-{
-  g_return_val_if_fail (store == NULL || VALENT_IS_CONTACT_STORE (store), NULL);
-
-  return g_object_new (VALENT_TYPE_CONTACT_PAGE,
-                       "contact-store", store,
-                       NULL);
-}
-
 /**
  * valent_contact_page_get_contact_store:
  * @window: a `ValentContactPage`
