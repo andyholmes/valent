@@ -136,6 +136,7 @@ flatpak
 freedesktop
 pipewire
 pulseaudio
+stephenhay
 sysprof
 tsparql
 upower
