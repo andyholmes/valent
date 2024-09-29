@@ -1,0 +1,1483 @@
+# Telugu Translation for Valent .
+# Copyright (C) 2024
+# This file is distributed under the same license as the valent package.
+# Aryan Karamtoth <aryankmmiv@outlook.com>, 2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: valent\n"
+"Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
+"POT-Creation-Date: 2024-08-17 15:05-0700\n"
+"PO-Revision-Date: 2024-09-29 08:24+0530\n"
+"Last-Translator: Aryan Karamtoth <aryankmmiv@outlook.com>\n"
+"Language-Team: Telugu l10n Translation Team <ubuntu-l10n-te@lists.launchpad."
+"net >\n"
+"Language: te\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Gtranslator 46.1\n"
+
+#: data/ca.andyholmes.Valent.desktop.in.in:3
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
+#: src/plugins/gnome/valent-preferences-dialog.ui:11
+#: src/plugins/gnome/valent-window.c:222 src/plugins/gnome/valent-window.ui:8
+#: src/plugins/gnome/valent-window.ui:45
+msgid "Valent"
+msgstr "వాలెంట్"
+
+#: data/ca.andyholmes.Valent.desktop.in.in:4
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:12
+msgid "Connect, control and sync devices"
+msgstr "పరికరాలను కనెక్ట్ చేయండి, నియంత్రించండి మరియు సమకాలీకరించండి"
+
+#: data/gsettings/ca.andyholmes.Valent.Device.gschema.xml:10
+msgid "Paired"
+msgstr "జత చేయబడింది"
+
+#: data/gsettings/ca.andyholmes.Valent.Device.gschema.xml:11
+msgid "Whether the device is paired"
+msgstr "పరికరం జత చేయబడిందా"
+
+#: data/gsettings/ca.andyholmes.Valent.gschema.xml:10
+#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:39
+msgid "Name"
+msgstr "పేరు"
+
+#: data/gsettings/ca.andyholmes.Valent.gschema.xml:11
+msgid "The display name for the local device."
+msgstr "స్థానిక పరికరం కోసం ప్రదర్శన పేరు."
+
+#: data/gsettings/ca.andyholmes.Valent.Plugin.gschema.xml:10
+msgid "Plugin State"
+msgstr "ప్లగిన్ స్థితి"
+
+#: data/gsettings/ca.andyholmes.Valent.Plugin.gschema.xml:11
+msgid "Whether the plugin is enabled or not."
+msgstr "ప్లగ్ఇన్ ప్రారంభించబడిందో లేదో."
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:15
+msgid ""
+"Securely connect your devices to open files and links where you need them, "
+"get notifications when you need them, stay in control of your media and more."
+msgstr ""
+"మీకు అవసరమైన ఫైల్‌లు మరియు లింక్‌లను తెరవడానికి మీ పరికరాలను సురక్షితంగా కనెక్ట్ చేయండి, మీకు "
+"అవసరమైనప్పుడు నోటిఫికేషన్‌లను పొందండి, మీ మీడియాపై నియంత్రణలో ఉండండి మరియు మరిన్ని చేయండి."
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:19
+msgid "Features:"
+msgstr "ఫీచర్లు:"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:23
+msgid "Sync contacts, notifications and clipboard content"
+msgstr "పరిచయాలు, నోటిఫికేషన్‌లు మరియు క్లిప్‌బోర్డ్ కంటెంట్‌ని సమకాలీకరించండి"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:24
+msgid "Control media players and volume"
+msgstr "మీడియా ప్లేయర్‌లు మరియు వాల్యూమ్‌ను నియంత్రించండి"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:25
+msgid "Share files, links and text"
+msgstr "ఫైల్‌లు, లింక్‌లు మరియు వచనాన్ని భాగస్వామ్యం చేయండి"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:26
+msgid "Virtual touchpad and keyboard"
+msgstr "వర్చువల్ టచ్‌ప్యాడ్ మరియు కీబోర్డ్"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:27
+msgid "Call and text notification"
+msgstr "కాల్ మరియు టెక్స్ట్ నోటిఫికేషన్"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:28
+msgid "Execute custom commands"
+msgstr "అనుకూల ఆదేశాలను అమలు చేయండి"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:29
+msgid "More…"
+msgstr "మరిన్ని…"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:31
+msgid ""
+"Valent is an implementation of the KDE Connect protocol, built on GNOME "
+"platform libraries."
+msgstr "వాలెంట్ అనేది గ్నోమ్ ప్లాట్‌ఫారమ్ లైబ్రరీలపై నిర్మించబడిన KDE కనెక్ట్ ప్రోటోకాల్ యొక్క అమలు."
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:41
+msgid "Initial release."
+msgstr "ప్రారంభ విడుదల."
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:48
+msgid "Connect to devices on your network"
+msgstr "మీ నెట్‌వర్క్‌లోని పరికరాలకు కనెక్ట్ చేయండి"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:52
+msgid "Securely pair devices"
+msgstr "పరికరాలను సురక్షితంగా జత చేయండి"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:56
+msgid "Monitor and control remote devices"
+msgstr "రిమోట్ పరికరాలను పర్యవేక్షించండి మరియు నియంత్రించండి"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:73
+msgid "Andy Holmes"
+msgstr "ఆండీ హోమ్స్"
+
+#: src/libvalent/device/valent-device.c:512
+#, c-format
+msgid "Pairing request from “%s”"
+msgstr "“%s” నుండి జత చేసే అభ్యర్థన"
+
+#: src/libvalent/device/valent-device.c:523
+#: src/plugins/gnome/valent-device-page.ui:119
+msgid "Reject"
+msgstr "తిరస్కరించు"
+
+#: src/libvalent/device/valent-device.c:529
+#: src/plugins/gnome/valent-device-page.ui:133
+msgid "Accept"
+msgstr "అంగీకరించు"
+
+#: src/plugins/battery/battery.plugin.desktop.in:7
+#: src/plugins/gnome/valent-device-page.ui:218
+#: src/plugins/gnome/valent-device-row.ui:124
+msgid "Battery"
+msgstr "బ్యాటరీ"
+
+#: src/plugins/battery/battery.plugin.desktop.in:8
+msgid "Monitor battery level and charging state"
+msgstr "బ్యాటరీ స్థాయి మరియు ఛార్జింగ్ స్థితిని పర్యవేక్షించండి"
+
+#. TRANSLATORS: This is <device name>: Fully Charged
+#: src/plugins/battery/valent-battery-plugin.c:265
+#, c-format
+msgid "%s: Fully Charged"
+msgstr "%s: పూర్తిగా ఛార్జ్ చేయబడింది"
+
+#. TRANSLATORS: When the battery level is at maximum
+#: src/plugins/battery/valent-battery-plugin.c:267
+msgid "Battery Fully Charged"
+msgstr "బ్యాటరీ పూర్తిగా ఛార్జ్ చేయబడింది"
+
+#. TRANSLATORS: This is <device name>: Battery Low
+#: src/plugins/battery/valent-battery-plugin.c:294
+#, c-format
+msgid "%s: Battery Low"
+msgstr "%s: బ్యాటరీ తక్కువ"
+
+#. TRANSLATORS: This is <percentage> (<hours>:<minutes> Remaining)
+#. TRANSLATORS: This is <percentage> (<hours>:<minutes> Remaining)
+#.
+#: src/plugins/battery/valent-battery-plugin.c:296
+#: src/plugins/gnome/valent-device-page.c:190
+#: src/plugins/gnome/valent-device-row.c:156
+#, c-format
+msgid "%g%% (%d∶%02d Remaining)"
+msgstr "%g%% (%d∶%02d మిగిలినవి)"
+
+#: src/plugins/bluez/bluez.plugin.desktop.in:7
+msgid "Bluez"
+msgstr "బ్లూజ్"
+
+#: src/plugins/bluez/bluez.plugin.desktop.in:8
+msgid "Connect devices over Bluetooth"
+msgstr "బ్లూటూత్ ద్వారా పరికరాలను కనెక్ట్ చేయండి"
+
+#: src/plugins/clipboard/clipboard.plugin.desktop.in:7
+#: src/plugins/gnome/valent-preferences-dialog.c:350
+msgid "Clipboard"
+msgstr "క్లిప్‌బోర్డ్"
+
+#: src/plugins/clipboard/clipboard.plugin.desktop.in:8
+msgid "Sync the clipboard between devices"
+msgstr "పరికరాల మధ్య క్లిప్‌బోర్డ్‌ను సమకాలీకరించండి"
+
+#: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:7
+msgid "Connectivity"
+msgstr "కనెక్టివిటీ"
+
+#: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:8
+msgid "Monitor mobile connectivity status"
+msgstr "మొబైల్ కనెక్టివిటీ స్థితిని పర్యవేక్షించండి"
+
+#. TRANSLATORS: When the mobile network signal is available
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:162
+#: src/plugins/gnome/valent-device-page.ui:244
+#: src/plugins/gnome/valent-device-row.ui:116
+msgid "Mobile Network"
+msgstr "మొబైల్ నెట్‌వర్క్"
+
+#. TRANSLATORS: The mobile network signal strength (e.g. "Signal Strength (25%)")
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:164
+#, c-format
+msgid "Signal Strength %f%%"
+msgstr "సిగ్నల్ బలం %f%%"
+
+#. TRANSLATORS: When no mobile service is available
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:170
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:177
+msgid "No Service"
+msgstr "సేవ లేదు"
+
+#. TRANSLATORS: When no mobile network signal is available
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:172
+msgid "No mobile network service"
+msgstr "మొబైల్ నెట్‌వర్క్ సేవ లేదు"
+
+#. TRANSLATORS: When the device is missing a SIM card
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:179
+msgid "No SIM"
+msgstr "సిమ్ లేదు"
+
+#. TRANSLATORS: The connectivity notification title (e.g. "PinePhone: No Service")
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:310
+#, c-format
+msgid "%s: %s"
+msgstr "%s: %s"
+
+#: src/plugins/contacts/contacts.plugin.desktop.in:7
+#: src/plugins/gnome/valent-contact-page.ui:8
+#: src/plugins/gnome/valent-contact-row.c:204
+#: src/plugins/gnome/valent-conversation-page.ui:181
+#: src/plugins/gnome/valent-conversation-page.ui:205
+#: src/plugins/gnome/valent-preferences-dialog.c:357
+msgid "Contacts"
+msgstr "పరిచయాలు"
+
+#: src/plugins/contacts/contacts.plugin.desktop.in:8
+msgid "Sync contacts between devices"
+msgstr "పరికరాల మధ్య పరిచయాలను సమకాలీకరించండి"
+
+#: src/plugins/eds/eds.plugin.desktop.in:7
+msgid "Evolution Data Server"
+msgstr "ఎవల్యూషన్ డేటా సర్వర్"
+
+#: src/plugins/eds/eds.plugin.desktop.in:8
+msgid "Integration with Evolution Data Server"
+msgstr "ఎవల్యూషన్ డేటా సర్వర్‌తో ఇంటిగ్రేషన్"
+
+#: src/plugins/fdo/fdo.plugin.desktop.in:7
+msgid "freedesktop.org"
+msgstr "freedesktop.org"
+
+#: src/plugins/fdo/fdo.plugin.desktop.in:8
+msgid "Freedesktop.org Based Modules"
+msgstr "Freedesktop.org ఆధారిత మాడ్యూల్స్"
+
+#: src/plugins/findmyphone/findmyphone.plugin.desktop.in:7
+msgid "Find My Phone"
+msgstr "నా ఫోన్‌ని కనుగొనండి"
+
+#: src/plugins/findmyphone/findmyphone.plugin.desktop.in:8
+msgid "Find a device by making it ring"
+msgstr "రింగ్ చేయడం ద్వారా పరికరాన్ని కనుగొనండి"
+
+#: src/plugins/findmyphone/valent-findmyphone-plugin.c:125
+msgid "Ring"
+msgstr "రింగ్"
+
+#: src/plugins/findmyphone/valent-findmyphone-ringer.c:125
+msgid "Find My Device"
+msgstr "నా పరికరాన్ని కనుగొనండి"
+
+#: src/plugins/gnome/gnome.plugin.desktop.in:7
+msgid "GNOME"
+msgstr "గ్నోమ్"
+
+#: src/plugins/gnome/gnome.plugin.desktop.in:8
+msgid "Integration with GNOME"
+msgstr "GNOMEతో ఏకీకరణ"
+
+#. TRANSLATORS: dynamic string for phone number input (e.g. "Send to 911")
+#.
+#: src/plugins/gnome/valent-contact-page.c:70
+#, c-format
+msgid "Send to %s"
+msgstr "%s కి పంపండి"
+
+#: src/plugins/gnome/valent-contact-page.ui:18
+msgid "Type a phone number or name"
+msgstr "ఫోన్ నంబర్ లేదా పేరును టైప్ చేయండి"
+
+#: src/plugins/gnome/valent-contact-page.ui:47
+msgid "No contacts"
+msgstr "పరిచయాలు లేవు"
+
+#: src/plugins/gnome/valent-contact-row.c:305
+msgid "Work"
+msgstr "పని"
+
+#: src/plugins/gnome/valent-contact-row.c:307
+msgid "Mobile"
+msgstr "మొబైల్"
+
+#: src/plugins/gnome/valent-contact-row.c:309
+#: src/plugins/sftp/valent-sftp-plugin.c:535
+msgid "Home"
+msgstr "హోమ్"
+
+#: src/plugins/gnome/valent-contact-row.c:311
+#: src/plugins/gnome/valent-contact-row.c:396
+#: src/plugins/gnome/valent-contact-row.ui:77
+#: src/plugins/gnome/valent-device-preferences-dialog.ui:32
+msgid "Other"
+msgstr "ఇతర"
+
+#: src/plugins/gnome/valent-conversation-page.c:405
+#: src/plugins/gnome/valent-messages-window.c:392
+msgid "Unknown"
+msgstr "తెలియదు"
+
+#. TRANSLATORS: This is announced to AT devices (i.e. screen readers)
+#. * when a new message is received.
+#.
+#: src/plugins/gnome/valent-conversation-page.c:412
+#, c-format
+msgid "New message from %s"
+msgstr "%s నుండి కొత్త సందేశం"
+
+#. TRANSLATORS: This is announced to AT devices (i.e. screen readers)
+#. * when a new message is received with attachments.
+#.
+#: src/plugins/gnome/valent-conversation-page.c:419
+#, c-format
+msgid "New message from %s, with %d attachment"
+msgid_plural "New message from %s, with %d attachments"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/plugins/gnome/valent-conversation-page.c:948
+#: src/plugins/gnome/valent-conversation-page.c:1095
+#: src/plugins/gnome/valent-conversation-page.ui:77
+msgid "Attach Files"
+msgstr "ఫైల్‌లను అటాచ్ చేయండి"
+
+#: src/plugins/gnome/valent-conversation-page.c:949
+#: src/plugins/gnome/valent-conversation-page.c:1096
+#: src/plugins/gnome/valent-device-preferences-share.c:94
+#: src/plugins/gnome/valent-presenter-remote.c:92
+#: src/plugins/gnome/valent-presenter-remote.ui:100
+msgid "Open"
+msgstr "తెరవండి"
+
+#: src/plugins/gnome/valent-conversation-page.c:1002
+#: src/plugins/share/valent-share-plugin.c:1114
+msgid "Save"
+msgstr "సేవ్ చేయండి"
+
+#: src/plugins/gnome/valent-conversation-page.ui:8
+msgid "Conversation"
+msgstr "సంభాషణ"
+
+#: src/plugins/gnome/valent-conversation-page.ui:22
+msgid "Conversation Menu"
+msgstr "సంభాషణ మెను"
+
+#: src/plugins/gnome/valent-conversation-page.ui:88
+msgid "Type a message"
+msgstr "సందేశాన్ని టైప్ చేయండి"
+
+#: src/plugins/gnome/valent-conversation-page.ui:97
+msgid "Send Message"
+msgstr "సందేశం పంపండి"
+
+#: src/plugins/gnome/valent-conversation-page.ui:122
+#: src/plugins/gnome/valent-messages-window.ui:285
+msgid "Search Messages…"
+msgstr "సందేశాలను శోధించండి..."
+
+#: src/plugins/gnome/valent-conversation-page.ui:128
+#: src/plugins/gnome/valent-conversation-page.ui:135
+#: src/plugins/gnome/valent-conversation-page.ui:143
+msgid "Details"
+msgstr "వివరాలు"
+
+#: src/plugins/gnome/valent-conversation-page.ui:156
+#: src/plugins/gnome/valent-conversation-page.ui:226
+msgid "Media"
+msgstr "మీడియా"
+
+#: src/plugins/gnome/valent-conversation-page.ui:187
+msgid "Add people…"
+msgstr "వ్యక్తులను జోడించండి..."
+
+#: src/plugins/gnome/valent-conversation-page.ui:206
+msgid "People in this conversation"
+msgstr "ఈ సంభాషణలో వ్యక్తులు"
+
+#: src/plugins/gnome/valent-conversation-page.ui:237
+msgid "Attachments"
+msgstr "జోడింపులు"
+
+#: src/plugins/gnome/valent-conversation-page.ui:238
+msgid "Files in this conversation"
+msgstr "ఈ సంభాషణలోని ఫైల్‌లు"
+
+#: src/plugins/gnome/valent-conversation-page.ui:246
+msgid "No attachments found"
+msgstr "జోడింపులు ఏవీ కనుగొనబడలేదు"
+
+#: src/plugins/gnome/valent-conversation-row.ui:171
+msgid "Copy text"
+msgstr "వచనాన్ని కాపీ చేయండి"
+
+#: src/plugins/gnome/valent-date-label.c:86
+msgid "Just now"
+msgstr "ఇప్పుడే"
+
+#. TRANSLATORS: Time duration in minutes, abbreviated (eg. 15 mins)
+#.
+#: src/plugins/gnome/valent-date-label.c:98
+#, c-format
+msgid "%d min"
+msgid_plural "%d mins"
+msgstr[0] "%d min"
+msgstr[1] "%d mins"
+
+#. TRANSLATORS: Time duration in minutes (eg. 15 minutes)
+#.
+#: src/plugins/gnome/valent-date-label.c:105
+#, c-format
+msgid "%d minute"
+msgid_plural "%d minutes"
+msgstr[0] "%d నిమిషం"
+msgstr[1] "%d నిమిషాలు"
+
+#. TRANSLATORS: Yesterday, but less than 24 hours (eg. Yesterday · 11:45 PM)
+#.
+#: src/plugins/gnome/valent-date-label.c:121
+#, c-format
+msgid "Yesterday · %s"
+msgstr "నిన్న · %s"
+
+#: src/plugins/gnome/valent-date-label.c:134
+#: src/plugins/gnome/valent-date-label.c:145
+#, c-format
+msgid "%s · %s"
+msgstr "%s · %s"
+
+#: src/plugins/gnome/valent-device-page.c:85
+#, c-format
+msgid "Please confirm the verification key below matches the one on “%s”"
+msgstr "దయచేసి దిగువన ఉన్న ధృవీకరణ కీ \"%s\" లో ఉన్నదానితో సరిపోలుతుందని నిర్ధారించండి"
+
+#: src/plugins/gnome/valent-device-page.c:94
+#: src/plugins/gnome/valent-device-page.ui:73
+msgid "Unavailable"
+msgstr "అందుబాటులో లేదు"
+
+#. TRANSLATORS: When the battery level is 100%
+#.
+#: src/plugins/gnome/valent-device-page.c:152
+#: src/plugins/gnome/valent-device-row.c:118
+msgid "Fully Charged"
+msgstr "పూర్తిగా ఛార్జ్ చేయబడింది"
+
+#. TRANSLATORS: This is <percentage> (Estimating…)
+#.
+#: src/plugins/gnome/valent-device-page.c:177
+#: src/plugins/gnome/valent-device-row.c:143
+#, c-format
+msgid "%g%% (Estimating…)"
+msgstr "%g%% (అంచనా...)"
+
+#. TRANSLATORS: This is <percentage> (<hours>:<minutes> Until Full)
+#.
+#: src/plugins/gnome/valent-device-page.c:183
+#: src/plugins/gnome/valent-device-row.c:149
+#, c-format
+msgid "%g%% (%d∶%02d Until Full)"
+msgstr "%g%% (%d∶%02d పూర్తి అయ్యే వరకు)"
+
+#: src/plugins/gnome/valent-device-page.ui:30
+msgid "Device Menu"
+msgstr "పరికర మెను"
+
+#: src/plugins/gnome/valent-device-page.ui:49
+#: src/plugins/gnome/valent-device-row.c:241
+msgid "Disconnected"
+msgstr "డిస్‌కనెక్ట్ చేయబడింది"
+
+#: src/plugins/gnome/valent-device-page.ui:50
+msgid "This device is currently unavailable"
+msgstr "ఈ పరికరం ప్రస్తుతం అందుబాటులో లేదు"
+
+#: src/plugins/gnome/valent-device-page.ui:63
+#: src/plugins/gnome/valent-device-row.c:236
+msgid "Unpaired"
+msgstr "జత చేయబడలేదు"
+
+#: src/plugins/gnome/valent-device-page.ui:75
+msgid "verification key"
+msgstr "ధృవీకరణ కీ"
+
+#: src/plugins/gnome/valent-device-page.ui:101
+msgid "Request Pairing"
+msgstr "జత చేయడాన్ని అభ్యర్థించండి"
+
+#: src/plugins/gnome/valent-device-page.ui:260
+#: src/plugins/lock/lock.plugin.desktop.in:7
+msgid "Lock"
+msgstr "తాళం వేయండి"
+
+#: src/plugins/gnome/valent-device-page.ui:292
+#: src/plugins/gnome/valent-window.ui:143
+msgid "Preferences"
+msgstr "ప్రాధాన్యతలు"
+
+#: src/plugins/gnome/valent-device-page.ui:298
+msgid "Unpair"
+msgstr "జతని తీసివేయండి"
+
+#: src/plugins/gnome/valent-device-preferences-battery.ui:10
+msgid "Full Battery Notification"
+msgstr "పూర్తి బ్యాటరీ నోటిఫికేషన్"
+
+#: src/plugins/gnome/valent-device-preferences-battery.ui:11
+msgid "Notify when the remote battery is full"
+msgstr "రిమోట్ బ్యాటరీ నిండినప్పుడు తెలియజేయండి"
+
+#: src/plugins/gnome/valent-device-preferences-battery.ui:16
+#: src/plugins/gnome/valent-device-preferences-battery.ui:36
+msgid "Level Threshold"
+msgstr "స్థాయి థ్రెషోల్డ్"
+
+#: src/plugins/gnome/valent-device-preferences-battery.ui:30
+msgid "Low Battery Notification"
+msgstr "తక్కువ బ్యాటరీ నోటిఫికేషన్"
+
+#: src/plugins/gnome/valent-device-preferences-battery.ui:31
+msgid "Notify when the remote battery is low"
+msgstr "రిమోట్ బ్యాటరీ తక్కువగా ఉన్నప్పుడు తెలియజేయండి"
+
+#: src/plugins/gnome/valent-device-preferences-clipboard.ui:10
+msgid "Remote Clipboard"
+msgstr "రిమోట్ క్లిప్‌బోర్డ్"
+
+#: src/plugins/gnome/valent-device-preferences-clipboard.ui:11
+msgid "Copy changes to the local clipboard"
+msgstr "మార్పులను స్థానిక క్లిప్‌బోర్డ్‌కు కాపీ చేయండి"
+
+#: src/plugins/gnome/valent-device-preferences-clipboard.ui:17
+msgid "Local Clipboard"
+msgstr "స్థానిక క్లిప్‌బోర్డ్"
+
+#: src/plugins/gnome/valent-device-preferences-clipboard.ui:18
+msgid "Report changes to the remote device"
+msgstr "రిమోట్ పరికరానికి మార్పులను నివేదించండి"
+
+#: src/plugins/gnome/valent-device-preferences-commands.c:85
+#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:8
+msgid "Edit Command"
+msgstr "ఆదేశాన్ని సవరించండి"
+
+#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:17
+#: src/plugins/gnome/valent-notification-dialog.ui:19
+msgid "_Cancel"
+msgstr "రద్దు(_C)"
+
+#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:24
+msgid "_Save"
+msgstr "సేవ్ చేయండి(_S)"
+
+#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:48
+msgid "Command Line"
+msgstr "కమాండ్ లైన్"
+
+#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:63
+msgid "Remove the command"
+msgstr "ఆదేశాన్ని తీసివేయండి"
+
+#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:69
+msgid "Remove"
+msgstr "తొలగించు"
+
+#: src/plugins/gnome/valent-device-preferences-commands.ui:14
+msgid "Add a command"
+msgstr "ఆదేశాన్ని జోడించండి"
+
+#: src/plugins/gnome/valent-device-preferences-commands.ui:24
+msgid "Local Commands"
+msgstr "స్థానిక ఆదేశాలు"
+
+#: src/plugins/gnome/valent-device-preferences-commands.ui:25
+msgid "Commands that can be executed by remote devices"
+msgstr "రిమోట్ పరికరాల ద్వారా అమలు చేయగల ఆదేశాలు"
+
+#: src/plugins/gnome/valent-device-preferences-connectivity.ui:10
+msgid "Local Connectivity"
+msgstr "స్థానిక కనెక్టివిటీ"
+
+#: src/plugins/gnome/valent-device-preferences-connectivity.ui:11
+msgid "Send updates to the remote device"
+msgstr "రిమోట్ పరికరానికి నవీకరణలను పంపండి"
+
+#: src/plugins/gnome/valent-device-preferences-connectivity.ui:17
+msgid "Remote Connectivity"
+msgstr "రిమోట్ కనెక్టివిటీ"
+
+#: src/plugins/gnome/valent-device-preferences-connectivity.ui:18
+msgid "Notify if the remote device loses connectivity"
+msgstr "రిమోట్ పరికరం కనెక్టివిటీని కోల్పోతే తెలియజేయండి"
+
+#: src/plugins/gnome/valent-device-preferences-contacts.ui:10
+msgid "Remote Contacts"
+msgstr "రిమోట్ పరిచయాలు"
+
+#: src/plugins/gnome/valent-device-preferences-contacts.ui:11
+msgid "Import contacts from the remote device"
+msgstr "రిమోట్ పరికరం నుండి పరిచయాలను దిగుమతి చేయండి"
+
+#: src/plugins/gnome/valent-device-preferences-contacts.ui:17
+msgid "Local Contacts"
+msgstr "స్థానిక పరిచయాలు"
+
+#: src/plugins/gnome/valent-device-preferences-contacts.ui:18
+msgid "Share contacts with the remote device"
+msgstr "రిమోట్ పరికరంతో పరిచయాలను భాగస్వామ్యం చేయండి"
+
+#: src/plugins/gnome/valent-device-preferences-dialog.ui:12
+msgid "Status"
+msgstr "స్థితి"
+
+#: src/plugins/gnome/valent-device-preferences-dialog.ui:22
+msgid "Sync"
+msgstr "సమకాలీకరించు"
+
+#: src/plugins/gnome/valent-device-preferences-dialog.ui:42
+#: src/plugins/gnome/valent-device-preferences-dialog.ui:47
+#: src/plugins/gnome/valent-device-preferences-dialog.ui:62
+msgid "Plugins"
+msgstr "ప్లగిన్లు"
+
+#: src/plugins/gnome/valent-device-preferences-dialog.ui:55
+#: src/plugins/gnome/valent-preferences-dialog.ui:38
+msgid "No Plugins"
+msgstr "ప్లగిన్‌లు లేవు"
+
+#: src/plugins/gnome/valent-device-preferences-notification.ui:10
+msgid "Local Notifications"
+msgstr "స్థానిక నోటిఫికేషన్‌లు"
+
+#: src/plugins/gnome/valent-device-preferences-notification.ui:11
+msgid "Forward notifications to the remote device"
+msgstr "నోటిఫికేషన్‌లను రిమోట్ పరికరానికి ఫార్వార్డ్ చేయండి"
+
+#: src/plugins/gnome/valent-device-preferences-notification.ui:16
+msgid "Intelligent Sync"
+msgstr "ఇంటెలిజెంట్ సింక్"
+
+#: src/plugins/gnome/valent-device-preferences-notification.ui:17
+msgid "Notifications follow the active device"
+msgstr "నోటిఫికేషన్‌లు సక్రియ పరికరాన్ని అనుసరిస్తాయి"
+
+#: src/plugins/gnome/valent-device-preferences-notification.ui:23
+msgid "Filter by Application"
+msgstr "అప్లికేషన్ ద్వారా ఫిల్టర్ చేయండి"
+
+#: src/plugins/gnome/valent-device-preferences-notification.ui:90
+msgid "Filter applications"
+msgstr "అప్లికేషన్లను ఫిల్టర్ చేయండి"
+
+#: src/plugins/gnome/valent-device-preferences-notification.ui:116
+#: src/plugins/gnome/valent-messages-window.ui:220
+msgid "Search"
+msgstr "శోధించండి"
+
+#: src/plugins/gnome/valent-device-preferences-notification.ui:129
+msgid "Reset"
+msgstr "రీసెట్ చేయండి"
+
+#: src/plugins/gnome/valent-device-preferences-notification.ui:144
+msgid "No Applications"
+msgstr "దరఖాస్తులు లేవు"
+
+#: src/plugins/gnome/valent-device-preferences-sftp.ui:10
+msgid "Automatically Mount"
+msgstr "స్వయంచాలకంగా మౌంట్"
+
+#: src/plugins/gnome/valent-device-preferences-sftp.ui:11
+msgid "Mount shared folders when the device connects"
+msgstr "పరికరం కనెక్ట్ అయినప్పుడు భాగస్వామ్య ఫోల్డర్‌లను మౌంట్ చేయండి"
+
+#: src/plugins/gnome/valent-device-preferences-sftp.ui:17
+msgid "Local Files"
+msgstr "స్థానిక ఫైల్‌లు"
+
+#: src/plugins/gnome/valent-device-preferences-sftp.ui:18
+msgid "Share local files and directories"
+msgstr "స్థానిక ఫైల్‌లు మరియు డైరెక్టరీలను భాగస్వామ్యం చేయండి"
+
+#: src/plugins/gnome/valent-device-preferences-sftp.ui:23
+msgid "Port"
+msgstr "పోర్ట్"
+
+#: src/plugins/gnome/valent-device-preferences-share.c:93
+msgid "Select download folder"
+msgstr "డౌన్‌లోడ్ ఫోల్డర్‌ని ఎంచుకోండి"
+
+#: src/plugins/gnome/valent-device-preferences-share.ui:10
+msgid "Download directory"
+msgstr "డైరెక్టరీని డౌన్‌లోడ్ చేయండి"
+
+#: src/plugins/gnome/valent-device-preferences-share.ui:11
+msgid "Where received files are stored"
+msgstr "స్వీకరించిన ఫైల్‌లు ఎక్కడ నిల్వ చేయబడతాయి"
+
+#: src/plugins/gnome/valent-device-preferences-telephony.ui:11
+msgid "Incoming Calls"
+msgstr "ఇన్‌కమింగ్ కాల్స్"
+
+#: src/plugins/gnome/valent-device-preferences-telephony.ui:12
+msgid "What to do when the phone rings"
+msgstr "ఫోన్ రింగ్ అయినప్పుడు ఏమి చేయాలి"
+
+#: src/plugins/gnome/valent-device-preferences-telephony.ui:16
+#: src/plugins/gnome/valent-device-preferences-telephony.ui:41
+#: src/plugins/gnome/valent-media-remote.ui:214
+msgid "Volume"
+msgstr "వాల్యూమ్"
+
+#: src/plugins/gnome/valent-device-preferences-telephony.ui:26
+#: src/plugins/gnome/valent-device-preferences-telephony.ui:57
+msgid "Pause Media"
+msgstr "మీడియాను పాజ్ చేయండి"
+
+#: src/plugins/gnome/valent-device-preferences-telephony.ui:36
+msgid "Ongoing Calls"
+msgstr "కొనసాగుతున్న కాల్స్"
+
+#: src/plugins/gnome/valent-device-preferences-telephony.ui:37
+msgid "What to do when the phone is answered"
+msgstr "ఫోన్ ఆన్సర్ చేస్తే ఏం చేయాలి"
+
+#: src/plugins/gnome/valent-device-preferences-telephony.ui:51
+msgid "Mute Microphone"
+msgstr "మైక్రోఫోన్‌ను మ్యూట్ చేయండి"
+
+#: src/plugins/gnome/valent-device-preferences-telephony.ui:66
+msgid "Nothing"
+msgstr "ఏమీ లేదు"
+
+#: src/plugins/gnome/valent-device-preferences-telephony.ui:67
+msgid "Lower"
+msgstr "దిగువ"
+
+#: src/plugins/gnome/valent-device-preferences-telephony.ui:68
+#: src/plugins/telephony/valent-telephony-plugin.c:391
+msgid "Mute"
+msgstr "మ్యూట్ చేయండి"
+
+#: src/plugins/gnome/valent-device-row.c:246
+msgid "Connected"
+msgstr "కనెక్ట్ చేయబడింది"
+
+#: src/plugins/gnome/valent-input-remote.ui:8
+#: src/plugins/gnome/valent-window.ui:124
+msgid "Input Remote"
+msgstr "ఇన్‌పుట్ రిమోట్"
+
+#: src/plugins/gnome/valent-input-remote.ui:153
+msgid "Drag one finger to move"
+msgstr "తరలించడానికి ఒక వేలును లాగండి"
+
+#: src/plugins/gnome/valent-input-remote.ui:162
+msgid "Drag two fingers to scroll"
+msgstr "స్క్రోల్ చేయడానికి రెండు వేళ్లను లాగండి"
+
+#: src/plugins/gnome/valent-input-remote.ui:171
+msgid "Tap one finger to click"
+msgstr "క్లిక్ చేయడానికి ఒక వేలిని నొక్కండి"
+
+#: src/plugins/gnome/valent-input-remote.ui:181
+msgid "Tap two fingers to right click"
+msgstr "కుడి క్లిక్ చేయడానికి రెండు వేళ్లను నొక్కండి"
+
+#: src/plugins/gnome/valent-input-remote.ui:190
+msgid "Tap three fingers to middle click"
+msgstr "మధ్య క్లిక్ చేయడానికి మూడు వేళ్లను నొక్కండి"
+
+#: src/plugins/gnome/valent-input-remote.ui:199
+msgid "Hold one finger to grab"
+msgstr "పట్టుకోవడానికి ఒక వేలును పట్టుకోండి"
+
+#: src/plugins/gnome/valent-input-remote.ui:209
+msgid "Tap one finger to release"
+msgstr "విడుదల చేయడానికి ఒక వేలిని నొక్కండి"
+
+#: src/plugins/gnome/valent-media-remote.c:230
+msgid "Pause"
+msgstr "పాజ్ చేయండి"
+
+#: src/plugins/gnome/valent-media-remote.c:241
+#: src/plugins/gnome/valent-media-remote.ui:234
+msgid "Play"
+msgstr "ఆడండి"
+
+#: src/plugins/gnome/valent-media-remote.ui:222
+#: src/plugins/gnome/valent-menu-list.c:665
+#: src/plugins/gnome/valent-presenter-remote.ui:146
+msgid "Previous"
+msgstr "మునుపటి"
+
+#: src/plugins/gnome/valent-media-remote.ui:249
+#: src/plugins/gnome/valent-presenter-remote.ui:173
+msgid "Next"
+msgstr "తదుపరి"
+
+#: src/plugins/gnome/valent-media-remote.ui:265
+msgid "Playback Options"
+msgstr "ప్లేబ్యాక్ ఎంపికలు"
+
+#: src/plugins/gnome/valent-media-remote.ui:285
+msgid "_None"
+msgstr "కాదు(_N)"
+
+#: src/plugins/gnome/valent-media-remote.ui:290
+msgid "Repeat _One"
+msgstr "ఒకటిని పునరావృతం చేయండి(_O)"
+
+#: src/plugins/gnome/valent-media-remote.ui:295
+msgid "Repeat _All"
+msgstr "రిపీట్ అన్నీ(_A)"
+
+#: src/plugins/gnome/valent-media-remote.ui:302
+msgid "_Shuffle"
+msgstr "షఫుల్(_S)"
+
+#: src/plugins/gnome/valent-media-window.ui:8
+#: src/plugins/gnome/valent-window.ui:128
+msgid "Media Remote"
+msgstr "మీడియా రిమోట్"
+
+#: src/plugins/gnome/valent-menu-list.c:530
+msgid "No Actions"
+msgstr "చర్యలు లేవు"
+
+#: src/plugins/gnome/valent-message-row.c:70
+#, c-format
+msgid "You: %s"
+msgstr "మీరు: %s"
+
+#: src/plugins/gnome/valent-messages-window.c:179
+msgid "Conversations"
+msgstr "సంభాషణలు"
+
+#: src/plugins/gnome/valent-messages-window.c:393
+msgid "Unknown sender"
+msgstr "తెలియని పంపినవారు"
+
+#: src/plugins/gnome/valent-messages-window.ui:13
+#: src/plugins/gnome/valent-messages-window.ui:51
+#: src/plugins/gnome/valent-window.ui:132
+msgid "Messages"
+msgstr "సందేశాలు"
+
+#: src/plugins/gnome/valent-messages-window.ui:61
+msgid "New Conversation"
+msgstr "కొత్త సంభాషణ"
+
+#: src/plugins/gnome/valent-messages-window.ui:126
+#: src/plugins/gnome/valent-window.ui:68
+msgid "Main Menu"
+msgstr "ప్రధాన మెనూ"
+
+#: src/plugins/gnome/valent-messages-window.ui:146
+msgid "No Conversations"
+msgstr "సంభాషణలు లేవు"
+
+#: src/plugins/gnome/valent-messages-window.ui:207
+msgid "No conversation selected"
+msgstr "సంభాషణ ఏదీ ఎంచుకోబడలేదు"
+
+#: src/plugins/gnome/valent-messages-window.ui:208
+msgid "Select or start a conversation"
+msgstr "సంభాషణను ఎంచుకోండి లేదా ప్రారంభించండి"
+
+#: src/plugins/gnome/valent-messages-window.ui:228
+msgid "Search messages…"
+msgstr "సందేశాలను వెతకండి..."
+
+#: src/plugins/gnome/valent-messages-window.ui:255
+msgid "No results found"
+msgstr "ఫలితాలు ఏవీ కనుగొనబడలేదు"
+
+#: src/plugins/gnome/valent-messages-window.ui:291
+msgid "Keyboard Shortcuts"
+msgstr "కీబోర్డ్ సత్వరమార్గాలు"
+
+#: src/plugins/gnome/valent-messages-window.ui:296
+msgid "Help"
+msgstr "సహాయం"
+
+#: src/plugins/gnome/valent-messages-window.ui:303
+#: src/plugins/gnome/valent-notification-dialog.ui:150
+msgid "Close"
+msgstr "మూసివేయి"
+
+#: src/plugins/gnome/valent-notification-dialog.ui:12
+msgid "Notification"
+msgstr "నోటిఫికేషన్"
+
+#: src/plugins/gnome/valent-notification-dialog.ui:26
+msgid "_Reply"
+msgstr "ప్రత్యుత్తరం ఇవ్వండి(_R)"
+
+#: src/plugins/gnome/valent-notification-dialog.ui:151
+msgid "Close the notification"
+msgstr "నోటిఫికేషన్‌ను మూసివేయండి"
+
+#: src/plugins/gnome/valent-plugin-row.ui:79
+msgid "Authors"
+msgstr "రచయితలు"
+
+#: src/plugins/gnome/valent-plugin-row.ui:112
+msgid "Version"
+msgstr "వెర్షన్"
+
+#: src/plugins/gnome/valent-plugin-row.ui:143
+msgid "Website"
+msgstr "వెబ్సైట్"
+
+#: src/plugins/gnome/valent-preferences-dialog.c:336
+msgid "Application"
+msgstr "అప్లికేషన్"
+
+#: src/plugins/gnome/valent-preferences-dialog.c:343
+msgid "Device Connections"
+msgstr "పరికర కనెక్షన్లు"
+
+#: src/plugins/gnome/valent-preferences-dialog.c:364
+msgid "Mouse and Keyboard"
+msgstr "మౌస్ మరియు కీబోర్డ్"
+
+#: src/plugins/gnome/valent-preferences-dialog.c:371
+msgid "Media Players"
+msgstr "మీడియా ప్లేయర్లు"
+
+#: src/plugins/gnome/valent-preferences-dialog.c:378
+msgid "Volume Control"
+msgstr "వాల్యూమ్ నియంత్రణ"
+
+#: src/plugins/gnome/valent-preferences-dialog.c:385
+#: src/plugins/notification/notification.plugin.desktop.in:7
+msgid "Notifications"
+msgstr "నోటిఫికేషన్‌లు"
+
+#: src/plugins/gnome/valent-preferences-dialog.c:392
+msgid "Session Manager"
+msgstr "సెషన్ మేనేజర్"
+
+#: src/plugins/gnome/valent-preferences-dialog.ui:18
+msgid "Device Name"
+msgstr "పరికరం పేరు"
+
+#: src/plugins/gnome/valent-preferences-dialog.ui:30
+msgid "Desktop Integration"
+msgstr "డెస్క్‌టాప్ ఇంటిగ్రేషన్"
+
+#: src/plugins/gnome/valent-presenter-remote.c:91
+msgid "Select Presentation"
+msgstr "ప్రదర్శనను ఎంచుకోండి"
+
+#: src/plugins/gnome/valent-presenter-remote.c:100
+msgid "Presentations"
+msgstr "ప్రదర్శనలు"
+
+#: src/plugins/gnome/valent-presenter-remote.c:107
+msgid "All Files"
+msgstr "అన్ని ఫైల్‌లు"
+
+#: src/plugins/gnome/valent-presenter-remote.ui:8
+msgid "Presentation Remote"
+msgstr "ప్రెజెంటేషన్ రిమోట్"
+
+#: src/plugins/gnome/valent-presenter-remote.ui:81
+msgid "Start"
+msgstr "ప్రారంభించండి"
+
+#: src/plugins/gnome/valent-presenter-remote.ui:121
+msgid "Stop"
+msgstr "ఆపు"
+
+#: src/plugins/gnome/valent-presenter-remote.ui:196
+msgid "Pointer"
+msgstr "పాయింటర్"
+
+#: src/plugins/gnome/valent-share-dialog.c:109
+#, c-format
+msgid "Size: %s"
+msgstr "పరిమాణం: %s"
+
+#: src/plugins/gnome/valent-share-dialog.c:123
+#, c-format
+msgid "Total size: %s"
+msgstr "మొత్తం పరిమాణం: %s"
+
+#: src/plugins/gnome/valent-share-dialog.c:254
+#, c-format
+msgid "%u files and links"
+msgstr "%u ఫైల్‌లు మరియు లింక్‌లు"
+
+#: src/plugins/gnome/valent-share-dialog.c:256
+#, c-format
+msgid "%u files"
+msgstr "%u ఫైల్‌లు"
+
+#: src/plugins/gnome/valent-share-dialog.c:258
+#, c-format
+msgid "%u links"
+msgstr "%u లింక్‌లు"
+
+#: src/plugins/gnome/valent-share-dialog.ui:8
+#: src/plugins/gnome/valent-share-dialog.ui:29
+#: src/plugins/gnome/valent-share-dialog.ui:40
+#: src/plugins/gnome/valent-share-dialog.ui:112
+msgid "Share"
+msgstr "షేర్ చేయండి"
+
+#: src/plugins/gnome/valent-share-dialog.ui:41
+msgid "Select files, enter a link or paste text"
+msgstr "ఫైల్‌లను ఎంచుకోండి, లింక్‌ను నమోదు చేయండి లేదా వచనాన్ని అతికించండి"
+
+#: src/plugins/gnome/valent-share-dialog.ui:50
+msgid "Pick Files"
+msgstr "ఫైళ్లను ఎంచుకోండి"
+
+#: src/plugins/gnome/valent-share-dialog.ui:75
+msgid "Enter URL"
+msgstr "URLని నమోదు చేయండి"
+
+#: src/plugins/gnome/valent-share-dialog.ui:161
+#: src/plugins/gnome/valent-share-dialog.ui:178
+#: src/plugins/gnome/valent-window.ui:86 src/plugins/gnome/valent-window.ui:101
+msgid "Devices"
+msgstr "పరికరాలు"
+
+#: src/plugins/gnome/valent-share-dialog.ui:165
+msgid "Share with multiple devices"
+msgstr "బహుళ పరికరాలతో భాగస్వామ్యం చేయండి"
+
+#: src/plugins/gnome/valent-share-dialog.ui:192
+msgid "Searching…"
+msgstr "శోధిస్తోంది..."
+
+#: src/plugins/gnome/valent-share-dialog.ui:215
+msgid "_Share"
+msgstr "షేర్ చేయండి(_S)"
+
+#. translators: Unknown time
+#: src/plugins/gnome/valent-time-helpers.c:51
+msgid "--:--"
+msgstr "--:--"
+
+#. hour:minutes:seconds
+#. Translators: This is a time format, like "9:05:02" for 9
+#. * hours, 5 minutes, and 2 seconds. You may change ":" to
+#. * the separator that your locale uses or use "%Id" instead
+#. * of "%d" if your locale uses localized digits.
+#.
+#: src/plugins/gnome/valent-time-helpers.c:87
+#, c-format
+msgctxt "long time format"
+msgid "%d:%02d:%02d"
+msgstr "%d:%02d:%02d"
+
+#. hour:minutes:seconds.msecs
+#. Translators: This is a time format, like "9:05:02.050" for 9
+#. * hours, 5 minutes, 2 seconds and 50 milliseconds. You may change ":" to
+#. * the separator that your locale uses or use "%Id" instead
+#. * of "%d" if your locale uses localized digits.
+#.
+#: src/plugins/gnome/valent-time-helpers.c:95
+#, c-format
+msgctxt "long time format"
+msgid "%d:%02d:%02d.%03d"
+msgstr "%d:%02d:%02d.%03d"
+
+#. -hour:minutes:seconds
+#. Translators: This is a time format, like "-9:05:02" for 9
+#. * hours, 5 minutes, and 2 seconds playback remaining. You may
+#. * change ":" to the separator that your locale uses or use
+#. * "%Id" instead of "%d" if your locale uses localized digits.
+#.
+#: src/plugins/gnome/valent-time-helpers.c:105
+#, c-format
+msgctxt "long time format"
+msgid "-%d:%02d:%02d"
+msgstr "-%d:%02d:%02d"
+
+#. -hour:minutes:seconds.msecs
+#. Translators: This is a time format, like "-9:05:02.050" for 9
+#. * hours, 5 minutes, 2 seconds and 50 milliseconds playback remaining. You may
+#. * change ":" to the separator that your locale uses or use
+#. * "%Id" instead of "%d" if your locale uses localized digits.
+#.
+#: src/plugins/gnome/valent-time-helpers.c:113
+#, c-format
+msgctxt "long time format"
+msgid "-%d:%02d:%02d.%03d"
+msgstr "-%d:%02d:%02d.%03d"
+
+#. -minutes:seconds
+#. Translators: This is a time format, like "-5:02" for 5
+#. * minutes and 2 seconds playback remaining. You may change
+#. * ":" to the separator that your locale uses or use "%Id"
+#. * instead of "%d" if your locale uses localized digits.
+#.
+#: src/plugins/gnome/valent-time-helpers.c:126
+#, c-format
+msgctxt "short time format"
+msgid "-%d:%02d"
+msgstr "-%d:%02d"
+
+#. -minutes:seconds.msec
+#. Translators: This is a time format, like "-5:02.050" for 5
+#. * minutes 2 seconds and 50 milliseconds playback remaining. You may change
+#. * ":" to the separator that your locale uses or use "%Id"
+#. * instead of "%d" if your locale uses localized digits.
+#.
+#: src/plugins/gnome/valent-time-helpers.c:134
+#, c-format
+msgctxt "short time format"
+msgid "-%d:%02d.%03d"
+msgstr "-%d:%02d.%03d"
+
+#. minutes:seconds.msec
+#. Translators: This is a time format, like "5:02" for 5
+#. * minutes 2 seconds and 50 milliseconds. You may change ":" to the
+#. * separator that your locale uses or use "%Id" instead of
+#. * "%d" if your locale uses localized digits.
+#.
+#: src/plugins/gnome/valent-time-helpers.c:145
+#, c-format
+msgctxt "short time format"
+msgid "%d:%02d.%03d"
+msgstr "%d:%02d.%03d"
+
+#. minutes:seconds
+#. Translators: This is a time format, like "5:02" for 5
+#. * minutes and 2 seconds. You may change ":" to the
+#. * separator that your locale uses or use "%Id" instead of
+#. * "%d" if your locale uses localized digits.
+#.
+#: src/plugins/gnome/valent-time-helpers.c:154
+#, c-format
+msgctxt "short time format"
+msgid "%d:%02d"
+msgstr "%d:%02d"
+
+#: src/plugins/gnome/valent-window.c:232
+msgid "translator-credits"
+msgstr "translator-credits"
+
+#: src/plugins/gnome/valent-window.c:237
+msgid "Sponsors"
+msgstr "స్పాన్సర్లు"
+
+#: src/plugins/gnome/valent-window.ui:56
+msgid "Refresh"
+msgstr "రిఫ్రెష్ చేయండి"
+
+#: src/plugins/gnome/valent-window.ui:57
+msgid "Scan for new devices"
+msgstr "కొత్త పరికరాల కోసం స్కాన్ చేయండి"
+
+#: src/plugins/gnome/valent-window.ui:94
+msgid "Searching for devices…"
+msgstr "పరికరాల కోసం శోధిస్తోంది..."
+
+#: src/plugins/gnome/valent-window.ui:102
+msgid "List of available and known devices"
+msgstr "అందుబాటులో ఉన్న మరియు తెలిసిన పరికరాల జాబితా"
+
+#: src/plugins/gnome/valent-window.ui:136
+msgid "Share…"
+msgstr "షేర్ చేయండి..."
+
+#: src/plugins/gnome/valent-window.ui:147
+msgid "About Valent"
+msgstr "వాలెంట్ గురించి"
+
+#: src/plugins/gnome/valent-window.ui:153
+msgid "Quit"
+msgstr "నిష్క్రమించు"
+
+#: src/plugins/gtk/gtk.plugin.desktop.in:7
+msgid "GTK"
+msgstr "GTK"
+
+#: src/plugins/gtk/gtk.plugin.desktop.in:8
+msgid "Integration with GTK4"
+msgstr "GTK4తో ఏకీకరణ"
+
+#: src/plugins/lan/lan.plugin.desktop.in:7
+msgid "LAN"
+msgstr "LAN"
+
+#: src/plugins/lan/lan.plugin.desktop.in:8
+msgid "Connect devices over LAN"
+msgstr "LAN ద్వారా పరికరాలను కనెక్ట్ చేయండి"
+
+#: src/plugins/lock/lock.plugin.desktop.in:8
+msgid "Lock and unlock"
+msgstr "లాక్ మరియు అన్లాక్"
+
+#: src/plugins/mousepad/mousepad.plugin.desktop.in:7
+msgid "Mousepad"
+msgstr "మౌస్‌ప్యాడ్"
+
+#: src/plugins/mousepad/mousepad.plugin.desktop.in:8
+msgid "Control the mouse and keyboard"
+msgstr "మౌస్ మరియు కీబోర్డ్ నియంత్రించండి"
+
+#: src/plugins/mpris/mpris.plugin.desktop.in:7
+msgid "MPRIS"
+msgstr "MPRIS"
+
+#: src/plugins/mpris/mpris.plugin.desktop.in:8
+msgid "Share control of MPRISv2 players"
+msgstr "MPRISv2 ప్లేయర్‌ల నియంత్రణను భాగస్వామ్యం చేయండి"
+
+#: src/plugins/notification/notification.plugin.desktop.in:8
+msgid "Sync notifications"
+msgstr "నోటిఫికేషన్‌లను సమకాలీకరించండి"
+
+#: src/plugins/ping/ping.plugin.desktop.in:7
+#: src/plugins/ping/valent-ping-plugin.c:155
+msgid "Ping"
+msgstr "పింగ్"
+
+#: src/plugins/ping/ping.plugin.desktop.in:8
+msgid "Send and receive pings"
+msgstr "పింగ్‌లను పంపండి మరియు స్వీకరించండి"
+
+#: src/plugins/ping/valent-ping-plugin.c:37
+msgid "Ping!"
+msgstr "పింగ్!"
+
+#: src/plugins/pipewire/pipewire.plugin.desktop.in:7
+msgid "PipeWire"
+msgstr "పైప్‌వైర్"
+
+#: src/plugins/pipewire/pipewire.plugin.desktop.in:8
+msgid "Integration with PipeWire"
+msgstr "PipeWireతో ఏకీకరణ"
+
+#: src/plugins/presenter/presenter.plugin.desktop.in:7
+msgid "Presenter"
+msgstr "ప్రెజెంటర్"
+
+#: src/plugins/presenter/presenter.plugin.desktop.in:8
+msgid "Control presentations"
+msgstr "ప్రదర్శనలను నియంత్రించండి"
+
+#: src/plugins/pulseaudio/pulseaudio.plugin.desktop.in:7
+msgid "PulseAudio"
+msgstr "PulseAudio"
+
+#: src/plugins/pulseaudio/pulseaudio.plugin.desktop.in:8
+msgid "Integration with PulseAudio"
+msgstr "PulseAudioతో ఏకీకరణ"
+
+#: src/plugins/runcommand/runcommand.plugin.desktop.in:7
+msgid "Commands"
+msgstr "ఆదేశాలు"
+
+#: src/plugins/runcommand/runcommand.plugin.desktop.in:8
+msgid "Execute commands remotely"
+msgstr "రిమోట్‌గా ఆదేశాలను అమలు చేయండి"
+
+#: src/plugins/runcommand/valent-runcommand-plugin.c:317
+msgid "Run Command"
+msgstr "ఆదేశాన్ని అమలు చేయండి"
+
+#: src/plugins/sftp/sftp.plugin.desktop.in:7
+msgid "Files"
+msgstr "ఫైళ్లు"
+
+#: src/plugins/sftp/sftp.plugin.desktop.in:8
+msgid "Share files and directories with SFTP"
+msgstr "SFTPతో ఫైల్‌లు మరియు డైరెక్టరీలను భాగస్వామ్యం చేయండి"
+
+#: src/plugins/sftp/valent-sftp-plugin.c:541
+msgid "Permission denied"
+msgstr "అనుమతి నిరాకరించబడింది"
+
+#: src/plugins/sftp/valent-sftp-plugin.c:680
+msgid "Browse Files"
+msgstr "ఫైళ్లను బ్రౌజ్ చేయండి"
+
+#: src/plugins/share/share.plugin.desktop.in:7
+msgid "Sharing"
+msgstr "భాగస్వామ్యం"
+
+#: src/plugins/share/share.plugin.desktop.in:8
+msgid "Direct file, link and text sharing"
+msgstr "డైరెక్ట్ ఫైల్, లింక్ మరియు టెక్స్ట్ షేరింగ్"
+
+#: src/plugins/share/valent-share-plugin.c:102
+#: src/plugins/share/valent-share-plugin.c:467
+msgid "Transferring Files"
+msgstr "ఫైల్‌లను బదిలీ చేస్తోంది"
+
+#: src/plugins/share/valent-share-plugin.c:103
+#: src/plugins/share/valent-share-plugin.c:121
+#, c-format
+msgid "Receiving one file from %1$s"
+msgid_plural "Receiving %2$d files from %1$s"
+msgstr[0] "%1$s నుండి ఒక ఫైల్ అందుతోంది"
+msgstr[1] "%1$s నుండి %2$d ఫైల్‌లను స్వీకరిస్తోంది"
+
+#: src/plugins/share/valent-share-plugin.c:111
+#: src/plugins/share/valent-share-plugin.c:342
+#: src/plugins/share/valent-share-plugin.c:476
+msgid "Transfer Complete"
+msgstr "బదిలీ పూర్తయింది"
+
+#: src/plugins/share/valent-share-plugin.c:112
+#, c-format
+msgid "Received one file from %1$s"
+msgid_plural "Received %2$d files from %1$s"
+msgstr[0] "%1$s నుండి ఒక ఫైల్ స్వీకరించబడింది"
+msgstr[1] "%1$s నుండి %2$d ఫైల్‌లు స్వీకరించబడ్డాయి"
+
+#: src/plugins/share/valent-share-plugin.c:120
+#: src/plugins/share/valent-share-plugin.c:246
+#: src/plugins/share/valent-share-plugin.c:348
+#: src/plugins/share/valent-share-plugin.c:485
+msgid "Transfer Failed"
+msgstr "బదిలీ విఫలమైంది"
+
+#: src/plugins/share/valent-share-plugin.c:136
+#: src/plugins/share/valent-share-plugin.c:259
+#: src/plugins/share/valent-share-plugin.c:361
+#: src/plugins/share/valent-share-plugin.c:501
+msgid "Cancel"
+msgstr "రద్దు చేయి"
+
+#: src/plugins/share/valent-share-plugin.c:154
+#: src/plugins/share/valent-share-plugin.c:738
+msgid "Open Folder"
+msgstr "ఫోల్డర్ తెరవండి"
+
+#: src/plugins/share/valent-share-plugin.c:165
+#: src/plugins/share/valent-share-plugin.c:743
+msgid "Open File"
+msgstr "ఫైల్‌ని తెరవండి"
+
+#: src/plugins/share/valent-share-plugin.c:236
+#: src/plugins/share/valent-share-plugin.c:336
+msgid "Transferring File"
+msgstr "ఫైల్‌ను బదిలీ చేస్తోంది"
+
+#: src/plugins/share/valent-share-plugin.c:237
+#: src/plugins/share/valent-share-plugin.c:247
+#, c-format
+msgid "Opening “%s” from “%s”"
+msgstr "“%s” నుండి “%s” తెరవడం"
+
+#: src/plugins/share/valent-share-plugin.c:337
+#: src/plugins/share/valent-share-plugin.c:349
+#, c-format
+msgid "Opening “%s” on “%s”"
+msgstr "“%s” లో “%s” తెరవడం"
+
+#: src/plugins/share/valent-share-plugin.c:343
+#, c-format
+msgid "Opened “%s” on “%s”"
+msgstr "\"%s\" లో \"%s\" తెరవబడింది"
+
+#: src/plugins/share/valent-share-plugin.c:468
+#: src/plugins/share/valent-share-plugin.c:486
+#, c-format
+msgid "Sending one file to %1$s"
+msgid_plural "Sending %2$d files to %1$s"
+msgstr[0] "ఒక ఫైల్‌ని %1$s కి పంపుతోంది"
+msgstr[1] "%2$d ఫైల్‌లను %1$s కి పంపుతోంది"
+
+#: src/plugins/share/valent-share-plugin.c:477
+#, c-format
+msgid "Sent one file to %1$s"
+msgid_plural "Sent %2$d files to %1$s"
+msgstr[0] "%1$s కి ఒక ఫైల్ పంపబడింది"
+msgstr[1] "%2$d ఫైల్‌లను %1$s కి పంపారు"
+
+#: src/plugins/share/valent-share-plugin.c:731
+#, c-format
+msgid "Text from “%s” saved to “%s”"
+msgstr "“%s” నుండి వచనం “%s” కి సేవ్ చేయబడింది"
+
+#. TRANSLATORS: this is a filename used for text shared by a device, where
+#. * the first "%s" is the date and the second "%s" is the device name, e.g.
+#. * "Text from 07-12-2024 10:00:46 PM (OnePlus 6)"
+#. *
+#: src/plugins/share/valent-share-plugin.c:786
+#, c-format
+msgid "Text from %s (%s).txt"
+msgstr "%s (%s).txt నుండి వచనం"
+
+#: src/plugins/share/valent-share-plugin.c:1108
+#, c-format
+msgid "Text from “%s”"
+msgstr "“%s” నుండి వచనం"
+
+#: src/plugins/share/valent-share-plugin.c:1119
+msgid "Copy"
+msgstr "కాపీ చేయండి"
+
+#: src/plugins/sms/sms.plugin.desktop.in:7
+msgid "SMS"
+msgstr "SMS"
+
+#: src/plugins/sms/sms.plugin.desktop.in:8
+msgid "Send and receive SMS messages"
+msgstr "SMS సందేశాలను పంపండి మరియు స్వీకరించండి"
+
+#: src/plugins/systemvolume/systemvolume.plugin.desktop.in:7
+msgid "System Volume"
+msgstr "సిస్టమ్ వాల్యూమ్"
+
+#: src/plugins/systemvolume/systemvolume.plugin.desktop.in:8
+msgid "Monitor volume levels and microphones"
+msgstr "వాల్యూమ్ స్థాయిలు మరియు మైక్రోఫోన్‌లను పర్యవేక్షించండి"
+
+#: src/plugins/telephony/telephony.plugin.desktop.in:7
+msgid "Telephony"
+msgstr "టెలిఫోనీ"
+
+#: src/plugins/telephony/telephony.plugin.desktop.in:8
+msgid "Be notified of incoming and ongoing calls"
+msgstr "ఇన్‌కమింగ్ మరియు కొనసాగుతున్న కాల్‌ల గురించి తెలియజేయండి"
+
+#. TRANSLATORS: An unknown caller, with no name or phone number
+#: src/plugins/telephony/valent-telephony-plugin.c:360
+msgctxt "contact identity"
+msgid "Unknown"
+msgstr "తెలియదు"
+
+#. TRANSLATORS: The phone is ringing
+#: src/plugins/telephony/valent-telephony-plugin.c:387
+msgid "Incoming call"
+msgstr "ఇన్‌కమింగ్ కాల్"
+
+#. TRANSLATORS: The phone has been answered
+#: src/plugins/telephony/valent-telephony-plugin.c:400
+msgid "Ongoing call"
+msgstr "కొనసాగుతున్న కాల్"
+
+#: src/plugins/xdp/valent-xdp-background.c:52
+msgid "Syncing Devices"
+msgstr "పరికరాలను సమకాలీకరించడం"
+
+#: src/plugins/xdp/valent-xdp-background.c:82
+msgid "Valent wants to run as a service"
+msgstr "వాలెంట్ సేవగా అమలు చేయాలనుకుంటున్నారు"
+
+#: src/plugins/xdp/xdp.plugin.desktop.in:7
+msgid "Portals"
+msgstr "పోర్టల్స్"
+
+#: src/plugins/xdp/xdp.plugin.desktop.in:8
+msgid "Integration with desktop portals"
+msgstr "డెస్క్‌టాప్ పోర్టల్‌లతో ఏకీకరణ"
