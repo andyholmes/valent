@@ -1,4 +1,4 @@
-# Telugu Translation for Valent .
+# Telugu Translation for Valent @2024 .
 # Copyright (C) 2024
 # This file is distributed under the same license as the valent package.
 # Aryan Karamtoth <aryankmmiv@outlook.com>, 2024.
