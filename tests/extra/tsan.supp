@@ -29,6 +29,9 @@ called_from_lib:libtasn1
 # See: https://gitlab.gnome.org/GNOME/glib-networking/-/issues/184
 mutex:g_tls_certificate_gnutls_get_type_once
 
+# Unconfirmed: https://gitlab.gnome.org/GNOME/tinysparql/-/issues/new
+mutex:tracker_triples_cursor_reset
+
 # GTK
 called_from_lib:libadwaita-1
 called_from_lib:libcairo.so
