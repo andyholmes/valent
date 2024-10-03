@@ -22,6 +22,7 @@ RUN dnf install -y \
         libphonenumber-devel          libphonenumber-debuginfo \
         libportal-devel               libportal-debuginfo \
         libportal-gtk4-devel          libportal-gtk4-debuginfo \
+        libtracker-sparql             libtracker-sparql-debuginfo \
         pipewire-devel                pipewire-debuginfo \
         pulseaudio-libs-devel         pulseaudio-libs-debuginfo \
         sqlite-devel                  sqlite-debuginfo \
