@@ -9,6 +9,6 @@ G_BEGIN_DECLS
 
 #define VALENT_TYPE_EBOOK_STORE (valent_ebook_store_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentEBookStore, valent_ebook_store, VALENT, EBOOK_STORE, ValentContactStore)
+G_DECLARE_FINAL_TYPE (ValentEBookStore, valent_ebook_store, VALENT, EBOOK_STORE, ValentObject)
 
 G_END_DECLS

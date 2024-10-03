@@ -63,10 +63,6 @@ test_sms_contact_list (void)
 
   VALENT_TEST_CHECK ("Row header function works correctly");
   list = gtk_list_box_new ();
-  gtk_list_box_set_header_func (GTK_LIST_BOX (list),
-                                valent_contact_row_header_func,
-                                NULL, NULL);
-  valent_list_add_contact (GTK_LIST_BOX (list), contact);
 
   window = gtk_window_new ();
   gtk_window_set_child (GTK_WINDOW (window), list);

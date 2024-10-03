@@ -6,32 +6,32 @@
 #include <libvalent-test.h>
 
 
-static unsigned int n_contacts = 0;
-
 static void
-on_contact_added (ValentContactStore *store,
-                  EContact           *contact,
-                  gboolean           *done)
+on_adapter_changed (GListModel    *list,
+                    unsigned int   position,
+                    unsigned int   removed,
+                    unsigned int   added,
+                    GListModel   **addressbook_out)
 {
-  n_contacts++;
-
-  if (n_contacts == 2)
+  if (position == 0 && removed == 0 && added == 1)
     {
-      n_contacts = 0;
-      g_signal_handlers_disconnect_by_data (store, done);
-      *done = TRUE;
+      g_signal_handlers_disconnect_by_data (list, addressbook_out);
+      *addressbook_out = g_list_model_get_item (list, 0);
     }
 }
 
 static void
-valent_contact_store_query_cb (ValentContactStore  *store,
-                               GAsyncResult        *result,
-                               GSList             **contacts)
+on_contact_list_changed (GListModel   *list,
+                         unsigned int  position,
+                         unsigned int  removed,
+                         unsigned int  added,
+                         gboolean     *done)
 {
-  GError *error = NULL;
-
-  *contacts = valent_contact_store_query_finish (store, result, &error);
-  g_assert_no_error (error);
+  if (g_list_model_get_n_items (list) == 3)
+    {
+      g_signal_handlers_disconnect_by_data (list, done);
+      *done = TRUE;
+    }
 }
 
 static void
@@ -41,25 +41,30 @@ contacts_plugin_fixture_set_up (ValentTestFixture *fixture,
   valent_test_fixture_init (fixture, user_data);
 
   g_settings_set_boolean (fixture->settings, "local-sync", TRUE);
-  g_settings_set_string (fixture->settings, "local-uid", "test-device");
+  g_settings_set_string (fixture->settings, "local-uid", "urn:valent:contacts:mock");
 }
 
 static void
-test_contacts_plugin_request_contacts (ValentTestFixture *fixture,
-                                       gconstpointer      user_data)
+contacts_plugin_fixture_clear (ValentTestFixture *fixture,
+                               gconstpointer      user_data)
 {
-  ValentContactStore *store;
-  gboolean done = FALSE;
-  ValentDevice *device;
-  g_autoslist (GObject) contacts = NULL;
-  EBookQuery *query;
-  g_autofree char *sexp = NULL;
+  valent_test_fixture_clear (fixture, user_data);
+
+  /* NOTE: we need to finalize the singletons between tests */
+  v_assert_finalize_object (valent_contacts_get_default ());
+}
+
+static void
+test_contacts_plugin_basic (ValentTestFixture *fixture,
+                            gconstpointer      user_data)
+{
+  GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *packet;
 
-  device = valent_test_fixture_get_device (fixture);
-  store = valent_contacts_ensure_store (valent_contacts_get_default (),
-                                        valent_device_get_id (device),
-                                        valent_device_get_name (device));
+  VALENT_TEST_CHECK ("Plugin has expected actions");
+  g_assert_true (g_action_group_has_action (actions, "contacts.fetch"));
+
+  valent_test_fixture_connect (fixture, TRUE);
 
   VALENT_TEST_CHECK ("Plugin requests a list of UIDs on connect");
   valent_test_fixture_connect (fixture, TRUE);
@@ -68,10 +73,28 @@ test_contacts_plugin_request_contacts (ValentTestFixture *fixture,
   v_assert_packet_type (packet, "kdeconnect.contacts.request_all_uids_timestamps");
   json_node_unref (packet);
 
-  VALENT_TEST_CHECK ("Plugin can request a list of UIDs");
-  g_action_group_activate_action (G_ACTION_GROUP (device),
-                                  "contacts.fetch",
-                                  NULL);
+  VALENT_TEST_CHECK ("Plugin actions are enabled when connected");
+  g_assert_true (g_action_group_get_action_enabled (actions, "contacts.fetch"));
+
+  VALENT_TEST_CHECK ("Plugin action `contacts.fetch` sends a request for contacts");
+  g_action_group_activate_action (actions, "contacts.fetch", NULL);
+
+  packet = valent_test_fixture_expect_packet (fixture);
+  v_assert_packet_type (packet, "kdeconnect.contacts.request_all_uids_timestamps");
+  json_node_unref (packet);
+}
+
+static void
+test_contacts_plugin_request_contacts (ValentTestFixture *fixture,
+                                       gconstpointer      user_data)
+{
+  g_autoptr (ValentContactsAdapter) adapter = NULL;
+  g_autoptr (GListModel) addressbook = NULL;
+  gboolean done = FALSE;
+  JsonNode *packet;
+
+  VALENT_TEST_CHECK ("Plugin requests a list of UIDs on connect");
+  valent_test_fixture_connect (fixture, TRUE);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.contacts.request_all_uids_timestamps");
@@ -89,26 +112,22 @@ test_contacts_plugin_request_contacts (ValentTestFixture *fixture,
   valent_test_fixture_handle_packet (fixture, packet);
 
   VALENT_TEST_CHECK ("Plugin adds contact vCards to the contact store");
-  g_signal_connect (store,
-                    "contact-added",
-                    G_CALLBACK (on_contact_added),
+  adapter = g_list_model_get_item (G_LIST_MODEL (valent_contacts_get_default ()), 1);
+  addressbook = g_list_model_get_item (G_LIST_MODEL (adapter), 0);
+  if (addressbook == NULL)
+    {
+      g_signal_connect (adapter,
+                        "items-changed",
+                        G_CALLBACK (on_adapter_changed),
+                        &addressbook);
+      valent_test_await_pointer (&addressbook);
+    }
+
+  g_signal_connect (addressbook,
+                    "items-changed",
+                    G_CALLBACK (on_contact_list_changed),
                     &done);
   valent_test_await_boolean (&done);
-
-  query = e_book_query_vcard_field_exists (EVC_UID);
-  sexp = e_book_query_to_string (query);
-  e_book_query_unref (query);
-
-  valent_contact_store_query (store,
-                              sexp,
-                              NULL,
-                              (GAsyncReadyCallback)valent_contact_store_query_cb,
-                              &contacts);
-  valent_test_await_pointer (&contacts);
-
-  g_assert_cmpuint (g_slist_length (contacts), ==, 2);
-
-  valent_test_await_pending ();
 }
 
 static void
@@ -116,7 +135,9 @@ test_contacts_plugin_provide_contacts (ValentTestFixture *fixture,
                                        gconstpointer      user_data)
 {
   JsonNode *packet;
+  JsonNode *request;
   JsonArray *uids;
+  unsigned int n_uids;
 
   VALENT_TEST_CHECK ("Plugin requests a list of UIDs on connect");
   valent_test_fixture_connect (fixture, TRUE);
@@ -131,16 +152,21 @@ test_contacts_plugin_provide_contacts (ValentTestFixture *fixture,
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.contacts.response_uids_timestamps");
-  json_node_unref (packet);
+  g_assert_true (valent_packet_get_array (packet, "uids", &uids));
+  n_uids = json_array_get_length (uids);
 
   VALENT_TEST_CHECK ("Plugin returns a list of contacts when requested");
-  packet = valent_test_fixture_lookup_packet (fixture, "request-vcards-by-uid");
-  valent_test_fixture_handle_packet (fixture, packet);
+  request = valent_packet_new ("kdeconnect.contacts.request_vcards_by_uid");
+  json_object_set_array_member (valent_packet_get_body (request),
+                                "uids", json_array_ref (uids));
+  valent_test_fixture_handle_packet (fixture, request);
+  json_node_unref (packet);
+  json_node_unref (request);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.contacts.response_vcards");
   uids = json_object_get_array_member (valent_packet_get_body (packet), "uids");
-  g_assert_cmpuint (json_array_get_length (uids), ==, 2);
+  g_assert_cmpuint (json_array_get_length (uids), ==, n_uids);
   json_node_unref (packet);
 }
 
@@ -171,23 +197,29 @@ main (int   argc,
 
   valent_test_init (&argc, &argv, NULL);
 
+  g_test_add ("/plugins/contacts/basic",
+              ValentTestFixture, path,
+              contacts_plugin_fixture_set_up,
+              test_contacts_plugin_basic,
+              contacts_plugin_fixture_clear);
+
   g_test_add ("/plugins/contacts/request-contacts",
               ValentTestFixture, path,
               contacts_plugin_fixture_set_up,
               test_contacts_plugin_request_contacts,
-              valent_test_fixture_clear);
+              contacts_plugin_fixture_clear);
 
   g_test_add ("/plugins/contacts/provide-contacts",
               ValentTestFixture, path,
               contacts_plugin_fixture_set_up,
               test_contacts_plugin_provide_contacts,
-              valent_test_fixture_clear);
+              contacts_plugin_fixture_clear);
 
   g_test_add ("/plugins/contacts/fuzz",
               ValentTestFixture, path,
               valent_test_fixture_init,
               test_contacts_plugin_fuzz,
-              valent_test_fixture_clear);
+              contacts_plugin_fixture_clear);
 
   return g_test_run ();
 }

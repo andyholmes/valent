@@ -12,6 +12,16 @@
 
 /*< private>
  *
+ * Cursor columns for `nco:Contact`.
+ */
+#define CURSOR_CONTACT_IRI                0
+#define CURSOR_CONTACT_UID                1
+#define CURSOR_VCARD_DATA                 2
+
+#define SEARCH_CONTACTS_RQ "/ca/andyholmes/Valent/sparql/search-contacts.rq"
+
+/*< private>
+ *
  * Cursor columns for `vmo:PhoneMessage`.
  */
 #define CURSOR_MESSAGE_IRI                0
@@ -41,6 +51,13 @@ G_DEFINE_QUARK (VALENT_CONTACT_PAINTABLE, valent_contact_paintable)
 
 static GRegex *email_regex = NULL;
 static GRegex *uri_regex = NULL;
+
+static inline gpointer
+_g_object_dup0 (gpointer object,
+                gpointer user_data)
+{
+  return object ? g_object_ref ((GObject *)object) : NULL;
+}
 
 static gboolean
 valent_ui_replace_eval_uri (const GMatchInfo *info,
@@ -168,29 +185,40 @@ valent_contact_to_paintable (gpointer  user_data,
   return paintable ? g_object_ref (paintable) : NULL;
 }
 
+static EContact *
+_e_contact_from_sparql_cursor (TrackerSparqlCursor *cursor)
+{
+  const char *uid = NULL;
+  const char *vcard = NULL;
+
+  g_assert (TRACKER_IS_SPARQL_CURSOR (cursor));
+
+  if (!tracker_sparql_cursor_is_bound (cursor, CURSOR_CONTACT_UID) ||
+      !tracker_sparql_cursor_is_bound (cursor, CURSOR_VCARD_DATA))
+    g_return_val_if_reached (NULL);
+
+  uid = tracker_sparql_cursor_get_string (cursor, CURSOR_CONTACT_UID, NULL);
+  vcard = tracker_sparql_cursor_get_string (cursor, CURSOR_VCARD_DATA, NULL);
+
+  return e_contact_new_from_vcard_with_uid (vcard, uid);
+}
+
 static void
-valent_contact_store_lookup_contact_cb (ValentContactStore *store,
-                                        GAsyncResult       *result,
-                                        gpointer            user_data)
+cursor_lookup_medium_cb (TrackerSparqlCursor *cursor,
+                         GAsyncResult        *result,
+                         gpointer             user_data)
 {
   g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
   const char *medium = g_task_get_task_data (task);
-  g_autoslist (GObject) contacts = NULL;
   EContact *contact = NULL;
-  GError *error = NULL;
+  g_autoptr (GError) error = NULL;
 
-  contacts = valent_contact_store_query_finish (store, result, &error);
-  if (error != NULL)
-    {
-      g_task_return_error (task, g_steal_pointer (&error));
-      return;
-    }
+  if (tracker_sparql_cursor_next_finish (cursor, result, &error))
+    contact = _e_contact_from_sparql_cursor (cursor);
+  else if (error != NULL)
+    g_debug ("%s(): %s", G_STRFUNC, error->message);
 
-  if (contacts != NULL)
-    {
-      contact = g_object_ref (contacts->data);
-    }
-  else
+  if (contact == NULL)
     {
       g_autoptr (EPhoneNumber) number = NULL;
 
@@ -216,81 +244,294 @@ valent_contact_store_lookup_contact_cb (ValentContactStore *store,
     }
 
   g_task_return_pointer (task, g_steal_pointer (&contact), g_object_unref);
+  tracker_sparql_cursor_close (cursor);
 }
 
+static void
+execute_lookup_medium_cb (TrackerSparqlStatement *stmt,
+                          GAsyncResult           *result,
+                          gpointer                user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  g_autoptr (TrackerSparqlCursor) cursor = NULL;
+  GCancellable *cancellable = NULL;
+  GError *error = NULL;
+
+  cursor = tracker_sparql_statement_execute_finish (stmt, result, &error);
+  if (cursor == NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  cancellable = g_task_get_cancellable (G_TASK (result));
+  tracker_sparql_cursor_next_async (cursor,
+                                    cancellable,
+                                    (GAsyncReadyCallback) cursor_lookup_medium_cb,
+                                    g_object_ref (task));
+}
+
+#define LOOKUP_MEDIUM_FMT                          \
+"SELECT ?contact ?uid ?vcardData                   \
+WHERE {                                            \
+  BIND(IRI(xsd:string(~medium)) AS ?contactMedium) \
+  ?contact nco:hasContactMedium ?contactMedium ;   \
+           nco:contactUID ?uid ;                   \
+           nie:plainTextContent ?vcardData .       \
+}                                                  \
+LIMIT 1"
+
 /**
- * valent_contact_store_lookup_contact:
- * @store: a `ValentContactStore`
+ * valent_contacts_adapter_reverse_lookup:
+ * @store: a `ValentContactsAdapter`
  * @medium: a contact medium
  * @cancellable: (nullable): `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: user supplied data
  *
- * A convenience wrapper around [method@Valent.ContactStore.query] for finding a
- * contact by phone number or email address.
+ * A convenience wrapper for finding a contact by phone number or email address.
  *
- * Call valent_contact_store_lookup_contact_finish() to get the result.
+ * Call [method@Valent.ContactsAdapter.reverse_lookup_finish] to get the result.
  */
 void
-valent_contact_store_lookup_contact (ValentContactStore  *store,
-                                     const char          *medium,
-                                     GCancellable        *cancellable,
-                                     GAsyncReadyCallback  callback,
-                                     gpointer             user_data)
+valent_contacts_adapter_reverse_lookup (ValentContactsAdapter *adapter,
+                                        const char            *medium,
+                                        GCancellable          *cancellable,
+                                        GAsyncReadyCallback    callback,
+                                        gpointer               user_data)
 {
+  g_autoptr (TrackerSparqlConnection) connection = NULL;
+  g_autoptr (TrackerSparqlStatement) stmt = NULL;
   g_autoptr (GTask) task = NULL;
-  g_autoptr (EBookQuery) query = NULL;
-  g_autofree char *sexp = NULL;
+  GError *error = NULL;
+  g_autofree char *medium_iri = NULL;
 
-  g_return_if_fail (VALENT_IS_CONTACT_STORE (store));
+  VALENT_ENTRY;
+
+  g_return_if_fail (VALENT_IS_CONTACTS_ADAPTER (adapter));
   g_return_if_fail (medium != NULL && *medium != '\0');
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  task = g_task_new (store, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_contact_store_lookup_contact);
+  task = g_task_new (adapter, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_contacts_adapter_reverse_lookup);
   g_task_set_task_data (task, g_strdup (medium), g_free);
 
   if (g_strrstr (medium, "@") != NULL)
     {
-      query = e_book_query_field_test (E_CONTACT_EMAIL,
-                                       E_BOOK_QUERY_IS,
-                                       medium);
+      medium_iri = g_strdup_printf ("mailto:%s", medium);
     }
   else
     {
-      query = e_book_query_field_test (E_CONTACT_TEL,
-                                       E_BOOK_QUERY_EQUALS_SHORT_PHONE_NUMBER,
-                                       medium);
+      g_autoptr (EPhoneNumber) number = NULL;
+
+      number = e_phone_number_from_string (medium, NULL, NULL);
+      if (number != NULL)
+        medium_iri = e_phone_number_to_string (number, E_PHONE_NUMBER_FORMAT_RFC3966);
+      else
+        medium_iri = g_strdup_printf ("tel:%s", medium);
     }
 
-  sexp = e_book_query_to_string (query);
-  valent_contact_store_query (store,
-                              sexp,
-                              cancellable,
-                              (GAsyncReadyCallback)valent_contact_store_lookup_contact_cb,
-                              g_object_ref (task));
+  g_object_get (adapter, "connection", &connection, NULL);
+  stmt = tracker_sparql_connection_query_statement (connection,
+                                                    LOOKUP_MEDIUM_FMT,
+                                                    cancellable,
+                                                    &error);
+
+  if (stmt == NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      VALENT_EXIT;
+    }
+
+  tracker_sparql_statement_bind_string (stmt, "medium", medium_iri);
+  tracker_sparql_statement_execute_async (stmt,
+                                          cancellable,
+                                          (GAsyncReadyCallback) execute_lookup_medium_cb,
+                                          g_object_ref (task));
+
+  VALENT_EXIT;
 }
 
 /**
- * valent_contact_store_lookup_contact_finish:
- * @store: a `ValentContactStore`
+ * valent_contacts_adapter_reverse_lookup_finish:
+ * @adapter: a `ValentContactsAdapter`
  * @result: a `GAsyncResult`
  * @error: (nullable): a `GError`
  *
- * Finish an operation started by valent_contact_store_lookup_contact().
+ * Finish an operation started by [method@Valent.ContactsAdapter.reverse_lookup].
  *
  * Returns: (transfer full): an `EContact`
  */
 EContact *
-valent_contact_store_lookup_contact_finish (ValentContactStore  *store,
-                                            GAsyncResult        *result,
-                                            GError             **error)
+valent_contacts_adapter_reverse_lookup_finish (ValentContactsAdapter  *adapter,
+                                               GAsyncResult           *result,
+                                               GError                **error)
 {
-  g_return_val_if_fail (VALENT_IS_CONTACT_STORE (store), NULL);
-  g_return_val_if_fail (g_task_is_valid (result, store), NULL);
+  g_return_val_if_fail (VALENT_IS_CONTACTS_ADAPTER (adapter), NULL);
+  g_return_val_if_fail (g_task_is_valid (result, adapter), NULL);
   g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
   return g_task_propagate_pointer (G_TASK (result), error);
+}
+
+static void
+cursor_search_contacts_cb (TrackerSparqlCursor *cursor,
+                           GAsyncResult        *result,
+                           gpointer             user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  GCancellable *cancellable = g_task_get_cancellable (task);
+  GListStore *contacts = g_task_get_task_data (task);
+  g_autoptr (GError) error = NULL;
+
+  if (tracker_sparql_cursor_next_finish (cursor, result, &error))
+    {
+      g_autoptr (EContact) contact = NULL;
+
+      contact = _e_contact_from_sparql_cursor (cursor);
+      if (contact != NULL)
+        g_list_store_append (contacts, contact);
+
+      tracker_sparql_cursor_next_async (cursor,
+                                        cancellable,
+                                        (GAsyncReadyCallback) cursor_search_contacts_cb,
+                                        g_object_ref (task));
+      return;
+    }
+
+  if (error != NULL)
+    g_task_return_error (task, g_steal_pointer (&error));
+  else
+    g_task_return_pointer (task, g_object_ref (contacts), g_object_unref);
+
+  tracker_sparql_cursor_close (cursor);
+}
+
+static void
+execute_search_contacts_cb (TrackerSparqlStatement *stmt,
+                            GAsyncResult           *result,
+                            gpointer                user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  GCancellable *cancellable = g_task_get_cancellable (task);
+  g_autoptr (TrackerSparqlCursor) cursor = NULL;
+  GError *error = NULL;
+
+  cursor = tracker_sparql_statement_execute_finish (stmt, result, &error);
+  if (cursor == NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  tracker_sparql_cursor_next_async (cursor,
+                                    cancellable,
+                                    (GAsyncReadyCallback) cursor_search_contacts_cb,
+                                    g_object_ref (task));
+}
+
+/**
+ * valent_contacts_adapter_search:
+ * @adapter: a `ValentContactsAdapter`
+ * @query: a string to search for
+ * @cancellable: (nullable): a `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
+ * @user_data: user supplied data
+ *
+ * Search through all the contacts in @adapter and return the most recent message
+ * from each thread containing @query.
+ *
+ * Call [method@Valent.ContactsAdapter.search_contacts_finish] to get the result.
+ *
+ * Since: 1.0
+ */
+void
+valent_contacts_adapter_search (ValentContactsAdapter *adapter,
+                                const char            *query,
+                                GCancellable          *cancellable,
+                                GAsyncReadyCallback    callback,
+                                gpointer               user_data)
+{
+  g_autoptr (TrackerSparqlStatement) stmt = NULL;
+  g_autoptr (GTask) task = NULL;
+  g_autofree char *query_sanitized = NULL;
+  GError *error = NULL;
+
+  VALENT_ENTRY;
+
+  g_return_if_fail (VALENT_IS_CONTACTS_ADAPTER (adapter));
+  g_return_if_fail (query != NULL);
+  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  task = g_task_new (adapter, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_contacts_adapter_search);
+  g_task_set_task_data (task, g_list_store_new (E_TYPE_CONTACT), g_object_unref);
+
+  stmt = g_object_dup_data (G_OBJECT (adapter),
+                            "valent-contacts-adapter-search",
+                            _g_object_dup0,
+                            NULL);
+
+  if (stmt == NULL)
+    {
+      g_autoptr (TrackerSparqlConnection) connection = NULL;
+
+      g_object_get (adapter, "connection", &connection, NULL);
+      stmt = tracker_sparql_connection_load_statement_from_gresource (connection,
+                                                                      SEARCH_CONTACTS_RQ,
+                                                                      cancellable,
+                                                                      &error);
+
+      if (stmt == NULL)
+        {
+          g_task_return_error (task, g_steal_pointer (&error));
+          return;
+        }
+
+      g_object_set_data_full (G_OBJECT (adapter),
+                              "valent-contacts-adapter-search",
+                              g_object_ref (stmt),
+                              g_object_unref);
+    }
+
+  query_sanitized = tracker_sparql_escape_string (query);
+  tracker_sparql_statement_bind_string (stmt, "query", query_sanitized);
+  tracker_sparql_statement_execute_async (stmt,
+                                          cancellable,
+                                          (GAsyncReadyCallback) execute_search_contacts_cb,
+                                          g_object_ref (task));
+
+  VALENT_EXIT;
+}
+
+/**
+ * valent_contacts_adapter_search_finish:
+ * @adapter: a `ValentContactsAdapter`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
+ *
+ * Finish an operation started by [method@Valent.ContactsAdapter.search].
+ *
+ * Returns: (transfer full) (element-type Valent.Message): a list of contacts
+ *
+ * Since: 1.0
+ */
+GListModel *
+valent_contacts_adapter_search_finish (ValentContactsAdapter  *adapter,
+                                       GAsyncResult           *result,
+                                       GError                **error)
+{
+  GListModel *ret;
+
+  VALENT_ENTRY;
+
+  g_return_val_if_fail (VALENT_IS_CONTACTS_ADAPTER (adapter), NULL);
+  g_return_val_if_fail (g_task_is_valid (result, adapter), NULL);
+  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+  ret = g_task_propagate_pointer (G_TASK (result), error);
+
+  VALENT_RETURN (ret);
 }
 
 static void
@@ -625,9 +866,9 @@ valent_message_from_sparql_cursor (TrackerSparqlCursor *cursor,
 }
 
 static void
-cursor_search_cb (TrackerSparqlCursor *cursor,
-                  GAsyncResult        *result,
-                  gpointer             user_data)
+cursor_search_messages_cb (TrackerSparqlCursor *cursor,
+                           GAsyncResult        *result,
+                           gpointer             user_data)
 {
   g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
   GListStore *messages = g_task_get_task_data (task);
@@ -649,7 +890,7 @@ cursor_search_cb (TrackerSparqlCursor *cursor,
 
       tracker_sparql_cursor_next_async (cursor,
                                         g_task_get_cancellable (task),
-                                        (GAsyncReadyCallback) cursor_search_cb,
+                                        (GAsyncReadyCallback) cursor_search_messages_cb,
                                         g_object_ref (task));
       return;
     }
@@ -663,9 +904,9 @@ cursor_search_cb (TrackerSparqlCursor *cursor,
 }
 
 static void
-execute_search_cb (TrackerSparqlStatement *stmt,
-                   GAsyncResult           *result,
-                   gpointer                user_data)
+execute_search_messages_cb (TrackerSparqlStatement *stmt,
+                            GAsyncResult           *result,
+                            gpointer                user_data)
 {
   g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
   GCancellable *cancellable = g_task_get_cancellable (task);
@@ -681,7 +922,7 @@ execute_search_cb (TrackerSparqlStatement *stmt,
 
   tracker_sparql_cursor_next_async (cursor,
                                     cancellable,
-                                    (GAsyncReadyCallback) cursor_search_cb,
+                                    (GAsyncReadyCallback) cursor_search_messages_cb,
                                     g_object_ref (task));
 }
 
@@ -696,16 +937,16 @@ execute_search_cb (TrackerSparqlStatement *stmt,
  * Search through all the messages in @adapter and return the most recent message
  * from each thread containing @query.
  *
- * Call [method@Valent.MessagesAdapter.search_messages_finish] to get the result.
+ * Call [method@Valent.MessagesAdapter.search_finish] to get the result.
  *
  * Since: 1.0
  */
 void
-valent_messages_adapter_search (ValentMessagesAdapter  *adapter,
-                             const char          *query,
-                             GCancellable        *cancellable,
-                             GAsyncReadyCallback  callback,
-                             gpointer             user_data)
+valent_messages_adapter_search (ValentMessagesAdapter *adapter,
+                                const char            *query,
+                                GCancellable          *cancellable,
+                                GAsyncReadyCallback    callback,
+                                gpointer               user_data)
 {
   g_autoptr (TrackerSparqlStatement) stmt = NULL;
   g_autoptr (GTask) task = NULL;
@@ -724,7 +965,7 @@ valent_messages_adapter_search (ValentMessagesAdapter  *adapter,
 
   stmt = g_object_dup_data (G_OBJECT (adapter),
                             "valent-message-adapter-search",
-                            (GDuplicateFunc)((GCallback)g_object_ref),
+                            _g_object_dup0,
                             NULL);
 
   if (stmt == NULL)
@@ -753,7 +994,7 @@ valent_messages_adapter_search (ValentMessagesAdapter  *adapter,
   tracker_sparql_statement_bind_string (stmt, "query", query_sanitized);
   tracker_sparql_statement_execute_async (stmt,
                                           g_task_get_cancellable (task),
-                                          (GAsyncReadyCallback) execute_search_cb,
+                                          (GAsyncReadyCallback) execute_search_messages_cb,
                                           g_object_ref (task));
 
   VALENT_EXIT;
@@ -765,7 +1006,7 @@ valent_messages_adapter_search (ValentMessagesAdapter  *adapter,
  * @result: a `GAsyncResult`
  * @error: (nullable): a `GError`
  *
- * Finish an operation started by [method@Valent.MessagesAdapter.search_messages].
+ * Finish an operation started by [method@Valent.MessagesAdapter.search].
  *
  * Returns: (transfer full) (element-type Valent.Message): a list of messages
  *
@@ -773,8 +1014,8 @@ valent_messages_adapter_search (ValentMessagesAdapter  *adapter,
  */
 GListModel *
 valent_messages_adapter_search_finish (ValentMessagesAdapter  *adapter,
-                                    GAsyncResult        *result,
-                                    GError             **error)
+                                       GAsyncResult           *result,
+                                       GError                **error)
 {
   GListModel *ret;
 

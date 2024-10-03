@@ -25,9 +25,10 @@ struct _ValentMessagesWindow
 {
   AdwApplicationWindow    parent_instance;
 
-  ValentContactStore     *contact_store;
+  GListModel             *contacts;
+  ValentContactsAdapter  *contacts_adapter;
   GListModel             *messages;
-  ValentMessagesAdapter  *adapter;
+  ValentMessagesAdapter  *messages_adapter;
   GCancellable           *search;
 
   /* template */
@@ -39,6 +40,8 @@ struct _ValentMessagesWindow
   GtkWidget              *search_entry;
   GtkListBox             *search_list;
   AdwNavigationPage      *contact_page;
+  AdwDialog              *details_dialog;
+  GtkListBox             *medium_list;
 };
 
 void   valent_messages_window_set_active_message (ValentMessagesWindow *window,
@@ -48,28 +51,25 @@ void   valent_messages_window_set_active_thread  (ValentMessagesWindow *window,
 
 G_DEFINE_FINAL_TYPE (ValentMessagesWindow, valent_messages_window, ADW_TYPE_APPLICATION_WINDOW)
 
-enum {
-  PROP_0,
-  PROP_CONTACT_STORE,
-  PROP_MESSAGES,
-  N_PROPERTIES
-};
+typedef enum {
+  PROP_MESSAGES = 1,
+} ValentMessagesWindowProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_MESSAGES + 1] = { NULL, };
 
 
 /*
  * Contact Lookup
  */
 static void
-lookup_contact_cb (ValentContactStore *store,
-                   GAsyncResult       *result,
-                   ValentMessageRow   *row)
+lookup_contact_cb (ValentContactsAdapter *adapter,
+                   GAsyncResult          *result,
+                   ValentMessageRow      *row)
 {
   g_autoptr (EContact) contact = NULL;
   g_autoptr (GError) error = NULL;
 
-  contact = valent_contact_store_lookup_contact_finish (store, result, &error);
+  contact = valent_contacts_adapter_reverse_lookup_finish (adapter, result, &error);
   if (contact == NULL)
     {
       if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
@@ -82,14 +82,15 @@ lookup_contact_cb (ValentContactStore *store,
 }
 
 static void
-search_contacts_cb (ValentContactStore   *model,
-                    GAsyncResult         *result,
-                    ValentMessagesWindow *window)
+search_contacts_cb (ValentContactsAdapter *adapter,
+                    GAsyncResult          *result,
+                    ValentMessagesWindow  *self)
 {
-  g_autoslist (GObject) contacts = NULL;
+  g_autoptr (GListModel) contacts = NULL;
+  unsigned int n_contacts;
   g_autoptr (GError) error = NULL;
 
-  contacts = valent_contact_store_query_finish (model, result, &error);
+  contacts = valent_contacts_adapter_search_finish (adapter, result, &error);
   if (error != NULL)
     {
       if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
@@ -98,12 +99,53 @@ search_contacts_cb (ValentContactStore   *model,
       return;
     }
 
-  for (const GSList *iter = contacts; iter; iter = iter->next)
-    valent_list_add_contact (window->search_list, iter->data);
+  n_contacts = g_list_model_get_n_items (contacts);
+  for (unsigned int i = 0; i < n_contacts; i++)
+    {
+      g_autoptr (EContact) contact = g_list_model_get_item (contacts, i);
+      GtkWidget *row;
+      g_autolist (EVCardAttribute) attrs = NULL;
+      g_autofree char *number = NULL;
+      unsigned int n_attrs;
+
+      attrs = e_contact_get_attributes (contact, E_CONTACT_TEL);
+      n_attrs = g_list_length (attrs);
+
+      g_object_get (contact, "primary-phone", &number, NULL);
+      if (number == NULL || *number == '\0')
+        {
+          g_free (number);
+          number = e_vcard_attribute_get_value ((EVCardAttribute *)attrs->data);
+        }
+
+      if (n_attrs > 1)
+        {
+          g_autofree char *tmp = g_steal_pointer (&number);
+
+          number = g_strdup_printf (ngettext ("%s and %u more…",
+                                              "%s and %u more…",
+                                              n_attrs - 1),
+                                    tmp, n_attrs - 1);
+        }
+
+      row = g_object_new (VALENT_TYPE_CONTACT_ROW,
+                          "contact",        contact,
+                          "contact-medium", number,
+                          NULL);
+
+      if (n_attrs > 1)
+        {
+          gtk_accessible_update_state (GTK_ACCESSIBLE (row),
+                                       GTK_ACCESSIBLE_STATE_EXPANDED, FALSE,
+                                       -1);
+        }
+
+      gtk_list_box_insert (self->search_list, row, -1);
+    }
 }
 
 static void
-search_messages_cb (ValentMessagesAdapter *store,
+search_messages_cb (ValentMessagesAdapter *adapter,
                     GAsyncResult          *result,
                     ValentMessagesWindow  *self)
 {
@@ -111,7 +153,7 @@ search_messages_cb (ValentMessagesAdapter *store,
   unsigned int n_messages;
   g_autoptr (GError) error = NULL;
 
-  messages = valent_messages_adapter_search_finish (store, result, &error);
+  messages = valent_messages_adapter_search_finish (adapter, result, &error);
   if (messages == NULL)
     {
       if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
@@ -152,11 +194,11 @@ search_messages_cb (ValentMessagesAdapter *store,
                                    G_CALLBACK (g_cancellable_cancel),
                                    cancellable,
                                    G_CONNECT_SWAPPED);
-          valent_contact_store_lookup_contact (self->contact_store,
-                                               medium,
-                                               cancellable,
-                                               (GAsyncReadyCallback) lookup_contact_cb,
-                                               row);
+          valent_contacts_adapter_reverse_lookup (self->contacts_adapter,
+                                                  medium,
+                                                  cancellable,
+                                                  (GAsyncReadyCallback) lookup_contact_cb,
+                                                  row);
         }
     }
 }
@@ -178,17 +220,32 @@ search_header_func (GtkListBoxRow *row,
           label = g_object_new (GTK_TYPE_LABEL,
                                 "label",        _("Conversations"),
                                 "halign",       GTK_ALIGN_START,
-                                "margin-end",   6,
-                                "margin-start", 6,
-                                "margin-top",   6,
+                                "margin-bottom", 6,
+                                "margin-end",    6,
+                                "margin-start",  6,
+                                "margin-top",    6,
                                 NULL);
           gtk_widget_add_css_class (label, "dim-label");
-          gtk_widget_add_css_class (label, "list-header-title");
+          gtk_widget_add_css_class (label, "caption-heading");
           gtk_list_box_row_set_header (row, label);
         }
     }
+  else if (!VALENT_IS_CONTACT_ROW (before))
+    {
+      GtkWidget *label;
 
-  valent_contact_row_header_func (row, before, user_data);
+      label = g_object_new (GTK_TYPE_LABEL,
+                            "label",        _("Contacts"),
+                            "halign",       GTK_ALIGN_START,
+                            "margin-bottom", 6,
+                            "margin-end",    6,
+                            "margin-start",  6,
+                            "margin-top",    12, // +6 for section spacing
+                            NULL);
+      gtk_widget_add_css_class (label, "dim-label");
+      gtk_widget_add_css_class (label, "caption-heading");
+      gtk_list_box_row_set_header (row, label);
+    }
 }
 
 static void
@@ -197,9 +254,6 @@ on_search_changed (GtkSearchEntry       *entry,
 {
   GtkWidget *child;
   const char *search_query;
-  EBookQuery *queries[2];
-  g_autoptr (EBookQuery) query = NULL;
-  g_autofree char *sexp = NULL;
 
   /* Clear previous results
    */
@@ -216,32 +270,22 @@ on_search_changed (GtkSearchEntry       *entry,
   /* Search messages
    */
   self->search = g_cancellable_new ();
-  valent_messages_adapter_search (self->adapter,
+  valent_messages_adapter_search (self->messages_adapter,
                                   search_query,
                                   self->search,
                                   (GAsyncReadyCallback)search_messages_cb,
                                   self);
-
-  queries[0] = e_book_query_field_test (E_CONTACT_FULL_NAME,
-                                        E_BOOK_QUERY_CONTAINS,
-                                        search_query);
-  queries[1] = e_book_query_field_test (E_CONTACT_TEL,
-                                        E_BOOK_QUERY_CONTAINS,
-                                        search_query);
-  query = e_book_query_or (G_N_ELEMENTS (queries), queries, TRUE);
-  sexp = e_book_query_to_string (query);
-
-  valent_contact_store_query (self->contact_store,
-                              sexp,
-                              self->search,
-                              (GAsyncReadyCallback)search_contacts_cb,
-                              self);
+  valent_contacts_adapter_search (self->contacts_adapter,
+                                  search_query,
+                                  self->search,
+                                  (GAsyncReadyCallback)search_contacts_cb,
+                                  self);
 }
 
 static void
-lookup_thread_cb (ValentContactStore   *store,
-                  GAsyncResult         *result,
-                  ValentMessagesWindow *self)
+lookup_thread_cb (ValentMessagesAdapter *adapter,
+                  GAsyncResult          *result,
+                  ValentMessagesWindow  *self)
 {
   g_autofree char *iri = NULL;
   g_autoptr (GError) error = NULL;
@@ -276,7 +320,7 @@ on_contact_selected (ValentContactPage    *page,
                            cancellable,
                            G_CONNECT_SWAPPED);
 
-  valent_messages_adapter_lookup_thread (self->adapter,
+  valent_messages_adapter_lookup_thread (self->messages_adapter,
                                          ((const char * const []){ target, NULL }),
                                          cancellable,
                                          (GAsyncReadyCallback) lookup_thread_cb,
@@ -286,14 +330,49 @@ on_contact_selected (ValentContactPage    *page,
 }
 
 static void
+on_contact_medium_selected (AdwActionRow         *row,
+                            ValentMessagesWindow *self)
+{
+  g_autoptr (GCancellable) cancellable = NULL;
+  const char *medium;
+
+  g_assert (ADW_IS_ACTION_ROW (row));
+
+  cancellable = g_cancellable_new ();
+  g_signal_connect_object (self,
+                           "destroy",
+                           G_CALLBACK (g_cancellable_cancel),
+                           cancellable,
+                           G_CONNECT_SWAPPED);
+
+  medium = adw_preferences_row_get_title (ADW_PREFERENCES_ROW (row));
+  valent_messages_adapter_lookup_thread (self->messages_adapter,
+                                         ((const char * const []){ medium, NULL }),
+                                         cancellable,
+                                         (GAsyncReadyCallback) lookup_thread_cb,
+                                         self);
+
+  adw_dialog_close (self->details_dialog);
+}
+
+static void
+on_contact_row_collapsed (AdwDialog *dialog,
+                          GtkWidget *row)
+{
+  gtk_accessible_reset_relation (GTK_ACCESSIBLE (row),
+                                 GTK_ACCESSIBLE_RELATION_CONTROLS);
+  gtk_accessible_update_state (GTK_ACCESSIBLE (row),
+                               GTK_ACCESSIBLE_STATE_EXPANDED, FALSE,
+                               -1);
+  g_signal_handlers_disconnect_by_func (dialog, on_contact_row_collapsed, row);
+}
+
+static void
 on_search_selected (GtkListBox           *box,
                     GtkListBoxRow        *row,
                     ValentMessagesWindow *self)
 {
   g_assert (VALENT_IS_MESSAGES_WINDOW (self));
-
-  adw_navigation_view_pop (self->content_view);
-  gtk_editable_set_text (GTK_EDITABLE (self->search_entry), "");
 
   if (VALENT_IS_MESSAGE_ROW (row))
     {
@@ -301,27 +380,85 @@ on_search_selected (GtkListBox           *box,
 
       message = valent_message_row_get_message (VALENT_MESSAGE_ROW (row));
       valent_messages_window_set_active_message (self, message);
+
+      /* Reset the search
+       */
+      adw_navigation_view_pop (self->content_view);
+      gtk_editable_set_text (GTK_EDITABLE (self->search_entry), "");
     }
   else if (VALENT_IS_CONTACT_ROW (row))
     {
-      g_autoptr (GCancellable) cancellable = NULL;
-      const char *target;
+      g_autolist (EVCardAttribute) attrs = NULL;
+      EContact *contact;
 
-      cancellable = g_cancellable_new ();
-      g_signal_connect_object (self,
-                               "destroy",
-                               G_CALLBACK (g_cancellable_cancel),
-                               cancellable,
-                               G_CONNECT_SWAPPED);
+      contact = valent_contact_row_get_contact (VALENT_CONTACT_ROW (row));
+      attrs = e_contact_get_attributes (E_CONTACT (contact), E_CONTACT_TEL);
 
-      target = valent_contact_row_get_contact_medium (VALENT_CONTACT_ROW (row));
-      valent_messages_adapter_lookup_thread (self->adapter,
-                                             ((const char * const []){ target, NULL }),
-                                             cancellable,
-                                             (GAsyncReadyCallback) lookup_thread_cb,
-                                             self);
+      if (g_list_length (attrs) == 1)
+        {
+          g_autofree char *medium = NULL;
 
-      // FIXME: loading indicator
+          g_object_get (row, "contact-medium", &medium, NULL);
+          on_contact_medium_selected (ADW_ACTION_ROW (row), self);
+
+          /* Reset the search
+           */
+          adw_navigation_view_pop (self->content_view);
+          gtk_editable_set_text (GTK_EDITABLE (self->search_entry), "");
+        }
+      else
+        {
+          gtk_list_box_remove_all (GTK_LIST_BOX (self->medium_list));
+          for (const GList *iter = attrs; iter; iter = iter->next)
+            {
+              EVCardAttribute *attr = iter->data;
+              GtkWidget *medium_row;
+              g_autofree char *number = NULL;
+              const char *type_ = NULL;
+
+              if (e_vcard_attribute_has_type (attr, "WORK"))
+                type_ = _("Work");
+              else if (e_vcard_attribute_has_type (attr, "CELL"))
+                type_ = _("Mobile");
+              else if (e_vcard_attribute_has_type (attr, "HOME"))
+                type_ = _("Home");
+              else
+                type_ = _("Other");
+
+              number = e_vcard_attribute_get_value (attr);
+              medium_row = g_object_new (ADW_TYPE_ACTION_ROW,
+                                         "activatable", TRUE,
+                                         "title",       number,
+                                         "subtitle",    type_,
+                                         NULL);
+              g_object_set_data_full (G_OBJECT (medium_row),
+                                      "contact",
+                                      g_object_ref (contact),
+                                      g_object_unref);
+              g_signal_connect_object (medium_row,
+                                       "activated",
+                                       G_CALLBACK (on_contact_medium_selected),
+                                       self,
+                                       G_CONNECT_DEFAULT);
+
+              gtk_list_box_insert (self->medium_list, medium_row, -1);
+            }
+
+          /* Present the dialog and match the expanded state
+           */
+          gtk_accessible_update_state (GTK_ACCESSIBLE (row),
+                                       GTK_ACCESSIBLE_STATE_EXPANDED, TRUE,
+                                       -1);
+          gtk_accessible_update_relation (GTK_ACCESSIBLE (row),
+                                          GTK_ACCESSIBLE_RELATION_CONTROLS, self->details_dialog, NULL,
+                                          -1);
+          g_signal_connect_object (self->details_dialog,
+                                   "closed",
+                                   G_CALLBACK (on_contact_row_collapsed),
+                                   row,
+                                   G_CONNECT_DEFAULT);
+          adw_dialog_present (self->details_dialog, GTK_WIDGET (self));
+        }
     }
 }
 
@@ -365,7 +502,8 @@ sidebar_list_create (gpointer item,
         medium = recipients[0];
     }
 
-  if (medium != NULL && *medium != '\0')
+  if (window->contacts_adapter != NULL &&
+      medium != NULL && *medium != '\0')
     {
       g_autoptr (GCancellable) cancellable = NULL;
 
@@ -375,18 +513,15 @@ sidebar_list_create (gpointer item,
                                G_CALLBACK (g_cancellable_cancel),
                                cancellable,
                                G_CONNECT_SWAPPED);
-      valent_contact_store_lookup_contact (window->contact_store,
-                                           medium,
-                                           cancellable,
-                                           (GAsyncReadyCallback) lookup_contact_cb,
-                                           row);
+      valent_contacts_adapter_reverse_lookup (window->contacts_adapter,
+                                              medium,
+                                              cancellable,
+                                              (GAsyncReadyCallback) lookup_contact_cb,
+                                              row);
     }
   else
     {
       g_autoptr (EContact) contact = NULL;
-
-      g_debug ("%s(): message has no addresses; using fallback contact",
-               G_STRFUNC);
 
       contact = e_contact_new ();
       e_contact_set (contact, E_CONTACT_FULL_NAME, _("Unknown"));
@@ -407,10 +542,10 @@ valent_messages_window_ensure_conversation (ValentMessagesWindow *window,
   if (conversation == NULL)
     {
       conversation = g_object_new (VALENT_TYPE_CONVERSATION_PAGE,
-                                   "tag",           thread_iri,
-                                   "contact-store", window->contact_store,
-                                   "messages",      window->adapter,
-                                   "iri",           thread_iri,
+                                   "tag",      thread_iri,
+                                   "contacts", window->contacts_adapter,
+                                   "messages", window->messages_adapter,
+                                   "iri",      thread_iri,
                                    NULL);
       adw_navigation_view_push (window->content_view, conversation);
     }
@@ -443,7 +578,7 @@ on_conversation_activated (GtkListBox           *box,
   // TODO: use IRI
   contact = valent_message_row_get_contact (VALENT_MESSAGE_ROW (row));
   message = valent_message_row_get_message (VALENT_MESSAGE_ROW (row));
-  context = valent_extension_get_context (VALENT_EXTENSION (self->adapter));
+  context = valent_extension_get_context (VALENT_EXTENSION (self->messages_adapter));
   iri = g_strdup_printf ("valent://%s/%"PRId64,
                          valent_context_get_path (context),
                          valent_message_get_thread_id (message));
@@ -468,14 +603,14 @@ on_selected_item (GObject              *object,
                   GParamSpec           *pspec,
                   ValentMessagesWindow *self)
 {
-  g_autoptr (ValentDevice) device = NULL;
-  ValentMessagesAdapter *adapter;
-  ValentContactStore *contacts;
+  ValentMessagesAdapter *adapter = NULL;
+  GObject *owner = NULL;
+  unsigned int n_items = 0;
 
   g_assert (VALENT_IS_MESSAGES_WINDOW (self));
 
   adapter = gtk_drop_down_get_selected_item (GTK_DROP_DOWN (object));
-  if (!g_set_object (&self->adapter, adapter))
+  if (!g_set_object (&self->messages_adapter, adapter))
     return;
 
   // FIXME: adapters need properties
@@ -487,11 +622,22 @@ on_selected_item (GObject              *object,
       return;
     }
 
-  g_object_get (adapter, "device", &device, NULL);
-  contacts = valent_contacts_ensure_store (valent_contacts_get_default (),
-                                           valent_device_get_id (device),
-                                           valent_device_get_name (device));
-  g_set_object (&self->contact_store, contacts);
+  // HACK: try to find a matching contacts adapter
+  owner = valent_extension_get_object (VALENT_EXTENSION (adapter));
+  n_items = g_list_model_get_n_items (self->contacts);
+  for (unsigned int i = 0; i < n_items; i++)
+    {
+      g_autoptr (ValentContactsAdapter) item = NULL;
+      GObject *item_owner = NULL;
+
+      item = g_list_model_get_item (self->contacts, i);
+      item_owner = valent_extension_get_object (VALENT_EXTENSION (item));
+      if (item_owner == owner)
+        {
+          g_set_object (&self->contacts_adapter, item);
+          break;
+        }
+    }
 
   gtk_list_box_bind_model (self->sidebar_list,
                            G_LIST_MODEL (adapter),
@@ -517,8 +663,8 @@ sms_new_action (GtkWidget  *widget,
   if (self->contact_page == NULL)
     {
       self->contact_page = g_object_new (VALENT_TYPE_CONTACT_PAGE,
-                                         "tag",           "contacts",
-                                         "contact-store", self->contact_store,
+                                         "tag",      "contacts",
+                                         "contacts", self->contacts_adapter,
                                          NULL);
       g_signal_connect_object (self->contact_page,
                                "selected",
@@ -584,17 +730,6 @@ on_page_pushed (AdwNavigationView    *view,
  * GObject
  */
 static void
-valent_messages_window_constructed (GObject *object)
-{
-  ValentMessagesWindow *self = VALENT_MESSAGES_WINDOW (object);
-
-  if (self->messages == NULL)
-    self->messages = G_LIST_MODEL (g_object_ref (valent_messages_get_default ()));
-
-  G_OBJECT_CLASS (valent_messages_window_parent_class)->constructed (object);
-}
-
-static void
 valent_messages_window_dispose (GObject *object)
 {
   GtkWidget *widget = GTK_WIDGET (object);
@@ -609,9 +744,10 @@ valent_messages_window_finalize (GObject *object)
 {
   ValentMessagesWindow *self = VALENT_MESSAGES_WINDOW (object);
 
-  g_clear_object (&self->contact_store);
-  g_clear_object (&self->adapter);
+  g_clear_object (&self->contacts);
+  g_clear_object (&self->contacts_adapter);
   g_clear_object (&self->messages);
+  g_clear_object (&self->messages_adapter);
 
   G_OBJECT_CLASS (valent_messages_window_parent_class)->finalize (object);
 }
@@ -626,35 +762,8 @@ valent_messages_window_get_property (GObject    *object,
 
   switch (prop_id)
     {
-    case PROP_CONTACT_STORE:
-      g_value_set_object (value, self->contact_store);
-      break;
-
     case PROP_MESSAGES:
       g_value_set_object (value, self->messages);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_messages_window_set_property (GObject      *object,
-                                     guint         prop_id,
-                                     const GValue *value,
-                                     GParamSpec   *pspec)
-{
-  ValentMessagesWindow *self = VALENT_MESSAGES_WINDOW (object);
-
-  switch (prop_id)
-    {
-    case PROP_CONTACT_STORE:
-      g_set_object (&self->contact_store, g_value_get_object (value));
-      break;
-
-    case PROP_MESSAGES:
-      g_set_object (&self->messages, g_value_get_object (value));
       break;
 
     default:
@@ -668,11 +777,9 @@ valent_messages_window_class_init (ValentMessagesWindowClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
-  object_class->constructed = valent_messages_window_constructed;
   object_class->dispose = valent_messages_window_dispose;
   object_class->finalize = valent_messages_window_finalize;
   object_class->get_property = valent_messages_window_get_property;
-  object_class->set_property = valent_messages_window_set_property;
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-messages-window.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentMessagesWindow, main_view);
@@ -681,6 +788,8 @@ valent_messages_window_class_init (ValentMessagesWindowClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentMessagesWindow, content_view);
   gtk_widget_class_bind_template_child (widget_class, ValentMessagesWindow, search_entry);
   gtk_widget_class_bind_template_child (widget_class, ValentMessagesWindow, search_list);
+  gtk_widget_class_bind_template_child (widget_class, ValentMessagesWindow, details_dialog);
+  gtk_widget_class_bind_template_child (widget_class, ValentMessagesWindow, medium_list);
   gtk_widget_class_bind_template_callback (widget_class, on_conversation_activated);
   gtk_widget_class_bind_template_callback (widget_class, on_page_popped);
   gtk_widget_class_bind_template_callback (widget_class, on_page_pushed);
@@ -692,31 +801,13 @@ valent_messages_window_class_init (ValentMessagesWindowClass *klass)
   gtk_widget_class_install_action (widget_class, "sms.new", NULL, sms_new_action);
   gtk_widget_class_install_action (widget_class, "sms.search", NULL, sms_search_action);
 
-  /**
-   * ValentMessagesWindow:contact-store:
-   *
-   * The `ValentContactStore` providing contacts for the window.
-   */
-  properties [PROP_CONTACT_STORE] =
-    g_param_spec_object ("contact-store", NULL, NULL,
-                         VALENT_TYPE_CONTACT_STORE,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentMessagesWindow:message-store:
-   *
-   * The `ValentMessagesAdapter` providing messages for the window.
-   */
   properties [PROP_MESSAGES] =
     g_param_spec_object ("messages", NULL, NULL,
                          VALENT_TYPE_MESSAGES,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
+                         (G_PARAM_READABLE |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 
   g_type_ensure (VALENT_TYPE_CONTACT_PAGE);
 }
@@ -725,6 +816,10 @@ static void
 valent_messages_window_init (ValentMessagesWindow *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
+
+  g_set_object (&self->contacts, G_LIST_MODEL (valent_contacts_get_default ()));
+  g_set_object (&self->messages, G_LIST_MODEL (valent_messages_get_default ()));
+  g_object_notify_by_pspec (G_OBJECT (self), properties[PROP_MESSAGES]);
 
   gtk_list_box_set_header_func (self->search_list,
                                 search_header_func,
@@ -750,7 +845,7 @@ valent_messages_window_set_active_message (ValentMessagesWindow *window,
 
   g_return_if_fail (VALENT_IS_MESSAGES_WINDOW (window));
 
-  context = valent_extension_get_context (VALENT_EXTENSION (window->messages));
+  context = valent_extension_get_context (VALENT_EXTENSION (window->messages_adapter));
   thread_id = valent_message_get_thread_id (message);
   iri = g_strdup_printf ("valent://%s/%"PRId64,
                          valent_context_get_path (context),

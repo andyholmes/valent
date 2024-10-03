@@ -11,7 +11,6 @@
 #include <valent.h>
 
 #include "valent-component-private.h"
-#include "valent-contact-cache-private.h"
 #include "valent-mock-channel.h"
 
 #include "valent-test-utils.h"
@@ -606,8 +605,6 @@ valent_type_ensure (void)
   g_type_ensure (VALENT_TYPE_CLIPBOARD_ADAPTER);
   g_type_ensure (VALENT_TYPE_CONTACTS);
   g_type_ensure (VALENT_TYPE_CONTACTS_ADAPTER);
-  g_type_ensure (VALENT_TYPE_CONTACT_STORE);
-  g_type_ensure (VALENT_TYPE_CONTACT_CACHE);
   g_type_ensure (VALENT_TYPE_INPUT);
   g_type_ensure (VALENT_TYPE_INPUT_ADAPTER);
   g_type_ensure (VALENT_TYPE_MEDIA);

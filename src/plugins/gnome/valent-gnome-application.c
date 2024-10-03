@@ -120,9 +120,7 @@ messages_window_action (GSimpleAction *action,
 
   if (self->messages_window == NULL)
     {
-      self->messages_window = g_object_new (VALENT_TYPE_MESSAGES_WINDOW,
-                                            "messages", valent_messages_get_default (),
-                                            NULL);
+      self->messages_window = g_object_new (VALENT_TYPE_MESSAGES_WINDOW, NULL);
       g_object_add_weak_pointer (G_OBJECT (self->messages_window),
                                  (gpointer)&self->messages_window);
     }

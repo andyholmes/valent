@@ -56,4 +56,5 @@ WHERE {
 }
 GROUP BY ?message
 ORDER BY DESC(fts:rank(?message))
+LIMIT 5
 

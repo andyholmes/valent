@@ -54,9 +54,13 @@ CDMA
 hspa
 
 # src/plugins/contacts
+pobox
+postalcode
 uids
+uidx
 vcard
 vcards
+viter
 
 # src/plugins/findmyphone
 findmyphone

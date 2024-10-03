@@ -9,6 +9,7 @@ plugin_contacts_deps = [
 # Sources
 plugin_contacts_sources = files([
   'contacts-plugin.c',
+  'valent-contacts-device.c',
   'valent-contacts-plugin.c',
 ])
 

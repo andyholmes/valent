@@ -6,6 +6,7 @@
 <gresources>
   <gresource prefix="/plugins/mock">
     <file>mock.plugin</file>
+    <file alias="graph-contacts.turtle">data/graph-contacts.turtle</file>
   </gresource>
   <gresource prefix="/plugins/packetless">
     <file>packetless.plugin</file>

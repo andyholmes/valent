@@ -54,13 +54,14 @@ on_local_sync (GtkListBox                   *box,
 }
 
 static void
-on_store_selected (AdwActionRow              *row,
-                   ValentContactsPreferences *self)
+on_adapter_selected (AdwActionRow              *row,
+                     ValentContactsPreferences *self)
 {
   ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
   GSettings *settings;
   GHashTableIter iter;
-  gpointer store, store_row;
+  ValentContactsAdapter *adapter;
+  gpointer store_row;
 
   g_assert (ADW_IS_ACTION_ROW (row));
   g_assert (VALENT_IS_CONTACTS_PREFERENCES (self));
@@ -68,17 +69,16 @@ on_store_selected (AdwActionRow              *row,
   settings = valent_device_preferences_group_get_settings (group);
 
   g_hash_table_iter_init (&iter, self->local_stores);
-
-  while (g_hash_table_iter_next (&iter, &store, &store_row))
+  while (g_hash_table_iter_next (&iter, (void **)&adapter, &store_row))
     {
       GtkWidget *check = g_object_get_data (G_OBJECT (store_row), "select");
 
       if (row == store_row)
         {
-          const char *local_uid;
+          g_autofree char *local_iri = NULL;
 
-          local_uid = valent_contact_store_get_uid (store);
-          g_settings_set_string (settings, "local-uid", local_uid);
+          local_iri = valent_object_dup_iri (VALENT_OBJECT (adapter));
+          g_settings_set_string (settings, "local-uid", local_iri);
         }
 
       gtk_widget_set_visible (check, (row == store_row));
@@ -91,25 +91,25 @@ valent_contacts_preferences_create_row_func (gpointer item,
 {
   ValentContactsPreferences *self = VALENT_CONTACTS_PREFERENCES (user_data);
   ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
-  ValentContactStore *store = VALENT_CONTACT_STORE (item);
+  ValentContactsAdapter *adapter = VALENT_CONTACTS_ADAPTER (item);
   ValentContext *context = NULL;
   const char *device_id = NULL;
   GSettings *settings;
   GtkWidget *row;
   GtkWidget *image;
   const char *icon_name;
-  const char *uid;
-  g_autofree char *local_uid = NULL;
+  g_autofree char *iri = NULL;
+  g_autofree char *local_iri = NULL;
 
-  g_assert (VALENT_IS_CONTACT_STORE (store));
+  g_assert (VALENT_IS_CONTACTS_ADAPTER (adapter));
   g_assert (VALENT_IS_CONTACTS_PREFERENCES (self));
 
   /* FIXME: select an icon name for the addressbook type */
   context = valent_device_preferences_group_get_context (group);
   device_id = valent_context_get_id (context);
-  uid = valent_contact_store_get_uid (store);
+  iri = valent_object_dup_iri (VALENT_OBJECT (adapter));
 
-  if (g_strcmp0 (device_id, uid) == 0)
+  if (iri != NULL && g_strrstr (iri, device_id) != NULL)
     icon_name = APPLICATION_ID"-symbolic";
   else
     icon_name = "x-office-address-book";
@@ -117,7 +117,7 @@ valent_contacts_preferences_create_row_func (gpointer item,
   /* Row */
   row = g_object_new (ADW_TYPE_ACTION_ROW,
                       "activatable", TRUE,
-                      "title",       valent_contact_store_get_name (store),
+                      "title",       iri,
                       NULL);
   image = g_object_new (GTK_TYPE_IMAGE,
                         "icon-name", icon_name,
@@ -127,22 +127,22 @@ valent_contacts_preferences_create_row_func (gpointer item,
 
   g_signal_connect_object (G_OBJECT (row),
                            "activated",
-                           G_CALLBACK (on_store_selected),
+                           G_CALLBACK (on_adapter_selected),
                            self, 0);
 
   /* Check */
   settings = valent_device_preferences_group_get_settings (group);
-  local_uid = g_settings_get_string (settings, "local-uid");
+  local_iri = g_settings_get_string (settings, "local-uid");
   image = g_object_new (GTK_TYPE_IMAGE,
                         "icon-name", "object-select-symbolic",
                         "icon-size", GTK_ICON_SIZE_NORMAL,
-                        "visible",   (g_strcmp0 (local_uid, uid) == 0),
+                        "visible",   (g_strcmp0 (local_iri, iri) == 0),
                         NULL);
   adw_action_row_add_suffix (ADW_ACTION_ROW (row), image);
   g_object_set_data (G_OBJECT (row), "select", image);
 
-  g_object_bind_property (store, "name",
-                          row,   "title",
+  g_object_bind_property (adapter, "iri",
+                          row,     "title",
                           G_BINDING_SYNC_CREATE);
 
   return row;
@@ -185,6 +185,8 @@ valent_contacts_preferences_constructed (GObject *object)
   GSettings *settings;
   ValentContacts *contacts;
 
+  G_OBJECT_CLASS (valent_contacts_preferences_parent_class)->constructed (object);
+
   settings = valent_device_preferences_group_get_settings (group);
   g_settings_bind (settings,          "remote-sync",
                    self->remote_sync, "active",
@@ -198,8 +200,6 @@ valent_contacts_preferences_constructed (GObject *object)
                            G_LIST_MODEL (contacts),
                            valent_contacts_preferences_create_row_func,
                            self, NULL);
-
-  G_OBJECT_CLASS (valent_contacts_preferences_parent_class)->constructed (object);
 }
 
 static void

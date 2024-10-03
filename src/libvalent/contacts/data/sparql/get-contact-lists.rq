@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
+
+# Inputs: iri
+# Outputs: contactList
+SELECT
+  ?contactList
+WHERE {
+  GRAPH <valent:contacts> {
+    ?contactList rdf:type nco:ContactList .
+  }
+}
+

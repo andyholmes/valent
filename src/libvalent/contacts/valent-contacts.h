@@ -8,10 +8,19 @@
 #endif
 
 #include "../core/valent-component.h"
-#include "valent-contact-store.h"
+#include "valent-contacts-adapter.h"
 
 
 G_BEGIN_DECLS
+
+/**
+ * VALENT_CONTACTS_GRAPH:
+ *
+ * The SPARQL graph name for contacts in Valent.
+ *
+ * Since: 1.0
+ */
+#define VALENT_CONTACTS_GRAPH "valent:contacts"
 
 #define VALENT_TYPE_CONTACTS (valent_contacts_get_type ())
 
@@ -19,12 +28,13 @@ VALENT_AVAILABLE_IN_1_0
 G_DECLARE_FINAL_TYPE (ValentContacts, valent_contacts, VALENT, CONTACTS, ValentComponent)
 
 VALENT_AVAILABLE_IN_1_0
-ValentContacts     * valent_contacts_get_default  (void);
-
+ValentContacts * valent_contacts_get_default      (void);
 VALENT_AVAILABLE_IN_1_0
-ValentContactStore * valent_contacts_ensure_store (ValentContacts *contacts,
-                                                   const char     *uid,
-                                                   const char     *name);
+void             valent_contacts_export_adapter   (ValentContacts        *contacts,
+                                                   ValentContactsAdapter *object);
+VALENT_AVAILABLE_IN_1_0
+void             valent_contacts_unexport_adapter (ValentContacts        *contacts,
+                                                   ValentContactsAdapter *object);
 
 G_END_DECLS
 

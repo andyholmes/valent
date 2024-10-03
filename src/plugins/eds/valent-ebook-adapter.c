@@ -6,6 +6,7 @@
 #include "config.h"
 
 #include <gio/gio.h>
+#include <libtracker-sparql/tracker-sparql.h>
 #include <valent.h>
 
 #include "valent-ebook-adapter.h"
@@ -25,33 +26,28 @@ static void   g_async_initable_iface_init (GAsyncInitableIface *iface);
 G_DEFINE_FINAL_TYPE_WITH_CODE (ValentEBookAdapter, valent_ebook_adapter, VALENT_TYPE_CONTACTS_ADAPTER,
                                G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init))
 
-
-/*
- * ESourceRegistry Callbacks
- */
 static void
 g_async_initable_new_async_cb (GAsyncInitable     *initable,
                                GAsyncResult       *result,
                                ValentEBookAdapter *self)
 {
-  ESource *source = NULL;
+  g_autoptr (ESource) source = NULL;
   g_autoptr (GObject) object = NULL;
   g_autoptr (GError) error = NULL;
 
-  if ((object = g_async_initable_new_finish (initable, result, &error)) == NULL)
+  object = g_async_initable_new_finish (initable, result, &error);
+  if (object == NULL)
     {
       if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_warning ("Failed loading address book: %s", error->message);
+        g_warning ("%s(): %s", G_STRFUNC, error->message);
 
       return;
     }
 
-  source = valent_contact_store_get_source (VALENT_CONTACT_STORE (object));
+  g_object_get (object, "source", &source, NULL);
   g_hash_table_replace (self->stores,
-                        g_object_ref (source),
-                        g_object_ref (object));
-  valent_contacts_adapter_store_added (VALENT_CONTACTS_ADAPTER (self),
-                                       VALENT_CONTACT_STORE (object));
+                        g_steal_pointer (&source),
+                        g_steal_pointer (&object));
 }
 
 static void
@@ -59,6 +55,7 @@ on_source_added (ESourceRegistry    *registry,
                  ESource            *source,
                  ValentEBookAdapter *self)
 {
+  g_autoptr (TrackerSparqlConnection) connection = NULL;
   g_autoptr (GCancellable) destroy = NULL;
 
   g_assert (E_IS_SOURCE_REGISTRY (registry));
@@ -68,13 +65,17 @@ on_source_added (ESourceRegistry    *registry,
   if (!e_source_has_extension (source, E_SOURCE_EXTENSION_ADDRESS_BOOK))
     return;
 
-  destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
+  g_object_get (self,
+                "cancellable", &destroy,
+                "connection",  &connection,
+                NULL);
   g_async_initable_new_async (VALENT_TYPE_EBOOK_STORE,
                               G_PRIORITY_DEFAULT,
                               destroy,
                               (GAsyncReadyCallback)g_async_initable_new_async_cb,
                               self,
-                              "source", source,
+                              "connection", connection,
+                              "source",     source,
                               NULL);
 }
 
@@ -83,9 +84,6 @@ on_source_removed (ESourceRegistry    *registry,
                    ESource            *source,
                    ValentEBookAdapter *self)
 {
-  ValentContactsAdapter *adapter = VALENT_CONTACTS_ADAPTER (self);
-  gpointer esource, store;
-
   g_assert (E_IS_SOURCE_REGISTRY (registry));
   g_assert (E_IS_SOURCE (source));
   g_assert (VALENT_IS_EBOOK_ADAPTER (self));
@@ -93,11 +91,11 @@ on_source_removed (ESourceRegistry    *registry,
   if (!e_source_has_extension (source, E_SOURCE_EXTENSION_ADDRESS_BOOK))
     return;
 
-  if (g_hash_table_steal_extended (self->stores, source, &esource, &store))
+  if (!g_hash_table_remove (self->stores, source))
     {
-      valent_contacts_adapter_store_removed (adapter, store);
-      g_object_unref (esource);
-      g_object_unref (store);
+      g_warning ("Source \"%s\" not found in \"%s\"",
+                 e_source_get_display_name (source),
+                 G_OBJECT_TYPE_NAME (self));
     }
 }
 
@@ -109,19 +107,21 @@ e_source_registry_new_cb (GObject      *object,
                           GAsyncResult *result,
                           gpointer      user_data)
 {
-  g_autoptr (GTask) task = G_TASK (user_data);
-  g_autolist (ESource) sources = NULL;
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
   ValentEBookAdapter *self = g_task_get_source_object (task);
+  g_autolist (ESource) sources = NULL;
   g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_EBOOK_ADAPTER (self));
 
-  if ((self->registry = e_source_registry_new_finish (result, &error)) == NULL)
+  self->registry = e_source_registry_new_finish (result, &error);
+  if (self->registry == NULL)
     {
       valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
                                              VALENT_PLUGIN_STATE_ERROR,
                                              error);
-      return g_task_return_error (task, g_steal_pointer (&error));
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
     }
 
   /* Load existing address books */
@@ -134,13 +134,14 @@ e_source_registry_new_cb (GObject      *object,
   g_signal_connect_object (self->registry,
                            "source-added",
                            G_CALLBACK (on_source_added),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
   g_signal_connect_object (self->registry,
                            "source-removed",
                            G_CALLBACK (on_source_removed),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
 
-  /* Report the adapter as active */
   valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
                                          VALENT_PLUGIN_STATE_ACTIVE,
                                          NULL);
