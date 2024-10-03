@@ -12,7 +12,6 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (ValentMockChannelService, valent_mock_channel_service, VALENT, MOCK_CHANNEL_SERVICE, ValentChannelService)
 
 ValentChannelService * valent_mock_channel_service_get_instance (void);
-ValentChannel        * valent_mock_channel_service_get_channel  (void);
 ValentChannel        * valent_mock_channel_service_get_endpoint (void);
 
 G_END_DECLS

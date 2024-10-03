@@ -9,7 +9,6 @@
 
 #include <libpeas.h>
 #include <valent.h>
-#include <libvalent-test.h>
 
 #include "valent-mock-channel.h"
 #include "valent-mock-channel-service.h"
@@ -18,8 +17,6 @@
 struct _ValentMockChannelService
 {
   ValentChannelService  parent_instance;
-
-  GCancellable         *cancellable;
 
   ValentChannel        *channel;
   ValentChannel        *endpoint;
@@ -113,21 +110,8 @@ valent_mock_channel_service_destroy (ValentObject *object)
 
   g_assert (VALENT_IS_MOCK_CHANNEL_SERVICE (self));
 
-  if (self->endpoint != NULL)
-    {
-      valent_channel_close_async (self->endpoint, NULL, NULL, NULL);
-      v_await_finalize_object (self->endpoint);
-      self->endpoint = NULL;
-    }
-
-  if (self->channel != NULL)
-    {
-      valent_channel_close_async (self->channel, NULL, NULL, NULL);
-      v_await_finalize_object (self->channel);
-      self->channel = NULL;
-    }
-
-  g_cancellable_cancel (self->cancellable);
+  g_clear_object (&self->endpoint);
+  g_clear_object (&self->channel);
 
   VALENT_OBJECT_CLASS (valent_mock_channel_service_parent_class)->destroy (object);
 }
@@ -168,22 +152,6 @@ ValentChannelService *
 valent_mock_channel_service_get_instance (void)
 {
   return test_instance;
-}
-
-/**
- * valent_mock_channel_service_get_channel:
- *
- * Get the local `ValentChannel`.
- *
- * Returns: (transfer none) (nullable): a `ValentChannel`
- */
-ValentChannel *
-valent_mock_channel_service_get_channel (void)
-{
-  if (test_instance != NULL)
-    return VALENT_MOCK_CHANNEL_SERVICE (test_instance)->channel;
-
-  return NULL;
 }
 
 /**
