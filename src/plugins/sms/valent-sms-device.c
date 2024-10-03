@@ -538,7 +538,7 @@ execute_add_messages_cb (TrackerBatch *batch,
                          GAsyncResult *result,
                          gpointer      user_data)
 {
-  GError *error = NULL;
+  g_autoptr (GError) error = NULL;
 
   if (!tracker_batch_execute_finish (batch, result, &error) &&
       !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
