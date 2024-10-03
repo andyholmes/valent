@@ -286,7 +286,14 @@
                 {
                     "type": "git",
                     "url": "https://github.com/flatpak/libportal.git",
-                    "branch": "main"
+                    "commit": "26c15008cbe579f57f89468384f8efc033f25f6f",
+                    "tag": "0.8.1",
+                    "x-checker-data": {
+                        "type": "anitya",
+                        "project-id": 230124,
+                        "stable-only": true,
+                        "tag-template": "$version"
+                    }
                 }
             ]
         },
