@@ -7,6 +7,7 @@
 
 #include <gio/gio.h>
 #include <libpeas.h>
+#include <libtracker-sparql/tracker-sparql.h>
 
 #include "valent-component.h"
 #include "valent-component-private.h"
@@ -191,15 +192,22 @@ valent_component_enable_plugin (ValentComponent *self,
                                 ValentPlugin    *plugin)
 {
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
+  g_autofree char *urn = NULL;
+  const char *domain = NULL;
+  const char *module = NULL;
 
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_COMPONENT (self));
   g_assert (plugin != NULL);
 
+  domain = valent_context_get_domain (priv->context);
+  module = peas_plugin_info_get_module_name (plugin->info);
+  urn = tracker_sparql_escape_uri_printf ("urn:valent:%s:%s", domain, module);
   plugin->extension = peas_engine_create_extension (priv->engine,
                                                     plugin->info,
                                                     priv->plugin_type,
+                                                    "iri",    urn,
                                                     "object", self,
                                                     NULL);
   g_return_if_fail (G_IS_OBJECT (plugin->extension));
