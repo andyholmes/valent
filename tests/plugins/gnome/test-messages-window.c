@@ -12,7 +12,6 @@ static void
 test_messages_window (void)
 {
   ValentMessagesWindow *window;
-  g_autoptr (ValentContactStore) contacts_out = NULL;
   g_autoptr (ValentMessages) messages_out = NULL;
 
   /* Prepare Stores */
@@ -26,11 +25,8 @@ test_messages_window (void)
 
   VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (window,
-                "contact-store", &contacts_out,
-                "messages",      &messages_out,
+                "messages", &messages_out,
                 NULL);
-
-  g_assert_true (NULL == contacts_out);
   g_assert_true (valent_messages_get_default () == messages_out);
 
   VALENT_TEST_CHECK ("Window action `win.new` starts a conversation");

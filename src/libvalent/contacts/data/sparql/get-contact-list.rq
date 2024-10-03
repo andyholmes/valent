@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
+
+# Inputs: iri
+# Outputs: contact, uid, vcardData
+SELECT
+  ?contact
+  ?uid
+  ?vcardData
+WHERE {
+  GRAPH <valent:contacts> {
+    BIND(IRI(xsd:string(~iri)) AS ?contactList)
+    ?contactList rdf:type nco:ContactList ;
+                 nco:containsContact ?contact .
+    OPTIONAL {
+      ?contact rdf:type nco:Contact ;
+               nco:contactUID ?uid ;
+               nie:plainTextContent ?vcardData .
+    }
+  }
+}
+GROUP BY ?contact
+

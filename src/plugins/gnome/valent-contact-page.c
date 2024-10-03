@@ -17,23 +17,30 @@
 
 struct _ValentContactPage
 {
-  AdwNavigationPage   parent_instance;
+  AdwNavigationPage  parent_instance;
 
-  ValentContactStore *contact_store;
+  GListModel        *contacts;
+  GtkWidget         *placeholder_contact;
+  char              *search_query;
 
   /* template */
-  GtkWidget          *search_entry;
-  GtkListBox         *contact_list;
-  GtkWidget          *placeholder_contact;
+  GtkWidget         *search_entry;
+  GtkListBox        *contact_list;
+  GListModel        *model;
+  GtkFilter         *filter;
+  GtkStringSorter   *sorter;
+
+  AdwDialog         *details_dialog;
+  GtkListBox        *medium_list;
 };
 
 G_DEFINE_FINAL_TYPE (ValentContactPage, valent_contact_page, ADW_TYPE_NAVIGATION_PAGE)
 
 typedef enum {
-  PROP_CONTACT_STORE = 1,
+  PROP_CONTACTS = 1,
 } ValentContactPageProperty;
 
-static GParamSpec *properties[PROP_CONTACT_STORE + 1] = { NULL, };
+static GParamSpec *properties[PROP_CONTACTS + 1] = { NULL, };
 
 typedef enum {
   SELECTED,
@@ -41,16 +48,95 @@ typedef enum {
 
 static guint signals[SELECTED + 1] = { 0, };
 
+static char *
+_phone_number_normalize (const char *number)
+{
+  g_autofree char *normalized = NULL;
+  const char *s = number;
+  size_t i = 0;
+
+  g_assert (number != NULL);
+
+  normalized = g_new (char, strlen (number) + 1);
+  while (*s != '\0')
+    {
+      if G_LIKELY (g_ascii_isdigit (*s))
+        normalized[i++] = *s;
+
+      s++;
+    }
+  normalized[i] = '\0';
+  normalized = g_realloc (normalized, i * sizeof (char));
+
+  return g_steal_pointer (&normalized);
+}
 
 static gboolean
-check_number (const char *query)
+_e_contact_has_number (EContact   *contact,
+                       const char *query)
 {
-  static GRegex *is_number = NULL;
+  GStrv tel_normalized = NULL;
+  gboolean ret = FALSE;
 
-  if (is_number == NULL)
-    is_number = g_regex_new ("(?!0)[\\d]{3,}", G_REGEX_OPTIMIZE, 0, NULL);
+  tel_normalized = g_object_get_data (G_OBJECT (contact), "tel-normalized");
+  if (tel_normalized == NULL)
+    {
+      g_autoptr (GStrvBuilder) builder = NULL;
+      GList *numbers = NULL;
 
-  return g_regex_match (is_number, query, 0, NULL);
+      builder = g_strv_builder_new ();
+      numbers = e_contact_get (contact, E_CONTACT_TEL);
+      for (const GList *iter = numbers; iter != NULL; iter = iter->next)
+        g_strv_builder_take (builder, _phone_number_normalize (iter->data));
+      g_list_free_full (numbers, g_free);
+
+      tel_normalized = g_strv_builder_end (builder);
+      g_object_set_data_full (G_OBJECT (contact),
+                              "tel-normalized",
+                              tel_normalized,
+                              (GDestroyNotify)g_strfreev);
+    }
+
+  for (size_t i = 0; tel_normalized != NULL && tel_normalized[i] != NULL; i++)
+    {
+      ret = strstr (tel_normalized[i], query) != NULL;
+      if (ret)
+        break;
+    }
+
+  return ret;
+}
+
+static inline gboolean
+valent_contact_page_filter (gpointer item,
+                            gpointer user_data)
+{
+  EContact *contact = E_CONTACT (item);
+  ValentContactPage *self = VALENT_CONTACT_PAGE (user_data);
+  g_autolist (EVCardAttribute) attrs = NULL;
+  const char *query;
+  g_autofree char *query_folded = NULL;
+  g_autofree char *name = NULL;
+
+  attrs = e_contact_get (contact, E_CONTACT_TEL);
+  if (attrs == NULL)
+    return FALSE;
+
+  query = gtk_editable_get_text (GTK_EDITABLE (self->search_entry));
+  if (g_strcmp0 (query, "") == 0)
+    return TRUE;
+
+  /* Show contact if text is substring of name
+   */
+  query_folded = g_utf8_casefold (query, -1);
+  name = g_utf8_casefold (e_contact_get_const (contact, E_CONTACT_FULL_NAME), -1);
+  if (g_strrstr (name, query_folded) != NULL)
+    return TRUE;
+
+  if (_e_contact_has_number (contact, query))
+    return TRUE;
+
+  return FALSE;
 }
 
 static void
@@ -60,6 +146,7 @@ on_search_changed (GtkSearchEntry    *entry,
   const char *query;
 
   query = gtk_editable_get_text (GTK_EDITABLE (entry));
+#if 0
   if (check_number (query))
     {
       g_autoptr (EContact) contact = NULL;
@@ -102,97 +189,97 @@ on_search_changed (GtkSearchEntry    *entry,
                            self->placeholder_contact);
       self->placeholder_contact = NULL;
     }
+#endif
 
-  gtk_list_box_invalidate_filter (self->contact_list);
-  gtk_list_box_invalidate_sort (self->contact_list);
-  gtk_list_box_invalidate_headers (self->contact_list);
+  if (self->search_query && g_str_has_prefix (query, self->search_query))
+    gtk_filter_changed (self->filter, GTK_FILTER_CHANGE_MORE_STRICT);
+  else if (self->search_query && g_str_has_prefix (self->search_query, query))
+    gtk_filter_changed (self->filter, GTK_FILTER_CHANGE_LESS_STRICT);
+  else
+    gtk_filter_changed (self->filter, GTK_FILTER_CHANGE_DIFFERENT);
+
+  g_set_str (&self->search_query, query);
 }
 
-static gboolean
-contact_list_filter (ValentContactRow  *row,
-                     ValentContactPage *self)
+static GtkWidget *
+contact_list_create (gpointer item,
+                     gpointer user_data)
 {
-  const char *query;
-  g_autofree char *query_folded = NULL;
-  g_autofree char *name = NULL;
-  const char *medium = NULL;
-  EContact *contact;
+  EContact *contact = E_CONTACT (item);
+  GtkWidget *row;
+  g_autolist (EVCardAttribute) attrs = NULL;
+  g_autofree char *number = NULL;
+  unsigned int n_attrs;
 
-  /* Always show the dynamic contact
-   */
-  if G_UNLIKELY (GTK_WIDGET (row) == self->placeholder_contact)
-    return TRUE;
+  attrs = e_contact_get_attributes (contact, E_CONTACT_TEL);
+  n_attrs = g_list_length (attrs);
 
-  query = gtk_editable_get_text (GTK_EDITABLE (self->search_entry));
-  if (g_strcmp0 (query, "") == 0)
-    return TRUE;
-
-  /* Show contact if text is substring of name
-   */
-  query_folded = g_utf8_casefold (query, -1);
-  contact = valent_contact_row_get_contact (row);
-  name = g_utf8_casefold (e_contact_get_const (contact, E_CONTACT_FULL_NAME), -1);
-  if (g_strrstr (name, query_folded) != NULL)
-    return TRUE;
-
-  /* Show contact if text is substring of medium
-   */
-  medium = valent_contact_row_get_contact_medium (row);
-  if (g_strrstr (medium, query_folded) != NULL)
-    return TRUE;
-
-  return FALSE;
-}
-
-static void
-refresh_contacts_cb (ValentContactStore *store,
-                     GAsyncResult       *result,
-                     ValentContactPage  *self)
-{
-  g_autoslist (GObject) contacts = NULL;
-  g_autoptr (GError) error = NULL;
-
-  contacts = valent_contact_store_query_finish (store, result, &error);
-  if (error != NULL)
+  g_object_get (contact, "primary-phone", &number, NULL);
+  if (number == NULL || *number == '\0')
     {
-      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_warning ("%s(): %s", G_STRFUNC, error->message);
-
-      return;
+      g_free (number);
+      number = e_vcard_attribute_get_value ((EVCardAttribute *)attrs->data);
     }
 
-  for (const GSList *iter = contacts; iter; iter = iter->next)
-    valent_list_add_contact (self->contact_list, iter->data);
+  if (n_attrs > 1)
+    {
+      g_autofree char *tmp = g_steal_pointer (&number);
+
+      number = g_strdup_printf (ngettext ("%s and %u more…",
+                                          "%s and %u more…",
+                                          n_attrs - 1),
+                                tmp, n_attrs - 1);
+    }
+
+  row = g_object_new (VALENT_TYPE_CONTACT_ROW,
+                      "contact",        contact,
+                      "contact-medium", number,
+                      NULL);
+
+  if (n_attrs > 1)
+    {
+      gtk_accessible_update_state (GTK_ACCESSIBLE (row),
+                                   GTK_ACCESSIBLE_STATE_EXPANDED, FALSE,
+                                   -1);
+    }
+
+  return row;
 }
 
 static void
-valent_contact_page_refresh_contacts (ValentContactPage *self)
+on_contact_medium_selected (AdwActionRow      *row,
+                            ValentContactPage *self)
 {
-  GtkWidget *row;
-  g_autoptr (EBookQuery) query = NULL;
-  g_autofree char *sexp = NULL;
+  EContact *contact;
+  const char *medium;
 
-  while ((row = gtk_widget_get_first_child (GTK_WIDGET (self->contact_list))))
-    gtk_list_box_remove (self->contact_list, row);
+  g_assert (ADW_IS_ACTION_ROW (row));
 
-  if (self->contact_store == NULL)
-    return;
+  contact = g_object_get_data (G_OBJECT (row), "contact");
+  medium = adw_preferences_row_get_title (ADW_PREFERENCES_ROW (row));
+  g_signal_emit (G_OBJECT (self), signals [SELECTED], 0, contact, medium);
 
-  query = e_book_query_vcard_field_exists (EVC_TEL);
-  sexp = e_book_query_to_string (query);
-  valent_contact_store_query (self->contact_store,
-                              sexp,
-                              NULL,
-                              (GAsyncReadyCallback)refresh_contacts_cb,
-                              self);
+  adw_dialog_close (self->details_dialog);
+}
+
+static void
+on_contact_row_collapsed (AdwDialog *dialog,
+                          GtkWidget *row)
+{
+  gtk_accessible_reset_relation (GTK_ACCESSIBLE (row),
+                                 GTK_ACCESSIBLE_RELATION_CONTROLS);
+  gtk_accessible_update_state (GTK_ACCESSIBLE (row),
+                               GTK_ACCESSIBLE_STATE_EXPANDED, FALSE,
+                               -1);
+  g_signal_handlers_disconnect_by_func (dialog, on_contact_row_collapsed, row);
 }
 
 static void
 on_contact_selected (ValentContactPage *self)
 {
+  g_autolist (EVCardAttribute) attrs = NULL;
   GtkListBoxRow *row;
   EContact *contact;
-  const char *medium;
 
   g_assert (VALENT_IS_CONTACT_PAGE (self));
 
@@ -201,9 +288,68 @@ on_contact_selected (ValentContactPage *self)
     return;
 
   contact = valent_contact_row_get_contact (VALENT_CONTACT_ROW (row));
-  medium = valent_contact_row_get_contact_medium (VALENT_CONTACT_ROW (row));
+  attrs = e_contact_get_attributes (E_CONTACT (contact), E_CONTACT_TEL);
 
-  g_signal_emit (G_OBJECT (self), signals [SELECTED], 0, contact, medium);
+  if (g_list_length (attrs) == 1)
+    {
+      g_autofree char *medium = NULL;
+
+      g_object_get (row, "contact-medium", &medium, NULL);
+      g_signal_emit (G_OBJECT (self), signals [SELECTED], 0, contact, medium);
+    }
+  else
+    {
+      gtk_list_box_remove_all (GTK_LIST_BOX (self->medium_list));
+      for (const GList *iter = attrs; iter; iter = iter->next)
+        {
+          EVCardAttribute *attr = iter->data;
+          GtkWidget *medium_row;
+          g_autofree char *number = NULL;
+          const char *type_ = NULL;
+
+          if (e_vcard_attribute_has_type (attr, "WORK"))
+            type_ = _("Work");
+          else if (e_vcard_attribute_has_type (attr, "CELL"))
+            type_ = _("Mobile");
+          else if (e_vcard_attribute_has_type (attr, "HOME"))
+            type_ = _("Home");
+          else
+            type_ = _("Other");
+
+          number = e_vcard_attribute_get_value (attr);
+          medium_row = g_object_new (ADW_TYPE_ACTION_ROW,
+                                     "activatable", TRUE,
+                                     "title",       number,
+                                     "subtitle",    type_,
+                                     NULL);
+          g_object_set_data_full (G_OBJECT (medium_row),
+                                  "contact",
+                                  g_object_ref (contact),
+                                  g_object_unref);
+          g_signal_connect_object (medium_row,
+                                   "activated",
+                                   G_CALLBACK (on_contact_medium_selected),
+                                   self,
+                                   G_CONNECT_DEFAULT);
+
+          gtk_list_box_insert (self->medium_list, medium_row, -1);
+        }
+
+      /* Present the dialog and match the expanded state
+       */
+      gtk_accessible_update_state (GTK_ACCESSIBLE (row),
+                                   GTK_ACCESSIBLE_STATE_EXPANDED, TRUE,
+                                   -1);
+      gtk_accessible_update_relation (GTK_ACCESSIBLE (row),
+                                      GTK_ACCESSIBLE_RELATION_CONTROLS, self->details_dialog, NULL,
+                                      -1);
+      g_signal_connect_object (self->details_dialog,
+                               "closed",
+                               G_CALLBACK (on_contact_row_collapsed),
+                               row,
+                               G_CONNECT_DEFAULT);
+      adw_dialog_present (self->details_dialog, GTK_WIDGET (self));
+    }
 }
 
 /*
@@ -228,7 +374,8 @@ valent_contact_page_finalize (GObject *object)
 {
   ValentContactPage *self = VALENT_CONTACT_PAGE (object);
 
-  g_clear_object (&self->contact_store);
+  g_clear_object (&self->contacts);
+  g_clear_pointer (&self->search_query, g_free);
 
   G_OBJECT_CLASS (valent_contact_page_parent_class)->finalize (object);
 }
@@ -243,8 +390,8 @@ valent_contact_page_get_property (GObject    *object,
 
   switch ((ValentContactPageProperty)prop_id)
     {
-    case PROP_CONTACT_STORE:
-      g_value_set_object (value, self->contact_store);
+    case PROP_CONTACTS:
+      g_value_set_object (value, self->contacts);
       break;
 
     default:
@@ -262,9 +409,8 @@ valent_contact_page_set_property (GObject      *object,
 
   switch ((ValentContactPageProperty)prop_id)
     {
-    case PROP_CONTACT_STORE:
-      if (g_set_object (&self->contact_store, g_value_get_object (value)))
-        valent_contact_page_refresh_contacts (self);
+    case PROP_CONTACTS:
+      g_set_object (&self->contacts, g_value_get_object (value));
       break;
 
     default:
@@ -286,19 +432,24 @@ valent_contact_page_class_init (ValentContactPageClass *klass)
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-contact-page.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentContactPage, search_entry);
   gtk_widget_class_bind_template_child (widget_class, ValentContactPage, contact_list);
+  gtk_widget_class_bind_template_child (widget_class, ValentContactPage, details_dialog);
+  gtk_widget_class_bind_template_child (widget_class, ValentContactPage, medium_list);
+  gtk_widget_class_bind_template_child (widget_class, ValentContactPage, model);
+  gtk_widget_class_bind_template_child (widget_class, ValentContactPage, filter);
+  gtk_widget_class_bind_template_child (widget_class, ValentContactPage, sorter);
   gtk_widget_class_bind_template_callback (widget_class, on_search_changed);
   gtk_widget_class_bind_template_callback (widget_class, on_contact_selected);
 
   page_class->shown = valent_contact_page_shown;
 
   /**
-   * ValentContactPage:contact-store:
+   * ValentContactPage:contacts:
    *
-   * The `ValentContactStore` providing contacts.
+   * The `ValentContactsAdapter` providing contacts.
    */
-  properties [PROP_CONTACT_STORE] =
-    g_param_spec_object ("contact-store", NULL, NULL,
-                         VALENT_TYPE_CONTACT_STORE,
+  properties [PROP_CONTACTS] =
+    g_param_spec_object ("contacts", NULL, NULL,
+                         VALENT_TYPE_CONTACTS_ADAPTER,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT |
                           G_PARAM_STATIC_STRINGS));
@@ -328,17 +479,12 @@ valent_contact_page_init (ValentContactPage *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
 
-  gtk_list_box_set_filter_func (self->contact_list,
-                                (GtkListBoxFilterFunc)contact_list_filter,
-                                self,
-                                NULL);
-  gtk_list_box_set_sort_func (self->contact_list,
-                              valent_contact_row_sort_func,
-                              self,
-                              NULL);
-  gtk_list_box_set_header_func (self->contact_list,
-                                valent_contact_row_header_func,
-                                self,
-                                NULL);
+  gtk_custom_filter_set_filter_func (GTK_CUSTOM_FILTER (self->filter),
+                                     valent_contact_page_filter,
+                                     self, NULL);
+  gtk_list_box_bind_model (self->contact_list,
+                           self->model,
+                           contact_list_create,
+                           self, NULL);
 }
 

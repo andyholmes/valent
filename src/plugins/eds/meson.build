@@ -13,7 +13,6 @@ plugin_eds_sources = files([
   'eds-plugin.c',
   'valent-ebook-adapter.c',
   'valent-ebook-store.c',
-  'valent-eds-utils.c',
 ])
 
 plugin_eds_include_directories = include_directories('.')

@@ -13,9 +13,9 @@ test_conversation_page (void)
   GtkWidget *conversation;
   GtkWidget *window;
   g_autoptr (GMainLoop) loop = NULL;
-  g_autoptr (ValentContactStore) contacts = NULL;
+  g_autoptr (ValentContactsAdapter) contacts = NULL;
   g_autoptr (ValentMessagesAdapter) messages = NULL;
-  g_autoptr (ValentContactStore) contacts_out = NULL;
+  g_autoptr (ValentContactsAdapter) contacts_out = NULL;
   g_autoptr (ValentMessagesAdapter) messages_out = NULL;
   g_autofree char *iri = NULL;
   g_autofree char *iri_out = NULL;
@@ -24,9 +24,9 @@ test_conversation_page (void)
 
   VALENT_TEST_CHECK ("Widget can be constructed");
   conversation = g_object_new (VALENT_TYPE_CONVERSATION_PAGE,
-                               "contact-store", contacts,
-                               "messages",      messages,
-                               "iri",           iri,
+                               "contacts", contacts,
+                               "messages", messages,
+                               "iri",      iri,
                                NULL);
 
   VALENT_TEST_CHECK ("Widget can be realized");
@@ -42,9 +42,9 @@ test_conversation_page (void)
 
   VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (conversation,
-                "contact-store", &contacts_out,
-                "messages",      &messages_out,
-                "iri",           &iri_out,
+                "contacts", &contacts_out,
+                "messages", &messages_out,
+                "iri",      &iri_out,
                 NULL);
   g_assert_true (contacts == contacts_out);
   g_assert_true (messages == messages_out);

@@ -6,7 +6,6 @@
 G_BEGIN_DECLS
 
 #include "valent-contacts.h"
-#include "valent-contact-store.h"
 #include "valent-contacts-adapter.h"
 #include "valent-eds.h"
 

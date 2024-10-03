@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
+
+# Inputs: query
+# Outputs: contact, uid, vcardData
+SELECT
+  ?contact
+  ?uid
+  ?vcardData
+WHERE {
+  GRAPH <valent:contacts> {
+    ?contact rdf:type nco:Contact ;
+             nco:contactUID ?uid ;
+             nie:plainTextContent ?vcardData ;
+             fts:match ~query^^xsd:string .
+  }
+}
+GROUP BY ?contact
+ORDER BY DESC(fts:rank(?contact))
+LIMIT 10
+

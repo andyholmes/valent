@@ -67,4 +67,71 @@
       <class name="valent-contact-page"/>
     </style>
   </template>
+  <object class="AdwDialog" id="details_dialog">
+    <property name="title" translatable="yes">Select destination</property>
+    <property name="follows-content-size">1</property>
+    <property name="width-request">360</property>
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="GtkScrolledWindow">
+            <property name="hexpand">1</property>
+            <property name="vexpand">1</property>
+            <property name="hscrollbar-policy">never</property>
+            <property name="propagate-natural-height">1</property>
+            <property name="child">
+              <object class="GtkViewport">
+                <property name="child">
+                  <object class="AdwClamp">
+                    <property name="child">
+                      <object class="GtkBox">
+                        <property name="orientation">vertical</property>
+                        <child>
+                          <object class="GtkListBox" id="medium_list">
+                            <property name="selection-mode">none</property>
+                            <accessibility>
+                              <property name="label" translatable="yes">Phone Numbers</property>
+                            </accessibility>
+                            <style>
+                              <class name="navigation-sidebar"/>
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </property>
+                  </object>
+                </property>
+              </object>
+            </property>
+          </object>
+        </property>
+      </object>
+    </property>
+  </object>
+  <object class="GtkSortListModel" id="model">
+    <property name="model">
+      <object class="GtkFilterListModel">
+        <property name="filter">
+          <object class="GtkCustomFilter" id="filter"/>
+        </property>
+        <property name="model">
+          <object class="GtkFlattenListModel">
+            <binding name="model">
+              <lookup name="contacts">ValentContactPage</lookup>
+            </binding>
+          </object>
+        </property>
+      </object>
+    </property>
+    <property name="sorter">
+      <object class="GtkStringSorter" id="sorter">
+        <property name="expression">
+          <lookup name="full-name" type="EContact"/>
+        </property>
+      </object>
+    </property>
+  </object>
 </interface>

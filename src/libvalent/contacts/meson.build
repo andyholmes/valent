@@ -11,12 +11,11 @@ libvalent_contacts_generated_sources = []
 libvalent_contacts_public_headers = [
   'valent-contacts.h',
   'valent-contacts-adapter.h',
-  'valent-contact-store.h',
   'valent-eds.h',
 ]
 
 libvalent_contacts_private_headers = [
-  'valent-contact-cache-private.h',
+  'valent-contact-list.h',
 ]
 
 libvalent_contacts_enum_headers = [
@@ -31,9 +30,17 @@ install_headers(libvalent_contacts_public_headers,
 libvalent_contacts_public_sources = [
   'valent-contacts.c',
   'valent-contacts-adapter.c',
-  'valent-contact-cache.c',
-  'valent-contact-store.c',
+  'valent-contact-list.c',
 ]
+
+
+# GResources
+libvalent_contacts_resources = gnome.compile_resources('libvalent-contacts-resources',
+                                                       'libvalent-contacts.gresource.xml',
+  c_name: 'valent_contacts',
+)
+libvalent_contacts_generated_sources += libvalent_contacts_resources
+libvalent_contacts_generated_headers += [libvalent_contacts_resources[1]]
 
 
 # Dependencies

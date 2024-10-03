@@ -25,20 +25,6 @@ valent_test_message_store_new_cb (ValentMessagesAdapter *store,
     *done = TRUE;
 }
 
-static void
-valent_test_contact_store_new_cb (ValentContactStore *store,
-                                  GAsyncResult       *result,
-                                  gboolean           *done)
-{
-  g_autoptr (GError) error = NULL;
-
-  valent_contact_store_add_contacts_finish (store, result, &error);
-  g_assert_no_error (error);
-
-  if (done != NULL)
-    *done = TRUE;
-}
-
 /**
  * valent_test_contact1:
  *
@@ -114,33 +100,14 @@ valent_test_contact3 (void)
 /**
  * valent_test_contact_store_new:
  *
- * Create a new `ValentContactStore` for testing.
+ * Create a new `ValentContactsAdapter` for testing.
  *
- * Returns: (transfer full): a `ValentContactStore`
+ * Returns: (transfer full): a `ValentContactsAdapter`
  */
-static inline ValentContactStore *
+static inline ValentContactsAdapter *
 valent_test_contact_store_new (void)
 {
-  g_autoptr (ValentContactStore) store = NULL;
-  g_autoptr (GSList) contacts = NULL;
-  gboolean done = FALSE;
-
-  store = valent_contacts_ensure_store (valent_contacts_get_default (),
-                                        "test-device",
-                                        "Test Device");
-
-  contacts = g_slist_append (contacts, valent_test_contact1 ());
-  contacts = g_slist_append (contacts, valent_test_contact2 ());
-  contacts = g_slist_append (contacts, valent_test_contact3 ());
-
-  valent_contact_store_add_contacts (store,
-                                     contacts,
-                                     NULL,
-                                     (GAsyncReadyCallback)valent_test_contact_store_new_cb,
-                                     &done);
-  valent_test_await_boolean (&done);
-
-  return g_steal_pointer (&store);
+  return NULL;
 }
 
 static inline GPtrArray *

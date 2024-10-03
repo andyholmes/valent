@@ -23,8 +23,9 @@
 struct _ValentConversationPage
 {
   AdwNavigationPage       parent_instance;
-  ValentContactStore     *contact_store;
-  ValentMessagesAdapter  *message_store;
+
+  GListModel             *contacts;
+  ValentMessagesAdapter  *messages;
   char                   *iri;
   GListModel             *thread;
   TrackerSparqlStatement *get_thread_attachments_stmt;
@@ -60,7 +61,7 @@ static void       valent_conversation_page_send_message     (ValentConversationP
 G_DEFINE_FINAL_TYPE (ValentConversationPage, valent_conversation_page, ADW_TYPE_NAVIGATION_PAGE)
 
 typedef enum {
-  PROP_CONTACT_STORE = 1,
+  PROP_CONTACTS = 1,
   PROP_MESSAGES,
   PROP_IRI,
 } ValentConversationPageProperty;
@@ -69,15 +70,15 @@ static GParamSpec *properties[PROP_IRI + 1] = { NULL, };
 
 
 static void
-phone_lookup_cb (ValentContactStore *store,
-                 GAsyncResult       *result,
-                 GtkWidget          *widget)
+phone_lookup_cb (ValentContactsAdapter *adapter,
+                 GAsyncResult          *result,
+                 GtkWidget             *widget)
 {
   g_autoptr (EContact) contact = NULL;
   g_autoptr (GError) error = NULL;
   GtkWidget *conversation;
 
-  contact = valent_contact_store_lookup_contact_finish (store, result, &error);
+  contact = valent_contacts_adapter_reverse_lookup_finish (adapter, result, &error);
   if (contact == NULL)
     {
       if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
@@ -164,7 +165,7 @@ valent_conversation_page_insert_message (ValentConversationPage *self,
                                          int                     position)
 {
   ValentConversationRow *row;
-  const char *sender = NULL;
+  const char *medium = NULL;
 
   g_assert (VALENT_IS_CONVERSATION_PAGE (self));
   g_assert (VALENT_IS_MESSAGE (message));
@@ -175,12 +176,12 @@ valent_conversation_page_insert_message (ValentConversationPage *self,
                       "selectable",  FALSE,
                       NULL);
 
-  sender = valent_message_get_sender (message);
-  if (sender != NULL && *sender != '\0')
+  medium = valent_message_get_sender (message);
+  if (medium != NULL && *medium != '\0')
     {
       EContact *contact;
 
-      contact = g_hash_table_lookup (self->participants, sender);
+      contact = g_hash_table_lookup (self->participants, medium);
       if (contact != NULL)
         {
           valent_conversation_row_set_contact (row, contact);
@@ -195,11 +196,11 @@ valent_conversation_page_insert_message (ValentConversationPage *self,
                                    G_CALLBACK (g_cancellable_cancel),
                                    cancellable,
                                    G_CONNECT_SWAPPED);
-          valent_contact_store_lookup_contact (self->contact_store,
-                                               sender,
-                                               cancellable,
-                                               (GAsyncReadyCallback)phone_lookup_cb,
-                                               row);
+          valent_contacts_adapter_reverse_lookup ((gpointer)self->contacts,
+                                                  medium,
+                                                  cancellable,
+                                                  (GAsyncReadyCallback)phone_lookup_cb,
+                                                  row);
         }
     }
   else if (g_hash_table_size (self->participants) == 1)
@@ -569,16 +570,16 @@ valent_conversation_page_load (ValentConversationPage *self)
 {
   unsigned int n_threads = 0;
 
-  if (self->message_store == NULL)
+  if (self->messages == NULL)
     return;
 
-  n_threads = g_list_model_get_n_items (G_LIST_MODEL (self->message_store));
+  n_threads = g_list_model_get_n_items (G_LIST_MODEL (self->messages));
   for (unsigned int i = 0; i < n_threads; i++)
     {
       g_autoptr (GListModel) thread = NULL;
       g_autofree char *thread_iri = NULL;
 
-      thread = g_list_model_get_item (G_LIST_MODEL (self->message_store), i);
+      thread = g_list_model_get_item (G_LIST_MODEL (self->messages), i);
       g_object_get (thread, "iri", &thread_iri, NULL);
 
       if (g_strcmp0 (self->iri, thread_iri) == 0)
@@ -719,7 +720,7 @@ valent_conversation_page_send_message (ValentConversationPage *self)
                           "text",            text,
                           NULL);
 
-  valent_messages_adapter_send_message (self->message_store,
+  valent_messages_adapter_send_message (self->messages,
                                         message,
                                         NULL,
                                         (GAsyncReadyCallback)valent_conversation_page_send_message_cb,
@@ -848,7 +849,7 @@ valent_conversation_page_get_attachments (ValentConversationPage *self)
 
   g_return_val_if_fail (VALENT_IS_CONVERSATION_PAGE (self), NULL);
 
-  g_object_get (self->message_store, "connection", &connection, NULL);
+  g_object_get (self->messages, "connection", &connection, NULL);
   if (self->get_thread_attachments_stmt == NULL)
     {
       self->get_thread_attachments_stmt =
@@ -895,8 +896,8 @@ on_add_participant (GtkButton              *row,
   g_assert (VALENT_IS_CONVERSATION_PAGE (self));
 
   page = g_object_new (VALENT_TYPE_CONTACT_PAGE,
-                       "tag",           "contacts",
-                       "contact-store", self->contact_store,
+                       "tag",     "contacts",
+                       "contacts", self->contacts,
                        NULL);
   g_signal_connect_object (page,
                            "selected",
@@ -1176,8 +1177,8 @@ valent_conversation_page_finalize (GObject *object)
 {
   ValentConversationPage *self = VALENT_CONVERSATION_PAGE (object);
 
-  g_clear_object (&self->message_store);
-  g_clear_object (&self->contact_store);
+  g_clear_object (&self->messages);
+  g_clear_object (&self->contacts);
   g_clear_object (&self->thread);
   g_clear_pointer (&self->iri, g_free);
   g_clear_pointer (&self->participants, g_hash_table_unref);
@@ -1197,12 +1198,12 @@ valent_conversation_page_get_property (GObject    *object,
 
   switch ((ValentConversationPageProperty)prop_id)
     {
-    case PROP_CONTACT_STORE:
-      g_value_set_object (value, self->contact_store);
+    case PROP_CONTACTS:
+      g_value_set_object (value, self->contacts);
       break;
 
     case PROP_MESSAGES:
-      g_value_set_object (value, self->message_store);
+      g_value_set_object (value, self->messages);
       break;
 
     case PROP_IRI:
@@ -1224,12 +1225,12 @@ valent_conversation_page_set_property (GObject      *object,
 
   switch ((ValentConversationPageProperty)prop_id)
     {
-    case PROP_CONTACT_STORE:
-      g_set_object (&self->contact_store, g_value_get_object (value));
+    case PROP_CONTACTS:
+      g_set_object (&self->contacts, g_value_get_object (value));
       break;
 
     case PROP_MESSAGES:
-      g_set_object (&self->message_store, g_value_get_object (value));
+      g_set_object (&self->messages, g_value_get_object (value));
       break;
 
     case PROP_IRI:
@@ -1274,24 +1275,13 @@ valent_conversation_page_class_init (ValentConversationPageClass *klass)
 
   page_class->shown = valent_conversation_page_shown;
 
-  /**
-   * ValentConversationPage:contact-store:
-   *
-   * The `ValentContactStore` providing `EContact` objects for the conversation.
-   */
-  properties [PROP_CONTACT_STORE] =
-    g_param_spec_object ("contact-store", NULL, NULL,
-                         VALENT_TYPE_CONTACT_STORE,
+  properties [PROP_CONTACTS] =
+    g_param_spec_object ("contacts", NULL, NULL,
+                         VALENT_TYPE_CONTACTS_ADAPTER,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT |
                           G_PARAM_STATIC_STRINGS));
 
-  /**
-   * ValentConversationPage:messages:
-   *
-   * The `ValentMessagesAdapter` providing `ValentMessage` objects for the
-   * conversation.
-   */
   properties [PROP_MESSAGES] =
     g_param_spec_object ("messages", NULL, NULL,
                          VALENT_TYPE_MESSAGES_ADAPTER,
@@ -1299,11 +1289,6 @@ valent_conversation_page_class_init (ValentConversationPageClass *klass)
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_STATIC_STRINGS));
 
-  /**
-   * ValentConversationPage:iri:
-   *
-   * The thread ID of the conversation.
-   */
   properties [PROP_IRI] =
     g_param_spec_string ("iri", NULL, NULL,
                          NULL,

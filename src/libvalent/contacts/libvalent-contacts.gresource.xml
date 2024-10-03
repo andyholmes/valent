@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
+
+<gresources>
+  <gresource prefix="/ca/andyholmes/Valent/sparql">
+    <file alias="get-contact.rq">data/sparql/get-contact.rq</file>
+    <file alias="get-contact-list.rq">data/sparql/get-contact-list.rq</file>
+    <file alias="get-contact-lists.rq">data/sparql/get-contact-lists.rq</file>
+    <file alias="search-contacts.rq">data/sparql/search-contacts.rq</file>
+  </gresource>
+</gresources>
+
