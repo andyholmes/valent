@@ -78,10 +78,12 @@ valent_media_remote_timer_tick (gpointer data)
       gtk_adjustment_set_value (self->media_position_adjustment, 1.0);
     }
 
-  position_str = valent_media_time_to_string (position * 1000L, TOTEM_TIME_FLAG_NONE);
+  position_str = valent_media_time_to_string ((int64_t)(position * 1000L),
+                                              TOTEM_TIME_FLAG_NONE);
   gtk_label_set_label (self->media_position_current, position_str);
 
-  length_str = valent_media_time_to_string (length * 1000L, TOTEM_TIME_FLAG_NONE);
+  length_str = valent_media_time_to_string ((int64_t)(length * 1000L),
+                                            TOTEM_TIME_FLAG_NONE);
   gtk_label_set_label (self->media_position_length, length_str);
 
   return G_SOURCE_CONTINUE;
@@ -134,7 +136,8 @@ valent_media_remote_update_position (ValentMediaRemote *self)
       gtk_adjustment_set_value (self->media_position_adjustment, 1.0);
     }
 
-  position_str = valent_media_time_to_string (position * 1000L, TOTEM_TIME_FLAG_NONE);
+  position_str = valent_media_time_to_string ((int64_t)(position * 1000L),
+                                              TOTEM_TIME_FLAG_NONE);
   gtk_label_set_label (self->media_position_current, position_str);
 }
 
@@ -191,7 +194,8 @@ valent_media_remote_update_metadata (ValentMediaRemote *self)
     length = length_us / G_TIME_SPAN_SECOND;
 
   gtk_adjustment_set_upper (self->media_position_adjustment, length);
-  length_str = valent_media_time_to_string (length * 1000L, TOTEM_TIME_FLAG_NONE);
+  length_str = valent_media_time_to_string ((int64_t)(length * 1000L),
+                                            TOTEM_TIME_FLAG_NONE);
   gtk_label_set_label (self->media_position_length, length_str);
 
   valent_media_remote_update_position (self);

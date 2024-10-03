@@ -229,7 +229,8 @@ on_single_update (GtkGesture        *gesture,
   unsigned int button = 0;
   uint32_t timestamp = 0;
   double x, y;
-  double dx, dy, dt;
+  double dx, dy;
+  uint32_t dt;
   double cx, cy;
 
   g_assert (VALENT_IS_INPUT_REMOTE (self));

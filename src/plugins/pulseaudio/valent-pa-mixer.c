@@ -24,7 +24,6 @@ struct _ValentPaMixer
   GHashTable         *streams;
   unsigned int        input;
   unsigned int        output;
-  unsigned int        vol_max;
 };
 
 G_DEFINE_FINAL_TYPE (ValentPaMixer, valent_pa_mixer, VALENT_TYPE_MIXER_ADAPTER)
@@ -85,7 +84,6 @@ on_stream_added (GvcMixerControl *control,
   stream = g_object_new (VALENT_TYPE_PA_STREAM,
                          "base-stream", base_stream,
                          "direction",   direction,
-                         "vol-max",     self->vol_max,
                          NULL);
 
   if (!g_hash_table_replace (self->streams, GUINT_TO_POINTER (stream_id), stream))
@@ -150,9 +148,6 @@ valent_pa_mixer_load (ValentPaMixer *self)
   GvcMixerStream *stream = NULL;
 
   g_assert (VALENT_IS_PA_MIXER (self));
-
-  /* Get current defaults */
-  self->vol_max = gvc_mixer_control_get_vol_max_norm (self->control);
 
   /* Query the default streams before emitting signals */
   if ((stream = gvc_mixer_control_get_default_sink (self->control)) != NULL)
@@ -322,12 +317,11 @@ valent_pa_mixer_constructed (GObject *object)
 {
   ValentPaMixer *self = VALENT_PA_MIXER (object);
 
-  self->vol_max = gvc_mixer_control_get_vol_max_norm (self->control);
-
   g_signal_connect_object (self->control,
                            "state-changed",
                            G_CALLBACK (on_state_changed),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
   gvc_mixer_control_open (self->control);
 
   G_OBJECT_CLASS (valent_pa_mixer_parent_class)->constructed (object);

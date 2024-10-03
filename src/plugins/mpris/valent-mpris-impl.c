@@ -247,7 +247,7 @@ player_get_property (GDBusConnection  *connection,
       double position = valent_media_player_get_position (self->player);
 
       /* Convert seconds to microseconds */
-      return g_variant_new_int64 (position * G_TIME_SPAN_SECOND);
+      return g_variant_new_int64 ((int64_t)(position * G_TIME_SPAN_SECOND));
     }
 
   /* Load properties */
@@ -514,13 +514,13 @@ valent_mpris_impl_propagate_notify (ValentMediaPlayer *player,
       double position = valent_media_player_get_position (self->player);
 
       /* Convert seconds to microseconds */
-      value = g_variant_new_int64 (position * G_TIME_SPAN_SECOND);
+      value = g_variant_new_int64 ((int64_t)(position * G_TIME_SPAN_SECOND));
       g_hash_table_replace (self->cache,
                             g_strdup ("Position"),
                             g_variant_ref_sink (value));
 
       /* Convert seconds to microseconds */
-      valent_mpris_impl_propagate_seeked (self, position * G_TIME_SPAN_SECOND);
+      valent_mpris_impl_propagate_seeked (self, (int64_t)(position * G_TIME_SPAN_SECOND));
     }
   else if (g_str_equal (name, "repeat"))
     {

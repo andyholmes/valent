@@ -137,7 +137,7 @@ test_media_component_player (MediaComponentFixture *fixture,
 
   g_assert_cmpstr (name, ==, "Mock Player");
   g_assert_cmpuint (flags, ==, VALENT_MEDIA_ACTION_NONE);
-  g_assert_cmpint (position, ==, 0);
+  g_assert_cmpfloat_with_epsilon (position, 0.0, DBL_EPSILON);
   g_assert_cmpuint (repeat, ==, VALENT_MEDIA_REPEAT_NONE);
   g_assert_false (shuffle);
   g_assert_cmpuint (state, ==, VALENT_MEDIA_STATE_STOPPED);
@@ -182,7 +182,7 @@ test_media_component_player (MediaComponentFixture *fixture,
   fixture->emitter = NULL;
 
   valent_media_player_set_position (fixture->player, 2.0);
-  g_assert_cmpint (valent_media_player_get_position (fixture->player), ==, 2.0);
+  g_assert_cmpfloat_with_epsilon (valent_media_player_get_position (fixture->player), 2.0, DBL_EPSILON);
   fixture->emitter = NULL;
 
   g_signal_handlers_disconnect_by_data (fixture->player, fixture);

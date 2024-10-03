@@ -97,7 +97,7 @@ valent_mpris_device_set_position (ValentMediaPlayer *player,
   json_builder_set_member_name (builder, "player");
   json_builder_add_string_value (builder, self->name);
   json_builder_set_member_name (builder, "SetPosition");
-  json_builder_add_int_value (builder, position * 1000L);
+  json_builder_add_int_value (builder, (int64_t)(position * 1000L));
   packet = valent_packet_end (&builder);
 
   valent_device_send_packet (self->device, packet, NULL, NULL, NULL);
@@ -186,7 +186,7 @@ valent_mpris_device_set_volume (ValentMediaPlayer *player,
   json_builder_set_member_name (builder, "player");
   json_builder_add_string_value (builder, self->name);
   json_builder_set_member_name (builder, "setVolume");
-  json_builder_add_int_value (builder, floor (volume * 100));
+  json_builder_add_int_value (builder, (int64_t)floor (volume * 100));
   packet = valent_packet_end (&builder);
 
   valent_device_send_packet (self->device, packet, NULL, NULL, NULL);
@@ -292,7 +292,7 @@ valent_mpris_device_seek (ValentMediaPlayer *player,
   json_builder_set_member_name (builder, "player");
   json_builder_add_string_value (builder, self->name);
   json_builder_set_member_name (builder, "Seek");
-  json_builder_add_int_value (builder, offset * G_TIME_SPAN_SECOND);
+  json_builder_add_int_value (builder, (int64_t)(offset * G_TIME_SPAN_SECOND));
   packet = valent_packet_end (&builder);
 
   valent_device_send_packet (self->device, packet, NULL, NULL, NULL);

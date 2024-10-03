@@ -357,7 +357,7 @@ static inline void
     if G_LIKELY (json_object_has_member (__body, m)) ; else                    \
       g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC,        \
                            "packet body should have " #m " member");           \
-    int64_t __n1 = json_object_get_double_member (__body, m);                  \
+    int64_t __n1 = json_object_get_int_member (__body, m);                  \
     int64_t __n2 = (int64_t)(num);                                             \
     if (__n1 cmp __n2) ; else                                                  \
       g_assertion_message_cmpnum (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, \

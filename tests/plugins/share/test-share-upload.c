@@ -60,7 +60,7 @@ test_share_upload_single (ValentTestFixture *fixture,
   const char *file_name;
   uint32_t file_btime_us, file_mtime_us;
   uint64_t file_btime_s, file_mtime_s;
-  uint64_t file_btime, file_mtime;
+  int64_t file_btime, file_mtime;
   goffset file_size;
   JsonNode *packet = NULL;
   GError *error = NULL;
@@ -80,13 +80,13 @@ test_share_upload_single (ValentTestFixture *fixture,
                             &error);
   g_assert_no_error (error);
 
-  file_btime_s = g_file_info_get_attribute_uint64 (info, "time::created");
-  file_btime_us = g_file_info_get_attribute_uint32 (info, "time::created-usec");
-  file_btime = (file_btime_s * 1000) + floor (file_btime_us / 1000);
-  file_mtime_s = g_file_info_get_attribute_uint64 (info, "time::modified");
-  file_mtime_us = g_file_info_get_attribute_uint32 (info, "time::modified-usec");
-  file_mtime = (file_mtime_s * 1000) + floor (file_mtime_us / 1000);
   file_name = g_file_info_get_name (info);
+  file_btime_s = g_file_info_get_attribute_uint64 (info, G_FILE_ATTRIBUTE_TIME_CREATED);
+  file_btime_us = g_file_info_get_attribute_uint32 (info, G_FILE_ATTRIBUTE_TIME_CREATED_USEC);
+  file_btime = (int64_t)((file_btime_s * 1000) + floor (file_btime_us / 1000));
+  file_mtime_s = g_file_info_get_attribute_uint64 (info, G_FILE_ATTRIBUTE_TIME_MODIFIED);
+  file_mtime_us = g_file_info_get_attribute_uint32 (info, G_FILE_ATTRIBUTE_TIME_MODIFIED_USEC);
+  file_mtime = (int64_t)((file_mtime_s * 1000) + floor (file_mtime_us / 1000));
   file_size = g_file_info_get_size (info);
 
   transfer = valent_share_upload_new (fixture->device);

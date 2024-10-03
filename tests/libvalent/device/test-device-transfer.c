@@ -20,7 +20,7 @@ test_device_transfer (ValentTestFixture *fixture,
   JsonNode *packet = NULL;
   uint64_t src_btime_s, src_mtime_s, dest_mtime_s;
   uint32_t src_btime_us, src_mtime_us, dest_mtime_us;
-  uint64_t src_btime, src_mtime, dest_mtime;
+  int64_t src_btime, src_mtime, dest_mtime;
   goffset src_size, dest_size;
   GError *error = NULL;
 
@@ -38,12 +38,12 @@ test_device_transfer (ValentTestFixture *fixture,
                                 &error);
   g_assert_no_error (error);
 
-  src_btime_s = g_file_info_get_attribute_uint64 (src_info, "time::created");
-  src_btime_us = g_file_info_get_attribute_uint32 (src_info, "time::created-usec");
-  src_btime = (src_btime_s * 1000) + floor (src_btime_us / 1000);
-  src_mtime_s = g_file_info_get_attribute_uint64 (src_info, "time::modified");
-  src_mtime_us = g_file_info_get_attribute_uint32 (src_info, "time::modified-usec");
-  src_mtime = (src_mtime_s * 1000) + floor (src_mtime_us / 1000);
+  src_btime_s = g_file_info_get_attribute_uint64 (src_info, G_FILE_ATTRIBUTE_TIME_CREATED);
+  src_btime_us = g_file_info_get_attribute_uint32 (src_info, G_FILE_ATTRIBUTE_TIME_CREATED_USEC);
+  src_btime = (int64_t)((src_btime_s * 1000) + floor (src_btime_us / 1000));
+  src_mtime_s = g_file_info_get_attribute_uint64 (src_info, G_FILE_ATTRIBUTE_TIME_MODIFIED);
+  src_mtime_us = g_file_info_get_attribute_uint32 (src_info, G_FILE_ATTRIBUTE_TIME_MODIFIED_USEC);
+  src_mtime = (int64_t)((src_mtime_s * 1000) + floor (src_mtime_us / 1000));
   src_size = g_file_info_get_size (src_info);
 
   packet = valent_test_fixture_lookup_packet (fixture, "test-transfer");
@@ -76,9 +76,9 @@ test_device_transfer (ValentTestFixture *fixture,
     {
       /* NOTE: we're not checking the btime, because the Linux kernel doesn't
        *       support setting it... */
-      dest_mtime_s = g_file_info_get_attribute_uint64 (dest_info, "time::modified");
-      dest_mtime_us = g_file_info_get_attribute_uint32 (dest_info, "time::modified-usec");
-      dest_mtime = (dest_mtime_s * 1000) + floor (dest_mtime_us / 1000);
+      dest_mtime_s = g_file_info_get_attribute_uint64 (dest_info, G_FILE_ATTRIBUTE_TIME_MODIFIED);
+      dest_mtime_us = g_file_info_get_attribute_uint32 (dest_info, G_FILE_ATTRIBUTE_TIME_MODIFIED_USEC);
+      dest_mtime = (int64_t)((dest_mtime_s * 1000) + floor (dest_mtime_us / 1000));
       dest_size = g_file_info_get_size (dest_info);
 
       g_assert_cmpuint (src_mtime, ==, dest_mtime);

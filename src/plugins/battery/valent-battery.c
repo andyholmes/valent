@@ -143,7 +143,7 @@ valent_battery_load_properties (ValentBattery *self)
     {
       double percentage = g_variant_get_double (value);
 
-      self->current_charge = floor (percentage);
+      self->current_charge = (unsigned int)floor (percentage);
       g_clear_pointer (&value, g_variant_unref);
     }
 
@@ -208,7 +208,7 @@ on_properties_changed (GDBusProxy    *proxy,
 
   if (g_variant_lookup (changed_properties, "Percentage", "d", &percentage))
     {
-      unsigned int current_charge = floor (percentage);
+      unsigned int current_charge = (unsigned int)floor (percentage);
 
       if (self->current_charge != current_charge)
         {
