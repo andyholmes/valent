@@ -71,6 +71,7 @@ cc = meson.get_compiler('c')
 
 release_args = []
 project_c_args = [
+  '-Wfloat-conversion',
   '-Wfloat-equal',
   '-Wformat=2',
   '-Wincompatible-pointer-types',

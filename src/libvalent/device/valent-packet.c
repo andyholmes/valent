@@ -508,7 +508,7 @@ valent_packet_get_boolean (JsonNode   *packet,
     return FALSE;
 
   if (value)
-    *value = json_node_get_double (node);
+    *value = json_node_get_boolean (node);
 
   return TRUE;
 }

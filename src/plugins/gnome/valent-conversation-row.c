@@ -80,7 +80,7 @@ on_menu_popup (GtkGestureClick       *gesture,
                ValentConversationRow *self)
 {
   gtk_popover_set_pointing_to (GTK_POPOVER (self->context_menu),
-                               &(GdkRectangle){ x, y });
+                               &(GdkRectangle){ (int)x, (int)y });
   gtk_popover_popup (GTK_POPOVER (self->context_menu));
 }
 /* LCOV_EXCL_STOP */

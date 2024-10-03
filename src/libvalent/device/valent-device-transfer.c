@@ -54,33 +54,29 @@ enum {
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 
-static inline void
+static void
 valent_device_transfer_update_packet (JsonNode  *packet,
                                       GFileInfo *info)
 {
   JsonObject *body;
   uint64_t btime_s, mtime_s;
   uint32_t btime_us, mtime_us;
-  uint64_t creation_time;
-  uint64_t last_modified;
-  goffset payload_size;
+  int64_t creation_time, last_modified;
 
   g_assert (VALENT_IS_PACKET (packet));
 
-  btime_s = g_file_info_get_attribute_uint64 (info, "time::created");
-  btime_us = g_file_info_get_attribute_uint32 (info, "time::created-usec");
-  creation_time = (btime_s * 1000) + floor (btime_us / 1000);
+  btime_s = g_file_info_get_attribute_uint64 (info, G_FILE_ATTRIBUTE_TIME_CREATED);
+  btime_us = g_file_info_get_attribute_uint32 (info, G_FILE_ATTRIBUTE_TIME_CREATED_USEC);
+  creation_time = (int64_t)((btime_s * 1000) + floor (btime_us / 1000));
 
-  mtime_s = g_file_info_get_attribute_uint64 (info, "time::created");
-  mtime_us = g_file_info_get_attribute_uint32 (info, "time::created-usec");
-  last_modified = (mtime_s * 1000) + floor (mtime_us / 1000);
-
-  payload_size = g_file_info_get_size (info);
+  mtime_s = g_file_info_get_attribute_uint64 (info, G_FILE_ATTRIBUTE_TIME_MODIFIED);
+  mtime_us = g_file_info_get_attribute_uint32 (info, G_FILE_ATTRIBUTE_TIME_MODIFIED_USEC);
+  last_modified = (int64_t)((mtime_s * 1000) + floor (mtime_us / 1000));
 
   body = valent_packet_get_body (packet);
   json_object_set_int_member (body, "creationTime", creation_time);
   json_object_set_int_member (body, "lastModified", last_modified);
-  valent_packet_set_payload_size (packet, payload_size);
+  valent_packet_set_payload_size (packet, g_file_info_get_size (info));
 }
 
 /*
@@ -230,7 +226,7 @@ valent_device_transfer_execute_task (GTask        *task,
 
           success = g_file_set_attribute_uint64 (file,
                                                  G_FILE_ATTRIBUTE_TIME_CREATED,
-                                                 floor (creation_time / 1000),
+                                                 (uint64_t)floor (creation_time / 1000),
                                                  G_FILE_QUERY_INFO_NONE,
                                                  cancellable,
                                                  &warn);
@@ -239,7 +235,7 @@ valent_device_transfer_execute_task (GTask        *task,
             {
               g_file_set_attribute_uint32 (file,
                                            G_FILE_ATTRIBUTE_TIME_CREATED_USEC,
-                                           (creation_time % 1000) * 1000,
+                                           (uint32_t)((creation_time % 1000) * 1000),
                                            G_FILE_QUERY_INFO_NONE,
                                            cancellable,
                                            &warn);
@@ -256,7 +252,7 @@ valent_device_transfer_execute_task (GTask        *task,
 
           success = g_file_set_attribute_uint64 (file,
                                                  G_FILE_ATTRIBUTE_TIME_MODIFIED,
-                                                 floor (last_modified / 1000),
+                                                 (uint64_t)floor (last_modified / 1000),
                                                  G_FILE_QUERY_INFO_NONE,
                                                  cancellable,
                                                  &warn);
@@ -265,7 +261,7 @@ valent_device_transfer_execute_task (GTask        *task,
             {
               g_file_set_attribute_uint32 (file,
                                            G_FILE_ATTRIBUTE_TIME_MODIFIED_USEC,
-                                           (last_modified % 1000) * 1000,
+                                           (uint32_t)((last_modified % 1000) * 1000),
                                            G_FILE_QUERY_INFO_NONE,
                                            cancellable,
                                            &warn);

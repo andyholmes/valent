@@ -169,9 +169,9 @@ valent_battery_plugin_update_estimate (ValentBatteryPlugin *self,
                                        int64_t              current_charge,
                                        gboolean             is_charging)
 {
-  int64_t rate;
+  double rate;
   double percentage;
-  int64_t timestamp;
+  double timestamp;
 
   g_return_if_fail (current_charge >= 0);
 
@@ -179,35 +179,35 @@ valent_battery_plugin_update_estimate (ValentBatteryPlugin *self,
   timestamp = floor (valent_timestamp_ms () / 1000);
   rate = is_charging ? self->charge_rate : self->discharge_rate;
 
-  /* If the battery is present, we must have a timestamp and charge level to
-   * calculate the deltas and derive the (dis)charge rate. */
   if (self->is_present)
     {
       double percentage_delta;
-      int64_t timestamp_delta;
-      int64_t new_rate;
+      double timestamp_delta;
+      double new_rate;
 
       percentage_delta = ABS (percentage - self->percentage);
       timestamp_delta = timestamp - self->timestamp;
-      new_rate = timestamp_delta / percentage_delta;
-      rate = floor ((rate * 0.4) + (new_rate * 0.6));
+
+      if (percentage_delta > 0 && timestamp_delta > 0)
+        {
+          new_rate = timestamp_delta / percentage_delta;
+          rate = floor ((rate * 0.4) + (new_rate * 0.6));
+        }
     }
 
-  /* Update the estimate and related values */
   if (is_charging)
     {
-      self->charge_rate = rate;
+      self->charge_rate = (int64_t)rate;
       self->time_to_empty = 0;
-      self->time_to_full = floor (self->charge_rate * (100.0 - percentage));
-      self->timestamp = timestamp;
+      self->time_to_full = (int64_t)floor (self->charge_rate * (100.0 - percentage));
     }
   else
     {
-      self->discharge_rate = rate;
-      self->time_to_empty = floor (self->discharge_rate * percentage);
+      self->discharge_rate = (int64_t)rate;
+      self->time_to_empty = (int64_t)floor (self->discharge_rate * percentage);
       self->time_to_full = 0;
-      self->timestamp = timestamp;
     }
+  self->timestamp = (int64_t)timestamp;
 }
 
 static void
@@ -279,16 +279,16 @@ valent_battery_plugin_update_notification (ValentBatteryPlugin *self,
   /* Battery is now low */
   else if (self->percentage <= low || threshold_event == 1)
     {
-      int64_t total_minutes;
-      int minutes;
-      int hours;
+      unsigned int total_minutes;
+      unsigned int minutes;
+      unsigned int hours;
 
       if (!g_settings_get_boolean (settings, "low-notification"))
         return;
 
-      total_minutes = floor (self->time_to_empty / 60);
+      total_minutes = (unsigned int)floor (self->time_to_empty / 60);
       minutes = total_minutes % 60;
-      hours = floor (total_minutes / 60);
+      hours = (unsigned int)floor (total_minutes / 60);
 
       /* TRANSLATORS: This is <device name>: Battery Low */
       title = g_strdup_printf (_("%s: Battery Low"), device_name);
@@ -322,7 +322,7 @@ valent_battery_plugin_handle_battery (ValentBatteryPlugin *self,
     is_charging = self->charging;
 
   if (!valent_packet_get_int (packet, "currentCharge", &current_charge))
-    current_charge = self->percentage;
+    current_charge = (int64_t)self->percentage;
 
   if (!valent_packet_get_int (packet, "thresholdEvent", &threshold_event))
     threshold_event = 0;

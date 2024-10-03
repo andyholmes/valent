@@ -120,9 +120,9 @@ on_battery_state_changed (GActionGroup    *action_group,
   else
     {
       int64_t total_seconds = 0;
-      int64_t total_minutes;
-      int minutes;
-      int hours;
+      unsigned int total_minutes;
+      unsigned int minutes;
+      unsigned int hours;
 
       if (charging)
         g_variant_lookup (value, "time-to-full", "x", &total_seconds);
@@ -131,9 +131,9 @@ on_battery_state_changed (GActionGroup    *action_group,
 
       if (total_seconds > 0)
         {
-          total_minutes = floor (total_seconds / 60);
+          total_minutes = (unsigned int)floor (total_seconds / 60);
           minutes = total_minutes % 60;
-          hours = floor (total_minutes / 60);
+          hours = (unsigned int)floor (total_minutes / 60);
         }
 
       if (total_seconds <= 0)

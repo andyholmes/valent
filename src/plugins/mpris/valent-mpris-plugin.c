@@ -184,7 +184,7 @@ on_player_seeked (ValentMediaPlayer *player,
   json_builder_set_member_name (builder, "player");
   json_builder_add_string_value (builder, name);
   json_builder_set_member_name (builder, "pos");
-  json_builder_add_int_value (builder, position * 1000L);
+  json_builder_add_int_value (builder, (int64_t)(position * 1000L));
   packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
@@ -420,7 +420,7 @@ valent_mpris_plugin_send_player_info (ValentMprisPlugin *self,
       /* Convert seconds to milliseconds */
       position = valent_media_player_get_position (player);
       json_builder_set_member_name (builder, "pos");
-      json_builder_add_int_value (builder, position * 1000L);
+      json_builder_add_int_value (builder, (int64_t)(position * 1000L));
 
       /* Track Metadata
        *
@@ -475,7 +475,7 @@ valent_mpris_plugin_send_player_info (ValentMprisPlugin *self,
     {
       int64_t level;
 
-      level = floor (valent_media_player_get_volume (player) * 100);
+      level = (int64_t)floor (valent_media_player_get_volume (player) * 100);
       json_builder_set_member_name (builder, "volume");
       json_builder_add_int_value (builder, level);
     }

@@ -12,6 +12,7 @@
 
 #include "valent-pa-stream.h"
 
+#define _PA_VOLUME_NORM ((pa_volume_t) 0x10000U)
 
 struct _ValentPaStream
 {
@@ -19,7 +20,6 @@ struct _ValentPaStream
 
   GvcMixerStream    *stream;
   char              *description;
-  unsigned int       vol_max;
 };
 
 G_DEFINE_FINAL_TYPE (ValentPaStream, valent_pa_stream, VALENT_TYPE_MIXER_STREAM)
@@ -27,7 +27,6 @@ G_DEFINE_FINAL_TYPE (ValentPaStream, valent_pa_stream, VALENT_TYPE_MIXER_STREAM)
 enum {
   PROP_0,
   PROP_BASE_STREAM,
-  PROP_VOL_MAX,
   N_PROPERTIES
 };
 
@@ -78,18 +77,16 @@ static unsigned int
 valent_pa_stream_get_level (ValentMixerStream *stream)
 {
   ValentPaStream *self = VALENT_PA_STREAM (stream);
-  unsigned int volume;
+  pa_volume_t volume;
   double percent;
-  unsigned int level;
 
   g_assert (VALENT_IS_PA_STREAM (self));
   g_assert (GVC_IS_MIXER_STREAM (self->stream));
 
   volume = gvc_mixer_stream_get_volume (self->stream);
-  percent = (double)volume / (double)self->vol_max;
-  level = floor (percent * 100);
+  percent = (double)volume / (double)_PA_VOLUME_NORM;
 
-  return (unsigned int)level;
+  return (unsigned int)round (percent * 100.0);
 }
 
 static void
@@ -98,15 +95,15 @@ valent_pa_stream_set_level (ValentMixerStream *stream,
 {
   ValentPaStream *self = VALENT_PA_STREAM (stream);
   double percent;
-  unsigned int volume;
+  pa_volume_t volume;
 
   g_assert (VALENT_IS_PA_STREAM (self));
   g_assert (GVC_IS_MIXER_STREAM (self->stream));
 
-  percent = (double)level / (double)100;
-  volume = floor (percent * (double)self->vol_max);
+  percent = (double)level / 100.0;
+  volume = (pa_volume_t)round (percent * _PA_VOLUME_NORM);
 
-  gvc_mixer_stream_set_volume (self->stream, (uint32_t)volume);
+  gvc_mixer_stream_set_volume (self->stream, (pa_volume_t)volume);
   gvc_mixer_stream_push_volume (self->stream);
   g_object_notify (G_OBJECT (stream), "level");
 }
@@ -163,10 +160,6 @@ valent_pa_stream_get_property (GObject    *object,
       g_value_set_object (value, self->stream);
       break;
 
-    case PROP_VOL_MAX:
-      g_value_set_uint (value, self->vol_max);
-      break;
-
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -184,10 +177,6 @@ valent_pa_stream_set_property (GObject      *object,
     {
     case PROP_BASE_STREAM:
       self->stream = g_value_dup_object (value);
-      break;
-
-    case PROP_VOL_MAX:
-      self->vol_max = g_value_get_uint (value);
       break;
 
     default:
@@ -252,20 +241,6 @@ valent_pa_stream_class_init (ValentPaStreamClass *klass)
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentPaStream:vol-max:
-   *
-   * The maximum volume.
-   */
-  properties [PROP_VOL_MAX] =
-    g_param_spec_uint ("vol-max", NULL, NULL,
-                       0, G_MAXUINT32,
-                       G_MAXUINT32,
-                       (G_PARAM_READWRITE |
-                        G_PARAM_CONSTRUCT_ONLY |
-                        G_PARAM_EXPLICIT_NOTIFY |
-                        G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 }
