@@ -81,6 +81,7 @@ deadlock:libEGL
 deadlock:libGLX
 mutex:libEGL
 mutex:libGLX
+mutex:swrast_dri.so
 race:libEGL
 race:libGLX
 race:radeonsi_dri
