@@ -116,7 +116,10 @@ if get_option('debug')
 endif
 
 if get_option('optimization') in ['2', '3', 's']
-  project_c_args += ['-DG_DISABLE_CAST_CHECKS']
+  project_c_args += [
+    '-DG_DISABLE_CAST_CHECKS',
+    '-floop-interchange',
+  ]
   project_link_args += [
     '-Wl,-Bsymbolic', # Symbol visibility
     '-Wl,-z,now',     # Disable lazy binding (full RELRO)
