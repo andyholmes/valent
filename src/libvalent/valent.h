@@ -29,7 +29,6 @@ G_BEGIN_DECLS
 
 #include "contacts/valent-contacts.h"
 #include "contacts/valent-contacts-adapter.h"
-#include "contacts/valent-eds.h"
 #include "contacts/valent-contact.h"
 
 #include "input/valent-input.h"

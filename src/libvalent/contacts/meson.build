@@ -11,7 +11,6 @@ libvalent_contacts_generated_sources = []
 libvalent_contacts_public_headers = [
   'valent-contacts.h',
   'valent-contacts-adapter.h',
-  'valent-eds.h',
   'valent-contact.h',
 ]
 
@@ -48,6 +47,7 @@ libvalent_contacts_generated_headers += [libvalent_contacts_resources[1]]
 # Dependencies
 libvalent_deps += [
   libebook_dep,
+  tinysparql_dep,
 ]
 
 

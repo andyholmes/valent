@@ -8,6 +8,8 @@
 #include <adwaita.h>
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
+#include <libebook-contacts/libebook-contacts.h>
+#include <valent.h>
 
 #include "valent-date-label.h"
 #include "valent-ui-utils-private.h"

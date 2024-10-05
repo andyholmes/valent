@@ -8,6 +8,7 @@
 #include <inttypes.h>
 
 #include <gio/gio.h>
+#include <libebook-contacts/libebook-contacts.h>
 #include <libtracker-sparql/tracker-sparql.h>
 #include <valent.h>
 

@@ -6,13 +6,16 @@
 #include "config.h"
 
 #include <gio/gio.h>
+#include <libebook/libebook.h>
+#include <libebook-contacts/libebook-contacts.h>
+#include <libedata-book/libedata-book.h>
+#include <libedataserver/libedataserver.h>
 #include <libtracker-sparql/tracker-sparql.h>
 #include <valent.h>
 
 #include "valent-ebook-store.h"
 
 #define WAIT_FOR_CONNECTED_TIMEOUT 30
-#define ALL_CONTACTS_SEXP    "(exists 'tel')"
 
 
 struct _ValentEBookStore

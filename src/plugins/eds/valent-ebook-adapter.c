@@ -6,6 +6,7 @@
 #include "config.h"
 
 #include <gio/gio.h>
+#include <libedataserver/libedataserver.h>
 #include <libtracker-sparql/tracker-sparql.h>
 #include <valent.h>
 

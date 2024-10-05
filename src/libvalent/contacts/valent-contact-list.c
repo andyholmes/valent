@@ -6,11 +6,11 @@
 #include "config.h"
 
 #include <gio/gio.h>
+#include <libebook-contacts/libebook-contacts.h>
 #include <libtracker-sparql/tracker-sparql.h>
 #include <libvalent-core.h>
 
 #include "valent-contacts.h"
-#include "valent-eds.h"
 #include "valent-contact.h"
 
 #include "valent-contact-list.h"

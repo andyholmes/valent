@@ -4,6 +4,7 @@
 #pragma once
 
 #include <gio/gio.h>
+#include <libebook-contacts/libebook-contacts.h>
 #include <valent.h>
 
 #include "valent-message-store.h"
