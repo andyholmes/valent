@@ -110,6 +110,8 @@ search_contacts_cb (ValentContactsAdapter *adapter,
 
       attrs = e_contact_get_attributes (contact, E_CONTACT_TEL);
       n_attrs = g_list_length (attrs);
+      if (n_attrs == 0)
+        continue;
 
       g_object_get (contact, "primary-phone", &number, NULL);
       if (number == NULL || *number == '\0')
