@@ -11,6 +11,7 @@ kdeconnect
 addressbook
 albumart
 basepath
+econtact
 esource
 gresource
 gschema
