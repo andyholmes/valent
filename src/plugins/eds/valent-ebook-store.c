@@ -37,139 +37,6 @@ typedef enum {
 
 static GParamSpec *properties[PROP_SOURCE + 1] = { NULL, };
 
-static TrackerResource *
-_e_contact_to_resource (EContact   *contact,
-                        const char *urn)
-{
-  g_autoptr (TrackerResource) resource = NULL;
-  g_autolist (EVCardAttribute) phone_numbers = NULL;
-  g_autolist (EVCardAttribute) email_addresses = NULL;
-  g_autoptr (EContactDate) birthdate = NULL;
-  const char *url = NULL;
-  g_autofree char *iri = NULL;
-  g_autofree char *vcard = NULL;
-  static struct
-  {
-    EContactField field;
-    const char *property;
-  } contact_fields[] = {
-    {
-      .field = E_CONTACT_UID,
-      .property = "nco:contactUID",
-    },
-    {
-      .field = E_CONTACT_FULL_NAME,
-      .property = "nco:fullname",
-    },
-    {
-      .field = E_CONTACT_NICKNAME,
-      .property = "nco:nickname",
-    },
-    {
-      .field = E_CONTACT_NOTE,
-      .property = "nco:note",
-    },
-  };
-
-  g_assert (E_IS_CONTACT (contact));
-  g_assert (urn != NULL && *urn != '\0');
-
-  /* NOTE: nco:PersonContact is used unconditionally, because it's the only
-   *       class which receives change notification.
-   */
-  iri = tracker_sparql_escape_uri_printf ("%s:%s", urn,
-                                          e_contact_get_const (contact, E_CONTACT_UID));
-  resource = tracker_resource_new (iri);
-  tracker_resource_set_uri (resource, "rdf:type", "nco:PersonContact");
-  vcard = e_vcard_to_string (E_VCARD (contact), EVC_FORMAT_VCARD_21);
-  tracker_resource_set_string (resource, "nie:plainTextContent", vcard);
-
-  for (size_t i = 0; i < G_N_ELEMENTS (contact_fields); i++)
-    {
-      const char *value = NULL;
-
-      value = e_contact_get_const (contact, contact_fields[i].field);
-      if (value != NULL && *value != '\0')
-        tracker_resource_set_string (resource, contact_fields[i].property, value);
-    }
-
-  birthdate = e_contact_get (contact, E_CONTACT_BIRTH_DATE);
-  if (birthdate != NULL)
-    {
-      g_autoptr (GDateTime) date = NULL;
-
-      date = g_date_time_new_local (birthdate->year,
-                                    birthdate->month,
-                                    birthdate->day,
-                                    0, 0, 0.0);
-      tracker_resource_set_datetime (resource, "nco:birthDate", date);
-    }
-
-  url = e_contact_get_const (contact, E_CONTACT_HOMEPAGE_URL);
-  if (url != NULL && g_uri_is_valid (url, G_URI_FLAGS_PARSE_RELAXED, NULL))
-    tracker_resource_set_uri (resource, "nco:url", url);
-
-  phone_numbers = e_contact_get_attributes (contact, E_CONTACT_TEL);
-  for (const GList *iter = phone_numbers; iter; iter = iter->next)
-    {
-      EVCardAttribute *attr = iter->data;
-      g_autofree char *medium = NULL;
-      g_autoptr (EPhoneNumber) number = NULL;
-      g_autofree char *medium_iri = NULL;
-      TrackerResource *medium_resource = NULL;
-      const char *medium_type = NULL;
-
-      if (e_vcard_attribute_has_type (attr, "CAR"))
-        medium_type = "nco:CarPhoneNumber";
-      else if (e_vcard_attribute_has_type (attr, "CELL"))
-        medium_type = "nco:MessagingNumber";
-      else if (e_vcard_attribute_has_type (attr, "FAX"))
-        medium_type = "nco:FaxNumber";
-      else if (e_vcard_attribute_has_type (attr, "ISDN"))
-        medium_type = "nco:IsdnNumber";
-      else if (e_vcard_attribute_has_type (attr, "PAGER"))
-        medium_type = "nco:PagerNumber";
-      else if (e_vcard_attribute_has_type (attr, "VOICE"))
-        medium_type = "nco:VoicePhoneNumber";
-      else
-        medium_type = "nco:PhoneNumber";
-
-      medium = e_vcard_attribute_get_value (attr);
-      number = e_phone_number_from_string (medium, NULL, NULL);
-      if (number != NULL)
-        medium_iri = e_phone_number_to_string (number, E_PHONE_NUMBER_FORMAT_RFC3966);
-      else
-        medium_iri = g_strdup_printf ("tel:%s", medium);
-
-      medium_resource = tracker_resource_new (medium_iri);
-      tracker_resource_set_uri (medium_resource, "rdf:type", medium_type);
-      tracker_resource_set_string (medium_resource, "nco:phoneNumber", medium);
-      tracker_resource_add_take_relation (resource,
-                                          "nco:hasPhoneNumber",
-                                          g_steal_pointer (&medium_resource));
-    }
-
-  email_addresses = e_contact_get_attributes (contact, E_CONTACT_EMAIL);
-  for (const GList *iter = email_addresses; iter; iter = iter->next)
-    {
-      EVCardAttribute *attr = iter->data;
-      g_autofree char *medium = NULL;
-      g_autofree char *medium_iri = NULL;
-      TrackerResource *medium_resource = NULL;
-
-      medium = e_vcard_attribute_get_value (attr);
-      medium_iri = g_strdup_printf ("mailto:%s", medium);
-      medium_resource = tracker_resource_new (medium_iri);
-      tracker_resource_set_uri (medium_resource, "rdf:type", "nco:EmailAddress");
-      tracker_resource_set_string (medium_resource, "nco:emailAddress", medium);
-      tracker_resource_add_take_relation (resource,
-                                          "nco:hasEmailAddress",
-                                          g_steal_pointer (&medium_resource));
-    }
-
-  return g_steal_pointer (&resource);
-}
-
 static void
 execute_add_contacts_cb (TrackerSparqlConnection *connection,
                          GAsyncResult            *result,
@@ -189,38 +56,47 @@ on_objects_added (EBookClientView  *view,
                   GSList           *contacts,
                   ValentEBookStore *self)
 {
-  g_autoptr (TrackerResource) book_resource = NULL;
+  g_autoptr (TrackerResource) list_resource = NULL;
   g_autoptr (GCancellable) destroy = NULL;
-  g_autofree char *book_urn = NULL;
-  const char *book_name = NULL;
-  const char *book_uid = NULL;
+  g_autofree char *list_urn = NULL;
+  const char *list_name = NULL;
+  const char *list_uid = NULL;
 
   g_assert (E_IS_BOOK_CLIENT_VIEW (view));
   g_assert (VALENT_IS_EBOOK_STORE (self));
 
-  book_name = e_source_get_display_name (self->source);
-  book_uid = e_source_get_uid (self->source);
-  book_urn = tracker_sparql_escape_uri_printf ("urn:valent:contacts:eds:%s",
-                                               book_uid);
-  book_resource = tracker_resource_new (book_urn);
-  tracker_resource_set_uri (book_resource, "rdf:type", "nco:ContactList");
-  if (book_name != NULL)
-    tracker_resource_set_string (book_resource, "nie:title", book_name);
+  list_name = e_source_get_display_name (self->source);
+  list_uid = e_source_get_uid (self->source);
+  list_urn = tracker_sparql_escape_uri_printf ("urn:valent:contacts:eds:%s",
+                                               list_uid);
+  list_resource = tracker_resource_new (list_urn);
+  tracker_resource_set_uri (list_resource, "rdf:type", "nco:ContactList");
+  if (list_name != NULL)
+    tracker_resource_set_string (list_resource, "nie:title", list_name);
 
   for (const GSList *iter = contacts; iter; iter = iter->next)
     {
-      g_autoptr (TrackerResource) resource = NULL;
+      EContact *contact = E_CONTACT (iter->data);
+      TrackerResource *item_resource = NULL;
 
-      resource = _e_contact_to_resource ((EContact *)iter->data, book_urn);
-      tracker_resource_add_take_relation (book_resource,
-                                          "nco:containsContact",
-                                          g_steal_pointer (&resource));
+      item_resource = valent_contact_resource_from_econtact ((EContact *)iter->data);
+      if (item_resource != NULL)
+        {
+          const char *uid = e_contact_get_const (contact, E_CONTACT_UID);
+          g_autofree char *item_urn = NULL;
+
+          item_urn = tracker_sparql_escape_uri_printf ("%s:%s", list_urn, uid);
+          tracker_resource_set_identifier (item_resource, item_urn);
+          tracker_resource_add_take_relation (list_resource,
+                                              "nco:containsContact",
+                                              g_steal_pointer (&item_resource));
+        }
     }
 
   destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
   tracker_sparql_connection_update_resource_async (self->connection,
                                                    VALENT_CONTACTS_GRAPH,
-                                                   book_resource,
+                                                   list_resource,
                                                    destroy,
                                                    (GAsyncReadyCallback) execute_add_contacts_cb,
                                                    NULL);

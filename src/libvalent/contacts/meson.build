@@ -12,6 +12,7 @@ libvalent_contacts_public_headers = [
   'valent-contacts.h',
   'valent-contacts-adapter.h',
   'valent-eds.h',
+  'valent-contact.h',
 ]
 
 libvalent_contacts_private_headers = [
@@ -30,6 +31,7 @@ install_headers(libvalent_contacts_public_headers,
 libvalent_contacts_public_sources = [
   'valent-contacts.c',
   'valent-contacts-adapter.c',
+  'valent-contact.c',
   'valent-contact-list.c',
 ]
 
