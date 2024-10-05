@@ -1,0 +1,1 @@
+genhtml --prefix /__w/valent/valent --output-directory /__w/valent/valent/_build/meson-logs/coverage-html --title 'Code Coverage' --legend --show-details --branch-coverage /__w/valent/valent/_build/meson-logs/coverage.info
