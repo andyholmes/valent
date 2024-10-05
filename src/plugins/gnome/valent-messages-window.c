@@ -7,9 +7,10 @@
 
 #include <inttypes.h>
 
+#include <adwaita.h>
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
-#include <adwaita.h>
+#include <libebook-contacts/libebook-contacts.h>
 #include <valent.h>
 
 #include "valent-contact-page.h"

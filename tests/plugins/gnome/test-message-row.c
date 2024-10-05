@@ -2,6 +2,7 @@
 // SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 #include <gdk/gdk.h>
+#include <libebook-contacts/libebook-contacts.h>
 #include <valent.h>
 #include <libvalent-test.h>
 

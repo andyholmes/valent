@@ -160,7 +160,7 @@ gtk_version = '>= 4.10.0'
 gnutls_version = '>= 3.1.3'
 json_glib_version = '>= 1.6.0'
 libpeas_version = '>= 2.0.0'
-eds_version = '>= 3.34'
+eds_version = '>= 3.48'
 libadwaita_version = '>= 1.5'
 libportal_version = ['>= 0.7.1']
 tinysparql_version = '>= 3.0'

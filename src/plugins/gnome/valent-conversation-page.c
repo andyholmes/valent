@@ -7,6 +7,7 @@
 
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
+#include <libebook-contacts/libebook-contacts.h>
 #include <libtracker-sparql/tracker-sparql.h>
 #include <valent.h>
 

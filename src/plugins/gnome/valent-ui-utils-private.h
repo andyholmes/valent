@@ -4,6 +4,7 @@
 #pragma once
 
 #include <adwaita.h>
+#include <libebook-contacts/libebook-contacts.h>
 #include <valent.h>
 
 G_BEGIN_DECLS
