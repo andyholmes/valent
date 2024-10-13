@@ -260,16 +260,14 @@ handle_attachment_file_cb (ValentTransfer *transfer,
 
 static inline TrackerResource *
 valent_message_resource_from_json (ValentSmsDevice *self,
+                                   TrackerResource *thread,
                                    JsonNode        *root)
 {
-  ValentContext *context;
   TrackerResource *message;
-  TrackerResource *thread;
   TrackerResource *box;
   JsonNode *node;
   JsonObject *object;
   g_autoptr (GDateTime) datetime = NULL;
-  g_autofree char *thread_iri = NULL;
   g_autofree char *iri = NULL;
   int64_t date;
   int64_t message_id;
@@ -293,6 +291,7 @@ valent_message_resource_from_json (ValentSmsDevice *self,
       return NULL;
     }
   thread_id = json_node_get_int (node);
+  g_return_val_if_fail (thread_id >= 0, NULL);
 
   node = json_object_get_member (object, "_id");
   if (node == NULL || json_node_get_value_type (node) != G_TYPE_INT64)
@@ -318,19 +317,11 @@ valent_message_resource_from_json (ValentSmsDevice *self,
     }
   message_type = json_node_get_int (node);
 
-  /* CommunicationChannel
-   */
-  context = valent_extension_get_context (VALENT_EXTENSION (self));
-  thread_iri = g_strdup_printf ("valent://%s/%"PRId64,
-                                valent_context_get_path (context),
-                                thread_id);
-  thread = tracker_resource_new (thread_iri);
-  tracker_resource_set_uri (thread, "rdf:type", "vmo:CommunicationChannel");
-  tracker_resource_set_int64 (thread, "vmo:communicationChannelId", thread_id);
-
   /* PhoneMessage
    */
-  iri = g_strdup_printf ("%s/%"PRId64, thread_iri, message_id);
+  iri = g_strdup_printf ("%s:%"PRId64,
+                         tracker_resource_get_identifier (thread),
+                         message_id);
   message = tracker_resource_new (iri);
   tracker_resource_set_uri (message, "rdf:type", "vmo:PhoneMessage");
   tracker_resource_set_int64 (message, "vmo:phoneMessageId", message_id);
@@ -476,9 +467,7 @@ valent_message_resource_from_json (ValentSmsDevice *self,
                                               g_steal_pointer (&medium));
         }
     }
-  tracker_resource_set_take_relation (message,
-                                      "vmo:communicationChannel",
-                                      g_steal_pointer (&thread));
+  tracker_resource_add_relation (message, "vmo:communicationChannel", thread);
 
   node = json_object_get_member (object, "attachments");
   if (node != NULL && JSON_NODE_HOLDS_ARRAY (node))
@@ -552,7 +541,13 @@ valent_sms_device_add_json (ValentSmsDevice *self,
                             JsonNode        *messages)
 {
   g_autoptr (TrackerBatch) batch = NULL;
+  TrackerResource *thread = NULL;
+  g_autofree char *base_urn = NULL;
+  g_autofree char *thread_urn = NULL;
+  int64_t thread_id;
   JsonArray *messages_;
+  JsonObject *first_message;
+  JsonNode *node;
   unsigned int n_messages;
 
   g_assert (VALENT_IS_SMS_DEVICE (self));
@@ -562,13 +557,32 @@ valent_sms_device_add_json (ValentSmsDevice *self,
 
   messages_ = json_node_get_array (messages);
   n_messages = json_array_get_length (messages_);
+  g_return_if_fail (n_messages > 0);
+
+  first_message = json_node_get_object (json_array_get_element (messages_, 0));
+  node = json_object_get_member (first_message, "thread_id");
+  if (node == NULL || json_node_get_value_type (node) != G_TYPE_INT64)
+    {
+      g_warning ("%s(): expected \"thread_id\" field holding an integer",
+                 G_STRFUNC);
+      return;
+    }
+
+  thread_id = json_node_get_int (node);
+  base_urn = valent_object_dup_iri (VALENT_OBJECT (self));
+  thread_urn = g_strdup_printf ("%s:%"PRId64, base_urn, thread_id);
+  thread = tracker_resource_new (thread_urn);
+  tracker_resource_set_uri (thread, "rdf:type", "vmo:CommunicationChannel");
+  tracker_resource_set_int64 (thread, "vmo:communicationChannelId", thread_id);
+
   for (unsigned int i = 0; i < n_messages; i++)
     {
       JsonNode *message = json_array_get_element (messages_, i);
       g_autoptr (TrackerResource) resource = NULL;
 
-      resource = valent_message_resource_from_json (self, message);
-      tracker_batch_add_resource (batch, VALENT_MESSAGES_GRAPH, resource);
+      resource = valent_message_resource_from_json (self, thread, message);
+      if (resource != NULL)
+        tracker_batch_add_resource (batch, VALENT_MESSAGES_GRAPH, resource);
     }
 
   tracker_batch_execute_async (batch,
