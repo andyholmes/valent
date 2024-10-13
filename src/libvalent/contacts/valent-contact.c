@@ -24,7 +24,6 @@ valent_contact_resource_from_econtact (EContact   *contact)
   // g_autolist (EVCardAttribute) postal_addresses = NULL;
   g_autoptr (EContactDate) birthdate = NULL;
   g_autofree char *vcard = NULL;
-  const char *uid = NULL;
   static struct
   {
     EContactField field;
@@ -56,17 +55,15 @@ valent_contact_resource_from_econtact (EContact   *contact)
 
   g_return_val_if_fail (E_IS_CONTACT (contact), NULL);
 
-  uid = e_contact_get_const (contact, E_CONTACT_UID);
-  vcard = e_vcard_to_string (E_VCARD (contact), EVC_FORMAT_VCARD_21);
-
   /* NOTE: nco:PersonContact is used unconditionally, because it's the only
    *       class which receives change notification.
    */
   resource = tracker_resource_new (NULL);
   tracker_resource_set_uri (resource, "rdf:type", "nco:PersonContact");
+
+  vcard = e_vcard_to_string (E_VCARD (contact), EVC_FORMAT_VCARD_21);
   tracker_resource_set_string (resource, "nie:plainTextContent", vcard);
 
-  contact = e_contact_new_from_vcard_with_uid (vcard, uid);
   for (size_t i = 0; i < G_N_ELEMENTS (contact_fields); i++)
     {
       const char *value = NULL;
