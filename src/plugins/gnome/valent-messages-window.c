@@ -333,13 +333,13 @@ on_contact_selected (ValentContactPage    *page,
 }
 
 static void
-on_contact_medium_selected (AdwActionRow         *row,
+on_contact_medium_selected (GtkListBoxRow        *row,
                             ValentMessagesWindow *self)
 {
   g_autoptr (GCancellable) cancellable = NULL;
-  const char *medium;
+  g_autofree char *medium = NULL;
 
-  g_assert (ADW_IS_ACTION_ROW (row));
+  g_assert (VALENT_IS_CONTACT_ROW (row));
 
   cancellable = g_cancellable_new ();
   g_signal_connect_object (self,
@@ -348,7 +348,7 @@ on_contact_medium_selected (AdwActionRow         *row,
                            cancellable,
                            G_CONNECT_SWAPPED);
 
-  medium = adw_preferences_row_get_title (ADW_PREFERENCES_ROW (row));
+  g_object_get (row, "contact-medium", &medium, NULL);
   valent_messages_adapter_lookup_thread (self->messages_adapter,
                                          ((const char * const []){ medium, NULL }),
                                          cancellable,
@@ -399,10 +399,7 @@ on_search_selected (GtkListBox           *box,
 
       if (g_list_length (attrs) == 1)
         {
-          g_autofree char *medium = NULL;
-
-          g_object_get (row, "contact-medium", &medium, NULL);
-          on_contact_medium_selected (ADW_ACTION_ROW (row), self);
+          on_contact_medium_selected (row, self);
 
           /* Reset the search
            */
