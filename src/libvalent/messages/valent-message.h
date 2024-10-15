@@ -69,8 +69,5 @@ VALENT_AVAILABLE_IN_1_0
 const char         * valent_message_get_text            (ValentMessage *message);
 VALENT_AVAILABLE_IN_1_0
 int64_t              valent_message_get_thread_id       (ValentMessage *message);
-VALENT_AVAILABLE_IN_1_0
-void                 valent_message_update              (ValentMessage *message,
-                                                         ValentMessage *update);
 
 G_END_DECLS

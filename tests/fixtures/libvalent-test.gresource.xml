@@ -7,6 +7,7 @@
   <gresource prefix="/plugins/mock">
     <file>mock.plugin</file>
     <file alias="graph-contacts.turtle">data/graph-contacts.turtle</file>
+    <file alias="graph-messages.turtle">data/graph-messages.turtle</file>
   </gresource>
   <gresource prefix="/plugins/packetless">
     <file>packetless.plugin</file>
@@ -15,6 +16,7 @@
     <file alias="contact.vcf">data/contact.vcf</file>
     <file alias="contact2.vcf">data/contact2.vcf</file>
     <file alias="contact3.vcf">data/contact3.vcf</file>
+    <file alias="image.jpg">data/image.jpg</file>
     <file alias="image.png">data/image.png</file>
 
     <!-- KDE Connect Packet Schemas -->

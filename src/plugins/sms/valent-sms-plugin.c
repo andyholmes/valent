@@ -116,6 +116,7 @@ valent_sms_plugin_destroy (ValentObject *object)
     {
       valent_messages_unexport_adapter (valent_messages_get_default (),
                                         self->store);
+      valent_object_destroy (VALENT_OBJECT (self->store));
       g_clear_object (&self->store);
     }
 

@@ -5,13 +5,13 @@
 # Outputs: None
 DELETE
 WHERE {
-  BIND(IRI(xsd:string(~iri)) AS ?channel)
-  ?channel rdf:type vmo:CommunicationChannel ;
-           ?channelProperty ?channelValue .
+  BIND(IRI(xsd:string(~iri)) AS ?communicationChannel)
+  ?communicationChannel rdf:type vmo:CommunicationChannel ;
+                        ?channelProperty ?channelValue .
+  OPTIONAL { ?channel ?channelProperty ?channelValue . }
   ?message rdf:type vmo:PhoneMessage ;
-           vmo:communicationChannel ?channel ;
+           vmo:communicationChannel ?communicationChannel ;
            ?messageProperty ?messageValue .
   OPTIONAL { ?message ?messageProperty ?messageValue . }
-  OPTIONAL { ?channel ?channelProperty ?channelValue . }
 }
 

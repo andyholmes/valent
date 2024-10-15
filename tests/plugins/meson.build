@@ -23,7 +23,7 @@ plugin_tests = [
   'runcommand',
   'sftp',
   'share',
-  # FIXME: 'sms',
+  'sms',
   'systemvolume',
   'telephony',
 
