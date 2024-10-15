@@ -21,14 +21,14 @@ SELECT
 WHERE {
   BIND(IRI(xsd:string(~iri)) AS ?message)
   ?message rdf:type vmo:PhoneMessage ;
+           vmo:phoneMessageBox ?phoneMessageBoxId ;
            dc:date ?date ;
-           vmo:phoneMessageBox ?phoneMessageBox ;
            vmo:phoneMessageId ?messageId ;
            nmo:isRead ?read ;
-           vmo:communicationChannel ?communicationChannel ;
-           vmo:subscriptionId ?subscriptionId .
-  ?communicationChannel vmo:communicationChannelId ?threadId .
+           vmo:subscriptionId ?subscriptionId ;
+           vmo:communicationChannel ?communicationChannel .
   ?phoneMessageBox vmo:phoneMessageBoxId ?box .
+  ?communicationChannel vmo:communicationChannelId ?threadId .
   OPTIONAL {
     ?message nmo:hasAttachment ?attachment .
     OPTIONAL { ?attachment rdf:type nfo:Attachment }
@@ -36,15 +36,14 @@ WHERE {
     OPTIONAL { ?attachment nie:url ?fileUri }
   }
   OPTIONAL {
-    ?message nmo:messageSender ?contactMedium .
-    OPTIONAL { ?contactMedium (nco:phoneNumber|nco:emailAddress) ?sender }
+    ?message nmo:primaryMessageRecipient/(nco:phoneNumber|nco:emailAddress) ?recipient
   }
   OPTIONAL {
-    ?message nmo:primaryMessageRecipient ?contactMedium .
-    OPTIONAL { ?contactMedium (nco:phoneNumber|nco:emailAddress) ?recipient }
+    ?message nmo:messageSender/(nco:phoneNumber|nco:emailAddress) ?sender
   }
   OPTIONAL {
     ?message nmo:plainTextMessageContent ?text
   }
 }
 GROUP BY ?message ?attachment
+

@@ -42,13 +42,6 @@ static void   valent_sms_device_request_conversation  (ValentSmsDevice *self,
 
 G_DEFINE_FINAL_TYPE (ValentSmsDevice, valent_sms_device, VALENT_TYPE_MESSAGES_ADAPTER)
 
-typedef enum
-{
-  PROP_DEVICE = 1,
-} ValentSmsDeviceProperty;
-
-static GParamSpec *properties[PROP_DEVICE + 1] = { 0, };
-
 
 typedef struct
 {
@@ -245,7 +238,7 @@ handle_attachment_file_cb (ValentTransfer *transfer,
                                "standard::*",
                                G_FILE_QUERY_INFO_NONE,
                                G_PRIORITY_DEFAULT,
-                               NULL, // cancellable,
+                               self->cancellable,
                                (GAsyncReadyCallback)attachment_request_query_cb,
                                g_object_ref (self));
     }
@@ -498,7 +491,7 @@ valent_message_resource_from_json (ValentSmsDevice *self,
 
           unique_identifier = json_node_get_string (subnode);
 
-          rel_iri = g_strdup_printf ("%s/%s", iri, unique_identifier);
+          rel_iri = g_strdup_printf ("%s:%s", iri, unique_identifier);
           rel = tracker_resource_new (rel_iri);
           tracker_resource_set_uri (rel, "rdf:type", "nfo:Attachment");
           tracker_resource_set_string (rel, "nfo:fileName", unique_identifier);
@@ -856,21 +849,6 @@ valent_sms_device_send_message (ValentMessagesAdapter *adapter,
 }
 
 /*
- * ValentObject
- */
-static void
-valent_sms_device_destroy (ValentObject *object)
-{
-  ValentSmsDevice *self = VALENT_SMS_DEVICE (object);
-
-  g_clear_object (&self->device);
-  g_clear_object (&self->connection);
-  g_clear_object (&self->get_timestamp_stmt);
-
-  VALENT_OBJECT_CLASS (valent_sms_device_parent_class)->destroy (object);
-}
-
-/*
  * GObject
  */
 static void
@@ -880,51 +858,21 @@ valent_sms_device_constructed (GObject *object)
 
   G_OBJECT_CLASS (valent_sms_device_parent_class)->constructed (object);
 
-  g_object_get (self, "connection", &self->connection, NULL);
-}
-
-static void
-valent_sms_device_get_property (GObject    *object,
-                                guint       prop_id,
-                                GValue     *value,
-                                GParamSpec *pspec)
-{
-  ValentSmsDevice *self = VALENT_SMS_DEVICE (object);
-
-  switch ((ValentSmsDeviceProperty)prop_id)
-    {
-    case PROP_DEVICE:
-      g_value_set_object (value, self->device);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_sms_device_set_property (GObject      *object,
-                                guint         prop_id,
-                                const GValue *value,
-                                GParamSpec   *pspec)
-{
-  ValentSmsDevice *self = VALENT_SMS_DEVICE (object);
-
-  switch ((ValentSmsDeviceProperty)prop_id)
-    {
-    case PROP_DEVICE:
-      self->device = g_value_dup_object (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
+  g_object_get (self,
+                "connection",  &self->connection,
+                "cancellable", &self->cancellable,
+                NULL);
+  /* self->cancellable = g_cancellable_new (); */
+  self->device = valent_extension_get_object (VALENT_EXTENSION (self));
 }
 
 static void
 valent_sms_device_finalize (GObject *object)
 {
-  /* ValentSmsDevice *self = VALENT_SMS_DEVICE (object); */
+  ValentSmsDevice *self = VALENT_SMS_DEVICE (object);
+
+  g_clear_object (&self->connection);
+  g_clear_object (&self->get_timestamp_stmt);
 
   G_OBJECT_CLASS (valent_sms_device_parent_class)->finalize (object);
 }
@@ -933,32 +881,12 @@ static void
 valent_sms_device_class_init (ValentSmsDeviceClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
-  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentMessagesAdapterClass *adapter_class = VALENT_MESSAGES_ADAPTER_CLASS (klass);
 
   object_class->constructed = valent_sms_device_constructed;
   object_class->finalize = valent_sms_device_finalize;
-  object_class->get_property = valent_sms_device_get_property;
-  object_class->set_property = valent_sms_device_set_property;
-
-  vobject_class->destroy = valent_sms_device_destroy;
 
   adapter_class->send_message = valent_sms_device_send_message;
-
-  /**
-   * ValentSmsDevice:device:
-   *
-   * The device hosting the message store.
-   */
-  properties [PROP_DEVICE] =
-    g_param_spec_object ("device", NULL, NULL,
-                          VALENT_TYPE_DEVICE,
-                          (G_PARAM_READWRITE |
-                           G_PARAM_CONSTRUCT_ONLY |
-                           G_PARAM_EXPLICIT_NOTIFY |
-                           G_PARAM_STATIC_STRINGS));
-
-  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void
@@ -980,15 +908,18 @@ ValentMessagesAdapter *
 valent_sms_device_new (ValentDevice *device)
 {
   g_autoptr (ValentContext) context = NULL;
+  g_autofree char *iri = NULL;
 
   g_return_val_if_fail (VALENT_IS_DEVICE (device), NULL);
 
   context = valent_context_new (valent_device_get_context (device),
                                 "plugin",
                                 "sms");
+  iri = tracker_sparql_escape_uri_printf ("urn:valent:messages:%s",
+                                          valent_device_get_id (device));
   return g_object_new (VALENT_TYPE_SMS_DEVICE,
+                       "iri",     iri,
                        "object",  device,
-                       "device",  device,
                        "context", context,
                        NULL);
 }
@@ -1190,7 +1121,7 @@ void
 valent_sms_device_handle_messages (ValentSmsDevice *self,
                                    JsonNode        *packet)
 {
-  ValentContext *context = NULL;
+  ValentDevice *device = NULL;
   g_autofree char *thread_iri = NULL;
   JsonNode *node;
   JsonObject *body;
@@ -1225,11 +1156,11 @@ valent_sms_device_handle_messages (ValentSmsDevice *self,
       return;
     }
 
-  context = valent_extension_get_context (VALENT_EXTENSION (self));
+  device = valent_extension_get_object (VALENT_EXTENSION (self));
   thread_id = json_object_get_int_member (json_array_get_object_element (messages, 0),
                                           "thread_id");
-  thread_iri = g_strdup_printf ("valent://%s/%"PRId64,
-                                valent_context_get_path (context),
+  thread_iri = g_strdup_printf ("urn:valent:messages:%s:%"PRId64,
+                                valent_device_get_id (device),
                                 thread_id);
 
   /* Check if there is an active request for this thread

@@ -5,9 +5,11 @@
 # Outputs: date
 SELECT (MAX(?date) AS ?latestDate)
 WHERE {
-  ?message rdf:type vmo:PhoneMessage ;
-           vmo:communicationChannel/vmo:communicationChannelId ?threadId ;
-           dc:date ?date .
-  FILTER(?threadId = ~threadId^^xsd:integer)
+  GRAPH <valent:messages> {
+    ?message rdf:type vmo:PhoneMessage ;
+             vmo:communicationChannel/vmo:communicationChannelId ?threadId ;
+             dc:date ?date .
+    FILTER(?threadId = ~threadId^^xsd:integer)
+  }
 }
 

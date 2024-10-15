@@ -9,12 +9,14 @@ SELECT
   ?encodedThumbnail
   ?fileUri
 WHERE {
-  BIND(IRI(xsd:string(~iri)) AS ?thread)
-
-  ?message vmo:communicationChannel ?thread ;
-           nmo:hasAttachment ?attachment .
-
-  OPTIONAL { ?attachment rdf:type nfo:Attachment }
-  OPTIONAL { ?attachment vmo:encoded_thumbnail ?encodedThumbnail }
-  OPTIONAL { ?attachment nie:url ?fileUri }
+  GRAPH <valent:messages> {
+    BIND(IRI(xsd:string(~iri)) AS ?communicationChannel)
+    ?message rdf:type vmo:PhoneMessage ;
+             vmo:communicationChannel ?communicationChannel ;
+             nmo:hasAttachment ?attachment .
+    OPTIONAL { ?attachment rdf:type nfo:Attachment }
+    OPTIONAL { ?attachment vmo:encoded_thumbnail ?encodedThumbnail }
+    OPTIONAL { ?attachment nie:url ?fileUri }
+  }
 }
+
