@@ -1,0 +1,10 @@
+[Flatpak Ref]
+Version=1
+Title=Valent
+Description=Connect, control and sync devices
+Homepage=https://valent.andyholmes.ca
+Icon=https://valent.andyholmes.ca/logo.svg
+Name=ca.andyholmes.Valent
+Url=https://valent.andyholmes.ca/repo
+RuntimeRepo=https://flathub.org/repo/flathub.flatpakrepo
+GPGKey=mDMEY04elRYJKwYBBAHaRw8BAQdA7hBJnun4JZdGAdDAD5yG5jmDZ1k12+tp/onXqGlFJ5q0FHZhbGVudEBhbmR5aG9sbWVzLmNhiJkEExYKAEEWIQQCV6IIIL0FrcCMqoDBwuN+qS2rgwUCY04elQIbAwUJA8JnAAULCQgHAgIiAgYVCgkICwIEFgIDAQIeBwIXgAAKCRDBwuN+qS2rg3a0AQC5C//D55hE1chX6PDrusPzIp1gMGggEWPqKC7Fomt8HQEA2l8QjZ2yHCMMtSVmEfT1/DyiOZTja9n+vDdwem8UTw+4OARjTh6VEgorBgEEAZdVAQUBAQdA1R5kEjJzvv8w0XpRHbqp8Ek+GODfXRMaGw4NVrRQb0QDAQgHiHgEGBYKACAWIQQCV6IIIL0FrcCMqoDBwuN+qS2rgwUCY04elQIbDAAKCRDBwuN+qS2rg1WMAQDqhXPZ7IrSCDBzbLfdSnCmLsSPRd1OIgE2Bpa52jQvWwD/Q0eZgcOEOhag/zm/ypXFzxtpi5CPh06abwWWeZ+mmQQ=
