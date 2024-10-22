@@ -59,6 +59,23 @@ typedef enum {
 
 static GParamSpec *properties[PROP_PARTICIPANTS + 1] = { NULL, };
 
+static void
+valent_message_thread_items_changed (ValentMessageThread *self,
+                                     unsigned int         position,
+                                     unsigned int         removed,
+                                     unsigned int         added)
+{
+  /* check if the iter cache may have been invalidated */
+  if (position <= self->last_position)
+    {
+      self->last_iter = NULL;
+      self->last_position = 0;
+      self->last_position_valid = FALSE;
+    }
+
+  g_list_model_items_changed (G_LIST_MODEL (self), position, removed, added);
+}
+
 static inline int
 valent_message_thread_sort_func (gconstpointer a,
                                  gconstpointer b,
@@ -114,7 +131,7 @@ valent_message_thread_load_message_cb (GObject      *object,
                                  valent_message_thread_sort_func, NULL);
 
   position = g_sequence_iter_get_position (it);
-  g_list_model_items_changed (G_LIST_MODEL (self), position, 0, 1);
+  valent_message_thread_items_changed (self, position, 0, 1);
 }
 
 static inline int
@@ -145,7 +162,7 @@ valent_message_thread_remove_message (ValentMessageThread *self,
     {
       position = g_sequence_iter_get_position (it);
       g_sequence_remove (it);
-      g_list_model_items_changed (G_LIST_MODEL (self), position, 1, 0);
+      valent_message_thread_items_changed (self, position, 1, 0);
     }
 }
 
@@ -334,7 +351,7 @@ valent_message_thread_load_cb (GObject      *object,
   for (unsigned int i = 0; i < messages->len; i++)
     g_sequence_append (self->items, g_object_ref (g_ptr_array_index (messages, i)));
 
-  g_list_model_items_changed (G_LIST_MODEL (self), position, 0, messages->len);
+  valent_message_thread_items_changed (self, position, 0, messages->len);
 }
 
 static void
