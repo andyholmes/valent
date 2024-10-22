@@ -39,6 +39,7 @@ libvalent_test_public_sources = [
   'valent-mock-input-adapter.c',
   'valent-mock-media-adapter.c',
   'valent-mock-media-player.c',
+  'valent-mock-messages-adapter.c',
   'valent-mock-mixer-adapter.c',
   'valent-mock-notifications-adapter.c',
   'valent-mock-session-adapter.c',

@@ -60,9 +60,10 @@ G_DEFINE_FINAL_TYPE_WITH_CODE (ValentContactList, valent_contact_list, VALENT_TY
 
 typedef enum {
   PROP_CONNECTION = 1,
+  PROP_NOTIFIER,
 } ValentContactListProperty;
 
-static GParamSpec *properties[PROP_CONNECTION + 1] = { NULL, };
+static GParamSpec *properties[PROP_NOTIFIER + 1] = { NULL, };
 
 static inline int
 valent_contact_list_lookup_func (gconstpointer a,
@@ -468,11 +469,14 @@ valent_contact_list_constructed (GObject *object)
 
   self->cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
   g_object_get (VALENT_OBJECT (self), "iri", &self->iri, NULL);
-  if (self->connection != NULL)
+
+  if (self->connection != NULL && self->notifier == NULL)
+      self->notifier = tracker_sparql_connection_create_notifier (self->connection);
+
+  if (self->notifier != NULL)
     {
       g_autofree char *iri_pattern = NULL;
 
-      self->notifier = tracker_sparql_connection_create_notifier (self->connection);
       g_signal_connect_object (self->notifier,
                                "events",
                                G_CALLBACK (on_notifier_event),
@@ -531,6 +535,10 @@ valent_contact_list_get_property (GObject    *object,
       g_value_set_object (value, self->connection);
       break;
 
+    case PROP_NOTIFIER:
+      g_value_set_object (value, self->notifier);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -548,6 +556,10 @@ valent_contact_list_set_property (GObject      *object,
     {
     case PROP_CONNECTION:
       self->connection = g_value_dup_object (value);
+      break;
+
+    case PROP_NOTIFIER:
+      self->notifier = g_value_dup_object (value);
       break;
 
     default:
@@ -571,6 +583,14 @@ valent_contact_list_class_init (ValentContactListClass *klass)
   properties [PROP_CONNECTION] =
     g_param_spec_object ("connection", NULL, NULL,
                           TRACKER_TYPE_SPARQL_CONNECTION,
+                          (G_PARAM_READWRITE |
+                           G_PARAM_CONSTRUCT_ONLY |
+                           G_PARAM_EXPLICIT_NOTIFY |
+                           G_PARAM_STATIC_STRINGS));
+
+  properties [PROP_NOTIFIER] =
+    g_param_spec_object ("notifier", NULL, NULL,
+                          TRACKER_TYPE_NOTIFIER,
                           (G_PARAM_READWRITE |
                            G_PARAM_CONSTRUCT_ONLY |
                            G_PARAM_EXPLICIT_NOTIFY |

@@ -13,8 +13,13 @@ leak:update_custom_image_snapshot
 # https://gitlab.gnome.org/GNOME/evolution-data-server/-/merge_requests/162
 leak:e_contact_get_property
 
-# Unconfirmed leak (valent-notifications-plugin)
+# FIXME: Unconfirmed (valent-notifications-plugin)
 leak:gtk_media_file_extension_init
+
+# FIXME: Unconfirmed (valent-messages-adapter,valent-sms-device)
+leak:tracker_sparql_execute_cursor
+leak:tracker_sparql_execute_update
+leak:translate_RDFLiteral.lto_priv.0
 
 # False positives caused by G_TEST_OPTION_ISOLATE_DIRS
 leak:g_content_type_set_mime_dirs

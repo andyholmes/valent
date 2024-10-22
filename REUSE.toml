@@ -10,7 +10,7 @@ SPDX-FileCopyrightText = "Andy Holmes <andrew.g.r.holmes@gmail.com>"
 SPDX-License-Identifier = "GPL-3.0-or-later"
 
 [[annotations]]
-path = [".github/**", ".gitignore", ".gitmodules", "build-aux/**", "CHANGELOG.md", "CONTRIBUTING.md", "README.md", "**.ontology", "**.png", "**.svg", "**.vcf", "**.wrap"]
+path = [".github/**", ".gitignore", ".gitmodules", "build-aux/**", "CHANGELOG.md", "CONTRIBUTING.md", "README.md", "**.jpg", "**.ontology", "**.png", "**.svg", "**.vcf", "**.wrap"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "No rights reserved"
 SPDX-License-Identifier = "CC0-1.0"

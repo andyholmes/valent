@@ -32,6 +32,7 @@ struct _ValentMessagesAdapterClass
 {
   ValentExtensionClass  parent_class;
 
+  /* virtual functions */
   void                  (*send_message)        (ValentMessagesAdapter  *adapter,
                                                 ValentMessage          *message,
                                                 GCancellable           *cancellable,
@@ -40,12 +41,6 @@ struct _ValentMessagesAdapterClass
   gboolean              (*send_message_finish) (ValentMessagesAdapter  *adapter,
                                                 GAsyncResult           *result,
                                                 GError                **error);
-
-  /* virtual functions */
-  void                  (*export_adapter)      (ValentMessagesAdapter  *adapter,
-                                                ValentMessagesAdapter  *object);
-  void                  (*unexport_adapter)    (ValentMessagesAdapter  *adapter,
-                                                ValentMessagesAdapter  *object);
 
   /*< private >*/
   gpointer              padding[8];
@@ -61,12 +56,6 @@ VALENT_AVAILABLE_IN_1_0
 gboolean   valent_messages_adapter_send_message_finish (ValentMessagesAdapter  *adapter,
                                                         GAsyncResult           *result,
                                                         GError                **error);
-VALENT_AVAILABLE_IN_1_0
-void       valent_messages_adapter_export_adapter      (ValentMessagesAdapter  *adapter,
-                                                        ValentMessagesAdapter  *object);
-VALENT_AVAILABLE_IN_1_0
-void       valent_messages_adapter_unexport_adapter    (ValentMessagesAdapter  *adapter,
-                                                        ValentMessagesAdapter  *object);
 
 G_END_DECLS
 
