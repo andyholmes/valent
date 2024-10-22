@@ -35,12 +35,13 @@ test_window_basic (TestWindowFixture *fixture,
   g_autoptr (ValentDeviceManager) manager = NULL;
   GtkWindow *window;
 
+  VALENT_TEST_CHECK ("Window can be constructed");
   window = g_object_new (VALENT_TYPE_TEST_SUBJECT,
                          "device-manager", fixture->manager,
                          NULL);
   g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
 
-  /* Wait for the window to be presented */
+  VALENT_TEST_CHECK ("Window can be presented");
   gtk_window_present (window);
   valent_test_await_pending ();
 
@@ -51,6 +52,7 @@ test_window_basic (TestWindowFixture *fixture,
   g_assert_true (fixture->manager == manager);
   g_clear_object (&manager);
 
+  VALENT_TEST_CHECK ("Window can be destroyed");
   gtk_window_destroy (window);
   valent_test_await_nullptr (&window);
 }
@@ -62,24 +64,26 @@ test_window_device_management (TestWindowFixture *fixture,
   g_autoptr (ValentDevice) device = NULL;
   GtkWindow *window;
 
+  VALENT_TEST_CHECK ("Window can be constructed");
   window = g_object_new (VALENT_TYPE_TEST_SUBJECT,
                          "device-manager", fixture->manager,
                          NULL);
   g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
 
-  /* Wait for the window to be presented, then wait for the mock device */
+  VALENT_TEST_CHECK ("Window can be presented");
   gtk_window_present (window);
   valent_test_await_pending ();
 
-  /* Managed devices are added to the window */
+  VALENT_TEST_CHECK ("Window updates when a device is added");
   gtk_widget_activate_action (GTK_WIDGET (window), "win.refresh", NULL);
   valent_test_await_pending ();
 
-  /* The interface updates with device state changes */
+  VALENT_TEST_CHECK ("Window updates when the device state changes");
   device = g_list_model_get_item (G_LIST_MODEL (fixture->manager), 0);
   valent_device_set_paired (device, TRUE);
+  valent_test_await_pending ();
 
-  /* Destroy with an active device */
+  VALENT_TEST_CHECK ("Window can be destroyed with an active device");
   gtk_window_destroy (window);
   valent_test_await_nullptr (&window);
 }
@@ -91,29 +95,38 @@ test_window_navigation (TestWindowFixture *fixture,
   GtkWindow *window;
   g_autoptr (ValentDevice) device = NULL;
 
+  VALENT_TEST_CHECK ("Window can be constructed");
   window = g_object_new (VALENT_TYPE_TEST_SUBJECT,
                          "device-manager", fixture->manager,
                          NULL);
   g_object_add_weak_pointer (G_OBJECT (window), (gpointer)&window);
 
-  /* Wait for the window to be presented, then wait for the mock device */
+  VALENT_TEST_CHECK ("Window can be presented");
   gtk_window_present (window);
   valent_test_await_pending ();
 
+  VALENT_TEST_CHECK ("Window updates when a device is added");
   gtk_widget_activate_action (GTK_WIDGET (window), "win.refresh", NULL);
   valent_test_await_pending ();
 
-  /* Main -> Device -> Main */
+  VALENT_TEST_CHECK ("Window can open a device page");
   gtk_widget_activate_action (GTK_WIDGET (window), "win.page", "s", "mock-device");
+  valent_test_await_pending ();
+
+  VALENT_TEST_CHECK ("Window can return to the main page");
   gtk_widget_activate_action (GTK_WIDGET (window), "win.page", "s", "main");
+  valent_test_await_pending ();
 
-  /* Main -> Device -> Remove Device */
+  VALENT_TEST_CHECK ("Window can return to the device page");
   gtk_widget_activate_action (GTK_WIDGET (window), "win.page", "s", "mock-device");
+  valent_test_await_pending ();
 
+  VALENT_TEST_CHECK ("Window updates when a device is removed");
   device = g_list_model_get_item (G_LIST_MODEL (fixture->manager), 0);
   valent_device_set_channel (device, NULL);
   valent_test_await_pending ();
 
+  VALENT_TEST_CHECK ("Window can be destroyed without an active device");
   gtk_window_destroy (window);
   valent_test_await_nullptr (&window);
 }
@@ -125,6 +138,7 @@ test_window_dialogs (TestWindowFixture *fixture,
   GtkWindow *window;
 
   /* Preferences */
+  VALENT_TEST_CHECK ("Window can be constructed");
   window = g_object_new (VALENT_TYPE_TEST_SUBJECT,
                          "device-manager", fixture->manager,
                          NULL);
@@ -135,8 +149,10 @@ test_window_dialogs (TestWindowFixture *fixture,
 
   /* Changing the page closes the preferences */
   gtk_widget_activate_action (GTK_WIDGET (window), "win.preferences", NULL);
+  valent_test_await_pending ();
 
   gtk_widget_activate_action (GTK_WIDGET (window), "win.page", "s", "main");
+  valent_test_await_pending ();
 
   /* Closing the window closed the preferences */
   gtk_widget_activate_action (GTK_WIDGET (window), "win.preferences", NULL);
