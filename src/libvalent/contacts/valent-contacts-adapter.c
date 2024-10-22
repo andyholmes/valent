@@ -125,8 +125,10 @@ on_notifier_event (TrackerNotifier       *notifier,
 }
 
 static ValentContactList *
-valent_contact_list_from_sparql_cursor (TrackerSparqlCursor *cursor)
+valent_contact_list_from_sparql_cursor (ValentContactsAdapter *self,
+                                        TrackerSparqlCursor *cursor)
 {
+  ValentContactsAdapterPrivate *priv = valent_contacts_adapter_get_instance_private (self);
   const char *iri = NULL;
 
   if (!tracker_sparql_cursor_is_bound (cursor, 0))
@@ -135,6 +137,7 @@ valent_contact_list_from_sparql_cursor (TrackerSparqlCursor *cursor)
   iri = tracker_sparql_cursor_get_string (cursor, 0, NULL);
   return g_object_new (VALENT_TYPE_CONTACT_LIST,
                        "connection", tracker_sparql_cursor_get_connection (cursor),
+                       "notifier",   priv->notifier,
                        "iri",        iri,
                        NULL);
 }
@@ -152,7 +155,7 @@ cursor_get_contact_lists_cb (TrackerSparqlCursor *cursor,
     {
       ValentContactList *contacts = NULL;
 
-      contacts = valent_contact_list_from_sparql_cursor (cursor);
+      contacts = valent_contact_list_from_sparql_cursor (self, cursor);
       if (contacts != NULL)
         {
           unsigned int position;
@@ -249,6 +252,7 @@ valent_contacts_adapter_add_contact_list (ValentContactsAdapter *self,
 
   list = g_object_new (VALENT_TYPE_CONTACT_LIST,
                        "connection", priv->connection,
+                       "notifier",   priv->notifier,
                        "iri",        iri,
                        NULL);
 

@@ -53,6 +53,7 @@ G_DEFINE_FINAL_TYPE_WITH_CODE (ValentMessageThread, valent_message_thread, VALEN
 typedef enum {
   PROP_CONNECTION = 1,
   PROP_LATEST_MESSAGE,
+  PROP_NOTIFIER,
   PROP_PARTICIPANTS,
 } ValentMessageThreadProperty;
 
@@ -183,15 +184,10 @@ on_notifier_event (TrackerNotifier     *notifier,
           VALENT_NOTE ("CREATE: %s", urn);
           // HACK: if the thread hasn't been loaded, assume newer messages sort
           //       last and pick one to update the last-message.
-          if (self->cancellable == NULL)
-            {
-              if (latest_urn == NULL || g_utf8_collate (latest_urn, urn) < 0)
-                latest_urn = urn;
-            }
-          else
-            {
-              valent_message_thread_load_message (self, urn);
-            }
+          if (self->cancellable != NULL)
+            valent_message_thread_load_message (self, urn);
+          else if (latest_urn == NULL || g_utf8_collate (latest_urn, urn) < 0)
+            latest_urn = urn;
           break;
 
         case TRACKER_NOTIFIER_EVENT_DELETE:
@@ -323,6 +319,7 @@ valent_message_thread_load_cb (GObject      *object,
   ValentMessageThread *self = VALENT_MESSAGE_THREAD (object);
   g_autoptr (GPtrArray) messages = NULL;
   g_autoptr (GError) error = NULL;
+  unsigned int position = 0;
 
   messages = g_task_propagate_pointer (G_TASK (result), &error);
   if (messages == NULL)
@@ -333,10 +330,11 @@ valent_message_thread_load_cb (GObject      *object,
       return;
     }
 
+  position = g_sequence_get_length (self->items);
   for (unsigned int i = 0; i < messages->len; i++)
     g_sequence_append (self->items, g_object_ref (g_ptr_array_index (messages, i)));
 
-  g_list_model_items_changed (G_LIST_MODEL (self), 0, 0, messages->len);
+  g_list_model_items_changed (G_LIST_MODEL (self), position, 0, messages->len);
 }
 
 static void
@@ -512,25 +510,22 @@ valent_message_thread_constructed (GObject *object)
   G_OBJECT_CLASS (valent_message_thread_parent_class)->constructed (object);
 
   g_object_get (VALENT_OBJECT (self), "iri", &self->iri, NULL);
-  if (self->connection != NULL)
-    {
-      g_autoptr (GString) iri_string = NULL;
 
+  if (self->connection != NULL && self->notifier == NULL)
       self->notifier = tracker_sparql_connection_create_notifier (self->connection);
+
+  if (self->notifier != NULL)
+    {
+      g_autofree char *iri_pattern = NULL;
+
       g_signal_connect_object (self->notifier,
                                "events",
                                G_CALLBACK (on_notifier_event),
                                self,
                                G_CONNECT_DEFAULT);
 
-      /* FIXME: this relies on IRIs use the pattern `/<thread-id>/<message-id>`,
-       *        which may not be universally applicable
-       */
-      iri_string = g_string_new (self->iri);
-      g_string_replace (iri_string, "/", "\\/", 0);
-      g_string_prepend_c (iri_string, '^');
-      g_string_append (iri_string, "\\/([^\\/]+)$");
-      self->iri_pattern = g_regex_new (iri_string->str,
+      iri_pattern = g_strdup_printf ("^%s:([^:]+)$", self->iri);
+      self->iri_pattern = g_regex_new (iri_pattern,
                                        G_REGEX_OPTIMIZE,
                                        G_REGEX_MATCH_DEFAULT,
                                        NULL);
@@ -542,7 +537,17 @@ valent_message_thread_destroy (ValentObject *object)
 {
   ValentMessageThread *self = VALENT_MESSAGE_THREAD (object);
 
-  g_signal_handlers_disconnect_by_func (self->notifier, on_notifier_event, self);
+  g_clear_object (&self->get_message_stmt);
+  g_clear_object (&self->get_thread_messages_stmt);
+  g_clear_pointer (&self->iri_pattern, g_regex_unref);
+  g_clear_pointer (&self->iri, g_free);
+
+  if (self->notifier != NULL)
+    {
+      g_signal_handlers_disconnect_by_func (self->notifier, on_notifier_event, self);
+      g_clear_object (&self->notifier);
+    }
+  g_clear_object (&self->connection);
 
   VALENT_OBJECT_CLASS (valent_message_thread_parent_class)->destroy (object);
 }
@@ -552,14 +557,8 @@ valent_message_thread_finalize (GObject *object)
 {
   ValentMessageThread *self = VALENT_MESSAGE_THREAD (object);
 
-  g_clear_object (&self->connection);
   g_clear_object (&self->latest_message);
   g_clear_pointer (&self->participants, g_strfreev);
-  g_clear_pointer (&self->iri, g_free);
-  g_clear_object (&self->notifier);
-  g_clear_object (&self->get_message_stmt);
-  g_clear_object (&self->get_thread_messages_stmt);
-  g_clear_pointer (&self->iri_pattern, g_regex_unref);
   g_clear_object (&self->cancellable);
   g_clear_pointer (&self->items, g_sequence_free);
 
@@ -582,6 +581,10 @@ valent_message_thread_get_property (GObject    *object,
 
     case PROP_LATEST_MESSAGE:
       g_value_set_object (value, self->latest_message);
+      break;
+
+    case PROP_NOTIFIER:
+      g_value_set_object (value, self->notifier);
       break;
 
     case PROP_PARTICIPANTS:
@@ -610,6 +613,10 @@ valent_message_thread_set_property (GObject      *object,
     case PROP_LATEST_MESSAGE:
       g_assert (self->latest_message == NULL);
       self->latest_message = g_value_dup_object (value);
+      break;
+
+    case PROP_NOTIFIER:
+      self->notifier = g_value_dup_object (value);
       break;
 
     case PROP_PARTICIPANTS:
@@ -660,6 +667,19 @@ valent_message_thread_class_init (ValentMessageThreadClass *klass)
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
+
+  /**
+   * ValentMessageThread:notifier:
+   *
+   * The [class@Tsparql.Notifier] watching the graph.
+   */
+  properties [PROP_NOTIFIER] =
+    g_param_spec_object ("notifier", NULL, NULL,
+                          TRACKER_TYPE_NOTIFIER,
+                          (G_PARAM_READWRITE |
+                           G_PARAM_CONSTRUCT_ONLY |
+                           G_PARAM_EXPLICIT_NOTIFY |
+                           G_PARAM_STATIC_STRINGS));
 
   /**
    * ValentMessageThread:participants:

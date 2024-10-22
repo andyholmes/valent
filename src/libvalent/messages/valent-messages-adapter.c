@@ -53,17 +53,14 @@ typedef struct
   GRegex                  *iri_pattern;
   GCancellable            *cancellable;
 
-  /* list */
-  GSequence               *items;
-  unsigned int             last_position;
-  GSequenceIter           *last_iter;
-  gboolean                 last_position_valid;
+  /* list model */
+  GPtrArray               *items;
 } ValentMessagesAdapterPrivate;
 
 static void   g_list_model_iface_init (GListModelInterface *iface);
 
-static void  valent_messages_adapter_load_thread (ValentMessagesAdapter *self,
-                                                  const char            *iri);
+static void   valent_messages_adapter_load_thread (ValentMessagesAdapter *self,
+                                                   const char            *iri);
 
 G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentMessagesAdapter, valent_messages_adapter, VALENT_TYPE_EXTENSION,
                                   G_ADD_PRIVATE (ValentMessagesAdapter)
@@ -76,24 +73,6 @@ typedef enum
 
 static GParamSpec *properties[PROP_CONNECTION + 1] = { 0, };
 
-static inline int
-valent_messages_adapter_sort_func (gconstpointer a,
-                                   gconstpointer b,
-                                   gpointer      user_data)
-{
-  g_autoptr (ValentMessage) message1 = NULL;
-  g_autoptr (ValentMessage) message2 = NULL;
-  int64_t date1 = 0;
-  int64_t date2 = 0;
-
-  g_object_get ((GObject *)a, "latest-message", &message1, NULL);
-  date1 = valent_message_get_date (message1);
-  g_object_get ((GObject *)b, "latest-message", &message2, NULL);
-  date2 = valent_message_get_date (message2);
-
-  return (date1 > date2) ? -1 : (date1 < date2);
-}
-
 static void
 valent_messages_adapter_load_thread_cb (GObject      *object,
                                         GAsyncResult *result,
@@ -101,13 +80,12 @@ valent_messages_adapter_load_thread_cb (GObject      *object,
 {
   ValentMessagesAdapter *self = VALENT_MESSAGES_ADAPTER (object);
   ValentMessagesAdapterPrivate *priv = valent_messages_adapter_get_instance_private (self);
-  g_autoptr (ValentMessageThread) thread = NULL;
-  GSequenceIter *it;
+  g_autoptr (GListModel) list = NULL;
   unsigned int position;
   g_autoptr (GError) error = NULL;
 
-  thread = g_task_propagate_pointer (G_TASK (result), &error);
-  if (thread == NULL)
+  list = g_task_propagate_pointer (G_TASK (result), &error);
+  if (list == NULL)
     {
       if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
         {
@@ -118,22 +96,18 @@ valent_messages_adapter_load_thread_cb (GObject      *object,
       return;
     }
 
-  it = g_sequence_insert_sorted (priv->items,
-                                 g_object_ref (thread),
-                                 valent_messages_adapter_sort_func,
-                                 NULL);
-  position = g_sequence_iter_get_position (it);
+  position = priv->items->len;
+  g_ptr_array_add (priv->items, g_steal_pointer (&list));
   g_list_model_items_changed (G_LIST_MODEL (self), position, 0, 1);
 }
 
-static inline int
-valent_messages_adapter_lookup_func (gconstpointer a,
-                                     gconstpointer b,
-                                     gpointer      user_data)
+static inline gboolean
+valent_messages_adapter_equal_func (gconstpointer a,
+                                    gconstpointer b)
 {
   g_autofree char *iri = valent_object_dup_iri ((ValentObject *)a);
 
-  return g_utf8_collate (iri, (const char *)b);
+  return g_utf8_collate (iri, (const char *)b) == 0;
 }
 
 static void
@@ -141,25 +115,27 @@ valent_messages_adapter_remove_thread (ValentMessagesAdapter *self,
                                        const char            *iri)
 {
   ValentMessagesAdapterPrivate *priv = valent_messages_adapter_get_instance_private (self);
-  GSequenceIter *it;
-  unsigned int position;
+  g_autoptr (GListModel) item = NULL;
+  unsigned int position = 0;
 
   g_assert (VALENT_IS_MESSAGES_ADAPTER (self));
 
-  it = g_sequence_lookup (priv->items,
-                          (char *)iri,
-                          valent_messages_adapter_lookup_func,
-                          NULL);
-
-  if (it != NULL)
+  if (!g_ptr_array_find_with_equal_func (priv->items,
+                                         iri,
+                                         valent_messages_adapter_equal_func,
+                                         &position))
     {
-      position = g_sequence_iter_get_position (it);
-      g_sequence_remove (it);
-      g_list_model_items_changed (G_LIST_MODEL (self), position, 1, 0);
+      g_warning ("Resource \"%s\" not found in \"%s\"",
+                 iri,
+                 G_OBJECT_TYPE_NAME (self));
+      return;
     }
+
+  item = g_ptr_array_steal_index (priv->items, position);
+  g_list_model_items_changed (G_LIST_MODEL (self), position, 1, 0);
 }
 
-gboolean
+static inline gboolean
 valent_messages_adapter_event_is_thread (ValentMessagesAdapter *self,
                                          const char            *iri)
 {
@@ -219,7 +195,8 @@ valent_messages_adapter_open (ValentMessagesAdapter  *self,
   ValentContext *context = NULL;
   g_autoptr (GFile) file = NULL;
   g_autoptr (GFile) ontology = NULL;
-  g_autoptr (GString) iri_string = NULL;
+  g_autofree char *iri = NULL;
+  g_autofree char *iri_pattern = NULL;
 
   context = valent_extension_get_context (VALENT_EXTENSION (self));
   file = valent_context_get_cache_file (context, "metadata");
@@ -235,14 +212,9 @@ valent_messages_adapter_open (ValentMessagesAdapter  *self,
   if (priv->connection == NULL)
     return FALSE;
 
-  /* FIXME: this relies on IRIs use the pattern `/<thread-id>/<message-id>`,
-   *        which may not be universally applicable
-   */
-  iri_string = g_string_new (valent_context_get_path (context));
-  g_string_replace (iri_string, "/", "\\/", 0);
-  g_string_prepend (iri_string, "^valent:\\/\\/");
-  g_string_append (iri_string, "\\/([^\\/]+)$");
-  priv->iri_pattern = g_regex_new (iri_string->str,
+  iri = valent_object_dup_iri (VALENT_OBJECT (self));
+  iri_pattern = g_strdup_printf ("^%s:([^:]+)$", iri);
+  priv->iri_pattern = g_regex_new (iri_pattern,
                                    G_REGEX_OPTIMIZE,
                                    G_REGEX_MATCH_DEFAULT,
                                    NULL);
@@ -266,36 +238,18 @@ valent_messages_adapter_get_item (GListModel   *list,
 {
   ValentMessagesAdapter *self = VALENT_MESSAGES_ADAPTER (list);
   ValentMessagesAdapterPrivate *priv = valent_messages_adapter_get_instance_private (self);
-  GSequenceIter *it = NULL;
   g_autofree char *iri = NULL;
   g_autoptr (ValentMessage) latest_message = NULL;
   g_auto (GStrv) participants = NULL;
 
   g_assert (VALENT_IS_MESSAGES_ADAPTER (self));
 
-  if (priv->last_position_valid)
-    {
-      if (position < G_MAXUINT && priv->last_position == position + 1)
-        it = g_sequence_iter_prev (priv->last_iter);
-      else if (position > 0 && priv->last_position == position - 1)
-        it = g_sequence_iter_next (priv->last_iter);
-      else if (priv->last_position == position)
-        it = priv->last_iter;
-    }
-
-  if (it == NULL)
-    it = g_sequence_get_iter_at_pos (priv->items, position);
-
-  priv->last_iter = it;
-  priv->last_position = position;
-  priv->last_position_valid = TRUE;
-
-  if (g_sequence_iter_is_end (it))
+  if G_UNLIKELY (position >= priv->items->len)
     return NULL;
 
-  // HACK: return a duplicate thread to avoid accruing memory
-  // return g_object_ref (g_sequence_get (it));
-  g_object_get (g_sequence_get (it),
+  // FIXME: a duplicate thread is returned to avoid accruing memory
+  // return g_object_ref (g_ptr_array_index (priv->items, position));
+  g_object_get (g_ptr_array_index (priv->items, position),
                 "iri",            &iri,
                 "latest-message", &latest_message,
                 "participants",   &participants,
@@ -303,6 +257,7 @@ valent_messages_adapter_get_item (GListModel   *list,
 
   return g_object_new (VALENT_TYPE_MESSAGE_THREAD,
                        "connection",     priv->connection,
+                       "notifier",       priv->notifier,
                        "iri",            iri,
                        "latest-message", latest_message,
                        "participants",   participants,
@@ -312,7 +267,7 @@ valent_messages_adapter_get_item (GListModel   *list,
 static GType
 valent_messages_adapter_get_item_type (GListModel *list)
 {
-  return VALENT_TYPE_MESSAGE_THREAD;
+  return G_TYPE_LIST_MODEL;
 }
 
 static unsigned int
@@ -323,7 +278,7 @@ valent_messages_adapter_get_n_items (GListModel *list)
 
   g_assert (VALENT_IS_MESSAGES_ADAPTER (self));
 
-  return g_sequence_get_length (priv->items);
+  return priv->items->len;
 }
 
 static void
@@ -455,68 +410,77 @@ valent_message_from_sparql_cursor (TrackerSparqlCursor *cursor,
 }
 
 static ValentMessageThread *
-valent_message_thread_from_sparql_cursor (TrackerSparqlCursor *cursor)
+valent_message_thread_from_sparql_cursor (ValentMessagesAdapter *self,
+                                          TrackerSparqlCursor   *cursor)
 {
-  ValentMessage *message = NULL;
+  ValentMessagesAdapterPrivate *priv = valent_messages_adapter_get_instance_private (self);
+  g_autoptr (ValentMessage) message = NULL;
   const char *iri = NULL;
   const char *participants = NULL;
   g_auto (GStrv) participantv = NULL;
-  g_autoptr (GListStore) attachments = NULL;
-  ValentMessageBox box = VALENT_MESSAGE_BOX_ALL;
-  int64_t date = 0;
-  g_autoptr (GDateTime) datetime = NULL;
-  int64_t message_id;
-  gboolean read = FALSE;
-  const char *recipients = NULL;
-  g_auto (GStrv) recipientv = NULL;
-  const char *sender = NULL;
-  int64_t subscription_id = -1;
-  const char *text = NULL;
-  int64_t thread_id = -1;
 
   g_assert (TRACKER_IS_SPARQL_CURSOR (cursor));
 
-  attachments = g_list_store_new (VALENT_TYPE_MESSAGE_ATTACHMENT);
-  box = tracker_sparql_cursor_get_integer (cursor, CURSOR_MESSAGE_BOX);
-
-  datetime = tracker_sparql_cursor_get_datetime (cursor, CURSOR_MESSAGE_DATE);
-  if (datetime != NULL)
-    date = g_date_time_to_unix_usec (datetime) / 1000;
-
-  message_id = tracker_sparql_cursor_get_integer (cursor, CURSOR_MESSAGE_ID);
-  read = tracker_sparql_cursor_get_boolean (cursor, CURSOR_MESSAGE_READ);
-
-  recipients = tracker_sparql_cursor_get_string (cursor, CURSOR_MESSAGE_RECIPIENTS, NULL);
-  if (recipients != NULL)
-    recipientv = g_strsplit (recipients, ",", -1);
-
-  if (tracker_sparql_cursor_is_bound (cursor, CURSOR_MESSAGE_SENDER))
-    sender = tracker_sparql_cursor_get_string (cursor, CURSOR_MESSAGE_SENDER, NULL);
-
-  if (tracker_sparql_cursor_is_bound (cursor, CURSOR_MESSAGE_SUBSCRIPTION_ID))
-    subscription_id = tracker_sparql_cursor_get_integer (cursor, CURSOR_MESSAGE_SUBSCRIPTION_ID);
-
-  if (tracker_sparql_cursor_is_bound (cursor, CURSOR_MESSAGE_TEXT))
-    text = tracker_sparql_cursor_get_string (cursor, CURSOR_MESSAGE_TEXT, NULL);
-
-  thread_id = tracker_sparql_cursor_get_integer (cursor, CURSOR_MESSAGE_THREAD_ID);
-
+  /* NOTE: typically there won't be a thread without a message, but this may be
+   *       the case as an implementation detail.
+   */
   iri = tracker_sparql_cursor_get_string (cursor, CURSOR_MESSAGE_IRI, NULL);
-  message = g_object_new (VALENT_TYPE_MESSAGE,
-                          "iri",             iri,
-                          "box",             box,
-                          "date",            date,
-                          "id",              message_id,
-                          "read",            read,
-                          "recipients",      recipientv,
-                          "sender",          sender,
-                          "subscription-id", subscription_id,
-                          "text",            text,
-                          "thread-id",       thread_id,
-                          "attachments",     attachments,
-                          NULL);
+  if (iri != NULL)
+    {
+      g_autoptr (GListStore) attachments = NULL;
+      ValentMessageBox box = VALENT_MESSAGE_BOX_ALL;
+      int64_t date = 0;
+      g_autoptr (GDateTime) datetime = NULL;
+      int64_t message_id;
+      gboolean read = FALSE;
+      const char *recipients = NULL;
+      g_auto (GStrv) recipientv = NULL;
+      const char *sender = NULL;
+      int64_t subscription_id = -1;
+      const char *text = NULL;
+      int64_t thread_id = -1;
 
-  /* Attachment
+      attachments = g_list_store_new (VALENT_TYPE_MESSAGE_ATTACHMENT);
+      box = tracker_sparql_cursor_get_integer (cursor, CURSOR_MESSAGE_BOX);
+
+      datetime = tracker_sparql_cursor_get_datetime (cursor, CURSOR_MESSAGE_DATE);
+      if (datetime != NULL)
+        date = g_date_time_to_unix_usec (datetime) / 1000;
+
+      message_id = tracker_sparql_cursor_get_integer (cursor, CURSOR_MESSAGE_ID);
+      read = tracker_sparql_cursor_get_boolean (cursor, CURSOR_MESSAGE_READ);
+
+      recipients = tracker_sparql_cursor_get_string (cursor, CURSOR_MESSAGE_RECIPIENTS, NULL);
+      if (recipients != NULL)
+        recipientv = g_strsplit (recipients, ",", -1);
+
+      if (tracker_sparql_cursor_is_bound (cursor, CURSOR_MESSAGE_SENDER))
+        sender = tracker_sparql_cursor_get_string (cursor, CURSOR_MESSAGE_SENDER, NULL);
+
+      if (tracker_sparql_cursor_is_bound (cursor, CURSOR_MESSAGE_SUBSCRIPTION_ID))
+        subscription_id = tracker_sparql_cursor_get_integer (cursor, CURSOR_MESSAGE_SUBSCRIPTION_ID);
+
+      if (tracker_sparql_cursor_is_bound (cursor, CURSOR_MESSAGE_TEXT))
+        text = tracker_sparql_cursor_get_string (cursor, CURSOR_MESSAGE_TEXT, NULL);
+
+      thread_id = tracker_sparql_cursor_get_integer (cursor, CURSOR_MESSAGE_THREAD_ID);
+
+      message = g_object_new (VALENT_TYPE_MESSAGE,
+                              "iri",             iri,
+                              "box",             box,
+                              "date",            date,
+                              "id",              message_id,
+                              "read",            read,
+                              "recipients",      recipientv,
+                              "sender",          sender,
+                              "subscription-id", subscription_id,
+                              "text",            text,
+                              "thread-id",       thread_id,
+                              "attachments",     attachments,
+                              NULL);
+    }
+
+  /* Thread
    */
   if (tracker_sparql_cursor_is_bound (cursor, CURSOR_MESSAGE_THREAD_IRI))
     iri = tracker_sparql_cursor_get_string (cursor, CURSOR_MESSAGE_THREAD_IRI, NULL);
@@ -527,6 +491,7 @@ valent_message_thread_from_sparql_cursor (TrackerSparqlCursor *cursor)
 
   return g_object_new (VALENT_TYPE_MESSAGE_THREAD,
                        "connection",     tracker_sparql_cursor_get_connection (cursor),
+                       "notifier",       priv->notifier,
                        "iri",            iri,
                        "latest-message", message,
                        "participants",   participantv,
@@ -546,22 +511,18 @@ cursor_get_threads_cb (TrackerSparqlCursor *cursor,
     {
       ValentMessageThread *thread = NULL;
 
-      thread = valent_message_thread_from_sparql_cursor (cursor);
+      thread = valent_message_thread_from_sparql_cursor (self, cursor);
       if (thread != NULL)
         {
-          GSequenceIter *it;
           unsigned int position;
 
-          it = g_sequence_insert_sorted (priv->items,
-                                         g_steal_pointer (&thread),
-                                         valent_messages_adapter_sort_func,
-                                         NULL);
-          position = g_sequence_iter_get_position (it);
+          position = priv->items->len;
+          g_ptr_array_add (priv->items, g_steal_pointer (&thread));
           g_list_model_items_changed (G_LIST_MODEL (self), position, 0, 1);
         }
 
       tracker_sparql_cursor_next_async (cursor,
-                                        g_task_get_cancellable (G_TASK (result)),
+                                        priv->cancellable,
                                         (GAsyncReadyCallback) cursor_get_threads_cb,
                                         g_object_ref (self));
     }
@@ -640,11 +601,12 @@ cursor_get_thread_cb (TrackerSparqlCursor *cursor,
                       gpointer             user_data)
 {
   g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  ValentMessagesAdapter *self = g_task_get_source_object (task);
   g_autoptr (ValentMessageThread) thread = NULL;
   GError *error = NULL;
 
   if (tracker_sparql_cursor_next_finish (cursor, result, &error))
-    thread = valent_message_thread_from_sparql_cursor (cursor);
+    thread = valent_message_thread_from_sparql_cursor (self, cursor);
 
   if (thread != NULL)
     {
@@ -761,22 +723,6 @@ valent_messages_adapter_real_send_message_finish (ValentMessagesAdapter  *adapte
 
   return g_task_propagate_boolean (G_TASK (result), error);
 }
-
-static void
-valent_messages_adapter_real_export_adapter (ValentMessagesAdapter *adapter,
-                                             ValentMessagesAdapter *object)
-{
-  g_assert (VALENT_MESSAGES_ADAPTER (adapter));
-  g_assert (VALENT_MESSAGES_ADAPTER (object));
-}
-
-static void
-valent_messages_adapter_real_unexport_adapter (ValentMessagesAdapter *adapter,
-                                               ValentMessagesAdapter *object)
-{
-  g_assert (VALENT_MESSAGES_ADAPTER (adapter));
-  g_assert (VALENT_MESSAGES_ADAPTER (object));
-}
 /* LCOV_EXCL_STOP */
 
 /*
@@ -788,11 +734,15 @@ valent_messages_adapter_destroy (ValentObject *object)
   ValentMessagesAdapter *self = VALENT_MESSAGES_ADAPTER (object);
   ValentMessagesAdapterPrivate *priv = valent_messages_adapter_get_instance_private (self);
 
-  g_clear_object (&priv->notifier);
   g_clear_object (&priv->get_thread_stmt);
   g_clear_object (&priv->get_threads_stmt);
   g_clear_pointer (&priv->iri_pattern, g_regex_unref);
-  g_clear_object (&priv->cancellable);
+
+  if (priv->notifier != NULL)
+    {
+      g_signal_handlers_disconnect_by_func (priv->notifier, on_notifier_event, self);
+      g_clear_object (&priv->notifier);
+    }
 
   if (priv->connection != NULL)
     {
@@ -831,7 +781,7 @@ valent_messages_adapter_finalize (GObject *object)
   ValentMessagesAdapterPrivate *priv = valent_messages_adapter_get_instance_private (self);
 
   g_clear_object (&priv->cancellable);
-  g_clear_pointer (&priv->items, g_sequence_free);
+  g_clear_pointer (&priv->items, g_ptr_array_unref);
 
   G_OBJECT_CLASS (valent_messages_adapter_parent_class)->finalize (object);
 }
@@ -892,8 +842,6 @@ valent_messages_adapter_class_init (ValentMessagesAdapterClass *klass)
 
   klass->send_message = valent_messages_adapter_real_send_message;
   klass->send_message_finish = valent_messages_adapter_real_send_message_finish;
-  klass->export_adapter = valent_messages_adapter_real_export_adapter;
-  klass->unexport_adapter = valent_messages_adapter_real_unexport_adapter;
 
   /**
    * ValentMessagesAdapter:connection:
@@ -916,7 +864,7 @@ valent_messages_adapter_init (ValentMessagesAdapter *self)
 {
   ValentMessagesAdapterPrivate *priv = valent_messages_adapter_get_instance_private (self);
 
-  priv->items = g_sequence_new (g_object_unref);
+  priv->items = g_ptr_array_new_with_free_func (g_object_unref);
 }
 
 /**
@@ -985,58 +933,5 @@ valent_messages_adapter_send_message_finish (ValentMessagesAdapter  *adapter,
                                                                           error);
 
   VALENT_RETURN (ret);
-}
-
-/**
- * valent_messages_adapter_export_adapter: (virtual export_adapter)
- * @adapter: an `ValentMessagesAdapter`
- * @object: a `ValentMessagesAdapter`
- *
- * Export @object on @adapter.
- *
- * This method is intended to allow device plugins to expose remote message
- * threads to the host system.
- *
- * Implementations must automatically unexport any threads when destroyed.
- *
- * Since: 1.0
- */
-void
-valent_messages_adapter_export_adapter (ValentMessagesAdapter *adapter,
-                                        ValentMessagesAdapter *object)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_MESSAGES_ADAPTER (adapter));
-  g_return_if_fail (VALENT_IS_MESSAGES_ADAPTER (object));
-
-  VALENT_MESSAGES_ADAPTER_GET_CLASS (adapter)->export_adapter (adapter,
-                                                               object);
-
-  VALENT_EXIT;
-}
-
-/**
- * valent_messages_adapter_unexport_adapter: (virtual unexport_adapter)
- * @adapter: an `ValentMessagesAdapter`
- * @object: a `ValentMessagesAdapter`
- *
- * Unexport @object from @adapter.
- *
- * Since: 1.0
- */
-void
-valent_messages_adapter_unexport_adapter (ValentMessagesAdapter *adapter,
-                                          ValentMessagesAdapter *object)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_MESSAGES_ADAPTER (adapter));
-  g_return_if_fail (VALENT_IS_MESSAGES_ADAPTER (object));
-
-  VALENT_MESSAGES_ADAPTER_GET_CLASS (adapter)->unexport_adapter (adapter,
-                                                                 object);
-
-  VALENT_EXIT;
 }
 

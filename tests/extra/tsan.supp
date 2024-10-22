@@ -55,6 +55,10 @@ called_from_lib:libphonenumber
 called_from_lib:libprotobuf
 called_from_lib:libsqlite3
 
+# TinySPARQL Dependencies
+called_from_lib:libstemmer.so
+called_from_lib:libtracker-sparql-3.0
+
 # GLib
 called_from_lib:libglib-2
 called_from_lib:libgobject-2
@@ -88,4 +92,5 @@ mutex:swrast_dri.so
 race:libEGL
 race:libGLX
 race:radeonsi_dri
+race:swrast_dri.so
 

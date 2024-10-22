@@ -1,0 +1,55 @@
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileCopyrightText: No rights reserved
+
+@prefix nmo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#> .
+@prefix nrl: <http://tracker.api.gnome.org/ontology/v3/nrl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix fts: <http://tracker.api.gnome.org/ontology/v3/fts#> .
+@prefix tracker: <http://tracker.api.gnome.org/ontology/v3/tracker#> .
+@prefix nfo: <http://tracker.api.gnome.org/ontology/v3/nfo#> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix vmo: <http://valent.andyholmes.ca/ontology/v1/vmo#> .
+@prefix nco: <http://tracker.api.gnome.org/ontology/v3/nco#> .
+@prefix nie: <http://tracker.api.gnome.org/ontology/v3/nie#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<tel:+1-234-567-8917> rdf:type nco:PhoneNumber ;
+  nco:phoneNumber "2345678917" .
+
+<tel:+1-234-567-8918> rdf:type nco:PhoneNumber ;
+  nco:phoneNumber "2345678918" .
+
+<urn:valent:messages:mock:38:3314:image.jpg> rdf:type nfo:Attachment ;
+  nie:url "resource://tests/image.jpg" ;
+  nfo:fileName "image.jpg" ;
+  vmo:encoded_thumbnail "/9j/4AAQSkZJRgABAQAAAQABAAD/4QBWRXhpZgAATU0AKgAAAAgABAEaAAUAAAABAAAAPgEbAAUAAAABAAAARgEoAAMAAAABAAEAAAITAAMAAAABAAEAAAAAAAAAAAABAAAAAQAAAAEAAAAB/9sAhAAKCgoKCgoLDAwLDxAOEA8WFBMTFBYiGBoYGhgiMyAlICAlIDMtNywpLDctUUA4OEBRXk9KT15xZWVxj4iPu7v7AQoKCgoKCgsMDAsPEA4QDxYUExMUFiIYGhgaGCIzICUgICUgMy03LCksNy1RQDg4QFFeT0pPXnFlZXGPiI+7u/v/wgARCAIAAgADASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAf/2gAIAQEAAAAAswAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/EABQBAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQMQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/xAAUEAEAAAAAAAAAAAAAAAAAAADA/9oACAEBAAE/AAAH/8QAFBEBAAAAAAAAAAAAAAAAAAAAoP/aAAgBAgEBPwAAH//EABQRAQAAAAAAAAAAAAAAAAAAAKD/2gAIAQMBAT8AAB//2Q==" .
+
+<urn:valent:messages:mock:38> rdf:type vmo:CommunicationChannel ;
+  vmo:communicationChannelId 38 ;
+  vmo:hasParticipant <tel:+1-234-567-8917> ;
+  vmo:hasParticipant <tel:+1-234-567-8918> .
+
+<urn:valent:messages:mock:38:3314> rdf:type vmo:PhoneMessage ;
+  vmo:communicationChannel <urn:valent:messages:mock:38> ;
+  vmo:subscriptionId -1 ;
+  nmo:plainTextMessageContent "ای بهار من" ;
+  nmo:messageSender <tel:+1-234-567-8917> ;
+  vmo:phoneMessageBox vmo:android-message-type-inbox ;
+  nmo:messageFrom <tel:+1-234-567-8917> ;
+  vmo:phoneMessageId 3314 ;
+  nmo:receivedDate "2018-11-29T17:34:55.320000-08:00" ;
+  nmo:hasAttachment <urn:valent:messages:mock:38:3314:image.jpg> ;
+  nmo:isRead true .
+
+<urn:valent:messages:mock:38:3315> rdf:type vmo:PhoneMessage ;
+  vmo:communicationChannel <urn:valent:messages:mock:38> ;
+  vmo:subscriptionId -1 ;
+  nmo:plainTextMessageContent "ای نقاش من" ;
+  nmo:messageSender <tel:+1-234-567-8918> ;
+  vmo:phoneMessageBox vmo:android-message-type-sent ;
+  nmo:primaryMessageRecipient <tel:+1-234-567-8917> ;
+  nmo:messageFrom <tel:+1-234-567-8918> ;
+  vmo:phoneMessageId 3315 ;
+  nmo:sentDate "2018-11-29T17:35:55.320000-08:00" ;
+  nmo:isRead true .
+

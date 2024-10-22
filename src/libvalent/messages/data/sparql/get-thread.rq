@@ -3,7 +3,7 @@
 
 # Inputs: iri
 # Outputs: message, box, date, messageId, read, recipients, sender, subscriptionId, text, threadId
-#          communicationChannel,
+#          communicationChannel, participants
 SELECT
   ?message
   ?box
@@ -27,26 +27,25 @@ WHERE {
     }
     GROUP BY ?communicationChannel
   }
+  FILTER(?date = ?latestDate)
   ?message rdf:type vmo:PhoneMessage ;
+           vmo:phoneMessageBox/vmo:phoneMessageBoxId ?box ;
            dc:date ?date ;
-           vmo:phoneMessageBox ?phoneMessageBox ;
            vmo:phoneMessageId ?messageId ;
            nmo:isRead ?read ;
-           vmo:communicationChannel ?communicationChannel ;
-           vmo:subscriptionId ?subscriptionId .
+           vmo:subscriptionId ?subscriptionId ;
+           vmo:communicationChannel ?communicationChannel .
   ?communicationChannel rdf:type vmo:CommunicationChannel ;
                         vmo:communicationChannelId ?threadId ;
                         vmo:hasParticipant ?participant .
-  ?phoneMessageBox vmo:phoneMessageBoxId ?box .
   OPTIONAL {
-    ?message nmo:messageSender ?contactMedium .
-    OPTIONAL { ?contactMedium (nco:phoneNumber|nco:emailAddress) ?sender }
+    ?message nmo:primaryMessageRecipient/(nco:phoneNumber|nco:emailAddress) ?recipient
   }
   OPTIONAL {
-    ?message nmo:primaryMessageRecipient ?contactMedium .
-    OPTIONAL { ?contactMedium (nco:phoneNumber|nco:emailAddress) ?recipient }
+    ?message nmo:messageSender/(nco:phoneNumber|nco:emailAddress) ?sender
   }
   OPTIONAL {
     ?message nmo:plainTextMessageContent ?text
   }
 }
+

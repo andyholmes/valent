@@ -54,7 +54,7 @@ WHERE {
     ?message nmo:plainTextMessageContent ?text
   }
 }
-GROUP BY ?message
+GROUP BY ?message ?attachment
 ORDER BY DESC(fts:rank(?message))
 LIMIT 5
 
