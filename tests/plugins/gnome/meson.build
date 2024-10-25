@@ -15,7 +15,6 @@ plugin_gnome_test_deps = [
 
 plugin_gnome_tests = {
   # FIXME: 'test-mutter-clipboard': mock_mutter,
-  'test-mutter-input': mock_mutter,
 
   'test-contact-page': disabler(),
   'test-contact-row': disabler(),

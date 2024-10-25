@@ -16,7 +16,6 @@ plugin_gnome_deps = [
 plugin_gnome_sources = files([
   'gnome-plugin.c',
   'valent-mutter-clipboard.c',
-  'valent-mutter-input.c',
 
   'valent-contact-page.c',
   'valent-contact-row.c',
