@@ -4,50 +4,14 @@
 # https://gitlab.freedesktop.org/fontconfig/fontconfig/-/issues/77
 leak:libfontconfig.so
 
-# https://gitlab.gnome.org/GNOME/gvfs/-/issues/577
-leak:g_daemon_vfs_init
-
-# https://gitlab.gnome.org/GNOME/libadwaita/-/merge_requests/816
-leak:update_custom_image_snapshot
-
 # https://gitlab.gnome.org/GNOME/evolution-data-server/-/merge_requests/162
 leak:e_contact_get_property
-
-# FIXME: Unconfirmed (valent-notifications-plugin)
-leak:gtk_media_file_extension_init
 
 # FIXME: Unconfirmed (valent-messages-adapter,valent-sms-device)
 leak:tracker_sparql_execute_cursor
 leak:tracker_sparql_execute_update
 leak:translate_RDFLiteral.lto_priv.0
 
-# False positives caused by G_TEST_OPTION_ISOLATE_DIRS
-leak:g_content_type_set_mime_dirs
-leak:g_test_init
-leak:test_do_isolate_dirs
-leak:adw_init
-leak:adw_style_init
-
-# False positive in a11y stack (TODO: re-check these)
-leak:gtk_accessible_attribute_set_new
-leak:gtk_accessible_value_alloc
-leak:gtk_at_context_create
-leak:gtk_test_at_context_new
-
-# TODO: these only seem to crop up in valent-messages-window.c
-leak:libpango-1.0.so
-leak:libpangocairo-1.0.so
-
-# librsvg
-leak:librsvg-2.so
-
-# GLib
-leak:g_quark_init
-
 # GTK
 leak:libEGL_mesa.so
-leak:gtk_init
-
-# libpeas-loader-python3
-leak:libpython3.9
 
