@@ -889,6 +889,7 @@ valent_sms_device_finalize (GObject *object)
 
   g_queue_clear_full (&self->attachment_requests, attachment_request_free);
   g_clear_pointer (&self->message_requests, g_ptr_array_unref);
+  g_clear_object (&self->cancellable);
   g_clear_object (&self->connection);
   g_clear_object (&self->get_timestamp_stmt);
 
