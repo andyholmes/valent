@@ -39,7 +39,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Lint
-        uses: fsfe/reuse-action@v4
+        uses: fsfe/reuse-action@v5
         with:
           args: lint
 
