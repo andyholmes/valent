@@ -11,6 +11,7 @@
 #include <valent.h>
 
 #include "valent-media-remote.h"
+#include "valent-mixer-remote.h"
 #include "valent-ui-utils-private.h"
 
 #include "valent-media-window.h"
@@ -19,13 +20,15 @@ struct _ValentMediaWindow
 {
   AdwWindow   parent_instance;
 
+  GListModel *mixers;
   GListModel *players;
 };
 
 G_DEFINE_FINAL_TYPE (ValentMediaWindow, valent_media_window, ADW_TYPE_WINDOW)
 
 typedef enum {
-  PROP_PLAYERS = 1,
+  PROP_MIXERS = 1,
+  PROP_PLAYERS,
 } ValentMediaWindowProperty;
 
 static GParamSpec *properties[PROP_PLAYERS + 1] = { NULL, };
@@ -38,6 +41,7 @@ valent_media_window_finalize (GObject *object)
 {
   ValentMediaWindow *self = VALENT_MEDIA_WINDOW (object);
 
+  g_clear_object (&self->mixers);
   g_clear_object (&self->players);
 
   G_OBJECT_CLASS (valent_media_window_parent_class)->finalize (object);
@@ -53,6 +57,10 @@ valent_media_window_get_property (GObject    *object,
 
   switch ((ValentMediaWindowProperty)prop_id)
     {
+    case PROP_MIXERS:
+      g_value_set_object (value, self->mixers);
+      break;
+
     case PROP_PLAYERS:
       g_value_set_object (value, self->players);
       break;
@@ -72,6 +80,10 @@ valent_media_window_set_property (GObject      *object,
 
   switch ((ValentMediaWindowProperty)prop_id)
     {
+    case PROP_MIXERS:
+      self->mixers = g_value_dup_object (value);
+      break;
+
     case PROP_PLAYERS:
       self->players = g_value_dup_object (value);
       break;
@@ -92,6 +104,13 @@ valent_media_window_class_init (ValentMediaWindowClass *klass)
   object_class->set_property = valent_media_window_set_property;
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-media-window.ui");
+
+  properties [PROP_MIXERS] =
+    g_param_spec_object ("mixers", NULL, NULL,
+                         G_TYPE_LIST_MODEL,
+                         (G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT_ONLY |
+                          G_PARAM_STATIC_STRINGS));
 
   properties [PROP_PLAYERS] =
     g_param_spec_object ("players", NULL, NULL,

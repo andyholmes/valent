@@ -10,66 +10,149 @@
     <property name="height-request">294</property>
     <property name="default-width">360</property>
     <property name="default-height">648</property>
+    <child>
+      <object class="AdwBreakpoint">
+        <condition>max-width: 640sp</condition>
+        <setter object="content_view" property="collapsed">1</setter>
+      </object>
+    </child>
     <property name="content">
-      <object class="GtkWindowHandle">
-        <child>
-          <object class="GtkBox">
-            <property name="orientation">vertical</property>
-
-            <!-- Player -->
-            <child>
-              <object class="GtkHeaderBar">
-                <child type="title">
-                  <object class="GtkDropDown" id="media_player">
-                    <binding name="model">
-                      <lookup name="players">ValentMediaWindow</lookup>
-                    </binding>
-                    <property name="hexpand">1</property>
-                    <property name="factory">
-                      <object class="GtkBuilderListItemFactory">
-                        <property name="bytes"><![CDATA[
-                          <?xml version="1.0" encoding="UTF-8"?>
-                          <interface>
-                            <template class="GtkListItem">
-                              <property name="child">
-                                <object class="GtkBox">
-                                  <property name="spacing">6</property>
-                                  <child>
-                                    <object class="GtkImage">
-                                      <property name="icon-name">valent-media-albumart-symbolic</property>
-                                      <property name="pixel-size">16</property>
+      <object class="AdwOverlaySplitView" id="content_view">
+        <property name="min-sidebar-width">280</property>
+        <property name="max-sidebar-width">360</property>
+        <property name="sidebar-position">end</property>
+        <property name="sidebar">
+          <object class="AdwNavigationPage">
+            <property name="tag">mixer</property>
+            <property name="title">Mixer</property>
+            <property name="child">
+              <object class="AdwToolbarView">
+                <child type="top">
+                  <object class="GtkHeaderBar">
+                    <property name="show-title-buttons">0</property>
+                    <child type="title">
+                      <object class="GtkDropDown" id="mixer_adapter">
+                        <binding name="model">
+                          <lookup name="mixers">ValentMediaWindow</lookup>
+                        </binding>
+                        <property name="hexpand">1</property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="bytes"><![CDATA[
+                              <?xml version="1.0" encoding="UTF-8"?>
+                              <interface>
+                                <template class="GtkListItem">
+                                  <property name="child">
+                                    <object class="GtkBox">
+                                      <property name="spacing">6</property>
+                                      <child>
+                                        <object class="GtkLabel">
+                                          <property name="ellipsize">end</property>
+                                          <binding name="label">
+                                            <lookup name="iri" type="ValentMixerAdapter">
+                                              <lookup name="item">GtkListItem</lookup>
+                                            </lookup>
+                                          </binding>
+                                        </object>
+                                      </child>
                                     </object>
-                                  </child>
-                                  <child>
-                                    <object class="GtkLabel">
-                                      <binding name="label">
-                                        <lookup name="name" type="ValentMediaPlayer">
-                                          <lookup name="item">GtkListItem</lookup>
-                                        </lookup>
-                                      </binding>
-                                    </object>
-                                  </child>
-                                </object>
-                              </property>
-                            </template>
-                          </interface>
-                     ]]></property>
+                                  </property>
+                                </template>
+                              </interface>
+                         ]]></property>
+                          </object>
+                        </property>
                       </object>
-                    </property>
+                    </child>
+                    <style>
+                      <class name="flat"/>
+                    </style>
                   </object>
                 </child>
-                <style>
-                  <class name="flat"/>
-                </style>
+                <property name="content">
+                  <object class="ValentMixerRemote" id="mixer">
+                    <binding name="mixer">
+                      <lookup name="selected-item">mixer_adapter</lookup>
+                    </binding>
+                  </object>
+                </property>
               </object>
-            </child>
-            <child>
-              <object class="ValentMediaRemote">
-                <binding name="player">
-                  <lookup name="selected-item">media_player</lookup>
-                </binding>
+            </property>
+          </object>
+        </property>
+
+        <!-- Player -->
+        <child>
+          <object class="AdwNavigationPage">
+            <property name="tag">player</property>
+            <property name="title" translatable="yes">Player</property>
+            <property name="child">
+              <object class="AdwToolbarView">
+                <child type="top">
+                  <object class="GtkHeaderBar">
+                    <child type="start">
+                      <object class="GtkToggleButton">
+                        <property name="icon-name">sidebar-show-symbolic</property>
+                        <property name="active"
+                                  bind-source="content_view"
+                                  bind-property="show-sidebar"
+                                  bind-flags="bidirectional|sync-create"/>
+                      </object>
+                    </child>
+                    <child type="title">
+                      <object class="GtkDropDown" id="media_player">
+                        <binding name="model">
+                          <lookup name="players">ValentMediaWindow</lookup>
+                        </binding>
+                        <property name="hexpand">1</property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="bytes"><![CDATA[
+                              <?xml version="1.0" encoding="UTF-8"?>
+                              <interface>
+                                <template class="GtkListItem">
+                                  <property name="child">
+                                    <object class="GtkBox">
+                                      <property name="spacing">6</property>
+                                      <child>
+                                        <object class="GtkImage">
+                                          <property name="icon-name">valent-media-albumart-symbolic</property>
+                                          <property name="pixel-size">16</property>
+                                        </object>
+                                      </child>
+                                      <child>
+                                        <object class="GtkLabel">
+                                          <property name="ellipsize">end</property>
+                                          <binding name="label">
+                                            <lookup name="name" type="ValentMediaPlayer">
+                                              <lookup name="item">GtkListItem</lookup>
+                                            </lookup>
+                                          </binding>
+                                        </object>
+                                      </child>
+                                    </object>
+                                  </property>
+                                </template>
+                              </interface>
+                         ]]></property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <style>
+                      <class name="flat"/>
+                    </style>
+                  </object>
+                </child>
+                <property name="content">
+                  <object class="ValentMediaRemote">
+                    <binding name="player">
+                      <lookup name="selected-item">media_player</lookup>
+                    </binding>
+                  </object>
+                </property>
               </object>
-            </child>
+            </property>
             <style>
               <class name="content"/>
             </style>
