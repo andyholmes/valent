@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
+
+<interface domain="valent">
+  <template class="ValentMixerRemote" parent="AdwBreakpointBin">
+    <property name="width-request">280</property>
+    <property name="height-request">294</property>
+    <property name="child">
+      <object class="AdwClamp">
+        <property name="maximum-size">512</property>
+        <property name="vexpand">true</property>
+        <property name="valign">fill</property>
+        <property name="child">
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <property name="hexpand">1</property>
+            <property name="vexpand">1</property>
+            <property name="margin-top">16</property>
+            <property name="margin-start">16</property>
+            <property name="margin-end">16</property>
+            <property name="margin-bottom">16</property>
+            <property name="spacing">16</property>
+            <child>
+              <object class="GtkListBox" id="stream_list">
+                <style>
+                  <class name="boxed-list-separate"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+    <style>
+      <class name="valent-mixer-remote"/>
+    </style>
+  </template>
+  <object class="GtkFilterListModel" id="model">
+    <property name="filter">
+      <object class="GtkCustomFilter" id="filter"/>
+    </property>
+    <binding name="model">
+      <lookup name="mixer">ValentMixerRemote</lookup>
+    </binding>
+  </object>
+</interface>

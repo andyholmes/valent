@@ -44,6 +44,7 @@ plugin_gnome_sources = files([
   'valent-menu-stack.c',
   'valent-message-row.c',
   'valent-messages-window.c',
+  'valent-mixer-remote.c',
   'valent-plugin-row.c',
   'valent-preferences-dialog.c',
   'valent-presenter-remote.c',

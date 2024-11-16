@@ -27,6 +27,7 @@
 #include "valent-media-window.h"
 #include "valent-menu-list.h"
 #include "valent-menu-stack.h"
+#include "valent-mixer-remote.h"
 #include "valent-preferences-dialog.h"
 #include "valent-ui-utils-private.h"
 #include "valent-window.h"
@@ -70,6 +71,7 @@ valent_ui_init_types (void)
   g_type_ensure (VALENT_TYPE_MEDIA_WINDOW);
   g_type_ensure (VALENT_TYPE_MENU_LIST);
   g_type_ensure (VALENT_TYPE_MENU_STACK);
+  g_type_ensure (VALENT_TYPE_MIXER_REMOTE);
   g_type_ensure (VALENT_TYPE_PREFERENCES_DIALOG);
   g_type_ensure (VALENT_TYPE_WINDOW);
 }

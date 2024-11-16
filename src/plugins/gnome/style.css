@@ -31,6 +31,10 @@
   min-height: 48px;
 }
 
+.valent-mixer-row {
+  padding: 6px 8px;
+}
+
 /*
  * ValentMessagesWindow
  */
