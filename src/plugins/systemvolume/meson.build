@@ -9,6 +9,7 @@ plugin_systemvolume_deps = [
 # Sources
 plugin_systemvolume_sources = files([
   'systemvolume-plugin.c',
+  'valent-systemvolume-device.c',
   'valent-systemvolume-plugin.c',
 ])
 
