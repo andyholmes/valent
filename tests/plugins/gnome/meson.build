@@ -29,7 +29,6 @@ plugin_gnome_tests = {
   'test-menu-stack': disabler(),
   'test-message-row': disabler(),
   'test-messages-window': disabler(),
-  'test-notification-dialog': disabler(),
   'test-preferences-dialog': disabler(),
   'test-presenter-remote': disabler(),
   'test-share-dialog': disabler(),
