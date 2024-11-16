@@ -13,7 +13,7 @@ Copyright=Copyright © Andy Holmes
 Version=@PLUGINS_VERSION@
 Website=https://valent.andyholmes.ca
 Help=https://valent.andyholmes.ca/help
-X-DevicePluginIncoming=kdeconnect.systemvolume.request
-X-DevicePluginOutgoing=kdeconnect.systemvolume
+X-DevicePluginIncoming=kdeconnect.systemvolume;kdeconnect.systemvolume.request
+X-DevicePluginOutgoing=kdeconnect.systemvolume;kdeconnect.systemvolume.request
 X-DevicePluginSettings=ca.andyholmes.Valent.Plugin.systemvolume
 

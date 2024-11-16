@@ -8,10 +8,12 @@
       "protocolVersion": 7,
       "deviceType": "phone",
       "incomingCapabilities": [
-        "kdeconnect.systemvolume"
+        "kdeconnect.systemvolume",
+        "kdeconnect.systemvolume.request"
       ],
       "outgoingCapabilities": [
-        "kdeconnect.systemvolume"
+        "kdeconnect.systemvolume",
+        "kdeconnect.systemvolume.request"
       ]
     }
   },
@@ -52,6 +54,88 @@
     "body": {
       "name": "test_sink2",
       "enabled": true
+    }
+  },
+  "sinklist-1": {
+    "id": 0,
+    "type": "kdeconnect.systemvolume",
+    "body": {
+      "sinkList": [
+        {
+          "name": "mock.speakers.analog-stereo",
+          "description": "Speakers",
+          "muted": false,
+          "volume": 32768,
+          "maxVolume": 65536,
+          "enabled": true
+        }
+      ]
+    }
+  },
+  "sinklist-1-volume": {
+    "id": 0,
+    "type": "kdeconnect.systemvolume",
+    "body": {
+      "name": "mock.speakers.analog-stereo",
+      "volume": 65536,
+      "enabled": true
+    }
+  },
+  "sinklist-1-muted": {
+    "id": 0,
+    "type": "kdeconnect.systemvolume",
+    "body": {
+      "name": "mock.speakers.analog-stereo",
+      "muted": true,
+      "enabled": true
+    }
+  },
+  "sinklist-2": {
+    "id": 0,
+    "type": "kdeconnect.systemvolume",
+    "body": {
+      "sinkList": [
+        {
+          "name": "mock.speakers.analog-stereo",
+          "description": "Speakers",
+          "muted": true,
+          "volume": 65536,
+          "maxVolume": 65536,
+          "enabled": true
+        },
+        {
+          "name": "mock.headphones.analog-stereo",
+          "description": "Headphones",
+          "muted": false,
+          "volume": 32768,
+          "maxVolume": 65536,
+          "enabled": false
+        }
+      ]
+    }
+  },
+  "sinklist-2-default": {
+    "id": 0,
+    "type": "kdeconnect.systemvolume",
+    "body": {
+      "name": "mock.headphones.analog-stereo",
+      "enabled": true
+    }
+  },
+  "sinklist-3": {
+    "id": 0,
+    "type": "kdeconnect.systemvolume",
+    "body": {
+      "sinkList": [
+        {
+          "name": "mock.speakers.analog-stereo",
+          "description": "Speakers",
+          "muted": false,
+          "volume": 32768,
+          "maxVolume": 65536,
+          "enabled": true
+        }
+      ]
     }
   }
 }
