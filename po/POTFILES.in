@@ -54,7 +54,6 @@ src/plugins/gnome/valent-menu-list.c
 src/plugins/gnome/valent-message-row.c
 src/plugins/gnome/valent-messages-window.c
 src/plugins/gnome/valent-messages-window.ui
-src/plugins/gnome/valent-notification-dialog.ui
 src/plugins/gnome/valent-plugin-row.ui
 src/plugins/gnome/valent-preferences-dialog.c
 src/plugins/gnome/valent-preferences-dialog.ui
