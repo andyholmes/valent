@@ -90,6 +90,7 @@ runcommand
 
 # src/plugins/systemvolume
 systemvolume
+namev
 sinklist
 
 # tests/fixtures
