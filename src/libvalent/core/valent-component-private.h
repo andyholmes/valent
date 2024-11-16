@@ -10,10 +10,6 @@
 
 G_BEGIN_DECLS
 
-_VALENT_EXTERN
-GObject * valent_component_get_preferred (ValentComponent *self);
-
-
 /*< private >
  * ValentPlugin:
  * @parent: (type GObject.Object): the owner of the plugin

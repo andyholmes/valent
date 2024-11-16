@@ -31,13 +31,13 @@
 
 typedef struct
 {
-  PeasEngine    *engine;
-  ValentContext *context;
-  char          *plugin_domain;
-  char          *plugin_priority;
-  GType          plugin_type;
-  GHashTable    *plugins;
-  GObject       *preferred;
+  PeasEngine      *engine;
+  ValentContext   *context;
+  char            *plugin_domain;
+  char            *plugin_priority;
+  GType            plugin_type;
+  GHashTable      *plugins;
+  GObject         *primary_adapter;
 } ValentComponentPrivate;
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentComponent, valent_component, VALENT_TYPE_OBJECT);
@@ -51,14 +51,13 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentComponent, valent_component, VALENT_T
  * The virtual function table for `ValentComponent`.
  */
 
-enum {
-  PROP_0,
-  PROP_PLUGIN_DOMAIN,
+typedef enum {
+  PROP_PLUGIN_DOMAIN = 1,
   PROP_PLUGIN_TYPE,
-  N_PROPERTIES
-};
+  PROP_PRIMARY_ADAPTER,
+} ValentComponentProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_PRIMARY_ADAPTER + 1] = { NULL, };
 
 
 static void
@@ -132,12 +131,13 @@ valent_component_update_preferred (ValentComponent *self)
         }
     }
 
-  if (priv->preferred != extension)
+  if (priv->primary_adapter != extension)
     {
       VALENT_NOTE ("%s(): %s: %s", G_STRFUNC, G_OBJECT_TYPE_NAME (self),
                    extension ? G_OBJECT_TYPE_NAME (extension) : "No Adapter");
-      priv->preferred = extension;
-      VALENT_COMPONENT_GET_CLASS (self)->bind_preferred (self, priv->preferred);
+      priv->primary_adapter = extension;
+      VALENT_COMPONENT_GET_CLASS (self)->bind_preferred (self, priv->primary_adapter);
+      g_object_notify_by_pspec (G_OBJECT (self), properties[PROP_PRIMARY_ADAPTER]);
     }
 
   VALENT_EXIT;
@@ -278,7 +278,7 @@ valent_component_disable_plugin (ValentComponent *self,
   extension = g_steal_pointer (&plugin->extension);
   g_return_if_fail (G_IS_OBJECT (extension));
 
-  if (priv->preferred == extension)
+  if (priv->primary_adapter == extension)
     valent_component_update_preferred (self);
 
   VALENT_COMPONENT_GET_CLASS (self)->unbind_extension (self, extension);
@@ -383,27 +383,6 @@ valent_component_real_unbind_extension (ValentComponent *component,
 }
 /* LCOV_EXCL_STOP */
 
-/*< private >
- * valent_component_get_preferred:
- * @self: a `ValentComponent`
- *
- * Get the extension with the highest priority for @self.
- *
- * The default value for extensions is `0`; the lower the value the higher the
- * priority.
- *
- * Returns: (transfer none) (nullable): a `GObject`
- */
-GObject *
-valent_component_get_preferred (ValentComponent *self)
-{
-  ValentComponentPrivate *priv = valent_component_get_instance_private (self);
-
-  g_assert (VALENT_IS_COMPONENT (self));
-
-  return priv->preferred;
-}
-
 /*
  * ValentObject
  */
@@ -497,7 +476,7 @@ valent_component_get_property (GObject    *object,
   ValentComponent *self = VALENT_COMPONENT (object);
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
 
-  switch (prop_id)
+  switch ((ValentComponentProperty)prop_id)
     {
     case PROP_PLUGIN_DOMAIN:
       g_value_set_string (value, priv->plugin_domain);
@@ -505,6 +484,10 @@ valent_component_get_property (GObject    *object,
 
     case PROP_PLUGIN_TYPE:
       g_value_set_gtype (value, priv->plugin_type);
+      break;
+
+    case PROP_PRIMARY_ADAPTER:
+      g_value_set_object (value, priv->primary_adapter);
       break;
 
     default:
@@ -521,7 +504,7 @@ valent_component_set_property (GObject      *object,
   ValentComponent *self = VALENT_COMPONENT (object);
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
 
-  switch (prop_id)
+  switch ((ValentComponentProperty)prop_id)
     {
     case PROP_PLUGIN_DOMAIN:
       priv->plugin_domain = g_value_dup_string (value);
@@ -529,6 +512,10 @@ valent_component_set_property (GObject      *object,
 
     case PROP_PLUGIN_TYPE:
       priv->plugin_type = g_value_get_gtype (value);
+      break;
+
+    case PROP_PRIMARY_ADAPTER:
+      valent_component_set_primary_adapter (self, g_value_get_object (value));
       break;
 
     default:
@@ -586,7 +573,25 @@ valent_component_class_init (ValentComponentClass *klass)
                          G_PARAM_EXPLICIT_NOTIFY |
                          G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  /**
+   * ValentComponent:primary-adapter: (getter get_primary_adapter) (setter set_primary_adapter)
+   *
+   * The [class@Valent.Extension] serving as the primary adapter for the host.
+   *
+   * The default value for extensions is `0`; the lower the value the higher the
+   * priority. Plugins may use this adapter as though it represents the local
+   * device, such as a PipeWire adapter for [class@Valent.MixerAdapter].
+   *
+   * Since: 1.0
+   */
+  properties [PROP_PRIMARY_ADAPTER] =
+    g_param_spec_object ("primary-adapter", NULL, NULL,
+                         VALENT_TYPE_EXTENSION,
+                         (G_PARAM_READWRITE |
+                          G_PARAM_EXPLICIT_NOTIFY |
+                          G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void
@@ -596,5 +601,58 @@ valent_component_init (ValentComponent *self)
 
   priv->engine = valent_get_plugin_engine ();
   priv->plugins = g_hash_table_new_full (NULL, NULL, NULL, component_plugin_free);
+}
+
+/**
+ * valent_component_get_primary_adapter: (get-property primary-adapter)
+ * @component: a `ValentComponent`
+ *
+ * Returns: (transfer none) (nullable): the primary adapter
+ *
+ * Since: 1.0
+ */
+ValentExtension *
+valent_component_get_primary_adapter (ValentComponent *component)
+{
+  ValentComponentPrivate *priv = valent_component_get_instance_private (component);
+
+  g_return_val_if_fail  (VALENT_IS_COMPONENT (component), NULL);
+
+  return (ValentExtension *)priv->primary_adapter;
+}
+
+/**
+ * valent_component_set_primary_adapter: (set-property primary-adapter)
+ * @component: a `ValentComponent`
+ * @extension: (nullable): a `ValentExtension`
+ *
+ * Set the primary adapter to @extension.
+ *
+ * If @extension is %NULL, the component will automatically select the best
+ * available choice.
+ *
+ * Since: 1.0
+ */
+void
+valent_component_set_primary_adapter (ValentComponent *component,
+                                      ValentExtension *extension)
+{
+  ValentComponentPrivate *priv = valent_component_get_instance_private (component);
+
+  g_return_if_fail (VALENT_IS_COMPONENT (component));
+  g_return_if_fail (extension == NULL || VALENT_IS_EXTENSION (extension));
+
+  if (g_set_object (&priv->primary_adapter, (GObject *)extension))
+    {
+      if (priv->primary_adapter == NULL)
+        {
+          valent_component_update_preferred (component);
+        }
+      else
+        {
+          g_object_notify_by_pspec (G_OBJECT (component),
+                                    properties[PROP_PRIMARY_ADAPTER]);
+        }
+    }
 }
 
