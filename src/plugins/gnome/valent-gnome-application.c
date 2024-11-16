@@ -100,6 +100,7 @@ media_window_action (GSimpleAction *action,
   if (self->media_window == NULL)
     {
       self->media_window = g_object_new (VALENT_TYPE_MEDIA_WINDOW,
+                                         "mixers",  valent_mixer_get_default (),
                                          "players", valent_media_get_default (),
                                          NULL);
       g_object_add_weak_pointer (G_OBJECT (self->media_window),
