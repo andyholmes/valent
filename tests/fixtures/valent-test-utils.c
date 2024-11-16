@@ -10,7 +10,6 @@
 #include <json-glib/json-glib.h>
 #include <valent.h>
 
-#include "valent-component-private.h"
 #include "valent-mock-channel.h"
 
 #include "valent-test-utils.h"
@@ -285,7 +284,7 @@ valent_test_await_adapter (gpointer component)
 
   g_assert (VALENT_IS_COMPONENT (component));
 
-  while ((ret = valent_component_get_preferred (component)) == NULL)
+  while ((ret = valent_component_get_primary_adapter (component)) == NULL)
     g_main_context_iteration (NULL, FALSE);
 
   while (g_main_context_iteration (NULL, FALSE))
