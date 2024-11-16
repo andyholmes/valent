@@ -9,6 +9,8 @@
 #include <json-glib/json-glib.h>
 #include <valent.h>
 
+#include "valent-systemvolume-device.h"
+
 #include "valent-systemvolume-plugin.h"
 
 
@@ -16,9 +18,11 @@ struct _ValentSystemvolumePlugin
 {
   ValentDevicePlugin  parent_instance;
 
-  ValentMixer        *mixer;
+  ValentMixerAdapter *mixer;
   unsigned int        mixer_watch : 1;
   GPtrArray          *states;
+
+  ValentMixerAdapter *adapter;
 };
 
 static void valent_systemvolume_plugin_handle_request     (ValentSystemvolumePlugin *self,
@@ -96,7 +100,7 @@ on_stream_changed (ValentMixerStream        *stream,
     }
 
   /* If none of the other properties changed, there's nothing to update */
-  enabled = valent_mixer_get_default_output (self->mixer) == stream;
+  enabled = valent_mixer_adapter_get_default_output (self->mixer) == stream;
   muted = valent_mixer_stream_get_muted (stream);
   volume = valent_mixer_stream_get_level (stream);
 
@@ -156,7 +160,7 @@ stream_state_new (ValentSystemvolumePlugin *self,
   state->description = g_strdup (valent_mixer_stream_get_description (stream));
   state->volume = valent_mixer_stream_get_level (stream);
   state->muted = valent_mixer_stream_get_muted (stream);
-  state->enabled = valent_mixer_get_default_output (self->mixer) == stream;
+  state->enabled = valent_mixer_adapter_get_default_output (self->mixer) == stream;
 
   return state;
 }
@@ -174,16 +178,16 @@ stream_state_free (gpointer data)
 }
 
 static void
-on_default_output_changed (ValentMixer              *mixer,
+on_default_output_changed (ValentMixerAdapter       *adapter,
                            GParamSpec               *pspec,
                            ValentSystemvolumePlugin *self)
 {
   ValentMixerStream *default_output = NULL;
 
-  g_assert (VALENT_IS_MIXER (mixer));
+  g_assert (VALENT_IS_MIXER_ADAPTER (adapter));
   g_assert (VALENT_IS_SYSTEMVOLUME_PLUGIN (self));
 
-  default_output = valent_mixer_get_default_output (mixer);
+  default_output = valent_mixer_adapter_get_default_output (adapter);
 
   for (unsigned int i = 0; i < self->states->len; i++)
     {
@@ -228,6 +232,39 @@ on_items_changed (GListModel               *list,
 }
 
 static void
+on_primary_adapter_changed (ValentMixer              *mixer,
+                            GParamSpec               *pspec,
+                            ValentSystemvolumePlugin *self)
+{
+  if (self->mixer != NULL)
+    {
+      g_signal_handlers_disconnect_by_data (self->mixer, self);
+      g_ptr_array_remove_range (self->states, 0, self->states->len);
+      g_clear_object (&self->mixer);
+    }
+
+  g_object_get (mixer, "primary-adapter", &self->mixer, NULL);
+  if (self->mixer != NULL)
+    {
+      g_signal_connect_object (self->mixer,
+                               "notify::default-output",
+                               G_CALLBACK (on_default_output_changed),
+                               self,
+                               G_CONNECT_DEFAULT);
+      g_signal_connect_object (self->mixer,
+                               "items-changed",
+                               G_CALLBACK (on_items_changed),
+                               self,
+                               G_CONNECT_DEFAULT);
+      on_items_changed (G_LIST_MODEL (self->mixer),
+                        0,
+                        0,
+                        g_list_model_get_n_items (G_LIST_MODEL (self->mixer)),
+                        self);
+    }
+}
+
+static void
 valent_systemvolume_plugin_watch_mixer (ValentSystemvolumePlugin *self,
                                         gboolean                  watch)
 {
@@ -236,30 +273,28 @@ valent_systemvolume_plugin_watch_mixer (ValentSystemvolumePlugin *self,
   if (self->mixer_watch == watch)
     return;
 
-  if (self->mixer == NULL)
-    self->mixer = valent_mixer_get_default ();
-
   if (watch)
     {
-      GListModel *list = G_LIST_MODEL (self->mixer);
-
-      g_signal_connect_object (self->mixer,
+      g_signal_connect_object (valent_mixer_get_default (),
                                "notify::default-output",
-                               G_CALLBACK (on_default_output_changed),
-                               self, 0);
-      g_signal_connect_object (self->mixer,
-                               "items-changed",
-                               G_CALLBACK (on_items_changed),
-                               self, 0);
-      on_items_changed (list, 0, 0, g_list_model_get_n_items (list), self);
-      self->mixer_watch = TRUE;
+                               G_CALLBACK (on_primary_adapter_changed),
+                               self,
+                               G_CONNECT_DEFAULT);
+      on_primary_adapter_changed (valent_mixer_get_default (), NULL, self);
     }
   else
     {
-      g_signal_handlers_disconnect_by_data (self->mixer, self);
-      g_ptr_array_remove_range (self->states, 0, self->states->len);
-      self->mixer_watch = FALSE;
+      g_signal_handlers_disconnect_by_data (valent_mixer_get_default (), self);
+
+      if (self->mixer != NULL)
+        {
+          g_signal_handlers_disconnect_by_data (self->mixer, self);
+          g_ptr_array_remove_range (self->states, 0, self->states->len);
+          g_clear_object (&self->mixer);
+        }
     }
+
+  self->mixer_watch = watch;
 }
 
 /*
@@ -340,7 +375,7 @@ valent_systemvolume_plugin_handle_sink_change (ValentSystemvolumePlugin *self,
     valent_mixer_stream_set_muted (state->stream, muted);
 
   if (valent_packet_get_boolean (packet, "enabled", &enabled) && enabled)
-    valent_mixer_set_default_output (self->mixer, state->stream);
+    valent_mixer_adapter_set_default_output (self->mixer, state->stream);
 }
 
 static void
@@ -394,7 +429,10 @@ valent_systemvolume_plugin_handle_packet (ValentDevicePlugin *plugin,
   g_assert (type != NULL);
   g_assert (VALENT_IS_PACKET (packet));
 
-  if (g_str_equal (type, "kdeconnect.systemvolume.request"))
+  if (g_str_equal (type, "kdeconnect.systemvolume"))
+    valent_systemvolume_device_handle_packet (VALENT_SYSTEMVOLUME_DEVICE (self->adapter),
+                                              packet);
+  else if (g_str_equal (type, "kdeconnect.systemvolume.request"))
     valent_systemvolume_plugin_handle_request (self, packet);
   else
     g_assert_not_reached ();
@@ -408,8 +446,16 @@ valent_systemvolume_plugin_destroy (ValentObject *object)
 {
   ValentSystemvolumePlugin *self = VALENT_SYSTEMVOLUME_PLUGIN (object);
 
+  if (self->adapter != NULL)
+    {
+      valent_mixer_unexport_adapter (valent_mixer_get_default (), self->adapter);
+      valent_object_destroy (VALENT_OBJECT (self->adapter));
+      g_clear_object (&self->adapter);
+    }
+
   valent_systemvolume_plugin_watch_mixer (self, FALSE);
   g_clear_pointer (&self->states, g_ptr_array_unref);
+  g_clear_object (&self->mixer);
 
   VALENT_OBJECT_CLASS (valent_systemvolume_plugin_parent_class)->destroy (object);
 }
@@ -421,10 +467,13 @@ static void
 valent_systemvolume_plugin_constructed (GObject *object)
 {
   ValentSystemvolumePlugin *self = VALENT_SYSTEMVOLUME_PLUGIN (object);
-
-  self->states = g_ptr_array_new_with_free_func (stream_state_free);
+  ValentDevice *device = NULL;
 
   G_OBJECT_CLASS (valent_systemvolume_plugin_parent_class)->constructed (object);
+
+  device = valent_extension_get_object (VALENT_EXTENSION (self));
+  self->adapter = valent_systemvolume_device_new (device);
+  valent_mixer_export_adapter (valent_mixer_get_default (), self->adapter);
 }
 
 static void
@@ -445,5 +494,6 @@ valent_systemvolume_plugin_class_init (ValentSystemvolumePluginClass *klass)
 static void
 valent_systemvolume_plugin_init (ValentSystemvolumePlugin *self)
 {
+  self->states = g_ptr_array_new_with_free_func (stream_state_free);
 }
 
