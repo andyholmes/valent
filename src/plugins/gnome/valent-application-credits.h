@@ -27,7 +27,9 @@ static const char *valent_application_credits_documenters[] = {
 };
 
 static const char *valent_application_credits_sponsors[] = {
+  "Anonymous",
   "David Akopov",
+  "duyfken",
   "Oliver Kennedy",
   "Remco Haszing",
   "Sonny Piers",
