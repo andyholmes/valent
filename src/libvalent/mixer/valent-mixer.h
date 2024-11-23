@@ -30,12 +30,6 @@ ValentMixerStream * valent_mixer_get_default_output (ValentMixer        *mixer);
 VALENT_AVAILABLE_IN_1_0
 void                valent_mixer_set_default_output (ValentMixer        *mixer,
                                                      ValentMixerStream  *stream);
-VALENT_AVAILABLE_IN_1_0
-void                valent_mixer_export_adapter     (ValentMixer        *mixer,
-                                                     ValentMixerAdapter *object);
-VALENT_AVAILABLE_IN_1_0
-void                valent_mixer_unexport_adapter   (ValentMixer        *mixer,
-                                                     ValentMixerAdapter *object);
 
 G_END_DECLS
 

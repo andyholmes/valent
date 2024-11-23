@@ -30,6 +30,10 @@ struct _ValentComponentClass
                                            GObject         *extension);
   void                (*bind_preferred)   (ValentComponent *component,
                                            GObject         *extension);
+  void                (*export_adapter)   (ValentComponent *component,
+                                           ValentExtension *extension);
+  void                (*unexport_adapter) (ValentComponent *component,
+                                           ValentExtension *extension);
 
   /*< private >*/
   gpointer            padding[8];
@@ -39,6 +43,12 @@ VALENT_AVAILABLE_IN_1_0
 ValentExtension * valent_component_get_primary_adapter (ValentComponent *component);
 VALENT_AVAILABLE_IN_1_0
 void              valent_component_set_primary_adapter (ValentComponent *component,
+                                                        ValentExtension *extension);
+VALENT_AVAILABLE_IN_1_0
+void              valent_component_export_adapter      (ValentComponent *component,
+                                                        ValentExtension *extension);
+VALENT_AVAILABLE_IN_1_0
+void              valent_component_unexport_adapter    (ValentComponent *component,
                                                         ValentExtension *extension);
 
 G_END_DECLS

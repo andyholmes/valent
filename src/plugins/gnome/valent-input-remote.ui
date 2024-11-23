@@ -35,6 +35,57 @@
             <property name="title-widget">
               <object class="GtkDropDown" id="input_adapter">
                 <property name="hexpand">1</property>
+                <property name="factory">
+                  <object class="GtkBuilderListItemFactory">
+                    <property name="bytes"><![CDATA[
+                      <?xml version="1.0" encoding="UTF-8"?>
+                      <interface>
+                        <template class="GtkListItem">
+                          <property name="child">
+                            <object class="GtkBox">
+                              <property name="spacing">6</property>
+                              <child>
+                                <object class="GtkImage">
+                                  <binding name="icon-name">
+                                    <!-- FIXME: this should be a property of the adapter -->
+                                    <lookup name="icon-name" type="ValentDevice">
+                                      <lookup name="object" type="ValentExtension">
+                                        <lookup name="item">GtkListItem</lookup>
+                                      </lookup>
+                                    </lookup>
+                                  </binding>
+                                  <property name="pixel-size">16</property>
+                                </object>
+                              </child>
+                              <child>
+                                <object class="GtkLabel">
+                                  <binding name="label">
+                                    <!-- FIXME: this should be a property of the adapter -->
+                                    <lookup name="name" type="ValentDevice">
+                                      <lookup name="object" type="ValentExtension">
+                                        <lookup name="item">GtkListItem</lookup>
+                                      </lookup>
+                                    </lookup>
+                                  </binding>
+                                </object>
+                              </child>
+                            </object>
+                          </property>
+                        </template>
+                      </interface>
+                 ]]></property>
+                  </object>
+                </property>
+                <property name="model">
+                  <object class="GtkFilterListModel" id="model">
+                    <property name="filter">
+                      <object class="GtkCustomFilter" id="filter"/>
+                    </property>
+                    <binding name="model">
+                      <lookup name="adapters">ValentInputRemote</lookup>
+                    </binding>
+                  </object>
+                </property>
                 <signal name="notify::selected-item"
                         handler="on_selected_item"
                         object="ValentInputRemote"

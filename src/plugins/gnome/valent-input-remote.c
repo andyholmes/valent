@@ -41,6 +41,8 @@ struct _ValentInputRemote
   GtkGesture         *touch_single;
   GtkGesture         *touch_double;
   GtkGesture         *touch_triple;
+  GtkFilter          *filter;
+  GtkFilterListModel *model;
 };
 
 G_DEFINE_FINAL_TYPE (ValentInputRemote, valent_input_remote, ADW_TYPE_WINDOW)
@@ -53,6 +55,14 @@ enum {
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
+static gboolean
+valent_input_remote_filter (gpointer item,
+                            gpointer user_data)
+{
+  ValentExtension *extension = VALENT_EXTENSION (item);
+
+  return VALENT_IS_DEVICE (valent_extension_get_object (extension));
+}
 
 static inline gboolean
 valent_input_remote_check_adapter (ValentInputRemote *self)
@@ -383,45 +393,13 @@ on_selected_item (GObject           *object,
     valent_input_remote_check_adapter (self);
 }
 
-static char *
-dup_adapter_name (ValentInputAdapter *adapter)
-{
-  GObject *object = NULL;
-  GParamSpec *pspec = NULL;
-  g_autofree char *name = NULL;
-
-  g_assert (VALENT_IS_INPUT_ADAPTER (adapter));
-
-  object = valent_extension_get_object (VALENT_EXTENSION (adapter));
-
-  if (object != NULL)
-    pspec = g_object_class_find_property (G_OBJECT_GET_CLASS (object), "name");
-
-  if (pspec != NULL)
-    g_object_get (object, "name", &name, NULL);
-
-  if (name == NULL)
-    return g_strdup (G_OBJECT_TYPE_NAME (adapter));
-
-  return g_steal_pointer (&name);
-}
-
 /*
  * GObject
  */
 static void
 valent_input_remote_constructed (GObject *object)
 {
-  ValentInputRemote *self = VALENT_INPUT_REMOTE (object);
-  g_autoptr (GtkExpression) expression = NULL;
-
-  expression = gtk_cclosure_expression_new (G_TYPE_STRING, NULL,
-                                            0, NULL,
-                                            G_CALLBACK (dup_adapter_name),
-                                            NULL, NULL);
-
-  gtk_drop_down_set_expression (self->input_adapter, expression);
-  gtk_drop_down_set_model (self->input_adapter, self->adapters);
+  /* ValentInputRemote *self = VALENT_INPUT_REMOTE (object); */
 
   G_OBJECT_CLASS (valent_input_remote_parent_class)->constructed (object);
 }
@@ -497,6 +475,8 @@ valent_input_remote_class_init (ValentInputRemoteClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentInputRemote, touch_single);
   gtk_widget_class_bind_template_child (widget_class, ValentInputRemote, touch_double);
   gtk_widget_class_bind_template_child (widget_class, ValentInputRemote, touch_triple);
+  gtk_widget_class_bind_template_child (widget_class, ValentInputRemote, filter);
+  gtk_widget_class_bind_template_child (widget_class, ValentInputRemote, model);
 
   gtk_widget_class_bind_template_callback (widget_class, on_selected_item);
   gtk_widget_class_bind_template_callback (widget_class, on_key_pressed);
@@ -515,7 +495,6 @@ valent_input_remote_class_init (ValentInputRemoteClass *klass)
                          G_TYPE_LIST_MODEL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
@@ -525,10 +504,12 @@ static void
 valent_input_remote_init (ValentInputRemote *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
-
   gtk_gesture_group (self->touch_single, self->touch_double);
   gtk_gesture_group (self->touch_single, self->touch_triple);
-
+  gtk_custom_filter_set_filter_func (GTK_CUSTOM_FILTER (self->filter),
+                                     valent_input_remote_filter,
+                                     self,
+                                     NULL);
   self->scale = gtk_widget_get_scale_factor (GTK_WIDGET (self));
 }
 
