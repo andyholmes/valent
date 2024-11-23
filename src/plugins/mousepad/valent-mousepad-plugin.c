@@ -20,7 +20,7 @@ struct _ValentMousepadPlugin
   ValentDevicePlugin    parent_instance;
 
   ValentInput          *input;
-  ValentMousepadDevice *controller;
+  ValentMousepadDevice *adapter;
 
   unsigned int          local_state : 1;
   unsigned int          remote_state : 1;
@@ -240,23 +240,23 @@ valent_mousepad_plugin_handle_mousepad_keyboardstate (ValentMousepadPlugin *self
       action = g_action_map_lookup_action (G_ACTION_MAP (self), "event");
       g_simple_action_set_enabled (G_SIMPLE_ACTION (action), self->remote_state);
 
-      if (self->remote_state && self->controller == NULL)
+      if (self->remote_state && self->adapter == NULL)
         {
           ValentDevice *device = NULL;
 
           device = valent_extension_get_object (VALENT_EXTENSION (self));
-          self->controller = g_object_new (VALENT_TYPE_MOUSEPAD_DEVICE,
-                                           "device", device,
-                                           "object", device,
-                                           NULL);
-          valent_input_export_adapter (self->input,
-                                       VALENT_INPUT_ADAPTER (self->controller));
+          self->adapter = g_object_new (VALENT_TYPE_MOUSEPAD_DEVICE,
+                                        "device", device,
+                                        "object", device,
+                                        NULL);
+          valent_component_export_adapter (VALENT_COMPONENT (self->input),
+                                           VALENT_EXTENSION (self->adapter));
         }
-      else if (!self->remote_state && self->controller != NULL)
+      else if (!self->remote_state && self->adapter != NULL)
         {
-          valent_input_unexport_adapter (self->input,
-                                         VALENT_INPUT_ADAPTER (self->controller));
-          g_clear_object (&self->controller);
+          valent_component_unexport_adapter (VALENT_COMPONENT (self->input),
+                                             VALENT_EXTENSION (self->adapter));
+          g_clear_object (&self->adapter);
         }
     }
 }
@@ -484,11 +484,11 @@ valent_mousepad_plugin_update_state (ValentDevicePlugin *plugin,
   else
     self->remote_state = FALSE;
 
-  if (!self->remote_state && self->controller != NULL)
+  if (!self->remote_state && self->adapter != NULL)
     {
-      valent_input_unexport_adapter (self->input,
-                                     VALENT_INPUT_ADAPTER (self->controller));
-      g_clear_object (&self->controller);
+      valent_component_unexport_adapter (VALENT_COMPONENT (self->input),
+                                         VALENT_EXTENSION (self->adapter));
+      g_clear_object (&self->adapter);
     }
 
   valent_mousepad_plugin_toggle_actions (self, available);
@@ -528,12 +528,14 @@ static void
 valent_mousepad_plugin_destroy (ValentObject *object)
 {
   ValentMousepadPlugin *self = VALENT_MOUSEPAD_PLUGIN (object);
+  ValentComponent *component = NULL;
 
-  if (self->controller != NULL)
+  if (self->adapter != NULL)
     {
-      valent_input_unexport_adapter (valent_input_get_default (),
-                                     VALENT_INPUT_ADAPTER (self->controller));
-      g_clear_object (&self->controller);
+      component = VALENT_COMPONENT (valent_input_get_default ());
+      valent_component_unexport_adapter (component, VALENT_EXTENSION (self->adapter));
+      valent_object_destroy (VALENT_OBJECT (self->adapter));
+      g_clear_object (&self->adapter);
     }
 
   VALENT_OBJECT_CLASS (valent_mousepad_plugin_parent_class)->destroy (object);

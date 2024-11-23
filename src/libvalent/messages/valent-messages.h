@@ -30,12 +30,5 @@ G_DECLARE_FINAL_TYPE (ValentMessages, valent_messages, VALENT, MESSAGES, ValentC
 VALENT_AVAILABLE_IN_1_0
 ValentMessages * valent_messages_get_default      (void);
 
-VALENT_AVAILABLE_IN_1_0
-void             valent_messages_export_adapter   (ValentMessages        *messages,
-                                                   ValentMessagesAdapter *object);
-VALENT_AVAILABLE_IN_1_0
-void             valent_messages_unexport_adapter (ValentMessages        *messages,
-                                                   ValentMessagesAdapter *object);
-
 G_END_DECLS
 

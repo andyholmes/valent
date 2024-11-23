@@ -87,11 +87,12 @@ static void
 valent_sms_plugin_destroy (ValentObject *object)
 {
   ValentSmsPlugin *self = VALENT_SMS_PLUGIN (object);
+  ValentComponent *component = NULL;
 
   if (self->adapter != NULL)
     {
-      valent_messages_unexport_adapter (valent_messages_get_default (),
-                                        self->adapter);
+      component = VALENT_COMPONENT (valent_messages_get_default ());
+      valent_component_unexport_adapter (component, VALENT_EXTENSION (self->adapter));
       valent_object_destroy (VALENT_OBJECT (self->adapter));
       g_clear_object (&self->adapter);
     }
@@ -106,14 +107,16 @@ static void
 valent_sms_plugin_constructed (GObject *object)
 {
   ValentSmsPlugin *self = VALENT_SMS_PLUGIN (object);
+  ValentComponent *component = NULL;
   ValentDevice *device = NULL;
 
   G_OBJECT_CLASS (valent_sms_plugin_parent_class)->constructed (object);
 
   device = valent_extension_get_object (VALENT_EXTENSION (self));
   self->adapter = valent_sms_device_new (device);
-  valent_messages_export_adapter (valent_messages_get_default (),
-                                  self->adapter);
+
+  component = VALENT_COMPONENT (valent_messages_get_default ());
+  valent_component_export_adapter (component, VALENT_EXTENSION (self->adapter));
 
   g_action_map_add_action_entries (G_ACTION_MAP (self),
                                    actions,

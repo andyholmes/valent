@@ -29,12 +29,6 @@ G_DECLARE_FINAL_TYPE (ValentContacts, valent_contacts, VALENT, CONTACTS, ValentC
 
 VALENT_AVAILABLE_IN_1_0
 ValentContacts * valent_contacts_get_default      (void);
-VALENT_AVAILABLE_IN_1_0
-void             valent_contacts_export_adapter   (ValentContacts        *contacts,
-                                                   ValentContactsAdapter *object);
-VALENT_AVAILABLE_IN_1_0
-void             valent_contacts_unexport_adapter (ValentContacts        *contacts,
-                                                   ValentContactsAdapter *object);
 
 G_END_DECLS
 

@@ -226,14 +226,16 @@ static void
 valent_contacts_plugin_destroy (ValentObject *object)
 {
   ValentContactsPlugin *self = VALENT_CONTACTS_PLUGIN (object);
+  ValentComponent *component = NULL;
 
   g_cancellable_cancel (self->cancellable);
   g_clear_object (&self->cancellable);
 
   if (self->adapter != NULL)
     {
-      valent_contacts_unexport_adapter (valent_contacts_get_default (),
-                                        self->adapter);
+      component = VALENT_COMPONENT (valent_contacts_get_default ());
+      valent_component_unexport_adapter (component, VALENT_EXTENSION (self->adapter));
+      valent_object_destroy (VALENT_OBJECT (self->adapter));
       g_clear_object (&self->adapter);
     }
 
@@ -250,8 +252,9 @@ valent_contacts_plugin_constructed (GObject *object)
 {
   ValentContactsPlugin *self = VALENT_CONTACTS_PLUGIN (object);
   ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
-  ValentDevice *device = NULL;
   ValentContacts *contacts = valent_contacts_get_default ();
+  ValentComponent *component = NULL;
+  ValentDevice *device = NULL;
   g_autofree char *local_iri = NULL;
   GSettings *settings;
 
@@ -269,8 +272,8 @@ valent_contacts_plugin_constructed (GObject *object)
   /* Remote Adapter
    */
   self->adapter = valent_contacts_device_new (device);
-  valent_contacts_export_adapter (valent_contacts_get_default (),
-                                  self->adapter);
+  component = VALENT_COMPONENT (valent_contacts_get_default ());
+  valent_component_export_adapter (component, VALENT_EXTENSION (self->adapter));
 
   /* Local address book, shared with remote device
    */

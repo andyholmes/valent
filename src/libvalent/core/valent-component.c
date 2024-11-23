@@ -656,3 +656,51 @@ valent_component_set_primary_adapter (ValentComponent *component,
     }
 }
 
+/**
+ * valent_component_export_adapter:
+ * @component: a `ValentComponent`
+ * @extension: a `ValentExtension`
+ *
+ * Export @extension on the component and all adapters that support it.
+ *
+ * Since: 1.0
+ */
+void
+valent_component_export_adapter (ValentComponent *component,
+                                 ValentExtension *extension)
+{
+  VALENT_ENTRY;
+
+  g_return_if_fail (VALENT_IS_COMPONENT (component));
+  g_return_if_fail (VALENT_IS_EXTENSION (extension));
+
+  VALENT_COMPONENT_GET_CLASS (component)->bind_extension (component,
+                                                          G_OBJECT (extension));
+
+  VALENT_EXIT;
+}
+
+/**
+ * valent_component_unexport_adapter:
+ * @component: a `ValentComponent`
+ * @extension: a `ValentExtension`
+ *
+ * Unexport @extension from the component and all other adapters.
+ *
+ * Since: 1.0
+ */
+void
+valent_component_unexport_adapter (ValentComponent *component,
+                                   ValentExtension *extension)
+{
+  VALENT_ENTRY;
+
+  g_return_if_fail (VALENT_IS_COMPONENT (component));
+  g_return_if_fail (VALENT_IS_EXTENSION (extension));
+
+  VALENT_COMPONENT_GET_CLASS (component)->unbind_extension (component,
+                                                            G_OBJECT (extension));
+
+  VALENT_EXIT;
+}
+

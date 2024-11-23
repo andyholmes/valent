@@ -445,10 +445,12 @@ static void
 valent_systemvolume_plugin_destroy (ValentObject *object)
 {
   ValentSystemvolumePlugin *self = VALENT_SYSTEMVOLUME_PLUGIN (object);
+  ValentComponent *component = NULL;
 
   if (self->adapter != NULL)
     {
-      valent_mixer_unexport_adapter (valent_mixer_get_default (), self->adapter);
+      component = VALENT_COMPONENT (valent_mixer_get_default ());
+      valent_component_unexport_adapter (component, VALENT_EXTENSION (self->adapter));
       valent_object_destroy (VALENT_OBJECT (self->adapter));
       g_clear_object (&self->adapter);
     }
@@ -467,13 +469,15 @@ static void
 valent_systemvolume_plugin_constructed (GObject *object)
 {
   ValentSystemvolumePlugin *self = VALENT_SYSTEMVOLUME_PLUGIN (object);
+  ValentComponent *component = NULL;
   ValentDevice *device = NULL;
 
   G_OBJECT_CLASS (valent_systemvolume_plugin_parent_class)->constructed (object);
 
   device = valent_extension_get_object (VALENT_EXTENSION (self));
   self->adapter = valent_systemvolume_device_new (device);
-  valent_mixer_export_adapter (valent_mixer_get_default (), self->adapter);
+  component = VALENT_COMPONENT (valent_mixer_get_default ());
+  valent_component_export_adapter (component, VALENT_EXTENSION (self->adapter));
 }
 
 static void
