@@ -41,6 +41,9 @@ iiibiiay
 # CSS classes
 lowres
 
+# src/libvalent/core
+CDTF
+
 # src/plugins/bluez
 muxed
 muxer
