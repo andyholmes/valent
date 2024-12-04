@@ -42,20 +42,6 @@ typedef struct
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentApplicationPlugin, valent_application_plugin, VALENT_TYPE_EXTENSION)
 
-/**
- * ValentApplicationPluginClass:
- * @activate: the virtual function pointer for valent_application_plugin_activate()
- * @command_line: the virtual function pointer for valent_application_plugin_command_line()
- * @dbus_register: the virtual function pointer for valent_application_plugin_dbus_register()
- * @dbus_unregister: the virtual function pointer for valent_application_plugin_dbus_unregister()
- * @open: the virtual function pointer for valent_application_plugin_open()
- * @shutdown: the virtual function pointer for valent_application_plugin_shutdown()
- * @startup: the virtual function pointer for valent_application_plugin_startup()
- *
- * The virtual function table for `ValentApplicationPlugin`.
- */
-
-
 /* LCOV_EXCL_START */
 static gboolean
 valent_application_plugin_real_activate (ValentApplicationPlugin *plugin)

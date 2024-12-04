@@ -45,18 +45,6 @@ enum {
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
-/**
- * ValentMixerStreamClass:
- * @get_name: the virtual function pointer for valent_mixer_stream_get_name()
- * @get_description: the virtual function pointer for valent_mixer_stream_get_description()
- * @get_level: the virtual function pointer for valent_mixer_stream_get_level()
- * @set_level: the virtual function pointer for valent_mixer_stream_set_level()
- * @get_muted: the virtual function pointer for valent_mixer_stream_get_muted()
- * @set_muted: the virtual function pointer for valent_mixer_stream_set_muted()
- *
- * The virtual function table for `ValentMixerStream`.
- */
-
 /* LCOV_EXCL_START */
 static const char *
 valent_mixer_stream_real_get_name (ValentMixerStream *stream)

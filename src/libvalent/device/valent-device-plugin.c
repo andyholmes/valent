@@ -88,15 +88,6 @@ typedef struct
 
 G_DEFINE_ABSTRACT_TYPE (ValentDevicePlugin, valent_device_plugin, VALENT_TYPE_EXTENSION)
 
-/**
- * ValentDevicePluginClass:
- * @handle_packet: the virtual function pointer for valent_device_plugin_handle_packet()
- * @update_state: the virtual function pointer for valent_device_plugin_update_state()
- *
- * The virtual function table for `ValentDevicePlugin`.
- */
-
-
 /* LCOV_EXCL_START */
 static void
 valent_device_plugin_real_handle_packet (ValentDevicePlugin *plugin,

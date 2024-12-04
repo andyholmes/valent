@@ -42,15 +42,6 @@ typedef struct
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentComponent, valent_component, VALENT_TYPE_OBJECT);
 
-
-/**
- * ValentComponentClass:
- * @bind_extension: the virtual function pointer for bind_extension()
- * @unbind_extension: the virtual function pointer for unbind_extension()
- *
- * The virtual function table for `ValentComponent`.
- */
-
 typedef enum {
   PROP_PLUGIN_DOMAIN = 1,
   PROP_PLUGIN_TYPE,

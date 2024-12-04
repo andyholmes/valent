@@ -25,28 +25,6 @@
 
 G_DEFINE_TYPE (ValentMediaPlayer, valent_media_player, VALENT_TYPE_OBJECT)
 
-/**
- * ValentMediaPlayerClass:
- * @next: the virtual function pointer for valent_media_player_next()
- * @pause: the virtual function pointer for valent_media_player_pause()
- * @play: the virtual function pointer for valent_media_player_play()
- * @previous: the virtual function pointer for valent_media_player_previous()
- * @seek: the virtual function pointer for valent_media_player_seek()
- * @stop: the virtual function pointer for valent_media_player_stop()
- * @get_flags: Getter for the `ValentMediaPlayer`:flags property.
- * @get_metadata: Getter for the `ValentMediaPlayer`:metadata property.
- * @get_name: Getter for the `ValentMediaPlayer`:name property.
- * @get_position: Getter for the `ValentMediaPlayer`:position property.
- * @set_position: Setter for the `ValentMediaPlayer`:position property.
- * @get_repeat: Getter for the `ValentMediaPlayer`:repeat property.
- * @set_repeat: Setter for the `ValentMediaPlayer`:repeat property.
- * @get_state: Getter for the `ValentMediaPlayer`:state property.
- * @get_volume: Getter for the `ValentMediaPlayer`:volume property.
- * @set_volume: Setter for the `ValentMediaPlayer`:volume property.
- *
- * Virtual table for `ValentMediaPlayer`
- */
-
 enum {
   PROP_0,
   PROP_FLAGS,

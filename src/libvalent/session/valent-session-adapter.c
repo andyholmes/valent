@@ -40,15 +40,6 @@ typedef struct
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentSessionAdapter, valent_session_adapter, VALENT_TYPE_EXTENSION)
 
-/**
- * ValentSessionAdapterClass:
- * @get_active: the virtual function pointer for valent_session_adapter_get_active()
- * @get_locked: the virtual function pointer for valent_session_adapter_get_locked()
- * @set_locked: the virtual function pointer for valent_session_adapter_set_locked()
- *
- * The virtual function table for `ValentSessionAdapter`.
- */
-
 enum {
   PROP_0,
   PROP_ACTIVE,

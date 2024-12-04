@@ -44,12 +44,6 @@ typedef struct
 
 G_DEFINE_TYPE_WITH_PRIVATE (ValentContext, valent_context, VALENT_TYPE_OBJECT)
 
-/**
- * ValentContextClass:
- *
- * The virtual function table for `ValentContext`.
- */
-
 enum {
   PROP_0,
   PROP_DOMAIN,

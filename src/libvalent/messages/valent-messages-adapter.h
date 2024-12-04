@@ -19,15 +19,6 @@ G_BEGIN_DECLS
 VALENT_AVAILABLE_IN_1_0
 G_DECLARE_DERIVABLE_TYPE (ValentMessagesAdapter, valent_messages_adapter, VALENT, MESSAGES_ADAPTER, ValentExtension)
 
-/**
- * ValentMessagesAdapterClass:
- * @export_adapter: the virtual function pointer for valent_messages_adapter_export_adapter()
- * @unexport_adapter: the virtual function pointer for valent_messages_adapter_unexport_adapter()
- *
- * The virtual function table for `ValentMessagesAdapter`.
- *
- * Since: 1.0
- */
 struct _ValentMessagesAdapterClass
 {
   ValentExtensionClass  parent_class;

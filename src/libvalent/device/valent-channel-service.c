@@ -46,15 +46,6 @@ typedef struct
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentChannelService, valent_channel_service, VALENT_TYPE_EXTENSION);
 
-/**
- * ValentChannelServiceClass:
- * @build_identity: the virtual function pointer for valent_channel_service_build_identity()
- * @identify: the virtual function pointer for valent_channel_service_identify()
- * @channel: the class closure for `ValentChannelService`::channel
- *
- * The virtual function table for `ValentChannelService`.
- */
-
 enum {
   PROP_0,
   PROP_CERTIFICATE,

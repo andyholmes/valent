@@ -59,16 +59,6 @@ typedef struct
 
 G_DEFINE_TYPE_WITH_PRIVATE (ValentChannel, valent_channel, VALENT_TYPE_OBJECT)
 
-/**
- * ValentChannelClass:
- * @get_verification_key: the virtual function pointer for valent_channel_get_verification_key()
- * @download: the virtual function pointer for valent_channel_download()
- * @upload: the virtual function pointer for valent_channel_upload()
- * @store_data: the virtual function pointer for valent_channel_store_data()
- *
- * The virtual function table for `ValentChannel`.
- */
-
 enum {
   PROP_0,
   PROP_BASE_STREAM,
