@@ -43,15 +43,6 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentMediaAdapter, valent_media_adapter, VALE
                                   G_ADD_PRIVATE (ValentMediaAdapter)
                                   G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
-/**
- * ValentMediaAdapterClass:
- * @export_player: the virtual function pointer for valent_media_adapter_export()
- * @unexport_player: the virtual function pointer for valent_media_adapter_unexport()
- *
- * The virtual function table for `ValentMediaAdapter`.
- */
-
-
 /*
  * GListModel
  */

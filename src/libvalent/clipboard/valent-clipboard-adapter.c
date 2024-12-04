@@ -39,19 +39,6 @@ typedef struct
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentClipboardAdapter, valent_clipboard_adapter, VALENT_TYPE_EXTENSION)
 
-/**
- * ValentClipboardAdapterClass:
- * @changed: class closure for `ValentClipboardAdapter`::changed signal
- * @get_mimetypes: the virtual function pointer for valent_clipboard_adapter_get_mimetypes()
- * @get_timestamp: the virtual function pointer for valent_clipboard_adapter_get_timestamp()
- * @read_bytes: the virtual function pointer for valent_clipboard_adapter_read_bytes()
- * @read_bytes_finish: the virtual function pointer for valent_clipboard_adapter_read_bytes_finish()
- * @write_bytes: the virtual function pointer for valent_clipboard_adapter_write_bytes()
- * @write_bytes_finish: the virtual function pointer for valent_clipboard_adapter_write_bytes_finish()
- *
- * The virtual function table for `ValentClipboardAdapter`.
- */
-
 enum {
   CHANGED,
   N_SIGNALS

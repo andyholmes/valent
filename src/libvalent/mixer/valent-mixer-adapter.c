@@ -45,17 +45,6 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentMixerAdapter, valent_mixer_adapter, VALE
                                   G_ADD_PRIVATE (ValentMixerAdapter)
                                   G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
-
-/**
- * ValentMixerAdapterClass:
- * @get_default_input: the virtual function pointer for valent_mixer_adapter_get_default_input()
- * @set_default_input: the virtual function pointer for valent_mixer_adapter_set_default_input()
- * @get_default_output: the virtual function pointer for valent_mixer_adapter_get_default_output()
- * @set_default_output: the virtual function pointer for valent_mixer_adapter_set_default_output()
- *
- * The virtual function table for `ValentMixerAdapter`.
- */
-
 enum {
   PROP_0,
   PROP_DEFAULT_INPUT,

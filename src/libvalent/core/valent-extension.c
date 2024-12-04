@@ -79,12 +79,6 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentExtension, valent_extension, VALENT_TYPE
                                   G_IMPLEMENT_INTERFACE (G_TYPE_ACTION_GROUP, g_action_group_iface_init)
                                   G_IMPLEMENT_INTERFACE (G_TYPE_ACTION_MAP, g_action_map_iface_init))
 
-/**
- * ValentExtensionClass:
- *
- * The virtual function table for `ValentExtension`.
- */
-
 enum {
   PROP_0,
   PROP_CONTEXT,
