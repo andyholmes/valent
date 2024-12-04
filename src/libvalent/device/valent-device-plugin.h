@@ -17,7 +17,7 @@ G_BEGIN_DECLS
 #define VALENT_TYPE_DEVICE_PLUGIN (valent_device_plugin_get_type ())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_DERIVABLE_TYPE (ValentDevicePlugin, valent_device_plugin, VALENT, DEVICE_PLUGIN, ValentObject)
+G_DECLARE_DERIVABLE_TYPE (ValentDevicePlugin, valent_device_plugin, VALENT, DEVICE_PLUGIN, ValentExtension)
 
 struct _ValentDevicePluginClass
 {
