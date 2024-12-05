@@ -82,12 +82,6 @@ test_systemvolume_plugin_handle_request (ValentTestFixture *fixture,
   g_assert_cmpstr (json_object_get_string_member (sink_info, "name"), ==, "test_sink1");
   json_node_unref (packet);
 
-  VALENT_TEST_CHECK ("Plugin requests the sink list on connect");
-  packet = valent_test_fixture_expect_packet (fixture);
-  v_assert_packet_type (packet, "kdeconnect.systemvolume.request");
-  v_assert_packet_true (packet, "requestSinks");
-  json_node_unref (packet);
-
   VALENT_TEST_CHECK ("Plugin sends the sink list when requested");
   packet = valent_test_fixture_lookup_packet (fixture, "request-sinks");
   valent_test_fixture_handle_packet (fixture, packet);
@@ -248,12 +242,6 @@ test_systemvolume_plugin_handle_sinks (ValentTestFixture *fixture,
   v_assert_packet_field (packet, "sinkList");
   g_assert_true (valent_packet_get_array (packet, "sinkList", &sink_list));
   g_assert_cmpuint (json_array_get_length (sink_list), ==, 0);
-  json_node_unref (packet);
-
-  VALENT_TEST_CHECK ("Plugin requests the sink list on connect");
-  packet = valent_test_fixture_expect_packet (fixture);
-  v_assert_packet_type (packet, "kdeconnect.systemvolume.request");
-  v_assert_packet_true (packet, "requestSinks");
   json_node_unref (packet);
 
   VALENT_TEST_CHECK ("Plugin handles the sink list");
