@@ -5,7 +5,7 @@
 preprocessorErrorDirective:src/libvalent/core/valent-global.c:35
 
 # src/libvalent/device/
-memleak:src/libvalent/device/valent-channel.c:325
+memleak:src/libvalent/device/valent-channel.c:315
 
 # src/libvalent/notifications/
 leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:89
