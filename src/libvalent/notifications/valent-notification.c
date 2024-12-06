@@ -22,11 +22,10 @@
 
 struct _ValentNotification
 {
-  GObject                parent_instance;
+  ValentResource         parent_instance;
 
   char                  *application;
   char                  *id;
-  char                  *title;
   char                  *body;
   GIcon                 *icon;
   int64_t                time;
@@ -45,11 +44,10 @@ enum {
   PROP_ID,
   PROP_PRIORITY,
   PROP_TIME,
-  PROP_TITLE,
   N_PROPERTIES
 };
 
-G_DEFINE_FINAL_TYPE (ValentNotification, valent_notification, G_TYPE_OBJECT)
+G_DEFINE_FINAL_TYPE (ValentNotification, valent_notification, VALENT_TYPE_RESOURCE)
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
@@ -135,7 +133,6 @@ valent_notification_finalize (GObject *object)
 
   g_clear_pointer (&self->application, g_free);
   g_clear_pointer (&self->id, g_free);
-  g_clear_pointer (&self->title, g_free);
   g_clear_pointer (&self->body, g_free);
   g_clear_object (&self->icon);
 
@@ -180,10 +177,6 @@ valent_notification_get_property (GObject    *object,
       g_value_set_int64 (value, valent_notification_get_time (self));
       break;
 
-    case PROP_TITLE:
-      g_value_set_string (value, valent_notification_get_title (self));
-      break;
-
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -225,10 +218,6 @@ valent_notification_set_property (GObject      *object,
 
     case PROP_TIME:
       valent_notification_set_time (self, g_value_get_int64 (value));
-      break;
-
-    case PROP_TITLE:
-      valent_notification_set_title (self, g_value_get_string (value));
       break;
 
     default:
@@ -357,20 +346,6 @@ valent_notification_class_init (ValentNotificationClass *klass)
                         (G_PARAM_READWRITE |
                          G_PARAM_EXPLICIT_NOTIFY |
                          G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentNotification:title: (getter get_title) (setter set_title)
-   *
-   * The title of the notification
-   *
-   * Since: 1.0
-   */
-  properties [PROP_TITLE] =
-    g_param_spec_string ("title", NULL, NULL,
-                         NULL,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 }
@@ -665,44 +640,6 @@ valent_notification_set_time (ValentNotification *notification,
 }
 
 /**
- * valent_notification_get_title: (get-property title)
- * @notification: a `ValentNotification`
- *
- * Get the notification title.
- *
- * Returns: (transfer none) (nullable): the notification title
- *
- * Since: 1.0
- */
-const char *
-valent_notification_get_title (ValentNotification *notification)
-{
-  g_return_val_if_fail (VALENT_IS_NOTIFICATION (notification), NULL);
-
-  return notification->title;
-}
-
-/**
- * valent_notification_set_title: (set-property title)
- * @notification: a `ValentNotification`
- * @title: (not nullable): a notification title
- *
- * Set the notification title.
- *
- * Since: 1.0
- */
-void
-valent_notification_set_title (ValentNotification *notification,
-                               const char         *title)
-{
-  g_return_if_fail (VALENT_IS_NOTIFICATION (notification));
-  g_return_if_fail (title != NULL);
-
-  if (g_set_str (&notification->title, title))
-    g_object_notify_by_pspec (G_OBJECT (notification), properties [PROP_TITLE]);
-}
-
-/**
  * valent_notification_add_button_with_target:
  * @notification: a `ValentNotification`
  * @label: a button label
@@ -811,6 +748,7 @@ GVariant *
 valent_notification_serialize (ValentNotification *notification)
 {
   GVariantBuilder builder;
+  const char *title;
 
   g_return_val_if_fail (VALENT_IS_NOTIFICATION (notification), NULL);
 
@@ -824,9 +762,10 @@ valent_notification_serialize (ValentNotification *notification)
     g_variant_builder_add (&builder, "{sv}", "application",
                            g_variant_new_string (notification->application));
 
-  if (notification->title)
+  title = valent_resource_get_title (VALENT_RESOURCE (notification));
+  if (title)
     g_variant_builder_add (&builder, "{sv}", "title",
-                           g_variant_new_string (notification->title));
+                           g_variant_new_string (title));
 
   if (notification->body)
     g_variant_builder_add (&builder, "{sv}", "body",
@@ -910,7 +849,7 @@ valent_notification_deserialize (GVariant *variant)
     valent_notification_set_application (notification, application);
 
   if (g_variant_lookup (props, "title", "&s", &title))
-    valent_notification_set_title (notification, title);
+    valent_resource_set_title (VALENT_RESOURCE (notification), title);
 
   if (g_variant_lookup (props, "body", "&s", &body))
     valent_notification_set_body (notification, body);

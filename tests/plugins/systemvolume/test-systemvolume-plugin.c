@@ -231,11 +231,11 @@ test_systemvolume_plugin_handle_sinks (ValentTestFixture *fixture,
   gboolean watch = FALSE;
   gboolean stream_watch = FALSE;
 
-  adapter = g_list_model_get_item (G_LIST_MODEL (valent_mixer_get_default ()), 1);
-  valent_test_watch_signal (adapter, "notify::default-output", &watch);
-
   VALENT_TEST_CHECK ("Plugin sends the sink list on connect");
   valent_test_fixture_connect (fixture, TRUE);
+
+  adapter = g_list_model_get_item (G_LIST_MODEL (valent_mixer_get_default ()), 1);
+  valent_test_watch_signal (adapter, "notify::default-output", &watch);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.systemvolume");

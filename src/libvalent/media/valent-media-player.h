@@ -7,7 +7,7 @@
 # error "Only <valent.h> can be included directly."
 #endif
 
-#include "../core/valent-object.h"
+#include "../core/valent-resource.h"
 
 G_BEGIN_DECLS
 
@@ -80,11 +80,11 @@ typedef enum
 #define VALENT_TYPE_MEDIA_PLAYER (valent_media_player_get_type())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_DERIVABLE_TYPE (ValentMediaPlayer, valent_media_player, VALENT, MEDIA_PLAYER, ValentObject)
+G_DECLARE_DERIVABLE_TYPE (ValentMediaPlayer, valent_media_player, VALENT, MEDIA_PLAYER, ValentResource)
 
 struct _ValentMediaPlayerClass
 {
-  ValentObjectClass    parent_class;
+  ValentResourceClass  parent_class;
 
   /* virtual functions */
   ValentMediaActions   (*get_flags)    (ValentMediaPlayer *player);

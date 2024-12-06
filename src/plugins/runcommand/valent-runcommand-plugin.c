@@ -60,7 +60,7 @@ launcher_init (ValentRuncommandPlugin *self)
 
   self->launcher = g_subprocess_launcher_new (flags);
 
-  device = valent_extension_get_object (VALENT_EXTENSION (self));
+  device = valent_resource_get_source (VALENT_RESOURCE (self));
   g_subprocess_launcher_setenv (self->launcher,
                                 "VALENT_DEVICE_ID",
                                 valent_device_get_id (device),
@@ -168,7 +168,7 @@ on_commands_changed (GSettings              *settings,
   g_assert (key != NULL);
   g_assert (VALENT_IS_RUNCOMMAND_PLUGIN (self));
 
-  device = valent_extension_get_object (VALENT_EXTENSION (self));
+  device = valent_resource_get_source (VALENT_RESOURCE (self));
   state = valent_device_get_state (device);
 
   if ((state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&

@@ -268,6 +268,7 @@ static void
 valent_systemvolume_plugin_watch_mixer (ValentSystemvolumePlugin *self,
                                         gboolean                  watch)
 {
+  ValentMixer *mixer = valent_mixer_get_default ();
   g_assert (VALENT_IS_SYSTEMVOLUME_PLUGIN (self));
 
   if (self->mixer_watch == watch)
@@ -275,22 +276,39 @@ valent_systemvolume_plugin_watch_mixer (ValentSystemvolumePlugin *self,
 
   if (watch)
     {
-      g_signal_connect_object (valent_mixer_get_default (),
+      g_signal_connect_object (mixer,
                                "notify::default-output",
                                G_CALLBACK (on_primary_adapter_changed),
                                self,
                                G_CONNECT_DEFAULT);
-      on_primary_adapter_changed (valent_mixer_get_default (), NULL, self);
+      on_primary_adapter_changed (mixer, NULL, self);
+
+      if (self->adapter == NULL)
+        {
+          ValentDevice *device = NULL;
+
+          device = valent_resource_get_source (VALENT_RESOURCE (self));
+          self->adapter = valent_systemvolume_device_new (device);
+          valent_component_export_adapter (VALENT_COMPONENT (mixer),
+                                           VALENT_EXTENSION (self->adapter));
+        }
     }
   else
     {
-      g_signal_handlers_disconnect_by_data (valent_mixer_get_default (), self);
+      g_signal_handlers_disconnect_by_func (mixer, self, on_primary_adapter_changed);
 
       if (self->mixer != NULL)
         {
           g_signal_handlers_disconnect_by_data (self->mixer, self);
           g_ptr_array_remove_range (self->states, 0, self->states->len);
           g_clear_object (&self->mixer);
+        }
+
+      if (self->adapter != NULL)
+        {
+          valent_component_unexport_adapter (VALENT_COMPONENT (mixer),
+                                             VALENT_EXTENSION (self->adapter));
+          g_clear_object (&self->adapter);
         }
     }
 
@@ -466,28 +484,10 @@ valent_systemvolume_plugin_destroy (ValentObject *object)
  * GObject
  */
 static void
-valent_systemvolume_plugin_constructed (GObject *object)
-{
-  ValentSystemvolumePlugin *self = VALENT_SYSTEMVOLUME_PLUGIN (object);
-  ValentComponent *component = NULL;
-  ValentDevice *device = NULL;
-
-  G_OBJECT_CLASS (valent_systemvolume_plugin_parent_class)->constructed (object);
-
-  device = valent_extension_get_object (VALENT_EXTENSION (self));
-  self->adapter = valent_systemvolume_device_new (device);
-  component = VALENT_COMPONENT (valent_mixer_get_default ());
-  valent_component_export_adapter (component, VALENT_EXTENSION (self->adapter));
-}
-
-static void
 valent_systemvolume_plugin_class_init (ValentSystemvolumePluginClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
-
-  object_class->constructed = valent_systemvolume_plugin_constructed;
 
   vobject_class->destroy = valent_systemvolume_plugin_destroy;
 

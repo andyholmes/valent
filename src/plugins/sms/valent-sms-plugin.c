@@ -112,7 +112,7 @@ valent_sms_plugin_constructed (GObject *object)
 
   G_OBJECT_CLASS (valent_sms_plugin_parent_class)->constructed (object);
 
-  device = valent_extension_get_object (VALENT_EXTENSION (self));
+  device = valent_resource_get_source (VALENT_RESOURCE (self));
   self->adapter = valent_sms_device_new (device);
 
   component = VALENT_COMPONENT (valent_messages_get_default ());

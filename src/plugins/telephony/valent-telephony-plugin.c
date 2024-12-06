@@ -385,7 +385,7 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
 
       /* TRANSLATORS: The phone is ringing */
       g_notification_set_body (notification, _("Incoming call"));
-      device = valent_extension_get_object (VALENT_EXTENSION (self));
+      device = valent_resource_get_source (VALENT_RESOURCE (self));
       valent_notification_add_device_button (notification,
                                              device,
                                              _("Mute"),

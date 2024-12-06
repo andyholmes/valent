@@ -28,7 +28,7 @@ device_fixture_set_up (DevicePluginFixture *fixture,
   fixture->extension = peas_engine_create_extension (engine,
                                                      plugin_info,
                                                      VALENT_TYPE_DEVICE_PLUGIN,
-                                                     "object", fixture->device,
+                                                     "source", fixture->device,
                                                      NULL);
 }
 
@@ -48,7 +48,7 @@ test_device_plugin_basic (DevicePluginFixture *fixture,
 
   /* Test properties */
   g_object_get (fixture->extension,
-                "object", &device,
+                "source", &device,
                 NULL);
 
   g_assert_true (VALENT_IS_DEVICE (device));

@@ -161,7 +161,7 @@ on_auto_pull_changed (GSettings             *settings,
   if (!self->auto_pull)
     return;
 
-  device = valent_extension_get_object (VALENT_EXTENSION (self));
+  device = valent_resource_get_source (VALENT_RESOURCE (self));
   state = valent_device_get_state (device);
 
   if ((state & VALENT_DEVICE_STATE_CONNECTED) != 0 ||
@@ -193,7 +193,7 @@ on_auto_push_changed (GSettings             *settings,
   if (!self->auto_push)
     return;
 
-  device = valent_extension_get_object (VALENT_EXTENSION (self));
+  device = valent_resource_get_source (VALENT_RESOURCE (self));
   state = valent_device_get_state (device);
 
   if ((state & VALENT_DEVICE_STATE_CONNECTED) != 0 ||

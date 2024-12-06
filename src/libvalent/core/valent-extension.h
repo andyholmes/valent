@@ -8,6 +8,7 @@
 #endif
 
 #include "valent-context.h"
+#include "valent-resource.h"
 
 G_BEGIN_DECLS
 
@@ -29,22 +30,20 @@ typedef enum
 #define VALENT_TYPE_EXTENSION (valent_extension_get_type ())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_DERIVABLE_TYPE (ValentExtension, valent_extension, VALENT, EXTENSION, ValentObject)
+G_DECLARE_DERIVABLE_TYPE (ValentExtension, valent_extension, VALENT, EXTENSION, ValentResource)
 
 struct _ValentExtensionClass
 {
-  ValentObjectClass   parent_class;
+  ValentResourceClass   parent_class;
 
   /* virtual functions */
 
   /*< private >*/
-  gpointer            padding[8];
+  gpointer              padding[8];
 };
 
 VALENT_AVAILABLE_IN_1_0
 ValentContext     * valent_extension_get_context          (ValentExtension    *extension);
-VALENT_AVAILABLE_IN_1_0
-gpointer            valent_extension_get_object           (ValentExtension    *extension);
 VALENT_AVAILABLE_IN_1_0
 GSettings         * valent_extension_get_settings         (ValentExtension    *extension);
 VALENT_AVAILABLE_IN_1_0

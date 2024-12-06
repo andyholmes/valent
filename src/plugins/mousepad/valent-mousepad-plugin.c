@@ -244,11 +244,8 @@ valent_mousepad_plugin_handle_mousepad_keyboardstate (ValentMousepadPlugin *self
         {
           ValentDevice *device = NULL;
 
-          device = valent_extension_get_object (VALENT_EXTENSION (self));
-          self->adapter = g_object_new (VALENT_TYPE_MOUSEPAD_DEVICE,
-                                        "device", device,
-                                        "object", device,
-                                        NULL);
+          device = valent_resource_get_source (VALENT_RESOURCE (self));
+          self->adapter = valent_mousepad_device_new (device);
           valent_component_export_adapter (VALENT_COMPONENT (self->input),
                                            VALENT_EXTENSION (self->adapter));
         }

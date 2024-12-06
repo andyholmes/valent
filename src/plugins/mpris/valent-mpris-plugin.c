@@ -134,7 +134,7 @@ valent_mpris_plugin_send_album_art (ValentMprisPlugin *self,
   packet = valent_packet_end (&builder);
 
   /* Start the transfer */
-  device = valent_extension_get_object (VALENT_EXTENSION (self));
+  device = valent_resource_get_source (VALENT_RESOURCE (self));
   transfer = valent_device_transfer_new (device, packet, real_file);
 
   g_hash_table_insert (self->transfers,
@@ -673,7 +673,7 @@ valent_mpris_plugin_receive_album_art (ValentMprisPlugin *self,
       return;
     }
 
-  device = valent_extension_get_object (VALENT_EXTENSION (self));
+  device = valent_resource_get_source (VALENT_RESOURCE (self));
   context = valent_device_get_context (device);
   filename = g_compute_checksum_for_string (G_CHECKSUM_MD5, url, -1);
   file = valent_context_get_cache_file (context, filename);
@@ -743,7 +743,7 @@ valent_mpris_plugin_handle_player_list (ValentMprisPlugin *self,
     }
 
   /* Add new players */
-  device = valent_extension_get_object (VALENT_EXTENSION (self));
+  device = valent_resource_get_source (VALENT_RESOURCE (self));
 
   for (unsigned int i = 0; remote_names[i] != NULL; i++)
     {

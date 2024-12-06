@@ -34,15 +34,6 @@ struct _ValentMprisDevice
 G_DEFINE_FINAL_TYPE (ValentMprisDevice, valent_mpris_device, VALENT_TYPE_MEDIA_PLAYER)
 
 
-enum {
-  PROP_0,
-  PROP_DEVICE,
-  N_PROPERTIES
-};
-
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
-
-
 /*
  * ValentMediaPlayer
  */
@@ -471,57 +462,48 @@ valent_mpris_device_update_volume (ValentMprisDevice *player,
   g_object_notify (G_OBJECT (player), "volume");
 }
 
+static void
+on_device_state_changed (ValentDevice      *device,
+                         GParamSpec        *pspec,
+                         ValentMprisDevice *self)
+{
+#if 0
+  ValentDeviceState state = VALENT_DEVICE_STATE_NONE;
+  gboolean available;
+
+  state = valent_device_get_state (device);
+  available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
+              (state & VALENT_DEVICE_STATE_PAIRED) != 0;
+#endif
+}
+
 /*
  * GObject
  */
+static void
+valent_mpris_device_constructed (GObject *object)
+{
+  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (object);
+
+  G_OBJECT_CLASS (valent_mpris_device_parent_class)->constructed (object);
+
+  self->device = valent_resource_get_source (VALENT_RESOURCE (self));
+  g_signal_connect_object (self->device,
+                           "notify::state",
+                           G_CALLBACK (on_device_state_changed),
+                           self,
+                           G_CONNECT_DEFAULT);
+}
+
 static void
 valent_mpris_device_finalize (GObject *object)
 {
   ValentMprisDevice *self = VALENT_MPRIS_DEVICE (object);
 
-  g_clear_object (&self->device);
   g_clear_pointer (&self->name, g_free);
   g_clear_pointer (&self->metadata, g_variant_unref);
 
   G_OBJECT_CLASS (valent_mpris_device_parent_class)->finalize (object);
-}
-
-static void
-valent_mpris_device_get_property (GObject    *object,
-                                  guint       prop_id,
-                                  GValue     *value,
-                                  GParamSpec *pspec)
-{
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      g_value_set_object (value, self->device);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_mpris_device_set_property (GObject      *object,
-                                  guint         prop_id,
-                                  const GValue *value,
-                                  GParamSpec   *pspec)
-{
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (object);
-
-  switch (prop_id)
-    {
-    case PROP_DEVICE:
-      self->device = g_value_dup_object (value);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
 }
 
 static void
@@ -530,9 +512,8 @@ valent_mpris_device_class_init (ValentMprisDeviceClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentMediaPlayerClass *player_class = VALENT_MEDIA_PLAYER_CLASS (klass);
 
+  object_class->constructed = valent_mpris_device_constructed;
   object_class->finalize = valent_mpris_device_finalize;
-  object_class->get_property = valent_mpris_device_get_property;
-  object_class->set_property = valent_mpris_device_set_property;
 
   player_class->get_flags = valent_mpris_device_get_flags;
   player_class->get_metadata = valent_mpris_device_get_metadata;
@@ -553,21 +534,6 @@ valent_mpris_device_class_init (ValentMprisDeviceClass *klass)
   player_class->previous = valent_mpris_device_previous;
   player_class->seek = valent_mpris_device_seek;
   player_class->stop = valent_mpris_device_stop;
-
-  /**
-   * ValentMprisDevice:device:
-   *
-   * The [class@Valent.Device] this player is for.
-   */
-  properties [PROP_DEVICE] =
-    g_param_spec_object ("device", NULL, NULL,
-                         VALENT_TYPE_DEVICE,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
-
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 }
 
 static void
@@ -589,8 +555,20 @@ valent_mpris_device_init (ValentMprisDevice *self)
 ValentMprisDevice *
 valent_mpris_device_new (ValentDevice *device)
 {
+  g_autoptr (ValentContext) context = NULL;
+  g_autofree char *iri = NULL;
+
+  g_return_val_if_fail (VALENT_IS_DEVICE (device), NULL);
+
+  context = valent_context_new (valent_device_get_context (device),
+                                "plugin",
+                                "systemvolume");
+  iri = tracker_sparql_escape_uri_printf ("urn:valent:mixer:%s",
+                                          valent_device_get_id (device));
   return g_object_new (VALENT_TYPE_MPRIS_DEVICE,
-                       "device", device,
+                       "iri",     iri,
+                       "source",  device,
+                       "title",   valent_device_get_name (device),
                        NULL);
 }
 
