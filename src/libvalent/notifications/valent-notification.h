@@ -7,14 +7,14 @@
 # error "Only <valent.h> can be included directly."
 #endif
 
-#include "../core/valent-object.h"
+#include "../core/valent-resource.h"
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_NOTIFICATION (valent_notification_get_type())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_FINAL_TYPE (ValentNotification, valent_notification, VALENT, NOTIFICATION, GObject)
+G_DECLARE_FINAL_TYPE (ValentNotification, valent_notification, VALENT, NOTIFICATION, ValentResource)
 
 VALENT_AVAILABLE_IN_1_0
 ValentNotification    * valent_notification_new                    (const char            *title);
@@ -48,11 +48,6 @@ int64_t                 valent_notification_get_time               (ValentNotifi
 VALENT_AVAILABLE_IN_1_0
 void                    valent_notification_set_time               (ValentNotification    *notification,
                                                                     int64_t                time);
-VALENT_AVAILABLE_IN_1_0
-const char            * valent_notification_get_title              (ValentNotification    *notification);
-VALENT_AVAILABLE_IN_1_0
-void                    valent_notification_set_title              (ValentNotification    *notification,
-                                                                    const char            *title);
 
 VALENT_AVAILABLE_IN_1_0
 void                    valent_notification_set_action             (ValentNotification    *notification,

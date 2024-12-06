@@ -17,23 +17,23 @@ G_BEGIN_DECLS
 #define VALENT_TYPE_COMPONENT (valent_component_get_type())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_DERIVABLE_TYPE (ValentComponent, valent_component, VALENT, COMPONENT, ValentObject)
+G_DECLARE_DERIVABLE_TYPE (ValentComponent, valent_component, VALENT, COMPONENT, ValentResource)
 
 struct _ValentComponentClass
 {
-  ValentObjectClass   parent_class;
+  ValentResourceClass   parent_class;
 
   /* virtual functions */
-  void                (*bind_extension)   (ValentComponent *component,
-                                           GObject         *extension);
-  void                (*unbind_extension) (ValentComponent *component,
-                                           GObject         *extension);
-  void                (*bind_preferred)   (ValentComponent *component,
-                                           GObject         *extension);
-  void                (*export_adapter)   (ValentComponent *component,
-                                           ValentExtension *extension);
-  void                (*unexport_adapter) (ValentComponent *component,
-                                           ValentExtension *extension);
+  void                  (*bind_extension)   (ValentComponent *component,
+                                             GObject         *extension);
+  void                  (*unbind_extension) (ValentComponent *component,
+                                             GObject         *extension);
+  void                  (*bind_preferred)   (ValentComponent *component,
+                                             GObject         *extension);
+  void                  (*export_adapter)   (ValentComponent *component,
+                                             ValentExtension *extension);
+  void                  (*unexport_adapter) (ValentComponent *component,
+                                             ValentExtension *extension);
 
   /*< private >*/
   gpointer            padding[8];

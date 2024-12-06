@@ -335,7 +335,7 @@ valent_systemvolume_device_constructed (GObject *object)
 
   G_OBJECT_CLASS (valent_systemvolume_device_parent_class)->constructed (object);
 
-  self->device = valent_extension_get_object (VALENT_EXTENSION (self));
+  self->device = valent_resource_get_source (VALENT_RESOURCE (self));
   g_signal_connect_object (self->device,
                            "notify::state",
                            G_CALLBACK (on_device_state_changed),
@@ -399,8 +399,9 @@ valent_systemvolume_device_new (ValentDevice *device)
                                           valent_device_get_id (device));
   return g_object_new (VALENT_TYPE_SYSTEMVOLUME_DEVICE,
                        "iri",     iri,
-                       "object",  device,
                        "context", context,
+                       "source",  device,
+                       "title",   valent_device_get_name (device),
                        NULL);
 }
 

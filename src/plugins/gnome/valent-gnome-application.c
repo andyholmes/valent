@@ -21,6 +21,8 @@ struct _ValentGNOMEApplication
 {
   ValentApplicationPlugin  parent_instance;
 
+  GApplication            *application;
+
   GtkWindow               *main_window;
   GtkWindow               *input_remote;
   GtkWindow               *media_window;
@@ -46,7 +48,6 @@ main_window_action (GSimpleAction *action,
   if (self->main_window == NULL)
     {
       ValentDeviceManager *devices = valent_device_manager_get_default ();
-      GApplication *application = valent_extension_get_object (VALENT_EXTENSION (self));
 
       self->main_window = g_object_new (VALENT_TYPE_WINDOW,
                                         "default-width",  600,
@@ -56,9 +57,12 @@ main_window_action (GSimpleAction *action,
       g_object_add_weak_pointer (G_OBJECT (self->main_window),
                                  (gpointer)&self->main_window);
 
-      gtk_widget_insert_action_group (GTK_WIDGET (self->main_window),
-                                      "app",
-                                      G_ACTION_GROUP (application));
+      if (self->application != NULL)
+        {
+          gtk_widget_insert_action_group (GTK_WIDGET (self->main_window),
+                                          "app",
+                                          G_ACTION_GROUP (self->application));
+        }
     }
 
   gtk_window_present (self->main_window);
@@ -195,23 +199,25 @@ static const GActionEntry app_actions[] = {
 static gboolean
 valent_gnome_application_activate (ValentApplicationPlugin *plugin)
 {
-  GApplication *application = NULL;
+  ValentGNOMEApplication *self = VALENT_GNOME_APPLICATION (plugin);
 
   g_assert (VALENT_IS_GNOME_APPLICATION (plugin));
 
-  application = valent_extension_get_object (VALENT_EXTENSION (plugin));
-  g_action_group_activate_action (G_ACTION_GROUP (application),
-                                  "window",
-                                  g_variant_new_string ("main"));
+  if (self->application != NULL)
+    {
+      g_action_group_activate_action (G_ACTION_GROUP (self->application),
+                                      "window",
+                                      g_variant_new_string ("main"));
+    }
 
   return TRUE;
 }
 
 static gboolean
 valent_gnome_application_open (ValentApplicationPlugin  *plugin,
-                        GFile                   **files,
-                        int                       n_files,
-                        const char               *hint)
+                               GFile                   **files,
+                               int                       n_files,
+                               const char               *hint)
 {
   ValentGNOMEApplication *self = VALENT_GNOME_APPLICATION (plugin);
   g_autoptr (GListStore) files_list = NULL;
@@ -232,14 +238,17 @@ static void
 valent_gnome_application_shutdown (ValentApplicationPlugin *plugin)
 {
   ValentGNOMEApplication *self = VALENT_GNOME_APPLICATION (plugin);
-  GApplication *application = NULL;
 
   g_assert (VALENT_IS_GNOME_APPLICATION (plugin));
 
-  application = valent_extension_get_object (VALENT_EXTENSION (plugin));
-
-  for (size_t i = 0; i < G_N_ELEMENTS (app_actions); i++)
-    g_action_map_remove_action (G_ACTION_MAP (application), app_actions[i].name);
+  if (self->application != NULL)
+    {
+      for (size_t i = 0; i < G_N_ELEMENTS (app_actions); i++)
+        {
+          g_action_map_remove_action (G_ACTION_MAP (self->application),
+                                      app_actions[i].name);
+        }
+    }
 
   g_clear_pointer (&self->media_window, gtk_window_destroy);
   g_clear_pointer (&self->main_window, gtk_window_destroy);
@@ -248,15 +257,17 @@ valent_gnome_application_shutdown (ValentApplicationPlugin *plugin)
 static void
 valent_gnome_application_startup (ValentApplicationPlugin *plugin)
 {
-  GApplication *application = NULL;
+  ValentGNOMEApplication *self = VALENT_GNOME_APPLICATION (plugin);
 
   g_assert (VALENT_IS_GNOME_APPLICATION (plugin));
 
-  application = valent_extension_get_object (VALENT_EXTENSION (plugin));
-  g_action_map_add_action_entries (G_ACTION_MAP (application),
-                                   app_actions,
-                                   G_N_ELEMENTS (app_actions),
-                                   plugin);
+  if (self->application != NULL)
+    {
+      g_action_map_add_action_entries (G_ACTION_MAP (self->application),
+                                       app_actions,
+                                       G_N_ELEMENTS (app_actions),
+                                       plugin);
+    }
 }
 
 /*
@@ -266,12 +277,15 @@ static void
 valent_gnome_application_destroy (ValentObject *object)
 {
   ValentGNOMEApplication *self = VALENT_GNOME_APPLICATION (object);
-  GApplication *application = NULL;
 
-  application = valent_extension_get_object (VALENT_EXTENSION (self));
-
-  for (size_t i = 0; i < G_N_ELEMENTS (app_actions); i++)
-    g_action_map_remove_action (G_ACTION_MAP (application), app_actions[i].name);
+  if (self->application != NULL)
+    {
+      for (size_t i = 0; i < G_N_ELEMENTS (app_actions); i++)
+        {
+          g_action_map_remove_action (G_ACTION_MAP (self->application),
+                                      app_actions[i].name);
+        }
+    }
 
   g_clear_pointer (&self->windows, g_ptr_array_unref);
 
@@ -300,6 +314,7 @@ valent_gnome_application_class_init (ValentGNOMEApplicationClass *klass)
 static void
 valent_gnome_application_init (ValentGNOMEApplication *self)
 {
+  self->application = g_application_get_default ();
   self->windows = g_ptr_array_new_with_free_func ((GDestroyNotify)gtk_window_destroy);
 }
 

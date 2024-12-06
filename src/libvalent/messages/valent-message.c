@@ -14,7 +14,7 @@
 
 struct _ValentMessage
 {
-  ValentObject      parent_instance;
+  ValentResource    parent_instance;
 
   GListModel       *attachments;
   ValentMessageBox  box;
@@ -29,7 +29,7 @@ struct _ValentMessage
   char             *iri;
 };
 
-G_DEFINE_FINAL_TYPE (ValentMessage, valent_message, VALENT_TYPE_OBJECT)
+G_DEFINE_FINAL_TYPE (ValentMessage, valent_message, VALENT_TYPE_RESOURCE)
 
 typedef enum {
   PROP_ATTACHMENTS = 1,

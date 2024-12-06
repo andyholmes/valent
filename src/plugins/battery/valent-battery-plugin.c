@@ -249,7 +249,7 @@ valent_battery_plugin_update_notification (ValentBatteryPlugin *self,
 
   g_assert (VALENT_IS_BATTERY_PLUGIN (self));
 
-  device = valent_extension_get_object (VALENT_EXTENSION (self));
+  device = valent_resource_get_source (VALENT_RESOURCE (self));
   device_name = valent_device_get_name (device);
   settings = valent_extension_get_settings (VALENT_EXTENSION (self));
 

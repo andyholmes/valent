@@ -36,7 +36,7 @@ get_device_host (ValentSftpPlugin *self)
 
   /* The plugin doesn't know ValentChannel derivations, so we have to check for
    * a "host" property to ensure it's IP-based */
-  device = valent_extension_get_object (VALENT_EXTENSION (self));
+  device = valent_resource_get_source (VALENT_RESOURCE (self));
   channel = valent_device_ref_channel (device);
 
   if G_LIKELY (channel != NULL)
@@ -442,7 +442,7 @@ handle_sftp_error (ValentSftpPlugin *self,
 
   body = valent_packet_get_body (packet);
 
-  device = valent_extension_get_object (VALENT_EXTENSION (self));
+  device = valent_resource_get_source (VALENT_RESOURCE (self));
   device_name = valent_device_get_name (device);
 
   error_icon = g_themed_icon_new ("dialog-error-symbolic");

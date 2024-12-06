@@ -6,6 +6,7 @@
 #include "config.h"
 
 #include <gio/gio.h>
+#include <libtracker-sparql/tracker-sparql.h>
 
 #include "valent-application.h"
 #include "valent-application-plugin.h"
@@ -42,12 +43,25 @@ static inline void
 valent_application_enable_plugin (ValentApplication *self,
                                   ValentPlugin      *plugin)
 {
+  g_autofree char *urn = NULL;
+  const char *title = NULL;
+  const char *description = NULL;
+  const char *module = NULL;
+
   g_assert (VALENT_IS_APPLICATION (self));
 
+  title = peas_plugin_info_get_name (plugin->info);
+  description = peas_plugin_info_get_description (plugin->info);
+  module = peas_plugin_info_get_module_name (plugin->info);
+  urn = tracker_sparql_escape_uri_printf ("urn:valent:application:%s", module);
   plugin->extension = peas_engine_create_extension (valent_get_plugin_engine (),
                                                     plugin->info,
                                                     VALENT_TYPE_APPLICATION_PLUGIN,
-                                                    "object", self,
+                                                    "iri",         urn,
+                                                    // FIXME: root source
+                                                    "source",      NULL,
+                                                    "title",       title,
+                                                    "description", description,
                                                     NULL);
   g_return_if_fail (G_IS_OBJECT (plugin->extension));
 }
@@ -309,6 +323,8 @@ valent_application_constructed (GObject *object)
   PeasEngine *engine = NULL;
   unsigned int n_plugins = 0;
 
+  G_OBJECT_CLASS (valent_application_parent_class)->constructed (object);
+
   self->plugins = g_hash_table_new_full (NULL, NULL, NULL, valent_plugin_free);
   self->plugins_context = valent_context_new (NULL, "application", NULL);
 
@@ -336,8 +352,6 @@ valent_application_constructed (GObject *object)
                            G_CALLBACK (on_unload_plugin),
                            self,
                            0);
-
-  G_OBJECT_CLASS (valent_application_parent_class)->constructed (object);
 }
 
 static void

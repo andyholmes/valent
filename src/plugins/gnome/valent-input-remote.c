@@ -59,9 +59,9 @@ static gboolean
 valent_input_remote_filter (gpointer item,
                             gpointer user_data)
 {
-  ValentExtension *extension = VALENT_EXTENSION (item);
+  ValentResource *resource = VALENT_RESOURCE (item);
 
-  return VALENT_IS_DEVICE (valent_extension_get_object (extension));
+  return VALENT_IS_DEVICE (valent_resource_get_source (resource));
 }
 
 static inline gboolean

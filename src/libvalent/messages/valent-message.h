@@ -9,7 +9,7 @@
 
 #include <gio/gio.h>
 
-#include "../core/valent-object.h"
+#include "../core/valent-resource.h"
 
 G_BEGIN_DECLS
 
@@ -47,7 +47,7 @@ typedef enum
 #define VALENT_TYPE_MESSAGE (valent_message_get_type())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_FINAL_TYPE (ValentMessage, valent_message, VALENT, MESSAGE, ValentObject)
+G_DECLARE_FINAL_TYPE (ValentMessage, valent_message, VALENT, MESSAGE, ValentResource)
 
 VALENT_AVAILABLE_IN_1_0
 GListModel         * valent_message_get_attachments     (ValentMessage *message);

@@ -9,14 +9,14 @@
 
 #include <gio/gio.h>
 
-#include "../core/valent-object.h"
+#include "../core/valent-resource.h"
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_MESSAGE_ATTACHMENT (valent_message_attachment_get_type())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_FINAL_TYPE (ValentMessageAttachment, valent_message_attachment, VALENT, MESSAGE_ATTACHMENT, ValentObject)
+G_DECLARE_FINAL_TYPE (ValentMessageAttachment, valent_message_attachment, VALENT, MESSAGE_ATTACHMENT, ValentResource)
 
 VALENT_AVAILABLE_IN_1_0
 GFile                   * valent_message_attachment_get_file    (ValentMessageAttachment *attachment);

@@ -869,7 +869,7 @@ valent_sms_device_constructed (GObject *object)
 
   G_OBJECT_CLASS (valent_sms_device_parent_class)->constructed (object);
 
-  self->device = valent_extension_get_object (VALENT_EXTENSION (self));
+  self->device = valent_resource_get_source (VALENT_RESOURCE (self));
   g_signal_connect_object (self->device,
                            "notify::state",
                            G_CALLBACK (on_device_state_changed),
@@ -938,8 +938,9 @@ valent_sms_device_new (ValentDevice *device)
                                           valent_device_get_id (device));
   return g_object_new (VALENT_TYPE_SMS_DEVICE,
                        "iri",     iri,
-                       "object",  device,
                        "context", context,
+                       "source",  device,
+                       "title",   valent_device_get_name (device),
                        NULL);
 }
 
@@ -1175,7 +1176,7 @@ valent_sms_device_handle_messages (ValentSmsDevice *self,
       return;
     }
 
-  device = valent_extension_get_object (VALENT_EXTENSION (self));
+  device = valent_resource_get_source (VALENT_RESOURCE (self));
   thread_id = json_object_get_int_member (json_array_get_object_element (messages, 0),
                                           "thread_id");
   thread_iri = g_strdup_printf ("urn:valent:messages:%s:%"PRId64,

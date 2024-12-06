@@ -49,7 +49,7 @@
                                         <object class="GtkLabel">
                                           <property name="ellipsize">end</property>
                                           <binding name="label">
-                                            <lookup name="iri" type="ValentMixerAdapter">
+                                            <lookup name="title" type="ValentMixerAdapter">
                                               <lookup name="item">GtkListItem</lookup>
                                             </lookup>
                                           </binding>

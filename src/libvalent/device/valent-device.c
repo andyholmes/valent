@@ -46,31 +46,31 @@
 
 struct _ValentDevice
 {
-  ValentObject    parent_instance;
+  ValentResource   parent_instance;
 
-  ValentContext  *context;
-  GSettings      *settings;
+  ValentContext   *context;
+  GSettings       *settings;
 
   /* Properties */
-  char           *icon_name;
-  char           *id;
-  char           *name;
-  char           *type;
-  char          **incoming_capabilities;
-  char          **outgoing_capabilities;
+  char            *icon_name;
+  char            *id;
+  char            *name;
+  char            *type;
+  char           **incoming_capabilities;
+  char           **outgoing_capabilities;
 
   /* State */
-  ValentChannel  *channel;
-  gboolean        paired;
-  unsigned int    incoming_pair;
-  unsigned int    outgoing_pair;
+  ValentChannel   *channel;
+  gboolean         paired;
+  unsigned int     incoming_pair;
+  unsigned int     outgoing_pair;
 
   /* Plugins */
-  PeasEngine     *engine;
-  GHashTable     *plugins;
-  GHashTable     *handlers;
-  GHashTable     *actions;
-  GMenu          *menu;
+  PeasEngine      *engine;
+  GHashTable      *plugins;
+  GHashTable      *handlers;
+  GHashTable      *actions;
+  GMenu           *menu;
 };
 
 static void       valent_device_reload_plugins  (ValentDevice   *device);
@@ -80,7 +80,7 @@ static gboolean   valent_device_supports_plugin (ValentDevice   *device,
 
 static void       g_action_group_iface_init     (GActionGroupInterface *iface);
 
-G_DEFINE_FINAL_TYPE_WITH_CODE (ValentDevice, valent_device, VALENT_TYPE_OBJECT,
+G_DEFINE_FINAL_TYPE_WITH_CODE (ValentDevice, valent_device, VALENT_TYPE_RESOURCE,
                                G_IMPLEMENT_INTERFACE (G_TYPE_ACTION_GROUP, g_action_group_iface_init))
 
 
@@ -276,17 +276,23 @@ valent_device_enable_plugin (ValentDevice *device,
                              ValentPlugin *plugin)
 {
   g_auto (GStrv) actions = NULL;
+  g_autofree char *urn = NULL;
   const char *incoming = NULL;
+  const char *title = NULL;
+  const char *description = NULL;
 
   g_assert (VALENT_IS_DEVICE (device));
   g_assert (plugin != NULL);
 
-  /* Instantiate the plugin */
+  title = peas_plugin_info_get_name (plugin->info);
+  description = peas_plugin_info_get_description (plugin->info);
   plugin->extension = peas_engine_create_extension (device->engine,
                                                     plugin->info,
                                                     VALENT_TYPE_DEVICE_PLUGIN,
-                                                    "context", plugin->context,
-                                                    "object",  plugin->parent,
+                                                    "context",     plugin->context,
+                                                    "source",      plugin->parent,
+                                                    "title",       title,
+                                                    "description", description,
                                                     NULL);
   g_return_if_fail (G_IS_OBJECT (plugin->extension));
 
@@ -842,6 +848,8 @@ valent_device_constructed (GObject *object)
   g_autofree char *path = NULL;
   unsigned int n_plugins = 0;
 
+  G_OBJECT_CLASS (valent_device_parent_class)->constructed (object);
+
   /* We must at least have a device ID */
   g_assert (self->id != NULL);
 
@@ -878,8 +886,6 @@ valent_device_constructed (GObject *object)
                            G_CALLBACK (on_unload_plugin),
                            self,
                            0);
-
-  G_OBJECT_CLASS (valent_device_parent_class)->constructed (object);
 }
 
 static void

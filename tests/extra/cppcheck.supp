@@ -8,16 +8,16 @@ preprocessorErrorDirective:src/libvalent/core/valent-global.c:35
 memleak:src/libvalent/device/valent-channel.c:315
 
 # src/libvalent/notifications/
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:89
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:90
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:821
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:825
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:829
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:833
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:844
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:849
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:868
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:872
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:87
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:88
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:759
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:763
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:768
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:772
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:783
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:788
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:807
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:811
 
 # src/plugins/battery/
 memleak:src/plugins/battery/valent-battery-gadget.c

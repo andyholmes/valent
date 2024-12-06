@@ -31,7 +31,7 @@
 
 struct _ValentContactList
 {
-  ValentObject             parent_instance;
+  ValentResource           parent_instance;
 
   TrackerSparqlConnection *connection;
   TrackerNotifier         *notifier;
@@ -54,7 +54,7 @@ static void   valent_contact_list_load         (ValentContactList *self);
 static void   valent_contact_list_load_contact (ValentContactList *self,
                                                 const char        *iri);
 
-G_DEFINE_FINAL_TYPE_WITH_CODE (ValentContactList, valent_contact_list, VALENT_TYPE_OBJECT,
+G_DEFINE_FINAL_TYPE_WITH_CODE (ValentContactList, valent_contact_list, VALENT_TYPE_RESOURCE,
                                G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
 

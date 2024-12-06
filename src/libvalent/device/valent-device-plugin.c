@@ -14,9 +14,6 @@
 #include "valent-device-plugin.h"
 #include "valent-packet.h"
 
-#define PLUGIN_SETTINGS_KEY "X-DevicePluginSettings"
-
-
 /**
  * ValentDevicePlugin:
  *
@@ -151,8 +148,9 @@ valent_device_plugin_init (ValentDevicePlugin *self)
  *
  * Queue a KDE Connect packet to be sent to the device this plugin is bound to.
  *
- * For notification of success call [method@Valent.Extension.get_object] and
- * then [method@Valent.Device.send_packet].
+ * For notification of success, you may call [method@Valent.Resource.get_source]
+ * and then [method@Valent.Device.send_packet], but note that there can be no
+ * guarantee the remote device has received the packet.
  *
  * Since: 1.0
  */
@@ -166,7 +164,7 @@ valent_device_plugin_queue_packet (ValentDevicePlugin *plugin,
   g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
   g_return_if_fail (VALENT_IS_PACKET (packet));
 
-  if ((device = valent_extension_get_object (VALENT_EXTENSION (plugin))) == NULL)
+  if ((device = valent_resource_get_source (VALENT_RESOURCE (plugin))) == NULL)
     return;
 
   destroy = valent_object_ref_cancellable (VALENT_OBJECT (plugin));
@@ -211,8 +209,8 @@ valent_device_plugin_show_notification (ValentDevicePlugin *plugin,
     return;
 
   g_object_get (plugin,
-                "object",      &device,
                 "plugin-info", &plugin_info,
+                "source",      &device,
                 NULL);
   notification_id = g_strdup_printf ("%s::%s::%s",
                                      valent_device_get_id (device),
@@ -249,8 +247,8 @@ valent_device_plugin_hide_notification (ValentDevicePlugin *plugin,
     return;
 
   g_object_get (plugin,
-                "object",      &device,
                 "plugin-info", &plugin_info,
+                "source",      &device,
                 NULL);
   notification_id = g_strdup_printf ("%s::%s::%s",
                                      valent_device_get_id (device),
@@ -411,7 +409,7 @@ valent_device_plugin_set_menu_item (ValentDevicePlugin *plugin,
   g_return_if_fail (item == NULL || G_IS_MENU_ITEM (item));
 
   /* NOTE: this method may be called by plugins in their `dispose()` */
-  if ((device = valent_extension_get_object (VALENT_EXTENSION (plugin))) == NULL)
+  if ((device = valent_resource_get_source (VALENT_RESOURCE (plugin))) == NULL)
     return;
 
   menu = valent_device_get_menu (device);

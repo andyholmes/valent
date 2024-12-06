@@ -13,13 +13,13 @@
 
 struct _ValentMessageAttachment
 {
-  ValentObject  parent_instance;
+  ValentResource  parent_instance;
 
-  GFile        *file;
-  GIcon        *preview;
+  GFile          *file;
+  GIcon          *preview;
 };
 
-G_DEFINE_FINAL_TYPE (ValentMessageAttachment, valent_message_attachment, VALENT_TYPE_OBJECT)
+G_DEFINE_FINAL_TYPE (ValentMessageAttachment, valent_message_attachment, VALENT_TYPE_RESOURCE)
 
 typedef enum {
   PROP_FILE = 1,

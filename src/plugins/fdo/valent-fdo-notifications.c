@@ -169,7 +169,7 @@ _notify (ValentNotificationsAdapter *adapter,
   notification = valent_notification_new (NULL);
   valent_notification_set_id (notification, replaces_id_str);
   valent_notification_set_application (notification, app_name);
-  valent_notification_set_title (notification, summary);
+  valent_resource_set_title (VALENT_RESOURCE (notification), summary);
   valent_notification_set_body (notification, body);
 
   /* This bizarre ordering is required by the specification.

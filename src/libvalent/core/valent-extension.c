@@ -10,8 +10,10 @@
 
 #include "valent-context.h"
 #include "valent-core-enums.h"
-#include "valent-extension.h"
 #include "valent-object.h"
+#include "valent-resource.h"
+
+#include "valent-extension.h"
 
 
 /**
@@ -60,8 +62,6 @@
 
 typedef struct
 {
-  GObject           *object;
-
   PeasPluginInfo    *plugin_info;
   ValentPluginState  plugin_state;
   GError            *plugin_error;
@@ -74,7 +74,7 @@ typedef struct
 static void   g_action_group_iface_init (GActionGroupInterface *iface);
 static void   g_action_map_iface_init   (GActionMapInterface   *iface);
 
-G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentExtension, valent_extension, VALENT_TYPE_OBJECT,
+G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentExtension, valent_extension, VALENT_TYPE_RESOURCE,
                                   G_ADD_PRIVATE (ValentExtension)
                                   G_IMPLEMENT_INTERFACE (G_TYPE_ACTION_GROUP, g_action_group_iface_init)
                                   G_IMPLEMENT_INTERFACE (G_TYPE_ACTION_MAP, g_action_map_iface_init))
@@ -82,7 +82,6 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentExtension, valent_extension, VALENT_TYPE
 enum {
   PROP_0,
   PROP_CONTEXT,
-  PROP_OBJECT,
   PROP_PLUGIN_INFO,
   PROP_PLUGIN_STATE,
   PROP_SETTINGS,
@@ -290,25 +289,6 @@ g_action_map_iface_init (GActionMapInterface *iface)
 }
 
 /*
- * ValentExtension
- */
-static void
-valent_extension_set_object (ValentExtension *self,
-                             gpointer         object)
-{
-  ValentExtensionPrivate *priv = valent_extension_get_instance_private (self);
-
-  g_assert (VALENT_IS_EXTENSION (self));
-  g_assert (object == NULL || G_IS_OBJECT (object));
-
-  if (priv->object == object)
-    return;
-
-  priv->object = object;
-  g_object_add_weak_pointer (G_OBJECT (priv->object), (gpointer *)&priv->object);
-}
-
-/*
  * ValentObject
  */
 static void
@@ -343,7 +323,6 @@ valent_extension_finalize (GObject *object)
   ValentExtension *self = VALENT_EXTENSION (object);
   ValentExtensionPrivate *priv = valent_extension_get_instance_private (self);
 
-  g_clear_weak_pointer (&priv->object);
   g_clear_error (&priv->plugin_error);
   g_clear_pointer (&priv->actions, g_hash_table_unref);
   g_clear_object (&priv->context);
@@ -366,10 +345,6 @@ valent_extension_get_property (GObject    *object,
     {
     case PROP_CONTEXT:
       g_value_set_object (value, valent_extension_get_context (self));
-      break;
-
-    case PROP_OBJECT:
-      g_value_set_object (value, priv->object);
       break;
 
     case PROP_PLUGIN_INFO:
@@ -404,10 +379,6 @@ valent_extension_set_property (GObject      *object,
       priv->context = g_value_dup_object (value);
       break;
 
-    case PROP_OBJECT:
-      valent_extension_set_object (self, g_value_get_object (value));
-      break;
-
     case PROP_PLUGIN_INFO:
       priv->plugin_info = g_value_dup_object (value);
       break;
@@ -439,21 +410,6 @@ valent_extension_class_init (ValentExtensionClass *klass)
   properties [PROP_CONTEXT] =
     g_param_spec_object ("context", NULL, NULL,
                          VALENT_TYPE_CONTEXT,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentExtension:object: (getter get_object)
-   *
-   * The [class@GObject.Object] this plugin is bound to.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_OBJECT] =
-    g_param_spec_object ("object", NULL, NULL,
-                         G_TYPE_OBJECT,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -545,26 +501,6 @@ valent_extension_get_context (ValentExtension *extension)
     }
 
   return priv->context;
-}
-
-/**
- * valent_extension_get_object: (get-property object)
- * @extension: a `ValentExtension`
- *
- * Get the object this plugin is bound to.
- *
- * Returns: (type GObject.Object) (transfer none) (nullable): a `GObject`
- *
- * Since: 1.0
- */
-gpointer
-valent_extension_get_object (ValentExtension *extension)
-{
-  ValentExtensionPrivate *priv = valent_extension_get_instance_private (extension);
-
-  g_return_val_if_fail (VALENT_IS_EXTENSION (extension), NULL);
-
-  return priv->object;
 }
 
 /**

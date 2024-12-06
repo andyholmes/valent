@@ -106,7 +106,7 @@ valent_contacts_device_handle_response_uids_timestamps (ValentContactsDevice *se
     {
       ValentDevice *device = NULL;
 
-      device = valent_extension_get_object (VALENT_EXTENSION (self));
+      device = valent_resource_get_source (VALENT_RESOURCE (self));
       valent_device_send_packet (device,
                                  request,
                                  NULL,
@@ -134,7 +134,7 @@ valent_contacts_device_handle_response_vcards (ValentContactsDevice *self,
   g_assert (VALENT_IS_CONTACTS_DEVICE (self));
   g_assert (VALENT_IS_PACKET (packet));
 
-  device = valent_extension_get_object (VALENT_EXTENSION (self));
+  device = valent_resource_get_source (VALENT_RESOURCE (self));
   list_name = valent_device_get_name (device);
 
   list_resource = tracker_resource_new (self->default_iri);
@@ -189,7 +189,7 @@ valent_contacts_device_request_all_uids_timestamps (ValentContactsDevice *self)
 
   g_assert (VALENT_IS_CONTACTS_DEVICE (self));
 
-  device = valent_extension_get_object (VALENT_EXTENSION (self));
+  device = valent_resource_get_source (VALENT_RESOURCE (self));
   packet = valent_packet_new ("kdeconnect.contacts.request_all_uids_timestamps");
   valent_device_send_packet (device,
                              packet,
@@ -226,7 +226,7 @@ valent_contacts_device_constructed (GObject *object)
 
   G_OBJECT_CLASS (valent_contacts_device_parent_class)->constructed (object);
 
-  device = valent_extension_get_object (VALENT_EXTENSION (self));
+  device = valent_resource_get_source (VALENT_RESOURCE (self));
   g_signal_connect_object (device,
                            "notify::state",
                            G_CALLBACK (on_device_state_changed),
@@ -285,8 +285,9 @@ valent_contacts_device_new (ValentDevice *device)
                                           valent_device_get_id (device));
   return g_object_new (VALENT_TYPE_CONTACTS_DEVICE,
                        "iri",     iri,
-                       "object",  device,
                        "context", context,
+                       "source",  device,
+                       "title",   valent_device_get_name (device),
                        NULL);
 }
 
