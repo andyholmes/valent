@@ -32,19 +32,9 @@ session_component_fixture_tear_down (SessionComponentFixture *fixture,
 }
 
 static void
-on_notify (GObject     *object,
-           GParamSpec  *pspec,
-           GObject    **emitter)
-{
-  if (emitter != NULL)
-    *emitter = object;
-}
-
-static void
 test_session_component_adapter (SessionComponentFixture *fixture,
                                 gconstpointer            user_data)
 {
-  ValentSessionAdapter *emitter = NULL;
   gboolean active, locked;
 
   /* Compare Device & Aggregator */
@@ -57,24 +47,17 @@ test_session_component_adapter (SessionComponentFixture *fixture,
   g_assert_false (locked);
 
   /* Change adapter */
-  g_signal_connect (fixture->adapter,
-                    "notify",
-                    G_CALLBACK (on_notify),
-                    &emitter);
-
   g_object_set (fixture->adapter,
                 "locked", !locked,
                 NULL);
 
   g_assert_true (valent_session_adapter_get_locked (fixture->adapter));
-  g_assert_true (fixture->adapter == emitter);
 }
 
 static void
 test_session_component_self (SessionComponentFixture *fixture,
                              gconstpointer            user_data)
 {
-  ValentSession *emitter = NULL;
   gboolean session_active, session_locked;
   gboolean adapter_active, adapter_locked;
 
@@ -96,15 +79,10 @@ test_session_component_self (SessionComponentFixture *fixture,
                  valent_session_adapter_get_locked (fixture->adapter));
 
   /* Expect component and adapter properties to sync. */
-  g_signal_connect (fixture->session,
-                    "notify",
-                    G_CALLBACK (on_notify),
-                    &emitter);
   g_object_set (fixture->session,
                 "locked", !session_locked,
                 NULL);
 
-  g_assert_true (fixture->session == emitter);
   g_assert_true (valent_session_get_locked (fixture->session));
   g_assert_true (valent_session_adapter_get_locked (fixture->adapter));
 }

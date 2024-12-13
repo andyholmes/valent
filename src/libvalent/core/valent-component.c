@@ -31,16 +31,23 @@
 
 typedef struct
 {
-  PeasEngine      *engine;
-  ValentContext   *context;
-  char            *plugin_domain;
-  char            *plugin_priority;
-  GType            plugin_type;
-  GHashTable      *plugins;
-  GObject         *primary_adapter;
+  PeasEngine    *engine;
+  ValentContext *context;
+  char          *plugin_domain;
+  char          *plugin_priority;
+  GType          plugin_type;
+  GHashTable    *plugins;
+  GObject       *primary_adapter;
+
+  /* list model */
+  GPtrArray     *items;
 } ValentComponentPrivate;
 
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentComponent, valent_component, VALENT_TYPE_RESOURCE);
+static void   g_list_model_iface_init           (GListModelInterface *iface);
+
+G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentComponent, valent_component, VALENT_TYPE_RESOURCE,
+                                  G_ADD_PRIVATE (ValentComponent)
+                                  G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init));
 
 typedef enum {
   PROP_PLUGIN_DOMAIN = 1,
@@ -57,12 +64,7 @@ component_plugin_free (gpointer data)
   ValentPlugin *plugin = data;
 
   if (plugin->extension != NULL)
-    {
-      ValentComponentClass *klass = VALENT_COMPONENT_GET_CLASS (plugin->parent);
-
-      if (klass->unbind_extension != NULL)
-        klass->unbind_extension (plugin->parent, plugin->extension);
-    }
+    valent_object_destroy (VALENT_OBJECT (plugin->extension));
 
   g_clear_pointer (&plugin, valent_plugin_free);
 }
@@ -209,14 +211,15 @@ valent_component_enable_plugin (ValentComponent *self,
                                                     NULL);
   g_return_if_fail (G_IS_OBJECT (plugin->extension));
 
-  VALENT_COMPONENT_GET_CLASS (self)->bind_extension (self, plugin->extension);
+  valent_component_export_adapter (self, VALENT_EXTENSION (plugin->extension));
   valent_component_update_preferred (self);
 
   /* If the extension state changes, update the preferred adapter */
   g_signal_connect_object (plugin->extension,
                            "notify::plugin-state",
                            G_CALLBACK (on_plugin_state_changed),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
 
   /* If the extension requires initialization, use a chained cancellable in case
    * the plugin is unloaded or the component is destroyed. */
@@ -278,7 +281,7 @@ valent_component_disable_plugin (ValentComponent *self,
   if (priv->primary_adapter == extension)
     valent_component_update_preferred (self);
 
-  VALENT_COMPONENT_GET_CLASS (self)->unbind_extension (self, extension);
+  valent_object_destroy (VALENT_OBJECT (extension));
 }
 
 static void
@@ -381,6 +384,52 @@ valent_component_real_unbind_extension (ValentComponent *component,
 /* LCOV_EXCL_STOP */
 
 /*
+ * GListModel
+ */
+static gpointer
+valent_component_get_item (GListModel   *list,
+                           unsigned int  position)
+{
+  ValentComponent *self = VALENT_COMPONENT (list);
+  ValentComponentPrivate *priv = valent_component_get_instance_private (self);
+
+  g_assert (VALENT_IS_COMPONENT (self));
+
+  if G_UNLIKELY (position >= priv->items->len)
+    return NULL;
+
+  return g_object_ref (g_ptr_array_index (priv->items, position));
+}
+
+static GType
+valent_component_get_item_type (GListModel *list)
+{
+  ValentComponent *self = VALENT_COMPONENT (list);
+  ValentComponentPrivate *priv = valent_component_get_instance_private (self);
+
+  return priv->plugin_type;
+}
+
+static unsigned int
+valent_component_get_n_items (GListModel *list)
+{
+  ValentComponent *self = VALENT_COMPONENT (list);
+  ValentComponentPrivate *priv = valent_component_get_instance_private (self);
+
+  g_assert (VALENT_IS_COMPONENT (self));
+
+  return priv->items->len;
+}
+
+static void
+g_list_model_iface_init (GListModelInterface *iface)
+{
+  iface->get_item = valent_component_get_item;
+  iface->get_item_type = valent_component_get_item_type;
+  iface->get_n_items = valent_component_get_n_items;
+}
+
+/*
  * ValentObject
  */
 static void
@@ -406,6 +455,8 @@ valent_component_constructed (GObject *object)
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
   unsigned int n_plugins = 0;
 
+  G_OBJECT_CLASS (valent_component_parent_class)->constructed (object);
+
   g_assert (priv->plugin_domain != NULL);
   g_assert (priv->plugin_type != G_TYPE_NONE);
 
@@ -422,15 +473,12 @@ valent_component_constructed (GObject *object)
         priv->plugin_priority = g_strdup_printf ("X-%sPriority", type_name);
     }
 
-  /* Setup PeasEngine */
   n_plugins = g_list_model_get_n_items (G_LIST_MODEL (priv->engine));
-
   for (unsigned int i = 0; i < n_plugins; i++)
     {
       g_autoptr (PeasPluginInfo) info = NULL;
 
       info = g_list_model_get_item (G_LIST_MODEL (priv->engine), i);
-
       if (peas_plugin_info_is_loaded (info))
         on_load_plugin (priv->engine, info, self);
     }
@@ -440,14 +488,11 @@ valent_component_constructed (GObject *object)
                            G_CALLBACK (on_load_plugin),
                            self,
                            G_CONNECT_AFTER);
-
   g_signal_connect_object (priv->engine,
                            "unload-plugin",
                            G_CALLBACK (on_unload_plugin),
                            self,
-                           0);
-
-  G_OBJECT_CLASS (valent_component_parent_class)->constructed (object);
+                           G_CONNECT_DEFAULT);
 }
 
 static void
@@ -459,6 +504,7 @@ valent_component_finalize (GObject *object)
   g_clear_pointer (&priv->plugin_domain, g_free);
   g_clear_pointer (&priv->plugin_priority, g_free);
   g_clear_pointer (&priv->plugins, g_hash_table_unref);
+  g_clear_pointer (&priv->items, g_ptr_array_unref);
   g_clear_object (&priv->context);
 
   G_OBJECT_CLASS (valent_component_parent_class)->finalize (object);
@@ -598,6 +644,7 @@ valent_component_init (ValentComponent *self)
 
   priv->engine = valent_get_plugin_engine ();
   priv->plugins = g_hash_table_new_full (NULL, NULL, NULL, component_plugin_free);
+  priv->items = g_ptr_array_new_with_free_func (g_object_unref);
 }
 
 /**
@@ -666,13 +713,34 @@ void
 valent_component_export_adapter (ValentComponent *component,
                                  ValentExtension *extension)
 {
+  ValentComponentPrivate *priv = valent_component_get_instance_private (component);
+  unsigned int position = 0;
+
   VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_COMPONENT (component));
   g_return_if_fail (VALENT_IS_EXTENSION (extension));
 
+  if (g_ptr_array_find (priv->items, extension, NULL))
+    {
+      g_warning ("Adapter \"%s\" already exported in \"%s\"",
+                 G_OBJECT_TYPE_NAME (extension),
+                 G_OBJECT_TYPE_NAME (component));
+      return;
+    }
+
+  g_signal_connect_object (extension,
+                           "destroy",
+                           G_CALLBACK (valent_component_unexport_adapter),
+                           component,
+                           G_CONNECT_SWAPPED);
+
   VALENT_COMPONENT_GET_CLASS (component)->bind_extension (component,
                                                           G_OBJECT (extension));
+
+  position = priv->items->len;
+  g_ptr_array_add (priv->items, g_object_ref (extension));
+  g_list_model_items_changed (G_LIST_MODEL (component), position, 0, 1);
 
   VALENT_EXIT;
 }
@@ -690,13 +758,31 @@ void
 valent_component_unexport_adapter (ValentComponent *component,
                                    ValentExtension *extension)
 {
+  ValentComponentPrivate *priv = valent_component_get_instance_private (component);
+  g_autoptr (ValentExtension) item = NULL;
+  unsigned int position = 0;
+
   VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_COMPONENT (component));
   g_return_if_fail (VALENT_IS_EXTENSION (extension));
 
+  if (!g_ptr_array_find (priv->items, extension, &position))
+    {
+      g_warning ("Adapter \"%s\" not found in \"%s\"",
+                 G_OBJECT_TYPE_NAME (extension),
+                 G_OBJECT_TYPE_NAME (component));
+      return;
+    }
+
+  g_signal_handlers_disconnect_by_func (extension,
+                                        valent_component_unexport_adapter,
+                                        component);
   VALENT_COMPONENT_GET_CLASS (component)->unbind_extension (component,
                                                             G_OBJECT (extension));
+
+  item = g_ptr_array_steal_index (priv->items, position);
+  g_list_model_items_changed (G_LIST_MODEL (component), position, 1, 0);
 
   VALENT_EXIT;
 }

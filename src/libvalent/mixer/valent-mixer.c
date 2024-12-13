@@ -27,23 +27,14 @@
  *
  * Since: 1.0
  */
-
 struct _ValentMixer
 {
   ValentComponent     parent_instance;
 
   ValentMixerAdapter *default_adapter;
-
-  /* list model */
-  GPtrArray          *items;
 };
 
-static void   valent_mixer_unbind_extension (ValentComponent *component,
-                                             GObject         *extension);
-static void   g_list_model_iface_init       (GListModelInterface *iface);
-
-G_DEFINE_FINAL_TYPE_WITH_CODE (ValentMixer, valent_mixer, VALENT_TYPE_COMPONENT,
-                               G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
+G_DEFINE_FINAL_TYPE (ValentMixer, valent_mixer, VALENT_TYPE_COMPONENT)
 
 enum {
   PROP_0,
@@ -53,8 +44,6 @@ enum {
 };
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
-
-static ValentMixer *default_mixer = NULL;
 
 /*
  * ValentMixerAdapter Callbacks
@@ -109,137 +98,27 @@ valent_mixer_bind_preferred (ValentComponent *component,
 
   if (adapter != NULL)
     {
-      g_signal_connect_object (adapter,
+      self->default_adapter = adapter;
+      g_signal_connect_object (self->default_adapter,
                                "notify::default-input",
                                G_CALLBACK (on_default_input_changed),
-                               self, 0);
-      g_signal_connect_object (adapter,
+                               self,
+                               G_CONNECT_DEFAULT);
+      g_object_notify (G_OBJECT (self), "default-input");
+      g_signal_connect_object (self->default_adapter,
                                "notify::default-output",
                                G_CALLBACK (on_default_output_changed),
-                               self, 0);
-      g_object_notify (G_OBJECT (self), "default-input");
+                               self,
+                               G_CONNECT_DEFAULT);
       g_object_notify (G_OBJECT (self), "default-output");
-      self->default_adapter = adapter;
     }
 
   VALENT_EXIT;
-}
-
-static void
-valent_mixer_bind_extension (ValentComponent *component,
-                             GObject         *extension)
-{
-  ValentMixer *self = VALENT_MIXER (component);
-  unsigned int position = 0;
-
-  VALENT_ENTRY;
-
-  g_assert (VALENT_IS_MIXER (self));
-  g_assert (VALENT_IS_MIXER_ADAPTER (extension));
-
-  if (g_ptr_array_find (self->items, extension, &position))
-    {
-      g_warning ("Adapter \"%s\" already exported in \"%s\"",
-                 G_OBJECT_TYPE_NAME (extension),
-                 G_OBJECT_TYPE_NAME (component));
-      return;
-    }
-
-  g_signal_connect_object (extension,
-                           "destroy",
-                           G_CALLBACK (valent_mixer_unbind_extension),
-                           self,
-                           G_CONNECT_SWAPPED);
-
-  position = self->items->len;
-  g_ptr_array_add (self->items, g_object_ref (extension));
-  g_list_model_items_changed (G_LIST_MODEL (self), position, 0, 1);
-
-  VALENT_EXIT;
-}
-
-static void
-valent_mixer_unbind_extension (ValentComponent *component,
-                               GObject         *extension)
-{
-  ValentMixer *self = VALENT_MIXER (component);
-  g_autoptr (ValentExtension) item = NULL;
-  unsigned int position = 0;
-
-  VALENT_ENTRY;
-
-  g_assert (VALENT_IS_MIXER (self));
-  g_assert (VALENT_IS_MIXER_ADAPTER (extension));
-
-  if (!g_ptr_array_find (self->items, extension, &position))
-    {
-      g_warning ("Adapter \"%s\" not found in \"%s\"",
-                 G_OBJECT_TYPE_NAME (extension),
-                 G_OBJECT_TYPE_NAME (component));
-      return;
-    }
-
-  g_signal_handlers_disconnect_by_func (extension, valent_mixer_unbind_extension, self);
-  item = g_ptr_array_steal_index (self->items, position);
-  g_list_model_items_changed (G_LIST_MODEL (self), position, 1, 0);
-
-  VALENT_EXIT;
-}
-
-/*
- * GListModel
- */
-static gpointer
-valent_mixer_get_item (GListModel   *list,
-                       unsigned int  position)
-{
-  ValentMixer *self = VALENT_MIXER (list);
-
-  g_assert (VALENT_IS_MIXER (self));
-
-  if G_UNLIKELY (position >= self->items->len)
-    return NULL;
-
-  return g_object_ref (g_ptr_array_index (self->items, position));
-}
-
-static GType
-valent_mixer_get_item_type (GListModel *list)
-{
-  return VALENT_TYPE_MIXER_ADAPTER;
-}
-
-static unsigned int
-valent_mixer_get_n_items (GListModel *list)
-{
-  ValentMixer *self = VALENT_MIXER (list);
-
-  g_assert (VALENT_IS_MIXER (self));
-
-  return self->items->len;
-}
-
-static void
-g_list_model_iface_init (GListModelInterface *iface)
-{
-  iface->get_item = valent_mixer_get_item;
-  iface->get_item_type = valent_mixer_get_item_type;
-  iface->get_n_items = valent_mixer_get_n_items;
 }
 
 /*
  * GObject
  */
-static void
-valent_mixer_finalize (GObject *object)
-{
-  ValentMixer *self = VALENT_MIXER (object);
-
-  g_clear_pointer (&self->items, g_ptr_array_unref);
-
-  G_OBJECT_CLASS (valent_mixer_parent_class)->finalize (object);
-}
-
 static void
 valent_mixer_get_property (GObject    *object,
                            guint       prop_id,
@@ -292,13 +171,10 @@ valent_mixer_class_init (ValentMixerClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentComponentClass *component_class = VALENT_COMPONENT_CLASS (klass);
 
-  object_class->finalize = valent_mixer_finalize;
   object_class->get_property = valent_mixer_get_property;
   object_class->set_property = valent_mixer_set_property;
 
   component_class->bind_preferred = valent_mixer_bind_preferred;
-  component_class->bind_extension = valent_mixer_bind_extension;
-  component_class->unbind_extension = valent_mixer_unbind_extension;
 
   /**
    * ValentMixer:default-input: (getter get_default_input) (setter set_default_input)
@@ -334,7 +210,6 @@ valent_mixer_class_init (ValentMixerClass *klass)
 static void
 valent_mixer_init (ValentMixer *self)
 {
-  self->items = g_ptr_array_new_with_free_func (g_object_unref);
 }
 
 /**
@@ -349,18 +224,19 @@ valent_mixer_init (ValentMixer *self)
 ValentMixer *
 valent_mixer_get_default (void)
 {
-  if (default_mixer == NULL)
-    {
-      default_mixer = g_object_new (VALENT_TYPE_MIXER,
-                                    "plugin-domain", "mixer",
-                                    "plugin-type",   VALENT_TYPE_MIXER_ADAPTER,
-                                    NULL);
+  static ValentMixer *default_instance = NULL;
 
-      g_object_add_weak_pointer (G_OBJECT (default_mixer),
-                                 (gpointer)&default_mixer);
+  if (default_instance == NULL)
+    {
+      default_instance = g_object_new (VALENT_TYPE_MIXER,
+                                       "plugin-domain", "mixer",
+                                       "plugin-type",   VALENT_TYPE_MIXER_ADAPTER,
+                                       NULL);
+      g_object_add_weak_pointer (G_OBJECT (default_instance),
+                                 (gpointer)&default_instance);
     }
 
-  return default_mixer;
+  return default_instance;
 }
 
 /**
