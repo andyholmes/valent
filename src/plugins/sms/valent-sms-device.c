@@ -670,10 +670,9 @@ valent_sms_device_request_conversation (ValentSmsDevice *self,
     }
 
   packet = valent_packet_end (&builder);
-
   valent_device_send_packet (self->device,
                              packet,
-                             NULL,
+                             self->cancellable,
                              (GAsyncReadyCallback) valent_device_send_packet_cb,
                              NULL);
 }
@@ -681,17 +680,14 @@ valent_sms_device_request_conversation (ValentSmsDevice *self,
 static inline void
 valent_sms_device_request_conversations (ValentSmsDevice *self)
 {
-  g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
   g_return_if_fail (VALENT_IS_SMS_DEVICE (self));
 
-  valent_packet_init (&builder, "kdeconnect.sms.request_conversations");
-  packet = valent_packet_end (&builder);
-
+  packet = valent_packet_new ("kdeconnect.sms.request_conversations");
   valent_device_send_packet (self->device,
                              packet,
-                             NULL,
+                             self->cancellable,
                              (GAsyncReadyCallback) valent_device_send_packet_cb,
                              NULL);
 }
@@ -838,7 +834,7 @@ valent_sms_device_send_message (ValentMessagesAdapter *adapter,
 
   valent_device_send_packet (self->device,
                              packet,
-                             cancellable,
+                             cancellable, // TODO: chained cancellable
                              (GAsyncReadyCallback)valent_sms_device_send_message_cb,
                              g_object_ref (task));
 }
@@ -855,8 +851,20 @@ on_device_state_changed (ValentDevice    *device,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  if (available)
-    valent_sms_device_request_conversations (self);
+  if (available && self->cancellable == NULL)
+    {
+      g_autoptr (GCancellable) cancellable = NULL;
+
+      cancellable = g_cancellable_new ();
+      self->cancellable = valent_object_chain_cancellable (VALENT_OBJECT (self),
+                                                           cancellable);
+      valent_sms_device_request_conversations (self);
+    }
+  else if (!available && self->cancellable != NULL)
+    {
+      g_cancellable_cancel (self->cancellable);
+      g_clear_object (&self->cancellable);
+    }
 }
 
 /*
@@ -876,10 +884,8 @@ valent_sms_device_constructed (GObject *object)
                            self,
                            G_CONNECT_DEFAULT);
 
-  g_object_get (self,
-                "connection",  &self->connection,
-                "cancellable", &self->cancellable,
-                NULL);
+  g_object_get (self, "connection",  &self->connection, NULL);
+  g_assert (TRACKER_IS_SPARQL_CONNECTION (self->connection));
 }
 
 static void
@@ -995,7 +1001,7 @@ execute_get_timestamp_cb (TrackerSparqlStatement *stmt,
 }
 
 static void
-valent_sms_device_get_timestamp (ValentSmsDevice     *store,
+valent_sms_device_get_timestamp (ValentSmsDevice     *self,
                                  int64_t              thread_id,
                                  GCancellable        *cancellable,
                                  GAsyncReadyCallback  callback,
@@ -1004,32 +1010,32 @@ valent_sms_device_get_timestamp (ValentSmsDevice     *store,
   g_autoptr (GTask) task = NULL;
   GError *error = NULL;
 
-  g_return_if_fail (VALENT_IS_MESSAGES_ADAPTER (store));
+  g_return_if_fail (VALENT_IS_MESSAGES_ADAPTER (self));
   g_return_if_fail (thread_id >= 0);
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  task = g_task_new (store, cancellable, callback, user_data);
+  task = g_task_new (self, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_sms_device_get_timestamp);
 
-  if (store->get_timestamp_stmt == NULL)
+  if (self->get_timestamp_stmt == NULL)
     {
-      store->get_timestamp_stmt =
-        tracker_sparql_connection_load_statement_from_gresource (store->connection,
+      self->get_timestamp_stmt =
+        tracker_sparql_connection_load_statement_from_gresource (self->connection,
                                                                  GET_TIMESTAMP_RQ,
                                                                  cancellable,
                                                                  &error);
     }
 
-  if (store->get_timestamp_stmt == NULL)
+  if (self->get_timestamp_stmt == NULL)
     {
       g_task_return_error (task, g_steal_pointer (&error));
       return;
     }
 
-  tracker_sparql_statement_bind_int (store->get_timestamp_stmt,
+  tracker_sparql_statement_bind_int (self->get_timestamp_stmt,
                                      "threadId",
                                      thread_id);
-  tracker_sparql_statement_execute_async (store->get_timestamp_stmt,
+  tracker_sparql_statement_execute_async (self->get_timestamp_stmt,
                                           cancellable,
                                           (GAsyncReadyCallback) execute_get_timestamp_cb,
                                           g_object_ref (task));
@@ -1141,7 +1147,6 @@ void
 valent_sms_device_handle_messages (ValentSmsDevice *self,
                                    JsonNode        *packet)
 {
-  ValentDevice *device = NULL;
   g_autofree char *thread_iri = NULL;
   JsonNode *node;
   JsonObject *body;
@@ -1176,11 +1181,10 @@ valent_sms_device_handle_messages (ValentSmsDevice *self,
       return;
     }
 
-  device = valent_resource_get_source (VALENT_RESOURCE (self));
   thread_id = json_object_get_int_member (json_array_get_object_element (messages, 0),
                                           "thread_id");
   thread_iri = g_strdup_printf ("urn:valent:messages:%s:%"PRId64,
-                                valent_device_get_id (device),
+                                valent_device_get_id (self->device),
                                 thread_id);
 
   /* Check if there is an active request for this thread

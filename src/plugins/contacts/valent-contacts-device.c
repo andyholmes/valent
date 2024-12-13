@@ -18,9 +18,11 @@ struct _ValentContactsDevice
 {
   ValentContactsAdapter    parent_instance;
 
+  ValentDevice            *device;
+  GCancellable            *cancellable;
+
   char                    *default_iri;
   TrackerSparqlStatement  *get_timestamp_stmt;
-  GCancellable            *cancellable;
 };
 
 G_DEFINE_FINAL_TYPE (ValentContactsDevice, valent_contacts_device, VALENT_TYPE_CONTACTS_ADAPTER)
@@ -104,12 +106,9 @@ valent_contacts_device_handle_response_uids_timestamps (ValentContactsDevice *se
 
   if (n_requested > 0)
     {
-      ValentDevice *device = NULL;
-
-      device = valent_resource_get_source (VALENT_RESOURCE (self));
-      valent_device_send_packet (device,
+      valent_device_send_packet (self->device,
                                  request,
-                                 NULL,
+                                 self->cancellable,
                                  (GAsyncReadyCallback) valent_contacts_device_send_packet_cb,
                                  NULL);
     }
@@ -184,16 +183,14 @@ valent_contacts_device_handle_response_vcards (ValentContactsDevice *self,
 static void
 valent_contacts_device_request_all_uids_timestamps (ValentContactsDevice *self)
 {
-  ValentDevice *device = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
   g_assert (VALENT_IS_CONTACTS_DEVICE (self));
 
-  device = valent_resource_get_source (VALENT_RESOURCE (self));
   packet = valent_packet_new ("kdeconnect.contacts.request_all_uids_timestamps");
-  valent_device_send_packet (device,
+  valent_device_send_packet (self->device,
                              packet,
-                             NULL,
+                             self->cancellable,
                              (GAsyncReadyCallback) valent_contacts_device_send_packet_cb,
                              NULL);
 }
@@ -210,8 +207,20 @@ on_device_state_changed (ValentDevice         *device,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  if (available)
-    valent_contacts_device_request_all_uids_timestamps (self);
+  if (available && self->cancellable == NULL)
+    {
+      g_autoptr (GCancellable) cancellable = NULL;
+
+      cancellable = g_cancellable_new ();
+      self->cancellable = valent_object_chain_cancellable (VALENT_OBJECT (self),
+                                                           cancellable);
+      valent_contacts_device_request_all_uids_timestamps (self);
+    }
+  else if (!available && self->cancellable != NULL)
+    {
+      g_cancellable_cancel (self->cancellable);
+      g_clear_object (&self->cancellable);
+    }
 }
 
 /*
@@ -221,13 +230,12 @@ static void
 valent_contacts_device_constructed (GObject *object)
 {
   ValentContactsDevice *self = VALENT_CONTACTS_DEVICE (object);
-  ValentDevice *device = NULL;
   g_autofree char *iri = NULL;
 
   G_OBJECT_CLASS (valent_contacts_device_parent_class)->constructed (object);
 
-  device = valent_resource_get_source (VALENT_RESOURCE (self));
-  g_signal_connect_object (device,
+  self->device = valent_resource_get_source (VALENT_RESOURCE (self));
+  g_signal_connect_object (self->device,
                            "notify::state",
                            G_CALLBACK (on_device_state_changed),
                            self,
@@ -244,6 +252,7 @@ valent_contacts_device_finalize (GObject *object)
 
   g_clear_pointer (&self->default_iri, g_free);
   g_clear_object (&self->get_timestamp_stmt);
+  g_clear_object (&self->cancellable);
 
   G_OBJECT_CLASS (valent_contacts_device_parent_class)->finalize (object);
 }

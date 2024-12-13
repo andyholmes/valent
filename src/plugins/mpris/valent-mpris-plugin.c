@@ -643,18 +643,9 @@ valent_mpris_plugin_destroy (ValentObject *object)
 {
   ValentMprisPlugin *self = VALENT_MPRIS_PLUGIN (object);
 
-  if (self->adapter != NULL)
-    {
-      ValentComponent *component = NULL;
-
-      component = VALENT_COMPONENT (valent_media_get_default ());
-      valent_component_unexport_adapter (component, VALENT_EXTENSION (self->adapter));
-      valent_object_destroy (VALENT_OBJECT (self->adapter));
-      g_clear_object (&self->adapter);
-    }
-
   valent_mpris_plugin_watch_media (self, FALSE);
-  self->media = NULL;
+  g_clear_pointer (&self->pending, g_hash_table_unref);
+  g_clear_pointer (&self->transfers, g_hash_table_unref);
 
   VALENT_OBJECT_CLASS (valent_mpris_plugin_parent_class)->destroy (object);
 }
@@ -663,35 +654,10 @@ valent_mpris_plugin_destroy (ValentObject *object)
  * GObject
  */
 static void
-valent_mpris_plugin_constructed (GObject *object)
-{
-  ValentMprisPlugin *self = VALENT_MPRIS_PLUGIN (object);
-
-  self->media = valent_media_get_default ();
-
-  G_OBJECT_CLASS (valent_mpris_plugin_parent_class)->constructed (object);
-}
-
-static void
-valent_mpris_plugin_finalize (GObject *object)
-{
-  ValentMprisPlugin *self = VALENT_MPRIS_PLUGIN (object);
-
-  g_clear_pointer (&self->pending, g_hash_table_unref);
-  g_clear_pointer (&self->transfers, g_hash_table_unref);
-
-  G_OBJECT_CLASS (valent_mpris_plugin_parent_class)->finalize (object);
-}
-
-static void
 valent_mpris_plugin_class_init (ValentMprisPluginClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentDevicePluginClass *plugin_class = VALENT_DEVICE_PLUGIN_CLASS (klass);
-
-  object_class->constructed = valent_mpris_plugin_constructed;
-  object_class->finalize = valent_mpris_plugin_finalize;
 
   vobject_class->destroy = valent_mpris_plugin_destroy;
 

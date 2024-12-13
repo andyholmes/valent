@@ -269,6 +269,7 @@ valent_systemvolume_plugin_watch_mixer (ValentSystemvolumePlugin *self,
                                         gboolean                  watch)
 {
   ValentMixer *mixer = valent_mixer_get_default ();
+
   g_assert (VALENT_IS_SYSTEMVOLUME_PLUGIN (self));
 
   if (self->mixer_watch == watch)
@@ -463,15 +464,6 @@ static void
 valent_systemvolume_plugin_destroy (ValentObject *object)
 {
   ValentSystemvolumePlugin *self = VALENT_SYSTEMVOLUME_PLUGIN (object);
-  ValentComponent *component = NULL;
-
-  if (self->adapter != NULL)
-    {
-      component = VALENT_COMPONENT (valent_mixer_get_default ());
-      valent_component_unexport_adapter (component, VALENT_EXTENSION (self->adapter));
-      valent_object_destroy (VALENT_OBJECT (self->adapter));
-      g_clear_object (&self->adapter);
-    }
 
   valent_systemvolume_plugin_watch_mixer (self, FALSE);
   g_clear_pointer (&self->states, g_ptr_array_unref);

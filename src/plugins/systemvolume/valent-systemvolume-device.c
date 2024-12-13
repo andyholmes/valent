@@ -89,7 +89,7 @@ valent_systemvolume_stream_set_level (ValentMixerStream *stream,
 
   valent_device_send_packet (self->device,
                              packet,
-                             NULL, /* cancellable */
+                             self->cancellable,
                              (GAsyncReadyCallback) valent_device_send_packet_cb,
                              NULL);
 }
@@ -123,7 +123,7 @@ valent_systemvolume_stream_set_muted (ValentMixerStream *stream,
 
   valent_device_send_packet (self->device,
                              packet,
-                             NULL, /* cancellable */
+                             self->cancellable,
                              (GAsyncReadyCallback) valent_device_send_packet_cb,
                              NULL);
 }
@@ -259,17 +259,15 @@ on_device_state_changed (ValentDevice             *device,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  if (available)
+  if (available && self->cancellable == NULL)
     {
-      g_autoptr (JsonBuilder) builder = NULL;
-      g_autoptr (JsonNode) packet = NULL;
       g_autoptr (GCancellable) cancellable = NULL;
 
       cancellable = g_cancellable_new ();
       self->cancellable = valent_object_chain_cancellable (VALENT_OBJECT (self),
                                                            cancellable);
     }
-  else
+  else if (!available && self->cancellable != NULL)
     {
       GHashTableIter iter;
       ValentMixerStream *output;
@@ -304,7 +302,6 @@ valent_systemvolume_device_set_default_output (ValentMixerAdapter *adapter,
   ValentSystemvolumeDevice *self = VALENT_SYSTEMVOLUME_DEVICE (adapter);
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
-
 
   g_assert (VALENT_IS_SYSTEMVOLUME_DEVICE (self));
 
