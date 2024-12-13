@@ -74,12 +74,12 @@ pkgconfig.generate(
        'json-glib-1.0',
        'libebook-1.2',
        'libpeas-2',
+       'tracker-sparql-3.0',
      ],
      requires_private: [
        'gio-unix-2.0',
        'gnutls',
        'libportal',
-       'tracker-sparql-3.0',
      ],
 )
 
@@ -95,6 +95,7 @@ if get_option('introspection')
     'Json-1.0',
     'EBook-1.2',
     'Peas-2',
+    'Tracker-3.0',
   ]
 
   libvalent_gir_sources = [
@@ -126,6 +127,7 @@ if get_option('introspection')
              'json-glib-1.0',
              'libebook-1.2',
              'libpeas-2',
+             'tracker-sparql-3.0',
           ],
            install: true,
        install_dir: vapidir,
