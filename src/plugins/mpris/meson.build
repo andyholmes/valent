@@ -9,8 +9,9 @@ plugin_mpris_deps = [
 # Sources
 plugin_mpris_sources = files([
   'mpris-plugin.c',
+  'vdp-mpris-adapter.c',
+  'vdp-mpris-player.c',
   'valent-mpris-adapter.c',
-  'valent-mpris-device.c',
   'valent-mpris-impl.c',
   'valent-mpris-player.c',
   'valent-mpris-plugin.c',

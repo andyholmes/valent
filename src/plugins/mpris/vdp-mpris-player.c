@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-#define G_LOG_DOMAIN "valent-mpris-device"
+#define G_LOG_DOMAIN "vdp-mpris-player"
 
 #include "config.h"
 
@@ -10,11 +10,11 @@
 #include <gio/gio.h>
 #include <valent.h>
 
-#include "valent-mpris-device.h"
+#include "vdp-mpris-player.h"
 #include "valent-mpris-utils.h"
 
 
-struct _ValentMprisDevice
+struct _VdpMprisPlayer
 {
   ValentMediaPlayer   parent_instance;
 
@@ -31,24 +31,24 @@ struct _ValentMprisDevice
   double              volume;
 };
 
-G_DEFINE_FINAL_TYPE (ValentMprisDevice, valent_mpris_device, VALENT_TYPE_MEDIA_PLAYER)
+G_DEFINE_FINAL_TYPE (VdpMprisPlayer, vdp_mpris_player, VALENT_TYPE_MEDIA_PLAYER)
 
 
 /*
  * ValentMediaPlayer
  */
 static ValentMediaActions
-valent_mpris_device_get_flags (ValentMediaPlayer *player)
+vdp_mpris_player_get_flags (ValentMediaPlayer *player)
 {
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (player);
+  VdpMprisPlayer *self = VDP_MPRIS_PLAYER (player);
 
   return self->flags;
 }
 
 static GVariant *
-valent_mpris_device_get_metadata (ValentMediaPlayer *player)
+vdp_mpris_player_get_metadata (ValentMediaPlayer *player)
 {
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (player);
+  VdpMprisPlayer *self = VDP_MPRIS_PLAYER (player);
 
   if (self->metadata)
     return g_variant_ref (self->metadata);
@@ -57,17 +57,17 @@ valent_mpris_device_get_metadata (ValentMediaPlayer *player)
 }
 
 static const char *
-valent_mpris_device_get_name (ValentMediaPlayer *player)
+vdp_mpris_player_get_name (ValentMediaPlayer *player)
 {
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (player);
+  VdpMprisPlayer *self = VDP_MPRIS_PLAYER (player);
 
   return self->name;
 }
 
 static double
-valent_mpris_device_get_position (ValentMediaPlayer *player)
+vdp_mpris_player_get_position (ValentMediaPlayer *player)
 {
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (player);
+  VdpMprisPlayer *self = VDP_MPRIS_PLAYER (player);
 
   if (self->state == VALENT_MEDIA_STATE_PLAYING)
     return self->position + (valent_mpris_get_time () - self->position_time);
@@ -76,10 +76,10 @@ valent_mpris_device_get_position (ValentMediaPlayer *player)
 }
 
 static void
-valent_mpris_device_set_position (ValentMediaPlayer *player,
-                                  double             position)
+vdp_mpris_player_set_position (ValentMediaPlayer *player,
+                               double             position)
 {
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (player);
+  VdpMprisPlayer *self = VDP_MPRIS_PLAYER (player);
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
@@ -95,18 +95,18 @@ valent_mpris_device_set_position (ValentMediaPlayer *player,
 }
 
 static ValentMediaRepeat
-valent_mpris_device_get_repeat (ValentMediaPlayer *player)
+vdp_mpris_player_get_repeat (ValentMediaPlayer *player)
 {
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (player);
+  VdpMprisPlayer *self = VDP_MPRIS_PLAYER (player);
 
   return self->repeat;
 }
 
 static void
-valent_mpris_device_set_repeat (ValentMediaPlayer *player,
-                                ValentMediaRepeat  repeat)
+vdp_mpris_player_set_repeat (ValentMediaPlayer *player,
+                             ValentMediaRepeat  repeat)
 {
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (player);
+  VdpMprisPlayer *self = VDP_MPRIS_PLAYER (player);
   const char *loop_status = NULL;
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
@@ -124,18 +124,18 @@ valent_mpris_device_set_repeat (ValentMediaPlayer *player,
 }
 
 static gboolean
-valent_mpris_device_get_shuffle (ValentMediaPlayer *player)
+vdp_mpris_player_get_shuffle (ValentMediaPlayer *player)
 {
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (player);
+  VdpMprisPlayer *self = VDP_MPRIS_PLAYER (player);
 
   return self->shuffle;
 }
 
 static void
-valent_mpris_device_set_shuffle (ValentMediaPlayer *player,
-                                 gboolean           shuffle)
+vdp_mpris_player_set_shuffle (ValentMediaPlayer *player,
+                              gboolean           shuffle)
 {
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (player);
+  VdpMprisPlayer *self = VDP_MPRIS_PLAYER (player);
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
@@ -150,26 +150,26 @@ valent_mpris_device_set_shuffle (ValentMediaPlayer *player,
 }
 
 static ValentMediaState
-valent_mpris_device_get_state (ValentMediaPlayer *player)
+vdp_mpris_player_get_state (ValentMediaPlayer *player)
 {
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (player);
+  VdpMprisPlayer *self = VDP_MPRIS_PLAYER (player);
 
   return self->state;
 }
 
 static double
-valent_mpris_device_get_volume (ValentMediaPlayer *player)
+vdp_mpris_player_get_volume (ValentMediaPlayer *player)
 {
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (player);
+  VdpMprisPlayer *self = VDP_MPRIS_PLAYER (player);
 
   return self->volume;
 }
 
 static void
-valent_mpris_device_set_volume (ValentMediaPlayer *player,
-                                double             volume)
+vdp_mpris_player_set_volume (ValentMediaPlayer *player,
+                             double             volume)
 {
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (player);
+  VdpMprisPlayer *self = VDP_MPRIS_PLAYER (player);
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
@@ -184,9 +184,9 @@ valent_mpris_device_set_volume (ValentMediaPlayer *player,
 }
 
 static void
-valent_mpris_device_next (ValentMediaPlayer *player)
+vdp_mpris_player_next (ValentMediaPlayer *player)
 {
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (player);
+  VdpMprisPlayer *self = VDP_MPRIS_PLAYER (player);
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
@@ -201,9 +201,9 @@ valent_mpris_device_next (ValentMediaPlayer *player)
 }
 
 static void
-valent_mpris_device_pause (ValentMediaPlayer *player)
+vdp_mpris_player_pause (ValentMediaPlayer *player)
 {
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (player);
+  VdpMprisPlayer *self = VDP_MPRIS_PLAYER (player);
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
@@ -218,9 +218,9 @@ valent_mpris_device_pause (ValentMediaPlayer *player)
 }
 
 static void
-valent_mpris_device_play (ValentMediaPlayer *player)
+vdp_mpris_player_play (ValentMediaPlayer *player)
 {
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (player);
+  VdpMprisPlayer *self = VDP_MPRIS_PLAYER (player);
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
@@ -236,9 +236,9 @@ valent_mpris_device_play (ValentMediaPlayer *player)
 
 #if 0
 static void
-valent_mpris_device_play_pause (ValentMediaPlayer *player)
+vdp_mpris_player_play_pause (ValentMediaPlayer *player)
 {
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (player);
+  VdpMprisPlayer *self = VDP_MPRIS_PLAYER (player);
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
@@ -254,9 +254,9 @@ valent_mpris_device_play_pause (ValentMediaPlayer *player)
 #endif
 
 static void
-valent_mpris_device_previous (ValentMediaPlayer *player)
+vdp_mpris_player_previous (ValentMediaPlayer *player)
 {
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (player);
+  VdpMprisPlayer *self = VDP_MPRIS_PLAYER (player);
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
@@ -271,10 +271,10 @@ valent_mpris_device_previous (ValentMediaPlayer *player)
 }
 
 static void
-valent_mpris_device_seek (ValentMediaPlayer *player,
-                          double             offset)
+vdp_mpris_player_seek (ValentMediaPlayer *player,
+                       double             offset)
 {
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (player);
+  VdpMprisPlayer *self = VDP_MPRIS_PLAYER (player);
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
@@ -290,9 +290,9 @@ valent_mpris_device_seek (ValentMediaPlayer *player,
 }
 
 static void
-valent_mpris_device_stop (ValentMediaPlayer *player)
+vdp_mpris_player_stop (ValentMediaPlayer *player)
 {
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (player);
+  VdpMprisPlayer *self = VDP_MPRIS_PLAYER (player);
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
@@ -307,9 +307,9 @@ valent_mpris_device_stop (ValentMediaPlayer *player)
 }
 
 static void
-valent_mpris_device_request_album_art (ValentMprisDevice *self,
-                                       const char        *url,
-                                       GVariantDict      *metadata)
+vdp_mpris_player_request_album_art (VdpMprisPlayer *self,
+                                    const char     *url,
+                                    GVariantDict   *metadata)
 {
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
@@ -317,7 +317,7 @@ valent_mpris_device_request_album_art (ValentMprisDevice *self,
   g_autoptr (GFile) file = NULL;
   g_autofree char *filename = NULL;
 
-  g_assert (VALENT_IS_MPRIS_DEVICE (self));
+  g_assert (VDP_IS_MPRIS_PLAYER (self));
   g_assert (url != NULL && *url != '\0');
   g_assert (metadata != NULL);
 
@@ -351,10 +351,10 @@ valent_mpris_device_request_album_art (ValentMprisDevice *self,
  * Private
  */
 static void
-valent_mpris_device_update_flags (ValentMprisDevice  *player,
-                                  ValentMediaActions  flags)
+vdp_mpris_player_update_flags (VdpMprisPlayer     *player,
+                               ValentMediaActions  flags)
 {
-  g_assert (VALENT_IS_MPRIS_DEVICE (player));
+  g_assert (VDP_IS_MPRIS_PLAYER (player));
 
   if ((player->flags ^ flags) == 0)
     return;
@@ -364,12 +364,12 @@ valent_mpris_device_update_flags (ValentMprisDevice  *player,
 }
 
 static void
-valent_mpris_device_update_metadata (ValentMprisDevice *player,
-                                     GVariant          *value)
+vdp_mpris_player_update_metadata (VdpMprisPlayer *player,
+                                  GVariant       *value)
 {
   g_autoptr (GVariant) metadata = NULL;
 
-  g_assert (VALENT_IS_MPRIS_DEVICE (player));
+  g_assert (VDP_IS_MPRIS_PLAYER (player));
   g_assert (value != NULL);
 
   if (player->metadata == value)
@@ -381,10 +381,10 @@ valent_mpris_device_update_metadata (ValentMprisDevice *player,
 }
 
 static void
-valent_mpris_device_update_position (ValentMprisDevice *player,
-                                     int64_t            position)
+vdp_mpris_player_update_position (VdpMprisPlayer *player,
+                                  int64_t         position)
 {
-  g_assert (VALENT_IS_MPRIS_DEVICE (player));
+  g_assert (VDP_IS_MPRIS_PLAYER (player));
 
   /* Convert milliseconds to seconds */
   player->position = position / 1000L;
@@ -393,12 +393,12 @@ valent_mpris_device_update_position (ValentMprisDevice *player,
 }
 
 static void
-valent_mpris_device_update_repeat (ValentMprisDevice *player,
-                                   const char        *loop_status)
+vdp_mpris_player_update_repeat (VdpMprisPlayer *player,
+                                const char     *loop_status)
 {
   ValentMediaRepeat repeat = VALENT_MEDIA_REPEAT_NONE;
 
-  g_assert (VALENT_IS_MPRIS_DEVICE (player));
+  g_assert (VDP_IS_MPRIS_PLAYER (player));
   g_assert (loop_status != NULL);
 
   repeat = valent_mpris_repeat_from_string (loop_status);
@@ -411,10 +411,10 @@ valent_mpris_device_update_repeat (ValentMprisDevice *player,
 }
 
 static void
-valent_mpris_device_update_shuffle (ValentMprisDevice *player,
-                                    gboolean           shuffle)
+vdp_mpris_player_update_shuffle (VdpMprisPlayer *player,
+                                 gboolean        shuffle)
 {
-  g_assert (VALENT_IS_MPRIS_DEVICE (player));
+  g_assert (VDP_IS_MPRIS_PLAYER (player));
 
   if (player->shuffle == shuffle)
     return;
@@ -424,12 +424,12 @@ valent_mpris_device_update_shuffle (ValentMprisDevice *player,
 }
 
 static void
-valent_mpris_device_update_state (ValentMprisDevice *player,
-                                  const char        *playback_status)
+vdp_mpris_player_update_state (VdpMprisPlayer *player,
+                               const char     *playback_status)
 {
   ValentMediaState state = VALENT_MEDIA_STATE_STOPPED;
 
-  g_assert (VALENT_IS_MPRIS_DEVICE (player));
+  g_assert (VDP_IS_MPRIS_PLAYER (player));
   g_assert (playback_status != NULL);
 
   state = valent_mpris_state_from_string (playback_status);
@@ -450,10 +450,10 @@ valent_mpris_device_update_state (ValentMprisDevice *player,
 }
 
 static void
-valent_mpris_device_update_volume (ValentMprisDevice *player,
-                                   int64_t            volume)
+vdp_mpris_player_update_volume (VdpMprisPlayer *player,
+                                int64_t         volume)
 {
-  g_assert (VALENT_IS_MPRIS_DEVICE (player));
+  g_assert (VDP_IS_MPRIS_PLAYER (player));
 
   if (G_APPROX_VALUE (player->volume, volume / 100.0, 0.01))
     return;
@@ -463,9 +463,9 @@ valent_mpris_device_update_volume (ValentMprisDevice *player,
 }
 
 static void
-on_device_state_changed (ValentDevice      *device,
-                         GParamSpec        *pspec,
-                         ValentMprisDevice *self)
+on_device_state_changed (ValentDevice   *device,
+                         GParamSpec     *pspec,
+                         VdpMprisPlayer *self)
 {
 #if 0
   ValentDeviceState state = VALENT_DEVICE_STATE_NONE;
@@ -481,11 +481,11 @@ on_device_state_changed (ValentDevice      *device,
  * GObject
  */
 static void
-valent_mpris_device_constructed (GObject *object)
+vdp_mpris_player_constructed (GObject *object)
 {
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (object);
+  VdpMprisPlayer *self = VDP_MPRIS_PLAYER (object);
 
-  G_OBJECT_CLASS (valent_mpris_device_parent_class)->constructed (object);
+  G_OBJECT_CLASS (vdp_mpris_player_parent_class)->constructed (object);
 
   self->device = valent_resource_get_source (VALENT_RESOURCE (self));
   g_signal_connect_object (self->device,
@@ -496,48 +496,48 @@ valent_mpris_device_constructed (GObject *object)
 }
 
 static void
-valent_mpris_device_finalize (GObject *object)
+vdp_mpris_player_finalize (GObject *object)
 {
-  ValentMprisDevice *self = VALENT_MPRIS_DEVICE (object);
+  VdpMprisPlayer *self = VDP_MPRIS_PLAYER (object);
 
   g_clear_pointer (&self->name, g_free);
   g_clear_pointer (&self->metadata, g_variant_unref);
 
-  G_OBJECT_CLASS (valent_mpris_device_parent_class)->finalize (object);
+  G_OBJECT_CLASS (vdp_mpris_player_parent_class)->finalize (object);
 }
 
 static void
-valent_mpris_device_class_init (ValentMprisDeviceClass *klass)
+vdp_mpris_player_class_init (VdpMprisPlayerClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentMediaPlayerClass *player_class = VALENT_MEDIA_PLAYER_CLASS (klass);
 
-  object_class->constructed = valent_mpris_device_constructed;
-  object_class->finalize = valent_mpris_device_finalize;
+  object_class->constructed = vdp_mpris_player_constructed;
+  object_class->finalize = vdp_mpris_player_finalize;
 
-  player_class->get_flags = valent_mpris_device_get_flags;
-  player_class->get_metadata = valent_mpris_device_get_metadata;
-  player_class->get_name = valent_mpris_device_get_name;
-  player_class->get_position = valent_mpris_device_get_position;
-  player_class->set_position = valent_mpris_device_set_position;
-  player_class->get_repeat = valent_mpris_device_get_repeat;
-  player_class->set_repeat = valent_mpris_device_set_repeat;
-  player_class->get_shuffle = valent_mpris_device_get_shuffle;
-  player_class->set_shuffle = valent_mpris_device_set_shuffle;
-  player_class->get_state = valent_mpris_device_get_state;
-  player_class->get_volume = valent_mpris_device_get_volume;
-  player_class->set_volume = valent_mpris_device_set_volume;
+  player_class->get_flags = vdp_mpris_player_get_flags;
+  player_class->get_metadata = vdp_mpris_player_get_metadata;
+  player_class->get_name = vdp_mpris_player_get_name;
+  player_class->get_position = vdp_mpris_player_get_position;
+  player_class->set_position = vdp_mpris_player_set_position;
+  player_class->get_repeat = vdp_mpris_player_get_repeat;
+  player_class->set_repeat = vdp_mpris_player_set_repeat;
+  player_class->get_shuffle = vdp_mpris_player_get_shuffle;
+  player_class->set_shuffle = vdp_mpris_player_set_shuffle;
+  player_class->get_state = vdp_mpris_player_get_state;
+  player_class->get_volume = vdp_mpris_player_get_volume;
+  player_class->set_volume = vdp_mpris_player_set_volume;
 
-  player_class->next = valent_mpris_device_next;
-  player_class->pause = valent_mpris_device_pause;
-  player_class->play = valent_mpris_device_play;
-  player_class->previous = valent_mpris_device_previous;
-  player_class->seek = valent_mpris_device_seek;
-  player_class->stop = valent_mpris_device_stop;
+  player_class->next = vdp_mpris_player_next;
+  player_class->pause = vdp_mpris_player_pause;
+  player_class->play = vdp_mpris_player_play;
+  player_class->previous = vdp_mpris_player_previous;
+  player_class->seek = vdp_mpris_player_seek;
+  player_class->stop = vdp_mpris_player_stop;
 }
 
 static void
-valent_mpris_device_init (ValentMprisDevice *self)
+vdp_mpris_player_init (VdpMprisPlayer *self)
 {
   self->name = g_strdup ("Media Player");
   self->volume = 1.0;
@@ -545,15 +545,15 @@ valent_mpris_device_init (ValentMprisDevice *self)
 }
 
 /**
- * valent_mpris_device_new:
+ * vdp_mpris_player_new:
  * @device: a `ValentDevice`
  *
- * Get the `ValentMprisDevice` instance.
+ * Get the `VdpMprisPlayer` instance.
  *
- * Returns: (transfer full) (nullable): a `ValentMprisDevice`
+ * Returns: (transfer full) (nullable): a `VdpMprisPlayer`
  */
-ValentMprisDevice *
-valent_mpris_device_new (ValentDevice *device)
+VdpMprisPlayer *
+vdp_mpris_player_new (ValentDevice *device)
 {
   g_autoptr (ValentContext) context = NULL;
   g_autofree char *iri = NULL;
@@ -565,7 +565,7 @@ valent_mpris_device_new (ValentDevice *device)
                                 "systemvolume");
   iri = tracker_sparql_escape_uri_printf ("urn:valent:mixer:%s",
                                           valent_device_get_id (device));
-  return g_object_new (VALENT_TYPE_MPRIS_DEVICE,
+  return g_object_new (VALENT_TYPE_MPRIS_PLAYER,
                        "iri",     iri,
                        "source",  device,
                        "title",   valent_device_get_name (device),
@@ -574,15 +574,15 @@ valent_mpris_device_new (ValentDevice *device)
 
 /**
  * valent_media_player_update_packet:
- * @player: a `ValentMprisDevice`
+ * @player: a `VdpMprisPlayer`
  * @packet: a KDE Connect packet
  *
  * A convenience method for updating the internal state of the player from a
  * `kdeconnect.mpris` packet.
  */
 void
-valent_mpris_device_handle_packet (ValentMprisDevice  *player,
-                                   JsonNode           *packet)
+vdp_mpris_player_handle_packet (VdpMprisPlayer *player,
+                                JsonNode       *packet)
 {
   const char *url;
   ValentMediaActions flags = VALENT_MEDIA_ACTION_NONE;
@@ -610,7 +610,7 @@ valent_mpris_device_handle_packet (ValentMprisDevice  *player,
   if (valent_packet_check_field (packet, "canSeek"))
     flags |= VALENT_MEDIA_ACTION_SEEK;
 
-  valent_mpris_device_update_flags (player, flags);
+  vdp_mpris_player_update_flags (player, flags);
 
   /* Metadata */
   g_variant_dict_init (&metadata, NULL);
@@ -636,43 +636,43 @@ valent_mpris_device_handle_packet (ValentMprisDevice  *player,
     g_variant_dict_insert (&metadata, "mpris:length", "x", length * 1000L);
 
   if (valent_packet_get_string (packet, "albumArtUrl", &url))
-    valent_mpris_device_request_album_art (player, url, &metadata);
+    vdp_mpris_player_request_album_art (player, url, &metadata);
 
-  valent_mpris_device_update_metadata (player, g_variant_dict_end (&metadata));
+  vdp_mpris_player_update_metadata (player, g_variant_dict_end (&metadata));
 
   /* Playback Status */
   if (valent_packet_get_int (packet, "pos", &position))
-    valent_mpris_device_update_position (player, position);
+    vdp_mpris_player_update_position (player, position);
 
   if (valent_packet_get_string (packet, "loopStatus", &loop_status))
-    valent_mpris_device_update_repeat (player, loop_status);
+    vdp_mpris_player_update_repeat (player, loop_status);
 
   if (valent_packet_get_boolean (packet, "isPlaying", &is_playing))
-    valent_mpris_device_update_state (player, is_playing ? "Playing" : "Paused");
+    vdp_mpris_player_update_state (player, is_playing ? "Playing" : "Paused");
 
   if (valent_packet_get_boolean (packet, "shuffle", &shuffle))
-    valent_mpris_device_update_shuffle (player, shuffle);
+    vdp_mpris_player_update_shuffle (player, shuffle);
 
   if (valent_packet_get_int (packet, "volume", &volume))
-    valent_mpris_device_update_volume (player, volume);
+    vdp_mpris_player_update_volume (player, volume);
 }
 
 /**
- * valent_mpris_device_update_art:
- * @player: a `ValentMprisDevice`
+ * vdp_mpris_player_update_art:
+ * @player: a `VdpMprisPlayer`
  * @file: a `GFile`
  *
  * Update the `mpris:artUrl` metadata field from @file.
  */
 void
-valent_mpris_device_update_art (ValentMprisDevice *player,
-                                GFile             *file)
+vdp_mpris_player_update_art (VdpMprisPlayer *player,
+                             GFile          *file)
 {
   GVariantDict dict;
   GVariant *metadata;
   g_autofree char *uri = NULL;
 
-  g_assert (VALENT_IS_MPRIS_DEVICE (player));
+  g_assert (VDP_IS_MPRIS_PLAYER (player));
   g_assert (G_IS_FILE (file));
 
   uri = g_file_get_uri (file);
@@ -681,21 +681,21 @@ valent_mpris_device_update_art (ValentMprisDevice *player,
   g_variant_dict_insert (&dict, "mpris:artUrl", "s", uri);
   metadata = g_variant_dict_end (&dict);
 
-  valent_mpris_device_update_metadata (player, metadata);
+  vdp_mpris_player_update_metadata (player, metadata);
 }
 
 /**
  * valent_media_player_update_name:
- * @player: a `ValentMprisDevice`
+ * @player: a `VdpMprisPlayer`
  * @name: a name
  *
  * Set the user-visible name of the player to @identity.
  */
 void
-valent_mpris_device_update_name (ValentMprisDevice *player,
-                                 const char        *name)
+vdp_mpris_player_update_name (VdpMprisPlayer *player,
+                              const char     *name)
 {
-  g_return_if_fail (VALENT_IS_MPRIS_DEVICE (player));
+  g_return_if_fail (VDP_IS_MPRIS_PLAYER (player));
   g_return_if_fail (name != NULL);
 
   if (g_set_str (&player->name, name))

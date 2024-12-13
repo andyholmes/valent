@@ -646,7 +646,7 @@ valent_mpris_impl_class_init (ValentMPRISImplClass *klass)
   object_class->set_property = valent_mpris_impl_set_property;
 
   /**
-   * ValentMprisDevice:player:
+   * VdpMprisPlayer:player:
    *
    * The [class@Valent.MediaPlayer] being exported.
    */
