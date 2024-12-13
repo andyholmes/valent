@@ -160,6 +160,20 @@ valent_media_adapter_player_added (ValentMediaAdapter *adapter,
   g_return_if_fail (VALENT_IS_MEDIA_ADAPTER (adapter));
   g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
 
+  if (g_ptr_array_find (priv->players, player, &position))
+    {
+      g_warning ("Player \"%s\" (%s) already exported",
+                 valent_media_player_get_name (player),
+                 G_OBJECT_TYPE_NAME (player));
+      return;
+    }
+
+  g_signal_connect_object (player,
+                           "destroy",
+                           G_CALLBACK (valent_media_adapter_player_removed),
+                           adapter,
+                           G_CONNECT_SWAPPED);
+
   position = priv->players->len;
   g_ptr_array_add (priv->players, g_object_ref (player));
   g_list_model_items_changed (G_LIST_MODEL (adapter), position, 0, 1);
@@ -197,6 +211,7 @@ valent_media_adapter_player_removed (ValentMediaAdapter *adapter,
       return;
     }
 
+  g_signal_handlers_disconnect_by_func (player, valent_media_adapter_player_removed, adapter);
   item = g_ptr_array_steal_index (priv->players, position);
   g_list_model_items_changed (G_LIST_MODEL (adapter), position, 1, 0);
 }
