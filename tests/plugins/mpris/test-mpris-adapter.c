@@ -13,11 +13,10 @@
 
 typedef struct
 {
-  ValentMedia       *media;
-  ValentMediaPlayer *player;
-  ValentMediaPlayer *export;
+  ValentMediaAdapter *adapter;
+  ValentMediaPlayer  *export;
+  ValentMediaPlayer  *player;
 } MPRISAdapterFixture;
-
 
 static void
 mpris_adapter_fixture_set_up (MPRISAdapterFixture *fixture,
@@ -29,7 +28,7 @@ mpris_adapter_fixture_set_up (MPRISAdapterFixture *fixture,
   settings = valent_test_mock_settings ("media");
   g_settings_set_boolean (settings, "enabled", FALSE);
 
-  fixture->media = valent_media_get_default ();
+  fixture->adapter = valent_test_await_adapter (valent_media_get_default ());
   fixture->export = g_object_new (VALENT_TYPE_MOCK_MEDIA_PLAYER, NULL);
 
   /* Wait just a tick to avoid a strange race condition */
@@ -42,11 +41,11 @@ mpris_adapter_fixture_tear_down (MPRISAdapterFixture *fixture,
 {
   g_clear_object (&fixture->player);
   g_clear_object (&fixture->export);
-  v_assert_finalize_object (fixture->media);
+  v_assert_finalize_object (valent_media_get_default ());
 }
 
 static void
-on_players_changed (ValentMedia         *media,
+on_players_changed (ValentMediaAdapter  *media,
                     unsigned int         position,
                     unsigned int         removed,
                     unsigned int         added,
@@ -71,38 +70,6 @@ valent_mpris_impl_export_full_cb (ValentMPRISImpl     *impl,
 }
 
 static void
-test_mpris_adapter_self (MPRISAdapterFixture *fixture,
-                         gconstpointer        user_data)
-{
-  g_autoptr (GDBusConnection) connection = NULL;
-  g_autoptr (ValentMPRISImpl) impl = NULL;
-
-  g_signal_connect (fixture->media,
-                    "items-changed",
-                    G_CALLBACK (on_players_changed),
-                    fixture);
-
-  connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
-  impl = valent_mpris_impl_new (fixture->export);
-
-  VALENT_TEST_CHECK ("Adapter adds players when exported on the bus");
-  valent_mpris_impl_export_full (impl,
-                                 "org.mpris.MediaPlayer2.Test",
-                                 NULL,
-                                 (GAsyncReadyCallback)valent_mpris_impl_export_full_cb,
-                                 NULL);
-  valent_test_await_signal (fixture->media, "items-changed");
-  g_assert_true (VALENT_IS_MEDIA_PLAYER (fixture->player));
-
-  VALENT_TEST_CHECK ("Adapter removes players when unexported from the bus");
-  valent_mpris_impl_unexport (impl);
-  valent_test_await_signal (fixture->media, "items-changed");
-  g_assert_null (fixture->player);
-
-  g_signal_handlers_disconnect_by_data (fixture->media, fixture);
-}
-
-static void
 test_mpris_adapter_player (MPRISAdapterFixture *fixture,
                            gconstpointer        user_data)
 {
@@ -117,7 +84,7 @@ test_mpris_adapter_player (MPRISAdapterFixture *fixture,
   double position;
   gboolean shuffle;
 
-  g_signal_connect (fixture->media,
+  g_signal_connect (fixture->adapter,
                     "items-changed",
                     G_CALLBACK (on_players_changed),
                     fixture);
@@ -131,7 +98,7 @@ test_mpris_adapter_player (MPRISAdapterFixture *fixture,
                                  NULL,
                                  (GAsyncReadyCallback)valent_mpris_impl_export_full_cb,
                                  NULL);
-  valent_test_await_signal (fixture->media, "items-changed");
+  valent_test_await_signal (fixture->adapter, "items-changed");
   g_assert_true (VALENT_IS_MEDIA_PLAYER (fixture->player));
 
   VALENT_TEST_CHECK ("GObject properties function correctly");
@@ -204,10 +171,42 @@ test_mpris_adapter_player (MPRISAdapterFixture *fixture,
 
   VALENT_TEST_CHECK ("Adapter removes players when unexported from the bus");
   valent_mpris_impl_unexport (impl);
-  valent_test_await_signal (fixture->media, "items-changed");
+  valent_test_await_signal (fixture->adapter, "items-changed");
   g_assert_null (fixture->player);
 
-  g_signal_handlers_disconnect_by_data (fixture->media, fixture);
+  g_signal_handlers_disconnect_by_data (fixture->adapter, fixture);
+}
+
+static void
+test_mpris_adapter_self (MPRISAdapterFixture *fixture,
+                         gconstpointer        user_data)
+{
+  g_autoptr (GDBusConnection) connection = NULL;
+  g_autoptr (ValentMPRISImpl) impl = NULL;
+
+  g_signal_connect (fixture->adapter,
+                    "items-changed",
+                    G_CALLBACK (on_players_changed),
+                    fixture);
+
+  connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
+  impl = valent_mpris_impl_new (fixture->export);
+
+  VALENT_TEST_CHECK ("Adapter adds players when exported on the bus");
+  valent_mpris_impl_export_full (impl,
+                                 "org.mpris.MediaPlayer2.Test",
+                                 NULL,
+                                 (GAsyncReadyCallback)valent_mpris_impl_export_full_cb,
+                                 NULL);
+  valent_test_await_signal (fixture->adapter, "items-changed");
+  g_assert_true (VALENT_IS_MEDIA_PLAYER (fixture->player));
+
+  VALENT_TEST_CHECK ("Adapter removes players when unexported from the bus");
+  valent_mpris_impl_unexport (impl);
+  valent_test_await_signal (fixture->adapter, "items-changed");
+  g_assert_null (fixture->player);
+
+  g_signal_handlers_disconnect_by_data (fixture->adapter, fixture);
 }
 
 static void
@@ -226,7 +225,7 @@ test_mpris_adapter_export (MPRISAdapterFixture *fixture,
   double position;
   gboolean shuffle;
 
-  g_signal_connect (fixture->media,
+  g_signal_connect (fixture->adapter,
                     "items-changed",
                     G_CALLBACK (on_players_changed),
                     fixture);
@@ -246,7 +245,7 @@ test_mpris_adapter_export (MPRISAdapterFixture *fixture,
                                  NULL,
                                  (GAsyncReadyCallback)valent_mpris_impl_export_full_cb,
                                  NULL);
-  valent_test_await_signal (fixture->media, "items-changed");
+  valent_test_await_signal (fixture->adapter, "items-changed");
   g_assert_true (VALENT_IS_MEDIA_PLAYER (fixture->player));
 
   VALENT_TEST_CHECK ("GObject properties function correctly");
@@ -319,10 +318,8 @@ test_mpris_adapter_export (MPRISAdapterFixture *fixture,
 
   VALENT_TEST_CHECK ("Adapter removes players when unexported from the bus");
   valent_mpris_impl_unexport (impl);
-  valent_test_await_signal (fixture->media, "items-changed");
+  valent_test_await_signal (fixture->adapter, "items-changed");
   g_assert_null (fixture->player);
-
-  g_signal_handlers_disconnect_by_data (fixture->media, fixture);
 }
 
 
@@ -332,16 +329,16 @@ main (int   argc,
 {
   valent_test_init (&argc, &argv, NULL);
 
-  g_test_add ("/plugins/mpris/adapter",
-              MPRISAdapterFixture, NULL,
-              mpris_adapter_fixture_set_up,
-              test_mpris_adapter_self,
-              mpris_adapter_fixture_tear_down);
-
   g_test_add ("/plugins/mpris/player",
               MPRISAdapterFixture, NULL,
               mpris_adapter_fixture_set_up,
               test_mpris_adapter_player,
+              mpris_adapter_fixture_tear_down);
+
+  g_test_add ("/plugins/mpris/adapter",
+              MPRISAdapterFixture, NULL,
+              mpris_adapter_fixture_set_up,
+              test_mpris_adapter_self,
               mpris_adapter_fixture_tear_down);
 
   g_test_add ("/plugins/mpris/export",

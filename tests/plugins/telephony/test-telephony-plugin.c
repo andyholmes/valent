@@ -9,11 +9,12 @@
 
 typedef struct
 {
-  ValentMixerAdapter *adapter;
+  ValentMixerAdapter *mixer_adapter;
   ValentMixerStream  *speakers;
   ValentMixerStream  *headphones;
   ValentMixerStream  *microphone;
   ValentMedia        *media;
+  ValentMediaAdapter *media_adapter;
   ValentMediaPlayer  *player1;
   ValentMediaPlayer  *player2;
 } MixerInfo;
@@ -44,7 +45,7 @@ telephony_plugin_fixture_set_up (ValentTestFixture *fixture,
   valent_test_fixture_init (fixture, user_data);
 
   info = g_new0 (MixerInfo, 1);
-  info->adapter = valent_test_await_adapter (valent_mixer_get_default ());
+  info->mixer_adapter = valent_test_await_adapter (valent_mixer_get_default ());
   info->speakers = g_object_new (VALENT_TYPE_MIXER_STREAM,
                                  "name",        "mock-speakers",
                                  "description", "Mock Speakers",
@@ -63,15 +64,16 @@ telephony_plugin_fixture_set_up (ValentTestFixture *fixture,
                                    "direction",   VALENT_MIXER_INPUT,
                                    "level",       100,
                                    NULL);
+  info->media_adapter = valent_test_await_adapter (valent_media_get_default ());
   info->player1 = g_object_new (VALENT_TYPE_MOCK_MEDIA_PLAYER, NULL);
   info->player2 = g_object_new (VALENT_TYPE_MOCK_MEDIA_PLAYER, NULL);
   valent_test_fixture_set_data (fixture, info, mixer_info_free);
 
-  valent_mixer_adapter_stream_added (info->adapter, info->speakers);
-  valent_mixer_adapter_stream_added (info->adapter, info->microphone);
-  valent_mixer_adapter_stream_added (info->adapter, info->headphones);
-  valent_media_export_player (valent_media_get_default (), info->player1);
-  valent_media_export_player (valent_media_get_default (), info->player2);
+  valent_mixer_adapter_stream_added (info->mixer_adapter, info->speakers);
+  valent_mixer_adapter_stream_added (info->mixer_adapter, info->microphone);
+  valent_mixer_adapter_stream_added (info->mixer_adapter, info->headphones);
+  valent_media_adapter_player_added (info->media_adapter, info->player1);
+  valent_media_adapter_player_added (info->media_adapter, info->player2);
 }
 
 static void
@@ -238,7 +240,7 @@ test_telephony_plugin_handle_mixer (ValentTestFixture *fixture,
   g_assert_cmpuint (valent_media_player_get_state (info->player2), ==, VALENT_MEDIA_STATE_STOPPED);
 
   /* User inserts headphones */
-  valent_mixer_adapter_set_default_output (info->adapter, info->headphones);
+  valent_mixer_adapter_set_default_output (info->mixer_adapter, info->headphones);
 
   VALENT_TEST_CHECK ("Plugin handles an audio change between a `ringing` and `talking` event");
   packet = valent_test_fixture_lookup_packet (fixture, "talking");
