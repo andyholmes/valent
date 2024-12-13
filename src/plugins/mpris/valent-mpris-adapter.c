@@ -102,6 +102,7 @@ on_name_owner_changed (GDBusConnection *connection,
                                   destroy,
                                   g_async_initable_new_async_cb,
                                   self,
+                                  "source",   self,
                                   "bus-name", name,
                                   NULL);
     }
@@ -264,8 +265,8 @@ valent_mpris_impl_export_full_cb (ValentMPRISImpl    *impl,
 }
 
 static void
-valent_mpris_adapter_export (ValentMediaAdapter *adapter,
-                             ValentMediaPlayer  *player)
+valent_mpris_adapter_export_player (ValentMediaAdapter *adapter,
+                                    ValentMediaPlayer  *player)
 {
   ValentMPRISAdapter *self = VALENT_MPRIS_ADAPTER (adapter);
   g_autoptr (ValentMPRISImpl) impl = NULL;
@@ -290,8 +291,8 @@ valent_mpris_adapter_export (ValentMediaAdapter *adapter,
 }
 
 static void
-valent_mpris_adapter_unexport (ValentMediaAdapter *adapter,
-                               ValentMediaPlayer  *player)
+valent_mpris_adapter_unexport_player (ValentMediaAdapter *adapter,
+                                      ValentMediaPlayer  *player)
 {
   ValentMPRISAdapter *self = VALENT_MPRIS_ADAPTER (adapter);
   g_autoptr (ValentMPRISImpl) impl = NULL;
@@ -361,8 +362,8 @@ valent_mpris_adapter_class_init (ValentMPRISAdapterClass *klass)
 
   vobject_class->destroy = valent_mpris_adapter_destroy;
 
-  adapter_class->export_player = valent_mpris_adapter_export;
-  adapter_class->unexport_player = valent_mpris_adapter_unexport;
+  adapter_class->export_player = valent_mpris_adapter_export_player;
+  adapter_class->unexport_player = valent_mpris_adapter_unexport_player;
 }
 
 static void

@@ -101,9 +101,13 @@
                     </child>
                     <child type="title">
                       <object class="GtkDropDown" id="media_player">
-                        <binding name="model">
-                          <lookup name="players">ValentMediaWindow</lookup>
-                        </binding>
+                        <property name="model">
+                          <object class="GtkFlattenListModel">
+                            <binding name="model">
+                              <lookup name="players">ValentMediaWindow</lookup>
+                            </binding>
+                          </object>
+                        </property>
                         <property name="hexpand">1</property>
                         <property name="factory">
                           <object class="GtkBuilderListItemFactory">

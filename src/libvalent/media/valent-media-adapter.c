@@ -8,8 +8,8 @@
 #include <libvalent-core.h>
 
 #include "valent-media-player.h"
-#include "valent-media-adapter.h"
 
+#include "valent-media-adapter.h"
 
 /**
  * ValentMediaAdapter:
@@ -31,10 +31,9 @@
  *
  * Since: 1.0
  */
-
 typedef struct
 {
-  GPtrArray      *players;
+  GPtrArray *items;
 } ValentMediaAdapterPrivate;
 
 static void   g_list_model_iface_init (GListModelInterface *iface);
@@ -55,16 +54,16 @@ valent_media_adapter_get_item (GListModel   *list,
 
   g_assert (VALENT_IS_MEDIA_ADAPTER (self));
 
-  if G_UNLIKELY (position >= priv->players->len)
+  if G_UNLIKELY (position >= priv->items->len)
     return NULL;
 
-  return g_object_ref (g_ptr_array_index (priv->players, position));
+  return g_object_ref (g_ptr_array_index (priv->items, position));
 }
 
 static GType
 valent_media_adapter_get_item_type (GListModel *list)
 {
-  return VALENT_TYPE_MEDIA_ADAPTER;
+  return VALENT_TYPE_MEDIA_PLAYER;
 }
 
 static unsigned int
@@ -75,7 +74,7 @@ valent_media_adapter_get_n_items (GListModel *list)
 
   g_assert (VALENT_IS_MEDIA_ADAPTER (self));
 
-  return priv->players->len;
+  return priv->items->len;
 }
 
 static void
@@ -113,7 +112,7 @@ valent_media_adapter_finalize (GObject *object)
   ValentMediaAdapter *self = VALENT_MEDIA_ADAPTER (object);
   ValentMediaAdapterPrivate *priv = valent_media_adapter_get_instance_private (self);
 
-  g_clear_pointer (&priv->players, g_ptr_array_unref);
+  g_clear_pointer (&priv->items, g_ptr_array_unref);
 
   G_OBJECT_CLASS (valent_media_adapter_parent_class)->finalize (object);
 }
@@ -134,7 +133,7 @@ valent_media_adapter_init (ValentMediaAdapter *self)
 {
   ValentMediaAdapterPrivate *priv = valent_media_adapter_get_instance_private (self);
 
-  priv->players = g_ptr_array_new_with_free_func (g_object_unref);
+  priv->items = g_ptr_array_new_with_free_func (g_object_unref);
 }
 
 /**
@@ -160,7 +159,7 @@ valent_media_adapter_player_added (ValentMediaAdapter *adapter,
   g_return_if_fail (VALENT_IS_MEDIA_ADAPTER (adapter));
   g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
 
-  if (g_ptr_array_find (priv->players, player, &position))
+  if (g_ptr_array_find (priv->items, player, &position))
     {
       g_warning ("Player \"%s\" (%s) already exported",
                  valent_media_player_get_name (player),
@@ -174,8 +173,8 @@ valent_media_adapter_player_added (ValentMediaAdapter *adapter,
                            adapter,
                            G_CONNECT_SWAPPED);
 
-  position = priv->players->len;
-  g_ptr_array_add (priv->players, g_object_ref (player));
+  position = priv->items->len;
+  g_ptr_array_add (priv->items, g_object_ref (player));
   g_list_model_items_changed (G_LIST_MODEL (adapter), position, 0, 1);
 }
 
@@ -203,7 +202,7 @@ valent_media_adapter_player_removed (ValentMediaAdapter *adapter,
   g_return_if_fail (VALENT_IS_MEDIA_ADAPTER (adapter));
   g_return_if_fail (VALENT_IS_MEDIA_PLAYER (player));
 
-  if (!g_ptr_array_find (priv->players, player, &position))
+  if (!g_ptr_array_find (priv->items, player, &position))
     {
       g_warning ("No such player \"%s\" found in \"%s\"",
                  G_OBJECT_TYPE_NAME (player),
@@ -212,7 +211,7 @@ valent_media_adapter_player_removed (ValentMediaAdapter *adapter,
     }
 
   g_signal_handlers_disconnect_by_func (player, valent_media_adapter_player_removed, adapter);
-  item = g_ptr_array_steal_index (priv->players, position);
+  item = g_ptr_array_steal_index (priv->items, position);
   g_list_model_items_changed (G_LIST_MODEL (adapter), position, 1, 0);
 }
 

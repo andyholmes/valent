@@ -164,38 +164,46 @@ static void
 media_state_pause_players (MediaState *state)
 {
   ValentMedia *media = valent_media_get_default ();
-  unsigned int n_players = 0;
+  unsigned int n_adapters = 0;
 
-  n_players = g_list_model_get_n_items (G_LIST_MODEL (media));
-  for (unsigned int i = 0; i < n_players; i++)
+  n_adapters = g_list_model_get_n_items (G_LIST_MODEL (media));
+  for (unsigned int i = 0; i < n_adapters; i++)
     {
-      g_autoptr (ValentMediaPlayer) player = NULL;
+      g_autoptr (ValentMediaAdapter) adapter = NULL;
+      unsigned int n_players = 0;
 
-      player = g_list_model_get_item (G_LIST_MODEL (media), i);
+      adapter = g_list_model_get_item (G_LIST_MODEL (media), i);
+      n_players = g_list_model_get_n_items (G_LIST_MODEL (adapter));
+      for (unsigned int j = 0; j < n_players; j++)
+        {
+          g_autoptr (ValentMediaPlayer) player = NULL;
 
-      /* Skip players already being tracked */
-      if (g_ptr_array_find (state->players, player, NULL))
-        continue;
+          player = g_list_model_get_item (G_LIST_MODEL (adapter), j);
 
-      if (valent_media_player_get_state (player) != VALENT_MEDIA_STATE_PLAYING)
-        continue;
+          /* Skip players already being tracked */
+          if (g_ptr_array_find (state->players, player, NULL))
+            continue;
 
-      valent_media_player_pause (player);
-      g_ptr_array_add (state->players, player);
+          if (valent_media_player_get_state (player) != VALENT_MEDIA_STATE_PLAYING)
+            continue;
 
-      /* Stop tracking a player if its state changes or it's destroyed */
-      g_signal_connect_data (player,
-                             "notify::state",
-                             G_CALLBACK (on_player_changed),
-                             g_ptr_array_ref (state->players),
-                             (void *)g_ptr_array_unref,
-                             G_CONNECT_DEFAULT);
-      g_signal_connect_data (player,
-                             "destroy",
-                             G_CALLBACK (g_ptr_array_remove),
-                             g_ptr_array_ref (state->players),
-                             (void *)g_ptr_array_unref,
-                             G_CONNECT_SWAPPED);
+          valent_media_player_pause (player);
+          g_ptr_array_add (state->players, player);
+
+          /* Stop tracking a player if its state changes or it's destroyed */
+          g_signal_connect_data (player,
+                                 "notify::state",
+                                 G_CALLBACK (on_player_changed),
+                                 g_ptr_array_ref (state->players),
+                                 (void *)g_ptr_array_unref,
+                                 G_CONNECT_DEFAULT);
+          g_signal_connect_data (player,
+                                 "destroy",
+                                 G_CALLBACK (g_ptr_array_remove),
+                                 g_ptr_array_ref (state->players),
+                                 (void *)g_ptr_array_unref,
+                                 G_CONNECT_SWAPPED);
+        }
     }
 }
 

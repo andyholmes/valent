@@ -14,20 +14,19 @@ static void
 test_media_remote (void)
 {
   GtkWindow *remote = NULL;
-  GListStore *list = NULL;
+  ValentMediaAdapter *adapter;
   g_autoptr (ValentMediaPlayer) player = NULL;
-  g_autoptr (GListStore) players = NULL;
+  g_autoptr (ValentMedia) players = NULL;
 
-  list = g_list_store_new (VALENT_TYPE_MEDIA_PLAYER);
   remote = g_object_new (VALENT_TYPE_TEST_SUBJECT,
-                         "players", list,
+                         "players", valent_media_get_default (),
                          NULL);
 
   VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (remote,
                 "players", &players,
                 NULL);
-  g_assert_true (list == players);
+  g_assert_true (valent_media_get_default () == players);
   g_clear_object (&players);
 
   /* Show the window */
@@ -35,10 +34,11 @@ test_media_remote (void)
   valent_test_await_pending ();
 
   /* Add a player */
+  adapter = valent_test_await_adapter (valent_media_get_default ());
   player = g_object_new (VALENT_TYPE_MOCK_MEDIA_PLAYER, NULL);
   valent_mock_media_player_update_flags (VALENT_MOCK_MEDIA_PLAYER (player),
                                          VALENT_MEDIA_ACTION_PLAY);
-  g_list_store_append (list, player);
+  valent_media_adapter_player_added (adapter, player);
 
   /* Run through the available actions */
   gtk_widget_activate_action (GTK_WIDGET (remote), "remote.play", NULL);
@@ -55,7 +55,7 @@ test_media_remote (void)
   gtk_widget_activate_action (GTK_WIDGET (remote), "remote.shuffle", NULL);
 
   /* Remove the player */
-  g_list_store_remove (list, 0);
+  valent_media_adapter_player_removed (adapter, player);
 
   /* Destroy the window */
   gtk_window_destroy (remote);
