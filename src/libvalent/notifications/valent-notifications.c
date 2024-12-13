@@ -28,7 +28,6 @@
  *
  * Since: 1.0
  */
-
 struct _ValentNotifications
 {
   ValentComponent  parent_instance;
@@ -45,9 +44,6 @@ enum {
 };
 
 static guint signals[N_SIGNALS] = { 0, };
-
-
-static ValentNotifications *default_listener = NULL;
 
 
 static GVariant *
@@ -310,18 +306,19 @@ valent_notifications_init (ValentNotifications *self)
 ValentNotifications *
 valent_notifications_get_default (void)
 {
-  if (default_listener == NULL)
+  static ValentNotifications *default_instance = NULL;
+
+  if (default_instance == NULL)
     {
-      default_listener = g_object_new (VALENT_TYPE_NOTIFICATIONS,
+      default_instance = g_object_new (VALENT_TYPE_NOTIFICATIONS,
                                        "plugin-domain", "notifications",
                                        "plugin-type",   VALENT_TYPE_NOTIFICATIONS_ADAPTER,
                                        NULL);
-
-      g_object_add_weak_pointer (G_OBJECT (default_listener),
-                                 (gpointer)&default_listener);
+      g_object_add_weak_pointer (G_OBJECT (default_instance),
+                                 (gpointer)&default_instance);
     }
 
-  return default_listener;
+  return default_instance;
 }
 
 /**

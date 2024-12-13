@@ -26,7 +26,6 @@
  *
  * Since: 1.0
  */
-
 struct _ValentSession
 {
   ValentComponent       parent_instance;
@@ -44,9 +43,6 @@ enum {
 };
 
 static GParamSpec *properties[N_PROPERTIES] = { NULL, };
-
-static ValentSession *default_adapter = NULL;
-
 
 static void
 on_active_changed (ValentSessionAdapter *adapter,
@@ -106,11 +102,15 @@ valent_session_bind_preferred (ValentComponent *component,
       g_signal_connect_object (self->default_adapter,
                                "notify::active",
                                G_CALLBACK (on_active_changed),
-                               self, 0);
+                               self,
+                               G_CONNECT_DEFAULT);
+      on_active_changed (self->default_adapter, NULL, self);
       g_signal_connect_object (self->default_adapter,
                                "notify::locked",
                                G_CALLBACK (on_locked_changed),
-                               self, 0);
+                               self,
+                               G_CONNECT_DEFAULT);
+      on_locked_changed (self->default_adapter, NULL, self);
     }
 
   VALENT_EXIT;
@@ -220,18 +220,19 @@ valent_session_init (ValentSession *self)
 ValentSession *
 valent_session_get_default (void)
 {
-  if (default_adapter == NULL)
-    {
-      default_adapter = g_object_new (VALENT_TYPE_SESSION,
-                                      "plugin-domain", "session",
-                                      "plugin-type",   VALENT_TYPE_SESSION_ADAPTER,
-                                      NULL);
+  static ValentSession *default_instance = NULL;
 
-      g_object_add_weak_pointer (G_OBJECT (default_adapter),
-                                 (gpointer)&default_adapter);
+  if (default_instance == NULL)
+    {
+      default_instance = g_object_new (VALENT_TYPE_SESSION,
+                                       "plugin-domain", "session",
+                                       "plugin-type",   VALENT_TYPE_SESSION_ADAPTER,
+                                       NULL);
+      g_object_add_weak_pointer (G_OBJECT (default_instance),
+                                 (gpointer)&default_instance);
     }
 
-  return default_adapter;
+  return default_instance;
 }
 
 /**
