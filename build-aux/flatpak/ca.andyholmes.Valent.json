@@ -156,8 +156,8 @@
                     "sources": [
                         {
                             "type": "archive",
-                            "url": "https://github.com/boostorg/boost/releases/download/boost-1.86.0/boost-1.86.0-b2-nodocs.tar.xz",
-                            "sha256": "a4d99d032ab74c9c5e76eddcecc4489134282245fffa7e079c5804b92b45f51d",
+                            "url": "https://github.com/boostorg/boost/releases/download/boost-1.87.0/boost-1.87.0-b2-nodocs.tar.xz",
+                            "sha256": "3abd7a51118a5dd74673b25e0a3f0a4ab1752d8d618f4b8cea84a603aeecc680",
                             "x-checker-data": {
                                 "type": "anitya",
                                 "project-id": 6845,
