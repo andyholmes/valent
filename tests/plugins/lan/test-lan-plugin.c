@@ -131,6 +131,7 @@ g_socket_listener_accept_cb (GSocketListener   *listener,
                              LanBackendFixture *fixture)
 {
   g_autoptr (GSocketConnection) connection = NULL;
+  GTlsCertificate *peer_certificate = NULL;
   g_autoptr (JsonNode) peer_identity = NULL;
   JsonNode *identity;
   const char *device_id = NULL;
@@ -169,12 +170,15 @@ g_socket_listener_accept_cb (GSocketListener   *listener,
    */
   identity = json_object_get_member (json_node_get_object (fixture->packets),
                                      "identity");
+  peer_certificate = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (tls_stream));
   fixture->endpoint = g_object_new (VALENT_TYPE_LAN_CHANNEL,
-                                    "base-stream",   tls_stream,
-                                    "host",          SERVICE_HOST,
-                                    "port",          SERVICE_PORT,
-                                    "identity",      identity,
-                                    "peer-identity", peer_identity,
+                                    "base-stream",      tls_stream,
+                                    "certificate",      fixture->certificate,
+                                    "identity",         identity,
+                                    "peer-certificate", peer_certificate,
+                                    "peer-identity",    peer_identity,
+                                    "host",             SERVICE_HOST,
+                                    "port",             SERVICE_PORT,
                                     NULL);
 }
 
@@ -370,6 +374,7 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
   g_autoptr (GInputStream) unix_stream = NULL;
   g_autoptr (GDataInputStream) data_stream = NULL;
   g_autoptr (JsonNode) peer_identity = NULL;
+  GTlsCertificate *peer_certificate = NULL;
   g_autoptr (GSocketClient) client = NULL;
   g_autoptr (GSocketConnection) connection = NULL;
   JsonNode *identity;
@@ -451,12 +456,15 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
   /* We're pretending to be a remote service, so we create an endpoint channel
    * so that we can pop packets of it from the test service.
    */
+  peer_certificate = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (tls_stream));
   fixture->endpoint = g_object_new (VALENT_TYPE_LAN_CHANNEL,
-                                    "base-stream",   tls_stream,
-                                    "host",          SERVICE_HOST,
-                                    "port",          SERVICE_PORT,
-                                    "identity",      identity,
-                                    "peer-identity", peer_identity,
+                                    "base-stream",      tls_stream,
+                                    "certificate",      fixture->certificate,
+                                    "identity",         identity,
+                                    "peer-certificate", peer_certificate,
+                                    "peer-identity",    peer_identity,
+                                    "host",             SERVICE_HOST,
+                                    "port",             SERVICE_PORT,
                                     NULL);
 
   /* When the test service accepts the incoming connection, it should negotiate
@@ -630,8 +638,8 @@ test_lan_service_channel (LanBackendFixture *fixture,
   const char *channel_verification;
   const char *endpoint_verification;
   char *host;
-  g_autoptr (GTlsCertificate) certificate = NULL;
-  g_autoptr (GTlsCertificate) peer_certificate = NULL;
+  GTlsCertificate *certificate = NULL;
+  GTlsCertificate *peer_certificate = NULL;
   uint16_t port;
   g_autoptr (GFile) file = NULL;
 
@@ -667,37 +675,21 @@ test_lan_service_channel (LanBackendFixture *fixture,
 
   VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (fixture->channel,
-                "certificate", &certificate,
-                "host",        &host,
-                "port",        &port,
+                "host", &host,
+                "port", &port,
                 NULL);
-  /* FIXME: the call to `g_object_get()` for "peer-certificate" must come after
-   *        and must be a separate call. If not, this will segfault, but only on
-   *        Clang with ASan not enabled. */
-  g_object_get (fixture->channel,
-                "peer-certificate", &peer_certificate,
-                NULL);
-
-  g_assert_true (G_IS_TLS_CERTIFICATE (certificate));
-  g_assert_true (G_IS_TLS_CERTIFICATE (peer_certificate));
-  g_clear_object (&certificate);
-  g_clear_object (&peer_certificate);
-
-  certificate = valent_lan_channel_ref_certificate (VALENT_LAN_CHANNEL (fixture->endpoint));
-  peer_certificate = valent_lan_channel_ref_peer_certificate (VALENT_LAN_CHANNEL (fixture->channel));
-  g_assert_true (g_tls_certificate_is_same (certificate, peer_certificate));
-  g_clear_object (&certificate);
-  g_clear_object (&peer_certificate);
-
-  certificate = valent_lan_channel_ref_certificate (VALENT_LAN_CHANNEL (fixture->channel));
-  peer_certificate = valent_lan_channel_ref_peer_certificate (VALENT_LAN_CHANNEL (fixture->endpoint));
-  g_assert_true (g_tls_certificate_is_same (certificate, peer_certificate));
-  g_clear_object (&certificate);
-  g_clear_object (&peer_certificate);
 
   g_assert_cmpstr (host, ==, ENDPOINT_HOST);
   g_assert_cmpuint (port, ==, ENDPOINT_PORT);
   g_free (host);
+
+  certificate = valent_channel_get_certificate (fixture->endpoint);
+  peer_certificate = valent_channel_get_peer_certificate (fixture->channel);
+  g_assert_true (g_tls_certificate_is_same (certificate, peer_certificate));
+
+  certificate = valent_channel_get_certificate (fixture->channel);
+  peer_certificate = valent_channel_get_peer_certificate (fixture->endpoint);
+  g_assert_true (g_tls_certificate_is_same (certificate, peer_certificate));
 
   channel_verification = valent_channel_get_verification_key (fixture->channel);
   endpoint_verification = valent_channel_get_verification_key (fixture->endpoint);

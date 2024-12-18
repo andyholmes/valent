@@ -42,14 +42,12 @@ static void   g_async_initable_iface_init (GAsyncInitableIface *iface);
 G_DEFINE_FINAL_TYPE_WITH_CODE (ValentLanChannelService, valent_lan_channel_service, VALENT_TYPE_CHANNEL_SERVICE,
                                G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init))
 
-enum {
-  PROP_0,
-  PROP_BROADCAST_ADDRESS,
+typedef enum {
+  PROP_BROADCAST_ADDRESS = 1,
   PROP_PORT,
-  N_PROPERTIES
-};
+} ValentLanChannelServiceProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_PORT + 1] = { NULL, };
 
 
 static void
@@ -68,13 +66,13 @@ static void
 on_channel_destroyed (ValentLanChannelService *self,
                       ValentLanChannel        *channel)
 {
-  g_autoptr (GTlsCertificate) certificate = NULL;
+  GTlsCertificate *certificate = NULL;
   const char *device_id = NULL;
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
   g_assert (VALENT_IS_LAN_CHANNEL (channel));
 
-  certificate = valent_lan_channel_ref_peer_certificate (channel);
+  certificate = valent_channel_get_certificate (VALENT_CHANNEL (channel));
   device_id = valent_certificate_get_common_name (certificate);
 
   valent_object_lock (VALENT_OBJECT (self));
@@ -105,7 +103,7 @@ valent_lan_channel_service_verify_channel (ValentLanChannelService *self,
                                            GIOStream               *connection)
 {
   ValentLanChannel *channel = NULL;
-  g_autoptr (GTlsCertificate) certificate = NULL;
+  GTlsCertificate *certificate = NULL;
   g_autoptr (GTlsCertificate) peer_certificate = NULL;
   const char *peer_certificate_cn = NULL;
   const char *device_id = NULL;
@@ -132,8 +130,9 @@ valent_lan_channel_service_verify_channel (ValentLanChannelService *self,
     }
 
   valent_object_lock (VALENT_OBJECT (self));
-  if ((channel = g_hash_table_lookup (self->channels, device_id)) != NULL)
-    certificate = valent_lan_channel_ref_peer_certificate (channel);
+  channel = g_hash_table_lookup (self->channels, device_id);
+  if (channel != NULL)
+    certificate = valent_channel_get_peer_certificate (VALENT_CHANNEL (channel));
   valent_object_unlock (VALENT_OBJECT (self));
 
   if (certificate && !g_tls_certificate_is_same (certificate, peer_certificate))
@@ -183,6 +182,7 @@ on_incoming_connection (ValentChannelService   *service,
   g_autoptr (JsonNode) peer_identity = NULL;
   const char *device_id;
   g_autoptr (GTlsCertificate) certificate = NULL;
+  GTlsCertificate *peer_certificate = NULL;
   g_autoptr (GIOStream) tls_stream = NULL;
   g_autoptr (ValentChannel) channel = NULL;
   g_autoptr (GError) warning = NULL;
@@ -262,12 +262,15 @@ on_incoming_connection (ValentChannelService   *service,
 
   /* Create the new channel */
   identity = valent_channel_service_ref_identity (service);
+  peer_certificate = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (tls_stream));
   channel = g_object_new (VALENT_TYPE_LAN_CHANNEL,
-                          "base-stream",   tls_stream,
-                          "host",          host,
-                          "port",          (uint16_t)port,
-                          "identity",      identity,
-                          "peer-identity", peer_identity,
+                          "base-stream",      tls_stream,
+                          "certificate",      certificate,
+                          "identity",         identity,
+                          "peer-certificate", peer_certificate,
+                          "peer-identity",    peer_identity,
+                          "host",             host,
+                          "port",             (uint16_t)port,
                           NULL);
 
   valent_channel_service_channel (service, channel);
@@ -377,6 +380,7 @@ incoming_broadcast_task (GTask        *task,
   int64_t port = VALENT_LAN_PROTOCOL_PORT;
   GOutputStream *output_stream;
   g_autoptr (GTlsCertificate) certificate = NULL;
+  GTlsCertificate *peer_certificate = NULL;
   g_autoptr (GIOStream) tls_stream = NULL;
   g_autoptr (GError) error = NULL;
 
@@ -439,12 +443,15 @@ incoming_broadcast_task (GTask        *task,
   if (!valent_lan_channel_service_verify_channel (self, peer_identity, tls_stream))
     return g_task_return_boolean (task, TRUE);
 
+  peer_certificate = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (tls_stream));
   channel = g_object_new (VALENT_TYPE_LAN_CHANNEL,
-                          "base-stream",   tls_stream,
-                          "host",          host,
-                          "port",          port,
-                          "identity",      identity,
-                          "peer-identity", peer_identity,
+                          "base-stream",      tls_stream,
+                          "certificate",      certificate,
+                          "identity",         identity,
+                          "peer-certificate", peer_certificate,
+                          "peer-identity",    peer_identity,
+                          "host",             host,
+                          "port",             (uint16_t)port,
                           NULL);
 
   valent_channel_service_channel (service, channel);
@@ -879,15 +886,14 @@ valent_lan_channel_service_channel (ValentChannelService *service,
                                     ValentChannel        *channel)
 {
   ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (service);
-  ValentLanChannel *lan_channel = VALENT_LAN_CHANNEL (channel);
-  g_autoptr (GTlsCertificate) peer_certificate = NULL;
+  GTlsCertificate *peer_certificate = NULL;
   const char *device_id = NULL;
 
   g_assert (VALENT_IS_MAIN_THREAD ());
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
-  g_assert (VALENT_IS_LAN_CHANNEL (lan_channel));
+  g_assert (VALENT_IS_LAN_CHANNEL (channel));
 
-  peer_certificate = valent_lan_channel_ref_peer_certificate (lan_channel);
+  peer_certificate = valent_channel_get_peer_certificate (channel);
   device_id = valent_certificate_get_common_name (peer_certificate);
 
   valent_object_lock (VALENT_OBJECT (service));
@@ -1058,7 +1064,7 @@ valent_lan_channel_service_get_property (GObject    *object,
 {
   ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (object);
 
-  switch (prop_id)
+  switch ((ValentLanChannelServiceProperty)prop_id)
     {
     case PROP_BROADCAST_ADDRESS:
       g_value_set_string (value, self->broadcast_address);
@@ -1081,7 +1087,7 @@ valent_lan_channel_service_set_property (GObject      *object,
 {
   ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (object);
 
-  switch (prop_id)
+  switch ((ValentLanChannelServiceProperty)prop_id)
     {
     case PROP_BROADCAST_ADDRESS:
       self->broadcast_address = g_value_dup_string (value);
@@ -1146,7 +1152,7 @@ valent_lan_channel_service_class_init (ValentLanChannelServiceClass *klass)
                         G_PARAM_EXPLICIT_NOTIFY |
                         G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

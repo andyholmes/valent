@@ -11,10 +11,8 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (ValentLanChannel, valent_lan_channel, VALENT, LAN_CHANNEL, ValentChannel)
 
-GTlsCertificate * valent_lan_channel_ref_certificate      (ValentLanChannel *self);
-GTlsCertificate * valent_lan_channel_ref_peer_certificate (ValentLanChannel *self);
-char            * valent_lan_channel_dup_host             (ValentLanChannel *self);
-uint16_t          valent_lan_channel_get_port             (ValentLanChannel *self);
+char     * valent_lan_channel_dup_host (ValentLanChannel *self);
+uint16_t   valent_lan_channel_get_port (ValentLanChannel *self);
 
 G_END_DECLS
 

@@ -25,16 +25,12 @@ struct _ValentLanChannel
 
 G_DEFINE_FINAL_TYPE (ValentLanChannel, valent_lan_channel, VALENT_TYPE_CHANNEL)
 
-enum {
-  PROP_0,
-  PROP_CERTIFICATE,
-  PROP_HOST,
-  PROP_PEER_CERTIFICATE,
+typedef enum {
+  PROP_HOST = 1,
   PROP_PORT,
-  N_PROPERTIES
-};
+} ValentLanChannelProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_PORT + 1] = { NULL, };
 
 
 /*
@@ -45,16 +41,16 @@ valent_lan_channel_get_verification_key (ValentChannel *channel)
 {
   ValentLanChannel *self = VALENT_LAN_CHANNEL (channel);
   g_autoptr (GChecksum) checksum = NULL;
-  g_autoptr (GTlsCertificate) cert = NULL;
-  g_autoptr (GTlsCertificate) peer_cert = NULL;
+  GTlsCertificate *cert = NULL;
+  GTlsCertificate *peer_cert = NULL;
   GByteArray *pubkey;
   GByteArray *peer_pubkey;
   size_t cmplen;
 
   if (self->verification_key == NULL)
     {
-      if ((cert = valent_lan_channel_ref_certificate (self)) == NULL ||
-          (peer_cert = valent_lan_channel_ref_peer_certificate (self)) == NULL)
+      if ((cert = valent_channel_get_certificate (channel)) == NULL ||
+          (peer_cert = valent_channel_get_peer_certificate (channel)) == NULL)
         g_return_val_if_reached (NULL);
 
       if ((pubkey = valent_certificate_get_public_key (cert)) == NULL ||
@@ -93,8 +89,8 @@ valent_lan_channel_download (ValentChannel  *channel,
   goffset size;
   g_autoptr (GSocketClient) client = NULL;
   g_autoptr (GSocketConnection) connection = NULL;
-  g_autoptr (GTlsCertificate) certificate = NULL;
-  g_autoptr (GTlsCertificate) peer_certificate = NULL;
+  GTlsCertificate *certificate = NULL;
+  GTlsCertificate *peer_certificate = NULL;
   g_autofree char *host = NULL;
   g_autoptr (GIOStream) tls_stream = NULL;
 
@@ -134,8 +130,8 @@ valent_lan_channel_download (ValentChannel  *channel,
     return NULL;
 
   /* We're the TLS client when downloading */
-  certificate = valent_lan_channel_ref_certificate (self);
-  peer_certificate = valent_lan_channel_ref_peer_certificate (self);
+  certificate = valent_channel_get_certificate (channel);
+  peer_certificate = valent_channel_get_peer_certificate (channel);
   tls_stream = valent_lan_encrypt_client (connection,
                                           certificate,
                                           peer_certificate,
@@ -157,13 +153,12 @@ valent_lan_channel_upload (ValentChannel  *channel,
                            GCancellable   *cancellable,
                            GError        **error)
 {
-  ValentLanChannel *self = VALENT_LAN_CHANNEL (channel);
   JsonObject *info;
   g_autoptr (GSocketListener) listener = NULL;
   g_autoptr (GSocketConnection) connection = NULL;
   uint16_t port = VALENT_LAN_TRANSFER_PORT_MIN;
-  g_autoptr (GTlsCertificate) certificate = NULL;
-  g_autoptr (GTlsCertificate) peer_certificate = NULL;
+  GTlsCertificate *certificate = NULL;
+  GTlsCertificate *peer_certificate = NULL;
   g_autoptr (GIOStream) tls_stream = NULL;
 
   g_assert (VALENT_IS_CHANNEL (channel));
@@ -198,8 +193,8 @@ valent_lan_channel_upload (ValentChannel  *channel,
     return NULL;
 
   /* We're the TLS server when uploading */
-  certificate = valent_lan_channel_ref_certificate (self);
-  peer_certificate = valent_lan_channel_ref_peer_certificate (self);
+  certificate = valent_channel_get_certificate (channel);
+  peer_certificate = valent_channel_get_peer_certificate (channel);
   tls_stream = valent_lan_encrypt_server (connection,
                                           certificate,
                                           peer_certificate,
@@ -213,43 +208,6 @@ valent_lan_channel_upload (ValentChannel  *channel,
     }
 
   return g_steal_pointer (&tls_stream);
-}
-
-static void
-valent_lan_channel_store_data (ValentChannel *channel,
-                               ValentContext *context)
-{
-  g_autoptr (GTlsCertificate) certificate = NULL;
-  g_autofree char *certificate_pem = NULL;
-  g_autoptr (GFile) certificate_file = NULL;
-  g_autoptr (GError) error = NULL;
-
-  g_assert (VALENT_IS_LAN_CHANNEL (channel));
-  g_assert (VALENT_IS_CONTEXT (context));
-
-  /* Chain-up first */
-  VALENT_CHANNEL_CLASS (valent_lan_channel_parent_class)->store_data (channel,
-                                                                      context);
-
-  /* Save the peer certificate */
-  g_object_get (channel, "peer-certificate", &certificate, NULL);
-  g_object_get (certificate, "certificate-pem", &certificate_pem, NULL);
-
-  certificate_file = valent_context_get_config_file (context, "certificate.pem");
-  g_file_set_contents_full (g_file_peek_path (certificate_file),
-                            certificate_pem,
-                            strlen (certificate_pem),
-                            G_FILE_SET_CONTENTS_DURABLE,
-                            0600,
-                            &error);
-
-  if (error != NULL)
-    {
-      g_warning ("%s(): failed to write \"%s\": %s",
-                 G_STRFUNC,
-                 g_file_peek_path (certificate_file),
-                 error->message);
-    }
 }
 
 /*
@@ -274,18 +232,10 @@ valent_lan_channel_get_property (GObject    *object,
 {
   ValentLanChannel *self = VALENT_LAN_CHANNEL (object);
 
-  switch (prop_id)
+  switch ((ValentLanChannelProperty)prop_id)
     {
-    case PROP_CERTIFICATE:
-      g_value_take_object (value, valent_lan_channel_ref_certificate (self));
-      break;
-
     case PROP_HOST:
       g_value_take_string (value, valent_lan_channel_dup_host (self));
-      break;
-
-    case PROP_PEER_CERTIFICATE:
-      g_value_take_object (value, valent_lan_channel_ref_peer_certificate (self));
       break;
 
     case PROP_PORT:
@@ -305,7 +255,7 @@ valent_lan_channel_set_property (GObject      *object,
 {
   ValentLanChannel *self = VALENT_LAN_CHANNEL (object);
 
-  switch (prop_id)
+  switch ((ValentLanChannelProperty)prop_id)
     {
     case PROP_HOST:
       valent_object_lock (VALENT_OBJECT (self));
@@ -337,19 +287,6 @@ valent_lan_channel_class_init (ValentLanChannelClass *klass)
   channel_class->get_verification_key = valent_lan_channel_get_verification_key;
   channel_class->download = valent_lan_channel_download;
   channel_class->upload = valent_lan_channel_upload;
-  channel_class->store_data = valent_lan_channel_store_data;
-
-  /**
-   * ValentLanChannel:certificate:
-   *
-   * The TLS certificate.
-   */
-  properties [PROP_CERTIFICATE] =
-    g_param_spec_object ("certificate", NULL, NULL,
-                         G_TYPE_TLS_CERTIFICATE,
-                         (G_PARAM_READABLE |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
 
   /**
    * ValentLanChannel:host:
@@ -361,18 +298,6 @@ valent_lan_channel_class_init (ValentLanChannelClass *klass)
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentLanChannel:peer-certificate:
-   *
-   * The peer TLS certificate.
-   */
-  properties [PROP_PEER_CERTIFICATE] =
-    g_param_spec_object ("peer-certificate", NULL, NULL,
-                         G_TYPE_TLS_CERTIFICATE,
-                         (G_PARAM_READABLE |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
@@ -390,60 +315,12 @@ valent_lan_channel_class_init (ValentLanChannelClass *klass)
                         G_PARAM_EXPLICIT_NOTIFY |
                         G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void
 valent_lan_channel_init (ValentLanChannel *self)
 {
-}
-
-/**
- * valent_lan_channel_ref_certificate:
- * @self: a `ValentLanChannel`
- *
- * Get the TLS certificate.
- *
- * Returns: (transfer full) (nullable): a `GTlsCertificate`
- */
-GTlsCertificate *
-valent_lan_channel_ref_certificate (ValentLanChannel *self)
-{
-  g_autoptr (GIOStream) base_stream = NULL;
-  GTlsCertificate *ret = NULL;
-
-  g_return_val_if_fail (VALENT_IS_LAN_CHANNEL (self), NULL);
-
-  base_stream = valent_channel_ref_base_stream (VALENT_CHANNEL (self));
-
-  if (base_stream != NULL)
-    g_object_get (base_stream, "certificate", &ret, NULL);
-
-  return g_steal_pointer (&ret);
-}
-
-/**
- * valent_lan_channel_ref_peer_certificate:
- * @self: a `ValentLanChannel`
- *
- * Get the peer TLS certificate.
- *
- * Returns: (transfer full) (nullable): a `GTlsCertificate`
- */
-GTlsCertificate *
-valent_lan_channel_ref_peer_certificate (ValentLanChannel *self)
-{
-  g_autoptr (GIOStream) base_stream = NULL;
-  GTlsCertificate *ret = NULL;
-
-  g_return_val_if_fail (VALENT_IS_LAN_CHANNEL (self), NULL);
-
-  base_stream = valent_channel_ref_base_stream (VALENT_CHANNEL (self));
-
-  if (base_stream != NULL)
-    g_object_get (base_stream, "peer-certificate", &ret, NULL);
-
-  return g_steal_pointer (&ret);
 }
 
 /**
