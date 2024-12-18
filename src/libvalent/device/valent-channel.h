@@ -23,7 +23,6 @@ struct _ValentChannelClass
   ValentObjectClass   parent_class;
 
   /* virtual functions */
-  const char        * (*get_verification_key) (ValentChannel        *channel);
   GIOStream         * (*download)             (ValentChannel        *channel,
                                                JsonNode             *packet,
                                                GCancellable         *cancellable,

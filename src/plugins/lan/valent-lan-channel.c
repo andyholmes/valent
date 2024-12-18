@@ -16,11 +16,10 @@
 
 struct _ValentLanChannel
 {
-  ValentChannel    parent_instance;
+  ValentChannel  parent_instance;
 
-  char            *verification_key;
-  char            *host;
-  uint16_t         port;
+  char          *host;
+  uint16_t       port;
 };
 
 G_DEFINE_FINAL_TYPE (ValentLanChannel, valent_lan_channel, VALENT_TYPE_CHANNEL)
@@ -36,47 +35,6 @@ static GParamSpec *properties[PROP_PORT + 1] = { NULL, };
 /*
  * ValentChannel
  */
-static const char *
-valent_lan_channel_get_verification_key (ValentChannel *channel)
-{
-  ValentLanChannel *self = VALENT_LAN_CHANNEL (channel);
-  g_autoptr (GChecksum) checksum = NULL;
-  GTlsCertificate *cert = NULL;
-  GTlsCertificate *peer_cert = NULL;
-  GByteArray *pubkey;
-  GByteArray *peer_pubkey;
-  size_t cmplen;
-
-  if (self->verification_key == NULL)
-    {
-      if ((cert = valent_channel_get_certificate (channel)) == NULL ||
-          (peer_cert = valent_channel_get_peer_certificate (channel)) == NULL)
-        g_return_val_if_reached (NULL);
-
-      if ((pubkey = valent_certificate_get_public_key (cert)) == NULL ||
-          (peer_pubkey = valent_certificate_get_public_key (peer_cert)) == NULL)
-        g_return_val_if_reached (NULL);
-
-      checksum = g_checksum_new (G_CHECKSUM_SHA256);
-      cmplen = MIN (pubkey->len, peer_pubkey->len);
-
-      if (memcmp (pubkey->data, peer_pubkey->data, cmplen) > 0)
-        {
-          g_checksum_update (checksum, pubkey->data, pubkey->len);
-          g_checksum_update (checksum, peer_pubkey->data, peer_pubkey->len);
-        }
-      else
-        {
-          g_checksum_update (checksum, peer_pubkey->data, peer_pubkey->len);
-          g_checksum_update (checksum, pubkey->data, pubkey->len);
-        }
-
-      self->verification_key = g_strndup (g_checksum_get_string (checksum), 8);
-    }
-
-  return self->verification_key;
-}
-
 static GIOStream *
 valent_lan_channel_download (ValentChannel  *channel,
                              JsonNode       *packet,
@@ -219,7 +177,6 @@ valent_lan_channel_finalize (GObject *object)
   ValentLanChannel *self = VALENT_LAN_CHANNEL (object);
 
   g_clear_pointer (&self->host, g_free);
-  g_clear_pointer (&self->verification_key, g_free);
 
   G_OBJECT_CLASS (valent_lan_channel_parent_class)->finalize (object);
 }
@@ -284,7 +241,6 @@ valent_lan_channel_class_init (ValentLanChannelClass *klass)
   object_class->get_property = valent_lan_channel_get_property;
   object_class->set_property = valent_lan_channel_set_property;
 
-  channel_class->get_verification_key = valent_lan_channel_get_verification_key;
   channel_class->download = valent_lan_channel_download;
   channel_class->upload = valent_lan_channel_upload;
 

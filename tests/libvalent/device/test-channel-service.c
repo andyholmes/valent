@@ -341,8 +341,8 @@ test_channel_service_channel (ChannelServiceFixture *fixture,
 
   channel_verification = valent_channel_get_verification_key (fixture->channel);
   endpoint_verification = valent_channel_get_verification_key (fixture->endpoint);
-  g_assert_nonnull (channel_verification);
-  g_assert_nonnull (endpoint_verification);
+  g_assert_null (channel_verification);
+  g_assert_null (endpoint_verification);
   g_assert_cmpstr (channel_verification, ==, endpoint_verification);
 
   /* Packet Exchange */

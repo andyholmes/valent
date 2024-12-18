@@ -11,6 +11,7 @@
 #include <json-glib/json-glib.h>
 #include <libvalent-core.h>
 
+#include "valent-certificate.h"
 #include "valent-packet.h"
 
 #include "valent-channel.h"
@@ -40,9 +41,8 @@
  *
  * Implementations should override [vfunc@Valent.Channel.download] and
  * [vfunc@Valent.Channel.upload] to support accepting and opening auxiliary
- * connections, respectively. If pairing involves exchanging a key, override
- * [vfunc@Valent.Channel.get_verification_key]. To know when to store persistent
- * data related to the connection, override [vfunc@Valent.Channel.store_data].
+ * connections, respectively. To know when to store persistent data related to
+ * the connection, override [vfunc@Valent.Channel.store_data].
  *
  * Since: 1.0
  */
@@ -54,6 +54,7 @@ typedef struct
   JsonNode         *identity;
   GTlsCertificate  *peer_certificate;
   JsonNode         *peer_identity;
+  char             *verification_key;
 
   /* Packet Buffer */
   GDataInputStream *input_buffer;
@@ -74,12 +75,6 @@ static GParamSpec *properties[PROP_PEER_IDENTITY + 1] = { NULL, };
 
 
 /* LCOV_EXCL_START */
-static const char *
-valent_channel_real_get_verification_key (ValentChannel *channel)
-{
-  return NULL;
-}
-
 static GIOStream *
 valent_channel_real_download (ValentChannel  *channel,
                               JsonNode       *packet,
@@ -365,6 +360,7 @@ valent_channel_finalize (GObject *object)
   g_clear_pointer (&priv->identity, json_node_unref);
   g_clear_object (&priv->peer_certificate);
   g_clear_pointer (&priv->peer_identity, json_node_unref);
+  g_clear_pointer (&priv->verification_key, g_free);
   valent_object_unlock (VALENT_OBJECT (self));
 
   G_OBJECT_CLASS (valent_channel_parent_class)->finalize (object);
@@ -451,7 +447,6 @@ valent_channel_class_init (ValentChannelClass *klass)
   object_class->get_property = valent_channel_get_property;
   object_class->set_property = valent_channel_set_property;
 
-  klass->get_verification_key = valent_channel_real_get_verification_key;
   klass->download = valent_channel_real_download;
   klass->download_async = valent_channel_real_download_async;
   klass->download_finish = valent_channel_real_download_finish;
@@ -675,30 +670,59 @@ valent_channel_get_peer_identity (ValentChannel *channel)
 }
 
 /**
- * valent_channel_get_verification_key: (virtual get_verification_key)
+ * valent_channel_get_verification_key:
  * @channel: a `ValentChannel`
  *
  * Get a verification key for the connection.
  *
- * Implementations that involve exchanging a key should return a string for the
- * user to authenticate the connection, similar to a Bluetooth PIN.
- *
- * Returns: (transfer none): a verification key
+ * Returns: (nullable) (transfer none): a verification key
  *
  * Since: 1.0
  */
 const char *
 valent_channel_get_verification_key (ValentChannel *channel)
 {
-  const char *ret;
-
-  VALENT_ENTRY;
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
 
   g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
 
-  ret = VALENT_CHANNEL_GET_CLASS (channel)->get_verification_key (channel);
+  if (priv->verification_key == NULL)
+    {
+      g_autoptr (GChecksum) checksum = NULL;
+      GTlsCertificate *cert = NULL;
+      GTlsCertificate *peer_cert = NULL;
+      GByteArray *pubkey;
+      GByteArray *peer_pubkey;
+      size_t cmplen;
 
-  VALENT_RETURN (ret);
+      cert = valent_channel_get_certificate (channel);
+      peer_cert = valent_channel_get_peer_certificate (channel);
+      if (cert == NULL || peer_cert == NULL)
+        return NULL;
+
+      pubkey = valent_certificate_get_public_key (cert);
+      peer_pubkey = valent_certificate_get_public_key (peer_cert);
+      if (pubkey == NULL || peer_pubkey == NULL)
+        return NULL;
+
+      checksum = g_checksum_new (G_CHECKSUM_SHA256);
+      cmplen = MIN (pubkey->len, peer_pubkey->len);
+
+      if (memcmp (pubkey->data, peer_pubkey->data, cmplen) > 0)
+        {
+          g_checksum_update (checksum, pubkey->data, pubkey->len);
+          g_checksum_update (checksum, peer_pubkey->data, peer_pubkey->len);
+        }
+      else
+        {
+          g_checksum_update (checksum, peer_pubkey->data, peer_pubkey->len);
+          g_checksum_update (checksum, pubkey->data, pubkey->len);
+        }
+
+      priv->verification_key = g_strndup (g_checksum_get_string (checksum), 8);
+    }
+
+  return priv->verification_key;
 }
 
 /**
