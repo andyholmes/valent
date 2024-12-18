@@ -103,6 +103,12 @@ valent_plugin_free (gpointer data)
   g_cancellable_cancel (plugin->cancellable);
   g_signal_handlers_disconnect_by_data (plugin->settings, plugin);
 
+  if (VALENT_IS_OBJECT (plugin->extension))
+    {
+      valent_object_destroy (VALENT_OBJECT (plugin->extension));
+      g_clear_object (&plugin->extension);
+    }
+
   plugin->parent = NULL;
   g_clear_object (&plugin->info);
   g_clear_object (&plugin->cancellable);

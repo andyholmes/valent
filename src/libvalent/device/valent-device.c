@@ -191,18 +191,6 @@ g_action_group_iface_init (GActionGroupInterface *iface)
  * Private plugin methods
  */
 static void
-device_plugin_free (gpointer data)
-{
-  ValentPlugin *plugin = data;
-
-  /* `::action-removed` needs to be emitted before the plugin is freed */
-  if (plugin->extension != NULL)
-    valent_object_destroy (VALENT_OBJECT (plugin->extension));
-
-  g_clear_pointer (&plugin, valent_plugin_free);
-}
-
-static void
 on_plugin_action_added (GActionGroup *action_group,
                         const char   *action_name,
                         ValentPlugin *plugin)
@@ -980,7 +968,7 @@ valent_device_init (ValentDevice *self)
   GSimpleAction *action = NULL;
 
   /* Plugins */
-  self->plugins = g_hash_table_new_full (NULL, NULL, NULL, device_plugin_free);
+  self->plugins = g_hash_table_new_full (NULL, NULL, NULL, valent_plugin_free);
   self->handlers = g_hash_table_new_full (g_str_hash,
                                           g_str_equal,
                                           g_free,
