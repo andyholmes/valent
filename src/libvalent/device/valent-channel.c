@@ -11,8 +11,9 @@
 #include <json-glib/json-glib.h>
 #include <libvalent-core.h>
 
-#include "valent-channel.h"
 #include "valent-packet.h"
+
+#include "valent-channel.h"
 
 
 /**
@@ -49,7 +50,9 @@
 typedef struct
 {
   GIOStream        *base_stream;
+  GTlsCertificate  *certificate;
   JsonNode         *identity;
+  GTlsCertificate  *peer_certificate;
   JsonNode         *peer_identity;
 
   /* Packet Buffer */
@@ -59,15 +62,15 @@ typedef struct
 
 G_DEFINE_TYPE_WITH_PRIVATE (ValentChannel, valent_channel, VALENT_TYPE_OBJECT)
 
-enum {
-  PROP_0,
-  PROP_BASE_STREAM,
+typedef enum {
+  PROP_BASE_STREAM = 1,
+  PROP_CERTIFICATE,
   PROP_IDENTITY,
+  PROP_PEER_CERTIFICATE,
   PROP_PEER_IDENTITY,
-  N_PROPERTIES
-};
+} ValentChannelProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_PEER_IDENTITY + 1] = { NULL, };
 
 
 /* LCOV_EXCL_START */
@@ -225,8 +228,37 @@ static void
 valent_channel_real_store_data (ValentChannel *channel,
                                 ValentContext *context)
 {
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+
   g_assert (VALENT_IS_CHANNEL (channel));
   g_assert (VALENT_IS_CONTEXT (context));
+
+  if (priv->certificate != NULL)
+    {
+      g_autofree char *certificate_pem = NULL;
+      g_autoptr (GFile) certificate_file = NULL;
+      g_autoptr (GError) error = NULL;
+
+      g_object_get (priv->certificate,
+                    "certificate-pem", &certificate_pem,
+                    NULL);
+      certificate_file = valent_context_get_config_file (context,
+                                                         "certificate.pem");
+      g_file_set_contents_full (g_file_peek_path (certificate_file),
+                                certificate_pem,
+                                strlen (certificate_pem),
+                                G_FILE_SET_CONTENTS_DURABLE,
+                                0600,
+                                &error);
+
+      if (error != NULL)
+        {
+          g_warning ("%s(): failed to write \"%s\": %s",
+                     G_STRFUNC,
+                     g_file_peek_path (certificate_file),
+                     error->message);
+        }
+    }
 }
 /* LCOV_EXCL_STOP */
 
@@ -329,7 +361,9 @@ valent_channel_finalize (GObject *object)
   g_clear_pointer (&priv->output_buffer, g_main_loop_unref);
   g_clear_object (&priv->input_buffer);
   g_clear_object (&priv->base_stream);
+  g_clear_object (&priv->certificate);
   g_clear_pointer (&priv->identity, json_node_unref);
+  g_clear_object (&priv->peer_certificate);
   g_clear_pointer (&priv->peer_identity, json_node_unref);
   valent_object_unlock (VALENT_OBJECT (self));
 
@@ -345,14 +379,22 @@ valent_channel_get_property (GObject    *object,
   ValentChannel *self = VALENT_CHANNEL (object);
   ValentChannelPrivate *priv = valent_channel_get_instance_private (self);
 
-  switch (prop_id)
+  switch ((ValentChannelProperty)prop_id)
     {
     case PROP_BASE_STREAM:
       g_value_take_object (value, valent_channel_ref_base_stream (self));
       break;
 
+    case PROP_CERTIFICATE:
+      g_value_set_object (value, priv->certificate);
+      break;
+
     case PROP_IDENTITY:
       g_value_set_boxed (value, priv->identity);
+      break;
+
+    case PROP_PEER_CERTIFICATE:
+      g_value_set_object (value, priv->peer_certificate);
       break;
 
     case PROP_PEER_IDENTITY:
@@ -373,14 +415,22 @@ valent_channel_set_property (GObject      *object,
   ValentChannel *self = VALENT_CHANNEL (object);
   ValentChannelPrivate *priv = valent_channel_get_instance_private (self);
 
-  switch (prop_id)
+  switch ((ValentChannelProperty)prop_id)
     {
     case PROP_BASE_STREAM:
       valent_channel_set_base_stream (self, g_value_get_object (value));
       break;
 
+    case PROP_CERTIFICATE:
+      priv->certificate = g_value_dup_object (value);
+      break;
+
     case PROP_IDENTITY:
       priv->identity = g_value_dup_boxed (value);
+      break;
+
+    case PROP_PEER_CERTIFICATE:
+      priv->peer_certificate = g_value_dup_object (value);
       break;
 
     case PROP_PEER_IDENTITY:
@@ -429,6 +479,27 @@ valent_channel_class_init (ValentChannelClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
+   * ValentChannel:certificate: (getter get_certificate)
+   *
+   * The peer TLS certificate.
+   *
+   * This is the TLS certificate sent by the [class@Valent.ChannelService]
+   * implementation to identify the host system.
+   *
+   * Implementations of [class@Valent.ChannelService] must set this property
+   * during construction.
+   *
+   * Since: 1.0
+   */
+  properties [PROP_CERTIFICATE] =
+    g_param_spec_object ("certificate", NULL, NULL,
+                         G_TYPE_TLS_CERTIFICATE,
+                         (G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT_ONLY |
+                          G_PARAM_EXPLICIT_NOTIFY |
+                          G_PARAM_STATIC_STRINGS));
+
+  /**
    * ValentChannel:identity: (getter get_identity)
    *
    * The local identity packet.
@@ -450,6 +521,26 @@ valent_channel_class_init (ValentChannelClass *klass)
                          G_PARAM_STATIC_STRINGS));
 
   /**
+   * ValentChannel:peer-certificate: (getter get_peer_certificate)
+   *
+   * The peer TLS certificate.
+   *
+   * This is the TLS certificate sent by the peer to identify itself.
+   *
+   * Implementations of [class@Valent.ChannelService] must set this property
+   * during construction.
+   *
+   * Since: 1.0
+   */
+  properties [PROP_PEER_CERTIFICATE] =
+    g_param_spec_object ("peer-certificate", NULL, NULL,
+                         G_TYPE_TLS_CERTIFICATE,
+                         (G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT_ONLY |
+                          G_PARAM_EXPLICIT_NOTIFY |
+                          G_PARAM_STATIC_STRINGS));
+
+  /**
    * ValentChannel:peer-identity: (getter get_peer_identity)
    *
    * The peer identity packet.
@@ -469,7 +560,7 @@ valent_channel_class_init (ValentChannelClass *klass)
                          G_PARAM_EXPLICIT_NOTIFY |
                          G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void
@@ -504,6 +595,26 @@ valent_channel_ref_base_stream (ValentChannel *channel)
 }
 
 /**
+ * valent_channel_get_certificate: (get-property certificate)
+ * @channel: A `ValentChannel`
+ *
+ * Get the TLS certificate.
+ *
+ * Returns: (nullable) (transfer none): a TLS certificate
+ *
+ * Since: 1.0
+ */
+GTlsCertificate *
+valent_channel_get_certificate (ValentChannel *channel)
+{
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
+
+  return priv->certificate;
+}
+
+/**
  * valent_channel_get_identity: (get-property identity)
  * @channel: A `ValentChannel`
  *
@@ -521,6 +632,26 @@ valent_channel_get_identity (ValentChannel *channel)
   g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
 
   return priv->identity;
+}
+
+/**
+ * valent_channel_get_peer_certificate: (get-property peer-certificate)
+ * @channel: A `ValentChannel`
+ *
+ * Get the peer TLS certificate.
+ *
+ * Returns: (nullable) (transfer none): a TLS certificate
+ *
+ * Since: 1.0
+ */
+GTlsCertificate *
+valent_channel_get_peer_certificate (ValentChannel *channel)
+{
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+
+  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
+
+  return priv->peer_certificate;
 }
 
 /**
@@ -910,8 +1041,8 @@ valent_channel_write_packet_finish (ValentChannel  *channel,
  *
  * Store channel metadata.
  *
- * This method is called to store channel specific data. Implementations can
- * override this method to store extra data (eg. TLS Certificate).
+ * This method is called to store channel specific data. The default
+ * implementation stores the peer certificate.
  *
  * Implementations that override [vfunc@Valent.Channel.store_data] must
  * chain-up.
