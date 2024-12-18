@@ -216,20 +216,6 @@ valent_device_manager_export_device (ValentDeviceManager *self,
 /*
  * Channel Services
  */
-static void
-manager_plugin_free (gpointer data)
-{
-  ValentPlugin *plugin = data;
-
-  if (plugin->extension != NULL)
-    {
-      g_signal_handlers_disconnect_by_data (plugin->extension, plugin->parent);
-      valent_object_destroy (VALENT_OBJECT (plugin->extension));
-    }
-
-  g_clear_pointer (&plugin, valent_plugin_free);
-}
-
 static gboolean
 valent_device_manager_check_device (ValentDeviceManager *self,
                                     ValentDevice        *device)
@@ -357,7 +343,6 @@ valent_device_manager_disable_plugin (ValentDeviceManager *self,
 
   if (plugin->extension != NULL)
     {
-      g_signal_handlers_disconnect_by_data (plugin->extension, self);
       valent_object_destroy (VALENT_OBJECT (plugin->extension));
       g_clear_object (&plugin->extension);
     }
@@ -884,7 +869,7 @@ valent_device_manager_init (ValentDeviceManager *self)
   self->context = valent_context_new (NULL, NULL, NULL);
   self->devices = g_ptr_array_new_with_free_func (g_object_unref);
   self->exports = g_hash_table_new_full (NULL, NULL, NULL, device_export_free);
-  self->plugins = g_hash_table_new_full (NULL, NULL, NULL, manager_plugin_free);
+  self->plugins = g_hash_table_new_full (NULL, NULL, NULL, valent_plugin_free);
   self->plugins_context = valent_context_new (self->context, "network", NULL);
 }
 

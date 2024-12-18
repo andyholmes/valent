@@ -57,19 +57,6 @@ typedef enum {
 
 static GParamSpec *properties[PROP_PRIMARY_ADAPTER + 1] = { NULL, };
 
-
-static void
-component_plugin_free (gpointer data)
-{
-  ValentPlugin *plugin = data;
-
-  if (plugin->extension != NULL)
-    valent_object_destroy (VALENT_OBJECT (plugin->extension));
-
-  g_clear_pointer (&plugin, valent_plugin_free);
-}
-
-
 static int64_t
 _peas_plugin_info_get_priority (PeasPluginInfo *info,
                                 const char     *key)
@@ -643,7 +630,7 @@ valent_component_init (ValentComponent *self)
 {
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
 
-  priv->plugins = g_hash_table_new_full (NULL, NULL, NULL, component_plugin_free);
+  priv->plugins = g_hash_table_new_full (NULL, NULL, NULL, valent_plugin_free);
   priv->items = g_ptr_array_new_with_free_func (g_object_unref);
 }
 
