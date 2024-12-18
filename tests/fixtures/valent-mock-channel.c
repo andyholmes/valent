@@ -40,14 +40,6 @@ static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 /*
  * ValentChannel
  */
-static const char *
-valent_mock_channel_get_verification_key (ValentChannel *channel)
-{
-  g_assert (VALENT_IS_MOCK_CHANNEL (channel));
-
-  return "Mock Channel";
-}
-
 static GIOStream *
 valent_mock_channel_download (ValentChannel  *channel,
                               JsonNode       *packet,
@@ -217,7 +209,6 @@ valent_mock_channel_class_init (ValentMockChannelClass *klass)
   object_class->get_property = valent_mock_channel_get_property;
   object_class->set_property = valent_mock_channel_set_property;
 
-  channel_class->get_verification_key = valent_mock_channel_get_verification_key;
   channel_class->download = valent_mock_channel_download;
   channel_class->upload = valent_mock_channel_upload;
 
