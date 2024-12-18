@@ -28,6 +28,7 @@ struct _ValentSmsDevice
   GQueue                   attachment_requests;
 };
 
+static void   attachment_request_next                 (ValentSmsDevice *self);
 static void   attachment_request_queue                (ValentSmsDevice *self,
                                                        const char      *iri,
                                                        int64_t          part_id,
@@ -35,6 +36,7 @@ static void   attachment_request_queue                (ValentSmsDevice *self,
 static void   valent_sms_device_request_attachment    (ValentSmsDevice *self,
                                                        int64_t          thread_id,
                                                        const char      *unique_identifier);
+static void   message_request_free                    (gpointer         data);
 static void   valent_sms_device_request_conversation  (ValentSmsDevice *self,
                                                        int64_t          thread_id,
                                                        int64_t          range_start_timestamp,
@@ -49,8 +51,6 @@ typedef struct
   int64_t part_id;
   char *unique_identifier;
 } AttachmentRequest;
-
-static void  attachment_request_next  (ValentSmsDevice *self);
 
 static void
 attachment_request_free (gpointer data)
@@ -918,7 +918,7 @@ static void
 valent_sms_device_init (ValentSmsDevice *self)
 {
   g_queue_init (&self->attachment_requests);
-  self->message_requests = g_ptr_array_new_with_free_func (g_free);
+  self->message_requests = g_ptr_array_new_with_free_func (message_request_free);
 }
 
 /**
@@ -1060,19 +1060,31 @@ valent_sms_device_get_timestamp_finish (ValentSmsDevice  *store,
 typedef struct
 {
   ValentSmsDevice *self;
+  JsonNode *pending;
   int64_t thread_id;
   int64_t start_date;
   int64_t end_date;
   int64_t max_results;
-} RequestData;
+} MessageRequest;
 
 #define DEFAULT_MESSAGE_REQUEST (100)
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (MessageRequest, message_request_free)
+
+static void
+message_request_free (gpointer data)
+{
+  MessageRequest *request = data;
+
+  g_clear_pointer (&request->pending, json_node_unref);
+  g_free (request);
+}
 
 static gboolean
 find_message_request (gconstpointer a,
                       gconstpointer b)
 {
-  return ((RequestData *)a)->thread_id == *((int64_t *)b);
+  return ((MessageRequest *)a)->thread_id == *((int64_t *)b);
 }
 
 static void
@@ -1112,7 +1124,7 @@ valent_sms_device_get_timestamp_cb (ValentSmsDevice *self,
                                     GAsyncResult    *result,
                                     gpointer         user_data)
 {
-  g_autofree RequestData *request = (RequestData *)user_data;
+  g_autoptr (MessageRequest) request = g_steal_pointer (&user_data);
   int64_t cache_date;
   g_autoptr (GError) error = NULL;
 
@@ -1127,6 +1139,9 @@ valent_sms_device_get_timestamp_cb (ValentSmsDevice *self,
 
   if (cache_date < request->end_date)
     {
+      if (request->pending != NULL)
+        valent_sms_device_add_json (self, request->pending);
+
       request->start_date = cache_date;
       valent_sms_device_request_conversation (self,
                                               request->thread_id,
@@ -1195,7 +1210,7 @@ valent_sms_device_handle_messages (ValentSmsDevice *self,
                                         find_message_request,
                                         &index_))
     {
-      RequestData *request = g_ptr_array_index (self->message_requests, index_);
+      MessageRequest *request = g_ptr_array_index (self->message_requests, index_);
 
       /* This is a response to our request
        */
@@ -1215,12 +1230,16 @@ valent_sms_device_handle_messages (ValentSmsDevice *self,
               g_ptr_array_remove_index (self->message_requests, index_);
             }
         }
+
+      // FIXME: only store expected responses
+      valent_sms_device_add_json (self, node);
     }
   else if (n_messages == 1)
     {
-      RequestData *request;
+      MessageRequest *request;
 
-      request = g_new (RequestData, 1);
+      request = g_new0 (MessageRequest, 1);
+      request->pending = json_node_ref (node);
       request->thread_id = thread_id;
       request->start_date = end_date;
       request->end_date = end_date;
@@ -1232,11 +1251,6 @@ valent_sms_device_handle_messages (ValentSmsDevice *self,
                                        (GAsyncReadyCallback) valent_sms_device_get_timestamp_cb,
                                        g_steal_pointer (&request));
     }
-
-  /* Store what we've received after the request is queued, otherwise having the
-   * latest message we may request nothing.
-   */
-  valent_sms_device_add_json (self, node);
 
   VALENT_EXIT;
 }
